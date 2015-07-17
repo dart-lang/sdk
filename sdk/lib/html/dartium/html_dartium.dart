@@ -89,7 +89,7 @@ Window get window {
   if (_window != null) {
     return _window;
   }
-  _window = wrap_jso(js.context['window']);
+  _window = _Utils.window();
   return _window;
 }
 
@@ -620,583 +620,10 @@ Type _getSvgType(String key) {
 }
 
 
-// FIXME: Can we make this private?
-final htmlBlinkFunctionMap = {
-  'AbstractWorker': () => AbstractWorker.internalCreateAbstractWorker,
-  'Animation': () => Animation.internalCreateAnimation,
-  'AnimationEffect': () => AnimationEffect.internalCreateAnimationEffect,
-  'AnimationNode': () => AnimationNode.internalCreateAnimationNode,
-  'AnimationPlayer': () => AnimationPlayer.internalCreateAnimationPlayer,
-  'AnimationPlayerEvent': () => AnimationPlayerEvent.internalCreateAnimationPlayerEvent,
-  'AnimationTimeline': () => AnimationTimeline.internalCreateAnimationTimeline,
-  'ApplicationCache': () => ApplicationCache.internalCreateApplicationCache,
-  'ApplicationCacheErrorEvent': () => ApplicationCacheErrorEvent.internalCreateApplicationCacheErrorEvent,
-  'Attr': () => _Attr.internalCreate_Attr,
-  'AudioTrack': () => AudioTrack.internalCreateAudioTrack,
-  'AudioTrackList': () => AudioTrackList.internalCreateAudioTrackList,
-  'AutocompleteErrorEvent': () => AutocompleteErrorEvent.internalCreateAutocompleteErrorEvent,
-  'BarProp': () => BarProp.internalCreateBarProp,
-  'BatteryManager': () => BatteryManager.internalCreateBatteryManager,
-  'BeforeUnloadEvent': () => BeforeUnloadEvent.internalCreateBeforeUnloadEvent,
-  'Blob': () => Blob.internalCreateBlob,
-  'Body': () => Body.internalCreateBody,
-  'CDATASection': () => CDataSection.internalCreateCDataSection,
-  'CSS': () => Css.internalCreateCss,
-  'CSSCharsetRule': () => CssCharsetRule.internalCreateCssCharsetRule,
-  'CSSFontFaceRule': () => CssFontFaceRule.internalCreateCssFontFaceRule,
-  'CSSImportRule': () => CssImportRule.internalCreateCssImportRule,
-  'CSSKeyframeRule': () => CssKeyframeRule.internalCreateCssKeyframeRule,
-  'CSSKeyframesRule': () => CssKeyframesRule.internalCreateCssKeyframesRule,
-  'CSSMediaRule': () => CssMediaRule.internalCreateCssMediaRule,
-  'CSSPageRule': () => CssPageRule.internalCreateCssPageRule,
-  'CSSPrimitiveValue': () => _CSSPrimitiveValue.internalCreate_CSSPrimitiveValue,
-  'CSSRule': () => CssRule.internalCreateCssRule,
-  'CSSRuleList': () => _CssRuleList.internalCreate_CssRuleList,
-  'CSSStyleDeclaration': () => CssStyleDeclaration.internalCreateCssStyleDeclaration,
-  'CSSStyleRule': () => CssStyleRule.internalCreateCssStyleRule,
-  'CSSStyleSheet': () => CssStyleSheet.internalCreateCssStyleSheet,
-  'CSSSupportsRule': () => CssSupportsRule.internalCreateCssSupportsRule,
-  'CSSUnknownRule': () => _CSSUnknownRule.internalCreate_CSSUnknownRule,
-  'CSSValue': () => _CSSValue.internalCreate_CSSValue,
-  'CSSValueList': () => _CssValueList.internalCreate_CssValueList,
-  'CSSViewportRule': () => CssViewportRule.internalCreateCssViewportRule,
-  'Cache': () => _Cache.internalCreate_Cache,
-  'CacheStorage': () => CacheStorage.internalCreateCacheStorage,
-  'Canvas2DContextAttributes': () => Canvas2DContextAttributes.internalCreateCanvas2DContextAttributes,
-  'CanvasGradient': () => CanvasGradient.internalCreateCanvasGradient,
-  'CanvasPathMethods': () => _CanvasPathMethods.internalCreate_CanvasPathMethods,
-  'CanvasPattern': () => CanvasPattern.internalCreateCanvasPattern,
-  'CanvasRenderingContext2D': () => CanvasRenderingContext2D.internalCreateCanvasRenderingContext2D,
-  'CharacterData': () => CharacterData.internalCreateCharacterData,
-  'ChildNode': () => ChildNode.internalCreateChildNode,
-  'CircularGeofencingRegion': () => CircularGeofencingRegion.internalCreateCircularGeofencingRegion,
-  'ClientRect': () => _ClientRect.internalCreate_ClientRect,
-  'ClientRectList': () => _ClientRectList.internalCreate_ClientRectList,
-  'CloseEvent': () => CloseEvent.internalCreateCloseEvent,
-  'Comment': () => Comment.internalCreateComment,
-  'CompositionEvent': () => CompositionEvent.internalCreateCompositionEvent,
-  'Console': () => Console.internalCreateConsole,
-  'ConsoleBase': () => ConsoleBase.internalCreateConsoleBase,
-  'Coordinates': () => Coordinates.internalCreateCoordinates,
-  'Counter': () => _Counter.internalCreate_Counter,
-  'Credential': () => Credential.internalCreateCredential,
-  'CredentialsContainer': () => CredentialsContainer.internalCreateCredentialsContainer,
-  'Crypto': () => Crypto.internalCreateCrypto,
-  'CryptoKey': () => CryptoKey.internalCreateCryptoKey,
-  'CustomEvent': () => CustomEvent.internalCreateCustomEvent,
-  'DOMError': () => DomError.internalCreateDomError,
-  'DOMException': () => DomException.internalCreateDomException,
-  'DOMFileSystem': () => FileSystem.internalCreateFileSystem,
-  'DOMFileSystemSync': () => _DOMFileSystemSync.internalCreate_DOMFileSystemSync,
-  'DOMImplementation': () => DomImplementation.internalCreateDomImplementation,
-  'DOMMatrix': () => DomMatrix.internalCreateDomMatrix,
-  'DOMMatrixReadOnly': () => DomMatrixReadOnly.internalCreateDomMatrixReadOnly,
-  'DOMParser': () => DomParser.internalCreateDomParser,
-  'DOMPoint': () => DomPoint.internalCreateDomPoint,
-  'DOMPointReadOnly': () => DomPointReadOnly.internalCreateDomPointReadOnly,
-  'DOMRect': () => _DomRect.internalCreate_DomRect,
-  'DOMRectReadOnly': () => DomRectReadOnly.internalCreateDomRectReadOnly,
-  'DOMSettableTokenList': () => DomSettableTokenList.internalCreateDomSettableTokenList,
-  'DOMStringList': () => DomStringList.internalCreateDomStringList,
-  'DOMStringMap': () => DomStringMap.internalCreateDomStringMap,
-  'DOMTokenList': () => DomTokenList.internalCreateDomTokenList,
-  'DataTransfer': () => DataTransfer.internalCreateDataTransfer,
-  'DataTransferItem': () => DataTransferItem.internalCreateDataTransferItem,
-  'DataTransferItemList': () => DataTransferItemList.internalCreateDataTransferItemList,
-  'DedicatedWorkerGlobalScope': () => DedicatedWorkerGlobalScope.internalCreateDedicatedWorkerGlobalScope,
-  'DeprecatedStorageInfo': () => DeprecatedStorageInfo.internalCreateDeprecatedStorageInfo,
-  'DeprecatedStorageQuota': () => DeprecatedStorageQuota.internalCreateDeprecatedStorageQuota,
-  'DeviceAcceleration': () => DeviceAcceleration.internalCreateDeviceAcceleration,
-  'DeviceLightEvent': () => DeviceLightEvent.internalCreateDeviceLightEvent,
-  'DeviceMotionEvent': () => DeviceMotionEvent.internalCreateDeviceMotionEvent,
-  'DeviceOrientationEvent': () => DeviceOrientationEvent.internalCreateDeviceOrientationEvent,
-  'DeviceRotationRate': () => DeviceRotationRate.internalCreateDeviceRotationRate,
-  'DirectoryEntry': () => DirectoryEntry.internalCreateDirectoryEntry,
-  'DirectoryEntrySync': () => _DirectoryEntrySync.internalCreate_DirectoryEntrySync,
-  'DirectoryReader': () => DirectoryReader.internalCreateDirectoryReader,
-  'DirectoryReaderSync': () => _DirectoryReaderSync.internalCreate_DirectoryReaderSync,
-  'Document': () => Document.internalCreateDocument,
-  'DocumentFragment': () => DocumentFragment.internalCreateDocumentFragment,
-  'DocumentType': () => _DocumentType.internalCreate_DocumentType,
-  'Element': () => Element.internalCreateElement,
-  'Entry': () => Entry.internalCreateEntry,
-  'EntrySync': () => _EntrySync.internalCreate_EntrySync,
-  'ErrorEvent': () => ErrorEvent.internalCreateErrorEvent,
-  'Event': () => Event.internalCreateEvent,
-  'EventSource': () => EventSource.internalCreateEventSource,
-  'EventTarget': () => EventTarget.internalCreateEventTarget,
-  'ExtendableEvent': () => ExtendableEvent.internalCreateExtendableEvent,
-  'FederatedCredential': () => FederatedCredential.internalCreateFederatedCredential,
-  'FetchEvent': () => FetchEvent.internalCreateFetchEvent,
-  'File': () => File.internalCreateFile,
-  'FileEntry': () => FileEntry.internalCreateFileEntry,
-  'FileEntrySync': () => _FileEntrySync.internalCreate_FileEntrySync,
-  'FileError': () => FileError.internalCreateFileError,
-  'FileList': () => FileList.internalCreateFileList,
-  'FileReader': () => FileReader.internalCreateFileReader,
-  'FileReaderSync': () => _FileReaderSync.internalCreate_FileReaderSync,
-  'FileWriter': () => FileWriter.internalCreateFileWriter,
-  'FileWriterSync': () => _FileWriterSync.internalCreate_FileWriterSync,
-  'FocusEvent': () => FocusEvent.internalCreateFocusEvent,
-  'FontFace': () => FontFace.internalCreateFontFace,
-  'FontFaceSet': () => FontFaceSet.internalCreateFontFaceSet,
-  'FontFaceSetLoadEvent': () => FontFaceSetLoadEvent.internalCreateFontFaceSetLoadEvent,
-  'FormData': () => FormData.internalCreateFormData,
-  'Gamepad': () => Gamepad.internalCreateGamepad,
-  'GamepadButton': () => GamepadButton.internalCreateGamepadButton,
-  'GamepadEvent': () => GamepadEvent.internalCreateGamepadEvent,
-  'GamepadList': () => _GamepadList.internalCreate_GamepadList,
-  'Geofencing': () => Geofencing.internalCreateGeofencing,
-  'GeofencingRegion': () => GeofencingRegion.internalCreateGeofencingRegion,
-  'Geolocation': () => Geolocation.internalCreateGeolocation,
-  'Geoposition': () => Geoposition.internalCreateGeoposition,
-  'GlobalEventHandlers': () => GlobalEventHandlers.internalCreateGlobalEventHandlers,
-  'HTMLAllCollection': () => _HTMLAllCollection.internalCreate_HTMLAllCollection,
-  'HTMLAnchorElement': () => AnchorElement.internalCreateAnchorElement,
-  'HTMLAppletElement': () => _HTMLAppletElement.internalCreate_HTMLAppletElement,
-  'HTMLAreaElement': () => AreaElement.internalCreateAreaElement,
-  'HTMLAudioElement': () => AudioElement.internalCreateAudioElement,
-  'HTMLBRElement': () => BRElement.internalCreateBRElement,
-  'HTMLBaseElement': () => BaseElement.internalCreateBaseElement,
-  'HTMLBodyElement': () => BodyElement.internalCreateBodyElement,
-  'HTMLButtonElement': () => ButtonElement.internalCreateButtonElement,
-  'HTMLCanvasElement': () => CanvasElement.internalCreateCanvasElement,
-  'HTMLCollection': () => HtmlCollection.internalCreateHtmlCollection,
-  'HTMLContentElement': () => ContentElement.internalCreateContentElement,
-  'HTMLDListElement': () => DListElement.internalCreateDListElement,
-  'HTMLDataListElement': () => DataListElement.internalCreateDataListElement,
-  'HTMLDetailsElement': () => DetailsElement.internalCreateDetailsElement,
-  'HTMLDialogElement': () => DialogElement.internalCreateDialogElement,
-  'HTMLDirectoryElement': () => _HTMLDirectoryElement.internalCreate_HTMLDirectoryElement,
-  'HTMLDivElement': () => DivElement.internalCreateDivElement,
-  'HTMLDocument': () => HtmlDocument.internalCreateHtmlDocument,
-  'HTMLElement': () => HtmlElement.internalCreateHtmlElement,
-  'HTMLEmbedElement': () => EmbedElement.internalCreateEmbedElement,
-  'HTMLFieldSetElement': () => FieldSetElement.internalCreateFieldSetElement,
-  'HTMLFontElement': () => _HTMLFontElement.internalCreate_HTMLFontElement,
-  'HTMLFormControlsCollection': () => HtmlFormControlsCollection.internalCreateHtmlFormControlsCollection,
-  'HTMLFormElement': () => FormElement.internalCreateFormElement,
-  'HTMLFrameElement': () => _HTMLFrameElement.internalCreate_HTMLFrameElement,
-  'HTMLFrameSetElement': () => _HTMLFrameSetElement.internalCreate_HTMLFrameSetElement,
-  'HTMLHRElement': () => HRElement.internalCreateHRElement,
-  'HTMLHeadElement': () => HeadElement.internalCreateHeadElement,
-  'HTMLHeadingElement': () => HeadingElement.internalCreateHeadingElement,
-  'HTMLHtmlElement': () => HtmlHtmlElement.internalCreateHtmlHtmlElement,
-  'HTMLIFrameElement': () => IFrameElement.internalCreateIFrameElement,
-  'HTMLImageElement': () => ImageElement.internalCreateImageElement,
-  'HTMLInputElement': () => InputElement.internalCreateInputElement,
-  'HTMLKeygenElement': () => KeygenElement.internalCreateKeygenElement,
-  'HTMLLIElement': () => LIElement.internalCreateLIElement,
-  'HTMLLabelElement': () => LabelElement.internalCreateLabelElement,
-  'HTMLLegendElement': () => LegendElement.internalCreateLegendElement,
-  'HTMLLinkElement': () => LinkElement.internalCreateLinkElement,
-  'HTMLMapElement': () => MapElement.internalCreateMapElement,
-  'HTMLMarqueeElement': () => _HTMLMarqueeElement.internalCreate_HTMLMarqueeElement,
-  'HTMLMediaElement': () => MediaElement.internalCreateMediaElement,
-  'HTMLMenuElement': () => MenuElement.internalCreateMenuElement,
-  'HTMLMenuItemElement': () => MenuItemElement.internalCreateMenuItemElement,
-  'HTMLMetaElement': () => MetaElement.internalCreateMetaElement,
-  'HTMLMeterElement': () => MeterElement.internalCreateMeterElement,
-  'HTMLModElement': () => ModElement.internalCreateModElement,
-  'HTMLOListElement': () => OListElement.internalCreateOListElement,
-  'HTMLObjectElement': () => ObjectElement.internalCreateObjectElement,
-  'HTMLOptGroupElement': () => OptGroupElement.internalCreateOptGroupElement,
-  'HTMLOptionElement': () => OptionElement.internalCreateOptionElement,
-  'HTMLOptionsCollection': () => HtmlOptionsCollection.internalCreateHtmlOptionsCollection,
-  'HTMLOutputElement': () => OutputElement.internalCreateOutputElement,
-  'HTMLParagraphElement': () => ParagraphElement.internalCreateParagraphElement,
-  'HTMLParamElement': () => ParamElement.internalCreateParamElement,
-  'HTMLPictureElement': () => PictureElement.internalCreatePictureElement,
-  'HTMLPreElement': () => PreElement.internalCreatePreElement,
-  'HTMLProgressElement': () => ProgressElement.internalCreateProgressElement,
-  'HTMLQuoteElement': () => QuoteElement.internalCreateQuoteElement,
-  'HTMLScriptElement': () => ScriptElement.internalCreateScriptElement,
-  'HTMLSelectElement': () => SelectElement.internalCreateSelectElement,
-  'HTMLShadowElement': () => ShadowElement.internalCreateShadowElement,
-  'HTMLSourceElement': () => SourceElement.internalCreateSourceElement,
-  'HTMLSpanElement': () => SpanElement.internalCreateSpanElement,
-  'HTMLStyleElement': () => StyleElement.internalCreateStyleElement,
-  'HTMLTableCaptionElement': () => TableCaptionElement.internalCreateTableCaptionElement,
-  'HTMLTableCellElement': () => TableCellElement.internalCreateTableCellElement,
-  'HTMLTableColElement': () => TableColElement.internalCreateTableColElement,
-  'HTMLTableElement': () => TableElement.internalCreateTableElement,
-  'HTMLTableRowElement': () => TableRowElement.internalCreateTableRowElement,
-  'HTMLTableSectionElement': () => TableSectionElement.internalCreateTableSectionElement,
-  'HTMLTemplateElement': () => TemplateElement.internalCreateTemplateElement,
-  'HTMLTextAreaElement': () => TextAreaElement.internalCreateTextAreaElement,
-  'HTMLTitleElement': () => TitleElement.internalCreateTitleElement,
-  'HTMLTrackElement': () => TrackElement.internalCreateTrackElement,
-  'HTMLUListElement': () => UListElement.internalCreateUListElement,
-  'HTMLUnknownElement': () => UnknownElement.internalCreateUnknownElement,
-  'HTMLVideoElement': () => VideoElement.internalCreateVideoElement,
-  'HashChangeEvent': () => HashChangeEvent.internalCreateHashChangeEvent,
-  'Headers': () => Headers.internalCreateHeaders,
-  'History': () => History.internalCreateHistory,
-  'ImageBitmap': () => ImageBitmap.internalCreateImageBitmap,
-  'ImageData': () => ImageData.internalCreateImageData,
-  'InjectedScriptHost': () => InjectedScriptHost.internalCreateInjectedScriptHost,
-  'InputMethodContext': () => InputMethodContext.internalCreateInputMethodContext,
-  'InstallEvent': () => InstallEvent.internalCreateInstallEvent,
-  'Iterator': () => DomIterator.internalCreateDomIterator,
-  'KeyboardEvent': () => KeyboardEvent.internalCreateKeyboardEvent,
-  'LocalCredential': () => LocalCredential.internalCreateLocalCredential,
-  'Location': () => Location.internalCreateLocation,
-  'MIDIAccess': () => MidiAccess.internalCreateMidiAccess,
-  'MIDIConnectionEvent': () => MidiConnectionEvent.internalCreateMidiConnectionEvent,
-  'MIDIInput': () => MidiInput.internalCreateMidiInput,
-  'MIDIInputMap': () => MidiInputMap.internalCreateMidiInputMap,
-  'MIDIMessageEvent': () => MidiMessageEvent.internalCreateMidiMessageEvent,
-  'MIDIOutput': () => MidiOutput.internalCreateMidiOutput,
-  'MIDIOutputMap': () => MidiOutputMap.internalCreateMidiOutputMap,
-  'MIDIPort': () => MidiPort.internalCreateMidiPort,
-  'MediaController': () => MediaController.internalCreateMediaController,
-  'MediaDeviceInfo': () => MediaDeviceInfo.internalCreateMediaDeviceInfo,
-  'MediaError': () => MediaError.internalCreateMediaError,
-  'MediaKeyError': () => MediaKeyError.internalCreateMediaKeyError,
-  'MediaKeyEvent': () => MediaKeyEvent.internalCreateMediaKeyEvent,
-  'MediaKeyMessageEvent': () => MediaKeyMessageEvent.internalCreateMediaKeyMessageEvent,
-  'MediaKeyNeededEvent': () => MediaKeyNeededEvent.internalCreateMediaKeyNeededEvent,
-  'MediaKeySession': () => MediaKeySession.internalCreateMediaKeySession,
-  'MediaKeys': () => MediaKeys.internalCreateMediaKeys,
-  'MediaList': () => MediaList.internalCreateMediaList,
-  'MediaQueryList': () => MediaQueryList.internalCreateMediaQueryList,
-  'MediaQueryListEvent': () => MediaQueryListEvent.internalCreateMediaQueryListEvent,
-  'MediaSource': () => MediaSource.internalCreateMediaSource,
-  'MediaStream': () => MediaStream.internalCreateMediaStream,
-  'MediaStreamEvent': () => MediaStreamEvent.internalCreateMediaStreamEvent,
-  'MediaStreamTrack': () => MediaStreamTrack.internalCreateMediaStreamTrack,
-  'MediaStreamTrackEvent': () => MediaStreamTrackEvent.internalCreateMediaStreamTrackEvent,
-  'MemoryInfo': () => MemoryInfo.internalCreateMemoryInfo,
-  'MessageChannel': () => MessageChannel.internalCreateMessageChannel,
-  'MessageEvent': () => MessageEvent.internalCreateMessageEvent,
-  'MessagePort': () => MessagePort.internalCreateMessagePort,
-  'Metadata': () => Metadata.internalCreateMetadata,
-  'MimeType': () => MimeType.internalCreateMimeType,
-  'MimeTypeArray': () => MimeTypeArray.internalCreateMimeTypeArray,
-  'MouseEvent': () => MouseEvent.internalCreateMouseEvent,
-  'MutationEvent': () => _MutationEvent.internalCreate_MutationEvent,
-  'MutationObserver': () => MutationObserver.internalCreateMutationObserver,
-  'MutationRecord': () => MutationRecord.internalCreateMutationRecord,
-  'NamedNodeMap': () => _NamedNodeMap.internalCreate_NamedNodeMap,
-  'Navigator': () => Navigator.internalCreateNavigator,
-  'NavigatorCPU': () => NavigatorCpu.internalCreateNavigatorCpu,
-  'NavigatorID': () => NavigatorID.internalCreateNavigatorID,
-  'NavigatorLanguage': () => NavigatorLanguage.internalCreateNavigatorLanguage,
-  'NavigatorOnLine': () => NavigatorOnLine.internalCreateNavigatorOnLine,
-  'NavigatorUserMediaError': () => NavigatorUserMediaError.internalCreateNavigatorUserMediaError,
-  'NetworkInformation': () => NetworkInformation.internalCreateNetworkInformation,
-  'Node': () => Node.internalCreateNode,
-  'NodeFilter': () => NodeFilter.internalCreateNodeFilter,
-  'NodeIterator': () => NodeIterator.internalCreateNodeIterator,
-  'NodeList': () => NodeList.internalCreateNodeList,
-  'Notification': () => Notification.internalCreateNotification,
-  'OverflowEvent': () => OverflowEvent.internalCreateOverflowEvent,
-  'PagePopupController': () => _PagePopupController.internalCreate_PagePopupController,
-  'PageTransitionEvent': () => PageTransitionEvent.internalCreatePageTransitionEvent,
-  'ParentNode': () => ParentNode.internalCreateParentNode,
-  'Path2D': () => Path2D.internalCreatePath2D,
-  'Performance': () => Performance.internalCreatePerformance,
-  'PerformanceEntry': () => PerformanceEntry.internalCreatePerformanceEntry,
-  'PerformanceMark': () => PerformanceMark.internalCreatePerformanceMark,
-  'PerformanceMeasure': () => PerformanceMeasure.internalCreatePerformanceMeasure,
-  'PerformanceNavigation': () => PerformanceNavigation.internalCreatePerformanceNavigation,
-  'PerformanceResourceTiming': () => PerformanceResourceTiming.internalCreatePerformanceResourceTiming,
-  'PerformanceTiming': () => PerformanceTiming.internalCreatePerformanceTiming,
-  'Plugin': () => Plugin.internalCreatePlugin,
-  'PluginArray': () => PluginArray.internalCreatePluginArray,
-  'PluginPlaceholderElement': () => PluginPlaceholderElement.internalCreatePluginPlaceholderElement,
-  'PopStateEvent': () => PopStateEvent.internalCreatePopStateEvent,
-  'PositionError': () => PositionError.internalCreatePositionError,
-  'Presentation': () => Presentation.internalCreatePresentation,
-  'ProcessingInstruction': () => ProcessingInstruction.internalCreateProcessingInstruction,
-  'ProgressEvent': () => ProgressEvent.internalCreateProgressEvent,
-  'PushEvent': () => PushEvent.internalCreatePushEvent,
-  'PushManager': () => PushManager.internalCreatePushManager,
-  'PushRegistration': () => PushRegistration.internalCreatePushRegistration,
-  'RGBColor': () => _RGBColor.internalCreate_RGBColor,
-  'RTCDTMFSender': () => RtcDtmfSender.internalCreateRtcDtmfSender,
-  'RTCDTMFToneChangeEvent': () => RtcDtmfToneChangeEvent.internalCreateRtcDtmfToneChangeEvent,
-  'RTCDataChannel': () => RtcDataChannel.internalCreateRtcDataChannel,
-  'RTCDataChannelEvent': () => RtcDataChannelEvent.internalCreateRtcDataChannelEvent,
-  'RTCIceCandidate': () => RtcIceCandidate.internalCreateRtcIceCandidate,
-  'RTCIceCandidateEvent': () => RtcIceCandidateEvent.internalCreateRtcIceCandidateEvent,
-  'RTCPeerConnection': () => RtcPeerConnection.internalCreateRtcPeerConnection,
-  'RTCSessionDescription': () => RtcSessionDescription.internalCreateRtcSessionDescription,
-  'RTCStatsReport': () => RtcStatsReport.internalCreateRtcStatsReport,
-  'RTCStatsResponse': () => RtcStatsResponse.internalCreateRtcStatsResponse,
-  'RadioNodeList': () => _RadioNodeList.internalCreate_RadioNodeList,
-  'Range': () => Range.internalCreateRange,
-  'ReadableStream': () => ReadableStream.internalCreateReadableStream,
-  'Rect': () => _Rect.internalCreate_Rect,
-  'RelatedEvent': () => RelatedEvent.internalCreateRelatedEvent,
-  'Request': () => _Request.internalCreate_Request,
-  'ResourceProgressEvent': () => ResourceProgressEvent.internalCreateResourceProgressEvent,
-  'Response': () => _Response.internalCreate_Response,
-  'Screen': () => Screen.internalCreateScreen,
-  'ScreenOrientation': () => ScreenOrientation.internalCreateScreenOrientation,
-  'SecurityPolicyViolationEvent': () => SecurityPolicyViolationEvent.internalCreateSecurityPolicyViolationEvent,
-  'Selection': () => Selection.internalCreateSelection,
-  'ServiceWorker': () => _ServiceWorker.internalCreate_ServiceWorker,
-  'ServiceWorkerClient': () => ServiceWorkerClient.internalCreateServiceWorkerClient,
-  'ServiceWorkerClients': () => ServiceWorkerClients.internalCreateServiceWorkerClients,
-  'ServiceWorkerContainer': () => ServiceWorkerContainer.internalCreateServiceWorkerContainer,
-  'ServiceWorkerGlobalScope': () => ServiceWorkerGlobalScope.internalCreateServiceWorkerGlobalScope,
-  'ServiceWorkerRegistration': () => ServiceWorkerRegistration.internalCreateServiceWorkerRegistration,
-  'ShadowRoot': () => ShadowRoot.internalCreateShadowRoot,
-  'SharedWorker': () => SharedWorker.internalCreateSharedWorker,
-  'SharedWorkerGlobalScope': () => SharedWorkerGlobalScope.internalCreateSharedWorkerGlobalScope,
-  'SourceBuffer': () => SourceBuffer.internalCreateSourceBuffer,
-  'SourceBufferList': () => SourceBufferList.internalCreateSourceBufferList,
-  'SourceInfo': () => SourceInfo.internalCreateSourceInfo,
-  'SpeechGrammar': () => SpeechGrammar.internalCreateSpeechGrammar,
-  'SpeechGrammarList': () => SpeechGrammarList.internalCreateSpeechGrammarList,
-  'SpeechRecognition': () => SpeechRecognition.internalCreateSpeechRecognition,
-  'SpeechRecognitionAlternative': () => SpeechRecognitionAlternative.internalCreateSpeechRecognitionAlternative,
-  'SpeechRecognitionError': () => SpeechRecognitionError.internalCreateSpeechRecognitionError,
-  'SpeechRecognitionEvent': () => SpeechRecognitionEvent.internalCreateSpeechRecognitionEvent,
-  'SpeechRecognitionResult': () => SpeechRecognitionResult.internalCreateSpeechRecognitionResult,
-  'SpeechRecognitionResultList': () => _SpeechRecognitionResultList.internalCreate_SpeechRecognitionResultList,
-  'SpeechSynthesis': () => SpeechSynthesis.internalCreateSpeechSynthesis,
-  'SpeechSynthesisEvent': () => SpeechSynthesisEvent.internalCreateSpeechSynthesisEvent,
-  'SpeechSynthesisUtterance': () => SpeechSynthesisUtterance.internalCreateSpeechSynthesisUtterance,
-  'SpeechSynthesisVoice': () => SpeechSynthesisVoice.internalCreateSpeechSynthesisVoice,
-  'Storage': () => Storage.internalCreateStorage,
-  'StorageEvent': () => StorageEvent.internalCreateStorageEvent,
-  'StorageInfo': () => StorageInfo.internalCreateStorageInfo,
-  'StorageQuota': () => StorageQuota.internalCreateStorageQuota,
-  'Stream': () => FileStream.internalCreateFileStream,
-  'StyleMedia': () => StyleMedia.internalCreateStyleMedia,
-  'StyleSheet': () => StyleSheet.internalCreateStyleSheet,
-  'StyleSheetList': () => _StyleSheetList.internalCreate_StyleSheetList,
-  'SubtleCrypto': () => _SubtleCrypto.internalCreate_SubtleCrypto,
-  'Text': () => Text.internalCreateText,
-  'TextEvent': () => TextEvent.internalCreateTextEvent,
-  'TextMetrics': () => TextMetrics.internalCreateTextMetrics,
-  'TextTrack': () => TextTrack.internalCreateTextTrack,
-  'TextTrackCue': () => TextTrackCue.internalCreateTextTrackCue,
-  'TextTrackCueList': () => TextTrackCueList.internalCreateTextTrackCueList,
-  'TextTrackList': () => TextTrackList.internalCreateTextTrackList,
-  'TimeRanges': () => TimeRanges.internalCreateTimeRanges,
-  'Timing': () => Timing.internalCreateTiming,
-  'Touch': () => Touch.internalCreateTouch,
-  'TouchEvent': () => TouchEvent.internalCreateTouchEvent,
-  'TouchList': () => TouchList.internalCreateTouchList,
-  'TrackEvent': () => TrackEvent.internalCreateTrackEvent,
-  'TransitionEvent': () => TransitionEvent.internalCreateTransitionEvent,
-  'TreeWalker': () => TreeWalker.internalCreateTreeWalker,
-  'UIEvent': () => UIEvent.internalCreateUIEvent,
-  'URL': () => Url.internalCreateUrl,
-  'URLUtils': () => UrlUtils.internalCreateUrlUtils,
-  'URLUtilsReadOnly': () => UrlUtilsReadOnly.internalCreateUrlUtilsReadOnly,
-  'VTTCue': () => VttCue.internalCreateVttCue,
-  'VTTRegion': () => VttRegion.internalCreateVttRegion,
-  'VTTRegionList': () => VttRegionList.internalCreateVttRegionList,
-  'ValidityState': () => ValidityState.internalCreateValidityState,
-  'VideoPlaybackQuality': () => VideoPlaybackQuality.internalCreateVideoPlaybackQuality,
-  'VideoTrack': () => VideoTrack.internalCreateVideoTrack,
-  'VideoTrackList': () => VideoTrackList.internalCreateVideoTrackList,
-  'WebKitAnimationEvent': () => AnimationEvent.internalCreateAnimationEvent,
-  'WebKitCSSFilterRule': () => CssFilterRule.internalCreateCssFilterRule,
-  'WebKitCSSFilterValue': () => _WebKitCSSFilterValue.internalCreate_WebKitCSSFilterValue,
-  'WebKitCSSMatrix': () => _WebKitCSSMatrix.internalCreate_WebKitCSSMatrix,
-  'WebKitCSSTransformValue': () => _WebKitCSSTransformValue.internalCreate_WebKitCSSTransformValue,
-  'WebSocket': () => WebSocket.internalCreateWebSocket,
-  'WheelEvent': () => WheelEvent.internalCreateWheelEvent,
-  'Window': () => Window.internalCreateWindow,
-  'WindowBase64': () => WindowBase64.internalCreateWindowBase64,
-  'WindowEventHandlers': () => WindowEventHandlers.internalCreateWindowEventHandlers,
-  'WindowTimers': () => _WindowTimers.internalCreate_WindowTimers,
-  'Worker': () => Worker.internalCreateWorker,
-  'WorkerConsole': () => WorkerConsole.internalCreateWorkerConsole,
-  'WorkerGlobalScope': () => WorkerGlobalScope.internalCreateWorkerGlobalScope,
-  'WorkerLocation': () => _WorkerLocation.internalCreate_WorkerLocation,
-  'WorkerNavigator': () => _WorkerNavigator.internalCreate_WorkerNavigator,
-  'WorkerPerformance': () => WorkerPerformance.internalCreateWorkerPerformance,
-  'XMLDocument': () => XmlDocument.internalCreateXmlDocument,
-  'XMLHttpRequest': () => HttpRequest.internalCreateHttpRequest,
-  'XMLHttpRequestEventTarget': () => HttpRequestEventTarget.internalCreateHttpRequestEventTarget,
-  'XMLHttpRequestProgressEvent': () => _XMLHttpRequestProgressEvent.internalCreate_XMLHttpRequestProgressEvent,
-  'XMLHttpRequestUpload': () => HttpRequestUpload.internalCreateHttpRequestUpload,
-  'XMLSerializer': () => XmlSerializer.internalCreateXmlSerializer,
-  'XPathEvaluator': () => XPathEvaluator.internalCreateXPathEvaluator,
-  'XPathExpression': () => XPathExpression.internalCreateXPathExpression,
-  'XPathNSResolver': () => XPathNSResolver.internalCreateXPathNSResolver,
-  'XPathResult': () => XPathResult.internalCreateXPathResult,
-  'XSLTProcessor': () => XsltProcessor.internalCreateXsltProcessor,
-  'polymer-element': () => HtmlElement.internalCreateHtmlElement,
-
-};
-
-// TODO(terry): We may want to move this elsewhere if html becomes
-// a package to avoid dartium depending on pkg:html.
-getHtmlCreateFunction(String key) {
-  var result;
-
-  // TODO(vsm): Add Cross Frame and JS types here as well.
-
-  // Check the html library.
-  result = _getHtmlFunction(key);
-  if (result != null) {
-    return result;
-  }
-
-  // Check the web gl library.
-  result = _getWebGlFunction(key);
-  if (result != null) {
-    return result;
-  }
-
-  // Check the indexed db library.
-  result = _getIndexDbFunction(key);
-  if (result != null) {
-    return result;
-  }
-
-  // Check the web audio library.
-  result = _getWebAudioFunction(key);
-  if (result != null) {
-    return result;
-  }
-
-  // Check the web sql library.
-  result = _getWebSqlFunction(key);
-  if (result != null) {
-    return result;
-  }
-
-  // Check the svg library.
-  result = _getSvgFunction(key);
-  if (result != null) {
-    return result;
-  }
-
-  return null;
-}
-
-Type _getHtmlFunction(String key) {
-  if (htmlBlinkFunctionMap.containsKey(key)) {
-    return htmlBlinkFunctionMap[key]();
-  }
-  return null;
-}
-
-Type _getWebGlFunction(String key) {
-  if (web_glBlinkFunctionMap.containsKey(key)) {
-    return web_glBlinkFunctionMap[key]();
-  }
-  return null;
-}
-
-Type _getIndexDbFunction(String key) {
-  if (indexed_dbBlinkFunctionMap.containsKey(key)) {
-    return indexed_dbBlinkFunctionMap[key]();
-  }
-  return null;
-}
-
-Type _getWebAudioFunction(String key) {
-  if (web_audioBlinkFunctionMap.containsKey(key)) {
-    return web_audioBlinkFunctionMap[key]();
-  }
-  return null;
-}
-
-Type _getWebSqlFunction(String key) {
-  if (web_sqlBlinkFunctionMap.containsKey(key)) {
-    return web_sqlBlinkFunctionMap[key]();
-  }
-  return null;
-}
-
-Type _getSvgFunction(String key) {
-  if (svgBlinkFunctionMap.containsKey(key)) {
-    return svgBlinkFunctionMap[key]();
-  }
-  return null;
-}
-
-
-/******************************************************************************
- **********                                                          **********
- **********                    JS Interop Support                    **********
- **********                                                          **********
- ******************************************************************************/
-
-Rectangle make_dart_rectangle(r) => new Rectangle(r['top'], r['left'], r['width'], r['height']);
-
-
-/** Expando for JsObject, used by every Dart class associated with a Javascript
- *  class (e.g., DOM, WebAudio, etc.).
- */
-
-/**
- * Return the JsObject associated with a Dart class [dartClass_instance].
- */
-js.JsObject unwrap_jso(dartClass_instance) {
-  try {
-      if (dartClass_instance != null)
-          return dartClass_instance is! Function ? dartClass_instance.blink_jsObject : dartClass_instance;
-      else
-          return null;
-//      return dartClass_instance.dartium_expando[dartClass_instance.expandoJsObject];
-  } catch(NoSuchMethodException) {
-      // No blink_jsObject then return the dartClass_instance is probably an
-      // array that was already converted to a Dart class e.g., Uint8ClampedList.
-      return dartClass_instance;
-  }
-}
-
-/**
- * Create Dart class that maps to the JS Type, add the JsObject as an expando
- * on the Dart class and return the created Dart class. 
- */
-wrap_jso(jsObject) {
-try {
-//  debug_or_assert("jsObject != null", jsObject != null);
-  if (jsObject is! js.JsObject) {
-      // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
-      return jsObject;
-  }
-  var constructor = jsObject['constructor'];
-  debug_or_assert("constructor != null", constructor != null);
-  var jsTypeName = constructor['name'];
-  debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
-  var func = getHtmlCreateFunction(jsTypeName);
-  debug_or_assert("func != null name = ${jsTypeName}", func != null);
-  var dartClass_instance = func();
-  dartClass_instance.blink_jsObject = jsObject;
-//  dartClass_instance.dartium_expando[dartClass_instance.expandoJsObject] = jsObject;
-  return dartClass_instance;
-} catch(e, stacktrace){
-  if (e is DebugAssertException)
-    window.console.log("${e.message}\n ${stacktrace}");
-  else
-    window.console.log("${stacktrace}");
-}
-}
-
-class DebugAssertException implements Exception {
-  String message;
-  DebugAssertException(this.message);
-}
-
-debug_or_assert(message, expression) {
-  if (!expression) {
-    throw new DebugAssertException("$message");
-  }
-}
-
-// Wrap JsObject node list to return a List<node>.
-List<Node> wrap_jso_list(jso_nodes) {
-  List<Node> nodes = new List<Node>();
-  var collectionLen = jso_nodes['length'];
-  for (var i = 0; i < collectionLen; i++) {
-    nodes.add(wrap_jso(jso_nodes.callMethod('item', [i])));
-  }
-  var frozen_nodes = new _FrozenElementList._wrap(nodes);
-  frozen_nodes.dartClass_instance = jso_nodes;
-  return frozen_nodes;
-}
+unwrap_jso(dartClass_instance) => dartClass_instance;
+wrap_jso(jsObject) => jsObject;
+wrap_jso_list(jso_nodes) => jso_nodes;
+make_dart_rectangle(r) => r;
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1217,20 +644,6 @@ abstract class AbstractWorker extends NativeFieldWrapperClass2 implements EventT
   @DomName('AbstractWorker.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
-
-  static AbstractWorker internalCreateAbstractWorker() {
-    return new AbstractWorker._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory AbstractWorker._internalWrap() {
-    return new AbstractWorker._internal();
-  }
-
-  AbstractWorker._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   /// Stream of `error` events handled by this [AbstractWorker].
   @DomName('AbstractWorker.onerror')
@@ -1257,18 +670,6 @@ class AnchorElement extends HtmlElement implements UrlUtils {
     if (href != null) e.href = href;
     return e;
   }
-
-
-  static AnchorElement internalCreateAnchorElement() {
-    return new AnchorElement._internalWrap();
-  }
-
-  factory AnchorElement._internalWrap() {
-    return new AnchorElement._internal();
-  }
-
-  AnchorElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1450,18 +851,6 @@ class Animation extends AnimationNode {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  static Animation internalCreateAnimation() {
-    return new Animation._internalWrap();
-  }
-
-  factory Animation._internalWrap() {
-    return new Animation._internal();
-  }
-
-  Animation._internal() : super._internal();
-
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1476,20 +865,6 @@ class Animation extends AnimationNode {
 class AnimationEffect extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimationEffect._() { throw new UnsupportedError("Not supported"); }
-
-  static AnimationEffect internalCreateAnimationEffect() {
-    return new AnimationEffect._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory AnimationEffect._internalWrap() {
-    return new AnimationEffect._internal();
-  }
-
-  AnimationEffect._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1507,18 +882,6 @@ class AnimationEffect extends NativeFieldWrapperClass2 {
 class AnimationEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory AnimationEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static AnimationEvent internalCreateAnimationEvent() {
-    return new AnimationEvent._internalWrap();
-  }
-
-  factory AnimationEvent._internalWrap() {
-    return new AnimationEvent._internal();
-  }
-
-  AnimationEvent._internal() : super._internal();
-
 
   @DomName('WebKitAnimationEvent.animationName')
   @DocsEditable()
@@ -1542,20 +905,6 @@ class AnimationEvent extends Event {
 class AnimationNode extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimationNode._() { throw new UnsupportedError("Not supported"); }
-
-  static AnimationNode internalCreateAnimationNode() {
-    return new AnimationNode._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory AnimationNode._internalWrap() {
-    return new AnimationNode._internal();
-  }
-
-  AnimationNode._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('AnimationNode.activeDuration')
   @DocsEditable()
@@ -1611,18 +960,6 @@ class AnimationNode extends NativeFieldWrapperClass2 {
 class AnimationPlayer extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory AnimationPlayer._() { throw new UnsupportedError("Not supported"); }
-
-
-  static AnimationPlayer internalCreateAnimationPlayer() {
-    return new AnimationPlayer._internalWrap();
-  }
-
-  factory AnimationPlayer._internalWrap() {
-    return new AnimationPlayer._internal();
-  }
-
-  AnimationPlayer._internal() : super._internal();
-
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -1712,18 +1049,6 @@ class AnimationPlayerEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory AnimationPlayerEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static AnimationPlayerEvent internalCreateAnimationPlayerEvent() {
-    return new AnimationPlayerEvent._internalWrap();
-  }
-
-  factory AnimationPlayerEvent._internalWrap() {
-    return new AnimationPlayerEvent._internal();
-  }
-
-  AnimationPlayerEvent._internal() : super._internal();
-
-
   @DomName('AnimationPlayerEvent.currentTime')
   @DocsEditable()
   @Experimental() // untriaged
@@ -1748,20 +1073,6 @@ class AnimationPlayerEvent extends Event {
 class AnimationTimeline extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimationTimeline._() { throw new UnsupportedError("Not supported"); }
-
-  static AnimationTimeline internalCreateAnimationTimeline() {
-    return new AnimationTimeline._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory AnimationTimeline._internalWrap() {
-    return new AnimationTimeline._internal();
-  }
-
-  AnimationTimeline._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('AnimationTimeline.currentTime')
   @DocsEditable()
@@ -1881,18 +1192,6 @@ class ApplicationCache extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<Event> updateReadyEvent = const EventStreamProvider<Event>('updateready');
 
-
-  static ApplicationCache internalCreateApplicationCache() {
-    return new ApplicationCache._internalWrap();
-  }
-
-  factory ApplicationCache._internalWrap() {
-    return new ApplicationCache._internal();
-  }
-
-  ApplicationCache._internal() : super._internal();
-
-
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
@@ -1991,18 +1290,6 @@ class ApplicationCacheErrorEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ApplicationCacheErrorEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static ApplicationCacheErrorEvent internalCreateApplicationCacheErrorEvent() {
-    return new ApplicationCacheErrorEvent._internalWrap();
-  }
-
-  factory ApplicationCacheErrorEvent._internalWrap() {
-    return new ApplicationCacheErrorEvent._internal();
-  }
-
-  ApplicationCacheErrorEvent._internal() : super._internal();
-
-
   @DomName('ApplicationCacheErrorEvent.message')
   @DocsEditable()
   @Experimental() // untriaged
@@ -2050,18 +1337,6 @@ class AreaElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAreaElement.HTMLAreaElement')
   @DocsEditable()
   factory AreaElement() => document.createElement("area");
-
-
-  static AreaElement internalCreateAreaElement() {
-    return new AreaElement._internalWrap();
-  }
-
-  factory AreaElement._internalWrap() {
-    return new AreaElement._internal();
-  }
-
-  AreaElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2214,18 +1489,6 @@ class AudioElement extends MediaElement {
   factory AudioElement([String src]) {
     return _blink.BlinkHTMLAudioElement.instance.constructorCallback_1_(src);
   }
-
-
-  static AudioElement internalCreateAudioElement() {
-    return new AudioElement._internalWrap();
-  }
-
-  factory AudioElement._internalWrap() {
-    return new AudioElement._internal();
-  }
-
-  AudioElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2247,20 +1510,6 @@ class AudioElement extends MediaElement {
 class AudioTrack extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AudioTrack._() { throw new UnsupportedError("Not supported"); }
-
-  static AudioTrack internalCreateAudioTrack() {
-    return new AudioTrack._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory AudioTrack._internalWrap() {
-    return new AudioTrack._internal();
-  }
-
-  AudioTrack._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('AudioTrack.enabled')
   @DocsEditable()
@@ -2312,18 +1561,6 @@ class AudioTrackList extends EventTarget {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
-
-  static AudioTrackList internalCreateAudioTrackList() {
-    return new AudioTrackList._internalWrap();
-  }
-
-  factory AudioTrackList._internalWrap() {
-    return new AudioTrackList._internal();
-  }
-
-  AudioTrackList._internal() : super._internal();
-
-
   @DomName('AudioTrackList.length')
   @DocsEditable()
   @Experimental() // untriaged
@@ -2360,18 +1597,6 @@ class AutocompleteErrorEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory AutocompleteErrorEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static AutocompleteErrorEvent internalCreateAutocompleteErrorEvent() {
-    return new AutocompleteErrorEvent._internalWrap();
-  }
-
-  factory AutocompleteErrorEvent._internalWrap() {
-    return new AutocompleteErrorEvent._internal();
-  }
-
-  AutocompleteErrorEvent._internal() : super._internal();
-
-
   @DomName('AutocompleteErrorEvent.reason')
   @DocsEditable()
   String get reason => _blink.BlinkAutocompleteErrorEvent.instance.reason_Getter_(unwrap_jso(this));
@@ -2393,18 +1618,6 @@ class BRElement extends HtmlElement {
   @DomName('HTMLBRElement.HTMLBRElement')
   @DocsEditable()
   factory BRElement() => document.createElement("br");
-
-
-  static BRElement internalCreateBRElement() {
-    return new BRElement._internalWrap();
-  }
-
-  factory BRElement._internalWrap() {
-    return new BRElement._internal();
-  }
-
-  BRElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2428,20 +1641,6 @@ class BarProp extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory BarProp._() { throw new UnsupportedError("Not supported"); }
 
-  static BarProp internalCreateBarProp() {
-    return new BarProp._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory BarProp._internalWrap() {
-    return new BarProp._internal();
-  }
-
-  BarProp._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('BarProp.visible')
   @DocsEditable()
   bool get visible => _blink.BlinkBarProp.instance.visible_Getter_(unwrap_jso(this));
@@ -2463,18 +1662,6 @@ class BaseElement extends HtmlElement {
   @DomName('HTMLBaseElement.HTMLBaseElement')
   @DocsEditable()
   factory BaseElement() => document.createElement("base");
-
-
-  static BaseElement internalCreateBaseElement() {
-    return new BaseElement._internalWrap();
-  }
-
-  factory BaseElement._internalWrap() {
-    return new BaseElement._internal();
-  }
-
-  BaseElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2514,18 +1701,6 @@ class BatteryManager extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory BatteryManager._() { throw new UnsupportedError("Not supported"); }
 
-
-  static BatteryManager internalCreateBatteryManager() {
-    return new BatteryManager._internalWrap();
-  }
-
-  factory BatteryManager._internalWrap() {
-    return new BatteryManager._internal();
-  }
-
-  BatteryManager._internal() : super._internal();
-
-
   @DomName('BatteryManager.charging')
   @DocsEditable()
   bool get charging => _blink.BlinkBatteryManager.instance.charging_Getter_(unwrap_jso(this));
@@ -2556,18 +1731,6 @@ class BeforeUnloadEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory BeforeUnloadEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static BeforeUnloadEvent internalCreateBeforeUnloadEvent() {
-    return new BeforeUnloadEvent._internalWrap();
-  }
-
-  factory BeforeUnloadEvent._internalWrap() {
-    return new BeforeUnloadEvent._internal();
-  }
-
-  BeforeUnloadEvent._internal() : super._internal();
-
-
   @DomName('BeforeUnloadEvent.returnValue')
   @DocsEditable()
   String get returnValue => _blink.BlinkBeforeUnloadEvent.instance.returnValue_Getter_(unwrap_jso(this));
@@ -2593,20 +1756,6 @@ class Blob extends NativeFieldWrapperClass2 {
 
   @DocsEditable()
   static Blob _create(blobParts, type, endings) => _blink.BlinkBlob.instance.constructorCallback_3_(blobParts, type, endings);
-
-  static Blob internalCreateBlob() {
-    return new Blob._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Blob._internalWrap() {
-    return new Blob._internal();
-  }
-
-  Blob._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('Blob.size')
   @DocsEditable()
@@ -2648,20 +1797,6 @@ class Blob extends NativeFieldWrapperClass2 {
 class Body extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Body._() { throw new UnsupportedError("Not supported"); }
-
-  static Body internalCreateBody() {
-    return new Body._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Body._internalWrap() {
-    return new Body._internal();
-  }
-
-  Body._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('Body.bodyUsed')
   @DocsEditable()
@@ -2830,18 +1965,6 @@ class BodyElement extends HtmlElement implements WindowEventHandlers {
   @DomName('HTMLBodyElement.HTMLBodyElement')
   @DocsEditable()
   factory BodyElement() => document.createElement("body");
-
-
-  static BodyElement internalCreateBodyElement() {
-    return new BodyElement._internalWrap();
-  }
-
-  factory BodyElement._internalWrap() {
-    return new BodyElement._internal();
-  }
-
-  BodyElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2931,18 +2054,6 @@ class ButtonElement extends HtmlElement {
   @DomName('HTMLButtonElement.HTMLButtonElement')
   @DocsEditable()
   factory ButtonElement() => document.createElement("button");
-
-
-  static ButtonElement internalCreateButtonElement() {
-    return new ButtonElement._internalWrap();
-  }
-
-  factory ButtonElement._internalWrap() {
-    return new ButtonElement._internal();
-  }
-
-  ButtonElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3075,18 +2186,6 @@ class CDataSection extends Text {
   // To suppress missing implicit constructor warnings.
   factory CDataSection._() { throw new UnsupportedError("Not supported"); }
 
-
-  static CDataSection internalCreateCDataSection() {
-    return new CDataSection._internalWrap();
-  }
-
-  factory CDataSection._internalWrap() {
-    return new CDataSection._internal();
-  }
-
-  CDataSection._internal() : super._internal();
-
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3101,20 +2200,6 @@ class CDataSection extends Text {
 class CacheStorage extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CacheStorage._() { throw new UnsupportedError("Not supported"); }
-
-  static CacheStorage internalCreateCacheStorage() {
-    return new CacheStorage._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory CacheStorage._internalWrap() {
-    return new CacheStorage._internal();
-  }
-
-  CacheStorage._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('CacheStorage.create')
   @DocsEditable()
@@ -3156,20 +2241,6 @@ class CacheStorage extends NativeFieldWrapperClass2 {
 class Canvas2DContextAttributes extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Canvas2DContextAttributes._() { throw new UnsupportedError("Not supported"); }
-
-  static Canvas2DContextAttributes internalCreateCanvas2DContextAttributes() {
-    return new Canvas2DContextAttributes._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Canvas2DContextAttributes._internalWrap() {
-    return new Canvas2DContextAttributes._internal();
-  }
-
-  Canvas2DContextAttributes._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('Canvas2DContextAttributes.alpha')
   @DocsEditable()
@@ -3228,18 +2299,6 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
     if (height != null) e.height = height;
     return e;
   }
-
-
-  static CanvasElement internalCreateCanvasElement() {
-    return new CanvasElement._internalWrap();
-  }
-
-  factory CanvasElement._internalWrap() {
-    return new CanvasElement._internal();
-  }
-
-  CanvasElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3269,7 +2328,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLCanvasElement.getContext')
   @DocsEditable()
-  Object getContext(String contextId, [Map attrs]) => wrap_jso(_blink.BlinkHTMLCanvasElement.instance.getContext_Callback_2_(unwrap_jso(this), contextId, attrs != null ? new js.JsObject.jsify(attrs) : attrs));
+  Object getContext(String contextId, [Map attrs]) => wrap_jso(_blink.BlinkHTMLCanvasElement.instance.getContext_Callback_2_(unwrap_jso(this), contextId, attrs));
   
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable()
@@ -3405,20 +2464,6 @@ class CanvasGradient extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CanvasGradient._() { throw new UnsupportedError("Not supported"); }
 
-  static CanvasGradient internalCreateCanvasGradient() {
-    return new CanvasGradient._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory CanvasGradient._internalWrap() {
-    return new CanvasGradient._internal();
-  }
-
-  CanvasGradient._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   /**
    * Adds a color stop to this gradient at the offset.
    *
@@ -3473,20 +2518,6 @@ class CanvasPattern extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CanvasPattern._() { throw new UnsupportedError("Not supported"); }
 
-  static CanvasPattern internalCreateCanvasPattern() {
-    return new CanvasPattern._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory CanvasPattern._internalWrap() {
-    return new CanvasPattern._internal();
-  }
-
-  CanvasPattern._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('CanvasPattern.setTransform')
   @DocsEditable()
   @Experimental() // untriaged
@@ -3506,20 +2537,6 @@ abstract class CanvasRenderingContext {
 class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements CanvasRenderingContext {
   // To suppress missing implicit constructor warnings.
   factory CanvasRenderingContext2D._() { throw new UnsupportedError("Not supported"); }
-
-  static CanvasRenderingContext2D internalCreateCanvasRenderingContext2D() {
-    return new CanvasRenderingContext2D._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory CanvasRenderingContext2D._internalWrap() {
-    return new CanvasRenderingContext2D._internal();
-  }
-
-  CanvasRenderingContext2D._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('CanvasRenderingContext2D.canvas')
   @DocsEditable()
@@ -3706,7 +2723,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   void addHitRegion([Map options]) {
     if (options != null) {
-      _blink.BlinkCanvasRenderingContext2D.instance.addHitRegion_Callback_1_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options);
+      _blink.BlinkCanvasRenderingContext2D.instance.addHitRegion_Callback_1_(unwrap_jso(this), options);
       return;
     }
     _blink.BlinkCanvasRenderingContext2D.instance.addHitRegion_Callback_0_(unwrap_jso(this));
@@ -4295,18 +3312,6 @@ class CharacterData extends Node implements ChildNode {
   // To suppress missing implicit constructor warnings.
   factory CharacterData._() { throw new UnsupportedError("Not supported"); }
 
-
-  static CharacterData internalCreateCharacterData() {
-    return new CharacterData._internalWrap();
-  }
-
-  factory CharacterData._internalWrap() {
-    return new CharacterData._internal();
-  }
-
-  CharacterData._internal() : super._internal();
-
-
   @DomName('CharacterData.data')
   @DocsEditable()
   String get data => _blink.BlinkCharacterData.instance.data_Getter_(unwrap_jso(this));
@@ -4362,20 +3367,6 @@ abstract class ChildNode extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ChildNode._() { throw new UnsupportedError("Not supported"); }
 
-  static ChildNode internalCreateChildNode() {
-    return new ChildNode._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory ChildNode._internalWrap() {
-    return new ChildNode._internal();
-  }
-
-  ChildNode._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('ChildNode.nextElementSibling')
   @DocsEditable()
   @Experimental() // untriaged
@@ -4411,18 +3402,6 @@ class CircularGeofencingRegion extends GeofencingRegion {
   factory CircularGeofencingRegion(Map init) {
     return _blink.BlinkCircularGeofencingRegion.instance.constructorCallback_1_(init);
   }
-
-
-  static CircularGeofencingRegion internalCreateCircularGeofencingRegion() {
-    return new CircularGeofencingRegion._internalWrap();
-  }
-
-  factory CircularGeofencingRegion._internalWrap() {
-    return new CircularGeofencingRegion._internal();
-  }
-
-  CircularGeofencingRegion._internal() : super._internal();
-
 
   @DomName('CircularGeofencingRegion.MAX_RADIUS')
   @DocsEditable()
@@ -4463,18 +3442,6 @@ class CloseEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory CloseEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static CloseEvent internalCreateCloseEvent() {
-    return new CloseEvent._internalWrap();
-  }
-
-  factory CloseEvent._internalWrap() {
-    return new CloseEvent._internal();
-  }
-
-  CloseEvent._internal() : super._internal();
-
-
   @DomName('CloseEvent.code')
   @DocsEditable()
   int get code => _blink.BlinkCloseEvent.instance.code_Getter_(unwrap_jso(this));
@@ -4507,18 +3474,6 @@ class Comment extends CharacterData {
     }
     return _blink.BlinkComment.instance.constructorCallback_0_();
   }
-
-
-  static Comment internalCreateComment() {
-    return new Comment._internalWrap();
-  }
-
-  factory Comment._internalWrap() {
-    return new Comment._internal();
-  }
-
-  Comment._internal() : super._internal();
-
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4544,18 +3499,6 @@ class CompositionEvent extends UIEvent {
 
   // To suppress missing implicit constructor warnings.
   factory CompositionEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static CompositionEvent internalCreateCompositionEvent() {
-    return new CompositionEvent._internalWrap();
-  }
-
-  factory CompositionEvent._internalWrap() {
-    return new CompositionEvent._internal();
-  }
-
-  CompositionEvent._internal() : super._internal();
-
 
   @DomName('CompositionEvent.activeSegmentEnd')
   @DocsEditable()
@@ -4594,18 +3537,6 @@ class Console extends ConsoleBase {
   // To suppress missing implicit constructor warnings.
   factory Console._() { throw new UnsupportedError("Not supported"); }
 
-
-  static Console internalCreateConsole() {
-    return new Console._internalWrap();
-  }
-
-  factory Console._internalWrap() {
-    return new Console._internal();
-  }
-
-  Console._internal() : super._internal();
-
-
   @DomName('Console.memory')
   @DocsEditable()
   @Experimental()
@@ -4625,20 +3556,6 @@ class Console extends ConsoleBase {
 class ConsoleBase extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ConsoleBase._() { throw new UnsupportedError("Not supported"); }
-
-  static ConsoleBase internalCreateConsoleBase() {
-    return new ConsoleBase._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory ConsoleBase._internalWrap() {
-    return new ConsoleBase._internal();
-  }
-
-  ConsoleBase._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('ConsoleBase.assertCondition')
   @DocsEditable()
@@ -4775,18 +3692,6 @@ class ContentElement extends HtmlElement {
   @DomName('HTMLContentElement.HTMLContentElement')
   @DocsEditable()
   factory ContentElement() => document.createElement("content");
-
-
-  static ContentElement internalCreateContentElement() {
-    return new ContentElement._internalWrap();
-  }
-
-  factory ContentElement._internalWrap() {
-    return new ContentElement._internal();
-  }
-
-  ContentElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -4822,20 +3727,6 @@ class ContentElement extends HtmlElement {
 class Coordinates extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Coordinates._() { throw new UnsupportedError("Not supported"); }
-
-  static Coordinates internalCreateCoordinates() {
-    return new Coordinates._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Coordinates._internalWrap() {
-    return new Coordinates._internal();
-  }
-
-  Coordinates._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('Coordinates.accuracy')
   @DocsEditable()
@@ -4880,20 +3771,6 @@ class Credential extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Credential._() { throw new UnsupportedError("Not supported"); }
 
-  static Credential internalCreateCredential() {
-    return new Credential._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Credential._internalWrap() {
-    return new Credential._internal();
-  }
-
-  Credential._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('Credential.avatarURL')
   @DocsEditable()
   @Experimental() // untriaged
@@ -4924,20 +3801,6 @@ class CredentialsContainer extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CredentialsContainer._() { throw new UnsupportedError("Not supported"); }
 
-  static CredentialsContainer internalCreateCredentialsContainer() {
-    return new CredentialsContainer._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory CredentialsContainer._internalWrap() {
-    return new CredentialsContainer._internal();
-  }
-
-  CredentialsContainer._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('CredentialsContainer.notifyFailedSignIn')
   @DocsEditable()
   @Experimental() // untriaged
@@ -4955,7 +3818,7 @@ class CredentialsContainer extends NativeFieldWrapperClass2 {
   
   Future request([Map options]) {
     if (options != null) {
-      return _blink.BlinkCredentialsContainer.instance.request_Callback_1_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options);
+      return _blink.BlinkCredentialsContainer.instance.request_Callback_1_(unwrap_jso(this), options);
     }
     return _blink.BlinkCredentialsContainer.instance.request_Callback_0_(unwrap_jso(this));
   }
@@ -4977,20 +3840,6 @@ class CredentialsContainer extends NativeFieldWrapperClass2 {
 class Crypto extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Crypto._() { throw new UnsupportedError("Not supported"); }
-
-  static Crypto internalCreateCrypto() {
-    return new Crypto._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Crypto._internalWrap() {
-    return new Crypto._internal();
-  }
-
-  Crypto._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -5018,20 +3867,6 @@ class Crypto extends NativeFieldWrapperClass2 {
 class CryptoKey extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CryptoKey._() { throw new UnsupportedError("Not supported"); }
-
-  static CryptoKey internalCreateCryptoKey() {
-    return new CryptoKey._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory CryptoKey._internalWrap() {
-    return new CryptoKey._internal();
-  }
-
-  CryptoKey._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('CryptoKey.algorithm')
   @DocsEditable()
@@ -5069,20 +3904,6 @@ class Css extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Css._() { throw new UnsupportedError("Not supported"); }
 
-  static Css internalCreateCss() {
-    return new Css._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Css._internalWrap() {
-    return new Css._internal();
-  }
-
-  Css._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('CSS.supports')
   @DocsEditable()
   bool supports(String property, String value) => _blink.BlinkCSS.instance.supports_Callback_2_(unwrap_jso(this), property, value);
@@ -5106,18 +3927,6 @@ class Css extends NativeFieldWrapperClass2 {
 class CssCharsetRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssCharsetRule._() { throw new UnsupportedError("Not supported"); }
-
-
-  static CssCharsetRule internalCreateCssCharsetRule() {
-    return new CssCharsetRule._internalWrap();
-  }
-
-  factory CssCharsetRule._internalWrap() {
-    return new CssCharsetRule._internal();
-  }
-
-  CssCharsetRule._internal() : super._internal();
-
 
   @DomName('CSSCharsetRule.encoding')
   @DocsEditable()
@@ -5145,18 +3954,6 @@ class CssFilterRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssFilterRule._() { throw new UnsupportedError("Not supported"); }
 
-
-  static CssFilterRule internalCreateCssFilterRule() {
-    return new CssFilterRule._internalWrap();
-  }
-
-  factory CssFilterRule._internalWrap() {
-    return new CssFilterRule._internal();
-  }
-
-  CssFilterRule._internal() : super._internal();
-
-
   @DomName('WebKitCSSFilterRule.style')
   @DocsEditable()
   CssStyleDeclaration get style => wrap_jso(_blink.BlinkWebKitCSSFilterRule.instance.style_Getter_(unwrap_jso(this)));
@@ -5175,18 +3972,6 @@ class CssFontFaceRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssFontFaceRule._() { throw new UnsupportedError("Not supported"); }
 
-
-  static CssFontFaceRule internalCreateCssFontFaceRule() {
-    return new CssFontFaceRule._internalWrap();
-  }
-
-  factory CssFontFaceRule._internalWrap() {
-    return new CssFontFaceRule._internal();
-  }
-
-  CssFontFaceRule._internal() : super._internal();
-
-
   @DomName('CSSFontFaceRule.style')
   @DocsEditable()
   CssStyleDeclaration get style => wrap_jso(_blink.BlinkCSSFontFaceRule.instance.style_Getter_(unwrap_jso(this)));
@@ -5204,18 +3989,6 @@ class CssFontFaceRule extends CssRule {
 class CssImportRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssImportRule._() { throw new UnsupportedError("Not supported"); }
-
-
-  static CssImportRule internalCreateCssImportRule() {
-    return new CssImportRule._internalWrap();
-  }
-
-  factory CssImportRule._internalWrap() {
-    return new CssImportRule._internal();
-  }
-
-  CssImportRule._internal() : super._internal();
-
 
   @DomName('CSSImportRule.href')
   @DocsEditable()
@@ -5243,18 +4016,6 @@ class CssImportRule extends CssRule {
 class CssKeyframeRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssKeyframeRule._() { throw new UnsupportedError("Not supported"); }
-
-
-  static CssKeyframeRule internalCreateCssKeyframeRule() {
-    return new CssKeyframeRule._internalWrap();
-  }
-
-  factory CssKeyframeRule._internalWrap() {
-    return new CssKeyframeRule._internal();
-  }
-
-  CssKeyframeRule._internal() : super._internal();
-
 
   @DomName('CSSKeyframeRule.keyText')
   @DocsEditable()
@@ -5285,18 +4046,6 @@ class CssKeyframeRule extends CssRule {
 class CssKeyframesRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssKeyframesRule._() { throw new UnsupportedError("Not supported"); }
-
-
-  static CssKeyframesRule internalCreateCssKeyframesRule() {
-    return new CssKeyframesRule._internalWrap();
-  }
-
-  factory CssKeyframesRule._internalWrap() {
-    return new CssKeyframesRule._internal();
-  }
-
-  CssKeyframesRule._internal() : super._internal();
-
 
   @DomName('CSSKeyframesRule.cssRules')
   @DocsEditable()
@@ -5347,18 +4096,6 @@ class CssMediaRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssMediaRule._() { throw new UnsupportedError("Not supported"); }
 
-
-  static CssMediaRule internalCreateCssMediaRule() {
-    return new CssMediaRule._internalWrap();
-  }
-
-  factory CssMediaRule._internalWrap() {
-    return new CssMediaRule._internal();
-  }
-
-  CssMediaRule._internal() : super._internal();
-
-
   @DomName('CSSMediaRule.cssRules')
   @DocsEditable()
   List<CssRule> get cssRules => wrap_jso_list(_blink.BlinkCSSMediaRule.instance.cssRules_Getter_(unwrap_jso(this)));
@@ -5389,18 +4126,6 @@ class CssPageRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssPageRule._() { throw new UnsupportedError("Not supported"); }
 
-
-  static CssPageRule internalCreateCssPageRule() {
-    return new CssPageRule._internalWrap();
-  }
-
-  factory CssPageRule._internalWrap() {
-    return new CssPageRule._internal();
-  }
-
-  CssPageRule._internal() : super._internal();
-
-
   @DomName('CSSPageRule.selectorText')
   @DocsEditable()
   String get selectorText => _blink.BlinkCSSPageRule.instance.selectorText_Getter_(unwrap_jso(this));
@@ -5426,20 +4151,6 @@ class CssPageRule extends CssRule {
 class CssRule extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CssRule._() { throw new UnsupportedError("Not supported"); }
-
-  static CssRule internalCreateCssRule() {
-    return new CssRule._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory CssRule._internalWrap() {
-    return new CssRule._internal();
-  }
-
-  CssRule._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('CSSRule.CHARSET_RULE')
   @DocsEditable()
@@ -5536,7 +4247,7 @@ class CssRule extends NativeFieldWrapperClass2 {
 
 
 @DomName('CSSStyleDeclaration')
- class CssStyleDeclaration extends
+class CssStyleDeclaration  extends NativeFieldWrapperClass2 with
     CssStyleDeclarationBase  {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
@@ -5582,7 +4293,7 @@ class CssRule extends NativeFieldWrapperClass2 {
   }
 
   bool _hasProperty(String propertyName) =>
-      _blink.BlinkCSSStyleDeclaration.instance.$__propertyQuery___Callback_1_(unwrap_jso(this), propertyName) != null;
+      _blink.BlinkCSSStyleDeclaration.$__propertyQuery___Callback_1(this, propertyName);
 
   @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
@@ -5625,20 +4336,6 @@ class CssRule extends NativeFieldWrapperClass2 {
   static bool get supportsTransitions => true;
   // To suppress missing implicit constructor warnings.
   factory CssStyleDeclaration._() { throw new UnsupportedError("Not supported"); }
-
-  static CssStyleDeclaration internalCreateCssStyleDeclaration() {
-    return new CssStyleDeclaration._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory CssStyleDeclaration._internalWrap() {
-    return new CssStyleDeclaration._internal();
-  }
-
-  CssStyleDeclaration._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('CSSStyleDeclaration.cssText')
   @DocsEditable()
@@ -5692,7 +4389,7 @@ class CssRule extends NativeFieldWrapperClass2 {
   
 }
 
-class _CssStyleDeclarationSet extends CssStyleDeclarationBase {
+class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   final Iterable<Element> _elementIterable;
   Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
 
@@ -5719,11 +4416,9 @@ class _CssStyleDeclarationSet extends CssStyleDeclarationBase {
   // items in the MEMBERS set if you want that functionality.
 }
 
-class CssStyleDeclarationBase {
-  String getPropertyValue(String propertyName) =>
-    throw new StateError('getProperty not overridden in dart:html');
-  void setProperty(String propertyName, String value, [String priority]) =>
-    throw new StateError('setProperty not overridden in dart:html');
+abstract class CssStyleDeclarationBase {
+  String getPropertyValue(String propertyName);
+  void setProperty(String propertyName, String value, [String priority]);
 
   /** Gets the value of "align-content" */
   String get alignContent =>
@@ -8822,18 +7517,6 @@ class CssStyleRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssStyleRule._() { throw new UnsupportedError("Not supported"); }
 
-
-  static CssStyleRule internalCreateCssStyleRule() {
-    return new CssStyleRule._internalWrap();
-  }
-
-  factory CssStyleRule._internalWrap() {
-    return new CssStyleRule._internal();
-  }
-
-  CssStyleRule._internal() : super._internal();
-
-
   @DomName('CSSStyleRule.selectorText')
   @DocsEditable()
   String get selectorText => _blink.BlinkCSSStyleRule.instance.selectorText_Getter_(unwrap_jso(this));
@@ -8859,18 +7542,6 @@ class CssStyleRule extends CssRule {
 class CssStyleSheet extends StyleSheet {
   // To suppress missing implicit constructor warnings.
   factory CssStyleSheet._() { throw new UnsupportedError("Not supported"); }
-
-
-  static CssStyleSheet internalCreateCssStyleSheet() {
-    return new CssStyleSheet._internalWrap();
-  }
-
-  factory CssStyleSheet._internalWrap() {
-    return new CssStyleSheet._internal();
-  }
-
-  CssStyleSheet._internal() : super._internal();
-
 
   @DomName('CSSStyleSheet.cssRules')
   @DocsEditable()
@@ -8922,18 +7593,6 @@ class CssSupportsRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssSupportsRule._() { throw new UnsupportedError("Not supported"); }
 
-
-  static CssSupportsRule internalCreateCssSupportsRule() {
-    return new CssSupportsRule._internalWrap();
-  }
-
-  factory CssSupportsRule._internalWrap() {
-    return new CssSupportsRule._internal();
-  }
-
-  CssSupportsRule._internal() : super._internal();
-
-
   @DomName('CSSSupportsRule.conditionText')
   @DocsEditable()
   String get conditionText => _blink.BlinkCSSSupportsRule.instance.conditionText_Getter_(unwrap_jso(this));
@@ -8964,18 +7623,6 @@ class CssSupportsRule extends CssRule {
 class CssViewportRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssViewportRule._() { throw new UnsupportedError("Not supported"); }
-
-
-  static CssViewportRule internalCreateCssViewportRule() {
-    return new CssViewportRule._internalWrap();
-  }
-
-  factory CssViewportRule._internalWrap() {
-    return new CssViewportRule._internal();
-  }
-
-  CssViewportRule._internal() : super._internal();
-
 
   @DomName('CSSViewportRule.style')
   @DocsEditable()
@@ -9026,18 +7673,6 @@ class CustomEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory CustomEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static CustomEvent internalCreateCustomEvent() {
-    return new CustomEvent._internalWrap();
-  }
-
-  factory CustomEvent._internalWrap() {
-    return new CustomEvent._internal();
-  }
-
-  CustomEvent._internal() : super._internal();
-
-
   @DomName('CustomEvent.detail')
   @DocsEditable()
   Object get _detail => _blink.BlinkCustomEvent.instance.detail_Getter_(unwrap_jso(this));
@@ -9063,18 +7698,6 @@ class DListElement extends HtmlElement {
   @DomName('HTMLDListElement.HTMLDListElement')
   @DocsEditable()
   factory DListElement() => document.createElement("dl");
-
-
-  static DListElement internalCreateDListElement() {
-    return new DListElement._internalWrap();
-  }
-
-  factory DListElement._internalWrap() {
-    return new DListElement._internal();
-  }
-
-  DListElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -9103,18 +7726,6 @@ class DataListElement extends HtmlElement {
   @DomName('HTMLDataListElement.HTMLDataListElement')
   @DocsEditable()
   factory DataListElement() => document.createElement("datalist");
-
-
-  static DataListElement internalCreateDataListElement() {
-    return new DataListElement._internalWrap();
-  }
-
-  factory DataListElement._internalWrap() {
-    return new DataListElement._internal();
-  }
-
-  DataListElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -9143,20 +7754,6 @@ class DataListElement extends HtmlElement {
 class DataTransfer extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DataTransfer._() { throw new UnsupportedError("Not supported"); }
-
-  static DataTransfer internalCreateDataTransfer() {
-    return new DataTransfer._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DataTransfer._internalWrap() {
-    return new DataTransfer._internal();
-  }
-
-  DataTransfer._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('DataTransfer.dropEffect')
   @DocsEditable()
@@ -9233,20 +7830,6 @@ class DataTransferItem extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DataTransferItem._() { throw new UnsupportedError("Not supported"); }
 
-  static DataTransferItem internalCreateDataTransferItem() {
-    return new DataTransferItem._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DataTransferItem._internalWrap() {
-    return new DataTransferItem._internal();
-  }
-
-  DataTransferItem._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('DataTransferItem.kind')
   @DocsEditable()
   String get kind => _blink.BlinkDataTransferItem.instance.kind_Getter_(unwrap_jso(this));
@@ -9290,20 +7873,6 @@ class DataTransferItem extends NativeFieldWrapperClass2 {
 class DataTransferItemList extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DataTransferItemList._() { throw new UnsupportedError("Not supported"); }
-
-  static DataTransferItemList internalCreateDataTransferItemList() {
-    return new DataTransferItemList._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DataTransferItemList._internalWrap() {
-    return new DataTransferItemList._internal();
-  }
-
-  DataTransferItemList._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('DataTransferItemList.length')
   @DocsEditable()
@@ -9383,18 +7952,6 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   @Experimental() // untriaged
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-
-  static DedicatedWorkerGlobalScope internalCreateDedicatedWorkerGlobalScope() {
-    return new DedicatedWorkerGlobalScope._internalWrap();
-  }
-
-  factory DedicatedWorkerGlobalScope._internalWrap() {
-    return new DedicatedWorkerGlobalScope._internal();
-  }
-
-  DedicatedWorkerGlobalScope._internal() : super._internal();
-
-
   @DomName('DedicatedWorkerGlobalScope.postMessage')
   @DocsEditable()
   @Experimental() // untriaged
@@ -9420,20 +7977,6 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
 class DeprecatedStorageInfo extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DeprecatedStorageInfo._() { throw new UnsupportedError("Not supported"); }
-
-  static DeprecatedStorageInfo internalCreateDeprecatedStorageInfo() {
-    return new DeprecatedStorageInfo._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DeprecatedStorageInfo._internalWrap() {
-    return new DeprecatedStorageInfo._internal();
-  }
-
-  DeprecatedStorageInfo._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('DeprecatedStorageInfo.PERSISTENT')
   @DocsEditable()
@@ -9486,20 +8029,6 @@ class DeprecatedStorageQuota extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DeprecatedStorageQuota._() { throw new UnsupportedError("Not supported"); }
 
-  static DeprecatedStorageQuota internalCreateDeprecatedStorageQuota() {
-    return new DeprecatedStorageQuota._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DeprecatedStorageQuota._internalWrap() {
-    return new DeprecatedStorageQuota._internal();
-  }
-
-  DeprecatedStorageQuota._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   void queryUsageAndQuota(StorageUsageCallback usageCallback, [StorageErrorCallback errorCallback]) {
     if (errorCallback != null) {
       _blink.BlinkDeprecatedStorageQuota.instance.queryUsageAndQuota_Callback_2_(unwrap_jso(this), unwrap_jso(usageCallback), unwrap_jso(errorCallback));
@@ -9542,18 +8071,6 @@ class DetailsElement extends HtmlElement {
   @DomName('HTMLDetailsElement.HTMLDetailsElement')
   @DocsEditable()
   factory DetailsElement() => document.createElement("details");
-
-
-  static DetailsElement internalCreateDetailsElement() {
-    return new DetailsElement._internalWrap();
-  }
-
-  factory DetailsElement._internalWrap() {
-    return new DetailsElement._internal();
-  }
-
-  DetailsElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -9588,20 +8105,6 @@ class DeviceAcceleration extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DeviceAcceleration._() { throw new UnsupportedError("Not supported"); }
 
-  static DeviceAcceleration internalCreateDeviceAcceleration() {
-    return new DeviceAcceleration._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DeviceAcceleration._internalWrap() {
-    return new DeviceAcceleration._internal();
-  }
-
-  DeviceAcceleration._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('DeviceAcceleration.x')
   @DocsEditable()
   double get x => _blink.BlinkDeviceAcceleration.instance.x_Getter_(unwrap_jso(this));
@@ -9629,18 +8132,6 @@ class DeviceLightEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory DeviceLightEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static DeviceLightEvent internalCreateDeviceLightEvent() {
-    return new DeviceLightEvent._internalWrap();
-  }
-
-  factory DeviceLightEvent._internalWrap() {
-    return new DeviceLightEvent._internal();
-  }
-
-  DeviceLightEvent._internal() : super._internal();
-
-
   @DomName('DeviceLightEvent.value')
   @DocsEditable()
   @Experimental() // untriaged
@@ -9661,18 +8152,6 @@ class DeviceLightEvent extends Event {
 class DeviceMotionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory DeviceMotionEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static DeviceMotionEvent internalCreateDeviceMotionEvent() {
-    return new DeviceMotionEvent._internalWrap();
-  }
-
-  factory DeviceMotionEvent._internalWrap() {
-    return new DeviceMotionEvent._internal();
-  }
-
-  DeviceMotionEvent._internal() : super._internal();
-
 
   @DomName('DeviceMotionEvent.acceleration')
   @DocsEditable()
@@ -9717,18 +8196,6 @@ class DeviceOrientationEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory DeviceOrientationEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static DeviceOrientationEvent internalCreateDeviceOrientationEvent() {
-    return new DeviceOrientationEvent._internalWrap();
-  }
-
-  factory DeviceOrientationEvent._internalWrap() {
-    return new DeviceOrientationEvent._internal();
-  }
-
-  DeviceOrientationEvent._internal() : super._internal();
-
-
   @DomName('DeviceOrientationEvent.absolute')
   @DocsEditable()
   bool get absolute => _blink.BlinkDeviceOrientationEvent.instance.absolute_Getter_(unwrap_jso(this));
@@ -9765,20 +8232,6 @@ class DeviceRotationRate extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DeviceRotationRate._() { throw new UnsupportedError("Not supported"); }
 
-  static DeviceRotationRate internalCreateDeviceRotationRate() {
-    return new DeviceRotationRate._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DeviceRotationRate._internalWrap() {
-    return new DeviceRotationRate._internal();
-  }
-
-  DeviceRotationRate._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('DeviceRotationRate.alpha')
   @DocsEditable()
   double get alpha => _blink.BlinkDeviceRotationRate.instance.alpha_Getter_(unwrap_jso(this));
@@ -9805,18 +8258,6 @@ class DeviceRotationRate extends NativeFieldWrapperClass2 {
 class DialogElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory DialogElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  static DialogElement internalCreateDialogElement() {
-    return new DialogElement._internalWrap();
-  }
-
-  factory DialogElement._internalWrap() {
-    return new DialogElement._internal();
-  }
-
-  DialogElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -9904,33 +8345,21 @@ class DirectoryEntry extends Entry {
   // To suppress missing implicit constructor warnings.
   factory DirectoryEntry._() { throw new UnsupportedError("Not supported"); }
 
-
-  static DirectoryEntry internalCreateDirectoryEntry() {
-    return new DirectoryEntry._internalWrap();
-  }
-
-  factory DirectoryEntry._internalWrap() {
-    return new DirectoryEntry._internal();
-  }
-
-  DirectoryEntry._internal() : super._internal();
-
-
   @DomName('DirectoryEntry.createReader')
   @DocsEditable()
   DirectoryReader createReader() => wrap_jso(_blink.BlinkDirectoryEntry.instance.createReader_Callback_0_(unwrap_jso(this)));
   
   void __getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_4_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_4_(unwrap_jso(this), path, options, unwrap_jso(successCallback), unwrap_jso(errorCallback));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_3_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso(successCallback));
+      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_3_(unwrap_jso(this), path, options, unwrap_jso(successCallback));
       return;
     }
     if (options != null) {
-      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_2_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options);
+      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_2_(unwrap_jso(this), path, options);
       return;
     }
     _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_1_(unwrap_jso(this), path);
@@ -9947,15 +8376,15 @@ class DirectoryEntry extends Entry {
 
   void __getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getFile_Callback_4_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkDirectoryEntry.instance.getFile_Callback_4_(unwrap_jso(this), path, options, unwrap_jso(successCallback), unwrap_jso(errorCallback));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getFile_Callback_3_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso(successCallback));
+      _blink.BlinkDirectoryEntry.instance.getFile_Callback_3_(unwrap_jso(this), path, options, unwrap_jso(successCallback));
       return;
     }
     if (options != null) {
-      _blink.BlinkDirectoryEntry.instance.getFile_Callback_2_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options);
+      _blink.BlinkDirectoryEntry.instance.getFile_Callback_2_(unwrap_jso(this), path, options);
       return;
     }
     _blink.BlinkDirectoryEntry.instance.getFile_Callback_1_(unwrap_jso(this), path);
@@ -10002,20 +8431,6 @@ class DirectoryEntry extends Entry {
 class DirectoryReader extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DirectoryReader._() { throw new UnsupportedError("Not supported"); }
-
-  static DirectoryReader internalCreateDirectoryReader() {
-    return new DirectoryReader._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DirectoryReader._internalWrap() {
-    return new DirectoryReader._internal();
-  }
-
-  DirectoryReader._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   void _readEntries(_EntriesCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
@@ -10073,18 +8488,6 @@ class DivElement extends HtmlElement {
   @DomName('HTMLDivElement.HTMLDivElement')
   @DocsEditable()
   factory DivElement() => document.createElement("div");
-
-
-  static DivElement internalCreateDivElement() {
-    return new DivElement._internalWrap();
-  }
-
-  factory DivElement._internalWrap() {
-    return new DivElement._internal();
-  }
-
-  DivElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -10156,18 +8559,6 @@ class Document extends Node
   @DomName('Document.selectionchangeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> selectionChangeEvent = const EventStreamProvider<Event>('selectionchange');
-
-
-  static Document internalCreateDocument() {
-    return new Document._internalWrap();
-  }
-
-  factory Document._internalWrap() {
-    return new Document._internal();
-  }
-
-  Document._internal() : super._internal();
-
 
   @DomName('Document.activeElement')
   @DocsEditable()
@@ -10899,7 +9290,7 @@ class Document extends Node
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   ElementList<Element> querySelectorAll(String selectors) {
-    return _querySelectorAll(selectors);
+    return new _FrozenElementList._wrap(_querySelectorAll(selectors));
   }
 
   /**
@@ -10932,7 +9323,12 @@ class Document extends Node
 
   @DomName('Document.createElement')
   Element createElement(String tagName, [String typeExtension]) {
-    return _createElement(tagName, typeExtension);
+    if (typeExtension != null) {  
+      return _createElement(tagName, typeExtension);  
+    } else {  
+      // Fast-path for Dartium when typeExtension is not needed.  
+      return _Utils.createElement(this, tagName); 
+    } 
   }
 
 }
@@ -10991,7 +9387,7 @@ class DocumentFragment extends Node implements ParentNode {
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   ElementList<Element> querySelectorAll(String selectors) =>
-    _querySelectorAll(selectors);
+    new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
 
   String get innerHtml {
@@ -11055,18 +9451,6 @@ class DocumentFragment extends Node implements ParentNode {
   // To suppress missing implicit constructor warnings.
   factory DocumentFragment._() { throw new UnsupportedError("Not supported"); }
 
-
-  static DocumentFragment internalCreateDocumentFragment() {
-    return new DocumentFragment._internalWrap();
-  }
-
-  factory DocumentFragment._internalWrap() {
-    return new DocumentFragment._internal();
-  }
-
-  DocumentFragment._internal() : super._internal();
-
-
   @DomName('DocumentFragment.getElementById')
   @DocsEditable()
   @Experimental() // untriaged
@@ -11124,20 +9508,6 @@ class DomError extends NativeFieldWrapperClass2 {
     return _blink.BlinkDOMError.instance.constructorCallback_2_(name, message);
   }
 
-  static DomError internalCreateDomError() {
-    return new DomError._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DomError._internalWrap() {
-    return new DomError._internal();
-  }
-
-  DomError._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('DOMError.message')
   @DocsEditable()
   @Experimental() // untriaged
@@ -11182,20 +9552,6 @@ class DomException extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomException._() { throw new UnsupportedError("Not supported"); }
 
-  static DomException internalCreateDomException() {
-    return new DomException._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DomException._internalWrap() {
-    return new DomException._internal();
-  }
-
-  DomException._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('DOMException.message')
   @DocsEditable()
   String get message => _blink.BlinkDOMException.instance.message_Getter_(unwrap_jso(this));
@@ -11221,20 +9577,6 @@ class DomException extends NativeFieldWrapperClass2 {
 class DomImplementation extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomImplementation._() { throw new UnsupportedError("Not supported"); }
-
-  static DomImplementation internalCreateDomImplementation() {
-    return new DomImplementation._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DomImplementation._internalWrap() {
-    return new DomImplementation._internal();
-  }
-
-  DomImplementation._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('DOMImplementation.createDocument')
   @DocsEditable()
@@ -11266,20 +9608,6 @@ class DomImplementation extends NativeFieldWrapperClass2 {
 class DomIterator extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomIterator._() { throw new UnsupportedError("Not supported"); }
-
-  static DomIterator internalCreateDomIterator() {
-    return new DomIterator._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DomIterator._internalWrap() {
-    return new DomIterator._internal();
-  }
-
-  DomIterator._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   Object next([Object value]) {
     if (value != null) {
@@ -11314,18 +9642,6 @@ class DomMatrix extends DomMatrixReadOnly {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-
-
-  static DomMatrix internalCreateDomMatrix() {
-    return new DomMatrix._internalWrap();
-  }
-
-  factory DomMatrix._internalWrap() {
-    return new DomMatrix._internal();
-  }
-
-  DomMatrix._internal() : super._internal();
-
 
   @DomName('DOMMatrix.a')
   @DocsEditable()
@@ -11621,20 +9937,6 @@ class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomMatrixReadOnly._() { throw new UnsupportedError("Not supported"); }
 
-  static DomMatrixReadOnly internalCreateDomMatrixReadOnly() {
-    return new DomMatrixReadOnly._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DomMatrixReadOnly._internalWrap() {
-    return new DomMatrixReadOnly._internal();
-  }
-
-  DomMatrixReadOnly._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('DOMMatrixReadOnly.a')
   @DocsEditable()
   @Experimental() // untriaged
@@ -11839,20 +10141,6 @@ class DomParser extends NativeFieldWrapperClass2 {
     return _blink.BlinkDOMParser.instance.constructorCallback_0_();
   }
 
-  static DomParser internalCreateDomParser() {
-    return new DomParser._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DomParser._internalWrap() {
-    return new DomParser._internal();
-  }
-
-  DomParser._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('DOMParser.parseFromString')
   @DocsEditable()
   Document parseFromString(String str, String contentType) => wrap_jso(_blink.BlinkDOMParser.instance.parseFromString_Callback_2_(unwrap_jso(this), str, contentType));
@@ -11892,18 +10180,6 @@ class DomPoint extends DomPointReadOnly {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-
-
-  static DomPoint internalCreateDomPoint() {
-    return new DomPoint._internalWrap();
-  }
-
-  factory DomPoint._internalWrap() {
-    return new DomPoint._internal();
-  }
-
-  DomPoint._internal() : super._internal();
-
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -11968,20 +10244,6 @@ class DomPointReadOnly extends NativeFieldWrapperClass2 {
   factory DomPointReadOnly(num x, num y, num z, num w) {
     return _blink.BlinkDOMPointReadOnly.instance.constructorCallback_4_(x, y, z, w);
   }
-
-  static DomPointReadOnly internalCreateDomPointReadOnly() {
-    return new DomPointReadOnly._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DomPointReadOnly._internalWrap() {
-    return new DomPointReadOnly._internal();
-  }
-
-  DomPointReadOnly._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('DOMPointReadOnly.w')
   @DocsEditable()
@@ -12112,19 +10374,6 @@ class DomRectReadOnly extends NativeFieldWrapperClass2 implements Rectangle {
     return _blink.BlinkDOMRectReadOnly.instance.constructorCallback_4_(x, y, width, height);
   }
 
-  static DomRectReadOnly internalCreateDomRectReadOnly() {
-    return new DomRectReadOnly._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DomRectReadOnly._internalWrap() {
-    return new DomRectReadOnly._internal();
-  }
-
-  DomRectReadOnly._internal() { }
-
-
   @DomName('DOMRectReadOnly.bottom')
   @DocsEditable()
   @Experimental() // untriaged
@@ -12179,18 +10428,6 @@ class DomSettableTokenList extends DomTokenList {
   // To suppress missing implicit constructor warnings.
   factory DomSettableTokenList._() { throw new UnsupportedError("Not supported"); }
 
-
-  static DomSettableTokenList internalCreateDomSettableTokenList() {
-    return new DomSettableTokenList._internalWrap();
-  }
-
-  factory DomSettableTokenList._internalWrap() {
-    return new DomSettableTokenList._internal();
-  }
-
-  DomSettableTokenList._internal() : super._internal();
-
-
   @DomName('DOMSettableTokenList.value')
   @DocsEditable()
   String get value => _blink.BlinkDOMSettableTokenList.instance.value_Getter_(unwrap_jso(this));
@@ -12216,20 +10453,6 @@ class DomSettableTokenList extends DomTokenList {
 class DomStringList extends NativeFieldWrapperClass2 with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
   // To suppress missing implicit constructor warnings.
   factory DomStringList._() { throw new UnsupportedError("Not supported"); }
-
-  static DomStringList internalCreateDomStringList() {
-    return new DomStringList._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DomStringList._internalWrap() {
-    return new DomStringList._internal();
-  }
-
-  DomStringList._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('DOMStringList.length')
   @DocsEditable()
@@ -12303,20 +10526,6 @@ abstract class DomStringMap extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomStringMap._() { throw new UnsupportedError("Not supported"); }
 
-  static DomStringMap internalCreateDomStringMap() {
-    return new DomStringMap._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DomStringMap._internalWrap() {
-    return new DomStringMap._internal();
-  }
-
-  DomStringMap._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   bool __delete__(index_OR_name) {
     if ((index_OR_name is int || index_OR_name == null)) {
       return _blink.BlinkDOMStringMap.instance.$__delete___Callback_1_(unwrap_jso(this), unwrap_jso(index_OR_name));
@@ -12362,20 +10571,6 @@ abstract class DomStringMap extends NativeFieldWrapperClass2 {
 class DomTokenList extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomTokenList._() { throw new UnsupportedError("Not supported"); }
-
-  static DomTokenList internalCreateDomTokenList() {
-    return new DomTokenList._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory DomTokenList._internalWrap() {
-    return new DomTokenList._internal();
-  }
-
-  DomTokenList._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('DOMTokenList.length')
   @DocsEditable()
@@ -13137,11 +11332,7 @@ class _FrozenElementList extends ListBase
     implements ElementList, NodeListWrapper {
   final List<Node> _nodeList;
 
-  var dartClass_instance;
-
-  _FrozenElementList._wrap(this._nodeList) {
-      this.dartClass_instance = this._nodeList;
-  }
+  _FrozenElementList._wrap(this._nodeList);
 
   int get length => _nodeList.length;
 
@@ -13920,7 +12111,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *       element.style.background = 'red'; // Turns every child of body red.
    *     }
    */
-  List<Element> get children => new FilteredElementList(this);
+  List<Element> get children => new _ChildrenElementList._wrap(this);
 
   void set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
@@ -13943,7 +12134,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   @DomName('Element.querySelectorAll')
   ElementList<Element> querySelectorAll(String selectors) =>
-    _querySelectorAll(selectors);
+    new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -14563,59 +12754,59 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  int get offsetHeight => _blink.BlinkElement.instance.offsetHeight_Getter_(unwrap_jso(this)).round();
+  int get offsetHeight => _blink.BlinkElement.offsetHeight_Getter(this).round();
 
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  int get offsetLeft => _blink.BlinkElement.instance.offsetLeft_Getter_(unwrap_jso(this)).round();
+  int get offsetLeft => _blink.BlinkElement.offsetLeft_Getter(this).round();
 
   @DomName('Element.offsetTop')
   @DocsEditable()
-  int get offsetTop => _blink.BlinkElement.instance.offsetTop_Getter_(unwrap_jso(this)).round();
+  int get offsetTop => _blink.BlinkElement.offsetTop_Getter(this).round();
 
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  int get offsetWidth => _blink.BlinkElement.instance.offsetWidth_Getter_(unwrap_jso(this)).round();
+  int get offsetWidth => _blink.BlinkElement.offsetWidth_Getter(this).round();
 
   @DomName('Element.clientHeight')
   @DocsEditable()
-  int get clientHeight => _blink.BlinkElement.instance.clientHeight_Getter_(unwrap_jso(this)).round();
+  int get clientHeight => _blink.BlinkElement.clientHeight_Getter(this).round();
 
   @DomName('Element.clientLeft')
   @DocsEditable()
-  int get clientLeft => _blink.BlinkElement.instance.clientLeft_Getter_(unwrap_jso(this)).round();
+  int get clientLeft => _blink.BlinkElement.clientLeft_Getter(this).round();
 
   @DomName('Element.clientTop')
   @DocsEditable()
-  int get clientTop => _blink.BlinkElement.instance.clientTop_Getter_(unwrap_jso(this)).round();
+  int get clientTop => _blink.BlinkElement.clientTop_Getter(this).round();
 
   @DomName('Element.clientWidth')
   @DocsEditable()
-  int get clientWidth => _blink.BlinkElement.instance.clientWidth_Getter_(unwrap_jso(this)).round();
+  int get clientWidth => _blink.BlinkElement.clientWidth_Getter(this).round();
 
   @DomName('Element.scrollHeight')
   @DocsEditable()
-  int get scrollHeight => _blink.BlinkElement.instance.scrollHeight_Getter_(unwrap_jso(this)).round();
+  int get scrollHeight => _blink.BlinkElement.scrollHeight_Getter(this).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  int get scrollLeft => _blink.BlinkElement.instance.scrollLeft_Getter_(unwrap_jso(this)).round();
+  int get scrollLeft => _blink.BlinkElement.scrollLeft_Getter(this).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(int value) => _blink.BlinkElement.instance.scrollLeft_Setter_(unwrap_jso(this), value.round());
+  void set scrollLeft(int value) => _blink.BlinkElement.scrollLeft_Setter(this, value.round());
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  int get scrollTop => _blink.BlinkElement.instance.scrollTop_Getter_(unwrap_jso(this)).round();
+  int get scrollTop => _blink.BlinkElement.scrollTop_Getter(this).round();
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(int value) => _blink.BlinkElement.instance.scrollTop_Setter_(unwrap_jso(this), value.round());
+  void set scrollTop(int value) => _blink.BlinkElement.scrollTop_Setter(this, value.round());
 
   @DomName('Element.scrollWidth')
   @DocsEditable()
-  int get scrollWidth => _blink.BlinkElement.instance.scrollWidth_Getter_(unwrap_jso(this)).round();
+  int get scrollWidth => _blink.BlinkElement.scrollWidth_Getter(this).round();
 
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
@@ -15287,18 +13478,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
-
-
-  static Element internalCreateElement() {
-    return new Element._internalWrap();
-  }
-
-  factory Element._internalWrap() {
-    return new Element._internal();
-  }
-
-  Element._internal() : super._internal();
-
 
   String contentEditable;
 
@@ -16181,18 +14360,6 @@ class EmbedElement extends HtmlElement {
   @DomName('HTMLEmbedElement.HTMLEmbedElement')
   @DocsEditable()
   factory EmbedElement() => document.createElement("embed");
-
-
-  static EmbedElement internalCreateEmbedElement() {
-    return new EmbedElement._internalWrap();
-  }
-
-  factory EmbedElement._internalWrap() {
-    return new EmbedElement._internal();
-  }
-
-  EmbedElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -16287,20 +14454,6 @@ typedef void _EntriesCallback(List<Entry> entries);
 class Entry extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Entry._() { throw new UnsupportedError("Not supported"); }
-
-  static Entry internalCreateEntry() {
-    return new Entry._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Entry._internalWrap() {
-    return new Entry._internal();
-  }
-
-  Entry._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('Entry.filesystem')
   @DocsEditable()
@@ -16468,18 +14621,6 @@ class ErrorEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ErrorEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static ErrorEvent internalCreateErrorEvent() {
-    return new ErrorEvent._internalWrap();
-  }
-
-  factory ErrorEvent._internalWrap() {
-    return new ErrorEvent._internal();
-  }
-
-  ErrorEvent._internal() : super._internal();
-
-
   @DomName('ErrorEvent.colno')
   @DocsEditable()
   @Experimental() // untriaged
@@ -16563,20 +14704,6 @@ class Event extends NativeFieldWrapperClass2 {
   }
   // To suppress missing implicit constructor warnings.
   factory Event._() { throw new UnsupportedError("Not supported"); }
-
-  static Event internalCreateEvent() {
-    return new Event._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Event._internalWrap() {
-    return new Event._internal();
-  }
-
-  Event._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   /**
    * This event is being handled by the event target.
@@ -16754,18 +14881,6 @@ class EventSource extends EventTarget {
     return _blink.BlinkEventSource.instance.constructorCallback_1_(url);
   }
 
-
-  static EventSource internalCreateEventSource() {
-    return new EventSource._internalWrap();
-  }
-
-  factory EventSource._internalWrap() {
-    return new EventSource._internal();
-  }
-
-  EventSource._internal() : super._internal();
-
-
   @DomName('EventSource.CLOSED')
   @DocsEditable()
   static const int CLOSED = 2;
@@ -16934,27 +15049,13 @@ class EventTarget extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory EventTarget._() { throw new UnsupportedError("Not supported"); }
 
-  static EventTarget internalCreateEventTarget() {
-    return new EventTarget._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory EventTarget._internalWrap() {
-    return new EventTarget._internal();
-  }
-
-  EventTarget._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   void _addEventListener([String type, EventListener listener, bool useCapture]) {
     if (useCapture != null) {
-      _blink.BlinkEventTarget.instance.addEventListener_Callback_3_(unwrap_jso(this), type, unwrap_jso((Event event) => listener(wrap_jso(event))), useCapture);
+      _blink.BlinkEventTarget.instance.addEventListener_Callback_3_(unwrap_jso(this), type, unwrap_jso(listener), useCapture);
       return;
     }
     if (listener != null) {
-      _blink.BlinkEventTarget.instance.addEventListener_Callback_2_(unwrap_jso(this), type, unwrap_jso((Event event) => listener(wrap_jso(event))));
+      _blink.BlinkEventTarget.instance.addEventListener_Callback_2_(unwrap_jso(this), type, unwrap_jso(listener));
       return;
     }
     if (type != null) {
@@ -17001,18 +15102,6 @@ class ExtendableEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ExtendableEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static ExtendableEvent internalCreateExtendableEvent() {
-    return new ExtendableEvent._internalWrap();
-  }
-
-  factory ExtendableEvent._internalWrap() {
-    return new ExtendableEvent._internal();
-  }
-
-  ExtendableEvent._internal() : super._internal();
-
-
   @DomName('ExtendableEvent.waitUntil')
   @DocsEditable()
   @Experimental() // untriaged
@@ -17039,18 +15128,6 @@ class FederatedCredential extends Credential {
     return _blink.BlinkFederatedCredential.instance.constructorCallback_4_(id, name, avatarURL, federation);
   }
 
-
-  static FederatedCredential internalCreateFederatedCredential() {
-    return new FederatedCredential._internalWrap();
-  }
-
-  factory FederatedCredential._internalWrap() {
-    return new FederatedCredential._internal();
-  }
-
-  FederatedCredential._internal() : super._internal();
-
-
   @DomName('FederatedCredential.federation')
   @DocsEditable()
   @Experimental() // untriaged
@@ -17070,18 +15147,6 @@ class FederatedCredential extends Credential {
 class FetchEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory FetchEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static FetchEvent internalCreateFetchEvent() {
-    return new FetchEvent._internalWrap();
-  }
-
-  factory FetchEvent._internalWrap() {
-    return new FetchEvent._internal();
-  }
-
-  FetchEvent._internal() : super._internal();
-
 
   @DomName('FetchEvent.isReload')
   @DocsEditable()
@@ -17116,18 +15181,6 @@ class FieldSetElement extends HtmlElement {
   @DomName('HTMLFieldSetElement.HTMLFieldSetElement')
   @DocsEditable()
   factory FieldSetElement() => document.createElement("fieldset");
-
-
-  static FieldSetElement internalCreateFieldSetElement() {
-    return new FieldSetElement._internalWrap();
-  }
-
-  factory FieldSetElement._internalWrap() {
-    return new FieldSetElement._internal();
-  }
-
-  FieldSetElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -17197,18 +15250,6 @@ class File extends Blob {
   // To suppress missing implicit constructor warnings.
   factory File._() { throw new UnsupportedError("Not supported"); }
 
-
-  static File internalCreateFile() {
-    return new File._internalWrap();
-  }
-
-  factory File._internalWrap() {
-    return new File._internal();
-  }
-
-  File._internal() : super._internal();
-
-
   @DomName('File.lastModified')
   @DocsEditable()
   @Experimental() // untriaged
@@ -17256,18 +15297,6 @@ typedef void _FileCallback(File file);
 class FileEntry extends Entry {
   // To suppress missing implicit constructor warnings.
   factory FileEntry._() { throw new UnsupportedError("Not supported"); }
-
-
-  static FileEntry internalCreateFileEntry() {
-    return new FileEntry._internalWrap();
-  }
-
-  factory FileEntry._internalWrap() {
-    return new FileEntry._internal();
-  }
-
-  FileEntry._internal() : super._internal();
-
 
   void _createWriter(_FileWriterCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
@@ -17318,18 +15347,6 @@ class FileEntry extends Entry {
 class FileError extends DomError {
   // To suppress missing implicit constructor warnings.
   factory FileError._() { throw new UnsupportedError("Not supported"); }
-
-
-  static FileError internalCreateFileError() {
-    return new FileError._internalWrap();
-  }
-
-  factory FileError._internalWrap() {
-    return new FileError._internal();
-  }
-
-  FileError._internal() : super._internal();
-
 
   @DomName('FileError.ABORT_ERR')
   @DocsEditable()
@@ -17396,20 +15413,6 @@ class FileError extends DomError {
 class FileList extends NativeFieldWrapperClass2 with ListMixin<File>, ImmutableListMixin<File> implements List<File> {
   // To suppress missing implicit constructor warnings.
   factory FileList._() { throw new UnsupportedError("Not supported"); }
-
-  static FileList internalCreateFileList() {
-    return new FileList._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory FileList._internalWrap() {
-    return new FileList._internal();
-  }
-
-  FileList._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('FileList.length')
   @DocsEditable()
@@ -17554,18 +15557,6 @@ class FileReader extends EventTarget {
     return _blink.BlinkFileReader.instance.constructorCallback_0_();
   }
 
-
-  static FileReader internalCreateFileReader() {
-    return new FileReader._internalWrap();
-  }
-
-  factory FileReader._internalWrap() {
-    return new FileReader._internal();
-  }
-
-  FileReader._internal() : super._internal();
-
-
   @DomName('FileReader.DONE')
   @DocsEditable()
   static const int DONE = 2;
@@ -17656,20 +15647,6 @@ class FileStream extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory FileStream._() { throw new UnsupportedError("Not supported"); }
 
-  static FileStream internalCreateFileStream() {
-    return new FileStream._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory FileStream._internalWrap() {
-    return new FileStream._internal();
-  }
-
-  FileStream._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('Stream.type')
   @DocsEditable()
   @Experimental() // untriaged
@@ -17691,20 +15668,6 @@ class FileStream extends NativeFieldWrapperClass2 {
 class FileSystem extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory FileSystem._() { throw new UnsupportedError("Not supported"); }
-
-  static FileSystem internalCreateFileSystem() {
-    return new FileSystem._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory FileSystem._internalWrap() {
-    return new FileSystem._internal();
-  }
-
-  FileSystem._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -17803,18 +15766,6 @@ class FileWriter extends EventTarget {
   @DomName('FileWriter.writestartEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
-
-
-  static FileWriter internalCreateFileWriter() {
-    return new FileWriter._internalWrap();
-  }
-
-  factory FileWriter._internalWrap() {
-    return new FileWriter._internal();
-  }
-
-  FileWriter._internal() : super._internal();
-
 
   @DomName('FileWriter.DONE')
   @DocsEditable()
@@ -17915,18 +15866,6 @@ class FocusEvent extends UIEvent {
   // To suppress missing implicit constructor warnings.
   factory FocusEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static FocusEvent internalCreateFocusEvent() {
-    return new FocusEvent._internalWrap();
-  }
-
-  factory FocusEvent._internalWrap() {
-    return new FocusEvent._internal();
-  }
-
-  FocusEvent._internal() : super._internal();
-
-
   @DomName('FocusEvent.relatedTarget')
   @DocsEditable()
   EventTarget get relatedTarget => wrap_jso(_blink.BlinkFocusEvent.instance.relatedTarget_Getter_(unwrap_jso(this)));
@@ -17969,20 +15908,6 @@ class FontFace extends NativeFieldWrapperClass2 {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-
-  static FontFace internalCreateFontFace() {
-    return new FontFace._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory FontFace._internalWrap() {
-    return new FontFace._internal();
-  }
-
-  FontFace._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('FontFace.family')
   @DocsEditable()
@@ -18084,18 +16009,6 @@ class FontFaceSet extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory FontFaceSet._() { throw new UnsupportedError("Not supported"); }
 
-
-  static FontFaceSet internalCreateFontFaceSet() {
-    return new FontFaceSet._internalWrap();
-  }
-
-  factory FontFaceSet._internalWrap() {
-    return new FontFaceSet._internal();
-  }
-
-  FontFaceSet._internal() : super._internal();
-
-
   @DomName('FontFaceSet.size')
   @DocsEditable()
   @Experimental() // untriaged
@@ -18167,18 +16080,6 @@ class FontFaceSetLoadEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory FontFaceSetLoadEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static FontFaceSetLoadEvent internalCreateFontFaceSetLoadEvent() {
-    return new FontFaceSetLoadEvent._internalWrap();
-  }
-
-  factory FontFaceSetLoadEvent._internalWrap() {
-    return new FontFaceSetLoadEvent._internal();
-  }
-
-  FontFaceSetLoadEvent._internal() : super._internal();
-
-
   @DomName('FontFaceSetLoadEvent.fontfaces')
   @DocsEditable()
   @Experimental() // untriaged
@@ -18209,20 +16110,6 @@ class FormData extends NativeFieldWrapperClass2 {
   @DocsEditable()
   static FormData _create(form) => _blink.BlinkFormData.instance.constructorCallback_1_(form);
 
-  static FormData internalCreateFormData() {
-    return new FormData._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory FormData._internalWrap() {
-    return new FormData._internal();
-  }
-
-  FormData._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
@@ -18251,18 +16138,6 @@ class FormElement extends HtmlElement {
   @DomName('HTMLFormElement.HTMLFormElement')
   @DocsEditable()
   factory FormElement() => document.createElement("form");
-
-
-  static FormElement internalCreateFormElement() {
-    return new FormElement._internalWrap();
-  }
-
-  factory FormElement._internalWrap() {
-    return new FormElement._internal();
-  }
-
-  FormElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -18368,7 +16243,7 @@ class FormElement extends HtmlElement {
   @DocsEditable()
   // http://lists.whatwg.org/htdig.cgi/whatwg-whatwg.org/2012-October/037711.html
   @Experimental()
-  void requestAutocomplete(Map details) => _blink.BlinkHTMLFormElement.instance.requestAutocomplete_Callback_1_(unwrap_jso(this), details != null ? new js.JsObject.jsify(details) : details);
+  void requestAutocomplete(Map details) => _blink.BlinkHTMLFormElement.instance.requestAutocomplete_Callback_1_(unwrap_jso(this), details);
   
   @DomName('HTMLFormElement.reset')
   @DocsEditable()
@@ -18393,20 +16268,6 @@ class FormElement extends HtmlElement {
 class Gamepad extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Gamepad._() { throw new UnsupportedError("Not supported"); }
-
-  static Gamepad internalCreateGamepad() {
-    return new Gamepad._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Gamepad._internalWrap() {
-    return new Gamepad._internal();
-  }
-
-  Gamepad._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('Gamepad.axes')
   @DocsEditable()
@@ -18449,20 +16310,6 @@ class GamepadButton extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory GamepadButton._() { throw new UnsupportedError("Not supported"); }
 
-  static GamepadButton internalCreateGamepadButton() {
-    return new GamepadButton._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory GamepadButton._internalWrap() {
-    return new GamepadButton._internal();
-  }
-
-  GamepadButton._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('GamepadButton.pressed')
   @DocsEditable()
   @Experimental() // untriaged
@@ -18488,18 +16335,6 @@ class GamepadEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory GamepadEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static GamepadEvent internalCreateGamepadEvent() {
-    return new GamepadEvent._internalWrap();
-  }
-
-  factory GamepadEvent._internalWrap() {
-    return new GamepadEvent._internal();
-  }
-
-  GamepadEvent._internal() : super._internal();
-
-
   @DomName('GamepadEvent.gamepad')
   @DocsEditable()
   @Experimental() // untriaged
@@ -18519,20 +16354,6 @@ class GamepadEvent extends Event {
 class Geofencing extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Geofencing._() { throw new UnsupportedError("Not supported"); }
-
-  static Geofencing internalCreateGeofencing() {
-    return new Geofencing._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Geofencing._internalWrap() {
-    return new Geofencing._internal();
-  }
-
-  Geofencing._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('Geofencing.getRegisteredRegions')
   @DocsEditable()
@@ -18563,20 +16384,6 @@ class Geofencing extends NativeFieldWrapperClass2 {
 class GeofencingRegion extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory GeofencingRegion._() { throw new UnsupportedError("Not supported"); }
-
-  static GeofencingRegion internalCreateGeofencingRegion() {
-    return new GeofencingRegion._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory GeofencingRegion._internalWrap() {
-    return new GeofencingRegion._internal();
-  }
-
-  GeofencingRegion._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('GeofencingRegion.id')
   @DocsEditable()
@@ -18667,27 +16474,13 @@ class Geolocation extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Geolocation._() { throw new UnsupportedError("Not supported"); }
 
-  static Geolocation internalCreateGeolocation() {
-    return new Geolocation._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Geolocation._internalWrap() {
-    return new Geolocation._internal();
-  }
-
-  Geolocation._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('Geolocation.clearWatch')
   @DocsEditable()
   void _clearWatch(int watchID) => _blink.BlinkGeolocation.instance.clearWatch_Callback_1_(unwrap_jso(this), watchID);
   
   void _getCurrentPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Map options]) {
     if (options != null) {
-      _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback), options != null ? new js.JsObject.jsify(options) : options);
+      _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback), options);
       return;
     }
     if (errorCallback != null) {
@@ -18700,7 +16493,7 @@ class Geolocation extends NativeFieldWrapperClass2 {
 
   int _watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Map options]) {
     if (options != null) {
-      return _blink.BlinkGeolocation.instance.watchPosition_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback), options != null ? new js.JsObject.jsify(options) : options);
+      return _blink.BlinkGeolocation.instance.watchPosition_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback), options);
     }
     if (errorCallback != null) {
       return _blink.BlinkGeolocation.instance.watchPosition_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback));
@@ -18722,20 +16515,6 @@ class Geolocation extends NativeFieldWrapperClass2 {
 class Geoposition extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Geoposition._() { throw new UnsupportedError("Not supported"); }
-
-  static Geoposition internalCreateGeoposition() {
-    return new Geoposition._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Geoposition._internalWrap() {
-    return new Geoposition._internal();
-  }
-
-  Geoposition._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('Geoposition.coords')
   @DocsEditable()
@@ -19018,20 +16797,6 @@ abstract class GlobalEventHandlers extends EventTarget {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
 
-  static GlobalEventHandlers internalCreateGlobalEventHandlers() {
-    return new GlobalEventHandlers._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory GlobalEventHandlers._internalWrap() {
-    return new GlobalEventHandlers._internal();
-  }
-
-  GlobalEventHandlers._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('GlobalEventHandlers.onabort')
   @DocsEditable()
   @Experimental() // untriaged
@@ -19311,18 +17076,6 @@ class HRElement extends HtmlElement {
   @DomName('HTMLHRElement.HTMLHRElement')
   @DocsEditable()
   factory HRElement() => document.createElement("hr");
-
-
-  static HRElement internalCreateHRElement() {
-    return new HRElement._internalWrap();
-  }
-
-  factory HRElement._internalWrap() {
-    return new HRElement._internal();
-  }
-
-  HRElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -19363,18 +17116,6 @@ class HashChangeEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory HashChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static HashChangeEvent internalCreateHashChangeEvent() {
-    return new HashChangeEvent._internalWrap();
-  }
-
-  factory HashChangeEvent._internalWrap() {
-    return new HashChangeEvent._internal();
-  }
-
-  HashChangeEvent._internal() : super._internal();
-
-
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
@@ -19407,18 +17148,6 @@ class HeadElement extends HtmlElement {
   @DomName('HTMLHeadElement.HTMLHeadElement')
   @DocsEditable()
   factory HeadElement() => document.createElement("head");
-
-
-  static HeadElement internalCreateHeadElement() {
-    return new HeadElement._internalWrap();
-  }
-
-  factory HeadElement._internalWrap() {
-    return new HeadElement._internal();
-  }
-
-  HeadElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -19455,20 +17184,6 @@ class Headers extends NativeFieldWrapperClass2 {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-
-  static Headers internalCreateHeaders() {
-    return new Headers._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Headers._internalWrap() {
-    return new Headers._internal();
-  }
-
-  Headers._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('Headers.size')
   @DocsEditable()
@@ -19531,18 +17246,6 @@ class HeadingElement extends HtmlElement {
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
   factory HeadingElement.h6() => document.createElement("h6");
-
-
-  static HeadingElement internalCreateHeadingElement() {
-    return new HeadingElement._internalWrap();
-  }
-
-  factory HeadingElement._internalWrap() {
-    return new HeadingElement._internal();
-  }
-
-  HeadingElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -19571,20 +17274,6 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
   static bool get supportsState => true;
   // To suppress missing implicit constructor warnings.
   factory History._() { throw new UnsupportedError("Not supported"); }
-
-  static History internalCreateHistory() {
-    return new History._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory History._internalWrap() {
-    return new History._internal();
-  }
-
-  History._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('History.length')
   @DocsEditable()
@@ -19634,20 +17323,6 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
 class HtmlCollection extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory HtmlCollection._() { throw new UnsupportedError("Not supported"); }
-
-  static HtmlCollection internalCreateHtmlCollection() {
-    return new HtmlCollection._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory HtmlCollection._internalWrap() {
-    return new HtmlCollection._internal();
-  }
-
-  HtmlCollection._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('HTMLCollection.length')
   @DocsEditable()
@@ -19719,18 +17394,6 @@ class HtmlCollection extends NativeFieldWrapperClass2 with ListMixin<Node>, Immu
 class HtmlDocument extends Document {
   // To suppress missing implicit constructor warnings.
   factory HtmlDocument._() { throw new UnsupportedError("Not supported"); }
-
-
-  static HtmlDocument internalCreateHtmlDocument() {
-    return new HtmlDocument._internalWrap();
-  }
-
-  factory HtmlDocument._internalWrap() {
-    return new HtmlDocument._internal();
-  }
-
-  HtmlDocument._internal() : super._internal();
-
 
 
   @DomName('Document.body')
@@ -20261,18 +17924,6 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
-
-
-  static HtmlElement internalCreateHtmlElement() {
-    return new HtmlElement._internalWrap();
-  }
-
-  factory HtmlElement._internalWrap() {
-    return new HtmlElement._internal();
-  }
-
-  HtmlElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20669,18 +18320,6 @@ class HtmlFormControlsCollection extends HtmlCollection {
   // To suppress missing implicit constructor warnings.
   factory HtmlFormControlsCollection._() { throw new UnsupportedError("Not supported"); }
 
-
-  static HtmlFormControlsCollection internalCreateHtmlFormControlsCollection() {
-    return new HtmlFormControlsCollection._internalWrap();
-  }
-
-  factory HtmlFormControlsCollection._internalWrap() {
-    return new HtmlFormControlsCollection._internal();
-  }
-
-  HtmlFormControlsCollection._internal() : super._internal();
-
-
   @DomName('HTMLFormControlsCollection.namedItem')
   @DocsEditable()
   Object namedItem(String name) => wrap_jso(_blink.BlinkHTMLFormControlsCollection.instance.namedItem_Callback_1_(unwrap_jso(this), name));
@@ -20702,18 +18341,6 @@ class HtmlHtmlElement extends HtmlElement {
   @DomName('HTMLHtmlElement.HTMLHtmlElement')
   @DocsEditable()
   factory HtmlHtmlElement() => document.createElement("html");
-
-
-  static HtmlHtmlElement internalCreateHtmlHtmlElement() {
-    return new HtmlHtmlElement._internalWrap();
-  }
-
-  factory HtmlHtmlElement._internalWrap() {
-    return new HtmlHtmlElement._internal();
-  }
-
-  HtmlHtmlElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20734,18 +18361,6 @@ class HtmlHtmlElement extends HtmlElement {
 class HtmlOptionsCollection extends HtmlCollection {
   // To suppress missing implicit constructor warnings.
   factory HtmlOptionsCollection._() { throw new UnsupportedError("Not supported"); }
-
-
-  static HtmlOptionsCollection internalCreateHtmlOptionsCollection() {
-    return new HtmlOptionsCollection._internalWrap();
-  }
-
-  factory HtmlOptionsCollection._internalWrap() {
-    return new HtmlOptionsCollection._internal();
-  }
-
-  HtmlOptionsCollection._internal() : super._internal();
-
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21119,18 +18734,6 @@ class HttpRequest extends HttpRequestEventTarget {
 
   @DocsEditable()
   static HttpRequest _create() => _blink.BlinkXMLHttpRequest.instance.constructorCallback_0_();
-
-
-  static HttpRequest internalCreateHttpRequest() {
-    return new HttpRequest._internalWrap();
-  }
-
-  factory HttpRequest._internalWrap() {
-    return new HttpRequest._internal();
-  }
-
-  HttpRequest._internal() : super._internal();
-
 
   @DomName('XMLHttpRequest.DONE')
   @DocsEditable()
@@ -21552,18 +19155,6 @@ class HttpRequestEventTarget extends EventTarget {
   @Experimental() // untriaged
   static const EventStreamProvider<ProgressEvent> timeoutEvent = const EventStreamProvider<ProgressEvent>('timeout');
 
-
-  static HttpRequestEventTarget internalCreateHttpRequestEventTarget() {
-    return new HttpRequestEventTarget._internalWrap();
-  }
-
-  factory HttpRequestEventTarget._internalWrap() {
-    return new HttpRequestEventTarget._internal();
-  }
-
-  HttpRequestEventTarget._internal() : super._internal();
-
-
   /// Stream of `abort` events handled by this [HttpRequestEventTarget].
   @DomName('XMLHttpRequestEventTarget.onabort')
   @DocsEditable()
@@ -21630,18 +19221,6 @@ class HttpRequestUpload extends HttpRequestEventTarget {
   // To suppress missing implicit constructor warnings.
   factory HttpRequestUpload._() { throw new UnsupportedError("Not supported"); }
 
-
-  static HttpRequestUpload internalCreateHttpRequestUpload() {
-    return new HttpRequestUpload._internalWrap();
-  }
-
-  factory HttpRequestUpload._internalWrap() {
-    return new HttpRequestUpload._internal();
-  }
-
-  HttpRequestUpload._internal() : super._internal();
-
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21659,18 +19238,6 @@ class IFrameElement extends HtmlElement {
   @DomName('HTMLIFrameElement.HTMLIFrameElement')
   @DocsEditable()
   factory IFrameElement() => document.createElement("iframe");
-
-
-  static IFrameElement internalCreateIFrameElement() {
-    return new IFrameElement._internalWrap();
-  }
-
-  factory IFrameElement._internalWrap() {
-    return new IFrameElement._internal();
-  }
-
-  IFrameElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -21765,20 +19332,6 @@ class ImageBitmap extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ImageBitmap._() { throw new UnsupportedError("Not supported"); }
 
-  static ImageBitmap internalCreateImageBitmap() {
-    return new ImageBitmap._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory ImageBitmap._internalWrap() {
-    return new ImageBitmap._internal();
-  }
-
-  ImageBitmap._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('ImageBitmap.height')
   @DocsEditable()
   @Experimental() // untriaged
@@ -21820,20 +19373,6 @@ class ImageData extends NativeFieldWrapperClass2 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  static ImageData internalCreateImageData() {
-    return new ImageData._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory ImageData._internalWrap() {
-    return new ImageData._internal();
-  }
-
-  ImageData._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('ImageData.data')
   @DocsEditable()
   Uint8ClampedList get _data => wrap_jso(_blink.BlinkImageData.instance.data_Getter_(unwrap_jso(this)));
@@ -21866,18 +19405,6 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
     if (height != null) e.height = height;
     return e;
   }
-
-
-  static ImageElement internalCreateImageElement() {
-    return new ImageElement._internalWrap();
-  }
-
-  factory ImageElement._internalWrap() {
-    return new ImageElement._internal();
-  }
-
-  ImageElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -22003,20 +19530,6 @@ class InjectedScriptHost extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory InjectedScriptHost._() { throw new UnsupportedError("Not supported"); }
 
-  static InjectedScriptHost internalCreateInjectedScriptHost() {
-    return new InjectedScriptHost._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory InjectedScriptHost._internalWrap() {
-    return new InjectedScriptHost._internal();
-  }
-
-  InjectedScriptHost._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('InjectedScriptHost.inspect')
   @DocsEditable()
   @Experimental() // untriaged
@@ -22065,18 +19578,6 @@ class InputElement extends HtmlElement implements
 
   // To suppress missing implicit constructor warnings.
   factory InputElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  static InputElement internalCreateInputElement() {
-    return new InputElement._internalWrap();
-  }
-
-  factory InputElement._internalWrap() {
-    return new InputElement._internal();
-  }
-
-  InputElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -23086,18 +20587,6 @@ class InputMethodContext extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory InputMethodContext._() { throw new UnsupportedError("Not supported"); }
 
-
-  static InputMethodContext internalCreateInputMethodContext() {
-    return new InputMethodContext._internalWrap();
-  }
-
-  factory InputMethodContext._internalWrap() {
-    return new InputMethodContext._internal();
-  }
-
-  InputMethodContext._internal() : super._internal();
-
-
   @DomName('InputMethodContext.compositionEndOffset')
   @DocsEditable()
   @Experimental() // untriaged
@@ -23135,18 +20624,6 @@ class InputMethodContext extends EventTarget {
 class InstallEvent extends ExtendableEvent {
   // To suppress missing implicit constructor warnings.
   factory InstallEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static InstallEvent internalCreateInstallEvent() {
-    return new InstallEvent._internalWrap();
-  }
-
-  factory InstallEvent._internalWrap() {
-    return new InstallEvent._internal();
-  }
-
-  InstallEvent._internal() : super._internal();
-
 
   @DomName('InstallEvent.reloadAll')
   @DocsEditable()
@@ -23187,18 +20664,6 @@ class KeyboardEvent extends UIEvent {
   int get charCode => _charCode;
   // To suppress missing implicit constructor warnings.
   factory KeyboardEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static KeyboardEvent internalCreateKeyboardEvent() {
-    return new KeyboardEvent._internalWrap();
-  }
-
-  factory KeyboardEvent._internalWrap() {
-    return new KeyboardEvent._internal();
-  }
-
-  KeyboardEvent._internal() : super._internal();
-
 
   @DomName('KeyboardEvent.DOM_KEY_LOCATION_LEFT')
   @DocsEditable()
@@ -23286,18 +20751,6 @@ class KeygenElement extends HtmlElement {
   @DomName('HTMLKeygenElement.HTMLKeygenElement')
   @DocsEditable()
   factory KeygenElement() => document.createElement("keygen");
-
-
-  static KeygenElement internalCreateKeygenElement() {
-    return new KeygenElement._internalWrap();
-  }
-
-  factory KeygenElement._internalWrap() {
-    return new KeygenElement._internal();
-  }
-
-  KeygenElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -23398,18 +20851,6 @@ class LIElement extends HtmlElement {
   @DomName('HTMLLIElement.HTMLLIElement')
   @DocsEditable()
   factory LIElement() => document.createElement("li");
-
-
-  static LIElement internalCreateLIElement() {
-    return new LIElement._internalWrap();
-  }
-
-  factory LIElement._internalWrap() {
-    return new LIElement._internal();
-  }
-
-  LIElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -23442,18 +20883,6 @@ class LabelElement extends HtmlElement {
   @DomName('HTMLLabelElement.HTMLLabelElement')
   @DocsEditable()
   factory LabelElement() => document.createElement("label");
-
-
-  static LabelElement internalCreateLabelElement() {
-    return new LabelElement._internalWrap();
-  }
-
-  factory LabelElement._internalWrap() {
-    return new LabelElement._internal();
-  }
-
-  LabelElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -23494,18 +20923,6 @@ class LegendElement extends HtmlElement {
   @DomName('HTMLLegendElement.HTMLLegendElement')
   @DocsEditable()
   factory LegendElement() => document.createElement("legend");
-
-
-  static LegendElement internalCreateLegendElement() {
-    return new LegendElement._internalWrap();
-  }
-
-  factory LegendElement._internalWrap() {
-    return new LegendElement._internal();
-  }
-
-  LegendElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -23532,18 +20949,6 @@ class LinkElement extends HtmlElement {
   @DomName('HTMLLinkElement.HTMLLinkElement')
   @DocsEditable()
   factory LinkElement() => document.createElement("link");
-
-
-  static LinkElement internalCreateLinkElement() {
-    return new LinkElement._internalWrap();
-  }
-
-  factory LinkElement._internalWrap() {
-    return new LinkElement._internal();
-  }
-
-  LinkElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -23659,18 +21064,6 @@ class LocalCredential extends Credential {
     return _blink.BlinkLocalCredential.instance.constructorCallback_4_(id, name, avatarURL, password);
   }
 
-
-  static LocalCredential internalCreateLocalCredential() {
-    return new LocalCredential._internalWrap();
-  }
-
-  factory LocalCredential._internalWrap() {
-    return new LocalCredential._internal();
-  }
-
-  LocalCredential._internal() : super._internal();
-
-
   @DomName('LocalCredential.password')
   @DocsEditable()
   @Experimental() // untriaged
@@ -23687,20 +21080,6 @@ class LocalCredential extends Credential {
 class Location extends NativeFieldWrapperClass2 implements LocationBase {
   // To suppress missing implicit constructor warnings.
   factory Location._() { throw new UnsupportedError("Not supported"); }
-
-  static Location internalCreateLocation() {
-    return new Location._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Location._internalWrap() {
-    return new Location._internal();
-  }
-
-  Location._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('Location.ancestorOrigins')
   @DocsEditable()
@@ -23833,18 +21212,6 @@ class MapElement extends HtmlElement {
   @DomName('HTMLMapElement.HTMLMapElement')
   @DocsEditable()
   factory MapElement() => document.createElement("map");
-
-
-  static MapElement internalCreateMapElement() {
-    return new MapElement._internalWrap();
-  }
-
-  factory MapElement._internalWrap() {
-    return new MapElement._internal();
-  }
-
-  MapElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -23885,18 +21252,6 @@ class MediaController extends EventTarget {
   factory MediaController() {
     return _blink.BlinkMediaController.instance.constructorCallback_0_();
   }
-
-
-  static MediaController internalCreateMediaController() {
-    return new MediaController._internalWrap();
-  }
-
-  factory MediaController._internalWrap() {
-    return new MediaController._internal();
-  }
-
-  MediaController._internal() : super._internal();
-
 
   @DomName('MediaController.buffered')
   @DocsEditable()
@@ -23988,20 +21343,6 @@ class MediaController extends EventTarget {
 class MediaDeviceInfo extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MediaDeviceInfo._() { throw new UnsupportedError("Not supported"); }
-
-  static MediaDeviceInfo internalCreateMediaDeviceInfo() {
-    return new MediaDeviceInfo._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory MediaDeviceInfo._internalWrap() {
-    return new MediaDeviceInfo._internal();
-  }
-
-  MediaDeviceInfo._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('MediaDeviceInfo.deviceId')
   @DocsEditable()
@@ -24103,18 +21444,6 @@ class MediaElement extends HtmlElement {
   @Experimental()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
-
-
-  static MediaElement internalCreateMediaElement() {
-    return new MediaElement._internalWrap();
-  }
-
-  factory MediaElement._internalWrap() {
-    return new MediaElement._internal();
-  }
-
-  MediaElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -24467,20 +21796,6 @@ class MediaError extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MediaError._() { throw new UnsupportedError("Not supported"); }
 
-  static MediaError internalCreateMediaError() {
-    return new MediaError._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory MediaError._internalWrap() {
-    return new MediaError._internal();
-  }
-
-  MediaError._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('MediaError.MEDIA_ERR_ABORTED')
   @DocsEditable()
   static const int MEDIA_ERR_ABORTED = 1;
@@ -24522,20 +21837,6 @@ class MediaError extends NativeFieldWrapperClass2 {
 class MediaKeyError extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyError._() { throw new UnsupportedError("Not supported"); }
-
-  static MediaKeyError internalCreateMediaKeyError() {
-    return new MediaKeyError._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory MediaKeyError._internalWrap() {
-    return new MediaKeyError._internal();
-  }
-
-  MediaKeyError._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('MediaKeyError.MEDIA_KEYERR_CLIENT')
   @DocsEditable()
@@ -24586,18 +21887,6 @@ class MediaKeyEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static MediaKeyEvent internalCreateMediaKeyEvent() {
-    return new MediaKeyEvent._internalWrap();
-  }
-
-  factory MediaKeyEvent._internalWrap() {
-    return new MediaKeyEvent._internal();
-  }
-
-  MediaKeyEvent._internal() : super._internal();
-
-
   @DomName('MediaKeyEvent.defaultURL')
   @DocsEditable()
   String get defaultUrl => _blink.BlinkMediaKeyEvent.instance.defaultURL_Getter_(unwrap_jso(this));
@@ -24642,18 +21931,6 @@ class MediaKeyMessageEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyMessageEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static MediaKeyMessageEvent internalCreateMediaKeyMessageEvent() {
-    return new MediaKeyMessageEvent._internalWrap();
-  }
-
-  factory MediaKeyMessageEvent._internalWrap() {
-    return new MediaKeyMessageEvent._internal();
-  }
-
-  MediaKeyMessageEvent._internal() : super._internal();
-
-
   @DomName('MediaKeyMessageEvent.destinationURL')
   @DocsEditable()
   String get destinationUrl => _blink.BlinkMediaKeyMessageEvent.instance.destinationURL_Getter_(unwrap_jso(this));
@@ -24677,18 +21954,6 @@ class MediaKeyMessageEvent extends Event {
 class MediaKeyNeededEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyNeededEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static MediaKeyNeededEvent internalCreateMediaKeyNeededEvent() {
-    return new MediaKeyNeededEvent._internalWrap();
-  }
-
-  factory MediaKeyNeededEvent._internalWrap() {
-    return new MediaKeyNeededEvent._internal();
-  }
-
-  MediaKeyNeededEvent._internal() : super._internal();
-
 
   @DomName('MediaKeyNeededEvent.contentType')
   @DocsEditable()
@@ -24714,18 +21979,6 @@ class MediaKeyNeededEvent extends Event {
 class MediaKeySession extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory MediaKeySession._() { throw new UnsupportedError("Not supported"); }
-
-
-  static MediaKeySession internalCreateMediaKeySession() {
-    return new MediaKeySession._internalWrap();
-  }
-
-  factory MediaKeySession._internalWrap() {
-    return new MediaKeySession._internal();
-  }
-
-  MediaKeySession._internal() : super._internal();
-
 
   @DomName('MediaKeySession.closed')
   @DocsEditable()
@@ -24785,20 +22038,6 @@ class MediaKeys extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MediaKeys._() { throw new UnsupportedError("Not supported"); }
 
-  static MediaKeys internalCreateMediaKeys() {
-    return new MediaKeys._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory MediaKeys._internalWrap() {
-    return new MediaKeys._internal();
-  }
-
-  MediaKeys._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('MediaKeys.keySystem')
   @DocsEditable()
   String get keySystem => _blink.BlinkMediaKeys.instance.keySystem_Getter_(unwrap_jso(this));
@@ -24834,20 +22073,6 @@ class MediaKeys extends NativeFieldWrapperClass2 {
 class MediaList extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MediaList._() { throw new UnsupportedError("Not supported"); }
-
-  static MediaList internalCreateMediaList() {
-    return new MediaList._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory MediaList._internalWrap() {
-    return new MediaList._internal();
-  }
-
-  MediaList._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('MediaList.length')
   @DocsEditable()
@@ -24893,18 +22118,6 @@ class MediaQueryList extends EventTarget {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
-
-  static MediaQueryList internalCreateMediaQueryList() {
-    return new MediaQueryList._internalWrap();
-  }
-
-  factory MediaQueryList._internalWrap() {
-    return new MediaQueryList._internal();
-  }
-
-  MediaQueryList._internal() : super._internal();
-
-
   @DomName('MediaQueryList.matches')
   @DocsEditable()
   bool get matches => _blink.BlinkMediaQueryList.instance.matches_Getter_(unwrap_jso(this));
@@ -24915,7 +22128,7 @@ class MediaQueryList extends EventTarget {
   
   @DomName('MediaQueryList.addListener')
   @DocsEditable()
-  void addListener(EventListener listener) => _blink.BlinkMediaQueryList.instance.addListener_Callback_1_(unwrap_jso(this), unwrap_jso((Event event) => listener(wrap_jso(event))));
+  void addListener(EventListener listener) => _blink.BlinkMediaQueryList.instance.addListener_Callback_1_(unwrap_jso(this), unwrap_jso(listener));
   
   @DomName('MediaQueryList.removeListener')
   @DocsEditable()
@@ -24940,18 +22153,6 @@ class MediaQueryList extends EventTarget {
 class MediaQueryListEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaQueryListEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static MediaQueryListEvent internalCreateMediaQueryListEvent() {
-    return new MediaQueryListEvent._internalWrap();
-  }
-
-  factory MediaQueryListEvent._internalWrap() {
-    return new MediaQueryListEvent._internal();
-  }
-
-  MediaQueryListEvent._internal() : super._internal();
-
 
   @DomName('MediaQueryListEvent.matches')
   @DocsEditable()
@@ -24986,18 +22187,6 @@ class MediaSource extends EventTarget {
   factory MediaSource() {
     return _blink.BlinkMediaSource.instance.constructorCallback_0_();
   }
-
-
-  static MediaSource internalCreateMediaSource() {
-    return new MediaSource._internalWrap();
-  }
-
-  factory MediaSource._internalWrap() {
-    return new MediaSource._internal();
-  }
-
-  MediaSource._internal() : super._internal();
-
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -25102,18 +22291,6 @@ class MediaStream extends EventTarget {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  static MediaStream internalCreateMediaStream() {
-    return new MediaStream._internalWrap();
-  }
-
-  factory MediaStream._internalWrap() {
-    return new MediaStream._internal();
-  }
-
-  MediaStream._internal() : super._internal();
-
-
   @DomName('MediaStream.ended')
   @DocsEditable()
   bool get ended => _blink.BlinkMediaStream.instance.ended_Getter_(unwrap_jso(this));
@@ -25202,18 +22379,6 @@ class MediaStreamEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static MediaStreamEvent internalCreateMediaStreamEvent() {
-    return new MediaStreamEvent._internalWrap();
-  }
-
-  factory MediaStreamEvent._internalWrap() {
-    return new MediaStreamEvent._internal();
-  }
-
-  MediaStreamEvent._internal() : super._internal();
-
-
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
@@ -25267,18 +22432,6 @@ class MediaStreamTrack extends EventTarget {
   @DomName('MediaStreamTrack.unmuteEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> unmuteEvent = const EventStreamProvider<Event>('unmute');
-
-
-  static MediaStreamTrack internalCreateMediaStreamTrack() {
-    return new MediaStreamTrack._internalWrap();
-  }
-
-  factory MediaStreamTrack._internalWrap() {
-    return new MediaStreamTrack._internal();
-  }
-
-  MediaStreamTrack._internal() : super._internal();
-
 
   @DomName('MediaStreamTrack.enabled')
   @DocsEditable()
@@ -25363,18 +22516,6 @@ class MediaStreamTrackEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamTrackEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static MediaStreamTrackEvent internalCreateMediaStreamTrackEvent() {
-    return new MediaStreamTrackEvent._internalWrap();
-  }
-
-  factory MediaStreamTrackEvent._internalWrap() {
-    return new MediaStreamTrackEvent._internal();
-  }
-
-  MediaStreamTrackEvent._internal() : super._internal();
-
-
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
@@ -25406,20 +22547,6 @@ typedef void MediaStreamTrackSourcesCallback(List<SourceInfo> sources);
 class MemoryInfo extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MemoryInfo._() { throw new UnsupportedError("Not supported"); }
-
-  static MemoryInfo internalCreateMemoryInfo() {
-    return new MemoryInfo._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory MemoryInfo._internalWrap() {
-    return new MemoryInfo._internal();
-  }
-
-  MemoryInfo._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('MemoryInfo.jsHeapSizeLimit')
   @DocsEditable()
@@ -25460,18 +22587,6 @@ class MenuElement extends HtmlElement {
   @DomName('HTMLMenuElement.HTMLMenuElement')
   @DocsEditable()
   factory MenuElement() => document.createElement("menu");
-
-
-  static MenuElement internalCreateMenuElement() {
-    return new MenuElement._internalWrap();
-  }
-
-  factory MenuElement._internalWrap() {
-    return new MenuElement._internal();
-  }
-
-  MenuElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25513,18 +22628,6 @@ class MenuElement extends HtmlElement {
 class MenuItemElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory MenuItemElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  static MenuItemElement internalCreateMenuItemElement() {
-    return new MenuItemElement._internalWrap();
-  }
-
-  factory MenuItemElement._internalWrap() {
-    return new MenuItemElement._internal();
-  }
-
-  MenuItemElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25597,20 +22700,6 @@ class MessageChannel extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MessageChannel._() { throw new UnsupportedError("Not supported"); }
 
-  static MessageChannel internalCreateMessageChannel() {
-    return new MessageChannel._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory MessageChannel._internalWrap() {
-    return new MessageChannel._internal();
-  }
-
-  MessageChannel._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('MessageChannel.port1')
   @DocsEditable()
   MessagePort get port1 => wrap_jso(_blink.BlinkMessageChannel.instance.port1_Getter_(unwrap_jso(this)));
@@ -25643,18 +22732,6 @@ class MessageEvent extends Event {
   }
   // To suppress missing implicit constructor warnings.
   factory MessageEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static MessageEvent internalCreateMessageEvent() {
-    return new MessageEvent._internalWrap();
-  }
-
-  factory MessageEvent._internalWrap() {
-    return new MessageEvent._internal();
-  }
-
-  MessageEvent._internal() : super._internal();
-
 
   @DomName('MessageEvent.data')
   @DocsEditable()
@@ -25702,18 +22779,6 @@ class MessagePort extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-
-  static MessagePort internalCreateMessagePort() {
-    return new MessagePort._internalWrap();
-  }
-
-  factory MessagePort._internalWrap() {
-    return new MessagePort._internal();
-  }
-
-  MessagePort._internal() : super._internal();
-
-
   @DomName('MessagePort.close')
   @DocsEditable()
   void close() => _blink.BlinkMessagePort.instance.close_Callback_0_(unwrap_jso(this));
@@ -25748,18 +22813,6 @@ class MetaElement extends HtmlElement {
   @DomName('HTMLMetaElement.HTMLMetaElement')
   @DocsEditable()
   factory MetaElement() => document.createElement("meta");
-
-
-  static MetaElement internalCreateMetaElement() {
-    return new MetaElement._internalWrap();
-  }
-
-  factory MetaElement._internalWrap() {
-    return new MetaElement._internal();
-  }
-
-  MetaElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25807,20 +22860,6 @@ class Metadata extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Metadata._() { throw new UnsupportedError("Not supported"); }
 
-  static Metadata internalCreateMetadata() {
-    return new Metadata._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Metadata._internalWrap() {
-    return new Metadata._internal();
-  }
-
-  Metadata._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('Metadata.modificationTime')
   @DocsEditable()
   DateTime get modificationTime => _blink.BlinkMetadata.instance.modificationTime_Getter_(unwrap_jso(this));
@@ -25861,18 +22900,6 @@ class MeterElement extends HtmlElement {
   @DomName('HTMLMeterElement.HTMLMeterElement')
   @DocsEditable()
   factory MeterElement() => document.createElement("meter");
-
-
-  static MeterElement internalCreateMeterElement() {
-    return new MeterElement._internalWrap();
-  }
-
-  factory MeterElement._internalWrap() {
-    return new MeterElement._internal();
-  }
-
-  MeterElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25972,18 +22999,6 @@ class MidiAccess extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
 
-
-  static MidiAccess internalCreateMidiAccess() {
-    return new MidiAccess._internalWrap();
-  }
-
-  factory MidiAccess._internalWrap() {
-    return new MidiAccess._internal();
-  }
-
-  MidiAccess._internal() : super._internal();
-
-
   @DomName('MIDIAccess.inputs')
   @DocsEditable()
   MidiInputMap get inputs => wrap_jso(_blink.BlinkMIDIAccess.instance.inputs_Getter_(unwrap_jso(this)));
@@ -26023,18 +23038,6 @@ class MidiConnectionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MidiConnectionEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static MidiConnectionEvent internalCreateMidiConnectionEvent() {
-    return new MidiConnectionEvent._internalWrap();
-  }
-
-  factory MidiConnectionEvent._internalWrap() {
-    return new MidiConnectionEvent._internal();
-  }
-
-  MidiConnectionEvent._internal() : super._internal();
-
-
   @DomName('MIDIConnectionEvent.port')
   @DocsEditable()
   MidiPort get port => wrap_jso(_blink.BlinkMIDIConnectionEvent.instance.port_Getter_(unwrap_jso(this)));
@@ -26065,18 +23068,6 @@ class MidiInput extends MidiPort {
   @DocsEditable()
   static const EventStreamProvider<MidiMessageEvent> midiMessageEvent = const EventStreamProvider<MidiMessageEvent>('midimessage');
 
-
-  static MidiInput internalCreateMidiInput() {
-    return new MidiInput._internalWrap();
-  }
-
-  factory MidiInput._internalWrap() {
-    return new MidiInput._internal();
-  }
-
-  MidiInput._internal() : super._internal();
-
-
   /// Stream of `midimessage` events handled by this [MidiInput].
   @DomName('MIDIInput.onmidimessage')
   @DocsEditable()
@@ -26096,20 +23087,6 @@ class MidiInput extends MidiPort {
 class MidiInputMap extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MidiInputMap._() { throw new UnsupportedError("Not supported"); }
-
-  static MidiInputMap internalCreateMidiInputMap() {
-    return new MidiInputMap._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory MidiInputMap._internalWrap() {
-    return new MidiInputMap._internal();
-  }
-
-  MidiInputMap._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('MIDIInputMap.size')
   @DocsEditable()
@@ -26157,18 +23134,6 @@ class MidiMessageEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MidiMessageEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static MidiMessageEvent internalCreateMidiMessageEvent() {
-    return new MidiMessageEvent._internalWrap();
-  }
-
-  factory MidiMessageEvent._internalWrap() {
-    return new MidiMessageEvent._internal();
-  }
-
-  MidiMessageEvent._internal() : super._internal();
-
-
   @DomName('MIDIMessageEvent.data')
   @DocsEditable()
   Uint8List get data => wrap_jso(_blink.BlinkMIDIMessageEvent.instance.data_Getter_(unwrap_jso(this)));
@@ -26193,18 +23158,6 @@ class MidiOutput extends MidiPort {
   // To suppress missing implicit constructor warnings.
   factory MidiOutput._() { throw new UnsupportedError("Not supported"); }
 
-
-  static MidiOutput internalCreateMidiOutput() {
-    return new MidiOutput._internalWrap();
-  }
-
-  factory MidiOutput._internalWrap() {
-    return new MidiOutput._internal();
-  }
-
-  MidiOutput._internal() : super._internal();
-
-
   void send(Uint8List data, [num timestamp]) {
     if (timestamp != null) {
       _blink.BlinkMIDIOutput.instance.send_Callback_2_(unwrap_jso(this), data, timestamp);
@@ -26228,20 +23181,6 @@ class MidiOutput extends MidiPort {
 class MidiOutputMap extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MidiOutputMap._() { throw new UnsupportedError("Not supported"); }
-
-  static MidiOutputMap internalCreateMidiOutputMap() {
-    return new MidiOutputMap._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory MidiOutputMap._internalWrap() {
-    return new MidiOutputMap._internal();
-  }
-
-  MidiOutputMap._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('MIDIOutputMap.size')
   @DocsEditable()
@@ -26299,18 +23238,6 @@ class MidiPort extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
 
-
-  static MidiPort internalCreateMidiPort() {
-    return new MidiPort._internalWrap();
-  }
-
-  factory MidiPort._internalWrap() {
-    return new MidiPort._internal();
-  }
-
-  MidiPort._internal() : super._internal();
-
-
   @DomName('MIDIPort.id')
   @DocsEditable()
   String get id => _blink.BlinkMIDIPort.instance.id_Getter_(unwrap_jso(this));
@@ -26351,20 +23278,6 @@ class MimeType extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MimeType._() { throw new UnsupportedError("Not supported"); }
 
-  static MimeType internalCreateMimeType() {
-    return new MimeType._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory MimeType._internalWrap() {
-    return new MimeType._internal();
-  }
-
-  MimeType._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('MimeType.description')
   @DocsEditable()
   String get description => _blink.BlinkMimeType.instance.description_Getter_(unwrap_jso(this));
@@ -26395,20 +23308,6 @@ class MimeType extends NativeFieldWrapperClass2 {
 class MimeTypeArray extends NativeFieldWrapperClass2 with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List<MimeType> {
   // To suppress missing implicit constructor warnings.
   factory MimeTypeArray._() { throw new UnsupportedError("Not supported"); }
-
-  static MimeTypeArray internalCreateMimeTypeArray() {
-    return new MimeTypeArray._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory MimeTypeArray._internalWrap() {
-    return new MimeTypeArray._internal();
-  }
-
-  MimeTypeArray._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('MimeTypeArray.length')
   @DocsEditable()
@@ -26486,18 +23385,6 @@ class MimeTypeArray extends NativeFieldWrapperClass2 with ListMixin<MimeType>, I
 class ModElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory ModElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  static ModElement internalCreateModElement() {
-    return new ModElement._internalWrap();
-  }
-
-  factory ModElement._internalWrap() {
-    return new ModElement._internal();
-  }
-
-  ModElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -26548,18 +23435,6 @@ class MouseEvent extends UIEvent {
   }
   // To suppress missing implicit constructor warnings.
   factory MouseEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static MouseEvent internalCreateMouseEvent() {
-    return new MouseEvent._internalWrap();
-  }
-
-  factory MouseEvent._internalWrap() {
-    return new MouseEvent._internal();
-  }
-
-  MouseEvent._internal() : super._internal();
-
 
   @DomName('MouseEvent.altKey')
   @DocsEditable()
@@ -26740,27 +23615,13 @@ class MutationObserver extends NativeFieldWrapperClass2 {
   @DocsEditable()
   factory MutationObserver._(MutationCallback callback) => wrap_jso(_create(callback));
 
-  static MutationObserver internalCreateMutationObserver() {
-    return new MutationObserver._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory MutationObserver._internalWrap() {
-    return new MutationObserver._internal();
-  }
-
-  MutationObserver._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('MutationObserver.disconnect')
   @DocsEditable()
   void disconnect() => _blink.BlinkMutationObserver.instance.disconnect_Callback_0_(unwrap_jso(this));
   
   @DomName('MutationObserver.observe')
   @DocsEditable()
-  void _observe(Node target, Map options) => _blink.BlinkMutationObserver.instance.observe_Callback_2_(unwrap_jso(this), unwrap_jso(target), options != null ? new js.JsObject.jsify(options) : options);
+  void _observe(Node target, Map options) => _blink.BlinkMutationObserver.instance.observe_Callback_2_(unwrap_jso(this), unwrap_jso(target), options);
   
   @DomName('MutationObserver.takeRecords')
   @DocsEditable()
@@ -26774,15 +23635,7 @@ class MutationObserver extends NativeFieldWrapperClass2 {
     return true;
   }
   @DocsEditable()
-  static MutationObserver _create(callback) => wrap_jso(_blink.BlinkMutationObserver.instance.constructorCallback_1_((List<MutationRecord> mutations, MutationObserver observer) {
-      var wrapped_mutations = [];
-      for (var mutation in mutations) {
-        // Wrap the Javascript object for each MutationRecord.
-        wrapped_mutations.add(wrap_jso(mutation));
-      }
-      // Wrap the MutationObserver too.
-      callback(wrapped_mutations, wrap_jso(observer));
-  }));
+  static MutationObserver _create(callback) => _blink.BlinkMutationObserver.instance.constructorCallback_1_(callback);
 
   /**
    * Observes the target for the specified changes.
@@ -26856,20 +23709,6 @@ class MutationObserver extends NativeFieldWrapperClass2 {
 class MutationRecord extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory MutationRecord._() { throw new UnsupportedError("Not supported"); }
-
-  static MutationRecord internalCreateMutationRecord() {
-    return new MutationRecord._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory MutationRecord._internalWrap() {
-    return new MutationRecord._internal();
-  }
-
-  MutationRecord._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('MutationRecord.addedNodes')
   @DocsEditable()
@@ -26974,20 +23813,6 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
 
   // To suppress missing implicit constructor warnings.
   factory Navigator._() { throw new UnsupportedError("Not supported"); }
-
-  static Navigator internalCreateNavigator() {
-    return new Navigator._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Navigator._internalWrap() {
-    return new Navigator._internal();
-  }
-
-  Navigator._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('Navigator.connection')
   @DocsEditable()
@@ -27132,7 +23957,7 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
   @DocsEditable()
   // http://dev.w3.org/2011/webrtc/editor/getusermedia.html#navigatorusermedia
   @Experimental()
-  void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, _NavigatorUserMediaErrorCallback errorCallback) => _blink.BlinkNavigator.instance.webkitGetUserMedia_Callback_3_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options, unwrap_jso(successCallback), unwrap_jso(errorCallback));
+  void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, _NavigatorUserMediaErrorCallback errorCallback) => _blink.BlinkNavigator.instance.webkitGetUserMedia_Callback_3_(unwrap_jso(this), options, unwrap_jso(successCallback), unwrap_jso(errorCallback));
   
   @DomName('Navigator.hardwareConcurrency')
   @DocsEditable()
@@ -27199,20 +24024,6 @@ abstract class NavigatorCpu extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory NavigatorCpu._() { throw new UnsupportedError("Not supported"); }
 
-  static NavigatorCpu internalCreateNavigatorCpu() {
-    return new NavigatorCpu._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory NavigatorCpu._internalWrap() {
-    return new NavigatorCpu._internal();
-  }
-
-  NavigatorCpu._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('NavigatorCPU.hardwareConcurrency')
   @DocsEditable()
   @Experimental() // untriaged
@@ -27232,20 +24043,6 @@ abstract class NavigatorCpu extends NativeFieldWrapperClass2 {
 abstract class NavigatorID extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory NavigatorID._() { throw new UnsupportedError("Not supported"); }
-
-  static NavigatorID internalCreateNavigatorID() {
-    return new NavigatorID._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory NavigatorID._internalWrap() {
-    return new NavigatorID._internal();
-  }
-
-  NavigatorID._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('NavigatorID.appCodeName')
   @DocsEditable()
@@ -27297,20 +24094,6 @@ abstract class NavigatorLanguage extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory NavigatorLanguage._() { throw new UnsupportedError("Not supported"); }
 
-  static NavigatorLanguage internalCreateNavigatorLanguage() {
-    return new NavigatorLanguage._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory NavigatorLanguage._internalWrap() {
-    return new NavigatorLanguage._internal();
-  }
-
-  NavigatorLanguage._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('NavigatorLanguage.language')
   @DocsEditable()
   @Experimental() // untriaged
@@ -27336,20 +24119,6 @@ abstract class NavigatorOnLine extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory NavigatorOnLine._() { throw new UnsupportedError("Not supported"); }
 
-  static NavigatorOnLine internalCreateNavigatorOnLine() {
-    return new NavigatorOnLine._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory NavigatorOnLine._internalWrap() {
-    return new NavigatorOnLine._internal();
-  }
-
-  NavigatorOnLine._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('NavigatorOnLine.onLine')
   @DocsEditable()
   @Experimental() // untriaged
@@ -27370,20 +24139,6 @@ abstract class NavigatorOnLine extends NativeFieldWrapperClass2 {
 class NavigatorUserMediaError extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory NavigatorUserMediaError._() { throw new UnsupportedError("Not supported"); }
-
-  static NavigatorUserMediaError internalCreateNavigatorUserMediaError() {
-    return new NavigatorUserMediaError._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory NavigatorUserMediaError._internalWrap() {
-    return new NavigatorUserMediaError._internal();
-  }
-
-  NavigatorUserMediaError._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('NavigatorUserMediaError.constraintName')
   @DocsEditable()
@@ -27433,18 +24188,6 @@ typedef void _NavigatorUserMediaSuccessCallback(MediaStream stream);
 class NetworkInformation extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory NetworkInformation._() { throw new UnsupportedError("Not supported"); }
-
-
-  static NetworkInformation internalCreateNetworkInformation() {
-    return new NetworkInformation._internalWrap();
-  }
-
-  factory NetworkInformation._internalWrap() {
-    return new NetworkInformation._internal();
-  }
-
-  NetworkInformation._internal() : super._internal();
-
 
   @DomName('NetworkInformation.type')
   @DocsEditable()
@@ -27712,8 +24455,6 @@ class Node extends EventTarget {
     return value == null ? super.toString() : value;
   }
 
-  List<Node> _childNodes;
-
   /**
    * A list of this node's children.
    *
@@ -27727,32 +24468,9 @@ class Node extends EventTarget {
   @DocsEditable()
   @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> get childNodes {
-    if (_childNodes == null) {
-       List<Node> nodes = new List<Node>();
-       var jsCollection = _blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this));
-       var collectionLen = jsCollection['length'];
-       for (var i = 0; i < collectionLen; i++) {
-         nodes.add(wrap_jso(jsCollection.callMethod('item', [i])));
-       }
-      _childNodes = nodes;
-    }
-    return _childNodes;
-  }
+  List<Node> get childNodes => _blink.BlinkNode.instance.childNodes_Getter_(this);
   // To suppress missing implicit constructor warnings.
   factory Node._() { throw new UnsupportedError("Not supported"); }
-
-
-  static Node internalCreateNode() {
-    return new Node._internalWrap();
-  }
-
-  factory Node._internalWrap() {
-    return new Node._internal();
-  }
-
-  Node._internal() : super._internal();
-
 
   @DomName('Node.ATTRIBUTE_NODE')
   @DocsEditable()
@@ -28085,20 +24803,6 @@ class NodeFilter extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory NodeFilter._() { throw new UnsupportedError("Not supported"); }
 
-  static NodeFilter internalCreateNodeFilter() {
-    return new NodeFilter._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory NodeFilter._internalWrap() {
-    return new NodeFilter._internal();
-  }
-
-  NodeFilter._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('NodeFilter.FILTER_ACCEPT')
   @DocsEditable()
   static const int FILTER_ACCEPT = 1;
@@ -28158,20 +24862,6 @@ class NodeIterator extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory NodeIterator._() { throw new UnsupportedError("Not supported"); }
 
-  static NodeIterator internalCreateNodeIterator() {
-    return new NodeIterator._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory NodeIterator._internalWrap() {
-    return new NodeIterator._internal();
-  }
-
-  NodeIterator._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('NodeIterator.pointerBeforeReferenceNode')
   @DocsEditable()
   bool get pointerBeforeReferenceNode => _blink.BlinkNodeIterator.instance.pointerBeforeReferenceNode_Getter_(unwrap_jso(this));
@@ -28213,20 +24903,6 @@ class NodeIterator extends NativeFieldWrapperClass2 {
 class NodeList extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory NodeList._() { throw new UnsupportedError("Not supported"); }
-
-  static NodeList internalCreateNodeList() {
-    return new NodeList._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory NodeList._internalWrap() {
-    return new NodeList._internal();
-  }
-
-  NodeList._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('NodeList.length')
   @DocsEditable()
@@ -28356,18 +25032,6 @@ class Notification extends EventTarget {
     return _blink.BlinkNotification.instance.constructorCallback_1_(title);
   }
 
-
-  static Notification internalCreateNotification() {
-    return new Notification._internalWrap();
-  }
-
-  factory Notification._internalWrap() {
-    return new Notification._internal();
-  }
-
-  Notification._internal() : super._internal();
-
-
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
@@ -28473,18 +25137,6 @@ class OListElement extends HtmlElement {
   @DomName('HTMLOListElement.HTMLOListElement')
   @DocsEditable()
   factory OListElement() => document.createElement("ol");
-
-
-  static OListElement internalCreateOListElement() {
-    return new OListElement._internalWrap();
-  }
-
-  factory OListElement._internalWrap() {
-    return new OListElement._internal();
-  }
-
-  OListElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -28537,18 +25189,6 @@ class ObjectElement extends HtmlElement {
   @DomName('HTMLObjectElement.HTMLObjectElement')
   @DocsEditable()
   factory ObjectElement() => document.createElement("object");
-
-
-  static ObjectElement internalCreateObjectElement() {
-    return new ObjectElement._internalWrap();
-  }
-
-  factory ObjectElement._internalWrap() {
-    return new ObjectElement._internal();
-  }
-
-  ObjectElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -28666,18 +25306,6 @@ class OptGroupElement extends HtmlElement {
   @DomName('HTMLOptGroupElement.HTMLOptGroupElement')
   @DocsEditable()
   factory OptGroupElement() => document.createElement("optgroup");
-
-
-  static OptGroupElement internalCreateOptGroupElement() {
-    return new OptGroupElement._internalWrap();
-  }
-
-  factory OptGroupElement._internalWrap() {
-    return new OptGroupElement._internal();
-  }
-
-  OptGroupElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -28718,18 +25346,6 @@ class OptionElement extends HtmlElement {
   factory OptionElement._([String data, String value, bool defaultSelected, bool selected]) {
     return _blink.BlinkHTMLOptionElement.instance.constructorCallback_4_(data, value, defaultSelected, selected);
   }
-
-
-  static OptionElement internalCreateOptionElement() {
-    return new OptionElement._internalWrap();
-  }
-
-  factory OptionElement._internalWrap() {
-    return new OptionElement._internal();
-  }
-
-  OptionElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -28805,18 +25421,6 @@ class OutputElement extends HtmlElement {
   @DomName('HTMLOutputElement.HTMLOutputElement')
   @DocsEditable()
   factory OutputElement() => document.createElement("output");
-
-
-  static OutputElement internalCreateOutputElement() {
-    return new OutputElement._internalWrap();
-  }
-
-  factory OutputElement._internalWrap() {
-    return new OutputElement._internal();
-  }
-
-  OutputElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -28903,18 +25507,6 @@ class OverflowEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory OverflowEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static OverflowEvent internalCreateOverflowEvent() {
-    return new OverflowEvent._internalWrap();
-  }
-
-  factory OverflowEvent._internalWrap() {
-    return new OverflowEvent._internal();
-  }
-
-  OverflowEvent._internal() : super._internal();
-
-
   @DomName('OverflowEvent.BOTH')
   @DocsEditable()
   static const int BOTH = 2;
@@ -28955,18 +25547,6 @@ class PageTransitionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory PageTransitionEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static PageTransitionEvent internalCreatePageTransitionEvent() {
-    return new PageTransitionEvent._internalWrap();
-  }
-
-  factory PageTransitionEvent._internalWrap() {
-    return new PageTransitionEvent._internal();
-  }
-
-  PageTransitionEvent._internal() : super._internal();
-
-
   @DomName('PageTransitionEvent.persisted')
   @DocsEditable()
   bool get persisted => _blink.BlinkPageTransitionEvent.instance.persisted_Getter_(unwrap_jso(this));
@@ -28988,18 +25568,6 @@ class ParagraphElement extends HtmlElement {
   @DomName('HTMLParagraphElement.HTMLParagraphElement')
   @DocsEditable()
   factory ParagraphElement() => document.createElement("p");
-
-
-  static ParagraphElement internalCreateParagraphElement() {
-    return new ParagraphElement._internalWrap();
-  }
-
-  factory ParagraphElement._internalWrap() {
-    return new ParagraphElement._internal();
-  }
-
-  ParagraphElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -29025,18 +25593,6 @@ class ParamElement extends HtmlElement {
   @DomName('HTMLParamElement.HTMLParamElement')
   @DocsEditable()
   factory ParamElement() => document.createElement("param");
-
-
-  static ParamElement internalCreateParamElement() {
-    return new ParamElement._internalWrap();
-  }
-
-  factory ParamElement._internalWrap() {
-    return new ParamElement._internal();
-  }
-
-  ParamElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -29074,20 +25630,6 @@ class ParamElement extends HtmlElement {
 abstract class ParentNode extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ParentNode._() { throw new UnsupportedError("Not supported"); }
-
-  static ParentNode internalCreateParentNode() {
-    return new ParentNode._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory ParentNode._internalWrap() {
-    return new ParentNode._internal();
-  }
-
-  ParentNode._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('ParentNode.childElementCount')
   @DocsEditable()
@@ -29148,20 +25690,6 @@ class Path2D extends NativeFieldWrapperClass2 implements _CanvasPathMethods {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-
-  static Path2D internalCreatePath2D() {
-    return new Path2D._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Path2D._internalWrap() {
-    return new Path2D._internal();
-  }
-
-  Path2D._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   void addPath(Path2D path, [Matrix transform]) {
     if (transform != null) {
@@ -29247,18 +25775,6 @@ class Performance extends EventTarget {
   @Experimental()
   // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
   static const EventStreamProvider<Event> resourceTimingBufferFullEvent = const EventStreamProvider<Event>('webkitresourcetimingbufferfull');
-
-
-  static Performance internalCreatePerformance() {
-    return new Performance._internalWrap();
-  }
-
-  factory Performance._internalWrap() {
-    return new Performance._internal();
-  }
-
-  Performance._internal() : super._internal();
-
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -29361,20 +25877,6 @@ class PerformanceEntry extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PerformanceEntry._() { throw new UnsupportedError("Not supported"); }
 
-  static PerformanceEntry internalCreatePerformanceEntry() {
-    return new PerformanceEntry._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory PerformanceEntry._internalWrap() {
-    return new PerformanceEntry._internal();
-  }
-
-  PerformanceEntry._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('PerformanceEntry.duration')
   @DocsEditable()
   double get duration => _blink.BlinkPerformanceEntry.instance.duration_Getter_(unwrap_jso(this));
@@ -29407,18 +25909,6 @@ class PerformanceMark extends PerformanceEntry {
   // To suppress missing implicit constructor warnings.
   factory PerformanceMark._() { throw new UnsupportedError("Not supported"); }
 
-
-  static PerformanceMark internalCreatePerformanceMark() {
-    return new PerformanceMark._internalWrap();
-  }
-
-  factory PerformanceMark._internalWrap() {
-    return new PerformanceMark._internal();
-  }
-
-  PerformanceMark._internal() : super._internal();
-
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29435,18 +25925,6 @@ class PerformanceMeasure extends PerformanceEntry {
   // To suppress missing implicit constructor warnings.
   factory PerformanceMeasure._() { throw new UnsupportedError("Not supported"); }
 
-
-  static PerformanceMeasure internalCreatePerformanceMeasure() {
-    return new PerformanceMeasure._internalWrap();
-  }
-
-  factory PerformanceMeasure._internalWrap() {
-    return new PerformanceMeasure._internal();
-  }
-
-  PerformanceMeasure._internal() : super._internal();
-
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29461,20 +25939,6 @@ class PerformanceMeasure extends PerformanceEntry {
 class PerformanceNavigation extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PerformanceNavigation._() { throw new UnsupportedError("Not supported"); }
-
-  static PerformanceNavigation internalCreatePerformanceNavigation() {
-    return new PerformanceNavigation._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory PerformanceNavigation._internalWrap() {
-    return new PerformanceNavigation._internal();
-  }
-
-  PerformanceNavigation._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('PerformanceNavigation.TYPE_BACK_FORWARD')
   @DocsEditable()
@@ -29515,18 +25979,6 @@ class PerformanceNavigation extends NativeFieldWrapperClass2 {
 class PerformanceResourceTiming extends PerformanceEntry {
   // To suppress missing implicit constructor warnings.
   factory PerformanceResourceTiming._() { throw new UnsupportedError("Not supported"); }
-
-
-  static PerformanceResourceTiming internalCreatePerformanceResourceTiming() {
-    return new PerformanceResourceTiming._internalWrap();
-  }
-
-  factory PerformanceResourceTiming._internalWrap() {
-    return new PerformanceResourceTiming._internal();
-  }
-
-  PerformanceResourceTiming._internal() : super._internal();
-
 
   @DomName('PerformanceResourceTiming.connectEnd')
   @DocsEditable()
@@ -29593,20 +26045,6 @@ class PerformanceResourceTiming extends PerformanceEntry {
 class PerformanceTiming extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PerformanceTiming._() { throw new UnsupportedError("Not supported"); }
-
-  static PerformanceTiming internalCreatePerformanceTiming() {
-    return new PerformanceTiming._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory PerformanceTiming._internalWrap() {
-    return new PerformanceTiming._internal();
-  }
-
-  PerformanceTiming._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('PerformanceTiming.connectEnd')
   @DocsEditable()
@@ -29706,18 +26144,6 @@ class PerformanceTiming extends NativeFieldWrapperClass2 {
 class PictureElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory PictureElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  static PictureElement internalCreatePictureElement() {
-    return new PictureElement._internalWrap();
-  }
-
-  factory PictureElement._internalWrap() {
-    return new PictureElement._internal();
-  }
-
-  PictureElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -29739,20 +26165,6 @@ class PictureElement extends HtmlElement {
 class Plugin extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Plugin._() { throw new UnsupportedError("Not supported"); }
-
-  static Plugin internalCreatePlugin() {
-    return new Plugin._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Plugin._internalWrap() {
-    return new Plugin._internal();
-  }
-
-  Plugin._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('Plugin.description')
   @DocsEditable()
@@ -29796,20 +26208,6 @@ class Plugin extends NativeFieldWrapperClass2 {
 class PluginArray extends NativeFieldWrapperClass2 with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements List<Plugin> {
   // To suppress missing implicit constructor warnings.
   factory PluginArray._() { throw new UnsupportedError("Not supported"); }
-
-  static PluginArray internalCreatePluginArray() {
-    return new PluginArray._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory PluginArray._internalWrap() {
-    return new PluginArray._internal();
-  }
-
-  PluginArray._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('PluginArray.length')
   @DocsEditable()
@@ -29891,18 +26289,6 @@ class PluginArray extends NativeFieldWrapperClass2 with ListMixin<Plugin>, Immut
 class PluginPlaceholderElement extends DivElement {
   // To suppress missing implicit constructor warnings.
   factory PluginPlaceholderElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  static PluginPlaceholderElement internalCreatePluginPlaceholderElement() {
-    return new PluginPlaceholderElement._internalWrap();
-  }
-
-  factory PluginPlaceholderElement._internalWrap() {
-    return new PluginPlaceholderElement._internal();
-  }
-
-  PluginPlaceholderElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -29943,18 +26329,6 @@ class PopStateEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory PopStateEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static PopStateEvent internalCreatePopStateEvent() {
-    return new PopStateEvent._internalWrap();
-  }
-
-  factory PopStateEvent._internalWrap() {
-    return new PopStateEvent._internal();
-  }
-
-  PopStateEvent._internal() : super._internal();
-
-
   @DomName('PopStateEvent.state')
   @DocsEditable()
   Object get state => _blink.BlinkPopStateEvent.instance.state_Getter_(unwrap_jso(this));
@@ -29983,20 +26357,6 @@ typedef void _PositionCallback(Geoposition position);
 class PositionError extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PositionError._() { throw new UnsupportedError("Not supported"); }
-
-  static PositionError internalCreatePositionError() {
-    return new PositionError._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory PositionError._internalWrap() {
-    return new PositionError._internal();
-  }
-
-  PositionError._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('PositionError.PERMISSION_DENIED')
   @DocsEditable()
@@ -30045,18 +26405,6 @@ class PreElement extends HtmlElement {
   @DomName('HTMLPreElement.HTMLPreElement')
   @DocsEditable()
   factory PreElement() => document.createElement("pre");
-
-
-  static PreElement internalCreatePreElement() {
-    return new PreElement._internalWrap();
-  }
-
-  factory PreElement._internalWrap() {
-    return new PreElement._internal();
-  }
-
-  PreElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30079,18 +26427,6 @@ class Presentation extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory Presentation._() { throw new UnsupportedError("Not supported"); }
 
-
-  static Presentation internalCreatePresentation() {
-    return new Presentation._internalWrap();
-  }
-
-  factory Presentation._internalWrap() {
-    return new Presentation._internal();
-  }
-
-  Presentation._internal() : super._internal();
-
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30105,18 +26441,6 @@ class Presentation extends EventTarget {
 class ProcessingInstruction extends CharacterData {
   // To suppress missing implicit constructor warnings.
   factory ProcessingInstruction._() { throw new UnsupportedError("Not supported"); }
-
-
-  static ProcessingInstruction internalCreateProcessingInstruction() {
-    return new ProcessingInstruction._internalWrap();
-  }
-
-  factory ProcessingInstruction._internalWrap() {
-    return new ProcessingInstruction._internal();
-  }
-
-  ProcessingInstruction._internal() : super._internal();
-
 
   @DomName('ProcessingInstruction.sheet')
   @DocsEditable()
@@ -30148,18 +26472,6 @@ class ProgressElement extends HtmlElement {
   @DomName('HTMLProgressElement.HTMLProgressElement')
   @DocsEditable()
   factory ProgressElement() => document.createElement("progress");
-
-
-  static ProgressElement internalCreateProgressElement() {
-    return new ProgressElement._internalWrap();
-  }
-
-  factory ProgressElement._internalWrap() {
-    return new ProgressElement._internal();
-  }
-
-  ProgressElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30209,18 +26521,6 @@ class ProgressEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ProgressEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static ProgressEvent internalCreateProgressEvent() {
-    return new ProgressEvent._internalWrap();
-  }
-
-  factory ProgressEvent._internalWrap() {
-    return new ProgressEvent._internal();
-  }
-
-  ProgressEvent._internal() : super._internal();
-
-
   @DomName('ProgressEvent.lengthComputable')
   @DocsEditable()
   bool get lengthComputable => _blink.BlinkProgressEvent.instance.lengthComputable_Getter_(unwrap_jso(this));
@@ -30248,18 +26548,6 @@ class PushEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory PushEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static PushEvent internalCreatePushEvent() {
-    return new PushEvent._internalWrap();
-  }
-
-  factory PushEvent._internalWrap() {
-    return new PushEvent._internal();
-  }
-
-  PushEvent._internal() : super._internal();
-
-
   @DomName('PushEvent.data')
   @DocsEditable()
   @Experimental() // untriaged
@@ -30280,20 +26568,6 @@ class PushManager extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PushManager._() { throw new UnsupportedError("Not supported"); }
 
-  static PushManager internalCreatePushManager() {
-    return new PushManager._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory PushManager._internalWrap() {
-    return new PushManager._internal();
-  }
-
-  PushManager._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('PushManager.register')
   @DocsEditable()
   @Experimental() // untriaged
@@ -30313,20 +26587,6 @@ class PushManager extends NativeFieldWrapperClass2 {
 class PushRegistration extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PushRegistration._() { throw new UnsupportedError("Not supported"); }
-
-  static PushRegistration internalCreatePushRegistration() {
-    return new PushRegistration._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory PushRegistration._internalWrap() {
-    return new PushRegistration._internal();
-  }
-
-  PushRegistration._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('PushRegistration.pushEndpoint')
   @DocsEditable()
@@ -30355,18 +26615,6 @@ class QuoteElement extends HtmlElement {
   @DomName('HTMLQuoteElement.HTMLQuoteElement')
   @DocsEditable()
   factory QuoteElement() => document.createElement("q");
-
-
-  static QuoteElement internalCreateQuoteElement() {
-    return new QuoteElement._internalWrap();
-  }
-
-  factory QuoteElement._internalWrap() {
-    return new QuoteElement._internal();
-  }
-
-  QuoteElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30432,20 +26680,6 @@ class Range extends NativeFieldWrapperClass2 {
       document._caretRangeFromPoint(point.x, point.y);
   // To suppress missing implicit constructor warnings.
   factory Range._() { throw new UnsupportedError("Not supported"); }
-
-  static Range internalCreateRange() {
-    return new Range._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Range._internalWrap() {
-    return new Range._internal();
-  }
-
-  Range._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('Range.END_TO_END')
   @DocsEditable()
@@ -30630,20 +26864,6 @@ class ReadableStream extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ReadableStream._() { throw new UnsupportedError("Not supported"); }
 
-  static ReadableStream internalCreateReadableStream() {
-    return new ReadableStream._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory ReadableStream._internalWrap() {
-    return new ReadableStream._internal();
-  }
-
-  ReadableStream._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('ReadableStream.closed')
   @DocsEditable()
   @Experimental() // untriaged
@@ -30684,18 +26904,6 @@ class RelatedEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory RelatedEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static RelatedEvent internalCreateRelatedEvent() {
-    return new RelatedEvent._internalWrap();
-  }
-
-  factory RelatedEvent._internalWrap() {
-    return new RelatedEvent._internal();
-  }
-
-  RelatedEvent._internal() : super._internal();
-
-
   @DomName('RelatedEvent.relatedTarget')
   @DocsEditable()
   @Experimental() // untriaged
@@ -30725,18 +26933,6 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 class ResourceProgressEvent extends ProgressEvent {
   // To suppress missing implicit constructor warnings.
   factory ResourceProgressEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static ResourceProgressEvent internalCreateResourceProgressEvent() {
-    return new ResourceProgressEvent._internalWrap();
-  }
-
-  factory ResourceProgressEvent._internalWrap() {
-    return new ResourceProgressEvent._internal();
-  }
-
-  ResourceProgressEvent._internal() : super._internal();
-
 
   @DomName('ResourceProgressEvent.url')
   @DocsEditable()
@@ -30797,18 +26993,6 @@ class RtcDataChannel extends EventTarget {
   @DomName('RTCDataChannel.openEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
-
-
-  static RtcDataChannel internalCreateRtcDataChannel() {
-    return new RtcDataChannel._internalWrap();
-  }
-
-  factory RtcDataChannel._internalWrap() {
-    return new RtcDataChannel._internal();
-  }
-
-  RtcDataChannel._internal() : super._internal();
-
 
   @DomName('RTCDataChannel.binaryType')
   @DocsEditable()
@@ -30940,18 +27124,6 @@ class RtcDataChannelEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory RtcDataChannelEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static RtcDataChannelEvent internalCreateRtcDataChannelEvent() {
-    return new RtcDataChannelEvent._internalWrap();
-  }
-
-  factory RtcDataChannelEvent._internalWrap() {
-    return new RtcDataChannelEvent._internal();
-  }
-
-  RtcDataChannelEvent._internal() : super._internal();
-
-
   @DomName('RTCDataChannelEvent.channel')
   @DocsEditable()
   RtcDataChannel get channel => wrap_jso(_blink.BlinkRTCDataChannelEvent.instance.channel_Getter_(unwrap_jso(this)));
@@ -30981,18 +27153,6 @@ class RtcDtmfSender extends EventTarget {
   @DomName('RTCDTMFSender.tonechangeEvent')
   @DocsEditable()
   static const EventStreamProvider<RtcDtmfToneChangeEvent> toneChangeEvent = const EventStreamProvider<RtcDtmfToneChangeEvent>('tonechange');
-
-
-  static RtcDtmfSender internalCreateRtcDtmfSender() {
-    return new RtcDtmfSender._internalWrap();
-  }
-
-  factory RtcDtmfSender._internalWrap() {
-    return new RtcDtmfSender._internal();
-  }
-
-  RtcDtmfSender._internal() : super._internal();
-
 
   @DomName('RTCDTMFSender.canInsertDTMF')
   @DocsEditable()
@@ -31048,18 +27208,6 @@ class RtcDtmfToneChangeEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory RtcDtmfToneChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static RtcDtmfToneChangeEvent internalCreateRtcDtmfToneChangeEvent() {
-    return new RtcDtmfToneChangeEvent._internalWrap();
-  }
-
-  factory RtcDtmfToneChangeEvent._internalWrap() {
-    return new RtcDtmfToneChangeEvent._internal();
-  }
-
-  RtcDtmfToneChangeEvent._internal() : super._internal();
-
-
   @DomName('RTCDTMFToneChangeEvent.tone')
   @DocsEditable()
   String get tone => _blink.BlinkRTCDTMFToneChangeEvent.instance.tone_Getter_(unwrap_jso(this));
@@ -31086,20 +27234,6 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
   factory RtcIceCandidate(Map dictionary) {
     return _blink.BlinkRTCIceCandidate.instance.constructorCallback_1_(dictionary);
   }
-
-  static RtcIceCandidate internalCreateRtcIceCandidate() {
-    return new RtcIceCandidate._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory RtcIceCandidate._internalWrap() {
-    return new RtcIceCandidate._internal();
-  }
-
-  RtcIceCandidate._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('RTCIceCandidate.candidate')
   @DocsEditable()
@@ -31140,18 +27274,6 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
 class RtcIceCandidateEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory RtcIceCandidateEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static RtcIceCandidateEvent internalCreateRtcIceCandidateEvent() {
-    return new RtcIceCandidateEvent._internalWrap();
-  }
-
-  factory RtcIceCandidateEvent._internalWrap() {
-    return new RtcIceCandidateEvent._internal();
-  }
-
-  RtcIceCandidateEvent._internal() : super._internal();
-
 
   @DomName('RTCIceCandidateEvent.candidate')
   @DocsEditable()
@@ -31278,18 +27400,6 @@ class RtcPeerConnection extends EventTarget {
     return _blink.BlinkRTCPeerConnection.instance.constructorCallback_1_(rtcConfiguration);
   }
 
-
-  static RtcPeerConnection internalCreateRtcPeerConnection() {
-    return new RtcPeerConnection._internalWrap();
-  }
-
-  factory RtcPeerConnection._internalWrap() {
-    return new RtcPeerConnection._internal();
-  }
-
-  RtcPeerConnection._internal() : super._internal();
-
-
   @DomName('RTCPeerConnection.iceConnectionState')
   @DocsEditable()
   String get iceConnectionState => _blink.BlinkRTCPeerConnection.instance.iceConnectionState_Getter_(unwrap_jso(this));
@@ -31316,7 +27426,7 @@ class RtcPeerConnection extends EventTarget {
   
   void addStream(MediaStream stream, [Map mediaConstraints]) {
     if (mediaConstraints != null) {
-      _blink.BlinkRTCPeerConnection.instance.addStream_Callback_2_(unwrap_jso(this), unwrap_jso(stream), mediaConstraints != null ? new js.JsObject.jsify(mediaConstraints) : mediaConstraints);
+      _blink.BlinkRTCPeerConnection.instance.addStream_Callback_2_(unwrap_jso(this), unwrap_jso(stream), mediaConstraints);
       return;
     }
     _blink.BlinkRTCPeerConnection.instance.addStream_Callback_1_(unwrap_jso(this), unwrap_jso(stream));
@@ -31329,7 +27439,7 @@ class RtcPeerConnection extends EventTarget {
   
   void _createAnswer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (mediaConstraints != null) {
-      _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(failureCallback), mediaConstraints != null ? new js.JsObject.jsify(mediaConstraints) : mediaConstraints);
+      _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(failureCallback), mediaConstraints);
       return;
     }
     _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(failureCallback));
@@ -31342,14 +27452,14 @@ class RtcPeerConnection extends EventTarget {
   
   RtcDataChannel createDataChannel(String label, [Map options]) {
     if (options != null) {
-      return _blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_2_(unwrap_jso(this), label, options != null ? new js.JsObject.jsify(options) : options);
+      return _blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_2_(unwrap_jso(this), label, options);
     }
     return _blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_1_(unwrap_jso(this), label);
   }
 
   void _createOffer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map rtcOfferOptions]) {
     if (rtcOfferOptions != null) {
-      _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(failureCallback), rtcOfferOptions != null ? new js.JsObject.jsify(rtcOfferOptions) : rtcOfferOptions);
+      _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(failureCallback), rtcOfferOptions);
       return;
     }
     _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(failureCallback));
@@ -31402,11 +27512,11 @@ class RtcPeerConnection extends EventTarget {
 
   void updateIce([Map configuration, Map mediaConstraints]) {
     if (mediaConstraints != null) {
-      _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_2_(unwrap_jso(this), configuration != null ? new js.JsObject.jsify(configuration) : configuration, mediaConstraints != null ? new js.JsObject.jsify(mediaConstraints) : mediaConstraints);
+      _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_2_(unwrap_jso(this), configuration, mediaConstraints);
       return;
     }
     if (configuration != null) {
-      _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_1_(unwrap_jso(this), configuration != null ? new js.JsObject.jsify(configuration) : configuration);
+      _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_1_(unwrap_jso(this), configuration);
       return;
     }
     _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_0_(unwrap_jso(this));
@@ -31474,20 +27584,6 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
     return _blink.BlinkRTCSessionDescription.instance.constructorCallback_0_();
   }
 
-  static RtcSessionDescription internalCreateRtcSessionDescription() {
-    return new RtcSessionDescription._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory RtcSessionDescription._internalWrap() {
-    return new RtcSessionDescription._internal();
-  }
-
-  RtcSessionDescription._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('RTCSessionDescription.sdp')
   @DocsEditable()
   String get sdp => _blink.BlinkRTCSessionDescription.instance.sdp_Getter_(unwrap_jso(this));
@@ -31519,20 +27615,6 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
 class RtcStatsReport extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory RtcStatsReport._() { throw new UnsupportedError("Not supported"); }
-
-  static RtcStatsReport internalCreateRtcStatsReport() {
-    return new RtcStatsReport._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory RtcStatsReport._internalWrap() {
-    return new RtcStatsReport._internal();
-  }
-
-  RtcStatsReport._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('RTCStatsReport.id')
   @DocsEditable()
@@ -31578,20 +27660,6 @@ class RtcStatsResponse extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory RtcStatsResponse._() { throw new UnsupportedError("Not supported"); }
 
-  static RtcStatsResponse internalCreateRtcStatsResponse() {
-    return new RtcStatsResponse._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory RtcStatsResponse._internalWrap() {
-    return new RtcStatsResponse._internal();
-  }
-
-  RtcStatsResponse._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('RTCStatsResponse.__getter__')
   @DocsEditable()
   RtcStatsReport __getter__(String name) => _blink.BlinkRTCStatsResponse.instance.$__getter___Callback_1_(unwrap_jso(this), name);
@@ -31622,20 +27690,6 @@ class Screen extends NativeFieldWrapperClass2 {
       _availHeight);
   // To suppress missing implicit constructor warnings.
   factory Screen._() { throw new UnsupportedError("Not supported"); }
-
-  static Screen internalCreateScreen() {
-    return new Screen._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Screen._internalWrap() {
-    return new Screen._internal();
-  }
-
-  Screen._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('Screen.availHeight')
   @DocsEditable()
@@ -31695,18 +27749,6 @@ class ScreenOrientation extends EventTarget {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
-
-  static ScreenOrientation internalCreateScreenOrientation() {
-    return new ScreenOrientation._internalWrap();
-  }
-
-  factory ScreenOrientation._internalWrap() {
-    return new ScreenOrientation._internal();
-  }
-
-  ScreenOrientation._internal() : super._internal();
-
-
   @DomName('ScreenOrientation.angle')
   @DocsEditable()
   @Experimental() // untriaged
@@ -31749,18 +27791,6 @@ class ScriptElement extends HtmlElement {
   @DomName('HTMLScriptElement.HTMLScriptElement')
   @DocsEditable()
   factory ScriptElement() => document.createElement("script");
-
-
-  static ScriptElement internalCreateScriptElement() {
-    return new ScriptElement._internalWrap();
-  }
-
-  factory ScriptElement._internalWrap() {
-    return new ScriptElement._internal();
-  }
-
-  ScriptElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -31858,18 +27888,6 @@ class SecurityPolicyViolationEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory SecurityPolicyViolationEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static SecurityPolicyViolationEvent internalCreateSecurityPolicyViolationEvent() {
-    return new SecurityPolicyViolationEvent._internalWrap();
-  }
-
-  factory SecurityPolicyViolationEvent._internalWrap() {
-    return new SecurityPolicyViolationEvent._internal();
-  }
-
-  SecurityPolicyViolationEvent._internal() : super._internal();
-
-
   @DomName('SecurityPolicyViolationEvent.blockedURI')
   @DocsEditable()
   String get blockedUri => _blink.BlinkSecurityPolicyViolationEvent.instance.blockedURI_Getter_(unwrap_jso(this));
@@ -31925,18 +27943,6 @@ class SelectElement extends HtmlElement {
   @DomName('HTMLSelectElement.HTMLSelectElement')
   @DocsEditable()
   factory SelectElement() => document.createElement("select");
-
-
-  static SelectElement internalCreateSelectElement() {
-    return new SelectElement._internalWrap();
-  }
-
-  factory SelectElement._internalWrap() {
-    return new SelectElement._internal();
-  }
-
-  SelectElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -32098,20 +28104,6 @@ class Selection extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Selection._() { throw new UnsupportedError("Not supported"); }
 
-  static Selection internalCreateSelection() {
-    return new Selection._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Selection._internalWrap() {
-    return new Selection._internal();
-  }
-
-  Selection._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('Selection.anchorNode')
   @DocsEditable()
   Node get anchorNode => wrap_jso(_blink.BlinkSelection.instance.anchorNode_Getter_(unwrap_jso(this)));
@@ -32251,20 +28243,6 @@ class ServiceWorkerClient extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerClient._() { throw new UnsupportedError("Not supported"); }
 
-  static ServiceWorkerClient internalCreateServiceWorkerClient() {
-    return new ServiceWorkerClient._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory ServiceWorkerClient._internalWrap() {
-    return new ServiceWorkerClient._internal();
-  }
-
-  ServiceWorkerClient._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('ServiceWorkerClient.id')
   @DocsEditable()
   @Experimental() // untriaged
@@ -32290,23 +28268,9 @@ class ServiceWorkerClients extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerClients._() { throw new UnsupportedError("Not supported"); }
 
-  static ServiceWorkerClients internalCreateServiceWorkerClients() {
-    return new ServiceWorkerClients._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory ServiceWorkerClients._internalWrap() {
-    return new ServiceWorkerClients._internal();
-  }
-
-  ServiceWorkerClients._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   Future getAll([Map options]) {
     if (options != null) {
-      return _blink.BlinkServiceWorkerClients.instance.getAll_Callback_1_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options);
+      return _blink.BlinkServiceWorkerClients.instance.getAll_Callback_1_(unwrap_jso(this), options);
     }
     return _blink.BlinkServiceWorkerClients.instance.getAll_Callback_0_(unwrap_jso(this));
   }
@@ -32325,20 +28289,6 @@ class ServiceWorkerClients extends NativeFieldWrapperClass2 {
 class ServiceWorkerContainer extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerContainer._() { throw new UnsupportedError("Not supported"); }
-
-  static ServiceWorkerContainer internalCreateServiceWorkerContainer() {
-    return new ServiceWorkerContainer._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory ServiceWorkerContainer._internalWrap() {
-    return new ServiceWorkerContainer._internal();
-  }
-
-  ServiceWorkerContainer._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('ServiceWorkerContainer.controller')
   @DocsEditable()
@@ -32359,7 +28309,7 @@ class ServiceWorkerContainer extends NativeFieldWrapperClass2 {
 
   Future register(String url, [Map options]) {
     if (options != null) {
-      return _blink.BlinkServiceWorkerContainer.instance.register_Callback_2_(unwrap_jso(this), url, options != null ? new js.JsObject.jsify(options) : options);
+      return _blink.BlinkServiceWorkerContainer.instance.register_Callback_2_(unwrap_jso(this), url, options);
     }
     return _blink.BlinkServiceWorkerContainer.instance.register_Callback_1_(unwrap_jso(this), url);
   }
@@ -32383,18 +28333,6 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
-
-
-  static ServiceWorkerGlobalScope internalCreateServiceWorkerGlobalScope() {
-    return new ServiceWorkerGlobalScope._internalWrap();
-  }
-
-  factory ServiceWorkerGlobalScope._internalWrap() {
-    return new ServiceWorkerGlobalScope._internal();
-  }
-
-  ServiceWorkerGlobalScope._internal() : super._internal();
-
 
   @DomName('ServiceWorkerGlobalScope.caches')
   @DocsEditable()
@@ -32421,13 +28359,13 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
       return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_1_(unwrap_jso(this), unwrap_jso(request));
     }
     if ((requestInitDict is Map || requestInitDict == null) && (request is String || request == null)) {
-      return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), requestInitDict != null ? new js.JsObject.jsify(requestInitDict) : requestInitDict);
+      return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), requestInitDict);
     }
     if ((request is _Request || request == null) && requestInitDict == null) {
       return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_1_(unwrap_jso(this), unwrap_jso(request));
     }
     if ((requestInitDict is Map || requestInitDict == null) && (request is _Request || request == null)) {
-      return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), requestInitDict != null ? new js.JsObject.jsify(requestInitDict) : requestInitDict);
+      return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), requestInitDict);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -32451,18 +28389,6 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
 class ServiceWorkerRegistration extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerRegistration._() { throw new UnsupportedError("Not supported"); }
-
-
-  static ServiceWorkerRegistration internalCreateServiceWorkerRegistration() {
-    return new ServiceWorkerRegistration._internalWrap();
-  }
-
-  factory ServiceWorkerRegistration._internalWrap() {
-    return new ServiceWorkerRegistration._internal();
-  }
-
-  ServiceWorkerRegistration._internal() : super._internal();
-
 
   @DomName('ServiceWorkerRegistration.active')
   @DocsEditable()
@@ -32509,18 +28435,6 @@ class ShadowElement extends HtmlElement {
   @DomName('HTMLShadowElement.HTMLShadowElement')
   @DocsEditable()
   factory ShadowElement() => document.createElement("shadow");
-
-
-  static ShadowElement internalCreateShadowElement() {
-    return new ShadowElement._internalWrap();
-  }
-
-  factory ShadowElement._internalWrap() {
-    return new ShadowElement._internal();
-  }
-
-  ShadowElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -32551,18 +28465,6 @@ class ShadowElement extends HtmlElement {
 class ShadowRoot extends DocumentFragment {
   // To suppress missing implicit constructor warnings.
   factory ShadowRoot._() { throw new UnsupportedError("Not supported"); }
-
-
-  static ShadowRoot internalCreateShadowRoot() {
-    return new ShadowRoot._internalWrap();
-  }
-
-  factory ShadowRoot._internalWrap() {
-    return new ShadowRoot._internal();
-  }
-
-  ShadowRoot._internal() : super._internal();
-
 
   @DomName('ShadowRoot.activeElement')
   @DocsEditable()
@@ -32678,18 +28580,6 @@ class SharedWorker extends EventTarget implements AbstractWorker {
     return _blink.BlinkSharedWorker.instance.constructorCallback_2_(scriptURL, name);
   }
 
-
-  static SharedWorker internalCreateSharedWorker() {
-    return new SharedWorker._internalWrap();
-  }
-
-  factory SharedWorker._internalWrap() {
-    return new SharedWorker._internal();
-  }
-
-  SharedWorker._internal() : super._internal();
-
-
   @DomName('SharedWorker.port')
   @DocsEditable()
   MessagePort get port => wrap_jso(_blink.BlinkSharedWorker.instance.port_Getter_(unwrap_jso(this)));
@@ -32730,18 +28620,6 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
 
-
-  static SharedWorkerGlobalScope internalCreateSharedWorkerGlobalScope() {
-    return new SharedWorkerGlobalScope._internalWrap();
-  }
-
-  factory SharedWorkerGlobalScope._internalWrap() {
-    return new SharedWorkerGlobalScope._internal();
-  }
-
-  SharedWorkerGlobalScope._internal() : super._internal();
-
-
   @DomName('SharedWorkerGlobalScope.name')
   @DocsEditable()
   @Experimental() // untriaged
@@ -32768,18 +28646,6 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
 class SourceBuffer extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory SourceBuffer._() { throw new UnsupportedError("Not supported"); }
-
-
-  static SourceBuffer internalCreateSourceBuffer() {
-    return new SourceBuffer._internalWrap();
-  }
-
-  factory SourceBuffer._internalWrap() {
-    return new SourceBuffer._internal();
-  }
-
-  SourceBuffer._internal() : super._internal();
-
 
   @DomName('SourceBuffer.appendWindowEnd')
   @DocsEditable()
@@ -32872,18 +28738,6 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   // To suppress missing implicit constructor warnings.
   factory SourceBufferList._() { throw new UnsupportedError("Not supported"); }
 
-
-  static SourceBufferList internalCreateSourceBufferList() {
-    return new SourceBufferList._internalWrap();
-  }
-
-  factory SourceBufferList._internalWrap() {
-    return new SourceBufferList._internal();
-  }
-
-  SourceBufferList._internal() : super._internal();
-
-
   @DomName('SourceBufferList.length')
   @DocsEditable()
   int get length => _blink.BlinkSourceBufferList.instance.length_Getter_(unwrap_jso(this));
@@ -32955,18 +28809,6 @@ class SourceElement extends HtmlElement {
   @DomName('HTMLSourceElement.HTMLSourceElement')
   @DocsEditable()
   factory SourceElement() => document.createElement("source");
-
-
-  static SourceElement internalCreateSourceElement() {
-    return new SourceElement._internalWrap();
-  }
-
-  factory SourceElement._internalWrap() {
-    return new SourceElement._internal();
-  }
-
-  SourceElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -33043,20 +28885,6 @@ class SourceInfo extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SourceInfo._() { throw new UnsupportedError("Not supported"); }
 
-  static SourceInfo internalCreateSourceInfo() {
-    return new SourceInfo._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory SourceInfo._internalWrap() {
-    return new SourceInfo._internal();
-  }
-
-  SourceInfo._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('SourceInfo.facing')
   @DocsEditable()
   @Experimental() // untriaged
@@ -33094,18 +28922,6 @@ class SpanElement extends HtmlElement {
   @DomName('HTMLSpanElement.HTMLSpanElement')
   @DocsEditable()
   factory SpanElement() => document.createElement("span");
-
-
-  static SpanElement internalCreateSpanElement() {
-    return new SpanElement._internalWrap();
-  }
-
-  factory SpanElement._internalWrap() {
-    return new SpanElement._internal();
-  }
-
-  SpanElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -33134,20 +28950,6 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
   factory SpeechGrammar() {
     return _blink.BlinkSpeechGrammar.instance.constructorCallback_0_();
   }
-
-  static SpeechGrammar internalCreateSpeechGrammar() {
-    return new SpeechGrammar._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory SpeechGrammar._internalWrap() {
-    return new SpeechGrammar._internal();
-  }
-
-  SpeechGrammar._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('SpeechGrammar.src')
   @DocsEditable()
@@ -33186,20 +28988,6 @@ class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGr
   factory SpeechGrammarList() {
     return _blink.BlinkSpeechGrammarList.instance.constructorCallback_0_();
   }
-
-  static SpeechGrammarList internalCreateSpeechGrammarList() {
-    return new SpeechGrammarList._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory SpeechGrammarList._internalWrap() {
-    return new SpeechGrammarList._internal();
-  }
-
-  SpeechGrammarList._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('SpeechGrammarList.length')
   @DocsEditable()
@@ -33406,18 +29194,6 @@ class SpeechRecognition extends EventTarget {
     return _blink.BlinkSpeechRecognition.instance.constructorCallback_0_();
   }
 
-
-  static SpeechRecognition internalCreateSpeechRecognition() {
-    return new SpeechRecognition._internalWrap();
-  }
-
-  factory SpeechRecognition._internalWrap() {
-    return new SpeechRecognition._internal();
-  }
-
-  SpeechRecognition._internal() : super._internal();
-
-
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
@@ -33545,20 +29321,6 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionAlternative._() { throw new UnsupportedError("Not supported"); }
 
-  static SpeechRecognitionAlternative internalCreateSpeechRecognitionAlternative() {
-    return new SpeechRecognitionAlternative._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory SpeechRecognitionAlternative._internalWrap() {
-    return new SpeechRecognitionAlternative._internal();
-  }
-
-  SpeechRecognitionAlternative._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('SpeechRecognitionAlternative.confidence')
   @DocsEditable()
   double get confidence => _blink.BlinkSpeechRecognitionAlternative.instance.confidence_Getter_(unwrap_jso(this));
@@ -33584,18 +29346,6 @@ class SpeechRecognitionError extends Event {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionError._() { throw new UnsupportedError("Not supported"); }
 
-
-  static SpeechRecognitionError internalCreateSpeechRecognitionError() {
-    return new SpeechRecognitionError._internalWrap();
-  }
-
-  factory SpeechRecognitionError._internalWrap() {
-    return new SpeechRecognitionError._internal();
-  }
-
-  SpeechRecognitionError._internal() : super._internal();
-
-
   @DomName('SpeechRecognitionError.error')
   @DocsEditable()
   String get error => _blink.BlinkSpeechRecognitionError.instance.error_Getter_(unwrap_jso(this));
@@ -33620,18 +29370,6 @@ class SpeechRecognitionError extends Event {
 class SpeechRecognitionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static SpeechRecognitionEvent internalCreateSpeechRecognitionEvent() {
-    return new SpeechRecognitionEvent._internalWrap();
-  }
-
-  factory SpeechRecognitionEvent._internalWrap() {
-    return new SpeechRecognitionEvent._internal();
-  }
-
-  SpeechRecognitionEvent._internal() : super._internal();
-
 
   @DomName('SpeechRecognitionEvent.emma')
   @DocsEditable()
@@ -33666,20 +29404,6 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionResult._() { throw new UnsupportedError("Not supported"); }
 
-  static SpeechRecognitionResult internalCreateSpeechRecognitionResult() {
-    return new SpeechRecognitionResult._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory SpeechRecognitionResult._internalWrap() {
-    return new SpeechRecognitionResult._internal();
-  }
-
-  SpeechRecognitionResult._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('SpeechRecognitionResult.isFinal')
   @DocsEditable()
   bool get isFinal => _blink.BlinkSpeechRecognitionResult.instance.isFinal_Getter_(unwrap_jso(this));
@@ -33707,18 +29431,6 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass2 {
 class SpeechSynthesis extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory SpeechSynthesis._() { throw new UnsupportedError("Not supported"); }
-
-
-  static SpeechSynthesis internalCreateSpeechSynthesis() {
-    return new SpeechSynthesis._internalWrap();
-  }
-
-  factory SpeechSynthesis._internalWrap() {
-    return new SpeechSynthesis._internal();
-  }
-
-  SpeechSynthesis._internal() : super._internal();
-
 
   @DomName('SpeechSynthesis.paused')
   @DocsEditable()
@@ -33767,18 +29479,6 @@ class SpeechSynthesis extends EventTarget {
 class SpeechSynthesisEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory SpeechSynthesisEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static SpeechSynthesisEvent internalCreateSpeechSynthesisEvent() {
-    return new SpeechSynthesisEvent._internalWrap();
-  }
-
-  factory SpeechSynthesisEvent._internalWrap() {
-    return new SpeechSynthesisEvent._internal();
-  }
-
-  SpeechSynthesisEvent._internal() : super._internal();
-
 
   @DomName('SpeechSynthesisEvent.charIndex')
   @DocsEditable()
@@ -33884,18 +29584,6 @@ class SpeechSynthesisUtterance extends EventTarget {
     return _blink.BlinkSpeechSynthesisUtterance.instance.constructorCallback_1_(text);
   }
 
-
-  static SpeechSynthesisUtterance internalCreateSpeechSynthesisUtterance() {
-    return new SpeechSynthesisUtterance._internalWrap();
-  }
-
-  factory SpeechSynthesisUtterance._internalWrap() {
-    return new SpeechSynthesisUtterance._internal();
-  }
-
-  SpeechSynthesisUtterance._internal() : super._internal();
-
-
   @DomName('SpeechSynthesisUtterance.lang')
   @DocsEditable()
   String get lang => _blink.BlinkSpeechSynthesisUtterance.instance.lang_Getter_(unwrap_jso(this));
@@ -33994,20 +29682,6 @@ class SpeechSynthesisUtterance extends EventTarget {
 class SpeechSynthesisVoice extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SpeechSynthesisVoice._() { throw new UnsupportedError("Not supported"); }
-
-  static SpeechSynthesisVoice internalCreateSpeechSynthesisVoice() {
-    return new SpeechSynthesisVoice._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory SpeechSynthesisVoice._internalWrap() {
-    return new SpeechSynthesisVoice._internal();
-  }
-
-  SpeechSynthesisVoice._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('SpeechSynthesisVoice.default')
   @DocsEditable()
@@ -34120,20 +29794,6 @@ class Storage extends NativeFieldWrapperClass2
   // To suppress missing implicit constructor warnings.
   factory Storage._() { throw new UnsupportedError("Not supported"); }
 
-  static Storage internalCreateStorage() {
-    return new Storage._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Storage._internalWrap() {
-    return new Storage._internal();
-  }
-
-  Storage._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('Storage.length')
   @DocsEditable()
   int get _length => _blink.BlinkStorage.instance.length_Getter_(unwrap_jso(this));
@@ -34224,18 +29884,6 @@ class StorageEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory StorageEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static StorageEvent internalCreateStorageEvent() {
-    return new StorageEvent._internalWrap();
-  }
-
-  factory StorageEvent._internalWrap() {
-    return new StorageEvent._internal();
-  }
-
-  StorageEvent._internal() : super._internal();
-
-
   @DomName('StorageEvent.key')
   @DocsEditable()
   String get key => _blink.BlinkStorageEvent.instance.key_Getter_(unwrap_jso(this));
@@ -34276,20 +29924,6 @@ class StorageInfo extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory StorageInfo._() { throw new UnsupportedError("Not supported"); }
 
-  static StorageInfo internalCreateStorageInfo() {
-    return new StorageInfo._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory StorageInfo._internalWrap() {
-    return new StorageInfo._internal();
-  }
-
-  StorageInfo._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('StorageInfo.quota')
   @DocsEditable()
   @Experimental() // untriaged
@@ -34315,20 +29949,6 @@ class StorageInfo extends NativeFieldWrapperClass2 {
 class StorageQuota extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory StorageQuota._() { throw new UnsupportedError("Not supported"); }
-
-  static StorageQuota internalCreateStorageQuota() {
-    return new StorageQuota._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory StorageQuota._internalWrap() {
-    return new StorageQuota._internal();
-  }
-
-  StorageQuota._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('StorageQuota.supportedTypes')
   @DocsEditable()
@@ -34395,18 +30015,6 @@ class StyleElement extends HtmlElement {
   @DomName('HTMLStyleElement.HTMLStyleElement')
   @DocsEditable()
   factory StyleElement() => document.createElement("style");
-
-
-  static StyleElement internalCreateStyleElement() {
-    return new StyleElement._internalWrap();
-  }
-
-  factory StyleElement._internalWrap() {
-    return new StyleElement._internal();
-  }
-
-  StyleElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -34458,20 +30066,6 @@ class StyleMedia extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory StyleMedia._() { throw new UnsupportedError("Not supported"); }
 
-  static StyleMedia internalCreateStyleMedia() {
-    return new StyleMedia._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory StyleMedia._internalWrap() {
-    return new StyleMedia._internal();
-  }
-
-  StyleMedia._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('StyleMedia.type')
   @DocsEditable()
   String get type => _blink.BlinkStyleMedia.instance.type_Getter_(unwrap_jso(this));
@@ -34493,20 +30087,6 @@ class StyleMedia extends NativeFieldWrapperClass2 {
 class StyleSheet extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory StyleSheet._() { throw new UnsupportedError("Not supported"); }
-
-  static StyleSheet internalCreateStyleSheet() {
-    return new StyleSheet._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory StyleSheet._internalWrap() {
-    return new StyleSheet._internal();
-  }
-
-  StyleSheet._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('StyleSheet.disabled')
   @DocsEditable()
@@ -34557,18 +30137,6 @@ class TableCaptionElement extends HtmlElement {
   @DomName('HTMLTableCaptionElement.HTMLTableCaptionElement')
   @DocsEditable()
   factory TableCaptionElement() => document.createElement("caption");
-
-
-  static TableCaptionElement internalCreateTableCaptionElement() {
-    return new TableCaptionElement._internalWrap();
-  }
-
-  factory TableCaptionElement._internalWrap() {
-    return new TableCaptionElement._internal();
-  }
-
-  TableCaptionElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -34593,18 +30161,6 @@ class TableCellElement extends HtmlElement {
   @DomName('HTMLTableCellElement.HTMLTableCellElement')
   @DocsEditable()
   factory TableCellElement() => document.createElement("td");
-
-
-  static TableCellElement internalCreateTableCellElement() {
-    return new TableCellElement._internalWrap();
-  }
-
-  factory TableCellElement._internalWrap() {
-    return new TableCellElement._internal();
-  }
-
-  TableCellElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -34657,18 +30213,6 @@ class TableColElement extends HtmlElement {
   @DomName('HTMLTableColElement.HTMLTableColElement')
   @DocsEditable()
   factory TableColElement() => document.createElement("col");
-
-
-  static TableColElement internalCreateTableColElement() {
-    return new TableColElement._internalWrap();
-  }
-
-  factory TableColElement._internalWrap() {
-    return new TableColElement._internal();
-  }
-
-  TableColElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -34719,18 +30263,6 @@ class TableElement extends HtmlElement {
   @DomName('HTMLTableElement.HTMLTableElement')
   @DocsEditable()
   factory TableElement() => document.createElement("table");
-
-
-  static TableElement internalCreateTableElement() {
-    return new TableElement._internalWrap();
-  }
-
-  factory TableElement._internalWrap() {
-    return new TableElement._internal();
-  }
-
-  TableElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -34835,18 +30367,6 @@ class TableRowElement extends HtmlElement {
   @DomName('HTMLTableRowElement.HTMLTableRowElement')
   @DocsEditable()
   factory TableRowElement() => document.createElement("tr");
-
-
-  static TableRowElement internalCreateTableRowElement() {
-    return new TableRowElement._internalWrap();
-  }
-
-  factory TableRowElement._internalWrap() {
-    return new TableRowElement._internal();
-  }
-
-  TableRowElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -34899,18 +30419,6 @@ class TableSectionElement extends HtmlElement {
 
   // To suppress missing implicit constructor warnings.
   factory TableSectionElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  static TableSectionElement internalCreateTableSectionElement() {
-    return new TableSectionElement._internalWrap();
-  }
-
-  factory TableSectionElement._internalWrap() {
-    return new TableSectionElement._internal();
-  }
-
-  TableSectionElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -34952,18 +30460,6 @@ class TemplateElement extends HtmlElement {
   @DomName('HTMLTemplateElement.HTMLTemplateElement')
   @DocsEditable()
   factory TemplateElement() => document.createElement("template");
-
-
-  static TemplateElement internalCreateTemplateElement() {
-    return new TemplateElement._internalWrap();
-  }
-
-  factory TemplateElement._internalWrap() {
-    return new TemplateElement._internal();
-  }
-
-  TemplateElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -35008,18 +30504,6 @@ class Text extends CharacterData {
   // To suppress missing implicit constructor warnings.
   factory Text._() { throw new UnsupportedError("Not supported"); }
 
-
-  static Text internalCreateText() {
-    return new Text._internalWrap();
-  }
-
-  factory Text._internalWrap() {
-    return new Text._internal();
-  }
-
-  Text._internal() : super._internal();
-
-
   @DomName('Text.wholeText')
   @DocsEditable()
   String get wholeText => _blink.BlinkText.instance.wholeText_Getter_(unwrap_jso(this));
@@ -35050,18 +30534,6 @@ class TextAreaElement extends HtmlElement {
   @DomName('HTMLTextAreaElement.HTMLTextAreaElement')
   @DocsEditable()
   factory TextAreaElement() => document.createElement("textarea");
-
-
-  static TextAreaElement internalCreateTextAreaElement() {
-    return new TextAreaElement._internalWrap();
-  }
-
-  factory TextAreaElement._internalWrap() {
-    return new TextAreaElement._internal();
-  }
-
-  TextAreaElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -35296,18 +30768,6 @@ class TextEvent extends UIEvent {
   // To suppress missing implicit constructor warnings.
   factory TextEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static TextEvent internalCreateTextEvent() {
-    return new TextEvent._internalWrap();
-  }
-
-  factory TextEvent._internalWrap() {
-    return new TextEvent._internal();
-  }
-
-  TextEvent._internal() : super._internal();
-
-
   @DomName('TextEvent.data')
   @DocsEditable()
   String get data => _blink.BlinkTextEvent.instance.data_Getter_(unwrap_jso(this));
@@ -35329,20 +30789,6 @@ class TextEvent extends UIEvent {
 class TextMetrics extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory TextMetrics._() { throw new UnsupportedError("Not supported"); }
-
-  static TextMetrics internalCreateTextMetrics() {
-    return new TextMetrics._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory TextMetrics._internalWrap() {
-    return new TextMetrics._internal();
-  }
-
-  TextMetrics._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('TextMetrics.actualBoundingBoxAscent')
   @DocsEditable()
@@ -35428,18 +30874,6 @@ class TextTrack extends EventTarget {
   @DomName('TextTrack.cuechangeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> cueChangeEvent = const EventStreamProvider<Event>('cuechange');
-
-
-  static TextTrack internalCreateTextTrack() {
-    return new TextTrack._internalWrap();
-  }
-
-  factory TextTrack._internalWrap() {
-    return new TextTrack._internal();
-  }
-
-  TextTrack._internal() : super._internal();
-
 
   @DomName('TextTrack.activeCues')
   @DocsEditable()
@@ -35538,18 +30972,6 @@ class TextTrackCue extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
-
-  static TextTrackCue internalCreateTextTrackCue() {
-    return new TextTrackCue._internalWrap();
-  }
-
-  factory TextTrackCue._internalWrap() {
-    return new TextTrackCue._internal();
-  }
-
-  TextTrackCue._internal() : super._internal();
-
-
   @DomName('TextTrackCue.endTime')
   @DocsEditable()
   num get endTime => _blink.BlinkTextTrackCue.instance.endTime_Getter_(unwrap_jso(this));
@@ -35611,20 +31033,6 @@ class TextTrackCue extends EventTarget {
 class TextTrackCueList extends NativeFieldWrapperClass2 with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue> {
   // To suppress missing implicit constructor warnings.
   factory TextTrackCueList._() { throw new UnsupportedError("Not supported"); }
-
-  static TextTrackCueList internalCreateTextTrackCueList() {
-    return new TextTrackCueList._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory TextTrackCueList._internalWrap() {
-    return new TextTrackCueList._internal();
-  }
-
-  TextTrackCueList._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('TextTrackCueList.length')
   @DocsEditable()
@@ -35715,18 +31123,6 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   @Experimental() // untriaged
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
-
-  static TextTrackList internalCreateTextTrackList() {
-    return new TextTrackList._internalWrap();
-  }
-
-  factory TextTrackList._internalWrap() {
-    return new TextTrackList._internal();
-  }
-
-  TextTrackList._internal() : super._internal();
-
-
   @DomName('TextTrackList.length')
   @DocsEditable()
   int get length => _blink.BlinkTextTrackList.instance.length_Getter_(unwrap_jso(this));
@@ -35811,20 +31207,6 @@ class TimeRanges extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory TimeRanges._() { throw new UnsupportedError("Not supported"); }
 
-  static TimeRanges internalCreateTimeRanges() {
-    return new TimeRanges._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory TimeRanges._internalWrap() {
-    return new TimeRanges._internal();
-  }
-
-  TimeRanges._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('TimeRanges.length')
   @DocsEditable()
   int get length => _blink.BlinkTimeRanges.instance.length_Getter_(unwrap_jso(this));
@@ -35860,20 +31242,6 @@ typedef void TimeoutHandler();
 class Timing extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Timing._() { throw new UnsupportedError("Not supported"); }
-
-  static Timing internalCreateTiming() {
-    return new Timing._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Timing._internalWrap() {
-    return new Timing._internal();
-  }
-
-  Timing._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('Timing.delay')
   @DocsEditable()
@@ -35982,18 +31350,6 @@ class TitleElement extends HtmlElement {
   @DomName('HTMLTitleElement.HTMLTitleElement')
   @DocsEditable()
   factory TitleElement() => document.createElement("title");
-
-
-  static TitleElement internalCreateTitleElement() {
-    return new TitleElement._internalWrap();
-  }
-
-  factory TitleElement._internalWrap() {
-    return new TitleElement._internal();
-  }
-
-  TitleElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -36014,20 +31370,6 @@ class TitleElement extends HtmlElement {
 class Touch extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Touch._() { throw new UnsupportedError("Not supported"); }
-
-  static Touch internalCreateTouch() {
-    return new Touch._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Touch._internalWrap() {
-    return new Touch._internal();
-  }
-
-  Touch._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('Touch.clientX')
   @DocsEditable()
@@ -36149,18 +31491,6 @@ class TouchEvent extends UIEvent {
   // To suppress missing implicit constructor warnings.
   factory TouchEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static TouchEvent internalCreateTouchEvent() {
-    return new TouchEvent._internalWrap();
-  }
-
-  factory TouchEvent._internalWrap() {
-    return new TouchEvent._internal();
-  }
-
-  TouchEvent._internal() : super._internal();
-
-
   @DomName('TouchEvent.altKey')
   @DocsEditable()
   bool get altKey => _blink.BlinkTouchEvent.instance.altKey_Getter_(unwrap_jso(this));
@@ -36220,20 +31550,6 @@ class TouchList extends NativeFieldWrapperClass2 with ListMixin<Touch>, Immutabl
   factory TouchList() => null;//document._createTouchList();
   // To suppress missing implicit constructor warnings.
   factory TouchList._() { throw new UnsupportedError("Not supported"); }
-
-  static TouchList internalCreateTouchList() {
-    return new TouchList._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory TouchList._internalWrap() {
-    return new TouchList._internal();
-  }
-
-  TouchList._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -36314,18 +31630,6 @@ class TrackElement extends HtmlElement {
   @DomName('HTMLTrackElement.HTMLTrackElement')
   @DocsEditable()
   factory TrackElement() => document.createElement("track");
-
-
-  static TrackElement internalCreateTrackElement() {
-    return new TrackElement._internalWrap();
-  }
-
-  factory TrackElement._internalWrap() {
-    return new TrackElement._internal();
-  }
-
-  TrackElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -36425,18 +31729,6 @@ class TrackEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory TrackEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static TrackEvent internalCreateTrackEvent() {
-    return new TrackEvent._internalWrap();
-  }
-
-  factory TrackEvent._internalWrap() {
-    return new TrackEvent._internal();
-  }
-
-  TrackEvent._internal() : super._internal();
-
-
   @DomName('TrackEvent.track')
   @DocsEditable()
   Object get track => _blink.BlinkTrackEvent.instance.track_Getter_(unwrap_jso(this));
@@ -36454,18 +31746,6 @@ class TrackEvent extends Event {
 class TransitionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory TransitionEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static TransitionEvent internalCreateTransitionEvent() {
-    return new TransitionEvent._internalWrap();
-  }
-
-  factory TransitionEvent._internalWrap() {
-    return new TransitionEvent._internal();
-  }
-
-  TransitionEvent._internal() : super._internal();
-
 
   @DomName('TransitionEvent.elapsedTime')
   @DocsEditable()
@@ -36493,20 +31773,6 @@ class TreeWalker extends NativeFieldWrapperClass2 {
   }
   // To suppress missing implicit constructor warnings.
   factory TreeWalker._() { throw new UnsupportedError("Not supported"); }
-
-  static TreeWalker internalCreateTreeWalker() {
-    return new TreeWalker._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory TreeWalker._internalWrap() {
-    return new TreeWalker._internal();
-  }
-
-  TreeWalker._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('TreeWalker.currentNode')
   @DocsEditable()
@@ -36585,18 +31851,6 @@ class UIEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory UIEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static UIEvent internalCreateUIEvent() {
-    return new UIEvent._internalWrap();
-  }
-
-  factory UIEvent._internalWrap() {
-    return new UIEvent._internal();
-  }
-
-  UIEvent._internal() : super._internal();
-
-
   @DomName('UIEvent.charCode')
   @DocsEditable()
   @Unstable()
@@ -36673,18 +31927,6 @@ class UListElement extends HtmlElement {
   @DomName('HTMLUListElement.HTMLUListElement')
   @DocsEditable()
   factory UListElement() => document.createElement("ul");
-
-
-  static UListElement internalCreateUListElement() {
-    return new UListElement._internalWrap();
-  }
-
-  factory UListElement._internalWrap() {
-    return new UListElement._internal();
-  }
-
-  UListElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -36705,18 +31947,6 @@ class UListElement extends HtmlElement {
 class UnknownElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory UnknownElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  static UnknownElement internalCreateUnknownElement() {
-    return new UnknownElement._internalWrap();
-  }
-
-  factory UnknownElement._internalWrap() {
-    return new UnknownElement._internal();
-  }
-
-  UnknownElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -36737,20 +31967,6 @@ class UnknownElement extends HtmlElement {
 class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   // To suppress missing implicit constructor warnings.
   factory Url._() { throw new UnsupportedError("Not supported"); }
-
-  static Url internalCreateUrl() {
-    return new Url._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory Url._internalWrap() {
-    return new Url._internal();
-  }
-
-  Url._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   static String createObjectUrl(blob_OR_source_OR_stream) {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
@@ -36906,20 +32122,6 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory UrlUtils._() { throw new UnsupportedError("Not supported"); }
 
-  static UrlUtils internalCreateUrlUtils() {
-    return new UrlUtils._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory UrlUtils._internalWrap() {
-    return new UrlUtils._internal();
-  }
-
-  UrlUtils._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('URLUtils.hash')
   @DocsEditable()
   @Experimental() // untriaged
@@ -37045,20 +32247,6 @@ abstract class UrlUtilsReadOnly extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory UrlUtilsReadOnly._() { throw new UnsupportedError("Not supported"); }
 
-  static UrlUtilsReadOnly internalCreateUrlUtilsReadOnly() {
-    return new UrlUtilsReadOnly._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory UrlUtilsReadOnly._internalWrap() {
-    return new UrlUtilsReadOnly._internal();
-  }
-
-  UrlUtilsReadOnly._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('URLUtilsReadOnly.hash')
   @DocsEditable()
   @Experimental() // untriaged
@@ -37123,20 +32311,6 @@ class ValidityState extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ValidityState._() { throw new UnsupportedError("Not supported"); }
 
-  static ValidityState internalCreateValidityState() {
-    return new ValidityState._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory ValidityState._internalWrap() {
-    return new ValidityState._internal();
-  }
-
-  ValidityState._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('ValidityState.badInput')
   @DocsEditable()
   bool get badInput => _blink.BlinkValidityState.instance.badInput_Getter_(unwrap_jso(this));
@@ -37191,18 +32365,6 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   @DomName('HTMLVideoElement.HTMLVideoElement')
   @DocsEditable()
   factory VideoElement() => document.createElement("video");
-
-
-  static VideoElement internalCreateVideoElement() {
-    return new VideoElement._internalWrap();
-  }
-
-  factory VideoElement._internalWrap() {
-    return new VideoElement._internal();
-  }
-
-  VideoElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -37292,20 +32454,6 @@ class VideoPlaybackQuality extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory VideoPlaybackQuality._() { throw new UnsupportedError("Not supported"); }
 
-  static VideoPlaybackQuality internalCreateVideoPlaybackQuality() {
-    return new VideoPlaybackQuality._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory VideoPlaybackQuality._internalWrap() {
-    return new VideoPlaybackQuality._internal();
-  }
-
-  VideoPlaybackQuality._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('VideoPlaybackQuality.corruptedVideoFrames')
   @DocsEditable()
   @Experimental() // untriaged
@@ -37340,20 +32488,6 @@ class VideoPlaybackQuality extends NativeFieldWrapperClass2 {
 class VideoTrack extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory VideoTrack._() { throw new UnsupportedError("Not supported"); }
-
-  static VideoTrack internalCreateVideoTrack() {
-    return new VideoTrack._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory VideoTrack._internalWrap() {
-    return new VideoTrack._internal();
-  }
-
-  VideoTrack._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('VideoTrack.id')
   @DocsEditable()
@@ -37404,18 +32538,6 @@ class VideoTrackList extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
-
-
-  static VideoTrackList internalCreateVideoTrackList() {
-    return new VideoTrackList._internalWrap();
-  }
-
-  factory VideoTrackList._internalWrap() {
-    return new VideoTrackList._internal();
-  }
-
-  VideoTrackList._internal() : super._internal();
-
 
   @DomName('VideoTrackList.length')
   @DocsEditable()
@@ -37473,18 +32595,6 @@ class VttCue extends TextTrackCue {
   factory VttCue(num startTime, num endTime, String text) {
     return _blink.BlinkVTTCue.instance.constructorCallback_3_(startTime, endTime, text);
   }
-
-
-  static VttCue internalCreateVttCue() {
-    return new VttCue._internalWrap();
-  }
-
-  factory VttCue._internalWrap() {
-    return new VttCue._internal();
-  }
-
-  VttCue._internal() : super._internal();
-
 
   @DomName('VTTCue.align')
   @DocsEditable()
@@ -37592,20 +32702,6 @@ class VttRegion extends NativeFieldWrapperClass2 {
     return _blink.BlinkVTTRegion.instance.constructorCallback_0_();
   }
 
-  static VttRegion internalCreateVttRegion() {
-    return new VttRegion._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory VttRegion._internalWrap() {
-    return new VttRegion._internal();
-  }
-
-  VttRegion._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('VTTRegion.height')
   @DocsEditable()
   @Experimental() // untriaged
@@ -37705,20 +32801,6 @@ class VttRegion extends NativeFieldWrapperClass2 {
 class VttRegionList extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory VttRegionList._() { throw new UnsupportedError("Not supported"); }
-
-  static VttRegionList internalCreateVttRegionList() {
-    return new VttRegionList._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory VttRegionList._internalWrap() {
-    return new VttRegionList._internal();
-  }
-
-  VttRegionList._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('VTTRegionList.length')
   @DocsEditable()
@@ -37842,18 +32924,6 @@ class WebSocket extends EventTarget {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-
-
-  static WebSocket internalCreateWebSocket() {
-    return new WebSocket._internalWrap();
-  }
-
-  factory WebSocket._internalWrap() {
-    return new WebSocket._internal();
-  }
-
-  WebSocket._internal() : super._internal();
-
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -38014,18 +33084,6 @@ class WheelEvent extends MouseEvent {
 
   // To suppress missing implicit constructor warnings.
   factory WheelEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static WheelEvent internalCreateWheelEvent() {
-    return new WheelEvent._internalWrap();
-  }
-
-  factory WheelEvent._internalWrap() {
-    return new WheelEvent._internal();
-  }
-
-  WheelEvent._internal() : super._internal();
-
 
   @DomName('WheelEvent.DOM_DELTA_LINE')
   @DocsEditable()
@@ -38354,18 +33412,6 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
-
-
-  static Window internalCreateWindow() {
-    return new Window._internalWrap();
-  }
-
-  factory Window._internalWrap() {
-    return new Window._internal();
-  }
-
-  Window._internal() : super._internal();
-
 
   /**
    * Indicates that file system data cannot be cleared unless given user
@@ -39094,7 +34140,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is num) && (x is num)) {
-      _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
       return;
     }
     if ((y is int) && (x is int) && scrollOptions == null) {
@@ -39102,7 +34148,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is int) && (x is int)) {
-      _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -39114,7 +34160,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is num) && (x is num)) {
-      _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
       return;
     }
     if ((y is int) && (x is int) && scrollOptions == null) {
@@ -39122,7 +34168,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is int) && (x is int)) {
-      _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -39134,7 +34180,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is num) && (x is num)) {
-      _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
       return;
     }
     if ((y is int) && (x is int) && scrollOptions == null) {
@@ -39142,7 +34188,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is int) && (x is int)) {
-      _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -39693,20 +34739,6 @@ abstract class WindowBase64 extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory WindowBase64._() { throw new UnsupportedError("Not supported"); }
 
-  static WindowBase64 internalCreateWindowBase64() {
-    return new WindowBase64._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory WindowBase64._internalWrap() {
-    return new WindowBase64._internal();
-  }
-
-  WindowBase64._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('WindowBase64.atob')
   @DocsEditable()
   @Experimental() // untriaged
@@ -39764,20 +34796,6 @@ abstract class WindowEventHandlers extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
-
-  static WindowEventHandlers internalCreateWindowEventHandlers() {
-    return new WindowEventHandlers._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory WindowEventHandlers._internalWrap() {
-    return new WindowEventHandlers._internal();
-  }
-
-  WindowEventHandlers._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('WindowEventHandlers.onhashchange')
   @DocsEditable()
@@ -39860,18 +34878,6 @@ class Worker extends EventTarget implements AbstractWorker {
     return _blink.BlinkWorker.instance.constructorCallback_1_(scriptUrl);
   }
 
-
-  static Worker internalCreateWorker() {
-    return new Worker._internalWrap();
-  }
-
-  factory Worker._internalWrap() {
-    return new Worker._internal();
-  }
-
-  Worker._internal() : super._internal();
-
-
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
@@ -39909,18 +34915,6 @@ class WorkerConsole extends ConsoleBase {
   // To suppress missing implicit constructor warnings.
   factory WorkerConsole._() { throw new UnsupportedError("Not supported"); }
 
-
-  static WorkerConsole internalCreateWorkerConsole() {
-    return new WorkerConsole._internalWrap();
-  }
-
-  factory WorkerConsole._internalWrap() {
-    return new WorkerConsole._internal();
-  }
-
-  WorkerConsole._internal() : super._internal();
-
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -39946,18 +34940,6 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-
-  static WorkerGlobalScope internalCreateWorkerGlobalScope() {
-    return new WorkerGlobalScope._internalWrap();
-  }
-
-  factory WorkerGlobalScope._internalWrap() {
-    return new WorkerGlobalScope._internal();
-  }
-
-  WorkerGlobalScope._internal() : super._internal();
-
 
   @DomName('WorkerGlobalScope.PERSISTENT')
   @DocsEditable()
@@ -40119,20 +35101,6 @@ class WorkerPerformance extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory WorkerPerformance._() { throw new UnsupportedError("Not supported"); }
 
-  static WorkerPerformance internalCreateWorkerPerformance() {
-    return new WorkerPerformance._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory WorkerPerformance._internalWrap() {
-    return new WorkerPerformance._internal();
-  }
-
-  WorkerPerformance._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('WorkerPerformance.memory')
   @DocsEditable()
   @Experimental() // untriaged
@@ -40165,20 +35133,6 @@ class XPathEvaluator extends NativeFieldWrapperClass2 {
     return _blink.BlinkXPathEvaluator.instance.constructorCallback_0_();
   }
 
-  static XPathEvaluator internalCreateXPathEvaluator() {
-    return new XPathEvaluator._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory XPathEvaluator._internalWrap() {
-    return new XPathEvaluator._internal();
-  }
-
-  XPathEvaluator._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('XPathEvaluator.createExpression')
   @DocsEditable()
   XPathExpression createExpression(String expression, XPathNSResolver resolver) => wrap_jso(_blink.BlinkXPathEvaluator.instance.createExpression_Callback_2_(unwrap_jso(this), expression, unwrap_jso(resolver)));
@@ -40207,20 +35161,6 @@ class XPathExpression extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory XPathExpression._() { throw new UnsupportedError("Not supported"); }
 
-  static XPathExpression internalCreateXPathExpression() {
-    return new XPathExpression._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory XPathExpression._internalWrap() {
-    return new XPathExpression._internal();
-  }
-
-  XPathExpression._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('XPathExpression.evaluate')
   @DocsEditable()
   XPathResult evaluate(Node contextNode, int type, XPathResult inResult) => wrap_jso(_blink.BlinkXPathExpression.instance.evaluate_Callback_3_(unwrap_jso(this), unwrap_jso(contextNode), type, unwrap_jso(inResult)));
@@ -40241,20 +35181,6 @@ class XPathNSResolver extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory XPathNSResolver._() { throw new UnsupportedError("Not supported"); }
 
-  static XPathNSResolver internalCreateXPathNSResolver() {
-    return new XPathNSResolver._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory XPathNSResolver._internalWrap() {
-    return new XPathNSResolver._internal();
-  }
-
-  XPathNSResolver._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('XPathNSResolver.lookupNamespaceURI')
   @DocsEditable()
   String lookupNamespaceUri(String prefix) => _blink.BlinkXPathNSResolver.instance.lookupNamespaceURI_Callback_1_(unwrap_jso(this), prefix);
@@ -40274,20 +35200,6 @@ class XPathNSResolver extends NativeFieldWrapperClass2 {
 class XPathResult extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory XPathResult._() { throw new UnsupportedError("Not supported"); }
-
-  static XPathResult internalCreateXPathResult() {
-    return new XPathResult._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory XPathResult._internalWrap() {
-    return new XPathResult._internal();
-  }
-
-  XPathResult._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('XPathResult.ANY_TYPE')
   @DocsEditable()
@@ -40380,18 +35292,6 @@ class XmlDocument extends Document {
   // To suppress missing implicit constructor warnings.
   factory XmlDocument._() { throw new UnsupportedError("Not supported"); }
 
-
-  static XmlDocument internalCreateXmlDocument() {
-    return new XmlDocument._internalWrap();
-  }
-
-  factory XmlDocument._internalWrap() {
-    return new XmlDocument._internal();
-  }
-
-  XmlDocument._internal() : super._internal();
-
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40413,20 +35313,6 @@ class XmlSerializer extends NativeFieldWrapperClass2 {
   factory XmlSerializer() {
     return _blink.BlinkXMLSerializer.instance.constructorCallback_0_();
   }
-
-  static XmlSerializer internalCreateXmlSerializer() {
-    return new XmlSerializer._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory XmlSerializer._internalWrap() {
-    return new XmlSerializer._internal();
-  }
-
-  XmlSerializer._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('XMLSerializer.serializeToString')
   @DocsEditable()
@@ -40455,20 +35341,6 @@ class XsltProcessor extends NativeFieldWrapperClass2 {
   factory XsltProcessor() {
     return _blink.BlinkXSLTProcessor.instance.constructorCallback_0_();
   }
-
-  static XsltProcessor internalCreateXsltProcessor() {
-    return new XsltProcessor._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory XsltProcessor._internalWrap() {
-    return new XsltProcessor._internal();
-  }
-
-  XsltProcessor._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -40518,18 +35390,6 @@ class XsltProcessor extends NativeFieldWrapperClass2 {
 class _Attr extends Node {
   // To suppress missing implicit constructor warnings.
   factory _Attr._() { throw new UnsupportedError("Not supported"); }
-
-
-  static _Attr internalCreate_Attr() {
-    return new _Attr._internalWrap();
-  }
-
-  factory _Attr._internalWrap() {
-    return new _Attr._internal();
-  }
-
-  _Attr._internal() : super._internal();
-
 
   @DomName('Attr.localName')
   @DocsEditable()
@@ -40584,18 +35444,6 @@ abstract class _CSSPrimitiveValue extends _CSSValue {
   // To suppress missing implicit constructor warnings.
   factory _CSSPrimitiveValue._() { throw new UnsupportedError("Not supported"); }
 
-
-  static _CSSPrimitiveValue internalCreate_CSSPrimitiveValue() {
-    return new _CSSPrimitiveValue._internalWrap();
-  }
-
-  factory _CSSPrimitiveValue._internalWrap() {
-    return new _CSSPrimitiveValue._internal();
-  }
-
-  _CSSPrimitiveValue._internal() : super._internal();
-
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40611,18 +35459,6 @@ abstract class _CSSPrimitiveValue extends _CSSValue {
 abstract class _CSSUnknownRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory _CSSUnknownRule._() { throw new UnsupportedError("Not supported"); }
-
-
-  static _CSSUnknownRule internalCreate_CSSUnknownRule() {
-    return new _CSSUnknownRule._internalWrap();
-  }
-
-  factory _CSSUnknownRule._internalWrap() {
-    return new _CSSUnknownRule._internal();
-  }
-
-  _CSSUnknownRule._internal() : super._internal();
-
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40640,20 +35476,6 @@ abstract class _CSSValue extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _CSSValue._() { throw new UnsupportedError("Not supported"); }
 
-  static _CSSValue internalCreate_CSSValue() {
-    return new _CSSValue._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _CSSValue._internalWrap() {
-    return new _CSSValue._internal();
-  }
-
-  _CSSValue._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40669,20 +35491,6 @@ abstract class _Cache extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _Cache._() { throw new UnsupportedError("Not supported"); }
 
-  static _Cache internalCreate_Cache() {
-    return new _Cache._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _Cache._internalWrap() {
-    return new _Cache._internal();
-  }
-
-  _Cache._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40697,20 +35505,6 @@ abstract class _Cache extends NativeFieldWrapperClass2 {
 abstract class _CanvasPathMethods extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _CanvasPathMethods._() { throw new UnsupportedError("Not supported"); }
-
-  static _CanvasPathMethods internalCreate_CanvasPathMethods() {
-    return new _CanvasPathMethods._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _CanvasPathMethods._internalWrap() {
-    return new _CanvasPathMethods._internal();
-  }
-
-  _CanvasPathMethods._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -40814,19 +35608,6 @@ class _ClientRect extends NativeFieldWrapperClass2 implements Rectangle {
     // To suppress missing implicit constructor warnings.
   factory _ClientRect._() { throw new UnsupportedError("Not supported"); }
 
-  static _ClientRect internalCreate_ClientRect() {
-    return new _ClientRect._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _ClientRect._internalWrap() {
-    return new _ClientRect._internal();
-  }
-
-  _ClientRect._internal() { }
-
-
   @DomName('ClientRect.bottom')
   @DocsEditable()
   double get bottom => _blink.BlinkClientRect.instance.bottom_Getter_(unwrap_jso(this));
@@ -40901,20 +35682,6 @@ class _ClientRectList extends NativeFieldWrapperClass2 with ListMixin<Rectangle>
   // To suppress missing implicit constructor warnings.
   factory _ClientRectList._() { throw new UnsupportedError("Not supported"); }
 
-  static _ClientRectList internalCreate_ClientRectList() {
-    return new _ClientRectList._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _ClientRectList._internalWrap() {
-    return new _ClientRectList._internal();
-  }
-
-  _ClientRectList._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('ClientRectList.length')
   @DocsEditable()
   int get length => _blink.BlinkClientRectList.instance.length_Getter_(unwrap_jso(this));
@@ -40985,20 +35752,6 @@ abstract class _Counter extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _Counter._() { throw new UnsupportedError("Not supported"); }
 
-  static _Counter internalCreate_Counter() {
-    return new _Counter._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _Counter._internalWrap() {
-    return new _Counter._internal();
-  }
-
-  _Counter._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -41012,20 +35765,6 @@ abstract class _Counter extends NativeFieldWrapperClass2 {
 class _CssRuleList extends NativeFieldWrapperClass2 with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements List<CssRule> {
   // To suppress missing implicit constructor warnings.
   factory _CssRuleList._() { throw new UnsupportedError("Not supported"); }
-
-  static _CssRuleList internalCreate_CssRuleList() {
-    return new _CssRuleList._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _CssRuleList._internalWrap() {
-    return new _CssRuleList._internal();
-  }
-
-  _CssRuleList._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('CSSRuleList.length')
   @DocsEditable()
@@ -41096,18 +35835,6 @@ class _CssRuleList extends NativeFieldWrapperClass2 with ListMixin<CssRule>, Imm
 class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements List<_CSSValue> {
   // To suppress missing implicit constructor warnings.
   factory _CssValueList._() { throw new UnsupportedError("Not supported"); }
-
-
-  static _CssValueList internalCreate_CssValueList() {
-    return new _CssValueList._internalWrap();
-  }
-
-  factory _CssValueList._internalWrap() {
-    return new _CssValueList._internal();
-  }
-
-  _CssValueList._internal() : super._internal();
-
 
   @DomName('CSSValueList.length')
   @DocsEditable()
@@ -41180,20 +35907,6 @@ abstract class _DOMFileSystemSync extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _DOMFileSystemSync._() { throw new UnsupportedError("Not supported"); }
 
-  static _DOMFileSystemSync internalCreate_DOMFileSystemSync() {
-    return new _DOMFileSystemSync._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _DOMFileSystemSync._internalWrap() {
-    return new _DOMFileSystemSync._internal();
-  }
-
-  _DOMFileSystemSync._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -41209,18 +35922,6 @@ abstract class _DOMFileSystemSync extends NativeFieldWrapperClass2 {
 abstract class _DirectoryEntrySync extends _EntrySync {
   // To suppress missing implicit constructor warnings.
   factory _DirectoryEntrySync._() { throw new UnsupportedError("Not supported"); }
-
-
-  static _DirectoryEntrySync internalCreate_DirectoryEntrySync() {
-    return new _DirectoryEntrySync._internalWrap();
-  }
-
-  factory _DirectoryEntrySync._internalWrap() {
-    return new _DirectoryEntrySync._internal();
-  }
-
-  _DirectoryEntrySync._internal() : super._internal();
-
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -41238,20 +35939,6 @@ abstract class _DirectoryReaderSync extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _DirectoryReaderSync._() { throw new UnsupportedError("Not supported"); }
 
-  static _DirectoryReaderSync internalCreate_DirectoryReaderSync() {
-    return new _DirectoryReaderSync._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _DirectoryReaderSync._internalWrap() {
-    return new _DirectoryReaderSync._internal();
-  }
-
-  _DirectoryReaderSync._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -41267,18 +35954,6 @@ abstract class _DirectoryReaderSync extends NativeFieldWrapperClass2 {
 abstract class _DocumentType extends Node implements ChildNode {
   // To suppress missing implicit constructor warnings.
   factory _DocumentType._() { throw new UnsupportedError("Not supported"); }
-
-
-  static _DocumentType internalCreate_DocumentType() {
-    return new _DocumentType._internalWrap();
-  }
-
-  factory _DocumentType._internalWrap() {
-    return new _DocumentType._internal();
-  }
-
-  _DocumentType._internal() : super._internal();
-
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -41312,18 +35987,6 @@ class _DomRect extends DomRectReadOnly {
     }
     return _blink.BlinkDOMRect.instance.constructorCallback_0_();
   }
-
-
-  static _DomRect internalCreate_DomRect() {
-    return new _DomRect._internalWrap();
-  }
-
-  factory _DomRect._internalWrap() {
-    return new _DomRect._internal();
-  }
-
-  _DomRect._internal() : super._internal();
-
 
   @DomName('DOMRect.height')
   @DocsEditable()
@@ -41381,20 +36044,6 @@ abstract class _EntrySync extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _EntrySync._() { throw new UnsupportedError("Not supported"); }
 
-  static _EntrySync internalCreate_EntrySync() {
-    return new _EntrySync._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _EntrySync._internalWrap() {
-    return new _EntrySync._internal();
-  }
-
-  _EntrySync._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -41410,18 +36059,6 @@ abstract class _EntrySync extends NativeFieldWrapperClass2 {
 abstract class _FileEntrySync extends _EntrySync {
   // To suppress missing implicit constructor warnings.
   factory _FileEntrySync._() { throw new UnsupportedError("Not supported"); }
-
-
-  static _FileEntrySync internalCreate_FileEntrySync() {
-    return new _FileEntrySync._internalWrap();
-  }
-
-  factory _FileEntrySync._internalWrap() {
-    return new _FileEntrySync._internal();
-  }
-
-  _FileEntrySync._internal() : super._internal();
-
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -41445,20 +36082,6 @@ abstract class _FileReaderSync extends NativeFieldWrapperClass2 {
     return _blink.BlinkFileReaderSync.instance.constructorCallback_0_();
   }
 
-  static _FileReaderSync internalCreate_FileReaderSync() {
-    return new _FileReaderSync._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _FileReaderSync._internalWrap() {
-    return new _FileReaderSync._internal();
-  }
-
-  _FileReaderSync._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -41475,20 +36098,6 @@ abstract class _FileWriterSync extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _FileWriterSync._() { throw new UnsupportedError("Not supported"); }
 
-  static _FileWriterSync internalCreate_FileWriterSync() {
-    return new _FileWriterSync._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _FileWriterSync._internalWrap() {
-    return new _FileWriterSync._internal();
-  }
-
-  _FileWriterSync._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -41504,20 +36113,6 @@ abstract class _FileWriterSync extends NativeFieldWrapperClass2 {
 class _GamepadList extends NativeFieldWrapperClass2 with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements List<Gamepad> {
   // To suppress missing implicit constructor warnings.
   factory _GamepadList._() { throw new UnsupportedError("Not supported"); }
-
-  static _GamepadList internalCreate_GamepadList() {
-    return new _GamepadList._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _GamepadList._internalWrap() {
-    return new _GamepadList._internal();
-  }
-
-  _GamepadList._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('GamepadList.length')
   @DocsEditable()
@@ -41589,20 +36184,6 @@ abstract class _HTMLAllCollection extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _HTMLAllCollection._() { throw new UnsupportedError("Not supported"); }
 
-  static _HTMLAllCollection internalCreate_HTMLAllCollection() {
-    return new _HTMLAllCollection._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _HTMLAllCollection._internalWrap() {
-    return new _HTMLAllCollection._internal();
-  }
-
-  _HTMLAllCollection._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
   @DomName('HTMLAllCollection.item')
   @DocsEditable()
   Element _item(int index) => wrap_jso(_blink.BlinkHTMLAllCollection.instance.item_Callback_1_(unwrap_jso(this), index));
@@ -41622,18 +36203,6 @@ abstract class _HTMLAllCollection extends NativeFieldWrapperClass2 {
 abstract class _HTMLAppletElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLAppletElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  static _HTMLAppletElement internalCreate_HTMLAppletElement() {
-    return new _HTMLAppletElement._internalWrap();
-  }
-
-  factory _HTMLAppletElement._internalWrap() {
-    return new _HTMLAppletElement._internal();
-  }
-
-  _HTMLAppletElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -41656,18 +36225,6 @@ abstract class _HTMLAppletElement extends HtmlElement {
 abstract class _HTMLDirectoryElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLDirectoryElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  static _HTMLDirectoryElement internalCreate_HTMLDirectoryElement() {
-    return new _HTMLDirectoryElement._internalWrap();
-  }
-
-  factory _HTMLDirectoryElement._internalWrap() {
-    return new _HTMLDirectoryElement._internal();
-  }
-
-  _HTMLDirectoryElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -41690,18 +36247,6 @@ abstract class _HTMLDirectoryElement extends HtmlElement {
 abstract class _HTMLFontElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLFontElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  static _HTMLFontElement internalCreate_HTMLFontElement() {
-    return new _HTMLFontElement._internalWrap();
-  }
-
-  factory _HTMLFontElement._internalWrap() {
-    return new _HTMLFontElement._internal();
-  }
-
-  _HTMLFontElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -41724,18 +36269,6 @@ abstract class _HTMLFontElement extends HtmlElement {
 abstract class _HTMLFrameElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLFrameElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  static _HTMLFrameElement internalCreate_HTMLFrameElement() {
-    return new _HTMLFrameElement._internalWrap();
-  }
-
-  factory _HTMLFrameElement._internalWrap() {
-    return new _HTMLFrameElement._internal();
-  }
-
-  _HTMLFrameElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -41758,18 +36291,6 @@ abstract class _HTMLFrameElement extends HtmlElement {
 abstract class _HTMLFrameSetElement extends HtmlElement implements WindowEventHandlers {
   // To suppress missing implicit constructor warnings.
   factory _HTMLFrameSetElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  static _HTMLFrameSetElement internalCreate_HTMLFrameSetElement() {
-    return new _HTMLFrameSetElement._internalWrap();
-  }
-
-  factory _HTMLFrameSetElement._internalWrap() {
-    return new _HTMLFrameSetElement._internal();
-  }
-
-  _HTMLFrameSetElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -41792,18 +36313,6 @@ abstract class _HTMLFrameSetElement extends HtmlElement implements WindowEventHa
 abstract class _HTMLMarqueeElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLMarqueeElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  static _HTMLMarqueeElement internalCreate_HTMLMarqueeElement() {
-    return new _HTMLMarqueeElement._internalWrap();
-  }
-
-  factory _HTMLMarqueeElement._internalWrap() {
-    return new _HTMLMarqueeElement._internal();
-  }
-
-  _HTMLMarqueeElement._internal() : super._internal();
-
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -41833,18 +36342,6 @@ abstract class _MutationEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory _MutationEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static _MutationEvent internalCreate_MutationEvent() {
-    return new _MutationEvent._internalWrap();
-  }
-
-  factory _MutationEvent._internalWrap() {
-    return new _MutationEvent._internal();
-  }
-
-  _MutationEvent._internal() : super._internal();
-
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -41857,23 +36354,9 @@ abstract class _MutationEvent extends Event {
 @DomName('NamedNodeMap')
 // http://dom.spec.whatwg.org/#namednodemap
 @deprecated // deprecated
-class _NamedNodeMap extends NativeFieldWrapperClass2 implements List<Node> {
+class _NamedNodeMap extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory _NamedNodeMap._() { throw new UnsupportedError("Not supported"); }
-
-  static _NamedNodeMap internalCreate_NamedNodeMap() {
-    return new _NamedNodeMap._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _NamedNodeMap._internalWrap() {
-    return new _NamedNodeMap._internal();
-  }
-
-  _NamedNodeMap._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('NamedNodeMap.length')
   @DocsEditable()
@@ -41972,20 +36455,6 @@ abstract class _PagePopupController extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _PagePopupController._() { throw new UnsupportedError("Not supported"); }
 
-  static _PagePopupController internalCreate_PagePopupController() {
-    return new _PagePopupController._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _PagePopupController._internalWrap() {
-    return new _PagePopupController._internal();
-  }
-
-  _PagePopupController._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -42002,20 +36471,6 @@ abstract class _RGBColor extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _RGBColor._() { throw new UnsupportedError("Not supported"); }
 
-  static _RGBColor internalCreate_RGBColor() {
-    return new _RGBColor._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _RGBColor._internalWrap() {
-    return new _RGBColor._internal();
-  }
-
-  _RGBColor._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -42026,18 +36481,6 @@ abstract class _RGBColor extends NativeFieldWrapperClass2 {
 abstract class _RadioNodeList extends NodeList {
   // To suppress missing implicit constructor warnings.
   factory _RadioNodeList._() { throw new UnsupportedError("Not supported"); }
-
-
-  static _RadioNodeList internalCreate_RadioNodeList() {
-    return new _RadioNodeList._internalWrap();
-  }
-
-  factory _RadioNodeList._internalWrap() {
-    return new _RadioNodeList._internal();
-  }
-
-  _RadioNodeList._internal() : super._internal();
-
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -42054,20 +36497,6 @@ abstract class _RadioNodeList extends NodeList {
 abstract class _Rect extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _Rect._() { throw new UnsupportedError("Not supported"); }
-
-  static _Rect internalCreate_Rect() {
-    return new _Rect._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _Rect._internalWrap() {
-    return new _Rect._internal();
-  }
-
-  _Rect._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -42101,18 +36530,6 @@ class _Request extends Body {
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-
-
-  static _Request internalCreate_Request() {
-    return new _Request._internalWrap();
-  }
-
-  factory _Request._internalWrap() {
-    return new _Request._internal();
-  }
-
-  _Request._internal() : super._internal();
-
 
   @DomName('Request.credentials')
   @DocsEditable()
@@ -42189,18 +36606,6 @@ abstract class _Response extends Body {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  static _Response internalCreate_Response() {
-    return new _Response._internalWrap();
-  }
-
-  factory _Response._internalWrap() {
-    return new _Response._internal();
-  }
-
-  _Response._internal() : super._internal();
-
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -42215,18 +36620,6 @@ abstract class _Response extends Body {
 abstract class _ServiceWorker extends EventTarget implements AbstractWorker {
   // To suppress missing implicit constructor warnings.
   factory _ServiceWorker._() { throw new UnsupportedError("Not supported"); }
-
-
-  static _ServiceWorker internalCreate_ServiceWorker() {
-    return new _ServiceWorker._internalWrap();
-  }
-
-  factory _ServiceWorker._internalWrap() {
-    return new _ServiceWorker._internal();
-  }
-
-  _ServiceWorker._internal() : super._internal();
-
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -42243,20 +36636,6 @@ abstract class _ServiceWorker extends EventTarget implements AbstractWorker {
 class _SpeechRecognitionResultList extends NativeFieldWrapperClass2 with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements List<SpeechRecognitionResult> {
   // To suppress missing implicit constructor warnings.
   factory _SpeechRecognitionResultList._() { throw new UnsupportedError("Not supported"); }
-
-  static _SpeechRecognitionResultList internalCreate_SpeechRecognitionResultList() {
-    return new _SpeechRecognitionResultList._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _SpeechRecognitionResultList._internalWrap() {
-    return new _SpeechRecognitionResultList._internal();
-  }
-
-  _SpeechRecognitionResultList._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('SpeechRecognitionResultList.length')
   @DocsEditable()
@@ -42325,20 +36704,6 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass2 with ListMix
 class _StyleSheetList extends NativeFieldWrapperClass2 with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements List<StyleSheet> {
   // To suppress missing implicit constructor warnings.
   factory _StyleSheetList._() { throw new UnsupportedError("Not supported"); }
-
-  static _StyleSheetList internalCreate_StyleSheetList() {
-    return new _StyleSheetList._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _StyleSheetList._internalWrap() {
-    return new _StyleSheetList._internal();
-  }
-
-  _StyleSheetList._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('StyleSheetList.length')
   @DocsEditable()
@@ -42413,20 +36778,6 @@ abstract class _SubtleCrypto extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _SubtleCrypto._() { throw new UnsupportedError("Not supported"); }
 
-  static _SubtleCrypto internalCreate_SubtleCrypto() {
-    return new _SubtleCrypto._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _SubtleCrypto._internalWrap() {
-    return new _SubtleCrypto._internal();
-  }
-
-  _SubtleCrypto._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -42442,18 +36793,6 @@ abstract class _SubtleCrypto extends NativeFieldWrapperClass2 {
 abstract class _WebKitCSSFilterValue extends _CssValueList {
   // To suppress missing implicit constructor warnings.
   factory _WebKitCSSFilterValue._() { throw new UnsupportedError("Not supported"); }
-
-
-  static _WebKitCSSFilterValue internalCreate_WebKitCSSFilterValue() {
-    return new _WebKitCSSFilterValue._internalWrap();
-  }
-
-  factory _WebKitCSSFilterValue._internalWrap() {
-    return new _WebKitCSSFilterValue._internal();
-  }
-
-  _WebKitCSSFilterValue._internal() : super._internal();
-
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -42480,20 +36819,6 @@ abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
     return _blink.BlinkWebKitCSSMatrix.instance.constructorCallback_1_(cssValue);
   }
 
-  static _WebKitCSSMatrix internalCreate_WebKitCSSMatrix() {
-    return new _WebKitCSSMatrix._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _WebKitCSSMatrix._internalWrap() {
-    return new _WebKitCSSMatrix._internal();
-  }
-
-  _WebKitCSSMatrix._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -42510,18 +36835,6 @@ abstract class _WebKitCSSTransformValue extends _CssValueList {
   // To suppress missing implicit constructor warnings.
   factory _WebKitCSSTransformValue._() { throw new UnsupportedError("Not supported"); }
 
-
-  static _WebKitCSSTransformValue internalCreate_WebKitCSSTransformValue() {
-    return new _WebKitCSSTransformValue._internalWrap();
-  }
-
-  factory _WebKitCSSTransformValue._internalWrap() {
-    return new _WebKitCSSTransformValue._internal();
-  }
-
-  _WebKitCSSTransformValue._internal() : super._internal();
-
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -42536,20 +36849,6 @@ abstract class _WebKitCSSTransformValue extends _CssValueList {
 abstract class _WindowTimers extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _WindowTimers._() { throw new UnsupportedError("Not supported"); }
-
-  static _WindowTimers internalCreate_WindowTimers() {
-    return new _WindowTimers._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _WindowTimers._internalWrap() {
-    return new _WindowTimers._internal();
-  }
-
-  _WindowTimers._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('WindowTimers.clearInterval')
   @DocsEditable()
@@ -42587,20 +36886,6 @@ abstract class _WorkerLocation extends NativeFieldWrapperClass2 implements UrlUt
   // To suppress missing implicit constructor warnings.
   factory _WorkerLocation._() { throw new UnsupportedError("Not supported"); }
 
-  static _WorkerLocation internalCreate_WorkerLocation() {
-    return new _WorkerLocation._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _WorkerLocation._internalWrap() {
-    return new _WorkerLocation._internal();
-  }
-
-  _WorkerLocation._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -42617,20 +36902,6 @@ abstract class _WorkerNavigator extends NativeFieldWrapperClass2 implements Navi
   // To suppress missing implicit constructor warnings.
   factory _WorkerNavigator._() { throw new UnsupportedError("Not supported"); }
 
-  static _WorkerNavigator internalCreate_WorkerNavigator() {
-    return new _WorkerNavigator._internalWrap();
-  }
-
-  JsObject blink_jsObject = null;
-
-  factory _WorkerNavigator._internalWrap() {
-    return new _WorkerNavigator._internal();
-  }
-
-  _WorkerNavigator._internal() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -42645,18 +36916,6 @@ abstract class _WorkerNavigator extends NativeFieldWrapperClass2 implements Navi
 class _XMLHttpRequestProgressEvent extends ProgressEvent {
   // To suppress missing implicit constructor warnings.
   factory _XMLHttpRequestProgressEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static _XMLHttpRequestProgressEvent internalCreate_XMLHttpRequestProgressEvent() {
-    return new _XMLHttpRequestProgressEvent._internalWrap();
-  }
-
-  factory _XMLHttpRequestProgressEvent._internalWrap() {
-    return new _XMLHttpRequestProgressEvent._internal();
-  }
-
-  _XMLHttpRequestProgressEvent._internal() : super._internal();
-
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -47393,9 +41652,9 @@ class _Utils {
     return element;
   }
 
-  static window() => wrap_jso(_blink.Blink_Utils.window()['window']);
-  // TODO(terry): Above enabled for Dartium w/ interop and remove below static window() for C++.
-  // static window() => _blink.Blink_Utils.window();
+  // TODO(terry): Enable below for Dartium w/ interop and remove other static window().
+  // static window() => wrap_jso(_blink.Blink_Utils.window()['window']);
+  static window() => _blink.Blink_Utils.window();
 
   static forwardingPrint(String message) => _blink.Blink_Utils.forwardingPrint(message);
   static void spawnDomHelper(Function f, int replyTo) =>
