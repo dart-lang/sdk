@@ -13,6 +13,7 @@ import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.d
 import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -21,6 +22,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
+import 'package:yaml/yaml.dart';
 
 /**
  * Class that maintains a mapping from included/excluded paths to a set of
@@ -94,6 +96,10 @@ abstract class AbstractContextManager implements ContextManager {
    */
   final OptimizingPubPackageMapProvider _packageMapProvider;
 
+  /// Provider of analysis options.
+  AnalysisOptionsProvider analysisOptionsProvider =
+      new AnalysisOptionsProvider();
+
   /**
    * The instrumentation service used to report instrumentation data.
    */
@@ -164,7 +170,7 @@ abstract class AbstractContextManager implements ContextManager {
     // Do nothing.
   }
 
-  // Sets the [ignorePatterns] for the context [folder].
+  /// Sets the [ignorePatterns] for the context [folder].
   void setIgnorePatternsForContext(Folder folder, List<String> ignorePatterns) {
     _ContextInfo info = _contexts[folder];
     if (info == null) {
@@ -172,6 +178,25 @@ abstract class AbstractContextManager implements ContextManager {
     }
     var pathFilter = info.pathFilter;
     pathFilter.setIgnorePatterns(ignorePatterns);
+  }
+
+  /// Process [options] for the context [folder].
+  void processOptionsForContext(Folder folder, Map<String, YamlNode> options) {
+    _ContextInfo info = _contexts[folder];
+    if (info == null) {
+      return;
+    }
+    YamlMap analyzer = options['analyzer'];
+    if (analyzer == null) {
+      // No options for analyzer.
+      return;
+    }
+
+    // Set ignore patterns.
+    YamlList exclude = analyzer['exclude'];
+    if (exclude != null) {
+      setIgnorePatternsForContext(folder, exclude);
+    }
   }
 
   @override
@@ -490,6 +515,12 @@ abstract class AbstractContextManager implements ContextManager {
     _ContextInfo info = new _ContextInfo(
         folder, pubspecFile, children, normalizedPackageRoots[folder.path]);
     _contexts[folder] = info;
+    try {
+      var options = analysisOptionsProvider.getOptions(folder);
+      processOptionsForContext(folder, options);
+    } catch (_) {
+      rethrow;
+    }
     info.changeSubscription = folder.changes.listen((WatchEvent event) {
       _handleWatchEvent(folder, info, event);
     });

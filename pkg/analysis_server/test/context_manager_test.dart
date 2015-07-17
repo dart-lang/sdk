@@ -13,7 +13,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -191,6 +190,32 @@ class AbstractContextManagerTest {
     // Pump event loop so new files are discovered and added to context.
     await pumpEventQueue();
     // Verify that ignored files were ignored.
+    Map<String, int> fileTimestamps = manager.currentContextFilePaths[projPath];
+    expect(fileTimestamps, isNotEmpty);
+    List<String> files = fileTimestamps.keys.toList();
+    expect(files.length, equals(1));
+    expect(files[0], equals('/my/proj/lib/main.dart'));
+  }
+
+  test_path_filter_analysis_option() async {
+    // Create files.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    newFile([libPath, 'nope.dart']);
+    String sdkExtPath = newFolder([projPath, 'sdk_ext']);
+    newFile([sdkExtPath, 'entry.dart']);
+    String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
+    newFile([sdkExtSrcPath, 'part.dart']);
+    // Setup analysis options file with ignore list.
+    newFile([projPath, '.analysis_options'], r'''
+analyzer:
+  exclude:
+    - lib/nope.dart
+    - 'sdk_ext/**'
+''');
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // Verify that analysis options was parsed and the ignore patterns applied.
     Map<String, int> fileTimestamps = manager.currentContextFilePaths[projPath];
     expect(fileTimestamps, isNotEmpty);
     List<String> files = fileTimestamps.keys.toList();
