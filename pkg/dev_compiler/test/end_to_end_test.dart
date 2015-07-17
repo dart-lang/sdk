@@ -6,18 +6,16 @@
 /// SDK.
 library dev_compiler.test.end_to_end;
 
-import 'package:dev_compiler/devc.dart' show Compiler;
+import 'package:dev_compiler/devc.dart';
 import 'package:dev_compiler/src/options.dart';
 import 'package:test/test.dart';
-import 'test_util.dart' show testDirectory;
+import 'testing.dart' show realSdkContext, testDirectory;
 
 main() {
-  _check(testFile) {
-    var options = new CompilerOptions(
-        sourceOptions: new SourceResolverOptions(
-            useMockSdk: true, entryPointFile: '$testDirectory/$testFile.dart'));
-    new Compiler(options).run();
-  }
+  var mockSdkContext = createAnalysisContextWithSources(
+      new StrongModeOptions(), new SourceResolverOptions(useMockSdk: true));
+  var compiler = new BatchCompiler(mockSdkContext, new CompilerOptions());
+  _check(file) => compiler.compileFromUriString('$testDirectory/$file.dart');
 
   test('checker runs correctly (end-to-end)', () {
     _check('samples/funwithtypes');

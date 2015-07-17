@@ -1,10 +1,4 @@
 // Messages from compiling misc.dart
-info: line 19, column 27 of test/codegen/misc.dart: [DynamicInvoke] obj.x requires dynamic invoke
-    return obj is Base && obj.x == x && obj.y == y;
-                          ^^^^^
-info: line 19, column 41 of test/codegen/misc.dart: [DynamicInvoke] obj.y requires dynamic invoke
-    return obj is Base && obj.x == x && obj.y == y;
-                                        ^^^^^
-info: line 25, column 30 of test/codegen/misc.dart: [DynamicInvoke] obj.z requires dynamic invoke
-    return obj is Derived && obj.z == z && super == obj;
-                             ^^^^^
+info: [DynamicInvoke] obj.x requires dynamic invoke (test/codegen/misc.dart, line 19, col 27)
+info: [DynamicInvoke] obj.y requires dynamic invoke (test/codegen/misc.dart, line 19, col 41)
+info: [DynamicInvoke] obj.z requires dynamic invoke (test/codegen/misc.dart, line 25, col 30)

@@ -20,8 +20,8 @@ import 'package:analyzer/src/generated/error.dart'
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:args/args.dart';
 
+import 'src/analysis_context.dart' show enableDevCompilerInference;
 import 'src/checker/checker.dart' show CodeChecker;
-import 'src/checker/resolver.dart' show LibraryResolverWithInference;
 import 'src/checker/rules.dart' show RestrictedRules;
 
 /// A type checker for Dart code that operates under stronger rules, and has
@@ -35,14 +35,7 @@ class StrongChecker {
 
   factory StrongChecker(
       AnalysisContextImpl context, StrongModeOptions options) {
-    // TODO(jmesserly): is there a cleaner way to plug this in?
-    if (context.libraryResolverFactory != null) {
-      throw new ArgumentError.value(context, 'context',
-          'Analysis context must not have libraryResolverFactory already set.');
-    }
-    context.libraryResolverFactory =
-        (c) => new LibraryResolverWithInference(c, options);
-
+    enableDevCompilerInference(context, options);
     var rules = new RestrictedRules(context.typeProvider, options: options);
     var reporter = new _ErrorCollector(options.hints);
     var checker = new CodeChecker(rules, reporter, options);

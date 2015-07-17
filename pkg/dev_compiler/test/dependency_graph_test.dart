@@ -7,14 +7,16 @@ library dev_compiler.test.dependency_graph_test;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import 'package:dev_compiler/src/analysis_context.dart';
+import 'package:dev_compiler/src/compiler.dart';
 import 'package:dev_compiler/src/options.dart';
-import 'package:dev_compiler/src/dependency_graph.dart';
 import 'package:dev_compiler/src/report.dart';
-import 'package:dev_compiler/src/testing.dart';
-import 'package:path/path.dart' as path;
+import 'package:dev_compiler/src/server/dependency_graph.dart';
+
+import 'testing.dart';
 
 void main() {
   var options = new CompilerOptions(

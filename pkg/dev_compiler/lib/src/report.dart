@@ -18,14 +18,6 @@ import 'summary.dart';
 
 final _checkerLogger = new Logger('dev_compiler.checker');
 
-SourceSpanWithContext _toSpan(AnalysisContext context, AnalysisError error) {
-  var source = error.source;
-  var lineInfo = context.computeLineInfo(source);
-  var content = context.getContents(source).data;
-  var start = error.offset;
-  var end = start + error.length;
-  return createSpanHelper(lineInfo, start, end, source, content);
-}
 /// Simple reporter that logs checker messages as they are seen.
 class LogReporter implements AnalysisErrorListener {
   final AnalysisContext _context;
@@ -33,21 +25,29 @@ class LogReporter implements AnalysisErrorListener {
 
   LogReporter(this._context, {this.useColors: false});
 
+  // TODO(jmesserly): these messages seem to come out in a different order if
+  // a new message gets added or removed. We may want to collect them and sort,
+  // like analyzer_cli does.
   void onError(AnalysisError error) {
     var level = _severityToLevel[error.errorCode.errorSeverity];
 
     // Upgrade analyzer warnings to errors.
-    // TODO(jmesserly: reconcile this...
+    // TODO(jmesserly: reconcile this with analyzer_cli
     if (!error.errorCode.name.startsWith('dev_compiler.') &&
         level == Level.WARNING) {
       level = Level.SEVERE;
     }
 
-    var color = useColors ? colorOf(level.name) : null;
-
     // TODO(jmesserly): figure out what to do with the error's name.
-    var text = '[${errorCodeName(error.errorCode)}] ' + error.message;
-    text = _toSpan(_context, error).message(text, color: color);
+    var lineInfo = _context.computeLineInfo(error.source);
+    var location = lineInfo.getLocation(error.offset);
+
+    // [warning] 'foo' is not a... (/Users/.../tmp/foo.dart, line 1, col 2)
+    var text = new StringBuffer()
+      ..write('[${errorCodeName(error.errorCode)}] ')
+      ..write(error.message)
+      ..write(' (${path.prettyUri(error.source.uri)}')
+      ..write(', line ${location.lineNumber}, col ${location.columnNumber})');
 
     // TODO(jmesserly): just print these instead of sending through logger?
     _checkerLogger.log(level, text);
@@ -99,6 +99,17 @@ class SummaryReporter implements AnalysisErrorListener {
     }
     summary.messages.add(new MessageSummary(errorCodeName(code),
         code.errorSeverity.displayName, span, error.message));
+  }
+
+  // TODO(jmesserly): fix to not depend on SourceSpan. This will be really slow
+  // because it will reload source text from disk, for every single message...
+  SourceSpanWithContext _toSpan(AnalysisContext context, AnalysisError error) {
+    var source = error.source;
+    var lineInfo = context.computeLineInfo(source);
+    var content = context.getContents(source).data;
+    var start = error.offset;
+    var end = start + error.length;
+    return createSpanHelper(lineInfo, start, end, source, content);
   }
 
   void clearLibrary(Uri uri) {

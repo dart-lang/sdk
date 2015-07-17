@@ -13,7 +13,6 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/scanner.dart'
     show StringToken, Token, TokenType;
-import 'package:path/path.dart' as path;
 
 import 'package:dev_compiler/src/codegen/ast_builder.dart' show AstBuilder;
 import 'package:dev_compiler/src/codegen/reify_coercions.dart'
@@ -23,7 +22,7 @@ import 'package:dev_compiler/src/codegen/reify_coercions.dart'
 import 'package:dev_compiler/src/js/js_ast.dart' as JS;
 import 'package:dev_compiler/src/js/js_ast.dart' show js;
 
-import 'package:dev_compiler/devc.dart' show AbstractCompiler;
+import 'package:dev_compiler/src/compiler.dart' show AbstractCompiler;
 import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/options.dart' show CodegenOptions;
@@ -53,10 +52,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   final AbstractCompiler compiler;
   final CodegenOptions options;
   final TypeRules rules;
-  final LibraryInfo libraryInfo;
-
-  /// Entry point uri
-  final Uri root;
+  final LibraryElement currentLibrary;
 
   /// The global extension type table.
   final HashSet<ClassElement> _extensionTypes;
@@ -98,12 +94,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
   Map<String, DartType> _objectMembers;
 
-  JSCodegenVisitor(AbstractCompiler compiler, this.libraryInfo,
+  JSCodegenVisitor(AbstractCompiler compiler, this.currentLibrary,
       this._extensionTypes, this._fieldsNeedingStorage)
       : compiler = compiler,
         options = compiler.options.codegenOptions,
-        rules = compiler.rules,
-        root = compiler.entryPointUri {
+        rules = compiler.rules {
     _loader = new ModuleItemLoadOrder(_emitModuleItem);
 
     var context = compiler.context;
@@ -114,7 +109,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     _objectMembers = getObjectMemberMap(types);
   }
 
-  LibraryElement get currentLibrary => libraryInfo.library;
   TypeProvider get types => rules.provider;
 
   JS.Program emitLibrary(LibraryUnit library) {
@@ -178,7 +172,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       _moduleItems.add(js.statement('#.# = #;', [_exportsVar, name, name]));
     }
 
-    var jsPath = js.string(jsOutputBase(currentLibrary, root), "'");
+    var jsPath = compiler.getModuleName(currentLibrary.source.uri);
 
     // TODO(jmesserly): it would be great to run the renamer on the body,
     // then figure out if we really need each of these parameters.
@@ -187,7 +181,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     var processImport = (LibraryElement library, JS.TemporaryId temp,
         List list) {
       params.add(temp);
-      list.add(js.string(jsOutputBase(library, root), "'"));
+      list.add(js.string(compiler.getModuleName(library.source.uri), "'"));
     };
 
     var imports = [js.string('dart_runtime/dart')];
@@ -215,7 +209,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
     var program = [
       js.statement("dart_library.library(#, #, #, #, #)", [
-        jsPath,
+        js.string(jsPath, "'"),
         jsDefaultValue != null ? jsDefaultValue : new JS.LiteralNull(),
         js.commentExpression(
             "Imports", new JS.ArrayInitializer(imports, multiline: true)),
@@ -2807,12 +2801,14 @@ class JSGenerator extends CodeGenerator {
     _addExtensionType(t.superclass);
   }
 
-  String generateLibrary(LibraryUnit unit, LibraryInfo info) {
+  String generateLibrary(LibraryUnit unit) {
+    var library = unit.library.element.library;
     var fields = findFieldsNeedingStorage(unit);
-    var codegen = new JSCodegenVisitor(compiler, info, _extensionTypes, fields);
+    var codegen =
+        new JSCodegenVisitor(compiler, library, _extensionTypes, fields);
     var module = codegen.emitLibrary(unit);
-    var dir = path.join(outDir, jsOutputPath(info.library, root));
-    return writeJsLibrary(module, dir, emitSourceMaps: options.emitSourceMaps);
+    var out = compiler.getOutputPath(library.source.uri);
+    return writeJsLibrary(module, out, emitSourceMaps: options.emitSourceMaps);
   }
 }
 
@@ -2826,28 +2822,6 @@ String jsLibraryName(LibraryElement library) => canonicalLibraryName(library);
 /// identifiers if it can.
 // TODO(jmesserly): avoid the round tripping through quoted form.
 JS.LiteralString _propertyName(String name) => js.string(name, "'");
-
-/// Path to file that will be generated for [info]. In case it's url is a
-/// `file:` url, we use [root] to determine the relative path from the entry
-/// point file.
-String jsOutputPath(LibraryElement library, Uri root) {
-  return '${jsOutputBase(library, root)}.js';
-}
-
-String jsOutputBase(LibraryElement library, Uri root) {
-  var uri = library.source.uri;
-  var filepath = path.withoutExtension(uri.path);
-  if (uri.scheme == 'dart') {
-    filepath = 'dart/$filepath';
-  } else if (uri.scheme == 'file') {
-    filepath = path.relative(filepath, from: path.dirname(root.path));
-  } else {
-    assert(uri.scheme == 'package');
-    // filepath is good here, we want the output to start with a directory
-    // matching the package name.
-  }
-  return filepath;
-}
 
 // TODO(jmesserly): validate the library. See issue #135.
 bool _isJsNameAnnotation(DartObjectImpl value) => value.type.name == 'JsName';

@@ -28,9 +28,10 @@ import 'package:html/parser.dart' as html;
 import 'package:logging/logging.dart' show Logger, Level;
 import 'package:path/path.dart' as path;
 
-import 'info.dart';
-import 'options.dart';
-import 'report.dart';
+import 'package:dev_compiler/src/compiler.dart' show defaultRuntimeFiles;
+import 'package:dev_compiler/src/info.dart';
+import 'package:dev_compiler/src/options.dart';
+import 'package:dev_compiler/src/report.dart';
 
 /// Holds references to all source nodes in the import graph. This is mainly
 /// used as a level of indirection to ensure that each source has a canonical
@@ -56,8 +57,8 @@ class SourceGraph {
       return;
     }
     var prefix = path.absolute(dir);
-    var files = _options.serverMode
-        ? runtimeFilesForServerMode(_options.widget)
+    var files = _options.serverMode && _options.widget
+        ? runtimeFilesForServerMode
         : defaultRuntimeFiles;
     for (var file in files) {
       runtimeDeps.add(nodeFromUri(path.toUri(path.join(prefix, file))));
@@ -82,6 +83,10 @@ class SourceGraph {
 
   List<String> get resources => _options.sourceOptions.resources;
 }
+
+final runtimeFilesForServerMode = new List<String>.from(defaultRuntimeFiles)
+  ..add('messages_widget.js')
+  ..add('messages.css');
 
 /// A node in the import graph representing a source file.
 abstract class SourceNode {
@@ -500,53 +505,5 @@ visitInPostOrder(SourceNode start, void action(SourceNode node),
 }
 
 bool _same(Set a, Set b) => a.length == b.length && a.containsAll(b);
-
-/// Runtime files added to all applications when running the compiler in the
-/// command line.
-final defaultRuntimeFiles = () {
-  var files = [
-    'harmony_feature_check.js',
-    'dart_utils.js',
-    'dart_library.js',
-    '_errors.js',
-    '_types.js',
-    '_rtti.js',
-    '_classes.js',
-    '_operations.js',
-    'dart_runtime.js',
-  ];
-  files.addAll(corelibOrder.map((l) => l.replaceAll('.', '/') + '.js'));
-  return files;
-}();
-
-/// Curated order to minimize lazy classes needed by dart:core and its
-/// transitive SDK imports.
-const corelibOrder = const [
-  'dart.core',
-  'dart.collection',
-  'dart._internal',
-  'dart.math',
-  'dart._interceptors',
-  'dart.async',
-  'dart._foreign_helper',
-  'dart._js_embedded_names',
-  'dart._js_helper',
-  'dart.isolate',
-  'dart.typed_data',
-  'dart._native_typed_data',
-  'dart._isolate_helper',
-  'dart._js_primitives',
-  'dart.convert',
-  'dart.mirrors',
-  'dart._js_mirrors',
-  'dart.js'
-  // _foreign_helper is not included, as it only defines the JS builtin that
-  // the compiler handles at compile time.
-];
-
-/// Runtime files added to applications when running in server mode.
-List<String> runtimeFilesForServerMode([bool includeWidget = true]) =>
-    new List<String>.from(defaultRuntimeFiles)
-  ..addAll(includeWidget ? const ['messages_widget.js', 'messages.css'] : []);
 
 final _log = new Logger('dev_compiler.dependency_graph');

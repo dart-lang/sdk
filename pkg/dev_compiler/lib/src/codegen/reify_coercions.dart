@@ -9,7 +9,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:logging/logging.dart' as logger;
 
-import 'package:dev_compiler/devc.dart' show AbstractCompiler;
+import 'package:dev_compiler/src/compiler.dart' show AbstractCompiler;
 import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/info.dart';
 

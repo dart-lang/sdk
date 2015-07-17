@@ -7,8 +7,7 @@ library dev_compiler.test.checker_test;
 
 import 'package:test/test.dart';
 
-import 'package:dev_compiler/src/testing.dart';
-import '../test_util.dart' show testDirectory;
+import '../testing.dart';
 
 void main() {
   test('ternary operator', () {

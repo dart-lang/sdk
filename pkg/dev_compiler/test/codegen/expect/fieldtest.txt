@@ -1,13 +1,5 @@
 // Messages from compiling fieldtest.dart
-info: line 23, column 9 of test/codegen/fieldtest.dart: [DynamicInvoke] a.x requires dynamic invoke
-  print(a.x);
-        ^^^
-info: line 24, column 10 of test/codegen/fieldtest.dart: [DynamicCast] a.x (dynamic) will need runtime check to cast to type int
-  return a.x;
-         ^^^
-info: line 24, column 10 of test/codegen/fieldtest.dart: [DynamicInvoke] a.x requires dynamic invoke
-  return a.x;
-         ^^^
-info: line 35, column 7 of test/codegen/fieldtest.dart: [DynamicCast] value (dynamic) will need runtime check to cast to type int
-  y = value;
-      ^^^^^
+info: [DynamicInvoke] a.x requires dynamic invoke (test/codegen/fieldtest.dart, line 23, col 9)
+info: [DynamicCast] a.x (dynamic) will need runtime check to cast to type int (test/codegen/fieldtest.dart, line 24, col 10)
+info: [DynamicInvoke] a.x requires dynamic invoke (test/codegen/fieldtest.dart, line 24, col 10)
+info: [DynamicCast] value (dynamic) will need runtime check to cast to type int (test/codegen/fieldtest.dart, line 35, col 7)

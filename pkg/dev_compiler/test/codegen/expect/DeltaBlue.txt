@@ -1,16 +1,6 @@
 // Messages from compiling DeltaBlue.dart
-info: line 63, column 7 of test/codegen/BenchmarkBase.dart: [DynamicInvoke] f() requires dynamic invoke
-      f();
-      ^^^
-info: line 130, column 18 of test/codegen/DeltaBlue.dart: [DynamicCast] mark (dynamic) will need runtime check to cast to type int
-    chooseMethod(mark);
-                 ^^^^
-info: line 137, column 16 of test/codegen/DeltaBlue.dart: [DynamicCast] mark (dynamic) will need runtime check to cast to type int
-    markInputs(mark);
-               ^^^^
-info: line 142, column 37 of test/codegen/DeltaBlue.dart: [DynamicCast] mark (dynamic) will need runtime check to cast to type int
-    if (!planner.addPropagate(this, mark)) print("Cycle encountered");
-                                    ^^^^
-info: line 143, column 16 of test/codegen/DeltaBlue.dart: [DynamicCast] mark (dynamic) will need runtime check to cast to type int
-    out.mark = mark;
-               ^^^^
+info: [DynamicInvoke] f() requires dynamic invoke (test/codegen/BenchmarkBase.dart, line 63, col 7)
+info: [DynamicCast] mark (dynamic) will need runtime check to cast to type int (test/codegen/DeltaBlue.dart, line 130, col 18)
+info: [DynamicCast] mark (dynamic) will need runtime check to cast to type int (test/codegen/DeltaBlue.dart, line 137, col 16)
+info: [DynamicCast] mark (dynamic) will need runtime check to cast to type int (test/codegen/DeltaBlue.dart, line 142, col 37)
+info: [DynamicCast] mark (dynamic) will need runtime check to cast to type int (test/codegen/DeltaBlue.dart, line 143, col 16)

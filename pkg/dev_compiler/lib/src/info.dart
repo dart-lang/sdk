@@ -30,13 +30,10 @@ class LibraryInfo {
   /// Instead, this is inferred from the path to the file defining the library.
   final String name;
 
-  /// Whether this is the entry library that contains `main`.
-  final bool isEntry;
-
   /// Corresponding analyzer element.
   final LibraryElement library;
 
-  LibraryInfo(library, this.isEntry)
+  LibraryInfo(library)
       : library = library,
         name = utils.canonicalLibraryName(library);
 }

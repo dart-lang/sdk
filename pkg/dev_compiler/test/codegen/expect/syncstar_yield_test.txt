@@ -1,13 +1,3 @@
 // Messages from compiling syncstar_yield_test.dart
-info: line 97, column 51 of test/codegen/expect.dart: [DynamicCast] expected (dynamic) will need runtime check to cast to type String
-      String stringDifference = _stringDifference(expected, actual);
-                                                  ^^^^^^^^
-info: line 97, column 61 of test/codegen/expect.dart: [DynamicCast] actual (dynamic) will need runtime check to cast to type String
-      String stringDifference = _stringDifference(expected, actual);
-                                                            ^^^^^^
-info: line 372, column 14 of test/codegen/expect.dart: [DynamicInvoke] check(e) requires dynamic invoke
-        if (!check(e)) {
-             ^^^^^^^^
-info: line 17, column 28 of test/codegen/syncstar_yield_test.dart: [DynamicCast] p (dynamic) will need runtime check to cast to type num
-    a: for (int i = 0; i < p; i++) {
-                           ^
+info: [DynamicInvoke] check(e) requires dynamic invoke (test/codegen/expect.dart, line 372, col 14)
+info: [DynamicCast] p (dynamic) will need runtime check to cast to type num (test/codegen/syncstar_yield_test.dart, line 17, col 28)

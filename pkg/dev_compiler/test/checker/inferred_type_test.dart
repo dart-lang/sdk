@@ -7,7 +7,7 @@ library dev_compiler.test.inferred_type_test;
 
 import 'package:test/test.dart';
 
-import 'package:dev_compiler/src/testing.dart';
+import '../testing.dart';
 
 void main() {
   test('infer type on var', () {

@@ -104,7 +104,7 @@ class LibrarySummary implements IndividualSummary {
 
   LibrarySummary(this.name, {List<MessageSummary> messages, lines})
       : messages = messages == null ? <MessageSummary>[] : messages,
-        _lines = lines == null ? lines : 0;
+        _lines = lines != null ? lines : 0;
 
   void clear() {
     _uris.clear();

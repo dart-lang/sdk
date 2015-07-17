@@ -3,20 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Tests that run the checker end-to-end using the file system.
-library dev_compiler.test.end_to_end;
+library dev_compiler.test.checker.self_host_test;
 
-import 'package:cli_util/cli_util.dart' show getSdkDir;
-import 'package:dev_compiler/devc.dart' show Compiler;
+import 'package:dev_compiler/devc.dart' show BatchCompiler;
 import 'package:dev_compiler/src/options.dart';
 import 'package:test/test.dart';
-import '../test_util.dart' show testDirectory;
+import '../testing.dart' show testDirectory, realSdkContext;
 
 void main() {
   test('checker can run on itself ', () {
-    var options = new CompilerOptions(
-        sourceOptions: new SourceResolverOptions(
-            entryPointFile: '$testDirectory/all_tests.dart',
-            dartSdkPath: getSdkDir().path));
-    new Compiler(options).run();
-  });
+    new BatchCompiler(realSdkContext, new CompilerOptions())
+        .compileFromUriString('$testDirectory/all_tests.dart');
+  }, skip: 'test is very slow');
 }

@@ -32,12 +32,6 @@ class SourceResolverOptions {
   /// List of additional non-Dart resources to resolve and serve.
   final List<String> resources;
 
-  /// File where to start compilation from.
-  // TODO(jmesserly): this is used to configure SourceFactory resolvers only
-  // when [useImplicitHtml] is set. Probably useImplicitHtml should be factored
-  // out into ServerOptions or something along those lines.
-  final String entryPointFile;
-
   // True if the resolver should implicitly provide an html entry point.
   final bool useImplicitHtml;
   static const String implicitHtmlFile = 'index.html';
@@ -52,8 +46,7 @@ class SourceResolverOptions {
   const SourceResolverOptions({this.useMockSdk: false, this.dartSdkPath,
       this.useMultiPackage: false, this.customUrlMappings: const {},
       this.packageRoot: 'packages/', this.packagePaths: const <String>[],
-      this.resources: const <String>[], this.entryPointFile: null,
-      this.useImplicitHtml: false});
+      this.resources: const <String>[], this.useImplicitHtml: false});
 }
 
 // TODO(jmesserly): refactor all codegen options here.
@@ -116,13 +109,15 @@ class CompilerOptions {
   /// package (if we can infer where that is located).
   final String runtimeDir;
 
+  final List<String> inputs;
+
   CompilerOptions({this.strongOptions: const StrongModeOptions(),
       this.sourceOptions: const SourceResolverOptions(),
       this.codegenOptions: const CodegenOptions(), this.checkSdk: false,
       this.dumpInfo: false, this.dumpInfoFile, this.useColors: true,
       this.help: false, this.logLevel: Level.SEVERE, this.serverMode: false,
       this.enableHashing: false, this.widget: true, this.host: 'localhost',
-      this.port: 8080, this.runtimeDir});
+      this.port: 8080, this.runtimeDir, this.inputs});
 }
 
 /// Parses options from the command-line
@@ -169,7 +164,7 @@ CompilerOptions parseOptions(List<String> argv) {
     customUrlMappings[splitMapping[0]] = splitMapping[1];
   }
 
-  var entryPointFile = args.rest.length == 0 ? null : args.rest.first;
+  if (serverMode && args.rest.length != 1) showUsage = true;
 
   return new CompilerOptions(
       codegenOptions: new CodegenOptions(
@@ -179,8 +174,9 @@ CompilerOptions parseOptions(List<String> argv) {
       sourceOptions: new SourceResolverOptions(
           useMockSdk: args['mock-sdk'],
           dartSdkPath: sdkPath,
-          entryPointFile: entryPointFile,
-          useImplicitHtml: serverMode && entryPointFile.endsWith('.dart'),
+          useImplicitHtml: serverMode &&
+              args.rest.length == 1 &&
+              args.rest[0].endsWith('.dart'),
           customUrlMappings: customUrlMappings,
           useMultiPackage: args['use-multi-package'],
           packageRoot: args['package-root'],
@@ -201,7 +197,8 @@ CompilerOptions parseOptions(List<String> argv) {
       widget: args['widget'],
       host: args['host'],
       port: int.parse(args['port']),
-      runtimeDir: runtimeDir);
+      runtimeDir: runtimeDir,
+      inputs: args.rest);
 }
 
 final ArgParser argParser = StrongModeOptions.addArguments(new ArgParser()

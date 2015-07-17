@@ -4,24 +4,37 @@
 
 library dev_compiler.src.testing;
 
-import 'dart:collection' show Queue;
+import 'dart:mirrors';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine;
+    show AnalysisContext, AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/error.dart';
+import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 
 import 'package:dev_compiler/strong_mode.dart';
+import 'package:dev_compiler/src/analysis_context.dart';
 
-import 'analysis_context.dart';
-import 'dependency_graph.dart' show runtimeFilesForServerMode;
-import 'info.dart';
-import 'options.dart';
-import 'utils.dart';
+import 'package:dev_compiler/src/server/dependency_graph.dart'
+    show runtimeFilesForServerMode;
+import 'package:dev_compiler/src/info.dart';
+import 'package:dev_compiler/src/options.dart';
+import 'package:dev_compiler/src/utils.dart';
+
+/// Shared analysis context used for compilation.
+final realSdkContext = createAnalysisContextWithSources(new StrongModeOptions(),
+    new SourceResolverOptions(dartSdkPath: getSdkDir().path))
+  ..analysisOptions = (new AnalysisOptionsImpl()..cacheSize = 512);
+
+final String testDirectory =
+    path.dirname((reflectClass(_TestUtils).owner as LibraryMirror).uri.path);
+
+class _TestUtils {}
 
 /// Run the checker on a program with files contents as indicated in
 /// [testFiles].
@@ -62,8 +75,7 @@ void testChecker(Map<String, String> testFiles, {String sdkDir,
   context.sourceFactory = createSourceFactory(new SourceResolverOptions(
       customUrlMappings: customUrlMappings,
       useMockSdk: sdkDir == null,
-      dartSdkPath: sdkDir,
-      entryPointFile: '/main.dart'), fileResolvers: [uriResolver]);
+      dartSdkPath: sdkDir), fileResolvers: [uriResolver]);
 
   var checker = new StrongChecker(context, new StrongModeOptions(
       relaxedCasts: relaxedCasts,
@@ -94,7 +106,7 @@ void testChecker(Map<String, String> testFiles, {String sdkDir,
 MemoryResourceProvider createTestResourceProvider(
     Map<String, String> testFiles) {
   var provider = new MemoryResourceProvider();
-  runtimeFilesForServerMode().forEach((filepath) {
+  runtimeFilesForServerMode.forEach((filepath) {
     testFiles['/dev_compiler_runtime/$filepath'] =
         '/* test contents of $filepath */';
   });

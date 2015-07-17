@@ -5,7 +5,7 @@
 import 'dart:collection' show HashMap;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:dev_compiler/src/dependency_graph.dart' show corelibOrder;
+import 'package:dev_compiler/src/compiler.dart' show corelibOrder;
 
 typedef void ModuleItemEmitter(AstNode item);
 

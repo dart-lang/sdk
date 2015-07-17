@@ -1,22 +1,8 @@
 // Messages from compiling opassign.dart
-info: line 21, column 3 of test/codegen/opassign.dart: [DynamicInvoke] ++f[index] requires dynamic invoke
-  ++f[index];
-  ^^^^^^^^^^
-info: line 22, column 16 of test/codegen/opassign.dart: [DynamicInvoke] f[index]++ requires dynamic invoke
-  forcePostfix(f[index]++);
-               ^^^^^^^^^^
-info: line 25, column 3 of test/codegen/opassign.dart: [DynamicInvoke] ++foo.x requires dynamic invoke
-  ++foo.x;
-  ^^^^^^^
-info: line 25, column 5 of test/codegen/opassign.dart: [DynamicInvoke] foo.x requires dynamic invoke
-  ++foo.x;
-    ^^^^^
-info: line 26, column 16 of test/codegen/opassign.dart: [DynamicInvoke] foo.x++ requires dynamic invoke
-  forcePostfix(foo.x++);
-               ^^^^^^^
-info: line 26, column 16 of test/codegen/opassign.dart: [DynamicInvoke] foo.x requires dynamic invoke
-  forcePostfix(foo.x++);
-               ^^^^^
-info: line 29, column 3 of test/codegen/opassign.dart: [DynamicInvoke] f[index] += f[index] requires dynamic invoke
-  f[index] += f[index];
-  ^^^^^^^^^^^^^^^^^^^^
+info: [DynamicInvoke] ++f[index] requires dynamic invoke (test/codegen/opassign.dart, line 21, col 3)
+info: [DynamicInvoke] f[index]++ requires dynamic invoke (test/codegen/opassign.dart, line 22, col 16)
+info: [DynamicInvoke] ++foo.x requires dynamic invoke (test/codegen/opassign.dart, line 25, col 3)
+info: [DynamicInvoke] foo.x requires dynamic invoke (test/codegen/opassign.dart, line 25, col 5)
+info: [DynamicInvoke] foo.x++ requires dynamic invoke (test/codegen/opassign.dart, line 26, col 16)
+info: [DynamicInvoke] foo.x requires dynamic invoke (test/codegen/opassign.dart, line 26, col 16)
+info: [DynamicInvoke] f[index] += f[index] requires dynamic invoke (test/codegen/opassign.dart, line 29, col 3)

@@ -3,7 +3,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Command line tool to run the checker on a Dart program.
+/// Runs dev_compiler's checker, and optionally the code generator.
+/// Also can run a server for local development.
 library dev_compiler.bin.devc;
 
 import 'dart:io';
@@ -12,8 +13,8 @@ import 'package:dev_compiler/devc.dart';
 import 'package:dev_compiler/src/options.dart';
 
 void _showUsageAndExit() {
-  print('usage: dartdevc [<options>] <file.dart>\n');
-  print('<file.dart> is a single Dart file to process.\n');
+  print('usage: dartdevc [<options>] <file.dart>...\n');
+  print('<file.dart> is one or more Dart files to process.\n');
   print('<options> include:\n');
   print(argParser.usage);
   exit(1);
@@ -30,7 +31,7 @@ void main(List<String> args) {
     exit(1);
   }
 
-  if (srcOpts.entryPointFile == null) {
+  if (options.inputs.length == 0) {
     print('Expected filename.');
     _showUsageAndExit();
   }
@@ -38,9 +39,12 @@ void main(List<String> args) {
   setupLogger(options.logLevel, print);
 
   if (options.serverMode) {
-    new CompilerServer(options).start();
+    new DevServer(options).start();
   } else {
-    var result = new Compiler(options).run();
-    exit(result.failure ? 1 : 0);
+    var context = createAnalysisContextWithSources(
+        options.strongOptions, options.sourceOptions);
+    var reporter = createErrorReporter(context, options);
+    var success = new BatchCompiler(context, options, reporter: reporter).run();
+    exit(success ? 0 : 1);
   }
 }

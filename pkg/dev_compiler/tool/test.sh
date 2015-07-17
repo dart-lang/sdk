@@ -22,9 +22,6 @@ cd $( dirname "${BASH_SOURCE[0]}" )/..
 unset COVERALLS_TOKEN
 pub run test:test test/all_tests.dart || fail
 
-# run self host and analyzer after other tests, because they're ~seconds to run.
-pub run test:test test/checker/self_host_test.dart || fail
-
 {
   fc=`find test -name "*.dart" |\
       xargs grep "/\*\S* should be \S*\*/" | wc -l`

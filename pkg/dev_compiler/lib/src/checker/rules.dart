@@ -14,7 +14,6 @@ import 'package:dev_compiler/strong_mode.dart' show StrongModeOptions;
 
 abstract class TypeRules {
   final TypeProvider provider;
-  LibraryInfo currentLibraryInfo = null;
 
   /// Map of fields / properties / methods on Object.
   final Map<String, DartType> objectMembers;

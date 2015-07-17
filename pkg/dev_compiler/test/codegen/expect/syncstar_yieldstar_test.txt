@@ -1,19 +1,5 @@
 // Messages from compiling syncstar_yieldstar_test.dart
-info: line 97, column 51 of test/codegen/expect.dart: [DynamicCast] expected (dynamic) will need runtime check to cast to type String
-      String stringDifference = _stringDifference(expected, actual);
-                                                  ^^^^^^^^
-info: line 97, column 61 of test/codegen/expect.dart: [DynamicCast] actual (dynamic) will need runtime check to cast to type String
-      String stringDifference = _stringDifference(expected, actual);
-                                                            ^^^^^^
-info: line 372, column 14 of test/codegen/expect.dart: [DynamicInvoke] check(e) requires dynamic invoke
-        if (!check(e)) {
-             ^^^^^^^^
-info: line 28, column 53 of test/codegen/syncstar_yieldstar_test.dart: [DynamicCast] foo().take(9).toList() (dynamic) will need runtime check to cast to type List<dynamic>
-  Expect.listEquals([1, 2, 3, null, 1, 1, 2, 3, 5], foo().take(9).toList());
-                                                    ^^^^^^^^^^^^^^^^^^^^^^
-info: line 28, column 53 of test/codegen/syncstar_yieldstar_test.dart: [DynamicInvoke] foo().take(9).toList() requires dynamic invoke
-  Expect.listEquals([1, 2, 3, null, 1, 1, 2, 3, 5], foo().take(9).toList());
-                                                    ^^^^^^^^^^^^^^^^^^^^^^
-info: line 28, column 53 of test/codegen/syncstar_yieldstar_test.dart: [DynamicInvoke] foo().take(9) requires dynamic invoke
-  Expect.listEquals([1, 2, 3, null, 1, 1, 2, 3, 5], foo().take(9).toList());
-                                                    ^^^^^^^^^^^^^
+info: [DynamicInvoke] check(e) requires dynamic invoke (test/codegen/expect.dart, line 372, col 14)
+info: [DynamicCast] foo().take(9).toList() (dynamic) will need runtime check to cast to type List<dynamic> (test/codegen/syncstar_yieldstar_test.dart, line 28, col 53)
+info: [DynamicInvoke] foo().take(9).toList() requires dynamic invoke (test/codegen/syncstar_yieldstar_test.dart, line 28, col 53)
+info: [DynamicInvoke] foo().take(9) requires dynamic invoke (test/codegen/syncstar_yieldstar_test.dart, line 28, col 53)
