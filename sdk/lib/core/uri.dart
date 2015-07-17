@@ -381,9 +381,8 @@ class Uri {
     }
 
     assert(state == NOT_IN_PATH);
-    bool isFile = (scheme == "file");
-    bool ensureLeadingSlash = host != null;
-    path = _makePath(uri, pathStart, index, null, ensureLeadingSlash, isFile);
+    bool hasAuthority = (host != null);
+    path = _makePath(uri, pathStart, index, null, scheme, hasAuthority);
 
     if (char == _QUESTION) {
       int numberSignIndex = -1;
@@ -511,9 +510,14 @@ class Uri {
         (userInfo.isNotEmpty || port != null || isFile)) {
       host = "";
     }
-    bool ensureLeadingSlash = host != null;
+    bool hasAuthority = (host != null);
     path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
-                     ensureLeadingSlash, isFile);
+                     scheme, hasAuthority);
+    if (scheme.isEmpty && host == null && !path.startsWith('/')) {
+      path = _normalizeRelativePath(path);
+    } else {
+      path = _removeDotSegments(path);
+    }
     return new Uri._internal(scheme, userInfo, host, port,
                              path, query, fragment);
   }
@@ -953,15 +957,15 @@ class Uri {
       host = "";
     }
 
-    bool ensureLeadingSlash = (host != null);
+    bool hasAuthority = host != null;
     if (path != null || pathSegments != null) {
       path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
-                       ensureLeadingSlash, isFile);
+                       scheme, hasAuthority);
     } else {
       path = this.path;
-      if ((isFile || (ensureLeadingSlash && !path.isEmpty)) &&
+      if ((isFile || (hasAuthority && !path.isEmpty)) &&
           !path.startsWith('/')) {
-        path = "/$path";
+        path = "/" + path;
       }
     }
 
@@ -1025,20 +1029,23 @@ class Uri {
   }
 
   /**
-   * Returns an URI where the path has been normalized.
+   * Returns a URI where the path has been normalized.
    *
    * A normalized path does not contain `.` segments or non-leading `..`
    * segments.
-   * Only a relative path may contain leading `..` segments,
+   * Only a relative path with no scheme or authority may contain
+   * leading `..` segments,
    * a path that starts with `/` will also drop any leading `..` segments.
    *
-   * This uses the same normalization strategy as [resolveUri], as specified by
-   * RFC 3986.
+   * This uses the same normalization strategy as `new Uri().resolve(this)`.
    *
    * Does not change any part of the URI except the path.
+   *
+   * The default implementation of `Uri` always normalizes paths, so calling
+   * this function has no effect.
    */
   Uri normalizePath() {
-    String path = _removeDotSegments(_path);
+    String path = _normalizePath(_path, scheme, hasAuthority);
     if (identical(path, _path)) return this;
     return this.replace(path: path);
   }
@@ -1178,18 +1185,18 @@ class Uri {
     if (!_isAlphabeticCharacter(firstCodeUnit)) {
       _fail(scheme, start, "Scheme not starting with alphabetic character");
     }
-    bool allLowercase = firstCodeUnit >= _LOWER_CASE_A;
+    bool containsUpperCase = false;
     for (int i = start; i < end; i++) {
       final int codeUnit = scheme.codeUnitAt(i);
       if (!_isSchemeCharacter(codeUnit)) {
         _fail(scheme, i, "Illegal scheme character");
       }
-      if (codeUnit < _LOWER_CASE_A || codeUnit > _LOWER_CASE_Z) {
-        allLowercase = false;
+      if (_UPPER_CASE_A <= codeUnit && codeUnit <= _UPPER_CASE_Z) {
+        containsUpperCase = true;
       }
     }
     scheme = scheme.substring(start, end);
-    if (!allLowercase) scheme = scheme.toLowerCase();
+    if (containsUpperCase) scheme = scheme.toLowerCase();
     return scheme;
   }
 
@@ -1200,8 +1207,10 @@ class Uri {
 
   static String _makePath(String path, int start, int end,
                           Iterable<String> pathSegments,
-                          bool ensureLeadingSlash,
-                          bool isFile) {
+                          String scheme,
+                          bool hasAuthority) {
+    bool isFile = (scheme == "file");
+    bool ensureLeadingSlash = isFile || hasAuthority;
     if (path == null && pathSegments == null) return isFile ? "/" : "";
     if (path != null && pathSegments != null) {
       throw new ArgumentError('Both path and pathSegments specified');
@@ -1214,11 +1223,23 @@ class Uri {
     }
     if (result.isEmpty) {
       if (isFile) return "/";
-    } else if ((isFile || ensureLeadingSlash) &&
-               result.codeUnitAt(0) != _SLASH) {
-      return "/$result";
+    } else if (ensureLeadingSlash && !result.startsWith('/')) {
+      result = "/" + result;
     }
+    result = _normalizePath(result, scheme, hasAuthority);
     return result;
+  }
+
+  /// Performs path normalization (remove dot segments) on a path.
+  ///
+  /// If the URI has neither scheme nor authority, it's considered a
+  /// "pure path" and normalization won't remove leading ".." segments.
+  /// Otherwise it follows the RFC 3986 "remove dot segments" algorithm.
+  static String _normalizePath(String path, String scheme, bool hasAuthority) {
+    if (scheme.isEmpty && !hasAuthority && !path.startsWith('/')) {
+      return _normalizeRelativePath(path);
+    }
+    return _removeDotSegments(path);
   }
 
   static String _makeQuery(String query, int start, int end,
@@ -1429,8 +1450,7 @@ class Uri {
    */
   bool get isAbsolute => scheme != "" && fragment == "";
 
-  String _merge(String base, String reference) {
-    if (base.isEmpty) return "/$reference";
+  String _mergePaths(String base, String reference) {
     // Optimize for the case: absolute base, reference beginning with "../".
     int backCount = 0;
     int refStart = 0;
@@ -1463,21 +1483,36 @@ class Uri {
                              reference.substring(refStart - 3 * backCount));
   }
 
-  bool _hasDotSegments(String path) {
-    if (path.length > 0 && path.codeUnitAt(0) == _DOT) return true;
+  /// Make a guess at whether a path contains a `..` or `.` segment.
+  ///
+  /// This is a primitive test that can cause false positives.
+  /// It's only used to avoid a more expensive operation in the case where
+  /// it's not necessary.
+  static bool _mayContainDotSegments(String path) {
+    if (path.startsWith('.')) return true;
     int index = path.indexOf("/.");
     return index != -1;
   }
 
-  String _removeDotSegments(String path) {
-    if (!_hasDotSegments(path)) return path;
+  /// Removes '.' and '..' segments from a path.
+  ///
+  /// Follows the RFC 2986 "remove dot segments" algorithm.
+  /// This algorithm is only used on paths of URIs with a scheme,
+  /// and it treats the path as if it is absolute (leading '..' are removed).
+  static String _removeDotSegments(String path) {
+    if (!_mayContainDotSegments(path)) return path;
+    assert(path.isNotEmpty);  // An empty path would not have dot segments.
     List<String> output = [];
     bool appendSlash = false;
     for (String segment in path.split("/")) {
       appendSlash = false;
       if (segment == "..") {
-        if (!output.isEmpty &&
-            ((output.length != 1) || (output[0] != ""))) output.removeLast();
+        if (output.isNotEmpty) {
+          output.removeLast();
+          if (output.isEmpty) {
+            output.add("");
+          }
+        }
         appendSlash = true;
       } else if ("." == segment) {
         appendSlash = true;
@@ -1486,6 +1521,42 @@ class Uri {
       }
     }
     if (appendSlash) output.add("");
+    return output.join("/");
+  }
+
+  /// Removes all `.` segments and any non-leading `..` segments.
+  ///
+  /// Removing the ".." from a "bar/foo/.." sequence results in "bar/"
+  /// (trailing "/"). If the entire path is removed (because it contains as
+  /// many ".." segments as real segments), the result is "./".
+  /// This is different from an empty string, which represents "no path",
+  /// when you resolve it against a base URI with a path with a non-empty
+  /// final segment.
+  static String _normalizeRelativePath(String path) {
+    assert(!path.startsWith('/'));  // Only get called for relative paths.
+    if (!_mayContainDotSegments(path)) return path;
+    assert(path.isNotEmpty);  // An empty path would not have dot segments.
+    List<String> output = [];
+    bool appendSlash = false;
+    for (String segment in path.split("/")) {
+      appendSlash = false;
+      if (".." == segment) {
+        if (!output.isEmpty && output.last != "..") {
+          output.removeLast();
+          appendSlash = true;
+        } else {
+          output.add("..");
+        }
+      } else if ("." == segment) {
+        appendSlash = true;
+      } else {
+        output.add(segment);
+      }
+    }
+    if (output.isEmpty || (output.length == 1 && output[0].isEmpty)) {
+      return "./";
+    }
+    if (appendSlash || output.last == '..') output.add("");
     return output.join("/");
   }
 
@@ -1508,9 +1579,15 @@ class Uri {
    *
    * Returns the resolved URI.
    *
-   * The algorithm for resolving a reference is described in
-   * [RFC-3986 Section 5]
+   * The algorithm "Transform Reference" for resolving a reference is
+   * described in [RFC-3986 Section 5]
    * (http://tools.ietf.org/html/rfc3986#section-5 "RFC-1123").
+   *
+   * Updated to handle the case where the base URI is just a relative path -
+   * that is: when it has no scheme or authority and the path does not start
+   * with a slash.
+   * In that case, the paths are combined without removing leading "..", and
+   * an empty path is not converted to "/".
    */
   Uri resolveUri(Uri reference) {
     // From RFC 3986.
@@ -1541,6 +1618,9 @@ class Uri {
         targetPath = _removeDotSegments(reference.path);
         if (reference.hasQuery) targetQuery = reference.query;
       } else {
+        targetUserInfo = this._userInfo;
+        targetHost = this._host;
+        targetPort = this._port;
         if (reference.path == "") {
           targetPath = this._path;
           if (reference.hasQuery) {
@@ -1549,16 +1629,32 @@ class Uri {
             targetQuery = this._query;
           }
         } else {
-          if (reference.path.startsWith("/")) {
+          if (reference.hasAbsolutePath) {
             targetPath = _removeDotSegments(reference.path);
           } else {
-            targetPath = _removeDotSegments(_merge(this._path, reference.path));
+            // This is the RFC 3986 behavior for merging.
+            if (this.hasEmptyPath) {
+              if (!this.hasScheme && !this.hasAuthority) {
+                // Keep the path relative if no scheme or authority.
+                targetPath = reference.path;
+              } else {
+                // Add path normalization on top of RFC algorithm.
+                targetPath = _removeDotSegments("/" + reference.path);
+              }
+            } else {
+              var mergedPath = _mergePaths(this._path, reference.path);
+              if (this.hasScheme || this.hasAuthority || this.hasAbsolutePath) {
+                targetPath = _removeDotSegments(mergedPath);
+              } else {
+                // Non-RFC 3986 beavior. If both base and reference are relative
+                // path, allow the merged path to start with "..".
+                // The RFC only specifies the case where the base has a scheme.
+                targetPath = _normalizeRelativePath(mergedPath);
+              }
+            }
           }
           if (reference.hasQuery) targetQuery = reference.query;
         }
-        targetUserInfo = this._userInfo;
-        targetHost = this._host;
-        targetPort = this._port;
       }
     }
     String fragment = reference.hasFragment ? reference.fragment : null;
@@ -1570,6 +1666,11 @@ class Uri {
                              targetQuery,
                              fragment);
   }
+
+  /**
+   * Returns whether the URI has a [scheme] component.
+   */
+  bool get hasScheme => scheme.isNotEmpty;
 
   /**
    * Returns whether the URI has an [authority] component.
@@ -1595,6 +1696,16 @@ class Uri {
    * Returns whether the URI has a fragment part.
    */
   bool get hasFragment => _fragment != null;
+
+  /**
+   * Returns whether the URI has an empty path.
+   */
+  bool get hasEmptyPath => _path.isEmpty;
+
+  /**
+   * Returns whether the URI has an absolute path (starting with '/').
+   */
+  bool get hasAbsolutePath => _path.startsWith('/');
 
   /**
    * Returns the origin of the URI in the form scheme://host:port for the

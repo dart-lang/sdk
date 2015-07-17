@@ -9,6 +9,12 @@
 * `dart:convert`
   * `LineSplitter` added a `split` static method returning an `Iterable`.
 
+* `dart:core`
+  * `Uri` class now perform path normalization when a URI is created.
+    This removes most `..` and `.` sequences from the URI path.
+    Purely relative paths (no scheme or authority) are allowed to retain
+    some leading "dot" segments.
+
 * `dart:html`
   * `NodeTreeSanitizer` added the `const trusted` field. It can be used
     instead of defining a `NullTreeSanitizer` class when calling

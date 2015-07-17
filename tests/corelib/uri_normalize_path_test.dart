@@ -45,7 +45,7 @@ main() {
   test("./../foo", "foo");
   test("./../", "");
   test("./../.", "");
-  test("foo/bar/baz/../../../../qux", "qux");
+  test("foo/bar/baz/../../../../qux", "/qux");
   test("/foo/bar/baz/../../../../qux", "/qux");
   test(".", "");
   test("..", "");
