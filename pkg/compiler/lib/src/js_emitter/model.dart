@@ -84,8 +84,10 @@ class Holder {
   final String name;
   final int index;
   final bool isStaticStateHolder;
+  final bool isConstantsHolder;
 
-  Holder(this.name, this.index, {this.isStaticStateHolder: false});
+  Holder(this.name, this.index,
+      {this.isStaticStateHolder: false, this.isConstantsHolder: false});
 }
 
 /**
