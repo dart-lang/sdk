@@ -93,7 +93,11 @@ generateCoverage(String workingDirectory) {
     var dartArgs = new List.from(dartBaseArgs)
       ..addAll(['--coverage-dir=${progPath}', '${script}']);
     var result = Process.runSync(Platform.executable, dartArgs);
-    expect(result.exitCode, 0);
+    if (result.exitCode != 0) {
+      print("Coverage generator returned exitCode: ${result.exitCode}.");
+      print("stderr:\n${result.stderr}\n");
+      expect(result.exitCode, 0);
+    }
   }
 }
 
