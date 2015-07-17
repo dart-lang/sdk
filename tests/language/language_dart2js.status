@@ -44,6 +44,8 @@ mixin_forwarding_constructor4_test/02: MissingCompileTimeError # Issue 15101
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError # Issue 15101
 mixin_super_constructor_named_test/01: Fail # Issue 15101
 mixin_super_constructor_positionals_test/01: Fail # Issue 15101
+mixin_super_test: CompileTimeError # Issue 23773
+mixin_super_bound2_test: CompileTimeError # Issue 23773
 
 ref_before_declaration_test/00: MissingCompileTimeError
 ref_before_declaration_test/01: MissingCompileTimeError

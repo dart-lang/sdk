@@ -16163,6 +16163,7 @@ void BoundedType::set_type(const AbstractType& value) const {
 void BoundedType::set_bound(const AbstractType& value) const {
   // The bound may still be unfinalized because of legal cycles.
   // It must be finalized before it is checked at run time, though.
+  ASSERT(value.IsFinalized() || value.IsBeingFinalized());
   StorePointer(&raw_ptr()->bound_, value.raw());
 }
 
@@ -16181,20 +16182,26 @@ RawAbstractType* BoundedType::InstantiateFrom(
     GrowableObjectArray* trail) const {
   ASSERT(IsFinalized());
   AbstractType& bounded_type = AbstractType::Handle(type());
+  ASSERT(bounded_type.IsFinalized());
   if (!bounded_type.IsInstantiated()) {
     bounded_type = bounded_type.InstantiateFrom(instantiator_type_arguments,
                                                 bound_error,
                                                 trail);
+    // In case types of instantiator_type_arguments are not finalized, then
+    // the instantiated bounded_type is not finalized either.
+    // Note that instantiator_type_arguments must have the final length, though.
   }
   if ((Isolate::Current()->flags().type_checks()) &&
       (bound_error != NULL) && bound_error->IsNull()) {
     AbstractType& upper_bound = AbstractType::Handle(bound());
+    ASSERT(upper_bound.IsFinalized());
     ASSERT(!upper_bound.IsObjectType() && !upper_bound.IsDynamicType());
     const TypeParameter& type_param = TypeParameter::Handle(type_parameter());
     if (!upper_bound.IsInstantiated()) {
       upper_bound = upper_bound.InstantiateFrom(instantiator_type_arguments,
                                                 bound_error,
                                                 trail);
+      // Instantiated upper_bound may not be finalized. See comment above.
     }
     if (bound_error->IsNull()) {
       if (!type_param.CheckBound(bounded_type, upper_bound, bound_error) &&

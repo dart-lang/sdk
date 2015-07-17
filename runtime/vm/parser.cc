@@ -43,6 +43,7 @@ DEFINE_FLAG(bool, enable_mirrors, true,
 DEFINE_FLAG(bool, load_deferred_eagerly, false,
     "Load deferred libraries eagerly.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
+DEFINE_FLAG(bool, supermixin, false, "Allow super calls in mixins.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 
 DECLARE_FLAG(bool, lazy_dispatchers);
@@ -13218,12 +13219,14 @@ AstNode* Parser::ParsePrimary() {
       ReportError("class '%s' does not have a superclass",
                   String::Handle(Z, current_class().Name()).ToCString());
     }
-    if (current_class().IsMixinApplication()) {
-      const Type& mixin_type = Type::Handle(Z, current_class().mixin());
-      if (mixin_type.type_class() == current_function().origin()) {
-        ReportError("method of mixin class '%s' may not refer to 'super'",
-                    String::Handle(Z, Class::Handle(Z,
-                        current_function().origin()).Name()).ToCString());
+    if (!FLAG_supermixin) {
+      if (current_class().IsMixinApplication()) {
+        const Type& mixin_type = Type::Handle(Z, current_class().mixin());
+        if (mixin_type.type_class() == current_function().origin()) {
+          ReportError("method of mixin class '%s' may not refer to 'super'",
+                      String::Handle(Z, Class::Handle(Z,
+                          current_function().origin()).Name()).ToCString());
+        }
       }
     }
     const intptr_t super_pos = TokenPos();

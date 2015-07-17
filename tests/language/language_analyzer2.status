@@ -295,6 +295,9 @@ mixin_type_parameters_super_test: StaticWarning
 mixin_with_two_implicit_constructors_test: StaticWarning
 mixin_invalid_bound_test/none: StaticWarning # legitimate StaticWarning, cannot be annotated
 mixin_invalid_bound2_test/none: StaticWarning # legitimate StaticWarning, cannot be annotated
+mixin_super_bound_test: StaticWarning # legitimate StaticWarning, cannot be annotated
+mixin_super_bound2_test: CompileTimeError # Issue 23772
+mixin_super_test: CompileTimeError # Issue 23772
 named_constructor_test/01: StaticWarning
 named_constructor_test/03: StaticWarning
 named_parameters2_test: StaticWarning
