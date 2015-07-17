@@ -91,4 +91,21 @@ main() {
     expect(nodeList.childNodes[6], i2);
     expect(nodeList.childNodes[7], d3);
   });
+
+ test('FilteredElementList.insertAndRemove', () {
+    var emptyDiv = new DivElement();
+    var elementList = new FilteredElementList(emptyDiv);
+    expect(() => elementList[0], throwsA(isRangeError));
+    expect(() => elementList.insert(2, new BRElement()), throwsA(isRangeError));
+    var br = new BRElement();
+    elementList.insert(0, br);
+    expect(elementList.removeLast(), br);
+    elementList.add(br);
+    expect(elementList.remove(br), isTrue);
+    var br2 = new BRElement();
+    elementList.add(br);
+    expect(elementList.remove(br2), isFalse);
+    expect(elementList[0], br);
+    expect(() => elementList[1], throwsA(isRangeError));
+ });
 }

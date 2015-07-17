@@ -25,13 +25,6 @@ trusted_html_tree_sanitizer_test/untrusted: Fail # We make adoptNode throw to ve
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 datalistelement_test: Skip # Issue 20540
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) && $checked ]
-element_test/attributes: RuntimeError # Issue 23849
-node_validator_important_if_you_suppress_make_the_bug_critical_test/svg: RuntimeError # Issue 23849
-svgelement_test/additionalConstructors: RuntimeError # Issue 23849
-svgelement_test/elementget: RuntimeError # Issue 23849
-svgelement_test/innerHtml: RuntimeError # Issue 23849
-
 [ $compiler == dart2js ]
 input_element_test/attributes: Fail # Issue 21555
 

@@ -4799,7 +4799,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
 
   CssClassSet get classes => new _AttributeClassSet(this);
 
-  List<Element> get children => new FilteredElementList<Element>(this);
+  List<Element> get children => new FilteredElementList(this);
 
   void set children(List<Element> value) {
     final children = this.children;

@@ -6,6 +6,7 @@ library html_common;
 
 import 'dart:collection';
 import 'dart:html';
+import 'dart:_internal' show WhereIterable;
 
 import 'metadata.dart';
 export 'metadata.dart';
