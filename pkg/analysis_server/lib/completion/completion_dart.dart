@@ -5,7 +5,6 @@
 library analysis_server.completion.completion_dart;
 
 import 'package:analysis_server/completion/completion_core.dart';
-import 'package:analysis_server/src/services/completion/completion_dart.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -29,21 +28,22 @@ abstract class DartCompletionContributor extends CompletionContributor {
     if (libraries.length < 1) {
       return null;
     }
-    CompilationUnit unit =
-        context.getResolvedCompilationUnit2(source, libraries[0]);
-    bool isResolved = true;
-    if (unit == null) {
-      // TODO(brianwilkerson) Implement a method for getting a parsed
-      // compilation unit without parsing the unit if it hasn't been parsed.
+//    CompilationUnit unit =
+//        context.getResolvedCompilationUnit2(source, libraries[0]);
+//    bool isResolved = true;
+//    if (unit == null) {
+//      // TODO(brianwilkerson) Implement a method for getting a parsed
+//      // compilation unit without parsing the unit if it hasn't been parsed.
 //      unit = context.getParsedCompilationUnit(source);
-      if (unit == null) {
-        return null;
-      }
-      isResolved = false;
-    }
-    DartCompletionRequest dartRequest =
-        new DartCompletionRequestImpl(request, unit, isResolved);
-    return internalComputeSuggestions(dartRequest);
+//      if (unit == null) {
+//        return null;
+//      }
+//      isResolved = false;
+//    }
+//    DartCompletionRequest dartRequest =
+//        new DartCompletionRequestImpl(request, unit, isResolved);
+//    return internalComputeSuggestions(dartRequest);
+    return null;
   }
 
   /**
