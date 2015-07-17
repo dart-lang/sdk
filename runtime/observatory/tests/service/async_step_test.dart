@@ -28,23 +28,29 @@ testMain() {
 
 asyncStep(Isolate isolate) async {
   var event = isolate.pauseEvent;
+  print("Pause event is $event");
   expect(event, isNotNull);
 
   // 1. Set breakpoint for the continuation and resume the isolate.
   Instance continuation = event.asyncContinuation;
   print("Async continuation is $continuation");
+  if (continuation == null) {
+    print(await isolate.getStack());
+  }
   expect(continuation.isClosure, isTrue);
 
   var bpt = await isolate.addBreakOnActivation(continuation);
-  expect(bpt is Breakpoint, isTrue);
   print("Async step to $bpt");
+  expect(bpt is Breakpoint, isTrue);
 
   await isolate.resume();
   await hasStoppedAtBreakpoint(isolate);
+  print("Big step to: ${isolate.pauseEvent}");
 
   // 2. Step past the state-machine dispatch.
   await isolate.stepOver();
   await hasStoppedAtBreakpoint(isolate);
+  print("Small step to: ${isolate.pauseEvent}");
 }
 
 var tests = [
