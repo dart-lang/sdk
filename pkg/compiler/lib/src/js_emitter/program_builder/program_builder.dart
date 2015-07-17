@@ -208,6 +208,8 @@ class ProgramBuilder {
   }
 
   js.Statement _buildInvokeMain() {
+    if (_compiler.isMockCompilation) return js.js.comment("Mock compilation");
+
     MainCallStubGenerator generator =
         new MainCallStubGenerator(_compiler, backend, backend.emitter);
     return generator.generateInvokeMain();
