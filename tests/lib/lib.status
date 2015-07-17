@@ -344,3 +344,9 @@ mirrors/library_enumeration_deferred_loading_test: RuntimeError # L.loadLibrary 
 mirrors/symbol_validation_test/none: RuntimeError # Please triage this failure.
 mirrors/typedef_deferred_library_test: RuntimeError # G.loadLibrary is not a function
 typed_data/typed_data_list_test: RuntimeError # this.get$length is not a function
+
+[ $compiler == dart2js && $system == windows && $runtime == chrome ]
+convert/line_splitter_test: RuntimeError
+
+[ $compiler == dart2js && $system == windows && $runtime == ff ]
+convert/line_splitter_test: RuntimeError
