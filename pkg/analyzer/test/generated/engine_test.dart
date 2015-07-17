@@ -245,21 +245,6 @@ class AnalysisContextImplTest extends EngineTestCase {
     super.tearDown();
   }
 
-  Future test_analyzedSources_added() async {
-    AnalyzedSourcesListener listener = new AnalyzedSourcesListener();
-    _context.implicitAnalysisEvents.listen(listener.onData);
-    //
-    // Create a file that references an file that is not explicitly being
-    // analyzed and fully analyze it. Ensure that the listener is told about
-    // the implicitly analyzed file.
-    //
-    Source sourceA = _addSource('/a.dart', "library a; import 'b.dart';");
-    Source sourceB = _createSource('/b.dart', "library b;");
-    _context.computeErrors(sourceA);
-    await pumpEventQueue();
-    listener.expectAnalyzed(sourceB);
-  }
-
   Future test_applyChanges_add() {
     SourcesChangedListener listener = new SourcesChangedListener();
     _context.onSourcesChanged.listen(listener.onData);
@@ -1346,6 +1331,21 @@ main() {}''');
 //    assertLength(0, statistics.getCacheRows());
 //    assertLength(0, statistics.getExceptions());
 //    assertLength(0, statistics.getSources());
+  }
+
+  Future test_implicitAnalysisEvents_added() async {
+    AnalyzedSourcesListener listener = new AnalyzedSourcesListener();
+    _context.implicitAnalysisEvents.listen(listener.onData);
+    //
+    // Create a file that references an file that is not explicitly being
+    // analyzed and fully analyze it. Ensure that the listener is told about
+    // the implicitly analyzed file.
+    //
+    Source sourceA = _addSource('/a.dart', "library a; import 'b.dart';");
+    Source sourceB = _createSource('/b.dart', "library b;");
+    _context.computeErrors(sourceA);
+    await pumpEventQueue();
+    listener.expectAnalyzed(sourceB);
   }
 
   void test_isClientLibrary_dart() {

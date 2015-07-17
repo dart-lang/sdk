@@ -1659,7 +1659,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   void _removeFromCache(Source source) {
     CacheEntry entry = _cache.remove(source);
-    if (entry != null && entry.explicitlyAdded) {
+    if (entry != null && !entry.explicitlyAdded) {
       _implicitAnalysisEventsController
           .add(new ImplicitAnalysisEvent(source, false));
     }

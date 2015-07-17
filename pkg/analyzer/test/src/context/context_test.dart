@@ -55,7 +55,7 @@ main() {
 
 @reflectiveTest
 class AnalysisContextImplTest extends AbstractContextTest {
-  Future fail_analyzedSources_removed() async {
+  Future fail_implicitAnalysisEvents_removed() async {
     AnalyzedSourcesListener listener = new AnalyzedSourcesListener();
     context.implicitAnalysisEvents.listen(listener.onData);
     //
@@ -114,24 +114,6 @@ class AnalysisContextImplTest extends AbstractContextTest {
     context = null;
     sourceFactory = null;
     super.tearDown();
-  }
-
-  Future test_analyzedSources_added() async {
-    AnalyzedSourcesListener listener = new AnalyzedSourcesListener();
-    context.implicitAnalysisEvents.listen(listener.onData);
-    //
-    // Create a file that references an file that is not explicitly being
-    // analyzed and fully analyze it. Ensure that the listener is told about
-    // the implicitly analyzed file.
-    //
-    Source sourceA = newSource('/a.dart', "library a; import 'b.dart';");
-    Source sourceB = newSource('/b.dart', "library b;");
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(sourceA);
-    context.applyChanges(changeSet);
-    context.computeErrors(sourceA);
-    await pumpEventQueue();
-    listener.expectAnalyzed(sourceB);
   }
 
   Future test_applyChanges_add() {
@@ -1248,6 +1230,24 @@ main() {}''');
     // there is some work to do
     AnalysisResult analysisResult = context.performAnalysisTask();
     expect(analysisResult.changeNotices, isNotNull);
+  }
+
+  Future test_implicitAnalysisEvents_added() async {
+    AnalyzedSourcesListener listener = new AnalyzedSourcesListener();
+    context.implicitAnalysisEvents.listen(listener.onData);
+    //
+    // Create a file that references an file that is not explicitly being
+    // analyzed and fully analyze it. Ensure that the listener is told about
+    // the implicitly analyzed file.
+    //
+    Source sourceA = newSource('/a.dart', "library a; import 'b.dart';");
+    Source sourceB = newSource('/b.dart', "library b;");
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(sourceA);
+    context.applyChanges(changeSet);
+    context.computeErrors(sourceA);
+    await pumpEventQueue();
+    listener.expectAnalyzed(sourceB);
   }
 
   void test_isClientLibrary_dart() {
