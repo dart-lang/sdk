@@ -1433,12 +1433,28 @@ void Isolate::Shutdown() {
   }
 #endif  // DEBUG
 
+  // First, perform higher-level cleanup that may need to allocate.
+  {
+    // Ensure we have a zone and handle scope so that we can call VM functions.
+    StackZone stack_zone(this);
+    HandleScope handle_scope(this);
+
+    // Write out the coverage data if collection has been enabled.
+    CodeCoverage::Write(this);
+
+    if ((timeline_event_recorder_ != NULL) &&
+        (FLAG_timeline_trace_dir != NULL)) {
+      timeline_event_recorder_->WriteTo(FLAG_timeline_trace_dir);
+    }
+  }
+
   // Remove this isolate from the list *before* we start tearing it down, to
   // avoid exposing it in a state of decay.
   RemoveIsolateFromList(this);
 
   if (heap_ != NULL) {
     // Wait for any concurrent GC tasks to finish before shutting down.
+    // TODO(koda): Support faster sweeper shutdown (e.g., after current page).
     PageSpace* old_space = heap_->old_space();
     MonitorLocker ml(old_space->tasks_lock());
     while (old_space->tasks() > 0) {
@@ -1446,11 +1462,13 @@ void Isolate::Shutdown() {
     }
   }
 
-  // Create an area where we do have a zone and a handle scope so that we can
-  // call VM functions while tearing this isolate down.
+  // Then, proceed with low-level teardown.
   {
+    // Ensure we have a zone and handle scope so that we can call VM functions,
+    // but we no longer allocate new heap objects.
     StackZone stack_zone(this);
     HandleScope handle_scope(this);
+    NoSafepointScope no_safepoint_scope;
 
     if (compiler_stats_ != NULL) {
       compiler_stats()->Print();
@@ -1474,9 +1492,6 @@ void Isolate::Shutdown() {
     // Dump all accumulated timer data for the isolate.
     timer_list_.ReportTimers();
 
-    // Write out the coverage data if collection has been enabled.
-    CodeCoverage::Write(this);
-
     // Finalize any weak persistent handles with a non-null referent.
     FinalizeWeakPersistentHandlesVisitor visitor;
     api_state()->weak_persistent_handles().VisitHandles(&visitor);
@@ -1489,12 +1504,16 @@ void Isolate::Shutdown() {
       OS::Print("[-] Stopping isolate:\n"
                 "\tisolate:    %s\n", name());
     }
-
-    if ((timeline_event_recorder_ != NULL) &&
-        (FLAG_timeline_trace_dir != NULL)) {
-      timeline_event_recorder_->WriteTo(FLAG_timeline_trace_dir);
-    }
   }
+
+#if defined(DEBUG)
+  // No concurrent sweeper tasks should be running at this point.
+  if (heap_ != NULL) {
+    PageSpace* old_space = heap_->old_space();
+    MonitorLocker ml(old_space->tasks_lock());
+    ASSERT(old_space->tasks() == 0);
+  }
+#endif
 
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
