@@ -515,12 +515,8 @@ abstract class AbstractContextManager implements ContextManager {
     _ContextInfo info = new _ContextInfo(
         folder, pubspecFile, children, normalizedPackageRoots[folder.path]);
     _contexts[folder] = info;
-    try {
-      var options = analysisOptionsProvider.getOptions(folder);
-      processOptionsForContext(folder, options);
-    } catch (_) {
-      rethrow;
-    }
+    var options = analysisOptionsProvider.getOptions(folder);
+    processOptionsForContext(folder, options);
     info.changeSubscription = folder.changes.listen((WatchEvent event) {
       _handleWatchEvent(folder, info, event);
     });
