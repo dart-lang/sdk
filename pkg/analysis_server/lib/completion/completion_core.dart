@@ -45,7 +45,8 @@ abstract class CompletionRequest {
   AnalysisContext get context;
 
   /**
-   * The offset within the source at which the completion is being requested.
+   * Return the offset within the source at which the completion is being
+   * requested.
    */
   int get offset;
 
