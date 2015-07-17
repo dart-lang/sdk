@@ -12,11 +12,25 @@ class AnalysisOptionsProvider {
   /// The name of the analysis options source file.
   static const String ANALYSIS_OPTIONS_NAME = '.analysis_options';
 
-  /// Provide the options found in the [ANALYSIS_OPTIONS_NAME] file located in
-  /// [folder]. Return an empty options map if the file does not exist.
+  /// Provide the options found in [root]/[ANALYSIS_OPTIONS_NAME].
+  /// Return an empty options map if the file does not exist.
   Map<String, YamlNode> getOptions(Folder root) {
+    var optionsSource =
+        _readAnalysisOptionsFile(root.getChild(ANALYSIS_OPTIONS_NAME));
+    return getOptionsFromString(optionsSource);
+  }
+
+  /// Provide the options found in [file].
+  /// Return an empty options map if the file does not exist.
+  Map<String, YamlNode> getOptionsFromFile(File file) {
+    var optionsSource = _readAnalysisOptionsFile(file);
+    return getOptionsFromString(optionsSource);
+  }
+
+  /// Provide the options found in [optionsSource].
+  /// Return an empty options map if the source is null.
+  Map<String, YamlNode> getOptionsFromString(String optionsSource) {
     var options = <String, YamlNode>{};
-    var optionsSource = _readAnalysisOptionsFile(root);
     if (optionsSource == null) {
       return options;
     }
@@ -38,10 +52,9 @@ class AnalysisOptionsProvider {
     return options;
   }
 
-  /// Read the contents of [root]/[ANALYSIS_OPTIONS_NAME] as a string.
+  /// Read the contents of [file] as a string.
   /// Returns null if file does not exist.
-  String _readAnalysisOptionsFile(Folder root) {
-    var file = root.getChild(ANALYSIS_OPTIONS_NAME);
+  String _readAnalysisOptionsFile(File file) {
     try {
       return file.readAsStringSync();
     } on FileSystemException {
