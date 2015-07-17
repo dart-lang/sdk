@@ -67,7 +67,6 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T>
   // _onCancel is inherited.
 }
 
-
 abstract class _BroadcastStreamController<T>
     implements StreamController<T>,
                _StreamControllerLifecycle<T>,
@@ -80,8 +79,8 @@ abstract class _BroadcastStreamController<T>
   static const int _STATE_CLOSED = 4;
   static const int _STATE_ADDSTREAM = 8;
 
-  final _NotificationHandler _onListen;
-  final _NotificationHandler _onCancel;
+  _NotificationHandler _onListen;
+  _NotificationHandler _onCancel;
 
   // State of the controller.
   int _state;
@@ -112,6 +111,20 @@ abstract class _BroadcastStreamController<T>
       : _state = _STATE_INITIAL {
     _next = _previous = this;
   }
+
+  void set onListen(void onListenHandler()) { _onListen = onListenHandler; }
+
+  void set onPause(void onPauseHandler()) {
+    throw new UnsupportedError(
+        "Broadcast stream controllers do not support pause callbacks");
+  }
+
+  void set onResume(void onResumeHandler())  {
+    throw new UnsupportedError(
+        "Broadcast stream controllers do not support pause callbacks");
+  }
+
+  void set onCancel(onCancelHandler()) { _onCancel = onCancelHandler; }
 
   // StreamController interface.
 

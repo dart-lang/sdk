@@ -2,6 +2,10 @@
 
 ### Core library changes
 
+* `dart:async`
+  * `StreamController`  added setters for the `onListen`, `onPause`, `onResume`
+    and `onCancel` callbacks.
+
 * `dart:convert`
   * `LineSplitter` added a `split` static method returning an `Iterable`.
 
