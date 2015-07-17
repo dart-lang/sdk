@@ -349,8 +349,8 @@ class StepCommand extends DebuggerCommand {
       'Syntax: step\n';
 }
 
-class AsyncStepCommand extends DebuggerCommand {
-  AsyncStepCommand(Debugger debugger) : super(debugger, 'astep', []) {
+class AsyncNextCommand extends DebuggerCommand {
+  AsyncNextCommand(Debugger debugger) : super(debugger, 'anext', []) {
   }
 
   Future run(List<String> args) async {
@@ -369,13 +369,13 @@ class AsyncStepCommand extends DebuggerCommand {
   }
 
   String helpShort =
-      'Step into asynchronous continuation';
+      'Step over await or yield';
 
   String helpLong =
       'Continue running the isolate until control returns to the current '
       'activation of an async or async* function.\n'
       '\n'
-      'Syntax: astep\n';
+      'Syntax: anext\n';
 }
 
 class FinishCommand extends DebuggerCommand {
@@ -979,7 +979,7 @@ class ObservatoryDebugger extends Debugger {
         new ContinueCommand(this),
         new NextCommand(this),
         new StepCommand(this),
-        new AsyncStepCommand(this),
+        new AsyncNextCommand(this),
         new FinishCommand(this),
         new BreakCommand(this),
         new SetCommand(this),
