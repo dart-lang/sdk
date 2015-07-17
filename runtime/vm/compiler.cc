@@ -292,7 +292,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
   // We remember all the classes that are being compiled in these lists. This
   // also allows us to reset the marked_for_parsing state in case we see an
   // error.
-  VMTagScope tagScope(isolate, VMTag::kCompileTopLevelTagId);
+  VMTagScope tagScope(isolate, VMTag::kCompileClassTagId);
   Class& parse_class = Class::Handle(isolate);
   const GrowableObjectArray& parse_list =
       GrowableObjectArray::Handle(isolate, GrowableObjectArray::New(4));
