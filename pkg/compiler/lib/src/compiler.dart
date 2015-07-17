@@ -255,6 +255,9 @@ abstract class Backend {
 
   Backend(this.compiler);
 
+  /// Returns true if the backend supports reflection.
+  bool get supportsReflection;
+
   /// The [ConstantSystem] used to interpret compile-time constants for this
   /// backend.
   ConstantSystem get constantSystem;
@@ -1369,9 +1372,9 @@ abstract class Compiler implements DiagnosticListener {
           return true;
         });
 
-        if (const bool.fromEnvironment("dart2js.use.new.emitter")) {
+        if (!backend.supportsReflection) {
           reportError(NO_LOCATION_SPANNABLE,
-                      MessageKind.MIRRORS_LIBRARY_NEW_EMITTER);
+                      MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND);
         } else {
           reportWarning(NO_LOCATION_SPANNABLE,
              MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,

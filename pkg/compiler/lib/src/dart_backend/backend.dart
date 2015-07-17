@@ -18,6 +18,8 @@ class DartBackend extends Backend {
   final List<CompilerTask> tasks;
   final bool stripAsserts;
 
+  bool get supportsReflection => true;
+
   // TODO(zarah) Maybe change this to a command-line option.
   // Right now, it is set by the tests.
   bool useMirrorHelperLibrary = false;

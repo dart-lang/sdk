@@ -48,6 +48,9 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
+  bool get supportsReflection => false;
+
+  @override
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
     return _emitter.isConstantInlinedOrAlreadyEmitted(constant);
   }

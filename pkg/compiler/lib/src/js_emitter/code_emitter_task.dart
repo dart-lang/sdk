@@ -152,6 +152,9 @@ abstract class Emitter {
   /// the program, and returns the size of the generated output.
   int emitProgram(ProgramBuilder programBuilder);
 
+  /// Returns true, if the emitter supports reflection.
+  bool get supportsReflection;
+
   /// Returns the JS function that must be invoked to get the value of the
   /// lazily initialized static.
   jsAst.Expression isolateLazyInitializerAccess(FieldElement element);

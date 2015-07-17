@@ -288,6 +288,9 @@ class Emitter implements js_emitter.Emitter {
   String get globalsHolder => r"$globals$";
 
   @override
+  bool get supportsReflection => true;
+
+  @override
   jsAst.Expression generateEmbeddedGlobalAccess(String global) {
     return js(generateEmbeddedGlobalAccessString(global));
   }
