@@ -11,7 +11,9 @@ abstract class TreeElements {
   /// Iterables of the dependencies that this [TreeElement] records of
   /// [analyzedElement].
   Iterable<Element> get allElements;
+
   void forEachConstantNode(f(Node n, ConstantExpression c));
+  void forEachType(f(Node n, DartType t));
 
   /// A set of additional dependencies.  See [registerDependency] below.
   Iterable<Element> get otherDependencies;
@@ -172,6 +174,12 @@ class TreeElementMapping extends TreeElements {
   }
 
   DartType getType(Node node) => _types != null ? _types[node] : null;
+
+  void forEachType(f(Node n, DartType t)) {
+    if (_types != null) {
+      _types.forEach(f);
+    }
+  }
 
   Iterable<Node> get superUses {
     return _superUses != null ? _superUses : const <Node>[];
