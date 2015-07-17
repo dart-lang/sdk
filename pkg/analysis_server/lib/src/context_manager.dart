@@ -14,6 +14,7 @@ import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -161,6 +162,16 @@ abstract class AbstractContextManager implements ContextManager {
    */
   void endComputePackageMap() {
     // Do nothing.
+  }
+
+  // Sets the [ignorePatterns] for the context [folder].
+  void setIgnorePatternsForContext(Folder folder, List<String> ignorePatterns) {
+    _ContextInfo info = _contexts[folder];
+    if (info == null) {
+      return;
+    }
+    var pathFilter = info.pathFilter;
+    pathFilter.setIgnorePatterns(ignorePatterns);
   }
 
   @override
@@ -318,6 +329,10 @@ abstract class AbstractContextManager implements ContextManager {
     }
     for (Resource child in children) {
       String path = child.path;
+      // Path is being ignored.
+      if (info.ignored(path)) {
+        continue;
+      }
       // add files, recurse into folders
       if (child is File) {
         // ignore if should not be analyzed at all
@@ -361,7 +376,7 @@ abstract class AbstractContextManager implements ContextManager {
     for (Resource child in children) {
       String path = child.path;
       // ignore excluded files or folders
-      if (_isExcluded(path) || info.excludes(path)) {
+      if (_isExcluded(path) || info.excludes(path) || info.ignored(path)) {
         continue;
       }
       // add files, recurse into folders
@@ -604,6 +619,9 @@ abstract class AbstractContextManager implements ContextManager {
     }
     // maybe excluded from the context, so other context will handle it
     if (info.excludes(path)) {
+      return;
+    }
+    if (info.ignored(path)) {
       return;
     }
     // handle the change
@@ -859,6 +877,9 @@ class _ContextInfo {
    */
   final Folder folder;
 
+  /// The [PathFilter] used to filter sources from being analyzed.
+  final PathFilter pathFilter;
+
   /**
    * The enclosed pubspec-based contexts.
    */
@@ -910,7 +931,9 @@ class _ContextInfo {
    */
   OptimizingPubPackageMapInfo packageMapInfo;
 
-  _ContextInfo(this.folder, File pubspecFile, this.children, this.packageRoot) {
+  _ContextInfo(Folder folder, File pubspecFile, this.children, this.packageRoot)
+      : folder = folder,
+        pathFilter = new PathFilter(folder.path, null) {
     pubspecPath = pubspecFile.path;
     for (_ContextInfo child in children) {
       child.parent = this;
@@ -930,6 +953,9 @@ class _ContextInfo {
       return child.folder.contains(path);
     });
   }
+
+  /// Returns `true` if  [path] should be ignored.
+  bool ignored(String path) => pathFilter.ignored(path);
 
   /**
    * Returns `true` if [resource] is excluded, as it is in one of the children.

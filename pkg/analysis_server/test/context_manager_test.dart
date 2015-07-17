@@ -13,6 +13,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -168,6 +169,33 @@ class AbstractContextManagerTest {
         expect(manager.currentContextTimestamps[subdir2Path], manager.now);
       });
     });
+  }
+
+  test_path_filter() async {
+    // Setup context.
+    Folder root = resourceProvider.newFolder(projPath);
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    expect(manager.currentContextFilePaths[projPath], isEmpty);
+    // Set ignore patterns for context.
+    manager.setIgnorePatternsForContext(root,
+                                        ['sdk_ext/**', 'lib/ignoreme.dart']);
+    // Start creating files.
+    newFile([projPath, AbstractContextManager.PUBSPEC_NAME]);
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    newFile([libPath, 'ignoreme.dart']);
+    String sdkExtPath = newFolder([projPath, 'sdk_ext']);
+    newFile([sdkExtPath, 'entry.dart']);
+    String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
+    newFile([sdkExtSrcPath, 'part.dart']);
+    // Pump event loop so new files are discovered and added to context.
+    await pumpEventQueue();
+    // Verify that ignored files were ignored.
+    Map<String, int> fileTimestamps = manager.currentContextFilePaths[projPath];
+    expect(fileTimestamps, isNotEmpty);
+    List<String> files = fileTimestamps.keys.toList();
+    expect(files.length, equals(1));
+    expect(files[0], equals('/my/proj/lib/main.dart'));
   }
 
   test_refresh_oneContext() {
