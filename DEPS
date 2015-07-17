@@ -77,7 +77,7 @@ vars = {
   "nss_rev": "@87b96db4268293187d7cf741907a6d5d1d8080e0",
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
-  "observatory_pub_packages_rev": "@45565",
+  "observatory_pub_packages_rev": "@cdc4b3d4c15b9c0c8e7702dff127b440afbb7485",
   "package_config_tag": "@0.1.1",
   "path_tag": "@1.3.6",
   "petitparser_rev" : "@37878",
@@ -170,9 +170,6 @@ deps = {
       Var("third_party") + "/petitparser" + Var("petitparser_rev"),
   Var("dart_root") + "/third_party/WebCore":
       Var("third_party") + "/WebCore" + Var("WebCore_rev"),
-  Var("dart_root") + "/third_party/observatory_pub_packages":
-      Var("third_party") + "/observatory_pub_packages" +
-      Var("observatory_pub_packages_rev"),
 
   Var("dart_root") + "/third_party/dart-services":
       (Var("github_mirror") % "dart-services") +
@@ -241,6 +238,9 @@ deps = {
       (Var("github_mirror") % "oauth2") + Var("oauth2_rev"),
   Var("dart_root") + "/third_party/pkg/observe":
       (Var("github_mirror") % "observe") + Var("observe_rev"),
+  Var("dart_root") + "/third_party/observatory_pub_packages":
+      "https://github.com/dart-lang/observatory_pub_packages.git"
+      + Var("observatory_pub_packages_rev"),
   Var("dart_root") + "/third_party/pkg/package_config":
       (Var("github_mirror") % "package_config") +
       Var("package_config_tag"),
