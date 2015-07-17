@@ -679,7 +679,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 
   Heap* heap = isolate->heap();
   const intptr_t cid = kArrayCid;
-  Heap::Space space = heap->SpaceForAllocation(cid);
+  Heap::Space space = Heap::SpaceForAllocation(cid);
   const uword top_address = heap->TopAddress(space);
   __ LoadImmediate(R8, top_address, kNoPP);
   const uword end_address = heap->EndAddress(space);
@@ -942,7 +942,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   if (FLAG_inline_alloc) {
     Label slow_case;
-    Heap* heap = Isolate::Current()->heap();
     // First compute the rounded instance size.
     // R1: number of context variables.
     intptr_t fixed_size = sizeof(RawContext) + kObjectAlignment - 1;
@@ -955,17 +954,18 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     const intptr_t cid = kContextCid;
-    Heap::Space space = heap->SpaceForAllocation(cid);
-    __ LoadImmediate(R5, heap->TopAddress(space), kNoPP);
-    __ ldr(R0, Address(R5));
+    Heap::Space space = Heap::SpaceForAllocation(cid);
+    __ LoadIsolate(R5);
+    __ ldr(R5, Address(R5, Isolate::heap_offset()));
+    __ ldr(R0, Address(R5, Heap::TopOffset(space)));
     __ add(R3, R2, Operand(R0));
     // Check if the allocation fits into the remaining space.
     // R0: potential new object.
     // R1: number of context variables.
     // R2: object size.
     // R3: potential next object start.
-    __ LoadImmediate(TMP, heap->EndAddress(space), kNoPP);
-    __ ldr(TMP, Address(TMP));
+    // R5: heap.
+    __ ldr(TMP, Address(R5, Heap::EndOffset(space)));
     __ CompareRegisters(R3, TMP);
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
@@ -979,9 +979,11 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     // R3: next object start.
-    __ str(R3, Address(R5));
+    // R5: heap.
+    __ str(R3, Address(R5, Heap::TopOffset(space)));
     __ add(R0, R0, Operand(kHeapObjectTag));
-    __ UpdateAllocationStatsWithSize(cid, R2, kNoPP, space);
+    __ UpdateAllocationStatsWithSize(cid, R2, kNoPP, space,
+                                     /* inline_isolate = */ false);
 
     // Calculate the size tag.
     // R0: new object.
@@ -996,8 +998,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 
     // Get the class index and insert it into the tags.
     // R2: size and bit tags.
-    __ LoadImmediate(
-        TMP, RawObject::ClassIdTag::encode(cid), kNoPP);
+    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid), kNoPP);
     __ orr(R2, R2, Operand(TMP));
     __ StoreFieldToOffset(R2, R0, Context::tags_offset(), kNoPP);
 
@@ -1137,7 +1138,7 @@ void StubCode::GenerateAllocationStubForClass(
     // next object start and initialize the allocated object.
     // R1: instantiated type arguments (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
-    Heap::Space space = heap->SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::SpaceForAllocation(cls.id());
     __ LoadImmediate(R5, heap->TopAddress(space), kNoPP);
     __ ldr(R2, Address(R5));
     __ AddImmediate(R3, R2, instance_size, kNoPP);

@@ -274,7 +274,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ b(&init_loop, CC);                                                        \
   __ str(R6, Address(R3, -2 * kWordSize), HI);                                 \
                                                                                \
-  __ IncrementAllocationStatsWithSize(R4, R2, cid, space);                     \
+  __ IncrementAllocationStatsWithSize(R4, R2, space);                          \
   __ Ret();                                                                    \
   __ Bind(&fall_through);                                                      \
 
@@ -1827,7 +1827,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                               FieldAddress(R0, String::hash_offset()),
                               TMP);
 
-  __ IncrementAllocationStatsWithSize(R4, R2, cid, space);
+  __ IncrementAllocationStatsWithSize(R4, R2, space);
   __ b(ok);
 
   __ Bind(&fail);

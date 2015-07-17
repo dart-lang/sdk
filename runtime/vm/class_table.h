@@ -195,14 +195,21 @@ class ClassTable {
   void UpdatePromoted();
 
   // Used by the generated code.
-  uword PredefinedClassHeapStatsTableAddress() {
-    return reinterpret_cast<uword>(predefined_class_heap_stats_table_);
-  }
+  static intptr_t ClassOffsetFor(intptr_t cid);
 
-  // Used by generated code.
-  uword ClassStatsTableAddress() {
-    return reinterpret_cast<uword>(&class_heap_stats_table_);
-  }
+  // Used by the generated code.
+  ClassHeapStats** TableAddressFor(intptr_t cid);
+  static intptr_t TableOffsetFor(intptr_t cid);
+
+  // Used by the generated code.
+  static intptr_t CounterOffsetFor(intptr_t cid, bool is_new_space);
+
+  // Used by the generated code.
+  ClassHeapStats** StateAddressFor(intptr_t cid,
+                                   intptr_t* state_offset);
+
+  // Used by the generated code.
+  static intptr_t SizeOffsetFor(intptr_t cid, bool is_new_space);
 
   ClassHeapStats* StatsWithUpdatedSize(intptr_t cid);
 

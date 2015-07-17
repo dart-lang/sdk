@@ -871,7 +871,7 @@ void Scavenger::WriteProtect(bool read_only) {
 }
 
 
-void Scavenger::PrintToJSONObject(JSONObject* object) {
+void Scavenger::PrintToJSONObject(JSONObject* object) const {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   JSONObject space(object, "new");

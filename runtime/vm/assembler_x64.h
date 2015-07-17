@@ -985,14 +985,17 @@ class Assembler : public ValueObject {
   }
 
   void UpdateAllocationStats(intptr_t cid,
-                             Heap::Space space);
+                             Heap::Space space,
+                             bool inline_isolate = true);
 
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      Register size_reg,
-                                     Heap::Space space);
+                                     Heap::Space space,
+                                     bool inline_isolate = true);
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      intptr_t instance_size,
-                                     Heap::Space space);
+                                     Heap::Space space,
+                                     bool inline_isolate = true);
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
@@ -1135,8 +1138,6 @@ class Assembler : public ValueObject {
                                      Heap::Space space,
                                      Address* count_address,
                                      Address* size_address);
-  void ComputeHeapStatsStateAddressForCid(intptr_t cid,
-                                          Address* state_address);
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);
 };

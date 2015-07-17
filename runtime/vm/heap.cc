@@ -48,6 +48,8 @@ Heap::Heap(Isolate* isolate,
            intptr_t max_old_gen_words,
            intptr_t max_external_words)
     : isolate_(isolate),
+      new_space_(this, max_new_gen_semi_words, kNewObjectAlignmentOffset),
+      old_space_(this, max_old_gen_words, max_external_words),
       read_only_(false),
       gc_in_progress_(false),
       pretenure_policy_(0) {
@@ -57,17 +59,11 @@ Heap::Heap(Isolate* isolate,
     new_weak_tables_[sel] = new WeakTable();
     old_weak_tables_[sel] = new WeakTable();
   }
-  new_space_ = new Scavenger(this,
-                             max_new_gen_semi_words,
-                             kNewObjectAlignmentOffset);
-  old_space_ = new PageSpace(this, max_old_gen_words, max_external_words);
   stats_.num_ = 0;
 }
 
 
 Heap::~Heap() {
-  delete new_space_;
-  delete old_space_;
   for (int sel = 0;
        sel < kNumWeakSelectors;
        sel++) {
@@ -79,10 +75,10 @@ Heap::~Heap() {
 
 uword Heap::AllocateNew(intptr_t size) {
   ASSERT(isolate()->no_safepoint_scope_depth() == 0);
-  uword addr = new_space_->TryAllocate(size);
+  uword addr = new_space_.TryAllocate(size);
   if (addr == 0) {
     CollectGarbage(kNew);
-    addr = new_space_->TryAllocate(size);
+    addr = new_space_.TryAllocate(size);
     if (addr == 0) {
       return AllocateOld(size, HeapPage::kData);
     }
@@ -93,18 +89,18 @@ uword Heap::AllocateNew(intptr_t size) {
 
 uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   ASSERT(isolate()->no_safepoint_scope_depth() == 0);
-  uword addr = old_space_->TryAllocate(size, type);
+  uword addr = old_space_.TryAllocate(size, type);
   if (addr != 0) {
     return addr;
   }
   // If we are in the process of running a sweep wait for the sweeper to free
   // memory.
   {
-    MonitorLocker ml(old_space_->tasks_lock());
-    addr = old_space_->TryAllocate(size, type);
-    while ((addr == 0) && (old_space_->tasks() > 0)) {
+    MonitorLocker ml(old_space_.tasks_lock());
+    addr = old_space_.TryAllocate(size, type);
+    while ((addr == 0) && (old_space_.tasks() > 0)) {
       ml.Wait();
-      addr = old_space_->TryAllocate(size, type);
+      addr = old_space_.TryAllocate(size, type);
     }
   }
   if (addr != 0) {
@@ -112,36 +108,36 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   }
   // All GC tasks finished without allocating successfully. Run a full GC.
   CollectAllGarbage();
-  addr = old_space_->TryAllocate(size, type);
+  addr = old_space_.TryAllocate(size, type);
   if (addr != 0) {
     return addr;
   }
   // Wait for all of the concurrent tasks to finish before giving up.
   {
-    MonitorLocker ml(old_space_->tasks_lock());
-    addr = old_space_->TryAllocate(size, type);
-    while ((addr == 0) && (old_space_->tasks() > 0)) {
+    MonitorLocker ml(old_space_.tasks_lock());
+    addr = old_space_.TryAllocate(size, type);
+    while ((addr == 0) && (old_space_.tasks() > 0)) {
       ml.Wait();
-      addr = old_space_->TryAllocate(size, type);
+      addr = old_space_.TryAllocate(size, type);
     }
   }
   if (addr != 0) {
     return addr;
   }
   // Force growth before attempting a synchronous GC.
-  addr = old_space_->TryAllocate(size, type, PageSpace::kForceGrowth);
+  addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
   if (addr != 0) {
     return addr;
   }
   // Before throwing an out-of-memory error try a synchronous GC.
   CollectAllGarbage();
   {
-    MonitorLocker ml(old_space_->tasks_lock());
-    while (old_space_->tasks() > 0) {
+    MonitorLocker ml(old_space_.tasks_lock());
+    while (old_space_.tasks() > 0) {
       ml.Wait();
     }
   }
-  addr = old_space_->TryAllocate(size, type, PageSpace::kForceGrowth);
+  addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
   if (addr != 0) {
     return addr;
   }
@@ -154,7 +150,7 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
 
 uword Heap::AllocatePretenured(intptr_t size) {
   ASSERT(isolate()->no_safepoint_scope_depth() == 0);
-  uword addr = old_space_->TryAllocateDataBump(size, PageSpace::kControlGrowth);
+  uword addr = old_space_.TryAllocateDataBump(size, PageSpace::kControlGrowth);
   if (addr != 0) return addr;
   return AllocateOld(size, HeapPage::kData);
 }
@@ -163,16 +159,16 @@ uword Heap::AllocatePretenured(intptr_t size) {
 void Heap::AllocateExternal(intptr_t size, Space space) {
   ASSERT(isolate()->no_safepoint_scope_depth() == 0);
   if (space == kNew) {
-    new_space_->AllocateExternal(size);
-    if (new_space_->ExternalInWords() > (FLAG_new_gen_ext_limit * MBInWords)) {
+    new_space_.AllocateExternal(size);
+    if (new_space_.ExternalInWords() > (FLAG_new_gen_ext_limit * MBInWords)) {
       // Attempt to free some external allocation by a scavenge. (If the total
       // remains above the limit, next external alloc will trigger another.)
       CollectGarbage(kNew);
     }
   } else {
     ASSERT(space == kOld);
-    old_space_->AllocateExternal(size);
-    if (old_space_->NeedsGarbageCollection()) {
+    old_space_.AllocateExternal(size);
+    if (old_space_.NeedsGarbageCollection()) {
       CollectAllGarbage();
     }
   }
@@ -180,42 +176,42 @@ void Heap::AllocateExternal(intptr_t size, Space space) {
 
 void Heap::FreeExternal(intptr_t size, Space space) {
   if (space == kNew) {
-    new_space_->FreeExternal(size);
+    new_space_.FreeExternal(size);
   } else {
     ASSERT(space == kOld);
-    old_space_->FreeExternal(size);
+    old_space_.FreeExternal(size);
   }
 }
 
 void Heap::PromoteExternal(intptr_t size) {
-  new_space_->FreeExternal(size);
-  old_space_->AllocateExternal(size);
+  new_space_.FreeExternal(size);
+  old_space_.AllocateExternal(size);
 }
 
 bool Heap::Contains(uword addr) const {
-  return new_space_->Contains(addr) ||
-      old_space_->Contains(addr);
+  return new_space_.Contains(addr) ||
+      old_space_.Contains(addr);
 }
 
 
 bool Heap::NewContains(uword addr) const {
-  return new_space_->Contains(addr);
+  return new_space_.Contains(addr);
 }
 
 
 bool Heap::OldContains(uword addr) const {
-  return old_space_->Contains(addr);
+  return old_space_.Contains(addr);
 }
 
 
 bool Heap::CodeContains(uword addr) const {
-  return old_space_->Contains(addr, HeapPage::kExecutable);
+  return old_space_.Contains(addr, HeapPage::kExecutable);
 }
 
 
 void Heap::VisitObjects(ObjectVisitor* visitor) const {
-  new_space_->VisitObjects(visitor);
-  old_space_->VisitObjects(visitor);
+  new_space_.VisitObjects(visitor);
+  old_space_.VisitObjects(visitor);
 }
 
 
@@ -252,26 +248,26 @@ HeapIterationScope::~HeapIterationScope() {
 void Heap::IterateObjects(ObjectVisitor* visitor) const {
   // The visitor must not allocate from the heap.
   NoSafepointScope no_safepoint_scope_;
-  new_space_->VisitObjects(visitor);
+  new_space_.VisitObjects(visitor);
   IterateOldObjects(visitor);
 }
 
 
 void Heap::IterateOldObjects(ObjectVisitor* visitor) const {
   HeapIterationScope heap_iteration_scope;
-  old_space_->VisitObjects(visitor);
+  old_space_.VisitObjects(visitor);
 }
 
 
 void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
-  new_space_->VisitObjectPointers(visitor);
-  old_space_->VisitObjectPointers(visitor);
+  new_space_.VisitObjectPointers(visitor);
+  old_space_.VisitObjectPointers(visitor);
 }
 
 
 RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
   // Only executable pages can have RawInstructions objects.
-  RawObject* raw_obj = old_space_->FindObject(visitor, HeapPage::kExecutable);
+  RawObject* raw_obj = old_space_.FindObject(visitor, HeapPage::kExecutable);
   ASSERT((raw_obj == Object::null()) ||
          (raw_obj->GetClassId() == kInstructionsCid));
   return reinterpret_cast<RawInstructions*>(raw_obj);
@@ -280,12 +276,12 @@ RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
 
 RawObject* Heap::FindOldObject(FindObjectVisitor* visitor) const {
   HeapIterationScope heap_iteration_scope;
-  return old_space_->FindObject(visitor, HeapPage::kData);
+  return old_space_.FindObject(visitor, HeapPage::kData);
 }
 
 
 RawObject* Heap::FindNewObject(FindObjectVisitor* visitor) const {
-  return new_space_->FindObject(visitor);
+  return new_space_.FindObject(visitor);
 }
 
 
@@ -318,12 +314,12 @@ void Heap::CollectGarbage(Space space,
                                 "CollectNewGeneration");
       RecordBeforeGC(kNew, reason);
       UpdateClassHeapStatsBeforeGC(kNew);
-      new_space_->Scavenge(invoke_api_callbacks);
+      new_space_.Scavenge(invoke_api_callbacks);
       isolate()->class_table()->UpdatePromoted();
       UpdatePretenurePolicy();
       RecordAfterGC();
       PrintStats();
-      if (old_space_->NeedsGarbageCollection()) {
+      if (old_space_.NeedsGarbageCollection()) {
         // Old collections should call the API callbacks.
         CollectGarbage(kOld, kInvokeApiCallbacks, kPromotion);
       }
@@ -337,7 +333,7 @@ void Heap::CollectGarbage(Space space,
                                 "CollectOldGeneration");
       RecordBeforeGC(kOld, reason);
       UpdateClassHeapStatsBeforeGC(kOld);
-      old_space_->MarkSweep(invoke_api_callbacks);
+      old_space_.MarkSweep(invoke_api_callbacks);
       RecordAfterGC();
       PrintStats();
       break;
@@ -377,7 +373,7 @@ void Heap::CollectAllGarbage() {
                               "CollectNewGeneration");
     RecordBeforeGC(kNew, kFull);
     UpdateClassHeapStatsBeforeGC(kNew);
-    new_space_->Scavenge(kInvokeApiCallbacks);
+    new_space_.Scavenge(kInvokeApiCallbacks);
     isolate()->class_table()->UpdatePromoted();
     UpdatePretenurePolicy();
     RecordAfterGC();
@@ -390,7 +386,7 @@ void Heap::CollectAllGarbage() {
                               "CollectOldGeneration");
     RecordBeforeGC(kOld, kFull);
     UpdateClassHeapStatsBeforeGC(kOld);
-    old_space_->MarkSweep(kInvokeApiCallbacks);
+    old_space_.MarkSweep(kInvokeApiCallbacks);
     RecordAfterGC();
     PrintStats();
   }
@@ -432,44 +428,64 @@ void Heap::UpdatePretenurePolicy() {
 
 
 void Heap::SetGrowthControlState(bool state) {
-  old_space_->SetGrowthControlState(state);
+  old_space_.SetGrowthControlState(state);
 }
 
 
 bool Heap::GrowthControlState() {
-  return old_space_->GrowthControlState();
+  return old_space_.GrowthControlState();
 }
 
 
 void Heap::WriteProtect(bool read_only) {
   read_only_ = read_only;
-  new_space_->WriteProtect(read_only);
-  old_space_->WriteProtect(read_only);
+  new_space_.WriteProtect(read_only);
+  old_space_.WriteProtect(read_only);
 }
 
 
 uword Heap::TopAddress(Heap::Space space) {
   if (space == kNew) {
-    return reinterpret_cast<uword>(new_space_->TopAddress());
+    return reinterpret_cast<uword>(new_space_.TopAddress());
   } else {
     ASSERT(space == kPretenured);
-    return reinterpret_cast<uword>(old_space_->TopAddress());
+    return reinterpret_cast<uword>(old_space_.TopAddress());
   }
 }
 
 
 uword Heap::EndAddress(Heap::Space space) {
   if (space == kNew) {
-    return reinterpret_cast<uword>(new_space_->EndAddress());
+    return reinterpret_cast<uword>(new_space_.EndAddress());
   } else {
     ASSERT(space == kPretenured);
-    return reinterpret_cast<uword>(old_space_->EndAddress());
+    return reinterpret_cast<uword>(old_space_.EndAddress());
   }
 }
 
 
-Heap::Space Heap::SpaceForAllocation(intptr_t cid) const {
+Heap::Space Heap::SpaceForAllocation(intptr_t cid) {
   return FLAG_pretenure_all ? kPretenured : kNew;
+}
+
+
+intptr_t Heap::TopOffset(Heap::Space space) {
+  if (space == kNew) {
+    return OFFSET_OF(Heap, new_space_) + Scavenger::top_offset();
+  } else {
+    ASSERT(space == kPretenured);
+    return OFFSET_OF(Heap, old_space_) + PageSpace::top_offset();
+  }
+}
+
+
+intptr_t Heap::EndOffset(Heap::Space space) {
+  if (space == kNew) {
+    return OFFSET_OF(Heap, new_space_) + Scavenger::end_offset();
+  } else {
+    ASSERT(space == kPretenured);
+    return OFFSET_OF(Heap, old_space_) + PageSpace::end_offset();
+  }
 }
 
 
@@ -487,17 +503,17 @@ void Heap::Init(Isolate* isolate,
 
 
 void Heap::GetMergedAddressRange(uword* start, uword* end) const {
-  if (new_space_->CapacityInWords() != 0) {
+  if (new_space_.CapacityInWords() != 0) {
     uword new_start;
     uword new_end;
-    new_space_->StartEndAddress(&new_start, &new_end);
+    new_space_.StartEndAddress(&new_start, &new_end);
     *start = Utils::Minimum(new_start, *start);
     *end = Utils::Maximum(new_end, *end);
   }
-  if (old_space_->CapacityInWords() != 0) {
+  if (old_space_.CapacityInWords() != 0) {
     uword old_start;
     uword old_end;
-    old_space_->StartEndAddress(&old_start, &old_end);
+    old_space_.StartEndAddress(&old_start, &old_end);
     *start = Utils::Minimum(old_start, *start);
     *end = Utils::Maximum(old_end, *end);
   }
@@ -556,33 +572,33 @@ void Heap::PrintSizes() const {
 
 
 intptr_t Heap::UsedInWords(Space space) const {
-  return space == kNew ? new_space_->UsedInWords() : old_space_->UsedInWords();
+  return space == kNew ? new_space_.UsedInWords() : old_space_.UsedInWords();
 }
 
 
 intptr_t Heap::CapacityInWords(Space space) const {
-  return space == kNew ? new_space_->CapacityInWords() :
-                         old_space_->CapacityInWords();
+  return space == kNew ? new_space_.CapacityInWords() :
+                         old_space_.CapacityInWords();
 }
 
 intptr_t Heap::ExternalInWords(Space space) const {
-  return space == kNew ? new_space_->ExternalInWords() :
-                         old_space_->ExternalInWords();
+  return space == kNew ? new_space_.ExternalInWords() :
+                         old_space_.ExternalInWords();
 }
 
 int64_t Heap::GCTimeInMicros(Space space) const {
   if (space == kNew) {
-    return new_space_->gc_time_micros();
+    return new_space_.gc_time_micros();
   }
-  return old_space_->gc_time_micros();
+  return old_space_.gc_time_micros();
 }
 
 
 intptr_t Heap::Collections(Space space) const {
   if (space == kNew) {
-    return new_space_->collections();
+    return new_space_.collections();
   }
-  return old_space_->collections();
+  return old_space_.collections();
 }
 
 
@@ -639,9 +655,9 @@ void Heap::SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val) {
 
 void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
   if (space == kNew) {
-    new_space_->PrintToJSONObject(object);
+    new_space_.PrintToJSONObject(object);
   } else {
-    old_space_->PrintToJSONObject(object);
+    old_space_.PrintToJSONObject(object);
   }
 }
 
@@ -653,8 +669,8 @@ void Heap::RecordBeforeGC(Space space, GCReason reason) {
   stats_.space_ = space;
   stats_.reason_ = reason;
   stats_.before_.micros_ = OS::GetCurrentTimeMicros();
-  stats_.before_.new_ = new_space_->GetCurrentUsage();
-  stats_.before_.old_ = old_space_->GetCurrentUsage();
+  stats_.before_.new_ = new_space_.GetCurrentUsage();
+  stats_.before_.old_ = old_space_.GetCurrentUsage();
   stats_.times_[0] = 0;
   stats_.times_[1] = 0;
   stats_.times_[2] = 0;
@@ -670,14 +686,14 @@ void Heap::RecordAfterGC() {
   stats_.after_.micros_ = OS::GetCurrentTimeMicros();
   int64_t delta = stats_.after_.micros_ - stats_.before_.micros_;
   if (stats_.space_ == kNew) {
-    new_space_->AddGCTime(delta);
-    new_space_->IncrementCollections();
+    new_space_.AddGCTime(delta);
+    new_space_.IncrementCollections();
   } else {
-    old_space_->AddGCTime(delta);
-    old_space_->IncrementCollections();
+    old_space_.AddGCTime(delta);
+    old_space_.IncrementCollections();
   }
-  stats_.after_.new_ = new_space_->GetCurrentUsage();
-  stats_.after_.old_ = old_space_->GetCurrentUsage();
+  stats_.after_.new_ = new_space_.GetCurrentUsage();
+  stats_.after_.old_ = old_space_.GetCurrentUsage();
   ASSERT(gc_in_progress_);
   gc_in_progress_ = false;
   if (Service::gc_stream.enabled()) {

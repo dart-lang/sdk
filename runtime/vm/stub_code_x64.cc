@@ -639,7 +639,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 
   Heap* heap = isolate->heap();
   const intptr_t cid = kArrayCid;
-  Heap::Space space = heap->SpaceForAllocation(cid);
+  Heap::Space space = Heap::SpaceForAllocation(cid);
   __ movq(RAX, Immediate(heap->TopAddress(space)));
   __ movq(RAX, Address(RAX, 0));
 
@@ -881,8 +881,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ LoadObject(R12, Object::null_object(), PP);
   if (FLAG_inline_alloc) {
     Label slow_case;
-    Isolate* isolate = Isolate::Current();
-    Heap* heap = isolate->heap();
     // First compute the rounded instance size.
     // R10: number of context variables.
     intptr_t fixed_size = (sizeof(RawContext) + kObjectAlignment - 1);
@@ -892,16 +890,17 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // Now allocate the object.
     // R10: number of context variables.
     const intptr_t cid = kContextCid;
-    Heap::Space space = heap->SpaceForAllocation(cid);
-    __ movq(RAX, Immediate(heap->TopAddress(space)));
-    __ movq(RAX, Address(RAX, 0));
+    Heap::Space space = Heap::SpaceForAllocation(cid);
+    __ LoadIsolate(RCX);
+    __ movq(RCX, Address(RCX, Isolate::heap_offset()));
+    __ movq(RAX, Address(RCX, Heap::TopOffset(space)));
     __ addq(R13, RAX);
     // Check if the allocation fits into the remaining space.
     // RAX: potential new object.
     // R13: potential next object start.
     // R10: number of context variables.
-    __ movq(RDI, Immediate(heap->EndAddress(space)));
-    __ cmpq(R13, Address(RDI, 0));
+    // RCX: heap.
+    __ cmpq(R13, Address(RCX, Heap::EndOffset(space)));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
@@ -913,12 +912,14 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // RAX: new object.
     // R13: next object start.
     // R10: number of context variables.
-    __ movq(RDI, Immediate(heap->TopAddress(space)));
-    __ movq(Address(RDI, 0), R13);
+    // RCX: heap.
+    __ movq(Address(RCX, Heap::TopOffset(space)), R13);
     __ addq(RAX, Immediate(kHeapObjectTag));
     // R13: Size of allocation in bytes.
     __ subq(R13, RAX);
-    __ UpdateAllocationStatsWithSize(cid, R13, space);
+    // Generate isolate-independent code to allow sharing between isolates.
+    __ UpdateAllocationStatsWithSize(cid, R13, space,
+                                     /* inline_isolate */ false);
 
     // Calculate the size tag.
     // RAX: new object.
@@ -1102,7 +1103,7 @@ void StubCode::GenerateAllocationStubForClass(
     // next object start and initialize the allocated object.
     // RDX: instantiated type arguments (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
-    Heap::Space space = heap->SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::SpaceForAllocation(cls.id());
     __ movq(RCX, Immediate(heap->TopAddress(space)));
     __ movq(RAX, Address(RCX, 0));
     __ leaq(RBX, Address(RAX, instance_size));
