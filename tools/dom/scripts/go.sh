@@ -34,4 +34,4 @@ if [[ "$1" != "" ]] ; then
 fi
 
 reset && \
-./dartdomgenerator.py --systems="$SYSTEMS" --logging=40 --update-dom-metadata
+./dartdomgenerator.py --systems="$SYSTEMS" --logging=40 --update-dom-metadata --gen-interop

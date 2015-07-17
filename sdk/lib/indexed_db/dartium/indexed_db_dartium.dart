@@ -122,6 +122,21 @@ final indexed_dbBlinkMap = {
 
 };
 
+// FIXME: Can we make this private?
+final indexed_dbBlinkFunctionMap = {
+  'IDBCursor': () => Cursor.internalCreateCursor,
+  'IDBCursorWithValue': () => CursorWithValue.internalCreateCursorWithValue,
+  'IDBDatabase': () => Database.internalCreateDatabase,
+  'IDBFactory': () => IdbFactory.internalCreateIdbFactory,
+  'IDBIndex': () => Index.internalCreateIndex,
+  'IDBKeyRange': () => KeyRange.internalCreateKeyRange,
+  'IDBObjectStore': () => ObjectStore.internalCreateObjectStore,
+  'IDBOpenDBRequest': () => OpenDBRequest.internalCreateOpenDBRequest,
+  'IDBRequest': () => Request.internalCreateRequest,
+  'IDBTransaction': () => Transaction.internalCreateTransaction,
+  'IDBVersionChangeEvent': () => VersionChangeEvent.internalCreateVersionChangeEvent,
+
+};
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -150,6 +165,20 @@ class Cursor extends NativeFieldWrapperClass2 {
 
     // To suppress missing implicit constructor warnings.
   factory Cursor._() { throw new UnsupportedError("Not supported"); }
+
+  static Cursor internalCreateCursor() {
+    return new Cursor._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory Cursor._internalWrap() {
+    return new Cursor._internal();
+  }
+
+  Cursor._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('IDBCursor.direction')
   @DocsEditable()
@@ -207,6 +236,18 @@ class Cursor extends NativeFieldWrapperClass2 {
 class CursorWithValue extends Cursor {
   // To suppress missing implicit constructor warnings.
   factory CursorWithValue._() { throw new UnsupportedError("Not supported"); }
+
+
+  static CursorWithValue internalCreateCursorWithValue() {
+    return new CursorWithValue._internalWrap();
+  }
+
+  factory CursorWithValue._internalWrap() {
+    return new CursorWithValue._internal();
+  }
+
+  CursorWithValue._internal() : super._internal();
+
 
   @DomName('IDBCursorWithValue.value')
   @DocsEditable()
@@ -291,6 +332,18 @@ class Database extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<VersionChangeEvent> versionChangeEvent = const EventStreamProvider<VersionChangeEvent>('versionchange');
 
+
+  static Database internalCreateDatabase() {
+    return new Database._internalWrap();
+  }
+
+  factory Database._internalWrap() {
+    return new Database._internal();
+  }
+
+  Database._internal() : super._internal();
+
+
   @DomName('IDBDatabase.name')
   @DocsEditable()
   String get name => _blink.BlinkIDBDatabase.instance.name_Getter_(unwrap_jso(this));
@@ -309,7 +362,7 @@ class Database extends EventTarget {
   
   ObjectStore _createObjectStore(String name, [Map options]) {
     if (options != null) {
-      return _blink.BlinkIDBDatabase.instance.createObjectStore_Callback_2_(unwrap_jso(this), name, options);
+      return _blink.BlinkIDBDatabase.instance.createObjectStore_Callback_2_(unwrap_jso(this), name, options != null ? new js.JsObject.jsify(options) : options);
     }
     return _blink.BlinkIDBDatabase.instance.createObjectStore_Callback_1_(unwrap_jso(this), name);
   }
@@ -473,6 +526,20 @@ class IdbFactory extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory IdbFactory._() { throw new UnsupportedError("Not supported"); }
 
+  static IdbFactory internalCreateIdbFactory() {
+    return new IdbFactory._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory IdbFactory._internalWrap() {
+    return new IdbFactory._internal();
+  }
+
+  IdbFactory._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
   @DomName('IDBFactory.cmp')
   @DocsEditable()
   int cmp(Object first, Object second) => _blink.BlinkIDBFactory.instance.cmp_Callback_2_(unwrap_jso(this), first, second);
@@ -611,6 +678,20 @@ class Index extends NativeFieldWrapperClass2 {
     // To suppress missing implicit constructor warnings.
   factory Index._() { throw new UnsupportedError("Not supported"); }
 
+  static Index internalCreateIndex() {
+    return new Index._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory Index._internalWrap() {
+    return new Index._internal();
+  }
+
+  Index._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
   @DomName('IDBIndex.keyPath')
   @DocsEditable()
   Object get keyPath => _blink.BlinkIDBIndex.instance.keyPath_Getter_(unwrap_jso(this));
@@ -686,6 +767,20 @@ class KeyRange extends NativeFieldWrapperClass2 {
 
   // To suppress missing implicit constructor warnings.
   factory KeyRange._() { throw new UnsupportedError("Not supported"); }
+
+  static KeyRange internalCreateKeyRange() {
+    return new KeyRange._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory KeyRange._internalWrap() {
+    return new KeyRange._internal();
+  }
+
+  KeyRange._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('IDBKeyRange.lower')
   @DocsEditable()
@@ -871,6 +966,20 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ObjectStore._() { throw new UnsupportedError("Not supported"); }
 
+  static ObjectStore internalCreateObjectStore() {
+    return new ObjectStore._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory ObjectStore._internalWrap() {
+    return new ObjectStore._internal();
+  }
+
+  ObjectStore._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
   @DomName('IDBObjectStore.autoIncrement')
   @DocsEditable()
   bool get autoIncrement => _blink.BlinkIDBObjectStore.instance.autoIncrement_Getter_(unwrap_jso(this));
@@ -911,13 +1020,13 @@ class ObjectStore extends NativeFieldWrapperClass2 {
       return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, unwrap_jso(keyPath));
     }
     if ((options is Map || options == null) && (keyPath is String || keyPath == null) && (name is String || name == null)) {
-      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), options);
+      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), options != null ? new js.JsObject.jsify(options) : options);
     }
     if ((keyPath is List<String> || keyPath == null) && (name is String || name == null) && options == null) {
       return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, unwrap_jso(keyPath));
     }
     if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
-      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), options);
+      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), options != null ? new js.JsObject.jsify(options) : options);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -1021,6 +1130,18 @@ class OpenDBRequest extends Request {
   @DocsEditable()
   static const EventStreamProvider<VersionChangeEvent> upgradeNeededEvent = const EventStreamProvider<VersionChangeEvent>('upgradeneeded');
 
+
+  static OpenDBRequest internalCreateOpenDBRequest() {
+    return new OpenDBRequest._internalWrap();
+  }
+
+  factory OpenDBRequest._internalWrap() {
+    return new OpenDBRequest._internal();
+  }
+
+  OpenDBRequest._internal() : super._internal();
+
+
   /// Stream of `blocked` events handled by this [OpenDBRequest].
   @DomName('IDBOpenDBRequest.onblocked')
   @DocsEditable()
@@ -1065,6 +1186,18 @@ class Request extends EventTarget {
   @DomName('IDBRequest.successEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> successEvent = const EventStreamProvider<Event>('success');
+
+
+  static Request internalCreateRequest() {
+    return new Request._internalWrap();
+  }
+
+  factory Request._internalWrap() {
+    return new Request._internal();
+  }
+
+  Request._internal() : super._internal();
+
 
   @DomName('IDBRequest.error')
   @DocsEditable()
@@ -1167,6 +1300,18 @@ class Transaction extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+
+  static Transaction internalCreateTransaction() {
+    return new Transaction._internalWrap();
+  }
+
+  factory Transaction._internalWrap() {
+    return new Transaction._internal();
+  }
+
+  Transaction._internal() : super._internal();
+
+
   @DomName('IDBTransaction.db')
   @DocsEditable()
   Database get db => wrap_jso(_blink.BlinkIDBTransaction.instance.db_Getter_(unwrap_jso(this)));
@@ -1216,6 +1361,18 @@ class Transaction extends EventTarget {
 class VersionChangeEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory VersionChangeEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static VersionChangeEvent internalCreateVersionChangeEvent() {
+    return new VersionChangeEvent._internalWrap();
+  }
+
+  factory VersionChangeEvent._internalWrap() {
+    return new VersionChangeEvent._internal();
+  }
+
+  VersionChangeEvent._internal() : super._internal();
+
 
   @DomName('IDBVersionChangeEvent.dataLoss')
   @DocsEditable()

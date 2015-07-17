@@ -58,6 +58,45 @@ final web_glBlinkMap = {
 
 };
 
+// FIXME: Can we make this private?
+final web_glBlinkFunctionMap = {
+  'ANGLEInstancedArrays': () => AngleInstancedArrays.internalCreateAngleInstancedArrays,
+  'EXTBlendMinMax': () => ExtBlendMinMax.internalCreateExtBlendMinMax,
+  'EXTFragDepth': () => ExtFragDepth.internalCreateExtFragDepth,
+  'EXTShaderTextureLOD': () => ExtShaderTextureLod.internalCreateExtShaderTextureLod,
+  'EXTTextureFilterAnisotropic': () => ExtTextureFilterAnisotropic.internalCreateExtTextureFilterAnisotropic,
+  'OESElementIndexUint': () => OesElementIndexUint.internalCreateOesElementIndexUint,
+  'OESStandardDerivatives': () => OesStandardDerivatives.internalCreateOesStandardDerivatives,
+  'OESTextureFloat': () => OesTextureFloat.internalCreateOesTextureFloat,
+  'OESTextureFloatLinear': () => OesTextureFloatLinear.internalCreateOesTextureFloatLinear,
+  'OESTextureHalfFloat': () => OesTextureHalfFloat.internalCreateOesTextureHalfFloat,
+  'OESTextureHalfFloatLinear': () => OesTextureHalfFloatLinear.internalCreateOesTextureHalfFloatLinear,
+  'OESVertexArrayObject': () => OesVertexArrayObject.internalCreateOesVertexArrayObject,
+  'WebGLActiveInfo': () => ActiveInfo.internalCreateActiveInfo,
+  'WebGLBuffer': () => Buffer.internalCreateBuffer,
+  'WebGLCompressedTextureATC': () => CompressedTextureAtc.internalCreateCompressedTextureAtc,
+  'WebGLCompressedTextureETC1': () => CompressedTextureETC1.internalCreateCompressedTextureETC1,
+  'WebGLCompressedTexturePVRTC': () => CompressedTexturePvrtc.internalCreateCompressedTexturePvrtc,
+  'WebGLCompressedTextureS3TC': () => CompressedTextureS3TC.internalCreateCompressedTextureS3TC,
+  'WebGLContextAttributes': () => ContextAttributes.internalCreateContextAttributes,
+  'WebGLContextEvent': () => ContextEvent.internalCreateContextEvent,
+  'WebGLDebugRendererInfo': () => DebugRendererInfo.internalCreateDebugRendererInfo,
+  'WebGLDebugShaders': () => DebugShaders.internalCreateDebugShaders,
+  'WebGLDepthTexture': () => DepthTexture.internalCreateDepthTexture,
+  'WebGLDrawBuffers': () => DrawBuffers.internalCreateDrawBuffers,
+  'WebGLFramebuffer': () => Framebuffer.internalCreateFramebuffer,
+  'WebGLLoseContext': () => LoseContext.internalCreateLoseContext,
+  'WebGLProgram': () => Program.internalCreateProgram,
+  'WebGLRenderbuffer': () => Renderbuffer.internalCreateRenderbuffer,
+  'WebGLRenderingContext': () => RenderingContext.internalCreateRenderingContext,
+  'WebGLRenderingContextBase': () => _WebGLRenderingContextBase.internalCreate_WebGLRenderingContextBase,
+  'WebGLShader': () => Shader.internalCreateShader,
+  'WebGLShaderPrecisionFormat': () => ShaderPrecisionFormat.internalCreateShaderPrecisionFormat,
+  'WebGLTexture': () => Texture.internalCreateTexture,
+  'WebGLUniformLocation': () => UniformLocation.internalCreateUniformLocation,
+  'WebGLVertexArrayObjectOES': () => VertexArrayObject.internalCreateVertexArrayObject,
+
+};
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -373,6 +412,20 @@ class ActiveInfo extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ActiveInfo._() { throw new UnsupportedError("Not supported"); }
 
+  static ActiveInfo internalCreateActiveInfo() {
+    return new ActiveInfo._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory ActiveInfo._internalWrap() {
+    return new ActiveInfo._internal();
+  }
+
+  ActiveInfo._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
   @DomName('WebGLActiveInfo.name')
   @DocsEditable()
   String get name => _blink.BlinkWebGLActiveInfo.instance.name_Getter_(unwrap_jso(this));
@@ -399,6 +452,20 @@ class ActiveInfo extends NativeFieldWrapperClass2 {
 class AngleInstancedArrays extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AngleInstancedArrays._() { throw new UnsupportedError("Not supported"); }
+
+  static AngleInstancedArrays internalCreateAngleInstancedArrays() {
+    return new AngleInstancedArrays._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory AngleInstancedArrays._internalWrap() {
+    return new AngleInstancedArrays._internal();
+  }
+
+  AngleInstancedArrays._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('ANGLEInstancedArrays.VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE')
   @DocsEditable()
@@ -435,6 +502,20 @@ class Buffer extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Buffer._() { throw new UnsupportedError("Not supported"); }
 
+  static Buffer internalCreateBuffer() {
+    return new Buffer._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory Buffer._internalWrap() {
+    return new Buffer._internal();
+  }
+
+  Buffer._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -450,6 +531,20 @@ class Buffer extends NativeFieldWrapperClass2 {
 class CompressedTextureAtc extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureAtc._() { throw new UnsupportedError("Not supported"); }
+
+  static CompressedTextureAtc internalCreateCompressedTextureAtc() {
+    return new CompressedTextureAtc._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory CompressedTextureAtc._internalWrap() {
+    return new CompressedTextureAtc._internal();
+  }
+
+  CompressedTextureAtc._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('WebGLCompressedTextureATC.COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL')
   @DocsEditable()
@@ -478,6 +573,20 @@ class CompressedTextureETC1 extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureETC1._() { throw new UnsupportedError("Not supported"); }
 
+  static CompressedTextureETC1 internalCreateCompressedTextureETC1() {
+    return new CompressedTextureETC1._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory CompressedTextureETC1._internalWrap() {
+    return new CompressedTextureETC1._internal();
+  }
+
+  CompressedTextureETC1._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
   @DomName('WebGLCompressedTextureETC1.COMPRESSED_RGB_ETC1_WEBGL')
   @DocsEditable()
   @Experimental() // untriaged
@@ -498,6 +607,20 @@ class CompressedTextureETC1 extends NativeFieldWrapperClass2 {
 class CompressedTexturePvrtc extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CompressedTexturePvrtc._() { throw new UnsupportedError("Not supported"); }
+
+  static CompressedTexturePvrtc internalCreateCompressedTexturePvrtc() {
+    return new CompressedTexturePvrtc._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory CompressedTexturePvrtc._internalWrap() {
+    return new CompressedTexturePvrtc._internal();
+  }
+
+  CompressedTexturePvrtc._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('WebGLCompressedTexturePVRTC.COMPRESSED_RGBA_PVRTC_2BPPV1_IMG')
   @DocsEditable()
@@ -530,6 +653,20 @@ class CompressedTexturePvrtc extends NativeFieldWrapperClass2 {
 class CompressedTextureS3TC extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureS3TC._() { throw new UnsupportedError("Not supported"); }
+
+  static CompressedTextureS3TC internalCreateCompressedTextureS3TC() {
+    return new CompressedTextureS3TC._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory CompressedTextureS3TC._internalWrap() {
+    return new CompressedTextureS3TC._internal();
+  }
+
+  CompressedTextureS3TC._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('WebGLCompressedTextureS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT')
   @DocsEditable()
@@ -583,6 +720,20 @@ class CompressedTextureS3TC extends NativeFieldWrapperClass2 {
 class ContextAttributes extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ContextAttributes._() { throw new UnsupportedError("Not supported"); }
+
+  static ContextAttributes internalCreateContextAttributes() {
+    return new ContextAttributes._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory ContextAttributes._internalWrap() {
+    return new ContextAttributes._internal();
+  }
+
+  ContextAttributes._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('WebGLContextAttributes.alpha')
   @DocsEditable()
@@ -657,6 +808,18 @@ class ContextEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ContextEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static ContextEvent internalCreateContextEvent() {
+    return new ContextEvent._internalWrap();
+  }
+
+  factory ContextEvent._internalWrap() {
+    return new ContextEvent._internal();
+  }
+
+  ContextEvent._internal() : super._internal();
+
+
   @DomName('WebGLContextEvent.statusMessage')
   @DocsEditable()
   String get statusMessage => _blink.BlinkWebGLContextEvent.instance.statusMessage_Getter_(unwrap_jso(this));
@@ -676,6 +839,20 @@ class ContextEvent extends Event {
 class DebugRendererInfo extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DebugRendererInfo._() { throw new UnsupportedError("Not supported"); }
+
+  static DebugRendererInfo internalCreateDebugRendererInfo() {
+    return new DebugRendererInfo._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory DebugRendererInfo._internalWrap() {
+    return new DebugRendererInfo._internal();
+  }
+
+  DebugRendererInfo._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('WebGLDebugRendererInfo.UNMASKED_RENDERER_WEBGL')
   @DocsEditable()
@@ -701,6 +878,20 @@ class DebugShaders extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DebugShaders._() { throw new UnsupportedError("Not supported"); }
 
+  static DebugShaders internalCreateDebugShaders() {
+    return new DebugShaders._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory DebugShaders._internalWrap() {
+    return new DebugShaders._internal();
+  }
+
+  DebugShaders._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
   @DomName('WebGLDebugShaders.getTranslatedShaderSource')
   @DocsEditable()
   String getTranslatedShaderSource(Shader shader) => _blink.BlinkWebGLDebugShaders.instance.getTranslatedShaderSource_Callback_1_(unwrap_jso(this), unwrap_jso(shader));
@@ -721,6 +912,20 @@ class DepthTexture extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DepthTexture._() { throw new UnsupportedError("Not supported"); }
 
+  static DepthTexture internalCreateDepthTexture() {
+    return new DepthTexture._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory DepthTexture._internalWrap() {
+    return new DepthTexture._internal();
+  }
+
+  DepthTexture._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
   @DomName('WebGLDepthTexture.UNSIGNED_INT_24_8_WEBGL')
   @DocsEditable()
   static const int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
@@ -740,6 +945,20 @@ class DepthTexture extends NativeFieldWrapperClass2 {
 class DrawBuffers extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DrawBuffers._() { throw new UnsupportedError("Not supported"); }
+
+  static DrawBuffers internalCreateDrawBuffers() {
+    return new DrawBuffers._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory DrawBuffers._internalWrap() {
+    return new DrawBuffers._internal();
+  }
+
+  DrawBuffers._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT0_WEBGL')
   @DocsEditable()
@@ -896,6 +1115,20 @@ class ExtBlendMinMax extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ExtBlendMinMax._() { throw new UnsupportedError("Not supported"); }
 
+  static ExtBlendMinMax internalCreateExtBlendMinMax() {
+    return new ExtBlendMinMax._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory ExtBlendMinMax._internalWrap() {
+    return new ExtBlendMinMax._internal();
+  }
+
+  ExtBlendMinMax._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
   @DomName('EXTBlendMinMax.MAX_EXT')
   @DocsEditable()
   @Experimental() // untriaged
@@ -922,6 +1155,20 @@ class ExtFragDepth extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ExtFragDepth._() { throw new UnsupportedError("Not supported"); }
 
+  static ExtFragDepth internalCreateExtFragDepth() {
+    return new ExtFragDepth._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory ExtFragDepth._internalWrap() {
+    return new ExtFragDepth._internal();
+  }
+
+  ExtFragDepth._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -936,6 +1183,20 @@ class ExtFragDepth extends NativeFieldWrapperClass2 {
 class ExtShaderTextureLod extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ExtShaderTextureLod._() { throw new UnsupportedError("Not supported"); }
+
+  static ExtShaderTextureLod internalCreateExtShaderTextureLod() {
+    return new ExtShaderTextureLod._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory ExtShaderTextureLod._internalWrap() {
+    return new ExtShaderTextureLod._internal();
+  }
+
+  ExtShaderTextureLod._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -952,6 +1213,20 @@ class ExtShaderTextureLod extends NativeFieldWrapperClass2 {
 class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ExtTextureFilterAnisotropic._() { throw new UnsupportedError("Not supported"); }
+
+  static ExtTextureFilterAnisotropic internalCreateExtTextureFilterAnisotropic() {
+    return new ExtTextureFilterAnisotropic._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory ExtTextureFilterAnisotropic._internalWrap() {
+    return new ExtTextureFilterAnisotropic._internal();
+  }
+
+  ExtTextureFilterAnisotropic._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('EXTTextureFilterAnisotropic.MAX_TEXTURE_MAX_ANISOTROPY_EXT')
   @DocsEditable()
@@ -976,6 +1251,20 @@ class Framebuffer extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Framebuffer._() { throw new UnsupportedError("Not supported"); }
 
+  static Framebuffer internalCreateFramebuffer() {
+    return new Framebuffer._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory Framebuffer._internalWrap() {
+    return new Framebuffer._internal();
+  }
+
+  Framebuffer._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -991,6 +1280,20 @@ class Framebuffer extends NativeFieldWrapperClass2 {
 class LoseContext extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory LoseContext._() { throw new UnsupportedError("Not supported"); }
+
+  static LoseContext internalCreateLoseContext() {
+    return new LoseContext._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory LoseContext._internalWrap() {
+    return new LoseContext._internal();
+  }
+
+  LoseContext._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('WebGLLoseContext.loseContext')
   @DocsEditable()
@@ -1016,6 +1319,20 @@ class OesElementIndexUint extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory OesElementIndexUint._() { throw new UnsupportedError("Not supported"); }
 
+  static OesElementIndexUint internalCreateOesElementIndexUint() {
+    return new OesElementIndexUint._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory OesElementIndexUint._internalWrap() {
+    return new OesElementIndexUint._internal();
+  }
+
+  OesElementIndexUint._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1031,6 +1348,20 @@ class OesElementIndexUint extends NativeFieldWrapperClass2 {
 class OesStandardDerivatives extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory OesStandardDerivatives._() { throw new UnsupportedError("Not supported"); }
+
+  static OesStandardDerivatives internalCreateOesStandardDerivatives() {
+    return new OesStandardDerivatives._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory OesStandardDerivatives._internalWrap() {
+    return new OesStandardDerivatives._internal();
+  }
+
+  OesStandardDerivatives._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('OESStandardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES')
   @DocsEditable()
@@ -1052,6 +1383,20 @@ class OesTextureFloat extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory OesTextureFloat._() { throw new UnsupportedError("Not supported"); }
 
+  static OesTextureFloat internalCreateOesTextureFloat() {
+    return new OesTextureFloat._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory OesTextureFloat._internalWrap() {
+    return new OesTextureFloat._internal();
+  }
+
+  OesTextureFloat._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1068,6 +1413,20 @@ class OesTextureFloatLinear extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory OesTextureFloatLinear._() { throw new UnsupportedError("Not supported"); }
 
+  static OesTextureFloatLinear internalCreateOesTextureFloatLinear() {
+    return new OesTextureFloatLinear._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory OesTextureFloatLinear._internalWrap() {
+    return new OesTextureFloatLinear._internal();
+  }
+
+  OesTextureFloatLinear._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1083,6 +1442,20 @@ class OesTextureFloatLinear extends NativeFieldWrapperClass2 {
 class OesTextureHalfFloat extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory OesTextureHalfFloat._() { throw new UnsupportedError("Not supported"); }
+
+  static OesTextureHalfFloat internalCreateOesTextureHalfFloat() {
+    return new OesTextureHalfFloat._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory OesTextureHalfFloat._internalWrap() {
+    return new OesTextureHalfFloat._internal();
+  }
+
+  OesTextureHalfFloat._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('OESTextureHalfFloat.HALF_FLOAT_OES')
   @DocsEditable()
@@ -1104,6 +1477,20 @@ class OesTextureHalfFloatLinear extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory OesTextureHalfFloatLinear._() { throw new UnsupportedError("Not supported"); }
 
+  static OesTextureHalfFloatLinear internalCreateOesTextureHalfFloatLinear() {
+    return new OesTextureHalfFloatLinear._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory OesTextureHalfFloatLinear._internalWrap() {
+    return new OesTextureHalfFloatLinear._internal();
+  }
+
+  OesTextureHalfFloatLinear._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1119,6 +1506,20 @@ class OesTextureHalfFloatLinear extends NativeFieldWrapperClass2 {
 class OesVertexArrayObject extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory OesVertexArrayObject._() { throw new UnsupportedError("Not supported"); }
+
+  static OesVertexArrayObject internalCreateOesVertexArrayObject() {
+    return new OesVertexArrayObject._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory OesVertexArrayObject._internalWrap() {
+    return new OesVertexArrayObject._internal();
+  }
+
+  OesVertexArrayObject._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('OESVertexArrayObject.VERTEX_ARRAY_BINDING_OES')
   @DocsEditable()
@@ -1155,6 +1556,20 @@ class Program extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Program._() { throw new UnsupportedError("Not supported"); }
 
+  static Program internalCreateProgram() {
+    return new Program._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory Program._internalWrap() {
+    return new Program._internal();
+  }
+
+  Program._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1170,6 +1585,20 @@ class Renderbuffer extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Renderbuffer._() { throw new UnsupportedError("Not supported"); }
 
+  static Renderbuffer internalCreateRenderbuffer() {
+    return new Renderbuffer._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory Renderbuffer._internalWrap() {
+    return new Renderbuffer._internal();
+  }
+
+  Renderbuffer._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1184,6 +1613,20 @@ class Renderbuffer extends NativeFieldWrapperClass2 {
 class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderingContext {
   // To suppress missing implicit constructor warnings.
   factory RenderingContext._() { throw new UnsupportedError("Not supported"); }
+
+  static RenderingContext internalCreateRenderingContext() {
+    return new RenderingContext._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory RenderingContext._internalWrap() {
+    return new RenderingContext._internal();
+  }
+
+  RenderingContext._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -3117,6 +3560,20 @@ class Shader extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Shader._() { throw new UnsupportedError("Not supported"); }
 
+  static Shader internalCreateShader() {
+    return new Shader._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory Shader._internalWrap() {
+    return new Shader._internal();
+  }
+
+  Shader._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3130,6 +3587,20 @@ class Shader extends NativeFieldWrapperClass2 {
 class ShaderPrecisionFormat extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ShaderPrecisionFormat._() { throw new UnsupportedError("Not supported"); }
+
+  static ShaderPrecisionFormat internalCreateShaderPrecisionFormat() {
+    return new ShaderPrecisionFormat._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory ShaderPrecisionFormat._internalWrap() {
+    return new ShaderPrecisionFormat._internal();
+  }
+
+  ShaderPrecisionFormat._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('WebGLShaderPrecisionFormat.precision')
   @DocsEditable()
@@ -3157,6 +3628,20 @@ class Texture extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Texture._() { throw new UnsupportedError("Not supported"); }
 
+  static Texture internalCreateTexture() {
+    return new Texture._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory Texture._internalWrap() {
+    return new Texture._internal();
+  }
+
+  Texture._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3170,6 +3655,20 @@ class Texture extends NativeFieldWrapperClass2 {
 class UniformLocation extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory UniformLocation._() { throw new UnsupportedError("Not supported"); }
+
+  static UniformLocation internalCreateUniformLocation() {
+    return new UniformLocation._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory UniformLocation._internalWrap() {
+    return new UniformLocation._internal();
+  }
+
+  UniformLocation._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3187,6 +3686,20 @@ class VertexArrayObject extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory VertexArrayObject._() { throw new UnsupportedError("Not supported"); }
 
+  static VertexArrayObject internalCreateVertexArrayObject() {
+    return new VertexArrayObject._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory VertexArrayObject._internalWrap() {
+    return new VertexArrayObject._internal();
+  }
+
+  VertexArrayObject._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3201,5 +3714,19 @@ class VertexArrayObject extends NativeFieldWrapperClass2 {
 abstract class _WebGLRenderingContextBase extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _WebGLRenderingContextBase._() { throw new UnsupportedError("Not supported"); }
+
+  static _WebGLRenderingContextBase internalCreate_WebGLRenderingContextBase() {
+    return new _WebGLRenderingContextBase._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory _WebGLRenderingContextBase._internalWrap() {
+    return new _WebGLRenderingContextBase._internal();
+  }
+
+  _WebGLRenderingContextBase._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
 }

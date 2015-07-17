@@ -49,6 +49,37 @@ final web_audioBlinkMap = {
 
 };
 
+// FIXME: Can we make this private?
+final web_audioBlinkFunctionMap = {
+  'AnalyserNode': () => AnalyserNode.internalCreateAnalyserNode,
+  'AudioBuffer': () => AudioBuffer.internalCreateAudioBuffer,
+  'AudioBufferSourceNode': () => AudioBufferSourceNode.internalCreateAudioBufferSourceNode,
+  'AudioContext': () => AudioContext.internalCreateAudioContext,
+  'AudioDestinationNode': () => AudioDestinationNode.internalCreateAudioDestinationNode,
+  'AudioListener': () => AudioListener.internalCreateAudioListener,
+  'AudioNode': () => AudioNode.internalCreateAudioNode,
+  'AudioParam': () => AudioParam.internalCreateAudioParam,
+  'AudioProcessingEvent': () => AudioProcessingEvent.internalCreateAudioProcessingEvent,
+  'AudioSourceNode': () => AudioSourceNode.internalCreateAudioSourceNode,
+  'BiquadFilterNode': () => BiquadFilterNode.internalCreateBiquadFilterNode,
+  'ChannelMergerNode': () => ChannelMergerNode.internalCreateChannelMergerNode,
+  'ChannelSplitterNode': () => ChannelSplitterNode.internalCreateChannelSplitterNode,
+  'ConvolverNode': () => ConvolverNode.internalCreateConvolverNode,
+  'DelayNode': () => DelayNode.internalCreateDelayNode,
+  'DynamicsCompressorNode': () => DynamicsCompressorNode.internalCreateDynamicsCompressorNode,
+  'GainNode': () => GainNode.internalCreateGainNode,
+  'MediaElementAudioSourceNode': () => MediaElementAudioSourceNode.internalCreateMediaElementAudioSourceNode,
+  'MediaStreamAudioDestinationNode': () => MediaStreamAudioDestinationNode.internalCreateMediaStreamAudioDestinationNode,
+  'MediaStreamAudioSourceNode': () => MediaStreamAudioSourceNode.internalCreateMediaStreamAudioSourceNode,
+  'OfflineAudioCompletionEvent': () => OfflineAudioCompletionEvent.internalCreateOfflineAudioCompletionEvent,
+  'OfflineAudioContext': () => OfflineAudioContext.internalCreateOfflineAudioContext,
+  'OscillatorNode': () => OscillatorNode.internalCreateOscillatorNode,
+  'PannerNode': () => PannerNode.internalCreatePannerNode,
+  'PeriodicWave': () => PeriodicWave.internalCreatePeriodicWave,
+  'ScriptProcessorNode': () => ScriptProcessorNode.internalCreateScriptProcessorNode,
+  'WaveShaperNode': () => WaveShaperNode.internalCreateWaveShaperNode,
+
+};
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -63,6 +94,18 @@ final web_audioBlinkMap = {
 class AnalyserNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory AnalyserNode._() { throw new UnsupportedError("Not supported"); }
+
+
+  static AnalyserNode internalCreateAnalyserNode() {
+    return new AnalyserNode._internalWrap();
+  }
+
+  factory AnalyserNode._internalWrap() {
+    return new AnalyserNode._internal();
+  }
+
+  AnalyserNode._internal() : super._internal();
+
 
   @DomName('AnalyserNode.fftSize')
   @DocsEditable()
@@ -133,6 +176,20 @@ class AudioBuffer extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AudioBuffer._() { throw new UnsupportedError("Not supported"); }
 
+  static AudioBuffer internalCreateAudioBuffer() {
+    return new AudioBuffer._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory AudioBuffer._internalWrap() {
+    return new AudioBuffer._internal();
+  }
+
+  AudioBuffer._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
   @DomName('AudioBuffer.duration')
   @DocsEditable()
   double get duration => _blink.BlinkAudioBuffer.instance.duration_Getter_(unwrap_jso(this));
@@ -192,6 +249,18 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
+
+
+  static AudioBufferSourceNode internalCreateAudioBufferSourceNode() {
+    return new AudioBufferSourceNode._internalWrap();
+  }
+
+  factory AudioBufferSourceNode._internalWrap() {
+    return new AudioBufferSourceNode._internal();
+  }
+
+  AudioBufferSourceNode._internal() : super._internal();
+
 
   @DomName('AudioBufferSourceNode.buffer')
   @DocsEditable()
@@ -291,6 +360,18 @@ class AudioContext extends EventTarget {
   factory AudioContext() {
     return _blink.BlinkAudioContext.instance.constructorCallback_0_();
   }
+
+
+  static AudioContext internalCreateAudioContext() {
+    return new AudioContext._internalWrap();
+  }
+
+  factory AudioContext._internalWrap() {
+    return new AudioContext._internal();
+  }
+
+  AudioContext._internal() : super._internal();
+
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -445,6 +526,18 @@ class AudioDestinationNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory AudioDestinationNode._() { throw new UnsupportedError("Not supported"); }
 
+
+  static AudioDestinationNode internalCreateAudioDestinationNode() {
+    return new AudioDestinationNode._internalWrap();
+  }
+
+  factory AudioDestinationNode._internalWrap() {
+    return new AudioDestinationNode._internal();
+  }
+
+  AudioDestinationNode._internal() : super._internal();
+
+
   @DomName('AudioDestinationNode.maxChannelCount')
   @DocsEditable()
   int get maxChannelCount => _blink.BlinkAudioDestinationNode.instance.maxChannelCount_Getter_(unwrap_jso(this));
@@ -464,6 +557,20 @@ class AudioDestinationNode extends AudioNode {
 class AudioListener extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AudioListener._() { throw new UnsupportedError("Not supported"); }
+
+  static AudioListener internalCreateAudioListener() {
+    return new AudioListener._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory AudioListener._internalWrap() {
+    return new AudioListener._internal();
+  }
+
+  AudioListener._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('AudioListener.dopplerFactor')
   @DocsEditable()
@@ -505,6 +612,18 @@ class AudioListener extends NativeFieldWrapperClass2 {
 class AudioNode extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory AudioNode._() { throw new UnsupportedError("Not supported"); }
+
+
+  static AudioNode internalCreateAudioNode() {
+    return new AudioNode._internalWrap();
+  }
+
+  factory AudioNode._internalWrap() {
+    return new AudioNode._internal();
+  }
+
+  AudioNode._internal() : super._internal();
+
 
   @DomName('AudioNode.channelCount')
   @DocsEditable()
@@ -581,6 +700,20 @@ class AudioParam extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AudioParam._() { throw new UnsupportedError("Not supported"); }
 
+  static AudioParam internalCreateAudioParam() {
+    return new AudioParam._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory AudioParam._internalWrap() {
+    return new AudioParam._internal();
+  }
+
+  AudioParam._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
   @DomName('AudioParam.defaultValue')
   @DocsEditable()
   double get defaultValue => _blink.BlinkAudioParam.instance.defaultValue_Getter_(unwrap_jso(this));
@@ -633,6 +766,18 @@ class AudioProcessingEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory AudioProcessingEvent._() { throw new UnsupportedError("Not supported"); }
 
+
+  static AudioProcessingEvent internalCreateAudioProcessingEvent() {
+    return new AudioProcessingEvent._internalWrap();
+  }
+
+  factory AudioProcessingEvent._internalWrap() {
+    return new AudioProcessingEvent._internal();
+  }
+
+  AudioProcessingEvent._internal() : super._internal();
+
+
   @DomName('AudioProcessingEvent.inputBuffer')
   @DocsEditable()
   AudioBuffer get inputBuffer => wrap_jso(_blink.BlinkAudioProcessingEvent.instance.inputBuffer_Getter_(unwrap_jso(this)));
@@ -662,6 +807,18 @@ class AudioSourceNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory AudioSourceNode._() { throw new UnsupportedError("Not supported"); }
 
+
+  static AudioSourceNode internalCreateAudioSourceNode() {
+    return new AudioSourceNode._internalWrap();
+  }
+
+  factory AudioSourceNode._internalWrap() {
+    return new AudioSourceNode._internal();
+  }
+
+  AudioSourceNode._internal() : super._internal();
+
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -677,6 +834,18 @@ class AudioSourceNode extends AudioNode {
 class BiquadFilterNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory BiquadFilterNode._() { throw new UnsupportedError("Not supported"); }
+
+
+  static BiquadFilterNode internalCreateBiquadFilterNode() {
+    return new BiquadFilterNode._internalWrap();
+  }
+
+  factory BiquadFilterNode._internalWrap() {
+    return new BiquadFilterNode._internal();
+  }
+
+  BiquadFilterNode._internal() : super._internal();
+
 
   @DomName('BiquadFilterNode.Q')
   @DocsEditable()
@@ -722,6 +891,18 @@ class ChannelMergerNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory ChannelMergerNode._() { throw new UnsupportedError("Not supported"); }
 
+
+  static ChannelMergerNode internalCreateChannelMergerNode() {
+    return new ChannelMergerNode._internalWrap();
+  }
+
+  factory ChannelMergerNode._internalWrap() {
+    return new ChannelMergerNode._internal();
+  }
+
+  ChannelMergerNode._internal() : super._internal();
+
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -738,6 +919,18 @@ class ChannelSplitterNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory ChannelSplitterNode._() { throw new UnsupportedError("Not supported"); }
 
+
+  static ChannelSplitterNode internalCreateChannelSplitterNode() {
+    return new ChannelSplitterNode._internalWrap();
+  }
+
+  factory ChannelSplitterNode._internalWrap() {
+    return new ChannelSplitterNode._internal();
+  }
+
+  ChannelSplitterNode._internal() : super._internal();
+
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -753,6 +946,18 @@ class ChannelSplitterNode extends AudioNode {
 class ConvolverNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory ConvolverNode._() { throw new UnsupportedError("Not supported"); }
+
+
+  static ConvolverNode internalCreateConvolverNode() {
+    return new ConvolverNode._internalWrap();
+  }
+
+  factory ConvolverNode._internalWrap() {
+    return new ConvolverNode._internal();
+  }
+
+  ConvolverNode._internal() : super._internal();
+
 
   @DomName('ConvolverNode.buffer')
   @DocsEditable()
@@ -786,6 +991,18 @@ class DelayNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory DelayNode._() { throw new UnsupportedError("Not supported"); }
 
+
+  static DelayNode internalCreateDelayNode() {
+    return new DelayNode._internalWrap();
+  }
+
+  factory DelayNode._internalWrap() {
+    return new DelayNode._internal();
+  }
+
+  DelayNode._internal() : super._internal();
+
+
   @DomName('DelayNode.delayTime')
   @DocsEditable()
   AudioParam get delayTime => wrap_jso(_blink.BlinkDelayNode.instance.delayTime_Getter_(unwrap_jso(this)));
@@ -805,6 +1022,18 @@ class DelayNode extends AudioNode {
 class DynamicsCompressorNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory DynamicsCompressorNode._() { throw new UnsupportedError("Not supported"); }
+
+
+  static DynamicsCompressorNode internalCreateDynamicsCompressorNode() {
+    return new DynamicsCompressorNode._internalWrap();
+  }
+
+  factory DynamicsCompressorNode._internalWrap() {
+    return new DynamicsCompressorNode._internal();
+  }
+
+  DynamicsCompressorNode._internal() : super._internal();
+
 
   @DomName('DynamicsCompressorNode.attack')
   @DocsEditable()
@@ -846,6 +1075,18 @@ class GainNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory GainNode._() { throw new UnsupportedError("Not supported"); }
 
+
+  static GainNode internalCreateGainNode() {
+    return new GainNode._internalWrap();
+  }
+
+  factory GainNode._internalWrap() {
+    return new GainNode._internal();
+  }
+
+  GainNode._internal() : super._internal();
+
+
   @DomName('GainNode.gain')
   @DocsEditable()
   AudioParam get gain => wrap_jso(_blink.BlinkGainNode.instance.gain_Getter_(unwrap_jso(this)));
@@ -865,6 +1106,18 @@ class GainNode extends AudioNode {
 class MediaElementAudioSourceNode extends AudioSourceNode {
   // To suppress missing implicit constructor warnings.
   factory MediaElementAudioSourceNode._() { throw new UnsupportedError("Not supported"); }
+
+
+  static MediaElementAudioSourceNode internalCreateMediaElementAudioSourceNode() {
+    return new MediaElementAudioSourceNode._internalWrap();
+  }
+
+  factory MediaElementAudioSourceNode._internalWrap() {
+    return new MediaElementAudioSourceNode._internal();
+  }
+
+  MediaElementAudioSourceNode._internal() : super._internal();
+
 
   @DomName('MediaElementAudioSourceNode.mediaElement')
   @DocsEditable()
@@ -887,6 +1140,18 @@ class MediaStreamAudioDestinationNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamAudioDestinationNode._() { throw new UnsupportedError("Not supported"); }
 
+
+  static MediaStreamAudioDestinationNode internalCreateMediaStreamAudioDestinationNode() {
+    return new MediaStreamAudioDestinationNode._internalWrap();
+  }
+
+  factory MediaStreamAudioDestinationNode._internalWrap() {
+    return new MediaStreamAudioDestinationNode._internal();
+  }
+
+  MediaStreamAudioDestinationNode._internal() : super._internal();
+
+
   @DomName('MediaStreamAudioDestinationNode.stream')
   @DocsEditable()
   MediaStream get stream => wrap_jso(_blink.BlinkMediaStreamAudioDestinationNode.instance.stream_Getter_(unwrap_jso(this)));
@@ -907,6 +1172,18 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamAudioSourceNode._() { throw new UnsupportedError("Not supported"); }
 
+
+  static MediaStreamAudioSourceNode internalCreateMediaStreamAudioSourceNode() {
+    return new MediaStreamAudioSourceNode._internalWrap();
+  }
+
+  factory MediaStreamAudioSourceNode._internalWrap() {
+    return new MediaStreamAudioSourceNode._internal();
+  }
+
+  MediaStreamAudioSourceNode._internal() : super._internal();
+
+
   @DomName('MediaStreamAudioSourceNode.mediaStream')
   @DocsEditable()
   MediaStream get mediaStream => wrap_jso(_blink.BlinkMediaStreamAudioSourceNode.instance.mediaStream_Getter_(unwrap_jso(this)));
@@ -926,6 +1203,18 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
 class OfflineAudioCompletionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory OfflineAudioCompletionEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  static OfflineAudioCompletionEvent internalCreateOfflineAudioCompletionEvent() {
+    return new OfflineAudioCompletionEvent._internalWrap();
+  }
+
+  factory OfflineAudioCompletionEvent._internalWrap() {
+    return new OfflineAudioCompletionEvent._internal();
+  }
+
+  OfflineAudioCompletionEvent._internal() : super._internal();
+
 
   @DomName('OfflineAudioCompletionEvent.renderedBuffer')
   @DocsEditable()
@@ -953,6 +1242,18 @@ class OfflineAudioContext extends AudioContext {
     return _blink.BlinkOfflineAudioContext.instance.constructorCallback_3_(numberOfChannels, numberOfFrames, sampleRate);
   }
 
+
+  static OfflineAudioContext internalCreateOfflineAudioContext() {
+    return new OfflineAudioContext._internalWrap();
+  }
+
+  factory OfflineAudioContext._internalWrap() {
+    return new OfflineAudioContext._internal();
+  }
+
+  OfflineAudioContext._internal() : super._internal();
+
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -979,6 +1280,18 @@ class OscillatorNode extends AudioSourceNode {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
+
+
+  static OscillatorNode internalCreateOscillatorNode() {
+    return new OscillatorNode._internalWrap();
+  }
+
+  factory OscillatorNode._internalWrap() {
+    return new OscillatorNode._internal();
+  }
+
+  OscillatorNode._internal() : super._internal();
+
 
   @DomName('OscillatorNode.detune')
   @DocsEditable()
@@ -1048,6 +1361,18 @@ class OscillatorNode extends AudioSourceNode {
 class PannerNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory PannerNode._() { throw new UnsupportedError("Not supported"); }
+
+
+  static PannerNode internalCreatePannerNode() {
+    return new PannerNode._internalWrap();
+  }
+
+  factory PannerNode._internalWrap() {
+    return new PannerNode._internal();
+  }
+
+  PannerNode._internal() : super._internal();
+
 
   @DomName('PannerNode.coneInnerAngle')
   @DocsEditable()
@@ -1140,6 +1465,20 @@ class PeriodicWave extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PeriodicWave._() { throw new UnsupportedError("Not supported"); }
 
+  static PeriodicWave internalCreatePeriodicWave() {
+    return new PeriodicWave._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory PeriodicWave._internalWrap() {
+    return new PeriodicWave._internal();
+  }
+
+  PeriodicWave._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1166,6 +1505,18 @@ class ScriptProcessorNode extends AudioNode {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<AudioProcessingEvent> audioProcessEvent = const EventStreamProvider<AudioProcessingEvent>('audioprocess');
+
+
+  static ScriptProcessorNode internalCreateScriptProcessorNode() {
+    return new ScriptProcessorNode._internalWrap();
+  }
+
+  factory ScriptProcessorNode._internalWrap() {
+    return new ScriptProcessorNode._internal();
+  }
+
+  ScriptProcessorNode._internal() : super._internal();
+
 
   @DomName('ScriptProcessorNode.bufferSize')
   @DocsEditable()
@@ -1204,6 +1555,18 @@ class ScriptProcessorNode extends AudioNode {
 class WaveShaperNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory WaveShaperNode._() { throw new UnsupportedError("Not supported"); }
+
+
+  static WaveShaperNode internalCreateWaveShaperNode() {
+    return new WaveShaperNode._internalWrap();
+  }
+
+  factory WaveShaperNode._internalWrap() {
+    return new WaveShaperNode._internal();
+  }
+
+  WaveShaperNode._internal() : super._internal();
+
 
   @DomName('WaveShaperNode.curve')
   @DocsEditable()

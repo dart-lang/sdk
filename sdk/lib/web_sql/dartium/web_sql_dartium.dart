@@ -34,6 +34,15 @@ final web_sqlBlinkMap = {
 
 };
 
+// FIXME: Can we make this private?
+final web_sqlBlinkFunctionMap = {
+  'Database': () => SqlDatabase.internalCreateSqlDatabase,
+  'SQLError': () => SqlError.internalCreateSqlError,
+  'SQLResultSet': () => SqlResultSet.internalCreateSqlResultSet,
+  'SQLResultSetRowList': () => SqlResultSetRowList.internalCreateSqlResultSetRowList,
+  'SQLTransaction': () => SqlTransaction.internalCreateSqlTransaction,
+
+};
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -95,6 +104,20 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 class SqlDatabase extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SqlDatabase._() { throw new UnsupportedError("Not supported"); }
+
+  static SqlDatabase internalCreateSqlDatabase() {
+    return new SqlDatabase._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory SqlDatabase._internalWrap() {
+    return new SqlDatabase._internal();
+  }
+
+  SqlDatabase._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -162,6 +185,20 @@ class SqlError extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SqlError._() { throw new UnsupportedError("Not supported"); }
 
+  static SqlError internalCreateSqlError() {
+    return new SqlError._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory SqlError._internalWrap() {
+    return new SqlError._internal();
+  }
+
+  SqlError._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
   @DomName('SQLError.CONSTRAINT_ERR')
   @DocsEditable()
   static const int CONSTRAINT_ERR = 6;
@@ -218,6 +255,20 @@ class SqlResultSet extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSet._() { throw new UnsupportedError("Not supported"); }
 
+  static SqlResultSet internalCreateSqlResultSet() {
+    return new SqlResultSet._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory SqlResultSet._internalWrap() {
+    return new SqlResultSet._internal();
+  }
+
+  SqlResultSet._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+
   @DomName('SQLResultSet.insertId')
   @DocsEditable()
   int get insertId => _blink.BlinkSQLResultSet.instance.insertId_Getter_(unwrap_jso(this));
@@ -245,6 +296,20 @@ class SqlResultSet extends NativeFieldWrapperClass2 {
 class SqlResultSetRowList extends NativeFieldWrapperClass2 with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSetRowList._() { throw new UnsupportedError("Not supported"); }
+
+  static SqlResultSetRowList internalCreateSqlResultSetRowList() {
+    return new SqlResultSetRowList._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory SqlResultSetRowList._internalWrap() {
+    return new SqlResultSetRowList._internal();
+  }
+
+  SqlResultSetRowList._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('SQLResultSetRowList.length')
   @DocsEditable()
@@ -318,6 +383,20 @@ class SqlResultSetRowList extends NativeFieldWrapperClass2 with ListMixin<Map>, 
 class SqlTransaction extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SqlTransaction._() { throw new UnsupportedError("Not supported"); }
+
+  static SqlTransaction internalCreateSqlTransaction() {
+    return new SqlTransaction._internalWrap();
+  }
+
+  JsObject blink_jsObject = null;
+
+  factory SqlTransaction._internalWrap() {
+    return new SqlTransaction._internal();
+  }
+
+  SqlTransaction._internal() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable()
