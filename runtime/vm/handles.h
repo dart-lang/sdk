@@ -292,7 +292,7 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
 // The class HandleScope is used to start a new handles scope in the code.
 // It is used as follows:
 // {
-//   HANDLESCOPE(isolate);
+//   HANDLESCOPE(thread);
 //   ....
 //   .....
 //   code that creates some scoped handles.
@@ -300,10 +300,14 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
 // }
 class HandleScope : public StackResource {
  public:
+  explicit HandleScope(Thread* thread);
+  // DEPRECATED: Use Thread version.
   explicit HandleScope(Isolate* isolate);
   ~HandleScope();
 
  private:
+  void Initialize();
+
   VMHandles::HandlesBlock* saved_handle_block_;  // Handle block at prev scope.
   uword saved_handle_slot_;  // Next available handle slot at previous scope.
 #if defined(DEBUG)
@@ -313,8 +317,8 @@ class HandleScope : public StackResource {
 };
 
 // Macro to start a new Handle scope.
-#define HANDLESCOPE(isolate)                                                  \
-    dart::HandleScope vm_internal_handles_scope_(isolate);
+#define HANDLESCOPE(isolate_or_thread)                                         \
+    dart::HandleScope vm_internal_handles_scope_(isolate_or_thread);
 
 
 // The class NoHandleScope is used in critical regions of the virtual machine
@@ -323,7 +327,7 @@ class HandleScope : public StackResource {
 // during this critical area.
 // It is used as follows:
 // {
-//   NOHANDLESCOPE(isolate);
+//   NOHANDLESCOPE(thread);
 //   ....
 //   .....
 //   critical code that manipulates dart objects directly.
@@ -332,6 +336,8 @@ class HandleScope : public StackResource {
 #if defined(DEBUG)
 class NoHandleScope : public StackResource {
  public:
+  explicit NoHandleScope(Thread* thread);
+  // DEPRECATED: Use Thread version.
   explicit NoHandleScope(Isolate* isolate);
   NoHandleScope();
   ~NoHandleScope();
@@ -342,6 +348,7 @@ class NoHandleScope : public StackResource {
 #else  // defined(DEBUG)
 class NoHandleScope : public ValueObject {
  public:
+  explicit NoHandleScope(Thread* thread) { }
   explicit NoHandleScope(Isolate* isolate) { }
   NoHandleScope() { }
   ~NoHandleScope() { }
@@ -352,8 +359,8 @@ class NoHandleScope : public ValueObject {
 #endif  // defined(DEBUG)
 
 // Macro to start a no handles scope in the code.
-#define NOHANDLESCOPE(isolate)                                                 \
-    dart::NoHandleScope no_vm_internal_handles_scope_(isolate);
+#define NOHANDLESCOPE(isolate_or_thread)                                       \
+    dart::NoHandleScope no_vm_internal_handles_scope_(isolate_or_thread);
 
 }  // namespace dart
 

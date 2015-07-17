@@ -26,42 +26,6 @@ class BaseIsolate {
   void AssertCurrentThreadIsMutator() const {}
 #endif  // DEBUG
 
-  HandleScope* top_handle_scope() const {
-#if defined(DEBUG)
-    return top_handle_scope_;
-#else
-    return 0;
-#endif
-  }
-
-  void set_top_handle_scope(HandleScope* handle_scope) {
-#if defined(DEBUG)
-    top_handle_scope_ = handle_scope;
-#endif
-  }
-
-  int32_t no_handle_scope_depth() const {
-#if defined(DEBUG)
-    return no_handle_scope_depth_;
-#else
-    return 0;
-#endif
-  }
-
-  void IncrementNoHandleScopeDepth() {
-#if defined(DEBUG)
-    ASSERT(no_handle_scope_depth_ < INT_MAX);
-    no_handle_scope_depth_ += 1;
-#endif
-  }
-
-  void DecrementNoHandleScopeDepth() {
-#if defined(DEBUG)
-    ASSERT(no_handle_scope_depth_ > 0);
-    no_handle_scope_depth_ -= 1;
-#endif
-  }
-
   int32_t no_safepoint_scope_depth() const {
 #if defined(DEBUG)
     return no_safepoint_scope_depth_;
@@ -106,8 +70,6 @@ class BaseIsolate {
   BaseIsolate()
       : mutator_thread_(NULL),
 #if defined(DEBUG)
-        top_handle_scope_(NULL),
-        no_handle_scope_depth_(0),
         no_safepoint_scope_depth_(0),
 #endif
         no_callback_scope_depth_(0)
@@ -119,8 +81,6 @@ class BaseIsolate {
 
   Thread* mutator_thread_;
 #if defined(DEBUG)
-  HandleScope* top_handle_scope_;
-  int32_t no_handle_scope_depth_;
   int32_t no_safepoint_scope_depth_;
 #endif
   int32_t no_callback_scope_depth_;

@@ -12,6 +12,7 @@
 namespace dart {
 
 class CHA;
+class HandleScope;
 class Isolate;
 class Object;
 class RawBool;
@@ -116,12 +117,52 @@ class Thread {
     return OFFSET_OF(Thread, state_) + OFFSET_OF(State, top_resource);
   }
 
+  int32_t no_handle_scope_depth() const {
+#if defined(DEBUG)
+    return state_.no_handle_scope_depth;
+#else
+    return 0;
+#endif
+  }
+
+  void IncrementNoHandleScopeDepth() {
+#if defined(DEBUG)
+    ASSERT(state_.no_handle_scope_depth < INT_MAX);
+    state_.no_handle_scope_depth += 1;
+#endif
+  }
+
+  void DecrementNoHandleScopeDepth() {
+#if defined(DEBUG)
+    ASSERT(state_.no_handle_scope_depth > 0);
+    state_.no_handle_scope_depth -= 1;
+#endif
+  }
+
+  HandleScope* top_handle_scope() const {
+#if defined(DEBUG)
+    return state_.top_handle_scope;
+#else
+    return 0;
+#endif
+  }
+
+  void set_top_handle_scope(HandleScope* handle_scope) {
+#if defined(DEBUG)
+    state_.top_handle_scope = handle_scope;
+#endif
+  }
+
   // Collection of isolate-specific state of a thread that is saved/restored
   // on isolate exit/re-entry.
   struct State {
     Zone* zone;
     uword top_exit_frame_info;
     StackResource* top_resource;
+#if defined(DEBUG)
+    HandleScope* top_handle_scope;
+    intptr_t no_handle_scope_depth;
+#endif
   };
 
 #define DEFINE_OFFSET_METHOD(type_name, member_name, expr, default_init_value) \

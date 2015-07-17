@@ -117,9 +117,11 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
   virtual void Run() {
     Thread::EnterIsolateAsHelper(isolate_);
     {
+      Thread* thread = Thread::Current();
       // Create a zone (which is also a stack resource) and exercise it a bit.
-      StackZone stack_zone(Thread::Current());
-      Zone* zone = Thread::Current()->zone();
+      StackZone stack_zone(thread);
+      HANDLESCOPE(thread);
+      Zone* zone = thread->zone();
       EXPECT_EQ(zone, stack_zone.GetZone());
       ZoneGrowableArray<bool>* a0 = new(zone) ZoneGrowableArray<bool>(zone, 1);
       GrowableArray<bool> a1(zone, 1);
