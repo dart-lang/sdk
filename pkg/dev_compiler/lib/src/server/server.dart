@@ -57,11 +57,12 @@ class ServerCompiler extends AbstractCompiler {
     var graph = new SourceGraph(context, reporter, options);
     var entryNode = graph.nodeFromUri(inputUri);
 
-    return new ServerCompiler._(options, context, reporter, entryNode);
+    return new ServerCompiler._(context, options, reporter, entryNode);
   }
 
-  ServerCompiler._(context, options, reporter, this._entryNode)
-      : super(options, context, reporter) {
+  ServerCompiler._(AnalysisContext context, CompilerOptions options,
+      AnalysisErrorListener reporter, this._entryNode)
+      : super(context, options, reporter) {
     if (outputDir != null) {
       _generators.add(new JSGenerator(this));
     }

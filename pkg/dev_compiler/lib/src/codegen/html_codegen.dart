@@ -80,12 +80,15 @@ String generateEntryHtml(HtmlSourceNode root, AbstractCompiler compiler) {
   }
 
   String mainLibraryName;
+  var src = scripts[0].attributes["src"];
+  var scriptUri = root.source.resolveRelativeUri(Uri.parse(src));
+
   for (var lib in libraries) {
     var info = lib.info;
     if (info == null) continue;
     var uri = info.library.source.uri;
     var jsPath = compiler.getModulePath(uri);
-    if (info.isEntry) mainLibraryName = compiler.getModuleName(uri);
+    if (uri == scriptUri) mainLibraryName = compiler.getModuleName(uri);
     if (lib.cachingHash != null) {
       jsPath = _addHash(jsPath, lib.cachingHash);
     }
