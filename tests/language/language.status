@@ -96,3 +96,7 @@ gc_test: SkipSlow # Times out flakily. Issue 20956
 
 [ $compiler == none && $runtime == vm && ( $arch == simarm || $arch == arm || $arch == simarmv5te || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
+
+[ $compiler == none && $runtime == dartium ]
+mixin_super_test: Fail # Can't pass VMOptions to dartium.
+mixin_super_bound2_test: Fail # Can't pass VMOptions to dartium.
