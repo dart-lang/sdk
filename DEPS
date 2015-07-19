@@ -180,7 +180,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/args":
       (Var("github_mirror") % "args") + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/async":
-      "https://github.com/dart-lang/async.git" + Var("async_tag"),
+      (Var("github_mirror") % "async") + Var("async_tag"),
   Var("dart_root") + "/third_party/pkg/barback":
       (Var("github_mirror") % "barback") + Var("barback_rev"),
   Var("dart_root") + "/third_party/pkg/charcode":
@@ -239,7 +239,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/observe":
       (Var("github_mirror") % "observe") + Var("observe_rev"),
   Var("dart_root") + "/third_party/observatory_pub_packages":
-      "https://github.com/dart-lang/observatory_pub_packages.git"
+     (Var("github_mirror") % "observatory_pub_packages") 
       + Var("observatory_pub_packages_rev"),
   Var("dart_root") + "/third_party/pkg/package_config":
       (Var("github_mirror") % "package_config") +
@@ -253,7 +253,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/pub_semver":
       (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
   Var("dart_root") + "/third_party/pkg/pub":
-      ("https://github.com/dart-lang/pub.git") + Var("pub_rev"),
+      (Var("github_mirror") % "pub") + Var("pub_rev"),
   Var("dart_root") + "/third_party/pkg/pub_cache":  
       (Var("github_mirror") % "pub_cache") + Var("pub_cache_tag"),
   Var("dart_root") + "/third_party/pkg/quiver": 
@@ -278,7 +278,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/source_span":
       (Var("github_mirror") % "source_span") + Var("source_span_tag"),
   Var("dart_root") + "/third_party/pkg/source_map_stack_trace":
-      "https://github.com/dart-lang/source_map_stack_trace.git" +
+      (Var("github_mirror") % "source_map_stack_trace") +
       Var("source_map_stack_trace_tag"),
   Var("dart_root") + "/third_party/pkg/stack_trace":
       (Var("github_mirror") % "stack_trace") + Var("stack_trace_tag"),
