@@ -35,6 +35,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:package_config/packages.dart';
 import 'package:plugin/plugin.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
@@ -1362,12 +1363,12 @@ class ServerContextManager extends AbstractContextManager {
       _onContextsChangedController.stream;
 
   @override
-  AnalysisContext addContext(Folder folder, UriResolver packageUriResolver) {
+  AnalysisContext addContext(Folder folder, UriResolver packageUriResolver, Packages packages) {
     InternalAnalysisContext context =
         AnalysisEngine.instance.createAnalysisContext();
     context.contentCache = analysisServer.overlayState;
     analysisServer.folderMap[folder] = context;
-    context.sourceFactory = _createSourceFactory(packageUriResolver);
+    context.sourceFactory = _createSourceFactory(packageUriResolver, packages);
     context.analysisOptions = new AnalysisOptionsImpl.from(defaultOptions);
     _onContextsChangedController
         .add(new ContextsChangedEvent(added: [context]));
@@ -1440,9 +1441,9 @@ class ServerContextManager extends AbstractContextManager {
 
   @override
   void updateContextPackageUriResolver(
-      Folder contextFolder, UriResolver packageUriResolver) {
+      Folder contextFolder, UriResolver packageUriResolver, Packages packages) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
-    context.sourceFactory = _createSourceFactory(packageUriResolver);
+    context.sourceFactory = _createSourceFactory(packageUriResolver, packages);
     _onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
@@ -1458,9 +1459,9 @@ class ServerContextManager extends AbstractContextManager {
 
   /**
    * Set up a [SourceFactory] that resolves packages using the given
-   * [packageUriResolver].
+   * [packageUriResolver] and [packages] resolution strategy.
    */
-  SourceFactory _createSourceFactory(UriResolver packageUriResolver) {
+  SourceFactory _createSourceFactory(UriResolver packageUriResolver, Packages packages) {
     UriResolver dartResolver = new DartUriResolver(analysisServer.defaultSdk);
     UriResolver resourceResolver = new ResourceUriResolver(resourceProvider);
     List<UriResolver> resolvers = [];
@@ -1474,7 +1475,7 @@ class ServerContextManager extends AbstractContextManager {
       resolvers.add(packageUriResolver);
     }
     resolvers.add(resourceResolver);
-    return new SourceFactory(resolvers);
+    return new SourceFactory(resolvers, packages);
   }
 }
 

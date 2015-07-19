@@ -16,6 +16,7 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:package_config/packages.dart';
 import 'package:path/path.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
@@ -86,6 +87,11 @@ class AbstractContextManagerTest {
     manager = new TestContextManager(
         resourceProvider, providePackageResolver, packageMapProvider);
     resourceProvider.newFolder(projPath);
+    AbstractContextManager.ENABLE_PACKAGESPEC_SUPPORT = true;
+  }
+
+  void tearDown() {
+    AbstractContextManager.ENABLE_PACKAGESPEC_SUPPORT = false;
   }
 
   test_ignoreFilesInPackagesFolder() {
@@ -127,6 +133,47 @@ class AbstractContextManagerTest {
   void test_isInAnalysisRoot_notInRoot() {
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(manager.isInAnalysisRoot('/test.dart'), isFalse);
+  }
+
+  test_refresh_folder_with_packagespec() {
+    // create a context with a .packages file
+    String packagespecFile = posix.join(projPath, '.packages');
+    resourceProvider.newFile(packagespecFile, '');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    return pumpEventQueue().then((_) {
+      expect(manager.currentContextPaths.toList(), [projPath]);
+      manager.now++;
+      manager.refresh(null);
+      return pumpEventQueue().then((_) {
+        expect(manager.currentContextPaths.toList(), [projPath]);
+        expect(manager.currentContextTimestamps[projPath], manager.now);
+      });
+    });
+  }
+
+  test_refresh_folder_with_packagespec_subfolders() {
+    // Create a folder with no .packages file, containing two subfolders with
+    // .packages files.
+    String subdir1Path = posix.join(projPath, 'subdir1');
+    String subdir2Path = posix.join(projPath, 'subdir2');
+    String packagespec1Path = posix.join(subdir1Path, '.packages');
+    String packagespec2Path = posix.join(subdir2Path, '.packages');
+    resourceProvider.newFile(packagespec1Path, '');
+    resourceProvider.newFile(packagespec2Path, '');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    return pumpEventQueue().then((_) {
+      expect(manager.currentContextPaths.toSet(),
+          [subdir1Path, subdir2Path, projPath].toSet());
+      manager.now++;
+      manager.refresh(null);
+      return pumpEventQueue().then((_) {
+        expect(manager.currentContextPaths.toSet(),
+            [subdir1Path, subdir2Path, projPath].toSet());
+        expect(manager.currentContextTimestamps[projPath], manager.now);
+        expect(manager.currentContextTimestamps[subdir1Path], manager.now);
+        expect(manager.currentContextTimestamps[subdir2Path], manager.now);
+      });
+    });
   }
 
   test_refresh_folder_with_pubspec() {
@@ -176,8 +223,8 @@ class AbstractContextManagerTest {
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(manager.currentContextFilePaths[projPath], isEmpty);
     // Set ignore patterns for context.
-    manager.setIgnorePatternsForContext(root,
-                                        ['sdk_ext/**', 'lib/ignoreme.dart']);
+    manager.setIgnorePatternsForContext(
+        root, ['sdk_ext/**', 'lib/ignoreme.dart']);
     // Start creating files.
     newFile([projPath, AbstractContextManager.PUBSPEC_NAME]);
     String libPath = newFolder([projPath, LIB_NAME]);
@@ -285,6 +332,34 @@ analyzer:
     expect(filePaths, isEmpty);
   }
 
+  void test_setRoots_addFolderWithNestedPackageSpec() {
+    String examplePath = newFolder([projPath, EXAMPLE_NAME]);
+    String libPath = newFolder([projPath, LIB_NAME]);
+
+    newFile([projPath, AbstractContextManager.PACKAGE_SPEC_NAME]);
+    newFile([libPath, 'main.dart']);
+    newFile([examplePath, AbstractContextManager.PACKAGE_SPEC_NAME]);
+    newFile([examplePath, 'example.dart']);
+
+    packageMapProvider.packageMap['proj'] =
+        [resourceProvider.getResource(libPath)];
+
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+
+    expect(manager.currentContextPaths, hasLength(2));
+
+    expect(manager.currentContextPaths, contains(projPath));
+    Set<Source> projSources = manager.currentContextSources[projPath];
+    expect(projSources, hasLength(1));
+    expect(projSources.first.uri.toString(), 'file:///my/proj/lib/main.dart');
+
+    expect(manager.currentContextPaths, contains(examplePath));
+    Set<Source> exampleSources = manager.currentContextSources[examplePath];
+    expect(exampleSources, hasLength(1));
+    expect(exampleSources.first.uri.toString(),
+        'file:///my/proj/example/example.dart');
+  }
+
   void test_setRoots_addFolderWithNestedPubspec() {
     String examplePath = newFolder([projPath, EXAMPLE_NAME]);
     String libPath = newFolder([projPath, LIB_NAME]);
@@ -322,6 +397,31 @@ analyzer:
     expect(manager.currentContextFilePaths[projPath], hasLength(0));
   }
 
+  void test_setRoots_addFolderWithPackagespec() {
+    String packagespecPath = posix.join(projPath, '.packages');
+    resourceProvider.newFile(packagespecPath,
+        'unittest:file:///home/somebody/.pub/cache/unittest-0.9.9/lib/');
+    String libPath = newFolder([projPath, LIB_NAME]);
+    File mainFile =
+        resourceProvider.newFile(posix.join(libPath, 'main.dart'), '');
+    Source source = mainFile.createSource();
+
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+
+    // verify
+    expect(manager.currentContextPaths, hasLength(1));
+    expect(manager.currentContextPaths, contains(projPath));
+    expect(manager.currentContextFilePaths[projPath], hasLength(1));
+
+    // smoketest resolution
+    SourceFactory sourceFactory = manager.currentContext.sourceFactory;
+    Source resolvedSource =
+        sourceFactory.resolveUri(source, 'package:unittest/unittest.dart');
+    expect(resolvedSource, isNotNull);
+    expect(resolvedSource.fullName,
+        equals('/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart'));
+  }
+
   void test_setRoots_addFolderWithPubspec() {
     String pubspecPath = posix.join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
@@ -330,6 +430,16 @@ analyzer:
     expect(manager.currentContextPaths, hasLength(1));
     expect(manager.currentContextPaths, contains(projPath));
     expect(manager.currentContextFilePaths[projPath], hasLength(0));
+  }
+
+  void test_setRoots_addFolderWithPubspec_andPackagespec() {
+    String pubspecPath = posix.join(projPath, 'pubspec.yaml');
+    String packagespecPath = posix.join(projPath, '.packages');
+    resourceProvider.newFile(pubspecPath, 'pubspec');
+    resourceProvider.newFile(packagespecPath, '');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // verify
+    manager.assertContextPaths([projPath]);
   }
 
   void test_setRoots_addFolderWithPubspecAndLib() {
@@ -359,6 +469,33 @@ analyzer:
     expect(uris, contains('package:proj/main.dart'));
     expect(uris, contains('package:proj/src/internal.dart'));
     expect(uris, contains('file://$testFilePath'));
+  }
+
+  void test_setRoots_addFolderWithPubspecAndPackagespecFolders() {
+    // prepare paths
+    String root = '/root';
+    String rootFile = '$root/root.dart';
+    String subProjectA = '$root/sub/aaa';
+    String subProjectB = '$root/sub/sub2/bbb';
+    String subProjectA_file = '$subProjectA/bin/a.dart';
+    String subProjectB_file = '$subProjectB/bin/b.dart';
+    // create files
+    resourceProvider.newFile('$subProjectA/pubspec.yaml', 'pubspec');
+    resourceProvider.newFile('$subProjectB/pubspec.yaml', 'pubspec');
+    resourceProvider.newFile('$subProjectA/.packages', '');
+    resourceProvider.newFile('$subProjectB/.packages', '');
+
+    resourceProvider.newFile(rootFile, 'library root;');
+    resourceProvider.newFile(subProjectA_file, 'library a;');
+    resourceProvider.newFile(subProjectB_file, 'library b;');
+
+    // set roots
+    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.assertContextPaths([root, subProjectA, subProjectB]);
+    // verify files
+    manager.assertContextFiles(root, [rootFile]);
+    manager.assertContextFiles(subProjectA, [subProjectA_file]);
+    manager.assertContextFiles(subProjectB, [subProjectB_file]);
   }
 
   void test_setRoots_addFolderWithPubspecFolders() {
@@ -593,6 +730,53 @@ analyzer:
     expect(manager.currentContextFilePaths, hasLength(0));
   }
 
+  void test_setRoots_removeFolderWithPackagespec() {
+    // create a pubspec
+    String pubspecPath = posix.join(projPath, '.packages');
+    resourceProvider.newFile(pubspecPath, '');
+    // add one root - there is a context
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    expect(manager.currentContextPaths, hasLength(1));
+    // set empty roots - no contexts
+    manager.setRoots(<String>[], <String>[], <String, String>{});
+    expect(manager.currentContextPaths, hasLength(0));
+    expect(manager.currentContextFilePaths, hasLength(0));
+  }
+
+  void test_setRoots_removeFolderWithPackagespecFolder() {
+    // prepare paths
+    String projectA = '/projectA';
+    String projectB = '/projectB';
+    String subProjectA = '$projectA/sub';
+    String subProjectB = '$projectB/sub';
+    String projectA_file = '$projectA/a.dart';
+    String projectB_file = '$projectB/a.dart';
+    String subProjectA_pubspec = '$subProjectA/.packages';
+    String subProjectB_pubspec = '$subProjectB/.packages';
+    String subProjectA_file = '$subProjectA/bin/sub_a.dart';
+    String subProjectB_file = '$subProjectB/bin/sub_b.dart';
+    // create files
+    resourceProvider.newFile(projectA_file, '// a');
+    resourceProvider.newFile(projectB_file, '// b');
+    resourceProvider.newFile(subProjectA_pubspec, '');
+    resourceProvider.newFile(subProjectB_pubspec, '');
+    resourceProvider.newFile(subProjectA_file, '// sub-a');
+    resourceProvider.newFile(subProjectB_file, '// sub-b');
+    // set roots
+    manager.setRoots(
+        <String>[projectA, projectB], <String>[], <String, String>{});
+    manager.assertContextPaths([projectA, subProjectA, projectB, subProjectB]);
+    manager.assertContextFiles(projectA, [projectA_file]);
+    manager.assertContextFiles(projectB, [projectB_file]);
+    manager.assertContextFiles(subProjectA, [subProjectA_file]);
+    manager.assertContextFiles(subProjectB, [subProjectB_file]);
+    // remove "projectB"
+    manager.setRoots(<String>[projectA], <String>[], <String, String>{});
+    manager.assertContextPaths([projectA, subProjectA]);
+    manager.assertContextFiles(projectA, [projectA_file]);
+    manager.assertContextFiles(subProjectA, [subProjectA_file]);
+  }
+
   void test_setRoots_removeFolderWithPubspec() {
     // create a pubspec
     String pubspecPath = posix.join(projPath, 'pubspec.yaml');
@@ -720,6 +904,107 @@ analyzer:
     });
   }
 
+  test_watch_addPackagespec_toRoot() {
+    // prepare paths
+    String root = '/root';
+    String rootFile = '$root/root.dart';
+    String rootPackagespec = '$root/.packages';
+    // create files
+    resourceProvider.newFile(rootFile, 'library root;');
+    // set roots
+    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.assertContextPaths([root]);
+    // verify files
+    manager.assertContextFiles(root, [rootFile]);
+    // add packagespec - still just one root
+    resourceProvider.newFile(rootPackagespec, '');
+    return pumpEventQueue().then((_) {
+      manager.assertContextPaths([root]);
+      manager.assertContextFiles(root, [rootFile]);
+      // TODO(pquitslund): verify that a new source factory is created --
+      // likely this will need to happen in a corresponding ServerContextManagerTest.
+    });
+  }
+
+  test_watch_addPackagespec_toSubFolder() {
+    // prepare paths
+    String root = '/root';
+    String rootFile = '$root/root.dart';
+    String subProject = '$root/sub/aaa';
+    String subPubspec = '$subProject/.packages';
+    String subFile = '$subProject/bin/a.dart';
+    // create files
+    resourceProvider.newFile(rootFile, 'library root;');
+    resourceProvider.newFile(subFile, 'library a;');
+    // set roots
+    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.assertContextPaths([root]);
+    // verify files
+    manager.assertContextFiles(root, [rootFile, subFile]);
+    // add .packages
+    resourceProvider.newFile(subPubspec, '');
+    return pumpEventQueue().then((_) {
+      manager.assertContextPaths([root, subProject]);
+      manager.assertContextFiles(root, [rootFile]);
+      manager.assertContextFiles(subProject, [subFile]);
+    });
+  }
+
+  test_watch_addPackagespec_toSubFolder_ofSubFolder() {
+    // prepare paths
+    String root = '/root';
+    String rootFile = '$root/root.dart';
+    String subProject = '$root/sub';
+    String subPubspec = '$subProject/.packages';
+    String subFile = '$subProject/bin/sub.dart';
+    String subSubPubspec = '$subProject/subsub/.packages';
+    // create files
+    resourceProvider.newFile(rootFile, 'library root;');
+    resourceProvider.newFile(subPubspec, '');
+    resourceProvider.newFile(subFile, 'library sub;');
+    // set roots
+    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.assertContextPaths([root, subProject]);
+    manager.assertContextFiles(root, [rootFile]);
+    manager.assertContextFiles(subProject, [subFile]);
+    // add pubspec - ignore, because is already in a packagespec-based context
+    resourceProvider.newFile(subSubPubspec, '');
+    return pumpEventQueue().then((_) {
+      manager.assertContextPaths([root, subProject]);
+      manager.assertContextFiles(root, [rootFile]);
+      manager.assertContextFiles(subProject, [subFile]);
+    });
+  }
+
+  test_watch_addPackagespec_toSubFolder_withPubspec() {
+    // prepare paths
+    String root = '/root';
+    String rootFile = '$root/root.dart';
+    String subProject = '$root/sub/aaa';
+    String subPackagespec = '$subProject/.packages';
+    String subPubspec = '$subProject/pubspec.yaml';
+    String subFile = '$subProject/bin/a.dart';
+    // create files
+    resourceProvider.newFile(subPubspec, 'pubspec');
+    resourceProvider.newFile(rootFile, 'library root;');
+    resourceProvider.newFile(subFile, 'library a;');
+    // set roots
+    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.assertContextPaths([root, subProject]);
+    // verify files
+    manager.assertContextFiles(root, [rootFile]);
+    manager.assertContextFiles(subProject, [subFile]);
+
+    // add .packages
+    resourceProvider.newFile(subPackagespec, '');
+    return pumpEventQueue().then((_) {
+      // Should NOT create another context.
+      manager.assertContextPaths([root, subProject]);
+      manager.assertContextFiles(root, [rootFile]);
+      manager.assertContextFiles(subProject, [subFile]);
+    });
+  }
+
   test_watch_addPubspec_toRoot() {
     // prepare paths
     String root = '/root';
@@ -829,6 +1114,79 @@ analyzer:
       expect(file.exists, isFalse);
       expect(projFolder.exists, isFalse);
       return expect(filePaths, hasLength(0));
+    });
+  }
+
+  test_watch_deletePackagespec_fromRoot() {
+    // prepare paths
+    String root = '/root';
+    String rootPubspec = '$root/.packages';
+    String rootFile = '$root/root.dart';
+    // create files
+    resourceProvider.newFile(rootPubspec, '');
+    resourceProvider.newFile(rootFile, 'library root;');
+    // set roots
+    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.assertContextPaths([root]);
+    manager.assertContextFiles(root, [rootFile]);
+    // delete the pubspec
+    resourceProvider.deleteFile(rootPubspec);
+    return pumpEventQueue().then((_) {
+      manager.assertContextPaths([root]);
+      manager.assertContextFiles(root, [rootFile]);
+    });
+  }
+
+  test_watch_deletePackagespec_fromSubFolder() {
+    // prepare paths
+    String root = '/root';
+    String rootFile = '$root/root.dart';
+    String subProject = '$root/sub/aaa';
+    String subPubspec = '$subProject/.packages';
+    String subFile = '$subProject/bin/a.dart';
+    // create files
+    resourceProvider.newFile(subPubspec, '');
+    resourceProvider.newFile(rootFile, 'library root;');
+    resourceProvider.newFile(subFile, 'library a;');
+    // set roots
+    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.assertContextPaths([root, subProject]);
+    // verify files
+    manager.assertContextFiles(root, [rootFile]);
+    manager.assertContextFiles(subProject, [subFile]);
+    // delete the pubspec
+    resourceProvider.deleteFile(subPubspec);
+    return pumpEventQueue().then((_) {
+      manager.assertContextPaths([root]);
+      manager.assertContextFiles(root, [rootFile, subFile]);
+    });
+  }
+
+  test_watch_deletePackagespec_fromSubFolder_withPubspec() {
+    // prepare paths
+    String root = '/root';
+    String rootFile = '$root/root.dart';
+    String subProject = '$root/sub/aaa';
+    String subPackagespec = '$subProject/.packages';
+    String subPubspec = '$subProject/pubspec.yaml';
+    String subFile = '$subProject/bin/a.dart';
+    // create files
+    resourceProvider.newFile(subPackagespec, '');
+    resourceProvider.newFile(subPubspec, 'pubspec');
+    resourceProvider.newFile(rootFile, 'library root;');
+    resourceProvider.newFile(subFile, 'library a;');
+    // set roots
+    manager.setRoots(<String>[root], <String>[], <String, String>{});
+    manager.assertContextPaths([root, subProject]);
+    // verify files
+    manager.assertContextFiles(root, [rootFile]);
+    manager.assertContextFiles(subProject, [subFile]);
+    // delete the packagespec
+    resourceProvider.deleteFile(subPackagespec);
+    return pumpEventQueue().then((_) {
+      // Should NOT merge
+      manager.assertContextPaths([root, subProject]);
+      manager.assertContextFiles(subProject, [subFile]);
     });
   }
 
@@ -1008,6 +1366,31 @@ analyzer:
     expect(packageMapProvider.computeCount, 2);
   }
 
+  test_watch_modifyPackagespec() {
+    String packagesPath = '$projPath/.packages';
+    String filePath = '$projPath/bin/main.dart';
+
+    resourceProvider.newFile(packagesPath, '');
+    resourceProvider.newFile(filePath, 'library main;');
+
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+
+    Map<String, int> filePaths = manager.currentContextFilePaths[projPath];
+    expect(filePaths, hasLength(1));
+    expect(filePaths, contains(filePath));
+    Packages packages = manager.currentContextPackagespecs[projPath];
+    expect(packages.packages, isEmpty);
+
+    // update .packages
+    manager.now++;
+    resourceProvider.modifyFile(packagesPath, 'main:./lib/');
+    return pumpEventQueue().then((_) {
+      // verify new package info
+      packages = manager.currentContextPackagespecs[projPath];
+      expect(packages.packages, unorderedEquals(['main']));
+    });
+  }
+
   /**
    * Verify that package URI's for source files in [path] will be resolved
    * using a package map matching [expectation].
@@ -1066,6 +1449,11 @@ class TestContextManager extends AbstractContextManager {
   final Map<String, UriResolver> currentContextPackageUriResolvers =
       <String, UriResolver>{};
 
+  /**
+   * Map from context to packages object.
+   */
+  final Map<String, Packages> currentContextPackagespecs = <String, Packages>{};
+
   TestContextManager(MemoryResourceProvider resourceProvider,
       ResolverProvider packageResolverProvider,
       OptimizingPubPackageMapProvider packageMapProvider)
@@ -1078,16 +1466,21 @@ class TestContextManager extends AbstractContextManager {
   Iterable<String> get currentContextPaths => currentContextTimestamps.keys;
 
   @override
-  AnalysisContext addContext(Folder folder, UriResolver packageUriResolver) {
+  AnalysisContext addContext(
+      Folder folder, UriResolver packageUriResolver, Packages packages) {
     String path = folder.path;
     expect(currentContextPaths, isNot(contains(path)));
     currentContextTimestamps[path] = now;
     currentContextFilePaths[path] = <String, int>{};
     currentContextSources[path] = new HashSet<Source>();
     currentContextPackageUriResolvers[path] = packageUriResolver;
+    currentContextPackagespecs[path] = packages;
     currentContext = AnalysisEngine.instance.createAnalysisContext();
-    currentContext.sourceFactory = new SourceFactory(
-        packageUriResolver == null ? [] : [packageUriResolver]);
+    List<UriResolver> resolvers = [new FileUriResolver()];
+    if (packageUriResolver != null) {
+      resolvers.add(packageUriResolver);
+    }
+    currentContext.sourceFactory = new SourceFactory(resolvers, packages);
     return currentContext;
   }
 
@@ -1149,8 +1542,9 @@ class TestContextManager extends AbstractContextManager {
 
   @override
   void updateContextPackageUriResolver(
-      Folder contextFolder, UriResolver packageUriResolver) {
+      Folder contextFolder, UriResolver packageUriResolver, Packages packages) {
     currentContextPackageUriResolvers[contextFolder.path] = packageUriResolver;
+    currentContextPackagespecs[contextFolder.path] = packages;
   }
 }
 
