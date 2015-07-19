@@ -102,7 +102,7 @@ class CodeGenerator {
   }
 
   /**
-   * Execute [callback], indenting any code it outputs by two spaces.
+   * Execute [callback], indenting any code it outputs.
    */
   void indent(void callback()) {
     indentSpecial(codeGeneratorSettings.indent, codeGeneratorSettings.indent,
