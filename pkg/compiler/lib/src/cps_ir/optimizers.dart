@@ -12,6 +12,7 @@ export 'redundant_phi.dart' show RedundantPhiEliminator;
 export 'redundant_join.dart' show RedundantJoinEliminator;
 export 'shrinking_reductions.dart' show ShrinkingReducer, ParentVisitor;
 export 'mutable_ssa.dart' show MutableVariableEliminator;
+export 'let_sinking.dart' show LetSinker;
 
 /// An optimization pass over the CPS IR.
 abstract class Pass {

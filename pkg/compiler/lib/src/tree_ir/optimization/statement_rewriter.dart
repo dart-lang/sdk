@@ -165,7 +165,7 @@ class StatementRewriter extends Transformer implements Pass {
 
   /// Binding environment for variables that are assigned to effectively
   /// constant expressions (see [isEffectivelyConstant]).
-  final Map<Variable, Expression> constantEnvironment;
+  Map<Variable, Expression> constantEnvironment;
 
   /// Substitution map for labels. Any break to a label L should be substituted
   /// for a break to L' if L maps to L'.
@@ -209,10 +209,13 @@ class StatementRewriter extends Transformer implements Pass {
 
   void inEmptyEnvironment(void action()) {
     List oldEnvironment = environment;
+    Map oldConstantEnvironment = constantEnvironment;
     environment = <Expression>[];
+    constantEnvironment = <Variable, Expression>{};
     action();
     assert(environment.isEmpty);
     environment = oldEnvironment;
+    constantEnvironment = oldConstantEnvironment;
   }
 
   /// Left-hand side of the given assignment, or `null` if not an assignment.
@@ -352,6 +355,7 @@ class StatementRewriter extends Transformer implements Pass {
            exp is This ||
            exp is CreateInvocationMirror ||
            exp is GetStatic && exp.element.isFunction ||
+           exp is GetField && exp.objectIsNotNull && exp.field.isFinal ||
            exp is Interceptor ||
            exp is ApplyBuiltinOperator ||
            exp is VariableUse && constantEnvironment.containsKey(exp.variable);

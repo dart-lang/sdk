@@ -67,7 +67,7 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 16407_test: Pass # Please triage this failure.
 22868_test: Crash # (main()async{var clo...  cannot handle async/sync*/async* functions
 22895_test: Crash # (main()async{var clo...  cannot handle async/sync*/async* functions
-23432_test: RuntimeError # Please triage this failure.
+23432_test: RuntimeError, Pass # Please triage this failure. (Passes for the wrong reason)
 async_stacktrace_test/asyncStar: Crash # (runTests()async{awa...  cannot handle async/sync*/async* functions
 async_stacktrace_test/none: Crash # (runTests()async{awa...  cannot handle async/sync*/async* functions
 closure_capture5_test: Crash # (i=0): For-loop variable captured in loop header

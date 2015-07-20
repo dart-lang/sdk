@@ -118,6 +118,10 @@ class CpsFunctionCompiler implements FunctionCompiler {
       }
     }
     traceGraph("IR Builder", cpsNode);
+    // Eliminating redundant phis before the unsugaring pass will make it
+    // insert fewer getInterceptor calls.
+    new RedundantPhiEliminator().rewrite(cpsNode);
+    traceGraph("Redundant phi elimination", cpsNode);
     new UnsugarVisitor(glue).rewrite(cpsNode);
     traceGraph("Unsugaring", cpsNode);
     return cpsNode;
@@ -169,7 +173,6 @@ class CpsFunctionCompiler implements FunctionCompiler {
       assert(checkCpsIntegrity(cpsNode));
     }
 
-    applyCpsPass(new RedundantPhiEliminator());
     TypePropagator typePropagator = new TypePropagator(compiler);
     applyCpsPass(typePropagator);
     dumpTypedIR(cpsNode, typePropagator);
@@ -178,6 +181,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
     applyCpsPass(new RedundantJoinEliminator());
     applyCpsPass(new RedundantPhiEliminator());
     applyCpsPass(new ShrinkingReducer());
+    applyCpsPass(new LetSinker());
 
     return cpsNode;
   }

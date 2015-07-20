@@ -110,7 +110,13 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitLetCont(cps_ir.LetCont node) {
     if (IR_TRACE_LET_CONT) {
       String dummy = names.name(node);
-      String ids = node.continuations.map(names.name).join(', ');
+
+      String nameContinuation(cps_ir.Continuation cont) {
+        String name = names.name(cont);
+        return cont.isRecursive ? '$name*' : name;
+      }
+      
+      String ids = node.continuations.map(nameContinuation).join(', ');
       printStmt(dummy, "LetCont $ids");
     }
     visit(node.body);

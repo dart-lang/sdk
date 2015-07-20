@@ -263,7 +263,7 @@ class Builder implements cps_ir.Visitor<Node> {
                         node.field,
                         getVariableUse(node.value));
   }
-
+  
   Expression visitInterceptor(cps_ir.Interceptor node) {
     return new Interceptor(getVariableUse(node.input), node.interceptedClasses);
   }
@@ -277,7 +277,8 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Expression visitGetField(cps_ir.GetField node) {
-    return new GetField(getVariableUse(node.object), node.field);
+    return new GetField(getVariableUse(node.object), node.field,
+        objectIsNotNull: node.objectIsNotNull);
   }
 
   Expression visitCreateBox(cps_ir.CreateBox node) {

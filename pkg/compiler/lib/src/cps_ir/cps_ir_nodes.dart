@@ -849,9 +849,11 @@ class CreateInstance extends Primitive {
 
 class Interceptor extends Primitive {
   final Reference<Primitive> input;
-  final Set<ClassElement> interceptedClasses;
-  Interceptor(Primitive input, this.interceptedClasses)
+  final Set<ClassElement> interceptedClasses = new Set<ClassElement>();
+
+  Interceptor(Primitive input)
       : this.input = new Reference<Primitive>(input);
+  
   accept(Visitor visitor) => visitor.visitInterceptor(this);
 
   bool get isSafeForElimination => true;
@@ -1005,7 +1007,7 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
 class MutableVariable extends Definition {
   Entity hint;
 
-MutableVariable(this.hint);
+  MutableVariable(this.hint);
 
   accept(Visitor v) => v.visitMutableVariable(this);
 }

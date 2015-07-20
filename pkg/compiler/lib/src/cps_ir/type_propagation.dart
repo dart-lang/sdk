@@ -44,6 +44,8 @@ class TypeMaskSystem {
 
   TypeMask numStringBoolType;
 
+  ClassElement get jsNullClass => backend.jsNullClass;
+
   // TODO(karlklose): remove compiler here.
   TypeMaskSystem(dart2js.Compiler compiler)
     : inferrer = compiler.typesTask,
@@ -1547,6 +1549,23 @@ class TransformingVisitor extends RecursiveVisitor {
       cont.body = new Unreachable();
       cont.body.parent = cont;
       visit(body);
+    }
+  }
+
+  void visitInterceptor(Interceptor node) {
+    // Filter out intercepted classes that do not match the input type.
+    AbstractValue value = getValue(node.input.definition);
+    node.interceptedClasses.retainWhere((ClassElement clazz) {
+      if (clazz == typeSystem.jsNullClass) {
+        return value.isNullable;
+      } else {
+        TypeMask classMask = typeSystem.nonNullSubclass(clazz);
+        return !typeSystem.areDisjoint(value.type, classMask);
+      }
+    });
+    // Remove the interceptor call if it can only return its input.
+    if (node.interceptedClasses.isEmpty) {
+      node.input.definition.substituteFor(node);
     }
   }
 }
