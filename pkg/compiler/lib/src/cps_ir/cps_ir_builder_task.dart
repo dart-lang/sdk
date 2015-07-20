@@ -3399,18 +3399,6 @@ class CleanupPass extends ir.RecursiveVisitor {
     node.body = replacementFor(node.body);
   }
 
-  processSetMutableVariable(ir.SetMutableVariable node) {
-    node.body = replacementFor(node.body);
-  }
-
-  processSetField(ir.SetField node) {
-    node.body = replacementFor(node.body);
-  }
-
-  processSetStatic(ir.SetStatic node) {
-    node.body = replacementFor(node.body);
-  }
-
   processContinuation(ir.Continuation node) {
     node.body = replacementFor(node.body);
   }

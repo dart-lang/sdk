@@ -1014,7 +1014,7 @@ class IrBuilder {
   ir.Primitive buildStaticFieldSet(FieldElement field,
                                    ir.Primitive value,
                                    [SourceInformation sourceInformation]) {
-    add(new ir.SetStatic(field, value, sourceInformation));
+    addPrimitive(new ir.SetStatic(field, value, sourceInformation));
     return value;
   }
 
@@ -2291,9 +2291,10 @@ class IrBuilder {
     state.functionParameters.add(parameter);
     ClosureLocation location = state.boxedVariables[parameterElement];
     if (location != null) {
-      add(new ir.SetField(environment.lookup(location.box),
-                          location.field,
-                          parameter));
+      addPrimitive(new ir.SetField(
+          environment.lookup(location.box),
+          location.field,
+          parameter));
     } else {
       environment.extend(parameterElement, parameter);
     }
@@ -2315,12 +2316,14 @@ class IrBuilder {
     }
     ClosureLocation location = state.boxedVariables[variableElement];
     if (location != null) {
-      add(new ir.SetField(environment.lookup(location.box),
-                          location.field,
-                          initialValue));
+      addPrimitive(new ir.SetField(
+          environment.lookup(location.box),
+          location.field,
+          initialValue));
     } else if (isInMutableVariable(variableElement)) {
-      add(new ir.LetMutable(getMutableVariable(variableElement),
-                            initialValue));
+      add(new ir.LetMutable(
+          getMutableVariable(variableElement),
+          initialValue));
     } else {
       initialValue.useElementAsHint(variableElement);
       environment.extend(variableElement, initialValue);
@@ -2361,7 +2364,7 @@ class IrBuilder {
       result.useElementAsHint(local);
       return addPrimitive(result);
     } else if (isInMutableVariable(local)) {
-      return addPrimitive(new ir.GetMutableVariable(getMutableVariable(local)));
+      return addPrimitive(new ir.GetMutable(getMutableVariable(local)));
     } else {
       return environment.lookup(local);
     }
@@ -2373,11 +2376,13 @@ class IrBuilder {
     assert(isOpen);
     ClosureLocation location = state.boxedVariables[local];
     if (location != null) {
-      add(new ir.SetField(environment.lookup(location.box),
-                          location.field,
-                          value));
+      addPrimitive(new ir.SetField(
+          environment.lookup(location.box),
+          location.field,
+          value));
     } else if (isInMutableVariable(local)) {
-      add(new ir.SetMutableVariable(getMutableVariable(local), value));
+      addPrimitive(new ir.SetMutable(
+          getMutableVariable(local), value));
     } else {
       value.useElementAsHint(local);
       environment.update(local, value);
@@ -2421,7 +2426,7 @@ class IrBuilder {
     for (VariableElement loopVar in scope.boxedLoopVariables) {
       ClosureLocation location = scope.capturedVariables[loopVar];
       ir.Primitive value = addPrimitive(new ir.GetField(box, location.field));
-      add(new ir.SetField(newBox, location.field, value));
+      addPrimitive(new ir.SetField(newBox, location.field, value));
     }
     environment.update(scope.box, newBox);
   }
@@ -2443,7 +2448,7 @@ class IrBuilder {
   void buildFieldSet(ir.Primitive receiver,
                      FieldElement target,
                      ir.Primitive value) {
-    add(new ir.SetField(receiver, target, value));
+    addPrimitive(new ir.SetField(receiver, target, value));
   }
 
   ir.Primitive buildSuperFieldGet(FieldElement target) {
@@ -2451,7 +2456,7 @@ class IrBuilder {
   }
 
   ir.Primitive buildSuperFieldSet(FieldElement target, ir.Primitive value) {
-    add(new ir.SetField(buildThis(), target, value));
+    addPrimitive(new ir.SetField(buildThis(), target, value));
     return value;
   }
 

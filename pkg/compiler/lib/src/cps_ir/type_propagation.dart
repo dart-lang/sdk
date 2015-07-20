@@ -832,12 +832,13 @@ class TransformingVisitor extends RecursiveVisitor {
       if (target.isFinal) return false;
       assert(cont.parameters.single.hasNoUses);
       cont.parameters.clear();
-      SetField set = new SetField(getDartReceiver(node),
-                                  target,
-                                  getDartArgument(node, 0));
-      set.body = new InvokeContinuation(cont, <Primitive>[]);
-      replaceSubtree(node, set);
-      visitSetField(set);
+      CpsFragment cps = new CpsFragment(node.sourceInformation);
+      cps.letPrim(new SetField(getDartReceiver(node),
+                               target,
+                               getDartArgument(node, 0)));
+      cps.invokeContinuation(cont);
+      replaceSubtree(node, cps.result);
+      visit(cps.result);
       return true;
     }
   }
@@ -1052,8 +1053,7 @@ class TransformingVisitor extends RecursiveVisitor {
               // that variable name for the mutable variable.
               current.hint = result.hint;
             }
-            LetPrim let =
-                makeLetPrimInvoke(new GetMutableVariable(current), useCont);
+            LetPrim let = makeLetPrimInvoke(new GetMutable(current), useCont);
             replaceSubtree(use, let);
           } else {
             assert (use.selector == moveNextSelector);
@@ -2006,9 +2006,8 @@ class TypePropagationVisitor implements Visitor {
     }
   }
 
-  void visitSetMutableVariable(SetMutableVariable node) {
+  void visitSetMutable(SetMutable node) {
     setValue(node.variable.definition, getValue(node.value.definition));
-    setReachable(node.body);
   }
 
   void visitLiteralList(LiteralList node) {
@@ -2040,7 +2039,7 @@ class TypePropagationVisitor implements Visitor {
     setValue(node, constantValue(constant, typeSystem.functionType));
   }
 
-  void visitGetMutableVariable(GetMutableVariable node) {
+  void visitGetMutable(GetMutable node) {
     setValue(node, getValue(node.variable.definition));
   }
 
@@ -2096,9 +2095,7 @@ class TypePropagationVisitor implements Visitor {
     }
   }
 
-  void visitSetStatic(SetStatic node) {
-    setReachable(node.body);
-  }
+  void visitSetStatic(SetStatic node) {}
 
   void visitGetLazyStatic(GetLazyStatic node) {
     Continuation cont = node.continuation.definition;
@@ -2126,9 +2123,7 @@ class TypePropagationVisitor implements Visitor {
     setValue(node, nonConstant(typeSystem.getFieldType(node.field)));
   }
 
-  void visitSetField(SetField node) {
-    setReachable(node.body);
-  }
+  void visitSetField(SetField node) {}
 
   void visitCreateBox(CreateBox node) {
     setValue(node, nonConstant(typeSystem.nonNullType));

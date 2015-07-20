@@ -258,12 +258,10 @@ class Builder implements cps_ir.Visitor<Node> {
     internalError(CURRENT_ELEMENT_SPANNABLE, 'Unexpected IR node: $node');
   }
 
-  Statement visitSetField(cps_ir.SetField node) {
-    return new ExpressionStatement(
-        new SetField(getVariableUse(node.object),
-                     node.field,
-                     getVariableUse(node.value)),
-        visit(node.body));
+  Expression visitSetField(cps_ir.SetField node) {
+    return new SetField(getVariableUse(node.object),
+                        node.field,
+                        getVariableUse(node.value));
   }
 
   Expression visitInterceptor(cps_ir.Interceptor node) {
@@ -300,12 +298,12 @@ class Builder implements cps_ir.Visitor<Node> {
 
   Statement visitLetPrim(cps_ir.LetPrim node) {
     Variable variable = getVariable(node.primitive);
-
-    // Don't translate unused primitives.
-    if (variable == null) return visit(node.body);
-
     Expression value = visit(node.primitive);
-    return Assign.makeStatement(variable, value, visit(node.body));
+    if (node.primitive.hasAtLeastOneUse) {
+      return Assign.makeStatement(variable, value, visit(node.body));
+    } else {
+      return new ExpressionStatement(value, visit(node.body));
+    }
   }
 
   Statement visitLetCont(cps_ir.LetCont node) {
@@ -412,14 +410,14 @@ class Builder implements cps_ir.Visitor<Node> {
     return Assign.makeStatement(variable, value, body);
   }
 
-  Expression visitGetMutableVariable(cps_ir.GetMutableVariable node) {
+  Expression visitGetMutable(cps_ir.GetMutable node) {
     return getMutableVariableUse(node.variable);
   }
 
-  Statement visitSetMutableVariable(cps_ir.SetMutableVariable node) {
+  Expression visitSetMutable(cps_ir.SetMutable node) {
     Variable variable = getMutableVariable(node.variable.definition);
     Expression value = getVariableUse(node.value);
-    return Assign.makeStatement(variable, value, visit(node.body));
+    return new Assign(variable, value);
   }
 
   Statement visitTypeCast(cps_ir.TypeCast node) {
@@ -586,12 +584,11 @@ class Builder implements cps_ir.Visitor<Node> {
     return continueWithExpression(node.continuation, value);
   }
 
-  Statement visitSetStatic(cps_ir.SetStatic node) {
-    SetStatic setStatic = new SetStatic(
+  Expression visitSetStatic(cps_ir.SetStatic node) {
+    return new SetStatic(
         node.element,
         getVariableUse(node.value),
         node.sourceInformation);
-    return new ExpressionStatement(setStatic, visit(node.body));
   }
 
   Expression visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
