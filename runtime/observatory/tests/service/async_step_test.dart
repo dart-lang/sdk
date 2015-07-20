@@ -25,11 +25,12 @@ testMain() {
   doAsync(true);
 }
 
-
 asyncStep(Isolate isolate) async {
-  var event = isolate.pauseEvent;
+  await isolate.reload(); // isolate.pauseEvent may be stale
+  ServiceEvent event = isolate.pauseEvent;
   print("Pause event is $event");
   expect(event, isNotNull);
+  expect(event.kind, equals(ServiceEvent.kPauseBreakpoint));
 
   // 1. Set breakpoint for the continuation and resume the isolate.
   Instance continuation = event.asyncContinuation;
