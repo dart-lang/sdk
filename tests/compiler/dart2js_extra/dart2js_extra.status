@@ -72,10 +72,16 @@ async_stacktrace_test/asyncStar: Crash # (runTests()async{awa...  cannot handle 
 async_stacktrace_test/none: Crash # (runTests()async{awa...  cannot handle async/sync*/async* functions
 closure_capture5_test: Crash # (i=0): For-loop variable captured in loop header
 deferred/deferred_class_test: RuntimeError # Z.loadLibrary is not a function
-deferred/deferred_constant2_test: RuntimeError # U.loadLibrary is not a function
-deferred/deferred_constant3_test: RuntimeError # Y.loadLibrary is not a function
+deferred/deferred_constant2_test: Crash # (lib.C1): deferred access is not implemented
+deferred/deferred_constant3_test: Crash # (lib.C1): deferred access is not implemented
 deferred/deferred_constant4_test: RuntimeError # B.loadLibrary is not a function
-deferred/deferred_function_test: RuntimeError # E.loadLibrary is not a function
-deferred/deferred_mirrors1_test: RuntimeError # U.loadLibrary is not a function
+deferred/deferred_function_test: Crash # (lib.foo): deferred access is not implemented
+deferred/deferred_mirrors1_test: Crash # (lazy.foo()): deferred access is not implemented
 deferred/deferred_overlapping_test: RuntimeError # E.loadLibrary is not a function
+deferred_fail_and_retry_test: Crash # (lib.foo()): deferred access is not implemented
+deferred_fail_and_retry_worker_test: Crash # (lib.foo()): deferred access is not implemented
+deferred_split_test: Crash # (b.createA()): deferred access is not implemented
+mirror_printer_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
+mirror_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
+reflect_native_types_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 switch_test/none: Crash # (switch (val){foo:ba...  continue to a labeled switch case

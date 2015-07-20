@@ -173,6 +173,7 @@ analyzer/test/generated/type_system_test: Crash # The null object does not have 
 analyzer/test/generated/utilities_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/instrumentation/instrumentation_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/parse_compilation_unit_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/source/analysis_options_provider_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/source/package_map_provider_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/source/package_map_resolver_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/source/sdk_ext_test: Crash # The null object does not have a getter '_element'.
