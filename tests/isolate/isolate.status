@@ -51,13 +51,16 @@ issue_21398_parent_isolate2_test: SkipByDesign # Test uses a ".dart" URI.
 function_send1_test: SkipByDesign   # Test uses a ".dart" URI.
 error_exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
 error_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
-eexit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
+exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
 message3_test/constList: RuntimeError # Issue 21817
 message3_test/constList_identical: RuntimeError # Issue 21817
 message3_test/constMap: RuntimeError  # Issue 21817
 message3_test/constInstance: RuntimeError # Issue 21817
 browser/issue_12474_test: CompileTimeError # Issue 22529
 enum_const_test/02: RuntimeError # Issue 21817
+error_exit_at_spawn_test: Fail  # Issue 23876
+error_at_spawn_test: Fail  # Issue 23876
+exit_at_spawn_test: Fail  # Issue 23876
 
 [ $compiler == dart2js && $jscl ]
 spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
@@ -123,6 +126,10 @@ string_from_environment_default_value_test: Skip
 error_exit_at_spawn_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
 error_at_spawn_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
 exit_at_spawn_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+error_exit_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+error_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+exit_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
