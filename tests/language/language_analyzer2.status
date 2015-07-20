@@ -7,6 +7,8 @@
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 
+symbol_conflict_test: CompileTimeError # 23870
+
 enum_syntax_test/02: Fail # 21649
 enum_syntax_test/03: Fail # 21649
 enum_syntax_test/04: Fail # 21649
