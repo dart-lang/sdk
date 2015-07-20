@@ -281,7 +281,7 @@ abstract class JsonDecoder {
    * Create an exception to throw if the JSON object at [jsonPath] fails to
    * match the API definition of [expected].
    */
-  dynamic mismatch(String jsonPath, String expected);
+  dynamic mismatch(String jsonPath, String expected, [Object actual]);
 
   /**
    * Create an exception to throw if the JSON object at [jsonPath] is missing
@@ -301,7 +301,7 @@ abstract class JsonDecoder {
     } else if (json == 'false') {
       return false;
     }
-    throw mismatch(jsonPath, 'bool');
+    throw mismatch(jsonPath, 'bool', json);
   }
 
   /**
@@ -313,10 +313,10 @@ abstract class JsonDecoder {
       return json;
     } else if (json is String) {
       return int.parse(json, onError: (String value) {
-        throw mismatch(jsonPath, 'int');
+        throw mismatch(jsonPath, 'int', json);
       });
     }
-    throw mismatch(jsonPath, 'int');
+    throw mismatch(jsonPath, 'int', json);
   }
 
   /**
@@ -334,7 +334,7 @@ abstract class JsonDecoder {
       }
       return result;
     } else {
-      throw mismatch(jsonPath, 'List');
+      throw mismatch(jsonPath, 'List', json);
     }
   }
 
@@ -362,7 +362,7 @@ abstract class JsonDecoder {
       });
       return result;
     } else {
-      throw mismatch(jsonPath, 'Map');
+      throw mismatch(jsonPath, 'Map', json);
     }
   }
 
@@ -373,7 +373,7 @@ abstract class JsonDecoder {
     if (json is String) {
       return json;
     } else {
-      throw mismatch(jsonPath, 'String');
+      throw mismatch(jsonPath, 'String', json);
     }
   }
 
@@ -392,11 +392,11 @@ abstract class JsonDecoder {
       var disambiguatorPath = '$jsonPath[${JSON.encode(field)}]';
       String disambiguator = _decodeString(disambiguatorPath, json[field]);
       if (!decoders.containsKey(disambiguator)) {
-        throw mismatch(disambiguatorPath, 'One of: ${decoders.keys.toList()}');
+        throw mismatch(disambiguatorPath, 'One of: ${decoders.keys.toList()}', json);
       }
       return decoders[disambiguator](jsonPath, json);
     } else {
-      throw mismatch(jsonPath, 'Map');
+      throw mismatch(jsonPath, 'Map', json);
     }
   }
 }
@@ -616,9 +616,17 @@ class RequestDecoder extends JsonDecoder {
   }
 
   @override
-  dynamic mismatch(String jsonPath, String expected) {
+  dynamic mismatch(String jsonPath, String expected, [Object actual]) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('Expected to be ');
+    buffer.write(expected);
+    if (actual != null) {
+      buffer.write('; found "');
+      buffer.write(JSON.encode(actual));
+      buffer.write('"');
+    }
     return new RequestFailure(new Response.invalidParameter(
-        _request, jsonPath, 'Expected to be $expected'));
+        _request, jsonPath, buffer.toString()));
   }
 
   @override
@@ -915,8 +923,18 @@ class ResponseDecoder extends JsonDecoder {
   ResponseDecoder(this.refactoringKind);
 
   @override
-  dynamic mismatch(String jsonPath, String expected) {
-    return new Exception('Expected $expected at $jsonPath');
+  dynamic mismatch(String jsonPath, String expected, [Object actual]) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('Expected ');
+    buffer.write(expected);
+    if (actual != null) {
+      buffer.write(' found "');
+      buffer.write(JSON.encode(actual));
+      buffer.write('"');
+    }
+    buffer.write(' at ');
+    buffer.write(jsonPath);
+    return new Exception(buffer.toString());
   }
 
   @override
