@@ -32,8 +32,13 @@
 
 * Pub
 
-  * `pub run` starts up faster for executables that don't import transformed
-    code.
+  * `pub run` and `pub global run`
+
+    * Faster start time for executables that don't import transformed code.
+
+    * Binstubs for globally-activated executables are now written in the system
+      encoding, rather than always in `UTF-8`. To update existing executables,
+      run `pub cache repair`.
 
   * `pub get` and `pub upgrade`
 
@@ -65,6 +70,9 @@
 
     * A stack overflow caused by a transformer being run multiple times on the
       package that defines it has been fixed.
+
+    * A transformer that tries to read a non-existent asset in another package
+      will now be re-run if that asset is later created.
 
 [package spec proposal]: https://github.com/lrhn/dep-pkgspec
 

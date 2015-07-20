@@ -41,7 +41,7 @@ vars = {
   "analyzer_cli_rev" : "@7436b45b160f99e806bef2aafd1e971e1aedfc4d",
   "args_tag": "@0.13.0",
   "async_tag": "@1.2.0",
-  "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
+  "barback_tag" : "@0.15.2+5",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
   "clang_rev" : "@28450",
@@ -84,7 +84,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@e454b4b54d2987e8d2f0fbd3ac519641ada9bd0f",
-  "pub_rev": "@b1ca2b72b1b23bf5a0bf16bf816d684cc809b3a2",
+  "pub_rev": "@bc776a2e1364b5004d8e2601b2bafb8f93c6a396",
   "pub_cache_tag": "@v0.1.0",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
@@ -182,7 +182,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/async":
       (Var("github_mirror") % "async") + Var("async_tag"),
   Var("dart_root") + "/third_party/pkg/barback":
-      (Var("github_mirror") % "barback") + Var("barback_rev"),
+      (Var("github_mirror") % "barback") + Var("barback_tag"),
   Var("dart_root") + "/third_party/pkg/charcode":
       (Var("github_mirror") % "charcode") + Var("charcode_tag"),
   Var("dart_root") + "/third_party/pkg/cli_util":
