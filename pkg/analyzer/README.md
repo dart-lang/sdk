@@ -7,7 +7,7 @@ an editor or IDE, you should use the analysis server instead of this package.
 The analysis server is currently shipped as an executable in the SDK and will
 be released as a package in the near future. In the meantime, if you'd like to
 learn more about it, please look at the
-[Analysis Server API Specification](http://htmlpreview.github.io/?https://github.com/dart-lang/bleeding_edge/blob/master/dart/pkg/analysis_server/doc/api.html)
+[Analysis Server API Specification](http://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html)
 or contact the mailing list (see below).
 
 The API's in this package are, quite frankly, a mess at the moment. They were
