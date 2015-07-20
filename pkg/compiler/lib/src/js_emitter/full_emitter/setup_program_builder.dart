@@ -747,6 +747,8 @@ function $setupProgramName(programData, typesOffset) {
           mangledNames[name] = reflectionName;
           funcs[0].$reflectionNameField = reflectionName;
           funcs[0].$metadataIndexField = unmangledNameIndex + 1;
+          // The following line installs the [${JsGetName.CALL_CATCH_ALL}]
+          // property for closures.
           if (optionalParameterCount) prototype[unmangledName + "*"] = funcs[0];
         }
       }
