@@ -266,6 +266,12 @@ class Driver implements ServerStarter {
   static const String NO_INDEX = "no-index";
 
   /**
+   * The name of the flag used to enable version 2 of semantic highlight
+   * notification.
+   */
+  static const String USE_ANALISYS_HIGHLIGHT2 = "useAnalysisHighlight2";
+
+  /**
    * The option for specifying the http diagnostic port.
    * If specified, users can review server status and performance information
    * by opening a web browser on http://localhost:<port>
@@ -357,6 +363,8 @@ class Driver implements ServerStarter {
         results[INCREMENTAL_RESOLUTION_VALIDATION];
     analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
     analysisServerOptions.noIndex = results[NO_INDEX];
+    analysisServerOptions.useAnalysisHighlight2 =
+        results[USE_ANALISYS_HIGHLIGHT2];
     analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
 
     _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
@@ -503,6 +511,10 @@ class Driver implements ServerStarter {
         negatable: false);
     parser.addFlag(NO_INDEX,
         help: "disable indexing sources", defaultsTo: false, negatable: false);
+    parser.addFlag(USE_ANALISYS_HIGHLIGHT2,
+        help: "enable version 2 of semantic highlight",
+        defaultsTo: false,
+        negatable: false);
     parser.addOption(FILE_READ_MODE,
         help: "an option of the ways files can be read from disk, " +
             "some clients normalize end of line characters which would make " +

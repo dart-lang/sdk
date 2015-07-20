@@ -6,6 +6,7 @@ library operation.analysis;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
+import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/computer_navigation.dart';
 import 'package:analysis_server/src/computer/computer_occurrences.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
@@ -149,7 +150,12 @@ void sendAnalysisNotificationFlushResults(
 void sendAnalysisNotificationHighlights(
     AnalysisServer server, String file, CompilationUnit dartUnit) {
   _sendNotification(server, () {
-    var regions = new DartUnitHighlightsComputer(dartUnit).compute();
+    List<protocol.HighlightRegion> regions;
+    if (server.options.useAnalysisHighlight2) {
+      regions = new DartUnitHighlightsComputer2(dartUnit).compute();
+    } else {
+      regions = new DartUnitHighlightsComputer(dartUnit).compute();
+    }
     var params = new protocol.AnalysisHighlightsParams(file, regions);
     server.sendNotification(params.toNotification());
   });

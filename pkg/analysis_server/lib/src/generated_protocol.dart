@@ -9522,6 +9522,10 @@ class HighlightRegion implements HasToJson {
  *   CONSTRUCTOR
  *   DIRECTIVE
  *   DYNAMIC_TYPE
+ *   DYNAMIC_LOCAL_VARIABLE_DECLARATION
+ *   DYNAMIC_LOCAL_VARIABLE_REFERENCE
+ *   DYNAMIC_PARAMETER_DECLARATION
+ *   DYNAMIC_PARAMETER_REFERENCE
  *   ENUM
  *   ENUM_CONSTANT
  *   FIELD
@@ -9532,16 +9536,29 @@ class HighlightRegion implements HasToJson {
  *   GETTER_DECLARATION
  *   IDENTIFIER_DEFAULT
  *   IMPORT_PREFIX
+ *   INSTANCE_FIELD_DECLARATION
+ *   INSTANCE_FIELD_REFERENCE
+ *   INSTANCE_GETTER_DECLARATION
+ *   INSTANCE_GETTER_REFERENCE
+ *   INSTANCE_METHOD_DECLARATION
+ *   INSTANCE_METHOD_REFERENCE
+ *   INSTANCE_SETTER_DECLARATION
+ *   INSTANCE_SETTER_REFERENCE
+ *   INVALID_STRING_ESCAPE
  *   KEYWORD
  *   LABEL
+ *   LIBRARY_NAME
  *   LITERAL_BOOLEAN
  *   LITERAL_DOUBLE
  *   LITERAL_INTEGER
  *   LITERAL_LIST
  *   LITERAL_MAP
  *   LITERAL_STRING
+ *   LOCAL_FUNCTION_DECLARATION
+ *   LOCAL_FUNCTION_REFERENCE
  *   LOCAL_VARIABLE
  *   LOCAL_VARIABLE_DECLARATION
+ *   LOCAL_VARIABLE_REFERENCE
  *   METHOD
  *   METHOD_DECLARATION
  *   METHOD_DECLARATION_STATIC
@@ -9549,8 +9566,26 @@ class HighlightRegion implements HasToJson {
  *   PARAMETER
  *   SETTER_DECLARATION
  *   TOP_LEVEL_VARIABLE
+ *   PARAMETER_DECLARATION
+ *   PARAMETER_REFERENCE
+ *   STATIC_FIELD_DECLARATION
+ *   STATIC_GETTER_DECLARATION
+ *   STATIC_GETTER_REFERENCE
+ *   STATIC_METHOD_DECLARATION
+ *   STATIC_METHOD_REFERENCE
+ *   STATIC_SETTER_DECLARATION
+ *   STATIC_SETTER_REFERENCE
+ *   TOP_LEVEL_FUNCTION_DECLARATION
+ *   TOP_LEVEL_FUNCTION_REFERENCE
+ *   TOP_LEVEL_GETTER_DECLARATION
+ *   TOP_LEVEL_GETTER_REFERENCE
+ *   TOP_LEVEL_SETTER_DECLARATION
+ *   TOP_LEVEL_SETTER_REFERENCE
+ *   TOP_LEVEL_VARIABLE_DECLARATION
  *   TYPE_NAME_DYNAMIC
  *   TYPE_PARAMETER
+ *   UNRESOLVED_INSTANCE_MEMBER_REFERENCE
+ *   VALID_STRING_ESCAPE
  * }
  */
 class HighlightRegionType implements Enum {
@@ -9570,31 +9605,119 @@ class HighlightRegionType implements Enum {
 
   static const DIRECTIVE = const HighlightRegionType._("DIRECTIVE");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const DYNAMIC_TYPE = const HighlightRegionType._("DYNAMIC_TYPE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const DYNAMIC_LOCAL_VARIABLE_DECLARATION = const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const DYNAMIC_LOCAL_VARIABLE_REFERENCE = const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const DYNAMIC_PARAMETER_DECLARATION = const HighlightRegionType._("DYNAMIC_PARAMETER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const DYNAMIC_PARAMETER_REFERENCE = const HighlightRegionType._("DYNAMIC_PARAMETER_REFERENCE");
 
   static const ENUM = const HighlightRegionType._("ENUM");
 
   static const ENUM_CONSTANT = const HighlightRegionType._("ENUM_CONSTANT");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const FIELD = const HighlightRegionType._("FIELD");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const FIELD_STATIC = const HighlightRegionType._("FIELD_STATIC");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const FUNCTION = const HighlightRegionType._("FUNCTION");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const FUNCTION_DECLARATION = const HighlightRegionType._("FUNCTION_DECLARATION");
 
   static const FUNCTION_TYPE_ALIAS = const HighlightRegionType._("FUNCTION_TYPE_ALIAS");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const GETTER_DECLARATION = const HighlightRegionType._("GETTER_DECLARATION");
 
   static const IDENTIFIER_DEFAULT = const HighlightRegionType._("IDENTIFIER_DEFAULT");
 
   static const IMPORT_PREFIX = const HighlightRegionType._("IMPORT_PREFIX");
 
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INSTANCE_FIELD_DECLARATION = const HighlightRegionType._("INSTANCE_FIELD_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INSTANCE_FIELD_REFERENCE = const HighlightRegionType._("INSTANCE_FIELD_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INSTANCE_GETTER_DECLARATION = const HighlightRegionType._("INSTANCE_GETTER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INSTANCE_GETTER_REFERENCE = const HighlightRegionType._("INSTANCE_GETTER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INSTANCE_METHOD_DECLARATION = const HighlightRegionType._("INSTANCE_METHOD_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INSTANCE_METHOD_REFERENCE = const HighlightRegionType._("INSTANCE_METHOD_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INSTANCE_SETTER_DECLARATION = const HighlightRegionType._("INSTANCE_SETTER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INSTANCE_SETTER_REFERENCE = const HighlightRegionType._("INSTANCE_SETTER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INVALID_STRING_ESCAPE = const HighlightRegionType._("INVALID_STRING_ESCAPE");
+
   static const KEYWORD = const HighlightRegionType._("KEYWORD");
 
   static const LABEL = const HighlightRegionType._("LABEL");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const LIBRARY_NAME = const HighlightRegionType._("LIBRARY_NAME");
 
   static const LITERAL_BOOLEAN = const HighlightRegionType._("LITERAL_BOOLEAN");
 
@@ -9608,32 +9731,161 @@ class HighlightRegionType implements Enum {
 
   static const LITERAL_STRING = const HighlightRegionType._("LITERAL_STRING");
 
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const LOCAL_FUNCTION_DECLARATION = const HighlightRegionType._("LOCAL_FUNCTION_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const LOCAL_FUNCTION_REFERENCE = const HighlightRegionType._("LOCAL_FUNCTION_REFERENCE");
+
+  /**
+   * Only for version 1 of highlight.
+   */
   static const LOCAL_VARIABLE = const HighlightRegionType._("LOCAL_VARIABLE");
 
   static const LOCAL_VARIABLE_DECLARATION = const HighlightRegionType._("LOCAL_VARIABLE_DECLARATION");
 
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const LOCAL_VARIABLE_REFERENCE = const HighlightRegionType._("LOCAL_VARIABLE_REFERENCE");
+
+  /**
+   * Only for version 1 of highlight.
+   */
   static const METHOD = const HighlightRegionType._("METHOD");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const METHOD_DECLARATION = const HighlightRegionType._("METHOD_DECLARATION");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const METHOD_DECLARATION_STATIC = const HighlightRegionType._("METHOD_DECLARATION_STATIC");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const METHOD_STATIC = const HighlightRegionType._("METHOD_STATIC");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const PARAMETER = const HighlightRegionType._("PARAMETER");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const SETTER_DECLARATION = const HighlightRegionType._("SETTER_DECLARATION");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const TOP_LEVEL_VARIABLE = const HighlightRegionType._("TOP_LEVEL_VARIABLE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const PARAMETER_DECLARATION = const HighlightRegionType._("PARAMETER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const PARAMETER_REFERENCE = const HighlightRegionType._("PARAMETER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const STATIC_FIELD_DECLARATION = const HighlightRegionType._("STATIC_FIELD_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const STATIC_GETTER_DECLARATION = const HighlightRegionType._("STATIC_GETTER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const STATIC_GETTER_REFERENCE = const HighlightRegionType._("STATIC_GETTER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const STATIC_METHOD_DECLARATION = const HighlightRegionType._("STATIC_METHOD_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const STATIC_METHOD_REFERENCE = const HighlightRegionType._("STATIC_METHOD_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const STATIC_SETTER_DECLARATION = const HighlightRegionType._("STATIC_SETTER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const STATIC_SETTER_REFERENCE = const HighlightRegionType._("STATIC_SETTER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const TOP_LEVEL_FUNCTION_DECLARATION = const HighlightRegionType._("TOP_LEVEL_FUNCTION_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const TOP_LEVEL_FUNCTION_REFERENCE = const HighlightRegionType._("TOP_LEVEL_FUNCTION_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const TOP_LEVEL_GETTER_DECLARATION = const HighlightRegionType._("TOP_LEVEL_GETTER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const TOP_LEVEL_GETTER_REFERENCE = const HighlightRegionType._("TOP_LEVEL_GETTER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const TOP_LEVEL_SETTER_DECLARATION = const HighlightRegionType._("TOP_LEVEL_SETTER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const TOP_LEVEL_SETTER_REFERENCE = const HighlightRegionType._("TOP_LEVEL_SETTER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const TOP_LEVEL_VARIABLE_DECLARATION = const HighlightRegionType._("TOP_LEVEL_VARIABLE_DECLARATION");
 
   static const TYPE_NAME_DYNAMIC = const HighlightRegionType._("TYPE_NAME_DYNAMIC");
 
   static const TYPE_PARAMETER = const HighlightRegionType._("TYPE_PARAMETER");
 
   /**
+   * Only for version 2 of highlight.
+   */
+  static const UNRESOLVED_INSTANCE_MEMBER_REFERENCE = const HighlightRegionType._("UNRESOLVED_INSTANCE_MEMBER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const VALID_STRING_ESCAPE = const HighlightRegionType._("VALID_STRING_ESCAPE");
+
+  /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<HighlightRegionType> VALUES = const <HighlightRegionType>[ANNOTATION, BUILT_IN, CLASS, COMMENT_BLOCK, COMMENT_DOCUMENTATION, COMMENT_END_OF_LINE, CONSTRUCTOR, DIRECTIVE, DYNAMIC_TYPE, ENUM, ENUM_CONSTANT, FIELD, FIELD_STATIC, FUNCTION, FUNCTION_DECLARATION, FUNCTION_TYPE_ALIAS, GETTER_DECLARATION, IDENTIFIER_DEFAULT, IMPORT_PREFIX, KEYWORD, LABEL, LITERAL_BOOLEAN, LITERAL_DOUBLE, LITERAL_INTEGER, LITERAL_LIST, LITERAL_MAP, LITERAL_STRING, LOCAL_VARIABLE, LOCAL_VARIABLE_DECLARATION, METHOD, METHOD_DECLARATION, METHOD_DECLARATION_STATIC, METHOD_STATIC, PARAMETER, SETTER_DECLARATION, TOP_LEVEL_VARIABLE, TYPE_NAME_DYNAMIC, TYPE_PARAMETER];
+  static const List<HighlightRegionType> VALUES = const <HighlightRegionType>[ANNOTATION, BUILT_IN, CLASS, COMMENT_BLOCK, COMMENT_DOCUMENTATION, COMMENT_END_OF_LINE, CONSTRUCTOR, DIRECTIVE, DYNAMIC_TYPE, DYNAMIC_LOCAL_VARIABLE_DECLARATION, DYNAMIC_LOCAL_VARIABLE_REFERENCE, DYNAMIC_PARAMETER_DECLARATION, DYNAMIC_PARAMETER_REFERENCE, ENUM, ENUM_CONSTANT, FIELD, FIELD_STATIC, FUNCTION, FUNCTION_DECLARATION, FUNCTION_TYPE_ALIAS, GETTER_DECLARATION, IDENTIFIER_DEFAULT, IMPORT_PREFIX, INSTANCE_FIELD_DECLARATION, INSTANCE_FIELD_REFERENCE, INSTANCE_GETTER_DECLARATION, INSTANCE_GETTER_REFERENCE, INSTANCE_METHOD_DECLARATION, INSTANCE_METHOD_REFERENCE, INSTANCE_SETTER_DECLARATION, INSTANCE_SETTER_REFERENCE, INVALID_STRING_ESCAPE, KEYWORD, LABEL, LIBRARY_NAME, LITERAL_BOOLEAN, LITERAL_DOUBLE, LITERAL_INTEGER, LITERAL_LIST, LITERAL_MAP, LITERAL_STRING, LOCAL_FUNCTION_DECLARATION, LOCAL_FUNCTION_REFERENCE, LOCAL_VARIABLE, LOCAL_VARIABLE_DECLARATION, LOCAL_VARIABLE_REFERENCE, METHOD, METHOD_DECLARATION, METHOD_DECLARATION_STATIC, METHOD_STATIC, PARAMETER, SETTER_DECLARATION, TOP_LEVEL_VARIABLE, PARAMETER_DECLARATION, PARAMETER_REFERENCE, STATIC_FIELD_DECLARATION, STATIC_GETTER_DECLARATION, STATIC_GETTER_REFERENCE, STATIC_METHOD_DECLARATION, STATIC_METHOD_REFERENCE, STATIC_SETTER_DECLARATION, STATIC_SETTER_REFERENCE, TOP_LEVEL_FUNCTION_DECLARATION, TOP_LEVEL_FUNCTION_REFERENCE, TOP_LEVEL_GETTER_DECLARATION, TOP_LEVEL_GETTER_REFERENCE, TOP_LEVEL_SETTER_DECLARATION, TOP_LEVEL_SETTER_REFERENCE, TOP_LEVEL_VARIABLE_DECLARATION, TYPE_NAME_DYNAMIC, TYPE_PARAMETER, UNRESOLVED_INSTANCE_MEMBER_REFERENCE, VALID_STRING_ESCAPE];
 
   final String name;
 
@@ -9659,6 +9911,14 @@ class HighlightRegionType implements Enum {
         return DIRECTIVE;
       case "DYNAMIC_TYPE":
         return DYNAMIC_TYPE;
+      case "DYNAMIC_LOCAL_VARIABLE_DECLARATION":
+        return DYNAMIC_LOCAL_VARIABLE_DECLARATION;
+      case "DYNAMIC_LOCAL_VARIABLE_REFERENCE":
+        return DYNAMIC_LOCAL_VARIABLE_REFERENCE;
+      case "DYNAMIC_PARAMETER_DECLARATION":
+        return DYNAMIC_PARAMETER_DECLARATION;
+      case "DYNAMIC_PARAMETER_REFERENCE":
+        return DYNAMIC_PARAMETER_REFERENCE;
       case "ENUM":
         return ENUM;
       case "ENUM_CONSTANT":
@@ -9679,10 +9939,30 @@ class HighlightRegionType implements Enum {
         return IDENTIFIER_DEFAULT;
       case "IMPORT_PREFIX":
         return IMPORT_PREFIX;
+      case "INSTANCE_FIELD_DECLARATION":
+        return INSTANCE_FIELD_DECLARATION;
+      case "INSTANCE_FIELD_REFERENCE":
+        return INSTANCE_FIELD_REFERENCE;
+      case "INSTANCE_GETTER_DECLARATION":
+        return INSTANCE_GETTER_DECLARATION;
+      case "INSTANCE_GETTER_REFERENCE":
+        return INSTANCE_GETTER_REFERENCE;
+      case "INSTANCE_METHOD_DECLARATION":
+        return INSTANCE_METHOD_DECLARATION;
+      case "INSTANCE_METHOD_REFERENCE":
+        return INSTANCE_METHOD_REFERENCE;
+      case "INSTANCE_SETTER_DECLARATION":
+        return INSTANCE_SETTER_DECLARATION;
+      case "INSTANCE_SETTER_REFERENCE":
+        return INSTANCE_SETTER_REFERENCE;
+      case "INVALID_STRING_ESCAPE":
+        return INVALID_STRING_ESCAPE;
       case "KEYWORD":
         return KEYWORD;
       case "LABEL":
         return LABEL;
+      case "LIBRARY_NAME":
+        return LIBRARY_NAME;
       case "LITERAL_BOOLEAN":
         return LITERAL_BOOLEAN;
       case "LITERAL_DOUBLE":
@@ -9695,10 +9975,16 @@ class HighlightRegionType implements Enum {
         return LITERAL_MAP;
       case "LITERAL_STRING":
         return LITERAL_STRING;
+      case "LOCAL_FUNCTION_DECLARATION":
+        return LOCAL_FUNCTION_DECLARATION;
+      case "LOCAL_FUNCTION_REFERENCE":
+        return LOCAL_FUNCTION_REFERENCE;
       case "LOCAL_VARIABLE":
         return LOCAL_VARIABLE;
       case "LOCAL_VARIABLE_DECLARATION":
         return LOCAL_VARIABLE_DECLARATION;
+      case "LOCAL_VARIABLE_REFERENCE":
+        return LOCAL_VARIABLE_REFERENCE;
       case "METHOD":
         return METHOD;
       case "METHOD_DECLARATION":
@@ -9713,10 +9999,46 @@ class HighlightRegionType implements Enum {
         return SETTER_DECLARATION;
       case "TOP_LEVEL_VARIABLE":
         return TOP_LEVEL_VARIABLE;
+      case "PARAMETER_DECLARATION":
+        return PARAMETER_DECLARATION;
+      case "PARAMETER_REFERENCE":
+        return PARAMETER_REFERENCE;
+      case "STATIC_FIELD_DECLARATION":
+        return STATIC_FIELD_DECLARATION;
+      case "STATIC_GETTER_DECLARATION":
+        return STATIC_GETTER_DECLARATION;
+      case "STATIC_GETTER_REFERENCE":
+        return STATIC_GETTER_REFERENCE;
+      case "STATIC_METHOD_DECLARATION":
+        return STATIC_METHOD_DECLARATION;
+      case "STATIC_METHOD_REFERENCE":
+        return STATIC_METHOD_REFERENCE;
+      case "STATIC_SETTER_DECLARATION":
+        return STATIC_SETTER_DECLARATION;
+      case "STATIC_SETTER_REFERENCE":
+        return STATIC_SETTER_REFERENCE;
+      case "TOP_LEVEL_FUNCTION_DECLARATION":
+        return TOP_LEVEL_FUNCTION_DECLARATION;
+      case "TOP_LEVEL_FUNCTION_REFERENCE":
+        return TOP_LEVEL_FUNCTION_REFERENCE;
+      case "TOP_LEVEL_GETTER_DECLARATION":
+        return TOP_LEVEL_GETTER_DECLARATION;
+      case "TOP_LEVEL_GETTER_REFERENCE":
+        return TOP_LEVEL_GETTER_REFERENCE;
+      case "TOP_LEVEL_SETTER_DECLARATION":
+        return TOP_LEVEL_SETTER_DECLARATION;
+      case "TOP_LEVEL_SETTER_REFERENCE":
+        return TOP_LEVEL_SETTER_REFERENCE;
+      case "TOP_LEVEL_VARIABLE_DECLARATION":
+        return TOP_LEVEL_VARIABLE_DECLARATION;
       case "TYPE_NAME_DYNAMIC":
         return TYPE_NAME_DYNAMIC;
       case "TYPE_PARAMETER":
         return TYPE_PARAMETER;
+      case "UNRESOLVED_INSTANCE_MEMBER_REFERENCE":
+        return UNRESOLVED_INSTANCE_MEMBER_REFERENCE;
+      case "VALID_STRING_ESCAPE":
+        return VALID_STRING_ESCAPE;
     }
     throw new Exception('Illegal enum value: $name');
   }

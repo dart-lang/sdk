@@ -83,6 +83,11 @@ class AnalysisServer {
   static int performOperationDelayFreqency = 25;
 
   /**
+   * The options of this server instance.
+   */
+  AnalysisServerOptions options;
+
+  /**
    * The channel from which requests are received and to which responses should
    * be sent.
    */
@@ -280,9 +285,8 @@ class AnalysisServer {
    */
   AnalysisServer(this.channel, this.resourceProvider,
       OptimizingPubPackageMapProvider packageMapProvider, Index _index,
-      this.serverPlugin, AnalysisServerOptions analysisServerOptions,
-      this.defaultSdk, this.instrumentationService,
-      {ContextManager contextManager: null,
+      this.serverPlugin, this.options, this.defaultSdk,
+      this.instrumentationService, {ContextManager contextManager: null,
       ResolverProvider packageResolverProvider: null,
       this.rethrowExceptions: true})
       : index = _index,
@@ -292,21 +296,20 @@ class AnalysisServer {
     if (contextManager == null) {
       contextManager = new ServerContextManager(this, resourceProvider,
           packageResolverProvider, packageMapProvider, instrumentationService);
-      AnalysisOptionsImpl options =
+      AnalysisOptionsImpl analysisOptions =
           (contextManager as ServerContextManager).defaultOptions;
-      options.incremental = true;
-      options.incrementalApi =
-          analysisServerOptions.enableIncrementalResolutionApi;
-      options.incrementalValidation =
-          analysisServerOptions.enableIncrementalResolutionValidation;
-      options.generateImplicitErrors = false;
+      analysisOptions.incremental = true;
+      analysisOptions.incrementalApi = options.enableIncrementalResolutionApi;
+      analysisOptions.incrementalValidation =
+          options.enableIncrementalResolutionValidation;
+      analysisOptions.generateImplicitErrors = false;
     } else if (contextManager is! ServerContextManager) {
       // TODO(brianwilkerson) Remove this when the interface is complete.
       throw new StateError(
           'The contextManager must be an instance of ServerContextManager');
     }
     this.contextManager = contextManager;
-    _noErrorNotification = analysisServerOptions.noErrorNotification;
+    _noErrorNotification = options.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();
     _onFileAnalyzedController = new StreamController.broadcast();
@@ -1300,6 +1303,7 @@ class AnalysisServerOptions {
   bool enableIncrementalResolutionValidation = false;
   bool noErrorNotification = false;
   bool noIndex = false;
+  bool useAnalysisHighlight2 = false;
   String fileReadMode = 'as-is';
 }
 
@@ -1363,7 +1367,8 @@ class ServerContextManager extends AbstractContextManager {
       _onContextsChangedController.stream;
 
   @override
-  AnalysisContext addContext(Folder folder, UriResolver packageUriResolver, Packages packages) {
+  AnalysisContext addContext(
+      Folder folder, UriResolver packageUriResolver, Packages packages) {
     InternalAnalysisContext context =
         AnalysisEngine.instance.createAnalysisContext();
     context.contentCache = analysisServer.overlayState;
@@ -1461,7 +1466,8 @@ class ServerContextManager extends AbstractContextManager {
    * Set up a [SourceFactory] that resolves packages using the given
    * [packageUriResolver] and [packages] resolution strategy.
    */
-  SourceFactory _createSourceFactory(UriResolver packageUriResolver, Packages packages) {
+  SourceFactory _createSourceFactory(
+      UriResolver packageUriResolver, Packages packages) {
     UriResolver dartResolver = new DartUriResolver(analysisServer.defaultSdk);
     UriResolver resourceResolver = new ResourceUriResolver(resourceProvider);
     List<UriResolver> resolvers = [];
