@@ -1232,6 +1232,24 @@ static bool RunIsolate(uword parameter) {
     StartIsolateScope start_scope(isolate);
     StackZone zone(isolate);
     HandleScope handle_scope(isolate);
+
+    // If particular values were requested for this newly spawned isolate, then
+    // they are set here before the isolate starts executing user code.
+    isolate->SetErrorsFatal(state->errors_are_fatal());
+    if (state->on_exit_port() != ILLEGAL_PORT) {
+      const SendPort& listener =
+          SendPort::Handle(SendPort::New(state->on_exit_port()));
+      isolate->AddExitListener(listener, Instance::null_instance());
+    }
+    if (state->on_error_port() != ILLEGAL_PORT) {
+      const SendPort& listener =
+          SendPort::Handle(SendPort::New(state->on_error_port()));
+      isolate->AddErrorListener(listener);
+    }
+
+    // Switch back to spawning isolate.
+
+
     if (!ClassFinalizer::ProcessPendingClasses()) {
       // Error is in sticky error already.
       return false;
@@ -1952,9 +1970,14 @@ static RawInstance* DeserializeObject(Isolate* isolate,
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const Function& func,
                                      const Instance& message,
-                                     bool paused)
+                                     bool paused,
+                                     bool errors_are_fatal,
+                                     Dart_Port on_exit_port,
+                                     Dart_Port on_error_port)
     : isolate_(NULL),
       parent_port_(parent_port),
+      on_exit_port_(on_exit_port),
+      on_error_port_(on_error_port),
       script_url_(NULL),
       package_root_(NULL),
       library_url_(NULL),
@@ -1965,7 +1988,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_message_(NULL),
       serialized_message_len_(0),
       isolate_flags_(),
-      paused_(paused) {
+      paused_(paused),
+      errors_are_fatal_(errors_are_fatal) {
   script_url_ = NULL;
   const Class& cls = Class::Handle(func.Owner());
   const Library& lib = Library::Handle(cls.library());
@@ -1993,9 +2017,14 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const char* package_root,
                                      const Instance& args,
                                      const Instance& message,
-                                     bool paused)
+                                     bool paused,
+                                     bool errors_are_fatal,
+                                     Dart_Port on_exit_port,
+                                     Dart_Port on_error_port)
     : isolate_(NULL),
       parent_port_(parent_port),
+      on_exit_port_(on_exit_port),
+      on_error_port_(on_error_port),
       package_root_(NULL),
       library_url_(NULL),
       class_name_(NULL),
@@ -2005,7 +2034,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_message_(NULL),
       serialized_message_len_(0),
       isolate_flags_(),
-      paused_(paused) {
+      paused_(paused),
+      errors_are_fatal_(errors_are_fatal) {
   script_url_ = strdup(script_url);
   if (package_root != NULL) {
     package_root_ = strdup(package_root);
