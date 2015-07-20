@@ -2304,6 +2304,30 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
   String toString() => 'postfix($operator,$semantics)';
 }
 
+
+/// The structure for a [Send] whose prefix is a prefix for a deferred library.
+/// For instance `deferred.a` where `deferred` is a deferred prefix.
+class DeferredPrefixStructure<R, A> implements SendStructure<R, A> {
+  /// The deferred prefix element.
+  final PrefixElement prefix;
+
+  /// The send structure for the whole [Send] node. For instance a
+  /// [GetStructure] for `deferred.a` where `a` is a top level member of the
+  /// deferred library.
+  final SendStructure sendStructure;
+
+  DeferredPrefixStructure(this.prefix, this.sendStructure) {
+    assert(sendStructure != null);
+  }
+
+  @override
+  R dispatch(SemanticSendVisitor<R, A> visitor, Send send, A arg) {
+    visitor.previsitDeferredAccess(send, prefix, arg);
+    return sendStructure.dispatch(visitor, send, arg);
+  }
+}
+
+
 /// The structure for a [NewExpression] of a new invocation.
 abstract class NewStructure<R, A> implements SemanticSendStructure<R, A> {
   /// Calls the matching visit method on [visitor] with [node] and [arg].

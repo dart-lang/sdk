@@ -612,6 +612,11 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     }
   }
 
+  @override
+  void previsitDeferredAccess(ast.Send node, PrefixElement prefix, _) {
+    giveup(node, 'deferred access is not implemented');
+  }
+
   ir.Primitive visitNamedArgument(ast.NamedArgument node) {
     assert(irBuilder.isOpen);
     return visit(node.expression);

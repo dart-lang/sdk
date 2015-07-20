@@ -17,6 +17,6 @@ const Map<String, dynamic> TESTS = const {
     'language/proxy2_test.dart': null,
 };
 
-void main() {
-  checkWarnings(TESTS);
+void main(List<String> args) {
+  checkWarnings(TESTS, args);
 }

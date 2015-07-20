@@ -142,17 +142,19 @@ class Visit {
 
 class Test {
   final String codeByPrefix;
+  final bool isDeferred;
   final String code;
   final /*Visit | List<Visit>*/ expectedVisits;
   final String cls;
   final String method;
 
   const Test(this.code, this.expectedVisits)
-      : cls = null, method = 'm', codeByPrefix = null;
+      : cls = null, method = 'm', codeByPrefix = null, isDeferred = false;
   const Test.clazz(this.code, this.expectedVisits,
                    {this.cls: 'C', this.method: 'm'})
-      : codeByPrefix = null;
-  const Test.prefix(this.codeByPrefix, this.code, this.expectedVisits)
+      : codeByPrefix = null, isDeferred = false;
+  const Test.prefix(this.codeByPrefix, this.code, this.expectedVisits,
+                   {this.isDeferred: false})
       : cls = null, method = 'm';
 
   String toString() {
@@ -276,7 +278,11 @@ Future test(Set<VisitKind> unvisitedKinds,
       if (test.codeByPrefix != null) {
         String prefixFilename = 'pre$index.dart';
         sourceFiles[prefixFilename] = test.codeByPrefix;
-        testSource.writeln("import '$prefixFilename' as p;");
+        if (test.isDeferred) {
+          testSource.writeln("import '$prefixFilename' deferred as p;");
+        } else {
+          testSource.writeln("import '$prefixFilename' as p;");
+        }
       }
 
       String filename = 'lib$index.dart';
@@ -703,4 +709,6 @@ enum VisitKind {
 
   VISIT_CONSTANT_GET,
   VISIT_CONSTANT_INVOKE,
+
+  PREVISIT_DEFERRED_ACCESS,
 }
