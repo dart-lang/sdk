@@ -6192,6 +6192,11 @@ abstract class AnalysisOptions {
    * Return `true` if analysis is to parse comments.
    */
   bool get preserveComments;
+
+  /**
+   * Return `true` if strong mode analysis should be used.
+   */
+  bool get strongMode;
 }
 
 /**
@@ -6292,6 +6297,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool preserveComments = true;
 
   /**
+   * A flag indicating whether strong-mode analysis should be used.
+   */
+  bool strongMode = false;
+
+  /**
    * Initialize a newly created set of analysis options to have their default
    * values.
    */
@@ -6315,6 +6325,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     incrementalValidation = options.incrementalValidation;
     lint = options.lint;
     preserveComments = options.preserveComments;
+    strongMode = options.strongMode;
   }
 
   /**
@@ -6334,6 +6345,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     incrementalValidation = options.incrementalValidation;
     lint = options.lint;
     preserveComments = options.preserveComments;
+    strongMode = options.strongMode;
   }
 
   bool get analyzeFunctionBodies {

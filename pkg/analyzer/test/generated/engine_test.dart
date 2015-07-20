@@ -2268,6 +2268,7 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       options.hint = booleanValue;
       options.incremental = booleanValue;
       options.preserveComments = booleanValue;
+      options.strongMode = booleanValue;
       AnalysisOptionsImpl copy = new AnalysisOptionsImpl.from(options);
       expect(copy.analyzeFunctionBodies, options.analyzeFunctionBodies);
       expect(copy.cacheSize, options.cacheSize);
@@ -2278,6 +2279,7 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       expect(copy.hint, options.hint);
       expect(copy.incremental, options.incremental);
       expect(copy.preserveComments, options.preserveComments);
+      expect(copy.strongMode, options.strongMode);
     }
   }
 
@@ -2301,6 +2303,13 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     bool value = !options.dart2jsHint;
     options.dart2jsHint = value;
     expect(options.dart2jsHint, value);
+  }
+
+  void test_strongMode() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    bool value = !options.strongMode;
+    options.strongMode = value;
+    expect(options.strongMode, value);
   }
 
   void test_generateImplicitErrors() {
