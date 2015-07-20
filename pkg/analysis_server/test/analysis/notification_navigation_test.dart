@@ -506,7 +506,7 @@ main() {
     var libFile = addFile('$projectPath/bin/lib.dart', libCode);
     addTestFile('export "lib.dart";');
     return prepareNavigation().then((_) {
-      assertHasRegionString('export "lib.dart"');
+      assertHasRegionString('"lib.dart"');
       assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
     });
   }
@@ -514,7 +514,7 @@ main() {
   test_string_export_unresolvedUri() {
     addTestFile('export "no.dart";');
     return prepareNavigation().then((_) {
-      assertNoRegionString('export "no.dart"');
+      assertNoRegionString('"no.dart"');
     });
   }
 
@@ -523,7 +523,7 @@ main() {
     var libFile = addFile('$projectPath/bin/lib.dart', libCode);
     addTestFile('import "lib.dart";');
     return prepareNavigation().then((_) {
-      assertHasRegionString('import "lib.dart"');
+      assertHasRegionString('"lib.dart"');
       assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
     });
   }
@@ -538,7 +538,7 @@ main() {
   test_string_import_unresolvedUri() {
     addTestFile('import "no.dart";');
     return prepareNavigation().then((_) {
-      assertNoRegionString('import "no.dart"');
+      assertNoRegionString('"no.dart"');
     });
   }
 
@@ -550,7 +550,7 @@ library lib;
 part "test_unit.dart";
 ''');
     return prepareNavigation().then((_) {
-      assertHasRegionString('part "test_unit.dart"');
+      assertHasRegionString('"test_unit.dart"');
       assertHasFileTarget(unitFile, 0, 0);
     });
   }
@@ -561,7 +561,7 @@ library lib;
 part "test_unit.dart";
 ''');
     return prepareNavigation().then((_) {
-      assertNoRegionString('part "test_unit.dart"');
+      assertNoRegionString('"test_unit.dart"');
     });
   }
 
