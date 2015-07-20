@@ -34,6 +34,7 @@ import 'codegen/html_codegen.dart' as html_codegen;
 import 'codegen/js_codegen.dart';
 import 'info.dart'
     show AnalyzerMessage, CheckerResults, LibraryInfo, LibraryUnit;
+import 'server/server.dart' show DevServer;
 import 'options.dart';
 import 'report.dart';
 
@@ -44,6 +45,37 @@ StreamSubscription setupLogger(Level level, printFn) {
   return Logger.root.onRecord.listen((LogRecord rec) {
     printFn('${rec.level.name.toLowerCase()}: ${rec.message}');
   });
+}
+
+CompilerOptions validateOptions(List<String> args, {bool forceOutDir: false}) {
+  var options = parseOptions(args, forceOutDir: forceOutDir);
+  if (!options.help) {
+    var srcOpts = options.sourceOptions;
+    if (!srcOpts.useMockSdk && srcOpts.dartSdkPath == null) {
+      print('Could not automatically find dart sdk path.');
+      print('Please pass in explicitly: --dart-sdk <path>');
+      exit(1);
+    }
+    if (options.inputs.length == 0) {
+      print('Expected filename.');
+      return null;
+    }
+  }
+  return options;
+}
+
+Future<bool> compile(CompilerOptions options) async {
+  setupLogger(options.logLevel, print);
+
+  if (options.serverMode) {
+    return new DevServer(options).start();
+  } else {
+    var context = createAnalysisContextWithSources(
+        options.strongOptions, options.sourceOptions);
+    var reporter = createErrorReporter(context, options);
+    // Note: run returns a bool, turned into a future since this function is async.
+    return new BatchCompiler(context, options, reporter: reporter).run();
+  }
 }
 
 class BatchCompiler extends AbstractCompiler {
@@ -409,6 +441,7 @@ final defaultRuntimeFiles = () {
     'dart_utils.js',
     'dart_library.js',
     '_errors.js',
+    '_generators.js',
     '_types.js',
     '_rtti.js',
     '_classes.js',

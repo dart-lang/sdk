@@ -188,9 +188,9 @@ class Primitives {
     timerFrequency = 1000;
     timerTicks = dateNow;
     if (JS('bool', 'typeof window == "undefined"')) return;
-    var window = JS('var', 'window');
-    if (window == null) return;
-    var performance = JS('var', '#.performance', window);
+    var jsWindow = JS('var', 'window');
+    if (jsWindow == null) return;
+    var performance = JS('var', '#.performance', jsWindow);
     if (performance == null) return;
     if (JS('bool', 'typeof #.now != "function"', performance)) return;
     timerFrequency = 1000000;

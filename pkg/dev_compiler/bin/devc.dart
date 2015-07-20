@@ -9,7 +9,7 @@ library dev_compiler.bin.devc;
 
 import 'dart:io';
 
-import 'package:dev_compiler/devc.dart';
+import 'package:dev_compiler/src/compiler.dart' show validateOptions, compile;
 import 'package:dev_compiler/src/options.dart';
 
 void _showUsageAndExit() {
@@ -20,31 +20,10 @@ void _showUsageAndExit() {
   exit(1);
 }
 
-void main(List<String> args) {
-  var options = parseOptions(args);
-  if (options.help) _showUsageAndExit();
+main(List<String> args) async {
+  var options = validateOptions(args);
+  if (options == null || options.help) _showUsageAndExit();
 
-  var srcOpts = options.sourceOptions;
-  if (!srcOpts.useMockSdk && srcOpts.dartSdkPath == null) {
-    print('Could not automatically find dart sdk path.');
-    print('Please pass in explicitly: --dart-sdk <path>');
-    exit(1);
-  }
-
-  if (options.inputs.length == 0) {
-    print('Expected filename.');
-    _showUsageAndExit();
-  }
-
-  setupLogger(options.logLevel, print);
-
-  if (options.serverMode) {
-    new DevServer(options).start();
-  } else {
-    var context = createAnalysisContextWithSources(
-        options.strongOptions, options.sourceOptions);
-    var reporter = createErrorReporter(context, options);
-    var success = new BatchCompiler(context, options, reporter: reporter).run();
-    exit(success ? 0 : 1);
-  }
+  bool success = await compile(options);
+  exit(success ? 0 : 1);
 }
