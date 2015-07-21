@@ -1,3 +1,7 @@
+## 0.26.0-alpha.0
+
+* API change: `UriResolver.resolveUri(..)` now takes an optional `actualUri`.
+
 ## 0.25.3-alpha.0
 
 * Add hook for listening to implicitly analyzed files

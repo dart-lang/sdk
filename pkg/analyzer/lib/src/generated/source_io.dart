@@ -276,11 +276,12 @@ class FileUriResolver extends UriResolver {
   static String FILE_SCHEME = "file";
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     if (!isFileUri(uri)) {
       return null;
     }
-    return new FileBasedSource(new JavaFile.fromUri(uri), uri);
+    return new FileBasedSource(
+        new JavaFile.fromUri(uri), actualUri != null ? actualUri : uri);
   }
 
   @override
@@ -290,7 +291,7 @@ class FileUriResolver extends UriResolver {
     }
     return null;
   }
-  
+
   /**
    * Return `true` if the given URI is a `file` URI.
    *
@@ -425,7 +426,7 @@ class PackageUriResolver extends UriResolver {
   }
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     if (!isPackageUri(uri)) {
       return null;
     }
@@ -463,7 +464,8 @@ class PackageUriResolver extends UriResolver {
       }
     }
     return new FileBasedSource(
-        getCanonicalFile(_packagesDirectories[0], pkgName, relPath), uri);
+        getCanonicalFile(_packagesDirectories[0], pkgName, relPath),
+        actualUri != null ? actualUri : uri);
   }
 
   @override
@@ -537,7 +539,7 @@ class RelativeFileUriResolver extends UriResolver {
       : super();
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     String rootPath = _rootDirectory.toURI().path;
     String uriPath = uri.path;
     if (uriPath != null && uriPath.startsWith(rootPath)) {
@@ -545,7 +547,7 @@ class RelativeFileUriResolver extends UriResolver {
       for (JavaFile dir in _relativeDirectories) {
         JavaFile file = new JavaFile.relative(dir, filePath);
         if (file.exists()) {
-          return new FileBasedSource(file, uri);
+          return new FileBasedSource(file, actualUri != null ? actualUri : uri);
         }
       }
     }

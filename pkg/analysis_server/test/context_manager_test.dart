@@ -1565,7 +1565,7 @@ class TestUriResolver extends UriResolver {
   TestUriResolver(this.uriMap);
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     return uriMap[uri];
   }
 }

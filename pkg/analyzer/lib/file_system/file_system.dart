@@ -181,7 +181,7 @@ class ResourceUriResolver extends UriResolver {
   ResourceUriResolver(this._provider);
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     if (!_isFileUri(uri)) {
       return null;
     }

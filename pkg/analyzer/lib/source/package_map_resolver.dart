@@ -44,7 +44,7 @@ class PackageMapUriResolver extends UriResolver {
   }
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     if (!isPackageUri(uri)) {
       return null;
     }

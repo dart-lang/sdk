@@ -33,6 +33,12 @@ main() {
   runPackageMapTests();
 }
 
+Source createSource({String path, String uri}) =>
+    //TODO(pquitslund): find some way to pass an actual URI into source creation
+    new MemoryResourceProvider()
+        .getFile(path)
+        .createSource(uri != null ? Uri.parse(uri) : null);
+
 void runPackageMapTests() {
   final Uri baseUri = new Uri.file('test/base');
   final List<UriResolver> testResolvers = [new FileUriResolver()];
@@ -170,16 +176,13 @@ foo:http://www.google.com
   });
 }
 
-Source createSource({String path, String uri}) => new MemoryResourceProvider()
-    .getFile(path)
-    .createSource(uri != null ? Uri.parse(uri) : null);
-
 class CustomUriResolver extends UriResolver {
   String uriPath;
   CustomUriResolver({this.uriPath});
 
   @override
-  Source resolveAbsolute(Uri uri) => createSource(path: uriPath);
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) =>
+      createSource(path: uriPath);
 }
 
 @reflectiveTest
@@ -282,7 +285,7 @@ class UriResolver_absolute extends UriResolver {
   UriResolver_absolute();
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     invoked = true;
     return null;
   }
@@ -290,15 +293,15 @@ class UriResolver_absolute extends UriResolver {
 
 class UriResolver_nonAbsolute_absolute extends UriResolver {
   @override
-  Source resolveAbsolute(Uri uri) {
-    return new FileBasedSource(new JavaFile.fromUri(uri), uri);
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    return new FileBasedSource(new JavaFile.fromUri(uri), actualUri);
   }
 }
 
 class UriResolver_nonAbsolute_relative extends UriResolver {
   @override
-  Source resolveAbsolute(Uri uri) {
-    return new FileBasedSource(new JavaFile.fromUri(uri), uri);
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    return new FileBasedSource(new JavaFile.fromUri(uri), actualUri);
   }
 }
 
@@ -308,7 +311,7 @@ class UriResolver_restoreUri extends UriResolver {
   UriResolver_restoreUri(this.source1, this.expected1);
 
   @override
-  Source resolveAbsolute(Uri uri) => null;
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) => null;
 
   @override
   Uri restoreAbsolute(Source source) {
@@ -325,7 +328,7 @@ class UriResolver_SourceFactoryTest_test_fromEncoding_valid
   UriResolver_SourceFactoryTest_test_fromEncoding_valid(this.encoding);
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     if (uri.toString() == encoding) {
       return new TestSource();
     }
