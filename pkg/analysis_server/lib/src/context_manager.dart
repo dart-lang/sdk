@@ -29,6 +29,109 @@ import 'package:watcher/watcher.dart';
 import 'package:yaml/yaml.dart';
 
 /**
+ * Information tracked by the [ContextManager] for each context.
+ */
+class ContextInfo {
+  /**
+   * The [Folder] for which this information object is created.
+   */
+  final Folder folder;
+
+  /// The [PathFilter] used to filter sources from being analyzed.
+  final PathFilter pathFilter;
+
+  /**
+   * The enclosed pubspec-based contexts.
+   */
+  final List<ContextInfo> children;
+
+  /**
+   * The package root for this context, or null if there is no package root.
+   */
+  String packageRoot;
+
+  /**
+   * The [ContextInfo] that encloses this one.
+   */
+  ContextInfo parent;
+
+  /**
+   * The package description file path for this context.
+   */
+  String packageDescriptionPath;
+
+  /**
+   * Stream subscription we are using to watch the context's directory for
+   * changes.
+   */
+  StreamSubscription<WatchEvent> changeSubscription;
+
+  /**
+   * Stream subscriptions we are using to watch the files
+   * used to determine the package map.
+   */
+  final List<StreamSubscription<WatchEvent>> dependencySubscriptions =
+      <StreamSubscription<WatchEvent>>[];
+
+  /**
+   * The analysis context that was created for the [folder].
+   */
+  AnalysisContext context;
+
+  /**
+   * Map from full path to the [Source] object, for each source that has been
+   * added to the context.
+   */
+  Map<String, Source> sources = new HashMap<String, Source>();
+
+  /**
+   * Info returned by the last call to
+   * [OptimizingPubPackageMapProvider.computePackageMap], or `null` if the
+   * package map hasn't been computed for this context yet.
+   */
+  OptimizingPubPackageMapInfo packageMapInfo;
+
+  ContextInfo(
+      Folder folder, File packagespecFile, this.children, this.packageRoot)
+      : folder = folder,
+        pathFilter = new PathFilter(folder.path, null) {
+    packageDescriptionPath = packagespecFile.path;
+    for (ContextInfo child in children) {
+      child.parent = this;
+    }
+  }
+
+  /**
+   * Returns `true` if this context is root folder based.
+   */
+  bool get isRoot => parent == null;
+
+  /**
+   * Returns `true` if [path] is excluded, as it is in one of the children.
+   */
+  bool excludes(String path) {
+    return children.any((child) {
+      return child.folder.contains(path);
+    });
+  }
+
+  /**
+   * Returns `true` if [resource] is excluded, as it is in one of the children.
+   */
+  bool excludesResource(Resource resource) => excludes(resource.path);
+
+  /// Returns `true` if  [path] should be ignored.
+  bool ignored(String path) => pathFilter.ignored(path);
+
+  /**
+   * Returns `true` if [path] is the package description file for this context
+   * (pubspec.yaml or .packages).
+   */
+  bool isPathToPackageDescription(String path) =>
+      path == packageDescriptionPath;
+}
+
+/**
  * Class that maintains a mapping from included/excluded paths to a set of
  * folders that should correspond to analysis contexts.
  */
@@ -184,10 +287,10 @@ class ContextManagerImpl implements ContextManager {
   static const String PACKAGE_SPEC_NAME = '.packages';
 
   /**
-   * [_ContextInfo] object for each included directory in the most
+   * [ContextInfo] object for each included directory in the most
    * recent successful call to [setRoots].
    */
-  Map<Folder, _ContextInfo> _contexts = new HashMap<Folder, _ContextInfo>();
+  Map<Folder, ContextInfo> _contexts = new HashMap<Folder, ContextInfo>();
 
   /**
    * The [ResourceProvider] using which paths are converted into [Resource]s.
@@ -255,13 +358,18 @@ class ContextManagerImpl implements ContextManager {
   @override
   List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot) {
     List<AnalysisContext> contexts = <AnalysisContext>[];
-    _contexts.forEach((Folder contextFolder, _ContextInfo info) {
+    _contexts.forEach((Folder contextFolder, ContextInfo info) {
       if (analysisRoot.isOrContains(contextFolder.path)) {
         contexts.add(info.context);
       }
     });
     return contexts;
   }
+
+  /**
+   * For testing: get the [ContextInfo] object for the given [folder], if any.
+   */
+  ContextInfo getContextInfoFor(Folder folder) => _contexts[folder];
 
   @override
   bool isInAnalysisRoot(String path) {
@@ -279,12 +387,11 @@ class ContextManagerImpl implements ContextManager {
     return false;
   }
 
-  /// Process [options] for the context [folder].
-  void processOptionsForContext(Folder folder, Map<String, YamlNode> options) {
-    _ContextInfo info = _contexts[folder];
-    if (info == null) {
-      return;
-    }
+  /**
+   * Process [options] for the context having info [info].
+   */
+  void processOptionsForContext(
+      ContextInfo info, Map<String, YamlNode> options) {
     YamlMap analyzer = options['analyzer'];
     if (analyzer == null) {
       // No options for analyzer.
@@ -294,7 +401,7 @@ class ContextManagerImpl implements ContextManager {
     // Set ignore patterns.
     YamlList exclude = analyzer['exclude'];
     if (exclude != null) {
-      setIgnorePatternsForContext(folder, exclude);
+      setIgnorePatternsForContext(info, exclude);
     }
   }
 
@@ -318,14 +425,12 @@ class ContextManagerImpl implements ContextManager {
     setRoots(includedPaths, excludedPaths, packageRoots);
   }
 
-  /// Sets the [ignorePatterns] for the context [folder].
-  void setIgnorePatternsForContext(Folder folder, List<String> ignorePatterns) {
-    _ContextInfo info = _contexts[folder];
-    if (info == null) {
-      return;
-    }
-    var pathFilter = info.pathFilter;
-    pathFilter.setIgnorePatterns(ignorePatterns);
+  /**
+   * Sets the [ignorePatterns] for the context having info [info].
+   */
+  void setIgnorePatternsForContext(
+      ContextInfo info, List<String> ignorePatterns) {
+    info.pathFilter.setIgnorePatterns(ignorePatterns);
   }
 
   @override
@@ -371,7 +476,7 @@ class ContextManagerImpl implements ContextManager {
       }
     }
     // Update package roots for existing contexts
-    _contexts.forEach((Folder folder, _ContextInfo info) {
+    _contexts.forEach((Folder folder, ContextInfo info) {
       String newPackageRoot = normalizedPackageRoots[folder.path];
       if (info.packageRoot != newPackageRoot) {
         info.packageRoot = newPackageRoot;
@@ -416,7 +521,7 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Resursively adds all Dart and HTML files to the [changeSet].
    */
-  void _addPreviouslyExcludedSources(_ContextInfo info, ChangeSet changeSet,
+  void _addPreviouslyExcludedSources(ContextInfo info, ChangeSet changeSet,
       Folder folder, List<String> oldExcludedPaths) {
     if (info.excludesResource(folder)) {
       return;
@@ -463,7 +568,7 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Resursively adds all Dart and HTML files to the [changeSet].
    */
-  void _addSourceFiles(ChangeSet changeSet, Folder folder, _ContextInfo info) {
+  void _addSourceFiles(ChangeSet changeSet, Folder folder, ContextInfo info) {
     if (info.excludesResource(folder) || folder.shortName.startsWith('.')) {
       return;
     }
@@ -501,7 +606,7 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Cancel all dependency subscriptions for the given context.
    */
-  void _cancelDependencySubscriptions(_ContextInfo info) {
+  void _cancelDependencySubscriptions(ContextInfo info) {
     for (StreamSubscription<WatchEvent> s in info.dependencySubscriptions) {
       s.cancel();
     }
@@ -509,7 +614,7 @@ class ContextManagerImpl implements ContextManager {
   }
 
   void _checkForPackagespecUpdate(
-      String path, _ContextInfo info, Folder folder) {
+      String path, ContextInfo info, Folder folder) {
     // Check to see if this is the .packages file for this context and if so,
     // update the context's source factory.
     if (pathContext.basename(path) == PACKAGE_SPEC_NAME &&
@@ -536,7 +641,7 @@ class ContextManagerImpl implements ContextManager {
     for (Source source in context.sources) {
       flushedFiles.add(source.fullName);
     }
-    for (_ContextInfo contextInfo in _contexts.values) {
+    for (ContextInfo contextInfo in _contexts.values) {
       AnalysisContext contextN = contextInfo.context;
       if (context != contextN) {
         for (Source source in contextN.sources) {
@@ -552,7 +657,7 @@ class ContextManagerImpl implements ContextManager {
    * dependency information in [info]. Return `null` if no package map can
    * be computed.
    */
-  UriResolver _computePackageUriResolver(Folder folder, _ContextInfo info) {
+  UriResolver _computePackageUriResolver(Folder folder, ContextInfo info) {
     _cancelDependencySubscriptions(info);
     if (info.packageRoot != null) {
       info.packageMapInfo = null;
@@ -626,13 +731,13 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Create a new empty context associated with [folder].
    */
-  _ContextInfo _createContext(
-      Folder folder, File packagespecFile, List<_ContextInfo> children) {
-    _ContextInfo info = new _ContextInfo(
+  ContextInfo _createContext(
+      Folder folder, File packagespecFile, List<ContextInfo> children) {
+    ContextInfo info = new ContextInfo(
         folder, packagespecFile, children, normalizedPackageRoots[folder.path]);
     _contexts[folder] = info;
-    var options = analysisOptionsProvider.getOptions(folder);
-    processOptionsForContext(folder, options);
+    Map<String, YamlNode> options = analysisOptionsProvider.getOptions(folder);
+    processOptionsForContext(info, options);
     info.changeSubscription = folder.changes.listen((WatchEvent event) {
       _handleWatchEvent(folder, info, event);
     });
@@ -673,9 +778,9 @@ class ContextManagerImpl implements ContextManager {
    *
    * Returns created contexts.
    */
-  List<_ContextInfo> _createContexts(Folder folder, bool withPackageSpecOnly) {
+  List<ContextInfo> _createContexts(Folder folder, bool withPackageSpecOnly) {
     // Try to find subfolders with pubspecs or .packages files.
-    List<_ContextInfo> children = <_ContextInfo>[];
+    List<ContextInfo> children = <ContextInfo>[];
     try {
       for (Resource child in folder.getChildren()) {
         if (child is Folder) {
@@ -700,7 +805,7 @@ class ContextManagerImpl implements ContextManager {
     }
 
     if (packageSpec.exists) {
-      return <_ContextInfo>[
+      return <ContextInfo>[
         _createContextWithSources(folder, packageSpec, children)
       ];
     }
@@ -709,7 +814,7 @@ class ContextManagerImpl implements ContextManager {
       return children;
     }
     // OK, create a context without a packagespec.
-    return <_ContextInfo>[
+    return <ContextInfo>[
       _createContextWithSources(folder, packageSpec, children)
     ];
   }
@@ -719,9 +824,9 @@ class ContextManagerImpl implements ContextManager {
    * is the `pubspec.yaml` file contained in the folder. Add any sources that
    * are not included in one of the [children] to the context.
    */
-  _ContextInfo _createContextWithSources(
-      Folder folder, File pubspecFile, List<_ContextInfo> children) {
-    _ContextInfo info = _createContext(folder, pubspecFile, children);
+  ContextInfo _createContextWithSources(
+      Folder folder, File pubspecFile, List<ContextInfo> children) {
+    ContextInfo info = _createContext(folder, pubspecFile, children);
     ChangeSet changeSet = new ChangeSet();
     _addSourceFiles(changeSet, folder, info);
     callbacks.applyChangesToContext(folder, changeSet);
@@ -732,7 +837,7 @@ class ContextManagerImpl implements ContextManager {
    * Clean up and destroy the context associated with the given folder.
    */
   void _destroyContext(Folder folder) {
-    _ContextInfo info = _contexts[folder];
+    ContextInfo info = _contexts[folder];
     info.changeSubscription.cancel();
     _cancelDependencySubscriptions(info);
     callbacks.removeContext(folder, _computeFlushedFiles(folder));
@@ -742,9 +847,9 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Extract a new [packagespecFile]-based context from [oldInfo].
    */
-  void _extractContext(_ContextInfo oldInfo, File packagespecFile) {
+  void _extractContext(ContextInfo oldInfo, File packagespecFile) {
     Folder newFolder = packagespecFile.parent;
-    _ContextInfo newInfo = _createContext(newFolder, packagespecFile, []);
+    ContextInfo newInfo = _createContext(newFolder, packagespecFile, []);
     newInfo.parent = oldInfo;
     // prepare sources to extract
     Map<String, Source> extractedSources = new HashMap<String, Source>();
@@ -773,7 +878,7 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
-  void _handleWatchEvent(Folder folder, _ContextInfo info, WatchEvent event) {
+  void _handleWatchEvent(Folder folder, ContextInfo info, WatchEvent event) {
     // TODO(brianwilkerson) If a file is explicitly included in one context
     // but implicitly referenced in another context, we will only send a
     // changeSet to the context that explicitly includes the file (because
@@ -954,11 +1059,11 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Merges [info] context into its parent.
    */
-  void _mergeContext(_ContextInfo info) {
+  void _mergeContext(ContextInfo info) {
     // destroy the context
     _destroyContext(info.folder);
     // add files to the parent context
-    _ContextInfo parentInfo = info.parent;
+    ContextInfo parentInfo = info.parent;
     if (parentInfo != null) {
       parentInfo.children.remove(info);
       ChangeSet changeSet = new ChangeSet();
@@ -986,7 +1091,7 @@ class ContextManagerImpl implements ContextManager {
    * Recompute the package URI resolver for the context described by [info],
    * and update the client appropriately.
    */
-  void _recomputePackageUriResolver(_ContextInfo info) {
+  void _recomputePackageUriResolver(ContextInfo info) {
     // TODO(paulberry): when computePackageMap is changed into an
     // asynchronous API call, we'll want to suspend analysis for this context
     // while we're rerunning "pub list", since any analysis we complete while
@@ -1043,107 +1148,4 @@ class ContextsChangedEvent {
   ContextsChangedEvent({this.added: AnalysisContext.EMPTY_LIST,
       this.changed: AnalysisContext.EMPTY_LIST,
       this.removed: AnalysisContext.EMPTY_LIST});
-}
-
-/**
- * Information tracked by the [ContextManager] for each context.
- */
-class _ContextInfo {
-  /**
-   * The [Folder] for which this information object is created.
-   */
-  final Folder folder;
-
-  /// The [PathFilter] used to filter sources from being analyzed.
-  final PathFilter pathFilter;
-
-  /**
-   * The enclosed pubspec-based contexts.
-   */
-  final List<_ContextInfo> children;
-
-  /**
-   * The package root for this context, or null if there is no package root.
-   */
-  String packageRoot;
-
-  /**
-   * The [_ContextInfo] that encloses this one.
-   */
-  _ContextInfo parent;
-
-  /**
-   * The package description file path for this context.
-   */
-  String packageDescriptionPath;
-
-  /**
-   * Stream subscription we are using to watch the context's directory for
-   * changes.
-   */
-  StreamSubscription<WatchEvent> changeSubscription;
-
-  /**
-   * Stream subscriptions we are using to watch the files
-   * used to determine the package map.
-   */
-  final List<StreamSubscription<WatchEvent>> dependencySubscriptions =
-      <StreamSubscription<WatchEvent>>[];
-
-  /**
-   * The analysis context that was created for the [folder].
-   */
-  AnalysisContext context;
-
-  /**
-   * Map from full path to the [Source] object, for each source that has been
-   * added to the context.
-   */
-  Map<String, Source> sources = new HashMap<String, Source>();
-
-  /**
-   * Info returned by the last call to
-   * [OptimizingPubPackageMapProvider.computePackageMap], or `null` if the
-   * package map hasn't been computed for this context yet.
-   */
-  OptimizingPubPackageMapInfo packageMapInfo;
-
-  _ContextInfo(
-      Folder folder, File packagespecFile, this.children, this.packageRoot)
-      : folder = folder,
-        pathFilter = new PathFilter(folder.path, null) {
-    packageDescriptionPath = packagespecFile.path;
-    for (_ContextInfo child in children) {
-      child.parent = this;
-    }
-  }
-
-  /**
-   * Returns `true` if this context is root folder based.
-   */
-  bool get isRoot => parent == null;
-
-  /**
-   * Returns `true` if [path] is excluded, as it is in one of the children.
-   */
-  bool excludes(String path) {
-    return children.any((child) {
-      return child.folder.contains(path);
-    });
-  }
-
-  /**
-   * Returns `true` if [resource] is excluded, as it is in one of the children.
-   */
-  bool excludesResource(Resource resource) => excludes(resource.path);
-
-  /// Returns `true` if  [path] should be ignored.
-  bool ignored(String path) => pathFilter.ignored(path);
-
-  /**
-   * Returns `true` if [path] is the package description file for this context
-   * (pubspec.yaml or .packages).
-   */
-  bool isPathToPackageDescription(String path) =>
-      path == packageDescriptionPath;
 }

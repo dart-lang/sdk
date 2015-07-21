@@ -143,8 +143,9 @@ class AbstractContextManagerTest {
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(callbacks.currentContextFilePaths[projPath], isEmpty);
     // Set ignore patterns for context.
+    ContextInfo rootInfo = manager.getContextInfoFor(root);
     manager.setIgnorePatternsForContext(
-        root, ['sdk_ext/**', 'lib/ignoreme.dart']);
+        rootInfo, ['sdk_ext/**', 'lib/ignoreme.dart']);
     // Start creating files.
     newFile([projPath, ContextManagerImpl.PUBSPEC_NAME]);
     String libPath = newFolder([projPath, LIB_NAME]);
