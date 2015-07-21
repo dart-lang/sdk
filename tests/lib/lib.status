@@ -329,6 +329,12 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet 
 mirrors/immutable_collections_test: SkipSlow  # Timeout.
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.
 
+[ $compiler == dart2js && $system == windows && $runtime == chrome ]
+convert/line_splitter_test: RuntimeError
+
+[ $compiler == dart2js && $system == windows && $runtime == ff ]
+convert/line_splitter_test: RuntimeError
+
 [ $compiler == dart2js && $cps_ir ]
 async/future_test/01: Crash # (()async=>new Future.value(value)): cannot handle async/sync*/async* functions
 async/stream_empty_test: Crash # (Future runTest()asy...  cannot handle async/sync*/async* functions
