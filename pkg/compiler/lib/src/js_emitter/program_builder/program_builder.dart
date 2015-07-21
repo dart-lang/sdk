@@ -350,7 +350,7 @@ class ProgramBuilder {
     js.Name name = namer.className(element);
 
     return new Class(
-        element, name, null, [], instanceFields, [], [], [], [], [], null,
+        element, name, null, [], instanceFields, [], [], [], [], [], [], null,
         isDirectlyInstantiated: true,
         onlyForRti: false,
         isNative: element.isNative);
@@ -430,6 +430,18 @@ class ProgramBuilder {
             element,
             storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
 
+    List<StubMethod> checkedSetters = <StubMethod>[];
+    for (Field field in instanceFields) {
+      if (field.needsCheckedSetter) {
+        assert(!field.needsUncheckedSetter);
+        Element element = field.element;
+        js.Expression code = backend.generatedCode[element];
+        assert(code != null);
+        js.Name name = namer.deriveSetterName(field.accessorName);
+        checkedSetters.add(_buildStubMethod(name, code, element: element));
+      }
+    }
+
     List<StubMethod> isChecks = <StubMethod>[];
     typeTests.properties.forEach((js.Name name, js.Node code) {
       isChecks.add(_buildStubMethod(name, code));
@@ -454,6 +466,7 @@ class ProgramBuilder {
                                     staticFieldsForReflection,
                                     callStubs,
                                     typeVariableReaderStubs,
+                                    checkedSetters,
                                     isChecks,
                                     typeTests.functionTypeIndex,
                                     isDirectlyInstantiated: isInstantiated,
@@ -465,6 +478,7 @@ class ProgramBuilder {
                          callStubs,
                          typeVariableReaderStubs,
                          noSuchMethodStubs,
+                         checkedSetters,
                          isChecks,
                          typeTests.functionTypeIndex,
                          isDirectlyInstantiated: isInstantiated,
