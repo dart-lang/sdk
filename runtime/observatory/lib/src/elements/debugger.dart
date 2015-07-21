@@ -349,6 +349,35 @@ class StepCommand extends DebuggerCommand {
       'Syntax: step\n';
 }
 
+class AsyncNextCommand extends DebuggerCommand {
+  AsyncNextCommand(Debugger debugger) : super(debugger, 'anext', []) {
+  }
+
+  Future run(List<String> args) async {
+    if (debugger.isolatePaused()) {
+      var event = debugger.isolate.pauseEvent;
+      if (event.asyncContinuation == null) {
+        debugger.console.print("No async continuation at this location");
+        return;
+      }
+      var bpt = await
+          debugger.isolate.addBreakOnActivation(event.asyncContinuation);
+      return debugger.isolate.resume();
+    } else {
+      debugger.console.print('The program is already running');
+    }
+  }
+
+  String helpShort =
+      'Step over await or yield';
+
+  String helpLong =
+      'Continue running the isolate until control returns to the current '
+      'activation of an async or async* function.\n'
+      '\n'
+      'Syntax: anext\n';
+}
+
 class FinishCommand extends DebuggerCommand {
   FinishCommand(Debugger debugger) : super(debugger, 'finish', []);
 
@@ -854,6 +883,67 @@ class RefreshCommand extends DebuggerCommand {
       'Syntax: refresh <subcommand>\n';
 }
 
+class _VMStreamPrinter {
+  ObservatoryDebugger _debugger;
+
+  _VMStreamPrinter(this._debugger);
+
+  String _savedStream;
+  String _savedIsolate;
+  String _savedLine;
+  List<String> _buffer = [];
+
+  void onEvent(String streamName, ServiceEvent event) {
+    String isolateName = event.isolate.name;
+    // If we get a line from a different isolate/stream, flush
+    // any pending output, even if it is not newline-terminated.
+    if ((_savedIsolate != null && isolateName != _savedIsolate) ||
+        (_savedStream != null && streamName != _savedStream)) {
+       flush();
+    }
+    String data = event.bytesAsString;
+    bool hasNewline = data.endsWith('\n');
+    if (_savedLine != null) {
+       data = _savedLine + data;
+      _savedIsolate = null;
+      _savedStream = null;
+      _savedLine = null;
+    }
+    var lines = data.split('\n').where((line) => line != '').toList();
+    if (lines.isEmpty) {
+      return;
+    }
+    int limit = (hasNewline ? lines.length : lines.length - 1);
+    for (int i = 0; i < limit; i++) {
+      _buffer.add(_format(isolateName, streamName, lines[i]));
+    }
+    // If there is no newline, we save the last line of output for next time.
+    if (!hasNewline) {
+      _savedIsolate = isolateName;
+      _savedStream = streamName;
+      _savedLine = lines[lines.length - 1];
+    }
+  }
+
+  void flush() {
+    // If there is any saved output, flush it now.
+    if (_savedLine != null) {
+      _buffer.add(_format(_savedIsolate, _savedStream, _savedLine));
+      _savedIsolate = null;
+      _savedStream = null;
+      _savedLine = null;
+    }
+    if (_buffer.isNotEmpty) {
+      _debugger.console.printStdio(_buffer);
+      _buffer.clear();
+    }
+  }
+
+  String _format(String isolateName, String streamName, String line) {
+    return '${isolateName}:${streamName}> ${line}';
+  }
+}
+
 // Tracks the state for an isolate debugging session.
 class ObservatoryDebugger extends Debugger {
   RootCommand cmd;
@@ -889,6 +979,7 @@ class ObservatoryDebugger extends Debugger {
         new ContinueCommand(this),
         new NextCommand(this),
         new StepCommand(this),
+        new AsyncNextCommand(this),
         new FinishCommand(this),
         new BreakCommand(this),
         new SetCommand(this),
@@ -898,6 +989,7 @@ class ObservatoryDebugger extends Debugger {
         new IsolateCommand(this),
         new RefreshCommand(this),
     ]);
+    _stdioPrinter = new _VMStreamPrinter(this);
   }
 
   VM get vm => page.app.vm;
@@ -997,6 +1089,7 @@ class ObservatoryDebugger extends Debugger {
   }
 
   void reportStatus() {
+    flushStdio();
     if (_isolate == null) {
       console.print('No current isolate');
     } else if (_isolate.idle) {
@@ -1038,6 +1131,9 @@ class ObservatoryDebugger extends Debugger {
           console.printRef(event.exception);
         } else {
           console.print('Paused at ${script.name}:${line}:${col}');
+        }
+        if (event.asyncContinuation != null) {
+          console.print("Paused in async function: 'astep' available");
         }
       });
     }
@@ -1116,6 +1212,7 @@ class ObservatoryDebugger extends Debugger {
       case ServiceEvent.kPauseException:
         if (event.owner == isolate) {
           _refreshStack(event).then((_) {
+            flushStdio();
             _reportPause(event);
           });
         }
@@ -1123,6 +1220,7 @@ class ObservatoryDebugger extends Debugger {
 
       case ServiceEvent.kResume:
         if (event.owner == isolate) {
+          flushStdio();
           console.print('Continuing...');
         }
         break;
@@ -1145,6 +1243,20 @@ class ObservatoryDebugger extends Debugger {
         console.print('Unrecognized event: $event');
         break;
     }
+  }
+
+  _VMStreamPrinter _stdioPrinter;
+
+  void flushStdio() {
+    _stdioPrinter.flush();
+  }
+
+  void onStdout(ServiceEvent event) {
+    _stdioPrinter.onEvent('stdout', event);
+  }
+
+  void onStderr(ServiceEvent event) {
+    _stdioPrinter.onEvent('stderr', event);
   }
 
   static String _commonPrefix(String a, String b) {
@@ -1236,6 +1348,8 @@ class DebuggerPageElement extends ObservatoryElement {
 
   Future<StreamSubscription> _isolateSubscriptionFuture;
   Future<StreamSubscription> _debugSubscriptionFuture;
+  Future<StreamSubscription> _stdoutSubscriptionFuture;
+  Future<StreamSubscription> _stderrSubscriptionFuture;
 
   @override
   void attached() {
@@ -1269,6 +1383,26 @@ class DebuggerPageElement extends ObservatoryElement {
         app.vm.listenEventStream(VM.kIsolateStream, debugger.onEvent);
     _debugSubscriptionFuture =
         app.vm.listenEventStream(VM.kDebugStream, debugger.onEvent);
+    _stdoutSubscriptionFuture =
+        app.vm.listenEventStream(VM.kStdoutStream, debugger.onStdout);
+    _stderrSubscriptionFuture =
+        app.vm.listenEventStream(VM.kStderrStream, debugger.onStderr);
+
+    // Turn on the periodic poll timer for this page.
+    pollPeriod = const Duration(milliseconds:100);
+
+    onClick.listen((event) {
+      // Random clicks should focus on the text box.  If the user selects
+      // a range, don't interfere.
+      var selection = window.getSelection();
+      if (selection == null || selection.type == 'Caret') {
+        debugger.input.focus();
+      }
+    });
+  }
+
+  void onPoll() {
+    debugger.flushStdio();
   }
 
   @override
@@ -1277,6 +1411,10 @@ class DebuggerPageElement extends ObservatoryElement {
     _isolateSubscriptionFuture = null;
     cancelFutureSubscription(_debugSubscriptionFuture);
     _debugSubscriptionFuture = null;
+    cancelFutureSubscription(_stdoutSubscriptionFuture);
+    _stdoutSubscriptionFuture = null;
+    cancelFutureSubscription(_stderrSubscriptionFuture);
+    _stderrSubscriptionFuture = null;
     super.detached();
   }
 }
@@ -1654,6 +1792,21 @@ class DebuggerConsoleElement extends ObservatoryElement {
     }
     $['consoleText'].children.add(span);
     span.scrollIntoView();
+  }
+
+  void printStdio(List<String> lines) {
+    var lastSpan;
+    for (var line in lines) {
+      var span = new SpanElement();
+      span.classes.add('green');
+      span.appendText(line);
+      span.appendText('\n');
+      $['consoleText'].children.add(span);
+      lastSpan = span;
+    }
+    if (lastSpan != null) {
+      lastSpan.scrollIntoView();
+    }
   }
 
   void printRef(Instance ref, { bool newline:true }) {

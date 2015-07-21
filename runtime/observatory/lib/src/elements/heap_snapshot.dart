@@ -75,8 +75,7 @@ class DominatorTreeRow extends TableTreeRow {
     firstColumn.children.add(gap);
 
     AnyServiceRefElement objectRef = new Element.tag("any-service-ref");
-    String hexAddress = vertex.address.toRadixString(16);
-    snapshot.isolate.getObjectByAddress(hexAddress).then((obj) {
+    snapshot.isolate.getObjectByAddress(vertex.address).then((obj) {
       objectRef.ref = obj;
     });
     objectRef.style.alignSelf = 'center';

@@ -281,9 +281,7 @@ WebPlatformTest/custom-elements/concepts/type_A05_t01: RuntimeError # co19-roll 
 WebPlatformTest/custom-elements/concepts/type_A06_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/innerhtml-on-templates/innerhtml_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/generating-of-implied-end-tags_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/template-end-tag-without-start-one_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-the-token/template-owner-document_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t02: RuntimeError # co19-roll r722: Please triage this failure.
@@ -375,6 +373,8 @@ WebPlatformTest/shadow-dom/events/event-dispatch/test-002_t01: RuntimeError # Pl
 WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-001_t01: RuntimeError # Please triage this failure.
 WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-002_t01: RuntimeError # Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: RuntimeError # Please triage this failure.
+
+LayoutTests/fast/dom/css-innerHTML_t01: RuntimeError # Test is incorrect.
 
 # co19-roll r738.
 WebPlatformTest/DOMEvents/approved/ProcessingInstruction.DOMCharacterDataModified_t01: Skip # Times out. co19-roll r738: Please triage this failure.

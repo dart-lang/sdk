@@ -49,12 +49,18 @@ issue_21398_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
 issue_21398_parent_isolate1_test: SkipByDesign # Test uses a ".dart" URI.
 issue_21398_parent_isolate2_test: SkipByDesign # Test uses a ".dart" URI.
 function_send1_test: SkipByDesign   # Test uses a ".dart" URI.
+error_exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
+error_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
+exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
 message3_test/constList: RuntimeError # Issue 21817
 message3_test/constList_identical: RuntimeError # Issue 21817
 message3_test/constMap: RuntimeError  # Issue 21817
 message3_test/constInstance: RuntimeError # Issue 21817
 browser/issue_12474_test: CompileTimeError # Issue 22529
 enum_const_test/02: RuntimeError # Issue 21817
+error_exit_at_spawn_test: Fail, Timeout  # Issue 23876
+error_at_spawn_test: Fail, Timeout  # Issue 23876
+exit_at_spawn_test: Fail, Timeout  # Issue 23876
 
 [ $compiler == dart2js && $jscl ]
 spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
@@ -117,6 +123,13 @@ deferred_in_isolate2_test: Fail, OK  # Issue 16209, 13921 Dom isolates don't sup
 bool_from_environment_default_value_test: Skip
 int_from_environment_default_value_test: Skip
 string_from_environment_default_value_test: Skip
+error_exit_at_spawn_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+error_at_spawn_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+exit_at_spawn_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+error_exit_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+error_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+exit_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
@@ -126,55 +139,9 @@ mint_maker_test: StaticWarning
 package_root_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js && $cps_ir ]
-bool_from_environment_default_value_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-capability_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-compile_time_error_test/none: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-count_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-cross_isolate_message_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_in_isolate2_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-deferred_in_isolate_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-function_send_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-handle_error2_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-handle_error3_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-handle_error_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-illegal_msg_function_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-illegal_msg_mirror_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-int_from_environment_default_value_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-isolate_complex_messages_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-isolate_current_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-isolate_import_test/none: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-issue_22778_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-kill2_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-kill_self_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-kill_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-mandel_isolate_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-message2_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-message3_test/byteBuffer: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-message3_test/fun: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-message3_test/int32x4: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-message3_test/none: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-message_enum_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-message_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-mint_maker_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-nested_spawn2_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-nested_spawn_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-object_leak_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-ondone_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-pause_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-ping_pause_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-ping_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-port_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-raw_port_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-request_reply_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-simple_message_test/none: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-spawn_function_custom_class_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-spawn_function_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-spawn_uri_missing_from_isolate_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-spawn_uri_missing_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-stacktrace_message_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-start_paused_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-static_function_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-string_from_environment_default_value_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-timer_isolate_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-typed_message_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-unresolved_ports_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
+deferred_in_isolate2_test: Crash # (lib.f()): deferred access is not implemented
+isolate_current_test: RuntimeError # Please triage this failure.
+message3_test/byteBuffer: RuntimeError # Please triage this failure.
+message3_test/fun: RuntimeError # Please triage this failure.
+message3_test/int32x4: RuntimeError # Please triage this failure.
+message3_test/none: RuntimeError # Please triage this failure.

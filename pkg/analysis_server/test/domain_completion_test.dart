@@ -7,10 +7,11 @@ library test.domain.completion;
 import 'dart:async';
 
 import 'package:analysis_server/completion/completion_core.dart'
-    show CompletionRequest;
+    show CompletionRequest, CompletionResult;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
@@ -568,7 +569,7 @@ class MockCompletionManager implements CompletionManager {
   @override
   void computeSuggestions(CompletionRequest request) {
     ++computeCallCount;
-    CompletionResult result = new CompletionResult(0, 0, [], true);
+    CompletionResult result = new CompletionResultImpl(0, 0, [], true);
     controller.add(result);
   }
 

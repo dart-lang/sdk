@@ -807,6 +807,74 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
 
 /*
  * ========
+ * Event Streams
+ * ========
+ */
+
+/**
+ * A callback invoked when the VM service gets a request to listen to
+ * some stream.
+ *
+ * \return Returns true iff the embedder supports the named stream id.
+ */
+typedef bool (*Dart_ServiceStreamListenCallback)(const char* stream_id);
+
+/**
+ * A callback invoked when the VM service gets a request to cancel
+ * some stream.
+ */
+typedef void (*Dart_ServiceStreamCancelCallback)(const char* stream_id);
+
+/**
+ * Adds VM service stream callbacks.
+ *
+ * \param listen_callback A function pointer to a listen callback function.
+ *   A listen callback function should not be already set when this function
+ *   is called. A NULL value removes the existing listen callback function
+ *   if any.
+ *
+ * \param cancel_callback A function pointer to a cancel callback function.
+ *   A cancel callback function should not be already set when this function
+ *   is called. A NULL value removes the existing cancel callback function
+ *   if any.
+ *
+ * \return Success if the callbacks were added.  Otherwise, returns an
+ *   error handle.
+ */
+DART_EXPORT Dart_Handle Dart_SetServiceStreamCallbacks(
+    Dart_ServiceStreamListenCallback listen_callback,
+    Dart_ServiceStreamCancelCallback cancel_callback);
+
+/**
+ * Sends a data event to clients of the VM Service.
+ *
+ * A data event is used to pass an array of bytes to subscribed VM
+ * Service clients.  For example, in the standalone embedder, this is
+ * function used to provide WriteEvents on the Stdout and Stderr
+ * streams.
+ *
+ * If the embedder passes in a stream id for which no client is
+ * subscribed, then the event is ignored.
+ *
+ * \param stream_id The id of the stream on which to post the event.
+ *
+ * \param event_kind A string identifying what kind of event this is.
+ *   For example, 'WriteEvent'.
+ *
+ * \param bytes A pointer to an array of bytes.
+ *
+ * \param bytes_length The length of the byte array.
+ *
+ * \return Success if the arguments are well formed.  Otherwise, returns an
+ *   error handle.
+ */
+DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
+                                                  const char* event_kind,
+                                                  const uint8_t* bytes,
+                                                  intptr_t bytes_length);
+
+/*
+ * ========
  * Timeline
  * ========
  */

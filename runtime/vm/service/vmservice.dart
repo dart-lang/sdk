@@ -178,11 +178,6 @@ class VMService extends MessageRouter {
     return JSON.encode(response);
   }
 
-  bool _isValidStream(String streamId) {
-    final validStreams = [ 'Isolate', 'Debug', 'GC', '_Echo', '_Graph' ];
-    return validStreams.contains(streamId);
-  }
-
   bool _isAnyClientSubscribed(String streamId) {
     for (var client in clients) {
       if (client.streams.contains(streamId)) {
@@ -196,16 +191,15 @@ class VMService extends MessageRouter {
     var client = message.client;
     var streamId = message.params['streamId'];
 
-    if (!_isValidStream(streamId)) {
-      return _encodeError(
-          message, _kInvalidParams,
-          details:"streamListen: invalid 'streamId' parameter: ${streamId}");
-    }
     if (client.streams.contains(streamId)) {
       return _encodeError(message, _kStreamAlreadySubscribed);
     }
     if (!_isAnyClientSubscribed(streamId)) {
-      _vmListenStream(streamId);
+      if (!_vmListenStream(streamId)) {
+        return _encodeError(
+            message, _kInvalidParams,
+            details:"streamListen: invalid 'streamId' parameter: ${streamId}");
+      }
     }
     client.streams.add(streamId);
 
@@ -217,11 +211,6 @@ class VMService extends MessageRouter {
     var client = message.client;
     var streamId = message.params['streamId'];
 
-    if (!_isValidStream(streamId)) {
-      return _encodeError(
-          message, _kInvalidParams,
-          details:"streamCancel: invalid 'streamId' parameter: ${streamId}");
-    }
     if (!client.streams.contains(streamId)) {
       return _encodeError(message, _kStreamNotSubscribed);
     }
@@ -331,6 +320,6 @@ void _onStart() native "VMService_OnStart";
 
 void _onExit() native "VMService_OnExit";
 
-void _vmListenStream(String streamId) native "VMService_ListenStream";
+bool _vmListenStream(String streamId) native "VMService_ListenStream";
 
 void _vmCancelStream(String streamId) native "VMService_CancelStream";

@@ -1120,6 +1120,8 @@ class PrefixElementX extends ElementX implements PrefixElement {
   void markAsDeferred(Import deferredImport) {
     _deferredImport = deferredImport;
   }
+
+  String toString() => '$kind($name)';
 }
 
 class TypedefElementX extends ElementX
@@ -1240,8 +1242,12 @@ abstract class ConstantVariableMixin implements VariableElement {
       originVariable.constant = value;
       return null;
     }
-    assert(invariant(this, constantCache == null || constantCache == value,
-        message: "Constant has already been computed for $this."));
+    assert(invariant(
+        this, constantCache == null || constantCache == value,
+        message: "Constant has already been computed for $this. "
+                 "Existing constant: "
+                 "${constantCache != null ? constantCache.getText() : ''}, "
+                 "New constant: ${value != null ? value.getText() : ''}."));
     constantCache = value;
   }
 }

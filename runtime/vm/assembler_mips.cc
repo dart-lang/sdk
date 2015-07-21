@@ -806,89 +806,80 @@ void Assembler::LeaveStubFrameAndReturn(Register ra) {
 
 void Assembler::UpdateAllocationStats(intptr_t cid,
                                       Register temp_reg,
-                                      Heap::Space space) {
+                                      Heap::Space space,
+                                      bool inline_isolate) {
   ASSERT(!in_delay_slot_);
   ASSERT(temp_reg != kNoRegister);
   ASSERT(temp_reg != TMP);
   ASSERT(cid > 0);
-  Isolate* isolate = Isolate::Current();
-  ClassTable* class_table = isolate->class_table();
-  if (cid < kNumPredefinedCids) {
-    const uword class_heap_stats_table_address =
-        class_table->PredefinedClassHeapStatsTableAddress();
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    LoadImmediate(temp_reg, class_heap_stats_table_address + class_offset);
-    const Address& count_address = Address(temp_reg, count_field_offset);
-    lw(TMP, count_address);
-    AddImmediate(TMP, 1);
-    sw(TMP, count_address);
+  intptr_t counter_offset =
+      ClassTable::CounterOffsetFor(cid, space == Heap::kNew);
+  if (inline_isolate) {
+    ClassTable* class_table = Isolate::Current()->class_table();
+    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
+    if (cid < kNumPredefinedCids) {
+      LoadImmediate(
+          temp_reg, reinterpret_cast<uword>(*table_ptr) + counter_offset);
+    } else {
+      ASSERT(temp_reg != kNoRegister);
+      LoadImmediate(temp_reg, reinterpret_cast<uword>(table_ptr));
+      lw(temp_reg, Address(temp_reg, 0));
+      AddImmediate(temp_reg, counter_offset);
+    }
   } else {
-    ASSERT(temp_reg != kNoRegister);
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    LoadImmediate(temp_reg, class_table->ClassStatsTableAddress());
-    lw(temp_reg, Address(temp_reg, 0));
-    AddImmediate(temp_reg, class_offset);
-    lw(TMP, Address(temp_reg, count_field_offset));
-    AddImmediate(TMP, 1);
-    sw(TMP, Address(temp_reg, count_field_offset));
+    LoadIsolate(temp_reg);
+    intptr_t table_offset =
+        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+    lw(temp_reg, Address(temp_reg, table_offset));
+    AddImmediate(temp_reg, counter_offset);
   }
+  lw(TMP, Address(temp_reg, 0));
+  AddImmediate(TMP, 1);
+  sw(TMP, Address(temp_reg, 0));
 }
 
 
 void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
                                               Register size_reg,
                                               Register temp_reg,
-                                              Heap::Space space) {
+                                              Heap::Space space,
+                                              bool inline_isolate) {
   ASSERT(!in_delay_slot_);
   ASSERT(temp_reg != kNoRegister);
   ASSERT(cid > 0);
   ASSERT(temp_reg != TMP);
-  Isolate* isolate = Isolate::Current();
-  ClassTable* class_table = isolate->class_table();
-  if (cid < kNumPredefinedCids) {
-    const uword class_heap_stats_table_address =
-        class_table->PredefinedClassHeapStatsTableAddress();
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    const uword size_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_size_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_size_since_gc_old_space_offset();
-    LoadImmediate(temp_reg, class_heap_stats_table_address + class_offset);
-    const Address& count_address = Address(temp_reg, count_field_offset);
-    const Address& size_address = Address(temp_reg, size_field_offset);
-    lw(TMP, count_address);
-    AddImmediate(TMP, 1);
-    sw(TMP, count_address);
-    lw(TMP, size_address);
-    addu(TMP, TMP, size_reg);
-    sw(TMP, size_address);
+  const uword class_offset = ClassTable::ClassOffsetFor(cid);
+  const uword count_field_offset = (space == Heap::kNew) ?
+    ClassHeapStats::allocated_since_gc_new_space_offset() :
+    ClassHeapStats::allocated_since_gc_old_space_offset();
+  const uword size_field_offset = (space == Heap::kNew) ?
+    ClassHeapStats::allocated_size_since_gc_new_space_offset() :
+    ClassHeapStats::allocated_size_since_gc_old_space_offset();
+  if (inline_isolate) {
+    ClassTable* class_table = Isolate::Current()->class_table();
+    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
+    if (cid < kNumPredefinedCids) {
+      LoadImmediate(temp_reg,
+                    reinterpret_cast<uword>(*table_ptr) + class_offset);
+    } else {
+      ASSERT(temp_reg != kNoRegister);
+      LoadImmediate(temp_reg, reinterpret_cast<uword>(table_ptr));
+      lw(temp_reg, Address(temp_reg, 0));
+      AddImmediate(temp_reg, class_offset);
+    }
   } else {
-    ASSERT(temp_reg != kNoRegister);
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    const uword size_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_size_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_size_since_gc_old_space_offset();
-    LoadImmediate(temp_reg, class_table->ClassStatsTableAddress());
-    lw(temp_reg, Address(temp_reg, 0));
+    LoadIsolate(temp_reg);
+    intptr_t table_offset =
+        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+    lw(temp_reg, Address(temp_reg, table_offset));
     AddImmediate(temp_reg, class_offset);
-    lw(TMP, Address(temp_reg, count_field_offset));
-    AddImmediate(TMP, 1);
-    sw(TMP, Address(temp_reg, count_field_offset));
-    lw(TMP, Address(temp_reg, size_field_offset));
-    addu(TMP, TMP, size_reg);
-    sw(TMP, Address(temp_reg, size_field_offset));
   }
+  lw(TMP, Address(temp_reg, count_field_offset));
+  AddImmediate(TMP, 1);
+  sw(TMP, Address(temp_reg, count_field_offset));
+  lw(TMP, Address(temp_reg, size_field_offset));
+  addu(TMP, TMP, size_reg);
+  sw(TMP, Address(temp_reg, size_field_offset));
 }
 
 
@@ -899,21 +890,18 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   ASSERT(!in_delay_slot_);
   ASSERT(temp_reg != kNoRegister);
   ASSERT(temp_reg != TMP);
-  Isolate* isolate = Isolate::Current();
-  ClassTable* class_table = isolate->class_table();
-  const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
+  intptr_t state_offset;
+  ClassTable* class_table = Isolate::Current()->class_table();
+  ClassHeapStats** table_ptr =
+      class_table->StateAddressFor(cid, &state_offset);
   if (cid < kNumPredefinedCids) {
-    const uword class_heap_stats_table_address =
-        class_table->PredefinedClassHeapStatsTableAddress();
-    LoadImmediate(temp_reg, class_heap_stats_table_address + class_offset);
+    LoadImmediate(temp_reg, reinterpret_cast<uword>(*table_ptr) + state_offset);
   } else {
-    LoadImmediate(temp_reg, class_table->ClassStatsTableAddress());
+    LoadImmediate(temp_reg, reinterpret_cast<uword>(table_ptr));
     lw(temp_reg, Address(temp_reg, 0));
-    AddImmediate(temp_reg, class_offset);
+    AddImmediate(temp_reg, state_offset);
   }
-  const uword state_offset = ClassHeapStats::state_offset();
-  const Address& state_address = Address(temp_reg, state_offset);
-  lw(temp_reg, state_address);
+  lw(temp_reg, Address(temp_reg, 0));
   andi(CMPRES1, temp_reg, Immediate(ClassHeapStats::TraceAllocationMask()));
   bne(CMPRES1, ZR, trace);
 }

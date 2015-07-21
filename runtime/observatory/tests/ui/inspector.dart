@@ -8,7 +8,7 @@ library manual_inspector_test;
 
 import 'dart:isolate';
 import 'dart:mirrors';
-import 'dart:profiler';
+import 'dart:developer';
 import 'dart:typed_data';
 
 class A <T> {}

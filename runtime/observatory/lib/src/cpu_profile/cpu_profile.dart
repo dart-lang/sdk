@@ -598,6 +598,7 @@ class ProfileFunction {
 }
 
 
+// TODO(johnmccutchan): Rename to SampleProfile
 class CpuProfile {
   final double MICROSECONDS_PER_SECOND = 1000000.0;
   final double displayThreshold = 0.0002; // 0.02%.

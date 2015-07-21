@@ -1333,6 +1333,21 @@ main() {}''');
 //    assertLength(0, statistics.getSources());
   }
 
+  Future test_implicitAnalysisEvents_added() async {
+    AnalyzedSourcesListener listener = new AnalyzedSourcesListener();
+    _context.implicitAnalysisEvents.listen(listener.onData);
+    //
+    // Create a file that references an file that is not explicitly being
+    // analyzed and fully analyze it. Ensure that the listener is told about
+    // the implicitly analyzed file.
+    //
+    Source sourceA = _addSource('/a.dart', "library a; import 'b.dart';");
+    Source sourceB = _createSource('/b.dart', "library b;");
+    _context.computeErrors(sourceA);
+    await pumpEventQueue();
+    listener.expectAnalyzed(sourceB);
+  }
+
   void test_isClientLibrary_dart() {
     _context = AnalysisContextFactory.oldContextWithCore();
     _sourceFactory = _context.sourceFactory;
@@ -2151,6 +2166,12 @@ library test2;''');
     _context.applyChanges(changeSet);
   }
 
+  Source _createSource(String fileName, String contents) {
+    Source source = new FileBasedSource(FileUtilities2.createFile(fileName));
+    _context.setContents(source, contents);
+    return source;
+  }
+
   /**
    * Search the given compilation unit for a class with the given name. Return the class with the
    * given name, or `null` if the class cannot be found.
@@ -2241,24 +2262,24 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       options.analyzeFunctionBodies = booleanValue;
       options.cacheSize = i;
       options.dart2jsHint = booleanValue;
-      options.enableNullAwareOperators = booleanValue;
       options.enableStrictCallChecks = booleanValue;
       options.generateImplicitErrors = booleanValue;
       options.generateSdkErrors = booleanValue;
       options.hint = booleanValue;
       options.incremental = booleanValue;
       options.preserveComments = booleanValue;
+      options.strongMode = booleanValue;
       AnalysisOptionsImpl copy = new AnalysisOptionsImpl.from(options);
       expect(copy.analyzeFunctionBodies, options.analyzeFunctionBodies);
       expect(copy.cacheSize, options.cacheSize);
       expect(copy.dart2jsHint, options.dart2jsHint);
-      expect(copy.enableNullAwareOperators, options.enableNullAwareOperators);
       expect(copy.enableStrictCallChecks, options.enableStrictCallChecks);
       expect(copy.generateImplicitErrors, options.generateImplicitErrors);
       expect(copy.generateSdkErrors, options.generateSdkErrors);
       expect(copy.hint, options.hint);
       expect(copy.incremental, options.incremental);
       expect(copy.preserveComments, options.preserveComments);
+      expect(copy.strongMode, options.strongMode);
     }
   }
 
@@ -2282,6 +2303,13 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     bool value = !options.dart2jsHint;
     options.dart2jsHint = value;
     expect(options.dart2jsHint, value);
+  }
+
+  void test_strongMode() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    bool value = !options.strongMode;
+    options.strongMode = value;
+    expect(options.strongMode, value);
   }
 
   void test_generateImplicitErrors() {
@@ -2342,6 +2370,48 @@ class AnalysisTaskTest extends EngineTestCase {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     AnalysisTask task = new AnalysisTask_test_perform_exception(context);
     task.perform(new TestTaskVisitor<Object>());
+  }
+}
+
+/**
+ * A listener used to gather the [ImplicitAnalysisEvent]s that are produced
+ * during analysis.
+ */
+class AnalyzedSourcesListener {
+  /**
+   * The events that have been gathered.
+   */
+  List<ImplicitAnalysisEvent> actualEvents = <ImplicitAnalysisEvent>[];
+
+  /**
+   * The sources that are being implicitly analyzed.
+   */
+  List<Source> analyzedSources = <Source>[];
+
+  /**
+   * Assert that the given source is currently being implicitly analyzed.
+   */
+  void expectAnalyzed(Source source) {
+    expect(analyzedSources, contains(source));
+  }
+
+  /**
+   * Assert that the given source is not currently being implicitly analyzed.
+   */
+  void expectNotAnalyzed(Source source) {
+    expect(analyzedSources, isNot(contains(source)));
+  }
+
+  /**
+   * Record that the given event was produced.
+   */
+  void onData(ImplicitAnalysisEvent event) {
+    actualEvents.add(event);
+    if (event.isAnalyzed) {
+      analyzedSources.add(event.source);
+    } else {
+      analyzedSources.remove(event.source);
+    }
   }
 }
 
@@ -5470,6 +5540,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  Stream<ImplicitAnalysisEvent> get implicitAnalysisEvents {
+    fail("Unexpected invocation of analyzedSources");
+    return null;
+  }
+  @override
   bool get isDisposed {
     fail("Unexpected invocation of isDisposed");
     return false;
@@ -5513,6 +5588,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of getPrioritySources");
     return null;
   }
+
   @override
   List<AnalysisTarget> get priorityTargets {
     fail("Unexpected invocation of visitCacheItems");
@@ -5530,7 +5606,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of getResolverVisitorFactory");
     return null;
   }
-
   @override
   SourceFactory get sourceFactory {
     fail("Unexpected invocation of getSourceFactory");
@@ -5792,6 +5867,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of parseHtmlUnit");
     return null;
   }
+
   @override
   AnalysisResult performAnalysisTask() {
     fail("Unexpected invocation of performAnalysisTask");
@@ -5834,11 +5910,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
       int oldLength, int newLength) {
     fail("Unexpected invocation of setChangedContents");
   }
-
   @override
   void setContents(Source source, String contents) {
     fail("Unexpected invocation of setContents");
   }
+
   @override
   bool shouldErrorsBeAnalyzed(Source source, Object entry) {
     fail("Unexpected invocation of shouldErrorsBeAnalyzed");

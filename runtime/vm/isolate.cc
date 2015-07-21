@@ -485,7 +485,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
 
 
 void IsolateMessageHandler::NotifyPauseOnStart() {
-  if (Service::NeedsDebugEvents()) {
+  if (Service::debug_stream.enabled()) {
     StartIsolateScope start_isolate(isolate());
     StackZone zone(I);
     HandleScope handle_scope(I);
@@ -496,7 +496,7 @@ void IsolateMessageHandler::NotifyPauseOnStart() {
 
 
 void IsolateMessageHandler::NotifyPauseOnExit() {
-  if (Service::NeedsDebugEvents()) {
+  if (Service::debug_stream.enabled()) {
     StartIsolateScope start_isolate(isolate());
     StackZone zone(I);
     HandleScope handle_scope(I);
@@ -1232,6 +1232,24 @@ static bool RunIsolate(uword parameter) {
     StartIsolateScope start_scope(isolate);
     StackZone zone(isolate);
     HandleScope handle_scope(isolate);
+
+    // If particular values were requested for this newly spawned isolate, then
+    // they are set here before the isolate starts executing user code.
+    isolate->SetErrorsFatal(state->errors_are_fatal());
+    if (state->on_exit_port() != ILLEGAL_PORT) {
+      const SendPort& listener =
+          SendPort::Handle(SendPort::New(state->on_exit_port()));
+      isolate->AddExitListener(listener, Instance::null_instance());
+    }
+    if (state->on_error_port() != ILLEGAL_PORT) {
+      const SendPort& listener =
+          SendPort::Handle(SendPort::New(state->on_error_port()));
+      isolate->AddErrorListener(listener);
+    }
+
+    // Switch back to spawning isolate.
+
+
     if (!ClassFinalizer::ProcessPendingClasses()) {
       // Error is in sticky error already.
       return false;
@@ -1433,15 +1451,42 @@ void Isolate::Shutdown() {
   }
 #endif  // DEBUG
 
+  // First, perform higher-level cleanup that may need to allocate.
+  {
+    // Ensure we have a zone and handle scope so that we can call VM functions.
+    StackZone stack_zone(this);
+    HandleScope handle_scope(this);
+
+    // Write out the coverage data if collection has been enabled.
+    CodeCoverage::Write(this);
+
+    if ((timeline_event_recorder_ != NULL) &&
+        (FLAG_timeline_trace_dir != NULL)) {
+      timeline_event_recorder_->WriteTo(FLAG_timeline_trace_dir);
+    }
+  }
+
   // Remove this isolate from the list *before* we start tearing it down, to
   // avoid exposing it in a state of decay.
   RemoveIsolateFromList(this);
 
-  // Create an area where we do have a zone and a handle scope so that we can
-  // call VM functions while tearing this isolate down.
+  if (heap_ != NULL) {
+    // Wait for any concurrent GC tasks to finish before shutting down.
+    // TODO(koda): Support faster sweeper shutdown (e.g., after current page).
+    PageSpace* old_space = heap_->old_space();
+    MonitorLocker ml(old_space->tasks_lock());
+    while (old_space->tasks() > 0) {
+      ml.Wait();
+    }
+  }
+
+  // Then, proceed with low-level teardown.
   {
+    // Ensure we have a zone and handle scope so that we can call VM functions,
+    // but we no longer allocate new heap objects.
     StackZone stack_zone(this);
     HandleScope handle_scope(this);
+    NoSafepointScope no_safepoint_scope;
 
     if (compiler_stats_ != NULL) {
       compiler_stats()->Print();
@@ -1465,9 +1510,6 @@ void Isolate::Shutdown() {
     // Dump all accumulated timer data for the isolate.
     timer_list_.ReportTimers();
 
-    // Write out the coverage data if collection has been enabled.
-    CodeCoverage::Write(this);
-
     // Finalize any weak persistent handles with a non-null referent.
     FinalizeWeakPersistentHandlesVisitor visitor;
     api_state()->weak_persistent_handles().VisitHandles(&visitor);
@@ -1480,16 +1522,22 @@ void Isolate::Shutdown() {
       OS::Print("[-] Stopping isolate:\n"
                 "\tisolate:    %s\n", name());
     }
-
-    if ((timeline_event_recorder_ != NULL) &&
-        (FLAG_timeline_trace_dir != NULL)) {
-      timeline_event_recorder_->WriteTo(FLAG_timeline_trace_dir);
-    }
   }
+
+#if defined(DEBUG)
+  // No concurrent sweeper tasks should be running at this point.
+  if (heap_ != NULL) {
+    PageSpace* old_space = heap_->old_space();
+    MonitorLocker ml(old_space->tasks_lock());
+    ASSERT(old_space->tasks() == 0);
+  }
+#endif
 
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   Thread::ExitIsolate();
+  // All threads should have exited by now.
+  thread_registry()->CheckNotScheduled(this);
   Profiler::ShutdownProfilingForIsolate(this);
 }
 
@@ -1922,9 +1970,14 @@ static RawInstance* DeserializeObject(Isolate* isolate,
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const Function& func,
                                      const Instance& message,
-                                     bool paused)
+                                     bool paused,
+                                     bool errors_are_fatal,
+                                     Dart_Port on_exit_port,
+                                     Dart_Port on_error_port)
     : isolate_(NULL),
       parent_port_(parent_port),
+      on_exit_port_(on_exit_port),
+      on_error_port_(on_error_port),
       script_url_(NULL),
       package_root_(NULL),
       library_url_(NULL),
@@ -1935,7 +1988,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_message_(NULL),
       serialized_message_len_(0),
       isolate_flags_(),
-      paused_(paused) {
+      paused_(paused),
+      errors_are_fatal_(errors_are_fatal) {
   script_url_ = NULL;
   const Class& cls = Class::Handle(func.Owner());
   const Library& lib = Library::Handle(cls.library());
@@ -1963,9 +2017,14 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const char* package_root,
                                      const Instance& args,
                                      const Instance& message,
-                                     bool paused)
+                                     bool paused,
+                                     bool errors_are_fatal,
+                                     Dart_Port on_exit_port,
+                                     Dart_Port on_error_port)
     : isolate_(NULL),
       parent_port_(parent_port),
+      on_exit_port_(on_exit_port),
+      on_error_port_(on_error_port),
       package_root_(NULL),
       library_url_(NULL),
       class_name_(NULL),
@@ -1975,7 +2034,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_message_(NULL),
       serialized_message_len_(0),
       isolate_flags_(),
-      paused_(paused) {
+      paused_(paused),
+      errors_are_fatal_(errors_are_fatal) {
   script_url_ = strdup(script_url);
   if (package_root != NULL) {
     package_root_ = strdup(package_root);

@@ -57,6 +57,7 @@ final web_glBlinkMap = {
   'WebGLVertexArrayObjectOES': () => VertexArrayObject,
 
 };
+
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -374,16 +375,16 @@ class ActiveInfo extends NativeFieldWrapperClass2 {
 
   @DomName('WebGLActiveInfo.name')
   @DocsEditable()
-  String get name => _blink.BlinkWebGLActiveInfo.instance.name_Getter_(this);
-
+  String get name => _blink.BlinkWebGLActiveInfo.instance.name_Getter_(unwrap_jso(this));
+  
   @DomName('WebGLActiveInfo.size')
   @DocsEditable()
-  int get size => _blink.BlinkWebGLActiveInfo.instance.size_Getter_(this);
-
+  int get size => _blink.BlinkWebGLActiveInfo.instance.size_Getter_(unwrap_jso(this));
+  
   @DomName('WebGLActiveInfo.type')
   @DocsEditable()
-  int get type => _blink.BlinkWebGLActiveInfo.instance.type_Getter_(this);
-
+  int get type => _blink.BlinkWebGLActiveInfo.instance.type_Getter_(unwrap_jso(this));
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -407,18 +408,18 @@ class AngleInstancedArrays extends NativeFieldWrapperClass2 {
   @DomName('ANGLEInstancedArrays.drawArraysInstancedANGLE')
   @DocsEditable()
   @Experimental() // untriaged
-  void drawArraysInstancedAngle(int mode, int first, int count, int primcount) => _blink.BlinkANGLEInstancedArrays.instance.drawArraysInstancedANGLE_Callback_4_(this, mode, first, count, primcount);
-
+  void drawArraysInstancedAngle(int mode, int first, int count, int primcount) => _blink.BlinkANGLEInstancedArrays.instance.drawArraysInstancedANGLE_Callback_4_(unwrap_jso(this), mode, first, count, primcount);
+  
   @DomName('ANGLEInstancedArrays.drawElementsInstancedANGLE')
   @DocsEditable()
   @Experimental() // untriaged
-  void drawElementsInstancedAngle(int mode, int count, int type, int offset, int primcount) => _blink.BlinkANGLEInstancedArrays.instance.drawElementsInstancedANGLE_Callback_5_(this, mode, count, type, offset, primcount);
-
+  void drawElementsInstancedAngle(int mode, int count, int type, int offset, int primcount) => _blink.BlinkANGLEInstancedArrays.instance.drawElementsInstancedANGLE_Callback_5_(unwrap_jso(this), mode, count, type, offset, primcount);
+  
   @DomName('ANGLEInstancedArrays.vertexAttribDivisorANGLE')
   @DocsEditable()
   @Experimental() // untriaged
-  void vertexAttribDivisorAngle(int index, int divisor) => _blink.BlinkANGLEInstancedArrays.instance.vertexAttribDivisorANGLE_Callback_2_(this, index, divisor);
-
+  void vertexAttribDivisorAngle(int index, int divisor) => _blink.BlinkANGLEInstancedArrays.instance.vertexAttribDivisorANGLE_Callback_2_(unwrap_jso(this), index, divisor);
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -585,62 +586,62 @@ class ContextAttributes extends NativeFieldWrapperClass2 {
 
   @DomName('WebGLContextAttributes.alpha')
   @DocsEditable()
-  bool get alpha => _blink.BlinkWebGLContextAttributes.instance.alpha_Getter_(this);
-
+  bool get alpha => _blink.BlinkWebGLContextAttributes.instance.alpha_Getter_(unwrap_jso(this));
+  
   @DomName('WebGLContextAttributes.alpha')
   @DocsEditable()
-  void set alpha(bool value) => _blink.BlinkWebGLContextAttributes.instance.alpha_Setter_(this, value);
-
+  void set alpha(bool value) => _blink.BlinkWebGLContextAttributes.instance.alpha_Setter_(unwrap_jso(this), value);
+  
   @DomName('WebGLContextAttributes.antialias')
   @DocsEditable()
-  bool get antialias => _blink.BlinkWebGLContextAttributes.instance.antialias_Getter_(this);
-
+  bool get antialias => _blink.BlinkWebGLContextAttributes.instance.antialias_Getter_(unwrap_jso(this));
+  
   @DomName('WebGLContextAttributes.antialias')
   @DocsEditable()
-  void set antialias(bool value) => _blink.BlinkWebGLContextAttributes.instance.antialias_Setter_(this, value);
-
+  void set antialias(bool value) => _blink.BlinkWebGLContextAttributes.instance.antialias_Setter_(unwrap_jso(this), value);
+  
   @DomName('WebGLContextAttributes.depth')
   @DocsEditable()
-  bool get depth => _blink.BlinkWebGLContextAttributes.instance.depth_Getter_(this);
-
+  bool get depth => _blink.BlinkWebGLContextAttributes.instance.depth_Getter_(unwrap_jso(this));
+  
   @DomName('WebGLContextAttributes.depth')
   @DocsEditable()
-  void set depth(bool value) => _blink.BlinkWebGLContextAttributes.instance.depth_Setter_(this, value);
-
+  void set depth(bool value) => _blink.BlinkWebGLContextAttributes.instance.depth_Setter_(unwrap_jso(this), value);
+  
   @DomName('WebGLContextAttributes.failIfMajorPerformanceCaveat')
   @DocsEditable()
   @Experimental() // untriaged
-  bool get failIfMajorPerformanceCaveat => _blink.BlinkWebGLContextAttributes.instance.failIfMajorPerformanceCaveat_Getter_(this);
-
+  bool get failIfMajorPerformanceCaveat => _blink.BlinkWebGLContextAttributes.instance.failIfMajorPerformanceCaveat_Getter_(unwrap_jso(this));
+  
   @DomName('WebGLContextAttributes.failIfMajorPerformanceCaveat')
   @DocsEditable()
   @Experimental() // untriaged
-  void set failIfMajorPerformanceCaveat(bool value) => _blink.BlinkWebGLContextAttributes.instance.failIfMajorPerformanceCaveat_Setter_(this, value);
-
+  void set failIfMajorPerformanceCaveat(bool value) => _blink.BlinkWebGLContextAttributes.instance.failIfMajorPerformanceCaveat_Setter_(unwrap_jso(this), value);
+  
   @DomName('WebGLContextAttributes.premultipliedAlpha')
   @DocsEditable()
-  bool get premultipliedAlpha => _blink.BlinkWebGLContextAttributes.instance.premultipliedAlpha_Getter_(this);
-
+  bool get premultipliedAlpha => _blink.BlinkWebGLContextAttributes.instance.premultipliedAlpha_Getter_(unwrap_jso(this));
+  
   @DomName('WebGLContextAttributes.premultipliedAlpha')
   @DocsEditable()
-  void set premultipliedAlpha(bool value) => _blink.BlinkWebGLContextAttributes.instance.premultipliedAlpha_Setter_(this, value);
-
+  void set premultipliedAlpha(bool value) => _blink.BlinkWebGLContextAttributes.instance.premultipliedAlpha_Setter_(unwrap_jso(this), value);
+  
   @DomName('WebGLContextAttributes.preserveDrawingBuffer')
   @DocsEditable()
-  bool get preserveDrawingBuffer => _blink.BlinkWebGLContextAttributes.instance.preserveDrawingBuffer_Getter_(this);
-
+  bool get preserveDrawingBuffer => _blink.BlinkWebGLContextAttributes.instance.preserveDrawingBuffer_Getter_(unwrap_jso(this));
+  
   @DomName('WebGLContextAttributes.preserveDrawingBuffer')
   @DocsEditable()
-  void set preserveDrawingBuffer(bool value) => _blink.BlinkWebGLContextAttributes.instance.preserveDrawingBuffer_Setter_(this, value);
-
+  void set preserveDrawingBuffer(bool value) => _blink.BlinkWebGLContextAttributes.instance.preserveDrawingBuffer_Setter_(unwrap_jso(this), value);
+  
   @DomName('WebGLContextAttributes.stencil')
   @DocsEditable()
-  bool get stencil => _blink.BlinkWebGLContextAttributes.instance.stencil_Getter_(this);
-
+  bool get stencil => _blink.BlinkWebGLContextAttributes.instance.stencil_Getter_(unwrap_jso(this));
+  
   @DomName('WebGLContextAttributes.stencil')
   @DocsEditable()
-  void set stencil(bool value) => _blink.BlinkWebGLContextAttributes.instance.stencil_Setter_(this, value);
-
+  void set stencil(bool value) => _blink.BlinkWebGLContextAttributes.instance.stencil_Setter_(unwrap_jso(this), value);
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -658,8 +659,8 @@ class ContextEvent extends Event {
 
   @DomName('WebGLContextEvent.statusMessage')
   @DocsEditable()
-  String get statusMessage => _blink.BlinkWebGLContextEvent.instance.statusMessage_Getter_(this);
-
+  String get statusMessage => _blink.BlinkWebGLContextEvent.instance.statusMessage_Getter_(unwrap_jso(this));
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -702,8 +703,8 @@ class DebugShaders extends NativeFieldWrapperClass2 {
 
   @DomName('WebGLDebugShaders.getTranslatedShaderSource')
   @DocsEditable()
-  String getTranslatedShaderSource(Shader shader) => _blink.BlinkWebGLDebugShaders.instance.getTranslatedShaderSource_Callback_1_(this, shader);
-
+  String getTranslatedShaderSource(Shader shader) => _blink.BlinkWebGLDebugShaders.instance.getTranslatedShaderSource_Callback_1_(unwrap_jso(this), unwrap_jso(shader));
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -878,8 +879,8 @@ class DrawBuffers extends NativeFieldWrapperClass2 {
 
   @DomName('WebGLDrawBuffers.drawBuffersWEBGL')
   @DocsEditable()
-  void drawBuffersWebgl(List<int> buffers) => _blink.BlinkWebGLDrawBuffers.instance.drawBuffersWEBGL_Callback_1_(this, buffers);
-
+  void drawBuffersWebgl(List<int> buffers) => _blink.BlinkWebGLDrawBuffers.instance.drawBuffersWEBGL_Callback_1_(unwrap_jso(this), buffers);
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -993,12 +994,12 @@ class LoseContext extends NativeFieldWrapperClass2 {
 
   @DomName('WebGLLoseContext.loseContext')
   @DocsEditable()
-  void loseContext() => _blink.BlinkWebGLLoseContext.instance.loseContext_Callback_0_(this);
-
+  void loseContext() => _blink.BlinkWebGLLoseContext.instance.loseContext_Callback_0_(unwrap_jso(this));
+  
   @DomName('WebGLLoseContext.restoreContext')
   @DocsEditable()
-  void restoreContext() => _blink.BlinkWebGLLoseContext.instance.restoreContext_Callback_0_(this);
-
+  void restoreContext() => _blink.BlinkWebGLLoseContext.instance.restoreContext_Callback_0_(unwrap_jso(this));
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1125,20 +1126,20 @@ class OesVertexArrayObject extends NativeFieldWrapperClass2 {
 
   @DomName('OESVertexArrayObject.bindVertexArrayOES')
   @DocsEditable()
-  void bindVertexArray(VertexArrayObject arrayObject) => _blink.BlinkOESVertexArrayObject.instance.bindVertexArrayOES_Callback_1_(this, arrayObject);
-
+  void bindVertexArray(VertexArrayObject arrayObject) => _blink.BlinkOESVertexArrayObject.instance.bindVertexArrayOES_Callback_1_(unwrap_jso(this), unwrap_jso(arrayObject));
+  
   @DomName('OESVertexArrayObject.createVertexArrayOES')
   @DocsEditable()
-  VertexArrayObject createVertexArray() => _blink.BlinkOESVertexArrayObject.instance.createVertexArrayOES_Callback_0_(this);
-
+  VertexArrayObject createVertexArray() => _blink.BlinkOESVertexArrayObject.instance.createVertexArrayOES_Callback_0_(unwrap_jso(this));
+  
   @DomName('OESVertexArrayObject.deleteVertexArrayOES')
   @DocsEditable()
-  void deleteVertexArray(VertexArrayObject arrayObject) => _blink.BlinkOESVertexArrayObject.instance.deleteVertexArrayOES_Callback_1_(this, arrayObject);
-
+  void deleteVertexArray(VertexArrayObject arrayObject) => _blink.BlinkOESVertexArrayObject.instance.deleteVertexArrayOES_Callback_1_(unwrap_jso(this), unwrap_jso(arrayObject));
+  
   @DomName('OESVertexArrayObject.isVertexArrayOES')
   @DocsEditable()
-  bool isVertexArray(VertexArrayObject arrayObject) => _blink.BlinkOESVertexArrayObject.instance.isVertexArrayOES_Callback_1_(this, arrayObject);
-
+  bool isVertexArray(VertexArrayObject arrayObject) => _blink.BlinkOESVertexArrayObject.instance.isVertexArrayOES_Callback_1_(unwrap_jso(this), unwrap_jso(arrayObject));
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2380,79 +2381,79 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
   @DomName('WebGLRenderingContext.canvas')
   @DocsEditable()
   @Experimental() // untriaged
-  CanvasElement get canvas => _blink.BlinkWebGLRenderingContext.instance.canvas_Getter_(this);
-
+  CanvasElement get canvas => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.canvas_Getter_(unwrap_jso(this)));
+  
   @DomName('WebGLRenderingContext.drawingBufferHeight')
   @DocsEditable()
-  int get drawingBufferHeight => _blink.BlinkWebGLRenderingContext.instance.drawingBufferHeight_Getter_(this);
-
+  int get drawingBufferHeight => _blink.BlinkWebGLRenderingContext.instance.drawingBufferHeight_Getter_(unwrap_jso(this));
+  
   @DomName('WebGLRenderingContext.drawingBufferWidth')
   @DocsEditable()
-  int get drawingBufferWidth => _blink.BlinkWebGLRenderingContext.instance.drawingBufferWidth_Getter_(this);
-
+  int get drawingBufferWidth => _blink.BlinkWebGLRenderingContext.instance.drawingBufferWidth_Getter_(unwrap_jso(this));
+  
   @DomName('WebGLRenderingContext.activeTexture')
   @DocsEditable()
-  void activeTexture(int texture) => _blink.BlinkWebGLRenderingContext.instance.activeTexture_Callback_1_(this, texture);
-
+  void activeTexture(int texture) => _blink.BlinkWebGLRenderingContext.instance.activeTexture_Callback_1_(unwrap_jso(this), texture);
+  
   @DomName('WebGLRenderingContext.attachShader')
   @DocsEditable()
-  void attachShader(Program program, Shader shader) => _blink.BlinkWebGLRenderingContext.instance.attachShader_Callback_2_(this, program, shader);
-
+  void attachShader(Program program, Shader shader) => _blink.BlinkWebGLRenderingContext.instance.attachShader_Callback_2_(unwrap_jso(this), unwrap_jso(program), unwrap_jso(shader));
+  
   @DomName('WebGLRenderingContext.bindAttribLocation')
   @DocsEditable()
-  void bindAttribLocation(Program program, int index, String name) => _blink.BlinkWebGLRenderingContext.instance.bindAttribLocation_Callback_3_(this, program, index, name);
-
+  void bindAttribLocation(Program program, int index, String name) => _blink.BlinkWebGLRenderingContext.instance.bindAttribLocation_Callback_3_(unwrap_jso(this), unwrap_jso(program), index, name);
+  
   @DomName('WebGLRenderingContext.bindBuffer')
   @DocsEditable()
-  void bindBuffer(int target, Buffer buffer) => _blink.BlinkWebGLRenderingContext.instance.bindBuffer_Callback_2_(this, target, buffer);
-
+  void bindBuffer(int target, Buffer buffer) => _blink.BlinkWebGLRenderingContext.instance.bindBuffer_Callback_2_(unwrap_jso(this), target, unwrap_jso(buffer));
+  
   @DomName('WebGLRenderingContext.bindFramebuffer')
   @DocsEditable()
-  void bindFramebuffer(int target, Framebuffer framebuffer) => _blink.BlinkWebGLRenderingContext.instance.bindFramebuffer_Callback_2_(this, target, framebuffer);
-
+  void bindFramebuffer(int target, Framebuffer framebuffer) => _blink.BlinkWebGLRenderingContext.instance.bindFramebuffer_Callback_2_(unwrap_jso(this), target, unwrap_jso(framebuffer));
+  
   @DomName('WebGLRenderingContext.bindRenderbuffer')
   @DocsEditable()
-  void bindRenderbuffer(int target, Renderbuffer renderbuffer) => _blink.BlinkWebGLRenderingContext.instance.bindRenderbuffer_Callback_2_(this, target, renderbuffer);
-
+  void bindRenderbuffer(int target, Renderbuffer renderbuffer) => _blink.BlinkWebGLRenderingContext.instance.bindRenderbuffer_Callback_2_(unwrap_jso(this), target, unwrap_jso(renderbuffer));
+  
   @DomName('WebGLRenderingContext.bindTexture')
   @DocsEditable()
-  void bindTexture(int target, Texture texture) => _blink.BlinkWebGLRenderingContext.instance.bindTexture_Callback_2_(this, target, texture);
-
+  void bindTexture(int target, Texture texture) => _blink.BlinkWebGLRenderingContext.instance.bindTexture_Callback_2_(unwrap_jso(this), target, unwrap_jso(texture));
+  
   @DomName('WebGLRenderingContext.blendColor')
   @DocsEditable()
-  void blendColor(num red, num green, num blue, num alpha) => _blink.BlinkWebGLRenderingContext.instance.blendColor_Callback_4_(this, red, green, blue, alpha);
-
+  void blendColor(num red, num green, num blue, num alpha) => _blink.BlinkWebGLRenderingContext.instance.blendColor_Callback_4_(unwrap_jso(this), red, green, blue, alpha);
+  
   @DomName('WebGLRenderingContext.blendEquation')
   @DocsEditable()
-  void blendEquation(int mode) => _blink.BlinkWebGLRenderingContext.instance.blendEquation_Callback_1_(this, mode);
-
+  void blendEquation(int mode) => _blink.BlinkWebGLRenderingContext.instance.blendEquation_Callback_1_(unwrap_jso(this), mode);
+  
   @DomName('WebGLRenderingContext.blendEquationSeparate')
   @DocsEditable()
-  void blendEquationSeparate(int modeRGB, int modeAlpha) => _blink.BlinkWebGLRenderingContext.instance.blendEquationSeparate_Callback_2_(this, modeRGB, modeAlpha);
-
+  void blendEquationSeparate(int modeRGB, int modeAlpha) => _blink.BlinkWebGLRenderingContext.instance.blendEquationSeparate_Callback_2_(unwrap_jso(this), modeRGB, modeAlpha);
+  
   @DomName('WebGLRenderingContext.blendFunc')
   @DocsEditable()
-  void blendFunc(int sfactor, int dfactor) => _blink.BlinkWebGLRenderingContext.instance.blendFunc_Callback_2_(this, sfactor, dfactor);
-
+  void blendFunc(int sfactor, int dfactor) => _blink.BlinkWebGLRenderingContext.instance.blendFunc_Callback_2_(unwrap_jso(this), sfactor, dfactor);
+  
   @DomName('WebGLRenderingContext.blendFuncSeparate')
   @DocsEditable()
-  void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) => _blink.BlinkWebGLRenderingContext.instance.blendFuncSeparate_Callback_4_(this, srcRGB, dstRGB, srcAlpha, dstAlpha);
-
+  void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) => _blink.BlinkWebGLRenderingContext.instance.blendFuncSeparate_Callback_4_(unwrap_jso(this), srcRGB, dstRGB, srcAlpha, dstAlpha);
+  
   @DomName('WebGLRenderingContext.bufferByteData')
   @DocsEditable()
-  void bufferByteData(int target, ByteBuffer data, int usage) => _blink.BlinkWebGLRenderingContext.instance.bufferData_Callback_3_(this, target, data, usage);
-
+  void bufferByteData(int target, ByteBuffer data, int usage) => _blink.BlinkWebGLRenderingContext.instance.bufferData_Callback_3_(unwrap_jso(this), target, data, usage);
+  
   void bufferData(int target, data_OR_size, int usage) {
     if ((usage is int) && (data_OR_size is int) && (target is int)) {
-      _blink.BlinkWebGLRenderingContext.instance.bufferData_Callback_3_(this, target, data_OR_size, usage);
+      _blink.BlinkWebGLRenderingContext.instance.bufferData_Callback_3_(unwrap_jso(this), target, unwrap_jso(data_OR_size), usage);
       return;
     }
     if ((usage is int) && (data_OR_size is TypedData) && (target is int)) {
-      _blink.BlinkWebGLRenderingContext.instance.bufferData_Callback_3_(this, target, data_OR_size, usage);
+      _blink.BlinkWebGLRenderingContext.instance.bufferData_Callback_3_(unwrap_jso(this), target, unwrap_jso(data_OR_size), usage);
       return;
     }
     if ((usage is int) && (data_OR_size is ByteBuffer || data_OR_size == null) && (target is int)) {
-      _blink.BlinkWebGLRenderingContext.instance.bufferData_Callback_3_(this, target, data_OR_size, usage);
+      _blink.BlinkWebGLRenderingContext.instance.bufferData_Callback_3_(unwrap_jso(this), target, unwrap_jso(data_OR_size), usage);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -2460,19 +2461,19 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
 
   @DomName('WebGLRenderingContext.bufferDataTyped')
   @DocsEditable()
-  void bufferDataTyped(int target, TypedData data, int usage) => _blink.BlinkWebGLRenderingContext.instance.bufferData_Callback_3_(this, target, data, usage);
-
+  void bufferDataTyped(int target, TypedData data, int usage) => _blink.BlinkWebGLRenderingContext.instance.bufferData_Callback_3_(unwrap_jso(this), target, unwrap_jso(data), usage);
+  
   @DomName('WebGLRenderingContext.bufferSubByteData')
   @DocsEditable()
-  void bufferSubByteData(int target, int offset, ByteBuffer data) => _blink.BlinkWebGLRenderingContext.instance.bufferSubData_Callback_3_(this, target, offset, data);
-
+  void bufferSubByteData(int target, int offset, ByteBuffer data) => _blink.BlinkWebGLRenderingContext.instance.bufferSubData_Callback_3_(unwrap_jso(this), target, offset, data);
+  
   void bufferSubData(int target, int offset, data) {
     if ((data is TypedData) && (offset is int) && (target is int)) {
-      _blink.BlinkWebGLRenderingContext.instance.bufferSubData_Callback_3_(this, target, offset, data);
+      _blink.BlinkWebGLRenderingContext.instance.bufferSubData_Callback_3_(unwrap_jso(this), target, offset, unwrap_jso(data));
       return;
     }
     if ((data is ByteBuffer || data == null) && (offset is int) && (target is int)) {
-      _blink.BlinkWebGLRenderingContext.instance.bufferSubData_Callback_3_(this, target, offset, data);
+      _blink.BlinkWebGLRenderingContext.instance.bufferSubData_Callback_3_(unwrap_jso(this), target, offset, unwrap_jso(data));
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -2480,375 +2481,375 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
 
   @DomName('WebGLRenderingContext.bufferSubDataTyped')
   @DocsEditable()
-  void bufferSubDataTyped(int target, int offset, TypedData data) => _blink.BlinkWebGLRenderingContext.instance.bufferSubData_Callback_3_(this, target, offset, data);
-
+  void bufferSubDataTyped(int target, int offset, TypedData data) => _blink.BlinkWebGLRenderingContext.instance.bufferSubData_Callback_3_(unwrap_jso(this), target, offset, unwrap_jso(data));
+  
   @DomName('WebGLRenderingContext.checkFramebufferStatus')
   @DocsEditable()
-  int checkFramebufferStatus(int target) => _blink.BlinkWebGLRenderingContext.instance.checkFramebufferStatus_Callback_1_(this, target);
-
+  int checkFramebufferStatus(int target) => _blink.BlinkWebGLRenderingContext.instance.checkFramebufferStatus_Callback_1_(unwrap_jso(this), target);
+  
   @DomName('WebGLRenderingContext.clear')
   @DocsEditable()
-  void clear(int mask) => _blink.BlinkWebGLRenderingContext.instance.clear_Callback_1_(this, mask);
-
+  void clear(int mask) => _blink.BlinkWebGLRenderingContext.instance.clear_Callback_1_(unwrap_jso(this), mask);
+  
   @DomName('WebGLRenderingContext.clearColor')
   @DocsEditable()
-  void clearColor(num red, num green, num blue, num alpha) => _blink.BlinkWebGLRenderingContext.instance.clearColor_Callback_4_(this, red, green, blue, alpha);
-
+  void clearColor(num red, num green, num blue, num alpha) => _blink.BlinkWebGLRenderingContext.instance.clearColor_Callback_4_(unwrap_jso(this), red, green, blue, alpha);
+  
   @DomName('WebGLRenderingContext.clearDepth')
   @DocsEditable()
-  void clearDepth(num depth) => _blink.BlinkWebGLRenderingContext.instance.clearDepth_Callback_1_(this, depth);
-
+  void clearDepth(num depth) => _blink.BlinkWebGLRenderingContext.instance.clearDepth_Callback_1_(unwrap_jso(this), depth);
+  
   @DomName('WebGLRenderingContext.clearStencil')
   @DocsEditable()
-  void clearStencil(int s) => _blink.BlinkWebGLRenderingContext.instance.clearStencil_Callback_1_(this, s);
-
+  void clearStencil(int s) => _blink.BlinkWebGLRenderingContext.instance.clearStencil_Callback_1_(unwrap_jso(this), s);
+  
   @DomName('WebGLRenderingContext.colorMask')
   @DocsEditable()
-  void colorMask(bool red, bool green, bool blue, bool alpha) => _blink.BlinkWebGLRenderingContext.instance.colorMask_Callback_4_(this, red, green, blue, alpha);
-
+  void colorMask(bool red, bool green, bool blue, bool alpha) => _blink.BlinkWebGLRenderingContext.instance.colorMask_Callback_4_(unwrap_jso(this), red, green, blue, alpha);
+  
   @DomName('WebGLRenderingContext.compileShader')
   @DocsEditable()
-  void compileShader(Shader shader) => _blink.BlinkWebGLRenderingContext.instance.compileShader_Callback_1_(this, shader);
-
+  void compileShader(Shader shader) => _blink.BlinkWebGLRenderingContext.instance.compileShader_Callback_1_(unwrap_jso(this), unwrap_jso(shader));
+  
   @DomName('WebGLRenderingContext.compressedTexImage2D')
   @DocsEditable()
-  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, TypedData data) => _blink.BlinkWebGLRenderingContext.instance.compressedTexImage2D_Callback_7_(this, target, level, internalformat, width, height, border, data);
-
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, TypedData data) => _blink.BlinkWebGLRenderingContext.instance.compressedTexImage2D_Callback_7_(unwrap_jso(this), target, level, internalformat, width, height, border, unwrap_jso(data));
+  
   @DomName('WebGLRenderingContext.compressedTexSubImage2D')
   @DocsEditable()
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, TypedData data) => _blink.BlinkWebGLRenderingContext.instance.compressedTexSubImage2D_Callback_8_(this, target, level, xoffset, yoffset, width, height, format, data);
-
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, TypedData data) => _blink.BlinkWebGLRenderingContext.instance.compressedTexSubImage2D_Callback_8_(unwrap_jso(this), target, level, xoffset, yoffset, width, height, format, unwrap_jso(data));
+  
   @DomName('WebGLRenderingContext.copyTexImage2D')
   @DocsEditable()
-  void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) => _blink.BlinkWebGLRenderingContext.instance.copyTexImage2D_Callback_8_(this, target, level, internalformat, x, y, width, height, border);
-
+  void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) => _blink.BlinkWebGLRenderingContext.instance.copyTexImage2D_Callback_8_(unwrap_jso(this), target, level, internalformat, x, y, width, height, border);
+  
   @DomName('WebGLRenderingContext.copyTexSubImage2D')
   @DocsEditable()
-  void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) => _blink.BlinkWebGLRenderingContext.instance.copyTexSubImage2D_Callback_8_(this, target, level, xoffset, yoffset, x, y, width, height);
-
+  void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) => _blink.BlinkWebGLRenderingContext.instance.copyTexSubImage2D_Callback_8_(unwrap_jso(this), target, level, xoffset, yoffset, x, y, width, height);
+  
   @DomName('WebGLRenderingContext.createBuffer')
   @DocsEditable()
-  Buffer createBuffer() => _blink.BlinkWebGLRenderingContext.instance.createBuffer_Callback_0_(this);
-
+  Buffer createBuffer() => _blink.BlinkWebGLRenderingContext.instance.createBuffer_Callback_0_(unwrap_jso(this));
+  
   @DomName('WebGLRenderingContext.createFramebuffer')
   @DocsEditable()
-  Framebuffer createFramebuffer() => _blink.BlinkWebGLRenderingContext.instance.createFramebuffer_Callback_0_(this);
-
+  Framebuffer createFramebuffer() => _blink.BlinkWebGLRenderingContext.instance.createFramebuffer_Callback_0_(unwrap_jso(this));
+  
   @DomName('WebGLRenderingContext.createProgram')
   @DocsEditable()
-  Program createProgram() => _blink.BlinkWebGLRenderingContext.instance.createProgram_Callback_0_(this);
-
+  Program createProgram() => _blink.BlinkWebGLRenderingContext.instance.createProgram_Callback_0_(unwrap_jso(this));
+  
   @DomName('WebGLRenderingContext.createRenderbuffer')
   @DocsEditable()
-  Renderbuffer createRenderbuffer() => _blink.BlinkWebGLRenderingContext.instance.createRenderbuffer_Callback_0_(this);
-
+  Renderbuffer createRenderbuffer() => _blink.BlinkWebGLRenderingContext.instance.createRenderbuffer_Callback_0_(unwrap_jso(this));
+  
   @DomName('WebGLRenderingContext.createShader')
   @DocsEditable()
-  Shader createShader(int type) => _blink.BlinkWebGLRenderingContext.instance.createShader_Callback_1_(this, type);
-
+  Shader createShader(int type) => _blink.BlinkWebGLRenderingContext.instance.createShader_Callback_1_(unwrap_jso(this), type);
+  
   @DomName('WebGLRenderingContext.createTexture')
   @DocsEditable()
-  Texture createTexture() => _blink.BlinkWebGLRenderingContext.instance.createTexture_Callback_0_(this);
-
+  Texture createTexture() => _blink.BlinkWebGLRenderingContext.instance.createTexture_Callback_0_(unwrap_jso(this));
+  
   @DomName('WebGLRenderingContext.cullFace')
   @DocsEditable()
-  void cullFace(int mode) => _blink.BlinkWebGLRenderingContext.instance.cullFace_Callback_1_(this, mode);
-
+  void cullFace(int mode) => _blink.BlinkWebGLRenderingContext.instance.cullFace_Callback_1_(unwrap_jso(this), mode);
+  
   @DomName('WebGLRenderingContext.deleteBuffer')
   @DocsEditable()
-  void deleteBuffer(Buffer buffer) => _blink.BlinkWebGLRenderingContext.instance.deleteBuffer_Callback_1_(this, buffer);
-
+  void deleteBuffer(Buffer buffer) => _blink.BlinkWebGLRenderingContext.instance.deleteBuffer_Callback_1_(unwrap_jso(this), unwrap_jso(buffer));
+  
   @DomName('WebGLRenderingContext.deleteFramebuffer')
   @DocsEditable()
-  void deleteFramebuffer(Framebuffer framebuffer) => _blink.BlinkWebGLRenderingContext.instance.deleteFramebuffer_Callback_1_(this, framebuffer);
-
+  void deleteFramebuffer(Framebuffer framebuffer) => _blink.BlinkWebGLRenderingContext.instance.deleteFramebuffer_Callback_1_(unwrap_jso(this), unwrap_jso(framebuffer));
+  
   @DomName('WebGLRenderingContext.deleteProgram')
   @DocsEditable()
-  void deleteProgram(Program program) => _blink.BlinkWebGLRenderingContext.instance.deleteProgram_Callback_1_(this, program);
-
+  void deleteProgram(Program program) => _blink.BlinkWebGLRenderingContext.instance.deleteProgram_Callback_1_(unwrap_jso(this), unwrap_jso(program));
+  
   @DomName('WebGLRenderingContext.deleteRenderbuffer')
   @DocsEditable()
-  void deleteRenderbuffer(Renderbuffer renderbuffer) => _blink.BlinkWebGLRenderingContext.instance.deleteRenderbuffer_Callback_1_(this, renderbuffer);
-
+  void deleteRenderbuffer(Renderbuffer renderbuffer) => _blink.BlinkWebGLRenderingContext.instance.deleteRenderbuffer_Callback_1_(unwrap_jso(this), unwrap_jso(renderbuffer));
+  
   @DomName('WebGLRenderingContext.deleteShader')
   @DocsEditable()
-  void deleteShader(Shader shader) => _blink.BlinkWebGLRenderingContext.instance.deleteShader_Callback_1_(this, shader);
-
+  void deleteShader(Shader shader) => _blink.BlinkWebGLRenderingContext.instance.deleteShader_Callback_1_(unwrap_jso(this), unwrap_jso(shader));
+  
   @DomName('WebGLRenderingContext.deleteTexture')
   @DocsEditable()
-  void deleteTexture(Texture texture) => _blink.BlinkWebGLRenderingContext.instance.deleteTexture_Callback_1_(this, texture);
-
+  void deleteTexture(Texture texture) => _blink.BlinkWebGLRenderingContext.instance.deleteTexture_Callback_1_(unwrap_jso(this), unwrap_jso(texture));
+  
   @DomName('WebGLRenderingContext.depthFunc')
   @DocsEditable()
-  void depthFunc(int func) => _blink.BlinkWebGLRenderingContext.instance.depthFunc_Callback_1_(this, func);
-
+  void depthFunc(int func) => _blink.BlinkWebGLRenderingContext.instance.depthFunc_Callback_1_(unwrap_jso(this), func);
+  
   @DomName('WebGLRenderingContext.depthMask')
   @DocsEditable()
-  void depthMask(bool flag) => _blink.BlinkWebGLRenderingContext.instance.depthMask_Callback_1_(this, flag);
-
+  void depthMask(bool flag) => _blink.BlinkWebGLRenderingContext.instance.depthMask_Callback_1_(unwrap_jso(this), flag);
+  
   @DomName('WebGLRenderingContext.depthRange')
   @DocsEditable()
-  void depthRange(num zNear, num zFar) => _blink.BlinkWebGLRenderingContext.instance.depthRange_Callback_2_(this, zNear, zFar);
-
+  void depthRange(num zNear, num zFar) => _blink.BlinkWebGLRenderingContext.instance.depthRange_Callback_2_(unwrap_jso(this), zNear, zFar);
+  
   @DomName('WebGLRenderingContext.detachShader')
   @DocsEditable()
-  void detachShader(Program program, Shader shader) => _blink.BlinkWebGLRenderingContext.instance.detachShader_Callback_2_(this, program, shader);
-
+  void detachShader(Program program, Shader shader) => _blink.BlinkWebGLRenderingContext.instance.detachShader_Callback_2_(unwrap_jso(this), unwrap_jso(program), unwrap_jso(shader));
+  
   @DomName('WebGLRenderingContext.disable')
   @DocsEditable()
-  void disable(int cap) => _blink.BlinkWebGLRenderingContext.instance.disable_Callback_1_(this, cap);
-
+  void disable(int cap) => _blink.BlinkWebGLRenderingContext.instance.disable_Callback_1_(unwrap_jso(this), cap);
+  
   @DomName('WebGLRenderingContext.disableVertexAttribArray')
   @DocsEditable()
-  void disableVertexAttribArray(int index) => _blink.BlinkWebGLRenderingContext.instance.disableVertexAttribArray_Callback_1_(this, index);
-
+  void disableVertexAttribArray(int index) => _blink.BlinkWebGLRenderingContext.instance.disableVertexAttribArray_Callback_1_(unwrap_jso(this), index);
+  
   @DomName('WebGLRenderingContext.drawArrays')
   @DocsEditable()
-  void drawArrays(int mode, int first, int count) => _blink.BlinkWebGLRenderingContext.instance.drawArrays_Callback_3_(this, mode, first, count);
-
+  void drawArrays(int mode, int first, int count) => _blink.BlinkWebGLRenderingContext.instance.drawArrays_Callback_3_(unwrap_jso(this), mode, first, count);
+  
   @DomName('WebGLRenderingContext.drawElements')
   @DocsEditable()
-  void drawElements(int mode, int count, int type, int offset) => _blink.BlinkWebGLRenderingContext.instance.drawElements_Callback_4_(this, mode, count, type, offset);
-
+  void drawElements(int mode, int count, int type, int offset) => _blink.BlinkWebGLRenderingContext.instance.drawElements_Callback_4_(unwrap_jso(this), mode, count, type, offset);
+  
   @DomName('WebGLRenderingContext.enable')
   @DocsEditable()
-  void enable(int cap) => _blink.BlinkWebGLRenderingContext.instance.enable_Callback_1_(this, cap);
-
+  void enable(int cap) => _blink.BlinkWebGLRenderingContext.instance.enable_Callback_1_(unwrap_jso(this), cap);
+  
   @DomName('WebGLRenderingContext.enableVertexAttribArray')
   @DocsEditable()
-  void enableVertexAttribArray(int index) => _blink.BlinkWebGLRenderingContext.instance.enableVertexAttribArray_Callback_1_(this, index);
-
+  void enableVertexAttribArray(int index) => _blink.BlinkWebGLRenderingContext.instance.enableVertexAttribArray_Callback_1_(unwrap_jso(this), index);
+  
   @DomName('WebGLRenderingContext.finish')
   @DocsEditable()
-  void finish() => _blink.BlinkWebGLRenderingContext.instance.finish_Callback_0_(this);
-
+  void finish() => _blink.BlinkWebGLRenderingContext.instance.finish_Callback_0_(unwrap_jso(this));
+  
   @DomName('WebGLRenderingContext.flush')
   @DocsEditable()
-  void flush() => _blink.BlinkWebGLRenderingContext.instance.flush_Callback_0_(this);
-
+  void flush() => _blink.BlinkWebGLRenderingContext.instance.flush_Callback_0_(unwrap_jso(this));
+  
   @DomName('WebGLRenderingContext.framebufferRenderbuffer')
   @DocsEditable()
-  void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, Renderbuffer renderbuffer) => _blink.BlinkWebGLRenderingContext.instance.framebufferRenderbuffer_Callback_4_(this, target, attachment, renderbuffertarget, renderbuffer);
-
+  void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, Renderbuffer renderbuffer) => _blink.BlinkWebGLRenderingContext.instance.framebufferRenderbuffer_Callback_4_(unwrap_jso(this), target, attachment, renderbuffertarget, unwrap_jso(renderbuffer));
+  
   @DomName('WebGLRenderingContext.framebufferTexture2D')
   @DocsEditable()
-  void framebufferTexture2D(int target, int attachment, int textarget, Texture texture, int level) => _blink.BlinkWebGLRenderingContext.instance.framebufferTexture2D_Callback_5_(this, target, attachment, textarget, texture, level);
-
+  void framebufferTexture2D(int target, int attachment, int textarget, Texture texture, int level) => _blink.BlinkWebGLRenderingContext.instance.framebufferTexture2D_Callback_5_(unwrap_jso(this), target, attachment, textarget, unwrap_jso(texture), level);
+  
   @DomName('WebGLRenderingContext.frontFace')
   @DocsEditable()
-  void frontFace(int mode) => _blink.BlinkWebGLRenderingContext.instance.frontFace_Callback_1_(this, mode);
-
+  void frontFace(int mode) => _blink.BlinkWebGLRenderingContext.instance.frontFace_Callback_1_(unwrap_jso(this), mode);
+  
   @DomName('WebGLRenderingContext.generateMipmap')
   @DocsEditable()
-  void generateMipmap(int target) => _blink.BlinkWebGLRenderingContext.instance.generateMipmap_Callback_1_(this, target);
-
+  void generateMipmap(int target) => _blink.BlinkWebGLRenderingContext.instance.generateMipmap_Callback_1_(unwrap_jso(this), target);
+  
   @DomName('WebGLRenderingContext.getActiveAttrib')
   @DocsEditable()
-  ActiveInfo getActiveAttrib(Program program, int index) => _blink.BlinkWebGLRenderingContext.instance.getActiveAttrib_Callback_2_(this, program, index);
-
+  ActiveInfo getActiveAttrib(Program program, int index) => _blink.BlinkWebGLRenderingContext.instance.getActiveAttrib_Callback_2_(unwrap_jso(this), unwrap_jso(program), index);
+  
   @DomName('WebGLRenderingContext.getActiveUniform')
   @DocsEditable()
-  ActiveInfo getActiveUniform(Program program, int index) => _blink.BlinkWebGLRenderingContext.instance.getActiveUniform_Callback_2_(this, program, index);
-
+  ActiveInfo getActiveUniform(Program program, int index) => _blink.BlinkWebGLRenderingContext.instance.getActiveUniform_Callback_2_(unwrap_jso(this), unwrap_jso(program), index);
+  
   @DomName('WebGLRenderingContext.getAttachedShaders')
   @DocsEditable()
-  List<Shader> getAttachedShaders(Program program) => _blink.BlinkWebGLRenderingContext.instance.getAttachedShaders_Callback_1_(this, program);
-
+  List<Shader> getAttachedShaders(Program program) => _blink.BlinkWebGLRenderingContext.instance.getAttachedShaders_Callback_1_(unwrap_jso(this), unwrap_jso(program));
+  
   @DomName('WebGLRenderingContext.getAttribLocation')
   @DocsEditable()
-  int getAttribLocation(Program program, String name) => _blink.BlinkWebGLRenderingContext.instance.getAttribLocation_Callback_2_(this, program, name);
-
+  int getAttribLocation(Program program, String name) => _blink.BlinkWebGLRenderingContext.instance.getAttribLocation_Callback_2_(unwrap_jso(this), unwrap_jso(program), name);
+  
   @DomName('WebGLRenderingContext.getBufferParameter')
   @DocsEditable()
-  Object getBufferParameter(int target, int pname) => _blink.BlinkWebGLRenderingContext.instance.getBufferParameter_Callback_2_(this, target, pname);
-
+  Object getBufferParameter(int target, int pname) => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getBufferParameter_Callback_2_(unwrap_jso(this), target, pname));
+  
   @DomName('WebGLRenderingContext.getContextAttributes')
   @DocsEditable()
-  ContextAttributes getContextAttributes() => _blink.BlinkWebGLRenderingContext.instance.getContextAttributes_Callback_0_(this);
-
+  ContextAttributes getContextAttributes() => _blink.BlinkWebGLRenderingContext.instance.getContextAttributes_Callback_0_(unwrap_jso(this));
+  
   @DomName('WebGLRenderingContext.getError')
   @DocsEditable()
-  int getError() => _blink.BlinkWebGLRenderingContext.instance.getError_Callback_0_(this);
-
+  int getError() => _blink.BlinkWebGLRenderingContext.instance.getError_Callback_0_(unwrap_jso(this));
+  
   @DomName('WebGLRenderingContext.getExtension')
   @DocsEditable()
-  Object getExtension(String name) => _blink.BlinkWebGLRenderingContext.instance.getExtension_Callback_1_(this, name);
-
+  Object getExtension(String name) => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getExtension_Callback_1_(unwrap_jso(this), name));
+  
   @DomName('WebGLRenderingContext.getFramebufferAttachmentParameter')
   @DocsEditable()
-  Object getFramebufferAttachmentParameter(int target, int attachment, int pname) => _blink.BlinkWebGLRenderingContext.instance.getFramebufferAttachmentParameter_Callback_3_(this, target, attachment, pname);
-
+  Object getFramebufferAttachmentParameter(int target, int attachment, int pname) => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getFramebufferAttachmentParameter_Callback_3_(unwrap_jso(this), target, attachment, pname));
+  
   @DomName('WebGLRenderingContext.getParameter')
   @DocsEditable()
-  Object getParameter(int pname) => _blink.BlinkWebGLRenderingContext.instance.getParameter_Callback_1_(this, pname);
-
+  Object getParameter(int pname) => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getParameter_Callback_1_(unwrap_jso(this), pname));
+  
   @DomName('WebGLRenderingContext.getProgramInfoLog')
   @DocsEditable()
-  String getProgramInfoLog(Program program) => _blink.BlinkWebGLRenderingContext.instance.getProgramInfoLog_Callback_1_(this, program);
-
+  String getProgramInfoLog(Program program) => _blink.BlinkWebGLRenderingContext.instance.getProgramInfoLog_Callback_1_(unwrap_jso(this), unwrap_jso(program));
+  
   @DomName('WebGLRenderingContext.getProgramParameter')
   @DocsEditable()
-  Object getProgramParameter(Program program, int pname) => _blink.BlinkWebGLRenderingContext.instance.getProgramParameter_Callback_2_(this, program, pname);
-
+  Object getProgramParameter(Program program, int pname) => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getProgramParameter_Callback_2_(unwrap_jso(this), unwrap_jso(program), pname));
+  
   @DomName('WebGLRenderingContext.getRenderbufferParameter')
   @DocsEditable()
-  Object getRenderbufferParameter(int target, int pname) => _blink.BlinkWebGLRenderingContext.instance.getRenderbufferParameter_Callback_2_(this, target, pname);
-
+  Object getRenderbufferParameter(int target, int pname) => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getRenderbufferParameter_Callback_2_(unwrap_jso(this), target, pname));
+  
   @DomName('WebGLRenderingContext.getShaderInfoLog')
   @DocsEditable()
-  String getShaderInfoLog(Shader shader) => _blink.BlinkWebGLRenderingContext.instance.getShaderInfoLog_Callback_1_(this, shader);
-
+  String getShaderInfoLog(Shader shader) => _blink.BlinkWebGLRenderingContext.instance.getShaderInfoLog_Callback_1_(unwrap_jso(this), unwrap_jso(shader));
+  
   @DomName('WebGLRenderingContext.getShaderParameter')
   @DocsEditable()
-  Object getShaderParameter(Shader shader, int pname) => _blink.BlinkWebGLRenderingContext.instance.getShaderParameter_Callback_2_(this, shader, pname);
-
+  Object getShaderParameter(Shader shader, int pname) => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getShaderParameter_Callback_2_(unwrap_jso(this), unwrap_jso(shader), pname));
+  
   @DomName('WebGLRenderingContext.getShaderPrecisionFormat')
   @DocsEditable()
-  ShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) => _blink.BlinkWebGLRenderingContext.instance.getShaderPrecisionFormat_Callback_2_(this, shadertype, precisiontype);
-
+  ShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) => _blink.BlinkWebGLRenderingContext.instance.getShaderPrecisionFormat_Callback_2_(unwrap_jso(this), shadertype, precisiontype);
+  
   @DomName('WebGLRenderingContext.getShaderSource')
   @DocsEditable()
-  String getShaderSource(Shader shader) => _blink.BlinkWebGLRenderingContext.instance.getShaderSource_Callback_1_(this, shader);
-
+  String getShaderSource(Shader shader) => _blink.BlinkWebGLRenderingContext.instance.getShaderSource_Callback_1_(unwrap_jso(this), unwrap_jso(shader));
+  
   @DomName('WebGLRenderingContext.getSupportedExtensions')
   @DocsEditable()
-  List<String> getSupportedExtensions() => _blink.BlinkWebGLRenderingContext.instance.getSupportedExtensions_Callback_0_(this);
-
+  List<String> getSupportedExtensions() => _blink.BlinkWebGLRenderingContext.instance.getSupportedExtensions_Callback_0_(unwrap_jso(this));
+  
   @DomName('WebGLRenderingContext.getTexParameter')
   @DocsEditable()
-  Object getTexParameter(int target, int pname) => _blink.BlinkWebGLRenderingContext.instance.getTexParameter_Callback_2_(this, target, pname);
-
+  Object getTexParameter(int target, int pname) => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getTexParameter_Callback_2_(unwrap_jso(this), target, pname));
+  
   @DomName('WebGLRenderingContext.getUniform')
   @DocsEditable()
-  Object getUniform(Program program, UniformLocation location) => _blink.BlinkWebGLRenderingContext.instance.getUniform_Callback_2_(this, program, location);
-
+  Object getUniform(Program program, UniformLocation location) => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getUniform_Callback_2_(unwrap_jso(this), unwrap_jso(program), unwrap_jso(location)));
+  
   @DomName('WebGLRenderingContext.getUniformLocation')
   @DocsEditable()
-  UniformLocation getUniformLocation(Program program, String name) => _blink.BlinkWebGLRenderingContext.instance.getUniformLocation_Callback_2_(this, program, name);
-
+  UniformLocation getUniformLocation(Program program, String name) => _blink.BlinkWebGLRenderingContext.instance.getUniformLocation_Callback_2_(unwrap_jso(this), unwrap_jso(program), name);
+  
   @DomName('WebGLRenderingContext.getVertexAttrib')
   @DocsEditable()
-  Object getVertexAttrib(int index, int pname) => _blink.BlinkWebGLRenderingContext.instance.getVertexAttrib_Callback_2_(this, index, pname);
-
+  Object getVertexAttrib(int index, int pname) => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getVertexAttrib_Callback_2_(unwrap_jso(this), index, pname));
+  
   @DomName('WebGLRenderingContext.getVertexAttribOffset')
   @DocsEditable()
-  int getVertexAttribOffset(int index, int pname) => _blink.BlinkWebGLRenderingContext.instance.getVertexAttribOffset_Callback_2_(this, index, pname);
-
+  int getVertexAttribOffset(int index, int pname) => _blink.BlinkWebGLRenderingContext.instance.getVertexAttribOffset_Callback_2_(unwrap_jso(this), index, pname);
+  
   @DomName('WebGLRenderingContext.hint')
   @DocsEditable()
-  void hint(int target, int mode) => _blink.BlinkWebGLRenderingContext.instance.hint_Callback_2_(this, target, mode);
-
+  void hint(int target, int mode) => _blink.BlinkWebGLRenderingContext.instance.hint_Callback_2_(unwrap_jso(this), target, mode);
+  
   @DomName('WebGLRenderingContext.isBuffer')
   @DocsEditable()
-  bool isBuffer(Buffer buffer) => _blink.BlinkWebGLRenderingContext.instance.isBuffer_Callback_1_(this, buffer);
-
+  bool isBuffer(Buffer buffer) => _blink.BlinkWebGLRenderingContext.instance.isBuffer_Callback_1_(unwrap_jso(this), unwrap_jso(buffer));
+  
   @DomName('WebGLRenderingContext.isContextLost')
   @DocsEditable()
-  bool isContextLost() => _blink.BlinkWebGLRenderingContext.instance.isContextLost_Callback_0_(this);
-
+  bool isContextLost() => _blink.BlinkWebGLRenderingContext.instance.isContextLost_Callback_0_(unwrap_jso(this));
+  
   @DomName('WebGLRenderingContext.isEnabled')
   @DocsEditable()
-  bool isEnabled(int cap) => _blink.BlinkWebGLRenderingContext.instance.isEnabled_Callback_1_(this, cap);
-
+  bool isEnabled(int cap) => _blink.BlinkWebGLRenderingContext.instance.isEnabled_Callback_1_(unwrap_jso(this), cap);
+  
   @DomName('WebGLRenderingContext.isFramebuffer')
   @DocsEditable()
-  bool isFramebuffer(Framebuffer framebuffer) => _blink.BlinkWebGLRenderingContext.instance.isFramebuffer_Callback_1_(this, framebuffer);
-
+  bool isFramebuffer(Framebuffer framebuffer) => _blink.BlinkWebGLRenderingContext.instance.isFramebuffer_Callback_1_(unwrap_jso(this), unwrap_jso(framebuffer));
+  
   @DomName('WebGLRenderingContext.isProgram')
   @DocsEditable()
-  bool isProgram(Program program) => _blink.BlinkWebGLRenderingContext.instance.isProgram_Callback_1_(this, program);
-
+  bool isProgram(Program program) => _blink.BlinkWebGLRenderingContext.instance.isProgram_Callback_1_(unwrap_jso(this), unwrap_jso(program));
+  
   @DomName('WebGLRenderingContext.isRenderbuffer')
   @DocsEditable()
-  bool isRenderbuffer(Renderbuffer renderbuffer) => _blink.BlinkWebGLRenderingContext.instance.isRenderbuffer_Callback_1_(this, renderbuffer);
-
+  bool isRenderbuffer(Renderbuffer renderbuffer) => _blink.BlinkWebGLRenderingContext.instance.isRenderbuffer_Callback_1_(unwrap_jso(this), unwrap_jso(renderbuffer));
+  
   @DomName('WebGLRenderingContext.isShader')
   @DocsEditable()
-  bool isShader(Shader shader) => _blink.BlinkWebGLRenderingContext.instance.isShader_Callback_1_(this, shader);
-
+  bool isShader(Shader shader) => _blink.BlinkWebGLRenderingContext.instance.isShader_Callback_1_(unwrap_jso(this), unwrap_jso(shader));
+  
   @DomName('WebGLRenderingContext.isTexture')
   @DocsEditable()
-  bool isTexture(Texture texture) => _blink.BlinkWebGLRenderingContext.instance.isTexture_Callback_1_(this, texture);
-
+  bool isTexture(Texture texture) => _blink.BlinkWebGLRenderingContext.instance.isTexture_Callback_1_(unwrap_jso(this), unwrap_jso(texture));
+  
   @DomName('WebGLRenderingContext.lineWidth')
   @DocsEditable()
-  void lineWidth(num width) => _blink.BlinkWebGLRenderingContext.instance.lineWidth_Callback_1_(this, width);
-
+  void lineWidth(num width) => _blink.BlinkWebGLRenderingContext.instance.lineWidth_Callback_1_(unwrap_jso(this), width);
+  
   @DomName('WebGLRenderingContext.linkProgram')
   @DocsEditable()
-  void linkProgram(Program program) => _blink.BlinkWebGLRenderingContext.instance.linkProgram_Callback_1_(this, program);
-
+  void linkProgram(Program program) => _blink.BlinkWebGLRenderingContext.instance.linkProgram_Callback_1_(unwrap_jso(this), unwrap_jso(program));
+  
   @DomName('WebGLRenderingContext.pixelStorei')
   @DocsEditable()
-  void pixelStorei(int pname, int param) => _blink.BlinkWebGLRenderingContext.instance.pixelStorei_Callback_2_(this, pname, param);
-
+  void pixelStorei(int pname, int param) => _blink.BlinkWebGLRenderingContext.instance.pixelStorei_Callback_2_(unwrap_jso(this), pname, param);
+  
   @DomName('WebGLRenderingContext.polygonOffset')
   @DocsEditable()
-  void polygonOffset(num factor, num units) => _blink.BlinkWebGLRenderingContext.instance.polygonOffset_Callback_2_(this, factor, units);
-
+  void polygonOffset(num factor, num units) => _blink.BlinkWebGLRenderingContext.instance.polygonOffset_Callback_2_(unwrap_jso(this), factor, units);
+  
   @DomName('WebGLRenderingContext.readPixels')
   @DocsEditable()
-  void readPixels(int x, int y, int width, int height, int format, int type, TypedData pixels) => _blink.BlinkWebGLRenderingContext.instance.readPixels_Callback_7_(this, x, y, width, height, format, type, pixels);
-
+  void readPixels(int x, int y, int width, int height, int format, int type, TypedData pixels) => _blink.BlinkWebGLRenderingContext.instance.readPixels_Callback_7_(unwrap_jso(this), x, y, width, height, format, type, unwrap_jso(pixels));
+  
   @DomName('WebGLRenderingContext.renderbufferStorage')
   @DocsEditable()
-  void renderbufferStorage(int target, int internalformat, int width, int height) => _blink.BlinkWebGLRenderingContext.instance.renderbufferStorage_Callback_4_(this, target, internalformat, width, height);
-
+  void renderbufferStorage(int target, int internalformat, int width, int height) => _blink.BlinkWebGLRenderingContext.instance.renderbufferStorage_Callback_4_(unwrap_jso(this), target, internalformat, width, height);
+  
   @DomName('WebGLRenderingContext.sampleCoverage')
   @DocsEditable()
-  void sampleCoverage(num value, bool invert) => _blink.BlinkWebGLRenderingContext.instance.sampleCoverage_Callback_2_(this, value, invert);
-
+  void sampleCoverage(num value, bool invert) => _blink.BlinkWebGLRenderingContext.instance.sampleCoverage_Callback_2_(unwrap_jso(this), value, invert);
+  
   @DomName('WebGLRenderingContext.scissor')
   @DocsEditable()
-  void scissor(int x, int y, int width, int height) => _blink.BlinkWebGLRenderingContext.instance.scissor_Callback_4_(this, x, y, width, height);
-
+  void scissor(int x, int y, int width, int height) => _blink.BlinkWebGLRenderingContext.instance.scissor_Callback_4_(unwrap_jso(this), x, y, width, height);
+  
   @DomName('WebGLRenderingContext.shaderSource')
   @DocsEditable()
-  void shaderSource(Shader shader, String string) => _blink.BlinkWebGLRenderingContext.instance.shaderSource_Callback_2_(this, shader, string);
-
+  void shaderSource(Shader shader, String string) => _blink.BlinkWebGLRenderingContext.instance.shaderSource_Callback_2_(unwrap_jso(this), unwrap_jso(shader), string);
+  
   @DomName('WebGLRenderingContext.stencilFunc')
   @DocsEditable()
-  void stencilFunc(int func, int ref, int mask) => _blink.BlinkWebGLRenderingContext.instance.stencilFunc_Callback_3_(this, func, ref, mask);
-
+  void stencilFunc(int func, int ref, int mask) => _blink.BlinkWebGLRenderingContext.instance.stencilFunc_Callback_3_(unwrap_jso(this), func, ref, mask);
+  
   @DomName('WebGLRenderingContext.stencilFuncSeparate')
   @DocsEditable()
-  void stencilFuncSeparate(int face, int func, int ref, int mask) => _blink.BlinkWebGLRenderingContext.instance.stencilFuncSeparate_Callback_4_(this, face, func, ref, mask);
-
+  void stencilFuncSeparate(int face, int func, int ref, int mask) => _blink.BlinkWebGLRenderingContext.instance.stencilFuncSeparate_Callback_4_(unwrap_jso(this), face, func, ref, mask);
+  
   @DomName('WebGLRenderingContext.stencilMask')
   @DocsEditable()
-  void stencilMask(int mask) => _blink.BlinkWebGLRenderingContext.instance.stencilMask_Callback_1_(this, mask);
-
+  void stencilMask(int mask) => _blink.BlinkWebGLRenderingContext.instance.stencilMask_Callback_1_(unwrap_jso(this), mask);
+  
   @DomName('WebGLRenderingContext.stencilMaskSeparate')
   @DocsEditable()
-  void stencilMaskSeparate(int face, int mask) => _blink.BlinkWebGLRenderingContext.instance.stencilMaskSeparate_Callback_2_(this, face, mask);
-
+  void stencilMaskSeparate(int face, int mask) => _blink.BlinkWebGLRenderingContext.instance.stencilMaskSeparate_Callback_2_(unwrap_jso(this), face, mask);
+  
   @DomName('WebGLRenderingContext.stencilOp')
   @DocsEditable()
-  void stencilOp(int fail, int zfail, int zpass) => _blink.BlinkWebGLRenderingContext.instance.stencilOp_Callback_3_(this, fail, zfail, zpass);
-
+  void stencilOp(int fail, int zfail, int zpass) => _blink.BlinkWebGLRenderingContext.instance.stencilOp_Callback_3_(unwrap_jso(this), fail, zfail, zpass);
+  
   @DomName('WebGLRenderingContext.stencilOpSeparate')
   @DocsEditable()
-  void stencilOpSeparate(int face, int fail, int zfail, int zpass) => _blink.BlinkWebGLRenderingContext.instance.stencilOpSeparate_Callback_4_(this, face, fail, zfail, zpass);
-
+  void stencilOpSeparate(int face, int fail, int zfail, int zpass) => _blink.BlinkWebGLRenderingContext.instance.stencilOpSeparate_Callback_4_(unwrap_jso(this), face, fail, zfail, zpass);
+  
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
     if ((pixels is TypedData || pixels == null) && (type is int) && (format is int) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int) && (height_OR_type is int) && (format_OR_width is int) && (internalformat is int) && (level is int) && (target is int)) {
-      _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_9_(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
+      _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_9_(unwrap_jso(this), target, level, internalformat, format_OR_width, height_OR_type, unwrap_jso(border_OR_canvas_OR_image_OR_pixels_OR_video), format, type, unwrap_jso(pixels));
       return;
     }
     if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int) && (format_OR_width is int) && (internalformat is int) && (level is int) && (target is int) && format == null && type == null && pixels == null) {
-      _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(unwrap_jso(this), target, level, internalformat, format_OR_width, height_OR_type, unwrap_jso(border_OR_canvas_OR_image_OR_pixels_OR_video));
       return;
     }
     if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement) && (height_OR_type is int) && (format_OR_width is int) && (internalformat is int) && (level is int) && (target is int) && format == null && type == null && pixels == null) {
-      _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(unwrap_jso(this), target, level, internalformat, format_OR_width, height_OR_type, unwrap_jso(border_OR_canvas_OR_image_OR_pixels_OR_video));
       return;
     }
     if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement) && (height_OR_type is int) && (format_OR_width is int) && (internalformat is int) && (level is int) && (target is int) && format == null && type == null && pixels == null) {
-      _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(unwrap_jso(this), target, level, internalformat, format_OR_width, height_OR_type, unwrap_jso(border_OR_canvas_OR_image_OR_pixels_OR_video));
       return;
     }
     if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement) && (height_OR_type is int) && (format_OR_width is int) && (internalformat is int) && (level is int) && (target is int) && format == null && type == null && pixels == null) {
-      _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(unwrap_jso(this), target, level, internalformat, format_OR_width, height_OR_type, unwrap_jso(border_OR_canvas_OR_image_OR_pixels_OR_video));
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -2856,47 +2857,47 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
 
   @DomName('WebGLRenderingContext.texImage2DCanvas')
   @DocsEditable()
-  void texImage2DCanvas(int target, int level, int internalformat, int format, int type, CanvasElement canvas) => _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(this, target, level, internalformat, format, type, canvas);
-
+  void texImage2DCanvas(int target, int level, int internalformat, int format, int type, CanvasElement canvas) => _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(unwrap_jso(this), target, level, internalformat, format, type, unwrap_jso(canvas));
+  
   @DomName('WebGLRenderingContext.texImage2DImage')
   @DocsEditable()
-  void texImage2DImage(int target, int level, int internalformat, int format, int type, ImageElement image) => _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(this, target, level, internalformat, format, type, image);
-
+  void texImage2DImage(int target, int level, int internalformat, int format, int type, ImageElement image) => _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(unwrap_jso(this), target, level, internalformat, format, type, unwrap_jso(image));
+  
   @DomName('WebGLRenderingContext.texImage2DImageData')
   @DocsEditable()
-  void texImage2DImageData(int target, int level, int internalformat, int format, int type, ImageData pixels) => _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(this, target, level, internalformat, format, type, pixels);
-
+  void texImage2DImageData(int target, int level, int internalformat, int format, int type, ImageData pixels) => _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(unwrap_jso(this), target, level, internalformat, format, type, unwrap_jso(pixels));
+  
   @DomName('WebGLRenderingContext.texImage2DVideo')
   @DocsEditable()
-  void texImage2DVideo(int target, int level, int internalformat, int format, int type, VideoElement video) => _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(this, target, level, internalformat, format, type, video);
-
+  void texImage2DVideo(int target, int level, int internalformat, int format, int type, VideoElement video) => _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(unwrap_jso(this), target, level, internalformat, format, type, unwrap_jso(video));
+  
   @DomName('WebGLRenderingContext.texParameterf')
   @DocsEditable()
-  void texParameterf(int target, int pname, num param) => _blink.BlinkWebGLRenderingContext.instance.texParameterf_Callback_3_(this, target, pname, param);
-
+  void texParameterf(int target, int pname, num param) => _blink.BlinkWebGLRenderingContext.instance.texParameterf_Callback_3_(unwrap_jso(this), target, pname, param);
+  
   @DomName('WebGLRenderingContext.texParameteri')
   @DocsEditable()
-  void texParameteri(int target, int pname, int param) => _blink.BlinkWebGLRenderingContext.instance.texParameteri_Callback_3_(this, target, pname, param);
-
+  void texParameteri(int target, int pname, int param) => _blink.BlinkWebGLRenderingContext.instance.texParameteri_Callback_3_(unwrap_jso(this), target, pname, param);
+  
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
     if ((pixels is TypedData || pixels == null) && (type is int) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int) && (height_OR_type is int) && (format_OR_width is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int)) {
-      _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_9_(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
+      _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_9_(unwrap_jso(this), target, level, xoffset, yoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_format_OR_image_OR_pixels_OR_video), type, unwrap_jso(pixels));
       return;
     }
     if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int) && (format_OR_width is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int) && type == null && pixels == null) {
-      _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(unwrap_jso(this), target, level, xoffset, yoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_format_OR_image_OR_pixels_OR_video));
       return;
     }
     if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement) && (height_OR_type is int) && (format_OR_width is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int) && type == null && pixels == null) {
-      _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(unwrap_jso(this), target, level, xoffset, yoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_format_OR_image_OR_pixels_OR_video));
       return;
     }
     if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement) && (height_OR_type is int) && (format_OR_width is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int) && type == null && pixels == null) {
-      _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(unwrap_jso(this), target, level, xoffset, yoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_format_OR_image_OR_pixels_OR_video));
       return;
     }
     if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement) && (height_OR_type is int) && (format_OR_width is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int) && type == null && pixels == null) {
-      _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(unwrap_jso(this), target, level, xoffset, yoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_format_OR_image_OR_pixels_OR_video));
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -2904,144 +2905,144 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
 
   @DomName('WebGLRenderingContext.texSubImage2DCanvas')
   @DocsEditable()
-  void texSubImage2DCanvas(int target, int level, int xoffset, int yoffset, int format, int type, CanvasElement canvas) => _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(this, target, level, xoffset, yoffset, format, type, canvas);
-
+  void texSubImage2DCanvas(int target, int level, int xoffset, int yoffset, int format, int type, CanvasElement canvas) => _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(unwrap_jso(this), target, level, xoffset, yoffset, format, type, unwrap_jso(canvas));
+  
   @DomName('WebGLRenderingContext.texSubImage2DImage')
   @DocsEditable()
-  void texSubImage2DImage(int target, int level, int xoffset, int yoffset, int format, int type, ImageElement image) => _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(this, target, level, xoffset, yoffset, format, type, image);
-
+  void texSubImage2DImage(int target, int level, int xoffset, int yoffset, int format, int type, ImageElement image) => _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(unwrap_jso(this), target, level, xoffset, yoffset, format, type, unwrap_jso(image));
+  
   @DomName('WebGLRenderingContext.texSubImage2DImageData')
   @DocsEditable()
-  void texSubImage2DImageData(int target, int level, int xoffset, int yoffset, int format, int type, ImageData pixels) => _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(this, target, level, xoffset, yoffset, format, type, pixels);
-
+  void texSubImage2DImageData(int target, int level, int xoffset, int yoffset, int format, int type, ImageData pixels) => _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(unwrap_jso(this), target, level, xoffset, yoffset, format, type, unwrap_jso(pixels));
+  
   @DomName('WebGLRenderingContext.texSubImage2DVideo')
   @DocsEditable()
-  void texSubImage2DVideo(int target, int level, int xoffset, int yoffset, int format, int type, VideoElement video) => _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(this, target, level, xoffset, yoffset, format, type, video);
-
+  void texSubImage2DVideo(int target, int level, int xoffset, int yoffset, int format, int type, VideoElement video) => _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(unwrap_jso(this), target, level, xoffset, yoffset, format, type, unwrap_jso(video));
+  
   @DomName('WebGLRenderingContext.uniform1f')
   @DocsEditable()
-  void uniform1f(UniformLocation location, num x) => _blink.BlinkWebGLRenderingContext.instance.uniform1f_Callback_2_(this, location, x);
-
+  void uniform1f(UniformLocation location, num x) => _blink.BlinkWebGLRenderingContext.instance.uniform1f_Callback_2_(unwrap_jso(this), unwrap_jso(location), x);
+  
   @DomName('WebGLRenderingContext.uniform1fv')
   @DocsEditable()
-  void uniform1fv(UniformLocation location, Float32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform1fv_Callback_2_(this, location, v);
-
+  void uniform1fv(UniformLocation location, Float32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform1fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), v);
+  
   @DomName('WebGLRenderingContext.uniform1i')
   @DocsEditable()
-  void uniform1i(UniformLocation location, int x) => _blink.BlinkWebGLRenderingContext.instance.uniform1i_Callback_2_(this, location, x);
-
+  void uniform1i(UniformLocation location, int x) => _blink.BlinkWebGLRenderingContext.instance.uniform1i_Callback_2_(unwrap_jso(this), unwrap_jso(location), x);
+  
   @DomName('WebGLRenderingContext.uniform1iv')
   @DocsEditable()
-  void uniform1iv(UniformLocation location, Int32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform1iv_Callback_2_(this, location, v);
-
+  void uniform1iv(UniformLocation location, Int32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform1iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), v);
+  
   @DomName('WebGLRenderingContext.uniform2f')
   @DocsEditable()
-  void uniform2f(UniformLocation location, num x, num y) => _blink.BlinkWebGLRenderingContext.instance.uniform2f_Callback_3_(this, location, x, y);
-
+  void uniform2f(UniformLocation location, num x, num y) => _blink.BlinkWebGLRenderingContext.instance.uniform2f_Callback_3_(unwrap_jso(this), unwrap_jso(location), x, y);
+  
   @DomName('WebGLRenderingContext.uniform2fv')
   @DocsEditable()
-  void uniform2fv(UniformLocation location, Float32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform2fv_Callback_2_(this, location, v);
-
+  void uniform2fv(UniformLocation location, Float32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform2fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), v);
+  
   @DomName('WebGLRenderingContext.uniform2i')
   @DocsEditable()
-  void uniform2i(UniformLocation location, int x, int y) => _blink.BlinkWebGLRenderingContext.instance.uniform2i_Callback_3_(this, location, x, y);
-
+  void uniform2i(UniformLocation location, int x, int y) => _blink.BlinkWebGLRenderingContext.instance.uniform2i_Callback_3_(unwrap_jso(this), unwrap_jso(location), x, y);
+  
   @DomName('WebGLRenderingContext.uniform2iv')
   @DocsEditable()
-  void uniform2iv(UniformLocation location, Int32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform2iv_Callback_2_(this, location, v);
-
+  void uniform2iv(UniformLocation location, Int32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform2iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), v);
+  
   @DomName('WebGLRenderingContext.uniform3f')
   @DocsEditable()
-  void uniform3f(UniformLocation location, num x, num y, num z) => _blink.BlinkWebGLRenderingContext.instance.uniform3f_Callback_4_(this, location, x, y, z);
-
+  void uniform3f(UniformLocation location, num x, num y, num z) => _blink.BlinkWebGLRenderingContext.instance.uniform3f_Callback_4_(unwrap_jso(this), unwrap_jso(location), x, y, z);
+  
   @DomName('WebGLRenderingContext.uniform3fv')
   @DocsEditable()
-  void uniform3fv(UniformLocation location, Float32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform3fv_Callback_2_(this, location, v);
-
+  void uniform3fv(UniformLocation location, Float32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform3fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), v);
+  
   @DomName('WebGLRenderingContext.uniform3i')
   @DocsEditable()
-  void uniform3i(UniformLocation location, int x, int y, int z) => _blink.BlinkWebGLRenderingContext.instance.uniform3i_Callback_4_(this, location, x, y, z);
-
+  void uniform3i(UniformLocation location, int x, int y, int z) => _blink.BlinkWebGLRenderingContext.instance.uniform3i_Callback_4_(unwrap_jso(this), unwrap_jso(location), x, y, z);
+  
   @DomName('WebGLRenderingContext.uniform3iv')
   @DocsEditable()
-  void uniform3iv(UniformLocation location, Int32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform3iv_Callback_2_(this, location, v);
-
+  void uniform3iv(UniformLocation location, Int32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform3iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), v);
+  
   @DomName('WebGLRenderingContext.uniform4f')
   @DocsEditable()
-  void uniform4f(UniformLocation location, num x, num y, num z, num w) => _blink.BlinkWebGLRenderingContext.instance.uniform4f_Callback_5_(this, location, x, y, z, w);
-
+  void uniform4f(UniformLocation location, num x, num y, num z, num w) => _blink.BlinkWebGLRenderingContext.instance.uniform4f_Callback_5_(unwrap_jso(this), unwrap_jso(location), x, y, z, w);
+  
   @DomName('WebGLRenderingContext.uniform4fv')
   @DocsEditable()
-  void uniform4fv(UniformLocation location, Float32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform4fv_Callback_2_(this, location, v);
-
+  void uniform4fv(UniformLocation location, Float32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform4fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), v);
+  
   @DomName('WebGLRenderingContext.uniform4i')
   @DocsEditable()
-  void uniform4i(UniformLocation location, int x, int y, int z, int w) => _blink.BlinkWebGLRenderingContext.instance.uniform4i_Callback_5_(this, location, x, y, z, w);
-
+  void uniform4i(UniformLocation location, int x, int y, int z, int w) => _blink.BlinkWebGLRenderingContext.instance.uniform4i_Callback_5_(unwrap_jso(this), unwrap_jso(location), x, y, z, w);
+  
   @DomName('WebGLRenderingContext.uniform4iv')
   @DocsEditable()
-  void uniform4iv(UniformLocation location, Int32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform4iv_Callback_2_(this, location, v);
-
+  void uniform4iv(UniformLocation location, Int32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform4iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), v);
+  
   @DomName('WebGLRenderingContext.uniformMatrix2fv')
   @DocsEditable()
-  void uniformMatrix2fv(UniformLocation location, bool transpose, Float32List array) => _blink.BlinkWebGLRenderingContext.instance.uniformMatrix2fv_Callback_3_(this, location, transpose, array);
-
+  void uniformMatrix2fv(UniformLocation location, bool transpose, Float32List array) => _blink.BlinkWebGLRenderingContext.instance.uniformMatrix2fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, array);
+  
   @DomName('WebGLRenderingContext.uniformMatrix3fv')
   @DocsEditable()
-  void uniformMatrix3fv(UniformLocation location, bool transpose, Float32List array) => _blink.BlinkWebGLRenderingContext.instance.uniformMatrix3fv_Callback_3_(this, location, transpose, array);
-
+  void uniformMatrix3fv(UniformLocation location, bool transpose, Float32List array) => _blink.BlinkWebGLRenderingContext.instance.uniformMatrix3fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, array);
+  
   @DomName('WebGLRenderingContext.uniformMatrix4fv')
   @DocsEditable()
-  void uniformMatrix4fv(UniformLocation location, bool transpose, Float32List array) => _blink.BlinkWebGLRenderingContext.instance.uniformMatrix4fv_Callback_3_(this, location, transpose, array);
-
+  void uniformMatrix4fv(UniformLocation location, bool transpose, Float32List array) => _blink.BlinkWebGLRenderingContext.instance.uniformMatrix4fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, array);
+  
   @DomName('WebGLRenderingContext.useProgram')
   @DocsEditable()
-  void useProgram(Program program) => _blink.BlinkWebGLRenderingContext.instance.useProgram_Callback_1_(this, program);
-
+  void useProgram(Program program) => _blink.BlinkWebGLRenderingContext.instance.useProgram_Callback_1_(unwrap_jso(this), unwrap_jso(program));
+  
   @DomName('WebGLRenderingContext.validateProgram')
   @DocsEditable()
-  void validateProgram(Program program) => _blink.BlinkWebGLRenderingContext.instance.validateProgram_Callback_1_(this, program);
-
+  void validateProgram(Program program) => _blink.BlinkWebGLRenderingContext.instance.validateProgram_Callback_1_(unwrap_jso(this), unwrap_jso(program));
+  
   @DomName('WebGLRenderingContext.vertexAttrib1f')
   @DocsEditable()
-  void vertexAttrib1f(int indx, num x) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib1f_Callback_2_(this, indx, x);
-
+  void vertexAttrib1f(int indx, num x) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib1f_Callback_2_(unwrap_jso(this), indx, x);
+  
   @DomName('WebGLRenderingContext.vertexAttrib1fv')
   @DocsEditable()
-  void vertexAttrib1fv(int indx, Float32List values) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib1fv_Callback_2_(this, indx, values);
-
+  void vertexAttrib1fv(int indx, Float32List values) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib1fv_Callback_2_(unwrap_jso(this), indx, values);
+  
   @DomName('WebGLRenderingContext.vertexAttrib2f')
   @DocsEditable()
-  void vertexAttrib2f(int indx, num x, num y) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib2f_Callback_3_(this, indx, x, y);
-
+  void vertexAttrib2f(int indx, num x, num y) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib2f_Callback_3_(unwrap_jso(this), indx, x, y);
+  
   @DomName('WebGLRenderingContext.vertexAttrib2fv')
   @DocsEditable()
-  void vertexAttrib2fv(int indx, Float32List values) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib2fv_Callback_2_(this, indx, values);
-
+  void vertexAttrib2fv(int indx, Float32List values) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib2fv_Callback_2_(unwrap_jso(this), indx, values);
+  
   @DomName('WebGLRenderingContext.vertexAttrib3f')
   @DocsEditable()
-  void vertexAttrib3f(int indx, num x, num y, num z) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib3f_Callback_4_(this, indx, x, y, z);
-
+  void vertexAttrib3f(int indx, num x, num y, num z) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib3f_Callback_4_(unwrap_jso(this), indx, x, y, z);
+  
   @DomName('WebGLRenderingContext.vertexAttrib3fv')
   @DocsEditable()
-  void vertexAttrib3fv(int indx, Float32List values) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib3fv_Callback_2_(this, indx, values);
-
+  void vertexAttrib3fv(int indx, Float32List values) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib3fv_Callback_2_(unwrap_jso(this), indx, values);
+  
   @DomName('WebGLRenderingContext.vertexAttrib4f')
   @DocsEditable()
-  void vertexAttrib4f(int indx, num x, num y, num z, num w) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib4f_Callback_5_(this, indx, x, y, z, w);
-
+  void vertexAttrib4f(int indx, num x, num y, num z, num w) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib4f_Callback_5_(unwrap_jso(this), indx, x, y, z, w);
+  
   @DomName('WebGLRenderingContext.vertexAttrib4fv')
   @DocsEditable()
-  void vertexAttrib4fv(int indx, Float32List values) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib4fv_Callback_2_(this, indx, values);
-
+  void vertexAttrib4fv(int indx, Float32List values) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib4fv_Callback_2_(unwrap_jso(this), indx, values);
+  
   @DomName('WebGLRenderingContext.vertexAttribPointer')
   @DocsEditable()
-  void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) => _blink.BlinkWebGLRenderingContext.instance.vertexAttribPointer_Callback_6_(this, indx, size, type, normalized, stride, offset);
-
+  void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) => _blink.BlinkWebGLRenderingContext.instance.vertexAttribPointer_Callback_6_(unwrap_jso(this), indx, size, type, normalized, stride, offset);
+  
   @DomName('WebGLRenderingContext.viewport')
   @DocsEditable()
-  void viewport(int x, int y, int width, int height) => _blink.BlinkWebGLRenderingContext.instance.viewport_Callback_4_(this, x, y, width, height);
-
+  void viewport(int x, int y, int width, int height) => _blink.BlinkWebGLRenderingContext.instance.viewport_Callback_4_(unwrap_jso(this), x, y, width, height);
+  
 
   /**
    * Sets the currently bound texture to [data].
@@ -3132,16 +3133,16 @@ class ShaderPrecisionFormat extends NativeFieldWrapperClass2 {
 
   @DomName('WebGLShaderPrecisionFormat.precision')
   @DocsEditable()
-  int get precision => _blink.BlinkWebGLShaderPrecisionFormat.instance.precision_Getter_(this);
-
+  int get precision => _blink.BlinkWebGLShaderPrecisionFormat.instance.precision_Getter_(unwrap_jso(this));
+  
   @DomName('WebGLShaderPrecisionFormat.rangeMax')
   @DocsEditable()
-  int get rangeMax => _blink.BlinkWebGLShaderPrecisionFormat.instance.rangeMax_Getter_(this);
-
+  int get rangeMax => _blink.BlinkWebGLShaderPrecisionFormat.instance.rangeMax_Getter_(unwrap_jso(this));
+  
   @DomName('WebGLShaderPrecisionFormat.rangeMin')
   @DocsEditable()
-  int get rangeMin => _blink.BlinkWebGLShaderPrecisionFormat.instance.rangeMin_Getter_(this);
-
+  int get rangeMin => _blink.BlinkWebGLShaderPrecisionFormat.instance.rangeMin_Getter_(unwrap_jso(this));
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

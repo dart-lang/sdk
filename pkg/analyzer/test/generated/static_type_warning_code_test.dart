@@ -385,9 +385,6 @@ main() {
   }
 
   void test_invalidAssignment_ifNullAssignment() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     Source source = addSource('''
 void f(int i) {
   double d;
@@ -1397,9 +1394,6 @@ var a = A.B;''');
   void test_undefinedGetter_static_conditionalAccess() {
     // The conditional access operator '?.' cannot be used to access static
     // fields.
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     Source source = addSource('''
 class A {
   static var x;
@@ -1571,9 +1565,6 @@ main() {
   void test_undefinedMethod_static_conditionalAccess() {
     // The conditional access operator '?.' cannot be used to access static
     // methods.
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     Source source = addSource('''
 class A {
   static void m() {}
@@ -1663,9 +1654,6 @@ f() { A.B = 0;}''');
   void test_undefinedSetter_static_conditionalAccess() {
     // The conditional access operator '?.' cannot be used to access static
     // fields.
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     Source source = addSource('''
 class A {
   static var x;

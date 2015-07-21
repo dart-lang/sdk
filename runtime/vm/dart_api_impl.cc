@@ -92,6 +92,7 @@ class FunctionVisitor : public ObjectVisitor {
       // TypeParameter.
       typeHandle_ ^= funcHandle_.result_type();
       ASSERT(typeHandle_.IsNull() ||
+             !typeHandle_.IsResolved() ||
              typeHandle_.IsTypeParameter() ||
              typeHandle_.IsCanonical());
       // Verify that the types in the function signature are all canonical or
@@ -99,7 +100,9 @@ class FunctionVisitor : public ObjectVisitor {
       const intptr_t num_parameters = funcHandle_.NumParameters();
       for (intptr_t i = 0; i < num_parameters; i++) {
         typeHandle_ = funcHandle_.ParameterTypeAt(i);
-        ASSERT(typeHandle_.IsTypeParameter() || typeHandle_.IsCanonical());
+        ASSERT(typeHandle_.IsTypeParameter() ||
+               !typeHandle_.IsResolved() ||
+               typeHandle_.IsCanonical());
       }
     }
   }
@@ -5689,6 +5692,67 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
     Dart_ServiceRequestCallback callback,
     void* user_data) {
   Service::RegisterRootEmbedderCallback(name, callback, user_data);
+}
+
+
+DART_EXPORT Dart_Handle Dart_SetServiceStreamCallbacks(
+    Dart_ServiceStreamListenCallback listen_callback,
+    Dart_ServiceStreamCancelCallback cancel_callback) {
+  if (listen_callback != NULL) {
+    if (Service::stream_listen_callback() != NULL) {
+      return Api::NewError(
+          "%s permits only one listen callback to be registered, please "
+          "remove the existing callback and then add this callback",
+          CURRENT_FUNC);
+    }
+  } else {
+    if (Service::stream_listen_callback() == NULL) {
+      return Api::NewError(
+          "%s expects 'listen_callback' to be present in the callback set.",
+          CURRENT_FUNC);
+    }
+  }
+  if (cancel_callback != NULL) {
+    if (Service::stream_cancel_callback() != NULL) {
+      return Api::NewError(
+          "%s permits only one cancel callback to be registered, please "
+          "remove the existing callback and then add this callback",
+          CURRENT_FUNC);
+    }
+  } else {
+    if (Service::stream_cancel_callback() == NULL) {
+      return Api::NewError(
+          "%s expects 'cancel_callback' to be present in the callback set.",
+          CURRENT_FUNC);
+    }
+  }
+  Service::SetEmbedderStreamCallbacks(listen_callback, cancel_callback);
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
+                                                  const char* event_kind,
+                                                  const uint8_t* bytes,
+                                                  intptr_t bytes_length) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (stream_id == NULL) {
+    RETURN_NULL_ERROR(stream_id);
+  }
+  if (event_kind == NULL) {
+    RETURN_NULL_ERROR(event_kind);
+  }
+  if (bytes == NULL) {
+    RETURN_NULL_ERROR(bytes);
+  }
+  if (bytes_length < 0) {
+    return Api::NewError("%s expects argument 'bytes_length' to be >= 0.",
+                         CURRENT_FUNC);
+  }
+  Service::SendEmbedderEvent(isolate, stream_id, event_kind,
+                             bytes, bytes_length);
+  return Api::Success();
 }
 
 

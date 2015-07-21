@@ -3366,6 +3366,7 @@ class CssStyleDeclaration  extends Interceptor with
     return JS('bool', '# in #', propertyName, this);
   }
 
+
   @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
     return _setPropertyHelper(_browserPropertyName(propertyName),
@@ -9909,7 +9910,6 @@ class DocumentFragment extends Node implements ParentNode {
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
 
-
   String get innerHtml {
     final e = new Element.tag("div");
     e.append(this.clone(true));
@@ -12898,7 +12898,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
       if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
         _insertAdjacentHtml(where, html);
       } else {
-        _insertAdjacentNode(where, new DocumentFragment.html(html,
+        _insertAdjacentNode(where, createFragment(html,
             validator: validator, treeSanitizer: treeSanitizer));
       }
   }
@@ -13181,10 +13181,11 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
       _parseRange = _parseDocument.createRange();
-
-      // Workaround for Chrome bug 229142- URIs are not resolved in new doc.
-      var base = _parseDocument.createElement('base');
-      base.href = document.baseUri;
+	
+      // Workaround for Safari bug. Was also previously Chrome bug 229142
+      // - URIs are not resolved in new doc.	
+      var base = _parseDocument.createElement('base');	
+      base.href = document.baseUri;	
       _parseDocument.head.append(base);
     }
     var contextElement;
@@ -13195,7 +13196,8 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
       _parseDocument.body.append(contextElement);
     }
     var fragment;
-    if (Range.supportsCreateContextualFragment) {
+    if (Range.supportsCreateContextualFragment &&
+        _canBeUsedToCreateContextualFragment) {
       _parseRange.selectNodeContents(contextElement);
       fragment = _parseRange.createContextualFragment(html);
     } else {
@@ -13216,6 +13218,24 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
     return fragment;
   }
+
+  /** Test if createContextualFragment is supported for this element type */
+  bool get _canBeUsedToCreateContextualFragment =>
+      !_cannotBeUsedToCreateContextualFragment;
+
+  /** Test if createContextualFragment is NOT supported for this element type */
+  bool get _cannotBeUsedToCreateContextualFragment =>
+      _tagsForWhichCreateContextualFragmentIsNotSupported.contains(tagName);
+
+  /**
+   * A hard-coded list of the tag names for which createContextualFragment
+   * isn't supported.
+   */
+  static const _tagsForWhichCreateContextualFragmentIsNotSupported =
+      const ['HEAD', 'AREA',
+      'BASE', 'BASEFONT', 'BR', 'COL', 'COLGROUP', 'EMBED', 'FRAME', 'FRAMESET',
+      'HR', 'IMAGE', 'IMG', 'INPUT', 'ISINDEX', 'LINK', 'META', 'PARAM',
+      'SOURCE', 'STYLE', 'TITLE', 'WBR'];
 
   /**
    * Parses the HTML fragment and sets it as the contents of this element.
@@ -23738,6 +23758,22 @@ class Node extends EventTarget {
     String value = nodeValue;  // Fetch DOM Node property once.
     return value == null ? super.toString() : value;
   }
+
+  /**
+   * A list of this node's children.
+   *
+   * ## Other resources
+   *
+   * * [Node.childNodes]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
+   * from MDN.
+   */
+  @DomName('Node.childNodes')
+  @DocsEditable()
+  @Returns('NodeList')
+  @Creates('NodeList')
+  final List<Node> childNodes;
+
   // To suppress missing implicit constructor warnings.
   factory Node._() { throw new UnsupportedError("Not supported"); }
 
@@ -23793,21 +23829,6 @@ class Node extends EventTarget {
   @DomName('Node.baseURI')
   @DocsEditable()
   final String baseUri;
-
-  /**
-   * A list of this node's children.
-   *
-   * ## Other resources
-   *
-   * * [Node.childNodes]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
-   * from MDN.
-   */
-  @DomName('Node.childNodes')
-  @DocsEditable()
-  @Returns('NodeList')
-  @Creates('NodeList')
-  final List<Node> childNodes;
 
   /**
    * The first child of this node.
@@ -39448,17 +39469,17 @@ class NodeValidatorBuilder implements NodeValidator {
 }
 
 class _SimpleNodeValidator implements NodeValidator {
-  final Set<String> allowedElements;
-  final Set<String> allowedAttributes;
-  final Set<String> allowedUriAttributes;
+  final Set<String> allowedElements = new Set<String>();
+  final Set<String> allowedAttributes = new Set<String>();
+  final Set<String> allowedUriAttributes = new Set<String>();
   final UriPolicy uriPolicy;
 
   factory _SimpleNodeValidator.allowNavigation(UriPolicy uriPolicy) {
     return new _SimpleNodeValidator(uriPolicy,
-      allowedElements: [
+      allowedElements: const [
         'A',
         'FORM'],
-      allowedAttributes: [
+      allowedAttributes: const [
         'A::accesskey',
         'A::coords',
         'A::hreflang',
@@ -39475,7 +39496,7 @@ class _SimpleNodeValidator implements NodeValidator {
         'FORM::novalidate',
         'FORM::target',
       ],
-      allowedUriAttributes: [
+      allowedUriAttributes: const [
         'A::href',
         'FORM::action',
       ]);
@@ -39483,10 +39504,10 @@ class _SimpleNodeValidator implements NodeValidator {
 
   factory _SimpleNodeValidator.allowImages(UriPolicy uriPolicy) {
     return new _SimpleNodeValidator(uriPolicy,
-      allowedElements: [
+      allowedElements: const [
         'IMG'
       ],
-      allowedAttributes: [
+      allowedAttributes: const [
         'IMG::align',
         'IMG::alt',
         'IMG::border',
@@ -39498,14 +39519,14 @@ class _SimpleNodeValidator implements NodeValidator {
         'IMG::vspace',
         'IMG::width',
       ],
-      allowedUriAttributes: [
+      allowedUriAttributes: const [
         'IMG::src',
       ]);
   }
 
   factory _SimpleNodeValidator.allowTextElements() {
     return new _SimpleNodeValidator(null,
-      allowedElements: [
+      allowedElements: const [
         'B',
         'BLOCKQUOTE',
         'BR',
@@ -39533,13 +39554,18 @@ class _SimpleNodeValidator implements NodeValidator {
    */
   _SimpleNodeValidator(this.uriPolicy,
       {Iterable<String> allowedElements, Iterable<String> allowedAttributes,
-      Iterable<String> allowedUriAttributes}):
-      this.allowedElements = allowedElements != null ?
-          new Set.from(allowedElements) : new Set(),
-      this.allowedAttributes = allowedAttributes != null ?
-          new Set.from(allowedAttributes) : new Set(),
-      this.allowedUriAttributes = allowedUriAttributes != null ?
-          new Set.from(allowedUriAttributes) : new Set();
+        Iterable<String> allowedUriAttributes}) {
+    this.allowedElements.addAll(allowedElements ?? const []);
+    allowedAttributes = allowedAttributes ?? const [];
+    allowedUriAttributes = allowedUriAttributes ?? const [];
+    var legalAttributes = allowedAttributes.where(
+        (x) => !_Html5NodeValidator._uriAttributes.contains(x));
+    var extraUriAttributes = allowedAttributes.where(
+        (x) => _Html5NodeValidator._uriAttributes.contains(x));
+    this.allowedAttributes.addAll(legalAttributes);
+    this.allowedUriAttributes.addAll(allowedUriAttributes);
+    this.allowedUriAttributes.addAll(extraUriAttributes);
+  }
 
   bool allowsElement(Element element) {
     return allowedElements.contains(element.tagName);

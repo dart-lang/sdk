@@ -168,6 +168,8 @@ class AnalysisDomainHandler implements RequestHandler {
         return reanalyze(request);
       } else if (requestName == ANALYSIS_SET_ANALYSIS_ROOTS) {
         return setAnalysisRoots(request);
+      } else if (requestName == ANALYSIS_SET_GENERAL_SUBSCRIPTIONS) {
+        return setGeneralSubscriptions(request);
       } else if (requestName == ANALYSIS_SET_PRIORITY_FILES) {
         return setPriorityFiles(request);
       } else if (requestName == ANALYSIS_SET_SUBSCRIPTIONS) {
@@ -191,7 +193,7 @@ class AnalysisDomainHandler implements RequestHandler {
         new AnalysisReanalyzeParams.fromRequest(request);
     List<String> roots = params.roots;
     if (roots == null || roots.isNotEmpty) {
-      List<String> includedPaths = server.contextDirectoryManager.includedPaths;
+      List<String> includedPaths = server.contextManager.includedPaths;
       List<Resource> rootResources = null;
       if (roots != null) {
         rootResources = <Resource>[];
@@ -216,6 +218,16 @@ class AnalysisDomainHandler implements RequestHandler {
     server.setAnalysisRoots(request.id, params.included, params.excluded,
         params.packageRoots == null ? {} : params.packageRoots);
     return new AnalysisSetAnalysisRootsResult().toResponse(request.id);
+  }
+
+  /**
+   * Implement the 'analysis.setGeneralSubscriptions' request.
+   */
+  Response setGeneralSubscriptions(Request request) {
+    AnalysisSetGeneralSubscriptionsParams params =
+        new AnalysisSetGeneralSubscriptionsParams.fromRequest(request);
+    server.setGeneralAnalysisSubscriptions(params.subscriptions);
+    return new AnalysisSetGeneralSubscriptionsResult().toResponse(request.id);
   }
 
   /**

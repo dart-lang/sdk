@@ -108,7 +108,12 @@ class MemoryResourceProvider implements ResourceProvider {
 
   File newFile(String path, String content, [int stamp]) {
     path = posix.normalize(path);
-    newFolder(posix.dirname(path));
+    _MemoryResource folder = _pathToResource[posix.dirname(path)];
+    if (folder == null) {
+      newFolder(posix.dirname(path));
+    } else if (folder is! Folder) {
+      throw new ArgumentError('Cannot create file ($path) as child of file');
+    }
     _MemoryFile file = new _MemoryFile(this, path);
     _pathToResource[path] = file;
     _pathToContent[path] = content;
@@ -131,8 +136,10 @@ class MemoryResourceProvider implements ResourceProvider {
       _MemoryFolder folder = new _MemoryFolder(this, path);
       _pathToResource[path] = folder;
       _pathToTimestamp[path] = nextStamp++;
+      _notifyWatchers(path, ChangeType.ADD);
       return folder;
     } else if (resource is _MemoryFolder) {
+      _notifyWatchers(path, ChangeType.ADD);
       return resource;
     } else {
       String message =

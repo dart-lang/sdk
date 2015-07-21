@@ -4055,6 +4055,21 @@ abstract class SemanticSendVisitor<R, A> {
       NodeList arguments,
       CallStructure callStructure,
       A arg);
+
+  /// Access of library through a deferred [prefix].
+  ///
+  /// For instance
+  ///   import 'lib.dart' deferred as prefix;
+  ///
+  ///   m() => prefix.foo;
+  ///
+  /// This visit method is special in that it is called as a pre-step to calling
+  /// the visit method for the actual access. Therefore this method cannot
+  /// return a result to its caller.
+  void previsitDeferredAccess(
+      Send node,
+      PrefixElement prefix,
+      A arg);
 }
 
 abstract class SemanticDeclarationVisitor<R, A> {

@@ -1013,19 +1013,27 @@ class IsolateSpawnState {
   IsolateSpawnState(Dart_Port parent_port,
                     const Function& func,
                     const Instance& message,
-                    bool paused);
+                    bool paused,
+                    bool errorsAreFatal,
+                    Dart_Port onExit,
+                    Dart_Port onError);
   IsolateSpawnState(Dart_Port parent_port,
                     const char* script_url,
                     const char* package_root,
                     const Instance& args,
                     const Instance& message,
-                    bool paused);
+                    bool paused,
+                    bool errorsAreFatal,
+                    Dart_Port onExit,
+                    Dart_Port onError);
   ~IsolateSpawnState();
 
   Isolate* isolate() const { return isolate_; }
   void set_isolate(Isolate* value) { isolate_ = value; }
 
   Dart_Port parent_port() const { return parent_port_; }
+  Dart_Port on_exit_port() const { return on_exit_port_; }
+  Dart_Port on_error_port() const { return on_error_port_; }
   char* script_url() const { return script_url_; }
   char* package_root() const { return package_root_; }
   char* library_url() const { return library_url_; }
@@ -1033,6 +1041,7 @@ class IsolateSpawnState {
   char* function_name() const { return function_name_; }
   bool is_spawn_uri() const { return library_url_ == NULL; }
   bool paused() const { return paused_; }
+  bool errors_are_fatal() const { return errors_are_fatal_; }
   Isolate::Flags* isolate_flags() { return &isolate_flags_; }
 
   RawObject* ResolveFunction();
@@ -1043,6 +1052,8 @@ class IsolateSpawnState {
  private:
   Isolate* isolate_;
   Dart_Port parent_port_;
+  Dart_Port on_exit_port_;
+  Dart_Port on_error_port_;
   char* script_url_;
   char* package_root_;
   char* library_url_;
@@ -1054,6 +1065,7 @@ class IsolateSpawnState {
   intptr_t serialized_message_len_;
   Isolate::Flags isolate_flags_;
   bool paused_;
+  bool errors_are_fatal_;
 };
 
 }  // namespace dart

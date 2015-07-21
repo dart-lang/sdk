@@ -5,8 +5,6 @@
 // Verify semantics of the ??= operator, including order of operations, by
 // keeping track of the operations performed.
 
-// SharedOptions=--enable-null-aware-operators
-
 import "package:expect/expect.dart";
 import "if_null_assignment_helper.dart" as h;
 

@@ -68,8 +68,8 @@ class Heap {
 
   ~Heap();
 
-  Scavenger* new_space() const { return new_space_; }
-  PageSpace* old_space() const { return old_space_; }
+  Scavenger* new_space() { return &new_space_; }
+  PageSpace* old_space() { return &old_space_; }
 
   uword Allocate(intptr_t size, Space space) {
     ASSERT(!read_only_);
@@ -136,13 +136,15 @@ class Heap {
   // Protect access to the heap.
   void WriteProtect(bool read_only);
   void WriteProtectCode(bool read_only) {
-    old_space_->WriteProtectCode(read_only);
+    old_space_.WriteProtectCode(read_only);
   }
 
   // Accessors for inlined allocation in generated code.
   uword TopAddress(Space space);
+  static intptr_t TopOffset(Space space);
   uword EndAddress(Space space);
-  Space SpaceForAllocation(intptr_t class_id) const;
+  static intptr_t EndOffset(Space space);
+  static Space SpaceForAllocation(intptr_t class_id);
 
   // Initialize the heap and register it with the isolate.
   static void Init(Isolate* isolate,
@@ -228,8 +230,8 @@ class Heap {
   void PrintToJSONObject(Space space, JSONObject* object) const;
 
   // The heap map contains the sizes and class ids for the objects in each page.
-  void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) const {
-    return old_space_->PrintHeapMapToJSONStream(isolate, stream);
+  void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
+    return old_space_.PrintHeapMapToJSONStream(isolate, stream);
   }
 
   Isolate* isolate() const { return isolate_; }
@@ -305,8 +307,8 @@ class Heap {
   Isolate* isolate_;
 
   // The different spaces used for allocation.
-  Scavenger* new_space_;
-  PageSpace* old_space_;
+  Scavenger new_space_;
+  PageSpace old_space_;
 
   WeakTable* new_weak_tables_[kNumWeakSelectors];
   WeakTable* old_weak_tables_[kNumWeakSelectors];
@@ -323,7 +325,6 @@ class Heap {
   int pretenure_policy_;
 
   friend class ServiceEvent;
-  friend class GCTestHelper;
   friend class PageSpace;  // VerifyGC
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };

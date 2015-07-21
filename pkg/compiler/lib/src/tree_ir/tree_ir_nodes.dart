@@ -695,8 +695,9 @@ class CreateInstance extends Expression {
 class GetField extends Expression {
   Expression object;
   Element field;
+  bool objectIsNotNull;
 
-  GetField(this.object, this.field);
+  GetField(this.object, this.field, {this.objectIsNotNull: false});
 
   accept(ExpressionVisitor visitor) => visitor.visitGetField(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitGetField(this, arg);

@@ -2372,9 +2372,6 @@ f([String x = '0']) {
   }
 
   void test_invalidAssignment_ifNullAssignment_compatibleType() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     Source source = addSource('''
 void f(int i) {
   num n;
@@ -2387,9 +2384,6 @@ void f(int i) {
   }
 
   void test_invalidAssignment_ifNullAssignment_sameType() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     Source source = addSource('''
 void f(int i) {
   int j;
@@ -5011,9 +5005,6 @@ class Bar extends Foo {
   void test_undefinedGetter_typeLiteral_conditionalAccess() {
     // When applied to a type literal, the conditional access operator '?.' can
     // be used to access instance getters of Type.
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     Source source = addSource('''
 class A {}
 f() => A?.hashCode;
@@ -5101,9 +5092,6 @@ main() {
   void test_undefinedMethod_typeLiteral_conditionalAccess() {
     // When applied to a type literal, the conditional access operator '?.' can
     // be used to access instance methods of Type.
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     Source source = addSource('''
 class A {}
 f() => A?.toString();

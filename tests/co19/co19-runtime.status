@@ -5,7 +5,6 @@
 
 [ $compiler == none && ($runtime == vm || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 
-LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError # Issue 13714
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Issue 22200

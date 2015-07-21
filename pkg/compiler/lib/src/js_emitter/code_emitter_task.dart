@@ -5,6 +5,8 @@
 part of dart2js.js_emitter;
 
 const USE_LAZY_EMITTER = const bool.fromEnvironment("dart2js.use.lazy.emitter");
+const USE_STARTUP_EMITTER =
+    const bool.fromEnvironment("dart2js.use.startup.emitter");
 
 /**
  * Generates the code for all used classes in the program. Static fields (even
@@ -38,9 +40,14 @@ class CodeEmitterTask extends CompilerTask {
         this.namer = namer,
         this.typeTestRegistry = new TypeTestRegistry(compiler) {
     nativeEmitter = new NativeEmitter(this);
-    emitter = USE_LAZY_EMITTER
-        ? new lazy_js_emitter.Emitter(compiler, namer, nativeEmitter)
-        : new full_js_emitter.Emitter(compiler, namer, generateSourceMap, this);
+    if (USE_LAZY_EMITTER) {
+      emitter = new lazy_js_emitter.Emitter(compiler, namer, nativeEmitter);
+    } else if (USE_STARTUP_EMITTER) {
+      emitter = new startup_js_emitter.Emitter(compiler, namer, nativeEmitter);
+    } else {
+      emitter =
+          new full_js_emitter.Emitter(compiler, namer, generateSourceMap, this);
+    }
     metadataCollector = new MetadataCollector(compiler, emitter);
   }
 
@@ -144,6 +151,9 @@ abstract class Emitter {
   /// Uses the [programBuilder] to generate a model of the program, emits
   /// the program, and returns the size of the generated output.
   int emitProgram(ProgramBuilder programBuilder);
+
+  /// Returns true, if the emitter supports reflection.
+  bool get supportsReflection;
 
   /// Returns the JS function that must be invoked to get the value of the
   /// lazily initialized static.

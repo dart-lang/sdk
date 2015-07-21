@@ -100,8 +100,7 @@ class ProgramBuilder {
         _registry.registerElements);
 
     // We always add the current isolate holder.
-    _registry.registerHolder(
-        namer.staticStateHolder, isStaticStateHolder: true);
+    _registerStaticStateHolder();
 
     // We need to run the native-preparation before we build the output. The
     // preparation code, in turn needs the classes to be set up.
@@ -208,6 +207,8 @@ class ProgramBuilder {
   }
 
   js.Statement _buildInvokeMain() {
+    if (_compiler.isMockCompilation) return js.js.comment("Mock compilation");
+
     MainCallStubGenerator generator =
         new MainCallStubGenerator(_compiler, backend, backend.emitter);
     return generator.generateInvokeMain();
@@ -249,17 +250,19 @@ class ProgramBuilder {
     ConstantValue initialValue = handler.getInitialValueFor(element);
     // TODO(zarah): The holder should not be registered during building of
     // a static field.
-    _registry.registerHolder(namer.globalObjectForConstant(initialValue));
+    _registry.registerHolder(
+        namer.globalObjectForConstant(initialValue), isConstantsHolder: true);
     js.Expression code = _task.emitter.constantReference(initialValue);
     js.Name name = namer.globalPropertyName(element);
     bool isFinal = false;
     bool isLazy = false;
 
     // TODO(floitsch): we shouldn't update the registry in the middle of
-    // building a static field. (Note that the $ holder is already registered
-    // earlier).
+    // building a static field. (Note that the static-state holder was
+    // already registered earlier, and that we just call the register to get
+    // the holder-instance.
     return new StaticField(element,
-                           name, _registry.registerHolder(r'$'), code,
+                           name, _registerStaticStateHolder(), code,
                            isFinal, isLazy);
   }
 
@@ -291,10 +294,11 @@ class ProgramBuilder {
     bool isFinal = element.isFinal;
     bool isLazy = true;
     // TODO(floitsch): we shouldn't update the registry in the middle of
-    // building a static field. (Note that the $ holder is already registered
-    // earlier).
+    // building a static field. (Note that the static-state holder was
+    // already registered earlier, and that we just call the register to get
+    // the holder-instance.
     return new StaticField(element,
-                           name, _registry.registerHolder(r'$'), code,
+                           name, _registerStaticStateHolder(), code,
                            isFinal, isLazy);
   }
 
@@ -791,9 +795,15 @@ class ProgramBuilder {
       assert(!_constants.containsKey(constantValue));
       js.Name name = namer.constantName(constantValue);
       String constantObject = namer.globalObjectForConstant(constantValue);
-      Holder holder = _registry.registerHolder(constantObject);
+      Holder holder =
+          _registry.registerHolder(constantObject, isConstantsHolder: true);
       Constant constant = new Constant(name, holder, constantValue);
       _constants[constantValue] = constant;
     }
+  }
+
+  Holder _registerStaticStateHolder() {
+    return _registry.registerHolder(
+        namer.staticStateHolder, isStaticStateHolder: true);
   }
 }

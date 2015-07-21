@@ -1281,12 +1281,20 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   @override
   void visitReturn(js.Return node) {
-    assert(node.value == null || (!isSyncStar && !isAsyncStar));
     js.Node target = analysis.targets[node];
     if (node.value != null) {
-      withExpression(node.value, (js.Expression value) {
-        addStatement(js.js.statement("# = #;", [returnValue, value]));
-      }, store: false);
+      if(isSyncStar || isAsyncStar) {
+        // Even though `return expr;` is not allowed in the dart sync* and
+        // async*  code, the backend sometimes generates code like this, but
+        // only when it is known that the 'expr' throws, and the return is just
+        // to tell the JavaScript VM that the code won't continue here.
+        // It is therefore interpreted as `expr; return;`
+        visitExpressionIgnoreResult(node.value);
+      } else {
+        withExpression(node.value, (js.Expression value) {
+          addStatement(js.js.statement("# = #;", [returnValue, value]));
+        }, store: false);
+      }
     }
     translateJump(target, exitLabel);
   }

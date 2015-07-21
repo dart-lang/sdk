@@ -289,3 +289,4 @@ Language/15_Types/4_Interface_Types_A10_t07: StaticWarning # co19 issue 745
 Language/15_Types/4_Interface_Types_A10_t09: StaticWarning # co19 issue 745
 Language/13_Statements/15_Assert_A04_t07: StaticWarning # Issue 23663
 Language/13_Statements/15_Assert_A03_t08: StaticWarning # Issue 23663
+

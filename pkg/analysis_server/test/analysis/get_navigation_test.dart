@@ -82,7 +82,7 @@ main() {
     // remove context, causes sending an "invalid file" error
     {
       Folder projectFolder = resourceProvider.getResource(projectPath);
-      server.contextDirectoryManager.removeContext(projectFolder);
+      server.contextManager.removeContext(projectFolder);
     }
     // wait for an error response
     Response response = await serverChannel.waitForResponse(request);

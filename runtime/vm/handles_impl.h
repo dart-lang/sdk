@@ -96,10 +96,8 @@ uword Handles<kHandleSizeInWords,
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
   ASSERT(thread->zone() == zone);
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL);
-  ASSERT(isolate->top_handle_scope() != NULL);
-  ASSERT(isolate->no_handle_scope_depth() == 0);
+  ASSERT(thread->top_handle_scope() != NULL);
+  ASSERT(thread->no_handle_scope_depth() == 0);
 #endif  // DEBUG
   Handles* handles = zone->handles();
   ASSERT(handles != NULL);
@@ -116,9 +114,7 @@ uword Handles<kHandleSizeInWords,
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
   ASSERT(thread->zone() == zone);
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL);
-  ASSERT(isolate->no_handle_scope_depth() == 0);
+  ASSERT(thread->no_handle_scope_depth() == 0);
 #endif  // DEBUG
   Handles* handles = zone->handles();
   ASSERT(handles != NULL);

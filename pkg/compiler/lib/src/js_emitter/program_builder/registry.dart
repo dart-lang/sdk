@@ -113,10 +113,17 @@ class Registry {
     // Ignore for now.
   }
 
-  Holder registerHolder(String name, {bool isStaticStateHolder: false}) {
+  Holder registerHolder(
+      String name,
+      {bool isStaticStateHolder: false, bool isConstantsHolder: false}) {
+    assert(_holdersMap[name] == null ||
+        (_holdersMap[name].isStaticStateHolder == isStaticStateHolder &&
+         _holdersMap[name].isConstantsHolder == isConstantsHolder));
+
     return _holdersMap.putIfAbsent(name, () {
       return new Holder(name, _holdersMap.length,
-          isStaticStateHolder: isStaticStateHolder);
+          isStaticStateHolder: isStaticStateHolder,
+          isConstantsHolder: isConstantsHolder);
     });
   }
 }

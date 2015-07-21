@@ -327,7 +327,16 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         ClassElement classElement = element;
         classElement.ensureResolved(compiler);
       }
-      return new ElementResult(registry.useElement(node, element));
+      if (element != null) {
+        registry.useElement(node, element);
+        if (element.isPrefix) {
+          return new PrefixResult(element, null);
+        } else if (element.isClass && sendIsMemberAccess) {
+          return new PrefixResult(null, element);
+        }
+        return new ElementResult(element);
+      }
+      return const NoneResult();
     }
   }
 
@@ -1638,7 +1647,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
                 message: "Unexpected unary operator '${operator}'."));
             return handleUserDefinableUnary(node, operator);
         }
-        return handleUserDefinableUnary(node, operator);
       }
     } else {
       BinaryOperator operator = BinaryOperator.parse(operatorText);
@@ -1907,11 +1915,32 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     cls.ensureResolved(compiler);
     if (sendIsMemberAccess) {
       registry.useElement(node, cls);
-      return new ElementResult(cls);
+      return new PrefixResult(null, cls);
     } else {
       // `C` or `C()` where 'C' is a class.
       return handleClassTypeLiteralAccess(node, name, cls);
     }
+  }
+
+  /// Compute a [DeferredPrefixStructure] for [node].
+  ResolutionResult handleDeferredAccess(
+      Send node,
+      PrefixElement prefix,
+      ResolutionResult result) {
+    assert(invariant(node, prefix.isDeferred,
+        message: "Prefix $prefix is not deferred."));
+    SendStructure sendStructure = registry.getSendStructure(node);
+    assert(invariant(node, sendStructure !=  null,
+        message: "No SendStructure for $node."));
+    registry.registerSendStructure(node,
+        new DeferredPrefixStructure(prefix, sendStructure));
+    if (result.isConstant) {
+      ConstantExpression constant =
+          new DeferredConstantExpression(result.constant, prefix);
+      registry.setConstant(node, constant);
+      result = new ConstantResult(node, constant);
+    }
+    return result;
   }
 
   /// Handle qualified [Send] where the receiver resolves to a [prefix],
@@ -1919,17 +1948,27 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// `prefix` is a library prefix.
   ResolutionResult handleLibraryPrefixSend(
       Send node, PrefixElement prefix, Name name) {
+    ResolutionResult result;
     Element member = prefix.lookupLocalMember(name.text);
     if (member == null) {
       registry.registerThrowNoSuchMethod();
       Element error = reportAndCreateErroneousElement(
           node, name.text, MessageKind.NO_SUCH_LIBRARY_MEMBER,
           {'libraryName': prefix.name, 'memberName': name});
-      registry.useElement(node, error);
-      return new ElementResult(error);
+      result = handleUnresolvedAccess(node, name, error);
     } else {
-      return handleResolvedSend(node, name, member);
+      result = handleResolvedSend(node, name, member);
     }
+    if (result.kind == ResultKind.PREFIX) {
+      // [member] is a class prefix of a static access like `prefix.Class` of
+      // `prefix.Class.foo`. No need to call [handleDeferredAccess]; it will
+      // called on the parent `prefix.Class.foo` node.
+      result = new PrefixResult(prefix, result.element);
+    } else if (prefix.isDeferred &&
+               (member == null || !member.isDeferredLoaderGetter)) {
+      result = handleDeferredAccess(node, prefix, result);
+    }
+    return result;
   }
 
   /// Handle a [Send] that resolves to a [prefix]. Like `prefix` in
@@ -1952,20 +1991,24 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       registry.useElement(node.selector, prefix);
     }
     registry.useElement(node, prefix);
-    return new ElementResult(prefix);
+    return new PrefixResult(prefix, null);
   }
 
   /// Handle qualified [Send] where the receiver resolves to an [Element], like
-  /// `a.b` where `a` is a local, field, class, or prefix, etc.
-  ResolutionResult handleResolvedQualifiedSend(
-      Send node, Name name, Element element) {
+  /// `a.b` where `a` is a prefix or a class.
+  ResolutionResult handlePrefixSend(
+      Send node, Name name, PrefixResult prefixResult) {
+    Element element = prefixResult.element;
     if (element.isPrefix) {
       return handleLibraryPrefixSend(node, element, name);
-    } else if (element.isClass) {
-      return handleStaticMemberAccess(node, name, element);
+    } else {
+      assert(element.isClass);
+      ResolutionResult result = handleStaticMemberAccess(node, name, element);
+      if (prefixResult.isDeferred) {
+        result = handleDeferredAccess(node, prefixResult.prefix, result);
+      }
+      return result;
     }
-    // TODO(johnniwinther): Use the [element].
-    return handleDynamicPropertyAccess(node, name);
   }
 
   /// Handle dynamic access of [semantics].
@@ -2045,9 +2088,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       return handleConditionalAccess(node, name);
     }
     ResolutionResult result = visitExpressionPrefix(node.receiver);
-    if (result.element != null) {
-      return handleResolvedQualifiedSend(node, name, result.element);
+    if (result.kind == ResultKind.PREFIX) {
+      return handlePrefixSend(node, name, result);
     } else {
+      // TODO(johnniwinther): Use the `element` of [result].
       return handleDynamicPropertyAccess(node, name);
     }
   }
@@ -2448,7 +2492,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
   }
 
-  /// Regigster read access of [target] inside a closure.
+  /// Register read access of [target] inside a closure.
   void registerPotentialAccessInClosure(Send node, Element target) {
     if (isPotentiallyMutableTarget(target)) {
       if (enclosingElement != target.enclosingElement) {

@@ -263,7 +263,15 @@ class _FrozenElementList extends ListBase
     implements ElementList, NodeListWrapper {
   final List<Node> _nodeList;
 
+$if JSINTEROP
+  var dartClass_instance;
+
+  _FrozenElementList._wrap(this._nodeList) {
+      this.dartClass_instance = this._nodeList;
+  }
+$else
   _FrozenElementList._wrap(this._nodeList);
+$endif
 
   int get length => _nodeList.length;
 
@@ -572,7 +580,15 @@ $(ANNOTATIONS)$(NATIVESPEC)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *       element.style.background = 'red'; // Turns every child of body red.
    *     }
    */
+$if DART2JS
   List<Element> get children => new _ChildrenElementList._wrap(this);
+$else
+  $if JSINTEROP
+  List<Element> get children => new FilteredElementList(this);
+  $else
+  List<Element> get children => new _ChildrenElementList._wrap(this);
+  $endif
+$endif
 
   void set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
@@ -595,7 +611,11 @@ $(ANNOTATIONS)$(NATIVESPEC)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS {
    */
   @DomName('Element.querySelectorAll')
   ElementList<Element> querySelectorAll(String selectors) =>
+$if JSINTEROP
+    _querySelectorAll(selectors);
+$else
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
+$endif
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -1017,7 +1037,7 @@ $endif
       if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
         _insertAdjacentHtml(where, html);
       } else {
-        _insertAdjacentNode(where, new DocumentFragment.html(html,
+        _insertAdjacentNode(where, createFragment(html,
             validator: validator, treeSanitizer: treeSanitizer));
       }
   }
@@ -1308,10 +1328,11 @@ $endif
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
       _parseRange = _parseDocument.createRange();
-
-      // Workaround for Chrome bug 229142- URIs are not resolved in new doc.
-      var base = _parseDocument.createElement('base');
-      base.href = document.baseUri;
+	
+      // Workaround for Safari bug. Was also previously Chrome bug 229142
+      // - URIs are not resolved in new doc.	
+      var base = _parseDocument.createElement('base');	
+      base.href = document.baseUri;	
       _parseDocument.head.append(base);
     }
     var contextElement;
@@ -1322,7 +1343,8 @@ $endif
       _parseDocument.body.append(contextElement);
     }
     var fragment;
-    if (Range.supportsCreateContextualFragment) {
+    if (Range.supportsCreateContextualFragment &&
+        _canBeUsedToCreateContextualFragment) {
       _parseRange.selectNodeContents(contextElement);
       fragment = _parseRange.createContextualFragment(html);
     } else {
@@ -1343,6 +1365,24 @@ $endif
 
     return fragment;
   }
+
+  /** Test if createContextualFragment is supported for this element type */
+  bool get _canBeUsedToCreateContextualFragment =>
+      !_cannotBeUsedToCreateContextualFragment;
+
+  /** Test if createContextualFragment is NOT supported for this element type */
+  bool get _cannotBeUsedToCreateContextualFragment =>
+      _tagsForWhichCreateContextualFragmentIsNotSupported.contains(tagName);
+
+  /**
+   * A hard-coded list of the tag names for which createContextualFragment
+   * isn't supported.
+   */
+  static const _tagsForWhichCreateContextualFragmentIsNotSupported =
+      const ['HEAD', 'AREA',
+      'BASE', 'BASEFONT', 'BR', 'COL', 'COLGROUP', 'EMBED', 'FRAME', 'FRAMESET',
+      'HR', 'IMAGE', 'IMG', 'INPUT', 'ISINDEX', 'LINK', 'META', 'PARAM',
+      'SOURCE', 'STYLE', 'TITLE', 'WBR'];
 
   /**
    * Parses the HTML fragment and sets it as the contents of this element.
@@ -1487,6 +1527,63 @@ $if DART2JS
   int get scrollWidth => JS('num', '#.scrollWidth', this).round();
 
 $else
+  $if JSINTEROP
+  @DomName('Element.offsetHeight')
+  @DocsEditable()
+  int get offsetHeight => _blink.BlinkElement.instance.offsetHeight_Getter_(unwrap_jso(this)).round();
+
+  @DomName('Element.offsetLeft')
+  @DocsEditable()
+  int get offsetLeft => _blink.BlinkElement.instance.offsetLeft_Getter_(unwrap_jso(this)).round();
+
+  @DomName('Element.offsetTop')
+  @DocsEditable()
+  int get offsetTop => _blink.BlinkElement.instance.offsetTop_Getter_(unwrap_jso(this)).round();
+
+  @DomName('Element.offsetWidth')
+  @DocsEditable()
+  int get offsetWidth => _blink.BlinkElement.instance.offsetWidth_Getter_(unwrap_jso(this)).round();
+
+  @DomName('Element.clientHeight')
+  @DocsEditable()
+  int get clientHeight => _blink.BlinkElement.instance.clientHeight_Getter_(unwrap_jso(this)).round();
+
+  @DomName('Element.clientLeft')
+  @DocsEditable()
+  int get clientLeft => _blink.BlinkElement.instance.clientLeft_Getter_(unwrap_jso(this)).round();
+
+  @DomName('Element.clientTop')
+  @DocsEditable()
+  int get clientTop => _blink.BlinkElement.instance.clientTop_Getter_(unwrap_jso(this)).round();
+
+  @DomName('Element.clientWidth')
+  @DocsEditable()
+  int get clientWidth => _blink.BlinkElement.instance.clientWidth_Getter_(unwrap_jso(this)).round();
+
+  @DomName('Element.scrollHeight')
+  @DocsEditable()
+  int get scrollHeight => _blink.BlinkElement.instance.scrollHeight_Getter_(unwrap_jso(this)).round();
+
+  @DomName('Element.scrollLeft')
+  @DocsEditable()
+  int get scrollLeft => _blink.BlinkElement.instance.scrollLeft_Getter_(unwrap_jso(this)).round();
+
+  @DomName('Element.scrollLeft')
+  @DocsEditable()
+  void set scrollLeft(int value) => _blink.BlinkElement.instance.scrollLeft_Setter_(unwrap_jso(this), value.round());
+
+  @DomName('Element.scrollTop')
+  @DocsEditable()
+  int get scrollTop => _blink.BlinkElement.instance.scrollTop_Getter_(unwrap_jso(this)).round();
+
+  @DomName('Element.scrollTop')
+  @DocsEditable()
+  void set scrollTop(int value) => _blink.BlinkElement.instance.scrollTop_Setter_(unwrap_jso(this), value.round());
+
+  @DomName('Element.scrollWidth')
+  @DocsEditable()
+  int get scrollWidth => _blink.BlinkElement.instance.scrollWidth_Getter_(unwrap_jso(this)).round();
+  $else
   @DomName('Element.offsetHeight')
   @DocsEditable()
   int get offsetHeight => _blink.BlinkElement.offsetHeight_Getter(this).round();
@@ -1542,6 +1639,7 @@ $else
   @DomName('Element.scrollWidth')
   @DocsEditable()
   int get scrollWidth => _blink.BlinkElement.scrollWidth_Getter(this).round();
+  $endif
 $endif
 
 $!MEMBERS

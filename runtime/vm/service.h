@@ -59,6 +59,21 @@ class RingServiceIdZone : public ServiceIdZone {
 };
 
 
+class StreamInfo {
+ public:
+  explicit StreamInfo(const char* id) : id_(id), enabled_(false) {}
+
+  const char* id() { return id_; }
+
+  void set_enabled(bool value) { enabled_ = value; }
+  bool enabled() { return enabled_; }
+
+ private:
+  const char* id_;
+  bool enabled_;
+};
+
+
 class Service : public AllStatic {
  public:
   // Handles a message which is not directed to an isolate.
@@ -66,15 +81,6 @@ class Service : public AllStatic {
 
   // Handles a message which is directed to a particular isolate.
   static void HandleIsolateMessage(Isolate* isolate, const Array& message);
-
-  static bool NeedsIsolateEvents() { return needs_isolate_events_; }
-  static bool NeedsDebugEvents() { return needs_debug_events_; }
-  static bool NeedsGCEvents() { return needs_gc_events_; }
-  static bool NeedsEchoEvents() { return needs_echo_events_; }
-  static bool NeedsGraphEvents() { return needs_graph_events_; }
-
-  static void ListenStream(const char* stream_id);
-  static void CancelStream(const char* stream_id);
 
   static void HandleEvent(ServiceEvent* event);
 
@@ -88,9 +94,36 @@ class Service : public AllStatic {
       Dart_ServiceRequestCallback callback,
       void* user_data);
 
+  static void SetEmbedderStreamCallbacks(
+      Dart_ServiceStreamListenCallback listen_callback,
+      Dart_ServiceStreamCancelCallback cancel_callback);
+
   static void SendEchoEvent(Isolate* isolate, const char* text);
   static void SendGraphEvent(Isolate* isolate);
   static void SendInspectEvent(Isolate* isolate, const Object& inspectee);
+
+  static void SendEmbedderEvent(Isolate* isolate,
+                                const char* stream_id,
+                                const char* event_kind,
+                                const uint8_t* bytes,
+                                intptr_t bytes_len);
+
+  // Well-known streams.
+  static StreamInfo isolate_stream;
+  static StreamInfo debug_stream;
+  static StreamInfo gc_stream;
+  static StreamInfo echo_stream;
+  static StreamInfo graph_stream;
+
+  static bool ListenStream(const char* stream_id);
+  static void CancelStream(const char* stream_id);
+
+  static Dart_ServiceStreamListenCallback stream_listen_callback() {
+    return stream_listen_callback_;
+  }
+  static Dart_ServiceStreamCancelCallback stream_cancel_callback() {
+    return stream_cancel_callback_;
+  }
 
  private:
   static void InvokeMethod(Isolate* isolate, const Array& message);
@@ -113,6 +146,8 @@ class Service : public AllStatic {
 
   static EmbedderServiceHandler* isolate_service_handler_head_;
   static EmbedderServiceHandler* root_service_handler_head_;
+  static Dart_ServiceStreamListenCallback stream_listen_callback_;
+  static Dart_ServiceStreamCancelCallback stream_cancel_callback_;
 
   static bool needs_isolate_events_;
   static bool needs_debug_events_;

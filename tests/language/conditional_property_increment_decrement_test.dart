@@ -5,8 +5,6 @@
 // Verify semantics of the ?. operator when it appears in a postincrement or
 // preincrement expression (or a postdecrement or predecrement expression).
 
-// SharedOptions=--enable-null-aware-operators
-
 import "package:expect/expect.dart";
 
 class C {

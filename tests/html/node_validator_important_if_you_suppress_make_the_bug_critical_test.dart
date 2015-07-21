@@ -293,6 +293,18 @@ main() {
         '<div></div>');
   });
 
+  group('identify Uri attributes listed as attributes', () {
+    var validator = new NodeValidatorBuilder()
+      ..allowElement(
+          'a',
+          attributes: ['href']);
+  
+    testHtml('reject different-origin link',
+      validator,
+        '<a href="http://www.google.com/foo">Google-Foo</a>',
+        '<a>Google-Foo</a>');
+  });
+
   group('allowTagExtension', () {
      var validator = new NodeValidatorBuilder()
       ..allowTagExtension(

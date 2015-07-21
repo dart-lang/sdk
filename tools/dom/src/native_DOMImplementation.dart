@@ -187,7 +187,10 @@ class _Utils {
     return element;
   }
 
+  // TODO(terry): Enable below for Dartium w/ interop and remove other static window().
+  // static window() => wrap_jso(_blink.Blink_Utils.window()['window']);
   static window() => _blink.Blink_Utils.window();
+
   static forwardingPrint(String message) => _blink.Blink_Utils.forwardingPrint(message);
   static void spawnDomHelper(Function f, int replyTo) =>
       _blink.Blink_Utils.spawnDomHelper(f, replyTo);
@@ -798,16 +801,16 @@ class _Utils {
   }
 
   static void _register(Document document, String tag, Type customType,
-    String extendsTagName) => _blink.Blink_Utils.register(document, tag, customType, extendsTagName);
+    String extendsTagName) => _blink.Blink_Utils.register(unwrap_jso(document), tag, customType, extendsTagName);
 
   static Element createElement(Document document, String tagName) =>
-    _blink.Blink_Utils.createElement(document, tagName);
+    wrap_jso(_blink.Blink_Utils.createElement(unwrap_jso(document), tagName));
 
   static void initializeCustomElement(HtmlElement element) =>
-    _blink.Blink_Utils.initializeCustomElement(element);
+    _blink.Blink_Utils.initializeCustomElement(unwrap_jso(element));
 
   static Element changeElementWrapper(HtmlElement element, Type type) =>
-    _blink.Blink_Utils.changeElementWrapper(element, type);
+    _blink.Blink_Utils.changeElementWrapper(unwrap_jso(element), type);
 }
 
 class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements

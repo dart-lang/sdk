@@ -14,7 +14,7 @@ class MyClass {
   static int staticVar = 1000;
 
   static void printValue(int value) {
-    print(value);   // line 16
+    print(value);   // line 17
   }
 }
 
@@ -47,7 +47,7 @@ var tests = [
 
       // Add the breakpoint.
       var script = isolate.rootLibrary.scripts[0];
-      var line = 16;
+      var line = 17;
       return isolate.addBreakpoint(script, line).then((ServiceObject bpt) {
           return completer.future;  // Wait for breakpoint reached.
       });

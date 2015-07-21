@@ -612,6 +612,11 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     }
   }
 
+  @override
+  void previsitDeferredAccess(ast.Send node, PrefixElement prefix, _) {
+    giveup(node, 'deferred access is not implemented');
+  }
+
   ir.Primitive visitNamedArgument(ast.NamedArgument node) {
     assert(irBuilder.isOpen);
     return visit(node.expression);
@@ -3207,7 +3212,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         }
         return irBuilder.buildForeignCode(
             js.js.expressionTemplateYielding(
-                        backend.emitter.staticFunctionAccess(function)),
+                backend.emitter.staticFunctionAccess(closure)),
             <ir.Primitive>[],
             NativeBehavior.PURE,
             dependency: closure);
@@ -3309,6 +3314,16 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
             const <ir.Primitive>[],
             NativeBehavior.PURE);
 
+      case 'JS_SET_STATIC_STATE':
+        validateArgumentCount(exactly: 1);
+
+        ir.Primitive value = visit(argumentNodes.single);
+        String isolateName = backend.namer.staticStateHolder;
+        return irBuilder.buildForeignCode(
+            js.js.parseForeignJS("$isolateName = #"),
+            <ir.Primitive>[value],
+            NativeBehavior.PURE);
+
       case 'JS_CALL_IN_ISOLATE':
         validateArgumentCount(exactly: 2);
 
@@ -3381,18 +3396,6 @@ class CleanupPass extends ir.RecursiveVisitor {
   }
 
   processLetMutable(ir.LetMutable node) {
-    node.body = replacementFor(node.body);
-  }
-
-  processSetMutableVariable(ir.SetMutableVariable node) {
-    node.body = replacementFor(node.body);
-  }
-
-  processSetField(ir.SetField node) {
-    node.body = replacementFor(node.body);
-  }
-
-  processSetStatic(ir.SetStatic node) {
     node.body = replacementFor(node.body);
   }
 

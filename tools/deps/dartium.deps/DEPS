@@ -33,7 +33,7 @@ vars.update({
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
-  "observatory_pub_packages_rev": "@45565",
+  "observatory_pub_packages_rev": "@cdc4b3d4c15b9c0c8e7702dff127b440afbb7485",
   "package_config_tag": "@0.1.1",
   "path_rev": "@b657c0854d1cf41c014986fa9d2321f1173df805",
   "plugin_tag": "@0.1.0",
@@ -146,6 +146,9 @@ deps.update({
       "https://github.com/dart-lang/matcher.git" + Var("matcher_tag"),
   "src/dart/third_party/pkg/metatest":
       "https://github.com/dart-lang/metatest.git" + Var("metatest_rev"),
+  "src/dart/third_party/observatory_pub_packages":
+      "https://github.com/dart-lang/observatory_pub_packages.git"
+      + Var("observatory_pub_packages_rev"),
   "src/dart/third_party/pkg/path":
       "https://github.com/dart-lang/path.git" + Var("path_rev"),
   "src/dart/third_party/pkg/package_config":
@@ -176,10 +179,6 @@ deps.update({
 
   "src/dart/tests/co19/src": ((Var("googlecode_url") % "co19") +
     "/trunk/co19/tests/co19/src" + Var("co19_rev")),
-
-  "src/dart/third_party/observatory_pub_packages":
-      "http://dart.googlecode.com/svn/third_party/observatory_pub_packages" +
-      Var("observatory_pub_packages_rev"),
 
   "src/dart/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +

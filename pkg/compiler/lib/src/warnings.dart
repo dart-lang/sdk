@@ -2524,10 +2524,9 @@ $IMPORT_EXPERIMENTAL_MIRRORS_PADDING#{importChain}
 ''');
 
 
-  static const MessageKind MIRRORS_LIBRARY_NEW_EMITTER =
+  static const MessageKind MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND =
       const MessageKind(
-          "dart:mirrors library is not supported when using the new emitter "
-            "(DART_VM_OPTIONS='-Ddart2js.use.new.emitter=true')");
+          "dart:mirrors library is not supported when using this backend.");
 
   static const MessageKind CALL_NOT_SUPPORTED_ON_NATIVE_CLASS =
       const MessageKind(

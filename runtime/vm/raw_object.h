@@ -1164,7 +1164,8 @@ class RawLocalVarDescriptors : public RawObject {
     kStackVar = 1,
     kContextVar,
     kContextLevel,
-    kSavedCurrentContext
+    kSavedCurrentContext,
+    kAsyncOperation
   };
 
   enum {

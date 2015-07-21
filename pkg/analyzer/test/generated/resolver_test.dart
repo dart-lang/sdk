@@ -399,8 +399,6 @@ class AnalysisContextForTests extends AnalysisContextImpl {
         currentOptions.dart2jsHint != options.dart2jsHint ||
         (currentOptions.hint && !options.hint) ||
         currentOptions.preserveComments != options.preserveComments ||
-        currentOptions.enableNullAwareOperators !=
-            options.enableNullAwareOperators ||
         currentOptions.enableStrictCallChecks != options.enableStrictCallChecks;
     if (needsRecompute) {
       fail(
@@ -6414,8 +6412,6 @@ class NewAnalysisContextForTests extends newContext.AnalysisContextImpl {
         currentOptions.dart2jsHint != options.dart2jsHint ||
         (currentOptions.hint && !options.hint) ||
         currentOptions.preserveComments != options.preserveComments ||
-        currentOptions.enableNullAwareOperators !=
-            options.enableNullAwareOperators ||
         currentOptions.enableStrictCallChecks != options.enableStrictCallChecks;
     if (needsRecompute) {
       fail(

@@ -3417,10 +3417,13 @@ class SsaBuilder extends ast.Visitor
     }
   }
 
+  @override
+  void previsitDeferredAccess(ast.Send node, PrefixElement prefix, _) {
+    generateIsDeferredLoadedCheckIfNeeded(prefix, node);
+  }
+
   /// Read a static or top level [field].
   void generateStaticFieldGet(ast.Send node, FieldElement field) {
-    generateIsDeferredLoadedCheckOfSend(node);
-
     ConstantExpression constant =
         backend.constants.getConstantForVariable(field);
     SourceInformation sourceInformation =
@@ -3455,7 +3458,6 @@ class SsaBuilder extends ast.Visitor
     if (getter.isDeferredLoaderGetter) {
       generateDeferredLoaderGet(node, getter, sourceInformation);
     } else {
-      generateIsDeferredLoadedCheckOfSend(node);
       pushInvokeStatic(node, getter, <HInstruction>[],
                        sourceInformation: sourceInformation);
     }
@@ -3470,7 +3472,6 @@ class SsaBuilder extends ast.Visitor
 
   /// Generate a closurization of the static or top level [function].
   void generateStaticFunctionGet(ast.Send node, MethodElement function) {
-    generateIsDeferredLoadedCheckOfSend(node);
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     SourceInformation sourceInformation =
@@ -5185,8 +5186,6 @@ class SsaBuilder extends ast.Visitor
       ast.Send node,
       FunctionElement function,
       CallStructure callStructure) {
-    generateIsDeferredLoadedCheckOfSend(node);
-
     List<HInstruction> inputs = makeStaticArgumentList(
         callStructure,
         node.arguments,
@@ -5457,7 +5456,6 @@ class SsaBuilder extends ast.Visitor
 
   /// Generate the constant value for a constant type literal.
   void generateConstantTypeLiteral(ast.Send node) {
-    generateIsDeferredLoadedCheckOfSend(node);
     // TODO(karlklose): add type representation
     if (node.isCall) {
       // The node itself is not a constant but we register the selector (the

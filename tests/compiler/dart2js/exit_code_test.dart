@@ -11,13 +11,16 @@ import 'dart:io' show Platform;
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import 'package:compiler/compiler.dart' as api;
+import 'package:compiler/compiler.dart' as old_api;
+import 'package:compiler/compiler_new.dart' as api;
 import 'package:compiler/src/compile_time_constants.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 import 'package:compiler/src/dart2jslib.dart';
 import 'package:compiler/src/apiimpl.dart' as apiimpl;
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/library_loader.dart';
+import 'package:compiler/src/null_compiler_output.dart';
+import 'package:compiler/src/old_to_new_api.dart';
 import 'package:compiler/src/resolution/resolution.dart';
 import 'package:compiler/src/scanner/scannerlib.dart';
 import 'package:compiler/src/util/util.dart';
@@ -27,18 +30,18 @@ class TestCompiler extends apiimpl.Compiler {
   final String testType;
   final Function onTest;
 
-  TestCompiler(api.CompilerInputProvider inputProvider,
-                api.CompilerOutputProvider outputProvider,
-                api.DiagnosticHandler handler,
-                Uri libraryRoot,
-                Uri packageRoot,
-                List<String> options,
-                Map<String, dynamic> environment,
-                Uri packageConfig,
-                api.PackagesDiscoveryProvider findPackages,
-                String this.testMarker,
-                String this.testType,
-                Function this.onTest)
+  TestCompiler(api.CompilerInput inputProvider,
+               api.CompilerOutput outputProvider,
+               api.CompilerDiagnostics handler,
+               Uri libraryRoot,
+               Uri packageRoot,
+               List<String> options,
+               Map<String, dynamic> environment,
+               Uri packageConfig,
+               api.PackagesDiscoveryProvider findPackages,
+               String this.testMarker,
+               String this.testType,
+               Function this.onTest)
       : super(inputProvider, outputProvider, handler, libraryRoot,
               packageRoot, options, environment, packageConfig, findPackages) {
     scanner = new TestScanner(this);
@@ -150,14 +153,14 @@ Future testExitCode(
     }
   }
   return new Future(() {
-    Future<api.CompilationResult> compile(
+    Future<old_api.CompilationResult> compile(
         Uri script,
         Uri libraryRoot,
         Uri packageRoot,
-        api.CompilerInputProvider inputProvider,
-        api.DiagnosticHandler handler,
+        old_api.CompilerInputProvider inputProvider,
+        old_api.DiagnosticHandler handler,
         [List<String> options = const [],
-         api.CompilerOutputProvider outputProvider,
+         old_api.CompilerOutputProvider outputProvider,
          Map<String, dynamic> environment = const {},
          Uri packageConfig,
          api.PackagesDiscoveryProvider findPackages]) {
@@ -165,20 +168,21 @@ Future testExitCode(
       outputProvider = NullSink.outputProvider;
       // Use this to silence the test when debugging:
       // handler = (uri, begin, end, message, kind) {};
-      Compiler compiler = new TestCompiler(inputProvider,
-                                           outputProvider,
-                                           handler,
-                                           libraryRoot,
-                                           packageRoot,
-                                           options,
-                                           environment,
-                                           packageConfig,
-                                           findPackages,
-                                           marker,
-                                           type,
-                                           onTest);
+      Compiler compiler = new TestCompiler(
+          new LegacyCompilerInput(inputProvider),
+          new LegacyCompilerOutput(outputProvider),
+          new LegacyCompilerDiagnostics(handler),
+          libraryRoot,
+          packageRoot,
+          options,
+          environment,
+          packageConfig,
+          findPackages,
+          marker,
+          type,
+          onTest);
       return compiler.run(script).then((bool success) {
-        return new api.CompilationResult(compiler, isSuccess: success);
+        return new old_api.CompilationResult(compiler, isSuccess: success);
       });
     }
 

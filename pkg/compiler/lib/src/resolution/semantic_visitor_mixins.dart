@@ -2478,6 +2478,14 @@ abstract class BaseBulkMixin<R, A>
       A arg) {
     return bulkHandleNode(node, 'Lazy or `#` unhandled.', arg);
   }
+
+  @override
+  void previsitDeferredAccess(
+      Send node,
+      PrefixElement prefix,
+      A arg) {
+    bulkHandleNode(node, 'Deferred access `#` unhandled.', arg);
+  }
 }
 
 /// Mixin that implements all visitor methods for `super` calls in
@@ -3507,6 +3515,13 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R apply(Node node, A arg) {
     throw new UnimplementedError("TraversalMixin.apply unimplemented");
+  }
+
+  @override
+  void previsitDeferredAccess(
+      Send node,
+      PrefixElement prefix,
+      A arg) {
   }
 
   @override

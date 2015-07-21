@@ -558,6 +558,11 @@ class HtmlDartInterfaceGenerator(object):
       implements_str = ' implements ' + ', '.join(set(implements))
 
     mixins = self._backend.Mixins()
+
+    # TODO(terry): Do we need a more generic solution other than handling NamedNodeMap
+    #              we can't call super on a mixin interface - yet.
+    if self._options.templates._conditions['DARTIUM'] and self._options.dart_js_interop and self._interface.id == 'NamedNodeMap':
+      mixins = None
     mixins_str = ''
     if mixins:
       mixins_str = ' with ' + ', '.join(mixins)
@@ -569,12 +574,62 @@ class HtmlDartInterfaceGenerator(object):
 
     class_modifiers = ''
     if (self._renamer.ShouldSuppressInterface(self._interface) or
-        IsPureInterface(self._interface.id)):
-      class_modifiers = 'abstract '
+      IsPureInterface(self._interface.id)):
+      # XMLHttpRequestProgressEvent can't be abstract we need to instantiate
+      # for JsInterop.
+      if (not(isinstance(self._backend, Dart2JSBackend)) and
+        self._interface.id == 'XMLHttpRequestProgressEvent'):
+        # Only suppress abstract for XMLHttpRequestProgressEvent for Dartium.
+        # Need to be able to instantiate the class; can't be abstract.
+        class_modifiers = ''
+      else:
+        class_modifiers = 'abstract '
 
     native_spec = ''
     if not IsPureInterface(self._interface.id):
       native_spec = self._backend.NativeSpec()
+
+    class_name = self._interface_type_info.implementation_name()
+
+    js_interop_equivalence_op = \
+      '  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);\n'
+    # ClientRect overrides the equivalence operator.
+    if interface_name == 'ClientRect' or interface_name == 'DomRectReadOnly':
+        js_interop_equivalence_op = ''
+
+    js_interop_wrapper = '''
+
+  static {0} internalCreate{0}() {{
+    return new {0}._internalWrap();
+  }}
+
+  factory {0}._internalWrap() {{
+    return new {0}._internal();
+  }}
+
+  {0}._internal() : super._internal();
+
+'''.format(class_name)
+    """
+    TODO(terry): Don't use Dart expando really don't need.
+      final Object expandoJsObject = new Object();
+      final Expando<JsObject> dartium_expando = new Expando<JsObject>("Expando_jsObject");
+    """
+    if base_class == 'NativeFieldWrapperClass2':
+        js_interop_wrapper = '''
+  static {0} internalCreate{0}() {{
+    return new {0}._internalWrap();
+  }}
+
+  JsObject blink_jsObject = null;
+
+  factory {0}._internalWrap() {{
+    return new {0}._internal();
+  }}
+
+  {0}._internal() {{ }}
+
+{1}'''.format(class_name, js_interop_equivalence_op)
 
     implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
@@ -614,6 +669,13 @@ class HtmlDartInterfaceGenerator(object):
     for parent in self._database.Hierarchy(self._interface):
       if parent.id == 'Element':
         isElement = True
+
+    # Write out the JsInterop code.
+    if (implementation_members_emitter and
+        self._options.templates._conditions['DARTIUM'] and
+        self._options.dart_js_interop):
+      implementation_members_emitter.Emit(js_interop_wrapper)
+
     if isElement and self._interface.id != 'Element':
       implementation_members_emitter.Emit(
           '  /**\n'
@@ -631,7 +693,7 @@ class HtmlDartInterfaceGenerator(object):
       self._backend.AddMembers(self._database.GetInterface(merged_interface),
         not self._backend.ImplementsMergedMembers())
 
-    self._backend.AddMembers(self._interface)
+    self._backend.AddMembers(self._interface, False, self._options.dart_js_interop)
     self._backend.AddSecondaryMembers(self._interface)
     self._event_generator.EmitStreamGetters(
         self._interface,
@@ -967,7 +1029,7 @@ class Dart2JSBackend(HtmlDartGenerator):
   def OmitOperationOverrides(self):
     return True
 
-  def EmitOperation(self, info, html_name):
+  def EmitOperation(self, info, html_name, dart_js_interop=False):
     """
     Arguments:
       info: An OperationInfo object.
@@ -1225,18 +1287,19 @@ class DartLibraryEmitter():
   def AddTypeEntry(self, basename, idl_name, dart_name):
     self._dart_libraries.AddTypeEntry(basename, idl_name, dart_name)
 
-  def EmitLibraries(self, auxiliary_dir):
+  def EmitLibraries(self, auxiliary_dir, dart_js_interop):
     self._dart_libraries.Emit(self._multiemitter, auxiliary_dir)
 
 # ------------------------------------------------------------------------------
 class DartLibrary():
-  def __init__(self, name, template_loader, library_type, output_dir):
+  def __init__(self, name, template_loader, library_type, output_dir, dart_js_interop):
     self._template = template_loader.Load(
         '%s_%s.darttemplate' % (name, library_type))
     self._dart_path = os.path.join(
         output_dir, '%s_%s.dart' % (name, library_type))
     self._paths = []
     self._typeMap = {}
+    self._dart_js_interop = dart_js_interop
 
   def AddFile(self, path):
     self._paths.append(path)
@@ -1255,16 +1318,20 @@ class DartLibrary():
     emitters = library_emitter.Emit(
         self._template, AUXILIARY_DIR=massage_path(auxiliary_dir))
     if isinstance(emitters, tuple):
-      imports_emitter, map_emitter = emitters
+      if self._dart_js_interop:
+        imports_emitter, map_emitter, function_emitter = emitters
+      else:
+        imports_emitter, map_emitter = emitters
+        function_emitter = None
     else:
-      imports_emitter, map_emitter = emitters, None
-
+      imports_emitter, map_emitter, function_emitter = emitters, None, None
 
     for path in sorted(self._paths):
       relpath = os.path.relpath(path, library_file_dir)
       imports_emitter.Emit(
           "part '$PATH';\n", PATH=massage_path(relpath))
 
+    # Emit the $!TYPE_MAP
     if map_emitter:
       items = self._typeMap.items()
       items.sort()
@@ -1274,15 +1341,27 @@ class DartLibrary():
           IDL_NAME=idl_name,
           DART_NAME=dart_name)
 
+    # Emit the $!TYPE_FUNCTION_MAP
+    if function_emitter:
+      items = self._typeMap.items()
+      items.sort()
+      for (idl_name, dart_name) in items:
+        function_emitter.Emit(
+          "  '$IDL_NAME': () => $DART_NAME.internalCreate$DART_NAME,\n",
+          IDL_NAME=idl_name,
+          DART_NAME=dart_name)
+      if self._dart_path.endswith('html_dartium.dart'):
+        function_emitter.Emit("  'polymer-element': () => HtmlElement.internalCreateHtmlElement,\n")
+
 
 # ------------------------------------------------------------------------------
 
 class DartLibraries():
-  def __init__(self, libraries, template_loader, library_type, output_dir):
+  def __init__(self, libraries, template_loader, library_type, output_dir, dart_js_interop):
     self._libraries = {}
     for library_name in libraries:
       self._libraries[library_name] = DartLibrary(
-          library_name, template_loader, library_type, output_dir)
+          library_name, template_loader, library_type, output_dir, dart_js_interop)
 
   def AddFile(self, basename, library_name, path):
     self._libraries[library_name].AddFile(path)

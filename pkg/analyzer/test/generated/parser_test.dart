@@ -359,7 +359,6 @@ class ComplexParserTest extends ParserTestCase {
   }
 
   void test_conditionalExpression_precedence_ifNullExpression() {
-    _enableNullAwareOperators = true;
     ConditionalExpression expression = parseExpression('a ?? b ? y : z');
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
         BinaryExpression, expression.condition);
@@ -409,21 +408,18 @@ class C {
   }
 
   void test_ifNullExpression() {
-    _enableNullAwareOperators = true;
     BinaryExpression expression = parseExpression('x ?? y ?? z');
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
         BinaryExpression, expression.leftOperand);
   }
 
   void test_ifNullExpression_precedence_logicalOr_left() {
-    _enableNullAwareOperators = true;
     BinaryExpression expression = parseExpression('x || y ?? z');
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
         BinaryExpression, expression.leftOperand);
   }
 
   void test_ifNullExpression_precendce_logicalOr_right() {
-    _enableNullAwareOperators = true;
     BinaryExpression expression = parseExpression('x ?? y || z');
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
         BinaryExpression, expression.rightOperand);
@@ -1338,13 +1334,11 @@ class Foo {
   }
 
   void test_invalidOperatorAfterSuper_assignableExpression() {
-    _enableNullAwareOperators = true;
     parse3('parseAssignableExpression', <Object>[false], 'super?.v',
         [ParserErrorCode.INVALID_OPERATOR_FOR_SUPER]);
   }
 
   void test_invalidOperatorAfterSuper_primaryExpression() {
-    _enableNullAwareOperators = true;
     parse4('parsePrimaryExpression', 'super?.v',
         [ParserErrorCode.INVALID_OPERATOR_FOR_SUPER]);
   }
@@ -2586,12 +2580,6 @@ class ParserTestCase extends EngineTestCase {
   bool enableGenericMethods = false;
 
   /**
-   * If non-null, this value is used to override the default value of
-   * [Scanner.enableNullAwareOperators] before scanning.
-   */
-  bool _enableNullAwareOperators;
-
-  /**
    * Return a CommentAndMetadata object with the given values that can be used for testing.
    *
    * @param comment the comment to be wrapped in the object
@@ -2634,9 +2622,6 @@ class ParserTestCase extends EngineTestCase {
     //
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
-    if (_enableNullAwareOperators != null) {
-      scanner.enableNullAwareOperators = _enableNullAwareOperators;
-    }
     Token tokenStream = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     //
@@ -2771,9 +2756,6 @@ class ParserTestCase extends EngineTestCase {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
-    if (_enableNullAwareOperators != null) {
-      scanner.enableNullAwareOperators = _enableNullAwareOperators;
-    }
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = createParser(listener);
@@ -5076,7 +5058,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAssignableExpression_expression_question_dot() {
-    _enableNullAwareOperators = true;
     PropertyAccess propertyAccess =
         parse("parseAssignableExpression", <Object>[false], "(x)?.y");
     expect(propertyAccess.target, isNotNull);
@@ -5136,7 +5117,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAssignableExpression_identifier_question_dot() {
-    _enableNullAwareOperators = true;
     PropertyAccess propertyAccess =
         parse("parseAssignableExpression", <Object>[false], "x?.y");
     expect(propertyAccess.target, isNotNull);
@@ -5187,7 +5167,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAssignableSelector_question_dot() {
-    _enableNullAwareOperators = true;
     PropertyAccess selector =
         parse("parseAssignableSelector", <Object>[null, true], "?.x");
     expect(selector.operator.type, TokenType.QUESTION_PERIOD);
@@ -9058,7 +9037,6 @@ void''');
   }
 
   void test_parsePostfixExpression_none_methodInvocation_question_dot() {
-    _enableNullAwareOperators = true;
     MethodInvocation expression = parse4('parsePostfixExpression', 'a?.m()');
     expect(expression.target, isNotNull);
     expect(expression.operator.type, TokenType.QUESTION_PERIOD);
@@ -9069,7 +9047,6 @@ void''');
 
   void test_parsePostfixExpression_none_methodInvocation_question_dot_typeArguments() {
     enableGenericMethods = true;
-    _enableNullAwareOperators = true;
     MethodInvocation expression = parse4('parsePostfixExpression', 'a?.m<E>()');
     expect(expression.target, isNotNull);
     expect(expression.operator.type, TokenType.QUESTION_PERIOD);

@@ -502,7 +502,7 @@ void writeString(Uri uri, String text) {
 
 void fail(String message) {
   if (diagnosticHandler != null) {
-    diagnosticHandler.diagnosticHandler(
+    diagnosticHandler.report(
         null, -1, -1, message, api.Diagnostic.ERROR);
   } else {
     print('Error: $message');

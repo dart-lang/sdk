@@ -4198,6 +4198,11 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   ASSERT((node->label() == NULL) || !is_top_level_sequence);
   NestedBlock nested_block(owner(), node);
 
+  if (FLAG_support_debugger && is_top_level_sequence) {
+    AddInstruction(new(Z) DebugStepCheckInstr(function.token_pos(),
+                                              RawPcDescriptors::kRuntimeCall));
+  }
+
   if (num_context_variables > 0) {
     // The local scope declares variables that are captured.
     // Allocate and chain a new context (Except don't chain when at the function

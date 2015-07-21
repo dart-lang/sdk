@@ -2736,9 +2736,9 @@ void Class::DisableCHAOptimizedCode() {
 
 void Class::SetTraceAllocation(bool trace_allocation) const {
   const bool changed = trace_allocation != this->trace_allocation();
-  set_state_bits(
-      TraceAllocationBit::update(trace_allocation, raw_ptr()->state_bits_));
   if (changed) {
+    set_state_bits(
+        TraceAllocationBit::update(trace_allocation, raw_ptr()->state_bits_));
     Isolate* isolate = Isolate::Current();
     ClassTable* class_table = isolate->class_table();
     class_table->TraceAllocationsFor(id(), trace_allocation);
@@ -4205,6 +4205,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_finalized", is_finalized());
   jsobj.AddProperty("_implemented", is_implemented());
   jsobj.AddProperty("_patch", is_patch());
+  jsobj.AddProperty("_traceAllocations", trace_allocation());
   const Class& superClass = Class::Handle(SuperClass());
   if (!superClass.IsNull()) {
     jsobj.AddProperty("super", superClass);
@@ -11246,6 +11247,9 @@ static const char* VarKindString(int kind) {
     case RawLocalVarDescriptors::kSavedCurrentContext:
       return "CurrentCtx";
       break;
+    case RawLocalVarDescriptors::kAsyncOperation:
+      return "AsyncOperation";
+      break;
     default:
       UNREACHABLE();
       return "Unknown";
@@ -11359,6 +11363,8 @@ const char* LocalVarDescriptors::KindToStr(intptr_t kind) {
       return "ContextLevel";
     case RawLocalVarDescriptors::kSavedCurrentContext:
       return "SavedCurrentContext";
+    case RawLocalVarDescriptors::kAsyncOperation:
+      return "AsyncOperation";
     default:
       UNIMPLEMENTED();
       return NULL;
@@ -16157,6 +16163,7 @@ void BoundedType::set_type(const AbstractType& value) const {
 void BoundedType::set_bound(const AbstractType& value) const {
   // The bound may still be unfinalized because of legal cycles.
   // It must be finalized before it is checked at run time, though.
+  ASSERT(value.IsFinalized() || value.IsBeingFinalized());
   StorePointer(&raw_ptr()->bound_, value.raw());
 }
 
@@ -16175,20 +16182,26 @@ RawAbstractType* BoundedType::InstantiateFrom(
     GrowableObjectArray* trail) const {
   ASSERT(IsFinalized());
   AbstractType& bounded_type = AbstractType::Handle(type());
+  ASSERT(bounded_type.IsFinalized());
   if (!bounded_type.IsInstantiated()) {
     bounded_type = bounded_type.InstantiateFrom(instantiator_type_arguments,
                                                 bound_error,
                                                 trail);
+    // In case types of instantiator_type_arguments are not finalized, then
+    // the instantiated bounded_type is not finalized either.
+    // Note that instantiator_type_arguments must have the final length, though.
   }
   if ((Isolate::Current()->flags().type_checks()) &&
       (bound_error != NULL) && bound_error->IsNull()) {
     AbstractType& upper_bound = AbstractType::Handle(bound());
+    ASSERT(upper_bound.IsFinalized());
     ASSERT(!upper_bound.IsObjectType() && !upper_bound.IsDynamicType());
     const TypeParameter& type_param = TypeParameter::Handle(type_parameter());
     if (!upper_bound.IsInstantiated()) {
       upper_bound = upper_bound.InstantiateFrom(instantiator_type_arguments,
                                                 bound_error,
                                                 trail);
+      // Instantiated upper_bound may not be finalized. See comment above.
     }
     if (bound_error->IsNull()) {
       if (!type_param.CheckBound(bounded_type, upper_bound, bound_error) &&

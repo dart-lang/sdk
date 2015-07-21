@@ -816,6 +816,11 @@ abstract class InferrerVisitor
     return types.dynamicType;
   }
 
+  @override
+  void previsitDeferredAccess(Send node, PrefixElement prefix, _) {
+    // Deferred access does not affect inference.
+  }
+
   T handleTypeLiteralGet() {
     return types.typeType;
   }

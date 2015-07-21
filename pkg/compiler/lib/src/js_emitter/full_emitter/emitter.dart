@@ -8,7 +8,9 @@ import 'dart:convert';
 import 'dart:collection' show HashMap;
 
 import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
-import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
+import 'package:js_runtime/shared/embedded_names.dart' show
+    JsBuiltin,
+    JsGetName;
 
 import '../js_emitter.dart' hide Emitter;
 import '../js_emitter.dart' as js_emitter show Emitter;
@@ -286,6 +288,9 @@ class Emitter implements js_emitter.Emitter {
   /// Contains the global state that is needed to initialize and load a
   /// deferred library.
   String get globalsHolder => r"$globals$";
+
+  @override
+  bool get supportsReflection => true;
 
   @override
   jsAst.Expression generateEmbeddedGlobalAccess(String global) {

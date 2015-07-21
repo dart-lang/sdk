@@ -5,7 +5,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.7.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.9.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -396,6 +396,10 @@
           Return library dependency information for use in client-side indexing
           and package URI resolution.
         </p>
+        <p>
+        Clients that are only using the libraries field should consider using the
+        analyzedFiles notification instead.
+        </p>
         <result>
           <field name="libraries">
             <list><ref>FilePath</ref></list>
@@ -591,6 +595,24 @@
           </field>
         </params>
       </request>
+     <request method="setGeneralSubscriptions">
+        <p>
+          Subscribe for general services (that is, services that are not
+          specific to individual files). All previous subscriptions are replaced
+          by the given set of services.
+        </p>
+        <p>
+          It is an error if any of the elements in the list are not valid
+          services. If there is an error, then the current subscriptions will
+          remain unchanged.
+        </p>
+        <params>
+          <field name="subscriptions">
+            <list><ref>GeneralAnalysisService</ref></list>
+            <p>A list of the services being subscribed to.</p>
+          </field>
+        </params>
+      </request>
       <request method="setPriorityFiles">
         <p>
           Set the priority files to the files in the given list. A
@@ -628,11 +650,11 @@
       </request>
       <request method="setSubscriptions">
         <p>
-          Subscribe for services. All previous subscriptions are
-          replaced by the current set of subscriptions. If a given
-          service is not included as a key in the map then no files
-          will be subscribed to the service, exactly as if the service
-          had been included in the map with an explicit empty list of
+          Subscribe for services that are specific to individual files.
+          All previous subscriptions are replaced by the current set of
+          subscriptions. If a given service is not included as a key in the map
+          then no files will be subscribed to the service, exactly as if the
+          service had been included in the map with an explicit empty list of
           files.
         </p>
         <p>
@@ -724,6 +746,24 @@
           </field>
         </params>
       </request>
+      <notification event="analyzedFiles">
+        <p>
+          Reports the paths of the files that are being analyzed.
+        </p>
+        <p>
+          This notification is not subscribed to by default. Clients can
+          subscribe by including the value <tt>"ANALYZED_FILES"</tt> in the list
+          of services passed in an analysis.setGeneralSubscriptions request.
+        </p>
+        <params>
+          <field name="directories">
+            <list><ref>FilePath</ref></list>
+              <p>
+                A list of the paths of the files that are being analyzed.
+              </p>
+            </field>
+        </params>
+      </notification>
       <notification event="errors">
         <p>
           Reports the errors associated with a given file. The set of
@@ -2002,13 +2042,19 @@
       </type>
       <type name="AnalysisService">
         <p>
-          An enumeration of the services provided by the analysis
-          domain.
+          An enumeration of the services provided by the analysis domain that
+          are related to a specific list of files.
         </p>
         <enum>
           <value><code>FOLDING</code></value>
           <value><code>HIGHLIGHTS</code></value>
-          <value><code>INVALIDATE</code></value>
+          <value>
+            <code>INVALIDATE</code>
+            <p>
+              This service is not currently implemented and will become a
+              GeneralAnalysisService in a future release.
+            </p>
+          </value>
           <value><code>NAVIGATION</code></value>
           <value><code>OCCURRENCES</code></value>
           <value><code>OUTLINE</code></value>
@@ -2461,6 +2507,15 @@
           </field>
         </object>
       </type>
+      <type name="GeneralAnalysisService">
+        <p>
+          An enumeration of the services provided by the analysis domain that are
+          general in nature (that is, are not specific to some list of files).
+        </p>
+        <enum>
+          <value><code>ANALYZED_FILES</code></value>
+        </enum>
+      </type>
       <type name="HighlightRegion">
         <p>
           A description of a region that could have special highlighting
@@ -2501,36 +2556,218 @@
           <value><code>COMMENT_END_OF_LINE</code></value>
           <value><code>CONSTRUCTOR</code></value>
           <value><code>DIRECTIVE</code></value>
-          <value><code>DYNAMIC_TYPE</code></value>
+          <value>
+            <code>DYNAMIC_TYPE</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>DYNAMIC_LOCAL_VARIABLE_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>DYNAMIC_LOCAL_VARIABLE_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>DYNAMIC_PARAMETER_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>DYNAMIC_PARAMETER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
           <value><code>ENUM</code></value>
           <value><code>ENUM_CONSTANT</code></value>
-          <value><code>FIELD</code></value>
-          <value><code>FIELD_STATIC</code></value>
-          <value><code>FUNCTION</code></value>
-          <value><code>FUNCTION_DECLARATION</code></value>
+          <value>
+            <code>FIELD</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>FIELD_STATIC</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>FUNCTION</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>FUNCTION_DECLARATION</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
           <value><code>FUNCTION_TYPE_ALIAS</code></value>
-          <value><code>GETTER_DECLARATION</code></value>
+          <value>
+            <code>GETTER_DECLARATION</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
           <value><code>IDENTIFIER_DEFAULT</code></value>
           <value><code>IMPORT_PREFIX</code></value>
+          <value>
+            <code>INSTANCE_FIELD_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>INSTANCE_FIELD_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>INSTANCE_GETTER_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>INSTANCE_GETTER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>INSTANCE_METHOD_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>INSTANCE_METHOD_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>INSTANCE_SETTER_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>INSTANCE_SETTER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>INVALID_STRING_ESCAPE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
           <value><code>KEYWORD</code></value>
           <value><code>LABEL</code></value>
+          <value>
+            <code>LIBRARY_NAME</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
           <value><code>LITERAL_BOOLEAN</code></value>
           <value><code>LITERAL_DOUBLE</code></value>
           <value><code>LITERAL_INTEGER</code></value>
           <value><code>LITERAL_LIST</code></value>
           <value><code>LITERAL_MAP</code></value>
           <value><code>LITERAL_STRING</code></value>
-          <value><code>LOCAL_VARIABLE</code></value>
+          <value>
+            <code>LOCAL_FUNCTION_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>LOCAL_FUNCTION_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>LOCAL_VARIABLE</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
           <value><code>LOCAL_VARIABLE_DECLARATION</code></value>
-          <value><code>METHOD</code></value>
-          <value><code>METHOD_DECLARATION</code></value>
-          <value><code>METHOD_DECLARATION_STATIC</code></value>
-          <value><code>METHOD_STATIC</code></value>
-          <value><code>PARAMETER</code></value>
-          <value><code>SETTER_DECLARATION</code></value>
-          <value><code>TOP_LEVEL_VARIABLE</code></value>
+          <value>
+            <code>LOCAL_VARIABLE_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>METHOD</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>METHOD_DECLARATION</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>METHOD_DECLARATION_STATIC</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>METHOD_STATIC</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>PARAMETER</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>SETTER_DECLARATION</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>TOP_LEVEL_VARIABLE</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>PARAMETER_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>PARAMETER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>STATIC_FIELD_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>STATIC_GETTER_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>STATIC_GETTER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>STATIC_METHOD_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>STATIC_METHOD_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>STATIC_SETTER_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>STATIC_SETTER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>TOP_LEVEL_FUNCTION_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>TOP_LEVEL_FUNCTION_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>TOP_LEVEL_GETTER_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>TOP_LEVEL_GETTER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>TOP_LEVEL_SETTER_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>TOP_LEVEL_SETTER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>TOP_LEVEL_VARIABLE_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
           <value><code>TYPE_NAME_DYNAMIC</code></value>
           <value><code>TYPE_PARAMETER</code></value>
+          <value>
+            <code>UNRESOLVED_INSTANCE_MEMBER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>VALID_STRING_ESCAPE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
         </enum>
       </type>
       <type name="HoverInformation">

@@ -14,16 +14,12 @@ static const int kNumInitialReferences = 4;
 
 ApiMessageReader::ApiMessageReader(const uint8_t* buffer,
                                    intptr_t length,
-                                   ReAlloc alloc,
-                                   bool use_vm_isolate_snapshot)
+                                   ReAlloc alloc)
     : BaseReader(buffer, length),
       alloc_(alloc),
       backward_references_(kNumInitialReferences),
       vm_isolate_references_(kNumInitialReferences),
-      vm_symbol_references_(NULL),
-      max_vm_isolate_object_id_(
-          use_vm_isolate_snapshot ?
-          Object::vm_isolate_snapshot_object_table().Length() : 0) {
+      vm_symbol_references_(NULL) {
   Init();
 }
 
@@ -421,8 +417,7 @@ Dart_CObject* ApiMessageReader::ReadVMSymbol(intptr_t object_id) {
 
 
 intptr_t ApiMessageReader::NextAvailableObjectId() const {
-  return backward_references_.length() +
-      kMaxPredefinedObjectIds + max_vm_isolate_object_id_;
+  return backward_references_.length() + kMaxPredefinedObjectIds;
 }
 
 
@@ -807,10 +802,6 @@ Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
     return &dynamic_type_marker;
   }
   intptr_t index = object_id - kMaxPredefinedObjectIds;
-  if (index < max_vm_isolate_object_id_) {
-    return AllocateDartCObjectVmIsolateObj(index);
-  }
-  index -= max_vm_isolate_object_id_;
   ASSERT((0 <= index) && (index < backward_references_.length()));
   ASSERT(backward_references_[index]->reference() != NULL);
   return backward_references_[index]->reference();
@@ -861,8 +852,6 @@ void ApiMessageReader::AddBackRef(intptr_t id,
                                   Dart_CObject* obj,
                                   DeserializeState state) {
   intptr_t index = (id - kMaxPredefinedObjectIds);
-  ASSERT(index >= max_vm_isolate_object_id_);
-  index -= max_vm_isolate_object_id_;
   ASSERT(index == backward_references_.length());
   BackRefNode* node = AllocateBackRefNode(obj, state);
   ASSERT(node != NULL);
@@ -873,8 +862,6 @@ void ApiMessageReader::AddBackRef(intptr_t id,
 Dart_CObject* ApiMessageReader::GetBackRef(intptr_t id) {
   ASSERT(id >= kMaxPredefinedObjectIds);
   intptr_t index = (id - kMaxPredefinedObjectIds);
-  ASSERT(index >= max_vm_isolate_object_id_);
-  index -= max_vm_isolate_object_id_;
   if (index < backward_references_.length()) {
     return backward_references_[index]->reference();
   }
@@ -1012,7 +999,7 @@ void ApiMessageWriter::WriteInt64(Dart_CObject* object) {
 
 void ApiMessageWriter::WriteInlinedHeader(Dart_CObject* object) {
   // Write out the serialization header value for this object.
-  WriteInlinedObjectHeader(SnapshotWriter::FirstObjectId() + object_id_);
+  WriteInlinedObjectHeader(kMaxPredefinedObjectIds + object_id_);
   // Mark object with its object id.
   MarkCObject(object, object_id_);
   // Advance object id.
@@ -1023,7 +1010,7 @@ void ApiMessageWriter::WriteInlinedHeader(Dart_CObject* object) {
 bool ApiMessageWriter::WriteCObject(Dart_CObject* object) {
   if (IsCObjectMarked(object)) {
     intptr_t object_id = GetMarkedCObjectMark(object);
-    WriteIndexedObject(SnapshotWriter::FirstObjectId() + object_id);
+    WriteIndexedObject(kMaxPredefinedObjectIds + object_id);
     return true;
   }
 
@@ -1058,7 +1045,7 @@ bool ApiMessageWriter::WriteCObject(Dart_CObject* object) {
 bool ApiMessageWriter::WriteCObjectRef(Dart_CObject* object) {
   if (IsCObjectMarked(object)) {
     intptr_t object_id = GetMarkedCObjectMark(object);
-    WriteIndexedObject(SnapshotWriter::FirstObjectId() + object_id);
+    WriteIndexedObject(kMaxPredefinedObjectIds + object_id);
     return true;
   }
 
@@ -1096,7 +1083,7 @@ bool ApiMessageWriter::WriteForwardedCObject(Dart_CObject* object) {
 
   // Write out the serialization header value for this object.
   intptr_t object_id = GetMarkedCObjectMark(object);
-  WriteInlinedObjectHeader(SnapshotWriter::FirstObjectId() + object_id);
+  WriteInlinedObjectHeader(kMaxPredefinedObjectIds + object_id);
   // Write out the class and tags information.
   WriteIndexedObject(kArrayCid);
   WriteTags(0);

@@ -280,6 +280,23 @@ class DeferredLoadTask extends CompilerTask {
 
         elements.add(dependency);
       }
+
+      void registerTypeArgumentsAsDependencies(DartType type) {
+        Element dependency = type.element;
+        if (dependency == null || dependency.isErroneous ||
+            dependency.isTypeVariable) {
+          return;
+        }
+        elements.add(dependency);
+        if (type is GenericType) {
+          type.typeArguments.forEach(registerTypeArgumentsAsDependencies);
+        }
+      }
+
+      treeElements.forEachType((Node node, DartType type) {
+        if (node is NewExpression) registerTypeArgumentsAsDependencies(type);
+      });
+
       treeElements.forEachConstantNode((Node node, _) {
         // Explicitly depend on the backend constants.
         ConstantValue value =

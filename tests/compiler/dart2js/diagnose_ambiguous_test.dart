@@ -2,36 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/compiler_new.dart' show Diagnostic;
+import 'package:compiler/src/dart2jslib.dart';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
-import 'memory_source_file_helper.dart';
+import 'memory_compiler.dart';
 
-import 'package:compiler/compiler.dart'
-       show Diagnostic;
-
-main() {
-  Uri script = currentDirectory.resolveUri(Platform.script);
-  Uri libraryRoot = script.resolve('../../../sdk/');
-  Uri packageRoot = script.resolve('./packages/');
-
-  var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
-  var diagnostics = [];
-  void diagnosticHandler(Uri uri, int begin, int end,
-                         String message, Diagnostic kind) {
-    if (kind == Diagnostic.VERBOSE_INFO) {
-      return;
-    }
-    diagnostics.add('$uri:$begin:$end:$message:$kind');
-  }
-
-  Compiler compiler = new Compiler(provider.readStringFromUri,
-                                   (name, extension) => null,
-                                   diagnosticHandler,
-                                   libraryRoot,
-                                   packageRoot,
-                                   ['--analyze-all'],
-                                   {});
+void main() {
+  DiagnosticCollector collector = new DiagnosticCollector();
+  Compiler compiler = compilerFor(
+      MEMORY_SOURCE_FILES,
+      diagnosticHandler: collector,
+      options: ['--analyze-all']);
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+    List<String> diagnostics = <String>[];
+    collector.messages.forEach((DiagnosticMessage message) {
+      if (message.kind == Diagnostic.VERBOSE_INFO) return;
+      diagnostics.add(message.toString());
+    });
     diagnostics.sort();
     var expected = [
         "memory:exporter.dart:43:47:'hest' is defined here.:info",

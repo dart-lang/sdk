@@ -556,6 +556,12 @@ class ResolutionRegistry implements Registry {
     mapping.setSendStructure(node, sendStructure);
   }
 
+  // TODO(johnniwinther): Remove this when [SendStructure]s are part of the
+  // [ResolutionResult].
+  SendStructure getSendStructure(Send node) {
+    return mapping.getSendStructure(node);
+  }
+
   void registerAsyncMarker(FunctionElement element) {
     backend.registerAsyncMarker(element, world, this);
   }

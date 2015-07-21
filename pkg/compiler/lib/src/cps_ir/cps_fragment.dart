@@ -273,14 +273,12 @@ class CpsFragment {
 
   /// Reads the value of the given mutable variable.
   Primitive getMutable(MutableVariable variable) {
-    return letPrim(new GetMutableVariable(variable));
+    return letPrim(new GetMutable(variable));
   }
 
   /// Sets the value of the given mutable variable.
   void setMutable(MutableVariable variable, Primitive value) {
-    SetMutableVariable setter = new SetMutableVariable(variable, value);
-    put(setter);
-    context = setter;
+    letPrim(new SetMutable(variable, value));
   }
 
   /// Declare a new mutable variable.

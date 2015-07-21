@@ -72,19 +72,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
         // switch.
         if (element.isNative ||
             element.isPatched ||
-            libraryName == 'origin library(dart:typed_data)' ||
-            // Using switch or try-finally.
-            library.isInternalLibrary && name == 'unwrapException' ||
-            library.isPlatformLibrary && className == 'IterableBase' ||
-            library.isInternalLibrary && className == 'Closure' ||
-            libraryName == 'origin library(dart:collection)' &&
-               name == 'mapToString' ||
-            libraryName == 'library(dart:html)' && name == 'sanitizeNode' ||
-            className == '_IsolateContext' ||
-            className == 'IsolateNatives' ||
-            className == '_Deserializer' ||
-            name == '_rootRun' ||
-            name == '_microtaskLoopEntry') {
+            libraryName == 'origin library(dart:typed_data)') {
           compiler.log('Using SSA compiler for platform element $element');
           return fallbackCompiler.compile(work);
         }
@@ -130,6 +118,10 @@ class CpsFunctionCompiler implements FunctionCompiler {
       }
     }
     traceGraph("IR Builder", cpsNode);
+    // Eliminating redundant phis before the unsugaring pass will make it
+    // insert fewer getInterceptor calls.
+    new RedundantPhiEliminator().rewrite(cpsNode);
+    traceGraph("Redundant phi elimination", cpsNode);
     new UnsugarVisitor(glue).rewrite(cpsNode);
     traceGraph("Unsugaring", cpsNode);
     return cpsNode;
@@ -181,14 +173,15 @@ class CpsFunctionCompiler implements FunctionCompiler {
       assert(checkCpsIntegrity(cpsNode));
     }
 
-    applyCpsPass(new RedundantPhiEliminator());
     TypePropagator typePropagator = new TypePropagator(compiler);
     applyCpsPass(typePropagator);
     dumpTypedIR(cpsNode, typePropagator);
     applyCpsPass(new ShrinkingReducer());
+    applyCpsPass(new MutableVariableEliminator());
     applyCpsPass(new RedundantJoinEliminator());
     applyCpsPass(new RedundantPhiEliminator());
     applyCpsPass(new ShrinkingReducer());
+    applyCpsPass(new LetSinker());
 
     return cpsNode;
   }

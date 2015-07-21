@@ -1,3 +1,15 @@
+## 0.25.3-alpha.0
+
+* Add hook for listening to implicitly analyzed files
+* Add a PathFilter and AnalysisOptionsProvider utility classes to aid
+  clients in excluding files from analysis when directed to do so by an
+  options file.
+
+## 0.25.2
+
+* Enable null-aware operators (DEP 9) by default.
+* Generic method support in the element model.
+
 ## 0.25.2-alpha.1
 
 * `dart:sdk` extension `.sdkext` changed to `_sdkext` (to play nicer with pub).

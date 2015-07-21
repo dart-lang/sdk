@@ -262,7 +262,7 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
     if (element != null) {
       Source source = element.source;
       if (element.context.exists(source)) {
-        computer._addRegion_tokenStart_nodeEnd(node.keyword, node.uri, element);
+        computer._addRegionForNode(node.uri, element);
       }
     }
   }

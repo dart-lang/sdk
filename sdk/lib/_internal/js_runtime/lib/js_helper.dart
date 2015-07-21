@@ -1271,7 +1271,8 @@ class Primitives {
     var jsFunction = JS('var', '#[#]', function, selectorName);
     if (jsFunction == null) {
       var interceptor = getInterceptor(function);
-      jsFunction = JS('', '#["call*"]', interceptor);
+      jsFunction = JS('', '#[#]', interceptor,
+          JS_GET_NAME(JsGetName.CALL_CATCH_ALL));
 
       if (jsFunction == null) {
         return functionNoSuchMethod(function, arguments, null);

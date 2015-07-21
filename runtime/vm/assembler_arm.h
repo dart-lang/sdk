@@ -910,13 +910,13 @@ class Assembler : public ValueObject {
   // allocation stats. These are separate assembler macros so we can
   // avoid a dependent load too nearby the load of the table address.
   void LoadAllocationStatsAddress(Register dest,
-                                  intptr_t cid);
+                                  intptr_t cid,
+                                  bool inline_isolate = true);
   void IncrementAllocationStats(Register stats_addr,
                                 intptr_t cid,
                                 Heap::Space space);
   void IncrementAllocationStatsWithSize(Register stats_addr_reg,
                                         Register size_reg,
-                                        intptr_t cid,
                                         Heap::Space space);
 
   Address ElementAddressForIntIndex(bool is_load,

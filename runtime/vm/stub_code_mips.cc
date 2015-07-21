@@ -728,7 +728,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 
   Heap* heap = isolate->heap();
   const intptr_t cid = kArrayCid;
-  Heap::Space space = heap->SpaceForAllocation(cid);
+  Heap::Space space = Heap::SpaceForAllocation(cid);
   __ LoadImmediate(T3, heap->TopAddress(space));
   __ lw(T0, Address(T3, 0));  // Potential new object start.
 
@@ -982,7 +982,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ Comment("AllocateContext");
   if (FLAG_inline_alloc) {
     Label slow_case;
-    Heap* heap = Isolate::Current()->heap();
     // First compute the rounded instance size.
     // T1: number of context variables.
     intptr_t fixed_size = sizeof(RawContext) + kObjectAlignment - 1;
@@ -997,9 +996,10 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // T1: number of context variables.
     // T2: object size.
     const intptr_t cid = kContextCid;
-    Heap::Space space = heap->SpaceForAllocation(cid);
-    __ LoadImmediate(T5, heap->TopAddress(space));
-    __ lw(V0, Address(T5, 0));
+    Heap::Space space = Heap::SpaceForAllocation(cid);
+    __ LoadIsolate(T5);
+    __ lw(T5, Address(T5, Isolate::heap_offset()));
+    __ lw(V0, Address(T5, Heap::TopOffset(space)));
     __ addu(T3, T2, V0);
 
     // Check if the allocation fits into the remaining space.
@@ -1007,8 +1007,8 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // T1: number of context variables.
     // T2: object size.
     // T3: potential next object start.
-    __ LoadImmediate(TMP, heap->EndAddress(space));
-    __ lw(CMPRES1, Address(TMP, 0));
+    // T5: heap.
+    __ lw(CMPRES1, Address(T5, Heap::EndOffset(space)));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
@@ -1021,9 +1021,11 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // T1: number of context variables.
     // T2: object size.
     // T3: next object start.
-    __ sw(T3, Address(T5, 0));
+    // T5: heap.
+    __ sw(T3, Address(T5, Heap::TopOffset(space)));
     __ addiu(V0, V0, Immediate(kHeapObjectTag));
-    __ UpdateAllocationStatsWithSize(cid, T2, T5, space);
+    __ UpdateAllocationStatsWithSize(cid, T2, T5, space,
+                                     /* inline_isolate = */ false);
 
     // Calculate the size tag.
     // V0: new object.
@@ -1191,7 +1193,7 @@ void StubCode::GenerateAllocationStubForClass(
     // next object start and initialize the allocated object.
     // T1: instantiated type arguments (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
-    Heap::Space space = heap->SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::SpaceForAllocation(cls.id());
     __ LoadImmediate(T5, heap->TopAddress(space));
     __ lw(T2, Address(T5));
     __ LoadImmediate(T4, instance_size);

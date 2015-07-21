@@ -236,6 +236,7 @@ WebPlatformTest/dom/nodes/DOMImplementation-createHTMLDocument_t01: CompileTimeE
 WebPlatformTest/dom/nodes/Document-createElement_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/loader/loadInProgress_t01: Skip # Issue 23466
+LayoutTests/fast/dom/css-innerHTML_t01: SkipByDesign # Test is incorrect.
 
 [ $compiler == dart2js && $checked ]
 Language/13_Statements/09_Switch_A05_t01: Fail # Missing type check in switch expression
@@ -1265,9 +1266,7 @@ WebPlatformTest/html-imports/link-import_t02: RuntimeError # Please triage this 
 WebPlatformTest/html-imports/loading-import_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/innerhtml-on-templates/innerhtml_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/generating-of-implied-end-tags_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/template-end-tag-without-start-one_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-the-token/template-owner-document_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Please triage this failure
@@ -2165,7 +2164,6 @@ LayoutTests/fast/dom/click-method-on-html-element_t01: RuntimeError # Please tri
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/containerNode_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/css-delete-doc_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/css-innerHTML_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-mediarule-functions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-rule-functions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-selectorText_t01: RuntimeError # Please triage this failure
@@ -2903,7 +2901,7 @@ WebPlatformTest/html-templates/innerhtml-on-templates/innerhtml_t01: RuntimeErro
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/generating-of-implied-end-tags_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-the-token/template-owner-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/node-document-changes_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01 : RuntimeError # In Firefox, setting innerHTML on a Frameset element does nothing.
 WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: RuntimeError # Please triage this failure
@@ -3989,7 +3987,6 @@ LayoutTests/fast/writing-mode/positionForPoint_t01: RuntimeError # Please triage
 LayoutTests/fast/writing-mode/table-hit-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/writing-mode/vertical-font-vmtx-units-per-em_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-get_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-html-document-responsetype-quirks_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-xml-text-responsetype_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-arraybuffer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open-sync-request_t01: RuntimeError # Please triage this failure
@@ -4185,10 +4182,8 @@ WebPlatformTest/html-imports/loading-import_t01: RuntimeError # Please triage th
 WebPlatformTest/html-templates/definitions/template-contents-owner-test-001_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/innerhtml-on-templates/innerhtml_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/generating-of-implied-end-tags_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/template-end-tag-without-start-one_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-the-token/template-owner-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/node-document-changes_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Please triage this failure
@@ -5500,7 +5495,6 @@ WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-body-i
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-body-insertion-mode/ignore-html-token_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-body-insertion-mode/start-tag-body_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/generating-of-implied-end-tags_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/template-end-tag-without-start-one_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-table-insertion-mode/end-tag-table_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/appending-to-a-template/template-child-nodes_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01: RuntimeError # Please triage this failure
@@ -5510,7 +5504,7 @@ WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-th
 WebPlatformTest/html-templates/serializing-html-templates/outerhtml_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/content-attribute_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/node-document-changes_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01 : RuntimeError # In Safari mobile sim, setting innerHTML on a Frameset element does nothing.
 WebPlatformTest/html-templates/template-element/template-content-node-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: RuntimeError # Please triage this failure
@@ -6445,7 +6439,6 @@ LayoutTests/fast/dom/createDocumentType-ownerDocument_t01: RuntimeError # Please
 LayoutTests/fast/dom/createElementNS-namespace-errors_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/createElement_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-delete-doc_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/css-innerHTML_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-insert-import-rule-twice_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-insert-import-rule_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-mediarule-functions_t01: RuntimeError # Please triage this failure
@@ -7518,7 +7511,7 @@ WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-th
 WebPlatformTest/html-templates/serializing-html-templates/outerhtml_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/content-attribute_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/node-document-changes_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01 : RuntimeError # In IE, setting innerHTML on a Frameset element does nothing.
 WebPlatformTest/html-templates/template-element/template-content-node-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: Skip # Times out. Please triage this failure
@@ -8440,7 +8433,6 @@ LayoutTests/fast/dom/createDocumentType-ownerDocument_t01: RuntimeError # Please
 LayoutTests/fast/dom/createElementNS-namespace-errors_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/createElement_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-delete-doc_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/css-innerHTML_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-insert-import-rule-twice_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-insert-import-rule_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-mediarule-functions_t01: RuntimeError # Please triage this failure
@@ -9079,7 +9071,6 @@ LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open-sync-req
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-sync-request_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-set-responsetype_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-withcredentials-before-open_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/cz_20030217_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/kd_20010423_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/namespace-nodes_t01: RuntimeError # Please triage this failure
@@ -9283,8 +9274,7 @@ LibTest/html/Window/requestFileSystem_A02_t01: RuntimeError # Please triage this
 LibTest/html/Window/resizeBy_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Window/resizeTo_A01_t01: RuntimeError # Please triage this failure
 LibTest/math/sqrt_A02_t02: Skip # Times out. Please triage this failure
-LibTest/typed_data/ByteData/ByteData.view_A01_t01: RuntimeError # Please triage this failure
-LibTest/typed_data/ByteData/offsetInBytes_A01_t01: RuntimeError # Please triage this failure
+LibTest/typed_data/ByteData/ByteData.view_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/typed_data/Float32List/removeWhere_A01_t01: Skip # Times out. Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: RuntimeError # Please triage this failure
 LibTest/typed_data/Int32List/lastWhere_A01_t01: Skip # Times out. Please triage this failure
@@ -9387,7 +9377,7 @@ WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-th
 WebPlatformTest/html-templates/serializing-html-templates/outerhtml_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/content-attribute_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/node-document-changes_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01 : RuntimeError # In IE, setting innerHTML on a Frameset element does nothing.
 WebPlatformTest/html-templates/template-element/template-content-node-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: Skip # Times out. Please triage this failure
@@ -9604,299 +9594,13 @@ Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: RuntimeError # Pleas
 Language/12_Expressions/13_Property_Extraction_A03_t01: RuntimeError # Cannot read property 'call' of undefined
 Language/12_Expressions/13_Property_Extraction_A03_t02: RuntimeError # Cannot read property 'call' of undefined
 Language/12_Expressions/13_Property_Extraction_A03_t03: RuntimeError # Cannot read property 'call' of undefined
-Language/12_Expressions/13_Spawning_an_Isolate_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A01_t01: RuntimeError # Cannot read property 'call' of undefined
 Language/12_Expressions/30_Identifier_Reference_A09_t03: Crash # (i=0): For-loop variable captured in loop header
 Language/13_Statements/06_For_A01_t07: Crash # unsupported operation on erroneous element
 Language/13_Statements/12_Labels_A03_t04: Crash # (switch (i){L:case 0:flag=true;break;case 2:continue L;}): continue to a labeled switch case
 Language/13_Statements/14_Continue_A02_t12: Crash # (switch (2){L:case 1:flag=true;break;case 2:continue L;}): continue to a labeled switch case
 Language/13_Statements/14_Continue_A02_t13: Crash # (switch (2){case 2:continue L;L:case 1:flag=true;}): continue to a labeled switch case
-Language/14_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Crash # The null object does not have a getter 'name'.
-Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: Crash # The null object does not have a getter 'name'.
-LayoutTests/fast/canvas/webgl/webgl-specific_t01: Crash # The null object does not have a getter 'name'.
-LibTest/async/Completer/Completer.sync_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Completer/completeError_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Completer/completeError_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Completer/completeError_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Completer/completeError_A01_t04: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Completer/completeError_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Completer/completeError_A03_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Completer/complete_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Completer/complete_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Completer/complete_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Completer/complete_A01_t04: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Completer/complete_A01_t05: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Completer/complete_A01_t06: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Completer/complete_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Completer/complete_A02_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Completer/isCompleted_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future.delayed_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future.delayed_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future.delayed_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future.error_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future.microtask_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future.microtask_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future.microtask_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future.microtask_A01_t04: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future.sync_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future.sync_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future.sync_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future.sync_A01_t04: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future.value_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future.value_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/Future_A01_t04: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/asStream_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/asStream_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/asStream_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/asStream_A02_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/catchError_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/catchError_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/catchError_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/catchError_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/catchError_A03_t02: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Future/catchError_A03_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/catchError_A03_t04: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/catchError_A03_t05: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/forEach_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/forEach_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/forEach_A03_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Future/then_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/then_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/then_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/then_A01_t04: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/then_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/then_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/then_A03_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/then_A04_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/then_A05_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/then_A05_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/then_A05_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/wait_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Future/wait_A01_t03: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Future/wait_A01_t04: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Future/wait_A01_t05: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Future/wait_A01_t06: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Future/wait_A01_t07: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Future/wait_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/wait_A02_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/whenComplete_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/whenComplete_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/whenComplete_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/whenComplete_A04_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Future/whenComplete_A04_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/Stream.eventTransformed_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/Stream.eventTransformed_A01_t02: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/Stream.fromFuture_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/Stream.fromFuture_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/Stream.fromFuture_A02_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/Stream.fromIterable_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/Stream.fromIterable_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/Stream.fromIterable_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/Stream.periodic_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/Stream.periodic_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/Stream.periodic_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/Stream_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/any_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/any_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/any_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/asBroadcastStream_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/asBroadcastStream_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/asBroadcastStream_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/asBroadcastStream_A01_t04: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/asBroadcastStream_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/asBroadcastStream_A03_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/asBroadcastStream_A03_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/asBroadcastStream_A04_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/asBroadcastStream_A04_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/asBroadcastStream_A04_t03: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/contains_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/contains_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/contains_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/distinct_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/distinct_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/drain_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/drain_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/drain_A02_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/elementAt_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/elementAt_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/elementAt_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/elementAt_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/every_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/every_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/expand_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/firstWhere_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/firstWhere_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/firstWhere_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/firstWhere_A03_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/first_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/first_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/first_A02_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/first_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/fold_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/fold_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/forEach_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/forEach_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/forEach_A02_t02: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/handleError_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/handleError_A02_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/handleError_A03_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/handleError_A04_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/handleError_A04_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/handleError_A04_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/isBroadcast_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/isBroadcast_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/isEmpty_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/join_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/join_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/join_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/join_A02_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/lastWhere_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/lastWhere_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/lastWhere_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/lastWhere_A04_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/last_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/last_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/last_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/length_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/listen_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/listen_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/listen_A03_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/listen_A04_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/listen_A05_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/listen_A05_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/listen_A05_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/listen_A06_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/map_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/pipe_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/reduce_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/reduce_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/reduce_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/singleWhere_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/singleWhere_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/single_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/single_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/skipWhile_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/skip_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/takeWhile_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/take_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/take_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/take_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/toList_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/toSet_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/transform_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/transform_A01_t02: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Stream/where_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Stream/where_A01_t02: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamController/StreamController.broadcast_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamController/StreamController.broadcast_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/StreamController.broadcast_A04_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/StreamController.broadcast_A05_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/StreamController.broadcast_A06_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/StreamController.broadcast_A07_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/StreamController.broadcast_A07_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/StreamController.broadcast_A08_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/StreamController_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/StreamController_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/StreamController_A03_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamController/StreamController_A04_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/StreamController_A05_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/StreamController_A06_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/StreamController_A06_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/addError_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/addError_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/addStream_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamController/addStream_A02_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamController/addStream_A02_t02: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamController/addStream_A03_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamController/addStream_A03_t02: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamController/add_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/close_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/close_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/done_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/done_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/done_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/hasListener_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/hasListener_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/isClosed_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/isClosed_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/isPaused_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/isPaused_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/isPaused_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/sink_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamController/stream_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamIterator/StreamIterator_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamIterator/cancel_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamIterator/current_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamIterator/moveNext_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamIterator/moveNext_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamSink/addError_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamSink/addStream_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamSink/addStream_A01_t02: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamSink/addStream_A01_t03: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamSink/addStream_A01_t04: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamSink/addStream_A01_t05: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamSink/add_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamSink/close_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamSink/done_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamTransformer/StreamTransformer.fromHandlers_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamTransformer/StreamTransformer.fromHandlers_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamTransformer/StreamTransformer.fromHandlers_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamTransformer/StreamTransformer.fromHandlers_A01_t04: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamTransformer/StreamTransformer_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamTransformer/StreamTransformer_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamTransformer/StreamTransformer_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamTransformer/StreamTransformer_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamTransformer/StreamTransformer_A02_t02: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamTransformer/StreamTransformer_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/StreamTransformer/StreamTransformer_A03_t02: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/StreamTransformer/bind_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Timer/Timer.periodic_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Timer/Timer.periodic_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Timer/Timer_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Timer/Timer_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Timer/cancel_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Timer/isActive_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Timer/isActive_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Timer/run_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Timer/run_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/bindBinaryCallback_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/bindBinaryCallback_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/bindCallback_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/bindCallback_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/bindUnaryCallback_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/bindUnaryCallback_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/createPeriodicTimer_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/createTimer_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/current_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/current_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/fork_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/handleUncaughtError_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/handleUncaughtError_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/handleUncaughtError_A01_t03: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Zone/handleUncaughtError_A01_t04: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/inSameErrorZone_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/inSameErrorZone_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/inSameErrorZone_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/inSameErrorZone_A01_t04: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/inSameErrorZone_A01_t05: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/operator_subscript_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/async/Zone/parent_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/registerBinaryCallback_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/registerCallback_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/registerUnaryCallback_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/runBinaryGuarded_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/runBinary_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/runGuarded_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/runUnaryGuarded_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/runUnary_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/run_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/scheduleMicrotask_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/async/Zone/scheduleMicrotask_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
+LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Crash # (lazy.method()): deferred access is not implemented
 LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Stack Overflow
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # Stack Overflow
 LibTest/core/Invocation/isAccessor_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
@@ -9909,108 +9613,10 @@ LibTest/core/Invocation/memberName_A01_t01: Crash # Class 'PartialMethodElement'
 LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/List/List_class_A01_t02: Crash # Stack Overflow
-LibTest/core/Stopwatch/elapsedInMs_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/core/Stopwatch/elapsedInUs_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/core/Stopwatch/elapsedTicks_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/core/Stopwatch/elapsedTicks_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/core/Stopwatch/elapsedTicks_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/core/Stopwatch/elapsed_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/core/Stopwatch/elapsed_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/core/Stopwatch/elapsed_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/core/Stopwatch/start_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/core/Stopwatch/start_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/core/Stopwatch/start_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/core/Stopwatch/stop_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Pass # Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Pass # Please triage this failure.
-LibTest/isolate/Isolate/spawnUri_A02_t02: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/Isolate/spawnUri_A02_t03: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/Isolate/spawnUri_A02_t04: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/Isolate/spawn_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/Isolate/spawn_A01_t02: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/Isolate/spawn_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/Isolate/spawn_A01_t04: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/Isolate/spawn_A01_t05: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/Isolate/spawn_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/RawReceivePort/RawReceivePort_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/RawReceivePort/RawReceivePort_A01_t02: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/RawReceivePort/close_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/RawReceivePort/handler_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/RawReceivePort/sendPort_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/ReceivePort.fromRawReceivePort_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/ReceivePort.fromRawReceivePort_A02_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/ReceivePort_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/any_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/any_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/asBroadcastStream_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/asBroadcastStream_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/asBroadcastStream_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/asBroadcastStream_A01_t04: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/asBroadcastStream_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/asBroadcastStream_A03_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/asBroadcastStream_A03_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/asBroadcastStream_A04_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/asBroadcastStream_A04_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/asBroadcastStream_A04_t03: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/close_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/close_A02_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/contains_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/distinct_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/distinct_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/drain_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/drain_A02_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/elementAt_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/elementAt_A03_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/every_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/expand_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/firstWhere_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/firstWhere_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/firstWhere_A03_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/first_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/first_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/first_A02_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/fold_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/fold_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/forEach_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/isBroadcast_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/isBroadcast_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/isEmpty_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/join_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/join_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/lastWhere_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/lastWhere_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/lastWhere_A04_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/last_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/last_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/length_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/listen_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/map_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/pipe_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/reduce_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/reduce_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/reduce_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/singleWhere_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/singleWhere_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/single_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/single_A02_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/skipWhile_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/skip_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/takeWhile_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/take_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/take_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/take_A01_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/toList_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/toSet_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/transform_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/transform_A01_t02: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/where_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-LibTest/isolate/ReceivePort/where_A01_t02: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/SendPort/hashCode_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/SendPort/operator_equality_A01_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/SendPort/send_A01_t04: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-LibTest/isolate/SendPort/send_A02_t01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
 LibTest/typed_data/Float32List/setAll_A01_t01: RuntimeError # this.get$length is not a function
 LibTest/typed_data/Float32List/setRange_A01_t01: RuntimeError # this.get$length is not a function
 LibTest/typed_data/Float32List/setRange_A02_t01: RuntimeError # this.get$length is not a function

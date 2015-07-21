@@ -216,8 +216,10 @@ class AnalysisCache {
 
   /**
    * Remove all information related to the given [target] from this cache.
+   * Return the entry associated with the target, or `null` if there was cache
+   * entry for the target.
    */
-  void remove(AnalysisTarget target) {
+  CacheEntry remove(AnalysisTarget target) {
     int count = _partitions.length;
     for (int i = 0; i < count; i++) {
       CachePartition partition = _partitions[i];
@@ -226,10 +228,10 @@ class AnalysisCache {
           AnalysisEngine.instance.logger
               .logInformation('Removed the cache entry for $target.');
         }
-        partition.remove(target);
-        return;
+        return partition.remove(target);
       }
     }
+    return null;
   }
 
   /**
@@ -896,9 +898,11 @@ abstract class CachePartition {
   }
 
   /**
-   * Remove all information related to the given [target] from this cache.
+   * Remove all information related to the given [target] from this partition.
+   * Return the entry associated with the target, or `null` if there was cache
+   * entry for the target.
    */
-  void remove(AnalysisTarget target) {
+  CacheEntry remove(AnalysisTarget target) {
     for (CacheFlushManager flushManager in _flushManagerMap.values) {
       flushManager.targetRemoved(target);
     }
@@ -907,6 +911,7 @@ abstract class CachePartition {
       entry._invalidateAll();
     }
     _removeIfSource(target);
+    return entry;
   }
 
   /**
@@ -981,19 +986,17 @@ abstract class CachePartition {
   }
 
   /**
-   * If the given [target] is a [Source], removes it from [_sources].
+   * If the given [target] is a [Source], remove it from the list of [_sources].
    */
   void _removeIfSource(AnalysisTarget target) {
     if (target is Source) {
       _sources.remove(target);
-      {
-        String fullName = target.fullName;
-        List<Source> sources = _pathToSources[fullName];
-        if (sources != null) {
-          sources.remove(target);
-          if (sources.isEmpty) {
-            _pathToSources.remove(fullName);
-          }
+      String fullName = target.fullName;
+      List<Source> sources = _pathToSources[fullName];
+      if (sources != null) {
+        sources.remove(target);
+        if (sources.isEmpty) {
+          _pathToSources.remove(fullName);
         }
       }
     }

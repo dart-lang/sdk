@@ -63,6 +63,19 @@ class ThreadRegistry {
     return (FindEntry(thread) != NULL);
   }
 
+  void CheckNotScheduled(Isolate* isolate) {
+    MutexLocker ml(mutex_);
+    for (int i = 0; i < entries_.length(); ++i) {
+      const Entry& entry = entries_[i];
+      if (entry.scheduled) {
+        FATAL3("Isolate %p still scheduled on %p (whose isolate_ is %p)\n",
+               isolate,
+               entry.thread,
+               entry.thread->isolate());
+      }
+    }
+  }
+
   void VisitObjectPointers(ObjectPointerVisitor* visitor) {
     MutexLocker ml(mutex_);
     for (int i = 0; i < entries_.length(); ++i) {

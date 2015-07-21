@@ -176,7 +176,7 @@ class AnalysisCacheTest extends AbstractCacheTest {
     expect(entry2.getValue(result2), 222);
     expect(entry3.getValue(result3), 333);
     // remove entry1, invalidate result2 and remove empty entry2
-    cache.remove(target1);
+    expect(cache.remove(target1), entry1);
     expect(cache.get(target1), isNull);
     expect(cache.get(target2), isNull);
     expect(cache.get(target3), entry3);
@@ -197,7 +197,7 @@ class AnalysisCacheTest extends AbstractCacheTest {
     expect(entry.getValue(result1), 111);
     expect(entry.getValue(result2), 222);
     // remove target, invalidate result2
-    cache.remove(target);
+    expect(cache.remove(target), entry);
     expect(cache.get(target), isNull);
     expect(entry.getState(result2), CacheState.INVALID);
   }
@@ -945,13 +945,21 @@ abstract class CachePartitionTest extends EngineTestCase {
     expect(partition.get(target), entry);
   }
 
-  void test_remove() {
+  void test_remove_absent() {
+    CachePartition partition = createPartition();
+    AnalysisTarget target = new TestSource();
+    expect(partition.get(target), isNull);
+    expect(partition.remove(target), isNull);
+    expect(partition.get(target), isNull);
+  }
+
+  void test_remove_present() {
     CachePartition partition = createPartition();
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);
     partition.put(entry);
     expect(partition.get(target), entry);
-    partition.remove(target);
+    expect(partition.remove(target), entry);
     expect(partition.get(target), isNull);
   }
 }
@@ -1004,6 +1012,12 @@ class UniversalCachePartitionTest extends CachePartitionTest {
     return new UniversalCachePartition(null);
   }
 
+  void test_contains() {
+    UniversalCachePartition partition = new UniversalCachePartition(null);
+    TestSource source = new TestSource();
+    expect(partition.isResponsibleFor(source), isTrue);
+  }
+
   test_dispose() {
     InternalAnalysisContext context = new _InternalAnalysisContextMock();
     CachePartition partition1 = new UniversalCachePartition(context);
@@ -1033,12 +1047,6 @@ class UniversalCachePartitionTest extends CachePartitionTest {
     expect(partition2.get(target2), isNull);
     // result2 is removed from result1
     expect(entry1.getResultData(descriptor1).dependentResults, isEmpty);
-  }
-
-  void test_contains() {
-    UniversalCachePartition partition = new UniversalCachePartition(null);
-    TestSource source = new TestSource();
-    expect(partition.isResponsibleFor(source), isTrue);
   }
 }
 

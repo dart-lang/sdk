@@ -33,15 +33,15 @@ main() {
 }""",
 r"""
 function() {
-  var l = ["hest", ["h", "e", "s", "t"]], i = 0, x, j;
+  var l = ["hest", ["h", "e", "s", "t"]], i = 0, x_, x, j;
   P.print(l.length);
   while (i < l.length) {
     if (i < 0 || i >= l.length)
       H.ioore(l, i);
-    x = l[i];
+    x_ = J.getInterceptor$as(x = l[i]);
     j = 0;
-    while (j < J.getInterceptor$as(x).get$length(x)) {
-      P.print(J.getInterceptor$as(x).$index(x, j));
+    while (j < x_.get$length(x)) {
+      P.print(x_.$index(x, j));
       j = j + 1;
     }
     i = i + 1;

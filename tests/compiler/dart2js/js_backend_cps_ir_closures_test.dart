@@ -20,10 +20,10 @@ main(x) {
 """,
 r"""
 function(x) {
-  var _box_0 = {}, a = new V.main_a(_box_0);
+  var _box_0 = {};
   _box_0._captured_x_0 = x;
   _box_0._captured_x_0 = J.getInterceptor$ns(x = _box_0._captured_x_0).$add(x, "1");
-  P.print(a.call$0());
+  P.print(new V.main_a(_box_0).call$0());
 }"""),
 
   const TestEntry("""
@@ -49,10 +49,10 @@ main() {
 """,
 r"""
 function() {
-  var _box_0 = {}, a = new V.main_closure(_box_0);
+  var _box_0 = {};
   _box_0._captured_x_0 = 122;
   _box_0._captured_x_0 = _box_0._captured_x_0 + 1;
-  P.print(a.call$0());
+  P.print(new V.main_closure(_box_0).call$0());
 }"""),
 
   const TestEntry("""
@@ -68,10 +68,10 @@ main() {
 """,
 r"""
 function() {
-  var _box_0 = {}, a = new V.main_closure(_box_0);
+  var _box_0 = {};
   _box_0._captured_x_0 = 122;
   _box_0._captured_x_0 = _box_0._captured_x_0 + 1;
-  P.print(a.call$0().call$0());
+  P.print(new V.main_closure(_box_0).call$0().call$0());
 }"""),
 
   const TestEntry("""

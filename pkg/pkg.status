@@ -162,7 +162,6 @@ analyzer/test/generated/compile_time_error_code_test: Crash # The null object do
 analyzer/test/generated/element_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/generated/incremental_resolver_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/generated/incremental_scanner_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/generated/java_core_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
 analyzer/test/generated/non_error_resolver_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/generated/parser_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/generated/resolver_test: Crash # The null object does not have a getter '_element'.
@@ -174,8 +173,10 @@ analyzer/test/generated/type_system_test: Crash # The null object does not have 
 analyzer/test/generated/utilities_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/instrumentation/instrumentation_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/parse_compilation_unit_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/source/analysis_options_provider_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/source/package_map_provider_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/source/package_map_resolver_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/source/sdk_ext_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/src/context/cache_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/src/context/context_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/src/task/dart_test: Crash # The null object does not have a getter '_element'.
@@ -190,7 +191,4 @@ analyzer/test/src/task/manager_test: Crash # The null object does not have a get
 analyzer/test/src/task/model_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/src/util/asserts_test: Crash # The null object does not have a getter '_element'.
 analyzer/test/src/util/lru_map_test: Crash # The null object does not have a getter '_element'.
-fixnum/test/int_32_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-fixnum/test/int_64_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-typed_data/test/typed_buffers_test/none: RuntimeError # receiver._addHashTableEntry$2 is not a function
-typed_mock/test/typed_mock_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
+typed_data/test/typed_buffers_test/none: RuntimeError # Please triage this failure.

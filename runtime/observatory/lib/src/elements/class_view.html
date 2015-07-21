@@ -1,4 +1,6 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="action_link.html">
+<link rel="import" href="cpu_profile.html">
 <link rel="import" href="curly_block.html">
 <link rel="import" href="eval_box.html">
 <link rel="import" href="eval_link.html">
@@ -21,6 +23,7 @@
       <isolate-nav-menu isolate="{{ cls.isolate }}"></isolate-nav-menu>
       <library-nav-menu library="{{ cls.library }}"></library-nav-menu>
       <class-nav-menu cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
+      <nav-refresh callback="{{ refreshAllocationProfile }}" label="Refresh Allocation Profile"></nav-refresh>
       <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
@@ -202,6 +205,35 @@
             </div>
           </div>
         </template>
+    </div>
+
+    <hr>
+
+    <div class="content">
+      <h2>Allocations</h2>
+      <div class="memberList">
+        <template if="{{ cls.traceAllocations }}">
+          <div class="memberItem">
+            <div class="memberName">Tracing allocations?</div>
+            <div class="memberValue">
+              <span>Yes</span><action-link label="disable" callback="{{ toggleAllocationTrace }}"></action-link>
+            </div>
+          </div>
+        </template>
+        <template if="{{ !cls.traceAllocations }}">
+          <div class="memberItem">
+            <div class="memberName">Tracing allocations?</div>
+            <div class="memberValue">
+              <span>No</span><action-link label="enable" callback="{{ toggleAllocationTrace }}"></action-link>
+            </div>
+          </div>
+        </template>
+      </div>
+      <div class="flex-row centered">
+        <div class="flex-item-90-percent outlined" style="margin: 16px; margin-left: 8px; margin-right: 8px">
+          <cpu-profile-tree id="cpuProfileTree"></cpu-profile-tree>
+        </div>
+      </div>
     </div>
 
     <hr>

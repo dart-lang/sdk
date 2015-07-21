@@ -50,8 +50,9 @@ import '../js_backend/js_backend.dart' show
 import 'model.dart';
 import 'program_builder/program_builder.dart';
 
-import 'lazy_emitter/emitter.dart' as lazy_js_emitter;
 import 'full_emitter/emitter.dart' as full_js_emitter;
+import 'lazy_emitter/emitter.dart' as lazy_js_emitter;
+import 'startup_emitter/emitter.dart' as startup_js_emitter;
 
 import '../universe/universe.dart' show
     TypeMaskSet,

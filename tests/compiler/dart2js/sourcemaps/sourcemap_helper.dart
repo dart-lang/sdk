@@ -5,8 +5,9 @@
 library sourcemap.helper;
 
 import 'dart:async';
+import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/apiimpl.dart' as api;
-import 'package:compiler/src/dart2jslib.dart' show NullSink;
+import 'package:compiler/src/null_compiler_output.dart' show NullSink;
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/helpers/helpers.dart';
 import 'package:compiler/src/filenames.dart';
@@ -20,10 +21,11 @@ import 'package:compiler/src/source_file_provider.dart';
 import '../memory_compiler.dart';
 import '../output_collector.dart';
 
-class OutputProvider {
+class OutputProvider implements CompilerOutput {
   BufferedEventSink jsMapOutput;
 
-  EventSink<String> call(String name, String extension) {
+  @override
+  EventSink<String> createEventSink(String name, String extension) {
     if (extension == 'js.map') {
       return jsMapOutput = new BufferedEventSink();
     }
@@ -37,7 +39,8 @@ class CloningOutputProvider extends OutputProvider {
   CloningOutputProvider(Uri jsUri, Uri jsMapUri)
     : outputProvider = new RandomAccessFileOutputProvider(jsUri, jsMapUri);
 
-  EventSink<String> call(String name, String extension) {
+  @override
+  EventSink<String> createEventSink(String name, String extension) {
     EventSink<String> output = outputProvider(name, extension);
     if (extension == 'js.map') {
       output = new CloningEventSink(

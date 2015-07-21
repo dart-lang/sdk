@@ -42,8 +42,8 @@ const int DART_RELEVANCE_LOCAL_METHOD = 1057;
 const int DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE = 1056;
 const int DART_RELEVANCE_LOCAL_VARIABLE = 1059;
 const int DART_RELEVANCE_LOW = 500;
-const int DART_RELEVANCE_PARAMETER = 1059;
 const int DART_RELEVANCE_NAMED_PARAMETER = 1060;
+const int DART_RELEVANCE_PARAMETER = 1059;
 
 /**
  * The base class for contributing code completion suggestions.
@@ -222,7 +222,7 @@ class DartCompletionManager extends CompletionManager {
     if (controller == null || controller.isClosed) {
       return;
     }
-    controller.add(new CompletionResult(request.replacementOffset,
+    controller.add(new CompletionResultImpl(request.replacementOffset,
         request.replacementLength, request.suggestions, last));
     if (last) {
       controller.close();

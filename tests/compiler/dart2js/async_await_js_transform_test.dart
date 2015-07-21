@@ -9,15 +9,9 @@ import "package:compiler/src/js_backend/js_backend.dart" show StringBackedName;
 
 import "backend_dart/dart_printer_test.dart" show PrintDiagnosticListener;
 
-void testTransform(String source, String expected) {
+void testTransform(String source, String expected, AsyncRewriterBase rewriter) {
   Fun fun = js(source);
-  Fun rewritten = new AsyncRewriter(
-      null, // The diagnostic helper should not be used in these tests.
-      null,
-      asyncHelper: new VariableUse("thenHelper"),
-      newCompleter: new VariableUse("Completer"),
-      safeVariableName: (String name) => "__$name",
-      bodyName: new StringBackedName("body")).rewrite(fun);
+  Fun rewritten = rewriter.rewrite(fun);
 
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions();
   SimpleJavaScriptPrintingContext context =
@@ -27,8 +21,30 @@ void testTransform(String source, String expected) {
   Expect.stringEquals(expected, context.getText());
 }
 
+void testAsyncTransform(String source, String expected) {
+  testTransform(source, expected, new AsyncRewriter(
+      null, // The diagnostic helper should not be used in these tests.
+      null,
+      asyncHelper: new VariableUse("thenHelper"),
+      newCompleter: new VariableUse("Completer"),
+      safeVariableName: (String name) => "__$name",
+      bodyName: new StringBackedName("body")));
+}
+
+void testSyncStarTransform(String source, String expected) {
+  testTransform(source, expected, new SyncStarRewriter(
+      null,
+      null,
+      endOfIteration: new VariableUse("endOfIteration"),
+      newIterable: new VariableUse("newIterable"),
+      yieldStarExpression: new VariableUse("yieldStar"),
+      uncaughtErrorExpression: new VariableUse("uncaughtError"),
+      safeVariableName: (String name) => "__$name",
+      bodyName: new StringBackedName("body")));
+}
+
 main() {
-  testTransform("""
+  testAsyncTransform("""
 function(a) async {
   print(this.x); // Ensure `this` is translated in the helper function.
   await foo();
@@ -59,7 +75,7 @@ function(a) {
   return thenHelper(null, body, __completer, null);
 }""");
 
-  testTransform("""
+  testAsyncTransform("""
   function(b) async {
     try {
       __outer: while (true) { // Overlapping label name.
@@ -183,7 +199,7 @@ function(b) {
   return thenHelper(null, body, __completer, null);
 }""");
 
-    testTransform("""
+  testAsyncTransform("""
 function(c) async {
   var a, b, c, d, e, f;
   a = b++; // post- and preincrements.
@@ -238,7 +254,7 @@ function(c) {
   return thenHelper(null, body, __completer, null);
 }""");
 
-  testTransform("""
+  testAsyncTransform("""
   function(d2) async {
     var a, b, c, d, e, f, g, h; // empty initializer
     a = foo1() || await foo2(); // short circuiting operators
@@ -371,7 +387,7 @@ function(d2) {
   return thenHelper(null, body, __completer, null);
 }""");
 
-    testTransform("""
+  testAsyncTransform("""
 function(x, y) async {
   while (true) {
     switch(y) { // Switch with no awaits in case key expressions
@@ -465,7 +481,7 @@ function(x, y) {
   return thenHelper(null, body, __completer, null);
 }""");
 
-  testTransform("""
+  testAsyncTransform("""
   function(f) async {
     do {
       var a = await foo();
@@ -526,7 +542,7 @@ function(f) {
   return thenHelper(null, body, __completer, null);
 }""");
 
-    testTransform("""
+  testAsyncTransform("""
 function(g) async {
   for (var i = 0; i < await foo1(); i += await foo2()) {
     if (foo(i))
@@ -616,7 +632,7 @@ function(g) {
   return thenHelper(null, body, __completer, null);
 }""");
 
-  testTransform("""
+  testAsyncTransform("""
   function(a, h) async {
     var x = {"a": foo1(), "b": await foo2(), "c": foo3()};
     x["a"] = 2; // Different assignments
@@ -691,7 +707,7 @@ function(a, h) {
   return thenHelper(null, body, __completer, null);
 }""");
 
-    testTransform("""
+  testAsyncTransform("""
 function(c, i) async {
   try {
     var x = c ? await foo() : foo(); // conditional
@@ -808,7 +824,7 @@ function(c, i) {
   return thenHelper(null, body, __completer, null);
 }""");
 
-  testTransform("""
+  testAsyncTransform("""
   function(x, y, j) async {
     print(await(foo(x))); // calls
     (await print)(foo(x));
@@ -874,7 +890,7 @@ function(x, y, j) {
   return thenHelper(null, body, __completer, null);
 }""");
 
-    testTransform("""
+  testAsyncTransform("""
 function(x, y, k) async {
   while (await(foo())) {
     lab: { // labelled statement
@@ -1013,7 +1029,8 @@ function(x, y, k) {
   }
   return thenHelper(null, body, __completer, null);
 }""");
-  testTransform("""
+
+  testAsyncTransform("""
   function(l) async {
     switch(await l) {
       case 1:
@@ -1062,7 +1079,7 @@ function(l) {
   return thenHelper(null, body, __completer, null);
 }""");
 
-  testTransform("""
+  testAsyncTransform("""
   function(m) async {
     var exception = 1;
     try {
@@ -1139,5 +1156,39 @@ function(m) {
       }
   }
   return thenHelper(null, body, __completer, null);
+}""");
+
+  testSyncStarTransform("""
+function(a) sync* {
+  // Ensure that return of a value is treated as first evaluating the value, and
+  // then returning.
+  return foo();
+}""", """
+function(__a) {
+  return new newIterable(function() {
+    var a = __a;
+    var __goto = 0, __handler = 2, __currentError;
+    return function body(__errorCode, __result) {
+      if (__errorCode === 1) {
+        __currentError = __result;
+        __goto = __handler;
+      }
+      while (true)
+        switch (__goto) {
+          case 0:
+            // Function start
+            foo();
+            // goto return
+            __goto = 1;
+            break;
+          case 1:
+            // return
+            return endOfIteration();
+          case 2:
+            // rethrow
+            return uncaughtError(__currentError);
+        }
+    };
+  });
 }""");
 }

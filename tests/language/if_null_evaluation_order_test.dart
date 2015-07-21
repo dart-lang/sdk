@@ -8,8 +8,6 @@
 // Therefore, e1 should be evaluated first; if it is non-null, e2 should not
 // be evaluated.
 
-// SharedOptions=--enable-null-aware-operators
-
 import "package:expect/expect.dart";
 
 void bad() {

@@ -15,6 +15,13 @@ import 'package:dart2js_incremental/dart2js_incremental.dart' show
     IncrementalCompilationFailed,
     IncrementalCompiler;
 
+import 'package:compiler/compiler_new.dart' show
+    CompilerOutput;
+
+import 'package:compiler/src/old_to_new_api.dart' show
+    LegacyCompilerDiagnostics,
+    LegacyCompilerInput;
+
 import 'package:compiler/src/source_file_provider.dart' show
     FormattingDiagnosticHandler;
 
@@ -104,8 +111,9 @@ compileToStream(
     IncrementalCompiler compiler = new IncrementalCompiler(
         libraryRoot: libraryRoot,
         packageRoot: packageRoot,
-        inputProvider: inputProvider,
-        diagnosticHandler: resilientDiagnosticHandler,
+        inputProvider: new LegacyCompilerInput(inputProvider),
+        diagnosticHandler:
+            new LegacyCompilerDiagnostics(resilientDiagnosticHandler),
         outputProvider: outputProvider);
 
     bool success = await compiler.compile(originalInput);
@@ -142,10 +150,10 @@ compileToStream(
 }
 
 /// Output provider which collects output in [output].
-class OutputProvider {
+class OutputProvider implements CompilerOutput {
   final Map<String, String> output = new Map<String, String>();
 
-  EventSink<String> call(String name, String extension) {
+  EventSink<String> createEventSink(String name, String extension) {
     return new StringEventSink((String data) {
       output['$name.$extension'] = data;
     });

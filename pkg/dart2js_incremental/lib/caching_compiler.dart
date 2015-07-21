@@ -7,9 +7,9 @@ part of dart2js_incremental;
 /// Do not call this method directly. It will be made private.
 // TODO(ahe): Make this method private.
 Future<Compiler> reuseCompiler(
-    {DiagnosticHandler diagnosticHandler,
-     CompilerInputProvider inputProvider,
-     CompilerOutputProvider outputProvider,
+    {CompilerDiagnostics diagnosticHandler,
+     CompilerInput inputProvider,
+     CompilerOutput outputProvider,
      List<String> options: const [],
      Compiler cachedCompiler,
      Uri libraryRoot,
@@ -28,7 +28,7 @@ Future<Compiler> reuseCompiler(
     throw 'Missing diagnosticHandler';
   }
   if (outputProvider == null) {
-    outputProvider = NullSink.outputProvider;
+    outputProvider = const NullCompilerOutput();
   }
   if (environment == null) {
     environment = {};
@@ -185,10 +185,10 @@ class StringEventSink implements EventSink<String> {
 }
 
 /// Output provider which collect output in [output].
-class OutputProvider {
+class OutputProvider implements CompilerOutput {
   final Map<String, String> output = new Map<String, String>();
 
-  EventSink<String> call(String name, String extension) {
+  EventSink<String> createEventSink(String name, String extension) {
     return new StringEventSink((String data) {
       output['$name.$extension'] = data;
     });

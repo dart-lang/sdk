@@ -697,6 +697,8 @@ abstract class VM extends ServiceObjectOwner {
   static const kIsolateStream = 'Isolate';
   static const kDebugStream = 'Debug';
   static const kGCStream = 'GC';
+  static const kStdoutStream = 'Stdout';
+  static const kStderrStream = 'Stderr';
   static const _kGraphStream = '_Graph';
 
   /// Returns a single-subscription Stream object for a VM event stream.
@@ -936,7 +938,7 @@ class HeapSnapshot {
     var result = [];
     for (ObjectVertex v in graph.getMostRetained(classId: classId,
                                                  limit: limit)) {
-      result.add(isolate.getObjectByAddress(v.address.toRadixString(16))
+      result.add(isolate.getObjectByAddress(v.address)
                         .then((ServiceObject obj) {
         if (obj is Instance) {
           // TODO(rmacnak): size/retainedSize are properties of all heap
@@ -1620,11 +1622,13 @@ class ServiceEvent extends ServiceObject {
   @observable Breakpoint breakpoint;
   @observable Frame topFrame;
   @observable Instance exception;
+  @observable Instance asyncContinuation;
   @observable ServiceObject inspectee;
   @observable ByteData data;
   @observable int count;
   @observable String reason;
   @observable String exceptions;
+  @observable String bytesAsString;
   int chunkIndex, chunkCount, nodeCount;
 
   @observable bool get isPauseEvent {
@@ -1658,6 +1662,9 @@ class ServiceEvent extends ServiceObject {
     if (map['exception'] != null) {
       exception = map['exception'];
     }
+    if (map['_asyncContinuation'] != null) {
+      asyncContinuation = map['_asyncContinuation'];
+    }
     if (map['inspectee'] != null) {
       inspectee = map['inspectee'];
     }
@@ -1679,6 +1686,10 @@ class ServiceEvent extends ServiceObject {
     if (map['_debuggerSettings'] != null &&
         map['_debuggerSettings']['_exceptions'] != null) {
       exceptions = map['_debuggerSettings']['_exceptions'];
+    }
+    if (map['bytes'] != null) {
+      var bytes = decodeBase64(map['bytes']);
+      bytesAsString = UTF8.decode(bytes);
     }
   }
 
@@ -1896,7 +1907,7 @@ class Class extends ServiceObject with Coverage {
   final AllocationCount promotedByLastNewGC = new AllocationCount();
 
   @observable bool get hasNoAllocations => newSpace.empty && oldSpace.empty;
-
+  @observable bool traceAllocations = false;
   @reflectable final fields = new ObservableList<Field>();
   @reflectable final functions = new ObservableList<ServiceFunction>();
 
@@ -1963,6 +1974,9 @@ class Class extends ServiceObject with Coverage {
     }
     error = map['error'];
 
+    traceAllocations =
+        (map['_traceAllocations'] != null) ? map['_traceAllocations'] : false;
+
     var allocationStats = map['_allocationStats'];
     if (allocationStats != null) {
       newSpace.update(allocationStats['new']);
@@ -1983,6 +1997,19 @@ class Class extends ServiceObject with Coverage {
 
   Future<ServiceObject> evaluate(String expression) {
     return isolate._eval(this, expression);
+  }
+
+  Future<ServiceObject> setTraceAllocations(bool enable) {
+    return isolate.invokeRpc('_setTraceClassAllocation', {
+        'enable': enable,
+        'classId': id,
+      });
+  }
+
+  Future<ServiceObject> getAllocationSamples([String tags = 'None']) {
+    var params = { 'tags': tags,
+                   'classId': id };
+    return isolate.invokeRpc('_getAllocationSamples', params);
   }
 
   String toString() => 'Class($vmName)';

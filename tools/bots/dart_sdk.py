@@ -42,10 +42,12 @@ def BuildDartdocAPIDocs(dirname):
   packages_dir = os.path.join(bot_utils.DART_DIR,
                               utils.GetBuildRoot(BUILD_OS, 'release', 'ia32'),
                               'packages')
+  footer_file = os.path.join(bot_utils.DART_DIR,
+                              'tools', 'bots', 'dartdoc_footer.html')
   with bot.BuildStep('Build API docs by dartdoc'):
     subprocess.call([dart_exe, '--package-root=' + packages_dir, dartdoc_dart, 
-                     '--sdk-docs','--output', dirname, '--dart-sdk', dart_sdk, 
-                     '--package-root=%s' % packages_dir], 
+                    '--sdk-docs','--output', dirname, '--dart-sdk', dart_sdk, 
+                    '--footer' , footer_file, '--package-root=%s' % packages_dir], 
                      stdout=open(os.devnull, 'wb'))
 
 def CreateUploadVersionFile():

@@ -297,8 +297,8 @@ class PageSpace {
     return collections_;
   }
 
-  void PrintToJSONObject(JSONObject* object);
-  void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream);
+  void PrintToJSONObject(JSONObject* object) const;
+  void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) const;
 
   void AllocateExternal(intptr_t size);
   void FreeExternal(intptr_t size);
@@ -337,6 +337,8 @@ class PageSpace {
   // Bump block allocation from generated code.
   uword* TopAddress() { return &bump_top_; }
   uword* EndAddress() { return &bump_end_; }
+  static intptr_t top_offset() { return OFFSET_OF(PageSpace, bump_top_); }
+  static intptr_t end_offset() { return OFFSET_OF(PageSpace, bump_end_); }
 
  private:
   // Ids for time and data records in Heap::GCStats.

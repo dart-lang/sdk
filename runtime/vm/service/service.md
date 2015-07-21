@@ -620,6 +620,15 @@ Isolate | IsolateStart, IsolateExit, IsolateUpdate
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect
 GC | GC
 
+Additionally, some embedders provide the _Stdout_ and _Stderr_
+streams.  These streams allow the client to subscribe to writes to
+stdout and stderr.
+
+streamId | event types provided
+-------- | -----------
+Stdout | WriteEvent
+Stderr | WriteEvent
+
 It is considered a _backwards compatible_ change to add a new type of event to an existing stream.
 Clients should be written to handle this gracefully, perhaps by warning and ignoring.
 
@@ -992,6 +1001,11 @@ class Event extends Response {
   // The exception associated with this event, if this is a
   // PauseException event.
   @Instance exception [optional];
+
+  // An array of bytes, encoded as a base64 string.
+  //
+  // This is provided for the WriteEvent event.
+  string bytes [optional];
 }
 ```
 
@@ -1044,7 +1058,10 @@ enum EventKind {
   BreakpointRemoved,
 
   // A garbage collection event.
-  GC
+  GC,
+
+  // Notification of bytes written, for example, to stdout/stderr.
+  WriteEvent
 }
 ```
 

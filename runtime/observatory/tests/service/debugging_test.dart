@@ -187,13 +187,13 @@ var tests = [
   Breakpoint bpt = result;
   expect(bpt.type, equals('Breakpoint'));
   expect(bpt.location.script.name, equals('debugging_test.dart'));
-  expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(14));
+  expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(13));
   expect(isolate.breakpoints.length, equals(1));
 
   await completer.future;  // Wait for breakpoint events.
 },
 
-// We are now at line 14.
+// We are now at line 13.
 (Isolate isolate) async {
   ServiceMap stack = await isolate.getStack();
   expect(stack.type, equals('Stack'));
@@ -201,7 +201,7 @@ var tests = [
 
   Script script = stack['frames'][0].location.script;
   expect(script.name,endsWith('debugging_test.dart'));
-  expect(script.tokenToLine(stack['frames'][0].location.tokenPos), equals(14));
+  expect(script.tokenToLine(stack['frames'][0].location.tokenPos), equals(13));
 },
 
 ];

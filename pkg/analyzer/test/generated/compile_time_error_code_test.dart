@@ -4757,9 +4757,6 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_call() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     addNamedSource('/lib.dart', '''
 library lib;
 g() {}
@@ -4777,9 +4774,6 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_call_loadLibrary() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     addNamedSource('/lib.dart', '''
 library lib;
 ''');
@@ -4796,9 +4790,6 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_get() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     addNamedSource('/lib.dart', '''
 library lib;
 var x;
@@ -4816,9 +4807,6 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_get_loadLibrary() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     addNamedSource('/lib.dart', '''
 library lib;
 ''');
@@ -4835,9 +4823,6 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_set() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     addNamedSource('/lib.dart', '''
 library lib;
 var x;
@@ -4855,9 +4840,6 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_set_loadLibrary() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     addNamedSource('/lib.dart', '''
 library lib;
 ''');
@@ -4988,9 +4970,6 @@ f() {
   }
 
   void test_prefixNotFollowedByDot_conditionalMethodInvocation() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     addNamedSource('/lib.dart', '''
 library lib;
 g() {}

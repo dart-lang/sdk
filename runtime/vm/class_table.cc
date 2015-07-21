@@ -422,6 +422,50 @@ void ClassTable::UpdatePromoted() {
 }
 
 
+ClassHeapStats** ClassTable::TableAddressFor(intptr_t cid) {
+  return (cid < kNumPredefinedCids)
+      ? &predefined_class_heap_stats_table_
+      : &class_heap_stats_table_;
+}
+
+
+intptr_t ClassTable::TableOffsetFor(intptr_t cid) {
+  return (cid < kNumPredefinedCids)
+      ? OFFSET_OF(ClassTable, predefined_class_heap_stats_table_)
+      : OFFSET_OF(ClassTable, class_heap_stats_table_);
+}
+
+
+intptr_t ClassTable::ClassOffsetFor(intptr_t cid) {
+  return cid * sizeof(ClassHeapStats);  // NOLINT
+}
+
+
+intptr_t ClassTable::CounterOffsetFor(intptr_t cid, bool is_new_space) {
+  const intptr_t class_offset = ClassOffsetFor(cid);
+  const intptr_t count_field_offset = is_new_space
+      ? ClassHeapStats::allocated_since_gc_new_space_offset()
+      : ClassHeapStats::allocated_since_gc_old_space_offset();
+  return class_offset + count_field_offset;
+}
+
+
+ClassHeapStats** ClassTable::StateAddressFor(intptr_t cid,
+                                             intptr_t* state_offset) {
+  *state_offset = ClassOffsetFor(cid)+ ClassHeapStats::state_offset();
+  return TableAddressFor(cid);
+}
+
+
+intptr_t ClassTable::SizeOffsetFor(intptr_t cid, bool is_new_space) {
+  const uword class_offset = ClassOffsetFor(cid);
+  const uword size_field_offset = is_new_space
+      ? ClassHeapStats::allocated_size_since_gc_new_space_offset()
+      : ClassHeapStats::allocated_size_since_gc_old_space_offset();
+  return class_offset + size_field_offset;
+}
+
+
 void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);

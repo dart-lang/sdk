@@ -261,6 +261,7 @@ class ActivationFrame : public ZoneAllocated {
   RawObject* GetReceiver();
 
   const Context& GetSavedCurrentContext();
+  RawObject* GetAsyncOperation();
 
   RawObject* Evaluate(const String& expr);
 
@@ -270,8 +271,7 @@ class ActivationFrame : public ZoneAllocated {
   void PrintToJSONObject(JSONObject* jsobj, bool full = false);
 
  private:
-  void PrintContextMismatchError(const String& var_name,
-                                 intptr_t ctx_slot,
+  void PrintContextMismatchError(intptr_t ctx_slot,
                                  intptr_t frame_ctx_level,
                                  intptr_t var_ctx_level);
 
@@ -280,8 +280,8 @@ class ActivationFrame : public ZoneAllocated {
   void GetVarDescriptors();
   void GetDescIndices();
 
-  RawObject* GetLocalVar(intptr_t slot_index);
-  RawInstance* GetLocalInstanceVar(intptr_t slot_index);
+  RawObject* GetStackVar(intptr_t slot_index);
+  RawObject* GetContextVar(intptr_t ctxt_level, intptr_t slot_index);
 
   uword pc_;
   uword fp_;
@@ -353,7 +353,8 @@ class DebuggerEvent {
         type_(event_type),
         top_frame_(NULL),
         breakpoint_(NULL),
-        exception_(NULL) {}
+        exception_(NULL),
+        async_continuation_(NULL) {}
 
   Isolate* isolate() const { return isolate_; }
 
@@ -392,6 +393,15 @@ class DebuggerEvent {
     exception_ = exception;
   }
 
+  const Object* async_continuation() const {
+    ASSERT(type_ == kBreakpointReached);
+    return async_continuation_;
+  }
+  void set_async_continuation(const Object* closure) {
+    ASSERT(type_ == kBreakpointReached);
+    async_continuation_ = closure;
+  }
+
   Dart_Port isolate_id() const {
     return isolate_->main_port();
   }
@@ -402,6 +412,7 @@ class DebuggerEvent {
   ActivationFrame* top_frame_;
   Breakpoint* breakpoint_;
   const Object* exception_;
+  const Object* async_continuation_;
 };
 
 

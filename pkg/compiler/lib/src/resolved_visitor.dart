@@ -389,6 +389,13 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
+  void previsitDeferredAccess(
+      Send node,
+      PrefixElement prefix,
+      ResolvedKindVisitor<R> visitor) {
+  }
+
+  @override
   R errorInvalidAssert(
       Send node,
       NodeList arguments,

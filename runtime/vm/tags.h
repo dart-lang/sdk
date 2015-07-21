@@ -19,6 +19,7 @@ class RuntimeEntry;
   V(VM)            /* Catch all */                                             \
   V(CompileOptimized)                                                          \
   V(CompileUnoptimized)                                                        \
+  V(CompileClass)                                                              \
   V(CompileTopLevel)                                                           \
   V(CompileScanner)                                                            \
   V(Dart)                                                                      \

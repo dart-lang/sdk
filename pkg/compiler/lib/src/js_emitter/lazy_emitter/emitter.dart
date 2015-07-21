@@ -47,6 +47,9 @@ class Emitter implements emitterTask.Emitter {
     return _emitter.emitProgram(program);
   }
 
+  @override
+  bool get supportsReflection => false;
+
   // TODO(floitsch): copied from full emitter. Adjust or share.
   @override
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {

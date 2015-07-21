@@ -2940,4 +2940,12 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
         constant: constant.getText()));
     super.visitConstantInvoke(node, constant, arguments, callStructure, arg);
   }
+
+  @override
+  previsitDeferredAccess(
+      Send node,
+      PrefixElement prefix,
+      arg) {
+    visits.add(new Visit(VisitKind.PREVISIT_DEFERRED_ACCESS, element: prefix));
+  }
 }
