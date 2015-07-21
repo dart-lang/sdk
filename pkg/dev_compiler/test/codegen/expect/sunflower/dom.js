@@ -1,4 +1,4 @@
-dart_library.library('sunflower/dom', window, /* Imports */[
+dart_library.library('dom', window, /* Imports */[
   "dart_runtime/dart",
   'dart/core'
 ], /* Lazy imports */[

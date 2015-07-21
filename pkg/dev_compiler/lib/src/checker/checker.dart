@@ -1001,7 +1001,11 @@ class CodeChecker extends RecursiveAstVisitor {
     reporter.onError(error);
 
     if (info is CoercionInfo) {
-      assert(CoercionInfo.get(info.node) == null);
+      // TODO(jmesserly): if we're run again on the same AST, we'll produce the
+      // same annotations. This should be harmless. This might go away once
+      // CodeChecker is integrated better with analyzer, as it will know that
+      // checking has already been performed.
+      // assert(CoercionInfo.get(info.node) == null);
       CoercionInfo.set(info.node, info);
     }
   }

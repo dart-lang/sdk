@@ -2802,6 +2802,8 @@ class JSGenerator extends CodeGenerator {
   }
 
   String generateLibrary(LibraryUnit unit) {
+    // Clone the AST first, so we can mutate it.
+    unit = unit.clone();
     var library = unit.library.element.library;
     var fields = findFieldsNeedingStorage(unit);
     var codegen =

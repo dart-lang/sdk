@@ -111,37 +111,31 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
   // to discharging the collected definitions.
   // Returns the set of new type identifiers added by the reifier
   Map<Identifier, NewTypeIdDesc> reify() {
-    _library.partsThenLibrary.forEach(generateUnit);
+    _library.partsThenLibrary.forEach(visitCompilationUnit);
     return _tm.addedTypes;
-  }
-
-  void generateUnit(CompilationUnit unit) {
-    visitCompilationUnit(unit);
   }
 
   @override
   Object visitExpression(Expression node) {
     var info = CoercionInfo.get(node);
     if (info is InferredTypeBase) {
-      return _visitInferredTypeBase(info);
+      return _visitInferredTypeBase(info, node);
     } else if (info is DownCast) {
-      return _visitDownCast(info);
+      return _visitDownCast(info, node);
     }
     return super.visitExpression(node);
   }
 
   ///////////////// Private //////////////////////////////////
 
-  Object _visitInferredTypeBase(InferredTypeBase node) {
-    var expr = node.node;
+  Object _visitInferredTypeBase(InferredTypeBase node, Expression expr) {
     var success = _inferrer.inferExpression(expr, node.type, <String>[]);
     assert(success);
     expr.visitChildren(this);
     return null;
   }
 
-  Object _visitDownCast(DownCast node) {
-    var expr = node.node;
+  Object _visitDownCast(DownCast node, Expression expr) {
     var parent = expr.parent;
     expr.visitChildren(this);
     Expression newE = _cm.coerceExpression(expr, node.cast);

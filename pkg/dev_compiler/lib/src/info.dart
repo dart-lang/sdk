@@ -9,6 +9,7 @@ library dev_compiler.src.info;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/parser.dart';
 
 import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/utils.dart' as utils;
@@ -52,6 +53,43 @@ class LibraryUnit {
   Iterable<CompilationUnit> get partsThenLibrary sync* {
     yield* parts;
     yield library;
+  }
+
+  /// Creates a clone of this library's AST.
+  LibraryUnit clone() {
+    return new LibraryUnit(
+        _cloneUnit(library), parts.map(_cloneUnit).toList(growable: false));
+  }
+
+  static CompilationUnit _cloneUnit(CompilationUnit oldNode) {
+    var newNode = oldNode.accept(new _AstCloner());
+    ResolutionCopier.copyResolutionData(oldNode, newNode);
+    return newNode;
+  }
+}
+
+class _AstCloner extends AstCloner {
+  void _cloneProperties(AstNode clone, AstNode node) {
+    if (clone != null) {
+      CoercionInfo.set(clone, CoercionInfo.get(node));
+      DynamicInvoke.set(clone, DynamicInvoke.get(node));
+    }
+  }
+
+  @override
+  AstNode cloneNode(AstNode node) {
+    var clone = super.cloneNode(node);
+    _cloneProperties(clone, node);
+    return clone;
+  }
+
+  @override
+  List cloneNodeList(List list) {
+    var clone = super.cloneNodeList(list);
+    for (int i = 0, len = list.length; i < len; i++) {
+      _cloneProperties(clone[i], list[i]);
+    }
+    return clone;
   }
 }
 

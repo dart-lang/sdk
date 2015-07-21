@@ -128,18 +128,9 @@ class BatchCompiler extends AbstractCompiler {
     if (_jsGen != null) {
       var unit = units.first;
       var parts = units.skip(1).toList();
-
-      // TODO(jmesserly): this hack is to avoid compiling the same compilation
-      // unit to JS twice. We mutate the AST, so it's not safe to run more than
-      // once on the same unit.
-      if (unit.getProperty(_propertyName) == true) return;
-      unit.setProperty(_propertyName, true);
-
       _jsGen.generateLibrary(new LibraryUnit(unit, parts));
     }
   }
-
-  static const String _propertyName = 'dev_compiler.BatchCompiler.isCompiled';
 
   void compileHtml(Source source) {
     // TODO(jmesserly): reuse DartScriptsTask instead of copy/paste.
