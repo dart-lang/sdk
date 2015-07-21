@@ -32,8 +32,132 @@ import 'package:yaml/yaml.dart';
  * Class that maintains a mapping from included/excluded paths to a set of
  * folders that should correspond to analysis contexts.
  */
-abstract class AbstractContextManager implements ContextManager {
+abstract class ContextManager {
+  // TODO(brianwilkerson) Support:
+  //   setting the default analysis options
+  //   setting the default content cache
+  //   setting the default SDK
+  //   maintaining AnalysisContext.folderMap (or remove it)
+  //   telling server when a context has been added or removed (see onContextsChanged)
+  //   telling server when a context needs to be re-analyzed
+  //   notifying the client when results should be flushed
+  //   using analyzeFileFunctions to determine which files to analyze
+  //
+  // TODO(brianwilkerson) Move this class to a public library.
 
+  /**
+   * Get the callback interface used to create, destroy, and update contexts.
+   */
+  ContextManagerCallbacks get callbacks;
+
+  /**
+   * Set the callback interface used to create, destroy, and update contexts.
+   */
+  void set callbacks(ContextManagerCallbacks value);
+
+  /**
+   * Return the list of excluded paths (folders and files) most recently passed
+   * to [setRoots].
+   */
+  List<String> get excludedPaths;
+
+  /**
+   * Return the list of included paths (folders and files) most recently passed
+   * to [setRoots].
+   */
+  List<String> get includedPaths;
+
+  /**
+   * Return a list containing all of the contexts contained in the given
+   * [analysisRoot].
+   */
+  List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot);
+
+  /**
+   * Return `true` if the given absolute [path] is in one of the current
+   * root folders and is not excluded.
+   */
+  bool isInAnalysisRoot(String path);
+
+  /**
+   * Rebuild the set of contexts from scratch based on the data last sent to
+   * [setRoots]. Only contexts contained in the given list of analysis [roots]
+   * will be rebuilt, unless the list is `null`, in which case every context
+   * will be rebuilt.
+   */
+  void refresh(List<Resource> roots);
+
+  /**
+   * Change the set of paths which should be used as starting points to
+   * determine the context directories.
+   */
+  void setRoots(List<String> includedPaths, List<String> excludedPaths,
+      Map<String, String> packageRoots);
+}
+
+/**
+ * Callback interface used by [ContextManager] to (a) request that contexts be
+ * created, destroyed or updated, (b) inform the client when "pub list"
+ * operations are in progress, and (c) determine which files should be
+ * analyzed.
+ *
+ * TODO(paulberry): eliminate this interface, and instead have [ContextManager]
+ * operations return data structures describing how context state should be
+ * modified.
+ */
+abstract class ContextManagerCallbacks {
+  /**
+   * Create and return a new analysis context.
+   */
+  AnalysisContext addContext(
+      Folder folder, UriResolver packageUriResolver, Packages packages);
+
+  /**
+   * Called when the set of files associated with a context have changed (or
+   * some of those files have been modified).  [changeSet] is the set of
+   * changes that need to be applied to the context.
+   */
+  void applyChangesToContext(Folder contextFolder, ChangeSet changeSet);
+
+  /**
+   * Called when the ContextManager is about to start computing the package
+   * map.
+   */
+  void beginComputePackageMap() {
+    // By default, do nothing.
+  }
+
+  /**
+   * Called when the ContextManager has finished computing the package map.
+   */
+  void endComputePackageMap() {
+    // By default, do nothing.
+  }
+
+  /**
+   * Remove the context associated with the given [folder].  [flushedFiles] is
+   * a list of the files which will be "orphaned" by removing this context
+   * (they will no longer be analyzed by any context).
+   */
+  void removeContext(Folder folder, List<String> flushedFiles);
+
+  /**
+   * Return `true` if the given [file] should be analyzed.
+   */
+  bool shouldFileBeAnalyzed(File file);
+
+  /**
+   * Called when the package map for a context has changed.
+   */
+  void updateContextPackageUriResolver(
+      Folder contextFolder, UriResolver packageUriResolver, Packages packages);
+}
+
+/**
+ * Class that maintains a mapping from included/excluded paths to a set of
+ * folders that should correspond to analysis contexts.
+ */
+class ContextManagerImpl implements ContextManager {
   /**
    * Temporary flag to hide WIP .packages support (DEP 5).
    */
@@ -120,52 +244,12 @@ abstract class AbstractContextManager implements ContextManager {
    */
   final InstrumentationService _instrumentationService;
 
-  AbstractContextManager(this.resourceProvider, this.packageResolverProvider,
+  @override
+  ContextManagerCallbacks callbacks;
+
+  ContextManagerImpl(this.resourceProvider, this.packageResolverProvider,
       this._packageMapProvider, this._instrumentationService) {
     pathContext = resourceProvider.pathContext;
-  }
-
-  /**
-   * Create and return a new analysis context.
-   */
-  AnalysisContext addContext(
-      Folder folder, UriResolver packageUriResolver, Packages packages);
-
-  /**
-   * Called when the set of files associated with a context have changed (or
-   * some of those files have been modified).  [changeSet] is the set of
-   * changes that need to be applied to the context.
-   */
-  void applyChangesToContext(Folder contextFolder, ChangeSet changeSet);
-
-  /**
-   * We are about to start computing the package map.
-   */
-  void beginComputePackageMap() {
-    // Do nothing.
-  }
-
-  /**
-   * Compute the set of files that are being flushed, this is defined as
-   * the set of sources in the removed context (context.sources), that are
-   * orphaned by this context being removed (no other context includes this
-   * file.)
-   */
-  List<String> computeFlushedFiles(Folder folder) {
-    AnalysisContext context = _contexts[folder].context;
-    HashSet<String> flushedFiles = new HashSet<String>();
-    for (Source source in context.sources) {
-      flushedFiles.add(source.fullName);
-    }
-    for (_ContextInfo contextInfo in _contexts.values) {
-      AnalysisContext contextN = contextInfo.context;
-      if (context != contextN) {
-        for (Source source in contextN.sources) {
-          flushedFiles.remove(source.fullName);
-        }
-      }
-    }
-    return flushedFiles.toList(growable: false);
   }
 
   @override
@@ -177,13 +261,6 @@ abstract class AbstractContextManager implements ContextManager {
       }
     });
     return contexts;
-  }
-
-  /**
-   * We have finished computing the package map.
-   */
-  void endComputePackageMap() {
-    // Do nothing.
   }
 
   @override
@@ -240,11 +317,6 @@ abstract class AbstractContextManager implements ContextManager {
     // Rebuild contexts based on the data last sent to setRoots().
     setRoots(includedPaths, excludedPaths, packageRoots);
   }
-
-  /**
-   * Remove the context associated with the given [folder].
-   */
-  void removeContext(Folder folder);
 
   /// Sets the [ignorePatterns] for the context [folder].
   void setIgnorePatternsForContext(Folder folder, List<String> ignorePatterns) {
@@ -331,26 +403,15 @@ abstract class AbstractContextManager implements ContextManager {
         info.sources.remove(path);
         changeSet.removedSource(source);
       });
-      applyChangesToContext(folder, changeSet);
+      callbacks.applyChangesToContext(folder, changeSet);
     });
     // add previously excluded sources
     _contexts.forEach((folder, info) {
       ChangeSet changeSet = new ChangeSet();
       _addPreviouslyExcludedSources(info, changeSet, folder, oldExcludedPaths);
-      applyChangesToContext(folder, changeSet);
+      callbacks.applyChangesToContext(folder, changeSet);
     });
   }
-
-  /**
-   * Return `true` if the given [file] should be analyzed.
-   */
-  bool shouldFileBeAnalyzed(File file);
-
-  /**
-   * Called when the package map for a context has changed.
-   */
-  void updateContextPackageUriResolver(
-      Folder contextFolder, UriResolver packageUriResolver, Packages packages);
 
   /**
    * Resursively adds all Dart and HTML files to the [changeSet].
@@ -377,7 +438,7 @@ abstract class AbstractContextManager implements ContextManager {
       // add files, recurse into folders
       if (child is File) {
         // ignore if should not be analyzed at all
-        if (!shouldFileBeAnalyzed(child)) {
+        if (!callbacks.shouldFileBeAnalyzed(child)) {
           continue;
         }
         // ignore if was not excluded
@@ -422,7 +483,7 @@ abstract class AbstractContextManager implements ContextManager {
       }
       // add files, recurse into folders
       if (child is File) {
-        if (shouldFileBeAnalyzed(child)) {
+        if (callbacks.shouldFileBeAnalyzed(child)) {
           Source source = createSourceInContext(info.context, child);
           changeSet.addedSource(source);
           info.sources[path] = source;
@@ -457,10 +518,33 @@ abstract class AbstractContextManager implements ContextManager {
       if (packagespec.exists) {
         Packages packages = _readPackagespec(packagespec);
         if (packages != null) {
-          updateContextPackageUriResolver(folder, null, packages);
+          callbacks.updateContextPackageUriResolver(folder, null, packages);
         }
       }
     }
+  }
+
+  /**
+   * Compute the set of files that are being flushed, this is defined as
+   * the set of sources in the removed context (context.sources), that are
+   * orphaned by this context being removed (no other context includes this
+   * file.)
+   */
+  List<String> _computeFlushedFiles(Folder folder) {
+    AnalysisContext context = _contexts[folder].context;
+    HashSet<String> flushedFiles = new HashSet<String>();
+    for (Source source in context.sources) {
+      flushedFiles.add(source.fullName);
+    }
+    for (_ContextInfo contextInfo in _contexts.values) {
+      AnalysisContext contextN = contextInfo.context;
+      if (context != contextN) {
+        for (Source source in contextN.sources) {
+          flushedFiles.remove(source.fullName);
+        }
+      }
+    }
+    return flushedFiles.toList(growable: false);
   }
 
   /**
@@ -496,7 +580,7 @@ abstract class AbstractContextManager implements ContextManager {
       //TODO(danrubel) remove this if it will never be called
       return new PackageUriResolver([packagesDir]);
     } else {
-      beginComputePackageMap();
+      callbacks.beginComputePackageMap();
       if (packageResolverProvider != null) {
         UriResolver resolver = packageResolverProvider(folder);
         if (resolver != null) {
@@ -508,7 +592,7 @@ abstract class AbstractContextManager implements ContextManager {
         packageMapInfo =
             _packageMapProvider.computePackageMap(folder, info.packageMapInfo);
       });
-      endComputePackageMap();
+      callbacks.endComputePackageMap();
       for (String dependencyPath in packageMapInfo.dependencies) {
         Resource resource = resourceProvider.getResource(dependencyPath);
         if (resource is File) {
@@ -568,7 +652,7 @@ abstract class AbstractContextManager implements ContextManager {
         packageUriResolver = _computePackageUriResolver(folder, info);
       }
 
-      info.context = addContext(folder, packageUriResolver, packages);
+      info.context = callbacks.addContext(folder, packageUriResolver, packages);
       info.context.name = folder.path;
     } catch (_) {
       info.changeSubscription.cancel();
@@ -640,7 +724,7 @@ abstract class AbstractContextManager implements ContextManager {
     _ContextInfo info = _createContext(folder, pubspecFile, children);
     ChangeSet changeSet = new ChangeSet();
     _addSourceFiles(changeSet, folder, info);
-    applyChangesToContext(folder, changeSet);
+    callbacks.applyChangesToContext(folder, changeSet);
     return info;
   }
 
@@ -651,7 +735,7 @@ abstract class AbstractContextManager implements ContextManager {
     _ContextInfo info = _contexts[folder];
     info.changeSubscription.cancel();
     _cancelDependencySubscriptions(info);
-    removeContext(folder);
+    callbacks.removeContext(folder, _computeFlushedFiles(folder));
     _contexts.remove(folder);
   }
 
@@ -676,7 +760,7 @@ abstract class AbstractContextManager implements ContextManager {
         newInfo.sources[path] = source;
         changeSet.addedSource(source);
       });
-      applyChangesToContext(newFolder, changeSet);
+      callbacks.applyChangesToContext(newFolder, changeSet);
     }
     // update old context
     {
@@ -685,7 +769,7 @@ abstract class AbstractContextManager implements ContextManager {
         oldInfo.sources.remove(path);
         changeSet.removedSource(source);
       });
-      applyChangesToContext(oldInfo.folder, changeSet);
+      callbacks.applyChangesToContext(oldInfo.folder, changeSet);
     }
   }
 
@@ -759,11 +843,11 @@ abstract class AbstractContextManager implements ContextManager {
         // that case don't add it.
         if (resource is File) {
           File file = resource;
-          if (shouldFileBeAnalyzed(file)) {
+          if (callbacks.shouldFileBeAnalyzed(file)) {
             ChangeSet changeSet = new ChangeSet();
             Source source = createSourceInContext(info.context, file);
             changeSet.addedSource(source);
-            applyChangesToContext(folder, changeSet);
+            callbacks.applyChangesToContext(folder, changeSet);
             info.sources[path] = source;
           }
         }
@@ -810,7 +894,7 @@ abstract class AbstractContextManager implements ContextManager {
           sources.forEach((Source source) {
             changeSet.removedSource(source);
           });
-          applyChangesToContext(folder, changeSet);
+          callbacks.applyChangesToContext(folder, changeSet);
           info.sources.remove(path);
         }
         break;
@@ -821,7 +905,7 @@ abstract class AbstractContextManager implements ContextManager {
           sources.forEach((Source source) {
             changeSet.changedSource(source);
           });
-          applyChangesToContext(folder, changeSet);
+          callbacks.applyChangesToContext(folder, changeSet);
         }
         break;
     }
@@ -882,7 +966,7 @@ abstract class AbstractContextManager implements ContextManager {
         parentInfo.sources[path] = source;
         changeSet.addedSource(source);
       });
-      applyChangesToContext(parentInfo.folder, changeSet);
+      callbacks.applyChangesToContext(parentInfo.folder, changeSet);
     }
   }
 
@@ -909,7 +993,8 @@ abstract class AbstractContextManager implements ContextManager {
     // "pub list" is in progress is just going to get thrown away anyhow.
     UriResolver packageUriResolver =
         _computePackageUriResolver(info.folder, info);
-    updateContextPackageUriResolver(info.folder, packageUriResolver, null);
+    callbacks.updateContextPackageUriResolver(
+        info.folder, packageUriResolver, null);
   }
 
   /**
@@ -926,73 +1011,6 @@ abstract class AbstractContextManager implements ContextManager {
     Uri uri = context.sourceFactory.restoreUri(source);
     return file.createSource(uri);
   }
-}
-
-/**
- * Class that maintains a mapping from included/excluded paths to a set of
- * folders that should correspond to analysis contexts.
- */
-abstract class ContextManager {
-  // TODO(brianwilkerson) Support:
-  //   setting the default analysis options
-  //   setting the default content cache
-  //   setting the default SDK
-  //   maintaining AnalysisContext.folderMap (or remove it)
-  //   telling server when a context has been added or removed (see onContextsChanged)
-  //   telling server when a context needs to be re-analyzed
-  //   notifying the client when results should be flushed
-  //   using analyzeFileFunctions to determine which files to analyze
-  //
-  // TODO(brianwilkerson) Move this class to a public library.
-
-//  /**
-//   * The default options used to create new analysis contexts.
-//   */
-//  AnalysisOptionsImpl get defaultOptions;
-
-  /**
-   * Return the list of excluded paths (folders and files) most recently passed
-   * to [setRoots].
-   */
-  List<String> get excludedPaths;
-
-  /**
-   * Return the list of included paths (folders and files) most recently passed
-   * to [setRoots].
-   */
-  List<String> get includedPaths;
-
-//  /**
-//   * A stream that is notified when contexts are added or removed.
-//   */
-//  Stream<ContextsChangedEvent> get onContextsChanged;
-
-  /**
-   * Return a list containing all of the contexts contained in the given
-   * [analysisRoot].
-   */
-  List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot);
-
-  /**
-   * Return `true` if the given absolute [path] is in one of the current
-   * root folders and is not excluded.
-   */
-  bool isInAnalysisRoot(String path);
-
-  /**
-   * Rebuild the set of contexts from scratch based on the data last sent to
-   * [setRoots]. Only contexts contained in the given list of analysis [roots]
-   * will be rebuilt, unless the list is `null`, in which case every context
-   * will be rebuilt.
-   */
-  void refresh(List<Resource> roots);
-
-  /**
-   * Change the set of paths which should be used as starting points to
-   * determine the context directories.
-   */
-  void setRoots(List<String> includedPaths, List<String> excludedPaths,
-      Map<String, String> packageRoots);
 }
 
 /**
@@ -1123,7 +1141,7 @@ class _ContextInfo {
   bool ignored(String path) => pathFilter.ignored(path);
 
   /**
-   * Returns `true` if [path] is the package description file for this context 
+   * Returns `true` if [path] is the package description file for this context
    * (pubspec.yaml or .packages).
    */
   bool isPathToPackageDescription(String path) =>

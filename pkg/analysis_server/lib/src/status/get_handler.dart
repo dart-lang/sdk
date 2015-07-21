@@ -1042,7 +1042,8 @@ class GetHandler {
     List<Folder> folders = folderMap.keys.toList();
     folders.sort((Folder first, Folder second) =>
         first.shortName.compareTo(second.shortName));
-    AnalysisOptionsImpl options = analysisServer.contextManager.defaultOptions;
+    AnalysisOptionsImpl options =
+        (analysisServer.contextManager.callbacks as ServerContextManagerCallbacks).defaultOptions;
     ServerOperationQueue operationQueue = analysisServer.operationQueue;
 
     buffer.write('<h3>Analysis Domain</h3>');

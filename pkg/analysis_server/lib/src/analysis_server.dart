@@ -117,7 +117,7 @@ class AnalysisServer {
    * The [ContextManager] that handles the mapping from analysis roots to
    * context directories.
    */
-  ServerContextManager contextManager;
+  ContextManager contextManager;
 
   /**
    * A flag indicating whether the server is running.  When false, contexts
@@ -294,20 +294,19 @@ class AnalysisServer {
     _performance = performanceDuringStartup;
     operationQueue = new ServerOperationQueue();
     if (contextManager == null) {
-      contextManager = new ServerContextManager(this, resourceProvider,
+      contextManager = new ContextManagerImpl(resourceProvider,
           packageResolverProvider, packageMapProvider, instrumentationService);
-      AnalysisOptionsImpl analysisOptions =
-          (contextManager as ServerContextManager).defaultOptions;
-      analysisOptions.incremental = true;
-      analysisOptions.incrementalApi = options.enableIncrementalResolutionApi;
-      analysisOptions.incrementalValidation =
-          options.enableIncrementalResolutionValidation;
-      analysisOptions.generateImplicitErrors = false;
-    } else if (contextManager is! ServerContextManager) {
-      // TODO(brianwilkerson) Remove this when the interface is complete.
-      throw new StateError(
-          'The contextManager must be an instance of ServerContextManager');
     }
+    ServerContextManagerCallbacks contextManagerCallbacks =
+        new ServerContextManagerCallbacks(this, resourceProvider);
+    contextManager.callbacks = contextManagerCallbacks;
+    AnalysisOptionsImpl analysisOptions =
+        contextManagerCallbacks.defaultOptions;
+    analysisOptions.incremental = true;
+    analysisOptions.incrementalApi = options.enableIncrementalResolutionApi;
+    analysisOptions.incrementalValidation =
+        options.enableIncrementalResolutionValidation;
+    analysisOptions.generateImplicitErrors = false;
     this.contextManager = contextManager;
     _noErrorNotification = options.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger();
@@ -353,7 +352,7 @@ class AnalysisServer {
    * The stream that is notified when contexts are added or removed.
    */
   Stream<ContextsChangedEvent> get onContextsChanged =>
-      contextManager.onContextsChanged;
+      (contextManager.callbacks as ServerContextManagerCallbacks).onContextsChanged;
 
   /**
    * The stream that is notified when a single file has been analyzed.
@@ -497,15 +496,14 @@ class AnalysisServer {
     {
       AnalysisContext containingContext = getContainingContext(path);
       if (containingContext != null) {
-        Source source = AbstractContextManager.createSourceInContext(
-            containingContext, file);
+        Source source =
+            ContextManagerImpl.createSourceInContext(containingContext, file);
         return new ContextSourcePair(containingContext, source);
       }
     }
     // try to find a context that analysed the file
     for (AnalysisContext context in folderMap.values) {
-      Source source =
-          AbstractContextManager.createSourceInContext(context, file);
+      Source source = ContextManagerImpl.createSourceInContext(context, file);
       SourceKind kind = context.getKindOf(source);
       if (kind != SourceKind.UNKNOWN) {
         return new ContextSourcePair(context, source);
@@ -1025,8 +1023,8 @@ class AnalysisServer {
             Uri uri = context.sourceFactory.restoreUri(source);
             if (uri.scheme != 'file') {
               preferredContext = context;
-              source = AbstractContextManager.createSourceInContext(
-                  context, resource);
+              source =
+                  ContextManagerImpl.createSourceInContext(context, resource);
               break;
             }
           }
@@ -1226,7 +1224,8 @@ class AnalysisServer {
     //
     // Update the defaults used to create new contexts.
     //
-    AnalysisOptionsImpl options = contextManager.defaultOptions;
+    AnalysisOptionsImpl options =
+        (contextManager.callbacks as ServerContextManagerCallbacks).defaultOptions;
     optionUpdaters.forEach((OptionUpdater optionUpdater) {
       optionUpdater(options);
     });
@@ -1337,11 +1336,14 @@ class PriorityChangeEvent {
   PriorityChangeEvent(this.firstSource);
 }
 
-class ServerContextManager extends AbstractContextManager {
+class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   final AnalysisServer analysisServer;
 
   /**
    * The default options used to create new analysis contexts.
+   *
+   * TODO(paulberry): move this into AnalysisServer so that a cast isn't needed
+   * to access it.
    */
   AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
 
@@ -1350,18 +1352,21 @@ class ServerContextManager extends AbstractContextManager {
    */
   StreamController<ContextsChangedEvent> _onContextsChangedController;
 
-  ServerContextManager(this.analysisServer, ResourceProvider resourceProvider,
-      ResolverProvider packageResolverProvider,
-      OptimizingPubPackageMapProvider packageMapProvider,
-      InstrumentationService service)
-      : super(resourceProvider, packageResolverProvider, packageMapProvider,
-          service) {
+  /**
+   * The [ResourceProvider] by which paths are converted into [Resource]s.
+   */
+  final ResourceProvider resourceProvider;
+
+  ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider) {
     _onContextsChangedController =
         new StreamController<ContextsChangedEvent>.broadcast();
   }
 
   /**
    * The stream that is notified when contexts are added or removed.
+   *
+   * TODO(paulberry): move this into AnalysisServer so that a cast isn't needed
+   * to access it.
    */
   Stream<ContextsChangedEvent> get onContextsChanged =>
       _onContextsChangedController.stream;
@@ -1406,13 +1411,8 @@ class ServerContextManager extends AbstractContextManager {
   }
 
   @override
-  void removeContext(Folder folder) {
+  void removeContext(Folder folder, List<String> flushedFiles) {
     AnalysisContext context = analysisServer.folderMap.remove(folder);
-
-    // See dartbug.com/22689, the AnalysisContext is computed in
-    // computeFlushedFiles instead of using the referenced context above, this
-    // is an attempt to be careful concerning the referenced issue.
-    List<String> flushedFiles = computeFlushedFiles(folder);
     sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
 
     if (analysisServer.index != null) {
