@@ -1,7 +1,6 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override --checked
 
 library test_helper;
 
@@ -167,7 +166,8 @@ Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
           print('Breakpoint reached');
           subscription.cancel();
           if (completer != null) {
-            completer.complete(isolate);
+            // Reload to update isolate.pauseEvent.
+            completer.complete(isolate.reload());
             completer = null;
           }
         }

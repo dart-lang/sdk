@@ -360,9 +360,7 @@ class AsyncNextCommand extends DebuggerCommand {
         debugger.console.print("No async continuation at this location");
         return;
       }
-      var bpt = await
-          debugger.isolate.addBreakOnActivation(event.asyncContinuation);
-      return debugger.isolate.resume();
+      return debugger.isolate.asyncStepOver()[Isolate.kFirstResume];
     } else {
       debugger.console.print('The program is already running');
     }
@@ -997,7 +995,8 @@ class ObservatoryDebugger extends Debugger {
   void updateIsolate(Isolate iso) {
     _isolate = iso;
     if (_isolate != null) {
-      if (exceptions != iso.exceptionsPauseInfo) {
+      if ((exceptions != iso.exceptionsPauseInfo) &&
+          (iso.exceptionsPauseInfo != null)) {
         exceptions = iso.exceptionsPauseInfo;
         console.print("Now pausing for $exceptions exceptions");
       }
@@ -1133,7 +1132,7 @@ class ObservatoryDebugger extends Debugger {
           console.print('Paused at ${script.name}:${line}:${col}');
         }
         if (event.asyncContinuation != null) {
-          console.print("Paused in async function: 'astep' available");
+          console.print("Paused in async function: 'anext' available");
         }
       });
     }

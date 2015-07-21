@@ -1397,6 +1397,67 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return invokeRpc('resume', {'step': 'Out'});
   }
 
+
+  static const int kFirstResume = 0;
+  static const int kSecondResume = 1;
+  /// result[kFirstResume] completes after the inital resume. The UI should
+  /// wait on this future because some other breakpoint may be hit before the
+  /// async continuation.
+  /// result[kSecondResume] completes after the second resume. Tests should
+  /// wait on this future to avoid confusing the pause event at the
+  /// state-machine switch with the pause event after the state-machine switch.
+  List<Future> asyncStepOver() {
+    Completer firstResume = new Completer();
+    Completer secondResume = new Completer();
+    var subscription;
+
+    handleError(error) {
+      if (subscription != null) {
+        subscription.cancel();
+        subscription = null;
+      }
+      firstResume.completeError(error);
+      secondResume.completeError(error);
+    }
+
+    if ((pauseEvent == null) ||
+        (pauseEvent.kind != ServiceEvent.kPauseBreakpoint) ||
+        (pauseEvent.asyncContinuation == null)) {
+      handleError(new Exception("No async continuation available"));
+    } else {
+      Instance continuation = pauseEvent.asyncContinuation;
+      assert(continuation.isClosure);
+      addBreakOnActivation(continuation).then((Breakpoint continuationBpt) {
+        vm.getEventStream(VM.kDebugStream).then((stream) {
+          var onResume = firstResume;
+          subscription = stream.listen((ServiceEvent event) {
+            if ((event.kind == ServiceEvent.kPauseBreakpoint) &&
+                (event.breakpoint == continuationBpt)) {
+              // We are stopped before state-machine dispatch; step-over to
+              // reach user code.
+              removeBreakpoint(continuationBpt).then((_) {
+                onResume = secondResume;
+                stepOver().catchError(handleError);
+              });
+            } else if (event.kind == ServiceEvent.kResume) {
+              if (onResume == secondResume) {
+                subscription.cancel();
+                subscription = null;
+              }
+              if (onResume != null) {
+                onResume.complete(this);
+                onResume = null;
+              }
+            }
+          });
+          resume().catchError(handleError);
+        }).catchError(handleError);
+      }).catchError(handleError);
+    }
+
+    return [firstResume.future, secondResume.future];
+  }
+
   Future setName(String newName) {
     return invokeRpc('setName', {'name': newName});
   }
