@@ -2422,7 +2422,6 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         default:
           compiler.internalError(element, "Unexpected element type $element");
       }
-      new CleanupPass().visit(root);
       return root;
     });
   }
@@ -3355,51 +3354,5 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           sourceInformation:
               sourceInformationBuilder.buildCall(node, node.selector));
     }
-  }
-}
-
-/// Perform simple post-processing on the initial CPS-translated root term.
-///
-/// This pass performs backend-independent post-processing on the translated
-/// term.  It is implemented separately from the optimization passes because
-/// it is required for correctness of the implementation.
-///
-/// It performs the following translations:
-///   - Replace [ir.LetPrim] binding a [ir.NonTailThrow] with a [ir.Throw]
-///     expression.
-class CleanupPass extends ir.RecursiveVisitor {
-  ir.Expression replacementFor(ir.Expression expression) {
-    if (expression != null && expression is ir.LetPrim) {
-      ir.Primitive primitive = expression.primitive;
-      if (primitive is ir.NonTailThrow) {
-        ir.RemovalVisitor.remove(expression);
-        return new ir.Throw(primitive.value.definition);
-      }
-    }
-    return expression;
-  }
-
-  processFunctionDefinition(ir.FunctionDefinition node) {
-    node.body = replacementFor(node.body);
-  }
-
-  processLetPrim(ir.LetPrim node) {
-    node.body = replacementFor(node.body);
-  }
-
-  processLetCont(ir.LetCont node) {
-    node.body = replacementFor(node.body);
-  }
-
-  processLetHandler(ir.LetHandler node) {
-    node.body = replacementFor(node.body);
-  }
-
-  processLetMutable(ir.LetMutable node) {
-    node.body = replacementFor(node.body);
-  }
-
-  processContinuation(ir.Continuation node) {
-    node.body = replacementFor(node.body);
   }
 }

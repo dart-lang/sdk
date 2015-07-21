@@ -1954,10 +1954,6 @@ class TypePropagationVisitor implements Visitor {
   void visitUnreachable(Unreachable node) {
   }
 
-  void visitNonTailThrow(NonTailThrow node) {
-    internalError(null, 'found non-tail throw after they were eliminated');
-  }
-
   void visitBranch(Branch node) {
     IsTrue isTrue = node.condition;
     AbstractValue conditionCell = getValue(isTrue.value.definition);

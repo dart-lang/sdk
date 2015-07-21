@@ -2098,7 +2098,10 @@ class IrBuilder {
 
   ir.Primitive buildNonTailThrow(ir.Primitive value) {
     assert(isOpen);
-    return addPrimitive(new ir.NonTailThrow(value));
+    ir.Parameter param = new ir.Parameter(null);
+    ir.Continuation cont = new ir.Continuation(<ir.Parameter>[param]);
+    add(new ir.LetCont(cont, new ir.Throw(value)));
+    return param;
   }
 
   void buildRethrow() {

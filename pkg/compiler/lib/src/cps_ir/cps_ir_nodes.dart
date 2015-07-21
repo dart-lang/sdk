@@ -533,23 +533,6 @@ class Rethrow extends TailExpression {
   accept(Visitor visitor) => visitor.visitRethrow(this);
 }
 
-/// A throw occurring in non-tail position.
-///
-/// The CPS translation of an expression produces a primitive as the value
-/// of the expression.  For convenience in the implementation of the
-/// translation, a [NonTailThrow] is used as that value.  A cleanup pass
-/// removes these and replaces them with [Throw] expressions.
-class NonTailThrow extends Primitive {
-  final Reference<Primitive> value;
-
-  NonTailThrow(Primitive value) : value = new Reference<Primitive>(value);
-
-  accept(Visitor visitor) => visitor.visitNonTailThrow(this);
-
-  bool get isSafeForElimination => false;
-  bool get isSafeForReordering => false;
-}
-
 /// An expression that is known to be unreachable.
 ///
 /// This can be placed as the body of a call continuation, when the caller is
@@ -1137,7 +1120,6 @@ abstract class Visitor<T> {
   T visitParameter(Parameter node);
   T visitContinuation(Continuation node);
   T visitMutableVariable(MutableVariable node);
-  T visitNonTailThrow(NonTailThrow node);
   T visitGetStatic(GetStatic node);
   T visitInterceptor(Interceptor node);
   T visitCreateInstance(CreateInstance node);
@@ -1406,12 +1388,6 @@ class RecursiveVisitor implements Visitor {
   visitTypeExpression(TypeExpression node) {
     processTypeExpression(node);
     node.arguments.forEach(processReference);
-  }
-
-  processNonTailThrow(NonTailThrow node) {}
-  visitNonTailThrow(NonTailThrow node) {
-    processNonTailThrow(node);
-    processReference(node.value);
   }
 
   processCreateInvocationMirror(CreateInvocationMirror node) {}

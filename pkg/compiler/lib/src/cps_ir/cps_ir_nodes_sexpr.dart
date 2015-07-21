@@ -314,11 +314,6 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return '(TypeExpression ${node.dartType} ($args))';
   }
 
-  String visitNonTailThrow(NonTailThrow node) {
-    String value = access(node.value);
-    return '(NonTailThrow $value)';
-  }
-
   String visitCreateInvocationMirror(CreateInvocationMirror node) {
     String selector = node.selector.name;
     String args = node.arguments.map(access).join(' ');
