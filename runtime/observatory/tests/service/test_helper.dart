@@ -237,6 +237,30 @@ Future<Isolate> resumeIsolate(Isolate isolate) {
 }
 
 
+Future resumeAndAwaitEvent(Isolate isolate, stream, onEvent) async {
+  Completer completer = new Completer();
+  var sub;
+  sub = await isolate.vm.listenEventStream(
+    stream,
+    (ServiceEvent event) {
+      var r = onEvent(event);
+      if (r is! Future) {
+        r = new Future.value(r);
+      }
+      r.then((x) => sub.cancel().then((_) {
+        completer.complete();
+      }));
+    });
+  await isolate.resume();
+  return completer.future;
+}
+
+IsolateTest resumeIsolateAndAwaitEvent(stream, onEvent) {
+  return (Isolate isolate) async =>
+      resumeAndAwaitEvent(isolate, stream, onEvent);
+}
+
+
 Future<Class> getClassFromRootLib(Isolate isolate, String className) async {
   Library rootLib = await isolate.rootLibrary.load();
   for (var i = 0; i < rootLib.classes.length; i++) {

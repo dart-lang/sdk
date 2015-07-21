@@ -34,7 +34,20 @@ class ServiceEvent {
 
     kEmbedder,
 
+    kLogging,
+
     kIllegal,
+  };
+
+  struct LogRecord {
+    int64_t sequence_number;
+    int64_t timestamp;
+    intptr_t level;
+    const String* name;
+    const String* message;
+    const Instance* zone;
+    const Object* error;
+    const Instance* stack_trace;
   };
 
   ServiceEvent(Isolate* isolate, EventKind event_kind)
@@ -138,7 +151,13 @@ class ServiceEvent {
     bytes_length_ = bytes_length;
   }
 
+  void set_log_record(const LogRecord& log_record) {
+    log_record_ = log_record;
+  }
+
   void PrintJSON(JSONStream* js) const;
+
+  void PrintJSONHeader(JSONObject* jsobj) const;
 
  private:
   Isolate* isolate_;
@@ -153,6 +172,7 @@ class ServiceEvent {
   const Heap::GCStats* gc_stats_;
   const uint8_t* bytes_;
   intptr_t bytes_length_;
+  LogRecord log_record_;
 };
 
 }  // namespace dart

@@ -30,3 +30,24 @@ bool debugger({bool when: true, String msg}) {
 inspect(object) {
   return object;
 }
+
+@patch
+/// Emit a log event.
+/// [sequenceNumber] is a monotonically increasing sequence number.
+/// [millisececondsSinceEpoch] is a timestamp.
+/// [level] is the severity level (value between 0 and 2000 inclusive).
+/// [name] is the name of the source of the log message.
+/// [message] is the log message.
+/// [zone] (optional) the zone where the log was emitted
+/// [error] (optional) an error object associated with this log event.
+/// [stackTrace] (optional) a stack trace associated with this log event.
+log(int sequenceNumber,
+    int millisecondsSinceEpoch,
+    int level,
+    String name,
+    String message,
+    [Zone zone,
+     Object error,
+     StackTrace stackTrace]) {
+  // TODO.
+}

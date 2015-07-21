@@ -270,6 +270,11 @@ void JSONStream::PrintValue64(int64_t i) {
 }
 
 
+void JSONStream::PrintValueTimeMillis(int64_t millis) {
+  PrintValue(static_cast<double>(millis));
+}
+
+
 void JSONStream::PrintValue(double d) {
   PrintCommaIfNeeded();
   buffer_.Printf("%f", d);
@@ -419,6 +424,11 @@ void JSONStream::PrintProperty64(const char* name, int64_t i) {
   ASSERT(Utils::IsJavascriptInt64(i));
   PrintPropertyName(name);
   PrintValue64(i);
+}
+
+
+void JSONStream::PrintPropertyTimeMillis(const char* name, int64_t millis) {
+  PrintProperty(name, static_cast<double>(millis));
 }
 
 
