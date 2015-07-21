@@ -196,7 +196,8 @@ class Compiler extends leg.Compiler {
   }
 
   void log(message) {
-    callUserHandler(null, null, null, message, api.Diagnostic.VERBOSE_INFO);
+    callUserHandler(
+        null, null, null, null, message, api.Diagnostic.VERBOSE_INFO);
   }
 
   /// See [leg.Compiler.translateResolvedUri].
@@ -427,9 +428,10 @@ class Compiler extends leg.Compiler {
     // [:span.uri:] might be [:null:] in case of a [Script] with no [uri]. For
     // instance in the [Types] constructor in typechecker.dart.
     if (span == null || span.uri == null) {
-      callUserHandler(null, null, null, '$message', kind);
+      callUserHandler(message, null, null, null, '$message', kind);
     } else {
-      callUserHandler(span.uri, span.begin, span.end, '$message', kind);
+      callUserHandler(
+          message, span.uri, span.begin, span.end, '$message', kind);
     }
   }
 
@@ -438,11 +440,11 @@ class Compiler extends leg.Compiler {
       && (options.indexOf('--allow-mock-compilation') != -1);
   }
 
-  void callUserHandler(Uri uri, int begin, int end,
-                       String message, api.Diagnostic kind) {
+  void callUserHandler(leg.Message message, Uri uri, int begin, int end,
+                       String text, api.Diagnostic kind) {
     try {
       userHandlerTask.measure(() {
-        handler.report(uri, begin, end, message, kind);
+        handler.report(message, uri, begin, end, text, kind);
       });
     } catch (ex, s) {
       diagnoseCrashInUserCode(

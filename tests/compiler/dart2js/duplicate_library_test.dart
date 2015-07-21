@@ -5,41 +5,46 @@
 // Test that duplicate library names result in different messages depending
 // on whether the libraries are based on the same resource.
 
+import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-
+import 'package:compiler/src/dart2jslib.dart' show MessageKind;
 import 'memory_compiler.dart';
 
 void check(String kind,
            Iterable<DiagnosticMessage> messages,
-           List<String> prefixes) {
-  Expect.equals(messages.length, prefixes.length,
+           List<MessageKind> expectedMessageKinds) {
+  Expect.equals(messages.length, expectedMessageKinds.length,
       "Unexpected $kind count: $messages");
   int i = 0;
   messages.forEach((DiagnosticMessage message) {
-    Expect.isTrue(message.message.startsWith(prefixes[i++]));
+    Expect.equals(expectedMessageKinds[i++], message.message.kind);
   });
 }
 
-void test(Map<String, String> source,
-          {List<String> warnings: const <String>[],
-           List<String> hints: const <String>[]}) {
+Future test(Map<String, String> source,
+            {List<MessageKind> warnings: const <MessageKind>[],
+            List<MessageKind> hints: const <MessageKind>[]}) async {
   DiagnosticCollector collector = new DiagnosticCollector();
-  var compiler = compilerFor(source,
-                             diagnosticHandler: collector,
-                             showDiagnostics: true,
-                             options: ['--analyze-only', '--analyze-all'],
-                             packageRoot: Uri.parse('memory:pkg/'));
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
-    Expect.isTrue(collector.errors.isEmpty);
-    check('warning', collector.warnings, warnings);
-    check('hint', collector.hints, hints);
-    Expect.isTrue(collector.infos.isEmpty);
-  }));
+  await runCompiler(
+      memorySourceFiles: source,
+      diagnosticHandler: collector,
+      showDiagnostics: true,
+      options: ['--analyze-only', '--analyze-all'],
+      packageRoot: Uri.parse('memory:pkg/'));
+
+  Expect.isTrue(collector.errors.isEmpty);
+  check('warning', collector.warnings, warnings);
+  check('hint', collector.hints, hints);
+  Expect.isTrue(collector.infos.isEmpty);
 }
 
 void main() {
-  test({
+  asyncTest(runTests);
+}
+
+Future runTests() async {
+  await test({
     'main.dart': """
 library main;
 
@@ -49,9 +54,9 @@ import 'pkg/lib/foo.dart';
     'pkg/lib/foo.dart': """
 library lib.foo;
 """},
-    warnings: ["The library 'lib.foo' in 'memory:pkg/lib/foo.dart' is loaded"]);
+    warnings: [MessageKind.DUPLICATED_LIBRARY_RESOURCE]);
 
-  test({
+  await test({
     'main.dart': """
 library main;
 
@@ -66,9 +71,9 @@ import 'lib/bar.dart';
     'pkg/lib/bar.dart': """
 library lib.bar;
 """},
-    warnings: ["The library 'lib.bar' in 'memory:pkg/lib/bar.dart' is loaded"]);
+    warnings: [MessageKind.DUPLICATED_LIBRARY_RESOURCE]);
 
-  test({
+  await test({
     'main.dart': """
 library main;
 
@@ -83,9 +88,9 @@ import 'package:lib/baz.dart';
     'pkg/lib/baz.dart': """
 library lib.baz;
 """},
-    warnings: ["The library 'lib.baz' in 'memory:pkg/lib/baz.dart' is loaded"]);
+    warnings: [MessageKind.DUPLICATED_LIBRARY_RESOURCE]);
 
-  test({
+  await test({
     'main.dart': """
 library main;
 
@@ -105,9 +110,9 @@ import 'lib/boz.dart';
     'pkg/lib/boz.dart': """
 library lib.boz;
 """},
-    warnings: ["The library 'lib.boz' in 'memory:pkg/lib/boz.dart' is loaded"]);
+    warnings: [MessageKind.DUPLICATED_LIBRARY_RESOURCE]);
 
- test({
+  await test({
     'main.dart': """
 library main;
 
@@ -117,9 +122,9 @@ import 'pkg/lib/qux.dart';
     'pkg/lib/qux.dart': """
 // No library tag.
 """},
-    hints: ["The resource 'memory:pkg/lib/qux.dart' is loaded"]);
+    hints: [MessageKind.DUPLICATED_RESOURCE]);
 
-  test({
+  await test({
     'main.dart': """
 library main;
 
@@ -132,7 +137,7 @@ library lib;
     'bar.dart': """
 library lib;
 """},
-    warnings: ["Duplicated library name 'lib'.",
-               "Duplicated library name 'lib'."]);
+    warnings: [MessageKind.DUPLICATED_LIBRARY_NAME,
+               MessageKind.DUPLICATED_LIBRARY_NAME]);
 }
 

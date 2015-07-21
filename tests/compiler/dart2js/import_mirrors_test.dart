@@ -342,7 +342,7 @@ import 'dart:mirrors';
 Future test(Map sourceFiles,
             {expectedPaths,
              bool verbose: false,
-             bool enableExperimentalMirrors: false}) {
+             bool enableExperimentalMirrors: false}) async {
   if (expectedPaths is! List) {
     expectedPaths = [expectedPaths];
   }
@@ -354,24 +354,26 @@ Future test(Map sourceFiles,
   if (enableExperimentalMirrors) {
     options.add('--enable-experimental-mirrors');
   }
-  var compiler = compilerFor(sourceFiles, diagnosticHandler: collector,
-                             packageRoot: Uri.parse('memory:/pkg/'),
-                             options: options);
-  return compiler.run(Uri.parse('memory:/main.dart')).then((_) {
-    Expect.equals(0, collector.errors.length, 'Errors: ${collector.errors}');
-    if (enableExperimentalMirrors) {
-      Expect.equals(0, collector.warnings.length,
-                    'Warnings: ${collector.errors}');
-    } else {
-      Expect.equals(1, collector.warnings.length,
-                    'Warnings: ${collector.errors}');
-      Expect.equals(
-          MessageKind.IMPORT_EXPERIMENTAL_MIRRORS.message(
-              {'importChain': expectedPaths.join(
-                  MessageKind.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)}).toString(),
-          collector.warnings.first.message);
-    }
-  });
+  CompilationResult result = await runCompiler(
+      entryPoint: Uri.parse('memory:/main.dart'),
+      memorySourceFiles: sourceFiles,
+      diagnosticHandler: collector,
+      packageRoot: Uri.parse('memory:/pkg/'),
+      options: options);
+  Expect.equals(0, collector.errors.length, 'Errors: ${collector.errors}');
+  if (enableExperimentalMirrors) {
+    Expect.equals(0, collector.warnings.length,
+                  'Warnings: ${collector.errors}');
+  } else {
+    Expect.equals(1, collector.warnings.length,
+                  'Warnings: ${collector.errors}');
+    Expect.equals(
+        MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
+        collector.warnings.first.message.kind);
+    Expect.equals(
+        expectedPaths.join(MessageKind.IMPORT_EXPERIMENTAL_MIRRORS_PADDING),
+        collector.warnings.first.message.arguments['importChain']);
+  }
 }
 
 Future checkPaths(Map sourceData) {

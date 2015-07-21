@@ -38,13 +38,13 @@ class CollectingFormattingDiagnosticHandler
   }
 
   @override
-  void report(Uri uri, int begin, int end, String message, kind) {
+  void report(var code, Uri uri, int begin, int end, String message, kind) {
     messages.add([message, kind]);
   }
 
   @override
   void call(Uri uri, int begin, int end, String message, kind) {
-    report(uri, begin, end, message, kind);
+    report(null, uri, begin, end, message, kind);
   }
 
   String prefixMessage(String message, Diagnostic kind) {
