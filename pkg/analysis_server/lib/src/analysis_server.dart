@@ -272,6 +272,17 @@ class AnalysisServer {
   Set<String> prevAnalyzedFiles;
 
   /**
+   * The default options used to create new analysis contexts.
+   */
+  AnalysisOptionsImpl defaultContextOptions = new AnalysisOptionsImpl();
+
+  /**
+   * The controller for sending [ContextsChangedEvent]s.
+   */
+  StreamController<ContextsChangedEvent> _onContextsChangedController =
+      new StreamController<ContextsChangedEvent>.broadcast();
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
@@ -300,13 +311,12 @@ class AnalysisServer {
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
-    AnalysisOptionsImpl analysisOptions =
-        contextManagerCallbacks.defaultOptions;
-    analysisOptions.incremental = true;
-    analysisOptions.incrementalApi = options.enableIncrementalResolutionApi;
-    analysisOptions.incrementalValidation =
+    defaultContextOptions.incremental = true;
+    defaultContextOptions.incrementalApi =
+        options.enableIncrementalResolutionApi;
+    defaultContextOptions.incrementalValidation =
         options.enableIncrementalResolutionValidation;
-    analysisOptions.generateImplicitErrors = false;
+    defaultContextOptions.generateImplicitErrors = false;
     this.contextManager = contextManager;
     _noErrorNotification = options.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger();
@@ -352,7 +362,7 @@ class AnalysisServer {
    * The stream that is notified when contexts are added or removed.
    */
   Stream<ContextsChangedEvent> get onContextsChanged =>
-      (contextManager.callbacks as ServerContextManagerCallbacks).onContextsChanged;
+      _onContextsChangedController.stream;
 
   /**
    * The stream that is notified when a single file has been analyzed.
@@ -1224,10 +1234,8 @@ class AnalysisServer {
     //
     // Update the defaults used to create new contexts.
     //
-    AnalysisOptionsImpl options =
-        (contextManager.callbacks as ServerContextManagerCallbacks).defaultOptions;
     optionUpdaters.forEach((OptionUpdater optionUpdater) {
-      optionUpdater(options);
+      optionUpdater(defaultContextOptions);
     });
   }
 
@@ -1340,36 +1348,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   final AnalysisServer analysisServer;
 
   /**
-   * The default options used to create new analysis contexts.
-   *
-   * TODO(paulberry): move this into AnalysisServer so that a cast isn't needed
-   * to access it.
-   */
-  AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
-
-  /**
-   * The controller for sending [ContextsChangedEvent]s.
-   */
-  StreamController<ContextsChangedEvent> _onContextsChangedController;
-
-  /**
    * The [ResourceProvider] by which paths are converted into [Resource]s.
    */
   final ResourceProvider resourceProvider;
 
-  ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider) {
-    _onContextsChangedController =
-        new StreamController<ContextsChangedEvent>.broadcast();
-  }
-
-  /**
-   * The stream that is notified when contexts are added or removed.
-   *
-   * TODO(paulberry): move this into AnalysisServer so that a cast isn't needed
-   * to access it.
-   */
-  Stream<ContextsChangedEvent> get onContextsChanged =>
-      _onContextsChangedController.stream;
+  ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
 
   @override
   AnalysisContext addContext(
@@ -1379,8 +1362,9 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     context.contentCache = analysisServer.overlayState;
     analysisServer.folderMap[folder] = context;
     context.sourceFactory = _createSourceFactory(packageUriResolver, packages);
-    context.analysisOptions = new AnalysisOptionsImpl.from(defaultOptions);
-    _onContextsChangedController
+    context.analysisOptions =
+        new AnalysisOptionsImpl.from(analysisServer.defaultContextOptions);
+    analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(added: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
     return context;
@@ -1419,7 +1403,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       analysisServer.index.removeContext(context);
     }
     analysisServer.operationQueue.contextRemoved(context);
-    _onContextsChangedController
+    analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(removed: [context]));
     analysisServer.sendContextAnalysisDoneNotifications(
         context, AnalysisDoneReason.CONTEXT_REMOVED);
@@ -1449,7 +1433,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       Folder contextFolder, UriResolver packageUriResolver, Packages packages) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
     context.sourceFactory = _createSourceFactory(packageUriResolver, packages);
-    _onContextsChangedController
+    analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
   }
