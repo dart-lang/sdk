@@ -12712,8 +12712,8 @@ class RequestErrorCode implements Enum {
   static const GET_ERRORS_INVALID_FILE = const RequestErrorCode._("GET_ERRORS_INVALID_FILE");
 
   /**
-   * An "analysis.getErrors" request specified a FilePath which does not match
-   * a file currently subject to analysis.
+   * An "analysis.getNavigation" request specified a FilePath which does not
+   * match a file currently subject to analysis.
    */
   static const GET_NAVIGATION_INVALID_FILE = const RequestErrorCode._("GET_NAVIGATION_INVALID_FILE");
 

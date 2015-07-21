@@ -47,7 +47,7 @@ public class RequestErrorCode {
   public static final String GET_ERRORS_INVALID_FILE = "GET_ERRORS_INVALID_FILE";
 
   /**
-   * An "analysis.getErrors" request specified a FilePath which does not match a file currently
+   * An "analysis.getNavigation" request specified a FilePath which does not match a file currently
    * subject to analysis.
    */
   public static final String GET_NAVIGATION_INVALID_FILE = "GET_NAVIGATION_INVALID_FILE";
