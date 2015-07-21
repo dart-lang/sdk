@@ -1706,7 +1706,7 @@ class ServiceEvent extends ServiceObject {
     if (map['logRecord'] != null) {
       logRecord = map['logRecord'];
       logRecord['time'] =
-          new DateTime.fromMillisecondsSinceEpoch(logRecord['time']);
+          new DateTime.fromMillisecondsSinceEpoch(logRecord['time'].toInt());
       logRecord['level'] = _findLogLevel(logRecord['level']);
     }
   }
