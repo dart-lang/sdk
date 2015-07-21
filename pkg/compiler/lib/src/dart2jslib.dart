@@ -60,6 +60,7 @@ import 'tracer.dart' show Tracer;
 import 'tree/tree.dart';
 import 'types/types.dart' as ti;
 import 'universe/universe.dart';
+import 'universe/class_set.dart';
 import 'util/characters.dart' show $_;
 import 'util/uri_extras.dart' as uri_extras show relativize;
 import 'util/util.dart';

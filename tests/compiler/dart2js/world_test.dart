@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15,7 +15,8 @@ void main() {
   asyncTest(() => TypeEnvironment.create(r"""
       class A {}
       class B {}
-      class C extends A {}
+      class C_Super extends A {}
+      class C extends C_Super {}
       class D implements A {}
       class E extends B implements A {}
       class F extends Object with A implements B {}
@@ -63,6 +64,18 @@ void main() {
       }
     }
 
+    void testSubclasses(
+        ClassElement cls,
+        List<ClassElement> expectedClasses,
+        {bool exact: true}) {
+      check(
+        'subclassesOf',
+        cls,
+        classWorld.subclassesOf(cls),
+        expectedClasses,
+        exact: exact);
+    }
+
     void testStrictSubclasses(
         ClassElement cls,
         List<ClassElement> expectedClasses,
@@ -98,6 +111,15 @@ void main() {
         expectedClasses,
         exact: exact);
     }
+
+    testSubclasses(Object_, [A, B, C, D, E, F, G], exact: false);
+    testSubclasses(A, [A, C]);
+    testSubclasses(B, [B, E]);
+    testSubclasses(C, [C]);
+    testSubclasses(D, [D]);
+    testSubclasses(E, [E]);
+    testSubclasses(F, [F]);
+    testSubclasses(G, [G]);
 
     testStrictSubclasses(Object_, [A, B, C, D, E, F, G], exact: false);
     testStrictSubclasses(A, [C]);
