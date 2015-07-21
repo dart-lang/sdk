@@ -1668,7 +1668,7 @@ class TypePropagationVisitor implements Visitor {
   /// Returns the lattice value corresponding to [node], defaulting to nothing.
   ///
   /// Never returns null.
-  AbstractValue getValue(Node node) {
+  AbstractValue getValue(Definition node) {
     AbstractValue value = values[node];
     return (value == null) ? nothing : value;
   }
@@ -1676,7 +1676,7 @@ class TypePropagationVisitor implements Visitor {
   /// Joins the passed lattice [updateValue] to the current value of [node],
   /// and adds it to the definition work set if it has changed and [node] is
   /// a definition.
-  void setValue(Node node, AbstractValue updateValue) {
+  void setValue(Definition node, AbstractValue updateValue) {
     AbstractValue oldValue = getValue(node);
     AbstractValue newValue = lattice.join(oldValue, updateValue);
     if (oldValue == newValue) {
@@ -1687,9 +1687,7 @@ class TypePropagationVisitor implements Visitor {
     assert(newValue.kind >= oldValue.kind);
 
     values[node] = newValue;
-    if (node is Definition) {
-      defWorkset.add(node);
-    }
+    defWorkset.add(node);
   }
 
   // -------------------------- Visitor overrides ------------------------------

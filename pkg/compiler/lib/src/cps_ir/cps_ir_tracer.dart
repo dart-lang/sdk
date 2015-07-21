@@ -360,8 +360,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitForeignCode(cps_ir.ForeignCode node) {
     String id = names.name(node);
     String arguments = node.arguments.map(formatReference).join(', ');
-    String continuation = node.continuation == null ? ''
-        : ' ${formatReference(node.continuation)}';
+    String continuation = formatReference(node.continuation);
     printStmt(id, "ForeignCode ${node.type} ${node.codeTemplate.source} "
         "$arguments $continuation");
   }
@@ -652,8 +651,6 @@ class BlockCollector implements cps_ir.Visitor {
 
   @override
   visitForeignCode(cps_ir.ForeignCode node) {
-    if (node.continuation != null) {
-      addEdgeToContinuation(node.continuation);
-    }
+    addEdgeToContinuation(node.continuation);
   }
 }
