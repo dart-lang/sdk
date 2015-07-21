@@ -266,7 +266,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/shelf":
       (Var("github_mirror") % "shelf") + Var("shelf_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_static":
-      "https://github.com/kevmoo/shelf_static.dart.git" +
+      "https://github.com/dart-lang/shelf_static.git" +
       Var("shelf_static_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_web_socket":
       (Var("github_mirror") % "shelf_web_socket") +
