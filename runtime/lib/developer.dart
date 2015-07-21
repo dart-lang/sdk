@@ -6,11 +6,11 @@ patch bool debugger({bool when: true, String msg}) native "Developer_debugger";
 
 patch inspect(object) native "Developer_inspect";
 
-patch log(int sequenceNumber,
-          int millisecondsSinceEpoch,
-          int level,
-          String name,
-          String message,
-          [Zone zone,
+patch log({int sequenceNumber,
+           int millisecondsSinceEpoch,
+           int level,
+           String name,
+           String message,
+           Zone zone,
            Object error,
-           StackTrace stackTrace]) native "Developer_log";
+           StackTrace stackTrace}) native "Developer_log";

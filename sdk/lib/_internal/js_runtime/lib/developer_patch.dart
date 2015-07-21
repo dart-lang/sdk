@@ -41,13 +41,13 @@ inspect(object) {
 /// [zone] (optional) the zone where the log was emitted
 /// [error] (optional) an error object associated with this log event.
 /// [stackTrace] (optional) a stack trace associated with this log event.
-log(int sequenceNumber,
-    int millisecondsSinceEpoch,
-    int level,
-    String name,
-    String message,
-    [Zone zone,
+log({int sequenceNumber,
+     int millisecondsSinceEpoch,
+     int level,
+     String name,
+     String message,
+     Zone zone,
      Object error,
-     StackTrace stackTrace]) {
+     StackTrace stackTrace}) {
   // TODO.
 }

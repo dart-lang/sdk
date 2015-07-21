@@ -43,23 +43,11 @@ external inspect(object);
 /// [zone] (optional) the zone where the log was emitted
 /// [error] (optional) an error object associated with this log event.
 /// [stackTrace] (optional) a stack trace associated with this log event.
-external log(int sequenceNumber,
-             int millisecondsSinceEpoch,
-             int level,
-             String name,
-             String message,
-             [Zone zone,
+external log({int sequenceNumber,
+              int millisecondsSinceEpoch,
+              int level,
+              String name,
+              String message,
+              Zone zone,
               Object error,
-              StackTrace stackTrace]);
-
-/// Emit a log event for a a [LogRecord] from the [logging] package.
-void logOnRecord(dynamic logRecord) {
-  log(logRecord.sequenceNumber,
-      logRecord.time.millisecondsSinceEpoch,
-      logRecord.level.value,
-      logRecord.loggerName,
-      logRecord.message,
-      null,
-      logRecord.error,
-      logRecord.stackTrace);
-}
+              StackTrace stackTrace});

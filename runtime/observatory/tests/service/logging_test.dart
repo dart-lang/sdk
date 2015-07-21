@@ -12,7 +12,17 @@ import 'test_helper.dart';
 
 void init() {
   Logger.root.level = Level.ALL;
-  Logger.root.onRecord.listen(developer.logOnRecord);
+  Logger.root.onRecord.listen((logRecord) {
+    developer.log(
+        sequenceNumber: logRecord.sequenceNumber,
+        millisecondsSinceEpoch: logRecord.time.millisecondsSinceEpoch,
+        level: logRecord.level.value,
+        name: logRecord.loggerName,
+        message: logRecord.message,
+        zone: null,
+        error: logRecord.error,
+        stackTrace: logRecord.stackTrace);
+  });
 }
 
 void run() {
