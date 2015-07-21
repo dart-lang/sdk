@@ -914,9 +914,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R10: number of context variables.
     // RCX: heap.
     __ movq(Address(RCX, Heap::TopOffset(space)), R13);
-    __ addq(RAX, Immediate(kHeapObjectTag));
     // R13: Size of allocation in bytes.
     __ subq(R13, RAX);
+    __ addq(RAX, Immediate(kHeapObjectTag));
     // Generate isolate-independent code to allow sharing between isolates.
     __ UpdateAllocationStatsWithSize(cid, R13, space,
                                      /* inline_isolate */ false);

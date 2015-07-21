@@ -877,9 +877,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // EBX: next object start.
     // EDX: number of context variables.
     __ movl(Address(ECX, Heap::TopOffset(space)), EBX);
-    __ addl(EAX, Immediate(kHeapObjectTag));
     // EBX: Size of allocation in bytes.
     __ subl(EBX, EAX);
+    __ addl(EAX, Immediate(kHeapObjectTag));
     // Generate isolate-independent code to allow sharing between isolates.
     __ UpdateAllocationStatsWithSize(cid, EBX, EDI, space,
                                      /* inline_isolate = */ false);
