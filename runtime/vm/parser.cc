@@ -318,6 +318,7 @@ void Parser::TryStack::AddNodeForFinallyInlining(AstNode* node) {
 // For parsing a compilation unit.
 Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
     : isolate_(Thread::Current()->isolate()),
+      thread_(Thread::Current()),
       script_(Script::Handle(zone(), script.raw())),
       tokens_iterator_(TokenStream::Handle(zone(), script.tokens()),
                        token_pos),
@@ -347,6 +348,7 @@ Parser::Parser(const Script& script,
                ParsedFunction* parsed_function,
                intptr_t token_position)
     : isolate_(Thread::Current()->isolate()),
+      thread_(Thread::Current()),
       script_(Script::Handle(zone(), script.raw())),
       tokens_iterator_(TokenStream::Handle(zone(), script.tokens()),
                        token_position),

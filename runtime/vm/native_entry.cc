@@ -88,7 +88,8 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   /* Tell MemorySanitizer 'arguments' is initialized by generated code. */
   MSAN_UNPOISON(arguments, sizeof(*arguments));
-  Isolate* isolate = arguments->thread()->isolate();
+  Thread* thread = arguments->thread();
+  Isolate* isolate = thread->isolate();
 
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
@@ -97,12 +98,12 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
   TRACE_NATIVE_CALL("0x%" Px "", reinterpret_cast<uintptr_t>(func));
   if (scope == NULL) {
     scope = new ApiLocalScope(current_top_scope,
-                              isolate->top_exit_frame_info());
+                              thread->top_exit_frame_info());
     ASSERT(scope != NULL);
   } else {
-    scope->Reinit(isolate,
+    scope->Reinit(thread,
                   current_top_scope,
-                  isolate->top_exit_frame_info());
+                  thread->top_exit_frame_info());
     state->set_reusable_scope(NULL);
   }
   state->set_top_scope(scope);  // New scope is now the top scope.
@@ -112,7 +113,7 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
   ASSERT(current_top_scope == scope->previous());
   state->set_top_scope(current_top_scope);  // Reset top scope to previous.
   if (state->reusable_scope() == NULL) {
-    scope->Reset(isolate);  // Reset the old scope which we just exited.
+    scope->Reset(thread);  // Reset the old scope which we just exited.
     state->set_reusable_scope(scope);
   } else {
     ASSERT(state->reusable_scope() != scope);

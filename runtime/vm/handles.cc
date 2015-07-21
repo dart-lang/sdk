@@ -76,17 +76,17 @@ bool VMHandles::IsZoneHandle(uword handle) {
 
 
 int VMHandles::ScopedHandleCount() {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->current_zone() != NULL);
-  VMHandles* handles = isolate->current_zone()->handles();
+  Thread* thread = Thread::Current();
+  ASSERT(thread->zone() != NULL);
+  VMHandles* handles = thread->zone()->handles();
   return handles->CountScopedHandles();
 }
 
 
 int VMHandles::ZoneHandleCount() {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->current_zone() != NULL);
-  VMHandles* handles = isolate->current_zone()->handles();
+  Thread* thread = Thread::Current();
+  ASSERT(thread->zone() != NULL);
+  VMHandles* handles = thread->zone()->handles();
   return handles->CountZoneHandles();
 }
 
