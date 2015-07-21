@@ -10033,12 +10033,16 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitLibraryDirective(LibraryDirective node) {
     LibraryDirective toNode = this._toNode as LibraryDirective;
-    return _and(
+    if (_and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
         _isEqualTokens(node.libraryKeyword, toNode.libraryKeyword),
         _isEqualNodes(node.name, toNode.name),
-        _isEqualTokens(node.semicolon, toNode.semicolon));
+        _isEqualTokens(node.semicolon, toNode.semicolon))) {
+      toNode.element = node.element;
+      return true;
+    }
+    return false;
   }
 
   @override

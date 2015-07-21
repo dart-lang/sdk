@@ -1617,7 +1617,8 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   VariableDeclarationList visitVariableDeclarationList(
-      VariableDeclarationList node) => new VariableDeclarationList(null,
+      VariableDeclarationList node) => new VariableDeclarationList(
+      cloneNode(node.documentationComment),
       cloneNodeList(node.metadata), cloneToken(node.keyword),
       cloneNode(node.type), cloneNodeList(node.variables));
 
