@@ -11,6 +11,7 @@
 
 ## 0.25.2
 
+* Requires Dart SDK 1.12-dev or greater
 * Enable null-aware operators (DEP 9) by default.
 * Generic method support in the element model.
 
