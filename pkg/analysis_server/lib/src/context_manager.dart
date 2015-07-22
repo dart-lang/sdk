@@ -105,15 +105,16 @@ class ContextInfo {
    * Create the virtual [ContextInfo] which acts as an ancestor to all other
    * [ContextInfo]s.
    */
-  ContextInfo._ancestor()
+  ContextInfo._root()
       : folder = null,
         pathFilter = null;
 
   /**
-   * Returns `true` if the folder associated with this context is not contained
-   * within any other folders that have an associated context.
+   * Returns `true` if this is a "top level" context, meaning that the folder
+   * associated with it is not contained within any other folders that have an
+   * associated context.
    */
-  bool get isRoot => parent.parent == null;
+  bool get isTopLevel => parent.parent == null;
 
   /**
    * Returns `true` if [path] is excluded, as it is in one of the children.
@@ -363,7 +364,7 @@ class ContextManagerImpl implements ContextManager {
    * Virtual [ContextInfo] which acts as the ancestor of all other
    * [ContextInfo]s.
    */
-  final ContextInfo _ancestorInfo = new ContextInfo._ancestor();
+  final ContextInfo _rootInfo = new ContextInfo._root();
 
   ContextManagerImpl(this.resourceProvider, this.packageResolverProvider,
       this._packageMapProvider, this._instrumentationService) {
@@ -504,7 +505,7 @@ class ContextManagerImpl implements ContextManager {
         return folder.isOrContains(includedFolder.path);
       });
       if (!wasIncluded) {
-        _createContexts(_ancestorInfo, includedFolder, false);
+        _createContexts(_rootInfo, includedFolder, false);
       }
     }
     // remove newly excluded sources
@@ -918,7 +919,7 @@ class ContextManagerImpl implements ContextManager {
           String directoryPath = pathContext.dirname(path);
 
           // Check to see if we need to create a new context.
-          if (info.isRoot) {
+          if (info.isTopLevel) {
 
             // Only create a new context if this is not the same directory
             // described by our info object.
@@ -944,7 +945,7 @@ class ContextManagerImpl implements ContextManager {
         } else {
           // pubspec was added in a sub-folder, extract a new context
           if (_isPubspec(path) &&
-              info.isRoot &&
+              info.isTopLevel &&
               !info.isPathToPackageDescription(path)) {
             _extractContext(info, resource);
             return;
@@ -970,7 +971,7 @@ class ContextManagerImpl implements ContextManager {
         // If package spec info is removed, check to see if we can merge contexts.
         // Note that it's important to verify that there is NEITHER a .packages nor a
         // lingering pubspec.yaml before merging.
-        if (!info.isRoot) {
+        if (!info.isTopLevel) {
           if (ENABLE_PACKAGESPEC_SUPPORT) {
             String directoryPath = pathContext.dirname(path);
 
