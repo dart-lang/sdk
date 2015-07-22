@@ -16,6 +16,9 @@ tests/compiler/dart2js_extra/string_interpolation_dynamic_test.dart -text
 tests/compiler/dart2js_extra/literal_string_juxtaposition_test.dart -text
 tests/language/raw_string_test.dart -text
 tests/language/multiline_strings_test.dart -text
+tests/language/multiline_newline_cr.dart -text
+tests/language/multiline_newline_crlf.dart -text
+tests/language/multiline_newline_lf.dart -text
 tests/lib/convert/json_pretty_test.dart -text
 tests/lib/mirrors/method_mirror_source_line_ending_test.dart -text
 tests/lib/mirrors/method_mirror_source_line_ending_cr.dart -text
