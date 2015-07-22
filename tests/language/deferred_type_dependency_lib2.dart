@@ -4,7 +4,7 @@
 
 library lib2;
 
-import "deferred_type_dependency_test.dart";
+import "deferred_type_dependency_lib3.dart";
 
 getInstance() {
   return new A();

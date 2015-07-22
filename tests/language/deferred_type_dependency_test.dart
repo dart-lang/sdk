@@ -9,10 +9,6 @@ import "deferred_type_dependency_lib1.dart" deferred as lib1;
 import "deferred_type_dependency_lib2.dart" deferred as lib2;
 import "package:expect/expect.dart";
 
-class A {
-  var p = true;
-}
-
 main() async {
   await lib1.loadLibrary();
   // Split the cases into a multi-test to test each feature separately.

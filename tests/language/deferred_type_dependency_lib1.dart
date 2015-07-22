@@ -4,7 +4,7 @@
 
 library lib1;
 
-import "deferred_type_dependency_test.dart";
+import "deferred_type_dependency_lib3.dart";
 
 bool fooIs(x) {
   return x is A;
