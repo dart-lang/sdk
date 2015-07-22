@@ -214,13 +214,14 @@ big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == dart2js && $cps_ir ]
 error_stack_trace1_test: Pass # H.unwrapException(...).get$stackTrace is not a function
-hashcode_test: RuntimeError # Please triage this failure.
 iterable_empty_test: RuntimeError # Please triage this failure.
 iterable_return_type_test/none: RuntimeError # Please triage this failure.
 iterable_to_list_test: RuntimeError # Please triage this failure.
 iterable_to_set_test: RuntimeError # Please triage this failure.
+list_filled_type_argument_test: RuntimeError # Please triage this failure.
 list_test/01: RuntimeError # this.get$length is not a function
 list_test/none: RuntimeError # this.get$length is not a function
+list_unmodifiable_test: RuntimeError # Please triage this failure.
 map_values2_test: RuntimeError # Please triage this failure.
 map_values3_test: RuntimeError # Please triage this failure.
 map_values4_test: RuntimeError # Please triage this failure.

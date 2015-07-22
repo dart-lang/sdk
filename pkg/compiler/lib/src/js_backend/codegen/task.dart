@@ -62,17 +62,10 @@ class CpsFunctionCompiler implements FunctionCompiler {
     JavaScriptBackend backend = compiler.backend;
     return compiler.withCurrentElement(element, () {
       try {
-        ClassElement cls = element.enclosingClass;
-        String name = element.name;
-        String className = cls == null ? null : cls.name;
-        LibraryElement library = element.library;
-        String libraryName = library == null ? null : library.toString();
         // TODO(karlklose): remove this fallback.
         // Fallback for a few functions that we know require try-finally and
         // switch.
-        if (element.isNative ||
-            element.isPatched ||
-            libraryName == 'origin library(dart:typed_data)') {
+        if (element.isNative) {
           compiler.log('Using SSA compiler for platform element $element');
           return fallbackCompiler.compile(work);
         }

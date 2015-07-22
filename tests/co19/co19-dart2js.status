@@ -9600,6 +9600,7 @@ Language/13_Statements/06_For_A01_t07: Crash # unsupported operation on erroneou
 Language/13_Statements/12_Labels_A03_t04: Crash # (switch (i){L:case 0:flag=true;break;case 2:continue L;}): continue to a labeled switch case
 Language/13_Statements/14_Continue_A02_t12: Crash # (switch (2){L:case 1:flag=true;break;case 2:continue L;}): continue to a labeled switch case
 Language/13_Statements/14_Continue_A02_t13: Crash # (switch (2){case 2:continue L;L:case 1:flag=true;}): continue to a labeled switch case
+Language/15_Types/4_Interface_Types_A12_t09: RuntimeError # Please triage this failure.
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Crash # (lazy.method()): deferred access is not implemented
 LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Stack Overflow
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # Stack Overflow

@@ -355,6 +355,7 @@ cha_deopt3_test: Crash # (d.make_u()): deferred access is not implemented
 classes_static_method_clash_test: Crash # Stack Overflow
 closure_in_constructor_test: Crash # Invalid argument(s)
 closure_type_variables_test: Crash # Invalid argument(s)
+closures_initializer_test: RuntimeError # Please triage this failure.
 const_evaluation_test/01: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 constructor12_test: RuntimeError # Please triage this failure.
 crash_6725_test/01: Crash # The null object does not have a getter '_element'.
@@ -404,6 +405,7 @@ deferred_type_dependency_test/none: Crash # (main()async{await l...  cannot hand
 deferred_type_dependency_test/type_annotation: Crash # (main()async{await l...  cannot handle async/sync*/async* functions
 enum_mirror_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 final_super_field_set_test/01: RuntimeError # Please triage this failure.
+first_class_types_test: RuntimeError # Please triage this failure.
 flatten_test/01: Crash # (test()async{int x=await new Derived<int>();}): cannot handle async/sync*/async* functions
 flatten_test/02: Crash # (test()async{Future<int> f()async=>new Derived<int>();}): cannot handle async/sync*/async* functions
 flatten_test/03: Crash # (test()async{Future<...  cannot handle async/sync*/async* functions
@@ -419,7 +421,10 @@ flatten_test/12: Crash # (test()async{Future<...  cannot handle async/sync*/asyn
 flatten_test/none: Crash # (test()async{}): cannot handle async/sync*/async* functions
 for2_test: Crash # The null object does not have a getter 'field'.
 for_variable_capture_test: Crash # (i=0): For-loop variable captured in loop header
+generic2_test: RuntimeError # Please triage this failure.
 generic_field_mixin3_test: RuntimeError # Please triage this failure.
+generic_instanceof_test: RuntimeError # Please triage this failure.
+generic_native_test: RuntimeError # Please triage this failure.
 if_null_assignment_behavior_test/12: RuntimeError # Please triage this failure.
 if_null_assignment_behavior_test/28: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/01: RuntimeError # v0.get$a is not a function
@@ -436,12 +441,15 @@ if_null_assignment_static_test/39: RuntimeError # v0.get$b is not a function
 if_null_assignment_static_test/40: RuntimeError # v0.get$a is not a function
 infinite_switch_label_test: Crash # (switch (target){l0:...  continue to a labeled switch case
 instance_creation_in_function_annotation_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
+instanceof2_test: RuntimeError # Please triage this failure.
 instanceof4_test/01: RuntimeError # Please triage this failure.
 invocation_mirror_invoke_on_test: RuntimeError # Please triage this failure.
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
 issue_1751477_test: RuntimeError # O.loadLibrary is not a function
 large_class_declaration_test: Crash # Stack Overflow
+list_is_test: RuntimeError # Please triage this failure.
 list_test: RuntimeError # Please triage this failure.
+many_generic_instanceof_test: RuntimeError # Please triage this failure.
 many_overridden_no_such_method_test: RuntimeError # Please triage this failure.
 mixin_type_parameters_mixin_extends_test: Crash # The null object does not have a getter '_element'.
 mixin_type_parameters_mixin_test: Crash # The null object does not have a getter '_element'.
@@ -501,3 +509,6 @@ type_parameter_test/06: Crash # Invalid argument(s)
 type_parameter_test/none: Crash # Invalid argument(s)
 type_variable_closure2_test: RuntimeError # Please triage this failure.
 type_variable_closure_test: Crash # Invalid argument(s)
+type_variable_field_initializer_closure_test: RuntimeError # Please triage this failure.
+type_variable_field_initializer_test: RuntimeError # Please triage this failure.
+type_variable_nested_test: RuntimeError # Please triage this failure.
