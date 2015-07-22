@@ -130,8 +130,8 @@ class MetaLet extends Expression {
   int get precedenceLevel => variables.isEmpty ? EXPRESSION : CALL;
 
   Block _finishStatement(List<Statement> statements) {
-    var params = [];
-    var values = [];
+    var params = <TemporaryId>[];
+    var values = <Expression>[];
     var block = _build(params, values, new Block(statements));
     if (params.isEmpty) return block;
 

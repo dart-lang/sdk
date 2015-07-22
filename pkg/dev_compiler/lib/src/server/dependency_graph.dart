@@ -202,7 +202,7 @@ class HtmlSourceNode extends SourceNode {
               script);
           continue;
         }
-        var node = graph.nodeFromUri(uri.resolve(src));
+        DartSourceNode node = graph.nodeFromUri(uri.resolve(src));
         if (node == null || !node.source.exists()) {
           _reportError(graph, 'Script file $src not found', script);
         }
@@ -224,12 +224,14 @@ class HtmlSourceNode extends SourceNode {
         newResources.add(graph.nodeFromUri(uri.resolve(resource)));
       }
       for (var tag in document.querySelectorAll('link[rel="stylesheet"]')) {
-        var res = graph.nodeFromUri(uri.resolve(tag.attributes['href']));
+        ResourceSourceNode res =
+            graph.nodeFromUri(uri.resolve(tag.attributes['href']));
         htmlResourceNodes[tag] = res;
         newResources.add(res);
       }
       for (var tag in document.querySelectorAll('img[src]')) {
-        var res = graph.nodeFromUri(uri.resolve(tag.attributes['src']));
+        ResourceSourceNode res =
+            graph.nodeFromUri(uri.resolve(tag.attributes['src']));
         htmlResourceNodes[tag] = res;
         newResources.add(res);
       }
@@ -316,7 +318,7 @@ class DartSourceNode extends SourceNode {
             : uri.resolve(directiveUri.stringValue);
         var target =
             ParseDartTask.resolveDirective(graph._context, _source, d, null);
-        var node = graph.nodes.putIfAbsent(
+        DartSourceNode node = graph.nodes.putIfAbsent(
             targetUri, () => new DartSourceNode(graph, targetUri, target));
         //var node = graph.nodeFromUri(targetUri);
         if (node._source == null || !node._source.exists()) {

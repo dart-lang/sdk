@@ -470,12 +470,12 @@ class RestrictedRules extends TypeRules {
   /// Returns `true` if the expression is a dynamic function call or method
   /// invocation.
   bool isDynamicCall(Expression call) {
-    var t = getTypeAsCaller(call);
+    var ft = getTypeAsCaller(call);
     // TODO(leafp): This will currently return true if t is Function
     // This is probably the most correct thing to do for now, since
     // this code is also used by the back end.  Maybe revisit at some
     // point?
-    if (t == null) return true;
+    if (ft == null) return true;
     // Dynamic as the parameter type is treated as bottom.  A function with
     // a dynamic parameter type requires a dynamic call in general.
     // However, as an optimization, if we have an original definition, we know
@@ -488,7 +488,6 @@ class RestrictedRules extends TypeRules {
       }
     }
 
-    var ft = t as FunctionType;
     return _anyParameterType(ft, (pt) => pt.isDynamic);
   }
 }

@@ -56,7 +56,7 @@ void checkForPropertyOverride(FieldElement field,
   if (found) overrides.add(field);
 }
 
-PropertyInducingElement getProperty(
+FieldElement getProperty(
     ClassElement cls, LibraryElement fromLibrary, String name) {
   // Properties from a different library are not accessible.
   if (Identifier.isPrivateName(name) && cls.library != fromLibrary) {

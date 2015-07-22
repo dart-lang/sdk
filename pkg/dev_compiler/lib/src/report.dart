@@ -204,7 +204,7 @@ class _Table {
       while (abbreviations[headerName] != null) headerName = "$headerName'";
       abbreviations[headerName] = name;
     }
-    widths.add(max(5, headerName.length + 1));
+    widths.add(max(5, headerName.length + 1) as int);
     header.add(headerName);
     _totalColumns++;
   }

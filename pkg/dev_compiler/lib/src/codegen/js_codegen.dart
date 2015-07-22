@@ -122,7 +122,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       var libraryDir = unit.directives.first;
       if (libraryDir is LibraryDirective) {
         var jsName = findAnnotation(libraryDir.element, _isJsNameAnnotation);
-        jsDefaultValue = getConstantField(jsName, 'name', types.stringType);
+        jsDefaultValue =
+            getConstantField(jsName, 'name', types.stringType) as String;
       }
     }
 
@@ -184,14 +185,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       list.add(js.string(compiler.getModuleName(library.source.uri), "'"));
     };
 
-    var imports = [js.string('dart_runtime/dart')];
+    var imports = <JS.Expression>[js.string('dart_runtime/dart')];
     _imports.forEach((library, temp) {
       if (_loader.libraryIsLoaded(library)) {
         processImport(library, temp, imports);
       }
     });
 
-    var lazyImports = [];
+    var lazyImports = <JS.Expression>[];
     _imports.forEach((library, temp) {
       if (!_loader.libraryIsLoaded(library)) {
         processImport(library, temp, lazyImports);
@@ -207,7 +208,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       _moduleItems
     ]);
 
-    var program = [
+    var program = <JS.Statement>[
       js.statement("dart_library.library(#, #, #, #, #)", [
         js.string(jsPath, "'"),
         jsDefaultValue != null ? jsDefaultValue : new JS.LiteralNull(),
@@ -325,14 +326,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     var element = node.element;
 
     // Forward all generative constructors from the base class.
-    var body = [];
+    var body = <JS.Method>[];
 
     var supertype = element.supertype;
     if (!supertype.isObject) {
       for (var ctor in element.constructors) {
         var parentCtor = supertype.lookUpConstructor(ctor.name, ctor.library);
         var fun = js.call('function() { super.#(...arguments); }',
-            [_constructorName(parentCtor)]);
+            [_constructorName(parentCtor)]) as JS.Fun;
         body.add(new JS.Method(_constructorName(ctor), fun));
       }
     }
@@ -384,7 +385,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     String jsPeerName;
     var jsPeer = findAnnotation(classElem, _isJsPeerInterface);
     if (jsPeer != null) {
-      jsPeerName = getConstantField(jsPeer, 'name', types.stringType);
+      jsPeerName = getConstantField(jsPeer, 'name', types.stringType) as String;
     }
 
     var body = _finishClassMembers(classElem, classExpr, ctors, fields, methods,
@@ -424,8 +425,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     // TODO(vsm): Generate any accompanying metadata
 
     // Create constructor and initialize index
-    var constructor =
-        new JS.Method(name, js.call('function(index) { this.index = index; }'));
+    var constructor = new JS.Method(
+        name, js.call('function(index) { this.index = index; }') as JS.Fun);
     var fields = new List<ConstFieldElementImpl>.from(
         element.fields.where((f) => f.type == type));
 
@@ -437,12 +438,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     }
     var nameMap = new JS.ObjectInitializer(properties, multiline: true);
     var toStringF = new JS.Method(js.string('toString'),
-        js.call('function () { return #[this.index]; }', nameMap));
+        js.call('function() { return #[this.index]; }', nameMap) as JS.Fun);
 
     // Create enum class
     var classExpr = new JS.ClassExpression(
         id, _classHeritage(element), [constructor, toStringF]);
-    var result = [js.statement('#', classExpr)];
+    var result = <JS.Statement>[js.statement('#', classExpr)];
 
     // Create static fields for each enum value
     for (var i = 0; i < fields.length; ++i) {
@@ -455,8 +456,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     }
 
     // Create static values list
-    var values = new JS.ArrayInitializer(
-        fields.map((f) => js.call('#.#', [id, f.name])).toList());
+    var values = new JS.ArrayInitializer(new List<JS.Expression>.from(
+        fields.map((f) => js.call('#.#', [id, f.name]))));
     result.add(js.statement('#.values = dart.const(dart.list(#, #));', [
       id,
       values,
@@ -611,7 +612,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     // an ES6 iterator.
     return new JS.Method(js.call('$_SYMBOL.iterator'), js.call(
         'function() { return new dart.JsIterator(this.#); }',
-        [_emitMemberName('iterator', type: t)]));
+        [_emitMemberName('iterator', type: t)]) as JS.Fun);
   }
 
   JS.Expression _instantiateAnnotation(Annotation node) {
@@ -635,7 +636,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     var body = <JS.Statement>[];
 
     if (_extensionTypes.contains(classElem)) {
-      var dartxNames = [];
+      var dartxNames = <JS.Expression>[];
       for (var m in methods) {
         if (!m.isAbstract && !m.isStatic && m.element.isPublic) {
           dartxNames.add(_elementMemberName(m.element, allowExtensions: false));
@@ -661,8 +662,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     if (classElem.interfaces.isNotEmpty) {
       body.add(js.statement('#[dart.implements] = () => #;', [
         name,
-        new JS.ArrayInitializer(
-            classElem.interfaces.map(_emitTypeName).toList())
+        new JS.ArrayInitializer(new List<JS.Expression>.from(
+            classElem.interfaces.map(_emitTypeName)))
       ]));
     }
 
@@ -679,7 +680,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     // Instance fields, if they override getter/setter pairs
     for (FieldDeclaration member in fields) {
       for (VariableDeclaration fieldDecl in member.fields.variables) {
-        var field = fieldDecl.element;
+        var field = fieldDecl.element as FieldElement;
         if (_fieldsNeedingStorage.contains(field)) {
           body.add(_overrideField(field));
         }
@@ -688,9 +689,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
     // Emit the signature on the class recording the runtime type information
     {
-      var tStatics = [];
-      var tMethods = [];
-      var sNames = [];
+      var tStatics = <JS.Property>[];
+      var tMethods = <JS.Property>[];
+      var sNames = <JS.Expression>[];
       for (MethodDeclaration node in methods) {
         if (!(node.isSetter || node.isGetter || node.isAbstract)) {
           var name = node.name.name;
@@ -712,7 +713,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
         }
       }
 
-      var tCtors = [];
+      var tCtors = <JS.Property>[];
       for (ConstructorDeclaration node in ctors) {
         var memberName = _constructorName(node.element);
         var element = node.element;
@@ -722,14 +723,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
         tCtors.add(property);
       }
 
-      build(name, elements) {
+      JS.Property build(String name, List<JS.Property> elements) {
         var o =
             new JS.ObjectInitializer(elements, multiline: elements.length > 1);
         var e = js.call('() => #', o);
-        var p = new JS.Property(_propertyName(name), e);
-        return p;
+        return new JS.Property(_propertyName(name), e);
       }
-      var sigFields = [];
+      var sigFields = <JS.Property>[];
       if (!tCtors.isEmpty) sigFields.add(build('constructors', tCtors));
       if (!tMethods.isEmpty) sigFields.add(build('methods', tMethods));
       if (!tStatics.isEmpty) {
@@ -750,7 +750,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     // add forwarders.
     var extensions = _extensionsToImplement(classElem);
     if (extensions.isNotEmpty) {
-      var methodNames = [];
+      var methodNames = <JS.Expression>[];
       for (var e in extensions) {
         methodNames.add(_elementMemberName(e));
       }
@@ -764,7 +764,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     if (metadata.isNotEmpty) {
       body.add(js.statement('#[dart.metadata] = () => #;', [
         name,
-        new JS.ArrayInitializer(metadata.map(_instantiateAnnotation).toList())
+        new JS.ArrayInitializer(
+            new List<JS.Expression>.from(metadata.map(_instantiateAnnotation)))
       ]));
     }
 
@@ -834,7 +835,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     dynamic body = _initializeFields(node, fields);
     if (superCall != null) body = [[body, superCall]];
     var name = _constructorName(node.element.unnamedConstructor);
-    return new JS.Method(name, js.call('function() { #; }', body));
+    return new JS.Method(name, js.call('function() { #; }', body) as JS.Fun);
   }
 
   JS.Method _emitConstructor(ConstructorDeclaration node, InterfaceType type,
@@ -855,7 +856,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
         params,
         _visit(redirect),
         params,
-      ]);
+      ]) as JS.Fun;
       return new JS.Method(name, fun, isStatic: true)..sourceInformation = node;
     }
 
@@ -865,7 +866,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       var init = _emitArgumentInitializers(node, constructor: true);
       if (init != null) body.add(init);
       body.add(_visit(node.body));
-      var fun = new JS.Fun(_visit(node.parameters), new JS.Block(body));
+      var fun = new JS.Fun(
+          _visit(node.parameters) as List<JS.Parameter>, new JS.Block(body));
       return new JS.Method(name, fun, isStatic: true)..sourceInformation = node;
     }
 
@@ -893,7 +895,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
         let result = void 0;
         if (name in this) result = this[name](...arguments);
         return result === void 0 ? this : result;
-      }''');
+      }''') as JS.Block;
     } else {
       body = _emitConstructorBody(node, fields);
     }
@@ -901,7 +903,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     // We generate constructors as initializer methods in the class;
     // this allows use of `super` for instance methods/properties.
     // It also avoids V8 restrictions on `super` in default constructors.
-    return new JS.Method(name, new JS.Fun(_visit(node.parameters), body))
+    return new JS.Method(
+        name, new JS.Fun(_visit(node.parameters) as List<JS.Parameter>, body))
       ..sourceInformation = node;
   }
 
@@ -948,10 +951,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     // These are expanded into each non-redirecting constructor.
     // In the future we may want to create an initializer function if we have
     // multiple constructors, but it needs to be balanced against readability.
-    body.add(_initializeFields(node.parent, fields, node));
+    body.add(_initializeFields(cls, fields, node));
 
     var superCall = node.initializers.firstWhere(
-        (i) => i is SuperConstructorInvocation, orElse: () => null);
+        (i) => i is SuperConstructorInvocation,
+        orElse: () => null) as SuperConstructorInvocation;
 
     // If no superinitializer is provided, an implicit superinitializer of the
     // form `super()` is added at the end of the initializer list, unless the
@@ -1021,7 +1025,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   JS.Statement _initializeFields(
       ClassDeclaration cls, List<FieldDeclaration> fieldDecls,
       [ConstructorDeclaration ctor]) {
-    var unit = cls.getAncestor((a) => a is CompilationUnit);
+    var unit = cls.getAncestor((a) => a is CompilationUnit) as CompilationUnit;
     var constField = new ConstFieldVisitor(types, unit);
     bool isConst = ctor != null && ctor.constKeyword != null;
     if (isConst) _loader.startTopLevel(cls.element);
@@ -1033,9 +1037,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       for (var fieldNode in declaration.fields.variables) {
         var element = fieldNode.element;
         if (constField.isFieldInitConstant(fieldNode)) {
-          unsetFields[element] = fieldNode;
+          unsetFields[element as FieldElement] = fieldNode;
         } else {
-          fields[element] = _visitInitializer(fieldNode);
+          fields[element as FieldElement] = _visitInitializer(fieldNode);
         }
       }
     }
@@ -1052,7 +1056,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       // Run constructor field initializers such as `: foo = bar.baz`
       for (var init in ctor.initializers) {
         if (init is ConstructorFieldInitializer) {
-          fields[init.fieldName.staticElement] = _visit(init.expression);
+          fields[init.fieldName.staticElement as FieldElement] =
+              _visit(init.expression);
         }
       }
     }
@@ -1104,7 +1109,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     var parameters = _parametersOf(node);
     if (parameters == null) return null;
 
-    var body = [];
+    var body = <JS.Statement>[];
     for (var param in parameters.parameters) {
       var jsParam = _visit(param.identifier);
 
@@ -1156,8 +1161,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       return null;
     }
 
-    var params = _visit(node.parameters);
-    if (params == null) params = [];
+    var params = _visit(node.parameters) as List<JS.Parameter>;
+    if (params == null) params = <JS.Parameter>[];
 
     return new JS.Method(
         _elementMemberName(node.element), _emitJsFunction(params, node.body),
@@ -1241,8 +1246,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
   @override
   JS.Expression visitFunctionExpression(FunctionExpression node) {
-    var params = _visit(node.parameters);
-    if (params == null) params = [];
+    var params = _visit(node.parameters) as List<JS.Parameter>;
+    if (params == null) params = <JS.Parameter>[];
 
     var parent = node.parent;
     var inStmt = parent.parent is FunctionDeclarationStatement;
@@ -1377,12 +1382,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     return new JS.Identifier(name);
   }
 
-  JS.TemporaryId _getTemp(Object key, String name) =>
+  JS.TemporaryId _getTemp(Element key, String name) =>
       _temps.putIfAbsent(key, () => new JS.TemporaryId(name));
 
   JS.ArrayInitializer _emitTypeNames(List<DartType> types) {
-    var build = (t) => _emitTypeName(t);
-    return new JS.ArrayInitializer(types.map(build).toList());
+    return new JS.ArrayInitializer(
+        new List<JS.Expression>.from(types.map(_emitTypeName)));
   }
 
   JS.ObjectInitializer _emitTypeProperties(Map<String, DartType> types) {
@@ -1504,11 +1509,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   }
 
   JS.MetaLet _emitOpAssign(
-      Expression left, Expression right, String op, ExecutableElement element,
+      Expression left, Expression right, String op, MethodElement element,
       {Expression context}) {
     // Desugar `x += y` as `x = x + y`, ensuring that if `x` has subexpressions
     // (for example, x is IndexExpression) we evaluate those once.
-    var vars = {};
+    var vars = <String, JS.Expression>{};
     var lhs = _bindLeftHandSide(vars, left, context: context);
     var inc = AstBuilder.binaryExpression(lhs, op, right);
     inc.staticElement = element;
@@ -1566,7 +1571,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  JS.Block visitBlock(Block node) => new JS.Block(_visitList(node.statements));
+  JS.Block visitBlock(Block node) =>
+      new JS.Block(_visitList(node.statements) as List<JS.Statement>);
 
   @override
   visitMethodInvocation(MethodInvocation node) {
@@ -1736,7 +1742,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
   @override
   visitVariableDeclarationList(VariableDeclarationList node) {
-    return new JS.VariableDeclarationList('let', _visitList(node.variables));
+    return new JS.VariableDeclarationList(
+        'let', _visitList(node.variables) as List<JS.VariableInitialization>);
   }
 
   @override
@@ -1779,7 +1786,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       return js.statement('# = #;', [_visit(field.name), jsInit]);
     }
 
-    var body = [];
+    var body = <JS.Statement>[];
     if (_lazyFields.isNotEmpty) {
       var existingTarget = _lazyFields[0].element.enclosingElement;
       if (existingTarget != element.enclosingElement) {
@@ -1811,14 +1818,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       var name = node.name.name;
       var element = node.element;
       var access = _emitMemberName(name, type: element.type, isStatic: true);
-      methods.add(new JS.Method(
-          access, js.call('function() { return #; }', _visit(node.initializer)),
+      methods.add(new JS.Method(access, js.call(
+              'function() { return #; }', _visit(node.initializer)) as JS.Fun,
           isGetter: true));
 
       // TODO(jmesserly): use a dummy setter to indicate writable.
       if (!node.isFinal) {
-        methods.add(
-            new JS.Method(access, js.call('function(_) {}'), isSetter: true));
+        methods.add(new JS.Method(access, js.call('function(_) {}') as JS.Fun,
+            isSetter: true));
       }
     }
 
@@ -1859,7 +1866,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   JS.Expression _emitInstanceCreationExpression(ConstructorElement element,
       DartType type, SimpleIdentifier name, ArgumentList argumentList,
       bool isConst) {
-    emitNew() {
+    JS.Expression emitNew() {
       JS.Expression ctor;
       bool isFactory = false;
       // var element = node.staticElement;
@@ -1874,7 +1881,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
         ctor = _emitConstructorName(element, type, name);
         isFactory = element.isFactory;
       }
-      var args = _visit(argumentList);
+      var args = _visit(argumentList) as List<JS.Expression>;
       return isFactory ? new JS.Call(ctor, args) : new JS.New(ctor, args);
     }
     if (isConst) return _emitConst(emitNew);
@@ -2100,8 +2107,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
           prop.operator, prop.propertyName);
     } else if (expr is PrefixedIdentifier) {
       PrefixedIdentifier ident = expr;
-      result = new PrefixedIdentifier(
-          _bindValue(scope, 'o', ident.prefix, context: context), ident.period,
+      result = new PrefixedIdentifier(_bindValue(scope, 'o', ident.prefix,
+              context: context) as SimpleIdentifier, ident.period,
           ident.identifier);
     } else {
       return expr as SimpleIdentifier;
@@ -2166,7 +2173,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
     // Handle the left hand side, to ensure each of its subexpressions are
     // evaluated only once.
-    var vars = {};
+    var vars = <String, JS.Expression>{};
     var left = _bindLeftHandSide(vars, expr, context: expr);
 
     // Desugar `x++` as `(x1 = x0 + 1, x0)` where `x0` is the original value
@@ -2178,7 +2185,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       ..staticElement = node.staticElement
       ..staticType = getStaticType(expr);
 
-    var body = [_emitSet(left, increment), _visit(x)];
+    var body = <JS.Expression>[_emitSet(left, increment), _visit(x)];
     return new JS.MetaLet(vars, body, statelessResult: true);
   }
 
@@ -2194,7 +2201,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       } else if (op.lexeme == '++' || op.lexeme == '--') {
         // We need a null check, so the increment must be expanded out.
         var mathop = op.lexeme[0];
-        var vars = {};
+        var vars = <String, JS.Expression>{};
         var x = _bindLeftHandSide(vars, expr, context: expr);
         var body = js.call('# = # $mathop 1', [_visit(x), notNull(x)]);
         return new JS.MetaLet(vars, [body]);
@@ -2222,9 +2229,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   JS.Node visitCascadeExpression(CascadeExpression node) {
     var savedCascadeTemp = _cascadeTarget;
 
-    var vars = {};
-    _cascadeTarget = _bindValue(vars, '_', node.target, context: node);
-    var sections = _visitList(node.cascadeSections);
+    var vars = <String, JS.Expression>{};
+    _cascadeTarget =
+        _bindValue(vars, '_', node.target, context: node) as SimpleIdentifier;
+    var sections = _visitList(node.cascadeSections) as List<JS.Expression>;
     sections.add(_visit(_cascadeTarget));
     var result = new JS.MetaLet(vars, sections, statelessResult: true);
     _cascadeTarget = savedCascadeTemp;
@@ -2472,19 +2480,18 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     ]), then, otherwise);
   }
 
-  JS.Statement _statement(Iterable stmts) {
-    List s = stmts is List ? stmts : new List<JS.Statement>.from(stmts);
+  JS.Statement _statement(List<JS.Statement> statements) {
     // TODO(jmesserly): empty block singleton?
-    if (s.length == 0) return new JS.Block([]);
-    if (s.length == 1) return s[0];
-    return new JS.Block(s);
+    if (statements.length == 0) return new JS.Block([]);
+    if (statements.length == 1) return statements[0];
+    return new JS.Block(statements);
   }
 
   /// Visits the catch clause body. This skips the exception type guard, if any.
   /// That is handled in [_visitCatch].
   @override
   JS.Statement visitCatchClause(CatchClause node) {
-    var body = [];
+    var body = <JS.Statement>[];
 
     var savedCatch = _catchParameter;
     if (node.catchKeyword != null) {
@@ -2509,7 +2516,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   @override
   JS.Case visitSwitchCase(SwitchCase node) {
     var expr = _visit(node.expression);
-    var body = _visitList(node.statements);
+    var body = _visitList(node.statements) as List<JS.Statement>;
     if (node.labels.isNotEmpty) {
       body.insert(0, js.comment('Unimplemented case labels: ${node.labels}'));
     }
@@ -2519,7 +2526,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
   @override
   JS.Default visitSwitchDefault(SwitchDefault node) {
-    var body = _visitList(node.statements);
+    var body = _visitList(node.statements) as List<JS.Statement>;
     if (node.labels.isNotEmpty) {
       body.insert(0, js.comment('Unimplemented case labels: ${node.labels}'));
     }
@@ -2528,8 +2535,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  JS.Switch visitSwitchStatement(SwitchStatement node) =>
-      new JS.Switch(_visit(node.expression), _visitList(node.members));
+  JS.Switch visitSwitchStatement(SwitchStatement node) => new JS.Switch(
+      _visit(node.expression),
+      _visitList(node.members) as List<JS.SwitchClause>);
 
   @override
   JS.Statement visitLabeledStatement(LabeledStatement node) {
@@ -2551,7 +2559,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
   @override
   visitSymbolLiteral(SymbolLiteral node) {
-    emitSymbol() {
+    JS.New emitSymbol() {
       // TODO(vsm): When we canonicalize, we need to treat private symbols
       // correctly.
       var name = js.string(node.components.join('.'), "'");
@@ -2562,8 +2570,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
   @override
   visitListLiteral(ListLiteral node) {
-    emitList() {
-      JS.Expression list = new JS.ArrayInitializer(_visitList(node.elements));
+    JS.Expression emitList() {
+      JS.Expression list = new JS.ArrayInitializer(
+          _visitList(node.elements) as List<JS.Expression>);
       ParameterizedType type = node.staticType;
       var elementType = type.typeArguments.single;
       if (elementType != types.dynamicType) {
@@ -2580,7 +2589,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   @override
   visitMapLiteral(MapLiteral node) {
     // TODO(jmesserly): we can likely make these faster.
-    emitMap() {
+    JS.Expression emitMap() {
       var entries = node.entries;
       var mapArguments = null;
       if (entries.isEmpty) {
@@ -2589,13 +2598,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
         // Use JS object literal notation if possible, otherwise use an array.
         // We could do this any time all keys are non-nullable String type.
         // For now, support StringLiteral as the common non-nullable String case.
-        var props = [];
+        var props = <JS.Property>[];
         for (var e in entries) {
           props.add(new JS.Property(_visit(e.key), _visit(e.value)));
         }
         mapArguments = new JS.ObjectInitializer(props);
       } else {
-        var values = [];
+        var values = <JS.Expression>[];
         for (var e in entries) {
           values.add(_visit(e.key));
           values.add(_visit(e.value));
@@ -2660,9 +2669,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     return result;
   }
 
-  List _visitList(Iterable<AstNode> nodes) {
+  // TODO(jmesserly): this will need to be a generic method, if we ever want to
+  // self-host strong mode.
+  List /*<T>*/ _visitList /*<T>*/ (Iterable<AstNode> nodes) {
     if (nodes == null) return null;
-    var result = [];
+    var result = /*<T>*/ [];
     for (var node in nodes) result.add(_visit(node));
     return result;
   }
@@ -2670,7 +2681,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   /// Visits a list of expressions, creating a comma expression if needed in JS.
   JS.Expression _visitListToBinary(List<Expression> nodes, String operator) {
     if (nodes == null || nodes.isEmpty) return null;
-    return new JS.Expression.binary(_visitList(nodes), operator);
+    return new JS.Expression.binary(
+        _visitList(nodes) as List<JS.Expression>, operator);
   }
 
   /// Like [_emitMemberName], but for declaration sites.
@@ -2741,7 +2753,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
     if (name.startsWith('_')) {
       return _privateNames.putIfAbsent(
-          name, () => _initSymbol(new JS.TemporaryId(name)));
+          name, () => _initSymbol(new JS.TemporaryId(name)) as JS.TemporaryId);
     }
 
     if (name == '[]') {
@@ -2797,7 +2809,7 @@ class JSGenerator extends CodeGenerator {
 
   void _addExtensionType(InterfaceType t) {
     if (t.isObject || !_extensionTypes.add(t.element)) return;
-    t = fillDynamicTypeArgs(t, rules.provider);
+    t = fillDynamicTypeArgs(t, rules.provider) as InterfaceType;
     t.interfaces.forEach(_addExtensionType);
     t.mixins.forEach(_addExtensionType);
     _addExtensionType(t.superclass);

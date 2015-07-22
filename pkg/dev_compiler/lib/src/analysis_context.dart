@@ -21,7 +21,7 @@ import 'options.dart';
 /// using [createSourceFactory] to set up its [SourceFactory].
 AnalysisContext createAnalysisContextWithSources(
     StrongModeOptions strongOptions, SourceResolverOptions srcOptions,
-    {DartUriResolver sdkResolver, List fileResolvers}) {
+    {DartUriResolver sdkResolver, List<UriResolver> fileResolvers}) {
   var srcFactory = createSourceFactory(srcOptions,
       sdkResolver: sdkResolver, fileResolvers: fileResolvers);
   return createAnalysisContext(strongOptions)..sourceFactory = srcFactory;
@@ -55,7 +55,7 @@ SourceFactory createSourceFactory(SourceResolverOptions options,
       ? createMockSdkResolver(mockSdkSources)
       : createSdkPathResolver(options.dartSdkPath);
 
-  var resolvers = [];
+  var resolvers = <UriResolver>[];
   if (options.customUrlMappings.isNotEmpty) {
     resolvers.add(new CustomUriResolver(options.customUrlMappings));
   }

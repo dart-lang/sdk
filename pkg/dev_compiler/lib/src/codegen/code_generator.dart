@@ -51,7 +51,7 @@ abstract class CodeGenerator {
     // below.
     list.sort((s1, s2) => s2.length - s1.length);
     return list;
-  }();
+  }() as List<String>;
 
   static String _dirToPrefix(String dir) {
     dir = path.absolute(dir);

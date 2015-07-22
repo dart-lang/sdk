@@ -382,7 +382,7 @@ bool inInvocationContext(SimpleIdentifier node) {
 
 final _objectMap = new Expando('providerToObjectMap');
 Map<String, DartType> getObjectMemberMap(TypeProvider typeProvider) {
-  Map<String, DartType> map = _objectMap[typeProvider];
+  var map = _objectMap[typeProvider] as Map<String, DartType>;
   if (map == null) {
     map = <String, DartType>{};
     _objectMap[typeProvider] = map;

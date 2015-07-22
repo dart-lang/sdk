@@ -21,11 +21,13 @@ class AstBuilder {
     return RawAstBuilder.identifierFromString(name);
   }
 
-  static PrefixedIdentifier prefixedIdentifier(Identifier pre, Identifier id) {
+  static PrefixedIdentifier prefixedIdentifier(
+      SimpleIdentifier pre, SimpleIdentifier id) {
     return RawAstBuilder.prefixedIdentifier(pre, id);
   }
 
-  static TypeParameter typeParameter(Identifier name, [TypeName bound = null]) {
+  static TypeParameter typeParameter(SimpleIdentifier name,
+      [TypeName bound = null]) {
     return RawAstBuilder.typeParameter(name, bound);
   }
 
@@ -47,8 +49,9 @@ class AstBuilder {
     return RawAstBuilder.typeName(id, argList);
   }
 
-  static FunctionTypeAlias functionTypeAlias(TypeName ret, Identifier name,
-      List<TypeParameter> tParams, List<FormalParameter> params) {
+  static FunctionTypeAlias functionTypeAlias(TypeName ret,
+      SimpleIdentifier name, List<TypeParameter> tParams,
+      List<FormalParameter> params) {
     TypeParameterList tps =
         (tParams.length == 0) ? null : typeParameterList(tParams);
     FormalParameterList fps = formalParameterList(params);
@@ -248,17 +251,18 @@ class AstBuilder {
     return RawAstBuilder.block(statements);
   }
 
-  static MethodDeclaration blockMethodDeclaration(TypeName rt, Identifier m,
-      List<FormalParameter> params, List<Statement> statements,
-      {bool isStatic: false}) {
+  static MethodDeclaration blockMethodDeclaration(TypeName rt,
+      SimpleIdentifier m, List<FormalParameter> params,
+      List<Statement> statements, {bool isStatic: false}) {
     FormalParameterList fl = formalParameterList(params);
     Block b = block(statements);
     BlockFunctionBody body = RawAstBuilder.blockFunctionBody(b);
     return RawAstBuilder.methodDeclaration(rt, m, fl, body, isStatic: isStatic);
   }
 
-  static FunctionDeclaration blockFunctionDeclaration(TypeName rt, Identifier f,
-      List<FormalParameter> params, List<Statement> statements) {
+  static FunctionDeclaration blockFunctionDeclaration(TypeName rt,
+      SimpleIdentifier f, List<FormalParameter> params,
+      List<Statement> statements) {
     FunctionExpression fexp = blockFunction(params, statements);
     return RawAstBuilder.functionDeclaration(rt, f, fexp);
   }
@@ -279,7 +283,7 @@ class AstBuilder {
   }
 
   static FunctionDeclarationStatement functionDeclarationStatement(
-      TypeName rType, Identifier name, FunctionExpression fe) {
+      TypeName rType, SimpleIdentifier name, FunctionExpression fe) {
     var fd = RawAstBuilder.functionDeclaration(rType, name, fe);
     return RawAstBuilder.functionDeclarationStatement(fd);
   }
@@ -295,12 +299,12 @@ class AstBuilder {
     return application(parenthesize(l), <Expression>[e1]);
   }
 
-  static SimpleFormalParameter simpleFormal(Identifier v, TypeName t) {
+  static SimpleFormalParameter simpleFormal(SimpleIdentifier v, TypeName t) {
     return RawAstBuilder.simpleFormalParameter(v, t);
   }
 
   static FunctionTypedFormalParameter functionTypedFormal(
-      TypeName ret, Identifier v, List<FormalParameter> params) {
+      TypeName ret, SimpleIdentifier v, List<FormalParameter> params) {
     FormalParameterList ps = formalParameterList(params);
     return RawAstBuilder.functionTypedFormalParameter(ret, v, ps);
   }
@@ -334,12 +338,14 @@ class RawAstBuilder {
     return new SimpleIdentifier(token);
   }
 
-  static PrefixedIdentifier prefixedIdentifier(Identifier pre, Identifier id) {
+  static PrefixedIdentifier prefixedIdentifier(
+      SimpleIdentifier pre, SimpleIdentifier id) {
     Token period = new Token(TokenType.PERIOD, 0);
     return new PrefixedIdentifier(pre, period, id);
   }
 
-  static TypeParameter typeParameter(Identifier name, [TypeName bound = null]) {
+  static TypeParameter typeParameter(SimpleIdentifier name,
+      [TypeName bound = null]) {
     Token keyword =
         (bound == null) ? null : new KeywordToken(Keyword.EXTENDS, 0);
     return new TypeParameter(null, null, name, keyword, bound);
@@ -367,8 +373,8 @@ class RawAstBuilder {
     return new TypeName(id, l);
   }
 
-  static FunctionTypeAlias functionTypeAlias(TypeName ret, Identifier name,
-      TypeParameterList tps, FormalParameterList fps) {
+  static FunctionTypeAlias functionTypeAlias(TypeName ret,
+      SimpleIdentifier name, TypeParameterList tps, FormalParameterList fps) {
     Token semi = new Token(TokenType.SEMICOLON, 0);
     Token td = new KeywordToken(Keyword.TYPEDEF, 0);
     return new FunctionTypeAlias(null, null, td, ret, name, tps, fps, semi);
@@ -468,13 +474,12 @@ class RawAstBuilder {
   }
 
   static FunctionDeclaration functionDeclaration(
-      TypeName rt, Identifier f, FunctionExpression fexp) {
+      TypeName rt, SimpleIdentifier f, FunctionExpression fexp) {
     return new FunctionDeclaration(null, null, null, rt, null, f, fexp);
   }
 
-  static MethodDeclaration methodDeclaration(
-      TypeName rt, Identifier m, FormalParameterList fl, FunctionBody body,
-      {bool isStatic: false}) {
+  static MethodDeclaration methodDeclaration(TypeName rt, SimpleIdentifier m,
+      FormalParameterList fl, FunctionBody body, {bool isStatic: false}) {
     Token st = isStatic ? new KeywordToken(Keyword.STATIC, 0) : null;
     return new MethodDeclaration(
         null, null, null, st, rt, null, null, m, null, fl, body);
@@ -496,12 +501,13 @@ class RawAstBuilder {
     return new ReturnStatement(ret, e, semi);
   }
 
-  static SimpleFormalParameter simpleFormalParameter(Identifier v, TypeName t) {
+  static SimpleFormalParameter simpleFormalParameter(
+      SimpleIdentifier v, TypeName t) {
     return new SimpleFormalParameter(null, <Annotation>[], null, t, v);
   }
 
   static FunctionTypedFormalParameter functionTypedFormalParameter(
-      TypeName ret, Identifier v, FormalParameterList ps) {
+      TypeName ret, SimpleIdentifier v, FormalParameterList ps) {
     return new FunctionTypedFormalParameter(
         null, <Annotation>[], ret, v, null, ps);
   }
@@ -518,11 +524,11 @@ class RawAstBuilder {
     return new DefaultFormalParameter(fp, ParameterKind.NAMED, null, null);
   }
 
-  static NamedExpression namedParameter(Identifier s, Expression e) {
+  static NamedExpression namedParameter(SimpleIdentifier s, Expression e) {
     return namedExpression(s, e);
   }
 
-  static NamedExpression namedExpression(Identifier s, Expression e) {
+  static NamedExpression namedExpression(SimpleIdentifier s, Expression e) {
     Label l = new Label(s, new Token(TokenType.COLON, 0));
     return new NamedExpression(l, e);
   }

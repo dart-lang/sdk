@@ -120,7 +120,7 @@ class _OverrideChecker {
 
     // Check all interfaces reachable from the `implements` clause in the
     // current class against definitions here and in superclasses.
-    var localInterfaces = new Set();
+    var localInterfaces = new Set<InterfaceType>();
     var type = node.element.type;
     type.interfaces.forEach((i) => find(i, localInterfaces));
     _checkInterfacesOverrides(node, localInterfaces, seen,
@@ -129,7 +129,7 @@ class _OverrideChecker {
     // Check also how we override locally the interfaces from parent classes if
     // the parent class is abstract. Otherwise, these will be checked as
     // overrides on the concrete superclass.
-    var superInterfaces = new Set();
+    var superInterfaces = new Set<InterfaceType>();
     var parent = type.superclass;
     // TODO(sigmund): we don't seem to be reporting the analyzer error that a
     // non-abstract class is not implementing an interface. See
@@ -239,7 +239,7 @@ class _OverrideChecker {
         }
       } else {
         if ((member as MethodDeclaration).isStatic) continue;
-        var method = member.element;
+        var method = (member as MethodDeclaration).element;
         if (seen.contains(method.name)) continue;
         if (_checkSingleOverride(method, baseType, member, member)) {
           seen.add(method.name);
@@ -841,7 +841,7 @@ class CodeChecker extends RecursiveAstVisitor {
         var element = node.staticElement;
         // Method invocation.
         if (element is MethodElement) {
-          var type = element.type as FunctionType;
+          var type = element.type;
           // Analyzer should enforce number of parameter types, but check in
           // case we have erroneous input.
           if (type.normalParameterTypes.isNotEmpty) {
@@ -882,7 +882,7 @@ class CodeChecker extends RecursiveAstVisitor {
     } else {
       var element = node.staticElement;
       if (element is MethodElement) {
-        var type = element.type as FunctionType;
+        var type = element.type;
         // Analyzer should enforce number of parameter types, but check in
         // case we have erroneous input.
         if (type.normalParameterTypes.isNotEmpty) {
