@@ -2692,10 +2692,15 @@ void main() {
         Future<int> z;
 
         void baz() async {
-          int a = /*info:DynamicCast*/await /*info:DynamicCast*/x;
-          int b = await /*severe:StaticTypeError*/y;
+          int a = /*info:DynamicCast*/await x;
+          int b = await y;
           int c = await z;
           String d = /*severe:StaticTypeError*/await z;
+        }
+
+        Future<bool> get issue_264 async {
+          await 42;
+          return false;
         }
     '''
     }));

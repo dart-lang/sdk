@@ -670,12 +670,6 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
-  void visitAwaitExpression(AwaitExpression node) {
-    checkAssignment(node.expression, rules.provider.futureDynamicType);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitPropertyAccess(PropertyAccess node) {
     var target = node.realTarget;
     if (rules.isDynamicTarget(target)) {
