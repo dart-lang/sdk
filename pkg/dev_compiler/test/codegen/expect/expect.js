@@ -13,8 +13,8 @@ dart_library.library('expect', null, /* Imports */[
         let overflow = dart.notNull(length) - (dart.notNull(end) - dart.notNull(start));
         if (dart.notNull(overflow) > 10)
           overflow = 10;
-        start = dart.notNull(start) - ((dart.notNull(overflow) + 1) / 2).truncate();
-        end = dart.notNull(end) + (dart.notNull(overflow) / 2).truncate();
+        start = dart.notNull(start) - ((dart.notNull(overflow) + 1) / 2)[dartx.truncate]();
+        end = dart.notNull(end) + (dart.notNull(overflow) / 2)[dartx.truncate]();
         if (dart.notNull(start) < 0)
           start = 0;
         if (dart.notNull(end) > dart.notNull(string[dartx.length]))
@@ -29,7 +29,7 @@ dart_library.library('expect', null, /* Imports */[
         let code = string[dartx.codeUnitAt](i);
         if (dart.notNull(code) < 32) {
           buf.write("\\x");
-          buf.write("0123456789abcdef"[dartx.get]((dart.notNull(code) / 16).truncate()));
+          buf.write("0123456789abcdef"[dartx.get]((dart.notNull(code) / 16)[dartx.truncate]()));
           buf.write("0123456789abcdef"[dartx.get](dart.notNull(code) % 16));
         } else {
           buf.writeCharCode(string[dartx.codeUnitAt](i));

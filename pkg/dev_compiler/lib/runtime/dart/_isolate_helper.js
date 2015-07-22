@@ -1522,7 +1522,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
     get hashCode() {
       let hash = this[_id];
-      hash = dart.notNull(hash) >> 0 ^ (dart.notNull(hash) / 4294967296).truncate();
+      hash = dart.notNull(hash) >> 0 ^ (dart.notNull(hash) / 4294967296)[dartx.truncate]();
       hash = ~dart.notNull(hash) + (dart.notNull(hash) << 15) & 4294967295;
       hash = dart.notNull(hash) ^ dart.notNull(hash) >> 12;
       hash = dart.notNull(hash) * 5 & 4294967295;

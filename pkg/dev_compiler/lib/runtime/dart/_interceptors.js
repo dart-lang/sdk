@@ -918,7 +918,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
     get [dartx.bitLength]() {
       let nonneg = dart.notNull(this[dartx['<']](0)) ? dart.notNull(this[dartx['unary-']]()) - 1 : this;
       if (dart.notNull(nonneg) >= 4294967296) {
-        nonneg = (dart.notNull(nonneg) / 4294967296).truncate();
+        nonneg = (dart.notNull(nonneg) / 4294967296)[dartx.truncate]();
         return dart.notNull(JSInt._bitCount(JSInt._spread(nonneg))) + 32;
       }
       return JSInt._bitCount(JSInt._spread(nonneg));

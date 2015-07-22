@@ -2074,10 +2074,10 @@ dart_library.library('dart/_internal', null, /* Imports */[
     }
     static _dualPivotQuicksort(a, left, right, compare) {
       dart.assert(dart.notNull(right) - dart.notNull(left) > dart.notNull(Sort._INSERTION_SORT_THRESHOLD));
-      let sixth = ((dart.notNull(right) - dart.notNull(left) + 1) / 6).truncate();
+      let sixth = ((dart.notNull(right) - dart.notNull(left) + 1) / 6)[dartx.truncate]();
       let index1 = dart.notNull(left) + dart.notNull(sixth);
       let index5 = dart.notNull(right) - dart.notNull(sixth);
-      let index3 = ((dart.notNull(left) + dart.notNull(right)) / 2).truncate();
+      let index3 = ((dart.notNull(left) + dart.notNull(right)) / 2)[dartx.truncate]();
       let index2 = dart.notNull(index3) - dart.notNull(sixth);
       let index4 = dart.notNull(index3) + dart.notNull(sixth);
       let el1 = a[dartx.get](index1);

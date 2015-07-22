@@ -483,7 +483,7 @@ dart_library.library('dart/core', null, /* Imports */[
     ['~/'](quotient) {
       if (quotient == 0)
         dart.throw(new IntegerDivisionByZeroException());
-      return new Duration._microseconds((dart.notNull(this[_duration]) / dart.notNull(quotient)).truncate());
+      return new Duration._microseconds((dart.notNull(this[_duration]) / dart.notNull(quotient))[dartx.truncate]());
     }
     ['<'](other) {
       return dart.notNull(this[_duration]) < dart.notNull(other[_duration]);
@@ -498,19 +498,19 @@ dart_library.library('dart/core', null, /* Imports */[
       return dart.notNull(this[_duration]) >= dart.notNull(other[_duration]);
     }
     get inDays() {
-      return (dart.notNull(this[_duration]) / dart.notNull(Duration.MICROSECONDS_PER_DAY)).truncate();
+      return (dart.notNull(this[_duration]) / dart.notNull(Duration.MICROSECONDS_PER_DAY))[dartx.truncate]();
     }
     get inHours() {
-      return (dart.notNull(this[_duration]) / dart.notNull(Duration.MICROSECONDS_PER_HOUR)).truncate();
+      return (dart.notNull(this[_duration]) / dart.notNull(Duration.MICROSECONDS_PER_HOUR))[dartx.truncate]();
     }
     get inMinutes() {
-      return (dart.notNull(this[_duration]) / dart.notNull(Duration.MICROSECONDS_PER_MINUTE)).truncate();
+      return (dart.notNull(this[_duration]) / dart.notNull(Duration.MICROSECONDS_PER_MINUTE))[dartx.truncate]();
     }
     get inSeconds() {
-      return (dart.notNull(this[_duration]) / dart.notNull(Duration.MICROSECONDS_PER_SECOND)).truncate();
+      return (dart.notNull(this[_duration]) / dart.notNull(Duration.MICROSECONDS_PER_SECOND))[dartx.truncate]();
     }
     get inMilliseconds() {
-      return (dart.notNull(this[_duration]) / dart.notNull(Duration.MICROSECONDS_PER_MILLISECOND)).truncate();
+      return (dart.notNull(this[_duration]) / dart.notNull(Duration.MICROSECONDS_PER_MILLISECOND))[dartx.truncate]();
     }
     get inMicroseconds() {
       return this[_duration];
@@ -1604,10 +1604,10 @@ dart_library.library('dart/core', null, /* Imports */[
       return new Duration({microseconds: this.elapsedMicroseconds});
     }
     get elapsedMicroseconds() {
-      return (dart.notNull(this.elapsedTicks) * 1000000 / dart.notNull(this.frequency)).truncate();
+      return (dart.notNull(this.elapsedTicks) * 1000000 / dart.notNull(this.frequency))[dartx.truncate]();
     }
     get elapsedMilliseconds() {
-      return (dart.notNull(this.elapsedTicks) * 1000 / dart.notNull(this.frequency)).truncate();
+      return (dart.notNull(this.elapsedTicks) * 1000 / dart.notNull(this.frequency))[dartx.truncate]();
     }
     get isRunning() {
       return this[_start] != null && this[_stop] == null;

@@ -286,7 +286,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       if (this.direction == FORWARD) {
         this.v2.value = dart.notNull(this.v1.value) * dart.notNull(this.scale.value) + dart.notNull(this.offset.value);
       } else {
-        this.v1.value = ((dart.notNull(this.v2.value) - dart.notNull(this.offset.value)) / dart.notNull(this.scale.value)).truncate();
+        this.v1.value = ((dart.notNull(this.v2.value) - dart.notNull(this.offset.value)) / dart.notNull(this.scale.value))[dartx.truncate]();
       }
     }
     recalculate() {

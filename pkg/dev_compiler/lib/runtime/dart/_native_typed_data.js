@@ -216,7 +216,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       return end;
     }
     get length() {
-      return (dart.notNull(this[_storage].length) / 4).truncate();
+      return (dart.notNull(this[_storage].length) / 4)[dartx.truncate]();
     }
     get(index) {
       this[_checkIndex](index, this.length);
@@ -324,7 +324,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       return end;
     }
     get length() {
-      return (dart.notNull(this[_storage].length) / 4).truncate();
+      return (dart.notNull(this[_storage].length) / 4)[dartx.truncate]();
     }
     get(index) {
       this[_checkIndex](index, this.length);
@@ -430,7 +430,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       return end;
     }
     get length() {
-      return (dart.notNull(this[_storage].length) / 2).truncate();
+      return (dart.notNull(this[_storage].length) / 2)[dartx.truncate]();
     }
     get(index) {
       this[_checkIndex](index, this.length);

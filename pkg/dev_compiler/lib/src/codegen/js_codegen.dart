@@ -2014,7 +2014,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       // instead of special cases here.
       if (op.type == TokenType.TILDE_SLASH) {
         // `a ~/ b` is equivalent to `(a / b).truncate()`
-        code = '(# / #).truncate()';
+        var div = AstBuilder.binaryExpression(left, '/', right)
+          ..staticType = node.staticType;
+        return _emitSend(div, 'truncate', []);
       } else {
         // TODO(vsm): When do Dart ops not map to JS?
         code = '# $op #';
