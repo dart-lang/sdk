@@ -5,9 +5,6 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
-[ $compiler == none && $mode == debug ]
-multiline_newline_test/*: Crash # Issue 23888
-
 [ $compiler == none ]
 built_in_identifier_prefix_test: Fail # Issue 6970
 

@@ -13455,7 +13455,7 @@ const Instance& Parser::EvaluateConstExpr(intptr_t expr_pos, AstNode* expr) {
                    script_, expr_pos,
                    "error evaluating constant expression");
     }
-    ASSERT(result.IsInstance());
+    ASSERT(result.IsInstance() || result.IsNull());
     Instance& value = Instance::ZoneHandle(Z);
     value ^= result.raw();
     value = TryCanonicalize(value, TokenPos());
