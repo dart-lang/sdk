@@ -10,7 +10,7 @@ library source_mapping.test.viewer;
 import 'dart:async';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/util/util.dart';
-import 'source_mapping_test.dart';
+import 'source_mapping_tester.dart';
 import 'sourcemap_helper.dart';
 import 'sourcemap_html_helper.dart';
 import 'sourcemap_html_templates.dart';
