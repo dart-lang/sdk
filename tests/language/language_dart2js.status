@@ -148,7 +148,6 @@ mixin_mixin6_test: Fail # Issue 12605
 mixin_mixin_bound_test: RuntimeError # Issue 12605
 mixin_mixin_bound2_test: RuntimeError # Issue 12605
 symbol_conflict_test: RuntimeError # Issue 23857
-classes_static_method_clash_test: RuntimeError # Issue 23885
 
 [ $compiler == dart2js ]
 async_await_syntax_test/a05h: Fail # 23716
