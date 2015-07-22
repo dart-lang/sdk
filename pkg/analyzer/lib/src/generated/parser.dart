@@ -9428,8 +9428,13 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitAwaitExpression(AwaitExpression node) {
     AwaitExpression toNode = this._toNode as AwaitExpression;
-    return _and(_isEqualTokens(node.awaitKeyword, toNode.awaitKeyword),
-        _isEqualNodes(node.expression, toNode.expression));
+    if (_and(_isEqualTokens(node.awaitKeyword, toNode.awaitKeyword),
+        _isEqualNodes(node.expression, toNode.expression))) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
   }
 
   @override
