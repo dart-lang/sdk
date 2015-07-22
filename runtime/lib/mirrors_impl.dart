@@ -447,11 +447,16 @@ class _LocalInstanceMirror extends _LocalObjectMirror
     var result = reflect(_invokeGetter(_reflectee, unwrapped));
     // Wait until success to avoid creating closures for non-existent getters,
     // and defer the creation until the next getField invocation.
-    _getFieldClosures[unwrapped] = (receiver) {
-      var getterClosure = _createGetterClosure(unwrapped);
-      _getFieldClosures[unwrapped] = getterClosure;
-      return getterClosure(receiver);
-    };
+    // o.<operator> is not valid Dart and will cause a compilation error, so
+    // don't attempt to generate such a closure.
+    bool isOperator = _LocalMethodMirror._operators.contains(unwrapped);
+    if (!isOperator) {
+      _getFieldClosures[unwrapped] = (receiver) {
+        var getterClosure = _createGetterClosure(unwrapped);
+        _getFieldClosures[unwrapped] = getterClosure;
+        return getterClosure(receiver);
+      };
+    }
     return result;
   }
 
