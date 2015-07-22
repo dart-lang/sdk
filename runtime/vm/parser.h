@@ -694,6 +694,7 @@ class Parser : public ValueObject {
   AstNode* ParseUnaryExpr();
   AstNode* ParsePostfixExpr();
   AstNode* ParseSelectors(AstNode* primary, bool is_cascade);
+  AstNode* ParseClosurization(AstNode* primary);
   AstNode* ParseCascades(AstNode* expr);
   AstNode* ParsePrimary();
   AstNode* ParseStringLiteral(bool allow_interpolation);

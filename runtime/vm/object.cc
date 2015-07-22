@@ -7386,6 +7386,73 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+// Build a closure object that gets (or sets) the contents of a static
+// field f and cache the closure in a newly created static field
+// named #f (or #f= in case of a setter).
+RawInstance* Field::AccessorClosure(bool make_setter) const {
+  ASSERT(is_static());
+  const Class& field_owner = Class::Handle(owner());
+
+  String& closure_name = String::Handle(this->name());
+  closure_name = Symbols::FromConcat(Symbols::HashMark(), closure_name);
+  if (make_setter) {
+    closure_name = Symbols::FromConcat(Symbols::HashMark(), closure_name);
+  }
+
+  Field& closure_field = Field::Handle();
+  closure_field = field_owner.LookupStaticField(closure_name);
+  if (!closure_field.IsNull()) {
+    ASSERT(closure_field.is_static());
+    const Instance& closure = Instance::Handle(closure_field.value());
+    ASSERT(!closure.IsNull());
+    ASSERT(closure.IsClosure());
+    return closure.raw();
+  }
+
+  // This is the first time a closure for this field is requested.
+  // Create the closure and a new static field in which it is stored.
+  const char* field_name = String::Handle(name()).ToCString();
+  String& expr_src = String::Handle();
+  if (make_setter) {
+    expr_src =
+        String::NewFormatted("(%s_) { return %s = %s_; }",
+                             field_name, field_name, field_name);
+  } else {
+    expr_src = String::NewFormatted("() { return %s; }", field_name);
+  }
+  Object& result =
+      Object::Handle(field_owner.Evaluate(expr_src,
+                                          Object::empty_array(),
+                                          Object::empty_array()));
+  ASSERT(result.IsInstance());
+  // The caller may expect the closure to be allocated in old space. Copy
+  // the result here, since Object::Clone() is a private method.
+  result = Object::Clone(result, Heap::kOld);
+
+  closure_field = Field::New(closure_name,
+                             true,  // is_static
+                             true,  // is_final
+                             true,  // is_const
+                             true,  // is_synthetic
+                             field_owner,
+                             this->token_pos());
+  closure_field.set_value(Instance::Cast(result));
+  closure_field.set_type(Type::Handle(Type::DynamicType()));
+  field_owner.AddField(closure_field);
+
+  return Instance::RawCast(result.raw());
+}
+
+
+RawInstance* Field::GetterClosure() const {
+  return AccessorClosure(false);
+}
+
+
+RawInstance* Field::SetterClosure() const {
+  return AccessorClosure(true);
+}
+
 
 RawArray* Field::dependent_code() const {
   return raw_ptr()->dependent_code_;

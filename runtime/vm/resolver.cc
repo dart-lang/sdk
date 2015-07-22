@@ -114,6 +114,43 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(
   String& field_name = String::Handle();
   if (is_getter) {
     field_name ^= Field::NameFromGetter(function_name);
+
+    if (field_name.CharAt(0) == '#') {
+      // Resolving a getter "get:#..." is a request to closurize an instance
+      // property of the receiver object. It can be of the form:
+      //  - get:#id, which closurizes a method or getter id
+      //  - get:#set:id, which closurizes a setter id
+      //  - get:#operator, eg. get:#<<, which closurizes an operator method.
+      // If the property can be resolved, a method extractor function
+      // "get:#..." is created and injected into the receiver's class.
+      String& property_name = String::Handle(String::SubString(field_name, 1));
+      ASSERT(!Field::IsGetterName(property_name));
+
+      String& property_getter_name = String::Handle();
+      if (!Field::IsSetterName(property_name)) {
+        // If this is not a setter, we need to look for both the regular
+        // name and the getter name. (In the case of an operator, this
+        // code will also try to resolve for example get:<< and will fail,
+        // but that's harmless.)
+        property_getter_name = Field::GetterName(property_name);
+      }
+
+      Function& function = Function::Handle();
+      while (!cls.IsNull()) {
+        function = cls.LookupDynamicFunction(property_name);
+        if (!function.IsNull()) {
+          return CreateMethodExtractor(function_name, function);
+        }
+        if (!property_getter_name.IsNull()) {
+          function = cls.LookupDynamicFunction(property_getter_name);
+          if (!function.IsNull()) {
+            return CreateMethodExtractor(function_name, function);
+          }
+        }
+        cls = cls.SuperClass();
+      }
+      return Function::null();
+    }
   }
 
   // Now look for an instance function whose name matches function_name

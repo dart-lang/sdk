@@ -846,7 +846,6 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   switch (func.kind()) {
     case RawFunction::kClosureFunction:
       if (func.IsImplicitClosureFunction()) {
-        parser.SkipFunctionPreamble();
         node_sequence =
             parser.ParseImplicitClosure(func, &default_parameter_values);
         break;
@@ -1287,26 +1286,35 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
 SequenceNode* Parser::ParseImplicitClosure(const Function& func,
                                            Array* default_values) {
   TRACE_PARSER("ParseImplicitClosure");
-
   intptr_t token_pos = func.token_pos();
 
   OpenFunctionBlock(func);
 
   ParamList params;
-
   params.AddFinalParameter(
       token_pos,
       &Symbols::ClosureParameter(),
       &Type::ZoneHandle(Type::DynamicType()));
 
-  const bool allow_explicit_default_values = true;
-  ParseFormalParameterList(allow_explicit_default_values, false, &params);
-  SetupDefaultsForOptionalParams(&params, default_values);
-
-  // Getters can't be closurized. If supported, they need special
-  // handling of the parameters as in ParseFunc.
   const Function& parent = Function::ZoneHandle(func.parent_function());
-  ASSERT(!parent.IsGetterFunction());
+  if (parent.IsImplicitSetterFunction()) {
+    const intptr_t ident_pos = func.token_pos();
+    ASSERT(IsIdentifier());
+    const String& field_name = *CurrentLiteral();
+    const Class& field_class = Class::ZoneHandle(Z, parent.Owner());
+    const Field& field =
+        Field::ZoneHandle(Z, field_class.LookupInstanceField(field_name));
+    const AbstractType& field_type = AbstractType::ZoneHandle(Z, field.type());
+    params.AddFinalParameter(ident_pos,
+                             &Symbols::Value(),
+                             &field_type);
+    ASSERT(func.num_fixed_parameters() == 2);  // closure, value.
+  } else if (!parent.IsGetterFunction() && !parent.IsImplicitGetterFunction()) {
+    const bool allow_explicit_default_values = true;
+    SkipFunctionPreamble();
+    ParseFormalParameterList(allow_explicit_default_values, false, &params);
+    SetupDefaultsForOptionalParams(&params, default_values);
+  }
 
   // Populate function scope with the formal parameters.
   LocalScope* scope = current_block_->scope;
@@ -3431,8 +3439,9 @@ void Parser::SkipInitializers() {
 RawLibraryPrefix* Parser::ParsePrefix() {
   ASSERT(IsIdentifier());
   // A library prefix can never stand by itself. It must be followed by
-  // a period.
-  if (LookaheadToken(1) != Token::kPERIOD) {
+  // a period or a hash mark (for closurization).
+  Token::Kind next_token = LookaheadToken(1);
+  if ((next_token != Token::kPERIOD) && (next_token != Token::kHASH)) {
     return LibraryPrefix::null();
   }
   const String& ident = *CurrentLiteral();
@@ -3459,10 +3468,8 @@ RawLibraryPrefix* Parser::ParsePrefix() {
     return LibraryPrefix::null();
   }
 
-  // We have a name that is not shadowed, followed by a period.
-  // Consume the identifier and the period.
-  ConsumeToken();
-  ASSERT(CurrentToken() == Token::kPERIOD);  // We checked above.
+  // We have a name that is not shadowed, followed by a period or #.
+  // Consume the identifier, let the caller consume the . or #.
   ConsumeToken();
   return prefix.raw();
 }
@@ -11318,13 +11325,156 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
 }
 
 
+// Closurization e#m of getter, setter, method or operator.
+AstNode* Parser::ParseClosurization(AstNode* primary) {
+  ExpectToken(Token::kHASH);
+  intptr_t property_pos = TokenPos();
+  bool is_setter_name = false;
+
+  String& extractor_name = String::ZoneHandle(Z);
+  if (IsIdentifier()) {
+    extractor_name = CurrentLiteral()->raw();
+    ConsumeToken();
+    if (CurrentToken() == Token::kASSIGN) {
+      ConsumeToken();
+      is_setter_name = true;
+    }
+  } else if (Token::CanBeOverloaded(CurrentToken())) {
+    extractor_name = String::New(Token::Str(CurrentToken()));
+    ConsumeToken();
+  } else {
+    ReportError("identifier or operator expected");
+  }
+
+  if (primary->IsPrimaryNode() && primary->AsPrimaryNode()->IsSuper()) {
+    // TODO(hausner): implement super#m
+    ReportError("closurization of super method not yet supported");
+  }
+
+  // Handle closurization of top-level names from library prefixes, P#m
+  if (primary->IsLiteralNode() &&
+      primary->AsLiteralNode()->literal().IsLibraryPrefix()) {
+    const LibraryPrefix& prefix =
+        LibraryPrefix::Cast(primary->AsLiteralNode()->literal());
+    Object& obj = Object::Handle(Z);
+    const bool is_private_name =
+        (extractor_name.CharAt(0) == Library::kPrivateIdentifierStart);
+    if (!is_private_name) {
+      // Private names are not exported by libraries. The name mangling
+      // of private names with a library-specific suffix usually ensures
+      // that _x in library A is not found when looked up from library B.
+      // In the pathological case where a library imports itself with
+      // a prefix, the name mangling does not help in hiding the private
+      // name, so we explicitly prevent lookup of private names here.
+      obj = prefix.LookupObject(extractor_name);
+    }
+    if (!prefix.is_loaded() && (parsed_function() != NULL)) {
+      // Remember that this function depends on an import prefix of an
+      // unloaded deferred library.
+      parsed_function()->AddDeferredPrefix(prefix);
+    }
+
+    if (obj.IsFunction()) {
+      const Function& func = Function::Cast(obj);
+      if (!func.IsSetterFunction() || is_setter_name) {
+        return CreateImplicitClosureNode(func, property_pos, NULL);
+      }
+    } else if (obj.IsField()) {
+      const Field& field = Field::Cast(obj);
+      if (is_setter_name && !field.is_final()) {
+        Instance& setter_closure = Instance::ZoneHandle(field.SetterClosure());
+        return new(Z) LiteralNode(property_pos, setter_closure);
+      }
+      if (!is_setter_name) {
+        Instance& getter_closure = Instance::ZoneHandle(field.GetterClosure());
+        return new(Z) LiteralNode(property_pos, getter_closure);
+      }
+    }
+    return ThrowNoSuchMethodError(property_pos,
+                                  current_class(),
+                                  extractor_name,
+                                  NULL,  // No arguments.
+                                  InvocationMirror::kTopLevel,
+                                  is_setter_name
+                                      ? InvocationMirror::kSetter
+                                      : InvocationMirror::kMethod,
+                                  NULL);  // No existing function.
+  }
+
+  // Handle closurization of static properties of classes, C#n.
+  if (primary->IsPrimaryNode() &&
+      primary->AsPrimaryNode()->primary().IsClass()) {
+    const Class& cls = Class::Cast(primary->AsPrimaryNode()->primary());
+    const Field& field =
+        Field::Handle(Z, cls.LookupStaticField(extractor_name));
+    if (!field.IsNull()) {
+      if (is_setter_name) {
+        extractor_name = Field::SetterName(extractor_name);
+        if (!field.is_final()) {
+          const Instance& setter_closure =
+              Instance::ZoneHandle(Z, field.SetterClosure());
+          ASSERT(setter_closure.IsClosure());
+          // Note: the created closure is cached after it's created
+          // once. If eager compilation is desired, the compiler can
+          // be invoked here. The same applies for getters below.
+          return new(Z) LiteralNode(property_pos, setter_closure);
+        }
+      } else {
+        const Instance& getter_closure =
+            Instance::ZoneHandle(Z, field.GetterClosure());
+        ASSERT(getter_closure.IsClosure());
+        return new(Z) LiteralNode(property_pos, getter_closure);
+      }
+    } else {
+      Function& func = Function::Handle(Z);
+      if (is_setter_name) {
+        extractor_name = Field::SetterName(extractor_name);
+        func = cls.LookupStaticFunction(extractor_name);
+      } else {
+        func = cls.LookupStaticFunction(extractor_name);
+        if (func.IsNull()) {
+          const String& getter_name =
+              String::Handle(Z, Field::GetterName(extractor_name));
+          func = cls.LookupStaticFunction(getter_name);
+        }
+      }
+      if (!func.IsNull()) {
+        return CreateImplicitClosureNode(func, property_pos, NULL);
+      }
+    }
+    return ThrowNoSuchMethodError(property_pos,
+                                  cls,
+                                  extractor_name,
+                                  NULL,  // No arguments.
+                                  InvocationMirror::kStatic,
+                                  is_setter_name
+                                      ? InvocationMirror::kSetter
+                                      : InvocationMirror::kMethod,
+                                  NULL);  // No existing function.
+  }
+
+  // Closurization of instance getter, setter, method or operator.
+  if (is_setter_name) {
+    extractor_name = String::Concat(Symbols::SetterPrefix(), extractor_name);
+  }
+  extractor_name = String::Concat(Symbols::HashMark(), extractor_name);
+  extractor_name = Symbols::New(extractor_name);
+  return new(Z) InstanceGetterNode(property_pos, primary, extractor_name);
+}
+
+
 AstNode* Parser::ParsePostfixExpr() {
   TRACE_PARSER("ParsePostfixExpr");
   String* expr_ident =
       Token::IsIdentifier(CurrentToken()) ? CurrentLiteral() : NULL;
   const intptr_t expr_pos = TokenPos();
   AstNode* expr = ParsePrimary();
-  expr = ParseSelectors(expr, false);
+  if (CurrentToken() == Token::kHASH) {
+    expr = LoadFieldIfUnresolved(expr);
+    expr = ParseClosurization(expr);
+  } else {
+    expr = ParseSelectors(expr, false);
+  }
   if (IsIncrementOperator(CurrentToken())) {
     TRACE_PARSER("IncrementOperator");
     if (!IsLegalAssignableSyntax(expr, TokenPos())) {
@@ -12006,6 +12156,9 @@ RawAbstractType* Parser::ParseType(
     SkipQualIdent();
   } else {
     *prefix = ParsePrefix();
+    if (!prefix->IsNull()) {
+      ExpectToken(Token::kPERIOD);
+    }
     type_name = CurrentLiteral()->raw();
     ConsumeToken();
 
@@ -12631,14 +12784,19 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   intptr_t type_pos = TokenPos();
   // Can't allocate const objects of a deferred type.
   const bool allow_deferred_type = !is_const;
-  const bool consume_unresolved_prefix = (LookaheadToken(3) == Token::kLT) ||
-                                         (LookaheadToken(3) == Token::kPERIOD);
+  const Token::Kind la3 = LookaheadToken(3);
+  const bool consume_unresolved_prefix =
+      (la3 == Token::kLT) || (la3 == Token::kPERIOD) || (la3 == Token::kHASH);
+
   LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(Z);
   AbstractType& type = AbstractType::Handle(Z,
       ParseType(ClassFinalizer::kCanonicalizeWellFormed,
                 allow_deferred_type,
                 consume_unresolved_prefix,
                 &prefix));
+  if (CurrentToken() == Token::kHASH) {
+    ReportError("constructor closurization not yet supported");
+  }
   if (FLAG_load_deferred_eagerly &&
       !prefix.IsNull() && prefix.is_deferred_load() && !prefix.is_loaded()) {
     // Add runtime check.
@@ -13073,6 +13231,14 @@ AstNode* Parser::ParsePrimary() {
   } else if (IsIdentifier()) {
     intptr_t qual_ident_pos = TokenPos();
     const LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(Z, ParsePrefix());
+    if (!prefix.IsNull()) {
+      if (CurrentToken() == Token::kHASH) {
+        // Closurization of top-level entity in prefix scope.
+        return new(Z) LiteralNode(qual_ident_pos, prefix);
+      } else {
+        ExpectToken(Token::kPERIOD);
+      }
+    }
     String& ident = *CurrentLiteral();
     ConsumeToken();
     if (prefix.IsNull()) {
@@ -13434,6 +13600,11 @@ void Parser::SkipNewOperator() {
   ConsumeToken();  // Skip new or const keyword.
   if (IsIdentifier()) {
     SkipType(false);
+    SkipIf(Token::kHASH);
+    if (CurrentToken() == Token::kPERIOD) {
+      ConsumeToken();
+      ExpectIdentifier("identifier expected");
+    }
     if (CurrentToken() == Token::kLPAREN) {
       SkipActualParameters();
       return;
@@ -13552,6 +13723,16 @@ void Parser::SkipSelectors() {
 
 void Parser::SkipPostfixExpr() {
   SkipPrimary();
+  if (CurrentToken() == Token::kHASH) {
+    if (IsIdentifier()) {
+      ConsumeToken();
+      SkipIf(Token::kASSIGN);
+    } else if (Token::CanBeOverloaded(CurrentToken())) {
+      ConsumeToken();
+    } else {
+      ReportError("identifier or operator expected");
+    }
+  }
   SkipSelectors();
   if (IsIncrementOperator(CurrentToken())) {
     ConsumeToken();

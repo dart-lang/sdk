@@ -17,6 +17,7 @@ regress_23038_test/01: Skip # Issue 23038
 getter_setter_in_lib_test: Fail # issue 23286
 
 issue13179_test: CompileTimeError # Issue 13179
+tearoff_basic_test: Skip # Tear-off not supported
 
 sync_generator2_test/01: MissingCompileTimeError # Issue 22252
 sync_generator2_test/02: MissingCompileTimeError # Issue 22252

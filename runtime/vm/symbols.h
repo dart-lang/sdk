@@ -503,6 +503,9 @@ class Symbols : public AllStatic {
   static const String& At() {
     return *(symbol_handles_[kNullCharId + '@']);
   }
+  static const String& HashMark() {
+    return *(symbol_handles_[kNullCharId + '#']);
+  }
   static const String& Semicolon() {
     return *(symbol_handles_[kNullCharId + ';']);
   }

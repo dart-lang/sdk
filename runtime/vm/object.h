@@ -2944,6 +2944,12 @@ class Field : public Object {
 
   void EvaluateInitializer() const;
 
+  // For static fields only. Constructs a closure that gets/sets the
+  // field value.
+  RawInstance* GetterClosure() const;
+  RawInstance* SetterClosure() const;
+  RawInstance* AccessorClosure(bool make_setter) const;
+
   // Constructs getter and setter names for fields and vice versa.
   static RawString* GetterName(const String& field_name);
   static RawString* GetterSymbol(const String& field_name);
