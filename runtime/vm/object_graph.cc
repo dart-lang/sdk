@@ -256,7 +256,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
   // We cannot use a GrowableObjectArray, since we must not trigger GC.
   RetainingPathVisitor(RawObject* obj, const Array& path)
       : obj_(obj), path_(path), length_(0) {
-    ASSERT(Isolate::Current()->no_safepoint_scope_depth() != 0);
+    ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0);
   }
 
   intptr_t length() const { return length_; }
@@ -313,7 +313,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
                            Object* scratch)
     : ObjectVisitor(isolate), ObjectPointerVisitor(isolate), source_(NULL),
       target_(target), references_(references), scratch_(scratch), length_(0) {
-    ASSERT(Isolate::Current()->no_safepoint_scope_depth() != 0);
+    ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0);
   }
 
   intptr_t length() const { return length_; }

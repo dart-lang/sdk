@@ -20,6 +20,11 @@
 #include "vm/verified_memory.h"
 #include "vm/version.h"
 
+// We currently only expect the Dart mutator to read snapshots.
+#define ASSERT_NO_SAFEPOINT_SCOPE()                            \
+    isolate()->AssertCurrentThreadIsMutator();                 \
+    ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0)
+
 namespace dart {
 
 static const int kNumVmIsolateSnapshotReferences = 32 * KB;
@@ -609,7 +614,7 @@ RawApiError* SnapshotReader::VerifyVersion() {
 
 #define ALLOC_NEW_OBJECT_WITH_LEN(type, length)                                \
   ASSERT(kind_ == Snapshot::kFull);                                            \
-  ASSERT(isolate()->no_safepoint_scope_depth() != 0);                          \
+  ASSERT_NO_SAFEPOINT_SCOPE();                                                 \
   Raw##type* obj = reinterpret_cast<Raw##type*>(                               \
       AllocateUninitialized(k##type##Cid, type::InstanceSize(length)));        \
   obj->StoreSmi(&(obj->ptr()->length_), Smi::New(length));                     \
@@ -643,7 +648,7 @@ RawTypeArguments* SnapshotReader::NewTypeArguments(intptr_t len) {
 
 RawTokenStream* SnapshotReader::NewTokenStream(intptr_t len) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
+  ASSERT_NO_SAFEPOINT_SCOPE();
   stream_ = reinterpret_cast<RawTokenStream*>(
       AllocateUninitialized(kTokenStreamCid, TokenStream::InstanceSize()));
   uint8_t* array = const_cast<uint8_t*>(CurrentBufferAddress());
@@ -661,7 +666,7 @@ RawTokenStream* SnapshotReader::NewTokenStream(intptr_t len) {
 
 RawContext* SnapshotReader::NewContext(intptr_t num_variables) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
+  ASSERT_NO_SAFEPOINT_SCOPE();
   RawContext* obj = reinterpret_cast<RawContext*>(
       AllocateUninitialized(kContextCid, Context::InstanceSize(num_variables)));
   obj->ptr()->num_variables_ = num_variables;
@@ -671,7 +676,7 @@ RawContext* SnapshotReader::NewContext(intptr_t num_variables) {
 
 RawClass* SnapshotReader::NewClass(intptr_t class_id) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
+  ASSERT_NO_SAFEPOINT_SCOPE();
   if (class_id < kNumPredefinedCids) {
     ASSERT((class_id >= kInstanceCid) &&
            (class_id <= kNullCid));
@@ -690,7 +695,7 @@ RawClass* SnapshotReader::NewClass(intptr_t class_id) {
 
 RawInstance* SnapshotReader::NewInstance() {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
+  ASSERT_NO_SAFEPOINT_SCOPE();
   RawInstance* obj = reinterpret_cast<RawInstance*>(
       AllocateUninitialized(kObjectCid, Instance::InstanceSize()));
   return obj;
@@ -699,7 +704,7 @@ RawInstance* SnapshotReader::NewInstance() {
 
 RawMint* SnapshotReader::NewMint(int64_t value) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
+  ASSERT_NO_SAFEPOINT_SCOPE();
   RawMint* obj = reinterpret_cast<RawMint*>(
       AllocateUninitialized(kMintCid, Mint::InstanceSize()));
   obj->ptr()->value_ = value;
@@ -709,7 +714,7 @@ RawMint* SnapshotReader::NewMint(int64_t value) {
 
 RawDouble* SnapshotReader::NewDouble(double value) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
+  ASSERT_NO_SAFEPOINT_SCOPE();
   RawDouble* obj = reinterpret_cast<RawDouble*>(
       AllocateUninitialized(kDoubleCid, Double::InstanceSize()));
   obj->ptr()->value_ = value;
@@ -719,7 +724,7 @@ RawDouble* SnapshotReader::NewDouble(double value) {
 
 RawTypedData* SnapshotReader::NewTypedData(intptr_t class_id, intptr_t len) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
+  ASSERT_NO_SAFEPOINT_SCOPE();
   const intptr_t lengthInBytes = len * TypedData::ElementSizeInBytes(class_id);
   RawTypedData* obj = reinterpret_cast<RawTypedData*>(
       AllocateUninitialized(class_id, TypedData::InstanceSize(lengthInBytes)));
@@ -730,7 +735,7 @@ RawTypedData* SnapshotReader::NewTypedData(intptr_t class_id, intptr_t len) {
 
 #define ALLOC_NEW_OBJECT(type)                                                 \
   ASSERT(kind_ == Snapshot::kFull);                                            \
-  ASSERT(isolate()->no_safepoint_scope_depth() != 0);                          \
+  ASSERT_NO_SAFEPOINT_SCOPE();                                                 \
   return reinterpret_cast<Raw##type*>(                                         \
       AllocateUninitialized(k##type##Cid, type::InstanceSize()));              \
 
@@ -828,7 +833,7 @@ RawGrowableObjectArray* SnapshotReader::NewGrowableObjectArray() {
 RawFloat32x4* SnapshotReader::NewFloat32x4(float v0, float v1, float v2,
                                            float v3) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
+  ASSERT_NO_SAFEPOINT_SCOPE();
   RawFloat32x4* obj = reinterpret_cast<RawFloat32x4*>(
       AllocateUninitialized(kFloat32x4Cid, Float32x4::InstanceSize()));
   obj->ptr()->value_[0] = v0;
@@ -842,7 +847,7 @@ RawFloat32x4* SnapshotReader::NewFloat32x4(float v0, float v1, float v2,
 RawInt32x4* SnapshotReader::NewInt32x4(uint32_t v0, uint32_t v1, uint32_t v2,
                                        uint32_t v3) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
+  ASSERT_NO_SAFEPOINT_SCOPE();
   RawInt32x4* obj = reinterpret_cast<RawInt32x4*>(
       AllocateUninitialized(kInt32x4Cid, Int32x4::InstanceSize()));
   obj->ptr()->value_[0] = v0;
@@ -855,7 +860,7 @@ RawInt32x4* SnapshotReader::NewInt32x4(uint32_t v0, uint32_t v1, uint32_t v2,
 
 RawFloat64x2* SnapshotReader::NewFloat64x2(double v0, double v1) {
   ASSERT(kind_ == Snapshot::kFull);
-  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
+  ASSERT_NO_SAFEPOINT_SCOPE();
   RawFloat64x2* obj = reinterpret_cast<RawFloat64x2*>(
       AllocateUninitialized(kFloat64x2Cid, Float64x2::InstanceSize()));
   obj->ptr()->value_[0] = v0;
@@ -914,7 +919,7 @@ intptr_t SnapshotReader::LookupInternalClass(intptr_t class_header) {
 
 RawObject* SnapshotReader::AllocateUninitialized(intptr_t class_id,
                                                  intptr_t size) {
-  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
+  ASSERT_NO_SAFEPOINT_SCOPE();
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
 
   // Allocate memory where all words look like smis. This is currently
@@ -1703,14 +1708,15 @@ ForwardList::ForwardList(intptr_t first_object_id)
       first_unprocessed_object_id_(first_object_id) {
   // The ForwardList encodes information in the header tag word. There cannot
   // be any concurrent GC tasks while it is in use.
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   PageSpace* page_space = isolate->heap()->old_space();
   MonitorLocker ml(page_space->tasks_lock());
   while (page_space->tasks() > 0) {
     ml.Wait();
   }
   // Ensure that no GC happens while we are writing out the full snapshot.
-  isolate->IncrementNoSafepointScopeDepth();
+  thread->IncrementNoSafepointScopeDepth();
 }
 
 
@@ -1769,7 +1775,7 @@ void ForwardList::UnmarkAll() const {
       raw->ptr()->tags_ = node->tags();  // Restore original tags.
     }
   }
-  Isolate::Current()->DecrementNoSafepointScopeDepth();
+  Thread::Current()->DecrementNoSafepointScopeDepth();
 }
 
 

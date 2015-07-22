@@ -899,7 +899,7 @@ void Object::InitVmIsolateSnapshotObjectTable(intptr_t len) {
 void Object::MakeUnusedSpaceTraversable(const Object& obj,
                                         intptr_t original_size,
                                         intptr_t used_size) {
-  ASSERT(Isolate::Current()->no_safepoint_scope_depth() > 0);
+  ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
   ASSERT(!obj.IsNull());
   ASSERT(original_size >= used_size);
   if (original_size > used_size) {
@@ -14368,7 +14368,7 @@ bool Instance::IsIdenticalTo(const Instance& other) const {
 
 
 intptr_t* Instance::NativeFieldsDataAddr() const {
-  ASSERT(Isolate::Current()->no_safepoint_scope_depth() > 0);
+  ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
   RawTypedData* native_fields =
       reinterpret_cast<RawTypedData*>(*NativeFieldsAddr());
   if (native_fields == TypedData::null()) {
@@ -14517,7 +14517,7 @@ const char* Instance::ToCString() const {
     return "unknown_constant";
   } else if (raw() == Object::non_constant().raw()) {
     return "non_constant";
-  } else if (Isolate::Current()->no_safepoint_scope_depth() > 0) {
+  } else if (Thread::Current()->no_safepoint_scope_depth() > 0) {
     // Can occur when running disassembler.
     return "Instance";
   } else {

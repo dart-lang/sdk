@@ -3589,7 +3589,8 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
                                                   Dart_TypedData_Type* type,
                                                   void** data,
                                                   intptr_t* len) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   DARTSCOPE(isolate);
   intptr_t class_id = Api::ClassId(object);
   if (!RawObject::IsExternalTypedDataClassId(class_id) &&
@@ -3627,7 +3628,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     ASSERT(!obj.IsNull());
     length = obj.Length();
     size_in_bytes = length * TypedData::ElementSizeInBytes(class_id);
-    isolate->IncrementNoSafepointScopeDepth();
+    thread->IncrementNoSafepointScopeDepth();
     START_NO_CALLBACK_SCOPE(isolate);
     data_tmp = obj.DataAddr(0);
   } else {
@@ -3641,7 +3642,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     val ^= TypedDataView::OffsetInBytes(view_obj);
     intptr_t offset_in_bytes = val.Value();
     const Instance& obj = Instance::Handle(TypedDataView::Data(view_obj));
-    isolate->IncrementNoSafepointScopeDepth();
+    thread->IncrementNoSafepointScopeDepth();
     START_NO_CALLBACK_SCOPE(isolate);
     if (TypedData::IsTypedData(obj)) {
       const TypedData& data_obj = TypedData::Cast(obj);
@@ -3679,7 +3680,8 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
 
 
 DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   DARTSCOPE(isolate);
   intptr_t class_id = Api::ClassId(object);
   if (!RawObject::IsExternalTypedDataClassId(class_id) &&
@@ -3688,7 +3690,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
     RETURN_TYPE_ERROR(isolate, object, 'TypedData');
   }
   if (!RawObject::IsExternalTypedDataClassId(class_id)) {
-    isolate->DecrementNoSafepointScopeDepth();
+    thread->DecrementNoSafepointScopeDepth();
     END_NO_CALLBACK_SCOPE(isolate);
   }
   if (FLAG_verify_acquired_data) {

@@ -2059,7 +2059,9 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
   String& str_obj = String::Handle(reader->zone(), String::null());
 
   if (kind == Snapshot::kFull) {
-    ASSERT(reader->isolate()->no_safepoint_scope_depth() != 0);
+    // We currently only expect the Dart mutator to read snapshots.
+    reader->isolate()->AssertCurrentThreadIsMutator();
+    ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0);
     RawOneByteString* obj = reader->NewOneByteString(len);
     str_obj = obj;
     str_obj.set_tags(tags);

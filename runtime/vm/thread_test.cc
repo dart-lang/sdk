@@ -129,9 +129,10 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
         a0->Add(true);
         a1.Add(true);
       }
-      // Check that we can create handles (but not yet allocate heap objects).
-      String& str = String::Handle(zone, foo_.raw());
-      EXPECT(str.Equals("foo"));
+      // Check that we can create handles and allocate in old space.
+      String& str = String::Handle(zone, String::New("old", Heap::kOld));
+      EXPECT(str.Equals("old"));
+
       const intptr_t unique_smi = id_ + 928327281;
       Smi& smi = Smi::Handle(zone, Smi::New(unique_smi));
       EXPECT(smi.Value() == unique_smi);
@@ -140,6 +141,22 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       // TODO(koda): Remove "->thread_registry()" after updating stack walker.
       isolate_->thread_registry()->VisitObjectPointers(&counter);
       EXPECT_EQ(1, counter.count());
+
+      char* unique_chars = zone->PrintToString("unique_str_%" Pd, id_);
+      String& unique_str = String::Handle(zone);
+      {
+        // String::New may create additional handles in the topmost scope that
+        // we don't want to count, so wrap this in its own scope.
+        HANDLESCOPE(thread);
+        unique_str = String::New(unique_chars, Heap::kOld);
+      }
+      EXPECT(unique_str.Equals(unique_chars));
+      ObjectCounter str_counter(isolate_, &unique_str);
+      // Ensure that our particular zone is visited.
+      // TODO(koda): Remove "->thread_registry()" after updating stack walker.
+      isolate_->thread_registry()->VisitObjectPointers(&str_counter);
+      // We should visit the string object exactly once.
+      EXPECT_EQ(1, str_counter.count());
     }
     Thread::ExitIsolateAsHelper();
     {
@@ -164,7 +181,8 @@ TEST_CASE(ManyTasksWithZones) {
   bool done[kTaskCount];
   Isolate* isolate = Thread::Current()->isolate();
   String& foo = String::Handle(String::New("foo"));
-
+  EXPECT(isolate->heap()->GrowthControlState());
+  isolate->heap()->DisableGrowthControl();
   for (int i = 0; i < kTaskCount; i++) {
     done[i] = false;
     Dart::thread_pool()->Run(

@@ -153,6 +153,28 @@ class Thread {
 #endif
   }
 
+  int32_t no_safepoint_scope_depth() const {
+#if defined(DEBUG)
+    return state_.no_safepoint_scope_depth;
+#else
+    return 0;
+#endif
+  }
+
+  void IncrementNoSafepointScopeDepth() {
+#if defined(DEBUG)
+    ASSERT(state_.no_safepoint_scope_depth < INT_MAX);
+    state_.no_safepoint_scope_depth += 1;
+#endif
+  }
+
+  void DecrementNoSafepointScopeDepth() {
+#if defined(DEBUG)
+    ASSERT(state_.no_safepoint_scope_depth > 0);
+    state_.no_safepoint_scope_depth -= 1;
+#endif
+  }
+
   // Collection of isolate-specific state of a thread that is saved/restored
   // on isolate exit/re-entry.
   struct State {
@@ -162,6 +184,7 @@ class Thread {
 #if defined(DEBUG)
     HandleScope* top_handle_scope;
     intptr_t no_handle_scope_depth;
+    int32_t no_safepoint_scope_depth;
 #endif
   };
 

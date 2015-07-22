@@ -684,7 +684,7 @@ class Object {
     ASSERT(Contains(reinterpret_cast<uword>(addr) - 1) &&
            Contains(reinterpret_cast<uword>(addr) - kWordSize));
     // At least check that there is a NoSafepointScope and hope it's big enough.
-    ASSERT(Isolate::Current()->no_safepoint_scope_depth() > 0);
+    ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
     return const_cast<FieldType*>(addr);
   }
 
