@@ -135,6 +135,13 @@ class Utils {
     return '${seconds}s';
   }
 
+  static String formatDateTime(DateTime now) {
+    return '${now.year}-${now.month}-${now.day} '
+           '${now.hour.toString().padLeft(2)}:'
+           '${now.minute.toString().padLeft(2)}:'
+           '${now.second.toString().padLeft(2)}';
+  }
+
   static String formatSeconds(double x) {
     return x.toStringAsFixed(2);
   }

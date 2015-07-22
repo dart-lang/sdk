@@ -138,6 +138,7 @@ class ObservatoryApplication extends Observable {
     _pageRegistry.add(new ErrorViewPage(this));
     _pageRegistry.add(new MetricsPage(this));
     _pageRegistry.add(new PortsPage(this));
+    _pageRegistry.add(new LoggingPage(this));
     // Note that ErrorPage must be the last entry in the list as it is
     // the catch all.
     _pageRegistry.add(new ErrorPage(this));

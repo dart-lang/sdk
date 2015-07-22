@@ -294,6 +294,22 @@ class HeapSnapshotPage extends SimplePage {
   }
 }
 
+
+class LoggingPage extends SimplePage {
+  LoggingPage(app) : super('logging', 'logging-page', app);
+
+  void _visit(Uri uri) {
+    super._visit(uri);
+    getIsolate(uri).then((isolate) {
+      if (element != null) {
+        /// Update the page.
+        LoggingPageElement page = element;
+        page.isolate = isolate;
+      }
+    });
+  }
+}
+
 class ErrorViewPage extends Page {
   ErrorViewPage(app) : super(app);
 
