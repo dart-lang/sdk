@@ -359,7 +359,6 @@ await_test: Crash # (others()async{var a...  cannot handle async/sync*/async* fu
 cha_deopt1_test: Crash # (d.make_u()): deferred access is not implemented
 cha_deopt2_test: Crash # (d.make_u()): deferred access is not implemented
 cha_deopt3_test: Crash # (d.make_u()): deferred access is not implemented
-classes_static_method_clash_test: Crash # Stack Overflow
 closure_in_constructor_test: Crash # Invalid argument(s)
 closure_type_variables_test: Crash # Invalid argument(s)
 closures_initializer_test: RuntimeError # Please triage this failure.
