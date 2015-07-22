@@ -109,11 +109,10 @@ class ObjectCounter : public ObjectPointerVisitor {
 class TaskWithZoneAllocation : public ThreadPool::Task {
  public:
   TaskWithZoneAllocation(Isolate* isolate,
-                         const String& foo,
                          Monitor* monitor,
                          bool* done,
                          intptr_t id)
-      : isolate_(isolate), foo_(foo), monitor_(monitor), done_(done), id_(id) {}
+      : isolate_(isolate), monitor_(monitor), done_(done), id_(id) {}
   virtual void Run() {
     Thread::EnterIsolateAsHelper(isolate_);
     {
@@ -168,7 +167,6 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
 
  private:
   Isolate* isolate_;
-  const String& foo_;
   Monitor* monitor_;
   bool* done_;
   intptr_t id_;
@@ -180,13 +178,12 @@ TEST_CASE(ManyTasksWithZones) {
   Monitor sync[kTaskCount];
   bool done[kTaskCount];
   Isolate* isolate = Thread::Current()->isolate();
-  String& foo = String::Handle(String::New("foo"));
   EXPECT(isolate->heap()->GrowthControlState());
   isolate->heap()->DisableGrowthControl();
   for (int i = 0; i < kTaskCount; i++) {
     done[i] = false;
     Dart::thread_pool()->Run(
-        new TaskWithZoneAllocation(isolate, foo, &sync[i], &done[i], i));
+        new TaskWithZoneAllocation(isolate, &sync[i], &done[i], i));
   }
   for (int i = 0; i < kTaskCount; i++) {
     // Check that main mutator thread can still freely use its own zone.
