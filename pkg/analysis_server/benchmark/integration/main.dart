@@ -26,7 +26,8 @@ main(List<String> rawArgs) {
   });
   PerfArgs args = parseArgs(rawArgs);
 
-  Driver driver = new Driver(logger);
+  Driver driver = new Driver(
+      diagnosticPort: args.diagnosticPort, newTaskModel: args.newTaskModel);
   Stream<Operation> stream = openInput(args);
   StreamSubscription<Operation> subscription;
   subscription = stream.listen((Operation op) {
@@ -56,6 +57,7 @@ const DIAGNOSTIC_PORT_OPTION = 'diagnosticPort';
 const HELP_CMDLINE_OPTION = 'help';
 const INPUT_CMDLINE_OPTION = 'input';
 const MAP_OPTION = 'map';
+const NEW_TASK_MODEL_OPTION = 'newTaskModel';
 
 /**
  * The amount of time to give the server to respond to a shutdown request
@@ -79,16 +81,15 @@ Stream<Operation> openInput(PerfArgs args) {
   } else {
     inputRaw = new File(args.inputPath).openRead();
   }
-  args.srcPathMap.forEach((oldPath, newPath) {
-    logger.log(
-        Level.INFO, 'mapping source path\n  from $oldPath\n  to   $newPath');
-  });
+  for (PathMapEntry entry in args.srcPathMap.entries) {
+    logger.log(Level.INFO, 'mapping source path\n'
+        '  from ${entry.oldSrcPrefix}\n  to   ${entry.newSrcPrefix}');
+  }
   logger.log(Level.INFO, 'tmpSrcDir: ${args.tmpSrcDirPath}');
   return inputRaw
       .transform(SYSTEM_ENCODING.decoder)
       .transform(new LineSplitter())
-      .transform(new InputConverter(args.tmpSrcDirPath, args.srcPathMap,
-          diagnosticPort: args.diagnosticPort));
+      .transform(new InputConverter(args.tmpSrcDirPath, args.srcPathMap));
 }
 
 /**
@@ -113,6 +114,10 @@ PerfArgs parseArgs(List<String> rawArgs) {
   parser.addOption(TMP_SRC_DIR_OPTION, abbr: 't', help: '<dirPath>\n'
       'The temporary directory containing source used during performance measurement.\n'
       'WARNING: The contents of the target directory will be modified');
+  parser.addFlag(NEW_TASK_MODEL_OPTION,
+      help: "enable the use of the new task model",
+      defaultsTo: false,
+      negatable: false);
   parser.addOption(DIAGNOSTIC_PORT_OPTION,
       abbr: 'd',
       help: 'localhost port on which server will provide diagnostic web pages');
@@ -143,15 +148,14 @@ PerfArgs parseArgs(List<String> rawArgs) {
     showHelp = true;
   }
 
-  perfArgs.srcPathMap = <String, String>{};
   for (String pair in args[MAP_OPTION]) {
     if (pair is String) {
       int index = pair.indexOf(',');
       if (index != -1 && pair.indexOf(',', index + 1) == -1) {
-        String oldSrcPath = _withTrailingSeparator(pair.substring(0, index));
-        String newSrcPath = _withTrailingSeparator(pair.substring(index + 1));
-        if (new Directory(newSrcPath).existsSync()) {
-          perfArgs.srcPathMap[oldSrcPath] = newSrcPath;
+        String oldSrcPrefix = _withTrailingSeparator(pair.substring(0, index));
+        String newSrcPrefix = _withTrailingSeparator(pair.substring(index + 1));
+        if (new Directory(newSrcPrefix).existsSync()) {
+          perfArgs.srcPathMap.add(oldSrcPrefix, newSrcPrefix);
           continue;
         }
       }
@@ -165,6 +169,8 @@ PerfArgs parseArgs(List<String> rawArgs) {
     print('missing $TMP_SRC_DIR_OPTION argument');
     showHelp = true;
   }
+
+  perfArgs.newTaskModel = args[NEW_TASK_MODEL_OPTION];
 
   String portText = args[DIAGNOSTIC_PORT_OPTION];
   if (portText != null) {
@@ -226,7 +232,7 @@ class PerfArgs {
    * when the instrumentation or log file was generated
    * to the target source directory used during performance testing.
    */
-  Map<String, String> srcPathMap;
+  final PathMap srcPathMap = new PathMap();
 
   /**
    * The temporary directory containing source used during performance measurement.
@@ -237,4 +243,9 @@ class PerfArgs {
    * The diagnostic port for Analysis Server or `null` if none.
    */
   int diagnosticPort;
+
+  /**
+   * `true` if the server should run using the new task model.
+   */
+  bool newTaskModel;
 }

@@ -62,7 +62,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
    * from location where instrumentation or log file was generated
    * to the target location of the source using during performance measurement.
    */
-  final Map<String, String> srcPathMap;
+  final PathMap srcPathMap;
 
   /**
    * The root directory for all source being modified
@@ -70,13 +70,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
    */
   final String tmpSrcDirPath;
 
-  /**
-   * The diagnostic port for Analysis Server or `null` if none.
-   */
-  final int diagnosticPort;
-
-  CommonInputConverter(this.tmpSrcDirPath, this.srcPathMap,
-      {this.diagnosticPort});
+  CommonInputConverter(this.tmpSrcDirPath, this.srcPathMap);
 
   /**
    * Return an operation for the notification or `null` if none.
@@ -95,7 +89,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
     }
     if (event == SERVER_CONNECTED) {
       // {"event":"server.connected","params":{"version":"1.7.0"}}
-      return new StartServerOperation(diagnosticPort: diagnosticPort);
+      return new StartServerOperation();
     }
     if (eventsSeen.add(event)) {
       logger.log(Level.INFO, 'Ignored notification: $event\n  $json');
@@ -182,6 +176,14 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
         this, requestMap.remove(json['id']), translateSrcPaths(json));
   }
 
+  void logOverlayContent() {
+    logger.log(Level.WARNING, '${overlays.length} overlays');
+    List<String> allPaths = overlays.keys.toList()..sort();
+    for (String filePath in allPaths) {
+      logger.log(Level.WARNING, 'overlay $filePath\n${overlays[filePath]}');
+    }
+  }
+
   /**
    * Process an error response from the server by either
    * completing the associated completer in the [responseCompleters]
@@ -242,13 +244,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
    */
   translateSrcPaths(json) {
     if (json is String) {
-      String result = json;
-      srcPathMap.forEach((String oldPrefix, String newPrefix) {
-        if (json.startsWith(oldPrefix)) {
-          result = '$newPrefix${json.substring(oldPrefix.length)}';
-        }
-      });
-      return result;
+      return srcPathMap.translate(json);
     }
     if (json is List) {
       List result = [];
@@ -281,18 +277,13 @@ class InputConverter extends Converter<String, Operation> {
    * from location where instrumentation or log file was generated
    * to the target location of the source using during performance measurement.
    */
-  final Map<String, String> srcPathMap;
+  final PathMap srcPathMap;
 
   /**
    * The root directory for all source being modified
    * during performance measurement.
    */
   final String tmpSrcDirPath;
-
-  /**
-   * The diagnostic port for Analysis Server or `null` if none.
-   */
-  final int diagnosticPort;
 
   /**
    * The number of lines read before the underlying converter was determined
@@ -312,7 +303,7 @@ class InputConverter extends Converter<String, Operation> {
    */
   bool active = true;
 
-  InputConverter(this.tmpSrcDirPath, this.srcPathMap, {this.diagnosticPort});
+  InputConverter(this.tmpSrcDirPath, this.srcPathMap);
 
   @override
   Operation convert(String line) {
@@ -331,11 +322,9 @@ class InputConverter extends Converter<String, Operation> {
       throw 'Failed to determine input file format';
     }
     if (InstrumentationInputConverter.isFormat(line)) {
-      converter = new InstrumentationInputConverter(tmpSrcDirPath, srcPathMap,
-          diagnosticPort: diagnosticPort);
+      converter = new InstrumentationInputConverter(tmpSrcDirPath, srcPathMap);
     } else if (LogFileInputConverter.isFormat(line)) {
-      converter = new LogFileInputConverter(tmpSrcDirPath, srcPathMap,
-          diagnosticPort: diagnosticPort);
+      converter = new LogFileInputConverter(tmpSrcDirPath, srcPathMap);
     }
     if (converter != null) {
       return converter.convert(line);
@@ -347,6 +336,43 @@ class InputConverter extends Converter<String, Operation> {
   @override
   _InputSink startChunkedConversion(outSink) {
     return new _InputSink(this, outSink);
+  }
+}
+
+/**
+ * A container of [PathMapEntry]s used to translate a source path in the log
+ * before it is sent to the analysis server.
+ */
+class PathMap {
+  final List<PathMapEntry> entries = [];
+
+  void add(String oldSrcPrefix, String newSrcPrefix) {
+    entries.add(new PathMapEntry(oldSrcPrefix, newSrcPrefix));
+  }
+
+  String translate(String original) {
+    String result = original;
+    for (PathMapEntry entry in entries) {
+      result = entry.translate(result);
+    }
+    return result;
+  }
+}
+
+/**
+ * An entry in [PathMap] used to translate a source path in the log
+ * before it is sent to the analysis server.
+ */
+class PathMapEntry {
+  final String oldSrcPrefix;
+  final String newSrcPrefix;
+
+  PathMapEntry(this.oldSrcPrefix, this.newSrcPrefix);
+
+  String translate(String original) {
+    return original.startsWith(oldSrcPrefix)
+        ? '$newSrcPrefix${original.substring(oldSrcPrefix.length)}'
+        : original;
   }
 }
 

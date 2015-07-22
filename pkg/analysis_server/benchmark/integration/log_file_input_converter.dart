@@ -23,9 +23,8 @@ final int ZERO = '0'.codeUnitAt(0);
  * into a series of operations to be sent to the analysis server.
  */
 class LogFileInputConverter extends CommonInputConverter {
-  LogFileInputConverter(String tmpSrcDirPath, Map<String, String> srcPathMap,
-      {int diagnosticPort})
-      : super(tmpSrcDirPath, srcPathMap, diagnosticPort: diagnosticPort);
+  LogFileInputConverter(String tmpSrcDirPath, PathMap srcPathMap)
+      : super(tmpSrcDirPath, srcPathMap);
 
   @override
   Operation convert(String line) {

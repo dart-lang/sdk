@@ -63,6 +63,7 @@ main(List<String> args) {
   performance.main([
     //'-vv', // very verbose
     //'-d8081', // analysis server localhost diagnostic port
+    //'--newTaskModel',
     '-i${inputFile.path}',
     '-t$tmpSrcDirPath',
     '-m${gitDir.path},$tmpSrcDirPath',
