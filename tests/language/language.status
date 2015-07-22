@@ -6,6 +6,7 @@
 # current state of the language.
 
 [ $compiler == none ]
+multiline_newline_test/*: Crash # Issue 23888
 built_in_identifier_prefix_test: Fail # Issue 6970
 
 # These bugs refer currently ongoing language discussions.
@@ -17,14 +18,9 @@ closure_in_initializer_test: Fail # Issue 6422
 # Regular bugs which should be fixed.
 duplicate_export_negative_test: Fail # Issue 6134
 
-[ $compiler == none ]
-
 deferred_redirecting_factory_test: Fail # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 
-[ $compiler == none && $runtime != dartium && $runtime != drt ]
-
-[ $compiler == none ]
 # Non-contractive types are not supported in the vm.
 cyclic_type_test/02: Fail, OK
 cyclic_type_test/04: Fail, OK
