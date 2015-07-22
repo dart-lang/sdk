@@ -533,12 +533,12 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       LibraryElement library) async {
     compiler.onLibraryCreated(library);
     libraryCanonicalUriMap[library.canonicalUri] = library;
-    await compiler.onLibraryScanned(library, handler);
-    for (LibraryTag tag in library.tags) {
-      LibraryElement dependency = library.getLibraryFromTag(tag);
-      await createLibrary(handler, library, dependency.canonicalUri);
-    }
-    return library;
+    return compiler.onLibraryScanned(library, handler).then((_) {
+      return future.forEach(library.tags, (LibraryTag tag) {
+        LibraryElement dependency = library.getLibraryFromTag(tag);
+        return createLibrary(handler, library, dependency.canonicalUri);
+      }).then((_) => library);
+    });
   }
 
   /**
