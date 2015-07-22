@@ -43,7 +43,7 @@ class ContextInfo {
   /**
    * The enclosed pubspec-based contexts.
    */
-  final List<ContextInfo> children;
+  final List<ContextInfo> children = <ContextInfo>[];
 
   /**
    * The package root for this context, or null if there is no package root.
@@ -51,7 +51,9 @@ class ContextInfo {
   String packageRoot;
 
   /**
-   * The [ContextInfo] that encloses this one.
+   * The [ContextInfo] that encloses this one, or `null` if this is the virtual
+   * [ContextInfo] object that acts as the ancestor of all other [ContextInfo]
+   * objects.
    */
   ContextInfo parent;
 
@@ -92,19 +94,26 @@ class ContextInfo {
   OptimizingPubPackageMapInfo packageMapInfo;
 
   ContextInfo(
-      Folder folder, File packagespecFile, this.children, this.packageRoot)
+      this.parent, Folder folder, File packagespecFile, this.packageRoot)
       : folder = folder,
         pathFilter = new PathFilter(folder.path, null) {
     packageDescriptionPath = packagespecFile.path;
-    for (ContextInfo child in children) {
-      child.parent = this;
-    }
+    parent.children.add(this);
   }
 
   /**
-   * Returns `true` if this context is root folder based.
+   * Create the virtual [ContextInfo] which acts as an ancestor to all other
+   * [ContextInfo]s.
    */
-  bool get isRoot => parent == null;
+  ContextInfo._ancestor()
+      : folder = null,
+        pathFilter = null;
+
+  /**
+   * Returns `true` if the folder associated with this context is not contained
+   * within any other folders that have an associated context.
+   */
+  bool get isRoot => parent.parent == null;
 
   /**
    * Returns `true` if [path] is excluded, as it is in one of the children.
@@ -350,6 +359,12 @@ class ContextManagerImpl implements ContextManager {
   @override
   ContextManagerCallbacks callbacks;
 
+  /**
+   * Virtual [ContextInfo] which acts as the ancestor of all other
+   * [ContextInfo]s.
+   */
+  final ContextInfo _ancestorInfo = new ContextInfo._ancestor();
+
   ContextManagerImpl(this.resourceProvider, this.packageResolverProvider,
       this._packageMapProvider, this._instrumentationService) {
     pathContext = resourceProvider.pathContext;
@@ -489,7 +504,7 @@ class ContextManagerImpl implements ContextManager {
         return folder.isOrContains(includedFolder.path);
       });
       if (!wasIncluded) {
-        _createContexts(includedFolder, false);
+        _createContexts(_ancestorInfo, includedFolder, false);
       }
     }
     // remove newly excluded sources
@@ -729,12 +744,13 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Create a new empty context associated with [folder].
+   * Create a new empty context associated with [folder], having parent
+   * [parent] and using [packagespecFile] to resolve package URI's.
    */
   ContextInfo _createContext(
-      Folder folder, File packagespecFile, List<ContextInfo> children) {
+      ContextInfo parent, Folder folder, File packagespecFile) {
     ContextInfo info = new ContextInfo(
-        folder, packagespecFile, children, normalizedPackageRoots[folder.path]);
+        parent, folder, packagespecFile, normalizedPackageRoots[folder.path]);
     _contexts[folder] = info;
     Map<String, YamlNode> options = analysisOptionsProvider.getOptions(folder);
     processOptionsForContext(info, options);
@@ -776,22 +792,12 @@ class ContextManagerImpl implements ContextManager {
    * If [withPackageSpecOnly] is `true`, a context will be created only if there
    * is a 'pubspec.yaml' or '.packages' file in the [folder].
    *
-   * Returns created contexts.
+   * [parent] should be the parent of any contexts that are created.
    */
-  List<ContextInfo> _createContexts(Folder folder, bool withPackageSpecOnly) {
-    // Try to find subfolders with pubspecs or .packages files.
-    List<ContextInfo> children = <ContextInfo>[];
-    try {
-      for (Resource child in folder.getChildren()) {
-        if (child is Folder) {
-          children.addAll(_createContexts(child, true));
-        }
-      }
-    } on FileSystemException {
-      // The directory either doesn't exist or cannot be read. Either way, there
-      // are no subfolders that need to be added.
-    }
-
+  void _createContexts(
+      ContextInfo parent, Folder folder, bool withPackageSpecOnly) {
+    // Decide whether a context needs to be created for [folder] here, and if
+    // so, create it.
     File packageSpec;
 
     if (ENABLE_PACKAGESPEC_SUPPORT) {
@@ -804,33 +810,31 @@ class ContextManagerImpl implements ContextManager {
       packageSpec = folder.getChild(PUBSPEC_NAME);
     }
 
-    if (packageSpec.exists) {
-      return <ContextInfo>[
-        _createContextWithSources(folder, packageSpec, children)
-      ];
+    bool parentCreated = false;
+    if (packageSpec.exists || !withPackageSpecOnly) {
+      parentCreated = true;
+      parent = _createContext(parent, folder, packageSpec);
     }
-    // No packagespec? Done.
-    if (withPackageSpecOnly) {
-      return children;
-    }
-    // OK, create a context without a packagespec.
-    return <ContextInfo>[
-      _createContextWithSources(folder, packageSpec, children)
-    ];
-  }
 
-  /**
-   * Create a new context associated with the given [folder]. The [pubspecFile]
-   * is the `pubspec.yaml` file contained in the folder. Add any sources that
-   * are not included in one of the [children] to the context.
-   */
-  ContextInfo _createContextWithSources(
-      Folder folder, File pubspecFile, List<ContextInfo> children) {
-    ContextInfo info = _createContext(folder, pubspecFile, children);
-    ChangeSet changeSet = new ChangeSet();
-    _addSourceFiles(changeSet, folder, info);
-    callbacks.applyChangesToContext(folder, changeSet);
-    return info;
+    // Try to find subfolders with pubspecs or .packages files.
+    try {
+      for (Resource child in folder.getChildren()) {
+        if (child is Folder) {
+          _createContexts(parent, child, true);
+        }
+      }
+    } on FileSystemException {
+      // The directory either doesn't exist or cannot be read. Either way, there
+      // are no subfolders that need to be added.
+    }
+
+    if (parentCreated) {
+      // Now that the child contexts have been created, add the sources that
+      // don't belong to the children.
+      ChangeSet changeSet = new ChangeSet();
+      _addSourceFiles(changeSet, folder, parent);
+      callbacks.applyChangesToContext(folder, changeSet);
+    }
   }
 
   /**
@@ -841,6 +845,8 @@ class ContextManagerImpl implements ContextManager {
     info.changeSubscription.cancel();
     _cancelDependencySubscriptions(info);
     callbacks.removeContext(folder, _computeFlushedFiles(folder));
+    bool wasRemoved = info.parent.children.remove(info);
+    assert(wasRemoved);
     _contexts.remove(folder);
   }
 
@@ -849,8 +855,7 @@ class ContextManagerImpl implements ContextManager {
    */
   void _extractContext(ContextInfo oldInfo, File packagespecFile) {
     Folder newFolder = packagespecFile.parent;
-    ContextInfo newInfo = _createContext(newFolder, packagespecFile, []);
-    newInfo.parent = oldInfo;
+    ContextInfo newInfo = _createContext(oldInfo, newFolder, packagespecFile);
     // prepare sources to extract
     Map<String, Source> extractedSources = new HashMap<String, Source>();
     oldInfo.sources.forEach((path, source) {
@@ -876,6 +881,9 @@ class ContextManagerImpl implements ContextManager {
       });
       callbacks.applyChangesToContext(oldInfo.folder, changeSet);
     }
+    // TODO(paulberry): every context that was previously a child of oldInfo is
+    // is still a child of oldInfo.  This is wrong--some of them ought to be
+    // adopted by newInfo now.
   }
 
   void _handleWatchEvent(Folder folder, ContextInfo info, WatchEvent event) {
