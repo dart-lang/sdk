@@ -398,11 +398,13 @@ class ResolutionRegistry implements Registry {
   void registerIsCheck(DartType type) {
     worldImpact.registerCheckedType(type);
     backend.resolutionCallbacks.onIsCheck(type, this);
+    mapping.addRequiredType(type);
   }
 
   void registerAsCheck(DartType type) {
     registerIsCheck(type);
     backend.resolutionCallbacks.onAsCheck(type, this);
+    mapping.addRequiredType(type);
   }
 
   void registerClosure(LocalFunctionElement element) {
@@ -480,6 +482,7 @@ class ResolutionRegistry implements Registry {
 
   void registerInstantiatedType(InterfaceType type) {
     world.registerInstantiatedType(type, this);
+    mapping.addRequiredType(type);
   }
 
   void registerAbstractClassInstantiation() {
@@ -492,6 +495,7 @@ class ResolutionRegistry implements Registry {
 
   void registerRequiredType(DartType type, Element enclosingElement) {
     backend.registerRequiredType(type, enclosingElement);
+    mapping.addRequiredType(type);
   }
 
   void registerStringInterpolation() {

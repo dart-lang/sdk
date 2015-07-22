@@ -252,6 +252,30 @@ class DeferredLoadTask extends CompilerTask {
       Set<ConstantValue> constants,
       isMirrorUsage) {
 
+    /// Recursively collects all the dependencies of [type].
+    void collectTypeDependencies(DartType type) {
+      if (type is GenericType) {
+        type.typeArguments.forEach(collectTypeDependencies);
+      }
+      if (type is FunctionType) {
+        for (DartType argumentType in type.parameterTypes) {
+          collectTypeDependencies(argumentType);
+        }
+        for (DartType argumentType in type.optionalParameterTypes) {
+          collectTypeDependencies(argumentType);
+        }
+        for (DartType argumentType in type.namedParameterTypes) {
+          collectTypeDependencies(argumentType);
+        }
+        collectTypeDependencies(type.returnType);
+      } else if (type is TypedefType) {
+        elements.add(type.element);
+        collectTypeDependencies(type.unalias(compiler));
+      } else if (type is InterfaceType) {
+        elements.add(type.element);
+      }
+    }
+
     /// Collects all direct dependencies of [element].
     ///
     /// The collected dependent elements and constants are are added to
@@ -281,21 +305,9 @@ class DeferredLoadTask extends CompilerTask {
         elements.add(dependency);
       }
 
-      void registerTypeArgumentsAsDependencies(DartType type) {
-        Element dependency = type.element;
-        if (dependency == null || dependency.isErroneous ||
-            dependency.isTypeVariable) {
-          return;
-        }
-        elements.add(dependency);
-        if (type is GenericType) {
-          type.typeArguments.forEach(registerTypeArgumentsAsDependencies);
-        }
+      for (DartType type in treeElements.requiredTypes) {
+        collectTypeDependencies(type);
       }
-
-      treeElements.forEachType((Node node, DartType type) {
-        if (node is NewExpression) registerTypeArgumentsAsDependencies(type);
-      });
 
       treeElements.forEachConstantNode((Node node, _) {
         // Explicitly depend on the backend constants.
@@ -319,33 +331,10 @@ class DeferredLoadTask extends CompilerTask {
       }
     }
 
-    collectTypeDependencies(DartType type) {
-      if (type is FunctionType) {
-        for (DartType argumentType in type.parameterTypes) {
-          collectTypeDependencies(argumentType);
-        }
-        for (DartType argumentType in type.optionalParameterTypes) {
-          collectTypeDependencies(argumentType);
-        }
-        for (DartType argumentType in type.namedParameterTypes) {
-          collectTypeDependencies(argumentType);
-        }
-        collectTypeDependencies(type.returnType);
-      } else if (type is TypedefType) {
-        elements.add(type.element);
-        collectTypeDependencies(type.unalias(compiler));
-      } else if (type is InterfaceType) {
-        elements.add(type.element);
-      }
-    }
-
     if (element is FunctionElement &&
         compiler.resolverWorld.closurizedMembers.contains(element)) {
       collectTypeDependencies(element.type);
     }
-
-    // TODO(sigurdm): Also collect types that are used in is checks and for
-    // checked mode.
 
     if (element.isClass) {
       // If we see a class, add everything its live instance members refer
