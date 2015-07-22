@@ -51,7 +51,7 @@ vars = {
   "csslib_tag" : "@0.12.0",
   "dartdoc_tag" : "@v0.1.0+5",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
-  "dart_style_tag": "@0.1.8+1",
+  "dart_style_tag": "@0.1.8+2",
   "dev_compiler_rev": "@0.1.1",
   "fake_async_rev" : "@38614",
   "firefox_jsshell_rev" : "@45554",
@@ -100,7 +100,7 @@ vars = {
   "stack_trace_tag": "@1.3.4",
   "string_scanner_rev": "@3e7617d6f74ba382e9b6130b1cc12091d89a9bc5",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
-  "test_tag": "@0.12.3+4",
+  "test_tag": "@0.12.3+8",
   "test_reflective_loader_tag": "@0.0.3",
   "utf_rev": "@1f55027068759e2d52f2c12de6a57cce5f3c5ee6",
   "unittest_tag": "@0.11.6",
@@ -195,7 +195,7 @@ deps = {
       (Var("github_mirror") % "csslib") + Var("csslib_tag"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
       (Var("github_mirror") % "dart_style") + Var("dart_style_tag"),
-  Var("dart_root") + "/third_party/pkg/dartdoc":  
+  Var("dart_root") + "/third_party/pkg/dartdoc":
       "https://github.com/dart-lang/dartdoc.git" + Var("dartdoc_tag"),
   Var("dart_root") + "/third_party/pkg/dev_compiler":
       "https://github.com/dart-lang/dev_compiler.git" + Var("dev_compiler_rev"),
@@ -230,16 +230,16 @@ deps = {
       (Var("github_mirror") % "metatest") + Var("metatest_rev"),
   Var("dart_root") + "/third_party/pkg/mime":
       (Var("github_mirror") % "mime") + Var("mime_rev"),
-  Var("dart_root") + "/third_party/pkg/mustache4dart":  
-      Var("chromium_git")  
-      + "/external/github.com/valotas/mustache4dart.git"   
+  Var("dart_root") + "/third_party/pkg/mustache4dart":
+      Var("chromium_git")
+      + "/external/github.com/valotas/mustache4dart.git"
       + Var("mustache4dart_rev"),
   Var("dart_root") + "/third_party/pkg/oauth2":
       (Var("github_mirror") % "oauth2") + Var("oauth2_rev"),
   Var("dart_root") + "/third_party/pkg/observe":
       (Var("github_mirror") % "observe") + Var("observe_rev"),
   Var("dart_root") + "/third_party/observatory_pub_packages":
-     (Var("github_mirror") % "observatory_pub_packages") 
+     (Var("github_mirror") % "observatory_pub_packages")
       + Var("observatory_pub_packages_rev"),
   Var("dart_root") + "/third_party/pkg/package_config":
       (Var("github_mirror") % "package_config") +
@@ -254,11 +254,11 @@ deps = {
       (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
   Var("dart_root") + "/third_party/pkg/pub":
       (Var("github_mirror") % "pub") + Var("pub_rev"),
-  Var("dart_root") + "/third_party/pkg/pub_cache":  
+  Var("dart_root") + "/third_party/pkg/pub_cache":
       (Var("github_mirror") % "pub_cache") + Var("pub_cache_tag"),
-  Var("dart_root") + "/third_party/pkg/quiver": 
-      Var("chromium_git")  
-      + "/external/github.com/google/quiver-dart.git"  
+  Var("dart_root") + "/third_party/pkg/quiver":
+      Var("chromium_git")
+      + "/external/github.com/google/quiver-dart.git"
       + Var("quiver_tag"),
   Var("dart_root") + "/third_party/pkg/scheduled_test":
       (Var("github_mirror") % "scheduled_test") +
