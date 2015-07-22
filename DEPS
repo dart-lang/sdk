@@ -52,7 +52,7 @@ vars = {
   "dartdoc_tag" : "@v0.1.0+5",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.1.8+2",
-  "dev_compiler_rev": "@0.1.1",
+  "dev_compiler_rev": "@0.1.3",
   "fake_async_rev" : "@38614",
   "firefox_jsshell_rev" : "@45554",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
