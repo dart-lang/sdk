@@ -30,7 +30,7 @@ Assembler::Assembler(bool use_far_branches)
       prologue_offset_(-1),
       use_far_branches_(use_far_branches),
       comments_(),
-      allow_constant_pool_(true) {
+      constant_pool_allowed_(true) {
 }
 
 
@@ -366,7 +366,7 @@ intptr_t Assembler::FindImmediate(int64_t imm) {
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(!Thread::CanLoadFromThread(object));
-  if (!allow_constant_pool()) {
+  if (!constant_pool_allowed()) {
     return false;
   }
 
@@ -384,7 +384,7 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
 
 
 bool Assembler::CanLoadImmediateFromPool(int64_t imm, Register pp) {
-  if (!allow_constant_pool()) {
+  if (!constant_pool_allowed()) {
     return false;
   }
   return !Utils::IsInt(32, imm) && (pp != kNoPP);
@@ -465,7 +465,7 @@ void Assembler::CompareObject(Register reg, const Object& object, Register pp) {
 
 
 void Assembler::LoadDecodableImmediate(Register reg, int64_t imm, Register pp) {
-  if ((pp != kNoPP) && allow_constant_pool()) {
+  if ((pp != kNoPP) && constant_pool_allowed()) {
     const int32_t offset = ObjectPool::element_offset(FindImmediate(imm));
     LoadWordFromPoolOffset(reg, pp, offset);
   } else {

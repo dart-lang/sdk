@@ -1301,11 +1301,11 @@ class Assembler : public ValueObject {
   // Object pool, loading from pool, etc.
   void LoadPoolPointer(Register pp);
 
-  bool allow_constant_pool() const {
-    return allow_constant_pool_;
+  bool constant_pool_allowed() const {
+    return constant_pool_allowed_;
   }
-  void set_allow_constant_pool(bool b) {
-    allow_constant_pool_ = b;
+  void set_constant_pool_allowed(bool b) {
+    constant_pool_allowed_ = b;
   }
 
   void LoadWordFromPoolOffset(Register dst, Register pp, uint32_t offset);
@@ -1452,7 +1452,7 @@ class Assembler : public ValueObject {
 
   GrowableArray<CodeComment*> comments_;
 
-  bool allow_constant_pool_;
+  bool constant_pool_allowed_;
 
   void LoadObjectHelper(Register dst,
                         const Object& obj,

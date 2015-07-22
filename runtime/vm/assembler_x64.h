@@ -751,11 +751,11 @@ class Assembler : public ValueObject {
 
   void Drop(intptr_t stack_elements, Register tmp = TMP);
 
-  bool allow_constant_pool() const {
-    return allow_constant_pool_;
+  bool constant_pool_allowed() const {
+    return constant_pool_allowed_;
   }
-  void set_allow_constant_pool(bool b) {
-    allow_constant_pool_ = b;
+  void set_constant_pool_allowed(bool b) {
+    constant_pool_allowed_ = b;
   }
 
   bool CanLoadImmediateFromPool(const Immediate& imm, Register pp);
@@ -1073,7 +1073,7 @@ class Assembler : public ValueObject {
   };
 
   GrowableArray<CodeComment*> comments_;
-  bool allow_constant_pool_;
+  bool constant_pool_allowed_;
 
   intptr_t FindImmediate(int64_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;

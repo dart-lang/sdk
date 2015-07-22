@@ -241,7 +241,7 @@ class Assembler : public ValueObject {
         delay_slot_available_(false),
         in_delay_slot_(false),
         comments_(),
-        allow_constant_pool_(true) { }
+        constant_pool_allowed_(true) { }
   ~Assembler() { }
 
   void PopRegister(Register r) { Pop(r); }
@@ -1622,11 +1622,11 @@ class Assembler : public ValueObject {
   static bool IsSafe(const Object& object) { return true; }
   static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
 
-  bool allow_constant_pool() const {
-    return allow_constant_pool_;
+  bool constant_pool_allowed() const {
+    return constant_pool_allowed_;
   }
-  void set_allow_constant_pool(bool b) {
-    allow_constant_pool_ = b;
+  void set_constant_pool_allowed(bool b) {
+    constant_pool_allowed_ = b;
   }
 
  private:
@@ -1656,7 +1656,7 @@ class Assembler : public ValueObject {
 
   GrowableArray<CodeComment*> comments_;
 
-  bool allow_constant_pool_;
+  bool constant_pool_allowed_;
 
   void LoadObjectHelper(Register rd, const Object& object, bool is_unique);
 

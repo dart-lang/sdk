@@ -25,7 +25,7 @@ Assembler::Assembler(bool use_far_branches)
     : buffer_(),
       prologue_offset_(-1),
       comments_(),
-      allow_constant_pool_(true) {
+      constant_pool_allowed_(true) {
   // Far branching mode is only needed and implemented for MIPS and ARM.
   ASSERT(!use_far_branches);
 }
@@ -83,7 +83,7 @@ void Assembler::call(const ExternalLabel* label) {
 
 
 void Assembler::CallPatchable(const ExternalLabel* label) {
-  ASSERT(allow_constant_pool());
+  ASSERT(constant_pool_allowed());
   intptr_t call_start = buffer_.GetPosition();
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindExternalLabel(label, kPatchable));
@@ -2599,7 +2599,7 @@ void Assembler::jmp(const ExternalLabel* label) {
 
 
 void Assembler::JmpPatchable(const ExternalLabel* label, Register pp) {
-  ASSERT(allow_constant_pool());
+  ASSERT(constant_pool_allowed());
   intptr_t call_start = buffer_.GetPosition();
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindExternalLabel(label, kPatchable));
@@ -2770,7 +2770,7 @@ void Assembler::Drop(intptr_t stack_elements, Register tmp) {
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(!Thread::CanLoadFromThread(object));
-  if (!allow_constant_pool()) {
+  if (!constant_pool_allowed()) {
     return false;
   }
 
@@ -2876,7 +2876,7 @@ intptr_t Assembler::FindImmediate(int64_t imm) {
 
 
 bool Assembler::CanLoadImmediateFromPool(const Immediate& imm, Register pp) {
-  if (!allow_constant_pool()) {
+  if (!constant_pool_allowed()) {
     return false;
   }
   return !imm.is_int32() && (pp != kNoRegister);

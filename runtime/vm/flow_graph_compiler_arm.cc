@@ -67,14 +67,14 @@ bool FlowGraphCompiler::SupportsHardwareDivision() {
 void FlowGraphCompiler::EnterIntrinsicMode() {
   ASSERT(!intrinsic_mode());
   intrinsic_mode_ = true;
-  assembler()->set_allow_constant_pool(false);
+  assembler()->set_constant_pool_allowed(false);
 }
 
 
 void FlowGraphCompiler::ExitIntrinsicMode() {
   ASSERT(intrinsic_mode());
   intrinsic_mode_ = false;
-  assembler()->set_allow_constant_pool(true);
+  assembler()->set_constant_pool_allowed(true);
 }
 
 

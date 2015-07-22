@@ -1529,7 +1529,7 @@ void Assembler::Drop(intptr_t stack_elements) {
 void Assembler::LoadWordFromPoolOffset(Register rd,
                                        int32_t offset,
                                        Condition cond) {
-  ASSERT(allow_constant_pool());
+  ASSERT(constant_pool_allowed());
   ASSERT(rd != PP);
   int32_t offset_mask = 0;
   if (Address::CanHoldLoadOffset(kWord, offset, &offset_mask)) {
@@ -1576,7 +1576,7 @@ void Assembler::LoadObjectHelper(Register rd,
   // Smis and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()), cond);
-  } else if (object.InVMHeap() || !allow_constant_pool()) {
+  } else if (object.InVMHeap() || !constant_pool_allowed()) {
     // Make sure that class CallPattern is able to decode this load immediate.
     const int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
     LoadImmediate(rd, object_raw, cond);
