@@ -45,7 +45,7 @@ abstract class Expression extends Node {
   Expression plug(Expression expr) => throw 'impossible';
 
   /// The next expression in the basic block.
-  /// 
+  ///
   /// For [InteriorExpression]s this is the body, for [CallExpressions] it is
   /// the body of the continuation, and for [TailExpressions] it is `null`.
   Expression get next;
@@ -66,7 +66,7 @@ abstract class InteriorNode extends Node {
 
 /// An expression that creates new bindings and continues evaluation in
 /// a subexpression.
-/// 
+///
 /// The interior expressions are [LetPrim], [LetCont], [LetHandler], and
 /// [LetMutable].
 abstract class InteriorExpression extends Expression implements InteriorNode {
@@ -145,6 +145,10 @@ abstract class Primitive extends Definition<Primitive> {
   /// True if time-of-evaluation is irrelevant for the given primitive,
   /// assuming its inputs are the same values.
   bool get isSafeForReordering;
+
+  /// The source information associated with this primitive.
+  // TODO(johnniwinther): Require source information for all primitives.
+  SourceInformation get sourceInformation => null;
 }
 
 /// Operands to invocations and primitives are always variables.  They point to
@@ -351,7 +355,7 @@ class InvokeMethod extends CallExpression {
                            this.mask,
                            this.arguments,
                            this.continuation,
-                           [this.sourceInformation]);
+                           this.sourceInformation);
 
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 }
@@ -502,8 +506,11 @@ class TypeCast extends CallExpression {
 class ApplyBuiltinOperator extends Primitive {
   BuiltinOperator operator;
   List<Reference<Primitive>> arguments;
+  final SourceInformation sourceInformation;
 
-  ApplyBuiltinOperator(this.operator, List<Primitive> arguments)
+  ApplyBuiltinOperator(this.operator,
+                       List<Primitive> arguments,
+                       this.sourceInformation)
       : this.arguments = _referenceList(arguments);
 
   accept(Visitor visitor) => visitor.visitApplyBuiltinOperator(this);
@@ -656,7 +663,7 @@ class SetField extends Primitive {
         this.value = new Reference<Primitive>(value);
 
   accept(Visitor visitor) => visitor.visitSetField(this);
-  
+
   bool get isSafeForElimination => false;
   bool get isSafeForReordering => false;
 }
@@ -833,10 +840,11 @@ class CreateInstance extends Primitive {
 class Interceptor extends Primitive {
   final Reference<Primitive> input;
   final Set<ClassElement> interceptedClasses = new Set<ClassElement>();
+  final SourceInformation sourceInformation;
 
-  Interceptor(Primitive input)
+  Interceptor(Primitive input, this.sourceInformation)
       : this.input = new Reference<Primitive>(input);
-  
+
   accept(Visitor visitor) => visitor.visitInterceptor(this);
 
   bool get isSafeForElimination => true;

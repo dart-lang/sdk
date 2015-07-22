@@ -56,6 +56,7 @@ abstract class HVisitor<R> {
   R visitPhi(HPhi node);
   R visitRangeConversion(HRangeConversion node);
   R visitReadModifyWrite(HReadModifyWrite node);
+  R visitRef(HRef node);
   R visitReturn(HReturn node);
   R visitShiftLeft(HShiftLeft node);
   R visitShiftRight(HShiftRight node);
@@ -347,6 +348,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitParameterValue(HParameterValue node) => visitLocalValue(node);
   visitRangeConversion(HRangeConversion node) => visitCheck(node);
   visitReadModifyWrite(HReadModifyWrite node) => visitInstruction(node);
+  visitRef(HRef node) => node.value.accept(this);
   visitReturn(HReturn node) => visitControlFlow(node);
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
   visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
@@ -1307,6 +1309,23 @@ abstract class HInstruction implements Spannable {
   }
 }
 
+/// A reference to a [HInstruction] that can hold its own source information.
+///
+/// This used for attaching source information to reads of locals.
+class HRef extends HInstruction {
+  HRef(HInstruction value, SourceInformation sourceInformation)
+      : super([value], value.instructionType) {
+    this.sourceInformation = sourceInformation;
+  }
+
+  HInstruction get value => inputs[0];
+
+  @override
+  accept(HVisitor visitor) => visitor.visitRef(this);
+
+  String toString() => 'HRef(${value})';
+}
+
 /**
  * Late instructions are used after the main optimization phases.  They capture
  * codegen decisions just prior to generating JavaScript.
@@ -1714,8 +1733,11 @@ abstract class HLocalAccess extends HInstruction {
 class HLocalGet extends HLocalAccess {
   // No need to use GVN for a [HLocalGet], it is just a local
   // access.
-  HLocalGet(Local variable, HLocalValue local, TypeMask type)
-      : super(variable, <HInstruction>[local], type);
+  HLocalGet(Local variable, HLocalValue local, TypeMask type,
+            SourceInformation sourceInformation)
+      : super(variable, <HInstruction>[local], type) {
+    this.sourceInformation = sourceInformation;
+  }
 
   accept(HVisitor visitor) => visitor.visitLocalGet(this);
 
@@ -1795,6 +1817,8 @@ class HForeignCode extends HForeign {
   bool get isAllocation => nativeBehavior != null &&
       nativeBehavior.isAllocation &&
       !canBeNull();
+
+  String toString() => 'HForeignCode("${codeTemplate.source}",$inputs)';
 }
 
 class HForeignNew extends HForeign {
@@ -2396,8 +2420,10 @@ class HInterceptor extends HInstruction {
   //     (a && C.JSArray_methods).get$first(a)
   //
 
-  HInterceptor(HInstruction receiver, TypeMask type)
+  HInterceptor(HInstruction receiver,
+               TypeMask type)
       : super(<HInstruction>[receiver], type) {
+    this.sourceInformation = receiver.sourceInformation;
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     setUseGvn();

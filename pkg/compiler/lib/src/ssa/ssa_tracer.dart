@@ -389,6 +389,10 @@ class HInstructionStringifier implements HVisitor<String> {
     return buffer.toString();
   }
 
+  String visitRef(HRef node) {
+    return 'Ref ${temporaryId(node.value)}';
+  }
+
   String visitReturn(HReturn node) => "Return ${temporaryId(node.inputs[0])}";
 
   String visitShiftLeft(HShiftLeft node) => handleInvokeBinary(node, '<<');

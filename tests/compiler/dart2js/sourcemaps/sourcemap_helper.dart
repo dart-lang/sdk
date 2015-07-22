@@ -256,7 +256,7 @@ class CodePointComputer extends js.BaseVisitor {
       addLocation(null, nodeToString(node));
     } else {
       locationMap.forEach((int targetOffset, List<SourceLocation> locations) {
-        String jsCode = positionToString(targetOffset);
+        String jsCode = nodeToString(node);
         for (SourceLocation location in locations) {
           addLocation(location, jsCode);
         }

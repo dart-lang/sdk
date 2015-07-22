@@ -492,7 +492,12 @@ class LocalsHandler {
               "Cannot find value $local.");
         }
       }
-      return directLocals[local];
+      HInstruction value = directLocals[local];
+      if (sourceInformation != null) {
+        value = new HRef(value, sourceInformation);
+        builder.add(value);
+      }
+      return value;
     } else if (isStoredInClosureField(local)) {
       ClosureFieldElement redirect = redirectionMapping[local];
       HInstruction receiver = readLocal(closureData.closureElement);
@@ -518,9 +523,9 @@ class LocalsHandler {
       assert(isUsedInTryOrGenerator(local));
       HLocalValue localValue = getLocal(local);
       HInstruction instruction = new HLocalGet(
-          local, localValue, builder.backend.dynamicType);
+          local, localValue, builder.backend.dynamicType, sourceInformation);
       builder.add(instruction);
-      return instruction..sourceInformation = sourceInformation;
+      return instruction;
     }
   }
 
@@ -562,6 +567,10 @@ class LocalsHandler {
    */
   void updateLocal(Local local, HInstruction value,
                    {SourceInformation sourceInformation}) {
+    if (value is HRef) {
+      HRef ref = value;
+      value = ref.value;
+    }
     assert(!isStoredInClosureField(local));
     if (isAccessedDirectly(local)) {
       directLocals[local] = value;
@@ -1649,12 +1658,13 @@ class SsaBuilder extends ast.Visitor
                   backend.boolType));
             },
             visitThen: () {
-              // TODO(johnniwinther): Add source information.
               closeAndGotoExit(new HReturn(
                   graph.addConstantBool(false, compiler),
-                  null));
+                  sourceInformationBuilder
+                      .buildImplicitReturn(functionElement)));
             },
-            visitElse: null);
+            visitElse: null,
+            sourceInformation: sourceInformationBuilder.buildIf(function.body));
       }
     }
     function.body.accept(this);
@@ -4898,7 +4908,13 @@ class SsaBuilder extends ast.Visitor
     // The new object will now be referenced through the
     // `setRuntimeTypeInfo` call. We therefore set the type of that
     // instruction to be of the object's type.
-    assert(stack.last is HInvokeStatic || stack.last == newObject);
+    assert(invariant(
+        CURRENT_ELEMENT_SPANNABLE,
+        stack.last is HInvokeStatic || stack.last == newObject,
+        message:
+          "Unexpected `stack.last`: Found ${stack.last}, "
+          "expected ${newObject} or an HInvokeStatic. "
+          "State: element=$element, rtiInputs=$rtiInputs, stack=$stack."));
     stack.last.instructionType = newObject.instructionType;
     return pop();
   }

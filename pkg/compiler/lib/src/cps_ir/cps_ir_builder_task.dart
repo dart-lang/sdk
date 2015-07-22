@@ -665,7 +665,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.buildDynamicGet(
         translateReceiver(receiver),
         selector,
-        elements.getTypeMask(node));
+        elements.getTypeMask(node),
+        sourceInformationBuilder.buildGet(node));
   }
 
   @override
@@ -678,7 +679,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.buildIfNotNullSend(
         target,
         nested(() => irBuilder.buildDynamicGet(
-            target, selector, elements.getTypeMask(node))));
+            target, selector, elements.getTypeMask(node),
+            sourceInformationBuilder.buildGet(node))));
   }
 
   @override
@@ -886,7 +888,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     List<ir.Primitive> arguments = <ir.Primitive>[visit(index)];
     arguments = normalizeDynamicArguments(selector.callStructure, arguments);
     return irBuilder.buildDynamicInvocation(
-        target, selector, elements.getTypeMask(node), arguments);
+        target, selector, elements.getTypeMask(node), arguments,
+        sourceInformation:
+            sourceInformationBuilder.buildCall(receiver, node.selector));
   }
 
   ir.Primitive translateSuperBinary(FunctionElement function,
@@ -971,7 +975,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     Selector selector = operator.selector;
     ir.Primitive receiver = translateReceiver(expression);
     return irBuilder.buildDynamicInvocation(
-        receiver, selector, elements.getTypeMask(node), const []);
+        receiver, selector, elements.getTypeMask(node), const [],
+        sourceInformation: sourceInformationBuilder.buildCall(
+            expression, node));
   }
 
   @override
@@ -1254,10 +1260,10 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   ir.Primitive translateCompounds(
+      ast.SendSet node,
       {ir.Primitive getValue(),
        CompoundRhs rhs,
-       void setValue(ir.Primitive value),
-       TypeMask operatorTypeMask}) {
+       void setValue(ir.Primitive value)}) {
     ir.Primitive value = getValue();
     op.BinaryOperator operator = rhs.operator;
     if (operator.kind == op.BinaryOperatorKind.IF_NULL) {
@@ -1281,9 +1287,13 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     List<ir.Primitive> arguments = <ir.Primitive>[rhsValue];
     arguments = normalizeDynamicArguments(
         operatorSelector.callStructure, arguments);
-    ir.Primitive result =
-        irBuilder.buildDynamicInvocation(
-            value, operatorSelector, operatorTypeMask, arguments);
+    TypeMask operatorTypeMask =
+        elements.getOperatorTypeMaskInComplexSendSet(node);
+    SourceInformation operatorSourceInformation =
+        sourceInformationBuilder.buildCall(node, node.assignmentOperator);
+    ir.Primitive result = irBuilder.buildDynamicInvocation(
+        value, operatorSelector, operatorTypeMask, arguments,
+            sourceInformation: operatorSourceInformation);
     setValue(result);
     return rhs.kind == CompoundKind.POSTFIX ? value : result;
   }
@@ -1378,13 +1388,13 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       CompoundRhs rhs,
       arg) {
     return translateCompounds(
+        node,
         getValue: () {
           return buildConstantExpression(constant,
             sourceInformationBuilder.buildGet(node));
         },
         rhs: rhs,
-        setValue: (value) {}, // The binary operator will throw before this.
-        operatorTypeMask: elements.getOperatorTypeMaskInComplexSendSet(node));
+        setValue: (value) {}); // The binary operator will throw before this.
   }
 
   @override
@@ -1398,16 +1408,17 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     ir.Primitive target = translateReceiver(receiver);
     ir.Primitive helper() {
       return translateCompounds(
+          node,
           getValue: () => irBuilder.buildDynamicGet(
               target,
               getterSelector,
-              elements.getGetterTypeMaskInComplexSendSet(node)),
+              elements.getGetterTypeMaskInComplexSendSet(node),
+              sourceInformationBuilder.buildGet(node)),
           rhs: rhs,
           setValue: (ir.Primitive result) {
             irBuilder.buildDynamicSet(
                 target, setterSelector, elements.getTypeMask(node), result);
-          },
-          operatorTypeMask: elements.getOperatorTypeMaskInComplexSendSet(node));
+          });
     }
     return node.isConditional
         ? irBuilder.buildIfNotNullSend(target, nested(helper))
@@ -1427,6 +1438,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       arg,
       {bool isSetterValid}) {
     return translateCompounds(
+        node,
         getValue: () {
           if (local.isFunction) {
             return irBuilder.buildLocalFunctionGet(local);
@@ -1441,8 +1453,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           } else {
             return buildLocalNoSuchSetter(local, result);
           }
-        },
-        operatorTypeMask: elements.getOperatorTypeMaskInComplexSendSet(node));
+        });
   }
 
   ir.Primitive buildStaticNoSuchGetter(Element element) {
@@ -1467,6 +1478,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       CompoundRhs rhs,
       arg) {
     return translateCompounds(
+        node,
         getValue: () {
           switch (getterKind) {
             case CompoundGetter.FIELD:
@@ -1493,8 +1505,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
               return buildStaticNoSuchSetter(
                   setter != null ? setter : getter, result);
           }
-        },
-        operatorTypeMask: elements.getOperatorTypeMaskInComplexSendSet(node));
+        });
   }
 
   ir.Primitive buildSuperNoSuchGetter(Element element, TypeMask mask) {
@@ -1523,6 +1534,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       CompoundRhs rhs,
       arg) {
     return translateCompounds(
+        node,
         getValue: () {
           switch (getterKind) {
             case CompoundGetter.FIELD:
@@ -1550,8 +1562,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
               return buildSuperNoSuchSetter(
                   setter, elements.getTypeMask(node), result);
           }
-        },
-        operatorTypeMask: elements.getOperatorTypeMaskInComplexSendSet(node));
+        });
   }
 
   @override
@@ -1561,14 +1572,14 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       CompoundRhs rhs,
       arg) {
     return translateCompounds(
+        node,
         getValue: () {
           return irBuilder.buildReifyTypeVariable(
             typeVariable.type,
             sourceInformationBuilder.buildGet(node));
         },
         rhs: rhs,
-        setValue: (value) {}, // The binary operator will throw before this.
-        operatorTypeMask: elements.getOperatorTypeMaskInComplexSendSet(node));
+        setValue: (value) {}); // The binary operator will throw before this.
   }
 
   @override
@@ -1581,6 +1592,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     ir.Primitive target = visit(receiver);
     ir.Primitive indexValue = visit(index);
     return translateCompounds(
+        node,
         getValue: () {
           Selector selector = new Selector.index();
           List<ir.Primitive> arguments = <ir.Primitive>[indexValue];
@@ -1590,7 +1602,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
               target,
               selector,
               elements.getGetterTypeMaskInComplexSendSet(node),
-              arguments);
+              arguments,
+              sourceInformation:
+                  sourceInformationBuilder.buildCall(receiver, node));
         },
         rhs: rhs,
         setValue: (ir.Primitive result) {
@@ -1599,8 +1613,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
               elements.getTypeMask(node),
               indexValue,
               result);
-        },
-        operatorTypeMask: elements.getOperatorTypeMaskInComplexSendSet(node));
+        });
   }
 
   @override
@@ -1615,6 +1628,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
        bool isSetterValid}) {
     ir.Primitive indexValue = visit(index);
     return translateCompounds(
+        node,
         getValue: () {
           if (isGetterValid) {
             return irBuilder.buildSuperIndex(indexFunction, indexValue);
@@ -1635,8 +1649,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
                 elements.getTypeMask(node),
                 <ir.Primitive>[indexValue, result]);
           }
-        },
-        operatorTypeMask: elements.getOperatorTypeMaskInComplexSendSet(node));
+        });
   }
 
   /// Evaluates a string interpolation and appends each part to [accumulator]

@@ -6,139 +6,114 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'sourcemap_helper.dart';
-import 'sourcemap_html_helper.dart';
-import 'package:compiler/src/filenames.dart';
 
 main(List<String> arguments) {
-  bool showAll = false;
-  bool measure = false;
-  Uri outputUri;
   Set<String> configurations = new Set<String>();
+  Set<String> files = new Set<String>();
   for (String argument in arguments) {
-    if (argument.startsWith('-')) {
-      if (argument == '-a') {
-        /// Generate visualization for all user methods.
-        showAll = true;
-      } else if (argument == '-m') {
-        /// Measure instead of reporting the number of missing code points.
-        measure = true;
-      } else if (argument.startsWith('--out=')) {
-        /// Generate visualization for the first configuration.
-        outputUri = Uri.base.resolve(
-            nativeToUriPath(argument.substring('--out='.length)));
-      } else if (argument.startsWith('-o')) {
-        /// Generate visualization for the first configuration.
-        outputUri = Uri.base.resolve(
-            nativeToUriPath(argument.substring('-o'.length)));
-      } else {
-        print("Unknown option '$argument'.");
-        return;
-      }
-    } else {
-      if (TEST_CONFIGURATIONS.containsKey(argument)) {
-        configurations.add(argument);
-      } else {
-        print("Unknown configuration '$argument'. "
-              "Must be one of '${TEST_CONFIGURATIONS.keys.join("', '")}'");
-        return;
-      }
+    if (!parseArgument(argument, configurations, files)) {
+      return;
     }
   }
 
   if (configurations.isEmpty) {
     configurations.addAll(TEST_CONFIGURATIONS.keys);
+    configurations.remove('old');
   }
-  String outputConfig = configurations.first;
+  if (files.isEmpty) {
+    files.addAll(TEST_FILES.keys);
+  }
 
   asyncTest(() async {
-    List<Measurement> measurements = <Measurement>[];
+    bool missingCodePointsFound = false;
     for (String config in configurations) {
       List<String> options = TEST_CONFIGURATIONS[config];
-      Measurement measurement = await runTests(
-          config,
-          options,
-          showAll: showAll,
-          measure: measure,
-          outputUri: outputConfig == config ? outputUri : null);
-      if (measurement != null) {
-        measurements.add(measurement);
+      for (String file in files) {
+        String filename = TEST_FILES[file];
+        TestResult result = await runTests(config, filename, options);
+        if (result.failureMap.isNotEmpty) {
+          result.failureMap.forEach((info, missingCodePoints) {
+            print("Missing code points for ${info.element} in '$filename' "
+                  "in config '$config':");
+            for (CodePoint codePoint in missingCodePoints) {
+              print("  $codePoint");
+            }
+          });
+          missingCodePointsFound = true;
+        }
       }
     }
-    for (Measurement measurement in measurements) {
-      print(measurement);
-    }
+    Expect.isFalse(missingCodePointsFound,
+        "Missing code points found. "
+        "Run the test with a URI option, "
+        "`source_mapping_test_viewer [--out=<uri>] [configs] [tests]`, to "
+        "create a html visualization of the missing code points.");
   });
 }
 
+/// Parse [argument] for a valid configuration or test-file option.
+///
+/// On success, the configuration name is added to [configurations] or the
+/// test-file name is added to [files], and `true` is returned.
+/// On failure, a message is printed and `false` is returned.
+///
+bool parseArgument(String argument,
+                   Set<String> configurations,
+                   Set<String> files) {
+  if (TEST_CONFIGURATIONS.containsKey(argument)) {
+    configurations.add(argument);
+  } else if (TEST_FILES.containsKey(argument)) {
+    files.add(argument);
+  } else {
+    print("Unknown configuration or file '$argument'. "
+          "Must be one of '${TEST_CONFIGURATIONS.keys.join("', '")}' or "
+          "'${TEST_FILES.keys.join("', '")}'.");
+    return false;
+  }
+  return true;
+}
+
 const Map<String, List<String>> TEST_CONFIGURATIONS = const {
-  'old': const [],
   'ssa': const ['--use-new-source-info', ],
   'cps': const ['--use-new-source-info', '--use-cps-ir'],
+  'old': const [],
 };
 
-Future<Measurement> runTests(
-    String config,
-    List<String> options,
-    {bool showAll: false,
-     Uri outputUri,
-     bool measure: false}) async {
-  if (config == 'old' && !measure) return null;
+const Map<String, String> TEST_FILES = const <String, String>{
+  'invokes': 'tests/compiler/dart2js/sourcemaps/invokes_test_file.dart',
+  'operators': 'tests/compiler/dart2js/sourcemaps/operators_test_file.dart',
+};
 
-  String filename =
-      'tests/compiler/dart2js/sourcemaps/invokes_test_file.dart';
+Future<TestResult> runTests(
+    String config,
+    String filename,
+    List<String> options,
+    {bool verbose: true}) async {
   SourceMapProcessor processor = new SourceMapProcessor(filename);
   List<SourceMapInfo> infoList = await processor.process(
       ['--csp', '--disable-inlining']
       ..addAll(options),
-      verbose: !measure);
-  List<SourceMapInfo> userInfoList = <SourceMapInfo>[];
-  List<SourceMapInfo> failureList = <SourceMapInfo>[];
-  Measurement measurement = new Measurement(config);
+      verbose: verbose);
+  TestResult result = new TestResult(config, filename, processor);
   for (SourceMapInfo info in infoList) {
     if (info.element.library.isPlatformLibrary) continue;
-    userInfoList.add(info);
+    result.userInfoList.add(info);
     Iterable<CodePoint> missingCodePoints =
         info.codePoints.where((c) => c.isMissing);
-    measurement.missing += missingCodePoints.length;
-    measurement.count += info.codePoints.length;
-    if (!measure) {
-      if (!missingCodePoints.isEmpty) {
-        print("Missing code points for ${info.element} in '$filename':");
-        for (CodePoint codePoint in missingCodePoints) {
-          print("  $codePoint");
-        }
-        failureList.add(info);
-      }
+    if (missingCodePoints.isNotEmpty) {
+      result.failureMap[info] = missingCodePoints;
     }
   }
-  if (failureList.isNotEmpty) {
-    if (outputUri == null) {
-      if (!measure) {
-        Expect.fail(
-            "Missing code points found. "
-            "Run the test with a URI option, "
-            "`source_mapping_test --out=<uri> $config`, to "
-            "create a html visualization of the missing code points.");
-      }
-    } else {
-      createTraceSourceMapHtml(outputUri, processor,
-                               showAll ? userInfoList : failureList);
-    }
-  } else if (outputUri != null) {
-    createTraceSourceMapHtml(outputUri, processor, userInfoList);
-  }
-  return measurement;
+  return result;
 }
 
-class Measurement {
+class TestResult {
   final String config;
-  int missing = 0;
-  int count = 0;
+  final String file;
+  final SourceMapProcessor processor;
+  List<SourceMapInfo> userInfoList = <SourceMapInfo>[];
+  Map<SourceMapInfo, Iterable<CodePoint>> failureMap =
+      <SourceMapInfo, Iterable<CodePoint>>{};
 
-  Measurement(this.config);
-
-  String toString() {
-    double percentage = 100 * missing / count;
-    return "Config '${config}': $missing of $count ($percentage%) missing";
-  }
+  TestResult(this.config, this.file, this.processor);
 }

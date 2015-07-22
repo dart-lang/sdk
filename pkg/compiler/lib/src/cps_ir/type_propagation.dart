@@ -727,7 +727,8 @@ class TransformingVisitor extends RecursiveVisitor {
                            Primitive left,
                            Primitive right) {
       Primitive prim =
-          new ApplyBuiltinOperator(operator, <Primitive>[left, right]);
+          new ApplyBuiltinOperator(operator, <Primitive>[left, right],
+                                   node.sourceInformation);
       LetPrim let = makeLetPrimInvoke(prim, cont);
       replaceSubtree(node, let);
       visitLetPrim(let);
@@ -1461,18 +1462,21 @@ class TransformingVisitor extends RecursiveVisitor {
         // If value is null or a number, we can skip the typeof test.
         return new ApplyBuiltinOperator(
             BuiltinOperator.IsFloor,
-            <Primitive>[prim, prim]);
+            <Primitive>[prim, prim],
+            node.sourceInformation);
       }
       if (lattice.isDefinitelyNotNonIntegerDouble(value)) {
         // If the value cannot be a non-integer double, but might not be a
         // number at all, we can skip the Math.floor test.
         return new ApplyBuiltinOperator(
             BuiltinOperator.IsNumber,
-            <Primitive>[prim]);
+            <Primitive>[prim],
+            node.sourceInformation);
       }
       return new ApplyBuiltinOperator(
           BuiltinOperator.IsNumberAndFloor,
-          <Primitive>[prim, prim, prim]);
+          <Primitive>[prim, prim, prim],
+          node.sourceInformation);
     }
     return null;
   }

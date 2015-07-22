@@ -265,7 +265,10 @@ class Builder implements cps_ir.Visitor<Node> {
   }
   
   Expression visitInterceptor(cps_ir.Interceptor node) {
-    return new Interceptor(getVariableUse(node.input), node.interceptedClasses);
+    return new Interceptor(
+        getVariableUse(node.input),
+        node.interceptedClasses,
+        node.sourceInformation);
   }
 
   Expression visitCreateInstance(cps_ir.CreateInstance node) {

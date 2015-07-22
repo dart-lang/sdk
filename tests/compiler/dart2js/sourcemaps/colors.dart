@@ -8,8 +8,8 @@ library colors;
 
 /// A web color.
 abstract class Color {
-  /// The hexadecimal code for the color, without the prefixed '#'.
-  String get toHex;
+  /// The css code for the color.
+  String get toCss;
 }
 
 /// A web color defined as RGB.
@@ -22,8 +22,9 @@ class RGB implements Color {
   /// all in range 0..1.
   const RGB(this.r, this.g, this.b);
 
-  String get toHex {
+  String get toCss {
     StringBuffer sb = new StringBuffer();
+    sb.write('#');
 
     void writeHex(double value) {
       int i = (value * 255.0).round();
@@ -43,6 +44,37 @@ class RGB implements Color {
   String toString() => 'rgb($r,$g,$b)';
 }
 
+class RGBA extends RGB {
+  final double a;
+
+  const RGBA(double r, double g, double b, this.a) : super(r, g, b);
+
+  String get toCss {
+    StringBuffer sb = new StringBuffer();
+
+    void writeInt(double value) {
+      int i = (value * 255.0).round();
+      if (i < 16) {
+        sb.write('0');
+      }
+      sb.write(i);
+    }
+
+    sb.write('rgba(');
+    writeInt(r);
+    sb.write(', ');
+    writeInt(g);
+    sb.write(', ');
+    writeInt(b);
+    sb.write(', ');
+    sb.write(a);
+    sb.write(')');
+
+    return sb.toString();
+  }
+
+}
+
 /// A web color defined as HSV.
 class HSV implements Color {
   final double h;
@@ -53,7 +85,7 @@ class HSV implements Color {
   /// saturation [s] in range 0..1, and value [v] in range 0..1.
   const HSV(this.h, this.s, this.v);
 
-  String get toHex => toRGB(this).toHex;
+  String get toCss => toRGB(this).toCss;
 
   static RGB toRGB(HSV hsv) {
     double h = hsv.h;

@@ -74,13 +74,13 @@ class SourceInformationBuilder {
   /// Generate [SourceInformation] for the loop [node].
   SourceInformation buildLoop(Node node) => null;
 
-  /// Generate [SourceInformation] for the read access in [node].
+  /// Generate [SourceInformation] for a read access like `a.b` where in
+  /// [receiver] points to the left-most part of the access, `a` in the example,
+  /// and [property] points to the 'name' of accessed property, `b` in the
+  /// example.
   SourceInformation buildGet(Node node) => null;
 
-  /// Generate [SourceInformation] for an invocation like `a.b()` where
-  /// [receiver] points to the left-most part of the invocation, `a` in the
-  /// example, and [call] points the 'name' of the call, `b` or `()` depending
-  /// on whether `b` is a method or a field/getter.
+  /// Generate [SourceInformation] for the read access in [node].
   SourceInformation buildCall(Node receiver, Node call) => null;
 
   /// Generate [SourceInformation] for the if statement in [node].

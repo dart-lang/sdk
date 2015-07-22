@@ -638,7 +638,7 @@ class IrBuilder {
                                    Selector selector,
                                    TypeMask mask,
                                    List<ir.Primitive> arguments,
-                                   {SourceInformation sourceInformation}) {
+                                   SourceInformation sourceInformation) {
     assert(isOpen);
     return _continueWithExpression(
         (k) => new ir.InvokeMethod(receiver, selector, mask, arguments, k,
@@ -651,8 +651,8 @@ class IrBuilder {
                                 List<ir.Definition> arguments,
                                 {SourceInformation sourceInformation}) {
     Selector selector = callStructure.callSelector;
-    return _buildInvokeDynamic(target, selector, mask, arguments,
-        sourceInformation: sourceInformation);
+    return _buildInvokeDynamic(
+        target, selector, mask, arguments, sourceInformation);
   }
 
 
@@ -877,15 +877,15 @@ class IrBuilder {
                                       List<ir.Primitive> arguments,
                                       {SourceInformation sourceInformation}) {
     return _buildInvokeDynamic(
-        receiver, selector, mask, arguments,
-        sourceInformation: sourceInformation);
+        receiver, selector, mask, arguments, sourceInformation);
   }
 
   /// Create a dynamic getter invocation on [receiver] where the getter name is
   /// defined by [selector].
   ir.Primitive buildDynamicGet(ir.Primitive receiver,
                                Selector selector,
-                               TypeMask mask) {
+                               TypeMask mask,
+                               SourceInformation sourceInformation) {
     assert(selector.isGetter);
     FieldElement field = program.locateSingleField(selector, mask);
     if (field != null) {
@@ -894,7 +894,7 @@ class IrBuilder {
       return buildFieldGet(receiver, field);
     } else {
       return _buildInvokeDynamic(
-          receiver, selector, mask, const <ir.Primitive>[]);
+          receiver, selector, mask, const <ir.Primitive>[], sourceInformation);
     }
   }
 
@@ -903,7 +903,8 @@ class IrBuilder {
   ir.Primitive buildDynamicSet(ir.Primitive receiver,
                                Selector selector,
                                TypeMask mask,
-                               ir.Primitive value) {
+                               ir.Primitive value,
+                               {SourceInformation sourceInformation}) {
     assert(selector.isSetter);
     FieldElement field = program.locateSingleField(selector, mask);
     if (field != null) {
@@ -911,19 +912,22 @@ class IrBuilder {
       // treated as a field access, since the setter might not be emitted.
       buildFieldSet(receiver, field, value);
     } else {
-      _buildInvokeDynamic(receiver, selector, mask, <ir.Primitive>[value]);
+      _buildInvokeDynamic(receiver, selector, mask, <ir.Primitive>[value],
+                          sourceInformation);
     }
     return value;
   }
 
   /// Create a dynamic index set invocation on [receiver] with the provided
   /// [index] and [value].
-  ir.Primitive  buildDynamicIndexSet(ir.Primitive receiver,
-                                     TypeMask mask,
-                                     ir.Primitive index,
-                                     ir.Primitive value) {
+  ir.Primitive buildDynamicIndexSet(ir.Primitive receiver,
+                                    TypeMask mask,
+                                    ir.Primitive index,
+                                    ir.Primitive value,
+                                    {SourceInformation sourceInformation}) {
     _buildInvokeDynamic(
-        receiver, new Selector.indexSet(), mask, <ir.Primitive>[index, value]);
+        receiver, new Selector.indexSet(), mask, <ir.Primitive>[index, value],
+        sourceInformation);
     return value;
   }
 
@@ -1043,11 +1047,13 @@ class IrBuilder {
   ///
   /// The arguments must be strings; usually a call to [buildStringify] is
   /// needed to ensure the proper conversion takes places.
-  ir.Primitive buildStringConcatenation(List<ir.Primitive> arguments) {
+  ir.Primitive buildStringConcatenation(List<ir.Primitive> arguments,
+                                        {SourceInformation sourceInformation}) {
     assert(isOpen);
     return addPrimitive(new ir.ApplyBuiltinOperator(
         ir.BuiltinOperator.StringConcatenate,
-        arguments));
+        arguments,
+        sourceInformation));
   }
 
   /// Create an invocation of the `call` method of [functionExpression], where
@@ -2218,9 +2224,11 @@ class IrBuilder {
     return environment.discard(1);
   }
 
-  ir.Primitive buildIdentical(ir.Primitive x, ir.Primitive y) {
+  ir.Primitive buildIdentical(ir.Primitive x, ir.Primitive y,
+                              {SourceInformation sourceInformation}) {
     return addPrimitive(new ir.ApplyBuiltinOperator(
-        ir.BuiltinOperator.Identical, <ir.Primitive>[x, y]));
+        ir.BuiltinOperator.Identical, <ir.Primitive>[x, y],
+        sourceInformation));
   }
 
   /// Called when entering a nested function with free variables.
@@ -2662,8 +2670,10 @@ class IrBuilder {
   /// `right` if [value] is null. Only when [value] is null, [buildRight] is
   /// evaluated to produce the `right` value.
   ir.Primitive buildIfNull(ir.Primitive value,
-                           ir.Primitive buildRight(IrBuilder builder)) {
-    ir.Primitive condition = _buildCheckNull(value);
+                           ir.Primitive buildRight(IrBuilder builder),
+                           {SourceInformation sourceInformation}) {
+    ir.Primitive condition =
+        _buildCheckNull(value, sourceInformation: sourceInformation);
     return buildConditional(condition, buildRight, (_) => value);
   }
 
@@ -2671,15 +2681,19 @@ class IrBuilder {
   /// that checks if [receiver] is null, if so, it returns null, otherwise it
   /// evaluates the [buildSend] expression.
   ir.Primitive buildIfNotNullSend(ir.Primitive receiver,
-                                  ir.Primitive buildSend(IrBuilder builder)) {
-    ir.Primitive condition = _buildCheckNull(receiver);
+                                  ir.Primitive buildSend(IrBuilder builder),
+                                  {SourceInformation sourceInformation}) {
+    ir.Primitive condition =
+        _buildCheckNull(receiver, sourceInformation: sourceInformation);
     return buildConditional(condition, (_) => receiver, buildSend);
   }
 
   /// Creates a type test checking whether [value] is null.
-  ir.Primitive _buildCheckNull(ir.Primitive value) {
+  ir.Primitive _buildCheckNull(ir.Primitive value,
+                               {SourceInformation sourceInformation}) {
     assert(isOpen);
-    return buildIdentical(value, buildNullConstant());
+    return buildIdentical(value, buildNullConstant(),
+        sourceInformation: sourceInformation);
   }
 
   /// Convert the given value to a string.

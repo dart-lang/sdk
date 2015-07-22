@@ -4,7 +4,6 @@
 
 library tree_ir_nodes;
 
-import '../constants/expressions.dart';
 import '../constants/values.dart' as values;
 import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
@@ -816,8 +815,9 @@ class CreateInvocationMirror extends Expression {
 class Interceptor extends Expression {
   Expression input;
   Set<ClassElement> interceptedClasses;
+  final SourceInformation sourceInformation;
 
-  Interceptor(this.input, this.interceptedClasses);
+  Interceptor(this.input, this.interceptedClasses, this.sourceInformation);
 
   accept(ExpressionVisitor visitor) {
     return visitor.visitInterceptor(this);

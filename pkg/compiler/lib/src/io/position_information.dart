@@ -172,7 +172,24 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
   SourceInformation buildLoop(Node node) => buildBegin(node);
 
   @override
-  SourceInformation buildGet(Node node) => buildBegin(node);
+  SourceInformation buildGet(Node node) {
+    Node left = node;
+    Node right = node;
+    Send send = node.asSend();
+    if (send != null) {
+      right = send.selector;
+    }
+    // For a read access like `a.b` the first source locations points to the
+    // left-most part of the access, `a` in the example, and the second source
+    // location points to the 'name' of accessed property, `b` in the
+    // example. The latter is needed when both `a` and `b` are compiled into
+    // JavaScript invocations.
+    return new PositionSourceInformation(
+        new OffsetSourceLocation(
+            sourceFile, left.getBeginToken().charOffset, name),
+        new OffsetSourceLocation(
+            sourceFile, right.getBeginToken().charOffset, name));
+  }
 
   @override
   SourceInformation buildCall(Node receiver, Node call) {

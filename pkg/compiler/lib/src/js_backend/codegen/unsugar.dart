@@ -3,9 +3,9 @@ library dart2js.unsugar_cps;
 import '../../cps_ir/cps_ir_nodes.dart';
 
 import '../../cps_ir/optimizers.dart' show ParentVisitor;
-import '../../constants/expressions.dart';
 import '../../constants/values.dart';
 import '../../elements/elements.dart';
+import '../../io/source_information.dart';
 import '../../js_backend/codegen/glue.dart';
 import '../../dart2jslib.dart' show Selector, World;
 import '../../cps_ir/cps_ir_builder.dart' show ThisParameterLocal;
@@ -134,7 +134,8 @@ class UnsugarVisitor extends RecursiveVisitor {
     Primitive nullPrimitive = nullConstant;
     Primitive test = new ApplyBuiltinOperator(
         BuiltinOperator.Identical,
-          <Primitive>[function.parameters.single, nullPrimitive]);
+          <Primitive>[function.parameters.single, nullPrimitive],
+          function.parameters.single.sourceInformation);
 
     Expression newBody =
         new LetCont.many(<Continuation>[returnFalse, originalBody],
@@ -165,8 +166,8 @@ class UnsugarVisitor extends RecursiveVisitor {
     Selector selector = new Selector.fromElement(function);
     // TODO(johnniwinther): Come up with an implementation of SourceInformation
     // for calls such as this one that don't appear in the original source.
-    InvokeStatic invoke =
-        new InvokeStatic(function, selector, arguments, continuation, null);
+    InvokeStatic invoke = new InvokeStatic(
+        function, selector, arguments, continuation, null);
     _parentVisitor.processInvokeStatic(invoke);
 
     LetCont letCont = new LetCont(continuation, invoke);
@@ -236,17 +237,18 @@ class UnsugarVisitor extends RecursiveVisitor {
 
   /// Returns an interceptor for the given value, capable of responding to
   /// [selector].
-  /// 
+  ///
   /// A single getInterceptor call will be created per primitive, bound
   /// immediately after the primitive is bound.
-  /// 
+  ///
   /// The type propagation pass will later narrow the set of interceptors
   /// based on the input type, and the let sinking pass will propagate the
   /// getInterceptor call closer to its use when this is profitable.
-  Interceptor getInterceptorFor(Primitive prim, Selector selector) {
+  Interceptor getInterceptorFor(Primitive prim, Selector selector,
+                                SourceInformation sourceInformation) {
     Interceptor interceptor = interceptors[prim];
     if (interceptor == null) {
-      interceptor = new Interceptor(prim);
+      interceptor = new Interceptor(prim, sourceInformation);
       interceptors[prim] = interceptor;
       InteriorNode parent = prim.parent;
       insertLetPrim(interceptor, parent.body);
@@ -273,7 +275,8 @@ class UnsugarVisitor extends RecursiveVisitor {
       //  Change 'receiver.foo()'  to  'this.foo(receiver)'.
       newReceiver = thisParameter;
     } else {
-      newReceiver = getInterceptorFor(receiver, node.selector);
+      newReceiver = getInterceptorFor(
+          receiver, node.selector, node.sourceInformation);
     }
 
     node.arguments.insert(0, node.receiver);
@@ -301,7 +304,8 @@ class UnsugarVisitor extends RecursiveVisitor {
     Primitive t = trueConstant;
     Primitive i = new ApplyBuiltinOperator(
         BuiltinOperator.Identical,
-        <Primitive>[condition.value.definition, t]);
+        <Primitive>[condition.value.definition, t],
+        condition.value.definition.sourceInformation);
     LetPrim newNode = new LetPrim(t,
         new LetPrim(i,
             new Branch(new IsTrue(i),

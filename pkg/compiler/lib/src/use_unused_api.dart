@@ -286,8 +286,7 @@ useElements(
 
 useIr(ir_builder.IrBuilder builder) {
   builder
-    ..buildStringConstant(null)
-    ..buildDynamicGet(null, null, null);
+    ..buildStringConstant(null);
 }
 
 useCompiler(dart2jslib.Compiler compiler) {
