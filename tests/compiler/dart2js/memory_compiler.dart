@@ -62,25 +62,25 @@ class DiagnosticCollector implements CompilerDiagnostics {
     messages.add(new DiagnosticMessage(message, uri, begin, end, text, kind));
   }
 
-  Iterable<DiagnosticMessage> filterMessagesByKind(Diagnostic kind) {
+  Iterable<DiagnosticMessage> filterMessagesByKinds(List<Diagnostic> kinds) {
     return messages.where(
-      (DiagnosticMessage message) => message.kind == kind);
+      (DiagnosticMessage message) => kinds.contains(message.kind));
   }
 
   Iterable<DiagnosticMessage> get errors {
-    return filterMessagesByKind(Diagnostic.ERROR);
+    return filterMessagesByKinds([Diagnostic.ERROR]);
   }
 
   Iterable<DiagnosticMessage> get warnings {
-    return filterMessagesByKind(Diagnostic.WARNING);
+    return filterMessagesByKinds([Diagnostic.WARNING]);
   }
 
   Iterable<DiagnosticMessage> get hints {
-    return filterMessagesByKind(Diagnostic.HINT);
+    return filterMessagesByKinds([Diagnostic.HINT]);
   }
 
   Iterable<DiagnosticMessage> get infos {
-    return filterMessagesByKind(Diagnostic.INFO);
+    return filterMessagesByKinds([Diagnostic.INFO]);
   }
 
   /// `true` if non-verbose messages has been collected.

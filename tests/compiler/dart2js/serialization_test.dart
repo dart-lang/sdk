@@ -43,9 +43,10 @@ main(List<String> arguments) {
   if (entryPoint == null) {
     entryPoint = Uri.parse('dart:core');
   }
-  Compiler compiler = compilerFor({}, options: ['--analyze-all']);
   asyncTest(() async {
-    await compiler.runCompiler(entryPoint);
+    CompilationResult result = await runCompiler(
+        entryPoint: entryPoint, options: ['--analyze-all']);
+    Compiler compiler = result.compiler;
     testSerialization(compiler.libraryLoader.libraries,
                       outPath: outPath,
                       prettyPrint: prettyPrint);

@@ -13,10 +13,11 @@ import 'output_collector.dart';
 
 void main() {
   OutputCollector collector = new OutputCollector();
-  Compiler compiler = compilerFor(
-      MEMORY_SOURCE_FILES,
-      outputProvider: collector);
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+  asyncTest(() async {
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        outputProvider: collector);
+    Compiler compiler = result.compiler;
     lookupLibrary(name) {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
     }
@@ -40,7 +41,7 @@ void main() {
     Expect.isTrue(re2.hasMatch(lib1Output));
     Expect.isFalse(re1.hasMatch(mainOutput));
     Expect.isFalse(re2.hasMatch(mainOutput));
-  }));
+  });
 }
 
 // Make sure that deferred constants are not inlined into the main hunk.

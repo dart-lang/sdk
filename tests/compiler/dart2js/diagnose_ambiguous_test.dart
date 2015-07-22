@@ -5,17 +5,17 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart' show Diagnostic;
-import 'package:compiler/src/dart2jslib.dart';
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 
 void main() {
   DiagnosticCollector collector = new DiagnosticCollector();
-  Compiler compiler = compilerFor(
-      MEMORY_SOURCE_FILES,
+  asyncTest(() async {
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
       diagnosticHandler: collector,
       options: ['--analyze-all']);
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+
     List<String> diagnostics = <String>[];
     collector.messages.forEach((DiagnosticMessage message) {
       if (message.kind == Diagnostic.VERBOSE_INFO) return;
@@ -30,8 +30,8 @@ void main() {
         "memory:main.dart:86:92:Duplicate import of 'hest'.:warning",
     ];
     Expect.listEquals(expected, diagnostics);
-    Expect.isFalse(compiler.compilationFailed);
-  }));
+    Expect.isTrue(result.isSuccess);
+  });
 }
 
 const Map MEMORY_SOURCE_FILES = const {

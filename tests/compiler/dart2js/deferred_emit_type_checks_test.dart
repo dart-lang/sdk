@@ -14,11 +14,12 @@ import 'memory_compiler.dart';
 import 'output_collector.dart';
 
 void main() {
-  OutputCollector collector = new OutputCollector();
-  Compiler compiler = compilerFor(
-      MEMORY_SOURCE_FILES,
-      outputProvider: collector);
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+  asyncTest(() async {
+    OutputCollector collector = new OutputCollector();
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        outputProvider: collector);
+    Compiler compiler = result.compiler;
     String mainOutput = collector.getOutput('', 'js');
     String deferredOutput =  collector.getOutput('out_1', 'part.js');
     JavaScriptBackend backend = compiler.backend;
@@ -27,7 +28,7 @@ void main() {
         "Deferred output doesn't contain '${isPrefix}A: 1':\n"
         "$deferredOutput");
     Expect.isFalse(mainOutput.contains('${isPrefix}A: 1'));
-  }));
+  });
 }
 
 // We force additional runtime type support to be output for A by instantiating

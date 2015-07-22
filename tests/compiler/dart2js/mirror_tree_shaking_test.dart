@@ -13,9 +13,10 @@ import 'memory_compiler.dart';
 
 main() {
   DiagnosticCollector collector = new DiagnosticCollector();
-  Compiler compiler = compilerFor(
-      MEMORY_SOURCE_FILES, diagnosticHandler: collector);
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+  asyncTest(() async {
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES, diagnosticHandler: collector);
+    Compiler compiler = result.compiler;
     Expect.isTrue(collector.errors.isEmpty);
     Expect.isTrue(collector.infos.isEmpty);
     Expect.isFalse(compiler.compilationFailed);
@@ -27,7 +28,7 @@ main() {
     Expect.isFalse(compiler.disableTypeInference);
     JavaScriptBackend backend = compiler.backend;
     Expect.isFalse(backend.hasRetainedMetadata);
-  }));
+  });
 }
 
 const Map MEMORY_SOURCE_FILES = const {

@@ -12,8 +12,10 @@ import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 
 void main() {
-  Compiler compiler = compilerFor(MEMORY_SOURCE_FILES);
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+  asyncTest(() async {
+    CompilationResult result =
+        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+    Compiler compiler = result.compiler;
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
     var lib =
@@ -22,7 +24,7 @@ void main() {
     var f2 = lib.find("f2");
     Expect.notEquals(mainOutputUnit, outputUnitForElement(f1));
     Expect.equals(mainOutputUnit, outputUnitForElement(f2));
-  }));
+  });
 }
 
 // The main library imports lib1 and lib2 deferred and use lib1.foo1 and

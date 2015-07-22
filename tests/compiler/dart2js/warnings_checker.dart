@@ -21,7 +21,7 @@ void checkWarnings(Map<String, dynamic> tests, [List<String> arguments]) {
   Uri script = currentDirectory.resolveUri(Platform.script);
   bool warningsMismatch = false;
   bool verbose = arguments != null && arguments.contains('-v');
-  asyncTest(() => Future.forEach(tests.keys, (String test) {
+  asyncTest(() => Future.forEach(tests.keys, (String test) async {
     Uri uri = script.resolve('../../$test');
     String source = UTF8.decode(readAll(uriPathToNative(uri.path)));
     SourceFile file = new StringSourceFile(
@@ -38,45 +38,44 @@ void checkWarnings(Map<String, dynamic> tests, [List<String> arguments]) {
     }
     Set<int> unseenWarnings = new Set<int>.from(expectedWarnings.keys);
     DiagnosticCollector collector = new DiagnosticCollector();
-    var compiler = compilerFor(const {},
-         diagnosticHandler: collector,
-         options: ['--analyze-only'],
-         showDiagnostics: verbose);
-    return compiler.run(uri).then((_) {
-      Map<String, List<int>> statusMap = tests[test];
-      // Line numbers with known unexpected warnings.
-      List<int> unexpectedStatus = [];
-      if (statusMap != null && statusMap.containsKey('unexpected')) {
-        unexpectedStatus = statusMap['unexpected'];
+    await runCompiler(
+        entryPoint: uri,
+        diagnosticHandler: collector,
+        options: ['--analyze-only'],
+        showDiagnostics: verbose);
+    Map<String, List<int>> statusMap = tests[test];
+    // Line numbers with known unexpected warnings.
+    List<int> unexpectedStatus = [];
+    if (statusMap != null && statusMap.containsKey('unexpected')) {
+      unexpectedStatus = statusMap['unexpected'];
+    }
+    // Line numbers with known missing warnings.
+    List<int> missingStatus = [];
+    if (statusMap != null && statusMap.containsKey('missing')) {
+      missingStatus = statusMap['missing'];
+    }
+    for (DiagnosticMessage message in collector.warnings) {
+      Expect.equals(uri, message.uri);
+      int lineNo = file.getLine(message.begin);
+      if (expectedWarnings.containsKey(lineNo)) {
+        unseenWarnings.remove(lineNo);
+      } else if (!unexpectedStatus.contains(lineNo+1)) {
+        warningsMismatch = true;
+        print(file.getLocationMessage(
+            'Unexpected warning: ${message.message}',
+            message.begin, message.end));
       }
-      // Line numbers with known missing warnings.
-      List<int> missingStatus = [];
-      if (statusMap != null && statusMap.containsKey('missing')) {
-        missingStatus = statusMap['missing'];
-      }
-      for (DiagnosticMessage message in collector.warnings) {
-        Expect.equals(uri, message.uri);
-        int lineNo = file.getLine(message.begin);
-        if (expectedWarnings.containsKey(lineNo)) {
-          unseenWarnings.remove(lineNo);
-        } else if (!unexpectedStatus.contains(lineNo+1)) {
+    }
+    if (!unseenWarnings.isEmpty) {
+      for (int lineNo in unseenWarnings) {
+        if (!missingStatus.contains(lineNo+1)) {
           warningsMismatch = true;
-          print(file.getLocationMessage(
-              'Unexpected warning: ${message.message}',
-              message.begin, message.end));
+          String line = expectedWarnings[lineNo];
+          print('$uri [${lineNo+1}]: Missing static type warning.');
+          print(line);
         }
       }
-      if (!unseenWarnings.isEmpty) {
-        for (int lineNo in unseenWarnings) {
-          if (!missingStatus.contains(lineNo+1)) {
-            warningsMismatch = true;
-            String line = expectedWarnings[lineNo];
-            print('$uri [${lineNo+1}]: Missing static type warning.');
-            print(line);
-          }
-        }
-      }
-    });
+    }
   }).then((_) {
     Expect.isFalse(warningsMismatch);
   }));

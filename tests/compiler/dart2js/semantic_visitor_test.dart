@@ -265,7 +265,7 @@ main(List<String> arguments) {
 Future test(Set<VisitKind> unvisitedKinds,
             List<String> arguments,
             Map<String, List<Test>> TESTS,
-            SemanticTestVisitor createVisitor(TreeElements elements)) {
+            SemanticTestVisitor createVisitor(TreeElements elements)) async {
   Map<String, String> sourceFiles = {};
   Map<String, Test> testMap = {};
   StringBuffer mainSource = new StringBuffer();
@@ -296,71 +296,71 @@ Future test(Set<VisitKind> unvisitedKinds,
   mainSource.writeln("main() {}");
   sourceFiles['main.dart'] = mainSource.toString();
 
-  Compiler compiler = compilerFor(sourceFiles,
+  CompilationResult result = await runCompiler(
+      memorySourceFiles: sourceFiles,
       options: ['--analyze-all',
                 '--analyze-only',
                 '--enable-null-aware-operators']);
-  return compiler.run(Uri.parse('memory:main.dart')).then((_) {
-    testMap.forEach((String filename, Test test) {
-      LibraryElement library = compiler.libraryLoader.lookupLibrary(
-          Uri.parse('memory:$filename'));
-      Element element;
-      String cls = test.cls;
-      String method = test.method;
-      if (cls == null) {
-        element = library.find(method);
-      } else {
-        ClassElement classElement = library.find(cls);
-        Expect.isNotNull(classElement,
-                         "Class '$cls' not found in:\n"
-                         "${library.compilationUnit.script.text}");
-        element = classElement.localLookup(method);
-      }
-      var expectedVisits = test.expectedVisits;
-      if (expectedVisits == null) {
-        Expect.isTrue(element.isErroneous,
-            "Element '$method' expected to be have parse errors in:\n"
-            "${library.compilationUnit.script.text}");
-        return;
-      } else if (expectedVisits is! List) {
-        expectedVisits = [expectedVisits];
-      }
-      Expect.isFalse(element.isErroneous,
-          "Element '$method' is not expected to be have parse errors in:\n"
+  Compiler compiler = result.compiler;
+  testMap.forEach((String filename, Test test) {
+    LibraryElement library = compiler.libraryLoader.lookupLibrary(
+        Uri.parse('memory:$filename'));
+    Element element;
+    String cls = test.cls;
+    String method = test.method;
+    if (cls == null) {
+      element = library.find(method);
+    } else {
+      ClassElement classElement = library.find(cls);
+      Expect.isNotNull(classElement,
+                       "Class '$cls' not found in:\n"
+                       "${library.compilationUnit.script.text}");
+      element = classElement.localLookup(method);
+    }
+    var expectedVisits = test.expectedVisits;
+    if (expectedVisits == null) {
+      Expect.isTrue(element.isErroneous,
+          "Element '$method' expected to be have parse errors in:\n"
           "${library.compilationUnit.script.text}");
+      return;
+    } else if (expectedVisits is! List) {
+      expectedVisits = [expectedVisits];
+    }
+    Expect.isFalse(element.isErroneous,
+        "Element '$method' is not expected to be have parse errors in:\n"
+        "${library.compilationUnit.script.text}");
 
-      void testAstElement(AstElement astElement) {
-        Expect.isNotNull(astElement, "Element '$method' not found in:\n"
-                                     "${library.compilationUnit.script.text}");
-        ResolvedAst resolvedAst = astElement.resolvedAst;
-        SemanticTestVisitor visitor = createVisitor(resolvedAst.elements);
-        try {
-          compiler.withCurrentElement(resolvedAst.element, () {
-            //print(resolvedAst.node.toDebugString());
-            resolvedAst.node.accept(visitor);
-          });
-        } catch (e, s) {
-          Expect.fail("$e:\n$s\nIn test:\n"
-                      "${library.compilationUnit.script.text}");
-        }
-        Expect.listEquals(expectedVisits, visitor.visits,
-            "In test:\n"
-            "${library.compilationUnit.script.text}\n\n"
-            "Expected: $expectedVisits\n"
-            "Found: ${visitor.visits}");
-        unvisitedKinds.removeAll(visitor.visits.map((visit) => visit.method));
+    void testAstElement(AstElement astElement) {
+      Expect.isNotNull(astElement, "Element '$method' not found in:\n"
+                                   "${library.compilationUnit.script.text}");
+      ResolvedAst resolvedAst = astElement.resolvedAst;
+      SemanticTestVisitor visitor = createVisitor(resolvedAst.elements);
+      try {
+        compiler.withCurrentElement(resolvedAst.element, () {
+          //print(resolvedAst.node.toDebugString());
+          resolvedAst.node.accept(visitor);
+        });
+      } catch (e, s) {
+        Expect.fail("$e:\n$s\nIn test:\n"
+                    "${library.compilationUnit.script.text}");
       }
-      if (element.isAbstractField) {
-        AbstractFieldElement abstractFieldElement = element;
-        if (abstractFieldElement.getter != null) {
-          testAstElement(abstractFieldElement.getter);
-        } else if (abstractFieldElement.setter != null) {
-          testAstElement(abstractFieldElement.setter);
-        }
-      } else {
-        testAstElement(element);
+      Expect.listEquals(expectedVisits, visitor.visits,
+          "In test:\n"
+          "${library.compilationUnit.script.text}\n\n"
+          "Expected: $expectedVisits\n"
+          "Found: ${visitor.visits}");
+      unvisitedKinds.removeAll(visitor.visits.map((visit) => visit.method));
+    }
+    if (element.isAbstractField) {
+      AbstractFieldElement abstractFieldElement = element;
+      if (abstractFieldElement.getter != null) {
+        testAstElement(abstractFieldElement.getter);
+      } else if (abstractFieldElement.setter != null) {
+        testAstElement(abstractFieldElement.setter);
       }
-    });
+    } else {
+      testAstElement(element);
+    }
   });
 }
 

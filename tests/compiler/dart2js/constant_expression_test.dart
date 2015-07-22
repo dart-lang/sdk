@@ -197,7 +197,7 @@ main() {
   asyncTest(() => Future.forEach(DATA, testData));
 }
 
-Future testData(TestData data) {
+Future testData(TestData data) async {
   StringBuffer sb = new StringBuffer();
   sb.write('${data.declarations}\n');
   Map constants = {};
@@ -208,39 +208,39 @@ Future testData(TestData data) {
   });
   sb.write('main() {}\n');
   String source = sb.toString();
-  Compiler compiler = compilerFor(
-      {'main.dart': source}, options: ['--analyze-all']);
-  return compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
-    var library = compiler.mainApp;
-    constants.forEach((String name, ConstantData data) {
-      FieldElement field = library.localLookup(name);
-      var constant = field.constant;
-      Expect.equals(data.kind, constant.kind,
-          "Unexpected kind '${constant.kind}' for contant "
-          "`${constant.getText()}`, expected '${data.kind}'.");
-      Expect.equals(data.text, constant.getText(),
-          "Unexpected text '${constant.getText()}' for contant, "
-          "expected '${data.text}'.");
-      if (data.type != null) {
-        String instanceType = constant.computeInstanceType().toString();
-        Expect.equals(data.type, instanceType,
-            "Unexpected type '$instanceType' for contant "
-            "`${constant.getText()}`, expected '${data.type}'.");
-      }
-      if (data.fields != null) {
-        Map instanceFields = constant.computeInstanceFields();
-        Expect.equals(data.fields.length, instanceFields.length,
-            "Unexpected field count ${instanceFields.length} for contant "
-            "`${constant.getText()}`, expected '${data.fields.length}'.");
-        instanceFields.forEach((field, expression) {
-          String name = '$field';
-          String expression = instanceFields[field].getText();
-          String expected = data.fields[name];
-          Expect.equals(expected, expression,
-              "Unexpected field expression ${expression} for field '$name' in "
-              "contant `${constant.getText()}`, expected '${expected}'.");
-        });
-      }
-    });
+  CompilationResult result = await runCompiler(
+      memorySourceFiles: {'main.dart': source},
+      options: ['--analyze-all']);
+  Compiler compiler = result.compiler;
+  var library = compiler.mainApp;
+  constants.forEach((String name, ConstantData data) {
+    FieldElement field = library.localLookup(name);
+    var constant = field.constant;
+    Expect.equals(data.kind, constant.kind,
+        "Unexpected kind '${constant.kind}' for contant "
+        "`${constant.getText()}`, expected '${data.kind}'.");
+    Expect.equals(data.text, constant.getText(),
+        "Unexpected text '${constant.getText()}' for contant, "
+        "expected '${data.text}'.");
+    if (data.type != null) {
+      String instanceType = constant.computeInstanceType().toString();
+      Expect.equals(data.type, instanceType,
+          "Unexpected type '$instanceType' for contant "
+          "`${constant.getText()}`, expected '${data.type}'.");
+    }
+    if (data.fields != null) {
+      Map instanceFields = constant.computeInstanceFields();
+      Expect.equals(data.fields.length, instanceFields.length,
+          "Unexpected field count ${instanceFields.length} for contant "
+          "`${constant.getText()}`, expected '${data.fields.length}'.");
+      instanceFields.forEach((field, expression) {
+        String name = '$field';
+        String expression = instanceFields[field].getText();
+        String expected = data.fields[name];
+        Expect.equals(expected, expression,
+            "Unexpected field expression ${expression} for field '$name' in "
+            "contant `${constant.getText()}`, expected '${expected}'.");
+      });
+    }
   });
 }

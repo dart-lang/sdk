@@ -4,9 +4,9 @@
 
 // Test that the '--show-package-warnings' option works as intended.
 
+import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-
 import 'memory_compiler.dart';
 
 /// Error code that creates 1 warning, 1 hint, and 1 info.
@@ -42,42 +42,36 @@ import 'package:pkg_error1/pkg_error1.dart';
 import 'package:pkg_error2/pkg_error2.dart';
 """};
 
-void test(List<Uri> entryPoints,
-          {bool showPackageWarnings: false,
-           int warnings: 0,
-           int hints: 0,
-           int infos: 0}) {
+Future test(Uri entryPoint,
+            {bool showPackageWarnings: false,
+             int warnings: 0,
+             int hints: 0,
+             int infos: 0}) async {
   var options = ['--analyze-only', '--analyze-all'];
   if (showPackageWarnings) {
     options.add('--show-package-warnings');
   }
   var collector = new DiagnosticCollector();
-  var compiler = compilerFor(SOURCE,
-                             options: options,
-                             packageRoot: Uri.parse('memory:pkg/'),
-                             diagnosticHandler: collector);
-  Uri mainUri = null;
-  if (entryPoints.length == 1) {
-    mainUri = entryPoints[0];
-  } else {
-    compiler.librariesToAnalyzeWhenRun = entryPoints;
-  }
-  asyncTest(() => compiler.run(mainUri).then((_) {
-    print('==================================================================');
-    print('test: $entryPoints showPackageWarnings=$showPackageWarnings');
-    Expect.equals(0, collector.errors.length,
-                  'Unexpected errors: ${collector.errors}');
-    Expect.equals(warnings, collector.warnings.length,
-                  'Unexpected warnings: ${collector.warnings}');
-    checkUriSchemes(collector.warnings);
-    Expect.equals(hints, collector.hints.length,
-                  'Unexpected hints: ${collector.hints}');
-    checkUriSchemes(collector.hints);
-    Expect.equals(infos, collector.infos.length,
-                  'Unexpected infos: ${collector.infos}');
-    checkUriSchemes(collector.infos);
-    print('==================================================================');
-  }));
+  await runCompiler(
+      entryPoint: entryPoint,
+      memorySourceFiles: SOURCE,
+      options: options,
+      packageRoot: Uri.parse('memory:pkg/'),
+      diagnosticHandler: collector);
+  print('==================================================================');
+  print('test: $entryPoint showPackageWarnings=$showPackageWarnings');
+  Expect.equals(0, collector.errors.length,
+                'Unexpected errors: ${collector.errors}');
+  Expect.equals(warnings, collector.warnings.length,
+                'Unexpected warnings: ${collector.warnings}');
+  checkUriSchemes(collector.warnings);
+  Expect.equals(hints, collector.hints.length,
+                'Unexpected hints: ${collector.hints}');
+  checkUriSchemes(collector.hints);
+  Expect.equals(infos, collector.infos.length,
+                'Unexpected infos: ${collector.infos}');
+  checkUriSchemes(collector.infos);
+  print('==================================================================');
 }
 
 void checkUriSchemes(Iterable<DiagnosticMessage> messages) {
@@ -90,28 +84,36 @@ void checkUriSchemes(Iterable<DiagnosticMessage> messages) {
 }
 
 void main() {
-  test([Uri.parse('memory:main.dart')],
-       showPackageWarnings: true,
-       // From error.dart, package:pkg_error1 and package:pkg_error2:
-       warnings: 3, hints: 3, infos: 3);
-  test([Uri.parse('memory:main.dart')],
-       showPackageWarnings: false,
-       // From error.dart only:
-       warnings: 1, hints: 1 + 2 /* from summary */, infos: 1);
-  test([Uri.parse('package:pkg_error1/pkg_error1.dart')],
-       showPackageWarnings: true,
-       // From package:pkg_error1 and package:pkg_error2:
-       warnings: 2, hints: 2, infos: 2);
-  test([Uri.parse('package:pkg_error1/pkg_error1.dart')],
-       showPackageWarnings: false,
-       // From package:pkg_error1/pkg_error1.dart only:
-       warnings: 1, hints: 1 + 1 /* from summary */, infos: 1);
-  test([Uri.parse('package:pkg_noerror/pkg_noerror.dart')],
-       showPackageWarnings: true,
-       // From package:pkg_error1 and package:pkg_error2:
-       warnings: 2, hints: 2, infos: 2);
-  test([Uri.parse('package:pkg_noerror/pkg_noerror.dart')],
-       showPackageWarnings: false,
-       hints: 2 /* from summary */);
+  asyncTest(() async {
+    await test(
+        Uri.parse('memory:main.dart'),
+        showPackageWarnings: true,
+        // From error.dart, package:pkg_error1 and package:pkg_error2:
+        warnings: 3, hints: 3, infos: 3);
+    await test(
+        Uri.parse('memory:main.dart'),
+        showPackageWarnings: false,
+        // From error.dart only:
+        warnings: 1, hints: 1 + 2 /* from summary */, infos: 1);
+    await test(
+        Uri.parse('package:pkg_error1/pkg_error1.dart'),
+        showPackageWarnings: true,
+        // From package:pkg_error1 and package:pkg_error2:
+        warnings: 2, hints: 2, infos: 2);
+    await test(
+        Uri.parse('package:pkg_error1/pkg_error1.dart'),
+        showPackageWarnings: false,
+        // From package:pkg_error1/pkg_error1.dart only:
+        warnings: 1, hints: 1 + 1 /* from summary */, infos: 1);
+    await test(
+        Uri.parse('package:pkg_noerror/pkg_noerror.dart'),
+        showPackageWarnings: true,
+        // From package:pkg_error1 and package:pkg_error2:
+        warnings: 2, hints: 2, infos: 2);
+    await test(
+        Uri.parse('package:pkg_noerror/pkg_noerror.dart'),
+        showPackageWarnings: false,
+        hints: 2 /* from summary */);
+  });
 }
 

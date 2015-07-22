@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Ensure that the inferrer looks at default values for parameters in
-// synthetic constructors using the correct context. If the constructor call 
+// synthetic constructors using the correct context. If the constructor call
 // to D without optional parameters is inferred using D's context, the default
 // value `_SECRET` will not be visible and compilation will fail.
 
@@ -42,7 +42,6 @@ const Map MEMORY_SOURCE_FILES = const {
 };
 
 main() {
-  var compiler = compilerFor(MEMORY_SOURCE_FILES);  
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')));
+  asyncTest(() => runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES));
 }
 

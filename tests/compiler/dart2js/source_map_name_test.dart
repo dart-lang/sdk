@@ -81,8 +81,9 @@ check(Element element, String expectedName) {
 
 main() {
   asyncTest(() async {
-    Compiler compiler = compilerFor({'main.dart': SOURCE});
-    await compiler.run(Uri.parse('memory:main.dart'));
+    CompilationResult result =
+        await runCompiler(memorySourceFiles: {'main.dart': SOURCE});
+    Compiler compiler = result.compiler;
 
     Element lookup(String name) {
       Element element;
