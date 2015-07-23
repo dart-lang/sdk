@@ -2675,18 +2675,19 @@ void main() {
     test('async', () => testChecker({
       '/main.dart': '''
         import 'dart:async';
+        import 'dart:math' show Random;
 
         dynamic x;
 
         foo1() async => x;
         Future foo2() async => x;
         Future<int> foo3() async => (/*info:DynamicCast*/x);
-        Future<int> foo4() async => (/*severe:StaticTypeError*/new Future<int>(x));
+        Future<int> foo4() async => (/*severe:StaticTypeError*/new Future<int>.value(/*info:DynamicCast*/x));
 
         bar1() async { return x; }
         Future bar2() async { return x; }
         Future<int> bar3() async { return (/*info:DynamicCast*/x); }
-        Future<int> bar4() async { return (/*severe:StaticTypeError*/new Future<int>(x)); }
+        Future<int> bar4() async { return (/*severe:StaticTypeError*/new Future<int>.value(/*info:DynamicCast*/x)); }
 
         int y;
         Future<int> z;
@@ -2700,7 +2701,11 @@ void main() {
 
         Future<bool> get issue_264 async {
           await 42;
-          return false;
+          if (new Random().nextBool()) {
+            return true;
+          } else {
+            return /*severe:StaticTypeError*/new Future<bool>.value(false);
+          }
         }
     '''
     }));

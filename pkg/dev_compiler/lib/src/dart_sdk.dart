@@ -156,6 +156,8 @@ final Map<String, String> mockSdkSources = {
         ''',
   'dart:async': '''
         class Future<T> {
+          Future(computation()) {}
+          Future.value(T t) {}
           Future then(callback) {}
         }
         class Stream<T> {}
@@ -163,5 +165,11 @@ final Map<String, String> mockSdkSources = {
   'dart:html': '''
         library dart.html;
         class HtmlElement {}
+        ''',
+  'dart:math': '''
+        library dart.math;
+        class Random {
+          bool nextBool() {}
+        }
         ''',
 };
