@@ -4113,9 +4113,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     for (int i = 0; i < nameCount; i++) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH, statement,
-          [constantNames[i]]);
+      int offset = statement.offset;
+      int end = statement.rightParenthesis.end;
+      _errorReporter.reportErrorForOffset(
+          CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH, offset,
+          end - offset, [constantNames[i]]);
     }
     return true;
   }
