@@ -234,7 +234,7 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
 class AlphaRenamer extends RecursiveVisitor {
   Map<Parameter, Parameter> renaming = <Parameter, Parameter>{};
 
-  visitContinuation(Continuation cont) {
+  processContinuation(Continuation cont) {
     if (cont.isReturnContinuation) return;
 
     List<Parameter> shadowedKeys = <Parameter>[];
@@ -255,16 +255,15 @@ class AlphaRenamer extends RecursiveVisitor {
       }
     }
 
-    // Visit the body with the updated environment.
-    visit(cont.body);
-
-    // Restore the original environment.
-    for (int i = 0; i < cont.parameters.length; ++i) {
-      renaming.remove(cont.parameters[i]);
-      if (shadowedValues[i] != null) {
-        renaming[shadowedKeys[i]] = shadowedValues[i];
+    pushAction(() {
+      // Restore the original environment.
+      for (int i = 0; i < cont.parameters.length; ++i) {
+        renaming.remove(cont.parameters[i]);
+        if (shadowedValues[i] != null) {
+          renaming[shadowedKeys[i]] = shadowedValues[i];
+        }
       }
-    }
+    });
   }
 
   processReference(Reference ref) {

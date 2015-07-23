@@ -82,12 +82,6 @@ class UnsugarVisitor extends RecursiveVisitor {
     visit(function);
   }
 
-  @override
-  visit(Node node) {
-    Node result = node.accept(this);
-    return result != null ? result : node;
-  }
-
   Constant get trueConstant {
     return new Constant(new TrueConstantValue());
   }
@@ -177,7 +171,11 @@ class UnsugarVisitor extends RecursiveVisitor {
     letCont.parent = parent;
   }
 
-  processLetHandler(LetHandler node) {
+  @override
+  Expression traverseLetHandler(LetHandler node) {
+    assert(node.handler.parameters.length == 2);
+    Parameter previousExceptionParameter = _exceptionParameter;
+
     // BEFORE: Handlers have two parameters, exception and stack trace.
     // AFTER: Handlers have a single parameter, which is unwrapped to get
     // the exception and stack trace.
@@ -201,18 +199,11 @@ class UnsugarVisitor extends RecursiveVisitor {
 
     assert(stackTraceParameter.hasNoUses);
     node.handler.parameters.removeLast();
-  }
 
-  @override
-  visitLetHandler(LetHandler node) {
-    assert(node.handler.parameters.length == 2);
-    Parameter previousExceptionParameter = _exceptionParameter;
-    _exceptionParameter = node.handler.parameters.first;
-    processLetHandler(node);
     visit(node.handler);
     _exceptionParameter = previousExceptionParameter;
 
-    visit(node.body);
+    return node.body;
   }
 
   processThrow(Throw node) {
@@ -246,6 +237,7 @@ class UnsugarVisitor extends RecursiveVisitor {
   /// getInterceptor call closer to its use when this is profitable.
   Interceptor getInterceptorFor(Primitive prim, Selector selector,
                                 SourceInformation sourceInformation) {
+    assert(prim is! Interceptor);
     Interceptor interceptor = interceptors[prim];
     if (interceptor == null) {
       interceptor = new Interceptor(prim, sourceInformation);

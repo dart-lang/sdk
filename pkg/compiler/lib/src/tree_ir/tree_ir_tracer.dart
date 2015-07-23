@@ -92,7 +92,9 @@ class BlockCollector extends StatementVisitor {
 
   visitBreak(Break node) {
     _addStatement(node);
-    blocks.last.addEdgeTo(breakTargets[node.target]);
+    if (breakTargets.containsKey(node.target)) {
+      blocks.last.addEdgeTo(breakTargets[node.target]);
+    }
   }
 
   visitContinue(Continue node) {
@@ -274,7 +276,9 @@ class TreeTracer extends TracerUtil with StatementVisitor {
   }
 
   visitBreak(Break node) {
-    printStatement(null, "break ${collector.breakTargets[node.target].name}");
+    Block block = collector.breakTargets[node.target];
+    String name = block != null ? block.name : '<missing label>';
+    printStatement(null, "break $name");
   }
 
   visitContinue(Continue node) {

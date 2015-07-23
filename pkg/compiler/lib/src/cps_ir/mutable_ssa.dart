@@ -26,11 +26,12 @@ class MutableVariablePreanalysis extends RecursiveVisitor {
   /// its declaration.
   Set<MutableVariable> hasAssignmentInTry = new Set<MutableVariable>();
 
-  void visitLetHandler(LetHandler node) {
+  @override
+  Expression traverseLetHandler(LetHandler node) {
+    push(node.handler);
     ++currentDepth;
-    visit(node.body);
-    --currentDepth;
-    visit(node.handler);
+    pushAction(() => --currentDepth);
+    return node.body;
   }
 
   void processLetMutable(LetMutable node) {

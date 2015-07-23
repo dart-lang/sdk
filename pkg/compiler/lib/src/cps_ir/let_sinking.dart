@@ -38,19 +38,22 @@ class LetSinker extends RecursiveVisitor implements Pass {
     visit(node.body);
   }
 
-  void visitLetPrim(LetPrim node) {
-    // Visit the body, wherein this primitive may be sunk to its use site.
-    visit(node.body);
+  @override
+  Expression traverseLetPrim(LetPrim node) {
+    pushAction(() {
+      if (node.primitive != null) {
+        // The primitive could not be sunk. Sink dependencies to this location.
+        visit(node.primitive);
+      } else {
+        // The primitive was sunk. Destroy the old LetPrim.
+        InteriorNode parent = node.parent;
+        parent.body = node.body;
+        node.body.parent = parent;
+      }
+    });
 
-    if (node.primitive != null) {
-      // The primitive could not be sunk. Sink dependencies to this location.
-      visit(node.primitive);
-    } else {
-      // The primitive was sunk. Destroy the old LetPrim.
-      InteriorNode parent = node.parent;
-      parent.body = node.body;
-      node.body.parent = parent;
-    }
+    // Visit the body, wherein this primitive may be sunk to its use site.
+    return node.body;
   }
 
   void processReference(Reference ref) {

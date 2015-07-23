@@ -1150,10 +1150,16 @@ abstract class Visitor<T> {
   T visitForeignCode(ForeignCode node);
 }
 
-/// Recursively visits the entire CPS term, and calls abstract `process*`
-/// (i.e. `processLetPrim`) functions in pre-order.
-class RecursiveVisitor implements Visitor {
-  const RecursiveVisitor();
+/// Visits all non-recursive children of a CPS term, i.e. anything
+/// not of type [Expression] or [Continuation].
+/// 
+/// Note that the non-recursive nodes can contain other nodes inside of them,
+/// e.g. [Branch] contains an [IsTrue] which contains a [Reference].
+/// 
+/// The `process*` methods are called in pre-order for every node visited.
+/// These can be overridden without disrupting the visitor traversal.
+class LeafVisitor implements Visitor {
+  const LeafVisitor();
 
   visit(Node node) => node.accept(this);
 
@@ -1165,7 +1171,6 @@ class RecursiveVisitor implements Visitor {
     if (node.thisParameter != null) visit(node.thisParameter);
     node.parameters.forEach(visit);
     visit(node.returnContinuation);
-    visit(node.body);
   }
 
   // Expressions.
@@ -1174,21 +1179,17 @@ class RecursiveVisitor implements Visitor {
   visitLetPrim(LetPrim node) {
     processLetPrim(node);
     visit(node.primitive);
-    visit(node.body);
   }
 
   processLetCont(LetCont node) {}
   visitLetCont(LetCont node) {
     processLetCont(node);
     node.continuations.forEach(visit);
-    visit(node.body);
   }
 
   processLetHandler(LetHandler node) {}
   visitLetHandler(LetHandler node) {
     processLetHandler(node);
-    visit(node.handler);
-    visit(node.body);
   }
 
   processLetMutable(LetMutable node) {}
@@ -1196,7 +1197,6 @@ class RecursiveVisitor implements Visitor {
     processLetMutable(node);
     visit(node.variable);
     processReference(node.value);
-    visit(node.body);
   }
 
   processInvokeStatic(InvokeStatic node) {}
@@ -1329,7 +1329,6 @@ class RecursiveVisitor implements Visitor {
   visitContinuation(Continuation node) {
     processContinuation(node);
     node.parameters.forEach(visitParameter);
-    if (node.body != null) visit(node.body);
   }
 
   processIsTrue(IsTrue node) {}
@@ -1446,15 +1445,132 @@ class RecursiveVisitor implements Visitor {
   }
 }
 
+typedef void StackAction();
+
+/// Calls `process*` for all nodes in a tree.
+/// For simple usage, only override the `process*` methods.
+/// 
+/// To avoid deep recursion, this class uses an "action stack" containing
+/// callbacks to be invoked after the processing of some term has finished.
+/// 
+/// To avoid excessive overhead from the action stack, basic blocks of
+/// interior nodes are iterated in a loop without using the action stack.
+/// 
+/// The iteration order can be controlled by overriding the `traverse*`
+/// methods for [LetCont], [LetPrim], [LetMutable], [LetHandler] and
+/// [Continuation].
+/// 
+/// The `traverse*` methods return the expression to visit next, and may
+/// push other subterms onto the stack using [push] or [pushAction] to visit
+/// them later. Actions pushed onto the stack will be executed after the body
+/// has been processed (and the stack actions it pushed have been executed).
+/// 
+/// By default, the `traverse` methods visit all non-recursive subterms, 
+/// push all bound continuations on the stack, and return the body of the term.
+/// 
+/// Subclasses should not override the `visit` methods for the nodes that have
+/// a `traverse` method.
+class RecursiveVisitor extends LeafVisitor {
+  List<StackAction> _stack = <StackAction>[];
+
+  void pushAction(StackAction callback) {
+    _stack.add(callback);
+  }
+
+  void push(Continuation cont) {
+    _stack.add(() {
+      if (cont.isReturnContinuation) {
+        traverseContinuation(cont);
+      } else {
+        _processBlock(traverseContinuation(cont));
+      }
+    });
+  }
+
+  visitFunctionDefinition(FunctionDefinition node) {
+    processFunctionDefinition(node);
+    if (node.thisParameter != null) visit(node.thisParameter);
+    node.parameters.forEach(visit);
+    visit(node.returnContinuation);
+    visit(node.body);
+  }
+
+  visitContinuation(Continuation cont) {
+    if (cont.isReturnContinuation) {
+      traverseContinuation(cont);
+    } else {
+      _trampoline(traverseContinuation(cont));
+    }
+  }
+
+  visitLetPrim(LetPrim node) => _trampoline(node);
+  visitLetCont(LetCont node) => _trampoline(node);
+  visitLetHandler(LetHandler node) => _trampoline(node);
+  visitLetMutable(LetMutable node) => _trampoline(node);
+
+  Expression traverseContinuation(Continuation cont) {
+    processContinuation(cont);
+    cont.parameters.forEach(visitParameter);
+    return cont.body;
+  }
+
+  Expression traverseLetCont(LetCont node) {
+    processLetCont(node);
+    node.continuations.forEach(push);
+    return node.body;
+  }
+
+  Expression traverseLetHandler(LetHandler node) {
+    processLetHandler(node);
+    push(node.handler);
+    return node.body;
+  }
+
+  Expression traverseLetPrim(LetPrim node) {
+    processLetPrim(node);
+    visit(node.primitive);
+    return node.body;
+  }
+
+  Expression traverseLetMutable(LetMutable node) {
+    processLetMutable(node);
+    visit(node.variable);
+    processReference(node.value);
+    return node.body;
+  }
+
+  void _trampoline(Expression node) {
+    int initialHeight = _stack.length;
+    _processBlock(node);
+    while (_stack.length > initialHeight) {
+      StackAction callback = _stack.removeLast();
+      callback();
+    }
+  }
+
+  _processBlock(Expression node) {
+    while (node is InteriorExpression) {
+      if (node is LetCont) {
+        node = traverseLetCont(node);
+      } else if (node is LetHandler) {
+        node = traverseLetHandler(node);
+      } else if (node is LetPrim) {
+        node = traverseLetPrim(node);
+      } else {
+        node = traverseLetMutable(node);
+      }
+    }
+    visit(node);
+  }
+}
+
 /// Visit a just-deleted subterm and unlink all [Reference]s in it.
 class RemovalVisitor extends RecursiveVisitor {
-  const RemovalVisitor();
-
   processReference(Reference reference) {
     reference.unlink();
   }
 
   static void remove(Node node) {
-    (const RemovalVisitor()).visit(node);
+    (new RemovalVisitor()).visit(node);
   }
 }

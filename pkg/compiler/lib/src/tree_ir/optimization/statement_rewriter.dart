@@ -368,7 +368,29 @@ class StatementRewriter extends Transformer implements Pass {
            isEffectivelyConstant(node.value);
   }
 
-  Statement visitExpressionStatement(ExpressionStatement stmt) {
+  Statement visitExpressionStatement(ExpressionStatement inputNode) {
+    // Analyze chains of expression statements.
+    // To avoid deep recursion, [processExpressionStatement] returns a callback
+    // to invoke after its successor node has been processed.
+    // These callbacks are stored in a list and invoked in reverse at the end.
+    List<Function> stack = [];
+    Statement node = inputNode;
+    while (node is ExpressionStatement) {
+      stack.add(processExpressionStatement(node));
+      node = node.next;
+    }
+    Statement result = visitStatement(node);
+    for (Function fun in stack.reversed) {
+      result = fun(result);
+    }
+    return result;
+  }
+
+  /// Attempts to propagate an assignment in an expression statement.
+  /// 
+  /// Returns a callback to be invoked after the sucessor statement has
+  /// been processed.
+  Function processExpressionStatement(ExpressionStatement stmt) {
     Variable leftHand = getLeftHand(stmt.expression);
     pushDominatingAssignment(leftHand);
     if (isEffectivelyConstantAssignment(stmt.expression) &&
@@ -380,44 +402,50 @@ class StatementRewriter extends Transformer implements Pass {
       if (assign.variable.readCount == 1) {
         // A single-use constant should always be propagated to its use site.
         constantEnvironment[assign.variable] = assign.value;
-        Statement next = visitStatement(stmt.next);
-        popDominatingAssignment(leftHand);
-        if (assign.variable.readCount > 0) {
-          // The assignment could not be propagated into the successor, either
-          // because it has an unsafe variable use (see [hasUnsafeVariableUse])
-          // or because the use is outside the current try block, and we do
-          // not currently support constant propagation out of a try block.
-          constantEnvironment.remove(assign.variable);
-          assign.value = visitExpression(assign.value);
-          stmt.next = next;
-          return stmt;
-        } else {
-          --assign.variable.writeCount;
-          return next;
-        }
+        return (Statement next) {
+          popDominatingAssignment(leftHand);
+          if (assign.variable.readCount > 0) {
+            // The assignment could not be propagated into the successor, 
+            // either because it [hasUnsafeVariableUse] or because the
+            // use is outside the current try block, and we do not currently
+            // support constant propagation out of a try block.
+            constantEnvironment.remove(assign.variable);
+            assign.value = visitExpression(assign.value);
+            stmt.next = next;
+            return stmt;
+          } else {
+            --assign.variable.writeCount;
+            return next;
+          }
+        };
       } else {
         // With more than one use, we cannot propagate the constant.
         // Visit the following statement without polluting [environment] so
         // that any preceding non-constant assignments might still propagate.
-        stmt.next = visitStatement(stmt.next);
-        popDominatingAssignment(leftHand);
-        assign.value = visitExpression(assign.value);
-        return stmt;
+        return (Statement next) {
+          stmt.next = next;
+          popDominatingAssignment(leftHand);
+          assign.value = visitExpression(assign.value);
+          return stmt;
+        };
       }
-    }
-    // Try to propagate the expression, and block previous impure expressions
-    // until this has propagated.
-    environment.add(stmt.expression);
-    stmt.next = visitStatement(stmt.next);
-    popDominatingAssignment(leftHand);
-    if (!environment.isEmpty && environment.last == stmt.expression) {
-      // Retain the expression statement.
-      environment.removeLast();
-      stmt.expression = visitExpression(stmt.expression);
-      return stmt;
     } else {
-      // Expression was propagated into the successor.
-      return stmt.next;
+      // Try to propagate the expression, and block previous impure expressions
+      // until this has propagated.
+      environment.add(stmt.expression);
+      return (Statement next) {
+        stmt.next = next;
+        popDominatingAssignment(leftHand);
+        if (!environment.isEmpty && environment.last == stmt.expression) {
+          // Retain the expression statement.
+          environment.removeLast();
+          stmt.expression = visitExpression(stmt.expression);
+          return stmt;
+        } else {
+          // Expression was propagated into the successor.
+          return stmt.next;
+        }
+      };
     }
   }
 

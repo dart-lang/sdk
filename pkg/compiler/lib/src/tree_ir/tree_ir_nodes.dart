@@ -1108,9 +1108,15 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
     visitStatement(node.next);
   }
 
-  visitExpressionStatement(ExpressionStatement node) {
-    visitExpression(node.expression);
-    visitStatement(node.next);
+  visitExpressionStatement(ExpressionStatement inputNode) {
+    // Iterate over chains of expression statements to avoid deep recursion.
+    Statement node = inputNode;
+    while (node is ExpressionStatement) {
+      ExpressionStatement stmt = node;
+      visitExpression(stmt.expression);
+      node = stmt.next;
+    }
+    visitStatement(node);
   }
 
   visitTry(Try node) {
@@ -1326,9 +1332,18 @@ class RecursiveTransformer extends Transformer {
   }
 
   visitExpressionStatement(ExpressionStatement node) {
-    node.expression = visitExpression(node.expression);
+    // Iterate over chains of expression statements to avoid deep recursion.
+    Statement first = node;
+    while (true) {
+      node.expression = visitExpression(node.expression);
+      if (node.next is ExpressionStatement) {
+        node = node.next;
+      } else {
+        break;
+      }
+    }
     node.next = visitStatement(node.next);
-    return node;
+    return first;
   }
 
   visitTry(Try node) {
