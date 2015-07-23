@@ -166,8 +166,9 @@ class MockCompiler extends Compiler {
   // warnings.
   void reportWarning(Spannable node, MessageKind messageKind,
                      [Map arguments = const {}]) {
+    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
     reportDiagnostic(node,
-                     messageKind.message(arguments, terseDiagnostics),
+                     template.message(arguments, terseDiagnostics),
                      api.Diagnostic.WARNING);
   }
 

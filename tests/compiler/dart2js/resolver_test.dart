@@ -308,7 +308,9 @@ Future testLocalsOne() {
           .then((MockCompiler compiler) {
       Expect.equals(1, compiler.errors.length);
       Expect.equals(
-          new Message(MessageKind.DUPLICATE_DEFINITION, {'name': 'foo'}, false),
+          new Message(
+              MessageTemplate.TEMPLATES[MessageKind.DUPLICATE_DEFINITION],
+              {'name': 'foo'}, false),
           compiler.errors[0].message);
     })], (f) => f());
 }
@@ -491,7 +493,8 @@ Future testTypeAnnotation() {
 
     Expect.equals(
         new Message(
-            MessageKind.CANNOT_RESOLVE_TYPE,  {'typeName': 'Foo'}, false),
+            MessageTemplate.TEMPLATES[MessageKind.CANNOT_RESOLVE_TYPE],
+            {'typeName': 'Foo'}, false),
         compiler.warnings[0].message);
     VariableDefinitions definition = compiler.parsedTree;
     Expect.equals(warningNode, definition.type);
@@ -516,7 +519,8 @@ Future testSuperclass() {
       compiler.parseScript("class Foo extends Bar {}");
       compiler.resolveStatement("Foo bar;");
       Expect.equals(1, compiler.errors.length);
-      var cannotResolveBar = new Message(MessageKind.CANNOT_EXTEND_MALFORMED,
+      var cannotResolveBar = new Message(
+          MessageTemplate.TEMPLATES[MessageKind.CANNOT_EXTEND_MALFORMED],
           {'className': 'Foo', 'malformedType': 'Bar'}, false);
       Expect.equals(cannotResolveBar, compiler.errors[0].message);
       compiler.clearMessages();
@@ -544,7 +548,8 @@ Future testVarSuperclass() {
     Expect.equals(1, compiler.errors.length);
     Expect.equals(
         new Message(
-            MessageKind.CANNOT_RESOLVE_TYPE, {'typeName': 'var'}, false),
+            MessageTemplate.TEMPLATES[MessageKind.CANNOT_RESOLVE_TYPE],
+            {'typeName': 'var'}, false),
         compiler.errors[0].message);
     compiler.clearMessages();
   });
@@ -557,7 +562,8 @@ Future testOneInterface() {
     Expect.equals(1, compiler.errors.length);
     Expect.equals(
         new Message(
-            MessageKind.CANNOT_RESOLVE_TYPE, {'typeName': 'bar'}, false),
+            MessageTemplate.TEMPLATES[MessageKind.CANNOT_RESOLVE_TYPE],
+            {'typeName': 'bar'}, false),
         compiler.errors[0].message);
     compiler.clearMessages();
 

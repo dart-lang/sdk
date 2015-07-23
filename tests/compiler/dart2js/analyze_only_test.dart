@@ -12,8 +12,8 @@ import "package:async_helper/async_helper.dart";
 import '../../utils/dummy_compiler_test.dart' as dummy;
 import 'package:compiler/compiler.dart';
 
-import 'package:compiler/src/dart2jslib.dart' show
-    MessageKind;
+import 'package:compiler/src/warnings.dart' show
+    MessageKind, MessageTemplate;
 
 import 'output_collector.dart';
 
@@ -68,8 +68,10 @@ main() {
     (String code, List errors, List warnings) {
       Expect.isNotNull(code);
       Expect.isTrue(errors.isEmpty, 'errors is not empty: $errors');
+      MessageTemplate template =
+          MessageTemplate.TEMPLATES[MessageKind.MISSING_MAIN];
       Expect.equals(
-          "${MessageKind.MISSING_MAIN.message({'main': 'main'})}",
+          "${template.message({'main': 'main'})}",
           warnings.single);
     });
 
@@ -88,8 +90,10 @@ main() {
     (String code, List errors, List warnings) {
       Expect.isNull(code);
       Expect.isTrue(errors.isEmpty, 'errors is not empty: $errors');
+      MessageTemplate template =
+          MessageTemplate.TEMPLATES[MessageKind.CONSIDER_ANALYZE_ALL];
       Expect.equals(
-          "${MessageKind.CONSIDER_ANALYZE_ALL.message({'main': 'main'})}",
+          "${template.message({'main': 'main'})}",
           warnings.single);
     });
 
@@ -108,8 +112,10 @@ main() {
     (String code, List errors, List warnings) {
       Expect.isNull(code);
       Expect.isTrue(errors.isEmpty, 'errors is not empty: $errors');
+      MessageTemplate template =
+          MessageTemplate.TEMPLATES[MessageKind.CONSIDER_ANALYZE_ALL];
       Expect.equals(
-          "${MessageKind.CONSIDER_ANALYZE_ALL.message({'main': 'main'})}",
+          "${template.message({'main': 'main'})}",
           warnings.single);
     });
 

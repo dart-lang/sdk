@@ -22,6 +22,7 @@ export 'package:compiler/src/dart2jslib.dart'
        show Constant,
             Message,
             MessageKind,
+            MessageTemplate,
             Selector,
             TypedSelector,
             SourceSpan,

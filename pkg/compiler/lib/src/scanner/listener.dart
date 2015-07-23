@@ -693,7 +693,8 @@ class Listener {
   void reportError(Spannable spannable,
                    MessageKind messageKind,
                    [Map arguments = const {}]) {
-    String message = messageKind.message(arguments, true).toString();
+    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
+    String message = template.message(arguments, true).toString();
     Token token;
     if (spannable is Token) {
       token = spannable;
@@ -1131,8 +1132,8 @@ class ElementListener extends Listener {
     } else {
       reportFatalError(
           token,
-          MessageKind.MISSING_TOKEN_BEFORE_THIS.message(
-              {'token': string}, true).toString());
+          MessageTemplate.TEMPLATES[MessageKind.MISSING_TOKEN_BEFORE_THIS]
+              .message({'token': string}, true).toString());
     }
     return skipToEof(token);
   }

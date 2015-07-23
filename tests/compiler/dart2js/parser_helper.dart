@@ -42,23 +42,23 @@ class LoggerCanceler implements DiagnosticListener {
   void reportFatalError(Spannable node,
                         MessageKind errorCode,
                         [Map arguments]) {
-    log(new Message(errorCode, arguments, false));
+    log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
   }
 
   void reportError(Spannable node, MessageKind errorCode, [Map arguments]) {
-    log(new Message(errorCode, arguments, false));
+    log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
   }
 
   void reportWarning(Spannable node, MessageKind errorCode, [Map arguments]) {
-    log(new Message(errorCode, arguments, false));
+    log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
   }
 
   void reportInfo(Spannable node, MessageKind errorCode, [Map arguments]) {
-    log(new Message(errorCode, arguments, false));
+    log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
   }
 
   void reportHint(Spannable node, MessageKind errorCode, [Map arguments]) {
-    log(new Message(errorCode, arguments, false));
+    log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
   }
 
   withCurrentElement(Element element, f()) => f();

@@ -10,7 +10,7 @@ library dart2js.test.import;
 import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/dart2jslib.dart' show MessageKind;
+import 'package:compiler/src/warnings.dart' show MessageKind, MessageTemplate;
 import 'memory_compiler.dart';
 
 const DIRECT_IMPORT = const {
@@ -371,7 +371,7 @@ Future test(Map sourceFiles,
         MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
         collector.warnings.first.message.kind);
     Expect.equals(
-        expectedPaths.join(MessageKind.IMPORT_EXPERIMENTAL_MIRRORS_PADDING),
+        expectedPaths.join(MessageTemplate.IMPORT_EXPERIMENTAL_MIRRORS_PADDING),
         collector.warnings.first.message.arguments['importChain']);
   }
 }

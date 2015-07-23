@@ -5636,7 +5636,8 @@ class SsaBuilder extends ast.Visitor
             noSuchMethodTargetSymbolString(error, 'constructor'),
             argumentNodes: node.send.arguments);
       } else {
-        Message message = error.messageKind.message(error.messageArguments);
+        MessageTemplate template = MessageTemplate.TEMPLATES[error.messageKind];
+        Message message = template.message(error.messageArguments);
         generateRuntimeError(node.send, message.toString());
       }
     } else if (node.isConst) {
