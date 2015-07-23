@@ -885,20 +885,29 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
 
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,
-                                     Label* trace) {
+                                     Label* trace,
+                                     bool inline_isolate) {
   ASSERT(cid > 0);
   ASSERT(!in_delay_slot_);
   ASSERT(temp_reg != kNoRegister);
   ASSERT(temp_reg != TMP);
-  intptr_t state_offset;
-  ClassTable* class_table = Isolate::Current()->class_table();
-  ClassHeapStats** table_ptr =
-      class_table->StateAddressFor(cid, &state_offset);
-  if (cid < kNumPredefinedCids) {
-    LoadImmediate(temp_reg, reinterpret_cast<uword>(*table_ptr) + state_offset);
+  intptr_t state_offset = ClassTable::StateOffsetFor(cid);
+  if (inline_isolate) {
+    ClassTable* class_table = Isolate::Current()->class_table();
+    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
+    if (cid < kNumPredefinedCids) {
+      LoadImmediate(temp_reg,
+                    reinterpret_cast<uword>(*table_ptr) + state_offset);
+    } else {
+      LoadImmediate(temp_reg, reinterpret_cast<uword>(table_ptr));
+      lw(temp_reg, Address(temp_reg, 0));
+      AddImmediate(temp_reg, state_offset);
+    }
   } else {
-    LoadImmediate(temp_reg, reinterpret_cast<uword>(table_ptr));
-    lw(temp_reg, Address(temp_reg, 0));
+    LoadIsolate(temp_reg);
+    intptr_t table_offset =
+        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+    lw(temp_reg, Address(temp_reg, table_offset));
     AddImmediate(temp_reg, state_offset);
   }
   lw(temp_reg, Address(temp_reg, 0));

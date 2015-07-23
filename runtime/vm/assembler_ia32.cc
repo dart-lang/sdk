@@ -2366,8 +2366,7 @@ void Assembler::StoreIntoObject(Register object,
   if (object != EDX) {
     movl(EDX, object);
   }
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  call(&stub_code->UpdateStoreBufferLabel());
+  call(&StubCode::UpdateStoreBufferLabel());
   if (value != EDX) {
     popl(EDX);  // Restore EDX.
   }
@@ -2663,21 +2662,29 @@ void Assembler::Bind(Label* label) {
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,
                                      Label* trace,
-                                     bool near_jump) {
+                                     bool near_jump,
+                                     bool inline_isolate) {
   ASSERT(cid > 0);
   Address state_address(kNoRegister, 0);
-  intptr_t state_offset;
-  ClassTable* class_table = Isolate::Current()->class_table();
-  ClassHeapStats** table_ptr =
-      class_table->StateAddressFor(cid, &state_offset);
-  if (cid < kNumPredefinedCids) {
-    state_address = Address::Absolute(
-        reinterpret_cast<uword>(*table_ptr) + state_offset);
+  intptr_t state_offset = ClassTable::StateOffsetFor(cid);
+  if (inline_isolate) {
+    ClassTable* class_table = Isolate::Current()->class_table();
+    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
+    if (cid < kNumPredefinedCids) {
+      state_address = Address::Absolute(
+          reinterpret_cast<uword>(*table_ptr) + state_offset);
+    } else {
+      ASSERT(temp_reg != kNoRegister);
+      // temp_reg gets address of class table pointer.
+      movl(temp_reg,
+           Address::Absolute(reinterpret_cast<uword>(table_ptr)));
+      state_address = Address(temp_reg, state_offset);
+    }
   } else {
-    ASSERT(temp_reg != kNoRegister);
-    // temp_reg gets address of class table pointer.
-    movl(temp_reg,
-         Address::Absolute(reinterpret_cast<uword>(table_ptr)));
+    LoadIsolate(temp_reg);
+    intptr_t table_offset =
+        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+    movl(temp_reg, Address(temp_reg, table_offset));
     state_address = Address(temp_reg, state_offset);
   }
   testb(state_address, Immediate(ClassHeapStats::TraceAllocationMask()));
@@ -2891,10 +2898,9 @@ void Assembler::EnterStubFrame() {
 
 void Assembler::Stop(const char* message) {
   if (FLAG_print_stop_message) {
-    StubCode* stub_code = Isolate::Current()->stub_code();
     pushl(EAX);  // Preserve EAX.
     movl(EAX, Immediate(reinterpret_cast<int32_t>(message)));
-    call(&stub_code->PrintStopMessageLabel());  // Passing message in EAX.
+    call(&StubCode::PrintStopMessageLabel());  // Passing message in EAX.
     popl(EAX);  // Restore EAX.
   } else {
     // Emit the message address as immediate operand in the test instruction.

@@ -642,7 +642,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       environment_callback_(NULL),
       library_tag_handler_(NULL),
       api_state_(NULL),
-      stub_code_(NULL),
       debugger_(NULL),
       single_step_(false),
       resume_request_(false),
@@ -705,7 +704,6 @@ Isolate::~Isolate() {
   delete heap_;
   delete object_store_;
   delete api_state_;
-  delete stub_code_;
   delete debugger_;
 #if defined(USING_SIMULATOR)
   delete simulator_;

@@ -386,47 +386,16 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
 }
 
 
-// Called from array allocate instruction when the allocation stub has been
-// disabled.
-// A0: element type (preserved).
-// A1: length (preserved).
-void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
-  __ Comment("FixAllocationStubTarget");
-  __ EnterStubFrame();
-  // Setup space on stack for return value.
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ sw(A0, Address(SP, 2 * kWordSize));
-  __ sw(A1, Address(SP, 1 * kWordSize));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
-  __ sw(TMP, Address(SP, 0 * kWordSize));
-  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
-  // Get Code object result.
-  __ lw(T0, Address(SP, 0 * kWordSize));
-  __ lw(A1, Address(SP, 1 * kWordSize));
-  __ lw(A0, Address(SP, 2 * kWordSize));
-  __ addiu(SP, SP, Immediate(3 * kWordSize));
-
-  // Jump to the dart function.
-  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
-  __ AddImmediate(T0, T0, Instructions::HeaderSize() - kHeapObjectTag);
-
-  // Remove the stub frame.
-  __ LeaveStubFrameAndReturn(T0);
-}
-
-
 // Input parameters:
 //   A1: Smi-tagged argument count, may be zero.
 //   FP[kParamEndSlotFromFp + 1]: Last argument.
 static void PushArgumentsArray(Assembler* assembler) {
-  StubCode* stub_code = Isolate::Current()->stub_code();
   __ Comment("PushArgumentsArray");
   // Allocate array to store arguments of caller.
   __ LoadImmediate(A0, reinterpret_cast<intptr_t>(Object::null()));
   // A0: Null element type for raw Array.
   // A1: Smi-tagged argument count, may be zero.
-  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
-  const ExternalLabel array_label(array_stub.EntryPoint());
+  const ExternalLabel array_label(StubCode::AllocateArrayEntryPoint());
   __ BranchLink(&array_label);
   __ Comment("PushArgumentsArray return");
   // V0: newly allocated array.
@@ -688,15 +657,9 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 //   A0: array element type (either NULL or an instantiated type).
 // NOTE: A1 cannot be clobbered here as the caller relies on it being saved.
 // The newly allocated object is returned in V0.
-void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
-    uword* entry_patch_offset, uword* patch_code_pc_offset) {
+void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ Comment("AllocateArrayStub");
-  *entry_patch_offset = assembler->CodeSize();
   Label slow_case;
-  Isolate* isolate = Isolate::Current();
-  const Class& cls = Class::Handle(isolate->object_store()->array_class());
-  ASSERT(!cls.IsNull());
-
   // Compute the size to be allocated, it is based on the array length
   // and is computed as:
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
@@ -704,7 +667,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 
   // Check that length is a positive Smi.
   __ andi(CMPRES1, T3, Immediate(kSmiTagMask));
-  if (FLAG_use_slow_path || cls.trace_allocation()) {
+  if (FLAG_use_slow_path) {
     __ b(&slow_case);
   } else {
     __ bne(CMPRES1, ZR, &slow_case);
@@ -716,6 +679,10 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
       reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements));
   __ BranchUnsignedGreater(T3, Immediate(max_len), &slow_case);
 
+  const intptr_t cid = kArrayCid;
+  __ MaybeTraceAllocation(kArrayCid, T4, &slow_case,
+                          /* inline_isolate = */ false);
+
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ LoadImmediate(T2, fixed_size);
   __ sll(T3, T3, 1);  // T3 is  a Smi.
@@ -726,11 +693,11 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 
   // T2: Allocation size.
 
-  Heap* heap = isolate->heap();
-  const intptr_t cid = kArrayCid;
   Heap::Space space = Heap::SpaceForAllocation(cid);
-  __ LoadImmediate(T3, heap->TopAddress(space));
-  __ lw(T0, Address(T3, 0));  // Potential new object start.
+  __ LoadIsolate(T3);
+  __ lw(T3, Address(T3, Isolate::heap_offset()));
+  // Potential new object start.
+  __ lw(T0, Address(T3, Heap::TopOffset(space)));
 
   __ addu(T1, T0, T2);  // Potential next object start.
   __ BranchUnsignedLess(T1, T0, &slow_case);  // Branch on unsigned overflow.
@@ -739,15 +706,17 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   // T0: potential new object start.
   // T1: potential next object start.
   // T2: allocation size.
-  __ LoadImmediate(T4, heap->EndAddress(space));
-  __ lw(T4, Address(T4, 0));
+  // T3: heap.
+  __ lw(T4, Address(T3, Heap::EndOffset(space)));
   __ BranchUnsignedGreaterEqual(T1, T4, &slow_case);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ sw(T1, Address(T3, 0));
+  // T3: heap.
+  __ sw(T1, Address(T3, Heap::TopOffset(space)));
   __ addiu(T0, T0, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(cid, T2, T4, space);
+  __ UpdateAllocationStatsWithSize(cid, T2, T4, space,
+                                   /* inline_isolate = */ false);
 
   // Initialize the tags.
   // T0: new object start as a tagged pointer.
@@ -827,9 +796,6 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ addiu(SP, SP, Immediate(3 * kWordSize));
 
   __ LeaveStubFrameAndReturn();
-  *patch_code_pc_offset = assembler->CodeSize();
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  __ BranchPatchable(&stub_code->FixAllocateArrayStubTargetLabel());
 }
 
 
@@ -1295,8 +1261,7 @@ void StubCode::GenerateAllocationStubForClass(
   // Restore the frame pointer and return.
   __ LeaveStubFrameAndReturn(RA);
   *patch_code_pc_offset = assembler->CodeSize();
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  __ BranchPatchable(&stub_code->FixAllocationStubTargetLabel());
+  __ BranchPatchable(&StubCode::FixAllocationStubTargetLabel());
 }
 
 

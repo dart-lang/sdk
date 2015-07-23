@@ -876,7 +876,8 @@ class Assembler : public ValueObject {
   void MaybeTraceAllocation(intptr_t cid,
                             Register temp_reg,
                             Label* trace,
-                            bool near_jump);
+                            bool near_jump,
+                            bool inline_isolate = true);
 
   void UpdateAllocationStats(intptr_t cid,
                              Register temp_reg,

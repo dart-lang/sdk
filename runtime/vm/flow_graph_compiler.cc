@@ -1050,7 +1050,6 @@ void FlowGraphCompiler::GenerateInstanceCall(
   }
   ASSERT(!ic_data.IsNull());
   uword label_address = 0;
-  StubCode* stub_code = isolate()->stub_code();
   if (is_optimizing() && (ic_data.NumberOfUsedChecks() == 0)) {
     // Emit IC call that will count and thus may need reoptimization at
     // function entry.
@@ -1059,10 +1058,10 @@ void FlowGraphCompiler::GenerateInstanceCall(
            || flow_graph().IsCompiledForOsr());
     switch (ic_data.NumArgsTested()) {
       case 1:
-        label_address = stub_code->OneArgOptimizedCheckInlineCacheEntryPoint();
+        label_address = StubCode::OneArgOptimizedCheckInlineCacheEntryPoint();
         break;
       case 2:
-        label_address = stub_code->TwoArgsOptimizedCheckInlineCacheEntryPoint();
+        label_address = StubCode::TwoArgsOptimizedCheckInlineCacheEntryPoint();
         break;
       default:
         UNIMPLEMENTED();
@@ -1086,10 +1085,10 @@ void FlowGraphCompiler::GenerateInstanceCall(
 
   switch (ic_data.NumArgsTested()) {
     case 1:
-      label_address = stub_code->OneArgCheckInlineCacheEntryPoint();
+      label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
       break;
     case 2:
-      label_address = stub_code->TwoArgsCheckInlineCacheEntryPoint();
+      label_address = StubCode::TwoArgsCheckInlineCacheEntryPoint();
       break;
     default:
       UNIMPLEMENTED();

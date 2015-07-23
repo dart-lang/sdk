@@ -3373,8 +3373,9 @@ void Assembler::LoadAllocationStatsAddress(Register dest,
 
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,
-                                     Label* trace) {
-  LoadAllocationStatsAddress(temp_reg, cid);
+                                     Label* trace,
+                                     bool inline_isolate) {
+  LoadAllocationStatsAddress(temp_reg, cid, inline_isolate);
   const uword state_offset = ClassHeapStats::state_offset();
   ldr(temp_reg, Address(temp_reg, state_offset));
   tst(temp_reg, Operand(ClassHeapStats::TraceAllocationMask()));
@@ -3527,11 +3528,10 @@ void Assembler::TryAllocateArray(intptr_t cid,
 
 void Assembler::Stop(const char* message) {
   if (FLAG_print_stop_message) {
-    StubCode* stub_code = Isolate::Current()->stub_code();
     PushList((1 << R0) | (1 << IP) | (1 << LR));  // Preserve R0, IP, LR.
     LoadImmediate(R0, reinterpret_cast<int32_t>(message));
     // PrintStopMessage() preserves all registers.
-    BranchLink(&stub_code->PrintStopMessageLabel());  // Passing message in R0.
+    BranchLink(&StubCode::PrintStopMessageLabel());  // Passing message in R0.
     PopList((1 << R0) | (1 << IP) | (1 << LR));  // Restore R0, IP, LR.
   }
   // Emit the message address before the svc instruction, so that we can

@@ -5177,18 +5177,16 @@ void Function::AttachCode(const Code& value) const {
 
 bool Function::HasCode() const {
   ASSERT(raw_ptr()->instructions_ != Instructions::null());
-  StubCode* stub_code = Isolate::Current()->stub_code();
   return raw_ptr()->instructions_ !=
-      stub_code->LazyCompile_entry()->code()->ptr()->instructions_;
+      StubCode::LazyCompile_entry()->code()->ptr()->instructions_;
 }
 
 
 void Function::ClearCode() const {
   ASSERT(ic_data_array() == Array::null());
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
-  StubCode* stub_code = Isolate::Current()->stub_code();
   StorePointer(&raw_ptr()->instructions_,
-      Code::Handle(stub_code->LazyCompile_entry()->code()).instructions());
+      Code::Handle(StubCode::LazyCompile_entry()->code()).instructions());
 }
 
 
@@ -6251,8 +6249,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
   result.set_allows_bounds_check_generalization(true);
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  result.SetInstructions(Code::Handle(stub_code->LazyCompile_entry()->code()));
+  result.SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);

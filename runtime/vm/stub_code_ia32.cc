@@ -321,42 +321,16 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
 }
 
 
-// Called from array allocate instruction when the allocation stub has been
-// disabled.
-// EDX: length (preserved).
-// ECX: element type (preserved).
-void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ EnterStubFrame();
-  __ pushl(EDX);       // Preserve length.
-  __ pushl(ECX);       // Preserve element type.
-  __ pushl(raw_null);  // Setup space on stack for return value.
-  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
-  __ popl(EAX);  // Get Code object.
-  __ popl(ECX);  // Restore element type.
-  __ popl(EDX);  // Restore length.
-  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
-  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ LeaveFrame();
-  __ jmp(EAX);
-  __ int3();
-}
-
-
 // Input parameters:
 //   EDX: smi-tagged argument count, may be zero.
 //   EBP[kParamEndSlotFromFp + 1]: last argument.
 // Uses EAX, EBX, ECX, EDX, EDI.
 static void PushArgumentsArray(Assembler* assembler) {
+  // Allocate array to store arguments of caller.
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  StubCode* stub_code = Isolate::Current()->stub_code();
-
-  // Allocate array to store arguments of caller.
   __ movl(ECX, raw_null);  // Null element type for raw Array.
-  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
-  const ExternalLabel array_label(array_stub.EntryPoint());
+  const ExternalLabel array_label(StubCode::AllocateArrayEntryPoint());
   __ call(&array_label);
   __ SmiUntag(EDX);
   // EAX: newly allocated array.
@@ -582,23 +556,17 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 //   ECX : array element type (either NULL or an instantiated type).
 // Uses EAX, EBX, ECX, EDI  as temporary registers.
 // The newly allocated object is returned in EAX.
-void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
-    uword* entry_patch_offset, uword* patch_code_pc_offset) {
-  *entry_patch_offset = assembler->CodeSize();
+void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   Label slow_case;
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-
-  Isolate* isolate = Isolate::Current();
-  const Class& cls = Class::Handle(isolate->object_store()->array_class());
-  ASSERT(!cls.IsNull());
   // Compute the size to be allocated, it is based on the array length
   // and is computed as:
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
   // Assert that length is a Smi.
   __ testl(EDX, Immediate(kSmiTagMask));
 
-  if (FLAG_use_slow_path || cls.trace_allocation()) {
+  if (FLAG_use_slow_path) {
     __ jmp(&slow_case);
   } else {
     __ j(NOT_ZERO, &slow_case);
@@ -612,48 +580,54 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ cmpl(EDX, max_len);
   __ j(GREATER, &slow_case);
 
+  __ MaybeTraceAllocation(kArrayCid,
+                          EAX,
+                          &slow_case,
+                          /* near_jump = */ false,
+                          /* inline_isolate = */ false);
+
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-  __ leal(EDI, Address(EDX, TIMES_2, fixed_size));  // EDX is Smi.
+  __ leal(EBX, Address(EDX, TIMES_2, fixed_size));  // EDX is Smi.
   ASSERT(kSmiTagShift == 1);
-  __ andl(EDI, Immediate(-kObjectAlignment));
+  __ andl(EBX, Immediate(-kObjectAlignment));
 
   // ECX: array element type.
   // EDX: array length as Smi.
-  // EDI: allocation size.
+  // EBX: allocation size.
 
-  Heap* heap = isolate->heap();
   const intptr_t cid = kArrayCid;
   Heap::Space space = Heap::SpaceForAllocation(cid);
-  __ movl(EAX, Address::Absolute(heap->TopAddress(space)));
-  __ movl(EBX, EAX);
-
-  // EDI: allocation size.
-  __ addl(EBX, EDI);
+  __ LoadIsolate(EDI);
+  __ movl(EDI, Address(EDI, Isolate::heap_offset()));
+  __ movl(EAX, Address(EDI, Heap::TopOffset(space)));
+  __ addl(EBX, EAX);
   __ j(CARRY, &slow_case);
 
   // Check if the allocation fits into the remaining space.
   // EAX: potential new object start.
   // EBX: potential next object start.
-  // EDI: allocation size.
+  // EDI: heap.
   // ECX: array element type.
   // EDX: array length as Smi).
-  __ cmpl(EBX, Address::Absolute(heap->EndAddress(space)));
+  __ cmpl(EBX, Address(EDI, Heap::EndOffset(space)));
   __ j(ABOVE_EQUAL, &slow_case);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movl(Address::Absolute(heap->TopAddress(space)), EBX);
+  __ movl(Address(EDI, Heap::TopOffset(space)), EBX);
+  __ subl(EBX, EAX);
   __ addl(EAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(cid, EDI, kNoRegister, space);
+  __ UpdateAllocationStatsWithSize(cid, EBX, EDI, space,
+                                   /* inline_isolate = */ false);
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
-  // EBX: new object end address.
-  // EDI: allocation size.
+  // EBX: allocation size.
   // ECX: array element type.
   // EDX: array length as Smi.
   {
     Label size_tag_overflow, done;
+    __ movl(EDI, EBX);
     __ cmpl(EDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
     __ shll(EDI, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));
@@ -668,7 +642,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
     __ movl(FieldAddress(EAX, Array::tags_offset()), EDI);  // Tags.
   }
   // EAX: new object start as a tagged pointer.
-  // EBX: new object end address.
+  // EBX: allocation size.
   // ECX: array element type.
   // EDX: Array length as Smi (preserved).
   // Store the type argument field.
@@ -683,11 +657,12 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 
   // Initialize all array elements to raw_null.
   // EAX: new object start as a tagged pointer.
-  // EBX: new object end address.
+  // EBX: allocation size.
   // EDI: iterator which initially points to the start of the variable
   // data area to be initialized.
   // ECX: array element type.
   // EDX: array length as Smi.
+  __ leal(EBX, FieldAddress(EAX, EBX, TIMES_1, 0));
   __ leal(EDI, FieldAddress(EAX, sizeof(RawArray)));
   Label done;
   Label init_loop;
@@ -716,11 +691,6 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ popl(EAX);  // Pop return value from return slot.
   __ LeaveFrame();
   __ ret();
-  // Emit function patching code. This will be swapped with the first 5 bytes
-  // at entry point.
-  *patch_code_pc_offset = assembler->CodeSize();
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  __ jmp(&stub_code->FixAllocateArrayStubTargetLabel());
 }
 
 
@@ -1164,8 +1134,7 @@ void StubCode::GenerateAllocationStubForClass(
   // Emit function patching code. This will be swapped with the first 5 bytes
   // at entry point.
   *patch_code_pc_offset = assembler->CodeSize();
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  __ jmp(&stub_code->FixAllocationStubTargetLabel());
+  __ jmp(&StubCode::FixAllocationStubTargetLabel());
 }
 
 

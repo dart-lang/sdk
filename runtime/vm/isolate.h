@@ -244,9 +244,6 @@ class Isolate : public BaseIsolate {
   ApiState* api_state() const { return api_state_; }
   void set_api_state(ApiState* value) { api_state_ = value; }
 
-  StubCode* stub_code() const { return stub_code_; }
-  void set_stub_code(StubCode* value) { stub_code_ = value; }
-
   LongJumpScope* long_jump_base() const { return long_jump_base_; }
   void set_long_jump_base(LongJumpScope* value) { long_jump_base_ = value; }
 
@@ -792,7 +789,6 @@ class Isolate : public BaseIsolate {
   Dart_EnvironmentCallback environment_callback_;
   Dart_LibraryTagHandler library_tag_handler_;
   ApiState* api_state_;
-  StubCode* stub_code_;
   Debugger* debugger_;
   bool single_step_;
   bool resume_request_;

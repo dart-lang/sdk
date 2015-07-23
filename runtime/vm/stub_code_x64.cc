@@ -324,39 +324,14 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
 }
 
 
-// Called from array allocate instruction when the allocation stub has been
-// disabled.
-// R10: length (preserved).
-// RBX: element type (preserved).
-void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ pushq(R10);       // Preserve length.
-  __ pushq(RBX);       // Preserve element type.
-  // Setup space on stack for return value.
-  __ PushObject(Object::null_object(), PP);
-  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
-  __ popq(RAX);  // Get Code object.
-  __ popq(RBX);   // Restore element type.
-  __ popq(R10);   // Restore length.
-  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ LeaveStubFrame();
-  __ jmp(RAX);
-  __ int3();
-}
-
-
 // Input parameters:
 //   R10: smi-tagged argument count, may be zero.
 //   RBP[kParamEndSlotFromFp + 1]: last argument.
 static void PushArgumentsArray(Assembler* assembler) {
-  StubCode* stub_code = Isolate::Current()->stub_code();
-
   __ LoadObject(R12, Object::null_object(), PP);
   // Allocate array to store arguments of caller.
   __ movq(RBX, R12);  // Null element type for raw Array.
-  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
-  const ExternalLabel array_label(array_stub.EntryPoint());
+  const ExternalLabel array_label(StubCode::AllocateArrayEntryPoint());
   __ call(&array_label);
   __ SmiUntag(R10);
   // RAX: newly allocated array.
@@ -604,23 +579,18 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 //   RBX : array element type (either NULL or an instantiated type).
 // NOTE: R10 cannot be clobbered here as the caller relies on it being saved.
 // The newly allocated object is returned in RAX.
-void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
-    uword* entry_patch_offset, uword* patch_code_pc_offset) {
+void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // Must load pool pointer before being able to patch.
   Register new_pp = R13;
   __ LoadPoolPointer(new_pp);
-  *entry_patch_offset = assembler->CodeSize();
   Label slow_case;
-  Isolate* isolate = Isolate::Current();
-  const Class& cls = Class::Handle(isolate->object_store()->array_class());
-  ASSERT(!cls.IsNull());
   // Compute the size to be allocated, it is based on the array length
   // and is computed as:
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
   __ movq(RDI, R10);  // Array Length.
   // Check that length is a positive Smi.
   __ testq(RDI, Immediate(kSmiTagMask));
-  if (FLAG_use_slow_path || cls.trace_allocation()) {
+  if (FLAG_use_slow_path) {
     __ jmp(&slow_case);
   } else {
     __ j(NOT_ZERO, &slow_case);
@@ -632,16 +602,23 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
       Immediate(reinterpret_cast<int64_t>(Smi::New(Array::kMaxElements)));
   __ cmpq(RDI, max_len);
   __ j(GREATER, &slow_case);
+
+  // Check for allocation tracing.
+  __ MaybeTraceAllocation(kArrayCid,
+                          &slow_case,
+                          /* near_jump = */ false,
+                          /* inline_isolate = */ false);
+
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ leaq(RDI, Address(RDI, TIMES_4, fixed_size));  // RDI is a Smi.
   ASSERT(kSmiTagShift == 1);
   __ andq(RDI, Immediate(-kObjectAlignment));
 
-  Heap* heap = isolate->heap();
   const intptr_t cid = kArrayCid;
   Heap::Space space = Heap::SpaceForAllocation(cid);
-  __ movq(RAX, Immediate(heap->TopAddress(space)));
-  __ movq(RAX, Address(RAX, 0));
+  __ LoadIsolate(R13);
+  __ movq(R13, Address(R13, Isolate::heap_offset()));
+  __ movq(RAX, Address(R13, Heap::TopOffset(space)));
 
   // RDI: allocation size.
   __ movq(RCX, RAX);
@@ -652,16 +629,16 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   // RAX: potential new object start.
   // RCX: potential next object start.
   // RDI: allocation size.
-  __ movq(R13, Immediate(heap->EndAddress(space)));
-  __ cmpq(RCX, Address(R13, 0));
+  // R13: heap.
+  __ cmpq(RCX, Address(R13, Heap::EndOffset(space)));
   __ j(ABOVE_EQUAL, &slow_case);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movq(R13, Immediate(heap->TopAddress(space)));
-  __ movq(Address(R13, 0), RCX);
+  __ movq(Address(R13, Heap::TopOffset(space)), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(cid, RDI, space);
+  __ UpdateAllocationStatsWithSize(cid, RDI, space,
+                                   /* inline_isolate = */ false);
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
   // RDI: allocation size.
@@ -732,9 +709,6 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ popq(RAX);  // Pop return value from return slot.
   __ LeaveStubFrame();
   __ ret();
-  *patch_code_pc_offset = assembler->CodeSize();
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  __ JmpPatchable(&stub_code->FixAllocateArrayStubTargetLabel(), new_pp);
 }
 
 
@@ -1202,8 +1176,7 @@ void StubCode::GenerateAllocationStubForClass(
   __ LeaveStubFrame();
   __ ret();
   *patch_code_pc_offset = assembler->CodeSize();
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  __ JmpPatchable(&stub_code->FixAllocationStubTargetLabel(), new_pp);
+  __ JmpPatchable(&StubCode::FixAllocationStubTargetLabel(), new_pp);
 }
 
 

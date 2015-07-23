@@ -189,8 +189,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 
   ASSERT(deopt_env() != NULL);
 
-  StubCode* stub_code = compiler->isolate()->stub_code();
-  __ BranchLink(&stub_code->DeoptimizeLabel());
+  __ BranchLink(&StubCode::DeoptimizeLabel());
   set_pc_offset(assem->CodeSize());
 #undef __
 }
@@ -226,19 +225,18 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
   ASSERT(temp_reg == kNoRegister);  // Unused on MIPS.
   const SubtypeTestCache& type_test_cache =
       SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
-  StubCode* stub_code = isolate()->stub_code();
   __ LoadUniqueObject(A2, type_test_cache);
   if (test_kind == kTestTypeOneArg) {
     ASSERT(type_arguments_reg == kNoRegister);
     __ LoadImmediate(A1, reinterpret_cast<int32_t>(Object::null()));
-    __ BranchLink(&stub_code->Subtype1TestCacheLabel());
+    __ BranchLink(&StubCode::Subtype1TestCacheLabel());
   } else if (test_kind == kTestTypeTwoArgs) {
     ASSERT(type_arguments_reg == kNoRegister);
     __ LoadImmediate(A1, reinterpret_cast<int32_t>(Object::null()));
-    __ BranchLink(&stub_code->Subtype2TestCacheLabel());
+    __ BranchLink(&StubCode::Subtype2TestCacheLabel());
   } else if (test_kind == kTestTypeThreeArgs) {
     ASSERT(type_arguments_reg == A1);
-    __ BranchLink(&stub_code->Subtype3TestCacheLabel());
+    __ BranchLink(&StubCode::Subtype3TestCacheLabel());
   } else {
     UNREACHABLE();
   }
@@ -930,7 +928,7 @@ void FlowGraphCompiler::CopyParameters() {
   __ Bind(&wrong_num_arguments);
   if (function.IsClosureFunction()) {
     __ LeaveDartFrame();  // The arguments are still on the stack.
-    __ Branch(&isolate()->stub_code()->CallClosureNoSuchMethodLabel());
+    __ Branch(&StubCode::CallClosureNoSuchMethodLabel());
     // The noSuchMethod call may return to the caller, but not here.
   } else if (check_correct_named_args) {
     __ Stop("Wrong arguments");
@@ -993,7 +991,6 @@ void FlowGraphCompiler::EmitFrameEntry() {
       function.IsOptimizable() &&
       (!is_optimizing() || may_reoptimize())) {
     const Register function_reg = T0;
-    StubCode* stub_code = isolate()->stub_code();
 
     __ GetNextPC(T2, TMP);
 
@@ -1028,7 +1025,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
         T1, Immediate(GetOptimizationThreshold()), &dont_branch);
 
     ASSERT(function_reg == T0);
-    __ Branch(&stub_code->OptimizeFunctionLabel());
+    __ Branch(&StubCode::OptimizeFunctionLabel());
 
     __ Bind(&dont_branch);
 
@@ -1068,7 +1065,6 @@ void FlowGraphCompiler::CompileGraph() {
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_copied_params = parsed_function().num_copied_params();
   const int num_locals = parsed_function().num_stack_locals();
-  StubCode* stub_code = isolate()->stub_code();
 
   // We check the number of passed arguments when we have to copy them due to
   // the presence of optional parameters.
@@ -1096,7 +1092,7 @@ void FlowGraphCompiler::CompileGraph() {
       __ Bind(&wrong_num_arguments);
       if (function.IsClosureFunction()) {
         __ LeaveDartFrame();  // The arguments are still on the stack.
-        __ Branch(&isolate()->stub_code()->CallClosureNoSuchMethodLabel());
+        __ Branch(&StubCode::CallClosureNoSuchMethodLabel());
         // The noSuchMethod call may return to the caller, but not here.
       } else {
         __ Stop("Wrong number of arguments");
@@ -1151,11 +1147,11 @@ void FlowGraphCompiler::CompileGraph() {
   // Emit function patching code. This will be swapped with the first 5 bytes
   // at entry point.
   patch_code_pc_offset_ = assembler()->CodeSize();
-  __ BranchPatchable(&stub_code->FixCallersTargetLabel());
+  __ BranchPatchable(&StubCode::FixCallersTargetLabel());
 
   if (is_optimizing()) {
     lazy_deopt_pc_offset_ = assembler()->CodeSize();
-    __ Branch(&stub_code->DeoptimizeLazyLabel());
+    __ Branch(&StubCode::DeoptimizeLazyLabel());
   }
 }
 
@@ -1300,8 +1296,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ LoadObject(cacheR, cache);
 
   if (FLAG_use_megamorphic_stub) {
-    StubCode* stub_code = isolate()->stub_code();
-    __ BranchLink(&stub_code->MegamorphicLookupLabel());
+    __ BranchLink(&StubCode::MegamorphicLookupLabel());
   } else  {
     StubCode::EmitMegamorphicLookup(assembler(), receiverR, cacheR, targetR);
   }
@@ -1329,9 +1324,8 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
     intptr_t token_pos,
     LocationSummary* locs,
     const ICData& ic_data) {
-  StubCode* stub_code = isolate()->stub_code();
   const uword label_address =
-      stub_code->UnoptimizedStaticCallEntryPoint(ic_data.NumArgsTested());
+      StubCode::UnoptimizedStaticCallEntryPoint(ic_data.NumArgsTested());
   ExternalLabel target_label(label_address);
   __ LoadObject(S5, ic_data);
   GenerateDartCall(deopt_id,
@@ -1350,14 +1344,13 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
-  StubCode* stub_code = isolate()->stub_code();
   __ Comment("StaticCall");
   __ LoadObject(S4, arguments_descriptor);
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
   GenerateDartCall(deopt_id,
                    token_pos,
-                   &stub_code->CallStaticFunctionLabel(),
+                   &StubCode::CallStaticFunctionLabel(),
                    RawPcDescriptors::kOther,
                    locs);
   AddStaticCallTarget(function);
@@ -1374,7 +1367,6 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
   ASSERT(!needs_number_check ||
          (!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint()));
   if (needs_number_check) {
-    StubCode* stub_code = isolate()->stub_code();
     ASSERT(!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint());
     __ addiu(SP, SP, Immediate(-2 * kWordSize));
     __ sw(reg, Address(SP, 1 * kWordSize));
@@ -1382,10 +1374,10 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     __ sw(TMP, Address(SP, 0 * kWordSize));
     if (is_optimizing()) {
       __ BranchLinkPatchable(
-          &stub_code->OptimizedIdenticalWithNumberCheckLabel());
+          &StubCode::OptimizedIdenticalWithNumberCheckLabel());
     } else {
       __ BranchLinkPatchable(
-          &stub_code->UnoptimizedIdenticalWithNumberCheckLabel());
+          &StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
     if (token_pos != Scanner::kNoSourcePos) {
       AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
@@ -1411,16 +1403,15 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                                                        intptr_t token_pos) {
   __ Comment("EqualityRegRegCompare");
   if (needs_number_check) {
-    StubCode* stub_code = isolate()->stub_code();
     __ addiu(SP, SP, Immediate(-2 * kWordSize));
     __ sw(left, Address(SP, 1 * kWordSize));
     __ sw(right, Address(SP, 0 * kWordSize));
     if (is_optimizing()) {
       __ BranchLinkPatchable(
-          &stub_code->OptimizedIdenticalWithNumberCheckLabel());
+          &StubCode::OptimizedIdenticalWithNumberCheckLabel());
     } else {
       __ BranchLinkPatchable(
-          &stub_code->UnoptimizedIdenticalWithNumberCheckLabel());
+          &StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
     if (token_pos != Scanner::kNoSourcePos) {
       AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
@@ -1552,7 +1543,6 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   const Array& arguments_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names));
-  StubCode* stub_code = isolate()->stub_code();
 
   // Load receiver into T0.
   __ LoadFromOffset(T0, SP, (argument_count - 1) * kWordSize);
@@ -1576,7 +1566,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     // that we can record the outgoing edges to other code.
     GenerateDartCall(deopt_id,
                      token_index,
-                     &stub_code->CallStaticFunctionLabel(),
+                     &StubCode::CallStaticFunctionLabel(),
                      RawPcDescriptors::kOther,
                      locs);
     const Function& function = Function::Handle(ic_data.GetTargetAt(0));
@@ -1616,7 +1606,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     // that we can record the outgoing edges to other code.
     GenerateDartCall(deopt_id,
                      token_index,
-                     &stub_code->CallStaticFunctionLabel(),
+                     &StubCode::CallStaticFunctionLabel(),
                      RawPcDescriptors::kOther,
                      locs);
     const Function& function = *sorted[i].target;

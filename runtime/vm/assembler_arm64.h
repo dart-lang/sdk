@@ -1394,7 +1394,8 @@ class Assembler : public ValueObject {
   void MaybeTraceAllocation(intptr_t cid,
                             Register temp_reg,
                             Register pp,
-                            Label* trace);
+                            Label* trace,
+                            bool inline_isolate = true);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.

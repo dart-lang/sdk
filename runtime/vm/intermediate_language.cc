@@ -2937,11 +2937,10 @@ static uword TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
   if (!FLAG_two_args_smi_icd) {
     return 0;
   }
-  StubCode* stub_code = Isolate::Current()->stub_code();
   switch (kind) {
-    case Token::kADD: return stub_code->SmiAddInlineCacheEntryPoint();
-    case Token::kSUB: return stub_code->SmiSubInlineCacheEntryPoint();
-    case Token::kEQ:  return stub_code->SmiEqualInlineCacheEntryPoint();
+    case Token::kADD: return StubCode::SmiAddInlineCacheEntryPoint();
+    case Token::kSUB: return StubCode::SmiSubInlineCacheEntryPoint();
+    case Token::kEQ:  return StubCode::SmiEqualInlineCacheEntryPoint();
     default:          return 0;
   }
 }
@@ -3022,10 +3021,9 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                  (ArgumentCount() == 1));
       ASSERT(Token::IsBinaryArithmeticOperator(token_kind()) ==
                  (ArgumentCount() == 2));
-      StubCode* stub_code = compiler->isolate()->stub_code();
       ExternalLabel target_label((ArgumentCount() == 1) ?
-          stub_code->UnaryRangeCollectingInlineCacheEntryPoint() :
-          stub_code->BinaryRangeCollectingInlineCacheEntryPoint());
+          StubCode::UnaryRangeCollectingInlineCacheEntryPoint() :
+          StubCode::BinaryRangeCollectingInlineCacheEntryPoint());
       compiler->EmitInstanceCall(&target_label, *call_ic_data, ArgumentCount(),
                                  deopt_id(), token_pos(), locs());
     } else {

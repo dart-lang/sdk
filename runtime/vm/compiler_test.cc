@@ -90,9 +90,8 @@ TEST_CASE(RegenerateAllocStubs) {
   EXPECT(!cls.IsNull());
 
   Isolate* isolate = Isolate::Current();
-  StubCode* stub_code = isolate->stub_code();
   const Code& stub = Code::Handle(isolate,
-                                  stub_code->GetAllocationStubForClass(cls));
+                                  StubCode::GetAllocationStubForClass(cls));
   Class& owner = Class::Handle();
   owner ^= stub.owner();
   owner.DisableAllocationStub();

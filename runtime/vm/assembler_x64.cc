@@ -3185,7 +3185,7 @@ void Assembler::Stop(const char* message, bool fixed_length_encoding) {
     } else {
       LoadImmediate(RDI, Immediate(message_address), PP);
     }
-    call(&Isolate::Current()->stub_code()->PrintStopMessageLabel());
+    call(&StubCode::PrintStopMessageLabel());
     popq(RDI);  // Restore RDI register.
     popq(TMP);  // Restore TMP register.
   } else {
@@ -3440,19 +3440,25 @@ void Assembler::LeaveStubFrame() {
 
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Label* trace,
-                                     bool near_jump) {
+                                     bool near_jump,
+                                     bool inline_isolate) {
   ASSERT(cid > 0);
-  intptr_t state_offset;
-  ClassTable* class_table = Isolate::Current()->class_table();
-  ClassHeapStats** table_ptr =
-      class_table->StateAddressFor(cid, &state_offset);
+  intptr_t state_offset = ClassTable::StateOffsetFor(cid);
   Register temp_reg = TMP;
-  if (cid < kNumPredefinedCids) {
-    movq(temp_reg, Immediate(reinterpret_cast<uword>(*table_ptr)));
+  if (inline_isolate) {
+    ClassTable* class_table = Isolate::Current()->class_table();
+    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
+    if (cid < kNumPredefinedCids) {
+      movq(temp_reg, Immediate(reinterpret_cast<uword>(*table_ptr)));
+    } else {
+      movq(temp_reg, Immediate(reinterpret_cast<uword>(table_ptr)));
+      movq(temp_reg, Address(temp_reg, 0));
+    }
   } else {
-    Register temp_reg = TMP;
-    movq(temp_reg, Immediate(reinterpret_cast<uword>(table_ptr)));
-    movq(temp_reg, Address(temp_reg, 0));
+    LoadIsolate(temp_reg);
+    intptr_t table_offset =
+        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+    movq(temp_reg, Address(temp_reg, table_offset));
   }
   testb(Address(temp_reg, state_offset),
         Immediate(ClassHeapStats::TraceAllocationMask()));
