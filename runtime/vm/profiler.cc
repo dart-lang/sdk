@@ -439,15 +439,13 @@ class ProfilerDartExitStackWalker : public ValueObject {
 // Executing Dart code, walk the stack.
 class ProfilerDartStackWalker : public ValueObject {
  public:
-  ProfilerDartStackWalker(Isolate* isolate,
-                          Sample* sample,
+  ProfilerDartStackWalker(Sample* sample,
                           uword stack_lower,
                           uword stack_upper,
                           uword pc,
                           uword fp,
                           uword sp)
-      : isolate_(isolate),
-        sample_(sample),
+      : sample_(sample),
         stack_upper_(stack_upper),
         stack_lower_(stack_lower) {
     ASSERT(sample_ != NULL);
@@ -583,7 +581,6 @@ class ProfilerDartStackWalker : public ValueObject {
   uword* pc_;
   uword* fp_;
   uword* sp_;
-  Isolate* isolate_;
   Sample* sample_;
   const uword stack_upper_;
   uword stack_lower_;
@@ -1013,8 +1010,7 @@ void Profiler::RecordSampleInterruptCallback(
 
   ProfilerDartExitStackWalker dart_exit_stack_walker(isolate, sample);
 
-  ProfilerDartStackWalker dart_stack_walker(isolate,
-                                            sample,
+  ProfilerDartStackWalker dart_stack_walker(sample,
                                             stack_lower,
                                             stack_upper,
                                             pc,
