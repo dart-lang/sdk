@@ -530,7 +530,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   /// loaded as well.
   Future<LibraryElement> loadDeserializedLibrary(
       LibraryDependencyHandler handler,
-      LibraryElement library) async {
+      LibraryElement library) {
     compiler.onLibraryCreated(library);
     libraryCanonicalUriMap[library.canonicalUri] = library;
     return compiler.onLibraryScanned(library, handler).then((_) {
