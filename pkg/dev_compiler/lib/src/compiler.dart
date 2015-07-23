@@ -48,6 +48,8 @@ StreamSubscription setupLogger(Level level, printFn) {
 
 class BatchCompiler extends AbstractCompiler {
   JSGenerator _jsGen;
+  LibraryElement _dartCore;
+  String _runtimeOutputDir;
 
   /// Already compiled sources, so we don't compile them again.
   final _compiled = new HashSet<LibraryElement>();
@@ -58,9 +60,12 @@ class BatchCompiler extends AbstractCompiler {
   BatchCompiler(AnalysisContext context, CompilerOptions options,
       {AnalysisErrorListener reporter})
       : super(context, options, reporter) {
+    _inputBaseDir = options.inputBaseDir;
     if (outputDir != null) {
       _jsGen = new JSGenerator(this);
+      _runtimeOutputDir = path.join(outputDir, 'dev_compiler', 'runtime');
     }
+    _dartCore = context.typeProvider.objectType.element.library;
   }
 
   void reset() {
@@ -80,31 +85,39 @@ class BatchCompiler extends AbstractCompiler {
   }
 
   void compileFromUriString(String uriString) {
-    compileFromUri(stringToUri(uriString));
+    _compileFromUri(stringToUri(uriString));
   }
 
-  void compileFromUri(Uri uri) {
+  void _compileFromUri(Uri uri) {
+    if (!uri.isAbsolute) {
+      throw new ArgumentError.value('$uri', 'uri', 'must be absolute');
+    }
     var source = context.sourceFactory.forUri(Uri.encodeFull('$uri'));
-    if (source == null) throw new ArgumentError.value(
-        uri.toString(), 'uri', 'could not find source for');
+    if (source == null) {
+      throw new ArgumentError.value('$uri', 'uri', 'could not find source for');
+    }
     compileSource(source);
   }
 
   void compileSource(Source source) {
     if (AnalysisEngine.isHtmlFileName(source.uri.path)) {
-      compileHtml(source);
+      _compileHtml(source);
       return;
     }
-
     compileLibrary(context.computeLibraryElement(source));
   }
 
   void compileLibrary(LibraryElement library) {
     if (!_compiled.add(library)) return;
-    if (!options.checkSdk && library.source.uri.scheme == 'dart') return;
+
+    if (!options.checkSdk && library.source.uri.scheme == 'dart') {
+      if (_jsGen != null) _copyDartRuntime();
+      return;
+    }
 
     // TODO(jmesserly): in incremental mode, we can skip the transitive
     // compile of imports/exports.
+    compileLibrary(_dartCore); // implicit dart:core dependency
     library.importedLibraries.forEach(compileLibrary);
     library.exportedLibraries.forEach(compileLibrary);
 
@@ -132,7 +145,16 @@ class BatchCompiler extends AbstractCompiler {
     }
   }
 
-  void compileHtml(Source source) {
+  void _copyDartRuntime() {
+    for (var file in defaultRuntimeFiles) {
+      var input = path.join(options.runtimeDir, file);
+      var output = path.join(_runtimeOutputDir, file);
+      new Directory(path.dirname(output)).createSync(recursive: true);
+      new File(input).copySync(output);
+    }
+  }
+
+  void _compileHtml(Source source) {
     // TODO(jmesserly): reuse DartScriptsTask instead of copy/paste.
     var contents = context.getContents(source);
     var document = html.parse(contents.data, generateSpans: true);
@@ -140,6 +162,7 @@ class BatchCompiler extends AbstractCompiler {
 
     var loadedLibs = new LinkedHashSet<Uri>();
 
+    var htmlOutDir = path.dirname(getOutputPath(source.uri));
     for (var script in scripts) {
       Source scriptSource = null;
       var srcAttr = script.attributes['src'];
@@ -162,17 +185,8 @@ class BatchCompiler extends AbstractCompiler {
       if (scriptSource != null) {
         var lib = context.computeLibraryElement(scriptSource);
         compileLibrary(lib);
-        script.replaceWith(_linkLibraries(lib, loadedLibs));
+        script.replaceWith(_linkLibraries(lib, loadedLibs, from: htmlOutDir));
       }
-    }
-
-    // TODO(jmesserly): we need to clean this up so we aren't treating these
-    // as a special case.
-    for (var file in defaultRuntimeFiles) {
-      var input = path.join(options.runtimeDir, file);
-      var output = path.join(outputDir, runtimeFileOutput(file));
-      new Directory(path.dirname(output)).createSync(recursive: true);
-      new File(input).copySync(output);
     }
 
     new File(getOutputPath(source.uri)).openSync(mode: FileMode.WRITE)
@@ -182,19 +196,30 @@ class BatchCompiler extends AbstractCompiler {
   }
 
   html.DocumentFragment _linkLibraries(
-      LibraryElement mainLib, LinkedHashSet<Uri> loaded) {
+      LibraryElement mainLib, LinkedHashSet<Uri> loaded, {String from}) {
+    assert(from != null);
     var alreadyLoaded = loaded.length;
     _collectLibraries(mainLib, loaded);
 
     var newLibs = loaded.skip(alreadyLoaded);
     var df = new html.DocumentFragment();
-    for (var path in defaultRuntimeFiles) {
-      df.append(html_codegen.libraryInclude(runtimeFileOutput(path)));
-    }
+
     for (var uri in newLibs) {
-      if (uri.scheme == 'dart') continue;
-      df.append(html_codegen.libraryInclude(getModulePath(uri)));
+      if (uri.scheme == 'dart') {
+        if (uri.path == 'core') {
+          // TODO(jmesserly): it would be nice to not special case these.
+          for (var file in defaultRuntimeFiles) {
+            file = path.join(_runtimeOutputDir, file);
+            df.append(
+                html_codegen.libraryInclude(path.relative(file, from: from)));
+          }
+        }
+      } else {
+        var file = path.join(outputDir, getModulePath(uri));
+        df.append(html_codegen.libraryInclude(path.relative(file, from: from)));
+      }
     }
+
     df.append(html_codegen.invokeMain(getModuleName(mainLib.source.uri)));
     return df;
   }
@@ -202,15 +227,13 @@ class BatchCompiler extends AbstractCompiler {
   void _collectLibraries(LibraryElement lib, LinkedHashSet<Uri> loaded) {
     var uri = lib.source.uri;
     if (!loaded.add(uri)) return;
+    _collectLibraries(_dartCore, loaded);
     for (var l in lib.importedLibraries) _collectLibraries(l, loaded);
     for (var l in lib.exportedLibraries) _collectLibraries(l, loaded);
     // Move the item to the end of the list.
     loaded.remove(uri);
     loaded.add(uri);
   }
-
-  String runtimeFileOutput(String file) =>
-      path.join('dev_compiler', 'runtime', file);
 }
 
 abstract class AbstractCompiler {
@@ -240,7 +263,7 @@ abstract class AbstractCompiler {
   Uri stringToUri(String uriString) {
     var uri = uriString.startsWith('dart:') || uriString.startsWith('package:')
         ? Uri.parse(uriString)
-        : new Uri.file(uriString);
+        : new Uri.file(path.absolute(uriString));
     return uri;
   }
 
@@ -304,15 +327,15 @@ abstract class AbstractCompiler {
   String getModuleName(Uri uri) {
     var filepath = path.withoutExtension(uri.path);
     if (uri.scheme == 'dart') {
-      filepath = 'dart/$filepath';
+      return 'dart/$filepath';
     } else if (uri.scheme == 'file') {
-      filepath = path.relative(filepath, from: inputBaseDir);
+      return path.relative(filepath, from: inputBaseDir);
     } else {
       assert(uri.scheme == 'package');
       // filepath is good here, we want the output to start with a directory
       // matching the package name.
+      return filepath;
     }
-    return filepath;
   }
 
   /// Log any errors encountered when resolving [source] and return whether any
@@ -366,6 +389,9 @@ const corelibOrder = const [
   'dart._isolate_helper',
   'dart._js_primitives',
   'dart.convert',
+  // TODO(jmesserly): these are not part of corelib library cycle, and shouldn't
+  // be listed here. Instead, their source should be copied on demand if they
+  // are actually used by the application.
   'dart.mirrors',
   'dart._js_mirrors',
   'dart.js'

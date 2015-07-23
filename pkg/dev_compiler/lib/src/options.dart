@@ -109,7 +109,12 @@ class CompilerOptions {
   /// package (if we can infer where that is located).
   final String runtimeDir;
 
+  /// The files to compile.
   final List<String> inputs;
+
+  /// The base directory for [inputs]. Module imports will be generated relative
+  /// to this directory.
+  final String inputBaseDir;
 
   CompilerOptions({this.strongOptions: const StrongModeOptions(),
       this.sourceOptions: const SourceResolverOptions(),
@@ -117,7 +122,7 @@ class CompilerOptions {
       this.dumpInfo: false, this.dumpInfoFile, this.useColors: true,
       this.help: false, this.logLevel: Level.SEVERE, this.serverMode: false,
       this.enableHashing: false, this.widget: true, this.host: 'localhost',
-      this.port: 8080, this.runtimeDir, this.inputs});
+      this.port: 8080, this.runtimeDir, this.inputs, this.inputBaseDir});
 }
 
 /// Parses options from the command-line
