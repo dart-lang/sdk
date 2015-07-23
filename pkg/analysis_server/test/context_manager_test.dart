@@ -96,6 +96,30 @@ class AbstractContextManagerTest {
     ContextManagerImpl.ENABLE_PACKAGESPEC_SUPPORT = false;
   }
 
+  void test_contextsInAnalysisRoot_nestedContext() {
+    String subProjPath = join(projPath, 'subproj');
+    Folder subProjFolder = resourceProvider.newFolder(subProjPath);
+    resourceProvider.newFile(join(subProjPath, 'pubspec.yaml'), 'contents');
+    String subProjFilePath = join(subProjPath, 'file.dart');
+    resourceProvider.newFile(subProjFilePath, 'contents');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // Make sure that there really are contexts for both the main project and
+    // the subproject.
+    Folder projFolder = resourceProvider.getFolder(projPath);
+    ContextInfo projContextInfo = manager.getContextInfoFor(projFolder);
+    expect(projContextInfo, isNotNull);
+    expect(projContextInfo.folder, projFolder);
+    ContextInfo subProjContextInfo = manager.getContextInfoFor(subProjFolder);
+    expect(subProjContextInfo, isNotNull);
+    expect(subProjContextInfo.folder, subProjFolder);
+    expect(projContextInfo.context != subProjContextInfo.context, isTrue);
+    // Check that contextsInAnalysisRoot() works.
+    List<AnalysisContext> contexts = manager.contextsInAnalysisRoot(projFolder);
+    expect(contexts, hasLength(2));
+    expect(contexts, contains(projContextInfo.context));
+    expect(contexts, contains(subProjContextInfo.context));
+  }
+
   test_ignoreFilesInPackagesFolder() {
     // create a context with a pubspec.yaml file
     String pubspecPath = posix.join(projPath, 'pubspec.yaml');
@@ -125,6 +149,21 @@ class AbstractContextManagerTest {
         <String>[project], <String>[excludedFolder], <String, String>{});
     // verify
     expect(manager.isInAnalysisRoot('$excludedFolder/test.dart'), isFalse);
+  }
+
+  void test_isInAnalysisRoot_inNestedContext() {
+    String subProjPath = join(projPath, 'subproj');
+    Folder subProjFolder = resourceProvider.newFolder(subProjPath);
+    resourceProvider.newFile(join(subProjPath, 'pubspec.yaml'), 'contents');
+    String subProjFilePath = join(subProjPath, 'file.dart');
+    resourceProvider.newFile(subProjFilePath, 'contents');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // Make sure that there really is a context for the subproject.
+    ContextInfo subProjContextInfo = manager.getContextInfoFor(subProjFolder);
+    expect(subProjContextInfo, isNotNull);
+    expect(subProjContextInfo.folder, subProjFolder);
+    // Check that isInAnalysisRoot() works.
+    expect(manager.isInAnalysisRoot(subProjFilePath), isTrue);
   }
 
   void test_isInAnalysisRoot_inRoot() {

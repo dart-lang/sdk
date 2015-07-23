@@ -1240,8 +1240,8 @@ class AnalysisServer {
   }
 
   /**
-   * Return a set of contexts containing all of the resources in the given list
-   * of [resources].
+   * Return a set of all contexts whose associated folder is contained within,
+   * or equal to, one of the resources in the given list of [resources].
    */
   Set<AnalysisContext> _getContexts(List<Resource> resources) {
     Set<AnalysisContext> contexts = new HashSet<AnalysisContext>();
