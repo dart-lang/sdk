@@ -453,8 +453,10 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   visitTryStatement(ast.TryStatement node) {
     List<CatchClauseInfo> catchClauseInfos = <CatchClauseInfo>[];
     for (ast.CatchBlock catchClause in node.catchBlocks.nodes) {
-      assert(catchClause.exception != null);
-      LocalVariableElement exceptionVariable = elements[catchClause.exception];
+      LocalVariableElement exceptionVariable;
+      if (catchClause.exception != null) {
+        exceptionVariable = elements[catchClause.exception];
+      }
       LocalVariableElement stackTraceVariable;
       if (catchClause.trace != null) {
         stackTraceVariable = elements[catchClause.trace];

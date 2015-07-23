@@ -1835,8 +1835,10 @@ class IrBuilder {
 
       ir.Expression buildCatchClause(CatchClauseInfo clause) {
         IrBuilder clauseBuilder = builder.makeDelimitedBuilder();
-        clauseBuilder.declareLocalVariable(clause.exceptionVariable,
-            initialValue: exceptionParameter);
+        if (clause.exceptionVariable != null) {
+          clauseBuilder.declareLocalVariable(clause.exceptionVariable,
+              initialValue: exceptionParameter);
+        }
         if (clause.stackTraceVariable != null) {
           clauseBuilder.declareLocalVariable(clause.stackTraceVariable,
               initialValue: traceParameter);

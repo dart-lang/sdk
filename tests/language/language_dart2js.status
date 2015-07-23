@@ -459,10 +459,6 @@ list_is_test: RuntimeError # Please triage this failure.
 list_test: RuntimeError # Please triage this failure.
 many_generic_instanceof_test: RuntimeError # Please triage this failure.
 many_overridden_no_such_method_test: RuntimeError # Please triage this failure.
-mixin_type_parameters_mixin_extends_test: Crash # The null object does not have a getter '_element'.
-mixin_type_parameters_mixin_test: Crash # The null object does not have a getter '_element'.
-mixin_type_parameters_super_extends_test: Crash # The null object does not have a getter '_element'.
-mixin_type_parameters_super_test: Crash # The null object does not have a getter '_element'.
 nested_switch_label_test: Crash # (switch (target){out...  continue to a labeled switch case
 no_such_method_test: RuntimeError # Please triage this failure.
 null_test/none: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
@@ -475,8 +471,6 @@ regress_22445_test: Crash # (main()async{var err...  cannot handle async/sync*/a
 regress_22579_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_22728_test: Crash # (main()async{bool fa...  cannot handle async/sync*/async* functions
 regress_22777_test: Crash # (test()async{try {te...  cannot handle async/sync*/async* functions
-regress_22936_test/01: Crash # The null object does not have a getter '_element'.
-regress_22936_test/none: Crash # The null object does not have a getter '_element'.
 regress_23408_test: RuntimeError # G.loadLibrary is not a function
 regress_23498_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_23500_test/01: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
@@ -507,7 +501,6 @@ syncstar_less_than_test: Crash # (Iterable<int> foo()...  cannot handle async/sy
 syncstar_yield_test/copyParameters: Crash # (Iterable<int> foo3(...  cannot handle async/sync*/async* functions
 syncstar_yield_test/none: Crash # (Iterable<int> foo3(...  cannot handle async/sync*/async* functions
 syncstar_yieldstar_test: Crash # (main()async{Expect....  cannot handle async/sync*/async* functions
-try_catch_test/none: Crash # The null object does not have a getter '_element'.
 type_parameter_test/01: Crash # Invalid argument(s)
 type_parameter_test/02: Crash # Invalid argument(s)
 type_parameter_test/03: Crash # Invalid argument(s)

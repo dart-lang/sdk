@@ -233,5 +233,4 @@ symbol_reserved_word_test/03: Pass # Please triage this failure.
 symbol_reserved_word_test/06: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/09: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/12: RuntimeError # Please triage this failure.
-symbol_test/none: Crash # The null object does not have a getter '_element'.
-uri_test: Crash # The null object does not have a getter '_element'.
+symbol_test/none: RuntimeError # Expected a NoSuchMethodError or a TypeError
