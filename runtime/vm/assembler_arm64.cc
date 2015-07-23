@@ -493,17 +493,8 @@ void Assembler::LoadImmediateFixed(Register reg, int64_t imm) {
 void Assembler::LoadImmediate(Register reg, int64_t imm, Register pp) {
   Comment("LoadImmediate");
   if (CanLoadImmediateFromPool(imm, pp)) {
-    // It's a 64-bit constant and we're not in the VM isolate, so load from
-    // object pool.
-    // Save the bits that must be masked-off for the SmiTag
-    int64_t val_smi_tag = imm & kSmiTagMask;
-    imm &= ~kSmiTagMask;  // Mask off the tag bits.
     const int32_t offset = ObjectPool::element_offset(FindImmediate(imm));
     LoadWordFromPoolOffset(reg, pp, offset);
-    if (val_smi_tag != 0) {
-      // Add back the tag bits.
-      orri(reg, reg, Immediate(val_smi_tag));
-    }
   } else {
     // 0. Is it 0?
     if (imm == 0) {
