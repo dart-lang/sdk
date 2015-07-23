@@ -493,7 +493,9 @@ class LocalsHandler {
         }
       }
       HInstruction value = directLocals[local];
-      if (sourceInformation != null) {
+      if (false && sourceInformation != null) {
+        // TODO(johnniwinther): Enable this again when boolean conversions of
+        // boolean type conversions are handled correctly.
         value = new HRef(value, sourceInformation);
         builder.add(value);
       }
