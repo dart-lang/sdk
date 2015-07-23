@@ -269,16 +269,21 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
   }
   exports.assert = assert;
 
-  let _stack = Symbol('_stack');
-
+  let _stack = new WeakMap();
   function throw_(obj) {
-    obj[_stack] = new Error();
+    if (obj != null && (typeof obj == 'object' || typeof obj == 'function')) {
+      // TODO(jmesserly): couldn't we store the most recent stack in a single
+      // variable? There should only be one active stack trace. That would
+      // allow it to work for things like strings and numbers.
+      _stack.set(obj, new Error());
+    }
     throw obj;
   }
   exports.throw = throw_;
 
   function getError(exception) {
-    return exception[_stack] ? exception[_stack] : exception;
+    var stack = _stack.get(exception);
+    return stack !== void 0 ? stack : exception;
   }
 
   // This is a utility function: it is only intended to be called from dev

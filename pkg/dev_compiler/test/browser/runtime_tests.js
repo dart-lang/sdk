@@ -23,6 +23,14 @@ suite('generic', () => {
     assert.throws(() => { generic(function(){}); });
   });
 
+  test('can throw number', () => {
+    try {
+      dart.throw(42);
+    } catch (e) {
+      assert.equal(e, 42);
+    }
+  });
+
   test('argument count cannot change', () => {
     let SomeType = generic(function(x) { return {x: x}; });
     assert.throws(() => { SomeType(1,2) });
