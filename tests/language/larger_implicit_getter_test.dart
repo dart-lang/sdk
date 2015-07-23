@@ -4091,8 +4091,8 @@ List<List> panels = [
   [2364.4759911280776,3842.7700224365044]
 ];
 
-@AssumeDynamic
-@NoInline
+@AssumeDynamic()
+@NoInline()
 confuse(x) => x;
 
 main() {
