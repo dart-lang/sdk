@@ -2106,8 +2106,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
 // On stack: user tag (+0).
 void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
   // R1: Isolate.
-  Isolate* isolate = Isolate::Current();
-  __ LoadImmediate(R1, reinterpret_cast<uword>(isolate), kNoPP);
+  __ LoadIsolate(R1);
   // R0: Current user tag.
   __ ldr(R0, Address(R1, Isolate::current_tag_offset()));
   // R2: UserTag.
@@ -2123,22 +2122,15 @@ void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
 
 
 void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
-  Isolate* isolate = Isolate::Current();
-  // Set return value to default tag address.
-  __ LoadImmediate(R0,
-      reinterpret_cast<uword>(isolate) + Isolate::default_tag_offset(),
-      kNoPP);
-  __ ldr(R0, Address(R0));
+  __ LoadIsolate(R0);
+  __ ldr(R0, Address(R0, Isolate::default_tag_offset()));
   __ ret();
 }
 
 
 void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
-  // R1: Default tag address.
-  Isolate* isolate = Isolate::Current();
-  __ LoadImmediate(R1, reinterpret_cast<uword>(isolate), kNoPP);
-  // Set return value to Isolate::current_tag_.
-  __ ldr(R0, Address(R1, Isolate::current_tag_offset()));
+  __ LoadIsolate(R0);
+  __ ldr(R0, Address(R0, Isolate::current_tag_offset()));
   __ ret();
 }
 

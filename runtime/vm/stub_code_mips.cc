@@ -2138,11 +2138,11 @@ DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
 // Returns: CMPRES1 is zero if equal, non-zero otherwise.
 // Note: A Mint cannot contain a value that would fit in Smi, a Bigint
 // cannot contain a value that fits in Mint or Smi.
-void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
-                                                    const Register left,
-                                                    const Register right,
-                                                    const Register temp1,
-                                                    const Register temp2) {
+static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
+                                                 const Register left,
+                                                 const Register right,
+                                                 const Register temp1,
+                                                 const Register temp2) {
   __ Comment("IdenticalWithNumberCheckStub");
   Label reference_compare, done, check_mint, check_bigint;
   // If any of the arguments is Smi do reference compare.

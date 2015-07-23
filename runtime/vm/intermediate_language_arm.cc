@@ -2919,8 +2919,13 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  __ LoadImmediate(IP, Isolate::Current()->stack_limit_address());
-  __ ldr(IP, Address(IP));
+  if (compiler->is_optimizing()) {
+    __ LoadImmediate(IP, Isolate::Current()->stack_limit_address());
+    __ ldr(IP, Address(IP));
+  } else {
+    __ LoadIsolate(IP);
+    __ ldr(IP, Address(IP, Isolate::stack_limit_offset()));
+  }
   __ cmp(SP, Operand(IP));
   __ b(slow_path->entry_label(), LS);
   if (compiler->CanOSRFunction() && in_loop()) {

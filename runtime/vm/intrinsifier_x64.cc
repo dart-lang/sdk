@@ -1977,10 +1977,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
 // On stack: user tag (+1), return-address (+0).
 void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
   // RBX: Isolate.
-  Isolate* isolate = Isolate::Current();
-  const Immediate& isolate_address =
-      Immediate(reinterpret_cast<int64_t>(isolate));
-  __ movq(RBX, isolate_address);
+  __ LoadIsolate(RBX);
   // RAX: Current user tag.
   __ movq(RAX, Address(RBX, Isolate::current_tag_offset()));
   // R10: UserTag.
@@ -1996,26 +1993,15 @@ void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
 
 
 void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
-  // RBX: Address of default tag.
-  Isolate* isolate = Isolate::Current();
-  const Immediate& default_tag_addr =
-      Immediate(reinterpret_cast<int64_t>(isolate) +
-                Isolate::default_tag_offset());
-  __ movq(RBX, default_tag_addr);
-  // Set return value.
-  __ movq(RAX, Address(RBX, 0));
+  __ LoadIsolate(RAX);
+  __ movq(RAX, Address(RAX, Isolate::default_tag_offset()));
   __ ret();
 }
 
 
 void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
-  // RBX: Isolate.
-  Isolate* isolate = Isolate::Current();
-  const Immediate& isolate_address =
-      Immediate(reinterpret_cast<int64_t>(isolate));
-  __ movq(RBX, isolate_address);
-  // Set return value to Isolate::current_tag_.
-  __ movq(RAX, Address(RBX, Isolate::current_tag_offset()));
+  __ LoadIsolate(RAX);
+  __ movq(RAX, Address(RAX, Isolate::current_tag_offset()));
   __ ret();
 }
 

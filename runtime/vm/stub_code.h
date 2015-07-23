@@ -224,13 +224,6 @@ class StubCode {
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);
-
-  static void GenerateIdenticalWithNumberCheckStub(
-      Assembler* assembler,
-      const Register left,
-      const Register right,
-      const Register temp1 = kNoRegister,
-      const Register temp2 = kNoRegister);
 };
 
 }  // namespace dart

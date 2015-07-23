@@ -2116,45 +2116,32 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
 
 // On stack: user tag (+1), return-address (+0).
 void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
-  Isolate* isolate = Isolate::Current();
-  const Address current_tag_addr =
-      Address::Absolute(reinterpret_cast<uword>(isolate) +
-                        Isolate::current_tag_offset());
-  const Address user_tag_addr =
-      Address::Absolute(reinterpret_cast<uword>(isolate) +
-                        Isolate::user_tag_offset());
+  // RDI: Isolate.
+  __ LoadIsolate(EDI);
   // EAX: Current user tag.
-  __ movl(EAX, current_tag_addr);
+  __ movl(EAX, Address(EDI, Isolate::current_tag_offset()));
   // EAX: UserTag.
   __ movl(EBX, Address(ESP, + 1 * kWordSize));
   // Set Isolate::current_tag_.
-  __ movl(current_tag_addr, EBX);
+  __ movl(Address(EDI, Isolate::current_tag_offset()), EBX);
   // EAX: UserTag's tag.
   __ movl(EBX, FieldAddress(EBX, UserTag::tag_offset()));
   // Set Isolate::user_tag_.
-  __ movl(user_tag_addr, EBX);
+  __ movl(Address(EDI, Isolate::user_tag_offset()), EBX);
   __ ret();
 }
 
 
 void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
-  Isolate* isolate = Isolate::Current();
-  const Address default_tag_addr =
-      Address::Absolute(
-          reinterpret_cast<uword>(isolate) + Isolate::default_tag_offset());
-  // Set return value.
-  __ movl(EAX, default_tag_addr);
+  __ LoadIsolate(EAX);
+  __ movl(EAX, Address(EAX, Isolate::default_tag_offset()));
   __ ret();
 }
 
 
 void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
-  Isolate* isolate = Isolate::Current();
-  const Address current_tag_addr =
-      Address::Absolute(reinterpret_cast<uword>(isolate) +
-                        Isolate::current_tag_offset());
-  // Set return value to Isolate::current_tag_.
-  __ movl(EAX, current_tag_addr);
+  __ LoadIsolate(EAX);
+  __ movl(EAX, Address(EAX, Isolate::current_tag_offset()));
   __ ret();
 }
 

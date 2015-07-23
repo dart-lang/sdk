@@ -2638,9 +2638,14 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Register temp = locs()->temp(0).reg();
   // Generate stack overflow check.
-  __ LoadImmediate(
-      temp, Immediate(Isolate::Current()->stack_limit_address()), PP);
-  __ cmpq(RSP, Address(temp, 0));
+  if (compiler->is_optimizing()) {
+    __ LoadImmediate(
+        temp, Immediate(Isolate::Current()->stack_limit_address()), PP);
+    __ cmpq(RSP, Address(temp, 0));
+  } else {
+    __ LoadIsolate(temp);
+    __ cmpq(RSP, Address(temp, Isolate::stack_limit_offset()));
+  }
   __ j(BELOW_EQUAL, slow_path->entry_label());
   if (compiler->CanOSRFunction() && in_loop()) {
     // In unoptimized code check the usage counter to trigger OSR at loop

@@ -2572,11 +2572,14 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* CheckStackOverflowInstr::MakeLocationSummary(Zone* zone,
                                                               bool opt) const {
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = opt ? 0 : 1;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs,
                           kNumTemps,
                           LocationSummary::kCallOnSlowPath);
+  if (!opt) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
   return summary;
 }
 
@@ -2634,8 +2637,13 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  __ cmpl(ESP,
-          Address::Absolute(Isolate::Current()->stack_limit_address()));
+  if (compiler->is_optimizing()) {
+    __ cmpl(ESP, Address::Absolute(Isolate::Current()->stack_limit_address()));
+  } else {
+    Register tmp = locs()->temp(0).reg();
+    __ LoadIsolate(tmp);
+    __ cmpl(ESP, Address(tmp, Isolate::stack_limit_offset()));
+  }
   __ j(BELOW_EQUAL, slow_path->entry_label());
   if (compiler->CanOSRFunction() && in_loop()) {
     // In unoptimized code check the usage counter to trigger OSR at loop

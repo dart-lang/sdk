@@ -2035,11 +2035,9 @@ DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
 // Return Zero condition flag set if equal.
 // Note: A Mint cannot contain a value that would fit in Smi, a Bigint
 // cannot contain a value that fits in Mint or Smi.
-void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
-                                                    const Register left,
-                                                    const Register right,
-                                                    const Register unused1,
-                                                    const Register unused2) {
+static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
+                                                 const Register left,
+                                                 const Register right) {
   Label reference_compare, done, check_mint, check_bigint;
   // If any of the arguments is Smi do reference compare.
   __ tsti(left, Immediate(kSmiTagMask));
@@ -2131,12 +2129,11 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
 // Return Zero condition flag set if equal.
 void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
-  const Register temp = R2;
   const Register left = R1;
   const Register right = R0;
   __ LoadFromOffset(left, SP, 1 * kWordSize, kNoPP);
   __ LoadFromOffset(right, SP, 0 * kWordSize, kNoPP);
-  GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp);
+  GenerateIdenticalWithNumberCheckStub(assembler, left, right);
   __ ret();
 }
 
