@@ -10,13 +10,14 @@ import 'dart:convert';
 import 'dart:core' hide Resource;
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.dart';
 import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/path_filter.dart';
+import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -91,7 +92,7 @@ class ContextInfo {
    * [OptimizingPubPackageMapProvider.computePackageMap], or `null` if the
    * package map hasn't been computed for this context yet.
    */
-  OptimizingPubPackageMapInfo packageMapInfo;
+  PackageMapInfo packageMapInfo;
 
   ContextInfo(
       this.parent, Folder folder, File packagespecFile, this.packageRoot)
@@ -364,7 +365,7 @@ class ContextManagerImpl implements ContextManager {
    * Provider which is used to determine the mapping from package name to
    * package folder.
    */
-  final OptimizingPubPackageMapProvider _packageMapProvider;
+  final PubPackageMapProvider _packageMapProvider;
 
   /// Provider of analysis options.
   AnalysisOptionsProvider analysisOptionsProvider =
@@ -752,10 +753,9 @@ class ContextManagerImpl implements ContextManager {
           return new CustomPackageResolverDisposition(resolver);
         }
       }
-      OptimizingPubPackageMapInfo packageMapInfo;
+      PackageMapInfo packageMapInfo;
       ServerPerformanceStatistics.pub.makeCurrentWhile(() {
-        packageMapInfo =
-            _packageMapProvider.computePackageMap(folder, info.packageMapInfo);
+        packageMapInfo = _packageMapProvider.computePackageMap(folder);
       });
       callbacks.endComputePackageMap();
       for (String dependencyPath in packageMapInfo.dependencies) {
@@ -764,8 +764,7 @@ class ContextManagerImpl implements ContextManager {
           StreamSubscription<WatchEvent> subscription;
           subscription = resource.changes.listen((WatchEvent event) {
             if (info.packageMapInfo != null &&
-                info.packageMapInfo.isChangedDependency(
-                    dependencyPath, resourceProvider)) {
+                info.packageMapInfo.dependencies.contains(dependencyPath)) {
               _recomputeFolderDisposition(info);
             }
           }, onError: (error, StackTrace stackTrace) {
@@ -1089,7 +1088,7 @@ class ContextManagerImpl implements ContextManager {
     _checkForPackagespecUpdate(path, info, folder);
 
     if (info.packageMapInfo != null &&
-        info.packageMapInfo.isChangedDependency(path, resourceProvider)) {
+        info.packageMapInfo.dependencies.contains(path)) {
       _recomputeFolderDisposition(info);
     }
   }

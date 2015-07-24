@@ -10,7 +10,6 @@ import 'package:analysis_server/src/context_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -1378,42 +1377,6 @@ analyzer:
         _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
       });
     });
-  }
-
-  test_watch_modifyPackageMapDependency_redundantly() async {
-    // Create two dependency files
-    String dependencyPath1 = posix.join(projPath, 'dep1');
-    String dependencyPath2 = posix.join(projPath, 'dep2');
-    resourceProvider.newFile(dependencyPath1, 'contents');
-    resourceProvider.newFile(dependencyPath2, 'contents');
-    packageMapProvider.dependencies.add(dependencyPath1);
-    packageMapProvider.dependencies.add(dependencyPath2);
-    // Create a dart file
-    String dartFilePath = posix.join(projPath, 'main.dart');
-    resourceProvider.newFile(dartFilePath, 'contents');
-    // Verify that the created context has the expected empty package map.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    _checkPackageMap(projPath, isEmpty);
-    expect(packageMapProvider.computeCount, 1);
-    // Set up a different package map
-    String packagePath = '/package/foo';
-    resourceProvider.newFolder(packagePath);
-    packageMapProvider.packageMap = {'foo': projPath};
-    // Change both dependencies.
-    resourceProvider.modifyFile(dependencyPath1, 'new contents');
-    resourceProvider.modifyFile(dependencyPath2, 'new contents');
-    // Arrange for the next call to computePackageMap to return the correct
-    // timestamps for the dependencies.
-    packageMapProvider.modificationTimes = <String, int>{};
-    for (String path in [dependencyPath1, dependencyPath2]) {
-      File resource = resourceProvider.getResource(path);
-      packageMapProvider.modificationTimes[path] = resource.modificationStamp;
-    }
-    // This should cause the new package map to be picked up, by executing
-    // computePackageMap just one additional time.
-    await pumpEventQueue();
-    _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
-    expect(packageMapProvider.computeCount, 2);
   }
 
   test_watch_modifyPackagespec() {

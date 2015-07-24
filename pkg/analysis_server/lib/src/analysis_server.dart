@@ -21,10 +21,10 @@ import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.dart';
 import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -33,7 +33,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:package_config/packages.dart';
 import 'package:plugin/plugin.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
@@ -293,9 +292,9 @@ class AnalysisServer {
    * running a full analysis server.
    */
   AnalysisServer(this.channel, this.resourceProvider,
-      OptimizingPubPackageMapProvider packageMapProvider, Index _index,
-      this.serverPlugin, this.options, this.defaultSdk,
-      this.instrumentationService, {ContextManager contextManager: null,
+      PubPackageMapProvider packageMapProvider, Index _index, this.serverPlugin,
+      this.options, this.defaultSdk, this.instrumentationService,
+      {ContextManager contextManager: null,
       ResolverProvider packageResolverProvider: null,
       this.rethrowExceptions: true})
       : index = _index,
