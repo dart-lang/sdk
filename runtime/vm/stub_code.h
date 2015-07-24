@@ -41,6 +41,8 @@ class RawCode;
   V(OptimizedIdenticalWithNumberCheck)                                         \
   V(ICCallBreakpoint)                                                          \
   V(RuntimeCallBreakpoint)                                                     \
+  V(AllocateArray)                                                             \
+  V(AllocateContext)                                                           \
   V(OneArgCheckInlineCache)                                                    \
   V(TwoArgsCheckInlineCache)                                                   \
   V(SmiAddInlineCache)                                                         \
@@ -56,8 +58,6 @@ class RawCode;
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \
   V(Subtype3TestCache)                                                         \
-  V(AllocateContext)                                                           \
-  V(AllocateArray)                                                             \
   V(CallClosureNoSuchMethod)
 
 // Is it permitted for the stubs above to refer to Object::null(), which is

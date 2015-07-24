@@ -103,6 +103,26 @@ DEFINE_FLAG_HANDLER(NooptModeHandler,
                     "Run fast unoptimized code only.");
 
 
+DECLARE_FLAG(bool, lazy_dispatchers);
+DECLARE_FLAG(bool, interpret_irregexp);
+DECLARE_FLAG(bool, enable_mirrors);
+
+
+static void PrecompileModeHandler(bool value) {
+  if (value) {
+    NooptModeHandler(true);
+    FLAG_lazy_dispatchers = false;
+    FLAG_interpret_irregexp = true;
+    FLAG_enable_mirrors = false;
+  }
+}
+
+
+DEFINE_FLAG_HANDLER(PrecompileModeHandler,
+                    precompile,
+                    "Precompilation mode");
+
+
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
 // environment.
