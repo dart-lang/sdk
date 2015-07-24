@@ -2538,6 +2538,8 @@ abstract class Element implements AnalysisTarget {
   int get nameOffset;
 
   /**
+   * **DEPRECATED** Use `computeNode()` instead.
+   * 
    * Return the resolved [AstNode] node that declares this element, or `null` if
    * this element is synthetic or isn't contained in a compilation unit, such as
    * a [LibraryElement].
