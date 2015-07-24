@@ -28,19 +28,6 @@ class GetNavigationTest extends AbstractNavigationTest {
     createProject();
   }
 
-  test_afterAnalysisComplete() async {
-    addTestFile('''
-main() {
-  var test = 0;
-  print(test);
-}
-''');
-    await waitForTasksFinished();
-    await _getNavigation(testFile, testCode.indexOf('test);'), 0);
-    assertHasRegion('test);');
-    assertHasTarget('test = 0');
-  }
-
   test_beforeAnalysisComplete() async {
     addTestFile('''
 main() {
@@ -68,6 +55,36 @@ main() {
     return _checkInvalid(file, -1, -1);
   }
 
+  test_multipleRegions() async {
+    addTestFile('''
+main() {
+  var aaa = 1;
+  var bbb = 2;
+  var ccc = 3;
+  var ddd = 4;
+  print(aaa + bbb + ccc + ddd);
+}
+''');
+    await waitForTasksFinished();
+    // request navigation
+    String navCode = ' + bbb + ';
+    await _getNavigation(testFile, testCode.indexOf(navCode), navCode.length);
+    // verify
+    {
+      assertHasRegion('aaa +');
+      assertHasTarget('aaa = 1');
+    }
+    {
+      assertHasRegion('bbb +');
+      assertHasTarget('bbb = 2');
+    }
+    {
+      assertHasRegion('ccc +');
+      assertHasTarget('ccc = 3');
+    }
+    assertNoRegionAt('ddd)');
+  }
+
   test_removeContextAfterRequest() async {
     addTestFile('''
 main() {
@@ -88,6 +105,32 @@ main() {
     Response response = await serverChannel.waitForResponse(request);
     expect(response.error, isNotNull);
     expect(response.error.code, RequestErrorCode.GET_NAVIGATION_INVALID_FILE);
+  }
+
+  test_zeroLength_end() async {
+    addTestFile('''
+main() {
+  var test = 0;
+  print(test);
+}
+''');
+    await waitForTasksFinished();
+    await _getNavigation(testFile, testCode.indexOf(');'), 0);
+    assertHasRegion('test);');
+    assertHasTarget('test = 0');
+  }
+
+  test_zeroLength_start() async {
+    addTestFile('''
+main() {
+  var test = 0;
+  print(test);
+}
+''');
+    await waitForTasksFinished();
+    await _getNavigation(testFile, testCode.indexOf('test);'), 0);
+    assertHasRegion('test);');
+    assertHasTarget('test = 0');
   }
 
   _checkInvalid(String file, int offset, int length) async {
