@@ -143,7 +143,7 @@ class AbstractContextManagerTest {
     packageMapProvider = new MockPackageMapProvider();
     manager = new ContextManagerImpl(resourceProvider, providePackageResolver,
         packageMapProvider, InstrumentationService.NULL_SERVICE);
-    callbacks = new TestContextManagerCallbacks();
+    callbacks = new TestContextManagerCallbacks(resourceProvider);
     manager.callbacks = callbacks;
     resourceProvider.newFolder(projPath);
     ContextManagerImpl.ENABLE_PACKAGESPEC_SUPPORT = true;
@@ -1428,7 +1428,7 @@ analyzer:
     Map<String, int> filePaths = callbacks.currentContextFilePaths[projPath];
     expect(filePaths, hasLength(1));
     expect(filePaths, contains(filePath));
-    Packages packages = callbacks.currentContextPackagespecs[projPath];
+    Packages packages = callbacks.currentContextDispositions[projPath].packages;
     expect(packages.packages, isEmpty);
 
     // update .packages
@@ -1436,7 +1436,7 @@ analyzer:
     resourceProvider.modifyFile(packagesPath, 'main:./lib/');
     return pumpEventQueue().then((_) {
       // verify new package info
-      packages = callbacks.currentContextPackagespecs[projPath];
+      packages = callbacks.currentContextDispositions[projPath].packages;
       expect(packages.packages, unorderedEquals(['main']));
     });
   }
@@ -1446,9 +1446,9 @@ analyzer:
    * using a package map matching [expectation].
    */
   void _checkPackageMap(String path, expectation) {
-    UriResolver resolver = callbacks.currentContextPackageUriResolvers[path];
+    FolderDisposition disposition = callbacks.currentContextDispositions[path];
     Map<String, List<Folder>> packageMap =
-        resolver is PackageMapUriResolver ? resolver.packageMap : null;
+        disposition is PackageMapDisposition ? disposition.packageMap : null;
     expect(packageMap, expectation);
   }
 
@@ -1457,10 +1457,11 @@ analyzer:
    * using a package root maching [expectation].
    */
   void _checkPackageRoot(String path, expectation) {
-    UriResolver resolver = callbacks.currentContextPackageUriResolvers[path];
-    expect(resolver, new isInstanceOf<PackageUriResolver>());
-    PackageUriResolver packageUriResolver = resolver;
-    expect(packageUriResolver.packagesDirectory_forTesting, expectation);
+    // TODO(paulberry): this code needs to be reworked, since the context
+    // manager inspects the contents of the package root directory and converts
+    // it to a package map.  The only reason this code used to work was due to
+    // dartbug.com/23909.
+    fail('Cannot verify package root');
   }
 }
 
@@ -1494,15 +1495,17 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   };
 
   /**
-   * Map from context to package URI resolver.
+   * Map from context to folder disposition.
    */
-  final Map<String, UriResolver> currentContextPackageUriResolvers =
-      <String, UriResolver>{};
+  final Map<String, FolderDisposition> currentContextDispositions =
+      <String, FolderDisposition>{};
 
   /**
-   * Map from context to packages object.
+   * Resource provider used for this test.
    */
-  final Map<String, Packages> currentContextPackagespecs = <String, Packages>{};
+  final ResourceProvider resourceProvider;
+
+  TestContextManagerCallbacks(this.resourceProvider);
 
   /**
    * Iterable of the paths to contexts that currently exist.
@@ -1510,21 +1513,18 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   Iterable<String> get currentContextPaths => currentContextTimestamps.keys;
 
   @override
-  AnalysisContext addContext(
-      Folder folder, UriResolver packageUriResolver, Packages packages) {
+  AnalysisContext addContext(Folder folder, FolderDisposition disposition) {
     String path = folder.path;
     expect(currentContextPaths, isNot(contains(path)));
     currentContextTimestamps[path] = now;
     currentContextFilePaths[path] = <String, int>{};
     currentContextSources[path] = new HashSet<Source>();
-    currentContextPackageUriResolvers[path] = packageUriResolver;
-    currentContextPackagespecs[path] = packages;
+    currentContextDispositions[path] = disposition;
     currentContext = AnalysisEngine.instance.createAnalysisContext();
     List<UriResolver> resolvers = [new FileUriResolver()];
-    if (packageUriResolver != null) {
-      resolvers.add(packageUriResolver);
-    }
-    currentContext.sourceFactory = new SourceFactory(resolvers, packages);
+    resolvers.addAll(disposition.createPackageUriResolvers(resourceProvider));
+    currentContext.sourceFactory =
+        new SourceFactory(resolvers, disposition.packages);
     return currentContext;
   }
 
@@ -1567,7 +1567,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     currentContextTimestamps.remove(path);
     currentContextFilePaths.remove(path);
     currentContextSources.remove(path);
-    currentContextPackageUriResolvers.remove(path);
+    currentContextDispositions.remove(path);
   }
 
   @override
@@ -1586,9 +1586,8 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void updateContextPackageUriResolver(
-      Folder contextFolder, UriResolver packageUriResolver, Packages packages) {
-    currentContextPackageUriResolvers[contextFolder.path] = packageUriResolver;
-    currentContextPackagespecs[contextFolder.path] = packages;
+      Folder contextFolder, FolderDisposition disposition) {
+    currentContextDispositions[contextFolder.path] = disposition;
   }
 }
 

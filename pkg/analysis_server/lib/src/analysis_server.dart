@@ -25,8 +25,6 @@ import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.d
 import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -1355,13 +1353,12 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
 
   @override
-  AnalysisContext addContext(
-      Folder folder, UriResolver packageUriResolver, Packages packages) {
+  AnalysisContext addContext(Folder folder, FolderDisposition disposition) {
     InternalAnalysisContext context =
         AnalysisEngine.instance.createAnalysisContext();
     context.contentCache = analysisServer.overlayState;
     analysisServer.folderMap[folder] = context;
-    context.sourceFactory = _createSourceFactory(packageUriResolver, packages);
+    context.sourceFactory = _createSourceFactory(disposition);
     context.analysisOptions =
         new AnalysisOptionsImpl.from(analysisServer.defaultContextOptions);
     analysisServer._onContextsChangedController
@@ -1430,9 +1427,9 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void updateContextPackageUriResolver(
-      Folder contextFolder, UriResolver packageUriResolver, Packages packages) {
+      Folder contextFolder, FolderDisposition disposition) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
-    context.sourceFactory = _createSourceFactory(packageUriResolver, packages);
+    context.sourceFactory = _createSourceFactory(disposition);
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
@@ -1447,25 +1444,17 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   /**
-   * Set up a [SourceFactory] that resolves packages using the given
-   * [packageUriResolver] and [packages] resolution strategy.
+   * Set up a [SourceFactory] that resolves packages as appropriate for the
+   * given [disposition].
    */
-  SourceFactory _createSourceFactory(
-      UriResolver packageUriResolver, Packages packages) {
+  SourceFactory _createSourceFactory(FolderDisposition disposition) {
     UriResolver dartResolver = new DartUriResolver(analysisServer.defaultSdk);
     UriResolver resourceResolver = new ResourceUriResolver(resourceProvider);
     List<UriResolver> resolvers = [];
     resolvers.add(dartResolver);
-    if (packageUriResolver is PackageMapUriResolver) {
-      UriResolver sdkExtResolver =
-          new SdkExtUriResolver(packageUriResolver.packageMap);
-      resolvers.add(sdkExtResolver);
-    }
-    if (packageUriResolver != null) {
-      resolvers.add(packageUriResolver);
-    }
+    resolvers.addAll(disposition.createPackageUriResolvers(resourceProvider));
     resolvers.add(resourceResolver);
-    return new SourceFactory(resolvers, packages);
+    return new SourceFactory(resolvers, disposition.packages);
   }
 }
 

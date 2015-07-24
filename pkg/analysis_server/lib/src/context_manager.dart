@@ -244,10 +244,10 @@ abstract class ContextManager {
  */
 abstract class ContextManagerCallbacks {
   /**
-   * Create and return a new analysis context.
+   * Create and return a new analysis context, allowing [disposition] to govern
+   * details of how the context is to be created.
    */
-  AnalysisContext addContext(
-      Folder folder, UriResolver packageUriResolver, Packages packages);
+  AnalysisContext addContext(Folder folder, FolderDisposition disposition);
 
   /**
    * Called when the set of files associated with a context have changed (or
@@ -284,10 +284,10 @@ abstract class ContextManagerCallbacks {
   bool shouldFileBeAnalyzed(File file);
 
   /**
-   * Called when the package map for a context has changed.
+   * Called when the disposition for a context has changed.
    */
   void updateContextPackageUriResolver(
-      Folder contextFolder, UriResolver packageUriResolver, Packages packages);
+      Folder contextFolder, FolderDisposition disposition);
 }
 
 /**
@@ -533,7 +533,7 @@ class ContextManagerImpl implements ContextManager {
       String newPackageRoot = normalizedPackageRoots[info.folder.path];
       if (info.packageRoot != newPackageRoot) {
         info.packageRoot = newPackageRoot;
-        _recomputePackageUriResolver(info);
+        _recomputeFolderDisposition(info);
       }
     }
     // create new contexts
@@ -677,7 +677,8 @@ class ContextManagerImpl implements ContextManager {
       if (packagespec.exists) {
         Packages packages = _readPackagespec(packagespec);
         if (packages != null) {
-          callbacks.updateContextPackageUriResolver(folder, null, packages);
+          callbacks.updateContextPackageUriResolver(
+              folder, new PackagesFileDisposition(packages));
         }
       }
     }
@@ -707,11 +708,10 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Compute the appropriate package URI resolver for [folder], and store
-   * dependency information in [info]. Return `null` if no package map can
-   * be computed.
+   * Compute the appropriate [FolderDisposition] for [folder], and store
+   * dependency information in [info].
    */
-  UriResolver _computePackageUriResolver(Folder folder, ContextInfo info) {
+  FolderDisposition _computeFolderDisposition(Folder folder, ContextInfo info) {
     _cancelDependencySubscriptions(info);
     if (info.packageRoot != null) {
       info.packageMapInfo = null;
@@ -736,20 +736,20 @@ class ContextManagerImpl implements ContextManager {
             packageMap[file.getName()] = <Folder>[res];
           }
         }
-        return new PackageMapUriResolver(resourceProvider, packageMap);
+        return new PackageMapDisposition(packageMap);
       }
       // The package root does not exist (or is not a folder).  Since
       // [setRoots] ignores any package roots that don't exist (or aren't
       // folders), the only way we should be able to get here is due to a race
       // condition.  In any case, the package root folder is gone, so we can't
       // resolve packages.
-      return null;
+      return new NoPackageFolderDisposition();
     } else {
       callbacks.beginComputePackageMap();
       if (packageResolverProvider != null) {
         UriResolver resolver = packageResolverProvider(folder);
         if (resolver != null) {
-          return resolver;
+          return new CustomPackageResolverDisposition(resolver);
         }
       }
       OptimizingPubPackageMapInfo packageMapInfo;
@@ -766,7 +766,7 @@ class ContextManagerImpl implements ContextManager {
             if (info.packageMapInfo != null &&
                 info.packageMapInfo.isChangedDependency(
                     dependencyPath, resourceProvider)) {
-              _recomputePackageUriResolver(info);
+              _recomputeFolderDisposition(info);
             }
           }, onError: (error, StackTrace stackTrace) {
             // Gracefully degrade if file is or becomes unwatchable
@@ -779,12 +779,9 @@ class ContextManagerImpl implements ContextManager {
       }
       info.packageMapInfo = packageMapInfo;
       if (packageMapInfo.packageMap == null) {
-        return null;
+        return new NoPackageFolderDisposition();
       }
-      return new PackageMapUriResolver(
-          resourceProvider, packageMapInfo.packageMap);
-      // TODO(paulberry): if any of the dependencies is outside of [folder],
-      // we'll need to watch their parent folders as well.
+      return new PackageMapDisposition(packageMapInfo.packageMap);
     }
   }
 
@@ -802,22 +799,22 @@ class ContextManagerImpl implements ContextManager {
       _handleWatchEvent(folder, info, event);
     });
     try {
-      Packages packages;
-      UriResolver packageUriResolver;
+      FolderDisposition disposition;
 
       if (ENABLE_PACKAGESPEC_SUPPORT) {
         // Try .packages first.
         if (pathos.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
-          packages = _readPackagespec(packagespecFile);
+          Packages packages = _readPackagespec(packagespecFile);
+          disposition = new PackagesFileDisposition(packages);
         }
       }
 
       // Next resort to a package uri resolver.
-      if (packages == null) {
-        packageUriResolver = _computePackageUriResolver(folder, info);
+      if (disposition == null) {
+        disposition = _computeFolderDisposition(folder, info);
       }
 
-      info.context = callbacks.addContext(folder, packageUriResolver, packages);
+      info.context = callbacks.addContext(folder, disposition);
       info.context.name = folder.path;
     } catch (_) {
       info.changeSubscription.cancel();
@@ -1093,7 +1090,7 @@ class ContextManagerImpl implements ContextManager {
 
     if (info.packageMapInfo != null &&
         info.packageMapInfo.isChangedDependency(path, resourceProvider)) {
-      _recomputePackageUriResolver(info);
+      _recomputeFolderDisposition(info);
     }
   }
 
@@ -1161,18 +1158,17 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Recompute the package URI resolver for the context described by [info],
+   * Recompute the [FolderDisposition] for the context described by [info],
    * and update the client appropriately.
    */
-  void _recomputePackageUriResolver(ContextInfo info) {
+  void _recomputeFolderDisposition(ContextInfo info) {
     // TODO(paulberry): when computePackageMap is changed into an
     // asynchronous API call, we'll want to suspend analysis for this context
     // while we're rerunning "pub list", since any analysis we complete while
     // "pub list" is in progress is just going to get thrown away anyhow.
-    UriResolver packageUriResolver =
-        _computePackageUriResolver(info.folder, info);
-    callbacks.updateContextPackageUriResolver(
-        info.folder, packageUriResolver, null);
+    FolderDisposition disposition =
+        _computeFolderDisposition(info.folder, info);
+    callbacks.updateContextPackageUriResolver(info.folder, disposition);
   }
 
   /**
@@ -1221,4 +1217,107 @@ class ContextsChangedEvent {
   ContextsChangedEvent({this.added: AnalysisContext.EMPTY_LIST,
       this.changed: AnalysisContext.EMPTY_LIST,
       this.removed: AnalysisContext.EMPTY_LIST});
+}
+
+/**
+ * Concrete [FolderDisposition] object indicating that the context for a given
+ * folder should resolve package URIs using a custom URI resolver.
+ */
+class CustomPackageResolverDisposition extends FolderDisposition {
+  /**
+   * The [UriResolver] that should be used to resolve package URIs.
+   */
+  UriResolver resolver;
+
+  CustomPackageResolverDisposition(this.resolver);
+
+  @override
+  Packages get packages => null;
+
+  @override
+  Iterable<UriResolver> createPackageUriResolvers(
+      ResourceProvider resourceProvider) => <UriResolver>[resolver];
+}
+
+/**
+ * An instance of the class [FolderDisposition] represents the information
+ * gathered by the [ContextManagerImpl] to determine how to create an
+ * [AnalysisContext] for a given folder.
+ *
+ * Note: [ContextManagerImpl] may use equality testing and hash codes to
+ * determine when two folders should share the same context, so derived classes
+ * may need to override operator== and hashCode() if object identity is
+ * insufficient.
+ *
+ * TODO(paulberry): consider adding a flag to indicate that it is not necessary
+ * to recurse into the given folder looking for additional contexts to create
+ * or files to analyze (this could help avoid unnecessarily weighing down the
+ * system with file watchers).
+ */
+abstract class FolderDisposition {
+  /**
+   * If contexts governed by this [FolderDisposition] should resolve packages
+   * using the ".packages" file mechanism (DEP 5), retrieve the [Packages]
+   * object that resulted from parsing the ".packages" file.
+   */
+  Packages get packages;
+
+  /**
+   * Create all the [UriResolver]s which should be used to resolve packages in
+   * contexts governed by this [FolderDisposition].
+   *
+   * [resourceProvider] is provided since it is needed to construct most
+   * [UriResolver]s.
+   */
+  Iterable<UriResolver> createPackageUriResolvers(
+      ResourceProvider resourceProvider);
+}
+
+/**
+ * Concrete [FolderDisposition] object indicating that the context for a given
+ * folder should not resolve "package:" URIs at all.
+ *
+ * TODO(paulberry): consider making this a singleton object (which would cause
+ * all folders that don't resolve "package:" URIs to share the same context).
+ */
+class NoPackageFolderDisposition extends FolderDisposition {
+  @override
+  Packages get packages => null;
+
+  @override
+  Iterable<UriResolver> createPackageUriResolvers(
+      ResourceProvider resourceProvider) => const <UriResolver>[];
+}
+
+/**
+ * Concrete [FolderDisposition] object indicating that the context for a given
+ * folder should resolve packages using a package map.
+ */
+class PackageMapDisposition extends FolderDisposition {
+  final Map<String, List<Folder>> packageMap;
+
+  PackageMapDisposition(this.packageMap);
+
+  @override
+  Packages get packages => null;
+
+  @override
+  Iterable<UriResolver> createPackageUriResolvers(
+          ResourceProvider resourceProvider) =>
+      <UriResolver>[new PackageMapUriResolver(resourceProvider, packageMap)];
+}
+
+/**
+ * Concrete [FolderDisposition] object indicating that the context for a given
+ * folder should resolve packages using a ".packages" file.
+ */
+class PackagesFileDisposition extends FolderDisposition {
+  @override
+  final Packages packages;
+
+  PackagesFileDisposition(this.packages) {}
+
+  @override
+  Iterable<UriResolver> createPackageUriResolvers(
+      ResourceProvider resourceProvider) => const <UriResolver>[];
 }
