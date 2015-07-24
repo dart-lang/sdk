@@ -944,7 +944,6 @@ class Assembler : public ValueObject {
   //   ...
   //   pushq r15
   //   .....
-  void EnterDartFrame(intptr_t frame_size);
   void EnterDartFrameWithInfo(intptr_t frame_size,
                               Register new_pp, Register pc_marker_override);
   void LeaveDartFrame();
