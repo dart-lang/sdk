@@ -34,6 +34,11 @@ import 'package:yaml/yaml.dart';
  */
 class ContextInfo {
   /**
+   * The [ContextManager] which is tracking this information.
+   */
+  final ContextManagerImpl contextManager;
+
+  /**
    * The [Folder] for which this information object is created.
    */
   final Folder folder;
@@ -71,10 +76,14 @@ class ContextInfo {
 
   /**
    * Stream subscriptions we are using to watch the files
-   * used to determine the package map.
+   * used to determine the package map.  Organized as a map from path to
+   * subscription.
+   *
+   * For paths that are inside [folder], the subscription is null, since the
+   * entire contents of the folder are automatically being watched.
    */
-  final List<StreamSubscription<WatchEvent>> dependencySubscriptions =
-      <StreamSubscription<WatchEvent>>[];
+  final Map<String, StreamSubscription<WatchEvent>> _dependencySubscriptions =
+      <String, StreamSubscription<WatchEvent>>{};
 
   /**
    * The analysis context that was created for the [folder].
@@ -87,15 +96,8 @@ class ContextInfo {
    */
   Map<String, Source> sources = new HashMap<String, Source>();
 
-  /**
-   * Info returned by the last call to
-   * [OptimizingPubPackageMapProvider.computePackageMap], or `null` if the
-   * package map hasn't been computed for this context yet.
-   */
-  PackageMapInfo packageMapInfo;
-
-  ContextInfo(
-      this.parent, Folder folder, File packagespecFile, this.packageRoot)
+  ContextInfo(this.contextManager, this.parent, Folder folder,
+      File packagespecFile, this.packageRoot)
       : folder = folder,
         pathFilter = new PathFilter(folder.path, null) {
     packageDescriptionPath = packagespecFile.path;
@@ -107,7 +109,8 @@ class ContextInfo {
    * [ContextInfo]s.
    */
   ContextInfo._root()
-      : folder = null,
+      : contextManager = null,
+        folder = null,
         pathFilter = null;
 
   /**
@@ -154,6 +157,12 @@ class ContextInfo {
     return null;
   }
 
+  /**
+   * Determine if the given [path] is one of the dependencies most recently
+   * passed to [setDependencies].
+   */
+  bool hasDependency(String path) => _dependencySubscriptions.containsKey(path);
+
   /// Returns `true` if  [path] should be ignored.
   bool ignored(String path) => pathFilter.ignored(path);
 
@@ -163,6 +172,45 @@ class ContextInfo {
    */
   bool isPathToPackageDescription(String path) =>
       path == packageDescriptionPath;
+
+  /**
+   * Update the set of dependencies for this context.  Watchers are
+   * automatically set up for the dependencies (if necessary) to ensure that
+   * [ContextManagerImpl._handleWatchEvent] is called when they are modified.
+   */
+  void setDependencies(Iterable<String> newDependencies) {
+    for (String oldDependency in _dependencySubscriptions.keys.toList()) {
+      if (!newDependencies.contains(oldDependency)) {
+        StreamSubscription<WatchEvent> subscription =
+            _dependencySubscriptions[oldDependency];
+        if (subscription != null) {
+          subscription.cancel();
+        }
+        _dependencySubscriptions.remove(oldDependency);
+      }
+    }
+    for (String newDependency in newDependencies) {
+      if (!_dependencySubscriptions.containsKey(newDependency)) {
+        StreamSubscription<WatchEvent> subscription;
+        if (!folder.contains(newDependency)) {
+          Resource resource =
+              contextManager.resourceProvider.getResource(newDependency);
+          if (resource is File) {
+            subscription = resource.changes.listen((WatchEvent event) {
+              contextManager._handleWatchEvent(folder, this, event);
+            }, onError: (error, StackTrace stackTrace) {
+              // Gracefully degrade if file is or becomes unwatchable
+              contextManager._instrumentationService.logException(
+                  error, stackTrace);
+              subscription.cancel();
+              _dependencySubscriptions[newDependency] = null;
+            });
+          }
+        }
+        _dependencySubscriptions[newDependency] = subscription;
+      }
+    }
+  }
 }
 
 /**
@@ -662,10 +710,7 @@ class ContextManagerImpl implements ContextManager {
    * Cancel all dependency subscriptions for the given context.
    */
   void _cancelDependencySubscriptions(ContextInfo info) {
-    for (StreamSubscription<WatchEvent> s in info.dependencySubscriptions) {
-      s.cancel();
-    }
-    info.dependencySubscriptions.clear();
+    info.setDependencies(const <String>[]);
   }
 
   void _checkForPackagespecUpdate(
@@ -709,13 +754,17 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Compute the appropriate [FolderDisposition] for [folder], and store
-   * dependency information in [info].
+   * Compute the appropriate [FolderDisposition] for [info].  Use
+   * [addDependency] to indicate which files needed to be consulted in order to
+   * figure out the [FolderDisposition]; these dependencies will be watched in
+   * order to determine when it is necessary to call this function again.
+   *
+   * TODO(paulberry): use [addDependency] for tracking all folder disposition
+   * dependencies (currently we only use it to track "pub list" dependencies).
    */
-  FolderDisposition _computeFolderDisposition(Folder folder, ContextInfo info) {
-    _cancelDependencySubscriptions(info);
+  FolderDisposition _computeFolderDisposition(
+      Folder folder, ContextInfo info, void addDependency(String path)) {
     if (info.packageRoot != null) {
-      info.packageMapInfo = null;
       // TODO(paulberry): We shouldn't be using JavaFile here because it
       // makes the code untestable (see dartbug.com/23909).
       JavaFile packagesDir = new JavaFile(info.packageRoot);
@@ -759,24 +808,8 @@ class ContextManagerImpl implements ContextManager {
       });
       callbacks.endComputePackageMap();
       for (String dependencyPath in packageMapInfo.dependencies) {
-        Resource resource = resourceProvider.getResource(dependencyPath);
-        if (resource is File) {
-          StreamSubscription<WatchEvent> subscription;
-          subscription = resource.changes.listen((WatchEvent event) {
-            if (info.packageMapInfo != null &&
-                info.packageMapInfo.dependencies.contains(dependencyPath)) {
-              _recomputeFolderDisposition(info);
-            }
-          }, onError: (error, StackTrace stackTrace) {
-            // Gracefully degrade if file is or becomes unwatchable
-            _instrumentationService.logException(error, stackTrace);
-            subscription.cancel();
-            info.dependencySubscriptions.remove(subscription);
-          });
-          info.dependencySubscriptions.add(subscription);
-        }
+        addDependency(dependencyPath);
       }
-      info.packageMapInfo = packageMapInfo;
       if (packageMapInfo.packageMap == null) {
         return new NoPackageFolderDisposition();
       }
@@ -790,8 +823,8 @@ class ContextManagerImpl implements ContextManager {
    */
   ContextInfo _createContext(
       ContextInfo parent, Folder folder, File packagespecFile) {
-    ContextInfo info = new ContextInfo(
-        parent, folder, packagespecFile, normalizedPackageRoots[folder.path]);
+    ContextInfo info = new ContextInfo(this, parent, folder, packagespecFile,
+        normalizedPackageRoots[folder.path]);
     Map<String, YamlNode> options = analysisOptionsProvider.getOptions(folder);
     processOptionsForContext(info, options);
     info.changeSubscription = folder.changes.listen((WatchEvent event) {
@@ -799,6 +832,7 @@ class ContextManagerImpl implements ContextManager {
     });
     try {
       FolderDisposition disposition;
+      List<String> dependencies = <String>[];
 
       if (ENABLE_PACKAGESPEC_SUPPORT) {
         // Try .packages first.
@@ -810,9 +844,10 @@ class ContextManagerImpl implements ContextManager {
 
       // Next resort to a package uri resolver.
       if (disposition == null) {
-        disposition = _computeFolderDisposition(folder, info);
+        disposition = _computeFolderDisposition(folder, info, dependencies.add);
       }
 
+      info.setDependencies(dependencies);
       info.context = callbacks.addContext(folder, disposition);
       info.context.name = folder.path;
     } catch (_) {
@@ -955,6 +990,12 @@ class ContextManagerImpl implements ContextManager {
     _instrumentationService.logWatchEvent(
         folder.path, event.path, event.type.toString());
     String path = event.path;
+    // First handle changes that affect folderDisposition (since these need to
+    // be processed regardless of whether they are part of an excluded/ignored
+    // path).
+    if (info.hasDependency(path)) {
+      _recomputeFolderDisposition(info);
+    }
     // maybe excluded globally
     if (_isExcluded(path)) {
       return;
@@ -1086,11 +1127,6 @@ class ContextManagerImpl implements ContextManager {
 
     //TODO(pquitslund): find the right place for this
     _checkForPackagespecUpdate(path, info, folder);
-
-    if (info.packageMapInfo != null &&
-        info.packageMapInfo.dependencies.contains(path)) {
-      _recomputeFolderDisposition(info);
-    }
   }
 
   /**
@@ -1165,8 +1201,10 @@ class ContextManagerImpl implements ContextManager {
     // asynchronous API call, we'll want to suspend analysis for this context
     // while we're rerunning "pub list", since any analysis we complete while
     // "pub list" is in progress is just going to get thrown away anyhow.
+    List<String> dependencies = <String>[];
     FolderDisposition disposition =
-        _computeFolderDisposition(info.folder, info);
+        _computeFolderDisposition(info.folder, info, dependencies.add);
+    info.setDependencies(dependencies);
     callbacks.updateContextPackageUriResolver(info.folder, disposition);
   }
 
