@@ -319,7 +319,7 @@ class Assembler : public ValueObject {
         prologue_offset_(-1),
         use_far_branches_(use_far_branches),
         comments_(),
-        constant_pool_allowed_(true) { }
+        constant_pool_allowed_(false) { }
 
   ~Assembler() { }
 
@@ -755,6 +755,7 @@ class Assembler : public ValueObject {
                            Register scratch2,
                            Label* miss);
 
+  intptr_t FindImmediate(int32_t imm);
   void LoadWordFromPoolOffset(Register rd, int32_t offset, Condition cond = AL);
   void LoadFromOffset(OperandSize type,
                       Register reg,

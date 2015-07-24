@@ -67,14 +67,13 @@ bool FlowGraphCompiler::SupportsHardwareDivision() {
 void FlowGraphCompiler::EnterIntrinsicMode() {
   ASSERT(!intrinsic_mode());
   intrinsic_mode_ = true;
-  assembler()->set_constant_pool_allowed(false);
+  ASSERT(!assembler()->constant_pool_allowed());
 }
 
 
 void FlowGraphCompiler::ExitIntrinsicMode() {
   ASSERT(intrinsic_mode());
   intrinsic_mode_ = false;
-  assembler()->set_constant_pool_allowed(true);
 }
 
 
@@ -920,8 +919,12 @@ void FlowGraphCompiler::CopyParameters() {
 
   __ Bind(&wrong_num_arguments);
   if (function.IsClosureFunction()) {
+    ASSERT(assembler()->constant_pool_allowed());
     __ LeaveDartFrame();  // The arguments are still on the stack.
+    // Do not use caller's pool ptr in branch.
+    ASSERT(!assembler()->constant_pool_allowed());
     __ Branch(&StubCode::CallClosureNoSuchMethodLabel());
+    __ set_constant_pool_allowed(true);
     // The noSuchMethod call may return to the caller, but not here.
   } else if (check_correct_named_args) {
     __ Stop("Wrong arguments");
@@ -991,6 +994,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     __ LoadObject(function_reg, function);  // Uses PP.
     // Restore PP of caller.
     __ mov(PP, Operand(R7));
+    __ set_constant_pool_allowed(false);
 
     // Patch point is after the eventually inlined function object.
     entry_patch_pc_offset_ = assembler()->CodeSize();
@@ -1037,6 +1041,7 @@ void FlowGraphCompiler::CompileGraph() {
   TryIntrinsify();
 
   EmitFrameEntry();
+  ASSERT(assembler()->constant_pool_allowed());
 
   const Function& function = parsed_function().function();
 
@@ -1069,8 +1074,12 @@ void FlowGraphCompiler::CompileGraph() {
       __ b(&correct_num_arguments, EQ);
       __ Bind(&wrong_num_arguments);
       if (function.IsClosureFunction()) {
+        ASSERT(assembler()->constant_pool_allowed());
         __ LeaveDartFrame();  // The arguments are still on the stack.
+        // Do not use caller's pool ptr in branch.
+        ASSERT(!assembler()->constant_pool_allowed());
         __ Branch(&StubCode::CallClosureNoSuchMethodLabel());
+        __ set_constant_pool_allowed(true);
         // The noSuchMethod call may return to the caller, but not here.
       } else {
         __ Stop("Wrong number of arguments");
@@ -1121,6 +1130,7 @@ void FlowGraphCompiler::CompileGraph() {
   VisitBlocks();
 
   __ bkpt(0);
+  ASSERT(assembler()->constant_pool_allowed());
   GenerateDeferredCode();
   // Emit function patching code. This will be swapped with the first 3
   // instructions at entry point.
@@ -1197,6 +1207,7 @@ void FlowGraphCompiler::EmitEdgeCounter() {
   // overflow; and though we do not reset the counters when we optimize or
   // deoptimize, there is a bound on the number of
   // optimization/deoptimization cycles we will attempt.
+  ASSERT(assembler_->constant_pool_allowed());
   const Array& counter = Array::ZoneHandle(Array::New(1, Heap::kOld));
   counter.SetAt(0, Smi::Handle(Smi::New(0)));
   __ Comment("Edge counter");

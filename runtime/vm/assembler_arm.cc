@@ -1525,6 +1525,11 @@ void Assembler::Drop(intptr_t stack_elements) {
 }
 
 
+intptr_t Assembler::FindImmediate(int32_t imm) {
+  return object_pool_wrapper_.FindImmediate(imm);
+}
+
+
 // Uses a code sequence that can easily be decoded.
 void Assembler::LoadWordFromPoolOffset(Register rd,
                                        int32_t offset,
@@ -1555,6 +1560,7 @@ void Assembler::LoadPoolPointer() {
      Instructions::HeaderSize() - Instructions::object_pool_offset() +
      CodeSize() + Instr::kPCReadOffset;
   LoadFromOffset(kWord, PP, PC, -object_pool_pc_dist);
+  set_constant_pool_allowed(true);
 }
 
 
@@ -2746,7 +2752,12 @@ void Assembler::LoadDecodableImmediate(
     Register rd, int32_t value, Condition cond) {
   const ARMVersion version = TargetCPUFeatures::arm_version();
   if ((version == ARMv5TE) || (version == ARMv6)) {
-    LoadPatchableImmediate(rd, value, cond);
+    if (constant_pool_allowed()) {
+      const int32_t offset = Array::element_offset(FindImmediate(value));
+      LoadWordFromPoolOffset(rd, offset - kHeapObjectTag);
+    } else {
+      LoadPatchableImmediate(rd, value, cond);
+    }
   } else {
     ASSERT(version == ARMv7);
     movw(rd, Utils::Low16Bits(value), cond);
@@ -3273,6 +3284,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 
 
 void Assembler::EnterDartFrame(intptr_t frame_size) {
+  ASSERT(!constant_pool_allowed());
   const intptr_t offset = CodeSize();
 
   // Save PC in frame for fast identification of corresponding code.
@@ -3301,6 +3313,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 // optimized function and there may be extra space for spill slots to
 // allocate. We must also set up the pool pointer for the function.
 void Assembler::EnterOsrFrame(intptr_t extra_size) {
+  ASSERT(!constant_pool_allowed());
   // mov(IP, Operand(PC)) loads PC + Instr::kPCReadOffset (8). This may be
   // different from EntryPointToPcMarkerOffset().
   const intptr_t offset =
@@ -3320,6 +3333,10 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
 
 
 void Assembler::LeaveDartFrame() {
+  // LeaveDartFrame is called from stubs (pp disallowed) and from Dart code (pp
+  // allowed), so there is no point in checking the current value of
+  // constant_pool_allowed().
+  set_constant_pool_allowed(false);
   LeaveFrame((1 << PP) | (1 << FP) | (1 << LR));
   // Adjust SP for PC pushed in EnterDartFrame.
   AddImmediate(SP, kWordSize);
@@ -3327,6 +3344,7 @@ void Assembler::LeaveDartFrame() {
 
 
 void Assembler::EnterStubFrame() {
+  set_constant_pool_allowed(false);
   // Push 0 as saved PC for stub frames.
   mov(IP, Operand(LR));
   mov(LR, Operand(0));
@@ -3339,6 +3357,7 @@ void Assembler::EnterStubFrame() {
 
 void Assembler::LeaveStubFrame() {
   LeaveFrame((1 << PP) | (1 << FP) | (1 << LR));
+  set_constant_pool_allowed(false);
   // Adjust SP for null PC pushed in EnterStubFrame.
   AddImmediate(SP, kWordSize);
 }

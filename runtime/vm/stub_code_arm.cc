@@ -834,6 +834,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   }
   // Restore CPU registers.
   __ PopList(kAbiPreservedCpuRegs);
+  __ set_constant_pool_allowed(false);
 
   // Restore the frame pointer and return.
   __ LeaveFrame((1 << FP) | (1 << LR));

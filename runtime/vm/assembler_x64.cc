@@ -2885,8 +2885,6 @@ bool Assembler::CanLoadImmediateFromPool(const Immediate& imm, Register pp) {
 
 void Assembler::LoadImmediate(Register reg, const Immediate& imm, Register pp) {
   if (CanLoadImmediateFromPool(imm, pp)) {
-    // It's a 64-bit constant and we're not in the VM isolate, so load from
-    // object pool.
     int32_t offset = ObjectPool::element_offset(FindImmediate(imm.value()));
     LoadWordFromPoolOffset(reg, pp, offset - kHeapObjectTag);
   } else {
