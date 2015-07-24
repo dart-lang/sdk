@@ -108,7 +108,7 @@ Here is an example response for our [getVersion](#getversion) request above:
 
 ```
 {
-  "json-rpc": "2.0",
+  "jsonrpc": "2.0",
   "result": {
     "type": "Version",
     "major": 1,
@@ -152,7 +152,7 @@ subscribe to the _GC_ stream multiple times from the same client.
 
 ```
 {
-  "json-rpc": "2.0",
+  "jsonrpc": "2.0",
   "error": {
     "code": 103,
     "message": "Stream already subscribed",
