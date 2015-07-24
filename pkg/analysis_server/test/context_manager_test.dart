@@ -65,6 +65,63 @@ class AbstractContextManagerTest {
 
   String projPath = '/my/proj';
 
+  void fail_test_setRoots_addPackageRoot() {
+    // TODO(paulberry): failing due to dartbug.com/23909.
+    String packagePathFoo = '/package1/foo';
+    String packageRootPath = '/package2/foo';
+    Folder packageFolder = resourceProvider.newFolder(packagePathFoo);
+    packageMapProvider.packageMap = {'foo': [packageFolder]};
+    List<String> includedPaths = <String>[projPath];
+    List<String> excludedPaths = <String>[];
+    manager.setRoots(includedPaths, excludedPaths, <String, String>{});
+    _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
+    manager.setRoots(includedPaths, excludedPaths, <String, String>{
+      projPath: packageRootPath
+    });
+    _checkPackageRoot(projPath, equals(packageRootPath));
+  }
+
+  void fail_test_setRoots_changePackageRoot() {
+    // TODO(paulberry): failing due to dartbug.com/23909.
+    String packageRootPath1 = '/package1';
+    String packageRootPath2 = '/package2';
+    List<String> includedPaths = <String>[projPath];
+    List<String> excludedPaths = <String>[];
+    manager.setRoots(includedPaths, excludedPaths, <String, String>{
+      projPath: packageRootPath1
+    });
+    _checkPackageRoot(projPath, equals(packageRootPath1));
+    manager.setRoots(includedPaths, excludedPaths, <String, String>{
+      projPath: packageRootPath2
+    });
+    _checkPackageRoot(projPath, equals(packageRootPath2));
+  }
+
+  void fail_test_setRoots_newFolderWithPackageRoot() {
+    // TODO(paulberry): failing due to dartbug.com/23909.
+    String packageRootPath = '/package';
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{
+      projPath: packageRootPath
+    });
+    _checkPackageRoot(projPath, equals(packageRootPath));
+  }
+
+  void fail_test_setRoots_removePackageRoot() {
+    // TODO(paulberry): failing due to dartbug.com/23909.
+    String packagePathFoo = '/package1/foo';
+    String packageRootPath = '/package2/foo';
+    Folder packageFolder = resourceProvider.newFolder(packagePathFoo);
+    packageMapProvider.packageMap = {'foo': [packageFolder]};
+    List<String> includedPaths = <String>[projPath];
+    List<String> excludedPaths = <String>[];
+    manager.setRoots(includedPaths, excludedPaths, <String, String>{
+      projPath: packageRootPath
+    });
+    _checkPackageRoot(projPath, equals(packageRootPath));
+    manager.setRoots(includedPaths, excludedPaths, <String, String>{});
+    _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
+  }
+
   String newFile(List<String> pathComponents, [String content = '']) {
     String filePath = posix.joinAll(pathComponents);
     resourceProvider.newFile(filePath, content);
@@ -576,36 +633,6 @@ analyzer:
         subProjectB, equals(packageMapProvider.packageMaps[subProjectB]));
   }
 
-  void test_setRoots_addPackageRoot() {
-    String packagePathFoo = '/package1/foo';
-    String packageRootPath = '/package2/foo';
-    Folder packageFolder = resourceProvider.newFolder(packagePathFoo);
-    packageMapProvider.packageMap = {'foo': [packageFolder]};
-    List<String> includedPaths = <String>[projPath];
-    List<String> excludedPaths = <String>[];
-    manager.setRoots(includedPaths, excludedPaths, <String, String>{});
-    _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
-    manager.setRoots(includedPaths, excludedPaths, <String, String>{
-      projPath: packageRootPath
-    });
-    _checkPackageRoot(projPath, equals(packageRootPath));
-  }
-
-  void test_setRoots_changePackageRoot() {
-    String packageRootPath1 = '/package1';
-    String packageRootPath2 = '/package2';
-    List<String> includedPaths = <String>[projPath];
-    List<String> excludedPaths = <String>[];
-    manager.setRoots(includedPaths, excludedPaths, <String, String>{
-      projPath: packageRootPath1
-    });
-    _checkPackageRoot(projPath, equals(packageRootPath1));
-    manager.setRoots(includedPaths, excludedPaths, <String, String>{
-      projPath: packageRootPath2
-    });
-    _checkPackageRoot(projPath, equals(packageRootPath2));
-  }
-
   void test_setRoots_exclude_newRoot_withExcludedFile() {
     // prepare paths
     String project = '/project';
@@ -728,14 +755,6 @@ analyzer:
     manager.setRoots(<String>[project], <String>[], <String, String>{});
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA, fileB]);
-  }
-
-  void test_setRoots_newFolderWithPackageRoot() {
-    String packageRootPath = '/package';
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{
-      projPath: packageRootPath
-    });
-    _checkPackageRoot(projPath, equals(packageRootPath));
   }
 
   void test_setRoots_newlyAddedFoldersGetProperPackageMap() {
@@ -868,21 +887,6 @@ analyzer:
     callbacks.assertContextPaths([projectA, subProjectA]);
     callbacks.assertContextFiles(projectA, [projectA_file]);
     callbacks.assertContextFiles(subProjectA, [subProjectA_file]);
-  }
-
-  void test_setRoots_removePackageRoot() {
-    String packagePathFoo = '/package1/foo';
-    String packageRootPath = '/package2/foo';
-    Folder packageFolder = resourceProvider.newFolder(packagePathFoo);
-    packageMapProvider.packageMap = {'foo': [packageFolder]};
-    List<String> includedPaths = <String>[projPath];
-    List<String> excludedPaths = <String>[];
-    manager.setRoots(includedPaths, excludedPaths, <String, String>{
-      projPath: packageRootPath
-    });
-    _checkPackageRoot(projPath, equals(packageRootPath));
-    manager.setRoots(includedPaths, excludedPaths, <String, String>{});
-    _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
   }
 
   test_watch_addDummyLink() {

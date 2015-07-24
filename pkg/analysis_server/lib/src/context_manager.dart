@@ -715,6 +715,8 @@ class ContextManagerImpl implements ContextManager {
     _cancelDependencySubscriptions(info);
     if (info.packageRoot != null) {
       info.packageMapInfo = null;
+      // TODO(paulberry): We shouldn't be using JavaFile here because it
+      // makes the code untestable (see dartbug.com/23909).
       JavaFile packagesDir = new JavaFile(info.packageRoot);
       Map<String, List<Folder>> packageMap = new Map<String, List<Folder>>();
       if (packagesDir.isDirectory()) {
@@ -736,8 +738,12 @@ class ContextManagerImpl implements ContextManager {
         }
         return new PackageMapUriResolver(resourceProvider, packageMap);
       }
-      //TODO(danrubel) remove this if it will never be called
-      return new PackageUriResolver([packagesDir]);
+      // The package root does not exist (or is not a folder).  Since
+      // [setRoots] ignores any package roots that don't exist (or aren't
+      // folders), the only way we should be able to get here is due to a race
+      // condition.  In any case, the package root folder is gone, so we can't
+      // resolve packages.
+      return null;
     } else {
       callbacks.beginComputePackageMap();
       if (packageResolverProvider != null) {
