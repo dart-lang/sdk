@@ -2574,6 +2574,29 @@ static const MethodParameter* get_object_by_address_params[] = {
 };
 
 
+static RawObject* GetObjectHelper(Isolate* isolate, uword addr) {
+  Object& object = Object::Handle(isolate);
+
+  {
+    NoSafepointScope no_safepoint;
+    ContainsAddressVisitor visitor(isolate, addr);
+    object = isolate->heap()->FindObject(&visitor);
+  }
+
+  if (!object.IsNull()) {
+    return object.raw();
+  }
+
+  {
+    NoSafepointScope no_safepoint;
+    ContainsAddressVisitor visitor(Dart::vm_isolate(), addr);
+    object = Dart::vm_isolate()->heap()->FindObject(&visitor);
+  }
+
+  return object.raw();
+}
+
+
 static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
   const char* addr_str = js->LookupParam("address");
   if (addr_str == NULL) {
@@ -2588,16 +2611,11 @@ static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
     return true;
   }
   bool ref = js->HasParam("ref") && js->ParamIs("ref", "true");
-  Object& object = Object::Handle(isolate);
-  {
-    NoSafepointScope no_safepoint;
-    ContainsAddressVisitor visitor(isolate, addr);
-    object = isolate->heap()->FindObject(&visitor);
-  }
-  if (object.IsNull()) {
+  const Object& obj = Object::Handle(isolate, GetObjectHelper(isolate, addr));
+  if (obj.IsNull()) {
     PrintSentinel(js, kFreeSentinel);
   } else {
-    object.PrintJSON(js, ref);
+    obj.PrintJSON(js, ref);
   }
   return true;
 }
