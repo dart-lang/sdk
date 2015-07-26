@@ -786,14 +786,15 @@ class ContextManagerImpl implements ContextManager {
             packageMap[file.getName()] = <Folder>[res];
           }
         }
-        return new PackageMapDisposition(packageMap);
+        return new PackageMapDisposition(packageMap,
+            packageRoot: info.packageRoot);
       }
       // The package root does not exist (or is not a folder).  Since
       // [setRoots] ignores any package roots that don't exist (or aren't
       // folders), the only way we should be able to get here is due to a race
       // condition.  In any case, the package root folder is gone, so we can't
       // resolve packages.
-      return new NoPackageFolderDisposition();
+      return new NoPackageFolderDisposition(packageRoot: info.packageRoot);
     } else {
       callbacks.beginComputePackageMap();
       if (packageResolverProvider != null) {
@@ -1269,6 +1270,9 @@ class CustomPackageResolverDisposition extends FolderDisposition {
   CustomPackageResolverDisposition(this.resolver);
 
   @override
+  String get packageRoot => null;
+
+  @override
   Packages get packages => null;
 
   @override
@@ -1293,6 +1297,12 @@ class CustomPackageResolverDisposition extends FolderDisposition {
  */
 abstract class FolderDisposition {
   /**
+   * If this [FolderDisposition] was created based on a package root
+   * folder, the absolute path to that folder.  Otherwise `null`.
+   */
+  String get packageRoot;
+
+  /**
    * If contexts governed by this [FolderDisposition] should resolve packages
    * using the ".packages" file mechanism (DEP 5), retrieve the [Packages]
    * object that resulted from parsing the ".packages" file.
@@ -1313,11 +1323,13 @@ abstract class FolderDisposition {
 /**
  * Concrete [FolderDisposition] object indicating that the context for a given
  * folder should not resolve "package:" URIs at all.
- *
- * TODO(paulberry): consider making this a singleton object (which would cause
- * all folders that don't resolve "package:" URIs to share the same context).
  */
 class NoPackageFolderDisposition extends FolderDisposition {
+  @override
+  final String packageRoot;
+
+  NoPackageFolderDisposition({this.packageRoot});
+
   @override
   Packages get packages => null;
 
@@ -1333,7 +1345,10 @@ class NoPackageFolderDisposition extends FolderDisposition {
 class PackageMapDisposition extends FolderDisposition {
   final Map<String, List<Folder>> packageMap;
 
-  PackageMapDisposition(this.packageMap);
+  @override
+  final String packageRoot;
+
+  PackageMapDisposition(this.packageMap, {this.packageRoot});
 
   @override
   Packages get packages => null;
@@ -1353,6 +1368,9 @@ class PackagesFileDisposition extends FolderDisposition {
   final Packages packages;
 
   PackagesFileDisposition(this.packages) {}
+
+  @override
+  String get packageRoot => null;
 
   @override
   Iterable<UriResolver> createPackageUriResolvers(
