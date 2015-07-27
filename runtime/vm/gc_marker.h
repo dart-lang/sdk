@@ -48,7 +48,7 @@ class GCMarker : public ValueObject {
 
 
   Heap* heap_;
-  intptr_t marked_bytes_;
+  uintptr_t marked_bytes_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(GCMarker);
 };
