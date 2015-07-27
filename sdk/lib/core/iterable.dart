@@ -382,15 +382,15 @@ abstract class Iterable<E> {
   bool get isNotEmpty => !isEmpty;
 
    /**
-   * Returns a lazy iterable of the [count] first elements of this iterable.
+   * Returns a lazy iterable of the [n] first elements of this iterable.
    *
-   * The returned `Iterable` may contain fewer than `count` elements, if `this`
-   * contains fewer than `count` elements.
+   * The returned `Iterable` may contain fewer than `n` elements, if `this`
+   * contains fewer than `n` elements.
    *
-   * The elements can be computed by stepping through [iterator] until [count]
+   * The elements can be computed by stepping through [iterator] until [n]
    * elements have been seen.
    *
-   * The `count` must not be negative.
+   * The `n` must not be negative.
    */
   Iterable<E> take(int n) {
     return new TakeIterable<E>(this, n);
