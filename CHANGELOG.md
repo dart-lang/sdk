@@ -68,6 +68,9 @@
     * A crashing bug involving transformers that only apply to non-public code
       has been fixed.
 
+    * A deadlock caused by declaring transformer followed by a lazy transformer
+      (such as the built-in `$dart2js` transformer) has been fixed.
+
     * A stack overflow caused by a transformer being run multiple times on the
       package that defines it has been fixed.
 

@@ -41,7 +41,7 @@ vars = {
   "analyzer_cli_rev" : "@7436b45b160f99e806bef2aafd1e971e1aedfc4d",
   "args_tag": "@0.13.0",
   "async_tag": "@1.2.0",
-  "barback_tag" : "@0.15.2+5",
+  "barback_tag" : "@0.15.2+6",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
   "clang_rev" : "@28450",
@@ -65,7 +65,7 @@ vars = {
   "idl_parser_rev": "@6316d5982dc24b34d09dd8b10fbeaaff28d83a48",
   "intl_rev": "@32047558bd220a53c1f4d93a26d54b83533b1475",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
-  "json_rpc_2_rev": "@a38eefd116d910199de205f962af92fed87c164c",
+  "json_rpc_2_tag": "@1.1.1",
   "linter_tag": "@0.1.0",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "markdown_rev": "@56b0fd6c018d6103862d07e8e27407b9ea3b963d",
@@ -216,7 +216,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/intl":
       (Var("github_mirror") % "intl") + Var("intl_rev"),
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
-      (Var("github_mirror") % "json_rpc_2") + Var("json_rpc_2_rev"),
+      (Var("github_mirror") % "json_rpc_2") + Var("json_rpc_2_tag"),
   Var("dart_root") + "/third_party/pkg/linter":
       (Var("github_mirror") % "linter") + Var("linter_tag"),
   Var("dart_root") + "/third_party/pkg/logging":
