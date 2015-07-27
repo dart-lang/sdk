@@ -143,6 +143,7 @@ class Message {
 
   void setErrorResponse(String message) {
     var response = {
+      'jsonrpc': '2.0',
       'id': serial,
       'result' : {
         'type': 'Error',

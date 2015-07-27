@@ -76,6 +76,11 @@
 
 [package spec proposal]: https://github.com/lrhn/dep-pkgspec
 
+### VM Service Protocol Changes
+
+* Some RPCs that didn't include a `"jsonrpc"` property in their responses now
+  include one.
+
 ## 1.11.2
 
 ### Core library changes

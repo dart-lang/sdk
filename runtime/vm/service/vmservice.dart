@@ -156,6 +156,7 @@ class VMService extends MessageRouter {
 
   String _encodeError(Message message, int code, {String details}) {
     var response = {
+      'jsonrpc': '2.0',
       'id' : message.serial,
       'error' : {
         'code': code,
@@ -172,6 +173,7 @@ class VMService extends MessageRouter {
 
   String _encodeResult(Message message, Map result) {
     var response = {
+      'jsonrpc': '2.0',
       'id' : message.serial,
       'result' : result,
     };
