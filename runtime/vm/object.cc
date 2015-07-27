@@ -635,7 +635,7 @@ void Object::InitOnce(Isolate* isolate) {
   // Allocate and initialize the empty_array instance.
   {
     uword address = heap->Allocate(Array::InstanceSize(0), Heap::kOld);
-    InitializeObject(address, kArrayCid, Array::InstanceSize(0));
+    InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(0));
     Array::initializeHandle(
         empty_array_,
         reinterpret_cast<RawArray*>(address + kHeapObjectTag));
@@ -646,7 +646,7 @@ void Object::InitOnce(Isolate* isolate) {
   // Allocate and initialize the zero_array instance.
   {
     uword address = heap->Allocate(Array::InstanceSize(1), Heap::kOld);
-    InitializeObject(address, kArrayCid, Array::InstanceSize(1));
+    InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(1));
     Array::initializeHandle(
         zero_array_,
         reinterpret_cast<RawArray*>(address + kHeapObjectTag));
@@ -19733,6 +19733,7 @@ RawArray* Array::Slice(intptr_t start,
 
 
 void Array::MakeImmutable() const {
+  if (IsImmutable()) return;
   NoSafepointScope no_safepoint;
   uword tags = raw_ptr()->tags_;
   uword old_tags;
