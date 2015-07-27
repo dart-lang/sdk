@@ -19,14 +19,15 @@ class MultiPackageResolver extends UriResolver {
   MultiPackageResolver(this.searchPaths);
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     var candidates = _expandPath(uri);
     if (candidates == null) return null;
 
     for (var path in candidates) {
       var resolvedPath = _resolve(path);
       if (resolvedPath != null) {
-        return new FileBasedSource(new JavaFile(resolvedPath), uri);
+        return new FileBasedSource(
+            new JavaFile(resolvedPath), actualUri != null ? actualUri : uri);
       }
     }
     return null;

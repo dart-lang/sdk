@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
@@ -125,12 +126,14 @@ class TestUriResolver extends ResourceUriResolver {
   TestUriResolver(provider)
       : provider = provider,
         super(provider);
-  resolveAbsolute(Uri uri) {
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     if (uri.scheme == 'package') {
       return (provider.getResource('/packages/' + uri.path) as File)
           .createSource(uri);
     }
-    return super.resolveAbsolute(uri);
+    return super.resolveAbsolute(uri, actualUri);
   }
 }
 

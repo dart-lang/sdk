@@ -299,8 +299,8 @@ class _ExistingSourceUriResolver implements UriResolver {
   final UriResolver resolver;
   _ExistingSourceUriResolver(this.resolver);
 
-  Source resolveAbsolute(Uri uri) {
-    var src = resolver.resolveAbsolute(uri);
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    var src = resolver.resolveAbsolute(uri, actualUri);
     return src.exists() ? src : null;
   }
   Uri restoreAbsolute(Source source) => resolver.restoreAbsolute(source);

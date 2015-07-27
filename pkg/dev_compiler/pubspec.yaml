@@ -6,7 +6,7 @@ description: >
 author: Dart Dev Compiler team <dev-compiler@dartlang.org>
 homepage: https://github.com/dart-lang/dev_compiler
 dependencies:
-  analyzer: ^0.25.3-alpha.2
+  analyzer: ^0.26.0-alpha.0
   args: ^0.13.0
   cli_util: ^0.0.1
   crypto: ^0.9.0
@@ -22,7 +22,7 @@ dev_dependencies:
   # We pin a specific version to ensure everyone is formatting the code exactly
   # the same way. This is because any change in dart_style, even non-breaking
   # changes, may change the output format.
-  dart_style: 0.1.8
+  dart_style: 0.1.8+2
   pub_semver: ^1.1.0
   test: ^0.12.0
 environment:
