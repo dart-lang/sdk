@@ -366,7 +366,7 @@ closure_type_variables_test: Crash # Invalid argument(s)
 closures_initializer_test: RuntimeError # Please triage this failure.
 const_evaluation_test/01: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 constructor12_test: RuntimeError # Please triage this failure.
-crash_6725_test/01: Crash # The null object does not have a getter '_element'.
+crash_6725_test/01: Crash # unsupported operation on erroneous element
 custom_await_stack_trace_test: Crash # (main()async{try {va...  cannot handle async/sync*/async* functions
 deferred_call_empty_before_load_test: Crash # (lib1.thefun()): deferred access is not implemented
 deferred_closurize_load_library_test: Crash # (lib.trueVar): deferred access is not implemented

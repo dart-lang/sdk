@@ -555,7 +555,6 @@ class TransformingVisitor extends LeafVisitor {
   JavaScriptBackend get backend => compiler.backend;
   TypeMaskSystem get typeSystem => lattice.typeSystem;
   types.DartTypes get dartTypes => lattice.dartTypes;
-  Set<Node> get reachable => analyzer.reachableNodes;
   Map<Node, AbstractValue> get values => analyzer.values;
 
   final dart2js.InternalErrorFunction internalError;
@@ -1451,7 +1450,6 @@ class TransformingVisitor extends LeafVisitor {
 
       case AbstractBool.False:
         // Cast always fails, remove unreachable continuation body.
-        assert(!reachable.contains(cont));
         replaceSubtree(cont.body, new Unreachable());
         break;
     }
@@ -1633,11 +1631,11 @@ class TypePropagationVisitor implements Visitor {
   // TODO(jgruber): Storing reachability per-edge instead of per-node would
   // allow for further optimizations.
   final List<Node> nodeWorklist = <Node>[];
-  final Set<Node> reachableNodes = new Set<Node>();
+  final Set<Continuation> reachableContinuations = new Set<Continuation>();
 
   // The definition workset stores all definitions which need to be reprocessed
   // since their lattice value has changed.
-  final Set<Definition> defWorkset = new Set<Definition>();
+  final List<Definition> defWorklist = <Definition>[];
 
   final ConstantPropagationLattice lattice;
   final dart2js.InternalErrorFunction internalError;
@@ -1666,17 +1664,17 @@ class TypePropagationVisitor implements Visitor {
                          this.internalError);
 
   void analyze(FunctionDefinition root) {
-    reachableNodes.clear();
+    reachableContinuations.clear();
 
     // Initially, only the root node is reachable.
-    setReachable(root);
+    push(root);
 
     iterateWorklist();
   }
 
   void reanalyzeSubtree(Node node) {
-    new ResetAnalysisInfo(reachableNodes, values).visit(node);
-    setReachable(node);
+    new ResetAnalysisInfo(reachableContinuations, values).visit(node);
+    push(node);
     iterateWorklist();
   }
 
@@ -1686,10 +1684,9 @@ class TypePropagationVisitor implements Visitor {
         // Process a new reachable expression.
         Node node = nodeWorklist.removeLast();
         visit(node);
-      } else if (defWorkset.isNotEmpty) {
+      } else if (defWorklist.isNotEmpty) {
         // Process all usages of a changed definition.
-        Definition def = defWorkset.first;
-        defWorkset.remove(def);
+        Definition def = defWorklist.removeLast();
 
         // Visit all uses of this definition. This might add new entries to
         // [nodeWorklist], for example by visiting a newly-constant usage within
@@ -1703,12 +1700,16 @@ class TypePropagationVisitor implements Visitor {
     }
   }
 
+  /// Adds [node] to the worklist.
+  void push(Node node) {
+    nodeWorklist.add(node);
+  }
+
   /// If the passed node is not yet reachable, mark it reachable and add it
   /// to the work list.
-  void setReachable(Node node) {
-    if (!reachableNodes.contains(node)) {
-      reachableNodes.add(node);
-      nodeWorklist.add(node);
+  void setReachable(Continuation cont) {
+    if (reachableContinuations.add(cont)) {
+      push(cont);
     }
   }
 
@@ -1734,7 +1735,7 @@ class TypePropagationVisitor implements Visitor {
     assert(newValue.kind >= oldValue.kind);
 
     values[node] = newValue;
-    defWorkset.add(node);
+    defWorklist.add(node);
   }
 
   // -------------------------- Visitor overrides ------------------------------
@@ -1746,21 +1747,21 @@ class TypePropagationVisitor implements Visitor {
                nonConstant(typeSystem.getReceiverType(node.element)));
     }
     node.parameters.forEach(visit);
-    setReachable(node.body);
+    push(node.body);
   }
 
   void visitLetPrim(LetPrim node) {
     visit(node.primitive); // No reason to delay visits to primitives.
-    setReachable(node.body);
+    push(node.body);
   }
 
   void visitLetCont(LetCont node) {
     // The continuation is only marked as reachable on use.
-    setReachable(node.body);
+    push(node.body);
   }
 
   void visitLetHandler(LetHandler node) {
-    setReachable(node.body);
+    push(node.body);
     // The handler is assumed to be reachable (we could instead treat it as
     // unreachable unless we find something reachable that might throw in the
     // body --- it's not clear if we want to do that here or in some other
@@ -1777,7 +1778,7 @@ class TypePropagationVisitor implements Visitor {
 
   void visitLetMutable(LetMutable node) {
     setValue(node.variable, getValue(node.value.definition));
-    setReachable(node.body);
+    push(node.body);
   }
 
   void visitInvokeStatic(InvokeStatic node) {
@@ -2093,10 +2094,7 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitCreateFunction(CreateFunction node) {
-    setReachable(node.definition);
-    ConstantValue constant =
-        new FunctionConstantValue(node.definition.element);
-    setValue(node, constantValue(constant, typeSystem.functionType));
+    throw 'CreateFunction is not used';
   }
 
   void visitGetMutable(GetMutable node) {
@@ -2143,7 +2141,7 @@ class TypePropagationVisitor implements Visitor {
     node.parameters.forEach(visit);
 
     if (node.body != null) {
-      setReachable(node.body);
+      push(node.body);
     }
   }
 
@@ -2172,7 +2170,7 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitInterceptor(Interceptor node) {
-    setReachable(node.input.definition);
+    push(node.input.definition);
     AbstractValue value = getValue(node.input.definition);
     if (!value.isNothing) {
       setValue(node, nonConstant(typeSystem.nonNullType));
@@ -2335,14 +2333,21 @@ class OriginalLengthEntity extends Entity {
 }
 
 class ResetAnalysisInfo extends RecursiveVisitor {
-  Set<Node> reachableNodes;
+  Set<Continuation> reachableContinuations;
   Map<Definition, AbstractValue> values;
 
-  ResetAnalysisInfo(this.reachableNodes, this.values);
+  ResetAnalysisInfo(this.reachableContinuations, this.values);
 
-  visit(Node node) {
-    reachableNodes.remove(node);
-    if (node is Definition) values.remove(node);
-    node.accept(this);
+  processContinuation(Continuation cont) {
+    reachableContinuations.remove(cont);
+    cont.parameters.forEach(values.remove);
+  }
+
+  processLetPrim(LetPrim node) {
+    values.remove(node.primitive);
+  }
+
+  processLetMutable(LetMutable node) {
+    values.remove(node.variable);
   }
 }

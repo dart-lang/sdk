@@ -14,14 +14,14 @@ import 'optimizers.dart';
 class ShrinkingReducer extends Pass {
   String get passName => 'Shrinking reductions';
 
-  Set<_ReductionTask> _worklist;
+  List<_ReductionTask> _worklist;
 
   static final _DeletedNode _DELETED = new _DeletedNode();
 
   /// Applies shrinking reductions to root, mutating root in the process.
   @override
   void rewrite(FunctionDefinition root) {
-    _worklist = new Set<_ReductionTask>();
+    _worklist = new List<_ReductionTask>();
     _RedexVisitor redexVisitor = new _RedexVisitor(_worklist);
 
     // Set all parent pointers.
@@ -32,8 +32,7 @@ class ShrinkingReducer extends Pass {
 
     // Process the worklist.
     while (_worklist.isNotEmpty) {
-      _ReductionTask task = _worklist.first;
-      _worklist.remove(task);
+      _ReductionTask task = _worklist.removeLast();
       _processTask(task);
     }
   }
@@ -400,7 +399,7 @@ bool _isDeadParameter(Parameter parameter) {
 
 /// Traverses a term and adds any found redexes to the worklist.
 class _RedexVisitor extends RecursiveVisitor {
-  final Set<_ReductionTask> worklist;
+  final List<_ReductionTask> worklist;
 
   _RedexVisitor(this.worklist);
 
@@ -446,7 +445,7 @@ class _RedexVisitor extends RecursiveVisitor {
 /// any corresponding tasks can be skipped.  Nodes are marked so by setting
 /// their parent to the deleted sentinel.
 class _RemovalVisitor extends RecursiveVisitor {
-  final Set<_ReductionTask> worklist;
+  final List<_ReductionTask> worklist;
 
   _RemovalVisitor(this.worklist);
 

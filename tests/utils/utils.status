@@ -29,6 +29,6 @@ recursive_import_test: Pass, RuntimeError # Issue 17662
 source_mirrors_test: Pass, RuntimeError # Issue 17662
 
 [ $compiler == dart2js && $cps_ir ]
-dummy_compiler_test: Crash # The null object does not have a getter '_element'.
-recursive_import_test: Crash # The null object does not have a getter '_element'.
-source_mirrors_test: Crash # The null object does not have a getter '_element'.
+dummy_compiler_test: Crash # (switch (function.na...  continue to a labeled switch case
+recursive_import_test: Crash # (switch (function.na...  continue to a labeled switch case
+source_mirrors_test: Crash # (switch (function.na...  continue to a labeled switch case
