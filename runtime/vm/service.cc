@@ -509,7 +509,7 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
     HANDLESCOPE(isolate);
 
     Instance& reply_port = Instance::Handle(isolate);
-    String& seq = String::Handle(isolate);
+    Instance& seq = String::Handle(isolate);
     String& method_name = String::Handle(isolate);
     Array& param_keys = Array::Handle(isolate);
     Array& param_values = Array::Handle(isolate);
@@ -520,7 +520,7 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
     param_values ^= msg.At(5);
 
     ASSERT(!method_name.IsNull());
-    ASSERT(!seq.IsNull());
+    ASSERT(seq.IsNull() || seq.IsString() || seq.IsNumber());
     ASSERT(!param_keys.IsNull());
     ASSERT(!param_values.IsNull());
     ASSERT(param_keys.Length() == param_values.Length());

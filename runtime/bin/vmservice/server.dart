@@ -8,6 +8,7 @@ class WebSocketClient extends Client {
   static const int PARSE_ERROR_CODE = 4000;
   static const int BINARY_MESSAGE_ERROR_CODE = 4001;
   static const int NOT_MAP_ERROR_CODE = 4002;
+  static const int ID_ERROR_CODE = 4003;
   final WebSocket socket;
 
   WebSocketClient(this.socket, VMService service) : super(service) {
@@ -29,6 +30,9 @@ class WebSocketClient extends Client {
         return;
       }
       var serial = map['id'];
+      if (serial != null && serial is! num && serial is! String) {
+        socket.close(ID_ERROR_CODE, '"id" must be a number, string, or null.');
+      }
       onMessage(serial, new Message.fromJsonRpc(this, map));
     } else {
       socket.close(BINARY_MESSAGE_ERROR_CODE, 'Message must be a string.');

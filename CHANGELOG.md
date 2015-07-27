@@ -78,6 +78,13 @@
 
 ### VM Service Protocol Changes
 
+* The service protocol now includes a `"jsonrpc"` property in its responses, as
+  opposed to `"json-rpc"`.
+
+* The service protocol now properly handles requests with non-string ids.
+  Numeric ids are no longer converted to strings, and null ids now don't produce
+  a response.
+
 * Some RPCs that didn't include a `"jsonrpc"` property in their responses now
   include one.
 

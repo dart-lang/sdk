@@ -97,7 +97,7 @@ example [getVersion](#getversion) request:
 }
 ```
 
-Currently the _id_ property must be a string. The Service Protocol
+The _id_ property must be a string, number, or `null`. The Service Protocol
 optionally accepts requests without the _jsonprc_ property.
 
 An RPC response is a JSON object (http://json.org/). The response always specifies an
