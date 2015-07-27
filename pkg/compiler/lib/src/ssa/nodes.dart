@@ -1321,6 +1321,15 @@ class HRef extends HInstruction {
   HInstruction get value => inputs[0];
 
   @override
+  HInstruction convertType(Compiler compiler, DartType type, int kind) {
+    HInstruction converted = value.convertType(compiler, type, kind);
+    if (converted == value) return this;
+    HTypeConversion conversion = converted;
+    conversion.inputs[0] = this;
+    return conversion;
+  }
+
+  @override
   accept(HVisitor visitor) => visitor.visitRef(this);
 
   String toString() => 'HRef(${value})';
@@ -2743,7 +2752,14 @@ class HTypeConversion extends HCheck {
   HInstruction get context => inputs[1];
 
   HInstruction convertType(Compiler compiler, DartType type, int kind) {
-    if (typeExpression == type) return this;
+    if (typeExpression == type) {
+      // Don't omit a boolean conversion (which doesn't allow `null`) unless
+      // this type conversion is already a boolean conversion.
+      if (kind != BOOLEAN_CONVERSION_CHECK ||
+          isBooleanConversionCheck) {
+        return this;
+      }
+    }
     return super.convertType(compiler, type, kind);
   }
 
