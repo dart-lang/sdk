@@ -349,6 +349,12 @@ class ProfileTrieWalker : public ValueObject {
   void Reset(Profile::TrieKind trie_kind);
 
   const char* CurrentName();
+  // Return the current node's peer's inclusive tick count.
+  intptr_t CurrentInclusiveTicks();
+  // Return the current node's peer's exclusive tick count.
+  intptr_t CurrentExclusiveTicks();
+  // Return the current node's tick count.
+  intptr_t CurrentNodeTickCount();
 
   bool Down();
   bool NextSibling();

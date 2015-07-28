@@ -268,17 +268,19 @@ void ProfileCode::GenerateAndSetSymbolName(const char* prefix) {
 
 
 void ProfileCode::Tick(uword pc, bool exclusive, intptr_t serial) {
+  // If exclusive is set, tick it.
   if (exclusive) {
     exclusive_ticks_++;
-  } else {
-    if (inclusive_serial_ == serial) {
-      // Already ticked for this sample.
-      return;
-    }
-    inclusive_serial_ = serial;
-    inclusive_ticks_++;
+    TickAddress(pc, true);
   }
-  TickAddress(pc, exclusive);
+  // Fall through and tick inclusive count too.
+  if (inclusive_serial_ == serial) {
+    // Already gave inclusive tick for this sample.
+    return;
+  }
+  inclusive_serial_ = serial;
+  inclusive_ticks_++;
+  TickAddress(pc, false);
 }
 
 
@@ -982,6 +984,12 @@ class ProfileBuilder : public ValueObject {
   }
 
  private:
+  // Returns true if |frame_index| in |sample| is using CPU.
+  static bool IsExecutingFrame(ProcessedSample* sample, intptr_t frame_index) {
+    return (frame_index == 0) && (sample->first_frame_executing() ||
+                                  sample->IsAllocationSample());
+  }
+
   static bool IsInclusiveTrie(Profile::TrieKind kind) {
     return (kind == Profile::kInclusiveFunction) ||
            (kind == Profile::kInclusiveCode);
@@ -1041,12 +1049,12 @@ class ProfileBuilder : public ValueObject {
 
       // Make sure that a ProfileCode objects exist for all pcs in the sample
       // and tick each one.
-      for (intptr_t i = 0; i < sample->length(); i++) {
-        const uword pc = sample->At(i);
+      for (intptr_t j = 0; j < sample->length(); j++) {
+        const uword pc = sample->At(j);
         ASSERT(pc != 0);
         ProfileCode* code = RegisterProfileCode(pc, timestamp);
         ASSERT(code != NULL);
-        code->Tick(pc, (i == 0), i);
+        code->Tick(pc, IsExecutingFrame(sample, j), i);
       }
     }
   }
@@ -1932,6 +1940,44 @@ const char* ProfileTrieWalker::CurrentName() {
   } else {
     ProfileFunction* func = profile_->GetFunction(current_->table_index());
     return func->Name();
+  }
+  UNREACHABLE();
+}
+
+
+intptr_t ProfileTrieWalker::CurrentNodeTickCount() {
+  if (current_ == NULL) {
+    return -1;
+  }
+  return current_->count();
+}
+
+
+intptr_t ProfileTrieWalker::CurrentInclusiveTicks() {
+  if (current_ == NULL) {
+    return -1;
+  }
+  if (code_trie_) {
+    ProfileCode* code = profile_->GetCode(current_->table_index());
+    return code->inclusive_ticks();
+  } else {
+    ProfileFunction* func = profile_->GetFunction(current_->table_index());
+    return func->inclusive_ticks();
+  }
+  UNREACHABLE();
+}
+
+
+intptr_t ProfileTrieWalker::CurrentExclusiveTicks() {
+  if (current_ == NULL) {
+    return -1;
+  }
+  if (code_trie_) {
+    ProfileCode* code = profile_->GetCode(current_->table_index());
+    return code->exclusive_ticks();
+  } else {
+    ProfileFunction* func = profile_->GetFunction(current_->table_index());
+    return func->exclusive_ticks();
   }
   UNREACHABLE();
 }
