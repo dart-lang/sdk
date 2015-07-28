@@ -1195,9 +1195,10 @@ class ProfileBuilder : public ValueObject {
             GetProfileCodeIndex(sample->At(frame_index), sample->timestamp());
         ASSERT(index >= 0);
         current = current->GetChild(index);
-        current->Tick();
+        if (ShouldTickNode(sample, frame_index)) {
+          current->Tick();
+        }
       }
-
       // Truncated tag.
       if (sample->truncated()) {
         current = AppendTruncatedTag(current);
@@ -1361,6 +1362,15 @@ class ProfileBuilder : public ValueObject {
                            code_index);
   }
 
+  bool ShouldTickNode(ProcessedSample* sample, intptr_t frame_index) {
+    if (frame_index != 0) {
+      return true;
+    }
+    // Only tick the first frame's node, if we are executing OR
+    // vm tags have been emitted.
+    return IsExecutingFrame(sample, frame_index) || vm_tags_emitted();
+  }
+
   ProfileFunctionTrieNode* ProcessFunction(ProfileFunctionTrieNode* current,
                                            intptr_t sample_index,
                                            ProcessedSample* sample,
@@ -1372,8 +1382,10 @@ class ProfileBuilder : public ValueObject {
     }
     function->AddProfileCode(code_index);
     current = current->GetChild(function->table_index());
+    if (ShouldTickNode(sample, frame_index)) {
+      current->Tick();
+    }
     current->AddCodeObjectIndex(code_index);
-    current->Tick();
     return current;
   }
 
