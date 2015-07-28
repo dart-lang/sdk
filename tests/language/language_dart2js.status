@@ -210,7 +210,9 @@ symbol_conflict_test: RuntimeError # Issue 23857
 async_await_syntax_test/a05h: Fail # 23716
 async_await_syntax_test/c11a: Fail # 23716
 async_await_syntax_test/c11b: Fail # 23716
-issue23244_test: Fail # 23244
+
+[ $compiler == dart2js && $runtime == d8 ]
+issue23244_test: RuntimeError # 23244
 
 malformed_test/none: Fail # Expect failure in lib/_internal/js_runtime/lib/preambles/d8.js
 
