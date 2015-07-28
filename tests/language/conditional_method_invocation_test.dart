@@ -18,7 +18,8 @@ class B {}
 class C extends B {
   f(callback()) => callback();
   int g(int callback()) => callback();
-  static void staticMethod() {}
+  static staticF(callback()) => callback();
+  static int staticG(int callback()) => callback();
 }
 
 C nullC() => null;
@@ -32,12 +33,20 @@ main() {
   Expect.equals(null, nullC()?.f(bad())); /// 01: ok
   Expect.equals(1, new C()?.f(() => 1)); /// 02: ok
 
+  // C?.m(...) is equivalent to C.m(...).
+  Expect.equals(1, C?.staticF(() => 1)); /// 14: ok
+  Expect.equals(1, h.C?.staticF(() => 1)); /// 15: ok
+
   // The static type of o?.m(...) is the same as the static type of
   // o.m(...).
   { int i = nullC()?.g(bad()); Expect.equals(null, i); } /// 03: ok
   { int i = new C()?.g(() => 1); Expect.equals(1, i); } /// 04: ok
   { String s = nullC()?.g(bad()); Expect.equals(null, s); } /// 05: static type warning
   { String s = new C()?.g(() => null); Expect.equals(null, s); } /// 06: static type warning
+  { int i = C?.staticG(() => 1); Expect.equals(1, i); } /// 16: ok
+  { int i = h.C?.staticG(() => 1); Expect.equals(1, i); } /// 17: ok
+  { String s = C?.staticG(() => null); Expect.equals(null, s); } /// 18: static type warning
+  { String s = h.C?.staticG(() => null); Expect.equals(null, s); } /// 19: static type warning
 
   // Let T be the static type of o and let y be a fresh variable of type T.
   // Exactly the same static warnings that would be caused by y.m(...) are also
@@ -45,15 +54,11 @@ main() {
   { B b = new C(); Expect.equals(1, b?.f(() => 1)); } /// 07: static type warning
   { int i = 1; Expect.equals(null, nullC()?.f(i)); } /// 08: static type warning
 
-  // Consequently, '?.' cannot be used to invoke static methods of classes.
-  Expect.throws(() => C?.staticMethod(), noMethod); /// 09: static type warning
-  Expect.throws(() => h.C?.staticMethod(), noMethod); /// 10: static type warning
-
-  // Nor can it be used to access toplevel functions in libraries imported via
+  // '?.' can't be used to access toplevel functions in libraries imported via
   // prefix.
   h?.topLevelFunction(); /// 11: compile-time error
 
-  // However, '?.' can be used to access the toString method on the class Type.
-  Expect.equals(C?.toString(), (C).toString()); /// 12: ok
-  Expect.equals(h.C?.toString(), (h.C).toString()); /// 13: ok
+  // Nor can it be used to access the toString method on the class Type.
+  Expect.throws(() => C?.toString(), noMethod); /// 12: static type warning
+  Expect.throws(() => h.C?.toString(), noMethod); /// 13: static type warning
 }

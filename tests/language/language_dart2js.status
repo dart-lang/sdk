@@ -17,6 +17,62 @@ try_catch_on_syntax_test/11: Fail # Issue 19823
 
 call_function_apply_test: RuntimeError # Issue 23873
 
+conditional_method_invocation_test/12: Fail # Issue 23795
+conditional_method_invocation_test/13: Fail # Issue 23795
+conditional_method_invocation_test/14: Fail # Issue 23795
+conditional_method_invocation_test/15: Fail # Issue 23795
+conditional_method_invocation_test/16: Fail # Issue 23795
+conditional_method_invocation_test/17: Fail # Issue 23795
+conditional_method_invocation_test/18: Fail # Issue 23795
+conditional_method_invocation_test/19: Fail # Issue 23795
+conditional_property_access_test/10: Fail # Issue 23795
+conditional_property_access_test/11: Fail # Issue 23795
+conditional_property_access_test/12: Fail # Issue 23795
+conditional_property_access_test/13: Fail # Issue 23795
+conditional_property_access_test/14: Fail # Issue 23795
+conditional_property_access_test/15: Fail # Issue 23795
+conditional_property_access_test/16: Fail # Issue 23795
+conditional_property_access_test/17: Fail # Issue 23795
+conditional_property_assignment_test/23: Fail # Issue 23795
+conditional_property_assignment_test/24: Fail # Issue 23795
+conditional_property_assignment_test/25: Fail # Issue 23795
+conditional_property_assignment_test/26: Fail # Issue 23795
+conditional_property_assignment_test/27: Fail # Issue 23795
+conditional_property_assignment_test/28: Fail # Issue 23795
+conditional_property_assignment_test/29: Fail # Issue 23795
+conditional_property_assignment_test/30: Fail # Issue 23795
+conditional_property_assignment_test/31: Fail # Issue 23795
+conditional_property_assignment_test/32: Fail # Issue 23795
+conditional_property_assignment_test/33: Fail # Issue 23795
+conditional_property_assignment_test/34: Fail # Issue 23795
+conditional_property_assignment_test/35: Fail # Issue 23795
+conditional_property_increment_decrement_test/17: Fail # Issue 23795
+conditional_property_increment_decrement_test/18: Fail # Issue 23795
+conditional_property_increment_decrement_test/19: Fail # Issue 23795
+conditional_property_increment_decrement_test/20: Fail # Issue 23795
+conditional_property_increment_decrement_test/21: Fail # Issue 23795
+conditional_property_increment_decrement_test/22: Fail # Issue 23795
+conditional_property_increment_decrement_test/23: Fail # Issue 23795
+conditional_property_increment_decrement_test/24: Fail # Issue 23795
+conditional_property_increment_decrement_test/25: Fail # Issue 23795
+conditional_property_increment_decrement_test/26: Fail # Issue 23795
+conditional_property_increment_decrement_test/27: Fail # Issue 23795
+conditional_property_increment_decrement_test/28: Fail # Issue 23795
+conditional_property_increment_decrement_test/29: Fail # Issue 23795
+conditional_property_increment_decrement_test/30: Fail # Issue 23795
+conditional_property_increment_decrement_test/31: Fail # Issue 23795
+conditional_property_increment_decrement_test/32: Fail # Issue 23795
+conditional_property_increment_decrement_test/33: Fail # Issue 23795
+conditional_property_increment_decrement_test/34: Fail # Issue 23795
+conditional_property_increment_decrement_test/35: Fail # Issue 23795
+conditional_property_increment_decrement_test/36: Fail # Issue 23795
+conditional_property_increment_decrement_test/37: Fail # Issue 23795
+conditional_property_increment_decrement_test/38: Fail # Issue 23795
+conditional_property_increment_decrement_test/39: Fail # Issue 23795
+conditional_property_increment_decrement_test/40: Fail # Issue 23795
+if_null_assignment_behavior_test/31: Fail # Issue 23795
+if_null_assignment_behavior_test/32: Fail # Issue 23795
+
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728

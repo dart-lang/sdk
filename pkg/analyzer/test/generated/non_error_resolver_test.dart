@@ -6,7 +6,6 @@ library engine.non_error_resolver_test;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
@@ -5002,12 +5001,14 @@ class Bar extends Foo {
     verify([source]);
   }
 
-  void test_undefinedGetter_typeLiteral_conditionalAccess() {
-    // When applied to a type literal, the conditional access operator '?.' can
-    // be used to access instance getters of Type.
+  void test_undefinedGetter_static_conditionalAccess() {
+    // The conditional access operator '?.' can be used to access static
+    // fields.
     Source source = addSource('''
-class A {}
-f() => A?.hashCode;
+class A {
+  static var x;
+}
+var a = A?.x;
 ''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -5089,12 +5090,14 @@ main() {
     // A call to verify(source) fails as '(() => null)()' isn't resolved.
   }
 
-  void test_undefinedMethod_typeLiteral_conditionalAccess() {
-    // When applied to a type literal, the conditional access operator '?.' can
-    // be used to access instance methods of Type.
+  void test_undefinedMethod_static_conditionalAccess() {
+    // The conditional access operator '?.' can be used to access static
+    // methods.
     Source source = addSource('''
-class A {}
-f() => A?.toString();
+class A {
+  static void m() {}
+}
+f() { A?.m(); }
 ''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -5134,6 +5137,20 @@ import 'lib.dart' as x;
 main() {
   x.y = 0;
 }''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_undefinedSetter_static_conditionalAccess() {
+    // The conditional access operator '?.' can be used to access static
+    // fields.
+    Source source = addSource('''
+class A {
+  static var x;
+}
+f() { A?.x = 1; }
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);

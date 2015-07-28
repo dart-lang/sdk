@@ -14,6 +14,26 @@ var topLevelVar;
 void topLevelFunction() {}
 
 class C {
-  static var staticField;
-  static void staticMethod() {}
+  static int staticInt;
+  static staticF(callback()) => callback();
+  static int staticG(int callback()) => callback();
 }
+
+C nullC() => null;
+
+class D {
+  static E staticE;
+}
+
+class E {
+  G operator+(int i) => new I();
+  G operator-(int i) => new I();
+}
+
+class F {}
+
+class G extends E implements F {}
+
+class H {}
+
+class I extends G implements H {}
