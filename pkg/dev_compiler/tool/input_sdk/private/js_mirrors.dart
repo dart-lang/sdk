@@ -9,10 +9,6 @@ import 'dart:mirrors';
 import 'dart:_foreign_helper' show JS;
 import 'dart:_internal' as _internal;
 
-// TODO(vsm): This a workaround for:
-// https://github.com/dart-lang/dev_compiler/issues/219
-import 'dart:js';
-
 String getName(Symbol symbol) =>
     _internal.Symbol.getName(symbol as _internal.Symbol);
 

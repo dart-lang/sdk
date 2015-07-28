@@ -1277,11 +1277,11 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         isolate.handleControlMessage(msg);
         return;
       }
-      exports._globalState.topEventLoop.enqueue(isolate, dart.fn(() => {
+      exports._globalState.topEventLoop.enqueue(isolate, dart.fn((() => {
         if (!dart.notNull(this[_receivePort][_isClosed])) {
           this[_receivePort][_add](msg);
         }
-      }), `receive ${message}`);
+      }).bind(this)), `receive ${message}`);
     }
     ['=='](other) {
       return dart.is(other, _NativeJsSendPort) && dart.equals(this[_receivePort], dart.dload(other, _receivePort));
@@ -1471,9 +1471,9 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       this[_handle] = null;
       if (dart.notNull(hasTimer())) {
         enterJsAsync();
-        this[_handle] = self.setInterval(dart.fn(() => {
+        this[_handle] = self.setInterval(dart.fn((() => {
           callback(this);
-        }), milliseconds);
+        }).bind(this)), milliseconds);
       } else {
         dart.throw(new core.UnsupportedError("Periodic timer."));
       }

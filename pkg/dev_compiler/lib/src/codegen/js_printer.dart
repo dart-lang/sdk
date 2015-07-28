@@ -18,36 +18,37 @@ import 'package:dev_compiler/src/utils.dart'
 import 'js_names.dart' show TemporaryNamer;
 
 String writeJsLibrary(JS.Program jsTree, String outputPath,
-    {bool emitSourceMaps: false}) {
-  new Directory(path.dirname(outputPath)).createSync(recursive: true);
+    {bool emitSourceMaps: false, bool arrowFnBindThisWorkaround: false}) {
+  var outFilename = path.basename(outputPath);
+  var outDir = path.dirname(outputPath);
+  new Directory(outDir).createSync(recursive: true);
+
+  JS.JavaScriptPrintingContext context;
   if (emitSourceMaps) {
-    var outFilename = path.basename(outputPath);
     var printer = new srcmaps.Printer(outFilename);
-    writeNodeToContext(jsTree,
-        new SourceMapPrintingContext(printer, path.dirname(outputPath)));
+    context = new SourceMapPrintingContext(printer, outDir);
+  } else {
+    context = new JS.SimpleJavaScriptPrintingContext();
+  }
+
+  var opts = new JS.JavaScriptPrintingOptions(
+      allowKeywordsInProperties: true,
+      arrowFnBindThisWorkaround: arrowFnBindThisWorkaround);
+  var jsNamer = new TemporaryNamer(jsTree);
+  jsTree.accept(new JS.Printer(opts, context, localNamer: jsNamer));
+
+  String text;
+  if (context is SourceMapPrintingContext) {
+    var printer = context.printer;
     printer.add('//# sourceMappingURL=$outFilename.map');
     // Write output file and source map
-    var text = printer.text;
-    new File(outputPath).writeAsStringSync(text);
+    text = printer.text;
     new File('$outputPath.map').writeAsStringSync(printer.map);
-    return computeHash(text);
   } else {
-    var text = jsNodeToString(jsTree);
-    new File(outputPath).writeAsStringSync(text);
-    return computeHash(text);
+    text = (context as JS.SimpleJavaScriptPrintingContext).getText();
   }
-}
-
-void writeNodeToContext(JS.Node node, JS.JavaScriptPrintingContext context) {
-  var opts = new JS.JavaScriptPrintingOptions(allowKeywordsInProperties: true);
-  node.accept(
-      new JS.Printer(opts, context, localNamer: new TemporaryNamer(node)));
-}
-
-String jsNodeToString(JS.Node node) {
-  var context = new JS.SimpleJavaScriptPrintingContext();
-  writeNodeToContext(node, context);
-  return context.getText();
+  new File(outputPath).writeAsStringSync(text);
+  return computeHash(text);
 }
 
 class SourceMapPrintingContext extends JS.JavaScriptPrintingContext {

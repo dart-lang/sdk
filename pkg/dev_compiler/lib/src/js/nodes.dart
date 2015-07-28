@@ -943,7 +943,25 @@ class This extends Expression {
   This _clone() => new This();
   int get precedenceLevel => PRIMARY;
   void visitChildren(NodeVisitor visitor) {}
+
+  static bool foundIn(Node node) {
+    _thisFinder.found = false;
+    node.accept(_thisFinder);
+    return _thisFinder.found;
+  }
 }
+
+final _thisFinder = new _ThisFinder();
+class _ThisFinder extends BaseVisitor {
+  bool found = false;
+  visitThis(This node) {
+    found = true;
+  }
+  visitNode(Node node) {
+    if (!found) super.visitNode(node);
+  }
+}
+
 
 // `super` is more restricted in the ES6 spec, but for simplicity we accept
 // it anywhere that `this` is accepted.
@@ -968,7 +986,7 @@ class NamedFunction extends Expression {
   }
   NamedFunction _clone() => new NamedFunction(name, function);
 
-  int get precedenceLevel => CALL;
+  int get precedenceLevel => PRIMARY_LOW_PRECEDENCE;
 }
 
 abstract class FunctionExpression extends Expression {
@@ -997,12 +1015,14 @@ class Fun extends FunctionExpression {
   Fun _clone() => new Fun(params, body,
       isGenerator: isGenerator, asyncModifier: asyncModifier);
 
-  int get precedenceLevel => ASSIGNMENT;
+  int get precedenceLevel => PRIMARY_LOW_PRECEDENCE;
 }
 
 class ArrowFun extends FunctionExpression {
   final List<Parameter> params;
   final body; // Expression or Block
+
+  bool _closesOverThis; // lazy initialized
 
   ArrowFun(this.params, this.body);
 
@@ -1012,13 +1032,16 @@ class ArrowFun extends FunctionExpression {
     for (Parameter param in params) param.accept(visitor);
     body.accept(visitor);
   }
+  /// True if this function actually closes of `this`. We use this in some
+  /// situations to generate different code.
+  bool get closesOverThis {
+    if (_closesOverThis == null) _closesOverThis = This.foundIn(this);
+    return _closesOverThis;
+  }
+
+  int get precedenceLevel => PRIMARY_LOW_PRECEDENCE;
 
   ArrowFun _clone() => new ArrowFun(params, body);
-
-  /// Ensure parens always get generated if necessary.
-  // TODO(jmesserly): I'm not sure the printer is handling this correctly for
-  // function() { ... } either.
-  int get precedenceLevel => ASSIGNMENT;
 }
 
 /**
@@ -1307,7 +1330,7 @@ class ClassExpression extends Expression {
 
   ClassExpression _clone() => new ClassExpression(name, heritage, methods);
 
-  int get precedenceLevel => PRIMARY;
+  int get precedenceLevel => PRIMARY_LOW_PRECEDENCE;
 }
 
 class Method extends Property {

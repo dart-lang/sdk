@@ -7,6 +7,16 @@ library precedence;
 const EXPRESSION = 0;
 const SPREAD = EXPRESSION + 1;
 const YIELD = SPREAD + 1;
+
+// Note that some primary expressions (in the parser) must be emitted with lower
+// precedence, because it's not normally legal for them to be followed by
+// other postfix expressions, like ACCESS and CALL. For example:
+// `function foo(){}` needs parens to call or access properties or
+// compare with equality. Same thing with `class Foo {}` and `(x) => x`.
+// However, prefix unary expressions will work in these cases. Unfortunately our
+// current precedence tracking doesn't capture this distinction.
+const PRIMARY_LOW_PRECEDENCE = ASSIGNMENT;
+
 const ASSIGNMENT = YIELD + 1;
 const LOGICAL_OR = ASSIGNMENT + 1;
 const LOGICAL_AND = LOGICAL_OR + 1;

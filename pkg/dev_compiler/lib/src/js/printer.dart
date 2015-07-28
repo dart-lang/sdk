@@ -10,16 +10,19 @@ class JavaScriptPrintingOptions {
   final bool minifyLocalVariables;
   final bool preferSemicolonToNewlineInMinifiedOutput;
 
-
   /// True to allow keywords in properties, such as `obj.var` or `obj.function`
   /// Modern JS engines support this.
   final bool allowKeywordsInProperties;
+
+  /// Workaround if `this` is not bound in arrow functions.
+  final bool arrowFnBindThisWorkaround;
 
   JavaScriptPrintingOptions(
       {this.shouldCompressOutput: false,
        this.minifyLocalVariables: false,
        this.preferSemicolonToNewlineInMinifiedOutput: false,
-       this.allowKeywordsInProperties: false});
+       this.allowKeywordsInProperties: false,
+       this.arrowFnBindThisWorkaround: false});
 }
 
 
@@ -548,10 +551,16 @@ class Printer implements NodeVisitor {
 
   visitNestedExpression(Expression node, int requiredPrecedence,
                         {bool newInForInit, bool newAtStatementBegin}) {
+    int nodePrecedence = node.precedenceLevel;
+    if (options.arrowFnBindThisWorkaround) {
+      if (node is ArrowFun && node.closesOverThis) {
+        nodePrecedence = CALL;
+      }
+    }
     bool needsParentheses =
         // a - (b + c).
         (requiredPrecedence != EXPRESSION &&
-         node.precedenceLevel < requiredPrecedence) ||
+         nodePrecedence < requiredPrecedence) ||
         // for (a = (x in o); ... ; ... ) { ... }
         (newInForInit && node is Binary && node.op == "in") ||
         // (function() { ... })().
@@ -858,6 +867,10 @@ class Printer implements NodeVisitor {
   }
 
   visitArrowFun(ArrowFun fun) {
+    bool bindThis = options.arrowFnBindThisWorkaround && fun.closesOverThis;
+    if (bindThis) {
+      out("(");
+    }
     localNamer.enterScope(fun);
     if (fun.params.length == 1) {
       visitNestedExpression(fun.params.single, SPREAD,
@@ -884,6 +897,9 @@ class Printer implements NodeVisitor {
       blockBody(fun.body, needsSeparation: false, needsNewline: false);
     }
     localNamer.leaveScope();
+    if (bindThis) {
+      out(").bind(this)");
+    }
   }
 
   visitLiteralBool(LiteralBool node) {

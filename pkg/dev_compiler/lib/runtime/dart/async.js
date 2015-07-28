@@ -651,9 +651,9 @@ dart_library.library('dart/async', null, /* Imports */[
             return;
           }
           elementIndex = dart.notNull(elementIndex) + 1;
-        }, dart.dynamic, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
+        }, dart.dynamic, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn((() => {
             future[_completeError](core.RangeError.index(index, this, "index", null, elementIndex));
-          }), cancelOnError: true});
+          }).bind(this)), cancelOnError: true});
         return future;
       }
       timeout(timeLimit, opts) {
@@ -980,10 +980,10 @@ dart_library.library('dart/async', null, /* Imports */[
         this[_onDone] = dart.fn(() => {
           result[_complete](futureValue);
         });
-        this[_onError] = dart.fn((error, stackTrace) => {
+        this[_onError] = dart.fn(((error, stackTrace) => {
           this.cancel();
           result[_completeError](error, dart.as(stackTrace, core.StackTrace));
-        });
+        }).bind(this));
         return result;
       }
       get [_isInputPaused]() {
@@ -2336,9 +2336,9 @@ dart_library.library('dart/async', null, /* Imports */[
       [_addListener](listener) {
         dart.assert(listener[_nextListener] == null);
         if (dart.notNull(this[_isComplete])) {
-          this[_zone].scheduleMicrotask(dart.fn(() => {
+          this[_zone].scheduleMicrotask(dart.fn((() => {
             _Future$()._propagateToListeners(this, listener);
-          }));
+          }).bind(this)));
         } else {
           listener[_nextListener] = dart.as(this[_resultOrListeners], _FutureListener);
           this[_resultOrListeners] = listener;
@@ -2420,9 +2420,9 @@ dart_library.library('dart/async', null, /* Imports */[
             let coreFuture = dart.as(typedFuture, _Future$(T));
             if (dart.notNull(coreFuture[_isComplete]) && dart.notNull(coreFuture[_hasError])) {
               this[_markPendingCompletion]();
-              this[_zone].scheduleMicrotask(dart.fn(() => {
+              this[_zone].scheduleMicrotask(dart.fn((() => {
                 _Future$()._chainCoreFuture(coreFuture, this);
-              }));
+              }).bind(this)));
             } else {
               _Future$()._chainCoreFuture(coreFuture, this);
             }
@@ -2434,16 +2434,16 @@ dart_library.library('dart/async', null, /* Imports */[
           let typedValue = dart.as(value, T);
         }
         this[_markPendingCompletion]();
-        this[_zone].scheduleMicrotask(dart.fn(() => {
+        this[_zone].scheduleMicrotask(dart.fn((() => {
           this[_completeWithValue](value);
-        }));
+        }).bind(this)));
       }
       [_asyncCompleteError](error, stackTrace) {
         dart.assert(!dart.notNull(this[_isComplete]));
         this[_markPendingCompletion]();
-        this[_zone].scheduleMicrotask(dart.fn(() => {
+        this[_zone].scheduleMicrotask(dart.fn((() => {
           this[_completeError](error, stackTrace);
-        }));
+        }).bind(this)));
       }
       static _propagateToListeners(source, listeners) {
         while (true) {
@@ -3185,9 +3185,9 @@ dart_library.library('dart/async', null, /* Imports */[
           this[_varData] = subscription;
         }
         subscription[_setPendingEvents](pendingEvents);
-        subscription[_guardCallback](dart.fn(() => {
+        subscription[_guardCallback](dart.fn((() => {
           _runGuarded(this[_onListen]);
-        }));
+        }).bind(this)));
         return dart.as(subscription, StreamSubscription$(T));
       }
       [_recordCancel](subscription) {
@@ -3457,9 +3457,9 @@ dart_library.library('dart/async', null, /* Imports */[
           this.addStreamFuture[_asyncComplete](null);
           return null;
         }
-        return cancel.whenComplete(dart.fn(() => {
+        return cancel.whenComplete(dart.fn((() => {
           this.addStreamFuture[_asyncComplete](null);
-        }));
+        }).bind(this)));
       }
       complete() {
         this.addStreamFuture[_asyncComplete](null);
@@ -3532,7 +3532,7 @@ dart_library.library('dart/async', null, /* Imports */[
           let _ = new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError);
           _[_setPendingEvents](this[_pending]());
           return _;
-        })(), StreamSubscription$(T));
+        }).bind(this)(), StreamSubscription$(T));
       }
     }
     dart.setSignature(_GeneratedStreamImpl, {
@@ -3562,13 +3562,13 @@ dart_library.library('dart/async', null, /* Imports */[
         this[_state] = _PendingEvents._STATE_SCHEDULED;
         return;
       }
-      scheduleMicrotask(dart.fn(() => {
+      scheduleMicrotask(dart.fn((() => {
         let oldState = this[_state];
         this[_state] = _PendingEvents._STATE_UNSCHEDULED;
         if (oldState == _PendingEvents._STATE_CANCELED)
           return;
         this.handleNext(dispatch);
-      }));
+      }).bind(this)));
       this[_state] = _PendingEvents._STATE_SCHEDULED;
     }
     cancelSchedule() {
@@ -5253,25 +5253,25 @@ dart_library.library('dart/async', null, /* Imports */[
     bindCallback(f, opts) {
       let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
       if (dart.notNull(runGuarded)) {
-        return dart.fn(() => this.runGuarded(f));
+        return dart.fn((() => this.runGuarded(f)).bind(this));
       } else {
-        return dart.fn(() => this.run(f));
+        return dart.fn((() => this.run(f)).bind(this));
       }
     }
     bindUnaryCallback(f, opts) {
       let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
       if (dart.notNull(runGuarded)) {
-        return dart.fn(arg => this.runUnaryGuarded(f, arg));
+        return dart.fn((arg => this.runUnaryGuarded(f, arg)).bind(this));
       } else {
-        return dart.fn(arg => this.runUnary(f, arg));
+        return dart.fn((arg => this.runUnary(f, arg)).bind(this));
       }
     }
     bindBinaryCallback(f, opts) {
       let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
       if (dart.notNull(runGuarded)) {
-        return dart.fn((arg1, arg2) => this.runBinaryGuarded(f, arg1, arg2));
+        return dart.fn(((arg1, arg2) => this.runBinaryGuarded(f, arg1, arg2)).bind(this));
       } else {
-        return dart.fn((arg1, arg2) => this.runBinary(f, arg1, arg2));
+        return dart.fn(((arg1, arg2) => this.runBinary(f, arg1, arg2)).bind(this));
       }
     }
     get(key) {
@@ -5525,27 +5525,27 @@ dart_library.library('dart/async', null, /* Imports */[
       let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
       let registered = this.registerCallback(f);
       if (dart.notNull(runGuarded)) {
-        return dart.fn(() => this.runGuarded(registered));
+        return dart.fn((() => this.runGuarded(registered)).bind(this));
       } else {
-        return dart.fn(() => this.run(registered));
+        return dart.fn((() => this.run(registered)).bind(this));
       }
     }
     bindUnaryCallback(f, opts) {
       let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
       let registered = this.registerUnaryCallback(f);
       if (dart.notNull(runGuarded)) {
-        return dart.fn(arg => this.runUnaryGuarded(registered, arg));
+        return dart.fn((arg => this.runUnaryGuarded(registered, arg)).bind(this));
       } else {
-        return dart.fn(arg => this.runUnary(registered, arg));
+        return dart.fn((arg => this.runUnary(registered, arg)).bind(this));
       }
     }
     bindBinaryCallback(f, opts) {
       let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
       let registered = this.registerBinaryCallback(f);
       if (dart.notNull(runGuarded)) {
-        return dart.fn((arg1, arg2) => this.runBinaryGuarded(registered, arg1, arg2));
+        return dart.fn(((arg1, arg2) => this.runBinaryGuarded(registered, arg1, arg2)).bind(this));
       } else {
-        return dart.fn((arg1, arg2) => this.runBinary(registered, arg1, arg2));
+        return dart.fn(((arg1, arg2) => this.runBinary(registered, arg1, arg2)).bind(this));
       }
     }
     get(key) {

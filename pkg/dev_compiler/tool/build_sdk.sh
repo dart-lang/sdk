@@ -15,8 +15,9 @@ fi
 # TODO(jmesserly): this builds dart:js, which pulls in dart:core and many others
 # transitively. Ideally we could pass them explicitly, though:
 # https://github.com/dart-lang/dev_compiler/issues/219
-dart -c bin/devc.dart --no-source-maps --sdk-check --force-compile -l warning \
-    --dart-sdk tool/generated_sdk -o lib/runtime/ dart:mirrors \
+dart -c bin/devc.dart --no-source-maps --arrow-fn-bind-this --sdk-check \
+    --force-compile -l warning --dart-sdk tool/generated_sdk -o lib/runtime/ \
+    dart:js dart:mirrors \
     > tool/sdk_expected_errors.txt || true
 
 if [[ ! -f lib/runtime/dart/core.js ]] ; then

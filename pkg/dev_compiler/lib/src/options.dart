@@ -60,8 +60,12 @@ class CodegenOptions {
   /// Output directory for generated code.
   final String outputDir;
 
-  const CodegenOptions(
-      {this.emitSourceMaps: true, this.forceCompile: false, this.outputDir});
+  /// Whether to emit a workaround for missing arrow function bind-this in
+  /// other V8 builds
+  final bool arrowFnBindThisWorkaround;
+
+  const CodegenOptions({this.emitSourceMaps: true, this.forceCompile: false,
+      this.outputDir, this.arrowFnBindThisWorkaround: false});
 }
 
 /// General options used by the dev compiler and server.
@@ -175,7 +179,8 @@ CompilerOptions parseOptions(List<String> argv) {
       codegenOptions: new CodegenOptions(
           emitSourceMaps: args['source-maps'],
           forceCompile: args['force-compile'] || serverMode,
-          outputDir: outputDir),
+          outputDir: outputDir,
+          arrowFnBindThisWorkaround: args['arrow-fn-bind-this']),
       sourceOptions: new SourceResolverOptions(
           useMockSdk: args['mock-sdk'],
           dartSdkPath: sdkPath,
@@ -237,6 +242,8 @@ final ArgParser argParser = StrongModeOptions.addArguments(new ArgParser()
       help: 'Whether to emit source map files', defaultsTo: true)
   ..addOption('runtime-dir',
       help: 'Where to find dev_compiler\'s runtime files', defaultsTo: null)
+  ..addFlag('arrow-fn-bind-this',
+      help: 'Work around `this` binding in => functions')
 
   // general options
   ..addFlag('help', abbr: 'h', help: 'Display this message')

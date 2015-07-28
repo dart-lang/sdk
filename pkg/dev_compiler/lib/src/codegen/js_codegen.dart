@@ -1289,12 +1289,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     }
 
     var fn = _visit(func.functionExpression);
-    var jsThis = new _JsThisFinder();
-    fn.accept(jsThis);
 
     var name = new JS.Identifier(func.name.name);
     JS.Statement declareFn;
-    if (jsThis.found) {
+    if (JS.This.foundIn(fn)) {
       declareFn = js.statement('let # = #.bind(this);', [name, fn]);
     } else {
       declareFn = new JS.FunctionDeclaration(name, fn);
@@ -2824,7 +2822,9 @@ class JSGenerator extends CodeGenerator {
         new JSCodegenVisitor(compiler, library, _extensionTypes, fields);
     var module = codegen.emitLibrary(unit);
     var out = compiler.getOutputPath(library.source.uri);
-    return writeJsLibrary(module, out, emitSourceMaps: options.emitSourceMaps);
+    return writeJsLibrary(module, out,
+        emitSourceMaps: options.emitSourceMaps,
+        arrowFnBindThisWorkaround: options.arrowFnBindThisWorkaround);
   }
 }
 
@@ -2858,14 +2858,4 @@ class TemporaryVariableElement extends LocalVariableElementImpl {
 
   int get hashCode => identityHashCode(this);
   bool operator ==(Object other) => identical(this, other);
-}
-
-class _JsThisFinder extends JS.BaseVisitor {
-  bool found = false;
-  visitThis(JS.This node) {
-    found = true;
-  }
-  visitNode(JS.Node node) {
-    if (!found) super.visitNode(node);
-  }
 }
