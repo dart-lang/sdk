@@ -68,7 +68,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     // allocations may happen.
     intptr_t num_flds = (cls.raw()->to() - cls.raw()->from());
     for (intptr_t i = 0; i <= num_flds; i++) {
-      (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+      (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
        cls.StorePointer((cls.raw()->from() + i),
                        reader->PassiveObjectHandle()->raw());
     }
@@ -152,7 +152,7 @@ RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
   intptr_t num_flds = (unresolved_class.raw()->to() -
                        unresolved_class.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     unresolved_class.StorePointer((unresolved_class.raw()->from() + i),
                                   reader->PassiveObjectHandle()->raw());
   }
@@ -216,7 +216,7 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (type.raw()->to() - type.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsInlinedObject);
     type.StorePointer((type.raw()->from() + i),
                       reader->PassiveObjectHandle()->raw());
   }
@@ -290,7 +290,7 @@ RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (type_ref.raw()->to() - type_ref.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     type_ref.StorePointer((type_ref.raw()->from() + i),
                           reader->PassiveObjectHandle()->raw());
   }
@@ -342,7 +342,7 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   intptr_t num_flds = (type_parameter.raw()->to() -
                        type_parameter.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     type_parameter.StorePointer((type_parameter.raw()->from() + i),
                                 reader->PassiveObjectHandle()->raw());
   }
@@ -397,7 +397,7 @@ RawBoundedType* BoundedType::ReadFrom(SnapshotReader* reader,
   intptr_t num_flds = (bounded_type.raw()->to() -
                        bounded_type.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     bounded_type.StorePointer((bounded_type.raw()->from() + i),
                               reader->PassiveObjectHandle()->raw());
   }
@@ -455,7 +455,7 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
 
   // Set the instantiations field, which is only read from a full snapshot.
   if (kind == Snapshot::kFull) {
-    *(reader->ArrayHandle()) ^= reader->ReadObjectImpl();
+    *(reader->ArrayHandle()) ^= reader->ReadObjectImpl(kAsInlinedObject);
     type_arguments.set_instantiations(*(reader->ArrayHandle()));
   } else {
     type_arguments.set_instantiations(Object::zero_array());
@@ -463,7 +463,7 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
 
   // Now set all the type fields.
   for (intptr_t i = 0; i < len; i++) {
-    *reader->TypeHandle() ^= reader->ReadObjectImpl();
+    *reader->TypeHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
     type_arguments.SetTypeAt(i, *reader->TypeHandle());
   }
 
@@ -508,13 +508,13 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
 
   // Write out the instantiations field, but only in a full snapshot.
   if (kind == Snapshot::kFull) {
-    writer->WriteObjectImpl(ptr()->instantiations_);
+    writer->WriteObjectImpl(ptr()->instantiations_, kAsInlinedObject);
   }
 
   // Write out the individual types.
   intptr_t len = Smi::Value(ptr()->length_);
   for (intptr_t i = 0; i < len; i++) {
-    writer->WriteObjectImpl(ptr()->types()[i]);
+    writer->WriteObjectImpl(ptr()->types()[i], kAsInlinedObject);
   }
 }
 
@@ -541,7 +541,7 @@ RawPatchClass* PatchClass::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (cls.raw()->to() - cls.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     cls.StorePointer((cls.raw()->from() + i),
                      reader->PassiveObjectHandle()->raw());
   }
@@ -592,7 +592,7 @@ RawClosureData* ClosureData::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (data.raw()->to() - data.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    *(data.raw()->from() + i) = reader->ReadObjectRef();
+    *(data.raw()->from() + i) = reader->ReadObjectImpl(kAsReference);
   }
 
   return data.raw();
@@ -616,17 +616,17 @@ void RawClosureData::WriteTo(SnapshotWriter* writer,
 
   // Context scope.
   // We don't write the context scope in the snapshot.
-  writer->WriteObjectImpl(Object::null());
+  writer->WriteObjectImpl(Object::null(), kAsInlinedObject);
 
   // Parent function.
-  writer->WriteObjectImpl(ptr()->parent_function_);
+  writer->WriteObjectImpl(ptr()->parent_function_, kAsInlinedObject);
 
   // Signature class.
-  writer->WriteObjectImpl(ptr()->signature_class_);
+  writer->WriteObjectImpl(ptr()->signature_class_, kAsInlinedObject);
 
   // Static closure/Closure allocation stub.
   // We don't write the closure or allocation stub in the snapshot.
-  writer->WriteObjectImpl(Object::null());
+  writer->WriteObjectImpl(Object::null(), kAsInlinedObject);
 }
 
 
@@ -652,7 +652,7 @@ RawRedirectionData* RedirectionData::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (data.raw()->to() - data.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     data.StorePointer((data.raw()->from() + i),
                       reader->PassiveObjectHandle()->raw());
   }
@@ -716,7 +716,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (func.raw()->to_snapshot() - func.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     func.StorePointer((func.raw()->from() + i),
                       reader->PassiveObjectHandle()->raw());
   }
@@ -788,7 +788,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (field.raw()->to() - field.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     field.StorePointer((field.raw()->from() + i),
                        reader->PassiveObjectHandle()->raw());
   }
@@ -850,7 +850,7 @@ RawLiteralToken* LiteralToken::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (literal_token.raw()->to() - literal_token.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     literal_token.StorePointer((literal_token.raw()->from() + i),
                                reader->PassiveObjectHandle()->raw());
   }
@@ -910,10 +910,10 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   }
 
   // Read in the literal/identifier token array.
-  *(reader->TokensHandle()) ^= reader->ReadObjectImpl();
+  *(reader->TokensHandle()) ^= reader->ReadObjectImpl(kAsInlinedObject);
   token_stream.SetTokenObjects(*(reader->TokensHandle()));
   // Read in the private key in use by the token stream.
-  *(reader->StringHandle()) ^= reader->ReadObjectImpl();
+  *(reader->StringHandle()) ^= reader->ReadObjectImpl(kAsInlinedObject);
   token_stream.SetPrivateKey(*(reader->StringHandle()));
 
   return token_stream.raw();
@@ -942,9 +942,9 @@ void RawTokenStream::WriteTo(SnapshotWriter* writer,
   writer->WriteBytes(stream->ptr()->data_, len);
 
   // Write out the literal/identifier token array.
-  writer->WriteObjectImpl(ptr()->token_objects_);
+  writer->WriteObjectImpl(ptr()->token_objects_, kAsInlinedObject);
   // Write out the private key in use by the token stream.
-  writer->WriteObjectImpl(ptr()->private_key_);
+  writer->WriteObjectImpl(ptr()->private_key_, kAsInlinedObject);
 }
 
 
@@ -976,7 +976,7 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (script.raw()->to_snapshot() - script.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     script.StorePointer((script.raw()->from() + i),
                         reader->PassiveObjectHandle()->raw());
   }
@@ -1028,7 +1028,7 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
   if ((kind == Snapshot::kScript) && RawObject::IsCreatedFromSnapshot(tags)) {
     ASSERT(kind != Snapshot::kFull);
     // Lookup the object as it should already exist in the heap.
-    *reader->StringHandle() ^= reader->ReadObjectImpl();
+    *reader->StringHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
     library = Library::LookupLibrary(*reader->StringHandle());
   } else {
     // Allocate library object.
@@ -1063,7 +1063,7 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     // allocations may happen.
     intptr_t num_flds = (library.raw()->to() - library.raw()->from());
     for (intptr_t i = 0; i <= num_flds; i++) {
-      (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+      (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
       library.StorePointer((library.raw()->from() + i),
                            reader->PassiveObjectHandle()->raw());
     }
@@ -1092,7 +1092,7 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
       RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this))) {
     ASSERT(kind != Snapshot::kFull);
     // Write out library URL so that it can be looked up when reading.
-    writer->WriteObjectImpl(ptr()->url_);
+    writer->WriteObjectImpl(ptr()->url_, kAsInlinedObject);
   } else {
     // Write out all non object fields.
     writer->WriteClassIDValue(ptr()->index_);
@@ -1144,7 +1144,7 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (prefix.raw()->to() - prefix.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     prefix.StorePointer((prefix.raw()->from() + i),
                          reader->PassiveObjectHandle()->raw());
   }
@@ -1201,7 +1201,7 @@ RawNamespace* Namespace::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (ns.raw()->to() - ns.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     ns.StorePointer((ns.raw()->from() + i),
                     reader->PassiveObjectHandle()->raw());
   }
@@ -1390,7 +1390,7 @@ RawLocalVarDescriptors* LocalVarDescriptors::ReadFrom(SnapshotReader* reader,
   result.set_tags(tags);
 
   for (intptr_t i = 0; i < num_entries; i++) {
-    (*reader->StringHandle()) ^= reader->ReadObjectRef();
+    (*reader->StringHandle()) ^= reader->ReadObjectImpl(kAsReference);
     result.StorePointer(result.raw()->nameAddrAt(i),
                         reader->StringHandle()->raw());
   }
@@ -1418,7 +1418,7 @@ void RawLocalVarDescriptors::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
   writer->Write<int32_t>(ptr()->num_entries_);
   for (intptr_t i = 0; i < ptr()->num_entries_; i++) {
-    writer->WriteObjectImpl(ptr()->names()[i]);
+    writer->WriteObjectImpl(ptr()->names()[i], kAsInlinedObject);
   }
   if (ptr()->num_entries_ > 0) {
     intptr_t len = ptr()->num_entries_ * sizeof(VarInfo);
@@ -1434,7 +1434,8 @@ RawExceptionHandlers* ExceptionHandlers::ReadFrom(SnapshotReader* reader,
                                                   Snapshot::Kind kind) {
   ASSERT(reader->allow_code());
 
-  *(reader->ArrayHandle()) ^= reader->ReadObjectImpl();  // handled_types_data_
+  // handled_types_data.
+  *(reader->ArrayHandle()) ^= reader->ReadObjectImpl(kAsInlinedObject);
 
   ExceptionHandlers& result =
       ExceptionHandlers::ZoneHandle(reader->zone(),
@@ -1466,7 +1467,7 @@ void RawExceptionHandlers::WriteTo(SnapshotWriter* writer,
   writer->WriteInlinedObjectHeader(object_id);
   writer->WriteIndexedObject(kExceptionHandlersCid);
   writer->WriteTags(writer->GetObjectTags(this));
-  writer->WriteObjectImpl(ptr()->handled_types_data_);
+  writer->WriteObjectImpl(ptr()->handled_types_data_, kAsInlinedObject);
 
   if (ptr()->num_entries_ > 0) {
     intptr_t len = ptr()->num_entries_ * sizeof(HandlerInfo);
@@ -1499,7 +1500,7 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
     // allocations may happen.
     intptr_t num_flds = (context.raw()->to(num_vars) - context.raw()->from());
     for (intptr_t i = 0; i <= num_flds; i++) {
-      (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+      (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
       context.StorePointer((context.raw()->from() + i),
                            reader->PassiveObjectHandle()->raw());
     }
@@ -1630,7 +1631,7 @@ RawApiError* ApiError::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (api_error.raw()->to() - api_error.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     api_error.StorePointer((api_error.raw()->from() + i),
                            reader->PassiveObjectHandle()->raw());
   }
@@ -1681,7 +1682,7 @@ RawLanguageError* LanguageError::ReadFrom(SnapshotReader* reader,
   intptr_t num_flds =
       (language_error.raw()->to() - language_error.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     language_error.StorePointer((language_error.raw()->from() + i),
                                 reader->PassiveObjectHandle()->raw());
   }
@@ -1728,7 +1729,7 @@ RawUnhandledException* UnhandledException::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (result.raw()->to() - result.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     result.StorePointer((result.raw()->from() + i),
                          reader->PassiveObjectHandle()->raw());
   }
@@ -1894,7 +1895,7 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (obj.raw()->to() - obj.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsInlinedObject);
     obj.StorePointer(obj.raw()->from() + i,
                      reader->PassiveObjectHandle()->raw());
   }
@@ -2330,7 +2331,7 @@ RawGrowableObjectArray* GrowableObjectArray::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &array, kIsDeserialized);
   intptr_t length = reader->ReadSmiValue();
   array.SetLength(length);
-  *(reader->ArrayHandle()) ^= reader->ReadObjectImpl();
+  *(reader->ArrayHandle()) ^= reader->ReadObjectImpl(kAsInlinedObject);
   array.SetData(*(reader->ArrayHandle()));
   *(reader->TypeArgumentsHandle()) = reader->ArrayHandle()->GetTypeArguments();
   array.SetTypeArguments(*(reader->TypeArgumentsHandle()));
@@ -2354,7 +2355,7 @@ void RawGrowableObjectArray::WriteTo(SnapshotWriter* writer,
   writer->Write<RawObject*>(ptr()->length_);
 
   // Write out the Array object.
-  writer->WriteObjectImpl(ptr()->data_);
+  writer->WriteObjectImpl(ptr()->data_, kAsInlinedObject);
 }
 
 
@@ -2379,7 +2380,7 @@ RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
   map.set_tags(tags);
 
   // Read the type arguments.
-  *reader->TypeArgumentsHandle() ^= reader->ReadObjectImpl();
+  *reader->TypeArgumentsHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
   map.SetTypeArguments(*reader->TypeArgumentsHandle());
 
   // Read the number of key/value pairs.
@@ -2404,10 +2405,9 @@ RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
   map.SetHashMask(0);  // Prefer sentinel 0 over null for better type feedback.
 
   // Read the keys and values.
-  bool is_canonical = RawObject::IsCanonical(tags);
+  bool as_reference = RawObject::IsCanonical(tags) ? false : true;
   for (intptr_t i = 0; i < used_data; i++) {
-    *reader->PassiveObjectHandle() =
-        is_canonical ? reader->ReadObjectImpl() : reader->ReadObjectRef();
+    *reader->PassiveObjectHandle() = reader->ReadObjectImpl(as_reference);
     data.SetAt(i, *reader->PassiveObjectHandle());
   }
   return map.raw();
@@ -2433,7 +2433,7 @@ void RawLinkedHashMap::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(tags);
 
   // Write out the type arguments.
-  writer->WriteObjectImpl(ptr()->type_arguments_);
+  writer->WriteObjectImpl(ptr()->type_arguments_, kAsInlinedObject);
 
   const intptr_t used_data = Smi::Value(ptr()->used_data_);
   ASSERT((used_data & 1) == 0);  // Keys + values, so must be even.
@@ -2443,7 +2443,7 @@ void RawLinkedHashMap::WriteTo(SnapshotWriter* writer,
   writer->Write<RawObject*>(Smi::New((used_data >> 1) - deleted_keys));
 
   // Write out the keys and values.
-  const bool is_canonical = RawObject::IsCanonical(tags);
+  const bool as_reference = RawObject::IsCanonical(tags) ? false : true;
   RawArray* data_array = ptr()->data_;
   RawObject** data_elements = data_array->ptr()->data();
   ASSERT(used_data <= Smi::Value(data_array->ptr()->length_));
@@ -2459,13 +2459,8 @@ void RawLinkedHashMap::WriteTo(SnapshotWriter* writer,
       continue;
     }
     RawObject* value = data_elements[i + 1];
-    if (is_canonical) {
-      writer->WriteObjectImpl(key);
-      writer->WriteObjectImpl(value);
-    } else {
-      writer->WriteObjectRef(key);
-      writer->WriteObjectRef(value);
-    }
+    writer->WriteObjectImpl(key, as_reference);
+    writer->WriteObjectImpl(value, as_reference);
   }
   DEBUG_ASSERT(deleted_keys_found == deleted_keys);
 }
@@ -2918,7 +2913,7 @@ RawStacktrace* Stacktrace::ReadFrom(SnapshotReader* reader,
     // allocations may happen.
     intptr_t num_flds = (result.raw()->to() - result.raw()->from());
     for (intptr_t i = 0; i <= num_flds; i++) {
-      (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+      (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
       result.StorePointer((result.raw()->from() + i),
                           reader->PassiveObjectHandle()->raw());
     }
@@ -2980,7 +2975,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
   // Read and Set all the other fields.
   regex.StoreSmi(&regex.raw_ptr()->num_bracket_expressions_,
                  reader->ReadAsSmi());
-  *reader->StringHandle() ^= reader->ReadObjectImpl();
+  *reader->StringHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
   regex.set_pattern(*reader->StringHandle());
   regex.StoreNonPointer(&regex.raw_ptr()->num_registers_,
                         reader->Read<int32_t>());
@@ -3007,7 +3002,7 @@ void RawJSRegExp::WriteTo(SnapshotWriter* writer,
 
   // Write out all the other fields.
   writer->Write<RawObject*>(ptr()->num_bracket_expressions_);
-  writer->WriteObjectImpl(ptr()->pattern_);
+  writer->WriteObjectImpl(ptr()->pattern_, kAsInlinedObject);
   writer->Write<int32_t>(ptr()->num_registers_);
   writer->Write<int8_t>(ptr()->type_flags_);
 }
@@ -3033,7 +3028,7 @@ RawWeakProperty* WeakProperty::ReadFrom(SnapshotReader* reader,
   intptr_t num_flds = (weak_property.raw()->to() -
                        weak_property.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
     weak_property.StorePointer((weak_property.raw()->from() + i),
                                reader->PassiveObjectHandle()->raw());
   }

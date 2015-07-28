@@ -97,6 +97,8 @@ enum SerializedHeaderType {
 static const int8_t kHeaderTagBits = 2;
 static const int8_t kObjectIdBits = (kBitsPerInt32 - (kHeaderTagBits + 1));
 static const intptr_t kMaxObjectId = (kMaxUint32 >> (kHeaderTagBits + 1));
+static const bool kAsReference = true;
+static const bool kAsInlinedObject = false;
 
 
 class SerializedHeaderTag : public BitField<enum SerializedHeaderType,
@@ -367,9 +369,20 @@ class SnapshotReader : public BaseReader {
 
   RawClass* ReadClassId(intptr_t object_id);
   RawObject* ReadStaticImplicitClosure(intptr_t object_id, intptr_t cls_header);
-  RawObject* ReadObjectImpl();
-  RawObject* ReadObjectImpl(intptr_t header);
-  RawObject* ReadObjectRef();
+
+  // Implementation to read an object.
+  RawObject* ReadObjectImpl(bool as_reference);
+  RawObject* ReadObjectImpl(intptr_t header, bool as_reference);
+
+  // Read an object reference from the stream.
+  RawObject* ReadObjectRef(intptr_t object_id,
+                           intptr_t class_header,
+                           intptr_t tags);
+
+  // Read an inlined object from the stream.
+  RawObject* ReadInlinedObject(intptr_t object_id,
+                               intptr_t class_header,
+                               intptr_t tags);
 
   // Read a VM isolate object that was serialized as an Id.
   RawObject* ReadVMIsolateObject(intptr_t object_id);
@@ -377,9 +390,6 @@ class SnapshotReader : public BaseReader {
   // Read an object that was serialized as an Id (singleton in object store,
   // or an object that was already serialized before).
   RawObject* ReadIndexedObject(intptr_t object_id);
-
-  // Read an inlined object from the stream.
-  RawObject* ReadInlinedObject(intptr_t object_id);
 
   // Decode class id from the header field.
   intptr_t LookupInternalClass(intptr_t class_header);
@@ -703,12 +713,12 @@ class SnapshotWriter : public BaseWriter {
   bool CheckAndWritePredefinedObject(RawObject* raw);
   void HandleVMIsolateObject(RawObject* raw);
 
-  void WriteObjectRef(RawObject* raw);
   void WriteClassId(RawClass* cls);
   void WriteStaticImplicitClosure(intptr_t object_id,
                                   RawFunction* func,
                                   intptr_t tags);
-  void WriteObjectImpl(RawObject* raw);
+  void WriteObjectImpl(RawObject* raw, bool as_reference);
+  void WriteObjectRef(RawObject* raw);
   void WriteInlinedObject(RawObject* raw);
   void WriteForwardedObjects();
   void ArrayWriteTo(intptr_t object_id,

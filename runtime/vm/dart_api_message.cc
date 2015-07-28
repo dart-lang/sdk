@@ -481,6 +481,9 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
     object_id = NextAvailableObjectId();
   }
 
+  intptr_t tags = ReadTags();
+  USE(tags);
+
   // Reading of regular dart instances has limited support in order to
   // read typed data views.
   if (SerializedHeaderData::decode(class_header) == kInstanceObjectId) {
@@ -502,10 +505,6 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
     AddBackRef(object_id, value, kIsNotDeserialized);
     return value;
   }
-
-  intptr_t tags = ReadTags();
-  USE(tags);
-
   return ReadInternalVMObject(class_id, object_id);
 }
 
@@ -1060,6 +1059,7 @@ bool ApiMessageWriter::WriteCObjectRef(Dart_CObject* object) {
     WriteInlinedHeader(object);
     // Write out the class information.
     WriteIndexedObject(kArrayCid);
+    WriteTags(0);
     // Write out the length information.
     WriteSmi(array_length);
     // Add object to forward list so that this object is serialized later.
