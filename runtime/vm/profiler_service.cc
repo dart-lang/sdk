@@ -1290,6 +1290,7 @@ class ProfileBuilder : public ValueObject {
     const uword pc = sample->At(frame_index);
     ProfileCode* profile_code = GetProfileCode(pc,
                                                sample->timestamp());
+    const intptr_t code_index = profile_code->code_table_index();
     ASSERT(profile_code != NULL);
     const Code& code = Code::ZoneHandle(profile_code->code());
     GrowableArray<Function*> inlined_functions;
@@ -1305,7 +1306,8 @@ class ProfileBuilder : public ValueObject {
                                 sample_index,
                                 sample,
                                 frame_index,
-                                function);
+                                function,
+                                code_index);
       return current;
     }
 
@@ -1318,7 +1320,8 @@ class ProfileBuilder : public ValueObject {
                                          sample_index,
                                          sample,
                                          frame_index,
-                                         inlined_function);
+                                         inlined_function,
+                                         code_index);
       }
     } else {
       for (intptr_t i = 0; i < inlined_functions.length(); i++) {
@@ -1329,7 +1332,8 @@ class ProfileBuilder : public ValueObject {
                                          sample_index,
                                          sample,
                                          frame_index + i,
-                                         inlined_function);
+                                         inlined_function,
+                                         code_index);
       }
     }
 
@@ -1341,7 +1345,8 @@ class ProfileBuilder : public ValueObject {
       intptr_t sample_index,
       ProcessedSample* sample,
       intptr_t frame_index,
-      Function* inlined_function) {
+      Function* inlined_function,
+      intptr_t code_index) {
     ProfileFunctionTable* function_table = profile_->functions_;
     ProfileFunction* function = function_table->LookupOrAdd(*inlined_function);
     ASSERT(function != NULL);
@@ -1349,18 +1354,22 @@ class ProfileBuilder : public ValueObject {
                            sample_index,
                            sample,
                            frame_index,
-                           function);
+                           function,
+                           code_index);
   }
 
   ProfileFunctionTrieNode* ProcessFunction(ProfileFunctionTrieNode* current,
                                            intptr_t sample_index,
                                            ProcessedSample* sample,
                                            intptr_t frame_index,
-                                           ProfileFunction* function) {
+                                           ProfileFunction* function,
+                                           intptr_t code_index) {
     if (tick_functions_) {
       function->Tick(IsExecutingFrame(sample, frame_index), sample_index);
     }
+    function->AddProfileCode(code_index);
     current = current->GetChild(function->table_index());
+    current->AddCodeObjectIndex(code_index);
     current->Tick();
     return current;
   }
