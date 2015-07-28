@@ -97,7 +97,8 @@ ProfileFunction::ProfileFunction(Kind kind,
       table_index_(table_index),
       profile_codes_(0),
       exclusive_ticks_(0),
-      inclusive_ticks_(0) {
+      inclusive_ticks_(0),
+      inclusive_serial_(-1) {
   ASSERT((kind_ != kDartFunction) || !function_.IsNull());
   ASSERT((kind_ != kDartFunction) || (table_index_ >= 0));
   ASSERT(profile_codes_.length() == 0);
@@ -1224,6 +1225,7 @@ class ProfileBuilder : public ValueObject {
   void BuildInclusiveFunctionTrie(ProfileFunctionTrieNode* root) {
     ScopeTimer sw("ProfileBuilder::BuildInclusiveFunctionTrie",
                   FLAG_trace_profiler);
+    ASSERT(!tick_functions_);
     for (intptr_t sample_index = 0;
          sample_index < samples_->length();
          sample_index++) {
@@ -1254,6 +1256,7 @@ class ProfileBuilder : public ValueObject {
   void BuildExclusiveFunctionTrie(ProfileFunctionTrieNode* root) {
     ScopeTimer sw("ProfileBuilder::BuildExclusiveFunctionTrie",
                   FLAG_trace_profiler);
+    ASSERT(tick_functions_);
     for (intptr_t sample_index = 0;
          sample_index < samples_->length();
          sample_index++) {

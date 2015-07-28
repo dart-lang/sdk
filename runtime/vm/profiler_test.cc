@@ -369,7 +369,7 @@ TEST_CASE(Profiler_CodeTicks) {
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
-    // We should have one allocation sample.
+    // We should have three allocation samples.
     EXPECT_EQ(3, profile.sample_count());
     ProfileTrieWalker walker(&profile);
 
@@ -461,7 +461,7 @@ TEST_CASE(Profiler_FunctionTicks) {
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
-    // We should have one allocation sample.
+    // We should have three allocation samples.
     EXPECT_EQ(3, profile.sample_count());
     ProfileTrieWalker walker(&profile);
 
