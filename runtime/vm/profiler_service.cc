@@ -1180,18 +1180,6 @@ class ProfileBuilder : public ValueObject {
             GetProfileCodeIndex(sample->At(j), sample->timestamp());
         ASSERT(index >= 0);
         current = current->GetChild(index);
-
-        if (j == 0) {
-          // Executing PC.
-          if (!sample->first_frame_executing() || vm_tags_emitted()) {
-            // Only tick if this isn't an exit frame or VM tags are emitted.
-            current->Tick();
-          }
-        } else {
-          // Caller PCs.
-          current->Tick();
-        }
-
         current->Tick();
       }
 

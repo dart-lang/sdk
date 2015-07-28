@@ -378,12 +378,29 @@ TEST_CASE(Profiler_CodeTicks) {
     // Move down from the root.
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_EQ(3, walker.CurrentNodeTickCount());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
     EXPECT_EQ(3, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_EQ(3, walker.CurrentNodeTickCount());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT(!walker.Down());
+
+    // Inclusive code: main -> B.boo.
+    walker.Reset(Profile::kInclusiveCode);
+    // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_EQ(3, walker.CurrentNodeTickCount());
+    EXPECT_EQ(3, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_EQ(3, walker.CurrentNodeTickCount());
+    EXPECT_EQ(3, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(3, walker.CurrentExclusiveTicks());
     EXPECT(!walker.Down());
   }
 }
