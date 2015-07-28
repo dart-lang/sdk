@@ -3569,7 +3569,6 @@ class ObjectPool : public Object {
   }
 
   EntryType InfoAt(intptr_t index) const;
-  void SetInfoAt(intptr_t index, EntryType info) const;
 
   RawObject* ObjectAt(intptr_t index) const {
     ASSERT(InfoAt(index) == kTaggedObject);

@@ -10895,11 +10895,6 @@ ObjectPool::EntryType ObjectPool::InfoAt(intptr_t index) const {
 }
 
 
-void ObjectPool::SetInfoAt(intptr_t index, EntryType info) const {
-  const TypedData& array = TypedData::Handle(info_array());
-  array.SetInt8(index, static_cast<int8_t>(info));
-}
-
 const char* ObjectPool::ToCString() const {
   return "ObjectPool";
 }
