@@ -533,12 +533,12 @@ TEST_CASE(Service_EmbedderRootHandler) {
   service_msg = Eval(lib, "[0, port, '\"', 'alpha', [], []]");
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":alpha, \"id\":\"\\\"\"}",
+  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":alpha,\"id\":\"\\\"\"}",
                handler.msg());
   service_msg = Eval(lib, "[0, port, 1, 'beta', [], []]");
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":beta, \"id\":1}",
+  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":beta,\"id\":1}",
                handler.msg());
 }
 
@@ -573,12 +573,12 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
   service_msg = Eval(lib, "[0, port, '0', 'alpha', [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":alpha, \"id\":\"0\"}",
+  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":alpha,\"id\":\"0\"}",
                handler.msg());
   service_msg = Eval(lib, "[0, port, '0', 'beta', [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":beta, \"id\":\"0\"}",
+  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":beta,\"id\":\"0\"}",
                handler.msg());
 }
 

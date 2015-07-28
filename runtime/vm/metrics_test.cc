@@ -48,6 +48,8 @@ UNIT_TEST_CASE(Metric_OnDemand) {
   vm_flags.CopyTo(&api_flags);
   Isolate* isolate = Isolate::Init(NULL, api_flags);
   EXPECT_EQ(isolate, Isolate::Current());
+  StackZone zone(isolate);
+  HANDLESCOPE(isolate);
   MyMetric metric;
 
   metric.Init(Isolate::Current(), "a.b.c", "foobar", Metric::kByte);
