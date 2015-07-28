@@ -1618,9 +1618,9 @@ class AstCloner implements AstVisitor<AstNode> {
   @override
   VariableDeclarationList visitVariableDeclarationList(
       VariableDeclarationList node) => new VariableDeclarationList(
-      cloneNode(node.documentationComment),
-      cloneNodeList(node.metadata), cloneToken(node.keyword),
-      cloneNode(node.type), cloneNodeList(node.variables));
+      cloneNode(node.documentationComment), cloneNodeList(node.metadata),
+      cloneToken(node.keyword), cloneNode(node.type),
+      cloneNodeList(node.variables));
 
   @override
   VariableDeclarationStatement visitVariableDeclarationStatement(
@@ -10842,15 +10842,13 @@ class InterpolationString extends InterpolationElement {
   /**
    * The value of the literal.
    */
-  String _value;
+  String value;
 
   /**
    * Initialize a newly created string of characters that are part of a string
    * interpolation.
    */
-  InterpolationString(this.contents, String value) {
-    _value = value;
-  }
+  InterpolationString(this.contents, this.value);
 
   @override
   Token get beginToken => contents;
@@ -10877,18 +10875,6 @@ class InterpolationString extends InterpolationElement {
 
   @override
   Token get endToken => contents;
-
-  /**
-   * Return the value of the literal.
-   */
-  String get value => _value;
-
-  /**
-   * Set the value of the literal to the given [string].
-   */
-  void set value(String string) {
-    _value = string;
-  }
 
   @override
   accept(AstVisitor visitor) => visitor.visitInterpolationString(this);

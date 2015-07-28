@@ -6712,8 +6712,7 @@ abstract class CachePartition {
    * [retentionPolicy] will be used to determine which pieces of data to remove
    * from the cache.
    */
-  CachePartition(this.context, int maxCacheSize, this._retentionPolicy) {
-    this._maxCacheSize = maxCacheSize;
+  CachePartition(this.context, this._maxCacheSize, this._retentionPolicy) {
     _recentlyUsed = new List<Source>();
   }
 
@@ -7370,11 +7369,7 @@ class CycleBuilder_LibraryPair {
   /**
    * Initialize a newly created pair from the given [library] and [entryPairs].
    */
-  CycleBuilder_LibraryPair(ResolvableLibrary library,
-      List<CycleBuilder_SourceEntryPair> entryPairs) {
-    this.library = library;
-    this.entryPairs = entryPairs;
-  }
+  CycleBuilder_LibraryPair(this.library, this.entryPairs);
 }
 
 /**
@@ -7396,10 +7391,7 @@ class CycleBuilder_SourceEntryPair {
   /**
    * Initialize a newly created pair from the given [source] and [entry].
    */
-  CycleBuilder_SourceEntryPair(Source source, DartEntry entry) {
-    this.source = source;
-    this.entry = entry;
-  }
+  CycleBuilder_SourceEntryPair(this.source, this.entry);
 }
 
 /**
@@ -8956,13 +8948,8 @@ class IncrementalAnalysisCache {
   int _newLength = 0;
 
   IncrementalAnalysisCache(this.librarySource, this.source, this.resolvedUnit,
-      this.oldContents, String newContents, int offset, int oldLength,
-      int newLength) {
-    this._newContents = newContents;
-    this._offset = offset;
-    this._oldLength = oldLength;
-    this._newLength = newLength;
-  }
+      this.oldContents, this._newContents, this._offset, this._oldLength,
+      this._newLength);
 
   /**
    * Determine if the cache contains source changes that need to be analyzed

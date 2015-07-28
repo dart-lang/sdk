@@ -4758,12 +4758,7 @@ class HtmlTagInfo {
    * @param classToTagsMap a table mapping the classes defined in the HTML file to an array
    *          containing the names of tags with that class
    */
-  HtmlTagInfo(List<String> allTags, HashMap<String, String> idToTagMap,
-      HashMap<String, List<String>> classToTagsMap) {
-    this.allTags = allTags;
-    this.idToTagMap = idToTagMap;
-    this.classToTagsMap = classToTagsMap;
-  }
+  HtmlTagInfo(this.allTags, this.idToTagMap, this.classToTagsMap);
 
   /**
    * Return an array containing the tags that have the given class, or {@code null} if there are no
@@ -11150,7 +11145,7 @@ class ResolverVisitor extends ScopedVisitor {
     // If the expectedClosureType is not more specific than the static type,
     // return.
     DartType staticClosureType =
-        (closure.element != null ? closure.element.type : null) as DartType;
+        closure.element != null ? closure.element.type : null;
     if (staticClosureType != null &&
         !expectedClosureType.isMoreSpecificThan(staticClosureType)) {
       return;
@@ -11640,7 +11635,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   /**
    * The element for the library containing the compilation unit being visited.
    */
-  LibraryElement _definingLibrary;
+  final LibraryElement definingLibrary;
 
   /**
    * The source representing the compilation unit being visited.
@@ -11650,7 +11645,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   /**
    * The error listener that will be informed of any errors that are found during resolution.
    */
-  AnalysisErrorListener _errorListener;
+  final AnalysisErrorListener errorListener;
 
   /**
    * The scope used to resolve identifiers.
@@ -11694,23 +11689,15 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * first be visited.  If `null` or unspecified, a new [LibraryScope] will be
    * created based on [definingLibrary] and [typeProvider].
    */
-  ScopedVisitor(LibraryElement definingLibrary, this.source, this.typeProvider,
-      AnalysisErrorListener errorListener, {Scope nameScope}) {
-    this._definingLibrary = definingLibrary;
-    this._errorListener = errorListener;
+  ScopedVisitor(
+      this.definingLibrary, this.source, this.typeProvider, this.errorListener,
+      {Scope nameScope}) {
     if (nameScope == null) {
       this.nameScope = new LibraryScope(definingLibrary, errorListener);
     } else {
       this.nameScope = nameScope;
     }
   }
-
-  /**
-   * Return the library element for the library containing the compilation unit being resolved.
-   *
-   * @return the library element for the library containing the compilation unit being resolved
-   */
-  LibraryElement get definingLibrary => _definingLibrary;
 
   /**
    * Return the implicit label scope in which the current node is being
@@ -11748,7 +11735,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    */
   void reportErrorForNode(ErrorCode errorCode, AstNode node,
       [List<Object> arguments]) {
-    _errorListener.onError(new AnalysisError(
+    errorListener.onError(new AnalysisError(
         source, node.offset, node.length, errorCode, arguments));
   }
 
@@ -11762,7 +11749,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    */
   void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
       [List<Object> arguments]) {
-    _errorListener.onError(
+    errorListener.onError(
         new AnalysisError(source, offset, length, errorCode, arguments));
   }
 
@@ -11775,7 +11762,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    */
   void reportErrorForToken(ErrorCode errorCode, sc.Token token,
       [List<Object> arguments]) {
-    _errorListener.onError(new AnalysisError(
+    errorListener.onError(new AnalysisError(
         source, token.offset, token.length, errorCode, arguments));
   }
 
