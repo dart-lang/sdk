@@ -7403,14 +7403,14 @@ class AnalysisOptions implements HasToJson {
   bool _generateLints;
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed async feature.
    */
   bool get enableAsync => _enableAsync;
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed async feature.
    */
@@ -7419,7 +7419,7 @@ class AnalysisOptions implements HasToJson {
   }
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed deferred
    * loading feature.
@@ -7427,7 +7427,7 @@ class AnalysisOptions implements HasToJson {
   bool get enableDeferredLoading => _enableDeferredLoading;
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed deferred
    * loading feature.
@@ -7437,14 +7437,14 @@ class AnalysisOptions implements HasToJson {
   }
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed enum feature.
    */
   bool get enableEnums => _enableEnums;
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed enum feature.
    */
@@ -7453,12 +7453,16 @@ class AnalysisOptions implements HasToJson {
   }
 
   /**
+   * Deprecated: this feature is always enabled.
+   *
    * True if the client wants to enable support for the proposed "null aware
    * operators" feature.
    */
   bool get enableNullAwareOperators => _enableNullAwareOperators;
 
   /**
+   * Deprecated: this feature is always enabled.
+   *
    * True if the client wants to enable support for the proposed "null aware
    * operators" feature.
    */

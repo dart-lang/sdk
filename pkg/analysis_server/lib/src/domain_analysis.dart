@@ -266,11 +266,6 @@ class AnalysisDomainHandler implements RequestHandler {
     var params = new AnalysisUpdateOptionsParams.fromRequest(request);
     AnalysisOptions newOptions = params.options;
     List<OptionUpdater> updaters = new List<OptionUpdater>();
-    if (newOptions.enableNullAwareOperators != null) {
-      updaters.add((engine.AnalysisOptionsImpl options) {
-        options.enableNullAwareOperators = newOptions.enableNullAwareOperators;
-      });
-    }
     if (newOptions.generateDart2jsHints != null) {
       updaters.add((engine.AnalysisOptionsImpl options) {
         options.dart2jsHint = newOptions.generateDart2jsHints;
