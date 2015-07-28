@@ -38,12 +38,14 @@
 
       <template if="{{ ref.isClosure }}">
         <a on-click="{{ goto }}" _href="{{ url }}">
-          {{ ref.function.qualifiedName }}
+          <em>Closure</em> ({{ ref.function.qualifiedName }})
         </a>
       </template>
 
       <template if="{{ ref.isRegExp }}">
-        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}({{ ref.pattern.valueAsString }})</em></a>
+        <a on-click="{{ goto }}" _href="{{ url }}">
+          <em>{{ ref.clazz.name }}</em> ({{ ref.pattern.valueAsString }})
+        </a>
       </template>
 
       <template if="{{ ref.isPlainInstance }}">

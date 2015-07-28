@@ -1515,10 +1515,9 @@ static bool PrintRetainingPath(Isolate* isolate,
   jsobj.AddProperty("length", length);
   JSONArray elements(&jsobj, "elements");
   Object& element = Object::Handle();
-  Object& parent = Object::Handle();
-  Smi& offset_from_parent = Smi::Handle();
-  Class& parent_class = Class::Handle();
-  Array& parent_field_map = Array::Handle();
+  Smi& slot_offset = Smi::Handle();
+  Class& element_class = Class::Handle();
+  Array& element_field_map = Array::Handle();
   Field& field = Field::Handle();
   limit = Utils::Minimum(limit, length);
   for (intptr_t i = 0; i < limit; ++i) {
@@ -1528,22 +1527,23 @@ static bool PrintRetainingPath(Isolate* isolate,
     jselement.AddProperty("value", element);
     // Interpret the word offset from parent as list index or instance field.
     // TODO(koda): User-friendly interpretation for map entries.
-    offset_from_parent ^= path.At((i * 2) + 1);
-    int parent_i = i + 1;
-    if (parent_i < limit) {
-      parent = path.At(parent_i * 2);
-      if (parent.IsArray()) {
-        intptr_t element_index = offset_from_parent.Value() -
+    if (i > 0) {
+      slot_offset ^= path.At((i * 2) - 1);
+      if (element.IsArray()) {
+        intptr_t element_index = slot_offset.Value() -
             (Array::element_offset(0) >> kWordSizeLog2);
         jselement.AddProperty("parentListIndex", element_index);
-      } else if (parent.IsInstance()) {
-        parent_class ^= parent.clazz();
-        parent_field_map = parent_class.OffsetToFieldMap();
-        intptr_t offset = offset_from_parent.Value();
-        if (offset > 0 && offset < parent_field_map.Length()) {
-          field ^= parent_field_map.At(offset);
+      } else if (element.IsInstance()) {
+        element_class ^= element.clazz();
+        element_field_map = element_class.OffsetToFieldMap();
+        intptr_t offset = slot_offset.Value();
+        if (offset > 0 && offset < element_field_map.Length()) {
+          field ^= element_field_map.At(offset);
           jselement.AddProperty("parentField", field);
         }
+      } else {
+        intptr_t element_index = slot_offset.Value();
+        jselement.AddProperty("_parentWordOffset", element_index);
       }
     }
   }

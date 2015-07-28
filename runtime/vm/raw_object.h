@@ -581,6 +581,7 @@ class RawObject {
   friend class Scavenger;
   friend class ScavengerVisitor;
   friend class SizeExcludingClassVisitor;  // GetClassId
+  friend class RetainingPathVisitor;  // GetClassId
   friend class SnapshotReader;
   friend class SnapshotWriter;
   friend class String;
