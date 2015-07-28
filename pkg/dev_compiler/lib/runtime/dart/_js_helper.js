@@ -1137,6 +1137,54 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     return JSON.stringify(string);
   }
   dart.fn(jsonEncodeNative, core.String, [core.String]);
+  let _jsIterator = Symbol('_jsIterator');
+  let SyncIterator$ = dart.generic(function(E) {
+    class SyncIterator extends core.Object {
+      SyncIterator(jsIterator) {
+        this[_jsIterator] = jsIterator;
+        this[_current] = null;
+      }
+      get current() {
+        return this[_current];
+      }
+      moveNext() {
+        let ret = this[_jsIterator].next();
+        this[_current] = dart.as(ret.value, E);
+        return !ret.done;
+      }
+    }
+    SyncIterator[dart.implements] = () => [core.Iterator$(E)];
+    dart.setSignature(SyncIterator, {
+      constructors: () => ({SyncIterator: [SyncIterator$(E), [dart.dynamic]]}),
+      methods: () => ({moveNext: [core.bool, []]})
+    });
+    return SyncIterator;
+  });
+  let SyncIterator = SyncIterator$();
+  let _generator = Symbol('_generator');
+  let _args = Symbol('_args');
+  let SyncIterable$ = dart.generic(function(E) {
+    class SyncIterable extends collection.IterableBase$(E) {
+      SyncIterable(generator, args) {
+        this[_generator] = generator;
+        this[_args] = args;
+        super.IterableBase();
+      }
+      [_jsIterator]() {
+        return this[_generator](...this[_args]);
+      }
+      get iterator() {
+        return new (SyncIterator$(E))(this[_jsIterator]());
+      }
+    }
+    dart.setSignature(SyncIterable, {
+      constructors: () => ({SyncIterable: [SyncIterable$(E), [dart.dynamic, dart.dynamic]]}),
+      methods: () => ({[_jsIterator]: [dart.dynamic, []]})
+    });
+    dart.defineExtensionMembers(SyncIterable, ['iterator']);
+    return SyncIterable;
+  });
+  let SyncIterable = SyncIterable$();
   // Exports:
   exports.NoThrows = NoThrows;
   exports.NoInline = NoInline;
@@ -1196,4 +1244,8 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   exports.RuntimeError = RuntimeError;
   exports.random64 = random64;
   exports.jsonEncodeNative = jsonEncodeNative;
+  exports.SyncIterator$ = SyncIterator$;
+  exports.SyncIterator = SyncIterator;
+  exports.SyncIterable$ = SyncIterable$;
+  exports.SyncIterable = SyncIterable;
 });

@@ -781,7 +781,9 @@ class Printer implements NodeVisitor {
   visitSpread(Spread unary) => visitPrefix(unary);
 
   visitYield(Yield yield) {
-    out(yield.star ? "yield* " : "yield ");
+    out(yield.star ? "yield*" : "yield");
+    if (yield.value == null) return;
+    out(" ");
     visitNestedExpression(yield.value, yield.precedenceLevel,
         newInForInit: inForInit, newAtStatementBegin: false);
   }

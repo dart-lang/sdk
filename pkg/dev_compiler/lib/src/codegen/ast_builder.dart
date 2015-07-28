@@ -328,11 +328,40 @@ class AstBuilder {
   static NamedExpression namedExpression(String s, Expression e) {
     return RawAstBuilder.namedExpression(identifierFromString(s), e);
   }
+
+  /// Declares a single variable `var <name> = <init>` with the type and name
+  /// specified by the VariableElement. See also [variableStatement].
+  static VariableDeclarationList declareVariable(SimpleIdentifier name,
+      [Expression init]) {
+    var eqToken = init != null ? new Token(TokenType.EQ, 0) : null;
+    var varToken = new KeywordToken(Keyword.VAR, 0);
+    return new VariableDeclarationList(null, null, varToken, null,
+        [new VariableDeclaration(name, eqToken, init)]);
+  }
+
+  static VariableDeclarationStatement variableStatement(SimpleIdentifier name,
+      [Expression init]) {
+    return RawAstBuilder
+        .variableDeclarationStatement(declareVariable(name, init));
+  }
+
+  static InstanceCreationExpression instanceCreation(
+      ConstructorName ctor, List<Expression> args) {
+    var newToken = new KeywordToken(Keyword.NEW, 0);
+    return new InstanceCreationExpression(
+        newToken, ctor, RawAstBuilder.argumentList(args));
+  }
 }
 
 // This class provides a low-level wrapper around the constructors for
 // the AST.  It mostly simply abstracts from the lexical tokens.
 class RawAstBuilder {
+  static ConstructorName constructorName(TypeName type,
+      [SimpleIdentifier name]) {
+    Token period = name != null ? new Token(TokenType.PERIOD, 0) : null;
+    return new ConstructorName(type, period, name);
+  }
+
   static SimpleIdentifier identifierFromString(String name) {
     StringToken token = new SyntheticStringToken(TokenType.IDENTIFIER, name, 0);
     return new SimpleIdentifier(token);
@@ -531,5 +560,11 @@ class RawAstBuilder {
   static NamedExpression namedExpression(SimpleIdentifier s, Expression e) {
     Label l = new Label(s, new Token(TokenType.COLON, 0));
     return new NamedExpression(l, e);
+  }
+
+  static VariableDeclarationStatement variableDeclarationStatement(
+      VariableDeclarationList varDecl) {
+    var semi = new Token(TokenType.SEMICOLON, 0);
+    return new VariableDeclarationStatement(varDecl, semi);
   }
 }

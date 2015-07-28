@@ -64,7 +64,8 @@ class MetaLet extends Expression {
       ExpressionStatement es = s.first;
       return es.expression;
     }
-    return new Call(new ArrowFun([], block), []);
+
+    return _toInvokedFunction(block);
   }
 
   Expression toAssignExpression(Expression left) {
@@ -94,8 +95,7 @@ class MetaLet extends Expression {
       return _expression = es.value;
     }
     // Wrap it in an immediately called function to get in expression context.
-    // TODO(jmesserly):
-    return _expression = new Call(new ArrowFun([], block), []);
+    return _expression = _toInvokedFunction(block);
   }
 
   Block toStatement() {
@@ -128,6 +128,19 @@ class MetaLet extends Expression {
 
   /// This generates as either a comma expression or a call.
   int get precedenceLevel => variables.isEmpty ? EXPRESSION : CALL;
+
+  Expression _toInvokedFunction(Statement block) {
+    var finder = new _YieldFinder();
+    block.accept(finder);
+    if (!finder.hasYield) {
+      return new Call(new ArrowFun([], block), []);
+    }
+    // If we have a yield, it's more tricky. We'll create a `function*`, which
+    // we `yield*` to immediately invoke. We also may need to bind this:
+    Expression fn = new Fun([], block, isGenerator: true);
+    if (finder.hasThis) fn = js.call('#.bind(this)', fn);
+    return new Yield(new Call(fn, []), star: true);
+  }
 
   Block _finishStatement(List<Statement> statements) {
     var params = <TemporaryId>[];
@@ -230,7 +243,7 @@ class MetaLet extends Expression {
 
 class _VariableUseCounter extends BaseVisitor {
   final counts = <String, int>{};
-  visitInterpolatedExpression(InterpolatedExpression node) {
+  @override visitInterpolatedExpression(InterpolatedExpression node) {
     int n = counts[node.nameOrPosition];
     counts[node.nameOrPosition] = n == null ? 1 : n + 1;
   }
@@ -241,10 +254,31 @@ class _IdentFinder extends BaseVisitor {
   bool found = false;
   _IdentFinder(this.name);
 
-  visitIdentifier(Identifier node) {
+  @override visitIdentifier(Identifier node) {
     if (node.name == name) found = true;
   }
-  visitNode(Node node) {
+  @override visitNode(Node node) {
     if (!found) super.visitNode(node);
+  }
+}
+
+class _YieldFinder extends BaseVisitor {
+  bool hasYield = false;
+  bool hasThis = false;
+  bool _nestedFunction = false;
+  @override visitThis(This node) {
+    hasThis = true;
+  }
+  @override visitFunctionExpression(FunctionExpression node) {
+    var savedNested = _nestedFunction;
+    _nestedFunction = true;
+    super.visitFunctionExpression(node);
+    _nestedFunction = savedNested;
+  }
+  @override visitYield(Yield node) {
+    if (!_nestedFunction) hasYield = true;
+  }
+  @override visitNode(Node node) {
+    if (!hasYield) super.visitNode(node);
   }
 }

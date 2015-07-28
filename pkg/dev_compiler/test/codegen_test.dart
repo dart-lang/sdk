@@ -47,28 +47,22 @@ main(arguments) {
 
   var inputDir = path.join(testDirectory, 'codegen');
   var expectDir = path.join(inputDir, 'expect');
-  var paths = new Directory(inputDir)
-      .listSync()
-      .where((f) => f is File)
-      .map((f) => f.path)
-      .where((p) => p.endsWith('.dart') && filePattern.hasMatch(p));
 
   bool compile(String entryPoint, AnalysisContext context,
-      {bool checkSdk: false, bool sourceMaps: false, String subDir}) {
+      {bool checkSdk: false, bool sourceMaps: false}) {
     // TODO(jmesserly): add a way to specify flags in the test file, so
     // they're more self-contained.
     var runtimeDir = path.join(path.dirname(testDirectory), 'lib', 'runtime');
     var options = new CompilerOptions(
         codegenOptions: new CodegenOptions(
-            outputDir: subDir == null
-                ? expectDir
-                : path.join(expectDir, subDir),
+            outputDir: expectDir,
             emitSourceMaps: sourceMaps,
             forceCompile: checkSdk),
         useColors: false,
         checkSdk: checkSdk,
         runtimeDir: runtimeDir,
-        inputs: [entryPoint]);
+        inputs: [entryPoint],
+        inputBaseDir: inputDir);
     var reporter = createErrorReporter(context, options);
     return new BatchCompiler(context, options, reporter: reporter).run();
   }
@@ -81,27 +75,39 @@ main(arguments) {
       .where((d) => d is Directory && path.basename(d.path) == 'packages');
   packagesDirs.forEach((d) => d.deleteSync());
 
-  for (var filePath in paths) {
-    var filename = path.basenameWithoutExtension(filePath);
+  for (var dir in [null, 'language']) {
+    group('dartdevc ' + path.join('test', 'codegen', dir), () {
+      var testFiles = new Directory(path.join(inputDir, dir))
+          .listSync()
+          .where((f) => f is File)
+          .map((f) => f.path)
+          .where((p) => p.endsWith('.dart') && filePattern.hasMatch(p));
 
-    test('devc $filename.dart', () {
-      compilerMessages.writeln('// Messages from compiling $filename.dart');
+      for (var filePath in testFiles) {
+        var filename = path.basenameWithoutExtension(filePath);
 
-      // TODO(jmesserly): this was added to get some coverage of source maps
-      // We need a more comprehensive strategy to test them.
-      var sourceMaps = filename == 'map_keys';
-      var success = compile(filePath, realSdkContext, sourceMaps: sourceMaps);
+        test('$filename.dart', () {
+          compilerMessages.writeln('// Messages from compiling $filename.dart');
 
-      // Write compiler messages to disk.
-      new File(path.join(expectDir, '$filename.txt'))
-          .writeAsStringSync(compilerMessages.toString());
+          // TODO(jmesserly): this was added to get some coverage of source maps
+          // We need a more comprehensive strategy to test them.
+          var sourceMaps = filename == 'map_keys';
+          var success =
+              compile(filePath, realSdkContext, sourceMaps: sourceMaps);
 
-      var outFile = new File(path.join(expectDir, '$filename.js'));
-      expect(outFile.existsSync(), success,
-          reason: '${outFile.path} was created iff compilation succeeds');
+          // Write compiler messages to disk.
+          var outDir = path.join(expectDir, dir);
+          new File(path.join(outDir, '$filename.txt'))
+              .writeAsStringSync(compilerMessages.toString());
 
-      // TODO(jmesserly): ideally we'd diff the output here. For now it
-      // happens in the containing shell script.
+          var outFile = new File(path.join(outDir, '$filename.js'));
+          expect(outFile.existsSync(), success,
+              reason: '${outFile.path} was created iff compilation succeeds');
+
+          // TODO(jmesserly): ideally we'd diff the output here. For now it
+          // happens in the containing shell script.
+        });
+      }
     });
   }
 
@@ -144,16 +150,13 @@ main(arguments) {
     var filePath = path.join(inputDir, 'sunflower', 'sunflower.html');
     compilerMessages.writeln('// Messages from compiling sunflower.html');
 
-    var success = compile(filePath, realSdkContext, subDir: 'sunflower');
+    var success = compile(filePath, realSdkContext);
 
     // Write compiler messages to disk.
     new File(path.join(expectDir, 'sunflower', 'sunflower.txt'))
         .writeAsStringSync(compilerMessages.toString());
 
-    var expectedFiles = [
-      'sunflower.html',
-      'sunflower.js',
-    ]..addAll(expectedRuntime);
+    var expectedFiles = ['sunflower.html', 'sunflower.js',];
 
     for (var filepath in expectedFiles) {
       var outFile = new File(path.join(expectDir, 'sunflower', filepath));

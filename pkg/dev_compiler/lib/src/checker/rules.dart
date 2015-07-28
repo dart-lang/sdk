@@ -76,6 +76,59 @@ abstract class TypeRules {
 
   bool isDynamicTarget(Expression expr);
   bool isDynamicCall(Expression call);
+
+  /// Gets the expected return type of the given function [body], either from
+  /// a normal return/yield, or from a yield*.
+  DartType getExpectedReturnType(FunctionBody body, {bool yieldStar: false}) {
+    FunctionType functionType;
+    var parent = body.parent;
+    if (parent is Declaration) {
+      functionType = elementType(parent.element);
+    } else {
+      assert(parent is FunctionExpression);
+      functionType = getStaticType(parent);
+    }
+
+    var type = functionType.returnType;
+
+    InterfaceType expectedType = null;
+    if (body.isAsynchronous) {
+      if (body.isGenerator) {
+        // Stream<T> -> T
+        expectedType = provider.streamType;
+      } else {
+        // Future<T> -> T
+        // TODO(vsm): Revisit with issue #228.
+        expectedType = provider.futureType;
+      }
+    } else {
+      if (body.isGenerator) {
+        // Iterable<T> -> T
+        expectedType = provider.iterableType;
+      } else {
+        // T -> T
+        return type;
+      }
+    }
+    if (yieldStar) {
+      if (type.isDynamic) {
+        // Ensure it's at least a Stream / Iterable.
+        return expectedType.substitute4([provider.dynamicType]);
+      } else {
+        // Analyzer will provide a separate error if expected type
+        // is not compatible with type.
+        return type;
+      }
+    }
+    if (type.isDynamic) {
+      return type;
+    } else if (type is InterfaceType && type.element == expectedType.element) {
+      return type.typeArguments[0];
+    } else {
+      // Malformed type - fallback on analyzer error.
+      return null;
+    }
+  }
 }
 
 // TODO(jmesserly): this is unused.

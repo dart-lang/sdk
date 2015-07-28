@@ -5,12 +5,14 @@
 dart_library.library('dart_runtime/dart', null, /* Imports */[
   'dart_runtime/_classes',
   'dart_runtime/_errors',
+  'dart_runtime/_generators',
   'dart_runtime/_operations',
   'dart_runtime/_rtti',
   'dart_runtime/_types',
 ], /* Lazy Imports */[
   'dart/_js_helper'
-], function(exports, classes, errors, operations, rtti, types, _js_helper) {
+], function(exports, classes, errors, generators, operations, rtti, types,
+    _js_helper) {
   'use strict';
 
   function _export(value) {
@@ -52,8 +54,14 @@ dart_library.library('dart_runtime/dart', null, /* Imports */[
     'registerExtension',
     'setBaseClass',
     'setSignature',
-    'virtualField',
-  ])
+    'virtualField'
+  ]);
+
+  exportFrom(generators, [
+    'syncStar',
+    'async',
+    'asyncStar'
+  ]);
 
   // From dart_utils
   exportFrom(dart_utils, ['copyProperties', 'instantiate']);

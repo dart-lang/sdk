@@ -756,7 +756,9 @@ class IsolateNatives {
     if (Primitives.isD8) return computeThisScriptD8();
     if (Primitives.isJsshell) return computeThisScriptJsshell();
     // A worker has no script tag - so get an url from a stack-trace.
-    if (_globalState.isWorker) return computeThisScriptFromTrace();
+    if (_globalState != null && _globalState.isWorker) {
+      return computeThisScriptFromTrace();
+    }
     return null;
   }
 

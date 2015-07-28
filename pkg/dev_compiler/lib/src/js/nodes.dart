@@ -1282,7 +1282,7 @@ class TaggedTemplate extends Expression {
 
 // TODO(jmesserly): parser does not support this yet.
 class Yield extends Expression {
-  final Expression value;
+  final Expression value; // Can be null.
 
   /**
    * Whether this yield expression is a `yield*` that iterates each item in
@@ -1295,7 +1295,7 @@ class Yield extends Expression {
   accept(NodeVisitor visitor) => visitor.visitYield(this);
 
   void visitChildren(NodeVisitor visitor) {
-    value.accept(visitor);
+    if (value != null) value.accept(visitor);
   }
 
   Yield _clone() => new Yield(value);

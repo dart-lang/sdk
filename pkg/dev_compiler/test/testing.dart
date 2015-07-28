@@ -29,8 +29,18 @@ import 'package:dev_compiler/src/utils.dart';
 
 /// Shared analysis context used for compilation.
 final realSdkContext = createAnalysisContextWithSources(new StrongModeOptions(),
-    new SourceResolverOptions(dartSdkPath: getSdkDir().path))
-  ..analysisOptions = (new AnalysisOptionsImpl()..cacheSize = 512);
+    new SourceResolverOptions(
+        dartSdkPath: getSdkDir().path,
+        customUrlMappings: {
+  'package:expect/expect.dart': _testCodegenPath('expect.dart'),
+  'package:async_helper/async_helper.dart':
+      _testCodegenPath('async_helper.dart'),
+  'package:unittest/unittest.dart': _testCodegenPath('unittest.dart'),
+  'package:dom/dom.dart': _testCodegenPath('sunflower', 'dom.dart')
+}))..analysisOptions = (new AnalysisOptionsImpl()..cacheSize = 512);
+
+String _testCodegenPath(String p1, [String p2]) =>
+    path.join(testDirectory, 'codegen', p1, p2);
 
 final String testDirectory =
     path.dirname((reflectClass(_TestUtils).owner as LibraryMirror).uri.path);

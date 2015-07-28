@@ -1,4 +1,4 @@
-dart_library.library('circle', null, /* Imports */[
+dart_library.library('sunflower/circle', null, /* Imports */[
   "dart_runtime/dart",
   'dart/core'
 ], /* Lazy imports */[

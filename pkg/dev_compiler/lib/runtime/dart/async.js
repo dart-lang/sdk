@@ -4070,6 +4070,8 @@ dart_library.library('dart/async', null, /* Imports */[
       }
       cancel() {
         let subscription = this[_subscription];
+        if (subscription == null)
+          return null;
         if (this[_state] == _StreamIteratorImpl$()._STATE_MOVING) {
           let hasNext = dart.as(this[_futureOrPrefetch], _Future$(core.bool));
           this[_clear]();

@@ -406,7 +406,9 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitForEachStatement(ForEachStatement node) {
     // Check that the expression is an Iterable.
     var expr = node.iterable;
-    var iterableType = rules.provider.iterableType;
+    var iterableType = node.awaitKeyword != null
+        ? rules.provider.streamType
+        : rules.provider.iterableType;
     var loopVariable = node.identifier != null
         ? node.identifier
         : node.loopVariable.identifier;
@@ -578,69 +580,10 @@ class CodeChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
-  DartType _getExpectedReturnType(FunctionBody body, bool yieldStar) {
-    FunctionType functionType;
-    var parent = body.parent;
-    if (parent is Declaration) {
-      functionType = rules.elementType(parent.element);
-    } else {
-      assert(parent is FunctionExpression);
-      functionType = rules.getStaticType(parent);
-    }
-
-    var type = functionType.returnType;
-    var provider = rules.provider;
-
-    InterfaceType expectedType = null;
-    if (body.isAsynchronous) {
-      if (body.isGenerator) {
-        // Stream<T> -> T
-        expectedType = provider.streamType;
-      } else {
-        // Future<T> -> T
-        // TODO(vsm): Revisit with issue #228.
-        expectedType = provider.futureType;
-      }
-    } else {
-      if (body.isGenerator) {
-        // Iterable<T> -> T
-        expectedType = provider.iterableType;
-      } else {
-        // T -> T
-        return type;
-      }
-    }
-    if (yieldStar) {
-      if (type.isDynamic) {
-        // Ensure it's at least a Stream / Iterable.
-        return expectedType.substitute4([provider.dynamicType]);
-      } else {
-        // Analyzer will provide a separate error if expected type
-        // is not compatible with type.
-        return type;
-      }
-    }
-    if (type.isDynamic) {
-      return type;
-    } else if (type is InterfaceType && type.element == expectedType.element) {
-      return type.typeArguments[0];
-    } else {
-      // Malformed type - fallback on analyzer error.
-      return null;
-    }
-  }
-
-  FunctionBody _getFunctionBody(AstNode node) {
-    while (node is! FunctionBody) {
-      node = node.parent;
-    }
-    return node as FunctionBody;
-  }
-
   void _checkReturnOrYield(Expression expression, AstNode node,
-      [bool yieldStar = false]) {
-    var body = _getFunctionBody(node);
-    var type = _getExpectedReturnType(body, yieldStar);
+      {bool yieldStar: false}) {
+    var body = node.getAncestor((n) => n is FunctionBody);
+    var type = rules.getExpectedReturnType(body, yieldStar: yieldStar);
     if (type == null) {
       // We have a type mismatch: the async/async*/sync* modifier does
       // not match the return or yield type.  We should have already gotten an
@@ -665,7 +608,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitYieldStatement(YieldStatement node) {
-    _checkReturnOrYield(node.expression, node, node.star != null);
+    _checkReturnOrYield(node.expression, node, yieldStar: node.star != null);
     node.visitChildren(this);
   }
 

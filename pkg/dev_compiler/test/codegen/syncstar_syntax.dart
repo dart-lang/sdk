@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/expect.dart';
+
 Iterable<int> foo() sync* {
   yield 1;
   yield* [2, 3];
@@ -25,8 +27,8 @@ main() {
     yield* [2, 3];
   }
 
-  foo().forEach(print);
-  new Class().bar().forEach(print);
-  Class.baz().forEach(print);
-  qux().forEach(print);
+  Expect.listEquals([1, 2, 3], foo().toList());
+  Expect.listEquals([1, 2, 3], new Class().bar().toList());
+  Expect.listEquals([1, 2, 3], Class.baz().toList());
+  Expect.listEquals([1, 2, 3], qux().toList());
 }

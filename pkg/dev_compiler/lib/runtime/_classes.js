@@ -382,7 +382,7 @@ dart_library.library('dart_runtime/_classes', null, /* Imports */[
   exports.defineExtensionMembers = defineExtensionMembers;
 
   function canonicalMember(obj, name) {
-    if (obj[_extensionType]) return dartx[name];
+    if (obj != null && obj[_extensionType]) return dartx[name];
     return name;
   }
   exports.canonicalMember = canonicalMember;

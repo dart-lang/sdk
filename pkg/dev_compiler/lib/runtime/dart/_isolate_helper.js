@@ -950,8 +950,9 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         return IsolateNatives.computeThisScriptD8();
       if (dart.notNull(_js_helper.Primitives.isJsshell))
         return IsolateNatives.computeThisScriptJsshell();
-      if (dart.notNull(exports._globalState.isWorker))
+      if (exports._globalState != null && dart.notNull(exports._globalState.isWorker)) {
         return IsolateNatives.computeThisScriptFromTrace();
+      }
       return null;
     }
     static computeThisScriptJsshell() {

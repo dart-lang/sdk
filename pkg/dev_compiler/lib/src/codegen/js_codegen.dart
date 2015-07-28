@@ -67,6 +67,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   /// The variable for the current catch clause
   SimpleIdentifier _catchParameter;
 
+  /// In an async* function, this represents the stream controller parameter.
+  JS.TemporaryId _asyncStarController;
+
   /// Imported libraries, and the temporaries used to refer to them.
   final _imports = new Map<LibraryElement, JS.TemporaryId>();
   final _exports = new Set<String>();
@@ -1165,7 +1168,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     if (params == null) params = <JS.Parameter>[];
 
     return new JS.Method(
-        _elementMemberName(node.element), _emitJsFunction(params, node.body),
+        _elementMemberName(node.element), _emitFunctionBody(params, node.body),
         isGetter: node.isGetter,
         isSetter: node.isSetter,
         isStatic: node.isStatic);
@@ -1252,19 +1255,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     var parent = node.parent;
     var inStmt = parent.parent is FunctionDeclarationStatement;
     if (parent is FunctionDeclaration) {
-      return _emitJsFunction(params, node.body);
+      return _emitFunctionBody(params, node.body);
     } else {
       String code;
-      AstNode body;
-      var nodeBody = node.body;
-      if (nodeBody is ExpressionFunctionBody) {
+      JS.Node jsBody;
+      var body = node.body;
+      if (body.isGenerator || body.isAsynchronous) {
         code = '(#) => #';
-        body = nodeBody.expression;
+        jsBody = _emitGeneratorFunctionBody(params, body);
+      } else if (body is ExpressionFunctionBody) {
+        code = '(#) => #';
+        jsBody = _visit(body.expression);
       } else {
         code = '(#) => { #; }';
-        body = nodeBody;
+        jsBody = _visit(body);
       }
-      var clos = js.call(code, [params, _visit(body)]);
+      var clos = js.call(code, [params, jsBody]);
       if (!inStmt) {
         var type = getStaticType(node);
         return _emitFunctionTagged(clos, type,
@@ -1274,10 +1280,69 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     }
   }
 
-  JS.Fun _emitJsFunction(List<JS.Parameter> params, FunctionBody body) {
-    // TODO(jmesserly): async/async*
-    var syncStar = body.isSynchronous && body.star != null;
-    return new JS.Fun(params, _visit(body), isGenerator: syncStar);
+  JS.Fun _emitFunctionBody(List<JS.Parameter> params, FunctionBody body) {
+    // sync*, async, async*
+    if (body.isAsynchronous || body.isGenerator) {
+      return new JS.Fun(params, js.statement(
+          '{ return #; }', [_emitGeneratorFunctionBody(params, body)]));
+    }
+    // normal function (sync)
+    return new JS.Fun(params, _visit(body));
+  }
+
+  JS.Expression _emitGeneratorFunctionBody(
+      List<JS.Parameter> params, FunctionBody body) {
+    var kind = body.isSynchronous ? 'sync' : 'async';
+    if (body.isGenerator) kind += 'Star';
+
+    // Transforms `sync*` `async` and `async*` function bodies
+    // using ES6 generators.
+    //
+    // `sync*` wraps a generator in a Dart Iterable<T>:
+    //
+    // function name(<args>) {
+    //   return dart.syncStar(function*(<args>) {
+    //     <body>
+    //   }, T, <args>).bind(this);
+    // }
+    //
+    // We need to include <args> in case any are mutated, so each `.iterator`
+    // gets the same initial values.
+    //
+    // TODO(jmesserly): we could omit the args for the common case where args
+    // are not mutated inside the generator.
+    //
+    // In the future, we might be able to simplify this, see:
+    // https://github.com/dart-lang/dev_compiler/issues/247.
+    //
+    // `async` works the same, but uses the `dart.async` helper.
+    //
+    // In the body of a `sync*` and `async`, `yield`/`await` are both generated
+    // simply as `yield`.
+    //
+    // `async*` uses the `dart.asyncStar` helper, and also has an extra `stream`
+    // argument to the generator, which is used for passing values to the
+    // _AsyncStarStreamController implementation type.
+    // `yield` is specially generated inside `async*`, see visitYieldStatement.
+    // `await` is generated as `yield`.
+    // runtime/_generators.js has an example of what the code is generated as.
+    var savedController = _asyncStarController;
+    List jsParams;
+    if (kind == 'asyncStar') {
+      _asyncStarController = new JS.TemporaryId('stream');
+      jsParams = [_asyncStarController]..addAll(params);
+    } else {
+      _asyncStarController = null;
+      jsParams = params;
+    }
+    JS.Expression gen = new JS.Fun(jsParams, _visit(body), isGenerator: true);
+    if (JS.This.foundIn(gen)) {
+      gen = js.call('#.bind(this)', gen);
+    }
+    _asyncStarController = savedController;
+
+    var T = _emitTypeName(rules.getExpectedReturnType(body));
+    return js.call('dart.#(#)', [kind, [gen, T]..addAll(params)]);
   }
 
   @override
@@ -1708,7 +1773,33 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   @override
   JS.Statement visitYieldStatement(YieldStatement node) {
     JS.Expression jsExpr = _visit(node.expression);
-    return jsExpr.toYieldStatement(star: node.star != null);
+    var star = node.star != null;
+    if (_asyncStarController != null) {
+      // async* yields are generated differently from sync* yields. `yield e`
+      // becomes:
+      //
+      //     if (stream.add(e)) return;
+      //     yield;
+      //
+      // `yield* e` becomes:
+      //
+      //     if (stream.addStream(e)) return;
+      //     yield;
+      var helperName = star ? 'addStream' : 'add';
+      return js.statement('{ if(#.#(#)) return; #; }', [
+        _asyncStarController,
+        helperName,
+        jsExpr,
+        new JS.Yield(null)
+      ]);
+    }
+    // A normal yield in a sync*
+    return jsExpr.toYieldStatement(star: star);
+  }
+
+  @override
+  JS.Expression visitAwaitExpression(AwaitExpression node) {
+    return new JS.Yield(_visit(node.expression));
   }
 
   @override
@@ -2414,12 +2505,68 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  JS.ForOf visitForEachStatement(ForEachStatement node) {
+  JS.Statement visitForEachStatement(ForEachStatement node) {
+    if (node.awaitKeyword != null) {
+      return _emitAwaitFor(node);
+    }
+
     var init = _visit(node.identifier);
     if (init == null) {
       init = js.call('let #', node.loopVariable.identifier.name);
     }
     return new JS.ForOf(init, _visit(node.iterable), _visit(node.body));
+  }
+
+  JS.Statement _emitAwaitFor(ForEachStatement node) {
+    // Emits `await for (var value in stream) ...`, which desugars as:
+    //
+    // var iter = new StreamIterator<T>(stream);
+    // try {
+    //   while (await iter.moveNext()) {
+    //     var value = iter.current;
+    //     ...
+    //   }
+    // } finally {
+    //   await iter.cancel();
+    // }
+    //
+    // Like the Dart VM, we call cancel() always, as it's safe to call if the
+    // stream has already been cancelled.
+    //
+    // TODO(jmesserly): we may want a helper if these become common. For now the
+    // full desugaring seems okay.
+    var context = compiler.context;
+    var dart_async = context
+        .computeLibraryElement(context.sourceFactory.forUri('dart:async'));
+    var T = node.loopVariable.element.type;
+    var StreamIterator_T =
+        dart_async.getType('StreamIterator').type.substitute4([T]);
+
+    var createStreamIter = _emitInstanceCreationExpression(
+        StreamIterator_T.element.unnamedConstructor, StreamIterator_T, null,
+        AstBuilder.argumentList([node.iterable]), false);
+    var iter = _visit(_createTemporary('it', StreamIterator_T));
+
+    var init = _visit(node.identifier);
+    if (init == null) {
+      init = js.call(
+          'let # = #.current', [node.loopVariable.identifier.name, iter]);
+    } else {
+      init = js.call('# = #.current', [init, iter]);
+    }
+    return js.statement('{'
+        '  let # = #;'
+        '  try {'
+        '    while (#) { #; #; }'
+        '  } finally { #; }'
+        '}', [
+      iter,
+      createStreamIter,
+      new JS.Yield(js.call('#.moveNext()', iter)),
+      init,
+      _visit(node.body),
+      new JS.Yield(js.call('#.cancel()', iter))
+    ]);
   }
 
   @override

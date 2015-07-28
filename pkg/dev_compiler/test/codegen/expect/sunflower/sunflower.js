@@ -1,10 +1,10 @@
-dart_library.library('sunflower', null, /* Imports */[
+dart_library.library('sunflower/sunflower', null, /* Imports */[
   "dart_runtime/dart",
-  'dom',
+  'sunflower/dom',
   'dart/core',
   'dart/math',
-  'painter',
-  'circle'
+  'sunflower/painter',
+  'sunflower/circle'
 ], /* Lazy imports */[
 ], function(exports, dart, dom, core, math, painter, circle) {
   'use strict';

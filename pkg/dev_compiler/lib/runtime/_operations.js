@@ -152,13 +152,13 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
   /** Shared code for dsend, dindex, and dsetindex. */
   function callMethod(obj, name, args, displayName) {
     let symbol = _canonicalFieldName(obj, name, args, displayName);
-    let f = obj[symbol];
+    let f = obj != null ? obj[symbol] : null;
     let ftype = classes.getMethodType(obj, name);
     return checkAndCall(f, ftype, obj, args, displayName);
   }
 
   function dsend(obj, method/*, ...args*/) {
-    return callMethod(obj, method, slice.call(arguments, 2));
+    return callMethod(obj, method, slice.call(arguments, 2), method);
   }
   exports.dsend = dsend;
 
@@ -180,8 +180,11 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
     if (isSubtype(type, core.Iterable) && isSubtype(actual, core.Iterable) ||
         isSubtype(type, async.Future) && isSubtype(actual, async.Future) ||
         isSubtype(type, core.Map) && isSubtype(actual, core.Map) ||
-        isSubtype(type, core.Function) && isSubtype(actual, core.Function)) {
-      console.error('Ignoring cast fail from ' + types.typeName(actual) +
+        isSubtype(type, core.Function) && isSubtype(actual, core.Function) ||
+        isSubtype(type, async.Stream) && isSubtype(actual, async.Stream) ||
+        isSubtype(type, async.StreamSubscription) &&
+            isSubtype(actual, async.StreamSubscription)) {
+      console.warn('Ignoring cast fail from ' + types.typeName(actual) +
         ' to ' + types.typeName(type));
       return true;
     }

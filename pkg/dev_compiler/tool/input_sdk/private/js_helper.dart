@@ -763,3 +763,35 @@ int random64() {
 String jsonEncodeNative(String string) {
   return JS("String", "JSON.stringify(#)", string);
 }
+
+
+// TODO(jmesserly): this adapter is to work around:
+// https://github.com/dart-lang/dev_compiler/issues/247
+class SyncIterator<E> implements Iterator<E> {
+  final dynamic _jsIterator;
+  E _current;
+
+  SyncIterator(this._jsIterator);
+
+  E get current => _current;
+
+  bool moveNext() {
+    final ret = JS('', '#.next()', _jsIterator);
+    _current = JS('', '#.value', ret);
+    return JS('bool', '!#.done', ret);
+  }
+}
+
+class SyncIterable<E> extends IterableBase<E> {
+  final dynamic _generator;
+  final dynamic _args;
+
+  SyncIterable(this._generator, this._args);
+
+  // TODO(jmesserly): this should be [Symbol.iterator]() method. Unfortunately
+  // we have no way of telling the compiler yet, so it will generate an extra
+  // layer of indirection that wraps the SyncIterator.
+  _jsIterator() => JS('', '#(...#)', _generator, _args);
+
+  Iterator<E> get iterator => new SyncIterator<E>(_jsIterator());
+}

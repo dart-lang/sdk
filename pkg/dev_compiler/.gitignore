@@ -15,6 +15,7 @@ node_modules
 
 # Ignore test output
 test/codegen/expect/dev_compiler/
+test/codegen/expect/language/
 test/codegen/expect/sunflower/dev_compiler/
 
 # Created by ./tool/build_sdk.sh

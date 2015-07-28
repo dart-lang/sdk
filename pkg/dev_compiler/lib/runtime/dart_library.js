@@ -103,6 +103,9 @@ var dart_library;
   function import_(libraryName) {
     bootstrap();
     let loader = libraries[libraryName];
+    if (loader == null) {
+      dart_utils.throwError('library not found: ' + libraryName);
+    }
     return loader.load();
   }
   dart_library.import = import_;

@@ -21,6 +21,12 @@ module.exports = function(config) {
       'lib/runtime/_*.js',
       'lib/runtime/dart/*.js',
       // {pattern: 'test/browser/*.js', included: false}
+      'test/codegen/expect/async_helper/async_helper.js',
+      'test/codegen/expect/dom/dom.js',
+      'test/codegen/expect/expect/expect.js',
+      'test/codegen/expect/unittest/unittest.js',
+      'test/codegen/expect/syncstar_syntax.js',
+      'test/codegen/expect/language/*.js',
       'test/browser/*.js',
       'test-main.js',
     ],

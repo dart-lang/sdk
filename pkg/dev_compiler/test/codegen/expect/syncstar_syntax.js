@@ -1,23 +1,30 @@
 dart_library.library('syncstar_syntax', null, /* Imports */[
   "dart_runtime/dart",
-  'dart/core'
+  'dart/core',
+  'expect/expect'
 ], /* Lazy imports */[
-], function(exports, dart, core) {
+], function(exports, dart, core, expect) {
   'use strict';
   let dartx = dart.dartx;
-  function* foo() {
-    yield 1;
-    yield* dart.list([2, 3], core.int);
+  function foo() {
+    return dart.syncStar(function*() {
+      yield 1;
+      yield* dart.list([2, 3], core.int);
+    }, core.int);
   }
   dart.fn(foo, core.Iterable$(core.int), []);
   class Class extends core.Object {
-    *bar() {
-      yield 1;
-      yield* dart.list([2, 3], core.int);
+    bar() {
+      return dart.syncStar(function*() {
+        yield 1;
+        yield* dart.list([2, 3], core.int);
+      }, core.int);
     }
-    static *baz() {
-      yield 1;
-      yield* dart.list([2, 3], core.int);
+    static baz() {
+      return dart.syncStar(function*() {
+        yield 1;
+        yield* dart.list([2, 3], core.int);
+      }, core.int);
     }
   }
   dart.setSignature(Class, {
@@ -26,15 +33,17 @@ dart_library.library('syncstar_syntax', null, /* Imports */[
     names: ['baz']
   });
   function main() {
-    function* qux() {
-      yield 1;
-      yield* dart.list([2, 3], core.int);
+    function qux() {
+      return dart.syncStar(function*() {
+        yield 1;
+        yield* dart.list([2, 3], core.int);
+      }, core.int);
     }
     dart.fn(qux, core.Iterable$(core.int), []);
-    foo()[dartx.forEach](core.print);
-    new Class().bar()[dartx.forEach](core.print);
-    Class.baz()[dartx.forEach](core.print);
-    qux()[dartx.forEach](core.print);
+    expect.Expect.listEquals([1, 2, 3], foo()[dartx.toList]());
+    expect.Expect.listEquals([1, 2, 3], new Class().bar()[dartx.toList]());
+    expect.Expect.listEquals([1, 2, 3], Class.baz()[dartx.toList]());
+    expect.Expect.listEquals([1, 2, 3], qux()[dartx.toList]());
   }
   dart.fn(main);
   // Exports:
