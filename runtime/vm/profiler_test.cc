@@ -406,6 +406,98 @@ TEST_CASE(Profiler_CodeTicks) {
 }
 
 
+TEST_CASE(Profiler_FunctionTicks) {
+  const char* kScript =
+      "class A {\n"
+      "  var a;\n"
+      "  var b;\n"
+      "}\n"
+      "class B {\n"
+      "  static boo() {\n"
+      "    return new A();\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  B.boo();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+
+  const Class& class_a = Class::Handle(GetClass(root_library, "A"));
+  EXPECT(!class_a.IsNull());
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    Isolate* isolate = Isolate::Current();
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have no allocation samples.
+    EXPECT_EQ(0, profile.sample_count());
+  }
+
+  // Turn on allocation tracing for A.
+  class_a.SetTraceAllocation(true);
+
+  // Allocate three times.
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    Isolate* isolate = Isolate::Current();
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have one allocation sample.
+    EXPECT_EQ(3, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    // Exclusive function: B.boo -> main.
+    walker.Reset(Profile::kExclusiveFunction);
+    // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_EQ(3, walker.CurrentNodeTickCount());
+    EXPECT_EQ(3, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(3, walker.CurrentExclusiveTicks());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_EQ(3, walker.CurrentNodeTickCount());
+    EXPECT_EQ(3, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT(!walker.Down());
+
+    // Inclusive function: main -> B.boo.
+    walker.Reset(Profile::kInclusiveFunction);
+    // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_EQ(3, walker.CurrentNodeTickCount());
+    EXPECT_EQ(3, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_EQ(3, walker.CurrentNodeTickCount());
+    EXPECT_EQ(3, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(3, walker.CurrentExclusiveTicks());
+    EXPECT(!walker.Down());
+  }
+}
+
+
 TEST_CASE(Profiler_IntrinsicAllocation) {
   const char* kScript = "double foo(double a, double b) => a + b;";
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);

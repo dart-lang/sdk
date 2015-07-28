@@ -117,14 +117,14 @@ const char* ProfileFunction::Name() const {
 void ProfileFunction::Tick(bool exclusive, intptr_t inclusive_serial) {
   if (exclusive) {
     exclusive_ticks_++;
-  } else {
-    if (inclusive_serial_ == inclusive_serial) {
-      // Already ticket.
-      return;
-    }
-    inclusive_serial_ = inclusive_serial;
-    inclusive_ticks_++;
   }
+  // Fall through and tick inclusive count too.
+  if (inclusive_serial_ == inclusive_serial) {
+    // Already ticked.
+    return;
+  }
+  inclusive_serial_ = inclusive_serial;
+  inclusive_ticks_++;
 }
 
 
@@ -963,6 +963,7 @@ class ProfileBuilder : public ValueObject {
         null_code_(Code::ZoneHandle()),
         null_function_(Function::ZoneHandle()),
         tick_functions_(false),
+        inclusive_tree_(false),
         samples_(NULL) {
     ASSERT(profile_ != NULL);
   }
@@ -1029,8 +1030,10 @@ class ProfileBuilder : public ValueObject {
 
   void BuildCodeTable() {
     ScopeTimer sw("ProfileBuilder::BuildCodeTable", FLAG_trace_profiler);
-    for (intptr_t i = 0; i < samples_->length(); i++) {
-      ProcessedSample* sample = samples_->At(i);
+    for (intptr_t sample_index = 0;
+         sample_index < samples_->length();
+         sample_index++) {
+      ProcessedSample* sample = samples_->At(sample_index);
       const int64_t timestamp = sample->timestamp();
 
       // This is our first pass over the sample buffer, use this as an
@@ -1049,12 +1052,14 @@ class ProfileBuilder : public ValueObject {
 
       // Make sure that a ProfileCode objects exist for all pcs in the sample
       // and tick each one.
-      for (intptr_t j = 0; j < sample->length(); j++) {
-        const uword pc = sample->At(j);
+      for (intptr_t frame_index = 0;
+           frame_index < sample->length();
+           frame_index++) {
+        const uword pc = sample->At(frame_index);
         ASSERT(pc != 0);
         ProfileCode* code = RegisterProfileCode(pc, timestamp);
         ASSERT(code != NULL);
-        code->Tick(pc, IsExecutingFrame(sample, j), i);
+        code->Tick(pc, IsExecutingFrame(sample, frame_index), sample_index);
       }
     }
   }
@@ -1121,7 +1126,8 @@ class ProfileBuilder : public ValueObject {
   void BuildCodeTrie(Profile::TrieKind kind) {
     ProfileCodeTrieNode* root =
         new ProfileCodeTrieNode(GetProfileCodeTagIndex(VMTag::kRootTagId));
-    if (IsInclusiveTrie(kind)) {
+    inclusive_tree_ = IsInclusiveTrie(kind);
+    if (inclusive_tree_) {
       BuildInclusiveCodeTrie(root);
     } else {
       BuildExclusiveCodeTrie(root);
@@ -1133,8 +1139,10 @@ class ProfileBuilder : public ValueObject {
   void BuildInclusiveCodeTrie(ProfileCodeTrieNode* root) {
     ScopeTimer sw("ProfileBuilder::BuildInclusiveCodeTrie",
                   FLAG_trace_profiler);
-    for (intptr_t i = 0; i < samples_->length(); i++) {
-      ProcessedSample* sample = samples_->At(i);
+    for (intptr_t sample_index = 0;
+         sample_index < samples_->length();
+         sample_index++) {
+      ProcessedSample* sample = samples_->At(sample_index);
 
       // Tick the root.
       ProfileCodeTrieNode* current = root;
@@ -1149,10 +1157,12 @@ class ProfileBuilder : public ValueObject {
       }
 
       // Walk the sampled PCs.
-      for (intptr_t j = sample->length() - 1; j >= 0; j--) {
-        ASSERT(sample->At(j) != 0);
+      for (intptr_t frame_index = sample->length() - 1;
+           frame_index >= 0;
+           frame_index--) {
+        ASSERT(sample->At(frame_index) != 0);
         intptr_t index =
-            GetProfileCodeIndex(sample->At(j), sample->timestamp());
+            GetProfileCodeIndex(sample->At(frame_index), sample->timestamp());
         ASSERT(index >= 0);
         current = current->GetChild(index);
         current->Tick();
@@ -1163,8 +1173,10 @@ class ProfileBuilder : public ValueObject {
   void BuildExclusiveCodeTrie(ProfileCodeTrieNode* root) {
     ScopeTimer sw("ProfileBuilder::BuildExclusiveCodeTrie",
                   FLAG_trace_profiler);
-    for (intptr_t i = 0; i < samples_->length(); i++) {
-      ProcessedSample* sample = samples_->At(i);
+    for (intptr_t sample_index = 0;
+         sample_index < samples_->length();
+         sample_index++) {
+      ProcessedSample* sample = samples_->At(sample_index);
 
       // Tick the root.
       ProfileCodeTrieNode* current = root;
@@ -1174,10 +1186,12 @@ class ProfileBuilder : public ValueObject {
       current = AppendTags(sample->vm_tag(), sample->user_tag(), current);
 
       // Walk the sampled PCs.
-      for (intptr_t j = 0; j < sample->length(); j++) {
-        ASSERT(sample->At(j) != 0);
+      for (intptr_t frame_index = 0;
+           frame_index < sample->length();
+           frame_index++) {
+        ASSERT(sample->At(frame_index) != 0);
         intptr_t index =
-            GetProfileCodeIndex(sample->At(j), sample->timestamp());
+            GetProfileCodeIndex(sample->At(frame_index), sample->timestamp());
         ASSERT(index >= 0);
         current = current->GetChild(index);
         current->Tick();
@@ -1195,9 +1209,10 @@ class ProfileBuilder : public ValueObject {
         new ProfileFunctionTrieNode(
             GetProfileFunctionTagIndex(VMTag::kRootTagId));
     // We tick the functions while building the trie, but, we don't want to do
-    // it for both tries, just one.
-    tick_functions_ = IsInclusiveTrie(kind);
-    if (IsInclusiveTrie(kind)) {
+    // it for both tries, just the exclusive trie.
+    inclusive_tree_ = IsInclusiveTrie(kind);
+    tick_functions_ = !inclusive_tree_;
+    if (inclusive_tree_) {
       BuildInclusiveFunctionTrie(root);
     } else {
       BuildExclusiveFunctionTrie(root);
@@ -1209,8 +1224,10 @@ class ProfileBuilder : public ValueObject {
   void BuildInclusiveFunctionTrie(ProfileFunctionTrieNode* root) {
     ScopeTimer sw("ProfileBuilder::BuildInclusiveFunctionTrie",
                   FLAG_trace_profiler);
-    for (intptr_t i = 0; i < samples_->length(); i++) {
-      ProcessedSample* sample = samples_->At(i);
+    for (intptr_t sample_index = 0;
+         sample_index < samples_->length();
+         sample_index++) {
+      ProcessedSample* sample = samples_->At(sample_index);
 
       // Tick the root.
       ProfileFunctionTrieNode* current = root;
@@ -1222,20 +1239,14 @@ class ProfileBuilder : public ValueObject {
       // Truncated tag.
       if (sample->truncated()) {
         current = AppendTruncatedTag(current);
-        InclusiveTickTruncatedTag();
       }
 
       // Walk the sampled PCs.
-      for (intptr_t j = sample->length() - 1; j >= 0; j--) {
-        ASSERT(sample->At(j) != 0);
-        current = ProcessFunctionPC(
-            sample->At(j),
-            sample->timestamp(),
-            current,
-            i,
-            (j == 0),
-            sample->first_frame_executing() || sample->IsAllocationSample(),
-            true);
+      for (intptr_t frame_index = sample->length() - 1;
+           frame_index >= 0;
+           frame_index--) {
+        ASSERT(sample->At(frame_index) != 0);
+        current = ProcessFrame(current, sample_index, sample, frame_index);
       }
     }
   }
@@ -1243,8 +1254,10 @@ class ProfileBuilder : public ValueObject {
   void BuildExclusiveFunctionTrie(ProfileFunctionTrieNode* root) {
     ScopeTimer sw("ProfileBuilder::BuildExclusiveFunctionTrie",
                   FLAG_trace_profiler);
-    for (intptr_t i = 0; i < samples_->length(); i++) {
-      ProcessedSample* sample = samples_->At(i);
+    for (intptr_t sample_index = 0;
+         sample_index < samples_->length();
+         sample_index++) {
+      ProcessedSample* sample = samples_->At(sample_index);
 
       // Tick the root.
       ProfileFunctionTrieNode* current = root;
@@ -1254,40 +1267,30 @@ class ProfileBuilder : public ValueObject {
       current = AppendTags(sample->vm_tag(), sample->user_tag(), current);
 
       // Walk the sampled PCs.
-      for (intptr_t j = 0; j < sample->length(); j++) {
-        ASSERT(sample->At(j) != 0);
-        current = ProcessFunctionPC(
-            sample->At(j),
-            sample->timestamp(),
-            current,
-            i,
-            (j == 0),
-            sample->first_frame_executing() || sample->IsAllocationSample(),
-            false);
+      for (intptr_t frame_index = 0;
+           frame_index < sample->length();
+           frame_index++) {
+        ASSERT(sample->At(frame_index) != 0);
+        current = ProcessFrame(current, sample_index, sample, frame_index);
       }
 
       // Truncated tag.
       if (sample->truncated()) {
         current = AppendTruncatedTag(current);
+        InclusiveTickTruncatedTag();
       }
     }
   }
 
-  ProfileFunctionTrieNode* ProcessFunctionPC(
-      uword pc,
-      int64_t timestamp,
+  ProfileFunctionTrieNode* ProcessFrame(
       ProfileFunctionTrieNode* current,
-      intptr_t inclusive_serial,
-      bool top_frame,
-      bool top_frame_executing,
-      bool inclusive_tree) {
-    ProfileCode* profile_code = GetProfileCode(pc, timestamp);
+      intptr_t sample_index,
+      ProcessedSample* sample,
+      intptr_t frame_index) {
+    const uword pc = sample->At(frame_index);
+    ProfileCode* profile_code = GetProfileCode(pc,
+                                               sample->timestamp());
     ASSERT(profile_code != NULL);
-    const char* code_name = profile_code->name();
-    if (code_name == NULL) {
-      code_name = "";
-    }
-    intptr_t code_index = profile_code->code_table_index();
     const Code& code = Code::ZoneHandle(profile_code->code());
     GrowableArray<Function*> inlined_functions;
     if (!code.IsNull()) {
@@ -1298,40 +1301,35 @@ class ProfileBuilder : public ValueObject {
       // No inlined functions.
       ProfileFunction* function = profile_code->function();
       ASSERT(function != NULL);
-      current = ProcessFunction(function,
-                                current,
-                                inclusive_serial,
-                                top_frame,
-                                top_frame_executing,
-                                code_index);
+      current = ProcessFunction(current,
+                                sample_index,
+                                sample,
+                                frame_index,
+                                function);
       return current;
     }
 
-    if (inclusive_tree) {
+    if (inclusive_tree_) {
       for (intptr_t i = inlined_functions.length() - 1; i >= 0; i--) {
         Function* inlined_function = inlined_functions[i];
         ASSERT(inlined_function != NULL);
         ASSERT(!inlined_function->IsNull());
-        current = ProcessInlinedFunction(inlined_function,
-                                         current,
-                                         inclusive_serial,
-                                         top_frame,
-                                         top_frame_executing,
-                                         code_index);
-        top_frame = false;
+        current = ProcessInlinedFunction(current,
+                                         sample_index,
+                                         sample,
+                                         frame_index,
+                                         inlined_function);
       }
     } else {
       for (intptr_t i = 0; i < inlined_functions.length(); i++) {
         Function* inlined_function = inlined_functions[i];
         ASSERT(inlined_function != NULL);
         ASSERT(!inlined_function->IsNull());
-        current = ProcessInlinedFunction(inlined_function,
-                                         current,
-                                         inclusive_serial,
-                                         top_frame,
-                                         top_frame_executing,
-                                         code_index);
-        top_frame = false;
+        current = ProcessInlinedFunction(current,
+                                         sample_index,
+                                         sample,
+                                         frame_index + i,
+                                         inlined_function);
       }
     }
 
@@ -1339,44 +1337,31 @@ class ProfileBuilder : public ValueObject {
   }
 
   ProfileFunctionTrieNode* ProcessInlinedFunction(
-      Function* inlined_function,
       ProfileFunctionTrieNode* current,
-      intptr_t inclusive_serial,
-      bool top_frame,
-      bool top_frame_executing,
-      intptr_t code_index) {
+      intptr_t sample_index,
+      ProcessedSample* sample,
+      intptr_t frame_index,
+      Function* inlined_function) {
     ProfileFunctionTable* function_table = profile_->functions_;
     ProfileFunction* function = function_table->LookupOrAdd(*inlined_function);
     ASSERT(function != NULL);
-    return ProcessFunction(function,
-                           current,
-                           inclusive_serial,
-                           top_frame,
-                           top_frame_executing,
-                           code_index);
+    return ProcessFunction(current,
+                           sample_index,
+                           sample,
+                           frame_index,
+                           function);
   }
 
-  ProfileFunctionTrieNode* ProcessFunction(ProfileFunction* function,
-                                           ProfileFunctionTrieNode* current,
-                                           intptr_t inclusive_serial,
-                                           bool top_frame,
-                                           bool top_frame_executing,
-                                           intptr_t code_index) {
-    const bool exclusive = top_frame && top_frame_executing;
+  ProfileFunctionTrieNode* ProcessFunction(ProfileFunctionTrieNode* current,
+                                           intptr_t sample_index,
+                                           ProcessedSample* sample,
+                                           intptr_t frame_index,
+                                           ProfileFunction* function) {
     if (tick_functions_) {
-      function->Tick(exclusive, exclusive ? -1 : inclusive_serial);
+      function->Tick(IsExecutingFrame(sample, frame_index), sample_index);
     }
-    function->AddProfileCode(code_index);
     current = current->GetChild(function->table_index());
-    current->AddCodeObjectIndex(code_index);
-    if (top_frame) {
-      if (top_frame_executing || vm_tags_emitted()) {
-        // Only tick if this function is using CPU time or VM tags are emitted.
-        current->Tick();
-      }
-    } else {
-      current->Tick();
-    }
+    current->Tick();
     return current;
   }
 
@@ -1510,7 +1495,7 @@ class ProfileBuilder : public ValueObject {
   }
 
   ProfileFunctionTrieNode* AppendVMTag(uword vm_tag,
-                                   ProfileFunctionTrieNode* current) {
+                                       ProfileFunctionTrieNode* current) {
     if (VMTag::IsNativeEntryTag(vm_tag)) {
       // Insert a dummy kNativeTagId node.
       intptr_t tag_index = GetProfileFunctionTagIndex(VMTag::kNativeTagId);
@@ -1781,6 +1766,7 @@ class ProfileBuilder : public ValueObject {
   const Code& null_code_;
   const Function& null_function_;
   bool tick_functions_;
+  bool inclusive_tree_;
 
   ProcessedSampleBuffer* samples_;
 };
