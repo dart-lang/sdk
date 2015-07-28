@@ -7696,6 +7696,10 @@ bool Field::UpdateGuardedCidAndLength(const Object& value) const {
 
 
 void Field::RecordStore(const Object& value) const {
+  if (!FLAG_use_field_guards) {
+    return;
+  }
+
   if (FLAG_trace_field_guards) {
     OS::Print("Store %s %s <- %s\n",
               ToCString(),
