@@ -35,7 +35,7 @@ To capture these differences, the Dart2JS compiler instead generates code that a
 
 ```dart
 var x = getInterceptor(a).get$bar(a);
-getInterceptor(b).foo$2(a, "hello", x);
+getInterceptor(b).foo$2(b, "hello", x);
 ```
 The “interceptor” is Dart’s dispatch table for the objects `a` and `b`, and the mangled names (`get$bar` and `foo$2`) account for Dart’s different dispatch semantics. 
 
