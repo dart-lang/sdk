@@ -1,0 +1,6 @@
+analyzer:
+  exclude:
+    - tool/input_sdk/**
+    - tool/generated_sdk/**
+    - test/codegen/**
+    - test/samples/**
