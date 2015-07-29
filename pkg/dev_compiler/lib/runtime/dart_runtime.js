@@ -27,7 +27,7 @@ dart_library.library('dart_runtime/dart', null, /* Imports */[
     }
   }
 
-  exports.global = window || global;
+  exports.global = typeof window == "undefined" ? global : window;
   exports.JsSymbol = _export(Symbol);
 
   // TODO(vsm): This is referenced (as init.globalState) from

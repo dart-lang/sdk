@@ -5,7 +5,9 @@
 /* This file defines the module loader for the dart runtime.
 */
 
-var dart_library;
+var dart_library =
+  typeof module != "undefined" && module.exports || {};
+
 (function (dart_library) {
   'use strict';
 
@@ -103,9 +105,7 @@ var dart_library;
   function import_(libraryName) {
     bootstrap();
     let loader = libraries[libraryName];
-    if (loader == null) {
-      dart_utils.throwError('library not found: ' + libraryName);
-    }
+    if (!loader) dart_utils.throwError('Library not found: ' + libraryName);
     return loader.load();
   }
   dart_library.import = import_;
@@ -132,11 +132,12 @@ var dart_library;
 
     // TODO(vsm): DOM facades?
     // See: https://github.com/dart-lang/dev_compiler/issues/173
-    NodeList.prototype.get = function(i) { return this[i]; };
-    NamedNodeMap.prototype.get = function(i) { return this[i]; };
-    DOMTokenList.prototype.get = function(i) { return this[i]; };
-    HTMLCollection.prototype.get = function(i) { return this[i]; };
-
+    if (typeof NodeList !== "undefined") {
+      NodeList.prototype.get = function(i) { return this[i]; };
+      NamedNodeMap.prototype.get = function(i) { return this[i]; };
+      DOMTokenList.prototype.get = function(i) { return this[i]; };
+      HTMLCollection.prototype.get = function(i) { return this[i]; };
+    }
   }
 
-})(dart_library || (dart_library = {}));
+})(dart_library);

@@ -693,16 +693,20 @@ class _IsolateEvent {
   }
 }
 
+// "self" is a way to refer to the global context object that
+// works in HTML pages and in Web Workers.  It does not work in d8, iojs
+// and Firefox jsshell, because that would have been too easy. In iojs
+// "global" works.
+//
+// See: http://www.w3.org/TR/workers/#the-global-scope
+// and: http://www.w3.org/TR/Window/#dfn-self-attribute
+final _global =
+  JS("", "typeof global == 'undefined' ? self : global");
+
 /** A stub for interacting with the main manager. */
 class _MainManagerStub {
   void postMessage(msg) {
-    // "self" is a way to refer to the global context object that
-    // works in HTML pages and in Web Workers.  It does not work in d8
-    // and Firefox jsshell, because that would have been too easy.
-    //
-    // See: http://www.w3.org/TR/workers/#the-global-scope
-    // and: http://www.w3.org/TR/Window/#dfn-self-attribute
-    JS("void", r"self.postMessage(#)", msg);
+    JS("void", r"#.postMessage(#)", _global, msg);
   }
 }
 
@@ -710,14 +714,14 @@ const String _SPAWNED_SIGNAL = "spawned";
 const String _SPAWN_FAILED_SIGNAL = "spawn failed";
 
 get globalWindow {
-  return JS('', "self.window");
+  return JS('', "#.window", _global);
 }
 
 get globalWorker {
-  return JS('', "self.Worker");
+  return JS('', "#.Worker", _global);
 }
 bool get globalPostMessageDefined {
-  return JS('bool', "!!self.postMessage");
+  return JS('bool', "!!#.postMessage", _global);
 }
 
 typedef _MainFunction();

@@ -6,7 +6,9 @@
  * by the Dart runtime.
 */
 
-var dart_utils;
+var dart_utils =
+  typeof module != "undefined" && module.exports || {};
+
 (function (dart_utils) {
   'use strict';
 
@@ -118,4 +120,4 @@ var dart_utils;
   }
   dart_utils.instantiate = instantiate;
 
-})(dart_utils || (dart_utils = {}));
+})(dart_utils);

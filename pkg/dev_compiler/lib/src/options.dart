@@ -76,11 +76,22 @@ class CodegenOptions {
       this.arrowFnBindThisWorkaround: false});
 }
 
+/// Options for devrun.
+class RunnerOptions {
+  /// V8-based binary to be used to run the .js output (d8, iojs, node).
+  /// Can be just the executable name if it's in the path, or a path to the
+  /// executable.
+  final String v8Binary;
+
+  const RunnerOptions({this.v8Binary: 'iojs'});
+}
+
 /// General options used by the dev compiler and server.
 class CompilerOptions {
   final StrongModeOptions strongOptions;
   final SourceResolverOptions sourceOptions;
   final CodegenOptions codegenOptions;
+  final RunnerOptions runnerOptions;
 
   /// Whether to check the sdk libraries.
   final bool checkSdk;
@@ -132,6 +143,7 @@ class CompilerOptions {
       {this.strongOptions: const StrongModeOptions(),
       this.sourceOptions: const SourceResolverOptions(),
       this.codegenOptions: const CodegenOptions(),
+      this.runnerOptions: const RunnerOptions(),
       this.checkSdk: false,
       this.dumpInfo: false,
       this.dumpInfoFile,
@@ -149,7 +161,7 @@ class CompilerOptions {
 }
 
 /// Parses options from the command-line
-CompilerOptions parseOptions(List<String> argv) {
+CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
   ArgResults args = argParser.parse(argv);
   bool showUsage = args['help'];
 
@@ -176,11 +188,14 @@ CompilerOptions parseOptions(List<String> argv) {
     runtimeDir = _computeRuntimeDir();
   }
   var outputDir = args['out'];
-  if (outputDir == null && serverMode) {
+  if (outputDir == null && (serverMode || forceOutDir)) {
     outputDir = Directory.systemTemp.createTempSync("dev_compiler_out_").path;
   }
   var dumpInfo = args['dump-info'];
   if (dumpInfo == null) dumpInfo = serverMode;
+
+  var v8Binary = args['v8-binary'];
+  if (v8Binary == null) v8Binary = 'iojs';
 
   var customUrlMappings = <String, String>{};
   for (var mapping in args['url-mapping']) {
@@ -213,6 +228,7 @@ CompilerOptions parseOptions(List<String> argv) {
           resources:
               args['resources'].split(',').where((s) => s.isNotEmpty).toList()),
       strongOptions: new StrongModeOptions.fromArguments(args),
+      runnerOptions: new RunnerOptions(v8Binary: v8Binary),
       checkSdk: args['sdk-check'],
       dumpInfo: dumpInfo,
       dumpInfoFile: args['dump-info-file'],
@@ -283,6 +299,9 @@ final ArgParser argParser = StrongModeOptions.addArguments(new ArgParser()
   ..addOption('log', abbr: 'l', help: 'Logging level (defaults to severe)')
   ..addFlag('dump-info',
       abbr: 'i', help: 'Dump summary information', defaultsTo: null)
+  ..addOption('v8-binary',
+      help: 'V8-based binary to run JavaScript output with (iojs, node, d8)',
+      defaultsTo: 'iojs')
   ..addOption('dump-info-file',
       abbr: 'f',
       help: 'Dump info json file (requires dump-info)',
@@ -308,7 +327,9 @@ String _computeRuntimeDir() {
   if (!new File(lockfile).existsSync()) return null;
 
   // If running from sources we found it!
-  if (file == 'devc.dart') return path.join(dir, 'lib', 'runtime');
+  if (file == 'devc.dart' || file == 'devrun.dart') {
+    return path.join(dir, 'lib', 'runtime');
+  }
 
   // If running from a pub global snapshot, we need to read the lock file to
   // find where the actual sources are located in the pub cache.

@@ -648,10 +648,10 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       Primitives.timerTicks = Primitives.dateNow;
       if (typeof window == "undefined")
         return;
-      let window = window;
-      if (window == null)
+      let jsWindow = window;
+      if (jsWindow == null)
         return;
-      let performance = window.performance;
+      let performance = jsWindow.performance;
       if (performance == null)
         return;
       if (typeof performance.now != "function")

@@ -916,9 +916,14 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     constructors: () => ({_IsolateEvent: [_IsolateEvent, [_IsolateContext, core.Function, core.String]]}),
     methods: () => ({process: [dart.void, []]})
   });
+  dart.defineLazyProperties(exports, {
+    get _global() {
+      return typeof global == 'undefined' ? self : global;
+    }
+  });
   class _MainManagerStub extends core.Object {
     postMessage(msg) {
-      self.postMessage(msg);
+      exports._global.postMessage(msg);
     }
   }
   dart.setSignature(_MainManagerStub, {
@@ -928,13 +933,13 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
   let _SPAWN_FAILED_SIGNAL = "spawn failed";
   dart.copyProperties(exports, {
     get globalWindow() {
-      return self.window;
+      return exports._global.window;
     },
     get globalWorker() {
-      return self.Worker;
+      return exports._global.Worker;
     },
     get globalPostMessageDefined() {
-      return !!self.postMessage;
+      return !!exports._global.postMessage;
     }
   });
   let _MainFunction = dart.typedef('_MainFunction', () => dart.functionType(dart.dynamic, []));

@@ -31,3 +31,6 @@ executables:
   # Similar to "analyzer.dart" and its command line "dartanalyzer", we use
   # "dartdevc" and "devc.dart"
   dartdevc: devc
+  # Similar to dartdevc, but runs the (single) entry point with iojs (requires
+  # a very recent iojs next-nightly version).
+  dartdevrun: devrun

@@ -246,7 +246,7 @@ class DevServer {
             ? SourceResolverOptions.implicitHtmlFile
             : entryPath;
 
-  Future start() async {
+  Future<bool> start() async {
     // Create output directory if needed. shelf_static will fail otherwise.
     var out = new Directory(outDir);
     if (!await out.exists()) await out.create(recursive: true);
@@ -257,7 +257,8 @@ class DevServer {
             defaultDocument: _entryPath));
     await shelf.serve(handler, host, port);
     print('Serving $_entryPath at http://$host:$port/');
-    compiler.run();
+    CheckerResults results = compiler.run();
+    return !results.failure;
   }
 
   shelf.Handler rebuildAndCache(shelf.Handler handler) => (request) {
