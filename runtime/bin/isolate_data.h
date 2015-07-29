@@ -6,6 +6,7 @@
 #define BIN_ISOLATE_DATA_H_
 
 #include "include/dart_api.h"
+#include "platform/assert.h"
 #include "platform/globals.h"
 
 
@@ -20,23 +21,31 @@ class EventHandler;
 // when the isolate shuts down.
 class IsolateData {
  public:
-  explicit IsolateData(const char* url, const char* package_root)
+  explicit IsolateData(const char* url,
+                       const char* package_root,
+                       const char* packages_file)
       : script_url(strdup(url)),
         package_root(NULL),
+        packages_file(NULL),
         udp_receive_buffer(NULL),
         load_async_id(-1) {
     if (package_root != NULL) {
+      ASSERT(packages_file == NULL);
       this->package_root = strdup(package_root);
+    } else if (packages_file != NULL) {
+      this->packages_file = strdup(packages_file);
     }
   }
   ~IsolateData() {
     free(script_url);
     free(package_root);
+    free(packages_file);
     free(udp_receive_buffer);
   }
 
   char* script_url;
   char* package_root;
+  char* packages_file;
   uint8_t* udp_receive_buffer;
   int64_t load_async_id;
 

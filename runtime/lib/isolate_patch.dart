@@ -301,7 +301,7 @@ patch class Isolate {
         readyPort.close();
       }
       return new Future<Isolate>.error(e, st);
-    };
+    }
   }
 
   /* patch */ static Future<Isolate> spawnUri(
@@ -334,7 +334,7 @@ patch class Isolate {
         readyPort.close();
       }
       return new Future<Isolate>.error(e, st);
-    };
+    }
     return completer.future;
   }
 

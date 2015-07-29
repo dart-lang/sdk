@@ -60,6 +60,11 @@ static const int DEFAULT_DEBUG_PORT = 5858;
 // free'd.)
 static const char* commandline_package_root = NULL;
 
+// Value of the --packages flag.
+// (This pointer points into an argv buffer and does not need to be
+// free'd.)
+static const char* commandline_packages_file = NULL;
+
 
 // Global flag that is used to indicate that we want to compile all the
 // dart functions and not run anything.
@@ -165,6 +170,17 @@ static bool ProcessPackageRootOption(const char* arg,
     return false;
   }
   commandline_package_root = arg;
+  return true;
+}
+
+
+static bool ProcessPackagesOption(const char* arg,
+                                     CommandLineOptions* vm_options) {
+  ASSERT(arg != NULL);
+  if (*arg == '\0' || *arg == '-') {
+    return false;
+  }
+  commandline_packages_file = arg;
   return true;
 }
 
@@ -371,6 +387,7 @@ static struct {
   { "--verbose", ProcessVerboseOption },
   { "-v", ProcessVerboseOption },
   { "--package-root=", ProcessPackageRootOption },
+  { "--packages=", ProcessPackagesOption },
   { "-D", ProcessEnvironmentOption },
   // VM specific options to the standalone dart program.
   { "--break-at=", ProcessBreakpointOption },
@@ -489,6 +506,14 @@ static int ParseArguments(int argc,
     i++;
   }
 
+  // Verify consistency of arguments.
+  if ((commandline_package_root != NULL) &&
+      (commandline_packages_file != NULL)) {
+    Log::PrintErr("Specifying both a packages directory and a packages "
+                  "file is invalid.");
+    return -1;
+  }
+
   return 0;
 }
 
@@ -561,11 +586,14 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
 static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                                 const char* main,
                                                 const char* package_root,
+                                                const char* packages_file,
                                                 Dart_IsolateFlags* flags,
                                                 char** error,
                                                 int* exit_code) {
   ASSERT(script_uri != NULL);
-  IsolateData* isolate_data = new IsolateData(script_uri, package_root);
+  IsolateData* isolate_data = new IsolateData(script_uri,
+                                              package_root,
+                                              packages_file);
   Dart_Isolate isolate = NULL;
 
   isolate = Dart_CreateIsolate(script_uri,
@@ -618,6 +646,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   // Prepare for script loading by setting up the 'print' and 'timer'
   // closures and setting up 'package root' for URI resolution.
   result = DartUtils::PrepareForScriptLoading(package_root,
+                                              packages_file,
                                               false,
                                               has_trace_loading,
                                               builtin_lib);
@@ -675,16 +704,17 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
       return NULL;
     }
   }
+  const char* packages_file = NULL;
   if (package_root == NULL) {
     if (parent_isolate_data != NULL) {
       package_root = parent_isolate_data->package_root;
-    } else {
-      package_root = ".";
+      packages_file = parent_isolate_data->packages_file;
     }
   }
   return CreateIsolateAndSetupHelper(script_uri,
                                      main,
                                      package_root,
+                                     packages_file,
                                      flags,
                                      error,
                                      &exit_code);
@@ -712,6 +742,8 @@ static void PrintUsage() {
 "  all VM options).\n"
 "--package-root=<path> or -p<path>\n"
 "  Where to find packages, that is, \"package:...\" imports.\n"
+"--packages=<path>\n"
+"  Where to find a package spec file.\n"
 "--version\n"
 "  Print the VM version.\n");
   } else {
@@ -989,6 +1021,7 @@ void main(int argc, char** argv) {
   Dart_Isolate isolate = CreateIsolateAndSetupHelper(script_name,
                                                      "main",
                                                      commandline_package_root,
+                                                     commandline_packages_file,
                                                      NULL,
                                                      &error,
                                                      &exit_code);
