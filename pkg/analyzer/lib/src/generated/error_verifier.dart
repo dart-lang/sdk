@@ -255,10 +255,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   List<InterfaceType> _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT;
 
   /**
+   * If `true`, mixins are allowed to inherit from types other than Object, and
+   * are allowed to reference `super`.
+   */
+  final bool enableSuperMixins;
+
+  /**
    * Initialize a newly created error verifier.
    */
   ErrorVerifier(this._errorReporter, this._currentLibrary, this._typeProvider,
-      this._inheritanceManager) {
+      this._inheritanceManager, this.enableSuperMixins) {
     this._isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
     this._hasExtUri = _currentLibrary.hasExtUri;
     _isEnclosingConstructorConst = false;
@@ -1651,7 +1657,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         if (_checkForMixinDeclaresConstructor(mixinName, mixinElement)) {
           problemReported = true;
         }
-        if (_checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
+        if (!enableSuperMixins &&
+            _checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
           problemReported = true;
         }
         if (_checkForMixinReferencesSuper(mixinName, mixinElement)) {
@@ -4209,7 +4216,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForMixinReferencesSuper(
       TypeName mixinName, ClassElement mixinElement) {
-    if (mixinElement.hasReferenceToSuper) {
+    if (!enableSuperMixins && mixinElement.hasReferenceToSuper) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MIXIN_REFERENCES_SUPER, mixinName,
           [mixinElement.name]);

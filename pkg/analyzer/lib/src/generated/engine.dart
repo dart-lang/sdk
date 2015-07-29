@@ -1118,7 +1118,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.dart2jsHint != options.dart2jsHint ||
         (this._options.hint && !options.hint) ||
         this._options.preserveComments != options.preserveComments ||
-        this._options.enableStrictCallChecks != options.enableStrictCallChecks;
+        this._options.enableStrictCallChecks !=
+            options.enableStrictCallChecks ||
+        this._options.enableSuperMixins != options.enableSuperMixins;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
       this._options.cacheSize = cacheSize;
@@ -1144,6 +1146,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
+    this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
     this._options.incrementalApi = options.incrementalApi;
@@ -6149,6 +6152,12 @@ abstract class AnalysisOptions {
   bool get enableStrictCallChecks;
 
   /**
+   * Return `true` if mixins are allowed to inherit from types other than
+   * Object, and are allowed to reference `super`.
+   */
+  bool get enableSuperMixins;
+
+  /**
    * Return `true` if errors, warnings and hints should be generated for sources
    * that are implicitly being analyzed. The default value is `true`.
    */
@@ -6252,6 +6261,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool enableStrictCallChecks = false;
 
   /**
+   * A flag indicating whether mixins are allowed to inherit from types other
+   * than Object, and are allowed to reference `super`.
+   */
+  bool enableSuperMixins = false;
+
+  /**
    * A flag indicating whether errors, warnings and hints should be generated
    * for sources that are implicitly being analyzed.
    */
@@ -6317,6 +6332,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
     enableStrictCallChecks = options.enableStrictCallChecks;
+    enableSuperMixins = options.enableSuperMixins;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
@@ -6337,6 +6353,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
     enableStrictCallChecks = options.enableStrictCallChecks;
+    enableSuperMixins = options.enableSuperMixins;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
@@ -8389,7 +8406,8 @@ class GenerateDartErrorsTask extends AnalysisTask {
       // Use the ErrorVerifier to compute the rest of the errors.
       //
       ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter,
-          libraryElement, typeProvider, new InheritanceManager(libraryElement));
+          libraryElement, typeProvider, new InheritanceManager(libraryElement),
+          context.analysisOptions.enableSuperMixins);
       _unit.accept(errorVerifier);
       _errors = errorListener.getErrorsForSource(source);
     });
@@ -10819,8 +10837,9 @@ class ResolveDartUnitTask extends AnalysisTask {
     //
     PerformanceStatistics.errors.makeCurrentWhile(() {
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
-      ErrorVerifier errorVerifier = new ErrorVerifier(
-          errorReporter, _libraryElement, typeProvider, inheritanceManager);
+      ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter,
+          _libraryElement, typeProvider, inheritanceManager,
+          context.analysisOptions.enableSuperMixins);
       unit.accept(errorVerifier);
       // TODO(paulberry): as a temporary workaround for issue 21572,
       // ConstantVerifier is being run right after ConstantValueComputer, so we

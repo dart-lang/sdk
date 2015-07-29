@@ -6,6 +6,7 @@ library engine.non_error_resolver_test;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
@@ -3139,6 +3140,19 @@ class B extends Object with A {}''');
     verify([source]);
   }
 
+  void test_mixinInheritsFromNotObject_classDeclaration_extends() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWithOptions(options);
+    Source source = addSource(r'''
+class A {}
+class B extends A {}
+class C extends Object with B {}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_mixinInheritsFromNotObject_classDeclaration_mixTypeAlias() {
     Source source = addSource(r'''
 class A {}
@@ -3149,11 +3163,64 @@ class C extends Object with B {}''');
     verify([source]);
   }
 
+  void test_mixinInheritsFromNotObject_classDeclaration_with() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWithOptions(options);
+    Source source = addSource(r'''
+class A {}
+class B extends Object with A {}
+class C extends Object with B {}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_mixinInheritsFromNotObject_typeAlias_extends() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWithOptions(options);
+    Source source = addSource(r'''
+class A {}
+class B extends A {}
+class C = Object with B;''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_mixinInheritsFromNotObject_typeAlias_with() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWithOptions(options);
+    Source source = addSource(r'''
+class A {}
+class B extends Object with A {}
+class C = Object with B;''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_mixinInheritsFromNotObject_typedef_mixTypeAlias() {
     Source source = addSource(r'''
 class A {}
 class B = Object with A;
 class C = Object with B;''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_mixinReferencesSuper() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWithOptions(options);
+    Source source = addSource(r'''
+class A {
+  toString() => super.toString();
+}
+class B extends Object with A {}''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);

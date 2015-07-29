@@ -1233,7 +1233,8 @@ class IncrementalResolver {
       ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
       ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter,
           _definingLibrary, _typeProvider,
-          new InheritanceManager(_definingLibrary));
+          new InheritanceManager(_definingLibrary),
+          _context.analysisOptions.enableSuperMixins);
       if (_resolutionContext.enclosingClassDeclaration != null) {
         errorVerifier.visitClassDeclarationIncrementally(
             _resolutionContext.enclosingClassDeclaration);
