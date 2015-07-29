@@ -170,6 +170,8 @@ _parsePackagesFile(SendPort sp,
     // Scan to the end of the line or data.
     while (index < len) {
       char = data[index++];
+      // If we have not reached the separator yet, determine whether we are
+      // scanning legal package name characters.
       if (separator == -1) {
         if ((char == _COLON)) {
           // The first colon on a line is the separator between package name and
@@ -183,8 +185,9 @@ _parsePackagesFile(SendPort sp,
                                (char < _SPACE) || (char > _DEL) ||
                                _invalidPackageNameChars[char - _SPACE];
         }
-      } else if ((char == _CR) || (char == _LF)) {
-        // Identify end of line.
+      }
+      // Identify end of line.
+      if ((char == _CR) || (char == _LF)) {
         end = index - 1;
         break;
       }
