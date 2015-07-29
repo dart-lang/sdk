@@ -1294,6 +1294,8 @@ class ProfileBuilder : public ValueObject {
     const uword pc = sample->At(frame_index);
     ProfileCode* profile_code = GetProfileCode(pc,
                                                sample->timestamp());
+    ProfileFunction* function = profile_code->function();
+    ASSERT(function != NULL);
     const intptr_t code_index = profile_code->code_table_index();
     ASSERT(profile_code != NULL);
     const Code& code = Code::ZoneHandle(profile_code->code());
@@ -1304,8 +1306,6 @@ class ProfileBuilder : public ValueObject {
     }
     if (code.IsNull() || (inlined_functions.length() == 0)) {
       // No inlined functions.
-      ProfileFunction* function = profile_code->function();
-      ASSERT(function != NULL);
       current = ProcessFunction(current,
                                 sample_index,
                                 sample,
@@ -1316,6 +1316,14 @@ class ProfileBuilder : public ValueObject {
     }
 
     if (inclusive_tree_) {
+      // Append the inliner.
+      current = ProcessFunction(current,
+                                sample_index,
+                                sample,
+                                frame_index + inlined_functions.length(),
+                                function,
+                                code_index);
+      // Append the inlined children.
       for (intptr_t i = inlined_functions.length() - 1; i >= 0; i--) {
         Function* inlined_function = inlined_functions[i];
         ASSERT(inlined_function != NULL);
@@ -1328,6 +1336,7 @@ class ProfileBuilder : public ValueObject {
                                          code_index);
       }
     } else {
+      // Append the inlined children.
       for (intptr_t i = 0; i < inlined_functions.length(); i++) {
         Function* inlined_function = inlined_functions[i];
         ASSERT(inlined_function != NULL);
@@ -1339,6 +1348,13 @@ class ProfileBuilder : public ValueObject {
                                          inlined_function,
                                          code_index);
       }
+      // Append the inliner.
+      current = ProcessFunction(current,
+                                sample_index,
+                                sample,
+                                frame_index + inlined_functions.length(),
+                                function,
+                                code_index);
     }
 
     return current;
@@ -2005,6 +2021,12 @@ bool ProfileTrieWalker::NextSibling() {
   }
   current_ = parent_->At(current_index);
   return true;
+}
+
+
+intptr_t ProfileTrieWalker::SiblingCount() {
+  ASSERT(parent_ != NULL);
+  return parent_->NumChildren();
 }
 
 

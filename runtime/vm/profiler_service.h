@@ -355,6 +355,8 @@ class ProfileTrieWalker : public ValueObject {
   intptr_t CurrentExclusiveTicks();
   // Return the current node's tick count.
   intptr_t CurrentNodeTickCount();
+  // Return the number siblings (including yourself).
+  intptr_t SiblingCount();
 
   bool Down();
   bool NextSibling();

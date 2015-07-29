@@ -915,4 +915,167 @@ TEST_CASE(Profiler_StringInterpolation) {
   }
 }
 
+
+TEST_CASE(Profiler_FunctionInline) {
+  const char* kScript =
+      "class A {\n"
+      "  var a;\n"
+      "  var b;\n"
+      "}\n"
+      "class B {\n"
+      "  static choo(bool alloc) {\n"
+      "    if (alloc) return new A();\n"
+      "    return alloc && alloc && !alloc;\n"
+      "  }\n"
+      "  static foo(bool alloc) {\n"
+      "    choo(alloc);\n"
+      "  }\n"
+      "  static boo(bool alloc) {\n"
+      "    for (var i = 0; i < 50000; i++) {\n"
+      "      foo(alloc);\n"
+      "    }\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  B.boo(false);\n"
+      "}\n"
+      "mainA() {\n"
+      "  B.boo(true);\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+
+  const Class& class_a = Class::Handle(GetClass(root_library, "A"));
+  EXPECT(!class_a.IsNull());
+
+  // Compile "main".
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  // Compile "mainA".
+  result = Dart_Invoke(lib, NewString("mainA"), 0, NULL);
+  EXPECT_VALID(result);
+  // At this point B.boo should be optimized and inlined B.foo and B.choo.
+
+  {
+    Isolate* isolate = Isolate::Current();
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have no allocation samples.
+    EXPECT_EQ(0, profile.sample_count());
+  }
+
+  // Turn on allocation tracing for A.
+  class_a.SetTraceAllocation(true);
+
+  // Allocate 50,000 instances of A.
+  result = Dart_Invoke(lib, NewString("mainA"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    Isolate* isolate = Isolate::Current();
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have 50,000 allocation samples.
+    EXPECT_EQ(50000, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+    // We have two code objects: mainA and B.boo.
+    walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_EQ(1, walker.SiblingCount());
+    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
+    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("mainA", walker.CurrentName());
+    EXPECT_EQ(1, walker.SiblingCount());
+    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
+    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT(!walker.Down());
+    // We have two code objects: mainA and B.boo.
+    walker.Reset(Profile::kInclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("mainA", walker.CurrentName());
+    EXPECT_EQ(1, walker.SiblingCount());
+    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
+    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_EQ(1, walker.SiblingCount());
+    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
+    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
+    EXPECT(!walker.Down());
+
+    // Inline expansion should show us the complete call chain:
+    // mainA -> B.boo -> B.foo -> B.choo.
+    walker.Reset(Profile::kExclusiveFunction);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.choo", walker.CurrentName());
+    EXPECT_EQ(1, walker.SiblingCount());
+    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
+    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.foo", walker.CurrentName());
+    EXPECT_EQ(1, walker.SiblingCount());
+    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
+    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_EQ(1, walker.SiblingCount());
+    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
+    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("mainA", walker.CurrentName());
+    EXPECT_EQ(1, walker.SiblingCount());
+    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
+    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT(!walker.Down());
+
+    // Inline expansion should show us the complete call chain:
+    // mainA -> B.boo -> B.foo -> B.choo.
+    walker.Reset(Profile::kInclusiveFunction);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("mainA", walker.CurrentName());
+    EXPECT_EQ(1, walker.SiblingCount());
+    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
+    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_EQ(1, walker.SiblingCount());
+    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
+    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.foo", walker.CurrentName());
+    EXPECT_EQ(1, walker.SiblingCount());
+    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
+    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.choo", walker.CurrentName());
+    EXPECT_EQ(1, walker.SiblingCount());
+    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
+    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
+    EXPECT(!walker.Down());
+  }
+}
+
 }  // namespace dart
