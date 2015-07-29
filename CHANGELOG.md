@@ -81,6 +81,9 @@
 
 ### VM Service Protocol Changes
 
+* **BREAKING** The service protocol now sends JSON-RPC 2.0-compatible
+  server-to-client events.
+
 * The service protocol now includes a `"jsonrpc"` property in its responses, as
   opposed to `"json-rpc"`.
 

@@ -12,10 +12,9 @@ It is possible to make HTTP (non-WebSocket) requests,
 but this does not allow access to VM _events_ and is not documented
 here.
 
-The Service Protocol is based on JSON-RPC 2.0
-(http://www.jsonrpc.org/specification). The Service Protocol has been
-extended to support pushing _events_ to the client, which is
-apparently outside the scope of the JSON-RPC specification.
+The Service Protocol uses [JSON-RPC 2.0][].
+
+[JSON-RPC 2.0]: http://www.jsonrpc.org/specification
 
 **Table of Contents**
 
@@ -189,27 +188,33 @@ Each stream provides access to certain kinds of events. For example the _Isolate
 access to events pertaining to isolate births, deaths, and name changes. See [streamListen](#streamlisten)
 for a list of the well-known stream ids and their associated events.
 
-Events arrive asynchronously over the WebSocket and always have the
-_streamId_ and _event_ properties:
+Stream events arrive asynchronously over the WebSocket. They're structured as
+JSON-RPC 2.0 requests with no _id_ property. The _method_ property will be
+_streamNotify_, and the _params_ will have _streamId_ and _event_ properties:
 
-```
+```json
 {
-  "event": {
-    "type": "Event",
-    "kind": "IsolateExit",
-    "isolate": {
-      "type": "@Isolate",
-      "id": "isolates/33",
-      "number": "51048743613",
-      "name": "worker-isolate"
+  "json-rpc": "2.0",
+  "method": "streamNotify",
+  "params": {
+    "streamId": "Isolate",
+    "event": {
+      "type": "Event",
+      "kind": "IsolateExit",
+      "isolate": {
+        "type": "@Isolate",
+        "id": "isolates/33",
+        "number": "51048743613",
+        "name": "worker-isolate"
+      }
     }
   }
-  "streamId": "Isolate"
 }
 ```
 
 It is considered a _backwards compatible_ change to add a new type of event to an existing stream.
 Clients should be written to handle this gracefully.
+
 
 
 ## Types

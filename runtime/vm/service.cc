@@ -681,8 +681,11 @@ void Service::HandleEvent(ServiceEvent* event) {
   ASSERT(stream_id != NULL);
   {
     JSONObject jsobj(&js);
-    jsobj.AddProperty("event", event);
-    jsobj.AddProperty("streamId", stream_id);
+    jsobj.AddProperty("jsonrpc", "2.0");
+    jsobj.AddProperty("method", "streamNotify");
+    JSONObject params(&jsobj, "params");
+    params.AddProperty("streamId", stream_id);
+    params.AddProperty("event", event);
   }
   PostEvent(stream_id, event->KindAsCString(), &js);
 }
