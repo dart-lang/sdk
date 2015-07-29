@@ -361,6 +361,12 @@ class Field {
 
   bool get needsInterceptedGetter => getterFlags > 1;
   bool get needsInterceptedSetter => setterFlags > 1;
+
+  bool get needsInterceptedGetterOnReceiver => getterFlags == 2;
+  bool get needsInterceptedSetterOnReceiver => setterFlags == 2;
+
+  bool get needsInterceptedGetterOnThis => getterFlags == 3;
+  bool get needsInterceptedSetterOnThis => setterFlags == 3;
 }
 
 abstract class Method {

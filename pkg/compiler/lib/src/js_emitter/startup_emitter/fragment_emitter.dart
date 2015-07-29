@@ -57,7 +57,11 @@ function inherit(cls, sup) {
   cls.#typeNameProperty = cls.name;  // Needed for RTI.
   cls.prototype.constructor = cls;
   cls.prototype[#operatorIsPrefix + cls.name] = cls;
-  cls.prototype.__proto__ = sup.prototype;
+
+  // The superclass is only null for the Dart Object.
+  if (sup != null) {
+    cls.prototype.__proto__ = sup.prototype;
+  }
 }
 
 // Mixes in the properties of [mixin] into [cls].
@@ -156,13 +160,19 @@ function updateHolder(holder, newHolder) {
 // initialize it. At this moment it contributes its data to the main hunk.
 function initializeDeferredHunk(hunk) {
   // TODO(floitsch): extend natives.
-  hunk(derive, mixin, lazy, makeConstList, installTearOff,
+  hunk(inherit, mixin, lazy, makeConstList, installTearOff,
        updateHolder, updateTypes, updateInterceptorsByTag, updateLeafTags,
-       #embeddedGlobalsObject, #holdersList, #currentIsolate);
+       #embeddedGlobalsObject, #holdersList, #staticState);
 }
 
 // Creates the holders.
 #holders;
+// TODO(floitsch): if name is not set (for example in IE), run through all
+// functions and set the name.
+
+// TODO(floitsch): we should build this object as a literal.
+var #staticStateDeclaration = {};
+
 // Sets the prototypes of classes.
 #prototypes;
 // Sets aliases of methods (on the prototypes of classes).
@@ -199,10 +209,10 @@ function initializeDeferredHunk(hunk) {
 const String deferredBoilerplate = '''
 {
 #deferredInitializers.current =
-function(derive, mixin, lazy, makeConstList, installTearOff,
+function(inherit, mixin, lazy, makeConstList, installTearOff,
           updateHolder, updateTypes,
           setOrUpdateInterceptorsByTag, setOrUpdateLeafTags,
-          #embeddedGlobalsObject, holdersList, #currentIsolate) {
+          #embeddedGlobalsObject, holdersList, #staticState) {
 
 // Builds the holders. They only contain the data for new holders.
 #holders;
@@ -263,14 +273,431 @@ class FragmentEmitter {
   js.Expression generateConstantReference(ConstantValue value) =>
       modelEmitter.generateConstantReference(value);
 
+  js.Expression classReference(Class cls) {
+    return js.js('#.#', [cls.holder.name, cls.name]);
+  }
+
   js.Statement emitMainFragment(Program program) {
     MainFragment fragment = program.fragments.first;
-    throw new UnimplementedError('emitMain');
+
+    return js.js.statement(mainBoilerplate,
+        {'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
+         'typeNameProperty': js.string(ModelEmitter.typeNameProperty),
+         'cyclicThrow': backend.emitter.staticFunctionAccess(
+                 backend.getCyclicThrowHelper()),
+         'operatorIsPrefix': js.string(namer.operatorIsPrefix),
+         'embeddedTypes': generateEmbeddedGlobalAccess(TYPES),
+         'embeddedInterceptorTags':
+             generateEmbeddedGlobalAccess(INTERCEPTORS_BY_TAG),
+         'embeddedLeafTags': generateEmbeddedGlobalAccess(LEAF_TAGS),
+         'embeddedGlobalsObject': js.js("init"),
+         'holdersList': new js.ArrayInitializer(program.holders.map((holder) {
+           return js.js("#", holder.name);
+         }).toList()),
+         'staticStateDeclaration': new js.VariableDeclaration(
+             namer.staticStateHolder, allowRename: false),
+         'staticState': js.js('#', namer.staticStateHolder),
+         'holders': emitHolders(program.holders, fragment),
+         'callName': js.string(namer.callNameField),
+         'argumentCount': js.string(namer.requiredParameterField),
+         'defaultArgumentValues': js.string(namer.defaultValuesField),
+         'prototypes': emitPrototypes(fragment),
+         'inheritance': emitInheritance(fragment),
+         'aliases': emitInstanceMethodAliases(fragment),
+         'tearOffs': emitInstallTearOffs(fragment),
+         'constants': emitConstants(fragment),
+         'staticNonFinalFields': emitStaticNonFinalFields(fragment),
+         'lazyStatics': emitLazilyInitializedStatics(fragment),
+         'embeddedGlobals': emitEmbeddedGlobals(program),
+         'nativeSupport': program.needsNativeSupport
+              ? emitNativeSupport(fragment)
+              : new js.EmptyStatement(),
+         'invokeMain': fragment.invokeMain,
+         });
   }
 
   js.Statement emitDeferredFragment(DeferredFragment fragment,
                                     js.Expression deferredTypes,
                                     List<Holder> holders) {
-    throw new UnimplementedError('emitDeferred');
+    List<js.Statement> updateHolderAssignments = <js.Statement>[];
+    for (int i = 0; i < holders.length; i++) {
+      Holder holder = holders[i];
+      if (holder.isStaticStateHolder) continue;
+      updateHolderAssignments.add(js.js.statement(
+          '#holder = updateHolder(holdersList[#index], #holder)',
+          {'index': js.number(i),
+            'holder': new js.VariableUse(holder.name)}));
+    }
+
+    // TODO(floitsch): if name is not set, run through all functions and set the
+    // name for IE.
+    // TODO(floitsch): don't just reference 'init'.
+    return js.js.statement(deferredBoilerplate,
+    {'deferredInitializers':
+          js.js('#', ModelEmitter.deferredInitializersGlobal),
+      'embeddedGlobalsObject': new js.Parameter('init'),
+      'staticState': new js.Parameter(namer.staticStateHolder),
+      'holders': emitHolders(holders, fragment),
+      'updateHolders': new js.Block(updateHolderAssignments),
+      'prototypes': emitPrototypes(fragment),
+      'inheritance': emitInheritance(fragment),
+      'aliases': emitInstanceMethodAliases(fragment),
+      'tearOffs': emitInstallTearOffs(fragment),
+      'constants': emitConstants(fragment),
+      'staticNonFinalFields': emitStaticNonFinalFields(fragment),
+      'lazyStatics': emitLazilyInitializedStatics(fragment),
+      'types': deferredTypes,
+      // TODO(floitsch): only call emitNativeSupport if we need native.
+      'nativeSupport': emitNativeSupport(fragment),
+      'hash': js.number(fragment.hashCode),
+    });
+  }
+
+  js.Statement emitDeferredInitializerGlobal(Map loadMap) {
+    if (loadMap.isEmpty) return new js.Block.empty();
+
+    return js.js.statement("""
+    if (typeof(${ModelEmitter.deferredInitializersGlobal}) === 'undefined')
+      var ${ModelEmitter.deferredInitializersGlobal} = Object.create(null);""");
+  }
+
+  /// Emits all holders, except for the static-state holder.
+  ///
+  /// The emitted holders contain classes (only the constructors) and all
+  /// static functions.
+  js.Statement emitHolders(List<Holder> holders, Fragment fragment) {
+    // Skip the static-state holder in this function.
+    holders = holders
+        .where((Holder holder) => !holder.isStaticStateHolder)
+        .toList(growable: false);
+
+    Map<Holder, Map<js.Name, js.Expression>> holderCode =
+        <Holder, Map<js.Name, js.Expression>>{};
+
+    for (Holder holder in holders) {
+      holderCode[holder] = <js.Name, js.Expression>{};
+    }
+
+    for (Library library in fragment.libraries) {
+      for (StaticMethod method in library.statics) {
+        assert(!method.holder.isStaticStateHolder);
+        holderCode[method.holder].addAll(emitStaticMethod(method));
+      }
+      for (Class cls in library.classes) {
+        assert(!cls.holder.isStaticStateHolder);
+        holderCode[cls.holder][cls.name] = emitConstructor(cls);
+      }
+    }
+
+    js.VariableInitialization emitHolderInitialization(Holder holder) {
+      List<js.Property> properties = <js.Property>[];
+      holderCode[holder].forEach((js.Name key, js.Expression value) {
+        properties.add(new js.Property(js.quoteName(key), value));
+      });
+
+      return new js.VariableInitialization(
+          new js.VariableDeclaration(holder.name, allowRename: false),
+          new js.ObjectInitializer(properties));
+    }
+
+    // The generated code looks like this:
+    //
+    //    {
+    //      var H = {...}, ..., G = {...};
+    //      var holders = [ H, ..., G ];
+    //    }
+
+    List<js.Statement> statements = [
+      new js.ExpressionStatement(
+          new js.VariableDeclarationList(holders
+              .map(emitHolderInitialization)
+              .toList())),
+      js.js.statement('var holders = #', new js.ArrayInitializer(
+          holders
+              .map((holder) => new js.VariableUse(holder.name))
+              .toList(growable: false)))];
+    return new js.Block(statements);
+  }
+
+  /// Emits the given [method].
+  ///
+  /// A Dart method might result in several JavaScript functions, if it
+  /// requires stubs. The returned map contains the original method and all
+  /// the stubs it needs.
+  Map<js.Name, js.Expression> emitStaticMethod(StaticMethod method) {
+    Map<js.Name, js.Expression> jsMethods = <js.Name, js.Expression>{};
+
+    jsMethods[method.name] = method.code;
+    // TODO(floitsch): can there be anything else than a StaticDartMethod?
+    if (method is StaticDartMethod) {
+      for (ParameterStubMethod stubMethod in method.parameterStubs) {
+        jsMethods[stubMethod.name] = stubMethod.code;
+      }
+    }
+
+    return jsMethods;
+  }
+
+  /// Emits a constructor for the given class [cls].
+  ///
+  /// The constructor is statically built.
+  js.Expression emitConstructor(Class cls) {
+    List<js.Name> fieldNames = const <js.Name>[];
+
+    // If the class is not directly instantiated we only need it for inheritance
+    // or RTI. In either case we don't need its fields.
+    if (cls.isDirectlyInstantiated && !cls.isNative) {
+      fieldNames = cls.fields.map((Field field) => field.name).toList();
+    }
+    js.Name name = cls.name;
+
+    Iterable<js.Name> assignments = fieldNames.map((js.Name field) {
+      return js.js("this.#field = #field", {"field": field});
+    });
+
+    return js.js('function #(#) { # }', [name, fieldNames, assignments]);
+  }
+
+  /// Emits the prototype-section of the fragment.
+  ///
+  /// This section updates the prototype-property of all constructors in the
+  /// global holders.
+  js.Statement emitPrototypes(Fragment fragment) {
+    List<js.Statement> assignments = fragment.libraries
+        .expand((Library library) => library.classes)
+        .map((Class cls) => js.js.statement(
+            '#.prototype = #;',
+            [classReference(cls), emitPrototype(cls)]))
+        .toList(growable: false);
+
+    return new js.Block(assignments);
+  }
+
+  /// Emits the prototype of the given class [cls].
+  ///
+  /// The prototype is generated as object literal. Inheritance is ignored.
+  ///
+  /// The prototype also includes the `is-property` that every class must have.
+  // TODO(floitsch): we could avoid that property if we knew that it wasn't
+  //    needed.
+  js.Expression emitPrototype(Class cls) {
+    Iterable<Method> methods = cls.methods;
+    Iterable<Method> isChecks = cls.isChecks;
+    Iterable<Method> callStubs = cls.callStubs;
+    Iterable<Method> typeVariableReaderStubs = cls.typeVariableReaderStubs;
+    Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
+    Iterable<Method> gettersSetters = generateGettersSetters(cls);
+    Iterable<Method> allMethods =
+    [methods, isChecks, callStubs, typeVariableReaderStubs,
+    noSuchMethodStubs, gettersSetters].expand((x) => x);
+
+    List<js.Property> properties = <js.Property>[];
+
+    if (cls.superclass == null) {
+      properties.add(new js.Property(js.string("constructor"),
+      classReference(cls)));
+      properties.add(new js.Property(namer.operatorIs(cls.element),
+      js.number(1)));
+    }
+
+    allMethods.forEach((Method method) {
+      emitInstanceMethod(method).forEach((js.Name name, js.Expression code) {
+        properties.add(new js.Property(name, code));
+      });
+    });
+
+    return new js.ObjectInitializer(properties);
+  }
+
+  /// Generates a getter for the given [field].
+  Method generateGetter(Field field) {
+    assert(field.needsGetter);
+
+    String template;
+    if (field.needsInterceptedGetterOnReceiver) {
+      template = "function(receiver) { return receiver[#]; }";
+    } else if (field.needsInterceptedGetterOnThis) {
+      template = "function(receiver) { return this[#]; }";
+    } else {
+      assert(!field.needsInterceptedGetter);
+      template = "function() { return this[#]; }";
+    }
+    js.Expression fieldName = js.quoteName(field.name);
+    js.Expression code = js.js(template, fieldName);
+    js.Name getterName = namer.deriveGetterName(field.accessorName);
+    return new StubMethod(getterName, code);
+  }
+
+  /// Generates a setter for the given [field].
+  Method generateSetter(Field field) {
+    assert(field.needsUncheckedSetter);
+
+    String template;
+    if (field.needsInterceptedSetterOnReceiver) {
+      template = "function(receiver, val) { return receiver[#] = val; }";
+    } else if (field.needsInterceptedSetterOnThis) {
+      template = "function(receiver, val) { return this[#] = val; }";
+    } else {
+      assert(!field.needsInterceptedSetter);
+      template = "function(val) { return this[#] = val; }";
+    }
+
+    js.Expression fieldName = js.quoteName(field.name);
+    js.Expression code = js.js(template, fieldName);
+    js.Name setterName = namer.deriveSetterName(field.accessorName);
+    return new StubMethod(setterName, code);
+  }
+
+  /// Generates all getters and setters the given class [cls] needs.
+  Iterable<Method> generateGettersSetters(Class cls) {
+    Iterable<Method> getters = cls.fields
+        .where((Field field) => field.needsGetter)
+        .map(generateGetter);
+
+    Iterable<Method> setters = cls.fields
+        .where((Field field) => field.needsUncheckedSetter)
+        .map(generateSetter);
+
+    return [getters, setters].expand((x) => x);
+  }
+
+  /// Emits the given instance [method].
+  ///
+  /// The given method may be a stub-method (for example for is-checks).
+  ///
+  /// If it is a Dart-method, all necessary stub-methods are emitted, too. In
+  /// that case the returned map contains more than just one entry.
+  Map<js.Name, js.Expression> emitInstanceMethod(Method method) {
+    Map<js.Name, js.Expression> jsMethods = <js.Name, js.Expression>{};
+
+    jsMethods[method.name] = method.code;
+    if (method is InstanceMethod) {
+      for (ParameterStubMethod stubMethod in method.parameterStubs) {
+        jsMethods[stubMethod.name] = stubMethod.code;
+      }
+    }
+
+    return jsMethods;
+  }
+
+  /// Emits the inheritance block of the fragment.
+  ///
+  /// In this section prototype chains are updated and mixin functions are
+  /// copied.
+  js.Statement emitInheritance(Fragment fragment) {
+    List<js.Expression> inheritCalls = <js.Expression>[];
+    List<js.Expression> mixinCalls = <js.Expression>[];
+
+    for (Library library in fragment.libraries) {
+      for (Class cls in library.classes) {
+        js.Expression superclassReference = (cls.superclass == null)
+            ? new js.LiteralNull()
+            : classReference(cls.superclass);
+
+        inheritCalls.add(js.js('inherit(#, #)',
+            [classReference(cls), superclassReference]));
+
+        if (cls.isMixinApplication) {
+          MixinApplication mixin = cls;
+          mixinCalls.add(js.js('mixin(#, #)',
+              [classReference(cls), classReference(mixin.mixinClass)]));
+        }
+      }
+    }
+
+    return new js.Block([inheritCalls, mixinCalls]
+        .expand((e) => e)
+        .map((e) => new js.ExpressionStatement(e))
+        .toList(growable: false));
+  }
+
+  /// Emits the setup of method aliases.
+  ///
+  /// This step consists of simply copying JavaScript functions to their
+  /// aliased names so they point to the same function.
+  js.Statement emitInstanceMethodAliases(Fragment fragment) {
+    List<js.Statement> assignments = <js.Statement>[];
+
+    for (Library library in fragment.libraries) {
+      for (Class cls in library.classes) {
+        for (InstanceMethod method in cls.methods) {
+          if (method.aliasName != null) {
+            assignments.add(js.js.statement(
+                '#.prototype.# = #.prototype.#',
+                [classReference(cls), js.quoteName(method.aliasName),
+                 classReference(cls), js.quoteName(method.name)]));
+
+          }
+        }
+      }
+    }
+    return new js.Block(assignments);
+  }
+
+  /// Emits the section that installs tear-off getters.
+  js.Statement emitInstallTearOffs(fragment) {
+    throw new UnimplementedError('emitInstallTearOffs');
+  }
+
+  /// Emits the constants section.
+  js.Statement emitConstants(Fragment fragment) {
+    List<js.Statement> assignments = <js.Statement>[];
+    for (Constant constant in fragment.constants) {
+      // TODO(floitsch): instead of just updating the constant holder, we should
+      // find the constants that don't have any dependency on other constants
+      // and create an object-literal with them (and assign it to the
+      // constant-holder variable).
+      assignments.add(js.js.statement('#.# = #',
+          [constant.holder.name,
+           constant.name,
+           constantEmitter.generate(constant.value)]));
+    }
+    return new js.Block(assignments);
+  }
+
+
+  /// Emits the static non-final fields section.
+  ///
+  /// This section initializes all static non-final fields that don't require
+  /// an initializer.
+  js.Block emitStaticNonFinalFields(Fragment fragment) {
+    List<StaticField> fields = fragment.staticNonFinalFields;
+    // TODO(floitsch): instead of assigning the fields one-by-one we should
+    // create a literal and assign it to the static-state holder.
+    // TODO(floitsch): if we don't make a literal we should at least initialize
+    // statics that have the same initial value in the same expression:
+    //    `$.x = $.y = $.z = null;`.
+    Iterable<js.Statement> statements = fields.map((StaticField field) {
+      assert(field.holder.isStaticStateHolder);
+      return js.js.statement("#.# = #;",
+          [field.holder.name, field.name, field.code]);
+    });
+    return new js.Block(statements.toList());
+  }
+
+  /// Emits lazy fields.
+  ///
+  /// This section initializes all static (final and non-final) fields that
+  /// require an initializer.
+  js.Block emitLazilyInitializedStatics(Fragment fragment) {
+    List<StaticField> fields = fragment.staticLazilyInitializedFields;
+    Iterable<js.Statement> statements = fields.map((StaticField field) {
+      assert(field.holder.isStaticStateHolder);
+      return js.js.statement("lazy(#, #, #, #);",
+          [field.holder.name,
+           js.quoteName(field.name),
+           js.quoteName(namer.deriveLazyInitializerName(field.name)),
+           field.code]);
+    });
+
+    return new js.Block(statements.toList());
+  }
+
+  emitEmbeddedGlobals(program) {
+    throw new UnimplementedError('emitEmbeddedGlobals');
+  }
+
+  emitNativeSupport(fragment) {
+    throw new UnimplementedError('emitNativeSupport');
   }
 }
