@@ -16,6 +16,8 @@ namespace dart {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Call, assembler) {
+  // Code accessing pp is generated, but not executed. Uninitialized pp is OK.
+  __ set_constant_pool_allowed(true);
   __ BranchLinkPatchable(&StubCode::InvokeDartCodeLabel());
   __ ret();
 }
