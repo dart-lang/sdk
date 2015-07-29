@@ -930,16 +930,21 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
   JSONStream js;
   {
     JSONObject jsobj(&js);
+    jsobj.AddProperty("jsonrpc", "2.0");
+    jsobj.AddProperty("method", "streamNotify");
     {
-      JSONObject event(&jsobj, "event");
-      event.AddProperty("type", "Event");
-      event.AddProperty("kind", "_Echo");
-      event.AddProperty("isolate", isolate);
-      if (text != NULL) {
-        event.AddProperty("text", text);
+      JSONObject params(&jsobj, "params");
+      params.AddProperty("streamId", echo_stream.id());
+      {
+        JSONObject event(&params, "event");
+        event.AddProperty("type", "Event");
+        event.AddProperty("kind", "_Echo");
+        event.AddProperty("isolate", isolate);
+        if (text != NULL) {
+          event.AddProperty("text", text);
+        }
       }
     }
-    jsobj.AddProperty("streamId", echo_stream.id());
   }
   const String& message = String::Handle(String::New(js.ToCString()));
   uint8_t data[] = {0, 128, 255};
@@ -2473,17 +2478,22 @@ void Service::SendGraphEvent(Isolate* isolate) {
     JSONStream js;
     {
       JSONObject jsobj(&js);
+      jsobj.AddProperty("jsonrpc", "2.0");
+      jsobj.AddProperty("method", "streamNotify");
       {
-        JSONObject event(&jsobj, "event");
-        event.AddProperty("type", "Event");
-        event.AddProperty("kind", "_Graph");
-        event.AddProperty("isolate", isolate);
+        JSONObject params(&jsobj, "params");
+        params.AddProperty("streamId", graph_stream.id());
+        {
+          JSONObject event(&params, "event");
+          event.AddProperty("type", "Event");
+          event.AddProperty("kind", "_Graph");
+          event.AddProperty("isolate", isolate);
 
-        event.AddProperty("chunkIndex", i);
-        event.AddProperty("chunkCount", num_chunks);
-        event.AddProperty("nodeCount", node_count);
+          event.AddProperty("chunkIndex", i);
+          event.AddProperty("chunkCount", num_chunks);
+          event.AddProperty("nodeCount", node_count);
+        }
       }
-      jsobj.AddProperty("streamId", graph_stream.id());
     }
 
     const String& message = String::Handle(String::New(js.ToCString()));
