@@ -117,7 +117,7 @@ class CustomUriResolver extends UriResolver {
     if (!fileUri.isAbsolute) return null;
 
     JavaFile javaFile = new JavaFile.fromUri(fileUri);
-    return new FileBasedSource(javaFile, actualUri);
+    return new FileBasedSource(javaFile, actualUri != null ? actualUri : uri);
   }
 }
 
@@ -816,7 +816,7 @@ class SourceFactory {
     }
 
     Uri actualUri = containedUri;
-    
+
     // Check .packages and update target and actual URIs as appropriate.
     if (_packages != null && containedUri.scheme == 'package') {
       Uri packageUri =
