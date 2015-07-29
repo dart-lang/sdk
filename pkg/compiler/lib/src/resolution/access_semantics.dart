@@ -143,6 +143,10 @@ enum AccessKind {
 
   /// The destination of the access is unresolved super access.
   UNRESOLVED_SUPER,
+
+  /// The destination is invalid as an access. For instance a prefix used
+  /// as an expression.
+  INVALID,
 }
 
 enum CompoundAccessKind {
@@ -357,6 +361,9 @@ class StaticAccess extends AccessSemantics {
 
   StaticAccess.unresolvedSuper(this.element)
       : super._(AccessKind.UNRESOLVED_SUPER);
+
+  StaticAccess.invalid(this.element)
+      : super._(AccessKind.INVALID);
 }
 
 class CompoundAccessSemantics extends AccessSemantics {

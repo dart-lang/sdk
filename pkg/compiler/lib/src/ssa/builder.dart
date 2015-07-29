@@ -1038,7 +1038,8 @@ class SsaBuilder extends ast.Visitor
     with BaseImplementationOfCompoundsMixin,
          SendResolverMixin,
          SemanticSendResolvedMixin,
-         NewBulkMixin
+         NewBulkMixin,
+         ErrorBulkMixin
     implements SemanticSendVisitor {
   final Compiler compiler;
   final JavaScriptBackend backend;
@@ -8273,6 +8274,12 @@ class SsaBuilder extends ast.Visitor
       ast.Node expression,
       _) {
     visitNode(node);
+  }
+
+  @override
+  void bulkHandleError(ast.Node node, ErroneousElement error, _) {
+    // TODO(johnniwinther): Use an uncatchable error when supported.
+    generateRuntimeError(node, error.message);
   }
 }
 

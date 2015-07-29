@@ -95,6 +95,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     with IrBuilderMixin<ast.Node>,
          SemanticSendResolvedMixin<ir.Primitive, dynamic>,
          SendResolverMixin,
+         ErrorBulkMixin<ir.Primitive, dynamic>,
          BaseImplementationOfStaticsMixin<ir.Primitive, dynamic>,
          BaseImplementationOfLocalsMixin<ir.Primitive, dynamic>,
          BaseImplementationOfDynamicsMixin<ir.Primitive, dynamic>,
@@ -608,7 +609,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     } else {
       // The call to assert and its argument expression must be ignored
       // in production mode.
-      // Assertions can onl)y occur in expression statements, so no value needs
+      // Assertions can only occur in expression statements, so no value needs
       // to be returned.
       return null;
     }
@@ -1722,17 +1723,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive buildAbstractClassInstantiationError(ClassElement element);
 
   @override
-  ir.Primitive errorInvalidAssert(
-      ast.Send node,
-      ast.NodeList arguments, _) {
-    if (compiler.enableUserAssertions) {
-      return giveup(node, 'Assert');
-    } else {
-      return irBuilder.buildNullConstant();
-    }
-  }
-
-  @override
   ir.Primitive visitUnresolvedCompound(
       ast.Send node,
       Element element,
@@ -1775,17 +1765,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       CallStructure callStructure, _) {
     return buildStaticNoSuchMethod(elements.getSelector(node.send),
         translateDynamicArguments(arguments, callStructure));
-  }
-
-  @override
-  ir.Primitive errorNonConstantConstructorInvoke(
-      ast.NewExpression node,
-      Element element,
-      DartType type,
-      ast.NodeList arguments,
-      CallStructure callStructure, _) {
-    assert(compiler.compilationFailed);
-    return irBuilder.buildNullConstant();
   }
 
   @override
@@ -1859,20 +1838,12 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorUndefinedBinaryExpression(
-      ast.Send node,
-      ast.Node left,
-      ast.Operator operator,
-      ast.Node right, _) {
-    assert(compiler.compilationFailed);
-    return irBuilder.buildNullConstant();
+  ir.Primitive bulkHandleNode(ast.Node node, String message, _) {
+    return giveup(node, "Unhandled node: ${message.replaceAll('#', '$node')}");
   }
 
   @override
-  ir.Primitive errorUndefinedUnaryExpression(
-      ast.Send node,
-      ast.Operator operator,
-      ast.Node expression, _) {
+  ir.Primitive bulkHandleError(ast.Send node, ErroneousElement error, _) {
     assert(compiler.compilationFailed);
     return irBuilder.buildNullConstant();
   }

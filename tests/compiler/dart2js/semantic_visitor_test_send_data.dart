@@ -268,8 +268,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         class C {}
         m() => C.this(null, 42);
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
-                    name: 'this', arguments: '(null,42)')),
+        const Visit(VisitKind.ERROR_INVALID_INVOKE,
+                    error: MessageKind.THIS_PROPERTY, arguments: '(null,42)')),
     // TODO(johnniwinther): Expect [VISIT_FINAL_STATIC_FIELD_SET] instead.
     const Test(
         '''
@@ -744,6 +744,12 @@ const Map<String, List<Test>> SEND_TESTS = const {
                       name: 'o'),
         ],
         isDeferred: true),
+    const Test.prefix(
+        '''
+        ''',
+        'm() => p;',
+        const Visit(VisitKind.ERROR_INVALID_GET,
+                    error: MessageKind.PREFIX_AS_EXPRESSION)),
     const Test(
         '''
         var o;
@@ -955,6 +961,45 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
                     name: 'o',
+                    arguments: '(null,42)')),
+    const Test.prefix(
+        '''
+        o(a, b) {}
+        ''',
+        'm() => p.o(null, 42);',
+        const [
+          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS,
+                      element: 'prefix(p)'),
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INVOKE,
+                      element: 'function(o)',
+                      arguments: '(null,42)'),
+        ],
+        isDeferred: true),
+    const Test.prefix(
+        '''
+        ''',
+        'm() => p.o(null, 42);',
+        const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
+                    name: 'o',
+                    arguments: '(null,42)')),
+    const Test.prefix(
+        '''
+        ''',
+        'm() => p.o(null, 42);',
+        const [
+          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS,
+                      element: 'prefix(p)'),
+          const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
+                      name: 'o',
+                      arguments: '(null,42)'),
+        ],
+        isDeferred: true),
+    const Test.prefix(
+        '''
+        ''',
+        'm() => p(null, 42);',
+        const Visit(VisitKind.ERROR_INVALID_INVOKE,
+                    error: MessageKind.PREFIX_AS_EXPRESSION,
                     arguments: '(null,42)')),
     // TODO(johnniwinther): Expect [VISIT_TOP_LEVEL_FUNCTION_SET] instead.
     const Test(

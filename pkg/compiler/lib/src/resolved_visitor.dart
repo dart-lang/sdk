@@ -327,10 +327,13 @@ class ResolvedSemanticDispatcher<R> extends Object
       Node node,
       String message,
       ResolvedKindVisitor<R> visitor) {
-    return bulkHandleError(node, visitor);
+    return bulkHandleError(node, null, visitor);
   }
 
-  R bulkHandleError(Node node, ResolvedKindVisitor<R> visitor) {
+  R bulkHandleError(
+      Node node,
+      ErroneousElement error,
+      ResolvedKindVisitor<R> visitor) {
     if (node.asSendSet() != null) {
       return visitor.handleSendSet(node);
     } else if (node.asNewExpression() != null) {

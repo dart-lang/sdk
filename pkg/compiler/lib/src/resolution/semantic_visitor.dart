@@ -4056,6 +4056,86 @@ abstract class SemanticSendVisitor<R, A> {
       CallStructure callStructure,
       A arg);
 
+  /// Read access of an invalid expression.
+  ///
+  /// For instance
+  ///   import 'foo.dart' as p;
+  ///
+  ///   m() => p;
+  ///
+  R errorInvalidGet(
+      Send node,
+      ErroneousElement error,
+      A arg);
+
+
+  /// Invocation of an invalid expression with [arguments].
+  ///
+  /// For instance
+  ///   import 'foo.dart' as p;
+  ///
+  ///   m() => p(null, 42);
+  ///
+  R errorInvalidInvoke(
+      Send node,
+      ErroneousElement error,
+      NodeList arguments,
+      Selector selector,
+      A arg);
+
+  /// Assignment of [rhs] to an invalid expression.
+  ///
+  /// For instance
+  ///   import 'foo.dart' as p;
+  ///
+  ///   m() { p = 42; }
+  ///
+  R errorInvalidSet(
+      Send node,
+      ErroneousElement error,
+      Node rhs,
+      A arg);
+
+  /// Prefix operation on an invalid expression.
+  ///
+  /// For instance
+  ///   import 'foo.dart' as p;
+  ///
+  ///   m() => ++p;
+  ///
+  R errorInvalidPrefix(
+      Send node,
+      ErroneousElement error,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix operation on an invalid expression.
+  ///
+  /// For instance
+  ///   import 'foo.dart' as p;
+  ///
+  ///   m() => p--;
+  ///
+  R errorInvalidPostfix(
+      Send node,
+      ErroneousElement error,
+      IncDecOperator operator,
+      A arg);
+
+  /// Compound assignment of [operator] with [rhs] on an invalid expression.
+  ///
+  /// For instance
+  ///   import 'foo.dart' as p;
+  ///
+  ///   m() => p += 42;
+  ///
+  R errorInvalidCompound(
+      Send node,
+      ErroneousElement error,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
   /// Access of library through a deferred [prefix].
   ///
   /// For instance

@@ -38,6 +38,73 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
+  errorInvalidCompound(
+      Send node,
+      ErroneousElement error,
+      AssignmentOperator operator,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_COMPOUND,
+        error: error.messageKind, operator: operator, rhs: rhs));
+    super.errorInvalidCompound(node, error, operator, rhs, arg);
+  }
+
+  @override
+  errorInvalidGet(
+      Send node,
+      ErroneousElement error,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_GET,
+        error: error.messageKind));
+    super.errorInvalidGet(node, error, arg);
+  }
+
+  @override
+  errorInvalidInvoke(
+      Send node,
+      ErroneousElement error,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_INVOKE,
+        error: error.messageKind, arguments: arguments));
+    super.errorInvalidInvoke(node, error, arguments, selector, arg);
+  }
+
+  @override
+  errorInvalidPostfix(
+      Send node,
+      ErroneousElement error,
+      IncDecOperator operator,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_POSTFIX,
+        error: error.messageKind, operator: operator));
+    super.errorInvalidPostfix(node, error, operator, arg);
+  }
+
+  @override
+  errorInvalidPrefix(
+      Send node,
+      ErroneousElement error,
+      IncDecOperator operator,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_PREFIX,
+        error: error.messageKind, operator: operator));
+    super.errorInvalidPrefix(node, error, operator, arg);
+  }
+
+  @override
+  errorInvalidSet(
+      Send node,
+      ErroneousElement error,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_SET,
+        error: error.messageKind, rhs: rhs));
+    super.errorInvalidSet(node, error, rhs, arg);
+  }
+
+  @override
   visitBinary(
       Send node,
       Node left,

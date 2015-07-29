@@ -373,6 +373,13 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
             node.argumentsNode,
             selector,
             arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidInvoke(
+            node,
+            semantics.element,
+            node.argumentsNode,
+            selector,
+            arg);
       case AccessKind.COMPOUND:
         // This is not a valid case.
         break;
@@ -590,6 +597,11 @@ class GetStructure<R, A> implements SendStructure<R, A> {
             node,
             semantics.element,
             arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidGet(
+            node,
+            semantics.element,
+            arg);
       case AccessKind.COMPOUND:
         // This is not a valid case.
         break;
@@ -789,6 +801,12 @@ class SetStructure<R, A> implements SendStructure<R, A> {
         // TODO(johnniwinther): Handle this separately.
       case AccessKind.UNRESOLVED:
         return visitor.visitUnresolvedSet(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidSet(
             node,
             semantics.element,
             node.arguments.single,
@@ -1468,6 +1486,13 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
             operator,
             node.arguments.single,
             arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidCompound(
+            node,
+            semantics.element,
+            operator,
+            node.arguments.single,
+            arg);
       case AccessKind.COMPOUND:
         CompoundAccessSemantics compoundSemantics = semantics;
         switch (compoundSemantics.compoundAccessKind) {
@@ -1871,6 +1896,12 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
             semantics.element,
             operator,
             arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidPrefix(
+            node,
+            semantics.element,
+            operator,
+            arg);
       case AccessKind.COMPOUND:
         CompoundAccessSemantics compoundSemantics = semantics;
         switch (compoundSemantics.compoundAccessKind) {
@@ -2183,6 +2214,12 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
             arg);
       case AccessKind.UNRESOLVED:
         return visitor.visitUnresolvedPostfix(
+            node,
+            semantics.element,
+            operator,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidPostfix(
             node,
             semantics.element,
             operator,

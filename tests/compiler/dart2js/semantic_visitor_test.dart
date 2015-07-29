@@ -46,6 +46,7 @@ class Visit {
   final target;
   final targetType;
   final initializers;
+  final error;
 
   const Visit(this.method,
               {this.element,
@@ -67,7 +68,8 @@ class Visit {
                this.body,
                this.target,
                this.targetType,
-               this.initializers});
+               this.initializers,
+               this.error});
 
   int get hashCode => toString().hashCode;
 
@@ -135,6 +137,9 @@ class Visit {
     }
     if (initializers != null) {
       sb.write(',initializers=$initializers');
+    }
+    if (error != null) {
+      sb.write(',error=$error');
     }
     return sb.toString();
   }
@@ -211,6 +216,12 @@ const List<VisitKind> UNTESTABLE_KINDS = const <VisitKind>[
   // Constant expression are currently not computed during resolution.
   VisitKind.VISIT_CONSTANT_GET,
   VisitKind.VISIT_CONSTANT_INVOKE,
+  // TODO(johnniwinther): Test these when ResolverVisitor.visitSendSet has been
+  // rewritten.
+  VisitKind.ERROR_INVALID_SET,
+  VisitKind.ERROR_INVALID_PREFIX,
+  VisitKind.ERROR_INVALID_POSTFIX,
+  VisitKind.ERROR_INVALID_COMPOUND,
 ];
 
 main(List<String> arguments) {
@@ -706,6 +717,12 @@ enum VisitKind {
   ERROR_INVALID_ASSERT,
   ERROR_UNDEFINED_UNARY_EXPRESSION,
   ERROR_UNDEFINED_BINARY_EXPRESSION,
+  ERROR_INVALID_GET,
+  ERROR_INVALID_INVOKE,
+  ERROR_INVALID_SET,
+  ERROR_INVALID_PREFIX,
+  ERROR_INVALID_POSTFIX,
+  ERROR_INVALID_COMPOUND,
 
   VISIT_CONSTANT_GET,
   VISIT_CONSTANT_INVOKE,

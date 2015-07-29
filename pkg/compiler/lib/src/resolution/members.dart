@@ -1979,11 +1979,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Name name,
       PrefixElement prefix) {
     if ((ElementCategory.PREFIX & allowedCategory) == 0) {
-      compiler.reportError(
+      ErroneousElement error = reportAndCreateErroneousElement(
           node,
+          name.text,
           MessageKind.PREFIX_AS_EXPRESSION,
-          {'prefix': name});
-      return const NoneResult();
+          {'prefix': name},
+          isError: true);
+      return handleErroneousAccess(
+          node, name, error, new StaticAccess.invalid(error));
     }
     if (prefix.isDeferred) {
       // TODO(johnniwinther): Remove this when deferred access is detected
@@ -2062,8 +2065,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         name.text,
         MessageKind.THIS_PROPERTY, {},
         isError: true);
-    // TODO(johnniwinther): Support `this` as property as an [AccessSemantics].
-    AccessSemantics accessSemantics = new StaticAccess.unresolved(error);
+    AccessSemantics accessSemantics = new StaticAccess.invalid(error);
     return handleErroneousAccess(node, name, error, accessSemantics);
   }
 
