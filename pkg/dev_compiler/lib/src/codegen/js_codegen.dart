@@ -211,7 +211,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     var program = <JS.Statement>[
       js.statement("dart_library.library(#, #, #, #, #)", [
         js.string(jsPath, "'"),
-        jsDefaultValue != null ? jsDefaultValue : new JS.LiteralNull(),
+        jsDefaultValue ?? new JS.LiteralNull(),
         js.commentExpression(
             "Imports", new JS.ArrayInitializer(imports, multiline: true)),
         js.commentExpression("Lazy imports",
@@ -1859,7 +1859,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     var value = _visit(node.initializer);
     // explicitly initialize to null, to avoid getting `undefined`.
     // TODO(jmesserly): do this only for vars that aren't definitely assigned.
-    return value != null ? value : new JS.LiteralNull();
+    return value ?? new JS.LiteralNull();
   }
 
   void _flushLazyFields(List<JS.Statement> body) {
@@ -2547,13 +2547,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   @override
   visitBreakStatement(BreakStatement node) {
     var label = node.label;
-    return new JS.Break(label != null ? label.name : null);
+    return new JS.Break(label?.name);
   }
 
   @override
   visitContinueStatement(ContinueStatement node) {
     var label = node.label;
-    return new JS.Continue(label != null ? label.name : null);
+    return new JS.Continue(label?.name);
   }
 
   @override
