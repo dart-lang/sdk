@@ -73,6 +73,7 @@ class TemporaryNamer extends LocalNamer {
   void enterScope(FunctionExpression node) {
     scope = scope.functions[node];
   }
+
   void leaveScope() {
     scope = scope.parent;
   }

@@ -359,7 +359,6 @@ class InferredType extends InferredTypeBase {
   // Factory to create correct InferredType variant.
   static InferredTypeBase create(
       TypeRules rules, Expression expression, DartType type) {
-
     // Specialized inference:
     if (expression is Literal) {
       return new InferredTypeLiteral(rules, expression, type);

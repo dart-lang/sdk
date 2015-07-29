@@ -49,8 +49,10 @@ class AstBuilder {
     return RawAstBuilder.typeName(id, argList);
   }
 
-  static FunctionTypeAlias functionTypeAlias(TypeName ret,
-      SimpleIdentifier name, List<TypeParameter> tParams,
+  static FunctionTypeAlias functionTypeAlias(
+      TypeName ret,
+      SimpleIdentifier name,
+      List<TypeParameter> tParams,
       List<FormalParameter> params) {
     TypeParameterList tps =
         (tParams.length == 0) ? null : typeParameterList(tParams);
@@ -251,17 +253,22 @@ class AstBuilder {
     return RawAstBuilder.block(statements);
   }
 
-  static MethodDeclaration blockMethodDeclaration(TypeName rt,
-      SimpleIdentifier m, List<FormalParameter> params,
-      List<Statement> statements, {bool isStatic: false}) {
+  static MethodDeclaration blockMethodDeclaration(
+      TypeName rt,
+      SimpleIdentifier m,
+      List<FormalParameter> params,
+      List<Statement> statements,
+      {bool isStatic: false}) {
     FormalParameterList fl = formalParameterList(params);
     Block b = block(statements);
     BlockFunctionBody body = RawAstBuilder.blockFunctionBody(b);
     return RawAstBuilder.methodDeclaration(rt, m, fl, body, isStatic: isStatic);
   }
 
-  static FunctionDeclaration blockFunctionDeclaration(TypeName rt,
-      SimpleIdentifier f, List<FormalParameter> params,
+  static FunctionDeclaration blockFunctionDeclaration(
+      TypeName rt,
+      SimpleIdentifier f,
+      List<FormalParameter> params,
       List<Statement> statements) {
     FunctionExpression fexp = blockFunction(params, statements);
     return RawAstBuilder.functionDeclaration(rt, f, fexp);
@@ -276,7 +283,8 @@ class AstBuilder {
   }
 
   static FunctionExpression expressionFunction(
-      List<FormalParameter> params, Expression body, [bool decl = false]) {
+      List<FormalParameter> params, Expression body,
+      [bool decl = false]) {
     FormalParameterList fl = formalParameterList(params);
     ExpressionFunctionBody b = RawAstBuilder.expressionFunctionBody(body, decl);
     return RawAstBuilder.functionExpression(fl, b);
@@ -508,7 +516,8 @@ class RawAstBuilder {
   }
 
   static MethodDeclaration methodDeclaration(TypeName rt, SimpleIdentifier m,
-      FormalParameterList fl, FunctionBody body, {bool isStatic: false}) {
+      FormalParameterList fl, FunctionBody body,
+      {bool isStatic: false}) {
     Token st = isStatic ? new KeywordToken(Keyword.STATIC, 0) : null;
     return new MethodDeclaration(
         null, null, null, st, rt, null, null, m, null, fl, body);

@@ -22,7 +22,7 @@ dev_dependencies:
   # We pin a specific version to ensure everyone is formatting the code exactly
   # the same way. This is because any change in dart_style, even non-breaking
   # changes, may change the output format.
-  dart_style: 0.1.8+2
+  dart_style: 0.2.0-rc.3
   pub_semver: ^1.1.0
   test: ^0.12.0
 environment:

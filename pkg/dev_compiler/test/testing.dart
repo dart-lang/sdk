@@ -28,16 +28,17 @@ import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/utils.dart';
 
 /// Shared analysis context used for compilation.
-final realSdkContext = createAnalysisContextWithSources(new StrongModeOptions(),
+final realSdkContext = createAnalysisContextWithSources(
+    new StrongModeOptions(),
     new SourceResolverOptions(
         dartSdkPath: getSdkDir().path,
         customUrlMappings: {
-  'package:expect/expect.dart': _testCodegenPath('expect.dart'),
-  'package:async_helper/async_helper.dart':
-      _testCodegenPath('async_helper.dart'),
-  'package:unittest/unittest.dart': _testCodegenPath('unittest.dart'),
-  'package:dom/dom.dart': _testCodegenPath('sunflower', 'dom.dart')
-}))..analysisOptions = (new AnalysisOptionsImpl()..cacheSize = 512);
+          'package:expect/expect.dart': _testCodegenPath('expect.dart'),
+          'package:async_helper/async_helper.dart':
+              _testCodegenPath('async_helper.dart'),
+          'package:unittest/unittest.dart': _testCodegenPath('unittest.dart'),
+          'package:dom/dom.dart': _testCodegenPath('sunflower', 'dom.dart')
+        }))..analysisOptions = (new AnalysisOptionsImpl()..cacheSize = 512);
 
 String _testCodegenPath(String p1, [String p2]) =>
     path.join(testDirectory, 'codegen', p1, p2);
@@ -71,8 +72,10 @@ class _TestUtils {}
 ///       '''
 ///     });
 ///
-void testChecker(Map<String, String> testFiles, {String sdkDir,
-    customUrlMappings: const {}, relaxedCasts: true,
+void testChecker(Map<String, String> testFiles,
+    {String sdkDir,
+    customUrlMappings: const {},
+    relaxedCasts: true,
     inferDownwards: StrongModeOptions.inferDownwardsDefault,
     inferFromOverrides: StrongModeOptions.inferFromOverridesDefault,
     inferTransitively: StrongModeOptions.inferTransitivelyDefault,
@@ -88,13 +91,15 @@ void testChecker(Map<String, String> testFiles, {String sdkDir,
       useMockSdk: sdkDir == null,
       dartSdkPath: sdkDir), fileResolvers: [uriResolver]);
 
-  var checker = new StrongChecker(context, new StrongModeOptions(
-      relaxedCasts: relaxedCasts,
-      inferDownwards: inferDownwards,
-      inferFromOverrides: inferFromOverrides,
-      inferTransitively: inferTransitively,
-      nonnullableTypes: nonnullableTypes,
-      hints: true));
+  var checker = new StrongChecker(
+      context,
+      new StrongModeOptions(
+          relaxedCasts: relaxedCasts,
+          inferDownwards: inferDownwards,
+          inferFromOverrides: inferFromOverrides,
+          inferTransitively: inferTransitively,
+          nonnullableTypes: nonnullableTypes,
+          hints: true));
 
   // Run the checker on /main.dart.
   var mainSource = uriResolver.resolveAbsolute(new Uri.file('/main.dart'));
@@ -196,7 +201,6 @@ class _ExpectedErrorVisitor extends UnifyingAstVisitor {
   }
 
   void _expectError(AstNode node, _ErrorExpectation expected) {
-
     // See if we can find the expected error in our actual errors
     for (var actual in _actualErrors) {
       if (actual.offset == node.offset && actual.length == node.length) {

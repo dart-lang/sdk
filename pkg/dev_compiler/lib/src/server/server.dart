@@ -261,26 +261,26 @@ class DevServer {
   }
 
   shelf.Handler rebuildAndCache(shelf.Handler handler) => (request) {
-    print('requested $GREEN_COLOR${request.url}$NO_COLOR');
-    // Trigger recompile only when requesting the HTML page.
-    var segments = request.url.pathSegments;
-    bool isEntryPage = segments.length == 0 || segments[0] == _entryPath;
-    if (isEntryPage) compiler._runAgain();
+        print('requested $GREEN_COLOR${request.url}$NO_COLOR');
+        // Trigger recompile only when requesting the HTML page.
+        var segments = request.url.pathSegments;
+        bool isEntryPage = segments.length == 0 || segments[0] == _entryPath;
+        if (isEntryPage) compiler._runAgain();
 
-    // To help browsers cache resources that don't change, we serve these
-    // resources by adding a query parameter containing their hash:
-    //    /{path-to-file.js}?____cached={hash}
-    var hash = request.url.queryParameters['____cached'];
-    var response = handler(request);
-    var policy = hash != null ? 'max-age=${24 * 60 * 60}' : 'no-cache';
-    var headers = {'cache-control': policy};
-    if (hash != null) {
-      // Note: the cache-control header should be enough, but this doesn't hurt
-      // and can help renew the policy after it expires.
-      headers['ETag'] = hash;
-    }
-    return response.change(headers: headers);
-  };
+        // To help browsers cache resources that don't change, we serve these
+        // resources by adding a query parameter containing their hash:
+        //    /{path-to-file.js}?____cached={hash}
+        var hash = request.url.queryParameters['____cached'];
+        var response = handler(request);
+        var policy = hash != null ? 'max-age=${24 * 60 * 60}' : 'no-cache';
+        var headers = {'cache-control': policy};
+        if (hash != null) {
+          // Note: the cache-control header should be enough, but this doesn't
+          // hurt and can help renew the policy after it expires.
+          headers['ETag'] = hash;
+        }
+        return response.change(headers: headers);
+      };
 }
 
 UriResolver _createImplicitEntryResolver(String entryPath) {
@@ -303,6 +303,7 @@ class _ExistingSourceUriResolver implements UriResolver {
     var src = resolver.resolveAbsolute(uri, actualUri);
     return src.exists() ? src : null;
   }
+
   Uri restoreAbsolute(Source source) => resolver.restoreAbsolute(source);
 }
 

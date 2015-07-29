@@ -73,7 +73,7 @@ void displayMessages(String data) {
 
       var logElement = new Element.html('$sb',
           validator: new NodeValidatorBuilder.common()
-        ..allowNavigation(new _OpenUriPolicy()));
+            ..allowNavigation(new _OpenUriPolicy()));
       contentItem.append(logElement);
       var messageElement = logElement.querySelector('div.text');
       messageElement.onClick.listen((e) {

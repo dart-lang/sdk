@@ -39,7 +39,8 @@ void main() {
     var uriResolver = new TestUriResolver(provider);
     var srcOpts = new SourceResolverOptions(useMockSdk: true);
     var context = createAnalysisContextWithSources(
-        new StrongModeOptions(), srcOpts, fileResolvers: [uriResolver]);
+        new StrongModeOptions(), srcOpts,
+        fileResolvers: [uriResolver]);
     var reporter = new SummaryReporter(context);
     new BatchCompiler(context, new CompilerOptions(sourceOptions: srcOpts),
         reporter: reporter).compileFromUriString('/main.dart');

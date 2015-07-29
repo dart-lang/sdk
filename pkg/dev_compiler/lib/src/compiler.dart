@@ -196,7 +196,8 @@ class BatchCompiler extends AbstractCompiler {
   }
 
   html.DocumentFragment _linkLibraries(
-      LibraryElement mainLib, LinkedHashSet<Uri> loaded, {String from}) {
+      LibraryElement mainLib, LinkedHashSet<Uri> loaded,
+      {String from}) {
     assert(from != null);
     var alreadyLoaded = loaded.length;
     _collectLibraries(mainLib, loaded);
@@ -304,6 +305,7 @@ abstract class AbstractCompiler {
     }
     return _inputBaseDir;
   }
+
   String _inputBaseDir;
 
   String getOutputPath(Uri uri) => path.join(outputDir, getModulePath(uri));

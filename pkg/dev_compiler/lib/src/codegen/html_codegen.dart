@@ -41,10 +41,13 @@ String generateEntryHtml(HtmlSourceNode root, AbstractCompiler compiler) {
 
   var libraries = [];
   var resources = new Set();
-  visitInPostOrder(root, (n) {
-    if (n is DartSourceNode) libraries.add(n);
-    if (n is ResourceSourceNode) resources.add(n);
-  }, includeParts: false);
+  visitInPostOrder(
+      root,
+      (n) {
+        if (n is DartSourceNode) libraries.add(n);
+        if (n is ResourceSourceNode) resources.add(n);
+      },
+      includeParts: false);
 
   root.htmlResourceNodes.forEach((element, resource) {
     // Make sure we don't try and add this node again.

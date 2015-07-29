@@ -30,8 +30,10 @@ class NewTypeIdDesc {
   /// If null, then this is not a library level identifier (i.e. it's
   /// a type parameter, or a special type like void, dynamic, etc)
   LibraryElement importedFrom;
+
   /// True => use/def in same library
   bool fromCurrent;
+
   /// True => not a source variable
   bool synthetic;
   NewTypeIdDesc({this.fromCurrent, this.importedFrom, this.synthetic});
@@ -190,6 +192,7 @@ class CoercionManager {
   void enterCompilationUnit(CompilationUnit unit) {
     _tm.enterCompilationUnit(unit);
   }
+
   void exitCompilationUnit(CompilationUnit unit) {
     _tm.exitCompilationUnit(unit);
   }
@@ -385,7 +388,6 @@ class TypeManager {
 
   FunctionTypeAlias _newResolvedTypedef(
       FunctionType type, List<TypeParameterType> ftvs) {
-
     // The name of the typedef (unresolved at this point)
     // TODO(leafp): better naming.
     SimpleIdentifier t = freshTypeDefVariable("CastType");

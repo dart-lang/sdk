@@ -38,8 +38,8 @@ AnalysisContext createAnalysisContext(StrongModeOptions options) {
 // TODO(jmesserly): is there a cleaner way to plug this in?
 void enableDevCompilerInference(
     AnalysisContextImpl context, StrongModeOptions options) {
-  context.libraryResolverFactory =
-      (c) => new LibraryResolverWithInference(c, options);
+  context.libraryResolverFactory = (c) =>
+      new LibraryResolverWithInference(c, options);
 }
 
 /// Creates a SourceFactory configured by the [options].
@@ -79,6 +79,6 @@ DartUriResolver createMockSdkResolver(Map<String, String> mockSources) =>
     new MockDartSdk(mockSources, reportMissing: true).resolver;
 
 /// Creates a [DartUriResolver] that uses the SDK at the given [sdkPath].
-DartUriResolver createSdkPathResolver(String sdkPath) => new DartUriResolver(
-    new DirectoryBasedDartSdk(
+DartUriResolver createSdkPathResolver(String sdkPath) =>
+    new DartUriResolver(new DirectoryBasedDartSdk(
         new JavaFile(sdkPath), /*useDart2jsPaths:*/ true));

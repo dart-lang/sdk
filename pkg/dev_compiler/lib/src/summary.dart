@@ -32,11 +32,12 @@ class GlobalSummary implements Summary {
   GlobalSummary();
 
   Map toJsonMap() => {
-    'system': system.values.map((l) => l.toJsonMap()).toList(),
-    'packages': packages.values.map((p) => p.toJsonMap()).toList(),
-    'loose':
-        loose.values.map((l) => ['${l.runtimeType}', l.toJsonMap()]).toList(),
-  };
+        'system': system.values.map((l) => l.toJsonMap()).toList(),
+        'packages': packages.values.map((p) => p.toJsonMap()).toList(),
+        'loose': loose.values
+            .map((l) => ['${l.runtimeType}', l.toJsonMap()])
+            .toList(),
+      };
 
   void accept(SummaryVisitor visitor) => visitor.visitGlobal(this);
 
@@ -66,9 +67,9 @@ class PackageSummary implements Summary {
   PackageSummary(this.name);
 
   Map toJsonMap() => {
-    'package_name': name,
-    'libraries': libraries.values.map((l) => l.toJsonMap()).toList(),
-  };
+        'package_name': name,
+        'libraries': libraries.values.map((l) => l.toJsonMap()).toList(),
+      };
 
   void accept(SummaryVisitor visitor) => visitor.visitPackage(this);
 
@@ -116,10 +117,10 @@ class LibrarySummary implements IndividualSummary {
   int get lines => _lines;
 
   Map toJsonMap() => {
-    'library_name': name,
-    'messages': messages.map((m) => m.toJsonMap()).toList(),
-    'lines': lines,
-  };
+        'library_name': name,
+        'messages': messages.map((m) => m.toJsonMap()).toList(),
+        'lines': lines,
+      };
 
   void countSourceLines(AnalysisContext context, Source source) {
     if (_uris.add(source.uri)) {
@@ -135,10 +136,10 @@ class LibrarySummary implements IndividualSummary {
 
   void accept(SummaryVisitor visitor) => visitor.visitLibrary(this);
 
-  static LibrarySummary parse(Map json) => new LibrarySummary(
-      json['library_name'],
-      messages: json['messages'].map(MessageSummary.parse).toList(),
-      lines: json['lines']);
+  static LibrarySummary parse(Map json) =>
+      new LibrarySummary(json['library_name'],
+          messages: json['messages'].map(MessageSummary.parse).toList(),
+          lines: json['lines']);
 }
 
 /// A summary at the level of an HTML file.
@@ -176,17 +177,17 @@ class MessageSummary implements Summary {
   MessageSummary(this.kind, this.level, this.span, this.message);
 
   Map toJsonMap() => {
-    'kind': kind,
-    'level': level,
-    'message': message,
-    'url': '${span.sourceUrl}',
-    'start': [span.start.offset, span.start.line, span.start.column],
-    'end': [span.end.offset, span.end.line, span.end.column],
-    'text': span.text,
-    'context': span is SourceSpanWithContext
-        ? (span as SourceSpanWithContext).context
-        : null,
-  };
+        'kind': kind,
+        'level': level,
+        'message': message,
+        'url': '${span.sourceUrl}',
+        'start': [span.start.offset, span.start.line, span.start.column],
+        'end': [span.end.offset, span.end.line, span.end.column],
+        'text': span.text,
+        'context': span is SourceSpanWithContext
+            ? (span as SourceSpanWithContext).context
+            : null,
+      };
 
   void accept(SummaryVisitor visitor) => visitor.visitMessage(this);
 
@@ -246,5 +247,6 @@ class RecursiveSummaryVisitor implements SummaryVisitor {
       msg.accept(this);
     }
   }
+
   void visitMessage(MessageSummary message) {}
 }

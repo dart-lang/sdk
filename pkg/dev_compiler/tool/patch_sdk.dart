@@ -44,7 +44,8 @@ void main(List<String> argv) {
   var libContents = new File(path.join(sdkLibIn, '_internal', 'libraries.dart'))
       .readAsStringSync();
   _writeSync(path.join(sdkOut, '_internal', 'libraries.dart'), libContents);
-  _writeSync(path.join(
+  _writeSync(
+      path.join(
           sdkOut, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'),
       libContents);
   _writeSync(path.join(sdkOut, '..', 'version'),
@@ -167,14 +168,14 @@ class PatchApplier extends GeneralizingAstVisitor {
 
   /// Merges directives and declarations that are not `@patch` into the library.
   void _mergeUnpatched(CompilationUnit unit) {
-
     // Merge imports from the patch
     // TODO(jmesserly): remove duplicate imports
 
     // To patch a library, we must have a library directive
     var libDir = unit.directives.first as LibraryDirective;
-    int importPos = unit.directives.lastWhere((d) => d is ImportDirective,
-        orElse: () => libDir).end;
+    int importPos = unit.directives
+        .lastWhere((d) => d is ImportDirective, orElse: () => libDir)
+        .end;
     for (var d in patch.unit.directives.where((d) => d is ImportDirective)) {
       _merge(d, importPos);
     }

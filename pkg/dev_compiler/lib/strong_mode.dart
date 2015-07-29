@@ -72,7 +72,6 @@ class _ErrorCollector implements AnalysisErrorListener {
 }
 
 class StrongModeOptions {
-
   /// Whether to infer return types and field types from overridden members.
   final bool inferFromOverrides;
   static const inferFromOverridesDefault = true;
@@ -115,11 +114,13 @@ class StrongModeOptions {
   // compile to JS.
   final bool hints;
 
-  const StrongModeOptions({this.hints: false,
+  const StrongModeOptions(
+      {this.hints: false,
       this.inferFromOverrides: inferFromOverridesDefault,
       this.inferTransitively: inferTransitivelyDefault,
       this.onlyInferConstsAndFinalFields: onlyInferConstAndFinalFieldsDefault,
-      this.inferDownwards: inferDownwardsDefault, this.relaxedCasts: true,
+      this.inferDownwards: inferDownwardsDefault,
+      this.relaxedCasts: true,
       this.nonnullableTypes: StrongModeOptions.NONNULLABLE_TYPES});
 
   StrongModeOptions.fromArguments(ArgResults args, {String prefix: ''})
@@ -154,7 +155,7 @@ class StrongModeOptions {
           hide: hide)
       ..addFlag(prefix + 'infer-from-overrides',
           help: 'Infer unspecified types of fields and return types from\n'
-          'definitions in supertypes',
+              'definitions in supertypes',
           defaultsTo: inferFromOverridesDefault,
           hide: hide)
       ..addFlag(prefix + 'infer-transitively',

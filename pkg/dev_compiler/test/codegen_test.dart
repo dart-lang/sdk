@@ -129,9 +129,10 @@ main(arguments) {
 
       test('devc dart:core', () {
         var testSdkContext = createAnalysisContextWithSources(
-            new StrongModeOptions(), new SourceResolverOptions(
-                dartSdkPath: path.join(
-                    testDirectory, '..', 'tool', 'generated_sdk')));
+            new StrongModeOptions(),
+            new SourceResolverOptions(
+                dartSdkPath:
+                    path.join(testDirectory, '..', 'tool', 'generated_sdk')));
 
         // Get the test SDK. We use a checked in copy so test expectations can
         // be generated against a specific SDK version.

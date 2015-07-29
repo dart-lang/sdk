@@ -51,8 +51,10 @@ void main() {
     });
   });
 
-  test('if/for/do/while statements use boolean conversion', () => testChecker({
-    '/main.dart': '''
+  test(
+      'if/for/do/while statements use boolean conversion',
+      () => testChecker({
+            '/main.dart': '''
       main() {
         dynamic d = 42;
         Object obj = 42;
@@ -80,7 +82,7 @@ void main() {
         for (;/*severe:StaticTypeError*/i;) {}
       }
     '''
-  }));
+          }));
 
   test('dynamic invocation', () {
     testChecker({
@@ -263,7 +265,10 @@ void main() {
           b = true;
         }
       '''
-    }, nonnullableTypes: <String>['int', 'double']);
+    }, nonnullableTypes: <String>[
+      'int',
+      'double'
+    ]);
   });
 
   test('Primitives and generics', () {
@@ -305,7 +310,10 @@ void main() {
           T foo() => /*warning:DownCastImplicit*/null;
         }
       '''
-    }, nonnullableTypes: <String>['int', 'double']);
+    }, nonnullableTypes: <String>[
+      'int',
+      'double'
+    ]);
   });
 
   test('Constructors', () {
@@ -1595,8 +1603,10 @@ void main() {
     }, inferFromOverrides: true);
   });
 
-  test('unary operators', () => testChecker({
-    '/main.dart': '''
+  test(
+      'unary operators',
+      () => testChecker({
+            '/main.dart': '''
       class A {
         A operator ~() {}
         A operator +(int x) {}
@@ -1629,7 +1639,7 @@ void main() {
         (/*info:DynamicInvoke*/d++);
         (/*info:DynamicInvoke*/d--);
       }'''
-  }));
+          }));
 
   test('binary and index operators', () {
     testChecker({
@@ -2660,20 +2670,23 @@ void main() {
     });
   });
 
-  test('custom URL mappings', () => testChecker({
-    '/main.dart': '''
+  test(
+      'custom URL mappings',
+      () => testChecker({
+            '/main.dart': '''
       import 'dart:foobar' show Baz;
       main() {
         print(Baz.quux);
       }'''
-  },
-      customUrlMappings: {
-    'dart:foobar': '$testDirectory/checker/dart_foobar.dart'
-  }));
+          }, customUrlMappings: {
+            'dart:foobar': '$testDirectory/checker/dart_foobar.dart'
+          }));
 
   group('function modifiers', () {
-    test('async', () => testChecker({
-      '/main.dart': '''
+    test(
+        'async',
+        () => testChecker({
+              '/main.dart': '''
         import 'dart:async';
         import 'dart:math' show Random;
 
@@ -2708,10 +2721,12 @@ void main() {
           }
         }
     '''
-    }));
+            }));
 
-    test('async*', () => testChecker({
-      '/main.dart': '''
+    test(
+        'async*',
+        () => testChecker({
+              '/main.dart': '''
         import 'dart:async';
 
         dynamic x;
@@ -2727,10 +2742,12 @@ void main() {
         Stream<int> baz4() async* { yield* new Stream<int>(); }
         Stream<int> baz5() async* { yield* (/*info:InferredTypeAllocation*/new Stream()); }
     '''
-    }));
+            }));
 
-    test('sync*', () => testChecker({
-      '/main.dart': '''
+    test(
+        'sync*',
+        () => testChecker({
+              '/main.dart': '''
         import 'dart:async';
 
         dynamic x;
@@ -2746,6 +2763,6 @@ void main() {
         Iterable<int> baz4() sync* { yield* new Iterable<int>(); }
         Iterable<int> baz5() sync* { yield* (/*info:InferredTypeAllocation*/new Iterable()); }
     '''
-    }));
+            }));
   });
 }

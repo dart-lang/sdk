@@ -43,10 +43,15 @@ class SourceResolverOptions {
   /// be determined
   final String dartSdkPath;
 
-  const SourceResolverOptions({this.useMockSdk: false, this.dartSdkPath,
-      this.useMultiPackage: false, this.customUrlMappings: const {},
-      this.packageRoot: 'packages/', this.packagePaths: const <String>[],
-      this.resources: const <String>[], this.useImplicitHtml: false});
+  const SourceResolverOptions(
+      {this.useMockSdk: false,
+      this.dartSdkPath,
+      this.useMultiPackage: false,
+      this.customUrlMappings: const {},
+      this.packageRoot: 'packages/',
+      this.packagePaths: const <String>[],
+      this.resources: const <String>[],
+      this.useImplicitHtml: false});
 }
 
 // TODO(jmesserly): refactor all codegen options here.
@@ -64,8 +69,11 @@ class CodegenOptions {
   /// other V8 builds
   final bool arrowFnBindThisWorkaround;
 
-  const CodegenOptions({this.emitSourceMaps: true, this.forceCompile: false,
-      this.outputDir, this.arrowFnBindThisWorkaround: false});
+  const CodegenOptions(
+      {this.emitSourceMaps: true,
+      this.forceCompile: false,
+      this.outputDir,
+      this.arrowFnBindThisWorkaround: false});
 }
 
 /// General options used by the dev compiler and server.
@@ -120,13 +128,24 @@ class CompilerOptions {
   /// to this directory.
   final String inputBaseDir;
 
-  CompilerOptions({this.strongOptions: const StrongModeOptions(),
+  CompilerOptions(
+      {this.strongOptions: const StrongModeOptions(),
       this.sourceOptions: const SourceResolverOptions(),
-      this.codegenOptions: const CodegenOptions(), this.checkSdk: false,
-      this.dumpInfo: false, this.dumpInfoFile, this.useColors: true,
-      this.help: false, this.logLevel: Level.SEVERE, this.serverMode: false,
-      this.enableHashing: false, this.widget: true, this.host: 'localhost',
-      this.port: 8080, this.runtimeDir, this.inputs, this.inputBaseDir});
+      this.codegenOptions: const CodegenOptions(),
+      this.checkSdk: false,
+      this.dumpInfo: false,
+      this.dumpInfoFile,
+      this.useColors: true,
+      this.help: false,
+      this.logLevel: Level.SEVERE,
+      this.serverMode: false,
+      this.enableHashing: false,
+      this.widget: true,
+      this.host: 'localhost',
+      this.port: 8080,
+      this.runtimeDir,
+      this.inputs,
+      this.inputBaseDir});
 }
 
 /// Parses options from the command-line
@@ -144,8 +163,8 @@ CompilerOptions parseOptions(List<String> argv) {
   var levelName = args['log'];
   if (levelName != null) {
     levelName = levelName.toUpperCase();
-    logLevel = Level.LEVELS.firstWhere((l) => l.name == levelName,
-        orElse: () => logLevel);
+    logLevel = Level.LEVELS
+        .firstWhere((l) => l.name == levelName, orElse: () => logLevel);
   }
   var useColors = stdioType(stdout) == StdioType.TERMINAL;
   var sdkPath = args['dart-sdk'];
@@ -191,10 +210,8 @@ CompilerOptions parseOptions(List<String> argv) {
           useMultiPackage: args['use-multi-package'],
           packageRoot: args['package-root'],
           packagePaths: args['package-paths'].split(','),
-          resources: args['resources']
-              .split(',')
-              .where((s) => s.isNotEmpty)
-              .toList()),
+          resources:
+              args['resources'].split(',').where((s) => s.isNotEmpty).toList()),
       strongOptions: new StrongModeOptions.fromArguments(args),
       checkSdk: args['sdk-check'],
       dumpInfo: dumpInfo,
@@ -227,7 +244,7 @@ final ArgParser argParser = StrongModeOptions.addArguments(new ArgParser()
       defaultsTo: 'packages/')
   ..addOption('url-mapping',
       help: '--url-mapping=libraryUri,/path/to/library.dart uses library.dart\n'
-      'as the source for an import of of "libraryUri".',
+          'as the source for an import of of "libraryUri".',
       allowMultiple: true,
       splitCommas: false)
   ..addFlag('use-multi-package',
@@ -235,7 +252,8 @@ final ArgParser argParser = StrongModeOptions.addArguments(new ArgParser()
       defaultsTo: false)
   ..addOption('package-paths',
       help: 'if using the multi-package resolver, the list of directories to\n'
-      'look for packages in.', defaultsTo: '')
+          'look for packages in.',
+      defaultsTo: '')
   ..addOption('resources',
       help: 'Additional resources to serve', defaultsTo: '')
   ..addFlag('source-maps',
@@ -255,7 +273,7 @@ final ArgParser argParser = StrongModeOptions.addArguments(new ArgParser()
       defaultsTo: true)
   ..addOption('host',
       help: 'Host name or address to serve files from, e.g. --host=0.0.0.0\n'
-      'to listen on all interfaces (used only when --serve is on)',
+          'to listen on all interfaces (used only when --serve is on)',
       defaultsTo: 'localhost')
   ..addOption('port',
       help: 'Port to serve files from (used only when --serve is on)',

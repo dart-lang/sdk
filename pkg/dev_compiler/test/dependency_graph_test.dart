@@ -112,8 +112,10 @@ void main() {
       expect(node.scripts.length, 1);
       expect(node.scripts.first, nodeOf('/a1.dart'));
 
-      updateFile(node.source, node.source.contents.data +
-          '<script type="application/dart" src="a2.dart"></script>');
+      updateFile(
+          node.source,
+          node.source.contents.data +
+              '<script type="application/dart" src="a2.dart"></script>');
       expect(node.scripts.length, 1);
       node.update();
       expect(node.scripts.length, 2);
@@ -215,7 +217,9 @@ void main() {
       expect(node.exports.contains(nodeOf('/a5.dart')), isTrue);
       expect(node.parts.contains(nodeOf('/a6.dart')), isTrue);
 
-      updateFile(node.source, '''
+      updateFile(
+          node.source,
+          '''
           library a2;
           import 'a3.dart';
           import 'a4.dart';
@@ -256,7 +260,9 @@ void main() {
       expect(a4.exports.length, 1);
       expect(a4.parts.length, 0);
 
-      updateFile(node.source, '''
+      updateFile(
+          node.source,
+          '''
           library a2;
           import 'a3.dart';
           part 'a4.dart'; // changed from export
@@ -281,7 +287,9 @@ void main() {
       expect(a4.parts.length, 0);
 
       // And change it back.
-      updateFile(node.source, '''
+      updateFile(
+          node.source,
+          '''
           library a2;
           import 'a3.dart';
           import 'a4.dart'; // changed again
@@ -397,8 +405,10 @@ void main() {
         expect(node.structureChanged, isFalse);
         expect(node.scripts.length, 1);
 
-        updateFile(node.source, node.source.contents.data +
-            '<script type="application/dart" src="a4.dart"></script>');
+        updateFile(
+            node.source,
+            node.source.contents.data +
+                '<script type="application/dart" src="a4.dart"></script>');
         expect(node.structureChanged, isFalse);
         node.update();
         expect(node.structureChanged, isTrue);
@@ -438,7 +448,9 @@ void main() {
         expect(node.structureChanged, isFalse);
 
         // modified order of imports, but structure stays the same:
-        updateFile(node.source, 'import "a4.dart"; import "a3.dart"; '
+        updateFile(
+            node.source,
+            'import "a4.dart"; import "a3.dart"; '
             'export "a5.dart"; part "a6.dart";');
         node.update();
 
@@ -457,7 +469,9 @@ void main() {
         expect(node.structureChanged, isFalse);
 
         // added one.
-        updateFile(node.source, 'import "a4.dart"; import "a3.dart"; '
+        updateFile(
+            node.source,
+            'import "a4.dart"; import "a3.dart"; '
             'export "a5.dart"; part "a6.dart"; part "a7.dart";');
         expect(node.structureChanged, isFalse);
         node.update();
@@ -471,7 +485,9 @@ void main() {
 
         // removed one
         updateFile(node.source);
-        updateFile(node.source, 'import "a4.dart"; import "a3.dart"; '
+        updateFile(
+            node.source,
+            'import "a4.dart"; import "a3.dart"; '
             'export "a5.dart"; part "a7.dart";');
         expect(node.structureChanged, isFalse);
         node.update();
@@ -488,7 +504,8 @@ void main() {
         expect(node.structureChanged, isFalse);
 
         // added one.
-        updateFile(node.source,
+        updateFile(
+            node.source,
             'import "a4.dart"; import "a3.dart"; import "a7.dart";'
             'export "a5.dart"; part "a6.dart";');
         expect(node.structureChanged, isFalse);
@@ -502,7 +519,9 @@ void main() {
         expect(node.structureChanged, isFalse);
 
         // removed one
-        updateFile(node.source, 'import "a4.dart"; import "a7.dart"; '
+        updateFile(
+            node.source,
+            'import "a4.dart"; import "a7.dart"; '
             'export "a5.dart"; part "a6.dart";');
         expect(node.structureChanged, isFalse);
         node.update();
@@ -519,7 +538,9 @@ void main() {
         expect(node.structureChanged, isFalse);
 
         // added one.
-        updateFile(node.source, 'import "a4.dart"; import "a3.dart";'
+        updateFile(
+            node.source,
+            'import "a4.dart"; import "a3.dart";'
             'export "a5.dart"; export "a9.dart"; part "a6.dart";');
         expect(node.structureChanged, isFalse);
         node.update();
@@ -532,7 +553,9 @@ void main() {
         expect(node.structureChanged, isFalse);
 
         // removed one
-        updateFile(node.source, 'import "a4.dart"; import "a3.dart"; '
+        updateFile(
+            node.source,
+            'import "a4.dart"; import "a3.dart"; '
             'export "a5.dart"; part "a6.dart";');
         expect(node.structureChanged, isFalse);
         node.update();
@@ -544,12 +567,16 @@ void main() {
   group('refresh structure and marks', () {
     test('initial marks', () {
       var node = nodeOf('/index3.html');
-      expectGraph(node, '''
+      expectGraph(
+          node,
+          '''
           index3.html
           $_RUNTIME_GRAPH
           ''');
       refreshStructureAndMarks(node);
-      expectGraph(node, '''
+      expectGraph(
+          node,
+          '''
           index3.html [needs-rebuild] [structure-changed]
           |-- a2.dart [needs-rebuild] [structure-changed]
           |    |-- a3.dart [needs-rebuild]
@@ -564,7 +591,9 @@ void main() {
     test('cleared marks stay clear', () {
       var node = nodeOf('/index3.html');
       refreshStructureAndMarks(node);
-      expectGraph(node, '''
+      expectGraph(
+          node,
+          '''
           index3.html [needs-rebuild] [structure-changed]
           |-- a2.dart [needs-rebuild] [structure-changed]
           |    |-- a3.dart [needs-rebuild]
@@ -575,7 +604,9 @@ void main() {
           $_RUNTIME_GRAPH_REBUILD
           ''');
       clearMarks(node);
-      expectGraph(node, '''
+      expectGraph(
+          node,
+          '''
           index3.html
           |-- a2.dart
           |    |-- a3.dart
@@ -587,7 +618,9 @@ void main() {
           ''');
 
       refreshStructureAndMarks(node);
-      expectGraph(node, '''
+      expectGraph(
+          node,
+          '''
           index3.html
           |-- a2.dart
           |    |-- a3.dart
@@ -607,7 +640,9 @@ void main() {
       updateFile(a3.source);
 
       refreshStructureAndMarks(node);
-      expectGraph(node, '''
+      expectGraph(
+          node,
+          '''
           index3.html
           |-- a2.dart
           |    |-- a3.dart [needs-rebuild]
@@ -627,7 +662,9 @@ void main() {
       updateFile(a5.source, 'import "a8.dart";');
 
       refreshStructureAndMarks(node);
-      expectGraph(node, '''
+      expectGraph(
+          node,
+          '''
           index3.html
           |-- a2.dart
           |    |-- a3.dart
@@ -656,14 +693,18 @@ void main() {
 
     test('messages widget is automatically included', () {
       var node = nodeOf('/index3.html');
-      expectGraph(node, '''
+      expectGraph(
+          node,
+          '''
           index3.html
           $_RUNTIME_GRAPH
           |-- messages_widget.js
           |-- messages.css
           ''');
       refreshStructureAndMarks(node);
-      expectGraph(node, '''
+      expectGraph(
+          node,
+          '''
           index3.html [needs-rebuild] [structure-changed]
           |-- a2.dart [needs-rebuild] [structure-changed]
           |    |-- a3.dart [needs-rebuild]
@@ -705,7 +746,9 @@ void main() {
         ..add('index3.html'));
 
       // Marks are removed automatically by rebuild
-      expectGraph(node, '''
+      expectGraph(
+          node,
+          '''
           index3.html
           |-- a2.dart
           |    |-- a3.dart
@@ -854,7 +897,9 @@ void main() {
         var a6 = nodeOf('/a6.dart');
         rebuild(node, buildNoTransitiveChange);
 
-        expectGraph(node, '''
+        expectGraph(
+            node,
+            '''
             index3.html
             |-- a2.dart
             |    |-- a3.dart
@@ -874,7 +919,9 @@ void main() {
         // part is not really a part-file. Note that a6.dart is not included
         // below, because we don't build it as a library.
         expect(results, ['a2.dart']);
-        expectGraph(node, '''
+        expectGraph(
+            node,
+            '''
             index3.html
             |-- a2.dart
             |    |-- a3.dart
@@ -885,7 +932,9 @@ void main() {
             $_RUNTIME_GRAPH
             ''');
 
-        updateFile(a2.source, '''
+        updateFile(
+            a2.source,
+            '''
             library a2;
             import 'a3.dart';
             import 'a4.dart';
@@ -903,7 +952,9 @@ void main() {
         rebuild(node, buildNoTransitiveChange);
         expect(results, ['a6.dart']);
 
-        expectGraph(node, '''
+        expectGraph(
+            node,
+            '''
             index3.html
             |-- a2.dart
             |    |-- a3.dart
@@ -922,7 +973,9 @@ void main() {
         var a6 = nodeOf('/a6.dart');
         rebuild(node, buildNoTransitiveChange);
 
-        expectGraph(node, '''
+        expectGraph(
+            node,
+            '''
             index3.html
             |-- a2.dart
             |    |-- a3.dart
@@ -933,7 +986,9 @@ void main() {
             $_RUNTIME_GRAPH
             ''');
 
-        updateFile(a2.source, '''
+        updateFile(
+            a2.source,
+            '''
             library a2;
             import 'a3.dart';
             import 'a4.dart';
@@ -943,7 +998,9 @@ void main() {
         results = [];
         rebuild(node, buildNoTransitiveChange);
         expect(results, ['a6.dart', 'a2.dart', 'index3.html']);
-        expectGraph(node, '''
+        expectGraph(
+            node,
+            '''
             index3.html
             |-- a2.dart
             |    |-- a3.dart
@@ -958,7 +1015,9 @@ void main() {
         results = [];
         rebuild(node, buildNoTransitiveChange);
         expect(results, ['a6.dart', 'index3.html']);
-        expectGraph(node, '''
+        expectGraph(
+            node,
+            '''
             index3.html
             |-- a2.dart
             |    |-- a3.dart
@@ -977,7 +1036,9 @@ void main() {
         var a6 = nodeOf('/a6.dart');
         rebuild(node, buildNoTransitiveChange);
 
-        expectGraph(node, '''
+        expectGraph(
+            node,
+            '''
             index3.html
             |-- a2.dart
             |    |-- a3.dart
@@ -988,7 +1049,9 @@ void main() {
             $_RUNTIME_GRAPH
             ''');
 
-        updateFile(a2.source, '''
+        updateFile(
+            a2.source,
+            '''
             library a2;
             import 'a3.dart';
             import 'a4.dart';
@@ -999,7 +1062,9 @@ void main() {
         rebuild(node, buildNoTransitiveChange);
         // a6 is not here, it's not reachable so we don't build it.
         expect(results, ['a2.dart', 'index3.html']);
-        expectGraph(node, '''
+        expectGraph(
+            node,
+            '''
             index3.html
             |-- a2.dart
             |    |-- a3.dart
@@ -1016,7 +1081,9 @@ void main() {
         var a5 = nodeOf('/a5.dart');
         rebuild(node, buildNoTransitiveChange);
 
-        expectGraph(node, '''
+        expectGraph(
+            node,
+            '''
             index3.html
             |-- a2.dart
             |    |-- a3.dart
@@ -1027,7 +1094,9 @@ void main() {
             $_RUNTIME_GRAPH
             ''');
 
-        updateFile(a2.source, '''
+        updateFile(
+            a2.source,
+            '''
             library a2;
             import 'a3.dart';
             import 'a4.dart';
@@ -1037,7 +1106,9 @@ void main() {
         results = [];
         rebuild(node, buildNoTransitiveChange);
         expect(results, ['a2.dart', 'index3.html']);
-        expectGraph(node, '''
+        expectGraph(
+            node,
+            '''
             index3.html
             |-- a2.dart
             |    |-- a3.dart
@@ -1052,7 +1123,9 @@ void main() {
         results = [];
         rebuild(node, buildNoTransitiveChange);
         expect(results, ['a2.dart']);
-        expectGraph(node, '''
+        expectGraph(
+            node,
+            '''
             index3.html
             |-- a2.dart
             |    |-- a3.dart

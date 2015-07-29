@@ -98,8 +98,9 @@ class ConstFieldVisitor {
   ConstFieldVisitor(TypeProvider types, CompilationUnit unit)
       // TODO(jmesserly): support -D variables on the command line
       : _constantVisitor = new ConstantVisitor(
-          new ConstantEvaluationEngine(types, new DeclaredVariables()),
-          new ErrorReporter(new RecordingErrorListener(), unit.element.source));
+            new ConstantEvaluationEngine(types, new DeclaredVariables()),
+            new ErrorReporter(
+                new RecordingErrorListener(), unit.element.source));
 
   // TODO(jmesserly): this is used to determine if the field initialization is
   // side effect free. We should make the check more general, as things like

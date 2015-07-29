@@ -45,8 +45,10 @@ final ArgParser argParser = new ArgParser()
   ..addFlag('use-multi-package',
       help: 'Whether to use the multi-package resolver for "package:" imports',
       defaultsTo: false)
-  ..addOption('package-paths', help: 'if using the multi-package resolver, '
-      'the list of directories where to look for packages.', defaultsTo: '')
+  ..addOption('package-paths',
+      help: 'if using the multi-package resolver, '
+          'the list of directories where to look for packages.',
+      defaultsTo: '')
   ..addFlag('help', abbr: 'h', help: 'Display this message');
 
 void _showUsageAndExit() {
@@ -72,9 +74,10 @@ class EditFileSummaryVisitor extends RecursiveSummaryVisitor {
       this.checkoutFilesArg, this.includePattern, this.excludePattern);
 
   TextEditTransaction getEdits(String name) => _files.putIfAbsent(name, () {
-    var fileContents = new File(name).readAsStringSync();
-    return new TextEditTransaction(fileContents, new SourceFile(fileContents));
-  });
+        var fileContents = new File(name).readAsStringSync();
+        return new TextEditTransaction(
+            fileContents, new SourceFile(fileContents));
+      });
 
   /// Find the corresponding [Source] for [uri].
   Source findSource(Uri uri) {
@@ -153,9 +156,13 @@ void main(List<String> argv) {
 
   var context =
       createAnalysisContextWithSources(new StrongModeOptions(), options);
-  var visitor = new EditFileSummaryVisitor(context, args['level'],
-      args['checkout-files-executable'], args['checkout-files-arg'],
-      includePattern, excludePattern);
+  var visitor = new EditFileSummaryVisitor(
+      context,
+      args['level'],
+      args['checkout-files-executable'],
+      args['checkout-files-arg'],
+      includePattern,
+      excludePattern);
   summary.accept(visitor);
   visitor.build();
 }

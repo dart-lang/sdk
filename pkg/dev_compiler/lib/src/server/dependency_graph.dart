@@ -197,7 +197,9 @@ class HtmlSourceNode extends SourceNode {
       for (var script in tags) {
         var src = script.attributes['src'];
         if (src == null) {
-          _reportError(graph, 'inlined script tags not supported at this time '
+          _reportError(
+              graph,
+              'inlined script tags not supported at this time '
               '(see https://github.com/dart-lang/dart-dev-compiler/issues/54).',
               script);
           continue;
@@ -452,32 +454,36 @@ rebuild(SourceNode start, bool build(SourceNode node)) {
     if (n.needsRebuild) return true;
     if (n is HtmlSourceNode) return htmlNeedsRebuild;
     if (n is ResourceSourceNode) return false;
-    return (n as DartSourceNode).imports
+    return (n as DartSourceNode)
+        .imports
         .any((i) => apiChangeDetected.contains(i));
   }
 
-  visitInPostOrder(start, (n) {
-    if (n.structureChanged) htmlNeedsRebuild = true;
-    if (shouldBuildNode(n)) {
-      var oldHash = n.cachingHash;
-      if (build(n)) apiChangeDetected.add(n);
-      if (oldHash != n.cachingHash) htmlNeedsRebuild = true;
-    } else if (n is DartSourceNode &&
-        n.exports.any((e) => apiChangeDetected.contains(e))) {
-      apiChangeDetected.add(n);
-    }
-    n.needsRebuild = false;
-    n.structureChanged = false;
-    if (n is DartSourceNode) {
-      // Note: clearing out flags in the parts could be a problem if someone
-      // tries to use a file both as a part and a library at the same time.
-      // In that case, we might not correctly propagate changes in the places
-      // where it is used as a library. Technically it's not allowed to have a
-      // file as a part and a library at once, and the analyzer should report an
-      // error in that case.
-      n.parts.forEach((p) => p.needsRebuild = p.structureChanged = false);
-    }
-  }, includeParts: false);
+  visitInPostOrder(
+      start,
+      (n) {
+        if (n.structureChanged) htmlNeedsRebuild = true;
+        if (shouldBuildNode(n)) {
+          var oldHash = n.cachingHash;
+          if (build(n)) apiChangeDetected.add(n);
+          if (oldHash != n.cachingHash) htmlNeedsRebuild = true;
+        } else if (n is DartSourceNode &&
+            n.exports.any((e) => apiChangeDetected.contains(e))) {
+          apiChangeDetected.add(n);
+        }
+        n.needsRebuild = false;
+        n.structureChanged = false;
+        if (n is DartSourceNode) {
+          // Note: clearing out flags in the parts could be a problem if someone
+          // tries to use a file both as a part and a library at the same time.
+          // In that case, we might not correctly propagate changes in the
+          // places where it is used as a library.
+          // Technically it's not allowed to have a file as a part and a library
+          // at once, and the analyzer should report an error in that case.
+          n.parts.forEach((p) => p.needsRebuild = p.structureChanged = false);
+        }
+      },
+      includeParts: false);
 }
 
 /// Helper that runs [action] on nodes reachable from [start] in pre-order.

@@ -12,7 +12,6 @@ typedef void ModuleItemEmitter(AstNode item);
 /// Helper that tracks order of elements visited by the compiler, detecting
 /// if the top level item can be loaded eagerly or not.
 class ModuleItemLoadOrder {
-
   /// The order that elements should be emitted in, with a bit indicating if
   /// the element should be generated lazily. The value will be `false` if
   /// the item could not be loaded, and needs to be made lazy.

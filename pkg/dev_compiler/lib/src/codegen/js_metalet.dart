@@ -257,6 +257,7 @@ class _IdentFinder extends BaseVisitor {
   @override visitIdentifier(Identifier node) {
     if (node.name == name) found = true;
   }
+
   @override visitNode(Node node) {
     if (!found) super.visitNode(node);
   }
@@ -269,15 +270,18 @@ class _YieldFinder extends BaseVisitor {
   @override visitThis(This node) {
     hasThis = true;
   }
+
   @override visitFunctionExpression(FunctionExpression node) {
     var savedNested = _nestedFunction;
     _nestedFunction = true;
     super.visitFunctionExpression(node);
     _nestedFunction = savedNested;
   }
+
   @override visitYield(Yield node) {
     if (!_nestedFunction) hasYield = true;
   }
+
   @override visitNode(Node node) {
     if (!hasYield) super.visitNode(node);
   }

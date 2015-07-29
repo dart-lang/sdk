@@ -40,7 +40,10 @@ void main() {
           x = /*severe:StaticTypeError*/null;
         }
       '''
-    }, nonnullableTypes: <String>['int', 'double']);
+    }, nonnullableTypes: <String>[
+      'int',
+      'double'
+    ]);
   });
 
   test('Error when inferred type is `int` and assigned null.', () {
@@ -51,7 +54,10 @@ void main() {
           x = /*severe:StaticTypeError*/null;
         }
       '''
-    }, nonnullableTypes: <String>['int', 'double']);
+    }, nonnullableTypes: <String>[
+      'int',
+      'double'
+    ]);
   });
 
   test('No error when declared type is `num` and assigned null.', () {
@@ -1516,11 +1522,13 @@ void main() {
     }, inferDownwards: true);
   });
 
-  test('inferred initializing formal checks default value', () => testChecker({
-    '/main.dart': '''
+  test(
+      'inferred initializing formal checks default value',
+      () => testChecker({
+            '/main.dart': '''
       class Foo {
         var x = 1;
         Foo([this.x = /*severe:StaticTypeError*/"1"]);
       }'''
-  }));
+          }));
 }
