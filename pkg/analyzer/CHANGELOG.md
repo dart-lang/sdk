@@ -1,3 +1,7 @@
+## 0.26.0
+
+* No changes from 0.26.0-alpha.2.
+
 ## 0.26.0-alpha.2
 
 * Fix highlight range for missing enum constant in switch (issue 23904).
