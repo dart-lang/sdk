@@ -31,7 +31,7 @@ vars = {
   "github_mirror":
       "https://chromium.googlesource.com/external/github.com/dart-lang/%s.git",
 
-  "gyp_rev": "@1752",
+  "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
   "co19_rev": "@f95f109fea67127a220958794ef5200a63cb454c",
   "chromium_url": "http://src.chromium.org/svn",
   "chromium_git": "https://chromium.googlesource.com",
@@ -116,7 +116,7 @@ vars = {
 deps = {
   # Stuff needed for GYP to run.
   Var("dart_root") + "/third_party/gyp":
-      (Var("googlecode_url") % "gyp") + "/trunk" + Var("gyp_rev"),
+      Var('chromium_git') + '/external/gyp.git' + Var("gyp_rev"),
 
   Var("dart_root") + "/tests/co19/src":
       "https://github.com/dart-lang/co19.git" + Var("co19_rev"),
