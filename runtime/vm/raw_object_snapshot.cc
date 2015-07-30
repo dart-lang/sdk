@@ -1830,7 +1830,10 @@ RawInteger* Mint::ReadFrom(SnapshotReader* reader,
   // Check if the value could potentially fit in a Smi in our current
   // architecture, if so return the object as a Smi.
   if (Smi::IsValid(value)) {
-    return Smi::New(static_cast<intptr_t>(value));
+    Smi& smi = Smi::ZoneHandle(reader->zone(),
+                               Smi::New(static_cast<intptr_t>(value)));
+    reader->AddBackRef(object_id, &smi, kIsDeserialized);
+    return smi.raw();
   }
 
   // Create a Mint object or get canonical one if it is a canonical constant.
