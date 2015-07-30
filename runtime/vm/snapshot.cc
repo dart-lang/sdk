@@ -214,6 +214,7 @@ RawObject* SnapshotReader::ReadObject() {
         (*backward_references_)[i].set_state(kIsDeserialized);
       }
     }
+    ProcessDeferredCanonicalizations();
     return obj.raw();
   } else {
     // An error occurred while reading, return the error object.
@@ -236,7 +237,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   Class& cls = Class::ZoneHandle(zone(), Class::null());
   AddBackRef(object_id, &cls, kIsDeserialized);
   // Read the library/class information and lookup the class.
-  str_ ^= ReadObjectImpl(class_header, kAsInlinedObject);
+  str_ ^= ReadObjectImpl(class_header, kAsInlinedObject, kInvalidPatchIndex, 0);
   library_ = Library::LookupLibrary(str_);
   if (library_.IsNull() || !library_.Loaded()) {
     SetReadException("Invalid object found in message.");
@@ -322,23 +323,32 @@ RawObject* SnapshotReader::VmIsolateSnapshotObject(intptr_t index) const {
 }
 
 
-RawObject* SnapshotReader::ReadObjectImpl(bool as_reference) {
+RawObject* SnapshotReader::ReadObjectImpl(bool as_reference,
+                                          intptr_t patch_object_id,
+                                          intptr_t patch_offset) {
   int64_t header_value = Read<int64_t>();
   if ((header_value & kSmiTagMask) == kSmiTag) {
     return NewInteger(header_value);
   }
   ASSERT((header_value <= kIntptrMax) && (header_value >= kIntptrMin));
-  return ReadObjectImpl(static_cast<intptr_t>(header_value), as_reference);
+  return ReadObjectImpl(static_cast<intptr_t>(header_value),
+                        as_reference,
+                        patch_object_id,
+                        patch_offset);
 }
 
 
 RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value,
-                                          bool as_reference) {
+                                          bool as_reference,
+                                          intptr_t patch_object_id,
+                                          intptr_t patch_offset) {
   if (IsVMIsolateObject(header_value)) {
     return ReadVMIsolateObject(header_value);
   } else {
     if (SerializedHeaderTag::decode(header_value) == kObjectId) {
-      return ReadIndexedObject(SerializedHeaderData::decode(header_value));
+      return ReadIndexedObject(SerializedHeaderData::decode(header_value),
+                               patch_object_id,
+                               patch_offset);
     }
     ASSERT(SerializedHeaderTag::decode(header_value) == kInlined);
     intptr_t object_id = SerializedHeaderData::decode(header_value);
@@ -350,17 +360,26 @@ RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value,
     intptr_t class_header = Read<int32_t>();
     intptr_t tags = ReadTags();
     if (as_reference && !RawObject::IsCanonical(tags)) {
-      return ReadObjectRef(object_id, class_header, tags);
-    } else {
-      return ReadInlinedObject(object_id, class_header, tags);
+      return ReadObjectRef(object_id,
+                           class_header,
+                           tags,
+                           patch_object_id,
+                           patch_offset);
     }
+    return ReadInlinedObject(object_id,
+                             class_header,
+                             tags,
+                             patch_object_id,
+                             patch_offset);
   }
 }
 
 
 RawObject* SnapshotReader::ReadObjectRef(intptr_t object_id,
                                          intptr_t class_header,
-                                         intptr_t tags) {
+                                         intptr_t tags,
+                                         intptr_t patch_object_id,
+                                         intptr_t patch_offset) {
   // Since we are only reading an object reference, If it is an instance kind
   // then we only need to figure out the class of the object and allocate an
   // instance of it. The individual fields will be read later.
@@ -451,7 +470,9 @@ RawObject* SnapshotReader::ReadObjectRef(intptr_t object_id,
 
 RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id,
                                              intptr_t class_header,
-                                             intptr_t tags) {
+                                             intptr_t tags,
+                                             intptr_t patch_object_id,
+                                             intptr_t patch_offset) {
   // Lookup the class based on the class header information.
   intptr_t header_id = SerializedHeaderData::decode(class_header);
   if (header_id == kInstanceObjectId) {
@@ -493,7 +514,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id,
           (kind_ == Snapshot::kMessage)) {
         // TODO(fschneider): Consider hoisting these lookups out of the loop.
         // This would involve creating a handle, since cls_ can't be reused
-        // across the call to ReadObjectRef.
+        // across the call to ReadObjectImpl.
         cls_ = isolate()->class_table()->At(result_cid);
         array_ = cls_.OffsetToFieldMap();
         field_ ^= array_.At(offset >> kWordSizeLog2);
@@ -558,18 +579,20 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id,
   if (kind_ == Snapshot::kFull) {
     pobj_.SetCreatedFromSnapshot();
   }
+  AddPatchRecord(object_id, patch_object_id, patch_offset);
   return pobj_.raw();
 }
 
 
 void SnapshotReader::AddBackRef(intptr_t id,
                                 Object* obj,
-                                DeserializeState state) {
+                                DeserializeState state,
+                                bool defer_canonicalization) {
   intptr_t index = (id - kMaxPredefinedObjectIds);
   ASSERT(index >= max_vm_isolate_object_id_);
   index -= max_vm_isolate_object_id_;
   ASSERT(index == backward_references_->length());
-  BackRefNode node(obj, state);
+  BackRefNode node(obj, state, defer_canonicalization);
   backward_references_->Add(node);
 }
 
@@ -1094,7 +1117,9 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
 }
 
 
-RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id) {
+RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id,
+                                             intptr_t patch_object_id,
+                                             intptr_t patch_offset) {
   intptr_t class_id = ClassIdFromObjectId(object_id);
   if (IsObjectStoreClassId(class_id)) {
     return isolate()->class_table()->At(class_id);  // get singleton class.
@@ -1109,24 +1134,90 @@ RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id) {
   if (index < max_vm_isolate_object_id_) {
     return VmIsolateSnapshotObject(index);
   }
+  AddPatchRecord(object_id, patch_object_id, patch_offset);
   return GetBackRef(object_id)->raw();
 }
 
 
-void SnapshotReader::ArrayReadFrom(const Array& result,
+void SnapshotReader::AddPatchRecord(intptr_t object_id,
+                                    intptr_t patch_object_id,
+                                    intptr_t patch_offset) {
+  if (patch_object_id != kInvalidPatchIndex && kind() != Snapshot::kFull) {
+    ASSERT(object_id >= kMaxPredefinedObjectIds);
+    intptr_t index = (object_id - kMaxPredefinedObjectIds);
+    ASSERT(index >= max_vm_isolate_object_id_);
+    index -= max_vm_isolate_object_id_;
+    ASSERT(index < backward_references_->length());
+    BackRefNode& ref = (*backward_references_)[index];
+    ref.AddPatchRecord(patch_object_id, patch_offset);
+  }
+}
+
+
+void SnapshotReader::ProcessDeferredCanonicalizations() {
+  AbstractType& typeobj = AbstractType::Handle();
+  TypeArguments& typeargs = TypeArguments::Handle();
+  Object& newobj = Object::Handle();
+  for (intptr_t i = 0; i < backward_references_->length(); i++) {
+    BackRefNode& backref = (*backward_references_)[i];
+    if (backref.defer_canonicalization()) {
+      Object* objref = backref.reference();
+      // Object should either be an abstract type or a type argument.
+      if (objref->IsAbstractType()) {
+        typeobj ^= objref->raw();
+        typeobj.ClearCanonical();
+        newobj = typeobj.Canonicalize();
+      } else {
+        ASSERT(objref->IsTypeArguments());
+        typeargs ^= objref->raw();
+        typeargs.ClearCanonical();
+        newobj = typeargs.Canonicalize();
+      }
+      if (newobj.raw() == objref->raw()) {
+        // Restore Canonical bit.
+        objref->SetCanonical();
+      } else {
+        ZoneGrowableArray<intptr_t>* patches = backref.patch_records();
+        ASSERT(newobj.IsCanonical());
+        ASSERT(patches != NULL);
+        for (intptr_t j = 0; j < patches->length(); j+=2) {
+          NoSafepointScope no_safepoint;
+          intptr_t patch_object_id = (*patches)[j];
+          intptr_t patch_offset = (*patches)[j + 1];
+          Object* target = GetBackRef(patch_object_id);
+          RawObject** rawptr =
+              reinterpret_cast<RawObject**>(target->raw()->ptr());
+          target->StorePointer((rawptr + patch_offset), newobj.raw());
+        }
+      }
+    }
+  }
+}
+
+
+void SnapshotReader::ArrayReadFrom(intptr_t object_id,
+                                   const Array& result,
                                    intptr_t len,
                                    intptr_t tags) {
   // Set the object tags.
   result.set_tags(tags);
 
   // Setup the object fields.
-  *TypeArgumentsHandle() ^= ReadObjectImpl(kAsInlinedObject);
+  const intptr_t typeargs_offset =
+      reinterpret_cast<RawObject**>(&result.raw()->ptr()->type_arguments_) -
+      reinterpret_cast<RawObject**>(result.raw()->ptr());
+  *TypeArgumentsHandle() ^= ReadObjectImpl(kAsInlinedObject,
+                                           object_id,
+                                           typeargs_offset);
   result.SetTypeArguments(*TypeArgumentsHandle());
 
   bool as_reference = RawObject::IsCanonical(tags) ? false : true;
-
+  intptr_t offset = result.raw_ptr()->data() -
+      reinterpret_cast<RawObject**>(result.raw()->ptr());
   for (intptr_t i = 0; i < len; i++) {
-    *PassiveObjectHandle() = ReadObjectImpl(as_reference);
+    *PassiveObjectHandle() = ReadObjectImpl(as_reference,
+                                            object_id,
+                                            (i + offset));
     result.SetAt(i, *PassiveObjectHandle());
   }
 }

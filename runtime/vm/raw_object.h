@@ -369,6 +369,9 @@ class RawObject {
   void SetCanonical() {
     UpdateTagBit<CanonicalObjectTag>(true);
   }
+  void ClearCanonical() {
+    UpdateTagBit<CanonicalObjectTag>(false);
+  }
   bool IsCreatedFromSnapshot() const {
     return CreatedFromSnapshotTag::decode(ptr()->tags_);
   }

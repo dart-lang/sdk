@@ -274,6 +274,10 @@ class Object {
     ASSERT(!IsNull());
     raw()->SetCanonical();
   }
+  void ClearCanonical() const {
+    ASSERT(!IsNull());
+    raw()->ClearCanonical();
+  }
   intptr_t GetClassId() const {
     return !raw()->IsHeapObject() ?
         static_cast<intptr_t>(kSmiCid) : raw()->GetClassId();

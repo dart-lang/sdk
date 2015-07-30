@@ -1020,6 +1020,118 @@ TEST_CASE(SerializeScript) {
 }
 
 
+UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
+  const char* kScriptChars =
+      "\n"
+      "import 'dart:mirrors';"
+      "import 'dart:isolate';"
+      "void main() {"
+      "  if (reflectClass(MyException).superclass.reflectedType != "
+      "      IsolateSpawnException) {"
+      "    throw new Exception('Canonicalization failure');"
+      "  }"
+      "  if (reflectClass(IsolateSpawnException).reflectedType != "
+      "      IsolateSpawnException) {"
+      "    throw new Exception('Canonicalization failure');"
+      "  }"
+      "}\n"
+      "class MyException extends IsolateSpawnException {}"
+      "\n";
+
+  Dart_Handle result;
+
+  uint8_t* buffer;
+  intptr_t size;
+  intptr_t vm_isolate_snapshot_size;
+  uint8_t* isolate_snapshot = NULL;
+  intptr_t isolate_snapshot_size;
+  uint8_t* full_snapshot = NULL;
+  uint8_t* script_snapshot = NULL;
+
+  bool saved_load_deferred_eagerly_mode = FLAG_load_deferred_eagerly;
+  FLAG_load_deferred_eagerly = true;
+  // Workaround until issue 21620 is fixed.
+  // (https://github.com/dart-lang/sdk/issues/21620)
+  bool saved_concurrent_sweep_mode = FLAG_concurrent_sweep;
+  FLAG_concurrent_sweep = false;
+  {
+    // Start an Isolate, and create a full snapshot of it.
+    TestIsolateScope __test_isolate__;
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Write out the script snapshot.
+    result = Dart_CreateSnapshot(NULL,
+                                 &vm_isolate_snapshot_size,
+                                 &isolate_snapshot,
+                                 &isolate_snapshot_size);
+    EXPECT_VALID(result);
+    full_snapshot = reinterpret_cast<uint8_t*>(malloc(isolate_snapshot_size));
+    memmove(full_snapshot, isolate_snapshot, isolate_snapshot_size);
+    Dart_ExitScope();
+  }
+  FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
+  FLAG_concurrent_sweep = saved_concurrent_sweep_mode;
+
+  {
+    // Now Create an Isolate using the full snapshot and load the
+    // script  and execute it.
+    TestCase::CreateTestIsolateFromSnapshot(full_snapshot);
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Create a test library and Load up a test script in it.
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+    EXPECT_VALID(lib);
+
+    // Invoke a function which returns an object.
+    result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    EXPECT_VALID(result);
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+  }
+
+  {
+    // Create an Isolate using the full snapshot, load a script and create
+    // a script snapshot of the script.
+    TestCase::CreateTestIsolateFromSnapshot(full_snapshot);
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Create a test library and Load up a test script in it.
+    TestCase::LoadTestScript(kScriptChars, NULL);
+
+    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(Isolate::Current()));
+
+    // Write out the script snapshot.
+    result = Dart_CreateScriptSnapshot(&buffer, &size);
+    EXPECT_VALID(result);
+    script_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
+    memmove(script_snapshot, buffer, size);
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+  }
+
+  {
+    // Now Create an Isolate using the full snapshot and load the
+    // script snapshot created above and execute it.
+    TestCase::CreateTestIsolateFromSnapshot(full_snapshot);
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Load the test library from the snapshot.
+    EXPECT(script_snapshot != NULL);
+    result = Dart_LoadScriptFromSnapshot(script_snapshot, size);
+    EXPECT_VALID(result);
+
+    // Invoke a function which returns an object.
+    result = Dart_Invoke(result, NewString("main"), 0, NULL);
+    EXPECT_VALID(result);
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+  }
+  free(script_snapshot);
+  free(full_snapshot);
+}
+
+
 static void IterateScripts(const Library& lib) {
   const Array& lib_scripts = Array::Handle(lib.LoadedScripts());
   Script& script = Script::Handle();

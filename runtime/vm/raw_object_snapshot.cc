@@ -21,6 +21,8 @@ namespace dart {
   ((kind == Snapshot::kFull) ?                                                 \
   reader->New##type(len) : type::New(len, HEAP_SPACE(kind)))
 
+#define OFFSET_OF_FROM(obj)                                                    \
+  obj.raw()->from() - reinterpret_cast<RawObject**>(obj.raw()->ptr())
 
 RawClass* Class::ReadFrom(SnapshotReader* reader,
                           intptr_t object_id,
@@ -67,9 +69,11 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     // TODO(5411462): Need to assert No GC can happen here, even though
     // allocations may happen.
     intptr_t num_flds = (cls.raw()->to() - cls.raw()->from());
+    intptr_t from_offset = OFFSET_OF_FROM(cls);
     for (intptr_t i = 0; i <= num_flds; i++) {
-      (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
-       cls.StorePointer((cls.raw()->from() + i),
+      (*reader->PassiveObjectHandle()) =
+          reader->ReadObjectImpl(kAsReference, object_id, (i + from_offset));
+      cls.StorePointer((cls.raw()->from() + i),
                        reader->PassiveObjectHandle()->raw());
     }
   } else {
@@ -205,7 +209,9 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
 
   // Allocate type object.
   Type& type = Type::ZoneHandle(reader->zone(), NEW_OBJECT(Type));
-  reader->AddBackRef(object_id, &type, kIsDeserialized);
+  bool is_canonical = RawObject::IsCanonical(tags);
+  bool defer_canonicalization = is_canonical && (kind != Snapshot::kFull);
+  reader->AddBackRef(object_id, &type, kIsDeserialized, defer_canonicalization);
 
   // Set all non object fields.
   type.set_token_pos(reader->Read<int32_t>());
@@ -215,28 +221,15 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   // TODO(5411462): Need to assert No GC can happen here, even though
   // allocations may happen.
   intptr_t num_flds = (type.raw()->to() - type.raw()->from());
+  intptr_t from_offset = OFFSET_OF_FROM(type);
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsInlinedObject);
+    (*reader->PassiveObjectHandle()) =
+        reader->ReadObjectImpl(kAsInlinedObject, object_id, (i + from_offset));
     type.StorePointer((type.raw()->from() + i),
                       reader->PassiveObjectHandle()->raw());
   }
 
-  // If object needs to be a canonical object, Canonicalize it.
-  // When reading a full snapshot we don't need to canonicalize the object
-  // as it would already be a canonical object.
-  // When reading a script snapshot we need to canonicalize only those object
-  // references that are objects from the core library (loaded from a
-  // full snapshot). Objects that are only in the script need not be
-  // canonicalized as they are already canonical.
-  // When reading a message snapshot we always have to canonicalize the object.
-  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags) &&
-      (RawObject::IsCreatedFromSnapshot(tags) ||
-       (kind == Snapshot::kMessage))) {
-    type ^= type.Canonicalize();
-  }
-
-  // Set the object tags (This is done after 'Canonicalize', which
-  // does not canonicalize a type already marked as canonical).
+  // Set the object tags.
   type.set_tags(tags);
 
   return type.raw();
@@ -289,8 +282,10 @@ RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
   // TODO(5411462): Need to assert No GC can happen here, even though
   // allocations may happen.
   intptr_t num_flds = (type_ref.raw()->to() - type_ref.raw()->from());
+  intptr_t from_offset = OFFSET_OF_FROM(type_ref);
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
+    (*reader->PassiveObjectHandle()) =
+        reader->ReadObjectImpl(kAsReference, object_id, (i + from_offset));
     type_ref.StorePointer((type_ref.raw()->from() + i),
                           reader->PassiveObjectHandle()->raw());
   }
@@ -341,8 +336,10 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (type_parameter.raw()->to() -
                        type_parameter.raw()->from());
+  intptr_t from_offset = OFFSET_OF_FROM(type_parameter);
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
+    (*reader->PassiveObjectHandle()) =
+        reader->ReadObjectImpl(kAsReference, object_id, (i + from_offset));
     type_parameter.StorePointer((type_parameter.raw()->from() + i),
                                 reader->PassiveObjectHandle()->raw());
   }
@@ -396,8 +393,10 @@ RawBoundedType* BoundedType::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (bounded_type.raw()->to() -
                        bounded_type.raw()->from());
+  intptr_t from_offset = OFFSET_OF_FROM(bounded_type);
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
+    (*reader->PassiveObjectHandle()) =
+        reader->ReadObjectImpl(kAsReference, object_id, (i + from_offset));
     bounded_type.StorePointer((bounded_type.raw()->from() + i),
                               reader->PassiveObjectHandle()->raw());
   }
@@ -451,7 +450,12 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
 
   TypeArguments& type_arguments = TypeArguments::ZoneHandle(
       reader->zone(), NEW_OBJECT_WITH_LEN_SPACE(TypeArguments, len, kind));
-  reader->AddBackRef(object_id, &type_arguments, kIsDeserialized);
+  bool is_canonical = RawObject::IsCanonical(tags);
+  bool defer_canonicalization = is_canonical && (kind != Snapshot::kFull);
+  reader->AddBackRef(object_id,
+                     &type_arguments,
+                     kIsDeserialized,
+                     defer_canonicalization);
 
   // Set the instantiations field, which is only read from a full snapshot.
   if (kind == Snapshot::kFull) {
@@ -462,29 +466,15 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   }
 
   // Now set all the type fields.
+  intptr_t offset = type_arguments.TypeAddr(0) -
+      reinterpret_cast<RawAbstractType**>(type_arguments.raw()->ptr());
   for (intptr_t i = 0; i < len; i++) {
-    *reader->TypeHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
+    *reader->TypeHandle() ^=
+        reader->ReadObjectImpl(kAsInlinedObject, object_id, (i + offset));
     type_arguments.SetTypeAt(i, *reader->TypeHandle());
   }
 
-  // If object needs to be a canonical object, Canonicalize it.
-  // When reading a full snapshot we don't need to canonicalize the object
-  // as it would already be a canonical object.
-  // When reading a script snapshot we need to canonicalize only those object
-  // references that are objects from the core library (loaded from a
-  // full snapshot). Objects that are only in the script need not be
-  // canonicalized as they are already canonical.
-  // When reading a message snapshot we always have to canonicalize the object.
-  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags) &&
-      (RawObject::IsCreatedFromSnapshot(tags) ||
-       (kind == Snapshot::kMessage))) {
-    type_arguments ^= type_arguments.Canonicalize();
-  }
-
-  // Set the object tags (This is done after setting the object fields
-  // because 'SetTypeAt' has an assertion to check if the object is not
-  // already canonical. Also, this is done after 'Canonicalize', which
-  // does not canonicalize a type already marked as canonical).
+  // Set the object tags .
   type_arguments.set_tags(tags);
 
   return type_arguments.raw();
@@ -651,8 +641,10 @@ RawRedirectionData* RedirectionData::ReadFrom(SnapshotReader* reader,
   // TODO(5411462): Need to assert No GC can happen here, even though
   // allocations may happen.
   intptr_t num_flds = (data.raw()->to() - data.raw()->from());
+  intptr_t from_offset = OFFSET_OF_FROM(data);
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
+    (*reader->PassiveObjectHandle()) =
+        reader->ReadObjectImpl(kAsReference, object_id, (i + from_offset));
     data.StorePointer((data.raw()->from() + i),
                       reader->PassiveObjectHandle()->raw());
   }
@@ -715,8 +707,10 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   // TODO(5411462): Need to assert No GC can happen here, even though
   // allocations may happen.
   intptr_t num_flds = (func.raw()->to_snapshot() - func.raw()->from());
+  intptr_t from_offset = OFFSET_OF_FROM(func);
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
+    (*reader->PassiveObjectHandle()) =
+        reader->ReadObjectImpl(kAsReference, object_id, (i + from_offset));
     func.StorePointer((func.raw()->from() + i),
                       reader->PassiveObjectHandle()->raw());
   }
@@ -787,8 +781,10 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   // TODO(5411462): Need to assert No GC can happen here, even though
   // allocations may happen.
   intptr_t num_flds = (field.raw()->to() - field.raw()->from());
+  intptr_t from_offset = OFFSET_OF_FROM(field);
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
+    (*reader->PassiveObjectHandle()) =
+        reader->ReadObjectImpl(kAsReference, object_id, (i + from_offset));
     field.StorePointer((field.raw()->from() + i),
                        reader->PassiveObjectHandle()->raw());
   }
@@ -2264,7 +2260,7 @@ RawArray* Array::ReadFrom(SnapshotReader* reader,
     reader->AddBackRef(object_id, array, kIsDeserialized);
   }
   ASSERT(!RawObject::IsCanonical(tags));
-  reader->ArrayReadFrom(*array, len, tags);
+  reader->ArrayReadFrom(object_id, *array, len, tags);
   return array->raw();
 }
 
@@ -2284,7 +2280,7 @@ RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
         NEW_OBJECT_WITH_LEN_SPACE(ImmutableArray, len, kind)));
     reader->AddBackRef(object_id, array, kIsDeserialized);
   }
-  reader->ArrayReadFrom(*array, len, tags);
+  reader->ArrayReadFrom(object_id, *array, len, tags);
   if (RawObject::IsCanonical(tags)) {
     *array ^= array->CheckAndCanonicalize(NULL);
   }
@@ -2383,7 +2379,11 @@ RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
   map.set_tags(tags);
 
   // Read the type arguments.
-  *reader->TypeArgumentsHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
+  intptr_t typeargs_offset =
+      reinterpret_cast<RawObject**>(&map.raw()->ptr()->type_arguments_) -
+      reinterpret_cast<RawObject**>(map.raw()->ptr());
+  *reader->TypeArgumentsHandle() ^=
+      reader->ReadObjectImpl(kAsInlinedObject, object_id, typeargs_offset);
   map.SetTypeArguments(*reader->TypeArgumentsHandle());
 
   // Read the number of key/value pairs.
@@ -2677,8 +2677,9 @@ RawExternalTypedData* ExternalTypedData::ReadFrom(SnapshotReader* reader,
   intptr_t cid = RawObject::ClassIdTag::decode(tags);
   intptr_t length = reader->ReadSmiValue();
   uint8_t* data = reinterpret_cast<uint8_t*>(reader->ReadRawPointerValue());
-  const ExternalTypedData& obj = ExternalTypedData::Handle(
+  ExternalTypedData& obj = ExternalTypedData::Handle(
       ExternalTypedData::New(cid, data, length));
+  reader->AddBackRef(object_id, &obj, kIsDeserialized);
   void* peer = reinterpret_cast<void*>(reader->ReadRawPointerValue());
   Dart_WeakPersistentHandleFinalizer callback =
       reinterpret_cast<Dart_WeakPersistentHandleFinalizer>(
