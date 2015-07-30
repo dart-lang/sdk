@@ -13,6 +13,8 @@ void main() {
   Expect.isTrue(reflectClass(IsolateSpawnException).reflectedType == IsolateSpawnException);
 }
 
-class MyException extends IsolateSpawnException {}
+class MyException extends IsolateSpawnException {
+  MyException() : super("Test") {}
+}
 
 
