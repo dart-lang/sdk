@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:core' hide Resource;
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/server_options.dart';
 import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -307,7 +308,8 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Temporary flag to hide WIP .packages support (DEP 5).
    */
-  static bool ENABLE_PACKAGESPEC_SUPPORT = false;
+  static bool ENABLE_PACKAGESPEC_SUPPORT =
+      serverOptions.isSet('ContextManagerImpl.ENABLE_PACKAGESPEC_SUPPORT');
 
   /**
    * The name of the `lib` directory.
