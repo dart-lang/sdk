@@ -20,7 +20,48 @@ namespace bin {
 // Some classes, like File and Directory, list their implementations in
 // builtin_natives.cc instead.
 #define IO_NATIVE_LIST(V)                                                      \
+  V(Crypto_GetRandomBytes, 1)                                                  \
+  V(Directory_Exists, 1)                                                       \
+  V(Directory_Create, 1)                                                       \
+  V(Directory_Current, 0)                                                      \
+  V(Directory_SetCurrent, 1)                                                   \
+  V(Directory_SystemTemp, 0)                                                   \
+  V(Directory_CreateTemp, 1)                                                   \
+  V(Directory_Delete, 2)                                                       \
+  V(Directory_Rename, 2)                                                       \
+  V(Directory_List, 3)                                                         \
   V(EventHandler_SendData, 3)                                                  \
+  V(File_Open, 2)                                                              \
+  V(File_Exists, 1)                                                            \
+  V(File_GetFD, 1)                                                             \
+  V(File_Close, 1)                                                             \
+  V(File_ReadByte, 1)                                                          \
+  V(File_WriteByte, 2)                                                         \
+  V(File_Read, 2)                                                              \
+  V(File_ReadInto, 4)                                                          \
+  V(File_WriteFrom, 4)                                                         \
+  V(File_Position, 1)                                                          \
+  V(File_SetPosition, 2)                                                       \
+  V(File_Truncate, 2)                                                          \
+  V(File_Length, 1)                                                            \
+  V(File_LengthFromPath, 1)                                                    \
+  V(File_Stat, 1)                                                              \
+  V(File_LastModified, 1)                                                      \
+  V(File_Flush, 1)                                                             \
+  V(File_Lock, 4)                                                              \
+  V(File_Create, 1)                                                            \
+  V(File_CreateLink, 2)                                                        \
+  V(File_LinkTarget, 1)                                                        \
+  V(File_Delete, 1)                                                            \
+  V(File_DeleteLink, 1)                                                        \
+  V(File_Rename, 2)                                                            \
+  V(File_Copy, 2)                                                              \
+  V(File_RenameLink, 2)                                                        \
+  V(File_ResolveSymbolicLinks, 1)                                              \
+  V(File_OpenStdio, 1)                                                         \
+  V(File_GetStdioHandleType, 1)                                                \
+  V(File_GetType, 2)                                                           \
+  V(File_AreIdentical, 2)                                                      \
   V(FileSystemWatcher_CloseWatcher, 1)                                         \
   V(FileSystemWatcher_GetSocketId, 2)                                          \
   V(FileSystemWatcher_InitWatcher, 0)                                          \
