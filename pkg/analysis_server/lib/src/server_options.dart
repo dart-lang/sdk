@@ -10,7 +10,8 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
-const _optionsFileName = 'dart_analysis_server.options';
+//TODO: consider renaming (https://github.com/dart-lang/sdk/issues/23927)
+const _optionsFileName = '.dart_analysis_server.yaml';
 
 /// The shared options instance.
 ServerOptions _serverOptions;
