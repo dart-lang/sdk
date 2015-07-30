@@ -4145,8 +4145,7 @@ class Code : public Object {
   enum InlinedIntervalEntries {
     kInlIntStart = 0,
     kInlIntInliningId = 1,
-    kInlIntCallerId = 2,
-    kInlIntNumEntries = 3,
+    kInlIntNumEntries = 2,
   };
 
   RawArray* GetInlinedIntervals() const;
@@ -4154,6 +4153,9 @@ class Code : public Object {
 
   RawArray* GetInlinedIdToFunction() const;
   void SetInlinedIdToFunction(const Array& value) const;
+
+  RawArray* GetInlinedCallerIdMap() const;
+  void SetInlinedCallerIdMap(const Array& value) const;
 
   void GetInlinedFunctionsAt(
       intptr_t offset, GrowableArray<Function*>* fs) const;

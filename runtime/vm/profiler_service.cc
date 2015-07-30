@@ -1316,13 +1316,6 @@ class ProfileBuilder : public ValueObject {
     }
 
     if (inclusive_tree_) {
-      // Append the inliner.
-      current = ProcessFunction(current,
-                                sample_index,
-                                sample,
-                                frame_index + inlined_functions.length(),
-                                function,
-                                code_index);
       // Append the inlined children.
       for (intptr_t i = inlined_functions.length() - 1; i >= 0; i--) {
         Function* inlined_function = inlined_functions[i];
@@ -1348,13 +1341,6 @@ class ProfileBuilder : public ValueObject {
                                          inlined_function,
                                          code_index);
       }
-      // Append the inliner.
-      current = ProcessFunction(current,
-                                sample_index,
-                                sample,
-                                frame_index + inlined_functions.length(),
-                                function,
-                                code_index);
     }
 
     return current;

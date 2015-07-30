@@ -539,6 +539,8 @@ class FlowGraphCompiler : public ValueObject {
 
   RawArray* InliningIdToFunction() const;
 
+  RawArray* CallerInliningIdMap() const;
+
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
 

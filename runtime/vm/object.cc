@@ -6843,6 +6843,7 @@ RawArray* Function::ic_data_array() const {
   return raw_ptr()->ic_data_array_;
 }
 
+
 void Function::ClearICDataArray() const {
   set_ic_data_array(Array::null_array());
 }
@@ -12809,6 +12810,29 @@ void Code::SetInlinedIdToFunction(const Array& value) const {
 }
 
 
+RawArray* Code::GetInlinedCallerIdMap() const {
+  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
+  if (metadata.IsNull()) {
+    return metadata.raw();
+  }
+  return reinterpret_cast<RawArray*>(
+      metadata.At(RawCode::kInlinedCallerIdMapIndex));
+}
+
+
+void Code::SetInlinedCallerIdMap(const Array& value) const {
+  if (raw_ptr()->inlined_metadata_ == Array::null()) {
+    StorePointer(&raw_ptr()->inlined_metadata_,
+                 Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
+  }
+  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
+  ASSERT(!metadata.IsNull());
+  ASSERT(metadata.IsOld());
+  ASSERT(value.IsOld());
+  metadata.SetAt(RawCode::kInlinedCallerIdMapIndex, value);
+}
+
+
 RawCode* Code::New(intptr_t pointer_offsets_length) {
   if (pointer_offsets_length < 0 || pointer_offsets_length > kMaxElements) {
     // This should be caught before we reach here.
@@ -13177,8 +13201,7 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
       temp_smi ^= intervals.At(i + Code::kInlIntInliningId);
       intptr_t inlining_id = temp_smi.Value();
       ASSERT(inlining_id >= 0);
-      temp_smi ^= intervals.At(i + Code::kInlIntCallerId);
-      intptr_t caller_id = temp_smi.Value();
+      intptr_t caller_id = GetCallerId(inlining_id);
       while (inlining_id >= 0) {
         inline_interval.AddValue(inlining_id);
         inlining_id = caller_id;
@@ -13234,19 +13257,16 @@ RawStackmap* Code::GetStackmap(
 
 
 intptr_t Code::GetCallerId(intptr_t inlined_id) const {
-  if (inlined_id < 0) return -1;
-  const Array& intervals = Array::Handle(GetInlinedIntervals());
-  if (intervals.IsNull() || (intervals.Length() == 0)) return -1;
-  Smi& temp_smi = Smi::Handle();
-  for (intptr_t i = 0; i < intervals.Length() - Code::kInlIntNumEntries;
-       i += Code::kInlIntNumEntries) {
-    temp_smi ^= intervals.At(i + Code::kInlIntInliningId);
-    if (temp_smi.Value() == inlined_id) {
-      temp_smi ^= intervals.At(i + Code::kInlIntCallerId);
-      return temp_smi.Value();
-    }
+  if (inlined_id < 0) {
+    return -1;
   }
-  return -1;
+  const Array& map = Array::Handle(GetInlinedCallerIdMap());
+  if (map.IsNull() || (map.Length() == 0)) {
+    return -1;
+  }
+  Smi& smi = Smi::Handle();
+  smi ^= map.At(inlined_id);
+  return smi.Value();
 }
 
 
@@ -13281,8 +13301,7 @@ void Code::GetInlinedFunctionsAt(
   temp_smi ^= intervals.At(found_interval_ix + Code::kInlIntInliningId);
   intptr_t inlining_id = temp_smi.Value();
   ASSERT(inlining_id >= 0);
-  temp_smi ^= intervals.At(found_interval_ix + Code::kInlIntCallerId);
-  intptr_t caller_id = temp_smi.Value();
+  intptr_t caller_id = GetCallerId(inlining_id);
   while (inlining_id >= 0) {
     Function& function = Function::ZoneHandle();
     function  ^= id_map.At(inlining_id);
@@ -13294,29 +13313,51 @@ void Code::GetInlinedFunctionsAt(
 
 
 void Code::DumpInlinedIntervals() const {
-  OS::Print("Inlined intervals:\n");
+  LogBlock lb(Isolate::Current());
+  ISL_Print("Inlined intervals:\n");
   const Array& intervals = Array::Handle(GetInlinedIntervals());
   if (intervals.IsNull() || (intervals.Length() == 0)) return;
   Smi& start = Smi::Handle();
   Smi& inlining_id = Smi::Handle();
-  Smi& caller_id = Smi::Handle();
+  GrowableArray<Function*> inlined_functions;
+  const Function& inliner = Function::Handle(function());
   for (intptr_t i = 0; i < intervals.Length(); i += Code::kInlIntNumEntries) {
     start ^= intervals.At(i + Code::kInlIntStart);
     ASSERT(!start.IsNull());
     if (start.IsNull()) continue;
     inlining_id ^= intervals.At(i + Code::kInlIntInliningId);
-    caller_id ^= intervals.At(i + Code::kInlIntCallerId);
-    OS::Print("  %" Px " id: %" Pd " caller-id: %" Pd " \n",
-        start.Value(), inlining_id.Value(), caller_id.Value());
+    ISL_Print("  %" Px " iid: %" Pd " ; ", start.Value(), inlining_id.Value());
+    inlined_functions.Clear();
+
+    ISL_Print("inlined: ");
+    GetInlinedFunctionsAt(start.Value(), &inlined_functions);
+
+    for (intptr_t j = 0; j < inlined_functions.length(); j++) {
+      const char* name = inlined_functions[j]->ToQualifiedCString();
+      ISL_Print("  %s <-", name);
+    }
+    if (inlined_functions[inlined_functions.length() - 1]->raw() !=
+           inliner.raw()) {
+      ISL_Print(" (ERROR, missing inliner)\n");
+    } else {
+      ISL_Print("\n");
+    }
   }
-  OS::Print("Inlined ids:\n");
+  ISL_Print("Inlined ids:\n");
   const Array& id_map = Array::Handle(GetInlinedIdToFunction());
   Function& function = Function::Handle();
   for (intptr_t i = 0; i < id_map.Length(); i++) {
     function ^= id_map.At(i);
     if (!function.IsNull()) {
-      OS::Print("  %" Pd ": %s\n", i, function.ToQualifiedCString());
+      ISL_Print("  %" Pd ": %s\n", i, function.ToQualifiedCString());
     }
+  }
+  ISL_Print("Caller Inlining Ids:\n");
+  const Array& caller_map = Array::Handle(GetInlinedCallerIdMap());
+  Smi& smi = Smi::Handle();
+  for (intptr_t i = 0; i < caller_map.Length(); i++) {
+    smi ^= caller_map.At(i);
+    ISL_Print("  iid: %" Pd " caller iid: %" Pd "\n", i, smi.Value());
   }
 }
 

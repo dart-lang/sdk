@@ -975,7 +975,8 @@ class RawCode : public RawObject {
   enum InlinedMetadataIndex {
     kInlinedIntervalsIndex = 0,
     kInlinedIdToFunctionIndex = 1,
-    kInlinedMetadataSize = 2,
+    kInlinedCallerIdMapIndex = 2,
+    kInlinedMetadataSize = 3,
   };
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);

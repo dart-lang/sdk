@@ -744,6 +744,12 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
                  inlined_id_array.Length() * sizeof(uword));
         code.SetInlinedIdToFunction(inlined_id_array);
 
+        const Array& caller_inlining_id_map_array =
+            Array::Handle(isolate, graph_compiler.CallerInliningIdMap());
+        INC_STAT(isolate, total_code_size,
+                 caller_inlining_id_map_array.Length() * sizeof(uword));
+        code.SetInlinedCallerIdMap(caller_inlining_id_map_array);
+
         graph_compiler.FinalizePcDescriptors(code);
         code.set_deopt_info_array(deopt_info_array);
 
@@ -971,6 +977,27 @@ static void DisassembleCode(const Function& function, bool optimized) {
 }
 
 
+#if defined(DEBUG)
+// Verifies that the inliner is always in the list of inlined functions.
+// If this fails run with --trace-inlining-intervals to get more information.
+static void CheckInliningIntervals(const Function& function) {
+  const Code& code = Code::Handle(function.CurrentCode());
+  const Array& intervals = Array::Handle(code.GetInlinedIntervals());
+  if (intervals.IsNull() || (intervals.Length() == 0)) return;
+  Smi& start = Smi::Handle();
+  GrowableArray<Function*> inlined_functions;
+  for (intptr_t i = 0; i < intervals.Length(); i += Code::kInlIntNumEntries) {
+    start ^= intervals.At(i + Code::kInlIntStart);
+    ASSERT(!start.IsNull());
+    if (start.IsNull()) continue;
+    code.GetInlinedFunctionsAt(start.Value(), &inlined_functions);
+    ASSERT(inlined_functions[inlined_functions.length() - 1]->raw() ==
+           function.raw());
+  }
+}
+#endif
+
+
 static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        bool optimized,
@@ -1059,6 +1086,9 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
       DisassembleCode(function, true);
       ISL_Print("*** END CODE\n");
     }
+#if defined(DEBUG)
+    CheckInliningIntervals(function);
+#endif
     return Error::null();
   } else {
     Thread* const thread = Thread::Current();
