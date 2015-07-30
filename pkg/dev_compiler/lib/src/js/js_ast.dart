@@ -4,6 +4,8 @@
 
 library js_ast;
 
+import 'package:dev_compiler/src/closure/closure_annotation.dart';
+
 import 'precedence.dart';
 import 'characters.dart' as charCodes;
 

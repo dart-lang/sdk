@@ -17,6 +17,7 @@ fi
 # https://github.com/dart-lang/dev_compiler/issues/219
 dart -c bin/devc.dart --no-source-maps --arrow-fn-bind-this --sdk-check \
     --force-compile -l warning --dart-sdk tool/generated_sdk -o lib/runtime/ \
+    "$@" \
     dart:js dart:mirrors \
     > tool/sdk_expected_errors.txt || true
 

@@ -204,6 +204,10 @@ abstract class Node {
   /// setting this after construction.
   Object sourceInformation;
 
+  ClosureAnnotation _closureAnnotation;
+  /// Closure annotation of this node.
+  ClosureAnnotation get closureAnnotation => _closureAnnotation;
+
   accept(NodeVisitor visitor);
   void visitChildren(NodeVisitor visitor);
 
@@ -211,6 +215,13 @@ abstract class Node {
   // private method is create a copy with a new position.
   Node _clone();
 
+  withClosureAnnotation(ClosureAnnotation closureAnnotation) {
+    if (this.closureAnnotation == closureAnnotation) return this;
+    
+    return _clone()
+        ..sourceInformation = sourceInformation
+        .._closureAnnotation = closureAnnotation;
+  }
   // Returns a node equivalent to [this], but with new source position and end
   // source position.
   Node withSourceInformation(sourceInformation) {

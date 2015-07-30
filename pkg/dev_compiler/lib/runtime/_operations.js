@@ -95,7 +95,7 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
     let names = getOwnPropertyNames(opts);
     // Type is something other than a map
     if (names.length == 0) return false;
-    for (name of names) {
+    for (var name of names) {
       if (!(hasOwnProperty.call(type.named, name))) {
         return false;
       }

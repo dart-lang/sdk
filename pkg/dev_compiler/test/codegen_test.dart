@@ -58,7 +58,8 @@ main(arguments) {
   var expectDir = path.join(inputDir, 'expect');
 
   bool compile(String entryPoint, AnalysisContext context,
-      {bool checkSdk: false, bool sourceMaps: false}) {
+      {bool checkSdk: false, bool sourceMaps: false,
+       bool closure: false}) {
     // TODO(jmesserly): add a way to specify flags in the test file, so
     // they're more self-contained.
     var runtimeDir = path.join(path.dirname(testDirectory), 'lib', 'runtime');
@@ -66,6 +67,7 @@ main(arguments) {
         codegenOptions: new CodegenOptions(
             outputDir: expectDir,
             emitSourceMaps: sourceMaps,
+            closure: closure,
             forceCompile: checkSdk),
         useColors: false,
         checkSdk: checkSdk,
@@ -138,10 +140,13 @@ main(arguments) {
           compilerMessages.writeln('// Messages from compiling $filename.dart');
 
           // TODO(jmesserly): this was added to get some coverage of source maps
+          // and closure annotations.
           // We need a more comprehensive strategy to test them.
           var sourceMaps = filename == 'map_keys';
+          var closure = filename == 'closure';
           var success =
-              compile(filePath, realSdkContext, sourceMaps: sourceMaps);
+              compile(filePath, realSdkContext, sourceMaps: sourceMaps,
+                      closure: closure);
 
           // Write compiler messages to disk.
           new File(path.join(outDir, '$filename.txt'))

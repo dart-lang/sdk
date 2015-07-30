@@ -1,0 +1,2 @@
+// Messages from compiling closure.dart
+info: [InferredTypeAllocation] new Foo(1, null) has inferred type Foo<T> (test/codegen/closure.dart, line 15, col 26)
