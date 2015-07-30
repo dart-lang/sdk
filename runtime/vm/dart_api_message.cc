@@ -681,6 +681,13 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       AddBackRef(object_id, object, kIsDeserialized);
       return object;
     }
+    case kCapabilityCid: {
+      int64_t id = Read<int64_t>();
+      Dart_CObject* object = AllocateDartCObject(Dart_CObject_kCapability);
+      object->value.as_capability.id = id;
+      AddBackRef(object_id, object, kIsDeserialized);
+      return object;
+    }
 
 #define READ_TYPED_DATA_HEADER(type)                                           \
       intptr_t len = ReadSmiValue();                                           \
@@ -1266,6 +1273,13 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteRawPointerValue(reinterpret_cast<intptr_t>(data));
       WriteRawPointerValue(reinterpret_cast<intptr_t>(peer));
       WriteRawPointerValue(reinterpret_cast<intptr_t>(callback));
+      break;
+    }
+    case Dart_CObject_kCapability: {
+      WriteInlinedHeader(object);
+      WriteIndexedObject(kCapabilityCid);
+      WriteTags(0);
+      Write<uint64_t>(object->value.as_capability.id);
       break;
     }
     default:

@@ -120,6 +120,9 @@ static void CompareDartCObjects(Dart_CObject* first, Dart_CObject* second) {
                             second->value.as_array.values[i]);
       }
       break;
+    case Dart_CObject_kCapability:
+      EXPECT_EQ(first->value.as_capability.id, second->value.as_capability.id);
+      break;
     default:
       EXPECT(false);
   }
@@ -399,6 +402,38 @@ TEST_CASE(SerializeFalse) {
 
 static uword allocator(intptr_t size) {
   return reinterpret_cast<uword>(malloc(size));
+}
+
+
+TEST_CASE(SerializeCapability) {
+  StackZone zone(Isolate::Current());
+
+  // Write snapshot with object content.
+  const Capability& capability = Capability::Handle(Capability::New(12345));
+  uint8_t* buffer;
+  MessageWriter writer(&buffer, &zone_allocator, true);
+  writer.WriteMessage(capability);
+  intptr_t buffer_len = writer.BytesWritten();
+
+  // Read object back from the snapshot.
+  MessageSnapshotReader reader(buffer,
+                               buffer_len,
+                               Isolate::Current(),
+                               zone.GetZone());
+  Capability& obj = Capability::Handle();
+  obj ^= reader.ReadObject();
+
+  EXPECT_STREQ(12345, obj.Id());
+
+  // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
+  ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
+  Dart_CObject* root = api_reader.ReadMessage();
+  EXPECT_NOTNULL(root);
+  EXPECT_EQ(Dart_CObject_kCapability, root->type);
+  int64_t id = root->value.as_capability.id;
+  EXPECT_EQ(12345, id);
+  CheckEncodeDecodeMessage(root);
 }
 
 

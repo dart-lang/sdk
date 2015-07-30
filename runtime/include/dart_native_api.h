@@ -40,6 +40,7 @@ typedef enum {
   Dart_CObject_kTypedData,
   Dart_CObject_kExternalTypedData,
   Dart_CObject_kSendPort,
+  Dart_CObject_kCapability,
   Dart_CObject_kUnsupported,
   Dart_CObject_kNumberOfTypes
 } Dart_CObject_Type;
@@ -61,6 +62,9 @@ typedef struct _Dart_CObject {
       Dart_Port id;
       Dart_Port origin_id;
     } as_send_port;
+    struct {
+      int64_t id;
+    } as_capability;
     struct {
       intptr_t length;
       struct _Dart_CObject** values;
