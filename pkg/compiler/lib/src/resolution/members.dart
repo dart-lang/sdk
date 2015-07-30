@@ -2536,7 +2536,103 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return cls.computeType(compiler);
   }
 
+  /// Handle index operations like `a[b] = c`, `a[b] += c`, and `a[b]++`.
+  ResolutionResult handleIndexSendSet(SendSet node) {
+    String operatorText = node.assignmentOperator.source;
+    Node receiver = node.receiver;
+    Node index = node.arguments.head;
+    visitExpression(receiver);
+    visitExpression(index);
+    if (node.isPrefix || node.isPostfix) {
+      // `a[b]++` or `++a[b]`.
+      IncDecOperator operator = IncDecOperator.parse(operatorText);
+      AccessSemantics semantics = new DynamicAccess.dynamicProperty(receiver);
+      Selector getterSelector = new Selector.index();
+      Selector setterSelector = new Selector.indexSet();
+      Selector operatorSelector =
+          new Selector.binaryOperator(operator.selectorName);
+
+      // TODO(johnniwinther): Remove these when selectors are only accessed
+      // through the send structure.
+      registry.setGetterSelectorInComplexSendSet(node, getterSelector);
+      registry.setSelector(node, setterSelector);
+      registry.setOperatorSelectorInComplexSendSet(node, operatorSelector);
+
+      registry.registerDynamicInvocation(
+          new UniverseSelector(getterSelector, null));
+      registry.registerDynamicInvocation(
+          new UniverseSelector(setterSelector, null));
+      registry.registerDynamicInvocation(
+          new UniverseSelector(operatorSelector, null));
+
+      SendStructure sendStructure = node.isPrefix
+          ? new IndexPrefixStructure(
+              semantics, operator, getterSelector, setterSelector)
+          : new IndexPostfixStructure(
+              semantics, operator, getterSelector, setterSelector);
+      registry.registerSendStructure(node, sendStructure);
+      return const NoneResult();
+    } else {
+      Node rhs = node.arguments.tail.head;
+      visitExpression(rhs);
+
+      AssignmentOperator operator = AssignmentOperator.parse(operatorText);
+      if (operator.kind == AssignmentOperatorKind.ASSIGN) {
+        // `a[b] = c`.
+        AccessSemantics semantics = new DynamicAccess.dynamicProperty(receiver);
+        Selector setterSelector = new Selector.indexSet();
+
+        // TODO(johnniwinther): Remove this when selectors are only accessed
+        // through the send structure.
+        registry.setSelector(node, setterSelector);
+        registry.registerDynamicInvocation(
+            new UniverseSelector(setterSelector, null));
+
+        SendStructure sendStructure =
+            new IndexSetStructure(semantics, setterSelector);
+        registry.registerSendStructure(node, sendStructure);
+        return const NoneResult();
+      } else {
+        // `a[b] += c`.
+        AccessSemantics semantics = new DynamicAccess.dynamicProperty(receiver);
+        Selector getterSelector = new Selector.index();
+        Selector setterSelector = new Selector.indexSet();
+        Selector operatorSelector =
+            new Selector.binaryOperator(operator.selectorName);
+
+        // TODO(johnniwinther): Remove these when selectors are only accessed
+        // through the send structure.
+        registry.setGetterSelectorInComplexSendSet(node, getterSelector);
+        registry.setSelector(node, setterSelector);
+        registry.setOperatorSelectorInComplexSendSet(node, operatorSelector);
+
+        registry.registerDynamicInvocation(
+            new UniverseSelector(getterSelector, null));
+        registry.registerDynamicInvocation(
+            new UniverseSelector(setterSelector, null));
+        registry.registerDynamicInvocation(
+            new UniverseSelector(operatorSelector, null));
+
+        SendStructure sendStructure = new CompoundIndexSetStructure(
+                semantics, operator, getterSelector, setterSelector);
+        registry.registerSendStructure(node, sendStructure);
+        return const NoneResult();
+      }
+    }
+  }
+
   ResolutionResult visitSendSet(SendSet node) {
+    if (node.isIndex) {
+      if (node.isSuperCall) {
+        // TODO(johnniwinther): Refactor index operations on super.
+      } else {
+        return handleIndexSendSet(node);
+      }
+    }
+    return oldVisitSendSet(node);
+  }
+
+  ResolutionResult oldVisitSendSet(SendSet node) {
     bool oldSendIsMemberAccess = sendIsMemberAccess;
     sendIsMemberAccess = node.isPropertyAccess || node.isCall;
     ResolutionResult result = resolveSend(node);
