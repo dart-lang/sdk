@@ -832,6 +832,7 @@ class RawField : public RawObject {
   RawAbstractType* type_;
   RawInstance* value_;  // Offset in words for instance and value for static.
   RawArray* dependent_code_;
+  RawFunction* initializer_;
   RawSmi* guarded_list_length_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);

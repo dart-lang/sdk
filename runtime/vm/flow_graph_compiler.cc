@@ -66,6 +66,7 @@ DECLARE_FLAG(bool, use_field_guards);
 DECLARE_FLAG(bool, use_cha_deopt);
 DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
+DECLARE_FLAG(bool, precompile_collect_closures);
 
 
 static void NooptModeHandler(bool value) {
@@ -114,6 +115,7 @@ static void PrecompileModeHandler(bool value) {
     FLAG_lazy_dispatchers = false;
     FLAG_interpret_irregexp = true;
     FLAG_enable_mirrors = false;
+    FLAG_precompile_collect_closures = true;
   }
 }
 

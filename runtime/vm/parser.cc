@@ -1059,7 +1059,6 @@ SequenceNode* Parser::ParseStaticInitializer() {
 
 ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
   ASSERT(field.is_static());
-  ASSERT(field.value() == Object::transition_sentinel().raw());
   Thread* thread = Thread::Current();
   // TODO(koda): Should there be a StackZone here?
   Zone* zone = thread->zone();
@@ -5309,6 +5308,8 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
       }
       SkipExpr();
       field.set_value(field_value);
+      field.set_has_initializer(true);
+
       if (!has_simple_literal) {
         // Create a static final getter.
         String& getter_name = String::Handle(Z, Field::GetterSymbol(var_name));

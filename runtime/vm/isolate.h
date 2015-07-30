@@ -693,6 +693,11 @@ class Isolate : public BaseIsolate {
   RawUserTag* default_tag() const { return default_tag_; }
   void set_default_tag(const UserTag& tag);
 
+  RawGrowableObjectArray* collected_closures() const {
+    return collected_closures_;
+  }
+  void set_collected_closures(const GrowableObjectArray& value);
+
   Metric* metrics_list_head() {
     return metrics_list_head_;
   }
@@ -706,6 +711,11 @@ class Isolate : public BaseIsolate {
   }
   void set_deoptimized_code_array(const GrowableObjectArray& value);
   void TrackDeoptimizedCode(const Code& code);
+
+  bool compilation_allowed() const { return compilation_allowed_; }
+  void set_compilation_allowed(bool allowed) {
+    compilation_allowed_ = allowed;
+  }
 
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
@@ -846,11 +856,15 @@ class Isolate : public BaseIsolate {
   RawGrowableObjectArray* tag_table_;
   RawUserTag* current_tag_;
   RawUserTag* default_tag_;
+
+  RawGrowableObjectArray* collected_closures_;
   RawGrowableObjectArray* deoptimized_code_array_;
 
   Metric* metrics_list_head_;
 
   Counters counters_;
+
+  bool compilation_allowed_;
 
   // TODO(23153): Move this out of Isolate/Thread.
   CHA* cha_;

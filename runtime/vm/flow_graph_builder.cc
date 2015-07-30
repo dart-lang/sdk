@@ -38,6 +38,8 @@ DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, support_debugger, true, "Emit code needed for debugging");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
+DEFINE_FLAG(bool, precompile_collect_closures, false,
+            "Collect all closure functions referenced from compiled code.");
 
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
@@ -2664,8 +2666,27 @@ void EffectGraphVisitor::VisitStringInterpolateNode(
 }
 
 
+// TODO(rmacnak): De-dup closures in inlined-finally and track down other
+// stragglers to use Class::closures instead.
+static void CollectClosureFunction(const Function& function) {
+  if (function.HasCode()) return;
+
+  Isolate* isolate = Isolate::Current();
+  if (isolate->collected_closures() == GrowableObjectArray::null()) {
+    isolate->set_collected_closures(
+        GrowableObjectArray::Handle(GrowableObjectArray::New()));
+  }
+  const GrowableObjectArray& functions =
+      GrowableObjectArray::Handle(isolate, isolate->collected_closures());
+  functions.Add(function);
+}
+
+
 void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   const Function& function = node->function();
+  if (FLAG_precompile_collect_closures) {
+    CollectClosureFunction(function);
+  }
 
   if (function.IsImplicitStaticClosureFunction()) {
     const Instance& closure =

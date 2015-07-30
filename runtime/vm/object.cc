@@ -7221,6 +7221,7 @@ RawField* Field::New(const String& name,
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
+  result.set_initializer(Function::Handle());
   result.set_is_unboxing_candidate(true);
   result.set_guarded_cid(FLAG_use_field_guards ? kIllegalCid : kDynamicCid);
   result.set_is_nullable(FLAG_use_field_guards ? false : true);
@@ -7514,6 +7515,11 @@ bool Field::IsUninitialized() const {
   const Instance& value = Instance::Handle(raw_ptr()->value_);
   ASSERT(value.raw() != Object::transition_sentinel().raw());
   return value.raw() == Object::sentinel().raw();
+}
+
+
+void Field::set_initializer(const Function& initializer) const {
+  StorePointer(&raw_ptr()->initializer_, initializer.raw());
 }
 
 
@@ -12863,6 +12869,11 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
 RawCode* Code::FinalizeCode(const char* name,
                             Assembler* assembler,
                             bool optimized) {
+  Isolate* isolate = Isolate::Current();
+  if (!isolate->compilation_allowed()) {
+    FATAL1("Precompilation missed code %s\n", name);
+  }
+
   ASSERT(assembler != NULL);
   const ObjectPool& object_pool =
       ObjectPool::Handle(assembler->object_pool_wrapper().MakeObjectPool());
@@ -12874,8 +12885,8 @@ RawCode* Code::FinalizeCode(const char* name,
   Code& code = Code::ZoneHandle(Code::New(pointer_offset_count));
   Instructions& instrs =
       Instructions::ZoneHandle(Instructions::New(assembler->CodeSize()));
-  INC_STAT(Isolate::Current(), total_instr_size, assembler->CodeSize());
-  INC_STAT(Isolate::Current(), total_code_size, assembler->CodeSize());
+  INC_STAT(isolate, total_instr_size, assembler->CodeSize());
+  INC_STAT(isolate, total_code_size, assembler->CodeSize());
 
   // Copy the instructions into the instruction area and apply all fixups.
   // Embedded pointers are still in handles at this point.
@@ -12915,7 +12926,7 @@ RawCode* Code::FinalizeCode(const char* name,
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
-    INC_STAT(Isolate::Current(),
+    INC_STAT(isolate,
              total_code_size, object_pool.Length() * sizeof(uintptr_t));
     instrs.set_object_pool(object_pool.raw());
 
@@ -12936,7 +12947,7 @@ RawCode* Code::FinalizeCode(const char* name,
     // pushed onto the stack.
     code.SetPrologueOffset(assembler->CodeSize());
   }
-  INC_STAT(Isolate::Current(),
+  INC_STAT(isolate,
            total_code_size, code.comments().comments_.Length());
   return code.raw();
 }

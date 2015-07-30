@@ -2948,6 +2948,11 @@ class Field : public Object {
 
   void EvaluateInitializer() const;
 
+  RawFunction* initializer() const {
+    return raw_ptr()->initializer_;
+  }
+  void set_initializer(const Function& initializer) const;
+
   // For static fields only. Constructs a closure that gets/sets the
   // field value.
   RawInstance* GetterClosure() const;

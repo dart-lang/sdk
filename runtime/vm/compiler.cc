@@ -1111,6 +1111,12 @@ RawError* Compiler::CompileFunction(Thread* thread,
   VMTagScope tagScope(isolate, VMTag::kCompileUnoptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(isolate, "Function", function);
 
+  if (!isolate->compilation_allowed()) {
+    FATAL2("Precompilation missed function %s (%s)\n",
+           function.ToQualifiedCString(),
+           Function::KindToCString(function.kind()));
+  }
+
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
 
@@ -1271,6 +1277,33 @@ static void CreateLocalVarDescriptors(const ParsedFunction& parsed_function) {
 }
 
 
+void Compiler::CompileStaticInitializer(const Field& field) {
+  ASSERT(field.is_static());
+  if (field.initializer() != Function::null()) {
+    // TODO(rmacnak): Investigate why this happens for _enum_names.
+    OS::Print("Warning: Ignoring repeated request for initializer for %s\n",
+              field.ToCString());
+    return;
+  }
+  ASSERT(field.initializer() == Function::null());
+  Isolate* isolate = Isolate::Current();
+  StackZone zone(isolate);
+
+  ParsedFunction* parsed_function = Parser::ParseStaticFieldInitializer(field);
+
+  parsed_function->AllocateVariables();
+  // Non-optimized code generator.
+  DartCompilationPipeline pipeline;
+  CompileParsedFunctionHelper(&pipeline,
+                              parsed_function,
+                              false,  // optimized
+                              Isolate::kNoDeoptId);
+
+  const Function& initializer = parsed_function->function();
+  field.set_initializer(initializer);
+}
+
+
 RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   ASSERT(field.is_static());
   // The VM sets the field's value to transiton_sentinel prior to
@@ -1278,23 +1311,31 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   ASSERT(field.value() == Object::transition_sentinel().raw());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Isolate* const isolate = Isolate::Current();
-    StackZone zone(isolate);
-    ParsedFunction* parsed_function =
-        Parser::ParseStaticFieldInitializer(field);
+    Function& initializer = Function::Handle(field.initializer());
 
-    parsed_function->AllocateVariables();
-    // Non-optimized code generator.
-    DartCompilationPipeline pipeline;
-    CompileParsedFunctionHelper(&pipeline,
-                                parsed_function,
-                                false,
-                                Isolate::kNoDeoptId);
-    // Eagerly create local var descriptors.
-    CreateLocalVarDescriptors(*parsed_function);
+    // Under precompilation, the initializer may have already been compiled, in
+    // which case use it. Under lazy compilation or early in precompilation, the
+    // initializer has not yet been created, so create it now, but don't bother
+    // remembering it because it won't be used again.
+    if (initializer.IsNull()) {
+      Isolate* const isolate = Isolate::Current();
+      StackZone zone(isolate);
+      ParsedFunction* parsed_function =
+          Parser::ParseStaticFieldInitializer(field);
 
+      parsed_function->AllocateVariables();
+      // Non-optimized code generator.
+      DartCompilationPipeline pipeline;
+      CompileParsedFunctionHelper(&pipeline,
+                                  parsed_function,
+                                  false,  // optimized
+                                  Isolate::kNoDeoptId);
+      // Eagerly create local var descriptors.
+      CreateLocalVarDescriptors(*parsed_function);
+
+      initializer = parsed_function->function().raw();
+    }
     // Invoke the function to evaluate the expression.
-    const Function& initializer = parsed_function->function();
     const Object& result = PassiveObject::Handle(
         DartEntry::InvokeFunction(initializer, Object::empty_array()));
     return result.raw();

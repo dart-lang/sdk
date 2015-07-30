@@ -70,6 +70,12 @@ static const char* commandline_packages_file = NULL;
 // dart functions and not run anything.
 static bool has_compile_all = false;
 
+
+// Global flag that is used to indicate that we want to compile all the
+// dart functions before running main and not compile anything thereafter.
+static bool has_precompile = false;
+
+
 // Global flag that is used to indicate that we want to trace resolution of
 // URIs and the loading of libraries, parts and scripts.
 static bool has_trace_loading = false;
@@ -282,6 +288,19 @@ static bool ProcessCompileAllOption(const char* arg,
   return true;
 }
 
+
+static bool ProcessPrecompileOption(const char* arg,
+                                    CommandLineOptions* vm_options) {
+  ASSERT(arg != NULL);
+  if (*arg != '\0') {
+    return false;
+  }
+  has_precompile = true;
+  vm_options->AddArgument("--precompile");
+  return true;
+}
+
+
 static bool ProcessDebugOption(const char* option_value,
                                CommandLineOptions* vm_options) {
   ASSERT(option_value != NULL);
@@ -392,6 +411,7 @@ static struct {
   // VM specific options to the standalone dart program.
   { "--break-at=", ProcessBreakpointOption },
   { "--compile_all", ProcessCompileAllOption },
+  { "--precompile", ProcessPrecompileOption },
   { "--debug", ProcessDebugOption },
   { "--snapshot=", ProcessGenScriptSnapshotOption },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
@@ -625,7 +645,10 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
       *error = strdup(VmService::GetErrorMessage());
       return NULL;
     }
-    if (has_compile_all) {
+    if (has_precompile) {
+      result = Dart_Precompile();
+      CHECK_RESULT(result);
+    } else if (has_compile_all) {
       result = Dart_CompileAll();
       CHECK_RESULT(result);
     }
@@ -1074,7 +1097,10 @@ void main(int argc, char** argv) {
     ASSERT(!Dart_IsError(builtin_lib));
     result = Dart_LibraryImportLibrary(builtin_lib, root_lib, Dart_Null());
 
-    if (has_compile_all) {
+    if (has_precompile) {
+      result = Dart_Precompile();
+      DartExitOnError(result);
+    } else if (has_compile_all) {
       result = Dart_CompileAll();
       DartExitOnError(result);
     }
