@@ -1,3 +1,11 @@
+# 0.1.1
+
+* Internal code and dependency constraint cleanup.
+
+# 0.1.0
+
+* Initial stable release.
+
 # 0.0.2+1
 
 * Added machine output option. Fix #69.
