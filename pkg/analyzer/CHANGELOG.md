@@ -1,3 +1,15 @@
+## 0.26.0-alpha.2
+
+* Fix highlight range for missing enum constant in switch (issue 23904).
+* Fix analyzer's treatment of `ClassName?.staticMember` to match spec.
+* Implement DEP 34 (less restricted mixins).
+* Fix some implementations of `UriResolver.resolveUri(..)` that did not
+  properly handle the new `actualUri` argument.
+
+## 0.26.0-alpha.1
+
+* Change `ResolutionCopier.visitAwaitExpression` to copy *Type fields.
+
 ## 0.26.0-alpha.0
 
 * API change: `UriResolver.resolveUri(..)` now takes an optional `actualUri`.
