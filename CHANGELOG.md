@@ -79,6 +79,13 @@
 
 [package spec proposal]: https://github.com/lrhn/dep-pkgspec
 
+* Formatter (`dartfmt`)
+
+  * Over 50 bugs fixed.
+
+  * Optimized line splitter is much faster and produces better output on
+    complex code.
+
 ### VM Service Protocol Changes
 
 * **BREAKING** The service protocol now sends JSON-RPC 2.0-compatible
