@@ -86,10 +86,12 @@ void testChecker(Map<String, String> testFiles,
   var provider = createTestResourceProvider(testFiles);
   var uriResolver = new TestUriResolver(provider);
   var context = AnalysisEngine.instance.createAnalysisContext();
-  context.sourceFactory = createSourceFactory(new SourceResolverOptions(
-      customUrlMappings: customUrlMappings,
-      useMockSdk: sdkDir == null,
-      dartSdkPath: sdkDir), fileResolvers: [uriResolver]);
+  context.sourceFactory = createSourceFactory(
+      new SourceResolverOptions(
+          customUrlMappings: customUrlMappings,
+          useMockSdk: sdkDir == null,
+          dartSdkPath: sdkDir),
+      fileResolvers: [uriResolver]);
 
   var checker = new StrongChecker(
       context,

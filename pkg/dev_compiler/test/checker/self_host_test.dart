@@ -11,11 +11,8 @@ import 'package:test/test.dart';
 import '../testing.dart' show testDirectory, realSdkContext;
 
 void main() {
-  test(
-      'checker can run on itself ',
-      () {
-        new BatchCompiler(realSdkContext, new CompilerOptions())
-            .compileFromUriString('$testDirectory/all_tests.dart');
-      },
-      skip: 'test is very slow');
+  test('checker can run on itself ', () {
+    new BatchCompiler(realSdkContext, new CompilerOptions())
+        .compileFromUriString('$testDirectory/all_tests.dart');
+  }, skip: 'test is very slow');
 }

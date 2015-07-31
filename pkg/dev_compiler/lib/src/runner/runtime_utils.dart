@@ -26,7 +26,8 @@ const _ALIASED_RUNTIME_FILES = const {
 /// returns null.
 String getRuntimeFileAlias(CompilerOptions options, File file) =>
     file.absolute.path.startsWith(_getRuntimeDir(options).absolute.path)
-    ? _ALIASED_RUNTIME_FILES[basename(file.path)] : null;
+        ? _ALIASED_RUNTIME_FILES[basename(file.path)]
+        : null;
 
 Directory _getRuntimeDir(CompilerOptions options) => new Directory(
     join(options.codegenOptions.outputDir, 'dev_compiler', 'runtime'));
@@ -44,11 +45,11 @@ Future<List<File>> listOutputFiles(CompilerOptions options) async {
     int i = defaultRuntimeFiles.indexOf(basename(file.path));
     return i < 0 ? maxIndex : i;
   }
-  return files..sort((File a, File b) {
-    int pa = getPriorityIndex(a),
-        pb = getPriorityIndex(b);
-    return pa != pb ? (pa - pb) : a.path.compareTo(b.path);
-  });
+  return files
+    ..sort((File a, File b) {
+      int pa = getPriorityIndex(a), pb = getPriorityIndex(b);
+      return pa != pb ? (pa - pb) : a.path.compareTo(b.path);
+    });
 }
 
 /// TODO(ochafik): Split / reuse [AbstractCompiler.getModuleName].

@@ -10,12 +10,11 @@ import 'dart:io';
 
 import 'package:dev_compiler/src/compiler.dart' show validateOptions, compile;
 import 'package:dev_compiler/src/options.dart';
-import 'package:dev_compiler/src/runner/runtime_utils.dart' show
-    listOutputFiles, getMainModuleName;
+import 'package:dev_compiler/src/runner/runtime_utils.dart'
+    show listOutputFiles, getMainModuleName;
 import 'package:dev_compiler/src/runner/v8_runner.dart' show V8Runner;
 
 import 'package:path/path.dart';
-
 
 void _showUsageAndExit() {
   print('usage: dartdevrun [<options>] <file.dart>\n');
@@ -26,7 +25,9 @@ void _showUsageAndExit() {
 }
 
 main(List<String> args) async {
-  args = []..add('--arrow-fn-bind-this')..addAll(args);
+  args = []
+    ..add('--arrow-fn-bind-this')
+    ..addAll(args);
 
   CompilerOptions options = validateOptions(args, forceOutDir: true);
   if (options == null || options.help) {
@@ -55,8 +56,8 @@ main(List<String> args) async {
 }
 
 /// Generates an HTML file that can be used to run the output with Chrome Dev.
-_writeHtmlRunner(CompilerOptions options, List<File> files,
-                 String startStatement) async {
+_writeHtmlRunner(
+    CompilerOptions options, List<File> files, String startStatement) async {
   String outputDir = options.codegenOptions.outputDir;
   String htmlOutput = join(outputDir, "run.html");
   await new File(htmlOutput).writeAsString('''
@@ -67,7 +68,7 @@ _writeHtmlRunner(CompilerOptions options, List<File> files,
     <script>$startStatement</script>
     </body></html>
   ''');
-  
+
   stderr.writeln(
       'Wrote $htmlOutput. It can be opened in Chrome Dev with the following flags:\n'
       '--js-flags="--harmony-arrow-functions '

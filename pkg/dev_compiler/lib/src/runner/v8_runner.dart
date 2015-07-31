@@ -50,7 +50,8 @@ abstract class V8Runner {
   String get _v8Binary => _options.runnerOptions.v8Binary;
 
   Future<Process> start(List<File> files, String startStatement) =>
-      Process.start(_v8Binary,
+      Process.start(
+          _v8Binary,
           [
             "--harmony_arrow_functions",
             "--harmony_classes",
@@ -59,7 +60,8 @@ abstract class V8Runner {
             "--harmony_object_literals",
             "--harmony_rest_parameters",
             "--harmony_spreadcalls",
-            "-e", _GLOBALS + _getLoadStatements(files).join() + startStatement
+            "-e",
+            _GLOBALS + _getLoadStatements(files).join() + startStatement
           ],
           workingDirectory: _options.codegenOptions.outputDir);
 
@@ -100,7 +102,8 @@ class _NodeRunner extends V8Runner {
 
   @override
   _getLoadStatements(List<File> files) => files.map((file) {
-    String alias = getRuntimeFileAlias(_options, file);
-    return (alias != null ? 'var $alias = ' : '') + 'require("${file.path}");';
-  });
+        String alias = getRuntimeFileAlias(_options, file);
+        return (alias != null ? 'var $alias = ' : '') +
+            'require("${file.path}");';
+      });
 }
