@@ -105,6 +105,111 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
+  errorInvalidUnary(
+      Send node,
+      UnaryOperator operator,
+      ErroneousElement error,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_UNARY,
+        error: error.messageKind, operator: operator));
+    super.errorInvalidUnary(node, operator, error, arg);
+  }
+
+  @override
+  errorInvalidEquals(
+      Send node,
+      ErroneousElement error,
+      Node right,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_EQUALS,
+        error: error.messageKind, right: right));
+    super.errorInvalidEquals(node, error, right, arg);
+  }
+
+  @override
+  errorInvalidNotEquals(
+      Send node,
+      ErroneousElement error,
+      Node right,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_NOT_EQUALS,
+        error: error.messageKind, right: right));
+    super.errorInvalidNotEquals(node, error, right, arg);
+  }
+
+  @override
+  errorInvalidBinary(
+      Send node,
+      ErroneousElement error,
+      BinaryOperator operator,
+      Node right,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_BINARY,
+        error: error.messageKind, operator: operator, right: right));
+    super.errorInvalidBinary(node, error, operator, right, arg);
+  }
+
+  @override
+  errorInvalidIndex(
+      Send node,
+      ErroneousElement error,
+      Node index,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_INDEX,
+        error: error.messageKind, index: index));
+    super.errorInvalidIndex(node, error, index, arg);
+  }
+
+  @override
+  errorInvalidIndexSet(
+      Send node,
+      ErroneousElement error,
+      Node index,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_INDEX_SET,
+        error: error.messageKind, index: index, rhs: rhs));
+    super.errorInvalidIndexSet(node, error, index, rhs, arg);
+  }
+
+  @override
+  errorInvalidCompoundIndexSet(
+      Send node,
+      ErroneousElement error,
+      Node index,
+      AssignmentOperator operator,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_COMPOUND_INDEX_SET,
+        error: error.messageKind, index: index, operator: operator, rhs: rhs));
+    super.errorInvalidCompoundIndexSet(node, error, index, operator, rhs, arg);
+  }
+
+  @override
+  errorInvalidIndexPrefix(
+      Send node,
+      ErroneousElement error,
+      Node index,
+      IncDecOperator operator,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_INDEX_PREFIX,
+        error: error.messageKind, index: index, operator: operator));
+    super.errorInvalidIndexPrefix(node, error, index, operator, arg);
+  }
+
+  @override
+  errorInvalidIndexPostfix(
+      Send node,
+      ErroneousElement error,
+      Node index,
+      IncDecOperator operator,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_INDEX_POSTFIX,
+        error: error.messageKind, index: index, operator: operator));
+    super.errorInvalidIndexPostfix(node, error, index, operator, arg);
+  }
+
+  @override
   visitBinary(
       Send node,
       Node left,

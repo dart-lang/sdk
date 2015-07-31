@@ -1730,6 +1730,19 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.ERROR_UNDEFINED_BINARY_EXPRESSION,
                     left: '2', operator: '!==', right: '3')),
+    const Test.clazz(
+        '''
+        class B {
+          operator +(_) => null;
+        }
+        class C extends B {
+          static m() => super + 42;
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_BINARY,
+                    error: MessageKind.NO_SUPER_IN_STATIC,
+                    operator: '+',
+                    right: '42')),
   ],
   'Index': const [
     // Index
@@ -1772,6 +1785,18 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INDEX,
+                    index: '42')),
+    const Test.clazz(
+        '''
+        class B {
+          operator [](_) => null;
+        }
+        class C extends B {
+          static m() => super[42];
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_INDEX,
+                    error: MessageKind.NO_SUPER_IN_STATIC,
                     index: '42')),
     const Test.clazz(
         '''
@@ -1832,6 +1857,20 @@ const Map<String, List<Test>> SEND_TESTS = const {
           operator []=(a, b) {}
         }
         class C extends B {
+          static m() => ++super[42];
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_INDEX_PREFIX,
+                    error: MessageKind.NO_SUPER_IN_STATIC,
+                    index: '42',
+                    operator: '++')),
+    const Test.clazz(
+        '''
+        class B {
+          operator [](_) => null;
+          operator []=(a, b) {}
+        }
+        class C extends B {
           m() => super[42]--;
         }
         ''',
@@ -1877,6 +1916,20 @@ const Map<String, List<Test>> SEND_TESTS = const {
                     getter: 'function(B#[])',
                     index: '42',
                     operator: '--')),
+    const Test.clazz(
+        '''
+        class B {
+          operator [](_) => null;
+          operator []=(a, b) {}
+        }
+        class C extends B {
+          static m() => super[42]--;
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_INDEX_POSTFIX,
+                    error: MessageKind.NO_SUPER_IN_STATIC,
+                    index: '42',
+                    operator: '--')),
   ],
   'Equals': const [
     // Equals
@@ -1898,6 +1951,18 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_SUPER_EQUALS,
                     element: 'function(B#==)',
                     right: '42')),
+    const Test.clazz(
+        '''
+        class B {
+          operator ==(_) => null;
+        }
+        class C extends B {
+          static m() => super == 42;
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_EQUALS,
+                    error: MessageKind.NO_SUPER_IN_STATIC,
+                    right: '42')),
   ],
   'Not equals': const [
     // Not equals
@@ -1918,6 +1983,18 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_NOT_EQUALS,
                     element: 'function(B#==)',
+                    right: '42')),
+    const Test.clazz(
+        '''
+        class B {
+          operator ==(_) => null;
+        }
+        class C extends B {
+          static m() => super != 42;
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_NOT_EQUALS,
+                    error: MessageKind.NO_SUPER_IN_STATIC,
                     right: '42')),
   ],
   'Unary expression': const [
@@ -1966,6 +2043,18 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_UNARY,
                     element: 'function(B#~)', operator: '~')),
+    const Test.clazz(
+        '''
+        class B {
+          operator -() => null;
+        }
+        class C extends B {
+          static m() => -super;
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_UNARY,
+                    error: MessageKind.NO_SUPER_IN_STATIC,
+                    operator: '-')),
     const Test(
         '''
         m() => !0;
@@ -2009,6 +2098,17 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INDEX_SET,
             index: '1', rhs: '2')),
+    const Test.clazz(
+        '''
+        class B {
+          operator []=(a, b) {}
+        }
+        class C extends B {
+          static m() => super[1] = 2;
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_INDEX_SET,
+            error: MessageKind.NO_SUPER_IN_STATIC, index: '1', rhs: '2')),
   ],
   'Compound assignment': const [
     // Compound assignment
@@ -2510,6 +2610,19 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_COMPOUND_INDEX_SET,
             getter: 'function(B#[])',
+            index: '1', operator: '+=', rhs: '42')),
+    const Test.clazz(
+        '''
+        class B {
+          operator [](_) {}
+          operator []=(a, b) {}
+        }
+        class C extends B {
+          static m() => super[1] += 42;
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_COMPOUND_INDEX_SET,
+            error: MessageKind.NO_SUPER_IN_STATIC,
             index: '1', operator: '+=', rhs: '42')),
   ],
   'Prefix expression': const [

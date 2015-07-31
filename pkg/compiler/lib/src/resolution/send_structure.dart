@@ -835,7 +835,7 @@ class NotStructure<R, A> implements SendStructure<R, A> {
             node,
             node.receiver,
             arg);
-      default:
+     default:
         // This is not a valid case.
         break;
     }
@@ -872,6 +872,12 @@ class UnaryStructure<R, A> implements SendStructure<R, A> {
             arg);
       case AccessKind.UNRESOLVED_SUPER:
         return visitor.visitUnresolvedSuperUnary(
+            node,
+            operator,
+            semantics.element,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidUnary(
             node,
             operator,
             semantics.element,
@@ -931,6 +937,12 @@ class IndexStructure<R, A> implements SendStructure<R, A> {
             semantics.element,
             node.arguments.single,
             arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidIndex(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
       default:
         // This is not a valid case.
         break;
@@ -957,6 +969,12 @@ class EqualsStructure<R, A> implements SendStructure<R, A> {
             arg);
       case AccessKind.SUPER_METHOD:
         return visitor.visitSuperEquals(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidEquals(
             node,
             semantics.element,
             node.arguments.single,
@@ -989,6 +1007,12 @@ class NotEqualsStructure<R, A> implements SendStructure<R, A> {
             arg);
       case AccessKind.SUPER_METHOD:
         return visitor.visitSuperNotEquals(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidNotEquals(
             node,
             semantics.element,
             node.arguments.single,
@@ -1033,6 +1057,13 @@ class BinaryStructure<R, A> implements SendStructure<R, A> {
             arg);
       case AccessKind.UNRESOLVED_SUPER:
         return visitor.visitUnresolvedSuperBinary(
+            node,
+            semantics.element,
+            operator,
+            node.arguments.single,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidBinary(
             node,
             semantics.element,
             operator,
@@ -1102,6 +1133,13 @@ class IndexSetStructure<R, A> implements SendStructure<R, A> {
             node.arguments.first,
             node.arguments.tail.head,
             arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidIndexSet(
+            node,
+            semantics.element,
+            node.arguments.first,
+            node.arguments.tail.head,
+            arg);
       default:
         // This is not a valid case.
         break;
@@ -1146,6 +1184,13 @@ class IndexPrefixStructure<R, A> implements SendStructure<R, A> {
             arg);
       case AccessKind.UNRESOLVED_SUPER:
         return visitor.visitUnresolvedSuperIndexPrefix(
+            node,
+            semantics.element,
+            node.arguments.single,
+            operator,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidIndexPrefix(
             node,
             semantics.element,
             node.arguments.single,
@@ -1225,6 +1270,13 @@ class IndexPostfixStructure<R, A> implements SendStructure<R, A> {
             arg);
       case AccessKind.UNRESOLVED_SUPER:
         return visitor.visitUnresolvedSuperIndexPostfix(
+            node,
+            semantics.element,
+            node.arguments.single,
+            operator,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidIndexPostfix(
             node,
             semantics.element,
             node.arguments.single,
@@ -1652,6 +1704,14 @@ class CompoundIndexSetStructure<R, A> implements SendStructure<R, A> {
             arg);
       case AccessKind.UNRESOLVED_SUPER:
         return visitor.visitUnresolvedSuperCompoundIndexSet(
+            node,
+            semantics.element,
+            node.arguments.first,
+            operator,
+            node.arguments.tail.head,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidCompoundIndexSet(
             node,
             semantics.element,
             node.arguments.first,
