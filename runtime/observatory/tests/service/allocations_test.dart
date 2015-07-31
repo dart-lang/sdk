@@ -25,8 +25,8 @@ var tests = [
     expect(lib.classes.length, equals(1));
     return lib.classes.first.load().then((Class fooClass) {
       expect(fooClass.name, equals('Foo'));
-      expect(fooClass.newSpace.accumulated.instances +
-             fooClass.oldSpace.accumulated.instances, equals(3));
+      expect(fooClass.newSpace.current.instances +
+             fooClass.oldSpace.current.instances, equals(3));
     });
 }),
 
