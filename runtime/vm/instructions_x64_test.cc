@@ -26,7 +26,7 @@ static intptr_t prologue_code_size = -1;
 ASSEMBLER_TEST_GENERATE(Jump, assembler) {
   ASSERT(assembler->CodeSize() == 0);
   __ pushq(PP);
-  __ LoadPoolPointer(PP);
+  __ LoadPoolPointer();
   prologue_code_size = assembler->CodeSize();
   __ JmpPatchable(&StubCode::InvokeDartCodeLabel(), PP);
   const ExternalLabel array_label(StubCode::AllocateArrayEntryPoint());

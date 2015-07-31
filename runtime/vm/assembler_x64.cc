@@ -25,7 +25,7 @@ Assembler::Assembler(bool use_far_branches)
     : buffer_(),
       prologue_offset_(-1),
       comments_(),
-      constant_pool_allowed_(true) {
+      constant_pool_allowed_(false) {
   // Far branching mode is only needed and implemented for MIPS and ARM.
   ASSERT(!use_far_branches);
 }
@@ -63,11 +63,10 @@ void Assembler::call(Label* label) {
 
 void Assembler::LoadExternalLabel(Register dst,
                                   const ExternalLabel* label,
-                                  Patchability patchable,
-                                  Register pp) {
+                                  Patchability patchable) {
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindExternalLabel(label, patchable));
-  LoadWordFromPoolOffset(dst, pp, offset - kHeapObjectTag);
+  LoadWordFromPoolOffset(dst, offset - kHeapObjectTag);
 }
 
 
@@ -92,10 +91,11 @@ void Assembler::CallPatchable(const ExternalLabel* label) {
 }
 
 
-void Assembler::Call(const ExternalLabel* label, Register pp) {
+void Assembler::Call(const ExternalLabel* label) {
+  ASSERT(constant_pool_allowed());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindExternalLabel(label, kNotPatchable));
-  call(Address::AddressBaseImm32(pp, offset - kHeapObjectTag));
+  call(Address::AddressBaseImm32(PP, offset - kHeapObjectTag));
 }
 
 
@@ -126,12 +126,12 @@ void Assembler::pushq(const Immediate& imm) {
 }
 
 
-void Assembler::PushImmediate(const Immediate& imm, Register pp) {
-  if (CanLoadImmediateFromPool(imm, pp)) {
-    LoadImmediate(TMP, imm, pp);
-    pushq(TMP);
-  } else {
+void Assembler::PushImmediate(const Immediate& imm) {
+  if (imm.is_int32()) {
     pushq(imm);
+  } else {
+    LoadImmediate(TMP, imm);
+    pushq(TMP);
   }
 }
 
@@ -782,7 +782,7 @@ void Assembler::notps(XmmRegister dst) {
   } float_not_constant =
       { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
   LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&float_not_constant)), PP);
+      TMP, Immediate(reinterpret_cast<intptr_t>(&float_not_constant)));
   xorps(dst, Address(TMP, 0));
 }
 
@@ -796,7 +796,7 @@ void Assembler::negateps(XmmRegister dst) {
   } float_negate_constant =
       { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
   LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&float_negate_constant)), PP);
+      TMP, Immediate(reinterpret_cast<intptr_t>(&float_negate_constant)));
   xorps(dst, Address(TMP, 0));
 }
 
@@ -810,7 +810,7 @@ void Assembler::absps(XmmRegister dst) {
   } float_absolute_constant =
       { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF };
   LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&float_absolute_constant)), PP);
+      TMP, Immediate(reinterpret_cast<intptr_t>(&float_absolute_constant)));
   andps(dst, Address(TMP, 0));
 }
 
@@ -824,7 +824,7 @@ void Assembler::zerowps(XmmRegister dst) {
   } float_zerow_constant =
       { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000 };
   LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&float_zerow_constant)), PP);
+      TMP, Immediate(reinterpret_cast<intptr_t>(&float_zerow_constant)));
   andps(dst, Address(TMP, 0));
 }
 
@@ -1012,7 +1012,7 @@ void Assembler::negatepd(XmmRegister dst) {
   } double_negate_constant =
       { 0x8000000000000000LL, 0x8000000000000000LL };
   LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&double_negate_constant)), PP);
+      TMP, Immediate(reinterpret_cast<intptr_t>(&double_negate_constant)));
   xorpd(dst, Address(TMP, 0));
 }
 
@@ -1060,7 +1060,7 @@ void Assembler::abspd(XmmRegister dst) {
   } double_absolute_const =
       { 0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL };
   LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&double_absolute_const)), PP);
+      TMP, Immediate(reinterpret_cast<intptr_t>(&double_absolute_const)));
   andpd(dst, Address(TMP, 0));
 }
 
@@ -1473,6 +1473,7 @@ void Assembler::cmpq(Register reg, const Immediate& imm) {
     EmitRegisterREX(reg, REX_W);
     EmitComplex(7, Operand(reg), imm);
   } else {
+    ASSERT(reg != TMP);
     movq(TMP, imm);
     cmpq(reg, TMP);
   }
@@ -1496,24 +1497,23 @@ void Assembler::cmpq(Register reg, const Address& address) {
 }
 
 
-void Assembler::CompareImmediate(Register reg, const Immediate& imm,
-                                 Register pp) {
-  if (CanLoadImmediateFromPool(imm, pp)) {
-    LoadImmediate(TMP, imm, pp);
-    cmpq(reg, TMP);
-  } else {
+void Assembler::CompareImmediate(Register reg, const Immediate& imm) {
+  if (imm.is_int32()) {
     cmpq(reg, imm);
+  } else {
+    ASSERT(reg != TMP);
+    LoadImmediate(TMP, imm);
+    cmpq(reg, TMP);
   }
 }
 
 
-void Assembler::CompareImmediate(const Address& address, const Immediate& imm,
-                                 Register pp) {
-  if (CanLoadImmediateFromPool(imm, pp)) {
-    LoadImmediate(TMP, imm, pp);
-    cmpq(address, TMP);
-  } else {
+void Assembler::CompareImmediate(const Address& address, const Immediate& imm) {
+  if (imm.is_int32()) {
     cmpq(address, imm);
+  } else {
+    LoadImmediate(TMP, imm);
+    cmpq(address, TMP);
   }
 }
 
@@ -1608,13 +1608,13 @@ void Assembler::testq(Register reg, const Immediate& imm) {
 }
 
 
-void Assembler::TestImmediate(Register dst, const Immediate& imm, Register pp) {
-  if (CanLoadImmediateFromPool(imm, pp)) {
-    ASSERT(dst != TMP);
-    LoadImmediate(TMP, imm, pp);
-    testq(dst, TMP);
-  } else {
+void Assembler::TestImmediate(Register dst, const Immediate& imm) {
+  if (imm.is_int32()) {
     testq(dst, imm);
+  } else {
+    ASSERT(dst != TMP);
+    LoadImmediate(TMP, imm);
+    testq(dst, TMP);
   }
 }
 
@@ -1691,19 +1691,20 @@ void Assembler::andq(Register dst, const Immediate& imm) {
     EmitRegisterREX(dst, REX_W);
     EmitComplex(4, Operand(dst), imm);
   } else {
+    ASSERT(dst != TMP);
     movq(TMP, imm);
     andq(dst, TMP);
   }
 }
 
 
-void Assembler::AndImmediate(Register dst, const Immediate& imm, Register pp) {
-  if (CanLoadImmediateFromPool(imm, pp)) {
-    ASSERT(dst != TMP);
-    LoadImmediate(TMP, imm, pp);
-    andq(dst, TMP);
-  } else {
+void Assembler::AndImmediate(Register dst, const Immediate& imm) {
+  if (imm.is_int32()) {
     andq(dst, imm);
+  } else {
+    ASSERT(dst != TMP);
+    LoadImmediate(TMP, imm);
+    andq(dst, TMP);
   }
 }
 
@@ -1731,19 +1732,20 @@ void Assembler::orq(Register dst, const Immediate& imm) {
     EmitRegisterREX(dst, REX_W);
     EmitComplex(1, Operand(dst), imm);
   } else {
+    ASSERT(dst != TMP);
     movq(TMP, imm);
     orq(dst, TMP);
   }
 }
 
 
-void Assembler::OrImmediate(Register dst, const Immediate& imm, Register pp) {
-  if (CanLoadImmediateFromPool(imm, pp)) {
-    ASSERT(dst != TMP);
-    LoadImmediate(TMP, imm, pp);
-    orq(dst, TMP);
-  } else {
+void Assembler::OrImmediate(Register dst, const Immediate& imm) {
+  if (imm.is_int32()) {
     orq(dst, imm);
+  } else {
+    ASSERT(dst != TMP);
+    LoadImmediate(TMP, imm);
+    orq(dst, TMP);
   }
 }
 
@@ -1779,19 +1781,20 @@ void Assembler::xorq(Register dst, const Immediate& imm) {
     EmitRegisterREX(dst, REX_W);
     EmitComplex(6, Operand(dst), imm);
   } else {
+    ASSERT(dst != TMP);
     movq(TMP, imm);
     xorq(dst, TMP);
   }
 }
 
 
-void Assembler::XorImmediate(Register dst, const Immediate& imm, Register pp) {
-  if (CanLoadImmediateFromPool(imm, pp)) {
-    ASSERT(dst != TMP);
-    LoadImmediate(TMP, imm, pp);
-    xorq(dst, TMP);
-  } else {
+void Assembler::XorImmediate(Register dst, const Immediate& imm) {
+  if (imm.is_int32()) {
     xorq(dst, imm);
+  } else {
+    ASSERT(dst != TMP);
+    LoadImmediate(TMP, imm);
+    xorq(dst, TMP);
   }
 }
 
@@ -1877,6 +1880,7 @@ void Assembler::addq(Register dst, const Immediate& imm) {
     EmitRegisterREX(dst, REX_W);
     EmitComplex(0, Operand(dst), imm);
   } else {
+    ASSERT(dst != TMP);
     movq(TMP, imm);
     addq(dst, TMP);
   }
@@ -1918,6 +1922,7 @@ void Assembler::adcq(Register dst, const Immediate& imm) {
     EmitRegisterREX(dst, REX_W);
     EmitComplex(2, Operand(dst), imm);
   } else {
+    ASSERT(dst != TMP);
     movq(TMP, imm);
     adcq(dst, TMP);
   }
@@ -2074,19 +2079,20 @@ void Assembler::imulq(Register reg, const Immediate& imm) {
     EmitOperand(reg & 7, Operand(reg));
     EmitImmediate(imm);
   } else {
+    ASSERT(reg != TMP);
     movq(TMP, imm);
     imulq(reg, TMP);
   }
 }
 
 
-void Assembler::MulImmediate(Register reg, const Immediate& imm, Register pp) {
-  if (CanLoadImmediateFromPool(imm, pp)) {
-    ASSERT(reg != TMP);
-    LoadImmediate(TMP, imm, pp);
-    imulq(reg, TMP);
-  } else {
+void Assembler::MulImmediate(Register reg, const Immediate& imm) {
+  if (imm.is_int32()) {
     imulq(reg, imm);
+  } else {
+    ASSERT(reg != TMP);
+    LoadImmediate(TMP, imm);
+    imulq(reg, TMP);
   }
 }
 
@@ -2123,6 +2129,7 @@ void Assembler::subq(Register reg, const Immediate& imm) {
     EmitRegisterREX(reg, REX_W);
     EmitComplex(5, Operand(reg), imm);
   } else {
+    ASSERT(reg != TMP);
     movq(TMP, imm);
     subq(reg, TMP);
   }
@@ -2172,6 +2179,7 @@ void Assembler::sbbq(Register dst, const Immediate& imm) {
     EmitRegisterREX(dst, REX_W);
     EmitComplex(3, Operand(dst), imm);
   } else {
+    ASSERT(dst != TMP);
     movq(TMP, imm);
     sbbq(dst, TMP);
   }
@@ -2599,7 +2607,7 @@ void Assembler::jmp(const ExternalLabel* label) {
 
 
 void Assembler::JmpPatchable(const ExternalLabel* label, Register pp) {
-  ASSERT(constant_pool_allowed());
+  ASSERT((pp != PP) || constant_pool_allowed());
   intptr_t call_start = buffer_.GetPosition();
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindExternalLabel(label, kPatchable));
@@ -2610,6 +2618,7 @@ void Assembler::JmpPatchable(const ExternalLabel* label, Register pp) {
 
 
 void Assembler::Jmp(const ExternalLabel* label, Register pp) {
+  ASSERT((pp != PP) || constant_pool_allowed());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindExternalLabel(label, kNotPatchable));
   jmp(Address(pp, offset - kHeapObjectTag));
@@ -2664,7 +2673,7 @@ void Assembler::PopRegister(Register r) {
 }
 
 
-void Assembler::AddImmediate(Register reg, const Immediate& imm, Register pp) {
+void Assembler::AddImmediate(Register reg, const Immediate& imm) {
   const int64_t value = imm.value();
   if (value == 0) {
     return;
@@ -2673,22 +2682,21 @@ void Assembler::AddImmediate(Register reg, const Immediate& imm, Register pp) {
     if (value == 1) {
       incq(reg);
     } else {
-      if (CanLoadImmediateFromPool(imm, pp)) {
-        ASSERT(reg != TMP);
-        LoadImmediate(TMP, imm, pp);
-        addq(reg, TMP);
-      } else {
+      if (imm.is_int32()) {
         addq(reg, imm);
+      } else {
+        ASSERT(reg != TMP);
+        LoadImmediate(TMP, imm);
+        addq(reg, TMP);
       }
     }
   } else {
-    SubImmediate(reg, Immediate(-value), pp);
+    SubImmediate(reg, Immediate(-value));
   }
 }
 
 
-void Assembler::AddImmediate(const Address& address, const Immediate& imm,
-                             Register pp) {
+void Assembler::AddImmediate(const Address& address, const Immediate& imm) {
   const int64_t value = imm.value();
   if (value == 0) {
     return;
@@ -2697,20 +2705,20 @@ void Assembler::AddImmediate(const Address& address, const Immediate& imm,
     if (value == 1) {
       incq(address);
     } else {
-      if (CanLoadImmediateFromPool(imm, pp)) {
-        LoadImmediate(TMP, imm, pp);
-        addq(address, TMP);
-      } else {
+      if (imm.is_int32()) {
         addq(address, imm);
+      } else {
+        LoadImmediate(TMP, imm);
+        addq(address, TMP);
       }
     }
   } else {
-    SubImmediate(address, Immediate(-value), pp);
+    SubImmediate(address, Immediate(-value));
   }
 }
 
 
-void Assembler::SubImmediate(Register reg, const Immediate& imm, Register pp) {
+void Assembler::SubImmediate(Register reg, const Immediate& imm) {
   const int64_t value = imm.value();
   if (value == 0) {
     return;
@@ -2719,22 +2727,21 @@ void Assembler::SubImmediate(Register reg, const Immediate& imm, Register pp) {
     if (value == 1) {
       decq(reg);
     } else {
-      if (CanLoadImmediateFromPool(imm, pp)) {
-        ASSERT(reg != TMP);
-        LoadImmediate(TMP, imm, pp);
-        subq(reg, TMP);
-      } else {
+      if (imm.is_int32()) {
         subq(reg, imm);
+      } else {
+        ASSERT(reg != TMP);
+        LoadImmediate(TMP, imm);
+        subq(reg, TMP);
       }
     }
   } else {
-    AddImmediate(reg, Immediate(-value), pp);
+    AddImmediate(reg, Immediate(-value));
   }
 }
 
 
-void Assembler::SubImmediate(const Address& address, const Immediate& imm,
-                             Register pp) {
+void Assembler::SubImmediate(const Address& address, const Immediate& imm) {
   const int64_t value = imm.value();
   if (value == 0) {
     return;
@@ -2743,15 +2750,15 @@ void Assembler::SubImmediate(const Address& address, const Immediate& imm,
     if (value == 1) {
       decq(address);
     } else {
-      if (CanLoadImmediateFromPool(imm, pp)) {
-        LoadImmediate(TMP, imm, pp);
-        subq(address, TMP);
-      } else {
+      if (imm.is_int32()) {
         subq(address, imm);
+      } else {
+        LoadImmediate(TMP, imm);
+        subq(address, TMP);
       }
     }
   } else {
-    AddImmediate(address, Immediate(-value), pp);
+    AddImmediate(address, Immediate(-value));
   }
 }
 
@@ -2787,11 +2794,12 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
 }
 
 
-void Assembler::LoadWordFromPoolOffset(Register dst, Register pp,
-                                       int32_t offset) {
+void Assembler::LoadWordFromPoolOffset(Register dst, int32_t offset) {
+  ASSERT(constant_pool_allowed());
+  ASSERT(dst != PP);
   // This sequence must be of fixed size. AddressBaseImm32
   // forces the address operand to use a fixed-size imm32 encoding.
-  movq(dst, Address::AddressBaseImm32(pp, offset));
+  movq(dst, Address::AddressBaseImm32(PP, offset));
 }
 
 
@@ -2802,7 +2810,6 @@ void Assembler::LoadIsolate(Register dst) {
 
 void Assembler::LoadObjectHelper(Register dst,
                                  const Object& object,
-                                 Register pp,
                                  bool is_unique) {
   if (Thread::CanLoadFromThread(object)) {
     movq(dst, Address(THR, Thread::OffsetFromThread(object)));
@@ -2810,62 +2817,70 @@ void Assembler::LoadObjectHelper(Register dst,
     const int32_t offset = ObjectPool::element_offset(
         is_unique ? object_pool_wrapper_.AddObject(object)
                   : object_pool_wrapper_.FindObject(object));
-    LoadWordFromPoolOffset(dst, pp, offset - kHeapObjectTag);
+    LoadWordFromPoolOffset(dst, offset - kHeapObjectTag);
   } else {
     ASSERT(object.IsSmi() || object.InVMHeap());
-    LoadImmediate(dst, Immediate(reinterpret_cast<int64_t>(object.raw())), pp);
+    LoadImmediate(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
   }
 }
 
 
-void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
-  LoadObjectHelper(dst, object, pp, false);
+void Assembler::LoadFunctionFromCalleePool(Register dst,
+                                           const Function& function,
+                                           Register new_pp) {
+  ASSERT(!constant_pool_allowed());
+  ASSERT(new_pp != PP);
+  const int32_t offset =
+      ObjectPool::element_offset(object_pool_wrapper_.FindObject(function));
+  movq(dst, Address::AddressBaseImm32(new_pp, offset - kHeapObjectTag));
 }
 
 
-void Assembler::LoadUniqueObject(Register dst,
-                                 const Object& object,
-                                 Register pp) {
-  LoadObjectHelper(dst, object, pp, true);
+void Assembler::LoadObject(Register dst, const Object& object) {
+  LoadObjectHelper(dst, object, false);
 }
 
 
-void Assembler::StoreObject(const Address& dst, const Object& object,
-                            Register pp) {
+void Assembler::LoadUniqueObject(Register dst, const Object& object) {
+  LoadObjectHelper(dst, object, true);
+}
+
+
+void Assembler::StoreObject(const Address& dst, const Object& object) {
   if (Thread::CanLoadFromThread(object)) {
     movq(TMP, Address(THR, Thread::OffsetFromThread(object)));
     movq(dst, TMP);
   } else if (CanLoadFromObjectPool(object)) {
-    LoadObject(TMP, object, pp);
+    LoadObject(TMP, object);
     movq(dst, TMP);
   } else {
-    MoveImmediate(dst, Immediate(reinterpret_cast<int64_t>(object.raw())), pp);
+    MoveImmediate(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
   }
 }
 
 
-void Assembler::PushObject(const Object& object, Register pp) {
+void Assembler::PushObject(const Object& object) {
   if (Thread::CanLoadFromThread(object)) {
     pushq(Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
-    LoadObject(TMP, object, pp);
+    LoadObject(TMP, object);
     pushq(TMP);
   } else {
-    PushImmediate(Immediate(reinterpret_cast<int64_t>(object.raw())), pp);
+    PushImmediate(Immediate(reinterpret_cast<int64_t>(object.raw())));
   }
 }
 
 
-void Assembler::CompareObject(Register reg, const Object& object, Register pp) {
+void Assembler::CompareObject(Register reg, const Object& object) {
   if (Thread::CanLoadFromThread(object)) {
     cmpq(reg, Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
     const int32_t offset =
         ObjectPool::element_offset(object_pool_wrapper_.FindObject(object));
-    cmpq(reg, Address(pp, offset-kHeapObjectTag));
+    cmpq(reg, Address(PP, offset-kHeapObjectTag));
   } else {
     CompareImmediate(
-        reg, Immediate(reinterpret_cast<int64_t>(object.raw())), pp);
+        reg, Immediate(reinterpret_cast<int64_t>(object.raw())));
   }
 }
 
@@ -2875,31 +2890,22 @@ intptr_t Assembler::FindImmediate(int64_t imm) {
 }
 
 
-bool Assembler::CanLoadImmediateFromPool(const Immediate& imm, Register pp) {
-  if (!constant_pool_allowed()) {
-    return false;
-  }
-  return !imm.is_int32() && (pp != kNoRegister);
-}
-
-
-void Assembler::LoadImmediate(Register reg, const Immediate& imm, Register pp) {
-  if (CanLoadImmediateFromPool(imm, pp)) {
-    int32_t offset = ObjectPool::element_offset(FindImmediate(imm.value()));
-    LoadWordFromPoolOffset(reg, pp, offset - kHeapObjectTag);
-  } else {
+void Assembler::LoadImmediate(Register reg, const Immediate& imm) {
+  if (imm.is_int32() || !constant_pool_allowed()) {
     movq(reg, imm);
+  } else {
+    int32_t offset = ObjectPool::element_offset(FindImmediate(imm.value()));
+    LoadWordFromPoolOffset(reg, offset - kHeapObjectTag);
   }
 }
 
 
-void Assembler::MoveImmediate(const Address& dst, const Immediate& imm,
-                              Register pp) {
-  if (CanLoadImmediateFromPool(imm, pp)) {
-    LoadImmediate(TMP, imm, pp);
-    movq(dst, TMP);
-  } else {
+void Assembler::MoveImmediate(const Address& dst, const Immediate& imm) {
+  if (imm.is_int32()) {
     movq(dst, imm);
+  } else {
+    LoadImmediate(TMP, imm);
+    movq(dst, TMP);
   }
 }
 
@@ -3085,18 +3091,17 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value,
-                                         Register pp,
                                          FieldContent old_content) {
   VerifyHeapWord(dest, old_content);
   if (VerifiedMemory::enabled()) {
-    Register temp = (pp == RCX) ? RDX : RCX;
+    const Register temp = RCX;
     pushq(temp);
     leaq(temp, dest);
-    StoreObject(Address(temp, 0), value, pp);
-    StoreObject(Address(temp, VerifiedMemory::offset()), value, pp);
+    StoreObject(Address(temp, 0), value);
+    StoreObject(Address(temp, VerifiedMemory::offset()), value);
     popq(temp);
   } else {
-    StoreObject(dest, value, pp);
+    StoreObject(dest, value);
   }
   // TODO(koda): Use 'object', verify that generational barrier's not needed.
 }
@@ -3153,7 +3158,7 @@ void Assembler::DoubleNegate(XmmRegister d) {
   } double_negate_constant =
       {0x8000000000000000LL, 0x8000000000000000LL};
   LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&double_negate_constant)), PP);
+      TMP, Immediate(reinterpret_cast<intptr_t>(&double_negate_constant)));
   xorpd(d, Address(TMP, 0));
 }
 
@@ -3165,7 +3170,7 @@ void Assembler::DoubleAbs(XmmRegister reg) {
   } double_abs_constant =
       {0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL};
   LoadImmediate(TMP,
-      Immediate(reinterpret_cast<intptr_t>(&double_abs_constant)), PP);
+      Immediate(reinterpret_cast<intptr_t>(&double_abs_constant)));
   andpd(reg, Address(TMP, 0));
 }
 
@@ -3181,7 +3186,7 @@ void Assembler::Stop(const char* message, bool fixed_length_encoding) {
       EmitUint8(0xB8 | (RDI & 7));
       EmitInt64(message_address);
     } else {
-      LoadImmediate(RDI, Immediate(message_address), PP);
+      LoadImmediate(RDI, Immediate(message_address));
     }
     call(&StubCode::PrintStopMessageLabel());
     popq(RDI);  // Restore RDI register.
@@ -3259,7 +3264,7 @@ void Assembler::PushRegisters(intptr_t cpu_register_set,
                               intptr_t xmm_register_set) {
   const intptr_t xmm_regs_count = RegisterSet::RegisterCount(xmm_register_set);
   if (xmm_regs_count > 0) {
-    AddImmediate(RSP, Immediate(-xmm_regs_count * kFpuRegisterSize), PP);
+    AddImmediate(RSP, Immediate(-xmm_regs_count * kFpuRegisterSize));
     // Store XMM registers with the lowest register number at the lowest
     // address.
     intptr_t offset = 0;
@@ -3308,7 +3313,7 @@ void Assembler::PopRegisters(intptr_t cpu_register_set,
       }
     }
     ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
-    AddImmediate(RSP, Immediate(offset), PP);
+    AddImmediate(RSP, Immediate(offset));
   }
 }
 
@@ -3378,16 +3383,19 @@ void Assembler::LoadPoolPointer(Register pp) {
   movq(pp, Address::AddressRIPRelative(
       -entry_to_rip_offset - object_pool_pc_dist));
   ASSERT(CodeSize() == entry_to_rip_offset);
+  set_constant_pool_allowed(pp == PP);
 }
 
 
 void Assembler::EnterDartFrameWithInfo(intptr_t frame_size,
                                        Register new_pp,
                                        Register pc_marker_override) {
+  ASSERT(!constant_pool_allowed());
   EnterFrame(0);
   pushq(pc_marker_override);
   pushq(PP);
   movq(PP, new_pp);
+  set_constant_pool_allowed(true);
   if (frame_size != 0) {
     subq(RSP, Immediate(frame_size));
   }
@@ -3395,6 +3403,10 @@ void Assembler::EnterDartFrameWithInfo(intptr_t frame_size,
 
 
 void Assembler::LeaveDartFrame() {
+  // LeaveDartFrame is called from stubs (pp disallowed) and from Dart code (pp
+  // allowed), so there is no point in checking the current value of
+  // constant_pool_allowed().
+  set_constant_pool_allowed(false);
   // Restore caller's PP register that was pushed in EnterDartFrame.
   movq(PP, Address(RBP, (kSavedCallerPpSlotFromFp * kWordSize)));
   LeaveFrame();
@@ -3409,12 +3421,14 @@ void Assembler::LeaveDartFrame() {
 void Assembler::EnterOsrFrame(intptr_t extra_size,
                               Register new_pp,
                               Register pc_marker_override) {
+  ASSERT(!constant_pool_allowed());
   if (prologue_offset_ == -1) {
     Comment("PrologueOffset = %" Pd "", CodeSize());
     prologue_offset_ = CodeSize();
   }
   movq(Address(RBP, kPcMarkerSlotFromFp * kWordSize), pc_marker_override);
   movq(PP, new_pp);
+  set_constant_pool_allowed(true);
   if (extra_size != 0) {
     subq(RSP, Immediate(extra_size));
   }
@@ -3422,14 +3436,16 @@ void Assembler::EnterOsrFrame(intptr_t extra_size,
 
 
 void Assembler::EnterStubFrame() {
+  set_constant_pool_allowed(false);
   EnterFrame(0);
   pushq(Immediate(0));  // Push 0 in the saved PC area for stub frames.
   pushq(PP);  // Save caller's pool pointer
-  LoadPoolPointer(PP);
+  LoadPoolPointer();
 }
 
 
 void Assembler::LeaveStubFrame() {
+  set_constant_pool_allowed(false);
   // Restore caller's PP register that was pushed in EnterStubFrame.
   movq(PP, Address(RBP, (kSavedCallerPpSlotFromFp * kWordSize)));
   LeaveFrame();
@@ -3521,8 +3537,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
 void Assembler::TryAllocate(const Class& cls,
                             Label* failure,
                             bool near_jump,
-                            Register instance_reg,
-                            Register pp) {
+                            Register instance_reg) {
   ASSERT(failure != NULL);
   if (FLAG_inline_alloc) {
     // If this allocation is traced, program will jump to failure path
@@ -3532,26 +3547,26 @@ void Assembler::TryAllocate(const Class& cls,
     Heap* heap = Isolate::Current()->heap();
     const intptr_t instance_size = cls.instance_size();
     Heap::Space space = heap->SpaceForAllocation(cls.id());
-    LoadImmediate(TMP, Immediate(heap->TopAddress(space)), pp);
+    LoadImmediate(TMP, Immediate(heap->TopAddress(space)));
     movq(instance_reg, Address(TMP, 0));
-    AddImmediate(instance_reg, Immediate(instance_size), pp);
+    AddImmediate(instance_reg, Immediate(instance_size));
     // instance_reg: potential next object start.
-    LoadImmediate(TMP, Immediate(heap->EndAddress(space)), pp);
+    LoadImmediate(TMP, Immediate(heap->EndAddress(space)));
     cmpq(instance_reg, Address(TMP, 0));
     j(ABOVE_EQUAL, failure, near_jump);
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    LoadImmediate(TMP, Immediate(heap->TopAddress(space)), pp);
+    LoadImmediate(TMP, Immediate(heap->TopAddress(space)));
     movq(Address(TMP, 0), instance_reg);
     UpdateAllocationStats(cls.id(), space);
     ASSERT(instance_size >= kHeapObjectTag);
-    AddImmediate(instance_reg, Immediate(kHeapObjectTag - instance_size), pp);
+    AddImmediate(instance_reg, Immediate(kHeapObjectTag - instance_size));
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
     MoveImmediate(FieldAddress(instance_reg, Object::tags_offset()),
-                  Immediate(tags), pp);
+                  Immediate(tags));
   } else {
     jmp(failure);
   }
@@ -3751,7 +3766,7 @@ void Assembler::LoadClassId(Register result, Register object) {
 }
 
 
-void Assembler::LoadClassById(Register result, Register class_id, Register pp) {
+void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
   LoadIsolate(result);
   const intptr_t offset =
@@ -3761,9 +3776,9 @@ void Assembler::LoadClassById(Register result, Register class_id, Register pp) {
 }
 
 
-void Assembler::LoadClass(Register result, Register object, Register pp) {
+void Assembler::LoadClass(Register result, Register object) {
   LoadClassId(TMP, object);
-  LoadClassById(result, TMP, pp);
+  LoadClassById(result, TMP);
 }
 
 
@@ -3798,7 +3813,7 @@ void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
 
   // Load up a null object. We only need it so we can use LoadClassId on it in
   // the case that object is a Smi.
-  LoadObject(result, Object::null_object(), PP);
+  LoadObject(result, Object::null_object());
   // Check if the object is a Smi.
   testq(object, Immediate(kSmiTagMask));
   // If the object *is* a Smi, use the null object instead.

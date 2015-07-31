@@ -39,7 +39,10 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
                                                          15,
                                                          1));
 
-  __ LoadObject(RBX, ic_data, PP);
+  // Code accessing pp is generated, but not executed. Uninitialized pp is OK.
+  __ set_constant_pool_allowed(true);
+
+  __ LoadObject(RBX, ic_data);
   ExternalLabel target_label(StubCode::OneArgCheckInlineCacheEntryPoint());
   __ CallPatchable(&target_label);
   __ ret();

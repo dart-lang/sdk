@@ -45,12 +45,12 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler,
   const Smi& smi1 = Smi::ZoneHandle(Smi::New(value1));
   const Smi& smi2 = Smi::ZoneHandle(Smi::New(value2));
   __ EnterStubFrame();
-  __ PushObject(Object::null_object(), PP);  // Push Null obj for return value.
-  __ PushObject(smi1, PP);  // Push argument 1 smi1.
-  __ PushObject(smi2, PP);  // Push argument 2 smi2.
+  __ PushObject(Object::null_object());  // Push Null obj for return value.
+  __ PushObject(smi1);  // Push argument 1 smi1.
+  __ PushObject(smi2);  // Push argument 2 smi2.
   ASSERT(kTestSmiSubRuntimeEntry.argument_count() == argc);
   __ CallRuntime(kTestSmiSubRuntimeEntry, argc);  // Call SmiSub runtime func.
-  __ AddImmediate(RSP, Immediate(argc * kWordSize), PP);
+  __ AddImmediate(RSP, Immediate(argc * kWordSize));
   __ popq(RAX);  // Pop return value from return slot.
   __ LeaveStubFrame();
   __ ret();
@@ -82,8 +82,8 @@ static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
   const Smi& smi2 = Smi::ZoneHandle(Smi::New(value2));
   __ enter(Immediate(0));
   __ ReserveAlignedFrameSpace(0);
-  __ LoadObject(CallingConventions::kArg1Reg, smi1, PP);
-  __ LoadObject(CallingConventions::kArg2Reg, smi2, PP);
+  __ LoadObject(CallingConventions::kArg1Reg, smi1);
+  __ LoadObject(CallingConventions::kArg2Reg, smi2);
   __ CallRuntime(kTestLeafSmiAddRuntimeEntry, 2);  // Call SmiAdd runtime func.
   __ leave();
   __ ret();  // Return value is in RAX.
