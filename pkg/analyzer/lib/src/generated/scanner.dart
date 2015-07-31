@@ -1501,8 +1501,8 @@ class Scanner {
         }
         recordStartOfLine();
       } else if (next == 0xA) {
-        recordStartOfLine();
         next = _reader.advance();
+        recordStartOfLine();
       } else {
         next = _reader.advance();
       }
