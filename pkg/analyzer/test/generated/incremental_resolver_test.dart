@@ -3872,6 +3872,20 @@ f3() {
 ''');
   }
 
+  void _assertEqualLineInfo(LineInfo incrLineInfo, LineInfo fullLineInfo) {
+    for (int offset = 0; offset < 1000; offset++) {
+      LineInfo_Location incrLocation = incrLineInfo.getLocation(offset);
+      LineInfo_Location fullLocation = fullLineInfo.getLocation(offset);
+      if (incrLocation.lineNumber != fullLocation.lineNumber ||
+          incrLocation.columnNumber != fullLocation.columnNumber) {
+        fail('At offset $offset ' +
+            '(${incrLocation.lineNumber}, ${incrLocation.columnNumber})' +
+            ' != ' +
+            '(${fullLocation.lineNumber}, ${fullLocation.columnNumber})');
+      }
+    }
+  }
+
   /**
    * Reset the analysis context to have the 'incremental' option set to the
    * given value.
@@ -3910,6 +3924,7 @@ f3() {
     analysisContext2.setContents(source, newCode);
     CompilationUnit newUnit = resolveCompilationUnit(source, oldLibrary);
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
+    LineInfo newLineInfo = analysisContext.getLineInfo(source);
     // check for expected failure
     if (!expectedSuccess) {
       expect(newUnit.element, isNot(same(oldUnitElement)));
@@ -3932,6 +3947,8 @@ f3() {
       CompilationUnit fullNewUnit = resolveCompilationUnit(source, library);
       // Validate tokens.
       _assertEqualTokens(newUnit, fullNewUnit);
+      // Validate LineInfo
+      _assertEqualLineInfo(newLineInfo, analysisContext.getLineInfo(source));
       // Validate that "incremental" and "full" units have the same resolution.
       try {
         assertSameResolution(newUnit, fullNewUnit, validateTypes: true);
@@ -3941,7 +3958,6 @@ f3() {
       List<AnalysisError> newFullErrors =
           analysisContext.getErrors(source).errors;
       _assertEqualErrors(newErrors, newFullErrors);
-      // TODO(scheglov) check line info
     }
   }
 
