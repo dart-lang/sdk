@@ -980,21 +980,13 @@ void FlowGraphCompiler::EmitFrameEntry() {
       function.IsOptimizable() &&
       (!is_optimizing() || may_reoptimize())) {
     const Register function_reg = R6;
-    const Register saved_pp = R7;
     new_pp = R13;
     // The pool pointer is not setup before entering the Dart frame.
-    // Preserve PP of caller.
-    __ mov(saved_pp, PP);
-
     // Temporarily setup pool pointer for this dart function.
-    __ LoadPoolPointer();
+    __ LoadPoolPointer(new_pp);
 
     // Load function object using the callee's pool pointer.
-    __ LoadObject(function_reg, function);
-    // Preserve new PP and restore PP of caller.
-    __ mov(new_pp, PP);
-    __ mov(PP, saved_pp);
-    __ set_constant_pool_allowed(false);
+    __ LoadFunctionFromCalleePool(function_reg, function, new_pp);
 
     // Patch point is after the eventually inlined function object.
     entry_patch_pc_offset_ = assembler()->CodeSize();

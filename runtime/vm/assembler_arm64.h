@@ -1288,7 +1288,7 @@ class Assembler : public ValueObject {
                                       const Object& value);
 
   // Object pool, loading from pool, etc.
-  void LoadPoolPointer();
+  void LoadPoolPointer(Register pp = PP);
 
   bool constant_pool_allowed() const {
     return constant_pool_allowed_;
@@ -1305,6 +1305,9 @@ class Assembler : public ValueObject {
   void LoadExternalLabelFixed(Register dst,
                               const ExternalLabel* label,
                               Patchability patchable);
+  void LoadFunctionFromCalleePool(Register dst,
+                                  const Function& function,
+                                  Register new_pp);
   void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj);
   void LoadUniqueObject(Register dst, const Object& obj);

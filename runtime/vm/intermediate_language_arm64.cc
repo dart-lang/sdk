@@ -103,6 +103,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ brk(0);
   __ Bind(&stack_ok);
 #endif
+  ASSERT(__ constant_pool_allowed());
   __ LeaveDartFrame();  // Disallows constant pool use.
   __ ret();
   // This ReturnInstr may be emitted out of order by the optimizer. The next

@@ -302,12 +302,12 @@ bool Operand::IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op) {
 }
 
 
-void Assembler::LoadPoolPointer() {
+void Assembler::LoadPoolPointer(Register pp) {
   const intptr_t object_pool_pc_dist =
     Instructions::HeaderSize() - Instructions::object_pool_offset() +
     CodeSize();
   // PP <- Read(PC - object_pool_pc_dist).
-  ldr(PP, Address::PC(-object_pool_pc_dist));
+  ldr(pp, Address::PC(-object_pool_pc_dist));
 
   // When in the PP register, the pool pointer is untagged. When we
   // push it on the stack with TagAndPushPP it is tagged again. PopAndUntagPP
@@ -315,8 +315,8 @@ void Assembler::LoadPoolPointer() {
   // object pool only one instruction for the first 4096 entries. Otherwise,
   // because the offset wouldn't be aligned, it would be only one instruction
   // for the first 64 entries.
-  sub(PP, PP, Operand(kHeapObjectTag));
-  set_constant_pool_allowed(true);
+  sub(pp, pp, Operand(kHeapObjectTag));
+  set_constant_pool_allowed(pp == PP);
 }
 
 
@@ -424,6 +424,18 @@ void Assembler::LoadObjectHelper(Register dst,
     ASSERT(object.IsSmi() || object.InVMHeap());
     LoadDecodableImmediate(dst, reinterpret_cast<int64_t>(object.raw()));
   }
+}
+
+
+void Assembler::LoadFunctionFromCalleePool(Register dst,
+                                           const Function& function,
+                                           Register new_pp) {
+  ASSERT(!constant_pool_allowed());
+  ASSERT(new_pp != PP);
+  const int32_t offset =
+      ObjectPool::element_offset(object_pool_wrapper_.FindObject(function));
+  ASSERT(Address::CanHoldOffset(offset));
+  ldr(dst, Address(new_pp, offset));
 }
 
 
