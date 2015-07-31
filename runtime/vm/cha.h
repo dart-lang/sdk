@@ -19,7 +19,7 @@ class String;
 class CHA : public StackResource {
  public:
   explicit CHA(Thread* thread)
-      : StackResource(thread->isolate()),
+      : StackResource(thread),
         thread_(thread),
         leaf_classes_(thread->zone(), 1),
         previous_(thread->cha()) {

@@ -224,7 +224,7 @@ void Heap::VisitObjects(ObjectVisitor* visitor) const {
 
 
 HeapIterationScope::HeapIterationScope()
-    : StackResource(Thread::Current()->isolate()),
+    : StackResource(Thread::Current()),
       old_space_(isolate()->heap()->old_space()) {
   // It's not yet safe to iterate over a paged space while it's concurrently
   // sweeping, so wait for any such task to complete first.

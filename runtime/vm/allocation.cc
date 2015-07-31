@@ -30,11 +30,11 @@ void* ZoneAllocated::operator new(uword size, Zone* zone) {
 }
 
 
-void StackResource::UnwindAbove(Isolate* isolate, StackResource* new_top) {
-  StackResource* current_resource = isolate->top_resource();
+void StackResource::UnwindAbove(Thread* thread, StackResource* new_top) {
+  StackResource* current_resource = thread->top_resource();
   while (current_resource != new_top) {
     current_resource->~StackResource();
-    current_resource = isolate->top_resource();
+    current_resource = thread->top_resource();
   }
 }
 
