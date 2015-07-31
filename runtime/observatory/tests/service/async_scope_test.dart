@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
 
-import 'dart:async';
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -13,14 +12,14 @@ foo() {}
 
 doAsync(param1) async {
   var local1 = param1 + 1;
-  foo(); // Line 16
-  await null;
+  foo(); // Line 15
+  await local1;
 }
 
 doAsyncStar(param2) async* {
   var local2 = param2 + 1;
-  foo(); // Line 22
-  yield null;
+  foo(); // Line 21
+  yield local2;
 }
 
 testeeDo() {
@@ -54,17 +53,17 @@ checkAsyncStarVarDescriptors(Isolate isolate) async {
 
 var tests = [
   hasStoppedAtBreakpoint, // debugger()
-  setBreakpointAtLine(16),
-  setBreakpointAtLine(22),
+  setBreakpointAtLine(15),
+  setBreakpointAtLine(21),
   resumeIsolate,
 
   hasStoppedAtBreakpoint,
-  stoppedAtLine(16),
+  stoppedAtLine(15),
   checkAsyncVarDescriptors,
   resumeIsolate,
 
   hasStoppedAtBreakpoint,
-  stoppedAtLine(22),
+  stoppedAtLine(21),
   checkAsyncStarVarDescriptors,
   resumeIsolate,
 ];

@@ -4,7 +4,6 @@
 // VMOptions=--compile_all --error_on_bad_type --error_on_bad_override  --verbose_debug
 
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'dart:developer';
 
@@ -12,9 +11,9 @@ foo() async { }
 
 doAsync(stop) async {
   if (stop) debugger();
+  await foo(); // Line 14.
   await foo(); // Line 15.
   await foo(); // Line 16.
-  await foo(); // Line 17.
   return null;
 }
 
@@ -31,13 +30,13 @@ asyncNext(Isolate isolate) async {
 
 var tests = [
   hasStoppedAtBreakpoint,
+  stoppedAtLine(14),
+  asyncNext,
+  hasStoppedAtBreakpoint,
   stoppedAtLine(15),
   asyncNext,
   hasStoppedAtBreakpoint,
   stoppedAtLine(16),
-  asyncNext,
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(17),
   resumeIsolate,
 ];
 

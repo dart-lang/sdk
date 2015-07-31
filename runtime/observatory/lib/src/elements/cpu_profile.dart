@@ -563,10 +563,12 @@ class CpuProfileElement extends ObservatoryElement {
 
   attached() {
     super.attached();
-    sampleBufferControlElement = shadowRoot.query('#sampleBufferControl');
+    sampleBufferControlElement =
+        shadowRoot.querySelector('#sampleBufferControl');
     assert(sampleBufferControlElement != null);
     sampleBufferControlElement.onSampleBufferUpdate = onSampleBufferChange;
-    stackTraceTreeConfigElement = shadowRoot.query('#stackTraceTreeConfig');
+    stackTraceTreeConfigElement =
+        shadowRoot.querySelector('#stackTraceTreeConfig');
     assert(stackTraceTreeConfigElement != null);
     stackTraceTreeConfigElement.onTreeConfigChange = onTreeConfigChange;
     cpuProfileTreeElement = shadowRoot.querySelector('#cpuProfileTree');
@@ -769,13 +771,15 @@ class CpuProfileTableElement extends ObservatoryElement {
 
   attached() {
     super.attached();
-    sampleBufferControlElement = shadowRoot.query('#sampleBufferControl');
+    sampleBufferControlElement =
+        shadowRoot.querySelector('#sampleBufferControl');
     assert(sampleBufferControlElement != null);
     sampleBufferControlElement.onSampleBufferUpdate = onSampleBufferChange;
     // Disable the tag selector- we always want no tags.
     sampleBufferControlElement.tagSelector = 'None';
     sampleBufferControlElement.showTagSelector = false;
-    stackTraceTreeConfigElement = shadowRoot.query('#stackTraceTreeConfig');
+    stackTraceTreeConfigElement =
+        shadowRoot.querySelector('#stackTraceTreeConfig');
     assert(stackTraceTreeConfigElement != null);
     stackTraceTreeConfigElement.onTreeConfigChange = onTreeConfigChange;
     stackTraceTreeConfigElement.modeSelector = 'Function';
