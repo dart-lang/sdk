@@ -95,21 +95,6 @@ class Server {
     _displayMessages = (_ip != '127.0.0.1' || _port != 8181);
   }
 
-  bool _shouldServeObservatory(HttpRequest request) {
-    if (request.headers['Observatory-Version'] != null) {
-      // Request is already coming from Observatory.
-      return false;
-    }
-    // TODO(johnmccutchan): Test with obscure browsers.
-    if (request.headers.value(HttpHeaders.USER_AGENT).contains('Mozilla')) {
-      // Request is coming from a browser but not Observatory application.
-      // Serve Observatory and let the Observatory make the real request.
-      return true;
-    }
-    // All other user agents are assumed to be textual.
-    return false;
-  }
-
   void _requestHandler(HttpRequest request) {
     // Allow cross origin requests with 'observatory' header.
     request.response.headers.add('Access-Control-Allow-Origin', '*');
@@ -133,10 +118,6 @@ class Server {
     }
 
     var resource = Resource.resources[path];
-    if (resource == null && _shouldServeObservatory(request)) {
-      resource = Resource.resources[ROOT_REDIRECT_PATH];
-      assert(resource != null);
-    }
     if (resource != null) {
       // Serving up a static resource (e.g. .css, .html, .png).
       request.response.headers.contentType =
