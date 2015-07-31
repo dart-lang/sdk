@@ -139,7 +139,7 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
   if (!instr->IsBlockEntry()) ISL_Print("    ");
   ISL_Print("%s", str);
   if (FLAG_trace_inlining_intervals) {
-    ISL_Print(" iid: %"Pd"", instr->inlining_id());
+    ISL_Print(" iid: %" Pd "", instr->inlining_id());
   }
 }
 
