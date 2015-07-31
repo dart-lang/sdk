@@ -52,12 +52,12 @@ class Message {
   }
 
   Message.fromUri(this.client, Uri uri)
-      : method = _methodNameFromUri(uri) {
+      : serial = '', method = _methodNameFromUri(uri) {
     params.addAll(uri.queryParameters);
   }
 
   Message.forIsolate(this.client, Uri uri, RunningIsolate isolate)
-      : method = _methodNameFromUri(uri) {
+      : serial = '', method = _methodNameFromUri(uri) {
     params.addAll(uri.queryParameters);
     params['isolateId'] = isolate.serviceId;
   }

@@ -156,9 +156,8 @@ class LoggingPageElement extends ObservatoryElement {
   _flushPendingLogs() {
     DivElement logContainer = shadowRoot.querySelector(_kLogSelector);
     bool autoScroll = _isScrolledToBottom(logContainer);
-    var lastElement;
     for (var logRecord in pendingLogRecords) {
-      lastElement = _renderAppend(logRecord);
+      _renderAppend(logRecord);
     }
     if (autoScroll) {
       _scrollToBottom(logContainer);

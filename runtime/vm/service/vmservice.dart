@@ -261,7 +261,7 @@ class VMService extends MessageRouter {
     // Make requests to each isolate.
     for (var isolate in isolates) {
       for (var request in perIsolateRequests) {
-        var message = new Message.forIsolate(request, isolate);
+        var message = new Message.forIsolate(client, request, isolate);
         // Decode the JSON and and insert it into the map. The map key
         // is the request Uri.
         var response = JSON.decode(await isolate.route(message));

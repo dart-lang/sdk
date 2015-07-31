@@ -358,9 +358,9 @@ class AsyncNextCommand extends DebuggerCommand {
       var event = debugger.isolate.pauseEvent;
       if (event.asyncContinuation == null) {
         debugger.console.print("No async continuation at this location");
-        return;
+      } else {
+        return debugger.isolate.asyncStepOver()[Isolate.kFirstResume];
       }
-      return debugger.isolate.asyncStepOver()[Isolate.kFirstResume];
     } else {
       debugger.console.print('The program is already running');
     }
@@ -1889,4 +1889,3 @@ class DebuggerInputElement extends ObservatoryElement {
 
   DebuggerInputElement.created() : super.created();
 }
-

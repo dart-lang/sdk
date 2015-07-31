@@ -86,6 +86,10 @@ class _TestLauncher {
 typedef Future IsolateTest(Isolate isolate);
 typedef Future VMTest(VM vm);
 
+/// Will be set to the http address of the VM's service protocol before
+/// any tests are invoked.
+String serviceHttpAddress;
+
 /// Runs [tests] in sequence, each of which should take an [Isolate] and
 /// return a [Future]. Code for setting up state can run before and/or
 /// concurrently with the tests. Uses [mainArgs] to determine whether
@@ -112,6 +116,7 @@ void runIsolateTests(List<String> mainArgs,
         port = 8181;
       }
       String addr = 'ws://localhost:$port/ws';
+      serviceHttpAddress = 'http://localhost:$port';
       var testIndex = 1;
       var totalTests = tests.length;
       var name = Platform.script.pathSegments.last;
@@ -299,6 +304,7 @@ Future runVMTests(List<String> mainArgs,
         port = 8181;
       }
       String addr = 'ws://localhost:$port/ws';
+      serviceHttpAddress = 'http://localhost:$port';
       var testIndex = 1;
       var totalTests = tests.length;
       var name = Platform.script.pathSegments.last;

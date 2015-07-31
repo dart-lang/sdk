@@ -126,6 +126,7 @@ class Server {
       request.response.close();
       return;
     }
+    // HTTP based service request.
     var client = new HttpRequestClient(request, _service);
     var message = new Message.fromUri(client, request.uri);
     client.onMessage(null, message);
