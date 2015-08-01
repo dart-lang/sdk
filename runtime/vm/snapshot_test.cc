@@ -1055,6 +1055,7 @@ TEST_CASE(SerializeScript) {
 }
 
 
+#if 0
 UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
   const char* kScriptChars =
       "\n"
@@ -1165,6 +1166,7 @@ UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
   free(script_snapshot);
   free(full_snapshot);
 }
+#endif
 
 
 static void IterateScripts(const Library& lib) {

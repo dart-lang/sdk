@@ -210,7 +210,9 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   // Allocate type object.
   Type& type = Type::ZoneHandle(reader->zone(), NEW_OBJECT(Type));
   bool is_canonical = RawObject::IsCanonical(tags);
-  bool defer_canonicalization = is_canonical && (kind != Snapshot::kFull);
+  bool defer_canonicalization = is_canonical &&
+      ((kind == Snapshot::kScript && RawObject::IsCreatedFromSnapshot(tags)) ||
+       kind == Snapshot::kMessage);
   reader->AddBackRef(object_id, &type, kIsDeserialized, defer_canonicalization);
 
   // Set all non object fields.
@@ -451,7 +453,9 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   TypeArguments& type_arguments = TypeArguments::ZoneHandle(
       reader->zone(), NEW_OBJECT_WITH_LEN_SPACE(TypeArguments, len, kind));
   bool is_canonical = RawObject::IsCanonical(tags);
-  bool defer_canonicalization = is_canonical && (kind != Snapshot::kFull);
+  bool defer_canonicalization = is_canonical &&
+      ((kind == Snapshot::kScript && RawObject::IsCreatedFromSnapshot(tags)) ||
+       kind == Snapshot::kMessage);
   reader->AddBackRef(object_id,
                      &type_arguments,
                      kIsDeserialized,
