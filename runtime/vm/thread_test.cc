@@ -271,44 +271,46 @@ class SafepointTestTask : public ThreadPool::Task {
     for (int i = 0; ; ++i) {
       Thread* thread = Thread::Current();
       StackZone stack_zone(thread);
-        Zone* zone = thread->zone();
-        HANDLESCOPE(thread);
-        const intptr_t kUniqueSmi = 928327281;
-        Smi& smi = Smi::Handle(zone, Smi::New(kUniqueSmi));
-        if ((i % 100) != 0) {
-          // Usually, we just cooperate.
-          isolate_->thread_registry()->CheckSafepoint();
-        } else {
-          // But occasionally, organize a rendezvous.
-          isolate_->thread_registry()->SafepointThreads();
-          ObjectCounter counter(isolate_, &smi);
-          isolate_->thread_registry()->VisitObjectPointers(&counter);
-          {
-            MutexLocker ml(mutex_);
-            EXPECT_EQ(*expected_count_, counter.count());
-          }
-          UserTag& tag = UserTag::Handle(zone, isolate_->current_tag());
-          if (tag.raw() != isolate_->default_tag()) {
-            String& label = String::Handle(zone, tag.label());
-            EXPECT(label.Equals("foo"));
-            // if this is the first time.
-            MutexLocker ml(mutex_);
-            if (*expected_count_ == kTaskCount && !local_done_) {
-              // Success for the first time! Remember that we are done, and
-              // update the total count.
-              local_done_ = true;
-              ++*total_done_;
-            }
-          }
-          isolate_->thread_registry()->ResumeAllThreads();
-        }
-        // Check whether everyone is done.
+      Zone* zone = thread->zone();
+      HANDLESCOPE(thread);
+      const intptr_t kUniqueSmi = 928327281;
+      Smi& smi = Smi::Handle(zone, Smi::New(kUniqueSmi));
+      if ((i % 100) != 0) {
+        // Usually, we just cooperate.
+        isolate_->thread_registry()->CheckSafepoint();
+      } else {
+        // But occasionally, organize a rendezvous.
+        isolate_->thread_registry()->SafepointThreads();
+        ObjectCounter counter(isolate_, &smi);
+        isolate_->thread_registry()->VisitObjectPointers(&counter);
         {
           MutexLocker ml(mutex_);
-          if (*total_done_ == kTaskCount) {
-            break;
+          EXPECT_EQ(*expected_count_, counter.count());
+        }
+        UserTag& tag = UserTag::Handle(zone, isolate_->current_tag());
+        if (tag.raw() != isolate_->default_tag()) {
+          String& label = String::Handle(zone, tag.label());
+          EXPECT(label.Equals("foo"));
+          MutexLocker ml(mutex_);
+          if (*expected_count_ == kTaskCount && !local_done_) {
+            // Success for the first time! Remember that we are done, and
+            // update the total count.
+            local_done_ = true;
+            ++*total_done_;
           }
         }
+        isolate_->thread_registry()->ResumeAllThreads();
+      }
+      // Check whether everyone is done.
+      {
+        MutexLocker ml(mutex_);
+        if (*total_done_ == kTaskCount) {
+          // Another task might be at SafepointThreads when resuming. Ensure its
+          // expectation reflects reality, since we pop our handles here.
+          --*expected_count_;
+          break;
+        }
+      }
     }
     Thread::ExitIsolateAsHelper();
     {
