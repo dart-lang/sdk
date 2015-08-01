@@ -78,9 +78,14 @@ void StoreBuffer::PushBlock(StoreBufferBlock* block, bool check_threshold) {
     MutexLocker ml(mutex_);
     partial_.Push(block);
   }
-  if (check_threshold) {
+  if (check_threshold && Overflowed()) {
     MutexLocker ml(mutex_);
-    CheckThresholdNonEmpty();
+    Isolate* isolate = Isolate::Current();
+    // Sanity check: it makes no sense to schedule the GC in another isolate.
+    // (If Isolate ever gets multiple store buffers, we should avoid this
+    // coupling by passing in an explicit callback+parameter at construction.)
+    ASSERT(isolate->store_buffer() == this);
+    isolate->ScheduleInterrupts(Isolate::kVMInterrupt);
   }
 }
 
@@ -139,16 +144,9 @@ void StoreBuffer::List::Push(StoreBufferBlock* block) {
 }
 
 
-void StoreBuffer::CheckThresholdNonEmpty() {
-  DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
-  if (full_.length() + partial_.length() > kMaxNonEmpty) {
-    Isolate* isolate = Isolate::Current();
-    // Sanity check: it makes no sense to schedule the GC in another isolate.
-    // (If Isolate ever gets multiple store buffers, we should avoid this
-    // coupling by passing in an explicit callback+parameter at construction.)
-    ASSERT(isolate->store_buffer() == this);
-    isolate->ScheduleInterrupts(Isolate::kStoreBufferInterrupt);
-  }
+bool StoreBuffer::Overflowed() {
+  MutexLocker ml(mutex_);
+  return (full_.length() + partial_.length()) > kMaxNonEmpty;
 }
 
 

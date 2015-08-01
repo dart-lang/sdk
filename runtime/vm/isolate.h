@@ -324,12 +324,12 @@ class Isolate : public BaseIsolate {
   enum {
     kApiInterrupt = 0x1,      // An interrupt from Dart_InterruptIsolate.
     kMessageInterrupt = 0x2,  // An interrupt to process an out of band message.
-    kStoreBufferInterrupt = 0x4,  // An interrupt to process the store buffer.
+    kVMInterrupt = 0x4,  // Internal VM checks: safepoints, store buffers, etc.
 
     kInterruptsMask =
         kApiInterrupt |
         kMessageInterrupt |
-        kStoreBufferInterrupt,
+        kVMInterrupt,
   };
 
   void ScheduleInterrupts(uword interrupt_bits);

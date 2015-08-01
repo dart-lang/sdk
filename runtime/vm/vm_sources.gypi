@@ -454,6 +454,7 @@
     'thread_pool.cc',
     'thread_pool.h',
     'thread_pool_test.cc',
+    'thread_registry.cc',
     'thread_registry.h',
     'thread_test.cc',
     'timeline.cc',

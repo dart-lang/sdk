@@ -97,6 +97,9 @@ class StoreBuffer {
   // Discards the contents of this store buffer.
   void Reset();
 
+  // Check whether non-empty blocks have exceeded kMaxNonEmpty.
+  bool Overflowed();
+
  private:
   class List {
    public:
@@ -112,10 +115,6 @@ class StoreBuffer {
     intptr_t length_;
     DISALLOW_COPY_AND_ASSIGN(List);
   };
-
-  // Check if we run over the max number of deduplication sets.
-  // If we did schedule an interrupt.
-  void CheckThresholdNonEmpty();
 
   // If needed, trims the the global cache of empty blocks.
   static void TrimGlobalEmpty();

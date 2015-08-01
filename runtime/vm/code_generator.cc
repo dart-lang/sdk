@@ -23,6 +23,7 @@
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/thread_registry.h"
 #include "vm/verifier.h"
 
 namespace dart {
@@ -1299,11 +1300,14 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   }
 
   uword interrupt_bits = isolate->GetAndClearInterrupts();
-  if ((interrupt_bits & Isolate::kStoreBufferInterrupt) != 0) {
-    if (FLAG_verbose_gc) {
-      OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
+  if ((interrupt_bits & Isolate::kVMInterrupt) != 0) {
+    isolate->thread_registry()->CheckSafepoint();
+    if (isolate->store_buffer()->Overflowed()) {
+      if (FLAG_verbose_gc) {
+        OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
+      }
+      isolate->heap()->CollectGarbage(Heap::kNew);
     }
-    isolate->heap()->CollectGarbage(Heap::kNew);
   }
   if ((interrupt_bits & Isolate::kMessageInterrupt) != 0) {
     bool ok = isolate->message_handler()->HandleOOBMessages();

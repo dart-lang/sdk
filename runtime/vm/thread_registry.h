@@ -16,10 +16,39 @@ namespace dart {
 // Unordered collection of threads relating to a particular isolate.
 class ThreadRegistry {
  public:
-  ThreadRegistry() : mutex_(new Mutex()), entries_() {}
+  ThreadRegistry()
+      : monitor_(new Monitor()),
+        entries_(),
+        in_rendezvous_(false),
+        remaining_(0),
+        round_(0) {}
+
+  // Bring all threads in this isolate to a safepoint. The caller is
+  // expected to be implicitly at a safepoint. The threads will wait
+  // until ResumeAllThreads is called. Must be called at a safepoint,
+  // since it first waits for any already pending requests. Any thread
+  // that tries to enter/exit this isolate during rendezvous will wait
+  // in RestoreStateTo/SaveStateFrom, respectively.
+  void SafepointThreads();
+
+  // Unblocks all threads participating in the rendezvous that was organized
+  // by a prior call to SafepointThreads.
+  // TODO(koda): Consider adding a scope helper to avoid omitting this call.
+  void ResumeAllThreads();
+
+  // Indicate that the current thread is at a safepoint, and offer to wait for
+  // any pending rendezvous request (if none, returns immediately).
+  void CheckSafepoint() {
+    MonitorLocker ml(monitor_);
+    CheckSafepointLocked();
+  }
 
   bool RestoreStateTo(Thread* thread, Thread::State* state) {
-    MutexLocker ml(mutex_);
+    MonitorLocker ml(monitor_);
+    // Wait for any rendezvous in progress.
+    while (in_rendezvous_) {
+      ml.Wait(Monitor::kNoTimeout);
+    }
     Entry* entry = FindEntry(thread);
     if (entry != NULL) {
       Thread::State st = entry->state;
@@ -50,7 +79,9 @@ class ThreadRegistry {
   }
 
   void SaveStateFrom(Thread* thread, const Thread::State& state) {
-    MutexLocker ml(mutex_);
+    MonitorLocker ml(monitor_);
+    // Exiting an isolate must always be a safepoint.
+    CheckSafepointLocked();
     Entry* entry = FindEntry(thread);
     ASSERT(entry != NULL);
     ASSERT(entry->scheduled);
@@ -59,12 +90,12 @@ class ThreadRegistry {
   }
 
   bool Contains(Thread* thread) {
-    MutexLocker ml(mutex_);
+    MonitorLocker ml(monitor_);
     return (FindEntry(thread) != NULL);
   }
 
   void CheckNotScheduled(Isolate* isolate) {
-    MutexLocker ml(mutex_);
+    MonitorLocker ml(monitor_);
     for (int i = 0; i < entries_.length(); ++i) {
       const Entry& entry = entries_[i];
       if (entry.scheduled) {
@@ -77,7 +108,7 @@ class ThreadRegistry {
   }
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor) {
-    MutexLocker ml(mutex_);
+    MonitorLocker ml(monitor_);
     for (int i = 0; i < entries_.length(); ++i) {
       const Entry& entry = entries_[i];
       Zone* zone = entry.scheduled ? entry.thread->zone() : entry.state.zone;
@@ -96,8 +127,8 @@ class ThreadRegistry {
 
   // Returns Entry corresponding to thread in registry or NULL.
   // Note: Lock should be taken before this function is called.
+  // TODO(koda): Add method Monitor::IsOwnedByCurrentThread.
   Entry* FindEntry(Thread* thread) {
-    DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
     for (int i = 0; i < entries_.length(); ++i) {
       if (entries_[i].thread == thread) {
         return &entries_[i];
@@ -106,9 +137,21 @@ class ThreadRegistry {
     return NULL;
   }
 
-  Mutex* mutex_;
+  // Note: Lock should be taken before this function is called.
+  void CheckSafepointLocked();
+
+  // Returns the number threads that are scheduled on this isolate.
+  // Note: Lock should be taken before this function is called.
+  intptr_t CountScheduledLocked();
+
+  Monitor* monitor_;  // All access is synchronized through this monitor.
   MallocGrowableArray<Entry> entries_;
 
+  // Safepoint rendezvous state.
+  bool in_rendezvous_;    // A safepoint rendezvous request is in progress.
+  intptr_t remaining_;    // Number of threads yet to reach their safepoint.
+  int64_t round_;         // Counter, to prevent missing updates to remaining_
+                          // (see comments in CheckSafepointLocked).
 
   DISALLOW_COPY_AND_ASSIGN(ThreadRegistry);
 };
