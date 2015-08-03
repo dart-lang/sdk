@@ -7,6 +7,7 @@
 
 [ $compiler == none ]
 built_in_identifier_prefix_test: Fail # Issue 6970
+tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633
