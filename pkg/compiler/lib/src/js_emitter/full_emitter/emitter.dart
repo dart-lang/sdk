@@ -400,6 +400,13 @@ class Emitter implements js_emitter.Emitter {
             generateEmbeddedGlobalAccessString(embeddedNames.TYPES);
         return jsAst.js.expressionTemplateFor("$typesAccess[#]");
 
+      case JsBuiltin.createDartClosureFromNameOfStaticFunction:
+        // The global-functions map contains a map from name to tear-off
+        // getters.
+        String functionGettersMap =
+            generateEmbeddedGlobalAccessString(embeddedNames.GLOBAL_FUNCTIONS);
+        return jsAst.js.expressionTemplateFor("$functionGettersMap[#]()");
+
       default:
         compiler.internalError(NO_LOCATION_SPANNABLE,
             "Unhandled Builtin: $builtin");

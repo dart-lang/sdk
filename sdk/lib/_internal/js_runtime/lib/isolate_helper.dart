@@ -9,9 +9,9 @@ import 'dart:_js_embedded_names' show
     CLASS_FIELDS_EXTRACTOR,
     CREATE_NEW_ISOLATE,
     CURRENT_SCRIPT,
-    GLOBAL_FUNCTIONS,
     INITIALIZE_EMPTY_INSTANCE,
-    INSTANCE_FROM_CLASS_ID;
+    INSTANCE_FROM_CLASS_ID,
+    STATIC_FUNCTION_NAME_PROPERTY_NAME;
 
 import 'dart:async';
 import 'dart:collection' show Queue;
@@ -24,6 +24,7 @@ import 'dart:_js_helper' show
     Null,
     Primitives,
     convertDartClosureToJS,
+    createDartClosureFromNameOfStaticFunction,
     isDartObject,
     random64,
     requiresPreamble;
@@ -911,8 +912,7 @@ class IsolateNatives {
   }
 
   static _getJSFunctionFromName(String functionName) {
-    var globalFunctionsContainer = JS_EMBEDDED_GLOBAL("", GLOBAL_FUNCTIONS);
-    return JS("", "#[#]()", globalFunctionsContainer, functionName);
+    return createDartClosureFromNameOfStaticFunction(functionName);
   }
 
   /**
@@ -921,7 +921,9 @@ class IsolateNatives {
    * but you should probably not count on this.
    */
   static String _getJSFunctionName(Function f) {
-    return (f is Closure) ? JS("String|Null", r'#.$name', f) : null;
+    return (f is Closure)
+        ? JS("String|Null", r'#[#]', f, STATIC_FUNCTION_NAME_PROPERTY_NAME)
+        : null;
   }
 
   /** Create a new JavaScript object instance given its constructor. */

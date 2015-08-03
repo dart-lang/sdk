@@ -4,6 +4,27 @@
 
 part of dart2js.js_emitter.startup_emitter.model_emitter;
 
+/// The name of the property that stores the tear-off getter on a static
+/// function.
+///
+/// This property is only used when isolates are used.
+///
+/// When serializing static functions we transmit the
+/// name of the static function, but not the name of the function's getter. We
+/// store the getter-function on the static function itself, which allows us to
+/// find it easily.
+const String tearOffPropertyName = r'$tearOff';
+
+/// The name of the property that stores the list of fields on a constructor.
+///
+/// This property is only used when isolates are used.
+///
+/// When serializing objects we extract all fields from any given object.
+/// We extract the names of all fields from a fresh empty object. This list
+/// is cached on the constructor in this property to to avoid too many
+/// allocations.
+const String cachedClassFieldNames = r'$cachedFieldNames';
+
 /// The fast startup emitter's goal is to minimize the amount of work that the
 /// JavaScript engine has to do before it can start running user code.
 ///
@@ -141,6 +162,8 @@ var typesOffset = 0;
 function installTearOff(
     container, getterName, isStatic, isIntercepted, requiredParameterCount,
     optionalParameterDefaultValues, callNames, funsOrNames, funType) {
+  // A function can have several stubs (for example to fill in optional
+  // arguments). We collect these functions in the `funs` array.
   var funs = [];
   for (var i = 0; i < funsOrNames.length; i++) {
     var fun = funsOrNames[i];
@@ -149,8 +172,11 @@ function installTearOff(
     funs.push(fun);
   }
 
-  funs[0][#argumentCount] = requiredParameterCount;
-  funs[0][#defaultArgumentValues] = optionalParameterDefaultValues;
+  // The main function to which all stubs redirect.
+  var fun = funs[0];
+
+  fun[#argumentCount] = requiredParameterCount;
+  fun[#defaultArgumentValues] = optionalParameterDefaultValues;
   var reflectionInfo = funType;
   if (typeof reflectionInfo == "number") {
     // The reflectionInfo can either be a function, or a pointer into the types
@@ -159,8 +185,12 @@ function installTearOff(
     reflectionInfo = reflectionInfo + typesOffset;
   }
   var name = funsOrNames[0];
-  container[getterName] =
+  var getterFunction =
       tearOff(funs, reflectionInfo, isStatic, name, isIntercepted);
+  container[getterName] = getterFunction;
+  if (isStatic) {
+    fun.$tearOffPropertyName = getterFunction;
+  }
 }
 
 // Instead of setting the interceptor tags directly we use this update
@@ -220,6 +250,19 @@ function initializeDeferredHunk(hunk) {
        updateHolder, updateTypes, setOrUpdateInterceptorsByTag,
        setOrUpdateLeafTags,
        #embeddedGlobalsObject, #holdersList, #staticState);
+}
+
+// Returns the global with the given [name].
+function getGlobalFromName(name) {
+  // TODO(floitsch): we are running through all holders. Since negative
+  // lookups are expensive we might need to improve this.
+  // Relies on the fact that all names are unique across all holders.
+  for (var i = 0; i < holders.length; i++) {
+    // The constant holder reuses the same names. Therefore we must skip it.
+    if (holders[i] == #constantHolderReference) continue;
+    // Relies on the fact that all variables are unique.
+    if (holders[i][name]) return holders[i][name];
+  }
 }
 
 // Creates the holders.
@@ -351,6 +394,7 @@ class FragmentEmitter {
          'staticStateDeclaration': new js.VariableDeclaration(
              namer.staticStateHolder, allowRename: false),
          'staticState': js.js('#', namer.staticStateHolder),
+         'constantHolderReference': buildConstantHolderReference(program),
          'holders': emitHolders(program.holders, fragment),
          'callName': js.string(namer.callNameField),
          'argumentCount': js.string(namer.requiredParameterField),
@@ -468,6 +512,15 @@ class FragmentEmitter {
               .map((holder) => new js.VariableUse(holder.name))
               .toList(growable: false)))];
     return new js.Block(statements);
+  }
+
+  /// Returns a reference to the constant holder, or the JS-literal `null`.
+  js.Expression buildConstantHolderReference(Program program) {
+    Holder constantHolder = program.holders
+        .firstWhere((Holder holder) => holder.isConstantsHolder,
+                    orElse: () => null);
+    if (constantHolder == null) return new js.LiteralNull();
+    return new js.VariableUse(constantHolder.name);
   }
 
   /// Emits the given [method].
@@ -955,19 +1008,7 @@ class FragmentEmitter {
   /// This embedded global provides a way to go from a class name (which is
   /// also the constructor's name) to the constructor itself.
   js.Property emitGetTypeFromName() {
-    // TODO(floitsch): Fix getTypeFromName. It's too inefficient.
-    // The current implementation relies on the fact that the names in holders
-    // are unique across all holders.
-    // TODO(floitsch): constants and other globals may share the same name.
-    //   If a global happens to have the same (minified) name this code breaks.
-    //   A follow-up CL has a fix for this.
-    js.Expression function =
-        js.js( """function(name) {
-                    for (var i = 0; i < holders.length; i++) {
-                      // Relies on the fact that all variables are unique.
-                      if (holders[i][name]) return holders[i][name];
-                    }
-                  }""");
+    js.Expression function = js.js("getGlobalFromName");
     return new js.Property(js.string(GET_TYPE_FROM_NAME), function);
   }
 
@@ -1014,8 +1055,67 @@ class FragmentEmitter {
       // impact on real-world programs, though.
       globals.add(
           new js.Property(js.string(CREATE_NEW_ISOLATE),
-          js.js('function () { return $staticStateName; }')));
-      // TODO(floitsch): add remaining isolate functions.
+                          js.js('function () { return $staticStateName; }')));
+
+      js.Expression nameToClosureFunction = js.js('''
+        // First fetch the static function. From there we can execute its
+        // getter function which builds a Dart closure.
+        function(name) {
+           var staticFunction = getGlobalFromName(name);
+           var getterFunction = staticFunction.$tearOffPropertyName;
+           return getterFunction();
+         }''');
+      globals.add(new js.Property(js.string(STATIC_FUNCTION_NAME_TO_CLOSURE),
+                                  nameToClosureFunction));
+
+      globals.add(
+          new js.Property(js.string(CLASS_ID_EXTRACTOR),
+                          js.js('function(o) { return o.constructor.name; }')));
+
+      js.Expression extractFieldsFunction = js.js('''
+      function(o) {
+        var constructor = o.constructor;
+        var fieldNames = constructor.$cachedClassFieldNames;
+        if (!fieldNames) {
+          // Extract the fields from an empty unmodified object.
+          var empty = new constructor();
+          // This gives us the keys that the constructor sets.
+          fieldNames = constructor.$cachedClassFieldNames = Object.keys(empty);
+        }
+        var result = new Array(fieldNames.length);
+        for (var i = 0; i < fieldNames.length; i++) {
+          result[i] = o[fieldNames[i]];
+        }
+        return result;
+      }''');
+      globals.add(new js.Property(js.string(CLASS_FIELDS_EXTRACTOR),
+                                  extractFieldsFunction));
+
+      js.Expression createInstanceFromClassIdFunction = js.js('''
+        function(name) {
+          var constructor = getGlobalFromName(name);
+          return new constructor();
+        }
+      ''');
+      globals.add(new js.Property(js.string(INSTANCE_FROM_CLASS_ID),
+                                  createInstanceFromClassIdFunction));
+
+      js.Expression initializeEmptyInstanceFunction = js.js('''
+      function(name, o, fields) {
+        var constructor = o.constructor;
+        // By construction the object `o` is an empty object with the same
+        // keys as the one we used in the extract-fields function.
+        var fieldNames = Object.keys(o);
+        if (fieldNames.length != fields.length) {
+          throw new Error("Mismatch during deserialization.");
+        }
+        for (var i = 0; i < fields.length; i++) {
+          o[fieldNames[i]] = fields[i];
+        }
+        return o;
+      }''');
+      globals.add(new js.Property(js.string(INITIALIZE_EMPTY_INSTANCE),
+                                  initializeEmptyInstanceFunction));
     }
 
     globals.add(emitMangledGlobalNames());

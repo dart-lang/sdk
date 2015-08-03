@@ -177,6 +177,9 @@ class Emitter implements emitterTask.Emitter {
       case JsBuiltin.getType:
         return _emitter.templateForReadType;
 
+      case JsBuiltin.createDartClosureFromNameOfStaticFunction:
+        throw new UnsupportedError('createDartClosureFromNameOfStaticFunction');
+
       default:
         _compiler.internalError(NO_LOCATION_SPANNABLE,
                                 "Unhandled Builtin: $builtin");

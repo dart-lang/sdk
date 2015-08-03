@@ -19,7 +19,8 @@ import 'dart:_js_embedded_names' show
     JsBuiltin,
     JsGetName,
     LEAF_TAGS,
-    NATIVE_SUPERCLASS_TAG_NAME;
+    NATIVE_SUPERCLASS_TAG_NAME,
+    STATIC_FUNCTION_NAME_PROPERTY_NAME;
 
 import 'dart:collection';
 
@@ -186,6 +187,16 @@ getMetadata(int index) {
 getType(int index) {
   return JS_BUILTIN('returns:var;effects:none;depends:none',
                     JsBuiltin.getType, index);
+}
+
+/// Returns a Dart closure for the global function with the given [name].
+///
+/// The [name] is the globally unique (minified) JavaScript name of the
+/// function. The name must be in correspondence with the propertyName that is
+/// used when creating a tear-off (see [fromTearOff]).
+Function createDartClosureFromNameOfStaticFunction(String name) {
+  return JS_BUILTIN('returns:Function',
+                    JsBuiltin.createDartClosureFromNameOfStaticFunction, name);
 }
 
 /// No-op method that is called to inform the compiler that preambles might
@@ -2213,8 +2224,11 @@ abstract class Closure implements Function {
    *
    * In other words, creates a tear-off closure.
    *
+   * The [propertyName] argument is used by
+   * [JsBuiltin.createDartClosureFromNameOfStaticFunction].
+   *
    * Called from [closureFromTearOff] as well as from reflection when tearing
-   * of a method via [:getField:].
+   * of a method via `getField`.
    *
    * This method assumes that [functions] was created by the JavaScript function
    * `addStubs` in `reflection_data_parser.dart`. That is, a list of JavaScript
@@ -2316,7 +2330,8 @@ abstract class Closure implements Function {
       trampoline = forwardCallTo(receiver, function, isIntercepted);
       JS('', '#.\$reflectionInfo = #', trampoline, reflectionInfo);
     } else {
-      JS('', '#.\$name = #', prototype, propertyName);
+      JS('', '#[#] = #',
+          prototype, STATIC_FUNCTION_NAME_PROPERTY_NAME, propertyName);
     }
 
     var signatureFunction;
@@ -2629,7 +2644,8 @@ abstract class TearOffClosure extends Closure {
 
 class StaticClosure extends TearOffClosure {
   String toString() {
-    String name = JS('String|Null', '#.\$name', this);
+    String name =
+        JS('String|Null', '#[#]', this, STATIC_FUNCTION_NAME_PROPERTY_NAME);
     if (name == null) return "Closure of unknown static method";
     return "Closure '$name'";
   }
