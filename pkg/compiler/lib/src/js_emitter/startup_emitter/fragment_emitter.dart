@@ -264,8 +264,6 @@ var #staticStateDeclaration = {};
 /// For example, once the holders have been created, they are included into
 /// the main holders.
 const String deferredBoilerplate = '''
-{
-#deferredInitializers.current =
 function(inherit, mixin, lazy, makeConstList, installTearOff,
           updateHolder, updateTypes,
           setOrUpdateInterceptorsByTag, setOrUpdateLeafTags,
@@ -300,10 +298,6 @@ updateTypes(#types);
 
 // Native-support uses setOrUpdateInterceptorsByTag and setOrUpdateLeafTags.
 #nativeSupport;
-};
-// TODO(floitsch): this last line should be outside the AST, since it
-// requires to know the hash of the part of the code above this comment.
-#deferredInitializers[#hash] = #deferredInitializers.current;
 }''';
 
 /**
@@ -334,7 +328,9 @@ class FragmentEmitter {
     return js.js('#.#', [cls.holder.name, cls.name]);
   }
 
-  js.Statement emitMainFragment(Program program) {
+  js.Statement emitMainFragment(
+      Program program,
+      Map<DeferredFragment, _DeferredFragmentHash> deferredLoadHashes) {
     MainFragment fragment = program.fragments.first;
 
     return js.js.statement(mainBoilerplate,
@@ -366,7 +362,7 @@ class FragmentEmitter {
          'constants': emitConstants(fragment),
          'staticNonFinalFields': emitStaticNonFinalFields(fragment),
          'lazyStatics': emitLazilyInitializedStatics(fragment),
-         'embeddedGlobals': emitEmbeddedGlobals(program),
+         'embeddedGlobals': emitEmbeddedGlobals(program, deferredLoadHashes),
          'nativeSupport': program.needsNativeSupport
               ? emitNativeSupport(fragment)
               : new js.EmptyStatement(),
@@ -374,7 +370,7 @@ class FragmentEmitter {
          });
   }
 
-  js.Statement emitDeferredFragment(DeferredFragment fragment,
+  js.Expression emitDeferredFragment(DeferredFragment fragment,
                                     js.Expression deferredTypes,
                                     List<Holder> holders) {
     List<js.Statement> updateHolderAssignments = <js.Statement>[];
@@ -390,24 +386,21 @@ class FragmentEmitter {
     // TODO(floitsch): if name is not set, run through all functions and set the
     // name for IE.
     // TODO(floitsch): don't just reference 'init'.
-    return js.js.statement(deferredBoilerplate,
-    {'deferredInitializers':
-          js.js('#', ModelEmitter.deferredInitializersGlobal),
-      'embeddedGlobalsObject': new js.Parameter('init'),
-      'staticState': new js.Parameter(namer.staticStateHolder),
-      'holders': emitHolders(holders, fragment),
-      'updateHolders': new js.Block(updateHolderAssignments),
-      'prototypes': emitPrototypes(fragment),
-      'inheritance': emitInheritance(fragment),
-      'aliases': emitInstanceMethodAliases(fragment),
-      'tearOffs': emitInstallTearOffs(fragment),
-      'constants': emitConstants(fragment),
-      'staticNonFinalFields': emitStaticNonFinalFields(fragment),
-      'lazyStatics': emitLazilyInitializedStatics(fragment),
-      'types': deferredTypes,
-      // TODO(floitsch): only call emitNativeSupport if we need native.
-      'nativeSupport': emitNativeSupport(fragment),
-      'hash': js.number(fragment.hashCode),
+    return js.js(deferredBoilerplate,
+    {'embeddedGlobalsObject': new js.Parameter('init'),
+     'staticState': new js.Parameter(namer.staticStateHolder),
+     'holders': emitHolders(holders, fragment),
+     'updateHolders': new js.Block(updateHolderAssignments),
+     'prototypes': emitPrototypes(fragment),
+     'inheritance': emitInheritance(fragment),
+     'aliases': emitInstanceMethodAliases(fragment),
+     'tearOffs': emitInstallTearOffs(fragment),
+     'constants': emitConstants(fragment),
+     'staticNonFinalFields': emitStaticNonFinalFields(fragment),
+     'lazyStatics': emitLazilyInitializedStatics(fragment),
+     'types': deferredTypes,
+     // TODO(floitsch): only call emitNativeSupport if we need native.
+     'nativeSupport': emitNativeSupport(fragment),
     });
   }
 
@@ -870,7 +863,8 @@ class FragmentEmitter {
   /// to the list of generated fragments that must be installed when the
   /// deferred library is loaded.
   Iterable<js.Property> emitEmbeddedGlobalsForDeferredLoading(
-      Map<String, List<Fragment>> loadMap) {
+      Map<String, List<Fragment>> loadMap,
+      Map<DeferredFragment, _DeferredFragmentHash> deferredLoadHashes) {
     if (loadMap.isEmpty) return [];
 
     List<js.Property> globals = <js.Property>[];
@@ -880,9 +874,10 @@ class FragmentEmitter {
           "${fragment.outputFileName}.${ModelEmitter.deferredExtension}"));
     }
     js.ArrayInitializer fragmentHashes(List<Fragment> fragments) {
-      // TODO(floitsch): the hash must depend on the generated code.
-      return js.numArray(
-          fragments.map((DeferredFragment fragment) => fragment.hashCode));
+      return new js.ArrayInitializer(
+          fragments
+              .map((fragment) => deferredLoadHashes[fragment])
+              .toList(growable: false));
     }
 
     List<js.Property> uris = new List<js.Property>(loadMap.length);
@@ -996,11 +991,14 @@ class FragmentEmitter {
   }
 
   /// Emits all embedded globals.
-  js.Statement emitEmbeddedGlobals(Program program) {
+  js.Statement emitEmbeddedGlobals(
+      Program program,
+      Map<DeferredFragment, _DeferredFragmentHash> deferredLoadHashes) {
     List<js.Property> globals = <js.Property>[];
 
     if (program.loadMap.isNotEmpty) {
-      globals.addAll(emitEmbeddedGlobalsForDeferredLoading(program.loadMap));
+      globals.addAll(emitEmbeddedGlobalsForDeferredLoading(
+          program.loadMap, deferredLoadHashes));
     }
 
     if (program.typeToInterceptorMap != null) {

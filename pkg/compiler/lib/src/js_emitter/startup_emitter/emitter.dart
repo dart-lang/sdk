@@ -36,10 +36,12 @@ class Emitter implements emitterTask.Emitter {
 
   JavaScriptBackend get _backend => _compiler.backend;
 
-  Emitter(Compiler compiler, Namer namer, NativeEmitter nativeEmitter)
+  Emitter(Compiler compiler, Namer namer, NativeEmitter nativeEmitter,
+      bool shouldGenerateSourceMap)
       : this._compiler = compiler,
         this.namer = namer,
-        _emitter = new ModelEmitter(compiler, namer, nativeEmitter);
+        _emitter = new ModelEmitter(
+            compiler, namer, nativeEmitter, shouldGenerateSourceMap);
 
   @override
   String get patchVersion => "startup";

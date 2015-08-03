@@ -43,7 +43,8 @@ class CodeEmitterTask extends CompilerTask {
     if (USE_LAZY_EMITTER) {
       emitter = new lazy_js_emitter.Emitter(compiler, namer, nativeEmitter);
     } else if (USE_STARTUP_EMITTER) {
-      emitter = new startup_js_emitter.Emitter(compiler, namer, nativeEmitter);
+      emitter = new startup_js_emitter.Emitter(
+          compiler, namer, nativeEmitter, generateSourceMap);
     } else {
       emitter =
           new full_js_emitter.Emitter(compiler, namer, generateSourceMap, this);
