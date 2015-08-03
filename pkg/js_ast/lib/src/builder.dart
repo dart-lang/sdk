@@ -377,6 +377,14 @@ class JsBuilder {
                     List<Expression> arguments) {
     return new Call(new PropertyAccess(receiver, fieldName), arguments);
   }
+
+  ObjectInitializer objectLiteral(Map<String, Expression> map) {
+    List<Property> properties = <Property>[];
+    map.forEach((name, value) {
+      properties.add(new Property(string(name), value));
+    });
+    return new ObjectInitializer(properties);
+  }
 }
 
 LiteralString string(String value) => js.string(value);
@@ -399,6 +407,9 @@ Call propertyCall(Expression receiver,
                   Expression fieldName,
                   List<Expression> arguments) {
   return js.propertyCall(receiver, fieldName, arguments);
+}
+ObjectInitializer objectLiteral(Map<String, Expression> map) {
+  return js.objectLiteral(map);
 }
 
 class MiniJsParserError {

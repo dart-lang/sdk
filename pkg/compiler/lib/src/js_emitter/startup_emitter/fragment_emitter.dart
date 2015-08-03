@@ -217,7 +217,8 @@ function initializeDeferredHunk(hunk) {
 
   // TODO(floitsch): extend natives.
   hunk(inherit, mixin, lazy, makeConstList, installTearOff,
-       updateHolder, updateTypes, updateInterceptorsByTag, updateLeafTags,
+       updateHolder, updateTypes, setOrUpdateInterceptorsByTag,
+       setOrUpdateLeafTags,
        #embeddedGlobalsObject, #holdersList, #staticState);
 }
 
@@ -1037,7 +1038,63 @@ class FragmentEmitter {
     return js.js.statement('var init = #;', globalsObject);
   }
 
-  emitNativeSupport(fragment) {
-    throw new UnimplementedError('emitNativeSupport');
+  /// Emits data needed for native classes.
+  ///
+  /// We don't try to reduce the size of the native data, but rather build
+  /// JavaScript object literals that contain all the information directly.
+  /// This means that the output size is bigger, but that the startup is faster.
+  ///
+  /// This function is the static equivalent of
+  /// [NativeGenerator.buildNativeInfoHandler].
+  js.Statement emitNativeSupport(Fragment fragment) {
+    List<js.Statement> statements = <js.Statement>[];
+
+    if (NativeGenerator.needsIsolateAffinityTagInitialization(backend)) {
+      statements.add(NativeGenerator.generateIsolateAffinityTagInitialization(
+              backend,
+              generateEmbeddedGlobalAccess,
+              // TODO(floitsch): convertToFastObject. (Needed for "interning" of
+              // strings).
+              js.js("(function(x) { return x; })", [])));
+    }
+
+    Map<String, js.Expression> interceptorsByTag = <String, js.Expression>{};
+    Map<String, js.Expression> leafTags = <String, js.Expression>{};
+    js.Statement subclassAssignment = new js.EmptyStatement();
+
+    for (Library library in fragment.libraries) {
+      for (Class cls in library.classes) {
+        if (cls.nativeLeafTags != null) {
+          for (String tag in cls.nativeLeafTags) {
+            interceptorsByTag[tag] = classReference(cls);
+            leafTags[tag] = new js.LiteralBool(true);
+          }
+        }
+        if (cls.nativeNonLeafTags != null) {
+          for (String tag in cls.nativeNonLeafTags) {
+            interceptorsByTag[tag] = classReference(cls);
+            leafTags[tag] = new js.LiteralBool(false);
+          }
+          if (cls.nativeExtensions != null) {
+            List<Class> subclasses = cls.nativeExtensions;
+            js.Expression value = js.string(cls.nativeNonLeafTags[0]);
+            for (Class subclass in subclasses) {
+              value = js.js('#.# = #',
+                  [classReference(subclass),
+                   NATIVE_SUPERCLASS_TAG_NAME,
+                   js.string(cls.nativeNonLeafTags[0])]);
+            }
+            subclassAssignment = new js.ExpressionStatement(value);
+          }
+        }
+      }
+    }
+    statements.add(js.js.statement("setOrUpdateInterceptorsByTag(#);",
+        js.objectLiteral(interceptorsByTag)));
+    statements.add(js.js.statement("setOrUpdateLeafTags(#);",
+        js.objectLiteral(leafTags)));
+    statements.add(subclassAssignment);
+
+    return new js.Block(statements);
   }
 }
