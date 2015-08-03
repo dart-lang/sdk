@@ -1,10 +1,9 @@
-# Dart VM Service Protocol 1.0 (Draft 1)
+# Dart VM Service Protocol 2.0
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes _draft 1_ of _version 1.0_ of the Dart VM
-Service Protocol.  This protocol is used to communicate with a running
-Dart Virtual Machine.
+This document describes of _version 2.0_ of the Dart VM Service Protocol. This
+protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
 The VM will start a webserver which services protocol requests via WebSocket.
@@ -110,7 +109,7 @@ Here is an example response for our [getVersion](#getversion) request above:
   "jsonrpc": "2.0",
   "result": {
     "type": "Version",
-    "major": 1,
+    "major": 2,
     "minor": 0
   }
   "id": "1"
@@ -300,7 +299,7 @@ version number:
 ```
   "result": {
     "type": "Version",
-    "major": 1,
+    "major": 2,
     "minor": 0
   }
 ```
