@@ -1853,6 +1853,38 @@ class DebuggerConsoleElement extends ObservatoryElement {
 
   DebuggerConsoleElement.created() : super.created();
 
+  /// Is [container] scrolled to the within [threshold] pixels of the bottom?
+  static bool _isScrolledToBottom(DivElement container, [int threshold = 2]) {
+    if (container == null) {
+      return false;
+    }
+    // scrollHeight -> complete height of element including scrollable area.
+    // clientHeight -> height of element on page.
+    // scrollTop -> how far is an element scrolled (from 0 to scrollHeight).
+    final distanceFromBottom =
+        container.scrollHeight - container.clientHeight - container.scrollTop;
+    const threshold = 2;  // 2 pixel slop.
+    return distanceFromBottom <= threshold;
+  }
+
+  /// Scroll [container] so the bottom content is visible.
+  static _scrollToBottom(DivElement container) {
+    if (container == null) {
+      return;
+    }
+    // Adjust scroll so that the bottom of the content is visible.
+    container.scrollTop = container.scrollHeight - container.clientHeight;
+  }
+
+  void _append(HtmlElement span) {
+    var consoleTextElement = $['consoleText'];
+    bool autoScroll = _isScrolledToBottom(parent);
+    consoleTextElement.children.add(span);
+    if (autoScroll) {
+      _scrollToBottom(parent);
+    }
+  }
+
   void print(String line, { bool newline:true }) {
     var span = new SpanElement();
     span.classes.add('normal');
@@ -1860,8 +1892,7 @@ class DebuggerConsoleElement extends ObservatoryElement {
     if (newline) {
       span.appendText('\n');
     }
-    $['consoleText'].children.add(span);
-    span.scrollIntoView();
+    _append(span);
   }
 
   void printBold(String line, { bool newline:true }) {
@@ -1871,8 +1902,7 @@ class DebuggerConsoleElement extends ObservatoryElement {
     if (newline) {
       span.appendText('\n');
     }
-    $['consoleText'].children.add(span);
-    span.scrollIntoView();
+    _append(span);
   }
 
   void printRed(String line, { bool newline:true }) {
@@ -1882,39 +1912,35 @@ class DebuggerConsoleElement extends ObservatoryElement {
     if (newline) {
       span.appendText('\n');
     }
-    $['consoleText'].children.add(span);
-    span.scrollIntoView();
+    _append(span);
   }
 
   void printStdio(List<String> lines) {
-    var lastSpan;
+    var consoleTextElement = $['consoleText'];
+    bool autoScroll = _isScrolledToBottom(parent);
     for (var line in lines) {
       var span = new SpanElement();
       span.classes.add('green');
       span.appendText(line);
       span.appendText('\n');
-      $['consoleText'].children.add(span);
-      lastSpan = span;
+      consoleTextElement.children.add(span);
     }
-    if (lastSpan != null) {
-      lastSpan.scrollIntoView();
+    if (autoScroll) {
+      _scrollToBottom(parent);
     }
   }
 
   void printRef(Instance ref, { bool newline:true }) {
     var refElement = new Element.tag('instance-ref');
     refElement.ref = ref;
-    $['consoleText'].children.add(refElement);
+    _append(refElement);
     if (newline) {
       this.newline();
     }
-    refElement.scrollIntoView();
   }
 
   void newline() {
-    var br = new BRElement();
-    $['consoleText'].children.add(br);
-    br.scrollIntoView();
+    _append(new BRElement());
   }
 }
 
