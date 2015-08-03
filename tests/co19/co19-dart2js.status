@@ -9256,6 +9256,7 @@ LibTest/html/Window/resizeBy_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Window/resizeTo_A01_t01: RuntimeError # Please triage this failure
 LibTest/math/sqrt_A02_t02: Skip # Times out. Please triage this failure
 LibTest/typed_data/ByteData/ByteData.view_A01_t01: Pass, RuntimeError # Please triage this failure
+LibTest/typed_data/ByteData/offsetInBytes_A01_t01: RuntimeError # Please triage this failure
 LibTest/typed_data/Float32List/removeWhere_A01_t01: Skip # Times out. Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: RuntimeError # Please triage this failure
 LibTest/typed_data/Int32List/lastWhere_A01_t01: Skip # Times out. Please triage this failure
