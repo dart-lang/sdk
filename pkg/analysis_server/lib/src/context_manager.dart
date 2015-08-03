@@ -844,9 +844,13 @@ class ContextManagerImpl implements ContextManager {
       packageSpec = folder.getChild(PUBSPEC_NAME);
     }
 
-    bool parentCreated = false;
-    if (packageSpec.exists || !withPackageSpecOnly) {
-      parentCreated = true;
+    bool createContext = packageSpec.exists || !withPackageSpecOnly;
+    if (withPackageSpecOnly && packageSpec.exists &&
+        (parent != null) && parent.ignored(packageSpec.path)) {
+      // Don't create a context if the package spec is required and ignored.
+      createContext = false;
+    }
+    if (createContext) {
       parent = _createContext(parent, folder, packageSpec);
     }
 
@@ -854,7 +858,9 @@ class ContextManagerImpl implements ContextManager {
     try {
       for (Resource child in folder.getChildren()) {
         if (child is Folder) {
-          _createContexts(parent, child, true);
+          if (!parent.ignored(child.path)) {
+            _createContexts(parent, child, true);
+          }
         }
       }
     } on FileSystemException {
@@ -862,7 +868,7 @@ class ContextManagerImpl implements ContextManager {
       // are no subfolders that need to be added.
     }
 
-    if (parentCreated) {
+    if (createContext) {
       // Now that the child contexts have been created, add the sources that
       // don't belong to the children.
       ChangeSet changeSet = new ChangeSet();

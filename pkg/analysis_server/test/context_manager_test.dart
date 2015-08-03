@@ -231,6 +231,96 @@ analyzer:
     expect(files[0], equals('/my/proj/lib/main.dart'));
   }
 
+  test_path_filter_child_contexts_option() async {
+    // Create files.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    newFile([libPath, 'pubspec.yaml'], r'''
+name: foobar
+''');
+    String otherLibPath = newFolder([projPath, 'other_lib']);
+    newFile([otherLibPath, 'entry.dart']);
+    newFile([otherLibPath, 'pubspec.yaml'], r'''
+name: other_lib
+''');
+    // Setup analysis options file with ignore list that ignores the 'other_lib'
+    // directory by name.
+    newFile([projPath, '.analysis_options'], r'''
+analyzer:
+  exclude:
+    - 'other_lib'
+''');
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // Verify that the context in other_lib wasn't created and that the
+    // context in lib was created.
+    var contexts = manager.contextsInAnalysisRoot(
+        resourceProvider.newFolder(projPath));
+    expect(contexts.length, 2);
+    expect(contexts[0].name, equals('/my/proj'));
+    expect(contexts[1].name, equals('/my/proj/lib'));
+  }
+
+  test_path_filter_wildcard_child_contexts_option() async {
+    // Create files.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    newFile([libPath, 'pubspec.yaml'], r'''
+name: foobar
+''');
+    String otherLibPath = newFolder([projPath, 'other_lib']);
+    newFile([otherLibPath, 'entry.dart']);
+    newFile([otherLibPath, 'pubspec.yaml'], r'''
+name: other_lib
+''');
+    // Setup analysis options file with ignore list that ignores 'other_lib'
+    // and all immediate children.
+    newFile([projPath, '.analysis_options'], r'''
+analyzer:
+  exclude:
+    - 'other_lib/*'
+''');
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // Verify that the context in other_lib wasn't created and that the
+    // context in lib was created.
+    var contexts = manager.contextsInAnalysisRoot(
+        resourceProvider.newFolder(projPath));
+    expect(contexts.length, 2);
+    expect(contexts[0].name, equals('/my/proj'));
+    expect(contexts[1].name, equals('/my/proj/lib'));
+  }
+
+  test_path_filter_recursive_wildcard_child_contexts_option() async {
+    // Create files.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    newFile([libPath, 'pubspec.yaml'], r'''
+  name: foobar
+  ''');
+    String otherLibPath = newFolder([projPath, 'other_lib']);
+    newFile([otherLibPath, 'entry.dart']);
+    newFile([otherLibPath, 'pubspec.yaml'], r'''
+  name: other_lib
+  ''');
+    // Setup analysis options file with ignore list that ignores 'other_lib'
+    // and all descendants.
+    newFile([projPath, '.analysis_options'], r'''
+analyzer:
+  exclude:
+    - 'other_lib/**'
+  ''');
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // Verify that the context in other_lib wasn't created and that the
+    // context in lib was created.
+    var contexts = manager.contextsInAnalysisRoot(
+        resourceProvider.newFolder(projPath));
+    expect(contexts.length, 2);
+    expect(contexts[0].name, equals('/my/proj'));
+    expect(contexts[1].name, equals('/my/proj/lib'));
+  }
+
   test_refresh_folder_with_packagespec() {
     // create a context with a .packages file
     String packagespecFile = posix.join(projPath, '.packages');

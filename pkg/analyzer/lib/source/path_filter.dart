@@ -62,4 +62,13 @@ class PathFilter {
 
   /// Returns the relative portion of [path] from [root].
   String _relative(String path) => pathContext.relative(path, from: root);
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    for (var pattern in _ignorePatterns) {
+      sb.write('$pattern ');
+    }
+    sb.writeln('');
+    return sb.toString();
+  }
 }
