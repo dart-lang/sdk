@@ -3986,6 +3986,35 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_SwitchStatement_c() {
+    // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('class A {String g(int x) {switch(x) {c^}}}');
+    computeFast();
+    return computeFull((bool result) {
+      assertNoSuggestions();
+    });
+  }
+
+  test_SwitchStatement_case() {
+    // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('class A {String g(int x) {switch(x) {case 0: ^}}}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestLocalClass('A');
+      assertSuggestLocalMethod('g', 'A', 'String');
+      assertSuggestImportedClass('String');
+    });
+  }
+
+  test_SwitchStatement_empty() {
+    // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('class A {String g(int x) {switch(x) {^}}}');
+    computeFast();
+    return computeFull((bool result) {
+      assertNoSuggestions();
+    });
+  }
+
   test_ThisExpression_block() {
     // MethodInvocation  ExpressionStatement  Block
     addTestSource('''
