@@ -10,6 +10,7 @@ import 'observatory_element.dart';
 import 'package:observatory/cli.dart';
 import 'package:observatory/debugger.dart';
 import 'package:observatory/service.dart';
+import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 
 // TODO(turnidge): Move Debugger, DebuggerCommand to debugger library.
@@ -349,6 +350,75 @@ class StepCommand extends DebuggerCommand {
       'Syntax: step\n';
 }
 
+class LogCommand extends DebuggerCommand {
+  LogCommand(Debugger debugger) : super(debugger, 'log', []);
+
+  Future run(List<String> args) async {
+    if (args.length == 0) {
+      debugger.console.print(
+          'Current log level: '
+          '${debugger._consolePrinter._minimumLogLevel.name}');
+      return new Future.value(null);
+    }
+    if (args.length > 1) {
+      debugger.console.print("log expects zero or one arguments");
+      return new Future.value(null);
+    }
+    var level = _findLevel(args[0]);
+    if (level == null) {
+      debugger.console.print('No such log level: ${args[0]}');
+      return new Future.value(null);
+    }
+    debugger._consolePrinter._minimumLogLevel = level;
+    debugger.console.print('Set log level to: ${level.name}');
+    return new Future.value(null);
+  }
+
+  Level _findLevel(String levelName) {
+    levelName = levelName.toUpperCase();
+    for (var level in Level.LEVELS) {
+      if (level.name == levelName) {
+        return level;
+      }
+    }
+    return null;
+  }
+
+  Future<List<String>> complete(List<String> args) {
+    if (args.length != 1) {
+      return new Future.value([args.join('')]);
+    }
+    var prefix = args[0].toUpperCase();
+    var result = <String>[];
+    for (var level in Level.LEVELS) {
+      if (level.name.startsWith(prefix)) {
+        result.add(level.name);
+      }
+    }
+    return new Future.value(result);
+  }
+
+  String helpShort =
+      'Control which log messages are displayed';
+
+  String helpLong =
+      'Get or set the minimum log level that should be displayed.\n'
+      '\n'
+      'Log levels (in ascending order): ALL, FINEST, FINER, FINE, CONFIG, '
+      'INFO, WARNING, SEVERE, SHOUT, OFF\n'
+      '\n'
+      'Default: OFF\n'
+      '\n'
+      'Syntax: log          '
+      '# Display the current minimum log level.\n'
+      '        log <level>  '
+      '# Set the minimum log level to <level>.\n'
+      '        log OFF      '
+      '# Display no log messages.\n'
+      '        log ALL      '
+      '# Display all log messages.\n';
+}
+
 class AsyncNextCommand extends DebuggerCommand {
   AsyncNextCommand(Debugger debugger) : super(debugger, 'anext', []) {
   }
@@ -484,25 +554,25 @@ class BreakCommand extends DebuggerCommand {
       'Add a breakpoint by source location or function name.\n'
       '\n'
       'Syntax: break                       '
-      '- Break at the current position\n'
+      '# Break at the current position\n'
       '        break <line>                '
-      '- Break at a line in the current script\n'
+      '# Break at a line in the current script\n'
       '                                    '
       '  (e.g \'break 11\')\n'
       '        break <line>:<col>          '
-      '- Break at a line:col in the current script\n'
+      '# Break at a line:col in the current script\n'
       '                                    '
       '  (e.g \'break 11:8\')\n'
       '        break <script>:<line>       '
-      '- Break at a line:col in a specific script\n'
+      '# Break at a line:col in a specific script\n'
       '                                    '
       '  (e.g \'break test.dart:11\')\n'
       '        break <script>:<line>:<col> '
-      '- Break at a line:col in a specific script\n'
+      '# Break at a line:col in a specific script\n'
       '                                    '
       '  (e.g \'break test.dart:11:8\')\n'
       '        break <function>            '
-      '- Break at the named function\n'
+      '# Break at the named function\n'
       '                                    '
       '  (e.g \'break main\' or \'break Class.someFunction\')\n';
 }
@@ -567,25 +637,25 @@ class ClearCommand extends DebuggerCommand {
       'Remove a breakpoint by source location or function name.\n'
       '\n'
       'Syntax: clear                       '
-      '- Clear at the current position\n'
+      '# Clear at the current position\n'
       '        clear <line>                '
-      '- Clear at a line in the current script\n'
+      '# Clear at a line in the current script\n'
       '                                    '
       '  (e.g \'clear 11\')\n'
       '        clear <line>:<col>          '
-      '- Clear at a line:col in the current script\n'
+      '# Clear at a line:col in the current script\n'
       '                                    '
       '  (e.g \'clear 11:8\')\n'
       '        clear <script>:<line>       '
-      '- Clear at a line:col in a specific script\n'
+      '# Clear at a line:col in a specific script\n'
       '                                    '
       '  (e.g \'clear test.dart:11\')\n'
       '        clear <script>:<line>:<col> '
-      '- Clear at a line:col in a specific script\n'
+      '# Clear at a line:col in a specific script\n'
       '                                    '
       '  (e.g \'clear test.dart:11:8\')\n'
       '        clear <function>            '
-      '- Clear at the named function\n'
+      '# Clear at the named function\n'
       '                                    '
       '  (e.g \'clear main\' or \'clear Class.someFunction\')\n';
 }
@@ -881,17 +951,23 @@ class RefreshCommand extends DebuggerCommand {
       'Syntax: refresh <subcommand>\n';
 }
 
-class _VMStreamPrinter {
+class _ConsoleStreamPrinter {
   ObservatoryDebugger _debugger;
 
-  _VMStreamPrinter(this._debugger);
-
+  _ConsoleStreamPrinter(this._debugger);
+  Level _minimumLogLevel = Level.OFF;
   String _savedStream;
   String _savedIsolate;
   String _savedLine;
   List<String> _buffer = [];
 
   void onEvent(String streamName, ServiceEvent event) {
+    if (event.kind == ServiceEvent.kLogging) {
+      // Check if we should print this log message.
+      if (event.logRecord['level'].value < _minimumLogLevel.value) {
+        return;
+      }
+    }
     String isolateName = event.isolate.name;
     // If we get a line from a different isolate/stream, flush
     // any pending output, even if it is not newline-terminated.
@@ -899,8 +975,15 @@ class _VMStreamPrinter {
         (_savedStream != null && streamName != _savedStream)) {
        flush();
     }
-    String data = event.bytesAsString;
-    bool hasNewline = data.endsWith('\n');
+    String data;
+    bool hasNewline;
+    if (event.kind == ServiceEvent.kLogging) {
+      data = event.logRecord["message"].valueAsString;
+      hasNewline = true;
+    } else {
+      data = event.bytesAsString;
+      hasNewline = data.endsWith('\n');
+    }
     if (_savedLine != null) {
        data = _savedLine + data;
       _savedIsolate = null;
@@ -986,8 +1069,9 @@ class ObservatoryDebugger extends Debugger {
         new InfoCommand(this),
         new IsolateCommand(this),
         new RefreshCommand(this),
+        new LogCommand(this),
     ]);
-    _stdioPrinter = new _VMStreamPrinter(this);
+    _consolePrinter = new _ConsoleStreamPrinter(this);
   }
 
   VM get vm => page.app.vm;
@@ -1238,24 +1322,28 @@ class ObservatoryDebugger extends Debugger {
       case ServiceEvent.kInspect:
         break;
 
+      case ServiceEvent.kLogging:
+        _consolePrinter.onEvent(event.logRecord['level'].name, event);
+        break;
+
       default:
         console.print('Unrecognized event: $event');
         break;
     }
   }
 
-  _VMStreamPrinter _stdioPrinter;
+  _ConsoleStreamPrinter _consolePrinter;
 
   void flushStdio() {
-    _stdioPrinter.flush();
+    _consolePrinter.flush();
   }
 
   void onStdout(ServiceEvent event) {
-    _stdioPrinter.onEvent('stdout', event);
+    _consolePrinter.onEvent('stdout', event);
   }
 
   void onStderr(ServiceEvent event) {
-    _stdioPrinter.onEvent('stderr', event);
+    _consolePrinter.onEvent('stderr', event);
   }
 
   static String _commonPrefix(String a, String b) {
@@ -1349,6 +1437,7 @@ class DebuggerPageElement extends ObservatoryElement {
   Future<StreamSubscription> _debugSubscriptionFuture;
   Future<StreamSubscription> _stdoutSubscriptionFuture;
   Future<StreamSubscription> _stderrSubscriptionFuture;
+  Future<StreamSubscription> _logSubscriptionFuture;
 
   @override
   void attached() {
@@ -1386,7 +1475,8 @@ class DebuggerPageElement extends ObservatoryElement {
         app.vm.listenEventStream(VM.kStdoutStream, debugger.onStdout);
     _stderrSubscriptionFuture =
         app.vm.listenEventStream(VM.kStderrStream, debugger.onStderr);
-
+    _logSubscriptionFuture =
+        app.vm.listenEventStream(Isolate.kLoggingStream, debugger.onEvent);
     // Turn on the periodic poll timer for this page.
     pollPeriod = const Duration(milliseconds:100);
 
@@ -1406,6 +1496,7 @@ class DebuggerPageElement extends ObservatoryElement {
 
   @override
   void detached() {
+    debugger.isolate = null;
     cancelFutureSubscription(_isolateSubscriptionFuture);
     _isolateSubscriptionFuture = null;
     cancelFutureSubscription(_debugSubscriptionFuture);
@@ -1414,6 +1505,8 @@ class DebuggerPageElement extends ObservatoryElement {
     _stdoutSubscriptionFuture = null;
     cancelFutureSubscription(_stderrSubscriptionFuture);
     _stderrSubscriptionFuture = null;
+    cancelFutureSubscription(_logSubscriptionFuture);
+    _logSubscriptionFuture = null;
     super.detached();
   }
 }
