@@ -607,7 +607,8 @@ class FragmentEmitter {
     }
 
     allMethods.forEach((Method method) {
-      emitInstanceMethod(method).forEach((js.Name name, js.Expression code) {
+      emitInstanceMethod(method)
+          .forEach((js.Expression name, js.Expression code) {
         properties.add(new js.Property(name, code));
       });
     });
@@ -673,17 +674,30 @@ class FragmentEmitter {
   ///
   /// If it is a Dart-method, all necessary stub-methods are emitted, too. In
   /// that case the returned map contains more than just one entry.
-  Map<js.Name, js.Expression> emitInstanceMethod(Method method) {
-    Map<js.Name, js.Expression> jsMethods = <js.Name, js.Expression>{};
+  ///
+  /// If the method is a closure call-method, also returns the necessary
+  /// properties in case the closure can be applied.
+  Map<js.Expression, js.Expression> emitInstanceMethod(Method method) {
+    var properties = <js.Expression, js.Expression>{};
 
-    jsMethods[method.name] = method.code;
+    properties[method.name] = method.code;
     if (method is InstanceMethod) {
       for (ParameterStubMethod stubMethod in method.parameterStubs) {
-        jsMethods[stubMethod.name] = stubMethod.code;
+        properties[stubMethod.name] = stubMethod.code;
+      }
+
+      if (method.isClosureCallMethod && method.canBeApplied) {
+        properties[js.string(namer.callCatchAllName)] =
+            js.quoteName(method.name);
+        properties[js.string(namer.requiredParameterField)] =
+            js.number(method.requiredParameterCount);
+        properties[js.string(namer.defaultValuesField)] =
+            js.js('function() { return #; }',
+                  _encodeOptionalParameterDefaultValues(method));
       }
     }
 
-    return jsMethods;
+    return properties;
   }
 
   /// Emits the inheritance block of the fragment.
@@ -753,10 +767,16 @@ class FragmentEmitter {
       Map<String, ConstantValue> defaultValues =
           method.optionalParameterDefaultValues;
       List<js.Property> properties = <js.Property>[];
-      defaultValues.forEach((String name, ConstantValue value) {
+      List<String> names = defaultValues.keys.toList(growable: false);
+      // Sort the names the same way we sort them for the named-argument calling
+      // convention.
+      names.sort();
+
+      for (String name in names) {
+        ConstantValue value = defaultValues[name];
         properties.add(new js.Property(js.string(name),
         generateConstantReference(value)));
-      });
+      }
       return new js.ObjectInitializer(properties);
     }
   }

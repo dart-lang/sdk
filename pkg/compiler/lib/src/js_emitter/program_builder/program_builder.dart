@@ -559,7 +559,7 @@ class ProgramBuilder {
 
     bool canTearOff = false;
     js.Name tearOffName;
-    bool isClosure = false;
+    bool isClosureCallMethod = false;
     bool isNotApplyTarget = !element.isFunction || element.isAccessor;
 
     bool canBeReflected = _methodCanBeReflected(element);
@@ -574,7 +574,7 @@ class ProgramBuilder {
     } else {
       if (element.enclosingClass.isClosure) {
         canTearOff = false;
-        isClosure = true;
+        isClosureCallMethod = true;
       } else {
         // Careful with operators.
         canTearOff = universe.hasInvokedGetter(element, _compiler.world) ||
@@ -628,7 +628,7 @@ class ProgramBuilder {
     return new InstanceMethod(element, name, code,
         _generateParameterStubs(element, canTearOff), callName,
         needsTearOff: canTearOff, tearOffName: tearOffName,
-        isClosure: isClosure, aliasName: aliasName,
+        isClosureCallMethod: isClosureCallMethod, aliasName: aliasName,
         canBeApplied: canBeApplied, canBeReflected: canBeReflected,
         requiredParameterCount: requiredParameterCount,
         optionalParameterDefaultValues: optionalParameterDefaultValues,

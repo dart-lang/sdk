@@ -20,7 +20,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     bool canBeReflected = method.canBeReflected;
     bool canTearOff = method.needsTearOff;
     jsAst.Name tearOffName = method.tearOffName;
-    bool isClosure = method is InstanceMethod && method.isClosure;
+    bool isClosure = method is InstanceMethod && method.isClosureCallMethod;
     jsAst.Name superAlias = method is InstanceMethod ? method.aliasName : null;
     bool hasSuperAlias = superAlias != null;
     jsAst.Expression memberTypeExpression = method.functionType;

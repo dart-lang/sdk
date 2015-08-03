@@ -74,7 +74,7 @@ class Function {
   static apply(Function function,
                List positionalArguments,
                [Map<Symbol, dynamic> namedArguments]) {
-    return Primitives.applyFunctionNewEmitter(function, positionalArguments,
+    return Primitives.applyFunction2(function, positionalArguments,
         namedArguments == null ? null : _symbolMapToStringMap(namedArguments));
   }
 
@@ -82,7 +82,7 @@ class Function {
   static apply(Function function,
                List positionalArguments,
                [Map<Symbol, dynamic> namedArguments]) {
-    return Primitives.applyFunctionNewEmitter(function, positionalArguments,
+    return Primitives.applyFunction2(function, positionalArguments,
         namedArguments == null ? null : _symbolMapToStringMap(namedArguments));
   }
 

@@ -433,7 +433,11 @@ class InstanceMethod extends DartMethod {
   /// ensure that this method is registered on the prototype under both [name]
   /// and [aliasName].
   final js.Name aliasName;
-  final bool isClosure;
+
+  /// True if this is the implicit `call` instance method of an anonymous
+  /// closure. This predicate is false for explicit `call` methods and for
+  /// functions that can be torn off.
+  final bool isClosureCallMethod;
 
 
   InstanceMethod(Element element, js.Name name, js.Expression code,
@@ -446,7 +450,7 @@ class InstanceMethod extends DartMethod {
                   bool canBeReflected,
                   int requiredParameterCount,
                   /* List | Map */ optionalParameterDefaultValues,
-                  this.isClosure,
+                  this.isClosureCallMethod,
                   js.Expression functionType})
       : super(element, name, code, parameterStubs, callName,
               needsTearOff: needsTearOff,
@@ -456,7 +460,7 @@ class InstanceMethod extends DartMethod {
               requiredParameterCount: requiredParameterCount,
               optionalParameterDefaultValues: optionalParameterDefaultValues,
               functionType: functionType) {
-    assert(isClosure != null);
+    assert(isClosureCallMethod != null);
   }
 
   bool get isStatic => false;
