@@ -1688,6 +1688,7 @@ class BoxAllocationSlowPath : public SlowPathCode {
                            &label,
                            RawPcDescriptors::kOther,
                            locs);
+    compiler->AddStubCallTarget(stub);
     __ mov(result_, R0);
     compiler->RestoreLiveRegisters(locs);
     __ b(exit_label());
