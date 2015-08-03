@@ -43,10 +43,7 @@
       'target_name': 'build_observatory',
       'type': 'none',
       'dependencies': [
-        'dart_bootstrap#host',
         'fetch_observatory_deps#host',
-        # We use packages for building
-        '../pkg/pkg.gyp:pkg_packages#target',
       ],
       'toolsets': ['host'],
       'includes': [
@@ -57,13 +54,11 @@
           'action_name': 'pub_build_observatory',
           'inputs': [
             '../../tools/observatory_tool.py',
-            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
             'pubspec.lock',
             '<@(_sources)',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/observatory/build/web/index.html',
-            '<(PRODUCT_DIR)/observatory/build/web/index.html.polymer.bootstrap.dart.js',
           ],
           'action': [
             'python',
@@ -81,11 +76,9 @@
           'inputs': [
             '../../tools/observatory_tool.py',
             '<(PRODUCT_DIR)/observatory/build/web/index.html',
-            '<(PRODUCT_DIR)/observatory/build/web/index.html.polymer.bootstrap.dart.js',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/observatory/deployed/web/index.html',
-            '<(PRODUCT_DIR)/observatory/deployed/web/index.html.polymer.bootstrap.dart.js',
           ],
           'action': [
             'python',
