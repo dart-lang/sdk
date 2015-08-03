@@ -207,8 +207,7 @@ class FixProcessor {
     if (errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR) {
       _addFix_createConstructor_named();
     }
-    if (errorCode ==
-            StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE ||
+    if (errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE ||
         errorCode ==
             StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO ||
         errorCode ==
@@ -249,6 +248,7 @@ class FixProcessor {
       bool isAsync = _addFix_addAsync();
       if (!isAsync) {
         _addFix_undefinedClassAccessor_useSimilar();
+        _addFix_createClass();
         _addFix_createField();
         _addFix_createGetter();
         _addFix_createFunction_forFunctionType();
@@ -423,7 +423,8 @@ class FixProcessor {
         CorrectionUtils partUtils = new CorrectionUtils(partUnit);
         CorrectionUtils_InsertDesc desc = partUtils.getInsertDescTop();
         String libraryName = unitLibraryElement.name;
-        _addInsertEdit(desc.offset,
+        _addInsertEdit(
+            desc.offset,
             '${desc.prefix}part of $libraryName;$eol${desc.suffix}',
             partUnit.element);
         _addFix(DartFixKind.ADD_PART_OF, []);
@@ -440,17 +441,20 @@ class FixProcessor {
   void _addFix_createClass() {
     Element prefixElement = null;
     String name = null;
+    SimpleIdentifier nameNode;
     if (node is SimpleIdentifier) {
       AstNode parent = node.parent;
       if (parent is PrefixedIdentifier) {
         PrefixedIdentifier prefixedIdentifier = parent;
         prefixElement = prefixedIdentifier.prefix.staticElement;
         parent = prefixedIdentifier.parent;
+        nameNode = prefixedIdentifier.identifier;
         name = prefixedIdentifier.identifier.name;
       } else {
-        name = (node as SimpleIdentifier).name;
+        nameNode = node;
+        name = nameNode.name;
       }
-      if (parent is! TypeName) {
+      if (!_mayBeTypeIdentifier(nameNode)) {
         return;
       }
     } else {
@@ -1344,10 +1348,8 @@ class FixProcessor {
       if (prefix != null) {
         SourceRange range = rf.rangeStartLength(node, 0);
         _addReplaceEdit(range, '${prefix.displayName}.');
-        _addFix(DartFixKind.IMPORT_LIBRARY_PREFIX, [
-          libraryElement.displayName,
-          prefix.displayName
-        ]);
+        _addFix(DartFixKind.IMPORT_LIBRARY_PREFIX,
+            [libraryElement.displayName, prefix.displayName]);
         continue;
       }
       // may be update "show" directive
@@ -1657,7 +1659,8 @@ class FixProcessor {
   void _addFix_undefinedClass_useSimilar() {
     if (_mayBeTypeIdentifier(node)) {
       String name = (node as SimpleIdentifier).name;
-      _ClosestElementFinder finder = new _ClosestElementFinder(name,
+      _ClosestElementFinder finder = new _ClosestElementFinder(
+          name,
           (Element element) => element is ClassElement,
           MAX_LEVENSHTEIN_DISTANCE);
       // find closest element
@@ -1790,7 +1793,8 @@ class FixProcessor {
   void _addFix_undefinedFunction_useSimilar() {
     if (node is SimpleIdentifier) {
       String name = (node as SimpleIdentifier).name;
-      _ClosestElementFinder finder = new _ClosestElementFinder(name,
+      _ClosestElementFinder finder = new _ClosestElementFinder(
+          name,
           (Element element) => element is FunctionElement,
           MAX_LEVENSHTEIN_DISTANCE);
       // this library
@@ -2052,9 +2056,16 @@ class FixProcessor {
    * Prepares proposal for creating function corresponding to the given
    * [FunctionType].
    */
-  void _addProposal_createFunction(FunctionType functionType, String name,
-      Source targetSource, int insertOffset, bool isStatic, String prefix,
-      String sourcePrefix, String sourceSuffix, Element target) {
+  void _addProposal_createFunction(
+      FunctionType functionType,
+      String name,
+      Source targetSource,
+      int insertOffset,
+      bool isStatic,
+      String prefix,
+      String sourcePrefix,
+      String sourceSuffix,
+      Element target) {
     // build method source
     String targetFile = targetSource.fullName;
     SourceBuilder sb = new SourceBuilder(targetFile, insertOffset);
@@ -2154,8 +2165,15 @@ class FixProcessor {
       sourcePrefix = eol;
     }
     String sourceSuffix = eol;
-    _addProposal_createFunction(functionType, name, targetSource, insertOffset,
-        _inStaticContext(), prefix, sourcePrefix, sourceSuffix,
+    _addProposal_createFunction(
+        functionType,
+        name,
+        targetSource,
+        insertOffset,
+        _inStaticContext(),
+        prefix,
+        sourcePrefix,
+        sourceSuffix,
         targetClassElement);
     // add proposal
     _addFix(DartFixKind.CREATE_METHOD, [name]);
@@ -2611,24 +2629,27 @@ class FixProcessor {
     return <String>['arg$index'];
   }
 
+  static bool _isNameOfType(String name) {
+    if (name.isEmpty) {
+      return false;
+    }
+    String firstLetter = name.substring(0, 1);
+    if (firstLetter.toUpperCase() != firstLetter) {
+      return false;
+    }
+    return true;
+  }
+
   /**
    * Returns `true` if [node] is a type name.
    */
   static bool _mayBeTypeIdentifier(AstNode node) {
     if (node is SimpleIdentifier) {
       AstNode parent = node.parent;
-      if (parent is Annotation) {
-        return true;
-      }
       if (parent is TypeName) {
         return true;
       }
-      if (parent is MethodInvocation) {
-        return parent.realTarget == node;
-      }
-      if (parent is PrefixedIdentifier) {
-        return parent.prefix == node;
-      }
+      return _isNameOfType(node.name);
     }
     return false;
   }
