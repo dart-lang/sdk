@@ -1020,6 +1020,11 @@ class FragmentEmitter {
 
     globals.add(emitMangledGlobalNames());
 
+    // The [MANGLED_NAMES] table is only relevant for reflection.
+    // TODO(floitsch): verify that this is correct.
+    globals.add(new js.Property(js.string(MANGLED_NAMES),
+                                new js.ObjectInitializer([])));
+
     globals.add(emitGetTypeFromName());
 
     globals.addAll(emitMetadata(program));
