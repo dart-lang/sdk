@@ -33,11 +33,6 @@ def main():
           '--depth=.', '-Itools/gyp/all.gypi',
           component_gyp_files[component]]
 
-  if sys.platform == 'win32':
-    # Generate Visual Studio 2010 compatible files by default.
-    if not os.environ.get('GYP_MSVS_VERSION'):
-      args.extend(['-G', 'msvs_version=2010'])
-
   sys.exit(execute(args))
 
 if __name__ == '__main__':
