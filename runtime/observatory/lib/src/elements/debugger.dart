@@ -1717,6 +1717,11 @@ class DebuggerFrameElement extends ObservatoryElement {
 
   DebuggerFrameElement.created() : super.created();
 
+
+  String makeExpandKey(String key) {
+    return '${frame.function.qualifiedName}/${key}';
+  }
+
   bool matchFrame(Frame newFrame) {
     return newFrame.function.id == frame.function.id;
   }

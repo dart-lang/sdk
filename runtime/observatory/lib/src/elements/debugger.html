@@ -270,7 +270,8 @@
                   <div class="memberItem">
                     <div class="memberName">{{ v['name']}}</div>
                     <div class="memberValue">
-                      <any-service-ref ref="{{ v['value'] }}">
+                      <any-service-ref ref="{{ v['value'] }}"
+                                       expandKey="{{ makeExpandKey(v['name']) }}">
                       </any-service-ref>
                     </div>
                   </div>

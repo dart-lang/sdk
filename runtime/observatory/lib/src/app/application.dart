@@ -226,4 +226,7 @@ class ObservatoryApplication extends Observable {
     Logger.root.warning('Caught exception: ${e}\n${st}');
     notifications.add(new Notification.fromException(e, st));
   }
+
+  // This map keeps track of which curly-blocks have been expanded by the user.
+  Map<String,bool> expansions = {};
 }

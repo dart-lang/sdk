@@ -14,6 +14,7 @@ import 'package:observatory/service.dart';
 class ServiceRefElement extends ObservatoryElement {
   @published ServiceObject ref;
   @published bool internal = false;
+  @published String expandKey;
   ServiceRefElement.created() : super.created();
 
   void refChanged(oldValue) {
@@ -61,6 +62,7 @@ class ServiceRefElement extends ObservatoryElement {
 @CustomTag('any-service-ref')
 class AnyServiceRefElement extends ObservatoryElement {
   @published ServiceObject ref;
+  @published String expandKey;
   AnyServiceRefElement.created() : super.created();
 
   Element _constructElementForRef() {
@@ -106,6 +108,9 @@ class AnyServiceRefElement extends ObservatoryElement {
       case 'Sentinel':
         ServiceRefElement element = new Element.tag('instance-ref');
         element.ref = ref;
+        if (expandKey != null) {
+          element.expandKey = expandKey;
+        }
         return element;
       default:
         SpanElement element = new Element.tag('span');
