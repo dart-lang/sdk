@@ -3453,29 +3453,26 @@ void Assembler::TryAllocate(const Class& cls,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cls.id(), temp_reg, failure);
-    Heap* heap = Isolate::Current()->heap();
-    Heap::Space space = heap->SpaceForAllocation(cls.id());
-    const uword top_address = heap->TopAddress(space);
-    LoadImmediate(temp_reg, top_address);
-    ldr(instance_reg, Address(temp_reg));
+    MaybeTraceAllocation(cls.id(), temp_reg, failure,
+                         /* inline_isolate = */ false);
+    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    ldr(temp_reg, Address(THR, Thread::heap_offset()));
+    ldr(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
     // TODO(koda): Protect against unsigned overflow here.
     AddImmediateSetFlags(instance_reg, instance_reg, instance_size);
 
     // instance_reg: potential next object start.
-    const uword end_address = heap->EndAddress(space);
-    ASSERT(top_address < end_address);
-    // Could use ldm to load (top, end), but no benefit seen experimentally.
-    ldr(IP, Address(temp_reg, end_address - top_address));
+    ldr(IP, Address(temp_reg, Heap::EndOffset(space)));
     cmp(IP, Operand(instance_reg));
     // fail if heap end unsigned less than or equal to instance_reg.
     b(failure, LS);
 
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    str(instance_reg, Address(temp_reg));
+    str(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
 
-    LoadAllocationStatsAddress(temp_reg, cls.id());
+    LoadAllocationStatsAddress(temp_reg, cls.id(),
+                               /* inline_isolate = */ false);
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
@@ -3505,28 +3502,26 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cid, temp1, failure);
-    Isolate* isolate = Isolate::Current();
-    Heap* heap = isolate->heap();
-    Heap::Space space = heap->SpaceForAllocation(cid);
-    LoadImmediate(temp1, heap->TopAddress(space));
-    ldr(instance, Address(temp1, 0));  // Potential new object start.
+    MaybeTraceAllocation(cid, temp1, failure, /* inline_isolate = */ false);
+    Heap::Space space = Heap::SpaceForAllocation(cid);
+    ldr(temp1, Address(THR, Thread::heap_offset()));
+    // Potential new object start.
+    ldr(instance, Address(temp1, Heap::TopOffset(space)));
     AddImmediateSetFlags(end_address, instance, instance_size);
     b(failure, CS);  // Branch if unsigned overflow.
 
     // Check if the allocation fits into the remaining space.
     // instance: potential new object start.
     // end_address: potential next object start.
-    LoadImmediate(temp2, heap->EndAddress(space));
-    ldr(temp2, Address(temp2, 0));
+    ldr(temp2, Address(temp1, Heap::EndOffset(space)));
     cmp(end_address, Operand(temp2));
     b(failure, CS);
 
-    LoadAllocationStatsAddress(temp2, cid);
+    LoadAllocationStatsAddress(temp2, cid, /* inline_isolate = */ false);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
-    str(end_address, Address(temp1, 0));
+    str(end_address, Address(temp1, Heap::TopOffset(space)));
     add(instance, instance, Operand(kHeapObjectTag));
 
     // Initialize the tags.

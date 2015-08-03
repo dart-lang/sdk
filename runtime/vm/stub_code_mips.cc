@@ -1158,17 +1158,16 @@ void StubCode::GenerateAllocationStubForClass(
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // T1: instantiated type arguments (if is_cls_parameterized).
-    Heap* heap = Isolate::Current()->heap();
     Heap::Space space = Heap::SpaceForAllocation(cls.id());
-    __ LoadImmediate(T5, heap->TopAddress(space));
-    __ lw(T2, Address(T5));
+    __ lw(T5, Address(THR, Thread::heap_offset()));
+    __ lw(T2, Address(T5, Heap::TopOffset(space)));
     __ LoadImmediate(T4, instance_size);
     __ addu(T3, T2, T4);
     // Check if the allocation fits into the remaining space.
     // T2: potential new object start.
     // T3: potential next object start.
-    __ LoadImmediate(TMP, heap->EndAddress(space));
-    __ lw(CMPRES1, Address(TMP));
+    // T5: heap.
+    __ lw(CMPRES1, Address(T5, Heap::EndOffset(space)));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
@@ -1176,8 +1175,8 @@ void StubCode::GenerateAllocationStubForClass(
     }
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
-    __ sw(T3, Address(T5));
-    __ UpdateAllocationStats(cls.id(), T5, space);
+    __ sw(T3, Address(T5, Heap::TopOffset(space)));
+    __ UpdateAllocationStats(cls.id(), T5, space, /* inline_isolate = */ false);
 
     // T2: new object start.
     // T3: next object start.

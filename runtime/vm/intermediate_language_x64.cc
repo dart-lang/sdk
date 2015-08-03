@@ -1686,12 +1686,14 @@ class BoxAllocationSlowPath : public SlowPathCode {
   static void Allocate(FlowGraphCompiler* compiler,
                        Instruction* instruction,
                        const Class& cls,
-                       Register result) {
+                       Register result,
+                       Register temp) {
     if (compiler->intrinsic_mode()) {
       __ TryAllocate(cls,
                      compiler->intrinsic_slow_path_label(),
                      Assembler::kFarJump,
-                     result);
+                     result,
+                     temp);
     } else {
       BoxAllocationSlowPath* slow_path =
           new BoxAllocationSlowPath(instruction, cls, result);
@@ -1700,7 +1702,8 @@ class BoxAllocationSlowPath : public SlowPathCode {
       __ TryAllocate(cls,
                      slow_path->entry_label(),
                      Assembler::kFarJump,
-                     result);
+                     result,
+                     temp);
       __ Bind(slow_path->exit_label());
     }
   }
@@ -1758,7 +1761,7 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
   __ movq(box_reg, FieldAddress(instance_reg, offset));
   __ CompareObject(box_reg, Object::null_object());
   __ j(NOT_EQUAL, &done);
-  BoxAllocationSlowPath::Allocate(compiler, instruction, cls, box_reg);
+  BoxAllocationSlowPath::Allocate(compiler, instruction, cls, box_reg, temp);
   __ movq(temp, box_reg);
   __ StoreIntoObject(instance_reg,
                      FieldAddress(instance_reg, offset),
@@ -1796,7 +1799,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           UNREACHABLE();
       }
 
-      BoxAllocationSlowPath::Allocate(compiler, this, *cls, temp);
+      BoxAllocationSlowPath::Allocate(compiler, this, *cls, temp, temp2);
       __ movq(temp2, temp);
       __ StoreIntoObject(instance_reg,
                          FieldAddress(instance_reg, offset_in_bytes_),
@@ -2048,7 +2051,8 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
 
   __ TryAllocateArray(kArrayCid, instance_size, slow_path, Assembler::kFarJump,
                       RAX,  // instance
-                      RCX);  // end address
+                      RCX,  // end address
+                      R13);  // temp
 
   // RAX: new object start as a tagged pointer.
   // Store the type argument field.
@@ -2224,7 +2228,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     {
       __ Bind(&load_double);
       BoxAllocationSlowPath::Allocate(
-          compiler, this, compiler->double_class(), result);
+          compiler, this, compiler->double_class(), result, temp);
       __ movq(temp, FieldAddress(instance_reg, offset_in_bytes()));
       __ movsd(value, FieldAddress(temp, Double::value_offset()));
       __ movsd(FieldAddress(result, Double::value_offset()), value);
@@ -2234,7 +2238,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     {
       __ Bind(&load_float32x4);
       BoxAllocationSlowPath::Allocate(
-          compiler, this, compiler->float32x4_class(), result);
+          compiler, this, compiler->float32x4_class(), result, temp);
       __ movq(temp, FieldAddress(instance_reg, offset_in_bytes()));
       __ movups(value, FieldAddress(temp, Float32x4::value_offset()));
       __ movups(FieldAddress(result, Float32x4::value_offset()), value);
@@ -2244,7 +2248,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     {
       __ Bind(&load_float64x2);
       BoxAllocationSlowPath::Allocate(
-          compiler, this, compiler->float64x2_class(), result);
+          compiler, this, compiler->float64x2_class(), result, temp);
       __ movq(temp, FieldAddress(instance_reg, offset_in_bytes()));
       __ movups(value, FieldAddress(temp, Float64x2::value_offset()));
       __ movups(FieldAddress(result, Float64x2::value_offset()), value);
@@ -2367,10 +2371,11 @@ LocationSummary* AllocateUninitializedContextInstr::MakeLocationSummary(
     bool opt) const {
   ASSERT(opt);
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 2;
   LocationSummary* locs = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   locs->set_temp(0, Location::RegisterLocation(R10));
+  locs->set_temp(1, Location::RegisterLocation(R13));
   locs->set_out(0, Location::RegisterLocation(RAX));
   return locs;
 }
@@ -2420,7 +2425,8 @@ void AllocateUninitializedContextInstr::EmitNativeCode(
   __ TryAllocateArray(kContextCid, instance_size, slow_path->entry_label(),
                       Assembler::kFarJump,
                       result,  // instance
-                      temp);  // end address
+                      temp,  // end address
+                      locs()->temp(1).reg());
 
   // Setup up number of context variables field.
   __ movq(FieldAddress(result, Context::num_variables_offset()),
@@ -3261,10 +3267,11 @@ void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* BoxInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = 1;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_temp(0, Location::RequiresRegister());
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
@@ -3272,10 +3279,12 @@ LocationSummary* BoxInstr::MakeLocationSummary(Zone* zone,
 
 void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register out_reg = locs()->out(0).reg();
+  Register temp = locs()->temp(0).reg();
   XmmRegister value = locs()->in(0).fpu_reg();
 
   BoxAllocationSlowPath::Allocate(
-      compiler, this, compiler->BoxClassFor(from_representation()), out_reg);
+      compiler, this, compiler->BoxClassFor(from_representation()), out_reg,
+      temp);
   __ movsd(FieldAddress(out_reg, Double::value_offset()), value);
   switch (from_representation()) {
     case kUnboxedDouble:
@@ -3504,7 +3513,7 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
                                                     bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
   LocationSummary* summary = new(zone) LocationSummary(
       zone,
       kNumInputs,
@@ -3512,6 +3521,9 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
       ValueFitsSmi() ? LocationSummary::kNoCall
                      : LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresRegister());
+  if (!ValueFitsSmi()) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
@@ -3523,10 +3535,11 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ MoveRegister(out, value);
   __ SmiTag(out);
   if (!ValueFitsSmi()) {
+    const Register temp = locs()->temp(0).reg();
     Label done;
     __ j(NO_OVERFLOW, &done);
     BoxAllocationSlowPath::Allocate(
-        compiler, this, compiler->mint_class(), out);
+        compiler, this, compiler->mint_class(), out, temp);
     __ movq(FieldAddress(out, Mint::value_offset()), value);
     __ Bind(&done);
   }

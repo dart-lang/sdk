@@ -14,10 +14,8 @@ namespace dart {
 
 UNIT_TEST_CASE(Mutex) {
   // This unit test case needs a running isolate.
-  Isolate::Flags vm_flags;
-  Dart_IsolateFlags api_flags;
-  vm_flags.CopyTo(&api_flags);
-  Isolate* isolate = Isolate::Init(NULL, api_flags);
+  Dart_CreateIsolate(
+      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
 
   Mutex* mutex = new Mutex();
   mutex->Lock();
@@ -31,18 +29,16 @@ UNIT_TEST_CASE(Mutex) {
   }
   // The isolate shutdown and the destruction of the mutex are out-of-order on
   // purpose.
-  isolate->Shutdown();
-  delete isolate;
+  Dart_ShutdownIsolate();
   delete mutex;
 }
 
 
 UNIT_TEST_CASE(Monitor) {
   // This unit test case needs a running isolate.
-  Isolate::Flags vm_flags;
-  Dart_IsolateFlags api_flags;
-  vm_flags.CopyTo(&api_flags);
-  Isolate* isolate = Isolate::Init(NULL, api_flags);
+  Dart_CreateIsolate(
+      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
+  Isolate* isolate = Isolate::Current();
   // Thread interrupter interferes with this test, disable interrupts.
   isolate->set_thread_state(NULL);
   Profiler::EndExecution(isolate);
@@ -79,8 +75,7 @@ UNIT_TEST_CASE(Monitor) {
 
   // The isolate shutdown and the destruction of the mutex are out-of-order on
   // purpose.
-  isolate->Shutdown();
-  delete isolate;
+  Dart_ShutdownIsolate();
   delete monitor;
 }
 
@@ -210,18 +205,15 @@ TEST_CASE(ThreadRegistry) {
   Zone* orig_zone = Thread::Current()->zone();
   char* orig_str = orig_zone->PrintToString("foo");
   Thread::ExitIsolate();
-  Isolate::Flags vm_flags;
-  Dart_IsolateFlags api_flags;
-  vm_flags.CopyTo(&api_flags);
-  Isolate* isos[2];
   // Create and enter a new isolate.
-  isos[0] = Isolate::Init(NULL, api_flags);
+  Dart_CreateIsolate(
+      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
   Zone* zone0 = Thread::Current()->zone();
   EXPECT(zone0 != orig_zone);
-  isos[0]->Shutdown();
-  Thread::ExitIsolate();
+  Dart_ShutdownIsolate();
   // Create and enter yet another isolate.
-  isos[1] = Isolate::Init(NULL, api_flags);
+  Dart_CreateIsolate(
+      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
   {
     // Create a stack resource this time, and exercise it.
     StackZone stack_zone(Thread::Current());
@@ -229,14 +221,11 @@ TEST_CASE(ThreadRegistry) {
     EXPECT(zone1 != zone0);
     EXPECT(zone1 != orig_zone);
   }
-  isos[1]->Shutdown();
-  Thread::ExitIsolate();
+  Dart_ShutdownIsolate();
   Thread::EnterIsolate(orig);
   // Original zone should be preserved.
   EXPECT_EQ(orig_zone, Thread::Current()->zone());
   EXPECT_STREQ("foo", orig_str);
-  delete isos[0];
-  delete isos[1];
 }
 
 

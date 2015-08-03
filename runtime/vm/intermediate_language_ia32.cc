@@ -2051,7 +2051,8 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // Object end address in EBX.
   __ TryAllocateArray(kArrayCid, instance_size, slow_path, Assembler::kFarJump,
                       EAX,  // instance
-                      EBX);  // end address
+                      EBX,  // end address
+                      EDI);  // temp
 
   // Store the type argument field.
   __ InitializeFieldNoBarrier(EAX,
@@ -2373,10 +2374,11 @@ LocationSummary* AllocateUninitializedContextInstr::MakeLocationSummary(
     bool opt) const {
   ASSERT(opt);
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 2;
   LocationSummary* locs = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   locs->set_temp(0, Location::RegisterLocation(ECX));
+  locs->set_temp(1, Location::RegisterLocation(EDI));
   locs->set_out(0, Location::RegisterLocation(EAX));
   return locs;
 }
@@ -2417,6 +2419,7 @@ void AllocateUninitializedContextInstr::EmitNativeCode(
     FlowGraphCompiler* compiler) {
   ASSERT(compiler->is_optimizing());
   Register temp = locs()->temp(0).reg();
+  Register temp2 = locs()->temp(1).reg();
   Register result = locs()->out(0).reg();
   // Try allocate the object.
   AllocateContextSlowPath* slow_path = new AllocateContextSlowPath(this);
@@ -2426,7 +2429,8 @@ void AllocateUninitializedContextInstr::EmitNativeCode(
   __ TryAllocateArray(kContextCid, instance_size, slow_path->entry_label(),
                       Assembler::kFarJump,
                       result,  // instance
-                      temp);  // end address
+                      temp,  // end address
+                      temp2);  // temp
 
   // Setup up number of context variables field.
   __ movl(FieldAddress(result, Context::num_variables_offset()),
@@ -3324,10 +3328,11 @@ void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* BoxInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = 1;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_temp(0, Location::RequiresRegister());
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
@@ -3342,7 +3347,7 @@ void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       this,
       compiler->BoxClassFor(from_representation()),
       out_reg,
-      kNoRegister);
+      locs()->temp(0).reg());
 
   switch (from_representation()) {
     case kUnboxedDouble:
@@ -3490,7 +3495,7 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       ValueFitsSmi() ? LocationSummary::kNoCall
@@ -3499,6 +3504,9 @@ LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,
       (from_representation() == kUnboxedUint32);
   summary->set_in(0, needs_writable_input ? Location::RequiresRegister()
                                           : Location::WritableRegister());
+  if (!ValueFitsSmi()) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
   summary->set_out(0, ValueFitsSmi() ? Location::SameAsFirstInput()
                                      : Location::RequiresRegister());
   return summary;
@@ -3526,7 +3534,7 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // on the slow path.
     locs()->live_registers()->Add(locs()->in(0), kUnboxedInt32);
     BoxAllocationSlowPath::Allocate(
-        compiler, this, compiler->mint_class(), out, kNoRegister);
+        compiler, this, compiler->mint_class(), out, locs()->temp(0).reg());
     __ movl(FieldAddress(out, Mint::value_offset()), value);
     if (from_representation() == kUnboxedInt32) {
       __ sarl(value, Immediate(31));  // Sign extend.
@@ -3601,7 +3609,7 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ subl(value_lo, Immediate(0x40000000));
 
   BoxAllocationSlowPath::Allocate(
-      compiler, this, compiler->mint_class(), out_reg, kNoRegister);
+      compiler, this, compiler->mint_class(), out_reg, locs()->temp(0).reg());
   __ movl(FieldAddress(out_reg, Mint::value_offset()), value_lo);
   __ movl(FieldAddress(out_reg, Mint::value_offset() + kWordSize), value_hi);
   __ Bind(&done);
@@ -3708,7 +3716,7 @@ LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const bool might_box = (representation() == kTagged) && !can_pack_into_smi();
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = might_box ? 1 : 0;
+  const intptr_t kNumTemps = might_box ? 2 : 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       might_box ? LocationSummary::kCallOnSlowPath : LocationSummary::kNoCall);
@@ -3719,6 +3727,7 @@ LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Zone* zone,
                                           : Location::RequiresRegister());
   if (might_box) {
     summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RequiresRegister());
   }
 
   if (representation() == kUnboxedMint) {
@@ -3798,6 +3807,7 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else {
       // If the value cannot fit in a smi then allocate a mint box for it.
       Register temp = locs()->temp(0).reg();
+      Register temp2 = locs()->temp(1).reg();
       // Temp register needs to be manually preserved on allocation slow-path.
       locs()->live_registers()->Add(locs()->temp(0), kUnboxedInt32);
 
@@ -3809,7 +3819,7 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ testl(temp, Immediate(0xC0000000));
       __ j(ZERO, &done);
       BoxAllocationSlowPath::Allocate(
-          compiler, this, compiler->mint_class(), result, kNoRegister);
+          compiler, this, compiler->mint_class(), result, temp2);
       __ movl(FieldAddress(result, Mint::value_offset()), temp);
       __ movl(FieldAddress(result, Mint::value_offset() + kWordSize),
               Immediate(0));

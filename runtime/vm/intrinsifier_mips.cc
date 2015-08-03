@@ -179,7 +179,8 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_shift)           \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 0 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, T2, &fall_through);                             \
+  __ MaybeTraceAllocation(cid, T2, &fall_through,                              \
+                          /* inline_isolate = */ false);                       \
   __ lw(T2, Address(SP, kArrayLengthStackOffset));  /* Array length. */        \
   /* Check that length is a positive Smi. */                                   \
   /* T2: requested array length argument. */                                   \
@@ -195,10 +196,9 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ AddImmediate(T2, fixed_size);                                             \
   __ LoadImmediate(TMP, -kObjectAlignment);                                    \
   __ and_(T2, T2, TMP);                                                        \
-  Heap* heap = Isolate::Current()->heap();                                     \
-  Heap::Space space = heap->SpaceForAllocation(cid);                           \
-  __ LoadImmediate(V0, heap->TopAddress(space));                               \
-  __ lw(V0, Address(V0, 0));                                                   \
+  Heap::Space space = Heap::SpaceForAllocation(cid);                           \
+  __ lw(T3, Address(THR, Thread::heap_offset()));                              \
+  __ lw(V0, Address(T3, Heap::TopOffset(space)));                              \
                                                                                \
   /* T2: allocation size. */                                                   \
   __ addu(T1, V0, T2);                                                         \
@@ -209,16 +209,16 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* V0: potential new object start. */                                        \
   /* T1: potential next object start. */                                       \
   /* T2: allocation size. */                                                   \
-  __ LoadImmediate(T3, heap->EndAddress(space));                               \
-  __ lw(T3, Address(T3, 0));                                                   \
-  __ BranchUnsignedGreaterEqual(T1, T3, &fall_through);                        \
+  /* T3: heap. */                                                              \
+  __ lw(T4, Address(T3, Heap::EndOffset(space)));                              \
+  __ BranchUnsignedGreaterEqual(T1, T4, &fall_through);                        \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ LoadImmediate(T3, heap->TopAddress(space));                               \
-  __ sw(T1, Address(T3, 0));                                                   \
+  __ sw(T1, Address(T3, Heap::TopOffset(space)));                              \
   __ AddImmediate(V0, kHeapObjectTag);                                         \
-  __ UpdateAllocationStatsWithSize(cid, T2, T4, space);                        \
+  __ UpdateAllocationStatsWithSize(cid, T2, T4, space,                         \
+                                   /* inline_isolate = */ false);              \
   /* Initialize the tags. */                                                   \
   /* V0: new object start as a tagged pointer. */                              \
   /* T1: new object end address. */                                            \
@@ -1897,7 +1897,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure) {
   const Register length_reg = T2;
-  __ MaybeTraceAllocation(kOneByteStringCid, V0, failure);
+  __ MaybeTraceAllocation(kOneByteStringCid, V0, failure,
+                          /* inline_isolate = */ false);
   __ mov(T6, length_reg);  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
@@ -1906,12 +1907,10 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ LoadImmediate(TMP, ~(kObjectAlignment - 1));
   __ and_(length_reg, length_reg, TMP);
 
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
   const intptr_t cid = kOneByteStringCid;
-  Heap::Space space = heap->SpaceForAllocation(cid);
-  __ LoadImmediate(T3, heap->TopAddress(space));
-  __ lw(V0, Address(T3, 0));
+  Heap::Space space = Heap::SpaceForAllocation(cid);
+  __ lw(T3, Address(THR, Thread::heap_offset()));
+  __ lw(V0, Address(T3, Heap::TopOffset(space)));
 
   // length_reg: allocation size.
   __ addu(T1, V0, length_reg);
@@ -1921,17 +1920,17 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // V0: potential new object start.
   // T1: potential next object start.
   // T2: allocation size.
-  // T3: heap->TopAddress(space).
-  __ LoadImmediate(T4, heap->EndAddress(space));
-  __ lw(T4, Address(T4, 0));
+  // T3: heap.
+  __ lw(T4, Address(T3, Heap::EndOffset(space)));
   __ BranchUnsignedGreaterEqual(T1, T4, failure);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ sw(T1, Address(T3, 0));
+  __ sw(T1, Address(T3, Heap::TopOffset(space)));
   __ AddImmediate(V0, kHeapObjectTag);
 
-  __ UpdateAllocationStatsWithSize(cid, T2, T3, space);
+  __ UpdateAllocationStatsWithSize(cid, T2, T3, space,
+                                   /* inline_isolate = */ false);
 
   // Initialize the tags.
   // V0: new object start as a tagged pointer.

@@ -1063,27 +1063,26 @@ void StubCode::GenerateAllocationStubForClass(
     Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
-    Heap* heap = Isolate::Current()->heap();
     Heap::Space space = Heap::SpaceForAllocation(cls.id());
-    __ LoadImmediate(R5, heap->TopAddress(space));
-    __ ldr(R0, Address(R5, 0));
+    __ ldr(R5, Address(THR, Thread::heap_offset()));
+    __ ldr(R0, Address(R5, Heap::TopOffset(space)));
     __ AddImmediate(R1, R0, instance_size);
     // Check if the allocation fits into the remaining space.
     // R0: potential new object start.
     // R1: potential next object start.
-    __ LoadImmediate(IP, heap->EndAddress(space));
-    __ ldr(IP, Address(IP, 0));
+    // R5: heap.
+    __ ldr(IP, Address(R5, Heap::EndOffset(space)));
     __ cmp(R1, Operand(IP));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
       __ b(&slow_case, CS);  // Unsigned higher or equal.
     }
-    __ str(R1, Address(R5, 0));
+    __ str(R1, Address(R5, Heap::TopOffset(space)));
 
     // Load the address of the allocation stats table. We split up the load
     // and the increment so that the dependent load is not too nearby.
-    __ LoadAllocationStatsAddress(R5, cls.id());
+    __ LoadAllocationStatsAddress(R5, cls.id(), /* inline_isolate = */ false);
 
     // R0: new object start.
     // R1: next object start.

@@ -14,11 +14,8 @@
 namespace dart {
 
 UNIT_TEST_CASE(Metric_Simple) {
-  Isolate::Flags vm_flags;
-  Dart_IsolateFlags api_flags;
-  vm_flags.CopyTo(&api_flags);
-  Isolate* isolate = Isolate::Init(NULL, api_flags);
-  EXPECT_EQ(isolate, Isolate::Current());
+  Dart_CreateIsolate(
+      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
   Metric metric;
 
   // Initialize metric.
@@ -28,6 +25,7 @@ UNIT_TEST_CASE(Metric_Simple) {
   EXPECT_EQ(1, metric.value());
   metric.set_value(44);
   EXPECT_EQ(44, metric.value());
+  Dart_ShutdownIsolate();
 }
 
 class MyMetric : public Metric {
@@ -43,29 +41,30 @@ class MyMetric : public Metric {
 };
 
 UNIT_TEST_CASE(Metric_OnDemand) {
-  Isolate::Flags vm_flags;
-  Dart_IsolateFlags api_flags;
-  vm_flags.CopyTo(&api_flags);
-  Isolate* isolate = Isolate::Init(NULL, api_flags);
-  EXPECT_EQ(isolate, Isolate::Current());
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
-  MyMetric metric;
+  Dart_CreateIsolate(
+      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
+  {
+    Isolate* isolate = Isolate::Current();
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    MyMetric metric;
 
-  metric.Init(Isolate::Current(), "a.b.c", "foobar", Metric::kByte);
-  // value is still the default value.
-  EXPECT_EQ(0, metric.value());
-  // Call LeakyValue to confirm that Value returns constant 99.
-  EXPECT_EQ(99, metric.LeakyValue());
+    metric.Init(Isolate::Current(), "a.b.c", "foobar", Metric::kByte);
+    // value is still the default value.
+    EXPECT_EQ(0, metric.value());
+    // Call LeakyValue to confirm that Value returns constant 99.
+    EXPECT_EQ(99, metric.LeakyValue());
 
-  // Serialize to JSON.
-  JSONStream js;
-  metric.PrintJSON(&js);
-  const char* json = js.ToCString();
-  EXPECT_STREQ("{\"type\":\"Counter\",\"name\":\"a.b.c\",\"description\":"
-               "\"foobar\",\"unit\":\"byte\","
-               "\"fixedId\":true,\"id\":\"metrics\\/native\\/a.b.c\""
-               ",\"value\":99.000000}", json);
+    // Serialize to JSON.
+    JSONStream js;
+    metric.PrintJSON(&js);
+    const char* json = js.ToCString();
+    EXPECT_STREQ("{\"type\":\"Counter\",\"name\":\"a.b.c\",\"description\":"
+                 "\"foobar\",\"unit\":\"byte\","
+                 "\"fixedId\":true,\"id\":\"metrics\\/native\\/a.b.c\""
+                 ",\"value\":99.000000}", json);
+  }
+  Dart_ShutdownIsolate();
 }
 
 }  // namespace dart

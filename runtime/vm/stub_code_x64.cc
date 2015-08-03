@@ -613,8 +613,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   const intptr_t cid = kArrayCid;
   Heap::Space space = Heap::SpaceForAllocation(cid);
-  __ LoadIsolate(R13);
-  __ movq(R13, Address(R13, Isolate::heap_offset()));
+  __ movq(R13, Address(THR, Thread::heap_offset()));
   __ movq(RAX, Address(R13, Heap::TopOffset(space)));
 
   // RDI: allocation size.
@@ -863,8 +862,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R10: number of context variables.
     const intptr_t cid = kContextCid;
     Heap::Space space = Heap::SpaceForAllocation(cid);
-    __ LoadIsolate(RCX);
-    __ movq(RCX, Address(RCX, Isolate::heap_offset()));
+    __ movq(RCX, Address(THR, Thread::heap_offset()));
     __ movq(RAX, Address(RCX, Heap::TopOffset(space)));
     __ addq(R13, RAX);
     // Check if the allocation fits into the remaining space.
@@ -1074,24 +1072,22 @@ void StubCode::GenerateAllocationStubForClass(
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // RDX: instantiated type arguments (if is_cls_parameterized).
-    Heap* heap = Isolate::Current()->heap();
     Heap::Space space = Heap::SpaceForAllocation(cls.id());
-    __ movq(RCX, Immediate(heap->TopAddress(space)));
-    __ movq(RAX, Address(RCX, 0));
+    __ movq(RCX, Address(THR, Thread::heap_offset()));
+    __ movq(RAX, Address(RCX, Heap::TopOffset(space)));
     __ leaq(RBX, Address(RAX, instance_size));
     // Check if the allocation fits into the remaining space.
     // RAX: potential new object start.
     // RBX: potential next object start.
-    // RCX: heap top address.
-    __ movq(R13, Immediate(heap->EndAddress(space)));
-    __ cmpq(RBX, Address(R13, 0));
+    // RCX: heap.
+    __ cmpq(RBX, Address(RCX, Heap::EndOffset(space)));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
       __ j(ABOVE_EQUAL, &slow_case);
     }
-    __ movq(Address(RCX, 0), RBX);
-    __ UpdateAllocationStats(cls.id(), space);
+    __ movq(Address(RCX, Heap::TopOffset(space)), RBX);
+    __ UpdateAllocationStats(cls.id(), space, /* inline_isolate = */ false);
 
     // RAX: new object start (untagged).
     // RBX: next object start.

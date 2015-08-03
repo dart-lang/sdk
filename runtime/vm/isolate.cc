@@ -60,6 +60,14 @@ DEFINE_FLAG(charp, isolate_log_filter, NULL,
 DEFINE_FLAG(charp, timeline_trace_dir, NULL,
             "Enable all timeline trace streams and output traces "
             "into specified directory.");
+DEFINE_FLAG(int, new_gen_semi_max_size, (kWordSize <= 4) ? 16 : 32,
+            "Max size of new gen semi space in MB");
+DEFINE_FLAG(int, old_gen_heap_size, 0,
+            "Max size of old gen heap size in MB, or 0 for unlimited,"
+            "e.g: --old_gen_heap_size=1024 allows up to 1024MB old gen heap");
+DEFINE_FLAG(int, external_max_size, (kWordSize <= 4) ? 512 : 1024,
+            "Max total size of external allocations in MB, or 0 for unlimited,"
+            "e.g: --external_max_size=1024 allows up to 1024MB of externals");
 
 // TODO(iposva): Make these isolate specific flags inaccessible using the
 // regular FLAG_xyz pattern.
@@ -765,6 +773,12 @@ Isolate* Isolate::Init(const char* name_prefix,
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_INIT);
 #undef ISOLATE_TIMELINE_STREAM_INIT
 
+  Heap::Init(result,
+             is_vm_isolate
+                 ? 0  // New gen size 0; VM isolate should only allocate in old.
+                 : FLAG_new_gen_semi_max_size * MBInWords,
+             FLAG_old_gen_heap_size * MBInWords,
+             FLAG_external_max_size * MBInWords);
 
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.

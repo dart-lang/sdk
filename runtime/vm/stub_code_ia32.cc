@@ -597,8 +597,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   const intptr_t cid = kArrayCid;
   Heap::Space space = Heap::SpaceForAllocation(cid);
-  __ LoadIsolate(EDI);
-  __ movl(EDI, Address(EDI, Isolate::heap_offset()));
+  __ movl(EDI, Address(THR, Thread::heap_offset()));
   __ movl(EAX, Address(EDI, Heap::TopOffset(space)));
   __ addl(EBX, EAX);
   __ j(CARRY, &slow_case);
@@ -821,8 +820,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // EDX: number of context variables.
     const intptr_t cid = kContextCid;
     Heap::Space space = Heap::SpaceForAllocation(cid);
-    __ LoadIsolate(ECX);
-    __ movl(ECX, Address(ECX, Isolate::heap_offset()));
+    __ movl(ECX, Address(THR, Thread::heap_offset()));
     __ movl(EAX, Address(ECX, Heap::TopOffset(space)));
     __ addl(EBX, EAX);
     // Check if the allocation fits into the remaining space.
@@ -1036,21 +1034,23 @@ void StubCode::GenerateAllocationStubForClass(
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // EDX: instantiated type arguments (if is_cls_parameterized).
-    Heap* heap = Isolate::Current()->heap();
     Heap::Space space = Heap::SpaceForAllocation(cls.id());
-    __ movl(EAX, Address::Absolute(heap->TopAddress(space)));
+    __ movl(EDI, Address(THR, Thread::heap_offset()));
+    __ movl(EAX, Address(EDI, Heap::TopOffset(space)));
     __ leal(EBX, Address(EAX, instance_size));
     // Check if the allocation fits into the remaining space.
     // EAX: potential new object start.
     // EBX: potential next object start.
-    __ cmpl(EBX, Address::Absolute(heap->EndAddress(space)));
+    // EDI: heap.
+    __ cmpl(EBX, Address(EDI, Heap::EndOffset(space)));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
       __ j(ABOVE_EQUAL, &slow_case);
     }
-    __ movl(Address::Absolute(heap->TopAddress(space)), EBX);
-    __ UpdateAllocationStats(cls.id(), ECX, space);
+    __ movl(Address(EDI, Heap::TopOffset(space)), EBX);
+    __ UpdateAllocationStats(cls.id(), ECX, space,
+                             /* inline_isolate = */ false);
 
     // EAX: new object start (untagged).
     // EBX: next object start.

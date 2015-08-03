@@ -1006,14 +1006,16 @@ class Assembler : public ValueObject {
   void TryAllocate(const Class& cls,
                    Label* failure,
                    bool near_jump,
-                   Register instance_reg);
+                   Register instance_reg,
+                   Register temp);
 
   void TryAllocateArray(intptr_t cid,
                         intptr_t instance_size,
                         Label* failure,
                         bool near_jump,
                         Register instance,
-                        Register end_address);
+                        Register end_address,
+                        Register temp);
 
   // Debugging and bringup support.
   void Stop(const char* message, bool fixed_length_encoding = false);

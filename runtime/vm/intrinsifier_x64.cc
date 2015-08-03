@@ -72,7 +72,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // Try allocating in new space.
   const Class& cls = Class::Handle(
       Isolate::Current()->object_store()->growable_object_array_class());
-  __ TryAllocate(cls, &fall_through, Assembler::kFarJump, RAX);
+  __ TryAllocate(cls, &fall_through, Assembler::kFarJump, RAX, R13);
 
   // Store backing array object in growable array object.
   __ movq(RCX, Address(RSP, kArrayOffset));  // data argument.
@@ -130,7 +130,8 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, &fall_through, false);                          \
+  __ MaybeTraceAllocation(cid, &fall_through, false,                           \
+                          /* inline_isolate = */ false);                       \
   __ movq(RDI, Address(RSP, kArrayLengthStackOffset));  /* Array length. */    \
   /* Check that length is a positive Smi. */                                   \
   /* RDI: requested array length argument. */                                  \
@@ -153,10 +154,9 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ leaq(RDI, Address(RDI, scale_factor, fixed_size));                        \
   __ andq(RDI, Immediate(-kObjectAlignment));                                  \
-  Heap* heap = Isolate::Current()->heap();                                     \
-  Heap::Space space = heap->SpaceForAllocation(cid);                           \
-  __ movq(RAX, Immediate(heap->TopAddress(space)));                            \
-  __ movq(RAX, Address(RAX, 0));                                               \
+  Heap::Space space = Heap::SpaceForAllocation(cid);                           \
+  __ movq(R13, Address(THR, Thread::heap_offset()));                           \
+  __ movq(RAX, Address(R13, Heap::TopOffset(space)));                          \
   __ movq(RCX, RAX);                                                           \
                                                                                \
   /* RDI: allocation size. */                                                  \
@@ -167,17 +167,16 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* RAX: potential new object start. */                                       \
   /* RCX: potential next object start. */                                      \
   /* RDI: allocation size. */                                                  \
-  /* R13: scratch register. */                                                 \
-  __ movq(R13, Immediate(heap->EndAddress(space)));                            \
-  __ cmpq(RCX, Address(R13, 0));                                               \
+  /* R13: heap. */                                                             \
+  __ cmpq(RCX, Address(R13, Heap::EndOffset(space)));                          \
   __ j(ABOVE_EQUAL, &fall_through);                                            \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ movq(R13, Immediate(heap->TopAddress(space)));                            \
-  __ movq(Address(R13, 0), RCX);                                               \
+  __ movq(Address(R13, Heap::TopOffset(space)), RCX);                          \
   __ addq(RAX, Immediate(kHeapObjectTag));                                     \
-  __ UpdateAllocationStatsWithSize(cid, RDI, space);                           \
+  __ UpdateAllocationStatsWithSize(cid, RDI, space,                            \
+                                   /* inline_isolate = */ false);              \
   /* Initialize the tags. */                                                   \
   /* RAX: new object start as a tagged pointer. */                             \
   /* RCX: new object end address. */                                           \
@@ -1321,7 +1320,8 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   __ TryAllocate(double_class,
                  &fall_through,
                  Assembler::kFarJump,
-                 RAX);  // Result register.
+                 RAX,  // Result register.
+                 R13);
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1365,7 +1365,8 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   __ TryAllocate(double_class,
                  &fall_through,
                  Assembler::kFarJump,
-                 RAX);  // Result register.
+                 RAX,  // Result register.
+                 R13);
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1386,7 +1387,8 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
   __ TryAllocate(double_class,
                  &fall_through,
                  Assembler::kFarJump,
-                 RAX);  // Result register.
+                 RAX,  // Result register.
+                 R13);
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1459,7 +1461,8 @@ void Intrinsifier::MathSqrt(Assembler* assembler) {
   __ TryAllocate(double_class,
                  &fall_through,
                  Assembler::kFarJump,
-                 RAX);  // Result register.
+                 RAX,  // Result register.
+                 R13);
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&is_smi);
@@ -1733,7 +1736,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure,
                                      Register length_reg) {
-  __ MaybeTraceAllocation(kOneByteStringCid, failure, false);
+  __ MaybeTraceAllocation(kOneByteStringCid, failure, false,
+                          /* inline_isolate = */ false);
   if (length_reg != RDI) {
     __ movq(RDI, length_reg);
   }
@@ -1744,12 +1748,10 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ leaq(RDI, Address(RDI, TIMES_1, fixed_size));  // RDI is a Smi.
   __ andq(RDI, Immediate(-kObjectAlignment));
 
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
   const intptr_t cid = kOneByteStringCid;
-  Heap::Space space = heap->SpaceForAllocation(cid);
-  __ movq(RAX, Immediate(heap->TopAddress(space)));
-  __ movq(RAX, Address(RAX, 0));
+  Heap::Space space = Heap::SpaceForAllocation(cid);
+  __ movq(R13, Address(THR, Thread::heap_offset()));
+  __ movq(RAX, Address(R13, Heap::TopOffset(space)));
 
   // RDI: allocation size.
   __ movq(RCX, RAX);
@@ -1760,16 +1762,16 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // RAX: potential new object start.
   // RCX: potential next object start.
   // RDI: allocation size.
-  __ movq(R13, Immediate(heap->EndAddress(space)));
-  __ cmpq(RCX, Address(R13, 0));
+  // R13: heap.
+  __ cmpq(RCX, Address(R13, Heap::EndOffset(space)));
   __ j(ABOVE_EQUAL, &pop_and_fail);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movq(R13, Immediate(heap->TopAddress(space)));
-  __ movq(Address(R13, 0), RCX);
+  __ movq(Address(R13, Heap::TopOffset(space)), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(cid, RDI, space);
+  __ UpdateAllocationStatsWithSize(cid, RDI, space,
+                                   /* inline_isolate = */ false);
 
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.

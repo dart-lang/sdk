@@ -910,7 +910,8 @@ class Assembler : public ValueObject {
                         Label* failure,
                         bool near_jump,
                         Register instance,
-                        Register end_address);
+                        Register end_address,
+                        Register temp);
 
   // Debugging and bringup support.
   void Stop(const char* message);

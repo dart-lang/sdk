@@ -452,26 +452,6 @@ void Heap::WriteProtect(bool read_only) {
 }
 
 
-uword Heap::TopAddress(Heap::Space space) {
-  if (space == kNew) {
-    return reinterpret_cast<uword>(new_space_.TopAddress());
-  } else {
-    ASSERT(space == kPretenured);
-    return reinterpret_cast<uword>(old_space_.TopAddress());
-  }
-}
-
-
-uword Heap::EndAddress(Heap::Space space) {
-  if (space == kNew) {
-    return reinterpret_cast<uword>(new_space_.EndAddress());
-  } else {
-    ASSERT(space == kPretenured);
-    return reinterpret_cast<uword>(old_space_.EndAddress());
-  }
-}
-
-
 Heap::Space Heap::SpaceForAllocation(intptr_t cid) {
   return FLAG_pretenure_all ? kPretenured : kNew;
 }

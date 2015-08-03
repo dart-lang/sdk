@@ -13,12 +13,14 @@ namespace dart {
 
 class CHA;
 class HandleScope;
+class Heap;
 class Isolate;
 class Object;
 class RawBool;
 class RawObject;
 class StackResource;
 class Zone;
+
 
 // List of VM-global objects/addresses cached in each Thread object.
 #define CACHED_VM_OBJECTS_LIST(V)                                              \
@@ -117,6 +119,10 @@ class Thread {
     return OFFSET_OF(Thread, state_) + OFFSET_OF(State, top_resource);
   }
 
+  static intptr_t heap_offset() {
+    return OFFSET_OF(Thread, heap_);
+  }
+
   int32_t no_handle_scope_depth() const {
 #if defined(DEBUG)
     return state_.no_handle_scope_depth;
@@ -202,6 +208,7 @@ CACHED_CONSTANTS_LIST(DEFINE_OFFSET_METHOD)
   static ThreadLocalKey thread_key_;
 
   Isolate* isolate_;
+  Heap* heap_;
   State state_;
   StoreBufferBlock* store_buffer_block_;
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \

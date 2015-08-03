@@ -140,6 +140,8 @@ void Thread::EnterIsolate(Isolate* isolate) {
   isolate->set_vm_tag(VMTag::kVMTagId);
   ASSERT(thread->store_buffer_block_ == NULL);
   thread->store_buffer_block_ = isolate->store_buffer()->PopBlock();
+  ASSERT(isolate->heap() != NULL);
+  thread->heap_ = isolate->heap();
   thread->Schedule(isolate);
 }
 
@@ -163,6 +165,7 @@ void Thread::ExitIsolate() {
   isolate->set_mutator_thread(NULL);
   thread->isolate_ = NULL;
   ASSERT(Isolate::Current() == NULL);
+  thread->heap_ = NULL;
 }
 
 
@@ -171,6 +174,8 @@ void Thread::EnterIsolateAsHelper(Isolate* isolate) {
   ASSERT(thread != NULL);
   ASSERT(thread->isolate() == NULL);
   thread->isolate_ = isolate;
+  ASSERT(isolate->heap() != NULL);
+  thread->heap_ = isolate->heap();
   // Do not update isolate->mutator_thread, but perform sanity check:
   // this thread should not be both the main mutator and helper.
   ASSERT(isolate->mutator_thread() != thread);
@@ -187,6 +192,7 @@ void Thread::ExitIsolateAsHelper() {
   ASSERT(isolate != NULL);
   thread->Unschedule();
   thread->isolate_ = NULL;
+  thread->heap_ = NULL;
   ASSERT(isolate->mutator_thread() != thread);
 }
 
