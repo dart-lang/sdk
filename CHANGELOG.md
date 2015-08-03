@@ -1,3 +1,10 @@
+## 1.11.2
+
+### Core library changes
+
+* Fix a bug where `WebSocket.close()` would crash if called after
+  `WebSocket.cancel()`.
+
 ## 1.11.1
 
 ### Tool changes

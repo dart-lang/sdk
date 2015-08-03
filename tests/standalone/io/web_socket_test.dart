@@ -187,6 +187,36 @@ class SecurityConfiguration {
   }
 
 
+  void testCancelThenClose() {
+    createServer().then((server) {
+      server.transform(new WebSocketTransformer()).listen((webSocket) {
+        webSocket.listen(null).cancel();
+        webSocket.close();
+        server.close();
+      });
+
+      createClient(server.port).then((webSocket) {
+        webSocket.close();
+      });
+    });
+  }
+
+  void testCloseThenCancel() {
+    createServer().then((server) {
+      server.transform(new WebSocketTransformer()).listen((webSocket) {
+        var subscription = webSocket.listen(null);
+        webSocket.close();
+        subscription.cancel();
+        server.close();
+      });
+
+      createClient(server.port).then((webSocket) {
+        webSocket.close();
+      });
+    });
+  }
+
+
   void testListenAfterClose() {
     createServer().then((server) {
       server.transform(new WebSocketTransformer()).listen((webSocket) {
@@ -543,6 +573,8 @@ class SecurityConfiguration {
     testMessageLength(65535);
     testMessageLength(65536);
     testCloseNoListen();
+    testCancelThenClose();
+    testCloseThenCancel();
     testListenAfterClose();
     testDoubleCloseClient();
     testDoubleCloseServer();
