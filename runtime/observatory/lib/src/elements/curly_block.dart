@@ -26,7 +26,6 @@ class CurlyBlockElement extends PolymerElement {
 
   void toggleExpand(var event, var b, var c) {
     assert(callback == null || expand == false);
-    event.stopPropagation();
     if (busy) {
       return;
     }

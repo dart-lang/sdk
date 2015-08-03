@@ -166,7 +166,7 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   if (exception() != NULL) {
     jsobj.AddProperty("exception", *(exception()));
   }
-  if (async_continuation() != NULL) {
+  if (async_continuation() != NULL && !async_continuation()->IsNull()) {
     jsobj.AddProperty("_asyncContinuation", *(async_continuation()));
   }
   if (inspectee() != NULL) {
