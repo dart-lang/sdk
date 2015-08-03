@@ -49,7 +49,19 @@ Definition::Definition(intptr_t deopt_id)
       ssa_temp_index_(-1),
       input_use_list_(NULL),
       env_use_list_(NULL),
-      constant_value_(Object::ZoneHandle(ConstantPropagator::Unknown())) {
+      constant_value_(NULL) {
+}
+
+
+// A value in the constant propagation lattice.
+//    - non-constant sentinel
+//    - a constant (any non-sentinel value)
+//    - unknown sentinel
+Object& Definition::constant_value() {
+  if (constant_value_ == NULL) {
+    constant_value_ = &Object::ZoneHandle(ConstantPropagator::Unknown());
+  }
+  return *constant_value_;
 }
 
 

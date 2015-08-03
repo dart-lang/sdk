@@ -48,6 +48,7 @@ DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 
 DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, load_deferred_eagerly);
+DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
@@ -836,6 +837,9 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   Zone* zone = parsed_function->zone();
   CSTAT_TIMER_SCOPE(isolate, parser_timer);
   INC_STAT(isolate, num_functions_compiled, 1);
+  VMTagScope tagScope(isolate, VMTag::kCompileParseFunctionTagId,
+                      FLAG_profile_vm);
+
   ASSERT(isolate->long_jump_base()->IsSafeToJump());
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();

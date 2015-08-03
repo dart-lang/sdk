@@ -22,6 +22,9 @@ class RuntimeEntry;
   V(CompileClass)                                                              \
   V(CompileTopLevel)                                                           \
   V(CompileScanner)                                                            \
+  V(CompileParseFunction)                                                      \
+  V(CompileParseRegExp)                                                        \
+  V(CompileFlowGraphBuilder)                                                   \
   V(Dart)                                                                      \
   V(GCNewSpace)                                                                \
   V(GCOldSpace)                                                                \
@@ -65,7 +68,7 @@ class VMTag : public AllStatic {
 
 class VMTagScope : StackResource {
  public:
-  VMTagScope(Isolate* isolate, uword tag);
+  VMTagScope(Isolate* isolate, uword tag, bool conditional_set = true);
   ~VMTagScope();
  private:
   uword previous_tag_;

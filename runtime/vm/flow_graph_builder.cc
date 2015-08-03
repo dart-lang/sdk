@@ -42,6 +42,7 @@ DEFINE_FLAG(bool, precompile_collect_closures, false,
             "Collect all closure functions referenced from compiled code.");
 
 DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(bool, use_field_guards);
 
@@ -4783,6 +4784,9 @@ void EffectGraphVisitor::VisitStopNode(StopNode* node) {
 
 
 FlowGraph* FlowGraphBuilder::BuildGraph() {
+  VMTagScope tagScope(Thread::Current()->isolate(),
+                      VMTag::kCompileFlowGraphBuilderTagId,
+                      FLAG_profile_vm);
   if (FLAG_print_ast) {
     // Print the function ast before IL generation.
     AstPrinter::PrintFunctionNodes(parsed_function());

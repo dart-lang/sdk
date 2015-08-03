@@ -94,15 +94,17 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   // The real frame starts here.
   builder->MarkFrameStart();
 
+  Zone* zone = compiler->zone();
+
   // Current PP, FP, and PC.
-  builder->AddPp(Function::Handle(current->code().function()), slot_ix++);
+  builder->AddPp(Function::Handle(zone, current->code().function()), slot_ix++);
   builder->AddCallerFp(slot_ix++);
-  builder->AddReturnAddress(Function::Handle(current->code().function()),
+  builder->AddReturnAddress(Function::Handle(zone, current->code().function()),
                             deopt_id(),
                             slot_ix++);
 
   // Callee's PC marker is not used anymore. Pass Code::null() to set to 0.
-  builder->AddPcMarker(Function::Handle(), slot_ix++);
+  builder->AddPcMarker(Function::Handle(zone), slot_ix++);
 
   // Emit all values that are needed for materialization as a part of the
   // expression stack for the bottom-most frame. This guarantees that GC
@@ -120,17 +122,19 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   current = current->outer();
   while (current != NULL) {
     // PP, FP, and PC.
-    builder->AddPp(Function::Handle(current->code().function()), slot_ix++);
+    builder->AddPp(
+        Function::Handle(zone, current->code().function()), slot_ix++);
     builder->AddCallerFp(slot_ix++);
 
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
-    builder->AddReturnAddress(Function::Handle(current->code().function()),
-                              Isolate::ToDeoptAfter(current->deopt_id()),
-                              slot_ix++);
+    builder->AddReturnAddress(
+        Function::Handle(zone, current->code().function()),
+        Isolate::ToDeoptAfter(current->deopt_id()),
+        slot_ix++);
 
     // PC marker.
-    builder->AddPcMarker(Function::Handle(previous->code().function()),
+    builder->AddPcMarker(Function::Handle(zone, previous->code().function()),
                          slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
@@ -163,7 +167,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   builder->AddCallerPc(slot_ix++);
 
   // PC marker.
-  builder->AddPcMarker(Function::Handle(previous->code().function()),
+  builder->AddPcMarker(Function::Handle(zone, previous->code().function()),
                        slot_ix++);
 
   // For the outermost environment, set the incoming arguments.
@@ -224,7 +228,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
   ASSERT(instance_reg == A0);
   ASSERT(temp_reg == kNoRegister);  // Unused on MIPS.
   const SubtypeTestCache& type_test_cache =
-      SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
+      SubtypeTestCache::ZoneHandle(zone(), SubtypeTestCache::New());
   __ LoadUniqueObject(A2, type_test_cache);
   if (test_kind == kTestTypeOneArg) {
     ASSERT(type_arguments_reg == kNoRegister);
@@ -259,11 +263,11 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     Label* is_not_instance_lbl) {
   __ Comment("InstantiatedTypeWithArgumentsTest");
   ASSERT(type.IsInstantiated());
-  const Class& type_class = Class::ZoneHandle(type.type_class());
+  const Class& type_class = Class::ZoneHandle(zone(), type.type_class());
   ASSERT((type_class.NumTypeArguments() > 0) || type_class.IsSignatureClass());
   const Register kInstanceReg = A0;
-  Error& malformed_error = Error::Handle();
-  const Type& int_type = Type::Handle(Type::IntType());
+  Error& malformed_error = Error::Handle(zone());
+  const Type& int_type = Type::Handle(zone(), Type::IntType());
   const bool smi_is_ok = int_type.IsSubtypeOf(type, &malformed_error);
   // Malformed type should have been handled at graph construction time.
   ASSERT(smi_is_ok || malformed_error.IsNull());
@@ -277,7 +281,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const intptr_t num_type_params = type_class.NumTypeParameters();
   const intptr_t from_index = num_type_args - num_type_params;
   const TypeArguments& type_arguments =
-      TypeArguments::ZoneHandle(type.arguments());
+      TypeArguments::ZoneHandle(zone(), type.arguments());
   const bool is_raw_type = type_arguments.IsNull() ||
       type_arguments.IsRaw(from_index, num_type_params);
   // Signature class is an instantiated parameterized type.
@@ -296,13 +300,13 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     }
     // If one type argument only, check if type argument is Object or dynamic.
     if (type_arguments.Length() == 1) {
-      const AbstractType& tp_argument = AbstractType::ZoneHandle(
+      const AbstractType& tp_argument = AbstractType::ZoneHandle(zone(),
           type_arguments.TypeAt(0));
       ASSERT(!tp_argument.IsMalformed());
       if (tp_argument.IsType()) {
         ASSERT(tp_argument.HasResolvedTypeClass());
         // Check if type argument is dynamic or Object.
-        const Type& object_type = Type::Handle(Type::ObjectType());
+        const Type& object_type = Type::Handle(zone(), Type::ObjectType());
         if (object_type.IsSubtypeOf(tp_argument, NULL)) {
           // Instance class test only necessary.
           return GenerateSubtype1TestCacheLookup(
@@ -348,16 +352,16 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     Label* is_not_instance_lbl) {
   __ Comment("InstantiatedTypeNoArgumentsTest");
   ASSERT(type.IsInstantiated());
-  const Class& type_class = Class::Handle(type.type_class());
+  const Class& type_class = Class::Handle(zone(), type.type_class());
   ASSERT(type_class.NumTypeArguments() == 0);
 
   const Register kInstanceReg = A0;
   __ andi(T0, A0, Immediate(kSmiTagMask));
   // If instance is Smi, check directly.
-  const Class& smi_class = Class::Handle(Smi::Class());
-  if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
+  const Class& smi_class = Class::Handle(zone(), Smi::Class());
+  if (smi_class.IsSubtypeOf(TypeArguments::Handle(zone()),
                             type_class,
-                            TypeArguments::Handle(),
+                            TypeArguments::Handle(zone()),
                             NULL)) {
     __ beq(T0, ZR, is_instance_lbl);
   } else {
@@ -384,7 +388,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
-  if (type.IsSubtypeOf(Type::Handle(Type::Number()), NULL)) {
+  if (type.IsSubtypeOf(Type::Handle(zone(), Type::Number()), NULL)) {
     GenerateNumberTypeCheck(
         kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
     return false;
@@ -452,15 +456,19 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
         FieldAddress(A1, TypeArguments::type_at_offset(type_param.index())));
     // R2: concrete type of type.
     // Check if type argument is dynamic.
-    __ BranchEqual(T2, Type::ZoneHandle(Type::DynamicType()), is_instance_lbl);
-    __ BranchEqual(T2, Type::ZoneHandle(Type::ObjectType()), is_instance_lbl);
+    __ BranchEqual(T2,
+        Type::ZoneHandle(zone(), Type::DynamicType()), is_instance_lbl);
+    __ BranchEqual(T2,
+        Type::ZoneHandle(zone(), Type::ObjectType()), is_instance_lbl);
 
     // For Smi check quickly against int and num interfaces.
     Label not_smi;
     __ andi(CMPRES1, A0, Immediate(kSmiTagMask));
     __ bne(CMPRES1, ZR, &not_smi);  // Value is Smi?
-    __ BranchEqual(T2, Type::ZoneHandle(Type::IntType()), is_instance_lbl);
-    __ BranchEqual(T2, Type::ZoneHandle(Type::Number()), is_instance_lbl);
+    __ BranchEqual(T2,
+        Type::ZoneHandle(zone(), Type::IntType()), is_instance_lbl);
+    __ BranchEqual(T2,
+        Type::ZoneHandle(zone(), Type::Number()), is_instance_lbl);
     // Smi must be handled in runtime.
     Label fall_through;
     __ b(&fall_through);
@@ -472,7 +480,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     const Register kTypeArgumentsReg = A1;
     const Register kTempReg = kNoRegister;
     const SubtypeTestCache& type_test_cache =
-        SubtypeTestCache::ZoneHandle(
+        SubtypeTestCache::ZoneHandle(zone(),
             GenerateCallSubtypeTestStub(kTestTypeThreeArgs,
                                         kInstanceReg,
                                         kTypeArgumentsReg,
@@ -523,7 +531,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     return SubtypeTestCache::null();
   }
   if (type.IsInstantiated()) {
-    const Class& type_class = Class::ZoneHandle(type.type_class());
+    const Class& type_class = Class::ZoneHandle(zone(), type.type_class());
     // A class equality check is only applicable with a dst type of a
     // non-parameterized class, non-signature class, or with a raw dst type of
     // a parameterized class.
@@ -594,7 +602,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   }
 
   // Generate inline instanceof test.
-  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
   test_cache = GenerateInlineInstanceof(token_pos, type,
                                         &is_instance, &is_not_instance);
 
@@ -705,7 +713,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   }
 
   // Generate inline type check, linking to runtime call if not assignable.
-  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
   test_cache = GenerateInlineInstanceof(token_pos, dst_type,
                                         &is_assignable, &runtime_call);
 
@@ -872,7 +880,7 @@ void FlowGraphCompiler::CopyParameters() {
 
       __ Bind(&load_default_value);
       // Load T3 with default argument.
-      const Object& value = Object::ZoneHandle(
+      const Object& value = Object::ZoneHandle(zone(),
           parsed_function().default_parameter_values().At(
               param_pos - num_fixed_params));
       __ LoadObject(T3, value);
@@ -906,7 +914,7 @@ void FlowGraphCompiler::CopyParameters() {
       const int param_pos = num_fixed_params + i;
       __ BranchSignedGreater(T2, Immediate(param_pos), &next_parameter);
       // Load T3 with default argument.
-      const Object& value = Object::ZoneHandle(
+      const Object& value = Object::ZoneHandle(zone(),
           parsed_function().default_parameter_values().At(i));
       __ LoadObject(T3, value);
       // Assign T3 to fp[kFirstLocalSlotFromFp - param_pos].
@@ -1220,8 +1228,8 @@ void FlowGraphCompiler::EmitEdgeCounter() {
   // overflow; and though we do not reset the counters when we optimize or
   // deoptimize, there is a bound on the number of
   // optimization/deoptimization cycles we will attempt.
-  const Array& counter = Array::ZoneHandle(Array::New(1, Heap::kOld));
-  counter.SetAt(0, Smi::Handle(Smi::New(0)));
+  const Array& counter = Array::ZoneHandle(zone(), Array::New(1, Heap::kOld));
+  counter.SetAt(0, Smi::Handle(zone(), Smi::New(0)));
   __ Comment("Edge counter");
   __ LoadUniqueObject(T0, counter);
   __ lw(T1, FieldAddress(T0, Array::element_offset(0)));
@@ -1237,7 +1245,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
-  ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
+  ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
   // Each ICData propagated from unoptimized to optimized code contains the
   // function that corresponds to the Dart function of that IC call. Due
   // to inlining in optimized code, that function may not correspond to the
@@ -1262,7 +1270,7 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          intptr_t deopt_id,
                                          intptr_t token_pos,
                                          LocationSummary* locs) {
-  ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
+  ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
   __ Comment("InstanceCall");
   __ LoadUniqueObject(S5, ic_data);
   GenerateDartCall(deopt_id,
@@ -1282,12 +1290,12 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     intptr_t token_pos,
     LocationSummary* locs) {
   MegamorphicCacheTable* table = Isolate::Current()->megamorphic_cache_table();
-  const String& name = String::Handle(ic_data.target_name());
+  const String& name = String::Handle(zone(), ic_data.target_name());
   const Array& arguments_descriptor =
-      Array::ZoneHandle(ic_data.arguments_descriptor());
+      Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
-  const MegamorphicCache& cache =
-      MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
+  const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
+      zone(), table->Lookup(name, arguments_descriptor));
   __ Comment("MegamorphicInstanceCall");
   const Register receiverR = T0;
   const Register cacheR = T1;
@@ -1541,8 +1549,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   ASSERT(is_optimizing());
   __ Comment("EmitTestAndCall");
   const Array& arguments_descriptor =
-      Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
-                                                 argument_names));
+      Array::ZoneHandle(zone(), ArgumentsDescriptor::New(argument_count,
+                                                         argument_names));
 
   // Load receiver into T0.
   __ LoadFromOffset(T0, SP, (argument_count - 1) * kWordSize);
@@ -1569,7 +1577,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                      &StubCode::CallStaticFunctionLabel(),
                      RawPcDescriptors::kOther,
                      locs);
-    const Function& function = Function::Handle(ic_data.GetTargetAt(0));
+    const Function& function = Function::Handle(zone(), ic_data.GetTargetAt(0));
     AddStaticCallTarget(function);
     __ Drop(argument_count);
     if (kNumChecks > 1) {
