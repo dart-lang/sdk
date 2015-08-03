@@ -79,8 +79,10 @@ const MANGLED_GLOBAL_NAMES = 'mangledGlobalNames';
 
 /// A JS map from mangled instance names to their unmangled names.
 ///
-/// If the program does not use reflection, this embedded global may be empty
-/// (but not null or undefined).
+/// This embedded global is mainly used for reflection, but is also used to
+/// map const-symbols (`const Symbol('x')`) to the mangled instance names.
+///
+/// This embedded global may be empty (but not null or undefined).
 const MANGLED_NAMES = 'mangledNames';
 
 /// A JS map from dispatch tags (usually constructor names of DOM classes) to

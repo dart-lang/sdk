@@ -22,6 +22,10 @@ class Program {
   final bool hasIsolateSupport;
   /// A map from load id to the list of fragments that need to be loaded.
   final Map<String, List<Fragment>> loadMap;
+  /// A map from names to strings.
+  ///
+  /// This map is needed to support `const Symbol` expressions;
+  final Map<js.Name, String> symbolsMap;
 
   // If this field is not `null` then its value must be emitted in the embedded
   // global `TYPE_TO_INTERCEPTOR_MAP`. The map references constants and classes.
@@ -35,6 +39,7 @@ class Program {
   Program(this.fragments,
           this.holders,
           this.loadMap,
+          this.symbolsMap,
           this.typeToInterceptorMap,
           this._metadataCollector,
           this.finalizers,

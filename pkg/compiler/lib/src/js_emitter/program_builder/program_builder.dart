@@ -82,6 +82,13 @@ class ProgramBuilder {
   /// update field-initializers to point to the ConstantModel.
   final Map<ConstantValue, Constant> _constants = <ConstantValue, Constant>{};
 
+  /// Mapping from names to strings.
+  ///
+  /// This mapping is used to support `const Symbol` expressions.
+  ///
+  /// This map is filled when building classes.
+  final Map<js.Name, String> _symbolsMap = <js.Name, String>{};
+
   Set<Class> _unneededNativeClasses;
 
   Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
@@ -162,6 +169,7 @@ class ProgramBuilder {
         fragments,
         holders,
         _buildLoadMap(),
+        _symbolsMap,
         _buildTypeToInterceptorMap(),
         _task.metadataCollector,
         finalizers,
@@ -394,10 +402,17 @@ class ProgramBuilder {
         runtimeTypeGenerator.generateTypeVariableReaderStubs(element);
 
     List<StubMethod> noSuchMethodStubs = <StubMethod>[];
+
     if (backend.enabledNoSuchMethod && element == _compiler.objectClass) {
       Map<js.Name, Selector> selectors =
           classStubGenerator.computeSelectorsForNsmHandlers();
       selectors.forEach((js.Name name, Selector selector) {
+        // If the program contains `const Symbol` names we have to retain them.
+        String selectorName = selector.name;
+        if (selector.isSetter) selectorName = "$selectorName=";
+        if (backend.symbolsUsed.contains(selectorName)) {
+          _symbolsMap[name] = selectorName;
+        }
         noSuchMethodStubs
             .add(classStubGenerator.generateStubForNoSuchMethod(name,
                                                                 selector));
