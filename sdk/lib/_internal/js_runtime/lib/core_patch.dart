@@ -8,6 +8,7 @@ import 'dart:_interceptors';
 import 'dart:_js_helper' show patch,
                               patch_full,
                               patch_lazy,
+                              patch_startup,
                               checkInt,
                               getRuntimeType,
                               jsonEncodeNative,
@@ -70,6 +71,14 @@ class Function {
   }
 
   @patch_lazy
+  static apply(Function function,
+               List positionalArguments,
+               [Map<Symbol, dynamic> namedArguments]) {
+    return Primitives.applyFunctionNewEmitter(function, positionalArguments,
+        namedArguments == null ? null : _symbolMapToStringMap(namedArguments));
+  }
+
+  @patch_startup
   static apply(Function function,
                List positionalArguments,
                [Map<Symbol, dynamic> namedArguments]) {

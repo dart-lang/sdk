@@ -53,6 +53,10 @@ class CodeEmitterTask extends CompilerTask {
 
   String get name => 'Code emitter';
 
+  /// Returns the string that is used to find library patches that are
+  /// specialized for the emitter.
+  String get patchVersion => emitter.patchVersion;
+
   /// Returns the closure expression of a static function.
   jsAst.Expression isolateStaticClosureAccess(FunctionElement element) {
     return emitter.isolateStaticClosureAccess(element);
@@ -148,6 +152,10 @@ class CodeEmitterTask extends CompilerTask {
 }
 
 abstract class Emitter {
+  /// Returns the string that is used to find library patches that are
+  /// specialized for this emitter.
+  String get patchVersion;
+
   /// Uses the [programBuilder] to generate a model of the program, emits
   /// the program, and returns the size of the generated output.
   int emitProgram(ProgramBuilder programBuilder);

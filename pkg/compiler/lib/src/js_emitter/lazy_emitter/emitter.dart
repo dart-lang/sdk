@@ -42,6 +42,9 @@ class Emitter implements emitterTask.Emitter {
         _emitter = new ModelEmitter(compiler, namer, nativeEmitter);
 
   @override
+  String get patchVersion => "lazy";
+
+  @override
   int emitProgram(ProgramBuilder programBuilder) {
     Program program = programBuilder.buildProgram();
     return _emitter.emitProgram(program);

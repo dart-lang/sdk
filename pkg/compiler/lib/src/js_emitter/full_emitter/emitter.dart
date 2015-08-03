@@ -206,6 +206,9 @@ class Emitter implements js_emitter.Emitter {
   }
 
   @override
+  String get patchVersion => "full";
+
+  @override
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
     if (constant.isFunction) return true;    // Already emitted.
     if (constant.isPrimitive) return true;   // Inlined.

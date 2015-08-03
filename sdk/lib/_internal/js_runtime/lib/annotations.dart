@@ -56,3 +56,6 @@ const _Patch patch_full = const _Patch('full');
 
 /// Annotation that marks the declaration as a patch for the lazy emitter.
 const _Patch patch_lazy = const _Patch('lazy');
+
+/// Annotation that marks the declaration as a patch for the startup emitter.
+const _Patch patch_startup = const _Patch('startup');

@@ -112,7 +112,56 @@ function makeConstList(list) {
   return list;
 }
 
-// TODO(floitsch): provide code for tear-offs.
+// This variable is used by the tearOffCode to guarantee unique functions per
+// tear-offs.
+var functionCounter = 0;
+#tearOffCode;
+
+// Each deferred hunk comes with its own types which are added to the end
+// of the types-array.
+// The `funTypes` passed to the `installTearOff` function below is relative to
+// the hunk the function comes from. The `typesOffset` variable encodes the
+// offset at which the new types will be added.
+var typesOffset = 0;
+
+// Adapts the stored data, so it's suitable for a tearOff call.
+//
+// Stores the tear-off getter-function in the [container]'s [getterName]
+// property.
+//
+// The [container] is either a class (that is, its prototype), or the holder for
+// static functions.
+//
+// The argument [funsOrNames] is an array of strings or functions. If it is a
+// name, then the function should be fetched from the container. The first
+// entry in that array *must* be a string.
+//
+// TODO(floitsch): Change tearOffCode to accept the data directly, or create a
+// different tearOffCode?
+function installTearOff(
+    container, getterName, isStatic, isIntercepted, requiredParameterCount,
+    optionalParameterDefaultValues, callNames, funsOrNames, funType) {
+  var funs = [];
+  for (var i = 0; i < funsOrNames.length; i++) {
+    var fun = funsOrNames[i];
+    if ((typeof fun) == 'string') fun = container[fun];
+    fun.#callName = callNames[i];
+    funs.push(fun);
+  }
+
+  funs[0][#argumentCount] = requiredParameterCount;
+  funs[0][#defaultArgumentValues] = optionalParameterDefaultValues;
+  var reflectionInfo = funType;
+  if (typeof reflectionInfo == "number") {
+    // The reflectionInfo can either be a function, or a pointer into the types
+    // table. If it points into the types-table we need to update the index,
+    // in case the tear-off is part of a deferred hunk.
+    reflectionInfo = reflectionInfo + typesOffset;
+  }
+  var name = funsOrNames[0];
+  container[getterName] =
+      tearOff(funs, reflectionInfo, isStatic, name, isIntercepted);
+}
 
 // Instead of setting the interceptor tags directly we use this update
 // function. This makes it easier for deferred fragments to contribute to the
@@ -141,6 +190,10 @@ function setOrUpdateLeafTags(newTags) {
 // Updates the types embedded global.
 function updateTypes(newTypes) {
   var types = #embeddedTypes;
+  // This relies on the fact that types are added *after* the tear-offs have
+  // been installed. The tear-off function uses the types-length to figure
+  // out at which offset its types are located. If the types were added earlier
+  // the offset would be wrong.
   types.push.apply(types, newTypes);
 }
 
@@ -159,6 +212,9 @@ function updateHolder(holder, newHolder) {
 // Every deferred hunk (i.e. fragment) is a function that we can invoke to
 // initialize it. At this moment it contributes its data to the main hunk.
 function initializeDeferredHunk(hunk) {
+  // Update the typesOffset for the next deferred library.
+  typesOffset = #embeddedTypes.length;
+
   // TODO(floitsch): extend natives.
   hunk(inherit, mixin, lazy, makeConstList, installTearOff,
        updateHolder, updateTypes, updateInterceptorsByTag, updateLeafTags,
@@ -286,6 +342,7 @@ class FragmentEmitter {
          'cyclicThrow': backend.emitter.staticFunctionAccess(
                  backend.getCyclicThrowHelper()),
          'operatorIsPrefix': js.string(namer.operatorIsPrefix),
+         'tearOffCode': new js.Block(buildTearOffCode(backend)),
          'embeddedTypes': generateEmbeddedGlobalAccess(TYPES),
          'embeddedInterceptorTags':
              generateEmbeddedGlobalAccess(INTERCEPTORS_BY_TAG),
@@ -427,13 +484,15 @@ class FragmentEmitter {
   Map<js.Name, js.Expression> emitStaticMethod(StaticMethod method) {
     Map<js.Name, js.Expression> jsMethods = <js.Name, js.Expression>{};
 
-    jsMethods[method.name] = method.code;
-    // TODO(floitsch): can there be anything else than a StaticDartMethod?
-    if (method is StaticDartMethod) {
-      for (ParameterStubMethod stubMethod in method.parameterStubs) {
-        jsMethods[stubMethod.name] = stubMethod.code;
+    // We don't need to install stub-methods. They can only be used when there
+    // are tear-offs, in which case they are emitted there.
+    assert(() {
+      if (method is StaticDartMethod) {
+        return method.needsTearOff || method.parameterStubs.isEmpty;
       }
-    }
+      return true;
+    });
+    jsMethods[method.name] = method.code;
 
     return jsMethods;
   }
@@ -488,7 +547,7 @@ class FragmentEmitter {
     Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
     Iterable<Method> gettersSetters = generateGettersSetters(cls);
     Iterable<Method> allMethods =
-    [methods, isChecks, callStubs, typeVariableReaderStubs,
+        [methods, isChecks, callStubs, typeVariableReaderStubs,
     noSuchMethodStubs, gettersSetters].expand((x) => x);
 
     List<js.Property> properties = <js.Property>[];
@@ -634,9 +693,118 @@ class FragmentEmitter {
     return new js.Block(assignments);
   }
 
+  /// Encodes the optional default values so that the runtime Function.apply
+  /// can use them.
+  js.Expression _encodeOptionalParameterDefaultValues(DartMethod method) {
+    // TODO(herhut): Replace [js.LiteralNull] with [js.ArrayHole].
+    if (method.optionalParameterDefaultValues is List) {
+      List<ConstantValue> defaultValues = method.optionalParameterDefaultValues;
+      Iterable<js.Expression> elements =
+          defaultValues.map(generateConstantReference);
+      return new js.ArrayInitializer(elements.toList());
+    } else {
+      Map<String, ConstantValue> defaultValues =
+          method.optionalParameterDefaultValues;
+      List<js.Property> properties = <js.Property>[];
+      defaultValues.forEach((String name, ConstantValue value) {
+        properties.add(new js.Property(js.string(name),
+        generateConstantReference(value)));
+      });
+      return new js.ObjectInitializer(properties);
+    }
+  }
+
+  /// Emits the statement that installs a tear off for a method.
+  ///
+  /// Tear-offs might be passed to `Function.apply` which means that all
+  /// calling-conventions (with or without optional positional/named arguments)
+  /// are possible. As such, the tear-off needs enough information to fill in
+  /// missing parameters.
+  js.Statement emitInstallTearOff(js.Expression container, DartMethod method) {
+    List<js.Name> callNames = <js.Name>[];
+    List<js.Expression> funsOrNames = <js.Expression>[];
+
+    /// Adds the stub-method's code or name to the [funsOrNames] array.
+    ///
+    /// Static methods don't need stub-methods except for tear-offs. As such,
+    /// they are not emitted in the prototype, but directly passed here.
+    ///
+    /// Instance-methods install the stub-methods in their prototype, and we
+    /// use string-based redirections to find them there.
+    void addFunOrName(StubMethod stubMethod) {
+      if (method.isStatic) {
+        funsOrNames.add(stubMethod.code);
+      } else {
+        funsOrNames.add(js.quoteName(stubMethod.name));
+      }
+    }
+
+    callNames.add(method.callName);
+    // The first entry in the funsOrNames-array must be a string.
+    funsOrNames.add(js.quoteName(method.name));
+    for (ParameterStubMethod stubMethod in method.parameterStubs) {
+      callNames.add(stubMethod.callName);
+      addFunOrName(stubMethod);
+    }
+
+    js.ArrayInitializer callNameArray =
+        new js.ArrayInitializer(callNames.map(js.quoteName).toList());
+    js.ArrayInitializer funsOrNamesArray = new js.ArrayInitializer(funsOrNames);
+
+    bool isIntercepted = false;
+    if (method is InstanceMethod) {
+      isIntercepted = backend.isInterceptedMethod(method.element);
+    }
+    int requiredParameterCount = 0;
+    js.Expression optionalParameterDefaultValues = new js.LiteralNull();
+    if (method.canBeApplied) {
+      requiredParameterCount = method.requiredParameterCount;
+      optionalParameterDefaultValues =
+          _encodeOptionalParameterDefaultValues(method);
+    }
+
+    return js.js.statement('''
+        installTearOff(#container, #getterName, #isStatic, #isIntercepted,
+                       #requiredParameterCount, #optionalParameterDefaultValues,
+                       #callNames, #funsOrNames, #funType)''',
+        {
+          "container": container,
+          "getterName": js.quoteName(method.tearOffName),
+          "isStatic": new js.LiteralBool(method.isStatic),
+          "isIntercepted": new js.LiteralBool(isIntercepted),
+          "requiredParameterCount": js.number(requiredParameterCount),
+          "optionalParameterDefaultValues": optionalParameterDefaultValues,
+          "callNames": callNameArray,
+          "funsOrNames": funsOrNamesArray,
+          "funType": method.functionType,
+        });
+  }
+
   /// Emits the section that installs tear-off getters.
-  js.Statement emitInstallTearOffs(fragment) {
-    throw new UnimplementedError('emitInstallTearOffs');
+  js.Statement emitInstallTearOffs(Fragment fragment) {
+    List<js.Statement> inits = <js.Statement>[];
+
+    for (Library library in fragment.libraries) {
+      for (StaticMethod method in library.statics) {
+        // TODO(floitsch): can there be anything else than a StaticDartMethod?
+        if (method is StaticDartMethod) {
+          if (method.needsTearOff) {
+            Holder holder = method.holder;
+            inits.add(
+                emitInstallTearOff(new js.VariableUse(holder.name), method));
+          }
+        }
+      }
+      for (Class cls in library.classes) {
+        for (InstanceMethod method in cls.methods) {
+          if (method.needsTearOff) {
+            js.Expression container = js.js("#.prototype", classReference(cls));
+            inits.add(emitInstallTearOff(container, method));
+          }
+        }
+      }
+    }
+    return new js.Block(inits);
   }
 
   /// Emits the constants section.
