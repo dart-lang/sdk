@@ -33,38 +33,35 @@ class SortMembersTest extends AbstractAnalysisTest {
     handler = new EditDomainHandler(server);
   }
 
-  Future test_BAD_doesNotExist() {
-    return waitForTasksFinished().then((_) {
-      Request request =
-          new EditSortMembersParams('/no/such/file.dart').toRequest('0');
-      Response response = handler.handleRequest(request);
-      expect(response,
-          isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));
-    });
+  Future test_BAD_doesNotExist() async {
+    await waitForTasksFinished();
+    Request request =
+        new EditSortMembersParams('/no/such/file.dart').toRequest('0');
+    Response response = handler.handleRequest(request);
+    expect(response,
+        isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));
   }
 
-  Future test_BAD_hasParseError() {
+  Future test_BAD_hasParseError() async {
     addTestFile('''
 main() {
   print()
 }
 ''');
-    return waitForTasksFinished().then((_) {
-      Request request = new EditSortMembersParams(testFile).toRequest('0');
-      Response response = handler.handleRequest(request);
-      expect(response,
-          isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS));
-    });
+    await waitForTasksFinished();
+    Request request = new EditSortMembersParams(testFile).toRequest('0');
+    Response response = handler.handleRequest(request);
+    expect(response,
+        isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS));
   }
 
-  Future test_BAD_notDartFile() {
-    return waitForTasksFinished().then((_) {
-      Request request =
-          new EditSortMembersParams('/not-a-Dart-file.txt').toRequest('0');
-      Response response = handler.handleRequest(request);
-      expect(response,
-          isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));
-    });
+  Future test_BAD_notDartFile() async {
+    await waitForTasksFinished();
+    Request request =
+        new EditSortMembersParams('/not-a-Dart-file.txt').toRequest('0');
+    Response response = handler.handleRequest(request);
+    expect(response,
+        isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));
   }
 
   Future test_OK_classMembers_method() {
@@ -148,12 +145,11 @@ class C {}
 ''');
   }
 
-  Future _assertSorted(String expectedCode) {
-    return waitForTasksFinished().then((_) {
-      _requestSort();
-      String resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
-      expect(resultCode, expectedCode);
-    });
+  Future _assertSorted(String expectedCode) async {
+    await waitForTasksFinished();
+    _requestSort();
+    String resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
+    expect(resultCode, expectedCode);
   }
 
   void _requestSort() {
