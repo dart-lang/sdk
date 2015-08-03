@@ -476,6 +476,12 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   @override
   visitCompilationUnitElement(CompilationUnitElement element) {
     element.visitChildren(this);
+    LibraryElement containingLibrary = element.library;
+    if (containingLibrary != null) {
+      for (var lib in containingLibrary.exportedLibraries) {
+        lib.visitChildren(this);
+      }
+    }
   }
 
   @override

@@ -242,6 +242,17 @@ void f(C<int> c) {
     });
   }
 
+  test_libraryPrefix_with_exports() {
+    addSource('/libA.dart', 'library libA; class A { }');
+    addSource('/libB.dart', 'library libB; export "/libA.dart"; class B { }');
+    addTestSource('import "/libB.dart" as foo; main() {foo.^} class C { }');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestClass('B');
+      assertSuggestClass('A');
+    });
+  }
+
   test_local() {
     addTestSource('foo() {String x = "bar"; x.^}');
     return computeFull((bool result) {
