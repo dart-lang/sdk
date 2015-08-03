@@ -238,19 +238,19 @@ var #staticStateDeclaration = {};
 // Builds the inheritance structure.
 #inheritance;
 
-// Emits the embedded globals.
-#embeddedGlobals;
-
-// Sets up the native support.
-// Native-support uses setOrUpdateInterceptorsByTag and setOrUpdateLeafTags.
-#nativeSupport;
-
 // Instantiates all constants.
 #constants;
 // Initializes the static non-final fields (with their constant values).
 #staticNonFinalFields;
 // Creates lazy getters for statics that must run initializers on first access.
 #lazyStatics;
+
+// Emits the embedded globals.
+#embeddedGlobals;
+
+// Sets up the native support.
+// Native-support uses setOrUpdateInterceptorsByTag and setOrUpdateLeafTags.
+#nativeSupport;
 
 // Invokes main (making sure that it records the 'current-script' value).
 #invokeMain;
@@ -286,11 +286,6 @@ function(inherit, mixin, lazy, makeConstList, installTearOff,
 // Builds the inheritance structure.
 #inheritance;
 
-updateTypes(#types);
-
-// Native-support uses setOrUpdateInterceptorsByTag and setOrUpdateLeafTags.
-#nativeSupport;
-
 // Instantiates all constants of this deferred fragment.
 // Note that the constant-holder has been updated earlier and storing the
 // constant values in the constant-holder makes them available globally.
@@ -299,6 +294,11 @@ updateTypes(#types);
 #staticNonFinalFields;
 // Creates lazy getters for statics that must run initializers on first access.
 #lazyStatics;
+
+updateTypes(#types);
+
+// Native-support uses setOrUpdateInterceptorsByTag and setOrUpdateLeafTags.
+#nativeSupport;
 };
 // TODO(floitsch): this last line should be outside the AST, since it
 // requires to know the hash of the part of the code above this comment.
@@ -861,8 +861,180 @@ class FragmentEmitter {
     return new js.Block(statements.toList());
   }
 
-  emitEmbeddedGlobals(program) {
-    throw new UnimplementedError('emitEmbeddedGlobals');
+  /// Emits the embedded globals that are needed for deferred loading.
+  ///
+  /// This function is only invoked for the main fragment.
+  ///
+  /// The [loadMap] contains a map from load-ids (for each deferred library)
+  /// to the list of generated fragments that must be installed when the
+  /// deferred library is loaded.
+  Iterable<js.Property> emitEmbeddedGlobalsForDeferredLoading(
+      Map<String, List<Fragment>> loadMap) {
+    if (loadMap.isEmpty) return [];
+
+    List<js.Property> globals = <js.Property>[];
+
+    js.ArrayInitializer fragmentUris(List<Fragment> fragments) {
+      return js.stringArray(fragments.map((DeferredFragment fragment) =>
+          "${fragment.outputFileName}.${ModelEmitter.deferredExtension}"));
+    }
+    js.ArrayInitializer fragmentHashes(List<Fragment> fragments) {
+      // TODO(floitsch): the hash must depend on the generated code.
+      return js.numArray(
+          fragments.map((DeferredFragment fragment) => fragment.hashCode));
+    }
+
+    List<js.Property> uris = new List<js.Property>(loadMap.length);
+    List<js.Property> hashes = new List<js.Property>(loadMap.length);
+    int count = 0;
+    loadMap.forEach((String loadId, List<Fragment> fragmentList) {
+      uris[count] =
+          new js.Property(js.string(loadId), fragmentUris(fragmentList));
+      hashes[count] =
+          new js.Property(js.string(loadId), fragmentHashes(fragmentList));
+      count++;
+    });
+
+    globals.add(new js.Property(js.string(DEFERRED_LIBRARY_URIS),
+        new js.ObjectInitializer(uris)));
+    globals.add(new js.Property(js.string(DEFERRED_LIBRARY_HASHES),
+        new js.ObjectInitializer(hashes)));
+    globals.add(new js.Property(js.string(DEFERRED_INITIALIZED),
+        js.js("Object.create(null)")));
+
+    String deferredGlobal = ModelEmitter.deferredInitializersGlobal;
+    js.Expression isHunkLoadedFunction =
+        js.js("function(hash) { return !!$deferredGlobal[hash]; }");
+    globals.add(new js.Property(js.string(IS_HUNK_LOADED),
+        isHunkLoadedFunction));
+
+    js.Expression isHunkInitializedFunction =
+        js.js("function(hash) { return !!#deferredInitialized[hash]; }",
+            {'deferredInitialized':
+                generateEmbeddedGlobalAccess(DEFERRED_INITIALIZED)});
+    globals.add(new js.Property(js.string(IS_HUNK_INITIALIZED),
+        isHunkInitializedFunction));
+
+    /// See [emitEmbeddedGlobalsForDeferredLoading] for the format of the
+    /// deferred hunk.
+    js.Expression initializeLoadedHunkFunction =
+    js.js("""
+            function(hash) {
+              initializeDeferredHunk($deferredGlobal[hash]);
+              #deferredInitialized[hash] = true;
+            }""", {'deferredInitialized':
+                    generateEmbeddedGlobalAccess(DEFERRED_INITIALIZED)});
+
+    globals.add(new js.Property(js.string(INITIALIZE_LOADED_HUNK),
+                                initializeLoadedHunkFunction));
+
+    return globals;
+  }
+
+  /// Emits the [MANGLED_GLOBAL_NAMES] embedded global.
+  ///
+  /// This global maps minified names for selected classes (some important
+  /// core classes, and some native classes) to their unminified names.
+  js.Property emitMangledGlobalNames() {
+    List<js.Property> names = <js.Property>[];
+
+    // We want to keep the original names for the most common core classes when
+    // calling toString on them.
+    List<ClassElement> nativeClassesNeedingUnmangledName =
+        [compiler.intClass, compiler.doubleClass, compiler.numClass,
+         compiler.stringClass, compiler.boolClass, compiler.nullClass,
+         compiler.listClass];
+    // TODO(floitsch): this should probably be on a per-fragment basis.
+    nativeClassesNeedingUnmangledName.forEach((element) {
+      names.add(new js.Property(js.quoteName(namer.className(element)),
+                                js.string(element.name)));
+    });
+
+    return new js.Property(js.string(MANGLED_GLOBAL_NAMES),
+                           new js.ObjectInitializer(names));
+  }
+
+  /// Emits the [GET_TYPE_FROM_NAME] embedded global.
+  ///
+  /// This embedded global provides a way to go from a class name (which is
+  /// also the constructor's name) to the constructor itself.
+  js.Property emitGetTypeFromName() {
+    // TODO(floitsch): Fix getTypeFromName. It's too inefficient.
+    // The current implementation relies on the fact that the names in holders
+    // are unique across all holders.
+    // TODO(floitsch): constants and other globals may share the same name.
+    //   If a global happens to have the same (minified) name this code breaks.
+    //   A follow-up CL has a fix for this.
+    js.Expression function =
+        js.js( """function(name) {
+                    for (var i = 0; i < holders.length; i++) {
+                      // Relies on the fact that all variables are unique.
+                      if (holders[i][name]) return holders[i][name];
+                    }
+                  }""");
+    return new js.Property(js.string(GET_TYPE_FROM_NAME), function);
+  }
+
+  /// Emits the [METADATA] embedded global.
+  ///
+  /// The metadata itself has already been computed earlier and is stored in
+  /// the [program].
+  List<js.Property> emitMetadata(Program program) {
+    List<js.Property> metadataGlobals = <js.Property>[];
+
+    js.Property createGlobal(js.Expression metadata, String global) {
+      return new js.Property(js.string(global), metadata);
+    }
+
+    metadataGlobals.add(createGlobal(program.metadata, METADATA));
+    js.Expression types =
+        program.metadataTypesForOutputUnit(program.mainFragment.outputUnit);
+    metadataGlobals.add(createGlobal(types, TYPES));
+
+    return metadataGlobals;
+  }
+
+  /// Emits all embedded globals.
+  js.Statement emitEmbeddedGlobals(Program program) {
+    List<js.Property> globals = <js.Property>[];
+
+    if (program.loadMap.isNotEmpty) {
+      globals.addAll(emitEmbeddedGlobalsForDeferredLoading(program.loadMap));
+    }
+
+    if (program.typeToInterceptorMap != null) {
+      globals.add(new js.Property(js.string(TYPE_TO_INTERCEPTOR_MAP),
+      program.typeToInterceptorMap));
+    }
+
+    if (program.hasIsolateSupport) {
+      String staticStateName = namer.staticStateHolder;
+      // TODO(floitsch): this doesn't create a new isolate, but just reuses
+      // the current static state. Since we don't run multiple isolates in the
+      // same JavaScript context (except for testing) this shouldn't have any
+      // impact on real-world programs, though.
+      globals.add(
+          new js.Property(js.string(CREATE_NEW_ISOLATE),
+          js.js('function () { return $staticStateName; }')));
+      // TODO(floitsch): add remaining isolate functions.
+    }
+
+    globals.add(emitMangledGlobalNames());
+
+    globals.add(emitGetTypeFromName());
+
+    globals.addAll(emitMetadata(program));
+
+    if (program.needsNativeSupport) {
+      globals.add(new js.Property(js.string(INTERCEPTORS_BY_TAG),
+          new js.LiteralNull()));
+      globals.add(new js.Property(js.string(LEAF_TAGS),
+          new js.LiteralNull()));
+    }
+
+    js.ObjectInitializer globalsObject = new js.ObjectInitializer(globals);
+
+    return js.js.statement('var init = #;', globalsObject);
   }
 
   emitNativeSupport(fragment) {
