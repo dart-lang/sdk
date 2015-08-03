@@ -59,7 +59,7 @@ module.exports = function(config) {
 
     // level of logging
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_DEBUG,
+    logLevel: config.LOG_INFO,
 
     // enable / disable watching file and executing tests whenever any file changes
     autoWatch: true,
@@ -72,17 +72,17 @@ module.exports = function(config) {
     // and remove the custom launchers.
     customLaunchers: {
       chrome_harmony: {
-	base: 'Chrome',
+        base: 'Chrome',
         flags: [ harmony_flags ],
       },
 
       chrome_canary_harmony: {
-	base: 'ChromeCanary',
+        base: 'ChromeCanary',
         flags: [ harmony_flags ],
       },
 
       chrome_canary_travis: {
-	base: 'ChromeCanary',
+        base: 'ChromeCanary',
         flags: [ '--no-sandbox', harmony_flags ]
       },
     },
@@ -96,6 +96,7 @@ module.exports = function(config) {
   if (process.env.TRAVIS) {
     configuration.browsers = ['chrome_canary_travis'];
     configuration.autoWatch = false;
+    configuration.logLevel = config.LOG_DEBUG;
   }
 
   config.set(configuration);

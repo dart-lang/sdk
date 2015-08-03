@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Check that node exists and refers to nodejs
-checknodejs=$(hash node 2> /dev/null  && node --help | grep nodejs)
+checknodejs=$(hash node 2> /dev/null  && node --help | grep js)
 if [[ $? -ne 0 ]]; then
   echo 'NodeJS (node) is not properly installed'
   echo 'Note, on Ubuntu / Debian, you may need to also install:'
