@@ -16,15 +16,17 @@ namespace dart {
 UNIT_TEST_CASE(Metric_Simple) {
   Dart_CreateIsolate(
       NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
-  Metric metric;
+  {
+    Metric metric;
 
-  // Initialize metric.
-  metric.Init(Isolate::Current(), "a.b.c", "foobar", Metric::kCounter);
-  EXPECT_EQ(0, metric.value());
-  metric.increment();
-  EXPECT_EQ(1, metric.value());
-  metric.set_value(44);
-  EXPECT_EQ(44, metric.value());
+    // Initialize metric.
+    metric.Init(Isolate::Current(), "a.b.c", "foobar", Metric::kCounter);
+    EXPECT_EQ(0, metric.value());
+    metric.increment();
+    EXPECT_EQ(1, metric.value());
+    metric.set_value(44);
+    EXPECT_EQ(44, metric.value());
+  }
   Dart_ShutdownIsolate();
 }
 
