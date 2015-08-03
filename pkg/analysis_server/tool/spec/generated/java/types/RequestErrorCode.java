@@ -30,6 +30,12 @@ public class RequestErrorCode {
   public static final String CONTENT_MODIFIED = "CONTENT_MODIFIED";
 
   /**
+   * A request specified a FilePath which does not match a file in an analysis root, or the requested
+   * operation is not available for the file.
+   */
+  public static final String FILE_NOT_ANALYZED = "FILE_NOT_ANALYZED";
+
+  /**
    * An "edit.format" request specified a FilePath which does not match a Dart file in an analysis
    * root.
    */
@@ -84,6 +90,12 @@ public class RequestErrorCode {
    * index to have been generated.
    */
   public static final String NO_INDEX_GENERATED = "NO_INDEX_GENERATED";
+
+  /**
+   * An "edit.organizeDirectives" request specified a Dart file that cannot be analyzed. The reason
+   * is described in the message.
+   */
+  public static final String ORGANIZE_DIRECTIVES_ERROR = "ORGANIZE_DIRECTIVES_ERROR";
 
   /**
    * Another refactoring request was received during processing of this one.
