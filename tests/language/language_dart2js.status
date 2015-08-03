@@ -11,6 +11,7 @@ getter_setter_in_lib_test: Fail # Issue 23288
 async_star_test/02: RuntimeError # 22853
 async_star_test/05: RuntimeError, Timeout
 tearoff_basic_test: Skip # Tear-off not supported
+tearoff_constructor_basic_test: Skip # Tear-off not supported
 
 try_catch_on_syntax_test/10: Fail # Issue 19823
 try_catch_on_syntax_test/11: Fail # Issue 19823

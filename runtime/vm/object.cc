@@ -6196,6 +6196,12 @@ bool Function::IsImplicitStaticClosureFunction(RawFunction* func) {
 }
 
 
+bool Function::IsConstructorClosureFunction() const {
+  return IsClosureFunction() &&
+      String::Handle(name()).StartsWith(Symbols::ConstructorClosurePrefix());
+}
+
+
 RawFunction* Function::New() {
   ASSERT(Object::function_class() != Class::null());
   RawObject* raw = Object::Allocate(Function::kClassId,
@@ -6503,8 +6509,8 @@ RawInstance* Function::ImplicitStaticClosure() const {
   if (implicit_static_closure() == Instance::null()) {
     Isolate* isolate = Isolate::Current();
     ObjectStore* object_store = isolate->object_store();
-    const Context& context = Context::Handle(isolate,
-                                             object_store->empty_context());
+    const Context& context =
+        Context::Handle(isolate, object_store->empty_context());
     Instance& closure =
         Instance::Handle(isolate, Closure::New(*this, context, Heap::kOld));
     const char* error_str = NULL;

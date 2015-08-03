@@ -509,6 +509,8 @@ class Parser : public ValueObject {
   AstNode* ParseSuperOperator();
   AstNode* BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super);
 
+  static bool ParseFormalParameters(const Function& func, ParamList* params);
+
   static void SetupDefaultsForOptionalParams(const ParamList* params,
                                              Array* default_values);
   ClosureNode* CreateImplicitClosureNode(const Function& func,
@@ -536,6 +538,8 @@ class Parser : public ValueObject {
                                            Array* default_values);
   SequenceNode* ParseImplicitClosure(const Function& func,
                                      Array* default_values);
+  SequenceNode* ParseConstructorClosure(const Function& func,
+                                        Array* default_values);
 
   void BuildDispatcherScope(const Function& func,
                             const ArgumentsDescriptor& desc,
@@ -707,7 +711,12 @@ class Parser : public ValueObject {
   AstNode* ParseMapLiteral(intptr_t type_pos,
                            bool is_const,
                            const TypeArguments& type_arguments);
+
+  RawFunction* BuildConstructorClosureFunction(const Function& ctr,
+                                               intptr_t token_pos);
   AstNode* ParseNewOperator(Token::Kind op_kind);
+  void ParseConstructorClosurization(Function* constructor,
+                                     TypeArguments* type_arguments);
 
   // An implicit argument, if non-null, is prepended to the returned list.
   ArgumentListNode* ParseActualParameters(ArgumentListNode* implicit_arguments,

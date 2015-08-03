@@ -389,6 +389,7 @@ class ObjectPointerVisitor;
   V(last, "last")                                                              \
   V(removeLast, "removeLast")                                                  \
   V(add, "add")                                                                \
+  V(ConstructorClosurePrefix, "new#")                                          \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This
