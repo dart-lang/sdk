@@ -127,6 +127,9 @@ class DartCompletionManager extends CompletionManager {
    */
   List<DartCompletionContributor> computeFast(
       DartCompletionRequest request, CompletionPerformance performance) {
+    bool isKeywordOrIdentifier(Token token) =>
+        token.type == TokenType.KEYWORD || token.type == TokenType.IDENTIFIER;
+
     return performance.logElapseTime('computeFast', () {
       CompilationUnit unit = context.parseCompilationUnit(source);
       request.unit = unit;
@@ -140,12 +143,22 @@ class DartCompletionManager extends CompletionManager {
 
       var entity = request.target.entity;
       Token token = entity is AstNode ? entity.beginToken : entity;
-      if (token != null &&
-          token.offset <= request.offset &&
-          (token.type == TokenType.KEYWORD ||
-              token.type == TokenType.IDENTIFIER)) {
-        request.replacementOffset = token.offset;
-        request.replacementLength = token.length;
+      if (token != null && request.offset < token.offset) {
+        token = token.previous;
+      }
+      if (token != null) {
+        if (request.offset == token.offset && !isKeywordOrIdentifier(token)) {
+          // If the insertion point is at the beginning of the current token
+          // and the current token is not an identifier
+          // then check the previous token to see if it should be replaced
+          token = token.previous;
+        }
+        if (token != null && isKeywordOrIdentifier(token)) {
+          if (token.offset <= request.offset && request.offset <= token.end) {
+            request.replacementOffset = token.offset;
+            request.replacementLength = token.length;
+          }
+        }
       }
 
       List<DartCompletionContributor> todo = new List.from(contributors);

@@ -1128,6 +1128,33 @@ class A {
         relevance: DART_RELEVANCE_HIGH);
   }
 
+  test_switch_start5() {
+    addTestSource('main() {switch(1) {c^ default:}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
+        relevance: DART_RELEVANCE_HIGH);
+    expect(request.replacementOffset, 19);
+    expect(request.replacementLength, 1);
+  }
+
+  test_switch_start6() {
+    addTestSource('main() {switch(1) {c^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
+        relevance: DART_RELEVANCE_HIGH);
+    expect(request.replacementOffset, 19);
+    expect(request.replacementLength, 1);
+  }
+
+  test_switch_start7() {
+    addTestSource('main() {switch(1) { c^ }}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
+        relevance: DART_RELEVANCE_HIGH);
+    expect(request.replacementOffset, 20);
+    expect(request.replacementLength, 1);
+  }
+
   test_switch_statement() {
     addTestSource('main() {switch(1) {case 1:^}}');
     expect(computeFast(), isTrue);
