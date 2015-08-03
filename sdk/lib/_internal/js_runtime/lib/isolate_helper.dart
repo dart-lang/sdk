@@ -103,6 +103,7 @@ void startRootIsolate(entry, args) {
     throw new ArgumentError("Arguments to main must be a List: $args");
   }
   _globalState = new _Manager(entry);
+  _globalState._initialize();
 
   // Don't start the main loop again, if we are in a worker.
   if (_globalState.isWorker) return;
@@ -220,7 +221,9 @@ class _Manager {
   /** The entry point given by [startRootIsolate]. */
   final Function entry;
 
-  _Manager(this.entry) {
+  _Manager(this.entry);
+
+  _initialize() {
     _nativeDetectEnvironment();
     topEventLoop = new _EventLoop();
     isolates = new Map<int, _IsolateContext>();
@@ -235,6 +238,8 @@ class _Manager {
     bool isWindowDefined = globalWindow != null;
     bool isWorkerDefined = globalWorker != null;
 
+    // `isWorker` must be initialized now, since `IsolateNatives.thisScript`
+    // may access it.
     isWorker = !isWindowDefined && globalPostMessageDefined;
     supportsWorkers = isWorker
        || (isWorkerDefined && IsolateNatives.thisScript != null);
@@ -764,6 +769,8 @@ class IsolateNatives {
     }
     // A worker has no script tag - so get an url from a stack-trace.
     if (_globalState.isWorker) return computeThisScriptFromTrace();
+    // An isolate that doesn't support workers, but doesn't have a
+    // currentScript either. This is most likely a Chrome extension.
     return null;
   }
 
