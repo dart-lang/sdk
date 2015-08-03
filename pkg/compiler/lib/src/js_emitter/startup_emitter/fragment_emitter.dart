@@ -588,14 +588,15 @@ class FragmentEmitter {
   //    needed.
   js.Expression emitPrototype(Class cls) {
     Iterable<Method> methods = cls.methods;
+    Iterable<Method> checkedSetters = cls.checkedSetters;
     Iterable<Method> isChecks = cls.isChecks;
     Iterable<Method> callStubs = cls.callStubs;
     Iterable<Method> typeVariableReaderStubs = cls.typeVariableReaderStubs;
     Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
     Iterable<Method> gettersSetters = generateGettersSetters(cls);
     Iterable<Method> allMethods =
-        [methods, isChecks, callStubs, typeVariableReaderStubs,
-    noSuchMethodStubs, gettersSetters].expand((x) => x);
+        [methods, checkedSetters, isChecks, callStubs, typeVariableReaderStubs,
+         noSuchMethodStubs, gettersSetters].expand((x) => x);
 
     List<js.Property> properties = <js.Property>[];
 
