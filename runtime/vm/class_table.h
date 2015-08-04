@@ -155,7 +155,7 @@ class ClassTable {
     return table_[index];
   }
 
-  intptr_t IsValidIndex(intptr_t index) const {
+  bool IsValidIndex(intptr_t index) const {
     return (index > 0) && (index < top_);
   }
 
