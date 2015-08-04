@@ -134,14 +134,19 @@ function mixin(cls, mixin) {
 // getter ([getterName]) to access the field. If the field wasn't set before
 // the first access, it is initialized with the [initializer].
 function lazy(holder, name, getterName, initializer) {
-  holder[name] = null;
+  var uninitializedSentinel = holder;
+  holder[name] = uninitializedSentinel;
   holder[getterName] = function() {
     holder[getterName] = function() { #cyclicThrow(name) };
     var result;
     var sentinelInProgress = initializer;
     try {
-      result = holder[name] = sentinelInProgress;
-      result = holder[name] = initializer();
+      if (holder[name] === uninitializedSentinel) {
+        result = holder[name] = sentinelInProgress;
+        result = holder[name] = initializer();
+      } else {
+        result = holder[name];
+      }
     } finally {
       // Use try-finally, not try-catch/throw as it destroys the stack
       // trace.
