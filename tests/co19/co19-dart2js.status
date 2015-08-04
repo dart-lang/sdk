@@ -9053,7 +9053,7 @@ LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open-sync-req
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-sync-request_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-set-responsetype_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-withcredentials-before-open_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/xmlhttprequest/xmlhttprequest-withcredentials-before-open_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/cz_20030217_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/kd_20010423_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/namespace-nodes_t01: RuntimeError # Please triage this failure
