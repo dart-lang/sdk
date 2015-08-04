@@ -581,11 +581,34 @@ ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
         ASSERT(tag_name != NULL);
         SetName(tag_name);
       } else {
-        if (start() == VMTag::kRootTagId) {
-          SetName("Root");
-        } else {
-          ASSERT(start() == VMTag::kTruncatedTagId);
-          SetName("[Truncated]");
+        switch (start()) {
+          case VMTag::kRootTagId:
+            SetName("Root");
+            break;
+          case VMTag::kTruncatedTagId:
+            SetName("[Truncated]");
+            break;
+          case VMTag::kNoneCodeTagId:
+            SetName("[No Code]");
+            break;
+          case VMTag::kOptimizedCodeTagId:
+            SetName("[Optimized Code]");
+            break;
+          case VMTag::kUnoptimizedCodeTagId:
+            SetName("[Unoptimized Code]");
+            break;
+          case VMTag::kNativeCodeTagId:
+            SetName("[Native Code]");
+            break;
+          case VMTag::kInlineStartCodeTagId:
+            SetName("[Inline Start]");
+            break;
+          case VMTag::kInlineEndCodeTagId:
+            SetName("[Inline End]");
+            break;
+          default:
+            UNIMPLEMENTED();
+          break;
         }
       }
     }
@@ -951,21 +974,34 @@ class ProfileFunctionTrieNode : public ProfileTrieNode {
 
 class ProfileBuilder : public ValueObject {
  public:
+  enum ProfileInfoKind {
+    kNone,
+    kOptimized,
+    kUnoptimized,
+    kNative,
+    kInlineStart,
+    kInlineFinish,
+    kNumProfileInfoKind,
+  };
+
   ProfileBuilder(Isolate* isolate,
                  SampleFilter* filter,
                  Profile::TagOrder tag_order,
+                 intptr_t extra_tags,
                  Profile* profile)
       : isolate_(isolate),
         vm_isolate_(Dart::vm_isolate()),
         filter_(filter),
         tag_order_(tag_order),
+        extra_tags_(extra_tags),
         profile_(profile),
         deoptimized_code_(new DeoptimizedCodeSet(isolate)),
         null_code_(Code::ZoneHandle()),
         null_function_(Function::ZoneHandle()),
         tick_functions_(false),
         inclusive_tree_(false),
-        samples_(NULL) {
+        samples_(NULL),
+        info_kind_(kNone) {
     ASSERT(profile_ != NULL);
   }
 
@@ -1005,6 +1041,12 @@ class ProfileBuilder : public ValueObject {
     // Register some synthetic tags.
     RegisterProfileCodeTag(VMTag::kRootTagId);
     RegisterProfileCodeTag(VMTag::kTruncatedTagId);
+    RegisterProfileCodeTag(VMTag::kNoneCodeTagId);
+    RegisterProfileCodeTag(VMTag::kOptimizedCodeTagId);
+    RegisterProfileCodeTag(VMTag::kUnoptimizedCodeTagId);
+    RegisterProfileCodeTag(VMTag::kNativeCodeTagId);
+    RegisterProfileCodeTag(VMTag::kInlineStartCodeTagId);
+    RegisterProfileCodeTag(VMTag::kInlineEndCodeTagId);
   }
 
   void FilterSamples() {
@@ -1152,12 +1194,15 @@ class ProfileBuilder : public ValueObject {
       // VM & User tags.
       current = AppendTags(sample->vm_tag(), sample->user_tag(), current);
 
+      ResetKind();
+
       // Truncated tag.
       if (sample->truncated()) {
         current = AppendTruncatedTag(current);
       }
 
       // Walk the sampled PCs.
+      Code& code = Code::Handle();
       for (intptr_t frame_index = sample->length() - 1;
            frame_index >= 0;
            frame_index--) {
@@ -1165,6 +1210,11 @@ class ProfileBuilder : public ValueObject {
         intptr_t index =
             GetProfileCodeIndex(sample->At(frame_index), sample->timestamp());
         ASSERT(index >= 0);
+        ProfileCode* profile_code =
+            GetProfileCode(sample->At(frame_index), sample->timestamp());
+        ASSERT(profile_code->code_table_index() == index);
+        code ^= profile_code->code();
+        current = AppendKind(code, current);
         current = current->GetChild(index);
         current->Tick();
       }
@@ -1186,7 +1236,10 @@ class ProfileBuilder : public ValueObject {
       // VM & User tags.
       current = AppendTags(sample->vm_tag(), sample->user_tag(), current);
 
+      ResetKind();
+
       // Walk the sampled PCs.
+      Code& code = Code::Handle();
       for (intptr_t frame_index = 0;
            frame_index < sample->length();
            frame_index++) {
@@ -1194,10 +1247,15 @@ class ProfileBuilder : public ValueObject {
         intptr_t index =
             GetProfileCodeIndex(sample->At(frame_index), sample->timestamp());
         ASSERT(index >= 0);
+        ProfileCode* profile_code =
+            GetProfileCode(sample->At(frame_index), sample->timestamp());
+        ASSERT(profile_code->code_table_index() == index);
+        code ^= profile_code->code();
         current = current->GetChild(index);
         if (ShouldTickNode(sample, frame_index)) {
           current->Tick();
         }
+        current = AppendKind(code, current);
       }
       // Truncated tag.
       if (sample->truncated()) {
@@ -1270,6 +1328,8 @@ class ProfileBuilder : public ValueObject {
       // VM & User tags.
       current = AppendTags(sample->vm_tag(), sample->user_tag(), current);
 
+      ResetKind();
+
       // Walk the sampled PCs.
       for (intptr_t frame_index = 0;
            frame_index < sample->length();
@@ -1306,40 +1366,63 @@ class ProfileBuilder : public ValueObject {
     }
     if (code.IsNull() || (inlined_functions.length() == 0)) {
       // No inlined functions.
+      if (inclusive_tree_) {
+        current = AppendKind(code, current);
+      }
       current = ProcessFunction(current,
                                 sample_index,
                                 sample,
                                 frame_index,
                                 function,
                                 code_index);
+      if (!inclusive_tree_) {
+        current = AppendKind(code, current);
+      }
       return current;
     }
 
+    ASSERT(code.is_optimized());
+
     if (inclusive_tree_) {
-      // Append the inlined children.
       for (intptr_t i = inlined_functions.length() - 1; i >= 0; i--) {
         Function* inlined_function = inlined_functions[i];
         ASSERT(inlined_function != NULL);
         ASSERT(!inlined_function->IsNull());
+        const bool inliner = i == (inlined_functions.length() - 1);
+        if (inliner) {
+          current = AppendKind(code, current);
+        }
         current = ProcessInlinedFunction(current,
                                          sample_index,
                                          sample,
                                          frame_index,
                                          inlined_function,
                                          code_index);
+        if (inliner) {
+          current = AppendKind(kInlineStart, current);
+        }
       }
+      current = AppendKind(kInlineFinish, current);
     } else {
       // Append the inlined children.
+      current = AppendKind(kInlineFinish, current);
       for (intptr_t i = 0; i < inlined_functions.length(); i++) {
         Function* inlined_function = inlined_functions[i];
         ASSERT(inlined_function != NULL);
         ASSERT(!inlined_function->IsNull());
+        const bool inliner = i == (inlined_functions.length() - 1);
+        if (inliner) {
+          current = AppendKind(kInlineStart, current);
+        }
         current = ProcessInlinedFunction(current,
                                          sample_index,
                                          sample,
                                          frame_index + i,
                                          inlined_function,
                                          code_index);
+        if (inliner) {
+          current = AppendKind(code, current);
+        }
       }
     }
 
@@ -1464,6 +1547,53 @@ class ProfileBuilder : public ValueObject {
     return current;
   }
 
+  uword ProfileInfoKindToVMTag(ProfileInfoKind kind) {
+    switch (kind) {
+      case kNone:
+        return VMTag::kNoneCodeTagId;
+      case kOptimized:
+        return VMTag::kOptimizedCodeTagId;
+      case kUnoptimized:
+        return VMTag::kUnoptimizedCodeTagId;
+      case kNative:
+        return VMTag::kNativeCodeTagId;
+      case kInlineStart:
+        return VMTag::kInlineStartCodeTagId;
+      case kInlineFinish:
+        return VMTag::kInlineEndCodeTagId;
+      default:
+        UNIMPLEMENTED();
+        return VMTag::kInvalidTagId;
+    }
+  }
+
+  ProfileCodeTrieNode* AppendKind(ProfileInfoKind kind,
+                                  ProfileCodeTrieNode* current) {
+    if (!TagsEnabled(ProfilerService::kCodeTransitionTagsBit)) {
+      // Only emit if debug tags are requested.
+      return current;
+    }
+    if (kind != info_kind_) {
+      info_kind_ = kind;
+      intptr_t tag_index = GetProfileCodeTagIndex(ProfileInfoKindToVMTag(kind));
+      ASSERT(tag_index >= 0);
+      current = current->GetChild(tag_index);
+      current->Tick();
+    }
+    return current;
+  }
+
+  ProfileCodeTrieNode* AppendKind(const Code& code,
+                                  ProfileCodeTrieNode* current) {
+    if (code.IsNull()) {
+      return AppendKind(kNone, current);
+    } else if (code.is_optimized()) {
+      return AppendKind(kOptimized, current);
+    } else {
+      return AppendKind(kUnoptimized, current);
+    }
+  }
+
   ProfileCodeTrieNode* AppendVMTags(uword vm_tag,
                                     ProfileCodeTrieNode* current) {
     current = AppendVMTag(vm_tag, current);
@@ -1500,6 +1630,38 @@ class ProfileBuilder : public ValueObject {
   }
 
   // ProfileFunctionTrieNode
+  void ResetKind() {
+    info_kind_ = kNone;
+  }
+
+  ProfileFunctionTrieNode* AppendKind(ProfileInfoKind kind,
+                                      ProfileFunctionTrieNode* current) {
+    if (!TagsEnabled(ProfilerService::kCodeTransitionTagsBit)) {
+      // Only emit if debug tags are requested.
+      return current;
+    }
+    if (kind != info_kind_) {
+      info_kind_ = kind;
+      intptr_t tag_index =
+          GetProfileFunctionTagIndex(ProfileInfoKindToVMTag(kind));
+      ASSERT(tag_index >= 0);
+      current = current->GetChild(tag_index);
+      current->Tick();
+    }
+    return current;
+  }
+
+  ProfileFunctionTrieNode* AppendKind(const Code& code,
+                                      ProfileFunctionTrieNode* current) {
+    if (code.IsNull()) {
+      return AppendKind(kNone, current);
+    } else if (code.is_optimized()) {
+      return AppendKind(kOptimized, current);
+    } else {
+      return AppendKind(kUnoptimized, current);
+    }
+  }
+
   ProfileFunctionTrieNode* AppendUserTag(uword user_tag,
                                          ProfileFunctionTrieNode* current) {
     intptr_t user_tag_index = GetProfileFunctionTagIndex(user_tag);
@@ -1783,10 +1945,15 @@ class ProfileBuilder : public ValueObject {
            (tag_order_ == Profile::kVM);
   }
 
+  bool TagsEnabled(intptr_t extra_tags_bits) const {
+    return (extra_tags_ & extra_tags_bits) != 0;
+  }
+
   Isolate* isolate_;
   Isolate* vm_isolate_;
   SampleFilter* filter_;
   Profile::TagOrder tag_order_;
+  intptr_t extra_tags_;
   Profile* profile_;
   DeoptimizedCodeSet* deoptimized_code_;
   const Code& null_code_;
@@ -1795,6 +1962,7 @@ class ProfileBuilder : public ValueObject {
   bool inclusive_tree_;
 
   ProcessedSampleBuffer* samples_;
+  ProfileInfoKind info_kind_;
 };
 
 
@@ -1815,8 +1983,10 @@ Profile::Profile(Isolate* isolate)
 }
 
 
-void Profile::Build(SampleFilter* filter, TagOrder tag_order) {
-  ProfileBuilder builder(isolate_, filter, tag_order, this);
+void Profile::Build(SampleFilter* filter,
+                    TagOrder tag_order,
+                    intptr_t extra_tags) {
+  ProfileBuilder builder(isolate_, filter, tag_order, extra_tags, this);
   builder.Build();
 }
 
@@ -2019,6 +2189,7 @@ intptr_t ProfileTrieWalker::SiblingCount() {
 void ProfilerService::PrintJSONImpl(Isolate* isolate,
                                     JSONStream* stream,
                                     Profile::TagOrder tag_order,
+                                    intptr_t extra_tags,
                                     SampleFilter* filter) {
   // Disable profile interrupts while processing the buffer.
   Profiler::EndExecution(isolate);
@@ -2036,7 +2207,7 @@ void ProfilerService::PrintJSONImpl(Isolate* isolate,
     StackZone zone(isolate);
     HANDLESCOPE(isolate);
     Profile profile(isolate);
-    profile.Build(filter, tag_order);
+    profile.Build(filter, tag_order, extra_tags);
     profile.PrintJSON(stream);
   }
 
@@ -2058,10 +2229,11 @@ class NoAllocationSampleFilter : public SampleFilter {
 
 
 void ProfilerService::PrintJSON(JSONStream* stream,
-                                Profile::TagOrder tag_order) {
+                                Profile::TagOrder tag_order,
+                                intptr_t extra_tags) {
   Isolate* isolate = Isolate::Current();
   NoAllocationSampleFilter filter(isolate);
-  PrintJSONImpl(isolate, stream, tag_order, &filter);
+  PrintJSONImpl(isolate, stream, tag_order, extra_tags, &filter);
 }
 
 
@@ -2088,7 +2260,7 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
                                           const Class& cls) {
   Isolate* isolate = Isolate::Current();
   ClassAllocationSampleFilter filter(isolate, cls);
-  PrintJSONImpl(isolate, stream, tag_order, &filter);
+  PrintJSONImpl(isolate, stream, tag_order, kNoExtraTags, &filter);
 }
 
 

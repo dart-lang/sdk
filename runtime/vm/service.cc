@@ -2346,6 +2346,7 @@ static Profile::TagOrder tags_enum_values[] = {
 static const MethodParameter* get_cpu_profile_params[] = {
   ISOLATE_PARAMETER,
   new EnumParameter("tags", true, tags_enum_names),
+  new BoolParameter("_codeTransitionTags", false),
   NULL,
 };
 
@@ -2354,7 +2355,11 @@ static const MethodParameter* get_cpu_profile_params[] = {
 static bool GetCpuProfile(Isolate* isolate, JSONStream* js) {
   Profile::TagOrder tag_order =
       EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
-  ProfilerService::PrintJSON(js, tag_order);
+  intptr_t extra_tags = 0;
+  if (BoolParameter::Parse(js->LookupParam("_codeTransitionTags"))) {
+    extra_tags |= ProfilerService::kCodeTransitionTagsBit;
+  }
+  ProfilerService::PrintJSON(js, tag_order, extra_tags);
   return true;
 }
 

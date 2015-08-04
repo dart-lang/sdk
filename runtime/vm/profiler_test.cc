@@ -1076,6 +1076,86 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
     EXPECT(!walker.Down());
   }
+
+  // Test code transition tags.
+  {
+    Isolate* isolate = Isolate::Current();
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(&filter,
+                  Profile::kNoTags,
+                  ProfilerService::kCodeTransitionTagsBit);
+    // We should have 50,000 allocation samples.
+    EXPECT_EQ(50000, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+    // We have two code objects: mainA and B.boo.
+    walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("mainA", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
+    EXPECT(!walker.Down());
+    // We have two code objects: mainA and B.boo.
+    walker.Reset(Profile::kInclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("mainA", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT(!walker.Down());
+
+    // Inline expansion should show us the complete call chain:
+    // mainA -> B.boo -> B.foo -> B.choo.
+    walker.Reset(Profile::kExclusiveFunction);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("[Inline End]", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.choo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.foo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("[Inline Start]", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("mainA", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
+    EXPECT(!walker.Down());
+
+    // Inline expansion should show us the complete call chain:
+    // mainA -> B.boo -> B.foo -> B.choo.
+    walker.Reset(Profile::kInclusiveFunction);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("mainA", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("[Inline Start]", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.foo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.choo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("[Inline End]", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
 }
 
 }  // namespace dart
+

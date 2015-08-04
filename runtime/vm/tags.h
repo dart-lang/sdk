@@ -43,6 +43,13 @@ class VMTag : public AllStatic {
     kNumVMTags,
     kRootTagId,       // Special tag used as root of all profiles.
     kTruncatedTagId,  // Special tag used to indicate a truncated call stack.
+    // ProfileInfo tags.
+    kNoneCodeTagId,
+    kOptimizedCodeTagId,
+    kUnoptimizedCodeTagId,
+    kNativeCodeTagId,
+    kInlineStartCodeTagId,
+    kInlineEndCodeTagId,
     kLastTagId,
   };
 
