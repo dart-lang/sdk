@@ -116,6 +116,10 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(
     field_name ^= Field::NameFromGetter(function_name);
 
     if (field_name.CharAt(0) == '#') {
+      if (!FLAG_lazy_dispatchers) {
+        return Function::null();
+      }
+
       // Resolving a getter "get:#..." is a request to closurize an instance
       // property of the receiver object. It can be of the form:
       //  - get:#id, which closurizes a method or getter id
