@@ -15655,7 +15655,9 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
   if ((index == 0) && cls.IsCanonicalSignatureClass()) {
     // Verify that the first canonical type is the signature type by checking
     // that the type argument vector of the canonical type ends with the
-    // uninstantiated type parameters of the signature class.
+    // uninstantiated type parameters of the signature class. Note that these
+    // type parameters may be bounded if the super class of the owner class
+    // declares bounds.
     // The signature type is finalized during class finalization, before the
     // optimizer may canonicalize instantiated function types of the same
     // signature class.
@@ -15666,10 +15668,13 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
       TypeArguments::Handle(isolate, cls.type_parameters());
     const intptr_t num_type_params = cls.NumTypeParameters();
     const intptr_t num_type_args = cls.NumTypeArguments();
-    TypeParameter& type_arg = TypeParameter::Handle(isolate);
+    AbstractType& type_arg = AbstractType::Handle(isolate);
     TypeParameter& type_param = TypeParameter::Handle(isolate);
     for (intptr_t i = 0; i < num_type_params; i++) {
-      type_arg ^= type_args.TypeAt(num_type_args - num_type_params + i);
+      type_arg = type_args.TypeAt(num_type_args - num_type_params + i);
+      while (type_arg.IsBoundedType()) {
+        type_arg = BoundedType::Cast(type_arg).type();
+      }
       type_param ^= type_params.TypeAt(i);
       ASSERT(type_arg.Equals(type_param));
     }
