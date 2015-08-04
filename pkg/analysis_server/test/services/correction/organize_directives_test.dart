@@ -94,6 +94,30 @@ main() {
         removeUnused: true);
   }
 
+  void test_remove_unusedImports2() {
+    _computeUnitAndErrors(r'''
+import 'dart:async';
+import 'dart:math';
+
+class A {}
+
+main() {
+  Future f;
+}''');
+    // validate change
+    _assertOrganize(
+        r'''
+import 'dart:async';
+
+class A {}
+
+main() {
+  Future f;
+}''',
+        removeUnresolved: true,
+        removeUnused: true);
+  }
+
   void test_sort() {
     _computeUnitAndErrors(r'''
 library lib;

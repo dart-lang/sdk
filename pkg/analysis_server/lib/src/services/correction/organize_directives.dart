@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
+import 'dart:math';
 
 /**
  * Organizer of directives in the [unit].
@@ -36,16 +37,9 @@ class DirectiveOrganizer {
     // prepare edits
     List<SourceEdit> edits = <SourceEdit>[];
     if (code != initialCode) {
-      int prefixLength = findCommonPrefix(initialCode, code);
       int suffixLength = findCommonSuffix(initialCode, code);
-      String prefix = code.substring(0, prefixLength);
-      String suffix = code.substring(code.length - suffixLength, code.length);
-      int commonLength = findCommonOverlap(prefix, suffix);
-      suffixLength -= commonLength;
-      SourceEdit edit = new SourceEdit(
-          prefixLength,
-          initialCode.length - suffixLength - prefixLength,
-          code.substring(prefixLength, code.length - suffixLength));
+      SourceEdit edit = new SourceEdit(0, initialCode.length - suffixLength,
+          code.substring(0, code.length - suffixLength));
       edits.add(edit);
     }
     return edits;
