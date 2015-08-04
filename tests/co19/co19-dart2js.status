@@ -208,6 +208,7 @@ WebPlatformTest/Utils/test/testFail_t01: RuntimeError # co19-roll r722: Please t
 WebPlatformTest/dom/nodes/DOMImplementation-createHTMLDocument_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Document-createElement_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: CompileTimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Pass, Slow
 LayoutTests/fast/loader/loadInProgress_t01: Skip # Issue 23466
 LayoutTests/fast/dom/css-innerHTML_t01: SkipByDesign # Test is incorrect.
 
@@ -3062,7 +3063,7 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t0
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-011_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_constructor_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # Please triage this failure
-WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
+WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure. Note that Chrome also requires the Slow flag. (Could just be a slow test).
 WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please triage this failure
@@ -9052,6 +9053,7 @@ LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open-sync-req
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-sync-request_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-set-responsetype_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/xmlhttprequest/xmlhttprequest-withcredentials-before-open_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/cz_20030217_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/kd_20010423_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/namespace-nodes_t01: RuntimeError # Please triage this failure
