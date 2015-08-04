@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch bool debugger({bool when: true, String msg}) native "Developer_debugger";
+patch bool debugger({bool when: true,
+                     String message}) native "Developer_debugger";
 
-patch inspect(object) native "Developer_inspect";
+patch Object inspect(Object object) native "Developer_inspect";
 
 patch log({int sequenceNumber,
            int millisecondsSinceEpoch,

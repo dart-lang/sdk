@@ -17,7 +17,7 @@ import 'dart:_foreign_helper' show JS;
 /// that does.
 @patch
 @ForceInline()
-bool debugger({bool when: true, String msg}) {
+bool debugger({bool when: true, String message}) {
   if (when) {
     JS('', 'debugger');
   }
@@ -27,7 +27,7 @@ bool debugger({bool when: true, String msg}) {
 /// Send a reference to [object] to any attached debuggers so they may open an
 /// inspector on the object. Returns the argument.
 @patch
-inspect(object) {
+Object inspect(Object object) {
   return object;
 }
 
