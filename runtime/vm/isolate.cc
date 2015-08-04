@@ -616,7 +616,7 @@ void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
 
 void BaseIsolate::AssertCurrentThreadIsMutator() const {
   ASSERT(Isolate::Current() == this);
-  ASSERT(Isolate::Current()->mutator_thread() == Thread::Current());
+  ASSERT(Isolate::Current()->MutatorThreadIsCurrentThread());
 }
 #endif  // defined(DEBUG)
 

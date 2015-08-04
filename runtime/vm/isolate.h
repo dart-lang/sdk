@@ -157,16 +157,15 @@ class Isolate : public BaseIsolate {
     message_notify_callback_ = value;
   }
 
-  // A thread that operates on this isolate and may execute Dart code.
-  // No other threads operating on this isolate may execute Dart code.
-  // TODO(koda): Remove after pivoting to thread in NativeArguments.
-  Thread* mutator_thread() {
-    DEBUG_ASSERT(mutator_thread_ == NULL || IsIsolateOf(mutator_thread_));
-    return mutator_thread_;
+  // Limited public access to BaseIsolate::mutator_thread_ for code that
+  // must treat the mutator as the default or a special case. Prefer code
+  // that works uniformly across all threads.
+  bool HasMutatorThread() {
+    return mutator_thread_ != NULL;
   }
-#if defined(DEBUG)
-  bool IsIsolateOf(Thread* thread);
-#endif  // DEBUG
+  bool MutatorThreadIsCurrentThread() {
+    return mutator_thread_ == Thread::Current();
+  }
 
   const char* name() const { return name_; }
   const char* debugger_name() const { return debugger_name_; }
@@ -774,9 +773,17 @@ class Isolate : public BaseIsolate {
     user_tag_ = tag;
   }
 
-  void set_mutator_thread(Thread* thread) {
+  void ClearMutatorThread() {
+    mutator_thread_ = NULL;
+  }
+  void MakeCurrentThreadMutator(Thread* thread) {
+    ASSERT(thread == Thread::Current());
+    DEBUG_ASSERT(IsIsolateOf(thread));
     mutator_thread_ = thread;
   }
+#if defined(DEBUG)
+  bool IsIsolateOf(Thread* thread);
+#endif  // DEBUG
 
   template<class T> T* AllocateReusableHandle();
 

@@ -27,7 +27,7 @@ void ThreadRegistry::SafepointThreads() {
   // TODO(koda): Rename Thread::PrepareForGC and call it here?
   --remaining_;  // Exclude this thread from the count.
   // Ensure the main mutator will reach a safepoint (could be running Dart).
-  if (Thread::Current() != isolate->mutator_thread()) {
+  if (!isolate->MutatorThreadIsCurrentThread()) {
     isolate->ScheduleInterrupts(Isolate::kVMInterrupt);
   }
   while (remaining_ > 0) {
