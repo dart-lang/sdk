@@ -848,7 +848,14 @@ class Emitter implements js_emitter.Emitter {
           NativeGenerator.generateIsolateAffinityTagInitialization(
               backend,
               generateEmbeddedGlobalAccess,
-              js("convertToFastObject", [])));
+              js("""
+        // On V8, the 'intern' function converts a string to a symbol, which
+        // makes property access much faster.
+        function (s) {
+          var o = {};
+          o[s] = 1;
+          return Object.keys(convertToFastObject(o))[0];
+        }""", [])));
     }
 
     parts..add(js.comment('BEGIN invoke [main].'))

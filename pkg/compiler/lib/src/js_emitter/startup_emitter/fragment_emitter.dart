@@ -68,20 +68,58 @@ function copyProperties(from, to) {
   }
 }
 
+var supportsDirectProtoAccess = (function () {
+  var cls = function () {};
+  cls.prototype = {'p': {}};
+  var object = new cls();
+  return object.__proto__ &&
+         object.__proto__.p === cls.prototype.p;
+})();
+
+var functionsHaveName = (function() {
+  function t() {};
+  return (typeof t.name == 'string')
+})();
+
+var isChrome = (typeof window != 'undefined') &&
+    (typeof window.chrome != 'undefined');
+
+// Sets the name property of functions, if the JS engine doesn't set the name
+// itself.
+// As of 2015 only IE doesn't set the name.
+function setFunctionNamesIfNecessary(holders) {
+  if (functionsHaveName) return;
+  for (var i = 0; i < holders.length; i++) {
+    var holder = holders[i];
+    var keys = Object.keys(holder);
+    for (var j = 0; j < keys.length; j++) {
+      var key = keys[j];
+      var f = holder[key];
+      if (typeof f == 'function') f.name = key;
+    }
+  }
+}
+
 // Makes [cls] inherit from [sup].
 // On Chrome, Firefox and recent IEs this happens by updating the internal
 // proto-property of the classes 'prototype' field.
 // Older IEs use `Object.create` and copy over the properties.
 function inherit(cls, sup) {
-  // TODO(floitsch): IE doesn't support changing the __proto__ property. There,
-  // we need to copy the properties instead.
   cls.#typeNameProperty = cls.name;  // Needed for RTI.
   cls.prototype.constructor = cls;
   cls.prototype[#operatorIsPrefix + cls.name] = cls;
 
   // The superclass is only null for the Dart Object.
   if (sup != null) {
-    cls.prototype.__proto__ = sup.prototype;
+    if (supportsDirectProtoAccess) {
+      // Firefox doesn't like to update the prototypes, but when setting up
+      // the hierarchy chain it's ok.
+      cls.prototype.__proto__ = sup.prototype;
+      return;
+    }
+    var clsPrototype = Object.create(sup.prototype);
+    copyProperties(cls.prototype, clsPrototype);
+    cls.prototype = clsPrototype;
   }
 }
 
@@ -131,6 +169,15 @@ function makeConstList(list) {
   list.immutable\$list = Array;
   list.fixed\$length = Array;
   return list;
+}
+
+function convertToFastObject(properties) {
+  // Create an instance that uses 'properties' as prototype. This should
+  // make 'properties' a fast object.
+  function t() {};
+  t.prototype = properties;
+  new t();
+  return properties;
 }
 
 // This variable is used by the tearOffCode to guarantee unique functions per
@@ -230,12 +277,15 @@ function updateTypes(newTypes) {
 // Updates the given holder with the properties of the [newHolder].
 // This function is used when a deferred fragment is initialized.
 function updateHolder(holder, newHolder) {
-  // TODO(floitsch): updating the prototype (instead of copying) is
-  // *horribly* inefficient in Firefox. There we should just copy the
-  // properties.
-  var oldPrototype = holder.__proto__;
-  newHolder.__proto__ = oldPrototype;
-  holder.__proto__ = newHolder;
+  // Firefox doesn't like when important objects have their prototype chain
+  // updated. We therefore do this only on V8.
+  if (isChrome) {
+    var oldPrototype = holder.__proto__;
+    newHolder.__proto__ = oldPrototype;
+    holder.__proto__ = newHolder;
+  } else {
+    copyProperties(newHolder, holder);
+  }
   return holder;
 }
 
@@ -246,9 +296,9 @@ function initializeDeferredHunk(hunk) {
   typesOffset = #embeddedTypes.length;
 
   // TODO(floitsch): extend natives.
-  hunk(inherit, mixin, lazy, makeConstList, installTearOff,
-       updateHolder, updateTypes, setOrUpdateInterceptorsByTag,
-       setOrUpdateLeafTags,
+  hunk(inherit, mixin, lazy, makeConstList, convertToFastObject, installTearOff,
+       setFunctionNamesIfNecessary, updateHolder, updateTypes,
+       setOrUpdateInterceptorsByTag, setOrUpdateLeafTags,
        #embeddedGlobalsObject, #holdersList, #staticState);
 }
 
@@ -267,8 +317,9 @@ function getGlobalFromName(name) {
 
 // Creates the holders.
 #holders;
-// TODO(floitsch): if name is not set (for example in IE), run through all
-// functions and set the name.
+
+// If the name is not set on the functions, do it now.
+setFunctionNamesIfNecessary(#holdersList);
 
 // TODO(floitsch): we should build this object as a literal.
 var #staticStateDeclaration = {};
@@ -307,13 +358,17 @@ var #staticStateDeclaration = {};
 /// For example, once the holders have been created, they are included into
 /// the main holders.
 const String deferredBoilerplate = '''
-function(inherit, mixin, lazy, makeConstList, installTearOff,
-          updateHolder, updateTypes,
-          setOrUpdateInterceptorsByTag, setOrUpdateLeafTags,
-          #embeddedGlobalsObject, holdersList, #staticState) {
+function(inherit, mixin, lazy, makeConstList, convertToFastObject,
+         installTearOff, setFunctionNamesIfNecessary, updateHolder, updateTypes,
+         setOrUpdateInterceptorsByTag, setOrUpdateLeafTags,
+         #embeddedGlobalsObject, holdersList, #staticState) {
 
 // Builds the holders. They only contain the data for new holders.
 #holders;
+
+// If the name is not set on the functions, do it now.
+setFunctionNamesIfNecessary(#deferredHoldersList);
+
 // Updates the holders of the main-fragment. Uses the provided holdersList to
 // access the main holders.
 // The local holders are replaced by the combined holders. This is necessary
@@ -376,6 +431,9 @@ class FragmentEmitter {
       Map<DeferredFragment, _DeferredFragmentHash> deferredLoadHashes) {
     MainFragment fragment = program.fragments.first;
 
+    Iterable<Holder> nonStaticStateHolders = program.holders
+        .where((Holder holder) => !holder.isStaticStateHolder);
+
     return js.js.statement(mainBoilerplate,
         {'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
          'typeNameProperty': js.string(ModelEmitter.typeNameProperty),
@@ -388,9 +446,9 @@ class FragmentEmitter {
              generateEmbeddedGlobalAccess(INTERCEPTORS_BY_TAG),
          'embeddedLeafTags': generateEmbeddedGlobalAccess(LEAF_TAGS),
          'embeddedGlobalsObject': js.js("init"),
-         'holdersList': new js.ArrayInitializer(program.holders.map((holder) {
-           return js.js("#", holder.name);
-         }).toList()),
+         'holdersList': new js.ArrayInitializer(nonStaticStateHolders
+             .map((holder) => js.js("#", holder.name))
+             .toList(growable: false)),
          'staticStateDeclaration': new js.VariableDeclaration(
              namer.staticStateHolder, allowRename: false),
          'staticState': js.js('#', namer.staticStateHolder),
@@ -415,25 +473,29 @@ class FragmentEmitter {
   }
 
   js.Expression emitDeferredFragment(DeferredFragment fragment,
-                                    js.Expression deferredTypes,
-                                    List<Holder> holders) {
+                                     js.Expression deferredTypes,
+                                     List<Holder> holders) {
+    List<Holder> nonStaticStateHolders = holders
+        .where((Holder holder) => !holder.isStaticStateHolder)
+        .toList(growable: false);
+
     List<js.Statement> updateHolderAssignments = <js.Statement>[];
-    for (int i = 0; i < holders.length; i++) {
-      Holder holder = holders[i];
-      if (holder.isStaticStateHolder) continue;
+    for (int i = 0; i < nonStaticStateHolders.length; i++) {
+      Holder holder = nonStaticStateHolders[i];
       updateHolderAssignments.add(js.js.statement(
           '#holder = updateHolder(holdersList[#index], #holder)',
           {'index': js.number(i),
-            'holder': new js.VariableUse(holder.name)}));
+           'holder': new js.VariableUse(holder.name)}));
     }
 
-    // TODO(floitsch): if name is not set, run through all functions and set the
-    // name for IE.
     // TODO(floitsch): don't just reference 'init'.
     return js.js(deferredBoilerplate,
     {'embeddedGlobalsObject': new js.Parameter('init'),
      'staticState': new js.Parameter(namer.staticStateHolder),
      'holders': emitHolders(holders, fragment),
+     'deferredHoldersList': new js.ArrayInitializer(nonStaticStateHolders
+         .map((holder) => js.js("#", holder.name))
+         .toList(growable: false)),
      'updateHolders': new js.Block(updateHolderAssignments),
      'prototypes': emitPrototypes(fragment),
      'inheritance': emitInheritance(fragment),
@@ -1181,13 +1243,20 @@ class FragmentEmitter {
   js.Statement emitNativeSupport(Fragment fragment) {
     List<js.Statement> statements = <js.Statement>[];
 
-    if (NativeGenerator.needsIsolateAffinityTagInitialization(backend)) {
+    // The isolate-affinity tag must only be initialized once per program.
+    if (fragment.isMainFragment &&
+        NativeGenerator.needsIsolateAffinityTagInitialization(backend)) {
       statements.add(NativeGenerator.generateIsolateAffinityTagInitialization(
               backend,
               generateEmbeddedGlobalAccess,
-              // TODO(floitsch): convertToFastObject. (Needed for "interning" of
-              // strings).
-              js.js("(function(x) { return x; })", [])));
+              js.js("""
+        // On V8, the 'intern' function converts a string to a symbol, which
+        // makes property access much faster.
+        function (s) {
+          var o = {};
+          o[s] = 1;
+          return Object.keys(convertToFastObject(o))[0];
+        }""", [])));
     }
 
     Map<String, js.Expression> interceptorsByTag = <String, js.Expression>{};
