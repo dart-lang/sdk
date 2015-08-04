@@ -157,8 +157,8 @@ class EditDomainHandler implements RequestHandler {
         for (engine.AnalysisError error in errorInfo.errors) {
           int errorLine = lineInfo.getLocation(error.offset).lineNumber;
           if (errorLine == requestLine) {
-            List<Fix> fixes =
-                computeFixes(server.serverPlugin, unit.element.context, error);
+            List<Fix> fixes = computeFixes(server.serverPlugin,
+                server.resourceProvider, unit.element.context, error);
             if (fixes.isNotEmpty) {
               AnalysisError serverError =
                   newAnalysisError_fromEngine(lineInfo, error);

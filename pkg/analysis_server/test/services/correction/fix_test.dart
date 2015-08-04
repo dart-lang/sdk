@@ -1405,7 +1405,48 @@ import 'my_file.dart';
     expect(fileEdit.file, '/my/project/bin/my_file.dart');
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));
-    expect(fileEdit.edits[0].replacement, contains('library my.file;'));
+    expect(fileEdit.edits[0].replacement, contains('library my_file;'));
+  }
+
+  void test_createFile_forImport_inPackage_lib() {
+    provider.newFile('/projects/my_package/pubspec.yaml', 'name: my_package');
+    testFile = '/projects/my_package/lib/test.dart';
+    provider.newFolder('/projects/my_package/lib');
+    resolveTestUnit('''
+import 'a/bb/c_cc/my_lib.dart';
+''');
+    AnalysisError error = _findErrorToFix();
+    fix = _assertHasFix(DartFixKind.CREATE_FILE, error);
+    change = fix.change;
+    // validate change
+    List<SourceFileEdit> fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    SourceFileEdit fileEdit = change.edits[0];
+    expect(fileEdit.file, '/projects/my_package/lib/a/bb/c_cc/my_lib.dart');
+    expect(fileEdit.fileStamp, -1);
+    expect(fileEdit.edits, hasLength(1));
+    expect(fileEdit.edits[0].replacement,
+        contains('library my_package.a.bb.c_cc.my_lib;'));
+  }
+
+  void test_createFile_forImport_inPackage_test() {
+    provider.newFile('/projects/my_package/pubspec.yaml', 'name: my_package');
+    testFile = '/projects/my_package/test/misc/test_all.dart';
+    resolveTestUnit('''
+import 'a/bb/my_lib.dart';
+''');
+    AnalysisError error = _findErrorToFix();
+    fix = _assertHasFix(DartFixKind.CREATE_FILE, error);
+    change = fix.change;
+    // validate change
+    List<SourceFileEdit> fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    SourceFileEdit fileEdit = change.edits[0];
+    expect(fileEdit.file, '/projects/my_package/test/misc/a/bb/my_lib.dart');
+    expect(fileEdit.fileStamp, -1);
+    expect(fileEdit.edits, hasLength(1));
+    expect(fileEdit.edits[0].replacement,
+        contains('library my_package.test.misc.a.bb.my_lib;'));
   }
 
   void test_createFile_forPart() {
@@ -4348,7 +4389,7 @@ main() {
    * Computes fixes for the given [error] in [testUnit].
    */
   List<Fix> _computeFixes(AnalysisError error) {
-    FixProcessor processor = new FixProcessor(testUnit, error);
+    FixProcessor processor = new FixProcessor(provider, testUnit, error);
     return processor.compute();
   }
 
