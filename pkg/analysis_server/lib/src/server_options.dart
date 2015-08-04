@@ -89,14 +89,21 @@ class ServerOptions {
     return defaultValue;
   }
 
-  /// Test whether the given [booleanPropertyKey] is set to the value `true`.
+  /// Test whether the given [booleanPropertyKey] is set to the value `true`,
+  /// falling back to [defaultValue] if undefined.
   /// For example:
   ///     myDebugOption1:true
   ///     myDebugOption2:TRUE # Also true (case and trailing whitespace are ignored).
   ///     myDebugOption3:false
   ///     myDebugOption4:off  # Treated as `false`.
   ///     myDebugOption5:on   # Also read as `false`.
-  bool isSet(String booleanPropertyKey) => _options[booleanPropertyKey] == true;
+  bool isSet(String booleanPropertyKey, {bool defaultValue: false}) {
+    var value = _options[booleanPropertyKey];
+    if (value == null) {
+      return defaultValue;
+    }
+    return value == true;
+  }
 
   void _readOptions(String contents) {
     var doc = loadYaml(contents);

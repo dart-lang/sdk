@@ -310,8 +310,8 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Temporary flag to hide WIP .packages support (DEP 5).
    */
-  static bool ENABLE_PACKAGESPEC_SUPPORT =
-      serverOptions.isSet('ContextManagerImpl.ENABLE_PACKAGESPEC_SUPPORT');
+  static bool ENABLE_PACKAGESPEC_SUPPORT = serverOptions.isSet(
+      'ContextManagerImpl.ENABLE_PACKAGESPEC_SUPPORT', defaultValue: true);
 
   /**
    * The name of the `lib` directory.
@@ -845,8 +845,10 @@ class ContextManagerImpl implements ContextManager {
     }
 
     bool createContext = packageSpec.exists || !withPackageSpecOnly;
-    if (withPackageSpecOnly && packageSpec.exists &&
-        (parent != null) && parent.ignored(packageSpec.path)) {
+    if (withPackageSpecOnly &&
+        packageSpec.exists &&
+        (parent != null) &&
+        parent.ignored(packageSpec.path)) {
       // Don't create a context if the package spec is required and ignored.
       createContext = false;
     }

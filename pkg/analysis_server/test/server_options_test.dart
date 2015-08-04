@@ -33,6 +33,7 @@ foobar: off
       expect(options.isSet('baz'), isFalse);
       expect(options.isSet('foobar'), isFalse);
       expect(options.isSet('does_not_exist'), isFalse);
+      expect(options.isSet('does_not_exist', defaultValue: true), isTrue);
     });
 
     test('basic - getStringValue', () {
