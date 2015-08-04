@@ -25,7 +25,7 @@ patch log(String message,
     throw new ArgumentError(time, "time", "Must be a DateTime");
   }
   if (sequenceNumber == null) {
-    sequenceNumber = _nextSequenceNumber;
+    sequenceNumber = _nextSequenceNumber++;
   } else {
     _nextSequenceNumber = sequenceNumber + 1;
   }
