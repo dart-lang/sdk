@@ -8,7 +8,7 @@ dart_library.library('unittest', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   function group(name, body) {
-    return dart.dsend(dart.as(dom.window, dart.dynamic), 'suite', name, body);
+    return dart.dsend(dom.window, 'suite', name, body);
   }
   dart.fn(group, dart.void, [core.String, dart.functionType(dart.void, [])]);
   function test(name, body, opts) {
@@ -17,7 +17,7 @@ dart_library.library('unittest', null, /* Imports */[
       core.print(`SKIP ${name}: ${skip}`);
       return;
     }
-    dart.dsend(dart.as(dom.window, dart.dynamic), 'test', name, dart.fn(done => {
+    dart.dsend(dom.window, 'test', name, dart.fn(done => {
       function _finishTest(f) {
         if (dart.is(f, async.Future)) {
           dart.dsend(f, 'then', _finishTest);

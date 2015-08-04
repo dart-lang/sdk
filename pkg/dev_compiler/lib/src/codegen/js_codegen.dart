@@ -253,6 +253,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     var from = getStaticType(node.expression);
     var to = node.type.type;
 
+    // Skip the cast if it's not needed.
+    if (rules.isSubTypeOf(from, to)) return _visit(node.expression);
+
     // All Dart number types map to a JS double.
     if (rules.isNumType(from) &&
         (rules.isIntType(to) || rules.isDoubleType(to))) {
