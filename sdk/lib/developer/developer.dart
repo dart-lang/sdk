@@ -19,22 +19,22 @@ part 'profiler.dart';
 /// If [when] is true, stop the program as if a breakpoint were hit at the
 /// following statement.
 ///
-/// Returns the value of [when]. Some debuggers may
-/// display [msg].
+/// Returns the value of [when]. Some debuggers may display [message].
 ///
 /// NOTE: When invoked, the isolate will not return until a debugger
 /// continues execution. When running in the Dart VM the behaviour is the same
 /// regardless of whether or not a debugger is connected. When compiled to
 /// JavaScript, this uses the "debugger" statement, and behaves exactly as
 /// that does.
-external bool debugger({bool when: true, String msg});
+external bool debugger({bool when: true, String message});
 
 /// Send a reference to [object] to any attached debuggers.
 ///
 /// Debuggers may open an inspector on the object. Returns the argument.
-external inspect(object);
+external Object inspect(Object object);
 
 /// Emit a log event.
+///
 /// [sequenceNumber] is a monotonically increasing sequence number.
 /// [millisececondsSinceEpoch] is a timestamp.
 /// [level] is the severity level (value between 0 and 2000 inclusive).
