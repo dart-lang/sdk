@@ -25,10 +25,12 @@ class ThreadRegistry {
 
   // Bring all threads in this isolate to a safepoint. The caller is
   // expected to be implicitly at a safepoint. The threads will wait
-  // until ResumeAllThreads is called. Must be called at a safepoint,
-  // since it first waits for any already pending requests. Any thread
-  // that tries to enter/exit this isolate during rendezvous will wait
-  // in RestoreStateTo/SaveStateFrom, respectively.
+  // until ResumeAllThreads is called. First participates in any
+  // already pending rendezvous requested by another thread. Any
+  // thread that tries to enter this isolate during rendezvous will
+  // wait in RestoreStateTo. Nesting is not supported: the caller must
+  // call ResumeAllThreads before making further calls to
+  // SafepointThreads.
   void SafepointThreads();
 
   // Unblocks all threads participating in the rendezvous that was organized
@@ -80,13 +82,18 @@ class ThreadRegistry {
 
   void SaveStateFrom(Thread* thread, const Thread::State& state) {
     MonitorLocker ml(monitor_);
-    // Exiting an isolate must always be a safepoint.
-    CheckSafepointLocked();
     Entry* entry = FindEntry(thread);
     ASSERT(entry != NULL);
     ASSERT(entry->scheduled);
     entry->scheduled = false;
     entry->state = state;
+    if (in_rendezvous_) {
+      // Don't wait for this thread.
+      ASSERT(remaining_ > 0);
+      if (--remaining_ == 0) {
+        ml.NotifyAll();
+      }
+    }
   }
 
   bool Contains(Thread* thread) {

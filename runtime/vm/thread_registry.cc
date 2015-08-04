@@ -13,6 +13,8 @@ void ThreadRegistry::SafepointThreads() {
   MonitorLocker ml(monitor_);
   // First wait for any older rounds that are still in progress.
   while (in_rendezvous_) {
+    // Assert we are not the organizer trying to nest calls to SafepointThreads.
+    ASSERT(remaining_ > 0);
     CheckSafepointLocked();
   }
   // Start a new round.
