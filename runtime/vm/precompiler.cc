@@ -498,7 +498,7 @@ void Precompiler::AddClass(const Class& cls) {
   changed_ = true;
 
   if (FLAG_trace_precompiler) {
-    OS::Print("Allocation %ld %s\n", class_count_, cls.ToCString());
+    OS::Print("Allocation %" Pd " %s\n", class_count_, cls.ToCString());
   }
 
   const Class& superclass = Class::Handle(cls.SuperClass());
