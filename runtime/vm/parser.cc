@@ -557,6 +557,13 @@ struct ParamList {
     AddFinalParameter(token_pos, &Symbols::This(), receiver_type);
   }
 
+  void EraseParameterTypes() {
+    const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
+    const int num_parameters = parameters->length();
+    for (int i = 0; i < num_parameters; i++) {
+      (*parameters)[i].type = &dynamic_type;
+    }
+  }
 
   // Make the parameter variables visible/invisible.
   // Field initializer parameters are always invisible.
@@ -1342,6 +1349,9 @@ SequenceNode* Parser::ParseConstructorClosure(const Function& func,
   bool params_ok = ParseFormalParameters(constructor, &params);
   USE(params_ok);
   ASSERT(params_ok);
+  // Per language spec, the type of the closure parameters is dynamic.
+  // Replace the types parsed from the constructor.
+  params.EraseParameterTypes();
 
   SetupDefaultsForOptionalParams(&params, default_values);
   ASSERT(func.num_fixed_parameters() == params.num_fixed_parameters);
@@ -12864,6 +12874,10 @@ RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
                            &Type::ZoneHandle(Z, Type::DynamicType()));
 
   ParseFormalParameters(ctr, &params);
+  // Per language spec, the type of the closure parameters is dynamic.
+  // Replace the types parsed from the constructor.
+  params.EraseParameterTypes();
+
   Function& closure = Function::Handle(Z);
   closure = Function::NewClosureFunction(closure_name,
                                          innermost_function(),
