@@ -767,6 +767,10 @@ static void PrintUsage() {
 "  Where to find packages, that is, \"package:...\" imports.\n"
 "--packages=<path>\n"
 "  Where to find a package spec file.\n"
+"--observe[=<port>[/<bind-address>]]\n"
+"  Enable the VM service and cause isolates to pause on exit (default port is\n"
+"  8181, default bind address is 127.0.0.1). With the default options,\n"
+"  Observatory will be available locally at http://127.0.0.1:8181/\n"
 "--version\n"
 "  Print the VM version.\n");
   } else {
@@ -779,6 +783,12 @@ static void PrintUsage() {
 "  all VM options).\n"
 "--package-root=<path> or -p<path>\n"
 "  Where to find packages, that is, \"package:...\" imports.\n"
+"--packages=<path>\n"
+"  Where to find a package spec file.\n"
+"--observe[=<port>[/<bind-address>]]\n"
+"  Enable the VM service and cause isolates to pause on exit (default port is\n"
+"  8181, default bind address is 127.0.0.1). With the default options,\n"
+"  Observatory will be available locally at http://127.0.0.1:8181/\n"
 "--version\n"
 "  Print the VM version.\n"
 "\n"
