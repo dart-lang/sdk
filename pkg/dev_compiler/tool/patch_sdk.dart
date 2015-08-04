@@ -15,8 +15,8 @@ import 'package:path/path.dart' as path;
 
 void main(List<String> argv) {
   if (argv.length < 2) {
-    var self = path.relative(Platform.script.path);
-    var toolDir = path.relative(path.dirname(Platform.script.path));
+    var self = path.relative(path.fromUri(Platform.script));
+    var toolDir = path.relative(path.dirname(path.fromUri(Platform.script)));
 
     var inputExample = path.join(toolDir, 'input_sdk');
     var outExample = path.relative(

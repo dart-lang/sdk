@@ -311,8 +311,7 @@ final ArgParser argParser = StrongModeOptions.addArguments(new ArgParser()
 /// works when running devc from it's sources or from a snapshot that is
 /// activated via `pub global activate`.
 String _computeRuntimeDir() {
-  var scriptUri = Platform.script;
-  var scriptPath = scriptUri.path;
+  var scriptPath = path.fromUri(Platform.script);
   var file = path.basename(scriptPath);
   var dir = path.dirname(scriptPath);
   var lastdir = path.basename(dir);

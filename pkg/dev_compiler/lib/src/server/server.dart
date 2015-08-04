@@ -246,7 +246,7 @@ class DevServer {
             ? SourceResolverOptions.implicitHtmlFile
             : entryPath;
 
-  Future<bool> start() async {
+  Future start() async {
     // Create output directory if needed. shelf_static will fail otherwise.
     var out = new Directory(outDir);
     if (!await out.exists()) await out.create(recursive: true);
@@ -257,8 +257,11 @@ class DevServer {
             defaultDocument: _entryPath));
     await shelf.serve(handler, host, port);
     print('Serving $_entryPath at http://$host:$port/');
-    CheckerResults results = compiler.run();
-    return !results.failure;
+    // Give the compiler a head start. This is not needed for correctness,
+    // but will likely speed up the first load. Regardless of whether compile
+    // succeeds we should still start the server.
+    compiler.run();
+    // Server has started so this future will complete.
   }
 
   shelf.Handler rebuildAndCache(shelf.Handler handler) => (request) {
@@ -285,11 +288,11 @@ class DevServer {
 }
 
 UriResolver _createImplicitEntryResolver(String entryPath) {
-  var entry = path.absolute(SourceResolverOptions.implicitHtmlFile);
-  var src = path.absolute(entryPath);
+  var entry = path.toUri(path.absolute(SourceResolverOptions.implicitHtmlFile));
+  var src = path.toUri(path.absolute(entryPath));
   var provider = new MemoryResourceProvider();
   provider.newFile(
-      entry, '<body><script type="application/dart" src="$src"></script>');
+      entry.path, '<body><script type="application/dart" src="$src"></script>');
   return new _ExistingSourceUriResolver(new ResourceUriResolver(provider));
 }
 

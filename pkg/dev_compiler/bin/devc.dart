@@ -9,8 +9,10 @@ library dev_compiler.bin.devc;
 
 import 'dart:io';
 
-import 'package:dev_compiler/src/compiler.dart' show validateOptions, compile;
+import 'package:dev_compiler/src/compiler.dart'
+    show validateOptions, compile, setupLogger;
 import 'package:dev_compiler/src/options.dart';
+import 'package:dev_compiler/src/server/server.dart' show DevServer;
 
 void _showUsageAndExit() {
   print('usage: dartdevc [<options>] <file.dart>...\n');
@@ -24,6 +26,12 @@ main(List<String> args) async {
   var options = validateOptions(args);
   if (options == null || options.help) _showUsageAndExit();
 
-  bool success = await compile(options);
-  exit(success ? 0 : 1);
+  setupLogger(options.logLevel, print);
+
+  if (options.serverMode) {
+    new DevServer(options).start();
+  } else {
+    var success = compile(options);
+    exit(success ? 0 : 1);
+  }
 }

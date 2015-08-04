@@ -39,7 +39,7 @@ main(List<String> args) async {
   }
   var runner = new V8Runner(options);
 
-  if (!await compile(options)) exit(1);
+  if (!compile(options)) exit(1);
 
   var files = await listOutputFiles(options);
   var startStatement = 'dart_library.start("${getMainModuleName(options)}");';

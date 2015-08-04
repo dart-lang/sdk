@@ -34,7 +34,6 @@ import 'codegen/html_codegen.dart' as html_codegen;
 import 'codegen/js_codegen.dart';
 import 'info.dart'
     show AnalyzerMessage, CheckerResults, LibraryInfo, LibraryUnit;
-import 'server/server.dart' show DevServer;
 import 'options.dart';
 import 'report.dart';
 
@@ -64,18 +63,12 @@ CompilerOptions validateOptions(List<String> args, {bool forceOutDir: false}) {
   return options;
 }
 
-Future<bool> compile(CompilerOptions options) async {
-  setupLogger(options.logLevel, print);
-
-  if (options.serverMode) {
-    return new DevServer(options).start();
-  } else {
-    var context = createAnalysisContextWithSources(
-        options.strongOptions, options.sourceOptions);
-    var reporter = createErrorReporter(context, options);
-    // Note: run returns a bool, turned into a future since this function is async.
-    return new BatchCompiler(context, options, reporter: reporter).run();
-  }
+bool compile(CompilerOptions options) {
+  assert(!options.serverMode);
+  var context = createAnalysisContextWithSources(
+      options.strongOptions, options.sourceOptions);
+  var reporter = createErrorReporter(context, options);
+  return new BatchCompiler(context, options, reporter: reporter).run();
 }
 
 class BatchCompiler extends AbstractCompiler {
