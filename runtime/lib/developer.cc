@@ -39,11 +39,11 @@ DEFINE_NATIVE_ENTRY(Developer_inspect, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Developer_log, 8) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, sequence, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, message, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, timestamp, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, level, arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(3));
-  GET_NON_NULL_NATIVE_ARGUMENT(String, message, arguments->NativeArgAt(4));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, sequence, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, level, arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(4));
   GET_NATIVE_ARGUMENT(Instance, dart_zone, arguments->NativeArgAt(5));
   GET_NATIVE_ARGUMENT(Instance, error, arguments->NativeArgAt(6));
   GET_NATIVE_ARGUMENT(Instance, stack_trace, arguments->NativeArgAt(7));

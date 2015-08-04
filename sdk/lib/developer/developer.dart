@@ -34,20 +34,19 @@ external bool debugger({bool when: true, String message});
 external Object inspect(Object object);
 
 /// Emit a log event.
-///
-/// [sequenceNumber] is a monotonically increasing sequence number.
-/// [millisececondsSinceEpoch] is a timestamp.
-/// [level] is the severity level (value between 0 and 2000 inclusive).
-/// [name] is the name of the source of the log message.
 /// [message] is the log message.
+/// [time] (optional) is the timestamp.
+/// [sequenceNumber] (optional) is a monotonically increasing sequence number.
+/// [level] (optional) is the severity level (value between 0 and 2000).
+/// [name] (optional) is the name of the source of the log message.
 /// [zone] (optional) the zone where the log was emitted
 /// [error] (optional) an error object associated with this log event.
 /// [stackTrace] (optional) a stack trace associated with this log event.
-external log({int sequenceNumber,
-              int millisecondsSinceEpoch,
-              int level,
-              String name,
-              String message,
+external log(String message,
+             {DateTime time,
+              int sequenceNumber,
+              int level: 0,
+              String name: '',
               Zone zone,
               Object error,
               StackTrace stackTrace});
