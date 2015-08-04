@@ -1112,8 +1112,9 @@ RawError* Compiler::CompileFunction(Thread* thread,
   TIMELINE_FUNCTION_COMPILATION_DURATION(isolate, "Function", function);
 
   if (!isolate->compilation_allowed()) {
-    FATAL2("Precompilation missed function %s (%s)\n",
-           function.ToQualifiedCString(),
+    FATAL3("Precompilation missed function %s (%" Pd ", %s)\n",
+           function.ToLibNamePrefixedQualifiedCString(),
+           function.token_pos(),
            Function::KindToCString(function.kind()));
   }
 

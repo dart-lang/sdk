@@ -3475,6 +3475,11 @@ void Class::set_is_cycle_free() const {
 }
 
 
+void Class::set_is_allocated() const {
+  set_state_bits(IsAllocatedBit::update(true, raw_ptr()->state_bits_));
+}
+
+
 void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
   set_state_bits(ClassFinalizedBits::update(RawClass::kFinalized,

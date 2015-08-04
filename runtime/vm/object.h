@@ -1282,6 +1282,11 @@ class Class : public Object {
   }
   void set_is_cycle_free() const;
 
+  bool is_allocated() const {
+    return IsAllocatedBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_allocated() const;
+
   uint16_t num_native_fields() const {
     return raw_ptr()->num_native_fields_;
   }
@@ -1399,6 +1404,7 @@ class Class : public Object {
     kCycleFreeBit = 12,
     kEnumBit = 13,
     kTraceAllocationBit = 14,
+    kIsAllocatedBit = 15,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
@@ -1416,6 +1422,7 @@ class Class : public Object {
   class CycleFreeBit : public BitField<bool, kCycleFreeBit, 1> {};
   class EnumBit : public BitField<bool, kEnumBit, 1> {};
   class TraceAllocationBit : public BitField<bool, kTraceAllocationBit, 1> {};
+  class IsAllocatedBit : public BitField<bool, kIsAllocatedBit, 1> {};
 
   void set_name(const String& value) const;
   void set_pretty_name(const String& value) const;
