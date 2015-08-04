@@ -693,8 +693,7 @@ class FragmentEmitter {
         properties[js.string(namer.requiredParameterField)] =
             js.number(method.requiredParameterCount);
         properties[js.string(namer.defaultValuesField)] =
-            js.js('function() { return #; }',
-                  _encodeOptionalParameterDefaultValues(method));
+             _encodeOptionalParameterDefaultValues(method);
       }
     }
 
@@ -763,7 +762,8 @@ class FragmentEmitter {
       List<ConstantValue> defaultValues = method.optionalParameterDefaultValues;
       Iterable<js.Expression> elements =
           defaultValues.map(generateConstantReference);
-      return new js.ArrayInitializer(elements.toList());
+      return js.js('function() { return #; }',
+          new js.ArrayInitializer(elements.toList()));
     } else {
       Map<String, ConstantValue> defaultValues =
           method.optionalParameterDefaultValues;
@@ -778,7 +778,8 @@ class FragmentEmitter {
         properties.add(new js.Property(js.string(name),
         generateConstantReference(value)));
       }
-      return new js.ObjectInitializer(properties);
+      return js.js('function() { return #; }',
+          new js.ObjectInitializer(properties));
     }
   }
 

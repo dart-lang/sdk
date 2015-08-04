@@ -1256,14 +1256,16 @@ class Primitives {
       return functionNoSuchMethod(function, arguments, namedArguments);
     }
 
-    var defaultValues = JS('var', r'#[#]', function,
+    var defaultValuesClosure = JS('var', r'#[#]', function,
           JS_GET_NAME(JsGetName.DEFAULT_VALUES_PROPERTY));
-    if (JS('bool', 'typeof # == "function"', defaultValues)) {
-      // Anonymous closures return a function that returns the default values
-      // instead of providing the default values directly.
-      defaultValues = JS('', '#()', defaultValues);
-    }
-    bool acceptsOptionalArguments = defaultValues != null;
+
+    bool acceptsOptionalArguments = defaultValuesClosure != null;
+
+    // Default values are stored inside a JavaScript closure to avoid
+    // accessing them too early.
+    var defaultValues = acceptsOptionalArguments
+        ? JS('', '#()', defaultValuesClosure)
+        : null;
 
     var interceptor = getInterceptor(function);
     var jsFunction = JS('', '#[#]', interceptor,
