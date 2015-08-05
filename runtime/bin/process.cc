@@ -4,7 +4,6 @@
 
 #include "bin/dartutils.h"
 #include "bin/io_buffer.h"
-#include "bin/log.h"
 #include "bin/platform.h"
 #include "bin/process.h"
 #include "bin/socket.h"
@@ -217,13 +216,8 @@ void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
   int64_t status = 0;
   // Ignore result if passing invalid argument and just exit 0.
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
-  Dart_ShutdownIsolate();
-  Process::TerminateExitCodeHandler();
-  char* error = Dart_Cleanup();
-  if (error != NULL) {
-    Log::PrintErr("VM cleanup failed: %s\n", error);
-    free(error);
-  }
+  Dart_ExitIsolate();
+  Dart_Cleanup();
   exit(static_cast<int>(status));
 }
 

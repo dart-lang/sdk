@@ -747,14 +747,6 @@ class Isolate : public BaseIsolate {
     mutator_thread_->set_zone(zone);
   }
 
-  static void KillIsolate(Isolate* isolate);
-  static void KillAllIsolates();
-
-  static void DisableIsolateCreation();
-  static void EnableIsolateCreation();
-
-  static int IsolateCount();
-
  private:
   friend class Dart;  // Init, InitOnce, Shutdown.
 
@@ -931,14 +923,12 @@ class Isolate : public BaseIsolate {
   static void WakePauseEventHandler(Dart_Isolate isolate);
 
   // Manage list of existing isolates.
-  static bool AddIsolateToList(Isolate* isolate);
+  static void AddIsolateTolist(Isolate* isolate);
   static void RemoveIsolateFromList(Isolate* isolate);
   static void CheckForDuplicateThreadState(InterruptableThreadState* state);
 
-  // This monitor protects isolates_list_head_, and creation_enabled_.
-  static Monitor* isolates_list_monitor_;
+  static Monitor* isolates_list_monitor_;  // Protects isolates_list_head_
   static Isolate* isolates_list_head_;
-  static bool creation_enabled_;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;

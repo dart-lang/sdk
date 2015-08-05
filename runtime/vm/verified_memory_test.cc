@@ -15,20 +15,12 @@ void Init() {
 }
 
 
-void Shutdown() {
-#if defined(DEBUG)
-  FLAG_verified_mem = false;
-#endif
-}
-
-
 UNIT_TEST_CASE(VerifiedMemoryReserve) {
   Init();
   const intptr_t kReservationSize = 64 * KB;
   VirtualMemory* vm = VerifiedMemory::Reserve(kReservationSize);
   EXPECT_EQ(kReservationSize, vm->size());
   delete vm;
-  Shutdown();
 }
 
 
@@ -39,7 +31,6 @@ UNIT_TEST_CASE(VerifiedMemoryCommit) {
   EXPECT_EQ(kReservationSize, vm->size());
   vm->Commit(false);
   delete vm;
-  Shutdown();
 }
 
 
@@ -62,7 +53,6 @@ UNIT_TEST_CASE(VerifiedMemoryBasic) {
   *unverified = 123;
   VerifiedMemory::Verify(reinterpret_cast<uword>(addr), 3 * sizeof(double));
   delete vm;
-  Shutdown();
 }
 
 
@@ -82,7 +72,6 @@ UNIT_TEST_CASE(VerifiedMemoryAccept) {
   VerifiedMemory::Accept(reinterpret_cast<uword>(addr), 2 * sizeof(double));
   VerifiedMemory::Verify(reinterpret_cast<uword>(addr), 3 * sizeof(double));
   delete vm;
-  Shutdown();
 }
 
 
@@ -97,7 +86,6 @@ UNIT_TEST_CASE(VerifyImplicit_Crash) {
   double* addr = reinterpret_cast<double*>(vm->address());
   addr[0] = 0.5;  // Forget to use Write.
   VerifiedMemory::Write(&addr[0], 1.5);
-  Shutdown();
 }
 
 
@@ -113,7 +101,6 @@ UNIT_TEST_CASE(VerifyExplicit_Crash) {
   addr[1] = 3.5;  // Forget to use Write.
   VerifiedMemory::Write(&addr[2], 2.5);
   VerifiedMemory::Verify(reinterpret_cast<uword>(addr), 3 * sizeof(double));
-  Shutdown();
 }
 
 }  // namespace dart
