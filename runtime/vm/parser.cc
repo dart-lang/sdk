@@ -12865,9 +12865,17 @@ AstNode* Parser::ParseSymbolLiteral() {
 RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
                                                      intptr_t token_pos) {
   ASSERT(ctr.kind() == RawFunction::kConstructor);
+  Function& closure = Function::Handle(Z);
+  closure = current_class().LookupClosureFunction(token_pos);
+  if (!closure.IsNull()) {
+    ASSERT(closure.IsConstructorClosureFunction());
+    return closure.raw();
+  }
+
   String& closure_name = String::Handle(Z, ctr.name());
   closure_name = Symbols::FromConcat(Symbols::ConstructorClosurePrefix(),
                                      closure_name);
+
   ParamList params;
   params.AddFinalParameter(token_pos,
                            &Symbols::ClosureParameter(),
@@ -12878,11 +12886,11 @@ RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
   // Replace the types parsed from the constructor.
   params.EraseParameterTypes();
 
-  Function& closure = Function::Handle(Z);
   closure = Function::NewClosureFunction(closure_name,
                                          innermost_function(),
                                          token_pos);
   closure.set_is_generated_body(true);
+  closure.set_is_debuggable(false);
   closure.set_result_type(AbstractType::Handle(Type::DynamicType()));
   AddFormalParamsToFunction(&params, closure);
 
