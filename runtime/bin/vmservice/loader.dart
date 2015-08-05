@@ -397,7 +397,7 @@ _handlePackagesRequest(SendPort sp,
           sp.send([packageRoot.toString()]);
         }
       } else {
-        sp.send("Unsupported base URI to identify .packages file: "
+        sp.send("Unsupported scheme used to locate .packages file: "
                 "'$resource'.");
       }
     } else if (id == -2) {
