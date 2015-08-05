@@ -99,6 +99,18 @@ void Assembler::Call(const ExternalLabel* label) {
 }
 
 
+void Assembler::CallPatchable(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  CallPatchable(&label);
+}
+
+
+void Assembler::Call(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  Call(&label);
+}
+
+
 void Assembler::pushq(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(reg, REX_NONE);
@@ -2551,6 +2563,13 @@ void Assembler::J(Condition condition, const ExternalLabel* label,
 }
 
 
+void Assembler::J(Condition condition, const StubEntry& stub_entry,
+                  Register pp) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  J(condition, &label, pp);
+}
+
+
 void Assembler::jmp(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(reg);
@@ -2606,6 +2625,12 @@ void Assembler::jmp(const ExternalLabel* label) {
 }
 
 
+void Assembler::jmp(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  jmp(&label);
+}
+
+
 void Assembler::JmpPatchable(const ExternalLabel* label, Register pp) {
   ASSERT((pp != PP) || constant_pool_allowed());
   intptr_t call_start = buffer_.GetPosition();
@@ -2617,11 +2642,23 @@ void Assembler::JmpPatchable(const ExternalLabel* label, Register pp) {
 }
 
 
+void Assembler::JmpPatchable(const StubEntry& stub_entry, Register pp) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  JmpPatchable(&label, pp);
+}
+
+
 void Assembler::Jmp(const ExternalLabel* label, Register pp) {
   ASSERT((pp != PP) || constant_pool_allowed());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindExternalLabel(label, kNotPatchable));
   jmp(Address(pp, offset - kHeapObjectTag));
+}
+
+
+void Assembler::Jmp(const StubEntry& stub_entry, Register pp) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  Jmp(&label, pp);
 }
 
 
@@ -3188,7 +3225,7 @@ void Assembler::Stop(const char* message, bool fixed_length_encoding) {
     } else {
       LoadImmediate(RDI, Immediate(message_address));
     }
-    call(&StubCode::PrintStopMessageLabel());
+    call(&StubCode::PrintStopMessage_entry()->label());
     popq(RDI);  // Restore RDI register.
     popq(TMP);  // Restore TMP register.
   } else {

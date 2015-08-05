@@ -31,7 +31,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     ExternalLabel label(GetEntryPoint());
     __ LoadExternalLabel(RBX, &label, kNotPatchable);
     __ movq(R10, Immediate(argument_count));
-    __ Call(&StubCode::CallToRuntimeLabel());
+    __ Call(*StubCode::CallToRuntime_entry());
   }
 }
 

@@ -228,7 +228,7 @@ static void JumpToExceptionHandler(Thread* thread,
   typedef void (*ExcpHandler)(uword, uword, uword, RawObject*, RawObject*,
                               Thread*);
   ExcpHandler func = reinterpret_cast<ExcpHandler>(
-      StubCode::JumpToExceptionHandlerEntryPoint());
+      StubCode::JumpToExceptionHandler_entry()->EntryPoint());
 
   // Unpoison the stack before we tear it down in the generated stub code.
   uword current_sp = Isolate::GetCurrentStackPointer() - 1024;

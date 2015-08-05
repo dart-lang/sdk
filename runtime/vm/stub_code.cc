@@ -61,14 +61,14 @@ void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 bool StubCode::InInvocationStub(uword pc) {
-  uword entry = StubCode::InvokeDartCodeEntryPoint();
+  uword entry = StubCode::InvokeDartCode_entry()->EntryPoint();
   uword size = StubCode::InvokeDartCodeSize();
   return (pc >= entry) && (pc < (entry + size));
 }
 
 
 bool StubCode::InJumpToExceptionHandlerStub(uword pc) {
-  uword entry = StubCode::JumpToExceptionHandlerEntryPoint();
+  uword entry = StubCode::JumpToExceptionHandler_entry()->EntryPoint();
   uword size = StubCode::JumpToExceptionHandlerSize();
   return (pc >= entry) && (pc < (entry + size));
 }
@@ -109,17 +109,18 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
 }
 
 
-uword StubCode::UnoptimizedStaticCallEntryPoint(intptr_t num_args_tested) {
+const StubEntry* StubCode::UnoptimizedStaticCallEntry(
+    intptr_t num_args_tested) {
   switch (num_args_tested) {
     case 0:
-      return ZeroArgsUnoptimizedStaticCallEntryPoint();
+      return ZeroArgsUnoptimizedStaticCall_entry();
     case 1:
-      return OneArgUnoptimizedStaticCallEntryPoint();
+      return OneArgUnoptimizedStaticCall_entry();
     case 2:
-      return TwoArgsUnoptimizedStaticCallEntryPoint();
+      return TwoArgsUnoptimizedStaticCall_entry();
     default:
       UNIMPLEMENTED();
-      return 0;
+      return NULL;
   }
 }
 
@@ -145,7 +146,8 @@ RawCode* StubCode::Generate(const char* name,
 
 const char* StubCode::NameOfStub(uword entry_point) {
 #define VM_STUB_CODE_TESTER(name)                                              \
-  if ((name##_entry() != NULL) && (entry_point == name##EntryPoint())) {       \
+  if ((name##_entry() != NULL) &&                                              \
+      (entry_point == name##_entry()->EntryPoint())) {                         \
     return ""#name;                                                            \
   }
   VM_STUB_CODE_LIST(VM_STUB_CODE_TESTER);

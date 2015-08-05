@@ -43,8 +43,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   __ set_constant_pool_allowed(true);
 
   __ LoadObject(R5, ic_data);
-  ExternalLabel target_label(StubCode::OneArgCheckInlineCacheEntryPoint());
-  __ BranchLinkPatchable(&target_label);
+  __ BranchLinkPatchable(*StubCode::OneArgCheckInlineCache_entry());
   __ Ret();
 }
 

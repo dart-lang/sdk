@@ -584,6 +584,30 @@ void Assembler::LoadDImmediate(VRegister vd, double immd) {
 }
 
 
+void Assembler::Branch(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  Branch(&label);
+}
+
+
+void Assembler::BranchPatchable(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  BranchPatchable(&label);
+}
+
+
+void Assembler::BranchLink(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  BranchLink(&label);
+}
+
+
+void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  BranchLinkPatchable(&label);
+}
+
+
 void Assembler::AddImmediate(Register dest, Register rn, int64_t imm) {
   Operand op;
   if (imm == 0) {

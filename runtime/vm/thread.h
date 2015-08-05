@@ -30,7 +30,7 @@ class Zone;
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
   V(uword, update_store_buffer_entry_point_,                                   \
-    StubCode::UpdateStoreBufferEntryPoint(), 0)
+    StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)
 
 #define CACHED_CONSTANTS_LIST(V)                                               \
   CACHED_VM_OBJECTS_LIST(V)                                                    \

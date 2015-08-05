@@ -116,14 +116,8 @@ class StubCode : public AllStatic {
 
   // Define the shared stub code accessors.
 #define STUB_CODE_ACCESSOR(name)                                               \
-  static StubEntry* name##_entry() {                                           \
+  static const StubEntry* name##_entry() {                                     \
     return name##_entry_;                                                      \
-  }                                                                            \
-  static const ExternalLabel& name##Label() {                                  \
-    return name##_entry()->label();                                            \
-  }                                                                            \
-  static uword name##EntryPoint() {                                            \
-    return name##_entry()->EntryPoint();                                       \
   }                                                                            \
   static intptr_t name##Size() {                                               \
     return name##_entry()->Size();                                             \
@@ -133,7 +127,7 @@ class StubCode : public AllStatic {
 
   static RawCode* GetAllocationStubForClass(const Class& cls);
 
-  static uword UnoptimizedStaticCallEntryPoint(intptr_t num_args_tested);
+  static const StubEntry* UnoptimizedStaticCallEntry(intptr_t num_args_tested);
 
   static const intptr_t kNoInstantiator = 0;
 

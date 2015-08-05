@@ -15,7 +15,7 @@ namespace dart {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Call, assembler) {
-  __ call(&StubCode::InvokeDartCodeLabel());
+  __ Call(*StubCode::InvokeDartCode_entry());
   __ ret();
 }
 
@@ -28,9 +28,8 @@ ASSEMBLER_TEST_GENERATE(Jump, assembler) {
   __ pushq(PP);
   __ LoadPoolPointer();
   prologue_code_size = assembler->CodeSize();
-  __ JmpPatchable(&StubCode::InvokeDartCodeLabel(), PP);
-  const ExternalLabel array_label(StubCode::AllocateArrayEntryPoint());
-  __ JmpPatchable(&array_label, PP);
+  __ JmpPatchable(*StubCode::InvokeDartCode_entry(), PP);
+  __ JmpPatchable(*StubCode::AllocateArray_entry(), PP);
   __ popq(PP);
   __ ret();
 }
@@ -47,7 +46,7 @@ ASSEMBLER_TEST_RUN(Jump, test) {
   EXPECT(status);
   JumpPattern jump1(test->entry() + prologue_code_size, test->code());
   jump1.IsValid();
-  EXPECT_EQ(StubCode::InvokeDartCodeLabel().address(),
+  EXPECT_EQ(StubCode::InvokeDartCode_entry()->label().address(),
             jump1.TargetAddress());
   JumpPattern jump2((test->entry() +
                      jump1.pattern_length_in_bytes() + prologue_code_size),
@@ -60,7 +59,7 @@ ASSEMBLER_TEST_RUN(Jump, test) {
   jump1.SetTargetAddress(target2);
   jump2.SetTargetAddress(target1);
   EXPECT_EQ(array_stub.EntryPoint(), jump1.TargetAddress());
-  EXPECT_EQ(StubCode::InvokeDartCodeLabel().address(),
+  EXPECT_EQ(StubCode::InvokeDartCode_entry()->label().address(),
             jump2.TargetAddress());
 }
 

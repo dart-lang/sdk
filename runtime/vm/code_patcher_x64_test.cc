@@ -43,8 +43,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   __ set_constant_pool_allowed(true);
 
   __ LoadObject(RBX, ic_data);
-  ExternalLabel target_label(StubCode::OneArgCheckInlineCacheEntryPoint());
-  __ CallPatchable(&target_label);
+  __ CallPatchable(*StubCode::OneArgCheckInlineCache_entry());
   __ ret();
 }
 

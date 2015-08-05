@@ -330,8 +330,7 @@ static void PushArgumentsArray(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(ECX, raw_null);  // Null element type for raw Array.
-  const ExternalLabel array_label(StubCode::AllocateArrayEntryPoint());
-  __ call(&array_label);
+  __ Call(*StubCode::AllocateArray_entry());
   __ SmiUntag(EDX);
   // EAX: newly allocated array.
   // EDX: length of the array (was preserved by the stub).
@@ -1134,7 +1133,7 @@ void StubCode::GenerateAllocationStubForClass(
   // Emit function patching code. This will be swapped with the first 5 bytes
   // at entry point.
   *patch_code_pc_offset = assembler->CodeSize();
-  __ jmp(&StubCode::FixAllocationStubTargetLabel());
+  __ Jmp(*StubCode::FixAllocationStubTarget_entry());
 }
 
 

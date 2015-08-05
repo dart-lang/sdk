@@ -331,8 +331,7 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ LoadObject(R12, Object::null_object());
   // Allocate array to store arguments of caller.
   __ movq(RBX, R12);  // Null element type for raw Array.
-  const ExternalLabel array_label(StubCode::AllocateArrayEntryPoint());
-  __ call(&array_label);
+  __ Call(*StubCode::AllocateArray_entry());
   __ SmiUntag(R10);
   // RAX: newly allocated array.
   // R10: length of the array (was preserved by the stub).
@@ -1170,7 +1169,7 @@ void StubCode::GenerateAllocationStubForClass(
   __ LeaveStubFrame();
   __ ret();
   *patch_code_pc_offset = assembler->CodeSize();
-  __ JmpPatchable(&StubCode::FixAllocationStubTargetLabel(), new_pp);
+  __ JmpPatchable(*StubCode::FixAllocationStubTarget_entry(), new_pp);
 }
 
 

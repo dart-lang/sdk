@@ -19,6 +19,7 @@ namespace dart {
 
 // Forward declarations.
 class RuntimeEntry;
+class StubEntry;
 
 class Immediate : public ValueObject {
  public:
@@ -692,6 +693,7 @@ class Assembler : public ValueObject {
   // Note: verified_mem mode forces far jumps.
   void jmp(Label* label, bool near = kFarJump);
   void jmp(const ExternalLabel* label);
+  void jmp(const StubEntry& stub_entry);
 
   void lock();
   void cmpxchgl(const Address& address, Register reg);
@@ -766,10 +768,15 @@ class Assembler : public ValueObject {
                                   const Function& function,
                                   Register new_pp);
   void JmpPatchable(const ExternalLabel* label, Register pp);
+  void JmpPatchable(const StubEntry& stub_entry, Register pp);
   void Jmp(const ExternalLabel* label, Register pp);
+  void Jmp(const StubEntry& stub_entry, Register pp);
   void J(Condition condition, const ExternalLabel* label, Register pp);
+  void J(Condition condition, const StubEntry& stub_entry, Register pp);
   void CallPatchable(const ExternalLabel* label);
+  void CallPatchable(const StubEntry& stub_entry);
   void Call(const ExternalLabel* label);
+  void Call(const StubEntry& stub_entry);
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
   // TODO(koda): Add StackAddress/HeapAddress types to prevent misuse.
   void StoreObject(const Address& dst, const Object& obj);

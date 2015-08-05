@@ -26,6 +26,7 @@ namespace dart {
 
 // Forward declarations.
 class RuntimeEntry;
+class StubEntry;
 
 class Immediate : public ValueObject {
  public:
@@ -917,6 +918,8 @@ class Assembler : public ValueObject {
     jr(TMP);
   }
 
+  void Branch(const StubEntry& stub_entry);
+
   void BranchPatchable(const ExternalLabel* label) {
     ASSERT(!in_delay_slot_);
     const uint16_t low = Utils::Low16Bits(label->address());
@@ -927,11 +930,15 @@ class Assembler : public ValueObject {
     delay_slot_available_ = false;  // CodePatcher expects a nop.
   }
 
+  void BranchPatchable(const StubEntry& stub_entry);
+
   void BranchLink(const ExternalLabel* label) {
     ASSERT(!in_delay_slot_);
     LoadImmediate(T9, label->address());
     jalr(T9);
   }
+
+  void BranchLink(const StubEntry& stub_entry);
 
   void BranchLink(const ExternalLabel* label, Patchability patchable) {
     ASSERT(!in_delay_slot_);
@@ -944,9 +951,13 @@ class Assembler : public ValueObject {
     }
   }
 
+  void BranchLink(const StubEntry& stub_entry, Patchability patchable);
+
   void BranchLinkPatchable(const ExternalLabel* label) {
     BranchLink(label, kPatchable);
   }
+
+  void BranchLinkPatchable(const StubEntry& stub_entry);
 
   void Drop(intptr_t stack_elements) {
     ASSERT(stack_elements >= 0);

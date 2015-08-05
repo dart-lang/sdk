@@ -2366,7 +2366,7 @@ void Assembler::StoreIntoObject(Register object,
   if (object != EDX) {
     movl(EDX, object);
   }
-  call(&StubCode::UpdateStoreBufferLabel());
+  Call(*StubCode::UpdateStoreBuffer_entry());
   if (value != EDX) {
     popl(EDX);  // Restore EDX.
   }
@@ -2618,6 +2618,24 @@ void Assembler::LeaveCallRuntimeFrame() {
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
   entry.Call(this, argument_count);
+}
+
+
+void Assembler::Call(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  call(&label);
+}
+
+
+void Assembler::Jmp(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  jmp(&label);
+}
+
+
+void Assembler::J(Condition condition, const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  j(condition, &label);
 }
 
 
@@ -2907,7 +2925,7 @@ void Assembler::Stop(const char* message) {
   if (FLAG_print_stop_message) {
     pushl(EAX);  // Preserve EAX.
     movl(EAX, Immediate(reinterpret_cast<int32_t>(message)));
-    call(&StubCode::PrintStopMessageLabel());  // Passing message in EAX.
+    Call(*StubCode::PrintStopMessage_entry());  // Passing message in EAX.
     popl(EAX);  // Restore EAX.
   } else {
     // Emit the message address as immediate operand in the test instruction.

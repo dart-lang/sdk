@@ -1072,7 +1072,6 @@ void FlowGraphCompiler::GenerateInstanceCall(
     return;
   }
   ASSERT(!ic_data.IsNull());
-  uword label_address = 0;
   if (is_optimizing() && (ic_data.NumberOfUsedChecks() == 0)) {
     // Emit IC call that will count and thus may need reoptimization at
     // function entry.
@@ -1081,17 +1080,18 @@ void FlowGraphCompiler::GenerateInstanceCall(
            || flow_graph().IsCompiledForOsr());
     switch (ic_data.NumArgsTested()) {
       case 1:
-        label_address = StubCode::OneArgOptimizedCheckInlineCacheEntryPoint();
-        break;
+        EmitOptimizedInstanceCall(
+            *StubCode::OneArgOptimizedCheckInlineCache_entry(), ic_data,
+            argument_count, deopt_id, token_pos, locs);
+        return;
       case 2:
-        label_address = StubCode::TwoArgsOptimizedCheckInlineCacheEntryPoint();
-        break;
+        EmitOptimizedInstanceCall(
+            *StubCode::TwoArgsOptimizedCheckInlineCache_entry(), ic_data,
+            argument_count, deopt_id, token_pos, locs);
+        return;
       default:
         UNIMPLEMENTED();
     }
-    ExternalLabel target_label(label_address);
-    EmitOptimizedInstanceCall(&target_label, ic_data,
-                              argument_count, deopt_id, token_pos, locs);
     return;
   }
 
@@ -1108,17 +1108,18 @@ void FlowGraphCompiler::GenerateInstanceCall(
 
   switch (ic_data.NumArgsTested()) {
     case 1:
-      label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
+      EmitInstanceCall(
+          *StubCode::OneArgCheckInlineCache_entry(), ic_data, argument_count,
+          deopt_id, token_pos, locs);
       break;
     case 2:
-      label_address = StubCode::TwoArgsCheckInlineCacheEntryPoint();
+      EmitInstanceCall(
+          *StubCode::TwoArgsCheckInlineCache_entry(), ic_data, argument_count,
+          deopt_id, token_pos, locs);
       break;
     default:
       UNIMPLEMENTED();
   }
-  ExternalLabel target_label(label_address);
-  EmitInstanceCall(&target_label, ic_data, argument_count,
-                   deopt_id, token_pos, locs);
 }
 
 

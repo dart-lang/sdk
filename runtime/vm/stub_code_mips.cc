@@ -395,8 +395,7 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ LoadImmediate(A0, reinterpret_cast<intptr_t>(Object::null()));
   // A0: Null element type for raw Array.
   // A1: Smi-tagged argument count, may be zero.
-  const ExternalLabel array_label(StubCode::AllocateArrayEntryPoint());
-  __ BranchLink(&array_label);
+  __ BranchLink(*StubCode::AllocateArray_entry());
   __ Comment("PushArgumentsArray return");
   // V0: newly allocated array.
   // A1: Smi-tagged argument count, may be zero (was preserved by the stub).
@@ -1260,7 +1259,7 @@ void StubCode::GenerateAllocationStubForClass(
   // Restore the frame pointer and return.
   __ LeaveStubFrameAndReturn(RA);
   *patch_code_pc_offset = assembler->CodeSize();
-  __ BranchPatchable(&StubCode::FixAllocationStubTargetLabel());
+  __ BranchPatchable(*StubCode::FixAllocationStubTarget_entry());
 }
 
 

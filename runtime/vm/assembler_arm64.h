@@ -21,6 +21,7 @@ namespace dart {
 
 // Forward declarations.
 class RuntimeEntry;
+class StubEntry;
 
 class Immediate : public ValueObject {
  public:
@@ -1203,6 +1204,8 @@ class Assembler : public ValueObject {
     br(TMP);
   }
 
+  void Branch(const StubEntry& stub_entry);
+
   // Fixed length branch to label.
   void BranchPatchable(const ExternalLabel* label) {
     // TODO(zra): Use LoadExternalLabelFixed if possible.
@@ -1210,10 +1213,14 @@ class Assembler : public ValueObject {
     br(TMP);
   }
 
+  void BranchPatchable(const StubEntry& stub_entry);
+
   void BranchLink(const ExternalLabel* label) {
     LoadExternalLabel(TMP, label);
     blr(TMP);
   }
+
+  void BranchLink(const StubEntry& stub_entry);
 
   // BranchLinkPatchable must be a fixed-length sequence so we can patch it
   // with the debugger.
@@ -1221,6 +1228,8 @@ class Assembler : public ValueObject {
     LoadExternalLabelFixed(TMP, label, kPatchable);
     blr(TMP);
   }
+
+  void BranchLinkPatchable(const StubEntry& stub_entry);
 
   // Macros accepting a pp Register argument may attempt to load values from
   // the object pool when possible. Unless you are sure that the untagged object

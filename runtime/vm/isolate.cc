@@ -852,8 +852,8 @@ void Isolate::InitializeStackLimit() {
 uword Isolate::GetCurrentStackPointer() {
   // Since AddressSanitizer's detect_stack_use_after_return instruments the
   // C++ code to give out fake stack addresses, we call a stub in that case.
-  uword (*func)() =
-      reinterpret_cast<uword (*)()>(StubCode::GetStackPointerEntryPoint());
+  uword (*func)() = reinterpret_cast<uword (*)()>(
+      StubCode::GetStackPointer_entry()->EntryPoint());
   // But for performance (and to support simulators), we normally use a local.
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer)

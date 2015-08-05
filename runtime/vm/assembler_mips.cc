@@ -456,6 +456,37 @@ void Assembler::SubuDetectOverflow(Register rd, Register rs, Register rt,
 }
 
 
+void Assembler::Branch(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  Branch(&label);
+}
+
+
+void Assembler::BranchPatchable(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  BranchPatchable(&label);
+}
+
+
+void Assembler::BranchLink(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  BranchLink(&label);
+}
+
+
+void Assembler::BranchLink(const StubEntry& stub_entry,
+                           Patchability patchable) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  BranchLink(&label, patchable);
+}
+
+
+void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  BranchLink(&label, kPatchable);
+}
+
+
 void Assembler::LoadObjectHelper(Register rd,
                                  const Object& object,
                                  bool is_unique) {

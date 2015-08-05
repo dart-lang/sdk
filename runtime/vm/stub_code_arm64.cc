@@ -399,8 +399,7 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ LoadObject(R1, Object::null_object());
   // R1: null element type for raw Array.
   // R2: smi-tagged argument count, may be zero.
-  const ExternalLabel array_label(StubCode::AllocateArrayEntryPoint());
-  __ BranchLink(&array_label);
+  __ BranchLink(*StubCode::AllocateArray_entry());
   // R0: newly allocated array.
   // R2: smi-tagged argument count, may be zero (was preserved by the stub).
   __ Push(R0);  // Array is in R0 and on top of stack.
@@ -1206,7 +1205,7 @@ void StubCode::GenerateAllocationStubForClass(
   __ LeaveStubFrame();
   __ ret();
   *patch_code_pc_offset = assembler->CodeSize();
-  __ BranchPatchable(&StubCode::FixAllocationStubTargetLabel());
+  __ BranchPatchable(*StubCode::FixAllocationStubTarget_entry());
 }
 
 

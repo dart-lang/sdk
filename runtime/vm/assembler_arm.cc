@@ -2684,6 +2684,12 @@ void Assembler::Branch(const ExternalLabel* label, Condition cond) {
 }
 
 
+void Assembler::Branch(const StubEntry& stub_entry, Condition cond) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  Branch(&label, cond);
+}
+
+
 void Assembler::BranchPatchable(const ExternalLabel* label) {
   // Use a fixed size code sequence, since a function prologue may be patched
   // with this branch sequence.
@@ -2694,9 +2700,21 @@ void Assembler::BranchPatchable(const ExternalLabel* label) {
 }
 
 
+void Assembler::BranchPatchable(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  BranchPatchable(&label);
+}
+
+
 void Assembler::BranchLink(const ExternalLabel* label) {
   LoadImmediate(LR, label->address());  // Target address is never patched.
   blx(LR);  // Use blx instruction so that the return branch prediction works.
+}
+
+
+void Assembler::BranchLink(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  BranchLink(&label);
 }
 
 
@@ -2712,8 +2730,21 @@ void Assembler::BranchLink(const ExternalLabel* label, Patchability patchable) {
 }
 
 
+void Assembler::BranchLink(const StubEntry& stub_entry,
+                           Patchability patchable) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  BranchLink(&label, patchable);
+}
+
+
 void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
   BranchLink(label, kPatchable);
+}
+
+
+void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  BranchLinkPatchable(&label);
 }
 
 
@@ -3545,7 +3576,7 @@ void Assembler::Stop(const char* message) {
     PushList((1 << R0) | (1 << IP) | (1 << LR));  // Preserve R0, IP, LR.
     LoadImmediate(R0, reinterpret_cast<int32_t>(message));
     // PrintStopMessage() preserves all registers.
-    BranchLink(&StubCode::PrintStopMessageLabel());  // Passing message in R0.
+    BranchLink(&StubCode::PrintStopMessage_entry()->label());
     PopList((1 << R0) | (1 << IP) | (1 << LR));  // Restore R0, IP, LR.
   }
   // Emit the message address before the svc instruction, so that we can

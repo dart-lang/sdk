@@ -2945,15 +2945,15 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary(Zone* zone,
 }
 
 
-static uword TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
+static const StubEntry* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
   if (!FLAG_two_args_smi_icd) {
     return 0;
   }
   switch (kind) {
-    case Token::kADD: return StubCode::SmiAddInlineCacheEntryPoint();
-    case Token::kSUB: return StubCode::SmiSubInlineCacheEntryPoint();
-    case Token::kEQ:  return StubCode::SmiEqualInlineCacheEntryPoint();
-    default:          return 0;
+    case Token::kADD: return StubCode::SmiAddInlineCache_entry();
+    case Token::kSUB: return StubCode::SmiSubInlineCache_entry();
+    case Token::kEQ:  return StubCode::SmiEqualInlineCache_entry();
+    default:          return NULL;
   }
 }
 
@@ -2994,8 +2994,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Unoptimized code.
     ASSERT(!HasICData());
     bool is_smi_two_args_op = false;
-    const uword label_address = TwoArgsSmiOpInlineCacheEntry(token_kind());
-    if (label_address != 0) {
+    const StubEntry* stub_entry = TwoArgsSmiOpInlineCacheEntry(token_kind());
+    if (stub_entry != NULL) {
       // We have a dedicated inline cache stub for this operation, add an
       // an initial Smi/Smi check with count 0.
       ASSERT(call_ic_data->NumArgsTested() == 2);
@@ -3023,8 +3023,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     if (is_smi_two_args_op) {
       ASSERT(ArgumentCount() == 2);
-      ExternalLabel target_label(label_address);
-      compiler->EmitInstanceCall(&target_label, *call_ic_data, ArgumentCount(),
+      compiler->EmitInstanceCall(*stub_entry, *call_ic_data, ArgumentCount(),
                                  deopt_id(), token_pos(), locs());
     } else if (FLAG_ic_range_profiling &&
                (Token::IsBinaryArithmeticOperator(token_kind()) ||
@@ -3033,10 +3032,10 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                  (ArgumentCount() == 1));
       ASSERT(Token::IsBinaryArithmeticOperator(token_kind()) ==
                  (ArgumentCount() == 2));
-      ExternalLabel target_label((ArgumentCount() == 1) ?
-          StubCode::UnaryRangeCollectingInlineCacheEntryPoint() :
-          StubCode::BinaryRangeCollectingInlineCacheEntryPoint());
-      compiler->EmitInstanceCall(&target_label, *call_ic_data, ArgumentCount(),
+      const StubEntry* stub_entry = (ArgumentCount() == 1)
+          ? StubCode::UnaryRangeCollectingInlineCache_entry()
+          : StubCode::BinaryRangeCollectingInlineCache_entry();
+      compiler->EmitInstanceCall(*stub_entry, *call_ic_data, ArgumentCount(),
                                  deopt_id(), token_pos(), locs());
     } else {
       compiler->GenerateInstanceCall(deopt_id(),

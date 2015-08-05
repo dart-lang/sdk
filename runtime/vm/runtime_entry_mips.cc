@@ -49,7 +49,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     // informative error message.
     __ LoadExternalLabel(S5, &label, kNotPatchable);
     __ LoadImmediate(S4, argument_count);
-    __ BranchLink(&StubCode::CallToRuntimeLabel(), kNotPatchable);
+    __ BranchLink(*StubCode::CallToRuntime_entry(), kNotPatchable);
   }
 }
 
