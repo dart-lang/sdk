@@ -17971,6 +17971,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    _visitTokenWithSuffix(node.externalKeyword, " ");
     _visitNodeWithSuffix(node.returnType, " ");
     _visitTokenWithSuffix(node.propertyKeyword, " ");
     _visitNode(node.name);
@@ -17988,7 +17989,9 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitFunctionExpression(FunctionExpression node) {
     _visitNode(node.typeParameters);
     _visitNode(node.parameters);
-    _writer.print(' ');
+    if (node.body is! EmptyFunctionBody) {
+      _writer.print(' ');
+    }
     _visitNode(node.body);
     return null;
   }

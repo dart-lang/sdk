@@ -2746,6 +2746,18 @@ class ToSourceVisitorTest extends EngineTestCase {
             null, null, [AstFactory.identifier3("u")], AstFactory.block()));
   }
 
+  void test_visitFunctionDeclaration_external() {
+    FunctionDeclaration functionDeclaration = AstFactory.functionDeclaration(
+        null,
+        null,
+        "f",
+        AstFactory.functionExpression2(
+            AstFactory.formalParameterList(), AstFactory.emptyFunctionBody()));
+    functionDeclaration.externalKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
+    _assertSource("external f();", functionDeclaration);
+  }
+
   void test_visitFunctionDeclaration_getter() {
     _assertSource(
         "get f() {}",
