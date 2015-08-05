@@ -245,8 +245,13 @@ abstract class Node {
 }
 
 class Program extends Node {
+  /// Script tag hash-bang, e.g. `#!/usr/bin/env node`
+  final String scriptTag;
+
+  /// Top-level statements in the program.
   final List<Statement> body;
-  Program(this.body);
+
+  Program(this.body, {this.scriptTag});
 
   accept(NodeVisitor visitor) => visitor.visitProgram(this);
   void visitChildren(NodeVisitor visitor) {

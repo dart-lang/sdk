@@ -108,7 +108,7 @@ class JsClassMirror implements ClassMirror {
     // TODO(vsm): Support named constructors and named arguments.
     assert(getName(constructorName) == "");
     assert(namedArgs == null || namedArgs.isEmpty);
-    var instance = JS('', '#.instantiate(#, #)', _dart, _cls, args);
+    var instance = JS('', 'new #(...#)', _cls, args);
     return new JsInstanceMirror._(instance);
   }
 }

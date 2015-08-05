@@ -64,7 +64,7 @@ dart_library.library('dart_runtime/dart', null, /* Imports */[
   ]);
 
   // From dart_utils
-  exportFrom(dart_utils, ['copyProperties', 'instantiate']);
+  exportFrom(dart_utils, ['copyProperties', 'export']);
   // Renames
   exports.defineLazyClass = _export(dart_utils.defineLazy);
   exports.defineLazyProperties = _export(dart_utils.defineLazy);

@@ -13,6 +13,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/scanner.dart'
     show StringToken, Token, TokenType;
+import 'package:analyzer/src/task/dart.dart' show PublicNamespaceBuilder;
 
 import 'package:dev_compiler/src/codegen/ast_builder.dart' show AstBuilder;
 import 'package:dev_compiler/src/codegen/reify_coercions.dart'
@@ -95,6 +96,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   /// _interceptors.JSArray<E>, used for List literals.
   ClassElement _jsArray;
 
+  /// The default value of the module object. See [visitLibraryDirective].
+  String _jsModuleValue;
+
   Map<String, DartType> _objectMembers;
 
   JSCodegenVisitor(AbstractCompiler compiler, this.currentLibrary,
@@ -115,23 +119,24 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   TypeProvider get types => rules.provider;
 
   JS.Program emitLibrary(LibraryUnit library) {
-    String jsDefaultValue = null;
-
     // Modify the AST to make coercions explicit.
     new CoercionReifier(library, compiler).reify();
 
-    var unit = library.library;
-    if (unit.directives.isNotEmpty) {
-      var libraryDir = unit.directives.first;
-      if (libraryDir is LibraryDirective) {
-        var jsName = findAnnotation(libraryDir.element, _isJsNameAnnotation);
-        jsDefaultValue =
-            getConstantField(jsName, 'name', types.stringType) as String;
-      }
+    // Build the public namespace for this library. This allows us to do
+    // constant time lookups (contrast with `Element.getChild(name)`).
+    if (currentLibrary.publicNamespace == null) {
+      (currentLibrary as LibraryElementImpl).publicNamespace =
+          new PublicNamespaceBuilder().build(currentLibrary);
     }
 
-    // TODO(jmesserly): visit scriptTag, directives?
+    library.library.directives.forEach(_visit);
 
+    // Rather than directly visit declarations, we instead use [_loader] to
+    // visit them. It has the ability to sort elements on demand, so
+    // dependencies between top level items are handled with a minimal
+    // reordering of the user's input code. The loader will call back into
+    // this visitor via [_emitModuleItem] when it's ready to visit the item
+    // for real.
     _loader.collectElements(currentLibrary, library.partsThenLibrary);
 
     for (var unit in library.partsThenLibrary) {
@@ -139,7 +144,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
       for (var decl in unit.declarations) {
         if (decl is TopLevelVariableDeclaration) {
-          _visit(decl);
+          visitTopLevelVariableDeclaration(decl);
         } else {
           _loader.loadDeclaration(decl, decl.element);
         }
@@ -147,10 +152,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
           // Static fields can be emitted into the top-level code, so they need
           // to potentially be ordered independently of the class.
           for (var member in decl.members) {
-            if (member is FieldDeclaration && member.isStatic) {
-              for (var f in member.fields.variables) {
-                _loader.loadDeclaration(f, f.element);
-              }
+            if (member is FieldDeclaration) {
+              visitFieldDeclaration(member);
             }
           }
         }
@@ -208,19 +211,21 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     var module = js.call("function(#) { 'use strict'; #; #; }",
         [params, dartxImport, _moduleItems]);
 
-    var program = <JS.Statement>[
-      js.statement("dart_library.library(#, #, #, #, #)", [
-        js.string(jsPath, "'"),
-        jsDefaultValue ?? new JS.LiteralNull(),
-        js.commentExpression(
-            "Imports", new JS.ArrayInitializer(imports, multiline: true)),
-        js.commentExpression("Lazy imports",
-            new JS.ArrayInitializer(lazyImports, multiline: true)),
-        module
-      ])
-    ];
+    var moduleDef = js.statement("dart_library.library(#, #, #, #, #)", [
+      js.string(jsPath, "'"),
+      _jsModuleValue ?? new JS.LiteralNull(),
+      js.commentExpression(
+          "Imports", new JS.ArrayInitializer(imports, multiline: true)),
+      js.commentExpression("Lazy imports",
+          new JS.ArrayInitializer(lazyImports, multiline: true)),
+      module
+    ]);
 
-    return new JS.Program(program);
+    var jsBin = compiler.options.runnerOptions.v8Binary;
+
+    String scriptTag = null;
+    if (library.library.scriptTag != null) scriptTag = '/usr/bin/env $jsBin';
+    return new JS.Program(<JS.Statement>[moduleDef], scriptTag: scriptTag);
   }
 
   void _emitModuleItem(AstNode node) {
@@ -230,6 +235,54 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
     var code = _visit(node);
     if (code != null) _moduleItems.add(code);
+  }
+
+  @override
+  void visitLibraryDirective(LibraryDirective node) {
+    assert(_jsModuleValue == null);
+
+    var jsName = findAnnotation(node.element, _isJsNameAnnotation);
+    _jsModuleValue =
+        getConstantField(jsName, 'name', types.stringType) as String;
+  }
+
+  @override
+  void visitImportDirective(ImportDirective node) {
+    // Nothing to do yet, but we'll want to convert this to an ES6 import once
+    // we have support for modules.
+  }
+
+  @override void visitPartDirective(PartDirective node) {}
+  @override void visitPartOfDirective(PartOfDirective node) {}
+
+  @override
+  void visitExportDirective(ExportDirective node) {
+    var exportName = _libraryName(node.uriElement);
+
+    var currentLibNames = currentLibrary.publicNamespace.definedNames;
+
+    var args = [_exportsVar, exportName];
+    if (node.combinators.isNotEmpty) {
+      var shownNames = <JS.Expression>[];
+      var hiddenNames = <JS.Expression>[];
+
+      var show = node.combinators.firstWhere((c) => c is ShowCombinator,
+          orElse: () => null) as ShowCombinator;
+      var hide = node.combinators.firstWhere((c) => c is HideCombinator,
+          orElse: () => null) as HideCombinator;
+      if (show != null) {
+        shownNames.addAll(show.shownNames
+            .map((i) => i.name)
+            .where((s) => !currentLibNames.containsKey(s))
+            .map((s) => js.string(s, "'")));
+      }
+      if (hide != null) {
+        hiddenNames.addAll(hide.hiddenNames.map((i) => js.string(i.name, "'")));
+      }
+      args.add(new JS.ArrayInitializer(shownNames));
+      args.add(new JS.ArrayInitializer(hiddenNames));
+    }
+    _moduleItems.add(js.statement('dart.export(#);', [args]));
   }
 
   JS.Identifier _initSymbol(JS.Identifier id) {
@@ -1776,6 +1829,21 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     for (var v in node.variables.variables) {
       _loader.loadDeclaration(v, v.element);
+    }
+  }
+
+  /// Emits static fields.
+  ///
+  /// Instance fields are emitted in [_initializeFields].
+  ///
+  /// These are generally treated the same as top-level fields, see
+  /// [visitTopLevelVariableDeclaration].
+  @override
+  visitFieldDeclaration(FieldDeclaration node) {
+    if (!node.isStatic) return;
+
+    for (var f in node.fields.variables) {
+      _loader.loadDeclaration(f, f.element);
     }
   }
 

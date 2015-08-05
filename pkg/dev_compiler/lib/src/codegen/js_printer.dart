@@ -4,7 +4,7 @@
 
 library dev_compiler.src.codegen.js_printer;
 
-import 'dart:io' show Directory, File;
+import 'dart:io' show Directory, File, Platform, Process;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart' as srcmaps show Printer;
@@ -48,6 +48,12 @@ String writeJsLibrary(JS.Program jsTree, String outputPath,
     text = (context as JS.SimpleJavaScriptPrintingContext).getText();
   }
   new File(outputPath).writeAsStringSync(text);
+  if (jsTree.scriptTag != null) {
+    // Mark executable.
+    // TODO(jmesserly): should only do this if the input file was executable?
+    if (!Platform.isWindows) Process.runSync('chmod', ['+x', outputPath]);
+  }
+
   return computeHash(text);
 }
 

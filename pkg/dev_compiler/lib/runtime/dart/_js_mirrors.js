@@ -118,7 +118,7 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
         namedArgs = null;
       dart.assert(getName(constructorName) == "");
       dart.assert(namedArgs == null || dart.notNull(namedArgs.isEmpty));
-      let instance = exports._dart.instantiate(this[_cls], args);
+      let instance = new this[_cls](...args);
       return new JsInstanceMirror._(instance);
     }
   }

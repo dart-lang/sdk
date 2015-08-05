@@ -49,32 +49,32 @@ var dart_utils =
    * Defines a lazy property.
    * After initial get or set, it will replace itself with a value property.
    */
-  // TODO(jmesserly): is this the best implementation for JS engines?
   // TODO(jmesserly): reusing descriptor objects has been shown to improve
   // performance in other projects (e.g. webcomponents.js ShadowDOM polyfill).
   function defineLazyProperty(to, name, desc) {
     let init = desc.get;
-    let writable = !!desc.set;
-    function lazySetter(value) {
-      defineProperty(to, name, { value: value, writable: writable });
+    let value = null;
+
+    function lazySetter(x) {
+      init = null;
+      value = x;
+    }
+    function circularInitError() {
+      throwError('circular initialization for field ' + name);
     }
     function lazyGetter() {
-      // Clear the init function to detect circular initialization.
-      let f = init;
-      if (f === null) {
-        throwError('circular initialization for field ' + name);
-      }
-      init = null;
+      if (init == null) return value;
 
-      // Compute and store the value.
-      let value = f();
-      lazySetter(value);
+      // Compute and store the value, guarding against reentry.
+      let f = init;
+      init = circularInitError;
+      lazySetter(f());
       return value;
     }
     desc.get = lazyGetter;
     desc.configurable = true;
-    if (writable) desc.set = lazySetter;
-    defineProperty(to, name, desc);
+    if (desc.set) desc.set = lazySetter;
+    return defineProperty(to, name, desc);
   }
   dart_utils.defineLazyProperty = defineLazyProperty;
 
@@ -85,15 +85,8 @@ var dart_utils =
   }
   dart_utils.defineLazy = defineLazy;
 
-  function defineMemoizedGetter(obj, name, get) {
-    let cache = null;
-    function getter() {
-      if (cache != null) return cache;
-      cache = get();
-      get = null;
-      return cache;
-    }
-    defineProperty(obj, name, {get: getter, configurable: true});
+  function defineMemoizedGetter(obj, name, getter) {
+    return defineLazyProperty(obj, name, {get: getter});
   }
   dart_utils.defineMemoizedGetter = defineMemoizedGetter;
 
@@ -114,10 +107,17 @@ var dart_utils =
   }
   dart_utils.copyProperties = copyProperties;
 
-
-  function instantiate(type, args) {
-    return new type(...args);
+  /** Exports from one Dart module to another. */
+  function export_(to, from, show, hide) {
+    if (show == void 0) {
+      show = getOwnNamesAndSymbols(from);
+    }
+    if (hide != void 0) {
+      var hideMap = new Map(hide);
+      show = show.filter((k) => !hideMap.has(k));
+    }
+    return copyTheseProperties(to, from, show);
   }
-  dart_utils.instantiate = instantiate;
+  dart_utils.export = export_;
 
 })(dart_utils);

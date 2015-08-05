@@ -68,4 +68,19 @@
       'asyncstar_yieldstar_test'
     ]);
   });
+
+  suite('export', () => {
+    dartLanguageTests([
+      'duplicate_export_test',
+      'export_cyclic_test',
+      'export_double_same_main_test',
+      'export_main_override_test',
+      'export_main_test',
+      'export_test',
+      'local_export_test',
+      'reexport_core_test',
+      'top_level_entry_test'
+    ]);
+  });
+
 })();

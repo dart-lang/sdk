@@ -212,6 +212,9 @@ class Printer implements NodeVisitor {
   }
 
   visitProgram(Program program) {
+    if (program.scriptTag != null) {
+      out('#!${program.scriptTag}\n');
+    }
     visitAll(program.body);
   }
 
