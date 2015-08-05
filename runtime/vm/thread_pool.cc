@@ -12,9 +12,6 @@ namespace dart {
 DEFINE_FLAG(int, worker_timeout_millis, 5000,
             "Free workers when they have been idle for this amount of time.");
 
-Monitor* ThreadPool::exit_monitor_ = NULL;
-int* ThreadPool::exit_count_ = NULL;
-
 ThreadPool::ThreadPool()
   : shutting_down_(false),
     all_workers_(NULL),
@@ -22,7 +19,8 @@ ThreadPool::ThreadPool()
     count_started_(0),
     count_stopped_(0),
     count_running_(0),
-    count_idle_(0) {
+    count_idle_(0),
+    shutting_down_workers_(NULL) {
 }
 
 
@@ -94,14 +92,27 @@ void ThreadPool::Shutdown() {
   }
   // Release ThreadPool::mutex_ before calling Worker functions.
 
-  Worker* current = saved;
-  while (current != NULL) {
-    // We may access all_next_ without holding ThreadPool::mutex_ here
-    // because the worker is no longer owned by the ThreadPool.
-    Worker* next = current->all_next_;
-    current->all_next_ = NULL;
-    current->Shutdown();
-    current = next;
+  {
+    MonitorLocker eml(&exit_monitor_);
+
+    // First tell all the workers to shut down.
+    Worker* current = saved;
+    while (current != NULL) {
+      Worker* next = current->all_next_;
+      if (current->id_ != OSThread::GetCurrentThreadId()) {
+        AddWorkerToShutdownList(current);
+      }
+      current->Shutdown();
+      current = next;
+    }
+    saved = NULL;
+
+    // Wait until all workers have exited.
+    while (shutting_down_workers_ != NULL) {
+      // Here, we are waiting for workers to exit. When a worker exits we will
+      // be notified.
+      eml.Wait();
+    }
   }
 }
 
@@ -157,6 +168,7 @@ bool ThreadPool::RemoveWorkerFromAllList(Worker* worker) {
     worker->all_next_ = NULL;
     worker->owned_ = false;
     worker->pool_ = NULL;
+    worker->done_ = true;
     return true;
   }
 
@@ -206,6 +218,38 @@ bool ThreadPool::ReleaseIdleWorker(Worker* worker) {
 }
 
 
+// Only call while holding the exit_monitor_
+void ThreadPool::AddWorkerToShutdownList(Worker* worker) {
+  worker->shutdown_next_ = shutting_down_workers_;
+  shutting_down_workers_ = worker;
+}
+
+
+// Only call while holding the exit_monitor_
+bool ThreadPool::RemoveWorkerFromShutdownList(Worker* worker) {
+  ASSERT(worker != NULL);
+  ASSERT(shutting_down_workers_ != NULL);
+
+  // Special case head of list.
+  if (shutting_down_workers_ == worker) {
+    shutting_down_workers_ = worker->shutdown_next_;
+    worker->shutdown_next_ = NULL;
+    return true;
+  }
+
+  for (Worker* current = shutting_down_workers_;
+       current->shutdown_next_ != NULL;
+       current = current->shutdown_next_) {
+    if (current->shutdown_next_ == worker) {
+      current->shutdown_next_ = worker->shutdown_next_;
+      worker->shutdown_next_ = NULL;
+      return true;
+    }
+  }
+  return false;
+}
+
+
 ThreadPool::Task::Task() {
 }
 
@@ -216,10 +260,14 @@ ThreadPool::Task::~Task() {
 
 ThreadPool::Worker::Worker(ThreadPool* pool)
   : pool_(pool),
+    done_(false),
     task_(NULL),
+    id_(OSThread::kInvalidThreadId),
+    started_(false),
     owned_(false),
     all_next_(NULL),
-    idle_next_(NULL) {
+    idle_next_(NULL),
+    shutdown_next_(NULL) {
 }
 
 
@@ -264,7 +312,7 @@ static int64_t ComputeTimeout(int64_t idle_start) {
 }
 
 
-void ThreadPool::Worker::Loop() {
+bool ThreadPool::Worker::Loop() {
   MonitorLocker ml(&monitor_);
   int64_t idle_start;
   while (true) {
@@ -281,9 +329,9 @@ void ThreadPool::Worker::Loop() {
 
     ASSERT(task_ == NULL);
     if (IsDone()) {
-      return;
+      return false;
     }
-    ASSERT(pool_ != NULL);
+    ASSERT(!done_);
     pool_->SetIdle(this);
     idle_start = OS::GetCurrentTimeMillis();
     while (true) {
@@ -294,21 +342,21 @@ void ThreadPool::Worker::Loop() {
         break;
       }
       if (IsDone()) {
-        return;
+        return false;
       }
-      if (result == Monitor::kTimedOut &&
-          pool_->ReleaseIdleWorker(this)) {
-        return;
+      if ((result == Monitor::kTimedOut) && pool_->ReleaseIdleWorker(this)) {
+        return true;
       }
     }
   }
   UNREACHABLE();
+  return false;
 }
 
 
 void ThreadPool::Worker::Shutdown() {
   MonitorLocker ml(&monitor_);
-  pool_ = NULL;  // Fail fast if someone tries to access pool_.
+  done_ = true;
   ml.Notify();
 }
 
@@ -317,20 +365,55 @@ void ThreadPool::Worker::Shutdown() {
 void ThreadPool::Worker::Main(uword args) {
   Thread::EnsureInit();
   Worker* worker = reinterpret_cast<Worker*>(args);
-  worker->Loop();
+  bool delete_self = false;
+
+  {
+    MonitorLocker ml(&(worker->monitor_));
+    if (worker->IsDone()) {
+      // id_ hasn't been set yet, but the ThreadPool is being shutdown.
+      // Delete the task, and return.
+      ASSERT(worker->task_);
+      delete worker->task_;
+      worker->task_ = NULL;
+      delete_self = true;
+    } else {
+      worker->id_ = OSThread::GetCurrentThreadId();
+      worker->started_ = true;
+    }
+  }
+
+  // We aren't able to delete the worker while holding the worker's monitor.
+  // Now that we have released it, and we know that ThreadPool::Shutdown
+  // won't touch it again, we can delete it and return.
+  if (delete_self) {
+    MonitorLocker eml(&worker->pool_->exit_monitor_);
+    worker->pool_->RemoveWorkerFromShutdownList(worker);
+    delete worker;
+    eml.Notify();
+    return;
+  }
+
+  bool released = worker->Loop();
 
   // It should be okay to access these unlocked here in this assert.
-  ASSERT(!worker->owned_ &&
-         worker->all_next_ == NULL &&
-         worker->idle_next_ == NULL);
+  // worker->all_next_ is retained by the pool for shutdown monitoring.
+  ASSERT(!worker->owned_ && (worker->idle_next_ == NULL));
 
-  // The exit monitor is only used during testing.
-  if (ThreadPool::exit_monitor_) {
-    MonitorLocker ml(ThreadPool::exit_monitor_);
-    (*ThreadPool::exit_count_)++;
-    ml.Notify();
+  if (!released) {
+    // This worker is exiting because the thread pool is being shut down.
+    // Inform the thread pool that we are exiting. We remove this worker from
+    // shutting_down_workers_ list because there will be no need for the
+    // ThreadPool to take action for this worker.
+    MonitorLocker eml(&worker->pool_->exit_monitor_);
+    worker->id_ = OSThread::kInvalidThreadId;
+    worker->pool_->RemoveWorkerFromShutdownList(worker);
+    delete worker;
+    eml.Notify();
+  } else {
+    // This worker is going down because it was idle for too long. This case
+    // is not due to a ThreadPool Shutdown. Thus, we simply delete the worker.
+    delete worker;
   }
-  delete worker;
 #if defined(TARGET_OS_WINDOWS)
   Thread::CleanUp();
 #endif

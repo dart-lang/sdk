@@ -10,10 +10,8 @@
 namespace dart {
 
 UNIT_TEST_CASE(GetCpuModelTest) {
-  CpuInfo::InitOnce();
   const char* cpumodel = CpuInfo::GetCpuModel();
   EXPECT_NE(strlen(cpumodel), 0UL);
-  CpuInfo::Cleanup();
 }
 
 }  // namespace dart

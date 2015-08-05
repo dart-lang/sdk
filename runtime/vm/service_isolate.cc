@@ -749,8 +749,30 @@ void ServiceIsolate::Run() {
 }
 
 
+void ServiceIsolate::KillServiceIsolate() {
+  {
+    MonitorLocker ml(monitor_);
+    shutting_down_ = true;
+  }
+  Isolate::KillIsolate(isolate_);
+  {
+    MonitorLocker ml(monitor_);
+    while (shutting_down_) {
+      ml.Wait();
+    }
+  }
+}
+
+
 void ServiceIsolate::Shutdown() {
   if (!IsRunning()) {
+    if (isolate_ != NULL) {
+      // TODO(johnmccutchan,turnidge) When it is possible to properly create
+      // the VMService object and set up its shutdown handler in the service
+      // isolate's main() function, this case will no longer be possible and
+      // can be removed.
+      KillServiceIsolate();
+    }
     return;
   }
   {

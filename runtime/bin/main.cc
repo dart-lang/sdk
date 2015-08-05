@@ -108,7 +108,14 @@ static void ErrorExit(int exit_code, const char* format, ...) {
   Dart_ExitScope();
   Dart_ShutdownIsolate();
 
-  Dart_Cleanup();
+  // Terminate process exit-code handler.
+  Process::TerminateExitCodeHandler();
+
+  char* error = Dart_Cleanup();
+  if (error != NULL) {
+    Log::PrintErr("VM cleanup failed: %s\n", error);
+    free(error);
+  }
 
   exit(exit_code);
 }
@@ -624,6 +631,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                error);
 
   if (isolate == NULL) {
+    delete isolate_data;
     return NULL;
   }
 
@@ -1029,15 +1037,17 @@ void main(int argc, char** argv) {
   }
 
   // Initialize the Dart VM.
-  if (!Dart_Initialize(vm_isolate_snapshot_buffer,
-                       CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
-                       DartUtils::OpenFile,
-                       DartUtils::ReadFile,
-                       DartUtils::WriteFile,
-                       DartUtils::CloseFile,
-                       DartUtils::EntropySource)) {
-    fprintf(stderr, "%s", "VM initialization failed\n");
+  char* error = Dart_Initialize(vm_isolate_snapshot_buffer,
+      CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
+      DartUtils::OpenFile,
+      DartUtils::ReadFile,
+      DartUtils::WriteFile,
+      DartUtils::CloseFile,
+      DartUtils::EntropySource);
+  if (error != NULL) {
+    fprintf(stderr, "VM initialization failed: %s\n", error);
     fflush(stderr);
+    free(error);
     exit(kErrorExitCode);
   }
 
@@ -1048,7 +1058,6 @@ void main(int argc, char** argv) {
 
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
-  char* error = NULL;
   int exit_code = 0;
   char* isolate_name = BuildIsolateName(script_name, "main");
   Dart_Isolate isolate = CreateIsolateAndSetupHelper(script_name,
@@ -1061,7 +1070,14 @@ void main(int argc, char** argv) {
   if (isolate == NULL) {
     Log::PrintErr("%s\n", error);
     free(error);
+    error = NULL;
     delete [] isolate_name;
+    Process::TerminateExitCodeHandler();
+    error = Dart_Cleanup();
+    if (error != NULL) {
+      Log::PrintErr("VM cleanup failed: %s\n", error);
+      free(error);
+    }
     exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
   delete [] isolate_name;
@@ -1165,7 +1181,11 @@ void main(int argc, char** argv) {
   // Terminate process exit-code handler.
   Process::TerminateExitCodeHandler();
 
-  Dart_Cleanup();
+  error = Dart_Cleanup();
+  if (error != NULL) {
+    Log::PrintErr("VM cleanup failed: %s\n", error);
+    free(error);
+  }
 
   // Free copied argument strings if converted.
   if (argv_converted) {

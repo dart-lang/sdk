@@ -121,7 +121,7 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
     }
     message = NULL;  // Do not access message.  May have been deleted.
 
-    if (pool_ != NULL && task_ == NULL) {
+    if ((pool_ != NULL) && (task_ == NULL)) {
       task_ = new MessageHandlerTask(this);
       pool_->Run(task_);
     }

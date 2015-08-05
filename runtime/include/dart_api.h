@@ -861,9 +861,10 @@ typedef bool (*Dart_EntropySource)(uint8_t* buffer, intptr_t length);
  * \param shutdown A function to be called when an isolate is shutdown.
  *   See Dart_IsolateShutdownCallback.
  *
- * \return True if initialization is successful.
+ * \return NULL if initialization is successful. Returns an error message
+ *   otherwise. The caller is responsible for freeing the error message.
  */
-DART_EXPORT bool Dart_Initialize(
+DART_EXPORT char* Dart_Initialize(
     const uint8_t* vm_isolate_snapshot,
     Dart_IsolateCreateCallback create,
     Dart_IsolateInterruptCallback interrupt,
@@ -878,9 +879,10 @@ DART_EXPORT bool Dart_Initialize(
 /**
  * Cleanup state in the VM before process termination.
  *
- * \return True if cleanup is successful.
+ * \return NULL if cleanup is successful. Returns an error message otherwise.
+ *   The caller is responsible for freeing the error message.
  */
-DART_EXPORT bool Dart_Cleanup();
+DART_EXPORT char* Dart_Cleanup();
 
 /**
  * Sets command line flags. Should be called before Dart_Initialize.

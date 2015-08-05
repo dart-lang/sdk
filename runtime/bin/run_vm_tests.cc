@@ -113,6 +113,10 @@ static int Main(int argc, const char** argv) {
   TestCaseBase::RunAll();
   // Apply the filter to all registered benchmarks.
   Benchmark::RunAll(argv[0]);
+
+  err_msg = Dart::Cleanup();
+  ASSERT(err_msg == NULL);
+
   // Print a warning message if no tests or benchmarks were matched.
   if (run_matches == 0) {
     fprintf(stderr, "No tests matched: %s\n", run_filter);
