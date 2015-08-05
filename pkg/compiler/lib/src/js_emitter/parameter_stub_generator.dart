@@ -148,7 +148,7 @@ class ParameterStubGenerator {
 
     jsAst.Fun function = js('function(#) { #; }', [parametersBuffer, body]);
 
-    jsAst.Name name = namer.invocationName(selector);
+    jsAst.Name name = member.isStatic ? null : namer.invocationName(selector);
     jsAst.Name callName =
         (callSelector != null) ? namer.invocationName(callSelector) : null;
     return new ParameterStubMethod(name, callName, function);
