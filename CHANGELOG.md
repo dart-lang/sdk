@@ -3,7 +3,7 @@
 ### Core library changes
 
 * `dart:async`
-  * `StreamController`  added setters for the `onListen`, `onPause`, `onResume`
+  * `StreamController` added setters for the `onListen`, `onPause`, `onResume`
     and `onCancel` callbacks.
 
 * `dart:convert`
@@ -14,6 +14,7 @@
     This removes most `..` and `.` sequences from the URI path.
     Purely relative paths (no scheme or authority) are allowed to retain
     some leading "dot" segments.
+    Also added `hasAbsolutePath`, `hasEmptyPath`, and `hasScheme` properties.
 
 * `dart:html`
   * `NodeTreeSanitizer` added the `const trusted` field. It can be used

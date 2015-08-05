@@ -481,17 +481,17 @@ void testStreamEquals() {
   Expect.equals(c.stream, c.stream);
   c = new StreamController(sync: true);
   Expect.equals(c.stream, c.stream);
-  c = new StreamController(sync: false, onListen:(){});
+  c = new StreamController(sync: false, onListen: () {});
   Expect.equals(c.stream, c.stream);
-  c = new StreamController(sync: true, onListen:(){});
+  c = new StreamController(sync: true, onListen: () {});
   Expect.equals(c.stream, c.stream);
   c = new StreamController.broadcast(sync: false);
   Expect.equals(c.stream, c.stream);
   c = new StreamController.broadcast(sync: true);
   Expect.equals(c.stream, c.stream);
-  c = new StreamController.broadcast(sync: false, onListen:(){});
+  c = new StreamController.broadcast(sync: false, onListen: () {});
   Expect.equals(c.stream, c.stream);
-  c = new StreamController.broadcast(sync: true, onListen:(){});
+  c = new StreamController.broadcast(sync: true, onListen: () {});
   Expect.equals(c.stream, c.stream);
 }
 
@@ -811,9 +811,9 @@ void testBroadcastSettingCallbacks() {
   var stream = controller.stream;
   var state = initial;
 
-  Expect.throws(() { controller.onPause = (){}; },
+  Expect.throws(() { controller.onPause = () {}; },
                 (e) => e is UnsupportedError);
-  Expect.throws(() { controller.onResume = (){}; },
+  Expect.throws(() { controller.onResume = () {}; },
                 (e) => e is UnsupportedError);
 
   controller..onListen = () { state = running; }
