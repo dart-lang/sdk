@@ -5,6 +5,8 @@
 #ifndef VM_HASH_MAP_H_
 #define VM_HASH_MAP_H_
 
+#include "vm/zone.h"
+
 namespace dart {
 
 template <typename KeyValueTrait>
