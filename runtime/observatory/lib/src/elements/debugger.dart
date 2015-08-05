@@ -1484,7 +1484,8 @@ class DebuggerPageElement extends ObservatoryElement {
       // Random clicks should focus on the text box.  If the user selects
       // a range, don't interfere.
       var selection = window.getSelection();
-      if (selection == null || selection.type == 'Caret') {
+      if (selection == null ||
+          (selection.type != 'Range' && selection.type != 'text')) {
         debugger.input.focus();
       }
     });
