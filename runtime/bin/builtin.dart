@@ -528,7 +528,7 @@ void _asyncLoadError(_LoadRequest req, _LoadError error, StackTrace stack) {
     Completer c = req._context;
     c.completeError(error, stack);
   } else {
-    Uri libraryUri = req._context;
+    String libraryUri = req._context;
     if (req._tag == _Dart_kImportTag) {
       // When importing a library, the libraryUri is the imported
       // uri.

@@ -340,33 +340,94 @@ _findPackagesFile(SendPort sp, bool traceLoading, Uri base) async {
   }
 }
 
+
+Future<bool> _loadHttpPackagesFile(SendPort sp,
+                                   bool traceLoading,
+                                   Uri resource) async {
+  try {
+    if (_httpClient == null) {
+      _httpClient = new HttpClient()..maxConnectionsPerHost = 6;
+    }
+    if (traceLoading) {
+      _log("Fetching packages file from '$resource'.");
+    }
+    var req = await _httpClient.getUrl(resource);
+    var rsp = await req.close();
+    var builder = new BytesBuilder(copy: false);
+    await for (var bytes in rsp) {
+      builder.add(bytes);
+    }
+    if (rsp.statusCode != 200) {
+      if (traceLoading) {
+        _log("Got status ${rsp.statusCode} fetching '$resource'.");
+      }
+      return false;
+    }
+    var data = builder.takeBytes();
+    if (traceLoading) {
+      _log("Loaded packages file from '$resource':\n"
+           "${new String.fromCharCodes(data)}");
+    }
+    _parsePackagesFile(sp, traceLoading, resource, data);
+  } catch (e, s) {
+    if (traceLoading) {
+      _log("Error loading packages file from '$resource': $e\n$s");
+    }
+    sp.send("Uncaught error ($e) loading packages file from '$resource'.");
+  }
+  return false;
+}
+
 _handlePackagesRequest(SendPort sp,
                        bool traceLoading,
                        int id,
                        Uri resource) async {
-  if (id == -1) {
-    if (resource.scheme == 'file') {
-      _findPackagesFile(sp, traceLoading, resource);
-    } else if ((resource.scheme == 'http') || (resource.scheme == 'https')) {
-      // TODO(iposva): Check for the existence of a .packages file when loading
-      // from http or https.
-      var packageRoot = resource.resolve('packages/');
-      sp.send([packageRoot.toString()]);
+  try {
+    if (id == -1) {
+      if (resource.scheme == 'file') {
+        _findPackagesFile(sp, traceLoading, resource);
+      } else if ((resource.scheme == 'http') || (resource.scheme == 'https')) {
+        // Try to load the .packages file next to the resource.
+        var packagesUri = resource.resolve(".packages");
+        var exists = await _loadHttpPackagesFile(sp, traceLoading, packagesUri);
+        if (!exists) {
+          // If the loading of the .packages file failed for http/https based
+          // scripts then setup the package root.
+          var packageRoot = resource.resolve('packages/');
+          sp.send([packageRoot.toString()]);
+        }
+      } else {
+        sp.send("Unsupported base URI to identify .packages file: "
+                "'$resource'.");
+      }
+    } else if (id == -2) {
+      if (traceLoading) {
+        _log("Handling load of packages map: '$resource'.");
+      }
+      if (resource.scheme == 'file') {
+        var exists = await new File.fromUri(resource).exists();
+        if (exists) {
+          _loadPackagesFile(sp, traceLoading, resource);
+        } else {
+          sp.send("Packages file '$resource' not found.");
+        }
+      } else if ((resource.scheme == 'http') || (resource.scheme == 'https')) {
+        var exists = await _loadHttpPackagesFile(sp, traceLoading, resource);
+        if (!exists) {
+          sp.send("Packages file '$resource' not found.");
+        }
+      } else {
+        sp.send("Unknown scheme (${resource.scheme}) for package file at "
+                "'$resource'.");
+      }
     } else {
-      sp.send("Unsupported base URI to identify .packages file: '$resource'.");
+      sp.send("Unknown packages request id: $id for '$resource'.");
     }
-  } else if (id == -2) {
+  } catch (e, s) {
     if (traceLoading) {
-      _log("Handling load of packages map: '$resource'.");
+      _log("Error handling packages request: $e\n$s");
     }
-    var exists = await new File.fromUri(resource).exists();
-    if (exists) {
-      _loadPackagesFile(sp, traceLoading, resource);
-    } else {
-      sp.send("Packages file $resource not found.");
-    }
-  } else {
-    sp.send("Unknown packages request id: $id for '$resource'.");
+    sp.send("Uncaught error ($e) handling packages request.");
   }
 }
 
