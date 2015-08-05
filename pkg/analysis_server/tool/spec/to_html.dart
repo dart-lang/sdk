@@ -232,9 +232,6 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
           continue;
         }
         switch (node.localName) {
-          case 'api':
-            translateHtml(node, squashParagraphs: squashParagraphs);
-            break;
           case 'domain':
             visitDomain(apiMappings.domains[node]);
             break;
