@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library dart2js.js_emitter.headers;
-import '../apiimpl.dart' show Compiler;
+import '../dart2jslib.dart' show Compiler;
 
 String generatedBy(Compiler compiler, {String flavor: ""}) {
   String suffix = '';
