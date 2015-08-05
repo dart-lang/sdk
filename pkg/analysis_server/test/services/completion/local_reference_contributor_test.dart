@@ -24,9 +24,14 @@ class LocalReferenceContributorTest extends AbstractSelectorSuggestionTest {
   @override
   CompletionSuggestion assertSuggestLocalClass(String name,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false,
+      String elemFile, int elemOffset}) {
     return assertSuggestClass(name,
-        kind: kind, relevance: relevance, isDeprecated: isDeprecated);
+        elemFile: elemFile,
+        elemOffset: elemOffset,
+        isDeprecated: isDeprecated,
+        kind: kind,
+        relevance: relevance);
   }
 
   @override
@@ -36,8 +41,9 @@ class LocalReferenceContributorTest extends AbstractSelectorSuggestionTest {
   }
 
   @override
-  CompletionSuggestion assertSuggestLocalConstructor(String name) {
-    return assertSuggestConstructor(name);
+  CompletionSuggestion assertSuggestLocalConstructor(String name,
+      {int elemOffset}) {
+    return assertSuggestConstructor(name, elemOffset: elemOffset);
   }
 
   @override
@@ -602,7 +608,7 @@ main() {new ^ String x = "hello";}''');
     return computeFull((bool result) {
       CompletionSuggestion suggestion;
 
-      suggestion = assertSuggestLocalConstructor('A');
+      suggestion = assertSuggestLocalConstructor('A', elemOffset: -1);
       expect(suggestion.element.parameters, '()');
       expect(suggestion.element.returnType, 'A');
       expect(suggestion.declaringType, 'A');

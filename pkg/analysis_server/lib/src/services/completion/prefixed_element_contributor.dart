@@ -137,7 +137,7 @@ class _FieldFormalSuggestionBuilder implements SuggestionBuilder {
                 if (fieldName != null && fieldName.length > 0) {
                   if (!referencedFields.contains(fieldName)) {
                     CompletionSuggestion suggestion =
-                        createFieldSuggestion(member, varDecl);
+                        createFieldSuggestion(request.source, member, varDecl);
                     if (suggestion != null) {
                       request.addSuggestion(suggestion);
                     }

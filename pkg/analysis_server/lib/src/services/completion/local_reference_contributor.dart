@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/completion/local_declaration_visito
 import 'package:analysis_server/src/services/completion/local_suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
@@ -182,7 +183,7 @@ class _ConstructorVisitor extends LocalDeclarationVisitor {
     }
     paramBuf.write(')');
     protocol.Element element = createElement(
-        protocol.ElementKind.CONSTRUCTOR, elemId,
+        request.source, protocol.ElementKind.CONSTRUCTOR, elemId,
         parameters: paramBuf.toString());
     element.returnType = classDecl.name.name;
     CompletionSuggestion suggestion = new CompletionSuggestion(
@@ -277,8 +278,9 @@ class _LabelVisitor extends LocalDeclarationVisitor {
     if (isCaseLabel ? includeCaseLabels : includeStatementLabels) {
       CompletionSuggestion suggestion = _addSuggestion(label.label);
       if (suggestion != null) {
-        suggestion.element =
-            _createElement(protocol.ElementKind.LABEL, label.label);
+        suggestion.element = createElement(
+            request.source, protocol.ElementKind.LABEL, label.label,
+            returnType: NO_RETURN_TYPE);
       }
     }
   }
@@ -331,17 +333,6 @@ class _LabelVisitor extends LocalDeclarationVisitor {
     }
     return null;
   }
-
-  /**
-   * Create a new protocol Element for inclusion in a completion suggestion.
-   */
-  protocol.Element _createElement(
-      protocol.ElementKind kind, SimpleIdentifier id) {
-    String name = id.name;
-    int flags =
-        protocol.Element.makeFlags(isPrivate: Identifier.isPrivateName(name));
-    return new protocol.Element(kind, name, flags);
-  }
 }
 
 /**
@@ -386,7 +377,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
     if (optype.includeReturnValueSuggestions) {
       CompletionSuggestion suggestion =
-          createFieldSuggestion(fieldDecl, varDecl);
+          createFieldSuggestion(request.source, fieldDecl, varDecl);
       if (suggestion != null) {
         request.addSuggestion(suggestion);
       }
@@ -547,7 +538,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         id, isDeprecated, relevance, typeName, classDecl: classDecl);
     if (suggestion != null) {
       request.addSuggestion(suggestion);
-      suggestion.element = createElement(elemKind, id,
+      suggestion.element = createElement(request.source, elemKind, id,
           isAbstract: isAbstract,
           isDeprecated: isDeprecated,
           parameters: param != null ? param.toSource() : null,
