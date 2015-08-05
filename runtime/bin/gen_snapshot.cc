@@ -592,6 +592,7 @@ int main(int argc, char** argv) {
     // closures and setting up 'package root' for URI resolution.
     result =
         DartUtils::PrepareForScriptLoading(package_root,
+                                           NULL,
                                            false,
                                            false,
                                            builtin_lib);

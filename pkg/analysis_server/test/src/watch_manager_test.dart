@@ -96,7 +96,7 @@ class WatchManagerTest {
     await _expectEvent(ChangeType.ADD, newFile1.path, [topToken]);
 
     File newFile2 = provider.newFile('/a/b/c/d/lib.dart', '');
-    _expectEvent(ChangeType.ADD, newFile2.path, [topToken, childToken]);
+    return _expectEvent(ChangeType.ADD, newFile2.path, [topToken, childToken]);
   }
 
   Future test_addFolder_singleFolder_multipleTokens() {
@@ -119,7 +119,7 @@ class WatchManagerTest {
     await _expectEvent(ChangeType.ADD, newFolder.path, [token]);
 
     File newFile = provider.newFile('/a/b/c/lib.dart', '');
-    _expectEvent(ChangeType.ADD, newFile.path, [token]);
+    return _expectEvent(ChangeType.ADD, newFile.path, [token]);
   }
 
   Future test_addFolder_unrelatedFolders() async {
@@ -134,7 +134,7 @@ class WatchManagerTest {
     await _expectEvent(ChangeType.ADD, newFile1.path, [token1]);
 
     File newFile2 = provider.newFile('/c/d/lib.dart', '');
-    _expectEvent(ChangeType.ADD, newFile2.path, [token2]);
+    return _expectEvent(ChangeType.ADD, newFile2.path, [token2]);
   }
 
   void test_creation() {
@@ -153,15 +153,6 @@ class WatchManagerTest {
     return _expectEvent(ChangeType.ADD, newFile.path, [token1]);
   }
 
-  Future test_removeFolder_unadded() {
-    Folder folder = provider.getFolder('/a/b');
-    Token token = new Token('token');
-    expect(() => manager.removeFolder(folder, token), throws);
-
-    provider.newFile('/a/b/lib.dart', '');
-    return _expectNoEvent();
-  }
-
   Future test_removeFolder_withChildren() async {
     Folder topFolder = provider.getFolder('/a/b');
     Folder childFolder = provider.getFolder('/a/b/c/d');
@@ -175,7 +166,7 @@ class WatchManagerTest {
     await _expectEvent(ChangeType.ADD, newFile.path, [childToken]);
 
     provider.newFile('/a/b/lib.dart', '');
-    _expectNoEvent();
+    return _expectNoEvent();
   }
 
   Future test_removeFolder_withNoChildren() {

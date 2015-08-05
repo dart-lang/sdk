@@ -181,14 +181,14 @@ class ResourceUriResolver extends UriResolver {
   ResourceUriResolver(this._provider);
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     if (!_isFileUri(uri)) {
       return null;
     }
     Resource resource =
         _provider.getResource(_provider.pathContext.fromUri(uri));
     if (resource is File) {
-      return resource.createSource(uri);
+      return resource.createSource(actualUri != null ? actualUri : uri);
     }
     return null;
   }

@@ -18,14 +18,26 @@ import 'sourcemap_helper.dart';
 import 'sourcemap_html_templates.dart';
 
 /// Returns the [index]th color for visualization.
-String toColor(int index) {
+HSV toColor(int index) {
   int hueCount = 24;
   double h = 360.0 * (index % hueCount) / hueCount;
   double v = 1.0;
   double s = 0.5;
-  HSV hsv = new HSV(h, s, v);
-  RGB rgb = HSV.toRGB(hsv);
-  return rgb.toHex;
+  return new HSV(h, s, v);
+}
+
+/// Return the CSS color value for the [index]th color.
+String toColorCss(int index) {
+  return toColor(index).toCss;
+}
+
+/// Return the CSS color value for the [index]th span.
+String toPattern(int index) {
+  /// Use gradient on spans to visually identify consecutive spans mapped to the
+  /// same source location.
+  HSV startColor = toColor(index);
+  HSV endColor = new HSV(startColor.h, startColor.s + 0.4, startColor.v - 0.2);
+  return 'linear-gradient(to right, ${startColor.toCss}, ${endColor.toCss})';
 }
 
 /// Return the html for the [index] line number.
@@ -131,7 +143,7 @@ class CodeProcessor {
         SourceLocation sourceLocation = lastSourceLocations.single;
         if (sourceLocation != null) {
           index = collection.getIndex(sourceLocation);
-          color = "background:#${toColor(index)};";
+          color = "background:${toPattern(index)};";
           title = sourceLocation.shortText;
           currentLocation = sourceLocation;
         }
@@ -151,7 +163,7 @@ class CodeProcessor {
         for (SourceLocation sourceLocation in lastSourceLocations) {
           if (sourceLocation == null) continue;
           int colorIndex = collection.getIndex(sourceLocation);
-          addColor('#${toColor(colorIndex)}');
+          addColor('${toColorCss(colorIndex)}');
           currentLocation = sourceLocation;
         }
         color = 'background: linear-gradient(to right${sb}); '
@@ -363,7 +375,7 @@ String computeDartHtmlPart(String name,
           codeBuffer.write(line.substring(0, start));
         }
         codeBuffer.write(
-            '<a name="${index}" style="background:#${toColor(index)};" '
+            '<a name="${index}" style="background:${toPattern(index)};" '
             'title="[${lineIndex + 1},${start + 1}]" '
             'onmouseover="highlight(\'$index\');" '
             'onmouseout="highlight();">');
@@ -393,14 +405,14 @@ String computeJsTraceHtmlPart(List<CodePoint> codePoints,
       '<th>Dart code @ mapped location</th><th>file:position:name</th></tr>');
   codePoints.forEach((CodePoint codePoint) {
     String jsCode = codePoint.jsCode;
-    if (jsCode.length > 40) {
-      jsCode = jsCode.substring(0, 40);
-    }
     if (codePoint.sourceLocation != null) {
       int index = collection.getIndex(codePoint.sourceLocation);
       if (index != null) {
-
-        buffer.write('<tr style="background:#${toColor(index)};" '
+        String style = '';
+        if (!codePoint.isMissing) {
+          style = 'style="background:${toColorCss(index)};" ';
+        }
+        buffer.write('<tr $style'
                      'name="trace$index" '
                      'onmouseover="highlight([${index}]);"'
                      'onmouseout="highlight([]);">');

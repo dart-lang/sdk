@@ -85,7 +85,8 @@ class BottomTypeImpl extends TypeImpl {
 
   @override
   bool isMoreSpecificThan(DartType type,
-      [bool withDynamic = false, Set<Element> visitedElements]) => true;
+          [bool withDynamic = false, Set<Element> visitedElements]) =>
+      true;
 
   @override
   bool isSubtypeOf(DartType type) => true;
@@ -98,8 +99,9 @@ class BottomTypeImpl extends TypeImpl {
 
   @override
   BottomTypeImpl substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes,
-      [List<FunctionTypeAliasElement> prune]) => this;
+          List<DartType> argumentTypes, List<DartType> parameterTypes,
+          [List<FunctionTypeAliasElement> prune]) =>
+      this;
 }
 
 /**
@@ -1154,8 +1156,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       if (definingClass is! ClassElementImpl) {
         return null;
       }
-      getter = (definingClass as ClassElementImpl)._internalLookUpGetter(
-          getterName, library, false);
+      getter = (definingClass as ClassElementImpl)
+          ._internalLookUpGetter(getterName, library, false);
     }
     return getter;
   }
@@ -1183,8 +1185,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       if (definingClass is! ClassElementImpl) {
         return null;
       }
-      setter = (definingClass as ClassElementImpl)._internalLookUpSetter(
-          setterName, library, false);
+      setter = (definingClass as ClassElementImpl)
+          ._internalLookUpSetter(setterName, library, false);
     }
     return setter;
   }
@@ -2538,6 +2540,8 @@ abstract class Element implements AnalysisTarget {
   int get nameOffset;
 
   /**
+   * **DEPRECATED** Use `computeNode()` instead.
+   *
    * Return the resolved [AstNode] node that declares this element, or `null` if
    * this element is synthetic or isn't contained in a compilation unit, such as
    * a [LibraryElement].
@@ -4087,7 +4091,8 @@ abstract class FieldElement
  * A concrete implementation of a [FieldElement].
  */
 class FieldElementImpl extends PropertyInducingElementImpl
-    with PotentiallyConstVariableElement implements FieldElement {
+    with PotentiallyConstVariableElement
+    implements FieldElement {
   /**
    * An empty list of field elements.
    */
@@ -4961,8 +4966,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         DartType type = parameter.type;
         if (typeArguments.length != 0 &&
             typeArguments.length == typeParameters.length) {
-          type = (type as TypeImpl).substitute2(
-              typeArguments, typeParameters, newPrune);
+          type = (type as TypeImpl)
+              .substitute2(typeArguments, typeParameters, newPrune);
         } else {
           type = (type as TypeImpl).pruned(newPrune);
         }
@@ -5007,8 +5012,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         DartType type = parameter.type;
         if (typeArguments.length != 0 &&
             typeArguments.length == typeParameters.length) {
-          type = (type as TypeImpl).substitute2(
-              typeArguments, typeParameters, newPrune);
+          type = (type as TypeImpl)
+              .substitute2(typeArguments, typeParameters, newPrune);
         } else {
           type = (type as TypeImpl).pruned(newPrune);
         }
@@ -5032,8 +5037,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         DartType type = parameter.type;
         if (typeArguments.length != 0 &&
             typeArguments.length == typeParameters.length) {
-          type = (type as TypeImpl).substitute2(
-              typeArguments, typeParameters, newPrune);
+          type = (type as TypeImpl)
+              .substitute2(typeArguments, typeParameters, newPrune);
         } else {
           type = (type as TypeImpl).pruned(newPrune);
         }
@@ -5215,8 +5220,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         return false;
       } else if (t.normalParameterTypes.length > 0) {
         for (int i = 0; i < tTypes.length; i++) {
-          if (!(tTypes[i] as TypeImpl).isMoreSpecificThan(
-              sTypes[i], withDynamic)) {
+          if (!(tTypes[i] as TypeImpl)
+              .isMoreSpecificThan(sTypes[i], withDynamic)) {
             return false;
           }
         }
@@ -5236,8 +5241,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         if (typeT == null) {
           return false;
         }
-        if (!(typeT as TypeImpl).isMoreSpecificThan(
-            namedTypesS[keyS], withDynamic)) {
+        if (!(typeT as TypeImpl)
+            .isMoreSpecificThan(namedTypesS[keyS], withDynamic)) {
           return false;
         }
       }
@@ -5257,8 +5262,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       if (tOpTypes.length == 0 && sOpTypes.length == 0) {
         // No positional arguments, don't copy contents to new array
         for (int i = 0; i < sTypes.length; i++) {
-          if (!(tTypes[i] as TypeImpl).isMoreSpecificThan(
-              sTypes[i], withDynamic)) {
+          if (!(tTypes[i] as TypeImpl)
+              .isMoreSpecificThan(sTypes[i], withDynamic)) {
             return false;
           }
         }
@@ -5280,8 +5285,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
           sAllTypes[i] = sOpTypes[j];
         }
         for (int i = 0; i < sAllTypes.length; i++) {
-          if (!(tAllTypes[i] as TypeImpl).isMoreSpecificThan(
-              sAllTypes[i], withDynamic)) {
+          if (!(tAllTypes[i] as TypeImpl)
+              .isMoreSpecificThan(sAllTypes[i], withDynamic)) {
             return false;
           }
         }
@@ -6633,8 +6638,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           return false;
         }
         for (int i = 0; i < tArguments.length; i++) {
-          if (!(tArguments[i] as TypeImpl).isMoreSpecificThan(
-              sArguments[i], withDynamic)) {
+          if (!(tArguments[i] as TypeImpl)
+              .isMoreSpecificThan(sArguments[i], withDynamic)) {
             return false;
           }
         }
@@ -6664,14 +6669,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return true;
       }
       for (InterfaceType interfaceType in interfaces) {
-        if ((interfaceType as InterfaceTypeImpl).isMoreSpecificThan(
-            type, withDynamic, visitedElements)) {
+        if ((interfaceType as InterfaceTypeImpl)
+            .isMoreSpecificThan(type, withDynamic, visitedElements)) {
           return true;
         }
       }
       for (InterfaceType mixinType in mixins) {
-        if ((mixinType as InterfaceTypeImpl).isMoreSpecificThan(
-            type, withDynamic, visitedElements)) {
+        if ((mixinType as InterfaceTypeImpl)
+            .isMoreSpecificThan(type, withDynamic, visitedElements)) {
           return true;
         }
       }
@@ -7645,8 +7650,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     for (ImportElement importElement in _imports) {
       LibraryElement importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
-        (importedLibrary as LibraryElementImpl)._addVisibleLibraries(
-            visibleLibraries, true);
+        (importedLibrary as LibraryElementImpl)
+            ._addVisibleLibraries(visibleLibraries, true);
       }
     }
     // add exported libraries
@@ -7654,8 +7659,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       for (ExportElement exportElement in _exports) {
         LibraryElement exportedLibrary = exportElement.exportedLibrary;
         if (exportedLibrary != null) {
-          (exportedLibrary as LibraryElementImpl)._addVisibleLibraries(
-              visibleLibraries, true);
+          (exportedLibrary as LibraryElementImpl)
+              ._addVisibleLibraries(visibleLibraries, true);
         }
       }
     }
@@ -7749,7 +7754,8 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
  * A concrete implementation of a [LocalVariableElement].
  */
 class LocalVariableElementImpl extends VariableElementImpl
-    with PotentiallyConstVariableElement implements LocalVariableElement {
+    with PotentiallyConstVariableElement
+    implements LocalVariableElement {
   /**
    * An empty list of field elements.
    */
@@ -8659,7 +8665,8 @@ abstract class ParameterElement
  * A concrete implementation of a [ParameterElement].
  */
 class ParameterElementImpl extends VariableElementImpl
-    with PotentiallyConstVariableElement implements ParameterElement {
+    with PotentiallyConstVariableElement
+    implements ParameterElement {
   /**
    * An empty list of parameter elements.
    */
@@ -9848,7 +9855,8 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
  * A concrete implementation of a [TopLevelVariableElement].
  */
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
-    with PotentiallyConstVariableElement implements TopLevelVariableElement {
+    with PotentiallyConstVariableElement
+    implements TopLevelVariableElement {
   /**
    * An empty list of top-level variable elements.
    */
@@ -10091,8 +10099,8 @@ abstract class TypeImpl implements DartType {
     }
     List<DartType> newTypes = new List<DartType>(length);
     for (int i = 0; i < length; i++) {
-      newTypes[i] = (types[i] as TypeImpl).substitute2(
-          argumentTypes, parameterTypes, prune);
+      newTypes[i] = (types[i] as TypeImpl)
+          .substitute2(argumentTypes, parameterTypes, prune);
     }
     return newTypes;
   }
@@ -10101,7 +10109,7 @@ abstract class TypeImpl implements DartType {
 /**
  * A type parameter.
  */
-abstract class TypeParameterElement implements Element {
+abstract class TypeParameterElement implements TypeDefiningElement {
   /**
    * An empty list of type parameter elements.
    */
@@ -10695,8 +10703,9 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
 
   @override
   VoidTypeImpl substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes,
-      [List<FunctionTypeAliasElement> prune]) => this;
+          List<DartType> argumentTypes, List<DartType> parameterTypes,
+          [List<FunctionTypeAliasElement> prune]) =>
+      this;
 }
 
 /**

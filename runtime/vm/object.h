@@ -274,6 +274,10 @@ class Object {
     ASSERT(!IsNull());
     raw()->SetCanonical();
   }
+  void ClearCanonical() const {
+    ASSERT(!IsNull());
+    raw()->ClearCanonical();
+  }
   intptr_t GetClassId() const {
     return !raw()->IsHeapObject() ?
         static_cast<intptr_t>(kSmiCid) : raw()->GetClassId();
@@ -684,7 +688,7 @@ class Object {
     ASSERT(Contains(reinterpret_cast<uword>(addr) - 1) &&
            Contains(reinterpret_cast<uword>(addr) - kWordSize));
     // At least check that there is a NoSafepointScope and hope it's big enough.
-    ASSERT(Isolate::Current()->no_safepoint_scope_depth() > 0);
+    ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
     return const_cast<FieldType*>(addr);
   }
 
@@ -1278,6 +1282,11 @@ class Class : public Object {
   }
   void set_is_cycle_free() const;
 
+  bool is_allocated() const {
+    return IsAllocatedBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_allocated() const;
+
   uint16_t num_native_fields() const {
     return raw_ptr()->num_native_fields_;
   }
@@ -1395,6 +1404,7 @@ class Class : public Object {
     kCycleFreeBit = 12,
     kEnumBit = 13,
     kTraceAllocationBit = 14,
+    kIsAllocatedBit = 15,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
@@ -1412,6 +1422,7 @@ class Class : public Object {
   class CycleFreeBit : public BitField<bool, kCycleFreeBit, 1> {};
   class EnumBit : public BitField<bool, kEnumBit, 1> {};
   class TraceAllocationBit : public BitField<bool, kTraceAllocationBit, 1> {};
+  class IsAllocatedBit : public BitField<bool, kIsAllocatedBit, 1> {};
 
   void set_name(const String& value) const;
   void set_pretty_name(const String& value) const;
@@ -2481,6 +2492,8 @@ class Function : public Object {
     return !is_static() && IsImplicitClosureFunction();
   }
 
+  bool IsConstructorClosureFunction() const;
+
   // Returns true if this function represents a local function.
   bool IsLocalFunction() const {
     return parent_function() != Function::null();
@@ -2943,6 +2956,17 @@ class Field : public Object {
   bool IsUninitialized() const;
 
   void EvaluateInitializer() const;
+
+  RawFunction* initializer() const {
+    return raw_ptr()->initializer_;
+  }
+  void set_initializer(const Function& initializer) const;
+
+  // For static fields only. Constructs a closure that gets/sets the
+  // field value.
+  RawInstance* GetterClosure() const;
+  RawInstance* SetterClosure() const;
+  RawInstance* AccessorClosure(bool make_setter) const;
 
   // Constructs getter and setter names for fields and vice versa.
   static RawString* GetterName(const String& field_name);
@@ -3563,7 +3587,6 @@ class ObjectPool : public Object {
   }
 
   EntryType InfoAt(intptr_t index) const;
-  void SetInfoAt(intptr_t index, EntryType info) const;
 
   RawObject* ObjectAt(intptr_t index) const {
     ASSERT(InfoAt(index) == kTaggedObject);
@@ -4136,8 +4159,7 @@ class Code : public Object {
   enum InlinedIntervalEntries {
     kInlIntStart = 0,
     kInlIntInliningId = 1,
-    kInlIntCallerId = 2,
-    kInlIntNumEntries = 3,
+    kInlIntNumEntries = 2,
   };
 
   RawArray* GetInlinedIntervals() const;
@@ -4145,6 +4167,9 @@ class Code : public Object {
 
   RawArray* GetInlinedIdToFunction() const;
   void SetInlinedIdToFunction(const Array& value) const;
+
+  RawArray* GetInlinedCallerIdMap() const;
+  void SetInlinedCallerIdMap(const Array& value) const;
 
   void GetInlinedFunctionsAt(
       intptr_t offset, GrowableArray<Function*>* fs) const;

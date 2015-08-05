@@ -9,7 +9,8 @@ import 'dart:async';
 
 import 'package:compiler/src/dart2jslib.dart' show
     Compiler,
-    MessageKind;
+    MessageKind,
+    MessageTemplate;
 import 'package:compiler/src/dart_backend/dart_backend.dart' show
     DartBackend;
 import 'package:compiler/src/old_to_new_api.dart' show
@@ -52,11 +53,11 @@ final Set<MessageKind> kindsWithPendingClasses = new Set<MessageKind>.from([
     // If you add something here, please file a *new* bug report.
 ]);
 
-Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
-  Expect.isNotNull(kind.howToFix);
-  Expect.isFalse(kind.examples.isEmpty);
+Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
+  Expect.isNotNull(template.howToFix);
+  Expect.isFalse(template.examples.isEmpty);
 
-  return Future.forEach(kind.examples, (example) {
+  return Future.forEach(template.examples, (example) {
     if (example is String) {
       example = {'main.dart': example};
     } else {
@@ -77,13 +78,13 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
     if (cachedCompiler != null) {
       oldBackendIsDart = cachedCompiler.backend is DartBackend;
     }
-    bool newBackendIsDart = kind.options.contains('--output-type=dart');
+    bool newBackendIsDart = template.options.contains('--output-type=dart');
 
     Compiler compiler = compilerFor(
         example,
         diagnosticHandler: new LegacyCompilerDiagnostics(collect),
         options: ['--analyze-only',
-                  '--enable-experimental-mirrors']..addAll(kind.options),
+                  '--enable-experimental-mirrors']..addAll(template.options),
         cachedCompiler:
              // TODO(johnniwinther): Remove this restriction when constant
              // values can be computed directly from the expressions.
@@ -93,8 +94,8 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
 
       Expect.isFalse(messages.isEmpty, 'No messages in """$example"""');
 
-      String expectedText = !kind.hasHowToFix
-          ? kind.template : '${kind.template}\n${kind.howToFix}';
+      String expectedText = !template.hasHowToFix
+          ? template.template : '${template.template}\n${template.howToFix}';
       String pattern = expectedText.replaceAllMapped(
           new RegExp(ESCAPE_REGEXP), (m) => '\\${m[0]}');
       pattern = pattern.replaceAll(new RegExp(r'#\\\{[^}]*\\\}'), '.*');
@@ -116,7 +117,7 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
         for (String message in unexpectedMessages) {
           print("Unexpected message: $message");
         }
-        if (!kindsWithExtraMessages.contains(kind)) {
+        if (!kindsWithExtraMessages.contains(template.kind)) {
           // Try changing the error reporting logic before adding an exception
           // to [kindsWithExtraMessages].
           throw 'Unexpected messages found.';
@@ -136,7 +137,8 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
             e, MessageKind.GENERIC,
             {'text': 'Pending class to be resolved.'});
       }
-      Expect.isTrue(!pendingStuff || kindsWithPendingClasses.contains(kind));
+      Expect.isTrue(!pendingStuff ||
+                    kindsWithPendingClasses.contains(template));
 
       if (!pendingStuff) {
         // If there is pending stuff, or the compiler was cancelled, we

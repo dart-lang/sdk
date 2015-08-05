@@ -369,6 +369,9 @@ class RawObject {
   void SetCanonical() {
     UpdateTagBit<CanonicalObjectTag>(true);
   }
+  void ClearCanonical() {
+    UpdateTagBit<CanonicalObjectTag>(false);
+  }
   bool IsCreatedFromSnapshot() const {
     return CreatedFromSnapshotTag::decode(ptr()->tags_);
   }
@@ -581,6 +584,7 @@ class RawObject {
   friend class Scavenger;
   friend class ScavengerVisitor;
   friend class SizeExcludingClassVisitor;  // GetClassId
+  friend class RetainingPathVisitor;  // GetClassId
   friend class SnapshotReader;
   friend class SnapshotWriter;
   friend class String;
@@ -828,6 +832,7 @@ class RawField : public RawObject {
   RawAbstractType* type_;
   RawInstance* value_;  // Offset in words for instance and value for static.
   RawArray* dependent_code_;
+  RawFunction* initializer_;
   RawSmi* guarded_list_length_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
@@ -971,7 +976,8 @@ class RawCode : public RawObject {
   enum InlinedMetadataIndex {
     kInlinedIntervalsIndex = 0,
     kInlinedIdToFunctionIndex = 1,
-    kInlinedMetadataSize = 2,
+    kInlinedCallerIdMapIndex = 2,
+    kInlinedMetadataSize = 3,
   };
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);

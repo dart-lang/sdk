@@ -336,6 +336,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   ConstantSystem get constantSystem => handler.constantSystem;
 
   AstConstant evaluate(Node node) {
+    // TODO(johnniwinther): should there be a visitErrorNode?
+    if (node is ErrorNode) return new ErroneousAstConstant(context, node);
     return node.accept(this);
   }
 

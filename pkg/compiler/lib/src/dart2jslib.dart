@@ -60,9 +60,11 @@ import 'tracer.dart' show Tracer;
 import 'tree/tree.dart';
 import 'types/types.dart' as ti;
 import 'universe/universe.dart';
+import 'universe/class_set.dart';
 import 'util/characters.dart' show $_;
 import 'util/uri_extras.dart' as uri_extras show relativize;
 import 'util/util.dart';
+import 'warnings.dart';
 
 export 'helpers/helpers.dart';
 export 'resolution/resolution.dart' show TreeElements, TreeElementMapping;
@@ -76,6 +78,7 @@ export 'util/util.dart'
     show Spannable,
          CURRENT_ELEMENT_SPANNABLE,
          NO_LOCATION_SPANNABLE;
+export 'warnings.dart';
 
 part 'compiler.dart';
 part 'diagnostic_listener.dart';
@@ -83,5 +86,4 @@ part 'enqueue.dart';
 part 'resolved_visitor.dart';
 part 'script.dart';
 part 'typechecker.dart';
-part 'warnings.dart';
 part 'world.dart';

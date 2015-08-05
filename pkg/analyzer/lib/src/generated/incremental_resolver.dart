@@ -23,7 +23,7 @@ import 'package:analyzer/src/task/dart.dart'
         VERIFY_ERRORS;
 import 'package:analyzer/task/dart.dart'
     show DART_ERRORS, LibrarySpecificUnit, PARSED_UNIT, TOKEN_STREAM;
-import 'package:analyzer/task/general.dart' show CONTENT;
+import 'package:analyzer/task/general.dart' show CONTENT, LINE_INFO;
 import 'package:analyzer/task/model.dart' show ResultDescriptor;
 
 import 'ast.dart';
@@ -1233,7 +1233,8 @@ class IncrementalResolver {
       ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
       ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter,
           _definingLibrary, _typeProvider,
-          new InheritanceManager(_definingLibrary));
+          new InheritanceManager(_definingLibrary),
+          _context.analysisOptions.enableSuperMixins);
       if (_resolutionContext.enclosingClassDeclaration != null) {
         errorVerifier.visitClassDeclarationIncrementally(
             _resolutionContext.enclosingClassDeclaration);
@@ -1274,6 +1275,7 @@ class PoorMansIncrementalResolver {
   int _updateEndOld;
   int _updateEndNew;
 
+  LineInfo _newLineInfo;
   List<AnalysisError> _newScanErrors = <AnalysisError>[];
   List<AnalysisError> _newParseErrors = <AnalysisError>[];
 
@@ -1508,6 +1510,7 @@ class PoorMansIncrementalResolver {
     CharSequenceReader reader = new CharSequenceReader(code);
     Scanner scanner = new Scanner(_unitSource, reader, errorListener);
     Token token = scanner.tokenize();
+    _newLineInfo = new LineInfo(scanner.lineStarts);
     _newScanErrors = errorListener.errors;
     return token;
   }
@@ -1564,6 +1567,7 @@ class PoorMansIncrementalResolver {
     _newSourceEntry.setState(SCAN_ERRORS, CacheState.INVALID);
     List<TargetedResult> scanDeps =
         <TargetedResult>[new TargetedResult(_unitSource, CONTENT)];
+    _newSourceEntry.setValue(LINE_INFO, _newLineInfo, scanDeps);
     _newSourceEntry.setValue(SCAN_ERRORS, _newScanErrors, scanDeps);
     // parse results
     List<TargetedResult> parseDeps =
@@ -1574,6 +1578,7 @@ class PoorMansIncrementalResolver {
   }
 
   void _updateEntry_OLD() {
+    _oldEntry.setValue(SourceEntry.LINE_INFO, _newLineInfo);
     _oldEntry.setValue(DartEntry.SCAN_ERRORS, _newScanErrors);
     _oldEntry.setValue(DartEntry.PARSE_ERRORS, _newParseErrors);
   }

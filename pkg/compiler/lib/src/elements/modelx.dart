@@ -24,6 +24,7 @@ import '../dart2jslib.dart' show
     FunctionType,
     InterfaceType,
     MessageKind,
+    MessageTemplate,
     Script,
     Selector,
     SourceSpan,
@@ -308,7 +309,10 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   FunctionElement asFunctionElement() => this;
 
-  String get message => '${messageKind.message(messageArguments)}';
+  String get message {
+    return MessageTemplate.TEMPLATES[messageKind]
+        .message(messageArguments).toString();
+  }
 
   String toString() => '<$name: $message>';
 

@@ -373,16 +373,33 @@ static RawInstance* CreateClassMirror(const Class& cls,
 
 
 static RawInstance* CreateLibraryMirror(const Library& lib) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   ASSERT(!lib.IsNull());
-  const Array& args = Array::Handle(Array::New(3));
-  args.SetAt(0, MirrorReference::Handle(MirrorReference::New(lib)));
-  String& str = String::Handle();
+  const Array& args = Array::Handle(zone, Array::New(3));
+  args.SetAt(0, MirrorReference::Handle(zone, MirrorReference::New(lib)));
+  String& str = String::Handle(zone);
   str = lib.name();
   args.SetAt(1, str);
   str = lib.url();
   if (str.Equals("dart:_builtin") || str.Equals("dart:_blink")) {
     // Censored library (grumble).
     return Instance::null();
+  }
+  if (str.Equals("dart:io")) {
+    // Hack around dart:io being loaded into non-service isolates in Dartium.
+    Isolate* isolate = thread->isolate();
+    const GrowableObjectArray& libraries = GrowableObjectArray::Handle(
+      zone, isolate->object_store()->libraries());
+    Library& other_lib = Library::Handle(zone);
+    String& other_uri = String::Handle(zone);
+    for (intptr_t i = 0; i < libraries.Length(); i++) {
+      other_lib ^= libraries.At(i);
+      other_uri = other_lib.url();
+      if (other_uri.Equals("dart:html")) {
+        return Instance::null();
+      }
+    }
   }
   args.SetAt(2, str);
   return CreateMirror(Symbols::_LocalLibraryMirror(), args);

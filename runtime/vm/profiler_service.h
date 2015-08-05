@@ -300,7 +300,7 @@ class Profile : public ValueObject {
   explicit Profile(Isolate* isolate);
 
   // Build a filtered model using |filter| with the specified |tag_order|.
-  void Build(SampleFilter* filter, TagOrder tag_order);
+  void Build(SampleFilter* filter, TagOrder tag_order, intptr_t extra_tags = 0);
 
   // After building:
   int64_t min_time() const { return min_time_; }
@@ -349,6 +349,14 @@ class ProfileTrieWalker : public ValueObject {
   void Reset(Profile::TrieKind trie_kind);
 
   const char* CurrentName();
+  // Return the current node's peer's inclusive tick count.
+  intptr_t CurrentInclusiveTicks();
+  // Return the current node's peer's exclusive tick count.
+  intptr_t CurrentExclusiveTicks();
+  // Return the current node's tick count.
+  intptr_t CurrentNodeTickCount();
+  // Return the number siblings (including yourself).
+  intptr_t SiblingCount();
 
   bool Down();
   bool NextSibling();
@@ -363,8 +371,14 @@ class ProfileTrieWalker : public ValueObject {
 
 class ProfilerService : public AllStatic {
  public:
+  enum {
+    kNoExtraTags = 0,
+    kCodeTransitionTagsBit = (1 << 0),
+  };
+
   static void PrintJSON(JSONStream* stream,
-                        Profile::TagOrder tag_order);
+                        Profile::TagOrder tag_order,
+                        intptr_t extra_tags);
 
   static void PrintAllocationJSON(JSONStream* stream,
                                   Profile::TagOrder tag_order,
@@ -376,6 +390,7 @@ class ProfilerService : public AllStatic {
   static void PrintJSONImpl(Isolate* isolate,
                             JSONStream* stream,
                             Profile::TagOrder tag_order,
+                            intptr_t extra_tags,
                             SampleFilter* filter);
 };
 

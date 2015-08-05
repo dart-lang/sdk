@@ -888,7 +888,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
           if (_readyState == WebSocket.OPEN) {
             _readyState = WebSocket.CLOSING;
             if (!_isReservedStatusCode(transformer.closeCode)) {
-              _close(transformer.closeCode);
+              _close(transformer.closeCode, transformer.closeReason);
             } else {
               _close();
             }

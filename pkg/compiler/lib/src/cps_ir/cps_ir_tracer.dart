@@ -339,11 +339,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
         "${node.arguments.map(formatReference).join(', ')}";
   }
 
-  visitNonTailThrow(cps_ir.NonTailThrow node) {
-    String value = formatReference(node.value);
-    return "NonTailThrow($value)";
-  }
-
   visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
     String args = node.arguments.map(formatReference).join(', ');
     return "CreateInvocationMirror(${node.selector.name}, $args)";
@@ -365,8 +360,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitForeignCode(cps_ir.ForeignCode node) {
     String id = names.name(node);
     String arguments = node.arguments.map(formatReference).join(', ');
-    String continuation = node.continuation == null ? ''
-        : ' ${formatReference(node.continuation)}';
+    String continuation = formatReference(node.continuation);
     printStmt(id, "ForeignCode ${node.type} ${node.codeTemplate.source} "
         "$arguments $continuation");
   }
@@ -619,10 +613,6 @@ class BlockCollector implements cps_ir.Visitor {
     unexpectedNode(node);
   }
 
-  visitNonTailThrow(cps_ir.NonTailThrow node) {
-    unexpectedNode(node);
-  }
-
   visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
     unexpectedNode(node);
   }
@@ -661,8 +651,6 @@ class BlockCollector implements cps_ir.Visitor {
 
   @override
   visitForeignCode(cps_ir.ForeignCode node) {
-    if (node.continuation != null) {
-      addEdgeToContinuation(node.continuation);
-    }
+    addEdgeToContinuation(node.continuation);
   }
 }

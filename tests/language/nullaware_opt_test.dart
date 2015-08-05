@@ -27,7 +27,6 @@ test() {
   Expect.equals(null, c?.m(bomb()));
   Expect.equals(null, getNull()?.anything(bomb()));
   Expect.equals(1, d?.m(1));
-  Expect.equals("C", C?.toString());
 
   Expect.equals(1, new C(1)?.f);
   Expect.equals(null, c?.v);

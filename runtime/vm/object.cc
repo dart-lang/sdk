@@ -635,7 +635,7 @@ void Object::InitOnce(Isolate* isolate) {
   // Allocate and initialize the empty_array instance.
   {
     uword address = heap->Allocate(Array::InstanceSize(0), Heap::kOld);
-    InitializeObject(address, kArrayCid, Array::InstanceSize(0));
+    InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(0));
     Array::initializeHandle(
         empty_array_,
         reinterpret_cast<RawArray*>(address + kHeapObjectTag));
@@ -646,7 +646,7 @@ void Object::InitOnce(Isolate* isolate) {
   // Allocate and initialize the zero_array instance.
   {
     uword address = heap->Allocate(Array::InstanceSize(1), Heap::kOld);
-    InitializeObject(address, kArrayCid, Array::InstanceSize(1));
+    InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(1));
     Array::initializeHandle(
         zero_array_,
         reinterpret_cast<RawArray*>(address + kHeapObjectTag));
@@ -899,7 +899,7 @@ void Object::InitVmIsolateSnapshotObjectTable(intptr_t len) {
 void Object::MakeUnusedSpaceTraversable(const Object& obj,
                                         intptr_t original_size,
                                         intptr_t used_size) {
-  ASSERT(Isolate::Current()->no_safepoint_scope_depth() > 0);
+  ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
   ASSERT(!obj.IsNull());
   ASSERT(original_size >= used_size);
   if (original_size > used_size) {
@@ -3475,6 +3475,11 @@ void Class::set_is_cycle_free() const {
 }
 
 
+void Class::set_is_allocated() const {
+  set_state_bits(IsAllocatedBit::update(true, raw_ptr()->state_bits_));
+}
+
+
 void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
   set_state_bits(ClassFinalizedBits::update(RawClass::kFinalized,
@@ -5177,18 +5182,16 @@ void Function::AttachCode(const Code& value) const {
 
 bool Function::HasCode() const {
   ASSERT(raw_ptr()->instructions_ != Instructions::null());
-  StubCode* stub_code = Isolate::Current()->stub_code();
   return raw_ptr()->instructions_ !=
-      stub_code->LazyCompile_entry()->code()->ptr()->instructions_;
+      StubCode::LazyCompile_entry()->code()->ptr()->instructions_;
 }
 
 
 void Function::ClearCode() const {
   ASSERT(ic_data_array() == Array::null());
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
-  StubCode* stub_code = Isolate::Current()->stub_code();
   StorePointer(&raw_ptr()->instructions_,
-      Code::Handle(stub_code->LazyCompile_entry()->code()).instructions());
+      Code::Handle(StubCode::LazyCompile_entry()->code()).instructions());
 }
 
 
@@ -6198,6 +6201,12 @@ bool Function::IsImplicitStaticClosureFunction(RawFunction* func) {
 }
 
 
+bool Function::IsConstructorClosureFunction() const {
+  return IsClosureFunction() &&
+      String::Handle(name()).StartsWith(Symbols::ConstructorClosurePrefix());
+}
+
+
 RawFunction* Function::New() {
   ASSERT(Object::function_class() != Class::null());
   RawObject* raw = Object::Allocate(Function::kClassId,
@@ -6251,8 +6260,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
   result.set_allows_bounds_check_generalization(true);
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  result.SetInstructions(Code::Handle(stub_code->LazyCompile_entry()->code()));
+  result.SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);
@@ -6506,8 +6514,8 @@ RawInstance* Function::ImplicitStaticClosure() const {
   if (implicit_static_closure() == Instance::null()) {
     Isolate* isolate = Isolate::Current();
     ObjectStore* object_store = isolate->object_store();
-    const Context& context = Context::Handle(isolate,
-                                             object_store->empty_context());
+    const Context& context =
+        Context::Handle(isolate, object_store->empty_context());
     Instance& closure =
         Instance::Handle(isolate, Closure::New(*this, context, Heap::kOld));
     const char* error_str = NULL;
@@ -6845,6 +6853,7 @@ void Function::set_ic_data_array(const Array& value) const {
 RawArray* Function::ic_data_array() const {
   return raw_ptr()->ic_data_array_;
 }
+
 
 void Function::ClearICDataArray() const {
   set_ic_data_array(Array::null_array());
@@ -7223,6 +7232,7 @@ RawField* Field::New(const String& name,
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
+  result.set_initializer(Function::Handle());
   result.set_is_unboxing_candidate(true);
   result.set_guarded_cid(FLAG_use_field_guards ? kIllegalCid : kDynamicCid);
   result.set_is_nullable(FLAG_use_field_guards ? false : true);
@@ -7386,6 +7396,73 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+// Build a closure object that gets (or sets) the contents of a static
+// field f and cache the closure in a newly created static field
+// named #f (or #f= in case of a setter).
+RawInstance* Field::AccessorClosure(bool make_setter) const {
+  ASSERT(is_static());
+  const Class& field_owner = Class::Handle(owner());
+
+  String& closure_name = String::Handle(this->name());
+  closure_name = Symbols::FromConcat(Symbols::HashMark(), closure_name);
+  if (make_setter) {
+    closure_name = Symbols::FromConcat(Symbols::HashMark(), closure_name);
+  }
+
+  Field& closure_field = Field::Handle();
+  closure_field = field_owner.LookupStaticField(closure_name);
+  if (!closure_field.IsNull()) {
+    ASSERT(closure_field.is_static());
+    const Instance& closure = Instance::Handle(closure_field.value());
+    ASSERT(!closure.IsNull());
+    ASSERT(closure.IsClosure());
+    return closure.raw();
+  }
+
+  // This is the first time a closure for this field is requested.
+  // Create the closure and a new static field in which it is stored.
+  const char* field_name = String::Handle(name()).ToCString();
+  String& expr_src = String::Handle();
+  if (make_setter) {
+    expr_src =
+        String::NewFormatted("(%s_) { return %s = %s_; }",
+                             field_name, field_name, field_name);
+  } else {
+    expr_src = String::NewFormatted("() { return %s; }", field_name);
+  }
+  Object& result =
+      Object::Handle(field_owner.Evaluate(expr_src,
+                                          Object::empty_array(),
+                                          Object::empty_array()));
+  ASSERT(result.IsInstance());
+  // The caller may expect the closure to be allocated in old space. Copy
+  // the result here, since Object::Clone() is a private method.
+  result = Object::Clone(result, Heap::kOld);
+
+  closure_field = Field::New(closure_name,
+                             true,  // is_static
+                             true,  // is_final
+                             true,  // is_const
+                             true,  // is_synthetic
+                             field_owner,
+                             this->token_pos());
+  closure_field.set_value(Instance::Cast(result));
+  closure_field.set_type(Type::Handle(Type::DynamicType()));
+  field_owner.AddField(closure_field);
+
+  return Instance::RawCast(result.raw());
+}
+
+
+RawInstance* Field::GetterClosure() const {
+  return AccessorClosure(false);
+}
+
+
+RawInstance* Field::SetterClosure() const {
+  return AccessorClosure(true);
+}
+
 
 RawArray* Field::dependent_code() const {
   return raw_ptr()->dependent_code_;
@@ -7449,6 +7526,11 @@ bool Field::IsUninitialized() const {
   const Instance& value = Instance::Handle(raw_ptr()->value_);
   ASSERT(value.raw() != Object::transition_sentinel().raw());
   return value.raw() == Object::sentinel().raw();
+}
+
+
+void Field::set_initializer(const Function& initializer) const {
+  StorePointer(&raw_ptr()->initializer_, initializer.raw());
 }
 
 
@@ -7632,6 +7714,10 @@ bool Field::UpdateGuardedCidAndLength(const Object& value) const {
 
 
 void Field::RecordStore(const Object& value) const {
+  if (!FLAG_use_field_guards) {
+    return;
+  }
+
   if (FLAG_trace_field_guards) {
     OS::Print("Store %s %s <- %s\n",
               ToCString(),
@@ -10831,11 +10917,6 @@ ObjectPool::EntryType ObjectPool::InfoAt(intptr_t index) const {
 }
 
 
-void ObjectPool::SetInfoAt(intptr_t index, EntryType info) const {
-  const TypedData& array = TypedData::Handle(info_array());
-  array.SetInt8(index, static_cast<int8_t>(info));
-}
-
 const char* ObjectPool::ToCString() const {
   return "ObjectPool";
 }
@@ -12746,6 +12827,29 @@ void Code::SetInlinedIdToFunction(const Array& value) const {
 }
 
 
+RawArray* Code::GetInlinedCallerIdMap() const {
+  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
+  if (metadata.IsNull()) {
+    return metadata.raw();
+  }
+  return reinterpret_cast<RawArray*>(
+      metadata.At(RawCode::kInlinedCallerIdMapIndex));
+}
+
+
+void Code::SetInlinedCallerIdMap(const Array& value) const {
+  if (raw_ptr()->inlined_metadata_ == Array::null()) {
+    StorePointer(&raw_ptr()->inlined_metadata_,
+                 Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
+  }
+  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
+  ASSERT(!metadata.IsNull());
+  ASSERT(metadata.IsOld());
+  ASSERT(value.IsOld());
+  metadata.SetAt(RawCode::kInlinedCallerIdMapIndex, value);
+}
+
+
 RawCode* Code::New(intptr_t pointer_offsets_length) {
   if (pointer_offsets_length < 0 || pointer_offsets_length > kMaxElements) {
     // This should be caught before we reach here.
@@ -12776,6 +12880,11 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
 RawCode* Code::FinalizeCode(const char* name,
                             Assembler* assembler,
                             bool optimized) {
+  Isolate* isolate = Isolate::Current();
+  if (!isolate->compilation_allowed()) {
+    FATAL1("Precompilation missed code %s\n", name);
+  }
+
   ASSERT(assembler != NULL);
   const ObjectPool& object_pool =
       ObjectPool::Handle(assembler->object_pool_wrapper().MakeObjectPool());
@@ -12787,8 +12896,8 @@ RawCode* Code::FinalizeCode(const char* name,
   Code& code = Code::ZoneHandle(Code::New(pointer_offset_count));
   Instructions& instrs =
       Instructions::ZoneHandle(Instructions::New(assembler->CodeSize()));
-  INC_STAT(Isolate::Current(), total_instr_size, assembler->CodeSize());
-  INC_STAT(Isolate::Current(), total_code_size, assembler->CodeSize());
+  INC_STAT(isolate, total_instr_size, assembler->CodeSize());
+  INC_STAT(isolate, total_code_size, assembler->CodeSize());
 
   // Copy the instructions into the instruction area and apply all fixups.
   // Embedded pointers are still in handles at this point.
@@ -12828,7 +12937,7 @@ RawCode* Code::FinalizeCode(const char* name,
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
-    INC_STAT(Isolate::Current(),
+    INC_STAT(isolate,
              total_code_size, object_pool.Length() * sizeof(uintptr_t));
     instrs.set_object_pool(object_pool.raw());
 
@@ -12849,7 +12958,7 @@ RawCode* Code::FinalizeCode(const char* name,
     // pushed onto the stack.
     code.SetPrologueOffset(assembler->CodeSize());
   }
-  INC_STAT(Isolate::Current(),
+  INC_STAT(isolate,
            total_code_size, code.comments().comments_.Length());
   return code.raw();
 }
@@ -13114,8 +13223,7 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
       temp_smi ^= intervals.At(i + Code::kInlIntInliningId);
       intptr_t inlining_id = temp_smi.Value();
       ASSERT(inlining_id >= 0);
-      temp_smi ^= intervals.At(i + Code::kInlIntCallerId);
-      intptr_t caller_id = temp_smi.Value();
+      intptr_t caller_id = GetCallerId(inlining_id);
       while (inlining_id >= 0) {
         inline_interval.AddValue(inlining_id);
         inlining_id = caller_id;
@@ -13171,19 +13279,16 @@ RawStackmap* Code::GetStackmap(
 
 
 intptr_t Code::GetCallerId(intptr_t inlined_id) const {
-  if (inlined_id < 0) return -1;
-  const Array& intervals = Array::Handle(GetInlinedIntervals());
-  if (intervals.IsNull() || (intervals.Length() == 0)) return -1;
-  Smi& temp_smi = Smi::Handle();
-  for (intptr_t i = 0; i < intervals.Length() - Code::kInlIntNumEntries;
-       i += Code::kInlIntNumEntries) {
-    temp_smi ^= intervals.At(i + Code::kInlIntInliningId);
-    if (temp_smi.Value() == inlined_id) {
-      temp_smi ^= intervals.At(i + Code::kInlIntCallerId);
-      return temp_smi.Value();
-    }
+  if (inlined_id < 0) {
+    return -1;
   }
-  return -1;
+  const Array& map = Array::Handle(GetInlinedCallerIdMap());
+  if (map.IsNull() || (map.Length() == 0)) {
+    return -1;
+  }
+  Smi& smi = Smi::Handle();
+  smi ^= map.At(inlined_id);
+  return smi.Value();
 }
 
 
@@ -13218,8 +13323,7 @@ void Code::GetInlinedFunctionsAt(
   temp_smi ^= intervals.At(found_interval_ix + Code::kInlIntInliningId);
   intptr_t inlining_id = temp_smi.Value();
   ASSERT(inlining_id >= 0);
-  temp_smi ^= intervals.At(found_interval_ix + Code::kInlIntCallerId);
-  intptr_t caller_id = temp_smi.Value();
+  intptr_t caller_id = GetCallerId(inlining_id);
   while (inlining_id >= 0) {
     Function& function = Function::ZoneHandle();
     function  ^= id_map.At(inlining_id);
@@ -13231,29 +13335,51 @@ void Code::GetInlinedFunctionsAt(
 
 
 void Code::DumpInlinedIntervals() const {
-  OS::Print("Inlined intervals:\n");
+  LogBlock lb(Isolate::Current());
+  ISL_Print("Inlined intervals:\n");
   const Array& intervals = Array::Handle(GetInlinedIntervals());
   if (intervals.IsNull() || (intervals.Length() == 0)) return;
   Smi& start = Smi::Handle();
   Smi& inlining_id = Smi::Handle();
-  Smi& caller_id = Smi::Handle();
+  GrowableArray<Function*> inlined_functions;
+  const Function& inliner = Function::Handle(function());
   for (intptr_t i = 0; i < intervals.Length(); i += Code::kInlIntNumEntries) {
     start ^= intervals.At(i + Code::kInlIntStart);
     ASSERT(!start.IsNull());
     if (start.IsNull()) continue;
     inlining_id ^= intervals.At(i + Code::kInlIntInliningId);
-    caller_id ^= intervals.At(i + Code::kInlIntCallerId);
-    OS::Print("  %" Px " id: %" Pd " caller-id: %" Pd " \n",
-        start.Value(), inlining_id.Value(), caller_id.Value());
+    ISL_Print("  %" Px " iid: %" Pd " ; ", start.Value(), inlining_id.Value());
+    inlined_functions.Clear();
+
+    ISL_Print("inlined: ");
+    GetInlinedFunctionsAt(start.Value(), &inlined_functions);
+
+    for (intptr_t j = 0; j < inlined_functions.length(); j++) {
+      const char* name = inlined_functions[j]->ToQualifiedCString();
+      ISL_Print("  %s <-", name);
+    }
+    if (inlined_functions[inlined_functions.length() - 1]->raw() !=
+           inliner.raw()) {
+      ISL_Print(" (ERROR, missing inliner)\n");
+    } else {
+      ISL_Print("\n");
+    }
   }
-  OS::Print("Inlined ids:\n");
+  ISL_Print("Inlined ids:\n");
   const Array& id_map = Array::Handle(GetInlinedIdToFunction());
   Function& function = Function::Handle();
   for (intptr_t i = 0; i < id_map.Length(); i++) {
     function ^= id_map.At(i);
     if (!function.IsNull()) {
-      OS::Print("  %" Pd ": %s\n", i, function.ToQualifiedCString());
+      ISL_Print("  %" Pd ": %s\n", i, function.ToQualifiedCString());
     }
+  }
+  ISL_Print("Caller Inlining Ids:\n");
+  const Array& caller_map = Array::Handle(GetInlinedCallerIdMap());
+  Smi& smi = Smi::Handle();
+  for (intptr_t i = 0; i < caller_map.Length(); i++) {
+    smi ^= caller_map.At(i);
+    ISL_Print("  iid: %" Pd " caller iid: %" Pd "\n", i, smi.Value());
   }
 }
 
@@ -14301,7 +14427,7 @@ bool Instance::IsIdenticalTo(const Instance& other) const {
 
 
 intptr_t* Instance::NativeFieldsDataAddr() const {
-  ASSERT(Isolate::Current()->no_safepoint_scope_depth() > 0);
+  ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
   RawTypedData* native_fields =
       reinterpret_cast<RawTypedData*>(*NativeFieldsAddr());
   if (native_fields == TypedData::null()) {
@@ -14450,7 +14576,7 @@ const char* Instance::ToCString() const {
     return "unknown_constant";
   } else if (raw() == Object::non_constant().raw()) {
     return "non_constant";
-  } else if (Isolate::Current()->no_safepoint_scope_depth() > 0) {
+  } else if (Thread::Current()->no_safepoint_scope_depth() > 0) {
     // Can occur when running disassembler.
     return "Instance";
   } else {
@@ -15529,7 +15655,9 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
   if ((index == 0) && cls.IsCanonicalSignatureClass()) {
     // Verify that the first canonical type is the signature type by checking
     // that the type argument vector of the canonical type ends with the
-    // uninstantiated type parameters of the signature class.
+    // uninstantiated type parameters of the signature class. Note that these
+    // type parameters may be bounded if the super class of the owner class
+    // declares bounds.
     // The signature type is finalized during class finalization, before the
     // optimizer may canonicalize instantiated function types of the same
     // signature class.
@@ -15540,10 +15668,13 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
       TypeArguments::Handle(isolate, cls.type_parameters());
     const intptr_t num_type_params = cls.NumTypeParameters();
     const intptr_t num_type_args = cls.NumTypeArguments();
-    TypeParameter& type_arg = TypeParameter::Handle(isolate);
+    AbstractType& type_arg = AbstractType::Handle(isolate);
     TypeParameter& type_param = TypeParameter::Handle(isolate);
     for (intptr_t i = 0; i < num_type_params; i++) {
-      type_arg ^= type_args.TypeAt(num_type_args - num_type_params + i);
+      type_arg = type_args.TypeAt(num_type_args - num_type_params + i);
+      while (type_arg.IsBoundedType()) {
+        type_arg = BoundedType::Cast(type_arg).type();
+      }
       type_param ^= type_params.TypeAt(i);
       ASSERT(type_arg.Equals(type_param));
     }
@@ -19669,6 +19800,7 @@ RawArray* Array::Slice(intptr_t start,
 
 
 void Array::MakeImmutable() const {
+  if (IsImmutable()) return;
   NoSafepointScope no_safepoint;
   uword tags = raw_ptr()->tags_;
   uword old_tags;

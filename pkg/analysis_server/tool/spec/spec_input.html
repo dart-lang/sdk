@@ -1697,6 +1697,41 @@
           </field>
         </result>
       </request>
+      <request method="organizeDirectives">
+        <p>
+          Organizes all of the directives - removes unused imports and sorts
+          directives of the given Dart file according to the
+          <a href="https://www.dartlang.org/articles/style-guide/">Dart Style Guide</a>.
+        </p>
+        <p>
+          If a request is made for a file that does not exist, does not belong
+          to an analysis root or is not a Dart file,
+          <tt>FILE_NOT_ANALYZED</tt> will be generated.
+        </p>
+        <p>
+          If directives of the Dart file cannot be organized, for example
+          because it has scan or parse errors, or by other reasons,
+          <tt>ORGANIZE_DIRECTIVES_ERROR</tt> will be generated. The message
+          will provide datails about the reason.
+        </p>
+        <params>
+          <field name="file">
+            <ref>FilePath</ref>
+            <p>
+              The Dart file to organize directives in.
+            </p>
+          </field>
+        </params>
+        <result>
+          <field name="edit">
+            <ref>SourceFileEdit</ref>
+            <p>
+              The file edit that is to be applied to the given file to effect
+              the organizing.
+            </p>
+          </field>
+        </result>
+      </request>
     </domain>
     <domain name="execution">
       <p>
@@ -1988,7 +2023,7 @@
         <object>
           <field name="enableAsync" optional="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b></p>
+            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed async feature.
@@ -1996,7 +2031,7 @@
           </field>
           <field name="enableDeferredLoading" optional="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b></p>
+            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed deferred loading feature.
@@ -2004,7 +2039,7 @@
           </field>
           <field name="enableEnums" optional="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b></p>
+            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed enum feature.
@@ -2012,6 +2047,7 @@
           </field>
           <field name="enableNullAwareOperators" optional="true">
             <ref>bool</ref>
+            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed "null aware operators" feature.
@@ -3383,6 +3419,14 @@
             </p>
           </value>
           <value>
+            <code>FILE_NOT_ANALYZED</code>
+            <p>
+              A request specified a FilePath which does not match a file in
+              an analysis root, or the requested operation is not available
+              for the file.
+            </p>
+          </value>
+          <value>
             <code>FORMAT_INVALID_FILE</code>
             <p>
               An "edit.format" request specified a FilePath
@@ -3407,7 +3451,7 @@
           <value>
             <code>GET_NAVIGATION_INVALID_FILE</code>
             <p>
-              An "analysis.getErrors" request specified a FilePath
+              An "analysis.getNavigation" request specified a FilePath
               which does not match a file currently subject to
               analysis.
             </p>
@@ -3452,6 +3496,13 @@
             <p>
               The "--no-index" flag was passed when the analysis server created,
               but this API call requires an index to have been generated.
+            </p>
+          </value>
+          <value>
+            <code>ORGANIZE_DIRECTIVES_ERROR</code>
+            <p>
+              An "edit.organizeDirectives" request specified a Dart file that
+              cannot be analyzed. The reason is described in the message.
             </p>
           </value>
           <value>

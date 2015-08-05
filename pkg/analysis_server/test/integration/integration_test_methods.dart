@@ -1390,6 +1390,39 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Organizes all of the directives - removes unused imports and sorts
+   * directives of the given Dart file according to the Dart Style Guide.
+   *
+   * If a request is made for a file that does not exist, does not belong to an
+   * analysis root or is not a Dart file, FILE_NOT_ANALYZED will be generated.
+   *
+   * If directives of the Dart file cannot be organized, for example because it
+   * has scan or parse errors, or by other reasons, ORGANIZE_DIRECTIVES_ERROR
+   * will be generated. The message will provide datails about the reason.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The Dart file to organize directives in.
+   *
+   * Returns
+   *
+   * edit ( SourceFileEdit )
+   *
+   *   The file edit that is to be applied to the given file to effect the
+   *   organizing.
+   */
+  Future<EditOrganizeDirectivesResult> sendEditOrganizeDirectives(String file) {
+    var params = new EditOrganizeDirectivesParams(file).toJson();
+    return server.send("edit.organizeDirectives", params)
+        .then((result) {
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new EditOrganizeDirectivesResult.fromJson(decoder, 'result', result);
+    });
+  }
+
+  /**
    * Create an execution context for the executable file with the given path.
    * The context that is created will persist until execution.deleteContext is
    * used to delete it. Clients, therefore, are responsible for managing the

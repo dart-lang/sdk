@@ -66,7 +66,7 @@ test(Isolate isolate) async {
       if (bp == bp1) {
         await stoppedAtLine(15)(isolate);
         print(event.asyncContinuation);
-        expect(event.asyncContinuation.isNull, isTrue);
+        expect(event.asyncContinuation, equals(null));
         isolate.resume();
         bp1_hit.complete(null);
       }

@@ -27,7 +27,7 @@ JSONStream::JSONStream(intptr_t buf_size)
                        ObjectIdRing::kAllocateId),
       id_zone_(&default_id_zone_),
       reply_port_(ILLEGAL_PORT),
-      seq_(""),
+      seq_(Instance::Handle(Instance::null())),
       method_(""),
       param_keys_(NULL),
       param_values_(NULL),
@@ -41,12 +41,12 @@ JSONStream::~JSONStream() {
 
 void JSONStream::Setup(Zone* zone,
                        Dart_Port reply_port,
-                       const String& seq,
+                       const Instance& seq,
                        const String& method,
                        const Array& param_keys,
                        const Array& param_values) {
   set_reply_port(reply_port);
-  seq_ = seq.ToCString();
+  seq_ ^= seq.raw();
   method_ = method.ToCString();
 
   String& string_iterator = String::Handle();
@@ -74,13 +74,13 @@ void JSONStream::Setup(Zone* zone,
               isolate_name, method_);
     setup_time_micros_ = OS::GetCurrentTimeMicros();
   }
-  buffer_.Printf("{\"json-rpc\":\"2.0\", \"result\":");
+  buffer_.Printf("{\"jsonrpc\":\"2.0\", \"result\":");
 }
 
 
 void JSONStream::SetupError() {
   buffer_.Clear();
-  buffer_.Printf("{\"json-rpc\":\"2.0\", \"error\":");
+  buffer_.Printf("{\"jsonrpc\":\"2.0\", \"error\":");
 }
 
 
@@ -162,8 +162,22 @@ void JSONStream::PostReply() {
   if (FLAG_trace_service) {
     process_delta_micros = OS::GetCurrentTimeMicros() - setup_time_micros_;
   }
-  // TODO(turnidge): Handle non-string sequence numbers.
-  buffer_.Printf(", \"id\":\"%s\"}", seq());
+
+  if (seq_.IsString()) {
+    const String& str = String::Cast(seq_);
+    PrintProperty("id", str.ToCString());
+  } else if (seq_.IsInteger()) {
+    const Integer& integer = Integer::Cast(seq_);
+    PrintProperty64("id", integer.AsInt64Value());
+  } else if (seq_.IsDouble()) {
+    const Double& dbl = Double::Cast(seq_);
+    PrintProperty("id", dbl.value());
+  } else if (seq_.IsNull()) {
+    // JSON-RPC 2.0 says that a request with a null ID shouldn't get a reply.
+    return;
+  }
+  buffer_.AddChar('}');
+
   const String& reply = String::Handle(String::New(ToCString()));
   ASSERT(!reply.IsNull());
 
@@ -267,6 +281,11 @@ void JSONStream::PrintValue(intptr_t i) {
 void JSONStream::PrintValue64(int64_t i) {
   PrintCommaIfNeeded();
   buffer_.Printf("%" Pd64 "", i);
+}
+
+
+void JSONStream::PrintValueTimeMillis(int64_t millis) {
+  PrintValue(static_cast<double>(millis));
 }
 
 
@@ -419,6 +438,11 @@ void JSONStream::PrintProperty64(const char* name, int64_t i) {
   ASSERT(Utils::IsJavascriptInt64(i));
   PrintPropertyName(name);
   PrintValue64(i);
+}
+
+
+void JSONStream::PrintPropertyTimeMillis(const char* name, int64_t millis) {
+  PrintProperty(name, static_cast<double>(millis));
 }
 
 

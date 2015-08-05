@@ -37,8 +37,9 @@ void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
       String::ZoneHandle(String::New(str, Heap::kOld));
   __ mov(SP, CSP);
   __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer(PP);
-  __ LoadObject(R0, string_object, PP);
+  __ LoadPoolPointer();
+  __ LoadObject(R0, string_object);
+  __ set_constant_pool_allowed(false);
   __ PopAndUntagPP();  // Restore caller's pool pointer.
   __ ret();
 }
@@ -49,7 +50,7 @@ void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
 void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value) {
   const Smi& smi_object = Smi::ZoneHandle(Smi::New(value));
   const int64_t val = reinterpret_cast<int64_t>(smi_object.raw());
-  __ LoadImmediate(R0, val, kNoRegister);
+  __ LoadImmediate(R0, val);
   __ ret();
 }
 

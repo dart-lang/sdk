@@ -744,6 +744,12 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
                  inlined_id_array.Length() * sizeof(uword));
         code.SetInlinedIdToFunction(inlined_id_array);
 
+        const Array& caller_inlining_id_map_array =
+            Array::Handle(isolate, graph_compiler.CallerInliningIdMap());
+        INC_STAT(isolate, total_code_size,
+                 caller_inlining_id_map_array.Length() * sizeof(uword));
+        code.SetInlinedCallerIdMap(caller_inlining_id_map_array);
+
         graph_compiler.FinalizePcDescriptors(code);
         code.set_deopt_info_array(deopt_info_array);
 
@@ -971,6 +977,27 @@ static void DisassembleCode(const Function& function, bool optimized) {
 }
 
 
+#if defined(DEBUG)
+// Verifies that the inliner is always in the list of inlined functions.
+// If this fails run with --trace-inlining-intervals to get more information.
+static void CheckInliningIntervals(const Function& function) {
+  const Code& code = Code::Handle(function.CurrentCode());
+  const Array& intervals = Array::Handle(code.GetInlinedIntervals());
+  if (intervals.IsNull() || (intervals.Length() == 0)) return;
+  Smi& start = Smi::Handle();
+  GrowableArray<Function*> inlined_functions;
+  for (intptr_t i = 0; i < intervals.Length(); i += Code::kInlIntNumEntries) {
+    start ^= intervals.At(i + Code::kInlIntStart);
+    ASSERT(!start.IsNull());
+    if (start.IsNull()) continue;
+    code.GetInlinedFunctionsAt(start.Value(), &inlined_functions);
+    ASSERT(inlined_functions[inlined_functions.length() - 1]->raw() ==
+           function.raw());
+  }
+}
+#endif
+
+
 static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        bool optimized,
@@ -1059,6 +1086,9 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
       DisassembleCode(function, true);
       ISL_Print("*** END CODE\n");
     }
+#if defined(DEBUG)
+    CheckInliningIntervals(function);
+#endif
     return Error::null();
   } else {
     Thread* const thread = Thread::Current();
@@ -1080,6 +1110,13 @@ RawError* Compiler::CompileFunction(Thread* thread,
   Isolate* isolate = thread->isolate();
   VMTagScope tagScope(isolate, VMTag::kCompileUnoptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(isolate, "Function", function);
+
+  if (!isolate->compilation_allowed()) {
+    FATAL3("Precompilation missed function %s (%" Pd ", %s)\n",
+           function.ToLibNamePrefixedQualifiedCString(),
+           function.token_pos(),
+           Function::KindToCString(function.kind()));
+  }
 
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
@@ -1241,6 +1278,33 @@ static void CreateLocalVarDescriptors(const ParsedFunction& parsed_function) {
 }
 
 
+void Compiler::CompileStaticInitializer(const Field& field) {
+  ASSERT(field.is_static());
+  if (field.initializer() != Function::null()) {
+    // TODO(rmacnak): Investigate why this happens for _enum_names.
+    OS::Print("Warning: Ignoring repeated request for initializer for %s\n",
+              field.ToCString());
+    return;
+  }
+  ASSERT(field.initializer() == Function::null());
+  Isolate* isolate = Isolate::Current();
+  StackZone zone(isolate);
+
+  ParsedFunction* parsed_function = Parser::ParseStaticFieldInitializer(field);
+
+  parsed_function->AllocateVariables();
+  // Non-optimized code generator.
+  DartCompilationPipeline pipeline;
+  CompileParsedFunctionHelper(&pipeline,
+                              parsed_function,
+                              false,  // optimized
+                              Isolate::kNoDeoptId);
+
+  const Function& initializer = parsed_function->function();
+  field.set_initializer(initializer);
+}
+
+
 RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   ASSERT(field.is_static());
   // The VM sets the field's value to transiton_sentinel prior to
@@ -1248,23 +1312,31 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   ASSERT(field.value() == Object::transition_sentinel().raw());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Isolate* const isolate = Isolate::Current();
-    StackZone zone(isolate);
-    ParsedFunction* parsed_function =
-        Parser::ParseStaticFieldInitializer(field);
+    Function& initializer = Function::Handle(field.initializer());
 
-    parsed_function->AllocateVariables();
-    // Non-optimized code generator.
-    DartCompilationPipeline pipeline;
-    CompileParsedFunctionHelper(&pipeline,
-                                parsed_function,
-                                false,
-                                Isolate::kNoDeoptId);
-    // Eagerly create local var descriptors.
-    CreateLocalVarDescriptors(*parsed_function);
+    // Under precompilation, the initializer may have already been compiled, in
+    // which case use it. Under lazy compilation or early in precompilation, the
+    // initializer has not yet been created, so create it now, but don't bother
+    // remembering it because it won't be used again.
+    if (initializer.IsNull()) {
+      Isolate* const isolate = Isolate::Current();
+      StackZone zone(isolate);
+      ParsedFunction* parsed_function =
+          Parser::ParseStaticFieldInitializer(field);
 
+      parsed_function->AllocateVariables();
+      // Non-optimized code generator.
+      DartCompilationPipeline pipeline;
+      CompileParsedFunctionHelper(&pipeline,
+                                  parsed_function,
+                                  false,  // optimized
+                                  Isolate::kNoDeoptId);
+      // Eagerly create local var descriptors.
+      CreateLocalVarDescriptors(*parsed_function);
+
+      initializer = parsed_function->function().raw();
+    }
     // Invoke the function to evaluate the expression.
-    const Function& initializer = parsed_function->function();
     const Object& result = PassiveObject::Handle(
         DartEntry::InvokeFunction(initializer, Object::empty_array()));
     return result.raw();

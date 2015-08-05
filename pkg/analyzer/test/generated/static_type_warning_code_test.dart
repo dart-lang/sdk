@@ -1391,14 +1391,12 @@ var a = A.B;''');
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_undefinedGetter_static_conditionalAccess() {
-    // The conditional access operator '?.' cannot be used to access static
-    // fields.
+  void test_undefinedGetter_typeLiteral_conditionalAccess() {
+    // When applied to a type literal, the conditional access operator '?.'
+    // cannot be used to access instance getters of Type.
     Source source = addSource('''
-class A {
-  static var x;
-}
-var a = A?.x;
+class A {}
+f() => A?.hashCode;
 ''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
@@ -1562,14 +1560,12 @@ main() {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
-  void test_undefinedMethod_static_conditionalAccess() {
-    // The conditional access operator '?.' cannot be used to access static
-    // methods.
+  void test_undefinedMethod_typeLiteral_conditionalAccess() {
+    // When applied to a type literal, the conditional access operator '?.'
+    // cannot be used to access instance methods of Type.
     Source source = addSource('''
-class A {
-  static void m() {}
-}
-f() { A?.m(); }
+class A {}
+f() => A?.toString();
 ''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
@@ -1647,19 +1643,6 @@ f(T e1) { e1.m = 0; }''');
     Source source = addSource(r'''
 class A {}
 f() { A.B = 0;}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
-  }
-
-  void test_undefinedSetter_static_conditionalAccess() {
-    // The conditional access operator '?.' cannot be used to access static
-    // fields.
-    Source source = addSource('''
-class A {
-  static var x;
-}
-f() { A?.x = 1; }
-''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }

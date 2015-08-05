@@ -27,8 +27,9 @@ main() {
 };
 
 main() {
-  var compiler = compilerFor(MEMORY_SOURCE_FILES);
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+  asyncTest(() async {
+    var result = await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+    var compiler = result.compiler;
     var typesInferrer = compiler.typesTask.typesInferrer;
 
     var element = compiler.mainApp.find('a');
@@ -45,5 +46,5 @@ main() {
 
     Expect.notEquals(mask1.union(mask2, compiler.world),
                      mask3.union(mask4, compiler.world));
-  }));
+  });
 }

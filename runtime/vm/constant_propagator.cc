@@ -735,7 +735,7 @@ void ConstantPropagator::VisitBooleanNegate(BooleanNegateInstr* instr) {
 
 
 void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
-  const Definition* def = instr->value()->definition();
+  Definition* def = instr->value()->definition();
   const Object& value = def->constant_value();
   if (IsNonConstant(value)) {
     const AbstractType& checked_type = instr->type();

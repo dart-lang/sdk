@@ -238,7 +238,18 @@ void f(C<int> c) {
     addTestSource('import "dart:async" deferred as bar; foo() {bar.^}');
     return computeFull((bool result) {
       assertSuggestClass('Future');
-      assertSuggestFunction('loadLibrary', 'void');
+      assertSuggestFunction('loadLibrary', 'Future<dynamic>');
+    });
+  }
+
+  test_libraryPrefix_with_exports() {
+    addSource('/libA.dart', 'library libA; class A { }');
+    addSource('/libB.dart', 'library libB; export "/libA.dart"; class B { }');
+    addTestSource('import "/libB.dart" as foo; main() {foo.^} class C { }');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestClass('B');
+      assertSuggestClass('A');
     });
   }
 

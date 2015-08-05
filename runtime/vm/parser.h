@@ -41,7 +41,7 @@ struct TopLevel;
 class ParsedFunction : public ZoneAllocated {
  public:
   ParsedFunction(Thread* thread, const Function& function)
-      : isolate_(thread->isolate()),
+      : thread_(thread),
         function_(function),
         code_(Code::Handle(zone(), function.unoptimized_code())),
         node_sequence_(NULL),
@@ -150,11 +150,11 @@ class ParsedFunction : public ZoneAllocated {
   void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
 
-  Isolate* isolate() const { return isolate_; }
-  Zone* zone() const { return isolate()->current_zone(); }
+  Isolate* isolate() const { return thread_->isolate(); }
+  Zone* zone() const { return thread_->zone(); }
 
  private:
-  Isolate* isolate_;
+  Thread* thread_;
   const Function& function_;
   Code& code_;
   SequenceNode* node_sequence_;
@@ -509,6 +509,8 @@ class Parser : public ValueObject {
   AstNode* ParseSuperOperator();
   AstNode* BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super);
 
+  static bool ParseFormalParameters(const Function& func, ParamList* params);
+
   static void SetupDefaultsForOptionalParams(const ParamList* params,
                                              Array* default_values);
   ClosureNode* CreateImplicitClosureNode(const Function& func,
@@ -536,6 +538,8 @@ class Parser : public ValueObject {
                                            Array* default_values);
   SequenceNode* ParseImplicitClosure(const Function& func,
                                      Array* default_values);
+  SequenceNode* ParseConstructorClosure(const Function& func,
+                                        Array* default_values);
 
   void BuildDispatcherScope(const Function& func,
                             const ArgumentsDescriptor& desc,
@@ -694,6 +698,7 @@ class Parser : public ValueObject {
   AstNode* ParseUnaryExpr();
   AstNode* ParsePostfixExpr();
   AstNode* ParseSelectors(AstNode* primary, bool is_cascade);
+  AstNode* ParseClosurization(AstNode* primary);
   AstNode* ParseCascades(AstNode* expr);
   AstNode* ParsePrimary();
   AstNode* ParseStringLiteral(bool allow_interpolation);
@@ -706,7 +711,12 @@ class Parser : public ValueObject {
   AstNode* ParseMapLiteral(intptr_t type_pos,
                            bool is_const,
                            const TypeArguments& type_arguments);
+
+  RawFunction* BuildConstructorClosureFunction(const Function& ctr,
+                                               intptr_t token_pos);
   AstNode* ParseNewOperator(Token::Kind op_kind);
+  void ParseConstructorClosurization(Function* constructor,
+                                     TypeArguments* type_arguments);
 
   // An implicit argument, if non-null, is prepended to the returned list.
   ArgumentListNode* ParseActualParameters(ArgumentListNode* implicit_arguments,
@@ -807,9 +817,10 @@ class Parser : public ValueObject {
   RawInstance* TryCanonicalize(const Instance& instance, intptr_t token_pos);
 
   Isolate* isolate() const { return isolate_; }
-  Zone* zone() const { return isolate()->current_zone(); }
+  Zone* zone() const { return thread_->zone(); }
 
   Isolate* isolate_;  // Cached current isolate.
+  Thread* thread_;
 
   Script& script_;
   TokenStream::Iterator tokens_iterator_;

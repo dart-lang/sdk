@@ -197,12 +197,12 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
   obj.AddProperty("cat", stream_->name());
   obj.AddProperty64("tid", tid);
   obj.AddProperty64("pid", pid);
-  obj.AddProperty("ts", static_cast<double>(TimeOrigin()));
+  obj.AddPropertyTimeMillis("ts", TimeOrigin());
 
   switch (event_type()) {
     case kDuration: {
       obj.AddProperty("ph", "X");
-      obj.AddProperty("dur", static_cast<double>(TimeDuration()));
+      obj.AddPropertyTimeMillis("dur", TimeDuration());
     }
     break;
     case kInstant: {

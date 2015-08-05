@@ -7,6 +7,7 @@
 
 [ $compiler == none ]
 built_in_identifier_prefix_test: Fail # Issue 6970
+tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633
@@ -17,14 +18,9 @@ closure_in_initializer_test: Fail # Issue 6422
 # Regular bugs which should be fixed.
 duplicate_export_negative_test: Fail # Issue 6134
 
-[ $compiler == none ]
-
 deferred_redirecting_factory_test: Fail # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 
-[ $compiler == none && $runtime != dartium && $runtime != drt ]
-
-[ $compiler == none ]
 # Non-contractive types are not supported in the vm.
 cyclic_type_test/02: Fail, OK
 cyclic_type_test/04: Fail, OK
@@ -47,6 +43,61 @@ type_variable_bounds4_test/01: Fail # Issue 14006
 [ $compiler == none ]
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 multiline_strings_test: Fail # Issue 23020
+conditional_method_invocation_test/12: Fail # Issue 23794
+conditional_method_invocation_test/13: Fail # Issue 23794
+conditional_method_invocation_test/14: Fail # Issue 23794
+conditional_method_invocation_test/15: Fail # Issue 23794
+conditional_method_invocation_test/16: Fail # Issue 23794
+conditional_method_invocation_test/17: Fail # Issue 23794
+conditional_method_invocation_test/18: Fail # Issue 23794
+conditional_method_invocation_test/19: Fail # Issue 23794
+conditional_property_access_test/10: Fail # Issue 23794
+conditional_property_access_test/11: Fail # Issue 23794
+conditional_property_access_test/12: Fail # Issue 23794
+conditional_property_access_test/13: Fail # Issue 23794
+conditional_property_access_test/14: Fail # Issue 23794
+conditional_property_access_test/15: Fail # Issue 23794
+conditional_property_access_test/16: Fail # Issue 23794
+conditional_property_access_test/17: Fail # Issue 23794
+conditional_property_assignment_test/23: Fail # Issue 23794
+conditional_property_assignment_test/24: Fail # Issue 23794
+conditional_property_assignment_test/25: Fail # Issue 23794
+conditional_property_assignment_test/26: Fail # Issue 23794
+conditional_property_assignment_test/27: Fail # Issue 23794
+conditional_property_assignment_test/28: Fail # Issue 23794
+conditional_property_assignment_test/29: Fail # Issue 23794
+conditional_property_assignment_test/30: Fail # Issue 23794
+conditional_property_assignment_test/31: Fail # Issue 23794
+conditional_property_assignment_test/32: Fail # Issue 23794
+conditional_property_assignment_test/33: Fail # Issue 23794
+conditional_property_assignment_test/34: Fail # Issue 23794
+conditional_property_assignment_test/35: Fail # Issue 23794
+conditional_property_increment_decrement_test/17: Fail # Issue 23794
+conditional_property_increment_decrement_test/18: Fail # Issue 23794
+conditional_property_increment_decrement_test/19: Fail # Issue 23794
+conditional_property_increment_decrement_test/20: Fail # Issue 23794
+conditional_property_increment_decrement_test/21: Fail # Issue 23794
+conditional_property_increment_decrement_test/22: Fail # Issue 23794
+conditional_property_increment_decrement_test/23: Fail # Issue 23794
+conditional_property_increment_decrement_test/24: Fail # Issue 23794
+conditional_property_increment_decrement_test/25: Fail # Issue 23794
+conditional_property_increment_decrement_test/26: Fail # Issue 23794
+conditional_property_increment_decrement_test/27: Fail # Issue 23794
+conditional_property_increment_decrement_test/28: Fail # Issue 23794
+conditional_property_increment_decrement_test/29: Fail # Issue 23794
+conditional_property_increment_decrement_test/30: Fail # Issue 23794
+conditional_property_increment_decrement_test/31: Fail # Issue 23794
+conditional_property_increment_decrement_test/32: Fail # Issue 23794
+conditional_property_increment_decrement_test/33: Fail # Issue 23794
+conditional_property_increment_decrement_test/34: Fail # Issue 23794
+conditional_property_increment_decrement_test/35: Fail # Issue 23794
+conditional_property_increment_decrement_test/36: Fail # Issue 23794
+conditional_property_increment_decrement_test/37: Fail # Issue 23794
+conditional_property_increment_decrement_test/38: Fail # Issue 23794
+conditional_property_increment_decrement_test/39: Fail # Issue 23794
+conditional_property_increment_decrement_test/40: Fail # Issue 23794
+if_null_assignment_behavior_test/31: Fail # Issue 23794
+if_null_assignment_behavior_test/32: Fail # Issue 23794
 
 [ $compiler == none && ($runtime == vm || $runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 dynamic_prefix_core_test/none: Fail # Issue 12478
@@ -97,6 +148,7 @@ gc_test: SkipSlow # Times out flakily. Issue 20956
 [ $compiler == none && $runtime == vm && ( $arch == simarm || $arch == arm || $arch == simarmv5te || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
 
-[ $compiler == none && $runtime == dartium ]
+[ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
 mixin_super_test: Fail # Can't pass VMOptions to dartium.
 mixin_super_bound2_test: Fail # Can't pass VMOptions to dartium.
+issue23244_test: Fail # Can't run spawnFunction on dartium.

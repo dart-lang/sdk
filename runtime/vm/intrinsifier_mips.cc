@@ -179,7 +179,8 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_shift)           \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 0 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, T2, &fall_through);                             \
+  __ MaybeTraceAllocation(cid, T2, &fall_through,                              \
+                          /* inline_isolate = */ false);                       \
   __ lw(T2, Address(SP, kArrayLengthStackOffset));  /* Array length. */        \
   /* Check that length is a positive Smi. */                                   \
   /* T2: requested array length argument. */                                   \
@@ -195,10 +196,9 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ AddImmediate(T2, fixed_size);                                             \
   __ LoadImmediate(TMP, -kObjectAlignment);                                    \
   __ and_(T2, T2, TMP);                                                        \
-  Heap* heap = Isolate::Current()->heap();                                     \
-  Heap::Space space = heap->SpaceForAllocation(cid);                           \
-  __ LoadImmediate(V0, heap->TopAddress(space));                               \
-  __ lw(V0, Address(V0, 0));                                                   \
+  Heap::Space space = Heap::SpaceForAllocation(cid);                           \
+  __ lw(T3, Address(THR, Thread::heap_offset()));                              \
+  __ lw(V0, Address(T3, Heap::TopOffset(space)));                              \
                                                                                \
   /* T2: allocation size. */                                                   \
   __ addu(T1, V0, T2);                                                         \
@@ -209,16 +209,16 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* V0: potential new object start. */                                        \
   /* T1: potential next object start. */                                       \
   /* T2: allocation size. */                                                   \
-  __ LoadImmediate(T3, heap->EndAddress(space));                               \
-  __ lw(T3, Address(T3, 0));                                                   \
-  __ BranchUnsignedGreaterEqual(T1, T3, &fall_through);                        \
+  /* T3: heap. */                                                              \
+  __ lw(T4, Address(T3, Heap::EndOffset(space)));                              \
+  __ BranchUnsignedGreaterEqual(T1, T4, &fall_through);                        \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ LoadImmediate(T3, heap->TopAddress(space));                               \
-  __ sw(T1, Address(T3, 0));                                                   \
+  __ sw(T1, Address(T3, Heap::TopOffset(space)));                              \
   __ AddImmediate(V0, kHeapObjectTag);                                         \
-  __ UpdateAllocationStatsWithSize(cid, T2, T4, space);                        \
+  __ UpdateAllocationStatsWithSize(cid, T2, T4, space,                         \
+                                   /* inline_isolate = */ false);              \
   /* Initialize the tags. */                                                   \
   /* V0: new object start as a tagged pointer. */                              \
   /* T1: new object end address. */                                            \
@@ -1767,8 +1767,16 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ lbu(T2, FieldAddress(T2, OneByteString::data_offset()));
   __ BranchUnsignedGreaterEqual(
       T2, Immediate(Symbols::kNumberOfOneCharCodeSymbols), &fall_through);
-  __ LoadImmediate(
-      V0, reinterpret_cast<uword>(Symbols::PredefinedAddress()));
+  const ExternalLabel symbols_label(
+      reinterpret_cast<uword>(Symbols::PredefinedAddress()));
+  __ Push(PP);
+  __ Push(RA);
+  __ LoadPoolPointer();
+  assembler->set_constant_pool_allowed(true);
+  __ LoadExternalLabel(V0, &symbols_label, kNotPatchable);
+  assembler->set_constant_pool_allowed(false);
+  __ Pop(RA);
+  __ Pop(PP);
   __ AddImmediate(V0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ sll(T2, T2, 2);
   __ addu(T2, T2, V0);
@@ -1782,8 +1790,14 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ lhu(T2, FieldAddress(T2, TwoByteString::data_offset()));
   __ BranchUnsignedGreaterEqual(
       T2, Immediate(Symbols::kNumberOfOneCharCodeSymbols), &fall_through);
-  __ LoadImmediate(V0,
-                   reinterpret_cast<uword>(Symbols::PredefinedAddress()));
+  __ Push(PP);
+  __ Push(RA);
+  __ LoadPoolPointer();
+  assembler->set_constant_pool_allowed(true);
+  __ LoadExternalLabel(V0, &symbols_label, kNotPatchable);
+  assembler->set_constant_pool_allowed(false);
+  __ Pop(RA);
+  __ Pop(PP);
   __ AddImmediate(V0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ sll(T2, T2, 2);
   __ addu(T2, T2, V0);
@@ -1883,7 +1897,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure) {
   const Register length_reg = T2;
-  __ MaybeTraceAllocation(kOneByteStringCid, V0, failure);
+  __ MaybeTraceAllocation(kOneByteStringCid, V0, failure,
+                          /* inline_isolate = */ false);
   __ mov(T6, length_reg);  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
@@ -1892,12 +1907,10 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ LoadImmediate(TMP, ~(kObjectAlignment - 1));
   __ and_(length_reg, length_reg, TMP);
 
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
   const intptr_t cid = kOneByteStringCid;
-  Heap::Space space = heap->SpaceForAllocation(cid);
-  __ LoadImmediate(T3, heap->TopAddress(space));
-  __ lw(V0, Address(T3, 0));
+  Heap::Space space = Heap::SpaceForAllocation(cid);
+  __ lw(T3, Address(THR, Thread::heap_offset()));
+  __ lw(V0, Address(T3, Heap::TopOffset(space)));
 
   // length_reg: allocation size.
   __ addu(T1, V0, length_reg);
@@ -1907,17 +1920,17 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // V0: potential new object start.
   // T1: potential next object start.
   // T2: allocation size.
-  // T3: heap->TopAddress(space).
-  __ LoadImmediate(T4, heap->EndAddress(space));
-  __ lw(T4, Address(T4, 0));
+  // T3: heap.
+  __ lw(T4, Address(T3, Heap::EndOffset(space)));
   __ BranchUnsignedGreaterEqual(T1, T4, failure);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ sw(T1, Address(T3, 0));
+  __ sw(T1, Address(T3, Heap::TopOffset(space)));
   __ AddImmediate(V0, kHeapObjectTag);
 
-  __ UpdateAllocationStatsWithSize(cid, T2, T3, space);
+  __ UpdateAllocationStatsWithSize(cid, T2, T3, space,
+                                   /* inline_isolate = */ false);
 
   // Initialize the tags.
   // V0: new object start as a tagged pointer.
@@ -2137,8 +2150,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
 // On stack: user tag (+0).
 void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
   // T1: Isolate.
-  Isolate* isolate = Isolate::Current();
-  __ LoadImmediate(T1, reinterpret_cast<uword>(isolate));
+  __ LoadIsolate(T1);
   // V0: Current user tag.
   __ lw(V0, Address(T1, Isolate::current_tag_offset()));
   // T2: UserTag.
@@ -2155,20 +2167,14 @@ void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
 
 
 void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
-  Isolate* isolate = Isolate::Current();
-  // V0: Address of default tag.
-  __ LoadImmediate(V0,
-      reinterpret_cast<uword>(isolate) + Isolate::default_tag_offset());
+  __ LoadIsolate(V0);
   __ Ret();
-  __ delay_slot()->lw(V0, Address(V0, 0));
+  __ delay_slot()->lw(V0, Address(V0, Isolate::default_tag_offset()));
 }
 
 
 void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
-  // V0: Isolate.
-  Isolate* isolate = Isolate::Current();
-  __ LoadImmediate(V0, reinterpret_cast<uword>(isolate));
-  // Set return value.
+  __ LoadIsolate(V0);
   __ Ret();
   __ delay_slot()->lw(V0, Address(V0, Isolate::current_tag_offset()));
 }

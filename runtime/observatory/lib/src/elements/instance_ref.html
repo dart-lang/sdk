@@ -38,17 +38,19 @@
 
       <template if="{{ ref.isClosure }}">
         <a on-click="{{ goto }}" _href="{{ url }}">
-          {{ ref.function.qualifiedName }}
+          <em>Closure</em> ({{ ref.function.qualifiedName }})
         </a>
       </template>
 
       <template if="{{ ref.isRegExp }}">
-        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}({{ ref.pattern.valueAsString }})</em></a>
+        <a on-click="{{ goto }}" _href="{{ url }}">
+          <em>{{ ref.clazz.name }}</em> ({{ ref.pattern.valueAsString }})
+        </a>
       </template>
 
       <template if="{{ ref.isPlainInstance }}">
         <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em></a>
-        <curly-block callback="{{ expander() }}">
+        <curly-block callback="{{ expander() }}" expandKey="{{ expandKey }}">
           <div class="memberList">
             <template repeat="{{ field in ref.fields }}">
               <div class="memberItem">
@@ -56,7 +58,9 @@
                   {{ field['decl'].name }}
                 </div>
                 <div class="memberValue">
-                  <any-service-ref ref="{{ field['value'] }}"></any-service-ref>
+                  <any-service-ref ref="{{ field['value'] }}"
+                                   expandKey="{{ makeExpandKey(field['decl'].name) }}">
+                  </any-service-ref>
                 </div>
               </div>
             </template>
@@ -66,13 +70,14 @@
 
       <template if="{{ ref.isList }}">
         <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em> ({{ ref.length }})</a>
-        <curly-block callback="{{ expander() }}">
+        <curly-block callback="{{ expander() }}" expandKey="{{ expandKey }}">
           <div class="memberList">
             <template repeat="{{ index in ref.elements.asMap().keys }}">
               <div class="memberItem">
                 <div class="memberName">[{{ index }}]</div>
                 <div class="memberValue">
-                  <any-service-ref ref="{{ ref.elements[index] }}">
+                  <any-service-ref ref="{{ ref.elements[index] }}"
+                                   expandKey="{{ makeExpandKey(index.toString()) }}">
                   </any-service-ref>
                 </div>
               </div>
@@ -83,15 +88,19 @@
 
       <template if="{{ ref.isMap }}">
         <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em> ({{ ref.length }})</a>
-        <curly-block callback="{{ expander() }}">
+        <curly-block callback="{{ expander() }}" expandKey="{{ expandKey }}">
           <div class="memberList">
             <template repeat="{{ association in ref.associations }}">
               <div class="memberItem">
                 <div class="memberName">
-                  [<any-service-ref ref="{{ association['key'] }}"></any-service-ref>]
+                  [<any-service-ref ref="{{ association['key'] }}"
+                                    expandKey="{{ makeExpandKey('key') }}">
+                  </any-service-ref>]
                 </div>
                 <div class="memberValue">
-                  <any-service-ref ref="{{ association['value'] }}"></any-service-ref>
+                  <any-service-ref ref="{{ association['value'] }}"
+                                   expandKey="{{ makeExpandKey('value') }}">
+                  </any-service-ref>
                 </div>
               </div>
             </template>
@@ -101,7 +110,7 @@
 
       <template if="{{ ref.isTypedData }}">
         <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em> ({{ ref.length }})</a>
-        <curly-block callback="{{ expander() }}">
+        <curly-block callback="{{ expander() }}" expandKey="{{ expandKey }}">
           <div class="memberList">
             <template repeat="{{ index in ref.typedElements.asMap().keys }}">
               <div class="memberItem">
@@ -115,12 +124,14 @@
 
       <template if="{{ ref.isMirrorReference }}">
         <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em></a>
-        <curly-block callback="{{ expander() }}">
+        <curly-block callback="{{ expander() }}" expandKey="{{ expandKey }}">
           <div class="memberList">
             <div class="memberItem">
               <div class="memberName">referent</div>
               <div class="memberValue">
-                <any-service-ref ref="{{ ref.referent }}"></any-service-ref>
+                <any-service-ref ref="{{ ref.referent }}"
+                                 expandKey="{{ makeExpandKey('referent') }}">
+                </any-service-ref>
               </div>
             </div>
           </div>
@@ -129,18 +140,22 @@
 
       <template if="{{ ref.isWeakProperty }}">
         <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em></a>
-        <curly-block callback="{{ expander() }}">
+        <curly-block callback="{{ expander() }}" expandKey="{{ expandKey }}">
           <div class="memberList">
             <div class="memberItem">
               <div class="memberName">key</div>
               <div class="memberValue">
-                <any-service-ref ref="{{ ref.key }}"></any-service-ref>
+                <any-service-ref ref="{{ ref.key }}"
+                                 expandKey="{{ makeExpandKey('key') }}">
+                </any-service-ref>
               </div>
             </div>
             <div class="memberItem">
               <div class="memberName">value</div>
               <div class="memberValue">
-                <any-service-ref ref="{{ ref.value }}"></any-service-ref>
+                <any-service-ref ref="{{ ref.value }}"
+                                 expandKey="{{ makeExpandKey('value') }}">
+                </any-service-ref>
               </div>
             </div>
           </div>

@@ -481,6 +481,9 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
     object_id = NextAvailableObjectId();
   }
 
+  intptr_t tags = ReadTags();
+  USE(tags);
+
   // Reading of regular dart instances has limited support in order to
   // read typed data views.
   if (SerializedHeaderData::decode(class_header) == kInstanceObjectId) {
@@ -502,10 +505,6 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
     AddBackRef(object_id, value, kIsNotDeserialized);
     return value;
   }
-
-  intptr_t tags = ReadTags();
-  USE(tags);
-
   return ReadInternalVMObject(class_id, object_id);
 }
 
@@ -679,6 +678,13 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       Dart_CObject* object = AllocateDartCObject(Dart_CObject_kSendPort);
       object->value.as_send_port.id = value64;
       object->value.as_send_port.origin_id = originId;
+      AddBackRef(object_id, object, kIsDeserialized);
+      return object;
+    }
+    case kCapabilityCid: {
+      int64_t id = Read<int64_t>();
+      Dart_CObject* object = AllocateDartCObject(Dart_CObject_kCapability);
+      object->value.as_capability.id = id;
       AddBackRef(object_id, object, kIsDeserialized);
       return object;
     }
@@ -1060,6 +1066,7 @@ bool ApiMessageWriter::WriteCObjectRef(Dart_CObject* object) {
     WriteInlinedHeader(object);
     // Write out the class information.
     WriteIndexedObject(kArrayCid);
+    WriteTags(0);
     // Write out the length information.
     WriteSmi(array_length);
     // Add object to forward list so that this object is serialized later.
@@ -1266,6 +1273,13 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteRawPointerValue(reinterpret_cast<intptr_t>(data));
       WriteRawPointerValue(reinterpret_cast<intptr_t>(peer));
       WriteRawPointerValue(reinterpret_cast<intptr_t>(callback));
+      break;
+    }
+    case Dart_CObject_kCapability: {
+      WriteInlinedHeader(object);
+      WriteIndexedObject(kCapabilityCid);
+      WriteTags(0);
+      Write<uint64_t>(object->value.as_capability.id);
       break;
     }
     default:

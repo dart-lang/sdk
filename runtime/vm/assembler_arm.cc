@@ -1525,11 +1525,16 @@ void Assembler::Drop(intptr_t stack_elements) {
 }
 
 
+intptr_t Assembler::FindImmediate(int32_t imm) {
+  return object_pool_wrapper_.FindImmediate(imm);
+}
+
+
 // Uses a code sequence that can easily be decoded.
 void Assembler::LoadWordFromPoolOffset(Register rd,
                                        int32_t offset,
                                        Condition cond) {
-  ASSERT(allow_constant_pool());
+  ASSERT(constant_pool_allowed());
   ASSERT(rd != PP);
   int32_t offset_mask = 0;
   if (Address::CanHoldLoadOffset(kWord, offset, &offset_mask)) {
@@ -1555,6 +1560,7 @@ void Assembler::LoadPoolPointer() {
      Instructions::HeaderSize() - Instructions::object_pool_offset() +
      CodeSize() + Instr::kPCReadOffset;
   LoadFromOffset(kWord, PP, PC, -object_pool_pc_dist);
+  set_constant_pool_allowed(true);
 }
 
 
@@ -1576,7 +1582,7 @@ void Assembler::LoadObjectHelper(Register rd,
   // Smis and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()), cond);
-  } else if (object.InVMHeap() || !allow_constant_pool()) {
+  } else if (object.InVMHeap() || !constant_pool_allowed()) {
     // Make sure that class CallPattern is able to decode this load immediate.
     const int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
     LoadImmediate(rd, object_raw, cond);
@@ -2678,6 +2684,12 @@ void Assembler::Branch(const ExternalLabel* label, Condition cond) {
 }
 
 
+void Assembler::Branch(const StubEntry& stub_entry, Condition cond) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  Branch(&label, cond);
+}
+
+
 void Assembler::BranchPatchable(const ExternalLabel* label) {
   // Use a fixed size code sequence, since a function prologue may be patched
   // with this branch sequence.
@@ -2688,9 +2700,21 @@ void Assembler::BranchPatchable(const ExternalLabel* label) {
 }
 
 
+void Assembler::BranchPatchable(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  BranchPatchable(&label);
+}
+
+
 void Assembler::BranchLink(const ExternalLabel* label) {
   LoadImmediate(LR, label->address());  // Target address is never patched.
   blx(LR);  // Use blx instruction so that the return branch prediction works.
+}
+
+
+void Assembler::BranchLink(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  BranchLink(&label);
 }
 
 
@@ -2706,8 +2730,21 @@ void Assembler::BranchLink(const ExternalLabel* label, Patchability patchable) {
 }
 
 
+void Assembler::BranchLink(const StubEntry& stub_entry,
+                           Patchability patchable) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  BranchLink(&label, patchable);
+}
+
+
 void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
   BranchLink(label, kPatchable);
+}
+
+
+void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
+  const ExternalLabel label(stub_entry.EntryPoint());
+  BranchLinkPatchable(&label);
 }
 
 
@@ -2746,7 +2783,12 @@ void Assembler::LoadDecodableImmediate(
     Register rd, int32_t value, Condition cond) {
   const ARMVersion version = TargetCPUFeatures::arm_version();
   if ((version == ARMv5TE) || (version == ARMv6)) {
-    LoadPatchableImmediate(rd, value, cond);
+    if (constant_pool_allowed()) {
+      const int32_t offset = Array::element_offset(FindImmediate(value));
+      LoadWordFromPoolOffset(rd, offset - kHeapObjectTag);
+    } else {
+      LoadPatchableImmediate(rd, value, cond);
+    }
   } else {
     ASSERT(version == ARMv7);
     movw(rd, Utils::Low16Bits(value), cond);
@@ -3273,6 +3315,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 
 
 void Assembler::EnterDartFrame(intptr_t frame_size) {
+  ASSERT(!constant_pool_allowed());
   const intptr_t offset = CodeSize();
 
   // Save PC in frame for fast identification of corresponding code.
@@ -3301,6 +3344,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 // optimized function and there may be extra space for spill slots to
 // allocate. We must also set up the pool pointer for the function.
 void Assembler::EnterOsrFrame(intptr_t extra_size) {
+  ASSERT(!constant_pool_allowed());
   // mov(IP, Operand(PC)) loads PC + Instr::kPCReadOffset (8). This may be
   // different from EntryPointToPcMarkerOffset().
   const intptr_t offset =
@@ -3320,6 +3364,10 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
 
 
 void Assembler::LeaveDartFrame() {
+  // LeaveDartFrame is called from stubs (pp disallowed) and from Dart code (pp
+  // allowed), so there is no point in checking the current value of
+  // constant_pool_allowed().
+  set_constant_pool_allowed(false);
   LeaveFrame((1 << PP) | (1 << FP) | (1 << LR));
   // Adjust SP for PC pushed in EnterDartFrame.
   AddImmediate(SP, kWordSize);
@@ -3327,6 +3375,7 @@ void Assembler::LeaveDartFrame() {
 
 
 void Assembler::EnterStubFrame() {
+  set_constant_pool_allowed(false);
   // Push 0 as saved PC for stub frames.
   mov(IP, Operand(LR));
   mov(LR, Operand(0));
@@ -3339,6 +3388,7 @@ void Assembler::EnterStubFrame() {
 
 void Assembler::LeaveStubFrame() {
   LeaveFrame((1 << PP) | (1 << FP) | (1 << LR));
+  set_constant_pool_allowed(false);
   // Adjust SP for null PC pushed in EnterStubFrame.
   AddImmediate(SP, kWordSize);
 }
@@ -3373,8 +3423,9 @@ void Assembler::LoadAllocationStatsAddress(Register dest,
 
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,
-                                     Label* trace) {
-  LoadAllocationStatsAddress(temp_reg, cid);
+                                     Label* trace,
+                                     bool inline_isolate) {
+  LoadAllocationStatsAddress(temp_reg, cid, inline_isolate);
   const uword state_offset = ClassHeapStats::state_offset();
   ldr(temp_reg, Address(temp_reg, state_offset));
   tst(temp_reg, Operand(ClassHeapStats::TraceAllocationMask()));
@@ -3433,29 +3484,26 @@ void Assembler::TryAllocate(const Class& cls,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cls.id(), temp_reg, failure);
-    Heap* heap = Isolate::Current()->heap();
-    Heap::Space space = heap->SpaceForAllocation(cls.id());
-    const uword top_address = heap->TopAddress(space);
-    LoadImmediate(temp_reg, top_address);
-    ldr(instance_reg, Address(temp_reg));
+    MaybeTraceAllocation(cls.id(), temp_reg, failure,
+                         /* inline_isolate = */ false);
+    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    ldr(temp_reg, Address(THR, Thread::heap_offset()));
+    ldr(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
     // TODO(koda): Protect against unsigned overflow here.
     AddImmediateSetFlags(instance_reg, instance_reg, instance_size);
 
     // instance_reg: potential next object start.
-    const uword end_address = heap->EndAddress(space);
-    ASSERT(top_address < end_address);
-    // Could use ldm to load (top, end), but no benefit seen experimentally.
-    ldr(IP, Address(temp_reg, end_address - top_address));
+    ldr(IP, Address(temp_reg, Heap::EndOffset(space)));
     cmp(IP, Operand(instance_reg));
     // fail if heap end unsigned less than or equal to instance_reg.
     b(failure, LS);
 
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    str(instance_reg, Address(temp_reg));
+    str(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
 
-    LoadAllocationStatsAddress(temp_reg, cls.id());
+    LoadAllocationStatsAddress(temp_reg, cls.id(),
+                               /* inline_isolate = */ false);
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
@@ -3485,28 +3533,26 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cid, temp1, failure);
-    Isolate* isolate = Isolate::Current();
-    Heap* heap = isolate->heap();
-    Heap::Space space = heap->SpaceForAllocation(cid);
-    LoadImmediate(temp1, heap->TopAddress(space));
-    ldr(instance, Address(temp1, 0));  // Potential new object start.
+    MaybeTraceAllocation(cid, temp1, failure, /* inline_isolate = */ false);
+    Heap::Space space = Heap::SpaceForAllocation(cid);
+    ldr(temp1, Address(THR, Thread::heap_offset()));
+    // Potential new object start.
+    ldr(instance, Address(temp1, Heap::TopOffset(space)));
     AddImmediateSetFlags(end_address, instance, instance_size);
     b(failure, CS);  // Branch if unsigned overflow.
 
     // Check if the allocation fits into the remaining space.
     // instance: potential new object start.
     // end_address: potential next object start.
-    LoadImmediate(temp2, heap->EndAddress(space));
-    ldr(temp2, Address(temp2, 0));
+    ldr(temp2, Address(temp1, Heap::EndOffset(space)));
     cmp(end_address, Operand(temp2));
     b(failure, CS);
 
-    LoadAllocationStatsAddress(temp2, cid);
+    LoadAllocationStatsAddress(temp2, cid, /* inline_isolate = */ false);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
-    str(end_address, Address(temp1, 0));
+    str(end_address, Address(temp1, Heap::TopOffset(space)));
     add(instance, instance, Operand(kHeapObjectTag));
 
     // Initialize the tags.
@@ -3527,11 +3573,10 @@ void Assembler::TryAllocateArray(intptr_t cid,
 
 void Assembler::Stop(const char* message) {
   if (FLAG_print_stop_message) {
-    StubCode* stub_code = Isolate::Current()->stub_code();
     PushList((1 << R0) | (1 << IP) | (1 << LR));  // Preserve R0, IP, LR.
     LoadImmediate(R0, reinterpret_cast<int32_t>(message));
     // PrintStopMessage() preserves all registers.
-    BranchLink(&stub_code->PrintStopMessageLabel());  // Passing message in R0.
+    BranchLink(&StubCode::PrintStopMessage_entry()->label());
     PopList((1 << R0) | (1 << IP) | (1 << LR));  // Restore R0, IP, LR.
   }
   // Emit the message address before the svc instruction, so that we can

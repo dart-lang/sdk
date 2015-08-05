@@ -10,9 +10,69 @@ getter_setter_in_lib_test: Fail # Issue 23288
 
 async_star_test/02: RuntimeError # 22853
 async_star_test/05: RuntimeError, Timeout
+tearoff_basic_test: Skip # Tear-off not supported
+tearoff_constructor_basic_test: Skip # Tear-off not supported
 
 try_catch_on_syntax_test/10: Fail # Issue 19823
 try_catch_on_syntax_test/11: Fail # Issue 19823
+
+call_function_apply_test: RuntimeError # Issue 23873
+
+conditional_method_invocation_test/12: Fail # Issue 23795
+conditional_method_invocation_test/13: Fail # Issue 23795
+conditional_method_invocation_test/14: Fail # Issue 23795
+conditional_method_invocation_test/15: Fail # Issue 23795
+conditional_method_invocation_test/16: Fail # Issue 23795
+conditional_method_invocation_test/17: Fail # Issue 23795
+conditional_method_invocation_test/18: Fail # Issue 23795
+conditional_method_invocation_test/19: Fail # Issue 23795
+conditional_property_access_test/10: Fail # Issue 23795
+conditional_property_access_test/11: Fail # Issue 23795
+conditional_property_access_test/12: Fail # Issue 23795
+conditional_property_access_test/13: Fail # Issue 23795
+conditional_property_access_test/14: Fail # Issue 23795
+conditional_property_access_test/15: Fail # Issue 23795
+conditional_property_access_test/16: Fail # Issue 23795
+conditional_property_access_test/17: Fail # Issue 23795
+conditional_property_assignment_test/23: Fail # Issue 23795
+conditional_property_assignment_test/24: Fail # Issue 23795
+conditional_property_assignment_test/25: Fail # Issue 23795
+conditional_property_assignment_test/26: Fail # Issue 23795
+conditional_property_assignment_test/27: Fail # Issue 23795
+conditional_property_assignment_test/28: Fail # Issue 23795
+conditional_property_assignment_test/29: Fail # Issue 23795
+conditional_property_assignment_test/30: Fail # Issue 23795
+conditional_property_assignment_test/31: Fail # Issue 23795
+conditional_property_assignment_test/32: Fail # Issue 23795
+conditional_property_assignment_test/33: Fail # Issue 23795
+conditional_property_assignment_test/34: Fail # Issue 23795
+conditional_property_assignment_test/35: Fail # Issue 23795
+conditional_property_increment_decrement_test/17: Fail # Issue 23795
+conditional_property_increment_decrement_test/18: Fail # Issue 23795
+conditional_property_increment_decrement_test/19: Fail # Issue 23795
+conditional_property_increment_decrement_test/20: Fail # Issue 23795
+conditional_property_increment_decrement_test/21: Fail # Issue 23795
+conditional_property_increment_decrement_test/22: Fail # Issue 23795
+conditional_property_increment_decrement_test/23: Fail # Issue 23795
+conditional_property_increment_decrement_test/24: Fail # Issue 23795
+conditional_property_increment_decrement_test/25: Fail # Issue 23795
+conditional_property_increment_decrement_test/26: Fail # Issue 23795
+conditional_property_increment_decrement_test/27: Fail # Issue 23795
+conditional_property_increment_decrement_test/28: Fail # Issue 23795
+conditional_property_increment_decrement_test/29: Fail # Issue 23795
+conditional_property_increment_decrement_test/30: Fail # Issue 23795
+conditional_property_increment_decrement_test/31: Fail # Issue 23795
+conditional_property_increment_decrement_test/32: Fail # Issue 23795
+conditional_property_increment_decrement_test/33: Fail # Issue 23795
+conditional_property_increment_decrement_test/34: Fail # Issue 23795
+conditional_property_increment_decrement_test/35: Fail # Issue 23795
+conditional_property_increment_decrement_test/36: Fail # Issue 23795
+conditional_property_increment_decrement_test/37: Fail # Issue 23795
+conditional_property_increment_decrement_test/38: Fail # Issue 23795
+conditional_property_increment_decrement_test/39: Fail # Issue 23795
+conditional_property_increment_decrement_test/40: Fail # Issue 23795
+if_null_assignment_behavior_test/31: Fail # Issue 23795
+if_null_assignment_behavior_test/32: Fail # Issue 23795
 
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
@@ -63,10 +123,8 @@ if_null_assignment_behavior_test/14: Crash # Issue 23491
 nullaware_opt_test: Fail # Fails at e?.f ??= 200;
 
 if_null_assignment_behavior_test/29: Crash # Issue 23611
-if_null_assignment_behavior_test/30: Crash # Issue 23611
 prefix_assignment_test/01: Crash # Issue 23611
 prefix_assignment_test/02: Crash # Issue 23611
-prefix_identifier_reference_test/04: Crash # Issue 23611
 prefix_identifier_reference_test/05: Crash # Issue 23611
 
 const_error_multiply_initialized_test/02: CompileTimeError # Issue 23618
@@ -74,6 +132,14 @@ const_error_multiply_initialized_test/04: CompileTimeError # Issue 23618
 
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
+
+multiline_newline_test/01: CompileTimeError # Issue 23888
+multiline_newline_test/02: CompileTimeError # Issue 23888
+multiline_newline_test/03: CompileTimeError # Issue 23888
+multiline_newline_test/04: MissingCompileTimeError # Issue 23888
+multiline_newline_test/05: MissingCompileTimeError # Issue 23888
+multiline_newline_test/06: MissingCompileTimeError # Issue 23888
+multiline_newline_test/none: RuntimeError # Issue 23888
 
 [ $compiler == dart2js && $checked ]
 type_variable_bounds_test/02: Fail # Issue 12702
@@ -233,6 +299,7 @@ regress_22443_test: Pass,RuntimeError # Issue 17458
 [ $compiler == dart2js && $cps_ir == false ]
 generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
+many_method_calls_test: Crash # Stack overflow in HGraphVisitor.visitPostDominatorTree.visitBasicBlockAndSuccessors
 
 [ $compiler == dart2js && $cps_ir ]
 async_and_or_test: Crash # (test()async{await test1();await test2();}): cannot handle async/sync*/async* functions
@@ -351,9 +418,10 @@ cha_deopt2_test: Crash # (d.make_u()): deferred access is not implemented
 cha_deopt3_test: Crash # (d.make_u()): deferred access is not implemented
 closure_in_constructor_test: Crash # Invalid argument(s)
 closure_type_variables_test: Crash # Invalid argument(s)
+closures_initializer_test: RuntimeError # Please triage this failure.
 const_evaluation_test/01: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 constructor12_test: RuntimeError # Please triage this failure.
-crash_6725_test/01: Crash # The null object does not have a getter '_element'.
+crash_6725_test/01: Crash # unsupported operation on erroneous element
 custom_await_stack_trace_test: Crash # (main()async{try {va...  cannot handle async/sync*/async* functions
 deferred_call_empty_before_load_test: Crash # (lib1.thefun()): deferred access is not implemented
 deferred_closurize_load_library_test: Crash # (lib.trueVar): deferred access is not implemented
@@ -394,8 +462,13 @@ deferred_regression_22995_test: Crash # (lib.foofoo()): deferred access is not i
 deferred_shadow_load_library_test: Crash # (lib.trueVar): deferred access is not implemented
 deferred_shared_and_unshared_classes_test: Crash # (lib2.foo()): deferred access is not implemented
 deferred_static_seperate_test: Crash # (lib1.x): deferred access is not implemented
+deferred_type_dependency_test/as: Crash # (main()async{await l...  cannot handle async/sync*/async* functions
+deferred_type_dependency_test/is: Crash # (main()async{await l...  cannot handle async/sync*/async* functions
+deferred_type_dependency_test/none: Crash # (main()async{await l...  cannot handle async/sync*/async* functions
+deferred_type_dependency_test/type_annotation: Crash # (main()async{await l...  cannot handle async/sync*/async* functions
 enum_mirror_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 final_super_field_set_test/01: RuntimeError # Please triage this failure.
+first_class_types_test: RuntimeError # Please triage this failure.
 flatten_test/01: Crash # (test()async{int x=await new Derived<int>();}): cannot handle async/sync*/async* functions
 flatten_test/02: Crash # (test()async{Future<int> f()async=>new Derived<int>();}): cannot handle async/sync*/async* functions
 flatten_test/03: Crash # (test()async{Future<...  cannot handle async/sync*/async* functions
@@ -411,7 +484,10 @@ flatten_test/12: Crash # (test()async{Future<...  cannot handle async/sync*/asyn
 flatten_test/none: Crash # (test()async{}): cannot handle async/sync*/async* functions
 for2_test: Crash # The null object does not have a getter 'field'.
 for_variable_capture_test: Crash # (i=0): For-loop variable captured in loop header
+generic2_test: RuntimeError # Please triage this failure.
 generic_field_mixin3_test: RuntimeError # Please triage this failure.
+generic_instanceof_test: RuntimeError # Please triage this failure.
+generic_native_test: RuntimeError # Please triage this failure.
 if_null_assignment_behavior_test/12: RuntimeError # Please triage this failure.
 if_null_assignment_behavior_test/28: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/01: RuntimeError # v0.get$a is not a function
@@ -428,17 +504,15 @@ if_null_assignment_static_test/39: RuntimeError # v0.get$b is not a function
 if_null_assignment_static_test/40: RuntimeError # v0.get$a is not a function
 infinite_switch_label_test: Crash # (switch (target){l0:...  continue to a labeled switch case
 instance_creation_in_function_annotation_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
+instanceof2_test: RuntimeError # Please triage this failure.
 instanceof4_test/01: RuntimeError # Please triage this failure.
 invocation_mirror_invoke_on_test: RuntimeError # Please triage this failure.
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
 issue_1751477_test: RuntimeError # O.loadLibrary is not a function
-large_class_declaration_test: Crash # Stack Overflow
+list_is_test: RuntimeError # Please triage this failure.
 list_test: RuntimeError # Please triage this failure.
+many_generic_instanceof_test: RuntimeError # Please triage this failure.
 many_overridden_no_such_method_test: RuntimeError # Please triage this failure.
-mixin_type_parameters_mixin_extends_test: Crash # The null object does not have a getter '_element'.
-mixin_type_parameters_mixin_test: Crash # The null object does not have a getter '_element'.
-mixin_type_parameters_super_extends_test: Crash # The null object does not have a getter '_element'.
-mixin_type_parameters_super_test: Crash # The null object does not have a getter '_element'.
 nested_switch_label_test: Crash # (switch (target){out...  continue to a labeled switch case
 no_such_method_test: RuntimeError # Please triage this failure.
 null_test/none: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
@@ -451,8 +525,6 @@ regress_22445_test: Crash # (main()async{var err...  cannot handle async/sync*/a
 regress_22579_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_22728_test: Crash # (main()async{bool fa...  cannot handle async/sync*/async* functions
 regress_22777_test: Crash # (test()async{try {te...  cannot handle async/sync*/async* functions
-regress_22936_test/01: Crash # The null object does not have a getter '_element'.
-regress_22936_test/none: Crash # The null object does not have a getter '_element'.
 regress_23408_test: RuntimeError # G.loadLibrary is not a function
 regress_23498_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_23500_test/01: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
@@ -483,7 +555,6 @@ syncstar_less_than_test: Crash # (Iterable<int> foo()...  cannot handle async/sy
 syncstar_yield_test/copyParameters: Crash # (Iterable<int> foo3(...  cannot handle async/sync*/async* functions
 syncstar_yield_test/none: Crash # (Iterable<int> foo3(...  cannot handle async/sync*/async* functions
 syncstar_yieldstar_test: Crash # (main()async{Expect....  cannot handle async/sync*/async* functions
-try_catch_test/none: Crash # The null object does not have a getter '_element'.
 type_parameter_test/01: Crash # Invalid argument(s)
 type_parameter_test/02: Crash # Invalid argument(s)
 type_parameter_test/03: Crash # Invalid argument(s)
@@ -493,3 +564,9 @@ type_parameter_test/06: Crash # Invalid argument(s)
 type_parameter_test/none: Crash # Invalid argument(s)
 type_variable_closure2_test: RuntimeError # Please triage this failure.
 type_variable_closure_test: Crash # Invalid argument(s)
+type_variable_field_initializer_closure_test: RuntimeError # Please triage this failure.
+type_variable_field_initializer_test: RuntimeError # Please triage this failure.
+type_variable_nested_test: RuntimeError # Please triage this failure.
+
+[ $compiler == dart2js && ($runtime == d8 || $runtime == jsshell) ]
+issue23244_test: RuntimeError # 23244

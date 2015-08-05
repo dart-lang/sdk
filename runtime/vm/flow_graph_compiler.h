@@ -337,13 +337,13 @@ class FlowGraphCompiler : public ValueObject {
                            LocationSummary* locs);
 
   void GenerateCall(intptr_t token_pos,
-                    const ExternalLabel* label,
+                    const StubEntry& stub_entry,
                     RawPcDescriptors::Kind kind,
                     LocationSummary* locs);
 
   void GenerateDartCall(intptr_t deopt_id,
                         intptr_t token_pos,
-                        const ExternalLabel* label,
+                        const StubEntry& stub_entry,
                         RawPcDescriptors::Kind kind,
                         LocationSummary* locs);
 
@@ -393,14 +393,14 @@ class FlowGraphCompiler : public ValueObject {
   static int32_t EdgeCounterIncrementSizeInBytes();
 #endif  // !TARGET_ARCH_ARM64 && !TARGET_ARCH_MIPS
 
-  void EmitOptimizedInstanceCall(ExternalLabel* target_label,
+  void EmitOptimizedInstanceCall(const StubEntry& stub_entry,
                                  const ICData& ic_data,
                                  intptr_t argument_count,
                                  intptr_t deopt_id,
                                  intptr_t token_pos,
                                  LocationSummary* locs);
 
-  void EmitInstanceCall(ExternalLabel* target_label,
+  void EmitInstanceCall(const StubEntry& stub_entry,
                         const ICData& ic_data,
                         intptr_t argument_count,
                         intptr_t deopt_id,
@@ -538,6 +538,8 @@ class FlowGraphCompiler : public ValueObject {
   }
 
   RawArray* InliningIdToFunction() const;
+
+  RawArray* CallerInliningIdMap() const;
 
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.

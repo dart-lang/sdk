@@ -186,7 +186,8 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, EDI, &fall_through, false);                     \
+  __ MaybeTraceAllocation(cid, EDI, &fall_through, false,                      \
+                          /* inline_isolate = */ false);                       \
   __ movl(EDI, Address(ESP, kArrayLengthStackOffset));  /* Array length. */    \
   /* Check that length is a positive Smi. */                                   \
   /* EDI: requested array length argument. */                                  \
@@ -209,9 +210,9 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ leal(EDI, Address(EDI, scale_factor, fixed_size));                        \
   __ andl(EDI, Immediate(-kObjectAlignment));                                  \
-  Heap* heap = Isolate::Current()->heap();                                     \
-  Heap::Space space = heap->SpaceForAllocation(cid);                           \
-  __ movl(EAX, Address::Absolute(heap->TopAddress(space)));                    \
+  Heap::Space space = Heap::SpaceForAllocation(cid);                           \
+  __ movl(ECX, Address(THR, Thread::heap_offset()));                           \
+  __ movl(EAX, Address(ECX, Heap::TopOffset(space)));                          \
   __ movl(EBX, EAX);                                                           \
                                                                                \
   /* EDI: allocation size. */                                                  \
@@ -222,14 +223,16 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* EAX: potential new object start. */                                       \
   /* EBX: potential next object start. */                                      \
   /* EDI: allocation size. */                                                  \
-  __ cmpl(EBX, Address::Absolute(heap->EndAddress(space)));                    \
+  /* ECX: heap. */                                                             \
+  __ cmpl(EBX, Address(ECX, Heap::EndOffset(space)));                          \
   __ j(ABOVE_EQUAL, &fall_through);                                            \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ movl(Address::Absolute(heap->TopAddress(space)), EBX);                    \
+  __ movl(Address(ECX, Heap::TopOffset(space)), EBX);                          \
   __ addl(EAX, Immediate(kHeapObjectTag));                                     \
-  __ UpdateAllocationStatsWithSize(cid, EDI, kNoRegister, space);              \
+  __ UpdateAllocationStatsWithSize(cid, EDI, ECX, space,                       \
+                                   /* inline_isolate = */ false);              \
                                                                                \
   /* Initialize the tags. */                                                   \
   /* EAX: new object start as a tagged pointer. */                             \
@@ -588,7 +591,7 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
                  &fall_through,
                  Assembler::kNearJump,
                  EAX,  // Result register.
-                 kNoRegister);
+                 ECX);  // temp
   // EBX and EDI are not objects but integer values.
   __ movl(FieldAddress(EAX, Mint::value_offset()), EBX);
   __ movl(FieldAddress(EAX, Mint::value_offset() + kWordSize), EDI);
@@ -1869,7 +1872,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure,
                                      Register length_reg) {
-  __ MaybeTraceAllocation(kOneByteStringCid, EAX, failure, false);
+  __ MaybeTraceAllocation(kOneByteStringCid, EAX, failure, false,
+                          /* inline_isolate = */ false);
   if (length_reg != EDI) {
     __ movl(EDI, length_reg);
   }
@@ -1880,11 +1884,10 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ leal(EDI, Address(EDI, TIMES_1, fixed_size));  // EDI is untagged.
   __ andl(EDI, Immediate(-kObjectAlignment));
 
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
   const intptr_t cid = kOneByteStringCid;
-  Heap::Space space = heap->SpaceForAllocation(cid);
-  __ movl(EAX, Address::Absolute(heap->TopAddress(space)));
+  Heap::Space space = Heap::SpaceForAllocation(cid);
+  __ movl(ECX, Address(THR, Thread::heap_offset()));
+  __ movl(EAX, Address(ECX, Heap::TopOffset(space)));
   __ movl(EBX, EAX);
 
   // EDI: allocation size.
@@ -1895,15 +1898,17 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // EAX: potential new object start.
   // EBX: potential next object start.
   // EDI: allocation size.
-  __ cmpl(EBX, Address::Absolute(heap->EndAddress(space)));
+  // ECX: heap.
+  __ cmpl(EBX, Address(ECX, Heap::EndOffset(space)));
   __ j(ABOVE_EQUAL, &pop_and_fail);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movl(Address::Absolute(heap->TopAddress(space)), EBX);
+  __ movl(Address(ECX, Heap::TopOffset(space)), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
 
-  __ UpdateAllocationStatsWithSize(cid, EDI, kNoRegister, space);
+  __ UpdateAllocationStatsWithSize(cid, EDI, ECX, space,
+                                   /* inline_isolate = */ false);
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
@@ -2116,45 +2121,32 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
 
 // On stack: user tag (+1), return-address (+0).
 void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
-  Isolate* isolate = Isolate::Current();
-  const Address current_tag_addr =
-      Address::Absolute(reinterpret_cast<uword>(isolate) +
-                        Isolate::current_tag_offset());
-  const Address user_tag_addr =
-      Address::Absolute(reinterpret_cast<uword>(isolate) +
-                        Isolate::user_tag_offset());
+  // RDI: Isolate.
+  __ LoadIsolate(EDI);
   // EAX: Current user tag.
-  __ movl(EAX, current_tag_addr);
+  __ movl(EAX, Address(EDI, Isolate::current_tag_offset()));
   // EAX: UserTag.
   __ movl(EBX, Address(ESP, + 1 * kWordSize));
   // Set Isolate::current_tag_.
-  __ movl(current_tag_addr, EBX);
+  __ movl(Address(EDI, Isolate::current_tag_offset()), EBX);
   // EAX: UserTag's tag.
   __ movl(EBX, FieldAddress(EBX, UserTag::tag_offset()));
   // Set Isolate::user_tag_.
-  __ movl(user_tag_addr, EBX);
+  __ movl(Address(EDI, Isolate::user_tag_offset()), EBX);
   __ ret();
 }
 
 
 void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
-  Isolate* isolate = Isolate::Current();
-  const Address default_tag_addr =
-      Address::Absolute(
-          reinterpret_cast<uword>(isolate) + Isolate::default_tag_offset());
-  // Set return value.
-  __ movl(EAX, default_tag_addr);
+  __ LoadIsolate(EAX);
+  __ movl(EAX, Address(EAX, Isolate::default_tag_offset()));
   __ ret();
 }
 
 
 void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
-  Isolate* isolate = Isolate::Current();
-  const Address current_tag_addr =
-      Address::Absolute(reinterpret_cast<uword>(isolate) +
-                        Isolate::current_tag_offset());
-  // Set return value to Isolate::current_tag_.
-  __ movl(EAX, current_tag_addr);
+  __ LoadIsolate(EAX);
+  __ movl(EAX, Address(EAX, Isolate::current_tag_offset()));
   __ ret();
 }
 

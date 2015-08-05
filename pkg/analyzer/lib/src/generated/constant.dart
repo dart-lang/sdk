@@ -3526,9 +3526,7 @@ class EvaluationResultImpl {
   }
 
   @deprecated // Use new EvaluationResultImpl(value, errors)
-  EvaluationResultImpl.con2(this.value, List<AnalysisError> errors) {
-    this._errors = errors;
-  }
+  EvaluationResultImpl.con2(this.value, List<AnalysisError> this._errors);
 
   List<AnalysisError> get errors => _errors;
 

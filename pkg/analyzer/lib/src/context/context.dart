@@ -247,7 +247,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         (this._options.hint && !options.hint) ||
         (this._options.lint && !options.lint) ||
         this._options.preserveComments != options.preserveComments ||
-        this._options.enableStrictCallChecks != options.enableStrictCallChecks;
+        this._options.enableStrictCallChecks !=
+            options.enableStrictCallChecks ||
+        this._options.enableSuperMixins != options.enableSuperMixins;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
       this._options.cacheSize = cacheSize;
@@ -258,6 +260,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
+    this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
     this._options.incrementalApi = options.incrementalApi;

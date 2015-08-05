@@ -176,12 +176,15 @@ Future analyze(String serializedData, Uri entryPoint, Test test) async {
   Deserializer deserializer = new Deserializer.fromText(
       serializedData, const JsonSerializationDecoder());
   DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
-  Compiler compiler = compilerFor(
-      test != null ? test.sourceFiles : const {},
+  await runCompiler(
+      entryPoint: entryPoint,
+      memorySourceFiles: test != null ? test.sourceFiles : const {},
       options: ['--analyze-only', '--output-type=dart'],
-      diagnosticHandler: diagnosticCollector);
-  compiler.serialization.deserializer = new _DeserializerSystem(deserializer);
-  await compiler.runCompiler(entryPoint);
+      diagnosticHandler: diagnosticCollector,
+      beforeRun: (Compiler compiler) {
+        compiler.serialization.deserializer =
+            new _DeserializerSystem(deserializer);
+      });
   if (test != null) {
     Expect.equals(test.expectedErrorCount, diagnosticCollector.errors.length,
         "Unexpected error count.");

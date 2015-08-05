@@ -242,9 +242,9 @@ class JavaScriptBackend extends Backend {
   static const String START_ROOT_ISOLATE = 'startRootIsolate';
 
 
+  String get patchVersion => emitter.patchVersion;
+  
   bool get supportsReflection => emitter.emitter.supportsReflection;
-
-  String get patchVersion => USE_LAZY_EMITTER ? 'lazy' : 'full';
 
   final Annotations annotations;
 

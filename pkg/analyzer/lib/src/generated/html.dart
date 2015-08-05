@@ -1160,11 +1160,7 @@ class XmlExpression_Reference {
 
   int length = 0;
 
-  XmlExpression_Reference(Element element, int offset, int length) {
-    this.element = element;
-    this.offset = offset;
-    this.length = length;
-  }
+  XmlExpression_Reference(this.element, this.offset, this.length);
 }
 
 /**

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/dart2jslib.dart';
@@ -48,8 +47,10 @@ void main(List<String> args) {
 };
 
 main() {
-  Compiler compiler = compilerFor(MEMORY_SOURCE_FILES);
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+  asyncTest(() async {
+    CompilationResult result =
+        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+    Compiler compiler = result.compiler;
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
     JavaScriptBackend backend = compiler.backend;
     Expect.isNotNull(backend.annotations.expectNoInlineClass,
@@ -123,5 +124,5 @@ main() {
          expectTrustTypeAnnotations: true,
          expectedParameterType: coreStringType);
 
-  }));
+  });
 }

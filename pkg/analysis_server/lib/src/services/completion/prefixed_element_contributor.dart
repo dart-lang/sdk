@@ -8,9 +8,12 @@ import 'dart:async';
 
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/local_declaration_visitor.dart';
-import 'package:analysis_server/src/services/completion/local_suggestion_builder.dart';
+import 'package:analysis_server/src/services/completion/local_suggestion_builder.dart'
+    hide createSuggestion;
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
+import 'package:analysis_server/src/services/completion/suggestion_builder.dart'
+    show createSuggestion;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -134,7 +137,7 @@ class _FieldFormalSuggestionBuilder implements SuggestionBuilder {
                 if (fieldName != null && fieldName.length > 0) {
                   if (!referencedFields.contains(fieldName)) {
                     CompletionSuggestion suggestion =
-                        createFieldSuggestion(member, varDecl);
+                        createFieldSuggestion(request.source, member, varDecl);
                     if (suggestion != null) {
                       request.addSuggestion(suggestion);
                     }
@@ -405,20 +408,8 @@ class _PrefixedIdentifierSuggestionBuilder
                 request.target.containingNode.parent is TypeName);
             modified = true;
             if (directive.deferredKeyword != null) {
-              String completion = 'loadLibrary';
-              CompletionSuggestion suggestion = new CompletionSuggestion(
-                  CompletionSuggestionKind.INVOCATION, DART_RELEVANCE_DEFAULT,
-                  completion, completion.length, 0, false, false,
-                  parameterNames: [],
-                  parameterTypes: [],
-                  requiredParameterCount: 0,
-                  hasNamedParameters: false,
-                  returnType: 'void');
-              suggestion.element = new protocol.Element(
-                  protocol.ElementKind.FUNCTION, completion,
-                  protocol.Element.makeFlags(),
-                  parameters: '()', returnType: 'void');
-              request.addSuggestion(suggestion);
+              FunctionElement loadLibFunct = library.loadLibraryFunction;
+              request.addSuggestion(createSuggestion(loadLibFunct));
             }
           }
         }

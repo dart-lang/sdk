@@ -235,7 +235,7 @@ class ModelEmitter {
           NativeGenerator.generateIsolateAffinityTagInitialization(
               backend,
               generateEmbeddedGlobalAccess,
-              // TODO(floitsch): convertToFastObject.
+              // TODO(floitsch): internStringFunction.
               js.js("(function(x) { return x; })", []));
     } else {
       nativeIsolateAffinityTagInitialization = js.js.statement(";");

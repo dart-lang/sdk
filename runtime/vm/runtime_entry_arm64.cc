@@ -49,15 +49,15 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     __ mov(R26, SP);
     __ ReserveAlignedFrameSpace(0);
     __ mov(CSP, SP);
-    __ BranchLink(&label, kNoPP);
+    __ BranchLink(&label);
     __ mov(SP, R26);
     __ mov(CSP, R25);
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
-    __ LoadExternalLabel(R5, &label, kNotPatchable, PP);
-    __ LoadImmediate(R4, argument_count, kNoPP);
-    __ BranchLink(&Isolate::Current()->stub_code()->CallToRuntimeLabel(), PP);
+    __ LoadExternalLabel(R5, &label);
+    __ LoadImmediate(R4, argument_count);
+    __ BranchLink(*StubCode::CallToRuntime_entry());
   }
 }
 

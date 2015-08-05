@@ -13,12 +13,14 @@ namespace dart {
 
 class CHA;
 class HandleScope;
+class Heap;
 class Isolate;
 class Object;
 class RawBool;
 class RawObject;
 class StackResource;
 class Zone;
+
 
 // List of VM-global objects/addresses cached in each Thread object.
 #define CACHED_VM_OBJECTS_LIST(V)                                              \
@@ -28,7 +30,7 @@ class Zone;
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
   V(uword, update_store_buffer_entry_point_,                                   \
-    StubCode::UpdateStoreBufferEntryPoint(), 0)
+    StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)
 
 #define CACHED_CONSTANTS_LIST(V)                                               \
   CACHED_VM_OBJECTS_LIST(V)                                                    \
@@ -117,6 +119,10 @@ class Thread {
     return OFFSET_OF(Thread, state_) + OFFSET_OF(State, top_resource);
   }
 
+  static intptr_t heap_offset() {
+    return OFFSET_OF(Thread, heap_);
+  }
+
   int32_t no_handle_scope_depth() const {
 #if defined(DEBUG)
     return state_.no_handle_scope_depth;
@@ -153,6 +159,28 @@ class Thread {
 #endif
   }
 
+  int32_t no_safepoint_scope_depth() const {
+#if defined(DEBUG)
+    return state_.no_safepoint_scope_depth;
+#else
+    return 0;
+#endif
+  }
+
+  void IncrementNoSafepointScopeDepth() {
+#if defined(DEBUG)
+    ASSERT(state_.no_safepoint_scope_depth < INT_MAX);
+    state_.no_safepoint_scope_depth += 1;
+#endif
+  }
+
+  void DecrementNoSafepointScopeDepth() {
+#if defined(DEBUG)
+    ASSERT(state_.no_safepoint_scope_depth > 0);
+    state_.no_safepoint_scope_depth -= 1;
+#endif
+  }
+
   // Collection of isolate-specific state of a thread that is saved/restored
   // on isolate exit/re-entry.
   struct State {
@@ -162,6 +190,7 @@ class Thread {
 #if defined(DEBUG)
     HandleScope* top_handle_scope;
     intptr_t no_handle_scope_depth;
+    int32_t no_safepoint_scope_depth;
 #endif
   };
 
@@ -179,6 +208,7 @@ CACHED_CONSTANTS_LIST(DEFINE_OFFSET_METHOD)
   static ThreadLocalKey thread_key_;
 
   Isolate* isolate_;
+  Heap* heap_;
   State state_;
   StoreBufferBlock* store_buffer_block_;
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
@@ -207,6 +237,7 @@ CACHED_CONSTANTS_LIST(DECLARE_MEMBERS)
   void Schedule(Isolate* isolate);
   void Unschedule();
 
+  friend class ApiZone;
   friend class Isolate;
   friend class StackZone;
   DISALLOW_COPY_AND_ASSIGN(Thread);

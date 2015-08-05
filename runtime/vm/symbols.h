@@ -389,6 +389,7 @@ class ObjectPointerVisitor;
   V(last, "last")                                                              \
   V(removeLast, "removeLast")                                                  \
   V(add, "add")                                                                \
+  V(ConstructorClosurePrefix, "new#")                                          \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This
@@ -502,6 +503,9 @@ class Symbols : public AllStatic {
   }
   static const String& At() {
     return *(symbol_handles_[kNullCharId + '@']);
+  }
+  static const String& HashMark() {
+    return *(symbol_handles_[kNullCharId + '#']);
   }
   static const String& Semicolon() {
     return *(symbol_handles_[kNullCharId + ';']);

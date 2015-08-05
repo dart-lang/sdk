@@ -1,7 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--supermixin
+// SharedOptions=--supermixin
 
 import "package:expect/expect.dart";
 
@@ -15,13 +15,21 @@ bool inCheckedMode() {
   return false;
 }
 
-class MS<U, V extends U> { }
+class MS<U, V
+    extends U /// 01: static type warning
+    > { }
 
-class M<U extends V, V> extends MS<V, U> { }
+class M<U
+    extends V /// 01: continued
+    , V> extends MS<V, U> { }
 
-class NS<U extends V, V> { }
+class NS<U
+    extends V /// 01: continued
+    , V> { }
 
-class N<U, V extends U> extends NS<V, U> { }
+class N<U, V
+    extends U /// 01: continued
+    > extends NS<V, U> { }
 
 class S<T> { }
 
@@ -42,7 +50,10 @@ main() {
   new MNA2<num, int, bool>();
   new MNA3<num, int, bool>();
   new MNA4<num, int, bool>();
-  if (inCheckedMode()) {
+  bool shouldThrow = false
+      || inCheckedMode() /// 01: continued
+      ;
+  if (shouldThrow) {
     // Type parameter U of M must extend type parameter V, but
     // type argument List<num> is not a subtype of List<int>.
     Expect.throws(() => new MNA<int, num, bool>(), (e) => e is TypeError);

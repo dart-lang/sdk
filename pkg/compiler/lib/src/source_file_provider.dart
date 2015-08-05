@@ -170,8 +170,8 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
   }
 
   @override
-  void report(Uri uri, int begin, int end, String message,
-                        api.Diagnostic kind) {
+  void report(var code, Uri uri, int begin, int end, String message,
+              api.Diagnostic kind) {
     // TODO(ahe): Remove this when source map is handled differently.
     if (identical(kind.name, 'source map')) return;
 
@@ -236,7 +236,7 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
   // TODO(johnniwinther): Remove this when no longer needed for the old compiler
   // API.
   void call(Uri uri, int begin, int end, String message, api.Diagnostic kind) {
-    return report(uri, begin, end, message, kind);
+    return report(null, uri, begin, end, message, kind);
   }
 }
 

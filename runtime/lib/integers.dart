@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(srdjan): fix limitations.
-// - shift amount must be a Smi.
 class _IntegerImplementation extends _Num {
   // The Dart class _Bigint extending _IntegerImplementation requires a
   // default constructor.

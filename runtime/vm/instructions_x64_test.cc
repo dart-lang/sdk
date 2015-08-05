@@ -15,8 +15,7 @@ namespace dart {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Call, assembler) {
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  __ call(&stub_code->InvokeDartCodeLabel());
+  __ Call(*StubCode::InvokeDartCode_entry());
   __ ret();
 }
 
@@ -27,13 +26,10 @@ static intptr_t prologue_code_size = -1;
 ASSEMBLER_TEST_GENERATE(Jump, assembler) {
   ASSERT(assembler->CodeSize() == 0);
   __ pushq(PP);
-  __ LoadPoolPointer(PP);
+  __ LoadPoolPointer();
   prologue_code_size = assembler->CodeSize();
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  __ JmpPatchable(&stub_code->InvokeDartCodeLabel(), PP);
-  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
-  const ExternalLabel array_label(array_stub.EntryPoint());
-  __ JmpPatchable(&array_label, PP);
+  __ JmpPatchable(*StubCode::InvokeDartCode_entry(), PP);
+  __ JmpPatchable(*StubCode::AllocateArray_entry(), PP);
   __ popq(PP);
   __ ret();
 }
@@ -43,7 +39,6 @@ ASSEMBLER_TEST_RUN(Jump, test) {
   ASSERT(prologue_code_size != -1);
   const Code& code = test->code();
   const Instructions& instrs = Instructions::Handle(code.instructions());
-  StubCode* stub_code = Isolate::Current()->stub_code();
   bool status =
       VirtualMemory::Protect(reinterpret_cast<void*>(instrs.EntryPoint()),
                              instrs.size(),
@@ -51,19 +46,20 @@ ASSEMBLER_TEST_RUN(Jump, test) {
   EXPECT(status);
   JumpPattern jump1(test->entry() + prologue_code_size, test->code());
   jump1.IsValid();
-  EXPECT_EQ(stub_code->InvokeDartCodeLabel().address(),
+  EXPECT_EQ(StubCode::InvokeDartCode_entry()->label().address(),
             jump1.TargetAddress());
   JumpPattern jump2((test->entry() +
                      jump1.pattern_length_in_bytes() + prologue_code_size),
                     test->code());
-  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
+  const Code& array_stub =
+      Code::Handle(StubCode::AllocateArray_entry()->code());
   EXPECT_EQ(array_stub.EntryPoint(), jump2.TargetAddress());
   uword target1 = jump1.TargetAddress();
   uword target2 = jump2.TargetAddress();
   jump1.SetTargetAddress(target2);
   jump2.SetTargetAddress(target1);
   EXPECT_EQ(array_stub.EntryPoint(), jump1.TargetAddress());
-  EXPECT_EQ(stub_code->InvokeDartCodeLabel().address(),
+  EXPECT_EQ(StubCode::InvokeDartCode_entry()->label().address(),
             jump2.TargetAddress());
 }
 

@@ -498,6 +498,30 @@ class C2 {
     assertTarget('zoo', 'zoo(z) {}');
   }
 
+  test_SwitchStatement_c() {
+    // Token('c') SwitchStatement
+    addTestSource('main() { switch(x) {c^} }');
+    assertTarget('}', 'switch (x) {}');
+  }
+
+  test_SwitchStatement_c2() {
+    // Token('c') SwitchStatement
+    addTestSource('main() { switch(x) { c^ } }');
+    assertTarget('}', 'switch (x) {}');
+  }
+
+  test_SwitchStatement_empty() {
+    // SwitchStatement
+    addTestSource('main() { switch(x) {^} }');
+    assertTarget('}', 'switch (x) {}');
+  }
+
+  test_SwitchStatement_empty2() {
+    // SwitchStatement
+    addTestSource('main() { switch(x) { ^ } }');
+    assertTarget('}', 'switch (x) {}');
+  }
+
   test_TypeArgumentList() {
     // TypeName  TypeArgumentList  TypeName
     addTestSource('main() { C<^> c; }');

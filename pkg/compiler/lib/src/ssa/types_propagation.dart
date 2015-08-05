@@ -218,7 +218,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         ? instruction.selector
         : null;
     HTypeConversion converted = new HTypeConversion(
-        null, kind, type, input, selector);
+        null, kind, type, input, selector)
+        ..sourceInformation = instruction.sourceInformation;
     instruction.block.addBefore(instruction, converted);
     input.replaceAllUsersDominatedBy(instruction, converted);
   }

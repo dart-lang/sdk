@@ -4,7 +4,7 @@
 
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: Crash
-cc/AllocGeneric_Overflow: Crash
+cc/AllocGeneric_Overflow: Crash, Timeout
 cc/CodeImmutability: Crash
 
 cc/SNPrint_BadArgs: Skip

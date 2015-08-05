@@ -35,13 +35,14 @@ class RawCode;
   V(DebugStepCheck)                                                            \
   V(MegamorphicLookup)                                                         \
   V(FixAllocationStubTarget)                                                   \
-  V(FixAllocateArrayStubTarget)                                                \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazy)                                                            \
   V(UnoptimizedIdenticalWithNumberCheck)                                       \
   V(OptimizedIdenticalWithNumberCheck)                                         \
   V(ICCallBreakpoint)                                                          \
   V(RuntimeCallBreakpoint)                                                     \
+  V(AllocateArray)                                                             \
+  V(AllocateContext)                                                           \
   V(OneArgCheckInlineCache)                                                    \
   V(TwoArgsCheckInlineCache)                                                   \
   V(SmiAddInlineCache)                                                         \
@@ -57,19 +58,13 @@ class RawCode;
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \
   V(Subtype3TestCache)                                                         \
-  V(AllocateContext)                                                           \
+  V(CallClosureNoSuchMethod)
 
 // Is it permitted for the stubs above to refer to Object::null(), which is
 // allocated in the VM isolate and shared across all isolates.
 // However, in cases where a simple GC-safe placeholder is needed on the stack,
 // using Smi 0 instead of Object::null() is slightly more efficient, since a Smi
 // does not require relocation.
-
-// List of stubs created per isolate, these stubs could potentially contain
-// embedded objects and hence cannot be shared across isolates.
-#define STUB_CODE_LIST(V)                                                      \
-  V(CallClosureNoSuchMethod)                                                   \
-
 
 // class StubEntry is used to describe stub methods generated in dart to
 // abstract out common code executed from generated dart code.
@@ -97,17 +92,8 @@ class StubEntry {
 
 
 // class StubCode is used to maintain the lifecycle of stubs.
-class StubCode {
+class StubCode : public AllStatic {
  public:
-  explicit StubCode(Isolate* isolate)
-    :
-#define STUB_CODE_INITIALIZER(name)                                            \
-        name##_entry_(NULL),
-  STUB_CODE_LIST(STUB_CODE_INITIALIZER)
-        isolate_(isolate) {}
-  ~StubCode();
-
-
   // Generate all stubs which are shared across all isolates, this is done
   // only once and the stub code resides in the vm_isolate heap.
   static void InitOnce();
@@ -122,8 +108,6 @@ class StubCode {
   // transitioning into dart code.
   static bool InInvocationStub(uword pc);
 
-  static bool InInvocationStubForIsolate(Isolate* isolate, uword pc);
-
   // Check if the specified pc is in the jump to exception handler stub.
   static bool InJumpToExceptionHandlerStub(uword pc);
 
@@ -132,14 +116,8 @@ class StubCode {
 
   // Define the shared stub code accessors.
 #define STUB_CODE_ACCESSOR(name)                                               \
-  static StubEntry* name##_entry() {                                           \
+  static const StubEntry* name##_entry() {                                     \
     return name##_entry_;                                                      \
-  }                                                                            \
-  static const ExternalLabel& name##Label() {                                  \
-    return name##_entry()->label();                                            \
-  }                                                                            \
-  static uword name##EntryPoint() {                                            \
-    return name##_entry()->EntryPoint();                                       \
   }                                                                            \
   static intptr_t name##Size() {                                               \
     return name##_entry()->Size();                                             \
@@ -147,27 +125,9 @@ class StubCode {
   VM_STUB_CODE_LIST(STUB_CODE_ACCESSOR);
 #undef STUB_CODE_ACCESSOR
 
-  // Define the per-isolate stub code accessors.
-#define STUB_CODE_ACCESSOR(name)                                               \
-  StubEntry* name##_entry() {                                                  \
-    return name##_entry_;                                                      \
-  }                                                                            \
-  const ExternalLabel& name##Label() {                                         \
-    return name##_entry()->label();                                            \
-  }                                                                            \
-  uword name##EntryPoint() {                                                   \
-    return name##_entry()->EntryPoint();                                       \
-  }                                                                            \
-  intptr_t name##Size() {                                                      \
-    return name##_entry()->Size();                                             \
-  }
-  STUB_CODE_LIST(STUB_CODE_ACCESSOR);
-#undef STUB_CODE_ACCESSOR
-
   static RawCode* GetAllocationStubForClass(const Class& cls);
-  RawCode* GetAllocateArrayStub();
 
-  uword UnoptimizedStaticCallEntryPoint(intptr_t num_args_tested);
+  static const StubEntry* UnoptimizedStaticCallEntry(intptr_t num_args_tested);
 
   static const intptr_t kNoInstantiator = 0;
 
@@ -175,8 +135,6 @@ class StubCode {
       Assembler*, Register recv, Register cache, Register target);
 
  private:
-  void GenerateStubsFor(Isolate* isolate);
-
   friend class MegamorphicCacheTable;
 
   static const intptr_t kStubCodeSize = 4 * KB;
@@ -184,19 +142,12 @@ class StubCode {
 #define STUB_CODE_GENERATE(name)                                               \
   static void Generate##name##Stub(Assembler* assembler);
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE);
-  STUB_CODE_LIST(STUB_CODE_GENERATE);
 #undef STUB_CODE_GENERATE
 
 #define STUB_CODE_ENTRY(name)                                                  \
   static StubEntry* name##_entry_;
   VM_STUB_CODE_LIST(STUB_CODE_ENTRY);
 #undef STUB_CODE_ENTRY
-
-#define STUB_CODE_ENTRY(name)                                                  \
-  StubEntry* name##_entry_;
-  STUB_CODE_LIST(STUB_CODE_ENTRY);
-#undef STUB_CODE_ENTRY
-  Isolate* isolate_;
 
   enum RangeCollectionMode {
     kCollectRanges,
@@ -212,8 +163,6 @@ class StubCode {
   static void GenerateAllocationStubForClass(
       Assembler* assembler, const Class& cls,
       uword* entry_patch_offset, uword* patch_code_pc_offset);
-  static void GeneratePatchableAllocateArrayStub(Assembler* assembler,
-      uword* entry_patch_offset, uword* patch_code_pc_offset);
   static void GenerateNArgsCheckInlineCacheStub(
       Assembler* assembler,
       intptr_t num_args,
@@ -224,13 +173,6 @@ class StubCode {
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);
-
-  static void GenerateIdenticalWithNumberCheckStub(
-      Assembler* assembler,
-      const Register left,
-      const Register right,
-      const Register temp1 = kNoRegister,
-      const Register temp2 = kNoRegister);
 };
 
 }  // namespace dart

@@ -112,13 +112,12 @@ class AnalysisDomainHandler implements RequestHandler {
   Response getNavigation(Request request) {
     var params = new AnalysisGetNavigationParams.fromRequest(request);
     String file = params.file;
-    int offset = params.offset;
-    Future<AnalysisDoneReason> completionFuture =
+    Future<AnalysisDoneReason> analysisFuture =
         server.onFileAnalysisComplete(file);
-    if (completionFuture == null) {
+    if (analysisFuture == null) {
       return new Response.getNavigationInvalidFile(request);
     }
-    completionFuture.then((AnalysisDoneReason reason) {
+    analysisFuture.then((AnalysisDoneReason reason) {
       switch (reason) {
         case AnalysisDoneReason.COMPLETE:
           List<CompilationUnit> units =
@@ -128,11 +127,10 @@ class AnalysisDomainHandler implements RequestHandler {
           } else {
             DartUnitNavigationComputer computer =
                 new DartUnitNavigationComputer();
+            _GetNavigationAstVisitor visitor = new _GetNavigationAstVisitor(
+                params.offset, params.offset + params.length, computer);
             for (CompilationUnit unit in units) {
-              AstNode node = new NodeLocator(offset).searchWithin(unit);
-              if (node != null) {
-                computer.compute(node);
-              }
+              unit.accept(visitor);
             }
             server.sendResponse(new AnalysisGetNavigationResult(
                     computer.files, computer.targets, computer.regions)
@@ -268,11 +266,6 @@ class AnalysisDomainHandler implements RequestHandler {
     var params = new AnalysisUpdateOptionsParams.fromRequest(request);
     AnalysisOptions newOptions = params.options;
     List<OptionUpdater> updaters = new List<OptionUpdater>();
-    if (newOptions.enableNullAwareOperators != null) {
-      updaters.add((engine.AnalysisOptionsImpl options) {
-        options.enableNullAwareOperators = newOptions.enableNullAwareOperators;
-      });
-    }
     if (newOptions.generateDart2jsHints != null) {
       updaters.add((engine.AnalysisOptionsImpl options) {
         options.dart2jsHint = newOptions.generateDart2jsHints;
@@ -290,5 +283,38 @@ class AnalysisDomainHandler implements RequestHandler {
     }
     server.updateOptions(updaters);
     return new AnalysisUpdateOptionsResult().toResponse(request.id);
+  }
+}
+
+/**
+ * An AST visitor that computer navigation regions in the givne region.
+ */
+class _GetNavigationAstVisitor extends UnifyingAstVisitor {
+  final int rangeStart;
+  final int rangeEnd;
+  final DartUnitNavigationComputer computer;
+
+  _GetNavigationAstVisitor(this.rangeStart, this.rangeEnd, this.computer);
+
+  bool isInRange(int offset) {
+    return rangeStart <= offset && offset <= rangeEnd;
+  }
+
+  @override
+  visitNode(AstNode node) {
+    // The node ends before the range starts.
+    if (node.end < rangeStart) {
+      return;
+    }
+    // The node starts after the range ends.
+    if (node.offset > rangeEnd) {
+      return;
+    }
+    // The node starts or ends in the range.
+    if (isInRange(node.offset) || isInRange(node.end)) {
+      computer.compute(node);
+      return;
+    }
+    super.visitNode(node);
   }
 }

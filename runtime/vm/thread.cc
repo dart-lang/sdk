@@ -123,9 +123,9 @@ void Thread::EnterIsolate(Isolate* isolate) {
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
   ASSERT(thread->isolate() == NULL);
-  ASSERT(isolate->mutator_thread() == NULL);
+  ASSERT(!isolate->HasMutatorThread());
   thread->isolate_ = isolate;
-  isolate->set_mutator_thread(thread);
+  isolate->MakeCurrentThreadMutator(thread);
   // TODO(koda): Migrate thread_state_ and profile_data_ to Thread, to allow
   // helper threads concurrent with mutator.
   ASSERT(isolate->thread_state() == NULL);
@@ -140,6 +140,8 @@ void Thread::EnterIsolate(Isolate* isolate) {
   isolate->set_vm_tag(VMTag::kVMTagId);
   ASSERT(thread->store_buffer_block_ == NULL);
   thread->store_buffer_block_ = isolate->store_buffer()->PopBlock();
+  ASSERT(isolate->heap() != NULL);
+  thread->heap_ = isolate->heap();
   thread->Schedule(isolate);
 }
 
@@ -160,9 +162,10 @@ void Thread::ExitIsolate() {
   }
   isolate->set_thread_state(NULL);
   Profiler::EndExecution(isolate);
-  isolate->set_mutator_thread(NULL);
+  isolate->ClearMutatorThread();
   thread->isolate_ = NULL;
   ASSERT(Isolate::Current() == NULL);
+  thread->heap_ = NULL;
 }
 
 
@@ -171,9 +174,11 @@ void Thread::EnterIsolateAsHelper(Isolate* isolate) {
   ASSERT(thread != NULL);
   ASSERT(thread->isolate() == NULL);
   thread->isolate_ = isolate;
+  ASSERT(isolate->heap() != NULL);
+  thread->heap_ = isolate->heap();
   // Do not update isolate->mutator_thread, but perform sanity check:
   // this thread should not be both the main mutator and helper.
-  ASSERT(isolate->mutator_thread() != thread);
+  ASSERT(!isolate->MutatorThreadIsCurrentThread());
   thread->Schedule(isolate);
 }
 
@@ -187,7 +192,8 @@ void Thread::ExitIsolateAsHelper() {
   ASSERT(isolate != NULL);
   thread->Unschedule();
   thread->isolate_ = NULL;
-  ASSERT(isolate->mutator_thread() != thread);
+  thread->heap_ = NULL;
+  ASSERT(!isolate->MutatorThreadIsCurrentThread());
 }
 
 

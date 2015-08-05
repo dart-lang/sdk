@@ -206,6 +206,9 @@ class Emitter implements js_emitter.Emitter {
   }
 
   @override
+  String get patchVersion => "full";
+
+  @override
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
     if (constant.isFunction) return true;    // Already emitted.
     if (constant.isPrimitive) return true;   // Inlined.
@@ -396,6 +399,13 @@ class Emitter implements js_emitter.Emitter {
         String typesAccess =
             generateEmbeddedGlobalAccessString(embeddedNames.TYPES);
         return jsAst.js.expressionTemplateFor("$typesAccess[#]");
+
+      case JsBuiltin.createDartClosureFromNameOfStaticFunction:
+        // The global-functions map contains a map from name to tear-off
+        // getters.
+        String functionGettersMap =
+            generateEmbeddedGlobalAccessString(embeddedNames.GLOBAL_FUNCTIONS);
+        return jsAst.js.expressionTemplateFor("$functionGettersMap[#]()");
 
       default:
         compiler.internalError(NO_LOCATION_SPANNABLE,
@@ -838,7 +848,14 @@ class Emitter implements js_emitter.Emitter {
           NativeGenerator.generateIsolateAffinityTagInitialization(
               backend,
               generateEmbeddedGlobalAccess,
-              js("convertToFastObject", [])));
+              js("""
+        // On V8, the 'intern' function converts a string to a symbol, which
+        // makes property access much faster.
+        function (s) {
+          var o = {};
+          o[s] = 1;
+          return Object.keys(convertToFastObject(o))[0];
+        }""", [])));
     }
 
     parts..add(js.comment('BEGIN invoke [main].'))

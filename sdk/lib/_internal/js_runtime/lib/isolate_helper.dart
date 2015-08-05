@@ -9,9 +9,9 @@ import 'dart:_js_embedded_names' show
     CLASS_FIELDS_EXTRACTOR,
     CREATE_NEW_ISOLATE,
     CURRENT_SCRIPT,
-    GLOBAL_FUNCTIONS,
     INITIALIZE_EMPTY_INSTANCE,
-    INSTANCE_FROM_CLASS_ID;
+    INSTANCE_FROM_CLASS_ID,
+    STATIC_FUNCTION_NAME_PROPERTY_NAME;
 
 import 'dart:async';
 import 'dart:collection' show Queue;
@@ -24,6 +24,7 @@ import 'dart:_js_helper' show
     Null,
     Primitives,
     convertDartClosureToJS,
+    createDartClosureFromNameOfStaticFunction,
     isDartObject,
     random64,
     requiresPreamble;
@@ -103,6 +104,7 @@ void startRootIsolate(entry, args) {
     throw new ArgumentError("Arguments to main must be a List: $args");
   }
   _globalState = new _Manager(entry);
+  _globalState._initialize();
 
   // Don't start the main loop again, if we are in a worker.
   if (_globalState.isWorker) return;
@@ -220,7 +222,9 @@ class _Manager {
   /** The entry point given by [startRootIsolate]. */
   final Function entry;
 
-  _Manager(this.entry) {
+  _Manager(this.entry);
+
+  _initialize() {
     _nativeDetectEnvironment();
     topEventLoop = new _EventLoop();
     isolates = new Map<int, _IsolateContext>();
@@ -235,6 +239,8 @@ class _Manager {
     bool isWindowDefined = globalWindow != null;
     bool isWorkerDefined = globalWorker != null;
 
+    // `isWorker` must be initialized now, since `IsolateNatives.thisScript`
+    // may access it.
     isWorker = !isWindowDefined && globalPostMessageDefined;
     supportsWorkers = isWorker
        || (isWorkerDefined && IsolateNatives.thisScript != null);
@@ -764,6 +770,8 @@ class IsolateNatives {
     }
     // A worker has no script tag - so get an url from a stack-trace.
     if (_globalState.isWorker) return computeThisScriptFromTrace();
+    // An isolate that doesn't support workers, but doesn't have a
+    // currentScript either. This is most likely a Chrome extension.
     return null;
   }
 
@@ -904,8 +912,7 @@ class IsolateNatives {
   }
 
   static _getJSFunctionFromName(String functionName) {
-    var globalFunctionsContainer = JS_EMBEDDED_GLOBAL("", GLOBAL_FUNCTIONS);
-    return JS("", "#[#]()", globalFunctionsContainer, functionName);
+    return createDartClosureFromNameOfStaticFunction(functionName);
   }
 
   /**
@@ -914,7 +921,9 @@ class IsolateNatives {
    * but you should probably not count on this.
    */
   static String _getJSFunctionName(Function f) {
-    return (f is Closure) ? JS("String|Null", r'#.$name', f) : null;
+    return (f is Closure)
+        ? JS("String|Null", r'#[#]', f, STATIC_FUNCTION_NAME_PROPERTY_NAME)
+        : null;
   }
 
   /** Create a new JavaScript object instance given its constructor. */

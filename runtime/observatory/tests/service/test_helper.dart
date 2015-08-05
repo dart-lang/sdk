@@ -1,7 +1,6 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override --checked
 
 library test_helper;
 
@@ -87,6 +86,10 @@ class _TestLauncher {
 typedef Future IsolateTest(Isolate isolate);
 typedef Future VMTest(VM vm);
 
+/// Will be set to the http address of the VM's service protocol before
+/// any tests are invoked.
+String serviceHttpAddress;
+
 /// Runs [tests] in sequence, each of which should take an [Isolate] and
 /// return a [Future]. Code for setting up state can run before and/or
 /// concurrently with the tests. Uses [mainArgs] to determine whether
@@ -113,6 +116,7 @@ void runIsolateTests(List<String> mainArgs,
         port = 8181;
       }
       String addr = 'ws://localhost:$port/ws';
+      serviceHttpAddress = 'http://localhost:$port';
       var testIndex = 1;
       var totalTests = tests.length;
       var name = Platform.script.pathSegments.last;
@@ -167,7 +171,8 @@ Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
           print('Breakpoint reached');
           subscription.cancel();
           if (completer != null) {
-            completer.complete(isolate);
+            // Reload to update isolate.pauseEvent.
+            completer.complete(isolate.reload());
             completer = null;
           }
         }
@@ -237,6 +242,30 @@ Future<Isolate> resumeIsolate(Isolate isolate) {
 }
 
 
+Future resumeAndAwaitEvent(Isolate isolate, stream, onEvent) async {
+  Completer completer = new Completer();
+  var sub;
+  sub = await isolate.vm.listenEventStream(
+    stream,
+    (ServiceEvent event) {
+      var r = onEvent(event);
+      if (r is! Future) {
+        r = new Future.value(r);
+      }
+      r.then((x) => sub.cancel().then((_) {
+        completer.complete();
+      }));
+    });
+  await isolate.resume();
+  return completer.future;
+}
+
+IsolateTest resumeIsolateAndAwaitEvent(stream, onEvent) {
+  return (Isolate isolate) async =>
+      resumeAndAwaitEvent(isolate, stream, onEvent);
+}
+
+
 Future<Class> getClassFromRootLib(Isolate isolate, String className) async {
   Library rootLib = await isolate.rootLibrary.load();
   for (var i = 0; i < rootLib.classes.length; i++) {
@@ -275,6 +304,7 @@ Future runVMTests(List<String> mainArgs,
         port = 8181;
       }
       String addr = 'ws://localhost:$port/ws';
+      serviceHttpAddress = 'http://localhost:$port';
       var testIndex = 1;
       var totalTests = tests.length;
       var name = Platform.script.pathSegments.last;

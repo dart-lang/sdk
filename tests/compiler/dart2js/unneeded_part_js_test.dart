@@ -5,23 +5,21 @@
 // Test that no parts are emitted when deferred loading isn't used.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/dart2jslib.dart';
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 
 main() {
-  DiagnosticCollector diagnostics = new DiagnosticCollector();
-  OutputCollector output = new OutputCollector();
-  Compiler compiler = compilerFor(
-      MEMORY_SOURCE_FILES,
-      diagnosticHandler: diagnostics,
-      outputProvider: output);
-
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+  asyncTest(() async {
+    DiagnosticCollector diagnostics = new DiagnosticCollector();
+    OutputCollector output = new OutputCollector();
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        diagnosticHandler: diagnostics,
+        outputProvider: output);
     Expect.isFalse(diagnostics.hasRegularMessages);
     Expect.isFalse(output.hasExtraOutput);
-    Expect.isFalse(compiler.compilationFailed);
-  }));
+    Expect.isTrue(result.isSuccess);
+  });
 }
 
 const Map MEMORY_SOURCE_FILES = const {

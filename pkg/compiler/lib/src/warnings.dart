@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js;
-
-const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
 
 /**
  * The messages in this file should meet the following guide lines:
@@ -63,9 +60,388 @@ const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
  * 1. what is wrong, 2. why is it wrong, 3. how do I fix it. However, we
  * combine the first two in [template] and the last in [howToFix].
  */
+
+library dart2js.messages;
+
+import 'dart2jslib.dart';
+import 'scanner/scannerlib.dart';
+
+const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
+
+/// Keys for the [MessageTemplate]s.
+enum MessageKind {
+  ABSTRACT_CLASS_INSTANTIATION,
+  ABSTRACT_GETTER,
+  ABSTRACT_METHOD,
+  ABSTRACT_SETTER,
+  ACCESSED_IN_CLOSURE,
+  ACCESSED_IN_CLOSURE_HERE,
+  ADDITIONAL_ARGUMENT,
+  ADDITIONAL_TYPE_ARGUMENT,
+  ALREADY_INITIALIZED,
+  AMBIGUOUS_LOCATION,
+  AMBIGUOUS_REEXPORT,
+  ASSERT_IS_GIVEN_NAMED_ARGUMENTS,
+  ASSIGNING_METHOD,
+  ASSIGNING_METHOD_IN_SUPER,
+  ASSIGNING_TYPE,
+  ASYNC_KEYWORD_AS_IDENTIFIER,
+  ASYNC_MODIFIER_ON_ABSTRACT_METHOD,
+  ASYNC_MODIFIER_ON_CONSTRUCTOR,
+  ASYNC_MODIFIER_ON_SETTER,
+  AWAIT_MEMBER_NOT_FOUND,
+  AWAIT_MEMBER_NOT_FOUND_IN_CLOSURE,
+  BAD_INPUT_CHARACTER,
+  BEFORE_TOP_LEVEL,
+  BINARY_OPERATOR_BAD_ARITY,
+  BODY_EXPECTED,
+  CALL_NOT_SUPPORTED_ON_NATIVE_CLASS,
+  CANNOT_EXTEND,
+  CANNOT_EXTEND_ENUM,
+  CANNOT_EXTEND_MALFORMED,
+  CANNOT_FIND_CONSTRUCTOR,
+  CANNOT_IMPLEMENT,
+  CANNOT_IMPLEMENT_ENUM,
+  CANNOT_IMPLEMENT_MALFORMED,
+  CANNOT_INSTANTIATE_ENUM,
+  CANNOT_INSTANTIATE_TYPE_VARIABLE,
+  CANNOT_INSTANTIATE_TYPEDEF,
+  CANNOT_MIXIN,
+  CANNOT_MIXIN_ENUM,
+  CANNOT_MIXIN_MALFORMED,
+  CANNOT_OVERRIDE_FIELD_WITH_METHOD,
+  CANNOT_OVERRIDE_FIELD_WITH_METHOD_CONT,
+  CANNOT_OVERRIDE_GETTER_WITH_METHOD,
+  CANNOT_OVERRIDE_GETTER_WITH_METHOD_CONT,
+  CANNOT_OVERRIDE_METHOD_WITH_FIELD,
+  CANNOT_OVERRIDE_METHOD_WITH_FIELD_CONT,
+  CANNOT_OVERRIDE_METHOD_WITH_GETTER,
+  CANNOT_OVERRIDE_METHOD_WITH_GETTER_CONT,
+  CANNOT_RESOLVE,
+  CANNOT_RESOLVE_AWAIT,
+  CANNOT_RESOLVE_AWAIT_IN_CLOSURE,
+  CANNOT_RESOLVE_CONSTRUCTOR,
+  CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT,
+  CANNOT_RESOLVE_GETTER,
+  CANNOT_RESOLVE_IN_INITIALIZER,
+  CANNOT_RESOLVE_SETTER,
+  CANNOT_RESOLVE_TYPE,
+  CANNOT_RETURN_FROM_CONSTRUCTOR,
+  CLASS_NAME_EXPECTED,
+  COMPILER_CRASHED,
+  COMPLEX_RETURNING_NSM,
+  COMPLEX_THROWING_NSM,
+  CONSIDER_ANALYZE_ALL,
+  CONST_CALLS_NON_CONST,
+  CONST_CALLS_NON_CONST_FOR_IMPLICIT,
+  CONST_CONSTRUCTOR_HAS_BODY,
+  CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS,
+  CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
+  CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD,
+  CONST_MAP_KEY_OVERRIDES_EQUALS,
+  CONST_WITHOUT_INITIALIZER,
+  CONSTRUCTOR_CALL_EXPECTED,
+  CONSTRUCTOR_IS_NOT_CONST,
+  CONSTRUCTOR_WITH_RETURN_TYPE,
+  CYCLIC_CLASS_HIERARCHY,
+  CYCLIC_COMPILE_TIME_CONSTANTS,
+  CYCLIC_REDIRECTING_FACTORY,
+  CYCLIC_TYPE_VARIABLE,
+  CYCLIC_TYPEDEF,
+  CYCLIC_TYPEDEF_ONE,
+  DART_EXT_NOT_SUPPORTED,
+  DEFERRED_COMPILE_TIME_CONSTANT,
+  DEFERRED_COMPILE_TIME_CONSTANT_CONSTRUCTION,
+  DEFERRED_LIBRARY_DART_2_DART,
+  DEFERRED_LIBRARY_DUPLICATE_PREFIX,
+  DEFERRED_LIBRARY_WITHOUT_PREFIX,
+  DEFERRED_OLD_SYNTAX,
+  DEFERRED_TYPE_ANNOTATION,
+  DEPRECATED_TYPEDEF_MIXIN_SYNTAX,
+  DIRECTLY_THROWING_NSM,
+  DUPLICATE_DEFINITION,
+  DUPLICATE_EXPORT,
+  DUPLICATE_EXPORT_CONT,
+  DUPLICATE_EXPORT_DECL,
+  DUPLICATE_EXTENDS_IMPLEMENTS,
+  DUPLICATE_IMPLEMENTS,
+  DUPLICATE_IMPORT,
+  DUPLICATE_INITIALIZER,
+  DUPLICATE_LABEL,
+  DUPLICATE_SUPER_INITIALIZER,
+  DUPLICATE_TYPE_VARIABLE_NAME,
+  DUPLICATED_LIBRARY_NAME,
+  DUPLICATED_LIBRARY_RESOURCE,
+  DUPLICATED_PART_OF,
+  DUPLICATED_RESOURCE,
+  EMPTY_CATCH_DECLARATION,
+  EMPTY_ENUM_DECLARATION,
+  EQUAL_MAP_ENTRY_KEY,
+  EXISTING_DEFINITION,
+  EXISTING_LABEL,
+  EXPECTED_IDENTIFIER_NOT_RESERVED_WORD,
+  EXPONENT_MISSING,
+  EXPORT_BEFORE_PARTS,
+  EXTERNAL_WITH_BODY,
+  EXTRA_CATCH_DECLARATION,
+  EXTRA_FORMALS,
+  EXTRANEOUS_MODIFIER,
+  EXTRANEOUS_MODIFIER_REPLACE,
+  FACTORY_REDIRECTION_IN_NON_FACTORY,
+  FINAL_FUNCTION_TYPE_PARAMETER,
+  FINAL_WITHOUT_INITIALIZER,
+  FORMAL_DECLARED_CONST,
+  FORMAL_DECLARED_STATIC,
+  FUNCTION_TYPE_FORMAL_WITH_DEFAULT,
+  FUNCTION_WITH_INITIALIZER,
+  GENERIC,
+  GETTER_MISMATCH,
+  GETTER_NOT_FOUND,
+  HEX_DIGIT_EXPECTED,
+  HIDDEN_HINTS,
+  HIDDEN_IMPLICIT_IMPORT,
+  HIDDEN_IMPORT,
+  HIDDEN_WARNINGS,
+  HIDDEN_WARNINGS_HINTS,
+  IF_NULL_ASSIGNING_TYPE,
+  ILLEGAL_CONST_FIELD_MODIFIER,
+  ILLEGAL_CONSTRUCTOR_MODIFIERS,
+  ILLEGAL_FINAL_METHOD_MODIFIER,
+  ILLEGAL_MIXIN_APPLICATION_MODIFIERS,
+  ILLEGAL_MIXIN_CONSTRUCTOR,
+  ILLEGAL_MIXIN_CYCLE,
+  ILLEGAL_MIXIN_OBJECT,
+  ILLEGAL_MIXIN_SUPER_USE,
+  ILLEGAL_MIXIN_SUPERCLASS,
+  ILLEGAL_MIXIN_WITH_SUPER,
+  ILLEGAL_SETTER_FORMALS,
+  ILLEGAL_STATIC,
+  ILLEGAL_SUPER_SEND,
+  IMPORT_BEFORE_PARTS,
+  IMPORT_EXPERIMENTAL_MIRRORS,
+  IMPORT_PART_OF,
+  IMPORTED_HERE,
+  INHERIT_GETTER_AND_METHOD,
+  INHERITED_EXPLICIT_GETTER,
+  INHERITED_IMPLICIT_GETTER,
+  INHERITED_METHOD,
+  INIT_STATIC_FIELD,
+  INITIALIZING_FORMAL_NOT_ALLOWED,
+  INSTANCE_STATIC_SAME_NAME,
+  INSTANCE_STATIC_SAME_NAME_CONT,
+  INTERNAL_LIBRARY,
+  INTERNAL_LIBRARY_FROM,
+  INVALID_ARGUMENT_AFTER_NAMED,
+  INVALID_AWAIT_FOR,
+  INVALID_BREAK,
+  INVALID_CASE_DEFAULT,
+  INVALID_CONSTRUCTOR_ARGUMENTS,
+  INVALID_CONSTRUCTOR_NAME,
+  INVALID_CONTINUE,
+  INVALID_FOR_IN,
+  INVALID_INITIALIZER,
+  INVALID_OVERRIDDEN_FIELD,
+  INVALID_OVERRIDDEN_GETTER,
+  INVALID_OVERRIDDEN_METHOD,
+  INVALID_OVERRIDDEN_SETTER,
+  INVALID_OVERRIDE_FIELD,
+  INVALID_OVERRIDE_FIELD_WITH_GETTER,
+  INVALID_OVERRIDE_FIELD_WITH_SETTER,
+  INVALID_OVERRIDE_GETTER,
+  INVALID_OVERRIDE_GETTER_WITH_FIELD,
+  INVALID_OVERRIDE_METHOD,
+  INVALID_OVERRIDE_SETTER,
+  INVALID_OVERRIDE_SETTER_WITH_FIELD,
+  INVALID_PACKAGE_URI,
+  INVALID_PARAMETER,
+  INVALID_RECEIVER_IN_INITIALIZER,
+  INVALID_SOURCE_FILE_LOCATION,
+  INVALID_SYMBOL,
+  INVALID_SYNC_MODIFIER,
+  INVALID_TYPE_VARIABLE_BOUND,
+  INVALID_UNNAMED_CONSTRUCTOR_NAME,
+  INVALID_URI,
+  INVALID_USE_OF_SUPER,
+  LIBRARY_NAME_MISMATCH,
+  LIBRARY_NOT_FOUND,
+  LIBRARY_TAG_MUST_BE_FIRST,
+  MAIN_NOT_A_FUNCTION,
+  MAIN_WITH_EXTRA_PARAMETER,
+  MALFORMED_STRING_LITERAL,
+  MEMBER_NOT_FOUND,
+  MEMBER_NOT_STATIC,
+  MEMBER_USES_CLASS_NAME,
+  METHOD_NOT_FOUND,
+  MINUS_OPERATOR_BAD_ARITY,
+  MIRROR_BLOAT,
+  MIRROR_IMPORT,
+  MIRROR_IMPORT_NO_USAGE,
+  MIRRORS_CANNOT_FIND_IN_ELEMENT,
+  MIRRORS_CANNOT_RESOLVE_IN_CURRENT_LIBRARY,
+  MIRRORS_CANNOT_RESOLVE_IN_LIBRARY,
+  MIRRORS_EXPECTED_STRING,
+  MIRRORS_EXPECTED_STRING_OR_LIST,
+  MIRRORS_EXPECTED_STRING_OR_TYPE,
+  MIRRORS_EXPECTED_STRING_TYPE_OR_LIST,
+  MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND,
+  MISSING_ARGUMENT,
+  MISSING_ENUM_CASES,
+  MISSING_FACTORY_KEYWORD,
+  MISSING_FORMALS,
+  MISSING_LIBRARY_NAME,
+  MISSING_MAIN,
+  MISSING_PART_OF_TAG,
+  MISSING_TOKEN_AFTER_THIS,
+  MISSING_TOKEN_BEFORE_THIS,
+  MISSING_TYPE_ARGUMENT,
+  MULTI_INHERITANCE,
+  NAMED_ARGUMENT_NOT_FOUND,
+  NAMED_FUNCTION_EXPRESSION,
+  NAMED_PARAMETER_WITH_EQUALS,
+  NATIVE_NOT_SUPPORTED,
+  NO_BREAK_TARGET,
+  NO_CATCH_NOR_FINALLY,
+  NO_CONTINUE_TARGET,
+  NO_INSTANCE_AVAILABLE,
+  NO_MATCHING_CONSTRUCTOR,
+  NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT,
+  NO_STATIC_OVERRIDE,
+  NO_STATIC_OVERRIDE_CONT,
+  NO_SUCH_LIBRARY_MEMBER,
+  NO_SUCH_METHOD_IN_NATIVE,
+  NO_SUCH_SUPER_MEMBER,
+  NO_SUPER_IN_STATIC,
+  NO_THIS_AVAILABLE,
+  NON_CONST_BLOAT,
+  NOT_A_COMPILE_TIME_CONSTANT,
+  NOT_A_FIELD,
+  NOT_A_PREFIX,
+  NOT_A_TYPE,
+  NOT_ASSIGNABLE,
+  NOT_CALLABLE,
+  NOT_INSTANCE_FIELD,
+  NOT_MORE_SPECIFIC,
+  NOT_MORE_SPECIFIC_SUBTYPE,
+  NOT_MORE_SPECIFIC_SUGGESTION,
+  NULL_NOT_ALLOWED,
+  ONLY_ONE_LIBRARY_TAG,
+  OPERATOR_NAMED_PARAMETERS,
+  OPERATOR_NOT_FOUND,
+  OPERATOR_OPTIONAL_PARAMETERS,
+  OPTIONAL_PARAMETER_IN_CATCH,
+  OVERRIDE_EQUALS_NOT_HASH_CODE,
+  PARAMETER_NAME_EXPECTED,
+  PARAMETER_WITH_MODIFIER_IN_CATCH,
+  PARAMETER_WITH_TYPE_IN_CATCH,
+  PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION,
+  PATCH_NO_GETTER,
+  PATCH_NO_SETTER,
+  PATCH_NON_CLASS,
+  PATCH_NON_CONSTRUCTOR,
+  PATCH_NON_EXISTING,
+  PATCH_NON_EXTERNAL,
+  PATCH_NON_FUNCTION,
+  PATCH_NON_GETTER,
+  PATCH_NON_SETTER,
+  PATCH_NONPATCHABLE,
+  PATCH_OPTIONAL_PARAMETER_COUNT_MISMATCH,
+  PATCH_OPTIONAL_PARAMETER_NAMED_MISMATCH,
+  PATCH_PARAMETER_MISMATCH,
+  PATCH_PARAMETER_TYPE_MISMATCH,
+  PATCH_POINT_TO_CLASS,
+  PATCH_POINT_TO_CONSTRUCTOR,
+  PATCH_POINT_TO_FUNCTION,
+  PATCH_POINT_TO_GETTER,
+  PATCH_POINT_TO_PARAMETER,
+  PATCH_POINT_TO_SETTER,
+  PATCH_REQUIRED_PARAMETER_COUNT_MISMATCH,
+  PATCH_RETURN_TYPE_MISMATCH,
+  PLEASE_REPORT_THE_CRASH,
+  POSITIONAL_PARAMETER_WITH_EQUALS,
+  POTENTIAL_MUTATION,
+  POTENTIAL_MUTATION_HERE,
+  POTENTIAL_MUTATION_IN_CLOSURE,
+  POTENTIAL_MUTATION_IN_CLOSURE_HERE,
+  PREAMBLE,
+  PREFIX_AS_EXPRESSION,
+  PRIVATE_ACCESS,
+  PRIVATE_IDENTIFIER,
+  PRIVATE_NAMED_PARAMETER,
+  READ_SCRIPT_ERROR,
+  READ_SELF_ERROR,
+  REDIRECTING_CONSTRUCTOR_CYCLE,
+  REDIRECTING_CONSTRUCTOR_HAS_BODY,
+  REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER,
+  REDIRECTING_FACTORY_WITH_DEFAULT,
+  REFERENCE_IN_INITIALIZATION,
+  REQUIRED_PARAMETER_WITH_DEFAULT,
+  RETURN_IN_GENERATOR,
+  RETURN_NOTHING,
+  RETURN_VALUE_IN_VOID,
+  SETTER_MISMATCH,
+  SETTER_NOT_FOUND,
+  SETTER_NOT_FOUND_IN_SUPER,
+  STATIC_FUNCTION_BLOAT,
+  STRING_EXPECTED,
+  SUPER_INITIALIZER_IN_OBJECT,
+  SWITCH_CASE_FORBIDDEN,
+  SWITCH_CASE_TYPES_NOT_EQUAL,
+  SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
+  SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
+  TERNARY_OPERATOR_BAD_ARITY,
+  THIS_IS_THE_DECLARATION,
+  THIS_IS_THE_METHOD,
+  THIS_IS_THE_PART_OF_TAG,
+  THIS_PROPERTY,
+  THROW_WITHOUT_EXPRESSION,
+  TOP_LEVEL_VARIABLE_DECLARED_STATIC,
+  TYPE_ARGUMENT_COUNT_MISMATCH,
+  TYPE_VARIABLE_IN_CONSTANT,
+  TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+  TYPEDEF_FORMAL_WITH_DEFAULT,
+  UNARY_OPERATOR_BAD_ARITY,
+  UNBOUND_LABEL,
+  UNIMPLEMENTED_EXPLICIT_GETTER,
+  UNIMPLEMENTED_EXPLICIT_SETTER,
+  UNIMPLEMENTED_GETTER,
+  UNIMPLEMENTED_GETTER_ONE,
+  UNIMPLEMENTED_IMPLICIT_GETTER,
+  UNIMPLEMENTED_IMPLICIT_SETTER,
+  UNIMPLEMENTED_METHOD,
+  UNIMPLEMENTED_METHOD_CONT,
+  UNIMPLEMENTED_METHOD_ONE,
+  UNIMPLEMENTED_SETTER,
+  UNIMPLEMENTED_SETTER_ONE,
+  UNMATCHED_TOKEN,
+  UNSUPPORTED_BANG_EQ_EQ,
+  UNSUPPORTED_EQ_EQ_EQ,
+  UNSUPPORTED_LITERAL_SYMBOL,
+  UNSUPPORTED_PREFIX_PLUS,
+  UNSUPPORTED_THROW_WITHOUT_EXP,
+  UNTERMINATED_COMMENT,
+  UNTERMINATED_STRING,
+  UNTERMINATED_TOKEN,
+  UNUSED_CLASS,
+  UNUSED_LABEL,
+  UNUSED_METHOD,
+  UNUSED_TYPEDEF,
+  VAR_FUNCTION_TYPE_PARAMETER,
+  VOID_EXPRESSION,
+  VOID_NOT_ALLOWED,
+  VOID_VARIABLE,
+  WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT,
+  WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT,
+  YIELDING_MODIFIER_ON_ARROW_BODY,
+}
+
+/// A message template for an error, warning, hint or info message generated
+/// by the compiler. Each template is associated with a [MessageKind] that
+/// uniquely identifies the message template.
 // TODO(johnnniwinther): For Infos, consider adding a reference to the
 // error/warning/hint that they belong to.
-class MessageKind {
+class MessageTemplate {
+  final MessageKind kind;
+
   /// Should describe what is wrong and why.
   final String template;
 
@@ -85,141 +461,180 @@ class MessageKind {
   /// Additional options needed for the examples to work.
   final List<String> options;
 
-  const MessageKind(this.template,
-                    {this.howToFix,
-                     this.examples,
-                     this.options: const <String>[]});
+  const MessageTemplate(
+      this.kind,
+      this.template,
+      {this.howToFix,
+       this.examples,
+       this.options: const <String>[]});
 
-  /// Do not use this. It is here for legacy and debugging. It violates item 4
-  /// above.
-  static const MessageKind GENERIC = const MessageKind('#{text}');
+  /// All templates used by the compiler.
+  ///
+  /// The map is complete mapping from [MessageKind] to their corresponding
+  /// [MessageTemplate].
+  static const Map<MessageKind, MessageTemplate> TEMPLATES =
+    const <MessageKind, MessageTemplate>{
+      /// Do not use this. It is here for legacy and debugging. It violates item
+      /// 4 of the guide lines for error messages in the beginning of the file.
+      MessageKind.GENERIC:
+        const MessageTemplate(MessageKind.GENERIC, '#{text}'),
 
-  static const MessageKind NOT_ASSIGNABLE = const MessageKind(
-      "'#{fromType}' is not assignable to '#{toType}'.");
+      MessageKind.NOT_ASSIGNABLE:
+        const MessageTemplate(MessageKind.NOT_ASSIGNABLE,
+          "'#{fromType}' is not assignable to '#{toType}'."),
 
-  static const MessageKind VOID_EXPRESSION = const MessageKind(
-      "Expression does not yield a value.");
+      MessageKind.VOID_EXPRESSION:
+        const MessageTemplate(MessageKind.VOID_EXPRESSION,
+          "Expression does not yield a value."),
 
-  static const MessageKind VOID_VARIABLE = const MessageKind(
-      "Variable cannot be of type void.");
+      MessageKind.VOID_VARIABLE:
+        const MessageTemplate(MessageKind.VOID_VARIABLE,
+          "Variable cannot be of type void."),
 
-  static const MessageKind RETURN_VALUE_IN_VOID = const MessageKind(
-      "Cannot return value from void function.");
+      MessageKind.RETURN_VALUE_IN_VOID:
+        const MessageTemplate(MessageKind.RETURN_VALUE_IN_VOID,
+          "Cannot return value from void function."),
 
-  static const MessageKind RETURN_NOTHING = const MessageKind(
-      "Value of type '#{returnType}' expected.");
+      MessageKind.RETURN_NOTHING:
+        const MessageTemplate(MessageKind.RETURN_NOTHING,
+          "Value of type '#{returnType}' expected."),
 
-  static const MessageKind MISSING_ARGUMENT = const MessageKind(
-      "Missing argument of type '#{argumentType}'.");
+      MessageKind.MISSING_ARGUMENT:
+        const MessageTemplate(MessageKind.MISSING_ARGUMENT,
+          "Missing argument of type '#{argumentType}'."),
 
-  static const MessageKind ADDITIONAL_ARGUMENT = const MessageKind(
-      "Additional argument.");
+      MessageKind.ADDITIONAL_ARGUMENT:
+        const MessageTemplate(MessageKind.ADDITIONAL_ARGUMENT,
+          "Additional argument."),
 
-  static const MessageKind NAMED_ARGUMENT_NOT_FOUND = const MessageKind(
-      "No named argument '#{argumentName}' found on method.");
+      MessageKind.NAMED_ARGUMENT_NOT_FOUND:
+        const MessageTemplate(MessageKind.NAMED_ARGUMENT_NOT_FOUND,
+          "No named argument '#{argumentName}' found on method."),
 
-  static const MessageKind MEMBER_NOT_FOUND = const MessageKind(
-      "No member named '#{memberName}' in class '#{className}'.");
+      MessageKind.MEMBER_NOT_FOUND:
+        const MessageTemplate(MessageKind.MEMBER_NOT_FOUND,
+          "No member named '#{memberName}' in class '#{className}'."),
 
-  static const MessageKind AWAIT_MEMBER_NOT_FOUND = const MessageKind(
-      "No member named 'await' in class '#{className}'.",
-      howToFix: "Did you mean to add the 'async' marker "
-                "to '#{functionName}'?",
-      examples: const ["""
+      MessageKind.AWAIT_MEMBER_NOT_FOUND:
+        const MessageTemplate(MessageKind.AWAIT_MEMBER_NOT_FOUND,
+          "No member named 'await' in class '#{className}'.",
+          howToFix: "Did you mean to add the 'async' marker "
+                    "to '#{functionName}'?",
+          examples: const ["""
 class A {
   m() => await -3;
 }
 main() => new A().m();
-"""]);
+"""]),
 
-  static const MessageKind AWAIT_MEMBER_NOT_FOUND_IN_CLOSURE =
-      const MessageKind("No member named 'await' in class '#{className}'.",
-      howToFix: "Did you mean to add the 'async' marker "
-                "to the enclosing function?",
-      examples: const ["""
+      MessageKind.AWAIT_MEMBER_NOT_FOUND_IN_CLOSURE:
+        const MessageTemplate(MessageKind.AWAIT_MEMBER_NOT_FOUND_IN_CLOSURE,
+          "No member named 'await' in class '#{className}'.",
+          howToFix: "Did you mean to add the 'async' marker "
+                    "to the enclosing function?",
+          examples: const ["""
 class A {
   m() => () => await -3;
 }
 main() => new A().m();
-"""]);
+"""]),
 
-  static const MessageKind METHOD_NOT_FOUND = const MessageKind(
-      "No method named '#{memberName}' in class '#{className}'.");
+      MessageKind.METHOD_NOT_FOUND:
+        const MessageTemplate(MessageKind.METHOD_NOT_FOUND,
+          "No method named '#{memberName}' in class '#{className}'."),
 
-  static const MessageKind OPERATOR_NOT_FOUND = const MessageKind(
-      "No operator '#{memberName}' in class '#{className}'.");
+      MessageKind.OPERATOR_NOT_FOUND:
+        const MessageTemplate(MessageKind.OPERATOR_NOT_FOUND,
+          "No operator '#{memberName}' in class '#{className}'."),
 
-  static const MessageKind SETTER_NOT_FOUND = const MessageKind(
-      "No setter named '#{memberName}' in class '#{className}'.");
+      MessageKind.SETTER_NOT_FOUND:
+        const MessageTemplate(MessageKind.SETTER_NOT_FOUND,
+          "No setter named '#{memberName}' in class '#{className}'."),
 
-  static const MessageKind SETTER_NOT_FOUND_IN_SUPER = const MessageKind(
-      "No setter named '#{name}' in superclass of '#{className}'.");
+      MessageKind.SETTER_NOT_FOUND_IN_SUPER:
+        const MessageTemplate(MessageKind.SETTER_NOT_FOUND_IN_SUPER,
+          "No setter named '#{name}' in superclass of '#{className}'."),
 
-  static const MessageKind GETTER_NOT_FOUND = const MessageKind(
-      "No getter named '#{memberName}' in class '#{className}'.");
+      MessageKind.GETTER_NOT_FOUND:
+        const MessageTemplate(MessageKind.GETTER_NOT_FOUND,
+          "No getter named '#{memberName}' in class '#{className}'."),
 
-  static const MessageKind NOT_CALLABLE = const MessageKind(
-      "'#{elementName}' is not callable.");
+      MessageKind.NOT_CALLABLE:
+        const MessageTemplate(MessageKind.NOT_CALLABLE,
+          "'#{elementName}' is not callable."),
 
-  static const MessageKind MEMBER_NOT_STATIC = const MessageKind(
-      "'#{className}.#{memberName}' is not static.");
+      MessageKind.MEMBER_NOT_STATIC:
+        const MessageTemplate(MessageKind.MEMBER_NOT_STATIC,
+          "'#{className}.#{memberName}' is not static."),
 
-  static const MessageKind NO_INSTANCE_AVAILABLE = const MessageKind(
-      "'#{name}' is only available in instance methods.");
+      MessageKind.NO_INSTANCE_AVAILABLE:
+        const MessageTemplate(MessageKind.NO_INSTANCE_AVAILABLE,
+          "'#{name}' is only available in instance methods."),
 
-  static const MessageKind NO_THIS_AVAILABLE = const MessageKind(
-      "'this' is only available in instance methods.");
+      MessageKind.NO_THIS_AVAILABLE:
+        const MessageTemplate(MessageKind.NO_THIS_AVAILABLE,
+          "'this' is only available in instance methods."),
 
-  static const MessageKind PRIVATE_ACCESS = const MessageKind(
-      "'#{name}' is declared private within library "
-      "'#{libraryName}'.");
+      MessageKind.PRIVATE_ACCESS:
+        const MessageTemplate(MessageKind.PRIVATE_ACCESS,
+          "'#{name}' is declared private within library "
+          "'#{libraryName}'."),
 
-  static const MessageKind THIS_IS_THE_DECLARATION = const MessageKind(
-      "This is the declaration of '#{name}'.");
+      MessageKind.THIS_IS_THE_DECLARATION:
+        const MessageTemplate(MessageKind.THIS_IS_THE_DECLARATION,
+          "This is the declaration of '#{name}'."),
 
-  static const MessageKind THIS_IS_THE_METHOD = const MessageKind(
-      "This is the method declaration.");
+      MessageKind.THIS_IS_THE_METHOD:
+        const MessageTemplate(MessageKind.THIS_IS_THE_METHOD,
+          "This is the method declaration."),
 
-  static const MessageKind CANNOT_RESOLVE = const MessageKind(
-      "Cannot resolve '#{name}'.");
+      MessageKind.CANNOT_RESOLVE:
+        const MessageTemplate(MessageKind.CANNOT_RESOLVE,
+          "Cannot resolve '#{name}'."),
 
-  static const MessageKind CANNOT_RESOLVE_AWAIT = const MessageKind(
-      "Cannot resolve '#{name}'.",
-      howToFix: "Did you mean to add the 'async' marker "
-                "to '#{functionName}'?",
-      examples: const [
-          "main() => await -3;",
-          "foo() => await -3; main() => foo();"
-      ]);
+      MessageKind.CANNOT_RESOLVE_AWAIT:
+        const MessageTemplate(MessageKind.CANNOT_RESOLVE_AWAIT,
+          "Cannot resolve '#{name}'.",
+          howToFix: "Did you mean to add the 'async' marker "
+                    "to '#{functionName}'?",
+          examples: const [
+              "main() => await -3;",
+              "foo() => await -3; main() => foo();"
+          ]),
 
-  static const MessageKind CANNOT_RESOLVE_AWAIT_IN_CLOSURE = const MessageKind(
-      "Cannot resolve '#{name}'.",
-      howToFix: "Did you mean to add the 'async' marker "
-                "to the enclosing function?",
-      examples: const [
-          "main() { (() => await -3)(); }",
-      ]);
+      MessageKind.CANNOT_RESOLVE_AWAIT_IN_CLOSURE:
+        const MessageTemplate(MessageKind.CANNOT_RESOLVE_AWAIT_IN_CLOSURE,
+          "Cannot resolve '#{name}'.",
+          howToFix: "Did you mean to add the 'async' marker "
+                    "to the enclosing function?",
+          examples: const [
+              "main() { (() => await -3)(); }",
+          ]),
 
-  static const MessageKind CANNOT_RESOLVE_IN_INITIALIZER = const MessageKind(
-      "Cannot resolve '#{name}'. It would be implicitly looked up on this "
-      "instance, but instances are not available in initializers.",
-      howToFix: "Try correcting the unresolved reference or move the "
-          "initialization to a constructor body.",
-      examples: const ["""
+      MessageKind.CANNOT_RESOLVE_IN_INITIALIZER:
+        const MessageTemplate(MessageKind.CANNOT_RESOLVE_IN_INITIALIZER,
+          "Cannot resolve '#{name}'. It would be implicitly looked up on this "
+          "instance, but instances are not available in initializers.",
+          howToFix: "Try correcting the unresolved reference or move the "
+              "initialization to a constructor body.",
+          examples: const ["""
 class A {
   var test = unresolvedName;
 }
 main() => new A();
-"""]);
+"""]),
 
-  static const MessageKind CANNOT_RESOLVE_CONSTRUCTOR = const MessageKind(
-      "Cannot resolve constructor '#{constructorName}'.");
+      MessageKind.CANNOT_RESOLVE_CONSTRUCTOR:
+        const MessageTemplate(MessageKind.CANNOT_RESOLVE_CONSTRUCTOR,
+          "Cannot resolve constructor '#{constructorName}'."),
 
-  static const MessageKind CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT =
-      const MessageKind("cannot resolve constructor '#{constructorName}'"
-          " for implicit super call.",
-      howToFix: "Try explicitly invoking a constructor of the super class",
-      examples: const ["""
+      MessageKind.CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT:
+        const MessageTemplate(
+          MessageKind.CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT,
+          "cannot resolve constructor '#{constructorName}' "
+          "for implicit super call.",
+          howToFix: "Try explicitly invoking a constructor of the super class",
+          examples: const ["""
 class A {
   A.foo() {}
 }
@@ -227,21 +642,25 @@ class B extends A {
   B();
 }
 main() => new B();
-"""]);
+"""]),
 
-  static const MessageKind INVALID_UNNAMED_CONSTRUCTOR_NAME = const MessageKind(
-      "Unnamed constructor name must be '#{name}'.");
+      MessageKind.INVALID_UNNAMED_CONSTRUCTOR_NAME:
+        const MessageTemplate(MessageKind.INVALID_UNNAMED_CONSTRUCTOR_NAME,
+          "Unnamed constructor name must be '#{name}'."),
 
-  static const MessageKind INVALID_CONSTRUCTOR_NAME = const MessageKind(
-      "Constructor name must start with '#{name}'.");
+      MessageKind.INVALID_CONSTRUCTOR_NAME:
+        const MessageTemplate(MessageKind.INVALID_CONSTRUCTOR_NAME,
+          "Constructor name must start with '#{name}'."),
 
-  static const MessageKind CANNOT_RESOLVE_TYPE = const MessageKind(
-      "Cannot resolve type '#{typeName}'.");
+      MessageKind.CANNOT_RESOLVE_TYPE:
+        const MessageTemplate(MessageKind.CANNOT_RESOLVE_TYPE,
+          "Cannot resolve type '#{typeName}'."),
 
-  static const MessageKind DUPLICATE_DEFINITION = const MessageKind(
-      "Duplicate definition of '#{name}'.",
-      howToFix: "Try to rename or remove this definition.",
-      examples: const ["""
+      MessageKind.DUPLICATE_DEFINITION:
+        const MessageTemplate(MessageKind.DUPLICATE_DEFINITION,
+          "Duplicate definition of '#{name}'.",
+          howToFix: "Try to rename or remove this definition.",
+          examples: const ["""
 class C {
   void f() {}
   int get f => 1;
@@ -251,20 +670,24 @@ main() {
   new C();
 }
 
-"""]);
+"""]),
 
-  static const MessageKind EXISTING_DEFINITION = const MessageKind(
-      "Existing definition of '#{name}'.");
+      MessageKind.EXISTING_DEFINITION:
+        const MessageTemplate(MessageKind.EXISTING_DEFINITION,
+          "Existing definition of '#{name}'."),
 
-  static const MessageKind DUPLICATE_IMPORT = const MessageKind(
-      "Duplicate import of '#{name}'.");
+      MessageKind.DUPLICATE_IMPORT:
+        const MessageTemplate(MessageKind.DUPLICATE_IMPORT,
+          "Duplicate import of '#{name}'."),
 
-  static const MessageKind HIDDEN_IMPORT = const MessageKind(
-      "'#{name}' from library '#{hiddenUri}' is hidden by '#{name}' "
-      "from library '#{hidingUri}'.",
-      howToFix: "Try adding 'hide #{name}' to the import of '#{hiddenUri}'.",
-      examples: const [
-          const {
+      MessageKind.HIDDEN_IMPORT:
+        const MessageTemplate(MessageKind.HIDDEN_IMPORT,
+          "'#{name}' from library '#{hiddenUri}' is hidden by '#{name}' "
+          "from library '#{hidingUri}'.",
+          howToFix:
+            "Try adding 'hide #{name}' to the import of '#{hiddenUri}'.",
+          examples: const [
+              const {
 'main.dart':
 """
 import 'dart:async'; // This imports a class Future.
@@ -324,16 +747,17 @@ void main() => new prefix.Future();""",
 """
 library future;
 
-class Future {}"""}]);
+class Future {}"""}]),
 
 
-  static const MessageKind HIDDEN_IMPLICIT_IMPORT = const MessageKind(
-      "'#{name}' from library '#{hiddenUri}' is hidden by '#{name}' "
-      "from library '#{hidingUri}'.",
-      howToFix: "Try adding an explicit "
-                "'import \"#{hiddenUri}\" hide #{name}'.",
-      examples: const [
-          const {
+      MessageKind.HIDDEN_IMPLICIT_IMPORT:
+        const MessageTemplate(MessageKind.HIDDEN_IMPLICIT_IMPORT,
+          "'#{name}' from library '#{hiddenUri}' is hidden by '#{name}' "
+          "from library '#{hidingUri}'.",
+          howToFix: "Try adding an explicit "
+                    "'import \"#{hiddenUri}\" hide #{name}'.",
+          examples: const [
+              const {
 'main.dart':
 """
 // This hides the implicit import of class Type from dart:core.
@@ -375,122 +799,150 @@ import 'conflictsWithDartAsWell.dart';
 main() {
   print("Hail Caesar ${Duration.x}");
 }
-"""}]);
+"""}]),
 
-  static const MessageKind DUPLICATE_EXPORT = const MessageKind(
-      "Duplicate export of '#{name}'.",
-      howToFix: "Trying adding 'hide #{name}' to one of the exports.",
-      examples: const [const {
+      MessageKind.DUPLICATE_EXPORT:
+        const MessageTemplate(MessageKind.DUPLICATE_EXPORT,
+          "Duplicate export of '#{name}'.",
+          howToFix: "Trying adding 'hide #{name}' to one of the exports.",
+          examples: const [const {
 'main.dart': """
 export 'decl1.dart';
 export 'decl2.dart';
 
 main() {}""",
 'decl1.dart': "class Class {}",
-'decl2.dart': "class Class {}"}]);
+'decl2.dart': "class Class {}"}]),
 
-  static const MessageKind DUPLICATE_EXPORT_CONT = const MessageKind(
-      "This is another export of '#{name}'.");
+      MessageKind.DUPLICATE_EXPORT_CONT:
+        const MessageTemplate(MessageKind.DUPLICATE_EXPORT_CONT,
+          "This is another export of '#{name}'."),
 
-  static const MessageKind DUPLICATE_EXPORT_DECL = const MessageKind(
-      "The exported '#{name}' from export #{uriString} is defined here.");
+      MessageKind.DUPLICATE_EXPORT_DECL:
+        const MessageTemplate(MessageKind.DUPLICATE_EXPORT_DECL,
+          "The exported '#{name}' from export #{uriString} is defined here."),
 
-  static const MessageKind NOT_A_TYPE = const MessageKind(
-      "'#{node}' is not a type.");
+      MessageKind.NOT_A_TYPE:
+        const MessageTemplate(MessageKind.NOT_A_TYPE,
+          "'#{node}' is not a type."),
 
-  static const MessageKind NOT_A_PREFIX = const MessageKind(
-      "'#{node}' is not a prefix.");
+      MessageKind.NOT_A_PREFIX:
+        const MessageTemplate(MessageKind.NOT_A_PREFIX,
+          "'#{node}' is not a prefix."),
 
-  static const MessageKind PREFIX_AS_EXPRESSION = const MessageKind(
-      "Library prefix '#{prefix}' is not a valid expression.");
+      MessageKind.PREFIX_AS_EXPRESSION:
+        const MessageTemplate(MessageKind.PREFIX_AS_EXPRESSION,
+          "Library prefix '#{prefix}' is not a valid expression."),
 
-  static const MessageKind CANNOT_FIND_CONSTRUCTOR = const MessageKind(
-      "Cannot find constructor '#{constructorName}'.");
+      MessageKind.CANNOT_FIND_CONSTRUCTOR:
+        const MessageTemplate(MessageKind.CANNOT_FIND_CONSTRUCTOR,
+          "Cannot find constructor '#{constructorName}'."),
 
-  static const MessageKind CYCLIC_CLASS_HIERARCHY = const MessageKind(
-      "'#{className}' creates a cycle in the class hierarchy.");
+      MessageKind.CYCLIC_CLASS_HIERARCHY:
+        const MessageTemplate(MessageKind.CYCLIC_CLASS_HIERARCHY,
+          "'#{className}' creates a cycle in the class hierarchy."),
 
-  static const MessageKind CYCLIC_REDIRECTING_FACTORY = const MessageKind(
-      'Redirecting factory leads to a cyclic redirection.');
+      MessageKind.CYCLIC_REDIRECTING_FACTORY:
+        const MessageTemplate(MessageKind.CYCLIC_REDIRECTING_FACTORY,
+          'Redirecting factory leads to a cyclic redirection.'),
 
-  static const MessageKind INVALID_RECEIVER_IN_INITIALIZER = const MessageKind(
-      "Field initializer expected.");
+      MessageKind.INVALID_RECEIVER_IN_INITIALIZER:
+        const MessageTemplate(MessageKind.INVALID_RECEIVER_IN_INITIALIZER,
+          "Field initializer expected."),
 
-  static const MessageKind NO_SUPER_IN_STATIC = const MessageKind(
-      "'super' is only available in instance methods.");
+      MessageKind.NO_SUPER_IN_STATIC:
+        const MessageTemplate(MessageKind.NO_SUPER_IN_STATIC,
+          "'super' is only available in instance methods."),
 
-  static const MessageKind DUPLICATE_INITIALIZER = const MessageKind(
-      "Field '#{fieldName}' is initialized more than once.");
+      MessageKind.DUPLICATE_INITIALIZER:
+        const MessageTemplate(MessageKind.DUPLICATE_INITIALIZER,
+          "Field '#{fieldName}' is initialized more than once."),
 
-  static const MessageKind ALREADY_INITIALIZED = const MessageKind(
-      "'#{fieldName}' was already initialized here.");
+      MessageKind.ALREADY_INITIALIZED:
+        const MessageTemplate(MessageKind.ALREADY_INITIALIZED,
+          "'#{fieldName}' was already initialized here."),
 
-  static const MessageKind INIT_STATIC_FIELD = const MessageKind(
-      "Cannot initialize static field '#{fieldName}'.");
+      MessageKind.INIT_STATIC_FIELD:
+        const MessageTemplate(MessageKind.INIT_STATIC_FIELD,
+          "Cannot initialize static field '#{fieldName}'."),
 
-  static const MessageKind NOT_A_FIELD = const MessageKind(
-      "'#{fieldName}' is not a field.");
+      MessageKind.NOT_A_FIELD:
+        const MessageTemplate(MessageKind.NOT_A_FIELD,
+          "'#{fieldName}' is not a field."),
 
-  static const MessageKind CONSTRUCTOR_CALL_EXPECTED = const MessageKind(
-      "only call to 'this' or 'super' constructor allowed.");
+      MessageKind.CONSTRUCTOR_CALL_EXPECTED:
+        const MessageTemplate(MessageKind.CONSTRUCTOR_CALL_EXPECTED,
+          "only call to 'this' or 'super' constructor allowed."),
 
-  static const MessageKind INVALID_FOR_IN = const MessageKind(
-      "Invalid for-in variable declaration.");
+      MessageKind.INVALID_FOR_IN:
+        const MessageTemplate(MessageKind.INVALID_FOR_IN,
+          "Invalid for-in variable declaration."),
 
-  static const MessageKind INVALID_INITIALIZER = const MessageKind(
-      "Invalid initializer.");
+      MessageKind.INVALID_INITIALIZER:
+        const MessageTemplate(MessageKind.INVALID_INITIALIZER,
+          "Invalid initializer."),
 
-  static const MessageKind FUNCTION_WITH_INITIALIZER = const MessageKind(
-      "Only constructors can have initializers.");
+      MessageKind.FUNCTION_WITH_INITIALIZER:
+        const MessageTemplate(MessageKind.FUNCTION_WITH_INITIALIZER,
+          "Only constructors can have initializers."),
 
-  static const MessageKind REDIRECTING_CONSTRUCTOR_CYCLE = const MessageKind(
-      "Cyclic constructor redirection.");
+      MessageKind.REDIRECTING_CONSTRUCTOR_CYCLE:
+        const MessageTemplate(MessageKind.REDIRECTING_CONSTRUCTOR_CYCLE,
+          "Cyclic constructor redirection."),
 
-  static const MessageKind REDIRECTING_CONSTRUCTOR_HAS_BODY = const MessageKind(
-      "Redirecting constructor can't have a body.");
+      MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY:
+        const MessageTemplate(MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY,
+          "Redirecting constructor can't have a body."),
 
-  static const MessageKind CONST_CONSTRUCTOR_HAS_BODY = const MessageKind(
-      "Const constructor or factory can't have a body.",
-      howToFix: "Remove the 'const' keyword or the body",
-      examples: const ["""
+      MessageKind.CONST_CONSTRUCTOR_HAS_BODY:
+        const MessageTemplate(MessageKind.CONST_CONSTRUCTOR_HAS_BODY,
+          "Const constructor or factory can't have a body.",
+          howToFix: "Remove the 'const' keyword or the body",
+          examples: const ["""
 class C {
   const C() {}
 }
 
-main() => new C();"""]);
+main() => new C();"""]),
 
-  static const MessageKind REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER =
-      const MessageKind(
-          "Redirecting constructor cannot have other initializers.");
+      MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER:
+        const MessageTemplate(
+          MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER,
+          "Redirecting constructor cannot have other initializers."),
 
-  static const MessageKind SUPER_INITIALIZER_IN_OBJECT = const MessageKind(
-      "'Object' cannot have a super initializer.");
+      MessageKind.SUPER_INITIALIZER_IN_OBJECT:
+        const MessageTemplate(MessageKind.SUPER_INITIALIZER_IN_OBJECT,
+          "'Object' cannot have a super initializer."),
 
-  static const MessageKind DUPLICATE_SUPER_INITIALIZER = const MessageKind(
-      "Cannot have more than one super initializer.");
+      MessageKind.DUPLICATE_SUPER_INITIALIZER:
+        const MessageTemplate(MessageKind.DUPLICATE_SUPER_INITIALIZER,
+          "Cannot have more than one super initializer."),
 
-  static const MessageKind INVALID_CONSTRUCTOR_ARGUMENTS = const MessageKind(
-      "Arguments do not match the expected parameters of constructor "
-      "'#{constructorName}'.");
+      MessageKind.INVALID_CONSTRUCTOR_ARGUMENTS:
+        const MessageTemplate(MessageKind.INVALID_CONSTRUCTOR_ARGUMENTS,
+          "Arguments do not match the expected parameters of constructor "
+          "'#{constructorName}'."),
 
-  static const MessageKind NO_MATCHING_CONSTRUCTOR = const MessageKind(
-      "'super' call arguments and constructor parameters do not match.");
+      MessageKind.NO_MATCHING_CONSTRUCTOR:
+        const MessageTemplate(MessageKind.NO_MATCHING_CONSTRUCTOR,
+          "'super' call arguments and constructor parameters do not match."),
 
-  static const MessageKind NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT =
-      const MessageKind(
-          "Implicit 'super' call arguments and constructor parameters "
-          "do not match.");
+      MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT:
+        const MessageTemplate(MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT,
+              "Implicit 'super' call arguments and constructor parameters "
+              "do not match."),
 
-  static const MessageKind CONST_CALLS_NON_CONST = const MessageKind(
-      "'const' constructor cannot call a non-const constructor.");
+      MessageKind.CONST_CALLS_NON_CONST:
+        const MessageTemplate(MessageKind.CONST_CALLS_NON_CONST,
+          "'const' constructor cannot call a non-const constructor."),
 
-  static const MessageKind CONST_CALLS_NON_CONST_FOR_IMPLICIT =
-      const MessageKind(
-          "'const' constructor cannot call a non-const constructor. "
-          "This constructor has an implicit call to a "
-          "super non-const constructor.",
-          howToFix: "Try making the super constructor const.",
-          examples: const ["""
+      MessageKind.CONST_CALLS_NON_CONST_FOR_IMPLICIT:
+        const MessageTemplate(MessageKind.CONST_CALLS_NON_CONST_FOR_IMPLICIT,
+              "'const' constructor cannot call a non-const constructor. "
+              "This constructor has an implicit call to a "
+              "super non-const constructor.",
+              howToFix: "Try making the super constructor const.",
+              examples: const ["""
 class C {
   C(); // missing const
 }
@@ -498,10 +950,11 @@ class D extends C {
   final d;
   const D(this.d);
 }
-main() => new D(0);"""]);
+main() => new D(0);"""]),
 
-  static const MessageKind CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS =
-      const MessageKind(
+      MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS:
+        const MessageTemplate(
+          MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS,
           "Can't declare constructor 'const' on class #{className} "
           "because the class contains non-final instance fields.",
           howToFix: "Try making all fields final.",
@@ -512,89 +965,113 @@ class C {
   const C(this.a);
 }
 
-main() => new C(0);"""]);
+main() => new C(0);"""]),
 
-  static const MessageKind CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD =
-      const MessageKind("This non-final field prevents using const "
-                        "constructors.");
+      MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD:
+        const MessageTemplate(
+          MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD,
+          "This non-final field prevents using const constructors."),
 
-  static const MessageKind CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR =
-      const MessageKind("This const constructor is not allowed due to "
-                        "non-final fields.");
+      MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR:
+        const MessageTemplate(
+          MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
+          "This const constructor is not allowed due to "
+          "non-final fields."),
 
 
-  static const MessageKind INITIALIZING_FORMAL_NOT_ALLOWED = const MessageKind(
-      "Initializing formal parameter only allowed in generative "
-      "constructor.");
+      MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED:
+        const MessageTemplate(MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED,
+          "Initializing formal parameter only allowed in generative "
+          "constructor."),
 
-  static const MessageKind INVALID_PARAMETER = const MessageKind(
-      "Cannot resolve parameter.");
+      MessageKind.INVALID_PARAMETER:
+        const MessageTemplate(MessageKind.INVALID_PARAMETER,
+          "Cannot resolve parameter."),
 
-  static const MessageKind NOT_INSTANCE_FIELD = const MessageKind(
-      "'#{fieldName}' is not an instance field.");
+      MessageKind.NOT_INSTANCE_FIELD:
+        const MessageTemplate(MessageKind.NOT_INSTANCE_FIELD,
+          "'#{fieldName}' is not an instance field."),
 
-  static const MessageKind THIS_PROPERTY = const MessageKind(
-      "Expected an identifier.");
+      MessageKind.THIS_PROPERTY:
+        const MessageTemplate(MessageKind.THIS_PROPERTY,
+          "Expected an identifier."),
 
-  static const MessageKind NO_CATCH_NOR_FINALLY = const MessageKind(
-      "Expected 'catch' or 'finally'.");
+      MessageKind.NO_CATCH_NOR_FINALLY:
+        const MessageTemplate(MessageKind.NO_CATCH_NOR_FINALLY,
+          "Expected 'catch' or 'finally'."),
 
-  static const MessageKind EMPTY_CATCH_DECLARATION = const MessageKind(
-      "Expected an identifier in catch declaration.");
+      MessageKind.EMPTY_CATCH_DECLARATION:
+        const MessageTemplate(MessageKind.EMPTY_CATCH_DECLARATION,
+          "Expected an identifier in catch declaration."),
 
-  static const MessageKind EXTRA_CATCH_DECLARATION = const MessageKind(
-      "Extra parameter in catch declaration.");
+      MessageKind.EXTRA_CATCH_DECLARATION:
+        const MessageTemplate(MessageKind.EXTRA_CATCH_DECLARATION,
+          "Extra parameter in catch declaration."),
 
-  static const MessageKind PARAMETER_WITH_TYPE_IN_CATCH = const MessageKind(
-      "Cannot use type annotations in catch.");
+      MessageKind.PARAMETER_WITH_TYPE_IN_CATCH:
+        const MessageTemplate(MessageKind.PARAMETER_WITH_TYPE_IN_CATCH,
+          "Cannot use type annotations in catch."),
 
-  static const MessageKind PARAMETER_WITH_MODIFIER_IN_CATCH = const MessageKind(
-      "Cannot use modifiers in catch.");
+      MessageKind.PARAMETER_WITH_MODIFIER_IN_CATCH:
+        const MessageTemplate(MessageKind.PARAMETER_WITH_MODIFIER_IN_CATCH,
+          "Cannot use modifiers in catch."),
 
-  static const MessageKind OPTIONAL_PARAMETER_IN_CATCH = const MessageKind(
-      "Cannot use optional parameters in catch.");
+      MessageKind.OPTIONAL_PARAMETER_IN_CATCH:
+        const MessageTemplate(MessageKind.OPTIONAL_PARAMETER_IN_CATCH,
+          "Cannot use optional parameters in catch."),
 
-  static const MessageKind THROW_WITHOUT_EXPRESSION = const MessageKind(
-      "Cannot use re-throw outside of catch block "
-      "(expression expected after 'throw').");
+      MessageKind.THROW_WITHOUT_EXPRESSION:
+        const MessageTemplate(MessageKind.THROW_WITHOUT_EXPRESSION,
+          "Cannot use re-throw outside of catch block "
+          "(expression expected after 'throw')."),
 
-  static const MessageKind UNBOUND_LABEL = const MessageKind(
-      "Cannot resolve label '#{labelName}'.");
+      MessageKind.UNBOUND_LABEL:
+        const MessageTemplate(MessageKind.UNBOUND_LABEL,
+          "Cannot resolve label '#{labelName}'."),
 
-  static const MessageKind NO_BREAK_TARGET = const MessageKind(
-      "'break' statement not inside switch or loop.");
+      MessageKind.NO_BREAK_TARGET:
+        const MessageTemplate(MessageKind.NO_BREAK_TARGET,
+          "'break' statement not inside switch or loop."),
 
-  static const MessageKind NO_CONTINUE_TARGET = const MessageKind(
-      "'continue' statement not inside loop.");
+      MessageKind.NO_CONTINUE_TARGET:
+        const MessageTemplate(MessageKind.NO_CONTINUE_TARGET,
+          "'continue' statement not inside loop."),
 
-  static const MessageKind EXISTING_LABEL = const MessageKind(
-      "Original declaration of duplicate label '#{labelName}'.");
+      MessageKind.EXISTING_LABEL:
+        const MessageTemplate(MessageKind.EXISTING_LABEL,
+          "Original declaration of duplicate label '#{labelName}'."),
 
-  static const MessageKind DUPLICATE_LABEL = const MessageKind(
-      "Duplicate declaration of label '#{labelName}'.");
+      MessageKind.DUPLICATE_LABEL:
+        const MessageTemplate(MessageKind.DUPLICATE_LABEL,
+          "Duplicate declaration of label '#{labelName}'."),
 
-  static const MessageKind UNUSED_LABEL = const MessageKind(
-      "Unused label '#{labelName}'.");
+      MessageKind.UNUSED_LABEL:
+        const MessageTemplate(MessageKind.UNUSED_LABEL,
+          "Unused label '#{labelName}'."),
 
-  static const MessageKind INVALID_CONTINUE = const MessageKind(
-      "Target of continue is not a loop or switch case.");
+      MessageKind.INVALID_CONTINUE:
+        const MessageTemplate(MessageKind.INVALID_CONTINUE,
+          "Target of continue is not a loop or switch case."),
 
-  static const MessageKind INVALID_BREAK = const MessageKind(
-      "Target of break is not a statement.");
+      MessageKind.INVALID_BREAK:
+        const MessageTemplate(MessageKind.INVALID_BREAK,
+          "Target of break is not a statement."),
 
-  static const MessageKind DUPLICATE_TYPE_VARIABLE_NAME = const MessageKind(
-      "Type variable '#{typeVariableName}' already declared.");
+      MessageKind.DUPLICATE_TYPE_VARIABLE_NAME:
+        const MessageTemplate(MessageKind.DUPLICATE_TYPE_VARIABLE_NAME,
+          "Type variable '#{typeVariableName}' already declared."),
 
-  static const MessageKind TYPE_VARIABLE_WITHIN_STATIC_MEMBER =
-      const MessageKind(
-          "Cannot refer to type variable '#{typeVariableName}' "
-          "within a static member.");
+      MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER:
+        const MessageTemplate(MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+              "Cannot refer to type variable '#{typeVariableName}' "
+              "within a static member."),
 
-  static const MessageKind TYPE_VARIABLE_IN_CONSTANT = const MessageKind(
-      "Constant expressions can't refer to type variables.",
-      howToFix: "Try removing the type variable or replacing it with a "
-                "concrete type.",
-      examples: const ["""
+      MessageKind.TYPE_VARIABLE_IN_CONSTANT:
+        const MessageTemplate(MessageKind.TYPE_VARIABLE_IN_CONSTANT,
+          "Constant expressions can't refer to type variables.",
+          howToFix: "Try removing the type variable or replacing it with a "
+                    "concrete type.",
+          examples: const ["""
 class C<T> {
   const C();
 
@@ -603,74 +1080,88 @@ class C<T> {
 
 void main() => new C().m(null);
 """
-]);
+]),
 
-
-  static const MessageKind INVALID_TYPE_VARIABLE_BOUND = const MessageKind(
-      "'#{typeArgument}' is not a subtype of bound '#{bound}' for "
-      "type variable '#{typeVariable}' of type '#{thisType}'.",
-      howToFix: "Try to change or remove the type argument.",
-      examples: const ["""
+      MessageKind.INVALID_TYPE_VARIABLE_BOUND:
+        const MessageTemplate(MessageKind.INVALID_TYPE_VARIABLE_BOUND,
+          "'#{typeArgument}' is not a subtype of bound '#{bound}' for "
+          "type variable '#{typeVariable}' of type '#{thisType}'.",
+          howToFix: "Try to change or remove the type argument.",
+          examples: const ["""
 class C<T extends num> {}
 
 // 'String' is not a valid instantiation of T with bound num.'.
 main() => new C<String>();
-"""]);
+"""]),
 
-  static const MessageKind INVALID_USE_OF_SUPER = const MessageKind(
-      "'super' not allowed here.");
+      MessageKind.INVALID_USE_OF_SUPER:
+        const MessageTemplate(MessageKind.INVALID_USE_OF_SUPER,
+          "'super' not allowed here."),
 
-  static const MessageKind INVALID_CASE_DEFAULT = const MessageKind(
-      "'default' only allowed on last case of a switch.");
+      MessageKind.INVALID_CASE_DEFAULT:
+        const MessageTemplate(MessageKind.INVALID_CASE_DEFAULT,
+          "'default' only allowed on last case of a switch."),
 
-  static const MessageKind SWITCH_CASE_TYPES_NOT_EQUAL = const MessageKind(
-      "'case' expressions do not all have type '#{type}'.");
+      MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL:
+        const MessageTemplate(MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL,
+          "'case' expressions do not all have type '#{type}'."),
 
-  static const MessageKind SWITCH_CASE_TYPES_NOT_EQUAL_CASE = const MessageKind(
-      "'case' expression of type '#{type}'.");
+      MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE:
+        const MessageTemplate(MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
+          "'case' expression of type '#{type}'."),
 
-  static const MessageKind SWITCH_CASE_FORBIDDEN = const MessageKind(
-      "'case' expression may not be of type '#{type}'.");
+      MessageKind.SWITCH_CASE_FORBIDDEN:
+        const MessageTemplate(MessageKind.SWITCH_CASE_FORBIDDEN,
+          "'case' expression may not be of type '#{type}'."),
 
-  static const MessageKind SWITCH_CASE_VALUE_OVERRIDES_EQUALS =
-      const MessageKind(
-          "'case' expression type '#{type}' overrides 'operator =='.");
+      MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS:
+        const MessageTemplate(MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
+              "'case' expression type '#{type}' overrides 'operator =='."),
 
-  static const MessageKind INVALID_ARGUMENT_AFTER_NAMED = const MessageKind(
-      "Unnamed argument after named argument.");
+      MessageKind.INVALID_ARGUMENT_AFTER_NAMED:
+        const MessageTemplate(MessageKind.INVALID_ARGUMENT_AFTER_NAMED,
+          "Unnamed argument after named argument."),
 
-  static const MessageKind NOT_A_COMPILE_TIME_CONSTANT = const MessageKind(
-      "Not a compile-time constant.");
+      MessageKind.NOT_A_COMPILE_TIME_CONSTANT:
+        const MessageTemplate(MessageKind.NOT_A_COMPILE_TIME_CONSTANT,
+          "Not a compile-time constant."),
 
-  static const MessageKind DEFERRED_COMPILE_TIME_CONSTANT = const MessageKind(
-      "A deferred value cannot be used as a compile-time constant.");
+      MessageKind.DEFERRED_COMPILE_TIME_CONSTANT:
+        const MessageTemplate(MessageKind.DEFERRED_COMPILE_TIME_CONSTANT,
+          "A deferred value cannot be used as a compile-time constant."),
 
-  static const MessageKind DEFERRED_COMPILE_TIME_CONSTANT_CONSTRUCTION =
-      const MessageKind(
+      MessageKind.DEFERRED_COMPILE_TIME_CONSTANT_CONSTRUCTION:
+        const MessageTemplate(
+          MessageKind.DEFERRED_COMPILE_TIME_CONSTANT_CONSTRUCTION,
           "A deferred class cannot be used to create a "
-          "compile-time constant.");
+          "compile-time constant."),
 
-  static const MessageKind CYCLIC_COMPILE_TIME_CONSTANTS = const MessageKind(
-      "Cycle in the compile-time constant computation.");
+      MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS:
+        const MessageTemplate(MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS,
+          "Cycle in the compile-time constant computation."),
 
-  static const MessageKind CONSTRUCTOR_IS_NOT_CONST = const MessageKind(
-      "Constructor is not a 'const' constructor.");
+      MessageKind.CONSTRUCTOR_IS_NOT_CONST:
+        const MessageTemplate(MessageKind.CONSTRUCTOR_IS_NOT_CONST,
+          "Constructor is not a 'const' constructor."),
 
-  static const MessageKind CONST_MAP_KEY_OVERRIDES_EQUALS =
-      const MessageKind(
-          "Const-map key type '#{type}' overrides 'operator =='.");
+      MessageKind.CONST_MAP_KEY_OVERRIDES_EQUALS:
+        const MessageTemplate(MessageKind.CONST_MAP_KEY_OVERRIDES_EQUALS,
+              "Const-map key type '#{type}' overrides 'operator =='."),
 
-  static const MessageKind NO_SUCH_LIBRARY_MEMBER = const MessageKind(
-      "'#{libraryName}' has no member named '#{memberName}'.");
+      MessageKind.NO_SUCH_LIBRARY_MEMBER:
+        const MessageTemplate(MessageKind.NO_SUCH_LIBRARY_MEMBER,
+          "'#{libraryName}' has no member named '#{memberName}'."),
 
-  static const MessageKind CANNOT_INSTANTIATE_TYPEDEF = const MessageKind(
-      "Cannot instantiate typedef '#{typedefName}'.");
+      MessageKind.CANNOT_INSTANTIATE_TYPEDEF:
+        const MessageTemplate(MessageKind.CANNOT_INSTANTIATE_TYPEDEF,
+          "Cannot instantiate typedef '#{typedefName}'."),
 
-  static const MessageKind REQUIRED_PARAMETER_WITH_DEFAULT = const MessageKind(
-      "Non-optional parameters can't have a default value.",
-      howToFix:
-        "Try removing the default value or making the parameter optional.",
-      examples: const ["""
+      MessageKind.REQUIRED_PARAMETER_WITH_DEFAULT:
+        const MessageTemplate(MessageKind.REQUIRED_PARAMETER_WITH_DEFAULT,
+          "Non-optional parameters can't have a default value.",
+          howToFix:
+            "Try removing the default value or making the parameter optional.",
+          examples: const ["""
 main() {
   foo(a: 1) => print(a);
   foo(2);
@@ -678,33 +1169,36 @@ main() {
 main() {
   foo(a = 1) => print(a);
   foo(2);
-}"""]);
+}"""]),
 
-  static const MessageKind NAMED_PARAMETER_WITH_EQUALS = const MessageKind(
-      "Named optional parameters can't use '=' to specify a default "
-      "value.",
-      howToFix: "Try replacing '=' with ':'.",
-      examples: const ["""
+      MessageKind.NAMED_PARAMETER_WITH_EQUALS:
+        const MessageTemplate(MessageKind.NAMED_PARAMETER_WITH_EQUALS,
+          "Named optional parameters can't use '=' to specify a default "
+          "value.",
+          howToFix: "Try replacing '=' with ':'.",
+          examples: const ["""
 main() {
   foo({a = 1}) => print(a);
   foo(a: 2);
-}"""]);
+}"""]),
 
-  static const MessageKind POSITIONAL_PARAMETER_WITH_EQUALS = const MessageKind(
-      "Positional optional parameters can't use ':' to specify a "
-      "default value.",
-      howToFix: "Try replacing ':' with '='.",
-      examples: const ["""
+      MessageKind.POSITIONAL_PARAMETER_WITH_EQUALS:
+        const MessageTemplate(MessageKind.POSITIONAL_PARAMETER_WITH_EQUALS,
+          "Positional optional parameters can't use ':' to specify a "
+          "default value.",
+          howToFix: "Try replacing ':' with '='.",
+          examples: const ["""
 main() {
   foo([a: 1]) => print(a);
   foo(2);
-}"""]);
+}"""]),
 
-  static const MessageKind TYPEDEF_FORMAL_WITH_DEFAULT = const MessageKind(
-      "A parameter of a typedef can't specify a default value.",
-      howToFix:
-        "Try removing the default value.",
-      examples: const ["""
+      MessageKind.TYPEDEF_FORMAL_WITH_DEFAULT:
+        const MessageTemplate(MessageKind.TYPEDEF_FORMAL_WITH_DEFAULT,
+          "A parameter of a typedef can't specify a default value.",
+          howToFix:
+            "Try removing the default value.",
+          examples: const ["""
 typedef void F([int arg = 0]);
 
 main() {
@@ -714,13 +1208,14 @@ typedef void F({int arg: 0});
 
 main() {
   F f;
-}"""]);
+}"""]),
 
-  static const MessageKind FUNCTION_TYPE_FORMAL_WITH_DEFAULT = const MessageKind(
-      "A function type parameter can't specify a default value.",
-      howToFix:
-        "Try removing the default value.",
-      examples: const ["""
+      MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT:
+        const MessageTemplate(MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT,
+          "A function type parameter can't specify a default value.",
+          howToFix:
+            "Try removing the default value.",
+          examples: const ["""
 foo(f(int i, [a = 1])) {}
 
 main() {
@@ -730,14 +1225,15 @@ foo(f(int i, {a: 1})) {}
 
 main() {
   foo(1, a: 2);
-}"""]);
+}"""]),
 
-  static const MessageKind REDIRECTING_FACTORY_WITH_DEFAULT = const MessageKind(
-      "A parameter of a redirecting factory constructor can't specify a "
-      "default value.",
-      howToFix:
-        "Try removing the default value.",
-      examples: const ["""
+      MessageKind.REDIRECTING_FACTORY_WITH_DEFAULT:
+        const MessageTemplate(MessageKind.REDIRECTING_FACTORY_WITH_DEFAULT,
+          "A parameter of a redirecting factory constructor can't specify a "
+          "default value.",
+          howToFix:
+            "Try removing the default value.",
+          examples: const ["""
 class A {
   A([a]);
   factory A.foo([a = 1]) = A;
@@ -753,12 +1249,13 @@ class A {
 
 main() {
   new A.foo(a: 1);
-}"""]);
+}"""]),
 
-  static const MessageKind FORMAL_DECLARED_CONST = const MessageKind(
-      "A formal parameter can't be declared const.",
-      howToFix: "Try removing 'const'.",
-      examples: const ["""
+      MessageKind.FORMAL_DECLARED_CONST:
+        const MessageTemplate(MessageKind.FORMAL_DECLARED_CONST,
+          "A formal parameter can't be declared const.",
+          howToFix: "Try removing 'const'.",
+          examples: const ["""
 foo(const x) {}
 main() => foo(42);
 """, """
@@ -767,12 +1264,13 @@ main() => foo(42);
 """, """
 foo([const x]) {}
 main() => foo(42);
-"""]);
+"""]),
 
-  static const MessageKind FORMAL_DECLARED_STATIC = const MessageKind(
-      "A formal parameter can't be declared static.",
-      howToFix: "Try removing 'static'.",
-      examples: const ["""
+      MessageKind.FORMAL_DECLARED_STATIC:
+        const MessageTemplate(MessageKind.FORMAL_DECLARED_STATIC,
+          "A formal parameter can't be declared static.",
+          howToFix: "Try removing 'static'.",
+          examples: const ["""
 foo(static x) {}
 main() => foo(42);
 """, """
@@ -781,12 +1279,13 @@ main() => foo(42);
 """, """
 foo([static x]) {}
 main() => foo(42);
-"""]);
+"""]),
 
-  static const MessageKind FINAL_FUNCTION_TYPE_PARAMETER = const MessageKind(
-      "A function type parameter can't be declared final.",
-      howToFix: "Try removing 'final'.",
-      examples: const ["""
+      MessageKind.FINAL_FUNCTION_TYPE_PARAMETER:
+        const MessageTemplate(MessageKind.FINAL_FUNCTION_TYPE_PARAMETER,
+          "A function type parameter can't be declared final.",
+          howToFix: "Try removing 'final'.",
+          examples: const ["""
 foo(final int x(int a)) {}
 main() => foo((y) => 42);
 """, """
@@ -795,12 +1294,13 @@ main() => foo((y) => 42);
 """, """
 foo([final int x(int a)]) {}
 main() => foo((y) => 42);
-"""]);
+"""]),
 
-  static const MessageKind VAR_FUNCTION_TYPE_PARAMETER = const MessageKind(
-      "A function type parameter can't be declared with 'var'.",
-      howToFix: "Try removing 'var'.",
-      examples: const ["""
+      MessageKind.VAR_FUNCTION_TYPE_PARAMETER:
+        const MessageTemplate(MessageKind.VAR_FUNCTION_TYPE_PARAMETER,
+          "A function type parameter can't be declared with 'var'.",
+          howToFix: "Try removing 'var'.",
+          examples: const ["""
 foo(var int x(int a)) {}
 main() => foo((y) => 42);
 """, """
@@ -809,27 +1309,32 @@ main() => foo((y) => 42);
 """, """
 foo([var int x(int a)]) {}
 main() => foo((y) => 42);
-"""]);
+"""]),
 
-  static const MessageKind CANNOT_INSTANTIATE_TYPE_VARIABLE = const MessageKind(
-      "Cannot instantiate type variable '#{typeVariableName}'.");
+      MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE:
+        const MessageTemplate(MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
+          "Cannot instantiate type variable '#{typeVariableName}'."),
 
-  static const MessageKind CYCLIC_TYPE_VARIABLE = const MessageKind(
-      "Type variable '#{typeVariableName}' is a supertype of itself.");
+      MessageKind.CYCLIC_TYPE_VARIABLE:
+        const MessageTemplate(MessageKind.CYCLIC_TYPE_VARIABLE,
+          "Type variable '#{typeVariableName}' is a supertype of itself."),
 
-  static const CYCLIC_TYPEDEF = const MessageKind(
-      "A typedef can't refer to itself.",
-      howToFix: "Try removing all references to '#{typedefName}' "
-                "in the definition of '#{typedefName}'.",
-      examples: const ["""
+      MessageKind.CYCLIC_TYPEDEF:
+        const MessageTemplate(MessageKind.CYCLIC_TYPEDEF,
+          "A typedef can't refer to itself.",
+          howToFix: "Try removing all references to '#{typedefName}' "
+                    "in the definition of '#{typedefName}'.",
+          examples: const ["""
 typedef F F(); // The return type 'F' is a self-reference.
-main() { F f = null; }"""]);
+main() { F f = null; }"""]),
 
-  static const CYCLIC_TYPEDEF_ONE = const MessageKind(
-      "A typedef can't refer to itself through another typedef.",
-      howToFix: "Try removing all references to "
-                "'#{otherTypedefName}' in the definition of '#{typedefName}'.",
-      examples: const ["""
+      MessageKind.CYCLIC_TYPEDEF_ONE:
+        const MessageTemplate(MessageKind.CYCLIC_TYPEDEF_ONE,
+          "A typedef can't refer to itself through another typedef.",
+          howToFix:
+            "Try removing all references to "
+            "'#{otherTypedefName}' in the definition of '#{typedefName}'.",
+          examples: const ["""
 typedef G F(); // The return type 'G' is a self-reference through typedef 'G'.
 typedef F G(); // The return type 'F' is a self-reference through typedef 'F'.
 main() { F f = null; }""",
@@ -837,49 +1342,59 @@ main() { F f = null; }""",
 typedef G F(); // The return type 'G' creates a self-reference.
 typedef H G(); // The return type 'H' creates a self-reference.
 typedef H(F f); // The argument type 'F' creates a self-reference.
-main() { F f = null; }"""]);
+main() { F f = null; }"""]),
 
-  static const MessageKind CLASS_NAME_EXPECTED = const MessageKind(
-      "Class name expected.");
+      MessageKind.CLASS_NAME_EXPECTED:
+        const MessageTemplate(MessageKind.CLASS_NAME_EXPECTED,
+          "Class name expected."),
 
-  static const MessageKind CANNOT_EXTEND = const MessageKind(
-      "'#{type}' cannot be extended.");
+      MessageKind.CANNOT_EXTEND:
+        const MessageTemplate(MessageKind.CANNOT_EXTEND,
+          "'#{type}' cannot be extended."),
 
-  static const MessageKind CANNOT_IMPLEMENT = const MessageKind(
-      "'#{type}' cannot be implemented.");
+      MessageKind.CANNOT_IMPLEMENT:
+        const MessageTemplate(MessageKind.CANNOT_IMPLEMENT,
+          "'#{type}' cannot be implemented."),
 
-  // TODO(johnnwinther): Split messages into reasons for malformedness.
-  static const MessageKind CANNOT_EXTEND_MALFORMED = const MessageKind(
-      "Class '#{className}' can't extend the type '#{malformedType}' because "
-      "it is malformed.",
-      howToFix: "Try correcting the malformed type annotation or removing the "
-        "'extends' clause.",
-      examples: const ["""
+      // TODO(johnnwinther): Split messages into reasons for malformedness.
+      MessageKind.CANNOT_EXTEND_MALFORMED:
+        const MessageTemplate(MessageKind.CANNOT_EXTEND_MALFORMED,
+          "Class '#{className}' can't extend the type '#{malformedType}' "
+          "because it is malformed.",
+          howToFix:
+            "Try correcting the malformed type annotation or removing the "
+            "'extends' clause.",
+          examples: const ["""
 class A extends Malformed {}
-main() => new A();"""]);
+main() => new A();"""]),
 
-  static const MessageKind CANNOT_IMPLEMENT_MALFORMED = const MessageKind(
-      "Class '#{className}' can't implement the type '#{malformedType}' "
-      "because it is malformed.",
-      howToFix: "Try correcting the malformed type annotation or removing the "
-        "type from the 'implements' clause.",
-      examples: const ["""
+      MessageKind.CANNOT_IMPLEMENT_MALFORMED:
+        const MessageTemplate(MessageKind.CANNOT_IMPLEMENT_MALFORMED,
+          "Class '#{className}' can't implement the type '#{malformedType}' "
+          "because it is malformed.",
+          howToFix:
+            "Try correcting the malformed type annotation or removing the "
+            "type from the 'implements' clause.",
+          examples: const ["""
 class A implements Malformed {}
-main() => new A();"""]);
+main() => new A();"""]),
 
-  static const MessageKind CANNOT_MIXIN_MALFORMED = const MessageKind(
-      "Class '#{className}' can't mixin the type '#{malformedType}' because it "
-      "is malformed.",
-      howToFix: "Try correcting the malformed type annotation or removing the "
-        "type from the 'with' clause.",
-      examples: const ["""
+      MessageKind.CANNOT_MIXIN_MALFORMED:
+        const MessageTemplate(MessageKind.CANNOT_MIXIN_MALFORMED,
+          "Class '#{className}' can't mixin the type '#{malformedType}' "
+          "because it is malformed.",
+          howToFix:
+            "Try correcting the malformed type annotation or removing the "
+            "type from the 'with' clause.",
+          examples: const ["""
 class A extends Object with Malformed {}
-main() => new A();"""]);
+main() => new A();"""]),
 
-  static const MessageKind CANNOT_MIXIN = const MessageKind(
-      "The type '#{type}' can't be mixed in.",
-      howToFix: "Try removing '#{type}' from the 'with' clause.",
-      examples: const ["""
+      MessageKind.CANNOT_MIXIN:
+        const MessageTemplate(MessageKind.CANNOT_MIXIN,
+          "The type '#{type}' can't be mixed in.",
+          howToFix: "Try removing '#{type}' from the 'with' clause.",
+          examples: const ["""
 class C extends Object with String {}
 
 main() => new C();
@@ -887,60 +1402,66 @@ main() => new C();
 typedef C = Object with String;
 
 main() => new C();
-"""]);
+"""]),
 
-  static const MessageKind CANNOT_EXTEND_ENUM = const MessageKind(
-      "Class '#{className}' can't extend the type '#{enumType}' because "
-      "it is declared by an enum.",
-      howToFix: "Try making '#{enumType}' a normal class or removing the "
-        "'extends' clause.",
-      examples: const ["""
+      MessageKind.CANNOT_EXTEND_ENUM:
+        const MessageTemplate(MessageKind.CANNOT_EXTEND_ENUM,
+          "Class '#{className}' can't extend the type '#{enumType}' because "
+          "it is declared by an enum.",
+          howToFix: "Try making '#{enumType}' a normal class or removing the "
+            "'extends' clause.",
+          examples: const ["""
 enum Enum { A }
 class B extends Enum {}
-main() => new B();"""]);
+main() => new B();"""]),
 
-  static const MessageKind CANNOT_IMPLEMENT_ENUM = const MessageKind(
-      "Class '#{className}' can't implement the type '#{enumType}' "
-      "because it is declared by an enum.",
-      howToFix: "Try making '#{enumType}' a normal class or removing the "
-        "type from the 'implements' clause.",
-      examples: const ["""
+      MessageKind.CANNOT_IMPLEMENT_ENUM:
+        const MessageTemplate(MessageKind.CANNOT_IMPLEMENT_ENUM,
+          "Class '#{className}' can't implement the type '#{enumType}' "
+          "because it is declared by an enum.",
+          howToFix: "Try making '#{enumType}' a normal class or removing the "
+            "type from the 'implements' clause.",
+          examples: const ["""
 enum Enum { A }
 class B implements Enum {}
-main() => new B();"""]);
+main() => new B();"""]),
 
-  static const MessageKind CANNOT_MIXIN_ENUM = const MessageKind(
-      "Class '#{className}' can't mixin the type '#{enumType}' because it "
-      "is declared by an enum.",
-      howToFix: "Try making '#{enumType}' a normal class or removing the "
-        "type from the 'with' clause.",
-      examples: const ["""
+      MessageKind.CANNOT_MIXIN_ENUM:
+        const MessageTemplate(MessageKind.CANNOT_MIXIN_ENUM,
+          "Class '#{className}' can't mixin the type '#{enumType}' because it "
+          "is declared by an enum.",
+          howToFix: "Try making '#{enumType}' a normal class or removing the "
+            "type from the 'with' clause.",
+          examples: const ["""
 enum Enum { A }
 class B extends Object with Enum {}
-main() => new B();"""]);
+main() => new B();"""]),
 
-  static const MessageKind CANNOT_INSTANTIATE_ENUM = const MessageKind(
-      "Enum type '#{enumName}' cannot be instantiated.",
-      howToFix: "Try making '#{enumType}' a normal class or use an enum "
-                "constant.",
-      examples: const ["""
+      MessageKind.CANNOT_INSTANTIATE_ENUM:
+        const MessageTemplate(MessageKind.CANNOT_INSTANTIATE_ENUM,
+          "Enum type '#{enumName}' cannot be instantiated.",
+          howToFix: "Try making '#{enumType}' a normal class or use an enum "
+                    "constant.",
+          examples: const ["""
 enum Enum { A }
 main() => new Enum(0);""", """
 enum Enum { A }
-main() => const Enum(0);"""]);
+main() => const Enum(0);"""]),
 
-  static const MessageKind EMPTY_ENUM_DECLARATION = const MessageKind(
-      "Enum '#{enumName}' must contain at least one value.",
-      howToFix: "Try adding an enum constant or making #{enumName} a "
-                "normal class.",
-      examples: const ["""
+      MessageKind.EMPTY_ENUM_DECLARATION:
+        const MessageTemplate(MessageKind.EMPTY_ENUM_DECLARATION,
+          "Enum '#{enumName}' must contain at least one value.",
+          howToFix: "Try adding an enum constant or making #{enumName} a "
+                    "normal class.",
+          examples: const ["""
 enum Enum {}
-main() { Enum e; }"""]);
+main() { Enum e; }"""]),
 
-  static const MessageKind MISSING_ENUM_CASES = const MessageKind(
-      "Missing enum constants in switch statement: #{enumValues}.",
-      howToFix: "Try adding the missing constants or a default case.",
-      examples: const ["""
+      MessageKind.MISSING_ENUM_CASES:
+        const MessageTemplate(MessageKind.MISSING_ENUM_CASES,
+          "Missing enum constants in switch statement: #{enumValues}.",
+          howToFix: "Try adding the missing constants or a default case.",
+          examples: const ["""
 enum Enum { A, B }
 main() {
   switch (Enum.A) {
@@ -952,283 +1473,343 @@ main() {
   switch (Enum.A) {
   case Enum.B: break;
   }
-}"""]);
+}"""]),
 
-  static const MessageKind DUPLICATE_EXTENDS_IMPLEMENTS = const MessageKind(
-      "'#{type}' can not be both extended and implemented.");
+      MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS:
+        const MessageTemplate(MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS,
+          "'#{type}' can not be both extended and implemented."),
 
-  static const MessageKind DUPLICATE_IMPLEMENTS = const MessageKind(
-      "'#{type}' must not occur more than once "
-      "in the implements clause.");
+      MessageKind.DUPLICATE_IMPLEMENTS:
+        const MessageTemplate(MessageKind.DUPLICATE_IMPLEMENTS,
+          "'#{type}' must not occur more than once "
+          "in the implements clause."),
 
-  static const MessageKind MULTI_INHERITANCE = const MessageKind(
-      "Dart2js does not currently support inheritance of the same class with "
-      "different type arguments: Both #{firstType} and #{secondType} are "
-      "supertypes of #{thisType}.");
+      MessageKind.MULTI_INHERITANCE:
+        const MessageTemplate(MessageKind.MULTI_INHERITANCE,
+          "Dart2js does not currently support inheritance of the same class "
+          "with different type arguments: Both #{firstType} and #{secondType} "
+          "are supertypes of #{thisType}."),
 
-  static const MessageKind ILLEGAL_SUPER_SEND = const MessageKind(
-      "'#{name}' cannot be called on super.");
+      MessageKind.ILLEGAL_SUPER_SEND:
+        const MessageTemplate(MessageKind.ILLEGAL_SUPER_SEND,
+          "'#{name}' cannot be called on super."),
 
-  static const MessageKind NO_SUCH_SUPER_MEMBER = const MessageKind(
-      "Cannot resolve '#{memberName}' in a superclass of '#{className}'.");
+      MessageKind.NO_SUCH_SUPER_MEMBER:
+        const MessageTemplate(MessageKind.NO_SUCH_SUPER_MEMBER,
+          "Cannot resolve '#{memberName}' in a superclass of '#{className}'."),
 
-  static const MessageKind ADDITIONAL_TYPE_ARGUMENT = const MessageKind(
-      "Additional type argument.");
+      MessageKind.ADDITIONAL_TYPE_ARGUMENT:
+        const MessageTemplate(MessageKind.ADDITIONAL_TYPE_ARGUMENT,
+          "Additional type argument."),
 
-  static const MessageKind MISSING_TYPE_ARGUMENT = const MessageKind(
-      "Missing type argument.");
+      MessageKind.MISSING_TYPE_ARGUMENT:
+        const MessageTemplate(MessageKind.MISSING_TYPE_ARGUMENT,
+          "Missing type argument."),
 
-  // TODO(johnniwinther): Use ADDITIONAL_TYPE_ARGUMENT or MISSING_TYPE_ARGUMENT
-  // instead.
-  static const MessageKind TYPE_ARGUMENT_COUNT_MISMATCH = const MessageKind(
-      "Incorrect number of type arguments on '#{type}'.");
+      // TODO(johnniwinther): Use ADDITIONAL_TYPE_ARGUMENT or
+      // MISSING_TYPE_ARGUMENT instead.
+      MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH:
+        const MessageTemplate(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
+          "Incorrect number of type arguments on '#{type}'."),
 
-  static const MessageKind GETTER_MISMATCH = const MessageKind(
-      "Setter disagrees on: '#{modifiers}'.");
+      MessageKind.GETTER_MISMATCH:
+        const MessageTemplate(MessageKind.GETTER_MISMATCH,
+          "Setter disagrees on: '#{modifiers}'."),
 
-  static const MessageKind SETTER_MISMATCH = const MessageKind(
-      "Getter disagrees on: '#{modifiers}'.");
+      MessageKind.SETTER_MISMATCH:
+        const MessageTemplate(MessageKind.SETTER_MISMATCH,
+          "Getter disagrees on: '#{modifiers}'."),
 
-  static const MessageKind ILLEGAL_SETTER_FORMALS = const MessageKind(
-      "A setter must have exactly one argument.");
+      MessageKind.ILLEGAL_SETTER_FORMALS:
+        const MessageTemplate(MessageKind.ILLEGAL_SETTER_FORMALS,
+          "A setter must have exactly one argument."),
 
-  static const MessageKind NO_STATIC_OVERRIDE = const MessageKind(
-      "Static member cannot override instance member '#{memberName}' of "
-      "'#{className}'.");
+      MessageKind.NO_STATIC_OVERRIDE:
+        const MessageTemplate(MessageKind.NO_STATIC_OVERRIDE,
+          "Static member cannot override instance member '#{memberName}' of "
+          "'#{className}'."),
 
-  static const MessageKind NO_STATIC_OVERRIDE_CONT = const MessageKind(
-      "This is the instance member that cannot be overridden "
-      "by a static member.");
+      MessageKind.NO_STATIC_OVERRIDE_CONT:
+        const MessageTemplate(MessageKind.NO_STATIC_OVERRIDE_CONT,
+          "This is the instance member that cannot be overridden "
+          "by a static member."),
 
-  static const MessageKind INSTANCE_STATIC_SAME_NAME = const MessageKind(
-      "Instance member '#{memberName}' and static member of "
-      "superclass '#{className}' have the same name.");
+      MessageKind.INSTANCE_STATIC_SAME_NAME:
+        const MessageTemplate(MessageKind.INSTANCE_STATIC_SAME_NAME,
+          "Instance member '#{memberName}' and static member of "
+          "superclass '#{className}' have the same name."),
 
-  static const MessageKind INSTANCE_STATIC_SAME_NAME_CONT = const MessageKind(
-      "This is the static member with the same name.");
+      MessageKind.INSTANCE_STATIC_SAME_NAME_CONT:
+        const MessageTemplate(MessageKind.INSTANCE_STATIC_SAME_NAME_CONT,
+          "This is the static member with the same name."),
 
-  static const MessageKind INVALID_OVERRIDE_METHOD = const MessageKind(
-      "The type '#{declaredType}' of method '#{name}' declared in "
-      "'#{class}' is not a subtype of the overridden method type "
-      "'#{inheritedType}' inherited from '#{inheritedClass}'.");
+      MessageKind.INVALID_OVERRIDE_METHOD:
+        const MessageTemplate(MessageKind.INVALID_OVERRIDE_METHOD,
+          "The type '#{declaredType}' of method '#{name}' declared in "
+          "'#{class}' is not a subtype of the overridden method type "
+          "'#{inheritedType}' inherited from '#{inheritedClass}'."),
 
-  static const MessageKind INVALID_OVERRIDDEN_METHOD = const MessageKind(
-      "This is the overridden method '#{name}' declared in class "
-      "'#{class}'.");
+      MessageKind.INVALID_OVERRIDDEN_METHOD:
+        const MessageTemplate(MessageKind.INVALID_OVERRIDDEN_METHOD,
+          "This is the overridden method '#{name}' declared in class "
+          "'#{class}'."),
 
-  static const MessageKind INVALID_OVERRIDE_GETTER = const MessageKind(
-      "The type '#{declaredType}' of getter '#{name}' declared in "
-      "'#{class}' is not assignable to the type '#{inheritedType}' of the "
-      "overridden getter inherited from '#{inheritedClass}'.");
-
-  static const MessageKind INVALID_OVERRIDDEN_GETTER = const MessageKind(
-      "This is the overridden getter '#{name}' declared in class "
-      "'#{class}'.");
-
-  static const MessageKind INVALID_OVERRIDE_GETTER_WITH_FIELD =
-      const MessageKind(
-          "The type '#{declaredType}' of field '#{name}' declared in "
-          "'#{class}' is not assignable to the type '#{inheritedType}' of the "
-          "overridden getter inherited from '#{inheritedClass}'.");
-
-  static const MessageKind INVALID_OVERRIDE_FIELD_WITH_GETTER =
-      const MessageKind(
+      MessageKind.INVALID_OVERRIDE_GETTER:
+        const MessageTemplate(MessageKind.INVALID_OVERRIDE_GETTER,
           "The type '#{declaredType}' of getter '#{name}' declared in "
           "'#{class}' is not assignable to the type '#{inheritedType}' of the "
-          "overridden field inherited from '#{inheritedClass}'.");
+          "overridden getter inherited from '#{inheritedClass}'."),
 
-  static const MessageKind INVALID_OVERRIDE_SETTER = const MessageKind(
-      "The type '#{declaredType}' of setter '#{name}' declared in "
-      "'#{class}' is not assignable to the type '#{inheritedType}' of the "
-      "overridden setter inherited from '#{inheritedClass}'.");
+      MessageKind.INVALID_OVERRIDDEN_GETTER:
+        const MessageTemplate(MessageKind.INVALID_OVERRIDDEN_GETTER,
+          "This is the overridden getter '#{name}' declared in class "
+          "'#{class}'."),
 
-  static const MessageKind INVALID_OVERRIDDEN_SETTER = const MessageKind(
-      "This is the overridden setter '#{name}' declared in class "
-      "'#{class}'.");
-
-  static const MessageKind INVALID_OVERRIDE_SETTER_WITH_FIELD =
-      const MessageKind(
+      MessageKind.INVALID_OVERRIDE_GETTER_WITH_FIELD:
+        const MessageTemplate(MessageKind.INVALID_OVERRIDE_GETTER_WITH_FIELD,
           "The type '#{declaredType}' of field '#{name}' declared in "
           "'#{class}' is not assignable to the type '#{inheritedType}' of the "
-          "overridden setter inherited from '#{inheritedClass}'.");
+          "overridden getter inherited from '#{inheritedClass}'."),
 
-  static const MessageKind INVALID_OVERRIDE_FIELD_WITH_SETTER =
-      const MessageKind(
+      MessageKind.INVALID_OVERRIDE_FIELD_WITH_GETTER:
+        const MessageTemplate(MessageKind.INVALID_OVERRIDE_FIELD_WITH_GETTER,
+          "The type '#{declaredType}' of getter '#{name}' declared in "
+          "'#{class}' is not assignable to the type '#{inheritedType}' of the "
+          "overridden field inherited from '#{inheritedClass}'."),
+
+      MessageKind.INVALID_OVERRIDE_SETTER:
+        const MessageTemplate(MessageKind.INVALID_OVERRIDE_SETTER,
           "The type '#{declaredType}' of setter '#{name}' declared in "
           "'#{class}' is not assignable to the type '#{inheritedType}' of the "
-          "overridden field inherited from '#{inheritedClass}'.");
+          "overridden setter inherited from '#{inheritedClass}'."),
 
-  static const MessageKind INVALID_OVERRIDE_FIELD = const MessageKind(
-      "The type '#{declaredType}' of field '#{name}' declared in "
-      "'#{class}' is not assignable to the type '#{inheritedType}' of the "
-      "overridden field inherited from '#{inheritedClass}'.");
+      MessageKind.INVALID_OVERRIDDEN_SETTER:
+        const MessageTemplate(MessageKind.INVALID_OVERRIDDEN_SETTER,
+          "This is the overridden setter '#{name}' declared in class "
+          "'#{class}'."),
 
-  static const MessageKind INVALID_OVERRIDDEN_FIELD = const MessageKind(
-      "This is the overridden field '#{name}' declared in class "
-      "'#{class}'.");
+      MessageKind.INVALID_OVERRIDE_SETTER_WITH_FIELD:
+        const MessageTemplate(MessageKind.INVALID_OVERRIDE_SETTER_WITH_FIELD,
+          "The type '#{declaredType}' of field '#{name}' declared in "
+          "'#{class}' is not assignable to the type '#{inheritedType}' of the "
+          "overridden setter inherited from '#{inheritedClass}'."),
 
-  static const MessageKind CANNOT_OVERRIDE_FIELD_WITH_METHOD =
-      const MessageKind(
+      MessageKind.INVALID_OVERRIDE_FIELD_WITH_SETTER:
+        const MessageTemplate(MessageKind.INVALID_OVERRIDE_FIELD_WITH_SETTER,
+          "The type '#{declaredType}' of setter '#{name}' declared in "
+          "'#{class}' is not assignable to the type '#{inheritedType}' of the "
+          "overridden field inherited from '#{inheritedClass}'."),
+
+      MessageKind.INVALID_OVERRIDE_FIELD:
+        const MessageTemplate(MessageKind.INVALID_OVERRIDE_FIELD,
+          "The type '#{declaredType}' of field '#{name}' declared in "
+          "'#{class}' is not assignable to the type '#{inheritedType}' of the "
+          "overridden field inherited from '#{inheritedClass}'."),
+
+      MessageKind.INVALID_OVERRIDDEN_FIELD:
+        const MessageTemplate(MessageKind.INVALID_OVERRIDDEN_FIELD,
+          "This is the overridden field '#{name}' declared in class "
+          "'#{class}'."),
+
+      MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD:
+        const MessageTemplate(MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD,
           "Method '#{name}' in '#{class}' can't override field from "
-          "'#{inheritedClass}'.");
+          "'#{inheritedClass}'."),
 
-  static const MessageKind CANNOT_OVERRIDE_FIELD_WITH_METHOD_CONT =
-      const MessageKind(
-          "This is the field that cannot be overridden by a method.");
+      MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD_CONT:
+        const MessageTemplate(
+          MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD_CONT,
+          "This is the field that cannot be overridden by a method."),
 
-  static const MessageKind CANNOT_OVERRIDE_METHOD_WITH_FIELD =
-      const MessageKind(
+      MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD:
+        const MessageTemplate(
+          MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD,
           "Field '#{name}' in '#{class}' can't override method from "
-          "'#{inheritedClass}'.");
+          "'#{inheritedClass}'."),
 
-  static const MessageKind CANNOT_OVERRIDE_METHOD_WITH_FIELD_CONT =
-      const MessageKind(
-          "This is the method that cannot be overridden by a field.");
+      MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD_CONT:
+        const MessageTemplate(
+          MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD_CONT,
+          "This is the method that cannot be overridden by a field."),
 
-  static const MessageKind CANNOT_OVERRIDE_GETTER_WITH_METHOD =
-      const MessageKind(
-          "Method '#{name}' in '#{class}' can't override getter from "
-          "'#{inheritedClass}'.");
+      MessageKind.CANNOT_OVERRIDE_GETTER_WITH_METHOD:
+        const MessageTemplate(MessageKind.CANNOT_OVERRIDE_GETTER_WITH_METHOD,
+              "Method '#{name}' in '#{class}' can't override getter from "
+              "'#{inheritedClass}'."),
 
-  static const MessageKind CANNOT_OVERRIDE_GETTER_WITH_METHOD_CONT =
-      const MessageKind(
-          "This is the getter that cannot be overridden by a method.");
+      MessageKind.CANNOT_OVERRIDE_GETTER_WITH_METHOD_CONT:
+        const MessageTemplate(
+          MessageKind.CANNOT_OVERRIDE_GETTER_WITH_METHOD_CONT,
+          "This is the getter that cannot be overridden by a method."),
 
-  static const MessageKind CANNOT_OVERRIDE_METHOD_WITH_GETTER =
-      const MessageKind(
+      MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER:
+        const MessageTemplate(MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER,
           "Getter '#{name}' in '#{class}' can't override method from "
-          "'#{inheritedClass}'.");
+          "'#{inheritedClass}'."),
 
-  static const MessageKind CANNOT_OVERRIDE_METHOD_WITH_GETTER_CONT =
-      const MessageKind(
-          "This is the method that cannot be overridden by a getter.");
+      MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER_CONT:
+        const MessageTemplate(
+          MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER_CONT,
+          "This is the method that cannot be overridden by a getter."),
 
-  static const MessageKind MISSING_FORMALS = const MessageKind(
-      "Formal parameters are missing.");
+      MessageKind.MISSING_FORMALS:
+        const MessageTemplate(MessageKind.MISSING_FORMALS,
+          "Formal parameters are missing."),
 
-  static const MessageKind EXTRA_FORMALS = const MessageKind(
-      "Formal parameters are not allowed here.");
+      MessageKind.EXTRA_FORMALS:
+        const MessageTemplate(MessageKind.EXTRA_FORMALS,
+          "Formal parameters are not allowed here."),
 
-  static const MessageKind UNARY_OPERATOR_BAD_ARITY = const MessageKind(
-      "Operator '#{operatorName}' must have no parameters.");
+      MessageKind.UNARY_OPERATOR_BAD_ARITY:
+        const MessageTemplate(MessageKind.UNARY_OPERATOR_BAD_ARITY,
+          "Operator '#{operatorName}' must have no parameters."),
 
-  static const MessageKind MINUS_OPERATOR_BAD_ARITY = const MessageKind(
-      "Operator '-' must have 0 or 1 parameters.");
+      MessageKind.MINUS_OPERATOR_BAD_ARITY:
+        const MessageTemplate(MessageKind.MINUS_OPERATOR_BAD_ARITY,
+          "Operator '-' must have 0 or 1 parameters."),
 
-  static const MessageKind BINARY_OPERATOR_BAD_ARITY = const MessageKind(
-      "Operator '#{operatorName}' must have exactly 1 parameter.");
+      MessageKind.BINARY_OPERATOR_BAD_ARITY:
+        const MessageTemplate(MessageKind.BINARY_OPERATOR_BAD_ARITY,
+          "Operator '#{operatorName}' must have exactly 1 parameter."),
 
-  static const MessageKind TERNARY_OPERATOR_BAD_ARITY = const MessageKind(
-      "Operator '#{operatorName}' must have exactly 2 parameters.");
+      MessageKind.TERNARY_OPERATOR_BAD_ARITY:
+        const MessageTemplate(MessageKind.TERNARY_OPERATOR_BAD_ARITY,
+          "Operator '#{operatorName}' must have exactly 2 parameters."),
 
-  static const MessageKind OPERATOR_OPTIONAL_PARAMETERS = const MessageKind(
-      "Operator '#{operatorName}' cannot have optional parameters.");
+      MessageKind.OPERATOR_OPTIONAL_PARAMETERS:
+        const MessageTemplate(MessageKind.OPERATOR_OPTIONAL_PARAMETERS,
+          "Operator '#{operatorName}' cannot have optional parameters."),
 
-  static const MessageKind OPERATOR_NAMED_PARAMETERS = const MessageKind(
-      "Operator '#{operatorName}' cannot have named parameters.");
+      MessageKind.OPERATOR_NAMED_PARAMETERS:
+        const MessageTemplate(MessageKind.OPERATOR_NAMED_PARAMETERS,
+          "Operator '#{operatorName}' cannot have named parameters."),
 
-  static const MessageKind CONSTRUCTOR_WITH_RETURN_TYPE = const MessageKind(
-      "Cannot have return type for constructor.");
+      MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE:
+        const MessageTemplate(MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE,
+          "Cannot have return type for constructor."),
 
-  static const MessageKind CANNOT_RETURN_FROM_CONSTRUCTOR = const MessageKind(
-      "Constructors can't return values.",
-      howToFix: "Remove the return statement or use a factory constructor.",
-      examples: const ["""
+      MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR:
+        const MessageTemplate(MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR,
+          "Constructors can't return values.",
+          howToFix: "Remove the return statement or use a factory constructor.",
+          examples: const ["""
 class C {
   C() {
     return 1;
   }
 }
 
-main() => new C();"""]);
+main() => new C();"""]),
 
-  static const MessageKind ILLEGAL_FINAL_METHOD_MODIFIER = const MessageKind(
-      "Cannot have final modifier on method.");
+      MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER:
+        const MessageTemplate(MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER,
+          "Cannot have final modifier on method."),
 
-  static const MessageKind ILLEGAL_CONST_FIELD_MODIFIER = const MessageKind(
-      "Cannot have const modifier on non-static field.",
-      howToFix: "Try adding a static modifier, or removing the const modifier.",
-      examples: const ["""
+      MessageKind.ILLEGAL_CONST_FIELD_MODIFIER:
+        const MessageTemplate(MessageKind.ILLEGAL_CONST_FIELD_MODIFIER,
+          "Cannot have const modifier on non-static field.",
+          howToFix:
+            "Try adding a static modifier, or removing the const modifier.",
+          examples: const ["""
 class C {
   const int a = 1;
 }
 
-main() => new C();"""]);
+main() => new C();"""]),
 
-  static const MessageKind ILLEGAL_CONSTRUCTOR_MODIFIERS = const MessageKind(
-      "Illegal constructor modifiers: '#{modifiers}'.");
+      MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS:
+        const MessageTemplate(MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS,
+          "Illegal constructor modifiers: '#{modifiers}'."),
 
-  static const MessageKind ILLEGAL_MIXIN_APPLICATION_MODIFIERS =
-      const MessageKind(
-          "Illegal mixin application modifiers: '#{modifiers}'.");
+      MessageKind.ILLEGAL_MIXIN_APPLICATION_MODIFIERS:
+        const MessageTemplate(MessageKind.ILLEGAL_MIXIN_APPLICATION_MODIFIERS,
+              "Illegal mixin application modifiers: '#{modifiers}'."),
 
-  static const MessageKind ILLEGAL_MIXIN_SUPERCLASS = const MessageKind(
-      "Class used as mixin must have Object as superclass.");
+      MessageKind.ILLEGAL_MIXIN_SUPERCLASS:
+        const MessageTemplate(MessageKind.ILLEGAL_MIXIN_SUPERCLASS,
+          "Class used as mixin must have Object as superclass."),
 
-  static const MessageKind ILLEGAL_MIXIN_OBJECT = const MessageKind(
-      "Cannot use Object as mixin.");
+      MessageKind.ILLEGAL_MIXIN_OBJECT:
+        const MessageTemplate(MessageKind.ILLEGAL_MIXIN_OBJECT,
+          "Cannot use Object as mixin."),
 
-  static const MessageKind ILLEGAL_MIXIN_CONSTRUCTOR = const MessageKind(
-      "Class used as mixin cannot have non-factory constructor.");
+      MessageKind.ILLEGAL_MIXIN_CONSTRUCTOR:
+        const MessageTemplate(MessageKind.ILLEGAL_MIXIN_CONSTRUCTOR,
+          "Class used as mixin cannot have non-factory constructor."),
 
-  static const MessageKind ILLEGAL_MIXIN_CYCLE = const MessageKind(
-      "Class used as mixin introduces mixin cycle: "
-      "'#{mixinName1}' <-> '#{mixinName2}'.");
+      MessageKind.ILLEGAL_MIXIN_CYCLE:
+        const MessageTemplate(MessageKind.ILLEGAL_MIXIN_CYCLE,
+          "Class used as mixin introduces mixin cycle: "
+          "'#{mixinName1}' <-> '#{mixinName2}'."),
 
-  static const MessageKind ILLEGAL_MIXIN_WITH_SUPER = const MessageKind(
-      "Cannot use class '#{className}' as a mixin because it uses "
-      "'super'.");
+      MessageKind.ILLEGAL_MIXIN_WITH_SUPER:
+        const MessageTemplate(MessageKind.ILLEGAL_MIXIN_WITH_SUPER,
+          "Cannot use class '#{className}' as a mixin because it uses "
+          "'super'."),
 
-  static const MessageKind ILLEGAL_MIXIN_SUPER_USE = const MessageKind(
-      "Use of 'super' in class used as mixin.");
+      MessageKind.ILLEGAL_MIXIN_SUPER_USE:
+        const MessageTemplate(MessageKind.ILLEGAL_MIXIN_SUPER_USE,
+          "Use of 'super' in class used as mixin."),
 
-  static const MessageKind PARAMETER_NAME_EXPECTED = const MessageKind(
-      "parameter name expected.");
+      MessageKind.PARAMETER_NAME_EXPECTED:
+        const MessageTemplate(MessageKind.PARAMETER_NAME_EXPECTED,
+          "parameter name expected."),
 
-  static const MessageKind CANNOT_RESOLVE_GETTER = const MessageKind(
-      "Cannot resolve getter.");
+      MessageKind.CANNOT_RESOLVE_GETTER:
+        const MessageTemplate(MessageKind.CANNOT_RESOLVE_GETTER,
+          "Cannot resolve getter."),
 
-  static const MessageKind CANNOT_RESOLVE_SETTER = const MessageKind(
-      "Cannot resolve setter.");
+      MessageKind.CANNOT_RESOLVE_SETTER:
+        const MessageTemplate(MessageKind.CANNOT_RESOLVE_SETTER,
+          "Cannot resolve setter."),
 
-  static const MessageKind ASSIGNING_METHOD = const MessageKind(
-      "Cannot assign a value to a method.");
+      MessageKind.ASSIGNING_METHOD:
+        const MessageTemplate(MessageKind.ASSIGNING_METHOD,
+          "Cannot assign a value to a method."),
 
-  static const MessageKind ASSIGNING_METHOD_IN_SUPER = const MessageKind(
-      "Cannot assign a value to method '#{name}' "
-      "in superclass '#{superclassName}'.");
+      MessageKind.ASSIGNING_METHOD_IN_SUPER:
+        const MessageTemplate(MessageKind.ASSIGNING_METHOD_IN_SUPER,
+          "Cannot assign a value to method '#{name}' "
+          "in superclass '#{superclassName}'."),
 
-  static const MessageKind ASSIGNING_TYPE = const MessageKind(
-      "Cannot assign a value to a type.");
+      MessageKind.ASSIGNING_TYPE:
+        const MessageTemplate(MessageKind.ASSIGNING_TYPE,
+          "Cannot assign a value to a type."),
 
-  static const MessageKind IF_NULL_ASSIGNING_TYPE = const MessageKind(
-      "Cannot assign a value to a type. Note that types are never null, "
-      "so this ??= assignment has no effect.",
-      howToFix: "Try removing the '??=' assignment.",
-      examples: const [
-          "class A {} main() { print(A ??= 3);}",
-      ]);
+      MessageKind.IF_NULL_ASSIGNING_TYPE:
+        const MessageTemplate(MessageKind.IF_NULL_ASSIGNING_TYPE,
+          "Cannot assign a value to a type. Note that types are never null, "
+          "so this ??= assignment has no effect.",
+          howToFix: "Try removing the '??=' assignment.",
+          examples: const [
+              "class A {} main() { print(A ??= 3);}",
+          ]),
 
-  static const MessageKind VOID_NOT_ALLOWED = const MessageKind(
-      "Type 'void' can't be used here because it isn't a return type.",
-      howToFix: "Try removing 'void' keyword or replace it with 'var', 'final',"
-          " or a type.",
-      examples: const [
-          "void x; main() {}",
-          "foo(void x) {} main() { foo(null); }",
-      ]);
+      MessageKind.VOID_NOT_ALLOWED:
+        const MessageTemplate(MessageKind.VOID_NOT_ALLOWED,
+          "Type 'void' can't be used here because it isn't a return type.",
+          howToFix:
+            "Try removing 'void' keyword or replace it with 'var', 'final', "
+            "or a type.",
+          examples: const [
+              "void x; main() {}",
+              "foo(void x) {} main() { foo(null); }",
+          ]),
 
-  static const MessageKind NULL_NOT_ALLOWED = const MessageKind(
-      "`null` can't be used here.");
+      MessageKind.NULL_NOT_ALLOWED:
+        const MessageTemplate(MessageKind.NULL_NOT_ALLOWED,
+          "`null` can't be used here."),
 
-  static const MessageKind BEFORE_TOP_LEVEL = const MessageKind(
-      "Part header must come before top-level definitions.");
+      MessageKind.BEFORE_TOP_LEVEL:
+        const MessageTemplate(MessageKind.BEFORE_TOP_LEVEL,
+          "Part header must come before top-level definitions."),
 
-  static const MessageKind IMPORT_PART_OF = const MessageKind(
-      "The imported library must not have a 'part-of' directive.",
-      howToFix: "Try removing the 'part-of' directive or replacing the "
-                "import of the library with a 'part' directive.",
-      examples: const [const {
+      MessageKind.IMPORT_PART_OF:
+        const MessageTemplate(MessageKind.IMPORT_PART_OF,
+          "The imported library must not have a 'part-of' directive.",
+          howToFix: "Try removing the 'part-of' directive or replacing the "
+                    "import of the library with a 'part' directive.",
+          examples: const [const {
 'main.dart': """
 library library;
 
@@ -1239,12 +1820,13 @@ main() {}
 
 'part.dart': """
 part of library;
-"""}]);
+"""}]),
 
-  static const MessageKind LIBRARY_NAME_MISMATCH = const MessageKind(
-      "Expected part of library name '#{libraryName}'.",
-      howToFix: "Try changing the directive to 'part of #{libraryName};'.",
-      examples: const [const {
+      MessageKind.LIBRARY_NAME_MISMATCH:
+        const MessageTemplate(MessageKind.LIBRARY_NAME_MISMATCH,
+          "Expected part of library name '#{libraryName}'.",
+          howToFix: "Try changing the directive to 'part of #{libraryName};'.",
+          examples: const [const {
 'main.dart': """
 library lib.foo;
 
@@ -1255,13 +1837,14 @@ main() {}
 
 'part.dart': """
 part of lib.bar;
-"""}]);
+"""}]),
 
-  static const MessageKind MISSING_LIBRARY_NAME = const MessageKind(
-      "Library has no name. Part directive expected library name "
-      "to be '#{libraryName}'.",
-      howToFix: "Try adding 'library #{libraryName};' to the library.",
-      examples: const [const {
+      MessageKind.MISSING_LIBRARY_NAME:
+        const MessageTemplate(MessageKind.MISSING_LIBRARY_NAME,
+          "Library has no name. Part directive expected library name "
+          "to be '#{libraryName}'.",
+          howToFix: "Try adding 'library #{libraryName};' to the library.",
+          examples: const [const {
 'main.dart': """
 part 'part.dart';
 
@@ -1270,74 +1853,85 @@ main() {}
 
 'part.dart': """
 part of lib.foo;
-"""}]);
+"""}]),
 
-  static const MessageKind THIS_IS_THE_PART_OF_TAG = const MessageKind(
-      "This is the part of directive.");
+      MessageKind.THIS_IS_THE_PART_OF_TAG:
+        const MessageTemplate(MessageKind.THIS_IS_THE_PART_OF_TAG,
+          "This is the part of directive."),
 
-  static const MessageKind MISSING_PART_OF_TAG = const MessageKind(
-      "This file has no part-of tag, but it is being used as a part.");
+      MessageKind.MISSING_PART_OF_TAG:
+        const MessageTemplate(MessageKind.MISSING_PART_OF_TAG,
+          "This file has no part-of tag, but it is being used as a part."),
 
-  static const MessageKind DUPLICATED_PART_OF = const MessageKind(
-      "Duplicated part-of directive.");
+      MessageKind.DUPLICATED_PART_OF:
+        const MessageTemplate(MessageKind.DUPLICATED_PART_OF,
+          "Duplicated part-of directive."),
 
-  static const MessageKind DUPLICATED_LIBRARY_NAME = const MessageKind(
-      "Duplicated library name '#{libraryName}'.");
+      MessageKind.DUPLICATED_LIBRARY_NAME:
+        const MessageTemplate(MessageKind.DUPLICATED_LIBRARY_NAME,
+          "Duplicated library name '#{libraryName}'."),
 
-  static const MessageKind DUPLICATED_RESOURCE = const MessageKind(
-      "The resource '#{resourceUri}' is loaded through both "
-      "'#{canonicalUri1}' and '#{canonicalUri2}'.");
+      MessageKind.DUPLICATED_RESOURCE:
+        const MessageTemplate(MessageKind.DUPLICATED_RESOURCE,
+          "The resource '#{resourceUri}' is loaded through both "
+          "'#{canonicalUri1}' and '#{canonicalUri2}'."),
 
-  static const MessageKind DUPLICATED_LIBRARY_RESOURCE =
-      const MessageKind(
+      MessageKind.DUPLICATED_LIBRARY_RESOURCE:
+        const MessageTemplate(MessageKind.DUPLICATED_LIBRARY_RESOURCE,
           "The library '#{libraryName}' in '#{resourceUri}' is loaded through "
-          "both '#{canonicalUri1}' and '#{canonicalUri2}'.");
+          "both '#{canonicalUri1}' and '#{canonicalUri2}'."),
 
-  // This is used as an exception.
-  static const MessageKind INVALID_SOURCE_FILE_LOCATION = const MessageKind('''
+      // This is used as an exception.
+      MessageKind.INVALID_SOURCE_FILE_LOCATION:
+        const MessageTemplate(MessageKind.INVALID_SOURCE_FILE_LOCATION, '''
 Invalid offset (#{offset}) in source map.
 File: #{fileName}
-Length: #{length}''');
+Length: #{length}'''),
 
-  static const MessageKind TOP_LEVEL_VARIABLE_DECLARED_STATIC =
-      const MessageKind(
-          "Top-level variable cannot be declared static.");
+      MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC:
+        const MessageTemplate(MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC,
+              "Top-level variable cannot be declared static."),
 
-  static const MessageKind REFERENCE_IN_INITIALIZATION = const MessageKind(
-       "Variable '#{variableName}' is referenced during its "
-       "initialization.",
-       howToFix: "If you are trying to reference a shadowed variable, rename"
-         " one of the variables.",
-       examples: const ["""
+      MessageKind.REFERENCE_IN_INITIALIZATION:
+        const MessageTemplate(MessageKind.REFERENCE_IN_INITIALIZATION,
+           "Variable '#{variableName}' is referenced during its "
+           "initialization.",
+           howToFix:
+             "If you are trying to reference a shadowed variable, rename "
+             "one of the variables.",
+           examples: const ["""
 foo(t) {
   var t = t;
   return t;
 }
 
 main() => foo(1);
-"""]);
+"""]),
 
-  static const MessageKind CONST_WITHOUT_INITIALIZER = const MessageKind(
-      "A constant variable must be initialized.",
-      howToFix: "Try adding an initializer or "
-                "removing the 'const' modifier.",
-      examples: const ["""
+      MessageKind.CONST_WITHOUT_INITIALIZER:
+        const MessageTemplate(MessageKind.CONST_WITHOUT_INITIALIZER,
+          "A constant variable must be initialized.",
+          howToFix: "Try adding an initializer or "
+                    "removing the 'const' modifier.",
+          examples: const ["""
 void main() {
   const c; // This constant variable must be initialized.
-}"""]);
+}"""]),
 
-  static const MessageKind FINAL_WITHOUT_INITIALIZER = const MessageKind(
-      "A final variable must be initialized.",
-      howToFix: "Try adding an initializer or "
-                "removing the 'final' modifier.",
-      examples: const [
-          "class C { static final field; } main() => C.field;"]);
+      MessageKind.FINAL_WITHOUT_INITIALIZER:
+        const MessageTemplate(MessageKind.FINAL_WITHOUT_INITIALIZER,
+          "A final variable must be initialized.",
+          howToFix: "Try adding an initializer or "
+                    "removing the 'final' modifier.",
+          examples: const [
+              "class C { static final field; } main() => C.field;"]),
 
-  static const MessageKind MEMBER_USES_CLASS_NAME = const MessageKind(
-      "Member variable can't have the same name as the class it is "
-      "declared in.",
-      howToFix: "Try renaming the variable.",
-      examples: const ["""
+      MessageKind.MEMBER_USES_CLASS_NAME:
+        const MessageTemplate(MessageKind.MEMBER_USES_CLASS_NAME,
+          "Member variable can't have the same name as the class it is "
+          "declared in.",
+          howToFix: "Try renaming the variable.",
+          examples: const ["""
 class A { var A; }
 main() {
   var a = new A();
@@ -1346,161 +1940,182 @@ main() {
 """, """
 class A { static var A; }
 main() => A.A = 1;
-"""]);
+"""]),
 
-  static const MessageKind WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT =
-      const MessageKind(
+      MessageKind.WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT:
+        const MessageTemplate(
+          MessageKind.WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT,
           "Wrong number of arguments to assert. Should be 1, but given "
-          "#{argumentCount}.");
+          "#{argumentCount}."),
 
-  static const MessageKind ASSERT_IS_GIVEN_NAMED_ARGUMENTS = const MessageKind(
-      "'assert' takes no named arguments, but given #{argumentCount}.");
+      MessageKind.ASSERT_IS_GIVEN_NAMED_ARGUMENTS:
+        const MessageTemplate(MessageKind.ASSERT_IS_GIVEN_NAMED_ARGUMENTS,
+          "'assert' takes no named arguments, but given #{argumentCount}."),
 
-  static const MessageKind FACTORY_REDIRECTION_IN_NON_FACTORY =
-      const MessageKind(
-          "Factory redirection only allowed in factories.");
+      MessageKind.FACTORY_REDIRECTION_IN_NON_FACTORY:
+        const MessageTemplate(MessageKind.FACTORY_REDIRECTION_IN_NON_FACTORY,
+          "Factory redirection only allowed in factories."),
 
-  static const MessageKind MISSING_FACTORY_KEYWORD = const MessageKind(
-      "Did you forget a factory keyword here?");
+      MessageKind.MISSING_FACTORY_KEYWORD:
+        const MessageTemplate(MessageKind.MISSING_FACTORY_KEYWORD,
+          "Did you forget a factory keyword here?"),
 
-  static const MessageKind NO_SUCH_METHOD_IN_NATIVE =
-      const MessageKind(
+      MessageKind.NO_SUCH_METHOD_IN_NATIVE:
+        const MessageTemplate(MessageKind.NO_SUCH_METHOD_IN_NATIVE,
           "'NoSuchMethod' is not supported for classes that extend native "
-          "classes.");
+          "classes."),
 
-  static const MessageKind DEFERRED_LIBRARY_DART_2_DART =
-      const MessageKind(
+      MessageKind.DEFERRED_LIBRARY_DART_2_DART:
+        const MessageTemplate(MessageKind.DEFERRED_LIBRARY_DART_2_DART,
           "Deferred loading is not supported by the dart backend yet. "
-          "The output will not be split.");
+          "The output will not be split."),
 
-  static const MessageKind DEFERRED_LIBRARY_WITHOUT_PREFIX =
-      const MessageKind(
+      MessageKind.DEFERRED_LIBRARY_WITHOUT_PREFIX:
+        const MessageTemplate(MessageKind.DEFERRED_LIBRARY_WITHOUT_PREFIX,
           "This import is deferred but there is no prefix keyword.",
-          howToFix:
-            "Try adding a prefix to the import.");
+          howToFix: "Try adding a prefix to the import."),
 
-  static const MessageKind DEFERRED_OLD_SYNTAX =
-      const MessageKind(
+      MessageKind.DEFERRED_OLD_SYNTAX:
+        const MessageTemplate(MessageKind.DEFERRED_OLD_SYNTAX,
           "The DeferredLibrary annotation is obsolete.",
           howToFix:
-            "Use the \"import 'lib.dart' deferred as prefix\" syntax instead.");
+            "Use the \"import 'lib.dart' deferred as prefix\" syntax instead."),
 
-  static const MessageKind DEFERRED_LIBRARY_DUPLICATE_PREFIX =
-      const MessageKind(
+      MessageKind.DEFERRED_LIBRARY_DUPLICATE_PREFIX:
+        const MessageTemplate(MessageKind.DEFERRED_LIBRARY_DUPLICATE_PREFIX,
           "The prefix of this deferred import is not unique.",
-          howToFix:
-            "Try changing the import prefix.");
+          howToFix: "Try changing the import prefix."),
 
-  static const MessageKind DEFERRED_TYPE_ANNOTATION =
-      const MessageKind(
+      MessageKind.DEFERRED_TYPE_ANNOTATION:
+        const MessageTemplate(MessageKind.DEFERRED_TYPE_ANNOTATION,
           "The type #{node} is deferred. "
           "Deferred types are not valid as type annotations.",
           howToFix:
-            "Try using a non-deferred abstract class as an interface.");
+            "Try using a non-deferred abstract class as an interface."),
 
-  static const MessageKind ILLEGAL_STATIC = const MessageKind(
-      "Modifier static is only allowed on functions declared in "
-      "a class.");
+      MessageKind.ILLEGAL_STATIC:
+        const MessageTemplate(MessageKind.ILLEGAL_STATIC,
+          "Modifier static is only allowed on functions declared in "
+          "a class."),
 
-  static const MessageKind STATIC_FUNCTION_BLOAT = const MessageKind(
-      "Using '#{class}.#{name}' may lead to unnecessarily large "
-      "generated code.",
-      howToFix:
-          "Try adding '@MirrorsUsed(...)' as described at "
-          "https://goo.gl/Akrrog.");
+      MessageKind.STATIC_FUNCTION_BLOAT:
+        const MessageTemplate(MessageKind.STATIC_FUNCTION_BLOAT,
+          "Using '#{class}.#{name}' may lead to unnecessarily large "
+          "generated code.",
+          howToFix:
+              "Try adding '@MirrorsUsed(...)' as described at "
+              "https://goo.gl/Akrrog."),
 
-  static const MessageKind NON_CONST_BLOAT = const MessageKind(
-      "Using 'new #{name}' may lead to unnecessarily large generated "
-      "code.",
-      howToFix:
-          "Try using 'const #{name}' or adding '@MirrorsUsed(...)' as "
-          "described at https://goo.gl/Akrrog.");
+      MessageKind.NON_CONST_BLOAT:
+        const MessageTemplate(MessageKind.NON_CONST_BLOAT,
+          "Using 'new #{name}' may lead to unnecessarily large generated "
+          "code.",
+          howToFix:
+              "Try using 'const #{name}' or adding '@MirrorsUsed(...)' as "
+              "described at https://goo.gl/Akrrog."),
 
-  static const MessageKind STRING_EXPECTED = const MessageKind(
-      "Expected a 'String', but got an instance of '#{type}'.");
+      MessageKind.STRING_EXPECTED:
+        const MessageTemplate(MessageKind.STRING_EXPECTED,
+          "Expected a 'String', but got an instance of '#{type}'."),
 
-  static const MessageKind PRIVATE_IDENTIFIER = const MessageKind(
-      "'#{value}' is not a valid Symbol name because it starts with "
-      "'_'.");
+      MessageKind.PRIVATE_IDENTIFIER:
+        const MessageTemplate(MessageKind.PRIVATE_IDENTIFIER,
+          "'#{value}' is not a valid Symbol name because it starts with "
+          "'_'."),
 
-  static const MessageKind PRIVATE_NAMED_PARAMETER = const MessageKind(
-      "Named optional parameter can't have a library private name.",
-      howToFix: "Try removing the '_' or making the parameter positional or "
-        "required.",
-      examples: const ["""foo({int _p}) {} main() => foo();"""]
-      );
+      MessageKind.PRIVATE_NAMED_PARAMETER:
+        const MessageTemplate(MessageKind.PRIVATE_NAMED_PARAMETER,
+          "Named optional parameter can't have a library private name.",
+          howToFix:
+            "Try removing the '_' or making the parameter positional or "
+            "required.",
+          examples: const ["""foo({int _p}) {} main() => foo();"""]),
 
-  static const MessageKind UNSUPPORTED_LITERAL_SYMBOL = const MessageKind(
-      "Symbol literal '##{value}' is currently unsupported by dart2js.");
+      MessageKind.UNSUPPORTED_LITERAL_SYMBOL:
+        const MessageTemplate(MessageKind.UNSUPPORTED_LITERAL_SYMBOL,
+          "Symbol literal '##{value}' is currently unsupported by dart2js."),
 
-  static const MessageKind INVALID_SYMBOL = const MessageKind('''
+      MessageKind.INVALID_SYMBOL:
+        const MessageTemplate(MessageKind.INVALID_SYMBOL, '''
 '#{value}' is not a valid Symbol name because is not:
  * an empty String,
  * a user defined operator,
  * a qualified non-private identifier optionally followed by '=', or
  * a qualified non-private identifier followed by '.' and a user-defined '''
-"operator.");
+"operator."),
 
-  static const MessageKind AMBIGUOUS_REEXPORT = const MessageKind(
-      "'#{name}' is (re)exported by multiple libraries.");
+      MessageKind.AMBIGUOUS_REEXPORT:
+        const MessageTemplate(MessageKind.AMBIGUOUS_REEXPORT,
+          "'#{name}' is (re)exported by multiple libraries."),
 
-  static const MessageKind AMBIGUOUS_LOCATION = const MessageKind(
-      "'#{name}' is defined here.");
+      MessageKind.AMBIGUOUS_LOCATION:
+        const MessageTemplate(MessageKind.AMBIGUOUS_LOCATION,
+          "'#{name}' is defined here."),
 
-  static const MessageKind IMPORTED_HERE = const MessageKind(
-      "'#{name}' is imported here.");
+      MessageKind.IMPORTED_HERE:
+        const MessageTemplate(MessageKind.IMPORTED_HERE,
+          "'#{name}' is imported here."),
 
-  static const MessageKind OVERRIDE_EQUALS_NOT_HASH_CODE = const MessageKind(
-      "The class '#{class}' overrides 'operator==', "
-      "but not 'get hashCode'.");
+      MessageKind.OVERRIDE_EQUALS_NOT_HASH_CODE:
+        const MessageTemplate(MessageKind.OVERRIDE_EQUALS_NOT_HASH_CODE,
+          "The class '#{class}' overrides 'operator==', "
+          "but not 'get hashCode'."),
 
-  static const MessageKind INTERNAL_LIBRARY_FROM = const MessageKind(
-      "Internal library '#{resolvedUri}' is not accessible from "
-      "'#{importingUri}'.");
+      MessageKind.INTERNAL_LIBRARY_FROM:
+        const MessageTemplate(MessageKind.INTERNAL_LIBRARY_FROM,
+          "Internal library '#{resolvedUri}' is not accessible from "
+          "'#{importingUri}'."),
 
-  static const MessageKind INTERNAL_LIBRARY = const MessageKind(
-      "Internal library '#{resolvedUri}' is not accessible.");
+      MessageKind.INTERNAL_LIBRARY:
+        const MessageTemplate(MessageKind.INTERNAL_LIBRARY,
+          "Internal library '#{resolvedUri}' is not accessible."),
 
-  static const MessageKind LIBRARY_NOT_FOUND = const MessageKind(
-      "Library not found '#{resolvedUri}'.");
+      MessageKind.LIBRARY_NOT_FOUND:
+        const MessageTemplate(MessageKind.LIBRARY_NOT_FOUND,
+          "Library not found '#{resolvedUri}'."),
 
-  static const MessageKind UNSUPPORTED_EQ_EQ_EQ = const MessageKind(
-      "'===' is not an operator. "
-      "Did you mean '#{lhs} == #{rhs}' or 'identical(#{lhs}, #{rhs})'?");
+      MessageKind.UNSUPPORTED_EQ_EQ_EQ:
+        const MessageTemplate(MessageKind.UNSUPPORTED_EQ_EQ_EQ,
+          "'===' is not an operator. "
+          "Did you mean '#{lhs} == #{rhs}' or 'identical(#{lhs}, #{rhs})'?"),
 
-  static const MessageKind UNSUPPORTED_BANG_EQ_EQ = const MessageKind(
-      "'!==' is not an operator. "
-      "Did you mean '#{lhs} != #{rhs}' or '!identical(#{lhs}, #{rhs})'?");
+      MessageKind.UNSUPPORTED_BANG_EQ_EQ:
+        const MessageTemplate(MessageKind.UNSUPPORTED_BANG_EQ_EQ,
+          "'!==' is not an operator. "
+          "Did you mean '#{lhs} != #{rhs}' or '!identical(#{lhs}, #{rhs})'?"),
 
-  static const MessageKind UNSUPPORTED_PREFIX_PLUS = const MessageKind(
-      "'+' is not a prefix operator. ",
-      howToFix: "Try removing '+'.",
-      examples: const [
-          "main() => +2;  // No longer a valid way to write '2'"
-      ]);
+      MessageKind.UNSUPPORTED_PREFIX_PLUS:
+        const MessageTemplate(MessageKind.UNSUPPORTED_PREFIX_PLUS,
+          "'+' is not a prefix operator. ",
+          howToFix: "Try removing '+'.",
+          examples: const [
+              "main() => +2;  // No longer a valid way to write '2'"
+          ]),
 
-  static const MessageKind UNSUPPORTED_THROW_WITHOUT_EXP = const MessageKind(
-      "No expression after 'throw'. "
-      "Did you mean 'rethrow'?");
+      MessageKind.UNSUPPORTED_THROW_WITHOUT_EXP:
+        const MessageTemplate(MessageKind.UNSUPPORTED_THROW_WITHOUT_EXP,
+          "No expression after 'throw'. "
+          "Did you mean 'rethrow'?"),
 
-  static const MessageKind DEPRECATED_TYPEDEF_MIXIN_SYNTAX = const MessageKind(
-      "'typedef' not allowed here. ",
-      howToFix: "Try replacing 'typedef' with 'class'.",
-      examples: const [
-          """
+      MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX:
+        const MessageTemplate(MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX,
+          "'typedef' not allowed here. ",
+          howToFix: "Try replacing 'typedef' with 'class'.",
+          examples: const [
+              """
 class B { }
 class M1 {  }
 typedef C = B with M1;  // Need to replace 'typedef' with 'class'.
 main() { new C(); }
-"""]
-);
+"""]),
 
-  static const MessageKind MIRRORS_EXPECTED_STRING = const MessageKind(
-      "Can't use '#{name}' here because it's an instance of '#{type}' "
-      "and a 'String' value is expected.",
-      howToFix: "Did you forget to add quotes?",
-      examples: const [
-          """
+      MessageKind.MIRRORS_EXPECTED_STRING:
+        const MessageTemplate(MessageKind.MIRRORS_EXPECTED_STRING,
+          "Can't use '#{name}' here because it's an instance of '#{type}' "
+          "and a 'String' value is expected.",
+          howToFix: "Did you forget to add quotes?",
+          examples: const [
+              """
 // 'Foo' is a type literal, not a string.
 @MirrorsUsed(symbols: const [Foo])
 import 'dart:mirrors';
@@ -1508,27 +2123,29 @@ import 'dart:mirrors';
 class Foo {}
 
 main() {}
-"""]);
+"""]),
 
-  static const MessageKind MIRRORS_EXPECTED_STRING_OR_TYPE = const MessageKind(
-      "Can't use '#{name}' here because it's an instance of '#{type}' "
-      "and a 'String' or 'Type' value is expected.",
-      howToFix: "Did you forget to add quotes?",
-      examples: const [
-          """
+      MessageKind.MIRRORS_EXPECTED_STRING_OR_TYPE:
+        const MessageTemplate(MessageKind.MIRRORS_EXPECTED_STRING_OR_TYPE,
+          "Can't use '#{name}' here because it's an instance of '#{type}' "
+          "and a 'String' or 'Type' value is expected.",
+          howToFix: "Did you forget to add quotes?",
+          examples: const [
+              """
 // 'main' is a method, not a class.
 @MirrorsUsed(targets: const [main])
 import 'dart:mirrors';
 
 main() {}
-"""]);
+"""]),
 
-  static const MessageKind MIRRORS_EXPECTED_STRING_OR_LIST = const MessageKind(
-      "Can't use '#{name}' here because it's an instance of '#{type}' "
-      "and a 'String' or 'List' value is expected.",
-      howToFix: "Did you forget to add quotes?",
-      examples: const [
-          """
+      MessageKind.MIRRORS_EXPECTED_STRING_OR_LIST:
+        const MessageTemplate(MessageKind.MIRRORS_EXPECTED_STRING_OR_LIST,
+          "Can't use '#{name}' here because it's an instance of '#{type}' "
+          "and a 'String' or 'List' value is expected.",
+          howToFix: "Did you forget to add quotes?",
+          examples: const [
+              """
 // 'Foo' is not a string.
 @MirrorsUsed(symbols: Foo)
 import 'dart:mirrors';
@@ -1536,80 +2153,83 @@ import 'dart:mirrors';
 class Foo {}
 
 main() {}
-"""]);
+"""]),
 
-  static const MessageKind MIRRORS_EXPECTED_STRING_TYPE_OR_LIST =
-      const MessageKind(
-      "Can't use '#{name}' here because it's an instance of '#{type}' "
-      "but a 'String', 'Type', or 'List' value is expected.",
-      howToFix: "Did you forget to add quotes?",
-      examples: const [
-          """
+      MessageKind.MIRRORS_EXPECTED_STRING_TYPE_OR_LIST:
+        const MessageTemplate(MessageKind.MIRRORS_EXPECTED_STRING_TYPE_OR_LIST,
+          "Can't use '#{name}' here because it's an instance of '#{type}' "
+          "but a 'String', 'Type', or 'List' value is expected.",
+          howToFix: "Did you forget to add quotes?",
+          examples: const [
+              """
 // '1' is not a string.
 @MirrorsUsed(targets: 1)
 import 'dart:mirrors';
 
 main() {}
-"""]);
+"""]),
 
-  static const MessageKind MIRRORS_CANNOT_RESOLVE_IN_CURRENT_LIBRARY =
-      const MessageKind(
-      "Can't find '#{name}' in the current library.",
-      // TODO(ahe): The closest identifiers in edit distance would be nice.
-      howToFix: "Did you forget to add an import?",
-      examples: const [
-          """
+      MessageKind.MIRRORS_CANNOT_RESOLVE_IN_CURRENT_LIBRARY:
+        const MessageTemplate(
+          MessageKind.MIRRORS_CANNOT_RESOLVE_IN_CURRENT_LIBRARY,
+          "Can't find '#{name}' in the current library.",
+          // TODO(ahe): The closest identifiers in edit distance would be nice.
+          howToFix: "Did you forget to add an import?",
+          examples: const [
+              """
 // 'window' is not in scope because dart:html isn't imported.
 @MirrorsUsed(targets: 'window')
 import 'dart:mirrors';
 
 main() {}
-"""]);
+"""]),
 
-  static const MessageKind MIRRORS_CANNOT_RESOLVE_IN_LIBRARY =
-      const MessageKind(
-      "Can't find '#{name}' in the library '#{library}'.",
-      // TODO(ahe): The closest identifiers in edit distance would be nice.
-      howToFix: "Is '#{name}' spelled right?",
-      examples: const [
-          """
+      MessageKind.MIRRORS_CANNOT_RESOLVE_IN_LIBRARY:
+        const MessageTemplate(MessageKind.MIRRORS_CANNOT_RESOLVE_IN_LIBRARY,
+          "Can't find '#{name}' in the library '#{library}'.",
+          // TODO(ahe): The closest identifiers in edit distance would be nice.
+          howToFix: "Is '#{name}' spelled right?",
+          examples: const [
+              """
 // 'List' is misspelled.
 @MirrorsUsed(targets: 'dart.core.Lsit')
 import 'dart:mirrors';
 
 main() {}
-"""]);
+"""]),
 
-  static const MessageKind MIRRORS_CANNOT_FIND_IN_ELEMENT =
-      const MessageKind(
-      "Can't find '#{name}' in '#{element}'.",
-      // TODO(ahe): The closest identifiers in edit distance would be nice.
-      howToFix: "Is '#{name}' spelled right?",
-      examples: const [
-          """
+      MessageKind.MIRRORS_CANNOT_FIND_IN_ELEMENT:
+        const MessageTemplate(MessageKind.MIRRORS_CANNOT_FIND_IN_ELEMENT,
+          "Can't find '#{name}' in '#{element}'.",
+          // TODO(ahe): The closest identifiers in edit distance would be nice.
+          howToFix: "Is '#{name}' spelled right?",
+          examples: const [
+              """
 // 'addAll' is misspelled.
 @MirrorsUsed(targets: 'dart.core.List.addAl')
 import 'dart:mirrors';
 
 main() {}
-"""]);
+"""]),
 
-  static const MessageKind INVALID_URI = const MessageKind(
-      "'#{uri}' is not a valid URI.",
-      howToFix: DONT_KNOW_HOW_TO_FIX,
-      examples: const [
-        """
+      MessageKind.INVALID_URI:
+        const MessageTemplate(MessageKind.INVALID_URI,
+          "'#{uri}' is not a valid URI.",
+          howToFix: DONT_KNOW_HOW_TO_FIX,
+          examples: const [
+            """
 // can't have a '[' in a URI
 import '../../Udyn[mic ils/expect.dart';
 
 main() {}
-"""]);
+"""]),
 
-  static const MessageKind INVALID_PACKAGE_URI = const MessageKind(
-      "'#{uri}' is not a valid package URI (#{exception}).",
-      howToFix: DONT_KNOW_HOW_TO_FIX,
-      examples: const [
-        """
+      MessageKind.INVALID_PACKAGE_URI:
+        const MessageTemplate(MessageKind.INVALID_PACKAGE_URI,
+          "'#{uri}' is not a valid package URI (#{exception}).",
+          howToFix: DONT_KNOW_HOW_TO_FIX,
+          examples: const [
+            """
 // can't have a 'top level' package URI
 import 'package:foo.dart';
 
@@ -1624,156 +2244,175 @@ main() {}
 import 'package:not\valid/foo.dart';
 
 main() {}
-"""]);
+"""]),
 
-  static const MessageKind READ_SCRIPT_ERROR = const MessageKind(
-      "Can't read '#{uri}' (#{exception}).",
-      // Don't know how to fix since the underlying error is unknown.
-      howToFix: DONT_KNOW_HOW_TO_FIX,
-      examples: const [
-          """
+      MessageKind.READ_SCRIPT_ERROR:
+        const MessageTemplate(MessageKind.READ_SCRIPT_ERROR,
+          "Can't read '#{uri}' (#{exception}).",
+          // Don't know how to fix since the underlying error is unknown.
+          howToFix: DONT_KNOW_HOW_TO_FIX,
+          examples: const [
+              """
 // 'foo.dart' does not exist.
 import 'foo.dart';
 
 main() {}
-"""]);
+"""]),
 
-  static const MessageKind READ_SELF_ERROR = const MessageKind(
-      "#{exception}",
-      // Don't know how to fix since the underlying error is unknown.
-      howToFix: DONT_KNOW_HOW_TO_FIX);
+      MessageKind.READ_SELF_ERROR:
+        const MessageTemplate(MessageKind.READ_SELF_ERROR,
+          "#{exception}",
+          // Don't know how to fix since the underlying error is unknown.
+          howToFix: DONT_KNOW_HOW_TO_FIX),
 
-  static const MessageKind EXTRANEOUS_MODIFIER = const MessageKind(
-      "Can't have modifier '#{modifier}' here.",
-      howToFix: "Try removing '#{modifier}'.",
-      examples: const [
-          "var String foo; main(){}",
-          // "var get foo; main(){}",
-          "var set foo; main(){}",
-          "var final foo; main(){}",
-          "var var foo; main(){}",
-          "var const foo; main(){}",
-          "var abstract foo; main(){}",
-          "var static foo; main(){}",
-          "var external foo; main(){}",
-          "get var foo; main(){}",
-          "set var foo; main(){}",
-          "final var foo; main(){}",
-          "var var foo; main(){}",
-          "const var foo; main(){}",
-          "abstract var foo; main(){}",
-          "static var foo; main(){}",
-          "external var foo; main(){}"]);
+      MessageKind.EXTRANEOUS_MODIFIER:
+        const MessageTemplate(MessageKind.EXTRANEOUS_MODIFIER,
+          "Can't have modifier '#{modifier}' here.",
+          howToFix: "Try removing '#{modifier}'.",
+          examples: const [
+              "var String foo; main(){}",
+              // "var get foo; main(){}",
+              "var set foo; main(){}",
+              "var final foo; main(){}",
+              "var var foo; main(){}",
+              "var const foo; main(){}",
+              "var abstract foo; main(){}",
+              "var static foo; main(){}",
+              "var external foo; main(){}",
+              "get var foo; main(){}",
+              "set var foo; main(){}",
+              "final var foo; main(){}",
+              "var var foo; main(){}",
+              "const var foo; main(){}",
+              "abstract var foo; main(){}",
+              "static var foo; main(){}",
+              "external var foo; main(){}"]),
 
-  static const MessageKind EXTRANEOUS_MODIFIER_REPLACE = const MessageKind(
-      "Can't have modifier '#{modifier}' here.",
-      howToFix: "Try replacing modifier '#{modifier}' with 'var', 'final',"
-          " or a type.",
-      examples: const [
-          // "get foo; main(){}",
-          "set foo; main(){}",
-          "abstract foo; main(){}",
-          "static foo; main(){}",
-          "external foo; main(){}"]);
+      MessageKind.EXTRANEOUS_MODIFIER_REPLACE:
+        const MessageTemplate(MessageKind.EXTRANEOUS_MODIFIER_REPLACE,
+          "Can't have modifier '#{modifier}' here.",
+          howToFix:
+            "Try replacing modifier '#{modifier}' with 'var', 'final', "
+            "or a type.",
+          examples: const [
+              // "get foo; main(){}",
+              "set foo; main(){}",
+              "abstract foo; main(){}",
+              "static foo; main(){}",
+              "external foo; main(){}"]),
 
-  static const MessageKind ABSTRACT_CLASS_INSTANTIATION = const MessageKind(
-      "Can't instantiate abstract class.",
-      howToFix: DONT_KNOW_HOW_TO_FIX,
-      examples: const ["abstract class A {} main() { new A(); }"]);
+      MessageKind.ABSTRACT_CLASS_INSTANTIATION:
+        const MessageTemplate(MessageKind.ABSTRACT_CLASS_INSTANTIATION,
+          "Can't instantiate abstract class.",
+          howToFix: DONT_KNOW_HOW_TO_FIX,
+          examples: const ["abstract class A {} main() { new A(); }"]),
 
-  static const MessageKind BODY_EXPECTED = const MessageKind(
-      "Expected a function body or '=>'.",
-      // TODO(ahe): In some scenarios, we can suggest removing the 'static'
-      // keyword.
-      howToFix: "Try adding {}.",
-      examples: const [
-          "main();"]);
+      MessageKind.BODY_EXPECTED:
+        const MessageTemplate(MessageKind.BODY_EXPECTED,
+          "Expected a function body or '=>'.",
+          // TODO(ahe): In some scenarios, we can suggest removing the 'static'
+          // keyword.
+          howToFix: "Try adding {}.",
+          examples: const [
+              "main();"]),
 
-  static const MessageKind MIRROR_BLOAT = const MessageKind(
-      "#{count} methods retained for use by dart:mirrors out of #{total}"
-      " total methods (#{percentage}%).");
+      MessageKind.MIRROR_BLOAT:
+        const MessageTemplate(MessageKind.MIRROR_BLOAT,
+          "#{count} methods retained for use by dart:mirrors out of #{total}"
+          " total methods (#{percentage}%)."),
 
-  static const MessageKind MIRROR_IMPORT = const MessageKind(
-      "Import of 'dart:mirrors'.");
+      MessageKind.MIRROR_IMPORT:
+        const MessageTemplate(MessageKind.MIRROR_IMPORT,
+          "Import of 'dart:mirrors'."),
 
-  static const MessageKind MIRROR_IMPORT_NO_USAGE = const MessageKind(
-      "This import is not annotated with @MirrorsUsed, which may lead to "
-      "unnecessarily large generated code.",
-      howToFix:
-          "Try adding '@MirrorsUsed(...)' as described at "
-          "https://goo.gl/Akrrog.");
+      MessageKind.MIRROR_IMPORT_NO_USAGE:
+        const MessageTemplate(MessageKind.MIRROR_IMPORT_NO_USAGE,
+          "This import is not annotated with @MirrorsUsed, which may lead to "
+          "unnecessarily large generated code.",
+          howToFix:
+              "Try adding '@MirrorsUsed(...)' as described at "
+              "https://goo.gl/Akrrog."),
 
-  static const MessageKind WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT =
-      const MessageKind(
-      "Argument for 'JS_INTERCEPTOR_CONSTANT' must be a type constant.");
+      MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT:
+        const MessageTemplate(
+          MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT,
+          "Argument for 'JS_INTERCEPTOR_CONSTANT' must be a type constant."),
 
-  static const MessageKind EXPECTED_IDENTIFIER_NOT_RESERVED_WORD =
-      const MessageKind(
-          "'#{keyword}' is a reserved word and can't be used here.",
-          howToFix: "Try using a different name.",
-          examples: const ["do() {} main() {}"]);
+      MessageKind.EXPECTED_IDENTIFIER_NOT_RESERVED_WORD:
+        const MessageTemplate(MessageKind.EXPECTED_IDENTIFIER_NOT_RESERVED_WORD,
+              "'#{keyword}' is a reserved word and can't be used here.",
+              howToFix: "Try using a different name.",
+              examples: const ["do() {} main() {}"]),
 
-  static const MessageKind  NAMED_FUNCTION_EXPRESSION =
-      const MessageKind("Function expression '#{name}' cannot be named.",
+      MessageKind. NAMED_FUNCTION_EXPRESSION:
+        const MessageTemplate(MessageKind.NAMED_FUNCTION_EXPRESSION,
+          "Function expression '#{name}' cannot be named.",
           howToFix: "Try removing the name.",
-          examples: const ["main() { var f = func() {}; }"]);
+          examples: const ["main() { var f = func() {}; }"]),
 
-  static const MessageKind UNUSED_METHOD = const MessageKind(
-      "The method '#{name}' is never called.",
-      howToFix: "Consider deleting it.",
-      examples: const ["deadCode() {} main() {}"]);
+      MessageKind.UNUSED_METHOD:
+        const MessageTemplate(MessageKind.UNUSED_METHOD,
+          "The method '#{name}' is never called.",
+          howToFix: "Consider deleting it.",
+          examples: const ["deadCode() {} main() {}"]),
 
-  static const MessageKind UNUSED_CLASS = const MessageKind(
-      "The class '#{name}' is never used.",
-      howToFix: "Consider deleting it.",
-      examples: const ["class DeadCode {} main() {}"]);
+      MessageKind.UNUSED_CLASS:
+        const MessageTemplate(MessageKind.UNUSED_CLASS,
+          "The class '#{name}' is never used.",
+          howToFix: "Consider deleting it.",
+          examples: const ["class DeadCode {} main() {}"]),
 
-  static const MessageKind UNUSED_TYPEDEF = const MessageKind(
-      "The typedef '#{name}' is never used.",
-      howToFix: "Consider deleting it.",
-      examples: const ["typedef DeadCode(); main() {}"]);
+      MessageKind.UNUSED_TYPEDEF:
+        const MessageTemplate(MessageKind.UNUSED_TYPEDEF,
+          "The typedef '#{name}' is never used.",
+          howToFix: "Consider deleting it.",
+          examples: const ["typedef DeadCode(); main() {}"]),
 
-  static const MessageKind ABSTRACT_METHOD = const MessageKind(
-      "The method '#{name}' has no implementation in "
-      "class '#{class}'.",
-      howToFix: "Try adding a body to '#{name}' or declaring "
-                "'#{class}' to be 'abstract'.",
-      examples: const ["""
+      MessageKind.ABSTRACT_METHOD:
+        const MessageTemplate(MessageKind.ABSTRACT_METHOD,
+          "The method '#{name}' has no implementation in "
+          "class '#{class}'.",
+          howToFix: "Try adding a body to '#{name}' or declaring "
+                    "'#{class}' to be 'abstract'.",
+          examples: const ["""
 class Class {
   method();
 }
 main() => new Class().method();
-"""]);
+"""]),
 
-  static const MessageKind ABSTRACT_GETTER = const MessageKind(
-      "The getter '#{name}' has no implementation in "
-      "class '#{class}'.",
-      howToFix: "Try adding a body to '#{name}' or declaring "
-                "'#{class}' to be 'abstract'.",
-      examples: const ["""
+      MessageKind.ABSTRACT_GETTER:
+        const MessageTemplate(MessageKind.ABSTRACT_GETTER,
+          "The getter '#{name}' has no implementation in "
+          "class '#{class}'.",
+          howToFix: "Try adding a body to '#{name}' or declaring "
+                    "'#{class}' to be 'abstract'.",
+          examples: const ["""
 class Class {
   get getter;
 }
 main() => new Class();
-"""]);
+"""]),
 
-  static const MessageKind ABSTRACT_SETTER = const MessageKind(
-      "The setter '#{name}' has no implementation in "
-      "class '#{class}'.",
-      howToFix: "Try adding a body to '#{name}' or declaring "
-                "'#{class}' to be 'abstract'.",
-      examples: const ["""
+      MessageKind.ABSTRACT_SETTER:
+        const MessageTemplate(MessageKind.ABSTRACT_SETTER,
+          "The setter '#{name}' has no implementation in "
+          "class '#{class}'.",
+          howToFix: "Try adding a body to '#{name}' or declaring "
+                    "'#{class}' to be 'abstract'.",
+          examples: const ["""
 class Class {
   set setter(_);
 }
 main() => new Class();
-"""]);
+"""]),
 
-  static const MessageKind INHERIT_GETTER_AND_METHOD = const MessageKind(
-      "The class '#{class}' can't inherit both getters and methods "
-      "by the named '#{name}'.",
-      howToFix: DONT_KNOW_HOW_TO_FIX,
-      examples: const ["""
+      MessageKind.INHERIT_GETTER_AND_METHOD:
+        const MessageTemplate(MessageKind.INHERIT_GETTER_AND_METHOD,
+          "The class '#{class}' can't inherit both getters and methods "
+          "by the named '#{name}'.",
+          howToFix: DONT_KNOW_HOW_TO_FIX,
+          examples: const ["""
 class A {
   get member => null;
 }
@@ -1783,26 +2422,30 @@ class B {
 class Class implements A, B {
 }
 main() => new Class();
-"""]);
+"""]),
 
-  static const MessageKind INHERITED_METHOD = const MessageKind(
-      "The inherited method '#{name}' is declared here in class "
-      "'#{class}'.");
+      MessageKind.INHERITED_METHOD:
+        const MessageTemplate(MessageKind.INHERITED_METHOD,
+          "The inherited method '#{name}' is declared here in class "
+          "'#{class}'."),
 
-  static const MessageKind INHERITED_EXPLICIT_GETTER = const MessageKind(
-      "The inherited getter '#{name}' is declared here in class "
-      "'#{class}'.");
+      MessageKind.INHERITED_EXPLICIT_GETTER:
+        const MessageTemplate(MessageKind.INHERITED_EXPLICIT_GETTER,
+          "The inherited getter '#{name}' is declared here in class "
+          "'#{class}'."),
 
-  static const MessageKind INHERITED_IMPLICIT_GETTER = const MessageKind(
-      "The inherited getter '#{name}' is implicitly declared by this "
-      "field in class '#{class}'.");
+      MessageKind.INHERITED_IMPLICIT_GETTER:
+        const MessageTemplate(MessageKind.INHERITED_IMPLICIT_GETTER,
+          "The inherited getter '#{name}' is implicitly declared by this "
+          "field in class '#{class}'."),
 
-  static const MessageKind UNIMPLEMENTED_METHOD_ONE = const MessageKind(
-      "'#{class}' doesn't implement '#{method}' "
-      "declared in '#{declarer}'.",
-      howToFix: "Try adding an implementation of '#{name}' or declaring "
-                "'#{class}' to be 'abstract'.",
-      examples: const ["""
+      MessageKind.UNIMPLEMENTED_METHOD_ONE:
+        const MessageTemplate(MessageKind.UNIMPLEMENTED_METHOD_ONE,
+          "'#{class}' doesn't implement '#{method}' "
+          "declared in '#{declarer}'.",
+          howToFix: "Try adding an implementation of '#{name}' or declaring "
+                    "'#{class}' to be 'abstract'.",
+          examples: const ["""
 abstract class I {
   m();
 }
@@ -1814,13 +2457,14 @@ abstract class I {
 }
 class C extends I {}
 main() => new C();
-"""]);
+"""]),
 
-  static const MessageKind UNIMPLEMENTED_METHOD = const MessageKind(
-      "'#{class}' doesn't implement '#{method}'.",
-      howToFix: "Try adding an implementation of '#{name}' or declaring "
-                "'#{class}' to be 'abstract'.",
-      examples: const ["""
+      MessageKind.UNIMPLEMENTED_METHOD:
+        const MessageTemplate(MessageKind.UNIMPLEMENTED_METHOD,
+          "'#{class}' doesn't implement '#{method}'.",
+          howToFix: "Try adding an implementation of '#{name}' or declaring "
+                    "'#{class}' to be 'abstract'.",
+          examples: const ["""
 abstract class I {
   m();
 }
@@ -1848,17 +2492,19 @@ class C extends I implements J {}
 main() {
  new C();
 }
-"""]);
+"""]),
 
-  static const MessageKind UNIMPLEMENTED_METHOD_CONT = const MessageKind(
-      "The method '#{name}' is declared here in class '#{class}'.");
+      MessageKind.UNIMPLEMENTED_METHOD_CONT:
+        const MessageTemplate(MessageKind.UNIMPLEMENTED_METHOD_CONT,
+          "The method '#{name}' is declared here in class '#{class}'."),
 
-  static const MessageKind UNIMPLEMENTED_SETTER_ONE = const MessageKind(
-      "'#{class}' doesn't implement the setter '#{name}' "
-      "declared in '#{declarer}'.",
-      howToFix: "Try adding an implementation of '#{name}' or declaring "
-                "'#{class}' to be 'abstract'.",
-      examples: const ["""
+      MessageKind.UNIMPLEMENTED_SETTER_ONE:
+        const MessageTemplate(MessageKind.UNIMPLEMENTED_SETTER_ONE,
+          "'#{class}' doesn't implement the setter '#{name}' "
+          "declared in '#{declarer}'.",
+          howToFix: "Try adding an implementation of '#{name}' or declaring "
+                    "'#{class}' to be 'abstract'.",
+          examples: const ["""
 abstract class I {
   set m(_);
 }
@@ -1870,13 +2516,14 @@ main() {
  new D().m = 0;
  new C();
 }
-"""]);
+"""]),
 
-  static const MessageKind UNIMPLEMENTED_SETTER = const MessageKind(
-      "'#{class}' doesn't implement the setter '#{name}'.",
-      howToFix: "Try adding an implementation of '#{name}' or declaring "
-                "'#{class}' to be 'abstract'.",
-      examples: const ["""
+      MessageKind.UNIMPLEMENTED_SETTER:
+        const MessageTemplate(MessageKind.UNIMPLEMENTED_SETTER,
+          "'#{class}' doesn't implement the setter '#{name}'.",
+          howToFix: "Try adding an implementation of '#{name}' or declaring "
+                    "'#{class}' to be 'abstract'.",
+          examples: const ["""
 abstract class I {
   set m(_);
 }
@@ -1894,21 +2541,24 @@ abstract class J {
 }
 class C extends I implements J {}
 main() => new C();
-"""]);
+"""]),
 
-  static const MessageKind UNIMPLEMENTED_EXPLICIT_SETTER = const MessageKind(
-      "The setter '#{name}' is declared here in class '#{class}'.");
+      MessageKind.UNIMPLEMENTED_EXPLICIT_SETTER:
+        const MessageTemplate(MessageKind.UNIMPLEMENTED_EXPLICIT_SETTER,
+          "The setter '#{name}' is declared here in class '#{class}'."),
 
-  static const MessageKind UNIMPLEMENTED_IMPLICIT_SETTER = const MessageKind(
-      "The setter '#{name}' is implicitly declared by this field "
-      "in class '#{class}'.");
+      MessageKind.UNIMPLEMENTED_IMPLICIT_SETTER:
+        const MessageTemplate(MessageKind.UNIMPLEMENTED_IMPLICIT_SETTER,
+          "The setter '#{name}' is implicitly declared by this field "
+          "in class '#{class}'."),
 
-  static const MessageKind UNIMPLEMENTED_GETTER_ONE = const MessageKind(
-      "'#{class}' doesn't implement the getter '#{name}' "
-      "declared in '#{declarer}'.",
-      howToFix: "Try adding an implementation of '#{name}' or declaring "
-                "'#{class}' to be 'abstract'.",
-      examples: const ["""
+      MessageKind.UNIMPLEMENTED_GETTER_ONE:
+        const MessageTemplate(MessageKind.UNIMPLEMENTED_GETTER_ONE,
+          "'#{class}' doesn't implement the getter '#{name}' "
+          "declared in '#{declarer}'.",
+          howToFix: "Try adding an implementation of '#{name}' or declaring "
+                    "'#{class}' to be 'abstract'.",
+          examples: const ["""
 abstract class I {
   get m;
 }
@@ -1920,13 +2570,14 @@ abstract class I {
 }
 class C extends I {}
 main() => new C();
-"""]);
+"""]),
 
-  static const MessageKind UNIMPLEMENTED_GETTER = const MessageKind(
-      "'#{class}' doesn't implement the getter '#{name}'.",
-      howToFix: "Try adding an implementation of '#{name}' or declaring "
-                "'#{class}' to be 'abstract'.",
-      examples: const ["""
+      MessageKind.UNIMPLEMENTED_GETTER:
+        const MessageTemplate(MessageKind.UNIMPLEMENTED_GETTER,
+          "'#{class}' doesn't implement the getter '#{name}'.",
+          howToFix: "Try adding an implementation of '#{name}' or declaring "
+                    "'#{class}' to be 'abstract'.",
+          examples: const ["""
 abstract class I {
   get m;
 }
@@ -1944,37 +2595,43 @@ abstract class J {
 }
 class C extends I implements J {}
 main() => new C();
-"""]);
+"""]),
 
-  static const MessageKind UNIMPLEMENTED_EXPLICIT_GETTER = const MessageKind(
-      "The getter '#{name}' is declared here in class '#{class}'.");
+      MessageKind.UNIMPLEMENTED_EXPLICIT_GETTER:
+        const MessageTemplate(MessageKind.UNIMPLEMENTED_EXPLICIT_GETTER,
+          "The getter '#{name}' is declared here in class '#{class}'."),
 
-  static const MessageKind UNIMPLEMENTED_IMPLICIT_GETTER = const MessageKind(
-      "The getter '#{name}' is implicitly declared by this field "
-      "in class '#{class}'.");
+      MessageKind.UNIMPLEMENTED_IMPLICIT_GETTER:
+        const MessageTemplate(MessageKind.UNIMPLEMENTED_IMPLICIT_GETTER,
+          "The getter '#{name}' is implicitly declared by this field "
+          "in class '#{class}'."),
 
-  static const MessageKind EQUAL_MAP_ENTRY_KEY = const MessageKind(
-      "An entry with the same key already exists in the map.",
-      howToFix: "Try removing the previous entry or changing the key in one "
-                "of the entries.",
-      examples: const ["""
+      MessageKind.EQUAL_MAP_ENTRY_KEY:
+        const MessageTemplate(MessageKind.EQUAL_MAP_ENTRY_KEY,
+          "An entry with the same key already exists in the map.",
+          howToFix:
+            "Try removing the previous entry or changing the key in one "
+            "of the entries.",
+          examples: const ["""
 main() {
   var m = const {'foo': 1, 'foo': 2};
-}"""]);
+}"""]),
 
-  static const MessageKind BAD_INPUT_CHARACTER = const MessageKind(
-      "Character U+#{characterHex} isn't allowed here.",
-      howToFix: DONT_KNOW_HOW_TO_FIX,
-      examples: const ["""
+      MessageKind.BAD_INPUT_CHARACTER:
+        const MessageTemplate(MessageKind.BAD_INPUT_CHARACTER,
+          "Character U+#{characterHex} isn't allowed here.",
+          howToFix: DONT_KNOW_HOW_TO_FIX,
+          examples: const ["""
 main() {
   String x = ç;
 }
-"""]);
+"""]),
 
-  static const MessageKind UNTERMINATED_STRING = const MessageKind(
-      "String must end with #{quote}.",
-      howToFix: DONT_KNOW_HOW_TO_FIX,
-      examples: const ["""
+      MessageKind.UNTERMINATED_STRING:
+        const MessageTemplate(MessageKind.UNTERMINATED_STRING,
+          "String must end with #{quote}.",
+          howToFix: DONT_KNOW_HOW_TO_FIX,
+          examples: const ["""
 main() {
   return '
 ;
@@ -2009,46 +2666,53 @@ main() => r'''
 """,
 """
 main() => r\"\"\"
-"""]);
+"""]),
 
-  static const MessageKind UNMATCHED_TOKEN = const MessageKind(
-      "Can't find '#{end}' to match '#{begin}'.",
-      howToFix: DONT_KNOW_HOW_TO_FIX,
-      examples: const[
-          "main(",
-          "main(){",
-          "main(){]}",
-        ]);
+      MessageKind.UNMATCHED_TOKEN:
+        const MessageTemplate(MessageKind.UNMATCHED_TOKEN,
+          "Can't find '#{end}' to match '#{begin}'.",
+          howToFix: DONT_KNOW_HOW_TO_FIX,
+          examples: const[
+              "main(",
+              "main(){",
+              "main(){]}",
+            ]),
 
-  static const MessageKind UNTERMINATED_TOKEN = const MessageKind(
-      // This is a fall-back message that shouldn't happen.
-      "Incomplete token.");
+      MessageKind.UNTERMINATED_TOKEN:
+        const MessageTemplate(MessageKind.UNTERMINATED_TOKEN,
+          // This is a fall-back message that shouldn't happen.
+          "Incomplete token."),
 
-  static const MessageKind EXPONENT_MISSING = const MessageKind(
-      "Numbers in exponential notation should always contain an exponent"
-      " (an integer number with an optional sign).",
-      howToFix: "Make sure there is an exponent, and remove any whitespace "
-      "before it.",
-      examples: const ["""
+      MessageKind.EXPONENT_MISSING:
+        const MessageTemplate(MessageKind.EXPONENT_MISSING,
+          "Numbers in exponential notation should always contain an exponent"
+          " (an integer number with an optional sign).",
+          howToFix:
+            "Make sure there is an exponent, and remove any whitespace "
+            "before it.",
+          examples: const ["""
 main() {
   var i = 1e;
 }
-"""]);
+"""]),
 
-  static const MessageKind HEX_DIGIT_EXPECTED = const MessageKind(
-      "A hex digit (0-9 or A-F) must follow '0x'.",
-      howToFix: DONT_KNOW_HOW_TO_FIX, // Seems obvious from the error message.
-      examples: const ["""
+      MessageKind.HEX_DIGIT_EXPECTED:
+        const MessageTemplate(MessageKind.HEX_DIGIT_EXPECTED,
+          "A hex digit (0-9 or A-F) must follow '0x'.",
+          howToFix:
+            DONT_KNOW_HOW_TO_FIX, // Seems obvious from the error message.
+          examples: const ["""
 main() {
   var i = 0x;
 }
-"""]);
+"""]),
 
-  static const MessageKind MALFORMED_STRING_LITERAL = const MessageKind(
-      r"A '$' has special meaning inside a string, and must be followed by an"
-      " identifier or an expression in curly braces ({}).",
-      howToFix: r"Try adding a backslash (\) to escape the '$'.",
-      examples: const [r"""
+      MessageKind.MALFORMED_STRING_LITERAL:
+        const MessageTemplate(MessageKind.MALFORMED_STRING_LITERAL,
+          r"A '$' has special meaning inside a string, and must be followed by "
+          "an identifier or an expression in curly braces ({}).",
+          howToFix: r"Try adding a backslash (\) to escape the '$'.",
+          examples: const [r"""
 main() {
   return '$';
 }
@@ -2067,34 +2731,37 @@ r'''
 main() {
   return """$""";
 }
-''']);
+''']),
 
-  static const MessageKind UNTERMINATED_COMMENT = const MessageKind(
-      "Comment starting with '/*' must end with '*/'.",
-      howToFix: DONT_KNOW_HOW_TO_FIX,
-      examples: const [r"""
+      MessageKind.UNTERMINATED_COMMENT:
+        const MessageTemplate(MessageKind.UNTERMINATED_COMMENT,
+          "Comment starting with '/*' must end with '*/'.",
+          howToFix: DONT_KNOW_HOW_TO_FIX,
+          examples: const [r"""
 main() {
 }
-/*"""]);
+/*"""]),
 
-  static const MessageKind MISSING_TOKEN_BEFORE_THIS = const MessageKind(
-      "Expected '#{token}' before this.",
-      // Consider the second example below: the parser expects a ')' before
-      // 'y', but a ',' would also have worked. We don't have enough
-      // information to give a good suggestion.
-      howToFix: DONT_KNOW_HOW_TO_FIX,
-      examples: const [
-          "main() => true ? 1;",
-          "main() => foo(x: 1 y: 2);",
-        ]);
+      MessageKind.MISSING_TOKEN_BEFORE_THIS:
+        const MessageTemplate(MessageKind.MISSING_TOKEN_BEFORE_THIS,
+          "Expected '#{token}' before this.",
+          // Consider the second example below: the parser expects a ')' before
+          // 'y', but a ',' would also have worked. We don't have enough
+          // information to give a good suggestion.
+          howToFix: DONT_KNOW_HOW_TO_FIX,
+          examples: const [
+              "main() => true ? 1;",
+              "main() => foo(x: 1 y: 2);",
+            ]),
 
-  static const MessageKind MISSING_TOKEN_AFTER_THIS = const MessageKind(
-      "Expected '#{token}' after this.",
-      // See [MISSING_TOKEN_BEFORE_THIS], we don't have enough information to
-      // give a good suggestion.
-      howToFix: DONT_KNOW_HOW_TO_FIX,
-      examples: const [
-          "main(x) {x}",
+      MessageKind.MISSING_TOKEN_AFTER_THIS:
+        const MessageTemplate(MessageKind.MISSING_TOKEN_AFTER_THIS,
+          "Expected '#{token}' after this.",
+          // See [MISSING_TOKEN_BEFORE_THIS], we don't have enough information
+          // to give a good suggestion.
+          howToFix: DONT_KNOW_HOW_TO_FIX,
+          examples: const [
+              "main(x) {x}",
 """
 class S1 {}
 class S2 {}
@@ -2102,34 +2769,40 @@ class S3 {}
 class A = S1 with S2, S3
 main() => new A();
 """
-]);
+]),
 
-  static const MessageKind CONSIDER_ANALYZE_ALL = const MessageKind(
-      "Could not find '#{main}'.  Nothing will be analyzed.",
-      howToFix: "Try using '--analyze-all' to analyze everything.",
-      examples: const ['']);
+      MessageKind.CONSIDER_ANALYZE_ALL:
+        const MessageTemplate(MessageKind.CONSIDER_ANALYZE_ALL,
+          "Could not find '#{main}'.  Nothing will be analyzed.",
+          howToFix: "Try using '--analyze-all' to analyze everything.",
+          examples: const ['']),
 
-  static const MessageKind MISSING_MAIN = const MessageKind(
-      "Could not find '#{main}'.",
-      howToFix: "Try adding a method named '#{main}' to your program."
-      /* No example, test uses '--analyze-only' which will produce the above
-       * message [CONSIDER_ANALYZE_ALL].  An example for a human operator would
-       * be an empty file. */);
+      MessageKind.MISSING_MAIN:
+        const MessageTemplate(MessageKind.MISSING_MAIN,
+          "Could not find '#{main}'.",
+          howToFix: "Try adding a method named '#{main}' to your program."
+          /* No example, test uses '--analyze-only' which will produce the above
+           * message [CONSIDER_ANALYZE_ALL].  An example for a human operator
+           * would be an empty file.*/),
 
-  static const MessageKind MAIN_NOT_A_FUNCTION = const MessageKind(
-      "'#{main}' is not a function.",
-      howToFix: DONT_KNOW_HOW_TO_FIX, /* Don't state the obvious. */
-      examples: const ['var main;']);
+      MessageKind.MAIN_NOT_A_FUNCTION:
+        const MessageTemplate(MessageKind.MAIN_NOT_A_FUNCTION,
+          "'#{main}' is not a function.",
+          howToFix: DONT_KNOW_HOW_TO_FIX, /* Don't state the obvious. */
+          examples: const ['var main;']),
 
-  static const MessageKind MAIN_WITH_EXTRA_PARAMETER = const MessageKind(
-      "'#{main}' cannot have more than two parameters.",
-      howToFix: DONT_KNOW_HOW_TO_FIX, /* Don't state the obvious. */
-      examples: const ['main(a, b, c) {}']);
+      MessageKind.MAIN_WITH_EXTRA_PARAMETER:
+        const MessageTemplate(MessageKind.MAIN_WITH_EXTRA_PARAMETER,
+          "'#{main}' cannot have more than two parameters.",
+          howToFix: DONT_KNOW_HOW_TO_FIX, /* Don't state the obvious. */
+          examples: const ['main(a, b, c) {}']),
 
-  static const MessageKind COMPILER_CRASHED = const MessageKind(
-      "The compiler crashed when compiling this element.");
+      MessageKind.COMPILER_CRASHED:
+        const MessageTemplate(MessageKind.COMPILER_CRASHED,
+          "The compiler crashed when compiling this element."),
 
-  static const MessageKind PLEASE_REPORT_THE_CRASH = const MessageKind('''
+      MessageKind.PLEASE_REPORT_THE_CRASH:
+        const MessageTemplate(MessageKind.PLEASE_REPORT_THE_CRASH, '''
 The compiler is broken.
 
 When compiling the above element, the compiler crashed. It is not
@@ -2147,84 +2820,100 @@ Please include the following information:
 
 * the entire message you see here (including the full stack trace
   below as well as the source location above).
-''');
+'''),
 
-  static const MessageKind POTENTIAL_MUTATION = const MessageKind(
-      "Variable '#{variableName}' is not known to be of type "
-      "'#{shownType}' because it is potentially mutated in the scope for "
-      "promotion.");
+      MessageKind.POTENTIAL_MUTATION:
+        const MessageTemplate(MessageKind.POTENTIAL_MUTATION,
+          "Variable '#{variableName}' is not known to be of type "
+          "'#{shownType}' because it is potentially mutated in the scope for "
+          "promotion."),
 
-  static const MessageKind POTENTIAL_MUTATION_HERE = const MessageKind(
-      "Variable '#{variableName}' is potentially mutated here.");
+      MessageKind.POTENTIAL_MUTATION_HERE:
+        const MessageTemplate(MessageKind.POTENTIAL_MUTATION_HERE,
+          "Variable '#{variableName}' is potentially mutated here."),
 
-  static const MessageKind POTENTIAL_MUTATION_IN_CLOSURE = const MessageKind(
-      "Variable '#{variableName}' is not known to be of type "
-      "'#{shownType}' because it is potentially mutated within a closure.");
+      MessageKind.POTENTIAL_MUTATION_IN_CLOSURE:
+        const MessageTemplate(MessageKind.POTENTIAL_MUTATION_IN_CLOSURE,
+          "Variable '#{variableName}' is not known to be of type "
+          "'#{shownType}' because it is potentially mutated within a closure."),
 
-  static const MessageKind POTENTIAL_MUTATION_IN_CLOSURE_HERE =
-      const MessageKind(
-          "Variable '#{variableName}' is potentially mutated in a "
-          "closure here.");
+      MessageKind.POTENTIAL_MUTATION_IN_CLOSURE_HERE:
+        const MessageTemplate(MessageKind.POTENTIAL_MUTATION_IN_CLOSURE_HERE,
+              "Variable '#{variableName}' is potentially mutated in a "
+              "closure here."),
 
-  static const MessageKind ACCESSED_IN_CLOSURE = const MessageKind(
-      "Variable '#{variableName}' is not known to be of type "
-      "'#{shownType}' because it is accessed by a closure in the scope for "
-      "promotion and potentially mutated in the scope of '#{variableName}'.");
+      MessageKind.ACCESSED_IN_CLOSURE:
+        const MessageTemplate(MessageKind.ACCESSED_IN_CLOSURE,
+          "Variable '#{variableName}' is not known to be of type "
+          "'#{shownType}' because it is accessed by a closure in the scope for "
+          "promotion and potentially mutated in the scope of "
+          "'#{variableName}'."),
 
-  static const MessageKind ACCESSED_IN_CLOSURE_HERE = const MessageKind(
-      "Variable '#{variableName}' is accessed in a closure here.");
+      MessageKind.ACCESSED_IN_CLOSURE_HERE:
+        const MessageTemplate(MessageKind.ACCESSED_IN_CLOSURE_HERE,
+          "Variable '#{variableName}' is accessed in a closure here."),
 
-  static const MessageKind NOT_MORE_SPECIFIC = const MessageKind(
-      "Variable '#{variableName}' is not shown to have type "
-      "'#{shownType}' because '#{shownType}' is not more specific than the "
-      "known type '#{knownType}' of '#{variableName}'.");
+      MessageKind.NOT_MORE_SPECIFIC:
+        const MessageTemplate(MessageKind.NOT_MORE_SPECIFIC,
+          "Variable '#{variableName}' is not shown to have type "
+          "'#{shownType}' because '#{shownType}' is not more specific than the "
+          "known type '#{knownType}' of '#{variableName}'."),
 
-  static const MessageKind NOT_MORE_SPECIFIC_SUBTYPE = const MessageKind(
-      "Variable '#{variableName}' is not shown to have type "
-      "'#{shownType}' because '#{shownType}' is not a subtype of the "
-      "known type '#{knownType}' of '#{variableName}'.");
+      MessageKind.NOT_MORE_SPECIFIC_SUBTYPE:
+        const MessageTemplate(MessageKind.NOT_MORE_SPECIFIC_SUBTYPE,
+          "Variable '#{variableName}' is not shown to have type "
+          "'#{shownType}' because '#{shownType}' is not a subtype of the "
+          "known type '#{knownType}' of '#{variableName}'."),
 
-  static const MessageKind NOT_MORE_SPECIFIC_SUGGESTION = const MessageKind(
-      "Variable '#{variableName}' is not shown to have type "
-      "'#{shownType}' because '#{shownType}' is not more specific than the "
-      "known type '#{knownType}' of '#{variableName}'.",
-      howToFix: "Try replacing '#{shownType}' with '#{shownTypeSuggestion}'.");
+      MessageKind.NOT_MORE_SPECIFIC_SUGGESTION:
+        const MessageTemplate(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
+          "Variable '#{variableName}' is not shown to have type "
+          "'#{shownType}' because '#{shownType}' is not more specific than the "
+          "known type '#{knownType}' of '#{variableName}'.",
+          howToFix:
+            "Try replacing '#{shownType}' with '#{shownTypeSuggestion}'."),
 
-  static const MessageKind HIDDEN_WARNINGS_HINTS = const MessageKind(
-      "#{warnings} warning(s) and #{hints} hint(s) suppressed in #{uri}.");
+      MessageKind.HIDDEN_WARNINGS_HINTS:
+        const MessageTemplate(MessageKind.HIDDEN_WARNINGS_HINTS,
+          "#{warnings} warning(s) and #{hints} hint(s) suppressed in #{uri}."),
 
-  static const MessageKind HIDDEN_WARNINGS = const MessageKind(
-      "#{warnings} warning(s) suppressed in #{uri}.");
+      MessageKind.HIDDEN_WARNINGS:
+        const MessageTemplate(MessageKind.HIDDEN_WARNINGS,
+          "#{warnings} warning(s) suppressed in #{uri}."),
 
-  static const MessageKind HIDDEN_HINTS = const MessageKind(
-      "#{hints} hint(s) suppressed in #{uri}.");
+      MessageKind.HIDDEN_HINTS:
+        const MessageTemplate(MessageKind.HIDDEN_HINTS,
+          "#{hints} hint(s) suppressed in #{uri}."),
 
-  static const MessageKind PREAMBLE = const MessageKind(
-    "When run on the command-line, the compiled output might"
-    " require a preamble file located in:\n"
-    "  <sdk>/lib/_internal/js_runtime/lib/preambles.");
+      MessageKind.PREAMBLE:
+        const MessageTemplate(MessageKind.PREAMBLE,
+        "When run on the command-line, the compiled output might"
+        " require a preamble file located in:\n"
+        "  <sdk>/lib/_internal/js_runtime/lib/preambles."),
 
-  static const MessageKind INVALID_SYNC_MODIFIER = const MessageKind(
-      "Invalid modifier 'sync'.",
-      options: const ['--enable-async'],
-      howToFix: "Try replacing 'sync' with 'sync*'.",
-      examples: const [
-        "main() sync {}"
-      ]);
+      MessageKind.INVALID_SYNC_MODIFIER:
+        const MessageTemplate(MessageKind.INVALID_SYNC_MODIFIER,
+          "Invalid modifier 'sync'.",
+          options: const ['--enable-async'],
+          howToFix: "Try replacing 'sync' with 'sync*'.",
+          examples: const [
+            "main() sync {}"
+          ]),
 
-  static const MessageKind INVALID_AWAIT_FOR = const MessageKind(
-      "'await' is only supported on for-in loops.",
-      options: const ['--enable-async'],
-      howToFix: "Try rewriting the loop as a for-in loop or removing the "
-                "'await' keyword.",
-      examples: const ["""
+      MessageKind.INVALID_AWAIT_FOR:
+        const MessageTemplate(MessageKind.INVALID_AWAIT_FOR,
+          "'await' is only supported on for-in loops.",
+          options: const ['--enable-async'],
+          howToFix: "Try rewriting the loop as a for-in loop or removing the "
+                    "'await' keyword.",
+          examples: const ["""
 main() async* {
   await for (int i = 0; i < 10; i++) {}
 }
-"""]);
+"""]),
 
-  static const MessageKind ASYNC_MODIFIER_ON_ABSTRACT_METHOD =
-      const MessageKind(
+      MessageKind.ASYNC_MODIFIER_ON_ABSTRACT_METHOD:
+        const MessageTemplate(MessageKind.ASYNC_MODIFIER_ON_ABSTRACT_METHOD,
           "The modifier '#{modifier}' is not allowed on an abstract method.",
           options: const ['--enable-async'],
           howToFix: "Try removing the '#{modifier}' modifier or adding a "
@@ -2240,14 +2929,14 @@ main() {
   A a = new B();
   a.method();
 }
-"""]);
+"""]),
 
-  static const MessageKind ASYNC_MODIFIER_ON_CONSTRUCTOR =
-      const MessageKind(
-          "The modifier '#{modifier}' is not allowed on constructors.",
-          options: const ['--enable-async'],
-          howToFix: "Try removing the '#{modifier}' modifier.",
-          examples: const ["""
+      MessageKind.ASYNC_MODIFIER_ON_CONSTRUCTOR:
+        const MessageTemplate(MessageKind.ASYNC_MODIFIER_ON_CONSTRUCTOR,
+              "The modifier '#{modifier}' is not allowed on constructors.",
+              options: const ['--enable-async'],
+              howToFix: "Try removing the '#{modifier}' modifier.",
+              examples: const ["""
 class A {
   A() async;
 }
@@ -2258,36 +2947,37 @@ class A {
   A();
   factory A.a() async* {}
 }
-main() => new A.a();"""]);
+main() => new A.a();"""]),
 
-  static const MessageKind ASYNC_MODIFIER_ON_SETTER =
-      const MessageKind(
-          "The modifier '#{modifier}' is not allowed on setters.",
-          options: const ['--enable-async'],
-          howToFix: "Try removing the '#{modifier}' modifier.",
-          examples: const ["""
+      MessageKind.ASYNC_MODIFIER_ON_SETTER:
+        const MessageTemplate(MessageKind.ASYNC_MODIFIER_ON_SETTER,
+              "The modifier '#{modifier}' is not allowed on setters.",
+              options: const ['--enable-async'],
+              howToFix: "Try removing the '#{modifier}' modifier.",
+              examples: const ["""
 class A {
   set foo(v) async {}
 }
-main() => new A().foo = 0;"""]);
+main() => new A().foo = 0;"""]),
 
-  static const MessageKind YIELDING_MODIFIER_ON_ARROW_BODY =
-      const MessageKind(
+      MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY:
+        const MessageTemplate(MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY,
           "The modifier '#{modifier}' is not allowed on methods implemented "
           "using '=>'.",
           options: const ['--enable-async'],
           howToFix: "Try removing the '#{modifier}' modifier or implementing "
                     "the method body using a block: '{ ... }'.",
-          examples: const ["main() sync* => null;", "main() async* => null;"]);
+          examples: const ["main() sync* => null;", "main() async* => null;"]),
 
-  // TODO(johnniwinther): Check for 'async' as identifier.
-  static const MessageKind ASYNC_KEYWORD_AS_IDENTIFIER = const MessageKind(
-      "'#{keyword}' cannot be used as an identifier in a function body marked "
-      "with '#{modifier}'.",
-      options: const ['--enable-async'],
-      howToFix: "Try removing the '#{modifier}' modifier or renaming the "
-                "identifier.",
-      examples: const ["""
+      // TODO(johnniwinther): Check for 'async' as identifier.
+      MessageKind.ASYNC_KEYWORD_AS_IDENTIFIER:
+        const MessageTemplate(MessageKind.ASYNC_KEYWORD_AS_IDENTIFIER,
+          "'#{keyword}' cannot be used as an identifier in a function body "
+          "marked with '#{modifier}'.",
+          options: const ['--enable-async'],
+          howToFix: "Try removing the '#{modifier}' modifier or renaming the "
+                    "identifier.",
+          examples: const ["""
 main() async {
  var await;
 }""",
@@ -2298,10 +2988,10 @@ main() async* {
 """
 main() sync* {
  var yield;
-}"""]);
+}"""]),
 
-  static const MessageKind RETURN_IN_GENERATOR =
-      const MessageKind(
+      MessageKind.RETURN_IN_GENERATOR:
+        const MessageTemplate(MessageKind.RETURN_IN_GENERATOR,
           "'return' with a value is not allowed in a method body using the "
           "'#{modifier}' modifier.",
           howToFix: "Try removing the value, replacing 'return' with 'yield' "
@@ -2315,41 +3005,45 @@ main() => foo();
 """
 foo() sync* { return 0; }
 main() => foo();
-"""]);
+"""]),
 
-  static const MessageKind NATIVE_NOT_SUPPORTED = const MessageKind(
-      "'native' modifier is not supported.",
-      howToFix: "Try removing the 'native' implementation or analyzing the "
-                "code with the --allow-native-extensions option.",
-      examples: const ["""
+      MessageKind.NATIVE_NOT_SUPPORTED:
+        const MessageTemplate(MessageKind.NATIVE_NOT_SUPPORTED,
+          "'native' modifier is not supported.",
+          howToFix: "Try removing the 'native' implementation or analyzing the "
+                    "code with the --allow-native-extensions option.",
+          examples: const ["""
 main() native "Main";
-"""]);
+"""]),
 
-  static const MessageKind DART_EXT_NOT_SUPPORTED = const MessageKind(
-      "The 'dart-ext' scheme is not supported.",
-      howToFix: "Try analyzing the code with the --allow-native-extensions "
-                "option.",
-      examples: const ["""
+      MessageKind.DART_EXT_NOT_SUPPORTED:
+        const MessageTemplate(MessageKind.DART_EXT_NOT_SUPPORTED,
+          "The 'dart-ext' scheme is not supported.",
+          howToFix: "Try analyzing the code with the --allow-native-extensions "
+                    "option.",
+          examples: const ["""
 import 'dart-ext:main';
 
 main() {}
-"""]);
+"""]),
 
-  static const MessageKind LIBRARY_TAG_MUST_BE_FIRST = const MessageKind(
-      "The library declaration should come before other declarations.",
-      howToFix: "Try moving the declaration to the top of the file.",
-      examples: const [
+      MessageKind.LIBRARY_TAG_MUST_BE_FIRST:
+        const MessageTemplate(MessageKind.LIBRARY_TAG_MUST_BE_FIRST,
+          "The library declaration should come before other declarations.",
+          howToFix: "Try moving the declaration to the top of the file.",
+          examples: const [
 """
 import 'dart:core';
 library foo;
 main() {}
 """,
-      ]);
+      ]),
 
-  static const MessageKind ONLY_ONE_LIBRARY_TAG = const MessageKind(
-      "There can only be one library declaration.",
-      howToFix: "Try removing all other library declarations.",
-      examples: const [
+      MessageKind.ONLY_ONE_LIBRARY_TAG:
+        const MessageTemplate(MessageKind.ONLY_ONE_LIBRARY_TAG,
+          "There can only be one library declaration.",
+          howToFix: "Try removing all other library declarations.",
+          examples: const [
 """
 library foo;
 library bar;
@@ -2361,149 +3055,174 @@ import 'dart:core';
 library bar;
 main() {}
 """,
-      ]);
+      ]),
 
-  static const MessageKind IMPORT_BEFORE_PARTS = const MessageKind(
-      "Import declarations should come before parts.",
-      howToFix: "Try moving this import further up in the file.",
-      examples: const [
-          const <String, String>{
-            'main.dart': """
+      MessageKind.IMPORT_BEFORE_PARTS:
+        const MessageTemplate(MessageKind.IMPORT_BEFORE_PARTS,
+          "Import declarations should come before parts.",
+          howToFix: "Try moving this import further up in the file.",
+          examples: const [
+              const <String, String>{
+                'main.dart': """
 library test.main;
 part 'part.dart';
 import 'dart:core';
 main() {}
 """,
-            'part.dart': """
+                'part.dart': """
 part of test.main;
 """,
-      }]);
+          }]),
 
-  static const MessageKind EXPORT_BEFORE_PARTS = const MessageKind(
-      "Export declarations should come before parts.",
-      howToFix: "Try moving this export further up in the file.",
-      examples: const [
-          const <String, String>{
-            'main.dart': """
+      MessageKind.EXPORT_BEFORE_PARTS:
+        const MessageTemplate(MessageKind.EXPORT_BEFORE_PARTS,
+          "Export declarations should come before parts.",
+          howToFix: "Try moving this export further up in the file.",
+          examples: const [
+              const <String, String>{
+                'main.dart': """
 library test.main;
 part 'part.dart';
 export 'dart:core';
 main() {}
 """,
-            'part.dart': """
+               'part.dart': """
 part of test.main;
 """,
-      }]);
+          }]),
 
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors start.
   //////////////////////////////////////////////////////////////////////////////
 
-  static const MessageKind PATCH_RETURN_TYPE_MISMATCH = const MessageKind(
-      "Patch return type '#{patchReturnType}' does not match "
-      "'#{originReturnType}' on origin method '#{methodName}'.");
+      MessageKind.PATCH_RETURN_TYPE_MISMATCH:
+        const MessageTemplate(MessageKind.PATCH_RETURN_TYPE_MISMATCH,
+          "Patch return type '#{patchReturnType}' does not match "
+          "'#{originReturnType}' on origin method '#{methodName}'."),
 
-  static const MessageKind PATCH_REQUIRED_PARAMETER_COUNT_MISMATCH =
-      const MessageKind(
+      MessageKind.PATCH_REQUIRED_PARAMETER_COUNT_MISMATCH:
+        const MessageTemplate(
+          MessageKind.PATCH_REQUIRED_PARAMETER_COUNT_MISMATCH,
           "Required parameter count of patch method "
           "(#{patchParameterCount}) does not match parameter count on origin "
-          "method '#{methodName}' (#{originParameterCount}).");
+          "method '#{methodName}' (#{originParameterCount})."),
 
-  static const MessageKind PATCH_OPTIONAL_PARAMETER_COUNT_MISMATCH =
-      const MessageKind(
+      MessageKind.PATCH_OPTIONAL_PARAMETER_COUNT_MISMATCH:
+        const MessageTemplate(
+          MessageKind.PATCH_OPTIONAL_PARAMETER_COUNT_MISMATCH,
           "Optional parameter count of patch method "
           "(#{patchParameterCount}) does not match parameter count on origin "
-          "method '#{methodName}' (#{originParameterCount}).");
+          "method '#{methodName}' (#{originParameterCount})."),
 
-  static const MessageKind PATCH_OPTIONAL_PARAMETER_NAMED_MISMATCH =
-      const MessageKind(
+      MessageKind.PATCH_OPTIONAL_PARAMETER_NAMED_MISMATCH:
+        const MessageTemplate(
+          MessageKind.PATCH_OPTIONAL_PARAMETER_NAMED_MISMATCH,
           "Optional parameters of origin and patch method "
-          "'#{methodName}' must both be either named or positional.");
+          "'#{methodName}' must both be either named or positional."),
 
-  static const MessageKind PATCH_PARAMETER_MISMATCH = const MessageKind(
-      "Patch method parameter '#{patchParameter}' does not match "
-      "'#{originParameter}' on origin method '#{methodName}'.");
+      MessageKind.PATCH_PARAMETER_MISMATCH:
+        const MessageTemplate(MessageKind.PATCH_PARAMETER_MISMATCH,
+          "Patch method parameter '#{patchParameter}' does not match "
+          "'#{originParameter}' on origin method '#{methodName}'."),
 
-  static const MessageKind PATCH_PARAMETER_TYPE_MISMATCH = const MessageKind(
-      "Patch method parameter '#{parameterName}' type "
-      "'#{patchParameterType}' does not match '#{originParameterType}' on "
-      "origin method '#{methodName}'.");
+      MessageKind.PATCH_PARAMETER_TYPE_MISMATCH:
+        const MessageTemplate(MessageKind.PATCH_PARAMETER_TYPE_MISMATCH,
+          "Patch method parameter '#{parameterName}' type "
+          "'#{patchParameterType}' does not match '#{originParameterType}' on "
+          "origin method '#{methodName}'."),
 
-  static const MessageKind PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION =
-      const MessageKind("External method without an implementation.");
+      MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION:
+        const MessageTemplate(MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION,
+          "External method without an implementation."),
 
-  static const MessageKind PATCH_POINT_TO_FUNCTION = const MessageKind(
-      "This is the function patch '#{functionName}'.");
+      MessageKind.PATCH_POINT_TO_FUNCTION:
+        const MessageTemplate(MessageKind.PATCH_POINT_TO_FUNCTION,
+          "This is the function patch '#{functionName}'."),
 
-  static const MessageKind PATCH_POINT_TO_CLASS = const MessageKind(
-      "This is the class patch '#{className}'.");
+      MessageKind.PATCH_POINT_TO_CLASS:
+        const MessageTemplate(MessageKind.PATCH_POINT_TO_CLASS,
+          "This is the class patch '#{className}'."),
 
-  static const MessageKind PATCH_POINT_TO_GETTER = const MessageKind(
-      "This is the getter patch '#{getterName}'.");
+      MessageKind.PATCH_POINT_TO_GETTER:
+        const MessageTemplate(MessageKind.PATCH_POINT_TO_GETTER,
+          "This is the getter patch '#{getterName}'."),
 
-  static const MessageKind PATCH_POINT_TO_SETTER = const MessageKind(
-      "This is the setter patch '#{setterName}'.");
+      MessageKind.PATCH_POINT_TO_SETTER:
+        const MessageTemplate(MessageKind.PATCH_POINT_TO_SETTER,
+          "This is the setter patch '#{setterName}'."),
 
-  static const MessageKind PATCH_POINT_TO_CONSTRUCTOR = const MessageKind(
-      "This is the constructor patch '#{constructorName}'.");
+      MessageKind.PATCH_POINT_TO_CONSTRUCTOR:
+        const MessageTemplate(MessageKind.PATCH_POINT_TO_CONSTRUCTOR,
+          "This is the constructor patch '#{constructorName}'."),
 
-  static const MessageKind PATCH_POINT_TO_PARAMETER = const MessageKind(
-      "This is the patch parameter '#{parameterName}'.");
+      MessageKind.PATCH_POINT_TO_PARAMETER:
+        const MessageTemplate(MessageKind.PATCH_POINT_TO_PARAMETER,
+          "This is the patch parameter '#{parameterName}'."),
 
-  static const MessageKind PATCH_NON_EXISTING = const MessageKind(
-      "Origin does not exist for patch '#{name}'.");
+      MessageKind.PATCH_NON_EXISTING:
+        const MessageTemplate(MessageKind.PATCH_NON_EXISTING,
+          "Origin does not exist for patch '#{name}'."),
 
-  // TODO(ahe): Eventually, this error should be removed as it will be handled
-  // by the regular parser.
-  static const MessageKind PATCH_NONPATCHABLE = const MessageKind(
-      "Only classes and functions can be patched.");
+      // TODO(ahe): Eventually, this error should be removed as it will be
+      // handled by the regular parser.
+      MessageKind.PATCH_NONPATCHABLE:
+        const MessageTemplate(MessageKind.PATCH_NONPATCHABLE,
+          "Only classes and functions can be patched."),
 
-  static const MessageKind PATCH_NON_EXTERNAL = const MessageKind(
-      "Only external functions can be patched.");
+      MessageKind.PATCH_NON_EXTERNAL:
+        const MessageTemplate(MessageKind.PATCH_NON_EXTERNAL,
+          "Only external functions can be patched."),
 
-  static const MessageKind PATCH_NON_CLASS = const MessageKind(
-      "Patching non-class with class patch '#{className}'.");
+      MessageKind.PATCH_NON_CLASS:
+        const MessageTemplate(MessageKind.PATCH_NON_CLASS,
+          "Patching non-class with class patch '#{className}'."),
 
-  static const MessageKind PATCH_NON_GETTER = const MessageKind(
-      "Cannot patch non-getter '#{name}' with getter patch.");
+      MessageKind.PATCH_NON_GETTER:
+        const MessageTemplate(MessageKind.PATCH_NON_GETTER,
+          "Cannot patch non-getter '#{name}' with getter patch."),
 
-  static const MessageKind PATCH_NO_GETTER = const MessageKind(
-      "No getter found for getter patch '#{getterName}'.");
+      MessageKind.PATCH_NO_GETTER:
+        const MessageTemplate(MessageKind.PATCH_NO_GETTER,
+          "No getter found for getter patch '#{getterName}'."),
 
-  static const MessageKind PATCH_NON_SETTER = const MessageKind(
-      "Cannot patch non-setter '#{name}' with setter patch.");
+      MessageKind.PATCH_NON_SETTER:
+        const MessageTemplate(MessageKind.PATCH_NON_SETTER,
+          "Cannot patch non-setter '#{name}' with setter patch."),
 
-  static const MessageKind PATCH_NO_SETTER = const MessageKind(
-      "No setter found for setter patch '#{setterName}'.");
+      MessageKind.PATCH_NO_SETTER:
+        const MessageTemplate(MessageKind.PATCH_NO_SETTER,
+          "No setter found for setter patch '#{setterName}'."),
 
-  static const MessageKind PATCH_NON_CONSTRUCTOR = const MessageKind(
-      "Cannot patch non-constructor with constructor patch "
-      "'#{constructorName}'.");
+      MessageKind.PATCH_NON_CONSTRUCTOR:
+        const MessageTemplate(MessageKind.PATCH_NON_CONSTRUCTOR,
+          "Cannot patch non-constructor with constructor patch "
+          "'#{constructorName}'."),
 
-  static const MessageKind PATCH_NON_FUNCTION = const MessageKind(
-      "Cannot patch non-function with function patch "
-      "'#{functionName}'.");
+      MessageKind.PATCH_NON_FUNCTION:
+        const MessageTemplate(MessageKind.PATCH_NON_FUNCTION,
+          "Cannot patch non-function with function patch "
+          "'#{functionName}'."),
 
-  static const MessageKind EXTERNAL_WITH_BODY = const MessageKind(
-      "External function '#{functionName}' cannot have a function body.",
-      options: const ["--output-type=dart"],
-      howToFix: "Try removing the 'external' modifier or the function body.",
-      examples: const ["""
+      MessageKind.EXTERNAL_WITH_BODY:
+        const MessageTemplate(MessageKind.EXTERNAL_WITH_BODY,
+          "External function '#{functionName}' cannot have a function body.",
+          options: const ["--output-type=dart"],
+          howToFix:
+            "Try removing the 'external' modifier or the function body.",
+          examples: const ["""
 external foo() => 0;
 main() => foo();
 """, """
 external foo() {}
 main() => foo();
-"""]);
+"""]),
 
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors end.
   //////////////////////////////////////////////////////////////////////////////
 
-  static const String IMPORT_EXPERIMENTAL_MIRRORS_PADDING = '\n*   ';
-
-  static const MessageKind IMPORT_EXPERIMENTAL_MIRRORS =
-      const MessageKind(r'''
+      MessageKind.IMPORT_EXPERIMENTAL_MIRRORS:
+        const MessageTemplate(MessageKind.IMPORT_EXPERIMENTAL_MIRRORS, r'''
 
 ****************************************************************
 * WARNING: dart:mirrors support in dart2js is experimental,
@@ -2521,39 +3240,45 @@ $IMPORT_EXPERIMENTAL_MIRRORS_PADDING#{importChain}
 * To learn what to do next, please visit:
 *    http://dartlang.org/dart2js-reflection
 ****************************************************************
-''');
+'''),
 
 
-  static const MessageKind MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND =
-      const MessageKind(
-          "dart:mirrors library is not supported when using this backend.");
+      MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND:
+        const MessageTemplate(
+          MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND,
+          "dart:mirrors library is not supported when using this backend."),
 
-  static const MessageKind CALL_NOT_SUPPORTED_ON_NATIVE_CLASS =
-      const MessageKind(
+      MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS:
+        const MessageTemplate(MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS,
           "Non-supported 'call' member on a native class, or a "
-          "subclass of a native class.");
+          "subclass of a native class."),
 
-  static const MessageKind DIRECTLY_THROWING_NSM =
-      const MessageKind(
+      MessageKind.DIRECTLY_THROWING_NSM:
+        const MessageTemplate(MessageKind.DIRECTLY_THROWING_NSM,
           "This 'noSuchMethod' implementation is guaranteed to throw an "
           "exception. The generated code will be smaller if it is "
           "rewritten.",
           howToFix: "Rewrite to "
-                    "'noSuchMethod(Invocation i) => super.noSuchMethod(i);'.");
+                    "'noSuchMethod(Invocation i) => super.noSuchMethod(i);'."),
 
-  static const MessageKind COMPLEX_THROWING_NSM =
-      const MessageKind(
+      MessageKind.COMPLEX_THROWING_NSM:
+        const MessageTemplate(MessageKind.COMPLEX_THROWING_NSM,
           "This 'noSuchMethod' implementation is guaranteed to throw an "
           "exception. The generated code will be smaller and the compiler "
           "will be able to perform more optimizations if it is rewritten.",
           howToFix: "Rewrite to "
-                    "'noSuchMethod(Invocation i) => super.noSuchMethod(i);'.");
+                    "'noSuchMethod(Invocation i) => super.noSuchMethod(i);'."),
 
-  static const MessageKind COMPLEX_RETURNING_NSM =
-      const MessageKind(
+      MessageKind.COMPLEX_RETURNING_NSM:
+        const MessageTemplate(MessageKind.COMPLEX_RETURNING_NSM,
           "Overriding 'noSuchMethod' causes the compiler to generate "
           "more code and prevents the compiler from doing some optimizations.",
-          howToFix: "Consider removing this 'noSuchMethod' implementation.");
+          howToFix: "Consider removing this 'noSuchMethod' implementation."),
+
+
+  }; // End of TEMPLATES.
+
+  static const String IMPORT_EXPERIMENTAL_MIRRORS_PADDING = '\n*   ';
 
   toString() => template;
 
@@ -2565,18 +3290,20 @@ $IMPORT_EXPERIMENTAL_MIRRORS_PADDING#{importChain}
 }
 
 class Message {
-  final MessageKind kind;
+  final MessageTemplate template;
   final Map arguments;
   final bool terse;
   String message;
 
-  Message(this.kind, this.arguments, this.terse) {
+  Message(this.template, this.arguments, this.terse) {
     assert(() { computeMessage(); return true; });
   }
 
+  MessageKind get kind => template.kind;
+
   String computeMessage() {
     if (message == null) {
-      message = kind.template;
+      message = template.template;
       arguments.forEach((key, value) {
         message = message.replaceAll('#{${key}}', convertToString(value));
       });
@@ -2585,8 +3312,8 @@ class Message {
           kind == MessageKind.GENERIC ||
             !message.contains(new RegExp(r'#\{.+\}')),
           message: 'Missing arguments in error message: "$message"'));
-      if (!terse && kind.hasHowToFix) {
-        String howToFix = kind.howToFix;
+      if (!terse && template.hasHowToFix) {
+        String howToFix = template.howToFix;
         arguments.forEach((key, value) {
           howToFix = howToFix.replaceAll('#{${key}}', convertToString(value));
         });
@@ -2602,7 +3329,7 @@ class Message {
 
   bool operator==(other) {
     if (other is !Message) return false;
-    return (kind == other.kind) && (toString() == other.toString());
+    return (template == other.template) && (toString() == other.toString());
   }
 
   int get hashCode => throw new UnsupportedError('Message.hashCode');

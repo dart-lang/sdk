@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 
 import 'memory_compiler.dart' show
-    compilerFor;
+    runCompiler;
 
 import 'package:compiler/src/apiimpl.dart' show
     Compiler;
@@ -50,11 +50,12 @@ void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
 }
 
 void main() {
-  Compiler compiler = compilerFor(
-      MEMORY_SOURCE_FILES,
+  asyncTest(() async {
+    var result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
       diagnosticHandler: new LegacyCompilerDiagnostics(expectOnlyVerboseInfo),
       options: ['--enable-experimental-mirrors']);
-  asyncTest(() => compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
+    Compiler compiler = result.compiler;
     print('');
     List generatedCode =
         Elements.sortedByPosition(compiler.enqueuer.codegen.generatedCode.keys);
@@ -147,7 +148,7 @@ void main() {
     Expect.equals(
         1, fooConstantCount,
         "The type literal 'Foo' is duplicated or missing.");
-  }));
+  });
 }
 
 const MEMORY_SOURCE_FILES = const <String, String> {

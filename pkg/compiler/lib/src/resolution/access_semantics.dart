@@ -143,6 +143,10 @@ enum AccessKind {
 
   /// The destination of the access is unresolved super access.
   UNRESOLVED_SUPER,
+
+  /// The destination is invalid as an access. For instance a prefix used
+  /// as an expression.
+  INVALID,
 }
 
 enum CompoundAccessKind {
@@ -178,7 +182,7 @@ enum CompoundAccessKind {
   /// Read from a superclass getter and write to a superclass field.
   SUPER_GETTER_FIELD,
 
-  /// Read from a superclass where the getter (and maybe setter) is unresolved.
+  /// Read from a superclass where the getter is unresolved.
   UNRESOLVED_SUPER_GETTER,
   /// Read from a superclass getter and write to an unresolved setter.
   UNRESOLVED_SUPER_SETTER,
@@ -226,6 +230,14 @@ class AccessSemantics {
   /*Expression*/ get target => null;
 
   ConstantExpression get constant => null;
+
+  /// The element for the getter in case of a compound access,
+  /// [element] otherwise.
+  Element get getter => element;
+
+  /// The element for the setter in case of a compound access,
+  /// [element] otherwise.
+  Element get setter => element;
 
   AccessSemantics.expression()
       : kind = AccessKind.EXPRESSION;
@@ -357,6 +369,9 @@ class StaticAccess extends AccessSemantics {
 
   StaticAccess.unresolvedSuper(this.element)
       : super._(AccessKind.UNRESOLVED_SUPER);
+
+  StaticAccess.invalid(this.element)
+      : super._(AccessKind.INVALID);
 }
 
 class CompoundAccessSemantics extends AccessSemantics {

@@ -46,6 +46,7 @@ class Visit {
   final target;
   final targetType;
   final initializers;
+  final error;
 
   const Visit(this.method,
               {this.element,
@@ -67,7 +68,8 @@ class Visit {
                this.body,
                this.target,
                this.targetType,
-               this.initializers});
+               this.initializers,
+               this.error});
 
   int get hashCode => toString().hashCode;
 
@@ -135,6 +137,9 @@ class Visit {
     }
     if (initializers != null) {
       sb.write(',initializers=$initializers');
+    }
+    if (error != null) {
+      sb.write(',error=$error');
     }
     return sb.toString();
   }
@@ -211,6 +216,12 @@ const List<VisitKind> UNTESTABLE_KINDS = const <VisitKind>[
   // Constant expression are currently not computed during resolution.
   VisitKind.VISIT_CONSTANT_GET,
   VisitKind.VISIT_CONSTANT_INVOKE,
+  // TODO(johnniwinther): Test these when ResolverVisitor.visitSendSet has been
+  // rewritten.
+  VisitKind.ERROR_INVALID_SET,
+  VisitKind.ERROR_INVALID_PREFIX,
+  VisitKind.ERROR_INVALID_POSTFIX,
+  VisitKind.ERROR_INVALID_COMPOUND,
 ];
 
 main(List<String> arguments) {
@@ -265,7 +276,7 @@ main(List<String> arguments) {
 Future test(Set<VisitKind> unvisitedKinds,
             List<String> arguments,
             Map<String, List<Test>> TESTS,
-            SemanticTestVisitor createVisitor(TreeElements elements)) {
+            SemanticTestVisitor createVisitor(TreeElements elements)) async {
   Map<String, String> sourceFiles = {};
   Map<String, Test> testMap = {};
   StringBuffer mainSource = new StringBuffer();
@@ -296,71 +307,71 @@ Future test(Set<VisitKind> unvisitedKinds,
   mainSource.writeln("main() {}");
   sourceFiles['main.dart'] = mainSource.toString();
 
-  Compiler compiler = compilerFor(sourceFiles,
+  CompilationResult result = await runCompiler(
+      memorySourceFiles: sourceFiles,
       options: ['--analyze-all',
                 '--analyze-only',
                 '--enable-null-aware-operators']);
-  return compiler.run(Uri.parse('memory:main.dart')).then((_) {
-    testMap.forEach((String filename, Test test) {
-      LibraryElement library = compiler.libraryLoader.lookupLibrary(
-          Uri.parse('memory:$filename'));
-      Element element;
-      String cls = test.cls;
-      String method = test.method;
-      if (cls == null) {
-        element = library.find(method);
-      } else {
-        ClassElement classElement = library.find(cls);
-        Expect.isNotNull(classElement,
-                         "Class '$cls' not found in:\n"
-                         "${library.compilationUnit.script.text}");
-        element = classElement.localLookup(method);
-      }
-      var expectedVisits = test.expectedVisits;
-      if (expectedVisits == null) {
-        Expect.isTrue(element.isErroneous,
-            "Element '$method' expected to be have parse errors in:\n"
-            "${library.compilationUnit.script.text}");
-        return;
-      } else if (expectedVisits is! List) {
-        expectedVisits = [expectedVisits];
-      }
-      Expect.isFalse(element.isErroneous,
-          "Element '$method' is not expected to be have parse errors in:\n"
+  Compiler compiler = result.compiler;
+  testMap.forEach((String filename, Test test) {
+    LibraryElement library = compiler.libraryLoader.lookupLibrary(
+        Uri.parse('memory:$filename'));
+    Element element;
+    String cls = test.cls;
+    String method = test.method;
+    if (cls == null) {
+      element = library.find(method);
+    } else {
+      ClassElement classElement = library.find(cls);
+      Expect.isNotNull(classElement,
+                       "Class '$cls' not found in:\n"
+                       "${library.compilationUnit.script.text}");
+      element = classElement.localLookup(method);
+    }
+    var expectedVisits = test.expectedVisits;
+    if (expectedVisits == null) {
+      Expect.isTrue(element.isErroneous,
+          "Element '$method' expected to be have parse errors in:\n"
           "${library.compilationUnit.script.text}");
+      return;
+    } else if (expectedVisits is! List) {
+      expectedVisits = [expectedVisits];
+    }
+    Expect.isFalse(element.isErroneous,
+        "Element '$method' is not expected to be have parse errors in:\n"
+        "${library.compilationUnit.script.text}");
 
-      void testAstElement(AstElement astElement) {
-        Expect.isNotNull(astElement, "Element '$method' not found in:\n"
-                                     "${library.compilationUnit.script.text}");
-        ResolvedAst resolvedAst = astElement.resolvedAst;
-        SemanticTestVisitor visitor = createVisitor(resolvedAst.elements);
-        try {
-          compiler.withCurrentElement(resolvedAst.element, () {
-            //print(resolvedAst.node.toDebugString());
-            resolvedAst.node.accept(visitor);
-          });
-        } catch (e, s) {
-          Expect.fail("$e:\n$s\nIn test:\n"
-                      "${library.compilationUnit.script.text}");
-        }
-        Expect.listEquals(expectedVisits, visitor.visits,
-            "In test:\n"
-            "${library.compilationUnit.script.text}\n\n"
-            "Expected: $expectedVisits\n"
-            "Found: ${visitor.visits}");
-        unvisitedKinds.removeAll(visitor.visits.map((visit) => visit.method));
+    void testAstElement(AstElement astElement) {
+      Expect.isNotNull(astElement, "Element '$method' not found in:\n"
+                                   "${library.compilationUnit.script.text}");
+      ResolvedAst resolvedAst = astElement.resolvedAst;
+      SemanticTestVisitor visitor = createVisitor(resolvedAst.elements);
+      try {
+        compiler.withCurrentElement(resolvedAst.element, () {
+          //print(resolvedAst.node.toDebugString());
+          resolvedAst.node.accept(visitor);
+        });
+      } catch (e, s) {
+        Expect.fail("$e:\n$s\nIn test:\n"
+                    "${library.compilationUnit.script.text}");
       }
-      if (element.isAbstractField) {
-        AbstractFieldElement abstractFieldElement = element;
-        if (abstractFieldElement.getter != null) {
-          testAstElement(abstractFieldElement.getter);
-        } else if (abstractFieldElement.setter != null) {
-          testAstElement(abstractFieldElement.setter);
-        }
-      } else {
-        testAstElement(element);
+      Expect.listEquals(expectedVisits, visitor.visits,
+          "In test:\n"
+          "${library.compilationUnit.script.text}\n\n"
+          "Expected: $expectedVisits\n"
+          "Found: ${visitor.visits}");
+      unvisitedKinds.removeAll(visitor.visits.map((visit) => visit.method));
+    }
+    if (element.isAbstractField) {
+      AbstractFieldElement abstractFieldElement = element;
+      if (abstractFieldElement.getter != null) {
+        testAstElement(abstractFieldElement.getter);
+      } else if (abstractFieldElement.setter != null) {
+        testAstElement(abstractFieldElement.setter);
       }
-    });
+    } else {
+      testAstElement(element);
+    }
   });
 }
 
@@ -706,6 +717,21 @@ enum VisitKind {
   ERROR_INVALID_ASSERT,
   ERROR_UNDEFINED_UNARY_EXPRESSION,
   ERROR_UNDEFINED_BINARY_EXPRESSION,
+  ERROR_INVALID_GET,
+  ERROR_INVALID_INVOKE,
+  ERROR_INVALID_SET,
+  ERROR_INVALID_PREFIX,
+  ERROR_INVALID_POSTFIX,
+  ERROR_INVALID_COMPOUND,
+  ERROR_INVALID_UNARY,
+  ERROR_INVALID_EQUALS,
+  ERROR_INVALID_NOT_EQUALS,
+  ERROR_INVALID_BINARY,
+  ERROR_INVALID_INDEX,
+  ERROR_INVALID_INDEX_SET,
+  ERROR_INVALID_COMPOUND_INDEX_SET,
+  ERROR_INVALID_INDEX_PREFIX,
+  ERROR_INVALID_INDEX_POSTFIX,
 
   VISIT_CONSTANT_GET,
   VISIT_CONSTANT_INVOKE,

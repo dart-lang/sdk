@@ -5,14 +5,31 @@
 library source.path_filter;
 
 import 'package:glob/glob.dart' as glob;
-import 'package:path/path.dart' as pos;
+import 'package:path/path.dart';
 
 /// Filter paths against a set of [ignorePatterns] relative to a [root]
 /// directory. Paths outside of [root] are also ignored.
 class PathFilter {
+  /// The path context to use when manipulating paths.
+  final Context pathContext;
+
+  /// Path that all ignore patterns are relative to.
+  final String root;
+
+  /// List of ignore patterns that paths are tested against.
+  final List<glob.Glob> _ignorePatterns = new List<glob.Glob>();
+
   /// Construct a new path filter rooted at [root] with [ignorePatterns].
-  PathFilter(this.root, List<String> ignorePatterns) {
+  PathFilter(this.pathContext, this.root, List<String> ignorePatterns) {
     setIgnorePatterns(ignorePatterns);
+  }
+
+  /// Returns true if [path] should be ignored. A path is ignored if it is not
+  /// contained in [root] or matches one of the ignore patterns.
+  /// [path] is absolute or relative to [root].
+  bool ignored(String path) {
+    path = _canonicalize(path);
+    return !_contained(path) || _match(path);
   }
 
   /// Set the ignore patterns.
@@ -25,19 +42,9 @@ class PathFilter {
     }
   }
 
-  /// Returns true if [path] should be ignored. A path is ignored if it is not
-  /// contained in [root] or matches one of the ignore patterns.
-  /// [path] is absolute or relative to [root].
-  bool ignored(String path) {
-    path = _canonicalize(path);
-    return !_contained(path) || _match(path);
-  }
-
   /// Returns the absolute path of [path], relative to [root].
-  String _canonicalize(String path) => pos.normalize(pos.join(root, path));
-
-  /// Returns the relative portion of [path] from [root].
-  String _relative(String path) => pos.relative(path, from:root);
+  String _canonicalize(String path) =>
+      pathContext.normalize(pathContext.join(root, path));
 
   /// Returns true when [path] is contained inside [root].
   bool _contained(String path) => path.startsWith(root);
@@ -53,9 +60,15 @@ class PathFilter {
     return false;
   }
 
-  /// Path that all ignore patterns are relative to.
-  final String root;
+  /// Returns the relative portion of [path] from [root].
+  String _relative(String path) => pathContext.relative(path, from: root);
 
-  /// List of ignore patterns that paths are tested against.
-  final List<glob.Glob> _ignorePatterns = new List<glob.Glob>();
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    for (var pattern in _ignorePatterns) {
+      sb.write('$pattern ');
+    }
+    sb.writeln('');
+    return sb.toString();
+  }
 }

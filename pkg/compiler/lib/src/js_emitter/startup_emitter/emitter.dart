@@ -7,6 +7,7 @@ library dart2js.js_emitter.startup_emitter;
 import 'package:js_runtime/shared/embedded_names.dart' show
     JsBuiltin,
     METADATA,
+    STATIC_FUNCTION_NAME_TO_CLOSURE,
     TYPES;
 
 import '../program_builder/program_builder.dart' show ProgramBuilder;
@@ -36,10 +37,15 @@ class Emitter implements emitterTask.Emitter {
 
   JavaScriptBackend get _backend => _compiler.backend;
 
-  Emitter(Compiler compiler, Namer namer, NativeEmitter nativeEmitter)
+  Emitter(Compiler compiler, Namer namer, NativeEmitter nativeEmitter,
+      bool shouldGenerateSourceMap)
       : this._compiler = compiler,
         this.namer = namer,
-        _emitter = new ModelEmitter(compiler, namer, nativeEmitter);
+        _emitter = new ModelEmitter(
+            compiler, namer, nativeEmitter, shouldGenerateSourceMap);
+
+  @override
+  String get patchVersion => "startup";
 
   @override
   int emitProgram(ProgramBuilder programBuilder) {
@@ -171,6 +177,11 @@ class Emitter implements emitterTask.Emitter {
         String typesAccess =
             _emitter.generateEmbeddedGlobalAccessString(TYPES);
         return js.js.expressionTemplateFor("$typesAccess[#]");
+
+      case JsBuiltin.createDartClosureFromNameOfStaticFunction:
+        String functionAccess = _emitter.generateEmbeddedGlobalAccessString(
+            STATIC_FUNCTION_NAME_TO_CLOSURE);
+        return js.js.expressionTemplateFor("$functionAccess(#)");
 
       default:
         _compiler.internalError(NO_LOCATION_SPANNABLE,

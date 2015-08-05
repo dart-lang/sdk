@@ -72,7 +72,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // Try allocating in new space.
   const Class& cls = Class::Handle(
       Isolate::Current()->object_store()->growable_object_array_class());
-  __ TryAllocate(cls, &fall_through, Assembler::kFarJump, RAX, kNoRegister);
+  __ TryAllocate(cls, &fall_through, Assembler::kFarJump, RAX, R13);
 
   // Store backing array object in growable array object.
   __ movq(RCX, Address(RSP, kArrayOffset));  // data argument.
@@ -121,7 +121,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ StoreIntoObject(RDX,
                      FieldAddress(RDX, RCX, TIMES_4, Array::data_offset()),
                      RAX);
-  __ LoadObject(RAX, Object::null_object(), PP);
+  __ LoadObject(RAX, Object::null_object());
   __ ret();
   __ Bind(&fall_through);
 }
@@ -130,7 +130,8 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, &fall_through, false);                          \
+  __ MaybeTraceAllocation(cid, &fall_through, false,                           \
+                          /* inline_isolate = */ false);                       \
   __ movq(RDI, Address(RSP, kArrayLengthStackOffset));  /* Array length. */    \
   /* Check that length is a positive Smi. */                                   \
   /* RDI: requested array length argument. */                                  \
@@ -153,10 +154,9 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ leaq(RDI, Address(RDI, scale_factor, fixed_size));                        \
   __ andq(RDI, Immediate(-kObjectAlignment));                                  \
-  Heap* heap = Isolate::Current()->heap();                                     \
-  Heap::Space space = heap->SpaceForAllocation(cid);                           \
-  __ movq(RAX, Immediate(heap->TopAddress(space)));                            \
-  __ movq(RAX, Address(RAX, 0));                                               \
+  Heap::Space space = Heap::SpaceForAllocation(cid);                           \
+  __ movq(R13, Address(THR, Thread::heap_offset()));                           \
+  __ movq(RAX, Address(R13, Heap::TopOffset(space)));                          \
   __ movq(RCX, RAX);                                                           \
                                                                                \
   /* RDI: allocation size. */                                                  \
@@ -167,17 +167,16 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* RAX: potential new object start. */                                       \
   /* RCX: potential next object start. */                                      \
   /* RDI: allocation size. */                                                  \
-  /* R13: scratch register. */                                                 \
-  __ movq(R13, Immediate(heap->EndAddress(space)));                            \
-  __ cmpq(RCX, Address(R13, 0));                                               \
+  /* R13: heap. */                                                             \
+  __ cmpq(RCX, Address(R13, Heap::EndOffset(space)));                          \
   __ j(ABOVE_EQUAL, &fall_through);                                            \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ movq(R13, Immediate(heap->TopAddress(space)));                            \
-  __ movq(Address(R13, 0), RCX);                                               \
+  __ movq(Address(R13, Heap::TopOffset(space)), RCX);                          \
   __ addq(RAX, Immediate(kHeapObjectTag));                                     \
-  __ UpdateAllocationStatsWithSize(cid, RDI, space);                           \
+  __ UpdateAllocationStatsWithSize(cid, RDI, space,                            \
+                                   /* inline_isolate = */ false);              \
   /* Initialize the tags. */                                                   \
   /* RAX: new object start as a tagged pointer. */                             \
   /* RCX: new object end address. */                                           \
@@ -583,10 +582,10 @@ static void CompareIntegers(Assembler* assembler, Condition true_condition) {
   // RAX contains the right argument.
   __ cmpq(Address(RSP, + 2 * kWordSize), RAX);
   __ j(true_condition, &true_label, Assembler::kNearJump);
-  __ LoadObject(RAX, Bool::False(), PP);
+  __ LoadObject(RAX, Bool::False());
   __ ret();
   __ Bind(&true_label);
-  __ LoadObject(RAX, Bool::True(), PP);
+  __ LoadObject(RAX, Bool::True());
   __ ret();
   __ Bind(&fall_through);
 }
@@ -633,10 +632,10 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &check_for_mint, Assembler::kNearJump);
   // Both arguments are smi, '===' is good enough.
-  __ LoadObject(RAX, Bool::False(), PP);
+  __ LoadObject(RAX, Bool::False());
   __ ret();
   __ Bind(&true_label);
-  __ LoadObject(RAX, Bool::True(), PP);
+  __ LoadObject(RAX, Bool::True());
   __ ret();
 
   // At least one of the arguments was not Smi.
@@ -652,7 +651,7 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + kArgumentOffset * kWordSize));
   __ CompareClassId(RAX, kDoubleCid);
   __ j(EQUAL, &fall_through);
-  __ LoadObject(RAX, Bool::False(), PP);
+  __ LoadObject(RAX, Bool::False());
   __ ret();
 
   __ Bind(&receiver_not_smi);
@@ -664,7 +663,7 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through);
   // Smi == Mint -> false.
-  __ LoadObject(RAX, Bool::False(), PP);
+  __ LoadObject(RAX, Bool::False());
   __ ret();
   // TODO(srdjan): Implement Mint == Mint comparison.
 
@@ -1262,10 +1261,10 @@ static void CompareDoubles(Assembler* assembler, Condition true_condition) {
   __ j(true_condition, &is_true, Assembler::kNearJump);
   // Fall through false.
   __ Bind(&is_false);
-  __ LoadObject(RAX, Bool::False(), PP);
+  __ LoadObject(RAX, Bool::False());
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(RAX, Bool::True(), PP);
+  __ LoadObject(RAX, Bool::True());
   __ ret();
   __ Bind(&is_smi);
   __ SmiUntag(RAX);
@@ -1322,7 +1321,7 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
                  &fall_through,
                  Assembler::kFarJump,
                  RAX,  // Result register.
-                 kNoRegister);  // Pool pointer might not be loaded.
+                 R13);
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1367,7 +1366,7 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
                  &fall_through,
                  Assembler::kFarJump,
                  RAX,  // Result register.
-                 kNoRegister);  // Pool pointer might not be loaded.
+                 R13);
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1389,7 +1388,7 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
                  &fall_through,
                  Assembler::kFarJump,
                  RAX,  // Result register.
-                 kNoRegister);  // Pool pointer might not be loaded.
+                 R13);
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1402,10 +1401,10 @@ void Intrinsifier::Double_getIsNaN(Assembler* assembler) {
   __ movsd(XMM0, FieldAddress(RAX, Double::value_offset()));
   __ comisd(XMM0, XMM0);
   __ j(PARITY_EVEN, &is_true, Assembler::kNearJump);  // NaN -> true;
-  __ LoadObject(RAX, Bool::False(), PP);
+  __ LoadObject(RAX, Bool::False());
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(RAX, Bool::True(), PP);
+  __ LoadObject(RAX, Bool::True());
   __ ret();
 }
 
@@ -1420,10 +1419,10 @@ void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   __ j(EQUAL, &is_zero, Assembler::kNearJump);  // Check for negative zero.
   __ j(ABOVE_EQUAL, &is_false, Assembler::kNearJump);  // >= 0 -> false.
   __ Bind(&is_true);
-  __ LoadObject(RAX, Bool::True(), PP);
+  __ LoadObject(RAX, Bool::True());
   __ ret();
   __ Bind(&is_false);
-  __ LoadObject(RAX, Bool::False(), PP);
+  __ LoadObject(RAX, Bool::False());
   __ ret();
   __ Bind(&is_zero);
   // Check for negative zero (get the sign bit).
@@ -1463,7 +1462,7 @@ void Intrinsifier::MathSqrt(Assembler* assembler) {
                  &fall_through,
                  Assembler::kFarJump,
                  RAX,  // Result register.
-                 kNoRegister);  // Pool pointer might not be loaded.
+                 R13);
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&is_smi);
@@ -1519,10 +1518,10 @@ void Intrinsifier::ObjectEquals(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + kArgumentOffset * kWordSize));
   __ cmpq(RAX, Address(RSP, + kReceiverOffset * kWordSize));
   __ j(EQUAL, &is_true, Assembler::kNearJump);
-  __ LoadObject(RAX, Bool::False(), PP);
+  __ LoadObject(RAX, Bool::False());
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(RAX, Bool::True(), PP);
+  __ LoadObject(RAX, Bool::True());
   __ ret();
 }
 
@@ -1534,17 +1533,17 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ LoadClassIdMayBeSmi(RCX, RAX);
 
   // RCX: untagged cid of instance (RAX).
-  __ LoadClassById(RDI, RCX, PP);
+  __ LoadClassById(RDI, RCX);
   // RDI: class of instance (RAX).
   __ movq(RCX, FieldAddress(RDI, Class::signature_function_offset()));
-  __ CompareObject(RCX, Object::null_object(), PP);
+  __ CompareObject(RCX, Object::null_object());
   __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
 
   __ movzxw(RCX, FieldAddress(RDI, Class::num_type_arguments_offset()));
   __ cmpq(RCX, Immediate(0));
   __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
   __ movq(RAX, FieldAddress(RDI, Class::canonical_types_offset()));
-  __ CompareObject(RAX, Object::null_object(), PP);
+  __ CompareObject(RAX, Object::null_object());
   __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Not yet set.
   __ ret();
 
@@ -1609,8 +1608,14 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ movzxb(RCX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
   __ cmpq(RCX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
   __ j(GREATER_EQUAL, &fall_through);
-  __ movq(RAX,
-          Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())));
+  const ExternalLabel symbols_label(
+      reinterpret_cast<uword>(Symbols::PredefinedAddress()));
+  __ pushq(PP);
+  __ LoadPoolPointer();
+  assembler->set_constant_pool_allowed(true);
+  __ LoadExternalLabel(RAX, &symbols_label, kNotPatchable);
+  assembler->set_constant_pool_allowed(false);
+  __ popq(PP);
   __ movq(RAX, Address(RAX,
                        RCX,
                        TIMES_8,
@@ -1624,8 +1629,12 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ movzxw(RCX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
   __ cmpq(RCX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
   __ j(GREATER_EQUAL, &fall_through);
-  __ movq(RAX,
-          Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())));
+  __ pushq(PP);
+  __ LoadPoolPointer();
+  assembler->set_constant_pool_allowed(true);
+  __ LoadExternalLabel(RAX, &symbols_label, kNotPatchable);
+  assembler->set_constant_pool_allowed(false);
+  __ popq(PP);
   __ movq(RAX, Address(RAX,
                        RCX,
                        TIMES_8,
@@ -1643,10 +1652,10 @@ void Intrinsifier::StringBaseIsEmpty(Assembler* assembler) {
   __ movq(RAX, FieldAddress(RAX, String::length_offset()));
   __ cmpq(RAX, Immediate(Smi::RawValue(0)));
   __ j(EQUAL, &is_true, Assembler::kNearJump);
-  __ LoadObject(RAX, Bool::False(), PP);
+  __ LoadObject(RAX, Bool::False());
   __ ret();
   __ Bind(&is_true);
-  __ LoadObject(RAX, Bool::True(), PP);
+  __ LoadObject(RAX, Bool::True());
   __ ret();
 }
 
@@ -1727,7 +1736,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure,
                                      Register length_reg) {
-  __ MaybeTraceAllocation(kOneByteStringCid, failure, false);
+  __ MaybeTraceAllocation(kOneByteStringCid, failure, false,
+                          /* inline_isolate = */ false);
   if (length_reg != RDI) {
     __ movq(RDI, length_reg);
   }
@@ -1738,12 +1748,10 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ leaq(RDI, Address(RDI, TIMES_1, fixed_size));  // RDI is a Smi.
   __ andq(RDI, Immediate(-kObjectAlignment));
 
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
   const intptr_t cid = kOneByteStringCid;
-  Heap::Space space = heap->SpaceForAllocation(cid);
-  __ movq(RAX, Immediate(heap->TopAddress(space)));
-  __ movq(RAX, Address(RAX, 0));
+  Heap::Space space = Heap::SpaceForAllocation(cid);
+  __ movq(R13, Address(THR, Thread::heap_offset()));
+  __ movq(RAX, Address(R13, Heap::TopOffset(space)));
 
   // RDI: allocation size.
   __ movq(RCX, RAX);
@@ -1754,16 +1762,16 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // RAX: potential new object start.
   // RCX: potential next object start.
   // RDI: allocation size.
-  __ movq(R13, Immediate(heap->EndAddress(space)));
-  __ cmpq(RCX, Address(R13, 0));
+  // R13: heap.
+  __ cmpq(RCX, Address(R13, Heap::EndOffset(space)));
   __ j(ABOVE_EQUAL, &pop_and_fail);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movq(R13, Immediate(heap->TopAddress(space)));
-  __ movq(Address(R13, 0), RCX);
+  __ movq(Address(R13, Heap::TopOffset(space)), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(cid, RDI, space);
+  __ UpdateAllocationStatsWithSize(cid, RDI, space,
+                                   /* inline_isolate = */ false);
 
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
@@ -1918,11 +1926,11 @@ static void StringEquality(Assembler* assembler, intptr_t string_cid) {
   __ jmp(&loop, Assembler::kNearJump);
 
   __ Bind(&is_true);
-  __ LoadObject(RAX, Bool::True(), PP);
+  __ LoadObject(RAX, Bool::True());
   __ ret();
 
   __ Bind(&is_false);
-  __ LoadObject(RAX, Bool::False(), PP);
+  __ LoadObject(RAX, Bool::False());
   __ ret();
 
   __ Bind(&fall_through);
@@ -1956,7 +1964,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ movq(RBX, Address(RSP, kRegExpParamOffset));
   __ movq(RDI, Address(RSP, kStringParamOffset));
   __ LoadClassId(RDI, RDI);
-  __ SubImmediate(RDI, Immediate(kOneByteStringCid), PP);
+  __ SubImmediate(RDI, Immediate(kOneByteStringCid));
   __ movq(RAX, FieldAddress(RBX, RDI, TIMES_8,
                             JSRegExp::function_offset(kOneByteStringCid)));
 
@@ -1964,7 +1972,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   // in RAX, the argument descriptor in R10, and IC-Data in RCX.
   static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
   __ LoadObject(R10,
-      Array::ZoneHandle(ArgumentsDescriptor::New(arg_count)), PP);
+      Array::ZoneHandle(ArgumentsDescriptor::New(arg_count)));
   __ xorq(RCX, RCX);
 
   // Tail-call the function.
@@ -1977,10 +1985,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
 // On stack: user tag (+1), return-address (+0).
 void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
   // RBX: Isolate.
-  Isolate* isolate = Isolate::Current();
-  const Immediate& isolate_address =
-      Immediate(reinterpret_cast<int64_t>(isolate));
-  __ movq(RBX, isolate_address);
+  __ LoadIsolate(RBX);
   // RAX: Current user tag.
   __ movq(RAX, Address(RBX, Isolate::current_tag_offset()));
   // R10: UserTag.
@@ -1996,26 +2001,15 @@ void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
 
 
 void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
-  // RBX: Address of default tag.
-  Isolate* isolate = Isolate::Current();
-  const Immediate& default_tag_addr =
-      Immediate(reinterpret_cast<int64_t>(isolate) +
-                Isolate::default_tag_offset());
-  __ movq(RBX, default_tag_addr);
-  // Set return value.
-  __ movq(RAX, Address(RBX, 0));
+  __ LoadIsolate(RAX);
+  __ movq(RAX, Address(RAX, Isolate::default_tag_offset()));
   __ ret();
 }
 
 
 void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
-  // RBX: Isolate.
-  Isolate* isolate = Isolate::Current();
-  const Immediate& isolate_address =
-      Immediate(reinterpret_cast<int64_t>(isolate));
-  __ movq(RBX, isolate_address);
-  // Set return value to Isolate::current_tag_.
-  __ movq(RAX, Address(RBX, Isolate::current_tag_offset()));
+  __ LoadIsolate(RAX);
+  __ movq(RAX, Address(RAX, Isolate::current_tag_offset()));
   __ ret();
 }
 

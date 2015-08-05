@@ -15,6 +15,8 @@ DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
 DEFINE_FLAG(charp, print_flow_graph_filter, NULL,
     "Print only IR of functions with matching names");
 
+DECLARE_FLAG(bool, trace_inlining_intervals);
+
 void BufferFormatter::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -136,6 +138,9 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
   }
   if (!instr->IsBlockEntry()) ISL_Print("    ");
   ISL_Print("%s", str);
+  if (FLAG_trace_inlining_intervals) {
+    ISL_Print(" iid: %" Pd "", instr->inlining_id());
+  }
 }
 
 

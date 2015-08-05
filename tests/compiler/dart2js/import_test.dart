@@ -8,7 +8,7 @@
 library dart2js.test.import;
 
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
+import 'package:async_helper/async_helper.dart';
 import 'memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
@@ -28,25 +28,27 @@ main() {
 ''',
 };
 
-testMissingImports() {
+testMissingImports() async {
   var collector = new DiagnosticCollector();
-  var compiler = compilerFor(MEMORY_SOURCE_FILES, diagnosticHandler: collector);
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
-    Expect.equals(4, collector.errors.length);
-    Expect.equals(1, collector.warnings.length);
-  }));
+  await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      diagnosticHandler: collector);
+  Expect.equals(4, collector.errors.length);
+  Expect.equals(1, collector.warnings.length);
 }
 
-testMissingMain() {
+testMissingMain() async {
   var collector = new DiagnosticCollector();
-  var compiler = compilerFor({}, diagnosticHandler: collector);
-  asyncTest(() => compiler.run(Uri.parse('memory:missing.dart')).then((_) {
-    Expect.equals(1, collector.errors.length);
-    Expect.equals(0, collector.warnings.length);
-  }));
+  await runCompiler(
+      entryPoint: Uri.parse('memory:missing.dart'),
+      diagnosticHandler: collector);
+  Expect.equals(1, collector.errors.length);
+  Expect.equals(0, collector.warnings.length);
 }
 
 void main() {
-  testMissingImports();
-  testMissingMain();
+  asyncTest(() async {
+    await testMissingImports();
+    await testMissingMain();
+  });
 }

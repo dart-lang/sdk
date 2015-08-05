@@ -52,12 +52,12 @@ class Message {
   }
 
   Message.fromUri(this.client, Uri uri)
-      : method = _methodNameFromUri(uri) {
+      : serial = '', method = _methodNameFromUri(uri) {
     params.addAll(uri.queryParameters);
   }
 
   Message.forIsolate(this.client, Uri uri, RunningIsolate isolate)
-      : method = _methodNameFromUri(uri) {
+      : serial = '', method = _methodNameFromUri(uri) {
     params.addAll(uri.queryParameters);
     params['isolateId'] = isolate.serviceId;
   }
@@ -102,7 +102,7 @@ class Message {
     var request = new List(6)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = receivePort.sendPort
-        ..[2] = serial.toString()
+        ..[2] = serial
         ..[3] = method
         ..[4] = keys
         ..[5] = values;
@@ -129,7 +129,7 @@ class Message {
     var request = new List(6)
         ..[0] = 0  // Make room for OOB message type.
         ..[1] = receivePort.sendPort
-        ..[2] = serial.toString()
+        ..[2] = serial
         ..[3] = method
         ..[4] = keys
         ..[5] = values;
@@ -143,6 +143,7 @@ class Message {
 
   void setErrorResponse(String message) {
     var response = {
+      'jsonrpc': '2.0',
       'id': serial,
       'result' : {
         'type': 'Error',

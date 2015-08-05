@@ -74,7 +74,9 @@ Heap::~Heap() {
 
 
 uword Heap::AllocateNew(intptr_t size) {
-  ASSERT(isolate()->no_safepoint_scope_depth() == 0);
+  ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
+  // Currently, only the Dart thread may allocate in new space.
+  isolate()->AssertCurrentThreadIsMutator();
   uword addr = new_space_.TryAllocate(size);
   if (addr == 0) {
     CollectGarbage(kNew);
@@ -88,7 +90,13 @@ uword Heap::AllocateNew(intptr_t size) {
 
 
 uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
-  ASSERT(isolate()->no_safepoint_scope_depth() == 0);
+  ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
+#if defined(DEBUG)
+  // Currently, allocation from non-Dart threads must not trigger GC.
+  if (GrowthControlState()) {
+    isolate()->AssertCurrentThreadIsMutator();
+  }
+#endif
   uword addr = old_space_.TryAllocate(size, type);
   if (addr != 0) {
     return addr;
@@ -149,7 +157,7 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
 
 
 uword Heap::AllocatePretenured(intptr_t size) {
-  ASSERT(isolate()->no_safepoint_scope_depth() == 0);
+  ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   uword addr = old_space_.TryAllocateDataBump(size, PageSpace::kControlGrowth);
   if (addr != 0) return addr;
   return AllocateOld(size, HeapPage::kData);
@@ -157,7 +165,7 @@ uword Heap::AllocatePretenured(intptr_t size) {
 
 
 void Heap::AllocateExternal(intptr_t size, Space space) {
-  ASSERT(isolate()->no_safepoint_scope_depth() == 0);
+  ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   if (space == kNew) {
     new_space_.AllocateExternal(size);
     if (new_space_.ExternalInWords() > (FLAG_new_gen_ext_limit * MBInWords)) {
@@ -216,7 +224,7 @@ void Heap::VisitObjects(ObjectVisitor* visitor) const {
 
 
 HeapIterationScope::HeapIterationScope()
-    : StackResource(Thread::Current()->isolate()),
+    : StackResource(Thread::Current()),
       old_space_(isolate()->heap()->old_space()) {
   // It's not yet safe to iterate over a paged space while it's concurrently
   // sweeping, so wait for any such task to complete first.
@@ -441,26 +449,6 @@ void Heap::WriteProtect(bool read_only) {
   read_only_ = read_only;
   new_space_.WriteProtect(read_only);
   old_space_.WriteProtect(read_only);
-}
-
-
-uword Heap::TopAddress(Heap::Space space) {
-  if (space == kNew) {
-    return reinterpret_cast<uword>(new_space_.TopAddress());
-  } else {
-    ASSERT(space == kPretenured);
-    return reinterpret_cast<uword>(old_space_.TopAddress());
-  }
-}
-
-
-uword Heap::EndAddress(Heap::Space space) {
-  if (space == kNew) {
-    return reinterpret_cast<uword>(new_space_.EndAddress());
-  } else {
-    ASSERT(space == kPretenured);
-    return reinterpret_cast<uword>(old_space_.EndAddress());
-  }
 }
 
 
@@ -759,13 +747,13 @@ void Heap::PrintStats() {
 
 
 #if defined(DEBUG)
-NoSafepointScope::NoSafepointScope() : StackResource(Isolate::Current()) {
-  isolate()->IncrementNoSafepointScopeDepth();
+NoSafepointScope::NoSafepointScope() : StackResource(Thread::Current()) {
+  thread()->IncrementNoSafepointScopeDepth();
 }
 
 
 NoSafepointScope::~NoSafepointScope() {
-  isolate()->DecrementNoSafepointScopeDepth();
+  thread()->DecrementNoSafepointScopeDepth();
 }
 #endif  // defined(DEBUG)
 

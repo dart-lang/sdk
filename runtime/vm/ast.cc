@@ -229,8 +229,6 @@ const Instance* ComparisonNode::EvalConstExpr() const {
       return NULL;
     case Token::kEQ:
     case Token::kNE:
-    case Token::kEQ_STRICT:
-    case Token::kNE_STRICT:
       // The comparison is a compile time const if both operands are either a
       // number, string, or boolean value (but not necessarily the same type).
       if ((left_val->IsNumber() ||
@@ -244,6 +242,11 @@ const Instance* ComparisonNode::EvalConstExpr() const {
         return &Bool::False();
       }
       return NULL;
+    case Token::kEQ_STRICT:
+    case Token::kNE_STRICT:
+      // identical(a, b) is a compile time const if both operands are
+      // compile time constants, regardless of their type.
+      return &Bool::True();
     default:
       return NULL;
   }

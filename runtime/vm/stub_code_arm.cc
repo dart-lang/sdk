@@ -358,39 +358,15 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
 }
 
 
-// Called from array allocate instruction when the allocation stub has been
-// disabled.
-// R1: element type (preserved).
-// R2: length (preserved).
-void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  // Setup space on stack for return value and preserve length, element type.
-  __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
-  __ PushList((1 << R0) | (1 << R1) | (1 << R2));
-  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
-  // Get Code object result and restore length, element type.
-  __ PopList((1 << R0) | (1 << R1) | (1 << R2));
-  // Remove the stub frame.
-  __ LeaveStubFrame();
-  // Jump to the dart function.
-  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
-  __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag);
-  __ bx(R0);
-}
-
-
 // Input parameters:
 //   R2: smi-tagged argument count, may be zero.
 //   FP[kParamEndSlotFromFp + 1]: last argument.
 static void PushArgumentsArray(Assembler* assembler) {
-  StubCode* stub_code = Isolate::Current()->stub_code();
   // Allocate array to store arguments of caller.
   __ LoadImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
   // R1: null element type for raw Array.
   // R2: smi-tagged argument count, may be zero.
-  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
-  const ExternalLabel array_label(array_stub.EntryPoint());
-  __ BranchLink(&array_label);
+  __ BranchLink(*StubCode::AllocateArray_entry());
   // R0: newly allocated array.
   // R2: smi-tagged argument count, may be zero (was preserved by the stub).
   __ Push(R0);  // Array is in R0 and on top of stack.
@@ -628,20 +604,15 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 //   R1: array element type (either NULL or an instantiated type).
 //   R2: array length as Smi (must be preserved).
 // The newly allocated object is returned in R0.
-void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
-    uword* entry_patch_offset, uword* patch_code_pc_offset) {
-  *entry_patch_offset = assembler->CodeSize();
+void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   Label slow_case;
-  Isolate* isolate = Isolate::Current();
   // Compute the size to be allocated, it is based on the array length
   // and is computed as:
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
   __ MoveRegister(R3, R2);   // Array length.
-  const Class& cls = Class::Handle(isolate->object_store()->array_class());
-  ASSERT(!cls.IsNull());
   // Check that length is a positive Smi.
   __ tst(R3, Operand(kSmiTagMask));
-  if (FLAG_use_slow_path || cls.trace_allocation()) {
+  if (FLAG_use_slow_path) {
     __ b(&slow_case);
   } else {
     __ b(&slow_case, NE);
@@ -655,6 +626,10 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ CompareImmediate(R3, max_len);
   __ b(&slow_case, GT);
 
+  const intptr_t cid = kArrayCid;
+  __ MaybeTraceAllocation(cid, R4, &slow_case,
+                          /* inline_isolate = */ false);
+
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ LoadImmediate(R9, fixed_size);
   __ add(R9, R9, Operand(R3, LSL, 1));  // R3 is  a Smi.
@@ -662,12 +637,11 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ bic(R9, R9, Operand(kObjectAlignment - 1));
 
   // R9: Allocation size.
-
-  Heap* heap = isolate->heap();
-  const intptr_t cid = kArrayCid;
   Heap::Space space = Heap::SpaceForAllocation(cid);
-  __ LoadImmediate(R6, heap->TopAddress(space));
-  __ ldr(R0, Address(R6, 0));  // Potential new object start.
+  __ LoadIsolate(R6);
+  __ ldr(R6, Address(R6, Isolate::heap_offset()));
+  // Potential new object start.
+  __ ldr(R0, Address(R6, Heap::TopOffset(space)));
   __ adds(R7, R0, Operand(R9));  // Potential next object start.
   __ b(&slow_case, CS);  // Branch if unsigned overflow.
 
@@ -675,15 +649,14 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   // R0: potential new object start.
   // R7: potential next object start.
   // R9: allocation size.
-  __ LoadImmediate(R3, heap->EndAddress(space));
-  __ ldr(R3, Address(R3, 0));
+  __ ldr(R3, Address(R6, Heap::EndOffset(space)));
   __ cmp(R7, Operand(R3));
   __ b(&slow_case, CS);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ LoadAllocationStatsAddress(R3, cid);
-  __ str(R7, Address(R6, 0));
+  __ LoadAllocationStatsAddress(R3, cid, /* inline_isolate = */ false);
+  __ str(R7, Address(R6, Heap::TopOffset(space)));
   __ add(R0, R0, Operand(kHeapObjectTag));
 
   // Initialize the tags.
@@ -749,9 +722,6 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ mov(R0, Operand(IP));
   __ LeaveStubFrame();
   __ Ret();
-  *patch_code_pc_offset = assembler->CodeSize();
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  __ BranchPatchable(&stub_code->FixAllocateArrayStubTargetLabel());
 }
 
 
@@ -863,6 +833,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   }
   // Restore CPU registers.
   __ PopList(kAbiPreservedCpuRegs);
+  __ set_constant_pool_allowed(false);
 
   // Restore the frame pointer and return.
   __ LeaveFrame((1 << FP) | (1 << LR));
@@ -1091,27 +1062,26 @@ void StubCode::GenerateAllocationStubForClass(
     Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
-    Heap* heap = Isolate::Current()->heap();
     Heap::Space space = Heap::SpaceForAllocation(cls.id());
-    __ LoadImmediate(R5, heap->TopAddress(space));
-    __ ldr(R0, Address(R5, 0));
+    __ ldr(R5, Address(THR, Thread::heap_offset()));
+    __ ldr(R0, Address(R5, Heap::TopOffset(space)));
     __ AddImmediate(R1, R0, instance_size);
     // Check if the allocation fits into the remaining space.
     // R0: potential new object start.
     // R1: potential next object start.
-    __ LoadImmediate(IP, heap->EndAddress(space));
-    __ ldr(IP, Address(IP, 0));
+    // R5: heap.
+    __ ldr(IP, Address(R5, Heap::EndOffset(space)));
     __ cmp(R1, Operand(IP));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
       __ b(&slow_case, CS);  // Unsigned higher or equal.
     }
-    __ str(R1, Address(R5, 0));
+    __ str(R1, Address(R5, Heap::TopOffset(space)));
 
     // Load the address of the allocation stats table. We split up the load
     // and the increment so that the dependent load is not too nearby.
-    __ LoadAllocationStatsAddress(R5, cls.id());
+    __ LoadAllocationStatsAddress(R5, cls.id(), /* inline_isolate = */ false);
 
     // R0: new object start.
     // R1: next object start.
@@ -1202,8 +1172,7 @@ void StubCode::GenerateAllocationStubForClass(
   __ LeaveStubFrame();
   __ Ret();
   *patch_code_pc_offset = assembler->CodeSize();
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  __ BranchPatchable(&stub_code->FixAllocationStubTargetLabel());
+  __ BranchPatchable(*StubCode::FixAllocationStubTarget_entry());
 }
 
 
@@ -1963,11 +1932,10 @@ DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
 // Return Zero condition flag set if equal.
 // Note: A Mint cannot contain a value that would fit in Smi, a Bigint
 // cannot contain a value that fits in Mint or Smi.
-void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
-                                                    const Register left,
-                                                    const Register right,
-                                                    const Register temp,
-                                                    const Register unused) {
+static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
+                                                 const Register left,
+                                                 const Register right,
+                                                 const Register temp) {
   Label reference_compare, done, check_mint, check_bigint;
   // If any of the arguments is Smi do reference compare.
   __ tst(left, Operand(kSmiTagMask));

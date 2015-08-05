@@ -639,8 +639,8 @@ abstract class _StreamController<T> implements StreamController<T>,
       throw new StateError("Stream has already been listened to.");
     }
     _ControllerSubscription subscription =
-        new _ControllerSubscription(this, onData, onError, onDone,
-                                    cancelOnError);
+        new _ControllerSubscription<T>(this, onData, onError, onDone,
+                                       cancelOnError);
 
     _PendingEvents pendingEvents = _pendingEvents;
     _state |= _STATE_SUBSCRIBED;

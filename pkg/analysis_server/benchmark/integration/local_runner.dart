@@ -12,7 +12,7 @@ main(List<String> args) {
   /*
    * Parse arguments
    */
-  if (args.length != 3) printHelp('Expected 3 arguments');
+  if (args.length < 3) printHelp('Expected 3 arguments');
   var gitDir = new Directory(args[0]);
   if (!gitDir.existsSync()) printHelp('${gitDir.path} does not exist');
   if (!new Directory(join(gitDir.path, '.git')).existsSync()) printHelp(
@@ -58,15 +58,17 @@ main(List<String> args) {
   ]);
   if (result.exitCode != 0) throw 'failed to link out or xcodebuild: $result';
   /*
+   * Collect arguments
+   */
+  var perfArgs = ['-i${inputFile.path}', '-t$tmpSrcDirPath',];
+  for (int index = 3; index < args.length; ++index) {
+    perfArgs.add(args[index].replaceAll('@tmpSrcDir@', tmpSrcDirPath));
+  }
+  perfArgs.add('-m${gitDir.path},$tmpSrcDirPath');
+  /*
    * Launch the performance analysis tool
    */
-  performance.main([
-    //'-vv', // very verbose
-    //'-d8081', // analysis server localhost diagnostic port
-    '-i${inputFile.path}',
-    '-t$tmpSrcDirPath',
-    '-m${gitDir.path},$tmpSrcDirPath',
-  ]);
+  performance.main(perfArgs);
 }
 
 /// Print help and exit
@@ -76,9 +78,12 @@ void printHelp([String errMsg]) {
     print('Error: $errMsg');
     print('');
   }
-  print('Arguments: <gitDir> <branch> <inputFile>');
-  print('gitDir = git repository containing the initial target source');
-  print('branch = the branch containing the initial target source');
-  print('inputFile = the instrumentation or log file');
+  print('''Required arguments: <gitDir> <branch> <inputFile>
+gitDir = a path to the git repository containing the initial target source
+branch = the branch containing the initial target source
+inputFile = the instrumentation or log file
+
+Optional arguments:''');
+  print(performance.argParser.usage);
   exit(1);
 }

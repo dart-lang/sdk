@@ -46,6 +46,10 @@ abstract class ClassWorld {
   /// instance of [y].
   bool isSubtypeOf(ClassElement x, ClassElement y);
 
+  /// Returns an iterable over the live classes that extend [cls] including
+  /// [cls] itself.
+  Iterable<ClassElement> subclassesOf(ClassElement cls);
+
   /// Returns an iterable over the live classes that extend [cls] _not_
   /// including [cls] itself.
   Iterable<ClassElement> strictSubclassesOf(ClassElement cls);
@@ -145,34 +149,51 @@ class World implements ClassWorld {
     return compiler.resolverWorld.isInstantiated(cls);
   }
 
-  /// Returns an iterable over the live classes that extend [cls] _not_
-  /// including [cls] itself.
+  /// Returns an iterable over the directly instantiated classes that extend
+  /// [cls] possibly including [cls] itself, if it is live.
+  Iterable<ClassElement> subclassesOf(ClassElement cls) {
+    ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
+    if (hierarchy == null) return const <ClassElement>[];
+    assert(invariant(cls, isInstantiated(cls.declaration),
+        message: 'Class $cls has not been instantiated.'));
+    return hierarchy.subclasses();
+  }
+
+  /// Returns an iterable over the directly instantiated classes that extend
+  /// [cls] _not_ including [cls] itself.
   Iterable<ClassElement> strictSubclassesOf(ClassElement cls) {
-    Set<ClassElement> subclasses = _subclasses[cls.declaration];
+    ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return const <ClassElement>[];
     assert(invariant(cls, isInstantiated(cls.declaration),
         message: 'Class $cls has not been instantiated.'));
-    return subclasses;
+    return subclasses.strictSubclasses();
   }
 
-  /// Returns an iterable over the live classes that implement [cls] _not_
-  /// including [cls] if it is live.
+  /// Returns an iterable over the directly instantiated that implement [cls]
+  /// _not_ including [cls].
   Iterable<ClassElement> strictSubtypesOf(ClassElement cls) {
     Set<ClassElement> subtypes = _subtypes[cls.declaration];
     return subtypes != null ? subtypes : const <ClassElement>[];
   }
 
-  /// Returns `true` if any live class other than [cls] extends [cls].
+  /// Returns `true` if any directly instantiated class other than [cls] extends
+  /// [cls].
   bool hasAnyStrictSubclass(ClassElement cls) {
-    return !strictSubclassesOf(cls).isEmpty;
+    ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
+    if (subclasses == null) return false;
+    assert(invariant(cls, isInstantiated(cls.declaration),
+        message: 'Class $cls has not been instantiated.'));
+    return subclasses.isIndirectlyInstantiated;
   }
 
-  /// Returns `true` if any live class other than [cls] implements [cls].
+  /// Returns `true` if any directly instantiated class other than [cls]
+  /// implements [cls].
   bool hasAnyStrictSubtype(ClassElement cls) {
     return !strictSubtypesOf(cls).isEmpty;
   }
 
-  /// Returns `true` if all live classes that implement [cls] extend it.
+  /// Returns `true` if all directly instantiated classes that implement [cls]
+  /// extend it.
   bool hasOnlySubclasses(ClassElement cls) {
     Iterable<ClassElement> subtypes = strictSubtypesOf(cls);
     if (subtypes == null) return true;
@@ -284,8 +305,8 @@ class World implements ClassWorld {
 
   // We keep track of subtype and subclass relationships in four
   // distinct sets to make class hierarchy analysis faster.
-  final Map<ClassElement, Set<ClassElement>> _subclasses =
-      new Map<ClassElement, Set<ClassElement>>();
+  final Map<ClassElement, ClassHierarchyNode> _classHierarchyNodes =
+      <ClassElement, ClassHierarchyNode>{};
   final Map<ClassElement, Set<ClassElement>> _subtypes =
       new Map<ClassElement, Set<ClassElement>>();
 
@@ -319,7 +340,40 @@ class World implements ClassWorld {
         this.compiler = compiler,
         alreadyPopulated = compiler.cacheStrategy.newSet();
 
+  ClassHierarchyNode classHierarchyNode(ClassElement cls) {
+    return _classHierarchyNodes[cls];
+  }
+
   void populate() {
+
+    /// Ensure that a [ClassHierarchyNode] exists for [cls]. Updates the
+    /// `isDirectlyInstantiated` and `isIndirectlyInstantiated` property of the
+    /// node according the provided arguments and returns the node.
+    ClassHierarchyNode createClassHierarchyNodeForClass(
+        ClassElement cls,
+        {bool directlyInstantiated: false,
+         bool indirectlyInstantiated: false}) {
+      assert(isInstantiated(cls));
+
+      ClassHierarchyNode node = _classHierarchyNodes.putIfAbsent(cls, () {
+        ClassHierarchyNode node = new ClassHierarchyNode(cls);
+        if (cls.superclass != null) {
+          createClassHierarchyNodeForClass(cls.superclass,
+              indirectlyInstantiated:
+                directlyInstantiated || indirectlyInstantiated)
+              .addDirectSubclass(node);
+        }
+        return node;
+      });
+      if (directlyInstantiated) {
+        node.isDirectlyInstantiated = true;
+      }
+      if (indirectlyInstantiated) {
+        node.isIndirectlyInstantiated = true;
+      }
+      return node;
+    }
+
     void addSubtypes(ClassElement cls) {
       if (compiler.hasIncrementalSupport && !alreadyPopulated.add(cls)) {
         return;
@@ -328,6 +382,8 @@ class World implements ClassWorld {
       if (!cls.isResolved) {
         compiler.internalError(cls, 'Class "${cls.name}" is not resolved.');
       }
+
+      createClassHierarchyNodeForClass(cls, directlyInstantiated: true);
 
       for (DartType type in cls.allSupertypes) {
         Set<Element> subtypesOfSupertype =
@@ -339,10 +395,6 @@ class World implements ClassWorld {
       // implemented by that type on the superclasses.
       ClassElement superclass = cls.superclass;
       while (superclass != null) {
-        Set<Element> subclassesOfSuperclass =
-            _subclasses.putIfAbsent(superclass, () => new Set<ClassElement>());
-        subclassesOfSuperclass.add(cls);
-
         Set<Element> typesImplementedBySubclassesOfCls =
             _typesImplementedBySubclasses.putIfAbsent(
                 superclass, () => new Set<ClassElement>());

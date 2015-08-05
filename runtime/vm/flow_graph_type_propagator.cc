@@ -1038,10 +1038,9 @@ CompileType LoadFieldInstr::ComputeType() const {
   }
 
   const AbstractType* abstract_type = NULL;
-  if (Isolate::Current()->flags().type_checks()) {
-    ASSERT(!type().HasResolvedTypeClass() ||
-           !Field::IsExternalizableCid(Class::Handle(
-                type().type_class()).id()));
+  if (Isolate::Current()->flags().type_checks() &&
+      type().HasResolvedTypeClass() &&
+      !Field::IsExternalizableCid(Class::Handle(type().type_class()).id())) {
     abstract_type = &type();
   }
 

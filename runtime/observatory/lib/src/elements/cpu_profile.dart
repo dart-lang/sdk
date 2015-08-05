@@ -432,12 +432,78 @@ class FunctionProfileTreeRow extends ProfileTreeRow<FunctionCallTreeNode> {
   }
 }
 
-/// Displays a CpuProfile
-@CustomTag('cpu-profile')
-class CpuProfileElement extends ObservatoryElement {
-  static const MICROSECONDS_PER_SECOND = 1000000.0;
+@CustomTag('sample-buffer-control')
+class SampleBufferControlElement extends ObservatoryElement {
+  SampleBufferControlElement.created() : super.created() {
+    _stopWatch.start();
+  }
 
-  @published Isolate isolate;
+  Future<CpuProfile> reload(Isolate isolate) async {
+    profile.clear();
+    if (isolate == null) {
+      _update(profile);
+      // Notify listener.
+      onSampleBufferUpdate(profile);
+      return profile;
+    }
+    await _changeState(kFetchingState);
+    try {
+      var params = { 'tags': tagSelector };
+      var response = await isolate.invokeRpc('_getCpuProfile', params);
+      await _changeState(kLoadingState);
+      profile.load(isolate, response);
+      _update(profile);
+      await _changeState(kLoadedState);
+      // Notify listener.
+      onSampleBufferUpdate(profile);
+      return profile;
+    } catch (e, st) {
+      if (e is ServerRpcException) {
+        ServerRpcException se = e;
+        if (se.code == ServerRpcException.kFeatureDisabled) {
+          await _changeState(kDisabledState);
+          return profile;
+        }
+      }
+      await _changeState(kExceptionState, e, st);
+      rethrow;
+    }
+  }
+
+  Future _changeState(String newState, [exception, stackTrace]) {
+    if ((newState == kDisabledState) ||
+        (newState == kFetchingState) ||
+        (newState == kExceptionState)) {
+      loadTime = '';
+      fetchTime = '';
+    } else if (newState == kLoadingState) {
+      fetchTime = formatTimeMilliseconds(_stopWatch.elapsedMilliseconds);
+      loadTime = '';
+    } else if (newState == kLoadedState) {
+      loadTime = formatTimeMilliseconds(_stopWatch.elapsedMilliseconds);
+    }
+    state = newState;
+    this.exception = exception;
+    this.stackTrace = stackTrace;
+    _stopWatch.reset();
+    return window.animationFrame;
+  }
+
+  _update(CpuProfile sampleBuffer) {
+    sampleCount = profile.sampleCount.toString();
+    refreshTime = new DateTime.now().toString();
+    stackDepth = profile.stackDepth.toString();
+    sampleRate = profile.sampleRate.toStringAsFixed(0);
+    timeSpan = formatTime(profile.timeSpan);
+  }
+
+  void tagSelectorChanged(oldValue) {
+    reload(profile.isolate);
+  }
+
+  Function onSampleBufferUpdate;
+  @observable bool showTagSelector = true;
+
   @observable String sampleCount = '';
   @observable String refreshTime = '';
   @observable String sampleRate = '';
@@ -446,119 +512,86 @@ class CpuProfileElement extends ObservatoryElement {
   @observable String fetchTime = '';
   @observable String loadTime = '';
   @observable String tagSelector = 'UserVM';
-  @observable String modeSelector = 'Function';
-  @observable String directionSelector = 'Up';
-
-  @observable String state = 'Requested';
+  @observable String state = 'kFetching';
   @observable var exception;
   @observable var stackTrace;
 
-  final Stopwatch _sw = new Stopwatch();
+  static const kDisabledState = 'kDisabled';
+  static const kExceptionState = 'Exception';
+  static const kFetchingState = 'kFetching';
+  static const kLoadedState = 'kLoaded';
+  static const kLoadingState = 'kLoading';
+
+  Isolate isolate;
 
   final CpuProfile profile = new CpuProfile();
+  final Stopwatch _stopWatch = new Stopwatch();
+}
 
-  CpuProfileElement.created() : super.created();
-
-  @override
-  void attached() {
-    super.attached();
-  }
-
-  void isolateChanged(oldValue) {
-    _getCpuProfile().catchError(app.handleException);
-  }
-
-  void tagSelectorChanged(oldValue) {
-    _getCpuProfile().catchError(app.handleException);
-  }
+@CustomTag('stack-trace-tree-config')
+class StackTraceTreeConfigElement extends ObservatoryElement {
+  StackTraceTreeConfigElement.created() : super.created();
 
   void modeSelectorChanged(oldValue) {
-    _updateView();
+    if (onTreeConfigChange == null) {
+      return;
+    }
+    onTreeConfigChange(modeSelector, directionSelector);
   }
 
   void directionSelectorChanged(oldValue) {
-    _updateView();
-  }
-
-  Future clearCpuProfile() {
-    profile.clear();
-    if (isolate == null) {
-      return new Future.value(null);
+    if (onTreeConfigChange == null) {
+      return;
     }
-    return isolate.invokeRpc('_clearCpuProfile', { })
-        .then((ServiceMap response) {
-          _updateView();
-        });
+    onTreeConfigChange(modeSelector, directionSelector);
   }
 
-  Future refresh() {
-    return _getCpuProfile();
+  Function onTreeConfigChange;
+  @observable bool showModeSelector = true;
+  @observable bool showDirectionSelector = true;
+  @observable String modeSelector = 'Function';
+  @observable String directionSelector = 'Up';
+}
+
+/// Displays a CpuProfile
+@CustomTag('cpu-profile')
+class CpuProfileElement extends ObservatoryElement {
+  CpuProfileElement.created() : super.created() {
+    _updateTask = new Task(update);
+    _renderTask = new Task(render);
   }
 
-  _onFetchStarted() {
-    _sw.reset();
-    _sw.start();
-    state = 'Requested';
+  attached() {
+    super.attached();
+    sampleBufferControlElement =
+        shadowRoot.querySelector('#sampleBufferControl');
+    assert(sampleBufferControlElement != null);
+    sampleBufferControlElement.onSampleBufferUpdate = onSampleBufferChange;
+    stackTraceTreeConfigElement =
+        shadowRoot.querySelector('#stackTraceTreeConfig');
+    assert(stackTraceTreeConfigElement != null);
+    stackTraceTreeConfigElement.onTreeConfigChange = onTreeConfigChange;
+    cpuProfileTreeElement = shadowRoot.querySelector('#cpuProfileTree');
+    assert(cpuProfileTreeElement != null);
+    cpuProfileTreeElement.profile = sampleBufferControlElement.profile;
+    _updateTask.queue();
   }
 
-  _onFetchFinished() {
-    _sw.stop();
-    fetchTime = formatTimeMilliseconds(_sw.elapsedMilliseconds);
+  isolateChanged(oldValue) {
+    _updateTask.queue();
   }
 
-  Future _onLoadStarted() {
-    _sw.reset();
-    _sw.start();
-    state = 'Loading';
-    return window.animationFrame;
-  }
-
-  _onLoadFinished() {
-    _sw.stop();
-    loadTime = formatTimeMilliseconds(_sw.elapsedMilliseconds);
-    state = 'Loaded';
-  }
-
-  Future _getCpuProfile() async {
-    profile.clear();
-    if (isolate == null) {
-      return new Future.value(null);
-    }
-    _onFetchStarted();
-    try {
-      var params = { 'tags': tagSelector };
-      var response = await isolate.invokeRpc('_getCpuProfile', params);
-      _onFetchFinished();
-      await _onLoadStarted();
-      profile.load(isolate, response);
-      _onLoadFinished();
-      _updateView();
-    } catch (e, st) {
-      bool handled = false;
-      if (e is ServerRpcException) {
-        ServerRpcException se = e;
-        if (se.code == ServerRpcException.kFeatureDisabled) {
-          state = 'Disabled';
-          handled = true;
-        }
-      }
-      if (!handled) {
-        state = 'Exception';
-        exception = e;
-        stackTrace = st;
-        rethrow;
-      }
+  update() {
+    if (sampleBufferControlElement != null) {
+      sampleBufferControlElement.reload(isolate);
     }
   }
 
-  void _updateView() {
-    sampleCount = profile.sampleCount.toString();
-    refreshTime = new DateTime.now().toString();
-    stackDepth = profile.stackDepth.toString();
-    sampleRate = profile.sampleRate.toStringAsFixed(0);
-    timeSpan = formatTime(profile.timeSpan);
-    CpuProfileTreeElement cpuProfileTreeElement =
-        shadowRoot.querySelector('#cpuProfileTree');
+  onSampleBufferChange(CpuProfile sampleBuffer) {
+    _renderTask.queue();
+  }
+
+  onTreeConfigChange(String modeSelector, String directionSelector) {
     ProfileTreeDirection direction = ProfileTreeDirection.Exclusive;
     if (directionSelector != 'Up') {
       direction = ProfileTreeDirection.Inclusive;
@@ -567,11 +600,33 @@ class CpuProfileElement extends ObservatoryElement {
     if (modeSelector == 'Code') {
       mode = ProfileTreeMode.Code;
     }
-    cpuProfileTreeElement.profile = profile;
     cpuProfileTreeElement.direction = direction;
     cpuProfileTreeElement.mode = mode;
+    _renderTask.queue();
+  }
+
+  Future clearCpuProfile() async {
+    await isolate.invokeRpc('_clearCpuProfile', { });
+    _updateTask.queue();
+    return new Future.value(null);
+  }
+
+  Future refresh() {
+    _updateTask.queue();
+    return new Future.value(null);
+  }
+
+  render() {
     cpuProfileTreeElement.render();
   }
+
+  @published Isolate isolate;
+
+  Task _updateTask;
+  Task _renderTask;
+  SampleBufferControlElement sampleBufferControlElement;
+  StackTraceTreeConfigElement stackTraceTreeConfigElement;
+  CpuProfileTreeElement cpuProfileTreeElement;
 }
 
 class NameSortedTable extends SortedTable {
@@ -684,28 +739,9 @@ class NameSortedTable extends SortedTable {
 
 @CustomTag('cpu-profile-table')
 class CpuProfileTableElement extends ObservatoryElement {
-  final Stopwatch _sw = new Stopwatch();
-  final CpuProfile profile = new CpuProfile();
-  StreamSubscription _resizeSubscription;
-  @observable NameSortedTable profileTable;
-  @observable NameSortedTable profileCallersTable;
-  @observable NameSortedTable profileCalleesTable;
-  @observable ServiceFunction focusedFunction;
-  @observable int focusedRow;
-  @observable String fetchTime = '';
-  @observable String loadTime = '';
-  @observable String state = 'Requested';
-  @observable var exception;
-  @observable var stackTrace;
-  @observable Isolate isolate;
-  @observable String sampleCount = '';
-  @observable String refreshTime = '';
-  @observable String sampleRate = '';
-  @observable String stackDepth = '';
-  @observable String timeSpan = '';
-  @observable String directionSelector = 'Up';
-
   CpuProfileTableElement.created() : super.created() {
+    _updateTask = new Task(update);
+    _renderTask = new Task(render);
     var columns = [
         new SortedTableColumn.withFormatter('Executing (%)',
                                             Utils.formatPercentNormalized),
@@ -735,6 +771,25 @@ class CpuProfileTableElement extends ObservatoryElement {
 
   attached() {
     super.attached();
+    sampleBufferControlElement =
+        shadowRoot.querySelector('#sampleBufferControl');
+    assert(sampleBufferControlElement != null);
+    sampleBufferControlElement.onSampleBufferUpdate = onSampleBufferChange;
+    // Disable the tag selector- we always want no tags.
+    sampleBufferControlElement.tagSelector = 'None';
+    sampleBufferControlElement.showTagSelector = false;
+    stackTraceTreeConfigElement =
+        shadowRoot.querySelector('#stackTraceTreeConfig');
+    assert(stackTraceTreeConfigElement != null);
+    stackTraceTreeConfigElement.onTreeConfigChange = onTreeConfigChange;
+    stackTraceTreeConfigElement.modeSelector = 'Function';
+    stackTraceTreeConfigElement.showModeSelector = false;
+    stackTraceTreeConfigElement.directionSelector = 'Down';
+    stackTraceTreeConfigElement.showDirectionSelector = false;
+    cpuProfileTreeElement = shadowRoot.querySelector('#cpuProfileTree');
+    assert(cpuProfileTreeElement != null);
+    cpuProfileTreeElement.profile = sampleBufferControlElement.profile;
+    _updateTask.queue();
     _resizeSubscription = window.onResize.listen((_) => _updateSize());
     _updateSize();
   }
@@ -755,10 +810,48 @@ class CpuProfileTableElement extends ObservatoryElement {
     e.style.setProperty('height', '${mainHeight}px');
   }
 
-  isolateChanged() {
-    _getCpuProfile()
-      .catchError(app.handleException)
-      .whenComplete(checkParameters);
+  isolateChanged(oldValue) {
+    _updateTask.queue();
+  }
+
+  update() {
+    _clearView();
+    if (sampleBufferControlElement != null) {
+      sampleBufferControlElement.reload(isolate).whenComplete(checkParameters);
+    }
+  }
+
+  onSampleBufferChange(CpuProfile sampleBuffer) {
+    _renderTask.queue();
+  }
+
+  onTreeConfigChange(String modeSelector, String directionSelector) {
+    ProfileTreeDirection direction = ProfileTreeDirection.Exclusive;
+    if (directionSelector != 'Up') {
+      direction = ProfileTreeDirection.Inclusive;
+    }
+    ProfileTreeMode mode = ProfileTreeMode.Function;
+    if (modeSelector == 'Code') {
+      mode = ProfileTreeMode.Code;
+    }
+    cpuProfileTreeElement.direction = direction;
+    cpuProfileTreeElement.mode = mode;
+    _renderTask.queue();
+  }
+
+  Future clearCpuProfile() async {
+    await isolate.invokeRpc('_clearCpuProfile', { });
+    _updateTask.queue();
+    return new Future.value(null);
+  }
+
+  Future refresh() {
+    _updateTask.queue();
+    return new Future.value(null);
+  }
+
+  render() {
+    _updateView();
   }
 
   checkParameters() {
@@ -773,94 +866,12 @@ class CpuProfileTableElement extends ObservatoryElement {
     isolate.getObject(functionId).then((func) => _focusOnFunction(func));
   }
 
-  void directionSelectorChanged(oldValue) {
-    _updateFunctionTreeView();
-  }
-
-  Future refresh() {
-    return _getCpuProfile();
-  }
-
-  _onFetchStarted() {
-    _sw.reset();
-    _sw.start();
-    state = 'Requested';
-  }
-
-  _onFetchFinished() {
-    _sw.stop();
-    fetchTime = formatTimeMilliseconds(_sw.elapsedMilliseconds);
-  }
-
-  _onLoadStarted() {
-    _sw.reset();
-    _sw.start();
-    state = 'Loading';
-  }
-
-  _onLoadFinished() {
-    _sw.stop();
-    loadTime = formatTimeMilliseconds(_sw.elapsedMilliseconds);
-    state = 'Loaded';
-  }
-
-  Future clearCpuProfile() {
-    profile.clear();
-    _clearView();
-    if (isolate == null) {
-      return new Future.value(null);
-    }
-    return isolate.invokeRpc('_clearCpuProfile', { })
-    .then((ServiceMap response) {
-      _updateView();
-    });
-  }
-
-  Future _getCpuProfile() async {
-    profile.clear();
-    _clearView();
-    if (isolate == null) {
-      return new Future.value(null);
-    }
-    _onFetchStarted();
-    try {
-      var params = { 'tags': 'None' };
-      var response = await isolate.invokeRpc('_getCpuProfile', params);
-      _onFetchFinished();
-      _onLoadStarted();
-      profile.load(isolate, response);
-      profile.buildFunctionCallerAndCallees();
-      _onLoadFinished();
-      _updateView();
-    } catch (e, st) {
-      bool handled = false;
-      if (e is ServerRpcException) {
-        ServerRpcException se = e;
-        if (se.code == ServerRpcException.kFeatureDisabled) {
-          state = 'Disabled';
-          handled = true;
-        }
-      }
-      if (!handled) {
-        state = 'Exception';
-        exception = e;
-        stackTrace = st;
-        rethrow;
-      }
-    }
-  }
-
   _clearView() {
     profileTable.clearRows();
     _renderTable();
   }
 
   _updateView() {
-    sampleCount = profile.sampleCount.toString();
-    refreshTime = new DateTime.now().toString();
-    stackDepth = profile.stackDepth.toString();
-    sampleRate = profile.sampleRate.toStringAsFixed(0);
-    timeSpan = formatTime(profile.timeSpan);
     _buildFunctionTable();
     _renderTable();
     _updateFunctionTreeView();
@@ -1060,21 +1071,28 @@ class CpuProfileTableElement extends ObservatoryElement {
   ///
   TableTree functionTree;
   _updateFunctionTreeView() {
-    CpuProfileTreeElement cpuProfileTreeElement =
-        shadowRoot.querySelector('#cpuProfileTree');
-    ProfileTreeDirection direction = ProfileTreeDirection.Exclusive;
-    if (directionSelector != 'Up') {
-      direction = ProfileTreeDirection.Inclusive;
-    }
-    ProfileTreeMode mode = ProfileTreeMode.Function;
-    cpuProfileTreeElement.profile = profile;
-    cpuProfileTreeElement.direction = direction;
-    cpuProfileTreeElement.mode = mode;
     cpuProfileTreeElement.functionFilter = (FunctionCallTreeNode node) {
       return node.profileFunction.function == focusedFunction;
     };
     cpuProfileTreeElement.render();
   }
+
+  @published Isolate isolate;
+  @observable NameSortedTable profileTable;
+  @observable NameSortedTable profileCallersTable;
+  @observable NameSortedTable profileCalleesTable;
+  @observable ServiceFunction focusedFunction;
+  @observable int focusedRow;
+
+
+  StreamSubscription _resizeSubscription;
+  Task _updateTask;
+  Task _renderTask;
+
+  CpuProfile get profile => sampleBufferControlElement.profile;
+  SampleBufferControlElement sampleBufferControlElement;
+  StackTraceTreeConfigElement stackTraceTreeConfigElement;
+  CpuProfileTreeElement cpuProfileTreeElement;
 }
 
 enum ProfileTreeDirection {

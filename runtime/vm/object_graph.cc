@@ -256,14 +256,30 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
   // We cannot use a GrowableObjectArray, since we must not trigger GC.
   RetainingPathVisitor(RawObject* obj, const Array& path)
       : obj_(obj), path_(path), length_(0) {
-    ASSERT(Isolate::Current()->no_safepoint_scope_depth() != 0);
+    ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0);
   }
 
   intptr_t length() const { return length_; }
 
+  bool ShouldSkip(RawObject* obj) {
+    // A retaining path through ICData is never the only retaining path,
+    // and it is less informative than its alternatives.
+    intptr_t cid = obj->GetClassId();
+    switch (cid) {
+    case kICDataCid:
+      return true;
+    default:
+      return false;
+    }
+  }
+
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     if (it->Get() != obj_) {
-      return kProceed;
+      if (ShouldSkip(it->Get())) {
+        return kBacktrack;
+      } else {
+        return kProceed;
+      }
     } else {
       HANDLESCOPE(Isolate::Current());
       Object& current = Object::Handle();
@@ -313,7 +329,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
                            Object* scratch)
     : ObjectVisitor(isolate), ObjectPointerVisitor(isolate), source_(NULL),
       target_(target), references_(references), scratch_(scratch), length_(0) {
-    ASSERT(Isolate::Current()->no_safepoint_scope_depth() != 0);
+    ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0);
   }
 
   intptr_t length() const { return length_; }

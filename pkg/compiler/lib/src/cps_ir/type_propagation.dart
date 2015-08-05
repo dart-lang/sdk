@@ -546,7 +546,7 @@ final Map<String, BuiltinOperator> NumBinaryBuiltins =
  * Uses the information from a preceding analysis pass in order to perform the
  * actual transformations on the CPS graph.
  */
-class TransformingVisitor extends RecursiveVisitor {
+class TransformingVisitor extends LeafVisitor {
   final TypePropagationVisitor analyzer;
   final Map<Expression, ConstantValue> replacements;
   final ConstantPropagationLattice lattice;
@@ -555,10 +555,11 @@ class TransformingVisitor extends RecursiveVisitor {
   JavaScriptBackend get backend => compiler.backend;
   TypeMaskSystem get typeSystem => lattice.typeSystem;
   types.DartTypes get dartTypes => lattice.dartTypes;
-  Set<Node> get reachable => analyzer.reachableNodes;
   Map<Node, AbstractValue> get values => analyzer.values;
 
   final dart2js.InternalErrorFunction internalError;
+
+  final List<Node> stack = <Node>[];
 
   TransformingVisitor(this.compiler,
                       this.lattice,
@@ -567,8 +568,80 @@ class TransformingVisitor extends RecursiveVisitor {
                       this.internalError);
 
   void transform(FunctionDefinition root) {
-    visit(root);
+    push(root.body);
+    while (stack.isNotEmpty) {
+      visit(stack.removeLast());
+    }
   }
+
+  void push(Node node) {
+    assert(node != null);
+    stack.add(node);
+  }
+
+  void pushAll(Iterable<Node> nodes) {
+    nodes.forEach(push);
+  }
+
+  /************************* INTERIOR EXPRESSIONS *************************/
+  //
+  // These return nothing, and must push recursive children on the stack.
+
+  void visitLetCont(LetCont node) {
+    pushAll(node.continuations);
+    push(node.body);
+  }
+
+  void visitLetHandler(LetHandler node) {
+    push(node.handler);
+    push(node.body);
+  }
+
+  void visitLetMutable(LetMutable node) {
+    visit(node.variable);
+    push(node.body);
+  }
+
+  void visitLetPrim(LetPrim node) {
+    AbstractValue value = getValue(node.primitive);
+    if (node.primitive is! Constant && value.isConstant) {
+      // If the value is a known constant, compile it as a constant.
+      Constant newPrim = makeConstantPrimitive(value.constant);
+      newPrim.substituteFor(node.primitive);
+      RemovalVisitor.remove(node.primitive);
+      node.primitive = newPrim;
+      newPrim.parent = node;
+    } else {
+      Primitive newPrim = visit(node.primitive);
+      if (newPrim != null) {
+        newPrim.substituteFor(node.primitive);
+        RemovalVisitor.remove(node.primitive);
+        node.primitive = newPrim;
+        newPrim.parent = node;
+        reanalyze(newPrim);
+      }
+      if (node.primitive.hasNoUses && node.primitive.isSafeForElimination) {
+        // Remove unused primitives before entering the body.
+        // This would also be done by shrinking reductions, but usage analyses
+        // such as isAlwaysBoolified are more precise without the dead uses, so
+        // we prefer to remove them early.
+        RemovalVisitor.remove(node.primitive);
+        node.parent.body = node.body;
+        node.body.parent = node.parent;
+      }
+    }
+    push(node.body);
+  }
+
+  void visitContinuation(Continuation node) {
+    if (node.isReturnContinuation) return;
+    // Process the continuation body.
+    // Note that the continuation body may have changed since the continuation
+    // was put on the stack (e.g. [visitInvokeContinuation] may do this).
+    push(node.body);
+  }
+
+  /************************* TRANSFORMATION HELPERS *************************/
 
   /// Sets parent pointers and computes types for the given subtree.
   void reanalyze(Node node) {
@@ -623,6 +696,16 @@ class TransformingVisitor extends RecursiveVisitor {
     context.body = node;
     node.parent = context;
   }
+  
+  /// Binds [prim] before [node].
+  void insertLetPrim(Expression node, Primitive prim) {
+    InteriorNode parent = node.parent;
+    LetPrim let = new LetPrim(prim);
+    parent.body = let;
+    let.body = node;
+    node.parent = let;
+    let.parent = parent;
+  }
 
   /// Make a constant primitive for [constant] and set its entry in [values].
   Constant makeConstantPrimitive(ConstantValue constant) {
@@ -648,23 +731,7 @@ class TransformingVisitor extends RecursiveVisitor {
     return letPrim;
   }
 
-  /// Side-effect free expressions with constant results are be replaced by:
-  ///
-  ///    (LetPrim p = constant (InvokeContinuation k p)).
-  ///
-  /// The new expression will be visited.
-  ///
-  /// Returns true if the node was replaced.
-  bool constifyExpression(CallExpression node) {
-    Continuation continuation = node.continuation.definition;
-    ConstantValue constant = replacements[node];
-    if (constant == null) return false;
-    Constant primitive = makeConstantPrimitive(constant);
-    LetPrim letPrim = makeLetPrimInvoke(primitive, continuation);
-    replaceSubtree(node, letPrim);
-    visitLetPrim(letPrim);
-    return true;
-  }
+  /************************* TAIL EXPRESSIONS *************************/
 
   // A branch can be eliminated and replaced by an invocation if only one of
   // the possible continuations is reachable. Removal often leads to both dead
@@ -684,13 +751,13 @@ class TransformingVisitor extends RecursiveVisitor {
     if (boolifiedValue == AbstractBool.True) {
       InvokeContinuation invoke = new InvokeContinuation(trueCont, []);
       replaceSubtree(node, invoke);
-      visitInvokeContinuation(invoke);
+      push(invoke);
       return;
     }
     if (boolifiedValue == AbstractBool.False) {
       InvokeContinuation invoke = new InvokeContinuation(falseCont, []);
       replaceSubtree(node, invoke);
-      visitInvokeContinuation(invoke);
+      push(invoke);
       return;
     }
 
@@ -718,6 +785,36 @@ class TransformingVisitor extends RecursiveVisitor {
     }
   }
 
+  void visitInvokeContinuation(InvokeContinuation node) {
+    // Inline the single-use continuations. These are often introduced when
+    // specializing an invocation node. These would also be inlined by a later
+    // pass, but doing it here helps simplify pattern matching code, since the
+    // effective definition of a primitive can then be found without going
+    // through redundant InvokeContinuations.
+    Continuation cont = node.continuation.definition;
+    if (cont.hasExactlyOneUse &&
+        !cont.isReturnContinuation &&
+        !cont.isRecursive &&
+        !node.isEscapingTry) {
+      for (int i = 0; i < node.arguments.length; ++i) {
+        node.arguments[i].definition.useElementAsHint(cont.parameters[i].hint);
+        node.arguments[i].definition.substituteFor(cont.parameters[i]);
+        node.arguments[i].unlink();
+      }
+      node.continuation.unlink();
+      InteriorNode parent = node.parent;
+      Expression body = cont.body;
+      parent.body = body;
+      body.parent = parent;
+      cont.body = new Unreachable();
+      cont.body.parent = cont;
+      push(body);
+    }
+  }
+
+
+  /************************* CALL EXPRESSIONS *************************/
+
   /// Replaces [node] with a more specialized instruction, if possible.
   ///
   /// Returns `true` if the node was replaced.
@@ -727,10 +824,11 @@ class TransformingVisitor extends RecursiveVisitor {
                            Primitive left,
                            Primitive right) {
       Primitive prim =
-          new ApplyBuiltinOperator(operator, <Primitive>[left, right]);
+          new ApplyBuiltinOperator(operator, <Primitive>[left, right],
+                                   node.sourceInformation);
       LetPrim let = makeLetPrimInvoke(prim, cont);
       replaceSubtree(node, let);
-      visitLetPrim(let);
+      push(let);
       return true; // So returning early is more convenient.
     }
 
@@ -828,7 +926,7 @@ class TransformingVisitor extends RecursiveVisitor {
       GetField get = new GetField(getDartReceiver(node), target);
       LetPrim let = makeLetPrimInvoke(get, cont);
       replaceSubtree(node, let);
-      visitLetPrim(let);
+      push(let);
       return true;
     } else {
       if (target.isFinal) return false;
@@ -840,7 +938,7 @@ class TransformingVisitor extends RecursiveVisitor {
                                getDartArgument(node, 0)));
       cps.invokeContinuation(cont);
       replaceSubtree(node, cps.result);
-      visit(cps.result);
+      push(cps.result);
       return true;
     }
   }
@@ -933,7 +1031,7 @@ class TransformingVisitor extends RecursiveVisitor {
         CpsFragment cps = new CpsFragment(sourceInfo);
         cps.invokeContinuation(cont, [cps.letPrim(new GetLength(list))]);
         replaceSubtree(node, cps.result);
-        visit(cps.result);
+        push(cps.result);
         return true;
 
       case '[]':
@@ -945,7 +1043,7 @@ class TransformingVisitor extends RecursiveVisitor {
         GetIndex get = cps.letPrim(new GetIndex(list, index));
         cps.invokeContinuation(cont, [get]);
         replaceSubtree(node, cps.result);
-        visit(cps.result);
+        push(cps.result);
         return true;
 
       case '[]=':
@@ -961,7 +1059,7 @@ class TransformingVisitor extends RecursiveVisitor {
         cont.parameters.clear();
         cps.invokeContinuation(cont, []);
         replaceSubtree(node, cps.result);
-        visit(cps.result);
+        push(cps.result);
         return true;
 
       case 'forEach':
@@ -1014,7 +1112,7 @@ class TransformingVisitor extends RecursiveVisitor {
         cps.continueLoop(loop, [addOne]);
 
         replaceSubtree(node, cps.result);
-        visit(cps.result);
+        push(cps.result);
         return true;
 
       case 'iterator':
@@ -1165,9 +1263,7 @@ class TransformingVisitor extends RecursiveVisitor {
         insertBefore(iteratorCont.body, cps);
         InvokeContinuation invoke = new InvokeContinuation(iteratorCont, []);
         replaceSubtree(node, invoke);
-        visit(invoke);
-        // TODO(asgerf): A procedure for rewriting mutables into parameters
-        //               might enable further optimizations after this.
+        push(invoke);
         return true;
 
       // TODO(asgerf): Rewrite 'add', 'removeLast', ...
@@ -1242,7 +1338,7 @@ class TransformingVisitor extends RecursiveVisitor {
           node.sourceInformation);
       node.receiver.unlink();
       replaceSubtree(node, invoke, unlink: false);
-      visitInvokeStatic(invoke);
+      push(invoke);
       return true;
     }
     CallExpression tearOffInvoke = getCallWithResult(tearOff);
@@ -1300,10 +1396,28 @@ class TransformingVisitor extends RecursiveVisitor {
         assert(isPure);
       }
 
-      visitInvokeMethod(invoke);
+      push(invoke);
       return true;
     }
     return false;
+  }
+
+  /// Side-effect free expressions with constant results are be replaced by:
+  ///
+  ///    (LetPrim p = constant (InvokeContinuation k p)).
+  ///
+  /// The new expression will be visited.
+  ///
+  /// Returns true if the node was replaced.
+  bool constifyExpression(CallExpression node) {
+    Continuation continuation = node.continuation.definition;
+    ConstantValue constant = replacements[node];
+    if (constant == null) return false;
+    Constant primitive = makeConstantPrimitive(constant);
+    LetPrim letPrim = makeLetPrimInvoke(primitive, continuation);
+    replaceSubtree(node, letPrim);
+    push(letPrim);
+    return true;
   }
 
   void visitInvokeMethod(InvokeMethod node) {
@@ -1315,7 +1429,6 @@ class TransformingVisitor extends RecursiveVisitor {
 
     AbstractValue receiver = getValue(node.receiver.definition);
     node.receiverIsNotNull = receiver.isDefinitelyNotNull;
-    super.visitInvokeMethod(node);
   }
 
   void visitTypeCast(TypeCast node) {
@@ -1332,17 +1445,14 @@ class TransformingVisitor extends RecursiveVisitor {
         InvokeContinuation invoke =
             new InvokeContinuation(cont, <Primitive>[node.value.definition]);
         replaceSubtree(node, invoke);
-        visitInvokeContinuation(invoke);
+        push(invoke);
         return;
 
       case AbstractBool.False:
         // Cast always fails, remove unreachable continuation body.
-        assert(!reachable.contains(cont));
         replaceSubtree(cont.body, new Unreachable());
         break;
     }
-
-    super.visitTypeCast(node);
   }
 
   /// Specialize calls to internal static methods.
@@ -1361,7 +1471,7 @@ class TransformingVisitor extends RecursiveVisitor {
             InvokeContinuation invoke =
                 new InvokeContinuation(cont, <Primitive>[arg(0)]);
             replaceSubtree(node, invoke);
-            visitInvokeContinuation(invoke);
+            push(invoke);
             return true;
           }
           break;
@@ -1380,14 +1490,13 @@ class TransformingVisitor extends RecursiveVisitor {
     return value == null ? new AbstractValue.nothing() : value;
   }
 
-  void insertLetPrim(Expression node, Primitive prim) {
-    InteriorNode parent = node.parent;
-    LetPrim let = new LetPrim(prim);
-    parent.body = let;
-    let.body = node;
-    node.parent = let;
-    let.parent = parent;
-  }
+
+  /*************************** PRIMITIVES **************************/
+  //
+  // The visit method for a primitive may optionally return a new
+  // primitive. If non-null, the surrounding LetPrim will substitute it
+  // and bind the new primitive instead.
+  //
 
   void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     DartString getString(AbstractValue value) {
@@ -1461,18 +1570,21 @@ class TransformingVisitor extends RecursiveVisitor {
         // If value is null or a number, we can skip the typeof test.
         return new ApplyBuiltinOperator(
             BuiltinOperator.IsFloor,
-            <Primitive>[prim, prim]);
+            <Primitive>[prim, prim],
+            node.sourceInformation);
       }
       if (lattice.isDefinitelyNotNonIntegerDouble(value)) {
         // If the value cannot be a non-integer double, but might not be a
         // number at all, we can skip the Math.floor test.
         return new ApplyBuiltinOperator(
             BuiltinOperator.IsNumber,
-            <Primitive>[prim]);
+            <Primitive>[prim],
+            node.sourceInformation);
       }
       return new ApplyBuiltinOperator(
           BuiltinOperator.IsNumberAndFloor,
-          <Primitive>[prim, prim, prim]);
+          <Primitive>[prim, prim, prim],
+          node.sourceInformation);
     }
     return null;
   }
@@ -1483,73 +1595,6 @@ class TransformingVisitor extends RecursiveVisitor {
 
   void visitGetLength(GetLength node) {
     node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
-  }
-
-  void visitLetPrim(LetPrim node) {
-    AbstractValue value = getValue(node.primitive);
-    if (node.primitive is! Constant && value.isConstant) {
-      // If the value is a known constant, compile it as a constant.
-      Constant newPrim = makeConstantPrimitive(value.constant);
-      newPrim.substituteFor(node.primitive);
-      RemovalVisitor.remove(node.primitive);
-      node.primitive = newPrim;
-      newPrim.parent = node;
-    } else {
-      Primitive newPrim = visit(node.primitive);
-      if (newPrim != null) {
-        newPrim.substituteFor(node.primitive);
-        RemovalVisitor.remove(node.primitive);
-        node.primitive = newPrim;
-        newPrim.parent = node;
-        reanalyze(newPrim);
-      }
-      if (node.primitive.hasNoUses && node.primitive.isSafeForElimination) {
-        // Remove unused primitives before entering the body.
-        // This would also be done by shrinking reductions, but usage analyses
-        // such as isAlwaysBoolified are more precise without the dead uses, so
-        // we prefer to remove them early.
-        RemovalVisitor.remove(node.primitive);
-        node.parent.body = node.body;
-        node.body.parent = node.parent;
-      }
-    }
-    visit(node.body);
-  }
-
-  void visitLetCont(LetCont node) {
-    // Visit body before continuations to ensure more information is available
-    // about the parameters. In particular, if this is a call continuation, its
-    // invocation should be specialized before the body is processed, because
-    // we specialize definitions before their uses.
-    visit(node.body);
-    node.continuations.forEach(visit);
-  }
-
-  void visitInvokeContinuation(InvokeContinuation node) {
-    // Inline the single-use continuations. These are often introduced when
-    // specializing an invocation node. These would also be inlined by a later
-    // pass, but doing it here helps simplify pattern matching code, since the
-    // effective definition of a primitive can then be found without going
-    // through redundant InvokeContinuations.
-    Continuation cont = node.continuation.definition;
-    if (cont.hasExactlyOneUse &&
-        !cont.isReturnContinuation &&
-        !cont.isRecursive &&
-        !node.isEscapingTry) {
-      for (int i = 0; i < node.arguments.length; ++i) {
-        node.arguments[i].definition.useElementAsHint(cont.parameters[i].hint);
-        node.arguments[i].definition.substituteFor(cont.parameters[i]);
-        node.arguments[i].unlink();
-      }
-      node.continuation.unlink();
-      InteriorNode parent = node.parent;
-      Expression body = cont.body;
-      parent.body = body;
-      body.parent = parent;
-      cont.body = new Unreachable();
-      cont.body.parent = cont;
-      visit(body);
-    }
   }
 
   void visitInterceptor(Interceptor node) {
@@ -1586,11 +1631,11 @@ class TypePropagationVisitor implements Visitor {
   // TODO(jgruber): Storing reachability per-edge instead of per-node would
   // allow for further optimizations.
   final List<Node> nodeWorklist = <Node>[];
-  final Set<Node> reachableNodes = new Set<Node>();
+  final Set<Continuation> reachableContinuations = new Set<Continuation>();
 
   // The definition workset stores all definitions which need to be reprocessed
   // since their lattice value has changed.
-  final Set<Definition> defWorkset = new Set<Definition>();
+  final List<Definition> defWorklist = <Definition>[];
 
   final ConstantPropagationLattice lattice;
   final dart2js.InternalErrorFunction internalError;
@@ -1619,17 +1664,17 @@ class TypePropagationVisitor implements Visitor {
                          this.internalError);
 
   void analyze(FunctionDefinition root) {
-    reachableNodes.clear();
+    reachableContinuations.clear();
 
     // Initially, only the root node is reachable.
-    setReachable(root);
+    push(root);
 
     iterateWorklist();
   }
 
   void reanalyzeSubtree(Node node) {
-    new ResetAnalysisInfo(reachableNodes, values).visit(node);
-    setReachable(node);
+    new ResetAnalysisInfo(reachableContinuations, values).visit(node);
+    push(node);
     iterateWorklist();
   }
 
@@ -1639,10 +1684,9 @@ class TypePropagationVisitor implements Visitor {
         // Process a new reachable expression.
         Node node = nodeWorklist.removeLast();
         visit(node);
-      } else if (defWorkset.isNotEmpty) {
+      } else if (defWorklist.isNotEmpty) {
         // Process all usages of a changed definition.
-        Definition def = defWorkset.first;
-        defWorkset.remove(def);
+        Definition def = defWorklist.removeLast();
 
         // Visit all uses of this definition. This might add new entries to
         // [nodeWorklist], for example by visiting a newly-constant usage within
@@ -1656,19 +1700,23 @@ class TypePropagationVisitor implements Visitor {
     }
   }
 
+  /// Adds [node] to the worklist.
+  void push(Node node) {
+    nodeWorklist.add(node);
+  }
+
   /// If the passed node is not yet reachable, mark it reachable and add it
   /// to the work list.
-  void setReachable(Node node) {
-    if (!reachableNodes.contains(node)) {
-      reachableNodes.add(node);
-      nodeWorklist.add(node);
+  void setReachable(Continuation cont) {
+    if (reachableContinuations.add(cont)) {
+      push(cont);
     }
   }
 
   /// Returns the lattice value corresponding to [node], defaulting to nothing.
   ///
   /// Never returns null.
-  AbstractValue getValue(Node node) {
+  AbstractValue getValue(Definition node) {
     AbstractValue value = values[node];
     return (value == null) ? nothing : value;
   }
@@ -1676,7 +1724,7 @@ class TypePropagationVisitor implements Visitor {
   /// Joins the passed lattice [updateValue] to the current value of [node],
   /// and adds it to the definition work set if it has changed and [node] is
   /// a definition.
-  void setValue(Node node, AbstractValue updateValue) {
+  void setValue(Definition node, AbstractValue updateValue) {
     AbstractValue oldValue = getValue(node);
     AbstractValue newValue = lattice.join(oldValue, updateValue);
     if (oldValue == newValue) {
@@ -1687,9 +1735,7 @@ class TypePropagationVisitor implements Visitor {
     assert(newValue.kind >= oldValue.kind);
 
     values[node] = newValue;
-    if (node is Definition) {
-      defWorkset.add(node);
-    }
+    defWorklist.add(node);
   }
 
   // -------------------------- Visitor overrides ------------------------------
@@ -1701,21 +1747,21 @@ class TypePropagationVisitor implements Visitor {
                nonConstant(typeSystem.getReceiverType(node.element)));
     }
     node.parameters.forEach(visit);
-    setReachable(node.body);
+    push(node.body);
   }
 
   void visitLetPrim(LetPrim node) {
     visit(node.primitive); // No reason to delay visits to primitives.
-    setReachable(node.body);
+    push(node.body);
   }
 
   void visitLetCont(LetCont node) {
     // The continuation is only marked as reachable on use.
-    setReachable(node.body);
+    push(node.body);
   }
 
   void visitLetHandler(LetHandler node) {
-    setReachable(node.body);
+    push(node.body);
     // The handler is assumed to be reachable (we could instead treat it as
     // unreachable unless we find something reachable that might throw in the
     // body --- it's not clear if we want to do that here or in some other
@@ -1732,7 +1778,7 @@ class TypePropagationVisitor implements Visitor {
 
   void visitLetMutable(LetMutable node) {
     setValue(node.variable, getValue(node.value.definition));
-    setReachable(node.body);
+    push(node.body);
   }
 
   void visitInvokeStatic(InvokeStatic node) {
@@ -1954,10 +2000,6 @@ class TypePropagationVisitor implements Visitor {
   void visitUnreachable(Unreachable node) {
   }
 
-  void visitNonTailThrow(NonTailThrow node) {
-    internalError(null, 'found non-tail throw after they were eliminated');
-  }
-
   void visitBranch(Branch node) {
     IsTrue isTrue = node.condition;
     AbstractValue conditionCell = getValue(isTrue.value.definition);
@@ -2052,10 +2094,7 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitCreateFunction(CreateFunction node) {
-    setReachable(node.definition);
-    ConstantValue constant =
-        new FunctionConstantValue(node.definition.element);
-    setValue(node, constantValue(constant, typeSystem.functionType));
+    throw 'CreateFunction is not used';
   }
 
   void visitGetMutable(GetMutable node) {
@@ -2102,7 +2141,7 @@ class TypePropagationVisitor implements Visitor {
     node.parameters.forEach(visit);
 
     if (node.body != null) {
-      setReachable(node.body);
+      push(node.body);
     }
   }
 
@@ -2131,7 +2170,7 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitInterceptor(Interceptor node) {
-    setReachable(node.input.definition);
+    push(node.input.definition);
     AbstractValue value = getValue(node.input.definition);
     if (!value.isNothing) {
       setValue(node, nonConstant(typeSystem.nonNullType));
@@ -2294,14 +2333,21 @@ class OriginalLengthEntity extends Entity {
 }
 
 class ResetAnalysisInfo extends RecursiveVisitor {
-  Set<Node> reachableNodes;
+  Set<Continuation> reachableContinuations;
   Map<Definition, AbstractValue> values;
 
-  ResetAnalysisInfo(this.reachableNodes, this.values);
+  ResetAnalysisInfo(this.reachableContinuations, this.values);
 
-  visit(Node node) {
-    reachableNodes.remove(node);
-    if (node is Definition) values.remove(node);
-    node.accept(this);
+  processContinuation(Continuation cont) {
+    reachableContinuations.remove(cont);
+    cont.parameters.forEach(values.remove);
+  }
+
+  processLetPrim(LetPrim node) {
+    values.remove(node.primitive);
+  }
+
+  processLetMutable(LetMutable node) {
+    values.remove(node.variable);
   }
 }

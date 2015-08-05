@@ -842,7 +842,7 @@ abstract class Stream<T> {
    * the returned stream is listened to.
    */
   Stream<T> take(int count) {
-    return new _TakeStream(this, count);
+    return new _TakeStream<T>(this, count);
   }
 
   /**
@@ -864,7 +864,7 @@ abstract class Stream<T> {
    * the returned stream is listened to.
    */
   Stream<T> takeWhile(bool test(T element)) {
-    return new _TakeWhileStream(this, test);
+    return new _TakeWhileStream<T>(this, test);
   }
 
   /**
@@ -875,7 +875,7 @@ abstract class Stream<T> {
    * the returned stream is listened to.
    */
   Stream<T> skip(int count) {
-    return new _SkipStream(this, count);
+    return new _SkipStream<T>(this, count);
   }
 
   /**
@@ -891,7 +891,7 @@ abstract class Stream<T> {
    * the returned stream is listened to.
    */
   Stream<T> skipWhile(bool test(T element)) {
-    return new _SkipWhileStream(this, test);
+    return new _SkipWhileStream<T>(this, test);
   }
 
   /**
@@ -908,7 +908,7 @@ abstract class Stream<T> {
    * will individually perform the `equals` test.
    */
   Stream<T> distinct([bool equals(T previous, T next)]) {
-    return new _DistinctStream(this, equals);
+    return new _DistinctStream<T>(this, equals);
   }
 
   /**

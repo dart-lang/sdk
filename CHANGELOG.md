@@ -68,6 +68,9 @@
     * A crashing bug involving transformers that only apply to non-public code
       has been fixed.
 
+    * A deadlock caused by declaring transformer followed by a lazy transformer
+      (such as the built-in `$dart2js` transformer) has been fixed.
+
     * A stack overflow caused by a transformer being run multiple times on the
       package that defines it has been fixed.
 
@@ -75,6 +78,29 @@
       will now be re-run if that asset is later created.
 
 [package spec proposal]: https://github.com/lrhn/dep-pkgspec
+
+* Formatter (`dartfmt`)
+
+  * Over 50 bugs fixed.
+
+  * Optimized line splitter is much faster and produces better output on
+    complex code.
+
+### VM Service Protocol Changes
+
+* **BREAKING** The service protocol now sends JSON-RPC 2.0-compatible
+  server-to-client events. To reflect this, the service protocol version is
+  now 2.0.
+
+* The service protocol now includes a `"jsonrpc"` property in its responses, as
+  opposed to `"json-rpc"`.
+
+* The service protocol now properly handles requests with non-string ids.
+  Numeric ids are no longer converted to strings, and null ids now don't produce
+  a response.
+
+* Some RPCs that didn't include a `"jsonrpc"` property in their responses now
+  include one.
 
 ## 1.11.2
 

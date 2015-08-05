@@ -1501,8 +1501,8 @@ class Scanner {
         }
         recordStartOfLine();
       } else if (next == 0xA) {
-        recordStartOfLine();
         next = _reader.advance();
+        recordStartOfLine();
       } else {
         next = _reader.advance();
       }
@@ -2010,9 +2010,7 @@ class Token {
   /**
    * Initialize a newly created token to have the given [type] and [offset].
    */
-  Token(this.type, int offset) {
-    this.offset = offset;
-  }
+  Token(this.type, this.offset);
 
   /**
    * Return the offset from the beginning of the file to the character after the

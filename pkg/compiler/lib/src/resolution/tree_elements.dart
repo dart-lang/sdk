@@ -12,8 +12,12 @@ abstract class TreeElements {
   /// [analyzedElement].
   Iterable<Element> get allElements;
 
+  /// The set of types that this TreeElement depends on.
+  /// This includes instantiated types, types in is-checks and as-expressions
+  /// and in checked mode the types of all type-annotations.
+  Iterable<DartType> get requiredTypes;
+
   void forEachConstantNode(f(Node n, ConstantExpression c));
-  void forEachType(f(Node n, DartType t));
 
   /// A set of additional dependencies.  See [registerDependency] below.
   Iterable<Element> get otherDependencies;
@@ -71,6 +75,9 @@ abstract class TreeElements {
   /// For example, elements that are used by a backend.
   void registerDependency(Element element);
 
+  /// Register a dependency on [type].
+  void addRequiredType(DartType type);
+
   /// Returns a list of nodes that potentially mutate [element] anywhere in its
   /// scope.
   List<Node> getPotentialMutations(VariableElement element);
@@ -112,6 +119,7 @@ class TreeElementMapping extends TreeElements {
   Setlet<Element> _elements;
   Setlet<Send> _asserts;
   Maplet<Send, SendStructure> _sendStructureMap;
+  Setlet<DartType> _requiredTypes;
 
   /// Map from nodes to the targets they define.
   Map<Node, JumpTarget> _definedTargets;
@@ -175,9 +183,16 @@ class TreeElementMapping extends TreeElements {
 
   DartType getType(Node node) => _types != null ? _types[node] : null;
 
-  void forEachType(f(Node n, DartType t)) {
-    if (_types != null) {
-      _types.forEach(f);
+  void addRequiredType(DartType type) {
+    if (_requiredTypes == null) _requiredTypes = new Setlet<DartType>();
+    _requiredTypes.add(type);
+  }
+
+  Iterable<DartType> get requiredTypes {
+    if (_requiredTypes == null) {
+      return const <DartType>[];
+    } else {
+      return _requiredTypes;
     }
   }
 

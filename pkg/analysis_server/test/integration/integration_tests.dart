@@ -16,6 +16,7 @@ import 'package:unittest/unittest.dart';
 
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
+import 'package:analysis_server/src/server/driver.dart' as analysisServer;
 
 const Matcher isBool = const isInstanceOf<bool>('bool');
 
@@ -590,7 +591,8 @@ class Server {
    * "--pause-isolates-on-exit", allowing the observatory to be used.
    */
   Future start({bool debugServer: false, int diagnosticPort,
-      bool profileServer: false, bool useAnalysisHighlight2: false}) {
+      bool profileServer: false, bool newTaskModel: false,
+      bool useAnalysisHighlight2: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
     }
@@ -618,6 +620,9 @@ class Server {
     }
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
+    }
+    if (newTaskModel) {
+      arguments.add('--${analysisServer.Driver.ENABLE_NEW_TASK_MODEL}');
     }
     return Process.start(dartBinary, arguments).then((Process process) {
       _process = process;

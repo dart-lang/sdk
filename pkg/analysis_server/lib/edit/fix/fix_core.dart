@@ -5,6 +5,7 @@
 library analysis_server.edit.fix.fix_core;
 
 import 'package:analysis_server/src/protocol.dart' show SourceChange;
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 
@@ -24,7 +25,8 @@ class Fix {
    * relevant fixes will be sorted before fixes with a lower relevance.
    */
   static final Comparator<Fix> SORT_BY_RELEVANCE = (Fix firstFix,
-      Fix secondFix) => firstFix.kind.relevance - secondFix.kind.relevance;
+          Fix secondFix) =>
+      firstFix.kind.relevance - secondFix.kind.relevance;
 
   /**
    * A description of the fix being proposed.
@@ -59,7 +61,8 @@ abstract class FixContributor {
    * Return a list of fixes for the given [error]. The error was reported
    * after it's source was analyzed in the given [context].
    */
-  List<Fix> computeFixes(AnalysisContext context, AnalysisError error);
+  List<Fix> computeFixes(ResourceProvider resourceProvider,
+      AnalysisContext context, AnalysisError error);
 }
 
 /**

@@ -1364,28 +1364,31 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
   }
   Isolate* isolate = Dart::CreateIsolate(isolate_name, *flags);
   free(isolate_name);
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
-  // We enter an API scope here as InitializeIsolate could compile some
-  // bootstrap library files which call out to a tag handler that may create
-  // Api Handles when an error is encountered.
-  Dart_EnterScope();
-  const Error& error_obj =
-      Error::Handle(isolate, Dart::InitializeIsolate(snapshot, callback_data));
-  if (error_obj.IsNull()) {
-#if defined(DART_NO_SNAPSHOT)
-    if (FLAG_check_function_fingerprints) {
-      Library::CheckFunctionFingerprints();
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    // We enter an API scope here as InitializeIsolate could compile some
+    // bootstrap library files which call out to a tag handler that may create
+    // Api Handles when an error is encountered.
+    Dart_EnterScope();
+    const Error& error_obj =
+        Error::Handle(isolate,
+                      Dart::InitializeIsolate(snapshot, callback_data));
+    if (error_obj.IsNull()) {
+  #if defined(DART_NO_SNAPSHOT)
+      if (FLAG_check_function_fingerprints) {
+        Library::CheckFunctionFingerprints();
+      }
+  #endif  // defined(DART_NO_SNAPSHOT).
+      // We exit the API scope entered above.
+      Dart_ExitScope();
+      START_TIMER(isolate, time_total_runtime);
+      return Api::CastIsolate(isolate);
     }
-#endif  // defined(DART_NO_SNAPSHOT).
+    *error = strdup(error_obj.ToErrorCString());
     // We exit the API scope entered above.
     Dart_ExitScope();
-    START_TIMER(isolate, time_total_runtime);
-    return Api::CastIsolate(isolate);
   }
-  *error = strdup(error_obj.ToErrorCString());
-  // We exit the API scope entered above.
-  Dart_ExitScope();
   Dart::ShutdownIsolate();
   return reinterpret_cast<Dart_Isolate>(NULL);
 }
@@ -1439,7 +1442,7 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
   // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  if (iso->mutator_thread() != NULL) {
+  if (iso->HasMutatorThread()) {
     FATAL("Multiple mutators within one isolate is not supported.");
   }
   Thread::EnsureInit();
@@ -1773,19 +1776,20 @@ DART_EXPORT Dart_Port Dart_GetMainPortId() {
 // --- Scopes ----
 
 DART_EXPORT void Dart_EnterScope() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   ApiLocalScope* new_scope = state->reusable_scope();
   if (new_scope == NULL) {
     new_scope = new ApiLocalScope(state->top_scope(),
-                                  isolate->top_exit_frame_info());
+                                  thread->top_exit_frame_info());
     ASSERT(new_scope != NULL);
   } else {
-    new_scope->Reinit(isolate,
+    new_scope->Reinit(thread,
                       state->top_scope(),
-                      isolate->top_exit_frame_info());
+                      thread->top_exit_frame_info());
     state->set_reusable_scope(NULL);
   }
   state->set_top_scope(new_scope);  // New scope is now the top scope.
@@ -1793,14 +1797,15 @@ DART_EXPORT void Dart_EnterScope() {
 
 
 DART_EXPORT void Dart_ExitScope() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   CHECK_ISOLATE_SCOPE(isolate);
   ApiState* state = isolate->api_state();
   ApiLocalScope* scope = state->top_scope();
   ApiLocalScope* reusable_scope = state->reusable_scope();
   state->set_top_scope(scope->previous());  // Reset top scope to previous.
   if (reusable_scope == NULL) {
-    scope->Reset(isolate);  // Reset the old scope which we just exited.
+    scope->Reset(thread);  // Reset the old scope which we just exited.
     state->set_reusable_scope(scope);
   } else {
     ASSERT(reusable_scope != scope);
@@ -3587,7 +3592,8 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
                                                   Dart_TypedData_Type* type,
                                                   void** data,
                                                   intptr_t* len) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   DARTSCOPE(isolate);
   intptr_t class_id = Api::ClassId(object);
   if (!RawObject::IsExternalTypedDataClassId(class_id) &&
@@ -3625,7 +3631,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     ASSERT(!obj.IsNull());
     length = obj.Length();
     size_in_bytes = length * TypedData::ElementSizeInBytes(class_id);
-    isolate->IncrementNoSafepointScopeDepth();
+    thread->IncrementNoSafepointScopeDepth();
     START_NO_CALLBACK_SCOPE(isolate);
     data_tmp = obj.DataAddr(0);
   } else {
@@ -3639,7 +3645,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     val ^= TypedDataView::OffsetInBytes(view_obj);
     intptr_t offset_in_bytes = val.Value();
     const Instance& obj = Instance::Handle(TypedDataView::Data(view_obj));
-    isolate->IncrementNoSafepointScopeDepth();
+    thread->IncrementNoSafepointScopeDepth();
     START_NO_CALLBACK_SCOPE(isolate);
     if (TypedData::IsTypedData(obj)) {
       const TypedData& data_obj = TypedData::Cast(obj);
@@ -3677,7 +3683,8 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
 
 
 DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   DARTSCOPE(isolate);
   intptr_t class_id = Api::ClassId(object);
   if (!RawObject::IsExternalTypedDataClassId(class_id) &&
@@ -3686,7 +3693,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
     RETURN_TYPE_ERROR(isolate, object, 'TypedData');
   }
   if (!RawObject::IsExternalTypedDataClassId(class_id)) {
-    isolate->DecrementNoSafepointScopeDepth();
+    thread->DecrementNoSafepointScopeDepth();
     END_NO_CALLBACK_SCOPE(isolate);
   }
   if (FLAG_verify_acquired_data) {

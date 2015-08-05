@@ -33,18 +33,8 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, new_gen_semi_max_size, (kWordSize <= 4) ? 16 : 32,
-            "Max size of new gen semi space in MB");
-DEFINE_FLAG(int, old_gen_heap_size, 0,
-            "Max size of old gen heap size in MB, or 0 for unlimited,"
-            "e.g: --old_gen_heap_size=1024 allows up to 1024MB old gen heap");
-DEFINE_FLAG(int, external_max_size, (kWordSize <= 4) ? 512 : 1024,
-            "Max total size of external allocations in MB, or 0 for unlimited,"
-            "e.g: --external_max_size=1024 allows up to 1024MB of externals");
-
 DEFINE_FLAG(bool, keep_code, false,
             "Keep deoptimized code for profiling.");
-
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
 
@@ -129,10 +119,6 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
 
     StackZone zone(vm_isolate_);
     HandleScope handle_scope(vm_isolate_);
-    Heap::Init(vm_isolate_,
-               0,  // New gen size 0; VM isolate should only allocate in old.
-               FLAG_old_gen_heap_size * MBInWords,
-               FLAG_external_max_size * MBInWords);
     Object::InitNull(vm_isolate_);
     ObjectStore::Init(vm_isolate_);
     TargetCPUFeatures::InitOnce();
@@ -250,10 +236,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   ASSERT(isolate != NULL);
   StackZone zone(isolate);
   HandleScope handle_scope(isolate);
-  Heap::Init(isolate,
-             FLAG_new_gen_semi_max_size * MBInWords,
-             FLAG_old_gen_heap_size * MBInWords,
-             FLAG_external_max_size * MBInWords);
   ObjectStore::Init(isolate);
 
   // Setup for profiling.

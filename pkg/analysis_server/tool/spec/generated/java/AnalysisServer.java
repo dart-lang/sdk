@@ -351,6 +351,23 @@ public interface AnalysisServer {
   public void edit_getRefactoring(String kind, String file, int offset, int length, boolean validateOnly, RefactoringOptions options, GetRefactoringConsumer consumer);
 
   /**
+   * {@code edit.organizeDirectives}
+   *
+   * Organizes all of the directives - removes unused imports and sorts directives of the given Dart
+   * file according to the Dart Style Guide.
+   *
+   * If a request is made for a file that does not exist, does not belong to an analysis root or is
+   * not a Dart file, FILE_NOT_ANALYZED will be generated.
+   *
+   * If directives of the Dart file cannot be organized, for example because it has scan or parse
+   * errors, or by other reasons, ORGANIZE_DIRECTIVES_ERROR will be generated. The message will
+   * provide datails about the reason.
+   *
+   * @param file The Dart file to organize directives in.
+   */
+  public void edit_organizeDirectives(String file, OrganizeDirectivesConsumer consumer);
+
+  /**
    * {@code edit.sortMembers}
    *
    * Sort all of the directives, unit and class members of the given Dart file.

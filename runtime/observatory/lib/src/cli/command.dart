@@ -78,7 +78,7 @@ abstract class _CommandBase {
   List<Command> _match(List<String> args, bool preferExact) {
     if (args.isEmpty) {
       return [];
-    }    
+    }
     bool lastArg = (args.length == 1);
     var matches = _matchLocal(args[0], !lastArg || preferExact);
     if (matches.isEmpty) {

@@ -41,6 +41,12 @@ const TYPEDEF_TYPE_PROPERTY_NAME = r"$typedefType";
 /// native class.
 const NATIVE_SUPERCLASS_TAG_NAME = r"$nativeSuperclassTag";
 
+/// The name of the static-function property name.
+///
+/// This property is set for all tear-offs of static functions, and provides
+/// the static function's unique (potentially minified) name.
+const STATIC_FUNCTION_NAME_PROPERTY_NAME = r'$static_name';
+
 
 /// The name of the embedded global for metadata.
 ///
@@ -53,10 +59,6 @@ const METADATA = 'metadata';
 ///
 /// Use [JsBuiltin.getType] instead of directly accessing this embedded global.
 const TYPES = 'types';
-
-/// An embedded global name that can be used to store a mapping from
-/// static function names to dart-closure getters.
-const GLOBAL_FUNCTIONS = 'globalFunctions';
 
 /// Returns a function that maps a name of a class to its type.
 ///
@@ -77,8 +79,10 @@ const MANGLED_GLOBAL_NAMES = 'mangledGlobalNames';
 
 /// A JS map from mangled instance names to their unmangled names.
 ///
-/// If the program does not use reflection, this embedded global may be empty
-/// (but not null or undefined).
+/// This embedded global is mainly used for reflection, but is also used to
+/// map const-symbols (`const Symbol('x')`) to the mangled instance names.
+///
+/// This embedded global may be empty (but not null or undefined).
 const MANGLED_NAMES = 'mangledNames';
 
 /// A JS map from dispatch tags (usually constructor names of DOM classes) to
@@ -235,11 +239,30 @@ const DEFERRED_INITIALIZED = 'deferredInitialized';
 const PRECOMPILED = 'precompiled';
 
 /// An emitter-internal embedded global. This global is not used by the runtime.
+const FINISHED_CLASSES = 'finishedClasses';
+
+/// An emitter-internal embedded global. This global is not used by the runtime.
 ///
 /// The constant remains in this file to make sure that other embedded globals
 /// don't clash with it.
-const FINISHED_CLASSES = 'finishedClasses';
+///
+/// It can be used by the compiler to store a mapping from static function names
+/// to dart-closure getters (which can be useful for
+/// [JsBuiltin.createDartClosureFromNameOfStaticFunction].
+const GLOBAL_FUNCTIONS = 'globalFunctions';
 
+/// An emitter-internal embedded global. This global is not used by the runtime.
+///
+/// The constant remains in this file to make sure that other embedded globals
+/// don't clash with it.
+///
+/// This embedded global stores a function that returns a dart-closure getter
+/// for a given static function name.
+///
+/// This embedded global is used to implement
+/// [JsBuiltin.createDartClosureFromNameOfStaticFunction], and is only
+/// used with isolates.
+const STATIC_FUNCTION_NAME_TO_CLOSURE = 'staticFunctionNameToClosure';
 
 /// A JavaScript object literal that maps the (minified) JavaScript constructor
 /// name (as given by [JsBuiltin.rawRtiToJsConstructorName] to the
@@ -257,6 +280,7 @@ const TYPE_INFORMATION = 'typeInformation';
 ///
 /// This embedded global is only used by reflection.
 const STATICS = 'statics';
+
 
 /// An array of library descriptors.
 ///
@@ -391,4 +415,16 @@ enum JsBuiltin {
   ///     JS_BUILTIN('returns:var;effects:none;depends:none',
   ///                JsBuiltin.getType, index);
   getType,
+
+  /// Returns a Dart closure for the global function with the given [name].
+  ///
+  /// The [name] is the globally unique (minified) JavaScript name of the
+  /// function (same as the one stored in [STATIC_FUNCTION_NAME_PROPERTY_NAME])
+  ///
+  /// This builtin is used when a static closure was sent to a different
+  /// isolate.
+  ///
+  ///     JS_BUILTIN('returns:Function',
+  ///                JsBuiltin.createDartClosureFromNameOfStaticFunction, name);
+  createDartClosureFromNameOfStaticFunction,
 }

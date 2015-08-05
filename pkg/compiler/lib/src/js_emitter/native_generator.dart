@@ -17,7 +17,7 @@ class NativeGenerator {
   static jsAst.Statement generateIsolateAffinityTagInitialization(
       JavaScriptBackend backend,
       jsAst.Expression generateEmbeddedGlobalAccess(String global),
-      jsAst.Expression convertToFastObject) {
+      jsAst.Expression internStringFunction) {
     assert(backend.needToInitializeIsolateAffinityTag);
 
     jsAst.Expression getIsolateTagAccess =
@@ -29,13 +29,7 @@ class NativeGenerator {
 
     return js.statement('''
       !function() {
-        // On V8, the 'intern' function converts a string to a symbol, which
-        // makes property access much faster.
-        function intern(s) {
-          var o = {};
-          o[s] = 1;
-          return Object.keys(#convertToFastObject(o))[0];
-        }
+        var intern = #internStringFunction;
 
         #getIsolateTag = function(name) {
           return intern("___dart_" + name + #isolateTag);
@@ -63,7 +57,7 @@ class NativeGenerator {
       }();
     ''',
     {'initializeDispatchProperty': backend.needToInitializeDispatchProperty,
-     'convertToFastObject': convertToFastObject,
+     'internStringFunction': internStringFunction,
      'getIsolateTag': getIsolateTagAccess,
      'isolateTag': isolateTagAccess,
      'dispatchPropertyName': dispatchPropertyNameAccess});

@@ -70,12 +70,10 @@ class StackResource {
   // The thread that owns this resource.
   Thread* thread() const { return thread_; }
 
-  // Destroy stack resources of isolate until top exit frame.
-  // TODO(koda): Migrate to Thread.
-  static void Unwind(Isolate* isolate) { UnwindAbove(isolate, NULL); }
-  // TODO(koda): Migrate to Thread.
-  // Destroy stack resources of isolate above new_top, exclusive.
-  static void UnwindAbove(Isolate* isolate, StackResource* new_top);
+  // Destroy stack resources of thread until top exit frame.
+  static void Unwind(Thread* thread) { UnwindAbove(thread, NULL); }
+  // Destroy stack resources of thread above new_top, exclusive.
+  static void UnwindAbove(Thread* thread, StackResource* new_top);
 
  private:
   void Init(Thread* thread) {

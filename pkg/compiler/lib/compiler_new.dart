@@ -67,7 +67,12 @@ abstract class CompilerDiagnostics {
   /// zero-based character offsets from the beginning of the compilation unit.
   /// [message] is the diagnostic message, and [kind] indicates indicates what
   /// kind of diagnostic it is.
-  void report(Uri uri, int begin, int end, String message, Diagnostic kind);
+  ///
+  /// Experimental: [code] gives access to an id for the messages. Currently it
+  /// is the [Message] used to create the diagnostic, if available, from which
+  /// the [MessageKind] is accessible.
+  void report(var code,
+              Uri uri, int begin, int end, String text, Diagnostic kind);
 }
 
 /// Information resulting from the compilation.

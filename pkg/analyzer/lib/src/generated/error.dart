@@ -40,9 +40,9 @@ class AnalysisError {
     ErrorCode errorCode2 = o2.errorCode;
     ErrorSeverity errorSeverity1 = errorCode1.errorSeverity;
     ErrorSeverity errorSeverity2 = errorCode2.errorSeverity;
-    ErrorType errorType1 = errorCode1.type;
-    ErrorType errorType2 = errorCode2.type;
     if (errorSeverity1 == errorSeverity2) {
+      ErrorType errorType1 = errorCode1.type;
+      ErrorType errorType2 = errorCode2.type;
       return errorType1.compareTo(errorType2);
     } else {
       return errorSeverity2.compareTo(errorSeverity1);
@@ -80,7 +80,7 @@ class AnalysisError {
    * The number of characters from the offset to the end of the source which
    * encompasses the compilation error.
    */
-  int _length = 0;
+  int length = 0;
 
   /**
    * A flag indicating whether this error can be shown to be a non-issue because
@@ -94,9 +94,8 @@ class AnalysisError {
    * [length]. The error will have the given [errorCode] and the list of
    * [arguments] will be used to complete the message.
    */
-  AnalysisError(this.source, this.offset, int length, this.errorCode,
+  AnalysisError(this.source, this.offset, this.length, this.errorCode,
       [List<Object> arguments]) {
-    this._length = length;
     this._message = formatList(errorCode.message, arguments);
     String correctionTemplate = errorCode.correction;
     if (correctionTemplate != null) {
@@ -141,13 +140,6 @@ class AnalysisError {
   }
 
   /**
-   * Return the length of the error location, that is, the number of characters
-   * from the offset to the end of the source which encompasses the compilation
-   * error.
-   */
-  int get length => _length;
-
-  /**
    * Return the message to be displayed for this error. The message should
    * indicate what is wrong and why it is wrong.
    */
@@ -167,7 +159,7 @@ class AnalysisError {
     if (!identical(errorCode, other.errorCode)) {
       return false;
     }
-    if (offset != other.offset || _length != other._length) {
+    if (offset != other.offset || length != other.length) {
       return false;
     }
     if (isStaticOnly != other.isStaticOnly) {
@@ -197,7 +189,7 @@ class AnalysisError {
     buffer.write("(");
     buffer.write(offset);
     buffer.write("..");
-    buffer.write(offset + _length - 1);
+    buffer.write(offset + length - 1);
     buffer.write("): ");
     //buffer.write("(" + lineNumber + ":" + columnNumber + "): ");
     buffer.write(_message);

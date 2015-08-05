@@ -35,8 +35,8 @@ void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
   const String& string_object =
       String::ZoneHandle(String::New(str, Heap::kOld));
   __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer(PP);
-  __ LoadObject(RAX, string_object, PP);
+  __ LoadPoolPointer();
+  __ LoadObject(RAX, string_object);
   __ popq(PP);  // Restore caller's pool pointer.
   __ ret();
 }

@@ -544,15 +544,6 @@ class ProfileFunction {
     }
     profileCodes.sort(_sortCodes);
 
-    if (hasOptimizedCode()) {
-      attributes.add('optimized');
-    }
-    if (hasUnoptimizedCode()) {
-      attributes.add('unoptimized');
-    }
-    if (isInlined()) {
-      attributes.add('inlined');
-    }
     _addKindBasedAttributes(attributes);
     exclusiveTicks = int.parse(data['exclusiveTicks']);
     inclusiveTicks = int.parse(data['inclusiveTicks']);

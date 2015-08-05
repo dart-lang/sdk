@@ -32,6 +32,13 @@ main() {
 
   Expect.equals("Hello 42", B2);
   Expect.equals("42Hello", B3); /// 10: compile-time error
+
+  const cf1 = identical(const Point(1, 2), const Point(1, 2));
+
+  const cf2 = identical(const Point(1, 2), new Point(1, 2));  /// 11: compile-time error
+
+  var f4 = B4;   /// 12: compile-time error
+  var f5 = B5;
 }
 
 const F0 = 42;
@@ -75,3 +82,8 @@ const B0 = 42;
 const B1 = "Hello";
 const B2 = "$B1 $B0";
 const B3 = B0 + B1; /// 10: continued
+
+// Check identical.
+
+const B4 = identical(1, new Point(1,2));  /// 12: compile-time error
+const B5 = identical(1, const Point(1,2));

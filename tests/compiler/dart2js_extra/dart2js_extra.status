@@ -85,3 +85,6 @@ mirror_printer_test: Crash # (static Iterable<Str...  cannot handle async/sync*/
 mirror_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 reflect_native_types_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 switch_test/none: Crash # (switch (val){foo:ba...  continue to a labeled switch case
+
+[ $compiler == none && $runtime == vm ]
+invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy

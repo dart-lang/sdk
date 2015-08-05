@@ -155,7 +155,7 @@ class ClassTable {
     return table_[index];
   }
 
-  intptr_t IsValidIndex(intptr_t index) const {
+  bool IsValidIndex(intptr_t index) const {
     return (index > 0) && (index < top_);
   }
 
@@ -205,8 +205,7 @@ class ClassTable {
   static intptr_t CounterOffsetFor(intptr_t cid, bool is_new_space);
 
   // Used by the generated code.
-  ClassHeapStats** StateAddressFor(intptr_t cid,
-                                   intptr_t* state_offset);
+  static intptr_t StateOffsetFor(intptr_t cid);
 
   // Used by the generated code.
   static intptr_t SizeOffsetFor(intptr_t cid, bool is_new_space);

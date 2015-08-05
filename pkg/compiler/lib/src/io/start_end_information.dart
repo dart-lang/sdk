@@ -9,6 +9,7 @@ library dart2js.source_information.start_end;
 
 import '../dart2jslib.dart' show
     MessageKind,
+    MessageTemplate,
     SourceSpan;
 import '../elements/elements.dart' show
     AstElement,
@@ -182,10 +183,11 @@ class StartEndSourceInformationBuilder extends SourceInformationBuilder {
   void checkValidSourceFileLocation(
       SourceLocation location, SourceFile sourceFile, int offset) {
     if (!location.isValid) {
-      throw MessageKind.INVALID_SOURCE_FILE_LOCATION.message(
-          {'offset': offset,
-           'fileName': sourceFile.filename,
-           'length': sourceFile.length});
+      throw MessageTemplate.TEMPLATES[MessageKind.INVALID_SOURCE_FILE_LOCATION]
+          .message(
+              {'offset': offset,
+               'fileName': sourceFile.filename,
+               'length': sourceFile.length});
     }
   }
 

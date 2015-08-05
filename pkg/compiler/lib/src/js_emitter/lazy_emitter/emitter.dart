@@ -42,6 +42,9 @@ class Emitter implements emitterTask.Emitter {
         _emitter = new ModelEmitter(compiler, namer, nativeEmitter);
 
   @override
+  String get patchVersion => "lazy";
+
+  @override
   int emitProgram(ProgramBuilder programBuilder) {
     Program program = programBuilder.buildProgram();
     return _emitter.emitProgram(program);
@@ -173,6 +176,9 @@ class Emitter implements emitterTask.Emitter {
 
       case JsBuiltin.getType:
         return _emitter.templateForReadType;
+
+      case JsBuiltin.createDartClosureFromNameOfStaticFunction:
+        throw new UnsupportedError('createDartClosureFromNameOfStaticFunction');
 
       default:
         _compiler.internalError(NO_LOCATION_SPANNABLE,

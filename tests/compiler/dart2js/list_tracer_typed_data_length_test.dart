@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
+import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/types/types.dart'
     show ContainerTypeMask, TypeMask;
+import 'package:compiler/src/dart2jslib.dart';
 
 import 'memory_compiler.dart';
 import 'compiler_helper.dart' show findElement;
@@ -25,8 +26,9 @@ main() {
 '''};
 
 void main() {
-  var compiler = compilerFor(TEST);
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+  asyncTest(() async {
+    CompilationResult result = await runCompiler(memorySourceFiles: TEST);
+    Compiler compiler = result.compiler;
     var typesInferrer = compiler.typesTask.typesInferrer;
 
     checkType(String name, type, length) {
@@ -40,5 +42,5 @@ void main() {
 
     checkType('myList', compiler.typesTask.numType, 42);
     checkType('myOtherList', compiler.typesTask.uint31Type, 32);
-  }));
+  });
 }

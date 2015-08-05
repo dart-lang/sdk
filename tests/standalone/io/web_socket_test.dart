@@ -42,6 +42,13 @@ class SecurityConfiguration {
   Future<WebSocket> createClient(int port) =>
     WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/');
 
+  checkCloseStatus(webSocket, closeStatus, closeReason) {
+    Expect.equals(closeStatus == null ? WebSocketStatus.NO_STATUS_RECEIVED
+                                      : closeStatus, webSocket.closeCode);
+    Expect.equals(closeReason == null ? ""
+                                      : closeReason, webSocket.closeReason);
+  }
+
   void testRequestResponseClientCloses(int totalConnections,
                                        int closeStatus,
                                        String closeReason,
@@ -55,12 +62,7 @@ class SecurityConfiguration {
         webSocket.listen(
             webSocket.add,
             onDone: () {
-              Expect.equals(closeStatus == null
-                            ? WebSocketStatus.NO_STATUS_RECEIVED
-                            : closeStatus, webSocket.closeCode);
-              Expect.equals(
-                  closeReason == null ? ""
-                                      : closeReason, webSocket.closeReason);
+              checkCloseStatus(webSocket, closeStatus, closeReason);
               asyncEnd();
             });
         }, onDone: () {
@@ -85,10 +87,7 @@ class SecurityConfiguration {
                 }
               },
               onDone: () {
-                Expect.equals(closeStatus == null
-                              ? WebSocketStatus.NO_STATUS_RECEIVED
-                              : closeStatus, webSocket.closeCode);
-                Expect.equals("", webSocket.closeReason);
+                checkCloseStatus(webSocket, closeStatus, closeReason);
                 closeCount++;
                 if (closeCount == totalConnections) {
                   server.close();
@@ -119,10 +118,7 @@ class SecurityConfiguration {
               }
             },
             onDone: () {
-              Expect.equals(closeStatus == null
-                            ? WebSocketStatus.NO_STATUS_RECEIVED
-                            : closeStatus, webSocket.closeCode);
-              Expect.equals("", webSocket.closeReason);
+              checkCloseStatus(webSocket, closeStatus, closeReason);
               closeCount++;
               if (closeCount == totalConnections) {
                 server.close();
@@ -136,12 +132,7 @@ class SecurityConfiguration {
             webSocket.listen(
                 webSocket.add,
                 onDone: () {
-                  Expect.equals(closeStatus == null
-                                ? WebSocketStatus.NO_STATUS_RECEIVED
-                                : closeStatus, webSocket.closeCode);
-                  Expect.equals(closeReason == null
-                                ? ""
-                                : closeReason, webSocket.closeReason);
+                  checkCloseStatus(webSocket, closeStatus, closeReason);
                 });
             });
       }
@@ -363,8 +354,7 @@ class SecurityConfiguration {
               }
             },
             onDone: () {
-              Expect.equals(closeStatus, webSocket.closeCode);
-              Expect.equals("", webSocket.closeReason);
+              checkCloseStatus(webSocket, closeStatus, closeReason);
               closeCount++;
               if (closeCount == totalConnections) {
                 server.close();

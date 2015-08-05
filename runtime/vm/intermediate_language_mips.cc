@@ -993,10 +993,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
   const bool is_leaf_call =
     (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
-  StubCode* stub_code = compiler->isolate()->stub_code();
-  const ExternalLabel* stub_entry;
+  const StubEntry* stub_entry = NULL;
   if (is_bootstrap_native() || is_leaf_call) {
-    stub_entry = &stub_code->CallBootstrapCFunctionLabel();
+    stub_entry = StubCode::CallBootstrapCFunction_entry();
 #if defined(USING_SIMULATOR)
     entry = Simulator::RedirectExternalReference(
         entry, Simulator::kBootstrapNativeCall, function().NumParameters());
@@ -1005,7 +1004,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // In the case of non bootstrap native methods the CallNativeCFunction
     // stub generates the redirection address when running under the simulator
     // and hence we do not change 'entry' here.
-    stub_entry = &stub_code->CallNativeCFunctionLabel();
+    stub_entry = StubCode::CallNativeCFunction_entry();
 #if defined(USING_SIMULATOR)
     if (!function().IsNativeAutoSetupScope()) {
       entry = Simulator::RedirectExternalReference(
@@ -1016,7 +1015,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(T5, entry);
   __ LoadImmediate(A1, argc_tag);
   compiler->GenerateCall(token_pos(),
-                         stub_entry,
+                         *stub_entry,
                          RawPcDescriptors::kOther,
                          locs());
   __ Pop(result);
@@ -1035,6 +1034,7 @@ LocationSummary* StringFromCharCodeInstr::MakeLocationSummary(Zone* zone,
 
 
 void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(compiler->is_optimizing());
   Register char_code = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
 
@@ -1838,7 +1838,6 @@ class BoxAllocationSlowPath : public SlowPathCode {
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     Isolate* isolate = compiler->isolate();
-    StubCode* stub_code = isolate->stub_code();
 
     if (Assembler::EmittingComments()) {
       __ Comment("%s slow path allocation of %s",
@@ -1847,17 +1846,18 @@ class BoxAllocationSlowPath : public SlowPathCode {
     }
     __ Bind(entry_label());
     const Code& stub =
-        Code::Handle(isolate, stub_code->GetAllocationStubForClass(cls_));
-    const ExternalLabel label(stub.EntryPoint());
+        Code::Handle(isolate, StubCode::GetAllocationStubForClass(cls_));
+    const StubEntry stub_entry(stub);
 
     LocationSummary* locs = instruction_->locs();
     locs->live_registers()->Remove(Location::RegisterLocation(result_));
 
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
-                           &label,
+                           stub_entry,
                            RawPcDescriptors::kOther,
                            locs);
+    compiler->AddStubCallTarget(stub);
     if (result_ != V0) {
       __ mov(result_, V0);
     }
@@ -2246,15 +2246,10 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ Bind(&slow_path);
-  Isolate* isolate = compiler->isolate();
-  const Code& stub = Code::Handle(
-      isolate, isolate->stub_code()->GetAllocateArrayStub());
-  const ExternalLabel label(stub.EntryPoint());
   compiler->GenerateCall(token_pos(),
-                         &label,
+                         *StubCode::AllocateArray_entry(),
                          RawPcDescriptors::kOther,
                          locs());
-  compiler->AddStubCallTarget(stub);
   __ Bind(&done);
   ASSERT(locs()->out(0).reg() == kResultReg);
 }
@@ -2500,10 +2495,8 @@ class AllocateContextSlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
 
     __ LoadImmediate(T1, instruction_->num_context_variables());
-    StubCode* stub_code = compiler->isolate()->stub_code();
-    const ExternalLabel label(stub_code->AllocateContextEntryPoint());
     compiler->GenerateCall(instruction_->token_pos(),
-                           &label,
+                           *StubCode::AllocateContext_entry(),
                            RawPcDescriptors::kOther,
                            locs);
     ASSERT(instruction_->locs()->out(0).reg() == V0);
@@ -2559,10 +2552,8 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ Comment("AllocateContextInstr");
   __ LoadImmediate(T1, num_context_variables());
-  StubCode* stub_code = compiler->isolate()->stub_code();
-  const ExternalLabel label(stub_code->AllocateContextEntryPoint());
   compiler->GenerateCall(token_pos(),
-                         &label,
+                         *StubCode::AllocateContext_entry(),
                          RawPcDescriptors::kOther,
                          locs());
 }
@@ -2752,8 +2743,13 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  __ LoadImmediate(TMP, Isolate::Current()->stack_limit_address());
-  __ lw(CMPRES1, Address(TMP));
+  if (compiler->is_optimizing()) {
+    __ LoadImmediate(TMP, Isolate::Current()->stack_limit_address());
+    __ lw(CMPRES1, Address(TMP));
+  } else {
+    __ LoadIsolate(TMP);
+    __ lw(CMPRES1, Address(TMP, Isolate::stack_limit_offset()));
+  }
   __ BranchUnsignedLessEqual(SP, CMPRES1, slow_path->entry_label());
   if (compiler->CanOSRFunction() && in_loop()) {
     Register temp = locs()->temp(0).reg();
@@ -5544,12 +5540,11 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Comment("AllocateObjectInstr");
   Isolate* isolate = compiler->isolate();
-  StubCode* stub_code = isolate->stub_code();
   const Code& stub = Code::Handle(isolate,
-                                  stub_code->GetAllocationStubForClass(cls()));
-  const ExternalLabel label(stub.EntryPoint());
+                                  StubCode::GetAllocationStubForClass(cls()));
+  const StubEntry stub_entry(stub);
   compiler->GenerateCall(token_pos(),
-                         &label,
+                         stub_entry,
                          RawPcDescriptors::kOther,
                          locs());
   compiler->AddStubCallTarget(stub);
@@ -5559,9 +5554,8 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
-  StubCode* stub_code = compiler->isolate()->stub_code();
-  const ExternalLabel label(stub_code->DebugStepCheckEntryPoint());
-  compiler->GenerateCall(token_pos(), &label, stub_kind_, locs());
+  compiler->GenerateCall(
+      token_pos(), *StubCode::DebugStepCheck_entry(), stub_kind_, locs());
 }
 
 

@@ -4,6 +4,8 @@
 
 library universe;
 
+import 'dart:collection';
+
 import '../elements/elements.dart';
 import '../dart2jslib.dart';
 import '../dart_types.dart';
@@ -277,8 +279,21 @@ class Universe {
     return masks.add(mask);
   }
 
+  Map<Selector, TypeMaskSet> _asUnmodifiable(Map<Selector, TypeMaskSet> map) {
+    if (map == null) return null;
+    return new UnmodifiableMapView(map);
+  }
+
   Map<Selector, TypeMaskSet> invocationsByName(String name) {
-    return _invokedNames[name];
+    return _asUnmodifiable(_invokedNames[name]);
+  }
+
+  Map<Selector, TypeMaskSet> getterInvocationsByName(String name) {
+    return _asUnmodifiable(_invokedGetters[name]);
+  }
+
+  Map<Selector, TypeMaskSet> setterInvocationsByName(String name) {
+    return _asUnmodifiable(_invokedSetters[name]);
   }
 
   void forEachInvokedName(

@@ -55,17 +55,7 @@ patch class StringBuffer {
   /* patch */ int get length => _partsCodeUnits + _bufferPosition;
 
   /* patch */ void write(Object obj) {
-    String str;
-    if (obj is String) {
-      str = obj;
-    } else {
-      // TODO(srdjan): The following four lines could be replaced by
-      // '$obj', but apparently this is too slow on the Dart VM.
-      str = obj.toString();
-      if (str is! String) {
-        throw new ArgumentError('toString() did not return a string');
-      }
-    }
+    String str = '$obj';
     if (str.isEmpty) return;
     _consumeBuffer();
     _addPart(str);

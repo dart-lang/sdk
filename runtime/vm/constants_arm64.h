@@ -111,7 +111,6 @@ const Register TMP = R16;  // Used as scratch register by assembler.
 const Register TMP2 = R17;
 const Register CTX = R28;  // Location of current context at method entry.
 const Register PP = R27;  // Caches object pool pointer in generated code.
-const Register kNoPP = kNoRegister;
 const Register FPREG = FP;  // Frame pointer register.
 const Register SPREG = R18;  // Stack pointer register.
 const Register LRREG = LR;  // Link register.

@@ -51,7 +51,7 @@ class SdkExtUriResolver extends UriResolver {
   }
 
   @override
-  Source resolveAbsolute(Uri importUri) {
+  Source resolveAbsolute(Uri importUri, [Uri actualUri]) {
     String libraryName = _libraryName(importUri);
     String partPath = _partPath(importUri);
     // Lookup library name in mappings.

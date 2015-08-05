@@ -13,6 +13,9 @@
 [ $runtime == vm || $runtime != vm ]
 # Tests that fail everywhere, including the analyzer.
 
+# No longer correct, y#$ now has a meaning. github.com/dart-lang/co19/issues/2
+Language/12_Expressions/30_Identifier_Reference_A01_t03: Skip
+
 LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
 LayoutTests/fast/mediastream/getusermedia_t01: Fail # co19 issue 738.
 

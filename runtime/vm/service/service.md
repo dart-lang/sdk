@@ -1,10 +1,9 @@
-# Dart VM Service Protocol 1.0 (Draft 1)
+# Dart VM Service Protocol 2.0
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes _draft 1_ of _version 1.0_ of the Dart VM
-Service Protocol.  This protocol is used to communicate with a running
-Dart Virtual Machine.
+This document describes of _version 2.0_ of the Dart VM Service Protocol. This
+protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
 The VM will start a webserver which services protocol requests via WebSocket.
@@ -12,10 +11,9 @@ It is possible to make HTTP (non-WebSocket) requests,
 but this does not allow access to VM _events_ and is not documented
 here.
 
-The Service Protocol is based on JSON-RPC 2.0
-(http://www.jsonrpc.org/specification). The Service Protocol has been
-extended to support pushing _events_ to the client, which is
-apparently outside the scope of the JSON-RPC specification.
+The Service Protocol uses [JSON-RPC 2.0][].
+
+[JSON-RPC 2.0]: http://www.jsonrpc.org/specification
 
 **Table of Contents**
 
@@ -97,7 +95,7 @@ example [getVersion](#getversion) request:
 }
 ```
 
-Currently the _id_ property must be a string. The Service Protocol
+The _id_ property must be a string, number, or `null`. The Service Protocol
 optionally accepts requests without the _jsonprc_ property.
 
 An RPC response is a JSON object (http://json.org/). The response always specifies an
@@ -108,10 +106,10 @@ Here is an example response for our [getVersion](#getversion) request above:
 
 ```
 {
-  "json-rpc": "2.0",
+  "jsonrpc": "2.0",
   "result": {
     "type": "Version",
-    "major": 1,
+    "major": 2,
     "minor": 0
   }
   "id": "1"
@@ -152,7 +150,7 @@ subscribe to the _GC_ stream multiple times from the same client.
 
 ```
 {
-  "json-rpc": "2.0",
+  "jsonrpc": "2.0",
   "error": {
     "code": 103,
     "message": "Stream already subscribed",
@@ -189,27 +187,33 @@ Each stream provides access to certain kinds of events. For example the _Isolate
 access to events pertaining to isolate births, deaths, and name changes. See [streamListen](#streamlisten)
 for a list of the well-known stream ids and their associated events.
 
-Events arrive asynchronously over the WebSocket and always have the
-_streamId_ and _event_ properties:
+Stream events arrive asynchronously over the WebSocket. They're structured as
+JSON-RPC 2.0 requests with no _id_ property. The _method_ property will be
+_streamNotify_, and the _params_ will have _streamId_ and _event_ properties:
 
-```
+```json
 {
-  "event": {
-    "type": "Event",
-    "kind": "IsolateExit",
-    "isolate": {
-      "type": "@Isolate",
-      "id": "isolates/33",
-      "number": "51048743613",
-      "name": "worker-isolate"
+  "json-rpc": "2.0",
+  "method": "streamNotify",
+  "params": {
+    "streamId": "Isolate",
+    "event": {
+      "type": "Event",
+      "kind": "IsolateExit",
+      "isolate": {
+        "type": "@Isolate",
+        "id": "isolates/33",
+        "number": "51048743613",
+        "name": "worker-isolate"
+      }
     }
   }
-  "streamId": "Isolate"
 }
 ```
 
 It is considered a _backwards compatible_ change to add a new type of event to an existing stream.
 Clients should be written to handle this gracefully.
+
 
 
 ## Types
@@ -295,7 +299,7 @@ version number:
 ```
   "result": {
     "type": "Version",
-    "major": 1,
+    "major": 2,
     "minor": 0
   }
 ```

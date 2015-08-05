@@ -276,7 +276,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
   // Setup space on stack for return value.
-  __ PushObject(Object::null_object(), PP);
+  __ PushObject(Object::null_object());
   __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
   __ popq(RAX);  // Get Code object result.
   __ popq(R10);  // Restore arguments descriptor array.
@@ -296,7 +296,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
   // Setup space on stack for return value.
-  __ PushObject(Object::null_object(), PP);
+  __ PushObject(Object::null_object());
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   __ popq(RAX);  // Get Code object.
   __ popq(R10);  // Restore arguments descriptor array.
@@ -313,31 +313,9 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Setup space on stack for return value.
-  __ PushObject(Object::null_object(), PP);
+  __ PushObject(Object::null_object());
   __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
   __ popq(RAX);  // Get Code object.
-  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ LeaveStubFrame();
-  __ jmp(RAX);
-  __ int3();
-}
-
-
-// Called from array allocate instruction when the allocation stub has been
-// disabled.
-// R10: length (preserved).
-// RBX: element type (preserved).
-void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ pushq(R10);       // Preserve length.
-  __ pushq(RBX);       // Preserve element type.
-  // Setup space on stack for return value.
-  __ PushObject(Object::null_object(), PP);
-  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
-  __ popq(RAX);  // Get Code object.
-  __ popq(RBX);   // Restore element type.
-  __ popq(R10);   // Restore length.
   __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
   __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ LeaveStubFrame();
@@ -350,14 +328,10 @@ void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
 //   R10: smi-tagged argument count, may be zero.
 //   RBP[kParamEndSlotFromFp + 1]: last argument.
 static void PushArgumentsArray(Assembler* assembler) {
-  StubCode* stub_code = Isolate::Current()->stub_code();
-
-  __ LoadObject(R12, Object::null_object(), PP);
+  __ LoadObject(R12, Object::null_object());
   // Allocate array to store arguments of caller.
   __ movq(RBX, R12);  // Null element type for raw Array.
-  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
-  const ExternalLabel array_label(array_stub.EntryPoint());
-  __ call(&array_label);
+  __ Call(*StubCode::AllocateArray_entry());
   __ SmiUntag(R10);
   // RAX: newly allocated array.
   // R10: length of the array (was preserved by the stub).
@@ -572,7 +546,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ pushq(R10);
 
   // Space for the result of the runtime call.
-  __ PushObject(Object::null_object(), PP);
+  __ PushObject(Object::null_object());
   __ pushq(RAX);  // Receiver.
   __ pushq(RBX);  // IC data.
   __ pushq(R10);  // Arguments descriptor.
@@ -604,23 +578,15 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 //   RBX : array element type (either NULL or an instantiated type).
 // NOTE: R10 cannot be clobbered here as the caller relies on it being saved.
 // The newly allocated object is returned in RAX.
-void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
-    uword* entry_patch_offset, uword* patch_code_pc_offset) {
-  // Must load pool pointer before being able to patch.
-  Register new_pp = R13;
-  __ LoadPoolPointer(new_pp);
-  *entry_patch_offset = assembler->CodeSize();
+void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   Label slow_case;
-  Isolate* isolate = Isolate::Current();
-  const Class& cls = Class::Handle(isolate->object_store()->array_class());
-  ASSERT(!cls.IsNull());
   // Compute the size to be allocated, it is based on the array length
   // and is computed as:
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
   __ movq(RDI, R10);  // Array Length.
   // Check that length is a positive Smi.
   __ testq(RDI, Immediate(kSmiTagMask));
-  if (FLAG_use_slow_path || cls.trace_allocation()) {
+  if (FLAG_use_slow_path) {
     __ jmp(&slow_case);
   } else {
     __ j(NOT_ZERO, &slow_case);
@@ -632,16 +598,22 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
       Immediate(reinterpret_cast<int64_t>(Smi::New(Array::kMaxElements)));
   __ cmpq(RDI, max_len);
   __ j(GREATER, &slow_case);
+
+  // Check for allocation tracing.
+  __ MaybeTraceAllocation(kArrayCid,
+                          &slow_case,
+                          /* near_jump = */ false,
+                          /* inline_isolate = */ false);
+
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ leaq(RDI, Address(RDI, TIMES_4, fixed_size));  // RDI is a Smi.
   ASSERT(kSmiTagShift == 1);
   __ andq(RDI, Immediate(-kObjectAlignment));
 
-  Heap* heap = isolate->heap();
   const intptr_t cid = kArrayCid;
   Heap::Space space = Heap::SpaceForAllocation(cid);
-  __ movq(RAX, Immediate(heap->TopAddress(space)));
-  __ movq(RAX, Address(RAX, 0));
+  __ movq(R13, Address(THR, Thread::heap_offset()));
+  __ movq(RAX, Address(R13, Heap::TopOffset(space)));
 
   // RDI: allocation size.
   __ movq(RCX, RAX);
@@ -652,16 +624,16 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   // RAX: potential new object start.
   // RCX: potential next object start.
   // RDI: allocation size.
-  __ movq(R13, Immediate(heap->EndAddress(space)));
-  __ cmpq(RCX, Address(R13, 0));
+  // R13: heap.
+  __ cmpq(RCX, Address(R13, Heap::EndOffset(space)));
   __ j(ABOVE_EQUAL, &slow_case);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ movq(R13, Immediate(heap->TopAddress(space)));
-  __ movq(Address(R13, 0), RCX);
+  __ movq(Address(R13, Heap::TopOffset(space)), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(cid, RDI, space);
+  __ UpdateAllocationStatsWithSize(cid, RDI, space,
+                                   /* inline_isolate = */ false);
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
   // RDI: allocation size.
@@ -697,7 +669,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   // RCX: new object end address.
   // RDI: iterator which initially points to the start of the variable
   // data area to be initialized.
-  __ LoadObject(R12, Object::null_object(), PP);
+  __ LoadObject(R12, Object::null_object());
   __ leaq(RDI, FieldAddress(RAX, sizeof(RawArray)));
   Label done;
   Label init_loop;
@@ -723,7 +695,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   // calling into the runtime.
   __ EnterStubFrame();
   // Setup space on stack for return value.
-  __ PushObject(Object::null_object(), PP);
+  __ PushObject(Object::null_object());
   __ pushq(R10);  // Array length as Smi.
   __ pushq(RBX);  // Element type.
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
@@ -732,9 +704,6 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ popq(RAX);  // Pop return value from return slot.
   __ LeaveStubFrame();
   __ ret();
-  *patch_code_pc_offset = assembler->CodeSize();
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  __ JmpPatchable(&stub_code->FixAllocateArrayStubTargetLabel(), new_pp);
 }
 
 
@@ -770,7 +739,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // We now load the pool pointer(PP) as we are about to invoke dart code and we
   // could potentially invoke some intrinsic functions which need the PP to be
   // set up.
-  __ LoadPoolPointer(PP);
+  __ LoadPoolPointer();
 
   // If any additional (or fewer) values are pushed, the offsets in
   // kExitLinkSlotFromEntryFp will need to be changed.
@@ -864,6 +833,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore C++ ABI callee-saved registers.
   __ PopRegisters(CallingConventions::kCalleeSaveCpuRegisters,
                   CallingConventions::kCalleeSaveXmmRegisters);
+  __ set_constant_pool_allowed(false);
 
   // Restore the frame pointer.
   __ LeaveFrame();
@@ -878,7 +848,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 // Output:
 // RAX: new allocated RawContext object.
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
-  __ LoadObject(R12, Object::null_object(), PP);
+  __ LoadObject(R12, Object::null_object());
   if (FLAG_inline_alloc) {
     Label slow_case;
     // First compute the rounded instance size.
@@ -891,8 +861,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R10: number of context variables.
     const intptr_t cid = kContextCid;
     Heap::Space space = Heap::SpaceForAllocation(cid);
-    __ LoadIsolate(RCX);
-    __ movq(RCX, Address(RCX, Isolate::heap_offset()));
+    __ movq(RCX, Address(THR, Thread::heap_offset()));
     __ movq(RAX, Address(RCX, Heap::TopOffset(space)));
     __ addq(R13, RAX);
     // Check if the allocation fits into the remaining space.
@@ -914,9 +883,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R10: number of context variables.
     // RCX: heap.
     __ movq(Address(RCX, Heap::TopOffset(space)), R13);
-    __ addq(RAX, Immediate(kHeapObjectTag));
     // R13: Size of allocation in bytes.
     __ subq(R13, RAX);
+    __ addq(RAX, Immediate(kHeapObjectTag));
     // Generate isolate-independent code to allow sharing between isolates.
     __ UpdateAllocationStatsWithSize(cid, R13, space,
                                      /* inline_isolate */ false);
@@ -1091,7 +1060,7 @@ void StubCode::GenerateAllocationStubForClass(
   const int kInlineInstanceSize = 12;  // In words.
   const intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
-  __ LoadObject(R12, Object::null_object(), PP);
+  __ LoadObject(R12, Object::null_object());
   if (is_cls_parameterized) {
     __ movq(RDX, Address(RSP, kObjectTypeArgumentsOffset));
     // RDX: instantiated type arguments.
@@ -1102,24 +1071,22 @@ void StubCode::GenerateAllocationStubForClass(
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // RDX: instantiated type arguments (if is_cls_parameterized).
-    Heap* heap = Isolate::Current()->heap();
     Heap::Space space = Heap::SpaceForAllocation(cls.id());
-    __ movq(RCX, Immediate(heap->TopAddress(space)));
-    __ movq(RAX, Address(RCX, 0));
+    __ movq(RCX, Address(THR, Thread::heap_offset()));
+    __ movq(RAX, Address(RCX, Heap::TopOffset(space)));
     __ leaq(RBX, Address(RAX, instance_size));
     // Check if the allocation fits into the remaining space.
     // RAX: potential new object start.
     // RBX: potential next object start.
-    // RCX: heap top address.
-    __ movq(R13, Immediate(heap->EndAddress(space)));
-    __ cmpq(RBX, Address(R13, 0));
+    // RCX: heap.
+    __ cmpq(RBX, Address(RCX, Heap::EndOffset(space)));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
       __ j(ABOVE_EQUAL, &slow_case);
     }
-    __ movq(Address(RCX, 0), RBX);
-    __ UpdateAllocationStats(cls.id(), space);
+    __ movq(Address(RCX, Heap::TopOffset(space)), RBX);
+    __ UpdateAllocationStats(cls.id(), space, /* inline_isolate = */ false);
 
     // RAX: new object start (untagged).
     // RBX: next object start.
@@ -1187,7 +1154,7 @@ void StubCode::GenerateAllocationStubForClass(
   // Create a stub frame.
   __ EnterStubFrame();  // Uses PP to access class object.
   __ pushq(R12);  // Setup space on stack for return value.
-  __ PushObject(cls, PP);  // Push class of object to be allocated.
+  __ PushObject(cls);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
     __ pushq(RDX);  // Push type arguments of object to be allocated.
   } else {
@@ -1202,8 +1169,7 @@ void StubCode::GenerateAllocationStubForClass(
   __ LeaveStubFrame();
   __ ret();
   *patch_code_pc_offset = assembler->CodeSize();
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  __ JmpPatchable(&stub_code->FixAllocationStubTargetLabel(), new_pp);
+  __ JmpPatchable(*StubCode::FixAllocationStubTarget_entry(), new_pp);
 }
 
 
@@ -1221,7 +1187,7 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ movq(RAX, Address(RBP, R13, TIMES_4, kParamEndSlotFromFp * kWordSize));
 
-  __ LoadObject(R12, Object::null_object(), PP);
+  __ LoadObject(R12, Object::null_object());
   __ pushq(R12);  // Setup space on stack for result from noSuchMethod.
   __ pushq(RAX);  // Receiver.
   __ pushq(R10);  // Arguments descriptor array.
@@ -1308,10 +1274,10 @@ static void EmitFastSmiOp(Assembler* assembler,
       Label done, is_true;
       __ cmpq(RAX, RCX);
       __ j(EQUAL, &is_true, Assembler::kNearJump);
-      __ LoadObject(RAX, Bool::False(), PP);
+      __ LoadObject(RAX, Bool::False());
       __ jmp(&done, Assembler::kNearJump);
       __ Bind(&is_true);
-      __ LoadObject(RAX, Bool::True(), PP);
+      __ LoadObject(RAX, Bool::True());
       __ Bind(&done);
       break;
     }
@@ -1479,7 +1445,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
 
   __ Comment("IC miss");
-  __ LoadObject(R12, Object::null_object(), PP);
+  __ LoadObject(R12, Object::null_object());
   // Compute address of arguments (first read number of arguments from
   // arguments descriptor array and then compute address on the stack).
   __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
@@ -1797,7 +1763,7 @@ void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ pushq(RBX);
   // Room for result. Debugger stub returns address of the
   // unpatched runtime stub.
-  __ LoadObject(R12, Object::null_object(), PP);
+  __ LoadObject(R12, Object::null_object());
   __ pushq(R12);  // Room for result.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ popq(RAX);  // Address of original.
@@ -1812,7 +1778,7 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Room for result. Debugger stub returns address of the
   // unpatched runtime stub.
-  __ LoadObject(R12, Object::null_object(), PP);
+  __ LoadObject(R12, Object::null_object());
   __ pushq(R12);  // Room for result.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ popq(RAX);  // Address of original.
@@ -1852,9 +1818,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const intptr_t kInstanceOffsetInBytes = 2 * kWordSize;
   const intptr_t kCacheOffsetInBytes = 3 * kWordSize;
   __ movq(RAX, Address(RSP, kInstanceOffsetInBytes));
-  __ LoadObject(R12, Object::null_object(), PP);
+  __ LoadObject(R12, Object::null_object());
   if (n > 1) {
-    __ LoadClass(R10, RAX, kNoRegister);
+    __ LoadClass(R10, RAX);
     // Compute instance type arguments into R13.
     Label has_no_type_arguments;
     __ movq(R13, R12);
@@ -2003,7 +1969,7 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
 // R10: argument descriptor (preserved).
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ EnterStubFrame();
-  __ LoadObject(R12, Object::null_object(), PP);
+  __ LoadObject(R12, Object::null_object());
   __ pushq(R10);
   __ pushq(R12);  // Setup space on stack for return value.
   __ pushq(RDI);
@@ -2031,11 +1997,9 @@ DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
 // Return ZF set.
 // Note: A Mint cannot contain a value that would fit in Smi, a Bigint
 // cannot contain a value that fits in Mint or Smi.
-void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
-                                                    const Register left,
-                                                    const Register right,
-                                                    const Register unused1,
-                                                    const Register unused2) {
+static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
+                                                 const Register left,
+                                                 const Register right) {
   Label reference_compare, done, check_mint, check_bigint;
   // If any of the arguments is Smi do reference compare.
   __ testq(left, Immediate(kSmiTagMask));
@@ -2151,7 +2115,7 @@ void StubCode::EmitMegamorphicLookup(
   __ jmp(&loop);
 
   __ Bind(&update);
-  __ AddImmediate(RCX, Immediate(Smi::RawValue(1)), PP);
+  __ AddImmediate(RCX, Immediate(Smi::RawValue(1)));
   __ Bind(&loop);
   __ andq(RCX, RBX);
   const intptr_t base = Array::data_offset();
@@ -2174,7 +2138,7 @@ void StubCode::EmitMegamorphicLookup(
   // TODO(srdjan): Evaluate performance impact of moving the instruction below
   // to the call site, instead of having it here.
   __ AddImmediate(
-      target, Immediate(Instructions::HeaderSize() - kHeapObjectTag), PP);
+      target, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
 }
 
 

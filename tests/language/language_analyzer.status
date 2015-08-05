@@ -17,6 +17,8 @@ regress_23038_test/01: Skip # Issue 23038
 getter_setter_in_lib_test: Fail # issue 23286
 
 issue13179_test: CompileTimeError # Issue 13179
+tearoff_basic_test: Skip # Tear-off not supported
+tearoff_constructor_basic_test: Skip # Tear-off not supported
 
 sync_generator2_test/01: MissingCompileTimeError # Issue 22252
 sync_generator2_test/02: MissingCompileTimeError # Issue 22252
@@ -75,6 +77,13 @@ mixin_forwarding_constructor4_test/03: MissingCompileTimeError # Issue 19576
 mixin_super_constructor_named_test/01: MissingCompileTimeError # Issue 19576
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError # Issue 19576
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 21565
+
+multiline_newline_test/01: CompileTimeError # Issue 23888
+multiline_newline_test/02: CompileTimeError # Issue 23888
+multiline_newline_test/03: CompileTimeError # Issue 23888
+multiline_newline_test/04: MissingCompileTimeError # Issue 23888
+multiline_newline_test/05: MissingCompileTimeError # Issue 23888
+multiline_newline_test/06: MissingCompileTimeError # Issue 23888
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.

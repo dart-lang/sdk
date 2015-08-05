@@ -122,12 +122,6 @@ class Isolate : public BaseIsolate {
     return thread == NULL ? NULL : thread->isolate();
   }
 
-  static void InitOnce();
-  static Isolate* Init(const char* name_prefix,
-                       const Dart_IsolateFlags& api_flags,
-                       bool is_vm_isolate = false);
-  void Shutdown();
-
   // Register a newly introduced class.
   void RegisterClass(const Class& cls);
   void RegisterClassAt(intptr_t index, const Class& cls);
@@ -163,16 +157,15 @@ class Isolate : public BaseIsolate {
     message_notify_callback_ = value;
   }
 
-  // A thread that operates on this isolate and may execute Dart code.
-  // No other threads operating on this isolate may execute Dart code.
-  // TODO(koda): Remove after pivoting to thread in NativeArguments.
-  Thread* mutator_thread() {
-    DEBUG_ASSERT(mutator_thread_ == NULL || IsIsolateOf(mutator_thread_));
-    return mutator_thread_;
+  // Limited public access to BaseIsolate::mutator_thread_ for code that
+  // must treat the mutator as the default or a special case. Prefer code
+  // that works uniformly across all threads.
+  bool HasMutatorThread() {
+    return mutator_thread_ != NULL;
   }
-#if defined(DEBUG)
-  bool IsIsolateOf(Thread* thread);
-#endif  // DEBUG
+  bool MutatorThreadIsCurrentThread() {
+    return mutator_thread_ == Thread::Current();
+  }
 
   const char* name() const { return name_; }
   const char* debugger_name() const { return debugger_name_; }
@@ -243,9 +236,6 @@ class Isolate : public BaseIsolate {
 
   ApiState* api_state() const { return api_state_; }
   void set_api_state(ApiState* value) { api_state_ = value; }
-
-  StubCode* stub_code() const { return stub_code_; }
-  void set_stub_code(StubCode* value) { stub_code_ = value; }
 
   LongJumpScope* long_jump_base() const { return long_jump_base_; }
   void set_long_jump_base(LongJumpScope* value) { long_jump_base_ = value; }
@@ -327,12 +317,12 @@ class Isolate : public BaseIsolate {
   enum {
     kApiInterrupt = 0x1,      // An interrupt from Dart_InterruptIsolate.
     kMessageInterrupt = 0x2,  // An interrupt to process an out of band message.
-    kStoreBufferInterrupt = 0x4,  // An interrupt to process the store buffer.
+    kVMInterrupt = 0x4,  // Internal VM checks: safepoints, store buffers, etc.
 
     kInterruptsMask =
         kApiInterrupt |
         kMessageInterrupt |
-        kStoreBufferInterrupt,
+        kVMInterrupt,
   };
 
   void ScheduleInterrupts(uword interrupt_bits);
@@ -696,6 +686,11 @@ class Isolate : public BaseIsolate {
   RawUserTag* default_tag() const { return default_tag_; }
   void set_default_tag(const UserTag& tag);
 
+  RawGrowableObjectArray* collected_closures() const {
+    return collected_closures_;
+  }
+  void set_collected_closures(const GrowableObjectArray& value);
+
   Metric* metrics_list_head() {
     return metrics_list_head_;
   }
@@ -709,6 +704,11 @@ class Isolate : public BaseIsolate {
   }
   void set_deoptimized_code_array(const GrowableObjectArray& value);
   void TrackDeoptimizedCode(const Code& code);
+
+  bool compilation_allowed() const { return compilation_allowed_; }
+  void set_compilation_allowed(bool allowed) {
+    compilation_allowed_ = allowed;
+  }
 
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
@@ -748,7 +748,15 @@ class Isolate : public BaseIsolate {
   }
 
  private:
+  friend class Dart;  // Init, InitOnce, Shutdown.
+
   explicit Isolate(const Dart_IsolateFlags& api_flags);
+
+  static void InitOnce();
+  static Isolate* Init(const char* name_prefix,
+                       const Dart_IsolateFlags& api_flags,
+                       bool is_vm_isolate = false);
+  void Shutdown();
 
   void BuildName(const char* name_prefix);
   void PrintInvokedFunctions();
@@ -765,9 +773,17 @@ class Isolate : public BaseIsolate {
     user_tag_ = tag;
   }
 
-  void set_mutator_thread(Thread* thread) {
+  void ClearMutatorThread() {
+    mutator_thread_ = NULL;
+  }
+  void MakeCurrentThreadMutator(Thread* thread) {
+    ASSERT(thread == Thread::Current());
+    DEBUG_ASSERT(IsIsolateOf(thread));
     mutator_thread_ = thread;
   }
+#if defined(DEBUG)
+  bool IsIsolateOf(Thread* thread);
+#endif  // DEBUG
 
   template<class T> T* AllocateReusableHandle();
 
@@ -792,7 +808,6 @@ class Isolate : public BaseIsolate {
   Dart_EnvironmentCallback environment_callback_;
   Dart_LibraryTagHandler library_tag_handler_;
   ApiState* api_state_;
-  StubCode* stub_code_;
   Debugger* debugger_;
   bool single_step_;
   bool resume_request_;
@@ -850,11 +865,15 @@ class Isolate : public BaseIsolate {
   RawGrowableObjectArray* tag_table_;
   RawUserTag* current_tag_;
   RawUserTag* default_tag_;
+
+  RawGrowableObjectArray* collected_closures_;
   RawGrowableObjectArray* deoptimized_code_array_;
 
   Metric* metrics_list_head_;
 
   Counters counters_;
+
+  bool compilation_allowed_;
 
   // TODO(23153): Move this out of Isolate/Thread.
   CHA* cha_;

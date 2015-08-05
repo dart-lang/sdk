@@ -82,8 +82,8 @@ class JSSyntaxRegExp implements RegExp {
   static makeNative(
       String source, bool multiLine, bool caseSensitive, bool global) {
     checkString(source);
-    String m = multiLine ? 'm' : '';
-    String i = caseSensitive ? '' : 'i';
+    String m = multiLine == true ? 'm' : '';
+    String i = caseSensitive == true ? '' : 'i';
     String g = global ? 'g' : '';
     // We're using the JavaScript's try catch instead of the Dart one
     // to avoid dragging in Dart runtime support just because of using

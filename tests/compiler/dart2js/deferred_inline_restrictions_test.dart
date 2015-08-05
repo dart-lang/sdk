@@ -9,14 +9,15 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/dart2jslib.dart';
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
-import 'output_collector.dart';
 
 void main() {
-  OutputCollector collector = new OutputCollector();
-  Compiler compiler = compilerFor(
-      MEMORY_SOURCE_FILES,
+  asyncTest(() async {
+    OutputCollector collector = new OutputCollector();
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
       outputProvider: collector);
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+    Compiler compiler = result.compiler;
+
     lookupLibrary(name) {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
     }
@@ -57,7 +58,7 @@ void main() {
     // Test that inlineSameContext was inlined into lib1.
     Expect.isFalse(re4.hasMatch(lib3Output));
     Expect.isTrue(re4.hasMatch(lib1Output));
-  }));
+  });
 }
 
 // Make sure that empty functions are inlined and that functions from

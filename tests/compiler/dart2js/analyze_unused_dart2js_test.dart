@@ -47,6 +47,10 @@ const Map<String, List<String>> WHITE_LIST = const {
     "accept", "FunctionExpression", "CreateFunction"
   ],
 
+  "lib/src/universe/universe.dart": const [
+      "The method 'getterInvocationsByName' is never called.",
+      "The method 'setterInvocationsByName' is never called."],
+
   "lib/src/cps_ir/": const [
     "accept", "CreateFunction",
   ],

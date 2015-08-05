@@ -4,9 +4,10 @@
 
 // Test that the helper [Compiler.inUserCode] works as intended.
 
+import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-
+import 'package:compiler/src/dart2jslib.dart' show Compiler;
 import 'memory_compiler.dart';
 
 const SOURCE = const {
@@ -42,56 +43,60 @@ library sup.boz;
 """,
 };
 
-void test(List<Uri> entryPoints, Map<String, bool> expectedResults) {
-  var compiler = compilerFor(SOURCE,
-                             options: ['--analyze-only', '--analyze-all'],
-                             packageRoot: Uri.parse('memory:pkg/'));
-  Uri mainUri = null;
-  if (entryPoints.length == 1) {
-    mainUri = entryPoints[0];
-  } else {
-    compiler.librariesToAnalyzeWhenRun = entryPoints;
-  }
-  asyncTest(() => compiler.run(mainUri).then((_) {
-    expectedResults.forEach((String uri, bool expectedResult) {
-      var element = compiler.libraryLoader.lookupLibrary(Uri.parse(uri));
-      Expect.isNotNull(element, "Unknown library '$uri'.");
-      Expect.equals(expectedResult, compiler.inUserCode(element),
-          expectedResult ? "Library '$uri' expected to be in user code"
-                         : "Library '$uri' not expected to be in user code");
-    });
-  }));
+Future test(List<Uri> entryPoints, Map<String, bool> expectedResults) async {
+  CompilationResult result = await runCompiler(
+    entryPoints: entryPoints,
+    memorySourceFiles: SOURCE,
+    options: ['--analyze-only', '--analyze-all'],
+    packageRoot: Uri.parse('memory:pkg/'));
+  Compiler compiler = result.compiler;
+  expectedResults.forEach((String uri, bool expectedResult) {
+    var element = compiler.libraryLoader.lookupLibrary(Uri.parse(uri));
+    Expect.isNotNull(element, "Unknown library '$uri'.");
+    Expect.equals(expectedResult, compiler.inUserCode(element),
+        expectedResult ? "Library '$uri' expected to be in user code"
+                       : "Library '$uri' not expected to be in user code");
+  });
 }
 
 void main() {
-  test([Uri.parse('memory:main.dart')],
-       {'memory:main.dart': true,
-        'memory:foo.dart': true,
-        'memory:pkg/sub/bar.dart': true,
-        'memory:pkg/sub/baz.dart': true,
-        'package:sub/bar.dart': false,
-        'package:sub/baz.dart': false,
-        'package:sup/boz.dart': false,
-        'dart:core': false,
-        'dart:async': false});
-  test([Uri.parse('dart:async')],
-       {'dart:core': true,
-        'dart:async': true});
-  test([Uri.parse('package:sub/bar.dart')],
-       {'package:sub/bar.dart': true,
-        'package:sub/baz.dart': true,
-        'package:sup/boz.dart': false,
-        'dart:core': false});
-  test([Uri.parse('package:sub/bar.dart'), Uri.parse('package:sup/boz.dart')],
-       {'package:sub/bar.dart': true,
-        'package:sub/baz.dart': true,
-        'package:sup/boz.dart': true,
-        'dart:core': false});
-  test([Uri.parse('dart:async'), Uri.parse('package:sub/bar.dart')],
-       {'package:sub/bar.dart': true,
-        'package:sub/baz.dart': true,
-        'package:sup/boz.dart': false,
-        'dart:core': true,
-        'dart:async': true});
+  asyncTest(runTests);
+}
+
+Future runTests() async {
+  await test(
+      [Uri.parse('memory:main.dart')],
+      {'memory:main.dart': true,
+       'memory:foo.dart': true,
+       'memory:pkg/sub/bar.dart': true,
+       'memory:pkg/sub/baz.dart': true,
+       'package:sub/bar.dart': false,
+       'package:sub/baz.dart': false,
+       'package:sup/boz.dart': false,
+       'dart:core': false,
+       'dart:async': false});
+  await test(
+      [Uri.parse('dart:async')],
+      {'dart:core': true,
+       'dart:async': true});
+  await test(
+      [Uri.parse('package:sub/bar.dart')],
+      {'package:sub/bar.dart': true,
+       'package:sub/baz.dart': true,
+       'package:sup/boz.dart': false,
+       'dart:core': false});
+  await test(
+      [Uri.parse('package:sub/bar.dart'), Uri.parse('package:sup/boz.dart')],
+      {'package:sub/bar.dart': true,
+       'package:sub/baz.dart': true,
+       'package:sup/boz.dart': true,
+       'dart:core': false});
+  await test(
+      [Uri.parse('dart:async'), Uri.parse('package:sub/bar.dart')],
+      {'package:sub/bar.dart': true,
+       'package:sub/baz.dart': true,
+       'package:sup/boz.dart': false,
+       'dart:core': true,
+       'dart:async': true});
 }
 

@@ -42,7 +42,8 @@ void LongJumpScope::Jump(int value, const Error& error) {
   ASSERT(value != 0);
   ASSERT(IsSafeToJump());
 
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
 
 #if defined(DEBUG)
 #define CHECK_REUSABLE_HANDLE(name)                                            \
@@ -55,7 +56,7 @@ REUSABLE_HANDLE_LIST(CHECK_REUSABLE_HANDLE)
   isolate->object_store()->set_sticky_error(error);
 
   // Destruct all the active StackResource objects.
-  StackResource::UnwindAbove(isolate, top_);
+  StackResource::UnwindAbove(thread, top_);
   longjmp(environment_, value);
   UNREACHABLE();
 }

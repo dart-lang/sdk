@@ -19,7 +19,8 @@ import 'dart:_js_embedded_names' show
     JsBuiltin,
     JsGetName,
     LEAF_TAGS,
-    NATIVE_SUPERCLASS_TAG_NAME;
+    NATIVE_SUPERCLASS_TAG_NAME,
+    STATIC_FUNCTION_NAME_PROPERTY_NAME;
 
 import 'dart:collection';
 
@@ -186,6 +187,16 @@ getMetadata(int index) {
 getType(int index) {
   return JS_BUILTIN('returns:var;effects:none;depends:none',
                     JsBuiltin.getType, index);
+}
+
+/// Returns a Dart closure for the global function with the given [name].
+///
+/// The [name] is the globally unique (minified) JavaScript name of the
+/// function. The name must be in correspondence with the propertyName that is
+/// used when creating a tear-off (see [fromTearOff]).
+Function createDartClosureFromNameOfStaticFunction(String name) {
+  return JS_BUILTIN('returns:Function',
+                    JsBuiltin.createDartClosureFromNameOfStaticFunction, name);
 }
 
 /// No-op method that is called to inform the compiler that preambles might
@@ -1145,64 +1156,180 @@ class Primitives {
             namedArgumentList));
   }
 
-  static applyFunctionNewEmitter(Function function,
-                                 List positionalArguments,
-                                 Map<String, dynamic> namedArguments) {
-    if (namedArguments == null) {
-      int requiredParameterCount = JS('int', r'#[#]', function,
-          JS_GET_NAME(JsGetName.REQUIRED_PARAMETER_PROPERTY));
-      int argumentCount = positionalArguments.length;
-      if (argumentCount < requiredParameterCount) {
-        return functionNoSuchMethod(function, positionalArguments, null);
+  /**
+   * Implements [Function.apply] for the lazy and startup emitters.
+   *
+   * There are two types of closures that can reach this function:
+   *
+   * 1. tear-offs (including tear-offs of static functions).
+   * 2. anonymous closures.
+   *
+   * They are treated differently (although there are lots of similarities).
+   * Both have in common that they have
+   * a [JsGetName.CALL_CATCH_ALL] and
+   * a [JsGetName.REQUIRED_PARAMETER_PROPERTY] property.
+   *
+   * If the closure supports optional parameters, then they also feature
+   * a [JsGetName.DEFAULT_VALUES_PROPERTY] property.
+   *
+   * The catch-all property is a method that takes all arguments (including
+   * all optional positional or named arguments). If the function accepts
+   * optional arguments, then the default-values property stores (potentially
+   * wrapped in a function) the default values for the optional arguments. If
+   * the function accepts optional positional arguments, then the value is a
+   * JavaScript array with the default values. Otherwise, when the function
+   * accepts optional named arguments, it is a JavaScript object.
+   *
+   * The default-values property may either contain the value directly, or
+   * it can be a function that returns the default-values when invoked.
+   *
+   * If the function is an anonymous closure, then the catch-all property
+   * only contains a string pointing to the property that should be used
+   * instead. For example, if the catch-all property contains the string
+   * "call$4", then the object's "call$4" property should be used as if it was
+   * the value of the catch-all property.
+   */
+  static applyFunction2(Function function,
+                        List positionalArguments,
+                        Map<String, dynamic> namedArguments) {
+    // Fast shortcut for the common case.
+    if (JS('bool', '# instanceof Array', positionalArguments) &&
+        (namedArguments == null || namedArguments.isEmpty)) {
+      // Let the compiler know that we did a type-test.
+      List arguments = (JS('JSArray', '#', positionalArguments));
+      int argumentCount = arguments.length;
+      if (argumentCount == 0) {
+        String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX0);
+        if (JS('bool', '!!#[#]', function, selectorName)) {
+          return JS('', '#[#]()', function, selectorName);
+        }
+      } else if (argumentCount == 1) {
+        String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX1);
+        if (JS('bool', '!!#[#]', function, selectorName)) {
+          return JS('', '#[#](#[0])', function, selectorName, arguments);
+        }
+      } else if (argumentCount == 2) {
+        String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX2);
+        if (JS('bool', '!!#[#]', function, selectorName)) {
+          return JS('', '#[#](#[0],#[1])', function, selectorName,
+          arguments, arguments);
+        }
+      } else if (argumentCount == 3) {
+        String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX3);
+        if (JS('bool', '!!#[#]', function, selectorName)) {
+          return JS('', '#[#](#[0],#[1],#[2])', function, selectorName,
+          arguments, arguments, arguments);
+        }
       }
       String selectorName =
           '${JS_GET_NAME(JsGetName.CALL_PREFIX)}\$$argumentCount';
       var jsStub = JS('var', r'#[#]', function, selectorName);
-      if (jsStub == null) {
-        // Do a dynamic call.
-        var interceptor = getInterceptor(function);
-        var jsFunction = JS('', '#[#]', interceptor,
-            JS_GET_NAME(JsGetName.CALL_CATCH_ALL));
-        var defaultValues = JS('var', r'#[#]', function,
-            JS_GET_NAME(JsGetName.DEFAULT_VALUES_PROPERTY));
-        if (!JS('bool', '# instanceof Array', defaultValues)) {
-          // The function expects named arguments!
-          return functionNoSuchMethod(function, positionalArguments, null);
-        }
-        int defaultsLength = JS('int', "#.length", defaultValues);
-        int maxArguments = requiredParameterCount + defaultsLength;
-        if (argumentCount > maxArguments) {
-          // The function expects less arguments!
-          return functionNoSuchMethod(function, positionalArguments, null);
-        }
-        List arguments = new List.from(positionalArguments);
-        List missingDefaults = JS('JSArray', '#.slice(#)', defaultValues,
-            argumentCount - requiredParameterCount);
-        arguments.addAll(missingDefaults);
-        return JS('var', '#.apply(#, #)', jsFunction, function, arguments);
+      if (jsStub != null) {
+        return JS('var', '#.apply(#, #)', jsStub, function, arguments);
       }
-      return JS('var', '#.apply(#, #)', jsStub, function, positionalArguments);
+    }
+
+    return _genericApplyFunction2(
+        function, positionalArguments, namedArguments);
+  }
+
+  static _genericApplyFunction2(Function function,
+                                List positionalArguments,
+                                Map<String, dynamic> namedArguments) {
+    List arguments;
+    if (positionalArguments != null) {
+      if (JS('bool', '# instanceof Array', positionalArguments)) {
+        arguments = JS('JSArray', '#', positionalArguments);
+      } else {
+        arguments = new List.from(positionalArguments);
+      }
     } else {
-      var interceptor = getInterceptor(function);
-      var jsFunction = JS('', '#[#]', interceptor,
-          JS_GET_NAME(JsGetName.CALL_CATCH_ALL));
-      var defaultValues = JS('JSArray', r'#[#]', function,
+      arguments = [];
+    }
+
+    int argumentCount = arguments.length;
+
+    int requiredParameterCount = JS('int', r'#[#]', function,
+          JS_GET_NAME(JsGetName.REQUIRED_PARAMETER_PROPERTY));
+
+    if (argumentCount < requiredParameterCount) {
+      return functionNoSuchMethod(function, arguments, namedArguments);
+    }
+
+    var defaultValuesClosure = JS('var', r'#[#]', function,
           JS_GET_NAME(JsGetName.DEFAULT_VALUES_PROPERTY));
-      List keys = JS('JSArray', r'Object.keys(#)', defaultValues);
-      List arguments = new List.from(positionalArguments);
-      int used = 0;
-      for (String key in keys) {
-        var value = namedArguments[key];
-        if (value != null) {
-          used++;
-          arguments.add(value);
-        } else {
-          arguments.add(JS('var', r'#[#]', defaultValues, key));
-        }
+
+    bool acceptsOptionalArguments = defaultValuesClosure != null;
+
+    // Default values are stored inside a JavaScript closure to avoid
+    // accessing them too early.
+    var defaultValues = acceptsOptionalArguments
+        ? JS('', '#()', defaultValuesClosure)
+        : null;
+
+    var interceptor = getInterceptor(function);
+    var jsFunction = JS('', '#[#]', interceptor,
+        JS_GET_NAME(JsGetName.CALL_CATCH_ALL));
+    if (jsFunction is String) {
+      // Anonymous closures redirect to the catch-all property instead of
+      // storing the catch-all method directly in the catch-all property.
+      jsFunction = JS('', '#[#]', interceptor, jsFunction);
+    }
+
+    if (!acceptsOptionalArguments) {
+      if (argumentCount == requiredParameterCount) {
+        return JS('var', r'#.apply(#, #)', jsFunction, function, arguments);
       }
-      if (used != namedArguments.length) {
-        return functionNoSuchMethod(function, positionalArguments,
-            namedArguments);
+      return functionNoSuchMethod(function, arguments, namedArguments);
+    }
+
+    bool acceptsPositionalArguments =
+        JS('bool', '# instanceof Array', defaultValues);
+
+    if (acceptsPositionalArguments) {
+      if (namedArguments != null && namedArguments.isNotEmpty) {
+        // Tried to invoke a function that takes optional positional arguments
+        // with named arguments.
+        return functionNoSuchMethod(function, arguments, namedArguments);
+      }
+
+      int defaultsLength = JS('int', "#.length", defaultValues);
+      int maxArguments = requiredParameterCount + defaultsLength;
+      if (argumentCount > maxArguments) {
+        // The function expects fewer arguments.
+        return functionNoSuchMethod(function, arguments, null);
+      }
+      List missingDefaults = JS('JSArray', '#.slice(#)', defaultValues,
+          argumentCount - requiredParameterCount);
+      arguments.addAll(missingDefaults);
+      return JS('var', '#.apply(#, #)', jsFunction, function, arguments);
+    } else {
+      // Handle named arguments.
+
+      if (argumentCount > requiredParameterCount) {
+        // Tried to invoke a function that takes named parameters with
+        // too many positional arguments.
+        return functionNoSuchMethod(function, arguments, namedArguments);
+      }
+
+      List keys = JS('JSArray', r'Object.keys(#)', defaultValues);
+      if (namedArguments == null) {
+        for (String key in keys) {
+          arguments.add(JS('var', '#[#]', defaultValues, key));
+        }
+      } else {
+        int used = 0;
+        for (String key in keys) {
+          if (namedArguments.containsKey(key)) {
+            used++;
+            arguments.add(namedArguments[key]);
+          } else {
+            arguments.add(JS('var', r'#[#]', defaultValues, key));
+          }
+        }
+        if (used != namedArguments.length) {
+          return functionNoSuchMethod(function, arguments, namedArguments);
+        }
       }
       return JS('var', r'#.apply(#, #)', jsFunction, function, arguments);
     }
@@ -2213,8 +2340,11 @@ abstract class Closure implements Function {
    *
    * In other words, creates a tear-off closure.
    *
+   * The [propertyName] argument is used by
+   * [JsBuiltin.createDartClosureFromNameOfStaticFunction].
+   *
    * Called from [closureFromTearOff] as well as from reflection when tearing
-   * of a method via [:getField:].
+   * of a method via `getField`.
    *
    * This method assumes that [functions] was created by the JavaScript function
    * `addStubs` in `reflection_data_parser.dart`. That is, a list of JavaScript
@@ -2316,7 +2446,8 @@ abstract class Closure implements Function {
       trampoline = forwardCallTo(receiver, function, isIntercepted);
       JS('', '#.\$reflectionInfo = #', trampoline, reflectionInfo);
     } else {
-      JS('', '#.\$name = #', prototype, propertyName);
+      JS('', '#[#] = #',
+          prototype, STATIC_FUNCTION_NAME_PROPERTY_NAME, propertyName);
     }
 
     var signatureFunction;
@@ -2629,7 +2760,8 @@ abstract class TearOffClosure extends Closure {
 
 class StaticClosure extends TearOffClosure {
   String toString() {
-    String name = JS('String|Null', '#.\$name', this);
+    String name =
+        JS('String|Null', '#[#]', this, STATIC_FUNCTION_NAME_PROPERTY_NAME);
     if (name == null) return "Closure of unknown static method";
     return "Closure '$name'";
   }

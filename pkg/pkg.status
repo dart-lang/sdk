@@ -88,8 +88,10 @@ analyzer/test/generated/element_test: Pass, Slow # Issue 21628
 analyzer/test/generated/incremental_resolver_test: Pass, Slow # Issue 21628
 analyzer/test/generated/utilities_test: Pass, Slow # Issue 21628
 analyzer/test/generated/parser_test: Pass, Slow # Issue 21628
+analyzer/test/generated/scanner_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/dart_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/driver_test: Pass, Slow # Issue 21628
+analyzer/test/src/context/cache_test: Pass, Slow # Issue 21628
 
 [ $runtime == jsshell ]
 async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
@@ -151,44 +153,9 @@ third_party/di_tests/di_test: Pass, Slow # Issue 22896
 analyzer/test/*: PubGetError
 
 [ $compiler == dart2js && $cps_ir ]
-analyzer/test/cancelable_future_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/enum_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/file_system/memory_file_system_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/file_system/physical_resource_provider_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/file_system/resource_uri_resolver_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/generated/all_the_rest_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/generated/ast_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/generated/compile_time_error_code_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/generated/element_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/generated/incremental_resolver_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/generated/incremental_scanner_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/generated/non_error_resolver_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/generated/parser_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/generated/resolver_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/generated/scanner_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/generated/source_factory_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/generated/static_type_warning_code_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/generated/static_warning_code_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/generated/type_system_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/generated/utilities_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/instrumentation/instrumentation_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/parse_compilation_unit_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/source/analysis_options_provider_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/source/package_map_provider_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/source/package_map_resolver_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/source/sdk_ext_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/src/context/cache_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/src/context/context_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/src/task/dart_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/src/task/dart_work_manager_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/src/task/driver_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/src/task/general_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/src/task/html_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/src/task/html_work_manager_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/src/task/incremental_element_builder_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/src/task/inputs_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/src/task/manager_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/src/task/model_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/src/util/asserts_test: Crash # The null object does not have a getter '_element'.
-analyzer/test/src/util/lru_map_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/cancelable_future_test: Crash # Invalid argument(s)
+analyzer/test/enum_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
+analyzer/test/file_system/physical_resource_provider_test: Crash # (Future _poll()async...  cannot handle async/sync*/async* functions
+analyzer/test/generated/all_the_rest_test: Crash # (Future test_implici...  cannot handle async/sync*/async* functions
+analyzer/test/src/context/context_test: Crash # Invalid argument(s)
 typed_data/test/typed_buffers_test/none: RuntimeError # Please triage this failure.

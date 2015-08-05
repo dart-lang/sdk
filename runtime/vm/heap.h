@@ -140,9 +140,7 @@ class Heap {
   }
 
   // Accessors for inlined allocation in generated code.
-  uword TopAddress(Space space);
   static intptr_t TopOffset(Space space);
-  uword EndAddress(Space space);
   static intptr_t EndOffset(Space space);
   static Space SpaceForAllocation(intptr_t class_id);
 

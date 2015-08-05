@@ -266,6 +266,25 @@ class ScannerTest {
     _assertComment(TokenType.MULTI_LINE_COMMENT, "/* comment */");
   }
 
+  void test_comment_multi_lineEnds() {
+    String code = r'''
+/**
+ * aa
+ * bbb
+ * c
+ */''';
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scanner scanner = new Scanner(null, new CharSequenceReader(code), listener);
+    scanner.tokenize();
+    expect(scanner.lineStarts, equals(<int>[
+      code.indexOf('/**'),
+      code.indexOf(' * aa'),
+      code.indexOf(' * bbb'),
+      code.indexOf(' * c'),
+      code.indexOf(' */')
+    ]));
+  }
+
   void test_comment_multi_unterminated() {
     _assertError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, 3, "/* x");
   }

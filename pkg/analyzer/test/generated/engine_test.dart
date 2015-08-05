@@ -2263,6 +2263,7 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       options.cacheSize = i;
       options.dart2jsHint = booleanValue;
       options.enableStrictCallChecks = booleanValue;
+      options.enableSuperMixins = booleanValue;
       options.generateImplicitErrors = booleanValue;
       options.generateSdkErrors = booleanValue;
       options.hint = booleanValue;
@@ -2274,6 +2275,7 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       expect(copy.cacheSize, options.cacheSize);
       expect(copy.dart2jsHint, options.dart2jsHint);
       expect(copy.enableStrictCallChecks, options.enableStrictCallChecks);
+      expect(copy.enableSuperMixins, options.enableSuperMixins);
       expect(copy.generateImplicitErrors, options.generateImplicitErrors);
       expect(copy.generateSdkErrors, options.generateSdkErrors);
       expect(copy.hint, options.hint);
@@ -2305,11 +2307,11 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     expect(options.dart2jsHint, value);
   }
 
-  void test_strongMode() {
+  void test_enableSuperMixins() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    bool value = !options.strongMode;
-    options.strongMode = value;
-    expect(options.strongMode, value);
+    bool value = !options.enableSuperMixins;
+    options.enableSuperMixins = value;
+    expect(options.enableSuperMixins, value);
   }
 
   void test_generateImplicitErrors() {
@@ -2345,6 +2347,13 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     bool value = !options.preserveComments;
     options.preserveComments = value;
     expect(options.preserveComments, value);
+  }
+
+  void test_strongMode() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    bool value = !options.strongMode;
+    options.strongMode = value;
+    expect(options.strongMode, value);
   }
 }
 

@@ -109,7 +109,7 @@ class CustomUriResolver extends UriResolver {
   CustomUriResolver(this._urlMappings);
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     String mapping = _urlMappings[uri.toString()];
     if (mapping == null) return null;
 
@@ -117,7 +117,7 @@ class CustomUriResolver extends UriResolver {
     if (!fileUri.isAbsolute) return null;
 
     JavaFile javaFile = new JavaFile.fromUri(fileUri);
-    return new FileBasedSource(javaFile);
+    return new FileBasedSource(javaFile, actualUri != null ? actualUri : uri);
   }
 }
 
@@ -156,7 +156,7 @@ class DartUriResolver extends UriResolver {
   DartSdk get dartSdk => _sdk;
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     if (!isDartUri(uri)) {
       return null;
     }
@@ -814,22 +814,30 @@ class SourceFactory {
       }
       containedUri = containingSource.resolveRelativeUri(containedUri);
     }
-    // Now check .packages.
+
+    Uri actualUri = containedUri;
+
+    // Check .packages and update target and actual URIs as appropriate.
     if (_packages != null && containedUri.scheme == 'package') {
       Uri packageUri =
           _packages.resolve(containedUri, notFound: (Uri packageUri) => null);
-      // Ensure scheme is set.
-      if (packageUri != null && packageUri.scheme == '') {
-        packageUri = packageUri.replace(scheme: 'file');
+
+      if (packageUri != null) {
+        // Ensure scheme is set.
+        if (packageUri.scheme == '') {
+          packageUri = packageUri.replace(scheme: 'file');
+        }
+        containedUri = packageUri;
       }
-      containedUri = packageUri;
     }
+
     for (UriResolver resolver in _resolvers) {
-      Source result = resolver.resolveAbsolute(containedUri);
+      Source result = resolver.resolveAbsolute(containedUri, actualUri);
       if (result != null) {
         return result;
       }
     }
+
     return null;
   }
 }
@@ -1062,9 +1070,10 @@ abstract class UriResolver {
    * resolved because the URI is invalid.
    *
    * @param uri the URI to be resolved
+   * @param actualUri the actual uri for this source -- if `null`, the value of [uri] will be used
    * @return a [Source] representing the file to which given URI was resolved
    */
-  Source resolveAbsolute(Uri uri);
+  Source resolveAbsolute(Uri uri, [Uri actualUri]);
 
   /**
    * Return an absolute URI that represents the given source, or `null` if a valid URI cannot

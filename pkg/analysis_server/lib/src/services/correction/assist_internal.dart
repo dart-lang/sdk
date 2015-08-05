@@ -399,13 +399,19 @@ class AssistProcessor {
       return;
     }
     Expression returnValue = (body as ExpressionFunctionBody).expression;
+    DartType returnValueType = returnValue.staticType;
+    String returnValueCode = _getNodeText(returnValue);
     // prepare prefix
     String prefix = utils.getNodePrefix(body.parent);
-    // add change
     String indent = utils.getIndent(1);
-    String returnSource = 'return ' + _getNodeText(returnValue);
-    String newBodySource = '{$eol$prefix$indent$returnSource;$eol$prefix}';
-    _addReplaceEdit(rangeNode(body), newBodySource);
+    // add change
+    String statementCode =
+        (returnValueType.isVoid ? '' : 'return ') + returnValueCode;
+    SourceBuilder sb = new SourceBuilder(file, body.offset);
+    sb.append('{$eol$prefix$indent$statementCode;');
+    sb.setExitOffset();
+    sb.append('$eol$prefix}');
+    _insertBuilder(sb, body.length);
     // add proposal
     _addAssist(DartAssistKind.CONVERT_INTO_BLOCK_BODY, []);
   }
@@ -423,13 +429,14 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
-    if (statements[0] is! ReturnStatement) {
-      _coverageMarker();
-      return;
-    }
-    ReturnStatement returnStatement = statements[0] as ReturnStatement;
+    Statement onlyStatement = statements.first;
     // prepare returned expression
-    Expression returnExpression = returnStatement.expression;
+    Expression returnExpression;
+    if (onlyStatement is ReturnStatement) {
+      returnExpression = onlyStatement.expression;
+    } else if (onlyStatement is ExpressionStatement) {
+      returnExpression = onlyStatement.expression;
+    }
     if (returnExpression == null) {
       _coverageMarker();
       return;
@@ -484,8 +491,8 @@ class AssistProcessor {
       // check number of references
       {
         int numOfReferences = 0;
-        AstVisitor visitor = new _SimpleIdentifierRecursiveAstVisitor(
-            (SimpleIdentifier node) {
+        AstVisitor visitor =
+            new _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
           if (node.staticElement == parameterElement) {
             numOfReferences++;
           }

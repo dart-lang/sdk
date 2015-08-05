@@ -23,6 +23,7 @@
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/thread_registry.h"
 #include "vm/verifier.h"
 
 namespace dart {
@@ -1053,23 +1054,72 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
   // a zigzagged lookup to see if this call failed because of an arity mismatch,
   // need for conversion, or there really is no such method.
 
+#define NO_SUCH_METHOD()                                                       \
+  const Object& result = Object::Handle(                                       \
+      DartEntry::InvokeNoSuchMethod(receiver,                                  \
+                                    target_name,                               \
+                                    orig_arguments,                            \
+                                    orig_arguments_desc));                     \
+  CheckResultError(result);                                                    \
+  arguments.SetReturn(result);                                                 \
+
+#define CLOSURIZE(some_function)                                               \
+  const Function& closure_function =                                           \
+      Function::Handle(some_function.ImplicitClosureFunction());               \
+  const Object& result =                                                       \
+      Object::Handle(closure_function.ImplicitInstanceClosure(receiver));      \
+  arguments.SetReturn(result);                                                 \
+
   const bool is_getter = Field::IsGetterName(target_name);
   if (is_getter) {
-    // o.foo failed, closurize o.foo() if it exists
-    const String& field_name =
-      String::Handle(Field::NameFromGetter(target_name));
+    // o.foo (o.get:foo) failed, closurize o.foo() if it exists. Or,
+    // o#foo (o.get:#foo) failed, closurizee o.foo or o.foo(), whichever is
+    // encountered first on the inheritance chain. Or,
+    // o#foo= (o.get:#set:foo) failed, closurize o.foo= if it exists.
+    String& field_name =
+        String::Handle(Field::NameFromGetter(target_name));
+
+    const bool is_extractor = field_name.CharAt(0) == '#';
+    if (is_extractor) {
+      field_name = String::SubString(field_name, 1);
+      ASSERT(!Field::IsGetterName(field_name));
+      field_name = Symbols::New(field_name);
+
+      if (!Field::IsSetterName(field_name)) {
+        const String& getter_name =
+            String::Handle(Field::GetterName(field_name));
+
+        // Zigzagged lookup: closure either a regular method or a getter.
+        while (!cls.IsNull()) {
+          function ^= cls.LookupDynamicFunction(field_name);
+          if (!function.IsNull()) {
+            CLOSURIZE(function);
+            return;
+          }
+          function ^= cls.LookupDynamicFunction(getter_name);
+          if (!function.IsNull()) {
+            CLOSURIZE(function);
+            return;
+          }
+          cls = cls.SuperClass();
+        }
+        NO_SUCH_METHOD();
+        return;
+      } else {
+        // Fall through for non-ziggaged lookup for o#foo=.
+      }
+    }
+
     while (!cls.IsNull()) {
       function ^= cls.LookupDynamicFunction(field_name);
       if (!function.IsNull()) {
-        const Function& closure_function =
-            Function::Handle(function.ImplicitClosureFunction());
-        const Object& result =
-            Object::Handle(closure_function.ImplicitInstanceClosure(receiver));
-        arguments.SetReturn(result);
+        CLOSURIZE(function);
         return;
       }
       cls = cls.SuperClass();
     }
+
+    // Fall through for noSuchMethod
   } else {
     // o.foo(...) failed, invoke noSuchMethod is foo exists but has the wrong
     // number of arguments, or try (o.foo).call(...)
@@ -1116,14 +1166,10 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
     }
   }
 
-  // Handle noSuchMethod invocation.
-  const Object& result = Object::Handle(
-      DartEntry::InvokeNoSuchMethod(receiver,
-                                    target_name,
-                                    orig_arguments,
-                                    orig_arguments_desc));
-  CheckResultError(result);
-  arguments.SetReturn(result);
+  NO_SUCH_METHOD();
+
+#undef NO_SUCH_METHOD
+#undef CLOSURIZE
 }
 
 
@@ -1299,11 +1345,14 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   }
 
   uword interrupt_bits = isolate->GetAndClearInterrupts();
-  if ((interrupt_bits & Isolate::kStoreBufferInterrupt) != 0) {
-    if (FLAG_verbose_gc) {
-      OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
+  if ((interrupt_bits & Isolate::kVMInterrupt) != 0) {
+    isolate->thread_registry()->CheckSafepoint();
+    if (isolate->store_buffer()->Overflowed()) {
+      if (FLAG_verbose_gc) {
+        OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
+      }
+      isolate->heap()->CollectGarbage(Heap::kNew);
     }
-    isolate->heap()->CollectGarbage(Heap::kNew);
   }
   if ((interrupt_bits & Isolate::kMessageInterrupt) != 0) {
     bool ok = isolate->message_handler()->HandleOOBMessages();
@@ -1508,7 +1557,7 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
   alloc_class ^= stub.owner();
   Code& alloc_stub = Code::Handle(isolate, alloc_class.allocation_stub());
   if (alloc_stub.IsNull()) {
-    alloc_stub = isolate->stub_code()->GetAllocationStubForClass(alloc_class);
+    alloc_stub = StubCode::GetAllocationStubForClass(alloc_class);
     ASSERT(!CodePatcher::IsEntryPatched(alloc_stub));
   }
   const Instructions& instrs =

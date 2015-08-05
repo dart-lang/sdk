@@ -102,9 +102,12 @@ class CodeGenerator {
   }
 
   /**
-   * Execute [callback], indenting any code it outputs by two spaces.
+   * Execute [callback], indenting any code it outputs.
    */
-  void indent(void callback()) => indentSpecial('  ', '  ', callback);
+  void indent(void callback()) {
+    indentSpecial(codeGeneratorSettings.indent, codeGeneratorSettings.indent,
+      callback);
+  }
 
   /**
    * Execute [callback], using [additionalIndent] to indent any code it outputs.
@@ -237,10 +240,15 @@ class CodeGeneratorSettings {
    */
   int commentLineLength;
 
+  /**
+   * String used for indenting code.
+   */
+  String indent;
+
   CodeGeneratorSettings({this.languageName: 'java',
       this.lineCommentLineLeader: '// ', this.docCommentStartMarker: '/**',
       this.docCommentLineLeader: ' * ', this.docCommentEndMarker: ' */',
-      this.commentLineLength: 99});
+      this.commentLineLength: 99, this.indent: '  '});
 }
 
 abstract class GeneratedContent {

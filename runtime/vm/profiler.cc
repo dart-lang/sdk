@@ -439,15 +439,13 @@ class ProfilerDartExitStackWalker : public ValueObject {
 // Executing Dart code, walk the stack.
 class ProfilerDartStackWalker : public ValueObject {
  public:
-  ProfilerDartStackWalker(Isolate* isolate,
-                          Sample* sample,
+  ProfilerDartStackWalker(Sample* sample,
                           uword stack_lower,
                           uword stack_upper,
                           uword pc,
                           uword fp,
                           uword sp)
-      : isolate_(isolate),
-        sample_(sample),
+      : sample_(sample),
         stack_upper_(stack_upper),
         stack_lower_(stack_lower) {
     ASSERT(sample_ != NULL);
@@ -464,7 +462,7 @@ class ProfilerDartStackWalker : public ValueObject {
     }
     ASSERT(ValidFramePointer());
     uword return_pc = InitialReturnAddress();
-    if (StubCode::InInvocationStubForIsolate(isolate_, return_pc)) {
+    if (StubCode::InInvocationStub(return_pc)) {
       // Edge case- we have called out from the Invocation Stub but have not
       // created the stack frame of the callee. Attempt to locate the exit
       // frame before walking the stack.
@@ -488,16 +486,14 @@ class ProfilerDartStackWalker : public ValueObject {
     if (!ValidFramePointer()) {
       return false;
     }
-    if (StubCode::InInvocationStubForIsolate(isolate_,
-                                             reinterpret_cast<uword>(pc_))) {
+    if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_))) {
       // In invocation stub.
       return NextExit();
     }
     // In regular Dart frame.
     uword* new_pc = CallerPC();
     // Check if we've moved into the invocation stub.
-    if (StubCode::InInvocationStubForIsolate(isolate_,
-                                             reinterpret_cast<uword>(new_pc))) {
+    if (StubCode::InInvocationStub(reinterpret_cast<uword>(new_pc))) {
       // New PC is inside invocation stub, skip.
       return NextExit();
     }
@@ -585,7 +581,6 @@ class ProfilerDartStackWalker : public ValueObject {
   uword* pc_;
   uword* fp_;
   uword* sp_;
-  Isolate* isolate_;
   Sample* sample_;
   const uword stack_upper_;
   uword stack_lower_;
@@ -827,8 +822,7 @@ void Profiler::RecordAllocation(Isolate* isolate, intptr_t cid) {
   }
   ASSERT(isolate != Dart::vm_isolate());
 
-  const bool exited_dart_code = (isolate->stub_code() != NULL) &&
-                                (isolate->top_exit_frame_info() != 0) &&
+  const bool exited_dart_code = (isolate->top_exit_frame_info() != 0) &&
                                 (isolate->vm_tag() != VMTag::kDartTagId);
 
   if (!exited_dart_code) {
@@ -883,11 +877,9 @@ void Profiler::RecordSampleInterruptCallback(
 
   ASSERT(isolate != Dart::vm_isolate());
 
-  const bool exited_dart_code = (isolate->stub_code() != NULL) &&
-                                (isolate->top_exit_frame_info() != 0) &&
+  const bool exited_dart_code = (isolate->top_exit_frame_info() != 0) &&
                                 (isolate->vm_tag() != VMTag::kDartTagId);
-  const bool in_dart_code = (isolate->stub_code() != NULL) &&
-                            (isolate->top_exit_frame_info() == 0) &&
+  const bool in_dart_code = (isolate->top_exit_frame_info() == 0) &&
                             (isolate->vm_tag() == VMTag::kDartTagId);
 
   uintptr_t sp = 0;
@@ -1018,8 +1010,7 @@ void Profiler::RecordSampleInterruptCallback(
 
   ProfilerDartExitStackWalker dart_exit_stack_walker(isolate, sample);
 
-  ProfilerDartStackWalker dart_stack_walker(isolate,
-                                            sample,
+  ProfilerDartStackWalker dart_stack_walker(sample,
                                             stack_lower,
                                             stack_upper,
                                             pc,

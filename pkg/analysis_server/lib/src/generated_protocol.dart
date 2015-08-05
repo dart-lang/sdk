@@ -6166,6 +6166,164 @@ class EditSortMembersResult implements HasToJson {
 }
 
 /**
+ * edit.organizeDirectives params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ */
+class EditOrganizeDirectivesParams implements HasToJson {
+  String _file;
+
+  /**
+   * The Dart file to organize directives in.
+   */
+  String get file => _file;
+
+  /**
+   * The Dart file to organize directives in.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  EditOrganizeDirectivesParams(String file) {
+    this.file = file;
+  }
+
+  factory EditOrganizeDirectivesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "file");
+      }
+      return new EditOrganizeDirectivesParams(file);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.organizeDirectives params", json);
+    }
+  }
+
+  factory EditOrganizeDirectivesParams.fromRequest(Request request) {
+    return new EditOrganizeDirectivesParams.fromJson(
+        new RequestDecoder(request), "params", request._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    return result;
+  }
+
+  Request toRequest(String id) {
+    return new Request(id, "edit.organizeDirectives", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is EditOrganizeDirectivesParams) {
+      return file == other.file;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.organizeDirectives result
+ *
+ * {
+ *   "edit": SourceFileEdit
+ * }
+ */
+class EditOrganizeDirectivesResult implements HasToJson {
+  SourceFileEdit _edit;
+
+  /**
+   * The file edit that is to be applied to the given file to effect the
+   * organizing.
+   */
+  SourceFileEdit get edit => _edit;
+
+  /**
+   * The file edit that is to be applied to the given file to effect the
+   * organizing.
+   */
+  void set edit(SourceFileEdit value) {
+    assert(value != null);
+    this._edit = value;
+  }
+
+  EditOrganizeDirectivesResult(SourceFileEdit edit) {
+    this.edit = edit;
+  }
+
+  factory EditOrganizeDirectivesResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      SourceFileEdit edit;
+      if (json.containsKey("edit")) {
+        edit = new SourceFileEdit.fromJson(jsonDecoder, jsonPath + ".edit", json["edit"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "edit");
+      }
+      return new EditOrganizeDirectivesResult(edit);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.organizeDirectives result", json);
+    }
+  }
+
+  factory EditOrganizeDirectivesResult.fromResponse(Response response) {
+    return new EditOrganizeDirectivesResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["edit"] = edit.toJson();
+    return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is EditOrganizeDirectivesResult) {
+      return edit == other.edit;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, edit.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * execution.createContext params
  *
  * {
@@ -7403,14 +7561,14 @@ class AnalysisOptions implements HasToJson {
   bool _generateLints;
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed async feature.
    */
   bool get enableAsync => _enableAsync;
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed async feature.
    */
@@ -7419,7 +7577,7 @@ class AnalysisOptions implements HasToJson {
   }
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed deferred
    * loading feature.
@@ -7427,7 +7585,7 @@ class AnalysisOptions implements HasToJson {
   bool get enableDeferredLoading => _enableDeferredLoading;
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed deferred
    * loading feature.
@@ -7437,14 +7595,14 @@ class AnalysisOptions implements HasToJson {
   }
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed enum feature.
    */
   bool get enableEnums => _enableEnums;
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed enum feature.
    */
@@ -7453,12 +7611,16 @@ class AnalysisOptions implements HasToJson {
   }
 
   /**
+   * Deprecated: this feature is always enabled.
+   *
    * True if the client wants to enable support for the proposed "null aware
    * operators" feature.
    */
   bool get enableNullAwareOperators => _enableNullAwareOperators;
 
   /**
+   * Deprecated: this feature is always enabled.
+   *
    * True if the client wants to enable support for the proposed "null aware
    * operators" feature.
    */
@@ -12665,6 +12827,7 @@ class RequestError implements HasToJson {
  *
  * enum {
  *   CONTENT_MODIFIED
+ *   FILE_NOT_ANALYZED
  *   FORMAT_INVALID_FILE
  *   FORMAT_WITH_ERRORS
  *   GET_ERRORS_INVALID_FILE
@@ -12675,6 +12838,7 @@ class RequestError implements HasToJson {
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
  *   NO_INDEX_GENERATED
+ *   ORGANIZE_DIRECTIVES_ERROR
  *   REFACTORING_REQUEST_CANCELLED
  *   SERVER_ALREADY_STARTED
  *   SERVER_ERROR
@@ -12695,6 +12859,12 @@ class RequestErrorCode implements Enum {
   static const CONTENT_MODIFIED = const RequestErrorCode._("CONTENT_MODIFIED");
 
   /**
+   * A request specified a FilePath which does not match a file in an analysis
+   * root, or the requested operation is not available for the file.
+   */
+  static const FILE_NOT_ANALYZED = const RequestErrorCode._("FILE_NOT_ANALYZED");
+
+  /**
    * An "edit.format" request specified a FilePath which does not match a Dart
    * file in an analysis root.
    */
@@ -12712,8 +12882,8 @@ class RequestErrorCode implements Enum {
   static const GET_ERRORS_INVALID_FILE = const RequestErrorCode._("GET_ERRORS_INVALID_FILE");
 
   /**
-   * An "analysis.getErrors" request specified a FilePath which does not match
-   * a file currently subject to analysis.
+   * An "analysis.getNavigation" request specified a FilePath which does not
+   * match a file currently subject to analysis.
    */
   static const GET_NAVIGATION_INVALID_FILE = const RequestErrorCode._("GET_NAVIGATION_INVALID_FILE");
 
@@ -12750,6 +12920,12 @@ class RequestErrorCode implements Enum {
    * this API call requires an index to have been generated.
    */
   static const NO_INDEX_GENERATED = const RequestErrorCode._("NO_INDEX_GENERATED");
+
+  /**
+   * An "edit.organizeDirectives" request specified a Dart file that cannot be
+   * analyzed. The reason is described in the message.
+   */
+  static const ORGANIZE_DIRECTIVES_ERROR = const RequestErrorCode._("ORGANIZE_DIRECTIVES_ERROR");
 
   /**
    * Another refactoring request was received during processing of this one.
@@ -12817,7 +12993,7 @@ class RequestErrorCode implements Enum {
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FORMAT_INVALID_FILE, FORMAT_WITH_ERRORS, GET_ERRORS_INVALID_FILE, GET_NAVIGATION_INVALID_FILE, INVALID_ANALYSIS_ROOT, INVALID_EXECUTION_CONTEXT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNKNOWN_SOURCE, UNSUPPORTED_FEATURE];
+  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FILE_NOT_ANALYZED, FORMAT_INVALID_FILE, FORMAT_WITH_ERRORS, GET_ERRORS_INVALID_FILE, GET_NAVIGATION_INVALID_FILE, INVALID_ANALYSIS_ROOT, INVALID_EXECUTION_CONTEXT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, ORGANIZE_DIRECTIVES_ERROR, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNKNOWN_SOURCE, UNSUPPORTED_FEATURE];
 
   final String name;
 
@@ -12827,6 +13003,8 @@ class RequestErrorCode implements Enum {
     switch (name) {
       case "CONTENT_MODIFIED":
         return CONTENT_MODIFIED;
+      case "FILE_NOT_ANALYZED":
+        return FILE_NOT_ANALYZED;
       case "FORMAT_INVALID_FILE":
         return FORMAT_INVALID_FILE;
       case "FORMAT_WITH_ERRORS":
@@ -12847,6 +13025,8 @@ class RequestErrorCode implements Enum {
         return INVALID_REQUEST;
       case "NO_INDEX_GENERATED":
         return NO_INDEX_GENERATED;
+      case "ORGANIZE_DIRECTIVES_ERROR":
+        return ORGANIZE_DIRECTIVES_ERROR;
       case "REFACTORING_REQUEST_CANCELLED":
         return REFACTORING_REQUEST_CANCELLED;
       case "SERVER_ALREADY_STARTED":

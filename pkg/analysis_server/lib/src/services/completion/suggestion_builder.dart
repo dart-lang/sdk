@@ -28,35 +28,10 @@ const String DYNAMIC = 'dynamic';
 CompletionSuggestion createSuggestion(Element element,
     {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
     int relevance: DART_RELEVANCE_DEFAULT, Source importForSource}) {
-  String nameForType(DartType type) {
-    if (type == null) {
-      return DYNAMIC;
-    }
-    String name = type.displayName;
-    if (name == null || name.length <= 0) {
-      return DYNAMIC;
-    }
-    //TODO (danrubel) include type arguments ??
-    return name;
+  if (element is ExecutableElement && element.isOperator) {
+    // Do not include operators in suggestions
+    return null;
   }
-
-  String returnType = null;
-  if (element is ExecutableElement) {
-    if (element.isOperator) {
-      // Do not include operators in suggestions
-      return null;
-    }
-    if (element is PropertyAccessorElement && element.isSetter) {
-      // no return type
-    } else {
-      returnType = nameForType(element.returnType);
-    }
-  } else if (element is VariableElement) {
-    returnType = nameForType(element.type);
-  } else if (element is FunctionTypeAliasElement) {
-    returnType = nameForType(element.returnType);
-  }
-
   String completion = element.displayName;
   bool isDeprecated = element.isDeprecated;
   CompletionSuggestion suggestion = new CompletionSuggestion(kind,
@@ -67,7 +42,7 @@ CompletionSuggestion createSuggestion(Element element,
   if (enclosingElement is ClassElement) {
     suggestion.declaringType = enclosingElement.displayName;
   }
-  suggestion.returnType = returnType;
+  suggestion.returnType = getReturnTypeString(element);
   if (element is ExecutableElement && element is! PropertyAccessorElement) {
     suggestion.parameterNames = element.parameters
         .map((ParameterElement parameter) => parameter.name)
@@ -476,6 +451,12 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   @override
   visitCompilationUnitElement(CompilationUnitElement element) {
     element.visitChildren(this);
+    LibraryElement containingLibrary = element.library;
+    if (containingLibrary != null) {
+      for (var lib in containingLibrary.exportedLibraries) {
+        lib.visitChildren(this);
+      }
+    }
   }
 
   @override

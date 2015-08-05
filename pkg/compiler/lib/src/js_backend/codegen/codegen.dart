@@ -645,7 +645,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     js.Name helperName = glue.getInterceptorName(node.interceptedClasses);
     js.Expression globalHolder = glue.getInterceptorLibrary();
     return js.js('#.#(#)',
-        [globalHolder, helperName, visitExpression(node.input)]);
+        [globalHolder, helperName, visitExpression(node.input)])
+            .withSourceInformation(node.sourceInformation);
   }
 
   @override

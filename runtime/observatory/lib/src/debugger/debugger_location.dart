@@ -283,7 +283,7 @@ class DebuggerLocation {
     var base = match.group(1);
     var qualifier = match.group(2);
     base = (base == null ? '' : base);
-    
+
     if (qualifier == null) {
       return _lookupClass(isolate, base, allowPrefix:true).then((classes) {
         var completions = [];

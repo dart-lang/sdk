@@ -85,5 +85,5 @@ var tests = [
   },
 ];
 
-  
+
 main(args) => runIsolateTests(args, tests, testeeConcurrent: test);

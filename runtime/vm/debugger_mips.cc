@@ -20,15 +20,14 @@ uword CodeBreakpoint::OrigStubAddress() const {
 
 void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
-  StubCode* stub_code = Isolate::Current()->stub_code();
   uword stub_target = 0;
   switch (breakpoint_kind_) {
     case RawPcDescriptors::kIcCall:
     case RawPcDescriptors::kUnoptStaticCall:
-      stub_target = stub_code->ICCallBreakpointEntryPoint();
+      stub_target = StubCode::ICCallBreakpoint_entry()->EntryPoint();
       break;
     case RawPcDescriptors::kRuntimeCall:
-      stub_target = stub_code->RuntimeCallBreakpointEntryPoint();
+      stub_target = StubCode::RuntimeCallBreakpoint_entry()->EntryPoint();
       break;
     default:
       UNREACHABLE();

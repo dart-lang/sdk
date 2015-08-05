@@ -5,7 +5,7 @@
 // Test that the compiler can generates code with compile time error according
 // to the compiler options.
 
-library dart2js.test.import;
+library dart2js.test.generate_code_with_compile_time_errors;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
@@ -33,49 +33,46 @@ test(List<String> options,
       bool expectHint: false}) async {
   DiagnosticCollector collector = new DiagnosticCollector();
   OutputCollector outputCollector = new OutputCollector();
-  Compiler compiler = compilerFor(
-      MEMORY_SOURCE_FILES,
+  CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
       diagnosticHandler: collector,
       outputProvider: outputCollector,
       options: options);
+  Compiler compiler = result.compiler;
+  Expect.isFalse(
+      result.isSuccess,
+      "Expected compilation failure.");
+  Expect.isTrue(
+      collector.warnings.isEmpty,
+      "Unexpected warnings: ${collector.warnings}");
+  Expect.isFalse(
+      collector.errors.isEmpty,
+      "Expected compile-time errors.");
+  Expect.equals(
+      expectHint,
+      collector.hints.isNotEmpty,
+      "Unexpected hints: ${collector.warnings}");
 
-  return compiler.run(Uri.parse('memory:main.dart')).then(
-      (bool success) {
-    Expect.isFalse(
-        success,
-        "Expected compilation failure.");
-    Expect.isTrue(
-        collector.warnings.isEmpty,
-        "Unexpected warnings: ${collector.warnings}");
-    Expect.isFalse(
-        collector.errors.isEmpty,
-        "Expected compile-time errors.");
-    Expect.equals(
-        expectHint,
-        collector.hints.isNotEmpty,
-        "Unexpected hints: ${collector.warnings}");
-
-    bool isCodeGenerated;
-    if (options.contains('--output-type=dart')) {
-      DartBackend backend = compiler.backend;
-      isCodeGenerated = backend.outputter.libraryInfo != null;
-    } else {
-      JavaScriptBackend backend = compiler.backend;
-      isCodeGenerated = backend.generatedCode.isNotEmpty;
-    }
-    Expect.equals(
-        expectedCodeGenerated,
-        isCodeGenerated,
-        expectedCodeGenerated
-            ? "Expected generated code for options $options."
-            : "Expected no code generated for options $options.");
-    Expect.equals(
-        expectedOutput,
-        outputCollector.outputMap.isNotEmpty,
-        expectedOutput
-            ? "Expected output for options $options."
-            : "Expected no output for options $options.");
-  });
+  bool isCodeGenerated;
+  if (options.contains('--output-type=dart')) {
+    DartBackend backend = compiler.backend;
+    isCodeGenerated = backend.outputter.libraryInfo != null;
+  } else {
+    JavaScriptBackend backend = compiler.backend;
+    isCodeGenerated = backend.generatedCode.isNotEmpty;
+  }
+  Expect.equals(
+      expectedCodeGenerated,
+      isCodeGenerated,
+      expectedCodeGenerated
+          ? "Expected generated code for options $options."
+          : "Expected no code generated for options $options.");
+  Expect.equals(
+      expectedOutput,
+      outputCollector.outputMap.isNotEmpty,
+      expectedOutput
+          ? "Expected output for options $options."
+          : "Expected no output for options $options.");
 }
 
 void main() {

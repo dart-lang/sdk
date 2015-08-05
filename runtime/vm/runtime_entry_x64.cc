@@ -29,9 +29,9 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
     ExternalLabel label(GetEntryPoint());
-    __ LoadExternalLabel(RBX, &label, kNotPatchable, PP);
+    __ LoadExternalLabel(RBX, &label, kNotPatchable);
     __ movq(R10, Immediate(argument_count));
-    __ Call(&Isolate::Current()->stub_code()->CallToRuntimeLabel(), PP);
+    __ Call(*StubCode::CallToRuntime_entry());
   }
 }
 

@@ -3140,6 +3140,19 @@ class B extends Object with A {}''');
     verify([source]);
   }
 
+  void test_mixinInheritsFromNotObject_classDeclaration_extends() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWithOptions(options);
+    Source source = addSource(r'''
+class A {}
+class B extends A {}
+class C extends Object with B {}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_mixinInheritsFromNotObject_classDeclaration_mixTypeAlias() {
     Source source = addSource(r'''
 class A {}
@@ -3150,11 +3163,64 @@ class C extends Object with B {}''');
     verify([source]);
   }
 
+  void test_mixinInheritsFromNotObject_classDeclaration_with() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWithOptions(options);
+    Source source = addSource(r'''
+class A {}
+class B extends Object with A {}
+class C extends Object with B {}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_mixinInheritsFromNotObject_typeAlias_extends() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWithOptions(options);
+    Source source = addSource(r'''
+class A {}
+class B extends A {}
+class C = Object with B;''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_mixinInheritsFromNotObject_typeAlias_with() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWithOptions(options);
+    Source source = addSource(r'''
+class A {}
+class B extends Object with A {}
+class C = Object with B;''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_mixinInheritsFromNotObject_typedef_mixTypeAlias() {
     Source source = addSource(r'''
 class A {}
 class B = Object with A;
 class C = Object with B;''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_mixinReferencesSuper() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWithOptions(options);
+    Source source = addSource(r'''
+class A {
+  toString() => super.toString();
+}
+class B extends Object with A {}''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
@@ -5002,12 +5068,14 @@ class Bar extends Foo {
     verify([source]);
   }
 
-  void test_undefinedGetter_typeLiteral_conditionalAccess() {
-    // When applied to a type literal, the conditional access operator '?.' can
-    // be used to access instance getters of Type.
+  void test_undefinedGetter_static_conditionalAccess() {
+    // The conditional access operator '?.' can be used to access static
+    // fields.
     Source source = addSource('''
-class A {}
-f() => A?.hashCode;
+class A {
+  static var x;
+}
+var a = A?.x;
 ''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -5089,12 +5157,14 @@ main() {
     // A call to verify(source) fails as '(() => null)()' isn't resolved.
   }
 
-  void test_undefinedMethod_typeLiteral_conditionalAccess() {
-    // When applied to a type literal, the conditional access operator '?.' can
-    // be used to access instance methods of Type.
+  void test_undefinedMethod_static_conditionalAccess() {
+    // The conditional access operator '?.' can be used to access static
+    // methods.
     Source source = addSource('''
-class A {}
-f() => A?.toString();
+class A {
+  static void m() {}
+}
+f() { A?.m(); }
 ''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -5134,6 +5204,20 @@ import 'lib.dart' as x;
 main() {
   x.y = 0;
 }''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_undefinedSetter_static_conditionalAccess() {
+    // The conditional access operator '?.' can be used to access static
+    // fields.
+    Source source = addSource('''
+class A {
+  static var x;
+}
+f() { A?.x = 1; }
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);

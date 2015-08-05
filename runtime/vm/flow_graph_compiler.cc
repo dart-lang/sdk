@@ -66,6 +66,7 @@ DECLARE_FLAG(bool, use_field_guards);
 DECLARE_FLAG(bool, use_cha_deopt);
 DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
+DECLARE_FLAG(bool, precompile_collect_closures);
 
 
 static void NooptModeHandler(bool value) {
@@ -101,6 +102,27 @@ static void NooptModeHandler(bool value) {
 DEFINE_FLAG_HANDLER(NooptModeHandler,
                     noopt,
                     "Run fast unoptimized code only.");
+
+
+DECLARE_FLAG(bool, lazy_dispatchers);
+DECLARE_FLAG(bool, interpret_irregexp);
+DECLARE_FLAG(bool, enable_mirrors);
+
+
+static void PrecompileModeHandler(bool value) {
+  if (value) {
+    NooptModeHandler(true);
+    FLAG_lazy_dispatchers = false;
+    FLAG_interpret_irregexp = true;
+    FLAG_enable_mirrors = false;
+    FLAG_precompile_collect_closures = true;
+  }
+}
+
+
+DEFINE_FLAG_HANDLER(PrecompileModeHandler,
+                    precompile,
+                    "Precompilation mode");
 
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
@@ -405,7 +427,7 @@ struct IntervalStruct {
   intptr_t inlining_id;
   IntervalStruct(intptr_t s, intptr_t id) : start(s), inlining_id(id) {}
   void Dump() {
-    OS::Print("start: %" Px " id: %" Pd "",  start, inlining_id);
+    ISL_Print("start: 0x%" Px " iid: %" Pd " ",  start, inlining_id);
   }
 };
 
@@ -450,8 +472,7 @@ void FlowGraphCompiler::VisitBlocks() {
       // Compose intervals.
       if (instr->has_inlining_id() && is_optimizing()) {
         if (prev_inlining_id != instr->inlining_id()) {
-          intervals.Add(IntervalStruct(prev_offset,
-                                       prev_inlining_id));
+          intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
           prev_offset = assembler()->CodeSize();
           prev_inlining_id = instr->inlining_id();
           if (prev_inlining_id > max_inlining_id) {
@@ -460,8 +481,7 @@ void FlowGraphCompiler::VisitBlocks() {
         }
       }
       if (FLAG_code_comments ||
-          FLAG_disassemble ||
-          FLAG_disassemble_optimized) {
+          FLAG_disassemble || FLAG_disassemble_optimized) {
         if (FLAG_source_lines) {
           EmitSourceLine(instr);
         }
@@ -496,6 +516,7 @@ void FlowGraphCompiler::VisitBlocks() {
   }
 
   if (is_optimizing()) {
+    LogBlock lb(Isolate::Current());
     intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
     inlined_code_intervals_ =
         Array::New(intervals.length() * Code::kInlIntNumEntries, Heap::kOld);
@@ -504,13 +525,14 @@ void FlowGraphCompiler::VisitBlocks() {
     Smi& inline_id = Smi::Handle();
     for (intptr_t i = 0; i < intervals.length(); i++) {
       if (FLAG_trace_inlining_intervals && is_optimizing()) {
-        const Function* function =
-            inline_id_to_function_.At(intervals[i].inlining_id);
+        const Function& function =
+            *inline_id_to_function_.At(intervals[i].inlining_id);
         intervals[i].Dump();
-        OS::Print(" %s parent %" Pd "\n",
-            function->ToQualifiedCString(),
-            caller_inline_id_[intervals[i].inlining_id]);
+        ISL_Print(" parent iid %" Pd " %s\n",
+            caller_inline_id_[intervals[i].inlining_id],
+            function.ToQualifiedCString());
       }
+
       const intptr_t id = intervals[i].inlining_id;
       start_h = Smi::New(intervals[i].start);
       inline_id = Smi::New(id);
@@ -519,23 +541,24 @@ void FlowGraphCompiler::VisitBlocks() {
       const intptr_t p = i * Code::kInlIntNumEntries;
       inlined_code_intervals_.SetAt(p + Code::kInlIntStart, start_h);
       inlined_code_intervals_.SetAt(p + Code::kInlIntInliningId, inline_id);
-      inlined_code_intervals_.SetAt(
-          p + Code::kInlIntCallerId, caller_inline_id);
     }
   }
   set_current_block(NULL);
   if (FLAG_trace_inlining_intervals && is_optimizing()) {
-    OS::Print("Intervals:\n");
+    LogBlock lb(Isolate::Current());
+    ISL_Print("Intervals:\n");
+    for (intptr_t cc = 0; cc < caller_inline_id_.length(); cc++) {
+      ISL_Print("  iid: %" Pd " caller iid: %" Pd "\n",
+          cc, caller_inline_id_[cc]);
+    }
     Smi& temp = Smi::Handle();
     for (intptr_t i = 0; i < inlined_code_intervals_.Length();
          i += Code::kInlIntNumEntries) {
       temp ^= inlined_code_intervals_.At(i + Code::kInlIntStart);
       ASSERT(!temp.IsNull());
-      OS::Print("% " Pd " start: %" Px " ", i, temp.Value());
+      ISL_Print("% " Pd " start: 0x%" Px " ", i, temp.Value());
       temp ^= inlined_code_intervals_.At(i + Code::kInlIntInliningId);
-      OS::Print("inl-id: %" Pd " ", temp.Value());
-      temp ^= inlined_code_intervals_.At(i + Code::kInlIntCallerId);
-      OS::Print("caller-id: %" Pd " \n", temp.Value());
+      ISL_Print("iid: %" Pd " ", temp.Value());
     }
   }
 }
@@ -1049,8 +1072,6 @@ void FlowGraphCompiler::GenerateInstanceCall(
     return;
   }
   ASSERT(!ic_data.IsNull());
-  uword label_address = 0;
-  StubCode* stub_code = isolate()->stub_code();
   if (is_optimizing() && (ic_data.NumberOfUsedChecks() == 0)) {
     // Emit IC call that will count and thus may need reoptimization at
     // function entry.
@@ -1059,17 +1080,18 @@ void FlowGraphCompiler::GenerateInstanceCall(
            || flow_graph().IsCompiledForOsr());
     switch (ic_data.NumArgsTested()) {
       case 1:
-        label_address = stub_code->OneArgOptimizedCheckInlineCacheEntryPoint();
-        break;
+        EmitOptimizedInstanceCall(
+            *StubCode::OneArgOptimizedCheckInlineCache_entry(), ic_data,
+            argument_count, deopt_id, token_pos, locs);
+        return;
       case 2:
-        label_address = stub_code->TwoArgsOptimizedCheckInlineCacheEntryPoint();
-        break;
+        EmitOptimizedInstanceCall(
+            *StubCode::TwoArgsOptimizedCheckInlineCache_entry(), ic_data,
+            argument_count, deopt_id, token_pos, locs);
+        return;
       default:
         UNIMPLEMENTED();
     }
-    ExternalLabel target_label(label_address);
-    EmitOptimizedInstanceCall(&target_label, ic_data,
-                              argument_count, deopt_id, token_pos, locs);
     return;
   }
 
@@ -1086,17 +1108,18 @@ void FlowGraphCompiler::GenerateInstanceCall(
 
   switch (ic_data.NumArgsTested()) {
     case 1:
-      label_address = stub_code->OneArgCheckInlineCacheEntryPoint();
+      EmitInstanceCall(
+          *StubCode::OneArgCheckInlineCache_entry(), ic_data, argument_count,
+          deopt_id, token_pos, locs);
       break;
     case 2:
-      label_address = stub_code->TwoArgsCheckInlineCacheEntryPoint();
+      EmitInstanceCall(
+          *StubCode::TwoArgsCheckInlineCache_entry(), ic_data, argument_count,
+          deopt_id, token_pos, locs);
       break;
     default:
       UNIMPLEMENTED();
   }
-  ExternalLabel target_label(label_address);
-  EmitInstanceCall(&target_label, ic_data, argument_count,
-                   deopt_id, token_pos, locs);
 }
 
 
@@ -1673,6 +1696,21 @@ RawArray* FlowGraphCompiler::InliningIdToFunction() const {
       Array::New(inline_id_to_function_.length(), Heap::kOld));
   for (intptr_t i = 0; i < inline_id_to_function_.length(); i++) {
     res.SetAt(i, *inline_id_to_function_[i]);
+  }
+  return res.raw();
+}
+
+
+RawArray* FlowGraphCompiler::CallerInliningIdMap() const {
+  if (caller_inline_id_.length() == 0) {
+    return Object::empty_array().raw();
+  }
+  const Array& res = Array::Handle(
+      Array::New(caller_inline_id_.length(), Heap::kOld));
+  Smi& smi = Smi::Handle();
+  for (intptr_t i = 0; i < caller_inline_id_.length(); i++) {
+    smi = Smi::New(caller_inline_id_[i]);
+    res.SetAt(i, smi);
   }
   return res.raw();
 }

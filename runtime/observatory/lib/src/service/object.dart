@@ -954,6 +954,7 @@ class HeapSnapshot {
 
 /// State for a running isolate.
 class Isolate extends ServiceObjectOwner with Coverage {
+  static const kLoggingStream = '_Logging';
   @reflectable VM get vm => owner;
   @reflectable Isolate get isolate => this;
   @observable int number;
@@ -1396,6 +1397,67 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return invokeRpc('resume', {'step': 'Out'});
   }
 
+
+  static const int kFirstResume = 0;
+  static const int kSecondResume = 1;
+  /// result[kFirstResume] completes after the inital resume. The UI should
+  /// wait on this future because some other breakpoint may be hit before the
+  /// async continuation.
+  /// result[kSecondResume] completes after the second resume. Tests should
+  /// wait on this future to avoid confusing the pause event at the
+  /// state-machine switch with the pause event after the state-machine switch.
+  List<Future> asyncStepOver() {
+    Completer firstResume = new Completer();
+    Completer secondResume = new Completer();
+    var subscription;
+
+    handleError(error) {
+      if (subscription != null) {
+        subscription.cancel();
+        subscription = null;
+      }
+      firstResume.completeError(error);
+      secondResume.completeError(error);
+    }
+
+    if ((pauseEvent == null) ||
+        (pauseEvent.kind != ServiceEvent.kPauseBreakpoint) ||
+        (pauseEvent.asyncContinuation == null)) {
+      handleError(new Exception("No async continuation available"));
+    } else {
+      Instance continuation = pauseEvent.asyncContinuation;
+      assert(continuation.isClosure);
+      addBreakOnActivation(continuation).then((Breakpoint continuationBpt) {
+        vm.getEventStream(VM.kDebugStream).then((stream) {
+          var onResume = firstResume;
+          subscription = stream.listen((ServiceEvent event) {
+            if ((event.kind == ServiceEvent.kPauseBreakpoint) &&
+                (event.breakpoint == continuationBpt)) {
+              // We are stopped before state-machine dispatch; step-over to
+              // reach user code.
+              removeBreakpoint(continuationBpt).then((_) {
+                onResume = secondResume;
+                stepOver().catchError(handleError);
+              });
+            } else if (event.kind == ServiceEvent.kResume) {
+              if (onResume == secondResume) {
+                subscription.cancel();
+                subscription = null;
+              }
+              if (onResume != null) {
+                onResume.complete(this);
+                onResume = null;
+              }
+            }
+          });
+          resume().catchError(handleError);
+        }).catchError(handleError);
+      }).catchError(handleError);
+    }
+
+    return [firstResume.future, secondResume.future];
+  }
+
   Future setName(String newName) {
     return invokeRpc('setName', {'name': newName});
   }
@@ -1591,6 +1653,15 @@ class DartError extends ServiceObject {
   String toString() => 'DartError($message)';
 }
 
+Level _findLogLevel(int value) {
+  for (var level in Level.LEVELS) {
+    if (level.value == value) {
+      return level;
+    }
+  }
+  return new Level('$value', value);
+}
+
 /// A [ServiceEvent] is an asynchronous event notification from the vm.
 class ServiceEvent extends ServiceObject {
   /// The possible 'kind' values.
@@ -1611,6 +1682,7 @@ class ServiceEvent extends ServiceObject {
   static const kInspect                = 'Inspect';
   static const kDebuggerSettingsUpdate = '_DebuggerSettingsUpdate';
   static const kConnectionClosed       = 'ConnectionClosed';
+  static const kLogging                = '_Logging';
 
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -1629,6 +1701,7 @@ class ServiceEvent extends ServiceObject {
   @observable String reason;
   @observable String exceptions;
   @observable String bytesAsString;
+  @observable Map logRecord;
   int chunkIndex, chunkCount, nodeCount;
 
   @observable bool get isPauseEvent {
@@ -1690,6 +1763,12 @@ class ServiceEvent extends ServiceObject {
     if (map['bytes'] != null) {
       var bytes = decodeBase64(map['bytes']);
       bytesAsString = UTF8.decode(bytes);
+    }
+    if (map['logRecord'] != null) {
+      logRecord = map['logRecord'];
+      logRecord['time'] =
+          new DateTime.fromMillisecondsSinceEpoch(logRecord['time'].toInt());
+      logRecord['level'] = _findLogLevel(logRecord['level']);
     }
   }
 

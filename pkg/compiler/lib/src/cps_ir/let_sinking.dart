@@ -8,29 +8,34 @@ import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
 
 /// Sinks single-use primitives to the use when this is safe and profitable.
-/// 
+///
 /// To avoid sinking non-constant primitives into loops, this pass performs a
 /// control-flow analysis to determine the effective nesting of loops.
-/// 
-/// In the example below, the value 'p' can be sunk to its use site in the 
+///
+/// In the example below, the value 'p' can be sunk to its use site in the
 /// 'else' branch because that branch is not effectively part of a loop,
 /// despite being lexically nested in a recursive continuation.
-/// 
+///
 ///   let prim p = getInterceptor(<something>)
-///   let rec kont x = 
-///     if (<loop condition>) 
+///   let rec kont x =
+///     if (<loop condition>)
 ///       <loop body>
 ///       InvokeContinuation kont x'
-///     else 
+///     else
 ///       <after loop>
 ///       return p.foo()
-/// 
+///
 class LetSinker extends RecursiveVisitor implements Pass {
   String get passName => 'Let sinking';
 
   LoopHierarchy loopHierarchy;
   List<Continuation> stack = <Continuation>[];
-  Set<LetPrim> sunkNodes = new Set<LetPrim>();
+
+  /// Maps a sinkable primitive to its loop header.
+  Map<Primitive, Continuation> loopHeaderForPrimitive =
+      <Primitive, Continuation>{};
+
+  Continuation currentLoopHeader;
 
   void rewrite(FunctionDefinition node) {
     new ParentVisitor().visit(node);
@@ -38,19 +43,40 @@ class LetSinker extends RecursiveVisitor implements Pass {
     visit(node.body);
   }
 
-  void visitLetPrim(LetPrim node) {
-    // Visit the body, wherein this primitive may be sunk to its use site.
-    visit(node.body);
-
-    if (node.primitive != null) {
-      // The primitive could not be sunk. Sink dependencies to this location.
-      visit(node.primitive);
+  @override
+  Expression traverseLetPrim(LetPrim node) {
+    Primitive prim = node.primitive;
+    if (prim.hasExactlyOneUse && prim.isSafeForReordering) {
+      // This can potentially be sunk. Register the loop header, so when we
+      // find the use site, we can check if they are in the same loop.
+      loopHeaderForPrimitive[prim] = currentLoopHeader;
+      pushAction(() {
+        if (node.primitive != null) {
+          // The primitive could not be sunk. Try to sink dependencies here.
+          visit(node.primitive);
+        } else {
+          // The primitive was sunk. Destroy the old LetPrim.
+          InteriorNode parent = node.parent;
+          parent.body = node.body;
+          node.body.parent = parent;
+        }
+      });
     } else {
-      // The primitive was sunk. Destroy the old LetPrim.
-      InteriorNode parent = node.parent;
-      parent.body = node.body;
-      node.body.parent = parent;
+      visit(node.primitive);
     }
+
+    // Visit the body, wherein this primitive may be sunk to its use site.
+    return node.body;
+  }
+
+  @override
+  Expression traverseContinuation(Continuation cont) {
+    Continuation oldLoopHeader = currentLoopHeader;
+    pushAction(() {
+      currentLoopHeader = oldLoopHeader;
+    });
+    currentLoopHeader = loopHierarchy.getLoopHeader(cont);
+    return cont.body;
   }
 
   void processReference(Reference ref) {
@@ -60,13 +86,12 @@ class LetSinker extends RecursiveVisitor implements Pass {
         definition.hasExactlyOneUse &&
         definition.isSafeForReordering) {
       // Check if use is in the same loop.
-      LetPrim binding = definition.parent;
-      Continuation bindingLoop = loopHierarchy.getLoopHeader(binding);
-      Expression use = getEnclosingExpression(ref.parent);
-      Continuation useLoop = loopHierarchy.getLoopHeader(use);
-      if (bindingLoop == useLoop || definition is Constant) {
+      Continuation bindingLoop = loopHeaderForPrimitive.remove(definition);
+      if (bindingLoop == currentLoopHeader || definition is Constant) {
         // Sink the definition.
 
+        Expression use = getEnclosingExpression(ref.parent);
+        LetPrim binding = definition.parent;
         binding.primitive = null;  // Mark old binding for deletion.
         LetPrim newBinding = new LetPrim(definition);
         definition.parent = newBinding;
@@ -127,20 +152,9 @@ class LoopHierarchy {
     _processBlock(node.body, null);
   }
 
-  /// Returns the innermost loop which [node] is effectively part of.
-  Continuation getLoopHeader(Expression exp) {
-    Node node = exp.parent;
-    while (node != null && node is! Continuation) {
-      node = node.parent;
-    }
-    if (node is Continuation) {
-      if (node.isRecursive) { 
-        return node;
-      } else {
-        return loopTarget[node];
-      }
-    }
-    return null;
+  /// Returns the innermost loop which [cont] is effectively part of.
+  Continuation getLoopHeader(Continuation cont) {
+    return cont.isRecursive ? cont : loopTarget[cont];
   }
 
   /// Marks the innermost loop as a subloop of the other loop.

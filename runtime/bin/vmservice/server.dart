@@ -8,6 +8,7 @@ class WebSocketClient extends Client {
   static const int PARSE_ERROR_CODE = 4000;
   static const int BINARY_MESSAGE_ERROR_CODE = 4001;
   static const int NOT_MAP_ERROR_CODE = 4002;
+  static const int ID_ERROR_CODE = 4003;
   final WebSocket socket;
 
   WebSocketClient(this.socket, VMService service) : super(service) {
@@ -29,6 +30,9 @@ class WebSocketClient extends Client {
         return;
       }
       var serial = map['id'];
+      if (serial != null && serial is! num && serial is! String) {
+        socket.close(ID_ERROR_CODE, '"id" must be a number, string, or null.');
+      }
       onMessage(serial, new Message.fromJsonRpc(this, map));
     } else {
       socket.close(BINARY_MESSAGE_ERROR_CODE, 'Message must be a string.');
@@ -91,21 +95,6 @@ class Server {
     _displayMessages = (_ip != '127.0.0.1' || _port != 8181);
   }
 
-  bool _shouldServeObservatory(HttpRequest request) {
-    if (request.headers['Observatory-Version'] != null) {
-      // Request is already coming from Observatory.
-      return false;
-    }
-    // TODO(johnmccutchan): Test with obscure browsers.
-    if (request.headers.value(HttpHeaders.USER_AGENT).contains('Mozilla')) {
-      // Request is coming from a browser but not Observatory application.
-      // Serve Observatory and let the Observatory make the real request.
-      return true;
-    }
-    // All other user agents are assumed to be textual.
-    return false;
-  }
-
   void _requestHandler(HttpRequest request) {
     // Allow cross origin requests with 'observatory' header.
     request.response.headers.add('Access-Control-Allow-Origin', '*');
@@ -129,10 +118,6 @@ class Server {
     }
 
     var resource = Resource.resources[path];
-    if (resource == null && _shouldServeObservatory(request)) {
-      resource = Resource.resources[ROOT_REDIRECT_PATH];
-      assert(resource != null);
-    }
     if (resource != null) {
       // Serving up a static resource (e.g. .css, .html, .png).
       request.response.headers.contentType =
@@ -141,6 +126,7 @@ class Server {
       request.response.close();
       return;
     }
+    // HTTP based service request.
     var client = new HttpRequestClient(request, _service);
     var message = new Message.fromUri(client, request.uri);
     client.onMessage(null, message);

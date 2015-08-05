@@ -103,6 +103,8 @@
     'lib/src/elements/library_ref.html',
     'lib/src/elements/library_view.dart',
     'lib/src/elements/library_view.html',
+    'lib/src/elements/logging.dart',
+    'lib/src/elements/logging.html',
     'lib/src/elements/metrics.dart',
     'lib/src/elements/metrics.html',
     'lib/src/elements/nav_bar.dart',

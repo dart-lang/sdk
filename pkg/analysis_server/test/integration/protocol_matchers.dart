@@ -853,6 +853,30 @@ final Matcher isEditSortMembersResult = new LazyMatcher(() => new MatchesJsonObj
   }));
 
 /**
+ * edit.organizeDirectives params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ */
+final Matcher isEditOrganizeDirectivesParams = new LazyMatcher(() => new MatchesJsonObject(
+  "edit.organizeDirectives params", {
+    "file": isFilePath
+  }));
+
+/**
+ * edit.organizeDirectives result
+ *
+ * {
+ *   "edit": SourceFileEdit
+ * }
+ */
+final Matcher isEditOrganizeDirectivesResult = new LazyMatcher(() => new MatchesJsonObject(
+  "edit.organizeDirectives result", {
+    "edit": isSourceFileEdit
+  }));
+
+/**
  * execution.createContext params
  *
  * {
@@ -1936,6 +1960,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *
  * enum {
  *   CONTENT_MODIFIED
+ *   FILE_NOT_ANALYZED
  *   FORMAT_INVALID_FILE
  *   FORMAT_WITH_ERRORS
  *   GET_ERRORS_INVALID_FILE
@@ -1946,6 +1971,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
  *   NO_INDEX_GENERATED
+ *   ORGANIZE_DIRECTIVES_ERROR
  *   REFACTORING_REQUEST_CANCELLED
  *   SERVER_ALREADY_STARTED
  *   SERVER_ERROR
@@ -1959,6 +1985,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  */
 final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "CONTENT_MODIFIED",
+  "FILE_NOT_ANALYZED",
   "FORMAT_INVALID_FILE",
   "FORMAT_WITH_ERRORS",
   "GET_ERRORS_INVALID_FILE",
@@ -1969,6 +1996,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "INVALID_PARAMETER",
   "INVALID_REQUEST",
   "NO_INDEX_GENERATED",
+  "ORGANIZE_DIRECTIVES_ERROR",
   "REFACTORING_REQUEST_CANCELLED",
   "SERVER_ALREADY_STARTED",
   "SERVER_ERROR",

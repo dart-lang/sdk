@@ -26,6 +26,13 @@ main() {
 /**
  The following constant was generated with the following program:
 
+   const RESERVED_WORDS = const [
+     'assert', 'break', 'case', 'catch', 'class', 'const', 'continue',
+     'default', 'do', 'else', 'enum', 'extends', 'false', 'final',
+     'finally', 'for', 'if', 'in', 'is', 'new', 'null', 'rethrow',
+     'return', 'super', 'switch', 'this', 'throw', 'true', 'try',
+     'var', 'void', 'while', 'with'];
+
    get chars sync* {
       for (int i = "a".codeUnitAt(0); i <= "z".codeUnitAt(0); i++) {
         yield new String.fromCharCodes([i]);
@@ -44,7 +51,9 @@ main() {
       // Two character symbols.
       for (String c1 in chars) {
         for (String c2 in chars) {
-          print("  const Symbol('$c1$c2'),");
+          if (!RESERVED_WORDS.contains('$c1$c2')) {
+            print("  const Symbol('$c1$c2'),");
+          }
         }
       }
       print("];");
@@ -273,7 +282,6 @@ const oneAndTwoCharacterSymbols = const [
   const Symbol('dl'),
   const Symbol('dm'),
   const Symbol('dn'),
-  const Symbol('do'),
   const Symbol('dp'),
   const Symbol('dq'),
   const Symbol('dr'),
@@ -524,7 +532,6 @@ const oneAndTwoCharacterSymbols = const [
   const Symbol('ic'),
   const Symbol('id'),
   const Symbol('ie'),
-  const Symbol('if'),
   const Symbol('ig'),
   const Symbol('ih'),
   const Symbol('ii'),
@@ -532,12 +539,10 @@ const oneAndTwoCharacterSymbols = const [
   const Symbol('ik'),
   const Symbol('il'),
   const Symbol('im'),
-  const Symbol('in'),
   const Symbol('io'),
   const Symbol('ip'),
   const Symbol('iq'),
   const Symbol('ir'),
-  const Symbol('is'),
   const Symbol('it'),
   const Symbol('iu'),
   const Symbol('iv'),

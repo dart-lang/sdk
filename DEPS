@@ -31,17 +31,17 @@ vars = {
   "github_mirror":
       "https://chromium.googlesource.com/external/github.com/dart-lang/%s.git",
 
-  "gyp_rev": "@1752",
+  "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
   "co19_rev": "@f95f109fea67127a220958794ef5200a63cb454c",
   "chromium_url": "http://src.chromium.org/svn",
   "chromium_git": "https://chromium.googlesource.com",
 
   # Revisions of /third_party/* dependencies.
   "7zip_rev" : "@19997",
-  "analyzer_cli_rev" : "@7436b45b160f99e806bef2aafd1e971e1aedfc4d",
+  "analyzer_cli_rev" : "@c4e628a8467f75ded563f029dfb2f1738856f471",
   "args_tag": "@0.13.0",
   "async_tag": "@1.2.0",
-  "barback_tag" : "@0.15.2+5",
+  "barback_tag" : "@0.15.2+6",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
   "clang_rev" : "@28450",
@@ -51,8 +51,8 @@ vars = {
   "csslib_tag" : "@0.12.0",
   "dartdoc_tag" : "@v0.1.0+5",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
-  "dart_style_tag": "@0.1.8+1",
-  "dev_compiler_rev": "@0.1.1",
+  "dart_style_tag": "@0.2.0",
+  "dev_compiler_rev": "@0.1.3",
   "fake_async_rev" : "@38614",
   "firefox_jsshell_rev" : "@45554",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
@@ -65,7 +65,7 @@ vars = {
   "idl_parser_rev": "@6316d5982dc24b34d09dd8b10fbeaaff28d83a48",
   "intl_rev": "@32047558bd220a53c1f4d93a26d54b83533b1475",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
-  "json_rpc_2_rev": "@a38eefd116d910199de205f962af92fed87c164c",
+  "json_rpc_2_tag": "@1.1.1",
   "linter_tag": "@0.1.0",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "markdown_rev": "@56b0fd6c018d6103862d07e8e27407b9ea3b963d",
@@ -100,7 +100,7 @@ vars = {
   "stack_trace_tag": "@1.3.4",
   "string_scanner_rev": "@3e7617d6f74ba382e9b6130b1cc12091d89a9bc5",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
-  "test_tag": "@0.12.3+4",
+  "test_tag": "@0.12.3+8",
   "test_reflective_loader_tag": "@0.0.3",
   "utf_rev": "@1f55027068759e2d52f2c12de6a57cce5f3c5ee6",
   "unittest_tag": "@0.11.6",
@@ -122,7 +122,7 @@ vars = {
 deps = {
   # Stuff needed for GYP to run.
   Var("dart_root") + "/third_party/gyp":
-      (Var("googlecode_url") % "gyp") + "/trunk" + Var("gyp_rev"),
+      Var('chromium_git') + '/external/gyp.git' + Var("gyp_rev"),
 
   Var("dart_root") + "/tests/co19/src":
       (Var("github_mirror") % "co19") + Var("co19_rev"),
@@ -195,7 +195,7 @@ deps = {
       (Var("github_mirror") % "csslib") + Var("csslib_tag"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
       (Var("github_mirror") % "dart_style") + Var("dart_style_tag"),
-  Var("dart_root") + "/third_party/pkg/dartdoc":  
+  Var("dart_root") + "/third_party/pkg/dartdoc":
       "https://github.com/dart-lang/dartdoc.git" + Var("dartdoc_tag"),
   Var("dart_root") + "/third_party/pkg/dev_compiler":
       "https://github.com/dart-lang/dev_compiler.git" + Var("dev_compiler_rev"),
@@ -216,7 +216,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/intl":
       (Var("github_mirror") % "intl") + Var("intl_rev"),
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
-      (Var("github_mirror") % "json_rpc_2") + Var("json_rpc_2_rev"),
+      (Var("github_mirror") % "json_rpc_2") + Var("json_rpc_2_tag"),
   Var("dart_root") + "/third_party/pkg/linter":
       (Var("github_mirror") % "linter") + Var("linter_tag"),
   Var("dart_root") + "/third_party/pkg/logging":
@@ -230,16 +230,16 @@ deps = {
       (Var("github_mirror") % "metatest") + Var("metatest_rev"),
   Var("dart_root") + "/third_party/pkg/mime":
       (Var("github_mirror") % "mime") + Var("mime_rev"),
-  Var("dart_root") + "/third_party/pkg/mustache4dart":  
-      Var("chromium_git")  
-      + "/external/github.com/valotas/mustache4dart.git"   
+  Var("dart_root") + "/third_party/pkg/mustache4dart":
+      Var("chromium_git")
+      + "/external/github.com/valotas/mustache4dart.git"
       + Var("mustache4dart_rev"),
   Var("dart_root") + "/third_party/pkg/oauth2":
       (Var("github_mirror") % "oauth2") + Var("oauth2_rev"),
   Var("dart_root") + "/third_party/pkg/observe":
       (Var("github_mirror") % "observe") + Var("observe_rev"),
   Var("dart_root") + "/third_party/observatory_pub_packages":
-     (Var("github_mirror") % "observatory_pub_packages") 
+     (Var("github_mirror") % "observatory_pub_packages")
       + Var("observatory_pub_packages_rev"),
   Var("dart_root") + "/third_party/pkg/package_config":
       (Var("github_mirror") % "package_config") +
@@ -254,11 +254,11 @@ deps = {
       (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
   Var("dart_root") + "/third_party/pkg/pub":
       (Var("github_mirror") % "pub") + Var("pub_rev"),
-  Var("dart_root") + "/third_party/pkg/pub_cache":  
+  Var("dart_root") + "/third_party/pkg/pub_cache":
       (Var("github_mirror") % "pub_cache") + Var("pub_cache_tag"),
-  Var("dart_root") + "/third_party/pkg/quiver": 
-      Var("chromium_git")  
-      + "/external/github.com/google/quiver-dart.git"  
+  Var("dart_root") + "/third_party/pkg/quiver":
+      Var("chromium_git")
+      + "/external/github.com/google/quiver-dart.git"
       + Var("quiver_tag"),
   Var("dart_root") + "/third_party/pkg/scheduled_test":
       (Var("github_mirror") % "scheduled_test") +
@@ -266,7 +266,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/shelf":
       (Var("github_mirror") % "shelf") + Var("shelf_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_static":
-      "https://github.com/kevmoo/shelf_static.dart.git" +
+      "https://github.com/dart-lang/shelf_static.git" +
       Var("shelf_static_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_web_socket":
       (Var("github_mirror") % "shelf_web_socket") +

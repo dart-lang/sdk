@@ -196,6 +196,7 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'patch': 'const patch = const _Patch(null);',
   'patch_full': 'const patch_full = const _Patch("full");',
   'patch_lazy': 'const patch_lazy = const _Patch("lazy");',
+  'patch_startup': 'const patch_startup = const _Patch("startup");',
   'propertyTypeCast': 'propertyTypeCast(x) {}',
   'propertyTypeCheck': 'propertyTypeCheck(value, property) {}',
   'requiresPreamble': 'requiresPreamble() {}',

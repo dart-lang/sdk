@@ -60,6 +60,14 @@ DEFINE_FLAG(charp, isolate_log_filter, NULL,
 DEFINE_FLAG(charp, timeline_trace_dir, NULL,
             "Enable all timeline trace streams and output traces "
             "into specified directory.");
+DEFINE_FLAG(int, new_gen_semi_max_size, (kWordSize <= 4) ? 16 : 32,
+            "Max size of new gen semi space in MB");
+DEFINE_FLAG(int, old_gen_heap_size, 0,
+            "Max size of old gen heap size in MB, or 0 for unlimited,"
+            "e.g: --old_gen_heap_size=1024 allows up to 1024MB old gen heap");
+DEFINE_FLAG(int, external_max_size, (kWordSize <= 4) ? 512 : 1024,
+            "Max total size of external allocations in MB, or 0 for unlimited,"
+            "e.g: --external_max_size=1024 allows up to 1024MB of externals");
 
 // TODO(iposva): Make these isolate specific flags inaccessible using the
 // regular FLAG_xyz pattern.
@@ -608,7 +616,7 @@ void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
 
 void BaseIsolate::AssertCurrentThreadIsMutator() const {
   ASSERT(Isolate::Current() == this);
-  ASSERT(Isolate::Current()->mutator_thread() == Thread::Current());
+  ASSERT(Isolate::Current()->MutatorThreadIsCurrentThread());
 }
 #endif  // defined(DEBUG)
 
@@ -642,7 +650,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       environment_callback_(NULL),
       library_tag_handler_(NULL),
       api_state_(NULL),
-      stub_code_(NULL),
       debugger_(NULL),
       single_step_(false),
       resume_request_(false),
@@ -682,8 +689,10 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       tag_table_(GrowableObjectArray::null()),
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
+      collected_closures_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       metrics_list_head_(NULL),
+      compilation_allowed_(true),
       cha_(NULL),
       next_(NULL),
       pause_loop_monitor_(NULL),
@@ -705,7 +714,6 @@ Isolate::~Isolate() {
   delete heap_;
   delete object_store_;
   delete api_state_;
-  delete stub_code_;
   delete debugger_;
 #if defined(USING_SIMULATOR)
   delete simulator_;
@@ -765,6 +773,12 @@ Isolate* Isolate::Init(const char* name_prefix,
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_INIT);
 #undef ISOLATE_TIMELINE_STREAM_INIT
 
+  Heap::Init(result,
+             is_vm_isolate
+                 ? 0  // New gen size 0; VM isolate should only allocate in old.
+                 : FLAG_new_gen_semi_max_size * MBInWords,
+             FLAG_old_gen_heap_size * MBInWords,
+             FLAG_external_max_size * MBInWords);
 
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
@@ -830,8 +844,8 @@ void Isolate::InitializeStackLimit() {
 uword Isolate::GetCurrentStackPointer() {
   // Since AddressSanitizer's detect_stack_use_after_return instruments the
   // C++ code to give out fake stack addresses, we call a stub in that case.
-  uword (*func)() =
-      reinterpret_cast<uword (*)()>(StubCode::GetStackPointerEntryPoint());
+  uword (*func)() = reinterpret_cast<uword (*)()>(
+      StubCode::GetStackPointer_entry()->EntryPoint());
   // But for performance (and to support simulators), we normally use a local.
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer)
@@ -1607,6 +1621,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit the tag table which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&tag_table_));
 
+  // Visit array of closures pending precompilation.
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&collected_closures_));
+
   // Visit the deoptimized code array which is stored in the isolate.
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&deoptimized_code_array_));
@@ -1804,6 +1821,11 @@ void Isolate::set_current_tag(const UserTag& tag) {
 
 void Isolate::set_default_tag(const UserTag& tag) {
   default_tag_ = tag.raw();
+}
+
+
+void Isolate::set_collected_closures(const GrowableObjectArray& value) {
+  collected_closures_ = value.raw();
 }
 
 

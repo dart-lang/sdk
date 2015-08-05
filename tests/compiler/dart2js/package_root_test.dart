@@ -12,6 +12,8 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/compiler.dart'
        show DiagnosticHandler, Diagnostic, PackagesDiscoveryProvider;
+import 'package:compiler/src/dart2jslib.dart'
+       show MessageKind;
 import 'package:package_config/packages.dart';
 
 import 'memory_compiler.dart';
@@ -30,60 +32,58 @@ main() {}
 
 final Uri PACKAGE_CONFIG_URI = Uri.parse('memory:package.config');
 
-void runCompiler(Uri main,
-                 bool checkError(DiagnosticMessage message),
-                 {Uri packageRoot,
-                  Uri packageConfig,
-                  PackagesDiscoveryProvider packagesDiscoveryProvider}) {
+Future runTest(Uri main,
+               MessageKind expectedMessageKind,
+               {Uri packageRoot,
+                Uri packageConfig,
+                PackagesDiscoveryProvider packagesDiscoveryProvider}) async {
   DiagnosticCollector collector = new DiagnosticCollector();
-  Compiler compiler = compilerFor(
-      MEMORY_SOURCE_FILES,
+  await runCompiler(
+      entryPoint: main,
+      memorySourceFiles: MEMORY_SOURCE_FILES,
       diagnosticHandler: collector,
       packageRoot: packageRoot,
       packageConfig: packageConfig,
       packagesDiscoveryProvider: packagesDiscoveryProvider);
-
-  asyncTest(() => compiler.run(main).then((_) {
-    Expect.equals(1, collector.errors.length,
-        "Unexpected errors: ${collector.errors}");
-    Expect.isTrue(checkError(collector.errors.first),
-        "Unexpected error: ${collector.errors.first}");
-  }));
+  Expect.equals(1, collector.errors.length,
+      "Unexpected errors: ${collector.errors}");
+  Expect.equals(expectedMessageKind, collector.errors.first.message.kind,
+      "Unexpected error: ${collector.errors.first}");
 }
 
 void main() {
-  Uri script = currentDirectory.resolveUri(Platform.script);
-  Uri packageRoot = script.resolve('./packages/');
+  asyncTest(() async {
+    Uri script = currentDirectory.resolveUri(Platform.script);
+    Uri packageRoot = script.resolve('./packages/');
 
-  PackagesDiscoveryProvider noPackagesDiscovery = (Uri uri) {
-    return new Future.value(Packages.noPackages);
-  };
+    PackagesDiscoveryProvider noPackagesDiscovery = (Uri uri) {
+      return new Future.value(Packages.noPackages);
+    };
 
-  bool containsErrorReading(DiagnosticMessage message) {
-    return message.message.contains("Error reading ");
-  }
+    await runTest(
+        Uri.parse('memory:main.dart'),
+        MessageKind.READ_SCRIPT_ERROR,
+        packageRoot: packageRoot);
+    await runTest(
+        Uri.parse('memory:main.dart'),
+        MessageKind.LIBRARY_NOT_FOUND,
+        packageConfig: PACKAGE_CONFIG_URI);
+    await runTest(
+        Uri.parse('memory:main.dart'),
+        MessageKind.LIBRARY_NOT_FOUND,
+        packagesDiscoveryProvider: noPackagesDiscovery);
 
-  bool isLibraryNotFound(DiagnosticMessage message) {
-    return message.message.startsWith("Library not found ");
-  }
-
-  runCompiler(Uri.parse('memory:main.dart'),
-              containsErrorReading,
-              packageRoot: packageRoot);
-  runCompiler(Uri.parse('memory:main.dart'),
-              isLibraryNotFound,
-              packageConfig: PACKAGE_CONFIG_URI);
-  runCompiler(Uri.parse('memory:main.dart'),
-              isLibraryNotFound,
-              packagesDiscoveryProvider: noPackagesDiscovery);
-
-  runCompiler(Uri.parse('package:foo/foo.dart'),
-              containsErrorReading,
-              packageRoot: packageRoot);
-  runCompiler(Uri.parse('package:foo/foo.dart'),
-              isLibraryNotFound,
-              packageConfig: PACKAGE_CONFIG_URI);
-  runCompiler(Uri.parse('package:foo/foo.dart'),
-              isLibraryNotFound,
-              packagesDiscoveryProvider: noPackagesDiscovery);
+    await runTest(
+        Uri.parse('package:foo/foo.dart'),
+        MessageKind.READ_SELF_ERROR,
+        packageRoot: packageRoot);
+    await runTest(
+        Uri.parse('package:foo/foo.dart'),
+        MessageKind.LIBRARY_NOT_FOUND,
+        packageConfig: PACKAGE_CONFIG_URI);
+    await runTest(
+        Uri.parse('package:foo/foo.dart'),
+        MessageKind.LIBRARY_NOT_FOUND,
+        packagesDiscoveryProvider: noPackagesDiscovery);
+  });
 }

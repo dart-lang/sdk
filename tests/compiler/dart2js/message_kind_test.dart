@@ -5,58 +5,42 @@
 import 'package:expect/expect.dart';
 import 'dart:async';
 import "package:async_helper/async_helper.dart";
-import 'package:compiler/src/dart2jslib.dart' show
-    DualKind,
-    MessageKind;
+import 'package:compiler/src/warnings.dart' show
+    MessageKind,
+    MessageTemplate;
 
 import 'message_kind_helper.dart';
 
-import 'dart:mirrors';
-
 main(List<String> arguments) {
-  ClassMirror cls = reflectClass(MessageKind);
-  Map<String, MessageKind> kinds = <String, MessageKind>{};
-  cls.declarations.forEach((Symbol name, DeclarationMirror declaration) {
-    if (declaration is! VariableMirror) return;
-    VariableMirror variable = declaration;
-    if (variable.isStatic) {
-      var value = cls.getField(name).reflectee;
-      String variableName = MirrorSystem.getName(name);
-      if (variableName == 'IMPORT_EXPERIMENTAL_MIRRORS_PADDING') {
-        return;
-      }
-      if (value is MessageKind) {
-        kinds[variableName] = value;
-      } else {
-        Expect.fail("Weird static field: '${variableName}'.");
-      }
-    }
-  });
-  List<String> names = kinds.keys.toList()..sort();
-  List<String> examples = <String>[];
-  for (String name in names) {
+  List<MessageTemplate> examples = <MessageTemplate>[];
+  for (MessageKind kind in MessageKind.values) {
+    MessageTemplate template = MessageTemplate.TEMPLATES[kind];
+    Expect.isNotNull(template, "No template for $kind.");
+    Expect.equals(kind, template.kind,
+        "Invalid MessageTemplate.kind for $kind, found ${template.kind}.");
+
+    String name = '${kind.toString()}'.substring('MessageKind.'.length);
     if (!arguments.isEmpty && !arguments.contains(name)) continue;
-    MessageKind kind = kinds[name];
     if (name == 'GENERIC' // Shouldn't be used.
         // We can't provoke a crash.
         || name == 'COMPILER_CRASHED'
         || name == 'PLEASE_REPORT_THE_CRASH'
         // We cannot provide examples for patch errors.
         || name.startsWith('PATCH_')) continue;
-    if (kind.examples != null) {
-      examples.add(name);
+    if (template.examples != null) {
+      examples.add(template);
     } else {
       print("No example in '$name'");
     }
   };
   var cachedCompiler;
-  asyncTest(() => Future.forEach(examples, (String name) {
-    print("Checking '$name'.");
+  asyncTest(() => Future.forEach(examples, (MessageTemplate template) {
+    print("Checking '${template.kind}'.");
     Stopwatch sw = new Stopwatch()..start();
-    return check(kinds[name], cachedCompiler).then((var compiler) {
+    return check(template, cachedCompiler).then((var compiler) {
       cachedCompiler = compiler;
       sw.stop();
-      print("Checked '$name' in ${sw.elapsedMilliseconds}ms.");
+      print("Checked '${template.kind}' in ${sw.elapsedMilliseconds}ms.");
     });
   }));
 }

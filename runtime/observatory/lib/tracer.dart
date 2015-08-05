@@ -60,7 +60,7 @@ class Tracer extends Observable {
       _current = null;
     }
   }
-  
+
   // The tracer subscribes to all logging events.
   StreamSubscription loggerSub = null;
 
@@ -93,5 +93,5 @@ class Tracer extends Observable {
     var event = new TraceEvent.msg(_time.elapsedMicroseconds, message, map);
     events.add(event);
     return event;
-  } 
+  }
 }
