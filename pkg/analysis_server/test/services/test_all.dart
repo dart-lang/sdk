@@ -4,8 +4,7 @@
 
 library test.services;
 
-import 'package:unittest/unittest.dart';
-
+import '../utils.dart';
 import 'completion/test_all.dart' as completion_all;
 import 'correction/test_all.dart' as correction_all;
 import 'dependencies/test_all.dart' as dependencies_all;
@@ -15,7 +14,7 @@ import 'search/test_all.dart' as search_all;
 
 /// Utility for manually running all tests.
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   completion_all.main();
   correction_all.main();
   dependencies_all.main();

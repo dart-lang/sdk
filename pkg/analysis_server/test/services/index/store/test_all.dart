@@ -6,6 +6,7 @@ library test.services.src.index.store;
 
 import 'package:unittest/unittest.dart';
 
+import '../../../utils.dart';
 import 'codec_test.dart' as codec_test;
 import 'collection_test.dart' as collection_test;
 import 'split_store_test.dart' as split_store_test;
@@ -15,7 +16,7 @@ import 'temporary_folder_file_manager_test.dart' as tmp_file_manager_test;
  * Utility for manually running all tests.
  */
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('store', () {
     codec_test.main();
     collection_test.main();

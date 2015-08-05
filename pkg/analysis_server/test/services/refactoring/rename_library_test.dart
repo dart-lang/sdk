@@ -9,10 +9,11 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'abstract_rename.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(RenameLibraryTest);
 }
 
@@ -37,11 +38,14 @@ library my.app;
     refactoring.newName = 'my.app';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "The new name must be different than the current name.");
+        expectedMessage:
+            "The new name must be different than the current name.");
   }
 
   test_createChange() async {
-    Source unitSource = addSource('/part.dart', '''
+    Source unitSource = addSource(
+        '/part.dart',
+        '''
 part of my.app;
 ''');
     indexTestUnit('''
@@ -60,7 +64,9 @@ part 'part.dart';
 library the.new.name;
 part 'part.dart';
 ''');
-    assertFileChangeResult('/part.dart', '''
+    assertFileChangeResult(
+        '/part.dart',
+        '''
 part of the.new.name;
 ''');
   }

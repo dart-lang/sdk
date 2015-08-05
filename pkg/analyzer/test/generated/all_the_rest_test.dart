@@ -36,13 +36,14 @@ import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
+import '../utils.dart';
 import 'engine_test.dart';
 import 'parser_test.dart';
 import 'resolver_test.dart';
 import 'test_support.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(ConstantEvaluatorTest);
   runReflectiveTests(ConstantFinderTest);
   runReflectiveTests(ConstantValueComputerTest);
@@ -103,21 +104,13 @@ abstract class AbstractScannerTest {
   }
 
   void test_tokenize_declaration() {
-    _tokenize("<! foo ><html>", <Object>[
-      "<! foo >",
-      ht.TokenType.LT,
-      "html",
-      ht.TokenType.GT
-    ]);
+    _tokenize("<! foo ><html>",
+        <Object>["<! foo >", ht.TokenType.LT, "html", ht.TokenType.GT]);
   }
 
   void test_tokenize_declaration_malformed() {
-    _tokenize("<! foo /><html>", <Object>[
-      "<! foo />",
-      ht.TokenType.LT,
-      "html",
-      ht.TokenType.GT
-    ]);
+    _tokenize("<! foo /><html>",
+        <Object>["<! foo />", ht.TokenType.LT, "html", ht.TokenType.GT]);
   }
 
   void test_tokenize_directive_incomplete() {
@@ -178,30 +171,18 @@ abstract class AbstractScannerTest {
   }
 
   void test_tokenize_script_partial() {
-    _tokenize("<script> <p> ", <Object>[
-      ht.TokenType.LT,
-      "script",
-      ht.TokenType.GT,
-      " <p> "
-    ]);
+    _tokenize("<script> <p> ",
+        <Object>[ht.TokenType.LT, "script", ht.TokenType.GT, " <p> "]);
   }
 
   void test_tokenize_script_partial2() {
-    _tokenize("<script> <p> <", <Object>[
-      ht.TokenType.LT,
-      "script",
-      ht.TokenType.GT,
-      " <p> <"
-    ]);
+    _tokenize("<script> <p> <",
+        <Object>[ht.TokenType.LT, "script", ht.TokenType.GT, " <p> <"]);
   }
 
   void test_tokenize_script_partial3() {
-    _tokenize("<script> <p> </", <Object>[
-      ht.TokenType.LT,
-      "script",
-      ht.TokenType.GT,
-      " <p> </"
-    ]);
+    _tokenize("<script> <p> </",
+        <Object>[ht.TokenType.LT, "script", ht.TokenType.GT, " <p> </"]);
   }
 
   void test_tokenize_script_ref() {
@@ -228,7 +209,10 @@ abstract class AbstractScannerTest {
       ht.TokenType.LT_SLASH,
       "script",
       ht.TokenType.GT
-    ], <int>[0, 13]);
+    ], <int>[
+      0,
+      13
+    ]);
   }
 
   void test_tokenize_spaces_and_newlines() {
@@ -257,7 +241,16 @@ abstract class AbstractScannerTest {
       "html",
       ht.TokenType.GT,
       " "
-    ], <int>[0, 9, 21, 25, 28, 38, 49]);
+    ],
+        <int>[
+      0,
+      9,
+      21,
+      25,
+      28,
+      38,
+      49
+    ]);
     token = token.next;
     expect(token.offset, 1);
     token = token.next;
@@ -278,13 +271,8 @@ abstract class AbstractScannerTest {
   }
 
   void test_tokenize_string_partial() {
-    _tokenize("<p bob=\"foo", <Object>[
-      ht.TokenType.LT,
-      "p",
-      "bob",
-      ht.TokenType.EQ,
-      "\"foo"
-    ]);
+    _tokenize("<p bob=\"foo",
+        <Object>[ht.TokenType.LT, "p", "bob", ht.TokenType.EQ, "\"foo"]);
   }
 
   void test_tokenize_string_single_quote() {
@@ -299,13 +287,8 @@ abstract class AbstractScannerTest {
   }
 
   void test_tokenize_string_single_quote_partial() {
-    _tokenize("<p bob='foo", <Object>[
-      ht.TokenType.LT,
-      "p",
-      "bob",
-      ht.TokenType.EQ,
-      "'foo"
-    ]);
+    _tokenize("<p bob='foo",
+        <Object>[ht.TokenType.LT, "p", "bob", ht.TokenType.EQ, "'foo"]);
   }
 
   void test_tokenize_tag_begin_end() {
@@ -635,6 +618,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
   void test_divide_int_int() {
     _assertValue2(1.5, "3 / 2");
   }
+
   void test_divide_int_int_byZero() {
     EvaluationResult result = _getExpressionValue("3 / 0");
     expect(result.isValid, isTrue);
@@ -685,6 +669,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
   void test_literal_boolean_false() {
     _assertValue(false, "false");
   }
+
   void test_literal_boolean_true() {
     _assertValue(true, "true");
   }
@@ -1019,8 +1004,13 @@ class ConstantFinderTest extends EngineTestCase {
   ConstructorElement _setupConstructorDeclaration(String name, bool isConst) {
     Keyword constKeyword = isConst ? Keyword.CONST : null;
     ConstructorDeclaration constructorDeclaration = AstFactory
-        .constructorDeclaration2(constKeyword, null, null, name,
-            AstFactory.formalParameterList(), null,
+        .constructorDeclaration2(
+            constKeyword,
+            null,
+            null,
+            name,
+            AstFactory.formalParameterList(),
+            null,
             AstFactory.blockFunctionBody2());
     ClassElement classElement = ElementFactory.classElement2(name);
     ConstructorElement element =
@@ -1032,13 +1022,17 @@ class ConstantFinderTest extends EngineTestCase {
 
   VariableDeclaration _setupFieldDeclaration(
       String className, String fieldName, Keyword keyword,
-      {bool isInitialized: true, bool isStatic: false,
+      {bool isInitialized: true,
+      bool isStatic: false,
       bool hasConstConstructor: false}) {
     VariableDeclaration variableDeclaration = isInitialized
         ? AstFactory.variableDeclaration2(fieldName, AstFactory.integer(0))
         : AstFactory.variableDeclaration(fieldName);
-    VariableElement fieldElement = ElementFactory.fieldElement(fieldName,
-        isStatic, keyword == Keyword.FINAL, keyword == Keyword.CONST,
+    VariableElement fieldElement = ElementFactory.fieldElement(
+        fieldName,
+        isStatic,
+        keyword == Keyword.FINAL,
+        keyword == Keyword.CONST,
         _typeProvider.intType);
     variableDeclaration.name.staticElement = fieldElement;
     FieldDeclaration fieldDeclaration = AstFactory.fieldDeclaration2(
@@ -1052,9 +1046,13 @@ class ConstantFinderTest extends EngineTestCase {
     classDeclaration.name.staticElement = classElement;
     if (hasConstConstructor) {
       ConstructorDeclaration constructorDeclaration = AstFactory
-          .constructorDeclaration2(Keyword.CONST, null,
-              AstFactory.identifier3(className), null,
-              AstFactory.formalParameterList(), null,
+          .constructorDeclaration2(
+              Keyword.CONST,
+              null,
+              AstFactory.identifier3(className),
+              null,
+              AstFactory.formalParameterList(),
+              null,
               AstFactory.blockFunctionBody2());
       classDeclaration.members.add(constructorDeclaration);
       ConstructorElement constructorElement =
@@ -1068,7 +1066,8 @@ class ConstantFinderTest extends EngineTestCase {
   }
 
   VariableElement _setupVariableDeclaration(
-      String name, bool isConst, bool isInitialized, {isFinal: false}) {
+      String name, bool isConst, bool isInitialized,
+      {isFinal: false}) {
     VariableDeclaration variableDeclaration = isInitialized
         ? AstFactory.variableDeclaration2(name, AstFactory.integer(0))
         : AstFactory.variableDeclaration(name);
@@ -1302,12 +1301,16 @@ const int a = 0;''');
   }
 
   void test_computeValues_multipleSources() {
-    Source librarySource = addNamedSource("/lib.dart", r'''
+    Source librarySource = addNamedSource(
+        "/lib.dart",
+        r'''
 library lib;
 part 'part.dart';
 const int c = b;
 const int a = 0;''');
-    Source partSource = addNamedSource("/part.dart", r'''
+    Source partSource = addNamedSource(
+        "/part.dart",
+        r'''
 part of lib;
 const int b = a;
 const int d = c;''');
@@ -1387,7 +1390,8 @@ const A y = const A(x);''');
 
   void test_dependencyOnConstructorArgument_unresolvedConstructor() {
     // "const A.a(x)" depends on x even if the constructor A.a can't be found.
-    _assertProperDependencies(r'''
+    _assertProperDependencies(
+        r'''
 class A {
 }
 const int x = 1;
@@ -1484,13 +1488,15 @@ const A a = const A();
     // Even though non-static consts are not allowed by the language, we need
     // to handle them for error recovery purposes.
     // a depends on A() depends on A.x
-    _assertProperDependencies('''
+    _assertProperDependencies(
+        '''
 class A {
   const A();
   const int x = 1;
 }
 const A a = const A();
-''', [CompileTimeErrorCode.CONST_INSTANCE_FIELD]);
+''',
+        [CompileTimeErrorCode.CONST_INSTANCE_FIELD]);
   }
 
   void test_dependencyOnNonFactoryRedirect() {
@@ -1530,11 +1536,13 @@ class A {
   void test_dependencyOnNonFactoryRedirect_toMissing() {
     // a depends on A.foo() which depends on nothing, since A.bar() is
     // missing.
-    _assertProperDependencies(r'''
+    _assertProperDependencies(
+        r'''
 const A a = const A.foo();
 class A {
   const A.foo() : this.bar();
-}''', [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR]);
+}''',
+        [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR]);
   }
 
   void test_dependencyOnNonFactoryRedirect_toNonConst() {
@@ -2147,7 +2155,8 @@ const A a = const A();
   }
 
   Map<String, DartObjectImpl> _assertFieldType(
-      Map<String, DartObjectImpl> fields, String fieldName,
+      Map<String, DartObjectImpl> fields,
+      String fieldName,
       String expectedType) {
     DartObjectImpl field = fields[fieldName];
     expect(field.type.displayName, expectedType);
@@ -2352,8 +2361,10 @@ class A {
   ConstantValueComputer _makeConstantValueComputer() {
     ConstantEvaluationValidator_ForTest validator =
         new ConstantEvaluationValidator_ForTest();
-    validator.computer = new ConstantValueComputer(analysisContext2,
-        analysisContext2.typeProvider, analysisContext2.declaredVariables,
+    validator.computer = new ConstantValueComputer(
+        analysisContext2,
+        analysisContext2.typeProvider,
+        analysisContext2.declaredVariables,
         validator);
     return validator.computer;
   }
@@ -2382,9 +2393,12 @@ class ConstantVisitorTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
-    _assertValue(0, expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(
-            new TestTypeProvider(), new DeclaredVariables()), errorReporter)));
+    _assertValue(
+        0,
+        expression.accept(new ConstantVisitor(
+            new ConstantEvaluationEngine(
+                new TestTypeProvider(), new DeclaredVariables()),
+            errorReporter)));
     errorListener.assertNoErrors();
   }
 
@@ -2399,7 +2413,8 @@ class ConstantVisitorTest extends ResolverTestCase {
         new ErrorReporter(errorListener, _dummySource());
     DartObjectImpl result = expression.accept(new ConstantVisitor(
         new ConstantEvaluationEngine(
-            new TestTypeProvider(), new DeclaredVariables()), errorReporter));
+            new TestTypeProvider(), new DeclaredVariables()),
+        errorReporter));
     expect(result, isNull);
     errorListener
         .assertErrorsWithCodes([CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL]);
@@ -2415,7 +2430,8 @@ class ConstantVisitorTest extends ResolverTestCase {
         new ErrorReporter(errorListener, _dummySource());
     DartObjectImpl result = expression.accept(new ConstantVisitor(
         new ConstantEvaluationEngine(
-            new TestTypeProvider(), new DeclaredVariables()), errorReporter));
+            new TestTypeProvider(), new DeclaredVariables()),
+        errorReporter));
     expect(result, isNull);
     errorListener
         .assertErrorsWithCodes([CompileTimeErrorCode.INVALID_CONSTANT]);
@@ -2431,7 +2447,8 @@ class ConstantVisitorTest extends ResolverTestCase {
         new ErrorReporter(errorListener, _dummySource());
     DartObjectImpl result = expression.accept(new ConstantVisitor(
         new ConstantEvaluationEngine(
-            new TestTypeProvider(), new DeclaredVariables()), errorReporter));
+            new TestTypeProvider(), new DeclaredVariables()),
+        errorReporter));
     expect(result, isNull);
     errorListener
         .assertErrorsWithCodes([CompileTimeErrorCode.INVALID_CONSTANT]);
@@ -2445,9 +2462,12 @@ class ConstantVisitorTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     ErrorReporter errorReporter =
         new ErrorReporter(errorListener, _dummySource());
-    _assertValue(1, expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(
-            new TestTypeProvider(), new DeclaredVariables()), errorReporter)));
+    _assertValue(
+        1,
+        expression.accept(new ConstantVisitor(
+            new ConstantEvaluationEngine(
+                new TestTypeProvider(), new DeclaredVariables()),
+            errorReporter)));
     errorListener.assertNoErrors();
   }
 
@@ -2520,7 +2540,8 @@ const b = 3;''');
     ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
     DartObjectImpl result = expression.accept(new ConstantVisitor(
         new ConstantEvaluationEngine(typeProvider, new DeclaredVariables()),
-        errorReporter, lexicalEnvironment: lexicalEnvironment));
+        errorReporter,
+        lexicalEnvironment: lexicalEnvironment));
     errorListener.assertNoErrors();
     return result;
   }
@@ -2641,6 +2662,7 @@ class DartObjectImplTest extends EngineTestCase {
   void test_add_unknownString_unknownString() {
     _assertAdd(_stringValue(null), _stringValue(null), _stringValue(null));
   }
+
   void test_bitAnd_knownInt_knownInt() {
     _assertBitAnd(_intValue(2), _intValue(6), _intValue(3));
   }
@@ -2872,8 +2894,10 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_equals_list_false_differentSizes() {
-    expect(_listValue([_boolValue(true)]) ==
-        _listValue([_boolValue(true), _boolValue(false)]), isFalse);
+    expect(
+        _listValue([_boolValue(true)]) ==
+            _listValue([_boolValue(true), _boolValue(false)]),
+        isFalse);
   }
 
   void test_equals_list_false_sameSize() {
@@ -3898,8 +3922,11 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_shiftLeft_knownInt_tooLarge() {
-    _assertShiftLeft(_intValue(null), _intValue(6), new DartObjectImpl(
-        _typeProvider.intType, new IntState(LONG_MAX_VALUE)));
+    _assertShiftLeft(
+        _intValue(null),
+        _intValue(6),
+        new DartObjectImpl(
+            _typeProvider.intType, new IntState(LONG_MAX_VALUE)));
   }
 
   void test_shiftLeft_knownInt_unknownInt() {
@@ -3927,8 +3954,11 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_shiftRight_knownInt_tooLarge() {
-    _assertShiftRight(_intValue(null), _intValue(48), new DartObjectImpl(
-        _typeProvider.intType, new IntState(LONG_MAX_VALUE)));
+    _assertShiftRight(
+        _intValue(null),
+        _intValue(48),
+        new DartObjectImpl(
+            _typeProvider.intType, new IntState(LONG_MAX_VALUE)));
   }
 
   void test_shiftRight_knownInt_unknownInt() {
@@ -4919,7 +4949,8 @@ class DirectoryBasedDartSdkTest {
   DirectoryBasedDartSdk _createDartSdk() {
     JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
     expect(sdkDirectory, isNotNull,
-        reason: "No SDK configured; set the property 'com.google.dart.sdk' on the command line");
+        reason:
+            "No SDK configured; set the property 'com.google.dart.sdk' on the command line");
     return new DirectoryBasedDartSdk(sdkDirectory);
   }
 }
@@ -5015,10 +5046,13 @@ class ElementBuilderTest extends EngineTestCase {
     String className = "C";
     String firstVariableName = "E";
     String secondVariableName = "F";
-    ClassDeclaration classDeclaration = AstFactory.classDeclaration(null,
+    ClassDeclaration classDeclaration = AstFactory.classDeclaration(
+        null,
         className,
         AstFactory.typeParameterList([firstVariableName, secondVariableName]),
-        null, null, null);
+        null,
+        null,
+        null);
     classDeclaration.accept(builder);
     List<ClassElement> types = holder.types;
     expect(types, hasLength(1));
@@ -5041,13 +5075,22 @@ class ElementBuilderTest extends EngineTestCase {
     String typeParameterName = "E";
     String fieldName = "f";
     String methodName = "m";
-    ClassDeclaration classDeclaration = AstFactory.classDeclaration(null,
-        className, AstFactory.typeParameterList([typeParameterName]), null,
-        null, null, [
+    ClassDeclaration classDeclaration = AstFactory.classDeclaration(
+        null,
+        className,
+        AstFactory.typeParameterList([typeParameterName]),
+        null,
+        null,
+        null, [
       AstFactory.fieldDeclaration2(
           false, null, [AstFactory.variableDeclaration(fieldName)]),
-      AstFactory.methodDeclaration2(null, null, null, null,
-          AstFactory.identifier3(methodName), AstFactory.formalParameterList(),
+      AstFactory.methodDeclaration2(
+          null,
+          null,
+          null,
+          null,
+          AstFactory.identifier3(methodName),
+          AstFactory.formalParameterList(),
           AstFactory.blockFunctionBody2())
     ]);
     classDeclaration.accept(builder);
@@ -5144,9 +5187,13 @@ class ElementBuilderTest extends EngineTestCase {
     ClassElementImpl classM = ElementFactory.classElement2('M', []);
     WithClause withClause =
         AstFactory.withClause([AstFactory.typeName(classM, [])]);
-    ClassTypeAlias classCAst = AstFactory.classTypeAlias('C',
-        AstFactory.typeParameterList(['T']), null,
-        AstFactory.typeName(classB, []), withClause, null);
+    ClassTypeAlias classCAst = AstFactory.classTypeAlias(
+        'C',
+        AstFactory.typeParameterList(['T']),
+        null,
+        AstFactory.typeName(classB, []),
+        withClause,
+        null);
     classCAst.accept(builder);
     List<ClassElement> types = holder.types;
     expect(types, hasLength(1));
@@ -5160,8 +5207,13 @@ class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String className = "A";
     ConstructorDeclaration constructorDeclaration = AstFactory
-        .constructorDeclaration2(null, null, AstFactory.identifier3(className),
-            null, AstFactory.formalParameterList(), null,
+        .constructorDeclaration2(
+            null,
+            null,
+            AstFactory.identifier3(className),
+            null,
+            AstFactory.formalParameterList(),
+            null,
             AstFactory.blockFunctionBody2());
     constructorDeclaration.externalKeyword =
         TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
@@ -5184,9 +5236,13 @@ class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String className = "A";
     ConstructorDeclaration constructorDeclaration = AstFactory
-        .constructorDeclaration2(null, Keyword.FACTORY,
-            AstFactory.identifier3(className), null,
-            AstFactory.formalParameterList(), null,
+        .constructorDeclaration2(
+            null,
+            Keyword.FACTORY,
+            AstFactory.identifier3(className),
+            null,
+            AstFactory.formalParameterList(),
+            null,
             AstFactory.blockFunctionBody2());
     constructorDeclaration.accept(builder);
     List<ConstructorElement> constructors = holder.constructors;
@@ -5207,8 +5263,13 @@ class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String className = "A";
     ConstructorDeclaration constructorDeclaration = AstFactory
-        .constructorDeclaration2(null, null, AstFactory.identifier3(className),
-            null, AstFactory.formalParameterList(), null,
+        .constructorDeclaration2(
+            null,
+            null,
+            AstFactory.identifier3(className),
+            null,
+            AstFactory.formalParameterList(),
+            null,
             AstFactory.blockFunctionBody2());
     constructorDeclaration.accept(builder);
     List<ConstructorElement> constructors = holder.constructors;
@@ -5230,8 +5291,13 @@ class ElementBuilderTest extends EngineTestCase {
     String className = "A";
     String constructorName = "c";
     ConstructorDeclaration constructorDeclaration = AstFactory
-        .constructorDeclaration2(null, null, AstFactory.identifier3(className),
-            constructorName, AstFactory.formalParameterList(), null,
+        .constructorDeclaration2(
+            null,
+            null,
+            AstFactory.identifier3(className),
+            constructorName,
+            AstFactory.formalParameterList(),
+            null,
             AstFactory.blockFunctionBody2());
     constructorDeclaration.accept(builder);
     List<ConstructorElement> constructors = holder.constructors;
@@ -5254,8 +5320,13 @@ class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String className = "A";
     ConstructorDeclaration constructorDeclaration = AstFactory
-        .constructorDeclaration2(null, null, AstFactory.identifier3(className),
-            null, AstFactory.formalParameterList(), null,
+        .constructorDeclaration2(
+            null,
+            null,
+            AstFactory.identifier3(className),
+            null,
+            AstFactory.formalParameterList(),
+            null,
             AstFactory.blockFunctionBody2());
     constructorDeclaration.accept(builder);
     List<ConstructorElement> constructors = holder.constructors;
@@ -5291,8 +5362,8 @@ class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String firstFieldName = "x";
     String secondFieldName = "y";
-    FieldDeclaration fieldDeclaration = AstFactory.fieldDeclaration2(false,
-        null, [
+    FieldDeclaration fieldDeclaration =
+        AstFactory.fieldDeclaration2(false, null, [
       AstFactory.variableDeclaration(firstFieldName),
       AstFactory.variableDeclaration(secondFieldName)
     ]);
@@ -5339,8 +5410,11 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String parameterName = "p";
-    FieldFormalParameter formalParameter = AstFactory.fieldFormalParameter(null,
-        null, parameterName, AstFactory
+    FieldFormalParameter formalParameter = AstFactory.fieldFormalParameter(
+        null,
+        null,
+        parameterName,
+        AstFactory
             .formalParameterList([AstFactory.simpleFormalParameter3("a")]));
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
@@ -5376,8 +5450,11 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String functionName = "f";
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(null, null,
-        functionName, AstFactory.functionExpression2(
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+        null,
+        null,
+        functionName,
+        AstFactory.functionExpression2(
             AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
     declaration.externalKeyword =
         TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
@@ -5398,8 +5475,11 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String functionName = "f";
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(null,
-        Keyword.GET, functionName, AstFactory.functionExpression2(
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+        null,
+        Keyword.GET,
+        functionName,
+        AstFactory.functionExpression2(
             AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
     declaration.accept(builder);
     List<PropertyAccessorElement> accessors = holder.accessors;
@@ -5424,8 +5504,11 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String functionName = "f";
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(null, null,
-        functionName, AstFactory.functionExpression2(
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+        null,
+        null,
+        functionName,
+        AstFactory.functionExpression2(
             AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
     declaration.accept(builder);
     List<FunctionElement> functions = holder.functions;
@@ -5444,8 +5527,11 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String functionName = "f";
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(null,
-        Keyword.SET, functionName, AstFactory.functionExpression2(
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+        null,
+        Keyword.SET,
+        functionName,
+        AstFactory.functionExpression2(
             AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
     declaration.accept(builder);
     List<PropertyAccessorElement> accessors = holder.accessors;
@@ -5473,7 +5559,8 @@ class ElementBuilderTest extends EngineTestCase {
     String typeParameterName = 'E';
     FunctionExpression expression = AstFactory.functionExpression3(
         AstFactory.typeParameterList([typeParameterName]),
-        AstFactory.formalParameterList(), AstFactory.blockFunctionBody2());
+        AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2());
     FunctionDeclaration declaration =
         AstFactory.functionDeclaration(null, null, functionName, expression);
     declaration.accept(builder);
@@ -5596,9 +5683,14 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(null,
-        null, null, null, AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(), AstFactory.emptyFunctionBody());
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.emptyFunctionBody());
     methodDeclaration.accept(builder);
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
@@ -5620,9 +5712,14 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(null,
-        null, null, null, AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(), AstFactory.emptyFunctionBody());
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.emptyFunctionBody());
     methodDeclaration.externalKeyword =
         TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
     methodDeclaration.accept(builder);
@@ -5646,9 +5743,14 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(null,
-        null, Keyword.GET, null, AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(), AstFactory.blockFunctionBody2());
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        Keyword.GET,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2());
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
     expect(fields, hasLength(1));
@@ -5675,9 +5777,14 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(null,
-        null, Keyword.GET, null, AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(), AstFactory.emptyFunctionBody());
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        Keyword.GET,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.emptyFunctionBody());
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
     expect(fields, hasLength(1));
@@ -5704,8 +5811,12 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration(null,
-        null, Keyword.GET, null, AstFactory.identifier3(methodName),
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration(
+        null,
+        null,
+        Keyword.GET,
+        null,
+        AstFactory.identifier3(methodName),
         AstFactory.formalParameterList());
     methodDeclaration.externalKeyword =
         TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
@@ -5735,9 +5846,14 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(null,
-        null, null, null, AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(), AstFactory.blockFunctionBody2());
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2());
     methodDeclaration.accept(builder);
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
@@ -5759,8 +5875,12 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "+";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(null,
-        null, null, Keyword.OPERATOR, AstFactory.identifier3(methodName),
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        Keyword.OPERATOR,
+        AstFactory.identifier3(methodName),
         AstFactory
             .formalParameterList([AstFactory.simpleFormalParameter3("addend")]),
         AstFactory.blockFunctionBody2());
@@ -5785,9 +5905,14 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(null,
-        null, Keyword.SET, null, AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(), AstFactory.blockFunctionBody2());
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        Keyword.SET,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2());
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
     expect(fields, hasLength(1));
@@ -5815,9 +5940,14 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(null,
-        null, Keyword.SET, null, AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(), AstFactory.emptyFunctionBody());
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        Keyword.SET,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.emptyFunctionBody());
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
     expect(fields, hasLength(1));
@@ -5845,8 +5975,12 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration(null,
-        null, Keyword.SET, null, AstFactory.identifier3(methodName),
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration(
+        null,
+        null,
+        Keyword.SET,
+        null,
+        AstFactory.identifier3(methodName),
         AstFactory.formalParameterList());
     methodDeclaration.externalKeyword =
         TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
@@ -5878,8 +6012,13 @@ class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
     MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
-        Keyword.STATIC, null, null, null, AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(), AstFactory.blockFunctionBody2());
+        Keyword.STATIC,
+        null,
+        null,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2());
     methodDeclaration.accept(builder);
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
@@ -5901,9 +6040,14 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(null,
-        null, null, null, AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(), AstFactory.blockFunctionBody2());
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2());
     methodDeclaration.typeParameters = AstFactory.typeParameterList(['E']);
     methodDeclaration.accept(builder);
     List<MethodElement> methods = holder.methods;
@@ -5930,18 +6074,24 @@ class ElementBuilderTest extends EngineTestCase {
     String localVariableName = "v";
     String labelName = "l";
     String exceptionParameterName = "e";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(null,
-        null, null, null, AstFactory.identifier3(methodName), AstFactory
-            .formalParameterList(
-                [AstFactory.simpleFormalParameter3(parameterName)]), AstFactory
-            .blockFunctionBody2([
-      AstFactory.variableDeclarationStatement2(
-          Keyword.VAR, [AstFactory.variableDeclaration(localVariableName)]),
-      AstFactory.tryStatement2(AstFactory.block([
-        AstFactory.labeledStatement(
-            [AstFactory.label2(labelName)], AstFactory.returnStatement())
-      ]), [AstFactory.catchClause(exceptionParameterName)])
-    ]));
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(
+            [AstFactory.simpleFormalParameter3(parameterName)]),
+        AstFactory.blockFunctionBody2([
+          AstFactory.variableDeclarationStatement2(
+              Keyword.VAR, [AstFactory.variableDeclaration(localVariableName)]),
+          AstFactory.tryStatement2(
+              AstFactory.block([
+                AstFactory.labeledStatement([AstFactory.label2(labelName)],
+                    AstFactory.returnStatement())
+              ]),
+              [AstFactory.catchClause(exceptionParameterName)])
+        ]));
     methodDeclaration.accept(builder);
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
@@ -5964,10 +6114,12 @@ class ElementBuilderTest extends EngineTestCase {
     VariableElement secondVariable = localVariables[1];
     expect(firstVariable, isNotNull);
     expect(secondVariable, isNotNull);
-    expect((firstVariable.name == localVariableName &&
-            secondVariable.name == exceptionParameterName) ||
-        (firstVariable.name == exceptionParameterName &&
-            secondVariable.name == localVariableName), isTrue);
+    expect(
+        (firstVariable.name == localVariableName &&
+                secondVariable.name == exceptionParameterName) ||
+            (firstVariable.name == exceptionParameterName &&
+                secondVariable.name == localVariableName),
+        isTrue);
     List<LabelElement> labels = method.labels;
     expect(labels, hasLength(1));
     LabelElement label = labels[0];
@@ -6050,11 +6202,14 @@ class ElementBuilderTest extends EngineTestCase {
     String aliasName = "F";
     String firstParameterName = "x";
     String secondParameterName = "y";
-    TypeAlias typeAlias = AstFactory.typeAlias(null, aliasName,
-        AstFactory.typeParameterList(), AstFactory.formalParameterList([
-      AstFactory.simpleFormalParameter3(firstParameterName),
-      AstFactory.simpleFormalParameter3(secondParameterName)
-    ]));
+    TypeAlias typeAlias = AstFactory.typeAlias(
+        null,
+        aliasName,
+        AstFactory.typeParameterList(),
+        AstFactory.formalParameterList([
+          AstFactory.simpleFormalParameter3(firstParameterName),
+          AstFactory.simpleFormalParameter3(secondParameterName)
+        ]));
     typeAlias.accept(builder);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
     expect(aliases, hasLength(1));
@@ -6078,9 +6233,11 @@ class ElementBuilderTest extends EngineTestCase {
     String aliasName = "F";
     String firstTypeParameterName = "A";
     String secondTypeParameterName = "B";
-    TypeAlias typeAlias = AstFactory.typeAlias(null, aliasName, AstFactory
-            .typeParameterList(
-                [firstTypeParameterName, secondTypeParameterName]),
+    TypeAlias typeAlias = AstFactory.typeAlias(
+        null,
+        aliasName,
+        AstFactory.typeParameterList(
+            [firstTypeParameterName, secondTypeParameterName]),
         AstFactory.formalParameterList());
     typeAlias.accept(builder);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
@@ -6126,8 +6283,12 @@ class ElementBuilderTest extends EngineTestCase {
     Statement statement =
         AstFactory.variableDeclarationStatement2(null, [variable]);
     ConstructorDeclaration constructor = AstFactory.constructorDeclaration2(
-        null, null, AstFactory.identifier3("C"), "C",
-        AstFactory.formalParameterList(), null,
+        null,
+        null,
+        AstFactory.identifier3("C"),
+        "C",
+        AstFactory.formalParameterList(),
+        null,
         AstFactory.blockFunctionBody2([statement]));
     constructor.accept(builder);
     List<ConstructorElement> constructors = holder.constructors;
@@ -6150,8 +6311,12 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.variableDeclaration2(variableName, null);
     Statement statement =
         AstFactory.variableDeclarationStatement2(null, [variable]);
-    MethodDeclaration constructor = AstFactory.methodDeclaration2(null, null,
-        null, null, AstFactory.identifier3("m"),
+    MethodDeclaration constructor = AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        null,
+        AstFactory.identifier3("m"),
         AstFactory.formalParameterList(),
         AstFactory.blockFunctionBody2([statement]));
     constructor.accept(builder);
@@ -6270,9 +6435,14 @@ class ElementBuilderTest extends EngineTestCase {
     block.leftBracket.offset = blockOffset;
     block.rightBracket.offset = blockEnd - 1;
     BlockFunctionBody body = AstFactory.blockFunctionBody(block);
-    AstFactory.methodDeclaration2(null, null, null, null,
+    AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        null,
         AstFactory.identifier3("main"),
-        AstFactory.formalParameterList([formalParameter]), body);
+        AstFactory.formalParameterList([formalParameter]),
+        body);
   }
 }
 
@@ -6308,7 +6478,9 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   void test_locate_AssignmentExpression() {
-    AstNode id = _findNodeIn("+=", r'''
+    AstNode id = _findNodeIn(
+        "+=",
+        r'''
 int x = 0;
 void main() {
   x += 1;
@@ -6340,7 +6512,10 @@ void main() {
   }
 
   void test_locate_ConstructorDeclaration() {
-    AstNode id = _findNodeIndexedIn("bar", 0, r'''
+    AstNode id = _findNodeIndexedIn(
+        "bar",
+        0,
+        r'''
 class A {
   A.bar() {}
 }''');
@@ -6361,7 +6536,10 @@ class A {
   }
 
   void test_locate_Identifier_annotationClass_namedConstructor_forSimpleFormalParameter() {
-    AstNode id = _findNodeIndexedIn("Class", 2, r'''
+    AstNode id = _findNodeIndexedIn(
+        "Class",
+        2,
+        r'''
 class Class {
   const Class.name();
 }
@@ -6373,7 +6551,10 @@ void main(@Class.name() parameter) {
   }
 
   void test_locate_Identifier_annotationClass_unnamedConstructor_forSimpleFormalParameter() {
-    AstNode id = _findNodeIndexedIn("Class", 2, r'''
+    AstNode id = _findNodeIndexedIn(
+        "Class",
+        2,
+        r'''
 class Class {
   const Class();
 }
@@ -6392,7 +6573,10 @@ void main(@Class() parameter) {
   }
 
   void test_locate_Identifier_constructor_named() {
-    AstNode id = _findNodeIndexedIn("bar", 0, r'''
+    AstNode id = _findNodeIndexedIn(
+        "bar",
+        0,
+        r'''
 class A {
   A.bar() {}
 }''');
@@ -6402,7 +6586,10 @@ class A {
   }
 
   void test_locate_Identifier_constructor_unnamed() {
-    AstNode id = _findNodeIndexedIn("A", 1, r'''
+    AstNode id = _findNodeIndexedIn(
+        "A",
+        1,
+        r'''
 class A {
   A() {}
 }''');
@@ -6419,7 +6606,9 @@ class A {
   }
 
   void test_locate_Identifier_propertAccess() {
-    AstNode id = _findNodeIn("length", r'''
+    AstNode id = _findNodeIn(
+        "length",
+        r'''
 void main() {
  int x = 'foo'.length;
 }''');
@@ -6436,7 +6625,10 @@ void main() {
   }
 
   void test_locate_IndexExpression() {
-    AstNode id = _findNodeIndexedIn("\\[", 1, r'''
+    AstNode id = _findNodeIndexedIn(
+        "\\[",
+        1,
+        r'''
 void main() {
   List x = [1, 2];
   var y = x[0];
@@ -6447,7 +6639,10 @@ void main() {
   }
 
   void test_locate_InstanceCreationExpression() {
-    AstNode node = _findNodeIndexedIn("A(", 0, r'''
+    AstNode node = _findNodeIndexedIn(
+        "A(",
+        0,
+        r'''
 class A {}
 void main() {
  new A();
@@ -6503,7 +6698,9 @@ void main() {
   }
 
   void test_locate_MethodDeclaration() {
-    AstNode id = _findNodeIn("m", r'''
+    AstNode id = _findNodeIn(
+        "m",
+        r'''
 class A {
   void m() {}
 }''');
@@ -6515,7 +6712,10 @@ class A {
   }
 
   void test_locate_MethodInvocation_method() {
-    AstNode id = _findNodeIndexedIn("bar", 1, r'''
+    AstNode id = _findNodeIndexedIn(
+        "bar",
+        1,
+        r'''
 class A {
   int bar() => 42;
 }
@@ -6551,7 +6751,9 @@ void main() {
   }
 
   void test_locate_PrefixedIdentifier() {
-    AstNode id = _findNodeIn("int", r'''
+    AstNode id = _findNodeIn(
+        "int",
+        r'''
 import 'dart:core' as core;
 core.int value;''');
     PrefixedIdentifier identifier =
@@ -6800,7 +7002,8 @@ class ErrorReporterTest extends EngineTestCase {
     ErrorReporter reporter = new ErrorReporter(listener, element.source);
     reporter.reportErrorForElement(
         StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
-        element, ['A']);
+        element,
+        ['A']);
     AnalysisError error = listener.errors[0];
     expect(error.offset, element.nameOffset);
   }
@@ -6809,11 +7012,14 @@ class ErrorReporterTest extends EngineTestCase {
     ImportElementImpl element =
         ElementFactory.importFor(ElementFactory.library(null, ''), null);
     GatheringErrorListener listener = new GatheringErrorListener();
-    ErrorReporter reporter = new ErrorReporter(listener, new NonExistingSource(
-        '/test.dart', toUri('/test.dart'), UriKind.FILE_URI));
+    ErrorReporter reporter = new ErrorReporter(
+        listener,
+        new NonExistingSource(
+            '/test.dart', toUri('/test.dart'), UriKind.FILE_URI));
     reporter.reportErrorForElement(
         StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
-        element, ['A']);
+        element,
+        ['A']);
     AnalysisError error = listener.errors[0];
     expect(error.offset, element.nameOffset);
   }
@@ -6826,7 +7032,8 @@ class ErrorReporterTest extends EngineTestCase {
         new ErrorReporter(listener, firstType.element.source);
     reporter.reportTypeErrorForNode(
         StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        AstFactory.identifier3("x"), [firstType, secondType]);
+        AstFactory.identifier3("x"),
+        [firstType, secondType]);
     AnalysisError error = listener.errors[0];
     expect(error.message.indexOf("(") < 0, isTrue);
   }
@@ -6840,7 +7047,8 @@ class ErrorReporterTest extends EngineTestCase {
         new ErrorReporter(listener, firstType.element.source);
     reporter.reportTypeErrorForNode(
         StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        AstFactory.identifier3("x"), [firstType, secondType]);
+        AstFactory.identifier3("x"),
+        [firstType, secondType]);
     AnalysisError error = listener.errors[0];
     expect(error.message.indexOf("(") >= 0, isTrue);
   }
@@ -7791,11 +7999,13 @@ $scriptBody
 </html>""");
     _validate(htmlUnit, [
       _t4("html", [
-        _t4("body",
-            [_t("script", _a(["type", "'application/dart'"]), scriptBody)])
+        _t4("body", [
+          _t("script", _a(["type", "'application/dart'"]), scriptBody)
+        ])
       ])
     ]);
   }
+
   ht.HtmlUnit parse(String contents) {
 //    TestSource source =
 //        new TestSource.con1(FileUtilities2.createFile("/test.dart"), contents);
@@ -7810,74 +8020,108 @@ $scriptBody
     errorListener.assertNoErrors();
     return unit;
   }
+
   void test_parse_attribute() {
     ht.HtmlUnit htmlUnit = parse("<html><body foo=\"sdfsdf\"></body></html>");
-    _validate(
-        htmlUnit, [_t4("html", [_t("body", _a(["foo", "\"sdfsdf\""]), "")])]);
+    _validate(htmlUnit, [
+      _t4("html", [
+        _t("body", _a(["foo", "\"sdfsdf\""]), "")
+      ])
+    ]);
     ht.XmlTagNode htmlNode = htmlUnit.tagNodes[0];
     ht.XmlTagNode bodyNode = htmlNode.tagNodes[0];
     expect(bodyNode.attributes[0].text, "sdfsdf");
   }
+
   void test_parse_attribute_EOF() {
     ht.HtmlUnit htmlUnit = parse("<html><body foo=\"sdfsdf\"");
-    _validate(
-        htmlUnit, [_t4("html", [_t("body", _a(["foo", "\"sdfsdf\""]), "")])]);
+    _validate(htmlUnit, [
+      _t4("html", [
+        _t("body", _a(["foo", "\"sdfsdf\""]), "")
+      ])
+    ]);
   }
+
   void test_parse_attribute_EOF_missing_quote() {
     ht.HtmlUnit htmlUnit = parse("<html><body foo=\"sdfsd");
-    _validate(
-        htmlUnit, [_t4("html", [_t("body", _a(["foo", "\"sdfsd"]), "")])]);
+    _validate(htmlUnit, [
+      _t4("html", [
+        _t("body", _a(["foo", "\"sdfsd"]), "")
+      ])
+    ]);
     ht.XmlTagNode htmlNode = htmlUnit.tagNodes[0];
     ht.XmlTagNode bodyNode = htmlNode.tagNodes[0];
     expect(bodyNode.attributes[0].text, "sdfsd");
   }
+
   void test_parse_attribute_extra_quote() {
     ht.HtmlUnit htmlUnit = parse("<html><body foo=\"sdfsdf\"\"></body></html>");
-    _validate(
-        htmlUnit, [_t4("html", [_t("body", _a(["foo", "\"sdfsdf\""]), "")])]);
+    _validate(htmlUnit, [
+      _t4("html", [
+        _t("body", _a(["foo", "\"sdfsdf\""]), "")
+      ])
+    ]);
   }
+
   void test_parse_attribute_single_quote() {
     ht.HtmlUnit htmlUnit = parse("<html><body foo='sdfsdf'></body></html>");
-    _validate(
-        htmlUnit, [_t4("html", [_t("body", _a(["foo", "'sdfsdf'"]), "")])]);
+    _validate(htmlUnit, [
+      _t4("html", [
+        _t("body", _a(["foo", "'sdfsdf'"]), "")
+      ])
+    ]);
     ht.XmlTagNode htmlNode = htmlUnit.tagNodes[0];
     ht.XmlTagNode bodyNode = htmlNode.tagNodes[0];
     expect(bodyNode.attributes[0].text, "sdfsdf");
   }
+
   void test_parse_comment_embedded() {
     ht.HtmlUnit htmlUnit = parse("<html <!-- comment -->></html>");
     _validate(htmlUnit, [_t3("html", "")]);
   }
+
   void test_parse_comment_first() {
     ht.HtmlUnit htmlUnit = parse("<!-- comment --><html></html>");
     _validate(htmlUnit, [_t3("html", "")]);
   }
+
   void test_parse_comment_in_content() {
     ht.HtmlUnit htmlUnit = parse("<html><!-- comment --></html>");
     _validate(htmlUnit, [_t3("html", "<!-- comment -->")]);
   }
+
   void test_parse_content() {
     ht.HtmlUnit htmlUnit = parse("<html>\n<p a=\"b\">blat \n </p>\n</html>");
     // ht.XmlTagNode.getContent() does not include whitespace
     // between '<' and '>' at this time
     _validate(htmlUnit, [
-      _t3("html", "\n<pa=\"b\">blat \n </p>\n",
-          [_t("p", _a(["a", "\"b\""]), "blat \n ")])
+      _t3("html", "\n<pa=\"b\">blat \n </p>\n", [
+        _t("p", _a(["a", "\"b\""]), "blat \n ")
+      ])
     ]);
   }
+
   void test_parse_content_none() {
     ht.HtmlUnit htmlUnit = parse("<html><p/>blat<p/></html>");
-    _validate(
-        htmlUnit, [_t3("html", "<p/>blat<p/>", [_t3("p", ""), _t3("p", "")])]);
+    _validate(htmlUnit, [
+      _t3("html", "<p/>blat<p/>", [_t3("p", ""), _t3("p", "")])
+    ]);
   }
+
   void test_parse_declaration() {
     ht.HtmlUnit htmlUnit = parse("<!DOCTYPE html>\n\n<html><p></p></html>");
-    _validate(htmlUnit, [_t4("html", [_t3("p", "")])]);
+    _validate(htmlUnit, [
+      _t4("html", [_t3("p", "")])
+    ]);
   }
+
   void test_parse_directive() {
     ht.HtmlUnit htmlUnit = parse("<?xml ?>\n\n<html><p></p></html>");
-    _validate(htmlUnit, [_t4("html", [_t3("p", "")])]);
+    _validate(htmlUnit, [
+      _t4("html", [_t3("p", "")])
+    ]);
   }
+
   void test_parse_getAttribute() {
     ht.HtmlUnit htmlUnit = parse("<html><body foo=\"sdfsdf\"></body></html>");
     ht.XmlTagNode htmlNode = htmlUnit.tagNodes[0];
@@ -7886,6 +8130,7 @@ $scriptBody
     expect(bodyNode.getAttribute("bar"), null);
     expect(bodyNode.getAttribute(null), null);
   }
+
   void test_parse_getAttributeText() {
     ht.HtmlUnit htmlUnit = parse("<html><body foo=\"sdfsdf\"></body></html>");
     ht.XmlTagNode htmlNode = htmlUnit.tagNodes[0];
@@ -7894,6 +8139,7 @@ $scriptBody
     expect(bodyNode.getAttributeText("bar"), null);
     expect(bodyNode.getAttributeText(null), null);
   }
+
   void test_parse_headers() {
     String code = r'''
 <html>
@@ -7905,22 +8151,33 @@ $scriptBody
   </body>
 </html>''';
     ht.HtmlUnit htmlUnit = parse(code);
-    _validate(
-        htmlUnit, [_t4("html", [_t4("body", [_t3("h2", "000"), _t4("div")])])]);
+    _validate(htmlUnit, [
+      _t4("html", [
+        _t4("body", [_t3("h2", "000"), _t4("div")])
+      ])
+    ]);
   }
+
   void test_parse_script() {
     ht.HtmlUnit htmlUnit =
         parse("<html><script >here is <p> some</script></html>");
-    _validate(htmlUnit, [_t4("html", [_t3("script", "here is <p> some")])]);
+    _validate(htmlUnit, [
+      _t4("html", [_t3("script", "here is <p> some")])
+    ]);
   }
+
   void test_parse_self_closing() {
     ht.HtmlUnit htmlUnit = parse("<html>foo<br>bar</html>");
-    _validate(htmlUnit, [_t3("html", "foo<br>bar", [_t3("br", "")])]);
+    _validate(htmlUnit, [
+      _t3("html", "foo<br>bar", [_t3("br", "")])
+    ]);
   }
+
   void test_parse_self_closing_declaration() {
     ht.HtmlUnit htmlUnit = parse("<!DOCTYPE html><html>foo</html>");
     _validate(htmlUnit, [_t3("html", "foo")]);
   }
+
   XmlValidator_Attributes _a(List<String> keyValuePairs) =>
       new XmlValidator_Attributes(keyValuePairs);
   XmlValidator_Tag _t(
@@ -7972,18 +8229,23 @@ class HtmlUnitBuilderTest extends EngineTestCase {
   void setUp() {
     _context = AnalysisContextFactory.contextWithCore();
   }
+
   @override
   void tearDown() {
     _context = null;
     super.tearDown();
   }
+
   void test_embedded_script() {
     HtmlElementImpl element = _build(r'''
 <html>
 <script type="application/dart">foo=2;</script>
 </html>''');
-    _validate(element, [_s(_l([_v("foo")]))]);
+    _validate(element, [
+      _s(_l([_v("foo")]))
+    ]);
   }
+
   void test_embedded_script_no_content() {
     HtmlElementImpl element = _build(r'''
 <html>
@@ -7991,6 +8253,7 @@ class HtmlUnitBuilderTest extends EngineTestCase {
 </html>''');
     _validate(element, [_s(_l())]);
   }
+
   void test_external_script() {
     HtmlElementImpl element = _build(r'''
 <html>
@@ -7998,6 +8261,7 @@ class HtmlUnitBuilderTest extends EngineTestCase {
 </html>''');
     _validate(element, [_s2("other.dart")]);
   }
+
   void test_external_script_no_source() {
     HtmlElementImpl element = _build(r'''
 <html>
@@ -8005,6 +8269,7 @@ class HtmlUnitBuilderTest extends EngineTestCase {
 </html>''');
     _validate(element, [_s2(null)]);
   }
+
   void test_external_script_with_content() {
     HtmlElementImpl element = _build(r'''
 <html>
@@ -8012,12 +8277,14 @@ class HtmlUnitBuilderTest extends EngineTestCase {
 </html>''');
     _validate(element, [_s2("other.dart")]);
   }
+
   void test_no_scripts() {
     HtmlElementImpl element = _build(r'''
 <!DOCTYPE html>
 <html><p></p></html>''');
     _validate(element, []);
   }
+
   void test_two_dart_scripts() {
     HtmlElementImpl element = _build(r'''
 <html>
@@ -8025,8 +8292,12 @@ class HtmlUnitBuilderTest extends EngineTestCase {
 <script type="application/dart" src="other.dart"/>
 <script src="dart.js"/>
 </html>''');
-    _validate(element, [_s(_l([_v("bar")])), _s2("other.dart")]);
+    _validate(element, [
+      _s(_l([_v("bar")])),
+      _s2("other.dart")
+    ]);
   }
+
   HtmlElementImpl _build(String contents) {
     TestSource source = new TestSource(
         FileUtilities2.createFile("/test.html").getAbsolutePath(), contents);
@@ -8036,8 +8307,10 @@ class HtmlUnitBuilderTest extends EngineTestCase {
     HtmlUnitBuilder builder = new HtmlUnitBuilder(_context);
     return builder.buildHtmlElement(source, _context.parseHtmlUnit(source));
   }
+
   HtmlUnitBuilderTest_ExpectedLibrary _l(
-          [List<HtmlUnitBuilderTest_ExpectedVariable> expectedVariables = HtmlUnitBuilderTest_ExpectedVariable.EMPTY_LIST]) =>
+          [List<HtmlUnitBuilderTest_ExpectedVariable> expectedVariables =
+              HtmlUnitBuilderTest_ExpectedVariable.EMPTY_LIST]) =>
       new HtmlUnitBuilderTest_ExpectedLibrary(this, expectedVariables);
   _ExpectedScript _s(HtmlUnitBuilderTest_ExpectedLibrary expectedLibrary) =>
       new _ExpectedScript.con1(expectedLibrary);
@@ -8061,7 +8334,8 @@ class HtmlUnitBuilderTest_ExpectedLibrary {
   final HtmlUnitBuilderTest HtmlUnitBuilderTest_this;
   final List<HtmlUnitBuilderTest_ExpectedVariable> _expectedVariables;
   HtmlUnitBuilderTest_ExpectedLibrary(this.HtmlUnitBuilderTest_this,
-      [this._expectedVariables = HtmlUnitBuilderTest_ExpectedVariable.EMPTY_LIST]);
+      [this._expectedVariables =
+          HtmlUnitBuilderTest_ExpectedVariable.EMPTY_LIST]);
   void _validate(int scriptIndex, EmbeddedHtmlScriptElementImpl script) {
     LibraryElement library = script.scriptLibrary;
     expect(library, isNotNull, reason: "script $scriptIndex");
@@ -8123,18 +8397,22 @@ class HtmlWarningCodeTest extends EngineTestCase {
   }
 
   void test_invalidUri() {
-    _verify(r'''
+    _verify(
+        r'''
 <html>
 <script type='application/dart' src='ht:'/>
-</html>''', [HtmlWarningCode.INVALID_URI]);
+</html>''',
+        [HtmlWarningCode.INVALID_URI]);
     _assertErrorLocation2(_errors[0], "ht:");
   }
 
   void test_uriDoesNotExist() {
-    _verify(r'''
+    _verify(
+        r'''
 <html>
 <script type='application/dart' src='other.dart'/>
-</html>''', [HtmlWarningCode.URI_DOES_NOT_EXIST]);
+</html>''',
+        [HtmlWarningCode.URI_DOES_NOT_EXIST]);
     _assertErrorLocation2(_errors[0], "other.dart");
   }
 
@@ -8201,41 +8479,49 @@ class ReferenceFinderTest extends EngineTestCase {
     _referenceGraph = new DirectedGraph<ConstantEvaluationTarget>();
     _head = ElementFactory.topLevelVariableElement2("v1");
   }
+
   void test_visitSimpleIdentifier_const() {
     _visitNode(_makeTailVariable("v2", true));
     _assertOneArc(_tail);
   }
+
   void test_visitSimpleIdentifier_nonConst() {
     _visitNode(_makeTailVariable("v2", false));
     _assertOneArc(_tail);
   }
+
   void test_visitSuperConstructorInvocation_const() {
     _visitNode(_makeTailSuperConstructorInvocation("A", true));
     _assertOneArc(_tail);
   }
+
   void test_visitSuperConstructorInvocation_nonConst() {
     _visitNode(_makeTailSuperConstructorInvocation("A", false));
     _assertOneArc(_tail);
   }
+
   void test_visitSuperConstructorInvocation_unresolved() {
     SuperConstructorInvocation superConstructorInvocation =
         AstFactory.superConstructorInvocation();
     _visitNode(superConstructorInvocation);
     _assertNoArcs();
   }
+
   void _assertNoArcs() {
     Set<ConstantEvaluationTarget> tails = _referenceGraph.getTails(_head);
     expect(tails, hasLength(0));
   }
+
   void _assertOneArc(Element tail) {
     Set<ConstantEvaluationTarget> tails = _referenceGraph.getTails(_head);
     expect(tails, hasLength(1));
     expect(tails.first, same(tail));
   }
+
   ReferenceFinder _createReferenceFinder(ConstantEvaluationTarget source) =>
       new ReferenceFinder((ConstantEvaluationTarget dependency) {
-    _referenceGraph.addEdge(source, dependency);
-  });
+        _referenceGraph.addEdge(source, dependency);
+      });
   SuperConstructorInvocation _makeTailSuperConstructorInvocation(
       String name, bool isConst) {
     List<ConstructorInitializer> initializers =
@@ -8255,6 +8541,7 @@ class ReferenceFinderTest extends EngineTestCase {
     superConstructorInvocation.staticElement = constructorElement;
     return superConstructorInvocation;
   }
+
   SimpleIdentifier _makeTailVariable(String name, bool isConst) {
     VariableDeclaration variableDeclaration =
         AstFactory.variableDeclaration(name);
@@ -8268,6 +8555,7 @@ class ReferenceFinderTest extends EngineTestCase {
     identifier.staticElement = variableElement;
     return identifier;
   }
+
   void _visitNode(AstNode node) {
     node.accept(_createReferenceFinder(_head));
   }
@@ -8277,7 +8565,8 @@ class ReferenceFinderTest extends EngineTestCase {
 class SDKLibrariesReaderTest extends EngineTestCase {
   void test_readFrom_dart2js() {
     LibraryMap libraryMap = new SdkLibrariesReader(true).readFromFile(
-        FileUtilities2.createFile("/libs.dart"), r'''
+        FileUtilities2.createFile("/libs.dart"),
+        r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',
@@ -8298,15 +8587,18 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     expect(first.isImplementation, false);
     expect(first.isVmLibrary, true);
   }
+
   void test_readFrom_empty() {
-    LibraryMap libraryMap = new SdkLibrariesReader(false).readFromFile(
-        FileUtilities2.createFile("/libs.dart"), "");
+    LibraryMap libraryMap = new SdkLibrariesReader(false)
+        .readFromFile(FileUtilities2.createFile("/libs.dart"), "");
     expect(libraryMap, isNotNull);
     expect(libraryMap.size(), 0);
   }
+
   void test_readFrom_normal() {
     LibraryMap libraryMap = new SdkLibrariesReader(false).readFromFile(
-        FileUtilities2.createFile("/libs.dart"), r'''
+        FileUtilities2.createFile("/libs.dart"),
+        r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',
@@ -8358,8 +8650,9 @@ class StringScannerTest extends AbstractScannerTest {
 @reflectiveTest
 class ToSourceVisitorTest extends EngineTestCase {
   void fail_visitHtmlScriptTagNode_attributes_content() {
-    _assertSource("<script type='application/dart'>f() {}</script>", HtmlFactory
-        .scriptTagWithContent(
+    _assertSource(
+        "<script type='application/dart'>f() {}</script>",
+        HtmlFactory.scriptTagWithContent(
             "f() {}", [HtmlFactory.attribute("type", "'application/dart'")]));
   }
 
@@ -8369,8 +8662,10 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitHtmlScriptTagNode_attributes_noContent() {
-    _assertSource("<script type='application/dart'/>", HtmlFactory
-        .scriptTag([HtmlFactory.attribute("type", "'application/dart'")]));
+    _assertSource(
+        "<script type='application/dart'/>",
+        HtmlFactory
+            .scriptTag([HtmlFactory.attribute("type", "'application/dart'")]));
   }
 
   void test_visitHtmlScriptTagNode_noAttributes_noContent() {
@@ -8467,6 +8762,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
       fail(buffer.toString());
     }
   }
+
   /**
    * Set the tags to be expected when visiting
    *
@@ -8478,6 +8774,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
     _expectTags(expected, expectedTags);
     this._expectedTagsInOrderVisited = expected;
   }
+
   @override
   Object visitHtmlUnit(ht.HtmlUnit node) {
     if (node.parent != null) {
@@ -8489,6 +8786,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
     _validateNode(node);
     return super.visitHtmlUnit(node);
   }
+
   @override
   Object visitXmlAttributeNode(ht.XmlAttributeNode actual) {
     if (actual.parent is! ht.XmlTagNode) {
@@ -8518,6 +8816,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
     _validateNode(actual);
     return super.visitXmlAttributeNode(actual);
   }
+
   @override
   Object visitXmlTagNode(ht.XmlTagNode actual) {
     if (!(actual.parent is ht.HtmlUnit || actual.parent is ht.XmlTagNode)) {
@@ -8591,6 +8890,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
     _validateNode(actual);
     return super.visitXmlTagNode(actual);
   }
+
   /**
    * Append the specified tags to the array in depth first order
    *
@@ -8604,6 +8904,7 @@ class XmlValidator extends ht.RecursiveXmlVisitor<Object> {
       _expectTags(expected, tag._children);
     }
   }
+
   void _validateNode(ht.XmlNode node) {
     if (node.beginToken == null) {
       _errors.add("No begin token for ${node.runtimeType}");
@@ -8666,6 +8967,7 @@ class _ExpectedScript {
       _validateExternal(scriptIndex, script);
     }
   }
+
   void _validateEmbedded(int scriptIndex, HtmlScriptElement script) {
     if (script is! EmbeddedHtmlScriptElementImpl) {
       fail(
@@ -8675,6 +8977,7 @@ class _ExpectedScript {
         script as EmbeddedHtmlScriptElementImpl;
     _expectedLibrary._validate(scriptIndex, embeddedScript);
   }
+
   void _validateExternal(int scriptIndex, HtmlScriptElement script) {
     if (script is! ExternalHtmlScriptElementImpl) {
       fail(

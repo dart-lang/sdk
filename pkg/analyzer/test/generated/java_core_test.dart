@@ -10,7 +10,10 @@ library engine.java_core_test;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:unittest/unittest.dart';
 
+import '../utils.dart';
+
 main() {
+  initializeTestEnvironment();
   group('Character', () {
     group('isDigit', () {
       test('digits', () {

@@ -22,9 +22,10 @@ import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(AnalysisCacheTest);
   runReflectiveTests(CacheEntryTest);
   runReflectiveTests(CacheFlushManagerTest);
@@ -33,7 +34,8 @@ main() {
   runReflectiveTests(ResultDataTest);
 }
 
-AnalysisCache createCache({AnalysisContext context,
+AnalysisCache createCache(
+    {AnalysisContext context,
     RetentionPriority policy: RetentionPriority.LOW}) {
   CachePartition partition = new UniversalCachePartition(context);
   return new AnalysisCache(<CachePartition>[partition]);

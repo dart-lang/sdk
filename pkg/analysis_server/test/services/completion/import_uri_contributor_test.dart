@@ -12,10 +12,11 @@ import 'package:path/path.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'completion_test_util.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(ImportUriContributorTest);
 }
 
@@ -112,7 +113,8 @@ class ImportUriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('other.dart');
     assertNotSuggested('foo');
     assertNotSuggested('foo${separator}');
-    assertSuggest('foo${separator}bar.dart', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('foo${separator}bar.dart',
+        csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('..${separator}blat.dart');
   }
 
@@ -132,7 +134,8 @@ class ImportUriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('foo');
     assertNotSuggested('foo${separator}');
     assertNotSuggested('foo${separator}bar.dart');
-    assertSuggest('..${separator}blat.dart', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('..${separator}blat.dart',
+        csKind: CompletionSuggestionKind.IMPORT);
   }
 
   test_import_package() {
@@ -245,7 +248,8 @@ class ImportUriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('other.dart');
     assertNotSuggested('foo');
     assertNotSuggested('foo${separator}');
-    assertSuggest('foo${separator}bar.dart', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('foo${separator}bar.dart',
+        csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('..${separator}blat.dart');
   }
 
@@ -265,6 +269,7 @@ class ImportUriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('foo');
     assertNotSuggested('foo${separator}');
     assertNotSuggested('foo${separator}bar.dart');
-    assertSuggest('..${separator}blat.dart', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('..${separator}blat.dart',
+        csKind: CompletionSuggestionKind.IMPORT);
   }
 }

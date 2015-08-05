@@ -19,9 +19,10 @@ import 'package:unittest/unittest.dart';
 
 import 'abstract_context.dart';
 import 'mocks.dart';
+import 'utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(AnalysisErrorTest);
   defineReflectiveTests(ElementTest);
   defineReflectiveTests(ElementKindTest);
@@ -193,7 +194,9 @@ class ElementTest extends AbstractContextTest {
   }
 
   void test_fromElement_CLASS() {
-    engine.Source source = addSource('/test.dart', '''
+    engine.Source source = addSource(
+        '/test.dart',
+        '''
 @deprecated
 abstract class _A {}
 class B<K, V> {}''');
@@ -214,9 +217,11 @@ class B<K, V> {}''');
         expect(location.startColumn, 16);
       }
       expect(element.parameters, isNull);
-      expect(element.flags, Element.FLAG_ABSTRACT |
-          Element.FLAG_DEPRECATED |
-          Element.FLAG_PRIVATE);
+      expect(
+          element.flags,
+          Element.FLAG_ABSTRACT |
+              Element.FLAG_DEPRECATED |
+              Element.FLAG_PRIVATE);
     }
     {
       engine.ClassElement engineElement = findElementInUnit(unit, 'B');
@@ -230,7 +235,9 @@ class B<K, V> {}''');
   }
 
   void test_fromElement_CONSTRUCTOR() {
-    engine.Source source = addSource('/test.dart', '''
+    engine.Source source = addSource(
+        '/test.dart',
+        '''
 class A {
   const A.myConstructor(int a, [String b]);
 }''');
@@ -268,7 +275,9 @@ class A {
   }
 
   void test_fromElement_ENUM() {
-    engine.Source source = addSource('/test.dart', '''
+    engine.Source source = addSource(
+        '/test.dart',
+        '''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
@@ -290,7 +299,8 @@ enum E2 { three, four }''');
         expect(location.startColumn, 6);
       }
       expect(element.parameters, isNull);
-      expect(element.flags,
+      expect(
+          element.flags,
           (engineElement.isDeprecated ? Element.FLAG_DEPRECATED : 0) |
               Element.FLAG_PRIVATE);
     }
@@ -306,7 +316,9 @@ enum E2 { three, four }''');
   }
 
   void test_fromElement_ENUM_CONSTANT() {
-    engine.Source source = addSource('/test.dart', '''
+    engine.Source source = addSource(
+        '/test.dart',
+        '''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
@@ -330,7 +342,8 @@ enum E2 { three, four }''');
       // TODO(danrubel) determine why enum constant is not marked as deprecated
       //engine.ClassElement classElement = engineElement.enclosingElement;
       //expect(classElement.isDeprecated, isTrue);
-      expect(element.flags,
+      expect(
+          element.flags,
           // Element.FLAG_DEPRECATED |
           Element.FLAG_CONST | Element.FLAG_STATIC);
     }
@@ -391,7 +404,9 @@ enum E2 { three, four }''');
   }
 
   void test_fromElement_FIELD() {
-    engine.Source source = addSource('/test.dart', '''
+    engine.Source source = addSource(
+        '/test.dart',
+        '''
 class A {
   static const myField = 42;
 }''');
@@ -415,7 +430,9 @@ class A {
   }
 
   void test_fromElement_FUNCTION_TYPE_ALIAS() {
-    engine.Source source = addSource('/test.dart', '''
+    engine.Source source = addSource(
+        '/test.dart',
+        '''
 typedef int F<T>(String x);
 ''');
     engine.CompilationUnit unit = resolveLibraryUnit(source);
@@ -440,7 +457,9 @@ typedef int F<T>(String x);
   }
 
   void test_fromElement_GETTER() {
-    engine.Source source = addSource('/test.dart', '''
+    engine.Source source = addSource(
+        '/test.dart',
+        '''
 class A {
   String get myGetter => 42;
 }''');
@@ -465,7 +484,9 @@ class A {
   }
 
   void test_fromElement_LABEL() {
-    engine.Source source = addSource('/test.dart', '''
+    engine.Source source = addSource(
+        '/test.dart',
+        '''
 main() {
 myLabel:
   while (true) {
@@ -492,7 +513,9 @@ myLabel:
   }
 
   void test_fromElement_METHOD() {
-    engine.Source source = addSource('/test.dart', '''
+    engine.Source source = addSource(
+        '/test.dart',
+        '''
 class A {
   static List<String> myMethod(int a, {String b}) {
     return null;
@@ -518,7 +541,9 @@ class A {
   }
 
   void test_fromElement_SETTER() {
-    engine.Source source = addSource('/test.dart', '''
+    engine.Source source = addSource(
+        '/test.dart',
+        '''
 class A {
   set mySetter(String x) {}
 }''');
@@ -560,8 +585,8 @@ class EnumTest {
   }
 
   void test_ElementKind() {
-    new EnumTester<engine.ElementKind, ElementKind>().run(
-        newElementKind_fromEngine, exceptions: {
+    new EnumTester<engine.ElementKind, ElementKind>()
+        .run(newElementKind_fromEngine, exceptions: {
       // TODO(paulberry): do any of the exceptions below constitute bugs?
       engine.ElementKind.DYNAMIC: ElementKind.UNKNOWN,
       engine.ElementKind.EMBEDDED_HTML_SCRIPT: ElementKind.UNKNOWN,

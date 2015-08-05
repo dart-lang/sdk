@@ -12,8 +12,10 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:unittest/unittest.dart';
 
 import '../mocks.dart';
+import '../utils.dart';
 
 main() {
+  initializeTestEnvironment();
   group('WebSocketChannel', () {
     setUp(WebSocketChannelTest.setUp);
     test('close', WebSocketChannelTest.close);
@@ -128,8 +130,9 @@ class WebSocketChannelTest {
 
   static Future response() {
     server.sendResponse(new Response('myId'));
-    return client.responseStream.first.timeout(new Duration(seconds: 1)).then(
-        (Response response) {
+    return client.responseStream.first
+        .timeout(new Duration(seconds: 1))
+        .then((Response response) {
       expect(response.id, equals('myId'));
       expectMsgCount(responseCount: 1);
     });

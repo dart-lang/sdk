@@ -11,8 +11,10 @@ import 'package:path/path.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../../utils.dart';
+
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(_SeparateFileManagerTest);
 }
 

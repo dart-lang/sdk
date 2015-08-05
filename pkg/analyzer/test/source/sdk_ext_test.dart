@@ -8,8 +8,10 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:unittest/unittest.dart';
 
+import '../utils.dart';
+
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('SdkExtUriResolverTest', () {
     setUp(() {
       buildResourceProvider();
@@ -81,7 +83,9 @@ buildResourceProvider() {
   resourceProvider = new MemoryResourceProvider();
   resourceProvider.newFolder('/empty');
   resourceProvider.newFolder('/tmp');
-  resourceProvider.newFile('/tmp/_sdkext', r'''
+  resourceProvider.newFile(
+      '/tmp/_sdkext',
+      r'''
   {
     "dart:fox": "slippy.dart",
     "dart:bear": "grizzly.dart",

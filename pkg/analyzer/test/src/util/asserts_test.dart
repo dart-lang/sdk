@@ -8,9 +8,10 @@ import 'package:analyzer/src/util/asserts.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(AnalysisTaskTest);
 }
 

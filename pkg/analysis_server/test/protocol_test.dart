@@ -11,8 +11,10 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import 'utils.dart';
+
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(NotificationTest);
   defineReflectiveTests(RequestTest);
   defineReflectiveTests(RequestErrorTest);
@@ -77,7 +79,11 @@ class NotificationTest {
     expect(notification.event, equals('foo'));
     expect(notification.toJson()['params'], equals({'x': 'y'}));
     expect(
-        notification.toJson(), equals({'event': 'foo', 'params': {'x': 'y'}}));
+        notification.toJson(),
+        equals({
+          'event': 'foo',
+          'params': {'x': 'y'}
+        }));
   }
 }
 
@@ -108,12 +114,10 @@ class RequestErrorTest {
   void test_toJson() {
     var trace = 'a stack trace\r\nbar';
     RequestError error = new RequestError(
-        RequestErrorCode.UNKNOWN_REQUEST, 'msg', stackTrace: trace);
-    expect(error.toJson(), {
-      CODE: 'UNKNOWN_REQUEST',
-      MESSAGE: 'msg',
-      STACK_TRACE: trace
-    });
+        RequestErrorCode.UNKNOWN_REQUEST, 'msg',
+        stackTrace: trace);
+    expect(error.toJson(),
+        {CODE: 'UNKNOWN_REQUEST', MESSAGE: 'msg', STACK_TRACE: trace});
   }
 }
 
@@ -184,11 +188,13 @@ class RequestTest {
 
   void test_toJson_withParams() {
     Request request = new Request('one', 'aMethod', {'foo': 'bar'});
-    expect(request.toJson(), equals({
-      Request.ID: 'one',
-      Request.METHOD: 'aMethod',
-      Request.PARAMS: {'foo': 'bar'}
-    }));
+    expect(
+        request.toJson(),
+        equals({
+          Request.ID: 'one',
+          Request.METHOD: 'aMethod',
+          Request.PARAMS: {'foo': 'bar'}
+        }));
   }
 }
 
@@ -198,33 +204,45 @@ class ResponseTest {
     Response response = new Response.invalidRequestFormat();
     expect(response.id, equals(''));
     expect(response.error, isNotNull);
-    expect(response.toJson(), equals({
-      Response.ID: '',
-      Response.ERROR: {'code': 'INVALID_REQUEST', 'message': 'Invalid request'}
-    }));
+    expect(
+        response.toJson(),
+        equals({
+          Response.ID: '',
+          Response.ERROR: {
+            'code': 'INVALID_REQUEST',
+            'message': 'Invalid request'
+          }
+        }));
   }
 
   void test_create_unanalyzedPriorityFiles() {
     Response response = new Response.unanalyzedPriorityFiles('0', 'file list');
     expect(response.id, equals('0'));
     expect(response.error, isNotNull);
-    expect(response.toJson(), equals({
-      Response.ID: '0',
-      Response.ERROR: {
-        'code': 'UNANALYZED_PRIORITY_FILES',
-        'message': "Unanalyzed files cannot be a priority: 'file list'"
-      }
-    }));
+    expect(
+        response.toJson(),
+        equals({
+          Response.ID: '0',
+          Response.ERROR: {
+            'code': 'UNANALYZED_PRIORITY_FILES',
+            'message': "Unanalyzed files cannot be a priority: 'file list'"
+          }
+        }));
   }
 
   void test_create_unknownRequest() {
     Response response = new Response.unknownRequest(new Request('0', ''));
     expect(response.id, equals('0'));
     expect(response.error, isNotNull);
-    expect(response.toJson(), equals({
-      Response.ID: '0',
-      Response.ERROR: {'code': 'UNKNOWN_REQUEST', 'message': 'Unknown request'}
-    }));
+    expect(
+        response.toJson(),
+        equals({
+          Response.ID: '0',
+          Response.ERROR: {
+            'code': 'UNKNOWN_REQUEST',
+            'message': 'Unknown request'
+          }
+        }));
   }
 
   void test_fromJson() {

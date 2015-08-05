@@ -6,6 +6,7 @@ library test.src.task.test_all;
 
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'dart_test.dart' as dart_test;
 import 'dart_work_manager_test.dart' as dart_work_manager_test;
 import 'driver_test.dart' as driver_test;
@@ -20,7 +21,7 @@ import 'model_test.dart' as model_test;
 
 /// Utility for manually running all tests.
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('task tests', () {
     dart_test.main();
     dart_work_manager_test.main();

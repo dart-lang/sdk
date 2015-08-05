@@ -13,9 +13,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(OpTypeTest);
 }
 
@@ -42,9 +43,14 @@ class OpTypeTest {
     visitor = new OpType.forCompletion(completionTarget, offset);
   }
 
-  void assertOpType({bool prefixed: false, bool returnValue: false,
-      bool typeNames: false, bool voidReturn: false, bool statementLabel: false,
-      bool caseLabel: false, bool constructors: false}) {
+  void assertOpType(
+      {bool prefixed: false,
+      bool returnValue: false,
+      bool typeNames: false,
+      bool voidReturn: false,
+      bool statementLabel: false,
+      bool caseLabel: false,
+      bool constructors: false}) {
     expect(visitor.includeReturnValueSuggestions, returnValue,
         reason: 'returnValue');
     expect(visitor.includeTypeNameSuggestions, typeNames, reason: 'typeNames');

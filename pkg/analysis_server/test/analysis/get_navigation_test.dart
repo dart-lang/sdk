@@ -10,10 +10,11 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../utils.dart';
 import 'notification_navigation_test.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(GetNavigationTest);
 }
 
@@ -47,7 +48,9 @@ main() {
 
   test_fileWithoutContext() {
     String file = '/outside.dart';
-    addFile(file, '''
+    addFile(
+        file,
+        '''
 main() {
   print(42);
 }

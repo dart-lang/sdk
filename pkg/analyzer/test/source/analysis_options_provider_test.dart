@@ -9,8 +9,10 @@ import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:unittest/unittest.dart';
 import 'package:yaml/yaml.dart';
 
+import '../utils.dart';
+
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('AnalysisOptionsProvider', () {
     setUp(() {
       buildResourceProvider();
@@ -47,7 +49,9 @@ buildResourceProvider() {
   resourceProvider = new MemoryResourceProvider();
   resourceProvider.newFolder('/empty');
   resourceProvider.newFolder('/tmp');
-  resourceProvider.newFile('/.analysis_options', r'''
+  resourceProvider.newFile(
+      '/.analysis_options',
+      r'''
 analyzer:
   ignore:
     - ignoreme.dart

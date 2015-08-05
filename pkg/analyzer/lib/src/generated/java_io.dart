@@ -2,29 +2,31 @@ library java.io;
 
 import "dart:io";
 
-import 'package:path/path.dart' as pathos;
+import 'package:path/path.dart' as path;
 
 import 'java_core.dart' show JavaIOException;
 
 class JavaFile {
+  static path.Context pathContext = path.context;
   static final String separator = Platform.pathSeparator;
   static final int separatorChar = Platform.pathSeparator.codeUnitAt(0);
   String _path;
   JavaFile(String path) {
     _path = path;
   }
-  JavaFile.fromUri(Uri uri) : this(pathos.fromUri(uri));
+  JavaFile.fromUri(Uri uri) : this(pathContext.fromUri(uri));
   JavaFile.relative(JavaFile base, String child) {
     if (child.isEmpty) {
       this._path = base._path;
     } else {
-      this._path = pathos.join(base._path, child);
+      this._path = pathContext.join(base._path, child);
     }
   }
   int get hashCode => _path.hashCode;
   bool operator ==(other) {
     return other is JavaFile && other._path == _path;
   }
+
   bool exists() {
     if (_newFile().existsSync()) {
       return true;
@@ -34,12 +36,14 @@ class JavaFile {
     }
     return false;
   }
+
   JavaFile getAbsoluteFile() => new JavaFile(getAbsolutePath());
   String getAbsolutePath() {
-    String path = pathos.absolute(_path);
-    path = pathos.normalize(path);
+    String path = pathContext.absolute(_path);
+    path = pathContext.normalize(path);
     return path;
   }
+
   JavaFile getCanonicalFile() => new JavaFile(getCanonicalPath());
   String getCanonicalPath() {
     try {
@@ -48,28 +52,34 @@ class JavaFile {
       throw new JavaIOException('IOException', e);
     }
   }
-  String getName() => pathos.basename(_path);
+
+  String getName() => pathContext.basename(_path);
   String getParent() {
-    var result = pathos.dirname(_path);
+    var result = pathContext.dirname(_path);
     // "." or  "/" or  "C:\"
     if (result.length < 4) return null;
     return result;
   }
+
   JavaFile getParentFile() {
     var parent = getParent();
     if (parent == null) return null;
     return new JavaFile(parent);
   }
+
   String getPath() => _path;
   bool isDirectory() {
     return _newDirectory().existsSync();
   }
+
   bool isExecutable() {
     return _newFile().statSync().mode & 0x111 != 0;
   }
+
   bool isFile() {
     return _newFile().existsSync();
   }
+
   int lastModified() {
     try {
       return _newFile().lastModifiedSync().millisecondsSinceEpoch;
@@ -77,6 +87,7 @@ class JavaFile {
       return -1;
     }
   }
+
   List<JavaFile> listFiles() {
     var files = <JavaFile>[];
     var entities = _newDirectory().listSync();
@@ -85,12 +96,14 @@ class JavaFile {
     }
     return files;
   }
+
   String readAsStringSync() => _newFile().readAsStringSync();
   String toString() => _path.toString();
   Uri toURI() {
     String path = getAbsolutePath();
-    return pathos.toUri(path);
+    return pathContext.toUri(path);
   }
+
   Directory _newDirectory() => new Directory(_path);
   File _newFile() => new File(_path);
 }
@@ -120,21 +133,25 @@ class JavaSystemIO {
         String sdkPath;
         // may be "xcodebuild/ReleaseIA32/dart" with "sdk" sibling
         {
-          var outDir = pathos.dirname(pathos.dirname(exec));
-          sdkPath = pathos.join(pathos.dirname(outDir), "sdk");
+          var outDir =
+              JavaFile.pathContext.dirname(JavaFile.pathContext.dirname(exec));
+          sdkPath = JavaFile.pathContext
+              .join(JavaFile.pathContext.dirname(outDir), "sdk");
           if (new Directory(sdkPath).existsSync()) {
             _properties[name] = sdkPath;
             return sdkPath;
           }
         }
         // probably be "dart-sdk/bin/dart"
-        sdkPath = pathos.dirname(pathos.dirname(exec));
+        sdkPath =
+            JavaFile.pathContext.dirname(JavaFile.pathContext.dirname(exec));
         _properties[name] = sdkPath;
         return sdkPath;
       }
     }
     return null;
   }
+
   static String setProperty(String name, String value) {
     String oldValue = _properties[name];
     _properties[name] = value;

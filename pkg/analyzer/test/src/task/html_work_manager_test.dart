@@ -29,9 +29,10 @@ import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(HtmlWorkManagerTest);
 }
 
@@ -116,10 +117,12 @@ class HtmlWorkManagerTest {
     manager.priorityResultQueue.add(new TargetedResult(source2, HTML_ERRORS));
     // -source1 +source3
     manager.applyPriorityTargets([source2, source3]);
-    expect(manager.priorityResultQueue, unorderedEquals([
-      new TargetedResult(source2, HTML_ERRORS),
-      new TargetedResult(source3, HTML_ERRORS)
-    ]));
+    expect(
+        manager.priorityResultQueue,
+        unorderedEquals([
+          new TargetedResult(source2, HTML_ERRORS),
+          new TargetedResult(source3, HTML_ERRORS)
+        ]));
     // get next request
     TargetedResult request = manager.getNextResult();
     expect(request.target, source2);
@@ -204,19 +207,23 @@ class HtmlWorkManagerTest {
   void test_getNextResult_hasPriority() {
     manager.addPriorityResult(source1, HTML_ERRORS);
     manager.addPriorityResult(source2, HTML_ERRORS);
-    expect(manager.priorityResultQueue, unorderedEquals([
-      new TargetedResult(source1, HTML_ERRORS),
-      new TargetedResult(source2, HTML_ERRORS)
-    ]));
+    expect(
+        manager.priorityResultQueue,
+        unorderedEquals([
+          new TargetedResult(source1, HTML_ERRORS),
+          new TargetedResult(source2, HTML_ERRORS)
+        ]));
 
     TargetedResult request = manager.getNextResult();
     expect(request.target, source1);
     expect(request.result, HTML_ERRORS);
     // no changes until computed
-    expect(manager.priorityResultQueue, unorderedEquals([
-      new TargetedResult(source1, HTML_ERRORS),
-      new TargetedResult(source2, HTML_ERRORS)
-    ]));
+    expect(
+        manager.priorityResultQueue,
+        unorderedEquals([
+          new TargetedResult(source1, HTML_ERRORS),
+          new TargetedResult(source2, HTML_ERRORS)
+        ]));
   }
 
   void test_getNextResult_nothingToDo() {

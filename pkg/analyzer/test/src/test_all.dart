@@ -6,13 +6,14 @@ library test.src.test_all;
 
 import 'package:unittest/unittest.dart';
 
+import '../utils.dart';
 import 'context/test_all.dart' as context;
 import 'task/test_all.dart' as task;
 import 'util/test_all.dart' as util;
 
 /// Utility for manually running all tests.
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('src tests', () {
     context.main();
     task.main();

@@ -8,8 +8,10 @@ import 'package:analyzer/source/path_filter.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
+import '../utils.dart';
+
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('PathFilterTest', () {
     setUp(() {});
     tearDown(() {});

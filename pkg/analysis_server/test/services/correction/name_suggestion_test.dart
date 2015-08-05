@@ -11,9 +11,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(VariableNameSuggestionTest);
 }
 
@@ -57,11 +58,13 @@ main() {
     DartType expectedType = (findElement('res') as LocalVariableElement).type;
     Expression assignedExpression = findNodeAtString('0.0;');
     // first choice for "double" is "d"
-    expect(getVariableNameSuggestionsForExpression(
+    expect(
+        getVariableNameSuggestionsForExpression(
             expectedType, assignedExpression, new Set.from([])),
         unorderedEquals(['d']));
     // if "d" is used, try "e", "f", etc
-    expect(getVariableNameSuggestionsForExpression(
+    expect(
+        getVariableNameSuggestionsForExpression(
             expectedType, assignedExpression, new Set.from(['d', 'e'])),
         unorderedEquals(['f']));
   }
@@ -75,11 +78,13 @@ main() {
     DartType expectedType = (findElement('res') as LocalVariableElement).type;
     Expression assignedExpression = findNodeAtString('0;');
     // first choice for "int" is "i"
-    expect(getVariableNameSuggestionsForExpression(
+    expect(
+        getVariableNameSuggestionsForExpression(
             expectedType, assignedExpression, new Set.from([])),
         unorderedEquals(['i']));
     // if "i" is used, try "j", "k", etc
-    expect(getVariableNameSuggestionsForExpression(
+    expect(
+        getVariableNameSuggestionsForExpression(
             expectedType, assignedExpression, new Set.from(['i', 'j'])),
         unorderedEquals(['k']));
   }
@@ -93,7 +98,8 @@ main() {
     DartType expectedType = (findElement('res') as LocalVariableElement).type;
     Expression assignedExpression = findNodeAtString("'abc';");
     // first choice for "String" is "s"
-    expect(getVariableNameSuggestionsForExpression(
+    expect(
+        getVariableNameSuggestionsForExpression(
             expectedType, assignedExpression, new Set.from([])),
         unorderedEquals(['s']));
   }
@@ -109,10 +115,12 @@ main(p) {
 }
 ''');
     var excluded = new Set.from([]);
-    expect(getVariableNameSuggestionsForExpression(
+    expect(
+        getVariableNameSuggestionsForExpression(
             null, findNodeAtString('new NoSuchClass()'), excluded),
         unorderedEquals(['noSuchClass', 'suchClass', 'class']));
-    expect(getVariableNameSuggestionsForExpression(
+    expect(
+        getVariableNameSuggestionsForExpression(
             null, findNodeAtString('new NoSuchClass.named()'), excluded),
         unorderedEquals(['noSuchClass', 'suchClass', 'class']));
     // TODO(scheglov) This test does not work.
@@ -238,9 +246,12 @@ main(p) {
 }
 ''');
     var excluded = new Set.from([]);
-    expect(getVariableNameSuggestionsForExpression(null,
-        findNodeAtString('p.sorted', (node) => node is PrefixedIdentifier),
-        excluded), unorderedEquals(['sortedNodes', 'nodes']));
+    expect(
+        getVariableNameSuggestionsForExpression(
+            null,
+            findNodeAtString('p.sorted', (node) => node is PrefixedIdentifier),
+            excluded),
+        unorderedEquals(['sortedNodes', 'nodes']));
   }
 
   void test_forExpression_privateName() {
@@ -251,12 +262,18 @@ main(p) {
 }
 ''');
     var excluded = new Set.from([]);
-    expect(getVariableNameSuggestionsForExpression(null,
-        findNodeAtString('p._name', (node) => node is PrefixedIdentifier),
-        excluded), unorderedEquals(['name']));
-    expect(getVariableNameSuggestionsForExpression(null,
-        findNodeAtString('p._compute', (node) => node is MethodInvocation),
-        excluded), unorderedEquals(['computeSuffix', 'suffix']));
+    expect(
+        getVariableNameSuggestionsForExpression(
+            null,
+            findNodeAtString('p._name', (node) => node is PrefixedIdentifier),
+            excluded),
+        unorderedEquals(['name']));
+    expect(
+        getVariableNameSuggestionsForExpression(
+            null,
+            findNodeAtString('p._compute', (node) => node is MethodInvocation),
+            excluded),
+        unorderedEquals(['computeSuffix', 'suffix']));
   }
 
   void test_forExpression_propertyAccess() {
@@ -293,8 +310,12 @@ main(p) {
 }
 ''');
     var excluded = new Set.from([]);
-    expect(getVariableNameSuggestionsForExpression(null, findNodeAtString(
-            'getSortedNodes();', (node) => node is MethodInvocation), excluded),
+    expect(
+        getVariableNameSuggestionsForExpression(
+            null,
+            findNodeAtString(
+                'getSortedNodes();', (node) => node is MethodInvocation),
+            excluded),
         unorderedEquals(['sortedNodes', 'nodes']));
   }
 

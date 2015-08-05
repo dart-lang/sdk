@@ -31,10 +31,11 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
+import '../utils.dart';
 import 'test_support.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(AnalysisDeltaTest);
   runReflectiveTests(ChangeSetTest);
   runReflectiveTests(EnclosedScopeTest);
@@ -9114,18 +9115,18 @@ class B {toString() => super.toString();}''');
 
   void test_import_hide() {
     addNamedSource(
-        "lib1.dart",
+        "/lib1.dart",
         r'''
 library lib1;
 set foo(value) {}
 class A {}''');
     addNamedSource(
-        "lib2.dart",
+        "/lib2.dart",
         r'''
 library lib2;
 set foo(value) {}''');
     Source source = addNamedSource(
-        "lib3.dart",
+        "/lib3.dart",
         r'''
 import 'lib1.dart' hide foo;
 import 'lib2.dart';
@@ -9162,12 +9163,12 @@ main() {
 
   void test_import_spaceInUri() {
     addNamedSource(
-        "sub folder/lib.dart",
+        "/sub folder/lib.dart",
         r'''
 library lib;
 foo() {}''');
     Source source = addNamedSource(
-        "app.dart",
+        "/app.dart",
         r'''
 import 'sub folder/lib.dart';
 

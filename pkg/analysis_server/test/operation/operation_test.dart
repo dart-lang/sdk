@@ -7,8 +7,10 @@ library test.operation;
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:unittest/unittest.dart';
 
+import '../utils.dart';
+
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
 
   group('ServerOperationPriority', () {
     test('toString', () {

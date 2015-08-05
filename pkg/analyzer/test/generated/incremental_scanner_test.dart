@@ -11,10 +11,11 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
+import '../utils.dart';
 import 'test_support.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(IncrementalScannerTest);
 }
 
@@ -317,10 +318,14 @@ class IncrementalScannerTest extends EngineTestCase {
   void test_insert_whitespace_withMultipleComments() {
     // "//comment1", "//comment2", "a + b;"
     // "//comment1", "//comment2", "a  + b;"
-    _scan(r'''
+    _scan(
+        r'''
 //comment1
 //comment2
-a''', "", " ", " + b;");
+a''',
+        "",
+        " ",
+        " + b;");
     _assertTokens(1, 2, ["a", "+", "b", ";"]);
     expect(_incrementalScanner.hasNonWhitespaceChange, isFalse);
   }
@@ -413,9 +418,11 @@ a''', "", " ", " + b;");
     expect(actual.type, same(expected.type), reason: "Wrong type for token");
     expect(actual.lexeme, expected.lexeme, reason: "Wrong lexeme for token");
     expect(actual.offset, expected.offset,
-        reason: "Wrong offset for token ('${actual.lexeme}' != '${expected.lexeme}')");
+        reason:
+            "Wrong offset for token ('${actual.lexeme}' != '${expected.lexeme}')");
     expect(actual.length, expected.length,
-        reason: "Wrong length for token ('${actual.lexeme}' != '${expected.lexeme}')");
+        reason:
+            "Wrong length for token ('${actual.lexeme}' != '${expected.lexeme}')");
   }
 
   /**
@@ -521,9 +528,11 @@ a''', "", " ", " + b;");
         modifiedComment = modifiedComment.next;
       }
       expect(incrementalComment, isNull,
-          reason: "Too many comment tokens preceeding '${incrementalToken.lexeme}'");
+          reason:
+              "Too many comment tokens preceeding '${incrementalToken.lexeme}'");
       expect(modifiedComment, isNull,
-          reason: "Not enough comment tokens preceeding '${incrementalToken.lexeme}'");
+          reason:
+              "Not enough comment tokens preceeding '${incrementalToken.lexeme}'");
       incrementalToken = incrementalToken.next;
       modifiedTokens = modifiedTokens.next;
     }

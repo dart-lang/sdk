@@ -6,13 +6,14 @@ library test.src;
 
 import 'package:unittest/unittest.dart';
 
+import '../utils.dart';
 import 'utilities/test_all.dart' as utilities_all;
 
 /**
  * Utility for manually running all tests.
  */
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('analysis_server', () {
     utilities_all.main();
   });

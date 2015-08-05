@@ -437,7 +437,7 @@ class ContextManagerImpl implements ContextManager {
    */
   ContextInfo getContextInfoFor(Folder folder) {
     ContextInfo info = _getInnermostContextInfoFor(folder.path);
-    if (folder == info.folder) {
+    if (info != null && folder == info.folder) {
       return info;
     }
     return null;

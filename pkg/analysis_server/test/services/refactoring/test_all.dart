@@ -6,6 +6,7 @@ library test.services.refactoring;
 
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'convert_getter_to_method_test.dart' as convert_getter_to_method_test;
 import 'convert_method_to_getter_test.dart' as convert_method_to_getter_test;
 import 'extract_local_test.dart' as extract_local_test;
@@ -24,7 +25,7 @@ import 'rename_unit_member_test.dart' as rename_unit_member_test;
 
 /// Utility for manually running all tests.
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('refactoring', () {
     convert_getter_to_method_test.main();
     convert_method_to_getter_test.main();

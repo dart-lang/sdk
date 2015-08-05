@@ -23,9 +23,10 @@ import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
 import '../../operation/operation_queue_test.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(DartCompletionManagerTest);
 }
 

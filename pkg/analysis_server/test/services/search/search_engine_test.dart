@@ -17,9 +17,10 @@ import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(SearchEngineImplTest);
 }
 
@@ -185,7 +186,9 @@ main(A p) {
   }
 
   Future test_searchReferences_CompilationUnitElement() {
-    addSource('/my_part.dart', '''
+    addSource(
+        '/my_part.dart',
+        '''
 part of lib;
 ''');
     _indexTestUnit('''
@@ -211,8 +214,9 @@ main() {
 ''');
     ConstructorElement element = findElement('named');
     Element mainElement = findElement('main');
-    var expected =
-        [_expectId(mainElement, MatchKind.REFERENCE, '.named();', length: 6)];
+    var expected = [
+      _expectId(mainElement, MatchKind.REFERENCE, '.named();', length: 6)
+    ];
     return _verifyReferences(element, expected);
   }
 
@@ -313,8 +317,9 @@ main() {
     ImportElement element = testLibraryElement.imports[0];
     Element mainElement = findElement('main');
     var kind = MatchKind.REFERENCE;
-    var expected =
-        [_expectId(mainElement, kind, 'math.PI);', length: 'math.'.length)];
+    var expected = [
+      _expectId(mainElement, kind, 'math.PI);', length: 'math.'.length)
+    ];
     return _verifyReferences(element, expected);
   }
 
@@ -418,8 +423,9 @@ main(A<int> a) {
 ''');
     MethodMember method = findNodeElementAtString('m(); // ref');
     Element mainElement = findElement('main');
-    var expected =
-        [_expectIdQ(mainElement, MatchKind.INVOCATION, 'm(); // ref')];
+    var expected = [
+      _expectIdQ(mainElement, MatchKind.INVOCATION, 'm(); // ref')
+    ];
     return _verifyReferences(method, expected);
   }
 
@@ -505,7 +511,9 @@ class A {
   }
 
   Future test_searchReferences_TopLevelVariableElement() {
-    addSource('/lib.dart', '''
+    addSource(
+        '/lib.dart',
+        '''
 library lib;
 var V;
 ''');

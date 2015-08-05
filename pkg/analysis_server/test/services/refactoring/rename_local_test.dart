@@ -9,10 +9,11 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'abstract_rename.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(RenameLocalTest);
 }
 
@@ -131,7 +132,7 @@ class A {
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: 'Usage of field "A.newName" declared in "test.dart" '
-        'will be shadowed by renamed local variable.',
+            'will be shadowed by renamed local variable.',
         expectedContextSearch: 'newName);');
   }
 
@@ -154,7 +155,7 @@ class B extends A {
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: 'Usage of field "B.newName" declared in "test.dart" '
-        'will be shadowed by renamed parameter.',
+            'will be shadowed by renamed parameter.',
         expectedContextSearch: 'newName);');
   }
 
@@ -422,7 +423,9 @@ class A {
   A({test});
 }
 ''');
-    indexUnit('/test2.dart', '''
+    indexUnit(
+        '/test2.dart',
+        '''
 import 'test.dart';
 main() {
   new A(test: 2);
@@ -438,7 +441,9 @@ class A {
   A({newName});
 }
 ''');
-    assertFileChangeResult('/test2.dart', '''
+    assertFileChangeResult(
+        '/test2.dart',
+        '''
 import 'test.dart';
 main() {
   new A(newName: 2);
@@ -447,7 +452,9 @@ main() {
   }
 
   test_createChange_parameter_named_updateHierarchy() async {
-    indexUnit('/test2.dart', '''
+    indexUnit(
+        '/test2.dart',
+        '''
 library test2;
 class A {
   void foo({int test: 1}) {
@@ -491,7 +498,9 @@ class C extends A {
   }
 }
 ''');
-    assertFileChangeResult('/test2.dart', '''
+    assertFileChangeResult(
+        '/test2.dart',
+        '''
 library test2;
 class A {
   void foo({int newName: 1}) {

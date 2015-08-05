@@ -14,9 +14,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(GetTypeHierarchyTest);
 }
 
@@ -109,13 +110,16 @@ class B extends A<int> {
   test_class_extends_fileAndPackageUris() async {
     // prepare packages
     String pkgFile = '/packages/pkgA/libA.dart';
-    resourceProvider.newFile(pkgFile, '''
+    resourceProvider.newFile(
+        pkgFile,
+        '''
 library lib_a;
 class A {}
 class B extends A {}
 ''');
-    packageMapProvider.packageMap['pkgA'] =
-        [resourceProvider.getResource('/packages/pkgA')];
+    packageMapProvider.packageMap['pkgA'] = [
+      resourceProvider.getResource('/packages/pkgA')
+    ];
     // reference the package from a project
     addTestFile('''
 import 'package:pkgA/libA.dart';
@@ -797,8 +801,8 @@ class D extends C {
     Request request = _createGetTypeHierarchyRequest(search);
     Response response = await serverChannel.sendRequest(request);
     expect(serverErrors, isEmpty);
-    return new SearchGetTypeHierarchyResult.fromResponse(
-        response).hierarchyItems;
+    return new SearchGetTypeHierarchyResult.fromResponse(response)
+        .hierarchyItems;
   }
 
   List _toJson(List<TypeHierarchyItem> items) {

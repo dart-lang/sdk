@@ -34,9 +34,10 @@ import 'package:unittest/unittest.dart';
 import 'analysis_abstract.dart';
 import 'mock_sdk.dart';
 import 'mocks.dart';
+import 'utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(CompletionManagerTest);
   defineReflectiveTests(CompletionTest);
   defineReflectiveTests(_NoSearchEngine);
@@ -54,9 +55,14 @@ class CompletionManagerTest extends AbstractAnalysisTest {
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
     manager.processPlugins([serverPlugin]);
-    return new Test_AnalysisServer(super.serverChannel, super.resourceProvider,
-        super.packageMapProvider, index, serverPlugin,
-        new AnalysisServerOptions(), new MockSdk(),
+    return new Test_AnalysisServer(
+        super.serverChannel,
+        super.resourceProvider,
+        super.packageMapProvider,
+        index,
+        serverPlugin,
+        new AnalysisServerOptions(),
+        new MockSdk(),
         InstrumentationService.NULL_SERVICE);
   }
 
@@ -277,7 +283,8 @@ class CompletionTest extends AbstractAnalysisTest {
   }
 
   void assertHasResult(CompletionSuggestionKind kind, String completion,
-      [int relevance = DART_RELEVANCE_DEFAULT, bool isDeprecated = false,
+      [int relevance = DART_RELEVANCE_DEFAULT,
+      bool isDeprecated = false,
       bool isPotential = false]) {
     var cs;
     suggestions.forEach((s) {
@@ -475,7 +482,9 @@ class B extends A {m() {^}}
   }
 
   test_partFile() {
-    addFile('/project/bin/testA.dart', '''
+    addFile(
+        '/project/bin/testA.dart',
+        '''
       library libA;
       part "$testFile";
       import 'dart:html';
@@ -495,7 +504,9 @@ class B extends A {m() {^}}
   }
 
   test_partFile2() {
-    addFile('/testA.dart', '''
+    addFile(
+        '/testA.dart',
+        '''
       part of libA;
       class A { }''');
     addTestFile('''
@@ -655,14 +666,24 @@ class MockSubscription<E> implements StreamSubscription<E> {
 class Test_AnalysisServer extends AnalysisServer {
   final MockContext mockContext = new MockContext();
 
-  Test_AnalysisServer(ServerCommunicationChannel channel,
+  Test_AnalysisServer(
+      ServerCommunicationChannel channel,
       ResourceProvider resourceProvider,
-      PubPackageMapProvider packageMapProvider, Index index,
-      ServerPlugin serverPlugin, AnalysisServerOptions analysisServerOptions,
-      DartSdk defaultSdk, InstrumentationService instrumentationService)
-      : super(channel, resourceProvider, packageMapProvider, index,
-          serverPlugin, analysisServerOptions, defaultSdk,
-          instrumentationService);
+      PubPackageMapProvider packageMapProvider,
+      Index index,
+      ServerPlugin serverPlugin,
+      AnalysisServerOptions analysisServerOptions,
+      DartSdk defaultSdk,
+      InstrumentationService instrumentationService)
+      : super(
+            channel,
+            resourceProvider,
+            packageMapProvider,
+            index,
+            serverPlugin,
+            analysisServerOptions,
+            defaultSdk,
+            instrumentationService);
 
   @override
   AnalysisContext getAnalysisContext(String path) {

@@ -10,8 +10,10 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
+
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(ChangeTest);
   defineReflectiveTests(EditTest);
   defineReflectiveTests(FileEditTest);
@@ -152,13 +154,10 @@ class EditTest {
     expect(edit.offset, 1);
     expect(edit.length, 2);
     expect(edit.replacement, 'foo');
-    expect(edit.toJson(), {
-      'offset': 1,
-      'length': 2,
-      'replacement': 'foo',
-      'id': 'my-id'
-    });
+    expect(edit.toJson(),
+        {'offset': 1, 'length': 2, 'replacement': 'foo', 'id': 'my-id'});
   }
+
   void test_toJson() {
     SourceEdit edit = new SourceEdit(1, 2, 'foo');
     var expectedJson = {OFFSET: 1, LENGTH: 2, REPLACEMENT: 'foo'};
@@ -195,7 +194,9 @@ class FileEditTest {
     SourceFileEdit fileEdit = new SourceFileEdit('/test.dart', 100);
     fileEdit.add(new SourceEdit(1, 2, 'aaa'));
     fileEdit.add(new SourceEdit(10, 20, 'bbb'));
-    expect(fileEdit.toString(), '{"file":"/test.dart","fileStamp":100,"edits":['
+    expect(
+        fileEdit.toString(),
+        '{"file":"/test.dart","fileStamp":100,"edits":['
         '{"offset":10,"length":20,"replacement":"bbb"},'
         '{"offset":1,"length":2,"replacement":"aaa"}]}');
   }
@@ -222,7 +223,10 @@ class LinkedEditGroupTest {
     LinkedEditGroup group = new LinkedEditGroup.empty();
     group.addPosition(new Position('/a.dart', 1), 2);
     group.addPosition(new Position('/b.dart', 10), 2);
-    expect(group.toString(), '{"positions":[' '{"file":"/a.dart","offset":1},'
+    expect(
+        group.toString(),
+        '{"positions":['
+        '{"file":"/a.dart","offset":1},'
         '{"file":"/b.dart","offset":10}],"length":2,"suggestions":[]}');
   }
 

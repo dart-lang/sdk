@@ -14,9 +14,10 @@ import 'package:unittest/unittest.dart';
 import 'package:watcher/watcher.dart';
 
 import '../mocks.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(WatchManagerTest);
   defineReflectiveTests(WatchNodeTest);
 }

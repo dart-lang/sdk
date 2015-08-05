@@ -9,9 +9,11 @@ import 'dart:async';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../utils.dart';
 import 'integration_tests.dart';
 
 main() {
+  initializeTestEnvironment();
 //  defineReflectiveTests(AsynchronyIntegrationTest);
 }
 
@@ -58,7 +60,6 @@ class AsynchronyIntegrationTest {
     // received them all.  If the server is blocked waiting for us to read
     // its responses, the flush will never complete.
     return server.flushCommands().then((_) {
-
       // Begin processing responses from the server.
       server.listenToOutput((String event, params) {
         // The only expected notification is server.connected.

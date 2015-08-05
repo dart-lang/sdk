@@ -12,10 +12,11 @@ import 'package:analysis_server/src/services/completion/prefixed_element_contrib
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'completion_test_util.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(PrefixedElementContributorTest);
 }
 

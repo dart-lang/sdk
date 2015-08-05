@@ -8,9 +8,11 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
+  initializeTestEnvironment();
   defineReflectiveTests(AnalysisErrorIntegrationTest);
 }
 
@@ -19,7 +21,9 @@ class AnalysisErrorIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
   test_detect_simple_error() {
     String pathname = sourcePath('test.dart');
-    writeFile(pathname, '''
+    writeFile(
+        pathname,
+        '''
 main() {
   print(null) // parse error: missing ';'
 }''');

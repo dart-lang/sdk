@@ -13,9 +13,10 @@ import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(TypeSystemTest);
 }
 

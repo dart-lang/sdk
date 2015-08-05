@@ -10,10 +10,11 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
+import '../utils.dart';
 import 'resolver_test.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(StaticTypeWarningCodeTest);
 }
 
@@ -44,10 +45,14 @@ E e() {
 import 'lib1.dart';
 import 'lib2.dart';
 g() { return f(); }''');
-    addNamedSource("/lib1.dart", r'''
+    addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 f() {}''');
-    addNamedSource("/lib2.dart", r'''
+    addNamedSource(
+        "/lib2.dart",
+        r'''
 library lib2;
 f() {}''');
     computeLibrarySourceErrors(source);
@@ -1324,7 +1329,9 @@ void f() {
     Source source = addSource(r'''
 import 'lib.dart' as f;
 main() { return f.g(); }''');
-    addNamedSource("/lib.dart", r'''
+    addNamedSource(
+        "/lib.dart",
+        r'''
 library lib;
 h() {}''');
     computeLibrarySourceErrors(source);
@@ -1529,7 +1536,9 @@ f(Object o) {
   }
 
   void test_undefinedMethod_private() {
-    addNamedSource("/lib.dart", r'''
+    addNamedSource(
+        "/lib.dart",
+        r'''
 library lib;
 class A {
   _foo() {}

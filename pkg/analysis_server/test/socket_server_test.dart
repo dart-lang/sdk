@@ -17,8 +17,10 @@ import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
+import 'utils.dart';
 
 main() {
+  initializeTestEnvironment();
   group('SocketServer', () {
     test('createAnalysisServer_successful',
         SocketServerTest.createAnalysisServer_successful);
@@ -109,9 +111,13 @@ class SocketServerTest {
     ServerPlugin serverPlugin = new ServerPlugin();
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins([serverPlugin]);
-    return new SocketServer(new AnalysisServerOptions(),
-        DirectoryBasedDartSdk.defaultSdk, InstrumentationService.NULL_SERVICE,
-        serverPlugin, null, null);
+    return new SocketServer(
+        new AnalysisServerOptions(),
+        DirectoryBasedDartSdk.defaultSdk,
+        InstrumentationService.NULL_SERVICE,
+        serverPlugin,
+        null,
+        null);
   }
 }
 

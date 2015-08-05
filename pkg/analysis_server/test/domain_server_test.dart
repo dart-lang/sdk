@@ -16,10 +16,13 @@ import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';
+import 'utils.dart';
 
 main() {
   AnalysisServer server;
   ServerDomainHandler handler;
+
+  initializeTestEnvironment();
 
   setUp(() {
     var serverChannel = new MockServerChannel();
@@ -27,9 +30,14 @@ main() {
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
     manager.processPlugins([serverPlugin]);
-    server = new AnalysisServer(serverChannel, resourceProvider,
-        new MockPackageMapProvider(), null, serverPlugin,
-        new AnalysisServerOptions(), new MockSdk(),
+    server = new AnalysisServer(
+        serverChannel,
+        resourceProvider,
+        new MockPackageMapProvider(),
+        null,
+        serverPlugin,
+        new AnalysisServerOptions(),
+        new MockSdk(),
         InstrumentationService.NULL_SERVICE);
     handler = new ServerDomainHandler(server);
   });
@@ -38,16 +46,19 @@ main() {
     test('getVersion', () {
       var request = new ServerGetVersionParams().toRequest('0');
       var response = handler.handleRequest(request);
-      expect(response.toJson(), equals({
-        Response.ID: '0',
-        Response.RESULT: {VERSION: AnalysisServer.VERSION}
-      }));
+      expect(
+          response.toJson(),
+          equals({
+            Response.ID: '0',
+            Response.RESULT: {VERSION: AnalysisServer.VERSION}
+          }));
     });
 
     group('setSubscriptions', () {
       test('invalid service name', () {
-        Request request = new Request(
-            '0', SERVER_SET_SUBSCRIPTIONS, {SUBSCRIPTIONS: ['noSuchService']});
+        Request request = new Request('0', SERVER_SET_SUBSCRIPTIONS, {
+          SUBSCRIPTIONS: ['noSuchService']
+        });
         var response = handler.handleRequest(request);
         expect(response, isResponseFailure('0'));
       });

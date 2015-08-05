@@ -10,19 +10,22 @@ library engine.java_io_test;
 import 'dart:io';
 
 import 'package:analyzer/src/generated/java_io.dart';
-import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
+import '../utils.dart';
+
 main() {
+  initializeTestEnvironment();
   group('JavaFile', () {
     group('toURI', () {
       test('forAbsolute', () {
         var tempDir = Directory.systemTemp.createTempSync('java_io_test');
         try {
-          String tempPath = normalize(absolute(tempDir.path));
-          String path = join(tempPath, 'foo.dart');
+          String tempPath = JavaFile.pathContext
+              .normalize(JavaFile.pathContext.absolute(tempDir.path));
+          String path = JavaFile.pathContext.join(tempPath, 'foo.dart');
           // we use an absolute path
-          expect(isAbsolute(path), isTrue);
+          expect(JavaFile.pathContext.isAbsolute(path), isTrue);
           // test that toURI() returns an absolute URI
           Uri uri = new JavaFile(path).toURI();
           expect(uri.isAbsolute, isTrue);
@@ -34,13 +37,14 @@ main() {
       test('forRelative', () {
         var tempDir = Directory.systemTemp.createTempSync('java_io_test');
         try {
-          String tempPath = normalize(absolute(tempDir.path));
-          String path = join(tempPath, 'foo.dart');
-          expect(isAbsolute(path), isTrue);
+          String tempPath = JavaFile.pathContext
+              .normalize(JavaFile.pathContext.absolute(tempDir.path));
+          String path = JavaFile.pathContext.join(tempPath, 'foo.dart');
+          expect(JavaFile.pathContext.isAbsolute(path), isTrue);
           // prepare a relative path
           // We should not check that "relPath" is actually relative -
           // it may be not on Windows, if "temp" is on other disk.
-          String relPath = relative(path);
+          String relPath = JavaFile.pathContext.relative(path);
           // test that toURI() returns an absolute URI
           Uri uri = new JavaFile(relPath).toURI();
           expect(uri.isAbsolute, isTrue);
