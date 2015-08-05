@@ -93,6 +93,7 @@ class Compiler extends leg.Compiler {
             showPackageWarnings:
                 hasOption(options, '--show-package-warnings'),
             useContentSecurityPolicy: hasOption(options, '--csp'),
+            useStartupEmitter: hasOption(options, '--fast-startup'),
             hasIncrementalSupport:
                 forceIncrementalSupport ||
                 hasOption(options, '--incremental-support'),
