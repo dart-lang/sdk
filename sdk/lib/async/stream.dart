@@ -1305,7 +1305,7 @@ abstract class Stream<T> {
 }
 
 /**
- * A subscritption on events from a [Stream].
+ * A subscription on events from a [Stream].
  *
  * When you listen on a [Stream] using [Stream.listen],
  * a [StreamSubscription] object is returned.
