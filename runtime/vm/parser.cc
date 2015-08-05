@@ -11184,18 +11184,6 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
               ClassFinalizer::kCanonicalize);
           ASSERT(!type_parameter.IsMalformed());
           left = new(Z) TypeNode(primary->token_pos(), type_parameter);
-        } else if (is_conditional && primary_node->primary().IsClass()) {
-          // The left-hand side of ?. is interpreted as an expression
-          // of type Type, not as a class literal.
-          const Class& type_class = Class::Cast(primary_node->primary());
-          AbstractType& type = Type::ZoneHandle(Z,
-              Type::New(type_class, TypeArguments::Handle(Z),
-              primary_pos, Heap::kOld));
-          type ^= ClassFinalizer::FinalizeType(
-              current_class(), type, ClassFinalizer::kCanonicalize);
-          // Type may be malbounded, but not malformed.
-          ASSERT(!type.IsMalformed());
-          left = new(Z) TypeNode(primary_pos, type);
         } else {
           // Super field access handled in ParseSuperFieldAccess(),
           // super calls handled in ParseSuperCall().
@@ -11210,7 +11198,6 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         if (left->IsPrimaryNode() &&
             left->AsPrimaryNode()->primary().IsClass()) {
           // Static method call prefixed with class name.
-          ASSERT(!is_conditional);
           const Class& cls = Class::Cast(left->AsPrimaryNode()->primary());
           selector = ParseStaticCall(cls, *ident, ident_pos);
         } else {
@@ -11237,7 +11224,6 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                                is_conditional);
         } else {
           // Static field access.
-          ASSERT(!is_conditional);
           selector = GenerateStaticFieldAccess(cls, *ident, ident_pos);
           ASSERT(selector != NULL);
           if (selector->IsLoadStaticFieldNode()) {
