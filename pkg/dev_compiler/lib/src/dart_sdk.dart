@@ -171,5 +171,7 @@ final Map<String, String> mockSdkSources = {
         class Random {
           bool nextBool() {}
         }
+        num min(num x, num y) {}
+        num max(num x, num y) {}
         ''',
 };

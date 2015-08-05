@@ -2764,5 +2764,42 @@ void main() {
         Iterable<int> baz5() sync* { yield* (/*info:InferredTypeAllocation*/new Iterable()); }
     '''
             }));
+
+    test(
+        'dart:math min/max',
+        () => testChecker({
+              '/main.dart': '''
+        import 'dart:math';
+
+        void printInt(int x) => print(x);
+        void printDouble(double x) => print(x);
+
+        num myMax(num x, num y) => max(x, y);
+
+        main() {
+          // Okay if static types match.
+          printInt(max(1, 2));
+          printInt(min(1, 2));
+          printDouble(max(1.0, 2.0));
+          printDouble(min(1.0, 2.0));
+
+          // No help for user-defined functions from num->num->num.
+          printInt(/*warning:DownCastImplicit*/myMax(1, 2));
+          printInt(myMax(1, 2) as int);
+
+          // Mixing int and double means return type is num.
+          printInt(/*warning:DownCastImplicit*/max(1, 2.0));
+          printInt(/*warning:DownCastImplicit*/min(1, 2.0));
+          printDouble(/*warning:DownCastImplicit*/max(1, 2.0));
+          printDouble(/*warning:DownCastImplicit*/min(1, 2.0));
+
+          // Types other than int and double are not accepted.
+          printInt(
+              /*warning:DownCastImplicit*/min(
+                  /*severe:StaticTypeError*/"hi",
+                  /*severe:StaticTypeError*/"there"));
+        }
+    '''
+            }));
   });
 }

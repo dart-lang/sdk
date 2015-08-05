@@ -637,6 +637,29 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
         }
       }
     }
+
+    // Pretend dart:math's min and max are generic:
+    //
+    //     T min<T extends num>(T x, T y);
+    //
+    // and infer T. In practice, this just means if the type of x and y are
+    // both double or both int, we treat that as the return type.
+    //
+    // The Dart spec has similar treatment for binary operations on numbers.
+    //
+    // TODO(jmesserly): remove this when we have a fix for
+    // https://github.com/dart-lang/dev_compiler/issues/28
+    if (isDartMathMinMax(e)) {
+      var args = node.argumentList.arguments;
+      if (args.length == 2) {
+        var tx = args[0].staticType;
+        var ty = args[1].staticType;
+        if (tx == ty &&
+            (tx == _typeProvider.intType || tx == _typeProvider.doubleType)) {
+          node.staticType = tx;
+        }
+      }
+    }
   }
 
   void _inferObjectAccess(

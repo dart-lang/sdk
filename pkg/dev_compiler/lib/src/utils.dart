@@ -452,3 +452,7 @@ String errorCodeName(ErrorCode errorCode) {
 bool isInlineJS(Element e) => e is FunctionElement &&
     e.library.source.uri.toString() == 'dart:_foreign_helper' &&
     e.name == 'JS';
+
+bool isDartMathMinMax(Element e) => e is FunctionElement &&
+    e.library.source.uri.toString() == 'dart:math' &&
+    (e.name == 'min' || e.name == 'max');
