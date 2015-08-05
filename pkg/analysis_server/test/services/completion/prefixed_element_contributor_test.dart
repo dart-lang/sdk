@@ -238,7 +238,7 @@ void f(C<int> c) {
     addTestSource('import "dart:async" deferred as bar; foo() {bar.^}');
     return computeFull((bool result) {
       assertSuggestClass('Future');
-      assertSuggestFunction('loadLibrary', 'void');
+      assertSuggestFunction('loadLibrary', 'Future<dynamic>');
     });
   }
 
