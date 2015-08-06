@@ -22,6 +22,26 @@ main() {
 class OrganizeDirectivesTest extends AbstractSingleUnitTest {
   List<AnalysisError> testErrors;
 
+  void test_remove_duplicateImports() {
+    _computeUnitAndErrors(r'''
+import 'dart:async';
+import 'dart:async';
+
+main() {
+  Future f;
+}''');
+    // validate change
+    _assertOrganize(
+        r'''
+import 'dart:async';
+
+main() {
+  Future f;
+}''',
+        removeUnresolved: true,
+        removeUnused: true);
+  }
+
   void test_remove_unresolvedDirectives() {
     addSource('/existing_part1.dart', 'part of lib;');
     addSource('/existing_part2.dart', 'part of lib;');
