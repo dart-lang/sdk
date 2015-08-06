@@ -196,9 +196,9 @@ deps = {
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
       (Var("github_mirror") % "dart_style") + Var("dart_style_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
-      "https://github.com/dart-lang/dartdoc.git" + Var("dartdoc_tag"),
+      (Var("github_mirror") % "dartdoc") + Var("dartdoc_tag"),
   Var("dart_root") + "/third_party/pkg/dev_compiler":
-      "https://github.com/dart-lang/dev_compiler.git" + Var("dev_compiler_rev"),
+      (Var("github_mirror") % "dev_compiler") + Var("dev_compiler_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
       (Var("github_mirror") % "glob") + Var("glob_rev"),
   Var("dart_root") + "/third_party/pkg/html":
@@ -261,13 +261,11 @@ deps = {
       + "/external/github.com/google/quiver-dart.git"
       + Var("quiver_tag"),
   Var("dart_root") + "/third_party/pkg/scheduled_test":
-      (Var("github_mirror") % "scheduled_test") +
-      Var("scheduled_test_tag"),
+      (Var("github_mirror") % "scheduled_test") + Var("scheduled_test_tag"),
   Var("dart_root") + "/third_party/pkg/shelf":
       (Var("github_mirror") % "shelf") + Var("shelf_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_static":
-      "https://github.com/dart-lang/shelf_static.git" +
-      Var("shelf_static_rev"),
+      (Var("github_mirror") % "shelf_static") + Var("shelf_static_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_web_socket":
       (Var("github_mirror") % "shelf_web_socket") +
       Var("shelf_web_socket_rev"),
