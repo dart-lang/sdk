@@ -1568,6 +1568,11 @@ static Dart_Handle createLibrarySnapshot(Dart_Handle library,
   } else {
     lib ^= Api::UnwrapHandle(library);
   }
+  isolate->heap()->CollectAllGarbage();
+#if defined(DEBUG)
+  FunctionVisitor check_canonical(isolate);
+  isolate->heap()->IterateObjects(&check_canonical);
+#endif  // #if defined(DEBUG).
   ScriptSnapshotWriter writer(buffer, ApiReallocate);
   writer.WriteScriptSnapshot(lib);
   *size = writer.BytesWritten();
