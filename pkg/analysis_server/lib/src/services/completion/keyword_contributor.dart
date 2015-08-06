@@ -355,10 +355,22 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   void _addImportDirectiveKeywords(ImportDirective node) {
-    if (node.asKeyword == null) {
+    bool hasDeferredKeyword = node.deferredKeyword != null;
+    bool hasAsKeyword = node.asKeyword != null;
+    if (!hasAsKeyword) {
       _addSuggestion(Keyword.AS, DART_RELEVANCE_HIGH);
-      if (node.deferredKeyword == null) {
+    }
+    if (!hasDeferredKeyword) {
+      if (!hasAsKeyword) {
+        _addSuggestion2('deferred as', relevance: DART_RELEVANCE_HIGH);
+      } else if (entity == node.asKeyword) {
         _addSuggestion(Keyword.DEFERRED, DART_RELEVANCE_HIGH);
+      }
+    }
+    if (!hasDeferredKeyword || hasAsKeyword) {
+      if (node.combinators.isEmpty) {
+        _addSuggestion2('show', relevance: DART_RELEVANCE_HIGH);
+        _addSuggestion2('hide', relevance: DART_RELEVANCE_HIGH);
       }
     }
   }
