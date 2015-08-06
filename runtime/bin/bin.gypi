@@ -768,6 +768,15 @@
           },
         }],
       ],
+      'configurations': {
+        'Dart_Linux_Base': {
+          # Have the linker add all symbols to the dynamic symbol table
+          # so that extensions can look them up dynamically in the binary.
+          'ldflags': [
+            '-rdynamic',
+          ],
+        },
+      },
     },
     {
       'target_name': 'test_extension',

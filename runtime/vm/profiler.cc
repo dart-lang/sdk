@@ -815,40 +815,116 @@ static void CollectSample(Isolate* isolate,
 }
 
 
-void Profiler::RecordAllocation(Isolate* isolate, intptr_t cid) {
-  if ((isolate == NULL) || (Dart::vm_isolate() == NULL)) {
-    // No isolate.
-    return;
+// Is |isolate| executing Dart code?
+static bool ExecutingDart(Isolate* isolate) {
+  ASSERT(isolate != NULL);
+  return (isolate->top_exit_frame_info() == 0) &&
+         (isolate->vm_tag() == VMTag::kDartTagId);
+}
+
+
+// Has |isolate| exited Dart code?
+static bool ExitedDart(Isolate* isolate) {
+  return (isolate->top_exit_frame_info() != 0) &&
+         (isolate->vm_tag() != VMTag::kDartTagId);
+}
+
+
+// Get |isolate|'s stack boundary and verify that |sp| and |fp| are within
+// it. Return |false| if anything looks suspicious.
+static bool GetAndValidateIsolateStackBounds(Isolate* isolate,
+                                             uintptr_t sp,
+                                             uintptr_t fp,
+                                             uword* stack_lower,
+                                             uword* stack_upper) {
+  ASSERT(isolate != NULL);
+  ASSERT(stack_lower != NULL);
+  ASSERT(stack_upper != NULL);
+#if defined(USING_SIMULATOR)
+  Simulator* simulator = NULL;
+#endif
+
+#if defined(USING_SIMULATOR)
+  const bool in_dart_code = ExecutingDart(isolate);
+  if (in_dart_code) {
+    *stack_lower = simulator->StackBase();
+    *stack_upper = simulator->StackTop();
+  } else if (!isolate->GetProfilerStackBounds(stack_lower, stack_upper)) {
+    // Could not get stack boundary.
+    return false;
   }
-  ASSERT(isolate != Dart::vm_isolate());
-
-  const bool exited_dart_code = (isolate->top_exit_frame_info() != 0) &&
-                                (isolate->vm_tag() != VMTag::kDartTagId);
-
-  if (!exited_dart_code) {
-    // No Dart frames on stack.
-    // TODO(johnmccutchan): Support collecting native stack.
-    return;
+  if ((*stack_lower == 0) || (*stack_upper == 0)) {
+    return false;
+  }
+#else
+  if (!isolate->GetProfilerStackBounds(stack_lower, stack_upper) ||
+      (*stack_lower == 0) || (*stack_upper == 0)) {
+    // Could not get stack boundary.
+    return false;
+  }
+#endif
+  if (sp > *stack_lower) {
+    // The stack pointer gives us a tighter lower bound.
+    *stack_lower = sp;
   }
 
+  if (*stack_lower >= *stack_upper) {
+    // Stack boundary is invalid.
+    return false;
+  }
+
+  if ((sp < *stack_lower) || (sp >= *stack_upper)) {
+    // Stack pointer is outside isolate stack boundary.
+    return false;
+  }
+
+  if ((fp < *stack_lower) || (fp >= *stack_upper)) {
+    // Frame pointer is outside isolate stack boundary.
+    return false;
+  }
+
+  return true;
+}
+
+
+// Some simple sanity checking of |pc|, |sp|, and |fp|.
+static bool InitialRegisterCheck(uintptr_t pc, uintptr_t sp, uintptr_t fp) {
+  if ((sp == 0) || (fp == 0) || (pc == 0)) {
+    // None of these registers should be zero.
+    return false;
+  }
+
+  if (sp > fp) {
+    // Assuming the stack grows down, we should never have a stack pointer above
+    // the frame pointer.
+    return false;
+  }
+
+  return true;
+}
+
+
+// Return |isolate|'s sample buffer.
+static SampleBuffer* GetSampleBuffer(Isolate* isolate) {
   IsolateProfilerData* profiler_data = isolate->profiler_data();
   if (profiler_data == NULL) {
     // Profiler not initialized.
-    return;
+    return NULL;
   }
-
   SampleBuffer* sample_buffer = profiler_data->sample_buffer();
-  if (sample_buffer == NULL) {
-    // Profiler not initialized.
-    return;
-  }
+  return sample_buffer;
+}
 
-  const ThreadId thread_id = OSThread::GetCurrentThreadId();
-  // Setup sample.
+
+static Sample* SetupSample(Isolate* isolate,
+                           SampleBuffer* sample_buffer,
+                           ThreadId tid) {
+  ASSERT(isolate != NULL);
+  ASSERT(sample_buffer != NULL);
   Sample* sample = sample_buffer->ReserveSample();
-  sample->Init(isolate, OS::GetCurrentTimeMicros(), thread_id);
+  sample->Init(isolate, OS::GetCurrentTimeMicros(), tid);
   uword vm_tag = isolate->vm_tag();
-  #if defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR)
   // When running in the simulator, the runtime entry function address
   // (stored as the vm tag) is the address of a redirect function.
   // Attempt to find the real runtime entry function address and use that.
@@ -856,13 +932,96 @@ void Profiler::RecordAllocation(Isolate* isolate, intptr_t cid) {
   if (redirect_vm_tag != 0) {
     vm_tag = redirect_vm_tag;
   }
-  #endif
+#endif
   sample->set_vm_tag(vm_tag);
   sample->set_user_tag(isolate->user_tag());
-  sample->SetAllocationCid(cid);
+  return sample;
+}
 
-  ProfilerDartExitStackWalker dart_exit_stack_walker(isolate, sample);
-  dart_exit_stack_walker.walk();
+
+static bool CheckIsolate(Isolate* isolate) {
+  if ((isolate == NULL) || (Dart::vm_isolate() == NULL)) {
+    // No isolate.
+    return false;
+  }
+  ASSERT(isolate != Dart::vm_isolate());
+  return true;
+}
+
+
+#if defined(TARGET_OS_WINDOWS)
+__declspec(noinline)
+static uintptr_t GetProgramCounter() {
+  return reinterpret_cast<uintptr_t>(_ReturnAddress());
+}
+#else
+static uintptr_t __attribute__((noinline)) GetProgramCounter() {
+  return reinterpret_cast<uintptr_t>(
+      __builtin_extract_return_addr(__builtin_return_address(0)));
+}
+#endif
+
+void Profiler::RecordAllocation(Isolate* isolate, intptr_t cid) {
+  if (!CheckIsolate(isolate)) {
+    return;
+  }
+
+  const bool exited_dart_code = ExitedDart(isolate);
+
+  if (!exited_dart_code && !FLAG_profile_vm) {
+    // No Dart frames on stack and we are not profiling the vm.
+    return;
+  }
+
+  SampleBuffer* sample_buffer = GetSampleBuffer(isolate);
+  if (sample_buffer == NULL) {
+    // Profiler not initialized.
+    return;
+  }
+
+  if (FLAG_profile_vm) {
+    uintptr_t sp = Isolate::GetCurrentStackPointer();
+    uintptr_t fp = 0;
+    uintptr_t pc = GetProgramCounter();
+
+    COPY_FP_REGISTER(fp);
+
+    uword stack_lower = 0;
+    uword stack_upper = 0;
+
+    if (!InitialRegisterCheck(pc, sp, fp)) {
+      return;
+    }
+
+    if (!GetAndValidateIsolateStackBounds(isolate,
+                                          sp,
+                                          fp,
+                                          &stack_lower,
+                                          &stack_upper)) {
+      // Could not get stack boundary.
+      return;
+    }
+
+    Sample* sample = SetupSample(isolate,
+                                 sample_buffer,
+                                 OSThread::GetCurrentThreadId());
+    sample->SetAllocationCid(cid);
+    ProfilerNativeStackWalker native_stack_walker(sample,
+                                                  stack_lower,
+                                                  stack_upper,
+                                                  pc,
+                                                  fp,
+                                                  sp);
+    native_stack_walker.walk();
+  } else {
+    ASSERT(exited_dart_code);
+    Sample* sample = SetupSample(isolate,
+                                 sample_buffer,
+                                 OSThread::GetCurrentThreadId());
+    sample->SetAllocationCid(cid);
+    ProfilerDartExitStackWalker dart_exit_stack_walker(isolate, sample);
+    dart_exit_stack_walker.walk();
+  }
 }
 
 
@@ -874,18 +1033,20 @@ void Profiler::RecordSampleInterruptCallback(
     // No isolate.
     return;
   }
-
   ASSERT(isolate != Dart::vm_isolate());
 
-  const bool exited_dart_code = (isolate->top_exit_frame_info() != 0) &&
-                                (isolate->vm_tag() != VMTag::kDartTagId);
-  const bool in_dart_code = (isolate->top_exit_frame_info() == 0) &&
-                            (isolate->vm_tag() == VMTag::kDartTagId);
+  SampleBuffer* sample_buffer = GetSampleBuffer(isolate);
+  if (sample_buffer == NULL) {
+    // Profiler not initialized.
+    return;
+  }
+
+  const bool exited_dart_code = ExitedDart(isolate);
+  const bool in_dart_code = ExecutingDart(isolate);
 
   uintptr_t sp = 0;
   uintptr_t fp = state.fp;
   uintptr_t pc = state.pc;
-  uintptr_t lr = state.lr;
 #if defined(USING_SIMULATOR)
   Simulator* simulator = NULL;
 #endif
@@ -897,7 +1058,6 @@ void Profiler::RecordSampleInterruptCallback(
     sp = simulator->get_register(SPREG);
     fp = simulator->get_register(FPREG);
     pc = simulator->get_pc();
-    lr = simulator->get_register(LRREG);
 #else
     sp = state.dsp;
 #endif
@@ -906,26 +1066,7 @@ void Profiler::RecordSampleInterruptCallback(
     sp = state.csp;
   }
 
-  IsolateProfilerData* profiler_data = isolate->profiler_data();
-  if (profiler_data == NULL) {
-    // Profiler not initialized.
-    return;
-  }
-
-  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
-  if (sample_buffer == NULL) {
-    // Profiler not initialized.
-    return;
-  }
-
-  if ((sp == 0) || (fp == 0) || (pc == 0)) {
-    // None of these registers should be zero.
-    return;
-  }
-
-  if (sp > fp) {
-    // Assuming the stack grows down, we should never have a stack pointer above
-    // the frame pointer.
+  if (!InitialRegisterCheck(pc, sp, fp)) {
     return;
   }
 
@@ -938,42 +1079,12 @@ void Profiler::RecordSampleInterruptCallback(
 
   uword stack_lower = 0;
   uword stack_upper = 0;
-#if defined(USING_SIMULATOR)
-  if (in_dart_code) {
-    stack_lower = simulator->StackBase();
-    stack_upper = simulator->StackTop();
-  } else if (!isolate->GetProfilerStackBounds(&stack_lower, &stack_upper)) {
+  if (!GetAndValidateIsolateStackBounds(isolate,
+                                        sp,
+                                        fp,
+                                        &stack_lower,
+                                        &stack_upper)) {
     // Could not get stack boundary.
-    return;
-  }
-  if ((stack_lower == 0) || (stack_upper == 0)) {
-    return;
-  }
-#else
-  if (!isolate->GetProfilerStackBounds(&stack_lower, &stack_upper) ||
-      (stack_lower == 0) || (stack_upper == 0)) {
-    // Could not get stack boundary.
-    return;
-  }
-#endif
-
-  if (sp > stack_lower) {
-    // The stack pointer gives us a tighter lower bound.
-    stack_lower = sp;
-  }
-
-  if (stack_lower >= stack_upper) {
-    // Stack boundary is invalid.
-    return;
-  }
-
-  if ((sp < stack_lower) || (sp >= stack_upper)) {
-    // Stack pointer is outside isolate stack boundary.
-    return;
-  }
-
-  if ((fp < stack_lower) || (fp >= stack_upper)) {
-    // Frame pointer is outside isolate stack boundary.
     return;
   }
 
@@ -981,25 +1092,13 @@ void Profiler::RecordSampleInterruptCallback(
   // know that our initial stack and frame pointers are within the boundary.
 
   // Setup sample.
-  Sample* sample = sample_buffer->ReserveSample();
-  sample->Init(isolate, OS::GetCurrentTimeMicros(), state.tid);
-  uword vm_tag = isolate->vm_tag();
-#if defined(USING_SIMULATOR)
-  // When running in the simulator, the runtime entry function address
-  // (stored as the vm tag) is the address of a redirect function.
-  // Attempt to find the real runtime entry function address and use that.
-  uword redirect_vm_tag = Simulator::FunctionForRedirect(vm_tag);
-  if (redirect_vm_tag != 0) {
-    vm_tag = redirect_vm_tag;
-  }
-#endif
+  Sample* sample = SetupSample(isolate,
+                               sample_buffer,
+                               OSThread::GetCurrentThreadId());
   // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
   ASSERT(counters != NULL);
-  counters->Increment(vm_tag);
-  sample->set_vm_tag(vm_tag);
-  sample->set_user_tag(isolate->user_tag());
-  sample->set_lr(lr);
+  counters->Increment(sample->vm_tag());
 
   ProfilerNativeStackWalker native_stack_walker(sample,
                                                 stack_lower,

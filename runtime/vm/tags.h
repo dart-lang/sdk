@@ -41,9 +41,13 @@ class VMTag : public AllStatic {
     VM_TAG_LIST(DEFINE_VM_TAG_ID)
 #undef DEFINE_VM_TAG_KIND
     kNumVMTags,
+    //
+    // All tags below |kNumVMTags| are special meta-data tags and do not
+    // indicate the state of the VM during a sample.
+    //
     kRootTagId,       // Special tag used as root of all profiles.
     kTruncatedTagId,  // Special tag used to indicate a truncated call stack.
-    // ProfileInfo tags.
+    // Code transition tags (used by unit tests).
     kNoneCodeTagId,
     kOptimizedCodeTagId,
     kUnoptimizedCodeTagId,
