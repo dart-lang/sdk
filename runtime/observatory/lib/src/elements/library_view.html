@@ -59,7 +59,18 @@
             <template repeat="{{ dep in library.dependencies }}">
               <div class="memberItem">
                 <div class="memberValue">
-                  <library-ref ref="{{ dep.target }}"></library-ref>
+                  <template if="{{ dep.isImport }}">
+                    import <library-ref ref="{{ dep.target }}"></library-ref>
+                    <template if="{{ dep.prefix != null }}">
+                      as {{ dep.prefix.toString() }}
+                    </template>
+                    <template if="{{ dep.isDeferred }}">
+                      deferred
+                    </template>
+                  </template>
+                  <template if="{{ !dep.isImport }}">
+                    export <library-ref ref="{{ dep.target }}"></library-ref>
+                  </template>
                 </div>
               </div>
             </template>
