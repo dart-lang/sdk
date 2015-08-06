@@ -17,6 +17,7 @@ DECLARE_FLAG(bool, profile_vm);
 
 // Some tests are written assuming native stack trace profiling is disabled.
 class DisableNativeProfileScope {
+ public:
   DisableNativeProfileScope()
       : FLAG_profile_vm_(FLAG_profile_vm) {
     FLAG_profile_vm = false;
@@ -27,7 +28,7 @@ class DisableNativeProfileScope {
   }
 
  private:
-  bool FLAG_profile_vm_;
+  const bool FLAG_profile_vm_;
 };
 
 
