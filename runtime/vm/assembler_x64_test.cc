@@ -3309,14 +3309,11 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ pushq(PP);  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer();
   __ pushq(THR);
-  __ movq(THR, CallingConventions::kArg4Reg);
-  __ pushq(CTX);
-  __ movq(CTX, CallingConventions::kArg1Reg);
-  __ StoreIntoObject(CallingConventions::kArg3Reg,
-                     FieldAddress(CallingConventions::kArg3Reg,
+  __ movq(THR, CallingConventions::kArg3Reg);
+  __ StoreIntoObject(CallingConventions::kArg2Reg,
+                     FieldAddress(CallingConventions::kArg2Reg,
                                   GrowableObjectArray::data_offset()),
-                     CallingConventions::kArg2Reg);
-  __ popq(CTX);
+                     CallingConventions::kArg1Reg);
   __ popq(THR);
   __ popq(PP);  // Restore caller's pool pointer.
   __ ret();

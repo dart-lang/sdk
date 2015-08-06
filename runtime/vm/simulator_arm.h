@@ -88,7 +88,7 @@ class Simulator {
   // Call on program start.
   static void InitOnce();
 
-  // Dart generally calls into generated code with 5 parameters. This is a
+  // Dart generally calls into generated code with 4 parameters. This is a
   // convenience function, which sets up the simulator state and grabs the
   // result on return. When fp_return is true the return value is the D0
   // floating point register. Otherwise, the return value is R1:R0.
