@@ -805,17 +805,15 @@ class IsolateCommand extends DebuggerCommand {
   Future<List<String>> complete(List<String> args) {
     if (args.length != 1) {
       return new Future.value([args.join('')]);
-    }
-    var isolates = debugger.vm.isolates.toList();
-    isolates.sort((a, b) => a.startTime.compareTo(b.startTime));
+    } 
     var result = [];
-    for (var isolate in isolates) {
+    for (var isolate in debugger.vm.isolates) {
       var str = isolate.number.toString();
       if (str.startsWith(args[0])) {
         result.add('$str ');
       }
     }
-    for (var isolate in isolates) {
+    for (var isolate in debugger.vm.isolates) {
       if (isolate.name.startsWith(args[0])) {
         result.add('${isolate.name} ');
       }
@@ -840,9 +838,7 @@ class IsolateListCommand extends DebuggerCommand {
           "Internal error: vm has not been set");
       return new Future.value(null);
     }
-    var isolates = debugger.vm.isolates.toList();
-    isolates.sort((a, b) => a.startTime.compareTo(b.startTime));
-    for (var isolate in isolates) {
+    for (var isolate in debugger.vm.isolates) {
       String current = (isolate == debugger.isolate ? ' *' : '');
       debugger.console.print(
           "Isolate ${isolate.number} '${isolate.name}'${current}");
