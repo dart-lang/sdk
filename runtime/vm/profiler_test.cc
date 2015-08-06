@@ -13,6 +13,24 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, profile_vm);
+
+// Some tests are written assuming native stack trace profiling is disabled.
+class DisableNativeProfileScope {
+  DisableNativeProfileScope()
+      : FLAG_profile_vm_(FLAG_profile_vm) {
+    FLAG_profile_vm = false;
+  }
+
+  ~DisableNativeProfileScope() {
+    FLAG_profile_vm = FLAG_profile_vm_;
+  }
+
+ private:
+  bool FLAG_profile_vm_;
+};
+
+
 class ProfileSampleBufferTestHelper {
  public:
   static intptr_t IterateCount(const Isolate* isolate,
@@ -126,6 +144,7 @@ class AllocationFilter : public SampleFilter {
 
 
 TEST_CASE(Profiler_TrivialRecordAllocation) {
+  DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -204,6 +223,7 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
 
 
 TEST_CASE(Profiler_ToggleRecordAllocation) {
+  DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -315,6 +335,7 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
 
 
 TEST_CASE(Profiler_CodeTicks) {
+  DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -407,6 +428,7 @@ TEST_CASE(Profiler_CodeTicks) {
 
 
 TEST_CASE(Profiler_FunctionTicks) {
+  DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -499,6 +521,7 @@ TEST_CASE(Profiler_FunctionTicks) {
 
 
 TEST_CASE(Profiler_IntrinsicAllocation) {
+  DisableNativeProfileScope dnps;
   const char* kScript = "double foo(double a, double b) => a + b;";
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
@@ -566,6 +589,7 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
 
 
 TEST_CASE(Profiler_ArrayAllocation) {
+  DisableNativeProfileScope dnps;
   const char* kScript =
       "List foo() => new List(4);\n"
       "List bar() => new List();\n";
@@ -669,6 +693,7 @@ TEST_CASE(Profiler_ArrayAllocation) {
 
 
 TEST_CASE(Profiler_TypedArrayAllocation) {
+  DisableNativeProfileScope dnps;
   const char* kScript =
       "import 'dart:typed_data';\n"
       "List foo() => new Float32List(4);\n";
@@ -755,6 +780,7 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
 
 
 TEST_CASE(Profiler_StringAllocation) {
+  DisableNativeProfileScope dnps;
   const char* kScript = "String foo(String a, String b) => a + b;";
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
@@ -834,6 +860,7 @@ TEST_CASE(Profiler_StringAllocation) {
 
 
 TEST_CASE(Profiler_StringInterpolation) {
+  DisableNativeProfileScope dnps;
   const char* kScript = "String foo(String a, String b) => '$a | $b';";
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
@@ -917,6 +944,7 @@ TEST_CASE(Profiler_StringInterpolation) {
 
 
 TEST_CASE(Profiler_FunctionInline) {
+  DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
