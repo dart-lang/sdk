@@ -3988,11 +3988,13 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     }
 
     // Create the field object.
+    const bool is_reflectable =
+        !(library_.is_dart_scheme() && library_.IsPrivate(*field->name));
     class_field = Field::New(*field->name,
                              field->has_static,
                              field->has_final,
                              field->has_const,
-                             false,  // Not synthetic.
+                             is_reflectable,
                              current_class(),
                              field->name_pos);
     class_field.set_type(*field->type);
@@ -4671,7 +4673,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
                            false,  // Not static.
                            true,  // Field is final.
                            false,  // Not const.
-                           false,  // Not synthetic.
+                           true,  // Is reflectable.
                            cls,
                            cls.token_pos());
   index_field.set_type(int_type);
@@ -4743,7 +4745,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
                             /* is_static = */ true,
                             /* is_final = */ true,
                             /* is_const = */ true,
-                            /* is_synthetic = */ false,
+                            /* is_reflectable = */ true,
                             cls,
                             cls.token_pos());
     enum_value.set_type(dynamic_type);
@@ -4781,7 +4783,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
                             /* is_static = */ true,
                             /* is_final = */ true,
                             /* is_const = */ true,
-                            /* is_synthetic = */ false,
+                            /* is_reflectable = */ true,
                             cls,
                             cls.token_pos());
   values_field.set_type(Type::Handle(Z, Type::ArrayType()));
@@ -5365,7 +5367,6 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
   // Const fields are implicitly final.
   const bool is_final = is_const || (CurrentToken() == Token::kFINAL);
   const bool is_static = true;
-  const bool is_synthetic = false;
   const AbstractType& type = AbstractType::ZoneHandle(Z,
       ParseConstFinalVarOrType(ClassFinalizer::kResolveTypeParameters));
   Field& field = Field::Handle(Z);
@@ -5393,7 +5394,9 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
                   var_name.ToCString());
     }
 
-    field = Field::New(var_name, is_static, is_final, is_const, is_synthetic,
+    const bool is_reflectable =
+        !(library_.is_dart_scheme() && library_.IsPrivate(var_name));
+    field = Field::New(var_name, is_static, is_final, is_const, is_reflectable,
                        current_class(), name_pos);
     field.set_type(type);
     field.set_value(Instance::Handle(Z, Instance::null()));

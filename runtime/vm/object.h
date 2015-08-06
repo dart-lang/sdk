@@ -2814,8 +2814,8 @@ class Field : public Object {
   bool is_static() const { return StaticBit::decode(raw_ptr()->kind_bits_); }
   bool is_final() const { return FinalBit::decode(raw_ptr()->kind_bits_); }
   bool is_const() const { return ConstBit::decode(raw_ptr()->kind_bits_); }
-  bool is_synthetic() const {
-    return SyntheticBit::decode(raw_ptr()->kind_bits_);
+  bool is_reflectable() const {
+    return ReflectableBit::decode(raw_ptr()->kind_bits_);
   }
 
   inline intptr_t Offset() const;
@@ -2838,7 +2838,7 @@ class Field : public Object {
                        bool is_static,
                        bool is_final,
                        bool is_const,
-                       bool is_synthetic,
+                       bool is_reflectable,
                        const Class& owner,
                        intptr_t token_pos);
 
@@ -2987,7 +2987,7 @@ class Field : public Object {
     kFinalBit,
     kHasInitializerBit,
     kUnboxingCandidateBit,
-    kSyntheticBit
+    kReflectableBit
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
@@ -2996,7 +2996,7 @@ class Field : public Object {
   class UnboxingCandidateBit : public BitField<bool,
                                                kUnboxingCandidateBit, 1> {
   };
-  class SyntheticBit : public BitField<bool, kSyntheticBit, 1> {};
+  class ReflectableBit : public BitField<bool, kReflectableBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
@@ -3012,8 +3012,8 @@ class Field : public Object {
   void set_is_const(bool value) const {
     set_kind_bits(ConstBit::update(value, raw_ptr()->kind_bits_));
   }
-  void set_is_synthetic(bool value) const {
-    set_kind_bits(SyntheticBit::update(value, raw_ptr()->kind_bits_));
+  void set_is_reflectable(bool value) const {
+    set_kind_bits(ReflectableBit::update(value, raw_ptr()->kind_bits_));
   }
   void set_owner(const Object& value) const {
     StorePointer(&raw_ptr()->owner_, value.raw());
