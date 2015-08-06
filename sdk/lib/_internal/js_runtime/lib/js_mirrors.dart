@@ -443,6 +443,10 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
         .invoke(#call, positionalArguments, namedArguments);
   }
 
+  delegate(Invocation invocation) {
+    throw new UnimplementedError();
+  }
+
   _loadField(String name) {
     // TODO(ahe): What about lazily initialized fields? See
     // [JsClassMirror.getField].
@@ -851,6 +855,10 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
   InstanceMirror setField(Symbol fieldName, Object arg) {
     throw new NoSuchStaticMethodError.method(
         null, setterSymbol(fieldName), [arg], null);
+  }
+
+  delegate(Invocation invocation) {
+    throw new UnimplementedError();
   }
 
   List<ClassMirror> get superinterfaces => [mixin];
@@ -1512,6 +1520,10 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
     return _class.invoke(memberName, positionalArguments, namedArguments);
   }
 
+  delegate(Invocation invocation) {
+    throw new UnimplementedError();
+  }
+
   bool get isOriginalDeclaration => false;
 
   ClassMirror get originalDeclaration => _class;
@@ -2026,6 +2038,10 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       throwInvalidReflectionError(n(memberName));
     }
     return reflect(mirror._invoke(positionalArguments, namedArguments));
+  }
+
+  delegate(Invocation invocation) {
+    throw new UnimplementedError();
   }
 
   bool get isOriginalDeclaration => true;
@@ -2609,6 +2625,7 @@ class BrokenClassMirror {
   InstanceMirror getField(Symbol fieldName) => throw new UnimplementedError();
   InstanceMirror setField(Symbol fieldName, Object value)
       => throw new UnimplementedError();
+  delegate(Invocation invocation) => throw new UnimplementedError();
   List<TypeVariableMirror> get typeVariables => throw new UnimplementedError();
   List<TypeMirror> get typeArguments => throw new UnimplementedError();
   TypeMirror get originalDeclaration => throw new UnimplementedError();
