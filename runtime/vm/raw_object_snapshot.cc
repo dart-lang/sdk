@@ -210,9 +210,7 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   // Allocate type object.
   Type& type = Type::ZoneHandle(reader->zone(), NEW_OBJECT(Type));
   bool is_canonical = RawObject::IsCanonical(tags);
-  bool defer_canonicalization = is_canonical &&
-      ((kind == Snapshot::kScript && RawObject::IsCreatedFromSnapshot(tags)) ||
-       kind == Snapshot::kMessage);
+  bool defer_canonicalization = is_canonical && (kind != Snapshot::kFull);
   reader->AddBackRef(object_id, &type, kIsDeserialized, defer_canonicalization);
 
   // Set all non object fields.
@@ -226,13 +224,17 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   intptr_t from_offset = OFFSET_OF_FROM(type);
   for (intptr_t i = 0; i <= num_flds; i++) {
     (*reader->PassiveObjectHandle()) =
-        reader->ReadObjectImpl(kAsInlinedObject, object_id, (i + from_offset));
+        reader->ReadObjectImpl(kAsReference, object_id, (i + from_offset));
     type.StorePointer((type.raw()->from() + i),
                       reader->PassiveObjectHandle()->raw());
   }
 
   // Set the object tags.
   type.set_tags(tags);
+  if (defer_canonicalization) {
+    // We are deferring canonicalization so mark object as not canonical.
+    type.ClearCanonical();
+  }
 
   return type.raw();
 }
@@ -261,7 +263,7 @@ void RawType::WriteTo(SnapshotWriter* writer,
   // Write out all the object pointer fields. Since we will be canonicalizing
   // the type object when reading it back we should write out all the fields
   // inline and not as references.
-  SnapshotWriterVisitor visitor(writer, false);
+  SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to());
 }
 
@@ -453,9 +455,7 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   TypeArguments& type_arguments = TypeArguments::ZoneHandle(
       reader->zone(), NEW_OBJECT_WITH_LEN_SPACE(TypeArguments, len, kind));
   bool is_canonical = RawObject::IsCanonical(tags);
-  bool defer_canonicalization = is_canonical &&
-      ((kind == Snapshot::kScript && RawObject::IsCreatedFromSnapshot(tags)) ||
-       kind == Snapshot::kMessage);
+  bool defer_canonicalization = is_canonical && (kind != Snapshot::kFull);
   reader->AddBackRef(object_id,
                      &type_arguments,
                      kIsDeserialized,
@@ -474,12 +474,16 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
       reinterpret_cast<RawAbstractType**>(type_arguments.raw()->ptr());
   for (intptr_t i = 0; i < len; i++) {
     *reader->TypeHandle() ^=
-        reader->ReadObjectImpl(kAsInlinedObject, object_id, (i + offset));
+        reader->ReadObjectImpl(kAsReference, object_id, (i + offset));
     type_arguments.SetTypeAt(i, *reader->TypeHandle());
   }
 
   // Set the object tags .
   type_arguments.set_tags(tags);
+  if (defer_canonicalization) {
+    // We are deferring canonicalization so mark object as not canonical.
+    type_arguments.ClearCanonical();
+  }
 
   return type_arguments.raw();
 }
@@ -508,7 +512,7 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
   // Write out the individual types.
   intptr_t len = Smi::Value(ptr()->length_);
   for (intptr_t i = 0; i < len; i++) {
-    writer->WriteObjectImpl(ptr()->types()[i], kAsInlinedObject);
+    writer->WriteObjectImpl(ptr()->types()[i], kAsReference);
   }
 }
 
@@ -2332,12 +2336,22 @@ RawGrowableObjectArray* GrowableObjectArray::ReadFrom(SnapshotReader* reader,
     array = GrowableObjectArray::New(0, HEAP_SPACE(kind));
   }
   reader->AddBackRef(object_id, &array, kIsDeserialized);
-  intptr_t length = reader->ReadSmiValue();
-  array.SetLength(length);
+
+  // Read type arguments of growable array object.
+  const intptr_t typeargs_offset =
+      GrowableObjectArray::type_arguments_offset() / kWordSize;
+  *reader->TypeArgumentsHandle() ^=
+      reader->ReadObjectImpl(kAsInlinedObject, object_id, typeargs_offset);
+  array.StorePointer(&array.raw_ptr()->type_arguments_,
+                     reader->TypeArgumentsHandle()->raw());
+
+  // Read length of growable array object.
+  array.SetLength(reader->ReadSmiValue());
+
+  // Read the backing array of growable array object.
   *(reader->ArrayHandle()) ^= reader->ReadObjectImpl(kAsInlinedObject);
   array.SetData(*(reader->ArrayHandle()));
-  *(reader->TypeArgumentsHandle()) = reader->ArrayHandle()->GetTypeArguments();
-  array.SetTypeArguments(*(reader->TypeArgumentsHandle()));
+
   return array.raw();
 }
 
@@ -2353,6 +2367,9 @@ void RawGrowableObjectArray::WriteTo(SnapshotWriter* writer,
   // Write out the class and tags information.
   writer->WriteIndexedObject(kGrowableObjectArrayCid);
   writer->WriteTags(writer->GetObjectTags(this));
+
+  // Write out the type arguments field.
+  writer->WriteObjectImpl(ptr()->type_arguments_, kAsInlinedObject);
 
   // Write out the used length field.
   writer->Write<RawObject*>(ptr()->length_);
@@ -2383,9 +2400,8 @@ RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
   map.set_tags(tags);
 
   // Read the type arguments.
-  intptr_t typeargs_offset =
-      reinterpret_cast<RawObject**>(&map.raw()->ptr()->type_arguments_) -
-      reinterpret_cast<RawObject**>(map.raw()->ptr());
+  const intptr_t typeargs_offset =
+      GrowableObjectArray::type_arguments_offset() / kWordSize;
   *reader->TypeArgumentsHandle() ^=
       reader->ReadObjectImpl(kAsInlinedObject, object_id, typeargs_offset);
   map.SetTypeArguments(*reader->TypeArgumentsHandle());

@@ -214,7 +214,9 @@ RawObject* SnapshotReader::ReadObject() {
         (*backward_references_)[i].set_state(kIsDeserialized);
       }
     }
-    ProcessDeferredCanonicalizations();
+    if (kind() != Snapshot::kFull) {
+      ProcessDeferredCanonicalizations();
+    }
     return obj.raw();
   } else {
     // An error occurred while reading, return the error object.
@@ -1155,28 +1157,36 @@ void SnapshotReader::AddPatchRecord(intptr_t object_id,
 
 
 void SnapshotReader::ProcessDeferredCanonicalizations() {
-  AbstractType& typeobj = AbstractType::Handle();
+  Type& typeobj = Type::Handle();
   TypeArguments& typeargs = TypeArguments::Handle();
   Object& newobj = Object::Handle();
   for (intptr_t i = 0; i < backward_references_->length(); i++) {
     BackRefNode& backref = (*backward_references_)[i];
     if (backref.defer_canonicalization()) {
       Object* objref = backref.reference();
+      bool needs_patching = false;
       // Object should either be an abstract type or a type argument.
-      if (objref->IsAbstractType()) {
+      if (objref->IsType()) {
         typeobj ^= objref->raw();
-        typeobj.ClearCanonical();
         newobj = typeobj.Canonicalize();
+        if ((newobj.raw() != typeobj.raw()) && !typeobj.IsRecursive()) {
+          needs_patching = true;
+        } else {
+          // Set Canonical bit.
+          objref->SetCanonical();
+        }
       } else {
         ASSERT(objref->IsTypeArguments());
         typeargs ^= objref->raw();
-        typeargs.ClearCanonical();
         newobj = typeargs.Canonicalize();
+        if ((newobj.raw() != typeargs.raw()) && !typeargs.IsRecursive()) {
+          needs_patching = true;
+        } else {
+          // Set Canonical bit.
+          objref->SetCanonical();
+        }
       }
-      if (newobj.raw() == objref->raw()) {
-        // Restore Canonical bit.
-        objref->SetCanonical();
-      } else {
+      if (needs_patching) {
         ZoneGrowableArray<intptr_t>* patches = backref.patch_records();
         ASSERT(newobj.IsCanonical());
         ASSERT(patches != NULL);
@@ -1204,8 +1214,7 @@ void SnapshotReader::ArrayReadFrom(intptr_t object_id,
 
   // Setup the object fields.
   const intptr_t typeargs_offset =
-      reinterpret_cast<RawObject**>(&result.raw()->ptr()->type_arguments_) -
-      reinterpret_cast<RawObject**>(result.raw()->ptr());
+      GrowableObjectArray::type_arguments_offset() / kWordSize;
   *TypeArgumentsHandle() ^= ReadObjectImpl(kAsInlinedObject,
                                            object_id,
                                            typeargs_offset);
