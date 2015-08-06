@@ -56,7 +56,7 @@ void test() {
   registerExtension('__success', Handler);
   bool exceptionThrown = false;
   try {
-    registerException('__delay', Handler);
+    registerExtension('__delay', Handler);
   } catch (e) {
     exceptionThrown = true;
   }
