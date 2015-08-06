@@ -5,13 +5,13 @@
 library source.path_filter;
 
 import 'package:glob/glob.dart' as glob;
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 
 /// Filter paths against a set of [ignorePatterns] relative to a [root]
 /// directory. Paths outside of [root] are also ignored.
 class PathFilter {
   /// The path context to use when manipulating paths.
-  final Context pathContext;
+  final path.Context pathContext;
 
   /// Path that all ignore patterns are relative to.
   final String root;
@@ -20,7 +20,9 @@ class PathFilter {
   final List<glob.Glob> _ignorePatterns = new List<glob.Glob>();
 
   /// Construct a new path filter rooted at [root] with [ignorePatterns].
-  PathFilter(this.pathContext, this.root, List<String> ignorePatterns) {
+  /// If [pathContext] is not specified, then the system path context is used.
+  PathFilter(this.root, List<String> ignorePatterns, [path.Context pathContext])
+      : this.pathContext = pathContext != null ? pathContext : path.context {
     setIgnorePatterns(ignorePatterns);
   }
 
