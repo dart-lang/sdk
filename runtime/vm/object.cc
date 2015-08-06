@@ -1473,7 +1473,7 @@ RawError* Object::Init(Isolate* isolate) {
 
 #define ADD_SET_FIELD(clazz)                                                   \
   field_name = Symbols::New("cid"#clazz);                                      \
-  field = Field::New(field_name, true, false, true, true, cls, 0);             \
+  field = Field::New(field_name, true, false, true, false, cls, 0);            \
   value = Smi::New(k##clazz##Cid);                                             \
   field.set_value(value);                                                      \
   field.set_type(Type::Handle(Type::IntType()));                               \
@@ -7214,7 +7214,7 @@ RawField* Field::New(const String& name,
                      bool is_static,
                      bool is_final,
                      bool is_const,
-                     bool is_synthetic,
+                     bool is_reflectable,
                      const Class& owner,
                      intptr_t token_pos) {
   ASSERT(!owner.IsNull());
@@ -7228,7 +7228,7 @@ RawField* Field::New(const String& name,
   }
   result.set_is_final(is_final);
   result.set_is_const(is_const);
-  result.set_is_synthetic(is_synthetic);
+  result.set_is_reflectable(is_reflectable);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
@@ -7443,7 +7443,7 @@ RawInstance* Field::AccessorClosure(bool make_setter) const {
                              true,  // is_static
                              true,  // is_final
                              true,  // is_const
-                             true,  // is_synthetic
+                             false,  // is_reflectable
                              field_owner,
                              this->token_pos());
   closure_field.set_value(Instance::Cast(result));
@@ -9032,7 +9032,7 @@ void Library::AddMetadata(const Class& cls,
                                           true,   // is_static
                                           false,  // is_final
                                           false,  // is_const
-                                          true,   // is_synthetic
+                                          false,  // is_reflectable
                                           cls,
                                           token_pos));
   field.set_type(Type::Handle(Type::DynamicType()));
@@ -10540,7 +10540,7 @@ void Namespace::AddMetadata(intptr_t token_pos, const Class& owner_class) {
                                           true,   // is_static
                                           false,  // is_final
                                           false,  // is_const
-                                          true,   // is_synthetic
+                                          false,  // is_reflectable
                                           owner_class,
                                           token_pos));
   field.set_type(Type::Handle(Type::DynamicType()));
