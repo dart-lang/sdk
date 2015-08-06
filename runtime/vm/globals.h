@@ -96,7 +96,7 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 #if defined(HOST_ARCH_IA32)
 #define COPY_FP_REGISTER(fp) __asm { mov fp, ebp };  // NOLINT
 #elif defined(HOST_ARCH_X64)
-#define COPY_FP_REGISTER(fp) __asm { mov fp, rbp };  // NOLINT
+#define COPY_FP_REGISTER(fp) UNIMPLEMENTED();
 #else
 #error Unknown host architecture.
 #endif
