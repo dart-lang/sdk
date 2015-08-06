@@ -1255,7 +1255,9 @@ testCantAssignMethods() {
           super.mname = () => 6;
         }
       }
-      ''', [MessageKind.ASSIGNING_METHOD_IN_SUPER]);
+      ''', [MessageKind.ASSIGNING_METHOD_IN_SUPER,
+            // TODO(johnniwinther): Avoid duplicate warnings.
+            MessageKind.SETTER_NOT_FOUND]);
 
   // But index operators should be OK
   checkWarningOn('''
@@ -1331,7 +1333,9 @@ testCantAssignFinalAndConsts() {
       class B extends A {
         m() { super.x = 2; }
       }
-      ''', [MessageKind.SETTER_NOT_FOUND_IN_SUPER]);
+      ''', [MessageKind.ASSIGNING_FINAL_FIELD_IN_SUPER,
+            // TODO(johnniwinther): Avoid duplicate warnings.
+            MessageKind.SETTER_NOT_FOUND]);
 
   // But non-final fields are OK:
   checkWarningOn('''
@@ -1343,14 +1347,30 @@ testCantAssignFinalAndConsts() {
         m() { super.x = 2; }
       }
       ''', []);
+
+  // Check getter without setter.
+  checkWarningOn('''
+      main() => new B().m();
+      class A {
+        get x => 1;
+      }
+      class B extends A {
+        m() { super.x = 2; }
+      }
+      ''', [MessageKind.SETTER_NOT_FOUND_IN_SUPER,
+            // TODO(johnniwinther): Avoid duplicate warnings.
+            MessageKind.SETTER_NOT_FOUND]);
 }
 
 /// Helper to test that [script] produces all the given [warnings].
 checkWarningOn(String script, List<MessageKind> warnings) {
   Expect.isTrue(warnings.length >= 0 && warnings.length <= 2);
   asyncTest(() => compileScript(script).then((compiler) {
-    Expect.equals(0, compiler.errors.length);
-    Expect.equals(warnings.length, compiler.warnings.length);
+    Expect.equals(0, compiler.errors.length,
+        'Unexpected errors in\n$script\n${compiler.errors}');
+    Expect.equals(warnings.length, compiler.warnings.length,
+        'Unexpected warnings in\n$script\n'
+        'Expected:$warnings\nFound:${compiler.warnings}');
     for (int i = 0; i < warnings.length; i++) {
       Expect.equals(warnings[i], compiler.warnings[i].message.kind);
     }

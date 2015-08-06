@@ -941,7 +941,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   AccessSemantics computeCompoundSuperAccessSemantics(
       Spannable node,
       Element getter,
-      Element setter) {
+      Element setter,
+      {bool isIndex: false}) {
     if (getter.isErroneous) {
       if (setter.isErroneous) {
         return new StaticAccess.unresolvedSuper(getter);
@@ -957,7 +958,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             CompoundAccessKind.UNRESOLVED_SUPER_GETTER, getter, setter);
       }
     } else if (getter.isField) {
-      if (setter.isField) {
+      if (setter.isErroneous) {
+        assert(invariant(node, getter.isFinal,
+            message: "Unexpected super setter '$setter' for getter '$getter."));
+        return new StaticAccess.superFinalField(getter);
+      } else if (setter.isField) {
         if (getter == setter) {
           return new StaticAccess.superField(getter);
         } else {
@@ -990,13 +995,17 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       assert(invariant(node, getter.isFunction,
           message: "Unexpected super getter '$getter'."));
       if (setter.isErroneous) {
-        return new CompoundAccessSemantics(
-            CompoundAccessKind.UNRESOLVED_SUPER_SETTER, getter, setter);
+        if (isIndex) {
+          return new CompoundAccessSemantics(
+              CompoundAccessKind.UNRESOLVED_SUPER_SETTER, getter, setter);
+        } else {
+          return new StaticAccess.superMethod(getter);
+        }
       } else if (setter.isFunction) {
-        assert(invariant(node, getter.name == '[]',
-            message: "Unexpected super getter '$getter'."));
         assert(invariant(node, setter.name == '[]=',
             message: "Unexpected super setter '$setter'."));
+        assert(invariant(node, getter.name == '[]',
+            message: "Unexpected super getter '$getter'."));
         return new CompoundAccessSemantics(
                     CompoundAccessKind.SUPER_GETTER_SETTER, getter, setter);
       } else {
@@ -1107,11 +1116,18 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     Element target = currentClass.lookupSuperByName(name);
     // [target] may be null which means invoking noSuchMethod on super.
     if (target == null) {
-      Element error = reportAndCreateErroneousElement(
-          node, name.text, MessageKind.NO_SUCH_SUPER_MEMBER,
-          {'className': currentClass.name, 'memberName': name});
       if (alternateName != null) {
         target = currentClass.lookupSuperByName(alternateName);
+      }
+      Element error;
+      if (selector.isSetter) {
+        error = reportAndCreateErroneousElement(
+          node, name.text, MessageKind.SETTER_NOT_FOUND_IN_SUPER,
+          {'className': currentClass.name, 'name': name});
+      } else {
+        error = reportAndCreateErroneousElement(
+          node, name.text, MessageKind.NO_SUCH_SUPER_MEMBER,
+          {'className': currentClass.name, 'memberName': name});
       }
       if (target == null) {
         // If a setter wasn't resolved, use the [ErroneousElement].
@@ -1143,7 +1159,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ///
   AccessSemantics computeSuperAccessSemanticsForSelectors(
       Spannable node,
-      Selector getterSelector, Selector setterSelector) {
+      Selector getterSelector,
+      Selector setterSelector,
+      {bool isIndex: false}) {
+    bool getterError = false;
+    bool setterError = false;
 
     // TODO(johnniwinther): Ensure correct behavior if currentClass is a
     // patch.
@@ -1153,11 +1173,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       getter = reportAndCreateErroneousElement(
           node, getterSelector.name, MessageKind.NO_SUCH_SUPER_MEMBER,
           {'className': currentClass.name, 'memberName': getterSelector.name});
-      // We still need to register the invocation, because we might
-      // call `super.noSuchMethod` which calls [JSInvocationMirror._invokeOn].
-      registry.registerDynamicInvocation(
-          new UniverseSelector(getterSelector, null));
-      registry.registerSuperNoSuchMethod();
+      getterError = true;
     }
     Element setter = currentClass.lookupSuperByName(setterSelector.memberName);
     // [target] may be null which means invoking noSuchMethod on super.
@@ -1165,13 +1181,41 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       setter = reportAndCreateErroneousElement(
           node, setterSelector.name, MessageKind.NO_SUCH_SUPER_MEMBER,
           {'className': currentClass.name, 'memberName': setterSelector.name});
+      setterError = true;
+    } else if (getter == setter) {
+      if (setter.isFunction) {
+        setter = reportAndCreateErroneousElement(
+            node, setterSelector.name,
+            MessageKind.ASSIGNING_METHOD_IN_SUPER,
+            {'superclassName': setter.enclosingClass.name,
+             'name': setterSelector.name});
+        setterError = true;
+      } else if (setter.isField && setter.isFinal) {
+        setter = reportAndCreateErroneousElement(
+            node, setterSelector.name,
+            MessageKind.ASSIGNING_FINAL_FIELD_IN_SUPER,
+            {'superclassName': setter.enclosingClass.name,
+             'name': setterSelector.name});
+        setterError = true;
+      }
+    }
+    if (getterError) {
       // We still need to register the invocation, because we might
-      // call `super.noSuchMethod` which calls [JSInvocationMirror._invokeOn].
+      // call [:super.noSuchMethod:] which calls [JSInvocationMirror._invokeOn].
+      registry.registerDynamicInvocation(
+          new UniverseSelector(getterSelector, null));
+    }
+    if (setterError) {
+      // We still need to register the invocation, because we might
+      // call [:super.noSuchMethod:] which calls [JSInvocationMirror._invokeOn].
       registry.registerDynamicInvocation(
           new UniverseSelector(setterSelector, null));
+    }
+    if (getterError || setterError) {
       registry.registerSuperNoSuchMethod();
     }
-    return computeCompoundSuperAccessSemantics(node, getter, setter);
+    return computeCompoundSuperAccessSemantics(
+        node, getter, setter, isIndex: isIndex);
   }
 
   /// Resolve [node] as a subexpression that is _not_ the prefix of a member
@@ -1276,7 +1320,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ResolutionResult result = const NoneResult();
     Node expression = node.receiver;
     Selector selector = operator.selector;
-    // TODO(johnniwinther): Remove this when all information goes through the
+    // TODO(23998): Remove this when all information goes through the
     // [SendStructure].
     registry.setSelector(node, selector);
 
@@ -1290,7 +1334,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         if (semantics.kind == AccessKind.SUPER_METHOD) {
           registry.registerStaticUse(semantics.element.declaration);
         }
-        // TODO(johnniwinther): Remove this when all information goes through
+        // TODO(23998): Remove this when all information goes through
         // the [SendStructure].
         registry.useElement(node, semantics.element);
       }
@@ -1450,7 +1494,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else {
       selector = new Selector.binaryOperator(operator.selectorName);
     }
-    // TODO(johnniwinther): Remove this when all information goes through the
+    // TODO(23998): Remove this when all information goes through the
     // [SendStructure].
     registry.setSelector(node, selector);
 
@@ -1463,7 +1507,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         if (semantics.kind == AccessKind.SUPER_METHOD) {
           registry.registerStaticUse(semantics.element.declaration);
         }
-        // TODO(johnniwinther): Remove this when all information goes through
+        // TODO(23998): Remove this when all information goes through
         // the [SendStructure].
         registry.useElement(node, semantics.element);
       }
@@ -1601,7 +1645,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     CallStructure callStructure =
         resolveArguments(node.argumentsNode).callStructure;
     Selector selector = callStructure.callSelector;
-    // TODO(johnniwinther): Remove this when all information goes through the
+    // TODO(23998): Remove this when all information goes through the
     // [SendStructure].
     registry.setSelector(node, selector);
     registry.registerDynamicInvocation(new UniverseSelector(selector, null));
@@ -1661,7 +1705,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         registry.registerSendStructure(node,
             new InvokeStructure(accessSemantics, selector));
       }
-      // TODO(johnniwinther): Remove this when all information goes through
+      // TODO(23998): Remove this when all information goes through
       // the [SendStructure].
       registry.setSelector(node, selector);
     } else {
@@ -1756,7 +1800,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
     target = semantics.element;
 
-    // TODO(johnniwinther): Remove these when all information goes through
+    // TODO(23998): Remove these when all information goes through
     // the [SendStructure].
     registry.useElement(node, target);
     registry.setSelector(node, selector);
@@ -1949,7 +1993,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       CallStructure callStructure =
           resolveArguments(node.argumentsNode).callStructure;
       Selector selector = callStructure.callSelector;
-      // TODO(johnniwinther): Remove this when all information goes through
+      // TODO(23998): Remove this when all information goes through
       // the [SendStructure].
       registry.setSelector(node, selector);
 
@@ -1982,7 +2026,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       CallStructure callStructure =
           resolveArguments(node.argumentsNode).callStructure;
       Selector selector = callStructure.callSelector;
-      // TODO(johnniwinther): Remove this when all information goes through
+      // TODO(23998): Remove this when all information goes through
       // the [SendStructure].
       registry.setSelector(node, selector);
 
@@ -2127,7 +2171,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           node, name, error, new StaticAccess.invalid(error));
     }
     if (prefix.isDeferred) {
-      // TODO(johnniwinther): Remove this when deferred access is detected
+      // TODO(23998): Remove this when deferred access is detected
       // through a [SendStructure].
       registry.useElement(node.selector, prefix);
     }
@@ -2173,7 +2217,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       sendStructure = new GetStructure(semantics, selector);
     }
     registry.registerSendStructure(node, sendStructure);
-    // TODO(johnniwinther): Remove this when all information goes through
+    // TODO(23998): Remove this when all information goes through
     // the [SendStructure].
     registry.setSelector(node, selector);
     return const NoneResult();
@@ -2265,7 +2309,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           new UniverseSelector(selector, null));
       sendStructure = new GetStructure(accessSemantics, selector);
     }
-    // TODO(johnniwinther): Remove this when all information goes through
+    // TODO(23998): Remove this when all information goes through
     // the [SendStructure].
     registry.setSelector(node, selector);
     registry.useElement(node, element);
@@ -2394,7 +2438,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           new GetStructure(semantics, selector));
     }
 
-    // TODO(johnniwinther): Remove these when all information goes through
+    // TODO(23998): Remove these when all information goes through
     // the [SendStructure].
     registry.useElement(node, element);
     registry.setSelector(node, selector);
@@ -2534,7 +2578,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
     }
 
-    // TODO(johnniwinther): Remove these when all information goes through
+    // TODO(23998): Remove these when all information goes through
     // the [SendStructure].
     registry.useElement(node, member);
     registry.setSelector(node, selector);
@@ -2690,7 +2734,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Selector operatorSelector =
           new Selector.binaryOperator(operator.selectorName);
 
-      // TODO(johnniwinther): Remove these when selectors are only accessed
+      // TODO(23998): Remove these when selectors are only accessed
       // through the send structure.
       registry.setGetterSelectorInComplexSendSet(node, getterSelector);
       registry.setSelector(node, setterSelector);
@@ -2720,7 +2764,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         AccessSemantics semantics = new DynamicAccess.dynamicProperty(receiver);
         Selector setterSelector = new Selector.indexSet();
 
-        // TODO(johnniwinther): Remove this when selectors are only accessed
+        // TODO(23998): Remove this when selectors are only accessed
         // through the send structure.
         registry.setSelector(node, setterSelector);
         registry.registerDynamicInvocation(
@@ -2738,7 +2782,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         Selector operatorSelector =
             new Selector.binaryOperator(operator.selectorName);
 
-        // TODO(johnniwinther): Remove these when selectors are only accessed
+        // TODO(23998): Remove these when selectors are only accessed
         // through the send structure.
         registry.setGetterSelectorInComplexSendSet(node, getterSelector);
         registry.setSelector(node, setterSelector);
@@ -2775,7 +2819,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Selector operatorSelector =
           new Selector.binaryOperator(operator.selectorName);
 
-      // TODO(johnniwinther): Remove these when selectors are only accessed
+      // TODO(23998): Remove these when selectors are only accessed
       // through the send structure.
       registry.setGetterSelectorInComplexSendSet(node, getterSelector);
       registry.setSelector(node, setterSelector);
@@ -2783,12 +2827,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
       if (semantics == null) {
         semantics = computeSuperAccessSemanticsForSelectors(
-            node, getterSelector, setterSelector);
+            node, getterSelector, setterSelector, isIndex: true);
 
         registry.registerStaticInvocation(semantics.getter);
         registry.registerStaticInvocation(semantics.setter);
 
-        // TODO(johnniwinther): Remove these when elements are only accessed
+        // TODO(23998): Remove these when elements are only accessed
         // through the send structure.
         registry.useElement(node, semantics.setter);
         registry.useElement(node.selector, semantics.getter);
@@ -2815,12 +2859,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           semantics =
               computeSuperAccessSemanticsForSelector(node, setterSelector);
 
-          // TODO(johnniwinther): Remove these when elements are only accessed
+          // TODO(23998): Remove these when elements are only accessed
           // through the send structure.
           registry.useElement(node, semantics.setter);
         }
 
-        // TODO(johnniwinther): Remove this when selectors are only accessed
+        // TODO(23998): Remove this when selectors are only accessed
         // through the send structure.
         registry.setSelector(node, setterSelector);
         registry.registerStaticInvocation(semantics.setter);
@@ -2837,18 +2881,18 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             new Selector.binaryOperator(operator.selectorName);
         if (semantics == null) {
           semantics = computeSuperAccessSemanticsForSelectors(
-              node, getterSelector, setterSelector);
+              node, getterSelector, setterSelector, isIndex: true);
 
           registry.registerStaticInvocation(semantics.getter);
           registry.registerStaticInvocation(semantics.setter);
 
-          // TODO(johnniwinther): Remove these when elements are only accessed
+          // TODO(23998): Remove these when elements are only accessed
           // through the send structure.
           registry.useElement(node, semantics.setter);
           registry.useElement(node.selector, semantics.getter);
         }
 
-        // TODO(johnniwinther): Remove these when selectors are only accessed
+        // TODO(23998): Remove these when selectors are only accessed
         // through the send structure.
         registry.setGetterSelectorInComplexSendSet(node, getterSelector);
         registry.setSelector(node, setterSelector);
@@ -2865,6 +2909,142 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
   }
 
+  /// Handle super index operations like `super.a = b`, `super.a += b`, and
+  /// `super.a++`.
+  // TODO(johnniwinther): Share code with [handleSuperIndexSendSet].
+  ResolutionResult handleSuperSendSet(SendSet node) {
+    Identifier selector = node.selector.asIdentifier();
+    String text = selector.source;
+    Name name = new Name(text, enclosingElement.library);
+    String operatorText = node.assignmentOperator.source;
+    AccessSemantics semantics = checkSuperAccess(node);
+    if (node.isPrefix || node.isPostfix) {
+      // `super.a++` or `++super.a`.
+      IncDecOperator operator = IncDecOperator.parse(operatorText);
+      Selector getterSelector =
+          new Selector(SelectorKind.GETTER, name, CallStructure.NO_ARGS);
+      Selector setterSelector =
+          new Selector(SelectorKind.SETTER, name.setter, CallStructure.ONE_ARG);
+      Selector operatorSelector =
+          new Selector.binaryOperator(operator.selectorName);
+
+      // TODO(23998): Remove these when selectors are only accessed
+      // through the send structure.
+      registry.setGetterSelectorInComplexSendSet(node, getterSelector);
+      registry.setSelector(node, setterSelector);
+      registry.setOperatorSelectorInComplexSendSet(node, operatorSelector);
+
+      if (semantics == null) {
+        semantics = computeSuperAccessSemanticsForSelectors(
+            node, getterSelector, setterSelector);
+
+        registry.registerStaticInvocation(semantics.getter);
+        registry.registerStaticInvocation(semantics.setter);
+
+        // TODO(23998): Remove these when elements are only accessed
+        // through the send structure.
+        registry.useElement(node, semantics.setter);
+        registry.useElement(node.selector, semantics.getter);
+      }
+      registry.registerDynamicInvocation(
+          new UniverseSelector(operatorSelector, null));
+
+      SendStructure sendStructure = node.isPrefix
+          ? new PrefixStructure(
+              semantics, operator, getterSelector, setterSelector)
+          : new PostfixStructure(
+              semantics, operator, getterSelector, setterSelector);
+      registry.registerSendStructure(node, sendStructure);
+      return const NoneResult();
+    } else {
+      Node rhs = node.arguments.head;
+      visitExpression(rhs);
+
+      AssignmentOperator operator = AssignmentOperator.parse(operatorText);
+      if (operator.kind == AssignmentOperatorKind.ASSIGN) {
+        // `super.a = b`.
+        Selector setterSelector = new Selector(
+            SelectorKind.SETTER, name.setter, CallStructure.ONE_ARG);
+        if (semantics == null) {
+          semantics =
+              computeSuperAccessSemanticsForSelector(
+                  node, setterSelector, alternateName: name);
+          switch (semantics.kind) {
+            case AccessKind.SUPER_FINAL_FIELD:
+              compiler.reportWarning(
+                  node,
+                  MessageKind.ASSIGNING_FINAL_FIELD_IN_SUPER,
+                  {'name': name,
+                   'superclassName': semantics.setter.enclosingClass.name});
+              registry.registerDynamicInvocation(
+                  new UniverseSelector(setterSelector, null));
+              registry.registerSuperNoSuchMethod();
+              break;
+            case AccessKind.SUPER_METHOD:
+              compiler.reportWarning(
+                  node, MessageKind.ASSIGNING_METHOD_IN_SUPER,
+                  {'name': name,
+                   'superclassName': semantics.setter.enclosingClass.name});
+              registry.registerDynamicInvocation(
+                  new UniverseSelector(setterSelector, null));
+              registry.registerSuperNoSuchMethod();
+              break;
+            default:
+              registry.registerStaticInvocation(semantics.setter);
+              break;
+          }
+
+          // TODO(23998): Remove these when elements are only accessed
+          // through the send structure.
+          registry.useElement(node, semantics.setter);
+        }
+
+        // TODO(23998): Remove this when selectors are only accessed
+        // through the send structure.
+        registry.setSelector(node, setterSelector);
+
+        SendStructure sendStructure =
+            new SetStructure(semantics, setterSelector);
+        registry.registerSendStructure(node, sendStructure);
+        return const NoneResult();
+      } else {
+        // `super.a += b`.
+        Selector getterSelector = new Selector(
+            SelectorKind.GETTER, name, CallStructure.NO_ARGS);
+        Selector setterSelector = new Selector(
+            SelectorKind.SETTER, name.setter, CallStructure.ONE_ARG);
+        Selector operatorSelector =
+            new Selector.binaryOperator(operator.selectorName);
+        if (semantics == null) {
+          semantics = computeSuperAccessSemanticsForSelectors(
+              node, getterSelector, setterSelector);
+
+          registry.registerStaticInvocation(semantics.getter);
+          registry.registerStaticInvocation(semantics.setter);
+
+          // TODO(23998): Remove these when elements are only accessed
+          // through the send structure.
+          registry.useElement(node, semantics.setter);
+          registry.useElement(node.selector, semantics.getter);
+        }
+
+        // TODO(23998): Remove these when selectors are only accessed
+        // through the send structure.
+        registry.setGetterSelectorInComplexSendSet(node, getterSelector);
+        registry.setSelector(node, setterSelector);
+        registry.setOperatorSelectorInComplexSendSet(node, operatorSelector);
+
+        registry.registerDynamicInvocation(
+            new UniverseSelector(operatorSelector, null));
+
+        SendStructure sendStructure = new CompoundStructure(
+                semantics, operator, getterSelector, setterSelector);
+        registry.registerSendStructure(node, sendStructure);
+        return const NoneResult();
+      }
+    }
+  }
+
   ResolutionResult visitSendSet(SendSet node) {
     if (node.isIndex) {
       if (node.isSuperCall) {
@@ -2872,6 +3052,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       } else {
         return handleIndexSendSet(node);
       }
+    } else if (node.isSuperCall) {
+      return handleSuperSendSet(node);
     }
     return oldVisitSendSet(node);
   }
@@ -2942,7 +3124,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           setter = reportAndCreateErroneousElement(
               node.selector, target.name, MessageKind.ASSIGNING_METHOD_IN_SUPER,
               {'name': target.name,
-               'superclassName': target.enclosingElement.name});
+               'superclassName': target.enclosingClass.name});
           registry.registerSuperNoSuchMethod();
         } else {
           // For instance methods we don't report a warning here because the

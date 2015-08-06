@@ -2982,6 +2982,7 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
         backend.compiler.objectClass.lookupLocalMember(Compiler.NO_SUCH_METHOD),
         registry);
     registerBackendInstantiation(backend.compiler.listClass, registry);
+    registerBackendInstantiation(backend.compiler.stringClass, registry);
   }
 
   void onMapLiteral(ResolutionRegistry registry,

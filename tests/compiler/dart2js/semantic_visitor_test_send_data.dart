@@ -1191,7 +1191,6 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_SUPER_FIELD_SET,
                     element: 'field(B#o)',
                     rhs: '42')),
-    // TODO(johnniwinther): Expect [VISIT_FINAL_SUPER_FIELD_SET] instead.
     const Test.clazz(
         '''
         class B {
@@ -1201,8 +1200,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { super.o = 42; }
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_FINAL_SUPER_FIELD_SET,
+                    element: 'field(B#o)',
                     rhs: '42')),
     const Test.clazz(
         '''
@@ -1250,7 +1249,6 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_SETTER_GET,
                     element: 'setter(B#o)')),
-    // TODO(johnniwinther): Expect [VISIT_SUPER_GETTER_SET] instead.
     const Test.clazz(
         '''
         class B {
@@ -1260,8 +1258,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { super.o = 42; }
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_SUPER_GETTER_SET,
+                    element: 'getter(B#o)',
                     rhs: '42')),
     const Test.clazz(
         '''
@@ -1313,6 +1311,18 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_METHOD_GET,
                     element: 'function(B#o)')),
+    const Test.clazz(
+        '''
+        class B {
+          o(a, b) {}
+        }
+        class C extends B {
+          m() { super.o = 42; }
+        }
+        ''',
+        const Visit(VisitKind.VISIT_SUPER_METHOD_SET,
+                    element: 'function(B#o)',
+                    rhs: '42')),
     const Test.clazz(
         '''
         class B {

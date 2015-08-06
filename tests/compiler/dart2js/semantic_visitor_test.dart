@@ -207,9 +207,6 @@ const List<VisitKind> UNTESTABLE_KINDS = const <VisitKind>[
   VisitKind.VISIT_FINAL_TOP_LEVEL_FIELD_SET,
   VisitKind.VISIT_TOP_LEVEL_GETTER_SET,
   VisitKind.VISIT_TOP_LEVEL_FUNCTION_SET,
-  VisitKind.VISIT_FINAL_SUPER_FIELD_SET,
-  VisitKind.VISIT_SUPER_GETTER_SET,
-  VisitKind.VISIT_SUPER_METHOD_SET,
   // The only undefined unary, `+`, is currently handled and skipped in the
   // parser.
   VisitKind.ERROR_UNDEFINED_UNARY_EXPRESSION,

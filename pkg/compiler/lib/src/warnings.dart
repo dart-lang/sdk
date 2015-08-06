@@ -82,6 +82,7 @@ enum MessageKind {
   AMBIGUOUS_LOCATION,
   AMBIGUOUS_REEXPORT,
   ASSERT_IS_GIVEN_NAMED_ARGUMENTS,
+  ASSIGNING_FINAL_FIELD_IN_SUPER,
   ASSIGNING_METHOD,
   ASSIGNING_METHOD_IN_SUPER,
   ASSIGNING_TYPE,
@@ -1762,6 +1763,11 @@ main() => new C();"""]),
       MessageKind.CANNOT_RESOLVE_SETTER:
         const MessageTemplate(MessageKind.CANNOT_RESOLVE_SETTER,
           "Cannot resolve setter."),
+
+      MessageKind.ASSIGNING_FINAL_FIELD_IN_SUPER:
+        const MessageTemplate(MessageKind.ASSIGNING_FINAL_FIELD_IN_SUPER,
+          "Cannot assign a value to final field '#{name}' "
+          "in superclass '#{superclassName}'."),
 
       MessageKind.ASSIGNING_METHOD:
         const MessageTemplate(MessageKind.ASSIGNING_METHOD,

@@ -40,7 +40,7 @@ class WarningMessage {
   Message message;
   WarningMessage(this.node, this.message);
 
-  toString() => message.toString();
+  toString() => message.kind.toString();
 }
 
 final Uri PATCH_CORE = new Uri(scheme: 'patch', path: 'core');

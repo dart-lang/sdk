@@ -467,7 +467,6 @@ deferred_type_dependency_test/is: Crash # (main()async{await l...  cannot handle
 deferred_type_dependency_test/none: Crash # (main()async{await l...  cannot handle async/sync*/async* functions
 deferred_type_dependency_test/type_annotation: Crash # (main()async{await l...  cannot handle async/sync*/async* functions
 enum_mirror_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
-final_super_field_set_test/01: RuntimeError # Please triage this failure.
 first_class_types_test: RuntimeError # Please triage this failure.
 flatten_test/01: Crash # (test()async{int x=await new Derived<int>();}): cannot handle async/sync*/async* functions
 flatten_test/02: Crash # (test()async{Future<int> f()async=>new Derived<int>();}): cannot handle async/sync*/async* functions
