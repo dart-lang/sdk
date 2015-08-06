@@ -44,6 +44,52 @@ void testSyncStarTransform(String source, String expected) {
 }
 
 main() {
+  testAsyncTransform(  /// 01: ok
+r"""function() async {
+  var closures = [new A.main_closure()], v0 = await closures, v1 = 0, v2, v3;
+  if (v1 < 0 || v1 >= v0.length)
+    H.ioore(v0, v1);
+  v2 = 4;
+  v3 = 2;
+  P.print(v0[v1].call$2(v2, v3));
+}"""
+,  /// 01: ok
+ r"""function() {
+  var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, closures, v0, v1, v2, v3;
+  function body(__errorCode, __result) {
+    if (__errorCode === 1) {
+      __currentError = __result;
+      __goto = __handler;
+    }
+    while (true)
+      switch (__goto) {
+        case 0:
+          // Function start
+          __goto = 2;
+        closures = [new A.main_closure()];
+        return thenHelper(closures, body, __completer);
+        case 2:
+          // returning from await.
+          v0 = __result, v1 = 0;
+          if (v1 < 0 || v1 >= v0.length)
+            H.ioore(v0, v1);
+          else
+            ;
+          v2 = 4;
+          v3 = 2;
+          P.print(v0[v1].call$2(v2, v3));
+          // implicit return
+          return thenHelper(null, 0, __completer, null);
+        case 1:
+          // rethrow
+          return thenHelper(__currentError, 1, __completer);
+      }
+  }
+  return thenHelper(null, body, __completer, null);
+}"""
+  )  /// 01: ok
+  ;
+
   testAsyncTransform("""
 function(a) async {
   print(this.x); // Ensure `this` is translated in the helper function.
