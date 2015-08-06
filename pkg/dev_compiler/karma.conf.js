@@ -41,6 +41,7 @@ module.exports = function(config) {
     },
 
     client: {
+      captureConsole: false,
       mocha: {
         ui: 'tdd'
       },
@@ -97,6 +98,7 @@ module.exports = function(config) {
     configuration.browsers = ['chrome_canary_travis'];
     configuration.autoWatch = false;
     configuration.logLevel = config.LOG_DEBUG;
+    configuration.client.captureConsole = true;
   }
 
   config.set(configuration);
