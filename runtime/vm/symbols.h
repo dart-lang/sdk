@@ -390,6 +390,8 @@ class ObjectPointerVisitor;
   V(removeLast, "removeLast")                                                  \
   V(add, "add")                                                                \
   V(ConstructorClosurePrefix, "new#")                                          \
+  V(_extensionExists, "_extensionExists")                                      \
+  V(_invokeExtension, "_invokeExtension")                                      \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

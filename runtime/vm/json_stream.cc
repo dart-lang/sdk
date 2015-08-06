@@ -103,8 +103,7 @@ static const char* GetJSONRpcErrorMessage(intptr_t code) {
     case kCannotAddBreakpoint:
       return "Cannot add breakpoint";
     default:
-      UNIMPLEMENTED();
-      return "Unexpected rpc error code";
+      return "Extension error";
   }
 }
 

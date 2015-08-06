@@ -13,7 +13,9 @@ library dart.developer;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate' show SendPort;
 
+part 'extension.dart';
 part 'profiler.dart';
 
 /// If [when] is true, stop the program as if a breakpoint were hit at the
