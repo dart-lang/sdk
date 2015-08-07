@@ -154,8 +154,7 @@ analyzer/test/*: PubGetError
 
 [ $compiler == dart2js && $cps_ir ]
 analyzer/test/cancelable_future_test: Crash # Invalid argument(s)
-analyzer/test/enum_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
-analyzer/test/file_system/physical_resource_provider_test: Crash # (Future _poll()async...  cannot handle async/sync*/async* functions
-analyzer/test/generated/all_the_rest_test: Crash # (Future test_implici...  cannot handle async/sync*/async* functions
+analyzer/test/enum_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
+analyzer/test/generated/all_the_rest_test: Crash # Invalid argument(s)
 analyzer/test/src/context/context_test: Crash # Invalid argument(s)
 typed_data/test/typed_buffers_test/none: RuntimeError # Please triage this failure.

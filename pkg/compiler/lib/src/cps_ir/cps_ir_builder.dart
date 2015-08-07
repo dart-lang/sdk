@@ -2705,6 +2705,10 @@ class IrBuilder {
         new CallStructure.unnamed(1),
         <ir.Primitive>[value]);
   }
+
+  ir.Node buildAwait(ir.Primitive value) {
+    return _continueWithExpression((k) => new ir.Await(value, k));
+  }
 }
 
 

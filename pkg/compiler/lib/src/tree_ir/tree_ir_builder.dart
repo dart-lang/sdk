@@ -653,6 +653,12 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
                         getVariableUse(node.value));
   }
 
+  @override
+  NodeCallback visitAwait(cps_ir.Await node) {
+    Expression value = new Await(getVariableUse(node.input));
+    return makeCallExpression(node, value);
+  }
+
   /********** UNUSED VISIT METHODS *************/
 
   unexpectedNode(cps_ir.Node node) {

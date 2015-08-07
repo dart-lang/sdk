@@ -827,6 +827,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
     }
   }
 
+  @override
+  js.Expression visitAwait(tree_ir.Await node) {
+    return new js.Await(visitExpression(node.input));
+  }
+
   visitFunctionExpression(tree_ir.FunctionExpression node) {
     // FunctionExpressions are currently unused.
     // We might need them if we want to emit raw JS nested functions.

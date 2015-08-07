@@ -170,19 +170,12 @@ io/test_runner_test: Skip  # Timeout.
 io/http_client_stays_alive_test: Skip  # Timeout.
 
 [ $compiler == dart2js && $cps_ir ]
-coverage_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
-io/addlatexhash_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
-io/file_error_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
-io/file_read_encoded_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
-io/file_test: Crash # (static testWriteFro...  cannot handle async/sync*/async* functions
-io/file_write_only_test: Crash # (main()async{asyncSt...  cannot handle async/sync*/async* functions
-io/http_bind_test: Crash # (testBindShared(Stri...  cannot handle async/sync*/async* functions
-io/http_client_connect_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
-io/https_bad_certificate_test: Crash # (main()async{var cli...  cannot handle async/sync*/async* functions
-io/issue_22636_test: Crash # (test()async{server=...  cannot handle async/sync*/async* functions
-io/issue_22637_test: Crash # (test()async{server=...  cannot handle async/sync*/async* functions
-io/observatory_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
-io/skipping_dart2js_compilations_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
-io/socket_bind_test: Crash # (testListenCloseList...  cannot handle async/sync*/async* functions
-io/socket_source_address_test: Crash # (Future testConnect(...  cannot handle async/sync*/async* functions
+coverage_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
+io/addlatexhash_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
+io/file_error_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
+io/file_read_encoded_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
+io/file_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
+io/http_client_connect_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
+io/observatory_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
+io/skipping_dart2js_compilations_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 priority_queue_stress_test: RuntimeError # Cannot read property 'any$1' of undefined

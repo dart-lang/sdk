@@ -1087,6 +1087,20 @@ class TypeExpression extends Primitive {
   bool get isSafeForReordering => true;
 }
 
+class Await extends CallExpression {
+  final Reference<Primitive> input;
+  final Reference<Continuation> continuation;
+
+  Await(Primitive input, Continuation continuation)
+    : this.input = new Reference<Primitive>(input),
+      this.continuation = new Reference<Continuation>(continuation);
+
+  @override
+  accept(Visitor visitor) {
+    return visitor.visitAwait(this);
+  }
+}
+
 List<Reference<Primitive>> _referenceList(Iterable<Primitive> definitions) {
   return definitions.map((e) => new Reference<Primitive>(e)).toList();
 }
@@ -1118,6 +1132,7 @@ abstract class Visitor<T> {
   T visitGetLazyStatic(GetLazyStatic node);
   T visitSetField(SetField node);
   T visitUnreachable(Unreachable node);
+  T visitAwait(Await node);
 
   // Definitions.
   T visitLiteralList(LiteralList node);
@@ -1421,6 +1436,13 @@ class LeafVisitor implements Visitor {
   processUnreachable(Unreachable node) {}
   visitUnreachable(Unreachable node) {
     processUnreachable(node);
+  }
+
+  processAwait(Await node) {}
+  visitAwait(Await node) {
+    processAwait(node);
+    processReference(node.input);
+    processReference(node.continuation);
   }
 
   processGetLength(GetLength node) {}

@@ -21,10 +21,10 @@ optimization_hints_test: Fail, OK # Test relies on unminified names.
 compute_this_script_test: Skip # Issue 17458
 
 [ $compiler == dart2js && $cps_ir ]
-mirror_intercepted_field_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
+mirror_intercepted_field_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 native_exception_test: RuntimeError # value_.toString$0 is not a function
 native_method_inlining_test: RuntimeError # Please triage this failure.
-native_mirror_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
+native_mirror_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 native_no_such_method_exception3_frog_test: RuntimeError # Please triage this failure.
 optimization_hints_test: RuntimeError # Please triage this failure.
 subclassing_constructor_1_test: RuntimeError # Please triage this failure.

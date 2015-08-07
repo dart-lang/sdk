@@ -51,6 +51,7 @@ import '../resolution/resolution.dart' show ResolutionRegistry;
 
 import 'constant_system_javascript.dart';
 import 'patch_resolver.dart';
+import '../js/rewrite_async.dart';
 
 part 'backend.dart';
 part 'checked_mode_helpers.dart';

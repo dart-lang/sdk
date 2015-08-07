@@ -687,6 +687,11 @@ class ParentVisitor extends RecursiveVisitor {
     node.index.parent = node;
     node.value.parent = node;
   }
+
+  processAwait(Await node) {
+    node.continuation.parent = node;
+    node.input.parent = node;
+  }
 }
 
 class _ReductionKind {

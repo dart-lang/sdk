@@ -555,6 +555,12 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     String value = visitExpression(node.value);
     return 'SetIndex($object, $index, $value)';
   }
+
+  @override
+  String visitAwait(Await node) {
+    String value = visitExpression(node.input);
+    return 'Await($value)';
+  }
 }
 
 /**

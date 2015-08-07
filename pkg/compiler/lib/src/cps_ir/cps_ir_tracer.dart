@@ -382,6 +382,13 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String value = formatReference(node.value);
     return 'SetIndex $object $index $value';
   }
+
+  @override
+  visitAwait(cps_ir.Await node) {
+    String value = formatReference(node.input);
+    String continuation = formatReference(node.continuation);
+    return 'Await $value $continuation';
+  }
 }
 
 /**
@@ -652,5 +659,10 @@ class BlockCollector implements cps_ir.Visitor {
   @override
   visitForeignCode(cps_ir.ForeignCode node) {
     addEdgeToContinuation(node.continuation);
+  }
+
+  @override
+  visitAwait(cps_ir.Await node) {
+    unexpectedNode(node);
   }
 }

@@ -1107,6 +1107,11 @@ class StatementRewriter extends Transformer implements Pass {
     _rewriteList(node.arguments);
     return node;
   }
+
+  @override
+  Expression visitAwait(Await node) {
+    return node;
+  }
 }
 
 /// Result of combining two expressions, with the potential for reverting the

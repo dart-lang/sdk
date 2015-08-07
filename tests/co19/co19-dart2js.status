@@ -9578,7 +9578,7 @@ Language/13_Statements/14_Continue_A02_t12: Crash # (switch (2){L:case 1:flag=tr
 Language/13_Statements/14_Continue_A02_t13: Crash # (switch (2){case 2:continue L;L:case 1:flag=true;}): continue to a labeled switch case
 Language/15_Types/4_Interface_Types_A12_t09: RuntimeError # Please triage this failure.
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Crash # (lazy.method()): deferred access is not implemented
-LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout # Please triage this failure.
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout # Please triage this failure.
 LibTest/core/Invocation/isAccessor_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 LibTest/core/Invocation/isGetter_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/Invocation/isGetter_A01_t02: RuntimeError # Please triage this failure.
@@ -9592,6 +9592,7 @@ LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Pass # Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Pass # Please triage this failure.
+LibTest/html/Element/append_A02_t02: Timeout # Please triage this failure.
 LibTest/typed_data/Float32List/setAll_A01_t01: RuntimeError # this.get$length is not a function
 LibTest/typed_data/Float32List/setRange_A01_t01: RuntimeError # this.get$length is not a function
 LibTest/typed_data/Float32List/setRange_A02_t01: RuntimeError # this.get$length is not a function

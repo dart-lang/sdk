@@ -696,7 +696,7 @@ class TransformingVisitor extends LeafVisitor {
     context.body = node;
     node.parent = context;
   }
-  
+
   /// Binds [prim] before [node].
   void insertLetPrim(Expression node, Primitive prim) {
     InteriorNode parent = node.parent;
@@ -2238,6 +2238,12 @@ class TypePropagationVisitor implements Visitor {
   @override
   void visitSetIndex(SetIndex node) {
     setValue(node, nonConstant());
+  }
+
+  @override
+  visitAwait(Await node) {
+    Continuation continuation = node.continuation.definition;
+    setReachable(continuation);
   }
 }
 

@@ -353,6 +353,11 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return giveup(node, 'await for');
   }
 
+  visitAwait(ast.Await node) {
+    ir.Primitive value = visit(node.expression);
+    return irBuilder.buildAwait(value);
+  }
+
   visitSyncForIn(ast.SyncForIn node) {
     // [node.declaredIdentifier] can be either an [ast.VariableDefinitions]
     // (defining a new local variable) or a send designating some existing
@@ -2180,9 +2185,12 @@ class DartCapturedVariables extends ast.Visitor {
   visitFunctionExpression(ast.FunctionExpression node) {
     FunctionElement savedFunction = currentFunction;
     currentFunction = elements[node];
-    if (currentFunction.asyncMarker != AsyncMarker.SYNC) {
-      giveup(node, "cannot handle async/sync*/async* functions");
+
+    if (currentFunction.asyncMarker != AsyncMarker.SYNC &&
+        currentFunction.asyncMarker != AsyncMarker.ASYNC) {
+      giveup(node, "cannot handle sync*/async* functions");
     }
+
     bool savedInsideInitializer = insideInitializer;
     if (node.initializers != null) {
       insideInitializer = true;
