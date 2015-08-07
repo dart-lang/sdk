@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.constants.constructors;
+// TODO(johnniwinther): Remove this library when all constant constructors are
+// computed during resolution.
+library dart2js.constants.constant_constructors;
 
 import '../dart2jslib.dart';
 import '../dart_types.dart';
@@ -13,6 +15,7 @@ import '../resolution/semantic_visitor.dart';
 import '../resolution/send_structure.dart';
 import '../tree/tree.dart';
 import '../universe/universe.dart' show CallStructure;
+import 'constructors.dart';
 import 'expressions.dart';
 
 ConstantConstructor computeConstantConstructor(ResolvedAst resolvedAst) {

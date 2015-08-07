@@ -12,6 +12,8 @@ import '../compiler.dart' as api;
 
 import 'colors.dart' as colors;
 import 'constants/constant_system.dart' as constants;
+import 'constants/constructors.dart' as constants;
+import 'constants/evaluation.dart' as constants;
 import 'constants/expressions.dart' as constants;
 import 'constants/values.dart' as constants;
 import 'cps_ir/cps_ir_builder.dart' as ir_builder;
@@ -83,7 +85,8 @@ void main(List<String> arguments) {
 useApi(api.ReadStringFromUri uri) {
 }
 
-class NullConstantConstructorVisitor extends constants.ConstantConstructorVisitor {
+class NullConstantConstructorVisitor
+    extends constants.ConstantConstructorVisitor {
   @override
   visitGenerative(constants.GenerativeConstantConstructor constructor, arg) {
   }

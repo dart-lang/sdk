@@ -11,6 +11,7 @@ library dart2js.serialization.modelz;
 
 import 'serialization.dart';
 import 'keys.dart';
+import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart2jslib.dart'
     show Backend,

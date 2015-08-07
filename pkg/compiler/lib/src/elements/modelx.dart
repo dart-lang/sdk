@@ -6,8 +6,9 @@ library elements.modelx;
 
 import 'common.dart';
 import 'elements.dart';
-import '../constants/expressions.dart';
 import '../constants/constant_constructors.dart';
+import '../constants/constructors.dart';
+import '../constants/expressions.dart';
 import '../helpers/helpers.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
