@@ -7229,6 +7229,7 @@ RawField* Field::New(const String& name,
   result.set_is_final(is_final);
   result.set_is_const(is_const);
   result.set_is_reflectable(is_reflectable);
+  result.set_is_double_initialized(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);

@@ -2817,6 +2817,12 @@ class Field : public Object {
   bool is_reflectable() const {
     return ReflectableBit::decode(raw_ptr()->kind_bits_);
   }
+  bool is_double_initialized() const {
+    return DoubleInitializedBit::decode(raw_ptr()->kind_bits_);
+  }
+  void set_is_double_initialized(bool value) const {
+    set_kind_bits(DoubleInitializedBit::update(value, raw_ptr()->kind_bits_));
+  }
 
   inline intptr_t Offset() const;
   inline void SetOffset(intptr_t value_in_bytes) const;
@@ -2987,16 +2993,18 @@ class Field : public Object {
     kFinalBit,
     kHasInitializerBit,
     kUnboxingCandidateBit,
-    kReflectableBit
+    kReflectableBit,
+    kDoubleInitializedBit,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
   class FinalBit : public BitField<bool, kFinalBit, 1> {};
   class HasInitializerBit : public BitField<bool, kHasInitializerBit, 1> {};
   class UnboxingCandidateBit : public BitField<bool,
-                                               kUnboxingCandidateBit, 1> {
-  };
+                                               kUnboxingCandidateBit, 1> {};
   class ReflectableBit : public BitField<bool, kReflectableBit, 1> {};
+  class DoubleInitializedBit : public BitField<bool,
+                                               kDoubleInitializedBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
