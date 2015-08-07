@@ -580,6 +580,20 @@ analyzer:
         equals('/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart'));
   }
 
+  void test_setRoots_addFolderWithPackagespecAndPackageRoot() {
+    // The package root should take priority.
+    String packagespecPath = posix.join(projPath, '.packages');
+    resourceProvider.newFile(packagespecPath,
+        'unittest:file:///home/somebody/.pub/cache/unittest-0.9.9/lib/');
+    String packageRootPath = '/package/root/';
+    manager.setRoots(<String>[projPath], <String>[],
+        <String, String>{projPath: packageRootPath});
+    expect(callbacks.currentContextPaths, hasLength(1));
+    expect(callbacks.currentContextPaths, contains(projPath));
+    expect(callbacks.currentContextDispositions[projPath].packageRoot,
+        packageRootPath);
+  }
+
   void test_setRoots_addFolderWithPubspec() {
     String pubspecPath = posix.join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
