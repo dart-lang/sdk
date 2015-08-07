@@ -448,8 +448,14 @@ class SampleBufferControlElement extends ObservatoryElement {
     }
     await _changeState(kFetchingState);
     try {
-      var params = { 'tags': tagSelector };
-      var response = await isolate.invokeRpc('_getCpuProfile', params);
+      var response;
+      if (allocationProfileClass != null) {
+        response =
+            await allocationProfileClass.getAllocationSamples(tagSelector);
+      } else {
+        var params = { 'tags': tagSelector };
+        response = await isolate.invokeRpc('_getCpuProfile', params);
+      }
       await _changeState(kLoadingState);
       profile.load(isolate, response);
       _update(profile);
@@ -512,7 +518,7 @@ class SampleBufferControlElement extends ObservatoryElement {
   @observable String fetchTime = '';
   @observable String loadTime = '';
   @observable String tagSelector = 'UserVM';
-  @observable String state = 'kFetching';
+  @observable String state = kFetchingState;
   @observable var exception;
   @observable var stackTrace;
 
@@ -521,8 +527,10 @@ class SampleBufferControlElement extends ObservatoryElement {
   static const kFetchingState = 'kFetching';
   static const kLoadedState = 'kLoaded';
   static const kLoadingState = 'kLoading';
+  static const kNotLoadedState = 'kNotLoaded';
 
   Isolate isolate;
+  Class allocationProfileClass;
 
   final CpuProfile profile = new CpuProfile();
   final Stopwatch _stopWatch = new Stopwatch();
