@@ -239,6 +239,10 @@ class AccessSemantics {
   /// [element] otherwise.
   Element get setter => element;
 
+  // TODO(johnniwinther): Make access semantics getter/setter specific.
+  /// `true` if the [element] of this access is accessed statically.
+  bool get isAccessedStatically => false;
+
   AccessSemantics.expression()
       : kind = AccessKind.EXPRESSION;
 
@@ -275,6 +279,8 @@ class DynamicAccess extends AccessSemantics {
 
   DynamicAccess.ifNotNullProperty(this.target)
       : super._(AccessKind.CONDITIONAL_DYNAMIC_PROPERTY);
+
+  bool get isAccessedStatically => false;
 }
 
 class ConstantAccess extends AccessSemantics {
@@ -291,6 +297,8 @@ class ConstantAccess extends AccessSemantics {
 
   ConstantAccess.dynamicTypeLiteral(this.constant)
       : super._(AccessKind.DYNAMIC_TYPE_LITERAL);
+
+  bool get isAccessedStatically => false;
 }
 
 class StaticAccess extends AccessSemantics {
@@ -372,6 +380,18 @@ class StaticAccess extends AccessSemantics {
 
   StaticAccess.invalid(this.element)
       : super._(AccessKind.INVALID);
+
+  bool get isAccessedStatically {
+    switch (kind) {
+      case AccessKind.UNRESOLVED:
+      case AccessKind.UNRESOLVED_SUPER:
+      case AccessKind.INVALID:
+      case AccessKind.TYPE_PARAMETER_TYPE_LITERAL:
+        return false;
+      default:
+        return true;
+    }
+  }
 }
 
 class CompoundAccessSemantics extends AccessSemantics {
@@ -385,6 +405,9 @@ class CompoundAccessSemantics extends AccessSemantics {
       : super._(AccessKind.COMPOUND);
 
   Element get element => setter;
+
+  // TODO(johnniwinther): Discriminate between access of the getter and setter.
+  bool get isAccessedStatically => true;
 
   String toString() {
     StringBuffer sb = new StringBuffer();
