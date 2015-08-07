@@ -125,6 +125,12 @@ void Thread::EnterIsolate(Isolate* isolate) {
   ASSERT(!isolate->HasMutatorThread());
   thread->isolate_ = isolate;
   isolate->MakeCurrentThreadMutator(thread);
+  isolate->set_vm_tag(VMTag::kVMTagId);
+  ASSERT(thread->store_buffer_block_ == NULL);
+  thread->store_buffer_block_ = isolate->store_buffer()->PopNonFullBlock();
+  ASSERT(isolate->heap() != NULL);
+  thread->heap_ = isolate->heap();
+  thread->Schedule(isolate);
   ASSERT(thread->thread_state() == NULL);
   InterruptableThreadState* thread_state =
       ThreadInterrupter::GetCurrentThreadState();
@@ -136,12 +142,6 @@ void Thread::EnterIsolate(Isolate* isolate) {
   ASSERT(thread_state != NULL);
   // TODO(koda): Migrate profiler interface to use Thread.
   Profiler::BeginExecution(isolate);
-  isolate->set_vm_tag(VMTag::kVMTagId);
-  ASSERT(thread->store_buffer_block_ == NULL);
-  thread->store_buffer_block_ = isolate->store_buffer()->PopNonFullBlock();
-  ASSERT(isolate->heap() != NULL);
-  thread->heap_ = isolate->heap();
-  thread->Schedule(isolate);
 }
 
 
@@ -150,6 +150,8 @@ void Thread::ExitIsolate() {
   // TODO(koda): Audit callers; they should know whether they're in an isolate.
   if (thread == NULL || thread->isolate() == NULL) return;
   Isolate* isolate = thread->isolate();
+  Profiler::EndExecution(isolate);
+  thread->set_thread_state(NULL);
   thread->Unschedule();
   StoreBufferBlock* block = thread->store_buffer_block_;
   thread->store_buffer_block_ = NULL;
@@ -159,8 +161,6 @@ void Thread::ExitIsolate() {
   } else {
     isolate->set_vm_tag(VMTag::kLoadWaitTagId);
   }
-  Profiler::EndExecution(isolate);
-  thread->set_thread_state(NULL);
   isolate->ClearMutatorThread();
   thread->isolate_ = NULL;
   ASSERT(Isolate::Current() == NULL);

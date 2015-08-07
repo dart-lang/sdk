@@ -50,7 +50,8 @@ void ThreadInterrupter::InterruptThread(InterruptableThreadState* state) {
     OS::Print("ThreadInterrupter interrupting %p\n",
               reinterpret_cast<void*>(state->id));
   }
-  syscall(__NR_tgkill, getpid(), state->id, SIGPROF);
+  int resut = syscall(__NR_tgkill, getpid(), state->id, SIGPROF);
+  ASSERT(result == 0);
 }
 
 

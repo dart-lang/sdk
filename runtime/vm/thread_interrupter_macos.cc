@@ -47,7 +47,8 @@ void ThreadInterrupter::InterruptThread(InterruptableThreadState* state) {
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter interrupting %p\n", state->id);
   }
-  pthread_kill(state->id, SIGPROF);
+  int result = pthread_kill(state->id, SIGPROF);
+  ASSERT(result == 0);
 }
 
 
