@@ -802,35 +802,40 @@ class A {
     addTestSource('import "foo" d^ import');
     expect(computeFast(), isTrue);
     assertSuggestKeywords([Keyword.AS],
-        pseudoKeywords: ['deferred as', 'show', 'hide'], relevance: DART_RELEVANCE_HIGH);
+        pseudoKeywords: ['deferred as', 'show', 'hide'],
+        relevance: DART_RELEVANCE_HIGH);
   }
 
   test_import_deferred_as() {
     addTestSource('import "foo" ^;');
     expect(computeFast(), isTrue);
     assertSuggestKeywords([Keyword.AS],
-        pseudoKeywords: ['deferred as', 'show', 'hide'], relevance: DART_RELEVANCE_HIGH);
+        pseudoKeywords: ['deferred as', 'show', 'hide'],
+        relevance: DART_RELEVANCE_HIGH);
   }
 
   test_import_deferred_as2() {
     addTestSource('import "foo" d^;');
     expect(computeFast(), isTrue);
     assertSuggestKeywords([Keyword.AS],
-        pseudoKeywords: ['deferred as', 'show', 'hide'], relevance: DART_RELEVANCE_HIGH);
+        pseudoKeywords: ['deferred as', 'show', 'hide'],
+        relevance: DART_RELEVANCE_HIGH);
   }
 
   test_import_deferred_as3() {
     addTestSource('import "foo" ^');
     expect(computeFast(), isTrue);
     assertSuggestKeywords([Keyword.AS],
-        pseudoKeywords: ['deferred as', 'show', 'hide'], relevance: DART_RELEVANCE_HIGH);
+        pseudoKeywords: ['deferred as', 'show', 'hide'],
+        relevance: DART_RELEVANCE_HIGH);
   }
 
   test_import_deferred_as4() {
     addTestSource('import "foo" d^');
     expect(computeFast(), isTrue);
     assertSuggestKeywords([Keyword.AS],
-        pseudoKeywords: ['deferred as', 'show', 'hide'], relevance: DART_RELEVANCE_HIGH);
+        pseudoKeywords: ['deferred as', 'show', 'hide'],
+        relevance: DART_RELEVANCE_HIGH);
   }
 
   test_import_deferred_not() {
@@ -838,6 +843,13 @@ class A {
     expect(computeFast(), isTrue);
     assertSuggestKeywords([],
         pseudoKeywords: ['show', 'hide'], relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_import_incomplete() {
+    addTestSource('import "^"');
+    expect(computeFast(), isTrue);
+    assertNoSuggestions();
+    assertSuggestKeywords([]);
   }
 
   test_library() {

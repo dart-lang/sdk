@@ -49,6 +49,20 @@ class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
   }
 
   @override
+  visitImportDirective(ImportDirective node) {
+    StringLiteral uri = node.uri;
+    if (uri is SimpleStringLiteral) {
+      int offset = request.offset;
+      if (uri.offset < offset &&
+          (offset < uri.end || offset == uri.offset + 1)) {
+        // Handle degenerate case where import is only line in file
+        // and there is no semicolon
+        visitSimpleStringLiteral(uri);
+      }
+    }
+  }
+
+  @override
   visitSimpleStringLiteral(SimpleStringLiteral node) {
     AstNode parent = node.parent;
     if (parent is ImportDirective && parent.uri == node) {

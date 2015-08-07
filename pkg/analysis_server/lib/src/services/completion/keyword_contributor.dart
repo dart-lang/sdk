@@ -203,7 +203,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         _addSuggestion(Keyword.DEFERRED, DART_RELEVANCE_HIGH);
       }
     }
-    if (entity == node.semicolon || node.combinators.contains(entity)) {
+    // Handle degenerate case where import statement does not have a semicolon
+    // and the cursor is in the uri string
+    if ((entity == node.semicolon &&
+            node.uri != null &&
+            node.uri.offset + 1 != request.offset) ||
+        node.combinators.contains(entity)) {
       _addImportDirectiveKeywords(node);
     }
   }

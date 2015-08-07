@@ -28,6 +28,15 @@ class ImportUriContributorTest extends AbstractCompletionTest {
   }
 
   test_import() {
+    addTestSource('import "^"');
+    computeFast();
+    expect(request.replacementOffset, completionOffset);
+    expect(request.replacementLength, 0);
+    assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
+  }
+
+  test_import2() {
     addTestSource('import "^" import');
     computeFast();
     expect(request.replacementOffset, completionOffset);
