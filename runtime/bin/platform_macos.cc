@@ -12,7 +12,9 @@
 #include "bin/file.h"
 #include "bin/platform.h"
 
+#if !defined(TARGET_OS_IOS)
 #include <crt_externs.h>  // NOLINT
+#endif  // !defined(TARGET_OS_IOS)
 #include <signal.h>  // NOLINT
 #include <string.h>  // NOLINT
 #include <unistd.h>  // NOLINT
