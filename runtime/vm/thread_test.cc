@@ -38,9 +38,10 @@ UNIT_TEST_CASE(Monitor) {
   // This unit test case needs a running isolate.
   Dart_CreateIsolate(
       NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   // Thread interrupter interferes with this test, disable interrupts.
-  isolate->set_thread_state(NULL);
+  thread->set_thread_state(NULL);
   Profiler::EndExecution(isolate);
   Monitor* monitor = new Monitor();
   monitor->Enter();

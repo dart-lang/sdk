@@ -632,13 +632,8 @@ class Isolate : public BaseIsolate {
 
   void PrintJSON(JSONStream* stream, bool ref = true);
 
-  void set_thread_state(InterruptableThreadState* state) {
-    ASSERT((thread_state_ == NULL) || (state == NULL));
-    thread_state_ = state;
-  }
-
   InterruptableThreadState* thread_state() const {
-    return thread_state_;
+    return (mutator_thread_ == NULL) ? NULL : mutator_thread_->thread_state();
   }
 
   CompilerStats* compiler_stats() {
@@ -858,7 +853,6 @@ class Isolate : public BaseIsolate {
 
   IsolateProfilerData* profiler_data_;
   Mutex profiler_data_mutex_;
-  InterruptableThreadState* thread_state_;
 
   VMTagCounters vm_tag_counters_;
   uword user_tag_;

@@ -18,7 +18,6 @@ namespace dart {
 
 // The single thread local key which stores all the thread local data
 // for a thread.
-// TODO(koda): Can we merge this with ThreadInterrupter::thread_state_key_?
 ThreadLocalKey Thread::thread_key_ = OSThread::kUnsetThreadLocalKey;
 
 
@@ -126,17 +125,17 @@ void Thread::EnterIsolate(Isolate* isolate) {
   ASSERT(!isolate->HasMutatorThread());
   thread->isolate_ = isolate;
   isolate->MakeCurrentThreadMutator(thread);
-  // TODO(koda): Migrate thread_state_ and profile_data_ to Thread, to allow
-  // helper threads concurrent with mutator.
-  ASSERT(isolate->thread_state() == NULL);
+  ASSERT(thread->thread_state() == NULL);
   InterruptableThreadState* thread_state =
       ThreadInterrupter::GetCurrentThreadState();
 #if defined(DEBUG)
+  thread->set_thread_state(NULL);  // Exclude thread itself from the dupe check.
   Isolate::CheckForDuplicateThreadState(thread_state);
+  thread->set_thread_state(thread_state);
 #endif
   ASSERT(thread_state != NULL);
+  // TODO(koda): Migrate profiler interface to use Thread.
   Profiler::BeginExecution(isolate);
-  isolate->set_thread_state(thread_state);
   isolate->set_vm_tag(VMTag::kVMTagId);
   ASSERT(thread->store_buffer_block_ == NULL);
   thread->store_buffer_block_ = isolate->store_buffer()->PopNonFullBlock();
@@ -160,8 +159,8 @@ void Thread::ExitIsolate() {
   } else {
     isolate->set_vm_tag(VMTag::kLoadWaitTagId);
   }
-  isolate->set_thread_state(NULL);
   Profiler::EndExecution(isolate);
+  thread->set_thread_state(NULL);
   isolate->ClearMutatorThread();
   thread->isolate_ = NULL;
   ASSERT(Isolate::Current() == NULL);
@@ -176,6 +175,7 @@ void Thread::EnterIsolateAsHelper(Isolate* isolate) {
   thread->isolate_ = isolate;
   ASSERT(isolate->heap() != NULL);
   thread->heap_ = isolate->heap();
+  ASSERT(thread->thread_state() == NULL);
   // Do not update isolate->mutator_thread, but perform sanity check:
   // this thread should not be both the main mutator and helper.
   ASSERT(!isolate->MutatorThreadIsCurrentThread());
@@ -191,6 +191,7 @@ void Thread::ExitIsolateAsHelper() {
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   thread->Unschedule();
+  thread->set_thread_state(NULL);
   thread->isolate_ = NULL;
   thread->heap_ = NULL;
   ASSERT(!isolate->MutatorThreadIsCurrentThread());

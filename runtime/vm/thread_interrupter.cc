@@ -56,15 +56,10 @@ ThreadId ThreadInterrupter::interrupter_thread_id_ =
 Monitor* ThreadInterrupter::monitor_ = NULL;
 intptr_t ThreadInterrupter::interrupt_period_ = 1000;
 intptr_t ThreadInterrupter::current_wait_time_ = Monitor::kNoTimeout;
-ThreadLocalKey ThreadInterrupter::thread_state_key_ =
-    OSThread::kUnsetThreadLocalKey;
 
 
 void ThreadInterrupter::InitOnce() {
   ASSERT(!initialized_);
-  ASSERT(thread_state_key_ == OSThread::kUnsetThreadLocalKey);
-  thread_state_key_ = OSThread::CreateThreadLocal();
-  ASSERT(thread_state_key_ != OSThread::kUnsetThreadLocalKey);
   monitor_ = new Monitor();
   ASSERT(monitor_ != NULL);
   initialized_ = true;
@@ -231,15 +226,12 @@ InterruptableThreadState* ThreadInterrupter::GetCurrentThreadState() {
 
 
 InterruptableThreadState* ThreadInterrupter::CurrentThreadState() {
-  InterruptableThreadState* state = reinterpret_cast<InterruptableThreadState*>(
-      OSThread::GetThreadLocal(thread_state_key_));
-  return state;
+  return Thread::Current()->thread_state();
 }
 
 
 void ThreadInterrupter::SetCurrentThreadState(InterruptableThreadState* state) {
-  OSThread::SetThreadLocal(thread_state_key_,
-                              reinterpret_cast<uword>(state));
+  Thread::Current()->set_thread_state(state);
 }
 
 

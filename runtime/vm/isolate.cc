@@ -685,7 +685,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       trace_buffer_(NULL),
       timeline_event_recorder_(NULL),
       profiler_data_(NULL),
-      thread_state_(NULL),
       tag_table_(GrowableObjectArray::null()),
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
