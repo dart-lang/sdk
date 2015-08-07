@@ -42,10 +42,8 @@ class ArgListContributorTest extends AbstractCompletionTest {
     assertNoOtherSuggestions([cs]);
   }
 
-  void assertSuggestArgumentList_params(
-      List<String> expectedNames,
-      List<String> expectedTypes,
-      List<String> actualNames,
+  void assertSuggestArgumentList_params(List<String> expectedNames,
+      List<String> expectedTypes, List<String> actualNames,
       List<String> actualTypes) {
     if (actualNames != null &&
         actualNames.length == expectedNames.length &&
@@ -98,11 +96,29 @@ class ArgListContributorTest extends AbstractCompletionTest {
     });
   }
 
+  test_ArgumentList_imported_constructor_named_param() {
+    //
+    addSource('/libA.dart', 'library libA; class A{A({int one}){}}');
+    addTestSource('import "/libA.dart"; main() { new A(^);}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestArguments(namedArguments: ['one']);
+    });
+  }
+
+  test_ArgumentList_imported_constructor_named_param2() {
+    //
+    addSource('/libA.dart', 'library libA; class A{A.foo({int one}){}}');
+    addTestSource('import "/libA.dart"; main() { new A.foo(^);}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestArguments(namedArguments: ['one']);
+    });
+  }
+
   test_ArgumentList_imported_function_0() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect() { }
@@ -120,9 +136,7 @@ class ArgListContributorTest extends AbstractCompletionTest {
 
   test_ArgumentList_imported_function_1() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg) { }
@@ -140,9 +154,7 @@ class ArgListContributorTest extends AbstractCompletionTest {
 
   test_ArgumentList_imported_function_2() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2) { }
@@ -160,9 +172,7 @@ class ArgListContributorTest extends AbstractCompletionTest {
 
   test_ArgumentList_imported_function_3() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
@@ -180,9 +190,7 @@ class ArgListContributorTest extends AbstractCompletionTest {
 
   test_ArgumentList_imported_function_3a() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
@@ -200,9 +208,7 @@ class ArgListContributorTest extends AbstractCompletionTest {
 
   test_ArgumentList_imported_function_3b() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
@@ -220,9 +226,7 @@ class ArgListContributorTest extends AbstractCompletionTest {
 
   test_ArgumentList_imported_function_3c() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
@@ -240,9 +244,7 @@ class ArgListContributorTest extends AbstractCompletionTest {
 
   test_ArgumentList_imported_function_3d() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
@@ -291,6 +293,28 @@ class ArgListContributorTest extends AbstractCompletionTest {
     computeFast();
     return computeFull((bool result) {
       assertNoSuggestions();
+    });
+  }
+
+  test_ArgumentList_local_constructor_named_param() {
+    //
+    addTestSource('''
+class A { A({int one, String two: 'defaultValue'}) { } }
+main() { new A(^);}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestArguments(namedArguments: ['one', 'two']);
+    });
+  }
+
+  test_ArgumentList_local_constructor_named_param2() {
+    //
+    addTestSource('''
+class A { A.foo({int one, String two: 'defaultValue'}) { } }
+main() { new A.foo(^);}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestArguments(namedArguments: ['one', 'two']);
     });
   }
 
@@ -438,9 +462,7 @@ main() { f("16", radix: ^);}''');
 
   test_ArgumentList_local_method_0() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       void baz() { }''');
@@ -458,9 +480,7 @@ main() { f("16", radix: ^);}''');
 
   test_ArgumentList_local_method_2() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource(
-        '/libA.dart',
-        '''
+    addSource('/libA.dart', '''
       library A;
       bool hasLength(int expected) { }
       void baz() { }''');

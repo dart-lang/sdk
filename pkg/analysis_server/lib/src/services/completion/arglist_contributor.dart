@@ -136,6 +136,24 @@ class _ArgListAstVisitor extends GeneralizingAstVisitor<_ArgSuggestionBuilder> {
           }
         }
       }
+      if (parent is InstanceCreationExpression) {
+        ConstructorName constructorName = parent.constructorName;
+        if (constructorName != null) {
+          String name = constructorName.toSource();
+          if (name.length > 0) {
+            /*
+             * If a local declaration is found, then return null
+             * indicating that suggestions were added
+             * and no further action is necessary
+             */
+            if (new _LocalArgSuggestionBuilder(request, request.offset, name)
+                .visit(node)) {
+              return null;
+            }
+            return new _ArgSuggestionBuilder(request, name);
+          }
+        }
+      }
     }
     return null;
   }
@@ -166,6 +184,15 @@ class _ArgSuggestionBuilder {
         Element methodElem = methodName.bestElement;
         if (methodElem is ExecutableElement) {
           _addSuggestions(methodElem.parameters);
+        }
+      }
+    }
+    if (parent is InstanceCreationExpression) {
+      ConstructorName constructorName = parent.constructorName;
+      if (constructorName != null) {
+        ConstructorElement element = constructorName.staticElement;
+        if (element is ExecutableElement) {
+          _addSuggestions(element.parameters);
         }
       }
     }
@@ -211,13 +238,15 @@ class _ArgSuggestionBuilder {
     }
     Iterable<ParameterElement> requiredParam = parameters.where(
         (ParameterElement p) => p.parameterKind == ParameterKind.REQUIRED);
-    if (requiredParam.length > 0 && _isEmptyArgList(request)) {
+    int requiredCount = requiredParam.length;
+    if (requiredCount > 0 && _isEmptyArgList(request)) {
       _addArgListSuggestion(requiredParam);
       return;
     }
-    if (_isAppendingToArgList(request) &&
-        _argCount(request) > requiredParam.length) {
-      _addDefaultParamSuggestions(parameters);
+    if (_isAppendingToArgList(request)) {
+      if (requiredCount == 0 || requiredCount < _argCount(request)) {
+        _addDefaultParamSuggestions(parameters);
+      }
     }
   }
 
@@ -243,7 +272,26 @@ class _LocalArgSuggestionBuilder extends LocalDeclarationVisitor {
       : super(offset);
 
   @override
-  void declaredClass(ClassDeclaration declaration) {}
+  void declaredClass(ClassDeclaration declaration) {
+    String className = null;
+    if (declaration.name != null) {
+      className = declaration.name.name;
+    }
+    if (className != null && className.length > 0) {
+      for (ClassMember member in declaration.members) {
+        if (member is ConstructorDeclaration) {
+          String selector = className;
+          if (member.name != null) {
+            selector = '$selector.${member.name.name}';
+          }
+          if (selector == name) {
+            _addSuggestions(member.parameters);
+            finished();
+          }
+        }
+      }
+    }
+  }
 
   @override
   void declaredClassTypeAlias(ClassTypeAlias declaration) {}
@@ -330,13 +378,15 @@ class _LocalArgSuggestionBuilder extends LocalDeclarationVisitor {
     }
     Iterable<FormalParameter> requiredParam = parameters.parameters
         .where((FormalParameter p) => p.kind == ParameterKind.REQUIRED);
-    if (requiredParam.length > 0 && _isEmptyArgList(request)) {
+    int requiredCount = requiredParam.length;
+    if (requiredCount > 0 && _isEmptyArgList(request)) {
       _addArgListSuggestion(requiredParam);
       return;
     }
-    if (_isAppendingToArgList(request) &&
-        _argCount(request) > requiredParam.length) {
-      _addDefaultParamSuggestions(parameters);
+    if (_isAppendingToArgList(request)) {
+      if (requiredCount == 0 || requiredCount < _argCount(request)) {
+        _addDefaultParamSuggestions(parameters);
+      }
     }
   }
 
