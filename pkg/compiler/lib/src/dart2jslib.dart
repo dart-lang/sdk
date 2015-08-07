@@ -64,7 +64,7 @@ import 'universe/class_set.dart';
 import 'util/characters.dart' show $_;
 import 'util/uri_extras.dart' as uri_extras show relativize;
 import 'util/util.dart';
-import 'warnings.dart';
+import 'messages.dart';
 
 export 'helpers/helpers.dart';
 export 'resolution/resolution.dart' show TreeElements, TreeElementMapping;
@@ -78,7 +78,7 @@ export 'util/util.dart'
     show Spannable,
          CURRENT_ELEMENT_SPANNABLE,
          NO_LOCATION_SPANNABLE;
-export 'warnings.dart';
+export 'messages.dart';
 
 part 'compiler.dart';
 part 'diagnostic_listener.dart';
