@@ -303,7 +303,7 @@ class ContinueCommand extends DebuggerCommand {
   }
 
   Future run(List<String> args) {
-    debugger.resume();
+    return debugger.resume();
   }
 
   String helpShort = 'Resume execution of the isolate (hotkey: [F7])';
