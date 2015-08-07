@@ -2147,8 +2147,10 @@ class DartCapturedVariables extends ast.Visitor {
     Element element = elements[node];
     if (Elements.isLocal(element)) {
       LocalElement local = element;
-      if (insideInitializer) {
-        assert(local.isParameter);
+      if (insideInitializer &&
+          local.isParameter &&
+          local.enclosingElement == currentFunction) {
+        assert(local.enclosingElement.isConstructor);
         // Initializers in an initializer-list can communicate via parameters.
         // If a parameter is stored in an initializer list we box it.
         // TODO(sigurdm): Fix this.
@@ -2176,18 +2178,20 @@ class DartCapturedVariables extends ast.Visitor {
   }
 
   visitFunctionExpression(ast.FunctionExpression node) {
-    FunctionElement oldFunction = currentFunction;
+    FunctionElement savedFunction = currentFunction;
     currentFunction = elements[node];
     if (currentFunction.asyncMarker != AsyncMarker.SYNC) {
       giveup(node, "cannot handle async/sync*/async* functions");
     }
+    bool savedInsideInitializer = insideInitializer;
     if (node.initializers != null) {
       insideInitializer = true;
       visit(node.initializers);
-      insideInitializer = false;
     }
+    insideInitializer = false;
     visit(node.body);
-    currentFunction = oldFunction;
+    currentFunction = savedFunction;
+    insideInitializer = savedInsideInitializer;
   }
 
   visitTryStatement(ast.TryStatement node) {
