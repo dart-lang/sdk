@@ -301,6 +301,9 @@ generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
 many_method_calls_test: Crash # Stack overflow in HGraphVisitor.visitPostDominatorTree.visitBasicBlockAndSuccessors
 
+[ $compiler == dart2js && ($runtime == d8 || $runtime == jsshell) ]
+issue23244_test: RuntimeError # 23244
+
 [ $compiler == dart2js && $cps_ir ]
 async_and_or_test: Crash # (test()async{await test1();await test2();}): cannot handle async/sync*/async* functions
 async_await_catch_regression_test: Crash # (test()async{var exc...  cannot handle async/sync*/async* functions
@@ -380,13 +383,14 @@ async_return_types_test/none: Crash # (test()async{Expect....  cannot handle asy
 async_return_types_test/tooManyTypeParameters: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
 async_return_types_test/wrongReturnType: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
 async_return_types_test/wrongTypeParameter: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
+async_star_await_pauses_test: Crash # (f(s)async{var r=0;a...  cannot handle async/sync*/async* functions
 async_star_cancel_and_throw_in_finally_test: Crash # (test()async{var com...  cannot handle async/sync*/async* functions
+async_star_cancel_while_paused_test: Crash # (f()async*{list.add(...  cannot handle async/sync*/async* functions
+async_star_regression_2238_test: Crash # (f()async*{label1:label2:yield 0;}): cannot handle async/sync*/async* functions
 async_star_regression_23116_test: Crash # (test()async{Complet...  cannot handle async/sync*/async* functions
-async_star_regression_2238_test: Crash # (f()async*{}): cannot handle async/sync*/async* functions
-async_star_cancel_while_paused_test: Crash # (f()async*{}): cannot handle async/sync*/async* functions
-async_star_stream_take_test: Crash # (f()async*{}): cannot handle async/sync*/async* functions
-async_star_take_reyield_test: Crash # (f()async*{}): cannot handle async/sync*/async* functions
-async_star_await_pauses_test: Crash # (f()async*{}): cannot handle async/sync*/async* functions
+async_star_regression_fisk_test: Crash # (fisk()async*{res.ad...  cannot handle async/sync*/async* functions
+async_star_stream_take_test: Crash # (f(Stream s)async{va...  cannot handle async/sync*/async* functions
+async_star_take_reyield_test: Crash # (fivePartialSums(Str...  cannot handle async/sync*/async* functions
 async_star_test: Crash # (f()async*{}): cannot handle async/sync*/async* functions
 async_switch_test/none: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
 async_switch_test/withDefault: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
@@ -423,6 +427,7 @@ const_evaluation_test/01: Crash # (static Iterable<Str...  cannot handle async/s
 constructor12_test: RuntimeError # Please triage this failure.
 crash_6725_test/01: Crash # unsupported operation on erroneous element
 custom_await_stack_trace_test: Crash # (main()async{try {va...  cannot handle async/sync*/async* functions
+cyclic_default_values_test: RuntimeError # Z.cyclic_default_values_test__foo$closure is not a function
 deferred_call_empty_before_load_test: Crash # (lib1.thefun()): deferred access is not implemented
 deferred_closurize_load_library_test: Crash # (lib.trueVar): deferred access is not implemented
 deferred_constant_list_test: Crash # (lib.finalConstList): deferred access is not implemented
@@ -507,6 +512,8 @@ instanceof2_test: RuntimeError # Please triage this failure.
 instanceof4_test/01: RuntimeError # Please triage this failure.
 invocation_mirror_invoke_on_test: RuntimeError # Please triage this failure.
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
+issue21079_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
+issue23244_test: Crash # (main()async{var por...  cannot handle async/sync*/async* functions
 issue_1751477_test: RuntimeError # O.loadLibrary is not a function
 list_is_test: RuntimeError # Please triage this failure.
 list_test: RuntimeError # Please triage this failure.
@@ -566,6 +573,3 @@ type_variable_closure_test: Crash # Invalid argument(s)
 type_variable_field_initializer_closure_test: RuntimeError # Please triage this failure.
 type_variable_field_initializer_test: RuntimeError # Please triage this failure.
 type_variable_nested_test: RuntimeError # Please triage this failure.
-
-[ $compiler == dart2js && ($runtime == d8 || $runtime == jsshell) ]
-issue23244_test: RuntimeError # 23244

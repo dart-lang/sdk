@@ -369,6 +369,8 @@ mirrors/deferred_mirrors_metatarget_test: Crash # (lib.foo()): deferred access i
 mirrors/deferred_mirrors_update_test: Crash # (l.foo()): deferred access is not implemented
 mirrors/deferred_type_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 mirrors/delegate_call_through_getter_test: RuntimeError # Please triage this failure.
+mirrors/delegate_class_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
+mirrors/delegate_library_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 mirrors/delegate_test: RuntimeError # Please triage this failure.
 mirrors/disable_tree_shaking_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 mirrors/empty_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
@@ -444,6 +446,7 @@ mirrors/invoke_named_test/none: Crash # (static Iterable<Str...  cannot handle a
 mirrors/invoke_natives_malicious_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 mirrors/invoke_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 mirrors/invoke_throws_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
+mirrors/io_html_mutual_exclusion_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 mirrors/is_odd_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 mirrors/lazy_static_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 mirrors/libraries_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
