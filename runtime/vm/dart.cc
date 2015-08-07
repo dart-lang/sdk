@@ -33,10 +33,11 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, keep_code, false,
-            "Keep deoptimized code for profiling.");
+DECLARE_FLAG(bool, complete_timeline);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
+DEFINE_FLAG(bool, keep_code, false,
+            "Keep deoptimized code for profiling.");
 
 Isolate* Dart::vm_isolate_ = NULL;
 ThreadPool* Dart::thread_pool_ = NULL;
@@ -308,7 +309,12 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag());
   isolate->set_current_tag(default_tag);
 
-  isolate->SetTimelineEventRecorder(new TimelineEventRingRecorder());
+  if (FLAG_complete_timeline) {
+    isolate->SetTimelineEventRecorder(new TimelineEventEndlessRecorder());
+  } else {
+    isolate->SetTimelineEventRecorder(new TimelineEventRingRecorder());
+  }
+
 
   if (FLAG_keep_code) {
     isolate->set_deoptimized_code_array(

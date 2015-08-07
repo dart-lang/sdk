@@ -6,13 +6,15 @@
 
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
+#include "vm/lockers.h"
 #include "vm/object.h"
 #include "vm/thread.h"
 #include "vm/timeline.h"
 
 namespace dart {
 
-DEFINE_FLAG(bool, trace_timeline, false, "Timeline trace");
+DEFINE_FLAG(bool, trace_timeline, false, "Trace timeline code.");
+DEFINE_FLAG(bool, complete_timeline, false, "Record the complete timeline");
 
 TimelineEvent::TimelineEvent()
     : timestamp0_(0),
@@ -429,7 +431,7 @@ void TimelineEventRingRecorder::PrintJSONEvents(JSONArray* events) const {
 }
 
 
-void TimelineEventRingRecorder::PrintJSON(JSONStream* js) const {
+void TimelineEventRingRecorder::PrintJSON(JSONStream* js) {
   JSONObject topLevel(js);
   topLevel.AddProperty("type", "_Timeline");
   {
@@ -481,7 +483,7 @@ TimelineEventStreamingRecorder::~TimelineEventStreamingRecorder() {
 }
 
 
-void TimelineEventStreamingRecorder::PrintJSON(JSONStream* js) const {
+void TimelineEventStreamingRecorder::PrintJSON(JSONStream* js) {
   JSONObject topLevel(js);
   topLevel.AddProperty("type", "_Timeline");
   {
@@ -512,6 +514,100 @@ TimelineEvent* TimelineEventStreamingRecorder::StartEvent() {
 void TimelineEventStreamingRecorder::CompleteEvent(TimelineEvent* event) {
   StreamEvent(event);
   delete event;
+}
+
+
+TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
+    : head_(NULL) {
+  GetNewBlock();
+}
+
+
+void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js) {
+  MutexLocker ml(&lock_);
+  JSONObject topLevel(js);
+  topLevel.AddProperty("type", "_Timeline");
+  {
+    JSONArray events(&topLevel, "traceEvents");
+    PrintJSONMeta(&events);
+    PrintJSONEvents(&events);
+  }
+}
+
+
+TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlock() {
+  MutexLocker ml(&lock_);
+  return GetNewBlockLocked();
+}
+
+
+void TimelineEventEndlessRecorder::VisitObjectPointers(
+    ObjectPointerVisitor* visitor) {
+  // no-op.
+}
+
+
+TimelineEvent* TimelineEventEndlessRecorder::StartEvent(const Object& object) {
+  return StartEvent();
+}
+
+
+TimelineEvent* TimelineEventEndlessRecorder::StartEvent() {
+  // Grab the thread's timeline event block.
+  Thread* thread = Thread::Current();
+  TimelineEventBlock* thread_block = thread->timeline_block();
+  if (thread_block == NULL) {
+    return NULL;
+  }
+  ASSERT(thread_block != NULL);
+  if (thread_block->IsFull()) {
+    // If it is full, request a new block.
+    thread_block = GetNewBlock();
+    thread->set_timeline_block(thread_block);
+  }
+  ASSERT(!thread_block->IsFull());
+  return thread_block->StartEvent();
+}
+
+
+void TimelineEventEndlessRecorder::CompleteEvent(TimelineEvent* event) {
+  // no-op.
+}
+
+
+TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked() {
+  TimelineEventBlock* block = new TimelineEventBlock();
+  block->set_next(head_);
+  head_ = block;
+  return head_;
+}
+
+
+void TimelineEventEndlessRecorder::PrintJSONEvents(JSONArray* events) const {
+  TimelineEventBlock* current = head_;
+  while (current != NULL) {
+    intptr_t length = current->length();
+    for (intptr_t i = 0; i < length; i++) {
+      TimelineEvent* event = current->At(i);
+      if (!event->IsValid()) {
+        continue;
+      }
+      events->AddValue(event);
+    }
+    current = current->next();
+  }
+}
+
+
+TimelineEventBlock::TimelineEventBlock()
+    : next_(NULL),
+      length_(0) {
+}
+
+
+TimelineEvent* TimelineEventBlock::StartEvent() {
+  ASSERT(!IsFull());
+  return &events_[length_++];
 }
 
 }  // namespace dart

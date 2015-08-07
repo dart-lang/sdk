@@ -20,6 +20,7 @@ class Object;
 class RawBool;
 class RawObject;
 class StackResource;
+class TimelineEventBlock;
 class Zone;
 
 
@@ -197,6 +198,7 @@ class Thread {
     Zone* zone;
     uword top_exit_frame_info;
     StackResource* top_resource;
+    TimelineEventBlock* timeline_block;
     // TODO(koda): Migrate individual fields of InterruptableThreadState.
     InterruptableThreadState* thread_state;
 #if defined(DEBUG)
@@ -215,6 +217,14 @@ CACHED_CONSTANTS_LIST(DEFINE_OFFSET_METHOD)
 
   static bool CanLoadFromThread(const Object& object);
   static intptr_t OffsetFromThread(const Object& object);
+
+  TimelineEventBlock* timeline_block() const {
+    return state_.timeline_block;
+  }
+
+  void set_timeline_block(TimelineEventBlock* block) {
+    state_.timeline_block = block;
+  }
 
  private:
   static ThreadLocalKey thread_key_;
