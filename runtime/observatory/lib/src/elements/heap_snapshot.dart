@@ -12,6 +12,7 @@ import 'package:observatory/service.dart';
 import 'package:observatory/elements.dart';
 import 'package:observatory/object_graph.dart';
 import 'package:polymer/polymer.dart';
+import 'package:logging/logging.dart';
 
 class DominatorTreeRow extends TableTreeRow {
   final ObjectVertex vertex;
@@ -335,6 +336,8 @@ class MergedVertex {
 
 
 Future<List<MergedVertex>> buildMergedVertices(ObjectGraph graph) async {
+  Logger.root.info("Start merge vertices");
+
   var cidToMergedVertex = {};
 
   for (var vertex in graph.vertices) {
@@ -364,6 +367,8 @@ Future<List<MergedVertex>> buildMergedVertices(ObjectGraph graph) async {
       edge.shallowSize += vertex2.shallowSize == null ? 0 : vertex2.shallowSize;
     }
   }
+
+  Logger.root.info("End merge vertices");
 
   return cidToMergedVertex.values.toList();
 }
