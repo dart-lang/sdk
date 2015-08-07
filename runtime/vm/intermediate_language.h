@@ -335,6 +335,8 @@ class Value : public ZoneAllocated {
 
   void PrintTo(BufferFormatter* f) const;
 
+  const char* ToCString() const;
+
   const char* DebugName() const { return "Value"; }
 
   bool IsSmiValue() { return Type()->ToCid() == kSmiCid; }

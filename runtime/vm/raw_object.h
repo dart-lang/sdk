@@ -847,7 +847,7 @@ class RawField : public RawObject {
   // generated on platforms with weak addressing modes (ARM, MIPS).
   int8_t guarded_list_length_in_object_offset_;
 
-  uint8_t kind_bits_;  // static, final, const, has initializer.
+  uint8_t kind_bits_;  // static, final, const, has initializer....
 };
 
 
