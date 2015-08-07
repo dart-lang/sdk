@@ -7,6 +7,7 @@ library debugger_page_element;
 import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
+import 'package:observatory/app.dart';
 import 'package:observatory/cli.dart';
 import 'package:observatory/debugger.dart';
 import 'package:observatory/service.dart';
@@ -190,7 +191,7 @@ class DownCommand extends DebuggerCommand {
       return new Future.value(null);
     }
     try {
-      debugger.currentFrame += count;
+      debugger.downFrame(count);
       debugger.console.print('frame = ${debugger.currentFrame}');
     } catch (e) {
       debugger.console.print('frame must be in range [${e.start},${e.end-1}]');
@@ -225,7 +226,7 @@ class UpCommand extends DebuggerCommand {
       return new Future.value(null);
     }
     try {
-      debugger.currentFrame -= count;
+      debugger.upFrame(count);
       debugger.console.print('frame = ${debugger.currentFrame}');
     } on RangeError catch (e) {
       debugger.console.print('frame must be in range [${e.start},${e.end-1}]');
@@ -496,29 +497,119 @@ class SetCommand extends DebuggerCommand {
   SetCommand(Debugger debugger)
       : super(debugger, 'set', []);
 
-  Future run(List<String> args) async {
-    if (args.length == 2) {
-      var option = args[0].trim();
-      if (option == 'break-on-exceptions') {
-        var result = await debugger.isolate.setExceptionPauseInfo(args[1]);
-        if (result.isError) {
-          debugger.console.print(result.toString());
-        }
-      } else {
-        debugger.console.print("unknown option '$option'");
-      }
+  static var _boeValues = ['all', 'none', 'unhandled'];
+  static var _boolValues = ['false', 'true'];
+
+  static var _options = {
+    'break-on-exception': [_boeValues,
+                           _setBreakOnException,
+                           (debugger, _) => debugger.breakOnException],
+    'up-is-down': [_boolValues,
+                   _setUpIsDown,
+                   (debugger, _) => debugger.upIsDown],
+  };
+
+  static Future _setBreakOnException(debugger, name, value) async {
+    var result = await debugger.isolate.setExceptionPauseInfo(value);
+    if (result.isError) {
+      debugger.console.print(result.toString());
     } else {
-      debugger.console.print("set expects 2 arguments");
+      // Printing will occur elsewhere.
+      debugger.breakOnException = value;
     }
+  }
+
+  static Future _setUpIsDown(debugger, name, value) async {
+    if (value == 'true') {
+      debugger.upIsDown = true;
+    } else {
+      debugger.upIsDown = false;
+    }
+    debugger.console.print('${name} = ${value}');
+  }
+
+  Future run(List<String> args) async {
+    if (args.length == 0) {
+      for (var name in _options.keys) {
+        var getHandler = _options[name][2];
+        var value = await getHandler(debugger, name);
+        debugger.console.print("${name} = ${value}");
+      }
+    } else if (args.length == 1) {
+      var name = args[0].trim();
+      var optionInfo = _options[name];
+      if (optionInfo == null) {
+        debugger.console.print("unrecognized option: $name");
+        return;
+      } else {
+        var getHandler = optionInfo[2];
+        var value = await getHandler(debugger, name);
+        debugger.console.print("${name} = ${value}");
+      }
+    } else if (args.length == 2) {
+      var name = args[0].trim();
+      var value = args[1].trim();
+      var optionInfo = _options[name];
+      if (optionInfo == null) {
+        debugger.console.print("unrecognized option: $name");
+        return;
+      }
+      var validValues = optionInfo[0];
+      if (!validValues.contains(value)) {
+        debugger.console.print("'${value}' is not in ${validValues}");
+        return;
+      }
+      var setHandler = optionInfo[1];
+      await setHandler(debugger, name, value);
+    } else {
+      debugger.console.print("set expects 0, 1, or 2 arguments");
+    }
+  }
+
+  Future<List<String>> complete(List<String> args) {
+    if (args.length < 1 || args.length > 2) {
+      return new Future.value([args.join('')]);
+    }
+    var result = [];
+    if (args.length == 1) {
+      var prefix = args[0];
+      for (var option in _options.keys) {
+        if (option.startsWith(prefix)) {
+          result.add('${option} ');
+        }
+      }
+    }
+    if (args.length == 2) {
+      var name = args[0].trim();
+      var prefix = args[1];
+      var optionInfo = _options[name];
+      if (optionInfo != null) {
+        var validValues = optionInfo[0];
+        for (var value in validValues) {
+          if (value.startsWith(prefix)) {
+            result.add('${args[0]}${value} ');
+          }
+        }
+      }
+    }
+    return new Future.value(result);
   }
 
   String helpShort =
       'Set a debugger option';
 
   String helpLong =
-      'Set a debugger option'
+      'Set a debugger option.\n'
       '\n'
-      'Syntax: set break-on-exceptions "all" | "none" | "unhandled"\n';
+      'Known options:\n'
+      '  break-on-exceptions   # Should the debugger break on exceptions?\n'
+      "                        # ${_boeValues}\n"
+      '  up-is-down            # Reverse meaning of up/down commands?\n'
+      "                        # ${_boolValues}\n"
+      '\n'
+      'Syntax: set                    # Display all option settings\n'
+      '        set <option>           # Get current value for option\n'
+      '        set <option> <value>   # Set value for option';
 }
 
 class BreakCommand extends DebuggerCommand {
@@ -1054,15 +1145,17 @@ class _ConsoleStreamPrinter {
 
 // Tracks the state for an isolate debugging session.
 class ObservatoryDebugger extends Debugger {
+  final SettingsGroup settings = new SettingsGroup('debugger');
   RootCommand cmd;
   DebuggerPageElement page;
   DebuggerConsoleElement console;
   DebuggerInputElement input;
   DebuggerStackElement stackElement;
   ServiceMap stack;
-  String exceptions = "none";  // Last known setting.
+  String breakOnException = "none";  // Last known setting.
 
   int get currentFrame => _currentFrame;
+
   void set currentFrame(int value) {
     if (value != null && (value < 0 || value >= stackDepth)) {
       throw new RangeError.range(value, 0, stackDepth);
@@ -1074,9 +1167,33 @@ class ObservatoryDebugger extends Debugger {
   }
   int _currentFrame = null;
 
+  bool get upIsDown => _upIsDown;
+  void set upIsDown(bool value) {
+    settings.set('up-is-down', value);
+    _upIsDown = value;
+  }
+  bool _upIsDown;
+
+  void upFrame(int count) {
+    if (_upIsDown) {
+      currentFrame += count;
+    } else {
+      currentFrame -= count;
+    }
+  }
+
+  void downFrame(int count) {
+    if (_upIsDown) {
+      currentFrame -= count;
+    } else {
+      currentFrame += count;
+    }
+  }
+
   int get stackDepth => stack['frames'].length;
 
   ObservatoryDebugger() {
+    _loadSettings();
     cmd = new RootCommand([
         new HelpCommand(this),
         new PrintCommand(this),
@@ -1102,15 +1219,19 @@ class ObservatoryDebugger extends Debugger {
     _consolePrinter = new _ConsoleStreamPrinter(this);
   }
 
+  void _loadSettings() {
+    _upIsDown = settings.get('up-is-down');
+  }
+
   VM get vm => page.app.vm;
 
   void updateIsolate(Isolate iso) {
     _isolate = iso;
     if (_isolate != null) {
-      if ((exceptions != iso.exceptionsPauseInfo) &&
+      if ((breakOnException != iso.exceptionsPauseInfo) &&
           (iso.exceptionsPauseInfo != null)) {
-        exceptions = iso.exceptionsPauseInfo;
-        console.print("Now pausing for $exceptions exceptions");
+        breakOnException = iso.exceptionsPauseInfo;
+        console.print("Now pausing for exceptions: $breakOnException");
       }
 
       _isolate.reload().then((response) {
@@ -1305,9 +1426,9 @@ class ObservatoryDebugger extends Debugger {
         break;
 
       case ServiceEvent.kDebuggerSettingsUpdate:
-        if (exceptions != event.exceptions) {
-          exceptions = event.exceptions;
-          console.print("Now pausing for $exceptions exceptions");
+        if (breakOnException != event.exceptions) {
+          breakOnException = event.exceptions;
+          console.print("Now pausing for exceptions: $breakOnException");
         }
         break;
 
@@ -2115,7 +2236,7 @@ class DebuggerInputElement extends ObservatoryElement {
           case KeyCode.PAGE_UP:
             e.preventDefault();
             try {
-              debugger.currentFrame -= 1;
+              debugger.upFrame(1);
             } on RangeError catch (e) {
               // Ignore.
             }
@@ -2125,7 +2246,7 @@ class DebuggerInputElement extends ObservatoryElement {
           case KeyCode.PAGE_DOWN:
             e.preventDefault();
             try {
-              debugger.currentFrame += 1;
+              debugger.downFrame(1);
             } on RangeError catch (e) {
               // Ignore.
             }
