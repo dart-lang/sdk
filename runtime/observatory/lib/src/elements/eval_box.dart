@@ -17,6 +17,7 @@ typedef Future evalType(String text);
 class EvalBoxElement extends ObservatoryElement {
   @observable String text;
   @observable String lineMode = "1-line";
+  int _exprCount = 0;
 
   @published evalType callback;
   @observable ObservableList results = toObservable([]);
@@ -39,6 +40,7 @@ class EvalBoxElement extends ObservatoryElement {
     // Use provided callback to eval the expression.
     if (callback != null) {
       var map = toObservable({});
+      map['id'] = (_exprCount++).toString();
       map['expr'] = expr;
       results.insert(0, map);
       callback(expr).then((result) {
@@ -54,6 +56,13 @@ class EvalBoxElement extends ObservatoryElement {
     assert(e.target is Element);
     Element targetElement = e.target;
     text = targetElement.getAttribute('expr');
+  }
+
+  void closeItem(MouseEvent e) {
+    assert(e.target is Element);
+    Element targetElement = e.target;
+    var closeId = targetElement.getAttribute('closeId');
+    results.removeWhere((item) => item['id'] == closeId);
   }
 
   EvalBoxElement.created() : super.created();
