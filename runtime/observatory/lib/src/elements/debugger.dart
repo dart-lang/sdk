@@ -27,7 +27,9 @@ abstract class DebuggerCommand extends Command {
 // TODO(turnidge): Rewrite HelpCommand so that it is a general utility
 // provided by the cli library.
 class HelpCommand extends DebuggerCommand {
-  HelpCommand(Debugger debugger) : super(debugger, 'help', []);
+  HelpCommand(Debugger debugger) : super(debugger, 'help', [
+    new HelpHotkeysCommand(debugger),
+  ]);
 
   String _nameAndAlias(Command cmd) {
     if (cmd.alias == null) {
@@ -50,6 +52,7 @@ class HelpCommand extends DebuggerCommand {
       }
       con.print(
           "\nFor more information on a specific command type 'help <command>'\n"
+          "For a list of hotkeys type 'help hotkeys'\n"
           "\n"
           "Command prefixes are accepted (e.g. 'h' for 'help')\n"
           "Hit [TAB] to complete a command (try 'is[TAB][TAB]')\n"
@@ -105,6 +108,38 @@ class HelpCommand extends DebuggerCommand {
       '        help <command>  - Help for a specific command\n';
 }
 
+class HelpHotkeysCommand extends DebuggerCommand {
+  HelpHotkeysCommand(Debugger debugger) : super(debugger, 'hotkeys', []);
+
+  Future run(List<String> args) {
+    var con = debugger.console;
+    con.print("List of hotkeys:\n"
+              "\n"
+              "[TAB]        - complete a command\n"
+              "[Up Arrow]   - history previous\n"
+              "[Down Arrow] - history next\n"
+              "\n"
+              "[Page Up]    - move up one frame\n"
+              "[Page Down]  - move down one frame\n"
+              "\n"
+              "[F7]         - continue execution of the current isolate\n"
+              "[Ctrl ;]     - pause execution of the current isolate\n"
+              "\n"
+              "[F8]         - toggle breakpoint at current location\n"
+              "[F9]         - next\n"
+              "[F10]        - step\n"
+              "\n");
+    return new Future.value(null);
+  }
+
+  String helpShort = 'Provide a list of hotkeys';
+
+  String helpLong =
+      'Provide a list of key hotkeys.\n'
+      '\n'
+      'Syntax: help hotkeys\n';
+}
+
 class PrintCommand extends DebuggerCommand {
   PrintCommand(Debugger debugger) : super(debugger, 'print', []) {
     alias = 'p';
@@ -155,7 +190,7 @@ class DownCommand extends DebuggerCommand {
       return new Future.value(null);
     }
     try {
-      debugger.currentFrame -= count;
+      debugger.currentFrame += count;
       debugger.console.print('frame = ${debugger.currentFrame}');
     } catch (e) {
       debugger.console.print('frame must be in range [${e.start},${e.end-1}]');
@@ -163,10 +198,12 @@ class DownCommand extends DebuggerCommand {
     return new Future.value(null);
   }
 
-  String helpShort = 'Move down one or more frames';
+  String helpShort = 'Move down one or more frames (hotkey: [Page Down])';
 
   String helpLong =
       'Move down one or more frames.\n'
+      '\n'
+      'Hotkey: [Page Down]\n'
       '\n'
       'Syntax: down\n'
       '        down <count>\n';
@@ -188,7 +225,7 @@ class UpCommand extends DebuggerCommand {
       return new Future.value(null);
     }
     try {
-      debugger.currentFrame += count;
+      debugger.currentFrame -= count;
       debugger.console.print('frame = ${debugger.currentFrame}');
     } on RangeError catch (e) {
       debugger.console.print('frame must be in range [${e.start},${e.end-1}]');
@@ -196,10 +233,12 @@ class UpCommand extends DebuggerCommand {
     return new Future.value(null);
   }
 
-  String helpShort = 'Move up one or more frames';
+  String helpShort = 'Move up one or more frames (hotkey: [Page Up])';
 
   String helpLong =
       'Move up one or more frames.\n'
+      '\n'
+      'Hotkey: [Page Up]\n'
       '\n'
       'Syntax: up\n'
       '        up <count>\n';
@@ -244,18 +283,15 @@ class PauseCommand extends DebuggerCommand {
   PauseCommand(Debugger debugger) : super(debugger, 'pause', []);
 
   Future run(List<String> args) {
-    if (!debugger.isolatePaused()) {
-      return debugger.isolate.pause();
-    } else {
-      debugger.console.print('The program is already paused');
-      return new Future.value(null);
-    }
+    return debugger.pause();
   }
 
-  String helpShort = 'Pause the isolate';
+  String helpShort = 'Pause the isolate (hotkey: [Ctrl ;])';
 
   String helpLong =
       'Pause the isolate.\n'
+      '\n'
+      'Hotkey: [Ctrl ;]\n'
       '\n'
       'Syntax: pause\n';
 }
@@ -266,20 +302,15 @@ class ContinueCommand extends DebuggerCommand {
   }
 
   Future run(List<String> args) {
-    if (debugger.isolatePaused()) {
-      return debugger.isolate.resume().then((_) {
-          debugger.warnOutOfDate();
-        });
-    } else {
-      debugger.console.print('The program must be paused');
-      return new Future.value(null);
-    }
+    debugger.resume();
   }
 
-  String helpShort = 'Resume execution of the isolate';
+  String helpShort = 'Resume execution of the isolate (hotkey: [F7])';
 
   String helpLong =
       'Continue running the isolate.\n'
+      '\n'
+      'Hotkey: [F7]\n'
       '\n'
       'Syntax: continue\n'
       '        c\n';
@@ -289,30 +320,18 @@ class NextCommand extends DebuggerCommand {
   NextCommand(Debugger debugger) : super(debugger, 'next', []);
 
   Future run(List<String> args) {
-    if (debugger.isolatePaused()) {
-      var event = debugger.isolate.pauseEvent;
-      if (event.kind == ServiceEvent.kPauseStart) {
-        debugger.console.print("Type 'continue' to start the isolate");
-        return new Future.value(null);
-      }
-      if (event.kind == ServiceEvent.kPauseExit) {
-        debugger.console.print("Type 'continue' to exit the isolate");
-        return new Future.value(null);
-      }
-      return debugger.isolate.stepOver();
-    } else {
-      debugger.console.print('The program is already running');
-      return new Future.value(null);
-    }
+    return debugger.next();
   }
 
   String helpShort =
       'Continue running the isolate until it reaches the next source location '
-      'in the current function';
+      'in the current function (hotkey: [F9])';
 
   String helpLong =
       'Continue running the isolate until it reaches the next source location '
       'in the current function.\n'
+      '\n'
+      'Hotkey: [F9]\n'
       '\n'
       'Syntax: next\n';
 }
@@ -323,31 +342,37 @@ class StepCommand extends DebuggerCommand {
   }
 
   Future run(List<String> args) {
-    if (debugger.isolatePaused()) {
-      var event = debugger.isolate.pauseEvent;
-      if (event.kind == ServiceEvent.kPauseStart) {
-        debugger.console.print("Type 'continue' to start the isolate");
-        return new Future.value(null);
-      }
-      if (event.kind == ServiceEvent.kPauseExit) {
-        debugger.console.print("Type 'continue' to exit the isolate");
-        return new Future.value(null);
-      }
-      return debugger.isolate.stepInto();
-    } else {
-      debugger.console.print('The program is already running');
-      return new Future.value(null);
-    }
+    return debugger.step();
   }
 
   String helpShort =
-      'Continue running the isolate until it reaches the next source location';
+      'Continue running the isolate until it reaches the next source location'
+      ' (hotkey: [F10]';
 
   String helpLong =
       'Continue running the isolate until it reaches the next source '
       'location.\n'
       '\n'
+      'Hotkey: [F10]\n'
+      '\n'
       'Syntax: step\n';
+}
+
+class ClsCommand extends DebuggerCommand {
+  ClsCommand(Debugger debugger) : super(debugger, 'cls', []) {}
+
+  Future run(List<String> args) {
+    debugger.console.clear();
+    debugger.console.newline();
+    return new Future.value(null);
+  }
+
+  String helpShort = 'Clear the console';
+
+  String helpLong =
+      'Clear the console.\n'
+      '\n'
+      'Syntax: cls\n';
 }
 
 class LogCommand extends DebuggerCommand {
@@ -548,10 +573,13 @@ class BreakCommand extends DebuggerCommand {
     return new Future.value(DebuggerLocation.complete(debugger, args[0]));
   }
 
-  String helpShort = 'Add a breakpoint by source location or function name';
+  String helpShort = 'Add a breakpoint by source location or function name'
+      ' (hotkey: [F8])';
 
   String helpLong =
       'Add a breakpoint by source location or function name.\n'
+      '\n'
+      'Hotkey: [F8]\n'
       '\n'
       'Syntax: break                       '
       '# Break at the current position\n'
@@ -631,10 +659,13 @@ class ClearCommand extends DebuggerCommand {
     return new Future.value(DebuggerLocation.complete(debugger, args[0]));
   }
 
-  String helpShort = 'Remove a breakpoint by source location or function name';
+  String helpShort = 'Remove a breakpoint by source location or function name'
+      ' (hotkey: [F8])';
 
   String helpLong =
       'Remove a breakpoint by source location or function name.\n'
+      '\n'
+      'Hotkey: [F8]\n'
       '\n'
       'Syntax: clear                       '
       '# Clear at the current position\n'
@@ -1066,6 +1097,7 @@ class ObservatoryDebugger extends Debugger {
         new IsolateCommand(this),
         new RefreshCommand(this),
         new LogCommand(this),
+        new ClsCommand(this),
     ]);
     _consolePrinter = new _ConsoleStreamPrinter(this);
   }
@@ -1186,10 +1218,10 @@ class ObservatoryDebugger extends Debugger {
   void _reportPause(ServiceEvent event) {
     if (event.kind == ServiceEvent.kPauseStart) {
       console.print(
-          "Paused at isolate start (type 'continue' to start the isolate')");
+          "Paused at isolate start (type 'continue' or [F7] to start the isolate')");
     } else if (event.kind == ServiceEvent.kPauseExit) {
       console.print(
-          "Paused at isolate exit (type 'continue' to exit the isolate')");
+          "Paused at isolate exit (type 'continue' or [F7] to exit the isolate')");
     }
     if (stack['frames'].length > 0) {
       Frame frame = stack['frames'][0];
@@ -1411,6 +1443,84 @@ class ObservatoryDebugger extends Debugger {
 
   String historyNext(String command) {
     return cmd.historyNext(command);
+  }
+
+  Future pause() {
+    if (!isolatePaused()) {
+      return isolate.pause();
+    } else {
+      console.print('The program is already paused');
+      return new Future.value(null);
+    }
+  }
+
+  Future resume() {
+    if (isolatePaused()) {
+      return isolate.resume().then((_) {
+          warnOutOfDate();
+        });
+    } else {
+      console.print('The program must be paused');
+      return new Future.value(null);
+    }
+  }
+
+  Future toggleBreakpoint() async {
+    var loc = await DebuggerLocation.parse(this, '');
+    var script = loc.script;
+    var line = loc.line;
+    if (script != null && line != null) {
+      var bpts = script.getLine(line).breakpoints;
+      if (bpts == null || bpts.isEmpty) {
+        // Set a new breakpoint.
+        // TODO(turnidge): Set this breakpoint at current column.
+        await isolate.addBreakpoint(script, line);
+      } else {
+        // TODO(turnidge): Clear this breakpoint at current column.
+        var pending = [];
+        for (var bpt in bpts) {
+          pending.add(isolate.removeBreakpoint(bpt));
+        }
+        await Future.wait(pending);
+      }
+    }
+    return new Future.value(null);
+  }
+
+  Future next() {
+    if (isolatePaused()) {
+      var event = isolate.pauseEvent;
+      if (event.kind == ServiceEvent.kPauseStart) {
+        console.print("Type 'continue' or [F7] to start the isolate");
+        return new Future.value(null);
+      }
+      if (event.kind == ServiceEvent.kPauseExit) {
+        console.print("Type 'continue' or [F7] to exit the isolate");
+        return new Future.value(null);
+      }
+      return isolate.stepOver();
+    } else {
+      console.print('The program is already running');
+      return new Future.value(null);
+    }
+  }
+
+  Future step() {
+    if (isolatePaused()) {
+      var event = isolate.pauseEvent;
+      if (event.kind == ServiceEvent.kPauseStart) {
+        console.print("Type 'continue' or [F7] to start the isolate");
+        return new Future.value(null);
+      }
+      if (event.kind == ServiceEvent.kPauseExit) {
+        console.print("Type 'continue' or [F7] to exit the isolate");
+        return new Future.value(null);
+      }
+      return isolate.stepInto();
+    } else {
+      console.print('The program is already running');
+      return new Future.value(null);
+    }
   }
 }
 
@@ -1944,6 +2054,11 @@ class DebuggerConsoleElement extends ObservatoryElement {
   void newline() {
     _append(new BRElement());
   }
+
+  void clear() {
+    var consoleTextElement = $['consoleText'];
+    consoleTextElement.children.clear();
+  }
 }
 
 @CustomTag('debugger-input')
@@ -1995,6 +2110,66 @@ class DebuggerInputElement extends ObservatoryElement {
             e.preventDefault();
             text = debugger.historyNext(text);
             busy = false;
+            break;
+
+          case KeyCode.PAGE_UP:
+            e.preventDefault();
+            try {
+              debugger.currentFrame -= 1;
+            } on RangeError catch (e) {
+              // Ignore.
+            }
+            busy = false;
+            break;
+
+          case KeyCode.PAGE_DOWN:
+            e.preventDefault();
+            try {
+              debugger.currentFrame += 1;
+            } on RangeError catch (e) {
+              // Ignore.
+            }
+            busy = false;
+            break;
+
+          case KeyCode.F7:
+            e.preventDefault();
+            debugger.resume().whenComplete(() {
+              busy = false;
+            });
+            break;
+
+          case KeyCode.F8:
+            e.preventDefault();
+            debugger.toggleBreakpoint().whenComplete(() {
+              busy = false;
+            });
+            break;
+
+          case KeyCode.F9:
+            e.preventDefault();
+            debugger.next().whenComplete(() {
+              busy = false;
+            });
+            break;
+
+          case KeyCode.F10:
+            e.preventDefault();
+            debugger.step().whenComplete(() {
+              busy = false;
+            });
+            break;
+
+          case KeyCode.SEMICOLON:
+            if (e.ctrlKey) {
+              e.preventDefault();
+              debugger.console.printRed('^;');
+              debugger.pause().whenComplete(() {
+                busy = false;
+              });
+            } else {
+              busy = false;
+            }
             break;
 
           default:
