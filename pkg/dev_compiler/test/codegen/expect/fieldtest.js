@@ -133,5 +133,6 @@ dart_library.library('fieldtest', null, /* Imports */[
   exports.Generic = Generic;
   exports.StaticFieldOrder1 = StaticFieldOrder1;
   exports.StaticFieldOrder2 = StaticFieldOrder2;
+  exports.MyEnum = MyEnum;
   exports.main = main;
 });

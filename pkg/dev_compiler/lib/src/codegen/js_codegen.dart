@@ -509,6 +509,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     result.add(js.statement('#.values = dart.const(dart.list(#, #));',
         [id, values, _emitTypeName(type)]));
 
+    if (isPublic(type.name)) _addExport(type.name);
     return _statement(result);
   }
 
@@ -751,7 +752,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       for (ConstructorDeclaration node in ctors) {
         var memberName = _constructorName(node.element);
         var element = node.element;
-        var parts = _emitFunctionTypeParts(element.type);
+        var parts = _emitFunctionTypeParts(element.type, node.parameters);
         var property =
             new JS.Property(memberName, new JS.ArrayInitializer(parts));
         tCtors.add(property);
@@ -794,6 +795,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       ]));
     }
 
+    // TODO(vsm): Make this optional per #268.
     // Metadata
     if (metadata.isNotEmpty) {
       body.add(js.statement('#[dart.metadata] = () => #;', [
@@ -1479,9 +1481,27 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   JS.TemporaryId _getTemp(Element key, String name) =>
       _temps.putIfAbsent(key, () => new JS.TemporaryId(name));
 
-  JS.ArrayInitializer _emitTypeNames(List<DartType> types) {
-    return new JS.ArrayInitializer(
-        new List<JS.Expression>.from(types.map(_emitTypeName)));
+  List<Annotation> _parameterMetadata(FormalParameter p) =>
+      (p is NormalFormalParameter)
+          ? p.metadata
+          : (p as DefaultFormalParameter).parameter.metadata;
+
+  JS.ArrayInitializer _emitTypeNames(List<DartType> types,
+      [List<FormalParameter> parameters]) {
+    var result = <JS.Expression>[];
+    for (int i = 0; i < types.length; ++i) {
+      var metadata =
+          parameters != null ? _parameterMetadata(parameters[i]) : [];
+      var typeName = _emitTypeName(types[i]);
+      var value = typeName;
+      // TODO(vsm): Make this optional per #268.
+      if (metadata.isNotEmpty) {
+        metadata = metadata.map(_instantiateAnnotation).toList();
+        value = new JS.ArrayInitializer([typeName]..addAll(metadata));
+      }
+      result.add(value);
+    }
+    return new JS.ArrayInitializer(result);
   }
 
   JS.ObjectInitializer _emitTypeProperties(Map<String, DartType> types) {
@@ -1496,21 +1516,25 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
   /// Emit the pieces of a function type, as an array of return type,
   /// regular args, and optional/named args.
-  List<JS.Expression> _emitFunctionTypeParts(FunctionType type) {
+  List<JS.Expression> _emitFunctionTypeParts(FunctionType type,
+      [FormalParameterList parameterList]) {
+    var parameters = parameterList?.parameters;
     var returnType = type.returnType;
     var parameterTypes = type.normalParameterTypes;
     var optionalTypes = type.optionalParameterTypes;
     var namedTypes = type.namedParameterTypes;
     var rt = _emitTypeName(returnType);
-    var ra = _emitTypeNames(parameterTypes);
+    var ra = _emitTypeNames(parameterTypes, parameters);
     if (!namedTypes.isEmpty) {
       assert(optionalTypes.isEmpty);
+      // TODO(vsm): Pass in annotations here as well.
       var na = _emitTypeProperties(namedTypes);
       return [rt, ra, na];
     }
     if (!optionalTypes.isEmpty) {
       assert(namedTypes.isEmpty);
-      var oa = _emitTypeNames(optionalTypes);
+      var oa = _emitTypeNames(
+          optionalTypes, parameters?.sublist(parameterTypes.length));
       return [rt, ra, oa];
     }
     return [rt, ra];
@@ -1694,7 +1718,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     if (DynamicInvoke.get(target)) {
       code = 'dart.$DSEND(#, #, #)';
     } else if (DynamicInvoke.get(node.methodName)) {
-      // This is a dynamic call to a statically know target. For example:
+      // This is a dynamic call to a statically known target. For example:
       //     class Foo { Function bar; }
       //     new Foo().bar(); // dynamic call
       code = 'dart.$DCALL(#.#, #)';

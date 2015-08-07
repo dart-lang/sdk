@@ -113,7 +113,7 @@ var dart_utils =
       show = getOwnNamesAndSymbols(from);
     }
     if (hide != void 0) {
-      var hideMap = new Map(hide);
+      var hideMap = new Set(hide);
       show = show.filter((k) => !hideMap.has(k));
     }
     return copyTheseProperties(to, from, show);

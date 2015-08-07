@@ -139,6 +139,26 @@ dart_library.library('dart_runtime/_types', null, /* Imports */[
       this.args = args;
       this.optionals = optionals;
       this.named = named;
+
+      // TODO(vsm): This is just parameter metadata for now.
+      this.metadata = [];
+      function process(array, metadata) {
+        var result = [];
+        for (var i = 0; i < array.length; ++i) {
+          var arg = array[i];
+          if (arg instanceof Array) {
+            metadata.push(arg.slice(1));
+            result.push(arg[0]);
+          } else {
+            metadata.push([]);
+            result.push(arg);
+          }
+        }
+        return result;
+      }
+      this.args = process(this.args, this.metadata);
+      this.optionals = process(this.optionals, this.metadata);
+      // TODO(vsm): Add named arguments.
       this._canonize();
     }
     _canonize() {
@@ -201,6 +221,10 @@ dart_library.library('dart_runtime/_types', null, /* Imports */[
 
     get named() {
       return this.functionType.named;
+    }
+
+    get metadata() {
+      return this.functionType.metadata;
     }
   }
 
