@@ -12884,6 +12884,7 @@ RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
                                          token_pos);
   closure.set_is_generated_body(true);
   closure.set_is_debuggable(false);
+  closure.set_is_visible(false);
   closure.set_result_type(AbstractType::Handle(Type::DynamicType()));
   AddFormalParamsToFunction(&params, closure);
 
