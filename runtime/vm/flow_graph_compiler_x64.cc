@@ -1044,7 +1044,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     }
     ASSERT(StackSize() >= 0);
     __ Comment("Enter frame");
-    __ EnterDartFrameWithInfo(StackSize() * kWordSize, new_pp, new_pc);
+    __ EnterDartFrame(StackSize() * kWordSize, new_pp, new_pc);
   }
 }
 

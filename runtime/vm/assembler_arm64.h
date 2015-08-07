@@ -1362,8 +1362,7 @@ class Assembler : public ValueObject {
     sub(CSP, CSP, Operand(reserved_space));
   }
 
-  void EnterDartFrame(intptr_t frame_size);
-  void EnterDartFrameWithInfo(intptr_t frame_size, Register new_pp);
+  void EnterDartFrame(intptr_t frame_size, Register new_pp = kNoRegister);
   void EnterOsrFrame(intptr_t extra_size, Register new_pp);
   void LeaveDartFrame();
 

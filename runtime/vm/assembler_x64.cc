@@ -3424,9 +3424,9 @@ void Assembler::LoadPoolPointer(Register pp) {
 }
 
 
-void Assembler::EnterDartFrameWithInfo(intptr_t frame_size,
-                                       Register new_pp,
-                                       Register pc_marker_override) {
+void Assembler::EnterDartFrame(intptr_t frame_size,
+                               Register new_pp,
+                               Register pc_marker_override) {
   ASSERT(!constant_pool_allowed());
   EnterFrame(0);
   pushq(pc_marker_override);
@@ -3440,9 +3440,6 @@ void Assembler::EnterDartFrameWithInfo(intptr_t frame_size,
 
 
 void Assembler::LeaveDartFrame() {
-  // LeaveDartFrame is called from stubs (pp disallowed) and from Dart code (pp
-  // allowed), so there is no point in checking the current value of
-  // constant_pool_allowed().
   set_constant_pool_allowed(false);
   // Restore caller's PP register that was pushed in EnterDartFrame.
   movq(PP, Address(RBP, (kSavedCallerPpSlotFromFp * kWordSize)));
@@ -3482,10 +3479,7 @@ void Assembler::EnterStubFrame() {
 
 
 void Assembler::LeaveStubFrame() {
-  set_constant_pool_allowed(false);
-  // Restore caller's PP register that was pushed in EnterStubFrame.
-  movq(PP, Address(RBP, (kSavedCallerPpSlotFromFp * kWordSize)));
-  LeaveFrame();
+  LeaveDartFrame();
 }
 
 

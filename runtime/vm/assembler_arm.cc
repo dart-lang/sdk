@@ -3364,9 +3364,6 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
 
 
 void Assembler::LeaveDartFrame() {
-  // LeaveDartFrame is called from stubs (pp disallowed) and from Dart code (pp
-  // allowed), so there is no point in checking the current value of
-  // constant_pool_allowed().
   set_constant_pool_allowed(false);
   LeaveFrame((1 << PP) | (1 << FP) | (1 << LR));
   // Adjust SP for PC pushed in EnterDartFrame.
@@ -3387,10 +3384,7 @@ void Assembler::EnterStubFrame() {
 
 
 void Assembler::LeaveStubFrame() {
-  LeaveFrame((1 << PP) | (1 << FP) | (1 << LR));
-  set_constant_pool_allowed(false);
-  // Adjust SP for null PC pushed in EnterStubFrame.
-  AddImmediate(SP, kWordSize);
+  LeaveDartFrame();
 }
 
 

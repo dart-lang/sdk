@@ -35,12 +35,9 @@ void GenerateIncrement(Assembler* assembler) {
 void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
   const String& string_object =
       String::ZoneHandle(String::New(str, Heap::kOld));
-  __ mov(SP, CSP);
-  __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer();
+  __ EnterStubFrame();
   __ LoadObject(R0, string_object);
-  __ set_constant_pool_allowed(false);
-  __ PopAndUntagPP();  // Restore caller's pool pointer.
+  __ LeaveStubFrame();
   __ ret();
 }
 

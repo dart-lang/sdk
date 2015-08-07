@@ -1022,7 +1022,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     __ EnterOsrFrame(extra_slots * kWordSize, new_pp);
   } else {
     ASSERT(StackSize() >= 0);
-    __ EnterDartFrameWithInfo(StackSize() * kWordSize, new_pp);
+    __ EnterDartFrame(StackSize() * kWordSize, new_pp);
   }
 }
 

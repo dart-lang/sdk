@@ -815,12 +815,7 @@ void Assembler::EnterStubFrame() {
 
 
 void Assembler::LeaveStubFrame() {
-  ASSERT(!in_delay_slot_);
-  addiu(SP, FP, Immediate(-1 * kWordSize));
-  lw(RA, Address(SP, 2 * kWordSize));
-  lw(FP, Address(SP, 1 * kWordSize));
-  lw(PP, Address(SP, 0 * kWordSize));
-  addiu(SP, SP, Immediate(4 * kWordSize));
+  LeaveDartFrame();
 }
 
 

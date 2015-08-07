@@ -1086,24 +1086,7 @@ void Assembler::LeaveFrame() {
 }
 
 
-void Assembler::EnterDartFrame(intptr_t frame_size) {
-  ASSERT(!constant_pool_allowed());
-  // Setup the frame.
-  adr(TMP, Immediate(-CodeSize()));  // TMP gets PC marker.
-  EnterFrame(0);
-  TagAndPushPPAndPcMarker(TMP);  // Save PP and PC marker.
-
-  // Load the pool pointer.
-  LoadPoolPointer();
-
-  // Reserve space.
-  if (frame_size > 0) {
-    AddImmediate(SP, SP, -frame_size);
-  }
-}
-
-
-void Assembler::EnterDartFrameWithInfo(intptr_t frame_size, Register new_pp) {
+void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
   ASSERT(!constant_pool_allowed());
   // Setup the frame.
   adr(TMP, Immediate(-CodeSize()));  // TMP gets PC marker.
@@ -1152,9 +1135,6 @@ void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
 
 
 void Assembler::LeaveDartFrame() {
-  // LeaveDartFrame is called from stubs (pp disallowed) and from Dart code (pp
-  // allowed), so there is no point in checking the current value of
-  // constant_pool_allowed().
   set_constant_pool_allowed(false);
   // Restore and untag PP.
   LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
@@ -1232,11 +1212,7 @@ void Assembler::EnterStubFrame() {
 
 
 void Assembler::LeaveStubFrame() {
-  set_constant_pool_allowed(false);
-  // Restore and untag PP.
-  LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
-  sub(PP, PP, Operand(kHeapObjectTag));
-  LeaveFrame();
+  LeaveDartFrame();
 }
 
 
