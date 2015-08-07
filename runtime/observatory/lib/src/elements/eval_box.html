@@ -42,6 +42,22 @@
         display: block;
         padding: 6px 6px;
       }
+      a.boxclose {
+        margin-left: 20px;
+        valign: top;
+        display: block;
+        height: 18px;
+        width: 18px;
+        line-height: 16px;
+        border-radius: 9px;
+        color: black;
+        font-size: 18px;
+        cursor: pointer;
+        text-align: center;
+      }
+      a.boxclose:hover {
+        background: lightgray;
+      }
     </style>
     <form style="display:flex; flex-direction:row; align-items:flex-end">
       <template if="{{ lineMode == '1-line' }}">
@@ -85,6 +101,10 @@
                 <div style="color:#aaa;cursor:wait;">&lt;pending&gt;</div>
               </template>
             </template>
+          </td>
+          <td>
+            <a class="boxclose" on-click="{{ closeItem }}"
+               closeId="{{ result['id'] }}">&times;</a>
           </td>
         </tr>
       </table>
