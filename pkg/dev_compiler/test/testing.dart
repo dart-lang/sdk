@@ -72,7 +72,7 @@ class _TestUtils {}
 ///       '''
 ///     });
 ///
-void testChecker(Map<String, String> testFiles,
+void testChecker(String name, Map<String, String> testFiles,
     {String sdkDir,
     customUrlMappings: const {},
     relaxedCasts: true,
@@ -80,44 +80,47 @@ void testChecker(Map<String, String> testFiles,
     inferFromOverrides: StrongModeOptions.inferFromOverridesDefault,
     inferTransitively: StrongModeOptions.inferTransitivelyDefault,
     nonnullableTypes: StrongModeOptions.NONNULLABLE_TYPES}) {
-  expect(testFiles.containsKey('/main.dart'), isTrue,
-      reason: '`/main.dart` is missing in testFiles');
+  test(name, () {
+    expect(testFiles.containsKey('/main.dart'), isTrue,
+        reason: '`/main.dart` is missing in testFiles');
 
-  var provider = createTestResourceProvider(testFiles);
-  var uriResolver = new TestUriResolver(provider);
-  var context = AnalysisEngine.instance.createAnalysisContext();
-  context.sourceFactory = createSourceFactory(
-      new SourceResolverOptions(
-          customUrlMappings: customUrlMappings,
-          useMockSdk: sdkDir == null,
-          dartSdkPath: sdkDir),
-      fileResolvers: [uriResolver]);
+    var provider = createTestResourceProvider(testFiles);
+    var uriResolver = new TestUriResolver(provider);
+    var context = AnalysisEngine.instance.createAnalysisContext();
+    context.sourceFactory = createSourceFactory(
+        new SourceResolverOptions(
+            customUrlMappings: customUrlMappings,
+            useMockSdk: sdkDir == null,
+            dartSdkPath: sdkDir),
+        fileResolvers: [uriResolver]);
 
-  var checker = new StrongChecker(
-      context,
-      new StrongModeOptions(
-          relaxedCasts: relaxedCasts,
-          inferDownwards: inferDownwards,
-          inferFromOverrides: inferFromOverrides,
-          inferTransitively: inferTransitively,
-          nonnullableTypes: nonnullableTypes,
-          hints: true));
+    var checker = new StrongChecker(
+        context,
+        new StrongModeOptions(
+            relaxedCasts: relaxedCasts,
+            inferDownwards: inferDownwards,
+            inferFromOverrides: inferFromOverrides,
+            inferTransitively: inferTransitively,
+            nonnullableTypes: nonnullableTypes,
+            hints: true));
 
-  // Run the checker on /main.dart.
-  var mainSource = uriResolver.resolveAbsolute(new Uri.file('/main.dart'));
-  var initialLibrary = context.resolveCompilationUnit2(mainSource, mainSource);
+    // Run the checker on /main.dart.
+    var mainSource = uriResolver.resolveAbsolute(new Uri.file('/main.dart'));
+    var initialLibrary =
+        context.resolveCompilationUnit2(mainSource, mainSource);
 
-  // Extract expectations from the comments in the test files, and
-  // check that all errors we emit are included in the expected map.
-  var allLibraries = reachableLibraries(initialLibrary.element.library);
-  for (var lib in allLibraries) {
-    for (var unit in lib.units) {
-      if (unit.source.uri.scheme == 'dart') continue;
+    // Extract expectations from the comments in the test files, and
+    // check that all errors we emit are included in the expected map.
+    var allLibraries = reachableLibraries(initialLibrary.element.library);
+    for (var lib in allLibraries) {
+      for (var unit in lib.units) {
+        if (unit.source.uri.scheme == 'dart') continue;
 
-      var errorInfo = checker.computeErrors(unit.source);
-      new _ExpectedErrorVisitor(errorInfo.errors).validate(unit.unit);
+        var errorInfo = checker.computeErrors(unit.source);
+        new _ExpectedErrorVisitor(errorInfo.errors).validate(unit.unit);
+      }
     }
-  }
+  });
 }
 
 /// Creates a [MemoryResourceProvider] with test data

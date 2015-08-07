@@ -10,9 +10,8 @@ import 'package:test/test.dart';
 import '../testing.dart';
 
 void main() {
-  test('ternary operator', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('ternary operator', {
+    '/main.dart': '''
         abstract class Comparable<T> {
           int compareTo(T other);
           static int compare(Comparable a, Comparable b) => a.compareTo(b);
@@ -48,13 +47,10 @@ void main() {
           print((/*info:DynamicCast*/dyn) ? false : true);
         }
       '''
-    });
   });
 
-  test(
-      'if/for/do/while statements use boolean conversion',
-      () => testChecker({
-            '/main.dart': '''
+  testChecker('if/for/do/while statements use boolean conversion', {
+    '/main.dart': '''
       main() {
         dynamic d = 42;
         Object obj = 42;
@@ -82,11 +78,10 @@ void main() {
         for (;/*severe:StaticTypeError*/i;) {}
       }
     '''
-          }));
+  });
 
-  test('dynamic invocation', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('dynamic invocation', {
+    '/main.dart': '''
 
       class A {
         dynamic call(dynamic x) => x;
@@ -130,16 +125,14 @@ void main() {
         }
       }
     '''
-    });
   });
 
-  test('conversion and dynamic invoke', () {
-    testChecker({
-      '/helper.dart': '''
+  testChecker('conversion and dynamic invoke', {
+    '/helper.dart': '''
       dynamic toString = (int x) => x + 42;
       dynamic hashCode = "hello";
       ''',
-      '/main.dart': '''
+    '/main.dart': '''
       import 'helper.dart' as helper;
 
       class A {
@@ -212,12 +205,10 @@ void main() {
         baz().hashCode;
       }
     '''
-    });
   });
 
-  test('Primitives', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Primitives', {
+    '/main.dart': '''
         int /*severe:InvalidVariableDeclaration*/a;
         double /*severe:InvalidVariableDeclaration*/b;
         num c;
@@ -265,15 +256,13 @@ void main() {
           b = true;
         }
       '''
-    }, nonnullableTypes: <String>[
-      'int',
-      'double'
-    ]);
-  });
+  }, nonnullableTypes: <String>[
+    'int',
+    'double'
+  ]);
 
-  test('Primitives and generics', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Primitives and generics', {
+    '/main.dart': '''
         class A<T> {
           // TODO(vsm): This needs a static info indicating a runtime
           // check at construction.
@@ -310,15 +299,13 @@ void main() {
           T foo() => /*warning:DownCastImplicit*/null;
         }
       '''
-    }, nonnullableTypes: <String>[
-      'int',
-      'double'
-    ]);
-  });
+  }, nonnullableTypes: <String>[
+    'int',
+    'double'
+  ]);
 
-  test('Constructors', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Constructors', {
+    '/main.dart': '''
       const num z = 25;
       Object obj = "world";
 
@@ -349,32 +336,26 @@ void main() {
          var b = new B.c2(/*severe:StaticTypeError*/"hello", /*warning:DownCastImplicit*/obj);
       }
    '''
-    });
   });
 
-  test('Unbound variable', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Unbound variable', {
+    '/main.dart': '''
       void main() {
          dynamic y = /*pass should be severe:StaticTypeError*/unboundVariable;
       }
    '''
-    });
   });
 
-  test('Unbound type name', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Unbound type name', {
+    '/main.dart': '''
       void main() {
          /*pass should be severe:StaticTypeError*/AToB y;
       }
    '''
-    });
   });
 
-  test('Ground type subtyping: dynamic is top', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Ground type subtyping: dynamic is top', {
+    '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -395,12 +376,10 @@ void main() {
          y = b;
       }
    '''
-    });
   });
 
-  test('Ground type subtyping: dynamic downcasts', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Ground type subtyping: dynamic downcasts', {
+    '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -421,12 +400,10 @@ void main() {
          b = /*info:DynamicCast*/y;
       }
    '''
-    });
   });
 
-  test('Ground type subtyping: assigning a class', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Ground type subtyping: assigning a class', {
+    '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -448,12 +425,10 @@ void main() {
          b = /*warning:DownCastImplicit*/a;
       }
    '''
-    });
   });
 
-  test('Ground type subtyping: assigning a subclass', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Ground type subtyping: assigning a subclass', {
+    '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -478,12 +453,10 @@ void main() {
          c = /*severe:StaticTypeError*/b;
       }
    '''
-    });
   });
 
-  test('Ground type subtyping: interfaces', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Ground type subtyping: interfaces', {
+    '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -521,12 +494,10 @@ void main() {
          }
       }
    '''
-    });
   });
 
-  test('Function typing and subtyping: int and object', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Function typing and subtyping: int and object', {
+    '/main.dart': '''
 
       typedef Object Top(int x);      // Top of the lattice
       typedef int Left(int x);        // Left branch
@@ -575,12 +546,10 @@ void main() {
         }
       }
    '''
-    });
   });
 
-  test('Function typing and subtyping: classes', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Function typing and subtyping: classes', {
+    '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -632,12 +601,10 @@ void main() {
         }
       }
    '''
-    });
   });
 
-  test('Function typing and subtyping: dynamic', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Function typing and subtyping: dynamic', {
+    '/main.dart': '''
 
       class A {}
 
@@ -682,12 +649,10 @@ void main() {
         }
       }
    '''
-    });
   });
 
-  test('Function typing and subtyping: function literal variance', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Function typing and subtyping: function literal variance', {
+    '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -730,12 +695,10 @@ void main() {
         }
       }
    '''
-    });
   });
 
-  test('Function typing and subtyping: function variable variance', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Function typing and subtyping: function variable variance', {
+    '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -771,12 +734,10 @@ void main() {
         }
       }
    '''
-    });
   });
 
-  test('Function typing and subtyping: higher order function literals', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Function typing and subtyping: higher order function literals', {
+    '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -836,12 +797,11 @@ void main() {
         }
       }
    '''
-    });
   });
 
-  test('Function typing and subtyping: higher order function variables', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'Function typing and subtyping: higher order function variables', {
+    '/main.dart': '''
 
     class A {}
     class B extends A {}
@@ -879,12 +839,10 @@ void main() {
       }
     }
    '''
-    });
   });
 
-  test('Function typing and subtyping: named and optional parameters', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Function typing and subtyping: named and optional parameters', {
+    '/main.dart': '''
 
       class A {}
 
@@ -1000,12 +958,10 @@ void main() {
          nnn = nnn;
       }
    '''
-    });
   });
 
-  test('Function subtyping: objects with call methods', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Function subtyping: objects with call methods', {
+    '/main.dart': '''
 
       typedef int I2I(int x);
       typedef num N2N(num x);
@@ -1065,24 +1021,22 @@ void main() {
          }
       }
    '''
-    });
   });
 
-  test('Function typing and subtyping: void', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Function typing and subtyping: void', {
+    '/main.dart': '''
 
       class A {
         void bar() => null;
         void foo() => bar; // allowed
       }
    '''
-    });
   });
 
-  test('Covariant generic subtyping: invariance', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'Covariant generic subtyping: invariance',
+      {
+        '/main.dart': '''
 
       class A {}
       class B extends A {}
@@ -1191,12 +1145,13 @@ void main() {
         ns = ns;
       }
    '''
-    }, relaxedCasts: false);
-  });
+      },
+      relaxedCasts: false);
 
-  test('Relaxed casts', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'Relaxed casts',
+      {
+        '/main.dart': '''
 
       class A {}
 
@@ -1271,12 +1226,12 @@ void main() {
 
       }
    '''
-    }, relaxedCasts: true);
-  });
-
-  test('Subtyping literals', () {
-    testChecker({
-      '/main.dart': '''
+      },
+      relaxedCasts: true);
+  testChecker(
+      'Subtyping literals',
+      {
+        '/main.dart': '''
           test() {
             Iterable i1 = [1, 2, 3];
             i1 = <int>[1, 2, 3];
@@ -1298,12 +1253,11 @@ void main() {
             l2 = /*severe:StaticTypeError*/new List.filled(10, 42);
           }
    '''
-    }, inferDownwards: false);
-  });
+      },
+      inferDownwards: false);
 
-  test('Type checking literals', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Type checking literals', {
+    '/main.dart': '''
           test() {
             num n = 3;
             int i = 3;
@@ -1343,31 +1297,27 @@ void main() {
             }
           }
    '''
-    });
   });
 
-  test('casts in constant contexts', () {
-    String mk(String error1, String error2) => '''
+  testChecker('casts in constant contexts', {
+    '/main.dart': '''
           class A {
             static const num n = 3.0;
-            static const int i = /*$error2*/n;
+            static const int i = /*info:AssignmentCast*/n;
             final int fi;
-            const A(num a) : this.fi = /*$error1*/a;
+            const A(num a) : this.fi = /*warning:DownCastImplicit*/a;
           }
           class B extends A {
-            const B(Object a) : super(/*$error1*/a);
+            const B(Object a) : super(/*warning:DownCastImplicit*/a);
           }
           void foo(Object o) {
-            var a = const A(/*$error1*/o);
+            var a = const A(/*warning:DownCastImplicit*/o);
           }
-     ''';
-    testChecker(
-        {'/main.dart': mk("warning:DownCastImplicit", "info:AssignmentCast")});
+     '''
   });
 
-  test('casts in conditionals', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('casts in conditionals', {
+    '/main.dart': '''
           main() {
             bool b = true;
             num x = b ? 1 : 2.3;
@@ -1376,34 +1326,30 @@ void main() {
             z = b ? null : "hello";
           }
       '''
-    });
   });
 
-  test('redirecting constructor', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('redirecting constructor', {
+    '/main.dart': '''
           class A {
             A(A x) {}
             A.two() : this(/*severe:StaticTypeError*/3);
           }
        '''
-    });
   });
 
-  test('super constructor', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('super constructor', {
+    '/main.dart': '''
           class A { A(A x) {} }
           class B extends A {
             B() : super(/*severe:StaticTypeError*/3);
           }
        '''
-    });
   });
 
-  test('field/field override', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'field/field override',
+      {
+        '/main.dart': '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1422,10 +1368,13 @@ void main() {
             /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/dynamic f4;
           }
        '''
-    }, inferFromOverrides: true);
+      },
+      inferFromOverrides: true);
 
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'field/field override 2',
+      {
+        '/main.dart': '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1444,12 +1393,13 @@ void main() {
             /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/dynamic f4;
           }
        '''
-    }, inferFromOverrides: false);
-  });
+      },
+      inferFromOverrides: false);
 
-  test('getter/getter override', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'getter/getter override',
+      {
+        '/main.dart': '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1468,10 +1418,13 @@ void main() {
             /*severe:InvalidMethodOverride*/dynamic get f4 => null;
           }
        '''
-    }, inferFromOverrides: true);
+      },
+      inferFromOverrides: true);
 
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'getter/getter override 2',
+      {
+        '/main.dart': '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1490,12 +1443,13 @@ void main() {
             /*severe:InvalidMethodOverride*/dynamic get f4 => null;
           }
        '''
-    }, inferFromOverrides: false);
-  });
+      },
+      inferFromOverrides: false);
 
-  test('field/getter override', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'field/getter override',
+      {
+        '/main.dart': '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1514,12 +1468,11 @@ void main() {
             /*severe:InvalidMethodOverride*/dynamic get f4 => null;
           }
        '''
-    }, inferFromOverrides: true);
-  });
+      },
+      inferFromOverrides: true);
 
-  test('setter/setter override', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('setter/setter override', {
+    '/main.dart': '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1540,12 +1493,10 @@ void main() {
             set f5(B value) {}
           }
        '''
-    });
   });
 
-  test('field/setter override', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('field/setter override', {
+    '/main.dart': '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1572,12 +1523,12 @@ void main() {
             set f5(B value) {}
           }
        '''
-    });
   });
 
-  test('method override', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'method override',
+      {
+        '/main.dart': '''
           class A {}
           class B extends A {}
           class C extends B {}
@@ -1600,13 +1551,11 @@ void main() {
             /*severe:InvalidMethodOverride*/dynamic m6(dynamic value) {}
           }
        '''
-    }, inferFromOverrides: true);
-  });
+      },
+      inferFromOverrides: true);
 
-  test(
-      'unary operators',
-      () => testChecker({
-            '/main.dart': '''
+  testChecker('unary operators', {
+    '/main.dart': '''
       class A {
         A operator ~() {}
         A operator +(int x) {}
@@ -1639,11 +1588,10 @@ void main() {
         (/*info:DynamicInvoke*/d++);
         (/*info:DynamicInvoke*/d--);
       }'''
-          }));
+  });
 
-  test('binary and index operators', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('binary and index operators', {
+    '/main.dart': '''
           class A {
             A operator *(B b) {}
             A operator /(B b) {}
@@ -1705,12 +1653,10 @@ void main() {
             a[/*severe:StaticTypeError*/y];
           }
        '''
-    });
   });
 
-  test('compound assignments', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('compound assignments', {
+    '/main.dart': '''
           class A {
             A operator *(B b) {}
             A operator /(B b) {}
@@ -1789,12 +1735,10 @@ void main() {
             (/*info:DynamicInvoke*/(/*info:DynamicInvoke*/c[b]) += d);
           }
        '''
-    });
   });
 
-  test('super call placement', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('super call placement', {
+    '/main.dart': '''
           class Base {
             var x;
             Base() : x = print('Base.1') { print('Base.2'); }
@@ -1826,12 +1770,10 @@ void main() {
 
           main() => new Derived();
        '''
-    });
   });
 
-  test('for loop variable', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('for loop variable', {
+    '/main.dart': '''
           foo() {
             for (int i = 0; i < 10; i++) {
               i = /*severe:StaticTypeError*/"hi";
@@ -1843,13 +1785,11 @@ void main() {
             }
           }
         '''
-    });
   });
 
   group('invalid overrides', () {
-    test('child override', () {
-      testChecker({
-        '/main.dart': '''
+    testChecker('child override', {
+      '/main.dart': '''
             class A {}
             class B {}
 
@@ -1873,10 +1813,10 @@ void main() {
               /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/B f;
             }
          '''
-      });
+    });
 
-      testChecker({
-        '/main.dart': '''
+    testChecker('child override 2', {
+      '/main.dart': '''
             class A {}
             class B {}
 
@@ -1888,11 +1828,9 @@ void main() {
                 /*severe:InvalidMethodOverride*/m(B a) {}
             }
          '''
-      });
     });
-    test('grandchild override', () {
-      testChecker({
-        '/main.dart': '''
+    testChecker('grandchild override', {
+      '/main.dart': '''
             class A {}
             class B {}
 
@@ -1906,12 +1844,10 @@ void main() {
                 /*severe:InvalidMethodOverride*/m(B a) {}
             }
          '''
-      });
     });
 
-    test('double override', () {
-      testChecker({
-        '/main.dart': '''
+    testChecker('double override', {
+      '/main.dart': '''
             class A {}
             class B {}
 
@@ -1927,10 +1863,10 @@ void main() {
                 /*severe:InvalidMethodOverride*/m(B a) {}
             }
          '''
-      });
+    });
 
-      testChecker({
-        '/main.dart': '''
+    testChecker('double override 2', {
+      '/main.dart': '''
             class A {}
             class B {}
 
@@ -1945,12 +1881,10 @@ void main() {
                 m(B a) {}
             }
          '''
-      });
     });
 
-    test('mixin override to base', () {
-      testChecker({
-        '/main.dart': '''
+    testChecker('mixin override to base', {
+      '/main.dart': '''
             class A {}
             class B {}
 
@@ -1968,12 +1902,10 @@ void main() {
             class T2 extends Base with /*severe:InvalidMethodOverride*/M1, M2 {}
             class T3 extends Base with M2, /*severe:InvalidMethodOverride*/M1 {}
          '''
-      });
     });
 
-    test('mixin override to mixin', () {
-      testChecker({
-        '/main.dart': '''
+    testChecker('mixin override to mixin', {
+      '/main.dart': '''
             class A {}
             class B {}
 
@@ -1990,15 +1922,13 @@ void main() {
 
             class T1 extends Base with M1, /*severe:InvalidMethodOverride*/M2 {}
          '''
-      });
     });
 
-    test('no duplicate mixin override', () {
-      // This is a regression test for a bug in an earlier implementation were
-      // names were hiding errors if the first mixin override looked correct,
-      // but subsequent ones did not.
-      testChecker({
-        '/main.dart': '''
+    // This is a regression test for a bug in an earlier implementation were
+    // names were hiding errors if the first mixin override looked correct,
+    // but subsequent ones did not.
+    testChecker('no duplicate mixin override', {
+      '/main.dart': '''
             class A {}
             class B {}
 
@@ -2021,12 +1951,10 @@ void main() {
             class T1 extends Base
                 with M1, /*severe:InvalidMethodOverride*/M2, M3 {}
          '''
-      });
     });
 
-    test('class override of interface', () {
-      testChecker({
-        '/main.dart': '''
+    testChecker('class override of interface', {
+      '/main.dart': '''
             class A {}
             class B {}
 
@@ -2038,12 +1966,10 @@ void main() {
                 /*severe:InvalidMethodOverride*/m(B a) {}
             }
          '''
-      });
     });
 
-    test('base class override to child interface', () {
-      testChecker({
-        '/main.dart': '''
+    testChecker('base class override to child interface', {
+      '/main.dart': '''
             class A {}
             class B {}
 
@@ -2059,12 +1985,10 @@ void main() {
             class T1 /*severe:InvalidMethodOverride*/extends Base implements I {
             }
          '''
-      });
     });
 
-    test('mixin override of interface', () {
-      testChecker({
-        '/main.dart': '''
+    testChecker('mixin override of interface', {
+      '/main.dart': '''
             class A {}
             class B {}
 
@@ -2079,14 +2003,13 @@ void main() {
             class T1 extends Object with /*severe:InvalidMethodOverride*/M
                implements I {}
          '''
-      });
     });
 
-    test('no errors if subclass correctly overrides base and interface', () {
-      // This is a case were it is incorrect to say that the base class
-      // incorrectly overrides the interface.
-      testChecker({
-        '/main.dart': '''
+    // This is a case were it is incorrect to say that the base class
+    // incorrectly overrides the interface.
+    testChecker(
+        'no errors if subclass correctly overrides base and interface', {
+      '/main.dart': '''
             class A {}
             class B {}
 
@@ -2112,13 +2035,12 @@ void main() {
                 /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/m(a) {}
             }
          '''
-      });
     });
+  });
 
-    group('class override of grand interface', () {
-      test('interface of interface of child', () {
-        testChecker({
-          '/main.dart': '''
+  group('class override of grand interface', () {
+    testChecker('interface of interface of child', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2131,11 +2053,9 @@ void main() {
                   /*severe:InvalidMethodOverride*/m(B a) {}
               }
            '''
-        });
-      });
-      test('superclass of interface of child', () {
-        testChecker({
-          '/main.dart': '''
+    });
+    testChecker('superclass of interface of child', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2148,11 +2068,9 @@ void main() {
                   /*severe:InvalidMethodOverride*/m(B a) {}
               }
            '''
-        });
-      });
-      test('mixin of interface of child', () {
-        testChecker({
-          '/main.dart': '''
+    });
+    testChecker('mixin of interface of child', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2165,11 +2083,9 @@ void main() {
                   /*severe:InvalidMethodOverride*/m(B a) {}
               }
            '''
-        });
-      });
-      test('interface of abstract superclass', () {
-        testChecker({
-          '/main.dart': '''
+    });
+    testChecker('interface of abstract superclass', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2182,11 +2098,9 @@ void main() {
                   /*severe:InvalidMethodOverride*/m(B a) {}
               }
            '''
-        });
-      });
-      test('interface of concrete superclass', () {
-        testChecker({
-          '/main.dart': '''
+    });
+    testChecker('interface of concrete superclass', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2205,14 +2119,12 @@ void main() {
                   m(B a) {}
               }
            '''
-        });
-      });
     });
+  });
 
-    group('mixin override of grand interface', () {
-      test('interface of interface of child', () {
-        testChecker({
-          '/main.dart': '''
+  group('mixin override of grand interface', () {
+    testChecker('interface of interface of child', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2229,11 +2141,9 @@ void main() {
                   implements I2 {
               }
            '''
-        });
-      });
-      test('superclass of interface of child', () {
-        testChecker({
-          '/main.dart': '''
+    });
+    testChecker('superclass of interface of child', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2250,11 +2160,9 @@ void main() {
                   implements I2 {
               }
            '''
-        });
-      });
-      test('mixin of interface of child', () {
-        testChecker({
-          '/main.dart': '''
+    });
+    testChecker('mixin of interface of child', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2271,11 +2179,9 @@ void main() {
                   implements I2 {
               }
            '''
-        });
-      });
-      test('interface of abstract superclass', () {
-        testChecker({
-          '/main.dart': '''
+    });
+    testChecker('interface of abstract superclass', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2291,11 +2197,9 @@ void main() {
               class T1 extends Base with /*severe:InvalidMethodOverride*/M {
               }
            '''
-        });
-      });
-      test('interface of concrete superclass', () {
-        testChecker({
-          '/main.dart': '''
+    });
+    testChecker('interface of concrete superclass', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2314,14 +2218,12 @@ void main() {
               class T1 extends Base with M {
               }
            '''
-        });
-      });
     });
+  });
 
-    group('superclass override of grand interface', () {
-      test('interface of interface of child', () {
-        testChecker({
-          '/main.dart': '''
+  group('superclass override of grand interface', () {
+    testChecker('interface of interface of child', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2338,11 +2240,9 @@ void main() {
                   implements I2 {
               }
            '''
-        });
-      });
-      test('superclass of interface of child', () {
-        testChecker({
-          '/main.dart': '''
+    });
+    testChecker('superclass of interface of child', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2359,11 +2259,9 @@ void main() {
                   implements I2 {
               }
            '''
-        });
-      });
-      test('mixin of interface of child', () {
-        testChecker({
-          '/main.dart': '''
+    });
+    testChecker('mixin of interface of child', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2380,11 +2278,9 @@ void main() {
                   implements I2 {
               }
            '''
-        });
-      });
-      test('interface of abstract superclass', () {
-        testChecker({
-          '/main.dart': '''
+    });
+    testChecker('interface of abstract superclass', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2405,11 +2301,9 @@ void main() {
                   /*severe:InvalidMethodOverride*/m(B a) {}
               }
            '''
-        });
-      });
-      test('interface of concrete superclass', () {
-        testChecker({
-          '/main.dart': '''
+    });
+    testChecker('interface of concrete superclass', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2425,14 +2319,12 @@ void main() {
                   m(B a) {}
               }
            '''
-        });
-      });
     });
+  });
 
-    group('no duplicate reports from overriding interfaces', () {
-      test('type overrides same method in multiple interfaces', () {
-        testChecker({
-          '/main.dart': '''
+  group('no duplicate reports from overriding interfaces', () {
+    testChecker('type overrides same method in multiple interfaces', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2450,12 +2342,10 @@ void main() {
                 /*severe:InvalidMethodOverride*/m(B a) {}
               }
            '''
-        });
-      });
+    });
 
-      test('type and base type override same method in interface', () {
-        testChecker({
-          '/main.dart': '''
+    testChecker('type and base type override same method in interface', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2479,12 +2369,10 @@ void main() {
                   implements I1 {
               }
            '''
-        });
-      });
+    });
 
-      test('type and mixin override same method in interface', () {
-        testChecker({
-          '/main.dart': '''
+    testChecker('type and mixin override same method in interface', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2504,12 +2392,10 @@ void main() {
                   implements I1 {
               }
            '''
-        });
-      });
+    });
 
-      test('two grand types override same method in interface', () {
-        testChecker({
-          '/main.dart': '''
+    testChecker('two grand types override same method in interface', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2535,12 +2421,10 @@ void main() {
                   implements I1 {
               }
            '''
-        });
-      });
+    });
 
-      test('two mixins override same method in interface', () {
-        testChecker({
-          '/main.dart': '''
+    testChecker('two mixins override same method in interface', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2565,12 +2449,10 @@ void main() {
                   implements I1 {
               }
            '''
-        });
-      });
+    });
 
-      test('base type and mixin override same method in interface', () {
-        testChecker({
-          '/main.dart': '''
+    testChecker('base type and mixin override same method in interface', {
+      '/main.dart': '''
               class A {}
               class B {}
 
@@ -2594,29 +2476,27 @@ void main() {
                   implements I1 {
               }
            '''
-        });
-      });
     });
+  });
 
-    test('no reporting of overrides with Object twice.', () {
-      // This is a regression test: we used to report it twice because it was
-      // the top super class and top super interface.
-      // TODO(sigmund): maybe we generalize this and don't report again errors
-      // when an interface is also a superclass.
-      testChecker({
+  // This is a regression test: we used to report it twice because it was
+  // the top super class and top super interface.
+  // TODO(sigmund): maybe we generalize this and don't report again errors
+  // when an interface is also a superclass.
+  testChecker(
+      'no reporting of overrides with Object twice.',
+      {
         '/main.dart': '''
             class A {}
             class T1 implements A {
                 /*severe:InferableOverride*/toString() {}
             }
          '''
-      }, inferFromOverrides: false);
-    });
-  });
+      },
+      inferFromOverrides: false);
 
-  test('invalid runtime checks', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('invalid runtime checks', {
+    '/main.dart': '''
           typedef int I2I(int x);
           typedef int D2I(x);
           typedef int II2I(int x, int y);
@@ -2667,26 +2547,21 @@ void main() {
             f = bar as DD2D;
           }
       '''
-    });
   });
 
-  test(
-      'custom URL mappings',
-      () => testChecker({
-            '/main.dart': '''
+  testChecker('custom URL mappings', {
+    '/main.dart': '''
       import 'dart:foobar' show Baz;
       main() {
         print(Baz.quux);
       }'''
-          }, customUrlMappings: {
-            'dart:foobar': '$testDirectory/checker/dart_foobar.dart'
-          }));
+  }, customUrlMappings: {
+    'dart:foobar': '$testDirectory/checker/dart_foobar.dart'
+  });
 
   group('function modifiers', () {
-    test(
-        'async',
-        () => testChecker({
-              '/main.dart': '''
+    testChecker('async', {
+      '/main.dart': '''
         import 'dart:async';
         import 'dart:math' show Random;
 
@@ -2721,12 +2596,10 @@ void main() {
           }
         }
     '''
-            }));
+    });
 
-    test(
-        'async*',
-        () => testChecker({
-              '/main.dart': '''
+    testChecker('async*', {
+      '/main.dart': '''
         import 'dart:async';
 
         dynamic x;
@@ -2742,12 +2615,10 @@ void main() {
         Stream<int> baz4() async* { yield* new Stream<int>(); }
         Stream<int> baz5() async* { yield* (/*info:InferredTypeAllocation*/new Stream()); }
     '''
-            }));
+    });
 
-    test(
-        'sync*',
-        () => testChecker({
-              '/main.dart': '''
+    testChecker('sync*', {
+      '/main.dart': '''
         import 'dart:async';
 
         dynamic x;
@@ -2763,12 +2634,10 @@ void main() {
         Iterable<int> baz4() sync* { yield* new Iterable<int>(); }
         Iterable<int> baz5() sync* { yield* (/*info:InferredTypeAllocation*/new Iterable()); }
     '''
-            }));
+    });
 
-    test(
-        'dart:math min/max',
-        () => testChecker({
-              '/main.dart': '''
+    testChecker('dart:math min/max', {
+      '/main.dart': '''
         import 'dart:math';
 
         void printInt(int x) => print(x);
@@ -2800,6 +2669,6 @@ void main() {
                   /*severe:StaticTypeError*/"there"));
         }
     '''
-            }));
+    });
   });
 }

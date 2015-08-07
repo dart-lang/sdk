@@ -10,93 +10,80 @@ import 'package:test/test.dart';
 import '../testing.dart';
 
 void main() {
-  test('infer type on var', () {
-    // Error also expected when declared type is `int`.
-    testChecker({
-      '/main.dart': '''
+  // Error also expected when declared type is `int`.
+  testChecker('infer type on var', {
+    '/main.dart': '''
       test1() {
         int x = 3;
         x = /*severe:StaticTypeError*/"hi";
       }
     '''
-    });
+  });
 
-    // If inferred type is `int`, error is also reported
-    testChecker({
-      '/main.dart': '''
+  // If inferred type is `int`, error is also reported
+  testChecker('infer type on var 2', {
+    '/main.dart': '''
       test2() {
         var x = 3;
         x = /*severe:StaticTypeError*/"hi";
       }
     '''
-    });
   });
 
-  test('Error when declared type is `int` and assigned null.', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Error when declared type is `int` and assigned null.', {
+    '/main.dart': '''
         test1() {
           int x = 3;
           x = /*severe:StaticTypeError*/null;
         }
       '''
-    }, nonnullableTypes: <String>[
-      'int',
-      'double'
-    ]);
-  });
+  }, nonnullableTypes: <String>[
+    'int',
+    'double'
+  ]);
 
-  test('Error when inferred type is `int` and assigned null.', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('Error when inferred type is `int` and assigned null.', {
+    '/main.dart': '''
         test1() {
           var x = 3;
           x = /*severe:StaticTypeError*/null;
         }
       '''
-    }, nonnullableTypes: <String>[
-      'int',
-      'double'
-    ]);
-  });
+  }, nonnullableTypes: <String>[
+    'int',
+    'double'
+  ]);
 
-  test('No error when declared type is `num` and assigned null.', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('No error when declared type is `num` and assigned null.', {
+    '/main.dart': '''
         test1() {
           num x = 3;
           x = null;
         }
       '''
-    });
   });
 
-  test('do not infer type on dynamic', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('do not infer type on dynamic', {
+    '/main.dart': '''
       test() {
         dynamic x = 3;
         x = "hi";
       }
     '''
-    });
   });
 
-  test('do not infer type when initializer is null', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('do not infer type when initializer is null', {
+    '/main.dart': '''
       test() {
         var x = null;
         x = "hi";
         x = 3;
       }
     '''
-    });
   });
 
-  test('infer type on var from field', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('infer type on var from field', {
+    '/main.dart': '''
       class A {
         int x = 0;
 
@@ -116,12 +103,10 @@ void main() {
         final z = 42; // should infer `int`
       }
     '''
-    });
   });
 
-  test('infer type on var from top-level', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('infer type on var from top-level', {
+    '/main.dart': '''
       int x = 0;
 
       test1() {
@@ -139,12 +124,10 @@ void main() {
       int y = 0; // field def after use
       final z = 42; // should infer `int`
     '''
-    });
   });
 
-  test('do not infer field type when initializer is null', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('do not infer field type when initializer is null', {
+    '/main.dart': '''
       var x = null;
       var y = 3;
       class A {
@@ -164,12 +147,12 @@ void main() {
         new A().y2 = /*severe:StaticTypeError*/"hi";
       }
     '''
-    });
   });
 
-  test('do not infer from variables if flag is off', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'do not infer from variables if flag is off',
+      {
+        '/main.dart': '''
           var x = 2;
           var y = x;
 
@@ -178,10 +161,13 @@ void main() {
             y = "hi";
           }
     '''
-    }, inferTransitively: false);
+      },
+      inferTransitively: false);
 
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'do not infer from variables if flag is off 2',
+      {
+        '/main.dart': '''
           class A {
             static var x = 2;
             static var y = A.x;
@@ -192,15 +178,16 @@ void main() {
             A.y = "hi";
           }
     '''
-    }, inferTransitively: false);
-  });
+      },
+      inferTransitively: false);
 
-  test('do not infer from variables in non-cycle imports if flag is off', () {
-    testChecker({
-      '/a.dart': '''
+  testChecker(
+      'do not infer from variables in non-cycle imports if flag is off',
+      {
+        '/a.dart': '''
           var x = 2;
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
           import 'a.dart';
           var y = x;
 
@@ -209,13 +196,16 @@ void main() {
             y = "hi";
           }
     '''
-    }, inferTransitively: false);
+      },
+      inferTransitively: false);
 
-    testChecker({
-      '/a.dart': '''
+  testChecker(
+      'do not infer from variables in non-cycle imports if flag is off 2',
+      {
+        '/a.dart': '''
           class A { static var x = 2; }
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
           import 'a.dart';
           class B { static var y = A.x; }
 
@@ -224,15 +214,16 @@ void main() {
             B.y = "hi";
           }
     '''
-    }, inferTransitively: false);
-  });
+      },
+      inferTransitively: false);
 
-  test('infer from variables in non-cycle imports with flag', () {
-    testChecker({
-      '/a.dart': '''
+  testChecker(
+      'infer from variables in non-cycle imports with flag',
+      {
+        '/a.dart': '''
           var x = 2;
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
           import 'a.dart';
           var y = x;
 
@@ -241,13 +232,16 @@ void main() {
             y = /*severe:StaticTypeError*/"hi";
           }
     '''
-    }, inferTransitively: true);
+      },
+      inferTransitively: true);
 
-    testChecker({
-      '/a.dart': '''
+  testChecker(
+      'infer from variables in non-cycle imports with flag 2',
+      {
+        '/a.dart': '''
           class A { static var x = 2; }
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
           import 'a.dart';
           class B { static var y = A.x; }
 
@@ -256,16 +250,17 @@ void main() {
             B.y = /*severe:StaticTypeError*/"hi";
           }
     '''
-    }, inferTransitively: true);
-  });
+      },
+      inferTransitively: true);
 
-  test('do not infer from variables in cycle libs when flag is off', () {
-    testChecker({
-      '/a.dart': '''
+  testChecker(
+      'do not infer from variables in cycle libs when flag is off',
+      {
+        '/a.dart': '''
           import 'main.dart';
           var x = 2; // ok to infer
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
           import 'a.dart';
           var y = x; // not ok to infer yet
 
@@ -275,14 +270,17 @@ void main() {
             t = /*info:DynamicCast*/y;
           }
     '''
-    }, inferTransitively: false);
+      },
+      inferTransitively: false);
 
-    testChecker({
-      '/a.dart': '''
+  testChecker(
+      'do not infer from variables in cycle libs when flag is off 2',
+      {
+        '/a.dart': '''
           import 'main.dart';
           class A { static var x = 2; }
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
           import 'a.dart';
           class B { static var y = A.x; }
 
@@ -292,16 +290,17 @@ void main() {
             t = /*info:DynamicCast*/B.y;
           }
     '''
-    }, inferTransitively: false);
-  });
+      },
+      inferTransitively: false);
 
-  test('infer from variables in cycle libs when flag is on', () {
-    testChecker({
-      '/a.dart': '''
+  testChecker(
+      'infer from variables in cycle libs when flag is on',
+      {
+        '/a.dart': '''
           import 'main.dart';
           var x = 2; // ok to infer
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
           import 'a.dart';
           var y = x; // now ok :)
 
@@ -311,14 +310,17 @@ void main() {
             t = y;
           }
     '''
-    }, inferTransitively: true);
+      },
+      inferTransitively: true);
 
-    testChecker({
-      '/a.dart': '''
+  testChecker(
+      'infer from variables in cycle libs when flag is on 2',
+      {
+        '/a.dart': '''
           import 'main.dart';
           class A { static var x = 2; }
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
           import 'a.dart';
           class B { static var y = A.x; }
 
@@ -328,25 +330,26 @@ void main() {
             t = B.y;
           }
     '''
-    }, inferTransitively: true);
-  });
+      },
+      inferTransitively: true);
 
-  test('do not infer from static and instance fields when flag is off', () {
-    testChecker({
-      '/a.dart': '''
+  testChecker(
+      'do not infer from static and instance fields when flag is off',
+      {
+        '/a.dart': '''
           import 'b.dart';
           class A {
             static final a1 = B.b1;
             final a2 = new B().b2;
           }
       ''',
-      '/b.dart': '''
+        '/b.dart': '''
           class B {
             static final b1 = 1;
             final b2 = 1;
           }
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
           import "a.dart";
 
           test1() {
@@ -356,25 +359,26 @@ void main() {
             x = /*info:DynamicCast*/new A().a2;
           }
     '''
-    }, inferTransitively: false);
-  });
+      },
+      inferTransitively: false);
 
-  test('can infer also from static and instance fields (flag on)', () {
-    testChecker({
-      '/a.dart': '''
+  testChecker(
+      'can infer also from static and instance fields (flag on)',
+      {
+        '/a.dart': '''
           import 'b.dart';
           class A {
             static final a1 = B.b1;
             final a2 = new B().b2;
           }
       ''',
-      '/b.dart': '''
+        '/b.dart': '''
           class B {
             static final b1 = 1;
             final b2 = 1;
           }
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
           import "a.dart";
 
           test1() {
@@ -384,25 +388,26 @@ void main() {
             x = new A().a2;
           }
     '''
-    }, inferTransitively: true);
-  });
+      },
+      inferTransitively: true);
 
-  test('inference in cycles is deterministic', () {
-    testChecker({
-      '/a.dart': '''
+  testChecker(
+      'inference in cycles is deterministic',
+      {
+        '/a.dart': '''
           import 'b.dart';
           class A {
             static final a1 = B.b1;
             final a2 = new B().b2;
           }
       ''',
-      '/b.dart': '''
+        '/b.dart': '''
           class B {
             static final b1 = 1;
             final b2 = 1;
           }
       ''',
-      '/c.dart': '''
+        '/c.dart': '''
           import "main.dart"; // creates a cycle
 
           class C {
@@ -410,7 +415,7 @@ void main() {
             final c2 = 1;
           }
       ''',
-      '/e.dart': '''
+        '/e.dart': '''
           import 'a.dart';
           part 'e2.dart';
 
@@ -423,16 +428,16 @@ void main() {
             final e6 = new A().a2;
           }
       ''',
-      '/f.dart': '''
+        '/f.dart': '''
           part 'f2.dart';
       ''',
-      '/e2.dart': '''
+        '/e2.dart': '''
           class F {
             static final f1 = 1;
             final f2 = 1;
           }
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
           import "a.dart";
           import "c.dart";
           import "e.dart";
@@ -471,12 +476,12 @@ void main() {
             x = new F().f2;
           }
     '''
-    }, inferTransitively: true);
-  });
+      },
+      inferTransitively: true);
 
-  test('infer from complex expressions if the outer-most value is precise', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'infer from complex expressions if the outer-most value is precise', {
+    '/main.dart': '''
         class A { int x; B operator+(other) {} }
         class B extends A { B(ignore); }
         var a = new A();
@@ -519,17 +524,17 @@ void main() {
           j = /*severe:StaticTypeError*/[];
         }
     '''
-    });
   });
 
-  test('do not infer if complex expressions read possibly inferred field', () {
-    testChecker({
-      '/a.dart': '''
+  testChecker(
+      'do not infer if complex expressions read possibly inferred field',
+      {
+        '/a.dart': '''
         class A {
           var x = 3;
         }
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
         import 'a.dart';
         class B {
           var y = 3;
@@ -550,16 +555,19 @@ void main() {
           i = new B().y; // B.y was inferred though
         }
     '''
-    }, inferTransitively: false);
+      },
+      inferTransitively: false);
 
-    // but flags can enable this behavior.
-    testChecker({
-      '/a.dart': '''
+  // but flags can enable this behavior.
+  testChecker(
+      'infer if complex expressions read possibly inferred field',
+      {
+        '/a.dart': '''
         class A {
           var x = 3;
         }
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
         import 'a.dart';
         class B {
           var y = 3;
@@ -580,12 +588,11 @@ void main() {
           i = new B().y; // B.y was inferred though
         }
     '''
-    }, inferTransitively: true);
-  });
+      },
+      inferTransitively: true);
 
-  test('infer types on loop indices', () {
-    // foreach loop
-    testChecker({
+  group('infer types on loop indices', () {
+    testChecker('foreach loop', {
       '/main.dart': '''
       class Foo {
         int bar = 42;
@@ -635,8 +642,7 @@ void main() {
       '''
     });
 
-    // for loop, with inference
-    testChecker({
+    testChecker('for loop, with inference', {
       '/main.dart': '''
       test() {
         for (var i = 0; i < 10; i++) {
@@ -647,9 +653,8 @@ void main() {
     });
   });
 
-  test('propagate inference to field in class', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('propagate inference to field in class', {
+    '/main.dart': '''
       class A {
         int x = 2;
       }
@@ -661,11 +666,10 @@ void main() {
         print(a.x + 2); // ok to use in bigger expression
       }
     '''
-    });
+  });
 
-    // Same code with dynamic yields warnings
-    testChecker({
-      '/main.dart': '''
+  testChecker('propagate inference to field in class dynamic warnings', {
+    '/main.dart': '''
       class A {
         int x = 2;
       }
@@ -677,12 +681,10 @@ void main() {
         print(/*info:DynamicInvoke*/(/*info:DynamicInvoke*/a.x) + 2);
       }
     '''
-    });
   });
 
-  test('propagate inference transitively ', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker('propagate inference transitively', {
+    '/main.dart': '''
       class A {
         int x = 2;
       }
@@ -695,10 +697,10 @@ void main() {
         a2.x = /*severe:StaticTypeError*/"hi";
       }
     '''
-    });
+  });
 
-    testChecker({
-      '/main.dart': '''
+  testChecker('propagate inference transitively 2', {
+    '/main.dart': '''
       class A {
         int x = 42;
       }
@@ -723,12 +725,13 @@ void main() {
         print(d2.c.b.a.x);
       }
     '''
-    });
   });
 
-  test('infer type on overridden fields', () {
-    testChecker({
-      '/main.dart': '''
+  group('infer type on overridden fields', () {
+    testChecker(
+        '1',
+        {
+          '/main.dart': '''
         class A {
           int x = 2;
         }
@@ -742,10 +745,13 @@ void main() {
           int z = /*info:DynamicCast*/new B().x;
         }
     '''
-    }, inferFromOverrides: false);
+        },
+        inferFromOverrides: false);
 
-    testChecker({
-      '/main.dart': '''
+    testChecker(
+        '2',
+        {
+          '/main.dart': '''
         class A {
           int x = 2;
         }
@@ -759,10 +765,13 @@ void main() {
           int z = new B().x;
         }
     '''
-    }, inferFromOverrides: true);
+        },
+        inferFromOverrides: true);
 
-    testChecker({
-      '/main.dart': '''
+    testChecker(
+        '3',
+        {
+          '/main.dart': '''
         class A {
           int x = 2;
         }
@@ -776,10 +785,13 @@ void main() {
           int z = /*info:DynamicCast*/new B().x;
         }
     '''
-    }, inferFromOverrides: false);
+        },
+        inferFromOverrides: false);
 
-    testChecker({
-      '/main.dart': '''
+    testChecker(
+        '4',
+        {
+          '/main.dart': '''
         class A {
           int x = 2;
         }
@@ -793,13 +805,16 @@ void main() {
           int z = new B().x;
         }
     '''
-    }, inferFromOverrides: true);
+        },
+        inferFromOverrides: true);
   });
 
-  test('infer types on generic instantiations', () {
+  group('infer types on generic instantiations', () {
     for (bool infer in [true, false]) {
-      testChecker({
-        '/main.dart': '''
+      testChecker(
+          'infer: $infer',
+          {
+            '/main.dart': '''
           class A<T> {
             T x;
           }
@@ -813,11 +828,14 @@ void main() {
             int z = /*info:DynamicCast*/new B().x;
           }
       '''
-      }, inferFromOverrides: infer);
+          },
+          inferFromOverrides: infer);
     }
 
-    testChecker({
-      '/main.dart': '''
+    testChecker(
+        '2',
+        {
+          '/main.dart': '''
         class A<T> {
           T x;
         }
@@ -831,9 +849,13 @@ void main() {
           int z = /*info:DynamicCast*/new B().x;
         }
     '''
-    }, inferFromOverrides: false);
-    testChecker({
-      '/main.dart': '''
+        },
+        inferFromOverrides: false);
+
+    testChecker(
+        '3',
+        {
+          '/main.dart': '''
         class A<T> {
           T x;
           T w;
@@ -849,10 +871,13 @@ void main() {
           int z = new B().x;
         }
     '''
-    }, inferFromOverrides: true);
+        },
+        inferFromOverrides: true);
 
-    testChecker({
-      '/main.dart': '''
+    testChecker(
+        '4',
+        {
+          '/main.dart': '''
         class A<T> {
           T x;
         }
@@ -867,10 +892,13 @@ void main() {
           String z = new B<String>().x;
         }
     '''
-    }, inferFromOverrides: true);
+        },
+        inferFromOverrides: true);
 
-    testChecker({
-      '/main.dart': '''
+    testChecker(
+        '5',
+        {
+          '/main.dart': '''
         abstract class I<E> {
           String m(a, String f(v, T e));
         }
@@ -896,17 +924,19 @@ void main() {
           String z = new B().m(null, null);
         }
     '''
-    }, inferFromOverrides: true);
+        },
+        inferFromOverrides: true);
   });
 
-  test('infer type regardless of declaration order or cycles', () {
-    testChecker({
-      '/b.dart': '''
+  testChecker(
+      'infer type regardless of declaration order or cycles',
+      {
+        '/b.dart': '''
         import 'main.dart';
 
         class B extends A { }
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
         import 'b.dart';
         class C extends B {
           get x;
@@ -919,21 +949,22 @@ void main() {
           String y = /*severe:StaticTypeError*/new C().x;
         }
     '''
-    }, inferFromOverrides: true);
-  });
+      },
+      inferFromOverrides: true);
 
   // Note: this is a regression test for a non-deterministic behavior we used to
   // have with inference in library cycles. If you see this test flake out,
   // change `test` to `skip_test` and reopen bug #48.
-  test('infer types on generic instantiations in library cycle', () {
-    testChecker({
-      '/a.dart': '''
+  testChecker(
+      'infer types on generic instantiations in library cycle',
+      {
+        '/a.dart': '''
           import 'main.dart';
         abstract class I<E> {
           A<E> m(a, String f(v, T e));
         }
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
           import 'a.dart';
 
         abstract class A<E> implements I<E> {
@@ -958,13 +989,15 @@ void main() {
           String z = new B<String>().m(null, null).value;
         }
     '''
-    }, inferFromOverrides: true);
-  });
+      },
+      inferFromOverrides: true);
 
-  test('do not infer overridden fields that explicitly say dynamic', () {
+  group('do not infer overridden fields that explicitly say dynamic', () {
     for (bool infer in [true, false]) {
-      testChecker({
-        '/main.dart': '''
+      testChecker(
+          'infer: $infer',
+          {
+            '/main.dart': '''
           class A {
             int x = 2;
           }
@@ -978,13 +1011,15 @@ void main() {
             int z = /*info:DynamicCast*/new B().x;
           }
       '''
-      }, inferFromOverrides: infer);
+          },
+          inferFromOverrides: infer);
     }
   });
 
-  test('conflicts can happen', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'conflicts can happen',
+      {
+        '/main.dart': '''
         class I1 {
           int x;
         }
@@ -1009,10 +1044,13 @@ void main() {
           get a => null;
         }
     '''
-    }, inferFromOverrides: true);
+      },
+      inferFromOverrides: true);
 
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'conflicts can happen 2',
+      {
+        '/main.dart': '''
         class I1 {
           int x;
         }
@@ -1041,12 +1079,13 @@ void main() {
           /*severe:InvalidMethodOverride*/get a => null;
         }
     '''
-    }, inferFromOverrides: true);
-  });
+      },
+      inferFromOverrides: true);
 
-  test('infer from RHS only if it wont conflict with overridden fields', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'infer from RHS only if it wont conflict with overridden fields',
+      {
+        '/main.dart': '''
         class A {
           var x;
         }
@@ -1060,10 +1099,13 @@ void main() {
           int z = /*info:DynamicCast*/new B().x;
         }
     '''
-    }, inferFromOverrides: true);
+      },
+      inferFromOverrides: true);
 
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'infer from RHS only if it wont conflict with overridden fields 2',
+      {
+        '/main.dart': '''
         class A {
           final x;
         }
@@ -1077,12 +1119,13 @@ void main() {
           int z = new B().x;
         }
     '''
-    }, inferFromOverrides: true);
-  });
+      },
+      inferFromOverrides: true);
 
-  test('infer correctly on multiple variables declared together', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'infer correctly on multiple variables declared together',
+      {
+        '/main.dart': '''
         class A {
           var x, y = 2, z = "hi";
         }
@@ -1106,21 +1149,22 @@ void main() {
           i = new B().w;
         }
     '''
-    }, inferFromOverrides: true);
-  });
+      },
+      inferFromOverrides: true);
 
-  test('infer consts transitively', () {
-    testChecker({
-      '/b.dart': '''
+  testChecker(
+      'infer consts transitively',
+      {
+        '/b.dart': '''
         const b1 = 2;
       ''',
-      '/a.dart': '''
+        '/a.dart': '''
         import 'main.dart';
         import 'b.dart';
         const a1 = m2;
         const a2 = b1;
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
         import 'a.dart';
         const m1 = a1;
         const m2 = a2;
@@ -1130,15 +1174,17 @@ void main() {
           i = m1;
         }
     '''
-    }, inferFromOverrides: true, inferTransitively: true);
-  });
+      },
+      inferFromOverrides: true,
+      inferTransitively: true);
 
-  test('infer statics transitively', () {
-    testChecker({
-      '/b.dart': '''
+  testChecker(
+      'infer statics transitively',
+      {
+        '/b.dart': '''
         final b1 = 2;
       ''',
-      '/a.dart': '''
+        '/a.dart': '''
         import 'main.dart';
         import 'b.dart';
         final a1 = m2;
@@ -1146,7 +1192,7 @@ void main() {
           static final a2 = b1;
         }
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
         import 'a.dart';
         final m1 = a1;
         final m2 = A.a2;
@@ -1156,10 +1202,14 @@ void main() {
           i = m1;
         }
     '''
-    }, inferFromOverrides: true, inferTransitively: true);
+      },
+      inferFromOverrides: true,
+      inferTransitively: true);
 
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'infer statics transitively 2',
+      {
+        '/main.dart': '''
         const x1 = 1;
         final x2 = 1;
         final y1 = x1;
@@ -1171,17 +1221,21 @@ void main() {
           i = y2;
         }
     '''
-    }, inferFromOverrides: true, inferTransitively: true);
+      },
+      inferFromOverrides: true,
+      inferTransitively: true);
 
-    testChecker({
-      '/a.dart': '''
+  testChecker(
+      'infer statics transitively 3',
+      {
+        '/a.dart': '''
         const a1 = 3;
         const a2 = 4;
         class A {
           a3;
         }
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
         import 'a.dart' show a1, A;
         import 'a.dart' as p show a2, A;
         const t1 = 1;
@@ -1199,15 +1253,17 @@ void main() {
           i = t4;
         }
     '''
-    }, inferFromOverrides: true, inferTransitively: true);
-  });
+      },
+      inferFromOverrides: true,
+      inferTransitively: true);
 
-  test('infer statics with method invocations', () {
-    testChecker({
-      '/a.dart': '''
+  testChecker(
+      'infer statics with method invocations',
+      {
+        '/a.dart': '''
         m3(String a, String b, [a1,a2]) {}
       ''',
-      '/main.dart': '''
+        '/main.dart': '''
         import 'a.dart';
         class T {
           static final T foo = m1(m2(m3('', '')));
@@ -1217,12 +1273,14 @@ void main() {
 
 
     '''
-    }, inferFromOverrides: true, inferTransitively: true);
-  });
+      },
+      inferFromOverrides: true,
+      inferTransitively: true);
 
-  test('downwards inference: miscellaneous', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'downwards inference: miscellaneous',
+      {
+        '/main.dart': '''
       typedef (T x);
       class A<T> {
         Function2<T> x;
@@ -1241,10 +1299,10 @@ void main() {
           }
       }
       '''
-    }, inferDownwards: true);
-  });
+      },
+      inferDownwards: true);
 
-  test('downwards inference on instance creations', () {
+  group('downwards inference on instance creations', () {
     String mk(String info) => '''
       class A<S, T> {
         S x;
@@ -1339,13 +1397,15 @@ void main() {
         }
       }
         ''';
-    testChecker({'/main.dart': mk("info:InferredTypeAllocation")},
+    testChecker(
+        'infer downwards', {'/main.dart': mk("info:InferredTypeAllocation")},
         inferDownwards: true);
-    testChecker({'/main.dart': mk("severe:StaticTypeError")},
+    testChecker(
+        'no infer downwards', {'/main.dart': mk("severe:StaticTypeError")},
         inferDownwards: false);
   });
 
-  test('downwards inference on list literals', () {
+  group('downwards inference on list literals', () {
     String mk(String info) => '''
       void foo([List<String> list1 = /*$info*/const [],
                 List<String> list2 = /*severe:StaticTypeError*/const [42]]) {
@@ -1384,13 +1444,15 @@ void main() {
         }
       }
       ''';
-    testChecker({'/main.dart': mk("info:InferredTypeLiteral")},
+    testChecker(
+        'infer downwards', {'/main.dart': mk("info:InferredTypeLiteral")},
         inferDownwards: true);
-    testChecker({'/main.dart': mk("severe:StaticTypeError")},
+    testChecker(
+        'no infer downwards', {'/main.dart': mk("severe:StaticTypeError")},
         inferDownwards: false);
   });
 
-  test('downwards inference on function arguments', () {
+  group('downwards inference on function arguments', () {
     String mk(String info) => '''
       void f0(List<int> a) {};
       void f1({List<int> a}) {};
@@ -1424,13 +1486,15 @@ void main() {
         f4(a: /*severe:StaticTypeError*/[["hello"], [3]]);
       }
       ''';
-    testChecker({'/main.dart': mk("info:InferredTypeLiteral")},
+    testChecker(
+        'infer downwards', {'/main.dart': mk("info:InferredTypeLiteral")},
         inferDownwards: true);
-    testChecker({'/main.dart': mk("severe:StaticTypeError")},
+    testChecker(
+        'no infer downwards', {'/main.dart': mk("severe:StaticTypeError")},
         inferDownwards: false);
   });
 
-  test('downwards inference on map literals', () {
+  group('downwards inference on map literals', () {
     String mk(String info) => '''
       void foo([Map<int, String> m1 = /*$info*/const {1: "hello"},
                 Map<int, String> m1 = /*severe:StaticTypeError*/const {"hello": "world"}]) {
@@ -1478,15 +1542,18 @@ void main() {
         }
       }
       ''';
-    testChecker({'/main.dart': mk("info:InferredTypeLiteral")},
+    testChecker(
+        'infer downwards', {'/main.dart': mk("info:InferredTypeLiteral")},
         inferDownwards: true);
-    testChecker({'/main.dart': mk("severe:StaticTypeError")},
+    testChecker(
+        'no infer downwards', {'/main.dart': mk("severe:StaticTypeError")},
         inferDownwards: false);
   });
 
-  test('downwards inference on function expressions', () {
-    testChecker({
-      '/main.dart': '''
+  testChecker(
+      'downwards inference on function expressions',
+      {
+        '/main.dart': '''
       typedef T Function2<S, T>(S x);
 
       void main () {
@@ -1519,16 +1586,14 @@ void main() {
         }
       }
       '''
-    }, inferDownwards: true);
-  });
+      },
+      inferDownwards: true);
 
-  test(
-      'inferred initializing formal checks default value',
-      () => testChecker({
-            '/main.dart': '''
+  testChecker('inferred initializing formal checks default value', {
+    '/main.dart': '''
       class Foo {
         var x = 1;
         Foo([this.x = /*severe:StaticTypeError*/"1"]);
       }'''
-          }));
+  });
 }
