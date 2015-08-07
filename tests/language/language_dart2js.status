@@ -8,8 +8,8 @@ sync_generator2_test/08: MissingCompileTimeError # Issue 22324
 sync_generator2_test/10: MissingCompileTimeError # Issue 22324
 getter_setter_in_lib_test: Fail # Issue 23288
 
-async_star_test/02: RuntimeError # 22853
-async_star_test/05: RuntimeError, Timeout
+async_star_cancel_while_paused_test: RuntimeError # Issue 22853
+async_star_await_pauses_test: Fail, Timeout # Issue 22853
 tearoff_basic_test: Skip # Tear-off not supported
 tearoff_constructor_basic_test: Skip # Tear-off not supported
 
@@ -382,12 +382,12 @@ async_return_types_test/wrongReturnType: Crash # (test()async{Expect....  cannot
 async_return_types_test/wrongTypeParameter: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
 async_star_cancel_and_throw_in_finally_test: Crash # (test()async{var com...  cannot handle async/sync*/async* functions
 async_star_regression_23116_test: Crash # (test()async{Complet...  cannot handle async/sync*/async* functions
-async_star_test/01: Crash # (f()async*{}): cannot handle async/sync*/async* functions
-async_star_test/02: Crash # (f()async*{}): cannot handle async/sync*/async* functions
-async_star_test/03: Crash # (f()async*{}): cannot handle async/sync*/async* functions
-async_star_test/04: Crash # (f()async*{}): cannot handle async/sync*/async* functions
-async_star_test/05: Crash # (f()async*{}): cannot handle async/sync*/async* functions
-async_star_test/none: Crash # (f()async*{}): cannot handle async/sync*/async* functions
+async_star_regression_2238_test: Crash # (f()async*{}): cannot handle async/sync*/async* functions
+async_star_cancel_while_paused_test: Crash # (f()async*{}): cannot handle async/sync*/async* functions
+async_star_stream_take_test: Crash # (f()async*{}): cannot handle async/sync*/async* functions
+async_star_take_reyield_test: Crash # (f()async*{}): cannot handle async/sync*/async* functions
+async_star_await_pauses_test: Crash # (f()async*{}): cannot handle async/sync*/async* functions
+async_star_test: Crash # (f()async*{}): cannot handle async/sync*/async* functions
 async_switch_test/none: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
 async_switch_test/withDefault: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
 async_test/none: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions

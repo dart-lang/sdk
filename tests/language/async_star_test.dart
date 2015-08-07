@@ -143,14 +143,6 @@ main() {
       return expectList(f(), [0]);
     });
 
-    // VM issue 2238
-    test("labeled 2", () {          /// 01: ok
-      f() async* {                  /// 01: continued
-        label1: label2: yield 0;    /// 01: continued
-      }                             /// 01: continued
-      return expectList(f(), [0]);  /// 01: continued
-    });                             /// 01: continued
-
     test("for-loop", () {
       f() async* {
         for (int i = 0; i < 3; i++) yield i;
@@ -583,39 +575,6 @@ main() {
         return expectList(f().take(0), []);
       });
     });
-
-    // Crashes dart2js.
-    // test("regression-fugl/fisk", () {
-    //   var res = [];
-    //   fisk() async* {
-    //     res.add("+fisk");
-    //     try {
-    //       for (int i = 0; i < 2; i++) {
-    //         yield await new Future.microtask(() => i);
-    //       }
-    //     } finally {
-    //       res.add("-fisk");
-    //     }
-    //   }
-
-    //   fugl(int count) async {
-    //     res.add("fisk $count");
-    //     try {
-    //       await for(int i in fisk().take(count)) res.add(i);
-    //     } finally {
-    //       res.add("done");
-    //     }
-    //   }
-
-    //   return fugl(3).whenComplete(() => fugl(2))
-    //                 .whenComplete(() => fugl(1))
-    //                 .whenComplete(() {
-    //     expect(res, ["fisk 3", "+fisk", 0, 1, "-fisk", "done",
-    //                  "fisk 2", "+fisk", 0, 1, "-fisk", "done",
-    //                  "fisk 1", "+fisk", 0, "done", "-fisk", ]);
-    //   });
-    // });
-
   });
 
   group("pausing", () {
@@ -703,34 +662,6 @@ main() {
         expect(list.length == 18 || list.length == 19, isTrue);
       });
     });
-
-    test("canceling while paused at yield", () {                  /// 02: ok
-      var list = [];                                              /// 02: continued
-      var sync = new Sync();                                      /// 02: continued
-      f() async* {                                                /// 02: continued
-        list.add("*1");                                           /// 02: continued
-        yield 1;                                                  /// 02: continued
-        await sync.wait();                                        /// 02: continued
-        sync.release();                                           /// 02: continued
-        list.add("*2");                                           /// 02: continued
-        yield 2;                                                  /// 02: continued
-        list.add("*3");                                           /// 02: continued
-      };                                                          /// 02: continued
-      var stream = f();                                           /// 02: continued
-      var sub = stream.listen(list.add);                          /// 02: continued
-      return sync.wait().whenComplete(() {                        /// 02: continued
-        expect(list, equals(["*1", 1]));                          /// 02: continued
-        sub.pause();                                              /// 02: continued
-        return sync.wait();                                       /// 02: continued
-      }).whenComplete(() {                                        /// 02: continued
-        expect(list, equals(["*1", 1, "*2"]));                    /// 02: continued
-        sub.cancel();                                             /// 02: continued
-        return new Future.delayed(MS * 200, () {                  /// 02: continued
-          // Should not have yielded 2 or added *3 while paused.  /// 02: continued
-          expect(list, equals(["*1", 1, "*2"]));                  /// 02: continued
-        });                                                       /// 02: continued
-      });                                                         /// 02: continued
-    });                                                           /// 02: continued
   });
 
   group("await for", () {
@@ -760,17 +691,6 @@ main() {
       });
     });
 
-    test("simple stream - take", () {           /// 03: ok
-      f(s) async {                              /// 03: continued
-        var r = 0;                              /// 03: continued
-        await for(var v in s.take(5)) r += v;   /// 03: continued
-        return r;                               /// 03: continued
-      }                                         /// 03: continued
-      return f(mkStream(10)).then((v) {         /// 03: continued
-        expect(v, equals(10));                  /// 03: continued
-      });                                       /// 03: continued
-    });                                         /// 03: continued
-
     test("simple stream reyield", () {
       f(s) async* {
         var r = 0;
@@ -786,14 +706,6 @@ main() {
       }
       return expectList(f(mkStream(5)), [0, 1, 3, 6, 10]);
     });
-
-    test("simple stream - take, reyield", () {                /// 04: ok
-      f(s) async* {                                           /// 04: continued
-        var r = 0;                                            /// 04: continued
-        await for(var v in s.take(5)) yield r += v;           /// 04: continued
-      }                                                       /// 04: continued
-      return expectList(f(mkStream(10)), [0, 1, 3, 6, 10]);   /// 04: continued
-    });                                                       /// 04: continued
 
     test("nested", () {
       f() async {
@@ -840,29 +752,6 @@ main() {
         expect(v, equals((1 + 2 + 3 + 4) * (1 + 2)));
       });
     });
-
-    test("await pauses loop", () {                                   /// 05: ok
-      var sc;                                                        /// 05: continued
-      var i = 0;                                                     /// 05: continued
-      void send() {                                                  /// 05: continued
-        if (i == 5) {                                                /// 05: continued
-          sc.close();                                                /// 05: continued
-        } else {                                                     /// 05: continued
-          sc.add(i++);                                               /// 05: continued
-        }                                                            /// 05: continued
-      }                                                              /// 05: continued
-      sc = new StreamController(onListen: send, onResume: send);     /// 05: continued
-      f(s) async {                                                   /// 05: continued
-        var r = 0;                                                   /// 05: continued
-        await for (var i in s) {                                     /// 05: continued
-          r += await new Future.delayed(MS * 10, () => i);           /// 05: continued
-        }                                                            /// 05: continued
-        return r;                                                    /// 05: continued
-      }                                                              /// 05: continued
-      return f(sc.stream).then((v) {                                 /// 05: continued
-        expect(v, equals(10));                                       /// 05: continued
-      });                                                            /// 05: continued
-    });                                                              /// 05: continued
   });
 }
 
@@ -892,31 +781,5 @@ var getErrors = new StreamTransformer.fromHandlers(
 class NotAStream {
   listen(oData, {onError, onDone, cancelOnError}) {
     fail("Not implementing Stream.");
-  }
-}
-
-/**
- * Allows two asynchronous executions to synchronize.
- *
- * Calling [wait] and waiting for the returned future to complete will
- * wait for the other executions to call [wait] again. At that point,
- * the waiting execution is allowed to continue (the returned future completes),
- * and the more resent call to [wait] is now the waiting execution.
- */
-class Sync {
-  Completer _completer = null;
-  // Release whoever is currently waiting and start waiting yourself.
-  Future wait([v]) {
-    if (_completer != null) _completer.complete(v);
-    _completer = new Completer();
-    return _completer.future;
-  }
-
-  // Release whoever is currently waiting.
-  void release([v]) {
-    if (_completer != null) {
-      _completer.complete(v);
-      _completer = null;
-    }
   }
 }
