@@ -139,7 +139,7 @@ void Thread::EnterIsolate(Isolate* isolate) {
   isolate->set_thread_state(thread_state);
   isolate->set_vm_tag(VMTag::kVMTagId);
   ASSERT(thread->store_buffer_block_ == NULL);
-  thread->store_buffer_block_ = isolate->store_buffer()->PopBlock();
+  thread->store_buffer_block_ = isolate->store_buffer()->PopNonFullBlock();
   ASSERT(isolate->heap() != NULL);
   thread->heap_ = isolate->heap();
   thread->Schedule(isolate);
@@ -213,7 +213,7 @@ void Thread::StoreBufferBlockProcess(bool check_threshold) {
   StoreBufferBlock* block = store_buffer_block_;
   store_buffer_block_ = NULL;
   sb->PushBlock(block, check_threshold);
-  store_buffer_block_ = sb->PopBlock();
+  store_buffer_block_ = sb->PopNonFullBlock();
 }
 
 

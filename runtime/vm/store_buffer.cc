@@ -90,7 +90,7 @@ void StoreBuffer::PushBlock(StoreBufferBlock* block, bool check_threshold) {
 }
 
 
-StoreBufferBlock* StoreBuffer::PopBlock() {
+StoreBufferBlock* StoreBuffer::PopNonFullBlock() {
   {
     MutexLocker ml(mutex_);
     if (!partial_.IsEmpty()) {
@@ -109,6 +109,24 @@ StoreBufferBlock* StoreBuffer::PopEmptyBlock() {
     }
   }
   return new StoreBufferBlock();
+}
+
+
+StoreBufferBlock* StoreBuffer::PopNonEmptyBlock() {
+  MutexLocker ml(mutex_);
+  if (!full_.IsEmpty()) {
+    return full_.Pop();
+  } else if (!partial_.IsEmpty()) {
+    return partial_.Pop();
+  } else {
+    return NULL;
+  }
+}
+
+
+bool StoreBuffer::IsEmpty() {
+  MutexLocker ml(global_mutex_);
+  return full_.IsEmpty() && partial_.IsEmpty();
 }
 
 

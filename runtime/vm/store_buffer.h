@@ -88,8 +88,9 @@ class StoreBuffer {
   // Partially filled blocks can be reused, and there is an "inifite" supply
   // of empty blocks (reused or newly allocated). In any case, the caller
   // takes ownership of the returned block.
-  StoreBufferBlock* PopBlock();
+  StoreBufferBlock* PopNonFullBlock();
   StoreBufferBlock* PopEmptyBlock();
+  StoreBufferBlock* PopNonEmptyBlock();
 
   // Pops and returns all non-empty blocks as a linked list (owned by caller).
   StoreBufferBlock* Blocks();
@@ -99,6 +100,8 @@ class StoreBuffer {
 
   // Check whether non-empty blocks have exceeded kMaxNonEmpty.
   bool Overflowed();
+
+  bool IsEmpty();
 
  private:
   class List {

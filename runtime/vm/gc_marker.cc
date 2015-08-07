@@ -15,111 +15,15 @@
 #include "vm/pages.h"
 #include "vm/raw_object.h"
 #include "vm/stack_frame.h"
+#include "vm/store_buffer.h"
 #include "vm/thread_pool.h"
 #include "vm/visitor.h"
 #include "vm/object_id_ring.h"
 
 namespace dart {
 
-// A simple chunked marking stack.
-class MarkingStack : public ValueObject {
- public:
-  MarkingStack()
-      : head_(new MarkingStackChunk()),
-        empty_chunks_(NULL),
-        marking_stack_(NULL),
-        top_(0) {
-    marking_stack_ = head_->MarkingStackChunkMemory();
-  }
-
-  ~MarkingStack() {
-    // TODO(iposva): Consider caching a couple emtpy marking stack chunks.
-    ASSERT(IsEmpty());
-    delete head_;
-    MarkingStackChunk* next;
-    while (empty_chunks_ != NULL) {
-      next = empty_chunks_->next();
-      delete empty_chunks_;
-      empty_chunks_ = next;
-    }
-  }
-
-  bool IsEmpty() const {
-    return IsMarkingStackChunkEmpty() && (head_->next() == NULL);
-  }
-
-  void Push(RawObject* value) {
-    ASSERT(!IsMarkingStackChunkFull());
-    marking_stack_[top_] = value;
-    top_++;
-    if (IsMarkingStackChunkFull()) {
-      MarkingStackChunk* new_chunk;
-      if (empty_chunks_ == NULL) {
-        new_chunk = new MarkingStackChunk();
-      } else {
-        new_chunk = empty_chunks_;
-        empty_chunks_ = new_chunk->next();
-      }
-      new_chunk->set_next(head_);
-      head_ = new_chunk;
-      marking_stack_ = head_->MarkingStackChunkMemory();
-      top_ = 0;
-    }
-  }
-
-  RawObject* Pop() {
-    ASSERT(head_ != NULL);
-    ASSERT(!IsEmpty());
-    if (IsMarkingStackChunkEmpty()) {
-      MarkingStackChunk* empty_chunk = head_;
-      head_ = head_->next();
-      empty_chunk->set_next(empty_chunks_);
-      empty_chunks_ = empty_chunk;
-      marking_stack_ = head_->MarkingStackChunkMemory();
-      top_ = MarkingStackChunk::kMarkingStackChunkSize;
-    }
-    top_--;
-    return marking_stack_[top_];
-  }
-
- private:
-  class MarkingStackChunk {
-   public:
-    MarkingStackChunk() : next_(NULL) {}
-    ~MarkingStackChunk() {}
-
-    RawObject** MarkingStackChunkMemory() {
-      return &memory_[0];
-    }
-
-    MarkingStackChunk* next() const { return next_; }
-    void set_next(MarkingStackChunk* value) { next_ = value; }
-
-    static const uint32_t kMarkingStackChunkSize = 1024;
-
-   private:
-    RawObject* memory_[kMarkingStackChunkSize];
-    MarkingStackChunk* next_;
-
-    DISALLOW_COPY_AND_ASSIGN(MarkingStackChunk);
-  };
-
-  bool IsMarkingStackChunkFull() const {
-    return top_ == MarkingStackChunk::kMarkingStackChunkSize;
-  }
-
-  bool IsMarkingStackChunkEmpty() const {
-    return top_ == 0;
-  }
-
-  MarkingStackChunk* head_;
-  MarkingStackChunk* empty_chunks_;
-  RawObject** marking_stack_;
-  uint32_t top_;
-
-  DISALLOW_COPY_AND_ASSIGN(MarkingStack);
-};
-
+typedef StoreBufferBlock PointerBlock;  // TODO(koda): Rename to PointerBlock.
+typedef StoreBuffer MarkingStack;  // TODO(koda): Create shared base class.
 
 class DelaySet {
  private:
@@ -184,20 +88,42 @@ class MarkingVisitor : public ObjectPointerVisitor {
         vm_heap_(Dart::vm_isolate()->heap()),
         class_table_(isolate->class_table()),
         page_space_(page_space),
-        marking_stack_(marking_stack),
+        work_list_(marking_stack),
         delay_set_(delay_set),
         visiting_old_object_(NULL),
-        visit_function_code_(visit_function_code) {
+        visit_function_code_(visit_function_code),
+        marked_bytes_(0) {
     ASSERT(heap_ != vm_heap_);
     ASSERT(thread_->isolate() == isolate);
   }
 
-  ~MarkingVisitor() {
-    // 'Finalize' should be explicitly called before destruction.
-    ASSERT(marking_stack_ == NULL);
-  }
+  uintptr_t marked_bytes() const { return marked_bytes_; }
 
-  MarkingStack* marking_stack() const { return marking_stack_; }
+  // Returns true if some non-zero amount of work was performed.
+  bool DrainMarkingStack() {
+    RawObject* raw_obj = work_list_.Pop();
+    if (raw_obj == NULL) {
+      ASSERT(visiting_old_object_ == NULL);
+      return false;
+    }
+    do {
+      VisitingOldObject(raw_obj);
+      const intptr_t class_id = raw_obj->GetClassId();
+      // Currently, classes are considered roots (see issue 18284), so at this
+      // point, they should all be marked.
+      ASSERT(isolate()->class_table()->At(class_id)->IsMarked());
+      if (class_id != kWeakPropertyCid) {
+        marked_bytes_ += raw_obj->VisitPointers(this);
+      } else {
+        RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
+        marked_bytes_ += raw_weak->Size();
+        ProcessWeakProperty(raw_weak);
+      }
+      raw_obj = work_list_.Pop();
+    } while (raw_obj != NULL);
+    VisitingOldObject(NULL);
+    return true;
+  }
 
   void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; current++) {
@@ -248,8 +174,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
     if (!visit_function_code_) {
       DetachCode();
     }
-    // Fail fast on attempts to mark after finalizing.
-    marking_stack_ = NULL;
+    work_list_.Finalize();
   }
 
   void VisitingOldObject(RawObject* obj) {
@@ -258,6 +183,57 @@ class MarkingVisitor : public ObjectPointerVisitor {
   }
 
  private:
+  class WorkList : public ValueObject {
+   public:
+    explicit WorkList(MarkingStack* marking_stack)
+        : marking_stack_(marking_stack) {
+      work_ = marking_stack_->PopEmptyBlock();
+    }
+
+    ~WorkList() {
+      ASSERT(work_ == NULL);
+      ASSERT(marking_stack_ == NULL);
+    }
+
+    // Returns NULL if no more work was found.
+    RawObject* Pop() {
+      ASSERT(work_ != NULL);
+      if (work_->IsEmpty()) {
+        // TODO(koda): Track over/underflow events and use in heuristics to
+        // distribute work and prevent degenerate flip-flopping.
+        PointerBlock* new_work = marking_stack_->PopNonEmptyBlock();
+        if (new_work == NULL) {
+          return NULL;
+        }
+        marking_stack_->PushBlock(work_, false);
+        work_ = new_work;
+      }
+      return work_->Pop();
+    }
+
+    void Push(RawObject* raw_obj) {
+      if (work_->IsFull()) {
+        // TODO(koda): Track over/underflow events and use in heuristics to
+        // distribute work and prevent degenerate flip-flopping.
+        marking_stack_->PushBlock(work_, false);
+        work_ = marking_stack_->PopEmptyBlock();
+      }
+      work_->Push(raw_obj);
+    }
+
+    void Finalize() {
+      ASSERT(work_->IsEmpty());
+      marking_stack_->PushBlock(work_, false);
+      work_ = NULL;
+      // Fail fast on attempts to mark after finalizing.
+      marking_stack_ = NULL;
+    }
+
+   private:
+    PointerBlock* work_;
+    MarkingStack* marking_stack_;
+  };
+
   void MarkAndPush(RawObject* raw_obj) {
     ASSERT(raw_obj->IsHeapObject());
     ASSERT((FLAG_verify_before_gc || FLAG_verify_before_gc) ?
@@ -273,7 +249,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
     if (is_watched) {
       delay_set_->VisitValuesForKey(raw_obj, this);
     }
-    marking_stack_->Push(raw_obj);
+    work_list_.Push(raw_obj);
   }
 
   void MarkObject(RawObject* raw_obj, RawObject** p) {
@@ -359,11 +335,12 @@ class MarkingVisitor : public ObjectPointerVisitor {
   Heap* vm_heap_;
   ClassTable* class_table_;
   PageSpace* page_space_;
-  MarkingStack* marking_stack_;
+  WorkList work_list_;
   DelaySet* delay_set_;
   RawObject* visiting_old_object_;
   const bool visit_function_code_;
   MallocGrowableArray<RawFunction*> skipped_code_functions_;
+  uintptr_t marked_bytes_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitor);
 };
@@ -483,9 +460,7 @@ void GCMarker::IterateWeakReferences(Isolate* isolate,
         state->DelayWeakReferenceSet(reference_set);
       }
     }
-    if (!visitor->marking_stack()->IsEmpty()) {
-      DrainMarkingStack(isolate, visitor);
-    } else {
+    if (!visitor->DrainMarkingStack()) {
       // Break out of the loop if there has been no forward process.
       // All key objects in the weak reference sets are unreachable
       // so we reset the weak reference sets queue.
@@ -497,27 +472,6 @@ void GCMarker::IterateWeakReferences(Isolate* isolate,
   // All weak reference sets are zone allocated and unmarked references which
   // were on the delay queue will be freed when the zone is released in the
   // epilog callback.
-}
-
-
-void GCMarker::DrainMarkingStack(Isolate* isolate,
-                                 MarkingVisitor* visitor) {
-  while (!visitor->marking_stack()->IsEmpty()) {
-    RawObject* raw_obj = visitor->marking_stack()->Pop();
-    visitor->VisitingOldObject(raw_obj);
-    const intptr_t class_id = raw_obj->GetClassId();
-    // Currently, classes are considered roots (see issue 18284), so at this
-    // point, they should all be marked.
-    ASSERT(isolate->class_table()->At(class_id)->IsMarked());
-    if (class_id != kWeakPropertyCid) {
-      marked_bytes_ += raw_obj->VisitPointers(visitor);
-    } else {
-      RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
-      marked_bytes_ += raw_weak->Size();
-      visitor->ProcessWeakProperty(raw_weak);
-    }
-  }
-  visitor->VisitingOldObject(NULL);
 }
 
 
@@ -583,10 +537,12 @@ void GCMarker::MarkObjects(Isolate* isolate,
     MarkingVisitor mark(isolate, heap_, page_space, &marking_stack,
                         &delay_set, visit_function_code);
     IterateRoots(isolate, &mark, !invoke_api_callbacks);
-    DrainMarkingStack(isolate, &mark);
+    mark.DrainMarkingStack();
     IterateWeakReferences(isolate, &mark);
     MarkingWeakVisitor mark_weak;
     IterateWeakRoots(isolate, &mark_weak, invoke_api_callbacks);
+    // TODO(koda): Add hand-over callback and centralize skipped code functions.
+    marked_bytes_ = mark.marked_bytes();
     mark.Finalize();
     delay_set.ClearReferences();
     ProcessWeakTables(page_space);
