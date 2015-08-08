@@ -1263,7 +1263,7 @@ DART_EXPORT const char* Dart_VersionString() {
   return Version::String();
 }
 
-DART_EXPORT char* Dart_Initialize(
+DART_EXPORT bool Dart_Initialize(
     const uint8_t* vm_isolate_snapshot,
     Dart_IsolateCreateCallback create,
     Dart_IsolateInterruptCallback interrupt,
@@ -1279,19 +1279,21 @@ DART_EXPORT char* Dart_Initialize(
                                        file_open, file_read, file_write,
                                        file_close, entropy_source);
   if (err_msg != NULL) {
-    return strdup(err_msg);
+    OS::PrintErr("Dart_Initialize: %s\n", err_msg);
+    return false;
   }
-  return NULL;
+  return true;
 }
 
 
-DART_EXPORT char* Dart_Cleanup() {
+DART_EXPORT bool Dart_Cleanup() {
   CHECK_NO_ISOLATE(Isolate::Current());
   const char* err_msg = Dart::Cleanup();
   if (err_msg != NULL) {
-    return strdup(err_msg);
+    OS::PrintErr("Dart_Cleanup: %s\n", err_msg);
+    return false;
   }
-  return NULL;
+  return true;
 }
 
 
@@ -1362,10 +1364,6 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
   }
   Isolate* isolate = Dart::CreateIsolate(isolate_name, *flags);
   free(isolate_name);
-  if (isolate == NULL) {
-    *error = strdup("Isolate creation failed");
-    return reinterpret_cast<Dart_Isolate>(NULL);
-  }
   {
     StackZone zone(isolate);
     HANDLESCOPE(isolate);

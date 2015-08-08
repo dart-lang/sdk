@@ -134,8 +134,11 @@ void Thread::EnterIsolate(Isolate* isolate) {
   ASSERT(thread->thread_state() == NULL);
   InterruptableThreadState* thread_state =
       ThreadInterrupter::GetCurrentThreadState();
-  // TODO(koda): Calling Isolate::CheckForDuplicateThreadState(thread_state)
-  // here can lead to deadlock. Evaluate doing this check some other way.
+#if defined(DEBUG)
+  thread->set_thread_state(NULL);  // Exclude thread itself from the dupe check.
+  Isolate::CheckForDuplicateThreadState(thread_state);
+  thread->set_thread_state(thread_state);
+#endif
   ASSERT(thread_state != NULL);
   // TODO(koda): Migrate profiler interface to use Thread.
   Profiler::BeginExecution(isolate);

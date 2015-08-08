@@ -5,7 +5,6 @@
 #ifndef VM_THREAD_POOL_H_
 #define VM_THREAD_POOL_H_
 
-#include "vm/allocation.h"
 #include "vm/globals.h"
 #include "vm/os_thread.h"
 
@@ -30,7 +29,7 @@ class ThreadPool {
 
   ThreadPool();
 
-  // Shuts down this thread pool. Causes workers to terminate
+  // Shuts down this thread pool.  Causes workers to terminate
   // themselves when they are active again.
   ~ThreadPool();
 
@@ -44,6 +43,8 @@ class ThreadPool {
   uint64_t workers_stopped() const { return count_stopped_; }
 
  private:
+  friend class ThreadPoolTestPeer;
+
   class Worker {
    public:
     explicit Worker(ThreadPool* pool);
@@ -55,15 +56,11 @@ class ThreadPool {
     // after a task has been set by the initial call to SetTask().
     void StartThread();
 
-    // Main loop for a worker. Returns true if worker is removed from thread
-    // lists, false otherwise.
-    bool Loop();
+    // Main loop for a worker.
+    void Loop();
 
     // Causes worker to terminate eventually.
     void Shutdown();
-
-    // Get the Worker's thread id.
-    ThreadId id() { return id_; }
 
    private:
     friend class ThreadPool;
@@ -71,23 +68,18 @@ class ThreadPool {
     // The main entry point for new worker threads.
     static void Main(uword args);
 
-    bool IsDone() const { return done_; }
+    bool IsDone() const { return pool_ == NULL; }
 
     // Fields owned by Worker.
     Monitor monitor_;
     ThreadPool* pool_;
-    bool done_;
     Task* task_;
-    ThreadId id_;
-    bool started_;
 
     // Fields owned by ThreadPool.  Workers should not look at these
     // directly.  It's like looking at the sun.
     bool owned_;         // Protected by ThreadPool::mutex_
     Worker* all_next_;   // Protected by ThreadPool::mutex_
     Worker* idle_next_;  // Protected by ThreadPool::mutex_
-
-    Worker* shutdown_next_;  // Protected by ThreadPool::exit_monitor
 
     DISALLOW_COPY_AND_ASSIGN(Worker);
   };
@@ -99,9 +91,6 @@ class ThreadPool {
 
   bool RemoveWorkerFromIdleList(Worker* worker);
   bool RemoveWorkerFromAllList(Worker* worker);
-
-  void AddWorkerToShutdownList(Worker* worker);
-  bool RemoveWorkerFromShutdownList(Worker* worker);
 
   // Worker operations.
   void SetIdle(Worker* worker);
@@ -116,8 +105,8 @@ class ThreadPool {
   uint64_t count_running_;
   uint64_t count_idle_;
 
-  Monitor exit_monitor_;
-  Worker* shutting_down_workers_;
+  static Monitor* exit_monitor_;  // Used only in testing.
+  static int* exit_count_;        // Used only in testing.
 
   DISALLOW_COPY_AND_ASSIGN(ThreadPool);
 };

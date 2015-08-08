@@ -130,19 +130,19 @@ class DartUtils {
                                            bool trace_loading,
                                            const char* package_root,
                                            const char* packages_file);
-  static Dart_Handle PrepareCoreLibrary(Dart_Handle core_lib,
+  static void PrepareCoreLibrary(Dart_Handle core_lib,
                                  Dart_Handle builtin_lib,
                                  bool is_service_isolate);
-  static Dart_Handle PrepareAsyncLibrary(Dart_Handle async_lib,
+  static void PrepareAsyncLibrary(Dart_Handle async_lib,
                                   Dart_Handle isolate_lib);
-  static Dart_Handle PrepareIOLibrary(Dart_Handle io_lib);
-  static Dart_Handle PrepareIsolateLibrary(Dart_Handle isolate_lib);
+  static void PrepareIOLibrary(Dart_Handle io_lib);
+  static void PrepareIsolateLibrary(Dart_Handle isolate_lib);
   static Dart_Handle PrepareForScriptLoading(const char* package_root,
                                              const char* packages_file,
                                              bool is_service_isolate,
                                              bool trace_loading,
                                              Dart_Handle builtin_lib);
-  static Dart_Handle SetupIOLibrary(const char* script_uri);
+  static void SetupIOLibrary(const char* script_uri);
 
   static bool PostNull(Dart_Port port_id);
   static bool PostInt32(Dart_Port port_id, int32_t value);

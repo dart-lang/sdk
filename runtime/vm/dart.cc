@@ -14,7 +14,6 @@
 #include "vm/handles.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
-#include "vm/message.h"
 #include "vm/metrics.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -186,21 +185,18 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
 
 
 const char* Dart::Cleanup() {
-  ASSERT(Isolate::Current() == NULL);
+  // Shutdown the service isolate before shutting down the thread pool.
+  ServiceIsolate::Shutdown();
+#if 0
+  // Ideally we should shutdown the VM isolate here, but the thread pool
+  // shutdown does not seem to ensure that all the threads have stopped
+  // execution before it terminates, this results in racing isolates.
   if (vm_isolate_ == NULL) {
     return "VM already terminated.";
   }
 
-  // Disable the creation of new isolates.
-  Isolate::DisableIsolateCreation();
+  ASSERT(Isolate::Current() == NULL);
 
-  // Send the OOB Kill message to all remaining isolates.
-  Isolate::KillAllIsolates();
-
-  // Shutdown the service isolate before shutting down the thread pool.
-  ServiceIsolate::Shutdown();
-
-  // Shutdown the thread pool. On return, all thread pool threads have exited.
   delete thread_pool_;
   thread_pool_ = NULL;
 
@@ -208,14 +204,19 @@ const char* Dart::Cleanup() {
   Thread::EnsureInit();
   Thread::EnterIsolate(vm_isolate_);
 
+  // There is a planned and known asymmetry here: We exit one scope for the VM
+  // isolate to account for the scope that was entered in Dart_InitOnce.
+  Dart_ExitScope();
+
   ShutdownIsolate();
   vm_isolate_ = NULL;
 
   TargetCPUFeatures::Cleanup();
+#endif
+
   Profiler::Shutdown();
   CodeObservers::DeleteAll();
 
-  ASSERT(Isolate::IsolateListLength() == 0);
   return NULL;
 }
 
@@ -224,6 +225,7 @@ Isolate* Dart::CreateIsolate(const char* name_prefix,
                              const Dart_IsolateFlags& api_flags) {
   // Create a new isolate.
   Isolate* isolate = Isolate::Init(name_prefix, api_flags);
+  ASSERT(isolate != NULL);
   return isolate;
 }
 

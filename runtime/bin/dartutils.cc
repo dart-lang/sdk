@@ -21,15 +21,6 @@
 #include "bin/socket.h"
 #include "bin/utils.h"
 
-// Return the error from the containing function if handle is in error handle.
-#define RETURN_IF_ERROR(handle)                                                \
-  {                                                                            \
-    Dart_Handle __handle = handle;                                             \
-    if (Dart_IsError((__handle))) {                                            \
-      return __handle;                                                         \
-    }                                                                          \
-  }
-
 namespace dart {
 namespace bin {
 
@@ -392,7 +383,7 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
     // Resolve the url within the context of the library's URL.
     Dart_Handle builtin_lib =
         Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-    RETURN_IF_ERROR(builtin_lib);
+    DART_CHECK_VALID(builtin_lib);
     return ResolveUri(library_url, url, builtin_lib);
   }
 
@@ -432,7 +423,7 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
 
   Dart_Handle builtin_lib =
       Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-  RETURN_IF_ERROR(builtin_lib);
+  DART_CHECK_VALID(builtin_lib);
   if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
     // Load a native code shared library to use in a native extension
     if (tag != Dart_kImportTag) {
@@ -578,9 +569,7 @@ void FUNCTION_NAME(Builtin_LoadSource)(Dart_NativeArguments args) {
       } else {
         ASSERT(tag == Dart_kSourceTag);
         Dart_Handle library = Dart_LookupLibrary(library_uri);
-        if (Dart_IsError(library)) {
-          Dart_PropagateError(library);
-        }
+        DART_CHECK_VALID(library);
         result = Dart_LoadSource(library, resolved_script_uri, source, 0, 0);
       }
     }
@@ -646,24 +635,24 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
   // Setup the internal library's 'internalPrint' function.
   Dart_Handle print = Dart_Invoke(
       builtin_lib, NewString("_getPrintClosure"), 0, NULL);
-  RETURN_IF_ERROR(print);
+  DART_CHECK_VALID(print);
   Dart_Handle result =
       Dart_SetField(internal_lib, NewString("_printClosure"), print);
-  RETURN_IF_ERROR(result);
+  DART_CHECK_VALID(result);
 
   if (!is_service_isolate) {
     if (IsWindowsHost()) {
       result = Dart_SetField(builtin_lib, NewString("_isWindows"), Dart_True());
-      RETURN_IF_ERROR(result);
+      DART_CHECK_VALID(result);
     }
     if (trace_loading) {
       result = Dart_SetField(builtin_lib,
                              NewString("_traceLoading"), Dart_True());
-      RETURN_IF_ERROR(result);
+      DART_CHECK_VALID(result);
     }
     // Set current working directory.
     result = SetWorkingDirectory(builtin_lib);
-    RETURN_IF_ERROR(result);
+    DART_CHECK_VALID(result);
     // Wait for the service isolate to initialize the load port.
     Dart_Port load_port = Dart_ServiceWaitForLoadPort();
     if (load_port == ILLEGAL_PORT) {
@@ -676,7 +665,7 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
   if (package_root != NULL) {
     ASSERT(packages_file == NULL);
     result = NewString(package_root);
-    RETURN_IF_ERROR(result);
+    DART_CHECK_VALID(result);
     const int kNumArgs = 1;
     Dart_Handle dart_args[kNumArgs];
     dart_args[0] = result;
@@ -684,10 +673,10 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                          NewString("_setPackageRoot"),
                          kNumArgs,
                          dart_args);
-    RETURN_IF_ERROR(result);
+    DART_CHECK_VALID(result);
   } else if (packages_file != NULL) {
     result = NewString(packages_file);
-    RETURN_IF_ERROR(result);
+    DART_CHECK_VALID(result);
     const int kNumArgs = 1;
     Dart_Handle dart_args[kNumArgs];
     dart_args[0] = result;
@@ -695,48 +684,47 @@ Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                          NewString("_loadPackagesMap"),
                          kNumArgs,
                          dart_args);
-    RETURN_IF_ERROR(result);
+    DART_CHECK_VALID(result);
   }
   return Dart_True();
 }
 
 
-Dart_Handle DartUtils::PrepareCoreLibrary(Dart_Handle core_lib,
-                                          Dart_Handle builtin_lib,
-                                          bool is_service_isolate) {
+void DartUtils::PrepareCoreLibrary(Dart_Handle core_lib,
+                                   Dart_Handle builtin_lib,
+                                   bool is_service_isolate) {
   if (!is_service_isolate) {
     // Setup the 'Uri.base' getter in dart:core.
     Dart_Handle uri_base = Dart_Invoke(
         builtin_lib, NewString("_getUriBaseClosure"), 0, NULL);
-    RETURN_IF_ERROR(uri_base);
+    DART_CHECK_VALID(uri_base);
     Dart_Handle result = Dart_SetField(core_lib,
                                        NewString("_uriBaseClosure"),
                                        uri_base);
-    RETURN_IF_ERROR(result);
+    DART_CHECK_VALID(result);
   }
-  return Dart_True();
 }
 
 
-Dart_Handle DartUtils::PrepareAsyncLibrary(Dart_Handle async_lib,
-                                           Dart_Handle isolate_lib) {
+void DartUtils::PrepareAsyncLibrary(Dart_Handle async_lib,
+                                    Dart_Handle isolate_lib) {
   Dart_Handle schedule_immediate_closure =
       Dart_Invoke(isolate_lib, NewString("_getIsolateScheduleImmediateClosure"),
                   0, NULL);
   Dart_Handle args[1];
   args[0] = schedule_immediate_closure;
-  return Dart_Invoke(
-      async_lib, NewString("_setScheduleImmediateClosure"), 1, args);
+  DART_CHECK_VALID(Dart_Invoke(
+      async_lib, NewString("_setScheduleImmediateClosure"), 1, args));
 }
 
 
-Dart_Handle DartUtils::PrepareIOLibrary(Dart_Handle io_lib) {
-  return Dart_Invoke(io_lib, NewString("_setupHooks"), 0, NULL);
+void DartUtils::PrepareIOLibrary(Dart_Handle io_lib) {
+  DART_CHECK_VALID(Dart_Invoke(io_lib, NewString("_setupHooks"), 0, NULL));
 }
 
 
-Dart_Handle DartUtils::PrepareIsolateLibrary(Dart_Handle isolate_lib) {
-  return Dart_Invoke(isolate_lib, NewString("_setupHooks"), 0, NULL);
+void DartUtils::PrepareIsolateLibrary(Dart_Handle isolate_lib) {
+  DART_CHECK_VALID(Dart_Invoke(isolate_lib, NewString("_setupHooks"), 0, NULL));
 }
 
 
@@ -747,28 +735,28 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
                                                Dart_Handle builtin_lib) {
   // First ensure all required libraries are available.
   Dart_Handle url = NewString(kCoreLibURL);
-  RETURN_IF_ERROR(url);
+  DART_CHECK_VALID(url);
   Dart_Handle core_lib = Dart_LookupLibrary(url);
-  RETURN_IF_ERROR(core_lib);
+  DART_CHECK_VALID(core_lib);
   url = NewString(kAsyncLibURL);
-  RETURN_IF_ERROR(url);
+  DART_CHECK_VALID(url);
   Dart_Handle async_lib = Dart_LookupLibrary(url);
-  RETURN_IF_ERROR(async_lib);
+  DART_CHECK_VALID(async_lib);
   url = NewString(kIsolateLibURL);
-  RETURN_IF_ERROR(url);
+  DART_CHECK_VALID(url);
   Dart_Handle isolate_lib = Dart_LookupLibrary(url);
-  RETURN_IF_ERROR(isolate_lib);
+  DART_CHECK_VALID(isolate_lib);
   url = NewString(kInternalLibURL);
-  RETURN_IF_ERROR(url);
+  DART_CHECK_VALID(url);
   Dart_Handle internal_lib = Dart_LookupLibrary(url);
-  RETURN_IF_ERROR(internal_lib);
+  DART_CHECK_VALID(internal_lib);
   Dart_Handle io_lib = Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
-  RETURN_IF_ERROR(io_lib);
+  DART_CHECK_VALID(io_lib);
 
   // We need to ensure that all the scripts loaded so far are finalized
   // as we are about to invoke some Dart code below to setup closures.
   Dart_Handle result = Dart_FinalizeLoading(false);
-  RETURN_IF_ERROR(result);
+  DART_CHECK_VALID(result);
 
   result = PrepareBuiltinLibrary(builtin_lib,
                                  internal_lib,
@@ -776,32 +764,30 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
                                  trace_loading,
                                  package_root,
                                  packages_file);
-  RETURN_IF_ERROR(result);
+  DART_CHECK_VALID(result);
 
-  RETURN_IF_ERROR(PrepareAsyncLibrary(async_lib, isolate_lib));
-  RETURN_IF_ERROR(PrepareCoreLibrary(
-      core_lib, builtin_lib, is_service_isolate));
-  RETURN_IF_ERROR(PrepareIsolateLibrary(isolate_lib));
-  RETURN_IF_ERROR(PrepareIOLibrary(io_lib));
+  PrepareAsyncLibrary(async_lib, isolate_lib);
+  PrepareCoreLibrary(core_lib, builtin_lib, is_service_isolate);
+  PrepareIsolateLibrary(isolate_lib);
+  PrepareIOLibrary(io_lib);
   return result;
 }
 
 
-Dart_Handle DartUtils::SetupIOLibrary(const char* script_uri) {
+void DartUtils::SetupIOLibrary(const char* script_uri) {
   Dart_Handle io_lib_url = NewString(kIOLibURL);
-  RETURN_IF_ERROR(io_lib_url);
+  DART_CHECK_VALID(io_lib_url);
   Dart_Handle io_lib = Dart_LookupLibrary(io_lib_url);
-  RETURN_IF_ERROR(io_lib);
+  DART_CHECK_VALID(io_lib);
   Dart_Handle platform_type = GetDartType(DartUtils::kIOLibURL, "_Platform");
-  RETURN_IF_ERROR(platform_type);
+  DART_CHECK_VALID(platform_type);
   Dart_Handle script_name = NewString("_nativeScript");
-  RETURN_IF_ERROR(script_name);
+  DART_CHECK_VALID(script_name);
   Dart_Handle dart_script = NewString(script_uri);
-  RETURN_IF_ERROR(dart_script);
+  DART_CHECK_VALID(dart_script);
   Dart_Handle set_script_name =
       Dart_SetField(platform_type, script_name, dart_script);
-  RETURN_IF_ERROR(set_script_name);
-  return Dart_Null();
+  DART_CHECK_VALID(set_script_name);
 }
 
 
