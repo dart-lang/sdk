@@ -186,7 +186,7 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    * Sorts this list according to the order specified by the [compare] function.
    *
    * The [compare] function must act as a [Comparator].
-
+   *
    *     List<String> numbers = ['one', 'two', 'three', 'four'];
    *     // Sort from shortest to longest.
    *     numbers.sort((x, y) => x.length.compareTo(y.length));
@@ -197,7 +197,7 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    *
    *     List<int> nums = [13, 2, -11];
    *     nums.sort();
-         nums.join(', '); // '-11, 2, 13'
+   *     nums.join(', '); // '-11, 2, 13'
    */
   void sort([int compare(E a, E b)]);
 
