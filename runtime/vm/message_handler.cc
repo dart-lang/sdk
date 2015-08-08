@@ -121,7 +121,7 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
     }
     message = NULL;  // Do not access message.  May have been deleted.
 
-    if (pool_ != NULL && task_ == NULL) {
+    if ((pool_ != NULL) && (task_ == NULL)) {
       task_ = new MessageHandlerTask(this);
       pool_->Run(task_);
     }
@@ -146,7 +146,7 @@ bool MessageHandler::HandleMessages(bool allow_normal_messages,
   // If isolate() returns NULL StartIsolateScope does nothing.
   StartIsolateScope start_isolate(isolate());
 
-  // ThreadInterrupter may have gone to sleep waiting while waiting for
+  // ThreadInterrupter may have gone to sleep while waiting for
   // an isolate to start handling messages.
   ThreadInterrupter::WakeUp();
 

@@ -11,7 +11,6 @@
 #include "include/dart_api.h"
 #include "platform/globals.h"
 
-
 namespace dart {
 namespace bin {
 

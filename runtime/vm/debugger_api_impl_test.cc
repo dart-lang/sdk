@@ -1405,6 +1405,7 @@ UNIT_TEST_CASE(Debug_IsolateID) {
   EXPECT(Dart_GetIsolateId(isolate) == test_isolate_id);
   Dart_ExitScope();
   Dart_ShutdownIsolate();
+  Dart_SetIsolateEventHandler(NULL);
   EXPECT(verify_callback == 0x5);  // Only created and shutdown events.
 }
 
