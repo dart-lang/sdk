@@ -10,9 +10,15 @@ import 'constants/evaluation.dart';
 import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'dart_types.dart';
-import 'dart2jslib.dart' show Compiler, CompilerTask, MessageKind, WorldImpact, invariant;
+import 'dart2jslib.dart' show
+    Compiler,
+    CompilerTask,
+    invariant;
+import 'enqueue.dart' show
+    WorldImpact;
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show FunctionElementX;
+import 'messages.dart' show MessageKind;
 import 'resolution/resolution.dart';
 import 'resolution/operators.dart';
 import 'tree/tree.dart';

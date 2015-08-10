@@ -12,12 +12,14 @@ import '../dart_types.dart'
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' as js;
 import '../native/native.dart' as native;
+import '../resolution/resolution.dart' show TreeElements;
 import '../resolution/operators.dart' as op;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart'
     show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask,
          ElementTypeMask, ValueTypeMask, TypeSystem, MinimalInferrerEngine;
 import '../util/util.dart' show Link, Spannable, Setlet;
+import '../world.dart' show ClassWorld;
 import 'inferrer_visitor.dart';
 
 // BUG(8802): There's a bug in the analyzer that makes the re-export

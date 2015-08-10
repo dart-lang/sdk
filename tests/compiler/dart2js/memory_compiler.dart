@@ -4,32 +4,26 @@
 
 library dart2js.test.memory_compiler;
 
-import 'memory_source_file_helper.dart';
-
-
-import 'package:compiler/src/null_compiler_output.dart' show
-    NullCompilerOutput;
-
-import 'package:compiler/src/dart2jslib.dart' show
-    Message;
+import 'dart:async';
 
 import 'package:compiler/compiler.dart' show
     DiagnosticHandler;
-
 import 'package:compiler/compiler_new.dart' show
     CompilationResult,
     CompilerDiagnostics,
     CompilerOutput,
     Diagnostic,
     PackagesDiscoveryProvider;
-
-import 'dart:async';
-
+import 'package:compiler/src/messages.dart' show
+    Message;
 import 'package:compiler/src/mirrors/source_mirrors.dart';
 import 'package:compiler/src/mirrors/analyze.dart';
+import 'package:compiler/src/null_compiler_output.dart' show
+    NullCompilerOutput;
+import 'package:compiler/src/library_loader.dart' show
+    LoadedLibraries;
 
-import 'package:compiler/src/library_loader.dart'
-    show LoadedLibraries;
+import 'memory_source_file_helper.dart';
 
 export 'output_collector.dart';
 export 'package:compiler/compiler_new.dart' show

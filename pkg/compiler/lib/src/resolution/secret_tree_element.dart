@@ -18,7 +18,8 @@
  */
 library secret_tree_element;
 
-import '../dart2jslib.dart' show invariant, Spannable;
+import '../dart2jslib.dart' show invariant;
+import '../util/util.dart' show Spannable;
 
 /// Interface for associating
 abstract class TreeElementMixin {

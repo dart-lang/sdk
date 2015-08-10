@@ -16,13 +16,13 @@ import 'dart2jslib.dart' show
     Backend,
     CodeBuffer,
     Compiler,
-    CompilerTask,
-    MessageKind;
+    CompilerTask;
 import 'types/types.dart' show TypeMask;
 import 'deferred_load.dart' show OutputUnit;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'js_emitter/full_emitter/emitter.dart' as full show Emitter;
 import 'js/js.dart' as jsAst;
+import 'messages.dart' show MessageKind;
 import 'universe/universe.dart' show Selector, UniverseSelector;
 import 'util/util.dart' show NO_LOCATION_SPANNABLE;
 

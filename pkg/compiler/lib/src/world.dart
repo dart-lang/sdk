@@ -2,7 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js;
+library dart2js.world;
+
+import 'closure.dart' show
+    SynthesizedCallMethodElementX;
+import 'dart2jslib.dart' show
+    invariant,
+    Backend,
+    Compiler,
+    Registry;
+import 'dart_types.dart';
+import 'elements/elements.dart' show
+    ClassElement,
+    Element,
+    FunctionElement,
+    MixinApplicationElement,
+    TypedefElement,
+    VariableElement;
+import 'ordered_typeset.dart';
+import 'types/types.dart' as ti;
+import 'universe/universe.dart' show
+    FunctionSet,
+    Selector,
+    SideEffects;
+import 'universe/class_set.dart';
+import 'util/util.dart' show
+    Link;
 
 abstract class ClassWorld {
   // TODO(johnniwinther): Refine this into a `BackendClasses` interface.
@@ -551,7 +576,7 @@ class World implements ClassWorld {
     // expressions. In such a case, we have to look at the original
     // function expressions's element.
     // TODO(herhut): Generate classes for function expressions earlier.
-    if (element is closureMapping.SynthesizedCallMethodElementX) {
+    if (element is SynthesizedCallMethodElementX) {
       return getMightBePassedToApply(element.expression);
     }
     return functionsThatMightBePassedToApply.contains(element);

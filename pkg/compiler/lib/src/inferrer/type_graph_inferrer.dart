@@ -23,6 +23,8 @@ import '../dart2jslib.dart'
          TreeElementMapping;
 import '../elements/elements.dart';
 import '../native/native.dart' as native;
+import '../resolution/resolution.dart'
+    show TreeElementMapping;
 import '../tree/tree.dart' as ast
     show DartString,
          Node,
@@ -47,6 +49,7 @@ import '../util/util.dart'
          Setlet,
          Spannable;
 import '../js_backend/js_backend.dart' show Annotations, JavaScriptBackend;
+import '../world.dart' show ClassWorld;
 
 import 'inferrer_visitor.dart'
     show ArgumentsTypes,

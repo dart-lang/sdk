@@ -19,14 +19,13 @@ import 'package:compiler/src/js_backend/js_backend.dart'
 import 'package:compiler/src/dart2jslib.dart'
        as leg;
 export 'package:compiler/src/dart2jslib.dart'
-       show Constant,
-            Message,
+       show Selector,
+            SourceSpan;
+
+export 'package:compiler/src/messages.dart'
+       show Message,
             MessageKind,
-            MessageTemplate,
-            Selector,
-            TypedSelector,
-            SourceSpan,
-            World;
+            MessageTemplate;
 
 import 'package:compiler/src/types/types.dart'
        as types;

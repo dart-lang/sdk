@@ -11,13 +11,8 @@ export 'constants/values.dart' show
     TypeConstantValue;
 
 export 'dart2jslib.dart' show
-    CallStructure,
     CompilerTask,
     Compiler,
-    ConstantEnvironment,
-    MessageKind,
-    Selector,
-    TreeElements,
     invariant;
 
 export 'dart_types.dart' show
@@ -41,6 +36,9 @@ export 'elements/elements.dart' show
     TypedefElement,
     VariableElement;
 
+export 'resolution/resolution.dart' show
+    TreeElements;
+
 export 'tree/tree.dart' show
     Node;
 
@@ -48,6 +46,8 @@ export 'types/types.dart' show
     TypeMask;
 
 export 'universe/universe.dart' show
+    CallStructure,
+    Selector,
     SelectorKind;
 
 export 'util/util.dart' show

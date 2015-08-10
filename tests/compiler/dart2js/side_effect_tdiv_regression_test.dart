@@ -6,7 +6,6 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 
 import 'compiler_helper.dart';
-import 'parser_helper.dart';
 
 const String TEST = r'''
 class A {
@@ -26,5 +25,5 @@ main() {
 void main() {
   asyncTest(() => compileAll(TEST).then((generated) {
     Expect.isTrue(generated.contains('return c + c;'));
-  }));  
+  }));
 }
