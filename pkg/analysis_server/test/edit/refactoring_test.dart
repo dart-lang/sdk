@@ -269,6 +269,9 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
     test_simulateRefactoringException_init = false;
     test_simulateRefactoringException_final = false;
     test_simulateRefactoringException_change = false;
+    test_simulateRefactoringReset_afterInitialConditions = false;
+    test_simulateRefactoringReset_afterFinalConditions = false;
+    test_simulateRefactoringReset_afterCreateChange = false;
     super.tearDown();
   }
 
@@ -367,6 +370,48 @@ main() {
     });
   }
 
+  test_reset_afterCreateChange() {
+    test_simulateRefactoringReset_afterCreateChange = true;
+    addTestFile('''
+main() {
+  print(1 + 2);
+}
+''');
+    return waitForTasksFinished().then((_) {
+      return sendStringRequest('1 + 2', 'res', true).then((response) {
+        _expectRefactoringRequestCancelled(response);
+      });
+    });
+  }
+
+  test_reset_afterFinalConditions() {
+    test_simulateRefactoringReset_afterFinalConditions = true;
+    addTestFile('''
+main() {
+  print(1 + 2);
+}
+''');
+    return waitForTasksFinished().then((_) {
+      return sendStringRequest('1 + 2', 'res', true).then((response) {
+        _expectRefactoringRequestCancelled(response);
+      });
+    });
+  }
+
+  test_reset_afterInitialConditions() {
+    test_simulateRefactoringReset_afterInitialConditions = true;
+    addTestFile('''
+main() {
+  print(1 + 2);
+}
+''');
+    return waitForTasksFinished().then((_) {
+      return sendStringRequest('1 + 2', 'res', true).then((response) {
+        _expectRefactoringRequestCancelled(response);
+      });
+    });
+  }
+
   test_serverError_change() {
     test_simulateRefactoringException_change = true;
     addTestFile('''
@@ -410,6 +455,12 @@ main() {
         expect(response.error.code, RequestErrorCode.SERVER_ERROR);
       });
     });
+  }
+
+  void _expectRefactoringRequestCancelled(Response response) {
+    expect(response.error, isNotNull);
+    expect(response,
+        isResponseFailure('0', RequestErrorCode.REFACTORING_REQUEST_CANCELLED));
   }
 }
 
