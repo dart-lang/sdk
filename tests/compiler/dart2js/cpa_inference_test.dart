@@ -158,6 +158,7 @@ Future<AnalysisResult> analyze(String code, {int maxConcreteTypeSize: 1000}) {
   MockCompiler compiler = new MockCompiler.internal(
       enableConcreteTypeInference: true,
       maxConcreteTypeSize: maxConcreteTypeSize);
+  compiler.diagnosticHandler = createHandler(compiler, code);
   compiler.registerSource(uri, code);
   compiler.typesTask.concreteTypesInferrer.testMode = true;
   return compiler.runCompiler(uri).then((_) {

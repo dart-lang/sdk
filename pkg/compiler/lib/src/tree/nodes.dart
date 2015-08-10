@@ -486,6 +486,9 @@ class SendSet extends Send {
 
   accept(Visitor visitor) => visitor.visitSendSet(this);
 
+  /// `true` if this send is not a simple assignment.
+  bool get isComplex => !identical(assignmentOperator.source, '=');
+
   /// Whether this is an if-null assignment of the form `a ??= b`.
   bool get isIfNullAssignment =>
       identical(assignmentOperator.source, '??=');

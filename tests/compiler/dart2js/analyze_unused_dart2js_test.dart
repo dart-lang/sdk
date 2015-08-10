@@ -34,10 +34,6 @@ const Map<String, List<String>> WHITE_LIST = const {
   "lib/src/ssa/nodes.dart": const [
       "The method 'isArray' is never called"],
 
-  // Method in abstract class. Currently only instantiated trough tests.
-  "lib/src/constants/evaluation.dart": const [
-      "The method 'readFromEnvironment' is never called"],
-
   // Serialization code is only used in test.
   "lib/src/serialization/": const [
       "is never"],

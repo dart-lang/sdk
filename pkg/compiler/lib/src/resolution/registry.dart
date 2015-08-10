@@ -465,10 +465,12 @@ class ResolutionRegistry implements Registry {
   }
 
   void registerDynamicGetter(UniverseSelector selector) {
+    assert(selector.selector.isGetter);
     worldImpact.registerDynamicGetter(selector);
   }
 
   void registerDynamicSetter(UniverseSelector selector) {
+    assert(selector.selector.isSetter);
     worldImpact.registerDynamicSetter(selector);
   }
 

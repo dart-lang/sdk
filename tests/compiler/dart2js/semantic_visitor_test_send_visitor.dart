@@ -380,7 +380,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_SET,
-        rhs: rhs));
+        constant: constant.getText(), rhs: rhs));
     super.visitDynamicTypeLiteralSet(node, constant, rhs, arg);
   }
 

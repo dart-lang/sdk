@@ -1531,10 +1531,17 @@ const Map<String, List<Test>> SEND_TESTS = const {
                     arguments: '(null,42)')),
     const Test(
         '''
+        m() => dynamic = 42;
+        ''',
+        const Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_SET,
+                    constant: 'dynamic',
+                    rhs: '42')),
+    const Test(
+        '''
         m() => dynamic += 42;
         ''',
         const Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_COMPOUND,
-                    constant: 'Type',
+                    constant: 'dynamic',
                     operator: '+=',
                     rhs: '42')),
     const Test(
@@ -1542,14 +1549,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => ++dynamic;
         ''',
         const Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_PREFIX,
-                    constant: 'Type',
+                    constant: 'dynamic',
                     operator: '++')),
     const Test(
         '''
         m() => dynamic--;
         ''',
         const Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_POSTFIX,
-                    constant: 'Type',
+                    constant: 'dynamic',
                     operator: '--')),
   ],
   'Assert': const [

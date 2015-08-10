@@ -50,6 +50,14 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
     });
   }
 
+  @override
+  void evaluate(ConstantExpression constant) {
+    return measure(() {
+      dartConstantCompiler.evaluate(constant);
+      jsConstantCompiler.evaluate(constant);
+    });
+  }
+
   void compileVariable(VariableElement element) {
     measure(() {
       jsConstantCompiler.compileVariable(element);

@@ -6,6 +6,7 @@ library dart2js.compile_time_constant_evaluator;
 
 import 'constant_system_dart.dart';
 import 'constants/constant_system.dart';
+import 'constants/evaluation.dart';
 import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'dart_types.dart';
@@ -77,6 +78,10 @@ abstract class ConstantCompiler extends ConstantEnvironment {
   ConstantExpression compileMetadata(MetadataAnnotation metadata,
                                      Node node,
                                      TreeElements elements);
+
+  /// Evaluates [constant] and caches the result.
+  // TODO(johnniwinther): Remove when all constants are evaluated.
+  void evaluate(ConstantExpression constant);
 }
 
 /// A [BackendConstantEnvironment] provides access to constants needed for
@@ -155,6 +160,15 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
 
   ConstantExpression compileConstant(VariableElement element) {
     return compileVariable(element, isConst: true);
+  }
+
+  @override
+  void evaluate(ConstantExpression constant) {
+    constantValueMap.putIfAbsent(constant, () {
+      return constant.evaluate(
+          new _CompilerEnvironment(compiler),
+          constantSystem);
+    });
   }
 
   ConstantExpression compileVariable(VariableElement element,
@@ -1341,4 +1355,15 @@ TreeElements _analyzeElementEagerly(Compiler compiler, AstElement element) {
   WorldImpact worldImpact = compiler.analyzeElement(element.declaration);
   compiler.enqueuer.resolution.applyImpact(element.declaration, worldImpact);
   return element.resolvedAst.elements;
+}
+
+class _CompilerEnvironment implements Environment {
+  final Compiler compiler;
+
+  _CompilerEnvironment(this.compiler);
+
+  @override
+  String readFromEnvironment(String name) {
+    return compiler.fromEnvironment(name);
+  }
 }

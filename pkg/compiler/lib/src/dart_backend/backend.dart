@@ -482,6 +482,13 @@ class DartConstantTask extends ConstantCompilerTask
     });
   }
 
+  @override
+  void evaluate(ConstantExpression constant) {
+    return measure(() {
+      return constantCompiler.evaluate(constant);
+    });
+  }
+
   void compileVariable(VariableElement element) {
     measure(() {
       constantCompiler.compileVariable(element);

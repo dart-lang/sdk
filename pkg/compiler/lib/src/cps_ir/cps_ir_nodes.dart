@@ -885,7 +885,9 @@ class Constant extends Primitive {
   final values.ConstantValue value;
   final SourceInformation sourceInformation;
 
-  Constant(this.value, {this.sourceInformation});
+  Constant(this.value, {this.sourceInformation}) {
+    assert(value != null);
+  }
 
   accept(Visitor visitor) => visitor.visitConstant(this);
 
@@ -1167,10 +1169,10 @@ abstract class Visitor<T> {
 
 /// Visits all non-recursive children of a CPS term, i.e. anything
 /// not of type [Expression] or [Continuation].
-/// 
+///
 /// Note that the non-recursive nodes can contain other nodes inside of them,
 /// e.g. [Branch] contains an [IsTrue] which contains a [Reference].
-/// 
+///
 /// The `process*` methods are called in pre-order for every node visited.
 /// These can be overridden without disrupting the visitor traversal.
 class LeafVisitor implements Visitor {
@@ -1471,25 +1473,25 @@ typedef void StackAction();
 
 /// Calls `process*` for all nodes in a tree.
 /// For simple usage, only override the `process*` methods.
-/// 
+///
 /// To avoid deep recursion, this class uses an "action stack" containing
 /// callbacks to be invoked after the processing of some term has finished.
-/// 
+///
 /// To avoid excessive overhead from the action stack, basic blocks of
 /// interior nodes are iterated in a loop without using the action stack.
-/// 
+///
 /// The iteration order can be controlled by overriding the `traverse*`
 /// methods for [LetCont], [LetPrim], [LetMutable], [LetHandler] and
 /// [Continuation].
-/// 
+///
 /// The `traverse*` methods return the expression to visit next, and may
 /// push other subterms onto the stack using [push] or [pushAction] to visit
 /// them later. Actions pushed onto the stack will be executed after the body
 /// has been processed (and the stack actions it pushed have been executed).
-/// 
-/// By default, the `traverse` methods visit all non-recursive subterms, 
+///
+/// By default, the `traverse` methods visit all non-recursive subterms,
 /// push all bound continuations on the stack, and return the body of the term.
-/// 
+///
 /// Subclasses should not override the `visit` methods for the nodes that have
 /// a `traverse` method.
 class RecursiveVisitor extends LeafVisitor {

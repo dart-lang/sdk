@@ -1689,6 +1689,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return handleDynamicAccessSemantics(node, name, semantics);
   }
 
+  /// Handle update of a property of [name] on `this`, like `this.name = b` and
+  /// `this.name++`, or `name = b` and `name++` in instance context.
+  ResolutionResult handleThisPropertyUpdate(
+      SendSet node, Name name, Element element) {
+    AccessSemantics semantics = const DynamicAccess.thisProperty();
+    return handleDynamicUpdateSemantics(node, name, element, semantics);
+  }
+
   /// Handle access on `this`, like `this()` and `this` when it is parsed as a
   /// [Send] node.
   ResolutionResult handleThisAccess(Send node) {
@@ -2049,6 +2057,27 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
   }
 
+  /// Handle access to a constant type literal of [type].
+  // TODO(johnniwinther): Remove [name] when [Selector] is not required for the
+  // the [GetStructure].
+  // TODO(johnniwinther): Remove [element] when it is no longer needed for
+  // evaluating constants.
+  ResolutionResult handleConstantTypeLiteralUpdate(
+      SendSet node,
+      Name name,
+      TypeDeclarationElement element,
+      DartType type,
+      ConstantAccess semantics) {
+    ErroneousElement error =
+        reportAndCreateErroneousElement(
+            node.selector, name.text, MessageKind.ASSIGNING_TYPE, const {});
+    registry.useElement(node, error);
+    registry.registerTypeLiteral(node, type);
+    registry.registerThrowNoSuchMethod();
+
+    return handleUpdate(node, name, semantics);
+  }
+
   /// Handle access to a type literal of a typedef. Like `F` or
   /// `F()` where 'F' is typedef.
   ResolutionResult handleTypedefTypeLiteralAccess(
@@ -2072,6 +2101,20 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         node.isCall ? coreTypes.typeType : type);
     AccessSemantics semantics = new ConstantAccess.dynamicTypeLiteral(constant);
     return handleConstantTypeLiteralAccess(
+        node, const PublicName('dynamic'), compiler.typeClass, type, semantics);
+  }
+
+  /// Handle update to a type literal of the type 'dynamic'. Like `dynamic++` or
+  /// `dynamic = 0`.
+  ResolutionResult handleDynamicTypeLiteralUpdate(SendSet node) {
+    DartType type = const DynamicType();
+    ConstantExpression constant =
+        new TypeConstantExpression(const DynamicType());
+    AccessSemantics semantics = new ConstantAccess.dynamicTypeLiteral(constant);
+    // TODO(johnniwinther): Remove this when all constants are evaluated.
+    compiler.resolver.constantCompiler.evaluate(constant);
+
+    return handleConstantTypeLiteralUpdate(
         node, const PublicName('dynamic'), compiler.typeClass, type, semantics);
   }
 
@@ -2221,6 +2264,39 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // the [SendStructure].
     registry.setSelector(node, selector);
     return const NoneResult();
+  }
+
+  /// Handle dynamic update of [semantics].
+  ResolutionResult handleDynamicUpdateSemantics(
+      SendSet node, Name name, Element element, AccessSemantics semantics) {
+    Selector getterSelector =
+        new Selector(SelectorKind.GETTER, name, CallStructure.NO_ARGS);
+    Selector setterSelector =
+        new Selector(SelectorKind.SETTER, name.setter, CallStructure.ONE_ARG);
+    registry.registerDynamicSetter(
+        new UniverseSelector(setterSelector, null));
+    if (node.isComplex) {
+      registry.registerDynamicGetter(
+          new UniverseSelector(getterSelector, null));
+    }
+
+    // TODO(23998): Remove these when elements are only accessed through the
+    // send structure.
+    Element getter = element;
+    Element setter = element;
+    if (element != null && element.isAbstractField) {
+      AbstractFieldElement abstractField = element;
+      getter = abstractField.getter;
+      setter = abstractField.setter;
+    }
+    if (setter != null) {
+      registry.useElement(node, setter);
+      if (getter != null && node.isComplex) {
+        registry.useElement(node.selector, getter);
+      }
+    }
+
+    return handleUpdate(node, name, semantics);
   }
 
   /// Handle dynamic property access, like `a.b` or `a.b()` where `a` is not a
@@ -2657,6 +2733,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           message: "Unexpected erroneous element $element."));
       return handleUpdate(node, name,new StaticAccess.unresolved(element));
     }
+    if (element.isInstanceMember) {
+      if (inInstanceContext) {
+        return handleThisPropertyUpdate(node, name, element);
+      }
+    }
     return oldVisitSendSet(node);
   }
 
@@ -2705,6 +2786,18 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     Name name = new Name(text, enclosingElement.library);
     Element element = lookupInScope(compiler, node, scope, text);
     if (element == null) {
+      if (text == 'dynamic') {
+        // `dynamic = b`, `dynamic++`, or `dynamic += b` where 'dynamic' is not
+        // declared in the current scope.
+        return handleDynamicTypeLiteralUpdate(node);
+      } else if (inInstanceContext) {
+        // Left-hand side is implicitly `this.name`.
+        return handleThisPropertyUpdate(node, name, null);
+      } else {
+        // Create [ErroneousElement] for unresolved access.
+        ErroneousElement error = reportCannotResolve(node, text);
+        return handleUpdate(node, name, new StaticAccess.unresolved(error));
+      }
       return oldVisitSendSet(node);
     } else {
       return handleResolvedSendSet(node, name, element);
@@ -2975,6 +3068,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (semantics == null) {
         semantics = computeSuperAccessSemanticsForSelectors(
             node, getterSelector, setterSelector);
+        registry.registerStaticInvocation(semantics.getter);
+        registry.registerStaticInvocation(semantics.setter);
       }
       return handleUpdate(node, name, semantics);
     } else {
@@ -2985,6 +3080,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           semantics =
               computeSuperAccessSemanticsForSelector(
                   node, setterSelector, alternateName: name);
+          registry.registerStaticInvocation(semantics.setter);
           switch (semantics.kind) {
             case AccessKind.SUPER_FINAL_FIELD:
               compiler.reportWarning(
@@ -2992,6 +3088,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
                   MessageKind.ASSIGNING_FINAL_FIELD_IN_SUPER,
                   {'name': name,
                    'superclassName': semantics.setter.enclosingClass.name});
+              // TODO(johnniwinther): This shouldn't be needed.
               registry.registerDynamicInvocation(
                   new UniverseSelector(setterSelector, null));
               registry.registerSuperNoSuchMethod();
@@ -3001,6 +3098,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
                   node, MessageKind.ASSIGNING_METHOD_IN_SUPER,
                   {'name': name,
                    'superclassName': semantics.setter.enclosingClass.name});
+              // TODO(johnniwinther): This shouldn't be needed.
               registry.registerDynamicInvocation(
                   new UniverseSelector(setterSelector, null));
               registry.registerSuperNoSuchMethod();
@@ -3016,6 +3114,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         if (semantics == null) {
           semantics = computeSuperAccessSemanticsForSelectors(
               node, getterSelector, setterSelector);
+          registry.registerStaticInvocation(semantics.getter);
+          registry.registerStaticInvocation(semantics.setter);
         }
         return handleUpdate(node, name, semantics);
       }
@@ -3046,10 +3146,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       registry.setSelector(node, setterSelector);
       registry.setOperatorSelectorInComplexSendSet(node, operatorSelector);
 
-      if (semantics.isAccessedStatically) {
-        registry.registerStaticInvocation(semantics.getter);
-        registry.registerStaticInvocation(semantics.setter);
-      }
       // TODO(23998): Remove these when elements are only accessed
       // through the send structure.
       registry.useElement(node, semantics.setter);
@@ -3064,7 +3160,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           : new PostfixStructure(
               semantics, operator, getterSelector, setterSelector);
       registry.registerSendStructure(node, sendStructure);
-      return const NoneResult();
     } else {
       Node rhs = node.arguments.head;
       visitExpression(rhs);
@@ -3072,9 +3167,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       AssignmentOperator operator = AssignmentOperator.parse(operatorText);
       if (operator.kind == AssignmentOperatorKind.ASSIGN) {
         // `e1 = e2`.
-        if (semantics.isAccessedStatically) {
-          registry.registerStaticInvocation(semantics.setter);
-        }
 
         // TODO(23998): Remove these when elements are only accessed
         // through the send structure.
@@ -3087,15 +3179,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         SendStructure sendStructure =
             new SetStructure(semantics, setterSelector);
         registry.registerSendStructure(node, sendStructure);
-        return const NoneResult();
       } else {
         // `e1 += e2`.
         Selector operatorSelector =
             new Selector.binaryOperator(operator.selectorName);
-        if (semantics.isAccessedStatically) {
-          registry.registerStaticInvocation(semantics.getter);
-          registry.registerStaticInvocation(semantics.setter);
-        }
 
         // TODO(23998): Remove these when elements are only accessed
         // through the send structure.
@@ -3114,9 +3201,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         SendStructure sendStructure = new CompoundStructure(
                 semantics, operator, getterSelector, setterSelector);
         registry.registerSendStructure(node, sendStructure);
-        return const NoneResult();
       }
     }
+    return new ResolutionResult.forElement(semantics.setter);
   }
 
   ResolutionResult visitSendSet(SendSet node) {

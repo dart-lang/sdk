@@ -195,7 +195,6 @@ const List<VisitKind> UNTESTABLE_KINDS = const <VisitKind>[
   // handled the compile constant evaluator.
   VisitKind.VISIT_CLASS_TYPE_LITERAL_SET,
   VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_SET,
-  VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_SET,
   // Invalid assignments is currently report through an erroneous element.
   VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_SET,
   VisitKind.VISIT_FINAL_PARAMETER_SET,

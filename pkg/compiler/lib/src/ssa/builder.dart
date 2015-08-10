@@ -3576,7 +3576,11 @@ class SsaBuilder extends ast.Visitor
                                                   {Selector selector,
                                                    TypeMask mask,
                                                    ast.Node location}) {
-    assert(send == null || Elements.isInstanceSend(send, elements));
+    assert(invariant(
+        send == null ? location : send,
+        send == null || Elements.isInstanceSend(send, elements),
+        message: "Unexpected instance setter"
+                 "${send != null ? " element: ${elements[send]}" : ""}"));
     if (selector == null) {
       assert(send != null);
       selector = elements.getSelector(send);
