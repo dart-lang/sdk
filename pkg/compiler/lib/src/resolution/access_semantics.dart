@@ -192,7 +192,7 @@ enum CompoundAccessKind {
  * Data structure used to classify the semantics of a property access or method
  * or function invocation.
  */
-class AccessSemantics {
+abstract class AccessSemantics {
   /**
    * The kind of access.
    */
@@ -204,30 +204,6 @@ class AccessSemantics {
    * access a non-existent static method in a class).
    */
   Element get element => null;
-
-  /**
-   * The class containing the element being accessed, if this is a static
-   * reference to an element in a class.  This will be null if [kind] is
-   * DYNAMIC, LOCAL_FUNCTION, LOCAL_VARIABLE, PARAMETER, TOPLEVEL_CLASS, or
-   * TYPE_PARAMETER, or if the element being accessed is defined at toplevel
-   * within a library.
-   *
-   * Note: it is possible for [classElement] to be non-null and for [element]
-   * to be null; for example this occurs if the element being accessed is a
-   * non-existent static method or field inside an existing class.
-   */
-  ClassElement get classElement => null;
-
-  // TODO(paulberry): would it also be useful to store the libraryElement?
-
-  // TODO(johnniwinther): Do we need this?
-  /**
-   * When [kind] is DYNAMIC_PROPERTY, the expression whose runtime type
-   * determines the class in which [identifier] should be looked up.
-   *
-   * When [kind] is not DYNAMIC_PROPERTY, this field is always null.
-   */
-  /*Expression*/ get target => null;
 
   ConstantExpression get constant => null;
 
@@ -243,16 +219,7 @@ class AccessSemantics {
   /// `true` if the [element] of this access is accessed statically.
   bool get isAccessedStatically => false;
 
-  AccessSemantics.expression()
-      : kind = AccessKind.EXPRESSION;
-
-  AccessSemantics.thisAccess()
-      : kind = AccessKind.THIS;
-
-  AccessSemantics.thisProperty()
-      : kind = AccessKind.THIS_PROPERTY;
-
-  AccessSemantics._(this.kind);
+  const AccessSemantics._(this.kind);
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -260,8 +227,8 @@ class AccessSemantics {
     sb.write('kind=$kind,');
     if (element != null) {
       sb.write('element=');
-      if (classElement != null) {
-        sb.write('${classElement.name}.');
+      if (element.enclosingClass != null) {
+        sb.write('${element.enclosingClass.name}.');
       }
       sb.write('${element}');
     }
@@ -272,12 +239,19 @@ class AccessSemantics {
 
 
 class DynamicAccess extends AccessSemantics {
-  final target;
+  const DynamicAccess.expression()
+      : super._(AccessKind.EXPRESSION);
 
-  DynamicAccess.dynamicProperty(this.target)
+  const DynamicAccess.thisAccess()
+      : super._(AccessKind.THIS);
+
+  const DynamicAccess.thisProperty()
+      : super._(AccessKind.THIS_PROPERTY);
+
+  const DynamicAccess.dynamicProperty()
       : super._(AccessKind.DYNAMIC_PROPERTY);
 
-  DynamicAccess.ifNotNullProperty(this.target)
+  const DynamicAccess.ifNotNullProperty()
       : super._(AccessKind.CONDITIONAL_DYNAMIC_PROPERTY);
 
   bool get isAccessedStatically => false;
@@ -303,8 +277,6 @@ class ConstantAccess extends AccessSemantics {
 
 class StaticAccess extends AccessSemantics {
   final Element element;
-
-  ClassElement get classElement => element.enclosingClass;
 
   StaticAccess._(AccessKind kind, this.element)
       : super._(kind);

@@ -1340,7 +1340,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
     } else {
       ResolutionResult expressionResult = visitExpression(expression);
-      semantics = new DynamicAccess.dynamicProperty(expression);
+      semantics = const DynamicAccess.dynamicProperty();
       registry.registerDynamicInvocation(new UniverseSelector(selector, null));
 
       if (expressionResult.isConstant) {
@@ -1386,7 +1386,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     Node expression = node.receiver;
     ResolutionResult result = visitExpression(expression);
     registry.registerSendStructure(node,
-        new NotStructure(new DynamicAccess.dynamicProperty(expression)));
+        new NotStructure(const DynamicAccess.dynamicProperty()));
 
     if (result.isConstant) {
       ConstantExpression expressionConstant = result.constant;
@@ -1516,7 +1516,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       ResolutionResult leftResult = visitExpression(left);
       ResolutionResult rightResult = visitExpression(right);
       registry.registerDynamicInvocation(new UniverseSelector(selector, null));
-      semantics = new DynamicAccess.dynamicProperty(left);
+      semantics = const DynamicAccess.dynamicProperty();
 
       if (leftResult.isConstant && rightResult.isConstant) {
         bool isValidConstant;
@@ -1650,7 +1650,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     registry.setSelector(node, selector);
     registry.registerDynamicInvocation(new UniverseSelector(selector, null));
     registry.registerSendStructure(node,
-        new InvokeStructure(new AccessSemantics.expression(), selector));
+        new InvokeStructure(const DynamicAccess.expression(), selector));
     return const NoneResult();
   }
 
@@ -1685,14 +1685,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// Handle access of a property of [name] on `this`, like `this.name` and
   /// `this.name()`, or `name` and `name()` in instance context.
   ResolutionResult handleThisPropertyAccess(Send node, Name name) {
-    AccessSemantics semantics = new AccessSemantics.thisProperty();
+    AccessSemantics semantics = const DynamicAccess.thisProperty();
     return handleDynamicAccessSemantics(node, name, semantics);
   }
 
   /// Handle access on `this`, like `this()` and `this` when it is parsed as a
   /// [Send] node.
   ResolutionResult handleThisAccess(Send node) {
-    AccessSemantics accessSemantics = new AccessSemantics.thisAccess();
+    AccessSemantics accessSemantics = const DynamicAccess.thisAccess();
     if (node.isCall) {
       CallStructure callStructure =
           resolveArguments(node.argumentsNode).callStructure;
@@ -2226,8 +2226,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// Handle dynamic property access, like `a.b` or `a.b()` where `a` is not a
   /// prefix or class.
   ResolutionResult handleDynamicPropertyAccess(Send node, Name name) {
-    AccessSemantics semantics =
-        new DynamicAccess.dynamicProperty(node.receiver);
+    AccessSemantics semantics = const DynamicAccess.dynamicProperty();
     return handleDynamicAccessSemantics(node, name, semantics);
   }
 
@@ -2235,8 +2234,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult handleConditionalAccess(Send node, Name name) {
     Node receiver = node.receiver;
     visitConditionalPrefix(receiver);
-    AccessSemantics semantics =
-        new DynamicAccess.ifNotNullProperty(receiver);
+    AccessSemantics semantics = const DynamicAccess.ifNotNullProperty();
     return handleDynamicAccessSemantics(node, name, semantics);
   }
 
@@ -2778,7 +2776,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (node.isPrefix || node.isPostfix) {
       // `a[b]++` or `++a[b]`.
       IncDecOperator operator = IncDecOperator.parse(operatorText);
-      AccessSemantics semantics = new DynamicAccess.dynamicProperty(receiver);
+      AccessSemantics semantics = const DynamicAccess.dynamicProperty();
       Selector getterSelector = new Selector.index();
       Selector setterSelector = new Selector.indexSet();
       Selector operatorSelector =
@@ -2811,7 +2809,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       AssignmentOperator operator = AssignmentOperator.parse(operatorText);
       if (operator.kind == AssignmentOperatorKind.ASSIGN) {
         // `a[b] = c`.
-        AccessSemantics semantics = new DynamicAccess.dynamicProperty(receiver);
+        AccessSemantics semantics = const DynamicAccess.dynamicProperty();
         Selector setterSelector = new Selector.indexSet();
 
         // TODO(23998): Remove this when selectors are only accessed
@@ -2826,7 +2824,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         return const NoneResult();
       } else {
         // `a[b] += c`.
-        AccessSemantics semantics = new DynamicAccess.dynamicProperty(receiver);
+        AccessSemantics semantics = const DynamicAccess.dynamicProperty();
         Selector getterSelector = new Selector.index();
         Selector setterSelector = new Selector.indexSet();
         Selector operatorSelector =
