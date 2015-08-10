@@ -37,7 +37,8 @@ const List<String> specialElements = const [
   'ref',
   'code',
   'version',
-  'union'
+  'union',
+  'index'
 ];
 
 /**
@@ -73,6 +74,9 @@ Api apiFromHtml(dom.Element html) {
     },
     'version': (dom.Element element) {
       versions.add(innerText(element));
+    },
+    'index': (dom.Element element) {
+      /* Ignore; generated dynamically. */
     }
   });
   if (versions.length != 1) {
