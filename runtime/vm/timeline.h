@@ -198,6 +198,17 @@ class TimelineDurationScope : public StackResource {
                         TimelineStream* stream,
                         const char* label)
       : StackResource(isolate) {
+    Init(stream, label);
+  }
+
+  TimelineDurationScope(Thread* thread,
+                        TimelineStream* stream,
+                        const char* label)
+      : StackResource(thread) {
+    Init(stream, label);
+  }
+
+  void Init(TimelineStream* stream, const char* label) {
     event_ = stream->StartEvent();
     if (event_ == NULL) {
       return;

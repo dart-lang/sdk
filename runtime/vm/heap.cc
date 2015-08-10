@@ -309,19 +309,39 @@ RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
 }
 
 
+bool Heap::gc_in_progress() {
+  MutexLocker ml(&gc_in_progress_mutex_);
+  return gc_in_progress_;
+}
+
+
+void Heap::BeginGC() {
+  MutexLocker ml(&gc_in_progress_mutex_);
+  ASSERT(!gc_in_progress_);
+  gc_in_progress_ = true;
+}
+
+
+void Heap::EndGC() {
+  MutexLocker ml(&gc_in_progress_mutex_);
+  ASSERT(gc_in_progress_);
+  gc_in_progress_ = false;
+}
+
+
 void Heap::CollectGarbage(Space space,
                           ApiCallbacks api_callbacks,
                           GCReason reason) {
   Thread* thread = Thread::Current();
-  TIMERSCOPE(isolate(), time_gc);
   bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
   switch (space) {
     case kNew: {
+      RecordBeforeGC(kNew, reason);
+      TimerScope timer(true, &(isolate()->timer_list().time_gc()), thread);
       VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
-      TimelineDurationScope tds(isolate(),
+      TimelineDurationScope tds(thread,
                                 isolate()->GetGCStream(),
                                 "CollectNewGeneration");
-      RecordBeforeGC(kNew, reason);
       UpdateClassHeapStatsBeforeGC(kNew);
       new_space_.Scavenge(invoke_api_callbacks);
       isolate()->class_table()->UpdatePromoted();
@@ -336,11 +356,12 @@ void Heap::CollectGarbage(Space space,
     }
     case kOld:
     case kCode: {
+      RecordBeforeGC(kOld, reason);
+      TimerScope timer(true, &(isolate()->timer_list().time_gc()), thread);
       VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
-      TimelineDurationScope tds(isolate(),
+      TimelineDurationScope tds(thread,
                                 isolate()->GetGCStream(),
                                 "CollectOldGeneration");
-      RecordBeforeGC(kOld, reason);
       UpdateClassHeapStatsBeforeGC(kOld);
       old_space_.MarkSweep(invoke_api_callbacks);
       RecordAfterGC();
@@ -375,13 +396,13 @@ void Heap::CollectGarbage(Space space) {
 
 void Heap::CollectAllGarbage() {
   Thread* thread = Thread::Current();
-  TIMERSCOPE(isolate(), time_gc);
   {
+    RecordBeforeGC(kNew, kFull);
+    TimerScope timer(true, &(isolate()->timer_list().time_gc()), thread);
     VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
-    TimelineDurationScope tds(isolate(),
+    TimelineDurationScope tds(thread,
                               isolate()->GetGCStream(),
                               "CollectNewGeneration");
-    RecordBeforeGC(kNew, kFull);
     UpdateClassHeapStatsBeforeGC(kNew);
     new_space_.Scavenge(kInvokeApiCallbacks);
     isolate()->class_table()->UpdatePromoted();
@@ -390,11 +411,12 @@ void Heap::CollectAllGarbage() {
     PrintStats();
   }
   {
+    RecordBeforeGC(kOld, kFull);
+    TimerScope timer(true, &(isolate()->timer_list().time_gc()), thread);
     VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
-    TimelineDurationScope tds(isolate(),
+    TimelineDurationScope tds(thread,
                               isolate()->GetGCStream(),
                               "CollectOldGeneration");
-    RecordBeforeGC(kOld, kFull);
     UpdateClassHeapStatsBeforeGC(kOld);
     old_space_.MarkSweep(kInvokeApiCallbacks);
     RecordAfterGC();
@@ -653,8 +675,7 @@ void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
 
 
 void Heap::RecordBeforeGC(Space space, GCReason reason) {
-  ASSERT(!gc_in_progress_);
-  gc_in_progress_ = true;
+  BeginGC();
   stats_.num_++;
   stats_.space_ = space;
   stats_.reason_ = reason;
@@ -684,8 +705,7 @@ void Heap::RecordAfterGC() {
   }
   stats_.after_.new_ = new_space_.GetCurrentUsage();
   stats_.after_.old_ = old_space_.GetCurrentUsage();
-  ASSERT(gc_in_progress_);
-  gc_in_progress_ = false;
+  EndGC();
   if (Service::gc_stream.enabled()) {
     ServiceEvent event(Isolate::Current(), ServiceEvent::kGC);
     event.set_gc_stats(&stats_);

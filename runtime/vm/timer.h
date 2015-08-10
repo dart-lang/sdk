@@ -136,10 +136,21 @@ class TimerList : public ValueObject {
 // }
 class TimerScope : public StackResource {
  public:
+  TimerScope(bool flag, Timer* timer, Thread* thread = NULL)
+      : StackResource(thread),
+        nested_(false),
+        timer_(flag ? timer : NULL) {
+    Init();
+  }
+
   TimerScope(bool flag, Timer* timer, Isolate* isolate = NULL)
       : StackResource(isolate),
         nested_(false),
         timer_(flag ? timer : NULL) {
+    Init();
+  }
+
+  void Init() {
     if (timer_ != NULL) {
       if (!timer_->running()) {
         timer_->Start();
