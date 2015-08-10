@@ -18,9 +18,6 @@ ping_test: Skip           # Resolve test issues
 ping_pause_test: Skip     # Resolve test issues
 kill3_test: Pass, Fail    # Bad test: expects total message order
 
-message3_test/constList_identical: RuntimeError # Issue 21816
-message3_test/constMap: RuntimeError  # Issue 21816
-message3_test/constInstance: RuntimeError # Issue 21816
 message3_test/byteBuffer: Crash # Issue 21818
 message3_test/int32x4: Crash # Issue 21818
 

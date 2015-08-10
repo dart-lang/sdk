@@ -249,23 +249,6 @@ class Object {
     return AtomicOperations::CompareAndSwapWord(
         &raw()->ptr()->tags_, old_tags, new_tags);
   }
-  void set_tags(intptr_t value) const {
-    ASSERT(!IsNull());
-    // TODO(asiva): Remove the capability of setting tags in general. The mask
-    // here only allows for canonical and from_snapshot flags to be set.
-    value = value & 0x0000000c;
-    uword tags = raw()->ptr()->tags_;
-    uword old_tags;
-    do {
-      old_tags = tags;
-      uword new_tags = (old_tags & ~0x0000000c) | value;
-      tags = CompareAndSwapTags(old_tags, new_tags);
-    } while (tags != old_tags);
-  }
-  void SetCreatedFromSnapshot() const {
-    ASSERT(!IsNull());
-    raw()->SetCreatedFromSnapshot();
-  }
   bool IsCanonical() const {
     ASSERT(!IsNull());
     return raw()->IsCanonical();
@@ -728,7 +711,10 @@ class Object {
     return -kWordSize;
   }
 
-  static void InitializeObject(uword address, intptr_t id, intptr_t size);
+  static void InitializeObject(uword address,
+                               intptr_t id,
+                               intptr_t size,
+                               bool is_vm_object);
 
   static void RegisterClass(const Class& cls,
                             const String& name,
@@ -945,6 +931,7 @@ class Class : public Object {
   RawString* Name() const;
   RawString* PrettyName() const;
   RawString* UserVisibleName() const;
+  bool IsInFullSnapshot() const;
 
   virtual RawString* DictionaryName() const { return Name(); }
 
@@ -1114,6 +1101,10 @@ class Class : public Object {
   }
   static bool IsSignatureClass(RawClass* cls) {
     return cls->ptr()->signature_function_ != Object::null();
+  }
+  static bool IsInFullSnapshot(RawClass* cls) {
+    NoSafepointScope no_safepoint;
+    return cls->ptr()->library_->ptr()->is_in_fullsnapshot_;
   }
 
   // Check if this class represents a canonical signature class, i.e. not an
@@ -3390,6 +3381,11 @@ class Library : public Object {
       Dart_NativeEntrySymbol native_symbol_resolver) const {
     StoreNonPointer(&raw_ptr()->native_entry_symbol_resolver_,
                     native_symbol_resolver);
+  }
+
+  bool is_in_fullsnapshot() const { return raw_ptr()->is_in_fullsnapshot_; }
+  void set_is_in_fullsnapshot(bool value) const {
+    StoreNonPointer(&raw_ptr()->is_in_fullsnapshot_, value);
   }
 
   RawError* Patch(const Script& script) const;

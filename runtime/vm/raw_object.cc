@@ -18,10 +18,6 @@ namespace dart {
 DEFINE_FLAG(bool, validate_overwrite, true, "Verify overwritten fields.");
 #endif  // DEBUG
 
-bool RawObject::IsVMHeapObject() const {
-  return Dart::vm_isolate()->heap()->Contains(ToAddr(this));
-}
-
 
 void RawObject::Validate(Isolate* isolate) const {
   if (Object::void_class_ == reinterpret_cast<RawClass*>(kHeapObjectTag)) {

@@ -450,6 +450,8 @@ class SnapshotReader : public BaseReader {
 
   RawObject* VmIsolateSnapshotObject(intptr_t index) const;
 
+  bool is_vm_isolate() const;
+
   Snapshot::Kind kind_;  // Indicates type of snapshot(full, script, message).
   Isolate* isolate_;  // Current isolate.
   Zone* zone_;  // Zone for allocations while reading snapshot.
