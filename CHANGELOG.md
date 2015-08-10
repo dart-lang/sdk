@@ -1,3 +1,14 @@
+## 1.13.0
+
+* `dart:core`
+  * `Uri` added `removeFragment` method.
+
+* `dart:io`
+  * `HttpClient` no longer sends URI fragments in the requeust. This is not
+    allowed by the HTTP protocol.
+    The `HttpServer` still gracefully receives fragments, but discards them
+    before delivering the request.
+
 ## 1.12.0
 
 ### Core library changes

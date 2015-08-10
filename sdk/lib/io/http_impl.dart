@@ -791,13 +791,9 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     // Generate the request URI starting from the path component.
     String uriStartingFromPath() {
       String result = uri.path;
-      if (result.length == 0) result = "/";
-      if (uri.query != "") {
-        if (uri.fragment != "") {
-          result = "${result}?${uri.query}#${uri.fragment}";
-        } else {
-          result = "${result}?${uri.query}";
-        }
+      if (result.isEmpty) result = "/";
+      if (uri.hasQuery) {
+        result = "${result}?${uri.query}";
       }
       return result;
     }
@@ -814,7 +810,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
         if (_httpClientConnection._proxyTunnel) {
           return uriStartingFromPath();
         } else {
-          return uri.toString();
+          return uri.removeFragment().toString();
         }
       }
     }
@@ -1702,9 +1698,26 @@ class _HttpClient implements HttpClient {
                                  String host,
                                  int port,
                                  String path) {
-    Uri uri = new Uri(scheme: "http", host: host, port: port).resolve(path);
-    // TODO(sgjesse): The path set here can contain both query and
-    // fragment. They should be cracked and set correctly.
+    const int hashMark = 0x23;
+    const int questionMark = 0x3f;
+    int fragmentStart = path.length;
+    int queryStart = path.length;
+    for (int i = path.length - 1; i >= 0; i--) {
+      var char = path.codeUnitAt(i);
+      if (char == hashMark) {
+        fragmentStart = i;
+        queryStart = i;
+      } else if (char == questionMark) {
+        queryStart = i;
+      }
+    }
+    String query = null;
+    if (queryStart < fragmentStart) {
+      query = path.substring(queryStart + 1, fragmentStart);
+      path = path.substring(0, queryStart);
+    }
+    Uri uri = new Uri(scheme: "http", host: host, port: port,
+                      path: path, query: query);
     return _openUrl(method, uri);
   }
 
@@ -1772,6 +1785,9 @@ class _HttpClient implements HttpClient {
   set findProxy(String f(Uri uri)) => _findProxy = f;
 
   Future<HttpClientRequest> _openUrl(String method, Uri uri) {
+    // Ignore any fragments on the request URI.
+    uri = uri.removeFragment();
+
     if (method == null) {
       throw new ArgumentError(method);
     }

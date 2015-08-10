@@ -986,6 +986,16 @@ class Uri {
   }
 
   /**
+   * Returns a `Uri` that differs from this only in not having a fragment.
+   *
+   * If this `Uri` does not have a fragment, it is itself returned.
+   */
+  Uri removeFragment() {
+    if (!this.hasFragment) return this;
+    return new Uri._internal(scheme, userInfo, host, port, path, query, null);
+  }
+
+  /**
    * Returns the URI path split into its segments. Each of the
    * segments in the returned list have been decoded. If the path is
    * empty the empty list will be returned. A leading slash `/` does
