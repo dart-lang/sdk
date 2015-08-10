@@ -25,7 +25,8 @@ main() {
               .normalize(JavaFile.pathContext.absolute(tempDir.path));
           String path = JavaFile.pathContext.join(tempPath, 'foo.dart');
           // we use an absolute path
-          expect(JavaFile.pathContext.isAbsolute(path), isTrue, reason: '"$path" is not absolute');
+          expect(JavaFile.pathContext.isAbsolute(path), isTrue,
+              reason: '"$path" is not absolute');
           // test that toURI() returns an absolute URI
           Uri uri = new JavaFile(path).toURI();
           expect(uri.isAbsolute, isTrue);
@@ -40,7 +41,8 @@ main() {
           String tempPath = JavaFile.pathContext
               .normalize(JavaFile.pathContext.absolute(tempDir.path));
           String path = JavaFile.pathContext.join(tempPath, 'foo.dart');
-          expect(JavaFile.pathContext.isAbsolute(path), isTrue, reason: '"$path" is not absolute');
+          expect(JavaFile.pathContext.isAbsolute(path), isTrue,
+              reason: '"$path" is not absolute');
           // prepare a relative path
           // We should not check that "relPath" is actually relative -
           // it may be not on Windows, if "temp" is on other disk.
