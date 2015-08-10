@@ -459,6 +459,12 @@ class Debugger {
 
   bool IsPaused() const { return pause_event_ != NULL; }
 
+  // Put the isolate into single stepping mode when Dart code next runs.
+  //
+  // This is used by the vm service to allow the user to step while
+  // paused at isolate start.
+  void EnterSingleStepMode();
+
   // Indicates why the debugger is currently paused.  If the debugger
   // is not paused, this returns NULL.  Note that the debugger can be
   // paused for breakpoints, isolate interruption, and (sometimes)

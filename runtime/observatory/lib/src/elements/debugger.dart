@@ -477,6 +477,16 @@ class FinishCommand extends DebuggerCommand {
 
   Future run(List<String> args) {
     if (debugger.isolatePaused()) {
+      var event = debugger.isolate.pauseEvent;
+      if (event.kind == ServiceEvent.kPauseStart) {
+        debugger.console.print(
+            "Type 'continue' [F7] or 'step' [F10] to start the isolate");
+        return new Future.value(null);
+      }
+      if (event.kind == ServiceEvent.kPauseExit) {
+        debugger.console.print("Type 'continue' [F7] to exit the isolate");
+        return new Future.value(null);
+      }
       return debugger.isolate.stepOut();
     } else {
       debugger.console.print('The program is already running');
@@ -1339,7 +1349,7 @@ class ObservatoryDebugger extends Debugger {
   void _reportPause(ServiceEvent event) {
     if (event.kind == ServiceEvent.kPauseStart) {
       console.print(
-          "Paused at isolate start (type 'continue' or [F7] to start the isolate')");
+          "Paused at isolate start (type 'continue' [F7] or 'step' [F10] to start the isolate')");
     } else if (event.kind == ServiceEvent.kPauseExit) {
       console.print(
           "Paused at isolate exit (type 'continue' or [F7] to exit the isolate')");
@@ -1612,11 +1622,11 @@ class ObservatoryDebugger extends Debugger {
     if (isolatePaused()) {
       var event = isolate.pauseEvent;
       if (event.kind == ServiceEvent.kPauseStart) {
-        console.print("Type 'continue' or [F7] to start the isolate");
+        console.print("Type 'continue' [F7] or 'step' [F10] to start the isolate");
         return new Future.value(null);
       }
       if (event.kind == ServiceEvent.kPauseExit) {
-        console.print("Type 'continue' or [F7] to exit the isolate");
+        console.print("Type 'continue' [F7] to exit the isolate");
         return new Future.value(null);
       }
       return isolate.stepOver();
@@ -1629,12 +1639,8 @@ class ObservatoryDebugger extends Debugger {
   Future step() {
     if (isolatePaused()) {
       var event = isolate.pauseEvent;
-      if (event.kind == ServiceEvent.kPauseStart) {
-        console.print("Type 'continue' or [F7] to start the isolate");
-        return new Future.value(null);
-      }
       if (event.kind == ServiceEvent.kPauseExit) {
-        console.print("Type 'continue' or [F7] to exit the isolate");
+        console.print("Type 'continue' [F7] to exit the isolate");
         return new Future.value(null);
       }
       return isolate.stepInto();
