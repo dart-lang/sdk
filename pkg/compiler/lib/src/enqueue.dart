@@ -2,50 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.enqueue;
-
-import 'dart:collection' show
-    Queue;
-import 'dart2jslib.dart' show
-    invariant,
-    CodegenWorkItem,
-    Compiler,
-    CompilerTask,
-    DeferredAction,
-    DeferredTask,
-    ItemCompilationContext,
-    Registry,
-    ResolutionWorkItem,
-    WorkItem;
-import 'dart_types.dart' show
-    DartType,
-    InterfaceType;
-import 'elements/elements.dart' show
-    AnalyzableElement,
-    AstElement,
-    ClassElement,
-    ConstructorElement,
-    Element,
-    Elements,
-    FunctionElement,
-    LibraryElement,
-    LocalFunctionElement,
-    Member,
-    MemberElement,
-    MethodElement,
-    TypedElement,
-    TypedefElement;
-import 'js/js.dart' as js;
-import 'native/native.dart' as native;
-import 'resolution/resolution.dart' show
-    ResolverVisitor;
-import 'tree/tree.dart' show
-    Send;
-import 'universe/universe.dart';
-import 'util/util.dart' show
-    Link,
-    Setlet,
-    SpannableAssertionFailure;
+part of dart2js;
 
 typedef ItemCompilationContext ItemCompilationContextCreator();
 
@@ -189,7 +146,7 @@ abstract class Enqueuer {
     if (!member.isInstanceMember) return;
     String memberName = member.name;
 
-    if (member.isField) {
+    if (member.kind == ElementKind.FIELD) {
       // The obvious thing to test here would be "member.isNative",
       // however, that only works after metadata has been parsed/analyzed,
       // and that may not have happened yet.
@@ -230,7 +187,7 @@ abstract class Enqueuer {
         addToWorkList(member);
         return;
       }
-    } else if (member.isFunction) {
+    } else if (member.kind == ElementKind.FUNCTION) {
       FunctionElement function = member;
       function.computeType(compiler);
       if (function.name == Compiler.NO_SUCH_METHOD) {
@@ -256,7 +213,7 @@ abstract class Enqueuer {
         addToWorkList(function);
         return;
       }
-    } else if (member.isGetter) {
+    } else if (member.kind == ElementKind.GETTER) {
       FunctionElement getter = member;
       getter.computeType(compiler);
       if (universe.hasInvokedGetter(getter, compiler.world)) {
@@ -269,7 +226,7 @@ abstract class Enqueuer {
         addToWorkList(getter);
         return;
       }
-    } else if (member.isSetter) {
+    } else if (member.kind == ElementKind.SETTER) {
       FunctionElement setter = member;
       setter.computeType(compiler);
       if (universe.hasInvokedSetter(setter, compiler.world)) {
@@ -642,7 +599,7 @@ abstract class Enqueuer {
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
     // against the type variable of a typedef.
-    assert(!type.isTypeVariable ||
+    assert(type.kind != TypeKind.TYPE_VARIABLE ||
            !type.element.enclosingElement.isTypedef);
   }
 

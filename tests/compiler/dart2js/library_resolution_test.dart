@@ -20,7 +20,7 @@ import 'package:expect/expect.dart' show
 import 'package:compiler/src/elements/elements.dart' show
     LibraryElement;
 
-import 'package:compiler/src/messages.dart' show
+import 'package:compiler/src/dart2jslib.dart' show
     MessageKind,
     MessageTemplate;
 

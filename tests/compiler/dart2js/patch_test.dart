@@ -3,19 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:expect/expect.dart';
-import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/dart2jslib.dart';
-import 'package:compiler/src/elements/elements.dart';
+import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
+import "package:compiler/src/dart2jslib.dart";
+import "package:compiler/src/elements/elements.dart";
+import "package:compiler/src/tree/tree.dart";
+import "package:compiler/src/types/types.dart";
+import "mock_compiler.dart";
+import "mock_libraries.dart";
 import 'package:compiler/src/elements/modelx.dart';
-import 'package:compiler/src/messages.dart' show MessageKind;
-import 'package:compiler/src/tree/tree.dart';
-import 'package:compiler/src/types/types.dart';
-import 'package:compiler/src/universe/universe.dart' show Selector;
-import 'package:compiler/src/world.dart';
-
-import 'mock_compiler.dart';
-import 'mock_libraries.dart';
 
 Future<Compiler> applyPatch(String script, String patch,
                             {bool analyzeAll: false,

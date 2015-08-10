@@ -17,9 +17,9 @@ import '../elements/elements.dart'
 import '../dart_types.dart';
 import '../dart2jslib.dart'
     show Compiler,
+         MessageKind,
          invariant,
          isPrivateName;
-import '../messages.dart' show MessageKind;
 import '../util/util.dart';
 
 part 'member_impl.dart';

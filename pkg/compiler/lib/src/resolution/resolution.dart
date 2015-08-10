@@ -14,12 +14,10 @@ import '../core_types.dart';
 import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../dart_types.dart';
 import '../dart2jslib.dart' hide DynamicAccess;
-import '../enqueue.dart' show
-    ResolutionEnqueuer,
-    WorldImpact;
 import '../tree/tree.dart';
 import '../scanner/scannerlib.dart';
 import '../elements/elements.dart';
+
 import '../elements/modelx.dart' show
     BaseClassElementX,
     BaseFunctionElementX,
@@ -50,16 +48,14 @@ import '../elements/modelx.dart' show
     TypedefElementX,
     VariableElementX,
     VariableList;
-import '../messages.dart' show MessageKind;
+
 import '../ordered_typeset.dart' show OrderedTypeSet, OrderedTypeSetBuilder;
 import '../types/types.dart' show TypeMask;
 import '../util/util.dart';
 import '../universe/universe.dart' show
     CallStructure,
-    Selector,
     SelectorKind,
     UniverseSelector;
-import '../world.dart' show World;
 
 import 'access_semantics.dart';
 import 'class_members.dart' show MembersCreator;

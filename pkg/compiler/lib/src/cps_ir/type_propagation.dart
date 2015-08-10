@@ -14,10 +14,10 @@ import 'cps_ir_nodes.dart';
 import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
 import '../elements/elements.dart';
+import '../dart2jslib.dart' show ClassWorld, World;
 import '../universe/universe.dart';
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../io/source_information.dart' show SourceInformation;
-import '../world.dart' show World;
 import 'cps_fragment.dart';
 
 enum AbstractBool {

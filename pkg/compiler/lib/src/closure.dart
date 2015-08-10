@@ -7,7 +7,6 @@ library closureToClassMapper;
 import 'constants/expressions.dart';
 import 'dart2jslib.dart';
 import 'dart_types.dart';
-import 'diagnostic_listener.dart';
 import 'elements/elements.dart';
 import 'elements/modelx.dart'
     show BaseFunctionElementX,
@@ -16,7 +15,6 @@ import 'elements/modelx.dart'
          LocalFunctionElementX;
 import 'elements/visitor.dart' show ElementVisitor;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
-import 'resolution/resolution.dart' show TreeElements;
 import 'scanner/scannerlib.dart' show Token;
 import 'tree/tree.dart';
 import 'util/util.dart';

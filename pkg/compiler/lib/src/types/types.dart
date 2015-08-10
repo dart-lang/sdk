@@ -6,14 +6,11 @@ library types;
 
 import '../dart2jslib.dart' hide Selector, TypedSelector;
 import '../elements/elements.dart';
-import '../inferrer/concrete_types_inferrer.dart' show ConcreteTypesInferrer;
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../universe/universe.dart';
-import '../world.dart' show
-    ClassWorld,
-    World;
+import '../inferrer/concrete_types_inferrer.dart' show ConcreteTypesInferrer;
 
 part 'container_type_mask.dart';
 part 'dictionary_type_mask.dart';

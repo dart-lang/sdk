@@ -16,21 +16,21 @@ import '../constants/expressions.dart';
 import '../dart2jslib.dart'
     show Backend,
          Compiler,
+         DiagnosticListener,
+         Script,
          SourceSpan;
 import '../dart_types.dart';
-import '../diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show FunctionSignatureX;
 import '../elements/common.dart';
 import '../elements/visitor.dart';
-import '../io/source_file.dart';
 import '../ordered_typeset.dart';
 import '../resolution/resolution.dart';
 import '../resolution/class_members.dart' as class_members;
 import '../resolution/enum_creator.dart' show AstBuilder;
 import '../scanner/scannerlib.dart' show Token, SEMICOLON_INFO;
-import '../script.dart';
 import '../serialization/constant_serialization.dart';
+import '../io/source_file.dart';
 import '../tree/tree.dart';
 import '../util/util.dart' show Link, LinkBuilder;
 

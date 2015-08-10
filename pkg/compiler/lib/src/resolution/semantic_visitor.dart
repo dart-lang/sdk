@@ -5,10 +5,9 @@
 library dart2js.semantics_visitor;
 
 import '../constants/expressions.dart';
-import '../dart2jslib.dart' show invariant;
+import '../dart2jslib.dart' show invariant, MessageKind;
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../messages.dart' show MessageKind;
 import '../tree/tree.dart';
 import '../universe/universe.dart';
 import '../util/util.dart' show Spannable, SpannableAssertionFailure;

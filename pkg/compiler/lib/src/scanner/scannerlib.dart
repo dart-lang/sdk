@@ -7,7 +7,6 @@ library scanner;
 import 'dart:collection' show IterableBase, HashSet;
 
 import '../dart_types.dart' show DynamicType;
-import '../diagnostic_listener.dart';
 import '../elements/elements.dart';
 
 import '../elements/modelx.dart' show
@@ -32,10 +31,8 @@ import '../elements/modelx.dart' show
 import '../elements/visitor.dart'
     show ElementVisitor;
 import '../dart2jslib.dart';
-import '../messages.dart';
 import '../native/native.dart' as native;
 import '../string_validator.dart';
-import '../script.dart';
 import '../tree/tree.dart';
 import '../util/characters.dart';
 import '../util/util.dart';

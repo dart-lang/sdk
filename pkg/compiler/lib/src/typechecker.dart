@@ -2,55 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.typechecker;
-
-import 'constants/expressions.dart';
-import 'constants/values.dart';
-import 'core_types.dart';
-import 'dart2jslib.dart' show
-    Compiler,
-    CompilerTask,
-    invariant,
-    isPrivateName;
-import 'dart_types.dart';
-import 'elements/elements.dart' show
-    AbstractFieldElement,
-    AstElement,
-    AsyncMarker,
-    ClassElement,
-    ConstructorElement,
-    Element,
-    Elements,
-    EnumClassElement,
-    ExecutableElement,
-    FieldElement,
-    FunctionElement,
-    GetterElement,
-    InitializingFormalElement,
-    LibraryElement,
-    Member,
-    MemberSignature,
-    Name,
-    ParameterElement,
-    PrivateName,
-    PublicName,
-    ResolvedAst,
-    SetterElement,
-    TypeDeclarationElement,
-    TypedElement,
-    TypedefElement,
-    VariableElement;
-import 'messages.dart';
-import 'resolution/resolution.dart' show
-    TreeElements;
-import 'resolution/class_members.dart' show
-    MembersCreator;
-import 'tree/tree.dart';
-import 'util/util.dart' show
-    Link,
-    LinkBuilder,
-    Spannable;
-import '../compiler_new.dart' as api;
+part of dart2js;
 
 class TypeCheckerTask extends CompilerTask {
   TypeCheckerTask(Compiler compiler) : super(compiler);

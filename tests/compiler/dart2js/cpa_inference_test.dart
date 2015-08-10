@@ -7,7 +7,6 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/inferrer/concrete_types_inferrer.dart';
-import 'package:compiler/src/universe/universe.dart' show Selector;
 
 import "compiler_helper.dart";
 import "type_mask_test_helper.dart";

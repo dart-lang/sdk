@@ -8,8 +8,6 @@ import '../constants/values.dart' as values;
 import '../dart_types.dart' as types;
 import '../dart2jslib.dart' as dart2js;
 import '../elements/elements.dart' as elements;
-import '../resolution/resolution.dart' show
-    TreeElementMapping;
 import '../tree/tree.dart' as tree;
 import '../scanner/scannerlib.dart';
 import '../util/util.dart';
@@ -17,7 +15,7 @@ import 'backend_ast_nodes.dart';
 import 'backend_ast_emitter.dart' show TypeGenerator;
 
 /// Translates the backend AST to Dart frontend AST.
-tree.Node emit(TreeElementMapping treeElements,
+tree.Node emit(dart2js.TreeElementMapping treeElements,
                RootNode root) {
   return new TreePrinter(treeElements).makeDefinition(root);
 }
@@ -30,7 +28,7 @@ bool INSERT_NEW_BACKEND_COMMENT =
 
 /// Converts backend ASTs to frontend ASTs.
 class TreePrinter {
-  TreeElementMapping treeElements;
+  dart2js.TreeElementMapping treeElements;
 
   TreePrinter([this.treeElements]);
 

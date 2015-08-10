@@ -16,11 +16,9 @@ import "package:compiler/src/elements/modelx.dart"
     show CompilationUnitElementX, ElementX, LibraryElementX;
 
 import "package:compiler/src/dart2jslib.dart";
-import "package:compiler/src/diagnostic_listener.dart";
-import "package:compiler/src/messages.dart";
-import "package:compiler/src/script.dart";
 
-export "package:compiler/src/diagnostic_listener.dart";
+export "package:compiler/src/dart2jslib.dart"
+    show DiagnosticListener;
 // TODO(ahe): We should have token library to export instead.
 export "package:compiler/src/scanner/scannerlib.dart";
 

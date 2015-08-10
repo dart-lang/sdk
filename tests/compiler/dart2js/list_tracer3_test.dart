@@ -11,6 +11,7 @@ import 'package:compiler/src/types/types.dart'
     show ContainerTypeMask, TypeMask;
 
 import 'compiler_helper.dart';
+import 'parser_helper.dart';
 import 'type_mask_test_helper.dart';
 
 

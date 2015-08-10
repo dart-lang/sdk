@@ -14,10 +14,7 @@ import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
 import '../types/types.dart' show TypeMask;
 import '../closure.dart' hide ClosureScope;
-import '../universe/universe.dart' show
-    CallStructure,
-    Selector,
-    SelectorKind;
+import '../universe/universe.dart' show SelectorKind;
 import 'cps_ir_nodes.dart' as ir;
 import 'cps_ir_builder_task.dart' show DartCapturedVariables,
     GlobalProgramInformation;

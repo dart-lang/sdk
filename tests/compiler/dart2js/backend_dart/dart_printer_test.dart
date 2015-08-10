@@ -10,15 +10,12 @@ import 'package:compiler/src/dart_backend/backend_ast_nodes.dart';
 import 'package:compiler/src/scanner/scannerlib.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/dart2jslib.dart';
-import 'package:compiler/src/diagnostic_listener.dart';
-import "package:compiler/src/messages.dart";
 import 'package:compiler/src/tree/tree.dart' show DartString;
 import 'dart:mirrors';
 import 'package:compiler/src/tree/tree.dart' as tree;
 import 'package:compiler/src/string_validator.dart';
 import 'package:compiler/src/dart_backend/backend_ast_to_frontend_ast.dart'
     show TreePrinter;
-import 'package:compiler/src/util/util.dart' show Spannable;
 
 /// For debugging the [AstBuilder] stack. Prints information about [x].
 void show(x) {

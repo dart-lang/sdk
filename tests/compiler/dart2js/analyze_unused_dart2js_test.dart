@@ -8,7 +8,6 @@ import 'package:async_helper/async_helper.dart';
 
 import 'package:compiler/src/dart2jslib.dart';
 import 'package:compiler/src/filenames.dart';
-import 'package:compiler/src/messages.dart';
 
 import 'analyze_helper.dart';
 

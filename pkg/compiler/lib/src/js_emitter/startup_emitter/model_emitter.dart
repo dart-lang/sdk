@@ -28,8 +28,6 @@ import '../../js_backend/js_backend.dart' show
     Namer,
     ConstantEmitter;
 
-import '../../messages.dart' show MessageKind;
-
 import '../../util/util.dart' show
     NO_LOCATION_SPANNABLE;
 
@@ -215,7 +213,7 @@ class ModelEmitter {
     if (compiler.deferredMapUri != null) {
       writeDeferredMap();
     }
-
+    
     // Return the total program size.
     return outputBuffers.values.fold(0, (a, b) => a + b.length);
   }

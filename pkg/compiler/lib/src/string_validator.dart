@@ -6,13 +6,12 @@
 
 library stringvalidator;
 
-import 'dart:collection';
+import "dart:collection";
 
-import 'diagnostic_listener.dart';
-import 'messages.dart' show MessageKind;
-import 'scanner/scannerlib.dart' show Token;
-import 'tree/tree.dart';
-import 'util/characters.dart';
+import "dart2jslib.dart";
+import "tree/tree.dart";
+import "util/characters.dart";
+import "scanner/scannerlib.dart" show Token;
 
 class StringValidator {
   final DiagnosticListener listener;

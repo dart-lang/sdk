@@ -13,7 +13,6 @@ import 'dart:convert';
 
 import '../../compiler.dart';
 import '../dart2jslib.dart';
-import '../messages.dart' show MessageKind;
 import '../util/util.dart';
 
 part 'debug_collection.dart';

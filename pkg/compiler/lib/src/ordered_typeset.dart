@@ -4,10 +4,9 @@
 
 library ordered_typeset;
 
-import 'dart2jslib.dart' show Compiler, invariant;
+import 'dart2jslib.dart' show Compiler, MessageKind, invariant;
 import 'dart_types.dart';
 import 'elements/elements.dart' show ClassElement;
-import 'messages.dart' show MessageKind;
 import 'util/util.dart' show Link, LinkBuilder;
 import 'util/util_implementation.dart' show LinkEntry;
 

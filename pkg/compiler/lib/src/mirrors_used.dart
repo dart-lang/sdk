@@ -13,14 +13,19 @@ import 'constants/values.dart' show
     ListConstantValue,
     StringConstantValue,
     TypeConstantValue;
+
 import 'dart_types.dart' show
     DartType,
     InterfaceType,
     TypeKind;
+
 import 'dart2jslib.dart' show
     Compiler,
     CompilerTask,
+    MessageKind,
+    TreeElements,
     invariant;
+
 import 'elements/elements.dart' show
     ClassElement,
     Element,
@@ -28,16 +33,14 @@ import 'elements/elements.dart' show
     MetadataAnnotation,
     ScopeContainerElement,
     VariableElement;
-import 'messages.dart' show
-    MessageKind;
-import 'resolution/resolution.dart' show
-    TreeElements;
+
 import 'tree/tree.dart' show
     Import,
     LibraryTag,
     NamedArgument,
     NewExpression,
     Node;
+
 import 'util/util.dart' show
     Link,
     Spannable;

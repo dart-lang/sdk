@@ -9,12 +9,17 @@ import 'constants/values.dart' show
     ConstructedConstantValue,
     DeferredConstantValue,
     StringConstantValue;
+
 import 'dart2jslib.dart' show
     Backend,
     Compiler,
     CompilerTask,
-    invariant;
-import 'dart_types.dart';
+    invariant,
+    MessageKind;
+
+import 'js_backend/js_backend.dart' show
+    JavaScriptBackend;
+
 import 'elements/elements.dart' show
     AccessorElement,
     AstElement,
@@ -29,13 +34,16 @@ import 'elements/elements.dart' show
     ScopeContainerElement,
     TypedefElement,
     VoidElement;
-import 'js_backend/js_backend.dart' show
-    JavaScriptBackend;
-import 'messages.dart' show MessageKind;
-import 'resolution/resolution.dart' show
-    AnalyzableElementX,
-    TreeElements;
-import 'tree/tree.dart' as ast;
+
+import 'dart_types.dart';
+
+import 'util/util.dart' show
+    Link, makeUnique;
+import 'util/uri_extras.dart' as uri_extras;
+
+import 'util/setlet.dart' show
+    Setlet;
+
 import 'tree/tree.dart' show
     Import,
     LibraryTag,
@@ -44,11 +52,12 @@ import 'tree/tree.dart' show
     LiteralString,
     NewExpression,
     Node;
-import 'util/setlet.dart' show
-    Setlet;
-import 'util/uri_extras.dart' as uri_extras;
-import 'util/util.dart' show
-    Link, makeUnique;
+
+import 'tree/tree.dart' as ast;
+
+import 'resolution/resolution.dart' show
+    AnalyzableElementX,
+    TreeElements;
 
 /// A "hunk" of the program that will be loaded whenever one of its [imports]
 /// are loaded.

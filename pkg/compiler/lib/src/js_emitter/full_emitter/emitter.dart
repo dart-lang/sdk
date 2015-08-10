@@ -65,8 +65,6 @@ import '../../js_backend/js_backend.dart' show
     TypeChecks,
     TypeVariableHandler;
 
-import '../../messages.dart' show MessageKind;
-
 import '../../util/characters.dart' show
     $$,
     $A,

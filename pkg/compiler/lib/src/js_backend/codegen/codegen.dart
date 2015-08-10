@@ -16,10 +16,7 @@ import '../../constants/values.dart';
 import '../../dart2jslib.dart';
 import '../../dart_types.dart';
 import '../../types/types.dart' show TypeMask;
-import '../../universe/universe.dart' show
-    Selector,
-    UniverseSelector;
-import '../../util/util.dart' show CURRENT_ELEMENT_SPANNABLE;
+import '../../universe/universe.dart' show UniverseSelector;
 import '../../closure.dart' show ClosureClassElement;
 
 class CodegenBailout {

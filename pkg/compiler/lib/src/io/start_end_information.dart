@@ -8,15 +8,14 @@
 library dart2js.source_information.start_end;
 
 import '../dart2jslib.dart' show
+    MessageKind,
+    MessageTemplate,
     SourceSpan;
 import '../elements/elements.dart' show
     AstElement,
     LocalElement;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
-import '../messages.dart' show
-    MessageKind,
-    MessageTemplate;
 import '../scanner/scannerlib.dart' show Token;
 import '../tree/tree.dart' show Node, Send;
 

@@ -6,9 +6,6 @@ library dart2js.serialization.task;
 
 import '../dart2jslib.dart';
 import '../elements/elements.dart';
-import '../enqueue.dart' show
-    ResolutionEnqueuer,
-    WorldImpact;
 
 /// Task that supports deserialization of elements.
 class SerializationTask extends CompilerTask {

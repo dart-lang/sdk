@@ -12,8 +12,8 @@ import 'package:js_runtime/shared/async_await_error_codes.dart'
 
 import "js.dart" as js;
 
-import '../diagnostic_listener.dart';
 import '../util/util.dart';
+import '../dart2jslib.dart' show DiagnosticListener;
 
 /// Rewrites a [js.Fun] with async/sync*/async* functions and await and yield
 /// (with dart-like semantics) to an equivalent function without these.

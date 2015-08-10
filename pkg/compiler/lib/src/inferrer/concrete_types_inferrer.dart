@@ -13,7 +13,6 @@ import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../universe/universe.dart';
 import '../util/util.dart';
-import '../world.dart' show ClassWorld;
 
 import 'inferrer_visitor.dart';
 import '../types/types.dart' show TypeMask, FlatTypeMask, UnionTypeMask,

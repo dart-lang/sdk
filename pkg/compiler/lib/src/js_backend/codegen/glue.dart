@@ -5,20 +5,12 @@
 library code_generator_dependencies;
 
 import '../js_backend.dart';
-import '../../constants/values.dart';
-import '../../dart_types.dart' show
-    DartType,
-    TypeVariableType,
-    InterfaceType;
 import '../../dart2jslib.dart';
-import '../../enqueue.dart' show
-    CodegenEnqueuer;
-import '../../elements/elements.dart';
 import '../../js_emitter/js_emitter.dart';
 import '../../js/js.dart' as js;
-import '../../universe/universe.dart' show Selector;
-import '../../world.dart' show ClassWorld;
-
+import '../../constants/values.dart';
+import '../../elements/elements.dart';
+import '../../dart_types.dart' show DartType, TypeVariableType, InterfaceType;
 
 /// Encapsulates the dependencies of the function-compiler to the compiler,
 /// backend and emitter.

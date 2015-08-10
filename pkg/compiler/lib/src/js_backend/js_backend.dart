@@ -18,12 +18,6 @@ import '../constants/values.dart';
 import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../elements/visitor.dart' show
-    BaseElementVisitor;
-import '../enqueue.dart' show
-    Enqueuer,
-    ResolutionEnqueuer,
-    WorldImpact;
 import '../io/code_output.dart';
 import '../io/source_information.dart' show
     SourceInformationStrategy,
@@ -36,33 +30,28 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js/js_source_mapping.dart' show
     JavaScriptSourceInformationStrategy;
-import '../js/rewrite_async.dart';
-import '../js_emitter/js_emitter.dart' show
-    ClassBuilder,
-    CodeEmitterTask,
-    Emitter,
-    MetadataCollector,
-    Placeholder,
-    TokenFinalizer,
-    USE_LAZY_EMITTER;
+import '../js_emitter/js_emitter.dart'
+    show ClassBuilder, CodeEmitterTask, Emitter, MetadataCollector, Placeholder,
+        TokenFinalizer, USE_LAZY_EMITTER;
+
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
-import '../messages.dart' show MessageKind;
 import '../native/native.dart' as native;
-import '../resolution/resolution.dart' show
-    ResolutionRegistry,
-    TreeElements;
 import '../ssa/ssa.dart';
 import '../tree/tree.dart';
 import '../types/types.dart';
 import '../universe/universe.dart';
 import '../util/characters.dart';
 import '../util/util.dart';
-import '../world.dart' show
-    ClassWorld;
 
-import 'codegen/task.dart';
+import '../elements/visitor.dart' show
+    BaseElementVisitor;
+
+import '../js_backend/codegen/task.dart';
+import '../resolution/resolution.dart' show ResolutionRegistry;
+
 import 'constant_system_javascript.dart';
 import 'patch_resolver.dart';
+import '../js/rewrite_async.dart';
 
 part 'backend.dart';
 part 'checked_mode_helpers.dart';
