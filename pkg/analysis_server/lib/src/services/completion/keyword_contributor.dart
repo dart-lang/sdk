@@ -124,15 +124,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
           !node.directives.any((d) => d is LibraryDirective)) {
         _addSuggestions([Keyword.LIBRARY], DART_RELEVANCE_HIGH);
       }
-      _addSuggestions([Keyword.EXPORT, Keyword.PART], DART_RELEVANCE_HIGH);
-      _addSuggestion2("import '';",
-          offset: 8, relevance: DART_RELEVANCE_HIGH + 1);
-      _addSuggestion2("import '' as ;",
-          offset: 8, relevance: DART_RELEVANCE_HIGH);
-      _addSuggestion2("import '' hide ;",
-          offset: 8, relevance: DART_RELEVANCE_HIGH);
-      _addSuggestion2("import '' show ;",
-          offset: 8, relevance: DART_RELEVANCE_HIGH);
+      _addSuggestions([Keyword.IMPORT, Keyword.EXPORT, Keyword.PART], DART_RELEVANCE_HIGH);
     }
     if (entity == null || entity is Declaration) {
       if (previousMember is FunctionDeclaration &&
@@ -392,7 +384,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       Keyword.CONTINUE,
       Keyword.DO,
       Keyword.FINAL,
-      //Keyword.FOR,
+      Keyword.FOR,
       Keyword.IF,
       Keyword.NEW,
       Keyword.RETURN,
@@ -403,7 +395,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       Keyword.VOID,
       Keyword.WHILE
     ]);
-    _addSuggestion2('for ()', offset: 5);
     _addSuggestion(Keyword.RETHROW, DART_RELEVANCE_KEYWORD - 1);
   }
 

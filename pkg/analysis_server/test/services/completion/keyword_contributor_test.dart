@@ -173,17 +173,6 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.TRUE,
   ];
 
-  static final Map<String, List<String>> keywordTemplates =
-      <String, List<String>>{
-    Keyword.IMPORT.syntax: [
-      "import '^';",
-      "import '^' as ;",
-      "import '^' hide ;",
-      "import '^' show ;"
-    ],
-    Keyword.FOR.syntax: ['for (^)']
-  };
-
   void assertSuggestKeywords(Iterable<Keyword> expectedKeywords,
       {List<String> pseudoKeywords: NO_PSEUDO_KEYWORDS,
       int relevance: DART_RELEVANCE_KEYWORD}) {
@@ -192,18 +181,6 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Set<String> actualCompletions = new Set<String>();
     expectedCompletions.addAll(expectedKeywords.map((k) => k.syntax));
     expectedCompletions.addAll(pseudoKeywords);
-    keywordTemplates.forEach((String key, List<String> templates) {
-      if (expectedCompletions.remove(key)) {
-        for (String t in templates) {
-          int offset = t.indexOf('^');
-          if (offset != -1) {
-            t = '${t.substring(0, offset)}${t.substring(offset + 1)}';
-            expectedOffsets[t] = offset;
-          }
-          expectedCompletions.add(t);
-        }
-      }
-    });
     for (CompletionSuggestion s in request.suggestions) {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
         Keyword k = Keyword.keywords[s.completion];
