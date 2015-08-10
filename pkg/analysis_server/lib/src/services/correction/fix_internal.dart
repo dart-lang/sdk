@@ -1438,7 +1438,7 @@ class FixProcessor {
         String libraryFile = librarySource.fullName;
         // may be "package:" URI
         {
-          String libraryPackageUri = findAbsoluteUri(context, libraryFile);
+          String libraryPackageUri = findNonFileUri(context, libraryFile);
           if (libraryPackageUri != null) {
             _addFix_importLibrary(
                 DartFixKind.IMPORT_LIBRARY_PROJECT, libraryPackageUri);
@@ -1630,7 +1630,7 @@ class FixProcessor {
         if (substringAfterLast(libFile, '/') == uriName) {
           String fixedUri;
           // may be "package:" URI
-          String libPackageUri = findAbsoluteUri(context, libFile);
+          String libPackageUri = findNonFileUri(context, libFile);
           if (libPackageUri != null) {
             fixedUri = libPackageUri;
           } else {
