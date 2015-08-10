@@ -841,12 +841,9 @@ static bool GetAndValidateIsolateStackBounds(Isolate* isolate,
   ASSERT(stack_lower != NULL);
   ASSERT(stack_upper != NULL);
 #if defined(USING_SIMULATOR)
-  Simulator* simulator = NULL;
-#endif
-
-#if defined(USING_SIMULATOR)
   const bool in_dart_code = ExecutingDart(isolate);
   if (in_dart_code) {
+    Simulator* simulator = isolate->simulator();
     *stack_lower = simulator->StackBase();
     *stack_upper = simulator->StackTop();
   } else if (!isolate->GetProfilerStackBounds(stack_lower, stack_upper)) {
