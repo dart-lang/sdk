@@ -28,6 +28,9 @@ import subprocess
 import sys
 import utils
 
+# Useful messages when we find orphaned checkouts.
+old_directories = {'package_config':
+  'Please remove third_party/pkg/package_config.'}
 
 def get_options():
   result = optparse.OptionParser()
@@ -86,6 +89,7 @@ def main(argv):
         os.remove(full_link)
   else:
     os.makedirs(target)
+  linked_names = {}; 
   for source in args[1:]:
     # Assume the source directory is named ".../NAME/lib".
     split = source.split(':')
@@ -98,6 +102,15 @@ def main(argv):
     # Remove any additional path components preceding NAME, if one wasn't
     # specified explicitly.
     if not name: (_, name) = os.path.split(path)
+    # We have an issue with left-behind checkouts in third_party/pkg and
+    # third_party/pkg_tested when we move entries in DEPS. This reports them.
+    if name in linked_names:
+      print 'Duplicate directory %s is linked to both %s and %s.' % (
+          name, linked_names[name], path)
+      if name in old_directories:
+        print old_directories[name]
+      return 1
+    linked_names[name] = path
     orig_source = source
     if utils.GuessOS() == 'win32':
       source = os.path.relpath(source)
