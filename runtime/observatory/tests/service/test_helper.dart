@@ -26,9 +26,12 @@ class _TestLauncher {
                             Platform.script.toFilePath(),
                             _TESTEE_MODE_FLAG] {}
 
-  Future<int> launch(bool pause_on_exit) {
+  Future<int> launch(bool pause_on_start, bool pause_on_exit) {
     String dartExecutable = Platform.executable;
     var fullArgs = [];
+    if (pause_on_start == true) {
+      fullArgs.add('--pause-isolates-on-start');
+    }
     if (pause_on_exit == true) {
       fullArgs.add('--pause-isolates-on-exit');
     }
@@ -49,7 +52,7 @@ class _TestLauncher {
           var port = portExp.firstMatch(line).group(1);
           portNumber = int.parse(port);
         }
-        if (line == '') {
+        if (pause_on_start || line == '') {
           // Received blank line.
           blank = true;
         }
@@ -98,20 +101,26 @@ void runIsolateTests(List<String> mainArgs,
                      List<IsolateTest> tests,
                      {void testeeBefore(),
                       void testeeConcurrent(),
-                      bool pause_on_exit}) {
+                      bool pause_on_start: false,
+                      bool pause_on_exit: false}) {
+  assert(!pause_on_start || testeeBefore == null);
   if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
-    if (testeeBefore != null) {
-      testeeBefore();
+    if (!pause_on_start) {
+      if (testeeBefore != null) {
+        testeeBefore();
+      }
+      print(''); // Print blank line to signal that we are ready.
     }
-    print(''); // Print blank line to signal that we are ready.
     if (testeeConcurrent != null) {
       testeeConcurrent();
     }
-    // Wait around for the process to be killed.
-    stdin.first.then((_) => exit(0));
+    if (!pause_on_exit) {
+      // Wait around for the process to be killed.
+      stdin.first.then((_) => exit(0));
+    }
   } else {
     var process = new _TestLauncher();
-    process.launch(pause_on_exit).then((port) {
+    process.launch(pause_on_start, pause_on_exit).then((port) {
       if (mainArgs.contains("--gdb")) {
         port = 8181;
       }
@@ -137,26 +146,6 @@ void runIsolateTests(List<String> mainArgs,
       });
     });
   }
-}
-
-
-// Cancel the subscription and complete the completer when finished processing
-// events.
-typedef void ServiceEventHandler(ServiceEvent event,
-                                 StreamSubscription subscription,
-                                 Completer completer);
-
-Future processServiceEvents(VM vm,
-                            String streamId,
-                            ServiceEventHandler handler) {
-  Completer completer = new Completer();
-  vm.getEventStream(streamId).then((stream) {
-    var subscription;
-    subscription = stream.listen((ServiceEvent event) {
-      handler(event, subscription, completer);
-    });
-  });
-  return completer.future;
 }
 
 
@@ -286,20 +275,25 @@ Future runVMTests(List<String> mainArgs,
                   List<VMTest> tests,
                   {Future testeeBefore(),
                    Future testeeConcurrent(),
-                   bool pause_on_exit}) async {
+                   bool pause_on_start: false,
+                   bool pause_on_exit: false}) async {
   if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
-    if (testeeBefore != null) {
-      await testeeBefore();
+    if (!pause_on_start) {
+      if (testeeBefore != null) {
+        await testeeBefore();
+      }
+      print(''); // Print blank line to signal that we are ready.
     }
-    print(''); // Print blank line to signal that we are ready.
     if (testeeConcurrent != null) {
       await testeeConcurrent();
     }
-    // Wait around for the process to be killed.
-    stdin.first.then((_) => exit(0));
+    if (!pause_on_exit) {
+      // Wait around for the process to be killed.
+      stdin.first.then((_) => exit(0));
+    }
   } else {
     var process = new _TestLauncher();
-    process.launch(pause_on_exit).then((port) async {
+    process.launch(pause_on_start, pause_on_exit).then((port) async {
       if (mainArgs.contains("--gdb")) {
         port = 8181;
       }
