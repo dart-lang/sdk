@@ -144,12 +144,11 @@ class Service : public AllStatic {
 
   static EmbedderServiceHandler* FindIsolateEmbedderHandler(const char* name);
   static EmbedderServiceHandler* FindRootEmbedderHandler(const char* name);
-  static bool ExtensionHandlerExists(const String& name);
-  static bool InvokeExtensionHandler(const String& name,
-                                     const Array& parameter_keys,
-                                     const Array& parameter_values,
-                                     const Instance& reply_port,
-                                     const Instance& id);
+  static bool ScheduleExtensionHandler(const String& name,
+                                       const Array& parameter_keys,
+                                       const Array& parameter_values,
+                                       const Instance& reply_port,
+                                       const Instance& id);
   static void SendEvent(const char* stream_id,
                         const char* event_type,
                         const Object& eventMessage);

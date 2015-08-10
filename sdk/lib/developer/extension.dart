@@ -102,54 +102,53 @@ void registerExtension(String method, ServiceExtensionHandler handler) {
   _extensions[method] = handler;
 }
 
-bool _extensionExists(String method) {
-  return _extensions[method] != null;
-}
-
-bool _invokeExtension(String method,
-                      List<String> parameterKeys,
-                      List<String> parameterValues,
-                      SendPort replyPort,
-                      Object id) {
+bool _scheduleExtension(String method,
+                        List<String> parameterKeys,
+                        List<String> parameterValues,
+                        SendPort replyPort,
+                        Object id) {
   ServiceExtensionHandler handler = _extensions[method];
-  assert(handler != null);
-  var parameters = {};
-  for (var i = 0; i < parameterKeys.length; i++) {
-    parameters[parameterKeys[i]] = parameterValues[i];
+  if (handler == null) {
+    return false;
   }
-  var response;
-  try {
-    response = handler(method, parameters);
-  } catch (e, st) {
-    var errorDetails = (st == null) ? '$e' : '$e\n$st';
-    response = new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.kExtensionError,
-        errorDetails);
-    _postResponse(replyPort, id, response);
-    return true;
-  }
-  if (response is! Future) {
-    response = new ServiceExtensionResponse.error(
-          ServiceExtensionResponse.kExtensionError,
-          "Extension handler must return a Future");
-    _postResponse(replyPort, id, response);
-    return true;
-  }
-  response.catchError((e, st) {
-    var errorDetails = (st == null) ? '$e' : '$e\n$st';
-    return new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.kExtensionError,
-        errorDetails);
-  }).then((response) {
-    if (response == null) {
+  // Defer execution of handler until next event loop.
+  Timer.run(() {
+    var parameters = {};
+    for (var i = 0; i < parameterKeys.length; i++) {
+      parameters[parameterKeys[i]] = parameterValues[i];
+    }
+    var response;
+    try {
+      response = handler(method, parameters);
+    } catch (e, st) {
+      var errorDetails = (st == null) ? '$e' : '$e\n$st';
       response = new ServiceExtensionResponse.error(
           ServiceExtensionResponse.kExtensionError,
-          "Extension handler returned null");
+          errorDetails);
+      _postResponse(replyPort, id, response);
+      return;
     }
-    _postResponse(replyPort, id, response);
+    if (response is! Future) {
+      response = new ServiceExtensionResponse.error(
+            ServiceExtensionResponse.kExtensionError,
+            "Extension handler must return a Future");
+      _postResponse(replyPort, id, response);
+      return;
+    }
+    response.catchError((e, st) {
+      var errorDetails = (st == null) ? '$e' : '$e\n$st';
+      return new ServiceExtensionResponse.error(
+          ServiceExtensionResponse.kExtensionError,
+          errorDetails);
+    }).then((response) {
+      if (response == null) {
+        response = new ServiceExtensionResponse.error(
+            ServiceExtensionResponse.kExtensionError,
+            "Extension handler returned null");
+      }
+      _postResponse(replyPort, id, response);
+    });
   });
-  // Push an event on the event loop so that we invoke the scheduled microtasks.
-  Timer.run(() {});
   return true;
 }
 

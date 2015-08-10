@@ -585,13 +585,13 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
       return;
     }
 
-    if (ExtensionHandlerExists(method_name)) {
-      InvokeExtensionHandler(method_name,
-                             param_keys,
-                             param_values,
-                             reply_port,
-                             seq);
-      // The reply is posted asynchronously.
+    if (ScheduleExtensionHandler(method_name,
+                                 param_keys,
+                                 param_values,
+                                 reply_port,
+                                 seq)) {
+      // Schedule was successful. Extension code will post a reply
+      // asynchronously.
       return;
     }
 
@@ -879,42 +879,27 @@ EmbedderServiceHandler* Service::FindRootEmbedderHandler(
 }
 
 
-bool Service::ExtensionHandlerExists(const String& method) {
-  ASSERT(!method.IsNull());
-  const Library& developer_lib = Library::Handle(Library::DeveloperLibrary());
-  ASSERT(!developer_lib.IsNull());
-  const Function& extension_exists = Function::Handle(
-      developer_lib.LookupLocalFunction(Symbols::_extensionExists()));
-  ASSERT(!extension_exists.IsNull());
-  const Array& arguments = Array::Handle(Array::New(1));
-  ASSERT(!arguments.IsNull());
-  arguments.SetAt(0, method);
-  return (DartEntry::InvokeFunction(extension_exists, arguments) ==
-          Object::bool_true().raw());
-}
-
-
-bool Service::InvokeExtensionHandler(const String& method_name,
-                                     const Array& parameter_keys,
-                                     const Array& parameter_values,
-                                     const Instance& reply_port,
-                                     const Instance& id) {
+bool Service::ScheduleExtensionHandler(const String& method_name,
+                                       const Array& parameter_keys,
+                                       const Array& parameter_values,
+                                       const Instance& reply_port,
+                                       const Instance& id) {
   ASSERT(!method_name.IsNull());
   ASSERT(!parameter_keys.IsNull());
   ASSERT(!parameter_values.IsNull());
   ASSERT(!reply_port.IsNull());
   const Library& developer_lib = Library::Handle(Library::DeveloperLibrary());
   ASSERT(!developer_lib.IsNull());
-  const Function& invoke_extension = Function::Handle(
-      developer_lib.LookupLocalFunction(Symbols::_invokeExtension()));
-  ASSERT(!invoke_extension.IsNull());
+  const Function& schedule_extension = Function::Handle(
+      developer_lib.LookupLocalFunction(Symbols::_scheduleExtension()));
+  ASSERT(!schedule_extension.IsNull());
   const Array& arguments = Array::Handle(Array::New(5));
   arguments.SetAt(0, method_name);
   arguments.SetAt(1, parameter_keys);
   arguments.SetAt(2, parameter_values);
   arguments.SetAt(3, reply_port);
   arguments.SetAt(4, id);
-  return (DartEntry::InvokeFunction(invoke_extension, arguments) ==
+  return (DartEntry::InvokeFunction(schedule_extension, arguments) ==
           Object::bool_true().raw());
 }
 
