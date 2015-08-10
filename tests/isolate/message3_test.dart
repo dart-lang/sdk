@@ -394,7 +394,7 @@ void runTests(SendPort ping, Queue checks) {
     Expect.equals("field", f.field);
     Expect.isFalse(identical(nonConstF, f));
   });
-  checks.add((x) {  // g1.
+  checks.add((x) {  // g2.
     Expect.isTrue(x is G);
     Expect.isFalse(identical(g1, x));
     F f = x.field;
@@ -403,7 +403,7 @@ void runTests(SendPort ping, Queue checks) {
   });
   checks.add((x) {  // g3.
     Expect.isTrue(x is G);
-    Expect.identical(g1, x);  /// constInstance: continued
+    Expect.identical(g3, x);  /// constInstance: continued
     F f = x.field;
     Expect.equals("field", f.field);
     Expect.identical(constF, f);  /// constInstance: continued
