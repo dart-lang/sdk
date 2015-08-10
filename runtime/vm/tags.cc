@@ -81,8 +81,8 @@ VMTag::TagEntry VMTag::entries_[] = {
 };
 
 
-VMTagScope::VMTagScope(Isolate* base_isolate, uword tag, bool conditional_set)
-    : StackResource(base_isolate) {
+VMTagScope::VMTagScope(Thread* thread, uword tag, bool conditional_set)
+    : StackResource(thread) {
   ASSERT(isolate() != NULL);
   previous_tag_ = isolate()->vm_tag();
   if (conditional_set) {

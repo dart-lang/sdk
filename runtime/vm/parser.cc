@@ -445,10 +445,10 @@ void Parser::SetPosition(intptr_t position) {
 
 void Parser::ParseCompilationUnit(const Library& library,
                                   const Script& script) {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->long_jump_base()->IsSafeToJump());
-  CSTAT_TIMER_SCOPE(isolate, parser_timer);
-  VMTagScope tagScope(isolate, VMTag::kCompileTopLevelTagId);
+  Thread* thread = Thread::Current();
+  ASSERT(thread->isolate()->long_jump_base()->IsSafeToJump());
+  CSTAT_TIMER_SCOPE(thread->isolate(), parser_timer);
+  VMTagScope tagScope(thread, VMTag::kCompileTopLevelTagId);
   Parser parser(script, library, 0);
   parser.ParseTopLevel();
 }
@@ -872,11 +872,13 @@ bool Parser::ParseFormalParameters(const Function& func, ParamList* params) {
 
 
 void Parser::ParseFunction(ParsedFunction* parsed_function) {
-  Isolate* isolate = parsed_function->isolate();
-  Zone* zone = parsed_function->zone();
+  Thread* thread = parsed_function->thread();
+  ASSERT(thread == Thread::Current());
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   CSTAT_TIMER_SCOPE(isolate, parser_timer);
   INC_STAT(isolate, num_functions_compiled, 1);
-  VMTagScope tagScope(isolate, VMTag::kCompileParseFunctionTagId,
+  VMTagScope tagScope(thread, VMTag::kCompileParseFunctionTagId,
                       FLAG_profile_vm);
 
   ASSERT(isolate->long_jump_base()->IsSafeToJump());

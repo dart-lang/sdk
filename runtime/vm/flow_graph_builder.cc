@@ -4784,7 +4784,7 @@ void EffectGraphVisitor::VisitStopNode(StopNode* node) {
 
 
 FlowGraph* FlowGraphBuilder::BuildGraph() {
-  VMTagScope tagScope(Thread::Current()->isolate(),
+  VMTagScope tagScope(Thread::Current(),
                       VMTag::kCompileFlowGraphBuilderTagId,
                       FLAG_profile_vm);
   if (FLAG_print_ast) {

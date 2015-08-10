@@ -288,11 +288,12 @@ RawError* Compiler::CompileClass(const Class& cls) {
     }
   }
 
-  Isolate* const isolate = Isolate::Current();
+  Thread* const thread = Thread::Current();
+  Isolate* const isolate = thread->isolate();
   // We remember all the classes that are being compiled in these lists. This
   // also allows us to reset the marked_for_parsing state in case we see an
   // error.
-  VMTagScope tagScope(isolate, VMTag::kCompileClassTagId);
+  VMTagScope tagScope(thread, VMTag::kCompileClassTagId);
   Class& parse_class = Class::Handle(isolate);
   const GrowableObjectArray& parse_list =
       GrowableObjectArray::Handle(isolate, GrowableObjectArray::New(4));
@@ -302,7 +303,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
   // Parse the class and all the interfaces it implements and super classes.
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    StackZone zone(isolate);
+    StackZone zone(thread);
     if (FLAG_trace_compiler) {
       ISL_Print("Compiling Class %s '%s'\n", "", cls.ToCString());
     }
@@ -367,8 +368,9 @@ RawError* Compiler::CompileClass(const Class& cls) {
         parse_class.reset_is_marked_for_parsing();
       }
     }
+    Thread* const thread = Thread::Current();
     Isolate* const isolate = Isolate::Current();
-    StackZone zone(isolate);
+    StackZone zone(thread);
     Error& error = Error::Handle(isolate);
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
@@ -1108,7 +1110,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
 RawError* Compiler::CompileFunction(Thread* thread,
                                     const Function& function) {
   Isolate* isolate = thread->isolate();
-  VMTagScope tagScope(isolate, VMTag::kCompileUnoptimizedTagId);
+  VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(isolate, "Function", function);
 
   if (!isolate->compilation_allowed()) {
@@ -1163,7 +1165,7 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
   Isolate* isolate = thread->isolate();
-  VMTagScope tagScope(isolate, VMTag::kCompileOptimizedTagId);
+  VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(isolate,
                                          "OptimizedFunction", function);
 

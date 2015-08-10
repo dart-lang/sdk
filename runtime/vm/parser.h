@@ -150,6 +150,7 @@ class ParsedFunction : public ZoneAllocated {
   void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
 
+  Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread_->isolate(); }
   Zone* zone() const { return thread_->zone(); }
 

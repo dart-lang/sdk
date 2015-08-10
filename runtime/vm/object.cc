@@ -8500,18 +8500,20 @@ void Script::set_tokens(const TokenStream& value) const {
 
 
 void Script::Tokenize(const String& private_key) const {
-  Isolate* isolate = Isolate::Current();
-  const TokenStream& tkns = TokenStream::Handle(isolate, tokens());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  const TokenStream& tkns = TokenStream::Handle(zone, tokens());
   if (!tkns.IsNull()) {
     // Already tokenized.
     return;
   }
   // Get the source, scan and allocate the token stream.
-  VMTagScope tagScope(isolate, VMTag::kCompileScannerTagId);
+  VMTagScope tagScope(thread, VMTag::kCompileScannerTagId);
   CSTAT_TIMER_SCOPE(isolate, scanner_timer);
-  const String& src = String::Handle(isolate, Source());
+  const String& src = String::Handle(zone, Source());
   Scanner scanner(src, private_key);
-  set_tokens(TokenStream::Handle(isolate,
+  set_tokens(TokenStream::Handle(zone,
                                  TokenStream::New(scanner.GetStream(),
                                                   private_key)));
   INC_STAT(isolate, src_length, src.Length());

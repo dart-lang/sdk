@@ -79,7 +79,7 @@ class VMTag : public AllStatic {
 
 class VMTagScope : StackResource {
  public:
-  VMTagScope(Isolate* isolate, uword tag, bool conditional_set = true);
+  VMTagScope(Thread* thread, uword tag, bool conditional_set = true);
   ~VMTagScope();
  private:
   uword previous_tag_;

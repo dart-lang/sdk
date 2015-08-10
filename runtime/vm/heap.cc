@@ -312,11 +312,12 @@ RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
 void Heap::CollectGarbage(Space space,
                           ApiCallbacks api_callbacks,
                           GCReason reason) {
+  Thread* thread = Thread::Current();
   TIMERSCOPE(isolate(), time_gc);
   bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
   switch (space) {
     case kNew: {
-      VMTagScope tagScope(isolate(), VMTag::kGCNewSpaceTagId);
+      VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
       TimelineDurationScope tds(isolate(),
                                 isolate()->GetGCStream(),
                                 "CollectNewGeneration");
@@ -335,7 +336,7 @@ void Heap::CollectGarbage(Space space,
     }
     case kOld:
     case kCode: {
-      VMTagScope tagScope(isolate(), VMTag::kGCOldSpaceTagId);
+      VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
       TimelineDurationScope tds(isolate(),
                                 isolate()->GetGCStream(),
                                 "CollectOldGeneration");
@@ -373,9 +374,10 @@ void Heap::CollectGarbage(Space space) {
 
 
 void Heap::CollectAllGarbage() {
+  Thread* thread = Thread::Current();
   TIMERSCOPE(isolate(), time_gc);
   {
-    VMTagScope tagScope(isolate(), VMTag::kGCNewSpaceTagId);
+    VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
     TimelineDurationScope tds(isolate(),
                               isolate()->GetGCStream(),
                               "CollectNewGeneration");
@@ -388,7 +390,7 @@ void Heap::CollectAllGarbage() {
     PrintStats();
   }
   {
-    VMTagScope tagScope(isolate(), VMTag::kGCOldSpaceTagId);
+    VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
     TimelineDurationScope tds(isolate(),
                               isolate()->GetGCStream(),
                               "CollectOldGeneration");
