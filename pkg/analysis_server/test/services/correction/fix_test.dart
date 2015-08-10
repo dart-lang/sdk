@@ -4406,7 +4406,7 @@ main() {
       'my_pkg': [myPkgFolder]
     });
     context.sourceFactory = new SourceFactory(
-        [AbstractContextTest.SDK_RESOLVER, resourceResolver, pkgResolver]);
+        [AbstractContextTest.SDK_RESOLVER, pkgResolver, resourceResolver]);
     // force 'my_pkg' resolution
     addSource('/tmp/other.dart', "import 'package:my_pkg/my_lib.dart';");
   }
