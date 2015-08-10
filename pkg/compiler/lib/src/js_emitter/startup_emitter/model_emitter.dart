@@ -163,7 +163,7 @@ class ModelEmitter {
   int emitProgram(Program program) {
     MainFragment mainFragment = program.fragments.first;
     List<DeferredFragment> deferredFragments =
-        new List<DeferredFragment>.from(program.fragments.skip(1));
+        new List<DeferredFragment>.from(program.deferredFragments);
 
     FragmentEmitter fragmentEmitter =
         new FragmentEmitter(compiler, namer, backend, constantEmitter, this);

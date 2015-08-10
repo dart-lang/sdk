@@ -129,13 +129,14 @@ class ModelEmitter {
   int emitProgram(Program program) {
     List<Fragment> fragments = program.fragments;
     MainFragment mainFragment = fragments.first;
+    Iterable<Fragment> deferredFragments = program.deferredFragments;
 
     int totalSize = 0;
 
     // We have to emit the deferred fragments first, since we need their
     // deferred hash (which depends on the output) when emitting the main
     // fragment.
-    List<js.Expression> fragmentsCode = fragments.skip(1).map(
+    List<js.Expression> fragmentsCode = deferredFragments.map(
             (DeferredFragment deferredUnit) {
       js.Expression types =
           program.metadataTypesForOutputUnit(deferredUnit.outputUnit);
