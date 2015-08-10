@@ -297,14 +297,7 @@ class PhysicalResourceProviderTest extends _BaseTest {
       file.deleteSync();
       return _delayed(() {
         expect(changesReceived, hasLength(1));
-        if (io.Platform.isWindows) {
-          // TODO(danrubel) https://github.com/dart-lang/sdk/issues/23762
-          // This test fails on Windows but a similar test in the underlying
-          // watcher package passes on Windows.
-          expect(changesReceived[0].type, equals(ChangeType.MODIFY));
-        } else {
-          expect(changesReceived[0].type, equals(ChangeType.REMOVE));
-        }
+        expect(changesReceived[0].type, equals(ChangeType.REMOVE));
         expect(changesReceived[0].path, equals(path));
       });
     });
