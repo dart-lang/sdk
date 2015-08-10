@@ -217,6 +217,13 @@ void f(C<int> c) {
     });
   }
 
+  test_keyword() {
+    addTestSource('class C { static C get instance => null; } main() {C.in^}');
+    return computeFull((bool result) {
+      assertSuggestGetter('instance', 'C');
+    });
+  }
+
   test_libraryPrefix() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('import "dart:async" as bar; foo() {bar.^}');

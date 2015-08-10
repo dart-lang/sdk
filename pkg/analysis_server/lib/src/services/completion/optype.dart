@@ -472,7 +472,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (identical(entity, node.identifier)) {
+    if (identical(entity, node.identifier) ||
+        // In addition to the standard case,
+        // handle the exceptional case where the parser considers the would-be
+        // identifier to be a keyword and inserts a synthetic identifier
+        (node.identifier != null &&
+            node.identifier.isSynthetic &&
+            identical(entity, node.identifier.beginToken.previous))) {
       optype.isPrefixed = true;
       if (node.parent is TypeName && node.parent.parent is ConstructorName) {
         optype.includeConstructorSuggestions = true;
@@ -562,9 +568,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (entity is SwitchMember && entity != node.members.first) {
       SwitchMember member = entity as SwitchMember;
       if (offset <= member.offset) {
-          optype.includeReturnValueSuggestions = true;
-          optype.includeTypeNameSuggestions = true;
-          optype.includeVoidReturnSuggestions = true;
+        optype.includeReturnValueSuggestions = true;
+        optype.includeTypeNameSuggestions = true;
+        optype.includeVoidReturnSuggestions = true;
       }
     }
   }

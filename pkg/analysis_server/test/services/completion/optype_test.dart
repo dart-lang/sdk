@@ -43,14 +43,9 @@ class OpTypeTest {
     visitor = new OpType.forCompletion(completionTarget, offset);
   }
 
-  void assertOpType(
-      {bool prefixed: false,
-      bool returnValue: false,
-      bool typeNames: false,
-      bool voidReturn: false,
-      bool statementLabel: false,
-      bool caseLabel: false,
-      bool constructors: false}) {
+  void assertOpType({bool prefixed: false, bool returnValue: false,
+      bool typeNames: false, bool voidReturn: false, bool statementLabel: false,
+      bool caseLabel: false, bool constructors: false}) {
     expect(visitor.includeReturnValueSuggestions, returnValue,
         reason: 'returnValue');
     expect(visitor.includeTypeNameSuggestions, typeNames, reason: 'typeNames');
@@ -241,6 +236,12 @@ class OpTypeTest {
   test_Block_identifier_partial() {
     addTestSource('class X {a() {var f; {var x;} D^ var r;} void b() { }}');
     assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_keyword() {
+    addTestSource('class C { static C get instance => null; } main() {C.in^}');
+    assertOpType(
+        prefixed: true, returnValue: true, typeNames: true, voidReturn: true);
   }
 
   test_Break_after_label() {

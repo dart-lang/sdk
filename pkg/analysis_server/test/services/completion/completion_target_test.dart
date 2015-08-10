@@ -139,6 +139,16 @@ class CompletionTargetTest extends AbstractContextTest {
     assertTarget('}', '{}');
   }
 
+  test_Block_keyword() {
+    addTestSource('class C { static C get instance => null; } main() {C.in^}');
+    assertTarget('in', 'C.in');
+  }
+
+  test_Block_keyword2() {
+    addTestSource('class C { static C get instance => null; } main() {C.i^n}');
+    assertTarget('in', 'C.in');
+  }
+
   test_FormalParameter_partialType() {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
     addTestSource('foo(b.^ f) { }');
