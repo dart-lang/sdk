@@ -840,7 +840,8 @@ class TransformingVisitor extends LeafVisitor {
       AbstractValue left = getValue(leftArg);
       AbstractValue right = getValue(rightArg);
 
-      if (node.selector.name == '==') {
+      String opname = node.selector.name;
+      if (opname == '==') {
         // Equality is special due to its treatment of null values and the
         // fact that Dart-null corresponds to both JS-null and JS-undefined.
         // Please see documentation for IsFalsy, StrictEq, and LooseEq.
@@ -866,20 +867,35 @@ class TransformingVisitor extends LeafVisitor {
           return replaceWithBinary(BuiltinOperator.LooseEq, leftArg, rightArg);
         }
       } else {
-        // Try to insert a numeric operator.
         if (lattice.isDefinitelyNum(left, allowNull: false) &&
             lattice.isDefinitelyNum(right, allowNull: false)) {
-          BuiltinOperator operator = NumBinaryBuiltins[node.selector.name];
+          // Try to insert a numeric operator.
+          BuiltinOperator operator = NumBinaryBuiltins[opname];
           if (operator != null) {
             return replaceWithBinary(operator, leftArg, rightArg);
           }
-        }
-        else if (lattice.isDefinitelyString(left, allowNull: false) &&
-                 lattice.isDefinitelyString(right, allowNull: false)) {
-          if (node.selector.name == '+') {
-            return replaceWithBinary(BuiltinOperator.StringConcatenate,
+          // Try to insert a shift-left operator.
+          // Shift operators are not in [NumBinaryBuiltins] because Dart shifts
+          // behave different than JS shifts.
+          // We do not introduce shift-right operators yet because the operator
+          // to use depends on whether the left-hand operand is negative.
+          // See js_number.dart in js_runtime for details.
+          PrimitiveConstantValue rightConstant = right.constant;
+          if (opname == '<<' &&
+              lattice.isDefinitelyInt(left) &&
+              rightConstant != null &&
+              rightConstant.isInt &&
+              rightConstant.primitiveValue >= 0 &&
+              rightConstant.primitiveValue <= 31) {
+            return replaceWithBinary(BuiltinOperator.NumShl, 
                                      leftArg, rightArg);
           }
+        }
+        if (lattice.isDefinitelyString(left, allowNull: false) &&
+            lattice.isDefinitelyString(right, allowNull: false) &&
+            opname == '+') {
+          return replaceWithBinary(BuiltinOperator.StringConcatenate,
+                                   leftArg, rightArg);
         }
       }
     }
@@ -1945,6 +1961,7 @@ class TypePropagationVisitor implements Visitor {
       case BuiltinOperator.NumAnd:
       case BuiltinOperator.NumOr:
       case BuiltinOperator.NumXor:
+      case BuiltinOperator.NumShl:
         AbstractValue left = getValue(node.arguments[0].definition);
         AbstractValue right = getValue(node.arguments[1].definition);
         if (lattice.isDefinitelyInt(left) && lattice.isDefinitelyInt(right)) {

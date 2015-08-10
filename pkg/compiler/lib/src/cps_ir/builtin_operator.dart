@@ -32,6 +32,7 @@ enum BuiltinOperator {
   NumAnd,
   NumOr,
   NumXor,
+  NumShl,
   NumLt,
   NumLe,
   NumGt,

@@ -800,6 +800,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
         return new js.Binary('>', args[0], args[1]);
       case BuiltinOperator.NumGe:
         return new js.Binary('>=', args[0], args[1]);
+      case BuiltinOperator.NumShl:
+        return js.js('(# << #) >>> 0', args);
       case BuiltinOperator.StringConcatenate:
         if (args.isEmpty) return js.string('');
         return args.reduce((e1,e2) => new js.Binary('+', e1, e2));
