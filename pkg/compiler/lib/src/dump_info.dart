@@ -459,7 +459,7 @@ class DumpInfoTask extends CompilerTask {
     stopwatch.start();
 
     // Recursively build links to function uses
-    Iterable<FunctionElement> functionElements =
+    Iterable<Element> functionElements =
         infoCollector._elementToInfo.keys.where((k) => k is FunctionElement);
     for (FunctionElement element in functionElements) {
       FunctionInfo info = infoCollector._elementToInfo[element];
