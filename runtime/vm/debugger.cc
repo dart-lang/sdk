@@ -1270,7 +1270,6 @@ void Debugger::SetStepOut() {
   resume_action_ = kStepOut;
 }
 
-
 RawFunction* Debugger::ResolveFunction(const Library& library,
                                        const String& class_name,
                                        const String& function_name) {
@@ -2320,13 +2319,6 @@ void Debugger::Pause(DebuggerEvent* event) {
 
   pause_event_ = NULL;
   obj_cache_ = NULL;    // Zone allocated
-}
-
-
-void Debugger::EnterSingleStepMode() {
-  stepping_fp_ = 0;
-  DeoptimizeWorld();
-  isolate_->set_single_step(true);
 }
 
 

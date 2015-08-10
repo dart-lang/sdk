@@ -2308,11 +2308,6 @@ static const MethodParameter* resume_params[] = {
 static bool Resume(Isolate* isolate, JSONStream* js) {
   const char* step_param = js->LookupParam("step");
   if (isolate->message_handler()->paused_on_start()) {
-    // If the user is issuing a 'Over' or an 'Out' step, that is the
-    // same as a regular resume request.
-    if ((step_param != NULL) && (strcmp(step_param, "Into") == 0)) {
-      isolate->debugger()->EnterSingleStepMode();
-    }
     isolate->message_handler()->set_pause_on_start(false);
     if (Service::debug_stream.enabled()) {
       ServiceEvent event(isolate, ServiceEvent::kResume);
