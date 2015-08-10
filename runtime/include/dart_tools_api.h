@@ -879,6 +879,51 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
  * ========
  */
 
+/** Timeline stream for Dart API calls */
+#define DART_TIMELINE_STREAM_API (1 << 0)
+/** Timeline stream for compiler events */
+#define DART_TIMELINE_STREAM_COMPILER (1 << 1)
+/** Timeline stream for embedder provided events */
+#define DART_TIMELINE_STREAM_EMBEDDER (1 << 2)
+/** Timeline stream for GC events */
+#define DART_TIMELINE_STREAM_GC (1 << 3)
+/** Timeline stream for isolate events */
+#define DART_TIMELINE_STREAM_ISOLATE (1 << 4)
+
+/** Enable all timeline stream recording */
+#define DART_TIMELINE_STREAM_ALL (DART_TIMELINE_STREAM_API |                   \
+                                  DART_TIMELINE_STREAM_COMPILER |              \
+                                  DART_TIMELINE_STREAM_EMBEDDER |              \
+                                  DART_TIMELINE_STREAM_GC |                    \
+                                  DART_TIMELINE_STREAM_ISOLATE)
+
+/** Disable all timeline stream recording */
+#define DART_TIMELINE_STREAM_DISABLE 0
+
+/**
+ * Start recording timeline events for the current isolate.
+ *
+ * \param stream_mask A bitmask of streams that should be recorded.
+ *
+ * NOTE: Calling with 0 disables recording of all streams.
+ */
+DART_EXPORT void Dart_TimelineSetRecordedStreams(int64_t stream_mask);
+
+/**
+ * Get the timeline for the current isolate in trace-event format
+ *
+ * \param output The address of the trace buffer output
+ * \param output_length The length of the trace buffer output
+ *
+ * NOTE: output is allocated in the C heap and must be freed by the caller.
+ *
+ * NOTE: The trace-event format is documented here: https://goo.gl/hDZw5M
+ *
+ * \return True if a trace was output. The outputted trace may be empty.
+ */
+DART_EXPORT bool Dart_TimelineGetTrace(const char** output,
+                                       intptr_t* output_length);
+
 /**
  * Add a duration timeline event to the embedder stream for the current isolate.
  *

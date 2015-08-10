@@ -36,6 +36,7 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
+#include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/unicode.h"
@@ -5765,6 +5766,47 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
   Service::SendEmbedderEvent(isolate, stream_id, event_kind,
                              bytes, bytes_length);
   return Api::Success();
+}
+
+
+DART_EXPORT void Dart_TimelineSetRecordedStreams(int64_t stream_mask) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  isolate->GetAPIStream()->set_enabled(
+      (stream_mask & DART_TIMELINE_STREAM_API) != 0);
+  isolate->GetCompilerStream()->set_enabled(
+      (stream_mask & DART_TIMELINE_STREAM_COMPILER) != 0);
+  isolate->GetEmbedderStream()->set_enabled(
+      (stream_mask & DART_TIMELINE_STREAM_EMBEDDER) != 0);
+  isolate->GetGCStream()->set_enabled(
+      (stream_mask & DART_TIMELINE_STREAM_GC) != 0);
+  isolate->GetIsolateStream()->set_enabled(
+      (stream_mask & DART_TIMELINE_STREAM_ISOLATE) != 0);
+}
+
+
+DART_EXPORT bool Dart_TimelineGetTrace(const char** output,
+                                       intptr_t* output_length) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (output == NULL) {
+    return false;
+  }
+  if (output_length == NULL) {
+    return false;
+  }
+  TimelineEventRecorder* timeline_recorder = isolate->timeline_event_recorder();
+  if (timeline_recorder == NULL) {
+    // Nothing has been recorded.
+    return false;
+  }
+  // Suspend execution of other threads while serializing to JSON.
+  isolate->thread_registry()->SafepointThreads();
+  JSONStream js;
+  timeline_recorder->PrintJSON(&js);
+  js.Steal(output, output_length);
+  isolate->thread_registry()->ResumeAllThreads();
+  return true;
 }
 
 

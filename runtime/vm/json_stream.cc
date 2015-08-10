@@ -534,6 +534,14 @@ void JSONStream::PrintfProperty(const char* name, const char* format, ...) {
 }
 
 
+void JSONStream::Steal(const char** buffer, intptr_t* buffer_length) {
+  ASSERT(buffer != NULL);
+  ASSERT(buffer_length != NULL);
+  *buffer_length = buffer_.length();
+  *buffer = buffer_.Steal();
+}
+
+
 void JSONStream::set_reply_port(Dart_Port port) {
   reply_port_ = port;
 }

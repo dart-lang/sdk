@@ -9278,4 +9278,41 @@ TEST_CASE(Timeline_Dart_TimelineAsync) {
   EXPECT_SUBSTRING("testAsyncEvent", js.ToCString());
 }
 
+
+TEST_CASE(Timeline_Dart_TimelineGetTrace) {
+  const char* kScriptChars =
+    "foo() => 'a';\n"
+    "main() => foo();\n";
+
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, NULL);
+
+  const char* buffer = NULL;
+  intptr_t buffer_length = 0;
+  bool success = false;
+
+  // Enable recording of all streams.
+  Dart_TimelineSetRecordedStreams(DART_TIMELINE_STREAM_ALL);
+
+  // Invoke main, which will be compiled resulting in a compiler event in
+  // the timeline.
+  Dart_Handle result = Dart_Invoke(lib,
+                                   NewString("main"),
+                                   0,
+                                   NULL);
+  EXPECT_VALID(result);
+
+  // Grab the trace.
+  success = Dart_TimelineGetTrace(&buffer, &buffer_length);
+  EXPECT(success);
+  EXPECT(buffer_length > 0);
+  EXPECT(buffer != NULL);
+  // Heartbeat test.
+  EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
+  EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
+  EXPECT_SUBSTRING("\"function\":\"main\"", buffer);
+  // Free buffer acquired by Dart_TimelineGetTrace call.
+  free(const_cast<char*>(buffer));
+}
+
 }  // namespace dart

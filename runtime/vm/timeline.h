@@ -183,7 +183,7 @@ class TimelineStream {
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(isolate, suffix, function)      \
   TimelineDurationScope tds(isolate,                                           \
                             isolate->GetCompilerStream(),                      \
-                            "Compile"#suffix);                                 \
+                            "Compile" suffix);                                 \
   if (tds.enabled()) {                                                         \
     tds.SetNumArguments(1);                                                    \
     tds.CopyArgument(                                                          \
