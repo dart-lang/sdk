@@ -15,7 +15,8 @@ import 'package:path/path.dart';
 import 'html_tools.dart';
 import 'text_formatter.dart';
 
-final RegExp trailingWhitespaceRegExp = new RegExp(r' +$', multiLine: true);
+final RegExp trailingWhitespaceRegExp = new RegExp(r'[\n ]+$');
+final RegExp trailingSpacesInLineRegExp = new RegExp(r' +$', multiLine: true);
 
 /**
  * Join the given strings using camelCase.  If [doCapitalize] is true, the first
@@ -71,12 +72,17 @@ class CodeGenerator {
    * Execute [callback], collecting any code that is output using [write]
    * or [writeln], and return the result as a string.
    */
-  String collectCode(void callback()) {
+  String collectCode(void callback(), {bool removeTrailingNewLine: false}) {
     _CodeGeneratorState oldState = _state;
     try {
       _state = new _CodeGeneratorState();
       callback();
-      return _state.buffer.toString().replaceAll(trailingWhitespaceRegExp, '');
+      var text = _state.buffer.toString().replaceAll(trailingSpacesInLineRegExp, '');
+      if (!removeTrailingNewLine) {
+        return text;
+      } else {
+        return text.replaceAll(trailingWhitespaceRegExp, '');
+      }
     } finally {
       _state = oldState;
     }
@@ -88,15 +94,14 @@ class CodeGenerator {
    * When generating java code, the output is compatible with Javadoc, which
    * understands certain HTML constructs.
    */
-  void docComment(List<dom.Node> docs) {
-    if (containsOnlyWhitespace(docs)) {
-      return;
-    }
+  void docComment(List<dom.Node> docs, {bool removeTrailingNewLine: false}) {
+    if (containsOnlyWhitespace(docs)) return;
     writeln(codeGeneratorSettings.docCommentStartMarker);
     int width = codeGeneratorSettings.commentLineLength;
     bool javadocStyle = codeGeneratorSettings.languageName == 'java';
     indentBy(codeGeneratorSettings.docCommentLineLeader, () {
-      write(nodesToText(docs, width - _state.indent.length, javadocStyle));
+      write(nodesToText(docs, width - _state.indent.length, javadocStyle,
+        removeTrailingNewLine: removeTrailingNewLine));
     });
     writeln(codeGeneratorSettings.docCommentEndMarker);
   }
@@ -151,17 +156,17 @@ class CodeGenerator {
       header = '''
 /*
  * Copyright (c) 2014, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
- * 
+ *
  * This file has been automatically generated.  Please do not edit it manually.
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */''';
