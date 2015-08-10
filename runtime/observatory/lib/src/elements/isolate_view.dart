@@ -79,6 +79,7 @@ class TagProfileChart {
 @CustomTag('isolate-view')
 class IsolateViewElement extends ObservatoryElement {
   @published Isolate isolate;
+  @published Library rootLibrary;
   Timer _updateTimer;
   TagProfileChart tagProfileChart = new TagProfileChart();
   IsolateViewElement.created() : super.created();
@@ -106,6 +107,7 @@ class IsolateViewElement extends ObservatoryElement {
     if (isolate.topFrame != null) {
       isolate.topFrame.function.load();
     }
+    isolate.rootLibrary.load().then((lib) => rootLibrary = lib);
   }
 
   @override

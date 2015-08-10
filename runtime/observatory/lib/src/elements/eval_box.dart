@@ -24,7 +24,7 @@ class EvalBoxElement extends ObservatoryElement {
 
   void updateLineMode(Event e, var detail, Node target) {
     lineMode = (e.target as InputElement).value;
-    if (lineMode == '1-line') {
+    if (lineMode == '1-line' && text != null) {
       text = text.replaceAll('\n', ' ');
     }
   }
