@@ -124,7 +124,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
           !node.directives.any((d) => d is LibraryDirective)) {
         _addSuggestions([Keyword.LIBRARY], DART_RELEVANCE_HIGH);
       }
-      _addSuggestions([Keyword.IMPORT, Keyword.EXPORT, Keyword.PART], DART_RELEVANCE_HIGH);
+      _addSuggestions(
+          [Keyword.IMPORT, Keyword.EXPORT, Keyword.PART], DART_RELEVANCE_HIGH);
     }
     if (entity == null || entity is Declaration) {
       if (previousMember is FunctionDeclaration &&
@@ -133,14 +134,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         _addSuggestion2(ASYNC, relevance: DART_RELEVANCE_HIGH);
       }
       _addCompilationUnitKeywords();
-    }
-  }
-
-  @override
-  visitPropertyAccess(PropertyAccess node) {
-    // suggestions before '.' but not after
-    if (entity != node.propertyName) {
-      super.visitPropertyAccess(node);
     }
   }
 
@@ -157,11 +150,35 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitForEachStatement(ForEachStatement node) {
+    if (entity == node.inKeyword) {
+      Token previous = node.inKeyword.previous;
+      if (previous is SyntheticStringToken && previous.lexeme == 'in') {
+        previous = previous.previous;
+      }
+      if (previous != null && previous.type == TokenType.EQ) {
+        _addSuggestions(
+            [Keyword.FALSE, Keyword.NEW, Keyword.NULL, Keyword.TRUE]);
+      } else {
+        _addSuggestion(Keyword.IN, DART_RELEVANCE_HIGH);
+      }
+    }
+  }
+
+  @override
   visitFormalParameterList(FormalParameterList node) {
     AstNode constructorDecl =
         node.getAncestor((p) => p is ConstructorDeclaration);
     if (constructorDecl != null) {
       _addSuggestions([Keyword.THIS]);
+    }
+  }
+
+  @override
+  visitForStatement(ForStatement node) {
+    if (entity == node.rightSeparator && entity.toString() != ';') {
+      // Handle the degenerate case while typing - for (int x i^)
+      _addSuggestion(Keyword.IN, DART_RELEVANCE_HIGH);
     }
   }
 
@@ -256,6 +273,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (entity != node.identifier) {
       _addExpressionKeywords(node);
+    }
+  }
+
+  @override
+  visitPropertyAccess(PropertyAccess node) {
+    // suggestions before '.' but not after
+    if (entity != node.propertyName) {
+      super.visitPropertyAccess(node);
     }
   }
 

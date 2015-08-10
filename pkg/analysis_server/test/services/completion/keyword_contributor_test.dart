@@ -517,6 +517,32 @@ class KeywordContributorTest extends AbstractCompletionTest {
         relevance: DART_RELEVANCE_HIGH);
   }
 
+  test_for_expression_in() {
+    addTestSource('main() {for (int x i^)}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.IN], relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_for_expression_in2() {
+    addTestSource('main() {for (int x in^)}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.IN], relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_for_expression_init() {
+    addTestSource('main() {for (int x = i^)}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [Keyword.FALSE, Keyword.NEW, Keyword.NULL, Keyword.TRUE]);
+  }
+
+  test_for_expression_init2() {
+    addTestSource('main() {for (int x = in^)}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [Keyword.FALSE, Keyword.NEW, Keyword.NULL, Keyword.TRUE]);
+  }
+
   test_function_async() {
     addTestSource('main()^');
     expect(computeFast(), isTrue);
