@@ -927,7 +927,7 @@ class IsolateCommand extends DebuggerCommand {
   Future<List<String>> complete(List<String> args) {
     if (args.length != 1) {
       return new Future.value([args.join('')]);
-    } 
+    }
     var result = [];
     for (var isolate in debugger.vm.isolates) {
       var str = isolate.number.toString();
@@ -2237,7 +2237,7 @@ class DebuggerInputElement extends ObservatoryElement {
             e.preventDefault();
             try {
               debugger.upFrame(1);
-            } on RangeError catch (e) {
+            } on RangeError catch (_) {
               // Ignore.
             }
             busy = false;
@@ -2247,7 +2247,7 @@ class DebuggerInputElement extends ObservatoryElement {
             e.preventDefault();
             try {
               debugger.downFrame(1);
-            } on RangeError catch (e) {
+            } on RangeError catch (_) {
               // Ignore.
             }
             busy = false;

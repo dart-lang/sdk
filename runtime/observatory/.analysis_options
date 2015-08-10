@@ -1,0 +1,9 @@
+analyzer:
+  exclude:
+# Remove once Dart 1.13-dev is released
+    - tests/service/developer_extension_test.dart
+# Remove once Dart 1.13-dev is released
+    - tests/service/logging_test.dart
+    - tests/ui/log.dart
+# Remove once Dart 1.13-dev is released
+    - tests/service/get_stack_rpc_test.dart
