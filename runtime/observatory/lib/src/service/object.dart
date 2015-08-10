@@ -1951,6 +1951,13 @@ class Library extends ServiceObject with Coverage {
     return isolate._eval(this, expression);
   }
 
+  Script get rootScript {
+    for (Script script in scripts) {
+      if (script.uri == uri) return script;
+    }
+    return null;
+  }
+
   String toString() => "Library($uri)";
 }
 

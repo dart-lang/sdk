@@ -11,6 +11,7 @@ import 'service_ref.dart';
 import 'package:observatory/service.dart';
 import 'package:observatory/utils.dart';
 import 'package:polymer/polymer.dart';
+import 'package:logging/logging.dart';
 
 const nbsp = "\u00A0";
 
@@ -98,6 +99,52 @@ class CurrentExecutionAnnotation extends Annotation {
   }
 }
 
+class LibraryAnnotation extends Annotation {
+  Library target;
+  LibraryAnnotation(this.target);
+
+  void applyStyleTo(element) {
+    if (element == null) {
+      return;  // TODO(rmacnak): Handling overlapping annotations.
+    }
+    element.style.fontWeight = "bold";
+    element.title = "library ${target.uri}";
+
+    addInfoBox(element, () {
+      var details = table();
+      var r = row();
+      r.append(cell("Library"));
+      r.append(cell(serviceRef(target)));
+      details.append(r);
+
+      return details;
+    });
+  }
+}
+
+class PartAnnotation extends Annotation {
+  Script part;
+  PartAnnotation(this.part);
+
+  void applyStyleTo(element) {
+    if (element == null) {
+      return;  // TODO(rmacnak): Handling overlapping annotations.
+    }
+    element.style.fontWeight = "bold";
+    element.title = "script ${part.uri}";
+
+    addInfoBox(element, () {
+      var details = table();
+      var r = row();
+      r.append(cell("Script"));
+      r.append(cell(serviceRef(part)));
+      details.append(r);
+
+      return details;
+    });
+  }
+}
+
 class LocalVariableAnnotation extends Annotation {
   final value;
 
@@ -169,6 +216,7 @@ abstract class DeclarationAnnotation extends Annotation {
       columnStop = 0;
       return;
     }
+
     Script script = location.script;
     line = script.tokenToLine(location.tokenPos);
     columnStart = script.tokenToCol(location.tokenPos);
@@ -455,9 +503,9 @@ class ScriptInsetElement extends ObservatoryElement {
 
     if (!inDebuggerContext && script.library != null) {
       loadDeclarationsOfLibrary(script.library);
-
-      // Add fields before functions so they beat out conflicting
-      // implicit g/setters.
+      addLibraryAnnotations();
+      addDependencyAnnotations();
+      addPartAnnotations();
       addClassAnnotations();
       addFieldAnnotations();
       addFunctionAnnotations();
@@ -500,6 +548,106 @@ class ScriptInsetElement extends ObservatoryElement {
     });
   }
 
+  void addLibraryAnnotations() {
+    for (ScriptLine line in script.lines) {
+      // TODO(rmacnak): Use a real scanner.
+      var pattern = new RegExp("library ${script.library.name}");
+      var match = pattern.firstMatch(line.text);
+      if (match != null) {
+        var anno = new LibraryAnnotation(script.library);
+        anno.line = line.line;
+        anno.columnStart = match.start + 8;
+        anno.columnStop = match.end;
+        annotations.add(anno);
+      }
+      // TODO(rmacnak): Use a real scanner.
+      pattern = new RegExp("part of ${script.library.name}");
+      match = pattern.firstMatch(line.text);
+      if (match != null) {
+        var anno = new LibraryAnnotation(script.library);
+        anno.line = line.line;
+        anno.columnStart = match.start + 8;
+        anno.columnStop = match.end;
+        annotations.add(anno);
+      }
+    }
+  }
+
+  Library resolveDependency(String relativeUri) {
+    var targetUri = Uri.parse(script.library.uri).resolve(relativeUri);
+    for (Library l in script.isolate.libraries) {
+      if (targetUri.toString() == l.uri) {
+        return l;
+      }
+    }
+    Logger.root.info("Could not resolve library dependency: $relativeUri");
+    return null;
+  }
+
+  void addDependencyAnnotations() {
+    // TODO(rmacnak): Use a real scanner.
+    var patterns = [
+      new RegExp("import '(.*)'"),
+      new RegExp('import "(.*)"'),
+      new RegExp("export '(.*)'"),
+      new RegExp('export "(.*)"'),
+    ];
+    for (ScriptLine line in script.lines) {
+      for (var pattern in patterns) {
+        var match = pattern.firstMatch(line.text);
+        if (match != null) {
+          Library target = resolveDependency(match[1]);
+          if (target != null) {
+            var anno = new LibraryAnnotation(target);
+            anno.line = line.line;
+            anno.columnStart = match.start + 8;
+            anno.columnStop = match.end - 1;
+            annotations.add(anno);
+          }
+        }
+      }
+    }
+  }
+
+  Script resolvePart(String relativeUri) {
+    var rootUri = Uri.parse(script.library.uri);
+    if (rootUri.scheme == 'dart') {
+      // The relative paths from dart:* libraries to their parts are not valid.
+      rootUri = new Uri.directory(script.library.uri);
+    }
+    var targetUri = rootUri.resolve(relativeUri);
+    for (Script s in script.library.scripts) {
+      if (targetUri.toString() == s.uri) {
+        return s;
+      }
+    }
+    Logger.root.info("Could not resolve part: $relativeUri");
+    return null;
+  }
+
+  void addPartAnnotations() {
+    // TODO(rmacnak): Use a real scanner.
+    var patterns = [
+      new RegExp("part '(.*)'"),
+      new RegExp('part "(.*)"'),
+    ];
+    for (ScriptLine line in script.lines) {
+      for (var pattern in patterns) {
+        var match = pattern.firstMatch(line.text);
+        if (match != null) {
+          Script part = resolvePart(match[1]);
+          if (part != null) {
+            var anno = new PartAnnotation(part);
+            anno.line = line.line;
+            anno.columnStart = match.start + 6;
+            anno.columnStop = match.end - 1;
+            annotations.add(anno);
+          }
+        }
+      }
+    }
+  }
+
   void addClassAnnotations() {
     for (var cls in script.library.classes) {
       if ((cls.location != null) && (cls.location.script == script)) {
@@ -525,13 +673,23 @@ class ScriptInsetElement extends ObservatoryElement {
 
   void addFunctionAnnotations() {
     for (var func in script.library.functions) {
-      if ((func.location != null) && (func.location.script == script)) {
+      if ((func.location != null) &&
+          (func.location.script == script) &&
+          (func.kind != FunctionKind.kImplicitGetterFunction) &&
+          (func.kind != FunctionKind.kImplicitSetterFunction)) {
+        // We annotate a field declaration with the field instead of the
+        // implicit getter or setter.
         annotations.add(new FunctionDeclarationAnnotation(func));
       }
     }
     for (var cls in script.library.classes) {
       for (var func in cls.functions) {
-        if ((func.location != null) && (func.location.script == script)) {
+        if ((func.location != null) &&
+            (func.location.script == script) &&
+            (func.kind != FunctionKind.kImplicitGetterFunction) &&
+            (func.kind != FunctionKind.kImplicitSetterFunction)) {
+          // We annotate a field declaration with the field instead of the
+          // implicit getter or setter.
           annotations.add(new FunctionDeclarationAnnotation(func));
         }
       }

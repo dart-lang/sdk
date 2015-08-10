@@ -11,10 +11,13 @@
         font: 400 16px 'Montserrat', sans-serif;
       }
       .bigtextbox {
+        flex-grow: 1;
         font: 400 16px 'Montserrat', sans-serif;
       }
       .button {
         font: 400 16px 'Montserrat', sans-serif;
+        margin-left: 0.5em;
+        margin-right: 0.5em;
       }
       .radios {
         display: inline;
@@ -64,7 +67,7 @@
         <input class="textbox" type="text" value="{{ text }}">
       </template>
       <template if="{{ lineMode == 'N-line' }}">
-        <textarea class="bigtextbox" rows="5" cols="80"
+        <textarea class="bigtextbox"
                   value="{{ text }}"></textarea>
       </template>
 
