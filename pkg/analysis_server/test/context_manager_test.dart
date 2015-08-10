@@ -1343,7 +1343,17 @@ analyzer:
   }
 
   test_watch_deletePackagespec_fromSubFolder_withPubspec() {
-    // prepare paths
+    // prepare paths:
+    //
+    // root
+    //   root.dart
+    //   sub
+    //     aaa
+    //       .packages
+    //       pubspec.yaml
+    //       bin
+    //         a.dart
+    //
     String root = '/root';
     String rootFile = '$root/root.dart';
     String subProject = '$root/sub/aaa';

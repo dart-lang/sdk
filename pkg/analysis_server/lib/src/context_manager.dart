@@ -768,7 +768,7 @@ class ContextManagerImpl implements ContextManager {
       try {
         if (ENABLE_PACKAGESPEC_SUPPORT) {
           // Try .packages first.
-          if (pathos.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
+          if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
             Packages packages = _readPackagespec(packagespecFile);
             return new PackagesFileDisposition(packages);
           }
@@ -1018,7 +1018,7 @@ class ContextManagerImpl implements ContextManager {
               if (_isPubspec(path)) {
                 // Check for a sibling .packages file.
                 if (!resourceProvider
-                    .getFile(pathos.join(directoryPath, PACKAGE_SPEC_NAME))
+                    .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
                     .exists) {
                   _extractContext(info, resource);
                   return;
@@ -1027,7 +1027,7 @@ class ContextManagerImpl implements ContextManager {
               if (_isPackagespec(path)) {
                 // Check for a sibling pubspec.yaml file.
                 if (!resourceProvider
-                    .getFile(pathos.join(directoryPath, PUBSPEC_NAME))
+                    .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
                     .exists) {
                   _extractContext(info, resource);
                   return;
@@ -1073,7 +1073,7 @@ class ContextManagerImpl implements ContextManager {
               if (_isPubspec(path)) {
                 // Check for a sibling .packages file.
                 if (!resourceProvider
-                    .getFile(pathos.join(directoryPath, PACKAGE_SPEC_NAME))
+                    .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
                     .exists) {
                   _mergeContext(info);
                   return;
@@ -1082,7 +1082,7 @@ class ContextManagerImpl implements ContextManager {
               if (_isPackagespec(path)) {
                 // Check for a sibling pubspec.yaml file.
                 if (!resourceProvider
-                    .getFile(pathos.join(directoryPath, PUBSPEC_NAME))
+                    .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
                     .exists) {
                   _mergeContext(info);
                   return;
