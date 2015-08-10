@@ -107,73 +107,10 @@ Future writeHomebrewInfo(String channel, String revision) async {
 
   var stableVersion = await getVersion('stable', revisions['stable']);
 
-  await new File('$repository/dartium.rb').writeAsString(
-      createDartiumFormula(revisions, hashes, devVersion, stableVersion),
-      flush: true);
   await new File('$repository/dart.rb').writeAsString(
       createDartFormula(revisions, hashes, devVersion, stableVersion),
       flush: true);
 }
-
-String createDartiumFormula(
-    Map revisions, Map hashes, String devVersion, String stableVersion) => '''
-require 'formula'
-
-class Dartium < Formula
-  homepage "https://www.dartlang.org"
-
-  version '$stableVersion'
-  url '$urlBase/stable/release/${revisions['stable']}/$dartiumFile'
-  sha256 '${hashes['stable'][dartiumFile]}'
-
-  devel do
-    version '$devVersion'
-    url '$urlBase/dev/release/${revisions['dev']}/$dartiumFile'
-    sha256 '${hashes['dev'][dartiumFile]}'
-
-    resource 'content_shell' do
-      url '$urlBase/dev/release/${revisions['dev']}/$contentShellFile'
-      sha256 '${hashes['dev'][contentShellFile]}'
-    end
-  end
-
-  resource 'content_shell' do
-    url '$urlBase/stable/release/${revisions['stable']}/$contentShellFile'
-    sha256 '${hashes['stable'][contentShellFile]}'
-  end
-
-  def shim_script target
-    <<-EOS.undent
-      #!/bin/bash
-      exec "#{prefix}/#{target}" "\$@"
-    EOS
-  end
-
-  def install
-    dartium_binary = 'Chromium.app/Contents/MacOS/Chromium'
-    prefix.install Dir['*']
-    (bin+"dartium").write shim_script dartium_binary
-
-    content_shell_binary = 'Content Shell.app/Contents/MacOS/Content Shell'
-    prefix.install resource('content_shell')
-    (bin+"content_shell").write shim_script content_shell_binary
-  end
-
-  def caveats; <<-EOS.undent
-    DEPRECATED
-      In the future, use the `dart` formula using
-      `--with-dartium` and/or `--with-content-shell`
-
-    To use with IntelliJ, set the Dartium execute home to:
-        #{prefix}/Chromium.app
-    EOS
-  end
-
-  test do
-    system "#{bin}/dartium"
-  end
-end
-''';
 
 String createDartFormula(
     Map revisions, Map hashes, String devVersion, String stableVersion) => '''
