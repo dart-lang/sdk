@@ -17,8 +17,10 @@ abstract class Pattern {
    *
    * If [start] is provided, matching will start at that index.
    *
-   * The iterable will contain all the non-overlapping matches of the
-   * pattern on the string, ordered by start index.
+   * The returned iterable lazily computes all the non-overlapping matches
+   * of the pattern on the string, ordered by start index.
+   * If a user only requests the first
+   * match, this function should not compute all possible matches.
    *
    * The matches are found by repeatedly finding the first match
    * of the pattern on the string, starting from the end of the previous
