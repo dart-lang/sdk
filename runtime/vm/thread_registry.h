@@ -9,6 +9,7 @@
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
+#include "vm/stack_frame.h"
 #include "vm/thread.h"
 
 namespace dart {
@@ -118,9 +119,19 @@ class ThreadRegistry {
     MonitorLocker ml(monitor_);
     for (int i = 0; i < entries_.length(); ++i) {
       const Entry& entry = entries_[i];
-      Zone* zone = entry.scheduled ? entry.thread->zone() : entry.state.zone;
-      if (zone != NULL) {
-        zone->VisitObjectPointers(visitor);
+      const Thread::State& state =
+          entry.scheduled ? entry.thread->state_ : entry.state;
+      if (state.zone != NULL) {
+        state.zone->VisitObjectPointers(visitor);
+      }
+      // Iterate over all the stack frames and visit objects on the stack.
+      uword efi = state.top_exit_frame_info;
+      if (efi == 0) continue;
+      StackFrameIterator frames_iterator(efi, false);
+      StackFrame* frame = frames_iterator.NextFrame();
+      while (frame != NULL) {
+        frame->VisitObjectPointers(visitor);
+        frame = frames_iterator.NextFrame();
       }
     }
   }

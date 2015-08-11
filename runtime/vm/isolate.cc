@@ -1598,14 +1598,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit objects in isolate specific handles area.
   reusable_handles_.VisitObjectPointers(visitor);
 
-  // Iterate over all the stack frames and visit objects on the stack.
-  StackFrameIterator frames_iterator(validate_frames);
-  StackFrame* frame = frames_iterator.NextFrame();
-  while (frame != NULL) {
-    frame->VisitObjectPointers(visitor);
-    frame = frames_iterator.NextFrame();
-  }
-
   // Visit the dart api state for all local and persistent handles.
   if (api_state() != NULL) {
     api_state()->VisitObjectPointers(visitor, visit_prologue_weak_handles);

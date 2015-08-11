@@ -262,6 +262,7 @@ CACHED_CONSTANTS_LIST(DECLARE_MEMBERS)
   friend class ApiZone;
   friend class Isolate;
   friend class StackZone;
+  friend class ThreadRegistry;
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 

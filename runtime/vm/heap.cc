@@ -231,12 +231,15 @@ HeapIterationScope::HeapIterationScope()
   MonitorLocker ml(old_space_->tasks_lock());
 #if defined(DEBUG)
   // We currently don't support nesting of HeapIterationScopes.
-  ASSERT(!old_space_->is_iterating_);
-  old_space_->is_iterating_ = true;
+  ASSERT(old_space_->iterating_thread_ != thread());
 #endif
   while (old_space_->tasks() > 0) {
     ml.Wait();
   }
+#if defined(DEBUG)
+  ASSERT(old_space_->iterating_thread_ == NULL);
+  old_space_->iterating_thread_ = thread();
+#endif
   old_space_->set_tasks(1);
 }
 
@@ -244,8 +247,8 @@ HeapIterationScope::HeapIterationScope()
 HeapIterationScope::~HeapIterationScope() {
   MonitorLocker ml(old_space_->tasks_lock());
 #if defined(DEBUG)
-  ASSERT(old_space_->is_iterating_);
-  old_space_->is_iterating_ = false;
+  ASSERT(old_space_->iterating_thread_ == thread());
+  old_space_->iterating_thread_ = NULL;
 #endif
   ASSERT(old_space_->tasks() == 1);
   old_space_->set_tasks(0);

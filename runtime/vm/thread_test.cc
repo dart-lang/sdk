@@ -133,8 +133,9 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       EXPECT(smi.Value() == unique_smi);
       ObjectCounter counter(isolate_, &smi);
       // Ensure that our particular zone is visited.
-      // TODO(koda): Remove "->thread_registry()" after updating stack walker.
-      isolate_->thread_registry()->VisitObjectPointers(&counter);
+      isolate_->IterateObjectPointers(&counter,
+                                      /* visit_prologue_weak_handles = */ true,
+                                      /* validate_frames = */ true);
       EXPECT_EQ(1, counter.count());
 
       char* unique_chars = zone->PrintToString("unique_str_%" Pd, id_);

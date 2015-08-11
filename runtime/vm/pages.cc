@@ -161,7 +161,7 @@ PageSpace::PageSpace(Heap* heap,
       tasks_lock_(new Monitor()),
       tasks_(0),
 #if defined(DEBUG)
-      is_iterating_(false),
+      iterating_thread_(NULL),
 #endif
       page_space_controller_(heap,
                              FLAG_old_gen_growth_space_ratio,
