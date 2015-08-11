@@ -19,7 +19,7 @@ class EvilIterable extends Iterable {
   Iterator get iterator => new EvilIterator();
 }
 
-class EvilPattern {
+class EvilPattern implements Pattern {
   Iterable allMatches(String s) => new EvilIterable();
 }
 

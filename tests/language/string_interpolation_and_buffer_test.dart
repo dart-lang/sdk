@@ -27,6 +27,8 @@ main() {
         result = '${wrap(object)}';
       } on TypeError {
         return 'Error';
+      } on ArgumentError {
+        return 'Error';  // Checked mode.
       }
     } else {
       try {
@@ -46,6 +48,8 @@ main() {
         sb = new StringBuffer()..write(wrap(object));
       } on TypeError {
         return 'Error';
+      } on ArgumentError {
+        return 'Error';  // Checked mode.
       }
     } else {
       try {
@@ -65,6 +69,8 @@ main() {
         sb = new StringBuffer(wrap(object));
       } on TypeError {
         return 'Error';
+      } on ArgumentError {
+        return 'Error';  // Checked mode.
       }
     } else {
       try {
