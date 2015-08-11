@@ -10,7 +10,7 @@ import 'package:dart2js_incremental/library_updater.dart' show
     LibraryUpdater,
     Update;
 
-import 'package:compiler/src/dart2jslib.dart' show
+import 'package:compiler/src/script.dart' show
     Script;
 
 import 'package:compiler/src/io/source_file.dart' show
