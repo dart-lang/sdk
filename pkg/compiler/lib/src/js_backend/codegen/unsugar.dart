@@ -293,6 +293,21 @@ class UnsugarVisitor extends RecursiveVisitor {
     // TODO(karlklose): implement the checked mode part of boolean conversion.
     InteriorNode parent = node.parent;
     IsTrue condition = node.condition;
+
+    // Do not rewrite conditions that are foreign code.
+    // It is redundant, and causes infinite recursion (if not optimized)
+    // in the implementation of identical, which itself contains a condition.
+    Primitive value = condition.value.definition;
+    if (value is Parameter && value.parent is Continuation) {
+      Continuation cont = value.parent;
+      if (cont.hasExactlyOneUse && cont.firstRef.parent is ForeignCode) {
+        ForeignCode foreign = cont.firstRef.parent;
+        if (foreign.type.containsOnlyBool(_glue.classWorld)) {
+          return;
+        }
+      }
+    }
+
     Primitive t = trueConstant;
     Primitive i = new ApplyBuiltinOperator(
         BuiltinOperator.Identical,

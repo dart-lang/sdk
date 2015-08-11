@@ -39,6 +39,8 @@ class Glue {
 
   Glue(this._compiler);
 
+  ClassWorld get classWorld => _compiler.world;
+
   js.Expression constantReference(ConstantValue value) {
     return _emitter.constantReference(value);
   }
