@@ -119,6 +119,12 @@ class AllInfo {
   // the same map that is created for the `--deferred-map` flag.
   Map<String, Map<String, dynamic>> deferredFiles;
 
+  /// A new representation of dependencies form one info to another. An entry in
+  /// this map indicates that an Info depends on another (e.g. a function
+  /// invokes another). Please note that the data in this field might not be
+  /// accurate yet (this is work in progress).
+  Map<Info, List<Info>> dependencies = {};
+
   /// Major version indicating breaking changes in the format. A new version
   /// means that an old deserialization algorithm will not work with the new
   /// format.
@@ -129,7 +135,7 @@ class AllInfo {
   /// previous will continue to work after the change. This is typically
   /// increased when adding new entries to the file format.
   // Note: the dump-info.viewer app was written using a json parser version 3.2.
-  final int minorVersion = 4;
+  final int minorVersion = 5;
 
   AllInfo();
 
@@ -154,6 +160,14 @@ class AllInfo {
     return map;
   }
 
+  Map _extractDependencies() {
+    var map = <String, List>{};
+    dependencies.forEach((k, v) {
+      map[k.serializedId] = v.map((i) => i.serializedId).toList();
+    });
+    return map;
+  }
+
   Map toJson() => {
         'elements': {
           'library': _listAsJsonMap(libraries),
@@ -163,6 +177,7 @@ class AllInfo {
           'field': _listAsJsonMap(fields),
         },
         'holding': _extractHoldingInfo(),
+        'dependencies': _extractDependencies(),
         'outputUnits': outputUnits.map((u) => u.toJson()).toList(),
         'dump_version': version,
         'deferredFiles': deferredFiles,
@@ -238,6 +253,10 @@ class _ParseHelper {
         assert (target != null);
         src.uses.add(new DependencyInfo(target, dep['mask']));
       }
+    });
+
+    json['dependencies']?.forEach((k, deps) {
+      result.deps[idMap[k]] = deps.map((d) => idMap[d]).toList();
     });
 
     result.program = parseProgram(json['program']);

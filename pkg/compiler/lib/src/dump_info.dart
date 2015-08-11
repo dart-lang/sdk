@@ -367,6 +367,11 @@ class DumpInfoTask extends CompilerTask {
     }
   }
 
+  final Map<Element, List<Element>> _dependencies = {};
+  void registerDependency(Element source, Element target) {
+    _dependencies.putIfAbsent(source, () => new Set()).add(target);
+  }
+
   /**
    * Returns an iterable of [Selection]s that are used by
    * [element].  Each [Selection] contains an element that is
@@ -496,6 +501,16 @@ class DumpInfoTask extends CompilerTask {
     }
 
     AllInfo result = infoCollector.result;
+
+    for (Element element in _dependencies.keys) {
+      var a = infoCollector._elementToInfo[element];
+      if (a == null) continue;
+      result.dependencies[a] = _dependencies[element]
+        .map((o) => infoCollector._elementToInfo[o])
+        .where((o) => o != null)
+        .toList();
+    }
+
     result.deferredFiles = compiler.deferredLoadTask.computeDeferredMap();
     stopwatch.stop();
     result.program = new ProgramInfo(
