@@ -3338,6 +3338,17 @@ class B = Object with A {}''',
     parseExpression("m(f() => 0);", [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
+  void test_declarationBeforeDirective() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
+        "class foo { } import 'bar.dart';",
+        [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION]);
+    expect(unit.directives, hasLength(1));
+    expect(unit.declarations, hasLength(1));
+    ClassDeclaration classDecl = unit.childEntities.first;
+    expect(classDecl, isNotNull);
+    expect(classDecl.name.name, 'foo');
+  }
+
   void test_importDirectivePartial_as() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(
         "import 'b.dart' d as b;", [ParserErrorCode.UNEXPECTED_TOKEN]);
