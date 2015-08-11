@@ -28,6 +28,19 @@ inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
 }
 
 
+inline intptr_t AtomicOperations::FetchAndAdd(intptr_t* p, intptr_t delta) {
+#if defined(TARGET_ARCH_X64)
+  return static_cast<intptr_t>(
+      InterlockedAdd64(reinterpret_cast<LONGLONG*>(p), delta)) - delta;
+#elif defined(TARGET_ARCH_IA32)
+  return static_cast<intptr_t>(
+      InterlockedAdd(reinterpret_cast<LONG*>(p), delta)) - delta;
+#else
+  UNIMPLEMENTED();
+#endif
+}
+
+
 #if !defined(USING_SIMULATOR)
 inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
                                                   uword old_value,
@@ -47,6 +60,13 @@ inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
 #endif
 }
 #endif  // !defined(USING_SIMULATOR)
+
+
+inline uword AtomicOperations::LoadRelaxed(uword* ptr) {
+  // TODO(koda): Consider using C++11 <atomic> to avoid the barrier on more
+  // compilers/platforms.
+  return FetchAndAdd(reinterpret_cast<intptr_t*>(ptr), 0);
+}
 
 }  // namespace dart
 

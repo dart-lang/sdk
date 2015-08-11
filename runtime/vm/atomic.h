@@ -21,7 +21,11 @@ class AtomicOperations : public AllStatic {
   // that are accessed by generated code
   static uintptr_t FetchAndIncrement(uintptr_t* p);
 
+  static intptr_t FetchAndAdd(intptr_t* p, intptr_t delta);
+
   static uword CompareAndSwapWord(uword* ptr, uword old_value, uword new_value);
+
+  static uword LoadRelaxed(uword* ptr);
 };
 
 

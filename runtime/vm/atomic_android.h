@@ -21,6 +21,11 @@ inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
 }
 
 
+inline intptr_t AtomicOperations::FetchAndAdd(intptr_t* p, intptr_t delta) {
+  return __sync_fetch_and_add(p, delta);
+}
+
+
 #if !defined(USING_SIMULATOR)
 inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
                                                   uword old_value,
@@ -28,6 +33,17 @@ inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
   return __sync_val_compare_and_swap(ptr, old_value, new_value);
 }
 #endif  // !defined(USING_SIMULATOR)
+
+
+inline uword AtomicOperations::LoadRelaxed(uword* ptr) {
+#if defined(__ATOMIC_RELAXED)
+  return __atomic_load_n(ptr, __ATOMIC_RELAXED);
+#else
+  // TODO(koda): Consider using C++11 <atomic> to avoid the barrier on more
+  // compilers/platforms.
+  return FetchAndAdd(reinterpret_cast<intptr_t*>(ptr), 0);
+#endif
+}
 
 }  // namespace dart
 

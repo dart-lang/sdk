@@ -7,6 +7,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "vm/atomic.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
 #include "vm/counters.h"
@@ -272,13 +273,25 @@ class Isolate : public BaseIsolate {
   // stack allocated local, but plays well with AddressSanitizer.
   static uword GetCurrentStackPointer();
 
+  // Returns true if any of the interrupts specified by 'interrupt_bits' are
+  // currently scheduled for this isolate, but leaves them unchanged.
+  //
+  // NOTE: The read uses relaxed memory ordering, i.e., it is atomic and
+  // an interrupt is guaranteed to be observed eventually, but any further
+  // order guarantees must be ensured by other synchronization. See the
+  // tests in isolate_test.cc for example usage.
+  bool HasInterruptsScheduled(uword interrupt_bits) {
+    ASSERT(interrupt_bits == (interrupt_bits & kInterruptsMask));
+    uword limit = AtomicOperations::LoadRelaxed(&stack_limit_);
+    return (limit != saved_stack_limit_) &&
+        (((limit & kInterruptsMask) & interrupt_bits) != 0);
+  }
+
+  // Access to the current stack limit for generated code.  This may be
+  // overwritten with a special value to trigger interrupts.
   uword stack_limit_address() const {
     return reinterpret_cast<uword>(&stack_limit_);
   }
-
-  // The current stack limit.  This may be overwritten with a special
-  // value to trigger interrupts.
-  uword stack_limit() const { return stack_limit_; }
   static intptr_t stack_limit_offset() {
     return OFFSET_OF(Isolate, stack_limit_);
   }
