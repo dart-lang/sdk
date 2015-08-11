@@ -188,7 +188,7 @@
 
 * This is the first release that does not include the Eclipse-based
   **Dart Editor**.
-  See [dartlang.org/tools](https://www.dartlang.org/tools/]) for alternatives.
+  See [dartlang.org/tools](https://www.dartlang.org/tools/) for alternatives.
 * This is the last release that ships the (unsupported)
   dart2dart (aka `dart2js --output-type=dart`) utility as part
   of dart2js
