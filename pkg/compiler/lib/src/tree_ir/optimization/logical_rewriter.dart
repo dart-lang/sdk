@@ -342,6 +342,7 @@ class LogicalRewriter extends RecursiveTransformer
       case BuiltinOperator.IsNotNumber:
       case BuiltinOperator.IsFloor:
       case BuiltinOperator.IsNumberAndFloor:
+      case BuiltinOperator.Identical:
         return true;
       default:
         return false;

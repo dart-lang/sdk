@@ -51,8 +51,18 @@ class TypeMaskSystem {
     : inferrer = compiler.typesTask,
       classWorld = compiler.world,
       backend = compiler.backend {
+
+    // Build the number+string+bool type. To make containment tests more
+    // inclusive, we use the num, String, bool types for this, not
+    // the JSNumber, JSString, JSBool subclasses.
+    TypeMask anyNum = 
+        new TypeMask.nonNullSubtype(classWorld.numClass, classWorld);
+    TypeMask anyString =
+        new TypeMask.nonNullSubtype(classWorld.stringClass, classWorld);
+    TypeMask anyBool =
+        new TypeMask.nonNullSubtype(classWorld.boolClass, classWorld);
     numStringBoolType =
-      new TypeMask.unionOf(<TypeMask>[numType, stringType, boolType],
+      new TypeMask.unionOf(<TypeMask>[anyNum, anyString, anyBool],
                            classWorld);
   }
 
@@ -108,22 +118,22 @@ class TypeMaskSystem {
 
   bool isDefinitelyBool(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.containsOnlyBool(classWorld);
+    return t.nonNullable().containsOnlyBool(classWorld);
   }
 
   bool isDefinitelyNum(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.containsOnlyNum(classWorld);
+    return t.nonNullable().containsOnlyNum(classWorld);
   }
 
   bool isDefinitelyString(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.containsOnlyString(classWorld);
+    return t.nonNullable().containsOnlyString(classWorld);
   }
 
   bool isDefinitelyNumStringBool(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return numStringBoolType.containsMask(t, classWorld);
+    return numStringBoolType.containsMask(t.nonNullable(), classWorld);
   }
 
   bool isDefinitelyNotNumStringBool(TypeMask t) {
@@ -151,17 +161,17 @@ class TypeMaskSystem {
 
   bool isDefinitelyNativeList(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.satisfies(backend.jsArrayClass, classWorld);
+    return t.nonNullable().satisfies(backend.jsArrayClass, classWorld);
   }
 
   bool isDefinitelyMutableNativeList(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.satisfies(backend.jsMutableArrayClass, classWorld);
+    return t.nonNullable().satisfies(backend.jsMutableArrayClass, classWorld);
   }
 
   bool isDefinitelyFixedNativeList(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.satisfies(backend.jsFixedArrayClass, classWorld);
+    return t.nonNullable().satisfies(backend.jsFixedArrayClass, classWorld);
   }
 
   bool areDisjoint(TypeMask leftType, TypeMask rightType) {
@@ -420,6 +430,16 @@ class ConstantPropagationLattice {
         }
         return null;
 
+      case BinaryOperatorKind.EQ:
+        bool behavesLikeIdentity =
+          isDefinitelyNumStringBool(left, allowNull: true) || 
+          right.isNullConstant;
+        if (behavesLikeIdentity && 
+            typeSystem.areDisjoint(left.type, right.type)) {
+          return constant(new FalseConstantValue());
+        }
+        return null;
+
       default:
         return null; // The caller will use return type from type inference.
     }
@@ -604,7 +624,9 @@ class TransformingVisitor extends LeafVisitor {
 
   void visitLetPrim(LetPrim node) {
     AbstractValue value = getValue(node.primitive);
-    if (node.primitive is! Constant && value.isConstant) {
+    if (node.primitive is! Constant &&
+        node.primitive.isSafeForElimination &&
+        value.isConstant) {
       // If the value is a known constant, compile it as a constant.
       Constant newPrim = makeConstantPrimitive(value.constant);
       newPrim.substituteFor(node.primitive);
@@ -762,7 +784,8 @@ class TransformingVisitor extends LeafVisitor {
     }
 
     if (condition is ApplyBuiltinOperator &&
-        condition.operator == BuiltinOperator.LooseEq) {
+        (condition.operator == BuiltinOperator.LooseEq ||
+         condition.operator == BuiltinOperator.StrictEq)) {
       Primitive leftArg = condition.arguments[0].definition;
       Primitive rightArg = condition.arguments[1].definition;
       AbstractValue left = getValue(leftArg);
@@ -779,6 +802,20 @@ class TransformingVisitor extends LeafVisitor {
       } else if (left.isNullConstant &&
                  lattice.isDefinitelyNotNumStringBool(right)) {
         Branch branch = new Branch(new IsTrue(rightArg), falseCont, trueCont);
+        replaceSubtree(node, branch);
+        return;
+      } else if (right.isTrueConstant &&
+                 lattice.isDefinitelyBool(left, allowNull: true)) {
+        // Rewrite:
+        //   if (x == true) S1 else S2
+        //     =>
+        //   if (x) S1 else S2  
+        Branch branch = new Branch(new IsTrue(leftArg), trueCont, falseCont);
+        replaceSubtree(node, branch);
+        return;
+      } else if (left.isTrueConstant &&
+                 lattice.isDefinitelyBool(right, allowNull: true)) {
+        Branch branch = new Branch(new IsTrue(rightArg), trueCont, falseCont);
         replaceSubtree(node, branch);
         return;
       }
@@ -845,26 +882,10 @@ class TransformingVisitor extends LeafVisitor {
         // Equality is special due to its treatment of null values and the
         // fact that Dart-null corresponds to both JS-null and JS-undefined.
         // Please see documentation for IsFalsy, StrictEq, and LooseEq.
-        if (left.isNullConstant || right.isNullConstant) {
-          return replaceWithBinary(BuiltinOperator.LooseEq, leftArg, rightArg);
-        }
-        // Comparison of numbers, strings, and booleans.
-        if (lattice.isDefinitelyNumStringBool(left, allowNull: true) &&
-            lattice.isDefinitelyNumStringBool(right, allowNull: true) &&
-            !(left.isNullable && right.isNullable)) {
-          return replaceWithBinary(BuiltinOperator.StrictEq, leftArg, rightArg);
-        }
-        if (lattice.isDefinitelyNum(left, allowNull: true) &&
-            lattice.isDefinitelyNum(right, allowNull: true)) {
-          return replaceWithBinary(BuiltinOperator.LooseEq, leftArg, rightArg);
-        }
-        if (lattice.isDefinitelyString(left, allowNull: true) &&
-            lattice.isDefinitelyString(right, allowNull: true)) {
-          return replaceWithBinary(BuiltinOperator.LooseEq, leftArg, rightArg);
-        }
-        if (lattice.isDefinitelyBool(left, allowNull: true) &&
-            lattice.isDefinitelyBool(right, allowNull: true)) {
-          return replaceWithBinary(BuiltinOperator.LooseEq, leftArg, rightArg);
+        if (lattice.isDefinitelyNumStringBool(left, allowNull: true) ||
+            right.isNullConstant) {
+          return replaceWithBinary(BuiltinOperator.Identical, 
+                                   leftArg, rightArg);
         }
       } else {
         if (lattice.isDefinitelyNum(left, allowNull: false) &&
@@ -1561,15 +1582,41 @@ class TransformingVisitor extends LeafVisitor {
         break;
 
       case BuiltinOperator.Identical:
-        Primitive left = node.arguments[0].definition;
-        Primitive right = node.arguments[1].definition;
-        AbstractValue leftValue = getValue(left);
-        AbstractValue rightValue = getValue(right);
-        // Replace identical(x, true) by x when x is known to be a boolean.
-        if (lattice.isDefinitelyBool(leftValue) &&
-            rightValue.isConstant &&
-            rightValue.constant.isTrue) {
-          left.substituteFor(node);
+        Primitive leftArg = node.arguments[0].definition;
+        Primitive rightArg = node.arguments[1].definition;
+        AbstractValue left = getValue(leftArg);
+        AbstractValue right = getValue(rightArg);
+        if (lattice.isDefinitelyBool(left) &&
+            right.isConstant &&
+            right.constant.isTrue) {
+          // Replace identical(x, true) by x when x is known to be a boolean.
+          // Note that this is not safe if x is null, because the value might
+          // not be used as a condition. A rule for [IsTrue] handles that case.
+          leftArg.substituteFor(node);
+        } else if (lattice.isDefinitelyBool(right) &&
+            left.isConstant &&
+            left.constant.isTrue) {
+          rightArg.substituteFor(node);
+        } else if (left.isNullConstant || right.isNullConstant) {
+          // Use `==` for comparing against null, so JS undefined and JS null
+          // are considered equal.
+          node.operator = BuiltinOperator.LooseEq;
+        } else if (!left.isNullable || !right.isNullable) {
+          // If at most one operand can be Dart null, we can use `===`.
+          // This is not safe when we might compare JS null and JS undefined.
+          node.operator = BuiltinOperator.StrictEq;
+        } else if (lattice.isDefinitelyNum(left, allowNull: true) &&
+                   lattice.isDefinitelyNum(right, allowNull: true)) {
+          // If both operands can be null, but otherwise are of the same type,
+          // we can use `==` for comparison.
+          // This is not safe e.g. for comparing strings against numbers.
+          node.operator = BuiltinOperator.LooseEq;
+        } else if (lattice.isDefinitelyString(left, allowNull: true) &&
+                   lattice.isDefinitelyString(right, allowNull: true)) {
+          node.operator = BuiltinOperator.LooseEq;
+        } else if (lattice.isDefinitelyBool(left, allowNull: true) &&
+                   lattice.isDefinitelyBool(right, allowNull: true)) {
+          node.operator = BuiltinOperator.LooseEq;
         }
         break;
 
@@ -1925,6 +1972,8 @@ class TypePropagationVisitor implements Visitor {
         break;
 
       case BuiltinOperator.Identical:
+      case BuiltinOperator.StrictEq:
+      case BuiltinOperator.LooseEq:
         AbstractValue leftConst = getValue(node.arguments[0].definition);
         AbstractValue rightConst = getValue(node.arguments[1].definition);
         ConstantValue leftValue = leftConst.constant;
@@ -1975,9 +2024,7 @@ class TypePropagationVisitor implements Visitor {
       case BuiltinOperator.NumLe:
       case BuiltinOperator.NumGt:
       case BuiltinOperator.NumGe:
-      case BuiltinOperator.StrictEq:
       case BuiltinOperator.StrictNeq:
-      case BuiltinOperator.LooseEq:
       case BuiltinOperator.LooseNeq:
       case BuiltinOperator.IsFalsy:
       case BuiltinOperator.IsNumber:
@@ -2308,6 +2355,7 @@ class AbstractValue {
   bool get isConstant => (kind == CONSTANT);
   bool get isNonConst => (kind == NONCONST);
   bool get isNullConstant => kind == CONSTANT && constant.isNull;
+  bool get isTrueConstant => kind == CONSTANT && constant.isTrue;
 
   bool get isNullable => kind != NOTHING && type.isNullable;
   bool get isDefinitelyNotNull => kind == NOTHING || !type.isNullable;

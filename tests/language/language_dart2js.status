@@ -411,7 +411,6 @@ generic2_test: RuntimeError # Please triage this failure.
 generic_field_mixin3_test: RuntimeError # Please triage this failure.
 generic_instanceof_test: RuntimeError # Please triage this failure.
 generic_native_test: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/12: RuntimeError # Please triage this failure.
 if_null_assignment_behavior_test/28: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/01: RuntimeError # v0.get$a is not a function
 if_null_assignment_static_test/03: RuntimeError # v0.get$a is not a function
