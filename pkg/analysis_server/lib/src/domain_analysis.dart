@@ -118,38 +118,46 @@ class AnalysisDomainHandler implements RequestHandler {
       return new Response.getNavigationInvalidFile(request);
     }
     analysisFuture.then((AnalysisDoneReason reason) {
-      switch (reason) {
-        case AnalysisDoneReason.COMPLETE:
-          print('AnalysisDoneReason.COMPLETE');
-          List<CompilationUnit> units =
-              server.getResolvedCompilationUnits(file);
-          print('units: $units');
-          if (units.isEmpty) {
-            server.sendResponse(new Response.getNavigationInvalidFile(request));
-          } else {
-            DartUnitNavigationComputer computer =
-                new DartUnitNavigationComputer();
-            _GetNavigationAstVisitor visitor = new _GetNavigationAstVisitor(
-                params.offset, params.offset + params.length, computer);
-            for (CompilationUnit unit in units) {
-              unit.accept(visitor);
+      print('  reason: $reason');
+      try {
+        switch (reason) {
+          case AnalysisDoneReason.COMPLETE:
+            print('  AnalysisDoneReason.COMPLETE');
+            List<CompilationUnit> units =
+                server.getResolvedCompilationUnits(file);
+            print('  units: $units');
+            if (units.isEmpty) {
+              server
+                  .sendResponse(new Response.getNavigationInvalidFile(request));
+            } else {
+              DartUnitNavigationComputer computer =
+                  new DartUnitNavigationComputer();
+              _GetNavigationAstVisitor visitor = new _GetNavigationAstVisitor(
+                  params.offset, params.offset + params.length, computer);
+              for (CompilationUnit unit in units) {
+                unit.accept(visitor);
+              }
+              server.sendResponse(new AnalysisGetNavigationResult(
+                      computer.files, computer.targets, computer.regions)
+                  .toResponse(request.id));
             }
-            server.sendResponse(new AnalysisGetNavigationResult(
-                    computer.files, computer.targets, computer.regions)
-                .toResponse(request.id));
-          }
-          break;
-        case AnalysisDoneReason.CONTEXT_REMOVED:
-          print('AnalysisDoneReason.CONTEXT_REMOVED');
-          // The active contexts have changed, so try again.
-          Response response = getNavigation(request);
-          if (response != Response.DELAYED_RESPONSE) {
-            server.sendResponse(response);
-          }
-          break;
+            break;
+          case AnalysisDoneReason.CONTEXT_REMOVED:
+            print('  AnalysisDoneReason.CONTEXT_REMOVED');
+            // The active contexts have changed, so try again.
+            Response response = getNavigation(request);
+            if (response != Response.DELAYED_RESPONSE) {
+              server.sendResponse(response);
+            }
+            break;
+        }
+      } on Exception catch (e, st) {
+        print('Exception1 in AnalysisDomainHandler.getNavigation()');
+        print(e);
+        print(st);
       }
     }).catchError((e, st) {
-      print('Exception in AnalysisDomainHandler.getNavigation()');
+      print('Exception2 in AnalysisDomainHandler.getNavigation()');
       print(e);
       print(st);
     });

@@ -30,6 +30,7 @@ class GetNavigationTest extends AbstractNavigationTest {
   }
 
   test_beforeAnalysisComplete() async {
+    print('+++test_beforeAnalysisComplete');
     addTestFile('''
 main() {
   var test = 0;
@@ -42,11 +43,13 @@ main() {
   }
 
   test_fileDoesNotExist() {
+    print('+++test_fileDoesNotExist');
     String file = '$projectPath/doesNotExist.dart';
     return _checkInvalid(file, -1, -1);
   }
 
   test_fileWithoutContext() {
+    print('+++test_fileWithoutContext');
     String file = '/outside.dart';
     addFile(
         file,
@@ -59,6 +62,7 @@ main() {
   }
 
   test_multipleRegions() async {
+    print('+++test_multipleRegions');
     addTestFile('''
 main() {
   var aaa = 1;
@@ -89,6 +93,7 @@ main() {
   }
 
   test_removeContextAfterRequest() async {
+    print('+++test_removeContextAfterRequest');
     addTestFile('''
 main() {
   var test = 0;
@@ -111,6 +116,7 @@ main() {
   }
 
   test_zeroLength_end() async {
+    print('+++test_zeroLength_end');
     addTestFile('''
 main() {
   var test = 0;
@@ -124,6 +130,7 @@ main() {
   }
 
   test_zeroLength_start() async {
+    print('+++test_zeroLength_start');
     addTestFile('''
 main() {
   var test = 0;
