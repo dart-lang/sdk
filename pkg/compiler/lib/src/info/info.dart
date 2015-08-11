@@ -256,7 +256,7 @@ class _ParseHelper {
     });
 
     json['dependencies']?.forEach((k, deps) {
-      result.deps[idMap[k]] = deps.map((d) => idMap[d]).toList();
+      result.dependencies[idMap[k]] = deps.map((d) => idMap[d]).toList();
     });
 
     result.program = parseProgram(json['program']);

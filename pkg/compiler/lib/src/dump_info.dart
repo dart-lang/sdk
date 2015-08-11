@@ -367,7 +367,7 @@ class DumpInfoTask extends CompilerTask {
     }
   }
 
-  final Map<Element, List<Element>> _dependencies = {};
+  final Map<Element, Set<Element>> _dependencies = {};
   void registerDependency(Element source, Element target) {
     _dependencies.putIfAbsent(source, () => new Set()).add(target);
   }
