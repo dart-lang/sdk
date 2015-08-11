@@ -5,6 +5,8 @@
 // Test to ensure that StringBuffer and string interpolation behaves
 // the same and fail fast.
 
+import "package:expect/expect.dart";
+
 class ToStringWrapper {
   final value;
 

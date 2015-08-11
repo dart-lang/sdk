@@ -896,14 +896,16 @@ class _StringBase {
     List<String> result = new List<String>();
     int startIndex = 0;
     int previousIndex = 0;
+    // 'pattern' may not be implemented correctly and therefore we cannot
+    // call _substringUnhchecked unless it is a trustworthy type (e.g. String).
     while (true) {
       if (startIndex == length || !iterator.moveNext()) {
-        result.add(this._substringUnchecked(previousIndex, length));
+        result.add(this.substring(previousIndex, length));
         break;
       }
       Match match = iterator.current;
       if (match.start == length) {
-        result.add(this._substringUnchecked(previousIndex, length));
+        result.add(this.substring(previousIndex, length));
         break;
       }
       int endIndex = match.end;
@@ -911,7 +913,7 @@ class _StringBase {
         ++startIndex;  // empty match, advance and restart
         continue;
       }
-      result.add(this._substringUnchecked(previousIndex, match.start));
+      result.add(this.substring(previousIndex, match.start));
       startIndex = previousIndex = endIndex;
     }
     return result;
