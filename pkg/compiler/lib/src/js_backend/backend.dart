@@ -622,7 +622,8 @@ class JavaScriptBackend extends Backend {
   final SourceInformationStrategy sourceInformationStrategy;
 
   JavaScriptBackend(Compiler compiler,
-                    {bool generateSourceMap: true})
+                    {bool generateSourceMap: true,
+                     bool useStartupEmitter: false})
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<jsAst.Name, Selector>(),
         interceptedElements = new Map<String, Set<Element>>(),
@@ -636,7 +637,8 @@ class JavaScriptBackend extends Backend {
                      : const StartEndSourceInformationStrategy())
                 : const JavaScriptSourceInformationStrategy(),
         super(compiler) {
-    emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
+    emitter = new CodeEmitterTask(
+        compiler, namer, generateSourceMap, useStartupEmitter);
     typeVariableHandler = new TypeVariableHandler(compiler);
     customElementsAnalysis = new CustomElementsAnalysis(this);
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);

@@ -116,6 +116,14 @@ class ReadStream {
     }
   }
 
+  int get highUint32 {
+    return high * (1 << 24) + (mid >> 4);
+  }
+
+  int get lowUint32 {
+    return (mid & 0xF) * (1 << 28) + low;
+  }
+
   bool get isZero {
     return (high == 0) && (mid == 0) && (low == 0);
   }
@@ -224,22 +232,8 @@ class ObjectVertex {
   int get retainedSize => _graph._retainedSizes[_id];
   ObjectVertex get dominator => new ObjectVertex._(_graph._doms[_id], _graph);
 
-  int get shallowSize {
-    var stream = new ReadStream(_graph._chunks);
-    stream.position = _graph._positions[_id];
-    stream.skipUnsigned(); // addr
-    stream.readUnsigned(); // shallowSize
-    return stream.clampedUint32;
-  }
-
-  int get vmCid {
-    var stream = new ReadStream(_graph._chunks);
-    stream.position = _graph._positions[_id];
-    stream.skipUnsigned(); // addr
-    stream.skipUnsigned(); // shallowSize
-    stream.readUnsigned(); // cid
-    return stream.clampedUint32;
-  }
+  int get shallowSize => _graph._shallowSizes[_id];
+  int get vmCid => _graph._cids[_id];
 
   get successors => new _SuccessorsIterable(_graph, _id);
 
@@ -247,11 +241,11 @@ class ObjectVertex {
     // Note that everywhere else in this file, "address" really means an address
     // scaled down by kObjectAlignment. They were scaled down so they would fit
     // into Smis on the client.
-    var stream = new ReadStream(_graph._chunks);
-    stream.position = _graph._positions[_id];
-    stream.readUnsigned();
 
-    // Complicated way to do (high:mid:low * _kObjectAlignment).toHexString()
+    var high32 = _graph._addressesHigh[_id];
+    var low32 = _graph._addressesLow[_id];
+
+    // Complicated way to do (high:low * _kObjectAlignment).toHexString()
     // without intermediate values exceeding int32.
 
     var strAddr = "";
@@ -262,14 +256,13 @@ class ObjectVertex {
       nibble = nibble & 0xF;
       strAddr = nibble.toRadixString(16) + strAddr;
     }
-    combine28(twentyEightBits) {
-      for (int shift = 0; shift < 28; shift += 4) {
-        combine4((twentyEightBits >> shift) & 0xF);
+    combine32(thirtyTwoBits) {
+      for (int shift = 0; shift < 32; shift += 4) {
+        combine4((thirtyTwoBits >> shift) & 0xF);
       }
     }
-    combine28(stream.low);
-    combine28(stream.mid);
-    combine28(stream.high);
+    combine32(low32);
+    combine32(high32);
     return strAddr;
   }
 
@@ -301,27 +294,23 @@ class _SuccessorsIterable extends IterableBase<ObjectVertex> {
 
 class _SuccessorsIterator implements Iterator<ObjectVertex> {
   final ObjectGraph _graph;
-  ReadStream _stream;
+  int _nextSuccIndex;
+  int _limitSuccIndex;
 
   ObjectVertex current;
 
   _SuccessorsIterator(this._graph, int id) {
-    _stream = new ReadStream(this._graph._chunks);
-    _stream.position = _graph._positions[id];
-    _stream.skipUnsigned(); // addr
-    _stream.skipUnsigned(); // shallowSize
-    _stream.skipUnsigned(); // cid
+    _nextSuccIndex = _graph._firstSuccs[id];
+    _limitSuccIndex = _graph._firstSuccs[id + 1];
   }
 
   bool moveNext() {
-    while (true) {
-      _stream.readUnsigned();
-      if (_stream.isZero) return false;
-      var nextId = _graph._addrToId.get(_stream.high, _stream.mid, _stream.low);
-      if (nextId == null) continue; // Reference to VM isolate's heap.
-      current = new ObjectVertex._(nextId, _graph);
+    if (_nextSuccIndex < _limitSuccIndex) {
+      var succId = _graph._succs[_nextSuccIndex++];
+      current = new ObjectVertex._(succId, _graph);
       return true;
     }
+    return false;
   }
 }
 
@@ -379,8 +368,14 @@ class ObjectGraph {
     // We build futures here instead of marking the steps as async to avoid the
     // heavy lifting being inside a transformed method.
 
-    statusReporter.add("Finding node positions...");
-    await new Future(() => _buildPositions());
+    statusReporter.add("Remapping $_N objects...");
+    await new Future(() => _remapNodes());
+
+    statusReporter.add("Remapping $_E references...");
+    await new Future(() => _remapEdges());
+
+    _addrToId = null;
+    _chunks = null;
 
     statusReporter.add("Finding post order...");
     await new Future(() => _buildPostOrder());
@@ -404,29 +399,42 @@ class ObjectGraph {
     return this;
   }
 
-  final List<ByteData> _chunks;
+  List<ByteData> _chunks;
 
   int _kObjectAlignment;
   int _N;
   int _E;
   int _size;
 
-  AddressMapper _addrToId;
-
   // Indexed by node id, with id 0 representing invalid/uninitialized.
-  Uint32List _positions; // Position of the node in the snapshot.
+  // From snapshot.
+  Uint16List _cids;
+  Uint32List _shallowSizes;
+  Uint32List _firstSuccs;
+  Uint32List _succs;
+  Uint32List _addressesLow; // No Uint64List in Javascript.
+  Uint32List _addressesHigh;
+
+  // Intermediates.
+  AddressMapper _addrToId;
   Uint32List _postOrderOrdinals; // post-order index -> id
   Uint32List _postOrderIndices; // id -> post-order index
   Uint32List _firstPreds; // Offset into preds.
   Uint32List _preds;
+
+  // Outputs.
   Uint32List _doms;
   Uint32List _retainedSizes;
 
-  void _buildPositions() {
+  void _remapNodes() {
     var N = _N;
+    var E = 0;
     var addrToId = new AddressMapper(N);
 
-    var positions = new Uint32List(N + 1);
+    var addressesHigh = new Uint32List(N + 1);
+    var addressesLow = new Uint32List(N + 1);
+    var shallowSizes = new Uint32List(N + 1);
+    var cids = new Uint16List(N + 1);
 
     var stream = new ReadStream(_chunks);
     stream.readUnsigned();
@@ -434,14 +442,18 @@ class ObjectGraph {
 
     var id = 1;
     while (stream.pendingBytes > 0) {
-      positions[id] = stream.position;
       stream.readUnsigned(); // addr
       addrToId.put(stream.high, stream.mid, stream.low, id);
-      stream.skipUnsigned(); // shallowSize
-      stream.skipUnsigned(); // cid
+      addressesHigh[id] = stream.highUint32;
+      addressesLow[id] = stream.lowUint32;
+      stream.readUnsigned(); // shallowSize
+      shallowSizes[id] = stream.clampedUint32;
+      stream.readUnsigned(); // cid
+      cids[id] = stream.clampedUint32;
 
       stream.readUnsigned();
       while (!stream.isZero) {
+        E++;
         stream.readUnsigned();
       }
       id++;
@@ -451,15 +463,62 @@ class ObjectGraph {
     var root = addrToId.get(0, 0, 0);
     assert(root == 1);
 
+    _E = E;
     _addrToId = addrToId;
-    _positions = positions;
+    _addressesLow = addressesLow;
+    _addressesHigh = addressesHigh;
+    _shallowSizes = shallowSizes;
+    _cids = cids;
+  }
+
+  void _remapEdges() {
+    var N = _N;
+    var E = _E;
+    var addrToId = _addrToId;
+
+    var firstSuccs = new Uint32List(N + 2);
+    var succs = new Uint32List(E);
+
+    var stream = new ReadStream(_chunks);
+    stream.skipUnsigned(); // addr alignment
+
+    var id = 1, edge = 0;
+    while (stream.pendingBytes > 0) {
+      stream.skipUnsigned(); // addr
+      stream.skipUnsigned(); // shallowSize
+      stream.skipUnsigned(); // cid
+
+      firstSuccs[id] = edge;
+
+      stream.readUnsigned();
+      while (!stream.isZero) {
+        var childId = addrToId.get(stream.high, stream.mid, stream.low);
+        if (childId != null) {
+          succs[edge] = childId;
+          edge++;
+        } else { 
+          // Reference into VM isolate's heap.
+        }
+        stream.readUnsigned();
+      }
+      id++;
+    }
+    firstSuccs[id] = edge; // Extra entry for cheap boundary detection.
+
+    assert(id == N + 1);
+    assert(edge <= E); // edge is smaller because E was computed before we knew
+                       // if references pointed into the VM isolate
+
+    _E = edge;
+    _firstSuccs = firstSuccs;
+    _succs = succs;
   }
 
   void _buildPostOrder() {
     var N = _N;
-    var E = 0;
-    var addrToId = _addrToId;
-    var positions = _positions;
+    var E = _E;
+    var firstSuccs = _firstSuccs;
+    var succs = _succs;
 
     var postOrderOrdinals = new Uint32List(N);
     var postOrderIndices = new Uint32List(N + 1);
@@ -472,36 +531,24 @@ class ObjectGraph {
     var root = 1;
 
     stackNodes[0] = root;
-
-    var stream = new ReadStream(_chunks);
-    stream.position = positions[root];
-    stream.skipUnsigned(); // addr
-    stream.skipUnsigned(); // shallowSize
-    stream.skipUnsigned(); // cid
-    stackCurrentEdgePos[0] = stream.position;
+    stackCurrentEdgePos[0] = firstSuccs[root];
     visited[root] = 1;
 
     while (stackTop >= 0) {
       var n = stackNodes[stackTop];
       var edgePos = stackCurrentEdgePos[stackTop];
 
-      stream.position = edgePos;
-      stream.readUnsigned();  // childAddr
-      if (!stream.isZero) {
-        stackCurrentEdgePos[stackTop] = stream.position;
-        var childId = addrToId.get(stream.high, stream.mid, stream.low);
-        if (childId == null) continue; // Reference to VM isolate's heap.
-        E++;
+      if (edgePos < firstSuccs[n + 1]) {
+        var childId = succs[edgePos];
+        edgePos++;
+        stackCurrentEdgePos[stackTop] = edgePos;
         if (visited[childId] == 1) continue;
 
+        // Push child.
         stackTop++;
         stackNodes[stackTop] = childId;
-
-        stream.position = positions[childId];
-        stream.skipUnsigned(); // addr
-        stream.skipUnsigned(); // shallowSize
-        stream.skipUnsigned(); // cid
-        stackCurrentEdgePos[stackTop] = stream.position; // i.e., first edge
+        edgePos = firstSuccs[childId];
+        stackCurrentEdgePos[stackTop] = edgePos;
         visited[childId] = 1;
       } else {
         // Done with all children.
@@ -522,8 +569,8 @@ class ObjectGraph {
   void _buildPredecessors() {
     var N = _N;
     var E = _E;
-    var addrToId = _addrToId;
-    var positions = _positions;
+    var firstSuccs = _firstSuccs;
+    var succs = _succs;
 
     // This is first filled with the predecessor counts, then reused to hold the
     // offset to the first predecessor (see alias below).
@@ -534,22 +581,9 @@ class ObjectGraph {
     var preds = new Uint32List(E);
 
     // Count predecessors of each node.
-    var stream = new ReadStream(_chunks);
-    for (var i = 1; i <= N; i++) {
-      stream.position = positions[i];
-      stream.skipUnsigned(); // addr
-      stream.skipUnsigned(); // shallowSize
-      stream.skipUnsigned(); // cid
-      stream.readUnsigned(); // succAddr
-      while (!stream.isZero) {
-        var succId = addrToId.get(stream.high, stream.mid, stream.low);
-        if (succId != null) {
-          numPreds[succId]++;
-        } else {
-          // Reference to VM isolate's heap.
-        }
-        stream.readUnsigned(); // succAddr
-      }
+    for (var succIndex = 0; succIndex < E; succIndex++) {
+      var succId = succs[succIndex];
+      numPreds[succId]++;
     }
 
     // Assign indices into predecessors array.
@@ -567,20 +601,14 @@ class ObjectGraph {
 
     // Fill predecessors array.
     for (var i = 1; i <= N; i++) {
-      stream.position = positions[i];
-      stream.skipUnsigned(); // addr
-      stream.skipUnsigned(); // shallowSize
-      stream.skipUnsigned(); // cid
-      stream.readUnsigned(); // succAddr
-      while (!stream.isZero) {
-        var succId = addrToId.get(stream.high, stream.mid, stream.low);
-        if (succId != null) {
-          var predIndex = nextPreds[succId]++;
-          preds[predIndex] = i;
-        } else {
-          // Reference to VM isolate's heap.
-        }
-        stream.readUnsigned(); // succAddr
+      var startSuccIndex = firstSuccs[i];
+      var limitSuccIndex = firstSuccs[i + 1];
+      for (var succIndex = startSuccIndex;
+           succIndex < limitSuccIndex;
+           succIndex++) {
+        var succId = succs[succIndex];
+        var predIndex = nextPreds[succId]++;
+        preds[predIndex] = i;
       }
     }
 
@@ -670,21 +698,17 @@ class ObjectGraph {
     var N = _N;
 
     var size = 0;
-    var positions = _positions;
+    var shallowSizes = _shallowSizes;
     var postOrderOrdinals = _postOrderOrdinals;
     var doms = _doms;
-    var retainedSizes = new Uint32List(N + 1);
+
+    // Sum shallow sizes.
+    for (var i = 1; i < N; i++) {
+      size += shallowSizes[i];
+    }
 
     // Start with retained size as shallow size.
-    var reader = new ReadStream(_chunks);
-    for (var i = 1; i <= N; i++) {
-      reader.position = positions[i];
-      reader.skipUnsigned(); // addr
-      reader.readUnsigned(); // shallowSize
-      var shallowSize = reader.clampedUint32;
-      retainedSizes[i] = shallowSize;
-      size += shallowSize;
-    }
+    var retainedSizes = new Uint32List.fromList(shallowSizes);
 
     // In post order (bottom up), add retained size to dominator's retained
     // size, skipping root.

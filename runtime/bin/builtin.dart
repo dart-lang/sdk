@@ -309,13 +309,15 @@ Uri _resolveScriptUri(String scriptName) {
 
 
 void _finishLoadRequest(_LoadRequest req) {
-  // Now that we are done with loading remove the request from the map.
-  var tmp = _reqMap.remove(req._id);
-  assert(tmp == req);
-  if (_traceLoading) {
-    _log("Loading of ${req._uri} finished: "
-         "${_reqMap.length} requests remaining, "
-         "${_pendingPackageLoads.length} packages pending.");
+  if (req != null) {
+    // Now that we are done with loading remove the request from the map.
+    var tmp = _reqMap.remove(req._id);
+    assert(tmp == req);
+    if (_traceLoading) {
+      _log("Loading of ${req._uri} finished: "
+           "${_reqMap.length} requests remaining, "
+           "${_pendingPackageLoads.length} packages pending.");
+    }
   }
 
   if (!_pendingLoads()) {
@@ -447,6 +449,8 @@ void _handlePackagesReply(msg) {
   // Reset the pending package loads to empty. So that we eventually can
   // finish loading.
   _pendingPackageLoads = [];
+  // Make sure that the receive port is closed if no other loads are pending.
+  _finishLoadRequest(null);
 }
 
 

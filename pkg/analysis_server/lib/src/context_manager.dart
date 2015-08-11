@@ -729,7 +729,7 @@ class ContextManagerImpl implements ContextManager {
    * dependencies (currently we only use it to track "pub list" dependencies).
    */
   FolderDisposition _computeFolderDisposition(
-      Folder folder, void addDependency(String path)) {
+      Folder folder, void addDependency(String path), File packagespecFile) {
     String packageRoot = normalizedPackageRoots[folder.path];
     if (packageRoot != null) {
       // TODO(paulberry): We shouldn't be using JavaFile here because it
@@ -762,18 +762,28 @@ class ContextManagerImpl implements ContextManager {
       // resolve packages.
       return new NoPackageFolderDisposition(packageRoot: packageRoot);
     } else {
-      callbacks.beginComputePackageMap();
-      if (packageResolverProvider != null) {
-        UriResolver resolver = packageResolverProvider(folder);
-        if (resolver != null) {
-          return new CustomPackageResolverDisposition(resolver);
-        }
-      }
       PackageMapInfo packageMapInfo;
-      ServerPerformanceStatistics.pub.makeCurrentWhile(() {
-        packageMapInfo = _packageMapProvider.computePackageMap(folder);
-      });
-      callbacks.endComputePackageMap();
+      callbacks.beginComputePackageMap();
+      try {
+        if (ENABLE_PACKAGESPEC_SUPPORT) {
+          // Try .packages first.
+          if (pathos.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
+            Packages packages = _readPackagespec(packagespecFile);
+            return new PackagesFileDisposition(packages);
+          }
+        }
+        if (packageResolverProvider != null) {
+          UriResolver resolver = packageResolverProvider(folder);
+          if (resolver != null) {
+            return new CustomPackageResolverDisposition(resolver);
+          }
+        }
+        ServerPerformanceStatistics.pub.makeCurrentWhile(() {
+          packageMapInfo = _packageMapProvider.computePackageMap(folder);
+        });
+      } finally {
+        callbacks.endComputePackageMap();
+      }
       for (String dependencyPath in packageMapInfo.dependencies) {
         addDependency(dependencyPath);
       }
@@ -797,17 +807,10 @@ class ContextManagerImpl implements ContextManager {
     FolderDisposition disposition;
     List<String> dependencies = <String>[];
 
-    if (ENABLE_PACKAGESPEC_SUPPORT) {
-      // Try .packages first.
-      if (pathos.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
-        Packages packages = _readPackagespec(packagespecFile);
-        disposition = new PackagesFileDisposition(packages);
-      }
-    }
-
     // Next resort to a package uri resolver.
     if (disposition == null) {
-      disposition = _computeFolderDisposition(folder, dependencies.add);
+      disposition =
+          _computeFolderDisposition(folder, dependencies.add, packagespecFile);
     }
 
     info.setDependencies(dependencies);
@@ -832,18 +835,7 @@ class ContextManagerImpl implements ContextManager {
       ContextInfo parent, Folder folder, bool withPackageSpecOnly) {
     // Decide whether a context needs to be created for [folder] here, and if
     // so, create it.
-    File packageSpec;
-
-    if (ENABLE_PACKAGESPEC_SUPPORT) {
-      // Start by looking for .packages.
-      packageSpec = folder.getChild(PACKAGE_SPEC_NAME);
-    }
-
-    // Fall back to looking for a pubspec.
-    if (packageSpec == null || !packageSpec.exists) {
-      packageSpec = folder.getChild(PUBSPEC_NAME);
-    }
-
+    File packageSpec = _findPackageSpecFile(folder);
     bool createContext = packageSpec.exists || !withPackageSpecOnly;
     if (withPackageSpecOnly &&
         packageSpec.exists &&
@@ -925,6 +917,28 @@ class ContextManagerImpl implements ContextManager {
     // TODO(paulberry): every context that was previously a child of oldInfo is
     // is still a child of oldInfo.  This is wrong--some of them ought to be
     // adopted by newInfo now.
+  }
+
+  /**
+   * Find the file that should be used to determine whether a context needs to
+   * be created here--this is either the ".packages" file or the "pubspec.yaml"
+   * file.
+   */
+  File _findPackageSpecFile(Folder folder) {
+    // Decide whether a context needs to be created for [folder] here, and if
+    // so, create it.
+    File packageSpec;
+
+    if (ENABLE_PACKAGESPEC_SUPPORT) {
+      // Start by looking for .packages.
+      packageSpec = folder.getChild(PACKAGE_SPEC_NAME);
+    }
+
+    // Fall back to looking for a pubspec.
+    if (packageSpec == null || !packageSpec.exists) {
+      packageSpec = folder.getChild(PUBSPEC_NAME);
+    }
+    return packageSpec;
   }
 
   /**
@@ -1178,8 +1192,8 @@ class ContextManagerImpl implements ContextManager {
     // while we're rerunning "pub list", since any analysis we complete while
     // "pub list" is in progress is just going to get thrown away anyhow.
     List<String> dependencies = <String>[];
-    FolderDisposition disposition =
-        _computeFolderDisposition(info.folder, dependencies.add);
+    FolderDisposition disposition = _computeFolderDisposition(
+        info.folder, dependencies.add, _findPackageSpecFile(info.folder));
     info.setDependencies(dependencies);
     callbacks.updateContextPackageUriResolver(info.folder, disposition);
   }

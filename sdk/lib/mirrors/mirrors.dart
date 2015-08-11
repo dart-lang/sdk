@@ -446,6 +446,23 @@ abstract class ObjectMirror implements Mirror {
    */
   /* TODO(turnidge): Handle ambiguous names.*/
   InstanceMirror setField(Symbol fieldName, Object value);
+
+  /**
+   * Perform [invocation] on [reflectee].
+   * Equivalent to
+   *
+   *     if (invocation.isGetter) {
+   *       return this.getField(invocation.memberName).reflectee;
+   *     } else if (invocation.isSetter) {
+   *       return this.setField(invocation.memberName,
+   *                            invocation.positionArguments[0]).reflectee;
+   *     } else {
+   *       return this.invoke(invocation.memberName,
+   *                          invocation.positionalArguments,
+   *                          invocation.namedArguments).reflectee;
+   *     }
+   */
+  delegate(Invocation invocation);
 }
 
 /**
@@ -499,23 +516,6 @@ abstract class InstanceMirror implements ObjectMirror {
    * by [other] are identical.
    */
   bool operator == (other);
-
-  /**
-   * Perform [invocation] on [reflectee].
-   * Equivalent to
-   *
-   *     if (invocation.isGetter) {
-   *       return this.getField(invocation.memberName).reflectee;
-   *     } else if (invocation.isSetter) {
-   *       return this.setField(invocation.memberName,
-   *                            invocation.positionArguments[0]).reflectee;
-   *     } else {
-   *       return this.invoke(invocation.memberName,
-   *                          invocation.positionalArguments,
-   *                          invocation.namedArguments).reflectee;
-   *     }
-   */
-  delegate(Invocation invocation);
 }
 
 /**

@@ -518,9 +518,10 @@ class FragmentEmitter {
   js.Statement emitDeferredInitializerGlobal(Map loadMap) {
     if (loadMap.isEmpty) return new js.Block.empty();
 
-    return js.js.statement("""
-    if (typeof(${ModelEmitter.deferredInitializersGlobal}) === 'undefined')
-      var ${ModelEmitter.deferredInitializersGlobal} = Object.create(null);""");
+    String global = ModelEmitter.deferredInitializersGlobal;
+    return js.js.statement(
+        "if (typeof($global) === 'undefined') var # = Object.create(null);",
+        new js.VariableDeclaration(global, allowRename: false));
   }
 
   /// Emits all holders, except for the static-state holder.

@@ -535,6 +535,7 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
                                                      intptr_t object_id) {
   switch (class_id) {
     case kClassCid: {
+      Read<bool>();  // Consume the is_in_fullsnapshot indicator.
       Dart_CObject_Internal* object = AllocateDartCObjectClass();
       AddBackRef(object_id, object, kIsDeserialized);
       object->internal.as_class.library_url = ReadObjectImpl();
@@ -768,10 +769,21 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       READ_TYPED_DATA(Float64, double);
 
     case kGrowableObjectArrayCid: {
-      // A GrowableObjectArray is serialized as its length followed by
-      // its backing store. The backing store is an array with a
-      // length which might be longer than the length of the
-      // GrowableObjectArray.
+      // A GrowableObjectArray is serialized as its type arguments and
+      // length followed by its backing store. The backing store is an
+      // array with a length which might be longer than the length of
+      // the GrowableObjectArray.
+
+      // Read and skip the type arguments field.
+      // TODO(sjesse): Remove this when message serialization format is
+      // updated (currently type_arguments is leaked).
+      Dart_CObject* type_arguments = ReadObjectImpl();
+      if (type_arguments != &type_arguments_marker &&
+          type_arguments->type != Dart_CObject_kNull) {
+        return AllocateDartCObjectUnsupported();
+      }
+
+      // Read the length field.
       intptr_t len = ReadSmiValue();
 
       Dart_CObject* value = GetBackRef(object_id);

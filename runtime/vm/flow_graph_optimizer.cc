@@ -51,6 +51,7 @@ DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
 
 DECLARE_FLAG(bool, polymorphic_with_deopt);
 DECLARE_FLAG(bool, source_lines);
+DECLARE_FLAG(bool, trace_field_guards);
 DECLARE_FLAG(bool, trace_type_check_elimination);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
@@ -4596,14 +4597,25 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
         Function::Handle(Z, owner.LookupGetterFunction(field_name));
     const Function& setter =
         Function::Handle(Z, owner.LookupSetterFunction(field_name));
-    bool result = !getter.IsNull()
-               && !setter.IsNull()
-               && (setter.usage_counter() > 0)
-               && (FLAG_getter_setter_ratio * setter.usage_counter() >=
-                   getter.usage_counter());
-    if (!result) {
-      if (FLAG_trace_optimization) {
+    bool unboxed_field = false;
+    if (!getter.IsNull() && !setter.IsNull()) {
+      if (field.is_double_initialized()) {
+        unboxed_field = true;
+      } else if ((setter.usage_counter() > 0) &&
+                 ((FLAG_getter_setter_ratio * setter.usage_counter()) >=
+                   getter.usage_counter())) {
+        unboxed_field = true;
+      }
+    }
+    if (!unboxed_field) {
+      if (FLAG_trace_optimization || FLAG_trace_field_guards) {
         ISL_Print("Disabling unboxing of %s\n", field.ToCString());
+        if (!setter.IsNull()) {
+          OS::Print("  setter usage count: %" Pd "\n", setter.usage_counter());
+        }
+        if (!getter.IsNull()) {
+          OS::Print("  getter usage count: %" Pd "\n", getter.usage_counter());
+        }
       }
       field.set_is_unboxing_candidate(false);
       field.DeoptimizeDependentCode();

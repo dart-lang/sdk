@@ -18,6 +18,8 @@ mirrors/class_mirror_location_test: RuntimeError # Issue 6490
 mirrors/closurization_equivalence_test: RuntimeError # Issue 6490
 mirrors/constructor_kinds_test: RuntimeError # Issue 13799
 mirrors/constructor_private_name_test: CompileTimeError # Issue 13597
+mirrors/delegate_class_test: RuntimeError
+mirrors/delegate_library_test: RuntimeError
 mirrors/deferred_type_test: RuntimeError # Issue 6335
 mirrors/empty_test: RuntimeError # Issue 6490
 mirrors/enum_test: RuntimeError # Issue 6490

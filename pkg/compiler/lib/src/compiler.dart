@@ -1056,6 +1056,7 @@ abstract class Compiler implements DiagnosticListener {
             this.deferredMapUri: null,
             this.dumpInfo: false,
             this.showPackageWarnings: false,
+            bool useStartupEmitter: false,
             this.useContentSecurityPolicy: false,
             this.suppressWarnings: false,
             this.fatalWarnings: false,
@@ -1100,7 +1101,8 @@ abstract class Compiler implements DiagnosticListener {
     if (emitJavaScript) {
       js_backend.JavaScriptBackend jsBackend =
           new js_backend.JavaScriptBackend(
-              this, generateSourceMap: generateSourceMap);
+              this, generateSourceMap: generateSourceMap,
+              useStartupEmitter: useStartupEmitter);
       backend = jsBackend;
     } else {
       backend = new dart_backend.DartBackend(this, strips,

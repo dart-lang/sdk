@@ -1818,6 +1818,16 @@ void FlowGraphInliner::SetInliningId(FlowGraph* flow_graph,
 }
 
 
+// Use function name to determine if inlineable operator.
+// TODO(srdjan): add names as necessary
+static bool IsInlineableOperator(const Function& function) {
+  return (function.name() == Symbols::IndexToken().raw()) ||
+         (function.name() == Symbols::AssignIndexToken().raw()) ||
+         (function.name() == Symbols::Plus().raw()) ||
+         (function.name() == Symbols::Minus().raw());
+}
+
+
 bool FlowGraphInliner::AlwaysInline(const Function& function) {
   const char* kAlwaysInlineAnnotation = "AlwaysInline";
   if (FLAG_enable_inlining_annotations &&
@@ -1828,7 +1838,8 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
   }
 
   if (function.IsImplicitGetterFunction() || function.IsGetterFunction() ||
-      function.IsImplicitSetterFunction() || function.IsSetterFunction()) {
+      function.IsImplicitSetterFunction() || function.IsSetterFunction() ||
+      IsInlineableOperator(function)) {
     const intptr_t count = function.optimized_instruction_count();
     if ((count != 0) && (count < FLAG_inline_getters_setters_smaller_than)) {
       return true;

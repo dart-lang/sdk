@@ -317,6 +317,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler('--library-root=.+', setLibraryRoot),
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler('--allow-mock-compilation', passThrough),
+    new OptionHandler('--fast-startup', passThrough),
     new OptionHandler('--minify|-m', implyCompilation),
     new OptionHandler('--preserve-uris', passThrough),
     new OptionHandler('--force-strip=.*', setStrip),

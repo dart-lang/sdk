@@ -135,15 +135,6 @@ class FunctionCallTreeNode {
   }
 
   setCodeAttributes() {
-    if (hasOptimizedCode()) {
-      attributes.add('optimized');
-    }
-    if (hasUnoptimizedCode()) {
-      attributes.add('unoptimized');
-    }
-    if (isInlined()) {
-      attributes.add('inlined');
-    }
   }
 }
 

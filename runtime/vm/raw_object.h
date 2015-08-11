@@ -236,7 +236,7 @@ class RawObject {
     kWatchedBit = 0,
     kMarkBit = 1,
     kCanonicalBit = 2,
-    kFromSnapshotBit = 3,
+    kVMHeapObjectBit = 3,
     kRememberedBit = 4,
 #if defined(ARCH_IS_32_BIT)
     kReservedTagPos = 5,  // kReservedBit{100K,1M,10M}
@@ -315,8 +315,6 @@ class RawObject {
     uword addr = reinterpret_cast<uword>(this);
     return (addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
   }
-  // Assumes this is a heap object.
-  bool IsVMHeapObject() const;
 
   // Like !IsHeapObject() || IsOldObject(), but compiles to a single branch.
   bool IsSmiOrOldObject() const {
@@ -372,11 +370,11 @@ class RawObject {
   void ClearCanonical() {
     UpdateTagBit<CanonicalObjectTag>(false);
   }
-  bool IsCreatedFromSnapshot() const {
-    return CreatedFromSnapshotTag::decode(ptr()->tags_);
+  bool IsVMHeapObject() const {
+    return VMHeapObjectTag::decode(ptr()->tags_);
   }
-  void SetCreatedFromSnapshot() {
-    UpdateTagBit<CreatedFromSnapshotTag>(true);
+  void SetVMHeapObject() {
+    UpdateTagBit<VMHeapObjectTag>(true);
   }
 
   // Support for GC remembered bit.
@@ -445,8 +443,8 @@ class RawObject {
     return reinterpret_cast<uword>(raw_obj->ptr());
   }
 
-  static bool IsCreatedFromSnapshot(intptr_t value) {
-    return CreatedFromSnapshotTag::decode(value);
+  static bool IsVMHeapObject(intptr_t value) {
+    return VMHeapObjectTag::decode(value);
   }
 
   static bool IsCanonical(intptr_t value) {
@@ -482,7 +480,7 @@ class RawObject {
 
   class CanonicalObjectTag : public BitField<bool, kCanonicalBit, 1> {};
 
-  class CreatedFromSnapshotTag : public BitField<bool, kFromSnapshotBit, 1> {};
+  class VMHeapObjectTag : public BitField<bool, kVMHeapObjectBit, 1> {};
 
   class ReservedBits : public
       BitField<intptr_t, kReservedTagPos, kReservedTagSize> {};  // NOLINT
@@ -847,7 +845,7 @@ class RawField : public RawObject {
   // generated on platforms with weak addressing modes (ARM, MIPS).
   int8_t guarded_list_length_in_object_offset_;
 
-  uint8_t kind_bits_;  // static, final, const, has initializer.
+  uint8_t kind_bits_;  // static, final, const, has initializer....
 };
 
 
@@ -950,7 +948,9 @@ class RawLibrary : public RawObject {
   bool corelib_imported_;
   bool is_dart_scheme_;
   bool debuggable_;             // True if debugger can stop in library.
+  bool is_in_fullsnapshot_;     // True if library is in a full snapshot.
 
+  friend class Class;
   friend class Isolate;
 };
 

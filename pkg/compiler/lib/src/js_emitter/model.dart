@@ -378,6 +378,9 @@ abstract class Method {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
   final Element element;
+  /// The name of the method. If the method is a [ParameterStubMethod] for a
+  /// static function, then the name can be `null`. In that case, only the
+  /// [ParameterStubMethod.callName] should be used.
   final js.Name name;
   final js.Expression code;
 

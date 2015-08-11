@@ -399,7 +399,7 @@ void Object::InitNull(Isolate* isolate) {
     uword address = heap->Allocate(Instance::InstanceSize(), Heap::kOld);
     null_ = reinterpret_cast<RawInstance*>(address + kHeapObjectTag);
     // The call below is using 'null_' to initialize itself.
-    InitializeObject(address, kNullCid, Instance::InstanceSize());
+    InitializeObject(address, kNullCid, Instance::InstanceSize(), true);
   }
 }
 
@@ -462,7 +462,7 @@ void Object::InitOnce(Isolate* isolate) {
     intptr_t size = Class::InstanceSize();
     uword address = heap->Allocate(size, Heap::kOld);
     class_class_ = reinterpret_cast<RawClass*>(address + kHeapObjectTag);
-    InitializeObject(address, Class::kClassId, size);
+    InitializeObject(address, Class::kClassId, size, true);
 
     Class fake;
     // Initialization from Class::New<Class>.
@@ -635,7 +635,7 @@ void Object::InitOnce(Isolate* isolate) {
   // Allocate and initialize the empty_array instance.
   {
     uword address = heap->Allocate(Array::InstanceSize(0), Heap::kOld);
-    InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(0));
+    InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(0), true);
     Array::initializeHandle(
         empty_array_,
         reinterpret_cast<RawArray*>(address + kHeapObjectTag));
@@ -646,7 +646,7 @@ void Object::InitOnce(Isolate* isolate) {
   // Allocate and initialize the zero_array instance.
   {
     uword address = heap->Allocate(Array::InstanceSize(1), Heap::kOld);
-    InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(1));
+    InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(1), true);
     Array::initializeHandle(
         zero_array_,
         reinterpret_cast<RawArray*>(address + kHeapObjectTag));
@@ -661,7 +661,8 @@ void Object::InitOnce(Isolate* isolate) {
         heap->Allocate(ObjectPool::InstanceSize(0), Heap::kOld);
     InitializeObject(address,
                      kObjectPoolCid,
-                     ObjectPool::InstanceSize(0));
+                     ObjectPool::InstanceSize(0),
+                     true);
     ObjectPool::initializeHandle(
         empty_object_pool_,
         reinterpret_cast<RawObjectPool*>(address + kHeapObjectTag));
@@ -673,7 +674,8 @@ void Object::InitOnce(Isolate* isolate) {
   {
     uword address = heap->Allocate(PcDescriptors::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kPcDescriptorsCid,
-                     PcDescriptors::InstanceSize(0));
+                     PcDescriptors::InstanceSize(0),
+                     true);
     PcDescriptors::initializeHandle(
         empty_descriptors_,
         reinterpret_cast<RawPcDescriptors*>(address + kHeapObjectTag));
@@ -687,7 +689,8 @@ void Object::InitOnce(Isolate* isolate) {
         heap->Allocate(LocalVarDescriptors::InstanceSize(0), Heap::kOld);
     InitializeObject(address,
                      kLocalVarDescriptorsCid,
-                     LocalVarDescriptors::InstanceSize(0));
+                     LocalVarDescriptors::InstanceSize(0),
+                     true);
     LocalVarDescriptors::initializeHandle(
         empty_var_descriptors_,
         reinterpret_cast<RawLocalVarDescriptors*>(address + kHeapObjectTag));
@@ -703,7 +706,8 @@ void Object::InitOnce(Isolate* isolate) {
         heap->Allocate(ExceptionHandlers::InstanceSize(0), Heap::kOld);
     InitializeObject(address,
                      kExceptionHandlersCid,
-                     ExceptionHandlers::InstanceSize(0));
+                     ExceptionHandlers::InstanceSize(0),
+                     true);
     ExceptionHandlers::initializeHandle(
         empty_exception_handlers_,
         reinterpret_cast<RawExceptionHandlers*>(address + kHeapObjectTag));
@@ -809,6 +813,7 @@ class PremarkingVisitor : public ObjectVisitor {
     ASSERT(!obj->IsMarked());
     // Free list elements should never be marked.
     if (!obj->IsFreeListElement()) {
+      ASSERT(obj->IsVMHeapObject());
       obj->SetMarkBitUnsynchronized();
     }
   }
@@ -1473,7 +1478,7 @@ RawError* Object::Init(Isolate* isolate) {
 
 #define ADD_SET_FIELD(clazz)                                                   \
   field_name = Symbols::New("cid"#clazz);                                      \
-  field = Field::New(field_name, true, false, true, true, cls, 0);             \
+  field = Field::New(field_name, true, false, true, false, cls, 0);            \
   value = Smi::New(k##clazz##Cid);                                             \
   field.set_value(value);                                                      \
   field.set_type(Type::Handle(Type::IntType()));                               \
@@ -1674,7 +1679,10 @@ RawString* Object::DictionaryName() const {
 }
 
 
-void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
+void Object::InitializeObject(uword address,
+                              intptr_t class_id,
+                              intptr_t size,
+                              bool is_vm_object) {
   // TODO(iposva): Get a proper halt instruction from the assembler which
   // would be needed here for code objects.
   uword initial_value = reinterpret_cast<uword>(null_);
@@ -1688,7 +1696,9 @@ void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
   ASSERT(class_id != kIllegalCid);
   tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
+  tags = RawObject::VMHeapObjectTag::update(is_vm_object, tags);
   reinterpret_cast<RawObject*>(address)->tags_ = tags;
+  ASSERT(is_vm_object == RawObject::IsVMHeapObject(tags));
   VerifiedMemory::Accept(address, size);
 }
 
@@ -1746,7 +1756,7 @@ RawObject* Object::Allocate(intptr_t cls_id,
     Profiler::RecordAllocation(isolate, cls_id);
   }
   NoSafepointScope no_safepoint;
-  InitializeObject(address, cls_id, size);
+  InitializeObject(address, cls_id, size, (isolate == Dart::vm_isolate()));
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   ASSERT(cls_id == RawObject::ClassIdTag::decode(raw_obj->ptr()->tags_));
   return raw_obj;
@@ -1837,6 +1847,12 @@ RawString* Class::PrettyName() const {
 RawString* Class::UserVisibleName() const {
   ASSERT(raw_ptr()->user_name_ != String::null());
   return raw_ptr()->user_name_;
+}
+
+
+bool Class::IsInFullSnapshot() const {
+  NoSafepointScope no_safepoint;
+  return raw_ptr()->library_->ptr()->is_in_fullsnapshot_;
 }
 
 
@@ -7214,7 +7230,7 @@ RawField* Field::New(const String& name,
                      bool is_static,
                      bool is_final,
                      bool is_const,
-                     bool is_synthetic,
+                     bool is_reflectable,
                      const Class& owner,
                      intptr_t token_pos) {
   ASSERT(!owner.IsNull());
@@ -7228,7 +7244,8 @@ RawField* Field::New(const String& name,
   }
   result.set_is_final(is_final);
   result.set_is_const(is_const);
-  result.set_is_synthetic(is_synthetic);
+  result.set_is_reflectable(is_reflectable);
+  result.set_is_double_initialized(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
@@ -7443,7 +7460,7 @@ RawInstance* Field::AccessorClosure(bool make_setter) const {
                              true,  // is_static
                              true,  // is_final
                              true,  // is_const
-                             true,  // is_synthetic
+                             false,  // is_reflectable
                              field_owner,
                              this->token_pos());
   closure_field.set_value(Instance::Cast(result));
@@ -9032,7 +9049,7 @@ void Library::AddMetadata(const Class& cls,
                                           true,   // is_static
                                           false,  // is_final
                                           false,  // is_const
-                                          true,   // is_synthetic
+                                          false,  // is_reflectable
                                           cls,
                                           token_pos));
   field.set_type(Type::Handle(Type::DynamicType()));
@@ -9825,6 +9842,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.StorePointer(&result.raw_ptr()->load_error_, Instance::null());
   result.set_native_entry_resolver(NULL);
   result.set_native_entry_symbol_resolver(NULL);
+  result.set_is_in_fullsnapshot(false);
   result.StoreNonPointer(&result.raw_ptr()->corelib_imported_, true);
   result.set_debuggable(false);
   result.set_is_dart_scheme(url.StartsWith(Symbols::DartScheme()));
@@ -10540,7 +10558,7 @@ void Namespace::AddMetadata(intptr_t token_pos, const Class& owner_class) {
                                           true,   // is_static
                                           false,  // is_final
                                           false,  // is_const
-                                          true,   // is_synthetic
+                                          false,  // is_reflectable
                                           owner_class,
                                           token_pos));
   field.set_type(Type::Handle(Type::DynamicType()));
@@ -15257,6 +15275,7 @@ RawType* Type::NewNonParameterizedType(const Class& type_class) {
 void Type::SetIsFinalized() const {
   ASSERT(!IsFinalized());
   if (IsInstantiated()) {
+    ASSERT(HasResolvedTypeClass());
     set_type_state(RawType::kFinalizedInstantiated);
   } else {
     set_type_state(RawType::kFinalizedUninstantiated);
