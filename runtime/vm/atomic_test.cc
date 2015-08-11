@@ -12,8 +12,9 @@ namespace dart {
 
 UNIT_TEST_CASE(FetchAndIncrement) {
   uintptr_t v = 42;
-  EXPECT_EQ(42, AtomicOperations::FetchAndIncrement(&v));
-  EXPECT_EQ(43, v);
+  EXPECT_EQ(static_cast<uintptr_t>(42),
+            AtomicOperations::FetchAndIncrement(&v));
+  EXPECT_EQ(static_cast<uintptr_t>(43), v);
 }
 
 
@@ -30,7 +31,7 @@ UNIT_TEST_CASE(FetchAndAdd) {
 
 UNIT_TEST_CASE(LoadRelaxed) {
   uword v = 42;
-  EXPECT_EQ(42, AtomicOperations::LoadRelaxed(&v));
+  EXPECT_EQ(static_cast<uword>(42), AtomicOperations::LoadRelaxed(&v));
 }
 
 }  // namespace dart

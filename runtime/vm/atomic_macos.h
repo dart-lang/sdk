@@ -37,7 +37,7 @@ inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
 
 inline uword AtomicOperations::LoadRelaxed(uword* ptr) {
 #if defined(__ATOMIC_RELAXED)
-  return __atomic_load_n(ptr, __ATOMIC_RELAXED);
+  return __c11_atomic_load(ptr, __ATOMIC_RELAXED);
 #else
   // TODO(koda): Consider using C++11 <atomic> to avoid the barrier on more
   // compilers/platforms.
