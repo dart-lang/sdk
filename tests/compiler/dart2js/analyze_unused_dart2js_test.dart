@@ -44,6 +44,9 @@ const Map<String, List<String>> WHITE_LIST = const {
     "accept", "FunctionExpression", "CreateFunction"
   ],
 
+  // AllInfo.fromJson and visit methods are not used yet.
+  "lib/src/info/info.dart": const [ "is never" ],
+
   "lib/src/universe/universe.dart": const [
       "The method 'getterInvocationsByName' is never called.",
       "The method 'setterInvocationsByName' is never called."],

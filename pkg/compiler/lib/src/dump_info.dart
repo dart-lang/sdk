@@ -479,12 +479,12 @@ class DumpInfoTask extends CompilerTask {
 
     // Track dependencies that come from inlining.
     for (Element element in inlineMap.keys) {
-      FunctionInfo functionInfo = infoCollector._elementToInfo[element];
-      if (functionInfo == null) continue;
-      for (Element held in inlineMap[element]) {
-        Info heldInfo = infoCollector._elementToInfo[held];
-        if (heldInfo == null) continue;
-        functionInfo.uses.add(new DependencyInfo(heldInfo, 'inlined'));
+      Info outerInfo = infoCollector._elementToInfo[element];
+      if (outerInfo == null) continue;
+      for (Element inlined in inlineMap[element]) {
+        Info inlinedInfo = infoCollector._elementToInfo[inlined];
+        if (inlinedInfo == null) continue;
+        outerInfo.uses.add(new DependencyInfo(inlinedInfo, 'inlined'));
       }
     }
 
