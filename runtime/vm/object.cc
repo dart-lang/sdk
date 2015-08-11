@@ -15604,6 +15604,7 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
       return this->raw();
     }
     ASSERT(this->Equals(type));
+    ASSERT(type.IsCanonical());
     return type.raw();
   }
 
@@ -15625,6 +15626,7 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
     }
     ASSERT(type.IsFinalized());
     if (this->Equals(type)) {
+      ASSERT(type.IsCanonical());
       return type.raw();
     }
     index++;
@@ -15653,6 +15655,7 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
     }
     ASSERT(type.IsFinalized());
     if (this->Equals(type)) {
+      ASSERT(type.IsCanonical());
       return type.raw();
     }
     index++;
