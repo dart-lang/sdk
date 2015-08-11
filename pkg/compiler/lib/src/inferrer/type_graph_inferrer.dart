@@ -683,7 +683,6 @@ class TypeGraphInferrerEngine
 
     // Trace closures to potentially infer argument types.
     types.allocatedClosures.forEach((info) {
-
       void trace(Iterable<FunctionElement> elements,
                  ClosureTracerVisitor tracer) {
         tracer.run();
@@ -717,25 +716,15 @@ class TypeGraphInferrerEngine
           }
         });
       }
-
       if (info is ClosureTypeInformation) {
         Iterable<FunctionElement> elements = [info.element];
         trace(elements, new ClosureTracerVisitor(elements, info, this));
-      } else if (info is DynamicCallSiteTypeInformation) {
+      } else if (info is CallSiteTypeInformation) {
         // We only are interested in functions here, as other targets
         // of this closure call are not a root to trace but an intermediate
         // for some other function.
         Iterable<FunctionElement> elements = info.callees
             .where((e) => e.isFunction);
-        trace(elements, new ClosureTracerVisitor(elements, info, this));
-      } else if (info is StaticCallSiteTypeInformation) {
-        // This is a constructor call to a class with a call method. So we
-        // need to trace the call method here.
-        assert(info.calledElement.isConstructor);
-        ClassElement cls = info.calledElement.enclosingClass;
-        FunctionElement callMethod =
-            cls.lookupMember(Compiler.CALL_OPERATOR_NAME);
-        Iterable<FunctionElement> elements = [callMethod];
         trace(elements, new ClosureTracerVisitor(elements, info, this));
       } else {
         assert(info is ElementTypeInformation);
@@ -788,11 +777,6 @@ class TypeGraphInferrerEngine
               print('${types.getInferredTypeOf(target).type} for ${target}');
             }
           }
-        } else if (info is StaticCallSiteTypeInformation) {
-          ClassElement cls = info.calledElement.enclosingClass;
-          FunctionElement callMethod =
-              cls.lookupMember(Compiler.CALL_OPERATOR_NAME);
-          print('${types.getInferredSignatureOf(callMethod)} for ${cls}');
         } else {
           print('${info.type} for some unknown kind of closure');
         }
@@ -1127,14 +1111,6 @@ class TypeGraphInferrerEngine
     CallSiteTypeInformation info = new StaticCallSiteTypeInformation(
           types.currentMember, node, caller, callee, selector, mask, arguments,
           inLoop);
-    // If this class has a 'call' method then we have essentially created a
-    // closure here. Register it as such so that it is traced.
-    if (selector != null && selector.isCall && callee.isConstructor) {
-      ClassElement cls = callee.enclosingClass.declaration;
-      if (cls.callType != null) {
-        types.allocatedClosures.add(info);
-      }
-    }
     info.addToGraph(this);
     allocatedCalls.add(info);
     updateSideEffects(sideEffects, selector, callee);
