@@ -520,6 +520,14 @@ class Namer {
     }
   }
 
+  /// Return a reference to the given [name].
+  ///
+  /// This is used to ensure that every use site of a name has a unique node so
+  /// that we can properly attribute source information.
+  jsAst.Name _newReference(jsAst.Name name) {
+    return new _NameReference(name);
+  }
+
   /// Disambiguated name for [constant].
   ///
   /// Unique within the global-member namespace.
@@ -534,7 +542,7 @@ class Namer {
       result = getFreshName(NamingScope.constant, longName);
       constantNames[constant] = result;
     }
-    return result;
+    return _newReference(result);
   }
 
   /// Proposed name for [constant].
@@ -855,7 +863,7 @@ class Namer {
       newName = getFreshName(NamingScope.global, name);
       internalGlobals[name] = newName;
     }
-    return newName;
+    return _newReference(newName);
   }
 
   /// Returns the property name to use for a compiler-owner global variable,
@@ -902,7 +910,7 @@ class Namer {
       newName = getFreshName(NamingScope.global, proposedName);
       userGlobals[element] = newName;
     }
-    return newName;
+    return _newReference(newName);
   }
 
   /// Returns the disambiguated name for an instance method or field
@@ -943,7 +951,7 @@ class Namer {
                              sanitizeForAnnotations: true);
       userInstanceMembers[key] = newName;
     }
-    return newName;
+    return _newReference(newName);
   }
 
   /// Returns the disambiguated name for the instance member identified by
@@ -966,7 +974,7 @@ class Namer {
                              sanitizeForAnnotations: true);
       userInstanceMembers[key] = newName;
     }
-    return newName;
+    return _newReference(newName);
   }
 
   /// Forces the public instance member with [originalName] to have the given
@@ -1006,7 +1014,7 @@ class Namer {
                              sanitizeForNatives: mayClashNative);
       internalInstanceMembers[element] = newName;
     }
-    return newName;
+    return _newReference(newName);
   }
 
   /// Disambiguated name for the given operator.
@@ -1021,7 +1029,7 @@ class Namer {
       newName = getFreshName(NamingScope.instance, operatorIdentifier);
       userInstanceOperators[operatorIdentifier] = newName;
     }
-    return newName;
+    return _newReference(newName);
   }
 
   String _generateFreshStringForName(String proposedName,
