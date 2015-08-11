@@ -96,7 +96,7 @@ class TimelineEvent {
   uword state_;
   const char* label_;
   TimelineStream* stream_;
-  Thread* thread_;
+  ThreadId thread_;
 
   void FreeArguments();
 

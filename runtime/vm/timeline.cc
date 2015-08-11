@@ -24,7 +24,7 @@ TimelineEvent::TimelineEvent()
       state_(0),
       label_(NULL),
       stream_(NULL),
-      thread_(NULL) {
+      thread_(OSThread::kInvalidThreadId) {
 }
 
 
@@ -35,7 +35,7 @@ TimelineEvent::~TimelineEvent() {
 
 void TimelineEvent::Reset() {
   set_event_type(kNone);
-  thread_ = NULL;
+  thread_ = OSThread::kInvalidThreadId;
   stream_ = NULL;
   label_ = NULL;
   FreeArguments();
@@ -171,30 +171,16 @@ void TimelineEvent::Init(EventType event_type,
   set_event_type(event_type);
   timestamp0_ = 0;
   timestamp1_ = 0;
-  thread_ = Thread::Current();
+  thread_ = OSThread::GetCurrentThreadId();
   label_ = label;
   FreeArguments();
 }
 
 
-static int64_t GetPid(Isolate* isolate) {
-  // Some mapping from Isolate* to an integer process id.
-  // TODO(Cutch): Investigate if process ids can be strings.
-  return static_cast<int64_t>(reinterpret_cast<uintptr_t>(isolate));
-}
-
-
-static int64_t GetTid(Thread* thread) {
-  // Some mapping from Thread* to an integer thread id.
-  // TODO(Cutch): Investigate if process ids can be strings.
-  return static_cast<int64_t>(reinterpret_cast<uintptr_t>(thread));
-}
-
-
 void TimelineEvent::PrintJSON(JSONStream* stream) const {
   JSONObject obj(stream);
-  int64_t pid = GetPid(Isolate::Current());
-  int64_t tid = GetTid(thread_);
+  int64_t pid = OS::ProcessId();
+  int64_t tid = OSThread::ThreadIdToIntPtr(thread_);
   obj.AddProperty("name", label_);
   obj.AddProperty("cat", stream_->name());
   obj.AddProperty64("tid", tid);
@@ -343,16 +329,6 @@ TimelineEventRecorder::TimelineEventRecorder() {
 
 
 void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
-  Isolate* isolate = Isolate::Current();
-  JSONObject obj(events);
-  int64_t pid = GetPid(isolate);
-  obj.AddProperty("ph", "M");
-  obj.AddProperty64("pid", pid);
-  obj.AddProperty("name", "process_name");
-  {
-    JSONObject args(&obj, "args");
-    args.AddProperty("name", isolate->debugger_name());
-  }
 }
 
 
