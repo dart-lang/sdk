@@ -3156,8 +3156,16 @@ class CodeInstruction extends Observable {
     if (address == 0) {
       return;
     }
-
-    jumpTarget = instructionsByAddressOffset[address - startAddress];
+    var relativeAddress = address - startAddress;
+    if (relativeAddress < 0) {
+      Logger.root.warning('Bad address resolving jump target $relativeAddress');
+      return;
+    }
+    if (relativeAddress >= instructionsByAddressOffset.length) {
+      Logger.root.warning('Bad address resolving jump target $relativeAddress');
+      return;
+    }
+    jumpTarget = instructionsByAddressOffset[relativeAddress];
   }
 }
 

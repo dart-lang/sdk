@@ -878,7 +878,7 @@ int DisassemblerX64::JumpConditional(uint8_t* data) {
 int DisassemblerX64::JumpConditionalShort(uint8_t* data) {
   uint8_t cond = *data & 0x0F;
   uint8_t b = *(data + 1);
-  uint8_t* dest = data + static_cast<uint8_t>(b) + 2;
+  uint8_t* dest = data + static_cast<int8_t>(b) + 2;
   const char* mnem = conditional_code_suffix[cond];
   AppendToBuffer("j%s ", mnem);
   AppendAddressToBuffer(dest);
