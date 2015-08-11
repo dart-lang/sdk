@@ -1168,41 +1168,36 @@ void SnapshotReader::ProcessDeferredCanonicalizations() {
     BackRefNode& backref = (*backward_references_)[i];
     if (backref.defer_canonicalization()) {
       Object* objref = backref.reference();
-      bool needs_patching = false;
       // Object should either be an abstract type or a type argument.
       if (objref->IsType()) {
         typeobj ^= objref->raw();
         newobj = typeobj.Canonicalize();
-        if ((newobj.raw() != typeobj.raw()) && !typeobj.IsRecursive()) {
-          needs_patching = true;
-        } else {
-          // Set Canonical bit.
-          objref->SetCanonical();
-        }
       } else {
         ASSERT(objref->IsTypeArguments());
         typeargs ^= objref->raw();
         newobj = typeargs.Canonicalize();
-        if ((newobj.raw() != typeargs.raw()) && !typeargs.IsRecursive()) {
-          needs_patching = true;
-        } else {
-          // Set Canonical bit.
-          objref->SetCanonical();
-        }
       }
-      if (needs_patching) {
+      if (newobj.raw() != objref->raw()) {
         ZoneGrowableArray<intptr_t>* patches = backref.patch_records();
         ASSERT(newobj.IsCanonical());
         ASSERT(patches != NULL);
+        // First we replace the back ref table with the canonical object.
+        *objref = newobj.raw();
+        // Now we go over all the patch records and patch the canonical object.
         for (intptr_t j = 0; j < patches->length(); j+=2) {
           NoSafepointScope no_safepoint;
           intptr_t patch_object_id = (*patches)[j];
           intptr_t patch_offset = (*patches)[j + 1];
           Object* target = GetBackRef(patch_object_id);
-          RawObject** rawptr =
-              reinterpret_cast<RawObject**>(target->raw()->ptr());
-          target->StorePointer((rawptr + patch_offset), newobj.raw());
+          // We should not backpatch an object that is canonical.
+          if (!target->IsCanonical()) {
+            RawObject** rawptr =
+                reinterpret_cast<RawObject**>(target->raw()->ptr());
+            target->StorePointer((rawptr + patch_offset), newobj.raw());
+          }
         }
+      } else {
+        ASSERT(objref->IsCanonical());
       }
     }
   }
