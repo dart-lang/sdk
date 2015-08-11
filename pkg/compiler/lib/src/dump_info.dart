@@ -73,12 +73,16 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       Info child = this.process(member);
       if (child is ClassInfo) {
         info.classes.add(child);
+        child.parent = info;
       } else if (child is FunctionInfo) {
         info.topLevelFunctions.add(child);
+        child.parent = info;
       } else if (child is FieldInfo) {
         info.topLevelVariables.add(child);
+        child.parent = info;
       } else if (child is TypedefInfo) {
         info.typedefs.add(child);
+        child.parent = info;
       } else if (child != null) {
         print('unexpected child of $info: $child ==> ${child.runtimeType}');
         assert(false);
@@ -154,9 +158,11 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       if (info == null) return;
       if (info is FieldInfo) {
         classInfo.fields.add(info);
+        info.parent = classInfo;
       } else {
         assert(info is FunctionInfo);
         classInfo.functions.add(info);
+        info.parent = classInfo;
       }
 
       // Closures are placed in the library namespace, but we want to attribute
@@ -278,6 +284,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
             child.name = "${parent.name}.${child.name}";
           }
           nestedClosures.add(child);
+          child.parent = parent;
           size += child.size;
         }
       }

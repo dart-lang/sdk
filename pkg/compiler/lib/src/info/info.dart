@@ -29,6 +29,9 @@ abstract class Info {
   /// Bytes used in the generated code for the corresponding element.
   int size;
 
+  /// Info of the enclosing element.
+  Info parent;
+
   /// Serializes the information into a JSON format.
   // TODO(sigmund): refactor and put toJson outside the class, so we can have 2
   // different serializer/deserializers at once.
@@ -44,6 +47,7 @@ abstract class BasicInfo implements Info {
   final InfoKind kind;
   final int id;
   int size;
+  Info parent;
 
   String get serializedId => '${_kindToString(kind)}/$id';
 
@@ -69,6 +73,7 @@ abstract class BasicInfo implements Info {
     // TODO(sigmund): omit this also when outputUnit.id == 0
     // (most code is by default in the main output unit)
     if (outputUnit != null) res['outputUnit'] = outputUnit.serializedId;
+    if (parent != null) res['parent'] = parent.serializedId;
     return res;
   }
 
@@ -124,7 +129,7 @@ class AllInfo {
   /// previous will continue to work after the change. This is typically
   /// increased when adding new entries to the file format.
   // Note: the dump-info.viewer app was written using a json parser version 3.2.
-  final int minorVersion = 3;
+  final int minorVersion = 4;
 
   AllInfo();
 
@@ -264,6 +269,7 @@ class _ParseHelper {
   ClassInfo parseClass(Map json) {
     ClassInfo result = parseId(json['id']);
     result..name = json['name']
+        ..parent = parseId(json['parent'])
         ..outputUnit = parseId(json['outputUnit'])
         ..size = json['size']
         ..isAbstract = json['modifiers']['abstract'] == true;
@@ -282,6 +288,7 @@ class _ParseHelper {
   FieldInfo parseField(Map json) {
     FieldInfo result = parseId(json['id']);
     return result..name = json['name']
+      ..parent = parseId(json['parent'])
       ..outputUnit = parseId(json['outputUnit'])
       ..size = json['size']
       ..type = json['type']
@@ -293,6 +300,7 @@ class _ParseHelper {
   TypedefInfo parseTypedef(Map json) {
     TypedefInfo result = parseId(json['id']);
     return result..name = json['name']
+      ..parent = parseId(json['parent'])
       ..type = json['type']
       ..size = 0;
   }
@@ -303,6 +311,7 @@ class _ParseHelper {
   FunctionInfo parseFunction(Map json) {
     FunctionInfo result = parseId(json['id']);
     return result..name = json['name']
+      ..parent = parseId(json['parent'])
       ..outputUnit = parseId(json['outputUnit'])
       ..size = json['size']
       ..type = json['type']
