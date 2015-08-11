@@ -120,8 +120,10 @@ class AnalysisDomainHandler implements RequestHandler {
     analysisFuture.then((AnalysisDoneReason reason) {
       switch (reason) {
         case AnalysisDoneReason.COMPLETE:
+          print('AnalysisDoneReason.COMPLETE');
           List<CompilationUnit> units =
               server.getResolvedCompilationUnits(file);
+          print('units: $units');
           if (units.isEmpty) {
             server.sendResponse(new Response.getNavigationInvalidFile(request));
           } else {
@@ -138,6 +140,7 @@ class AnalysisDomainHandler implements RequestHandler {
           }
           break;
         case AnalysisDoneReason.CONTEXT_REMOVED:
+          print('AnalysisDoneReason.CONTEXT_REMOVED');
           // The active contexts have changed, so try again.
           Response response = getNavigation(request);
           if (response != Response.DELAYED_RESPONSE) {
@@ -145,6 +148,10 @@ class AnalysisDomainHandler implements RequestHandler {
           }
           break;
       }
+    }).catchError((e, st) {
+      print('Exception in AnalysisDomainHandler.getNavigation()');
+      print(e);
+      print(st);
     });
     // delay response
     return Response.DELAYED_RESPONSE;
