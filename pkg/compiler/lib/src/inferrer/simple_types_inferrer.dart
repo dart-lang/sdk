@@ -373,11 +373,9 @@ abstract class InferrerEngine<T, V extends TypeSystem>
         mappedType = types.stringType;
       } else if (type.element == compiler.intClass) {
         mappedType = types.intType;
-      } else if (type.element == compiler.numClass ||
-                 type.element == compiler.doubleClass) {
-        // Note: the backend double class is specifically for non-integer
-        // doubles, and a native behavior returning 'double' does not guarantee
-        // a non-integer return type, so we return the number type for those.
+      } else if (type.element == compiler.doubleClass) {
+        mappedType = types.doubleType;
+      } else if (type.element == compiler.numClass) {
         mappedType = types.numType;
       } else if (type.element == compiler.boolClass) {
         mappedType = types.boolType;
