@@ -17,9 +17,17 @@ class ToStringWrapper {
 
 wrap(value) => new ToStringWrapper(value);
 
+final bool checkedMode = computeCheckedMode();
+bool computeCheckedMode() {
+  try {
+    int x = "foo";
+  } on Error {
+    return true;
+  }
+  return false;
+}
+
 main() {
-  bool checkedMode = false;
-  assert(checkedMode = true);
   interpolate(object) {
     var result;
     if (checkedMode && object != null) {
