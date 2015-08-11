@@ -241,12 +241,11 @@ class _ParseHelper {
   }
 
   LibraryInfo parseLibrary(Map json) {
-    var result = parseId(json['id'])
-        ..name = json['name']
+    LibraryInfo result = parseId(json['id']);
+    result..name = json['name']
         ..uri = Uri.parse(json['canonicalUri'])
         ..outputUnit = parseId(json['outputUnit'])
         ..size = json['size'];
-    assert(result is LibraryInfo);
     for (var child in json['children'].map(parseId)) {
       if (child is FunctionInfo) {
         result.topLevelFunctions.add(child);
@@ -263,8 +262,8 @@ class _ParseHelper {
   }
 
   ClassInfo parseClass(Map json) {
-    var result = parseId(json['id'])
-        ..name = json['name']
+    ClassInfo result = parseId(json['id']);
+    result..name = json['name']
         ..outputUnit = parseId(json['outputUnit'])
         ..size = json['size']
         ..isAbstract = json['modifiers']['abstract'] == true;
@@ -281,8 +280,8 @@ class _ParseHelper {
   }
 
   FieldInfo parseField(Map json) {
-    return parseId(json['id'])
-      ..name = json['name']
+    FieldInfo result = parseId(json['id']);
+    return result..name = json['name']
       ..outputUnit = parseId(json['outputUnit'])
       ..size = json['size']
       ..type = json['type']
@@ -291,17 +290,19 @@ class _ParseHelper {
       ..closures = json['children'].map(parseId).toList();
   }
 
-  TypedefInfo parseTypedef(Map json) => parseId(json['id'])
-      ..name = json['name']
+  TypedefInfo parseTypedef(Map json) {
+    TypedefInfo result = parseId(json['id']);
+    return result..name = json['name']
       ..type = json['type']
       ..size = 0;
+  }
 
   ProgramInfo parseProgram(Map json) =>
       new ProgramInfo()..size = json['size'];
 
   FunctionInfo parseFunction(Map json) {
-    return parseId(json['id'])
-      ..name = json['name']
+    FunctionInfo result = parseId(json['id']);
+    return result..name = json['name']
       ..outputUnit = parseId(json['outputUnit'])
       ..size = json['size']
       ..type = json['type']
@@ -639,10 +640,10 @@ String _kindToString(InfoKind kind) {
   }
 }
 
-int _idFromSerializedId(String serialiedId) =>
+int _idFromSerializedId(String serializedId) =>
     int.parse(serializedId.substring(serializedId.indexOf('/') + 1));
 
-String _kindFromSerializedId(String serializedId) =>
+InfoKind _kindFromSerializedId(String serializedId) =>
     _kindFromString(serializedId.substring(0, serializedId.indexOf('/')));
 
 InfoKind _kindFromString(String kind) {
