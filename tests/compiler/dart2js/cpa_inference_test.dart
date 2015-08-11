@@ -1454,7 +1454,7 @@ testJsCall() {
     final expectedEType = [result.int];
     result.checkNodeHasType('e', expectedEType);
     result.checkNodeHasType('eNull', maybe(expectedEType));
-    final expectedFType = [result.double];
+    final expectedFType = [result.num];
     result.checkNodeHasType('f', expectedFType);
     result.checkNodeHasType('fNull', maybe(expectedFType));
     final expectedGType = [result.num];
