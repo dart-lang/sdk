@@ -103,16 +103,16 @@ abstract class IterableMixin<E> implements Iterable<E> {
 
   bool get isNotEmpty => !isEmpty;
 
-  Iterable<E> take(int n) {
-    return new TakeIterable<E>(this, n);
+  Iterable<E> take(int count) {
+    return new TakeIterable<E>(this, count);
   }
 
   Iterable<E> takeWhile(bool test(E value)) {
     return new TakeWhileIterable<E>(this, test);
   }
 
-  Iterable<E> skip(int n) {
-    return new SkipIterable<E>(this, n);
+  Iterable<E> skip(int count) {
+    return new SkipIterable<E>(this, count);
   }
 
   Iterable<E> skipWhile(bool test(E value)) {
