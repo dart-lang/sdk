@@ -108,6 +108,7 @@ class JSONStream : ValueObject {
 
  private:
   void Clear();
+  void PostNullReply(Dart_Port port);
 
   void OpenObject(const char* property_name = NULL);
   void CloseObject();

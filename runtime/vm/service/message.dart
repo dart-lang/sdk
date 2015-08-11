@@ -94,7 +94,6 @@ class Message {
     final receivePort = new RawReceivePort();
     receivePort.handler = (value) {
       receivePort.close();
-      assert(value is String);
       _completer.complete(value);
     };
     var keys = _makeAllString(params.keys.toList(growable:false));
@@ -121,7 +120,6 @@ class Message {
     final receivePort = new RawReceivePort();
     receivePort.handler = (value) {
       receivePort.close();
-      assert(value is String);
       _completer.complete(value);
     };
     var keys = _makeAllString(params.keys.toList(growable:false));

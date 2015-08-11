@@ -153,6 +153,20 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 }
 
 
+void JSONStream::PostNullReply(Dart_Port port) {
+  const Object& reply = Object::Handle(Object::null());
+  ASSERT(reply.IsNull());
+
+  uint8_t* data = NULL;
+  MessageWriter writer(&data, &allocator, false);
+  writer.WriteMessage(reply);
+  PortMap::PostMessage(new Message(port,
+                                   data,
+                                   writer.BytesWritten(),
+                                   Message::kNormalPriority));
+}
+
+
 void JSONStream::PostReply() {
   Dart_Port port = reply_port();
   ASSERT(port != ILLEGAL_PORT);
@@ -173,6 +187,7 @@ void JSONStream::PostReply() {
     PrintProperty("id", dbl.value());
   } else if (seq_.IsNull()) {
     // JSON-RPC 2.0 says that a request with a null ID shouldn't get a reply.
+    PostNullReply(port);
     return;
   }
   buffer_.AddChar('}');

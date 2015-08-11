@@ -158,9 +158,7 @@ _postResponse(SendPort replyPort,
   assert(replyPort != null);
   if (id == null) {
     // No id -> no response.
-    // TODO(johnmccutchan): This code and the code in service.cc leave the
-    // service isolate with an open port. Consider posting 'null' to indicate
-    // that no response is coming.
+    replyPort.send(null);
     return;
   }
   assert(id != null);
