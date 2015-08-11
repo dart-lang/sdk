@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:async_helper/async_helper.dart";
-import "package:expect/expect.dart";
-import "compiler_helper.dart";
-import "package:compiler/src/types/types.dart";
-import "type_mask_test_helper.dart";
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
+import 'package:compiler/src/types/types.dart';
+import 'package:compiler/src/world.dart';
+import 'compiler_helper.dart';
+import 'type_mask_test_helper.dart';
 
 TypeMask nullType;
 TypeMask objectType;

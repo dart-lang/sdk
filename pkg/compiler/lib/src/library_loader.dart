@@ -9,28 +9,24 @@ import 'dart:async';
 import 'dart2jslib.dart' show
     Compiler,
     CompilerTask,
-    DiagnosticListener,
-    MessageKind,
-    Script,
     invariant;
-
+import 'diagnostic_listener.dart';
 import 'elements/elements.dart' show
     CompilationUnitElement,
     Element,
     LibraryElement,
     PrefixElement;
-
 import 'elements/modelx.dart' show
     CompilationUnitElementX,
     DeferredLoaderGetterElementX,
     ErroneousElementX,
     LibraryElementX,
     PrefixElementX;
-
+import 'messages.dart' show
+    MessageKind;
 import 'native/native.dart' as native;
-
+import 'script.dart';
 import 'tree/tree.dart';
-
 import 'util/util.dart' show
     Link,
     LinkBuilder;

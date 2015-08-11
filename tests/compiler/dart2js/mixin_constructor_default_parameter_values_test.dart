@@ -7,8 +7,7 @@
 // to D without optional parameters is inferred using D's context, the default
 // value `_SECRET` will not be visible and compilation will fail.
 
-import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
+import 'package:async_helper/async_helper.dart';
 import 'memory_compiler.dart';
 
 const Map MEMORY_SOURCE_FILES = const {

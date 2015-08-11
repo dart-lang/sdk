@@ -8,15 +8,17 @@ import 'dart:collection' show UnmodifiableListView, UnmodifiableMapView;
 
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart';
-import '../scanner/scannerlib.dart';
-import '../resolution/resolution.dart' show Scope;
 import '../dart2jslib.dart';
 import '../dart_types.dart';
+import '../elements/elements.dart';
+import '../resolution/resolution.dart' show Scope;
+import '../scanner/scannerlib.dart';
+import '../script.dart';
 import '../tree/tree.dart';
 import '../util/util.dart'
     show Link,
-         LinkBuilder;
+         LinkBuilder,
+         NO_LOCATION_SPANNABLE;
 import '../util/characters.dart' show $CR, $LF;
 
 import 'source_mirrors.dart';

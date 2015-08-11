@@ -8,7 +8,8 @@ import 'package:expect/expect.dart';
 import 'dart:async';
 
 import 'package:compiler/src/dart2jslib.dart' show
-    Compiler,
+    Compiler;
+import 'package:compiler/src/messages.dart' show
     MessageKind,
     MessageTemplate;
 import 'package:compiler/src/dart_backend/dart_backend.dart' show

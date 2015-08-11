@@ -29,7 +29,6 @@ import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/dart2jslib.dart' show
     Compiler,
     CompilerTask,
-    Enqueuer,
     QueueFilter,
     WorkItem;
 
@@ -50,6 +49,9 @@ import 'package:compiler/src/elements/modelx.dart' as modelx;
 
 import 'package:compiler/src/elements/modelx.dart' show
     DeclarationSite;
+
+import 'package:compiler/src/enqueue.dart' show
+    Enqueuer;
 
 import 'package:compiler/src/dart_types.dart' show
     DartType;

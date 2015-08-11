@@ -119,10 +119,8 @@ import 'dart:async';
 import 'constants/values.dart' show ConstantValue;
 import 'dart2jslib.dart'
     show Compiler,
-         CompilerTask,
-         DiagnosticListener,
-         MessageKind,
-         Script;
+         CompilerTask;
+import 'diagnostic_listener.dart';
 import 'elements/elements.dart';
 import 'elements/modelx.dart'
     show BaseFunctionElementX,
@@ -131,8 +129,10 @@ import 'elements/modelx.dart'
          LibraryElementX,
          MetadataAnnotationX,
          SetterElementX;
+import 'messages.dart' show MessageKind;
 import 'library_loader.dart' show LibraryLoader;
 import 'scanner/scannerlib.dart';  // Scanner, Parsers, Listeners
+import 'script.dart';
 import 'util/util.dart';
 
 class PatchParserTask extends CompilerTask {

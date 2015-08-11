@@ -6,6 +6,8 @@ library ssa;
 
 import 'dart:collection';
 
+import 'package:js_runtime/shared/embedded_names.dart';
+
 import '../closure.dart';
 import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
@@ -18,21 +20,27 @@ import '../elements/modelx.dart'
     show ElementX,
          VariableElementX,
          ConstructorBodyElementX;
-
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
+import '../js_emitter/js_emitter.dart' show
+    CodeEmitterTask,
+    NativeEmitter;
+import '../messages.dart';
 import '../native/native.dart' as native;
 import '../resolution/operators.dart';
+import '../resolution/resolution.dart' show
+    TreeElements;
 import '../resolution/semantic_visitor.dart';
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
-import '../types/constants.dart' show computeTypeMask;
+import '../types/constants.dart' show
+    computeTypeMask;
 import '../universe/universe.dart';
 import '../util/util.dart';
-import '../js/rewrite_async.dart';
-import 'package:js_runtime/shared/embedded_names.dart';
+import '../world.dart' show
+    ClassWorld,
+    World;
 
 part 'builder.dart';
 part 'codegen.dart';

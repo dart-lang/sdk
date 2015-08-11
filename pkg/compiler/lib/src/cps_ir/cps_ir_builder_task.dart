@@ -15,11 +15,15 @@ import '../elements/modelx.dart' show SynthesizedConstructorElementX,
 import '../io/source_information.dart';
 import '../js_backend/js_backend.dart' show JavaScriptBackend,
     SyntheticConstantKind;
+import '../resolution/resolution.dart' show TreeElements;
 import '../resolution/semantic_visitor.dart';
 import '../resolution/operators.dart' as op;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart' show TypeMask;
-import '../universe/universe.dart' show SelectorKind, CallStructure;
+import '../universe/universe.dart' show
+    CallStructure,
+    Selector,
+    SelectorKind;
 import '../constants/values.dart' show ConstantValue;
 import 'cps_ir_nodes.dart' as ir;
 import 'cps_ir_builder.dart';
@@ -28,7 +32,6 @@ import '../native/native.dart' show NativeBehavior;
 // TODO(karlklose): remove.
 import '../js/js.dart' as js show js, Template, Expression, Name;
 import '../ssa/ssa.dart' show TypeMaskFactory;
-import '../types/types.dart' show TypeMask;
 import '../util/util.dart';
 
 import 'package:js_runtime/shared/embedded_names.dart'

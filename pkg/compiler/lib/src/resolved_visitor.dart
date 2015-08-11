@@ -2,7 +2,37 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js;
+library dart2js.resolved_visitor;
+
+import 'constants/expressions.dart';
+import 'dart_types.dart' show
+    DartType;
+import 'dart2jslib.dart' show
+    invariant;
+import 'elements/elements.dart' show
+    Element,
+    Elements,
+    ErroneousElement,
+    FunctionElement,
+    LocalFunctionElement,
+    LocalVariableElement,
+    ParameterElement,
+    PrefixElement,
+    TypeVariableElement;
+import 'resolution/operators.dart' as op;
+import 'resolution/resolution.dart' show
+    TreeElements;
+import 'resolution/semantic_visitor.dart';
+import 'resolution/send_structure.dart' show
+    NewStructure,
+    SemanticSendStructure,
+    SendStructure;
+import 'tree/tree.dart';
+import 'universe/universe.dart' show
+    CallStructure,
+    Selector;
+import 'util/util.dart' show
+    Spannable;
 
 /// Enum for the visit methods added in [ResolvedVisitor].
 // TODO(johnniwinther): Remove this.

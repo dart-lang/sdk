@@ -3,21 +3,29 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/tree/tree.dart';
-import 'package:compiler/src/util/util.dart';
-import 'package:compiler/src/io/source_file.dart';
-import 'mock_compiler.dart';
-import 'parser_helper.dart';
-
-import 'package:compiler/src/elements/modelx.dart'
-  show ClassElementX, CompilationUnitElementX, ElementX, FunctionElementX;
-
-import 'package:compiler/src/dart2jslib.dart';
 
 import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/modelx.dart' show
+    ClassElementX,
+    CompilationUnitElementX,
+    ElementX,
+    FunctionElementX;
+import 'package:compiler/src/messages.dart';
+import 'package:compiler/src/io/source_file.dart';
+import 'package:compiler/src/resolution/resolution.dart' show
+    TreeElements,
+    TreeElementMapping;
+import 'package:compiler/src/tree/tree.dart';
+import 'package:compiler/src/typechecker.dart';
+import 'package:compiler/src/script.dart';
+import 'package:compiler/src/util/util.dart';
+
+import 'mock_compiler.dart';
+import 'parser_helper.dart';
 
 final MessageKind NOT_ASSIGNABLE = MessageKind.NOT_ASSIGNABLE;
 final MessageKind MEMBER_NOT_FOUND = MessageKind.MEMBER_NOT_FOUND;

@@ -6,11 +6,11 @@ library subtype_test;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'type_test_helper.dart';
 import 'package:compiler/src/dart_types.dart';
-import "package:compiler/src/elements/elements.dart"
+import 'package:compiler/src/elements/elements.dart'
        show Element, ClassElement;
-import 'package:compiler/src/util/util.dart';
+
+import 'type_test_helper.dart';
 
 void main() {
   testInterface1();

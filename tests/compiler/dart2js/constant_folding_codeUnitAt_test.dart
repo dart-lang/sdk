@@ -4,7 +4,6 @@
 // Test constant folding on numbers.
 
 import 'dart:async';
-import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
 

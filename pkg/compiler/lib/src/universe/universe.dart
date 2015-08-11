@@ -12,6 +12,9 @@ import '../dart_types.dart';
 import '../types/types.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
+import '../world.dart' show
+    ClassWorld,
+    World;
 
 part 'function_set.dart';
 part 'side_effects.dart';

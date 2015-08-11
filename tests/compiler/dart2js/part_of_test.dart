@@ -7,8 +7,8 @@ library part_of_test;
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'mock_compiler.dart';
-import 'package:compiler/src/dart2jslib.dart'
-    show MessageKind;
+import 'package:compiler/src/messages.dart' show
+    MessageKind;
 
 final libraryUri = Uri.parse('test:library.dart');
 const String LIBRARY_SOURCE = '''

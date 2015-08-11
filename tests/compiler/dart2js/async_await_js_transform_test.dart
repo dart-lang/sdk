@@ -7,8 +7,6 @@ import "package:compiler/src/js/js.dart";
 import "package:compiler/src/js/rewrite_async.dart";
 import "package:compiler/src/js_backend/js_backend.dart" show StringBackedName;
 
-import "backend_dart/dart_printer_test.dart" show PrintDiagnosticListener;
-
 void testTransform(String source, String expected, AsyncRewriterBase rewriter) {
   Fun fun = js(source);
   Fun rewritten = rewriter.rewrite(fun);

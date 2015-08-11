@@ -8,6 +8,7 @@ import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
+import '../messages.dart' show MessageKind;
 import '../tree/tree.dart';
 
 class PatchResolverTask extends CompilerTask {

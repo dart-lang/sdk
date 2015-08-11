@@ -5,11 +5,10 @@
 // Test that resolution does not resolve things we know will not be
 // needed by the backend.
 
+import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
-import 'compiler_helper.dart';
-import 'parser_helper.dart';
 import 'package:compiler/src/apiimpl.dart';
+import 'compiler_helper.dart';
 
 const String NO_RUNTIME_TYPE = r"""
 import 'dart:core' as prefix;

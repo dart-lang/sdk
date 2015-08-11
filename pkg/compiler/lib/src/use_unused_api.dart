@@ -37,10 +37,12 @@ import 'js_emitter/full_emitter/emitter.dart' as full;
 import 'js_emitter/program_builder/program_builder.dart' as program_builder;
 import 'resolution/semantic_visitor.dart' as semantic_visitor;
 import 'resolution/operators.dart' as operators;
+import 'script.dart';
 import 'source_file_provider.dart' as source_file_provider;
 import 'ssa/ssa.dart' as ssa;
 import 'tree/tree.dart' as tree;
 import 'util/util.dart' as util;
+import 'world.dart';
 
 import 'scanner/scannerlib.dart' show
     PartialClassElement,
@@ -256,7 +258,7 @@ useIo([io.LineColumnMap map,
 usedByTests() {
   // TODO(ahe): We should try to avoid including API used only for tests. In
   // most cases, such API can be moved to a test library.
-  dart2jslib.World world = null;
+  World world = null;
   dart2jslib.Compiler compiler = null;
   compiler.currentlyInUserCode();
   type_graph_inferrer.TypeGraphInferrer typeGraphInferrer = null;
@@ -311,7 +313,7 @@ useCodeEmitterTask(js_emitter.CodeEmitterTask codeEmitterTask) {
   fullEmitter.buildLazilyInitializedStaticField(null, isolateProperties: null);
 }
 
-useScript(dart2jslib.Script script) {
+useScript(Script script) {
   script.copyWithFile(null);
 }
 

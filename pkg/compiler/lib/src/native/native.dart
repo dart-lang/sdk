@@ -9,12 +9,20 @@ import 'dart:collection' show Queue;
 import '../constants/values.dart';
 import '../dart2jslib.dart';
 import '../dart_types.dart';
+import '../diagnostic_listener.dart';
+import '../enqueue.dart' show
+    Enqueuer,
+    ResolutionEnqueuer;
 import '../elements/elements.dart';
-import '../elements/modelx.dart'
-    show ElementX, BaseClassElementX, FunctionElementX, LibraryElementX;
+import '../elements/modelx.dart' show
+    BaseClassElementX,
+    ElementX,
+    FunctionElementX,
+    LibraryElementX;
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
+import '../messages.dart' show MessageKind;
 import '../resolution/resolution.dart' show ResolverVisitor;
 import '../scanner/scannerlib.dart';
 import '../ssa/ssa.dart';
