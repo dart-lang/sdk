@@ -34,17 +34,6 @@ inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
 }
 #endif  // !defined(USING_SIMULATOR)
 
-
-inline uword AtomicOperations::LoadRelaxed(uword* ptr) {
-#if defined(__ATOMIC_RELAXED)
-  return __c11_atomic_load(ptr, __ATOMIC_RELAXED);
-#else
-  // TODO(koda): Consider using C++11 <atomic> to avoid the barrier on more
-  // compilers/platforms.
-  return FetchAndAdd(reinterpret_cast<intptr_t*>(ptr), 0);
-#endif
-}
-
 }  // namespace dart
 
 #endif  // VM_ATOMIC_MACOS_H_

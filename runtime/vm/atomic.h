@@ -25,7 +25,11 @@ class AtomicOperations : public AllStatic {
 
   static uword CompareAndSwapWord(uword* ptr, uword old_value, uword new_value);
 
-  static uword LoadRelaxed(uword* ptr);
+  static uword LoadRelaxed(uword* ptr) {
+    uword result;
+    memcpy(&result, ptr, sizeof(result));
+    return result;
+  }
 };
 
 

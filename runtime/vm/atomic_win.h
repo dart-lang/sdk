@@ -61,13 +61,6 @@ inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
 }
 #endif  // !defined(USING_SIMULATOR)
 
-
-inline uword AtomicOperations::LoadRelaxed(uword* ptr) {
-  // TODO(koda): Consider using C++11 <atomic> to avoid the barrier on more
-  // compilers/platforms.
-  return FetchAndAdd(reinterpret_cast<intptr_t*>(ptr), 0);
-}
-
 }  // namespace dart
 
 #endif  // VM_ATOMIC_WIN_H_
