@@ -205,7 +205,7 @@ regexp/*: Skip
 [ $runtime == vm ]
 regexp/global_test: Skip # Timeout. Issue 21709 and 21708
 
-[ $runtime != vm ]
+[ $runtime != vm && $compiler != dartanalyzer && $compiler != dart2analyzer]
 package_resource_test: RuntimeError # Issue 23825 (not implemented yet).
 data_resource_test: RuntimeError # Issue 23825 (not implemented yet).
 http_resource_test: Skip, OK # VM specific test, uses dart:io.
