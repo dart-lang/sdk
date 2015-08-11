@@ -10570,7 +10570,8 @@ bool Parser::IsLegalAssignableSyntax(AstNode* expr, intptr_t end_pos) {
 AstNode* Parser::CreateAssignmentNode(AstNode* original,
                                       AstNode* rhs,
                                       const String* left_ident,
-                                      intptr_t left_pos) {
+                                      intptr_t left_pos,
+                                      bool is_compound /* = false */) {
   AstNode* result = original->MakeAssignmentNode(rhs);
   if (result == NULL) {
     String& name = String::ZoneHandle(Z);
@@ -10608,17 +10609,18 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
   // normally: a op= b ==> a = a op b
   // however:  a ??= b ==> a ?? (a = b)
   // Therefore, we need to transform a = (a ?? b) into a ?? (a = b)
-  if (rhs->IsBinaryOpNode() &&
+  if (is_compound &&
+      rhs->IsBinaryOpNode() &&
       (rhs->AsBinaryOpNode()->kind() == Token::kIFNULL)) {
     BinaryOpNode* ifnull = rhs->AsBinaryOpNode();
     AstNode* modified_assign =
-        CreateAssignmentNode(ifnull->left(),
+        CreateAssignmentNode(original,
                              ifnull->right(),
                              left_ident,
                              left_pos);
     result = new(Z) BinaryOpNode(rhs->token_pos(),
                                  Token::kIFNULL,
-                                 original,
+                                 ifnull->left(),
                                  modified_assign);
   }
   return result;
@@ -10660,7 +10662,7 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
         right_expr =
             ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
         AstNode* assign_expr =
-            CreateAssignmentNode(expr, right_expr, expr_ident, expr_pos);
+            CreateAssignmentNode(expr, right_expr, expr_ident, expr_pos, true);
         ASSERT(assign_expr != NULL);
         let_expr->AddNode(assign_expr);
         expr = let_expr;
@@ -10773,7 +10775,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
     AstNode* assigned_value =
         ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
     AstNode* assign_expr =
-        CreateAssignmentNode(expr, assigned_value, expr_ident, expr_pos);
+        CreateAssignmentNode(expr, assigned_value, expr_ident, expr_pos, true);
     ASSERT(assign_expr != NULL);
     let_expr->AddNode(assign_expr);
     return let_expr;
@@ -10874,7 +10876,8 @@ AstNode* Parser::ParseUnaryExpr() {
         binary_op,
         expr,
         new(Z) LiteralNode(op_pos, Smi::ZoneHandle(Z, Smi::New(1))));
-    AstNode* store = CreateAssignmentNode(expr, add, expr_ident, expr_pos);
+    AstNode* store =
+        CreateAssignmentNode(expr, add, expr_ident, expr_pos, true);
     ASSERT(store != NULL);
     let_expr->AddNode(store);
     expr = let_expr;
@@ -11591,7 +11594,8 @@ AstNode* Parser::ParsePostfixExpr() {
         binary_op,
         new(Z) LoadLocalNode(expr_pos, temp),
         new(Z) LiteralNode(expr_pos, Smi::ZoneHandle(Z, Smi::New(1))));
-    AstNode* store = CreateAssignmentNode(expr, add, expr_ident, expr_pos);
+    AstNode* store =
+        CreateAssignmentNode(expr, add, expr_ident, expr_pos, true);
     ASSERT(store != NULL);
     // The result is a pair of the (side effects of the) store followed by
     // the (value of the) initial value temp variable load.

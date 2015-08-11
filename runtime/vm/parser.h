@@ -800,7 +800,8 @@ class Parser : public ValueObject {
   AstNode* CreateAssignmentNode(AstNode* original,
                                 AstNode* rhs,
                                 const String* left_ident,
-                                intptr_t left_pos);
+                                intptr_t left_pos,
+                                bool is_compound = false);
   AstNode* InsertClosureCallNodes(AstNode* condition);
 
   ConstructorCallNode* CreateConstructorCallNode(

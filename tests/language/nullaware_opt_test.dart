@@ -53,6 +53,12 @@ test() {
   Expect.equals(201, e.f);
 
   var x = 5 ?? bomb();
+  Expect.equals(5, x);
+
+  var y;
+  x = y ?? 1;
+  Expect.equals(1, x);
+  Expect.equals(null, y);
 }
 
 // Check that instructions without result do not crash.
