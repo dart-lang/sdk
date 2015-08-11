@@ -9279,6 +9279,40 @@ TEST_CASE(Timeline_Dart_TimelineAsync) {
 }
 
 
+struct AppendData {
+  uint8_t* buffer;
+  intptr_t buffer_length;
+};
+
+
+static void AppendStreamConsumer(Dart_StreamConsumer_State state,
+                                 const char* stream_name,
+                                 uint8_t* buffer,
+                                 intptr_t buffer_length,
+                                 void* user_data) {
+  if (state == Dart_StreamConsumer_kFinish) {
+    return;
+  }
+  AppendData* data = reinterpret_cast<AppendData*>(user_data);
+  if (state == Dart_StreamConsumer_kStart) {
+    // Initialize append data.
+    data->buffer = NULL;
+    data->buffer_length = 0;
+    return;
+  }
+  ASSERT(state == Dart_StreamConsumer_kData);
+  // Grow buffer.
+  data->buffer = reinterpret_cast<uint8_t*>(
+      realloc(data->buffer, data->buffer_length + buffer_length));
+  // Copy new data.
+  memmove(&data->buffer[data->buffer_length],
+          buffer,
+          buffer_length);
+  // Update length.
+  data->buffer_length += buffer_length;
+}
+
+
 TEST_CASE(Timeline_Dart_TimelineGetTrace) {
   const char* kScriptChars =
     "foo() => 'a';\n"
@@ -9303,16 +9337,21 @@ TEST_CASE(Timeline_Dart_TimelineGetTrace) {
   EXPECT_VALID(result);
 
   // Grab the trace.
-  success = Dart_TimelineGetTrace(&buffer, &buffer_length);
+  AppendData data;
+  success = Dart_TimelineGetTrace(AppendStreamConsumer, &data);
   EXPECT(success);
+  buffer = reinterpret_cast<char*>(data.buffer);
+  buffer_length = data.buffer_length;
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
+
   // Heartbeat test.
   EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
   EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
   EXPECT_SUBSTRING("\"function\":\"main\"", buffer);
-  // Free buffer acquired by Dart_TimelineGetTrace call.
-  free(const_cast<char*>(buffer));
+
+  // Free buffer allocated by AppendStreamConsumer
+  free(data.buffer);
 }
 
 }  // namespace dart

@@ -5785,14 +5785,11 @@ DART_EXPORT void Dart_TimelineSetRecordedStreams(int64_t stream_mask) {
 }
 
 
-DART_EXPORT bool Dart_TimelineGetTrace(const char** output,
-                                       intptr_t* output_length) {
+DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
+                                       void* user_data) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  if (output == NULL) {
-    return false;
-  }
-  if (output_length == NULL) {
+  if (consumer == NULL) {
     return false;
   }
   TimelineEventRecorder* timeline_recorder = isolate->timeline_event_recorder();
@@ -5804,8 +5801,59 @@ DART_EXPORT bool Dart_TimelineGetTrace(const char** output,
   isolate->thread_registry()->SafepointThreads();
   JSONStream js;
   timeline_recorder->PrintJSON(&js);
-  js.Steal(output, output_length);
+  // Resume execution of other threads.
   isolate->thread_registry()->ResumeAllThreads();
+
+  // Copy output.
+  char* output = NULL;
+  intptr_t output_length = 0;
+  js.Steal(const_cast<const char**>(&output), &output_length);
+  if (output != NULL) {
+    // Add one for the '\0' character.
+    output_length++;
+  }
+  // Start stream.
+  const char* kStreamName = "timeline";
+  const intptr_t kDataSize = 64 * KB;
+  consumer(Dart_StreamConsumer_kStart,
+           kStreamName,
+           NULL,
+           0,
+           user_data);
+
+  // Stream out data.
+  intptr_t cursor = 0;
+  intptr_t remaining = output_length;
+  while (remaining >= kDataSize) {
+    consumer(Dart_StreamConsumer_kData,
+             kStreamName,
+             reinterpret_cast<uint8_t*>(&output[cursor]),
+             kDataSize,
+             user_data);
+    cursor += kDataSize;
+    remaining -= kDataSize;
+  }
+  if (remaining > 0) {
+    ASSERT(remaining < kDataSize);
+    consumer(Dart_StreamConsumer_kData,
+             kStreamName,
+             reinterpret_cast<uint8_t*>(&output[cursor]),
+             remaining,
+             user_data);
+    cursor += remaining;
+    remaining -= remaining;
+  }
+  ASSERT(cursor == output_length);
+  ASSERT(remaining == 0);
+  // We stole the JSONStream's output buffer, free it.
+  free(output);
+
+  // Finish stream.
+  consumer(Dart_StreamConsumer_kFinish,
+           kStreamName,
+           NULL,
+           0,
+           user_data);
   return true;
 }
 

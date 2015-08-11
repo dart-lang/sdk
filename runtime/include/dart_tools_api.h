@@ -909,20 +909,56 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
  */
 DART_EXPORT void Dart_TimelineSetRecordedStreams(int64_t stream_mask);
 
+typedef enum {
+  /** Indicates a new stream is being output */
+  Dart_StreamConsumer_kStart = 0,
+  /** Data for the current stream */
+  Dart_StreamConsumer_kData = 1,
+  /** Indicates stream is finished */
+  Dart_StreamConsumer_kFinish = 2,
+} Dart_StreamConsumer_State;
+
+/**
+ * A stream consumer callback function.
+ *
+ * This function will be called repeatedly until there is no more data in a
+ * stream and there are no more streams.
+ *
+ * \param state Indicates a new stream, data, or a finished stream.
+ * \param stream_name A name for this stream. Not guaranteed to be meaningful.
+ * \param buffer A pointer to the stream data.
+ * \param buffer_length The number of bytes at buffer that should be consumed.
+ * \param stream_callback_data The pointer passed in when requesting the stream.
+ *
+ * At the start of each stream state will be DART_STREAM_CONSUMER_STATE_START
+ * and buffer will be NULL.
+ *
+ * For each chunk of data the state will be DART_STREAM_CONSUMER_STATE_DATA
+ * and buffer will not be NULL.
+ *
+ * At the end of each stream state will be DART_STREAM_CONSUMER_STATE_FINISH
+ * and buffer will be NULL.
+ */
+typedef void (*Dart_StreamConsumer)(
+    Dart_StreamConsumer_State state,
+    const char* stream_name,
+    uint8_t* buffer,
+    intptr_t buffer_length,
+    void* stream_callback_data);
+
+
 /**
  * Get the timeline for the current isolate in trace-event format
  *
- * \param output The address of the trace buffer output
- * \param output_length The length of the trace buffer output
- *
- * NOTE: output is allocated in the C heap and must be freed by the caller.
+ * \param consumer A Dart_StreamConsumer.
+ * \param user_data User data passed into consumer.
  *
  * NOTE: The trace-event format is documented here: https://goo.gl/hDZw5M
  *
- * \return True if a trace was output. The outputted trace may be empty.
+ * \return True if a stream was output.
  */
-DART_EXPORT bool Dart_TimelineGetTrace(const char** output,
-                                       intptr_t* output_length);
+DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
+                                       void* user_data);
 
 /**
  * Add a duration timeline event to the embedder stream for the current isolate.
