@@ -852,6 +852,11 @@ class TransformingVisitor extends LeafVisitor {
     }
   }
 
+  /// Returns the possible targets of [selector] when invoked on a receiver
+  /// of type [receiverType].
+  Iterable<Element> getAllTargets(TypeMask receiverType, Selector selector) {
+    return compiler.world.allFunctions.filter(selector, receiverType);
+  }
 
   /************************* CALL EXPRESSIONS *************************/
 
@@ -885,8 +890,23 @@ class TransformingVisitor extends LeafVisitor {
         // Equality is special due to its treatment of null values and the
         // fact that Dart-null corresponds to both JS-null and JS-undefined.
         // Please see documentation for IsFalsy, StrictEq, and LooseEq.
-        if (lattice.isDefinitelyNumStringBool(left, allowNull: true) ||
-            right.isNullConstant) {
+        if (left.isNullConstant || right.isNullConstant) {
+          return replaceWithBinary(BuiltinOperator.Identical, 
+                                   leftArg, rightArg);
+        }
+        // There are several implementations of == that behave like identical.
+        // Specialize it if we definitely call one of those.
+        bool behavesLikeIdentical = true;
+        for (Element target in getAllTargets(left.type, node.selector)) {
+          ClassElement clazz = target.enclosingClass.declaration;
+          if (clazz != compiler.world.objectClass && 
+              clazz != backend.jsInterceptorClass && 
+              clazz != backend.jsNullClass) {
+            behavesLikeIdentical = false;
+            break;
+          }
+        }
+        if (behavesLikeIdentical) {
           return replaceWithBinary(BuiltinOperator.Identical, 
                                    leftArg, rightArg);
         }
