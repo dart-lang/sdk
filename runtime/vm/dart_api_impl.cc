@@ -2793,7 +2793,7 @@ DART_EXPORT Dart_Handle Dart_ListGetRange(Dart_Handle list,
           args.SetAt(1, index);
           Dart_Handle value = Api::NewHandle(isolate,
               DartEntry::InvokeFunction(function, args));
-          if (Dart_IsError(value))
+          if (::Dart_IsError(value))
             return value;
           result[i] = value;
         }
