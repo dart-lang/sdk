@@ -226,7 +226,8 @@ InterruptableThreadState* ThreadInterrupter::GetCurrentThreadState() {
 
 
 InterruptableThreadState* ThreadInterrupter::CurrentThreadState() {
-  return Thread::Current()->thread_state();
+  Thread* thread = Thread::Current();
+  return (thread == NULL) ? NULL : thread->thread_state();
 }
 
 
