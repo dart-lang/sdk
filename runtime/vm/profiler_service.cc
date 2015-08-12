@@ -1071,6 +1071,13 @@ class ProfileBuilder : public ValueObject {
         timestamp > profile_->max_time_ ? timestamp : profile_->max_time_;
   }
 
+  void SanitizeMinMaxTimes() {
+    if ((profile_->min_time_ == kMaxInt64) && (profile_->max_time_ == 0)) {
+      profile_->min_time_ = 0;
+      profile_->max_time_ = 0;
+    }
+  }
+
   void BuildCodeTable() {
     ScopeTimer sw("ProfileBuilder::BuildCodeTable", FLAG_trace_profiler);
     for (intptr_t sample_index = 0;
@@ -1105,6 +1112,7 @@ class ProfileBuilder : public ValueObject {
         code->Tick(pc, IsExecutingFrame(sample, frame_index), sample_index);
       }
     }
+    SanitizeMinMaxTimes();
   }
 
   void FinalizeCodeIndexes() {
