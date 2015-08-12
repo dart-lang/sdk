@@ -1627,8 +1627,8 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     deopt_context()->VisitObjectPointers(visitor);
   }
 
-  // Visit objects in thread registry (e.g., handles in zones).
-  thread_registry()->VisitObjectPointers(visitor);
+  // Visit objects in thread registry (e.g., Dart stack, handles in zones).
+  thread_registry()->VisitObjectPointers(visitor, validate_frames);
 }
 
 

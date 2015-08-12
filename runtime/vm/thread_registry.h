@@ -115,7 +115,8 @@ class ThreadRegistry {
     }
   }
 
-  void VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  void VisitObjectPointers(ObjectPointerVisitor* visitor,
+                           bool validate_frames) {
     MonitorLocker ml(monitor_);
     for (int i = 0; i < entries_.length(); ++i) {
       const Entry& entry = entries_[i];
@@ -125,9 +126,8 @@ class ThreadRegistry {
         state.zone->VisitObjectPointers(visitor);
       }
       // Iterate over all the stack frames and visit objects on the stack.
-      uword efi = state.top_exit_frame_info;
-      if (efi == 0) continue;
-      StackFrameIterator frames_iterator(efi, false);
+      StackFrameIterator frames_iterator(state.top_exit_frame_info,
+                                         validate_frames);
       StackFrame* frame = frames_iterator.NextFrame();
       while (frame != NULL) {
         frame->VisitObjectPointers(visitor);

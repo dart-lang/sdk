@@ -131,13 +131,15 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       const intptr_t unique_smi = id_ + 928327281;
       Smi& smi = Smi::Handle(zone, Smi::New(unique_smi));
       EXPECT(smi.Value() == unique_smi);
-      ObjectCounter counter(isolate_, &smi);
-      // Ensure that our particular zone is visited.
-      isolate_->IterateObjectPointers(&counter,
-                                      /* visit_prologue_weak_handles = */ true,
-                                      /* validate_frames = */ true);
-      EXPECT_EQ(1, counter.count());
-
+      {
+        ObjectCounter counter(isolate_, &smi);
+        // Ensure that our particular zone is visited.
+        isolate_->IterateObjectPointers(
+            &counter,
+            /* visit_prologue_weak_handles = */ true,
+            StackFrameIterator::kValidateFrames);
+        EXPECT_EQ(1, counter.count());
+      }
       char* unique_chars = zone->PrintToString("unique_str_%" Pd, id_);
       String& unique_str = String::Handle(zone);
       {
@@ -147,12 +149,16 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
         unique_str = String::New(unique_chars, Heap::kOld);
       }
       EXPECT(unique_str.Equals(unique_chars));
-      ObjectCounter str_counter(isolate_, &unique_str);
-      // Ensure that our particular zone is visited.
-      // TODO(koda): Remove "->thread_registry()" after updating stack walker.
-      isolate_->thread_registry()->VisitObjectPointers(&str_counter);
-      // We should visit the string object exactly once.
-      EXPECT_EQ(1, str_counter.count());
+      {
+        ObjectCounter str_counter(isolate_, &unique_str);
+        // Ensure that our particular zone is visited.
+        isolate_->IterateObjectPointers(
+            &str_counter,
+            /* visit_prologue_weak_handles = */ true,
+            StackFrameIterator::kValidateFrames);
+        // We should visit the string object exactly once.
+        EXPECT_EQ(1, str_counter.count());
+      }
     }
     Thread::ExitIsolateAsHelper();
     {
@@ -273,7 +279,10 @@ class SafepointTestTask : public ThreadPool::Task {
         // But occasionally, organize a rendezvous.
         isolate_->thread_registry()->SafepointThreads();
         ObjectCounter counter(isolate_, &smi);
-        isolate_->thread_registry()->VisitObjectPointers(&counter);
+        isolate_->IterateObjectPointers(
+            &counter,
+            /* visit_prologue_weak_handles = */ true,
+            StackFrameIterator::kValidateFrames);
         {
           MutexLocker ml(mutex_);
           EXPECT_EQ(*expected_count_, counter.count());
