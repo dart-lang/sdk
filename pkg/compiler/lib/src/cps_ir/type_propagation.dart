@@ -177,6 +177,12 @@ class TypeMaskSystem {
     return t.nonNullable().satisfies(backend.jsFixedArrayClass, classWorld);
   }
 
+  bool isDefinitelyExtendableNativeList(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.nonNullable().satisfies(backend.jsExtendableArrayClass, 
+        classWorld);
+  }
+
   bool areDisjoint(TypeMask leftType, TypeMask rightType) {
     TypeMask intersection = leftType.intersection(rightType, classWorld);
     return intersection.isEmpty && !intersection.isNullable;
@@ -329,6 +335,13 @@ class ConstantPropagationLattice {
     return value.isNothing ||
         typeSystem.isDefinitelyFixedNativeList(value.type,
                                                allowNull: allowNull);
+  }
+
+  bool isDefinitelyExtendableNativeList(AbstractValue value,
+                                        {bool allowNull: false}) {
+    return value.isNothing ||
+        typeSystem.isDefinitelyExtendableNativeList(value.type,
+                                                    allowNull: allowNull);
   }
 
   /// Returns whether the given [value] is an instance of [type].
@@ -1083,6 +1096,8 @@ class TransformingVisitor extends LeafVisitor {
         lattice.isDefinitelyFixedNativeList(listValue, allowNull: true);
     bool isMutable =
         lattice.isDefinitelyMutableNativeList(listValue, allowNull: true);
+    bool isExtendable =
+        lattice.isDefinitelyExtendableNativeList(listValue, allowNull: true);
     SourceInformation sourceInfo = node.sourceInformation;
     Continuation cont = node.continuation.definition;
     switch (node.selector.name) {
@@ -1094,7 +1109,67 @@ class TransformingVisitor extends LeafVisitor {
         push(cps.result);
         return true;
 
+      case 'add':
+        if (!node.selector.isCall ||
+            node.selector.positionalArgumentCount != 1 ||
+            node.selector.namedArgumentCount != 0) {
+          return false;
+        }
+        if (!isExtendable) return false;
+        Primitive addedItem = getDartArgument(node, 0);
+        CpsFragment cps = new CpsFragment(sourceInfo);
+        cps.invokeBuiltin(BuiltinMethod.Push, 
+            list, 
+            <Primitive>[addedItem],
+            receiverIsNotNull: listValue.isDefinitelyNotNull);
+        cps.invokeContinuation(cont, [cps.makeNull()]);
+        replaceSubtree(node, cps.result);
+        push(cps.result);
+        return true;
+
+      case 'removeLast':
+        if (!node.selector.isCall ||
+            node.selector.argumentCount != 0) {
+          return false;
+        }
+        if (!isExtendable) return false;
+        CpsFragment cps = new CpsFragment(sourceInfo);
+        Primitive removedItem = cps.invokeBuiltin(BuiltinMethod.Pop,
+            list, 
+            <Primitive>[],
+            receiverIsNotNull: listValue.isDefinitelyNotNull);
+        cps.invokeContinuation(cont, [removedItem]);
+        replaceSubtree(node, cps.result);
+        push(cps.result);
+        return true;
+
+      case 'addAll':
+        if (!node.selector.isCall ||
+            node.selector.argumentCount != 1) {
+          return false;
+        }
+        if (!isExtendable) return false;
+        Primitive addedList = getDartArgument(node, 0);
+        if (addedList is! LiteralList) return false;
+        LiteralList addedLiteral = addedList;
+        CpsFragment cps = new CpsFragment(sourceInfo);
+        cps.invokeBuiltin(BuiltinMethod.Push, 
+            list, 
+            addedLiteral.values.map((ref) => ref.definition).toList(),
+            receiverIsNotNull: listValue.isDefinitelyNotNull);
+        cps.invokeContinuation(cont, [cps.makeNull()]);
+        replaceSubtree(node, cps.result);
+        push(cps.result);
+        return true;
+
       case '[]':
+      case 'elementAt':
+        if (node.selector.name == 'elementAt' &&
+            (!node.selector.isCall || 
+             node.selector.positionalArgumentCount != 1 ||
+             node.selector.namedArgumentCount != 0)) {
+          return false;
+        }
         if (listValue.isNullable) return false;
         if (hasTooManyIndexAccesses(list)) return false;
         Primitive index = getDartArgument(node, 0);
@@ -1325,8 +1400,6 @@ class TransformingVisitor extends LeafVisitor {
         replaceSubtree(node, invoke);
         push(invoke);
         return true;
-
-      // TODO(asgerf): Rewrite 'add', 'removeLast', ...
 
       default:
         return false;
@@ -1645,6 +1718,27 @@ class TransformingVisitor extends LeafVisitor {
 
       default:
     }
+  }
+
+  Primitive visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
+    if (node.method == BuiltinMethod.Push) {
+      // Convert consecutive pushes into a single push.
+      InteriorNode parent = getEffectiveParent(node.parent);
+      if (parent is LetPrim && parent.primitive is ApplyBuiltinMethod) {
+        ApplyBuiltinMethod previous = parent.primitive;
+        if (previous.method == BuiltinMethod.Push && 
+            previous.receiver.definition == node.receiver.definition) {
+          for (Reference ref in node.arguments) {
+            previous.arguments.add(ref);
+            ref.parent = previous;
+          }
+          node.arguments.clear(); // Avoid unlinking adopted references.
+          // Replace the old push by a dummy that will get removed.
+          return makeConstantPrimitive(new NullConstantValue());
+        }
+      }
+    }
+    return null;
   }
 
   Primitive visitTypeTest(TypeTest node) {
@@ -2057,6 +2151,11 @@ class TypePropagationVisitor implements Visitor {
         setValue(node, nonConstant(typeSystem.boolType));
         break;
     }
+  }
+
+  void visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
+    // TODO(asgerf): For pop(), use the container type from the TypeMask.
+    setValue(node, nonConstant());
   }
 
   void visitInvokeMethodDirectly(InvokeMethodDirectly node) {

@@ -347,6 +347,17 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
+  Expression visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
+    node.receiver = visitExpression(node.receiver);
+    if (!node.receiverIsNotNull) {
+      // If the receiver is null, the method lookup throws.
+      ++impureCounter;
+    }
+    rewriteList(node.arguments);
+    ++impureCounter;
+    return node;
+  }
+
   @override
   Expression visitForeignExpression(ForeignExpression node) {
     rewriteList(node.arguments);

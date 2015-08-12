@@ -666,6 +666,11 @@ class ParentVisitor extends RecursiveVisitor {
     node.arguments.forEach((Reference ref) => ref.parent = node);
   }
 
+  processApplyBuiltinMethod(ApplyBuiltinMethod node) {
+    node.receiver.parent = node;
+    node.arguments.forEach((Reference ref) => ref.parent = node);
+  }
+
   processForeignCode(ForeignCode node) {
     if (node.continuation != null) {
       node.continuation.parent = node;

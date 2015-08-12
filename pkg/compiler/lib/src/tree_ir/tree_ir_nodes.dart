@@ -362,6 +362,26 @@ class ApplyBuiltinOperator extends Expression {
   }
 }
 
+class ApplyBuiltinMethod extends Expression {
+  BuiltinMethod method;
+  Expression receiver;
+  List<Expression> arguments;
+
+  bool receiverIsNotNull;
+
+  ApplyBuiltinMethod(this.method, 
+                     this.receiver,
+                     this.arguments,
+                     {this.receiverIsNotNull: false});
+
+  accept(ExpressionVisitor visitor) {
+    return visitor.visitApplyBuiltinMethod(this);
+  }
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitApplyBuiltinMethod(this, arg);
+  }
+}
+
 /// A conditional expression.
 class Conditional extends Expression {
   Expression condition;
@@ -938,6 +958,7 @@ abstract class ExpressionVisitor<E> {
   E visitCreateInvocationMirror(CreateInvocationMirror node);
   E visitInterceptor(Interceptor node);
   E visitApplyBuiltinOperator(ApplyBuiltinOperator node);
+  E visitApplyBuiltinMethod(ApplyBuiltinMethod node);
   E visitForeignExpression(ForeignExpression node);
   E visitGetLength(GetLength node);
   E visitGetIndex(GetIndex node);
@@ -974,6 +995,7 @@ abstract class ExpressionVisitor1<E, A> {
   E visitCreateInvocationMirror(CreateInvocationMirror node, A arg);
   E visitInterceptor(Interceptor node, A arg);
   E visitApplyBuiltinOperator(ApplyBuiltinOperator node, A arg);
+  E visitApplyBuiltinMethod(ApplyBuiltinMethod node, A arg);
   E visitForeignExpression(ForeignExpression node, A arg);
   E visitGetLength(GetLength node, A arg);
   E visitGetIndex(GetIndex node, A arg);
@@ -1184,6 +1206,11 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   }
 
   visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    node.arguments.forEach(visitExpression);
+  }
+
+  visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
+    visitExpression(node.receiver);
     node.arguments.forEach(visitExpression);
   }
 
@@ -1432,6 +1459,12 @@ class RecursiveTransformer extends Transformer {
   }
 
   visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    _replaceExpressions(node.arguments);
+    return node;
+  }
+
+  visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
+    node.receiver = visitExpression(node.receiver);
     _replaceExpressions(node.arguments);
     return node;
   }

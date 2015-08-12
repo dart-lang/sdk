@@ -326,6 +326,13 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return '(ApplyBuiltinOperator $operator ($args))';
   }
 
+  String visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
+    String method = node.method.toString();
+    String receiver = access(node.receiver);
+    String args = node.arguments.map(access).join(' ');
+    return '(ApplyBuiltinMethod $method $receiver ($args))';
+  }
+
   String visitForeignCode(ForeignCode node) {
     String arguments = node.arguments.map(access).join(' ');
     String continuation = node.continuation == null ? ''

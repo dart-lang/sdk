@@ -356,6 +356,13 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return 'ApplyBuiltinOperator $operator ($args)';
   }
 
+  visitApplyBuiltinMethod(cps_ir.ApplyBuiltinMethod node) {
+    String method = node.method.toString();
+    String receiver = formatReference(node.receiver);
+    String args = node.arguments.map(formatReference).join(', ');
+    return 'ApplyBuiltinMethod $method $receiver ($args)';
+  }
+
   @override
   visitForeignCode(cps_ir.ForeignCode node) {
     String id = names.name(node);
@@ -629,6 +636,10 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
+    unexpectedNode(node);
+  }
+
+  visitApplyBuiltinMethod(cps_ir.ApplyBuiltinMethod node) {
     unexpectedNode(node);
   }
 

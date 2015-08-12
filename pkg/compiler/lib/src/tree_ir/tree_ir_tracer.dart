@@ -496,7 +496,6 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return 'CreateInstance $className($arguments)';
   }
 
-
   @override
   String visitReadTypeVariable(ReadTypeVariable node) {
     return 'Read ${node.variable.element} ${visitExpression(node.target)}';
@@ -533,6 +532,13 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
   String visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     String args = node.arguments.map(visitExpression).join(', ');
     return 'ApplyBuiltinOperator ${node.operator} ($args)';
+  }
+
+  @override
+  String visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
+    String receiver = visitExpression(node.receiver);
+    String args = node.arguments.map(visitExpression).join(', ');
+    return 'ApplyBuiltinMethod ${node.method} $receiver ($args)';
   }
 
   @override

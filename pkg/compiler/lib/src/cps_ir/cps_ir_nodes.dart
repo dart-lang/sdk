@@ -519,6 +519,31 @@ class ApplyBuiltinOperator extends Primitive {
   bool get isSafeForReordering => true;
 }
 
+/// Apply a built-in method.
+///
+/// It must be known that the arguments have the proper types.
+class ApplyBuiltinMethod extends Primitive {
+  BuiltinMethod method;
+  Reference<Primitive> receiver;
+  List<Reference<Primitive>> arguments;
+  final SourceInformation sourceInformation;
+
+  bool receiverIsNotNull;
+
+  ApplyBuiltinMethod(this.method,
+                     Primitive receiver,
+                     List<Primitive> arguments,
+                     this.sourceInformation,
+                     {this.receiverIsNotNull: false})
+      : this.receiver = new Reference<Primitive>(receiver),
+        this.arguments = _referenceList(arguments);
+
+  accept(Visitor visitor) => visitor.visitApplyBuiltinMethod(this);
+
+  bool get isSafeForElimination => false;
+  bool get isSafeForReordering => false;
+}
+
 /// Throw a value.
 ///
 /// Throw is an expression, i.e., it always occurs in tail position with
@@ -1156,6 +1181,7 @@ abstract class Visitor<T> {
   T visitCreateInvocationMirror(CreateInvocationMirror node);
   T visitTypeTest(TypeTest node);
   T visitApplyBuiltinOperator(ApplyBuiltinOperator node);
+  T visitApplyBuiltinMethod(ApplyBuiltinMethod node);
   T visitGetLength(GetLength node);
   T visitGetIndex(GetIndex node);
   T visitSetIndex(SetIndex node);
@@ -1423,6 +1449,13 @@ class LeafVisitor implements Visitor {
   processApplyBuiltinOperator(ApplyBuiltinOperator node) {}
   visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     processApplyBuiltinOperator(node);
+    node.arguments.forEach(processReference);
+  }
+
+  processApplyBuiltinMethod(ApplyBuiltinMethod node) {}
+  visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
+    processApplyBuiltinMethod(node);
+    processReference(node.receiver);
     node.arguments.forEach(processReference);
   }
 

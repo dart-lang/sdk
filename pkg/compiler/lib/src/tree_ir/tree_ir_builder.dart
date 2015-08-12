@@ -640,6 +640,13 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
                                     translateArguments(node.arguments));
   }
 
+  Expression visitApplyBuiltinMethod(cps_ir.ApplyBuiltinMethod node) {
+    return new ApplyBuiltinMethod(node.method,
+        getVariableUse(node.receiver),
+        translateArguments(node.arguments),
+        receiverIsNotNull: node.receiverIsNotNull);
+  }
+
   Expression visitGetLength(cps_ir.GetLength node) {
     return new GetLength(getVariableUse(node.object));
   }

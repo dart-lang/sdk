@@ -16,7 +16,7 @@ import '../../elements/elements.dart';
 import '../../io/source_information.dart' show SourceInformation;
 import '../../js/js.dart' as js;
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
-import '../../tree_ir/tree_ir_nodes.dart' show BuiltinOperator;
+import '../../tree_ir/tree_ir_nodes.dart' show BuiltinOperator, BuiltinMethod;
 import '../../types/types.dart' show TypeMask;
 import '../../universe/universe.dart' show
     Selector,
@@ -831,6 +831,21 @@ class CodeGenerator extends tree_ir.StatementVisitor
       case BuiltinOperator.IsNumberAndFloor:
         return js.js("typeof # === 'number' && Math.floor(#) === #", args);
     }
+  }
+
+  /// The JS name of a built-in method.
+  static final Map<BuiltinMethod, String> builtinMethodName = 
+    const <BuiltinMethod, String>{
+      BuiltinMethod.Push: 'push',
+      BuiltinMethod.Pop: 'pop',
+  };
+
+  @override
+  js.Expression visitApplyBuiltinMethod(tree_ir.ApplyBuiltinMethod node) {
+    String name = builtinMethodName[node.method];
+    js.Expression receiver = visitExpression(node.receiver);
+    List<js.Expression> args = visitExpressionList(node.arguments);
+    return js.js('#.#(#)', [receiver, name, args]);
   }
 
   @override
