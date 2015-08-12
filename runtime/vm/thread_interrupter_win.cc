@@ -21,29 +21,29 @@ class ThreadInterrupterWin : public AllStatic {
   static bool GrabRegisters(HANDLE handle, InterruptedThreadState* state) {
     CONTEXT context;
     memset(&context, 0, sizeof(context));
-#if defined(TARGET_ARCH_IA32)
+#if defined(HOST_ARCH_IA32)
     // On IA32, CONTEXT_CONTROL includes Eip, Ebp, and Esp.
     context.ContextFlags = CONTEXT_CONTROL;
-#elif defined(TARGET_ARCH_X64)
+#elif defined(HOST_ARCH_X64)
     // On X64, CONTEXT_CONTROL includes Rip and Rsp. Rbp is classified
     // as an "integer" register.
     context.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
 #else
-    UNIMPLEMENTED();
+#error Unsupported architecture.
 #endif
     if (GetThreadContext(handle, &context) != 0) {
-#if defined(TARGET_ARCH_IA32)
+#if defined(HOST_ARCH_IA32)
       state->pc = static_cast<uintptr_t>(context.Eip);
       state->fp = static_cast<uintptr_t>(context.Ebp);
       state->csp = static_cast<uintptr_t>(context.Esp);
       state->dsp = static_cast<uintptr_t>(context.Esp);
-#elif defined(TARGET_ARCH_X64)
+#elif defined(HOST_ARCH_X64)
       state->pc = static_cast<uintptr_t>(context.Rip);
       state->fp = static_cast<uintptr_t>(context.Rbp);
       state->csp = static_cast<uintptr_t>(context.Rsp);
       state->dsp = static_cast<uintptr_t>(context.Rsp);
 #else
-      UNIMPLEMENTED();
+#error Unsupported architecture.
 #endif
       return true;
     }
