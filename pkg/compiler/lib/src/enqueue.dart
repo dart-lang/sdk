@@ -6,20 +6,29 @@ library dart2js.enqueue;
 
 import 'dart:collection' show
     Queue;
-import 'dart2jslib.dart' show
-    invariant,
-    CodegenWorkItem,
-    Compiler,
+
+import 'common/work.dart' show
+    ItemCompilationContext,
+    WorkItem;
+import 'common/tasks.dart' show
     CompilerTask,
     DeferredAction,
-    DeferredTask,
-    ItemCompilationContext,
-    Registry,
-    ResolutionWorkItem,
-    WorkItem;
+    DeferredTask;
+import 'common/registry.dart' show
+    Registry;
+import 'common/codegen.dart' show
+    CodegenWorkItem;
+import 'common/resolution.dart' show
+    ResolutionWorkItem;
+import 'compiler.dart' show
+    Compiler;
 import 'dart_types.dart' show
     DartType,
     InterfaceType;
+import 'diagnostics/invariant.dart' show
+    invariant;
+import 'diagnostics/spannable.dart' show
+    SpannableAssertionFailure;
 import 'elements/elements.dart' show
     AnalyzableElement,
     AstElement,
@@ -44,8 +53,7 @@ import 'tree/tree.dart' show
 import 'universe/universe.dart';
 import 'util/util.dart' show
     Link,
-    Setlet,
-    SpannableAssertionFailure;
+    Setlet;
 
 typedef ItemCompilationContext ItemCompilationContextCreator();
 

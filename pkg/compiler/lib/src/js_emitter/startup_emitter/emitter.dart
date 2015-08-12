@@ -18,8 +18,8 @@ import '../../elements/elements.dart' show FieldElement;
 import '../../js/js.dart' as js;
 
 import '../../js_backend/js_backend.dart' show
-JavaScriptBackend,
-Namer;
+    JavaScriptBackend,
+    Namer;
 
 import '../js_emitter.dart' show
     NativeEmitter;
@@ -27,7 +27,7 @@ import '../js_emitter.dart' show
 import '../js_emitter.dart' as emitterTask show
     Emitter;
 
-import '../../util/util.dart' show
+import '../../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE;
 
 class Emitter implements emitterTask.Emitter {

@@ -11,12 +11,12 @@ library dart2js.serialization.modelz;
 
 import 'serialization.dart';
 import 'keys.dart';
+import '../compiler.dart'
+    show Compiler;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../dart2jslib.dart'
-    show Backend,
-         Compiler,
-         SourceSpan;
+import '../diagnostics/source_span.dart'
+    show SourceSpan;
 import '../dart_types.dart';
 import '../diagnostic_listener.dart';
 import '../elements/elements.dart';

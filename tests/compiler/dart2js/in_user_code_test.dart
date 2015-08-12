@@ -7,7 +7,7 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/dart2jslib.dart' show Compiler;
+import 'package:compiler/src/compiler.dart' show Compiler;
 import 'memory_compiler.dart';
 
 const SOURCE = const {

@@ -9,17 +9,28 @@ import 'dart:collection';
 import 'package:js_runtime/shared/embedded_names.dart';
 
 import '../closure.dart';
+import '../common/codegen.dart' show
+    CodegenRegistry,
+    CodegenWorkItem;
+import '../common/tasks.dart' show
+    CompilerTask;
+import '../compiler.dart' show
+    Compiler;
 import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../dart2jslib.dart' hide Selector, TypedSelector;
 import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/spannable.dart' show
+    CURRENT_ELEMENT_SPANNABLE,
+    Spannable;
 import '../elements/elements.dart';
-import '../elements/modelx.dart'
-    show ElementX,
-         VariableElementX,
-         ConstructorBodyElementX;
+import '../elements/modelx.dart' show
+    ConstructorBodyElementX,
+    ElementX,
+    VariableElementX;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';

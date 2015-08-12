@@ -6,8 +6,13 @@ library universe;
 
 import 'dart:collection';
 
+import '../compiler.dart' show
+    Compiler;
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/spannable.dart' show
+    SpannableAssertionFailure;
 import '../elements/elements.dart';
-import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../types/types.dart';
 import '../tree/tree.dart';

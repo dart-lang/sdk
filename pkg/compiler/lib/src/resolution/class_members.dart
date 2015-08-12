@@ -4,22 +4,24 @@
 
 library resolution.compute_members;
 
-import '../elements/elements.dart'
-    show Element,
-         Name,
-         PublicName,
-         Member,
-         MemberElement,
-         MemberSignature,
-         LibraryElement,
-         ClassElement,
-         MixinApplicationElement;
+import '../compiler.dart' show
+    Compiler,
+    isPrivateName;
 import '../dart_types.dart';
-import '../dart2jslib.dart'
-    show Compiler,
-         invariant,
-         isPrivateName;
-import '../messages.dart' show MessageKind;
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../elements/elements.dart' show
+    ClassElement,
+    Element,
+    LibraryElement,
+    Member,
+    MemberElement,
+    MemberSignature,
+    MixinApplicationElement,
+    Name,
+    PublicName;
+import '../messages.dart' show
+    MessageKind;
 import '../util/util.dart';
 
 part 'member_impl.dart';

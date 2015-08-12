@@ -6,6 +6,16 @@ library resolution;
 
 import 'dart:collection' show Queue;
 
+import '../common/backend_api.dart' show
+    Backend;
+import '../common/registry.dart' show
+    Registry;
+import '../common/tasks.dart' show
+    CompilerTask,
+    DeferredAction;
+import '../compiler.dart' show
+    Compiler,
+    isPrivateName;
 import '../compile_time_constants.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
@@ -13,7 +23,10 @@ import '../constants/values.dart';
 import '../core_types.dart';
 import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../dart_types.dart';
-import '../dart2jslib.dart' hide DynamicAccess;
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/spannable.dart' show
+    Spannable;
 import '../enqueue.dart' show
     ResolutionEnqueuer,
     WorldImpact;

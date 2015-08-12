@@ -4,15 +4,17 @@
 
 library dart2js.compile_time_constant_evaluator;
 
+import 'common/tasks.dart' show
+    CompilerTask;
+import 'compiler.dart' show
+    Compiler;
 import 'constant_system_dart.dart';
 import 'constants/constant_system.dart';
 import 'constants/evaluation.dart';
 import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'dart_types.dart';
-import 'dart2jslib.dart' show
-    Compiler,
-    CompilerTask,
+import 'diagnostics/invariant.dart' show
     invariant;
 import 'enqueue.dart' show
     WorldImpact;

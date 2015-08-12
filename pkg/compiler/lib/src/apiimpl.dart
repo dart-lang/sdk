@@ -9,22 +9,29 @@ import 'dart:convert';
 
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgs;
-import 'package:package_config/src/packages_impl.dart'
-    show NonFilePackagesDirectoryPackages, MapPackages;
-import 'package:package_config/src/util.dart' show checkValidPackageUri;
+import 'package:package_config/src/packages_impl.dart' show
+    MapPackages,
+    NonFilePackagesDirectoryPackages;
+import 'package:package_config/src/util.dart' show
+    checkValidPackageUri;
 import 'package:sdk_library_metadata/libraries.dart' hide LIBRARIES;
-import 'package:sdk_library_metadata/libraries.dart' as library_info show LIBRARIES;
+import 'package:sdk_library_metadata/libraries.dart' as library_info show
+    LIBRARIES;
 
 import '../compiler_new.dart' as api;
-import 'dart2jslib.dart' as leg;
+import 'common/tasks.dart' show
+    GenericTask;
+import 'compiler.dart' as leg;
+import 'diagnostics/source_span.dart' show
+    SourceSpan;
+import 'diagnostics/spannable.dart' show
+    NO_LOCATION_SPANNABLE,
+    Spannable;
 import 'elements/elements.dart' as elements;
 import 'io/source_file.dart';
 import 'messages.dart';
 import 'script.dart';
 import 'tree/tree.dart' as tree;
-import 'util/util.dart' show
-    NO_LOCATION_SPANNABLE,
-    Spannable;
 
 const bool forceIncrementalSupport =
     const bool.fromEnvironment('DART2JS_EXPERIMENTAL_INCREMENTAL_SUPPORT');
@@ -42,9 +49,9 @@ class Compiler extends leg.Compiler {
   bool mockableLibraryUsed = false;
   final Set<String> allowedLibraryCategories;
 
-  leg.GenericTask userHandlerTask;
-  leg.GenericTask userProviderTask;
-  leg.GenericTask userPackagesDiscoveryTask;
+  GenericTask userHandlerTask;
+  GenericTask userProviderTask;
+  GenericTask userPackagesDiscoveryTask;
 
   Compiler(this.provider,
            api.CompilerOutput outputProvider,
@@ -113,10 +120,10 @@ class Compiler extends leg.Compiler {
             allowNativeExtensions:
                 hasOption(options, '--allow-native-extensions')) {
     tasks.addAll([
-        userHandlerTask = new leg.GenericTask('Diagnostic handler', this),
-        userProviderTask = new leg.GenericTask('Input provider', this),
+        userHandlerTask = new GenericTask('Diagnostic handler', this),
+        userProviderTask = new GenericTask('Input provider', this),
         userPackagesDiscoveryTask =
-            new leg.GenericTask('Package discovery', this),
+            new GenericTask('Package discovery', this),
     ]);
     if (libraryRoot == null) {
       throw new ArgumentError("[libraryRoot] is null.");
@@ -233,7 +240,7 @@ class Compiler extends leg.Compiler {
     void reportReadError(exception) {
       if (element == null || node == null) {
         reportError(
-            new leg.SourceSpan(readableUri, 0, 0),
+            new SourceSpan(readableUri, 0, 0),
             MessageKind.READ_SELF_ERROR,
             {'uri': readableUri, 'exception': exception});
       } else {
@@ -426,7 +433,7 @@ class Compiler extends leg.Compiler {
   void reportDiagnostic(Spannable node,
                         Message message,
                         api.Diagnostic kind) {
-    leg.SourceSpan span = spanFromSpannable(node);
+    SourceSpan span = spanFromSpannable(node);
     if (identical(kind, api.Diagnostic.ERROR)
         || identical(kind, api.Diagnostic.CRASH)
         || (fatalWarnings && identical(kind, api.Diagnostic.WARNING))) {

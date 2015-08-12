@@ -7,7 +7,7 @@ library dart_backend.test_helper;
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler.dart' as api;
-import 'package:compiler/src/dart2jslib.dart';
+import 'package:compiler/src/compiler.dart';
 import '../../../../pkg/analyzer2dart/test/test_helper.dart';
 import '../compiler_helper.dart';
 

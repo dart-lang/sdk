@@ -6,8 +6,9 @@ library dart2js.constants.expressions;
 
 import '../constants/constant_system.dart';
 import '../core_types.dart';
-import '../dart2jslib.dart' show assertDebugMode;
 import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show
+    assertDebugMode;
 import '../elements/elements.dart' show
     ConstructorElement,
     Element,

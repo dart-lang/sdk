@@ -4,13 +4,13 @@
 
 library dart2js.diagnostic_listener;
 
-import 'dart2jslib.dart' show
+import 'diagnostics/source_span.dart' show
     SourceSpan;
+import 'diagnostics/spannable.dart' show
+    Spannable;
 import 'elements/elements.dart' show
     Element;
 import 'messages.dart';
-import 'util/util.dart' show
-    Spannable;
 
 abstract class DiagnosticListener {
   // TODO(karlklose): rename log to something like reportInfo.

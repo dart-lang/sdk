@@ -10,6 +10,8 @@ import 'dart:collection';
 
 import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/constants/expressions.dart';
+import 'package:compiler/src/diagnostics/source_span.dart';
+import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/js_backend.dart'
     show JavaScriptBackend;
@@ -19,7 +21,6 @@ import 'package:compiler/src/resolution/resolution.dart';
 import 'package:compiler/src/script.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/old_to_new_api.dart';
-import 'package:compiler/src/util/util.dart';
 import 'parser_helper.dart';
 
 import 'package:compiler/src/elements/modelx.dart'
@@ -28,8 +29,7 @@ import 'package:compiler/src/elements/modelx.dart'
          ErroneousElementX,
          FunctionElementX;
 
-import 'package:compiler/src/dart2jslib.dart'
-    hide TreeElementMapping;
+import 'package:compiler/src/compiler.dart';
 
 import 'package:compiler/src/deferred_load.dart'
     show DeferredLoadTask,

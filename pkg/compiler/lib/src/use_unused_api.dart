@@ -21,7 +21,7 @@ import 'cps_ir/cps_ir_builder_task.dart' as ir_builder;
 import 'tree_ir/tree_ir_nodes.dart' as tree_ir;
 import 'dart_types.dart' as dart_types;
 import 'dart2js.dart' as dart2js;
-import 'dart2jslib.dart' as dart2jslib;
+import 'compiler.dart' as dart2jslib;
 import 'elements/elements.dart' as elements;
 import 'elements/modelx.dart' as modelx;
 import 'elements/visitor.dart' as elements_visitor;

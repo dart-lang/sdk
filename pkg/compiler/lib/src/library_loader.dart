@@ -6,11 +6,13 @@ library dart2js.library_loader;
 
 import 'dart:async';
 
-import 'dart2jslib.dart' show
-    Compiler,
-    CompilerTask,
-    invariant;
+import 'common/tasks.dart' show
+    CompilerTask;
+import 'compiler.dart' show
+    Compiler;
 import 'diagnostic_listener.dart';
+import 'diagnostics/invariant.dart' show
+    invariant;
 import 'elements/elements.dart' show
     CompilationUnitElement,
     Element,

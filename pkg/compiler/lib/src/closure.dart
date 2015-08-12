@@ -4,16 +4,21 @@
 
 library closureToClassMapper;
 
+import 'common/tasks.dart' show
+    CompilerTask;
+import 'compiler.dart' show
+    Compiler;
 import 'constants/expressions.dart';
-import 'dart2jslib.dart';
 import 'dart_types.dart';
 import 'diagnostic_listener.dart';
+import 'diagnostics/spannable.dart' show
+    SpannableAssertionFailure;
 import 'elements/elements.dart';
-import 'elements/modelx.dart'
-    show BaseFunctionElementX,
-         ClassElementX,
-         ElementX,
-         LocalFunctionElementX;
+import 'elements/modelx.dart' show
+    BaseFunctionElementX,
+    ClassElementX,
+    ElementX,
+    LocalFunctionElementX;
 import 'elements/visitor.dart' show ElementVisitor;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'resolution/resolution.dart' show TreeElements;

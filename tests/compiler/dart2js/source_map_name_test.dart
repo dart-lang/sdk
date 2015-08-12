@@ -6,7 +6,7 @@ library source_map_name_test;
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/dart2jslib.dart';
+import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/io/source_information.dart';
 import 'memory_compiler.dart';

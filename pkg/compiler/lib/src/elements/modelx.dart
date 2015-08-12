@@ -4,49 +4,40 @@
 
 library elements.modelx;
 
-import 'common.dart';
-import 'elements.dart';
+import '../compiler.dart' show
+    Compiler,
+    isPrivateName;
 import '../constants/constant_constructors.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
+import '../dart_types.dart';
 import '../diagnostic_listener.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/source_span.dart' show
+    SourceSpan;
+import '../diagnostics/spannable.dart' show
+    Spannable,
+    SpannableAssertionFailure;
 import '../helpers/helpers.dart';
 import '../messages.dart';
-import '../script.dart';
-import '../tree/tree.dart';
-import '../util/util.dart';
+import '../ordered_typeset.dart' show
+    OrderedTypeSet;
 import '../resolution/resolution.dart';
-import '../resolution/class_members.dart' show ClassMemberMixin;
-
-import '../dart2jslib.dart' show
-    Backend,
-    Compiler,
-    Constant,
-    DartType,
-    DiagnosticListener,
-    DualKind,
-    FunctionType,
-    InterfaceType,
-    MessageKind,
-    MessageTemplate,
-    Script,
-    Selector,
-    SourceSpan,
-    TypeVariableType,
-    TypedefType,
-    invariant,
-    isPrivateName;
-
-import '../dart_types.dart';
-
+import '../resolution/class_members.dart' show
+    ClassMemberMixin;
 import '../scanner/scannerlib.dart' show
     EOF_TOKEN,
     ErrorToken,
     Token;
+import '../script.dart';
+import '../tree/tree.dart';
+import '../util/util.dart';
 
-import '../ordered_typeset.dart' show OrderedTypeSet;
-
-import 'visitor.dart' show ElementVisitor;
+import 'common.dart';
+import 'elements.dart';
+import 'visitor.dart' show
+    ElementVisitor;
 
 abstract class DeclarationSite {
 }

@@ -6,7 +6,7 @@
 library dart_backend.end2end_test;
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/dart2jslib.dart';
+import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/dart_backend/dart_backend.dart';
 import 'package:expect/expect.dart';
 

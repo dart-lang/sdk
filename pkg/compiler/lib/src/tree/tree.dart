@@ -6,6 +6,9 @@ library tree;
 
 import 'dart:collection';
 
+import '../diagnostics/spannable.dart' show
+    Spannable,
+    SpannableAssertionFailure;
 import '../scanner/scannerlib.dart';
 import '../util/util.dart';
 import '../util/characters.dart';

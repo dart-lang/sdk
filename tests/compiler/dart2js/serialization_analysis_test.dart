@@ -8,7 +8,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/dart2jslib.dart';
+import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/serialization/serialization.dart';

@@ -6,9 +6,15 @@
 
 library elements.common;
 
-import '../dart2jslib.dart' show Compiler, isPrivateName;
-import '../dart_types.dart' show DartType, InterfaceType, FunctionType;
-import '../util/util.dart' show Link;
+import '../compiler.dart' show
+    Compiler,
+    isPrivateName;
+import '../dart_types.dart' show
+    DartType,
+    InterfaceType,
+    FunctionType;
+import '../util/util.dart' show
+    Link;
 
 import 'elements.dart';
 

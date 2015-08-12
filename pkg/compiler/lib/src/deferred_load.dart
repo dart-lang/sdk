@@ -4,16 +4,17 @@
 
 library deferred_load;
 
+import 'common/backend_api.dart' show
+    Backend;
+import 'common/tasks.dart' show
+    CompilerTask;
+import 'compiler.dart' show
+    Compiler;
 import 'constants/values.dart' show
     ConstantValue,
     ConstructedConstantValue,
     DeferredConstantValue,
     StringConstantValue;
-import 'dart2jslib.dart' show
-    Backend,
-    Compiler,
-    CompilerTask,
-    invariant;
 import 'dart_types.dart';
 import 'elements/elements.dart' show
     AccessorElement,
@@ -31,7 +32,8 @@ import 'elements/elements.dart' show
     VoidElement;
 import 'js_backend/js_backend.dart' show
     JavaScriptBackend;
-import 'messages.dart' show MessageKind;
+import 'messages.dart' show
+    MessageKind;
 import 'resolution/resolution.dart' show
     AnalyzableElementX,
     TreeElements;

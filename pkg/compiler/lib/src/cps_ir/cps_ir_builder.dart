@@ -4,27 +4,36 @@
 
 library dart2js.ir_builder;
 
-import '../compile_time_constants.dart' show BackendConstantEnvironment;
+import '../compile_time_constants.dart' show
+    BackendConstantEnvironment;
 import '../constants/constant_system.dart';
-import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
+import '../constants/values.dart' show
+    ConstantValue,
+    PrimitiveConstantValue;
 import '../dart_types.dart';
-import '../dart2jslib.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
 import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
-import '../types/types.dart' show TypeMask;
+import '../types/types.dart' show
+    TypeMask;
 import '../closure.dart' hide ClosureScope;
 import '../universe/universe.dart' show
     CallStructure,
     Selector,
     SelectorKind;
 import 'cps_ir_nodes.dart' as ir;
-import 'cps_ir_builder_task.dart' show DartCapturedVariables,
+import 'cps_ir_builder_task.dart' show
+    DartCapturedVariables,
     GlobalProgramInformation;
 
-import '../common.dart' as types show TypeMask;
-import '../js/js.dart' as js show Template;
-import '../native/native.dart' show NativeBehavior;
+import '../common.dart' as types show
+    TypeMask;
+import '../js/js.dart' as js show
+    Template;
+import '../native/native.dart' show
+    NativeBehavior;
 
 /// A mapping from variable elements to their compile-time values.
 ///

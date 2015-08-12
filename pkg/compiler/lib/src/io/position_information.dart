@@ -7,18 +7,21 @@
 
 library dart2js.source_information.position;
 
-import '../dart2jslib.dart' show
-    invariant,
-    MessageKind,
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/source_span.dart' show
     SourceSpan;
+import '../diagnostics/spannable.dart' show
+    NO_LOCATION_SPANNABLE;
 import '../elements/elements.dart' show
     AstElement,
     LocalElement;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
 import '../js/js_debug.dart';
-import '../tree/tree.dart' show Node, Send;
-import '../util/util.dart' show NO_LOCATION_SPANNABLE;
+import '../tree/tree.dart' show
+    Node,
+    Send;
 
 import 'source_file.dart';
 import 'source_information.dart';

@@ -6,21 +6,22 @@ library code_generator;
 
 import 'glue.dart';
 
-import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
-import '../../tree_ir/tree_ir_nodes.dart' show BuiltinOperator;
-import '../../js/js.dart' as js;
+import '../../closure.dart' show ClosureClassElement;
+import '../../common/codegen.dart' show CodegenRegistry;
+import '../../constants/values.dart';
+import '../../dart_types.dart';
+import '../../diagnostics/invariant.dart' show invariant;
+import '../../diagnostics/spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
 import '../../elements/elements.dart';
 import '../../io/source_information.dart' show SourceInformation;
-import '../../util/maplet.dart';
-import '../../constants/values.dart';
-import '../../dart2jslib.dart';
-import '../../dart_types.dart';
+import '../../js/js.dart' as js;
+import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
+import '../../tree_ir/tree_ir_nodes.dart' show BuiltinOperator;
 import '../../types/types.dart' show TypeMask;
 import '../../universe/universe.dart' show
     Selector,
     UniverseSelector;
-import '../../util/util.dart' show CURRENT_ELEMENT_SPANNABLE;
-import '../../closure.dart' show ClosureClassElement;
+import '../../util/maplet.dart';
 
 class CodegenBailout {
   final tree_ir.Node node;

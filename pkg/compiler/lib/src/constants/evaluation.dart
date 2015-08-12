@@ -4,8 +4,10 @@
 
 library dart2js.constants.evaluation;
 
-import '../dart2jslib.dart' show Compiler;
-import '../universe/universe.dart' show CallStructure;
+import '../compiler.dart' show
+    Compiler;
+import '../universe/universe.dart' show
+    CallStructure;
 import 'expressions.dart';
 
 /// Environment used for evaluating constant expressions.

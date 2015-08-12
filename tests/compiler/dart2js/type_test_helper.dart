@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 import 'compiler_helper.dart' as mock;
 import 'memory_compiler.dart' as memory;
 import 'package:compiler/src/dart_types.dart';
-import 'package:compiler/src/dart2jslib.dart'
+import 'package:compiler/src/compiler.dart'
     show Compiler;
 import 'package:compiler/src/elements/elements.dart'
     show Element,

@@ -9,7 +9,7 @@ import '../mock_compiler.dart';
 import '../mock_libraries.dart';
 import '../output_collector.dart';
 import 'package:compiler/compiler.dart';
-import 'package:compiler/src/dart2jslib.dart' as leg;
+import 'package:compiler/src/compiler.dart' as leg;
 import 'package:compiler/src/dart_backend/dart_backend.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/tree/tree.dart';

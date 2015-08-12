@@ -17,6 +17,9 @@ import '../closure.dart' show
 import '../dart_types.dart' show
     TypedefType;
 
+import '../diagnostics/spannable.dart' show
+    NO_LOCATION_SPANNABLE;
+
 import '../elements/elements.dart' show
     ConstructorBodyElement,
     ElementKind,
@@ -59,7 +62,6 @@ import '../universe/universe.dart' show
     TypedSelector;
 
 import '../util/util.dart' show
-    NO_LOCATION_SPANNABLE,
     Setlet;
 
 import '../deferred_load.dart' show

@@ -6,28 +6,40 @@ library dart2js.ir_builder_task;
 
 import '../closure.dart' as closurelib;
 import '../closure.dart' hide ClosureScope;
+import '../common/tasks.dart' show
+    CompilerTask;
+import '../compiler.dart' show
+    Compiler;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../dart2jslib.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
 import '../elements/elements.dart';
-import '../elements/modelx.dart' show SynthesizedConstructorElementX,
-    ConstructorBodyElementX, FunctionSignatureX;
+import '../elements/modelx.dart' show
+    SynthesizedConstructorElementX,
+    ConstructorBodyElementX,
+    FunctionSignatureX;
 import '../io/source_information.dart';
-import '../js_backend/js_backend.dart' show JavaScriptBackend,
+import '../js_backend/js_backend.dart' show
+    JavaScriptBackend,
     SyntheticConstantKind;
-import '../resolution/resolution.dart' show TreeElements;
+import '../resolution/resolution.dart' show
+    TreeElements;
 import '../resolution/semantic_visitor.dart';
 import '../resolution/operators.dart' as op;
 import '../tree/tree.dart' as ast;
-import '../types/types.dart' show TypeMask;
+import '../types/types.dart' show
+    TypeMask;
 import '../universe/universe.dart' show
     CallStructure,
     Selector,
     SelectorKind;
-import '../constants/values.dart' show ConstantValue;
+import '../constants/values.dart' show
+    ConstantValue;
 import 'cps_ir_nodes.dart' as ir;
 import 'cps_ir_builder.dart';
-import '../native/native.dart' show NativeBehavior;
+import '../native/native.dart' show
+    NativeBehavior;
 
 // TODO(karlklose): remove.
 import '../js/js.dart' as js show js, Template, Expression, Name;

@@ -11,7 +11,7 @@ import 'package:compiler/src/constants/evaluation.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/constant_system_dart.dart';
-import 'package:compiler/src/dart2jslib.dart';
+import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'memory_compiler.dart';
 

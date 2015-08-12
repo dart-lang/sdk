@@ -12,7 +12,8 @@ import '../constants/expressions.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../universe/universe.dart';
-import '../util/util.dart';
+import '../diagnostics/spannable.dart' show
+    SpannableAssertionFailure;
 
 /// Interface for the structure of the semantics of a [Send] or [NewExpression]
 /// node.

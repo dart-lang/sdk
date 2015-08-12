@@ -7,22 +7,29 @@ library dump_info;
 import 'dart:convert'
     show HtmlEscape, JsonEncoder, StringConversionSink, ChunkedConversionSink;
 
+import 'common/tasks.dart' show
+    CompilerTask;
+import 'compiler.dart' show
+    Compiler;
+import 'diagnostics/spannable.dart' show
+    NO_LOCATION_SPANNABLE;
 import 'elements/elements.dart';
 import 'elements/visitor.dart';
-import 'dart2jslib.dart' show
-    Backend,
-    CodeBuffer,
-    Compiler,
-    CompilerTask;
-import 'types/types.dart' show TypeMask;
-import 'deferred_load.dart' show OutputUnit;
+import 'types/types.dart' show
+    TypeMask;
+import 'deferred_load.dart' show
+    OutputUnit;
 import 'info/info.dart';
-import 'js_backend/js_backend.dart' show JavaScriptBackend;
-import 'js_emitter/full_emitter/emitter.dart' as full show Emitter;
+import 'js_backend/js_backend.dart' show
+    JavaScriptBackend;
+import 'js_emitter/full_emitter/emitter.dart' as full show
+    Emitter;
 import 'js/js.dart' as jsAst;
-import 'messages.dart' show MessageKind;
-import 'universe/universe.dart' show Selector, UniverseSelector;
-import 'util/util.dart' show NO_LOCATION_SPANNABLE;
+import 'messages.dart' show
+    MessageKind;
+import 'universe/universe.dart' show
+    Selector,
+    UniverseSelector;
 
 class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   final Compiler compiler;

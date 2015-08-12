@@ -11,12 +11,33 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 
 import '../closure.dart';
+import '../common/backend_api.dart' show
+    Backend;
+import '../common/codegen.dart' show
+    CodegenRegistry,
+    CodegenWorkItem;
+import '../common/registry.dart' show
+    Registry;
+import '../common/tasks.dart' show
+    CompilerTask;
+import '../common/resolution.dart' show
+    ResolutionCallbacks;
+import '../common/work.dart' show
+    ItemCompilationContext;
+import '../compiler.dart' show
+    Compiler,
+    isPrivateName;
 import '../compile_time_constants.dart';
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../dart2jslib.dart';
 import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/spannable.dart' show
+    NO_LOCATION_SPANNABLE,
+    Spannable,
+    SpannableAssertionFailure;
 import '../elements/elements.dart';
 import '../elements/visitor.dart' show
     BaseElementVisitor;

@@ -6,7 +6,8 @@ library dart_tree_printer;
 
 import '../constants/values.dart' as values;
 import '../dart_types.dart' as types;
-import '../dart2jslib.dart' as dart2js;
+import '../diagnostics/invariant.dart' show
+    invariant;
 import '../elements/elements.dart' as elements;
 import '../resolution/resolution.dart' show
     TreeElementMapping;
@@ -1151,7 +1152,7 @@ class TreePrinter {
   tree.NamedMixinApplication makeNamedMixinApplication(
        elements.MixinApplicationElement cls) {
 
-    assert(dart2js.invariant(cls, !cls.isUnnamedMixinApplication,
+    assert(invariant(cls, !cls.isUnnamedMixinApplication,
         message: "Cannot create ClassNode for unnamed mixin application "
                  "$cls."));
     tree.Modifiers modifiers = makeModifiers(isAbstract: cls.isAbstract);
@@ -1198,7 +1199,7 @@ class TreePrinter {
 
   /// Creates a [tree.ClassNode] node for [cls].
   tree.ClassNode makeClassNode(elements.ClassElement cls) {
-    assert(dart2js.invariant(cls, !cls.isUnnamedMixinApplication,
+    assert(invariant(cls, !cls.isUnnamedMixinApplication,
         message: "Cannot create ClassNode for unnamed mixin application "
                  "$cls."));
     tree.Modifiers modifiers = makeModifiers(isAbstract: cls.isAbstract);

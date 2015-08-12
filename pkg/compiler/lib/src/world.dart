@@ -6,12 +6,18 @@ library dart2js.world;
 
 import 'closure.dart' show
     SynthesizedCallMethodElementX;
-import 'dart2jslib.dart' show
+import 'common/backend_api.dart' show
+    Backend;
+import 'common/registry.dart' show
+    Registry;
+import 'compiler.dart' show
     invariant,
     Backend,
     Compiler,
     Registry;
 import 'dart_types.dart';
+import 'diagnostics/invariant.dart' show
+    invariant;
 import 'elements/elements.dart' show
     ClassElement,
     Element,

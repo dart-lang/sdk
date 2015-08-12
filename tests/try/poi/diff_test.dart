@@ -14,7 +14,7 @@ import 'package:expect/expect.dart' show
 import 'package:async_helper/async_helper.dart' show
     asyncTest;
 
-import 'package:compiler/src/dart2jslib.dart' show
+import 'package:compiler/src/compiler.dart' show
     Compiler;
 
 import 'package:compiler/src/io/source_file.dart' show

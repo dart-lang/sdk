@@ -4,11 +4,14 @@
 
 library dart2js.source_information;
 
-import '../dart2jslib.dart' show SourceSpan, MessageKind;
+import '../diagnostics/source_span.dart' show
+    SourceSpan;
 import '../elements/elements.dart' show
     AstElement,
     LocalElement;
-import '../tree/tree.dart' show Node, Send;
+import '../tree/tree.dart' show
+    Node,
+    Send;
 import '../js/js.dart' show
     JavaScriptNodeSourceInformation;
 import 'source_file.dart';

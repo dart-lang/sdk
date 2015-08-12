@@ -13,9 +13,12 @@ import 'package:expect/expect.dart';
 
 import 'package:compiler/compiler.dart' as old_api;
 import 'package:compiler/compiler_new.dart' as api;
+import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/compile_time_constants.dart';
+import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
-import 'package:compiler/src/dart2jslib.dart';
+import 'package:compiler/src/diagnostics/invariant.dart';
+import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/apiimpl.dart' as apiimpl;
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/elements/elements.dart';
@@ -25,7 +28,6 @@ import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/old_to_new_api.dart';
 import 'package:compiler/src/resolution/resolution.dart';
 import 'package:compiler/src/scanner/scannerlib.dart';
-import 'package:compiler/src/util/util.dart';
 
 class TestCompiler extends apiimpl.Compiler {
   final String testMarker;

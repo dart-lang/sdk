@@ -4,30 +4,49 @@
 
 library simple_types_inferrer;
 
-import '../closure.dart' show ClosureClassMap, ClosureScope;
-import '../constants/values.dart' show ConstantValue, IntConstantValue;
-import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
-import '../dart_types.dart'
-    show DartType, InterfaceType, FunctionType, TypeKind;
+import '../closure.dart' show
+    ClosureClassMap,
+    ClosureScope;
+import '../compiler.dart' show
+    Compiler;
+import '../constants/values.dart' show
+    ConstantValue,
+    IntConstantValue;
+import '../cps_ir/cps_ir_nodes.dart' as cps_ir show
+    Node;
+import '../dart_types.dart' show
+    DartType,
+    FunctionType,
+    InterfaceType,
+    TypeKind;
+import '../diagnostics/spannable.dart' show
+    Spannable;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' as js;
 import '../native/native.dart' as native;
-import '../resolution/resolution.dart' show TreeElements;
+import '../resolution/resolution.dart' show
+    TreeElements;
 import '../resolution/operators.dart' as op;
 import '../tree/tree.dart' as ast;
-import '../types/types.dart'
-    show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask,
-         ElementTypeMask, ValueTypeMask, TypeSystem, MinimalInferrerEngine;
-import '../util/util.dart' show Link, Spannable, Setlet;
+import '../types/types.dart' show
+    TypesInferrer,
+    FlatTypeMask,
+    TypeMask,
+    ContainerTypeMask,
+    ElementTypeMask,
+    ValueTypeMask,
+    TypeSystem,
+    MinimalInferrerEngine;
+import '../util/util.dart' show
+    Link,
+    Setlet;
+import '../universe/universe.dart' show
+    CallStructure,
+    Selector,
+    SideEffects;
 import '../world.dart' show ClassWorld;
-import 'inferrer_visitor.dart';
 
-// BUG(8802): There's a bug in the analyzer that makes the re-export
-// of Selector from dart2jslib.dart fail. For now, we work around that
-// by importing universe.dart explicitly and disabling the re-export.
-import '../dart2jslib.dart' hide Selector, TypedSelector;
-import '../universe/universe.dart'
-    show Selector, SideEffects, TypedSelector, CallStructure;
+import 'inferrer_visitor.dart';
 
 /**
  * An implementation of [TypeSystem] for [TypeMask].

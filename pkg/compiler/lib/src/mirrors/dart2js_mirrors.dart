@@ -6,19 +6,26 @@ library dart2js.mirrors;
 
 import 'dart:collection' show UnmodifiableListView, UnmodifiableMapView;
 
+import '../compiler.dart' show
+    Compiler;
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../dart2jslib.dart';
 import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/source_span.dart' show
+    SourceSpan;
+import '../diagnostics/spannable.dart' show
+    NO_LOCATION_SPANNABLE;
 import '../elements/elements.dart';
-import '../resolution/resolution.dart' show Scope;
+import '../resolution/resolution.dart' show
+    Scope;
 import '../scanner/scannerlib.dart';
 import '../script.dart';
 import '../tree/tree.dart';
 import '../util/util.dart'
     show Link,
-         LinkBuilder,
-         NO_LOCATION_SPANNABLE;
+         LinkBuilder;
 import '../util/characters.dart' show $CR, $LF;
 
 import 'source_mirrors.dart';

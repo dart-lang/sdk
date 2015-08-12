@@ -9,7 +9,7 @@ library dart2js.test.generate_code_with_compile_time_errors;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/dart2jslib.dart';
+import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/dart_backend/dart_backend.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'memory_compiler.dart';

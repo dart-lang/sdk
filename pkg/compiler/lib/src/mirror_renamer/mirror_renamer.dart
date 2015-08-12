@@ -4,7 +4,7 @@
 
 library mirror_renamer;
 
-import '../dart2jslib.dart' show Script, Compiler;
+import '../compiler.dart' show Compiler;
 import '../tree/tree.dart';
 import '../scanner/scannerlib.dart' show Token;
 import '../elements/elements.dart';

@@ -15,7 +15,9 @@ import "package:compiler/src/util/util.dart";
 import "package:compiler/src/elements/modelx.dart"
     show CompilationUnitElementX, ElementX, LibraryElementX;
 
-import "package:compiler/src/dart2jslib.dart";
+import "package:compiler/src/compiler.dart";
+import "package:compiler/src/diagnostics/source_span.dart";
+import "package:compiler/src/diagnostics/spannable.dart";
 import "package:compiler/src/diagnostic_listener.dart";
 import "package:compiler/src/messages.dart";
 import "package:compiler/src/script.dart";

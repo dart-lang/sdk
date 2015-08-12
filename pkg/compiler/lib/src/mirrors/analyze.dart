@@ -10,7 +10,7 @@ import 'source_mirrors.dart';
 import 'dart2js_mirrors.dart' show Dart2JsMirrorSystem;
 import '../../compiler.dart' as api;
 import '../apiimpl.dart' as apiimpl;
-import '../dart2jslib.dart' show Compiler;
+import '../compiler.dart' show Compiler;
 import '../old_to_new_api.dart';
 
 //------------------------------------------------------------------------------

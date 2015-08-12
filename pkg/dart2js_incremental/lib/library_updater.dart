@@ -7,12 +7,9 @@ library dart2js_incremental.library_updater;
 import 'dart:async' show
     Future;
 
-import 'dart:convert' show
-    UTF8;
-
 import 'package:compiler/compiler.dart' as api;
 
-import 'package:compiler/src/dart2jslib.dart' show
+import 'package:compiler/src/compiler.dart' show
     Compiler;
 
 import 'package:compiler/src/elements/elements.dart' show

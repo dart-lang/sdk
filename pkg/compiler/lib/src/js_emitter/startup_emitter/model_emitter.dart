@@ -9,7 +9,7 @@ import 'dart:convert' show JsonEncoder;
 import '../../common.dart';
 
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
-import '../../dart2jslib.dart' show Compiler;
+import '../../compiler.dart' show Compiler;
 import '../../elements/elements.dart' show ClassElement, FunctionElement;
 import '../../hash/sha1.dart' show Hasher;
 
@@ -28,9 +28,10 @@ import '../../js_backend/js_backend.dart' show
     Namer,
     ConstantEmitter;
 
-import '../../messages.dart' show MessageKind;
+import '../../messages.dart' show
+    MessageKind;
 
-import '../../util/util.dart' show
+import '../../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE;
 
 import '../../util/uri_extras.dart' show

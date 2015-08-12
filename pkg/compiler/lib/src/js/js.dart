@@ -7,15 +7,22 @@ library js;
 import 'package:js_ast/js_ast.dart';
 export 'package:js_ast/js_ast.dart';
 
-import '../io/code_output.dart' show CodeOutput, CodeBuffer;
-import '../js_emitter/js_emitter.dart' show USE_LAZY_EMITTER;
-import '../dart2jslib.dart' as leg;
-import '../util/util.dart' show NO_LOCATION_SPANNABLE, Indentation, Tagging;
-import '../dump_info.dart' show DumpInfoTask;
+import '../compiler.dart' show
+    Compiler;
+import '../diagnostics/spannable.dart' show
+    NO_LOCATION_SPANNABLE;
+import '../dump_info.dart' show
+    DumpInfoTask;
+import '../io/code_output.dart' show
+    CodeBuffer,
+    CodeOutput;
+import '../js_emitter/js_emitter.dart' show
+    USE_LAZY_EMITTER;
+
 import 'js_source_mapping.dart';
 
 CodeBuffer prettyPrint(Node node,
-                       leg.Compiler compiler,
+                       Compiler compiler,
                        {DumpInfoTask monitor,
                         bool allowVariableMinification: true,
                         Renamer renamerForNames:
@@ -41,7 +48,7 @@ CodeBuffer prettyPrint(Node node,
 }
 
 class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
-  final leg.Compiler compiler;
+  final Compiler compiler;
   final DumpInfoTask monitor;
   final CodeBuffer outBuffer;
   final CodePositionListener codePositionListener;
@@ -122,7 +129,7 @@ class UnparsedNode extends DeferredString
                    implements AstContainer {
   @override
   final Node tree;
-  final leg.Compiler _compiler;
+  final Compiler _compiler;
   final bool _protectForEval;
   LiteralString _cachedLiteral;
 

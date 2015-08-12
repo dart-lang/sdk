@@ -4,21 +4,24 @@
 
 import 'optimizers.dart';
 
+import '../compiler.dart' as dart2js show
+    Compiler;
 import '../constants/constant_system.dart';
-import '../resolution/operators.dart';
 import '../constants/values.dart';
 import '../dart_types.dart' as types;
-import '../dart2jslib.dart' as dart2js;
+import '../diagnostics/invariant.dart' as dart2js show
+    InternalErrorFunction;
+import '../elements/elements.dart';
+import '../io/source_information.dart' show SourceInformation;
+import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import '../resolution/operators.dart';
 import '../tree/tree.dart' show DartString, ConsDartString, LiteralDartString;
-import 'cps_ir_nodes.dart';
 import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
-import '../elements/elements.dart';
 import '../universe/universe.dart';
-import '../js_backend/js_backend.dart' show JavaScriptBackend;
-import '../io/source_information.dart' show SourceInformation;
 import '../world.dart' show World;
 import 'cps_fragment.dart';
+import 'cps_ir_nodes.dart';
 
 enum AbstractBool {
   True, False, Maybe, Nothing
@@ -908,7 +911,7 @@ class TransformingVisitor extends LeafVisitor {
               rightConstant.isInt &&
               rightConstant.primitiveValue >= 0 &&
               rightConstant.primitiveValue <= 31) {
-            return replaceWithBinary(BuiltinOperator.NumShl, 
+            return replaceWithBinary(BuiltinOperator.NumShl,
                                      leftArg, rightArg);
           }
         }

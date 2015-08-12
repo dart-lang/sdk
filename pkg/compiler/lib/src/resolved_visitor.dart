@@ -7,8 +7,10 @@ library dart2js.resolved_visitor;
 import 'constants/expressions.dart';
 import 'dart_types.dart' show
     DartType;
-import 'dart2jslib.dart' show
+import 'diagnostics/invariant.dart' show
     invariant;
+import 'diagnostics/spannable.dart' show
+    Spannable;
 import 'elements/elements.dart' show
     Element,
     Elements,
@@ -31,8 +33,6 @@ import 'tree/tree.dart';
 import 'universe/universe.dart' show
     CallStructure,
     Selector;
-import 'util/util.dart' show
-    Spannable;
 
 /// Enum for the visit methods added in [ResolvedVisitor].
 // TODO(johnniwinther): Remove this.

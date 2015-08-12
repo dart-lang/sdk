@@ -4,15 +4,19 @@
 
 library dart2js.typechecker;
 
+import 'common/tasks.dart' show
+    CompilerTask;
+import 'compiler.dart' show
+    Compiler,
+    isPrivateName;
 import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'core_types.dart';
-import 'dart2jslib.dart' show
-    Compiler,
-    CompilerTask,
-    invariant,
-    isPrivateName;
 import 'dart_types.dart';
+import 'diagnostics/invariant.dart' show
+    invariant;
+import 'diagnostics/spannable.dart' show
+    Spannable;
 import 'elements/elements.dart' show
     AbstractFieldElement,
     AstElement,
@@ -48,8 +52,7 @@ import 'resolution/class_members.dart' show
 import 'tree/tree.dart';
 import 'util/util.dart' show
     Link,
-    LinkBuilder,
-    Spannable;
+    LinkBuilder;
 import '../compiler_new.dart' as api;
 
 class TypeCheckerTask extends CompilerTask {

@@ -6,6 +6,8 @@ library type_graph_inferrer;
 
 import 'dart:collection' show Queue, IterableBase;
 
+import '../compiler.dart'
+    show Compiler;
 import '../constants/values.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir
     show Node;
@@ -14,13 +16,10 @@ import '../dart_types.dart'
          FunctionType,
          InterfaceType,
          TypeKind;
-import '../dart2jslib.dart'
-    show ClassWorld,
-         Compiler,
-         Constant,
-         FunctionConstant,
-         invariant,
-         TreeElementMapping;
+import '../diagnostics/invariant.dart'
+    show invariant;
+import '../diagnostics/spannable.dart'
+    show Spannable;
 import '../elements/elements.dart';
 import '../native/native.dart' as native;
 import '../resolution/resolution.dart'
@@ -46,8 +45,7 @@ import '../universe/universe.dart'
          TypedSelector;
 import '../util/util.dart'
     show ImmutableEmptySet,
-         Setlet,
-         Spannable;
+         Setlet;
 import '../js_backend/js_backend.dart' show Annotations, JavaScriptBackend;
 import '../world.dart' show ClassWorld;
 

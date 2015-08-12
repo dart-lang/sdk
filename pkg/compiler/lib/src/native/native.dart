@@ -6,10 +6,16 @@ library native;
 
 import 'dart:collection' show Queue;
 
+import '../common/registry.dart' show
+    Registry;
+import '../compiler.dart' show
+    Compiler;
 import '../constants/values.dart';
-import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../diagnostic_listener.dart';
+import '../diagnostics/spannable.dart' show
+    NO_LOCATION_SPANNABLE,
+    Spannable;
 import '../enqueue.dart' show
     Enqueuer,
     ResolutionEnqueuer;

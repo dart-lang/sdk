@@ -4,8 +4,8 @@
 
 library dart2js.resolution.enum_creator;
 
+import '../compiler.dart';
 import '../dart_types.dart';
-import '../dart2jslib.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
 import '../scanner/scannerlib.dart';

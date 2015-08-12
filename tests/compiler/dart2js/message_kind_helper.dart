@@ -7,7 +7,7 @@ library dart2js.test.message_kind_helper;
 import 'package:expect/expect.dart';
 import 'dart:async';
 
-import 'package:compiler/src/dart2jslib.dart' show
+import 'package:compiler/src/compiler.dart' show
     Compiler;
 import 'package:compiler/src/messages.dart' show
     MessageKind,

@@ -6,8 +6,9 @@
 // computed during resolution.
 library dart2js.constants.constant_constructors;
 
-import '../dart2jslib.dart';
 import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
 import '../elements/elements.dart';
 import '../resolution/resolution.dart';
 import '../resolution/operators.dart';

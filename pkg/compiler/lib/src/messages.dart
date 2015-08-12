@@ -63,9 +63,11 @@
 
 library dart2js.messages;
 
-import 'dart2jslib.dart';
+import 'diagnostics/invariant.dart' show
+    invariant;
+import 'diagnostics/spannable.dart' show
+    CURRENT_ELEMENT_SPANNABLE;
 import 'scanner/scannerlib.dart';
-import 'util/util.dart' show CURRENT_ELEMENT_SPANNABLE;
 
 const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
 

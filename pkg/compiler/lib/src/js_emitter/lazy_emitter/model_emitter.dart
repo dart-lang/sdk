@@ -4,9 +4,14 @@
 
 library dart2js.js_emitter.lazy_emitter.model_emitter;
 
-import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
-import '../../dart2jslib.dart' show Compiler;
-import '../../elements/elements.dart' show ClassElement, FunctionElement;
+import '../../compiler.dart' show
+    Compiler;
+import '../../constants/values.dart' show
+    ConstantValue,
+    FunctionConstantValue;
+import '../../elements/elements.dart' show
+    ClassElement,
+    FunctionElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show
     JavaScriptBackend,

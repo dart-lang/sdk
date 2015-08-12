@@ -5,9 +5,11 @@
 library dart2js.constant_system;
 
 import '../dart_types.dart';
-import '../dart2jslib.dart' show Compiler;
+import '../compiler.dart' show
+    Compiler;
 import '../resolution/operators.dart';
-import '../tree/tree.dart' show DartString;
+import '../tree/tree.dart' show
+    DartString;
 import 'values.dart';
 
 abstract class Operation {

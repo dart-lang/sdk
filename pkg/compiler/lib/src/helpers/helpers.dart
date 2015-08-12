@@ -7,13 +7,20 @@
 
 library dart2js.helpers;
 
-import 'dart:async' show EventSink;
+import 'dart:async' show
+    EventSink;
 import 'dart:collection';
 import 'dart:convert';
 
 import '../../compiler.dart';
-import '../dart2jslib.dart';
-import '../messages.dart' show MessageKind;
+import '../compiler.dart' show
+    Compiler;
+import '../diagnostics/invariant.dart' show
+    DEBUG_MODE;
+import '../diagnostics/spannable.dart' show
+    Spannable;
+import '../messages.dart' show
+    MessageKind;
 import '../util/util.dart';
 
 part 'debug_collection.dart';
