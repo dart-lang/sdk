@@ -54,7 +54,7 @@
     <div class="content">
       <template if="{{ library.dependencies.isNotEmpty }}">
         dependencies ({{ library.dependencies.length }})
-        <curly-block expand="{{ library.dependencies.length <= 8 }}">
+        <curly-block expand="{{ false }}">
           <div class="memberList">
             <template repeat="{{ dep in library.dependencies }}">
               <div class="memberItem">
@@ -81,7 +81,7 @@
 
       <template if="{{ library.scripts.isNotEmpty }}">
         scripts ({{ library.scripts.length }})
-        <curly-block expand="{{ library.scripts.length <= 8 }}">
+        <curly-block expand="{{ false }}">
           <div class="memberList">
             <template repeat="{{ script in library.scripts }}">
               <div class="memberItem">
@@ -97,7 +97,7 @@
 
       <template if="{{ library.classes.isNotEmpty }}">
         classes ({{ library.classes.length }})
-        <curly-block expand="{{ library.classes.length <= 8 }}">
+        <curly-block expand="{{ false }}">
           <div class="memberList">
             <template repeat="{{ cls in library.classes }}">
               <div class="memberItem">
@@ -134,7 +134,7 @@
 
       <template if="{{ library.functions.isNotEmpty }}">
         functions ({{ library.functions.length }})
-        <curly-block expand="{{ library.functions.length <= 8 }}">
+        <curly-block expand="{{ false }}">
           <div class="memberList">
             <template repeat="{{ function in library.functions }}">
               <div class="memberItem">
