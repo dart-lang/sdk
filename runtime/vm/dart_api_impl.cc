@@ -2743,6 +2743,68 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
 }
 
 
+#define GET_LIST_RANGE(isolate, type, obj, offset, length)                     \
+  const type& array_obj = type::Cast(obj);                                     \
+  if ((offset >= 0) && (offset + length <= array_obj.Length())) {              \
+    for (intptr_t index = 0; index < length; ++index) {                        \
+      result[index] = Api::NewHandle(isolate, array_obj.At(index + offset));   \
+    }                                                                          \
+    return Api::Success();                                                     \
+  }                                                                            \
+  return Api::NewError("Invalid offset/length passed in to access list");      \
+
+
+DART_EXPORT Dart_Handle Dart_ListGetRange(Dart_Handle list,
+                                          intptr_t offset,
+                                          intptr_t length,
+                                          Dart_Handle* result) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (result == NULL) {
+    RETURN_NULL_ERROR(result);
+  }
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
+  if (obj.IsArray()) {
+    GET_LIST_RANGE(isolate, Array, obj, offset, length);
+  } else if (obj.IsGrowableObjectArray()) {
+    GET_LIST_RANGE(isolate, GrowableObjectArray, obj, offset, length);
+  } else if (obj.IsError()) {
+    return list;
+  } else {
+    CHECK_CALLBACK_STATE(isolate);
+    // Check and handle a dart object that implements the List interface.
+    const Instance& instance =
+        Instance::Handle(isolate, GetListInstance(isolate, obj));
+    if (!instance.IsNull()) {
+      const intptr_t kNumArgs = 2;
+      ArgumentsDescriptor args_desc(
+          Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
+      const Function& function = Function::Handle(
+          isolate,
+          Resolver::ResolveDynamic(instance,
+                                   Symbols::AssignIndexToken(),
+                                   args_desc));
+      if (!function.IsNull()) {
+        const Array& args = Array::Handle(Array::New(kNumArgs));
+        args.SetAt(0, instance);
+        Instance& index = Instance::Handle(isolate);
+        for (intptr_t i = 0; i < length; ++i) {
+          index = Integer::New(i);
+          args.SetAt(1, index);
+          Dart_Handle value = Api::NewHandle(isolate,
+              DartEntry::InvokeFunction(function, args));
+          if (Dart_IsError(value))
+            return value;
+          result[i] = value;
+        }
+        return Api::Success();
+      }
+    }
+    return Api::NewError("Object does not implement the 'List' interface");
+  }
+}
+
+
 #define SET_LIST_ELEMENT(isolate, type, obj, index, value)                     \
   const type& array = type::Cast(obj);                                         \
   const Object& value_obj = Object::Handle(isolate, Api::UnwrapHandle(value)); \

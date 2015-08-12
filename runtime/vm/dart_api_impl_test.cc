@@ -1368,6 +1368,28 @@ TEST_CASE(ListAccess) {
   result = Dart_ListGetAt(list_access_test_obj, 4);
   EXPECT(Dart_IsError(result));
 
+  // Check if we can get a range of values.
+  result = Dart_ListGetRange(list_access_test_obj, 8, 4, NULL);
+  EXPECT(Dart_IsError(result));
+  const int kRangeOffset = 1;
+  const int kRangeLength = 2;
+  Dart_Handle values[kRangeLength];
+
+  result = Dart_ListGetRange(list_access_test_obj, 8, 4, values);
+  EXPECT(Dart_IsError(result));
+
+  result = Dart_ListGetRange(
+      list_access_test_obj, kRangeOffset, kRangeLength, values);
+  EXPECT_VALID(result);
+
+  result = Dart_IntegerToInt64(values[0], &value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(20, value);
+
+  result = Dart_IntegerToInt64(values[1], &value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(30, value);
+
   // Check that we get an exception (and not a fatal error) when
   // calling ListSetAt and ListSetAsBytes with an immutable list.
   list_access_test_obj = Dart_Invoke(lib, NewString("immutable"), 0, NULL);
