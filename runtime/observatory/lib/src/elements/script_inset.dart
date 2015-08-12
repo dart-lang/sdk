@@ -332,7 +332,7 @@ class ScriptInsetElement extends ObservatoryElement {
   }
 
   void _scrollToCurrentPos() {
-    var line = querySelector('#${makeLineId(_currentLine)}');
+    var line = shadowRoot.getElementById(makeLineId(_currentLine));
     if (line != null) {
       line.scrollIntoView();
     }
@@ -411,14 +411,19 @@ class ScriptInsetElement extends ObservatoryElement {
     computeAnnotations();
 
     var table = linesTable();
+    var firstBuild = false;
     if (container == null) {
       // Indirect to avoid deleting the style element.
       container = new DivElement();
       shadowRoot.append(container);
+      firstBuild = true;
     }
     container.children.clear();
     container.children.add(table);
     makeCssClassUncopyable(table, "noCopy");
+    if (firstBuild) {
+      _scrollToCurrentPos();
+    }
   }
 
   void computeAnnotations() {
