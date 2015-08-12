@@ -118,48 +118,33 @@ class AnalysisDomainHandler implements RequestHandler {
       return new Response.getNavigationInvalidFile(request);
     }
     analysisFuture.then((AnalysisDoneReason reason) {
-      print('  reason: $reason');
-      try {
-        switch (reason) {
-          case AnalysisDoneReason.COMPLETE:
-            print('  AnalysisDoneReason.COMPLETE');
-            List<CompilationUnit> units =
-                server.getResolvedCompilationUnits(file);
-            print('  units: $units');
-            if (units.isEmpty) {
-              server
-                  .sendResponse(new Response.getNavigationInvalidFile(request));
-            } else {
-              DartUnitNavigationComputer computer =
-                  new DartUnitNavigationComputer();
-              _GetNavigationAstVisitor visitor = new _GetNavigationAstVisitor(
-                  params.offset, params.offset + params.length, computer);
-              for (CompilationUnit unit in units) {
-                unit.accept(visitor);
-              }
-              server.sendResponse(new AnalysisGetNavigationResult(
-                      computer.files, computer.targets, computer.regions)
-                  .toResponse(request.id));
+      switch (reason) {
+        case AnalysisDoneReason.COMPLETE:
+          List<CompilationUnit> units =
+              server.getResolvedCompilationUnits(file);
+          if (units.isEmpty) {
+            server.sendResponse(new Response.getNavigationInvalidFile(request));
+          } else {
+            DartUnitNavigationComputer computer =
+                new DartUnitNavigationComputer();
+            _GetNavigationAstVisitor visitor = new _GetNavigationAstVisitor(
+                params.offset, params.offset + params.length, computer);
+            for (CompilationUnit unit in units) {
+              unit.accept(visitor);
             }
-            break;
-          case AnalysisDoneReason.CONTEXT_REMOVED:
-            print('  AnalysisDoneReason.CONTEXT_REMOVED');
-            // The active contexts have changed, so try again.
-            Response response = getNavigation(request);
-            if (response != Response.DELAYED_RESPONSE) {
-              server.sendResponse(response);
-            }
-            break;
-        }
-      } on Exception catch (e, st) {
-        print('Exception1 in AnalysisDomainHandler.getNavigation()');
-        print(e);
-        print(st);
+            server.sendResponse(new AnalysisGetNavigationResult(
+                    computer.files, computer.targets, computer.regions)
+                .toResponse(request.id));
+          }
+          break;
+        case AnalysisDoneReason.CONTEXT_REMOVED:
+          // The active contexts have changed, so try again.
+          Response response = getNavigation(request);
+          if (response != Response.DELAYED_RESPONSE) {
+            server.sendResponse(response);
+          }
+          break;
       }
-    }).catchError((e, st) {
-      print('Exception2 in AnalysisDomainHandler.getNavigation()');
-      print(e);
-      print(st);
     });
     // delay response
     return Response.DELAYED_RESPONSE;
