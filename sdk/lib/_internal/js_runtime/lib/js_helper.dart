@@ -57,7 +57,10 @@ import 'dart:_foreign_helper' show
 
 import 'dart:_interceptors';
 import 'dart:_internal' as _symbol_dev;
-import 'dart:_internal' show EfficientLength, MappedIterable;
+import 'dart:_internal' show
+    EfficientLength,
+    MappedIterable,
+    IterableElementError;
 
 import 'dart:_native_typed_data';
 
@@ -148,7 +151,7 @@ bool builtinIsSubtype(type, String other) {
 @ForceInline()
 bool isDartFunctionTypeRti(Object type) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isGivenTypeRti, 
+                    JsBuiltin.isGivenTypeRti,
                     type,
                     JS_GET_NAME(JsGetName.FUNCTION_CLASS_TYPE_NAME));
 }
@@ -158,7 +161,7 @@ bool isDartFunctionTypeRti(Object type) {
 @ForceInline()
 bool isDartObjectTypeRti(type) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isGivenTypeRti, 
+                    JsBuiltin.isGivenTypeRti,
                     type,
                     JS_GET_NAME(JsGetName.OBJECT_CLASS_TYPE_NAME));
 }
@@ -168,7 +171,7 @@ bool isDartObjectTypeRti(type) {
 @ForceInline()
 bool isNullTypeRti(type) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isGivenTypeRti, 
+                    JsBuiltin.isGivenTypeRti,
                     type,
                     JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME));
 }

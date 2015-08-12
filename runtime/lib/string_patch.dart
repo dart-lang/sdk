@@ -312,7 +312,7 @@ class _StringBase {
 
   int indexOf(Pattern pattern, [int start = 0]) {
     if ((start < 0) || (start > this.length)) {
-      throw new RangeError.range(start, 0, this.length);
+      throw new RangeError.range(start, 0, this.length, "start");
     }
     if (pattern is String) {
       String other = pattern;
@@ -844,26 +844,10 @@ class _StringBase {
   }
 
   Iterable<Match> allMatches(String string, [int start = 0]) {
-    List<Match> result = new List<Match>();
-    int length = string.length;
-    int patternLength = this.length;
-    int startIndex = start;
-    while (true) {
-      int position = string.indexOf(this, startIndex);
-      if (position == -1) {
-        break;
-      }
-      result.add(new _StringMatch(position, string, this));
-      int endIndex = position + patternLength;
-      if (endIndex == length) {
-        break;
-      } else if (position == endIndex) {
-        ++startIndex;  // empty match, advance and restart
-      } else {
-        startIndex = endIndex;
-      }
+    if (start < 0 || start > string.length) {
+      throw new RangeError.range(start, 0, string.length, "start");
     }
-    return result;
+    return new _StringAllMatchesIterable(string, this, start);
   }
 
   Match matchAsPrefix(String string, [int start = 0]) {
@@ -1322,4 +1306,54 @@ class _StringMatch implements Match {
   final int start;
   final String input;
   final String pattern;
+}
+
+
+class _StringAllMatchesIterable extends Iterable<Match> {
+  final String _input;
+  final String _pattern;
+  final int _index;
+
+  _StringAllMatchesIterable(this._input, this._pattern, this._index);
+
+  Iterator<Match> get iterator =>
+      new _StringAllMatchesIterator(_input, _pattern, _index);
+
+  Match get first {
+    int index = _input.indexOf(_pattern, _index);
+    if (index >= 0) {
+      return new _StringMatch(index, _input, _pattern);
+    }
+    throw IterableElementError.noElement();
+  }
+}
+
+class _StringAllMatchesIterator implements Iterator<Match> {
+  final String _input;
+  final String _pattern;
+  int _index;
+  Match _current;
+
+  _StringAllMatchesIterator(this._input, this._pattern, this._index);
+
+  bool moveNext() {
+    if (_index + _pattern.length > _input.length) {
+      _current = null;
+      return false;
+    }
+    var index = _input.indexOf(_pattern, _index);
+    if (index < 0) {
+      _index = _input.length + 1;
+      _current = null;
+      return false;
+    }
+    int end = index + _pattern.length;
+    _current = new _StringMatch(index, _input, _pattern);
+    // Empty match, don't start at same location again.
+    if (end == _index) end++;
+    _index = end;
+    return true;
+  }
+
+  Match get current => _current;
 }

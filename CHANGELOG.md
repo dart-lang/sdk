@@ -2,7 +2,8 @@
 
 * `dart:core`
   * `Uri` added `removeFragment` method.
-
+  * `String.allMatches` (implementing `Pattern.allMatches`) is now lazy,
+    as all `allMatches` implementations are intended to be.
 * `dart:io`
   * `HttpClient` no longer sends URI fragments in the requeust. This is not
     allowed by the HTTP protocol.

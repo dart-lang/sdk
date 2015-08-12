@@ -49,29 +49,58 @@ class StringMatch implements Match {
   final String pattern;
 }
 
-List<Match> allMatchesInStringUnchecked(String pattern, String string,
-                                        int startIndex) {
-  // Copied from StringBase.allMatches in
-  // /runtime/lib/string_base.dart
-  List<Match> result = new List<Match>();
-  int length = string.length;
-  int patternLength = pattern.length;
-  while (true) {
-    int position = stringIndexOfStringUnchecked(string, pattern, startIndex);
-    if (position == -1) {
-      break;
+Iterable<Match> allMatchesInStringUnchecked(String pattern, String string,
+                                            int startIndex) {
+  return new _StringAllMatchesIterable(string, pattern, startIndex);
+}
+
+class _StringAllMatchesIterable extends Iterable<Match> {
+  final String _input;
+  final String _pattern;
+  final int _index;
+
+  _StringAllMatchesIterable(this._input, this._pattern, this._index);
+
+  Iterator<Match> get iterator =>
+      new _StringAllMatchesIterator(_input, _pattern, _index);
+
+  Match get first {
+    int index = stringIndexOfStringUnchecked(_input, _pattern, _index);
+    if (index >= 0) {
+      return new StringMatch(index, _input, _pattern);
     }
-    result.add(new StringMatch(position, string, pattern));
-    int endIndex = position + patternLength;
-    if (endIndex == length) {
-      break;
-    } else if (position == endIndex) {
-      ++startIndex;  // empty match, advance and restart
-    } else {
-      startIndex = endIndex;
-    }
+    throw IterableElementError.noElement();
   }
-  return result;
+}
+
+class _StringAllMatchesIterator implements Iterator<Match> {
+  final String _input;
+  final String _pattern;
+  int _index;
+  Match _current;
+
+  _StringAllMatchesIterator(this._input, this._pattern, this._index);
+
+  bool moveNext() {
+    if (_index + _pattern.length > _input.length) {
+      _current = null;
+      return false;
+    }
+    var index = stringIndexOfStringUnchecked(_input, _pattern, _index);
+    if (index < 0) {
+      _index = _input.length + 1;
+      _current = null;
+      return false;
+    }
+    int end = index + _pattern.length;
+    _current = new StringMatch(index, _input, _pattern);
+    // Empty match, don't start at same location again.
+    if (end == _index) end++;
+    _index = end;
+    return true;
+  }
+
+  Match get current => _current;
 }
 
 stringContainsUnchecked(receiver, other, startIndex) {
