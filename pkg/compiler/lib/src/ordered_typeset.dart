@@ -9,10 +9,10 @@ import 'compiler.dart' show
 import 'dart_types.dart';
 import 'diagnostics/invariant.dart' show
     invariant;
+import 'diagnostics/messages.dart' show
+    MessageKind;
 import 'elements/elements.dart' show
     ClassElement;
-import 'messages.dart' show
-    MessageKind;
 import 'util/util.dart' show
     Link,
     LinkBuilder;

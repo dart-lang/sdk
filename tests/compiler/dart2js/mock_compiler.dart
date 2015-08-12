@@ -10,12 +10,12 @@ import 'dart:collection';
 
 import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/constants/expressions.dart';
+import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/js_backend.dart'
     show JavaScriptBackend;
-import 'package:compiler/src/messages.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/resolution/resolution.dart';
 import 'package:compiler/src/script.dart';

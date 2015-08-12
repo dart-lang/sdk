@@ -18,7 +18,7 @@ import '../constants/expressions.dart';
 import '../diagnostics/source_span.dart'
     show SourceSpan;
 import '../dart_types.dart';
-import '../diagnostic_listener.dart';
+import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show FunctionSignatureX;
 import '../elements/common.dart';

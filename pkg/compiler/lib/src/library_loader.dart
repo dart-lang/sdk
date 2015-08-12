@@ -10,9 +10,11 @@ import 'common/tasks.dart' show
     CompilerTask;
 import 'compiler.dart' show
     Compiler;
-import 'diagnostic_listener.dart';
+import 'diagnostics/diagnostic_listener.dart';
 import 'diagnostics/invariant.dart' show
     invariant;
+import 'diagnostics/messages.dart' show
+    MessageKind;
 import 'elements/elements.dart' show
     CompilationUnitElement,
     Element,
@@ -24,8 +26,6 @@ import 'elements/modelx.dart' show
     ErroneousElementX,
     LibraryElementX,
     PrefixElementX;
-import 'messages.dart' show
-    MessageKind;
 import 'native/native.dart' as native;
 import 'script.dart';
 import 'tree/tree.dart';

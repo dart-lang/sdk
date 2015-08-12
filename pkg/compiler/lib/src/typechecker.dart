@@ -15,6 +15,7 @@ import 'core_types.dart';
 import 'dart_types.dart';
 import 'diagnostics/invariant.dart' show
     invariant;
+import 'diagnostics/messages.dart';
 import 'diagnostics/spannable.dart' show
     Spannable;
 import 'elements/elements.dart' show
@@ -44,7 +45,6 @@ import 'elements/elements.dart' show
     TypedElement,
     TypedefElement,
     VariableElement;
-import 'messages.dart';
 import 'resolution/resolution.dart' show
     TreeElements;
 import 'resolution/class_members.dart' show

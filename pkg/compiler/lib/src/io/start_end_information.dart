@@ -7,6 +7,9 @@
 
 library dart2js.source_information.start_end;
 
+import '../diagnostics/messages.dart' show
+    MessageKind,
+    MessageTemplate;
 import '../diagnostics/source_span.dart' show
     SourceSpan;
 import '../elements/elements.dart' show
@@ -14,9 +17,6 @@ import '../elements/elements.dart' show
     LocalElement;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
-import '../messages.dart' show
-    MessageKind,
-    MessageTemplate;
 import '../scanner/scannerlib.dart' show Token;
 import '../tree/tree.dart' show Node, Send;
 

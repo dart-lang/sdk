@@ -10,6 +10,8 @@ import '../compiler.dart' show
 import '../dart_types.dart';
 import '../diagnostics/invariant.dart' show
     invariant;
+import '../diagnostics/messages.dart' show
+    MessageKind;
 import '../elements/elements.dart' show
     ClassElement,
     Element,
@@ -20,8 +22,6 @@ import '../elements/elements.dart' show
     MixinApplicationElement,
     Name,
     PublicName;
-import '../messages.dart' show
-    MessageKind;
 import '../util/util.dart';
 
 part 'member_impl.dart';

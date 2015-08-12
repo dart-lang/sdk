@@ -10,12 +10,12 @@ import '../compiler.dart' show
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostic_listener.dart';
+import '../diagnostics/diagnostic_listener.dart';
+import '../diagnostics/messages.dart' show MessageKind;
 import '../diagnostics/source_span.dart' show
     SourceSpan;
 import '../diagnostics/spannable.dart' show
     Spannable;
-import '../messages.dart' show MessageKind;
 import '../resolution/resolution.dart';
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../scanner/scannerlib.dart' show

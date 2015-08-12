@@ -40,11 +40,15 @@ import 'dart_types.dart' show
     InterfaceType,
     Types;
 import 'deferred_load.dart' show DeferredLoadTask, OutputUnit;
-import 'diagnostic_listener.dart';
 import 'diagnostics/code_location.dart';
+import 'diagnostics/diagnostic_listener.dart';
 import 'diagnostics/invariant.dart' show
     invariant,
     REPORT_EXCESS_RESOLUTION;
+import 'diagnostics/messages.dart' show
+    Message,
+    MessageKind,
+    MessageTemplate;
 import 'diagnostics/source_span.dart' show
     SourceSpan;
 import 'diagnostics/spannable.dart' show
@@ -79,10 +83,6 @@ import 'library_loader.dart' show
     LibraryLoader,
     LibraryLoaderTask,
     LoadedLibraries;
-import 'messages.dart' show
-    Message,
-    MessageKind,
-    MessageTemplate;
 import 'mirrors_used.dart' show
     MirrorUsageAnalyzerTask;
 import 'null_compiler_output.dart' show

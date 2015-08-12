@@ -122,7 +122,9 @@ import 'compiler.dart' show
     Compiler;
 import 'common/tasks.dart' show
     CompilerTask;
-import 'diagnostic_listener.dart';
+import 'diagnostics/diagnostic_listener.dart';
+import 'diagnostics/messages.dart' show
+    MessageKind;
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show
     BaseFunctionElementX,
@@ -131,8 +133,6 @@ import 'elements/modelx.dart' show
     LibraryElementX,
     MetadataAnnotationX,
     SetterElementX;
-import 'messages.dart' show
-    MessageKind;
 import 'library_loader.dart' show
     LibraryLoader;
 import 'scanner/scannerlib.dart';  // Scanner, Parsers, Listeners

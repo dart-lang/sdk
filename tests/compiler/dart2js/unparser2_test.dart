@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 import "package:compiler/src/scanner/scannerlib.dart";
 import "package:compiler/src/tree/tree.dart";
 
-import "package:compiler/src/diagnostic_listener.dart";
+import "package:compiler/src/diagnostics/diagnostic_listener.dart";
 import "package:compiler/src/elements/elements.dart"
     show CompilationUnitElement,
          LibraryElement;

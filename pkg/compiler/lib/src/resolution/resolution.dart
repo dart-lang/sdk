@@ -25,6 +25,7 @@ import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../dart_types.dart';
 import '../diagnostics/invariant.dart' show
     invariant;
+import '../diagnostics/messages.dart' show MessageKind;
 import '../diagnostics/spannable.dart' show
     Spannable;
 import '../enqueue.dart' show
@@ -63,7 +64,6 @@ import '../elements/modelx.dart' show
     TypedefElementX,
     VariableElementX,
     VariableList;
-import '../messages.dart' show MessageKind;
 import '../ordered_typeset.dart' show OrderedTypeSet, OrderedTypeSetBuilder;
 import '../types/types.dart' show TypeMask;
 import '../util/util.dart';

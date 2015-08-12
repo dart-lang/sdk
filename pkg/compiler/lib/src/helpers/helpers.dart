@@ -17,10 +17,10 @@ import '../compiler.dart' show
     Compiler;
 import '../diagnostics/invariant.dart' show
     DEBUG_MODE;
+import '../diagnostics/messages.dart' show
+    MessageKind;
 import '../diagnostics/spannable.dart' show
     Spannable;
-import '../messages.dart' show
-    MessageKind;
 import '../util/util.dart';
 
 part 'debug_collection.dart';

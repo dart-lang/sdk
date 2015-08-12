@@ -10,7 +10,7 @@ import 'compiler.dart' show
     Compiler;
 import 'constants/expressions.dart';
 import 'dart_types.dart';
-import 'diagnostic_listener.dart';
+import 'diagnostics/diagnostic_listener.dart';
 import 'diagnostics/spannable.dart' show
     SpannableAssertionFailure;
 import 'elements/elements.dart';

@@ -10,6 +10,9 @@ import '../../common.dart';
 
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
 import '../../compiler.dart' show Compiler;
+import '../../diagnostics/messages.dart' show
+    MessageKind;
+
 import '../../elements/elements.dart' show ClassElement, FunctionElement;
 import '../../hash/sha1.dart' show Hasher;
 
@@ -27,9 +30,6 @@ import '../../js_backend/js_backend.dart' show
     JavaScriptBackend,
     Namer,
     ConstantEmitter;
-
-import '../../messages.dart' show
-    MessageKind;
 
 import '../../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE;

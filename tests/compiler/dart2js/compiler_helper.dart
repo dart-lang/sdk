@@ -19,9 +19,9 @@ import 'package:compiler/src/js_backend/js_backend.dart'
 import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/common/resolution.dart';
 
+export 'package:compiler/src/diagnostics/messages.dart';
 export 'package:compiler/src/diagnostics/source_span.dart';
 export 'package:compiler/src/diagnostics/spannable.dart';
-export 'package:compiler/src/messages.dart';
 
 import 'package:compiler/src/types/types.dart'
        as types;

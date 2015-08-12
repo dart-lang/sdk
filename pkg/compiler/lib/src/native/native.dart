@@ -12,7 +12,8 @@ import '../compiler.dart' show
     Compiler;
 import '../constants/values.dart';
 import '../dart_types.dart';
-import '../diagnostic_listener.dart';
+import '../diagnostics/diagnostic_listener.dart';
+import '../diagnostics/messages.dart' show MessageKind;
 import '../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE,
     Spannable;
@@ -28,7 +29,6 @@ import '../elements/modelx.dart' show
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
-import '../messages.dart' show MessageKind;
 import '../resolution/resolution.dart' show ResolverVisitor;
 import '../scanner/scannerlib.dart';
 import '../ssa/ssa.dart';

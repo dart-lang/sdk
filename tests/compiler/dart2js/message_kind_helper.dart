@@ -9,11 +9,11 @@ import 'dart:async';
 
 import 'package:compiler/src/compiler.dart' show
     Compiler;
-import 'package:compiler/src/messages.dart' show
-    MessageKind,
-    MessageTemplate;
 import 'package:compiler/src/dart_backend/dart_backend.dart' show
     DartBackend;
+import 'package:compiler/src/diagnostics/messages.dart' show
+    MessageKind,
+    MessageTemplate;
 import 'package:compiler/src/old_to_new_api.dart' show
     LegacyCompilerDiagnostics;
 

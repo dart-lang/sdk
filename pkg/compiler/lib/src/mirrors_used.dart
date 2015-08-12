@@ -21,6 +21,8 @@ import 'dart_types.dart' show
     DartType,
     InterfaceType,
     TypeKind;
+import 'diagnostics/messages.dart' show
+    MessageKind;
 import 'diagnostics/spannable.dart' show
     Spannable;
 import 'elements/elements.dart' show
@@ -30,8 +32,6 @@ import 'elements/elements.dart' show
     MetadataAnnotation,
     ScopeContainerElement,
     VariableElement;
-import 'messages.dart' show
-    MessageKind;
 import 'resolution/resolution.dart' show
     TreeElements;
 import 'tree/tree.dart' show

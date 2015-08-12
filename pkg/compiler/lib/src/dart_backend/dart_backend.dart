@@ -27,9 +27,11 @@ import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
-import '../diagnostic_listener.dart';
+import '../diagnostics/diagnostic_listener.dart';
 import '../diagnostics/invariant.dart' show
     invariant;
+import '../diagnostics/messages.dart' show
+    MessageKind;
 import '../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE,
     Spannable,
@@ -41,8 +43,6 @@ import '../enqueue.dart' show
     WorldImpact;
 import '../library_loader.dart' show
     LoadedLibraries;
-import '../messages.dart' show
-    MessageKind;
 import '../mirror_renamer/mirror_renamer.dart';
 import '../resolution/resolution.dart' show
     TreeElements,

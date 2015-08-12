@@ -11,11 +11,11 @@ import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/dart_types.dart' as dart_types
     show DartType;
+import 'package:compiler/src/diagnostics/messages.dart'
+    show MessageKind;
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/modelx.dart'
     show ErroneousElementX, TypeVariableElementX;
-import 'package:compiler/src/messages.dart'
-    show MessageKind;
 import 'package:compiler/src/tree/tree.dart' show LiteralDartString;
 import 'package:compiler/src/universe/universe.dart'
     show Selector, SelectorKind, CallStructure;

@@ -16,6 +16,8 @@ import 'constants/values.dart' show
     DeferredConstantValue,
     StringConstantValue;
 import 'dart_types.dart';
+import 'diagnostics/messages.dart' show
+    MessageKind;
 import 'elements/elements.dart' show
     AccessorElement,
     AstElement,
@@ -32,8 +34,6 @@ import 'elements/elements.dart' show
     VoidElement;
 import 'js_backend/js_backend.dart' show
     JavaScriptBackend;
-import 'messages.dart' show
-    MessageKind;
 import 'resolution/resolution.dart' show
     AnalyzableElementX,
     TreeElements;

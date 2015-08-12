@@ -23,6 +23,7 @@ import '../constants/values.dart';
 import '../dart_types.dart';
 import '../diagnostics/invariant.dart' show
     invariant;
+import '../diagnostics/messages.dart';
 import '../diagnostics/spannable.dart' show
     CURRENT_ELEMENT_SPANNABLE,
     Spannable;
@@ -37,7 +38,6 @@ import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show
     CodeEmitterTask,
     NativeEmitter;
-import '../messages.dart';
 import '../native/native.dart' as native;
 import '../resolution/operators.dart';
 import '../resolution/resolution.dart' show

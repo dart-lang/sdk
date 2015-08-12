@@ -7,8 +7,8 @@ library analyze_unused_dart2js;
 import 'package:async_helper/async_helper.dart';
 
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/filenames.dart';
-import 'package:compiler/src/messages.dart';
 
 import 'analyze_helper.dart';
 

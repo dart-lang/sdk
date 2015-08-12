@@ -8,8 +8,8 @@ library stringvalidator;
 
 import 'dart:collection';
 
-import 'diagnostic_listener.dart';
-import 'messages.dart' show MessageKind;
+import 'diagnostics/diagnostic_listener.dart';
+import 'diagnostics/messages.dart' show MessageKind;
 import 'scanner/scannerlib.dart' show Token;
 import 'tree/tree.dart';
 import 'util/characters.dart';

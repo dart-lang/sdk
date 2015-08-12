@@ -14,7 +14,7 @@ import 'package:compiler/compiler_new.dart' show
     CompilerOutput,
     Diagnostic,
     PackagesDiscoveryProvider;
-import 'package:compiler/src/messages.dart' show
+import 'package:compiler/src/diagnostics/messages.dart' show
     Message;
 import 'package:compiler/src/mirrors/source_mirrors.dart';
 import 'package:compiler/src/mirrors/analyze.dart';

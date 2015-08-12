@@ -8,13 +8,13 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/modelx.dart' show
     ClassElementX,
     CompilationUnitElementX,
     ElementX,
     FunctionElementX;
-import 'package:compiler/src/messages.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/resolution/resolution.dart' show
     TreeElements,

@@ -11,6 +11,8 @@ import 'common/tasks.dart' show
     CompilerTask;
 import 'compiler.dart' show
     Compiler;
+import 'diagnostics/messages.dart' show
+    MessageKind;
 import 'diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE;
 import 'elements/elements.dart';
@@ -25,8 +27,6 @@ import 'js_backend/js_backend.dart' show
 import 'js_emitter/full_emitter/emitter.dart' as full show
     Emitter;
 import 'js/js.dart' as jsAst;
-import 'messages.dart' show
-    MessageKind;
 import 'universe/universe.dart' show
     Selector,
     UniverseSelector;

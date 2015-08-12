@@ -34,6 +34,7 @@ import '../constants/values.dart';
 import '../dart_types.dart';
 import '../diagnostics/invariant.dart' show
     invariant;
+import '../diagnostics/messages.dart' show MessageKind;
 import '../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE,
     Spannable,
@@ -67,7 +68,6 @@ import '../js_emitter/js_emitter.dart' show
     TokenFinalizer,
     USE_LAZY_EMITTER;
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
-import '../messages.dart' show MessageKind;
 import '../native/native.dart' as native;
 import '../resolution/resolution.dart' show
     ResolutionRegistry,

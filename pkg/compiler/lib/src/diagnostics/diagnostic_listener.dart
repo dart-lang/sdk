@@ -4,11 +4,11 @@
 
 library dart2js.diagnostic_listener;
 
-import 'diagnostics/source_span.dart' show
+import 'source_span.dart' show
     SourceSpan;
-import 'diagnostics/spannable.dart' show
+import 'spannable.dart' show
     Spannable;
-import 'elements/elements.dart' show
+import '../elements/elements.dart' show
     Element;
 import 'messages.dart';
 

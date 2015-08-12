@@ -16,16 +16,20 @@ import 'constants/values.dart';
 import 'dart_types.dart';
 import 'diagnostics/invariant.dart' show
     invariant;
+import 'diagnostics/messages.dart' show
+    MessageKind;
 import 'enqueue.dart' show
     WorldImpact;
 import 'elements/elements.dart';
-import 'elements/modelx.dart' show FunctionElementX;
-import 'messages.dart' show MessageKind;
+import 'elements/modelx.dart' show
+    FunctionElementX;
 import 'resolution/resolution.dart';
 import 'resolution/operators.dart';
 import 'tree/tree.dart';
-import 'util/util.dart' show Link;
-import 'universe/universe.dart' show CallStructure;
+import 'util/util.dart' show
+    Link;
+import 'universe/universe.dart' show
+    CallStructure;
 
 /// A [ConstantEnvironment] provides access for constants compiled for variable
 /// initializers.

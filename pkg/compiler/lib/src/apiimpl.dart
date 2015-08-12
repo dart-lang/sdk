@@ -22,6 +22,7 @@ import '../compiler_new.dart' as api;
 import 'common/tasks.dart' show
     GenericTask;
 import 'compiler.dart' as leg;
+import 'diagnostics/messages.dart';
 import 'diagnostics/source_span.dart' show
     SourceSpan;
 import 'diagnostics/spannable.dart' show
@@ -29,7 +30,6 @@ import 'diagnostics/spannable.dart' show
     Spannable;
 import 'elements/elements.dart' as elements;
 import 'io/source_file.dart';
-import 'messages.dart';
 import 'script.dart';
 import 'tree/tree.dart' as tree;
 

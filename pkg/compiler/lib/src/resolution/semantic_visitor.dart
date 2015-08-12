@@ -8,12 +8,12 @@ import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../diagnostics/invariant.dart' show
     invariant;
+import '../diagnostics/messages.dart' show
+    MessageKind;
 import '../diagnostics/spannable.dart' show
     Spannable,
     SpannableAssertionFailure;
 import '../elements/elements.dart';
-import '../messages.dart' show
-    MessageKind;
 import '../tree/tree.dart';
 import '../universe/universe.dart';
 

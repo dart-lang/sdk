@@ -3,13 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
-import 'package:compiler/src/elements/elements.dart';
 
+import 'package:compiler/src/diagnostics/messages.dart'
+    show MessageKind;
+import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/modelx.dart'
     show ErroneousElementX;
-
-import 'package:compiler/src/messages.dart'
-    show MessageKind;
 
 void main() {
   ErroneousElement e = new ErroneousElementX(MessageKind.GENERIC,

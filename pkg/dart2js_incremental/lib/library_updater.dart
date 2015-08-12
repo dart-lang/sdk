@@ -12,6 +12,9 @@ import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/compiler.dart' show
     Compiler;
 
+import 'package:compiler/src/diagnostics/messages.dart' show
+    MessageKind;
+
 import 'package:compiler/src/elements/elements.dart' show
     ClassElement,
     CompilationUnitElement,
@@ -23,9 +26,6 @@ import 'package:compiler/src/elements/elements.dart' show
 
 import 'package:compiler/src/enqueue.dart' show
     EnqueueTask;
-
-import 'package:compiler/src/messages.dart' show
-    MessageKind;
 
 import 'package:compiler/src/scanner/scannerlib.dart' show
     EOF_TOKEN,

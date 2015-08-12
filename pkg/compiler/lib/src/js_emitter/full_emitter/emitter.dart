@@ -26,6 +26,8 @@ import '../../constants/values.dart';
 
 import '../../deferred_load.dart' show OutputUnit;
 
+import '../../diagnostics/messages.dart' show MessageKind;
+
 import '../../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE;
 
@@ -67,8 +69,6 @@ import '../../js_backend/js_backend.dart' show
     TypeCheck,
     TypeChecks,
     TypeVariableHandler;
-
-import '../../messages.dart' show MessageKind;
 
 import '../../util/characters.dart' show
     $$,
