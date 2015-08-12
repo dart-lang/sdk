@@ -1934,6 +1934,7 @@ static bool GetHitsOrSites(Isolate* isolate, JSONStream* js, bool as_sites) {
 
 static const MethodParameter* get_coverage_params[] = {
   ISOLATE_PARAMETER,
+  new IdParameter("targetId", false),
   NULL,
 };
 
@@ -1946,7 +1947,7 @@ static bool GetCoverage(Isolate* isolate, JSONStream* js) {
 
 static const MethodParameter* get_call_site_data_params[] = {
   ISOLATE_PARAMETER,
-  new IdParameter("targetId", true),
+  new IdParameter("targetId", false),
   NULL,
 };
 

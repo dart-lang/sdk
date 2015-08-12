@@ -293,7 +293,7 @@ class FunctionDeclarationAnnotation extends DeclarationAnnotation {
     if (function.isOptimizable == false ||
         function.isInlinable == false ||
         function.deoptimizations >0) {
-      element.style.backgroundColor = "red";
+      element.style.backgroundColor = "#EEA7A7";  // Low-saturation red.
     }
 
     addLink(element, url);
