@@ -10131,13 +10131,15 @@ const char* Library::ToCString() const {
 
 
 void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  const char* library_name = String::Handle(name()).ToCString();
   intptr_t id = index();
   ASSERT(id >= 0);
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Library", ref);
   jsobj.AddFixedServiceId("libraries/%" Pd "", id);
-  jsobj.AddProperty("name", library_name);
+  const String& vm_name = String::Handle(name());
+  const String& user_name =
+      String::Handle(String::IdentifierPrettyName(vm_name));
+  AddNameProperties(&jsobj, user_name, vm_name);
   const String& library_url = String::Handle(url());
   jsobj.AddPropertyStr("uri", library_url);
   if (ref) {
