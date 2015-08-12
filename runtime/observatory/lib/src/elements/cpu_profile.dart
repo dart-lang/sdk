@@ -500,7 +500,11 @@ class SampleBufferControlElement extends ObservatoryElement {
     refreshTime = new DateTime.now().toString();
     stackDepth = profile.stackDepth.toString();
     sampleRate = profile.sampleRate.toStringAsFixed(0);
-    timeSpan = formatTime(profile.timeSpan);
+    if (profile.sampleCount == 0) {
+      timeSpan = '0s';
+    } else {
+      timeSpan = formatTime(profile.timeSpan);
+    }
   }
 
   void tagSelectorChanged(oldValue) {
