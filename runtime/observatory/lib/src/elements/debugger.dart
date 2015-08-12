@@ -1706,8 +1706,20 @@ class DebuggerPageElement extends ObservatoryElement {
         app.vm.listenEventStream(VM.kDebugStream, debugger.onEvent);
     _stdoutSubscriptionFuture =
         app.vm.listenEventStream(VM.kStdoutStream, debugger.onStdout);
+    if (_stdoutSubscriptionFuture != null) {
+      // TODO(turnidge): How do we want to handle this in general?
+      _stdoutSubscriptionFuture.catchError((e, st) {
+        Logger.root.info('Failed to subscribe to stdout: $e\n$st\n');
+      });
+    }
     _stderrSubscriptionFuture =
         app.vm.listenEventStream(VM.kStderrStream, debugger.onStderr);
+    if (_stderrSubscriptionFuture != null) {
+      // TODO(turnidge): How do we want to handle this in general?
+      _stderrSubscriptionFuture.catchError((e, st) {
+        Logger.root.info('Failed to subscribe to stderr: $e\n$st\n');
+      });
+    }
     _logSubscriptionFuture =
         app.vm.listenEventStream(Isolate.kLoggingStream, debugger.onEvent);
     // Turn on the periodic poll timer for this page.
