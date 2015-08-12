@@ -12,7 +12,7 @@ import 'dart:developer';
 
 void testFunction() {
   int i = 0;
-  while (true) {
+  while (i == 0) {
     debugger();
     print('loop');
     print('loop');
