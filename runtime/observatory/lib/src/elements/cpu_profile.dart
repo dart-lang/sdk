@@ -559,6 +559,7 @@ class StackTraceTreeConfigElement extends ObservatoryElement {
   }
 
   Function onTreeConfigChange;
+  @observable bool show = true;
   @observable bool showModeSelector = true;
   @observable bool showDirectionSelector = true;
   @observable String modeSelector = 'Function';
@@ -1125,11 +1126,18 @@ class CpuProfileTreeElement extends ObservatoryElement {
   TableTree codeTree;
   TableTree functionTree;
   FunctionCallTreeNodeFilter functionFilter;
+  @observable bool show = true;
 
   CpuProfileTreeElement.created() : super.created();
 
   void render() {
     _updateView();
+  }
+
+  showChanged(oldValue) {
+    var treeTable = shadowRoot.querySelector('#treeTable');
+    assert(treeTable != null);
+    treeTable.style.display = show ? 'table' : 'none';
   }
 
   void _updateView() {
