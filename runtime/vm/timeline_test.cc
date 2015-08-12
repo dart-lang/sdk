@@ -24,7 +24,7 @@ class TimelineTestHelper : public AllStatic {
     TimelineEvent* event = block->StartEvent();
     ASSERT(event != NULL);
     event->DurationBegin("fake");
-    event->thread_ = static_cast<ThreadId>(ftid);
+    event->thread_ = OSThread::ThreadIdFromIntPtr(ftid);
     return event;
   }
 };
@@ -280,10 +280,12 @@ TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
   EXPECT_EQ(2, ta.NumThreads());
 
   // Extract both threads.
-  TimelineAnalysisThread* thread_1 = ta.GetThread(static_cast<ThreadId>(1));
-  TimelineAnalysisThread* thread_2 = ta.GetThread(static_cast<ThreadId>(2));
-  EXPECT_EQ(static_cast<ThreadId>(1), thread_1->id());
-  EXPECT_EQ(static_cast<ThreadId>(2), thread_2->id());
+  TimelineAnalysisThread* thread_1 =
+      ta.GetThread(OSThread::ThreadIdFromIntPtr(1));
+  TimelineAnalysisThread* thread_2 =
+      ta.GetThread(OSThread::ThreadIdFromIntPtr(2));
+  EXPECT_EQ(OSThread::ThreadIdFromIntPtr(1), thread_1->id());
+  EXPECT_EQ(OSThread::ThreadIdFromIntPtr(2), thread_2->id());
 
   // Thread "1" should have three blocks.
   EXPECT_EQ(3, thread_1->NumBlocks());
