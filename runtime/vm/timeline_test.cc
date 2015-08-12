@@ -8,6 +8,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/globals.h"
 #include "vm/timeline.h"
+#include "vm/timeline_analysis.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -16,6 +17,15 @@ class TimelineTestHelper : public AllStatic {
  public:
   static void SetStream(TimelineEvent* event, TimelineStream* stream) {
     event->StreamInit(stream);
+  }
+
+  static TimelineEvent* FakeThreadEvent(
+      TimelineEventBlock* block, intptr_t ftid) {
+    TimelineEvent* event = block->StartEvent();
+    ASSERT(event != NULL);
+    event->DurationBegin("fake");
+    event->thread_ = static_cast<ThreadId>(ftid);
+    return event;
   }
 };
 
@@ -223,6 +233,80 @@ TEST_CASE(TimelineEventStreamingRecorderBasic) {
   EXPECT_EQ(0, recorder->CountFor(TimelineEvent::kAsyncEnd));
   event->Complete();
   EXPECT_EQ(1, recorder->CountFor(TimelineEvent::kAsyncEnd));
+}
+
+
+TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
+  TimelineEventEndlessRecorder* recorder = new TimelineEventEndlessRecorder();
+  ASSERT(recorder != NULL);
+  // Blocks owned by thread "1".
+  TimelineEventBlock* block_1_0 = recorder->GetNewBlock();
+  TimelineEventBlock* block_1_1 = recorder->GetNewBlock();
+  TimelineEventBlock* block_1_2 = recorder->GetNewBlock();
+  // Blocks owned by thread "2".
+  TimelineEventBlock* block_2_0 = recorder->GetNewBlock();
+  // Blocks owned by thread "3".
+  TimelineEventBlock* block_3_0 = recorder->GetNewBlock();
+  USE(block_3_0);
+
+  // Add events to each block for thread 1.
+  TimelineTestHelper::FakeThreadEvent(block_1_2, 1);
+  TimelineTestHelper::FakeThreadEvent(block_1_2, 1);
+  TimelineTestHelper::FakeThreadEvent(block_1_2, 1);
+  // Sleep to ensure timestamps differ.
+  OS::Sleep(1);
+  TimelineTestHelper::FakeThreadEvent(block_1_0, 1);
+  OS::Sleep(1);
+  TimelineTestHelper::FakeThreadEvent(block_1_1, 1);
+  TimelineTestHelper::FakeThreadEvent(block_1_1, 1);
+  OS::Sleep(1);
+
+  // Add events to each block for thread 2.
+  TimelineTestHelper::FakeThreadEvent(block_2_0, 2);
+  TimelineTestHelper::FakeThreadEvent(block_2_0, 2);
+  TimelineTestHelper::FakeThreadEvent(block_2_0, 2);
+  TimelineTestHelper::FakeThreadEvent(block_2_0, 2);
+  TimelineTestHelper::FakeThreadEvent(block_2_0, 2);
+  TimelineTestHelper::FakeThreadEvent(block_2_0, 2);
+
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+
+  // Discover threads in recorder.
+  TimelineAnalysis ta(zone, isolate, recorder);
+  ta.BuildThreads();
+  // block_3_0 is never used by a thread, so we only have two threads.
+  EXPECT_EQ(2, ta.NumThreads());
+
+  // Extract both threads.
+  TimelineAnalysisThread* thread_1 = ta.GetThread(static_cast<ThreadId>(1));
+  TimelineAnalysisThread* thread_2 = ta.GetThread(static_cast<ThreadId>(2));
+  EXPECT_EQ(static_cast<ThreadId>(1), thread_1->id());
+  EXPECT_EQ(static_cast<ThreadId>(2), thread_2->id());
+
+  // Thread "1" should have three blocks.
+  EXPECT_EQ(3, thread_1->NumBlocks());
+
+  // Verify that blocks for thread "1" are sorted based on start time.
+  EXPECT_EQ(thread_1->At(0), block_1_2);
+  EXPECT_EQ(thread_1->At(1), block_1_0);
+  EXPECT_EQ(thread_1->At(2), block_1_1);
+
+  // Verify that block_1_2 has three events.
+  EXPECT_EQ(3, block_1_2->length());
+
+  // Verify that block_1_0 has one events.
+  EXPECT_EQ(1, block_1_0->length());
+
+  // Verify that block_1_1 has two events.
+  EXPECT_EQ(2, block_1_1->length());
+
+  // Thread '2" should have one block.'
+  EXPECT_EQ(1, thread_2->NumBlocks());
+  EXPECT_EQ(thread_2->At(0), block_2_0);
+  // Verify that block_2_0 has six events.
+  EXPECT_EQ(6, block_2_0->length());
 }
 
 }  // namespace dart

@@ -5,12 +5,16 @@
 #ifndef VM_TIMELINE_H_
 #define VM_TIMELINE_H_
 
+#include "vm/allocation.h"
 #include "vm/bitfield.h"
 
 namespace dart {
 
+class JSONArray;
+class JSONObject;
 class JSONStream;
 class Object;
+class ObjectPointerVisitor;
 class RawArray;
 class Thread;
 class TimelineEvent;
@@ -82,6 +86,10 @@ class TimelineEvent {
   int64_t TimeDuration() const;
 
   void PrintJSON(JSONStream* stream) const;
+
+  ThreadId thread() const {
+    return thread_;
+  }
 
  private:
   struct TimelineEventArgument {
@@ -276,6 +284,10 @@ class TimelineEventBlock {
     return length_;
   }
 
+  bool IsEmpty() const {
+    return length_ == 0;
+  }
+
   bool IsFull() const {
     return length_ == kBlockSize;
   }
@@ -286,6 +298,16 @@ class TimelineEventBlock {
     return &events_[index];
   }
 
+  // Attempt to sniff a thread id from the first event.
+  ThreadId thread() const;
+  // Attempt to sniff the timestamp from the first event.
+  int64_t LowerTimeBound() const;
+
+  // Returns false if |this| violates any of the following invariants:
+  // - events in the block come from one thread.
+  // - events have monotonically increasing timestamps.
+  bool CheckBlock();
+
  protected:
   TimelineEvent* StartEvent();
 
@@ -294,6 +316,7 @@ class TimelineEventBlock {
   intptr_t length_;
 
   friend class TimelineEventEndlessRecorder;
+  friend class TimelineTestHelper;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TimelineEventBlock);
@@ -336,6 +359,7 @@ class TimelineEventRecorder {
 
 // A recorder that stores events in a ring buffer of fixed capacity.
 // This recorder does track Dart objects.
+// TODO(johnmccutchan): Make this recorder use event blocks too.
 class TimelineEventRingRecorder : public TimelineEventRecorder {
  public:
   static const intptr_t kDefaultCapacity = 8192;
@@ -417,6 +441,27 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
 
   Mutex lock_;
   TimelineEventBlock* head_;
+
+  friend class TimelineEventBlockIterator;
+};
+
+
+// An iterator for blocks.
+class TimelineEventBlockIterator {
+ public:
+  explicit TimelineEventBlockIterator(TimelineEventEndlessRecorder* recorder);
+  ~TimelineEventBlockIterator();
+
+  void Reset();
+  bool Next();
+
+  TimelineEventBlock* current() const {
+    return current_;
+  }
+
+ private:
+  TimelineEventBlock* current_;
+  TimelineEventEndlessRecorder* recorder_;
 };
 
 }  // namespace dart

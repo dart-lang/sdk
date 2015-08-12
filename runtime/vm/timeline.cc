@@ -13,7 +13,7 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, trace_timeline, false, "Trace timeline code.");
+DEFINE_FLAG(bool, trace_timeline, false, "Trace timeline backend");
 DEFINE_FLAG(bool, complete_timeline, false, "Record the complete timeline");
 
 TimelineEvent::TimelineEvent()
@@ -584,6 +584,81 @@ TimelineEventBlock::TimelineEventBlock()
 TimelineEvent* TimelineEventBlock::StartEvent() {
   ASSERT(!IsFull());
   return &events_[length_++];
+}
+
+
+ThreadId TimelineEventBlock::thread() const {
+  ASSERT(length_ > 0);
+  return events_[0].thread();
+}
+
+
+int64_t TimelineEventBlock::LowerTimeBound() const {
+  ASSERT(length_ > 0);
+  return events_[0].TimeOrigin();
+}
+
+
+bool TimelineEventBlock::CheckBlock() {
+  if (length() == 0) {
+    return true;
+  }
+
+  // - events in the block come from one thread.
+  ThreadId tid = thread();
+  for (intptr_t i = 0; i < length(); i++) {
+    if (At(i)->thread() != tid) {
+      return false;
+    }
+  }
+
+  // - events have monotonically increasing timestamps.
+  int64_t last_time = LowerTimeBound();
+  for (intptr_t i = 0; i < length(); i++) {
+    if (last_time > At(i)->TimeOrigin()) {
+      return false;
+    }
+    last_time = At(i)->TimeOrigin();
+  }
+
+  return true;
+}
+
+
+TimelineEventBlockIterator::TimelineEventBlockIterator(
+    TimelineEventEndlessRecorder* recorder)
+    : current_(NULL),
+      recorder_(recorder) {
+  if (recorder_ == NULL) {
+    return;
+  }
+  recorder->lock_.Lock();
+}
+
+
+TimelineEventBlockIterator::~TimelineEventBlockIterator() {
+  if (recorder_ == NULL) {
+    return;
+  }
+  recorder_->lock_.Unlock();
+}
+
+
+void TimelineEventBlockIterator::Reset() {
+  current_ = NULL;
+}
+
+
+bool TimelineEventBlockIterator::Next() {
+  if (recorder_ == NULL) {
+    return false;
+  }
+  if (current_ == NULL) {
+    current_ = recorder_->head_;
+  } else {
+    current_ = current_->next();
+  }
+  return current_ != NULL;
 }
 
 }  // namespace dart

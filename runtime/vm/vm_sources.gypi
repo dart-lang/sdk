@@ -460,6 +460,8 @@
     'thread_test.cc',
     'timeline.cc',
     'timeline.h',
+    'timeline_analysis.cc',
+    'timeline_analysis.h',
     'timeline_test.cc',
     'timer.cc',
     'timer.h',
