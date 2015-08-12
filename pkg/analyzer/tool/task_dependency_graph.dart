@@ -83,9 +83,9 @@ class Driver {
     context = AnalysisEngine.instance.createAnalysisContext();
     JavaFile packagesDir = new JavaFile(path.join(rootDir, 'packages'));
     List<UriResolver> uriResolvers = [
-      new FileUriResolver(),
       new DartUriResolver(sdk),
-      new PackageUriResolver(<JavaFile>[packagesDir])
+      new PackageUriResolver(<JavaFile>[packagesDir]),
+      new FileUriResolver()
     ];
     context.sourceFactory = new SourceFactory(uriResolvers);
     Source taskSource =
@@ -126,6 +126,10 @@ class Driver {
     String filePath = path.join(rootDir, filename);
     File file = resourceProvider.getResource(filePath);
     Source source = file.createSource();
+    Uri restoredUri = context.sourceFactory.restoreUri(source);
+    if (restoredUri != null) {
+      source = file.createSource(restoredUri);
+    }
     ChangeSet changeSet = new ChangeSet();
     changeSet.addedSource(source);
     context.applyChanges(changeSet);
