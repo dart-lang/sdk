@@ -26,6 +26,10 @@ class FunctionRefElement extends ServiceRefElement {
     if (ref == null) {
       return;
     }
+    if (!function.kind.isDart()) {
+      insertTextSpanIntoShadowRoot(name);
+      return;
+    }
     if (qualified) {
       if (function.dartOwner is ServiceFunction) {
         var functionRef = new Element.tag('function-ref');
