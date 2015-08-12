@@ -9,6 +9,10 @@
     allowed by the HTTP protocol.
     The `HttpServer` still gracefully receives fragments, but discards them
     before delivering the request.
+* `dart:async`
+  * `StreamController` added getters for the `onListen`, `onPause`, `onResume`
+    and `onCancel` callbacks.
+
 
 ## 1.12.0
 
