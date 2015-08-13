@@ -19,6 +19,7 @@ import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
+import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -1352,7 +1353,8 @@ class PackageMapDisposition extends FolderDisposition {
   @override
   Iterable<UriResolver> createPackageUriResolvers(
           ResourceProvider resourceProvider) =>
-      <UriResolver>[new PackageMapUriResolver(resourceProvider, packageMap)];
+      <UriResolver>[new SdkExtUriResolver(packageMap),
+                    new PackageMapUriResolver(resourceProvider, packageMap)];
 }
 
 /**
@@ -1370,6 +1372,19 @@ class PackagesFileDisposition extends FolderDisposition {
 
   @override
   Iterable<UriResolver> createPackageUriResolvers(
-          ResourceProvider resourceProvider) =>
-      const <UriResolver>[];
+          ResourceProvider resourceProvider) {
+    if (packages != null) {
+      // Construct package map for the SdkExtUriResolver.
+      Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
+      packages.asMap().forEach((String name, Uri uri) {
+        if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
+          var path = resourceProvider.pathContext.fromUri(uri);
+          packageMap[name] = <Folder>[resourceProvider.getFolder(path)];
+        }
+      });
+      return <UriResolver>[new SdkExtUriResolver(packageMap)];
+    } else {
+      return const <UriResolver>[];
+    }
+  }
 }
