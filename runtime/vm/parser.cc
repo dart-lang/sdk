@@ -7021,14 +7021,14 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
       Class::ZoneHandle(Z, I->object_store()->completer_class());
   ASSERT(!completer.IsNull());
   const Function& completer_constructor = Function::ZoneHandle(Z,
-      completer.LookupFunction(Symbols::CompleterConstructor()));
+      completer.LookupFunction(Symbols::CompleterSyncConstructor()));
   ASSERT(!completer_constructor.IsNull());
 
   LocalVariable* async_completer = current_block_->scope->LookupVariable(
       Symbols::AsyncCompleter(), false);
 
   // Add to AST:
-  //   :async_completer = new Completer();
+  //   :async_completer = new Completer.sync();
   ArgumentListNode* empty_args =
       new (Z) ArgumentListNode(Scanner::kNoSourcePos);
   ConstructorCallNode* completer_constructor_node = new (Z) ConstructorCallNode(

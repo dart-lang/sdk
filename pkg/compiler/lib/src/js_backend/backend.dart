@@ -1897,10 +1897,10 @@ class JavaScriptBackend extends Backend {
     return classElement.lookupConstructor("");
   }
 
-  Element getCompleterConstructor() {
+  Element getSyncCompleterConstructor() {
     ClassElement classElement = find(compiler.asyncLibrary, "Completer");
     classElement.ensureResolved(compiler);
-    return classElement.lookupConstructor("");
+    return classElement.lookupConstructor("sync");
   }
 
   Element getASyncStarController() {
@@ -2689,7 +2689,7 @@ class JavaScriptBackend extends Backend {
                            Registry registry) {
     if (element.asyncMarker == AsyncMarker.ASYNC) {
       enqueue(enqueuer, getAsyncHelper(), registry);
-      enqueue(enqueuer, getCompleterConstructor(), registry);
+      enqueue(enqueuer, getSyncCompleterConstructor(), registry);
       enqueue(enqueuer, getStreamIteratorConstructor(), registry);
     } else if (element.asyncMarker == AsyncMarker.SYNC_STAR) {
       ClassElement clsSyncStarIterable = getSyncStarIterable();
@@ -2744,7 +2744,7 @@ class JavaScriptBackend extends Backend {
             asyncHelper:
                 emitter.staticFunctionAccess(getAsyncHelper()),
             newCompleter: emitter.staticFunctionAccess(
-                getCompleterConstructor()),
+                getSyncCompleterConstructor()),
             safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
             bodyName: namer.deriveAsyncBodyName(name));
         break;

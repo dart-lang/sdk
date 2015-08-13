@@ -119,7 +119,7 @@ class ObjectPointerVisitor;
   V(Completer, "Completer")                                                    \
   V(CompleterComplete, "complete")                                             \
   V(CompleterCompleteError, "completeError")                                   \
-  V(CompleterConstructor, "Completer.")                                        \
+  V(CompleterSyncConstructor, "Completer.sync")                                \
   V(CompleterFuture, "future")                                                 \
   V(StreamIterator, "StreamIterator")                                          \
   V(StreamIteratorConstructor, "StreamIterator.")                              \
