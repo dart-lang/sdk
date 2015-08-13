@@ -1416,7 +1416,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
           getter.set_result_type(type);
           getter.set_is_debuggable(false);
           cls.AddFunction(getter);
-          field.set_value(Instance::Handle(I, Object::sentinel().raw()));
+          field.set_value(Object::sentinel());
         }
       }
     }

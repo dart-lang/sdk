@@ -5186,7 +5186,7 @@ static void CompileSource(Isolate* isolate,
     *result = Api::NewHandle(isolate, error.raw());
     // Compilation errors are not Dart instances, so just mark the library
     // as having failed to load without providing an error instance.
-    lib.SetLoadError(Instance::Handle());
+    lib.SetLoadError(Object::null_instance());
   }
 }
 

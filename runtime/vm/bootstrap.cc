@@ -154,7 +154,7 @@ static RawError* Compile(const Library& library, const Script& script) {
     } else {
       // Compilation errors are not Dart instances, so just mark the library
       // as having failed to load without providing an error instance.
-      library.SetLoadError(Instance::Handle());
+      library.SetLoadError(Object::null_instance());
     }
   }
   return error.raw();

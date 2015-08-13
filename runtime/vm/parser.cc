@@ -5405,7 +5405,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
     field = Field::New(var_name, is_static, is_final, is_const, is_reflectable,
                        current_class(), name_pos);
     field.set_type(type);
-    field.set_value(Instance::Handle(Z, Instance::null()));
+    field.set_value(Object::null_instance());
     top_level->fields.Add(field);
     library_.AddObject(field, var_name);
     if (metadata_pos >= 0) {

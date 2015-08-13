@@ -7249,7 +7249,6 @@ RawField* Field::New(const String& name,
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
-  result.set_initializer(Function::Handle());
   result.set_is_unboxing_candidate(true);
   result.set_guarded_cid(FLAG_use_field_guards ? kIllegalCid : kDynamicCid);
   result.set_is_nullable(FLAG_use_field_guards ? false : true);
@@ -7260,7 +7259,6 @@ RawField* Field::New(const String& name,
   } else {
     result.set_guarded_list_length(Field::kNoFixedLength);
   }
-  result.set_dependent_code(Object::null_array());
   return result.raw();
 }
 
@@ -7273,7 +7271,6 @@ RawField* Field::Clone(const Class& new_owner) const {
   const PatchClass& clone_owner =
       PatchClass::Handle(PatchClass::New(new_owner, owner));
   clone.set_owner(clone_owner);
-  clone.set_dependent_code(Object::null_array());
   if (!clone.is_static()) {
     clone.SetOffset(0);
   }
@@ -10507,7 +10504,6 @@ RawLibraryPrefix* LibraryPrefix::New(const String& name,
   result.StoreNonPointer(&result.raw_ptr()->is_loaded_, !deferred_load);
   result.set_imports(Array::Handle(Array::New(kInitialSize)));
   result.AddImport(import);
-  result.set_dependent_code(Object::null_array());
   return result.raw();
 }
 
