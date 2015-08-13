@@ -271,7 +271,8 @@ class TimelineEventBlock {
  public:
   static const intptr_t kBlockSize = 64;
 
-  TimelineEventBlock();
+  explicit TimelineEventBlock(intptr_t index);
+  ~TimelineEventBlock();
 
   TimelineEventBlock* next() const {
     return next_;
@@ -282,6 +283,10 @@ class TimelineEventBlock {
 
   intptr_t length() const {
     return length_;
+  }
+
+  intptr_t block_index() const {
+    return block_index_;
   }
 
   bool IsEmpty() const {
@@ -298,6 +303,12 @@ class TimelineEventBlock {
     return &events_[index];
   }
 
+  const TimelineEvent* At(intptr_t index) const {
+    ASSERT(index >= 0);
+    ASSERT(index < kBlockSize);
+    return &events_[index];
+  }
+
   // Attempt to sniff a thread id from the first event.
   ThreadId thread() const;
   // Attempt to sniff the timestamp from the first event.
@@ -308,14 +319,19 @@ class TimelineEventBlock {
   // - events have monotonically increasing timestamps.
   bool CheckBlock();
 
+  // Call Reset on all events and set length to 0.
+  void Reset();
+
  protected:
   TimelineEvent* StartEvent();
 
   TimelineEvent events_[kBlockSize];
   TimelineEventBlock* next_;
   intptr_t length_;
+  intptr_t block_index_;
 
   friend class TimelineEventEndlessRecorder;
+  friend class TimelineEventRecorder;
   friend class TimelineTestHelper;
 
  private:
@@ -331,11 +347,7 @@ class TimelineEventRecorder {
 
   // Interface method(s) which must be implemented.
   virtual void PrintJSON(JSONStream* js) = 0;
-
-  // Override if recorder uses blocks.
-  virtual TimelineEventBlock* GetNewBlock() {
-    return NULL;
-  }
+  virtual TimelineEventBlock* GetNewBlock() = 0;
 
   void WriteTo(const char* directory);
 
@@ -348,6 +360,7 @@ class TimelineEventRecorder {
 
   // Utility method(s).
   void PrintJSONMeta(JSONArray* array) const;
+  TimelineEvent* ThreadBlockStartEvent();
 
   friend class TimelineStream;
   friend class Isolate;
@@ -359,17 +372,15 @@ class TimelineEventRecorder {
 
 // A recorder that stores events in a ring buffer of fixed capacity.
 // This recorder does track Dart objects.
-// TODO(johnmccutchan): Make this recorder use event blocks too.
 class TimelineEventRingRecorder : public TimelineEventRecorder {
  public:
   static const intptr_t kDefaultCapacity = 8192;
-
-  static intptr_t SizeForCapacity(intptr_t capacity);
 
   explicit TimelineEventRingRecorder(intptr_t capacity = kDefaultCapacity);
   ~TimelineEventRingRecorder();
 
   void PrintJSON(JSONStream* js);
+  TimelineEventBlock* GetNewBlock();
 
  protected:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -377,15 +388,16 @@ class TimelineEventRingRecorder : public TimelineEventRecorder {
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
 
+  TimelineEventBlock* GetNewBlockLocked();
+
   void PrintJSONEvents(JSONArray* array) const;
 
-  intptr_t GetNextIndex();
-
-  // events_[i] and event_objects_[i] are indexed together.
-  TimelineEvent* events_;
+  TimelineEventBlock** blocks_;
   RawArray* event_objects_;
-  uintptr_t cursor_;
   intptr_t capacity_;
+  intptr_t num_blocks_;
+  intptr_t block_cursor_;
+  Mutex lock_;
 };
 
 
@@ -397,6 +409,9 @@ class TimelineEventStreamingRecorder : public TimelineEventRecorder {
   ~TimelineEventStreamingRecorder();
 
   void PrintJSON(JSONStream* js);
+  virtual TimelineEventBlock* GetNewBlock() {
+    return NULL;
+  }
 
   // Called when |event| is ready to be streamed. It is unsafe to keep a
   // reference to |event| as it may be freed as soon as this function returns.
@@ -441,6 +456,7 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
 
   Mutex lock_;
   TimelineEventBlock* head_;
+  intptr_t block_index_;
 
   friend class TimelineEventBlockIterator;
 };
