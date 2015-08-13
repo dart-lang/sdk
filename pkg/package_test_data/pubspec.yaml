@@ -5,5 +5,3 @@ publish_to: "none"
 description: >
  Contains data used by platform tests using package: URIs.
  Should *not* be published.
-environment:
-  sdk: ">=1.13.0"
