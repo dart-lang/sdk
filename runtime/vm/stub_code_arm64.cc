@@ -518,7 +518,6 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Enter stub frame with loading PP. The caller's PP is not materialized yet.
   __ EnterStubFrame();
   if (preserve_result) {
-    __ Push(ZR);  // Workaround for dropped stack slot during GC.
     __ Push(R1);  // Preserve result, it will be GC-d here.
   }
   __ Push(ZR);  // Space for the result.
@@ -529,7 +528,6 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ SmiUntag(R1);
   if (preserve_result) {
     __ Pop(R0);  // Restore result.
-    __ Drop(1);  // Workaround for dropped stack slot during GC.
   }
   __ LeaveStubFrame();
   // Remove materialization arguments.
