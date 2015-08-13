@@ -153,7 +153,6 @@ third_party/di_tests/di_test: Pass, Slow # Issue 22896
 analyzer/test/*: PubGetError
 
 [ $compiler == dart2js && $cps_ir ]
-analyzer/test/cancelable_future_test: Crash # Invalid argument(s)
 analyzer/test/enum_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 analyzer/test/generated/all_the_rest_test: Crash # Invalid argument(s)
 analyzer/test/src/context/context_test: Crash # Invalid argument(s)

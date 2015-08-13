@@ -353,8 +353,7 @@ await_test: RuntimeError # $async$temp1.S is not a function
 cha_deopt1_test: Crash # (d.make_u()): deferred access is not implemented
 cha_deopt2_test: Crash # (d.make_u()): deferred access is not implemented
 cha_deopt3_test: Crash # (d.make_u()): deferred access is not implemented
-closure_in_constructor_test: Crash # Invalid argument(s)
-closure_type_variables_test: Crash # Invalid argument(s)
+closure_in_constructor_test: RuntimeError # Typed lists.
 closures_initializer_test: RuntimeError # Please triage this failure.
 const_evaluation_test/01: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 constructor12_test: RuntimeError # Please triage this failure.
@@ -470,15 +469,7 @@ syncstar_less_than_test: Crash # (Iterable<int> foo()...  cannot handle sync*/as
 syncstar_yield_test/copyParameters: Crash # (Iterable<int> foo3(int p)sync*{int i=0;i++ ;p++ ;yield p+i;}): cannot handle sync*/async* functions
 syncstar_yield_test/none: Crash # (Iterable<int> foo3(int p)sync*{int i=0;i++ ;p++ ;yield p+i;}): cannot handle sync*/async* functions
 syncstar_yieldstar_test: Crash # (foo()sync*{yield* [1,2,3];yield null;yield* bar();}): cannot handle sync*/async* functions
-type_parameter_test/01: Crash # Invalid argument(s)
-type_parameter_test/02: Crash # Invalid argument(s)
-type_parameter_test/03: Crash # Invalid argument(s)
-type_parameter_test/04: Crash # Invalid argument(s)
-type_parameter_test/05: Crash # Invalid argument(s)
-type_parameter_test/06: Crash # Invalid argument(s)
-type_parameter_test/none: Crash # Invalid argument(s)
 type_variable_closure2_test: RuntimeError # Please triage this failure.
-type_variable_closure_test: Crash # Invalid argument(s)
 type_variable_field_initializer_closure_test: RuntimeError # Please triage this failure.
 type_variable_field_initializer_test: RuntimeError # Please triage this failure.
 type_variable_nested_test: RuntimeError # Please triage this failure.

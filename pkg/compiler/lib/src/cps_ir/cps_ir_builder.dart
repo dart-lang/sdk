@@ -2368,11 +2368,17 @@ class IrBuilder {
                                        SourceInformation sourceInformation) {
     List<ir.Primitive> arguments = <ir.Primitive>[];
     for (ClosureFieldElement field in classElement.closureFields) {
-      // Captured 'this' is not available as a local in the current environment,
-      // so treat that specially.
-      ir.Primitive value = field.local is ThisLocal
-          ? buildThis()
-          : environment.lookup(field.local);
+      // Captured 'this' and type variables are not always available as locals
+      // in the environment, so treat those specially.
+      ir.Primitive value;
+      if (field.local is ThisLocal) {
+        value = buildThis();
+      } else if (field.local is TypeVariableLocal) {
+        TypeVariableLocal variable = field.local;
+        value = buildTypeVariableAccess(variable.typeVariable);
+      } else {
+        value = environment.lookup(field.local);
+      }
       arguments.add(value);
     }
     return addPrimitive(new ir.CreateInstance(
