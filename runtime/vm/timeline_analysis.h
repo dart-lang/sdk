@@ -45,7 +45,7 @@ class TimelineAnalysis : public ValueObject {
  public:
   TimelineAnalysis(Zone* zone,
                    Isolate* isolate,
-                   TimelineEventEndlessRecorder* recorder);
+                   TimelineEventRecorder* recorder);
   ~TimelineAnalysis();
 
   void BuildThreads();
@@ -78,7 +78,7 @@ class TimelineAnalysis : public ValueObject {
 
   Zone* zone_;
   Isolate* isolate_;
-  TimelineEventEndlessRecorder* recorder_;
+  TimelineEventRecorder* recorder_;
   bool has_error_;
   const char* error_msg_;
 
@@ -90,7 +90,7 @@ class TimelinePauses : public TimelineAnalysis {
  public:
   TimelinePauses(Zone* zone,
                  Isolate* isolate,
-                 TimelineEventEndlessRecorder* recorder);
+                 TimelineEventRecorder* recorder);
  private:
 };
 

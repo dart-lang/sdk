@@ -456,6 +456,11 @@ TimelineEventBlock* TimelineEventRingRecorder::GetNewBlock() {
 }
 
 
+TimelineEventBlock* TimelineEventRingRecorder::GetHeadBlock() {
+  return blocks_[0];
+}
+
+
 TimelineEventBlock* TimelineEventRingRecorder::GetNewBlockLocked() {
   if (block_cursor_ == num_blocks_) {
     block_cursor_ = 0;
@@ -566,6 +571,11 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js) {
 TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlock() {
   MutexLocker ml(&lock_);
   return GetNewBlockLocked();
+}
+
+
+TimelineEventBlock* TimelineEventEndlessRecorder::GetHeadBlock() {
+  return head_;
 }
 
 
@@ -680,7 +690,7 @@ void TimelineEventBlock::Reset() {
 
 
 TimelineEventBlockIterator::TimelineEventBlockIterator(
-    TimelineEventEndlessRecorder* recorder)
+    TimelineEventRecorder* recorder)
     : current_(NULL),
       recorder_(recorder) {
   if (recorder_ == NULL) {
@@ -708,7 +718,7 @@ bool TimelineEventBlockIterator::Next() {
     return false;
   }
   if (current_ == NULL) {
-    current_ = recorder_->head_;
+    current_ = recorder_->GetHeadBlock();
   } else {
     current_ = current_->next();
   }

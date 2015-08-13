@@ -42,7 +42,7 @@ void TimelineAnalysisThread::Finalize() {
 
 TimelineAnalysis::TimelineAnalysis(Zone* zone,
                                    Isolate* isolate,
-                                   TimelineEventEndlessRecorder* recorder)
+                                   TimelineEventRecorder* recorder)
     : zone_(zone),
       isolate_(isolate),
       recorder_(recorder),
@@ -132,7 +132,7 @@ void TimelineAnalysis::SetError(const char* format, ...) {
 
 TimelinePauses::TimelinePauses(Zone* zone,
                                Isolate* isolate,
-                               TimelineEventEndlessRecorder* recorder)
+                               TimelineEventRecorder* recorder)
     : TimelineAnalysis(zone, isolate, recorder) {
 }
 

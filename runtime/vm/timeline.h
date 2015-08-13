@@ -348,6 +348,7 @@ class TimelineEventRecorder {
   // Interface method(s) which must be implemented.
   virtual void PrintJSON(JSONStream* js) = 0;
   virtual TimelineEventBlock* GetNewBlock() = 0;
+  virtual TimelineEventBlock* GetHeadBlock() = 0;
 
   void WriteTo(const char* directory);
 
@@ -362,6 +363,9 @@ class TimelineEventRecorder {
   void PrintJSONMeta(JSONArray* array) const;
   TimelineEvent* ThreadBlockStartEvent();
 
+  Mutex lock_;
+
+  friend class TimelineEventBlockIterator;
   friend class TimelineStream;
   friend class Isolate;
 
@@ -381,6 +385,7 @@ class TimelineEventRingRecorder : public TimelineEventRecorder {
 
   void PrintJSON(JSONStream* js);
   TimelineEventBlock* GetNewBlock();
+  TimelineEventBlock* GetHeadBlock();
 
  protected:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -397,7 +402,6 @@ class TimelineEventRingRecorder : public TimelineEventRecorder {
   intptr_t capacity_;
   intptr_t num_blocks_;
   intptr_t block_cursor_;
-  Mutex lock_;
 };
 
 
@@ -409,7 +413,10 @@ class TimelineEventStreamingRecorder : public TimelineEventRecorder {
   ~TimelineEventStreamingRecorder();
 
   void PrintJSON(JSONStream* js);
-  virtual TimelineEventBlock* GetNewBlock() {
+  TimelineEventBlock* GetNewBlock() {
+    return NULL;
+  }
+  TimelineEventBlock* GetHeadBlock() {
     return NULL;
   }
 
@@ -438,6 +445,8 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   // Recorder owns the block and it should be filled by only one thread.
   TimelineEventBlock* GetNewBlock();
 
+  TimelineEventBlock* GetHeadBlock();
+
   // It is expected that this function is only called when an isolate is
   // shutting itself down.
   // NOTE: Calling this while threads are filling in their blocks is not safe
@@ -454,18 +463,15 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   TimelineEventBlock* GetNewBlockLocked();
   void PrintJSONEvents(JSONArray* array) const;
 
-  Mutex lock_;
   TimelineEventBlock* head_;
   intptr_t block_index_;
-
-  friend class TimelineEventBlockIterator;
 };
 
 
 // An iterator for blocks.
 class TimelineEventBlockIterator {
  public:
-  explicit TimelineEventBlockIterator(TimelineEventEndlessRecorder* recorder);
+  explicit TimelineEventBlockIterator(TimelineEventRecorder* recorder);
   ~TimelineEventBlockIterator();
 
   void Reset();
@@ -477,7 +483,7 @@ class TimelineEventBlockIterator {
 
  private:
   TimelineEventBlock* current_;
-  TimelineEventEndlessRecorder* recorder_;
+  TimelineEventRecorder* recorder_;
 };
 
 }  // namespace dart
