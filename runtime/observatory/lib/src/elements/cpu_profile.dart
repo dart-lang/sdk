@@ -869,15 +869,22 @@ class CpuProfileTableElement extends ObservatoryElement {
   }
 
   checkParameters() {
-    var functionId = app.locationManager.uri.queryParameters['functionId'];
-    if (functionId == null) {
-      _focusOnFunction(null);
-      return;
-    }
     if (isolate == null) {
       return;
     }
-    isolate.getObject(functionId).then((func) => _focusOnFunction(func));
+    var functionId = app.locationManager.uri.queryParameters['functionId'];
+    var functionName =
+        app.locationManager.uri.queryParameters['functionName'];
+    if (functionId == '') {
+      // Fallback to searching by name.
+      _focusOnFunction(_findFunction(functionName));
+    } else {
+      if (functionId == null) {
+        _focusOnFunction(null);
+        return;
+      }
+      isolate.getObject(functionId).then((func) => _focusOnFunction(func));
+    }
   }
 
   _clearView() {
@@ -913,6 +920,8 @@ class CpuProfileTableElement extends ObservatoryElement {
     tableBody.children[row].offsetHeight;
     tableBody.children[row].scrollIntoView(ScrollAlignment.CENTER);
     tableBody.children[row].classes.add('shake');
+    // Focus on clicked function.
+    _focusOnFunction(function);
   }
 
   _clearFocusedFunction() {
@@ -923,6 +932,15 @@ class CpuProfileTableElement extends ObservatoryElement {
     }
     focusedRow = null;
     focusedFunction = null;
+  }
+
+  ServiceFunction _findFunction(String functionName) {
+    for (var func in profile.functions) {
+      if (func.function.name == functionName) {
+        return func.function;
+      }
+    }
+    return null;
   }
 
   _focusOnFunction(ServiceFunction function) {
@@ -962,7 +980,8 @@ class CpuProfileTableElement extends ObservatoryElement {
     var function = row.values[NameSortedTable.FUNCTION_COLUMN];
     app.locationManager.goReplacingParameters(
         {
-          'functionId': function.id
+          'functionId': function.id,
+          'functionName': function.vmName
         }
     );
   }
