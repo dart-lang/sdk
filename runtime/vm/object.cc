@@ -21128,6 +21128,9 @@ void JSRegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
 
+  jsobj.AddProperty("isCaseSensitive", !is_ignore_case());
+  jsobj.AddProperty("isMultiLine", is_multi_line());
+
   Function& func = Function::Handle();
   func = function(kOneByteStringCid);
   jsobj.AddProperty("_oneByteFunction", func);

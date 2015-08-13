@@ -2155,6 +2155,8 @@ class Instance extends ServiceObject {
   @observable Function twoByteFunction;  // If a RegExp.
   @observable Function externalOneByteFunction;  // If a RegExp.
   @observable Function externalTwoByteFunction;  // If a RegExp.
+  @observable bool isCaseSensitive;  // If a RegExp.
+  @observable bool isMultiLine;  // If a RegExp.
 
   bool get isAbstractType {
     return (kind == 'Type' || kind == 'TypeRef' ||
@@ -2215,6 +2217,8 @@ class Instance extends ServiceObject {
 
     size = map['size'];
 
+    isCaseSensitive = map['isCaseSensitive'];
+    isMultiLine = map['isMultiLine'];
     oneByteFunction = map['_oneByteFunction'];
     twoByteFunction = map['_twoByteFunction'];
     externalOneByteFunction = map['_externalOneByteFunction'];

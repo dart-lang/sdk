@@ -1420,6 +1420,18 @@ class Instance extends Object {
   //   RegExp
   String pattern [optional];
 
+  // Whether this regular expression is case sensitive.
+  //
+  // Provided for instance kinds:
+  //   RegExp
+  bool isCaseSensitive [optional];
+
+  // Whether this regular expression matches multiple lines.
+  //
+  // Provided for instance kinds:
+  //   RegExp
+  bool isMultiLine [optional];
+
   // The key for a WeakProperty instance.
   //
   // Provided for instance kinds:
