@@ -209,10 +209,14 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
                         Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
+  // Determine if the type class of this type is in the full snapshot.
+  bool typeclass_is_in_fullsnapshot = reader->Read<bool>();
+
   // Allocate type object.
   Type& type = Type::ZoneHandle(reader->zone(), NEW_OBJECT(Type));
   bool is_canonical = RawObject::IsCanonical(tags);
-  bool defer_canonicalization = is_canonical && (kind != Snapshot::kFull);
+  bool defer_canonicalization = is_canonical &&
+      (kind != Snapshot::kFull && typeclass_is_in_fullsnapshot);
   reader->AddBackRef(object_id, &type, kIsDeserialized, defer_canonicalization);
 
   // Set all non object fields.
@@ -256,6 +260,14 @@ void RawType::WriteTo(SnapshotWriter* writer,
   // Write out the class and tags information.
   writer->WriteIndexedObject(kTypeCid);
   writer->WriteTags(writer->GetObjectTags(this));
+
+  // Write out typeclass_is_in_fullsnapshot first as this will
+  // help the reader decide on how to canonicalize the type object.
+  intptr_t tags = writer->GetObjectTags(ptr()->type_class_);
+  bool typeclass_is_in_fullsnapshot =
+      (ClassIdTag::decode(tags) == kClassCid) &&
+      Class::IsInFullSnapshot(reinterpret_cast<RawClass*>(ptr()->type_class_));
+  writer->Write<bool>(typeclass_is_in_fullsnapshot);
 
   // Write out all the non object pointer fields.
   writer->Write<int32_t>(ptr()->token_pos_);
