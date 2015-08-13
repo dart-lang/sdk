@@ -152,7 +152,7 @@ static void ExpectEncodeFail(Dart_CObject* root) {
 
 
 TEST_CASE(SerializeNull) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
 
   // Write snapshot with object content.
   const Object& null_object = Object::Handle();
@@ -180,7 +180,7 @@ TEST_CASE(SerializeNull) {
 
 
 TEST_CASE(SerializeSmi1) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
 
   // Write snapshot with object content.
   const Smi& smi = Smi::Handle(Smi::New(124));
@@ -209,7 +209,7 @@ TEST_CASE(SerializeSmi1) {
 
 
 TEST_CASE(SerializeSmi2) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
 
   // Write snapshot with object content.
   const Smi& smi = Smi::Handle(Smi::New(-1));
@@ -246,7 +246,7 @@ Dart_CObject* SerializeAndDeserializeMint(const Mint& mint) {
 
   {
     // Switch to a regular zone, where VM handle allocation is allowed.
-    StackZone zone(Isolate::Current());
+    StackZone zone(Thread::Current());
     // Read object back from the snapshot.
     MessageSnapshotReader reader(buffer,
                                  buffer_len,
@@ -266,7 +266,7 @@ Dart_CObject* SerializeAndDeserializeMint(const Mint& mint) {
 
 
 void CheckMint(int64_t value) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
 
   Mint& mint = Mint::Handle();
   mint ^= Integer::New(value);
@@ -312,7 +312,7 @@ TEST_CASE(SerializeMints) {
 
 
 TEST_CASE(SerializeDouble) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
 
   // Write snapshot with object content.
   const Double& dbl = Double::Handle(Double::New(101.29));
@@ -341,7 +341,7 @@ TEST_CASE(SerializeDouble) {
 
 
 TEST_CASE(SerializeTrue) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
 
   // Write snapshot with true object.
   const Bool& bl = Bool::True();
@@ -372,7 +372,7 @@ TEST_CASE(SerializeTrue) {
 
 
 TEST_CASE(SerializeFalse) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
 
   // Write snapshot with false object.
   const Bool& bl = Bool::False();
@@ -406,7 +406,7 @@ static uword allocator(intptr_t size) {
 
 
 TEST_CASE(SerializeCapability) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
 
   // Write snapshot with object content.
   const Capability& capability = Capability::Handle(Capability::New(12345));
@@ -438,7 +438,7 @@ TEST_CASE(SerializeCapability) {
 
 
 TEST_CASE(SerializeBigint) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
 
   // Write snapshot with object content.
   const char* cstr = "0x270FFFFFFFFFFFFFD8F0";
@@ -482,7 +482,7 @@ Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
 
   {
     // Switch to a regular zone, where VM handle allocation is allowed.
-    StackZone zone(Isolate::Current());
+    StackZone zone(Thread::Current());
     // Read object back from the snapshot.
     MessageSnapshotReader reader(buffer,
                                  buffer_len,
@@ -508,7 +508,7 @@ Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
 
 
 void CheckBigint(const char* bigint_value) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
   Bigint& bigint = Bigint::Handle();
   bigint ^= Bigint::NewFromCString(bigint_value);
   ApiNativeScope scope;
@@ -573,7 +573,7 @@ TEST_CASE(SerializeSingletons) {
 
 
 static void TestString(const char* cstr) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
   EXPECT(Utf8::IsValid(reinterpret_cast<const uint8_t*>(cstr), strlen(cstr)));
   // Write snapshot with object content.
   String& str = String::Handle(String::New(cstr));
@@ -617,7 +617,7 @@ TEST_CASE(SerializeString) {
 
 
 TEST_CASE(SerializeArray) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
 
   // Write snapshot with object content.
   const int kArrayLength = 10;
@@ -709,7 +709,7 @@ TEST_CASE(FailSerializeLargeExternalTypedData) {
 
 
 TEST_CASE(SerializeEmptyArray) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
 
   // Write snapshot with object content.
   const int kArrayLength = 0;
@@ -740,7 +740,7 @@ TEST_CASE(SerializeEmptyArray) {
 
 
 TEST_CASE(SerializeByteArray) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
 
   // Write snapshot with object content.
   const int kTypedDataLength = 256;
@@ -778,7 +778,7 @@ TEST_CASE(SerializeByteArray) {
 
 #define TEST_TYPED_ARRAY(darttype, ctype)                                     \
   {                                                                           \
-    StackZone zone(Isolate::Current());                                       \
+    StackZone zone(Thread::Current());                                       \
     const int kArrayLength = 127;                                             \
     TypedData& array = TypedData::Handle(                                     \
         TypedData::New(kTypedData##darttype##ArrayCid, kArrayLength));        \
@@ -804,7 +804,7 @@ TEST_CASE(SerializeByteArray) {
 
 #define TEST_EXTERNAL_TYPED_ARRAY(darttype, ctype)                            \
   {                                                                           \
-    StackZone zone(Isolate::Current());                                       \
+    StackZone zone(Thread::Current());                                       \
     ctype data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };                         \
     intptr_t length = ARRAY_SIZE(data);                                       \
     ExternalTypedData& array = ExternalTypedData::Handle(                     \
@@ -856,7 +856,7 @@ TEST_CASE(SerializeExternalTypedArray) {
 
 
 TEST_CASE(SerializeEmptyByteArray) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
 
   // Write snapshot with object content.
   const int kTypedDataLength = 0;
@@ -1716,7 +1716,7 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
 
 
 TEST_CASE(IntArrayMessage) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
   uint8_t* buffer = NULL;
   ApiMessageWriter writer(&buffer, &zone_allocator);
 
@@ -1769,7 +1769,7 @@ static Dart_CObject* GetDeserialized(uint8_t* buffer, intptr_t buffer_len) {
 
 
 static void CheckString(Dart_Handle dart_string, const char* expected) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
   String& str = String::Handle();
   str ^= Api::UnwrapHandle(dart_string);
   uint8_t* buffer;
@@ -1789,7 +1789,7 @@ static void CheckString(Dart_Handle dart_string, const char* expected) {
 
 
 static void CheckStringInvalid(Dart_Handle dart_string) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
   String& str = String::Handle();
   str ^= Api::UnwrapHandle(dart_string);
   uint8_t* buffer;
@@ -1899,7 +1899,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
     DARTSCOPE(isolate);
 
     {
-      StackZone zone(Isolate::Current());
+      StackZone zone(Thread::Current());
       Smi& smi = Smi::Handle();
       smi ^= Api::UnwrapHandle(smi_result);
       uint8_t* buffer;
@@ -1917,7 +1917,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       CheckEncodeDecodeMessage(root);
     }
     {
-      StackZone zone(Isolate::Current());
+      StackZone zone(Thread::Current());
       Bigint& bigint = Bigint::Handle();
       bigint ^= Api::UnwrapHandle(bigint_result);
       uint8_t* buffer;
@@ -3050,7 +3050,7 @@ UNIT_TEST_CASE(PostCObject) {
 
 
 TEST_CASE(OmittedObjectEncodingLength) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator, true);
   writer.WriteInlinedObjectHeader(kOmittedObjectId);

@@ -818,6 +818,7 @@ class Parser : public ValueObject {
 
   RawInstance* TryCanonicalize(const Instance& instance, intptr_t token_pos);
 
+  Thread* thread() const { return thread_; }
   Isolate* isolate() const { return isolate_; }
   Zone* zone() const { return thread_->zone(); }
 

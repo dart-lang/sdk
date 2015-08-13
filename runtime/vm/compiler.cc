@@ -187,8 +187,8 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 RawError* Compiler::Compile(const Library& library, const Script& script) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Isolate* const isolate = Isolate::Current();
-    StackZone zone(isolate);
+    Thread* const thread = Thread::Current();
+    StackZone zone(thread);
     if (FLAG_trace_compiler) {
       const String& script_url = String::Handle(script.url());
       // TODO(iposva): Extract script kind.
@@ -199,8 +199,9 @@ RawError* Compiler::Compile(const Library& library, const Script& script) {
     Parser::ParseCompilationUnit(library, script);
     return Error::null();
   } else {
-    Isolate* const isolate = Isolate::Current();
-    StackZone zone(isolate);
+    Thread* const thread = Thread::Current();
+    Isolate* const isolate = thread->isolate();
+    StackZone zone(thread);
     Error& error = Error::Handle();
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
@@ -395,7 +396,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
   Zone* const zone = thread->zone();
   Isolate* const isolate = thread->isolate();
   CSTAT_TIMER_SCOPE(isolate, codegen_timer);
-  HANDLESCOPE(isolate);
+  HANDLESCOPE(thread);
 
   // We may reattempt compilation if the function needs to be assembled using
   // far branches on ARM and MIPS. In the else branch of the setjmp call,
@@ -1013,7 +1014,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();
     Isolate* const isolate = thread->isolate();
-    StackZone stack_zone(isolate);
+    StackZone stack_zone(thread);
     Zone* const zone = stack_zone.GetZone();
     TIMERSCOPE(isolate, time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
@@ -1041,7 +1042,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                 (function.end_token_pos() - function.token_pos()));
     }
     {
-      HANDLESCOPE(isolate);
+      HANDLESCOPE(thread);
       pipeline->ParseFunction(parsed_function);
     }
 
@@ -1095,7 +1096,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
   } else {
     Thread* const thread = Thread::Current();
     Isolate* const isolate = thread->isolate();
-    StackZone stack_zone(isolate);
+    StackZone stack_zone(thread);
     Error& error = Error::Handle();
     // We got an error during compilation.
     error = isolate->object_store()->sticky_error();
@@ -1289,8 +1290,8 @@ void Compiler::CompileStaticInitializer(const Field& field) {
     return;
   }
   ASSERT(field.initializer() == Function::null());
-  Isolate* isolate = Isolate::Current();
-  StackZone zone(isolate);
+  Thread* thread = Thread::Current();
+  StackZone zone(thread);
 
   ParsedFunction* parsed_function = Parser::ParseStaticFieldInitializer(field);
 
@@ -1321,8 +1322,8 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
     // initializer has not yet been created, so create it now, but don't bother
     // remembering it because it won't be used again.
     if (initializer.IsNull()) {
-      Isolate* const isolate = Isolate::Current();
-      StackZone zone(isolate);
+      Thread* const thread = Thread::Current();
+      StackZone zone(thread);
       ParsedFunction* parsed_function =
           Parser::ParseStaticFieldInitializer(field);
 
@@ -1343,8 +1344,9 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
         DartEntry::InvokeFunction(initializer, Object::empty_array()));
     return result.raw();
   } else {
-    Isolate* const isolate = Isolate::Current();
-    StackZone zone(isolate);
+    Thread* const thread = Thread::Current();
+    Isolate* const isolate = thread->isolate();
+    StackZone zone(thread);
     const Error& error =
         Error::Handle(isolate, isolate->object_store()->sticky_error());
     isolate->object_store()->clear_sticky_error();

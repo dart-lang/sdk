@@ -795,7 +795,7 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
   ASSERT(!func.IsNull());
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  StackZone stack_zone(isolate);
+  StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
@@ -978,7 +978,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
 RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  StackZone stack_zone(isolate);
+  StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
@@ -1166,7 +1166,7 @@ RawObject* Parser::ParseFunctionFromSource(const Class& owning_class,
                                            const String& source) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  StackZone stack_zone(isolate);
+  StackZone stack_zone(thread);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     const String& uri = String::Handle(Symbols::New("dynamically-added"));
@@ -12035,7 +12035,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
 AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
                                                    const String& ident) {
   TRACE_PARSER("ResolveIdentInCurrentLibraryScope");
-  HANDLESCOPE(I);
+  HANDLESCOPE(thread());
   const Object& obj = Object::Handle(Z, library_.ResolveName(ident));
   if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
@@ -12082,7 +12082,7 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
                                            const LibraryPrefix& prefix,
                                            const String& ident) {
   TRACE_PARSER("ResolveIdentInPrefixScope");
-  HANDLESCOPE(I);
+  HANDLESCOPE(thread());
   if (ident.CharAt(0) == Library::kPrivateIdentifierStart) {
     // Private names are not exported by libraries. The name mangling
     // of private names with a library-specific suffix usually ensures

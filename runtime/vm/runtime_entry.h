@@ -80,7 +80,7 @@ class RuntimeEntry : public ValueObject {
       Thread* thread = arguments.thread();                                     \
       ASSERT(thread == Thread::Current());                                     \
       Isolate* isolate = thread->isolate();                                    \
-      StackZone zone(isolate);                                                 \
+      StackZone zone(thread);                                                  \
       HANDLESCOPE(isolate);                                                    \
       DRT_Helper##name(isolate, thread, zone.GetZone(), arguments);            \
     }                                                                          \

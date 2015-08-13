@@ -821,7 +821,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // The API prologue/epilogue may create/destroy zones, so we must not
   // depend on zone allocations surviving beyond the epilogue callback.
   {
-    StackZone zone(isolate);
+    StackZone zone(Thread::Current());
     // Setup the visitor and run the scavenge.
     ScavengerVisitor visitor(isolate, this);
     page_space->AcquireDataLock();

@@ -34,8 +34,10 @@
   UNIT_TEST_CASE(name)                                                         \
   {                                                                            \
     TestIsolateScope __test_isolate__;                                         \
-    StackZone __zone__(__test_isolate__.isolate());                            \
-    HandleScope __hs__(__test_isolate__.isolate());                            \
+    Thread* __thread__ = Thread::Current();                                    \
+    ASSERT(__thread__->isolate() == __test_isolate__.isolate());               \
+    StackZone __zone__(__thread__);                                            \
+    HandleScope __hs__(__thread__);                                            \
     Dart_TestHelper##name();                                                   \
   }                                                                            \
   static void Dart_TestHelper##name()

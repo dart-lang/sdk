@@ -531,7 +531,7 @@ void GCMarker::MarkObjects(Isolate* isolate,
   // The API prologue/epilogue may create/destroy zones, so we must not
   // depend on zone allocations surviving beyond the epilogue callback.
   {
-    StackZone zone(isolate);
+    StackZone zone(Thread::Current());
     MarkingStack marking_stack;
     DelaySet delay_set;
     MarkingVisitor mark(isolate, heap_, page_space, &marking_stack,

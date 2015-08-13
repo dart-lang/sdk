@@ -38,8 +38,10 @@ extern const uint8_t* isolate_snapshot_buffer;
   void Dart_Benchmark##name(Benchmark* benchmark) {                            \
     FLAG_old_gen_growth_space_ratio = 100;                                     \
     BenchmarkIsolateScope __isolate__(benchmark);                              \
-    StackZone __zone__(benchmark->isolate());                                  \
-    HandleScope __hs__(benchmark->isolate());                                  \
+    Thread* __thread__ = Thread::Current();                                    \
+    ASSERT(__thread__->isolate() == benchmark->isolate());                     \
+    StackZone __zone__(__thread__);                                            \
+    HandleScope __hs__(__thread__);                                            \
     Dart_BenchmarkHelper##name(benchmark);                                     \
   }                                                                            \
   static void Dart_BenchmarkHelper##name(Benchmark* benchmark)

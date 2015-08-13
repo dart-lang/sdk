@@ -1680,9 +1680,10 @@ static void CopySavedRegisters(uword saved_registers_address,
 // Returns the stack size of unoptimized frame.
 DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
                           1, uword saved_registers_address) {
-  Isolate* isolate = Isolate::Current();
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
 
   // All registers have been saved below last-fp as if they were locals.
   const uword last_fp = saved_registers_address
@@ -1718,9 +1719,10 @@ END_LEAF_RUNTIME_ENTRY
 // The stack has been adjusted to fit all values for unoptimized frame.
 // Fill the unoptimized frame.
 DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
-  Isolate* isolate = Isolate::Current();
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
 
   DeoptContext* deopt_context = isolate->deopt_context();
   DartFrameIterator iterator(last_fp);
@@ -1777,9 +1779,9 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
                           2,
                           RawBigint* left,
                           RawBigint* right) {
-  Isolate* isolate = Isolate::Current();
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
+  Thread* thread = Thread::Current();
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
   const Bigint& big_left = Bigint::Handle(left);
   const Bigint& big_right = Bigint::Handle(right);
   return big_left.CompareWith(big_right);
