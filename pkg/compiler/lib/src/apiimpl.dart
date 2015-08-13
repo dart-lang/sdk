@@ -379,6 +379,13 @@ class Compiler extends leg.Compiler {
         if (packageConfigContents is String) {
           packageConfigContents = UTF8.encode(packageConfigContents);
         }
+        // The input provider may put a trailing 0 byte when it reads a source
+        // file, which confuses the package config parser.
+        if (packageConfigContents.length > 0
+            && packageConfigContents.last == 0) {
+          packageConfigContents = packageConfigContents.sublist(
+              0, packageConfigContents.length - 1);
+        }
         packages =
             new MapPackages(pkgs.parse(packageConfigContents, packageConfig));
       });
