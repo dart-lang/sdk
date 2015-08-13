@@ -12,8 +12,6 @@ cc/SNPrint_BadArgs: Skip
 # Flaky on buildbot. Issue 5133 and 10409.
 cc/Sleep: Pass, Fail
 
-cc/StackLimitInterrupts: Skip  # Times out for some compilers. Issue 24049.
-
 [ $mode == debug ]
 # This is a benchmark that is not informative in debug mode.
 cc/CorelibIsolateStartup: Skip

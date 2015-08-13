@@ -18,14 +18,11 @@ UNIT_TEST_CASE(FetchAndIncrement) {
 }
 
 
-UNIT_TEST_CASE(FetchAndAdd) {
-  intptr_t v = 42;
-  EXPECT_EQ(42, AtomicOperations::FetchAndAdd(&v, 0));
-  EXPECT_EQ(42, v);
-  EXPECT_EQ(42, AtomicOperations::FetchAndAdd(&v, 2));
-  EXPECT_EQ(44, v);
-  EXPECT_EQ(44, AtomicOperations::FetchAndAdd(&v, -2));
-  EXPECT_EQ(42, v);
+UNIT_TEST_CASE(FetchAndDecrement) {
+  uintptr_t v = 42;
+  EXPECT_EQ(static_cast<uintptr_t>(42),
+            AtomicOperations::FetchAndDecrement(&v));
+  EXPECT_EQ(static_cast<uintptr_t>(41), v);
 }
 
 

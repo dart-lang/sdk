@@ -21,14 +21,23 @@ class AtomicOperations : public AllStatic {
   // that are accessed by generated code
   static uintptr_t FetchAndIncrement(uintptr_t* p);
 
-  static intptr_t FetchAndAdd(intptr_t* p, intptr_t delta);
+  // Atomically fetch the value at p and decrement the value at p.
+  // Returns the original value at p.
+  //
+  // NOTE: Not to be used for any atomic operations involving memory locations
+  // that are accessed by generated code
+  static uintptr_t FetchAndDecrement(uintptr_t* p);
 
+  // Atomically compare *ptr to old_value, and if equal, store new_value.
+  // Returns the original value at ptr.
+  //
+  // NOTE: OK to use with memory locations that are accessed by generated code
   static uword CompareAndSwapWord(uword* ptr, uword old_value, uword new_value);
 
+  // Performs a load of a word from 'ptr', but without any guarantees about
+  // memory order (i.e., no load barriers/fences).
   static uword LoadRelaxed(uword* ptr) {
-    uword result;
-    memcpy(&result, ptr, sizeof(result));
-    return result;
+    return *static_cast<volatile uword*>(ptr);
   }
 };
 
