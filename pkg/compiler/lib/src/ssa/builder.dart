@@ -1762,6 +1762,7 @@ class SsaBuilder extends ast.Visitor
     stack = <HInstruction>[];
 
     insertTraceCall(function);
+    insertCoverageCall(function);
   }
 
   void restoreState(AstInliningState state) {
@@ -2400,10 +2401,11 @@ class SsaBuilder extends ast.Visitor
     }
 
     insertTraceCall(element);
+    insertCoverageCall(element);
   }
 
   insertTraceCall(Element element) {
-    if (JavaScriptBackend.TRACE_CALLS) {
+    if (JavaScriptBackend.TRACE_METHOD == 'console') {
       if (element == backend.traceHelper) return;
       n(e) => e == null ? '' : e.name;
       String name = "${n(element.library)}:${n(element.enclosingClass)}."
@@ -2411,6 +2413,18 @@ class SsaBuilder extends ast.Visitor
       HConstant nameConstant = addConstantString(name);
       add(new HInvokeStatic(backend.traceHelper,
                             <HInstruction>[nameConstant],
+                            backend.dynamicType));
+    }
+  }
+
+  insertCoverageCall(Element element) {
+    if (JavaScriptBackend.TRACE_METHOD == 'post') {
+      if (element == backend.traceHelper) return;
+      // TODO(sigmund): create a better uuid for elements.
+      HConstant idConstant = graph.addConstantInt(element.hashCode, compiler);
+      HConstant nameConstant = addConstantString(element.name);
+      add(new HInvokeStatic(backend.traceHelper,
+                            <HInstruction>[idConstant, nameConstant],
                             backend.dynamicType));
     }
   }

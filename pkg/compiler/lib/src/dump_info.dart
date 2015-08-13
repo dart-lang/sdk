@@ -128,6 +128,9 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
 
     FieldInfo info = new FieldInfo(
         name: element.name,
+        // We use element.hashCode because it is globally unique and it is
+        // available while we are doing codegen.
+        coverageId: '${element.hashCode}',
         type: '${element.type}',
         inferredType: '$inferredType',
         size: size,
@@ -268,6 +271,9 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
 
     FunctionInfo info = new FunctionInfo(
         name: name,
+        // We use element.hashCode because it is globally unique and it is
+        // available while we are doing codegen.
+        coverageId: '${element.hashCode}',
         modifiers: modifiers,
         size: size,
         returnType: returnType,

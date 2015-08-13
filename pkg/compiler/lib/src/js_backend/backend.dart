@@ -333,10 +333,13 @@ class JavaScriptBackend extends Backend {
 
   ClassElement jsInvocationMirrorClass;
 
-  /// If [true], the compiler will emit code that writes the name of the current
-  /// method together with its class and library to the console the first time
-  /// the method is called.
-  static const bool TRACE_CALLS = false;
+  /// If [true], the compiler will emit code that logs whenever a method is
+  /// called. When TRACE_METHOD is 'console' this will be logged
+  /// directly in the JavaScript console. When TRACE_METHOD is 'post' the
+  /// information will be sent to a server via a POST request.
+  static const String TRACE_METHOD = const String.fromEnvironment('traceCalls');
+  static const bool TRACE_CALLS =
+    TRACE_METHOD == 'post' || TRACE_METHOD == 'console';
   Element traceHelper;
 
   TypeMask get stringType => compiler.typesTask.stringType;
@@ -1160,7 +1163,8 @@ class JavaScriptBackend extends Backend {
     }
 
     if (TRACE_CALLS) {
-      traceHelper = findHelper('traceHelper');
+      traceHelper = findHelper(
+          TRACE_METHOD == 'console' ? 'consoleTraceHelper' : 'postTraceHelper');
       assert(traceHelper != null);
       enqueueInResolution(traceHelper, registry);
     }

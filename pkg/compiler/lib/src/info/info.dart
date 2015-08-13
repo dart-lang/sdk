@@ -26,6 +26,11 @@ abstract class Info {
   /// A globally unique id combining [kind] and [id] together.
   String get serializedId;
 
+  /// Id used by the compiler when instrumenting code for code coverage.
+  // TODO(sigmund): It would be nice if we could use the same id for
+  // serialization and for coverage. Could we unify them?
+  String coverageId;
+
   /// Bytes used in the generated code for the corresponding element.
   int size;
 
@@ -46,6 +51,7 @@ abstract class Info {
 abstract class BasicInfo implements Info {
   final InfoKind kind;
   final int id;
+  String coverageId;
   int size;
   Info parent;
 
@@ -57,7 +63,8 @@ abstract class BasicInfo implements Info {
   /// is generated.
   OutputUnitInfo outputUnit;
 
-  BasicInfo(this.kind, this.id, this.name, this.outputUnit, this.size);
+  BasicInfo(this.kind, this.id, this.name, this.outputUnit, this.size,
+      this.coverageId);
 
   BasicInfo._fromId(String serializedId)
      : kind = _kindFromSerializedId(serializedId),
@@ -70,9 +77,10 @@ abstract class BasicInfo implements Info {
       'name': name,
       'size': size,
     };
-    // TODO(sigmund): omit this also when outputUnit.id == 0
-    // (most code is by default in the main output unit)
+    // TODO(sigmund): Omit this also when outputUnit.id == 0 (most code is in
+    // the main output unit by default).
     if (outputUnit != null) res['outputUnit'] = outputUnit.serializedId;
+    if (coverageId != null) res['coverageId'] = coverageId;
     if (parent != null) res['parent'] = parent.serializedId;
     return res;
   }
@@ -308,6 +316,7 @@ class _ParseHelper {
     FieldInfo result = parseId(json['id']);
     return result..name = json['name']
       ..parent = parseId(json['parent'])
+      ..coverageId = json['coverageId']
       ..outputUnit = parseId(json['outputUnit'])
       ..size = json['size']
       ..type = json['type']
@@ -331,6 +340,7 @@ class _ParseHelper {
     FunctionInfo result = parseId(json['id']);
     return result..name = json['name']
       ..parent = parseId(json['parent'])
+      ..coverageId = json['coverageId']
       ..outputUnit = parseId(json['outputUnit'])
       ..size = json['size']
       ..type = json['type']
@@ -398,7 +408,7 @@ class LibraryInfo extends BasicInfo {
       topLevelFunctions.isEmpty && topLevelVariables.isEmpty && classes.isEmpty;
 
   LibraryInfo(String name, this.uri, OutputUnitInfo outputUnit, int size)
-      : super(InfoKind.library, _id++, name, outputUnit, size);
+      : super(InfoKind.library, _id++, name, outputUnit, size, null);
 
   LibraryInfo._(String serializedId) : super._fromId(serializedId);
 
@@ -421,7 +431,7 @@ class LibraryInfo extends BasicInfo {
 class OutputUnitInfo extends BasicInfo {
   static int _ids = 0;
   OutputUnitInfo(String name, int size)
-      : super(InfoKind.outputUnit, _ids++, name, null, size);
+      : super(InfoKind.outputUnit, _ids++, name, null, size, null);
 
   OutputUnitInfo._(String serializedId) : super._fromId(serializedId);
 
@@ -445,7 +455,7 @@ class ClassInfo extends BasicInfo {
 
   ClassInfo(
       {String name, this.isAbstract, OutputUnitInfo outputUnit, int size: 0})
-      : super(InfoKind.clazz, _ids++, name, outputUnit, size);
+      : super(InfoKind.clazz, _ids++, name, outputUnit, size, null);
 
   ClassInfo._(String serializedId) : super._fromId(serializedId);
 
@@ -478,13 +488,14 @@ class FieldInfo extends BasicInfo with CodeInfo {
   static int _ids = 0;
   FieldInfo(
       {String name,
+      String coverageId,
       int size: 0,
       this.type,
       this.inferredType,
       this.closures,
       this.code,
       OutputUnitInfo outputUnit})
-      : super(InfoKind.field, _ids++, name, outputUnit, size);
+      : super(InfoKind.field, _ids++, name, outputUnit, size, coverageId);
 
   FieldInfo._(String serializedId) : super._fromId(serializedId);
 
@@ -506,7 +517,7 @@ class TypedefInfo extends BasicInfo {
 
   static int _ids = 0;
   TypedefInfo(String name, this.type, OutputUnitInfo outputUnit)
-      : super(InfoKind.typedef, _ids++, name, outputUnit, 0);
+      : super(InfoKind.typedef, _ids++, name, outputUnit, 0, null);
 
   TypedefInfo._(String serializedId) : super._fromId(serializedId);
 
@@ -556,6 +567,7 @@ class FunctionInfo extends BasicInfo with CodeInfo {
 
   FunctionInfo(
       {String name,
+      String coverageId,
       OutputUnitInfo outputUnit,
       int size: 0,
       this.functionKind,
@@ -568,7 +580,7 @@ class FunctionInfo extends BasicInfo with CodeInfo {
       this.sideEffects,
       this.inlinedCount,
       this.code})
-      : super(InfoKind.function, _ids++, name, outputUnit, size);
+      : super(InfoKind.function, _ids++, name, outputUnit, size, coverageId);
 
   FunctionInfo._(String serializedId) : super._fromId(serializedId);
 

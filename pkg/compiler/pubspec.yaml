@@ -11,6 +11,9 @@ dependencies:
   sdk_library_metadata:
     path: ../../sdk/lib/_internal/sdk_library_metadata
 dev_dependencies:
+  path: ^1.3.6
+  args: ^0.13.2
+  shelf: ^0.6.1+2
   yaml: ^2.1.3
 
 # Uncomment if running gclient, so you can depend directly on the downloaded
@@ -25,5 +28,13 @@ dev_dependencies:
 #     path: ../../third_party/pkg/charcode
 #   collection:
 #     path: ../../third_party/pkg/collection
+#   crypto:
+#     path: ../../third_party/pkg/crypto
+#   http_parser:
+#     path: ../../third_party/pkg/http_parser
+#   args:
+#     path: ../../third_party/pkg/args
+#   shelf:
+#     path: ../../third_party/pkg/shelf
 #   yaml:
 #     path: ../../third_party/pkg/yaml
