@@ -43,10 +43,10 @@ class CodeCallTree {
   }
 
   _recordCallerAndCalleesInner(CodeCallTreeNode caller,
-                      CodeCallTreeNode callee) {
+                               CodeCallTreeNode callee) {
     if (caller != null) {
       caller.profileCode._recordCallee(callee.profileCode, callee.count);
-      callee.profileCode._recordCaller(caller.profileCode, callee.count);
+      callee.profileCode._recordCaller(caller.profileCode, caller.count);
     }
 
     for (var child in callee.children) {
@@ -290,10 +290,10 @@ class FunctionCallTree {
   }
 
   _markFunctionCallsInner(FunctionCallTreeNode caller,
-                     FunctionCallTreeNode callee) {
+                          FunctionCallTreeNode callee) {
     if (caller != null) {
       caller.profileFunction._recordCallee(callee.profileFunction, callee.count);
-      callee.profileFunction._recordCaller(caller.profileFunction, callee.count);
+      callee.profileFunction._recordCaller(caller.profileFunction, caller.count);
     }
     for (var child in callee.children) {
       _markFunctionCallsInner(callee, child);
