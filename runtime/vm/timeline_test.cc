@@ -244,6 +244,12 @@ TEST_CASE(TimelineEventStreamingRecorderBasic) {
 }
 
 
+static bool LabelMatch(TimelineEvent* event, const char* label) {
+  ASSERT(event != NULL);
+  return strcmp(event->label(), label) == 0;
+}
+
+
 TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
   TimelineEventEndlessRecorder* recorder = new TimelineEventEndlessRecorder();
   ASSERT(recorder != NULL);
@@ -258,24 +264,24 @@ TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
   USE(block_3_0);
 
   // Add events to each block for thread 1.
-  TimelineTestHelper::FakeThreadEvent(block_1_2, 1);
-  TimelineTestHelper::FakeThreadEvent(block_1_2, 1);
-  TimelineTestHelper::FakeThreadEvent(block_1_2, 1);
+  TimelineTestHelper::FakeThreadEvent(block_1_2, 1, "B1");
+  TimelineTestHelper::FakeThreadEvent(block_1_2, 1, "B2");
+  TimelineTestHelper::FakeThreadEvent(block_1_2, 1, "B3");
   // Sleep to ensure timestamps differ.
   OS::Sleep(1);
-  TimelineTestHelper::FakeThreadEvent(block_1_0, 1);
+  TimelineTestHelper::FakeThreadEvent(block_1_0, 1, "A1");
   OS::Sleep(1);
-  TimelineTestHelper::FakeThreadEvent(block_1_1, 1);
-  TimelineTestHelper::FakeThreadEvent(block_1_1, 1);
+  TimelineTestHelper::FakeThreadEvent(block_1_1, 1, "C1");
+  TimelineTestHelper::FakeThreadEvent(block_1_1, 1, "C2");
   OS::Sleep(1);
 
   // Add events to each block for thread 2.
-  TimelineTestHelper::FakeThreadEvent(block_2_0, 2);
-  TimelineTestHelper::FakeThreadEvent(block_2_0, 2);
-  TimelineTestHelper::FakeThreadEvent(block_2_0, 2);
-  TimelineTestHelper::FakeThreadEvent(block_2_0, 2);
-  TimelineTestHelper::FakeThreadEvent(block_2_0, 2);
-  TimelineTestHelper::FakeThreadEvent(block_2_0, 2);
+  TimelineTestHelper::FakeThreadEvent(block_2_0, 2, "A");
+  TimelineTestHelper::FakeThreadEvent(block_2_0, 2, "B");
+  TimelineTestHelper::FakeThreadEvent(block_2_0, 2, "C");
+  TimelineTestHelper::FakeThreadEvent(block_2_0, 2, "D");
+  TimelineTestHelper::FakeThreadEvent(block_2_0, 2, "E");
+  TimelineTestHelper::FakeThreadEvent(block_2_0, 2, "F");
 
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -317,6 +323,42 @@ TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
   EXPECT_EQ(thread_2->At(0), block_2_0);
   // Verify that block_2_0 has six events.
   EXPECT_EQ(6, block_2_0->length());
+
+  {
+    TimelineAnalysisThreadEventIterator it(thread_1);
+    // Six events spread across three blocks.
+    EXPECT(it.HasNext());
+    EXPECT(LabelMatch(it.Next(), "B1"));
+    EXPECT(it.HasNext());
+    EXPECT(LabelMatch(it.Next(), "B2"));
+    EXPECT(it.HasNext());
+    EXPECT(LabelMatch(it.Next(), "B3"));
+    EXPECT(it.HasNext());
+    EXPECT(LabelMatch(it.Next(), "A1"));
+    EXPECT(it.HasNext());
+    EXPECT(LabelMatch(it.Next(), "C1"));
+    EXPECT(it.HasNext());
+    EXPECT(LabelMatch(it.Next(), "C2"));
+    EXPECT(!it.HasNext());
+  }
+
+  {
+    TimelineAnalysisThreadEventIterator it(thread_2);
+    // Six events spread across three blocks.
+    EXPECT(it.HasNext());
+    EXPECT(LabelMatch(it.Next(), "A"));
+    EXPECT(it.HasNext());
+    EXPECT(LabelMatch(it.Next(), "B"));
+    EXPECT(it.HasNext());
+    EXPECT(LabelMatch(it.Next(), "C"));
+    EXPECT(it.HasNext());
+    EXPECT(LabelMatch(it.Next(), "D"));
+    EXPECT(it.HasNext());
+    EXPECT(LabelMatch(it.Next(), "E"));
+    EXPECT(it.HasNext());
+    EXPECT(LabelMatch(it.Next(), "F"));
+    EXPECT(!it.HasNext());
+  }
 }
 
 

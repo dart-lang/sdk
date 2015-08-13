@@ -38,6 +38,25 @@ class TimelineAnalysisThread : public ZoneAllocated {
 };
 
 
+class TimelineAnalysisThreadEventIterator : public ValueObject {
+ public:
+  explicit TimelineAnalysisThreadEventIterator(TimelineAnalysisThread* thread);
+  ~TimelineAnalysisThreadEventIterator();
+
+  void Reset(TimelineAnalysisThread* thread);
+
+  bool HasNext() const;
+
+  TimelineEvent* Next();
+
+ private:
+  TimelineAnalysisThread* thread_;
+  TimelineEvent* current_;
+  intptr_t block_cursor_;
+  intptr_t event_cursor_;
+};
+
+
 // Base of all timeline analysis classes. Base functionality:
 // - discovery of all thread ids in a recording.
 // - collecting all ThreadEventBlocks by thread id.
@@ -91,6 +110,9 @@ class TimelinePauses : public TimelineAnalysis {
   TimelinePauses(Zone* zone,
                  Isolate* isolate,
                  TimelineEventRecorder* recorder);
+
+  void CalculatePauseTimes();
+
  private:
 };
 

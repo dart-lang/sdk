@@ -91,6 +91,10 @@ class TimelineEvent {
     return thread_;
   }
 
+  const char* label() const {
+    return label_;
+  }
+
  private:
   struct TimelineEventArgument {
     const char* name;
@@ -475,12 +479,13 @@ class TimelineEventBlockIterator {
   explicit TimelineEventBlockIterator(TimelineEventRecorder* recorder);
   ~TimelineEventBlockIterator();
 
-  void Reset();
-  bool Next();
+  void Reset(TimelineEventRecorder* recorder);
 
-  TimelineEventBlock* current() const {
-    return current_;
-  }
+  // Returns false when there are no more blocks.
+  bool HasNext() const;
+
+  // Returns the next block and moves forward.
+  TimelineEventBlock* Next();
 
  private:
   TimelineEventBlock* current_;

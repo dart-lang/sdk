@@ -40,6 +40,63 @@ void TimelineAnalysisThread::Finalize() {
 }
 
 
+TimelineAnalysisThreadEventIterator::TimelineAnalysisThreadEventIterator(
+    TimelineAnalysisThread* thread) {
+  Reset(thread);
+}
+
+
+TimelineAnalysisThreadEventIterator::~TimelineAnalysisThreadEventIterator() {
+  Reset(NULL);
+}
+
+
+void TimelineAnalysisThreadEventIterator::Reset(
+    TimelineAnalysisThread* thread) {
+  current_ = NULL;
+  thread_ = thread;
+  block_cursor_ = 0;
+  event_cursor_ = 0;
+  if (thread_ == NULL) {
+    return;
+  }
+  if (thread_->NumBlocks() == 0) {
+    return;
+  }
+  TimelineEventBlock* block = thread_->At(block_cursor_);
+  ASSERT(!block->IsEmpty());
+  current_ = block->At(event_cursor_++);
+}
+
+
+bool TimelineAnalysisThreadEventIterator::HasNext() const {
+  return current_ != NULL;
+}
+
+
+TimelineEvent* TimelineAnalysisThreadEventIterator::Next() {
+  ASSERT(current_ != NULL);
+  TimelineEvent* r = current_;
+  current_ = NULL;
+
+  TimelineEventBlock* block = thread_->At(block_cursor_);
+  if (event_cursor_ == block->length()) {
+    // Reached the end of this block, move to the next.
+    block_cursor_++;
+    if (block_cursor_ == thread_->NumBlocks()) {
+      // Exhausted our supply of blocks.
+      return r;
+    }
+    // Grab next block.
+    block = thread_->At(block_cursor_);
+    event_cursor_ = 0;
+    ASSERT(!block->IsEmpty());
+  }
+  current_ = block->At(event_cursor_++);
+  return r;
+}
+
+
 TimelineAnalysis::TimelineAnalysis(Zone* zone,
                                    Isolate* isolate,
                                    TimelineEventRecorder* recorder)
@@ -91,8 +148,8 @@ TimelineAnalysisThread* TimelineAnalysis::GetOrAddThread(ThreadId tid) {
 
 void TimelineAnalysis::DiscoverThreads() {
   TimelineEventBlockIterator it(recorder_);
-  while (it.Next()) {
-    TimelineEventBlock* block = it.current();
+  while (it.HasNext()) {
+    TimelineEventBlock* block = it.Next();
     ASSERT(block != NULL);
     if (block->IsEmpty()) {
       // Skip empty blocks.
@@ -134,6 +191,10 @@ TimelinePauses::TimelinePauses(Zone* zone,
                                Isolate* isolate,
                                TimelineEventRecorder* recorder)
     : TimelineAnalysis(zone, isolate, recorder) {
+}
+
+
+void TimelinePauses::CalculatePauseTimes() {
 }
 
 }  // namespace dart

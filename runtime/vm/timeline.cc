@@ -714,37 +714,44 @@ void TimelineEventBlock::Reset() {
 TimelineEventBlockIterator::TimelineEventBlockIterator(
     TimelineEventRecorder* recorder)
     : current_(NULL),
-      recorder_(recorder) {
-  if (recorder_ == NULL) {
-    return;
-  }
-  recorder->lock_.Lock();
+      recorder_(NULL) {
+  Reset(recorder);
 }
 
 
 TimelineEventBlockIterator::~TimelineEventBlockIterator() {
+  Reset(NULL);
+}
+
+
+void TimelineEventBlockIterator::Reset(TimelineEventRecorder* recorder) {
+  // Clear current.
+  current_ = NULL;
+  if (recorder_ != NULL) {
+    // Unlock old recorder.
+    recorder_->lock_.Unlock();
+  }
+  recorder_ = recorder;
   if (recorder_ == NULL) {
     return;
   }
-  recorder_->lock_.Unlock();
+  // Lock new recorder.
+  recorder_->lock_.Lock();
+  // Queue up first block.
+  current_ = recorder_->GetHeadBlock();
 }
 
 
-void TimelineEventBlockIterator::Reset() {
-  current_ = NULL;
-}
-
-
-bool TimelineEventBlockIterator::Next() {
-  if (recorder_ == NULL) {
-    return false;
-  }
-  if (current_ == NULL) {
-    current_ = recorder_->GetHeadBlock();
-  } else {
-    current_ = current_->next();
-  }
+bool TimelineEventBlockIterator::HasNext() const {
   return current_ != NULL;
+}
+
+
+TimelineEventBlock* TimelineEventBlockIterator::Next() {
+  ASSERT(current_ != NULL);
+  TimelineEventBlock* r = current_;
+  current_ = current_->next();
+  return r;
 }
 
 }  // namespace dart
