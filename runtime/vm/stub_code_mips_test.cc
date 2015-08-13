@@ -19,10 +19,6 @@
 
 namespace dart {
 
-DECLARE_RUNTIME_ENTRY(TestSmiSub);
-DECLARE_LEAF_RUNTIME_ENTRY(RawObject*, TestLeafSmiAdd, RawObject*, RawObject*);
-
-
 static Function* CreateFunction(const char* name) {
   const String& class_name = String::Handle(Symbols::New("ownerClass"));
   const Script& script = Script::Handle();
