@@ -771,7 +771,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   // Perform various cleanup that relies on no tasks interfering.
   isolate->class_table()->FreeOldTables();
 
-  NoHandleScope no_handles(isolate);
+  NoSafepointScope no_safepoints;
 
   if (FLAG_print_free_list_before_gc) {
     OS::Print("Data Freelist (before GC):\n");

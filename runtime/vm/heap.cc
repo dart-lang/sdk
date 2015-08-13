@@ -771,18 +771,6 @@ void Heap::PrintStats() {
 }
 
 
-#if defined(DEBUG)
-NoSafepointScope::NoSafepointScope() : StackResource(Thread::Current()) {
-  thread()->IncrementNoSafepointScopeDepth();
-}
-
-
-NoSafepointScope::~NoSafepointScope() {
-  thread()->DecrementNoSafepointScopeDepth();
-}
-#endif  // defined(DEBUG)
-
-
 NoHeapGrowthControlScope::NoHeapGrowthControlScope()
     : StackResource(Isolate::Current()) {
     Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();

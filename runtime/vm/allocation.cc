@@ -38,4 +38,16 @@ void StackResource::UnwindAbove(Thread* thread, StackResource* new_top) {
   }
 }
 
+
+#if defined(DEBUG)
+NoSafepointScope::NoSafepointScope() : StackResource(Thread::Current()) {
+  thread()->IncrementNoSafepointScopeDepth();
+}
+
+
+NoSafepointScope::~NoSafepointScope() {
+  thread()->DecrementNoSafepointScopeDepth();
+}
+#endif  // defined(DEBUG)
+
 }  // namespace dart

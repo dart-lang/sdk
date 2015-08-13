@@ -231,7 +231,6 @@ void RawObject::ValidateOverwrittenSmi(RawSmi* raw) {
 
 intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
   intptr_t size = 0;
-  NoHandleScope no_handles(visitor->isolate());
 
   // Only reasonable to be called on heap objects.
   ASSERT(IsHeapObject());

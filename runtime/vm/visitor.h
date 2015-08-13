@@ -5,6 +5,7 @@
 #ifndef VM_VISITOR_H_
 #define VM_VISITOR_H_
 
+#include "vm/allocation.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 
@@ -38,6 +39,7 @@ class ObjectPointerVisitor {
 
  private:
   Isolate* isolate_;
+  NoSafepointScope no_safepoints_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectPointerVisitor);
 };

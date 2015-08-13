@@ -804,7 +804,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   scavenging_ = true;
   Isolate* isolate = heap_->isolate();
   PageSpace* page_space = heap_->old_space();
-  NoHandleScope no_handles(isolate);
+  NoSafepointScope no_safepoints;
 
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {

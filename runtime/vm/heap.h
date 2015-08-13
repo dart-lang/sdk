@@ -333,26 +333,6 @@ class Heap {
 };
 
 
-// Within a NoSafepointScope, the thread must not reach any safepoint. Used
-// around code that manipulates raw object pointers directly without handles.
-#if defined(DEBUG)
-class NoSafepointScope : public StackResource {
- public:
-  NoSafepointScope();
-  ~NoSafepointScope();
- private:
-  DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
-};
-#else  // defined(DEBUG)
-class NoSafepointScope : public ValueObject {
- public:
-  NoSafepointScope() {}
- private:
-  DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
-};
-#endif  // defined(DEBUG)
-
-
 class HeapIterationScope : public StackResource {
  public:
   HeapIterationScope();
