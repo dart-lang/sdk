@@ -43,7 +43,7 @@ class TypeMaskSystem {
   TypeMask get listType => inferrer.listType;
   TypeMask get mapType => inferrer.mapType;
   TypeMask get nonNullType => inferrer.nonNullType;
-  TypeMask get mutableNativeListType => backend.mutableArrayType;
+  TypeMask get extendableNativeListType => backend.extendableArrayType;
 
   TypeMask numStringBoolType;
 
@@ -2260,7 +2260,7 @@ class TypePropagationVisitor implements Visitor {
   void visitLiteralList(LiteralList node) {
     // Constant lists are translated into (Constant ListConstant(...)) IR nodes,
     // and thus LiteralList nodes are NonConst.
-    setValue(node, nonConstant(typeSystem.mutableNativeListType));
+    setValue(node, nonConstant(typeSystem.extendableNativeListType));
   }
 
   void visitLiteralMap(LiteralMap node) {
