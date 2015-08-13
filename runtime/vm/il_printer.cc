@@ -168,7 +168,7 @@ void CompileType::PrintTo(BufferFormatter* f) const {
   const char* type_name = "?";
   if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
     const Class& cls =
-      Class::Handle(Isolate::Current()->class_table()->At(cid_));
+        Class::Handle(Isolate::Current()->class_table()->At(cid_));
     type_name = String::Handle(cls.PrettyName()).ToCString();
   } else if (type_ != NULL &&
              !type_->Equals(Type::Handle(Type::DynamicType()))) {

@@ -62,6 +62,7 @@ DEFINE_FLAG(bool, show_internal_names, false,
 DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
     "Throw an exception when the result of an integer calculation will not "
     "fit into a javascript integer.");
+DEFINE_FLAG(bool, trace_cha, false, "Trace CHA operations");
 DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
 DEFINE_FLAG(bool, trace_field_guards, false, "Trace changes in field's cids.");
@@ -1609,7 +1610,7 @@ RawError* Object::Init(Isolate* isolate) {
 
 
 void Object::Print() const {
-  OS::Print("%s\n", ToCString());
+  ISL_Print("%s\n", ToCString());
 }
 
 
@@ -2715,7 +2716,7 @@ class CHACodeArray : public WeakCodeReferences {
   virtual void ReportDeoptimization(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
       Function& function = Function::Handle(code.function());
-      OS::PrintErr("Deoptimizing %s because CHA optimized (%s).\n",
+      ISL_Print("Deoptimizing %s because CHA optimized (%s).\n",
           function.ToFullyQualifiedCString(),
           cls_.ToCString());
     }
@@ -2724,10 +2725,10 @@ class CHACodeArray : public WeakCodeReferences {
   virtual void ReportSwitchingCode(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
       Function& function = Function::Handle(code.function());
-      OS::PrintErr("Switching %s to unoptimized code because CHA invalid"
-                   " (%s)\n",
-                   function.ToFullyQualifiedCString(),
-                   cls_.ToCString());
+      ISL_Print("Switching %s to unoptimized code because CHA invalid"
+                " (%s)\n",
+                function.ToFullyQualifiedCString(),
+                cls_.ToCString());
     }
   }
 
@@ -2738,6 +2739,10 @@ class CHACodeArray : public WeakCodeReferences {
 
 
 void Class::RegisterCHACode(const Code& code) {
+  if (FLAG_trace_cha) {
+    ISL_Print("RegisterCHACode %s class %s\n",
+        Function::Handle(code.function()).ToQualifiedCString(), ToCString());
+  }
   ASSERT(code.is_optimized());
   CHACodeArray a(*this);
   a.Register(code);
@@ -5219,7 +5224,7 @@ void Function::SwitchToUnoptimizedCode() const {
   const Code& current_code = Code::Handle(zone, CurrentCode());
 
   if (FLAG_trace_deoptimization_verbose) {
-    OS::Print("Disabling optimized code: '%s' entry: %#" Px "\n",
+    ISL_Print("Disabling optimized code: '%s' entry: %#" Px "\n",
       ToFullyQualifiedCString(),
       current_code.EntryPoint());
   }
@@ -6897,10 +6902,10 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
       // to replace the old values.
       // sed -i .bak -f /tmp/newkeys runtime/vm/method_recognizer.h
       // sed -i .bak -f /tmp/newkeys runtime/vm/flow_graph_builder.h
-      OS::Print("s/V(%s, %d)/V(%s, %d)/\n",
+      ISL_Print("s/V(%s, %d)/V(%s, %d)/\n",
                 prefix, fp, prefix, SourceFingerprint());
     } else {
-      OS::Print("FP mismatch while recognizing method %s:"
+      ISL_Print("FP mismatch while recognizing method %s:"
                 " expecting %d found %d\n",
                 ToFullyQualifiedCString(),
                 fp,
@@ -7501,19 +7506,18 @@ class FieldDependentArray : public WeakCodeReferences {
   virtual void ReportDeoptimization(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
       Function& function = Function::Handle(code.function());
-          OS::PrintErr("Deoptimizing %s because guard on field %s failed.\n",
-          function.ToFullyQualifiedCString(),
-          field_.ToCString());
+      ISL_Print("Deoptimizing %s because guard on field %s failed.\n",
+                function.ToFullyQualifiedCString(), field_.ToCString());
     }
   }
 
   virtual void ReportSwitchingCode(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
       Function& function = Function::Handle(code.function());
-      OS::PrintErr("Switching %s to unoptimized code because guard"
-                   " on field %s was violated.\n",
-                   function.ToFullyQualifiedCString(),
-                   field_.ToCString());
+      ISL_Print("Switching %s to unoptimized code because guard"
+                " on field %s was violated.\n",
+                function.ToFullyQualifiedCString(),
+                field_.ToCString());
     }
   }
 
@@ -7678,7 +7682,7 @@ bool Field::UpdateGuardedCidAndLength(const Object& value) const {
     }
 
     if (FLAG_trace_field_guards) {
-      OS::Print("    => %s\n", GuardedPropertiesAsCString());
+      ISL_Print("    => %s\n", GuardedPropertiesAsCString());
     }
 
     return false;
@@ -7733,7 +7737,7 @@ void Field::RecordStore(const Object& value) const {
   }
 
   if (FLAG_trace_field_guards) {
-    OS::Print("Store %s %s <- %s\n",
+    ISL_Print("Store %s %s <- %s\n",
               ToCString(),
               GuardedPropertiesAsCString(),
               value.ToCString());
@@ -7741,7 +7745,7 @@ void Field::RecordStore(const Object& value) const {
 
   if (UpdateGuardedCidAndLength(value)) {
     if (FLAG_trace_field_guards) {
-      OS::Print("    => %s\n", GuardedPropertiesAsCString());
+      ISL_Print("    => %s\n", GuardedPropertiesAsCString());
     }
 
     DeoptimizeDependentCode();
@@ -10455,11 +10459,11 @@ class PrefixDependentArray : public WeakCodeReferences {
 
   virtual void ReportSwitchingCode(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
-      OS::PrintErr("Prefix '%s': disabling %s code for %s function '%s'\n",
-        String::Handle(prefix_.name()).ToCString(),
-        code.is_optimized() ? "optimized" : "unoptimized",
-        CodePatcher::IsEntryPatched(code) ? "patched" : "unpatched",
-        Function::Handle(code.function()).ToCString());
+      ISL_Print("Prefix '%s': disabling %s code for %s function '%s'\n",
+          String::Handle(prefix_.name()).ToCString(),
+          code.is_optimized() ? "optimized" : "unoptimized",
+          CodePatcher::IsEntryPatched(code) ? "patched" : "unpatched",
+          Function::Handle(code.function()).ToCString());
     }
   }
 
@@ -13444,7 +13448,7 @@ const char* Context::ToCString() const {
 
 static void IndentN(int count) {
   for (int i = 0; i < count; i++) {
-    OS::PrintErr(" ");
+    ISL_Print(" ");
   }
 }
 
@@ -13452,17 +13456,17 @@ static void IndentN(int count) {
 void Context::Dump(int indent) const {
   if (IsNull()) {
     IndentN(indent);
-    OS::PrintErr("Context@null\n");
+    ISL_Print("Context@null\n");
     return;
   }
 
   IndentN(indent);
-  OS::PrintErr("Context@%p vars(%" Pd ") {\n", this->raw(), num_variables());
+  ISL_Print("Context@%p vars(%" Pd ") {\n", this->raw(), num_variables());
   Object& obj = Object::Handle();
   for (intptr_t i = 0; i < num_variables(); i++) {
     IndentN(indent + 2);
     obj = At(i);
-    OS::PrintErr("[%" Pd "] = %s\n", i, obj.ToCString());
+    ISL_Print("[%" Pd "] = %s\n", i, obj.ToCString());
   }
 
   const Context& parent_ctx = Context::Handle(parent());
@@ -13470,7 +13474,7 @@ void Context::Dump(int indent) const {
     parent_ctx.Dump(indent + 2);
   }
   IndentN(indent);
-  OS::PrintErr("}\n");
+  ISL_Print("}\n");
 }
 
 
