@@ -149,8 +149,8 @@ class InterruptChecker : public ThreadPool::Task {
 };
 
 
-const intptr_t InterruptChecker::kTaskCount = 50;
-const intptr_t InterruptChecker::kIterations = 1000;
+const intptr_t InterruptChecker::kTaskCount = 5;
+const intptr_t InterruptChecker::kIterations = 10;
 
 
 // Waits for all tasks to set their individual flag, then clears them all.
