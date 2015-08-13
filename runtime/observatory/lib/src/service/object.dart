@@ -1114,11 +1114,15 @@ class Isolate extends ServiceObjectOwner with Coverage {
     });
   }
 
-  Future<ServiceObject> getObject(String objectId) {
+  Future<ServiceObject> getObject(String objectId, {bool reload: true}) {
     assert(objectId != null && objectId != '');
     var obj = _cache[objectId];
     if (obj != null) {
-      return obj.reload();
+      if (reload) {
+        return obj.reload();
+      }
+      // Returned cached object.
+      return new Future.value(obj);
     }
     Map params = {
       'objectId': objectId,
@@ -2386,6 +2390,7 @@ class ServiceFunction extends ServiceObject with Coverage {
   @observable ProfileFunction profile;
   @observable Instance icDataArray;
 
+  bool get canCache => true;
   bool get immutable => false;
 
   ServiceFunction._empty(ServiceObject owner) : super._empty(owner);
