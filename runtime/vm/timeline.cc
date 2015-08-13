@@ -420,10 +420,14 @@ TimelineEventRingRecorder::~TimelineEventRingRecorder() {
 
 
 void TimelineEventRingRecorder::PrintJSONEvents(JSONArray* events) const {
-  // TODO(johnmccutchan): This output needs to start with the oldest block
-  // first.
+  intptr_t block_offset = FindOldestBlockIndex();
+  if (block_offset == -1) {
+    // All blocks are empty.
+    return;
+  }
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
-    TimelineEventBlock* block = blocks_[block_idx];
+    TimelineEventBlock* block =
+        blocks_[(block_idx + block_offset) % num_blocks_];
     if (block->IsEmpty()) {
       // Skip empty blocks.
       continue;
@@ -468,6 +472,24 @@ TimelineEventBlock* TimelineEventRingRecorder::GetNewBlockLocked() {
   TimelineEventBlock* block = blocks_[block_cursor_++];
   block->Reset();
   return block;
+}
+
+
+intptr_t TimelineEventRingRecorder::FindOldestBlockIndex() const {
+  int64_t earliest_time = kMaxInt64;
+  intptr_t earliest_index = -1;
+  for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
+    TimelineEventBlock* block = blocks_[block_idx];
+    if (block->IsEmpty()) {
+      // Skip empty blocks.
+      continue;
+    }
+    if (block->LowerTimeBound() < earliest_time) {
+      earliest_time = block->LowerTimeBound();
+      earliest_index = block_idx;
+    }
+  }
+  return earliest_index;
 }
 
 

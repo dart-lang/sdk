@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <cstring>
+
 #include "platform/assert.h"
 
 #include "vm/dart_api_impl.h"
@@ -20,11 +22,17 @@ class TimelineTestHelper : public AllStatic {
   }
 
   static TimelineEvent* FakeThreadEvent(
-      TimelineEventBlock* block, intptr_t ftid) {
+      TimelineEventBlock* block,
+      intptr_t ftid,
+      const char* label = "fake",
+      TimelineStream* stream = NULL) {
     TimelineEvent* event = block->StartEvent();
     ASSERT(event != NULL);
-    event->DurationBegin("fake");
+    event->DurationBegin(label);
     event->thread_ = OSThread::ThreadIdFromIntPtr(ftid);
+    if (stream != NULL) {
+      event->StreamInit(stream);
+    }
     return event;
   }
 };
@@ -309,6 +317,38 @@ TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
   EXPECT_EQ(thread_2->At(0), block_2_0);
   // Verify that block_2_0 has six events.
   EXPECT_EQ(6, block_2_0->length());
+}
+
+
+TEST_CASE(TimelineRingRecorderJSONOrder) {
+  TimelineStream stream;
+  stream.Init("testStream", true);
+
+  TimelineEventRingRecorder* recorder =
+      new TimelineEventRingRecorder(TimelineEventBlock::kBlockSize * 2);
+
+  TimelineEventBlock* block_0 = recorder->GetNewBlock();
+  EXPECT(block_0 != NULL);
+  TimelineEventBlock* block_1 = recorder->GetNewBlock();
+  EXPECT(block_1 != NULL);
+  // Test that we wrapped.
+  EXPECT(block_0 == recorder->GetNewBlock());
+
+  // Emit the earlier event into block_1.
+  TimelineTestHelper::FakeThreadEvent(block_1, 2, "Alpha", &stream);
+  OS::Sleep(1);
+  // Emit the later event into block_0.
+  TimelineTestHelper::FakeThreadEvent(block_0, 2, "Beta", &stream);
+
+  JSONStream js;
+  recorder->PrintJSON(&js);
+  // trace-event has a requirement that events for a thread must have
+  // monotonically increasing timestamps.
+  // Verify that "Alpha" comes before "Beta" even though "Beta" is in the first
+  // block.
+  const char* alpha = strstr(js.ToCString(), "Alpha");
+  const char* beta = strstr(js.ToCString(), "Beta");
+  EXPECT(alpha < beta);
 }
 
 }  // namespace dart

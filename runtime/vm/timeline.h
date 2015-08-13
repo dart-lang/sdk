@@ -393,6 +393,7 @@ class TimelineEventRingRecorder : public TimelineEventRecorder {
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
 
+  intptr_t FindOldestBlockIndex() const;
   TimelineEventBlock* GetNewBlockLocked();
 
   void PrintJSONEvents(JSONArray* array) const;
