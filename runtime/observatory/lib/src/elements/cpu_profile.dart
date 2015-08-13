@@ -458,6 +458,7 @@ class SampleBufferControlElement extends ObservatoryElement {
       }
       await _changeState(kLoadingState);
       profile.load(isolate, response);
+      profile.buildFunctionCallerAndCallees();
       _update(profile);
       await _changeState(kLoadedState);
       // Notify listener.
