@@ -961,7 +961,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
 #endif
   }
-  __ LoadImmediate(R5, entry);
+  ExternalLabel label(entry);
+  __ LoadExternalLabel(R5, &label, kNotPatchable);
   __ LoadImmediate(R1, argc_tag);
   compiler->GenerateCall(token_pos(),
                          *stub_entry,
@@ -986,8 +987,9 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(compiler->is_optimizing());
   const Register char_code = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  __ LoadImmediate(result,
-                   reinterpret_cast<uword>(Symbols::PredefinedAddress()));
+
+  ExternalLabel label(reinterpret_cast<uword>(Symbols::PredefinedAddress()));
+  __ LoadExternalLabel(result, &label, kNotPatchable);
   __ AddImmediate(result, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ ldr(result, Address(result, char_code, LSL, 1));  // Char code is a smi.
 }

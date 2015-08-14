@@ -10969,10 +10969,12 @@ void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
         jsarr.AddValue(obj);
         break;
       case ObjectPool::kImmediate:
-        // We might want to distingiush between immediates and addresses
-        // in the future.
         imm = RawValueAt(i);
         jsarr.AddValue64(imm);
+        break;
+      case ObjectPool::kExternalLabel:
+        imm = RawValueAt(i);
+        jsarr.AddValueF("0x%" Px, imm);
         break;
       default:
         UNREACHABLE();
@@ -10989,6 +10991,8 @@ void ObjectPool::DebugPrint() const {
       ISL_Print("  %" Pd ": 0x%" Px " %s (obj)\n", i,
           reinterpret_cast<uword>(ObjectAt(i)),
           Object::Handle(ObjectAt(i)).ToCString());
+    } else if (InfoAt(i) == kExternalLabel) {
+      ISL_Print("  %" Pd ": 0x%" Px " (external label)\n", i, RawValueAt(i));
     } else {
       ISL_Print("  %" Pd ": 0x%" Px " (raw)\n", i, RawValueAt(i));
     }
