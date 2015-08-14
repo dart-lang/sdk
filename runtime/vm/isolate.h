@@ -477,7 +477,7 @@ class Isolate : public BaseIsolate {
 
   void AddErrorListener(const SendPort& listener);
   void RemoveErrorListener(const SendPort& listener);
-  void NotifyErrorListeners(const String& msg, const String& stacktrace);
+  bool NotifyErrorListeners(const String& msg, const String& stacktrace);
 
   bool ErrorsFatal() const { return errors_fatal_; }
   void SetErrorsFatal(bool val) { errors_fatal_ = val; }

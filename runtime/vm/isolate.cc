@@ -569,10 +569,14 @@ bool IsolateMessageHandler::ProcessUnhandledException(const Error& result) {
   } else {
     exc_str = String::New(result.ToErrorCString());
   }
-  I->NotifyErrorListeners(exc_str, stacktrace_str);
+  bool has_listener = I->NotifyErrorListeners(exc_str, stacktrace_str);
 
   if (I->ErrorsFatal()) {
-    I->object_store()->set_sticky_error(result);
+    if (has_listener) {
+      I->object_store()->clear_sticky_error();
+    } else {
+      I->object_store()->set_sticky_error(result);
+    }
     return false;
   }
   return true;
@@ -1203,11 +1207,11 @@ void Isolate::RemoveErrorListener(const SendPort& listener) {
 }
 
 
-void Isolate::NotifyErrorListeners(const String& msg,
+bool Isolate::NotifyErrorListeners(const String& msg,
                                    const String& stacktrace) {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
       this, this->object_store()->error_listeners());
-  if (listeners.IsNull()) return;
+  if (listeners.IsNull()) return false;
 
   const Array& arr = Array::Handle(this, Array::New(2));
   arr.SetAt(0, msg);
@@ -1224,6 +1228,7 @@ void Isolate::NotifyErrorListeners(const String& msg,
       PortMap::PostMessage(msg);
     }
   }
+  return listeners.Length() > 0;
 }
 
 
