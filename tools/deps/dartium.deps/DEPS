@@ -53,7 +53,7 @@ vars.update({
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
 
-  "co19_rev": "@801",
+  "co19_rev": "@f95f109fea67127a220958794ef5200a63cb454c",
   "fake_async_rev": "@38614",
 })
 
@@ -177,8 +177,8 @@ deps.update({
     "http://dart.googlecode.com/svn/third_party/fake_async" +
     Var("fake_async_rev"),
 
-  "src/dart/tests/co19/src": ((Var("googlecode_url") % "co19") +
-    "/trunk/co19/tests/co19/src" + Var("co19_rev")),
+  "src/dart/tests/co19/src":
+      "https://github.com/dart-lang/co19.git" + Var("co19_rev"),
 
   "src/dart/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
