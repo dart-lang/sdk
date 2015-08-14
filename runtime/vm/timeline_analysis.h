@@ -121,17 +121,22 @@ class TimelineLabelPauseInfo : public ZoneAllocated {
     return exclusive_micros_;
   }
 
-  int64_t max_duration_micros() const {
-    return max_duration_micros_;
+  int64_t max_inclusive_micros() const {
+    return max_inclusive_micros_;
+  }
+
+  int64_t max_exclusive_micros() const {
+    return max_exclusive_micros_;
   }
 
  private:
   // Adjusts |inclusive_micros_| and |exclusive_micros_| by |micros|.
-  // Also, may adjust, max_duration_micros_.
-  void OnPush(int64_t micros);
+  // Also, may adjust, max_inclusive_micros_.
+  void OnPush(int64_t micros, bool already_on_stack);
 
-  // Subtracts |micros| from |exclusive_micros_|.
-  void OnChildPush(int64_t micros);
+  // Adjusts |exclusive_micros_| by |exclusive_micros|.
+  // Also, may adjust |max_exclusive_micros_|.
+  void OnPop(int64_t exclusive_micros);
 
   // Adjust inclusive micros.
   void add_inclusive_micros(int64_t delta_micros) {
@@ -148,7 +153,8 @@ class TimelineLabelPauseInfo : public ZoneAllocated {
   const char* name_;
   int64_t inclusive_micros_;
   int64_t exclusive_micros_;
-  int64_t max_duration_micros_;
+  int64_t max_inclusive_micros_;
+  int64_t max_exclusive_micros_;
 
   friend class TimelinePauses;
 };
@@ -164,21 +170,30 @@ class TimelinePauses : public TimelineAnalysis {
 
   void CalculatePauseTimesForThread(ThreadId tid);
 
-  TimelineLabelPauseInfo* GetLabel(const char* name) const;
+  TimelineLabelPauseInfo* GetLabelPauseInfo(const char* name) const;
 
   int64_t InclusiveTime(const char* name) const;
   int64_t ExclusiveTime(const char* name) const;
-  int64_t MaxDurationTime(const char* name) const;
+  int64_t MaxInclusiveTime(const char* name) const;
+  int64_t MaxExclusiveTime(const char* name) const;
 
  private:
+  struct StackItem {
+    TimelineEvent* event;
+    TimelineLabelPauseInfo* pause_info;
+    int64_t exclusive_micros;
+  };
+
   void ProcessThread(TimelineAnalysisThread* thread);
   bool CheckStack(TimelineEvent* event);
   void PopFinished(int64_t start);
   void Push(TimelineEvent* event);
-  TimelineLabelPauseInfo* GetTopLabel();
-  TimelineLabelPauseInfo* GetOrAddLabel(const char* name);
+  bool IsLabelOnStack(const char* label);
+  intptr_t StackDepth() const;
+  StackItem& GetStackTop();
+  TimelineLabelPauseInfo* GetOrAddLabelPauseInfo(const char* name);
 
-  ZoneGrowableArray<TimelineEvent*> stack_;
+  ZoneGrowableArray<StackItem> stack_;
   ZoneGrowableArray<TimelineLabelPauseInfo*> labels_;
 };
 

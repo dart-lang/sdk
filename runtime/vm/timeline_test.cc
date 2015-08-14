@@ -429,7 +429,8 @@ TEST_CASE(TimelinePauses_Basic) {
     EXPECT(!pauses.has_error());
     EXPECT_EQ(10, pauses.InclusiveTime("a"));
     EXPECT_EQ(10, pauses.ExclusiveTime("a"));
-    EXPECT_EQ(10, pauses.MaxDurationTime("a"));
+    EXPECT_EQ(10, pauses.MaxInclusiveTime("a"));
+    EXPECT_EQ(10, pauses.MaxExclusiveTime("a"));
   }
   TimelineTestHelper::Clear(recorder);
 
@@ -443,10 +444,12 @@ TEST_CASE(TimelinePauses_Basic) {
     EXPECT(!pauses.has_error());
     EXPECT_EQ(10, pauses.InclusiveTime("a"));
     EXPECT_EQ(0, pauses.ExclusiveTime("a"));
-    EXPECT_EQ(10, pauses.MaxDurationTime("a"));
+    EXPECT_EQ(10, pauses.MaxInclusiveTime("a"));
+    EXPECT_EQ(0, pauses.MaxExclusiveTime("a"));
     EXPECT_EQ(10, pauses.InclusiveTime("b"));
     EXPECT_EQ(10, pauses.ExclusiveTime("b"));
-    EXPECT_EQ(10, pauses.MaxDurationTime("b"));
+    EXPECT_EQ(10, pauses.MaxInclusiveTime("b"));
+    EXPECT_EQ(10, pauses.MaxExclusiveTime("b"));
   }
   TimelineTestHelper::Clear(recorder);
 
@@ -460,10 +463,12 @@ TEST_CASE(TimelinePauses_Basic) {
     EXPECT(!pauses.has_error());
     EXPECT_EQ(10, pauses.InclusiveTime("a"));
     EXPECT_EQ(3, pauses.ExclusiveTime("a"));
-    EXPECT_EQ(10, pauses.MaxDurationTime("a"));
+    EXPECT_EQ(10, pauses.MaxInclusiveTime("a"));
+    EXPECT_EQ(3, pauses.MaxExclusiveTime("a"));
     EXPECT_EQ(7, pauses.InclusiveTime("b"));
     EXPECT_EQ(7, pauses.ExclusiveTime("b"));
-    EXPECT_EQ(7, pauses.MaxDurationTime("b"));
+    EXPECT_EQ(7, pauses.MaxInclusiveTime("b"));
+    EXPECT_EQ(7, pauses.MaxExclusiveTime("b"));
   }
   TimelineTestHelper::Clear(recorder);
 
@@ -486,10 +491,12 @@ TEST_CASE(TimelinePauses_Basic) {
     EXPECT(!pauses.has_error());
     EXPECT_EQ(10, pauses.InclusiveTime("a"));
     EXPECT_EQ(0, pauses.ExclusiveTime("a"));
-    EXPECT_EQ(10, pauses.MaxDurationTime("a"));
+    EXPECT_EQ(10, pauses.MaxInclusiveTime("a"));
+    EXPECT_EQ(0, pauses.MaxExclusiveTime("a"));
     EXPECT_EQ(10, pauses.InclusiveTime("b"));
     EXPECT_EQ(10, pauses.ExclusiveTime("b"));
-    EXPECT_EQ(1, pauses.MaxDurationTime("b"));
+    EXPECT_EQ(1, pauses.MaxInclusiveTime("b"));
+    EXPECT_EQ(1, pauses.MaxExclusiveTime("b"));
   }
   TimelineTestHelper::Clear(recorder);
 
@@ -506,16 +513,20 @@ TEST_CASE(TimelinePauses_Basic) {
     EXPECT(!pauses.has_error());
     EXPECT_EQ(10, pauses.InclusiveTime("a"));
     EXPECT_EQ(0, pauses.ExclusiveTime("a"));
-    EXPECT_EQ(10, pauses.MaxDurationTime("a"));
+    EXPECT_EQ(10, pauses.MaxInclusiveTime("a"));
+    EXPECT_EQ(0, pauses.MaxExclusiveTime("a"));
     EXPECT_EQ(5, pauses.InclusiveTime("b"));
     EXPECT_EQ(2, pauses.ExclusiveTime("b"));
-    EXPECT_EQ(5, pauses.MaxDurationTime("b"));
+    EXPECT_EQ(5, pauses.MaxInclusiveTime("b"));
+    EXPECT_EQ(2, pauses.MaxExclusiveTime("b"));
     EXPECT_EQ(3, pauses.InclusiveTime("c"));
     EXPECT_EQ(3, pauses.ExclusiveTime("c"));
-    EXPECT_EQ(3, pauses.MaxDurationTime("c"));
+    EXPECT_EQ(3, pauses.MaxInclusiveTime("c"));
+    EXPECT_EQ(3, pauses.MaxExclusiveTime("c"));
     EXPECT_EQ(5, pauses.InclusiveTime("d"));
     EXPECT_EQ(5, pauses.ExclusiveTime("d"));
-    EXPECT_EQ(5, pauses.MaxDurationTime("d"));
+    EXPECT_EQ(5, pauses.MaxInclusiveTime("d"));
+    EXPECT_EQ(5, pauses.MaxExclusiveTime("d"));
   }
   TimelineTestHelper::Clear(recorder);
 
@@ -533,19 +544,24 @@ TEST_CASE(TimelinePauses_Basic) {
     EXPECT(!pauses.has_error());
     EXPECT_EQ(10, pauses.InclusiveTime("a"));
     EXPECT_EQ(2, pauses.ExclusiveTime("a"));
-    EXPECT_EQ(10, pauses.MaxDurationTime("a"));
+    EXPECT_EQ(10, pauses.MaxInclusiveTime("a"));
+    EXPECT_EQ(2, pauses.MaxExclusiveTime("a"));
     EXPECT_EQ(8, pauses.InclusiveTime("b"));
     EXPECT_EQ(2, pauses.ExclusiveTime("b"));
-    EXPECT_EQ(8, pauses.MaxDurationTime("b"));
+    EXPECT_EQ(8, pauses.MaxInclusiveTime("b"));
+    EXPECT_EQ(2, pauses.MaxExclusiveTime("b"));
     EXPECT_EQ(6, pauses.InclusiveTime("c"));
     EXPECT_EQ(2, pauses.ExclusiveTime("c"));
-    EXPECT_EQ(6, pauses.MaxDurationTime("c"));
+    EXPECT_EQ(6, pauses.MaxInclusiveTime("c"));
+    EXPECT_EQ(2, pauses.MaxExclusiveTime("c"));
     EXPECT_EQ(4, pauses.InclusiveTime("d"));
     EXPECT_EQ(2, pauses.ExclusiveTime("d"));
-    EXPECT_EQ(4, pauses.MaxDurationTime("d"));
+    EXPECT_EQ(4, pauses.MaxInclusiveTime("d"));
+    EXPECT_EQ(2, pauses.MaxExclusiveTime("d"));
     EXPECT_EQ(2, pauses.InclusiveTime("e"));
     EXPECT_EQ(2, pauses.ExclusiveTime("e"));
-    EXPECT_EQ(2, pauses.MaxDurationTime("e"));
+    EXPECT_EQ(2, pauses.MaxInclusiveTime("e"));
+    EXPECT_EQ(2, pauses.MaxExclusiveTime("e"));
   }
   TimelineTestHelper::Clear(recorder);
 
@@ -558,9 +574,10 @@ TEST_CASE(TimelinePauses_Basic) {
     pauses.Setup();
     pauses.CalculatePauseTimesForThread(tid);
     EXPECT(!pauses.has_error());
-    EXPECT_EQ(18, pauses.InclusiveTime("a"));
+    EXPECT_EQ(10, pauses.InclusiveTime("a"));
     EXPECT_EQ(10, pauses.ExclusiveTime("a"));
-    EXPECT_EQ(10, pauses.MaxDurationTime("a"));
+    EXPECT_EQ(10, pauses.MaxInclusiveTime("a"));
+    EXPECT_EQ(8, pauses.MaxExclusiveTime("a"));
   }
   TimelineTestHelper::Clear(recorder);
 }

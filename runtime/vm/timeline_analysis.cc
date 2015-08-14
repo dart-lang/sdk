@@ -38,9 +38,11 @@ static int CompareBlocksLowerTimeBound(TimelineEventBlock* const* a,
 
 void TimelineAnalysisThread::Finalize() {
   blocks_.Sort(CompareBlocksLowerTimeBound);
-  ISL_Print("Thread %" Px " has %" Pd " blocks\n",
-            OSThread::ThreadIdToIntPtr(id_),
-            blocks_.length());
+  if (FLAG_trace_timeline_analysis) {
+    ISL_Print("Thread %" Px " has %" Pd " blocks\n",
+              OSThread::ThreadIdToIntPtr(id_),
+              blocks_.length());
+  }
 }
 
 
@@ -199,23 +201,28 @@ TimelineLabelPauseInfo::TimelineLabelPauseInfo(const char* name)
     : name_(name),
       inclusive_micros_(0),
       exclusive_micros_(0),
-      max_duration_micros_(0) {
+      max_inclusive_micros_(0),
+      max_exclusive_micros_(0) {
   ASSERT(name_ != NULL);
 }
 
 
-void TimelineLabelPauseInfo::OnPush(int64_t micros) {
-  add_inclusive_micros(micros);
-  add_exclusive_micros(micros);
-  if (micros > max_duration_micros_) {
-    max_duration_micros_ = micros;
+void TimelineLabelPauseInfo::OnPush(int64_t micros, bool already_on_stack) {
+  if (!already_on_stack) {
+    // Only adjust inclusive counts if we aren't already on the stack.
+    add_inclusive_micros(micros);
+    if (micros > max_inclusive_micros_) {
+      max_inclusive_micros_ = micros;
+    }
   }
 }
 
 
-void TimelineLabelPauseInfo::OnChildPush(int64_t micros) {
-  ASSERT(micros >= 0);
-  add_exclusive_micros(-micros);
+void TimelineLabelPauseInfo::OnPop(int64_t exclusive_micros) {
+  add_exclusive_micros(exclusive_micros);
+  if (exclusive_micros > max_exclusive_micros_) {
+    max_exclusive_micros_ = exclusive_micros;
+  }
 }
 
 
@@ -244,7 +251,8 @@ void TimelinePauses::CalculatePauseTimesForThread(ThreadId tid) {
 }
 
 
-TimelineLabelPauseInfo* TimelinePauses::GetLabel(const char* name) const {
+TimelineLabelPauseInfo* TimelinePauses::GetLabelPauseInfo(
+    const char* name) const {
   ASSERT(name != NULL);
   // Linear lookup because we expect N (# of labels in an isolate) to be small.
   for (intptr_t i = 0; i < labels_.length(); i++) {
@@ -258,23 +266,30 @@ TimelineLabelPauseInfo* TimelinePauses::GetLabel(const char* name) const {
 
 
 int64_t TimelinePauses::InclusiveTime(const char* name) const {
-  TimelineLabelPauseInfo* pause_info = GetLabel(name);
+  TimelineLabelPauseInfo* pause_info = GetLabelPauseInfo(name);
   ASSERT(pause_info != NULL);
   return pause_info->inclusive_micros();
 }
 
 
 int64_t TimelinePauses::ExclusiveTime(const char* name) const {
-  TimelineLabelPauseInfo* pause_info = GetLabel(name);
+  TimelineLabelPauseInfo* pause_info = GetLabelPauseInfo(name);
   ASSERT(pause_info != NULL);
   return pause_info->exclusive_micros();
 }
 
 
-int64_t TimelinePauses::MaxDurationTime(const char* name) const {
-  TimelineLabelPauseInfo* pause_info = GetLabel(name);
+int64_t TimelinePauses::MaxInclusiveTime(const char* name) const {
+  TimelineLabelPauseInfo* pause_info = GetLabelPauseInfo(name);
   ASSERT(pause_info != NULL);
-  return pause_info->max_duration_micros();
+  return pause_info->max_inclusive_micros();
+}
+
+
+int64_t TimelinePauses::MaxExclusiveTime(const char* name) const {
+  TimelineLabelPauseInfo* pause_info = GetLabelPauseInfo(name);
+  ASSERT(pause_info != NULL);
+  return pause_info->max_exclusive_micros();
 }
 
 
@@ -318,8 +333,8 @@ void TimelinePauses::ProcessThread(TimelineAnalysisThread* thread) {
 bool TimelinePauses::CheckStack(TimelineEvent* event) {
   ASSERT(event != NULL);
   for (intptr_t i = 0; i < stack_.length(); i++) {
-    TimelineEvent* slot = stack_.At(i);
-    if (!slot->DurationContains(event)) {
+    const StackItem& slot = stack_.At(i);
+    if (!slot.event->DurationContains(event)) {
       return false;
     }
   }
@@ -329,14 +344,15 @@ bool TimelinePauses::CheckStack(TimelineEvent* event) {
 
 void TimelinePauses::PopFinished(int64_t start) {
   while (stack_.length() > 0) {
-    TimelineEvent* top = stack_.Last();
-    if (top->DurationFinishedBefore(start)) {
+    const StackItem& top = stack_.Last();
+    if (top.event->DurationFinishedBefore(start)) {
+      top.pause_info->OnPop(top.exclusive_micros);
       // Top of stack completes before |start|.
       stack_.RemoveLast();
       if (FLAG_trace_timeline_analysis) {
         ISL_Print("Popping %s (%" Pd64 " <= %" Pd64 ")\n",
-                  top->label(),
-                  top->TimeEnd(),
+                  top.event->label(),
+                  top.event->TimeEnd(),
                   start);
       }
     } else {
@@ -347,7 +363,7 @@ void TimelinePauses::PopFinished(int64_t start) {
 
 
 void TimelinePauses::Push(TimelineEvent* event) {
-  TimelineLabelPauseInfo* pause_info = GetOrAddLabel(event->label());
+  TimelineLabelPauseInfo* pause_info = GetOrAddLabelPauseInfo(event->label());
   ASSERT(pause_info != NULL);
   // |pause_info| will be running for |event->TimeDuration()|.
   if (FLAG_trace_timeline_analysis) {
@@ -355,41 +371,55 @@ void TimelinePauses::Push(TimelineEvent* event) {
               pause_info->name(),
               event->TimeDuration());
   }
-  pause_info->OnPush(event->TimeDuration());
-  TimelineLabelPauseInfo* top_pause_info = GetTopLabel();
-  if (top_pause_info != NULL) {
-    // |top_pause_info| is under |event|'s shadow, adjust the exclusive micros.
-    if (FLAG_trace_timeline_analysis) {
-      ISL_Print("Adjusting %s by %" Pd64 " us\n",
-                top_pause_info->name(),
-                event->TimeDuration());
-    }
-    top_pause_info->OnChildPush(event->TimeDuration());
+  pause_info->OnPush(event->TimeDuration(), IsLabelOnStack(event->label()));
+  if (StackDepth() > 0) {
+    StackItem& top = GetStackTop();
+    // |top| is under |event|'s shadow, adjust the exclusive micros.
+    top.exclusive_micros -= event->TimeDuration();
   }
   // Push onto the stack.
-  stack_.Add(event);
+  StackItem item;
+  item.event = event;
+  item.pause_info = pause_info;
+  item.exclusive_micros = event->TimeDuration();
+  stack_.Add(item);
 }
 
 
-TimelineLabelPauseInfo* TimelinePauses::GetTopLabel() {
-  if (stack_.length() == 0) {
-    return NULL;
+bool TimelinePauses::IsLabelOnStack(const char* label) {
+  ASSERT(label != NULL);
+  for (intptr_t i = 0; i < stack_.length(); i++) {
+    const StackItem& slot = stack_.At(i);
+    if (strcmp(slot.event->label(), label) == 0) {
+      return true;
+    }
   }
-  TimelineEvent* event = stack_.Last();
-  return GetLabel(event->label());
+  return false;
 }
 
 
-TimelineLabelPauseInfo* TimelinePauses::GetOrAddLabel(const char* name) {
+intptr_t TimelinePauses::StackDepth() const {
+  return stack_.length();
+}
+
+
+TimelinePauses::StackItem& TimelinePauses::GetStackTop() {
+  ASSERT(stack_.length() > 0);
+  return stack_.Last();
+}
+
+
+TimelineLabelPauseInfo* TimelinePauses::GetOrAddLabelPauseInfo(
+    const char* name) {
   ASSERT(name != NULL);
-  TimelineLabelPauseInfo* label = GetLabel(name);
-  if (label != NULL) {
-    return label;
+  TimelineLabelPauseInfo* pause_info = GetLabelPauseInfo(name);
+  if (pause_info != NULL) {
+    return pause_info;
   }
   // New label.
-  label = new TimelineLabelPauseInfo(name);
-  labels_.Add(label);
-  return label;
+  pause_info = new TimelineLabelPauseInfo(name);
+  labels_.Add(pause_info);
+  return pause_info;
 }
 
 }  // namespace dart
