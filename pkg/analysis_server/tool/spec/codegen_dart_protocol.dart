@@ -121,7 +121,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       String dartTypeName = capitalize(impliedType.camelName);
       if (type == null) {
         emitEmptyObjectClass(dartTypeName, impliedType);
-      } else if (type is TypeObject || type == null) {
+      } else if (type is TypeObject) {
         writeln();
         emitObjectClass(dartTypeName, type, impliedType);
       } else if (type is TypeEnum) {
