@@ -1150,7 +1150,13 @@ class TransformingVisitor extends LeafVisitor {
         }
         if (!isExtendable) return false;
         Primitive addedList = getDartArgument(node, 0);
-        if (addedList is! LiteralList) return false;
+        // Rewrite addAll([x1, ..., xN]) to push(x1, ..., xN).
+        // Ensure that the list is not mutated between creation and use.
+        // We aim for the common case where this is the only use of the list, 
+        // which also guarantees that this list is not mutated before use.
+        if (addedList is! LiteralList || !addedList.hasExactlyOneUse) {
+          return false;
+        }
         LiteralList addedLiteral = addedList;
         CpsFragment cps = new CpsFragment(sourceInfo);
         cps.invokeBuiltin(BuiltinMethod.Push, 
@@ -1720,7 +1726,7 @@ class TransformingVisitor extends LeafVisitor {
     }
   }
 
-  Primitive visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
+  void visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
     if (node.method == BuiltinMethod.Push) {
       // Convert consecutive pushes into a single push.
       InteriorNode parent = getEffectiveParent(node.parent);
@@ -1728,17 +1734,22 @@ class TransformingVisitor extends LeafVisitor {
         ApplyBuiltinMethod previous = parent.primitive;
         if (previous.method == BuiltinMethod.Push && 
             previous.receiver.definition == node.receiver.definition) {
-          for (Reference ref in node.arguments) {
-            previous.arguments.add(ref);
-            ref.parent = previous;
+          // We found two consecutive pushes. 
+          // Move all arguments from the first push onto the second one.
+          List<Reference<Primitive>> arguments = previous.arguments;
+          for (Reference ref in arguments) {
+            ref.parent = node;
           }
-          node.arguments.clear(); // Avoid unlinking adopted references.
-          // Replace the old push by a dummy that will get removed.
-          return makeConstantPrimitive(new NullConstantValue());
+          arguments.addAll(node.arguments);
+          node.arguments = arguments;
+          // Elimnate the old push.
+          previous.receiver.unlink();
+          assert(previous.hasNoUses);
+          parent.parent.body = parent.body;
+          parent.body.parent = parent.parent;
         }
       }
     }
-    return null;
   }
 
   Primitive visitTypeTest(TypeTest node) {
