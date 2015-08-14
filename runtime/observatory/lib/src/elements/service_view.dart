@@ -78,26 +78,27 @@ class ServiceObjectViewElement extends ObservatoryElement {
         element.connection = object;
         return element;
       case 'Object':
-        switch (object.vmType) {
-          case 'ICData':
-            ICDataViewElement element = new Element.tag('icdata-view');
-            element.icData = object;
-            return element;
-          case 'Instructions':
-            InstructionsViewElement element =
-                new Element.tag('instructions-view');
-            element.instructions = object;
-            return element;
-          case 'ObjectPool':
-            ObjectPoolViewElement element = new Element.tag('objectpool-view');
-            element.pool = object;
-            return element;
-          default:
-            ObjectViewElement element = new Element.tag('object-view');
-            element.object = object;
-            return element;
-        }
-        break;
+        return (object) {
+          switch (object.vmType) {
+            case 'ICData':
+              ICDataViewElement element = new Element.tag('icdata-view');
+              element.icData = object;
+              return element;
+            case 'Instructions':
+              InstructionsViewElement element =
+                  new Element.tag('instructions-view');
+              element.instructions = object;
+              return element;
+            case 'ObjectPool':
+              ObjectPoolViewElement element = new Element.tag('objectpool-view');
+              element.pool = object;
+              return element;
+            default:
+              ObjectViewElement element = new Element.tag('object-view');
+              element.object = object;
+              return element;
+          }
+        }(object);
       case 'SocketList':
         IOSocketListViewElement element =
             new Element.tag('io-socket-list-view');

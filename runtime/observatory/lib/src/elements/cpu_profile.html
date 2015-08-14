@@ -34,8 +34,10 @@
     }
     </style>
     <div class="content-centered-big">
-      <h2>Sample buffer</h2>
-      <hr>
+      <template if="{{ state != 'kNotLoaded' }}">
+        <h2>Sample buffer</h2>
+        <hr>
+      </template>
       <template if="{{ state == 'kFetching' }}">
         <div class="statusBox shadow center">
           <div class="statusMessage">Fetching profile from VM...</div>
@@ -115,47 +117,49 @@
     }
     </style>
     <div class="content-centered-big">
-      <h2>Tree display</h2>
-      <hr>
-      <div class="memberList">
-        <template if="{{ showModeSelector }}">
-          <div class="memberItem">
-            <div class="memberName">Mode</div>
-            <div class="memberValue">
-              <select value="{{modeSelector}}">
-                <option value="Code">Code</option>
-                <option value="Function">Function</option>
-              </select>
+      <template if="{{ show }}">
+        <h2>Tree display</h2>
+        <hr>
+        <div class="memberList">
+          <template if="{{ showModeSelector }}">
+            <div class="memberItem">
+              <div class="memberName">Mode</div>
+              <div class="memberValue">
+                <select value="{{modeSelector}}">
+                  <option value="Code">Code</option>
+                  <option value="Function">Function</option>
+                </select>
+              </div>
             </div>
+          </template>
+          <template if="{{ showDirectionSelector }}">
+            <div class="memberItem">
+              <div class="memberName">Call Tree Direction</div>
+              <div class="memberValue">
+                <select value="{{directionSelector}}">
+                  <option value="Down">Top down</option>
+                  <option value="Up">Bottom up</option>
+                </select>
+              </div>
+            </div>
+          </template>
+        </div>
+        <template if="{{ directionSelector == 'Down' }}">
+          <br>
+          <div class="statusBox shadow">
+            <div>Tree is rooted at main.</div>
+            <br>
+            <div>Child nodes are callees.</div>
           </div>
         </template>
-        <template if="{{ showDirectionSelector }}">
-          <div class="memberItem">
-            <div class="memberName">Call Tree Direction</div>
-            <div class="memberValue">
-              <select value="{{directionSelector}}">
-                <option value="Down">Top down</option>
-                <option value="Up">Bottom up</option>
-              </select>
-            </div>
+        <template if="{{ directionSelector == 'Up' }}">
+          <br>
+          <div class="statusBox shadow">
+            <div>Tree is rooted at executing function / code.</div>
+            <br>
+            <div>Child nodes are callers.</div>
           </div>
         </template>
-      </div>
-      <template if="{{ directionSelector == 'Down' }}">
-        <br>
-        <div class="statusBox shadow">
-          <div>Tree is rooted at main.</div>
-          <br>
-          <div>Child nodes are callees.</div>
-        </div>
-      </template>
-      <template if="{{ directionSelector == 'Up' }}">
-        <br>
-        <div class="statusBox shadow">
-          <div>Tree is rooted at executing function / code.</div>
-          <br>
-          <div>Child nodes are callers.</div>
-        </div>
       </template>
     </div>
   </template>
@@ -220,7 +224,7 @@
       width: 100%;
     }
     </style>
-    <table class="full-width tree">
+    <table id="treeTable" class="full-width tree">
       <thead id="treeHeader">
       <tr>
         <th>Method</th>

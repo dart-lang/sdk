@@ -235,6 +235,7 @@ class HeapProfileElement extends ObservatoryElement {
       cell.text = classTable.getFormattedValue(rowIndex, i);
       if (i > 1) {  // Numbers.
         cell.style.textAlign = 'right';
+        cell.style.paddingLeft = '1em';
       }
     }
   }

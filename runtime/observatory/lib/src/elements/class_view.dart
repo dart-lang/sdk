@@ -62,9 +62,11 @@ class ClassViewElement extends ObservatoryElement {
         shadowRoot.querySelector('#stackTraceTreeConfig');
     assert(stackTraceTreeConfigElement != null);
     stackTraceTreeConfigElement.onTreeConfigChange = onTreeConfigChange;
+    stackTraceTreeConfigElement.show = false;
     cpuProfileTreeElement = shadowRoot.querySelector('#cpuProfileTree');
     assert(cpuProfileTreeElement != null);
     cpuProfileTreeElement.profile = sampleBufferControlElement.profile;
+    cpuProfileTreeElement.show = false;
     cls.fields.forEach((field) => field.reload());
     sampleBufferControlElement.allocationProfileClass = cls;
   }
@@ -84,6 +86,8 @@ class ClassViewElement extends ObservatoryElement {
   }
 
   onSampleBufferChange(CpuProfile sampleBuffer) {
+    stackTraceTreeConfigElement.show = sampleBuffer.sampleCount > 0;
+    cpuProfileTreeElement.show = sampleBuffer.sampleCount > 0;
     cpuProfileTreeElement.render();
   }
 

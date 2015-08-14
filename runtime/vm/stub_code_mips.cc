@@ -957,6 +957,8 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ LoadImmediate(T0, ~((kObjectAlignment) - 1));
     __ and_(T2, T2, T0);
 
+    __ MaybeTraceAllocation(kContextCid, T4, &slow_case,
+                            /* inline_isolate = */ false);
     // Now allocate the object.
     // T1: number of context variables.
     // T2: object size.
@@ -1151,8 +1153,9 @@ void StubCode::GenerateAllocationStubForClass(
     __ lw(T1, Address(SP, 0 * kWordSize));
     // T1: type arguments.
   }
+  Isolate* isolate = Isolate::Current();
   if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size) &&
-      !cls.trace_allocation()) {
+      !cls.TraceAllocation(isolate)) {
     Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.

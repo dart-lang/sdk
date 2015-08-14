@@ -602,7 +602,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // Check for allocation tracing.
   __ MaybeTraceAllocation(kArrayCid,
                           &slow_case,
-                          /* near_jump = */ false,
+                          Assembler::kFarJump,
                           /* inline_isolate = */ false);
 
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
@@ -857,6 +857,12 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ leaq(R13, Address(R10, TIMES_8, fixed_size));
     __ andq(R13, Immediate(-kObjectAlignment));
 
+    // Check for allocation tracing.
+    __ MaybeTraceAllocation(kContextCid,
+                            &slow_case,
+                            Assembler::kFarJump,
+                            /* inline_isolate = */ false);
+
     // Now allocate the object.
     // R10: number of context variables.
     const intptr_t cid = kContextCid;
@@ -1065,8 +1071,9 @@ void StubCode::GenerateAllocationStubForClass(
     __ movq(RDX, Address(RSP, kObjectTypeArgumentsOffset));
     // RDX: instantiated type arguments.
   }
+  Isolate* isolate = Isolate::Current();
   if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size) &&
-      !cls.trace_allocation()) {
+      !cls.TraceAllocation(isolate)) {
     Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.

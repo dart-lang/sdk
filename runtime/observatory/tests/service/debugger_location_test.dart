@@ -8,13 +8,14 @@ import 'package:observatory/debugger.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'dart:async';
+import 'dart:developer';
 
 void testFunction() {
   int i = 0;
-  while (true) {
-    if (++i % 100000000 == 0) {  // line 15
-      print(i);
-    }
+  while (i == 0) {
+    debugger();
+    print('loop');
+    print('loop');
   }
 }
 
@@ -51,35 +52,14 @@ Future<Debugger> initDebugger(Isolate isolate) {
 
 var tests = [
 
-// Bring the isolate to a breakpoint at line 15.
-(Isolate isolate) {
-  return isolate.rootLibrary.load().then((_) {
-      // Listen for breakpoint event.
-      Completer completer = new Completer();
-      isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
-        var subscription;
-        subscription = stream.listen((ServiceEvent event) {
-          if (event.kind == ServiceEvent.kPauseBreakpoint) {
-            subscription.cancel();
-            completer.complete();
-          }
-        });
-      });
-
-      // Add the breakpoint.
-      var script = isolate.rootLibrary.scripts[0];
-      return isolate.addBreakpoint(script, 15).then((ServiceObject bpt) {
-          return completer.future;  // Wait for breakpoint events.
-      });
-    });
-},
+hasStoppedAtBreakpoint,
 
 // Parse '' => current position
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
     return DebuggerLocation.parse(debugger, '').then((DebuggerLocation loc) {
       expect(loc.valid, isTrue);
-      expect(loc.toString(), equals('debugger_location_test.dart:15'));
+      expect(loc.toString(), equals('debugger_location_test.dart:17'));
     });
   });
 },
@@ -87,9 +67,9 @@ var tests = [
 // Parse line
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return DebuggerLocation.parse(debugger, '16').then((DebuggerLocation loc) {
+    return DebuggerLocation.parse(debugger, '18').then((DebuggerLocation loc) {
       expect(loc.valid, isTrue);
-      expect(loc.toString(), equals('debugger_location_test.dart:16'));
+      expect(loc.toString(), equals('debugger_location_test.dart:18'));
     });
   });
 },

@@ -2128,6 +2128,9 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ Bind(&slow_path);
+  const Code& stub = Code::Handle(compiler->isolate(),
+                                  StubCode::AllocateArray_entry()->code());
+  compiler->AddStubCallTarget(stub);
   compiler->GenerateCall(token_pos(),
                          *StubCode::AllocateArray_entry(),
                          RawPcDescriptors::kOther,
@@ -2400,6 +2403,9 @@ class AllocateContextSlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
 
     __ movl(EDX, Immediate(instruction_->num_context_variables()));
+    const Code& stub = Code::Handle(compiler->isolate(),
+                                    StubCode::AllocateContext_entry()->code());
+    compiler->AddStubCallTarget(stub);
     compiler->GenerateCall(instruction_->token_pos(),
                            *StubCode::AllocateContext_entry(),
                            RawPcDescriptors::kOther,
