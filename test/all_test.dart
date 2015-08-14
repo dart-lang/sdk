@@ -2,13 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:sample/sample.dart';
+import 'package:dart2js_info/info.dart';
 import 'package:test/test.dart';
 
 main() {
-  group('A group of tests', () {
-    test('First Test', () {
-      
+  // TODO(sigmund): add more tests
+  group('parse', () {
+    test('empty', () {
+      var json = {
+        'elements': {
+          'library': {},
+          'class': {},
+          'function': {},
+          'field': {},
+          'typedef': {},
+        },
+        'holding': {},
+        'program': {'size': 10},
+      };
+
+      expect(AllInfo.parseFromJson(json).program.size, 10);
     });
   });
 }
