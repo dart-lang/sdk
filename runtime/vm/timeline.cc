@@ -646,6 +646,20 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(JSONArray* events) const {
 }
 
 
+void TimelineEventEndlessRecorder::Clear() {
+  TimelineEventBlock* current = head_;
+  while (current != NULL) {
+    TimelineEventBlock* next = current->next();
+    delete current;
+    current = next;
+  }
+  head_ = NULL;
+  block_index_ = 0;
+  Thread* thread = Thread::Current();
+  thread->set_timeline_block(NULL);
+}
+
+
 TimelineEventBlock::TimelineEventBlock(intptr_t block_index)
     : next_(NULL),
       length_(0),

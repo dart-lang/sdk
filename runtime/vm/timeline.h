@@ -81,9 +81,17 @@ class TimelineEvent {
     return EventTypeField::decode(state_);
   }
 
+  bool IsFinishedDuration() const {
+    return (event_type() == kDuration) && (timestamp1_ > timestamp0_);
+  }
+
   int64_t TimeOrigin() const;
   int64_t AsyncId() const;
   int64_t TimeDuration() const;
+  int64_t TimeEnd() const {
+    ASSERT(IsFinishedDuration());
+    return timestamp1_;
+  }
 
   void PrintJSON(JSONStream* stream) const;
 
@@ -93,6 +101,30 @@ class TimelineEvent {
 
   const char* label() const {
     return label_;
+  }
+
+  // Does this duration end before |micros| ?
+  bool DurationFinishedBefore(int64_t micros) const {
+    return TimeEnd() <= micros;
+  }
+
+  // Does this duration fully contain |other| ?
+  bool DurationContains(TimelineEvent* other) const {
+    ASSERT(IsFinishedDuration());
+    ASSERT(other->IsFinishedDuration());
+    if (other->TimeOrigin() < TimeOrigin()) {
+      return false;
+    }
+    if (other->TimeEnd() < TimeOrigin()) {
+      return false;
+    }
+    if (other->TimeOrigin() > TimeEnd()) {
+      return false;
+    }
+    if (other->TimeEnd() > TimeEnd()) {
+      return false;
+    }
+    return true;
   }
 
  private:
@@ -371,6 +403,7 @@ class TimelineEventRecorder {
 
   friend class TimelineEventBlockIterator;
   friend class TimelineStream;
+  friend class TimelineTestHelper;
   friend class Isolate;
 
  private:
@@ -468,8 +501,13 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   TimelineEventBlock* GetNewBlockLocked();
   void PrintJSONEvents(JSONArray* array) const;
 
+  // Useful only for testing. Only works for one thread.
+  void Clear();
+
   TimelineEventBlock* head_;
   intptr_t block_index_;
+
+  friend class TimelineTestHelper;
 };
 
 

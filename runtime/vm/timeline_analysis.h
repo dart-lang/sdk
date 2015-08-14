@@ -105,15 +105,81 @@ class TimelineAnalysis : public ValueObject {
 };
 
 
+class TimelineLabelPauseInfo : public ZoneAllocated {
+ public:
+  explicit TimelineLabelPauseInfo(const char* name);
+
+  const char* name() const {
+    return name_;
+  }
+
+  int64_t inclusive_micros() const {
+    return inclusive_micros_;
+  }
+
+  int64_t exclusive_micros() const {
+    return exclusive_micros_;
+  }
+
+  int64_t max_duration_micros() const {
+    return max_duration_micros_;
+  }
+
+ private:
+  // Adjusts |inclusive_micros_| and |exclusive_micros_| by |micros|.
+  // Also, may adjust, max_duration_micros_.
+  void OnPush(int64_t micros);
+
+  // Subtracts |micros| from |exclusive_micros_|.
+  void OnChildPush(int64_t micros);
+
+  // Adjust inclusive micros.
+  void add_inclusive_micros(int64_t delta_micros) {
+    inclusive_micros_ += delta_micros;
+    ASSERT(inclusive_micros_ >= 0);
+  }
+
+  // Adjust exclusive micros.
+  void add_exclusive_micros(int64_t delta_micros) {
+    exclusive_micros_ += delta_micros;
+    ASSERT(exclusive_micros_ >= 0);
+  }
+
+  const char* name_;
+  int64_t inclusive_micros_;
+  int64_t exclusive_micros_;
+  int64_t max_duration_micros_;
+
+  friend class TimelinePauses;
+};
+
+
 class TimelinePauses : public TimelineAnalysis {
  public:
   TimelinePauses(Zone* zone,
                  Isolate* isolate,
                  TimelineEventRecorder* recorder);
 
-  void CalculatePauseTimes();
+  void Setup();
+
+  void CalculatePauseTimesForThread(ThreadId tid);
+
+  TimelineLabelPauseInfo* GetLabel(const char* name) const;
+
+  int64_t InclusiveTime(const char* name) const;
+  int64_t ExclusiveTime(const char* name) const;
+  int64_t MaxDurationTime(const char* name) const;
 
  private:
+  void ProcessThread(TimelineAnalysisThread* thread);
+  bool CheckStack(TimelineEvent* event);
+  void PopFinished(int64_t start);
+  void Push(TimelineEvent* event);
+  TimelineLabelPauseInfo* GetTopLabel();
+  TimelineLabelPauseInfo* GetOrAddLabel(const char* name);
+
+  ZoneGrowableArray<TimelineEvent*> stack_;
+  ZoneGrowableArray<TimelineLabelPauseInfo*> labels_;
 };
 
 }  // namespace dart
