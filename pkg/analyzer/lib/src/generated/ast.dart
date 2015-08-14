@@ -6021,6 +6021,9 @@ class DefaultFormalParameter extends FormalParameter {
   @override
   bool get isFinal => _parameter != null && _parameter.isFinal;
 
+  @override
+  NodeList<Annotation> get metadata => _parameter.metadata;
+
   /**
    * Return the formal parameter with which the default value is associated.
    */
@@ -7525,6 +7528,11 @@ abstract class FormalParameter extends AstNode {
    * Return the kind of this parameter.
    */
   ParameterKind get kind;
+
+  /**
+   * Return the annotations associated with this parameter.
+   */
+  NodeList<Annotation> get metadata;
 }
 
 /**
@@ -13731,9 +13739,7 @@ abstract class NormalFormalParameter extends FormalParameter {
     return ParameterKind.REQUIRED;
   }
 
-  /**
-   * Return the annotations associated with this parameter.
-   */
+  @override
   NodeList<Annotation> get metadata => _metadata;
 
   /**
