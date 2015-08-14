@@ -295,32 +295,10 @@ class _OverrideChecker {
       //     get foo => e; // no type specified.
       //     toString() { ... } // no return type specified.
       //   }
-      if (_isInferableOverride(element, node, subType, baseType)) {
-        _recordMessage(new InferableOverride(errorLocation, element, type,
-            subType.returnType, baseType.returnType));
-      } else {
-        _recordMessage(new InvalidMethodOverride(
-            errorLocation, element, type, subType, baseType));
-      }
+      _recordMessage(new InvalidMethodOverride(
+          errorLocation, element, type, subType, baseType));
     }
     return true;
-  }
-
-  bool _isInferableOverride(ExecutableElement element, AstNode node,
-      FunctionType subType, FunctionType baseType) {
-    if (_inferFromOverrides || node == null) return false;
-    final isGetter = element is PropertyAccessorElement && element.isGetter;
-    if (isGetter && element.isSynthetic) {
-      var field = node.parent.parent;
-      return field is FieldDeclaration && field.fields.type == null;
-    }
-
-    // node is a MethodDeclaration whenever getters and setters are
-    // declared explicitly. Setters declared from a field will have the
-    // correct return type, so we don't need to check that separately.
-    return node is MethodDeclaration &&
-        node.returnType == null &&
-        _rules.isFunctionSubTypeOf(subType, baseType, ignoreReturn: true);
   }
 
   void _recordMessage(StaticInfo info) {

@@ -737,7 +737,7 @@ void main() {
         }
 
         class B extends A {
-          /*severe:InferableOverride*/get x => 3;
+          /*severe:InvalidMethodOverride*/get x => 3;
         }
 
         foo() {
@@ -777,7 +777,7 @@ void main() {
         }
 
         class B implements A {
-          /*severe:InferableOverride*/get x => 3;
+          /*severe:InvalidMethodOverride*/get x => 3;
         }
 
         foo() {
@@ -841,7 +841,7 @@ void main() {
         }
 
         class B implements A<int> {
-          /*severe:InferableOverride*/get x => 3;
+          /*severe:InvalidMethodOverride*/get x => 3;
         }
 
         foo() {

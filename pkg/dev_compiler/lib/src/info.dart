@@ -527,18 +527,6 @@ class InvalidMethodOverride extends InvalidOverride {
   String get message => _messageHelper('Invalid override');
 }
 
-// TODO(sigmund): delete, if we fix this, this should be part of the type
-// inference, not something we detect in the checker.
-// TODO(sigmund): split and track field, getter, setter, method separately
-class InferableOverride extends InvalidOverride {
-  InferableOverride(AstNode node, ExecutableElement element, InterfaceType base,
-      DartType subType, DartType baseType)
-      : super(node, element, base, subType, baseType);
-
-  toErrorCode() => new CompileTimeErrorCode(name, message);
-  String get message => _messageHelper('Invalid but inferable override');
-}
-
 /// Used to mark unexpected situations in our compiler were we couldn't compute
 /// the type of an expression.
 // TODO(sigmund): This is normally a result of another error that is caught by

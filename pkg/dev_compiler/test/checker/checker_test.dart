@@ -1389,7 +1389,7 @@ void main() {
           class Child extends Base {
             /*severe:InvalidMethodOverride*/A f1; // invalid for getter
             /*severe:InvalidMethodOverride*/C f2; // invalid for setter
-            /*severe:InferableOverride,severe:InvalidMethodOverride*/var f3;
+            /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/var f3;
             /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/dynamic f4;
           }
        '''
@@ -1439,7 +1439,7 @@ void main() {
           class Child extends Base {
             /*severe:InvalidMethodOverride*/A get f1 => null;
             C get f2 => null;
-            /*severe:InferableOverride*/get f3 => null;
+            /*severe:InvalidMethodOverride*/get f3 => null;
             /*severe:InvalidMethodOverride*/dynamic get f4 => null;
           }
        '''
@@ -2489,7 +2489,7 @@ void main() {
         '/main.dart': '''
             class A {}
             class T1 implements A {
-                /*severe:InferableOverride*/toString() {}
+                /*severe:InvalidMethodOverride*/toString() {}
             }
          '''
       },
