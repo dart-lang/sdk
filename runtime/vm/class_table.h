@@ -218,7 +218,8 @@ class ClassTable {
   // Deallocates table copies. Do not call during concurrent access to table.
   void FreeOldTables();
 
-  void TraceAllocationsFor(intptr_t cid, bool trace);
+  void SetTraceAllocationFor(intptr_t cid, bool trace);
+  bool TraceAllocationFor(intptr_t cid);
 
  private:
   friend class MarkingVisitor;
