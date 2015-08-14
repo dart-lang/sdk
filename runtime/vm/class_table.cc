@@ -82,9 +82,15 @@ void ClassTable::FreeOldTables() {
 }
 
 
-void ClassTable::TraceAllocationsFor(intptr_t cid, bool trace) {
+void ClassTable::SetTraceAllocationFor(intptr_t cid, bool trace) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   stats->set_trace_allocation(trace);
+}
+
+
+bool ClassTable::TraceAllocationFor(intptr_t cid) {
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
+  return stats->trace_allocation();
 }
 
 

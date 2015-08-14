@@ -1753,7 +1753,7 @@ RawObject* Object::Allocate(intptr_t cls_id,
     class_table->UpdateAllocatedOld(cls_id, size);
   }
   const Class& cls = Class::Handle(class_table->At(cls_id));
-  if (cls.trace_allocation()) {
+  if (cls.TraceAllocation(isolate)) {
     Profiler::RecordAllocation(isolate, cls_id);
   }
   NoSafepointScope no_safepoint;
@@ -2755,14 +2755,18 @@ void Class::DisableCHAOptimizedCode() {
 }
 
 
+bool Class::TraceAllocation(Isolate* isolate) const {
+  ClassTable* class_table = isolate->class_table();
+  return class_table->TraceAllocationFor(id());
+}
+
+
 void Class::SetTraceAllocation(bool trace_allocation) const {
-  const bool changed = trace_allocation != this->trace_allocation();
+  Isolate* isolate = Isolate::Current();
+  const bool changed = trace_allocation != this->TraceAllocation(isolate);
   if (changed) {
-    set_state_bits(
-        TraceAllocationBit::update(trace_allocation, raw_ptr()->state_bits_));
-    Isolate* isolate = Isolate::Current();
     ClassTable* class_table = isolate->class_table();
-    class_table->TraceAllocationsFor(id(), trace_allocation);
+    class_table->SetTraceAllocationFor(id(), trace_allocation);
     DisableAllocationStub();
   }
 }
@@ -4207,6 +4211,7 @@ const char* Class::ToCString() const {
 
 
 void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Isolate* isolate = Isolate::Current();
   JSONObject jsobj(stream);
   if ((raw() == Class::null()) || (id() == kFreeListElement)) {
     // TODO(turnidge): This is weird and needs to be changed.
@@ -4231,7 +4236,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_finalized", is_finalized());
   jsobj.AddProperty("_implemented", is_implemented());
   jsobj.AddProperty("_patch", is_patch());
-  jsobj.AddProperty("_traceAllocations", trace_allocation());
+  jsobj.AddProperty("_traceAllocations", TraceAllocation(isolate));
   const Class& superClass = Class::Handle(SuperClass());
   if (!superClass.IsNull()) {
     jsobj.AddProperty("super", superClass);
