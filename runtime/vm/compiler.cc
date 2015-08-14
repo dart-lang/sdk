@@ -961,10 +961,18 @@ static void DisassembleCode(const Function& function, bool optimized) {
       if (function.IsNull()) {
         Class& cls = Class::Handle();
         cls ^= code.owner();
-        ISL_Print("  0x%" Px ": allocation stub for %s, %p\n",
-            start + offset.Value(),
-            cls.ToCString(),
-            code.raw());
+        if (cls.IsNull()) {
+          const String& code_name = String::Handle(code.Name());
+          ISL_Print("  0x%" Px ": %s, %p\n",
+              start + offset.Value(),
+              code_name.ToCString(),
+              code.raw());
+        } else {
+          ISL_Print("  0x%" Px ": allocation stub for %s, %p\n",
+              start + offset.Value(),
+              cls.ToCString(),
+              code.raw());
+        }
       } else {
         ISL_Print("  0x%" Px ": %s, %p\n",
             start + offset.Value(),
