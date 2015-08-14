@@ -5,6 +5,12 @@ description: >
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/dart2js_info
 
+dependencies:
+  path: ^1.3.6
+  args: ^0.13.2
+  shelf: ^0.6.1+2
+  yaml: ^2.1.3
+
 environment:
   sdk: '>=1.11.0 <2.0.0'
 
