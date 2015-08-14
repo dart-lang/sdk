@@ -106,38 +106,31 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionExit, 1) {
 // Return value: newly allocated array of length arg0.
 DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   const Instance& length = Instance::CheckedHandle(arguments.ArgAt(0));
-  if (!length.IsInteger()) {
-    // Throw: new ArgumentError.value(length, "length", "is not an integer");
-    const Array& args = Array::Handle(Array::New(3));
-    args.SetAt(0, length);
-    args.SetAt(1, Symbols::Length());
-    args.SetAt(2, String::Handle(String::New("is not an integer")));
-    Exceptions::ThrowByType(Exceptions::kArgumentValue, args);
+  if (!length.IsSmi()) {
+    const String& error = String::Handle(String::NewFormatted(
+        "Length must be an integer in the range [0..%" Pd "].",
+        Array::kMaxElements));
+    Exceptions::ThrowArgumentError(error);
   }
-  if (length.IsSmi()) {
-    const intptr_t len = Smi::Cast(length).Value();
-    if ((len >= 0) && (len <= Array::kMaxElements)) {
-      Heap::Space space = isolate->heap()->SpaceForAllocation(kArrayCid);
-      const Array& array = Array::Handle(Array::New(len, space));
-      arguments.SetReturn(array);
-      TypeArguments& element_type =
-          TypeArguments::CheckedHandle(arguments.ArgAt(1));
-      // An Array is raw or takes one type argument. However, its type argument
-      // vector may be longer than 1 due to a type optimization reusing the type
-      // argument vector of the instantiator.
-      ASSERT(element_type.IsNull() ||
-             ((element_type.Length() >= 1) && element_type.IsInstantiated()));
-      array.SetTypeArguments(element_type);  // May be null.
-      return;
-    }
+  const intptr_t len = Smi::Cast(length).Value();
+  if ((len < 0) || (len > Array::kMaxElements)) {
+    const String& error = String::Handle(String::NewFormatted(
+        "Length (%" Pd ") must be an integer in the range [0..%" Pd "].",
+        len, Array::kMaxElements));
+    Exceptions::ThrowArgumentError(error);
   }
-  // Throw: new RangeError.range(length, 0, Array::kMaxElements, "length");
-  const Array& args = Array::Handle(Array::New(4));
-  args.SetAt(0, length);
-  args.SetAt(1, Integer::Handle(Integer::New(0)));
-  args.SetAt(2, Integer::Handle(Integer::New(Array::kMaxElements)));
-  args.SetAt(3, Symbols::Length());
-  Exceptions::ThrowByType(Exceptions::kRangeRange, args);
+
+  Heap::Space space = isolate->heap()->SpaceForAllocation(kArrayCid);
+  const Array& array = Array::Handle(Array::New(len, space));
+  arguments.SetReturn(array);
+  TypeArguments& element_type =
+      TypeArguments::CheckedHandle(arguments.ArgAt(1));
+  // An Array is raw or takes one type argument. However, its type argument
+  // vector may be longer than 1 due to a type optimization reusing the type
+  // argument vector of the instantiator.
+  ASSERT(element_type.IsNull() ||
+         ((element_type.Length() >= 1) && element_type.IsInstantiated()));
+  array.SetTypeArguments(element_type);  // May be null.
 }
 
 

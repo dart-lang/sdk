@@ -244,12 +244,8 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   void addAll(Iterable<E> iterable) {
-    int i = this.length;
     for (E element in iterable) {
-      assert(this.length == i || (throw new ConcurrentModificationError(this)));
-      this.length = i + 1;
-      this[i] = element;
-      i++;
+      this[this.length++] = element;
     }
   }
 

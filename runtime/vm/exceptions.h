@@ -53,7 +53,6 @@ class Exceptions : AllStatic {
     kRange,
     kRangeRange,
     kArgument,
-    kArgumentValue,
     kNoSuchMethod,
     kFormat,
     kUnsupported,
