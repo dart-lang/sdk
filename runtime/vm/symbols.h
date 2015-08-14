@@ -291,6 +291,7 @@ class ObjectPointerVisitor;
   V(RangeError, "RangeError")                                                  \
   V(DotRange, ".range")                                                        \
   V(ArgumentError, "ArgumentError")                                            \
+  V(DotValue, ".value")                                                        \
   V(FormatException, "FormatException")                                        \
   V(UnsupportedError, "UnsupportedError")                                      \
   V(StackOverflowError, "StackOverflowError")                                  \

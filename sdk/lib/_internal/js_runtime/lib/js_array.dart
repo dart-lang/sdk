@@ -22,8 +22,14 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   factory JSArray.fixed(int length)  {
     // Explicit type test is necessary to guard against JavaScript conversions
     // in unchecked mode.
-    if ((length is !int) || (length < 0)) {
-      throw new ArgumentError("Length must be a non-negative integer: $length");
+    if (length is !int) {
+      throw new ArgumentError.value(length, "length", "is not an integer");
+    }
+    // The JavaScript Array constructor with one argument throws if
+    // the value is not a UInt32. Give a better error message.
+    int maxJSArrayLength = 0xFFFFFFFF;
+    if (length < 0 || length > maxJSArrayLength) {
+      throw new RangeError.range(length, 0, maxJSArrayLength, "length");
     }
     return new JSArray<E>.markFixed(JS('', 'new Array(#)', length));
   }
@@ -208,8 +214,10 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
   void addAll(Iterable<E> collection) {
+    int i = this.length;
     checkGrowable('addAll');
     for (E e in collection) {
+      assert(i++ == this.length || (throw new ConcurrentModificationError(this)));
       JS('void', r'#.push(#)', this, e);
     }
   }
