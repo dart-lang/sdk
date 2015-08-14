@@ -2104,13 +2104,10 @@ class Function : public Object {
   RawClass* origin() const;
   RawScript* script() const;
 
-  void set_regexp(const JSRegExp& value) const;
   RawJSRegExp* regexp() const;
-
-  // Get and set the class id this function is specialized for. Only set for
-  // irregexp functions.
-  intptr_t regexp_cid() const { return raw_ptr()->regexp_cid_; }
-  void set_regexp_cid(intptr_t regexp_cid) const;
+  intptr_t string_specialization_cid() const;
+  void SetRegExpData(const JSRegExp& regexp,
+                     intptr_t string_specialization_cid) const;
 
   RawAbstractType* result_type() const { return raw_ptr()->result_type_; }
   void set_result_type(const AbstractType& value) const;

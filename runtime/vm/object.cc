@@ -5559,24 +5559,27 @@ void Function::set_owner(const Object& value) const {
 
 RawJSRegExp* Function::regexp() const {
   ASSERT(kind() == RawFunction::kIrregexpFunction);
-  const Object& obj = Object::Handle(raw_ptr()->data_);
-  return JSRegExp::Cast(obj).raw();
+  const Array& pair = Array::Cast(Object::Handle(raw_ptr()->data_));
+  return JSRegExp::RawCast(pair.At(0));
 }
 
 
-void Function::set_regexp(const JSRegExp& value) const {
+intptr_t Function::string_specialization_cid() const {
   ASSERT(kind() == RawFunction::kIrregexpFunction);
-  ASSERT(raw_ptr()->data_ == Object::null());
-  set_data(value);
+  const Array& pair = Array::Cast(Object::Handle(raw_ptr()->data_));
+  return Smi::Value(Smi::RawCast(pair.At(1)));
 }
 
 
-void Function::set_regexp_cid(intptr_t regexp_cid) const {
-    ASSERT((regexp_cid == kIllegalCid) ||
-           (kind() == RawFunction::kIrregexpFunction));
-    ASSERT((regexp_cid == kIllegalCid) ||
-           RawObject::IsStringClassId(regexp_cid));
-    StoreNonPointer(&raw_ptr()->regexp_cid_, regexp_cid);
+void Function::SetRegExpData(const JSRegExp& regexp,
+                             intptr_t string_specialization_cid) const {
+  ASSERT(kind() == RawFunction::kIrregexpFunction);
+  ASSERT(RawObject::IsStringClassId(string_specialization_cid));
+  ASSERT(raw_ptr()->data_ == Object::null());
+  const Array& pair = Array::Handle(Array::New(2, Heap::kOld));
+  pair.SetAt(0, regexp);
+  pair.SetAt(1, Smi::Handle(Smi::New(string_specialization_cid)));
+  set_data(pair);
 }
 
 
@@ -6279,7 +6282,6 @@ RawFunction* Function::New(const String& name,
   result.set_num_optional_parameters(0);
   result.set_usage_counter(0);
   result.set_deoptimization_counter(0);
-  result.set_regexp_cid(kIllegalCid);
   result.set_optimized_instruction_count(0);
   result.set_optimized_call_site_count(0);
   result.set_is_optimizable(is_native ? false : true);
@@ -6307,7 +6309,6 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.ClearCode();
   clone.set_usage_counter(0);
   clone.set_deoptimization_counter(0);
-  clone.set_regexp_cid(kIllegalCid);
   clone.set_optimized_instruction_count(0);
   clone.set_optimized_call_site_count(0);
   if (new_owner.NumTypeParameters() > 0) {

@@ -778,7 +778,6 @@ class RawFunction : public RawObject {
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
   int16_t deoptimization_counter_;
-  classid_t regexp_cid_;
   uint32_t kind_tag_;  // See Function::KindTagBits.
   uint16_t optimized_instruction_count_;
   uint16_t optimized_call_site_count_;

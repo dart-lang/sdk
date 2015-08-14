@@ -754,7 +754,7 @@ CompileType ParameterInstr::ComputeType() const {
     // from being generated.
     switch (index()) {
       case RegExpMacroAssembler::kParamStringIndex:
-        return CompileType::FromCid(function.regexp_cid());
+        return CompileType::FromCid(function.string_specialization_cid());
       case RegExpMacroAssembler::kParamStartOffsetIndex:
         return CompileType::FromCid(kSmiCid);
       default: UNREACHABLE();
