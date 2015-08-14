@@ -190,7 +190,7 @@ class LogicalRewriter extends RecursiveTransformer
     return node;
   }
 
-  Statement visitFor(For node) {
+  Statement visitWhileCondition(WhileCondition node) {
     fallthrough.push(node);
     node.condition = makeCondition(node.condition, true, liftNots: false);
     node.body = visitStatement(node.body);

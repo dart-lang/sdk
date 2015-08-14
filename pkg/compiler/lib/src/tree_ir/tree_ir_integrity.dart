@@ -102,10 +102,9 @@ class CheckTreeIntegrity extends RecursiveVisitor {
     visitJumpTargetBody(node);
   }
 
-  visitFor(For node) {
+  visitWhileCondition(WhileCondition node) {
     visitExpression(node.condition);
     visitJumpTargetBody(node);
-    node.updates.forEach(visitExpression);
     visitStatement(node.next);
   }
 

@@ -446,7 +446,7 @@ class FunctionExpression extends Expression {
   }
 }
 
-/// A [LabeledStatement] or [WhileTrue] or [For].
+/// A [LabeledStatement] or [WhileTrue] or [WhileCondition].
 abstract class JumpTarget extends Statement {
   Label get label;
   Statement get body;
@@ -472,7 +472,7 @@ class LabeledStatement extends JumpTarget {
   }
 }
 
-/// A [WhileTrue] or [For] loop.
+/// A [WhileTrue] or [WhileCondition] loop.
 abstract class Loop extends JumpTarget {
 }
 
@@ -496,36 +496,30 @@ class WhileTrue extends Loop {
 }
 
 /**
- * A loop with a condition and update expressions. If there are any update
- * expressions, this generates a for loop, otherwise a while loop.
- * 
- * When the condition is false, control resumes at the [next] statement.
+ * A while loop with a condition. If the condition is false, control resumes
+ * at the [next] statement.
  *
  * It is NOT valid to target this statement with a [Break].
  * The only way to reach [next] is for the condition to evaluate to false.
  *
- * [For] statements are introduced in the [LoopRewriter] and are
+ * [WhileCondition] statements are introduced in the [LoopRewriter] and is
  * assumed not to occur before then.
  */
-class For extends Loop {
+class WhileCondition extends Loop {
   final Label label;
   Expression condition;
-  List<Expression> updates;
   Statement body;
   Statement next;
 
-  For(this.label,
-      this.condition,
-      this.updates,
-      this.body,
-      this.next) {
+  WhileCondition(this.label, this.condition, this.body,
+                 this.next) {
     assert(label.binding == null);
     label.binding = this;
   }
 
-  accept(StatementVisitor visitor) => visitor.visitFor(this);
+  accept(StatementVisitor visitor) => visitor.visitWhileCondition(this);
   accept1(StatementVisitor1 visitor, arg) {
-    return visitor.visitFor(this, arg);
+    return visitor.visitWhileCondition(this, arg);
   }
 }
 
@@ -553,7 +547,7 @@ class Break extends Jump {
 }
 
 /**
- * A continue to an enclosing [WhileTrue] or [For] loop.
+ * A continue to an enclosing [WhileTrue] or [WhileCondition] loop.
  * The continue targets the loop's body.
  */
 class Continue extends Jump {
@@ -1019,7 +1013,7 @@ abstract class StatementVisitor<S> {
   S visitContinue(Continue node);
   S visitIf(If node);
   S visitWhileTrue(WhileTrue node);
-  S visitFor(For node);
+  S visitWhileCondition(WhileCondition node);
   S visitExpressionStatement(ExpressionStatement node);
   S visitTry(Try node);
   S visitUnreachable(Unreachable node);
@@ -1036,7 +1030,7 @@ abstract class StatementVisitor1<S, A> {
   S visitContinue(Continue node, A arg);
   S visitIf(If node, A arg);
   S visitWhileTrue(WhileTrue node, A arg);
-  S visitFor(For node, A arg);
+  S visitWhileCondition(WhileCondition node, A arg);
   S visitExpressionStatement(ExpressionStatement node, A arg);
   S visitTry(Try node, A arg);
   S visitUnreachable(Unreachable node, A arg);
@@ -1146,9 +1140,8 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
     visitStatement(node.body);
   }
 
-  visitFor(For node) {
+  visitWhileCondition(WhileCondition node) {
     visitExpression(node.condition);
-    node.updates.forEach(visitExpression);
     visitStatement(node.body);
     visitStatement(node.next);
   }
@@ -1378,9 +1371,8 @@ class RecursiveTransformer extends Transformer {
     return node;
   }
 
-  visitFor(For node) {
+  visitWhileCondition(WhileCondition node) {
     node.condition = visitExpression(node.condition);
-    _replaceExpressions(node.updates);
     node.body = visitStatement(node.body);
     node.next = visitStatement(node.next);
     return node;

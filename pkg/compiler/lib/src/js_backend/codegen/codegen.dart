@@ -108,31 +108,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
       ++accumulatorIndex;
     }
 
-    // If the last statement is a for loop with an initializer expression, try
-    // to pull that expression into an initializer as well.
-    pullFromForLoop:
-    if (accumulatorIndex < accumulator.length &&
-        accumulator[accumulatorIndex] is js.For) {
-      js.For forLoop = accumulator[accumulatorIndex];
-      if (forLoop.init is! js.Assignment) break pullFromForLoop;
-      js.Assignment assign = forLoop.init;
-      if (assign.leftHandSide is! js.VariableUse) break pullFromForLoop;
-      if (assign.op != null) break pullFromForLoop; // Compound assignment.
-      js.VariableUse use = assign.leftHandSide;
-
-      // We cannot declare a variable more than once.
-      if (!declaredVariables.add(use.name)) break pullFromForLoop;
-
-      js.VariableInitialization jsVariable = new js.VariableInitialization(
-        new js.VariableDeclaration(use.name),
-        assign.value);
-      jsVariables.add(jsVariable);
-
-      // Remove the initializer from the for loop.
-      accumulator[accumulatorIndex] = 
-          new js.For(null, forLoop.condition, forLoop.update, forLoop.body);
-    }
-
     // Discard the statements that were pulled in the initializer.
     if (accumulatorIndex > 0) {
       accumulator = accumulator.sublist(accumulatorIndex);
@@ -541,36 +516,17 @@ class CodeGenerator extends tree_ir.StatementVisitor
     return result;
   }
 
-  js.Expression makeSequence(List<tree_ir.Expression> list) {
-    return list.map(visitExpression).reduce((x,y) => new js.Binary(',', x, y));
-  }
-
   @override
-  void visitFor(tree_ir.For node) {
+  void visitWhileCondition(tree_ir.WhileCondition node) {
     js.Expression condition = visitExpression(node.condition);
     shortBreak.push(node.next);
     shortContinue.push(node);
     fallthrough.push(node);
-    js.Statement body = buildBodyStatement(node.body);
+    js.Statement jsBody = buildBodyStatement(node.body);
     fallthrough.pop();
     shortContinue.pop();
     shortBreak.pop();
-    js.Statement loopNode;
-    if (node.updates.isEmpty) {
-      loopNode = new js.While(condition, body);
-    } else { // Compile as a for loop.
-      js.Expression init;
-      if (accumulator.isNotEmpty && 
-          accumulator.last is js.ExpressionStatement) {
-        // Take the preceding expression from the accumulator and use
-        // it as the initializer expression.
-        js.ExpressionStatement initStmt = accumulator.removeLast();
-        init = initStmt.expression;
-      }
-      js.Expression update = makeSequence(node.updates);
-      loopNode = new js.For(init, condition, update, body);
-    }
-    accumulator.add(insertLabel(node.label, loopNode));
+    accumulator.add(insertLabel(node.label, new js.While(condition, jsBody)));
     visitStatement(node.next);
   }
 
