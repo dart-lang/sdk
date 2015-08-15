@@ -229,6 +229,35 @@ class KeywordContributorTest extends AbstractCompletionTest {
     }
   }
 
+  fail_import_partial() {
+    addTestSource('imp^ import "package:foo/foo.dart"; import "bar.dart";');
+    expect(computeFast(), isTrue);
+    // TODO(danrubel) should not suggest declaration keywords
+    assertNotSuggested('class');
+  }
+
+  fail_import_partial4() {
+    addTestSource('^ imp import "package:foo/foo.dart";');
+    expect(computeFast(), isTrue);
+    // TODO(danrubel) should not suggest declaration keywords
+    assertNotSuggested('class');
+  }
+
+  fail_import_partial5() {
+    addTestSource('library libA; imp^ import "package:foo/foo.dart";');
+    expect(computeFast(), isTrue);
+    // TODO(danrubel) should not suggest declaration keywords
+    assertNotSuggested('class');
+  }
+
+  fail_import_partial6() {
+    addTestSource(
+        'library bar; import "zoo.dart"; imp^ import "package:foo/foo.dart";');
+    expect(computeFast(), isTrue);
+    // TODO(danrubel) should not suggest declaration keywords
+    assertNotSuggested('class');
+  }
+
   @override
   void setUpContributor() {
     contributor = new KeywordContributor();
@@ -841,6 +870,14 @@ class A {
         relevance: DART_RELEVANCE_HIGH);
   }
 
+  test_import_deferred_as5() {
+    addTestSource('import "foo" sh^ import "bar"; import "baz";');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.AS],
+        pseudoKeywords: ['deferred as', 'show', 'hide'],
+        relevance: DART_RELEVANCE_HIGH);
+  }
+
   test_import_deferred_not() {
     addTestSource('import "foo" as foo ^;');
     expect(computeFast(), isTrue);
@@ -848,11 +885,79 @@ class A {
         pseudoKeywords: ['show', 'hide'], relevance: DART_RELEVANCE_HIGH);
   }
 
+  test_import_deferred_partial() {
+    addTestSource('import "package:foo/foo.dart" def^ as foo;');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([Keyword.DEFERRED], relevance: DART_RELEVANCE_HIGH);
+    expect(request.replacementOffset, 30);
+    expect(request.replacementLength, 3);
+  }
+
   test_import_incomplete() {
     addTestSource('import "^"');
     expect(computeFast(), isTrue);
     assertNoSuggestions();
-    assertSuggestKeywords([]);
+  }
+
+  test_import_partial() {
+    addTestSource('imp^ import "package:foo/foo.dart"; import "bar.dart";');
+    expect(computeFast(), isTrue);
+    // TODO(danrubel) should not suggest declaration keywords
+    assertSuggestKeywords(DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS,
+        relevance: DART_RELEVANCE_HIGH);
+    expect(request.replacementOffset, 0);
+    expect(request.replacementLength, 3);
+  }
+
+  test_import_partial2() {
+    addTestSource('^imp import "package:foo/foo.dart";');
+    expect(computeFast(), isTrue);
+    // TODO(danrubel) should not suggest declaration keywords
+    assertSuggestKeywords(DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS,
+        relevance: DART_RELEVANCE_HIGH);
+    expect(request.replacementOffset, 0);
+    expect(request.replacementLength, 3);
+  }
+
+  test_import_partial3() {
+    addTestSource(' ^imp import "package:foo/foo.dart"; import "bar.dart";');
+    expect(computeFast(), isTrue);
+    // TODO(danrubel) should not suggest declaration keywords
+    assertSuggestKeywords(DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS,
+        relevance: DART_RELEVANCE_HIGH);
+    expect(request.replacementOffset, 1);
+    expect(request.replacementLength, 3);
+  }
+
+  test_import_partial4() {
+    addTestSource('^ imp import "package:foo/foo.dart";');
+    expect(computeFast(), isTrue);
+    // TODO(danrubel) should not suggest declaration keywords
+    assertSuggestKeywords(DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS,
+        relevance: DART_RELEVANCE_HIGH);
+    expect(request.replacementOffset, 0);
+    expect(request.replacementLength, 0);
+  }
+
+  test_import_partial5() {
+    addTestSource('library libA; imp^ import "package:foo/foo.dart";');
+    expect(computeFast(), isTrue);
+    // TODO(danrubel) should not suggest declaration keywords
+    assertSuggestKeywords(DIRECTIVE_AND_DECLARATION_KEYWORDS,
+        relevance: DART_RELEVANCE_HIGH);
+    expect(request.replacementOffset, 14);
+    expect(request.replacementLength, 3);
+  }
+
+  test_import_partial6() {
+    addTestSource(
+        'library bar; import "zoo.dart"; imp^ import "package:foo/foo.dart";');
+    expect(computeFast(), isTrue);
+    // TODO(danrubel) should not suggest declaration keywords
+    assertSuggestKeywords(DIRECTIVE_AND_DECLARATION_KEYWORDS,
+        relevance: DART_RELEVANCE_HIGH);
+    expect(request.replacementOffset, 32);
+    expect(request.replacementLength, 3);
   }
 
   test_library() {
