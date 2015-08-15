@@ -256,6 +256,6 @@ Please file feature requests and bugs at the [issue tracker][tracker].
 [code_deps]: https://github.com/dart-lang/dart2js_info/blob/master/bin/code_deps.dart
 [lib_split]: https://github.com/dart-lang/dart2js_info/blob/master/bin/library_size_split.dart
 [coverage]: https://github.com/dart-lang/dart2js_info/blob/master/bin/coverage_log_server.dart
-[live]: https://github.com/dart-lang/dart2js_info/blob/master/bin/live_code_size_analsysis.dart
+[live]: https://github.com/dart-lang/dart2js_info/blob/master/bin/live_code_size_analysis.dart
 [function_analysis]: https://github.com/dart-lang/dart2js_info/blob/master/bin/function_size_analysis.dart
 [AllInfo]: http://dart-lang.github.io/dart2js_info/doc/api/dart2js_info.info/AllInfo-class.html
