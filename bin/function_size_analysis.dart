@@ -77,8 +77,8 @@ showCodeDistribution(AllInfo info, {bool filter(Info info),
   reported.sort((a, b) => (dominatedSize[b] + nodeData[b].maxSize)
       - (dominatedSize[a] + nodeData[a].maxSize));
 
-  print(' --- Results per library ---');
   if (showLibrarySizes) {
+    print(' --- Results per library ---');
     var totals = {};
     var longest = 0;
     reported.forEach((info) {
