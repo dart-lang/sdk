@@ -35,7 +35,7 @@ of this package and update when needed.
 
 ## Info API
 
-[dumped info][AllInfo] exposes a Dart representation of the `.info.json` files.
+[AllInfo][AllInfo] exposes a Dart representation of the `.info.json` files.
 You can parse the information using `AllInfo.parseFromJson`. For example:
 
 ```dart
@@ -50,7 +50,6 @@ main(args) {
   var info = AllInfo.parseFromJson(json);
   ...
 ```
-
 
 ## Available tools
 
