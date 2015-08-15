@@ -77,6 +77,8 @@ The following tools are a available today:
     `live_code_size_analysis` can correlate that with the `.info.json`, so you
     determine why code that is not used is being included in your app.
 
+Next we describe in detail how to use each of these tools.
+
 ### Code deps tool
 
 This command-line tool can be used to query for code dependencies. Currently
@@ -248,10 +250,12 @@ pub global run dart2js_info:coverage_log_server main.dart.js
 pub global run dart2js_info:live_code_size_analysis main.dart.info.json main.dart.coverage.json
 ```
 
-## Features and bugs
+## Code location, features and bugs
 
-Please file feature requests and bugs at the [issue tracker][tracker].
+This package is developed in [github][repo].  Please file feature requests and
+bugs at the [issue tracker][tracker].
 
+[repo]: https://github.com/dart-lang/dart2js_info/
 [tracker]: https://github.com/dart-lang/dart2js_info/issues
 [code_deps]: https://github.com/dart-lang/dart2js_info/blob/master/bin/code_deps.dart
 [lib_split]: https://github.com/dart-lang/dart2js_info/blob/master/bin/library_size_split.dart
