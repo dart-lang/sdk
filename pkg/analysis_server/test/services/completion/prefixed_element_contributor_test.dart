@@ -241,6 +241,15 @@ void f(C<int> c) {
     });
   }
 
+  test_libraryPrefix3() {
+    // SimpleIdentifier  MethodInvocation  ExpressionStatement
+    addTestSource('import "dart:async" as bar; foo() {new bar.F^ print("f")}');
+    return computeFull((bool result) {
+      assertSuggestConstructor('Future');
+      assertSuggestConstructor('Future.delayed');
+    });
+  }
+
   test_libraryPrefix_deferred() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('import "dart:async" deferred as bar; foo() {bar.^}');

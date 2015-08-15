@@ -19,7 +19,6 @@ import 'package:analyzer/src/generated/element.dart';
 
 import '../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
-import '../../protocol_server.dart' as protocol;
 
 /**
  * A contributor for calculating invocation / access suggestions
@@ -110,7 +109,6 @@ class _FieldFormalSuggestionBuilder implements SuggestionBuilder {
       ConstructorDeclaration constructorDecl =
           node.getAncestor((p) => p is ConstructorDeclaration);
       if (constructorDecl != null) {
-
         // Compute fields already referenced
         List<String> referencedFields = new List<String>();
         for (FormalParameter param in constructorDecl.parameters.parameters) {
@@ -213,7 +211,6 @@ class _InvocationAstVisitor extends GeneralizingAstVisitor<SuggestionBuilder> {
  * and if found, tries to determine a type for that declaration.
  */
 class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
-
   /**
    * The name for the declaration to be found.
    */
@@ -403,9 +400,13 @@ class _PrefixedIdentifierSuggestionBuilder
           if (directive.prefix.name == element.name) {
             // Suggest elements from the imported library
             LibraryElement library = directive.uriElement;
+            AstNode node = request.target.containingNode;
+            bool typesOnly = node.parent is TypeName;
+            bool instCreation =
+                typesOnly && node.parent.parent is ConstructorName;
             LibraryElementSuggestionBuilder.suggestionsFor(request,
-                CompletionSuggestionKind.INVOCATION, library,
-                request.target.containingNode.parent is TypeName);
+                CompletionSuggestionKind.INVOCATION, library, typesOnly,
+                instCreation);
             modified = true;
             if (directive.deferredKeyword != null) {
               FunctionElement loadLibFunct = library.loadLibraryFunction;
