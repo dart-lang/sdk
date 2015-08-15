@@ -2,7 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Command-line tool to query for code dependencies.
+/// Command-line tool to query for code dependencies. Currently this tool only
+/// supports the `some_path` query, which gives you the shortest path for how
+/// one function depends on another.
+///
+/// You can run this tool as follows:
+/// ```bash
+/// pub global activate dart2js_info
+/// pub global run dart2js_info:code_deps out.js.info.json some_path main foo
+/// ```
+///
+/// The arguments to the query are regular expressions that can be used to
+/// select a single element in your program. If your regular expression is too
+/// general and has more than one match, this tool will pick
+/// the first match and ignore the rest. Regular expressions are matched against
+/// a fully qualified element name, which includes the library and class name
+/// (if any) that contains it. A typical qualified name is of this form:
+///
+///     libraryName::ClassName.elementName
+///
+/// If the name of a function your are looking for is unique enough, it might be
+/// sufficient to just write that name as your regular expression.
 library dart2js_info.bin.code_deps;
 
 import 'dart:collection';
@@ -15,14 +35,21 @@ import 'package:dart2js_info/src/util.dart';
 
 main(args) {
   if (args.length < 2) {
-    print('usage: dart tool/code_deps.dart path-to-info.json <query>');
+    print('usage: pub global run dart2js_info:code_deps '
+        'path-to.info.json <query>');
     print('   where <query> can be:');
-    print('     - some_path elementA elementB');
+    print('     - some_path <element-regexp-1> <element-regexp-2>');
     // TODO(sigmund): add other queries, such as 'all_paths'.
     exit(1);
   }
 
-  var json = JSON.decode(new File(args[0]).readAsStringSync());
+  var json;
+  try {
+    json = JSON.decode(new File(args[0]).readAsStringSync());
+  } catch(e) {
+    print('error: could not read ${args[0]}');
+    exit(1);
+  }
   var info = AllInfo.parseFromJson(json);
   var graph = graphFromInfo(info);
 

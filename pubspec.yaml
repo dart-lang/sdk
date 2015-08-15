@@ -1,7 +1,8 @@
 name: dart2js_info
 version: 0.0.1
 description: >
-  Model of dart2js data produced by --dump-info and tools to work with it.
+  Libraries and tools to process data produced when running dart2js with
+  --dump-info.
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/dart2js_info
 

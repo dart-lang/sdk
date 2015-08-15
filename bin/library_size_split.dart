@@ -5,7 +5,63 @@
 /// Command-line tool to show the size distribution of generated code among
 /// libraries. Libraries can be grouped using regular expressions. You can
 /// specify what regular expressions to use by providing a `grouping.yaml` file.
-/// See [defaultGrouping] for details.
+/// The format of the `grouping.yaml` file is as follows:
+/// ```yaml
+/// groups:
+/// - { regexp: "package:(foo)/*.dart", name: "group name 1", cluster: 2}
+/// - { regexp: "dart:.*",              name: "group name 2", cluster: 3}
+/// ```
+/// The file should include a single key `groups` containing a list of group
+/// specifications.  Each group is specified by a map of 3 entries:
+///
+///   * regexp (required): a regexp used to match entries that belong to the
+///   group.
+///
+///   * name (optional): the name given to this group in the output table. If
+///   omitted, the name is derived from the regexp as the match's group(1) or
+///   group(0) if no group was defined. When names are omitted the group
+///   specification implicitly defines several groups, one per observed name.
+///
+///   * cluster (optional): a clustering index for how data is shown in a table.
+///   Groups with higher cluster indices are shown later in the table after a
+///   dividing line. If missing, the cluster index defaults to 0.
+///
+/// Here is an example configuration, with comments about what each entry does:
+///
+/// ```yaml
+/// groups:
+/// # This group shows the total size of all libraries together, it is shown in
+/// # cluster #3, which happens to be the last cluster in this example:
+/// - name: "Total (excludes preambles, statics & consts)"
+///   regexp: ".*"
+///   cluster: 3
+///
+/// # This group shows the total size for all libraries that were loaded from
+/// # file:// urls:
+/// - { name: "Loose files", regexp: "file://.*", cluster: 2}
+///
+/// # This group shows the total size of all code loaded from packages:
+/// - { name: "All packages", regexp: "package:.*", cluster: 2}
+///
+/// # This group shows the total size of all code loaded from core libraries:
+/// - { name: "Core libs", regexp: "dart:.*", cluster: 2}
+///
+/// # This group shows the total size of all libraries in a single package. Here
+/// # we omitted the `name` entry, instead we extract it from the regexp
+/// # directly.  In this case, the name will be the package-name portion of the
+/// # package-url (determined by group(1) of the regexp).
+/// - { regexp: "package:([^/]*)", cluster: 1}
+///
+/// # The next two groups match the entire library url as the name of the group.
+/// - regexp: "package:.*"
+/// - regexp: "dart:.*"
+///
+/// # If your code lives under /my/project/dir, this will match any file loaded
+/// from a file:// url, and we use as a name the relative path to it.
+/// - regexp: "file:///my/project/dir/(.*)"
+///```
+///
+/// This example is very similar to [defaultGrouping].
 library dart2js_info.bin.library_size_split;
 
 import 'dart:convert';
@@ -107,15 +163,9 @@ _pad(value, n, {bool right: false}) {
   return right ? '$s$pad' : '$pad$s';
 }
 
-/// Example grouping specification: a yaml format containing a list of
-/// group specifications. A group is specified by 3 parameters:
-///    - name: the name that will be shown in the table of results
-///    - regexp: a regexp used to match entries that belong to the group
-///    - cluster: a clustering index, the higher the value, the later it will be
-///    shown in the results.
-/// Both cluster and name are optional. If cluster is omitted, the default value
-/// is 0. If the name is omitted, it is extracted from the regexp, either as
-/// group(1) if it is available or group(0) otherwise.
+/// Default grouping specification that includes an entry per library, and
+/// grouping entries for each package, all packages, all core libs, and loose
+/// files.
 final defaultGrouping = """
 groups:
 - { name: "Total (excludes preambles, statics & consts)", regexp: ".*", cluster: 3}

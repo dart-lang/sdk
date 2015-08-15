@@ -43,18 +43,25 @@ Graph<Info> graphFromInfo(AllInfo info) {
 /// Provide a unique long name associated with [info].
 // TODO(sigmund): guarantee that the name is actually unique.
 String longName(Info info) {
+  var infoPath = [];
+  while (info != null) {
+    infoPath.add(info);
+    info = info.parent;
+  }
   var sb = new StringBuffer();
-  helper(i) {
-    if (i.parent == null) {
-      // TODO(sigmund): ensure `i is LibraryInfo`, we still don't set parents
-      // for closure classes correctly.
-      sb.write('${i.name}..');
+  var first = true;
+  for (var segment in infoPath.reversed) {
+    if (!first) sb.write('.');
+    sb.write(segment.name);
+    // TODO(sigmund): ensure that the first segment is a LibraryInfo.
+    // assert(!first || segment is LibraryInfo);
+    // (today might not be true for for closure classes).
+    if (segment is LibraryInfo) {
+      sb.write('::');
     } else {
-      helper(i.parent);
-      sb.write('.${i.name}');
+      first = false;
     }
   }
-  helper(info);
   return sb.toString();
 }
 
