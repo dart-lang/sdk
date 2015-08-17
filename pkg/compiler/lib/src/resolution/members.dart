@@ -1983,17 +1983,23 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Send node,
       Name name,
       TypeVariableElement element) {
+    AccessSemantics semantics;
     if (!Elements.hasAccessToTypeVariables(enclosingElement)) {
-      compiler.reportError(node,
-          MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
-          {'typeVariableName': node.selector});
       // TODO(johnniwinther): Add another access semantics for this.
+      ErroneousElement error = reportAndCreateErroneousElement(
+          node, name.text,
+          MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+          {'typeVariableName': name},
+          isError: true);
+      semantics = new StaticAccess.invalid(error);
+      // TODO(johnniwinther): Clean up registration of elements and selectors
+      // for this case.
+    } else {
+      semantics = new StaticAccess.typeParameterTypeLiteral(element);
     }
     registry.registerClassUsingVariableExpression(element.enclosingClass);
     registry.registerTypeVariableExpression();
 
-    AccessSemantics semantics =
-        new StaticAccess.typeParameterTypeLiteral(element);
     registry.useElement(node, element);
     registry.registerTypeLiteral(node, element.type);
 
@@ -2014,6 +2020,46 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               new Selector(SelectorKind.GETTER, name, CallStructure.NO_ARGS)));
     }
     return const NoneResult();
+  }
+
+  /// Handle access to a type literal of type variable [element]. Like `T = b`,
+  /// `T++` or `T += b` where 'T' is type variable.
+  ResolutionResult handleTypeVariableTypeLiteralUpdate(
+      SendSet node,
+      Name name,
+      TypeVariableElement element) {
+    AccessSemantics semantics;
+    if (!Elements.hasAccessToTypeVariables(enclosingElement)) {
+      // TODO(johnniwinther): Add another access semantics for this.
+      ErroneousElement error = reportAndCreateErroneousElement(
+          node, name.text,
+          MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+          {'typeVariableName': name},
+          isError: true);
+      semantics = new StaticAccess.invalid(error);
+    } else {
+      ErroneousElement error;
+      if (node.isIfNullAssignment) {
+        error = reportAndCreateErroneousElement(
+            node.selector, name.text,
+            MessageKind.IF_NULL_ASSIGNING_TYPE, const {});
+        // TODO(23998): Remove these when all information goes through
+        // the [SendStructure].
+        registry.useElement(node.selector, element);
+      } else {
+        error = reportAndCreateErroneousElement(
+            node.selector, name.text,
+            MessageKind.ASSIGNING_TYPE, const {});
+      }
+
+      // TODO(23998): Remove this when all information goes through
+      // the [SendStructure].
+      registry.useElement(node, error);
+      registry.registerTypeLiteral(node, element.type);
+      registry.registerThrowNoSuchMethod();
+      semantics = new StaticAccess.typeParameterTypeLiteral(element);
+    }
+    return handleUpdate(node, name, semantics);
   }
 
   /// Handle access to a constant type literal of [type].
@@ -2068,9 +2114,27 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       TypeDeclarationElement element,
       DartType type,
       ConstantAccess semantics) {
-    ErroneousElement error =
-        reportAndCreateErroneousElement(
-            node.selector, name.text, MessageKind.ASSIGNING_TYPE, const {});
+
+    // TODO(johnniwinther): Remove this when all constants are evaluated.
+    compiler.resolver.constantCompiler.evaluate(semantics.constant);
+
+    ErroneousElement error;
+    if (node.isIfNullAssignment) {
+      error = reportAndCreateErroneousElement(
+          node.selector, name.text,
+          MessageKind.IF_NULL_ASSIGNING_TYPE, const {});
+      // TODO(23998): Remove these when all information goes through
+      // the [SendStructure].
+      registry.setConstant(node.selector, semantics.constant);
+      registry.useElement(node.selector, element);
+    } else {
+      error = reportAndCreateErroneousElement(
+          node.selector, name.text,
+          MessageKind.ASSIGNING_TYPE, const {});
+    }
+
+    // TODO(23998): Remove this when all information goes through
+    // the [SendStructure].
     registry.useElement(node, error);
     registry.registerTypeLiteral(node, type);
     registry.registerThrowNoSuchMethod();
@@ -2089,6 +2153,19 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ConstantExpression constant = new TypeConstantExpression(type);
     AccessSemantics semantics = new ConstantAccess.typedefTypeLiteral(constant);
     return handleConstantTypeLiteralAccess(node, name, typdef, type, semantics);
+  }
+
+  /// Handle access to a type literal of a typedef. Like `F = b`, `F++` or
+  /// `F += b` where 'F' is typedef.
+  ResolutionResult handleTypedefTypeLiteralUpdate(
+      SendSet node,
+      Name name,
+      TypedefElement typdef) {
+    typdef.ensureResolved(compiler);
+    DartType type = typdef.rawType;
+    ConstantExpression constant = new TypeConstantExpression(type);
+    AccessSemantics semantics = new ConstantAccess.typedefTypeLiteral(constant);
+    return handleConstantTypeLiteralUpdate(node, name, typdef, type, semantics);
   }
 
   /// Handle access to a type literal of the type 'dynamic'. Like `dynamic` or
@@ -2111,9 +2188,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ConstantExpression constant =
         new TypeConstantExpression(const DynamicType());
     AccessSemantics semantics = new ConstantAccess.dynamicTypeLiteral(constant);
-    // TODO(johnniwinther): Remove this when all constants are evaluated.
-    compiler.resolver.constantCompiler.evaluate(constant);
-
     return handleConstantTypeLiteralUpdate(
         node, const PublicName('dynamic'), compiler.typeClass, type, semantics);
   }
@@ -2124,10 +2198,24 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Send node,
       Name name,
       ClassElement cls) {
+    cls.ensureResolved(compiler);
     DartType type = cls.rawType;
     ConstantExpression constant = new TypeConstantExpression(type);
     AccessSemantics semantics = new ConstantAccess.classTypeLiteral(constant);
     return handleConstantTypeLiteralAccess(node, name, cls, type, semantics);
+  }
+
+  /// Handle access to a type literal of a class. Like `C = b`, `C++` or
+  /// `C += b` where 'C' is class.
+  ResolutionResult handleClassTypeLiteralUpdate(
+      SendSet node,
+      Name name,
+      ClassElement cls) {
+    cls.ensureResolved(compiler);
+    DartType type = cls.rawType;
+    ConstantExpression constant = new TypeConstantExpression(type);
+    AccessSemantics semantics = new ConstantAccess.classTypeLiteral(constant);
+    return handleConstantTypeLiteralUpdate(node, name, cls, type, semantics);
   }
 
   /// Handle a [Send] that resolves to a [prefix]. Like `prefix` in
@@ -2429,21 +2517,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return handleUpdate(node, name, accessSemantics);
   }
 
-  /// Handle access of an instance [member] from a non-instance context.
-  ResolutionResult handleStaticInstanceSend(
-      Send node, Name name, MemberElement member) {
-    compiler.reportError(
-        node, MessageKind.NO_INSTANCE_AVAILABLE, {'name': member.name});
-    ErroneousElement error = new ErroneousElementX(
-        MessageKind.NO_INSTANCE_AVAILABLE,
-        {'name': name},
-        name.text,
-        enclosingElement);
-
+  /// Report access of an instance [member] from a non-instance context.
+  AccessSemantics reportStaticInstanceAccess(Send node, Name name) {
+    ErroneousElement error = reportAndCreateErroneousElement(
+        node, name.text,
+        MessageKind.NO_INSTANCE_AVAILABLE, {'name': name},
+        isError: true);
     // TODO(johnniwinther): Support static instance access as an
     // [AccessSemantics].
-    AccessSemantics semantics = new StaticAccess.unresolved(error);
-    return handleErroneousAccess(node, name, semantics);
+    return new StaticAccess.invalid(error);
   }
 
   /// Handle access of a parameter, local variable or local function.
@@ -2698,7 +2780,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         // TODO(johnniwinther): Maybe use the found [element].
         return handleThisPropertyAccess(node, name);
       } else {
-        return handleStaticInstanceSend(node, name, element);
+        return handleErroneousAccess(
+            node, name, reportStaticInstanceAccess(node, name));
       }
     }
     if (element.isClass) {
@@ -2736,7 +2819,19 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (element.isInstanceMember) {
       if (inInstanceContext) {
         return handleThisPropertyUpdate(node, name, element);
+      } else {
+        return handleUpdate(node, name, reportStaticInstanceAccess(node, name));
       }
+    }
+    if (element.isClass) {
+      // `C = b`, `C++`, or 'C += b` where 'C' is a class.
+      return handleClassTypeLiteralUpdate(node, name, element);
+    } else if (element.isTypedef) {
+      // `C = b`, `C++`, or 'C += b` where 'F' is a typedef.
+      return handleTypedefTypeLiteralUpdate(node, name, element);
+    } else if (element.isTypeVariable) {
+      // `T = b`, `T++`, or 'T += b` where 'T' is a type variable.
+      return handleTypeVariableTypeLiteralUpdate(node, name, element);
     }
     return oldVisitSendSet(node);
   }
@@ -2798,7 +2893,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         ErroneousElement error = reportCannotResolve(node, text);
         return handleUpdate(node, name, new StaticAccess.unresolved(error));
       }
-      return oldVisitSendSet(node);
     } else {
       return handleResolvedSendSet(node, name, element);
     }

@@ -216,12 +216,6 @@ const List<VisitKind> UNTESTABLE_KINDS = const <VisitKind>[
   // Constant expression are currently not computed during resolution.
   VisitKind.VISIT_CONSTANT_GET,
   VisitKind.VISIT_CONSTANT_INVOKE,
-  // TODO(johnniwinther): Test these when ResolverVisitor.visitSendSet has been
-  // rewritten.
-  VisitKind.ERROR_INVALID_SET,
-  VisitKind.ERROR_INVALID_PREFIX,
-  VisitKind.ERROR_INVALID_POSTFIX,
-  VisitKind.ERROR_INVALID_COMPOUND,
 ];
 
 main(List<String> arguments) {

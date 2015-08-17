@@ -107,6 +107,15 @@ const Map<String, List<Test>> SEND_TESTS = const {
         'm() => p.C.o;',
         const Visit(VisitKind.VISIT_STATIC_FIELD_GET,
                     element: 'field(C#o)')),
+    const Test.clazz(
+        '''
+        class C {
+          var o;
+          static m() => o;
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_GET,
+                    error: MessageKind.NO_INSTANCE_AVAILABLE)),
     const Test.prefix(
         '''
         class C {
@@ -189,7 +198,9 @@ const Map<String, List<Test>> SEND_TESTS = const {
         null),
     const Test(
         '''
-        class C { static var o; }
+        class C {
+          static var o;
+        }
         m() { C.o = 42; }
         ''',
         const Visit(VisitKind.VISIT_STATIC_FIELD_SET,
@@ -225,9 +236,21 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_STATIC_FIELD_SET,
                     element: 'field(C#o)',
                     rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          var o;
+          static m() { o = 42; }
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_SET,
+                    error: MessageKind.NO_INSTANCE_AVAILABLE,
+                    rhs: '42')),
     const Test(
         '''
-        class C { static var o; }
+        class C {
+          static var o;
+        }
         m() { C.o(null, 42); }
         ''',
         const Visit(VisitKind.VISIT_STATIC_FIELD_INVOKE,
@@ -253,6 +276,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_STATIC_FIELD_INVOKE,
                     element: 'field(C#o)',
                     arguments: '(null,42)')),
+    const Test.clazz(
+        '''
+        class C {
+          var o;
+          static m() { o(null, 42); }
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_INVOKE,
+                    error: MessageKind.NO_INSTANCE_AVAILABLE,
+                    arguments: '(null,42)')),
     const Test.prefix(
         '''
         class C {
@@ -269,7 +302,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => C.this(null, 42);
         ''',
         const Visit(VisitKind.ERROR_INVALID_INVOKE,
-                    error: MessageKind.THIS_PROPERTY, arguments: '(null,42)')),
+                    error: MessageKind.THIS_PROPERTY,
+                    arguments: '(null,42)')),
     // TODO(johnniwinther): Expect [VISIT_FINAL_STATIC_FIELD_SET] instead.
     const Test(
         '''
@@ -1509,7 +1543,51 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_POSTFIX,
                     element: 'type_variable(C#T)',
                     operator: '--')),
-
+    const Test.clazz(
+        '''
+        class C<T> {
+          static m() => T;
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_GET,
+                    error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER)),
+    const Test.clazz(
+        '''
+        class C<T> {
+          static m() => T(null, 42);
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_INVOKE,
+                    error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+                    arguments: '(null,42)')),
+    const Test.clazz(
+        '''
+        class C<T> {
+          static m() => T += 42;
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_COMPOUND,
+                    error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+                    operator: '+=',
+                    rhs: '42')),
+    const Test.clazz(
+        '''
+        class C<T> {
+          static m() => ++T;
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_PREFIX,
+                    error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+                    operator: '++')),
+    const Test.clazz(
+        '''
+        class C<T> {
+          static m() => T--;
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_POSTFIX,
+                    error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+                    operator: '--')),
   ],
   'Dynamic type literals': const [
     // Dynamic type literals
@@ -2234,6 +2312,17 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_STATIC_FIELD_COMPOUND,
             element: 'field(C#a)', operator: '+=', rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          var o;
+          static m() { o += 42; }
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_COMPOUND,
+                    error: MessageKind.NO_INSTANCE_AVAILABLE,
+                    operator: '+=',
+                    rhs: '42')),
     const Test(
         '''
         class C {
@@ -2749,6 +2838,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_STATIC_FIELD_PREFIX,
             element: 'field(C#a)', operator: '--')),
+    const Test.clazz(
+        '''
+        class C {
+          var o;
+          static m() { ++o; }
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_PREFIX,
+                    error: MessageKind.NO_INSTANCE_AVAILABLE,
+                    operator: '++')),
     const Test(
         '''
         class C {
@@ -3130,6 +3229,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_STATIC_FIELD_POSTFIX,
             element: 'field(C#a)', operator: '--')),
+    const Test.clazz(
+        '''
+        class C {
+          var o;
+          static m() { o--; }
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_POSTFIX,
+                    error: MessageKind.NO_INSTANCE_AVAILABLE,
+                    operator: '--')),
     const Test(
         '''
         class C {
