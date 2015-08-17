@@ -60,20 +60,6 @@ main() {
       expect(restoreUri.scheme, equals('dart'));
       expect(restoreUri.path, equals('fox'));
     });
-    test('test_resolvePart', () {
-      var resolver = new SdkExtUriResolver({
-        'fox': [resourceProvider.getResource('/tmp')]
-      });
-      var source = resolver.resolveAbsolute(Uri.parse('dart:fox/foo.dart'));
-      expect(source, isNotNull);
-      // Restore source's uri.
-      var restoreUri = resolver.restoreAbsolute(source);
-      expect(restoreUri, isNotNull);
-      // Verify that it is 'dart:fox/foo.dart'.
-      expect(restoreUri.toString(), equals('dart:fox/foo.dart'));
-      expect(restoreUri.scheme, equals('dart'));
-      expect(restoreUri.path, equals('fox/foo.dart'));
-    });
   });
 }
 
