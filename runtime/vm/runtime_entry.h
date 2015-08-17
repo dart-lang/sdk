@@ -55,7 +55,6 @@ typedef void (*RuntimeFunction)(NativeArguments arguments);
   V(InitStaticField)                                                           \
   V(GrowRegExpStack)                                                           \
   V(CompileFunction)                                                           \
-  V(TestSmiSub)                                                                \
 
 #define LEAF_RUNTIME_ENTRY_LIST(V)                                             \
   V(void, PrintStopMessage, const char*)                                       \
@@ -63,7 +62,6 @@ typedef void (*RuntimeFunction)(NativeArguments arguments);
   V(void, DeoptimizeFillFrame, uword)                                          \
   V(void, StoreBufferBlockProcess, Thread*)                                    \
   V(intptr_t, BigintCompare, RawBigint*, RawBigint*)                           \
-  V(RawObject*, TestLeafSmiAdd, RawObject*, RawObject*)                        \
 
 
 enum RuntimeFunctionId {
