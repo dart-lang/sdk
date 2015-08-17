@@ -175,7 +175,6 @@ class _Future<T> implements Future<T> {
    */
   var _resultOrListeners;
 
-  // This constructor is used by async/await.
   _Future();
 
   /// Valid types for value: `T` or `Future<T>`.
@@ -214,7 +213,7 @@ class _Future<T> implements Future<T> {
     return _thenNoZoneRegistration(f, onError);
   }
 
-  // This method is used by async/await.
+  // This function is used by async/await.
   Future _thenNoZoneRegistration(f(T value), Function onError) {
     _Future result = new _Future();
     _addListener(new _FutureListener.then(result, f, onError));
@@ -257,7 +256,6 @@ class _Future<T> implements Future<T> {
     return _resultOrListeners;
   }
 
-  // This method is used by async/await.
   void _setValue(T value) {
     assert(!_isComplete);  // But may have a completion pending.
     _state = _VALUE;
