@@ -1857,6 +1857,10 @@ class JavaScriptBackend extends Backend {
     return findHelper("asyncHelper");
   }
 
+  Element getWrapBody() {
+    return findHelper("_wrapJsFunctionForAsync");
+  }
+
   Element getYieldStar() {
     ClassElement classElement = findHelper("IterationMarker");
     classElement.ensureResolved(compiler);
@@ -2695,6 +2699,7 @@ class JavaScriptBackend extends Backend {
       enqueue(enqueuer, getAsyncHelper(), registry);
       enqueue(enqueuer, getSyncCompleterConstructor(), registry);
       enqueue(enqueuer, getStreamIteratorConstructor(), registry);
+      enqueue(enqueuer, getWrapBody(), registry);
     } else if (element.asyncMarker == AsyncMarker.SYNC_STAR) {
       ClassElement clsSyncStarIterable = getSyncStarIterable();
       clsSyncStarIterable.ensureResolved(compiler);
@@ -2714,6 +2719,7 @@ class JavaScriptBackend extends Backend {
       enqueue(enqueuer, getYieldStar(), registry);
       enqueue(enqueuer, getASyncStarControllerConstructor(), registry);
       enqueue(enqueuer, getStreamIteratorConstructor(), registry);
+      enqueue(enqueuer, getWrapBody(), registry);
     }
   }
 
@@ -2747,6 +2753,8 @@ class JavaScriptBackend extends Backend {
             compiler.currentElement,
             asyncHelper:
                 emitter.staticFunctionAccess(getAsyncHelper()),
+            wrapBody:
+                emitter.staticFunctionAccess(getWrapBody()),
             newCompleter: emitter.staticFunctionAccess(
                 getSyncCompleterConstructor()),
             safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
@@ -2775,6 +2783,8 @@ class JavaScriptBackend extends Backend {
                 getAsyncStarHelper()),
             streamOfController: emitter.staticFunctionAccess(
                 getStreamOfController()),
+            wrapBody:
+                emitter.staticFunctionAccess(getWrapBody()),
             newController: emitter.staticFunctionAccess(
                 getASyncStarControllerConstructor()),
             safeVariableName: namer.safeVariablePrefixForAsyncRewrite,

@@ -38,7 +38,8 @@ import 'dart:async' show
     StreamController,
     Stream,
     StreamSubscription,
-    scheduleMicrotask;
+    scheduleMicrotask,
+    Zone;
 
 import 'dart:_foreign_helper' show
     DART_CLOSURE_TO_JS,
@@ -3941,8 +3942,8 @@ class ExceptionAndStackTrace {
 ///
 /// Returns the future of the completer for convenience of the first call.
 dynamic asyncHelper(dynamic object,
-                    dynamic /* js function */ bodyFunctionOrErrorCode,
-                    Completer completer) {
+    dynamic /* int | WrappedAsyncBody */ bodyFunctionOrErrorCode,
+    Completer completer) {
   if (identical(bodyFunctionOrErrorCode, async_error_codes.SUCCESS)) {
     completer.complete(object);
     return;
@@ -3953,20 +3954,19 @@ dynamic asyncHelper(dynamic object,
     return;
   }
   Future future = object is Future ? object : new Future.value(object);
-  future.then(_wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
-                                      async_error_codes.SUCCESS),
+  future.then(
+      (result) => bodyFunctionOrErrorCode(async_error_codes.SUCCESS, result),
       onError: (dynamic error, StackTrace stackTrace) {
         ExceptionAndStackTrace wrappedException =
             new ExceptionAndStackTrace(error, stackTrace);
-        Function wrapped =_wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
-            async_error_codes.ERROR);
-        wrapped(wrappedException);
+        bodyFunctionOrErrorCode(async_error_codes.ERROR, wrappedException);
       });
   return completer.future;
 }
 
-Function _wrapJsFunctionForAsync(dynamic /* js function */ function,
-                                 int errorCode) {
+typedef void WrappedAsyncBody(int errorCode, dynamic result);
+
+WrappedAsyncBody _wrapJsFunctionForAsync(dynamic /* js function */ function) {
   var protected = JS('', """
     // Invokes [function] with [errorCode] and [result].
     //
@@ -3983,9 +3983,9 @@ Function _wrapJsFunctionForAsync(dynamic /* js function */ function,
         }
       }
     }""", function, async_error_codes.ERROR);
-  return (result) {
+  return Zone.current.bindBinaryCallback((int errorCode, dynamic result) {
     JS('', '#(#, #)', protected, errorCode, result);
-  };
+  });
 }
 
 /// Implements the runtime support for async* functions.
@@ -4025,8 +4025,8 @@ Function _wrapJsFunctionForAsync(dynamic /* js function */ function,
 /// If [object] is not a [Future], it is wrapped in a `Future.value`.
 /// The [asyncBody] is called on completion of the future (see [asyncHelper].
 void asyncStarHelper(dynamic object,
-                     dynamic /* int | js function */ bodyFunctionOrErrorCode,
-                     AsyncStarStreamController controller) {
+    dynamic /* int | WrappedAsyncBody */ bodyFunctionOrErrorCode,
+    AsyncStarStreamController controller) {
   if (identical(bodyFunctionOrErrorCode, async_error_codes.SUCCESS)) {
     // This happens on return from the async* function.
     if (controller.isCanceled) {
@@ -4051,9 +4051,7 @@ void asyncStarHelper(dynamic object,
 
   if (object is IterationMarker) {
     if (controller.isCanceled) {
-      Function wrapped = _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
-          async_error_codes.STREAM_WAS_CANCELED);
-      wrapped(null);
+      bodyFunctionOrErrorCode(async_error_codes.STREAM_WAS_CANCELED, null);
       return;
     }
     if (object.state == IterationMarker.YIELD_SINGLE) {
@@ -4067,9 +4065,7 @@ void asyncStarHelper(dynamic object,
           controller.isSuspended = true;
           return;
         }
-        Function wrapped = _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
-            async_error_codes.SUCCESS);
-        wrapped(null);
+        bodyFunctionOrErrorCode(null, async_error_codes.SUCCESS);
       });
       return;
     } else if (object.state == IterationMarker.YIELD_STAR) {
@@ -4085,24 +4081,20 @@ void asyncStarHelper(dynamic object,
         int errorCode = controller.isCanceled
             ? async_error_codes.STREAM_WAS_CANCELED
             : async_error_codes.SUCCESS;
-        Function wrapped = _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
-                                errorCode);
-        wrapped(null);
+        bodyFunctionOrErrorCode(errorCode, null);
       });
       return;
     }
   }
 
   Future future = object is Future ? object : new Future.value(object);
-  future.then(_wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
-                                      async_error_codes.SUCCESS),
-              onError: (error, StackTrace stackTrace) {
-                ExceptionAndStackTrace wrappedException =
-                    new ExceptionAndStackTrace(error, stackTrace);
-                Function wrapped = _wrapJsFunctionForAsync(
-                    bodyFunctionOrErrorCode, async_error_codes.ERROR);
-                return wrapped(wrappedException);
-              });
+  future.then(
+      (result) => bodyFunctionOrErrorCode(async_error_codes.SUCCESS, result),
+      onError: (error, StackTrace stackTrace) {
+        ExceptionAndStackTrace wrappedException =
+            new ExceptionAndStackTrace(error, stackTrace);
+        bodyFunctionOrErrorCode(async_error_codes.ERROR, wrappedException);
+      });
 }
 
 Stream streamOfController(AsyncStarStreamController controller) {
@@ -4148,13 +4140,11 @@ class AsyncStarStreamController {
 
   close() => controller.close();
 
-  AsyncStarStreamController(body) {
+  AsyncStarStreamController(WrappedAsyncBody body) {
 
     _resumeBody() {
       scheduleMicrotask(() {
-        Function wrapped =
-            _wrapJsFunctionForAsync(body, async_error_codes.SUCCESS);
-        wrapped(null);
+        body(async_error_codes.SUCCESS, null);
       });
     }
 
@@ -4177,9 +4167,7 @@ class AsyncStarStreamController {
             // Resume the suspended async* function to run finalizers.
             isSuspended = false;
             scheduleMicrotask(() {
-              Function wrapped =_wrapJsFunctionForAsync(body,
-                  async_error_codes.STREAM_WAS_CANCELED);
-              wrapped(null);
+              body(async_error_codes.STREAM_WAS_CANCELED, null);
             });
           }
           return cancelationCompleter.future;

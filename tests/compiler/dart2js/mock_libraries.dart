@@ -236,6 +236,7 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'mainHasTooManyParameters':
       'mainHasTooManyParameters() '
       '{ throw "main has too many parameters"; }',
+  '_wrapJsFunctionForAsync': '_wrapJsFunctionForAsync(f) {}',
 };
 
 const Map<String, String> DEFAULT_FOREIGN_HELPER_LIBRARY

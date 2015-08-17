@@ -25,6 +25,7 @@ void testAsyncTransform(String source, String expected) {
       null,
       asyncHelper: new VariableUse("thenHelper"),
       newCompleter: new VariableUse("Completer"),
+      wrapBody: new VariableUse("_wrapJsFunctionForAsync"),
       safeVariableName: (String name) => "__$name",
       bodyName: new StringBackedName("body")));
 }
@@ -54,7 +55,7 @@ r"""function() async {
 ,  /// 01: ok
  r"""function() {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, closures, v0, v1, v2, v3;
-  function body(__errorCode, __result) {
+  var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -82,7 +83,7 @@ r"""function() async {
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
-  }
+  });
   return thenHelper(null, body, __completer, null);
 }"""
   )  /// 01: ok
@@ -95,7 +96,7 @@ function(a) async {
 }""", """
 function(a) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __self = this;
-  function body(__errorCode, __result) {
+  var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -115,7 +116,7 @@ function(a) {
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
-  }
+  });
   return thenHelper(null, body, __completer, null);
 }""");
 
@@ -145,7 +146,7 @@ function(a) {
   }""", """
 function(b) {
   var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, __next = [], __helper;
-  function body(__errorCode, __result) {
+  var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -239,7 +240,7 @@ function(b) {
             // rethrow
             return thenHelper(__currentError, 1, __completer);
         }
-  }
+  });
   return thenHelper(null, body, __completer, null);
 }""");
 
@@ -255,7 +256,7 @@ function(c) async {
 }""", """
 function(c) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, a, b, c, d, e, f, __temp1;
-  function body(__errorCode, __result) {
+  var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -294,7 +295,7 @@ function(c) {
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
-  }
+  });
   return thenHelper(null, body, __completer, null);
 }""");
 
@@ -312,7 +313,7 @@ function(c) {
   }""", """
 function(d2) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, a, b, c, d, e, f, g, h, __temp1;
-  function body(__errorCode, __result) {
+  var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -427,7 +428,7 @@ function(d2) {
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
-  }
+  });
   return thenHelper(null, body, __completer, null);
 }""");
 
@@ -449,7 +450,7 @@ function(x, y) async {
 }""", """
 function(x, y) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError;
-  function body(__errorCode, __result) {
+  var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -521,7 +522,7 @@ function(x, y) {
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
-  }
+  });
   return thenHelper(null, body, __completer, null);
 }""");
 
@@ -538,7 +539,7 @@ function(x, y) {
   """, """
 function(f) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, a;
-  function body(__errorCode, __result) {
+  var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -582,7 +583,7 @@ function(f) {
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
-  }
+  });
   return thenHelper(null, body, __completer, null);
 }""");
 
@@ -603,7 +604,7 @@ function(g) async {
 """, """
 function(g) {
   var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, i, __temp1;
-  function body(__errorCode, __result) {
+  var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -672,7 +673,7 @@ function(g) {
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
-  }
+  });
   return thenHelper(null, body, __completer, null);
 }""");
 
@@ -688,7 +689,7 @@ function(g) {
   """, """
 function(a, h) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, x, __temp1, __temp2;
-  function body(__errorCode, __result) {
+  var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -747,7 +748,7 @@ function(a, h) {
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
-  }
+  });
   return thenHelper(null, body, __completer, null);
 }""");
 
@@ -769,7 +770,7 @@ function(c, i) async {
 """, """
 function(c, i) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __next = [], x, y, __error, __error1;
-  function body(__errorCode, __result) {
+  var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -864,7 +865,7 @@ function(c, i) {
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
-  }
+  });
   return thenHelper(null, body, __completer, null);
 }""");
 
@@ -879,7 +880,7 @@ function(c, i) {
   """, """
 function(x, y, j) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __temp1, __temp2, __temp3;
-  function body(__errorCode, __result) {
+  var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -930,7 +931,7 @@ function(x, y, j) {
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
-  }
+  });
   return thenHelper(null, body, __completer, null);
 }""");
 
@@ -962,7 +963,7 @@ function(x, y, k) async {
 }""", """
 function(x, y, k) {
   var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, __temp1;
-  function body(__errorCode, __result) {
+  var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -1070,7 +1071,7 @@ function(x, y, k) {
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
-  }
+  });
   return thenHelper(null, body, __completer, null);
 }""");
 
@@ -1090,7 +1091,7 @@ function(x, y, k) {
   }""", """
 function(l) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError;
-  function body(__errorCode, __result) {
+  var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -1119,7 +1120,7 @@ function(l) {
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
-  }
+  });
   return thenHelper(null, body, __completer, null);
 }""");
 
@@ -1142,7 +1143,7 @@ function(l) {
   }""", """
 function(m) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __next = [], exception, __exception;
-  function body(__errorCode, __result) {
+  var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -1198,7 +1199,7 @@ function(m) {
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
-  }
+  });
   return thenHelper(null, body, __completer, null);
 }""");
 

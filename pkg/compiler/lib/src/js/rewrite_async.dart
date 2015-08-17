@@ -1693,11 +1693,13 @@ class AsyncRewriter extends AsyncRewriterBase {
   /// Specific to async methods.
   final js.Expression newCompleter;
 
+  final js.Expression wrapBody;
 
   AsyncRewriter(DiagnosticListener diagnosticListener,
                 spannable,
                 {this.asyncHelper,
                  this.newCompleter,
+                 this.wrapBody,
                  String safeVariableName(String proposedName),
                  js.Name bodyName})
         : super(diagnosticListener,
@@ -1778,13 +1780,13 @@ class AsyncRewriter extends AsyncRewriterBase {
     return js.js("""
         function (#parameters) {
           #variableDeclarations;
-          function #bodyName(#errorCode, #result) {
+          var #bodyName = #wrapBody(function (#errorCode, #result) {
             if (#errorCode === #ERROR) {
                 #currentError = #result;
                 #goto = #handler;
             }
             #rewrittenBody;
-          }
+          });
           return #asyncHelper(null, #bodyName, #completer, null);
         }""", {
           "parameters": parameters,
@@ -1799,6 +1801,7 @@ class AsyncRewriter extends AsyncRewriterBase {
           "result": resultName,
           "asyncHelper": asyncHelper,
           "completer": completer,
+          "wrapBody": wrapBody,
         });
   }
 }
@@ -1993,6 +1996,8 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   /// Called with the stream to yield from.
   final js.Expression yieldStarExpression;
 
+  final js.Expression wrapBody;
+
   AsyncStarRewriter(DiagnosticListener diagnosticListener,
                 spannable,
                 {this.asyncStarHelper,
@@ -2000,6 +2005,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
                  this.newController,
                  this.yieldExpression,
                  this.yieldStarExpression,
+                 this.wrapBody,
                  String safeVariableName(String proposedName),
                  js.Name bodyName})
         : super(diagnosticListener,
@@ -2045,8 +2051,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
                         js.VariableDeclarationList variableDeclarations) {
     return js.js("""
         function (#parameters) {
-          #variableDeclarations;
-          function #bodyName(#errorCode, #result) {
+          var #bodyName = #wrapBody(function (#errorCode, #result) {
             if (#hasYield) {
               switch (#errorCode) {
                 case #STREAM_WAS_CANCELED:
@@ -2064,7 +2069,8 @@ class AsyncStarRewriter extends AsyncRewriterBase {
               }
             }
             #rewrittenBody;
-          }
+          });
+          #variableDeclarations;
           return #streamOfController(#controller);
         }""", {
           "parameters": parameters,
@@ -2083,6 +2089,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
           "result": resultName,
           "streamOfController": streamOfController,
           "controller": controllerName,
+          "wrapBody": wrapBody,
         });
   }
 
@@ -2115,7 +2122,8 @@ class AsyncStarRewriter extends AsyncRewriterBase {
     List<js.VariableInitialization> variables =
         new List<js.VariableInitialization>();
     variables.add(_makeVariableInitializer(controller,
-                         js.js('#(#)', [newController, bodyName])));
+                         js.js('#(#)',
+                               [newController, bodyName])));
     if (analysis.hasYield) {
       variables.add(_makeVariableInitializer(nextWhenCanceled, null));
     }
