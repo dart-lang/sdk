@@ -234,7 +234,8 @@ class CodePosition {
 
 /// Registry for mapping [js.Node]s to their [CodePosition].
 class CodePositionRecorder {
-  Map<js.Node, CodePosition> _codePositionMap = <js.Node, CodePosition>{};
+  Map<js.Node, CodePosition> _codePositionMap =
+      new Map<js.Node, CodePosition>.identity();
 
   void registerPositions(js.Node node,
                          int startPosition,

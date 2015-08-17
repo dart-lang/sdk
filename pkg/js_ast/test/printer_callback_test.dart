@@ -161,11 +161,11 @@ function() {
   }),
 
   const TestCase(const {
-    TestMode.INPUT: "a.#nameTemplate",
-    TestMode.NONE: "a.nameValue",
-    TestMode.ENTER: "@0@1a.@2nameValue",
-    TestMode.DELIMITER: "a.nameValue",
-    TestMode.EXIT: "a@1.nameValue@2@0",
+    TestMode.INPUT: "a.#nameTemplate = #nameTemplate",
+    TestMode.NONE: "a.nameValue = nameValue",
+    TestMode.ENTER: "@0@1@2a.@3nameValue = @3nameValue",
+    TestMode.DELIMITER: "a.nameValue = nameValue",
+    TestMode.EXIT: "a@2.nameValue@3@1 = nameValue@3@0",
   }, const {'nameTemplate': 'nameValue'}),
 ];
 

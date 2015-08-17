@@ -133,19 +133,19 @@ Future<Measurement> runTest(
   TestResult result =
       await runTests(config, filename, options, verbose: verbose);
   if (outputUri != null) {
-    if (result.failureMap.isNotEmpty) {
-      result.failureMap.forEach((info, missingCodePoints) {
-        print("Missing code points for ${info.element} in '$filename' "
-              "in config '$config':");
-        for (CodePoint codePoint in missingCodePoints) {
-          print("  $codePoint");
-        }
-      });
+    if (result.missingCodePointsMap.isNotEmpty) {
+      result.printMissingCodePoints();
+    }
+    if (result.multipleNodesMap.isNotEmpty) {
+      result.printMultipleNodes();
+    }
+    if (result.multipleOffsetsMap.isNotEmpty) {
+      result.printMultipleOffsets();
     }
     createTraceSourceMapHtml(outputUri, result.processor, result.userInfoList);
   }
   return new Measurement(config, filename,
-      result.failureMap.values.fold(0, (s, i) => s + i.length),
+      result.missingCodePointsMap.values.fold(0, (s, i) => s + i.length),
       result.userInfoList.fold(0, (s, i) => s + i.codePoints.length));
 }
 

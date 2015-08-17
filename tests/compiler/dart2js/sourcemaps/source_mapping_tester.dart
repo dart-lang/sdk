@@ -5,6 +5,9 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:compiler/src/io/source_information.dart';
+import 'package:compiler/src/js/js_debug.dart';
+import 'package:js_ast/js_ast.dart';
 import 'sourcemap_helper.dart';
 
 main(List<String> arguments) {
@@ -25,26 +28,28 @@ main(List<String> arguments) {
   }
 
   asyncTest(() async {
-    bool missingCodePointsFound = false;
+    bool errorsFound = false;
     for (String config in configurations) {
       List<String> options = TEST_CONFIGURATIONS[config];
       for (String file in files) {
         String filename = TEST_FILES[file];
         TestResult result = await runTests(config, filename, options);
-        if (result.failureMap.isNotEmpty) {
-          result.failureMap.forEach((info, missingCodePoints) {
-            print("Missing code points for ${info.element} in '$filename' "
-                  "in config '$config':");
-            for (CodePoint codePoint in missingCodePoints) {
-              print("  $codePoint");
-            }
-          });
-          missingCodePointsFound = true;
+        if (result.missingCodePointsMap.isNotEmpty) {
+          result.printMissingCodePoints();
+          errorsFound = true;
+        }
+        if (result.multipleNodesMap.isNotEmpty) {
+          result.printMultipleNodes();
+          errorsFound = true;
+        }
+        if (result.multipleOffsetsMap.isNotEmpty) {
+          result.printMultipleOffsets();
+          errorsFound = true;
         }
       }
     }
-    Expect.isFalse(missingCodePointsFound,
-        "Missing code points found. "
+    Expect.isFalse(errorsFound,
+        "Errors found. "
         "Run the test with a URI option, "
         "`source_mapping_test_viewer [--out=<uri>] [configs] [tests]`, to "
         "create a html visualization of the missing code points.");
@@ -101,8 +106,34 @@ Future<TestResult> runTests(
     Iterable<CodePoint> missingCodePoints =
         info.codePoints.where((c) => c.isMissing);
     if (missingCodePoints.isNotEmpty) {
-      result.failureMap[info] = missingCodePoints;
+      result.missingCodePointsMap[info] = missingCodePoints;
     }
+    Map<int, Set<SourceLocation>> offsetToLocationsMap =
+        <int, Set<SourceLocation>>{};
+    for (Node node in info.nodeMap.nodes) {
+      info.nodeMap[node].forEach(
+            (int targetOffset, List<SourceLocation> sourceLocations) {
+        if (sourceLocations.length > 1) {
+          Map<Node, List<SourceLocation>> multipleMap =
+              result.multipleNodesMap.putIfAbsent(info,
+                  () => <Node, List<SourceLocation>>{});
+          multipleMap[node] = sourceLocations;
+        } else {
+          offsetToLocationsMap
+              .putIfAbsent(targetOffset, () => new Set<SourceLocation>())
+              .addAll(sourceLocations);
+        }
+      });
+    }
+    offsetToLocationsMap.forEach(
+          (int targetOffset, Set<SourceLocation> sourceLocations) {
+      if (sourceLocations.length > 1) {
+        Map<int, Set<SourceLocation>> multipleMap =
+            result.multipleOffsetsMap.putIfAbsent(info,
+                () => <int, Set<SourceLocation>>{});
+        multipleMap[targetOffset] = sourceLocations;
+      }
+    });
   }
   return result;
 }
@@ -112,8 +143,48 @@ class TestResult {
   final String file;
   final SourceMapProcessor processor;
   List<SourceMapInfo> userInfoList = <SourceMapInfo>[];
-  Map<SourceMapInfo, Iterable<CodePoint>> failureMap =
+  Map<SourceMapInfo, Iterable<CodePoint>> missingCodePointsMap =
       <SourceMapInfo, Iterable<CodePoint>>{};
 
+  /// For each [SourceMapInfo] a map from JS node to multiple source locations
+  /// associated with the node.
+  Map<SourceMapInfo, Map<Node, List<SourceLocation>>> multipleNodesMap =
+      <SourceMapInfo, Map<Node, List<SourceLocation>>>{};
+
+  /// For each [SourceMapInfo] a map from JS offset to multiple source locations
+  /// associated with the offset.
+  Map<SourceMapInfo, Map<int, Set<SourceLocation>>> multipleOffsetsMap =
+      <SourceMapInfo, Map<int, Set<SourceLocation>>>{};
+
   TestResult(this.config, this.file, this.processor);
+
+  void printMissingCodePoints() {
+    missingCodePointsMap.forEach((info, missingCodePoints) {
+      print("Missing code points for ${info.element} in '$file' "
+            "in config '$config':");
+      for (CodePoint codePoint in missingCodePoints) {
+        print("  $codePoint");
+      }
+    });
+  }
+
+  void printMultipleNodes() {
+    multipleNodesMap.forEach((info, multipleMap) {
+      multipleMap.forEach((node, sourceLocations) {
+        print('Multiple source locations:\n ${sourceLocations.join('\n ')}\n'
+              'for `${nodeToString(node)}` in ${info.element} in '
+              '$file.');
+      });
+    });
+  }
+
+  void printMultipleOffsets() {
+    multipleOffsetsMap.forEach((info, multipleMap) {
+      multipleMap.forEach((targetOffset, sourceLocations) {
+        print(
+            'Multiple source locations:\n ${sourceLocations.join('\n ')}\n'
+            'for offset $targetOffset in ${info.element} in $file.');
+      });
+    });
+  }
 }
