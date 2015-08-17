@@ -6734,12 +6734,10 @@ void Parser::AddContinuationVariables() {
       Scanner::kNoSourcePos, Symbols::AwaitJumpVar(), dynamic_type);
   current_block_->scope->AddVariable(await_jump_var);
   current_block_->scope->CaptureVariable(Symbols::AwaitJumpVar());
-  await_jump_var->set_is_captured();
   LocalVariable* await_ctx_var = new (Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AwaitContextVar(), dynamic_type);
   current_block_->scope->AddVariable(await_ctx_var);
   current_block_->scope->CaptureVariable(Symbols::AwaitContextVar());
-  await_ctx_var->set_is_captured();
 }
 
 
@@ -6754,22 +6752,18 @@ void Parser::AddAsyncClosureVariables() {
       Scanner::kNoSourcePos, Symbols::AsyncOperation(), dynamic_type);
   current_block_->scope->AddVariable(async_op_var);
   current_block_->scope->CaptureVariable(Symbols::AsyncOperation());
-  async_op_var->set_is_captured();
   LocalVariable* async_then_callback_var = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncThenCallback(), dynamic_type);
   current_block_->scope->AddVariable(async_then_callback_var);
   current_block_->scope->CaptureVariable(Symbols::AsyncThenCallback());
-  async_then_callback_var->set_is_captured();
   LocalVariable* async_catch_error_callback_var = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncCatchErrorCallback(), dynamic_type);
   current_block_->scope->AddVariable(async_catch_error_callback_var);
   current_block_->scope->CaptureVariable(Symbols::AsyncCatchErrorCallback());
-  async_catch_error_callback_var->set_is_captured();
   LocalVariable* async_completer = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncCompleter(), dynamic_type);
   current_block_->scope->AddVariable(async_completer);
   current_block_->scope->CaptureVariable(Symbols::AsyncCompleter());
-  async_completer->set_is_captured();
 }
 
 
@@ -6789,23 +6783,19 @@ void Parser::AddAsyncGeneratorVariables() {
       Scanner::kNoSourcePos, Symbols::Controller(), dynamic_type);
   current_block_->scope->AddVariable(controller_var);
   current_block_->scope->CaptureVariable(Symbols::Controller());
-  controller_var->set_is_captured();
 
   LocalVariable* async_op_var = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncOperation(), dynamic_type);
   current_block_->scope->AddVariable(async_op_var);
   current_block_->scope->CaptureVariable(Symbols::AsyncOperation());
-  async_op_var->set_is_captured();
   LocalVariable* async_then_callback_var = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncThenCallback(), dynamic_type);
   current_block_->scope->AddVariable(async_then_callback_var);
   current_block_->scope->CaptureVariable(Symbols::AsyncThenCallback());
-  async_then_callback_var->set_is_captured();
   LocalVariable* async_catch_error_callback_var = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncCatchErrorCallback(), dynamic_type);
   current_block_->scope->AddVariable(async_catch_error_callback_var);
   current_block_->scope->CaptureVariable(Symbols::AsyncCatchErrorCallback());
-  async_catch_error_callback_var->set_is_captured();
 }
 
 
@@ -9564,10 +9554,7 @@ void Parser::SetupSavedTryContext(LocalVariable* saved_try_context) {
       Type::ZoneHandle(Z, Type::DynamicType()));
   ASSERT(async_temp_scope_ != NULL);
   async_temp_scope_->AddVariable(async_saved_try_ctx);
-  async_saved_try_ctx->set_is_captured();
-  async_saved_try_ctx = current_block_->scope->LookupVariable(
-      async_saved_try_ctx_name, false);
-  ASSERT(async_saved_try_ctx != NULL);
+  current_block_->scope->CaptureVariable(async_saved_try_ctx_name);
   ASSERT(saved_try_context != NULL);
   current_block_->statements->Add(new(Z) StoreLocalNode(
       Scanner::kNoSourcePos,

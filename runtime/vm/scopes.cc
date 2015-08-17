@@ -431,9 +431,7 @@ bool LocalScope::CaptureVariable(const String& name) {
   while (current_scope != NULL) {
     LocalVariable* var = current_scope->LocalLookupVariable(name);
     if (var != NULL) {
-      if (var->owner()->function_level() != function_level()) {
-        var->set_is_captured();
-      }
+      var->set_is_captured();
       // Insert aliases of the variable in intermediate scopes.
       LocalScope* intermediate_scope = this;
       while (intermediate_scope != current_scope) {
@@ -633,9 +631,6 @@ void LocalScope::RecursivelyCaptureAllVariables() {
       continue;
     }
     found = CaptureVariable(VariableAt(i)->name());
-    // Also manually set the variable as captured as CaptureVariable() does not
-    // handle capturing variables on the same scope level.
-    VariableAt(i)->set_is_captured();
     ASSERT(found);
   }
   if (sibling() != NULL) { sibling()->RecursivelyCaptureAllVariables(); }
