@@ -159,6 +159,9 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 
     uword raw_addr = RawObject::ToAddr(raw_obj);
     // The scavenger is only interested in objects located in the from space.
+    if (scavenger_->to_->Contains(raw_addr)) {
+      return;
+    }
     ASSERT(from_->Contains(raw_addr));
     // Read the header word of the object and determine if the object has
     // already been copied.
