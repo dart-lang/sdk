@@ -203,13 +203,19 @@ class _Future<T> implements Future<T> {
   }
 
   Future then(f(T value), { Function onError }) {
-    _Future result = new _Future();
-    if (!identical(result._zone, _ROOT_ZONE)) {
-      f = result._zone.registerUnaryCallback(f);
+    Zone currentZone = Zone.current;
+    if (!identical(currentZone, _ROOT_ZONE)) {
+      f = currentZone.registerUnaryCallback(f);
       if (onError != null) {
-        onError = _registerErrorHandler(onError, result._zone);
+        onError = _registerErrorHandler(onError, currentZone);
       }
     }
+    return _thenNoZoneRegistration(f, onError);
+  }
+
+  // This function is used by async/await.
+  Future _thenNoZoneRegistration(f(T value), Function onError) {
+    _Future result = new _Future();
     _addListener(new _FutureListener.then(result, f, onError));
     return result;
   }

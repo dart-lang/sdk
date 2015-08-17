@@ -236,7 +236,6 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'mainHasTooManyParameters':
       'mainHasTooManyParameters() '
       '{ throw "main has too many parameters"; }',
-  '_wrapJsFunctionForAsync': '_wrapJsFunctionForAsync(f) {}',
 };
 
 const Map<String, String> DEFAULT_FOREIGN_HELPER_LIBRARY
@@ -385,6 +384,12 @@ const Map<String, String> DEFAULT_ASYNC_LIBRARY = const <String, String>{
   'Stream': 'class Stream<T> {}',
   'Completer': 'class Completer<T> {}',
   'StreamIterator': 'class StreamIterator<T> {}',
+};
+
+/// These members are only needed when async/await is used.
+const Map<String, String> ASYNC_AWAIT_LIBRARY = const <String, String>{
+  '_wrapJsFunctionForAsync': '_wrapJsFunctionForAsync(f) {}',
+  '_asyncHelper': '_asyncHelper(o, f, c) {}',
 };
 
 const Map<String, String> DEFAULT_MIRRORS_LIBRARY = const <String, String>{

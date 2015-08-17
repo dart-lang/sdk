@@ -1003,10 +1003,12 @@ class LibraryElementX
   /** Look up a top-level element in this library, but only look for
     * non-imported elements. Returns null if no such element exist. */
   Element findLocal(String elementName) {
-    // TODO(johnniwinther): How to handle injected elements in the patch
+    // TODO((johnniwinther): How to handle injected elements in the patch
     // library?
     Element result = localScope.lookup(elementName);
-    if (result == null || result.library != this) return null;
+    if (result == null && isPatch) {
+      return origin.findLocal(elementName);
+    }
     return result;
   }
 

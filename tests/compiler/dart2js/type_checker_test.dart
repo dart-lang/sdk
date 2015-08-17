@@ -2181,7 +2181,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
   if (expectedWarnings == null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
 
-  MockCompiler compiler = new MockCompiler.internal();
+  MockCompiler compiler = new MockCompiler.internal(enableAsyncAwait: true);
   compiler.diagnosticHandler = createHandler(compiler, text);
 
   return compiler.init("import 'dart:async';").then((_) {

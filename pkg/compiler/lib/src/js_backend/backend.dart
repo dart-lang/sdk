@@ -235,8 +235,8 @@ class JavaScriptBackend extends Backend {
       new Uri(scheme: 'dart', path: '_js_embedded_names');
   static final Uri DART_ISOLATE_HELPER =
       new Uri(scheme: 'dart', path: '_isolate_helper');
-  static final Uri DART_HTML =
-      new Uri(scheme: 'dart', path: 'html');
+  static final Uri DART_ASYNC = new Uri(scheme: 'dart', path: 'async');
+  static final Uri DART_HTML = new Uri(scheme: 'dart', path: 'html');
 
   static const String INVOKE_ON = '_getCachedInvocation';
   static const String START_ROOT_ISOLATE = 'startRootIsolate';
@@ -273,6 +273,7 @@ class JavaScriptBackend extends Backend {
   FunctionInlineCache inlineCache = new FunctionInlineCache();
 
   LibraryElement jsHelperLibrary;
+  LibraryElement asyncLibrary;
   LibraryElement interceptorsLibrary;
   LibraryElement foreignLibrary;
   LibraryElement isolateHelperLibrary;
@@ -672,10 +673,11 @@ class JavaScriptBackend extends Backend {
   // TODO(karlklose): Split into findHelperFunction and findHelperClass and
   // add a check that the element has the expected kind.
   Element findHelper(String name) => find(jsHelperLibrary, name);
+  Element findAsyncHelper(String name) => find(asyncLibrary, name);
   Element findInterceptor(String name) => find(interceptorsLibrary, name);
 
   Element find(LibraryElement library, String name) {
-    Element element = library.findLocal(name);
+    Element element = library.implementation.findLocal(name);
     assert(invariant(library, element != null,
         message: "Element '$name' not found in '${library.canonicalUri}'."));
     return element;
@@ -1854,47 +1856,47 @@ class JavaScriptBackend extends Backend {
   }
 
   Element getAsyncHelper() {
-    return findHelper("asyncHelper");
+    return findAsyncHelper("_asyncHelper");
   }
 
   Element getWrapBody() {
-    return findHelper("_wrapJsFunctionForAsync");
+    return findAsyncHelper("_wrapJsFunctionForAsync");
   }
 
   Element getYieldStar() {
-    ClassElement classElement = findHelper("IterationMarker");
+    ClassElement classElement = findAsyncHelper("_IterationMarker");
     classElement.ensureResolved(compiler);
     return classElement.lookupLocalMember("yieldStar");
   }
 
   Element getYieldSingle() {
-    ClassElement classElement = findHelper("IterationMarker");
+    ClassElement classElement = findAsyncHelper("_IterationMarker");
     classElement.ensureResolved(compiler);
     return classElement.lookupLocalMember("yieldSingle");
   }
 
   Element getSyncStarUncaughtError() {
-    ClassElement classElement = findHelper("IterationMarker");
+    ClassElement classElement = findAsyncHelper("_IterationMarker");
     classElement.ensureResolved(compiler);
     return classElement.lookupLocalMember("uncaughtError");
   }
 
   Element getAsyncStarHelper() {
-    return findHelper("asyncStarHelper");
+    return findAsyncHelper("_asyncStarHelper");
   }
 
   Element getStreamOfController() {
-    return findHelper("streamOfController");
+    return findAsyncHelper("_streamOfController");
   }
 
   Element getEndOfIteration() {
-    ClassElement classElement = findHelper("IterationMarker");
+    ClassElement classElement = findAsyncHelper("_IterationMarker");
     classElement.ensureResolved(compiler);
     return classElement.lookupLocalMember("endOfIteration");
   }
 
   Element getSyncStarIterable() {
-    ClassElement classElement = findHelper("SyncStarIterable");
+    ClassElement classElement = findAsyncHelper("_SyncStarIterable");
     classElement.ensureResolved(compiler);
     return classElement;
   }
@@ -1912,7 +1914,8 @@ class JavaScriptBackend extends Backend {
   }
 
   Element getASyncStarController() {
-    ClassElement classElement = findHelper("AsyncStarStreamController");
+    ClassElement classElement =
+        findAsyncHelper("_AsyncStarStreamController");
     classElement.ensureResolved(compiler);
     return classElement;
   }
@@ -2026,6 +2029,8 @@ class JavaScriptBackend extends Backend {
     Uri uri = library.canonicalUri;
     if (uri == DART_JS_HELPER) {
       jsHelperLibrary = library;
+    } else if (uri == DART_ASYNC) {
+      asyncLibrary = library;
     } else if (uri == DART_INTERNAL) {
       internalLibrary = library;
     } else if (uri ==  DART_INTERCEPTORS) {

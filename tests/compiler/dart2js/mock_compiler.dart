@@ -117,8 +117,14 @@ class MockCompiler extends Compiler {
                    buildLibrarySource(DEFAULT_ISOLATE_HELPER_LIBRARY));
     registerSource(Compiler.DART_MIRRORS,
                    buildLibrarySource(DEFAULT_MIRRORS_LIBRARY));
+
+    Map<String, String> asyncLibrarySource = <String, String>{};
+    asyncLibrarySource.addAll(DEFAULT_ASYNC_LIBRARY);
+    if (enableAsyncAwait) {
+      asyncLibrarySource.addAll(ASYNC_AWAIT_LIBRARY);
+    }
     registerSource(Compiler.DART_ASYNC,
-                   buildLibrarySource(DEFAULT_ASYNC_LIBRARY));
+                   buildLibrarySource(asyncLibrarySource));
   }
 
   String get patchVersion {
