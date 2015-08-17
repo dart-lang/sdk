@@ -20,7 +20,7 @@ main() {
 
 @reflectiveTest
 class GetNavigationTest extends AbstractNavigationTest {
-  static const String requestId = 'test-getNavigtion';
+  static const String requestId = 'test-getNavigation';
 
   @override
   void setUp() {
