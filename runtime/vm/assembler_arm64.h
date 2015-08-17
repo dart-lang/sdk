@@ -1552,7 +1552,7 @@ class Assembler : public ValueObject {
   int32_t EncodeImm19BranchOffset(int64_t imm, int32_t instr) {
     if (!CanEncodeImm19BranchOffset(imm)) {
       ASSERT(!use_far_branches());
-      Isolate::Current()->long_jump_base()->Jump(
+      Thread::Current()->long_jump_base()->Jump(
           1, Object::branch_offset_error());
     }
     const int32_t imm32 = static_cast<int32_t>(imm);

@@ -2065,7 +2065,7 @@ int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
 
   if (!CanEncodeBranchOffset(offset)) {
     ASSERT(!use_far_branches());
-    Isolate::Current()->long_jump_base()->Jump(
+    Thread::Current()->long_jump_base()->Jump(
         1, Object::branch_offset_error());
   }
 
