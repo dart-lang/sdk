@@ -1700,7 +1700,8 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPLarge, test) {
       bit_cast<intptr_t, uword>(test->entry()), \
       reinterpret_cast<intptr_t>(thread), 0, 0, 0)
 #else
-#define ASSEMBER_TEST_RUN_WITH_THREAD(var_name) \
+#define ASSEMBLER_TEST_RUN_WITH_THREAD(var_name) \
+  Thread* thread = Thread::Current(); \
   typedef int64_t (*Int64Return)(Thread* thread); \
   Int64Return test_code = reinterpret_cast<Int64Return>(test->entry()); \
   int64_t var_name = test_code(thread)
