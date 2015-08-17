@@ -6742,13 +6742,23 @@ void Parser::AddContinuationVariables() {
 void Parser::AddAsyncClosureVariables() {
   // Add to current block's scope:
   //   var :async_op;
+  //   var :async_then_callback;
+  //   var :async_catch_error_callback;
   //   var :async_completer;
   const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   LocalVariable* async_op_var = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncOperation(), dynamic_type);
   current_block_->scope->AddVariable(async_op_var);
-  current_block_->scope->CaptureVariable(Symbols::AsyncOperation());
-  async_op_var->set_is_captured();
+  LocalVariable* async_then_callback_var = new(Z) LocalVariable(
+      Scanner::kNoSourcePos, Symbols::AsyncThenCallback(), dynamic_type);
+  current_block_->scope->AddVariable(async_then_callback_var);
+  current_block_->scope->CaptureVariable(Symbols::AsyncThenCallback());
+  async_then_callback_var->set_is_captured();
+  LocalVariable* async_catch_error_callback_var = new(Z) LocalVariable(
+      Scanner::kNoSourcePos, Symbols::AsyncCatchErrorCallback(), dynamic_type);
+  current_block_->scope->AddVariable(async_catch_error_callback_var);
+  current_block_->scope->CaptureVariable(Symbols::AsyncCatchErrorCallback());
+  async_catch_error_callback_var->set_is_captured();
   LocalVariable* async_completer = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncCompleter(), dynamic_type);
   current_block_->scope->AddVariable(async_completer);
@@ -6764,8 +6774,10 @@ void Parser::AddAsyncGeneratorVariables() {
   // store the StreamController object to which the yielded expressions
   // are added.
   //   var :async_op;
-  // This variable is used to store the async generator closure containing
-  // the body of the async* function. It is used by the await operator.
+  //   var :async_then_callback;
+  //   var :async_catch_error_callback;
+  // These variables are used to store the async generator closure containing
+  // the body of the async* function. They are used by the await operator.
   const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   LocalVariable* controller_var = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::Controller(), dynamic_type);
@@ -6776,8 +6788,16 @@ void Parser::AddAsyncGeneratorVariables() {
   LocalVariable* async_op_var = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncOperation(), dynamic_type);
   current_block_->scope->AddVariable(async_op_var);
-  current_block_->scope->CaptureVariable(Symbols::AsyncOperation());
-  async_op_var->set_is_captured();
+  LocalVariable* async_then_callback_var = new(Z) LocalVariable(
+      Scanner::kNoSourcePos, Symbols::AsyncThenCallback(), dynamic_type);
+  current_block_->scope->AddVariable(async_then_callback_var);
+  current_block_->scope->CaptureVariable(Symbols::AsyncThenCallback());
+  async_then_callback_var->set_is_captured();
+  LocalVariable* async_catch_error_callback_var = new(Z) LocalVariable(
+      Scanner::kNoSourcePos, Symbols::AsyncCatchErrorCallback(), dynamic_type);
+  current_block_->scope->AddVariable(async_catch_error_callback_var);
+  current_block_->scope->CaptureVariable(Symbols::AsyncCatchErrorCallback());
+  async_catch_error_callback_var->set_is_captured();
 }
 
 
@@ -6859,6 +6879,8 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(intptr_t async_func_pos) {
 //     ... source code of f ...
 //   }
 //   var :async_op = f_async_body;
+//   var :async_then_callback = _asyncThenWrapperHelper(:async_op);
+//   var :async_catch_error_callback = _asyncCatchErrorWrapperHelper(:async_op);
 //   :controller = new _AsyncStarStreamController(:async_op);
 //   return :controller.stream;
 // }
@@ -6878,9 +6900,15 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
   closure_body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
   closure_body->scope()->LookupVariable(Symbols::Controller(), false);
   closure_body->scope()->LookupVariable(Symbols::AsyncOperation(), false);
+  closure_body->scope()->LookupVariable(Symbols::AsyncThenCallback(), false);
+  closure_body->scope()->LookupVariable(
+      Symbols::AsyncCatchErrorCallback(), false);
+
+  const Library& async_lib = Library::Handle(Library::AsyncLibrary());
 
   const Class& controller_class = Class::Handle(Z,
-      Library::LookupCoreClass(Symbols::_AsyncStarStreamController()));
+      async_lib.LookupClassAllowPrivate(
+          Symbols::_AsyncStarStreamController()));
   ASSERT(!controller_class.IsNull());
   const Function& controller_constructor = Function::ZoneHandle(Z,
       controller_class.LookupConstructorAllowPrivate(
@@ -6904,7 +6932,55 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
       Scanner::kNoSourcePos,
       async_op_var,
       closure_obj);
+
   current_block_->statements->Add(store_async_op);
+
+  // :async_then_callback = _asyncThenWrapperHelper(:async_op)
+  const Function& async_then_wrapper_helper = Function::ZoneHandle(
+      Z, async_lib.LookupFunctionAllowPrivate(
+          Symbols::AsyncThenWrapperHelper()));
+  ASSERT(!async_then_wrapper_helper.IsNull());
+  ArgumentListNode* async_then_wrapper_helper_args = new (Z) ArgumentListNode(
+      Scanner::kNoSourcePos);
+  async_then_wrapper_helper_args->Add(
+      new (Z) LoadLocalNode(Scanner::kNoSourcePos, async_op_var));
+  StaticCallNode* then_wrapper_call = new (Z) StaticCallNode(
+      Scanner::kNoSourcePos,
+      async_then_wrapper_helper,
+      async_then_wrapper_helper_args);
+  LocalVariable* async_then_callback_var =
+      current_block_->scope->LookupVariable(
+          Symbols::AsyncThenCallback(), false);
+  StoreLocalNode* store_async_then_callback = new (Z) StoreLocalNode(
+      Scanner::kNoSourcePos,
+      async_then_callback_var,
+      then_wrapper_call);
+
+  current_block_->statements->Add(store_async_then_callback);
+
+  // :async_catch_error_callback = _asyncErrorWrapperHelper(:async_op)
+
+  const Function& async_error_wrapper_helper = Function::ZoneHandle(
+      Z, async_lib.LookupFunctionAllowPrivate(
+          Symbols::AsyncErrorWrapperHelper()));
+  ASSERT(!async_error_wrapper_helper.IsNull());
+  ArgumentListNode* async_error_wrapper_helper_args = new (Z) ArgumentListNode(
+      Scanner::kNoSourcePos);
+  async_error_wrapper_helper_args->Add(
+      new (Z) LoadLocalNode(Scanner::kNoSourcePos, async_op_var));
+  StaticCallNode* error_wrapper_call = new (Z) StaticCallNode(
+      Scanner::kNoSourcePos,
+      async_error_wrapper_helper,
+      async_error_wrapper_helper_args);
+  LocalVariable* async_catch_error_callback_var =
+      current_block_->scope->LookupVariable(
+          Symbols::AsyncCatchErrorCallback(), false);
+  StoreLocalNode* store_async_catch_error_callback = new (Z) StoreLocalNode(
+      Scanner::kNoSourcePos,
+      async_catch_error_callback_var,
+      error_wrapper_call);
+
+  current_block_->statements->Add(store_async_catch_error_callback);
 
   // :controller = new _AsyncStarStreamController(body_closure);
   ArgumentListNode* arguments = new(Z) ArgumentListNode(Scanner::kNoSourcePos);
@@ -7061,6 +7137,54 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
       async_op_var,
       cn);
   current_block_->statements->Add(store_async_op);
+
+  const Library& async_lib = Library::Handle(Library::AsyncLibrary());
+  // :async_then_callback = _asyncThenWrapperHelper(:async_op)
+  const Function& async_then_wrapper_helper = Function::ZoneHandle(
+      Z, async_lib.LookupFunctionAllowPrivate(
+          Symbols::AsyncThenWrapperHelper()));
+  ASSERT(!async_then_wrapper_helper.IsNull());
+  ArgumentListNode* async_then_wrapper_helper_args = new (Z) ArgumentListNode(
+      Scanner::kNoSourcePos);
+  async_then_wrapper_helper_args->Add(
+      new (Z) LoadLocalNode(Scanner::kNoSourcePos, async_op_var));
+  StaticCallNode* then_wrapper_call = new (Z) StaticCallNode(
+      Scanner::kNoSourcePos,
+      async_then_wrapper_helper,
+      async_then_wrapper_helper_args);
+  LocalVariable* async_then_callback_var =
+      current_block_->scope->LookupVariable(
+          Symbols::AsyncThenCallback(), false);
+  StoreLocalNode* store_async_then_callback = new (Z) StoreLocalNode(
+      Scanner::kNoSourcePos,
+      async_then_callback_var,
+      then_wrapper_call);
+
+  current_block_->statements->Add(store_async_then_callback);
+
+  // :async_catch_error_callback = _asyncErrorWrapperHelper(:async_op)
+
+  const Function& async_error_wrapper_helper = Function::ZoneHandle(
+      Z, async_lib.LookupFunctionAllowPrivate(
+          Symbols::AsyncErrorWrapperHelper()));
+  ASSERT(!async_error_wrapper_helper.IsNull());
+  ArgumentListNode* async_error_wrapper_helper_args = new (Z) ArgumentListNode(
+      Scanner::kNoSourcePos);
+  async_error_wrapper_helper_args->Add(
+      new (Z) LoadLocalNode(Scanner::kNoSourcePos, async_op_var));
+  StaticCallNode* error_wrapper_call = new (Z) StaticCallNode(
+      Scanner::kNoSourcePos,
+      async_error_wrapper_helper,
+      async_error_wrapper_helper_args);
+  LocalVariable* async_catch_error_callback_var =
+      current_block_->scope->LookupVariable(
+          Symbols::AsyncCatchErrorCallback(), false);
+  StoreLocalNode* store_async_catch_error_callback = new (Z) StoreLocalNode(
+      Scanner::kNoSourcePos,
+      async_catch_error_callback_var,
+      error_wrapper_call);
+
+  current_block_->statements->Add(store_async_catch_error_callback);
 
   // Add to AST:
   //   new Future.microtask(:async_op);
