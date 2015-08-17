@@ -387,7 +387,7 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   /// Attempts to propagate an assignment in an expression statement.
-  /// 
+  ///
   /// Returns a callback to be invoked after the sucessor statement has
   /// been processed.
   Function processExpressionStatement(ExpressionStatement stmt) {
@@ -405,7 +405,7 @@ class StatementRewriter extends Transformer implements Pass {
         return (Statement next) {
           popDominatingAssignment(leftHand);
           if (assign.variable.readCount > 0) {
-            // The assignment could not be propagated into the successor, 
+            // The assignment could not be propagated into the successor,
             // either because it [hasUnsafeVariableUse] or because the
             // use is outside the current try block, and we do not currently
             // support constant propagation out of a try block.
@@ -841,15 +841,18 @@ class StatementRewriter extends Transformer implements Pass {
     BuiltinOperator commuted = commuteBinaryOperator(node.operator);
     if (commuted != null) {
       assert(node.arguments.length == 2); // Only binary operators can commute.
-      VariableUse arg1 = node.arguments[0];
-      VariableUse arg2 = node.arguments[1];
-      if (propagatableVariable == arg1.variable &&
-          propagatableVariable != arg2.variable &&
-          !constantEnvironment.containsKey(arg2.variable)) {
-        // An assignment can be propagated if we commute the operator.
-        node.operator = commuted;
-        node.arguments[0] = arg2;
-        node.arguments[1] = arg1;
+      Expression left = node.arguments[0];
+      if (left is VariableUse && propagatableVariable == left.variable) {
+        Expression right = node.arguments[1];
+        if (right is This ||
+            (right is VariableUse &&
+             propagatableVariable != right.variable &&
+             !constantEnvironment.containsKey(right.variable))) {
+          // An assignment can be propagated if we commute the operator.
+          node.operator = commuted;
+          node.arguments[0] = right;
+          node.arguments[1] = left;
+        }
       }
     }
     _rewriteList(node.arguments);
