@@ -5,11 +5,19 @@
 // Sanity check on the growing behavior of a growable list.
 
 import "package:expect/expect.dart";
-import "dart:collection" show IterableBase;
+
+void main() {
+  testConstructor();
+
+  bool checked = false;
+  assert((checked = true));
+  // Concurrent modification checks are only guaranteed in checked mode.
+  if (checked) testConcurrentModification();
+}
 
 // Iterable generating numbers in range [0..count).
 // May perform callback at some point underways.
-class TestIterableBase extends IterableBase<int> {
+class TestIterableBase extends Iterable<int> {
   final int length;
   final int count;
   // call [callback] if generating callbackIndex.
@@ -55,29 +63,66 @@ class CallbackIterator implements Iterator<int> {
   int get current => _current;
 }
 
+void testConstructor() {
+  // Constructor can make both growable and fixed-length lists.
+  testGrowable(list) {
+    Expect.isTrue(list is List<int>);
+    Expect.isFalse(list is List<String>);
+    int length = list.length;
+    list.add(42);
+    Expect.equals(list.length, length + 1);
+  }
 
-void main() {
+  testFixedLength(list) {
+    Expect.isTrue(list is List<int>);
+    int length = list.length;
+    Expect.throws(() { list.add(42); }, null, "adding to fixed-length list");
+    Expect.equals(length, list.length);
+  }
+
+  bool checked = false;
+  assert((checked = true));
+  testThrowsOrTypeError(fn, test, [name]) {
+    Expect.throws(fn, checked ? null : test,
+                      checked ? name : "$name w/ TypeError");
+  }
+  testFixedLength(new List<int>(0));
+  testFixedLength(new List<int>(5));
+  testGrowable(new List<int>());
+  testGrowable(new List<int>()..length = 5);
+  Expect.throws(() => new List<int>(-1), (e) => e is ArgumentError, "-1");
+  // There must be limits. Fix this test if we ever allow 10^30 elements.
+  Expect.throws(() => new List<int>(0x1000000000000000000000000000000),
+                (e) => e is ArgumentError, "bignum");
+  Expect.throws(() => new List<int>(null), (e) => e is ArgumentError, "null");
+  testThrowsOrTypeError(() => new List([] as Object),  // Cast to avoid warning.
+                        (e) => e is ArgumentError, 'list');
+  testThrowsOrTypeError(() => new List([42] as Object),
+                        (e) => e is ArgumentError, "list2");
+}
+
+void testConcurrentModification() {
   // Without EfficientLength interface
   {
-    // Change length of list after 20 additions.
+    // Change length of list after 200 additions.
     var l = [];
     var ci = new TestIterable(257, 200, () {
       l.add("X");
     });
     Expect.throws(() {
       l.addAll(ci);
-    }, (e) => e is ConcurrentModificationError);
+    }, (e) => e is ConcurrentModificationError, "cm1");
   }
 
   {
-    // Change length of list after 20 additions.
+    // Change length of list after 200 additions.
     var l = [];
     var ci = new TestIterable(257, 200, () {
       l.length = 0;
     });
     Expect.throws(() {
       l.addAll(ci);
-    }, (e) => e is ConcurrentModificationError);
+    }, (e) => e is ConcurrentModificationError, "cm2");
   }
 
   // With EfficientLength interface (uses length).
@@ -89,7 +134,7 @@ void main() {
     });
     Expect.throws(() {
       l.addAll(ci);
-    }, (e) => e is ConcurrentModificationError);
+    }, (e) => e is ConcurrentModificationError, "cm3");
   }
 
   {
@@ -99,35 +144,37 @@ void main() {
     });
     Expect.throws(() {
       l.addAll(ci);
-    }, (e) => e is ConcurrentModificationError);
+    }, (e) => e is ConcurrentModificationError, "cm4");
   }
 
   {
-    // Length 50, only 25 elements.
+    // Length 500, only 250 elements.
     var l = [];
     var ci = new EfficientTestIterable(500, 250);
     l.addAll(ci);
-    Expect.listEquals(new List.generate(250, (x)=>x), l);
+    Expect.listEquals(new List.generate(250, (x)=>x), l, "cm5");
   }
 
   {
-    // Length 25, but 50 elements.
+    // Length 250, but 500 elements.
     var l = [];
     var ci = new EfficientTestIterable(250, 500);
     l.addAll(ci);
-    Expect.listEquals(new List.generate(500, (x)=>x), l);
+    Expect.listEquals(new List.generate(500, (x)=>x), l, "cm6");
   }
 
   {
     // Adding to yourself.
     var l = [1];
-    Expect.throws(() { l.addAll(l); }, (e) => e is ConcurrentModificationError);
+    Expect.throws(() { l.addAll(l); },
+                  (e) => e is ConcurrentModificationError, "cm7");
   }
 
   {
     // Adding to yourself.
     var l = [1, 2, 3];
-    Expect.throws(() { l.addAll(l); }, (e) => e is ConcurrentModificationError);
+    Expect.throws(() { l.addAll(l); },
+                  (e) => e is ConcurrentModificationError, "cm8");
   }
 }
 

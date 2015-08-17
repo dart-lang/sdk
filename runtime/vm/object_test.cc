@@ -1964,9 +1964,9 @@ static void TestIllegalArrayLength(intptr_t length) {
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   OS::SNPrint(buffer, sizeof(buffer),
       "Unhandled exception:\n"
-      "Invalid argument(s): Length (%" Pd ") must be an integer "
-      "in the range [0..%" Pd "].",
-      length, Array::kMaxElements);
+      "RangeError (length): Invalid value: "
+      "Not in range 0..%" Pd ", inclusive: %" Pd,
+      Array::kMaxElements, length);
   EXPECT_ERROR(result, buffer);
 }
 
