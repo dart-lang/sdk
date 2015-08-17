@@ -7,7 +7,7 @@ library tree_ir.optimization.loop_rewriter;
 import 'optimization.dart' show Pass;
 import '../tree_ir_nodes.dart';
 
-/// Rewrites [WhileTrue] statements.
+/// Rewrites [WhileTrue] statements into [For] statements.
 ///
 /// Before this phase, loops usually contain a lot of "exit code", that is,
 /// code that happens at a point where a [Continue] can no longer be reached,
@@ -50,15 +50,39 @@ import '../tree_ir_nodes.dart';
 ///
 /// A similar transformation is used when S2 occurs in the 'then' position.
 ///
-/// Note that the last pattern above needs no iteration since nested ifs
-/// have been collapsed previously in the [StatementRewriter] phase.
+/// Note that the pattern above needs no iteration since nested ifs have been
+/// collapsed previously in the [StatementRewriter] phase.
+/// 
 ///
-/// [WhileCondition] statements exist only after this phase.
+/// PULL INTO UPDATE EXPRESSION:
+/// 
+/// Assignment expressions before the unique continue to a [whileCondition] are
+/// pulled into the updates for the loop.
+/// 
+///   L:
+///   for (; condition; updates) {
+///     S [ x = E; continue L ]
+///   }
+///     ==>
+///   L:
+///   for (; condition; updates, x = E) {
+///     S [ continue L ]
+///   }
+///
+/// The decision to only pull in assignments is a heuristic to balance 
+/// readability and stack trace usability versus the modest code size
+/// reduction one might get by aggressively moving expressions into the
+/// updates.
 class LoopRewriter extends RecursiveTransformer
                    implements Pass {
   String get passName => 'Loop rewriter';
 
   Set<Label> usedContinueLabels = new Set<Label>();
+
+  /// Maps loop labels to a list, if that loop can accept update expressions.
+  /// The list will then be populated while traversing the body of that loop.
+  /// If a loop is not in the map, update expressions cannot be hoisted there.
+  Map<Label, List<Expression>> updateExpressions = <Label, List<Expression>>{};
 
   void rewrite(FunctionDefinition root) {
     root.body = visitStatement(root.body);
@@ -96,26 +120,29 @@ class LoopRewriter extends RecursiveTransformer
       }
     }
 
-    // Rewrite while(true) to while(condition).
+    // Rewrite while(true) to for(; condition; updates).
     Statement loop = node;
     if (node.body is If) {
       If body = node.body;
+      updateExpressions[node.label] = <Expression>[];
       body.thenStatement = visitStatement(body.thenStatement);
       bool thenHasContinue = usedContinueLabels.remove(node.label);
       body.elseStatement = visitStatement(body.elseStatement);
       bool elseHasContinue = usedContinueLabels.remove(node.label);
       if (thenHasContinue && !elseHasContinue) {
         node.label.binding = null; // Prepare to rebind the label.
-        loop = new WhileCondition(
+        loop = new For(
             node.label,
             body.condition,
+            updateExpressions[node.label],
             body.thenStatement,
             body.elseStatement);
       } else if (!thenHasContinue && elseHasContinue) {
         node.label.binding = null;
-        loop = new WhileCondition(
+        loop = new For(
             node.label,
             new Not(body.condition),
+            updateExpressions[node.label],
             body.elseStatement,
             body.thenStatement);
       }
@@ -132,5 +159,43 @@ class LoopRewriter extends RecursiveTransformer
     if (head == null) return loop;
     tail.body = loop;
     return head;
+  }
+
+  Statement visitExpressionStatement(ExpressionStatement node) {
+    if (updateExpressions.isEmpty) {
+      // Avoid allocating a list if there is no loop.
+      return super.visitExpressionStatement(node);
+    }
+    List<ExpressionStatement> statements = <ExpressionStatement>[];
+    while (node.next is ExpressionStatement) {
+      statements.add(node);
+      node = node.next;
+    }
+    statements.add(node);
+    Statement next = visitStatement(node.next);
+    if (next is Continue && next.target.useCount == 1) {
+      List<Expression> updates = updateExpressions[next.target];
+      if (updates != null) {
+        // Pull expressions before the continue into the for loop update.
+        // As a heuristic, we only pull in assignment expressions.
+        // Determine the index of the first assignment to pull in.
+        int index = statements.length;
+        while (index > 0 && statements[index - 1].expression is Assign) {
+          --index;
+        }
+        for (ExpressionStatement stmt in statements.skip(index)) {
+          updates.add(stmt.expression);
+        }
+        if (index > 0) {
+          statements[index - 1].next = next;
+          return statements.first;
+        } else {
+          return next;
+        }
+      }
+    }
+    // The expression statements could not be pulled into a loop update.
+    node.next = next;
+    return statements.first;
   }
 }

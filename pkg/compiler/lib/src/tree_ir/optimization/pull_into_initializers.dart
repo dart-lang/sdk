@@ -160,7 +160,7 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
-  Statement visitWhileCondition(WhileCondition node) {
+  Statement visitFor(For node) {
     return node;
   }
 

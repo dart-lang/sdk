@@ -86,10 +86,8 @@ main() {
 r"""
 function() {
   var a = null, i = 0;
-  while (i < 10) {
-    a = new V.main_closure(i);
-    i = i + 1;
-  }
+  for (; i < 10; a = new V.main_closure(i), i = i + 1)
+    ;
   P.print(a.call$0());
 }"""),
 

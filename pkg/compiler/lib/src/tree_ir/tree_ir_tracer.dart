@@ -127,7 +127,7 @@ class BlockCollector extends StatementVisitor {
     visitStatement(node.body);
   }
 
-  visitWhileCondition(WhileCondition node) {
+  visitFor(For node) {
     Block whileBlock = new Block();
     _addGotoStatement(whileBlock);
 
@@ -297,11 +297,13 @@ class TreeTracer extends TracerUtil with StatementVisitor {
     printStatement(null, "while true do");
   }
 
-  visitWhileCondition(WhileCondition node) {
+  visitFor(For node) {
     String bodyTarget = collector.substatements[node.body].name;
     String nextTarget = collector.substatements[node.next].name;
+    String updates = node.updates.map(expr).join(', ');
     printStatement(null, "while ${expr(node.condition)}");
     printStatement(null, "do $bodyTarget");
+    printStatement(null, "updates ($updates)");
     printStatement(null, "then $nextTarget" );
   }
 

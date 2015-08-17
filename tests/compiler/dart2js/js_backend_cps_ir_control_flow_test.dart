@@ -57,11 +57,10 @@ main() {
 }""", """
 function() {
   var i = 0;
-  while (V.foo(true) === true) {
+  for (; V.foo(true) === true; i = V.foo(i)) {
     P.print(1);
     if (V.foo(false) === true)
       break;
-    i = V.foo(i);
   }
   P.print(2);
 }"""),
@@ -136,11 +135,10 @@ main() {
 }""",r"""
 function() {
   var list = [1, 2, 3, 4, 5, 6], $length = list.length, i = 0;
-  while (i < list.length) {
+  for (; i < list.length; i = i + 1) {
     P.print(list[i]);
     if ($length !== list.length)
       H.throwConcurrentModificationError(list);
-    i = i + 1;
   }
 }"""),
   const TestEntry("""
@@ -158,7 +156,7 @@ function() {
     H.throwConcurrentModificationError(xs);
   i = 0;
   i1 = 0;
-  while (i < xs.length) {
+  for (; i < xs.length; i = i + 1, i1 = i1 + 1) {
     current = xs[i];
     if (length1 !== ys.length)
       H.throwConcurrentModificationError(ys);
@@ -169,8 +167,6 @@ function() {
     P.print(current1);
     if ($length !== xs.length)
       H.throwConcurrentModificationError(xs);
-    i = i + 1;
-    i1 = i1 + 1;
   }
 }"""),
 ];

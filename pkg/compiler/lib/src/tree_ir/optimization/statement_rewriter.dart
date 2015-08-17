@@ -664,9 +664,9 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
-  Statement visitWhileCondition(WhileCondition node) {
+  Statement visitFor(For node) {
     // Not introduced yet
-    throw "Unexpected WhileCondition in StatementRewriter";
+    throw "Unexpected For in StatementRewriter";
   }
 
   Statement visitTry(Try node) {
