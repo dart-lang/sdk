@@ -161,8 +161,11 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   uword* dest_addr = reinterpret_cast<uword*>(slot());
   Function& function = Function::Handle(zone);
   function ^= deopt_context->ObjectAt(index_);
-  // Null case is already handled in DeoptPcMarkerInstr::Execute.
-  ASSERT(!function.IsNull());
+  if (function.IsNull()) {
+    // Callee's PC marker is not used (pc of Deoptimize stub). Set to 0.
+    *dest_addr = 0;
+    return;
+  }
   const Error& error = Error::Handle(zone,
       Compiler::EnsureUnoptimizedCode(thread, function));
   if (!error.IsNull()) {

@@ -651,13 +651,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    Function& function = Function::Handle(deopt_context->zone());
-    function ^= deopt_context->ObjectAt(object_table_index_);
-    if (function.IsNull()) {
-      // Callee's PC marker is not used (pc of Deoptimize stub). Set to 0.
-      *dest_addr = Smi::RawValue(0);
-      return;
-    }
+    *dest_addr = Smi::RawValue(0);
     deopt_context->DeferPcMarkerMaterialization(
         object_table_index_, dest_addr);
   }
