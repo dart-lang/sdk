@@ -47,6 +47,26 @@
 
 * `dart:mirrors`
   * `InstanceMirror.delegate` moved up to `ObjectMirror`.
+  * Fix InstanceMirror.getField optimization when the selector is an operator.
+  * Fix reflective NoSuchMethodErrors to match their non-reflective counterparts when due
+    to argument mismatches.
+
+* `dart:developer`
+  * New `log` function to transmit logging events to Observatory.
+  
+
+* Observatory
+  * Allocation profiling.
+  * New feature to display output from logging.
+  * Heap snapshot analysis works for 64-bit VMs.
+  * Improved ability to inspect typed data, regex and compiled code.
+  * Ability to break on all or uncaught exceptions from Observatory's debugger.
+  * Ability to set closure-specific breakpoints.
+  * 'anext' - step past await/yield.
+  * Preserve when a variable has been expanded/unexpanded in the debugger.
+  * Keep focus on debugger input box whenever possible.
+  * Echo stdout/stderr in the Observatory debugger.  Standalone-only so far.
+  * Minor fixes to service protocol documentation.
 
 ### Tool changes
 
