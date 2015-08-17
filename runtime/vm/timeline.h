@@ -196,11 +196,6 @@ class TimelineStream {
 
   // Records an event. Will return |NULL| if not enabled. The returned
   // |TimelineEvent| is in an undefined state and must be initialized.
-  // |obj| is associated with the returned |TimelineEvent|.
-  TimelineEvent* StartEvent(const Object& obj);
-
-  // Records an event. Will return |NULL| if not enabled. The returned
-  // |TimelineEvent| is in an undefined state and must be initialized.
   TimelineEvent* StartEvent();
 
   void CompleteEvent(TimelineEvent* event);
@@ -390,8 +385,6 @@ class TimelineEventRecorder {
 
  protected:
   // Interface method(s) which must be implemented.
-  virtual void VisitObjectPointers(ObjectPointerVisitor* visitor) = 0;
-  virtual TimelineEvent* StartEvent(const Object& object) = 0;
   virtual TimelineEvent* StartEvent() = 0;
   virtual void CompleteEvent(TimelineEvent* event) = 0;
 
@@ -412,7 +405,6 @@ class TimelineEventRecorder {
 
 
 // A recorder that stores events in a ring buffer of fixed capacity.
-// This recorder does track Dart objects.
 class TimelineEventRingRecorder : public TimelineEventRecorder {
  public:
   static const intptr_t kDefaultCapacity = 8192;
@@ -425,8 +417,6 @@ class TimelineEventRingRecorder : public TimelineEventRecorder {
   TimelineEventBlock* GetHeadBlock();
 
  protected:
-  void VisitObjectPointers(ObjectPointerVisitor* visitor);
-  TimelineEvent* StartEvent(const Object& object);
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
 
@@ -444,7 +434,6 @@ class TimelineEventRingRecorder : public TimelineEventRecorder {
 
 
 // An abstract recorder that calls |StreamEvent| whenever an event is complete.
-// This recorder does not track Dart objects.
 class TimelineEventStreamingRecorder : public TimelineEventRecorder {
  public:
   TimelineEventStreamingRecorder();
@@ -463,15 +452,12 @@ class TimelineEventStreamingRecorder : public TimelineEventRecorder {
   virtual void StreamEvent(TimelineEvent* event) = 0;
 
  protected:
-  void VisitObjectPointers(ObjectPointerVisitor* visitor);
-  TimelineEvent* StartEvent(const Object& object);
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
 };
 
 
 // A recorder that stores events in chains of blocks of events.
-// This recorder does not track Dart objects.
 // NOTE: This recorder will continue to allocate blocks until it exhausts
 // memory.
 class TimelineEventEndlessRecorder : public TimelineEventRecorder {
@@ -493,8 +479,6 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   void PrintJSON(JSONStream* js);
 
  protected:
-  void VisitObjectPointers(ObjectPointerVisitor* visitor);
-  TimelineEvent* StartEvent(const Object& object);
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
 

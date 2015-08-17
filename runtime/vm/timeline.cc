@@ -259,20 +259,6 @@ void TimelineStream::Init(const char* name, bool enabled) {
 }
 
 
-TimelineEvent* TimelineStream::StartEvent(const Object& obj) {
-  if (!enabled_ || (recorder_ == NULL)) {
-    return NULL;
-  }
-  ASSERT(name_ != NULL);
-  ASSERT(recorder_ != NULL);
-  TimelineEvent* event = recorder_->StartEvent(obj);
-  if (event != NULL) {
-    event->StreamInit(this);
-  }
-  return event;
-}
-
-
 TimelineEvent* TimelineStream::StartEvent() {
   if (!enabled_ || (recorder_ == NULL)) {
     return NULL;
@@ -493,31 +479,6 @@ intptr_t TimelineEventRingRecorder::FindOldestBlockIndex() const {
 }
 
 
-void TimelineEventRingRecorder::VisitObjectPointers(
-    ObjectPointerVisitor* visitor) {
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&event_objects_));
-}
-
-
-TimelineEvent* TimelineEventRingRecorder::StartEvent(const Object& obj) {
-  TimelineEvent* event = StartEvent();
-  if (event == NULL) {
-    return NULL;
-  }
-  // Grab the thread's timeline event block which contains |event|.
-  Thread* thread = Thread::Current();
-  TimelineEventBlock* thread_block = thread->timeline_block();
-  ASSERT(thread_block != NULL);
-  ASSERT(thread_block->length() > 0);
-  const intptr_t block_index = thread_block->block_index();
-  const intptr_t event_objects_index =
-      block_index * TimelineEventBlock::kBlockSize + thread_block->length() - 1;
-  const Array& event_objects = Array::Handle(event_objects_);
-  event_objects.SetAt(event_objects_index, obj);
-  return event;
-}
-
-
 TimelineEvent* TimelineEventRingRecorder::StartEvent() {
   return ThreadBlockStartEvent();
 }
@@ -543,19 +504,6 @@ void TimelineEventStreamingRecorder::PrintJSON(JSONStream* js) {
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(&events);
   }
-}
-
-
-void TimelineEventStreamingRecorder::VisitObjectPointers(
-    ObjectPointerVisitor* visitor) {
-  // no-op.
-}
-
-
-TimelineEvent* TimelineEventStreamingRecorder::StartEvent(
-    const Object& object) {
-  // The streaming recorder does not track Dart objects.
-  return StartEvent();
 }
 
 
@@ -598,17 +546,6 @@ TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlock() {
 
 TimelineEventBlock* TimelineEventEndlessRecorder::GetHeadBlock() {
   return head_;
-}
-
-
-void TimelineEventEndlessRecorder::VisitObjectPointers(
-    ObjectPointerVisitor* visitor) {
-  // no-op.
-}
-
-
-TimelineEvent* TimelineEventEndlessRecorder::StartEvent(const Object& object) {
-  return StartEvent();
 }
 
 
