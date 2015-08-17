@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/isolate.h"
 #include "vm/longjump.h"
+#include "vm/thread.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -18,7 +18,7 @@ static void LongJumpHelper(LongJumpScope* jump) {
 
 
 TEST_CASE(LongJump) {
-  LongJumpScope* base = Isolate::Current()->long_jump_base();
+  LongJumpScope* base = Thread::Current()->long_jump_base();
   {
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
@@ -26,7 +26,7 @@ TEST_CASE(LongJump) {
       UNREACHABLE();
     }
   }
-  ASSERT(base == Isolate::Current()->long_jump_base());
+  ASSERT(base == Thread::Current()->long_jump_base());
 }
 
 }  // namespace dart

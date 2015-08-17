@@ -153,7 +153,7 @@ static void StackResourceLongJumpHelper(int* ptr, LongJumpScope* jump) {
 
 
 TEST_CASE(StackResourceLongJump) {
-  LongJumpScope* base = Isolate::Current()->long_jump_base();
+  LongJumpScope* base = Thread::Current()->long_jump_base();
   {
     LongJumpScope jump;
     int data = 1;
@@ -163,7 +163,7 @@ TEST_CASE(StackResourceLongJump) {
     }
     EXPECT_EQ(7, data);
   }
-  ASSERT(base == Isolate::Current()->long_jump_base());
+  ASSERT(base == Thread::Current()->long_jump_base());
 }
 
 }  // namespace dart

@@ -16,6 +16,7 @@ class HandleScope;
 class Heap;
 class InterruptableThreadState;
 class Isolate;
+class LongJumpScope;
 class Object;
 class RawBool;
 class RawObject;
@@ -201,6 +202,7 @@ class Thread {
     TimelineEventBlock* timeline_block;
     // TODO(koda): Migrate individual fields of InterruptableThreadState.
     InterruptableThreadState* thread_state;
+    LongJumpScope* long_jump_base;
 #if defined(DEBUG)
     HandleScope* top_handle_scope;
     intptr_t no_handle_scope_depth;
@@ -224,6 +226,11 @@ CACHED_CONSTANTS_LIST(DEFINE_OFFSET_METHOD)
 
   void set_timeline_block(TimelineEventBlock* block) {
     state_.timeline_block = block;
+  }
+
+  LongJumpScope* long_jump_base() const { return state_.long_jump_base; }
+  void set_long_jump_base(LongJumpScope* value) {
+    state_.long_jump_base = value;
   }
 
  private:

@@ -303,20 +303,21 @@ intptr_t SnapshotReader::NextAvailableObjectId() const {
 
 
 void SnapshotReader::SetReadException(const char* msg) {
-  Isolate* isolate = Isolate::Current();
-  const String& error_str = String::Handle(isolate, String::New(msg));
-  const Array& args = Array::Handle(isolate, Array::New(1));
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const String& error_str = String::Handle(zone, String::New(msg));
+  const Array& args = Array::Handle(zone, Array::New(1));
   args.SetAt(0, error_str);
-  Object& result = Object::Handle(isolate);
-  const Library& library = Library::Handle(isolate, Library::CoreLibrary());
+  Object& result = Object::Handle(zone);
+  const Library& library = Library::Handle(zone, Library::CoreLibrary());
   result = DartLibraryCalls::InstanceCreate(library,
                                             Symbols::ArgumentError(),
                                             Symbols::Dot(),
                                             args);
-  const Stacktrace& stacktrace = Stacktrace::Handle(isolate);
+  const Stacktrace& stacktrace = Stacktrace::Handle(zone);
   const UnhandledException& error = UnhandledException::Handle(
-      isolate, UnhandledException::New(Instance::Cast(result), stacktrace));
-  isolate->long_jump_base()->Jump(1, error);
+      zone, UnhandledException::New(Instance::Cast(result), stacktrace));
+  thread->long_jump_base()->Jump(1, error);
 }
 
 
@@ -1065,7 +1066,7 @@ RawObject* SnapshotReader::AllocateUninitialized(intptr_t class_id,
     // read part and return the error object back.
     const UnhandledException& error = UnhandledException::Handle(
         object_store()->preallocated_unhandled_exception());
-    Isolate::Current()->long_jump_base()->Jump(1, error);
+    Thread::Current()->long_jump_base()->Jump(1, error);
   }
   VerifiedMemory::Accept(address, size);
 
@@ -2178,7 +2179,7 @@ void SnapshotWriter::SetWriteException(Exceptions::ExceptionType type,
   set_exception_type(type);
   set_exception_msg(msg);
   // The more specific error is set up in SnapshotWriter::ThrowException().
-  isolate()->long_jump_base()->
+  thread()->long_jump_base()->
       Jump(1, Object::snapshot_writer_error());
 }
 

@@ -17,7 +17,7 @@ namespace dart {
 
 jmp_buf* LongJumpScope::Set() {
   ASSERT(top_ == NULL);
-  top_ = Isolate::Current()->top_resource();
+  top_ = Thread::Current()->top_resource();
   return &environment_;
 }
 
@@ -25,12 +25,16 @@ jmp_buf* LongJumpScope::Set() {
 bool LongJumpScope::IsSafeToJump() {
   // We do not want to jump past Dart frames.  Note that this code
   // assumes the stack grows from high to low.
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
   uword jumpbuf_addr = Isolate::GetCurrentStackPointer();
 #if defined(USING_SIMULATOR)
-  uword top_exit_frame_info = isolate->simulator()->top_exit_frame_info();
+  {
+    Isolate* isolate = thread->isolate();
+    ASSERT(isolate->MutatorThreadIsCurrentThread());
+    uword top_exit_frame_info = isolate->simulator()->top_exit_frame_info();
+  }
 #else
-  uword top_exit_frame_info = isolate->top_exit_frame_info();
+  uword top_exit_frame_info = thread->top_exit_frame_info();
 #endif
   return ((top_exit_frame_info == 0) || (jumpbuf_addr < top_exit_frame_info));
 }

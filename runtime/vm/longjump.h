@@ -17,14 +17,14 @@ class Error;
 class LongJumpScope : public StackResource {
  public:
   LongJumpScope()
-    : StackResource(Isolate::Current()),
+    : StackResource(Thread::Current()),
       top_(NULL),
-      base_(Isolate::Current()->long_jump_base()) {
-    Isolate::Current()->set_long_jump_base(this);
+      base_(Thread::Current()->long_jump_base()) {
+    Thread::Current()->set_long_jump_base(this);
   }
 
   ~LongJumpScope() {
-    Isolate::Current()->set_long_jump_base(base_);
+    Thread::Current()->set_long_jump_base(base_);
   }
 
   jmp_buf* Set();

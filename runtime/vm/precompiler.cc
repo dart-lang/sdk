@@ -24,7 +24,7 @@ DEFINE_FLAG(bool, trace_precompiler, false, "Trace precompiler.");
 
 
 static void Jump(const Error& error) {
-  Isolate::Current()->long_jump_base()->Jump(1, error);
+  Thread::Current()->long_jump_base()->Jump(1, error);
 }
 
 

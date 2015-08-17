@@ -88,7 +88,7 @@ RawString* Report::PrependSnippet(Kind kind,
 
 
 void Report::LongJump(const Error& error) {
-  Isolate::Current()->long_jump_base()->Jump(1, error);
+  Thread::Current()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
 

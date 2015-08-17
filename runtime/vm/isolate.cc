@@ -661,7 +661,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       flags_(),
       random_(),
       simulator_(NULL),
-      long_jump_base_(NULL),
       timer_list_(),
       deopt_id_(0),
       mutex_(new Mutex()),

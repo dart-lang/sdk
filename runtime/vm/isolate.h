@@ -51,7 +51,6 @@ class IsolateSpawnState;
 class InterruptableThreadState;
 class Library;
 class Log;
-class LongJumpScope;
 class MessageHandler;
 class Mutex;
 class Object;
@@ -238,9 +237,6 @@ class Isolate : public BaseIsolate {
   ApiState* api_state() const { return api_state_; }
   void set_api_state(ApiState* value) { api_state_ = value; }
 
-  LongJumpScope* long_jump_base() const { return long_jump_base_; }
-  void set_long_jump_base(LongJumpScope* value) { long_jump_base_ = value; }
-
   TimerList& timer_list() { return timer_list_; }
 
   void set_init_callback_data(void* value) {
@@ -271,6 +267,7 @@ class Isolate : public BaseIsolate {
 
   // Returns the current C++ stack pointer. Equivalent taking the address of a
   // stack allocated local, but plays well with AddressSanitizer.
+  // TODO(koda): Move to Thread.
   static uword GetCurrentStackPointer();
 
   // Returns true if any of the interrupts specified by 'interrupt_bits' are
@@ -823,7 +820,6 @@ class Isolate : public BaseIsolate {
   Flags flags_;
   Random random_;
   Simulator* simulator_;
-  LongJumpScope* long_jump_base_;
   TimerList timer_list_;
   intptr_t deopt_id_;
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.

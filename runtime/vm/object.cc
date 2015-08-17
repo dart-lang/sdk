@@ -2954,6 +2954,7 @@ RawObject* Class::Evaluate(const String& expr,
 
 
 // Ensure that top level parsing of the class has been done.
+// TODO(24109): Migrate interface to Thread*.
 RawError* Class::EnsureIsFinalized(Isolate* isolate) const {
   // Finalized classes have already been parsed.
   if (is_finalized()) {
@@ -2961,9 +2962,12 @@ RawError* Class::EnsureIsFinalized(Isolate* isolate) const {
   }
   ASSERT(isolate != NULL);
   const Error& error = Error::Handle(isolate, Compiler::CompileClass(*this));
-  if (!error.IsNull() && (isolate->long_jump_base() != NULL)) {
-    Report::LongJump(error);
-    UNREACHABLE();
+  if (!error.IsNull()) {
+    ASSERT(isolate == Thread::Current()->isolate());
+    if (Thread::Current()->long_jump_base() != NULL) {
+      Report::LongJump(error);
+      UNREACHABLE();
+    }
   }
   return error.raw();
 }

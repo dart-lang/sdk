@@ -446,7 +446,7 @@ void Parser::SetPosition(intptr_t position) {
 void Parser::ParseCompilationUnit(const Library& library,
                                   const Script& script) {
   Thread* thread = Thread::Current();
-  ASSERT(thread->isolate()->long_jump_base()->IsSafeToJump());
+  ASSERT(thread->long_jump_base()->IsSafeToJump());
   CSTAT_TIMER_SCOPE(thread->isolate(), parser_timer);
   VMTagScope tagScope(thread, VMTag::kCompileTopLevelTagId);
   Parser parser(script, library, 0);
@@ -772,19 +772,23 @@ struct TopLevel {
 
 void Parser::ParseClass(const Class& cls) {
   if (!cls.is_synthesized_class()) {
-    Isolate* isolate = Isolate::Current();
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    Zone* zone = thread->zone();
     CSTAT_TIMER_SCOPE(isolate, parser_timer);
-    ASSERT(isolate->long_jump_base()->IsSafeToJump());
-    const Script& script = Script::Handle(isolate, cls.script());
-    const Library& lib = Library::Handle(isolate, cls.library());
+    ASSERT(thread->long_jump_base()->IsSafeToJump());
+    const Script& script = Script::Handle(zone, cls.script());
+    const Library& lib = Library::Handle(zone, cls.library());
     Parser parser(script, lib, cls.token_pos());
     parser.ParseClassDefinition(cls);
   } else if (cls.is_enum_class()) {
-    Isolate* isolate = Isolate::Current();
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    Zone* zone = thread->zone();
     CSTAT_TIMER_SCOPE(isolate, parser_timer);
-    ASSERT(isolate->long_jump_base()->IsSafeToJump());
-    const Script& script = Script::Handle(isolate, cls.script());
-    const Library& lib = Library::Handle(isolate, cls.library());
+    ASSERT(thread->long_jump_base()->IsSafeToJump());
+    const Script& script = Script::Handle(zone, cls.script());
+    const Library& lib = Library::Handle(zone, cls.library());
     Parser parser(script, lib, cls.token_pos());
     parser.ParseEnumDefinition(cls);
   }
@@ -881,7 +885,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   VMTagScope tagScope(thread, VMTag::kCompileParseFunctionTagId,
                       FLAG_profile_vm);
 
-  ASSERT(isolate->long_jump_base()->IsSafeToJump());
+  ASSERT(thread->long_jump_base()->IsSafeToJump());
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
   const Script& script = Script::Handle(zone, func.script());
@@ -12038,7 +12042,7 @@ RawObject* Parser::EvaluateConstConstructorCall(
       if (result.IsUnhandledException()) {
         return result.raw();
       } else {
-        I->long_jump_base()->Jump(1, Error::Cast(result));
+        thread()->long_jump_base()->Jump(1, Error::Cast(result));
         UNREACHABLE();
         return Object::null();
       }
