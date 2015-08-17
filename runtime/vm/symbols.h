@@ -103,11 +103,16 @@ class ObjectPointerVisitor;
   V(YieldKw, "yield")                                                          \
   V(AsyncCompleter, ":async_completer")                                        \
   V(AsyncOperation, ":async_op")                                               \
+  V(AsyncThenCallback, ":async_op_then")                                       \
+  V(AsyncCatchErrorCallback, ":async_op_catch_error")                          \
   V(AsyncOperationParam, ":async_result")                                      \
   V(AsyncOperationErrorParam, ":async_error_param")                            \
   V(AsyncOperationStackTraceParam, ":async_stack_trace_param")                 \
   V(AsyncSavedTryCtxVarPrefix, ":async_saved_try_ctx_var_")                    \
   V(AsyncCatchHelper, "_asyncCatchHelper")                                     \
+  V(AsyncThenWrapperHelper, "_asyncThenWrapperHelper")                         \
+  V(AsyncErrorWrapperHelper, "_asyncErrorWrapperHelper")                       \
+  V(AsyncAwaitHelper, "_awaitHelper")                                          \
   V(Await, "await")                                                            \
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
