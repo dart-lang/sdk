@@ -4,15 +4,12 @@
   * `Uri` added `removeFragment` method.
   * `String.allMatches` (implementing `Pattern.allMatches`) is now lazy,
     as all `allMatches` implementations are intended to be.
+
 * `dart:io`
   * `HttpClient` no longer sends URI fragments in the requeust. This is not
     allowed by the HTTP protocol.
     The `HttpServer` still gracefully receives fragments, but discards them
     before delivering the request.
-* `dart:async`
-  * `StreamController` added getters for the `onListen`, `onPause`, `onResume`
-    and `onCancel` callbacks.
-
 
 ## 1.12.0
 
@@ -31,6 +28,9 @@
     Purely relative paths (no scheme or authority) are allowed to retain
     some leading "dot" segments.
     Also added `hasAbsolutePath`, `hasEmptyPath`, and `hasScheme` properties.
+
+* `dart:developer`
+  * New `log` function to transmit logging events to Observatory.
 
 * `dart:html`
   * `NodeTreeSanitizer` added the `const trusted` field. It can be used
@@ -55,10 +55,45 @@
   * Fix reflective NoSuchMethodErrors to match their non-reflective
     counterparts when due to argument mismatches. (VM only)
 
-* `dart:developer`
-  * New `log` function to transmit logging events to Observatory.
-
 ### Tool changes
+
+* Documentation tools
+
+  * `dartdoc` is now the default tool to generate static HTML for API docs.
+    [Learn more](https://pub.dartlang.org/packages/dartdoc).
+
+  * `docgen` and `dartdocgen` have been deprecated. Currently plan is to remove
+    them in 1.13.
+
+* Formatter (`dartfmt`)
+
+  * Over 50 bugs fixed.
+
+  * Optimized line splitter is much faster and produces better output on
+    complex code.
+
+* Observatory
+  * Allocation profiling.
+
+  * New feature to display output from logging.
+
+  * Heap snapshot analysis works for 64-bit VMs.
+
+  * Improved ability to inspect typed data, regex and compiled code.
+
+  * Ability to break on all or uncaught exceptions from Observatory's debugger.
+
+  * Ability to set closure-specific breakpoints.
+
+  * 'anext' - step past await/yield.
+
+  * Preserve when a variable has been expanded/unexpanded in the debugger.
+
+  * Keep focus on debugger input box whenever possible.
+
+  * Echo stdout/stderr in the Observatory debugger.  Standalone-only so far.
+
+  * Minor fixes to service protocol documentation.
 
 * Pub
 
@@ -124,35 +159,6 @@
       will now be re-run if that asset is later created.
 
 [package spec proposal]: https://github.com/lrhn/dep-pkgspec
-
-* Formatter (`dartfmt`)
-
-  * Over 50 bugs fixed.
-
-  * Optimized line splitter is much faster and produces better output on
-    complex code.
-
-* Observatory
-  * Allocation profiling.
-  * New feature to display output from logging.
-  * Heap snapshot analysis works for 64-bit VMs.
-  * Improved ability to inspect typed data, regex and compiled code.
-  * Ability to break on all or uncaught exceptions from Observatory's debugger.
-  * Ability to set closure-specific breakpoints.
-  * 'anext' - step past await/yield.
-  * Preserve when a variable has been expanded/unexpanded in the debugger.
-  * Keep focus on debugger input box whenever possible.
-  * Echo stdout/stderr in the Observatory debugger.  Standalone-only so far.
-  * Minor fixes to service protocol documentation.
-
-* dartdocgen and docgen
-  * Deprecated in favor of dartdoc (see below). Currently plan is to remove
-    dartdocgen in 1.13.
-
-* dartdoc
-  * New tool to generate static HTML for API docs.
-    [Learn more](https://pub.dartlang.org/packages/dartdoc).
-
 
 ### VM Service Protocol Changes
 
