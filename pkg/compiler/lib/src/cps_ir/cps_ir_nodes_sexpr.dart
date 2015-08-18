@@ -337,7 +337,8 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String arguments = node.arguments.map(access).join(' ');
     String continuation = node.continuation == null ? ''
         : ' ${access(node.continuation)}';
-    return '(JS ${node.type} ${node.codeTemplate} ($arguments)$continuation)';
+    return '$indentation(JS "${node.codeTemplate.source}"'
+        ' ($arguments)$continuation)';
   }
 
   String visitGetLength(GetLength node) {
