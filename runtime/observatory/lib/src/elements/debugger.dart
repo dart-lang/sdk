@@ -317,11 +317,13 @@ class ContinueCommand extends DebuggerCommand {
       '        c\n';
 }
 
-class NextCommand extends DebuggerCommand {
-  NextCommand(Debugger debugger) : super(debugger, 'next', []);
+class SmartNextCommand extends DebuggerCommand {
+  SmartNextCommand(Debugger debugger) : super(debugger, 'next', []) {
+    alias = 'n';
+  }
 
-  Future run(List<String> args) {
-    return debugger.next();
+  Future run(List<String> args) async {
+    return debugger.smartNext();
   }
 
   String helpShort =
@@ -335,6 +337,40 @@ class NextCommand extends DebuggerCommand {
       'Hotkey: [F9]\n'
       '\n'
       'Syntax: next\n';
+}
+
+class SyncNextCommand extends DebuggerCommand {
+  SyncNextCommand(Debugger debugger) : super(debugger, 'next-sync', []);
+
+  Future run(List<String> args) {
+    return debugger.syncNext();
+  }
+
+  String helpShort =
+      'Run until return/unwind to current activation.';
+
+  String helpLong =
+      'Continue running the isolate until control returns to the current '
+      'activation or one of its callers.\n'
+      '\n'
+      'Syntax: next-sync\n';
+}
+
+class AsyncNextCommand extends DebuggerCommand {
+  AsyncNextCommand(Debugger debugger) : super(debugger, 'next-async', []);
+
+  Future run(List<String> args) {
+    return debugger.asyncNext();
+  }
+
+  String helpShort =
+      'Step over await or yield';
+
+  String helpLong =
+      'Continue running the isolate until control returns to the current '
+      'activation of an async or async* function.\n'
+      '\n'
+      'Syntax: next-async\n';
 }
 
 class StepCommand extends DebuggerCommand {
@@ -443,33 +479,6 @@ class LogCommand extends DebuggerCommand {
       '# Display no log messages.\n'
       '        log ALL      '
       '# Display all log messages.\n';
-}
-
-class AsyncNextCommand extends DebuggerCommand {
-  AsyncNextCommand(Debugger debugger) : super(debugger, 'anext', []) {
-  }
-
-  Future run(List<String> args) async {
-    if (debugger.isolatePaused()) {
-      var event = debugger.isolate.pauseEvent;
-      if (event.asyncContinuation == null) {
-        debugger.console.print("No async continuation at this location");
-      } else {
-        return debugger.isolate.asyncStepOver()[Isolate.kFirstResume];
-      }
-    } else {
-      debugger.console.print('The program is already running');
-    }
-  }
-
-  String helpShort =
-      'Step over await or yield';
-
-  String helpLong =
-      'Continue running the isolate until control returns to the current '
-      'activation of an async or async* function.\n'
-      '\n'
-      'Syntax: anext\n';
 }
 
 class FinishCommand extends DebuggerCommand {
@@ -1205,26 +1214,27 @@ class ObservatoryDebugger extends Debugger {
   ObservatoryDebugger() {
     _loadSettings();
     cmd = new RootCommand([
-        new HelpCommand(this),
-        new PrintCommand(this),
-        new DownCommand(this),
-        new UpCommand(this),
-        new FrameCommand(this),
-        new PauseCommand(this),
-        new ContinueCommand(this),
-        new NextCommand(this),
-        new StepCommand(this),
         new AsyncNextCommand(this),
-        new FinishCommand(this),
         new BreakCommand(this),
-        new SetCommand(this),
         new ClearCommand(this),
+        new ClsCommand(this),
+        new ContinueCommand(this),
         new DeleteCommand(this),
+        new DownCommand(this),
+        new FinishCommand(this),
+        new FrameCommand(this),
+        new HelpCommand(this),
         new InfoCommand(this),
         new IsolateCommand(this),
-        new RefreshCommand(this),
         new LogCommand(this),
-        new ClsCommand(this),
+        new PauseCommand(this),
+        new PrintCommand(this),
+        new RefreshCommand(this),
+        new SetCommand(this),
+        new SmartNextCommand(this),
+        new StepCommand(this),
+        new SyncNextCommand(this),
+        new UpCommand(this),
     ]);
     _consolePrinter = new _ConsoleStreamPrinter(this);
   }
@@ -1373,9 +1383,6 @@ class ObservatoryDebugger extends Debugger {
           console.printRef(event.exception);
         } else {
           console.print('Paused at ${script.name}:${line}:${col}');
-        }
-        if (event.asyncContinuation != null) {
-          console.print("Paused in async function: 'anext' available");
         }
       });
     }
@@ -1618,21 +1625,48 @@ class ObservatoryDebugger extends Debugger {
     return new Future.value(null);
   }
 
-  Future next() {
+
+  Future smartNext() async {
+    if (isolatePaused()) {
+      var event = isolate.pauseEvent;
+      if (event.atAsyncJump) {
+        return asyncNext();
+      } else {
+        return syncNext();
+      }
+    } else {
+      console.print('The program is already running');
+    }
+  }
+
+  Future asyncNext() async {
+    if (isolatePaused()) {
+      var event = isolate.pauseEvent;
+      if (event.asyncContinuation == null) {
+        console.print("No async continuation at this location");
+      } else {
+        return isolate.asyncStepOver()[Isolate.kFirstResume];
+      }
+    } else {
+      console.print('The program is already running');
+    }
+  }
+
+  Future syncNext() async {
     if (isolatePaused()) {
       var event = isolate.pauseEvent;
       if (event.kind == ServiceEvent.kPauseStart) {
         console.print("Type 'continue' [F7] or 'step' [F10] to start the isolate");
-        return new Future.value(null);
+        return;
       }
       if (event.kind == ServiceEvent.kPauseExit) {
         console.print("Type 'continue' [F7] to exit the isolate");
-        return new Future.value(null);
+        return;
       }
       return isolate.stepOver();
     } else {
       console.print('The program is already running');
-      return new Future.value(null);
+      return;
     }
   }
 
@@ -2287,7 +2321,7 @@ class DebuggerInputElement extends ObservatoryElement {
 
           case KeyCode.F9:
             e.preventDefault();
-            debugger.next().whenComplete(() {
+            debugger.smartNext().whenComplete(() {
               busy = false;
             });
             break;

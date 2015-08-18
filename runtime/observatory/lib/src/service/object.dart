@@ -1722,6 +1722,7 @@ class ServiceEvent extends ServiceObject {
   @observable Frame topFrame;
   @observable Instance exception;
   @observable Instance asyncContinuation;
+  @observable bool atAsyncJump;
   @observable ServiceObject inspectee;
   @observable ByteData data;
   @observable int count;
@@ -1764,6 +1765,9 @@ class ServiceEvent extends ServiceObject {
     }
     if (map['_asyncContinuation'] != null) {
       asyncContinuation = map['_asyncContinuation'];
+      atAsyncJump = map['_atAsyncJump'];
+    } else {
+      atAsyncJump = false;
     }
     if (map['inspectee'] != null) {
       inspectee = map['inspectee'];
@@ -3643,7 +3647,7 @@ class Frame extends ServiceObject {
     this.variables = map['vars'];
   }
 
-  String toString() => "Frame(${function.qualifiedName})";
+  String toString() => "Frame(${function.qualifiedName} $location)";
 }
 
 

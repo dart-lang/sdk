@@ -209,6 +209,7 @@ IsolateTest stoppedAtLine(int line) {
     expect(stack['frames'].length, greaterThanOrEqualTo(1));
 
     Frame top = stack['frames'][0];
+    print("We are at $top");
     Script script = await top.location.script.load();
     expect(script.tokenToLine(top.location.tokenPos), equals(line));
   };
