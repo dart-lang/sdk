@@ -614,6 +614,8 @@ class RunServiceTask : public ThreadPool::Task {
  public:
   virtual void Run() {
     ASSERT(Isolate::Current() == NULL);
+    TimelineDurationScope tds(Timeline::GetVMStream(),
+                              "ServiceIsolateStartup");
     char* error = NULL;
     Isolate* isolate = NULL;
 
@@ -643,7 +645,6 @@ class RunServiceTask : public ThreadPool::Task {
       return;
     }
 
-    isolate->RemoveTimelineEventRecorder();
 
     Thread::ExitIsolate();
 

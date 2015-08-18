@@ -9279,9 +9279,10 @@ TEST_CASE(Timeline_Dart_TimelineDuration) {
   // Add a duration event.
   Dart_TimelineDuration("testDurationEvent", 0, 1);
   // Check that it is in the output.
-  TimelineEventRecorder* recorder = isolate->timeline_event_recorder();
+  TimelineEventRecorder* recorder = Timeline::recorder();
   JSONStream js;
-  recorder->PrintJSON(&js);
+  IsolateTimelineEventFilter filter(isolate);
+  recorder->PrintJSON(&js, &filter);
   EXPECT_SUBSTRING("testDurationEvent", js.ToCString());
 }
 
@@ -9294,9 +9295,10 @@ TEST_CASE(Timeline_Dart_TimelineInstant) {
   stream->set_enabled(true);
   Dart_TimelineInstant("testInstantEvent");
   // Check that it is in the output.
-  TimelineEventRecorder* recorder = isolate->timeline_event_recorder();
+  TimelineEventRecorder* recorder = Timeline::recorder();
   JSONStream js;
-  recorder->PrintJSON(&js);
+  IsolateTimelineEventFilter filter(isolate);
+  recorder->PrintJSON(&js, &filter);
   EXPECT_SUBSTRING("testInstantEvent", js.ToCString());
 }
 
@@ -9314,9 +9316,10 @@ TEST_CASE(Timeline_Dart_TimelineAsyncDisabled) {
   // Call Dart_TimelineAsyncEnd with a negative async_id.
   Dart_TimelineAsyncEnd("testAsyncEvent", async_id);
   // Check that testAsync is not in the output.
-  TimelineEventRecorder* recorder = isolate->timeline_event_recorder();
+  TimelineEventRecorder* recorder = Timeline::recorder();
   JSONStream js;
-  recorder->PrintJSON(&js);
+  TimelineEventFilter filter;
+  recorder->PrintJSON(&js, &filter);
   EXPECT_NOTSUBSTRING("testAsyncEvent", js.ToCString());
 }
 
@@ -9335,9 +9338,10 @@ TEST_CASE(Timeline_Dart_TimelineAsync) {
   Dart_TimelineAsyncEnd("testAsyncEvent", async_id);
 
   // Check that it is in the output.
-  TimelineEventRecorder* recorder = isolate->timeline_event_recorder();
+  TimelineEventRecorder* recorder = Timeline::recorder();
   JSONStream js;
-  recorder->PrintJSON(&js);
+  IsolateTimelineEventFilter filter(isolate);
+  recorder->PrintJSON(&js, &filter);
   EXPECT_SUBSTRING("testAsyncEvent", js.ToCString());
 }
 
@@ -9411,7 +9415,7 @@ TEST_CASE(Timeline_Dart_TimelineGetTrace) {
   // Heartbeat test.
   EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
   EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
-  EXPECT_SUBSTRING("\"function\":\"main\"", buffer);
+  EXPECT_SUBSTRING("\"function\":\"::_main\"", buffer);
 
   // Free buffer allocated by AppendStreamConsumer
   free(data.buffer);

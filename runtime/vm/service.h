@@ -39,8 +39,10 @@ class ServiceIdZone {
 
 class RingServiceIdZone : public ServiceIdZone {
  public:
-  explicit RingServiceIdZone(ObjectIdRing* ring, ObjectIdRing::IdPolicy policy);
+  RingServiceIdZone();
   virtual ~RingServiceIdZone();
+
+  void Init(ObjectIdRing* ring, ObjectIdRing::IdPolicy policy);
 
   // Returned string will be zone allocated.
   virtual char* GetServiceId(const Object& obj);

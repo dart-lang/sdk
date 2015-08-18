@@ -24,6 +24,8 @@ class ThreadRegistry {
         remaining_(0),
         round_(0) {}
 
+  ~ThreadRegistry();
+
   // Bring all threads in this isolate to a safepoint. The caller is
   // expected to be implicitly at a safepoint. The threads will wait
   // until ResumeAllThreads is called. First participates in any
@@ -138,6 +140,9 @@ class ThreadRegistry {
 
  private:
   struct Entry {
+    // NOTE: |thread| is deleted automatically when the thread exits.
+    // In other words, it is not safe to dereference |thread| unless you are on
+    // the thread itself.
     Thread* thread;
     bool scheduled;
     Thread::State state;

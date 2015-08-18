@@ -23,15 +23,20 @@ DECLARE_FLAG(bool, trace_service);
 JSONStream::JSONStream(intptr_t buf_size)
     : open_objects_(0),
       buffer_(buf_size),
-      default_id_zone_(Isolate::Current()->object_id_ring(),
-                       ObjectIdRing::kAllocateId),
+      default_id_zone_(),
       id_zone_(&default_id_zone_),
       reply_port_(ILLEGAL_PORT),
-      seq_(Instance::Handle(Instance::null())),
+      seq_(NULL),
       method_(""),
       param_keys_(NULL),
       param_values_(NULL),
       num_params_(0) {
+  ObjectIdRing* ring = NULL;
+  Isolate* isolate = Isolate::Current();
+  if (isolate != NULL) {
+    ring = isolate->object_id_ring();
+  }
+  default_id_zone_.Init(ring, ObjectIdRing::kAllocateId);
 }
 
 
@@ -46,7 +51,7 @@ void JSONStream::Setup(Zone* zone,
                        const Array& param_keys,
                        const Array& param_values) {
   set_reply_port(reply_port);
-  seq_ ^= seq.raw();
+  seq_ = &Instance::ZoneHandle(seq.raw());
   method_ = method.ToCString();
 
   String& string_iterator = String::Handle();
@@ -175,17 +180,17 @@ void JSONStream::PostReply() {
   if (FLAG_trace_service) {
     process_delta_micros = OS::GetCurrentTimeMicros() - setup_time_micros_;
   }
-
-  if (seq_.IsString()) {
-    const String& str = String::Cast(seq_);
+  ASSERT(seq_ != NULL);
+  if (seq_->IsString()) {
+    const String& str = String::Cast(*seq_);
     PrintProperty("id", str.ToCString());
-  } else if (seq_.IsInteger()) {
-    const Integer& integer = Integer::Cast(seq_);
+  } else if (seq_->IsInteger()) {
+    const Integer& integer = Integer::Cast(*seq_);
     PrintProperty64("id", integer.AsInt64Value());
-  } else if (seq_.IsDouble()) {
-    const Double& dbl = Double::Cast(seq_);
+  } else if (seq_->IsDouble()) {
+    const Double& dbl = Double::Cast(*seq_);
     PrintProperty("id", dbl.value());
-  } else if (seq_.IsNull()) {
+  } else if (seq_->IsNull()) {
     // JSON-RPC 2.0 says that a request with a null ID shouldn't get a reply.
     PostNullReply(port);
     return;

@@ -5854,7 +5854,7 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
   if (consumer == NULL) {
     return false;
   }
-  TimelineEventRecorder* timeline_recorder = isolate->timeline_event_recorder();
+  TimelineEventRecorder* timeline_recorder = Timeline::recorder();
   if (timeline_recorder == NULL) {
     // Nothing has been recorded.
     return false;
@@ -5862,7 +5862,8 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
   // Suspend execution of other threads while serializing to JSON.
   isolate->thread_registry()->SafepointThreads();
   JSONStream js;
-  timeline_recorder->PrintJSON(&js);
+  IsolateTimelineEventFilter filter(isolate);
+  timeline_recorder->PrintJSON(&js, &filter);
   // Resume execution of other threads.
   isolate->thread_registry()->ResumeAllThreads();
 
@@ -5975,7 +5976,10 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncBegin(const char* label,
   ASSERT(stream != NULL);
   TimelineEvent* event = stream->StartEvent();
   if (event != NULL) {
-    *async_id = event->AsyncBegin(label);
+    TimelineEventRecorder* recorder = Timeline::recorder();
+    ASSERT(recorder != NULL);
+    *async_id = recorder->GetNextAsyncId();
+    event->AsyncBegin(label, *async_id);
     event->Complete();
   }
   return Api::Success();

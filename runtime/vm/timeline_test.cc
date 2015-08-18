@@ -15,6 +15,22 @@
 
 namespace dart {
 
+class TimelineRecorderOverride : public ValueObject {
+ public:
+  explicit TimelineRecorderOverride(TimelineEventRecorder* new_recorder)
+      : recorder_(Timeline::recorder()) {
+    Timeline::recorder_ = new_recorder;
+  }
+
+  ~TimelineRecorderOverride() {
+    Timeline::recorder_ = recorder_;
+  }
+
+ private:
+  TimelineEventRecorder* recorder_;
+};
+
+
 class TimelineTestHelper : public AllStatic {
  public:
   static void SetStream(TimelineEvent* event, TimelineStream* stream) {
@@ -52,6 +68,10 @@ class TimelineTestHelper : public AllStatic {
   static void Clear(TimelineEventEndlessRecorder* recorder) {
     ASSERT(recorder != NULL);
     recorder->Clear();
+  }
+
+  static void FinishBlock(TimelineEventBlock* block) {
+    block->Finish();
   }
 };
 
@@ -172,10 +192,10 @@ TEST_CASE(TimelineEventArgumentsPrintJSON) {
 
 
 TEST_CASE(TimelineEventBufferPrintJSON) {
-  Isolate* isolate = Isolate::Current();
-  TimelineEventRecorder* recorder = isolate->timeline_event_recorder();
+  TimelineEventRecorder* recorder = Timeline::recorder();
   JSONStream js;
-  recorder->PrintJSON(&js);
+  TimelineEventFilter filter;
+  recorder->PrintJSON(&js, &filter);
   // Check the type. This test will fail if we ever make Timeline public.
   EXPECT_SUBSTRING("\"type\":\"_Timeline\"", js.ToCString());
   // Check that there is a traceEvents array.
@@ -207,6 +227,7 @@ class EventCounterRecorder : public TimelineEventStreamingRecorder {
 
 TEST_CASE(TimelineEventStreamingRecorderBasic) {
   EventCounterRecorder* recorder = new EventCounterRecorder();
+  TimelineRecorderOverride override(recorder);
 
   // Initial counts are all zero.
   for (intptr_t i = TimelineEvent::kNone + 1;
@@ -218,7 +239,6 @@ TEST_CASE(TimelineEventStreamingRecorderBasic) {
   // Create a test stream.
   TimelineStream stream;
   stream.Init("testStream", true);
-  stream.set_recorder(recorder);
 
   TimelineEvent* event = NULL;
 
@@ -240,8 +260,9 @@ TEST_CASE(TimelineEventStreamingRecorderBasic) {
 
   event = stream.StartEvent();
   EXPECT_EQ(0, recorder->CountFor(TimelineEvent::kAsyncBegin));
-  int64_t async_id = event->AsyncBegin("asyncBeginCabbage");
+  int64_t async_id = recorder->GetNextAsyncId();
   EXPECT(async_id >= 0);
+  event->AsyncBegin("asyncBeginCabbage", async_id);
   EXPECT_EQ(0, recorder->CountFor(TimelineEvent::kAsyncBegin));
   event->Complete();
   EXPECT_EQ(1, recorder->CountFor(TimelineEvent::kAsyncBegin));
@@ -400,8 +421,12 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
   // Emit the later event into block_0.
   TimelineTestHelper::FakeThreadEvent(block_0, 2, "Beta", &stream);
 
+  TimelineTestHelper::FinishBlock(block_0);
+  TimelineTestHelper::FinishBlock(block_1);
+
   JSONStream js;
-  recorder->PrintJSON(&js);
+  TimelineEventFilter filter;
+  recorder->PrintJSON(&js, &filter);
   // trace-event has a requirement that events for a thread must have
   // monotonically increasing timestamps.
   // Verify that "Alpha" comes before "Beta" even though "Beta" is in the first

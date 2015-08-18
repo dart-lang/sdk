@@ -989,6 +989,9 @@ void Object::RegisterPrivateClass(const Class& cls,
 
 RawError* Object::Init(Isolate* isolate) {
   TIMERSCOPE(isolate, time_bootstrap);
+  TimelineDurationScope tds(isolate,
+                            isolate->GetIsolateStream(),
+                            "Object::Init");
 
 #if defined(DART_NO_SNAPSHOT)
   // Object::Init version when we are running in a version of dart that does

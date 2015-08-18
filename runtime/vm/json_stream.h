@@ -173,7 +173,7 @@ class JSONStream : ValueObject {
   RingServiceIdZone default_id_zone_;
   ServiceIdZone* id_zone_;
   Dart_Port reply_port_;
-  Instance& seq_;
+  Instance* seq_;
   const char* method_;
   const char** param_keys_;
   const char** param_values_;

@@ -48,11 +48,9 @@ ServiceIdZone::~ServiceIdZone() {
 }
 
 
-RingServiceIdZone::RingServiceIdZone(
-    ObjectIdRing* ring, ObjectIdRing::IdPolicy policy)
-        : ring_(ring),
-          policy_(policy) {
-  ASSERT(ring_ != NULL);
+RingServiceIdZone::RingServiceIdZone()
+    : ring_(NULL),
+      policy_(ObjectIdRing::kAllocateId) {
 }
 
 
@@ -60,7 +58,15 @@ RingServiceIdZone::~RingServiceIdZone() {
 }
 
 
+void RingServiceIdZone::Init(
+    ObjectIdRing* ring, ObjectIdRing::IdPolicy policy) {
+  ring_ = ring;
+  policy_ = policy;
+}
+
+
 char* RingServiceIdZone::GetServiceId(const Object& obj) {
+  ASSERT(ring_ != NULL);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(zone != NULL);
@@ -1003,7 +1009,8 @@ static bool DumpIdZone(Isolate* isolate, JSONStream* js) {
   ObjectIdRing* ring = isolate->object_id_ring();
   ASSERT(ring != NULL);
   // When printing the ObjectIdRing, force object id reuse policy.
-  RingServiceIdZone reuse_zone(ring, ObjectIdRing::kReuseId);
+  RingServiceIdZone reuse_zone;
+  reuse_zone.Init(ring, ObjectIdRing::kReuseId);
   js->set_id_zone(&reuse_zone);
   ring->PrintJSON(js);
   return true;

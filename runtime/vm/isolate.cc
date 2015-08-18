@@ -44,6 +44,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(charp, timeline_trace_dir);
+
 DEFINE_FLAG(bool, trace_isolates, false,
             "Trace isolate creation and shut down.");
 DEFINE_FLAG(bool, pause_isolates_on_start, false,
@@ -57,9 +59,6 @@ DEFINE_FLAG(charp, isolate_log_filter, NULL,
             "Log isolates whose name include the filter. "
             "Default: service isolate log messages are suppressed.");
 
-DEFINE_FLAG(charp, timeline_trace_dir, NULL,
-            "Enable all timeline trace streams and output traces "
-            "into specified directory.");
 DEFINE_FLAG(int, new_gen_semi_max_size, (kWordSize <= 4) ? 16 : 32,
             "Max size of new gen semi space in MB");
 DEFINE_FLAG(int, old_gen_heap_size, 0,
@@ -384,6 +383,8 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   StackZone zone(I);
   HandleScope handle_scope(I);
   TimelineDurationScope tds(I, I->GetIsolateStream(), "HandleMessage");
+  tds.SetNumArguments(1);
+  tds.CopyArgument(0, "isolateName", I->name());
 
   // TODO(turnidge): Rework collection total dart execution.  This can
   // overcount when other things (gc, compilation) are active.
@@ -686,7 +687,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       last_allocationprofile_gc_timestamp_(0),
       object_id_ring_(NULL),
       trace_buffer_(NULL),
-      timeline_event_recorder_(NULL),
       profiler_data_(NULL),
       tag_table_(GrowableObjectArray::null()),
       current_tag_(UserTag::null()),
@@ -736,7 +736,6 @@ Isolate::~Isolate() {
     delete compiler_stats_;
     compiler_stats_ = NULL;
   }
-  RemoveTimelineEventRecorder();
   delete thread_registry_;
 }
 
@@ -767,11 +766,11 @@ Isolate* Isolate::Init(const char* name_prefix,
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_INIT);
 #undef ISOLATE_METRIC_INIT
 
-  const bool force_streams = FLAG_timeline_trace_dir != NULL;
-
   // Initialize Timeline streams.
 #define ISOLATE_TIMELINE_STREAM_INIT(name, enabled_by_default)                 \
-  result->stream_##name##_.Init(#name, force_streams || enabled_by_default);
+  result->stream_##name##_.Init(#name,                                         \
+                                Timeline::EnableStreamByDefault(#name) ||      \
+                                enabled_by_default);
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_INIT);
 #undef ISOLATE_TIMELINE_STREAM_INIT
 
@@ -1476,11 +1475,6 @@ void Isolate::Shutdown() {
 
     // Write out the coverage data if collection has been enabled.
     CodeCoverage::Write(this);
-
-    if ((timeline_event_recorder_ != NULL) &&
-        (FLAG_timeline_trace_dir != NULL)) {
-      timeline_event_recorder_->WriteTo(FLAG_timeline_trace_dir);
-    }
   }
 
   // Remove this isolate from the list *before* we start tearing it down, to
@@ -1648,21 +1642,6 @@ void Isolate::VisitPrologueWeakPersistentHandles(HandleVisitor* visitor) {
   if (api_state() != NULL) {
     api_state()->VisitPrologueWeakHandles(visitor);
   }
-}
-
-
-void Isolate::SetTimelineEventRecorder(
-    TimelineEventRecorder* timeline_event_recorder) {
-#define ISOLATE_TIMELINE_STREAM_SET_BUFFER(name, enabled_by_default)           \
-  stream_##name##_.set_recorder(timeline_event_recorder);
-  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_SET_BUFFER)
-#undef ISOLATE_TIMELINE_STREAM_SET_BUFFER
-  timeline_event_recorder_ = timeline_event_recorder;
-}
-
-void Isolate::RemoveTimelineEventRecorder() {
-  SetTimelineEventRecorder(NULL);
-  delete timeline_event_recorder_;
 }
 
 
