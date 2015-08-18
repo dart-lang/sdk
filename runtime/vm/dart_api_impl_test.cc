@@ -3167,6 +3167,47 @@ TEST_CASE(ObjectGroups) {
 }
 
 
+TEST_CASE(DuplicateWeakReferenceSetEntries) {
+  Isolate* isolate = Isolate::Current();
+  Dart_PersistentHandle strong = NULL;
+  Dart_WeakPersistentHandle weak = NULL;  // A weak handle to strong.
+
+  Dart_EnterScope();
+  {
+    DARTSCOPE(isolate);
+
+    // Strong handle to keep the reference set alive.
+    Dart_Handle local = Api::NewHandle(isolate, String::New("string"));
+    strong = Dart_NewPersistentHandle(local);
+    EXPECT_VALID(AsHandle(strong));
+    EXPECT(!Dart_IsNull(AsHandle(strong)));
+    // Corresponding weak handle to use as key and duplicated value.
+    weak = Dart_NewWeakPersistentHandle(local, NULL, 0, NopCallback);
+    EXPECT_VALID(AsHandle(weak));
+    EXPECT(!Dart_IsNull(AsHandle(weak)));
+  }
+  Dart_ExitScope();
+
+  {
+    Dart_EnterScope();
+    // Create the weak reference set.
+    Dart_WeakReferenceSetBuilder builder = Dart_NewWeakReferenceSetBuilder();
+    EXPECT_NOTNULL(builder);
+    // Register the key and the first copy of the value.
+    Dart_WeakReferenceSet set = Dart_NewWeakReferenceSet(builder, weak, weak);
+    EXPECT_NOTNULL(set);
+    // Add the second copy of the value.
+    Dart_Handle result = Dart_AppendValueToWeakReferenceSet(set, weak);
+    EXPECT_VALID(result);
+
+    // Trigger GC to ensure that we can visit duplicate entries in weak
+    // reference sets.
+    isolate->heap()->CollectGarbage(Heap::kNew);
+    Dart_ExitScope();
+  }
+}
+
+
 static Dart_WeakPersistentHandle old_pwph = NULL;
 static Dart_WeakPersistentHandle new_pwph = NULL;
 

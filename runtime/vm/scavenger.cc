@@ -158,10 +158,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     }
 
     uword raw_addr = RawObject::ToAddr(raw_obj);
-    // The scavenger is only interested in objects located in the from space.
-    if (scavenger_->to_->Contains(raw_addr)) {
-      return;
-    }
+    // The scavenger is only expects objects located in the from space.
     ASSERT(from_->Contains(raw_addr));
     // Read the header word of the object and determine if the object has
     // already been copied.
@@ -618,7 +615,16 @@ void Scavenger::IterateWeakReferences(Isolate* isolate,
       for (intptr_t k = 0; k < num_keys; ++k) {
         if (!IsUnreachable(reference_set->get_key(k))) {
           for (intptr_t v = 0; v < num_values; ++v) {
-            visitor->VisitPointer(reference_set->get_value(v));
+            RawObject** raw_obj_addr = reference_set->get_value(v);
+            RawObject* raw_obj = *raw_obj_addr;
+            // Only visit heap objects which are in from space, aka new objects
+            // not in to space. This avoids visiting a value multiple times
+            // during a scavenge.
+            if (raw_obj->IsHeapObject() &&
+                raw_obj->IsNewObject() &&
+                !to_->Contains(RawObject::ToAddr(raw_obj))) {
+              visitor->VisitPointer(raw_obj_addr);
+            }
           }
           is_unreachable = false;
           // Since we have found a key object that is reachable and all
