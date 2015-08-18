@@ -49,7 +49,7 @@ vars = {
   "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
-  "dartdoc_tag" : "@v0.4.0",
+  "dartdoc_tag" : "@v0.5.0",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.0",
   "dev_compiler_rev": "@0.1.3",
@@ -68,7 +68,7 @@ vars = {
   "json_rpc_2_tag": "@1.1.1",
   "linter_tag": "@0.1.0",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
-  "markdown_rev": "@56b0fd6c018d6103862d07e8e27407b9ea3b963d",
+  "markdown_rev": "@9a1071a859df9c9edd4f556e948f898f70bf1e5e",
   "matcher_tag": "@0.12.0",
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
@@ -84,7 +84,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@e454b4b54d2987e8d2f0fbd3ac519641ada9bd0f",
-  "pub_rev": "@bc776a2e1364b5004d8e2601b2bafb8f93c6a396",
+  "pub_rev": "@4cc9aa3e6fd29c70b0929f3a827030b8a2ce0c7f",
   "pub_cache_tag": "@v0.1.0",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
@@ -222,8 +222,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/logging":
       (Var("github_mirror") % "logging") + Var("logging_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":
-      "https://chromium.googlesource.com/external/github.com" +
-      "/dpeek/dart-markdown.git" + Var("markdown_rev"),
+      (Var("github_mirror") % "markdown") + Var("markdown_rev"),
   Var("dart_root") + "/third_party/pkg/matcher":
       (Var("github_mirror") % "matcher") + Var("matcher_tag"),
   Var("dart_root") + "/third_party/pkg/metatest":

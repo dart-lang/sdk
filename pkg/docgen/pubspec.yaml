@@ -5,7 +5,7 @@ homepage: https://www.dartlang.org/
 dependencies:
   args: '>=0.9.0 <0.14.0'
   logging: '>=0.9.0 <0.12.0'
-  markdown: 0.7.1+2
+  markdown: ^0.7.1+2
   path: '>=0.9.0 <2.0.0'
   yaml: '>=0.9.0 <3.0.0'
 dev_dependencies:

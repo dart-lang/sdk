@@ -83,6 +83,7 @@ class ModelEmitter {
   static const String deferredInitializersGlobal =
       r"$__dart_deferred_initializers__";
 
+  static const String partExtension = "part";
   static const String deferredExtension = "part.js";
 
   static const String typeNameProperty = r"builtin$cls";
@@ -276,7 +277,7 @@ class ModelEmitter {
 
     if (shouldGenerateSourceMap) {
       outputSourceMap(mainOutput, lineColumnCollector, '',
-      compiler.sourceMapUri, compiler.outputUri);
+          compiler.sourceMapUri, compiler.outputUri);
     }
   }
 
@@ -333,17 +334,17 @@ class ModelEmitter {
       Uri mapUri, partUri;
       Uri sourceMapUri = compiler.sourceMapUri;
       Uri outputUri = compiler.outputUri;
+      String partName = "$hunkPrefix.$partExtension";
+      String hunkFileName = "$hunkPrefix.$deferredExtension";
 
       if (sourceMapUri != null) {
-        String mapFileName =
-            hunkPrefix + deferredExtension + ".map";
+        String mapFileName = hunkFileName + ".map";
         List<String> mapSegments = sourceMapUri.pathSegments.toList();
         mapSegments[mapSegments.length - 1] = mapFileName;
         mapUri = compiler.sourceMapUri.replace(pathSegments: mapSegments);
       }
 
       if (outputUri != null) {
-        String hunkFileName = hunkPrefix + deferredExtension;
         List<String> partSegments = outputUri.pathSegments.toList();
         partSegments[partSegments.length - 1] = hunkFileName;
         partUri = compiler.outputUri.replace(pathSegments: partSegments);
@@ -351,7 +352,7 @@ class ModelEmitter {
 
       output.add(generateSourceMapTag(mapUri, partUri));
       output.close();
-      outputSourceMap(output, lineColumnCollector, hunkPrefix, mapUri, partUri);
+      outputSourceMap(output, lineColumnCollector, partName, mapUri, partUri);
     } else {
       output.close();
     }
