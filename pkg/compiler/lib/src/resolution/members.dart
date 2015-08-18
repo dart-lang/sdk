@@ -1305,26 +1305,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return result;
   }
 
-  /// Resolved [node] as a subexpression that is the prefix of a conditional
-  /// access. For instance `a` in `a?.b`.
-  // TODO(johnniwinther): Is this equivalent to [visitExpression]?
-  ResolutionResult visitConditionalPrefix(Node node) {
-    // Conditional sends like `e?.foo` treat the receiver as an expression.  So
-    // `C?.foo` needs to be treated like `(C).foo`, not like C.foo. Prefixes and
-    // super are not allowed on their own in that context.
-    int oldAllowedCategory = allowedCategory;
-    bool oldSendIsMemberAccess = sendIsMemberAccess;
-    sendIsMemberAccess = false;
-    allowedCategory =
-        ElementCategory.VARIABLE |
-        ElementCategory.FUNCTION |
-        ElementCategory.IMPLIES_TYPE;
-    ResolutionResult result = visit(node);
-    sendIsMemberAccess = oldSendIsMemberAccess;
-    allowedCategory = oldAllowedCategory;
-    return result;
-  }
-
   /// Handle a type test expression, like `a is T` and `a is! T`.
   ResolutionResult handleIs(Send node) {
     Node expression = node.receiver;
@@ -2324,7 +2304,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// like `prefix.toplevelFunction()` or `prefix.Class.staticField` where
   /// `prefix` is a library prefix.
   ResolutionResult handleLibraryPrefixSend(
-      Send node, PrefixElement prefix, Name name) {
+      Send node, Name name, PrefixElement prefix) {
     ResolutionResult result;
     Element member = prefix.lookupLocalMember(name.text);
     if (member == null) {
@@ -2380,7 +2360,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Send node, Name name, PrefixResult prefixResult) {
     Element element = prefixResult.element;
     if (element.isPrefix) {
-      return handleLibraryPrefixSend(node, element, name);
+      if (node.isConditional) {
+        return handleLibraryPrefix(node, name, element);
+      } else {
+        return handleLibraryPrefixSend(node, name, element);
+      }
     } else {
       assert(element.isClass);
       ResolutionResult result = handleStaticMemberAccess(node, name, element);
@@ -2451,21 +2435,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return handleUpdate(node, name, semantics);
   }
 
-  /// Handle dynamic property access, like `a.b` or `a.b()` where `a` is not a
-  /// prefix or class.
-  ResolutionResult handleDynamicPropertyAccess(Send node, Name name) {
-    AccessSemantics semantics = const DynamicAccess.dynamicProperty();
-    return handleDynamicAccessSemantics(node, name, semantics);
-  }
-
-  /// Handle conditional access, like `a?.b` or `a?.b()`.
-  ResolutionResult handleConditionalAccess(Send node, Name name) {
-    Node receiver = node.receiver;
-    visitConditionalPrefix(receiver);
-    AccessSemantics semantics = const DynamicAccess.ifNotNullProperty();
-    return handleDynamicAccessSemantics(node, name, semantics);
-  }
-
   /// Handle `this` as a qualified property, like `a.this`.
   ResolutionResult handleQualifiedThisAccess(Send node, Name name) {
     ErroneousElement error = reportAndCreateErroneousElement(
@@ -2494,15 +2463,19 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // TODO(johnniwinther): Handle invalid this access as an
       // [AccessSemantics].
       return const NoneResult();
-    } else if (node.isConditional) {
-      return handleConditionalAccess(node, name);
     }
     ResolutionResult result = visitExpressionPrefix(node.receiver);
     if (result.kind == ResultKind.PREFIX) {
       return handlePrefixSend(node, name, result);
+    } else if (node.isConditional) {
+      return handleDynamicAccessSemantics(
+          node, name, const DynamicAccess.ifNotNullProperty());
     } else {
+      // Handle dynamic property access, like `a.b` or `a.b()` where `a` is not
+      // a prefix or class.
       // TODO(johnniwinther): Use the `element` of [result].
-      return handleDynamicPropertyAccess(node, name);
+      return handleDynamicAccessSemantics(
+          node, name, const DynamicAccess.dynamicProperty());
     }
   }
 

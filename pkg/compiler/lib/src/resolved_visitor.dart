@@ -149,6 +149,13 @@ abstract class BaseResolvedVisitor<R> extends Visitor<R>
       return visitor.visitClosureSend(node);
     } else {
       if (node.isConditional) {
+        if (node.receiver != null) {
+          Element receiverElement = elements[node.receiver];
+          if (receiverElement != null && receiverElement.isClass) {
+            // Handle C?.b as C.b
+            return visitor.visitStaticSend(node);
+          }
+        }
         return visitor.visitDynamicSend(node);
       } else if (Elements.isUnresolved(element)) {
         if (element == null) {

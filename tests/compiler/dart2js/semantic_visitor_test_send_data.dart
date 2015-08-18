@@ -3824,15 +3824,9 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         m(a) => C?.b;
         ''',
-        const [
-          const Visit(
-              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_GET,
-              receiver: 'C',
-              name: 'b'),
-          const Visit(
-              VisitKind.VISIT_CLASS_TYPE_LITERAL_GET,
-              constant: 'C'),
-        ]),
+        const Visit(
+            VisitKind.VISIT_STATIC_FIELD_GET,
+            element: 'field(C#b)')),
     const Test(
         '''
         m(a) => a?.b = 42;
@@ -3930,5 +3924,12 @@ const Map<String, List<Test>> SEND_TESTS = const {
             element: 'parameter(m#a)',
             operator: '??=',
             rhs: '42')),
+    const Test.prefix(
+        '''
+        var o;
+        ''',
+        'm() => p?.o;',
+        const Visit(VisitKind.ERROR_INVALID_GET,
+            error: MessageKind.PREFIX_AS_EXPRESSION)),
   ],
 };
