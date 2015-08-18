@@ -3091,6 +3091,9 @@ main() {
   }
 
   void test_isDouble() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.dart2jsHint = true;
+    resetWithOptions(options);
     Source source = addSource("var v = 1 is double;");
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.IS_DOUBLE]);
@@ -3098,6 +3101,9 @@ main() {
   }
 
   void test_isNotDouble() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.dart2jsHint = true;
+    resetWithOptions(options);
     Source source = addSource("var v = 1 is! double;");
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.IS_NOT_DOUBLE]);

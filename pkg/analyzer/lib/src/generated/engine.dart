@@ -6244,7 +6244,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * A flag indicating whether analysis is to generate dart2js related hint
    * results.
    */
-  bool dart2jsHint = true;
+  bool dart2jsHint = false;
 
   /**
    * A flag indicating whether generic methods are to be supported (DEP 22).
