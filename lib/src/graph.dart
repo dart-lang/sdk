@@ -192,7 +192,7 @@ class _SccFinder<N> {
   /// in the same component or earlier components).
   List<List<N>> _allComponents = new List<List<N>>();
 
-  _SccFinder(this._graph) : super();
+  _SccFinder(this._graph);
 
   /// Return a list containing the nodes that are part of the strongly connected
   /// component that contains the given node.
