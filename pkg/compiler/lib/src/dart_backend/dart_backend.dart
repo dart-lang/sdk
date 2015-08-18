@@ -44,7 +44,7 @@ import '../enqueue.dart' show
 import '../library_loader.dart' show
     LoadedLibraries;
 import '../mirror_renamer/mirror_renamer.dart';
-import '../resolution/resolution.dart' show
+import '../resolution/tree_elements.dart' show
     TreeElements,
     TreeElementMapping;
 import '../scanner/scannerlib.dart' show

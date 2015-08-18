@@ -32,7 +32,7 @@ import 'elements/elements.dart' show
     MetadataAnnotation,
     ScopeContainerElement,
     VariableElement;
-import 'resolution/resolution.dart' show
+import 'resolution/tree_elements.dart' show
     TreeElements;
 import 'tree/tree.dart' show
     Import,

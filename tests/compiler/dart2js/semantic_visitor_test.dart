@@ -14,9 +14,9 @@ import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/resolution/resolution.dart';
-import 'package:compiler/src/resolution/semantic_visitor.dart';
 import 'package:compiler/src/resolution/operators.dart';
+import 'package:compiler/src/resolution/semantic_visitor.dart';
+import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/universe/universe.dart' show
     CallStructure,

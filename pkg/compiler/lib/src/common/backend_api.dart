@@ -46,7 +46,7 @@ import '../native/native.dart' as native show
     NativeEnqueuer;
 import '../patch_parser.dart' show
     checkNativeAnnotation;
-import '../resolution/resolution.dart' show
+import '../resolution/tree_elements.dart' show
     TreeElements;
 
 import 'codegen.dart' show

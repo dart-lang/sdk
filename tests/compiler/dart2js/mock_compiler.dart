@@ -17,7 +17,10 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/js_backend.dart'
     show JavaScriptBackend;
 import 'package:compiler/src/io/source_file.dart';
-import 'package:compiler/src/resolution/resolution.dart';
+import 'package:compiler/src/resolution/members.dart';
+import 'package:compiler/src/resolution/registry.dart';
+import 'package:compiler/src/resolution/scope.dart';
+import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/script.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/old_to_new_api.dart';
@@ -224,7 +227,7 @@ class MockCompiler extends Compiler {
                                           ExecutableElement element) {
     ResolverVisitor visitor =
         new ResolverVisitor(this, element,
-            new ResolutionRegistry.internal(this,
+            new ResolutionRegistry(this,
                 new CollectingTreeElements(element)));
     if (visitor.scope is LibraryScope) {
       visitor.scope = new MethodScope(visitor.scope, element);
@@ -238,7 +241,7 @@ class MockCompiler extends Compiler {
     Element mockElement = new MockElement(mainApp.entryCompilationUnit);
     ResolverVisitor visitor =
         new ResolverVisitor(this, mockElement,
-          new ResolutionRegistry.internal(this,
+          new ResolutionRegistry(this,
               new CollectingTreeElements(mockElement)));
     visitor.scope = new MethodScope(visitor.scope, mockElement);
     return visitor;

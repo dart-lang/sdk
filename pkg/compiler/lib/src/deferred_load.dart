@@ -35,7 +35,8 @@ import 'elements/elements.dart' show
 import 'js_backend/js_backend.dart' show
     JavaScriptBackend;
 import 'resolution/resolution.dart' show
-    AnalyzableElementX,
+    AnalyzableElementX;
+import 'resolution/tree_elements.dart' show
     TreeElements;
 import 'tree/tree.dart' as ast;
 import 'tree/tree.dart' show

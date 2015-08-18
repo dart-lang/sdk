@@ -10,10 +10,13 @@ import '../dart_types.dart';
 import '../diagnostics/invariant.dart' show
     invariant;
 import '../elements/elements.dart';
-import '../resolution/resolution.dart';
 import '../resolution/operators.dart';
 import '../resolution/semantic_visitor.dart';
+import '../resolution/send_resolver.dart' show
+    DeclarationResolverMixin;
 import '../resolution/send_structure.dart';
+import '../resolution/tree_elements.dart' show
+    TreeElements;
 import '../tree/tree.dart';
 import '../universe/universe.dart' show CallStructure;
 import 'constructors.dart';

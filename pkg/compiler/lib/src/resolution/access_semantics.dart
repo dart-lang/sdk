@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(johnniwinther): Temporarily copied from analyzer2dart. Merge when
-// we shared code with the analyzer and this semantic visitor is complete.
-
 /**
  * Code for classifying the semantics of identifiers appearing in a Dart file.
  */

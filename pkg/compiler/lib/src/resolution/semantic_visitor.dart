@@ -6,24 +6,19 @@ library dart2js.semantics_visitor;
 
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart' show
-    MessageKind;
 import '../diagnostics/spannable.dart' show
     Spannable,
     SpannableAssertionFailure;
-import '../elements/elements.dart';
 import '../tree/tree.dart';
+import '../elements/elements.dart';
 import '../universe/universe.dart';
 
-import 'access_semantics.dart';
 import 'operators.dart';
-import 'resolution.dart';
+import 'send_resolver.dart';
 import 'send_structure.dart';
+import 'tree_elements.dart';
 
 part 'semantic_visitor_mixins.dart';
-part 'send_resolver.dart';
 
 /// Mixin that couples a [SendResolverMixin] to a [SemanticSendVisitor] in a
 /// [Visitor].

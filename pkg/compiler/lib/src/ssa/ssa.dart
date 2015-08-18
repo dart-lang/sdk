@@ -40,9 +40,11 @@ import '../js_emitter/js_emitter.dart' show
     NativeEmitter;
 import '../native/native.dart' as native;
 import '../resolution/operators.dart';
-import '../resolution/resolution.dart' show
-    TreeElements;
 import '../resolution/semantic_visitor.dart';
+import '../resolution/send_resolver.dart' show
+    SendResolverMixin;
+import '../resolution/tree_elements.dart' show
+    TreeElements;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../types/constants.dart' show

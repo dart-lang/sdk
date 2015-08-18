@@ -2,18 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.send_structure;
+library dart2js.resolution.send_structure;
 
-import 'access_semantics.dart';
-import 'operators.dart';
-import 'semantic_visitor.dart';
 import '../dart_types.dart';
+import '../diagnostics/spannable.dart' show
+    SpannableAssertionFailure;
 import '../constants/expressions.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../universe/universe.dart';
-import '../diagnostics/spannable.dart' show
-    SpannableAssertionFailure;
+
+import 'access_semantics.dart';
+import 'operators.dart';
+import 'semantic_visitor.dart';
 
 /// Interface for the structure of the semantics of a [Send] or [NewExpression]
 /// node.

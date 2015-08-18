@@ -22,7 +22,7 @@ import '../diagnostics/spannable.dart'
     show Spannable;
 import '../elements/elements.dart';
 import '../native/native.dart' as native;
-import '../resolution/resolution.dart'
+import '../resolution/tree_elements.dart'
     show TreeElementMapping;
 import '../tree/tree.dart' as ast
     show DartString,

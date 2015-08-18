@@ -46,7 +46,7 @@ import 'elements/elements.dart' show
     TypedefElement;
 import 'js/js.dart' as js;
 import 'native/native.dart' as native;
-import 'resolution/resolution.dart' show
+import 'resolution/members.dart' show
     ResolverVisitor;
 import 'tree/tree.dart' show
     Send;

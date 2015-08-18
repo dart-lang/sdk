@@ -2,7 +2,37 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of resolution;
+library dart2js.resolution.types;
+import '../compiler.dart' show
+    Compiler;
+import '../dart_backend/dart_backend.dart' show
+    DartBackend;
+import '../dart_types.dart';
+import '../diagnostics/messages.dart' show
+    MessageKind;
+import '../elements/elements.dart' show
+    AmbiguousElement,
+    ClassElement,
+    Element,
+    Elements,
+    ErroneousElement,
+    PrefixElement,
+    TypedefElement,
+    TypeVariableElement;
+import '../elements/modelx.dart' show
+    ErroneousElementX;
+import '../tree/tree.dart';
+import '../util/util.dart' show
+    Link;
+
+import 'members.dart' show
+    lookupInScope;
+import 'registry.dart' show
+    ResolutionRegistry;
+import 'resolution_common.dart' show
+    MappingVisitor;
+import 'scope.dart' show
+    Scope;
 
 class TypeResolver {
   final Compiler compiler;
@@ -135,9 +165,9 @@ class TypeResolver {
       bool addTypeVariableBoundsCheck = false;
       if (element.isClass) {
         ClassElement cls = element;
-        // TODO(johnniwinther): [_ensureClassWillBeResolved] should imply
+        // TODO(johnniwinther): [ensureClassWillBeResolvedInternal] should imply
         // [computeType].
-        compiler.resolver._ensureClassWillBeResolved(cls);
+        compiler.resolver.ensureClassWillBeResolvedInternal(cls);
         cls.computeType(compiler);
         List<DartType> arguments = <DartType>[];
         bool hasTypeArgumentMismatch = resolveTypeArguments(
@@ -150,7 +180,8 @@ class TypeResolver {
           if (arguments.isEmpty) {
             type = cls.rawType;
           } else {
-            type = new InterfaceType(cls.declaration, arguments.toList(growable: false));
+            type = new InterfaceType(
+                cls.declaration, arguments.toList(growable: false));
             addTypeVariableBoundsCheck = true;
           }
         }

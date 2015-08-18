@@ -16,7 +16,7 @@ import 'package:compiler/src/elements/modelx.dart' show
     ElementX,
     FunctionElementX;
 import 'package:compiler/src/io/source_file.dart';
-import 'package:compiler/src/resolution/resolution.dart' show
+import 'package:compiler/src/resolution/tree_elements.dart' show
     TreeElements,
     TreeElementMapping;
 import 'package:compiler/src/tree/tree.dart';

@@ -23,9 +23,19 @@ import '../diagnostics/spannable.dart' show
 import '../helpers/helpers.dart';
 import '../ordered_typeset.dart' show
     OrderedTypeSet;
-import '../resolution/resolution.dart';
 import '../resolution/class_members.dart' show
     ClassMemberMixin;
+import '../resolution/scope.dart' show
+    ClassScope,
+    LibraryScope,
+    Scope,
+    TypeDeclarationScope;
+import '../resolution/resolution.dart' show
+    AnalyzableElementX;
+import '../resolution/tree_elements.dart' show
+    TreeElements;
+import '../resolution/typedefs.dart' show
+    TypedefCyclicVisitor;
 import '../scanner/scannerlib.dart' show
     EOF_TOKEN,
     ErrorToken,

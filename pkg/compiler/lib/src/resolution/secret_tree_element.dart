@@ -16,7 +16,7 @@
  * So please, do not add additional elements to this library, and do
  * not import it.
  */
-library secret_tree_element;
+library dart2js.resolution.secret_tree_element;
 
 import '../diagnostics/invariant.dart' show invariant;
 import '../diagnostics/spannable.dart' show Spannable;

@@ -2,7 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of resolution;
+library dart2js.resolution.signatures;
+
+import '../compiler.dart' show
+    Compiler,
+    isPrivateName;
+import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/messages.dart' show
+    MessageKind;
+import '../elements/elements.dart';
+import '../elements/modelx.dart' show
+    ErroneousFieldElementX,
+    ErroneousInitializingFormalElementX,
+    FormalElementX,
+    FunctionElementX,
+    FunctionSignatureX,
+    InitializingFormalElementX,
+    LocalParameterElementX;
+import '../tree/tree.dart';
+import '../util/util.dart' show
+    Link,
+    LinkBuilder;
+
+import 'members.dart' show
+    ResolverVisitor;
+import 'registry.dart' show
+    ResolutionRegistry;
+import 'resolution_common.dart' show
+    MappingVisitor;
+import 'scope.dart' show
+    Scope;
 
 /**
  * [SignatureResolver] resolves function signatures.

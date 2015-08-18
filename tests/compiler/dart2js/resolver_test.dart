@@ -10,7 +10,12 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/elements/modelx.dart';
-import 'package:compiler/src/resolution/resolution.dart';
+import 'package:compiler/src/resolution/constructors.dart';
+import 'package:compiler/src/resolution/members.dart';
+import 'package:compiler/src/resolution/registry.dart';
+import 'package:compiler/src/resolution/resolution_result.dart';
+import 'package:compiler/src/resolution/scope.dart';
+import 'package:compiler/src/resolution/tree_elements.dart';
 
 import 'compiler_helper.dart';
 import 'link_helper.dart';
@@ -212,7 +217,7 @@ Future testSuperCalls() {
 
     ResolverVisitor visitor =
         new ResolverVisitor(compiler, fooB,
-            new ResolutionRegistry.internal(compiler,
+            new ResolutionRegistry(compiler,
                 new CollectingTreeElements(fooB)));
     FunctionExpression node = (fooB as FunctionElementX).parseNode(compiler);
     visitor.visit(node.body);
@@ -254,7 +259,7 @@ Future testThis() {
       FunctionElement funElement = fooElement.lookupLocalMember("foo");
       ResolverVisitor visitor =
           new ResolverVisitor(compiler, funElement,
-              new ResolutionRegistry.internal(compiler,
+              new ResolutionRegistry(compiler,
                   new CollectingTreeElements(funElement)));
       FunctionExpression function =
           (funElement as FunctionElementX).parseNode(compiler);
@@ -277,7 +282,7 @@ Future testThis() {
       ClassElement fooElement = compiler.mainApp.find("Foo");
       FunctionElement funElement = fooElement.lookupLocalMember("foo");
       ResolverVisitor visitor = new ResolverVisitor(compiler, funElement,
-          new ResolutionRegistry.internal(compiler,
+          new ResolutionRegistry(compiler,
               new CollectingTreeElements(funElement)));
       FunctionExpression function =
           (funElement as FunctionElementX).parseNode(compiler);
@@ -573,7 +578,7 @@ Future testOneInterface() {
 
     ResolverVisitor visitor =
         new ResolverVisitor(compiler, null,
-            new ResolutionRegistry.internal(compiler,
+            new ResolutionRegistry(compiler,
                 new CollectingTreeElements(null)));
     compiler.resolveStatement("Foo bar;");
 
@@ -690,7 +695,7 @@ Future resolveConstructor(
     FunctionExpression tree = (element as FunctionElement).node;
     ResolverVisitor visitor =
         new ResolverVisitor(compiler, element,
-            new ResolutionRegistry.internal(compiler,
+            new ResolutionRegistry(compiler,
                 new CollectingTreeElements(element)));
     new InitializerResolver(visitor, element, tree).resolveInitializers();
     visitor.visit(tree.body);

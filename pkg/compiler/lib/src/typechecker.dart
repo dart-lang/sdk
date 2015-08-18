@@ -45,7 +45,7 @@ import 'elements/elements.dart' show
     TypedElement,
     TypedefElement,
     VariableElement;
-import 'resolution/resolution.dart' show
+import 'resolution/tree_elements.dart' show
     TreeElements;
 import 'resolution/class_members.dart' show
     MembersCreator;

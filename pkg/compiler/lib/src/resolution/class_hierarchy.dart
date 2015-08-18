@@ -2,7 +2,44 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of resolution;
+library dart2js.resolution.class_hierarchy;
+
+import '../compiler.dart' show
+    Compiler,
+    isPrivateName;
+import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/messages.dart' show
+    MessageKind;
+import '../elements/elements.dart';
+import '../elements/modelx.dart' show
+    BaseClassElementX,
+    ErroneousElementX,
+    MixinApplicationElementX,
+    SynthesizedConstructorElementX,
+    TypeVariableElementX;
+import '../ordered_typeset.dart' show
+    OrderedTypeSet,
+    OrderedTypeSetBuilder;
+import '../tree/tree.dart';
+import '../util/util.dart' show
+    Link,
+    Setlet;
+import '../universe/universe.dart' show
+    Selector;
+
+import 'enum_creator.dart';
+import 'members.dart' show
+    lookupInScope;
+import 'registry.dart' show
+    ResolutionRegistry;
+import 'resolution_common.dart' show
+    CommonResolverVisitor,
+    MappingVisitor;
+import 'scope.dart' show
+    Scope,
+    TypeDeclarationScope;
 
 class TypeDefinitionVisitor extends MappingVisitor<DartType> {
   Scope scope;

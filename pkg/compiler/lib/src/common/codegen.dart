@@ -24,7 +24,7 @@ import '../enqueue.dart' show
     WorldImpact;
 import '../js_backend/js_backend.dart' show
     JavaScriptBackend;
-import '../resolution/resolution.dart' show
+import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../universe/universe.dart' show
     Selector,

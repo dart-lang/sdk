@@ -29,7 +29,7 @@ import '../elements/modelx.dart' show
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
-import '../resolution/resolution.dart' show ResolverVisitor;
+import '../resolution/members.dart' show ResolverVisitor;
 import '../scanner/scannerlib.dart';
 import '../ssa/ssa.dart';
 import '../tree/tree.dart';

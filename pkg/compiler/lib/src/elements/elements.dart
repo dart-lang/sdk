@@ -11,12 +11,16 @@ import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../diagnostics/diagnostic_listener.dart';
-import '../diagnostics/messages.dart' show MessageKind;
+import '../diagnostics/messages.dart' show
+MessageKind;
 import '../diagnostics/source_span.dart' show
     SourceSpan;
 import '../diagnostics/spannable.dart' show
     Spannable;
-import '../resolution/resolution.dart';
+import '../resolution/scope.dart' show
+    Scope;
+import '../resolution/tree_elements.dart' show
+    TreeElements;
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../scanner/scannerlib.dart' show
     Token,

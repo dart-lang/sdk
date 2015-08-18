@@ -18,7 +18,7 @@ import '../diagnostics/source_span.dart' show
 import '../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE;
 import '../elements/elements.dart';
-import '../resolution/resolution.dart' show
+import '../resolution/scope.dart' show
     Scope;
 import '../scanner/scannerlib.dart';
 import '../script.dart';

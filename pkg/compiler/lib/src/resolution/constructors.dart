@@ -2,7 +2,45 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of resolution;
+library dart2js.resolution.constructors;
+import '../compiler.dart' show
+    Compiler,
+    isPrivateName;
+import '../constants/constructors.dart' show
+    GenerativeConstantConstructor,
+    RedirectingGenerativeConstantConstructor;
+import '../constants/expressions.dart';
+import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/messages.dart' show
+    MessageKind;
+import '../diagnostics/spannable.dart' show
+    Spannable;
+import '../elements/elements.dart';
+import '../elements/modelx.dart' show
+    ConstructorElementX,
+    ErroneousConstructorElementX,
+    ErroneousElementX,
+    ErroneousFieldElementX,
+    FieldElementX,
+    InitializingFormalElementX,
+    ParameterElementX;
+import '../tree/tree.dart';
+import '../util/util.dart' show
+    Link;
+import '../universe/universe.dart' show
+    CallStructure,
+    Selector;
+
+import 'members.dart' show
+    lookupInScope,
+    ResolverVisitor;
+import 'registry.dart' show
+    ResolutionRegistry;
+import 'resolution_common.dart' show
+    CommonResolverVisitor;
+import 'resolution_result.dart';
 
 class InitializerResolver {
   final ResolverVisitor visitor;

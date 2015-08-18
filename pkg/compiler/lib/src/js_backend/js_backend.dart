@@ -69,8 +69,9 @@ import '../js_emitter/js_emitter.dart' show
     USE_LAZY_EMITTER;
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
-import '../resolution/resolution.dart' show
-    ResolutionRegistry,
+import '../resolution/registry.dart' show
+    ResolutionRegistry;
+import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../ssa/ssa.dart';
 import '../tree/tree.dart';

@@ -2,7 +2,71 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of resolution;
+library dart2js.resolution.members;
+
+import '../compiler.dart' show
+    Compiler,
+    isPrivateName;
+import '../constants/constructors.dart' show
+    RedirectingFactoryConstantConstructor;
+import '../constants/expressions.dart';
+import '../constants/values.dart';
+import '../core_types.dart';
+import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/messages.dart' show
+    MessageKind;
+import '../diagnostics/spannable.dart' show
+    Spannable;
+import '../elements/elements.dart';
+import '../elements/modelx.dart' show
+    ConstructorElementX,
+    ErroneousElementX,
+    FunctionElementX,
+    JumpTargetX,
+    LocalFunctionElementX,
+    LocalParameterElementX,
+    LocalVariableElementX,
+    MethodElementX,
+    ParameterElementX,
+    VariableElementX,
+    VariableList;
+import '../scanner/scannerlib.dart' show
+    isUserDefinableOperator;
+import '../tree/tree.dart';
+import '../util/util.dart' show
+    Link;
+import '../universe/universe.dart' show
+    CallStructure,
+    Selector,
+    SelectorKind,
+    UniverseSelector;
+
+import 'access_semantics.dart';
+import 'class_members.dart' show MembersCreator;
+import 'operators.dart';
+import 'send_structure.dart';
+
+import 'constructors.dart' show
+    ConstructorResolver;
+import 'label_scope.dart' show
+    StatementScope;
+import 'registry.dart' show
+    ResolutionRegistry;
+import 'resolution.dart' show
+    ResolverTask;
+import 'resolution_common.dart' show
+    MappingVisitor;
+import 'resolution_result.dart';
+import 'scope.dart' show
+    BlockScope,
+    MethodScope,
+    Scope;
+import 'signatures.dart' show
+    SignatureResolver;
+import 'variables.dart' show
+    VariableDefinitionsVisitor;
 
 /// The state of constants in resolutions.
 enum ConstantState {

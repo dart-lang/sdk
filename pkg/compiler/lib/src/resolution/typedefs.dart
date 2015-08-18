@@ -2,7 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of resolution;
+library dart2js.resolution.typedefs;
+
+import '../compiler.dart' show
+    Compiler,
+    isPrivateName;
+import '../dart_types.dart';
+import '../diagnostics/messages.dart' show
+    MessageKind;
+import '../elements/elements.dart' show
+    FunctionSignature,
+    TypedefElement,
+    TypeVariableElement;
+import '../elements/modelx.dart' show
+    ErroneousElementX,
+    TypedefElementX;
+import '../tree/tree.dart';
+import '../util/util.dart' show
+    Link;
+
+import 'class_hierarchy.dart' show
+    TypeDefinitionVisitor;
+import 'registry.dart' show
+    ResolutionRegistry;
+import 'scope.dart' show
+    MethodScope,
+    TypeDeclarationScope;
+import 'signatures.dart' show
+    SignatureResolver;
 
 class TypedefResolverVisitor extends TypeDefinitionVisitor {
   TypedefElementX get element => enclosingElement;

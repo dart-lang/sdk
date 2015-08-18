@@ -24,7 +24,7 @@ import '../diagnostics/spannable.dart' show
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' as js;
 import '../native/native.dart' as native;
-import '../resolution/resolution.dart' show
+import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../resolution/operators.dart' as op;
 import '../tree/tree.dart' as ast;

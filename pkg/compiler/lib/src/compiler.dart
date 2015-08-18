@@ -90,9 +90,11 @@ import 'null_compiler_output.dart' show
     NullSink;
 import 'patch_parser.dart' show
     PatchParserTask;
+import 'resolution/registry.dart' show
+    ResolutionRegistry;
 import 'resolution/resolution.dart' show
-    ResolutionRegistry,
-    ResolverTask,
+    ResolverTask;
+import 'resolution/tree_elements.dart' show
     TreeElementMapping;
 import 'scanner/token_map.dart' show
     TokenMap;
@@ -165,7 +167,7 @@ abstract class Compiler implements DiagnosticListener {
    */
   // TODO(johnniwinther): This should not be a [ResolutionRegistry].
   final Registry mirrorDependencies =
-      new ResolutionRegistry.internal(null, new TreeElementMapping(null));
+      new ResolutionRegistry(null, new TreeElementMapping(null));
 
   final bool enableMinification;
 

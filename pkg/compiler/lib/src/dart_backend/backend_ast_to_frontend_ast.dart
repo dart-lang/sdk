@@ -9,7 +9,7 @@ import '../dart_types.dart' as types;
 import '../diagnostics/invariant.dart' show
     invariant;
 import '../elements/elements.dart' as elements;
-import '../resolution/resolution.dart' show
+import '../resolution/tree_elements.dart' show
     TreeElementMapping;
 import '../tree/tree.dart' as tree;
 import '../scanner/scannerlib.dart';

@@ -2,7 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.semantics_visitor;
+library dart2js.semantics_visitor.resolver;
+
+import '../constants/expressions.dart';
+import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/messages.dart' show
+    MessageKind;
+import '../diagnostics/spannable.dart' show
+    Spannable,
+    SpannableAssertionFailure;
+import '../elements/elements.dart';
+import '../tree/tree.dart';
+import '../universe/universe.dart';
+
+import 'access_semantics.dart';
+import 'operators.dart';
+import 'semantic_visitor.dart';
+import 'send_structure.dart';
+import 'tree_elements.dart';
 
 enum SendStructureKind {
   GET,

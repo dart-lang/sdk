@@ -23,9 +23,11 @@ import '../io/source_information.dart';
 import '../js_backend/js_backend.dart' show
     JavaScriptBackend,
     SyntheticConstantKind;
-import '../resolution/resolution.dart' show
+import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../resolution/semantic_visitor.dart';
+import '../resolution/send_resolver.dart' show
+    SendResolverMixin;
 import '../resolution/operators.dart' as op;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart' show

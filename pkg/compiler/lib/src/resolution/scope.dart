@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of resolution;
+library dart2js.resolution.scope;
+
+import '../dart_types.dart';
+import '../elements/elements.dart';
 
 abstract class Scope {
   /**

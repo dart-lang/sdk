@@ -22,13 +22,15 @@ import 'elements/elements.dart' show
     PrefixElement,
     TypeVariableElement;
 import 'resolution/operators.dart' as op;
-import 'resolution/resolution.dart' show
-    TreeElements;
 import 'resolution/semantic_visitor.dart';
+import 'resolution/send_resolver.dart' show
+    SendResolverMixin;
 import 'resolution/send_structure.dart' show
     NewStructure,
     SemanticSendStructure,
     SendStructure;
+import 'resolution/tree_elements.dart' show
+    TreeElements;
 import 'tree/tree.dart';
 import 'universe/universe.dart' show
     CallStructure,

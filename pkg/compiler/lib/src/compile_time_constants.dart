@@ -23,7 +23,8 @@ import 'enqueue.dart' show
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show
     FunctionElementX;
-import 'resolution/resolution.dart';
+import 'resolution/tree_elements.dart' show
+    TreeElements;
 import 'resolution/operators.dart';
 import 'tree/tree.dart';
 import 'util/util.dart' show
