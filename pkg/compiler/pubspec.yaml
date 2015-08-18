@@ -10,11 +10,8 @@ dependencies:
     path: ../../sdk/lib/_internal/js_runtime
   sdk_library_metadata:
     path: ../../sdk/lib/_internal/sdk_library_metadata
-dev_dependencies:
-  path: ^1.3.6
-  args: ^0.13.2
-  shelf: ^0.6.1+2
-  yaml: ^2.1.3
+  dart2js_info: ^0.0.1
+
 
 # Uncomment if running gclient, so you can depend directly on the downloaded
 # versions of dart2js's transitive dependencies:

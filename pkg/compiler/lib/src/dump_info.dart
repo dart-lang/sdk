@@ -7,6 +7,8 @@ library dump_info;
 import 'dart:convert'
     show HtmlEscape, JsonEncoder, StringConversionSink, ChunkedConversionSink;
 
+import 'package:dart2js_info/info.dart';
+
 import 'common/tasks.dart' show
     CompilerTask;
 import 'compiler.dart' show
@@ -21,7 +23,6 @@ import 'types/types.dart' show
     TypeMask;
 import 'deferred_load.dart' show
     OutputUnit;
-import 'info/info.dart';
 import 'js_backend/js_backend.dart' show
     JavaScriptBackend;
 import 'js_emitter/full_emitter/emitter.dart' as full show
