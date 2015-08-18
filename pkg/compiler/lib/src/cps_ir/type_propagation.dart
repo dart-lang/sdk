@@ -1833,6 +1833,8 @@ class TypePropagationVisitor implements Visitor {
 
   TypeMaskSystem get typeSystem => lattice.typeSystem;
 
+  JavaScriptBackend get backend => typeSystem.backend;
+
   AbstractValue get nothing => lattice.nothing;
 
   AbstractValue nonConstant([TypeMask type]) => lattice.nonConstant(type);
@@ -1933,11 +1935,23 @@ class TypePropagationVisitor implements Visitor {
   void visit(Node node) { node.accept(this); }
 
   void visitFunctionDefinition(FunctionDefinition node) {
-    if (node.thisParameter != null) {
+    int firstActualParameter = 0;
+    if (backend.isInterceptedMethod(node.element)) {
+      setValue(node.thisParameter, nonConstant(typeSystem.nonNullType));
+      setValue(node.parameters[0], 
+               nonConstant(typeSystem.getReceiverType(node.element)));
+      firstActualParameter = 1;
+    } else if (node.thisParameter != null) {
       setValue(node.thisParameter,
                nonConstant(typeSystem.getReceiverType(node.element)));
     }
-    node.parameters.forEach(visit);
+    for (Parameter param in node.parameters.skip(firstActualParameter)) {
+      // TODO(karlklose): remove reference to the element model.
+      TypeMask type = param.hint is ParameterElement
+          ? typeSystem.getParameterType(param.hint)
+          : typeSystem.dynamicType;
+      setValue(param, nonConstant(type));
+    }
     push(node.body);
   }
 
@@ -2299,39 +2313,9 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitMutableVariable(MutableVariable node) {
-    // [MutableVariable]s are bound either as parameters to
-    // [FunctionDefinition]s, by [LetMutable].
-    if (node.parent is FunctionDefinition) {
-      // Just like immutable parameters, the values of mutable parameters are
-      // never constant.
-      // TODO(karlklose): remove reference to the element model.
-      Entity source = node.hint;
-      TypeMask type = (source is ParameterElement)
-          ? typeSystem.getParameterType(source)
-          : typeSystem.dynamicType;
-      setValue(node, nonConstant(type));
-    } else if (node.parent is LetMutable) {
-      // Mutable values bound by LetMutable could have known values.
-    } else {
-      internalError(node.hint, "Unexpected parent of MutableVariable");
-    }
   }
 
   void visitParameter(Parameter node) {
-    Entity source = node.hint;
-    // TODO(karlklose): remove reference to the element model.
-    TypeMask type = (source is ParameterElement)
-        ? typeSystem.getParameterType(source)
-        : typeSystem.dynamicType;
-    if (node.parent is FunctionDefinition) {
-      // Functions may escape and thus their parameters must be non-constant.
-      setValue(node, nonConstant(type));
-    } else if (node.parent is Continuation) {
-      // Continuations on the other hand are local, and parameters can have
-      // some other abstract value than non-constant.
-    } else {
-      internalError(node.hint, "Unexpected parent of Parameter: ${node.parent}");
-    }
   }
 
   void visitContinuation(Continuation node) {
