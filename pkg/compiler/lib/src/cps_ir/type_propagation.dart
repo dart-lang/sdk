@@ -183,6 +183,11 @@ class TypeMaskSystem {
         classWorld);
   }
 
+  bool isDefinitelyIndexable(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.nonNullable().satisfies(backend.jsIndexableClass, classWorld);
+  }
+
   bool areDisjoint(TypeMask leftType, TypeMask rightType) {
     TypeMask intersection = leftType.intersection(rightType, classWorld);
     return intersection.isEmpty && !intersection.isNullable;
@@ -342,6 +347,11 @@ class ConstantPropagationLattice {
     return value.isNothing ||
         typeSystem.isDefinitelyExtendableNativeList(value.type,
                                                     allowNull: allowNull);
+  }
+
+  bool isDefinitelyIndexable(AbstractValue value, {bool allowNull: false}) {
+    return value.isNothing ||
+        typeSystem.isDefinitelyIndexable(value.type, allowNull: allowNull);
   }
 
   /// Returns whether the given [value] is an instance of [type].
@@ -1059,27 +1069,61 @@ class TransformingVisitor extends LeafVisitor {
     return cps;
   }
 
-  /// Counts number of index accesses on [list] and determines based on
+  /// Counts number of index accesses on [receiver] and determines based on
   /// that number if we should try to inline them.
   ///
   /// This is a short-term solution to avoid inserting a lot of bounds checks,
   /// since there is currently no optimization for eliminating them.
-  bool hasTooManyIndexAccesses(Primitive list) {
+  bool hasTooManyIndexAccesses(Primitive receiver) {
     int count = 0;
-    for (Reference ref = list.firstRef; ref != null; ref = ref.next) {
+    for (Reference ref = receiver.firstRef; ref != null; ref = ref.next) {
       Node use = ref.parent;
       if (use is InvokeMethod &&
           (use.selector.isIndex || use.selector.isIndexSet) &&
-          getDartReceiver(use) == list) {
+          getDartReceiver(use) == receiver) {
         ++count;
-      } else if (use is GetIndex && use.object.definition == list) {
+      } else if (use is GetIndex && use.object.definition == receiver) {
         ++count;
-      } else if (use is SetIndex && use.object.definition == list) {
+      } else if (use is SetIndex && use.object.definition == receiver) {
         ++count;
       }
       if (count > 2) return true;
     }
     return false;
+  }
+
+  /// Tries to replace [node] with a direct `length` or index access.
+  /// 
+  /// Returns `true` if the node was replaced.
+  bool specializeIndexableAccess(InvokeMethod node) {
+    Primitive receiver = getDartReceiver(node);
+    AbstractValue receiverValue = getValue(receiver);
+    if (!lattice.isDefinitelyIndexable(receiverValue)) return false;
+    SourceInformation sourceInfo = node.sourceInformation;
+    Continuation cont = node.continuation.definition;
+    switch (node.selector.name) {
+      case 'length':
+        if (!node.selector.isGetter) return false;
+        CpsFragment cps = new CpsFragment(sourceInfo);
+        cps.invokeContinuation(cont, [cps.letPrim(new GetLength(receiver))]);
+        replaceSubtree(node, cps.result);
+        push(cps.result);
+        return true;
+
+      case '[]':
+        if (hasTooManyIndexAccesses(receiver)) return false;
+        Primitive index = getDartArgument(node, 0);
+        if (!lattice.isDefinitelyInt(getValue(index))) return false;
+        CpsFragment cps = makeBoundsCheck(receiver, index, sourceInfo);
+        GetIndex get = cps.letPrim(new GetIndex(receiver, index));
+        cps.invokeContinuation(cont, [get]);
+        replaceSubtree(node, cps.result);
+        push(cps.result);
+        return true;
+
+      default:
+        return false;
+    }
   }
 
   /// Tries to replace [node] with one or more direct array access operations.
@@ -1101,14 +1145,6 @@ class TransformingVisitor extends LeafVisitor {
     SourceInformation sourceInfo = node.sourceInformation;
     Continuation cont = node.continuation.definition;
     switch (node.selector.name) {
-      case 'length':
-        if (!node.selector.isGetter) return false;
-        CpsFragment cps = new CpsFragment(sourceInfo);
-        cps.invokeContinuation(cont, [cps.letPrim(new GetLength(list))]);
-        replaceSubtree(node, cps.result);
-        push(cps.result);
-        return true;
-
       case 'add':
         if (!node.selector.isCall ||
             node.selector.positionalArgumentCount != 1 ||
@@ -1168,12 +1204,10 @@ class TransformingVisitor extends LeafVisitor {
         push(cps.result);
         return true;
 
-      case '[]':
       case 'elementAt':
-        if (node.selector.name == 'elementAt' &&
-            (!node.selector.isCall || 
-             node.selector.positionalArgumentCount != 1 ||
-             node.selector.namedArgumentCount != 0)) {
+        if (!node.selector.isCall || 
+            node.selector.positionalArgumentCount != 1 ||
+            node.selector.namedArgumentCount != 0) {
           return false;
         }
         if (listValue.isNullable) return false;
@@ -1563,6 +1597,7 @@ class TransformingVisitor extends LeafVisitor {
     if (constifyExpression(node)) return;
     if (specializeOperatorCall(node)) return;
     if (specializeFieldAccess(node)) return;
+    if (specializeIndexableAccess(node)) return;
     if (specializeArrayAccess(node)) return;
     if (specializeClosureCall(node)) return;
 

@@ -714,7 +714,7 @@ class GetField extends Primitive {
   bool get isSafeForReordering => objectIsNotNull && field.isFinal;
 }
 
-/// Get the length of a native list.
+/// Get the length of a string or native list.
 class GetLength extends Primitive {
   final Reference<Primitive> object;
 
@@ -729,9 +729,10 @@ class GetLength extends Primitive {
   accept(Visitor v) => v.visitGetLength(this);
 }
 
-/// Read an entry from a native list.
+/// Read an entry from a string or native list.
 ///
-/// [object] must be null or a native list, and [index] must be an integer.
+/// [object] must be null or a native list or a string, and [index] must be
+/// an integer.
 class GetIndex extends Primitive {
   final Reference<Primitive> object;
   final Reference<Primitive> index;
