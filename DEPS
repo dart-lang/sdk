@@ -222,8 +222,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/logging":
       (Var("github_mirror") % "logging") + Var("logging_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":
-      "https://github.com/dart-lang/" +
-      "markdown.git" + Var("markdown_rev"),
+      (Var("github_mirror") % "markdown") + Var("markdown_rev"),
   Var("dart_root") + "/third_party/pkg/matcher":
       (Var("github_mirror") % "matcher") + Var("matcher_tag"),
   Var("dart_root") + "/third_party/pkg/metatest":
