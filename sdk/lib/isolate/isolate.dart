@@ -157,9 +157,6 @@ class Isolate {
    * isolate was started as [paused], it may already have terminated
    * before those methods can complete.
    *
-   * WARNING: The [errorsAreFatal], [onExit] and [onError] parameters are not
-   * implemented yet.
-   *
    * Returns a future that will complete with an [Isolate] instance if the
    * spawning succeeded. It will complete with an error otherwise.
    */
