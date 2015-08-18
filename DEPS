@@ -78,7 +78,7 @@ vars = {
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
   "observatory_pub_packages_rev": "@cdc4b3d4c15b9c0c8e7702dff127b440afbb7485",
-  "package_config_tag": "@0.1.3-dev",
+  "package_config_rev": "@1998ff79238169eb288b90b7eb29c2915105b0e4",
   "path_tag": "@1.3.6",
   "petitparser_rev" : "@37878",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
@@ -242,7 +242,7 @@ deps = {
       + Var("observatory_pub_packages_rev"),
   Var("dart_root") + "/third_party/pkg_tested/package_config":
       (Var("github_mirror") % "package_config") +
-      Var("package_config_tag"),
+      Var("package_config_rev"),
   Var("dart_root") + "/third_party/pkg/path":
       (Var("github_mirror") % "path") + Var("path_tag"),
   Var("dart_root") + "/third_party/pkg/plugin":
