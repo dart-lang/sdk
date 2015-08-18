@@ -2025,20 +2025,18 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleNegate, assembler) {
     double a;
     double b;
   } constant0 = { 1.0, 2.0 };
-  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer();
+  __ EnterStubFrame();
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
   __ negatepd(XMM10);
   __ movaps(XMM0, XMM10);
-  __ popq(PP);  // Restore caller's pool pointer.
+  __ LeaveStubFrame();
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(PackedDoubleNegate, test) {
-  typedef double (*PackedDoubleNegate)();
-  double res = reinterpret_cast<PackedDoubleNegate>(test->entry())();
+  double res = test->Invoke<double>();
   EXPECT_FLOAT_EQ(-1.0, res, 0.000001f);
 }
 
@@ -2048,20 +2046,18 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleAbsolute, assembler) {
     double a;
     double b;
   } constant0 = { -1.0, 2.0 };
-  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer();
+  __ EnterStubFrame();
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
   __ abspd(XMM10);
   __ movaps(XMM0, XMM10);
-  __ popq(PP);  // Restore caller's pool pointer.
+  __ LeaveStubFrame();
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(PackedDoubleAbsolute, test) {
-  typedef double (*PackedDoubleAbsolute)();
-  double res = reinterpret_cast<PackedDoubleAbsolute>(test->entry())();
+  double res = test->Invoke<double>();
   EXPECT_FLOAT_EQ(1.0, res, 0.000001f);
 }
 
@@ -2495,59 +2491,53 @@ ASSEMBLER_TEST_RUN(PackedCompareNLE, test) {
 
 
 ASSEMBLER_TEST_GENERATE(PackedNegate, assembler) {
-  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer();
+  __ EnterStubFrame();
   __ movl(RAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
   __ negateps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xAA));  // Copy third lane into all 4 lanes.
-  __ popq(PP);  // Restore caller's pool pointer.
+  __ LeaveStubFrame();
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(PackedNegate, test) {
-  typedef float (*PackedNegateCode)();
-  float res = reinterpret_cast<PackedNegateCode>(test->entry())();
+  float res = test->Invoke<float>();
   EXPECT_FLOAT_EQ(-12.3f, res, 0.001f);
 }
 
 
 ASSEMBLER_TEST_GENERATE(PackedAbsolute, assembler) {
-  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer();
+  __ EnterStubFrame();
   __ movl(RAX, Immediate(bit_cast<int32_t, float>(-15.3f)));
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
   __ absps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xAA));  // Copy third lane into all 4 lanes.
-  __ popq(PP);  // Restore caller's pool pointer.
+  __ LeaveStubFrame();
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
-  typedef float (*PackedAbsoluteCode)();
-  float res = reinterpret_cast<PackedAbsoluteCode>(test->entry())();
+  float res = test->Invoke<float>();
   EXPECT_FLOAT_EQ(15.3f, res, 0.001f);
 }
 
 
 ASSEMBLER_TEST_GENERATE(PackedSetWZero, assembler) {
-  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer();
+  __ EnterStubFrame();
   __ set1ps(XMM0, RAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ zerowps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xFF));  // Copy the W lane which is now 0.0.
-  __ popq(PP);  // Restore caller's pool pointer.
+  __ LeaveStubFrame();
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(PackedSetWZero, test) {
-  typedef float (*PackedSetWZeroCode)();
-  float res = reinterpret_cast<PackedSetWZeroCode>(test->entry())();
+  float res = test->Invoke<float>();
   EXPECT_FLOAT_EQ(0.0f, res, 0.001f);
 }
 
@@ -2657,8 +2647,7 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
     uint32_t d;
   } constant1 =
       { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer();
+  __ EnterStubFrame();
   __ LoadImmediate(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
   __ movups(XMM9, Address(RAX, 0));
   __ notps(XMM9);
@@ -2666,14 +2655,13 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
   __ pushq(RAX);
   __ movss(Address(RSP, 0), XMM0);
   __ popq(RAX);
-  __ popq(PP);  // Restore caller's pool pointer.
+  __ LeaveStubFrame();
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(PackedLogicalNot, test) {
-  typedef uint32_t (*PackedLogicalNotCode)();
-  uint32_t res = reinterpret_cast<PackedLogicalNotCode>(test->entry())();
+  uint32_t res = test->Invoke<uint32_t>();
   EXPECT_EQ(static_cast<uword>(0x0), res);
 }
 
@@ -3065,9 +3053,7 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   const Object& obj = Object::ZoneHandle(object_store->smi_class());
   Label fail;
-  __ EnterFrame(0);
-  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer();
+  __ EnterStubFrame();
   __ LoadObject(RAX, obj);
   __ CompareObject(RAX, obj);
   __ j(NOT_EQUAL, &fail);
@@ -3094,15 +3080,13 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
   __ ret();
   __ Bind(&fail);
   __ movl(RAX, Immediate(0));  // Fail.
-  __ popq(PP);  // Restore caller's pool pointer.
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
-  typedef bool (*TestObjectCompare)();
-  bool res = reinterpret_cast<TestObjectCompare>(test->entry())();
+  bool res = test->Invoke<bool>();
   EXPECT_EQ(true, res);
 }
 
@@ -3306,8 +3290,6 @@ ASSEMBLER_TEST_RUN(SquareRootDouble, test) {
 
 // Called from assembler_test.cc.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
-  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer();
   __ pushq(THR);
   __ movq(THR, CallingConventions::kArg3Reg);
   __ StoreIntoObject(CallingConventions::kArg2Reg,
@@ -3315,7 +3297,6 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
                                   GrowableObjectArray::data_offset()),
                      CallingConventions::kArg1Reg);
   __ popq(THR);
-  __ popq(PP);  // Restore caller's pool pointer.
   __ ret();
 }
 
@@ -3429,21 +3410,19 @@ ASSEMBLER_TEST_RUN(DoubleToDoubleTrunc, test) {
 
 
 ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
-  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer();
+  __ EnterStubFrame();
   __ DoubleAbs(XMM0);
-  __ popq(PP);  // Restore caller's pool pointer.
+  __ LeaveStubFrame();
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(DoubleAbs, test) {
-  typedef double (*DoubleAbsCode)(double d);
   double val = -12.45;
-  double res =  reinterpret_cast<DoubleAbsCode>(test->entry())(val);
+  double res =  test->Invoke<double, double>(val);
   EXPECT_FLOAT_EQ(-val, res, 0.001);
   val = 12.45;
-  res =  reinterpret_cast<DoubleAbsCode>(test->entry())(val);
+  res = test->Invoke<double, double>(val);
   EXPECT_FLOAT_EQ(val, res, 0.001);
 }
 

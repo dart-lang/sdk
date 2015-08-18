@@ -215,8 +215,6 @@ void AssemblerTest::Assemble() {
     Disassembler::Disassemble(start, start + assembler_->CodeSize());
     OS::Print("}\n");
   }
-  const Instructions& instructions = Instructions::Handle(code_.instructions());
-  entry_ = instructions.EntryPoint();
 }
 
 
