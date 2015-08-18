@@ -54,14 +54,38 @@ abstract class Graph<N> {
   }
 
   /// Return a list of nodes that form a cycle containing the given node. If the
-  /// node is not part of this graph, then a list containing only the node
-  /// itself will be returned.
+  /// node is not part of a cycle in this graph, then a list containing only the
+  /// node itself will be returned.
   List<N> findCycleContaining(N node) {
     assert(node != null);
     _SccFinder<N> finder = new _SccFinder<N>(this);
     return finder._componentContaining(node);
   }
 
+  /// Returns a dominator tree starting from root. This is a new graph, with the
+  /// same nodes as this graph, but where edges exist between a node and the
+  /// nodes it immediately dominates. For example, this graph:
+  ///
+  ///       root
+  ///       /   \
+  ///      a     b
+  ///      |    / \
+  ///      c   d   e
+  ///       \ / \ /
+  ///        f   g
+  ///
+  /// Produces this tree:
+  ///
+  ///       root
+  ///       /|  \
+  ///      a |   b
+  ///      | |  /|\
+  ///      c | d | e
+  ///        |   |
+  ///        f   g
+  ///
+  /// Internally we compute dominators using (Cooper, Harvey, and Kennedy's
+  /// algorithm)[http://www.cs.rice.edu/~keith/EMBED/dom.pdf].
   Graph<N> dominatorTree(N root) {
     var iDom = (new _DominatorFinder(this)..run(root)).immediateDominators;
     var graph = new EdgeListGraph<N>();
