@@ -11,7 +11,7 @@ import 'source_map_validator_helper.dart';
 
 void main() {
   asyncTest(() async {
-    Directory tmpDir = createTempDir();
+    Directory tmpDir = await createTempDir();
     try {
       Directory sunflowerDir = new Directory.fromUri(
           Platform.script.resolve('../../../third_party/sunflower'));
@@ -42,5 +42,5 @@ void main() {
     } finally {
       tmpDir.deleteSync(recursive: true);
     }
-  }));
+  });
 }
