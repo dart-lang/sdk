@@ -31,8 +31,11 @@ class AstFactory {
 
   static Annotation annotation2(Identifier name,
           SimpleIdentifier constructorName, ArgumentList arguments) =>
-      new Annotation(TokenFactory.tokenFromType(TokenType.AT), name,
-          TokenFactory.tokenFromType(TokenType.PERIOD), constructorName,
+      new Annotation(
+          TokenFactory.tokenFromType(TokenType.AT),
+          name,
+          TokenFactory.tokenFromType(TokenType.PERIOD),
+          constructorName,
           arguments);
 
   static ArgumentList argumentList([List<Expression> arguments]) =>
@@ -44,30 +47,39 @@ class AstFactory {
           expression, TokenFactory.tokenFromKeyword(Keyword.AS), type);
 
   static AssertStatement assertStatement(Expression condition) =>
-      new AssertStatement(TokenFactory.tokenFromKeyword(Keyword.ASSERT),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN), condition,
+      new AssertStatement(
+          TokenFactory.tokenFromKeyword(Keyword.ASSERT),
+          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          condition,
           TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static AssignmentExpression assignmentExpression(Expression leftHandSide,
-      TokenType operator, Expression rightHandSide) => new AssignmentExpression(
-      leftHandSide, TokenFactory.tokenFromType(operator), rightHandSide);
+          TokenType operator, Expression rightHandSide) =>
+      new AssignmentExpression(
+          leftHandSide, TokenFactory.tokenFromType(operator), rightHandSide);
 
   static BlockFunctionBody asyncBlockFunctionBody(
-      [List<Statement> statements]) => new BlockFunctionBody(
-      TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"), null,
-      block(statements));
+          [List<Statement> statements]) =>
+      new BlockFunctionBody(
+          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
+          null,
+          block(statements));
 
   static ExpressionFunctionBody asyncExpressionFunctionBody(
-      Expression expression) => new ExpressionFunctionBody(
-      TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
-      TokenFactory.tokenFromType(TokenType.FUNCTION), expression,
-      TokenFactory.tokenFromType(TokenType.SEMICOLON));
+          Expression expression) =>
+      new ExpressionFunctionBody(
+          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
+          TokenFactory.tokenFromType(TokenType.FUNCTION),
+          expression,
+          TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static BlockFunctionBody asyncGeneratorBlockFunctionBody(
-      [List<Statement> statements]) => new BlockFunctionBody(
-      TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
-      TokenFactory.tokenFromType(TokenType.STAR), block(statements));
+          [List<Statement> statements]) =>
+      new BlockFunctionBody(
+          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
+          TokenFactory.tokenFromType(TokenType.STAR),
+          block(statements));
 
   static AwaitExpression awaitExpression(Expression expression) =>
       new AwaitExpression(
@@ -75,11 +87,13 @@ class AstFactory {
           expression);
 
   static BinaryExpression binaryExpression(Expression leftOperand,
-      TokenType operator, Expression rightOperand) => new BinaryExpression(
-      leftOperand, TokenFactory.tokenFromType(operator), rightOperand);
+          TokenType operator, Expression rightOperand) =>
+      new BinaryExpression(
+          leftOperand, TokenFactory.tokenFromType(operator), rightOperand);
 
   static Block block([List<Statement> statements]) => new Block(
-      TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET), statements,
+      TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+      statements,
       TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
   static BlockFunctionBody blockFunctionBody(Block block) =>
@@ -88,31 +102,41 @@ class AstFactory {
   static BlockFunctionBody blockFunctionBody2([List<Statement> statements]) =>
       new BlockFunctionBody(null, null, block(statements));
 
-  static BooleanLiteral booleanLiteral(bool value) => new BooleanLiteral(value
-      ? TokenFactory.tokenFromKeyword(Keyword.TRUE)
-      : TokenFactory.tokenFromKeyword(Keyword.FALSE), value);
+  static BooleanLiteral booleanLiteral(bool value) => new BooleanLiteral(
+      value
+          ? TokenFactory.tokenFromKeyword(Keyword.TRUE)
+          : TokenFactory.tokenFromKeyword(Keyword.FALSE),
+      value);
 
   static BreakStatement breakStatement() => new BreakStatement(
-      TokenFactory.tokenFromKeyword(Keyword.BREAK), null,
+      TokenFactory.tokenFromKeyword(Keyword.BREAK),
+      null,
       TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static BreakStatement breakStatement2(String label) => new BreakStatement(
-      TokenFactory.tokenFromKeyword(Keyword.BREAK), identifier3(label),
+      TokenFactory.tokenFromKeyword(Keyword.BREAK),
+      identifier3(label),
       TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static IndexExpression cascadedIndexExpression(Expression index) =>
       new IndexExpression.forCascade(
           TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
-          TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET), index,
+          TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
+          index,
           TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
   static MethodInvocation cascadedMethodInvocation(String methodName,
-      [List<Expression> arguments]) => new MethodInvocation(null,
-      TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
-      identifier3(methodName), null, argumentList(arguments));
+          [List<Expression> arguments]) =>
+      new MethodInvocation(
+          null,
+          TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
+          identifier3(methodName),
+          null,
+          argumentList(arguments));
 
   static PropertyAccess cascadedPropertyAccess(String propertyName) =>
-      new PropertyAccess(null,
+      new PropertyAccess(
+          null,
           TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
           identifier3(propertyName));
 
@@ -139,47 +163,74 @@ class AstFactory {
       catchClause5(exceptionType, exceptionParameter, null, statements);
 
   static CatchClause catchClause5(TypeName exceptionType,
-      String exceptionParameter, String stackTraceParameter,
-      [List<Statement> statements]) => new CatchClause(exceptionType == null
-          ? null
-          : TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "on"),
-      exceptionType, exceptionParameter == null
-          ? null
-          : TokenFactory.tokenFromKeyword(Keyword.CATCH), exceptionParameter ==
-              null ? null : TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-      exceptionParameter == null ? null : identifier3(exceptionParameter),
-      stackTraceParameter == null
-          ? null
-          : TokenFactory.tokenFromType(TokenType.COMMA),
-      stackTraceParameter == null ? null : identifier3(stackTraceParameter),
-      exceptionParameter == null
-          ? null
-          : TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-      block(statements));
+          String exceptionParameter, String stackTraceParameter,
+          [List<Statement> statements]) =>
+      new CatchClause(
+          exceptionType == null
+              ? null
+              : TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "on"),
+          exceptionType,
+          exceptionParameter == null
+              ? null
+              : TokenFactory.tokenFromKeyword(Keyword.CATCH),
+          exceptionParameter == null
+              ? null
+              : TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          exceptionParameter == null ? null : identifier3(exceptionParameter),
+          stackTraceParameter == null
+              ? null
+              : TokenFactory.tokenFromType(TokenType.COMMA),
+          stackTraceParameter == null ? null : identifier3(stackTraceParameter),
+          exceptionParameter == null
+              ? null
+              : TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+          block(statements));
 
-  static ClassDeclaration classDeclaration(Keyword abstractKeyword, String name,
-      TypeParameterList typeParameters, ExtendsClause extendsClause,
-      WithClause withClause, ImplementsClause implementsClause,
-      [List<ClassMember> members]) => new ClassDeclaration(null, null,
-      abstractKeyword == null
-          ? null
-          : TokenFactory.tokenFromKeyword(abstractKeyword),
-      TokenFactory.tokenFromKeyword(Keyword.CLASS), identifier3(name),
-      typeParameters, extendsClause, withClause, implementsClause,
-      TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET), members,
-      TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+  static ClassDeclaration classDeclaration(
+          Keyword abstractKeyword,
+          String name,
+          TypeParameterList typeParameters,
+          ExtendsClause extendsClause,
+          WithClause withClause,
+          ImplementsClause implementsClause,
+          [List<ClassMember> members]) =>
+      new ClassDeclaration(
+          null,
+          null,
+          abstractKeyword == null
+              ? null
+              : TokenFactory.tokenFromKeyword(abstractKeyword),
+          TokenFactory.tokenFromKeyword(Keyword.CLASS),
+          identifier3(name),
+          typeParameters,
+          extendsClause,
+          withClause,
+          implementsClause,
+          TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+          members,
+          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
-  static ClassTypeAlias classTypeAlias(String name,
-      TypeParameterList typeParameters, Keyword abstractKeyword,
-      TypeName superclass, WithClause withClause,
-      ImplementsClause implementsClause) => new ClassTypeAlias(null, null,
-      TokenFactory.tokenFromKeyword(Keyword.CLASS), identifier3(name),
-      typeParameters, TokenFactory.tokenFromType(TokenType.EQ),
-      abstractKeyword == null
-          ? null
-          : TokenFactory.tokenFromKeyword(abstractKeyword), superclass,
-      withClause, implementsClause,
-      TokenFactory.tokenFromType(TokenType.SEMICOLON));
+  static ClassTypeAlias classTypeAlias(
+          String name,
+          TypeParameterList typeParameters,
+          Keyword abstractKeyword,
+          TypeName superclass,
+          WithClause withClause,
+          ImplementsClause implementsClause) =>
+      new ClassTypeAlias(
+          null,
+          null,
+          TokenFactory.tokenFromKeyword(Keyword.CLASS),
+          identifier3(name),
+          typeParameters,
+          TokenFactory.tokenFromType(TokenType.EQ),
+          abstractKeyword == null
+              ? null
+              : TokenFactory.tokenFromKeyword(abstractKeyword),
+          superclass,
+          withClause,
+          implementsClause,
+          TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static CompilationUnit compilationUnit() =>
       compilationUnit8(null, null, null);
@@ -206,49 +257,82 @@ class AstFactory {
           String scriptTag, List<Directive> directives) =>
       compilationUnit8(scriptTag, directives, null);
 
-  static CompilationUnit compilationUnit8(String scriptTag,
-      List<Directive> directives,
-      List<CompilationUnitMember> declarations) => new CompilationUnit(
-      TokenFactory.tokenFromType(TokenType.EOF),
-      scriptTag == null ? null : AstFactory.scriptTag(scriptTag),
-      directives == null ? new List<Directive>() : directives,
-      declarations == null ? new List<CompilationUnitMember>() : declarations,
-      TokenFactory.tokenFromType(TokenType.EOF));
+  static CompilationUnit compilationUnit8(
+          String scriptTag,
+          List<Directive> directives,
+          List<CompilationUnitMember> declarations) =>
+      new CompilationUnit(
+          TokenFactory.tokenFromType(TokenType.EOF),
+          scriptTag == null ? null : AstFactory.scriptTag(scriptTag),
+          directives == null ? new List<Directive>() : directives,
+          declarations == null
+              ? new List<CompilationUnitMember>()
+              : declarations,
+          TokenFactory.tokenFromType(TokenType.EOF));
 
   static ConditionalExpression conditionalExpression(Expression condition,
           Expression thenExpression, Expression elseExpression) =>
-      new ConditionalExpression(condition,
-          TokenFactory.tokenFromType(TokenType.QUESTION), thenExpression,
-          TokenFactory.tokenFromType(TokenType.COLON), elseExpression);
+      new ConditionalExpression(
+          condition,
+          TokenFactory.tokenFromType(TokenType.QUESTION),
+          thenExpression,
+          TokenFactory.tokenFromType(TokenType.COLON),
+          elseExpression);
 
-  static ConstructorDeclaration constructorDeclaration(Identifier returnType,
-      String name, FormalParameterList parameters,
-      List<ConstructorInitializer> initializers) => new ConstructorDeclaration(
-      null, null, TokenFactory.tokenFromKeyword(Keyword.EXTERNAL), null, null,
-      returnType,
-      name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
-      name == null ? null : identifier3(name), parameters,
-      initializers == null || initializers.isEmpty
-          ? null
-          : TokenFactory.tokenFromType(TokenType.PERIOD), initializers == null
-          ? new List<ConstructorInitializer>()
-          : initializers, null, emptyFunctionBody());
+  static ConstructorDeclaration constructorDeclaration(
+          Identifier returnType,
+          String name,
+          FormalParameterList parameters,
+          List<ConstructorInitializer> initializers) =>
+      new ConstructorDeclaration(
+          null,
+          null,
+          TokenFactory.tokenFromKeyword(Keyword.EXTERNAL),
+          null,
+          null,
+          returnType,
+          name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
+          name == null ? null : identifier3(name),
+          parameters,
+          initializers == null || initializers.isEmpty
+              ? null
+              : TokenFactory.tokenFromType(TokenType.PERIOD),
+          initializers == null
+              ? new List<ConstructorInitializer>()
+              : initializers,
+          null,
+          emptyFunctionBody());
 
-  static ConstructorDeclaration constructorDeclaration2(Keyword constKeyword,
-      Keyword factoryKeyword, Identifier returnType, String name,
-      FormalParameterList parameters, List<ConstructorInitializer> initializers,
-      FunctionBody body) => new ConstructorDeclaration(null, null, null,
-      constKeyword == null ? null : TokenFactory.tokenFromKeyword(constKeyword),
-      factoryKeyword == null
-          ? null
-          : TokenFactory.tokenFromKeyword(factoryKeyword), returnType,
-      name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
-      name == null ? null : identifier3(name), parameters,
-      initializers == null || initializers.isEmpty
-          ? null
-          : TokenFactory.tokenFromType(TokenType.PERIOD), initializers == null
-          ? new List<ConstructorInitializer>()
-          : initializers, null, body);
+  static ConstructorDeclaration constructorDeclaration2(
+          Keyword constKeyword,
+          Keyword factoryKeyword,
+          Identifier returnType,
+          String name,
+          FormalParameterList parameters,
+          List<ConstructorInitializer> initializers,
+          FunctionBody body) =>
+      new ConstructorDeclaration(
+          null,
+          null,
+          null,
+          constKeyword == null
+              ? null
+              : TokenFactory.tokenFromKeyword(constKeyword),
+          factoryKeyword == null
+              ? null
+              : TokenFactory.tokenFromKeyword(factoryKeyword),
+          returnType,
+          name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
+          name == null ? null : identifier3(name),
+          parameters,
+          initializers == null || initializers.isEmpty
+              ? null
+              : TokenFactory.tokenFromType(TokenType.PERIOD),
+          initializers == null
+              ? new List<ConstructorInitializer>()
+              : initializers,
+          null,
+          body);
 
   static ConstructorFieldInitializer constructorFieldInitializer(
           bool prefixedWithThis, String fieldName, Expression expression) =>
@@ -256,16 +340,20 @@ class AstFactory {
           prefixedWithThis ? TokenFactory.tokenFromKeyword(Keyword.THIS) : null,
           prefixedWithThis
               ? TokenFactory.tokenFromType(TokenType.PERIOD)
-              : null, identifier3(fieldName),
-          TokenFactory.tokenFromType(TokenType.EQ), expression);
+              : null,
+          identifier3(fieldName),
+          TokenFactory.tokenFromType(TokenType.EQ),
+          expression);
 
   static ConstructorName constructorName(TypeName type, String name) =>
-      new ConstructorName(type,
+      new ConstructorName(
+          type,
           name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
           name == null ? null : identifier3(name));
 
   static ContinueStatement continueStatement([String label]) =>
-      new ContinueStatement(TokenFactory.tokenFromKeyword(Keyword.CONTINUE),
+      new ContinueStatement(
+          TokenFactory.tokenFromKeyword(Keyword.CONTINUE),
           label == null ? null : identifier3(label),
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
@@ -275,21 +363,27 @@ class AstFactory {
 
   static DeclaredIdentifier declaredIdentifier2(
           Keyword keyword, TypeName type, String identifier) =>
-      new DeclaredIdentifier(null, null,
-          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), type,
+      new DeclaredIdentifier(
+          null,
+          null,
+          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+          type,
           identifier3(identifier));
 
   static DeclaredIdentifier declaredIdentifier3(String identifier) =>
-      declaredIdentifier2(null, null, identifier);
+      declaredIdentifier2(Keyword.VAR, null, identifier);
 
   static DeclaredIdentifier declaredIdentifier4(
           TypeName type, String identifier) =>
       declaredIdentifier2(null, type, identifier);
 
   static DoStatement doStatement(Statement body, Expression condition) =>
-      new DoStatement(TokenFactory.tokenFromKeyword(Keyword.DO), body,
+      new DoStatement(
+          TokenFactory.tokenFromKeyword(Keyword.DO),
+          body,
           TokenFactory.tokenFromKeyword(Keyword.WHILE),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN), condition,
+          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          condition,
           TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
@@ -304,9 +398,13 @@ class AstFactory {
 
   static EnumDeclaration enumDeclaration(
           SimpleIdentifier name, List<EnumConstantDeclaration> constants) =>
-      new EnumDeclaration(null, null,
-          TokenFactory.tokenFromKeyword(Keyword.ENUM), name,
-          TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET), constants,
+      new EnumDeclaration(
+          null,
+          null,
+          TokenFactory.tokenFromKeyword(Keyword.ENUM),
+          name,
+          TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+          constants,
           TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
   static EnumDeclaration enumDeclaration2(
@@ -322,17 +420,24 @@ class AstFactory {
   }
 
   static ExportDirective exportDirective(List<Annotation> metadata, String uri,
-      [List<Combinator> combinators]) => new ExportDirective(null, metadata,
-      TokenFactory.tokenFromKeyword(Keyword.EXPORT), string2(uri), combinators,
-      TokenFactory.tokenFromType(TokenType.SEMICOLON));
+          [List<Combinator> combinators]) =>
+      new ExportDirective(
+          null,
+          metadata,
+          TokenFactory.tokenFromKeyword(Keyword.EXPORT),
+          string2(uri),
+          combinators,
+          TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static ExportDirective exportDirective2(String uri,
           [List<Combinator> combinators]) =>
       exportDirective(null, uri, combinators);
 
   static ExpressionFunctionBody expressionFunctionBody(Expression expression) =>
-      new ExpressionFunctionBody(null,
-          TokenFactory.tokenFromType(TokenType.FUNCTION), expression,
+      new ExpressionFunctionBody(
+          null,
+          TokenFactory.tokenFromType(TokenType.FUNCTION),
+          expression,
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static ExpressionStatement expressionStatement(Expression expression) =>
@@ -344,7 +449,9 @@ class AstFactory {
 
   static FieldDeclaration fieldDeclaration(bool isStatic, Keyword keyword,
           TypeName type, List<VariableDeclaration> variables) =>
-      new FieldDeclaration(null, null,
+      new FieldDeclaration(
+          null,
+          null,
           isStatic ? TokenFactory.tokenFromKeyword(Keyword.STATIC) : null,
           variableDeclarationList(keyword, type, variables),
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
@@ -354,61 +461,98 @@ class AstFactory {
       fieldDeclaration(isStatic, keyword, null, variables);
 
   static FieldFormalParameter fieldFormalParameter(
-      Keyword keyword, TypeName type, String identifier,
-      [FormalParameterList parameterList]) => new FieldFormalParameter(null,
-      null, keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-      type, TokenFactory.tokenFromKeyword(Keyword.THIS),
-      TokenFactory.tokenFromType(TokenType.PERIOD), identifier3(identifier),
-      null, parameterList);
+          Keyword keyword, TypeName type, String identifier,
+          [FormalParameterList parameterList]) =>
+      new FieldFormalParameter(
+          null,
+          null,
+          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+          type,
+          TokenFactory.tokenFromKeyword(Keyword.THIS),
+          TokenFactory.tokenFromType(TokenType.PERIOD),
+          identifier3(identifier),
+          null,
+          parameterList);
 
   static FieldFormalParameter fieldFormalParameter2(String identifier) =>
       fieldFormalParameter(null, null, identifier);
 
   static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable,
           Expression iterator, Statement body) =>
-      new ForEachStatement.withDeclaration(null,
+      new ForEachStatement.withDeclaration(
+          null,
           TokenFactory.tokenFromKeyword(Keyword.FOR),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN), loopVariable,
-          TokenFactory.tokenFromKeyword(Keyword.IN), iterator,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
+          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          loopVariable,
+          TokenFactory.tokenFromKeyword(Keyword.IN),
+          iterator,
+          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+          body);
 
   static ForEachStatement forEachStatement2(
           SimpleIdentifier identifier, Expression iterator, Statement body) =>
-      new ForEachStatement.withReference(null,
+      new ForEachStatement.withReference(
+          null,
           TokenFactory.tokenFromKeyword(Keyword.FOR),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN), identifier,
-          TokenFactory.tokenFromKeyword(Keyword.IN), iterator,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
+          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          identifier,
+          TokenFactory.tokenFromKeyword(Keyword.IN),
+          iterator,
+          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+          body);
 
   static FormalParameterList formalParameterList(
-      [List<FormalParameter> parameters]) => new FormalParameterList(
-      TokenFactory.tokenFromType(TokenType.OPEN_PAREN), parameters, null, null,
-      TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
+          [List<FormalParameter> parameters]) =>
+      new FormalParameterList(
+          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          parameters,
+          null,
+          null,
+          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
 
   static ForStatement forStatement(Expression initialization,
           Expression condition, List<Expression> updaters, Statement body) =>
-      new ForStatement(TokenFactory.tokenFromKeyword(Keyword.FOR),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN), null,
-          initialization, TokenFactory.tokenFromType(TokenType.SEMICOLON),
-          condition, TokenFactory.tokenFromType(TokenType.SEMICOLON), updaters,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
+      new ForStatement(
+          TokenFactory.tokenFromKeyword(Keyword.FOR),
+          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          null,
+          initialization,
+          TokenFactory.tokenFromType(TokenType.SEMICOLON),
+          condition,
+          TokenFactory.tokenFromType(TokenType.SEMICOLON),
+          updaters,
+          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+          body);
 
   static ForStatement forStatement2(VariableDeclarationList variableList,
           Expression condition, List<Expression> updaters, Statement body) =>
-      new ForStatement(TokenFactory.tokenFromKeyword(Keyword.FOR),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN), variableList, null,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON), condition,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON), updaters,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
+      new ForStatement(
+          TokenFactory.tokenFromKeyword(Keyword.FOR),
+          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          variableList,
+          null,
+          TokenFactory.tokenFromType(TokenType.SEMICOLON),
+          condition,
+          TokenFactory.tokenFromType(TokenType.SEMICOLON),
+          updaters,
+          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+          body);
 
   static FunctionDeclaration functionDeclaration(TypeName type, Keyword keyword,
           String name, FunctionExpression functionExpression) =>
-      new FunctionDeclaration(null, null, null, type,
+      new FunctionDeclaration(
+          null,
+          null,
+          null,
+          type,
           keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-          identifier3(name), functionExpression);
+          identifier3(name),
+          functionExpression);
 
   static FunctionDeclarationStatement functionDeclarationStatement(
-          TypeName type, Keyword keyword, String name,
+          TypeName type,
+          Keyword keyword,
+          String name,
           FunctionExpression functionExpression) =>
       new FunctionDeclarationStatement(
           functionDeclaration(type, keyword, name, functionExpression));
@@ -421,25 +565,28 @@ class AstFactory {
       new FunctionExpression(null, parameters, body);
 
   static FunctionExpression functionExpression3(
-          TypeParameterList typeParameters, FormalParameterList parameters,
+          TypeParameterList typeParameters,
+          FormalParameterList parameters,
           FunctionBody body) =>
       new FunctionExpression(typeParameters, parameters, body);
 
   static FunctionExpressionInvocation functionExpressionInvocation(
-          Expression function, [List<Expression> arguments]) =>
+          Expression function,
+          [List<Expression> arguments]) =>
       functionExpressionInvocation2(function, null, arguments);
 
   static FunctionExpressionInvocation functionExpressionInvocation2(
           Expression function,
-          [TypeArgumentList typeArguments, List<Expression> arguments]) =>
+          [TypeArgumentList typeArguments,
+          List<Expression> arguments]) =>
       new FunctionExpressionInvocation(
           function, typeArguments, argumentList(arguments));
 
   static FunctionTypedFormalParameter functionTypedFormalParameter(
-      TypeName returnType, String identifier,
-      [List<FormalParameter> parameters]) => new FunctionTypedFormalParameter(
-      null, null, returnType, identifier3(identifier), null,
-      formalParameterList(parameters));
+          TypeName returnType, String identifier,
+          [List<FormalParameter> parameters]) =>
+      new FunctionTypedFormalParameter(null, null, returnType,
+          identifier3(identifier), null, formalParameterList(parameters));
 
   static HideCombinator hideCombinator(List<SimpleIdentifier> identifiers) =>
       new HideCombinator(TokenFactory.tokenFromString("hide"), identifiers);
@@ -457,12 +604,13 @@ class AstFactory {
       TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, lexeme));
 
   static PrefixedIdentifier identifier4(
-      String prefix, SimpleIdentifier identifier) => new PrefixedIdentifier(
-      identifier3(prefix), TokenFactory.tokenFromType(TokenType.PERIOD),
-      identifier);
+          String prefix, SimpleIdentifier identifier) =>
+      new PrefixedIdentifier(identifier3(prefix),
+          TokenFactory.tokenFromType(TokenType.PERIOD), identifier);
 
   static PrefixedIdentifier identifier5(String prefix, String identifier) =>
-      new PrefixedIdentifier(identifier3(prefix),
+      new PrefixedIdentifier(
+          identifier3(prefix),
           TokenFactory.tokenFromType(TokenType.PERIOD),
           identifier3(identifier));
 
@@ -480,26 +628,35 @@ class AstFactory {
       ifStatement2(condition, thenStatement, null);
 
   static IfStatement ifStatement2(Expression condition, Statement thenStatement,
-      Statement elseStatement) => new IfStatement(
-      TokenFactory.tokenFromKeyword(Keyword.IF),
-      TokenFactory.tokenFromType(TokenType.OPEN_PAREN), condition,
-      TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), thenStatement,
-      elseStatement == null
-          ? null
-          : TokenFactory.tokenFromKeyword(Keyword.ELSE), elseStatement);
+          Statement elseStatement) =>
+      new IfStatement(
+          TokenFactory.tokenFromKeyword(Keyword.IF),
+          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          condition,
+          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+          thenStatement,
+          elseStatement == null
+              ? null
+              : TokenFactory.tokenFromKeyword(Keyword.ELSE),
+          elseStatement);
 
   static ImplementsClause implementsClause(List<TypeName> types) =>
       new ImplementsClause(
           TokenFactory.tokenFromKeyword(Keyword.IMPLEMENTS), types);
 
   static ImportDirective importDirective(
-      List<Annotation> metadata, String uri, bool isDeferred, String prefix,
-      [List<Combinator> combinators]) => new ImportDirective(null, metadata,
-      TokenFactory.tokenFromKeyword(Keyword.IMPORT), string2(uri),
-      !isDeferred ? null : TokenFactory.tokenFromKeyword(Keyword.DEFERRED),
-      prefix == null ? null : TokenFactory.tokenFromKeyword(Keyword.AS),
-      prefix == null ? null : identifier3(prefix), combinators,
-      TokenFactory.tokenFromType(TokenType.SEMICOLON));
+          List<Annotation> metadata, String uri, bool isDeferred, String prefix,
+          [List<Combinator> combinators]) =>
+      new ImportDirective(
+          null,
+          metadata,
+          TokenFactory.tokenFromKeyword(Keyword.IMPORT),
+          string2(uri),
+          !isDeferred ? null : TokenFactory.tokenFromKeyword(Keyword.DEFERRED),
+          prefix == null ? null : TokenFactory.tokenFromKeyword(Keyword.AS),
+          prefix == null ? null : identifier3(prefix),
+          combinators,
+          TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static ImportDirective importDirective2(
           String uri, bool isDeferred, String prefix,
@@ -511,50 +668,63 @@ class AstFactory {
       importDirective(null, uri, false, prefix, combinators);
 
   static IndexExpression indexExpression(Expression array, Expression index) =>
-      new IndexExpression.forTarget(array,
-          TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET), index,
+      new IndexExpression.forTarget(
+          array,
+          TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
+          index,
           TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
   static InstanceCreationExpression instanceCreationExpression(
-      Keyword keyword, ConstructorName name,
-      [List<Expression> arguments]) => new InstanceCreationExpression(
-      keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), name,
-      argumentList(arguments));
+          Keyword keyword, ConstructorName name,
+          [List<Expression> arguments]) =>
+      new InstanceCreationExpression(
+          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+          name,
+          argumentList(arguments));
 
   static InstanceCreationExpression instanceCreationExpression2(
-          Keyword keyword, TypeName type, [List<Expression> arguments]) =>
+          Keyword keyword, TypeName type,
+          [List<Expression> arguments]) =>
       instanceCreationExpression3(keyword, type, null, arguments);
 
   static InstanceCreationExpression instanceCreationExpression3(
-      Keyword keyword, TypeName type, String identifier,
-      [List<Expression> arguments]) => instanceCreationExpression(keyword,
-          new ConstructorName(type, identifier == null
+          Keyword keyword, TypeName type, String identifier,
+          [List<Expression> arguments]) =>
+      instanceCreationExpression(
+          keyword,
+          new ConstructorName(
+              type,
+              identifier == null
                   ? null
                   : TokenFactory.tokenFromType(TokenType.PERIOD),
-              identifier == null ? null : identifier3(identifier)), arguments);
+              identifier == null ? null : identifier3(identifier)),
+          arguments);
 
   static IntegerLiteral integer(int value) => new IntegerLiteral(
       TokenFactory.tokenFromTypeAndString(TokenType.INT, value.toString()),
       value);
 
   static InterpolationExpression interpolationExpression(
-      Expression expression) => new InterpolationExpression(
-      TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_EXPRESSION),
-      expression, TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+          Expression expression) =>
+      new InterpolationExpression(
+          TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_EXPRESSION),
+          expression,
+          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
   static InterpolationExpression interpolationExpression2(String identifier) =>
       new InterpolationExpression(
           TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_IDENTIFIER),
-          identifier3(identifier), null);
+          identifier3(identifier),
+          null);
 
   static InterpolationString interpolationString(
           String contents, String value) =>
       new InterpolationString(TokenFactory.tokenFromString(contents), value);
 
   static IsExpression isExpression(
-      Expression expression, bool negated, TypeName type) => new IsExpression(
-      expression, TokenFactory.tokenFromKeyword(Keyword.IS),
-      negated ? TokenFactory.tokenFromType(TokenType.BANG) : null, type);
+          Expression expression, bool negated, TypeName type) =>
+      new IsExpression(expression, TokenFactory.tokenFromKeyword(Keyword.IS),
+          negated ? TokenFactory.tokenFromType(TokenType.BANG) : null, type);
 
   static Label label(SimpleIdentifier label) =>
       new Label(label, TokenFactory.tokenFromType(TokenType.COLON));
@@ -567,8 +737,11 @@ class AstFactory {
 
   static LibraryDirective libraryDirective(
           List<Annotation> metadata, LibraryIdentifier libraryName) =>
-      new LibraryDirective(null, metadata,
-          TokenFactory.tokenFromKeyword(Keyword.LIBRARY), libraryName,
+      new LibraryDirective(
+          null,
+          metadata,
+          TokenFactory.tokenFromKeyword(Keyword.LIBRARY),
+          libraryName,
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static LibraryDirective libraryDirective2(String libraryName) =>
@@ -576,7 +749,8 @@ class AstFactory {
           new List<Annotation>(), libraryIdentifier2([libraryName]));
 
   static LibraryIdentifier libraryIdentifier(
-      List<SimpleIdentifier> components) => new LibraryIdentifier(components);
+          List<SimpleIdentifier> components) =>
+      new LibraryIdentifier(components);
 
   static LibraryIdentifier libraryIdentifier2(List<String> components) {
     return new LibraryIdentifier(identifierList(components));
@@ -590,17 +764,23 @@ class AstFactory {
       listLiteral2(null, null, elements);
 
   static ListLiteral listLiteral2(
-      Keyword keyword, TypeArgumentList typeArguments,
-      [List<Expression> elements]) => new ListLiteral(
-      keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-      typeArguments, TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
-      elements, TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+          Keyword keyword, TypeArgumentList typeArguments,
+          [List<Expression> elements]) =>
+      new ListLiteral(
+          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+          typeArguments,
+          TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
+          elements,
+          TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
   static MapLiteral mapLiteral(Keyword keyword, TypeArgumentList typeArguments,
-      [List<MapLiteralEntry> entries]) => new MapLiteral(
-      keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-      typeArguments, TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
-      entries, TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+          [List<MapLiteralEntry> entries]) =>
+      new MapLiteral(
+          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+          typeArguments,
+          TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+          entries,
+          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
   static MapLiteral mapLiteral2([List<MapLiteralEntry> entries]) =>
       mapLiteral(null, null, entries);
@@ -609,54 +789,93 @@ class AstFactory {
       new MapLiteralEntry(
           string2(key), TokenFactory.tokenFromType(TokenType.COLON), value);
 
-  static MethodDeclaration methodDeclaration(Keyword modifier,
-      TypeName returnType, Keyword property, Keyword operator,
-      SimpleIdentifier name,
-      FormalParameterList parameters) => new MethodDeclaration(null, null,
-      TokenFactory.tokenFromKeyword(Keyword.EXTERNAL),
-      modifier == null ? null : TokenFactory.tokenFromKeyword(modifier),
-      returnType,
-      property == null ? null : TokenFactory.tokenFromKeyword(property),
-      operator == null ? null : TokenFactory.tokenFromKeyword(operator), name,
-      null, parameters, emptyFunctionBody());
+  static MethodDeclaration methodDeclaration(
+          Keyword modifier,
+          TypeName returnType,
+          Keyword property,
+          Keyword operator,
+          SimpleIdentifier name,
+          FormalParameterList parameters) =>
+      new MethodDeclaration(
+          null,
+          null,
+          TokenFactory.tokenFromKeyword(Keyword.EXTERNAL),
+          modifier == null ? null : TokenFactory.tokenFromKeyword(modifier),
+          returnType,
+          property == null ? null : TokenFactory.tokenFromKeyword(property),
+          operator == null ? null : TokenFactory.tokenFromKeyword(operator),
+          name,
+          null,
+          parameters,
+          emptyFunctionBody());
 
-  static MethodDeclaration methodDeclaration2(Keyword modifier,
-      TypeName returnType, Keyword property, Keyword operator,
-      SimpleIdentifier name, FormalParameterList parameters,
-      FunctionBody body) => new MethodDeclaration(null, null, null,
-      modifier == null ? null : TokenFactory.tokenFromKeyword(modifier),
-      returnType,
-      property == null ? null : TokenFactory.tokenFromKeyword(property),
-      operator == null ? null : TokenFactory.tokenFromKeyword(operator), name,
-      null, parameters, body);
+  static MethodDeclaration methodDeclaration2(
+          Keyword modifier,
+          TypeName returnType,
+          Keyword property,
+          Keyword operator,
+          SimpleIdentifier name,
+          FormalParameterList parameters,
+          FunctionBody body) =>
+      new MethodDeclaration(
+          null,
+          null,
+          null,
+          modifier == null ? null : TokenFactory.tokenFromKeyword(modifier),
+          returnType,
+          property == null ? null : TokenFactory.tokenFromKeyword(property),
+          operator == null ? null : TokenFactory.tokenFromKeyword(operator),
+          name,
+          null,
+          parameters,
+          body);
 
-  static MethodDeclaration methodDeclaration3(Keyword modifier,
-      TypeName returnType, Keyword property, Keyword operator,
-      SimpleIdentifier name, TypeParameterList typeParameters,
-      FormalParameterList parameters,
-      FunctionBody body) => new MethodDeclaration(null, null, null,
-      modifier == null ? null : TokenFactory.tokenFromKeyword(modifier),
-      returnType,
-      property == null ? null : TokenFactory.tokenFromKeyword(property),
-      operator == null ? null : TokenFactory.tokenFromKeyword(operator), name,
-      typeParameters, parameters, body);
+  static MethodDeclaration methodDeclaration3(
+          Keyword modifier,
+          TypeName returnType,
+          Keyword property,
+          Keyword operator,
+          SimpleIdentifier name,
+          TypeParameterList typeParameters,
+          FormalParameterList parameters,
+          FunctionBody body) =>
+      new MethodDeclaration(
+          null,
+          null,
+          null,
+          modifier == null ? null : TokenFactory.tokenFromKeyword(modifier),
+          returnType,
+          property == null ? null : TokenFactory.tokenFromKeyword(property),
+          operator == null ? null : TokenFactory.tokenFromKeyword(operator),
+          name,
+          typeParameters,
+          parameters,
+          body);
 
   static MethodInvocation methodInvocation(Expression target, String methodName,
-      [List<Expression> arguments,
-      TokenType operator = TokenType.PERIOD]) => new MethodInvocation(target,
-      target == null ? null : TokenFactory.tokenFromType(operator),
-      identifier3(methodName), null, argumentList(arguments));
+          [List<Expression> arguments,
+          TokenType operator = TokenType.PERIOD]) =>
+      new MethodInvocation(
+          target,
+          target == null ? null : TokenFactory.tokenFromType(operator),
+          identifier3(methodName),
+          null,
+          argumentList(arguments));
 
   static MethodInvocation methodInvocation2(String methodName,
           [List<Expression> arguments]) =>
       methodInvocation(null, methodName, arguments);
 
   static MethodInvocation methodInvocation3(
-      Expression target, String methodName, TypeArgumentList typeArguments,
-      [List<Expression> arguments,
-      TokenType operator = TokenType.PERIOD]) => new MethodInvocation(target,
-      target == null ? null : TokenFactory.tokenFromType(operator),
-      identifier3(methodName), typeArguments, argumentList(arguments));
+          Expression target, String methodName, TypeArgumentList typeArguments,
+          [List<Expression> arguments,
+          TokenType operator = TokenType.PERIOD]) =>
+      new MethodInvocation(
+          target,
+          target == null ? null : TokenFactory.tokenFromType(operator),
+          identifier3(methodName),
+          typeArguments,
+          argumentList(arguments));
 
   static NamedExpression namedExpression(Label label, Expression expression) =>
       new NamedExpression(label, expression);
@@ -667,16 +886,20 @@ class AstFactory {
 
   static DefaultFormalParameter namedFormalParameter(
           NormalFormalParameter parameter, Expression expression) =>
-      new DefaultFormalParameter(parameter, ParameterKind.NAMED,
+      new DefaultFormalParameter(
+          parameter,
+          ParameterKind.NAMED,
           expression == null
               ? null
-              : TokenFactory.tokenFromType(TokenType.COLON), expression);
+              : TokenFactory.tokenFromType(TokenType.COLON),
+          expression);
 
   static NativeClause nativeClause(String nativeCode) => new NativeClause(
       TokenFactory.tokenFromString("native"), string2(nativeCode));
 
   static NativeFunctionBody nativeFunctionBody(String nativeMethodName) =>
-      new NativeFunctionBody(TokenFactory.tokenFromString("native"),
+      new NativeFunctionBody(
+          TokenFactory.tokenFromString("native"),
           string2(nativeMethodName),
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
@@ -684,13 +907,18 @@ class AstFactory {
       new NullLiteral(TokenFactory.tokenFromKeyword(Keyword.NULL));
 
   static ParenthesizedExpression parenthesizedExpression(
-      Expression expression) => new ParenthesizedExpression(
-      TokenFactory.tokenFromType(TokenType.OPEN_PAREN), expression,
-      TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
+          Expression expression) =>
+      new ParenthesizedExpression(
+          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          expression,
+          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
 
   static PartDirective partDirective(List<Annotation> metadata, String url) =>
-      new PartDirective(null, metadata,
-          TokenFactory.tokenFromKeyword(Keyword.PART), string2(url),
+      new PartDirective(
+          null,
+          metadata,
+          TokenFactory.tokenFromKeyword(Keyword.PART),
+          string2(url),
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static PartDirective partDirective2(String url) =>
@@ -701,14 +929,19 @@ class AstFactory {
 
   static PartOfDirective partOfDirective2(
           List<Annotation> metadata, LibraryIdentifier libraryName) =>
-      new PartOfDirective(null, metadata,
+      new PartOfDirective(
+          null,
+          metadata,
           TokenFactory.tokenFromKeyword(Keyword.PART),
-          TokenFactory.tokenFromString("of"), libraryName,
+          TokenFactory.tokenFromString("of"),
+          libraryName,
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static DefaultFormalParameter positionalFormalParameter(
           NormalFormalParameter parameter, Expression expression) =>
-      new DefaultFormalParameter(parameter, ParameterKind.POSITIONAL,
+      new DefaultFormalParameter(
+          parameter,
+          ParameterKind.POSITIONAL,
           expression == null ? null : TokenFactory.tokenFromType(TokenType.EQ),
           expression);
 
@@ -721,21 +954,25 @@ class AstFactory {
       new PrefixExpression(TokenFactory.tokenFromType(operator), expression);
 
   static PropertyAccess propertyAccess(
-      Expression target, SimpleIdentifier propertyName) => new PropertyAccess(
-      target, TokenFactory.tokenFromType(TokenType.PERIOD), propertyName);
+          Expression target, SimpleIdentifier propertyName) =>
+      new PropertyAccess(
+          target, TokenFactory.tokenFromType(TokenType.PERIOD), propertyName);
 
   static PropertyAccess propertyAccess2(Expression target, String propertyName,
-      [TokenType operator = TokenType.PERIOD]) => new PropertyAccess(
-      target, TokenFactory.tokenFromType(operator), identifier3(propertyName));
+          [TokenType operator = TokenType.PERIOD]) =>
+      new PropertyAccess(target, TokenFactory.tokenFromType(operator),
+          identifier3(propertyName));
 
   static RedirectingConstructorInvocation redirectingConstructorInvocation(
           [List<Expression> arguments]) =>
       redirectingConstructorInvocation2(null, arguments);
 
   static RedirectingConstructorInvocation redirectingConstructorInvocation2(
-          String constructorName, [List<Expression> arguments]) =>
+          String constructorName,
+          [List<Expression> arguments]) =>
       new RedirectingConstructorInvocation(
-          TokenFactory.tokenFromKeyword(Keyword.THIS), constructorName == null
+          TokenFactory.tokenFromKeyword(Keyword.THIS),
+          constructorName == null
               ? null
               : TokenFactory.tokenFromType(TokenType.PERIOD),
           constructorName == null ? null : identifier3(constructorName),
@@ -766,8 +1003,11 @@ class AstFactory {
 
   static SimpleFormalParameter simpleFormalParameter2(
           Keyword keyword, TypeName type, String parameterName) =>
-      new SimpleFormalParameter(null, null,
-          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), type,
+      new SimpleFormalParameter(
+          null,
+          null,
+          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+          type,
           identifier3(parameterName));
 
   static SimpleFormalParameter simpleFormalParameter3(String parameterName) =>
@@ -788,10 +1028,12 @@ class AstFactory {
       superConstructorInvocation2(null, arguments);
 
   static SuperConstructorInvocation superConstructorInvocation2(String name,
-      [List<Expression> arguments]) => new SuperConstructorInvocation(
-      TokenFactory.tokenFromKeyword(Keyword.SUPER),
-      name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
-      name == null ? null : identifier3(name), argumentList(arguments));
+          [List<Expression> arguments]) =>
+      new SuperConstructorInvocation(
+          TokenFactory.tokenFromKeyword(Keyword.SUPER),
+          name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
+          name == null ? null : identifier3(name),
+          argumentList(arguments));
 
   static SuperExpression superExpression() =>
       new SuperExpression(TokenFactory.tokenFromKeyword(Keyword.SUPER));
@@ -801,25 +1043,28 @@ class AstFactory {
       switchCase2(new List<Label>(), expression, statements);
 
   static SwitchCase switchCase2(List<Label> labels, Expression expression,
-      List<Statement> statements) => new SwitchCase(labels,
-      TokenFactory.tokenFromKeyword(Keyword.CASE), expression,
-      TokenFactory.tokenFromType(TokenType.COLON), statements);
+          List<Statement> statements) =>
+      new SwitchCase(labels, TokenFactory.tokenFromKeyword(Keyword.CASE),
+          expression, TokenFactory.tokenFromType(TokenType.COLON), statements);
 
   static SwitchDefault switchDefault(
-      List<Label> labels, List<Statement> statements) => new SwitchDefault(
-      labels, TokenFactory.tokenFromKeyword(Keyword.DEFAULT),
-      TokenFactory.tokenFromType(TokenType.COLON), statements);
+          List<Label> labels, List<Statement> statements) =>
+      new SwitchDefault(labels, TokenFactory.tokenFromKeyword(Keyword.DEFAULT),
+          TokenFactory.tokenFromType(TokenType.COLON), statements);
 
   static SwitchDefault switchDefault2(List<Statement> statements) =>
       switchDefault(new List<Label>(), statements);
 
   static SwitchStatement switchStatement(
-      Expression expression, List<SwitchMember> members) => new SwitchStatement(
-      TokenFactory.tokenFromKeyword(Keyword.SWITCH),
-      TokenFactory.tokenFromType(TokenType.OPEN_PAREN), expression,
-      TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-      TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET), members,
-      TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+          Expression expression, List<SwitchMember> members) =>
+      new SwitchStatement(
+          TokenFactory.tokenFromKeyword(Keyword.SWITCH),
+          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          expression,
+          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+          TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+          members,
+          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
   static SymbolLiteral symbolLiteral(List<String> components) {
     List<Token> identifierList = new List<Token>();
@@ -832,14 +1077,18 @@ class AstFactory {
   }
 
   static BlockFunctionBody syncBlockFunctionBody(
-      [List<Statement> statements]) => new BlockFunctionBody(
-      TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "sync"), null,
-      block(statements));
+          [List<Statement> statements]) =>
+      new BlockFunctionBody(
+          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "sync"),
+          null,
+          block(statements));
 
   static BlockFunctionBody syncGeneratorBlockFunctionBody(
-      [List<Statement> statements]) => new BlockFunctionBody(
-      TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "sync"),
-      TokenFactory.tokenFromType(TokenType.STAR), block(statements));
+          [List<Statement> statements]) =>
+      new BlockFunctionBody(
+          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "sync"),
+          TokenFactory.tokenFromType(TokenType.STAR),
+          block(statements));
 
   static ThisExpression thisExpression() =>
       new ThisExpression(TokenFactory.tokenFromKeyword(Keyword.THIS));
@@ -851,14 +1100,20 @@ class AstFactory {
           TokenFactory.tokenFromKeyword(Keyword.THROW), expression);
 
   static TopLevelVariableDeclaration topLevelVariableDeclaration(
-      Keyword keyword, TypeName type,
-      List<VariableDeclaration> variables) => new TopLevelVariableDeclaration(
-      null, null, variableDeclarationList(keyword, type, variables),
-      TokenFactory.tokenFromType(TokenType.SEMICOLON));
+          Keyword keyword,
+          TypeName type,
+          List<VariableDeclaration> variables) =>
+      new TopLevelVariableDeclaration(
+          null,
+          null,
+          variableDeclarationList(keyword, type, variables),
+          TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static TopLevelVariableDeclaration topLevelVariableDeclaration2(
           Keyword keyword, List<VariableDeclaration> variables) =>
-      new TopLevelVariableDeclaration(null, null,
+      new TopLevelVariableDeclaration(
+          null,
+          null,
           variableDeclarationList(keyword, null, variables),
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
@@ -871,16 +1126,25 @@ class AstFactory {
 
   static TryStatement tryStatement3(
           Block body, List<CatchClause> catchClauses, Block finallyClause) =>
-      new TryStatement(TokenFactory.tokenFromKeyword(Keyword.TRY), body,
-          catchClauses, finallyClause == null
+      new TryStatement(
+          TokenFactory.tokenFromKeyword(Keyword.TRY),
+          body,
+          catchClauses,
+          finallyClause == null
               ? null
-              : TokenFactory.tokenFromKeyword(Keyword.FINALLY), finallyClause);
+              : TokenFactory.tokenFromKeyword(Keyword.FINALLY),
+          finallyClause);
 
   static FunctionTypeAlias typeAlias(TypeName returnType, String name,
           TypeParameterList typeParameters, FormalParameterList parameters) =>
-      new FunctionTypeAlias(null, null,
-          TokenFactory.tokenFromKeyword(Keyword.TYPEDEF), returnType,
-          identifier3(name), typeParameters, parameters,
+      new FunctionTypeAlias(
+          null,
+          null,
+          TokenFactory.tokenFromKeyword(Keyword.TYPEDEF),
+          returnType,
+          identifier3(name),
+          typeParameters,
+          parameters,
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static TypeArgumentList typeArgumentList(List<TypeName> typeNames) {
@@ -935,13 +1199,17 @@ class AstFactory {
       new VariableDeclaration(identifier3(name), null, null);
 
   static VariableDeclaration variableDeclaration2(
-      String name, Expression initializer) => new VariableDeclaration(
-      identifier3(name), TokenFactory.tokenFromType(TokenType.EQ), initializer);
+          String name, Expression initializer) =>
+      new VariableDeclaration(identifier3(name),
+          TokenFactory.tokenFromType(TokenType.EQ), initializer);
 
   static VariableDeclarationList variableDeclarationList(Keyword keyword,
           TypeName type, List<VariableDeclaration> variables) =>
-      new VariableDeclarationList(null, null,
-          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword), type,
+      new VariableDeclarationList(
+          null,
+          null,
+          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+          type,
           variables);
 
   static VariableDeclarationList variableDeclarationList2(
@@ -949,19 +1217,24 @@ class AstFactory {
       variableDeclarationList(keyword, null, variables);
 
   static VariableDeclarationStatement variableDeclarationStatement(
-      Keyword keyword, TypeName type,
-      List<VariableDeclaration> variables) => new VariableDeclarationStatement(
-      variableDeclarationList(keyword, type, variables),
-      TokenFactory.tokenFromType(TokenType.SEMICOLON));
+          Keyword keyword,
+          TypeName type,
+          List<VariableDeclaration> variables) =>
+      new VariableDeclarationStatement(
+          variableDeclarationList(keyword, type, variables),
+          TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static VariableDeclarationStatement variableDeclarationStatement2(
           Keyword keyword, List<VariableDeclaration> variables) =>
       variableDeclarationStatement(keyword, null, variables);
 
   static WhileStatement whileStatement(Expression condition, Statement body) =>
-      new WhileStatement(TokenFactory.tokenFromKeyword(Keyword.WHILE),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN), condition,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
+      new WhileStatement(
+          TokenFactory.tokenFromKeyword(Keyword.WHILE),
+          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
+          condition,
+          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
+          body);
 
   static WithClause withClause(List<TypeName> types) =>
       new WithClause(TokenFactory.tokenFromKeyword(Keyword.WITH), types);
@@ -969,11 +1242,14 @@ class AstFactory {
   static YieldStatement yieldEachStatement(Expression expression) =>
       new YieldStatement(
           TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "yield"),
-          TokenFactory.tokenFromType(TokenType.STAR), expression,
+          TokenFactory.tokenFromType(TokenType.STAR),
+          expression,
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
-  static YieldStatement yieldStatement(
-      Expression expression) => new YieldStatement(
-      TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "yield"), null,
-      expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
+  static YieldStatement yieldStatement(Expression expression) =>
+      new YieldStatement(
+          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "yield"),
+          null,
+          expression,
+          TokenFactory.tokenFromType(TokenType.SEMICOLON));
 }

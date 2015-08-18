@@ -2431,6 +2431,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       // exception
       LocalVariableElementImpl exception =
           new LocalVariableElementImpl.forNode(exceptionParameter);
+      if (node.exceptionType == null) {
+        exception.hasImplicitType = true;
+      }
       _currentHolder.addLocalVariable(exception);
       exceptionParameter.staticElement = exception;
       // stack trace
@@ -2600,6 +2603,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.setVisibleRange(declarationEnd, statementEnd - declarationEnd - 1);
     element.const3 = node.isConst;
     element.final2 = node.isFinal;
+    if (node.type == null) {
+      element.hasImplicitType = true;
+    }
     _currentHolder.addLocalVariable(element);
     variableName.staticElement = element;
     return super.visitDeclaredIdentifier(node);
@@ -2640,6 +2646,10 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     }
     // visible range
     _setParameterVisibleRange(node, parameter);
+    if (normalParameter is SimpleFormalParameter &&
+        normalParameter.type == null) {
+      parameter.hasImplicitType = true;
+    }
     _currentHolder.addParameter(parameter);
     parameterName.staticElement = parameter;
     normalParameter.accept(this);
@@ -2746,6 +2756,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
             element.setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
           }
         }
+        if (node.returnType == null) {
+          element.hasImplicitReturnType = true;
+        }
         _currentHolder.addFunction(element);
         expression.element = element;
         functionName.staticElement = element;
@@ -2783,6 +2796,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           getter.getter = true;
           getter.static = true;
           variable.getter = getter;
+          if (node.returnType == null) {
+            getter.hasImplicitReturnType = true;
+          }
           _currentHolder.addAccessor(getter);
           expression.element = getter;
           propertyNameNode.staticElement = getter;
@@ -2859,6 +2875,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       _functionTypesToFix.add(type);
     }
     element.type = type;
+    element.hasImplicitReturnType = true;
     _currentHolder.addFunction(element);
     node.element = element;
     holder.validate();
@@ -2961,6 +2978,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (body.isGenerator) {
           element.generator = true;
         }
+        if (node.returnType == null) {
+          element.hasImplicitReturnType = true;
+        }
         _currentHolder.addMethod(element);
         methodName.staticElement = element;
       } else {
@@ -2995,6 +3015,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           getter.getter = true;
           getter.static = isStatic;
           field.getter = getter;
+          if (node.returnType == null) {
+            getter.hasImplicitReturnType = true;
+          }
           _currentHolder.addAccessor(getter);
           propertyNameNode.staticElement = getter;
         } else {
@@ -3071,6 +3094,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       parameter.final2 = node.isFinal;
       parameter.parameterKind = node.kind;
       _setParameterVisibleRange(node, parameter);
+      if (node.type == null) {
+        parameter.hasImplicitType = true;
+      }
       _currentHolder.addParameter(parameter);
       parameterName.staticElement = parameter;
     }
@@ -3133,6 +3159,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         field = new FieldElementImpl.forNode(fieldName);
       }
       element = field;
+      if ((node.parent as VariableDeclarationList).type == null) {
+        field.hasImplicitType = true;
+      }
       _currentHolder.addField(field);
       fieldName.staticElement = field;
     } else if (_inFunction) {
@@ -3148,6 +3177,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       // TODO(brianwilkerson) This isn't right for variables declared in a for
       // loop.
       variable.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
+      if ((node.parent as VariableDeclarationList).type == null) {
+        variable.hasImplicitType = true;
+      }
       _currentHolder.addLocalVariable(variable);
       variableName.staticElement = element;
     } else {
@@ -3159,6 +3191,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         variable = new TopLevelVariableElementImpl.forNode(variableName);
       }
       element = variable;
+      if ((node.parent as VariableDeclarationList).type == null) {
+        variable.hasImplicitType = true;
+      }
       _currentHolder.addTopLevelVariable(variable);
       variableName.staticElement = element;
     }
@@ -3190,6 +3225,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       PropertyAccessorElementImpl getter =
           new PropertyAccessorElementImpl.forVariable(element);
       getter.getter = true;
+      if (element.hasImplicitType) {
+        getter.hasImplicitReturnType = true;
+      }
       _currentHolder.addAccessor(getter);
       element.getter = getter;
       if (!isConst && !isFinal) {

@@ -2462,7 +2462,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitForEachStatement_declared() {
     _assertSource(
-        "for (a in b) {}",
+        "for (var a in b) {}",
         AstFactory.forEachStatement(AstFactory.declaredIdentifier3("a"),
             AstFactory.identifier3("b"), AstFactory.block()));
   }

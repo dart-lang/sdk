@@ -3523,6 +3523,14 @@ abstract class ExecutableElement implements Element {
   List<FunctionElement> get functions;
 
   /**
+   * Return `true` if this executable element did not have an explicit return
+   * type specified for it in the original source. Note that if there was no
+   * explicit return type, and if the element model is fully populated, then
+   * the [returnType] will not be `null`.
+   */
+  bool get hasImplicitReturnType;
+
+  /**
    * Return `true` if this executable element is abstract. Executable elements
    * are abstract if they are not external and have no body.
    */
@@ -3586,7 +3594,9 @@ abstract class ExecutableElement implements Element {
   List<ParameterElement> get parameters;
 
   /**
-   * Return the return type defined by this executable element.
+   * Return the return type defined by this executable element. If the element
+   * model is fully populated, then the [returnType] will not be `null`, even
+   * if no return type was explicitly specified.
    */
   DartType get returnType;
 
@@ -3696,6 +3706,16 @@ abstract class ExecutableElementImpl extends ElementImpl
    */
   void set generator(bool isGenerator) {
     setModifier(Modifier.GENERATOR, isGenerator);
+  }
+
+  @override
+  bool get hasImplicitReturnType => hasModifier(Modifier.IMPLICIT_TYPE);
+
+  /**
+   * Set whether this executable element has an implicit return type.
+   */
+  void set hasImplicitReturnType(bool hasImplicitReturnType) {
+    setModifier(Modifier.IMPLICIT_TYPE, hasImplicitReturnType);
   }
 
   @override
@@ -3883,6 +3903,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     throw new UnsupportedOperationException();
 //    return getBaseElement().getFunctions();
   }
+
+  @override
+  bool get hasImplicitReturnType => baseElement.hasImplicitReturnType;
 
   @override
   bool get isAbstract => baseElement.isAbstract;
@@ -8254,45 +8277,52 @@ class Modifier extends Enum<Modifier> {
   static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 10);
 
   /**
+   * Indicates that the associated element did not have an explicit type
+   * associated with it. If the element is an [ExecutableElement], then the
+   * type being referred to is the return type.
+   */
+  static const Modifier IMPLICIT_TYPE = const Modifier('IMPLICIT_TYPE', 11);
+
+  /**
    * Indicates that a class can validly be used as a mixin.
    */
-  static const Modifier MIXIN = const Modifier('MIXIN', 11);
+  static const Modifier MIXIN = const Modifier('MIXIN', 12);
 
   /**
    * Indicates that a class is a mixin application.
    */
   static const Modifier MIXIN_APPLICATION =
-      const Modifier('MIXIN_APPLICATION', 12);
+      const Modifier('MIXIN_APPLICATION', 13);
 
   /**
    * Indicates that the value of a parameter or local variable might be mutated
    * within the context.
    */
   static const Modifier POTENTIALLY_MUTATED_IN_CONTEXT =
-      const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 13);
+      const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 14);
 
   /**
    * Indicates that the value of a parameter or local variable might be mutated
    * within the scope.
    */
   static const Modifier POTENTIALLY_MUTATED_IN_SCOPE =
-      const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 14);
+      const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 15);
 
   /**
    * Indicates that a class contains an explicit reference to 'super'.
    */
   static const Modifier REFERENCES_SUPER =
-      const Modifier('REFERENCES_SUPER', 15);
+      const Modifier('REFERENCES_SUPER', 16);
 
   /**
    * Indicates that the pseudo-modifier 'set' was applied to the element.
    */
-  static const Modifier SETTER = const Modifier('SETTER', 16);
+  static const Modifier SETTER = const Modifier('SETTER', 17);
 
   /**
    * Indicates that the modifier 'static' was applied to the element.
    */
-  static const Modifier STATIC = const Modifier('STATIC', 17);
+  static const Modifier STATIC = const Modifier('STATIC', 18);
 
   /**
    * Indicates that the element does not appear in the source code but was
@@ -8300,7 +8330,7 @@ class Modifier extends Enum<Modifier> {
    * constructors, an implicit zero-argument constructor will be created and it
    * will be marked as being synthetic.
    */
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 18);
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 19);
 
   static const List<Modifier> values = const [
     ABSTRACT,
@@ -8314,6 +8344,7 @@ class Modifier extends Enum<Modifier> {
     GENERATOR,
     GETTER,
     HAS_EXT_URI,
+    IMPLICIT_TYPE,
     MIXIN,
     MIXIN_APPLICATION,
     POTENTIALLY_MUTATED_IN_CONTEXT,
@@ -10446,6 +10477,12 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   static const List<VariableElement> EMPTY_LIST = const <VariableElement>[];
 
   /**
+   * Return `true` if this variable element did not have an explicit type
+   * specified for it.
+   */
+  bool get hasImplicitType;
+
+  /**
    * Return a synthetic function representing this variable's initializer, or
    * `null` if this variable does not have an initializer. The function will
    * have no parameters. The return type of the function will be the
@@ -10554,6 +10591,16 @@ abstract class VariableElementImpl extends ElementImpl
   }
 
   @override
+  bool get hasImplicitType => hasModifier(Modifier.IMPLICIT_TYPE);
+
+  /**
+   * Set whether this variable element has an implicit type.
+   */
+  void set hasImplicitType(bool hasImplicitType) {
+    setModifier(Modifier.IMPLICIT_TYPE, hasImplicitType);
+  }
+
+  @override
   FunctionElement get initializer => _initializer;
 
   /**
@@ -10607,6 +10654,9 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   VariableElement get baseElement => super.baseElement as VariableElement;
+
+  @override
+  bool get hasImplicitType => baseElement.hasImplicitType;
 
   @override
   FunctionElement get initializer {

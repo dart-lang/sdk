@@ -4974,6 +4974,7 @@ class DirectoryBasedSourceContainerTest {
 @reflectiveTest
 class ElementBuilderTest extends EngineTestCase {
   void test_visitCatchClause() {
+    // } catch (e, s) {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String exceptionParameterName = "e";
@@ -4981,11 +4982,13 @@ class ElementBuilderTest extends EngineTestCase {
     CatchClause clause =
         AstFactory.catchClause2(exceptionParameterName, stackParameterName);
     clause.accept(builder);
+
     List<LocalVariableElement> variables = holder.localVariables;
     expect(variables, hasLength(2));
     VariableElement exceptionVariable = variables[0];
     expect(exceptionVariable, isNotNull);
     expect(exceptionVariable.name, exceptionParameterName);
+    expect(exceptionVariable.hasImplicitType, isTrue);
     expect(exceptionVariable.isSynthetic, isFalse);
     expect(exceptionVariable.isConst, isFalse);
     expect(exceptionVariable.isFinal, isFalse);
@@ -4997,6 +5000,23 @@ class ElementBuilderTest extends EngineTestCase {
     expect(stackVariable.isConst, isFalse);
     expect(stackVariable.isFinal, isFalse);
     expect(stackVariable.initializer, isNull);
+  }
+
+  void test_visitCatchClause_withType() {
+    // } on E catch (e) {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String exceptionParameterName = "e";
+    CatchClause clause = AstFactory.catchClause4(
+        AstFactory.typeName4('E'), exceptionParameterName);
+    clause.accept(builder);
+
+    List<LocalVariableElement> variables = holder.localVariables;
+    expect(variables, hasLength(1));
+    VariableElement exceptionVariable = variables[0];
+    expect(exceptionVariable, isNotNull);
+    expect(exceptionVariable.name, exceptionParameterName);
+    expect(exceptionVariable.hasImplicitType, isFalse);
   }
 
   void test_visitClassDeclaration_abstract() {
@@ -5340,6 +5360,110 @@ class ElementBuilderTest extends EngineTestCase {
     expect(constructorDeclaration.element, same(constructor));
   }
 
+  void test_visitDeclaredIdentifier_noType() {
+    // var i
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    var variableName = 'i';
+    DeclaredIdentifier identifier =
+        AstFactory.declaredIdentifier3(variableName);
+    AstFactory.forEachStatement(
+        identifier, AstFactory.nullLiteral(), AstFactory.emptyStatement());
+    identifier.accept(builder);
+
+    List<LocalVariableElement> variables = holder.localVariables;
+    expect(variables, hasLength(1));
+    LocalVariableElement variable = variables[0];
+    expect(variable, isNotNull);
+    expect(variable.hasImplicitType, isTrue);
+    expect(variable.isConst, isFalse);
+    expect(variable.isDeprecated, isFalse);
+    expect(variable.isFinal, isFalse);
+    expect(variable.isOverride, isFalse);
+    expect(variable.isPrivate, isFalse);
+    expect(variable.isPublic, isTrue);
+    expect(variable.isSynthetic, isFalse);
+    expect(variable.name, variableName);
+  }
+
+  void test_visitDeclaredIdentifier_type() {
+    // E i
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    var variableName = 'i';
+    DeclaredIdentifier identifier =
+        AstFactory.declaredIdentifier4(AstFactory.typeName4('E'), variableName);
+    AstFactory.forEachStatement(
+        identifier, AstFactory.nullLiteral(), AstFactory.emptyStatement());
+    identifier.accept(builder);
+
+    List<LocalVariableElement> variables = holder.localVariables;
+    expect(variables, hasLength(1));
+    LocalVariableElement variable = variables[0];
+    expect(variable, isNotNull);
+    expect(variable.hasImplicitType, isFalse);
+    expect(variable.isConst, isFalse);
+    expect(variable.isDeprecated, isFalse);
+    expect(variable.isFinal, isFalse);
+    expect(variable.isOverride, isFalse);
+    expect(variable.isPrivate, isFalse);
+    expect(variable.isPublic, isTrue);
+    expect(variable.isSynthetic, isFalse);
+    expect(variable.name, variableName);
+  }
+
+  void test_visitDefaultFormalParameter_noType() {
+    // p = 0
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String parameterName = 'p';
+    DefaultFormalParameter formalParameter = AstFactory
+        .positionalFormalParameter(
+            AstFactory.simpleFormalParameter3(parameterName),
+            AstFactory.integer(0));
+    formalParameter.accept(builder);
+
+    List<ParameterElement> parameters = holder.parameters;
+    expect(parameters, hasLength(1));
+    ParameterElement parameter = parameters[0];
+    expect(parameter.hasImplicitType, isTrue);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isDeprecated, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isInitializingFormal, isFalse);
+    expect(parameter.isOverride, isFalse);
+    expect(parameter.isPrivate, isFalse);
+    expect(parameter.isPublic, isTrue);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.name, parameterName);
+  }
+
+  void test_visitDefaultFormalParameter_type() {
+    // E p = 0
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String parameterName = 'p';
+    DefaultFormalParameter formalParameter = AstFactory.namedFormalParameter(
+        AstFactory.simpleFormalParameter4(
+            AstFactory.typeName4('E'), parameterName),
+        AstFactory.integer(0));
+    formalParameter.accept(builder);
+
+    List<ParameterElement> parameters = holder.parameters;
+    expect(parameters, hasLength(1));
+    ParameterElement parameter = parameters[0];
+    expect(parameter.hasImplicitType, isFalse);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isDeprecated, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isInitializingFormal, isFalse);
+    expect(parameter.isOverride, isFalse);
+    expect(parameter.isPrivate, isFalse);
+    expect(parameter.isPublic, isTrue);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.name, parameterName);
+  }
+
   void test_visitEnumDeclaration() {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
@@ -5444,6 +5568,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitFunctionDeclaration_external() {
+    // external f();
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String functionName = "f";
@@ -5452,10 +5577,11 @@ class ElementBuilderTest extends EngineTestCase {
         null,
         functionName,
         AstFactory.functionExpression2(
-            AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
+            AstFactory.formalParameterList(), AstFactory.emptyFunctionBody()));
     declaration.externalKeyword =
         TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
     declaration.accept(builder);
+
     List<FunctionElement> functions = holder.functions;
     expect(functions, hasLength(1));
     FunctionElement function = functions[0];
@@ -5463,12 +5589,14 @@ class ElementBuilderTest extends EngineTestCase {
     expect(function.name, functionName);
     expect(declaration.element, same(function));
     expect(declaration.functionExpression.element, same(function));
+    expect(function.hasImplicitReturnType, isTrue);
     expect(function.isExternal, isTrue);
     expect(function.isSynthetic, isFalse);
     expect(function.typeParameters, hasLength(0));
   }
 
   void test_visitFunctionDeclaration_getter() {
+    // get f() {}
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String functionName = "f";
@@ -5479,6 +5607,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.functionExpression2(
             AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
     declaration.accept(builder);
+
     List<PropertyAccessorElement> accessors = holder.accessors;
     expect(accessors, hasLength(1));
     PropertyAccessorElement accessor = accessors[0];
@@ -5486,6 +5615,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(accessor.name, functionName);
     expect(declaration.element, same(accessor));
     expect(declaration.functionExpression.element, same(accessor));
+    expect(accessor.hasImplicitReturnType, isTrue);
     expect(accessor.isGetter, isTrue);
     expect(accessor.isExternal, isFalse);
     expect(accessor.isSetter, isFalse);
@@ -5498,20 +5628,23 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitFunctionDeclaration_plain() {
+    // T f() {}
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String functionName = "f";
     FunctionDeclaration declaration = AstFactory.functionDeclaration(
-        null,
+        AstFactory.typeName4('T'),
         null,
         functionName,
         AstFactory.functionExpression2(
             AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
     declaration.accept(builder);
+
     List<FunctionElement> functions = holder.functions;
     expect(functions, hasLength(1));
     FunctionElement function = functions[0];
     expect(function, isNotNull);
+    expect(function.hasImplicitReturnType, isFalse);
     expect(function.name, functionName);
     expect(declaration.element, same(function));
     expect(declaration.functionExpression.element, same(function));
@@ -5521,6 +5654,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitFunctionDeclaration_setter() {
+    // set f() {}
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String functionName = "f";
@@ -5531,10 +5665,12 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.functionExpression2(
             AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
     declaration.accept(builder);
+
     List<PropertyAccessorElement> accessors = holder.accessors;
     expect(accessors, hasLength(1));
     PropertyAccessorElement accessor = accessors[0];
     expect(accessor, isNotNull);
+    expect(accessor.hasImplicitReturnType, isFalse);
     expect(accessor.name, "$functionName=");
     expect(declaration.element, same(accessor));
     expect(declaration.functionExpression.element, same(accessor));
@@ -5550,6 +5686,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitFunctionDeclaration_typeParameters() {
+    // f<E>() {}
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String functionName = 'f';
@@ -5561,10 +5698,12 @@ class ElementBuilderTest extends EngineTestCase {
     FunctionDeclaration declaration =
         AstFactory.functionDeclaration(null, null, functionName, expression);
     declaration.accept(builder);
+
     List<FunctionElement> functions = holder.functions;
     expect(functions, hasLength(1));
     FunctionElement function = functions[0];
     expect(function, isNotNull);
+    expect(function.hasImplicitReturnType, isTrue);
     expect(function.name, functionName);
     expect(function.isExternal, isFalse);
     expect(function.isSynthetic, isFalse);
@@ -5588,6 +5727,7 @@ class ElementBuilderTest extends EngineTestCase {
     FunctionElement function = functions[0];
     expect(function, isNotNull);
     expect(expression.element, same(function));
+    expect(function.hasImplicitReturnType, isTrue);
     expect(function.isSynthetic, isFalse);
     expect(function.typeParameters, hasLength(0));
   }
@@ -5677,6 +5817,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitMethodDeclaration_abstract() {
+    // m();
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
@@ -5689,10 +5830,12 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.formalParameterList(),
         AstFactory.emptyFunctionBody());
     methodDeclaration.accept(builder);
+
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
     MethodElement method = methods[0];
     expect(method, isNotNull);
+    expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
     expect(method.functions, hasLength(0));
     expect(method.labels, hasLength(0));
@@ -5706,6 +5849,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitMethodDeclaration_external() {
+    // external m();
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
@@ -5720,10 +5864,12 @@ class ElementBuilderTest extends EngineTestCase {
     methodDeclaration.externalKeyword =
         TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
     methodDeclaration.accept(builder);
+
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
     MethodElement method = methods[0];
     expect(method, isNotNull);
+    expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
     expect(method.functions, hasLength(0));
     expect(method.labels, hasLength(0));
@@ -5737,6 +5883,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitMethodDeclaration_getter() {
+    // get m() {}
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
@@ -5749,6 +5896,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.formalParameterList(),
         AstFactory.blockFunctionBody2());
     methodDeclaration.accept(builder);
+
     List<FieldElement> fields = holder.fields;
     expect(fields, hasLength(1));
     FieldElement field = fields[0];
@@ -5758,6 +5906,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(field.setter, isNull);
     PropertyAccessorElement getter = field.getter;
     expect(getter, isNotNull);
+    expect(getter.hasImplicitReturnType, isTrue);
     expect(getter.isAbstract, isFalse);
     expect(getter.isExternal, isFalse);
     expect(getter.isGetter, isTrue);
@@ -5771,6 +5920,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitMethodDeclaration_getter_abstract() {
+    // get m();
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
@@ -5783,6 +5933,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.formalParameterList(),
         AstFactory.emptyFunctionBody());
     methodDeclaration.accept(builder);
+
     List<FieldElement> fields = holder.fields;
     expect(fields, hasLength(1));
     FieldElement field = fields[0];
@@ -5792,6 +5943,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(field.setter, isNull);
     PropertyAccessorElement getter = field.getter;
     expect(getter, isNotNull);
+    expect(getter.hasImplicitReturnType, isTrue);
     expect(getter.isAbstract, isTrue);
     expect(getter.isExternal, isFalse);
     expect(getter.isGetter, isTrue);
@@ -5805,6 +5957,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitMethodDeclaration_getter_external() {
+    // external get m();
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
@@ -5818,6 +5971,7 @@ class ElementBuilderTest extends EngineTestCase {
     methodDeclaration.externalKeyword =
         TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
     methodDeclaration.accept(builder);
+
     List<FieldElement> fields = holder.fields;
     expect(fields, hasLength(1));
     FieldElement field = fields[0];
@@ -5827,6 +5981,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(field.setter, isNull);
     PropertyAccessorElement getter = field.getter;
     expect(getter, isNotNull);
+    expect(getter.hasImplicitReturnType, isTrue);
     expect(getter.isAbstract, isFalse);
     expect(getter.isExternal, isTrue);
     expect(getter.isGetter, isTrue);
@@ -5840,12 +5995,13 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitMethodDeclaration_minimal() {
+    // T m() {}
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
     MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
         null,
-        null,
+        AstFactory.typeName4('T'),
         null,
         null,
         AstFactory.identifier3(methodName),
@@ -5856,6 +6012,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(methods, hasLength(1));
     MethodElement method = methods[0];
     expect(method, isNotNull);
+    expect(method.hasImplicitReturnType, isFalse);
     expect(method.name, methodName);
     expect(method.functions, hasLength(0));
     expect(method.labels, hasLength(0));
@@ -5869,6 +6026,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitMethodDeclaration_operator() {
+    // operator +(addend) {}
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "+";
@@ -5882,10 +6040,12 @@ class ElementBuilderTest extends EngineTestCase {
             .formalParameterList([AstFactory.simpleFormalParameter3("addend")]),
         AstFactory.blockFunctionBody2());
     methodDeclaration.accept(builder);
+
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
     MethodElement method = methods[0];
     expect(method, isNotNull);
+    expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
     expect(method.functions, hasLength(0));
     expect(method.labels, hasLength(0));
@@ -5899,6 +6059,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitMethodDeclaration_setter() {
+    // set m() {}
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
@@ -5911,6 +6072,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.formalParameterList(),
         AstFactory.blockFunctionBody2());
     methodDeclaration.accept(builder);
+
     List<FieldElement> fields = holder.fields;
     expect(fields, hasLength(1));
     FieldElement field = fields[0];
@@ -5920,6 +6082,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(field.getter, isNull);
     PropertyAccessorElement setter = field.setter;
     expect(setter, isNotNull);
+    expect(setter.hasImplicitReturnType, isFalse);
     expect(setter.isAbstract, isFalse);
     expect(setter.isExternal, isFalse);
     expect(setter.isSetter, isTrue);
@@ -5934,6 +6097,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitMethodDeclaration_setter_abstract() {
+    // set m();
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
@@ -5946,6 +6110,7 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.formalParameterList(),
         AstFactory.emptyFunctionBody());
     methodDeclaration.accept(builder);
+
     List<FieldElement> fields = holder.fields;
     expect(fields, hasLength(1));
     FieldElement field = fields[0];
@@ -5955,6 +6120,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(field.getter, isNull);
     PropertyAccessorElement setter = field.setter;
     expect(setter, isNotNull);
+    expect(setter.hasImplicitReturnType, isFalse);
     expect(setter.isAbstract, isTrue);
     expect(setter.isExternal, isFalse);
     expect(setter.isSetter, isTrue);
@@ -5969,6 +6135,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitMethodDeclaration_setter_external() {
+    // external m();
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
@@ -5982,6 +6149,7 @@ class ElementBuilderTest extends EngineTestCase {
     methodDeclaration.externalKeyword =
         TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
     methodDeclaration.accept(builder);
+
     List<FieldElement> fields = holder.fields;
     expect(fields, hasLength(1));
     FieldElement field = fields[0];
@@ -5991,6 +6159,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(field.getter, isNull);
     PropertyAccessorElement setter = field.setter;
     expect(setter, isNotNull);
+    expect(setter.hasImplicitReturnType, isFalse);
     expect(setter.isAbstract, isFalse);
     expect(setter.isExternal, isTrue);
     expect(setter.isSetter, isTrue);
@@ -6005,6 +6174,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitMethodDeclaration_static() {
+    // static m() {}
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
@@ -6021,6 +6191,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(methods, hasLength(1));
     MethodElement method = methods[0];
     expect(method, isNotNull);
+    expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
     expect(method.functions, hasLength(0));
     expect(method.labels, hasLength(0));
@@ -6034,6 +6205,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitMethodDeclaration_typeParameters() {
+    // m<E>() {}
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
@@ -6047,10 +6219,12 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.blockFunctionBody2());
     methodDeclaration.typeParameters = AstFactory.typeParameterList(['E']);
     methodDeclaration.accept(builder);
+
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
     MethodElement method = methods[0];
     expect(method, isNotNull);
+    expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
     expect(method.functions, hasLength(0));
     expect(method.labels, hasLength(0));
@@ -6064,6 +6238,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitMethodDeclaration_withMembers() {
+    // m(p) { var v; try { l: return; } catch (e) {} }
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
@@ -6090,10 +6265,12 @@ class ElementBuilderTest extends EngineTestCase {
               [AstFactory.catchClause(exceptionParameterName)])
         ]));
     methodDeclaration.accept(builder);
+
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
     MethodElement method = methods[0];
     expect(method, isNotNull);
+    expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
     expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
@@ -6153,7 +6330,8 @@ class ElementBuilderTest extends EngineTestCase {
     expect(initializer.isSynthetic, isTrue);
   }
 
-  void test_visitSimpleFormalParameter() {
+  void test_visitSimpleFormalParameter_noType() {
+    // p
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String parameterName = "p";
@@ -6165,11 +6343,39 @@ class ElementBuilderTest extends EngineTestCase {
     expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
     expect(parameter, isNotNull);
-    expect(parameter.name, parameterName);
+    expect(parameter.hasImplicitType, isTrue);
     expect(parameter.initializer, isNull);
     expect(parameter.isConst, isFalse);
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
+    expect(parameter.name, parameterName);
+    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    {
+      SourceRange visibleRange = parameter.visibleRange;
+      expect(100, visibleRange.offset);
+      expect(110, visibleRange.end);
+    }
+  }
+
+  void test_visitSimpleFormalParameter_type() {
+    // T p
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String parameterName = "p";
+    SimpleFormalParameter formalParameter = AstFactory.simpleFormalParameter4(
+        AstFactory.typeName4('T'), parameterName);
+    _useParameterInMethod(formalParameter, 100, 110);
+    formalParameter.accept(builder);
+    List<ParameterElement> parameters = holder.parameters;
+    expect(parameters, hasLength(1));
+    ParameterElement parameter = parameters[0];
+    expect(parameter, isNotNull);
+    expect(parameter.hasImplicitType, isFalse);
+    expect(parameter.initializer, isNull);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.name, parameterName);
     expect(parameter.parameterKind, ParameterKind.REQUIRED);
     {
       SourceRange visibleRange = parameter.visibleRange;
@@ -6288,12 +6494,14 @@ class ElementBuilderTest extends EngineTestCase {
         null,
         AstFactory.blockFunctionBody2([statement]));
     constructor.accept(builder);
+
     List<ConstructorElement> constructors = holder.constructors;
     expect(constructors, hasLength(1));
     List<LocalVariableElement> variableElements =
         constructors[0].localVariables;
     expect(variableElements, hasLength(1));
     LocalVariableElement variableElement = variableElements[0];
+    expect(variableElement.hasImplicitType, isTrue);
     expect(variableElement.name, variableName);
   }
 
@@ -6301,14 +6509,14 @@ class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     //
-    // m() {var v;}
+    // m() {T v;}
     //
     String variableName = "v";
     VariableDeclaration variable =
         AstFactory.variableDeclaration2(variableName, null);
-    Statement statement =
-        AstFactory.variableDeclarationStatement2(null, [variable]);
-    MethodDeclaration constructor = AstFactory.methodDeclaration2(
+    Statement statement = AstFactory.variableDeclarationStatement(
+        null, AstFactory.typeName4('T'), [variable]);
+    MethodDeclaration method = AstFactory.methodDeclaration2(
         null,
         null,
         null,
@@ -6316,20 +6524,22 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.identifier3("m"),
         AstFactory.formalParameterList(),
         AstFactory.blockFunctionBody2([statement]));
-    constructor.accept(builder);
+    method.accept(builder);
+
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
     List<LocalVariableElement> variableElements = methods[0].localVariables;
     expect(variableElements, hasLength(1));
     LocalVariableElement variableElement = variableElements[0];
+    expect(variableElement.hasImplicitType, isFalse);
     expect(variableElement.name, variableName);
   }
 
-  void test_visitVariableDeclaration_localNestedInField() {
+  void test_visitVariableDeclaration_localNestedInFunction() {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     //
-    // var f = () {var v;}
+    // var f = () {var v;};
     //
     String variableName = "v";
     VariableDeclaration variable =
@@ -6345,6 +6555,7 @@ class ElementBuilderTest extends EngineTestCase {
     FieldDeclaration fieldDeclaration =
         AstFactory.fieldDeclaration2(false, null, [field]);
     fieldDeclaration.accept(builder);
+
     List<FieldElement> variables = holder.fields;
     expect(variables, hasLength(1));
     FieldElement fieldElement = variables[0];
@@ -6357,13 +6568,15 @@ class ElementBuilderTest extends EngineTestCase {
         functionElements[0].localVariables;
     expect(variableElements, hasLength(1));
     LocalVariableElement variableElement = variableElements[0];
-    expect(variableElement.name, variableName);
+    expect(variableElement.hasImplicitType, isTrue);
     expect(variableElement.isConst, isFalse);
     expect(variableElement.isFinal, isFalse);
     expect(variableElement.isSynthetic, isFalse);
+    expect(variableElement.name, variableName);
   }
 
   void test_visitVariableDeclaration_noInitializer() {
+    // var v;
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String variableName = "v";
@@ -6371,10 +6584,12 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.variableDeclaration2(variableName, null);
     AstFactory.variableDeclarationList2(null, [variableDeclaration]);
     variableDeclaration.accept(builder);
+
     List<TopLevelVariableElement> variables = holder.topLevelVariables;
     expect(variables, hasLength(1));
     TopLevelVariableElement variable = variables[0];
     expect(variable, isNotNull);
+    expect(variable.hasImplicitType, isTrue);
     expect(variable.initializer, isNull);
     expect(variable.name, variableName);
     expect(variable.isConst, isFalse);
@@ -6385,6 +6600,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitVariableDeclaration_top_const_hasInitializer() {
+    // const v = 42;
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String variableName = "v";
@@ -6392,12 +6608,14 @@ class ElementBuilderTest extends EngineTestCase {
         AstFactory.variableDeclaration2(variableName, AstFactory.integer(42));
     AstFactory.variableDeclarationList2(Keyword.CONST, [variableDeclaration]);
     variableDeclaration.accept(builder);
+
     List<TopLevelVariableElement> variables = holder.topLevelVariables;
     expect(variables, hasLength(1));
     TopLevelVariableElement variable = variables[0];
     expect(variable, new isInstanceOf<ConstTopLevelVariableElementImpl>());
     expect(variable.initializer, isNotNull);
     expect(variable.name, variableName);
+    expect(variable.hasImplicitType, isTrue);
     expect(variable.isConst, isTrue);
     expect(variable.isFinal, isFalse);
     expect(variable.isSynthetic, isFalse);
@@ -6406,6 +6624,7 @@ class ElementBuilderTest extends EngineTestCase {
   }
 
   void test_visitVariableDeclaration_top_final() {
+    // final v;
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String variableName = "v";
@@ -6417,6 +6636,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(variables, hasLength(1));
     TopLevelVariableElement variable = variables[0];
     expect(variable, isNotNull);
+    expect(variable.hasImplicitType, isTrue);
     expect(variable.initializer, isNull);
     expect(variable.name, variableName);
     expect(variable.isConst, isFalse);

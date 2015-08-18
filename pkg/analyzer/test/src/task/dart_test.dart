@@ -62,6 +62,15 @@ class BuildCompilationUnitElementTaskTest extends _AbstractDartTaskTest {
   Source source;
   LibrarySpecificUnit target;
 
+  /**
+   * Enable strong mode in the current analysis context.
+   */
+  void enableStrongMode() {
+    AnalysisOptionsImpl options = context.analysisOptions;
+    options.strongMode = true;
+    context.analysisOptions = options;
+  }
+
   test_buildInputs() {
     LibrarySpecificUnit target =
         new LibrarySpecificUnit(emptySource, emptySource);
@@ -101,7 +110,8 @@ class BuildCompilationUnitElementTaskTest extends _AbstractDartTaskTest {
     expect(descriptor, isNotNull);
   }
 
-  test_perform_find_constants() {
+  test_perform_find_constants_strong() {
+    enableStrongMode();
     _performBuildTask('''
 const x = 1;
 class C {
@@ -127,23 +137,83 @@ f() {
           context, source, source, annotation),
       unitElement.types[0].constructors[0].parameters[0]
     ];
+    expect(outputs[CLASSES_IN_UNIT], hasLength(1));
     expect(
         outputs[COMPILATION_UNIT_CONSTANTS].toSet(), expectedConstants.toSet());
+    expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(2));
   }
 
-  test_perform_library() {
+  test_perform_find_constants_weak() {
+    _performBuildTask('''
+const x = 1;
+class C {
+  static const y = 1;
+  const C([p = 1]);
+}
+@x
+f() {
+  const z = 1;
+}
+''');
+    CompilationUnit unit = outputs[RESOLVED_UNIT1];
+    CompilationUnitElement unitElement = outputs[COMPILATION_UNIT_ELEMENT];
+    Annotation annotation = unit.declarations
+        .firstWhere((m) => m is FunctionDeclaration)
+        .metadata[0];
+    List<ConstantEvaluationTarget> expectedConstants = [
+      unitElement.accessors.firstWhere((e) => e.isGetter).variable,
+      unitElement.types[0].fields[0],
+      unitElement.functions[0].localVariables[0],
+      unitElement.types[0].constructors[0],
+      new ConstantEvaluationTarget_Annotation(
+          context, source, source, annotation),
+      unitElement.types[0].constructors[0].parameters[0]
+    ];
+    expect(outputs[CLASSES_IN_UNIT], hasLength(0));
+    expect(
+        outputs[COMPILATION_UNIT_CONSTANTS].toSet(), expectedConstants.toSet());
+    expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(0));
+  }
+
+  test_perform_library_strong() {
+    enableStrongMode();
     _performBuildTask(r'''
 library lib;
 import 'lib2.dart';
 export 'lib3.dart';
 part 'part.dart';
-class A {}
+final x = '';
+class A {
+  static final y = 0;
+}
 class B = Object with A;
 ''');
-    expect(outputs, hasLength(3));
-    expect(outputs[COMPILATION_UNIT_ELEMENT], isNotNull);
-    expect(outputs[RESOLVED_UNIT1], isNotNull);
+    expect(outputs, hasLength(5));
+    expect(outputs[CLASSES_IN_UNIT], hasLength(2));
     expect(outputs[COMPILATION_UNIT_CONSTANTS], isNotNull);
+    expect(outputs[COMPILATION_UNIT_ELEMENT], isNotNull);
+    expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(2));
+    expect(outputs[RESOLVED_UNIT1], isNotNull);
+  }
+
+  test_perform_library_weak() {
+    _performBuildTask(r'''
+library lib;
+import 'lib2.dart';
+export 'lib3.dart';
+part 'part.dart';
+final x = '';
+class A {
+  static final y = 0;
+}
+class B = Object with A;
+''');
+    expect(outputs, hasLength(5));
+    expect(outputs[CLASSES_IN_UNIT], hasLength(0));
+    expect(outputs[COMPILATION_UNIT_CONSTANTS], isNotNull);
+    expect(outputs[COMPILATION_UNIT_ELEMENT], isNotNull);
+    expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(0));
+    expect(outputs[RESOLVED_UNIT1], isNotNull);
   }
 
   test_perform_reuseElement() {

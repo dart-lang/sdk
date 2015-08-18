@@ -512,6 +512,9 @@ abstract class ExecutableElementHandle extends ElementHandle
   List<FunctionElement> get functions => actualElement.functions;
 
   @override
+  bool get hasImplicitReturnType => actualElement.hasImplicitReturnType;
+
+  @override
   bool get isAbstract => actualElement.isAbstract;
 
   @override
@@ -1088,6 +1091,9 @@ abstract class VariableElementHandle extends ElementHandle
   VariableElement get actualElement => super.actualElement as VariableElement;
 
   @override
+  bool get hasImplicitType => actualElement.hasImplicitType;
+
+  @override
   FunctionElement get initializer => actualElement.initializer;
 
   @override
@@ -1107,6 +1113,7 @@ abstract class VariableElementHandle extends ElementHandle
   @override
   DartType get type => actualElement.type;
 }
+
 /**
  * TODO(scheglov) invalid implementation
  */
