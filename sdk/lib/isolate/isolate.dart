@@ -202,9 +202,6 @@ class Isolate {
    * isolate was started as [paused], it may already have terminated
    * before those methods can complete.
    *
-   * WARNING: The [errorsAreFatal], [onExit] and [onError] parameters are not
-   * implemented yet.
-   *
    * If the [checked] parameter is set to `true` or `false`,
    * the new isolate will run code in checked mode,
    * respectively in production mode, if possible.
