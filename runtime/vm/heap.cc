@@ -91,12 +91,6 @@ uword Heap::AllocateNew(intptr_t size) {
 
 uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
-#if defined(DEBUG)
-  // Currently, allocation from non-Dart threads must not trigger GC.
-  if (GrowthControlState()) {
-    isolate()->AssertCurrentThreadIsMutator();
-  }
-#endif
   uword addr = old_space_.TryAllocate(size, type);
   if (addr != 0) {
     return addr;
@@ -440,11 +434,12 @@ bool Heap::ShouldPretenure(intptr_t class_id) const {
 void Heap::UpdatePretenurePolicy() {
   if (FLAG_disable_alloc_stubs_after_gc) {
     ClassTable* table = isolate_->class_table();
+    Zone* zone = Thread::Current()->zone();
     for (intptr_t cid = 1; cid < table->NumCids(); ++cid) {
       if (((cid >= kNumPredefinedCids) || (cid == kArrayCid)) &&
           table->IsValidIndex(cid) &&
           table->HasValidClassAt(cid)) {
-        const Class& cls = Class::Handle(isolate_, table->At(cid));
+        const Class& cls = Class::Handle(zone, table->At(cid));
         cls.DisableAllocationStub();
       }
     }

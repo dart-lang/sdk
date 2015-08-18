@@ -448,4 +448,64 @@ TEST_CASE(SafepointTestVM2) {
   }
 }
 
+
+class AllocAndGCTask : public ThreadPool::Task {
+ public:
+  AllocAndGCTask(Isolate* isolate,
+                 Monitor* done_monitor,
+                 bool* done)
+    : isolate_(isolate),
+      done_monitor_(done_monitor),
+      done_(done) {
+  }
+
+  virtual void Run() {
+    Thread::EnterIsolateAsHelper(isolate_);
+    {
+      Thread* thread = Thread::Current();
+      StackZone stack_zone(thread);
+      Zone* zone = stack_zone.GetZone();
+      HANDLESCOPE(thread);
+      String& old_str = String::Handle(zone, String::New("old", Heap::kOld));
+      isolate_->heap()->CollectAllGarbage();
+      EXPECT(old_str.Equals("old"));
+    }
+    Thread::ExitIsolateAsHelper();
+    // Tell main thread that we are ready.
+    {
+      MonitorLocker ml(done_monitor_);
+      ASSERT(!*done_);
+      *done_ = true;
+      ml.Notify();
+    }
+  }
+
+ private:
+  Isolate* isolate_;
+  Monitor* done_monitor_;
+  bool* done_;
+};
+
+
+TEST_CASE(HelperAllocAndGC) {
+  Monitor done_monitor;
+  bool done = false;
+  Isolate* isolate = Thread::Current()->isolate();
+  // Flush store buffers, etc.
+  // TODO(koda): Currently, the GC only does this for the current thread, (i.e,
+  // the helper, in this test), but it should be done for all *threads*
+  // while reaching a safepoint.
+  Thread::PrepareForGC();
+  Dart::thread_pool()->Run(new AllocAndGCTask(isolate, &done_monitor, &done));
+  {
+    // Manually wait.
+    // TODO(koda): Replace with execution of Dart and/or VM code when GC
+    // actually safepoints everything.
+    MonitorLocker ml(&done_monitor);
+    while (!done) {
+      ml.Wait();
+    }
+  }
+}
+
 }  // namespace dart

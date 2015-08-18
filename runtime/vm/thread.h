@@ -253,6 +253,9 @@ CACHED_CONSTANTS_LIST(DECLARE_MEMBERS)
     memset(&state_, 0, sizeof(state_));
   }
 
+  void StoreBufferRelease(bool check_threshold = true);
+  void StoreBufferAcquire();
+
   void set_zone(Zone* zone) {
     state_.zone = zone;
   }
