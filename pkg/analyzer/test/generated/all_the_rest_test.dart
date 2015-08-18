@@ -8191,6 +8191,18 @@ class FileUriResolverTest {
         resolver.resolveAbsolute(parseUriWithException("dart:core"));
     expect(result, isNull);
   }
+
+  void test_restore() {
+    UriResolver resolver = new FileUriResolver();
+    Uri uri = parseUriWithException('file:///foo/bar.dart');
+    Source source = resolver.resolveAbsolute(uri);
+    expect(source, isNotNull);
+    expect(resolver.restoreAbsolute(source), uri);
+    expect(
+        resolver.restoreAbsolute(
+            new NonExistingSource(source.fullName, null, null)),
+        uri);
+  }
 }
 
 @reflectiveTest

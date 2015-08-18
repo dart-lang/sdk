@@ -140,14 +140,14 @@ abstract class ResourceProvider {
 
   /**
    * Return a [File] that corresponds to the given [path].
-   * 
+   *
    * A file may or may not exist at this location.
    */
   File getFile(String path);
 
   /**
    * Return a [Folder] that corresponds to the given [path].
-   * 
+   *
    * A folder may or may not exist at this location.
    */
   Folder getFolder(String path);
@@ -194,7 +194,8 @@ class ResourceUriResolver extends UriResolver {
   }
 
   @override
-  Uri restoreAbsolute(Source source) => source.uri;
+  Uri restoreAbsolute(Source source) =>
+      _provider.pathContext.toUri(source.fullName);
 
   /**
    * Return `true` if the given [uri] is a `file` URI.

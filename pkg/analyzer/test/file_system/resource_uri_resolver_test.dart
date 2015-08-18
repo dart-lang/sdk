@@ -54,5 +54,9 @@ class ResourceUriResolverTest {
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNotNull);
     expect(resolver.restoreAbsolute(source), uri);
+    expect(
+        resolver.restoreAbsolute(
+            new NonExistingSource(source.fullName, null, null)),
+        uri);
   }
 }

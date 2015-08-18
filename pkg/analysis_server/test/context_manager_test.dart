@@ -1635,8 +1635,9 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     currentContextSources[path] = new HashSet<Source>();
     currentContextDispositions[path] = disposition;
     currentContext = AnalysisEngine.instance.createAnalysisContext();
-    List<UriResolver> resolvers = [new FileUriResolver()];
+    List<UriResolver> resolvers = [];
     resolvers.addAll(disposition.createPackageUriResolvers(resourceProvider));
+    resolvers.add(new FileUriResolver());
     currentContext.sourceFactory =
         new SourceFactory(resolvers, disposition.packages);
     return currentContext;

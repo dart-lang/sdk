@@ -1073,11 +1073,10 @@ abstract class UriResolver {
   Source resolveAbsolute(Uri uri, [Uri actualUri]);
 
   /**
-   * Return an absolute URI that represents the given source, or `null` if a valid URI cannot
-   * be computed.
+   * Return an absolute URI that represents the given [source], or `null` if a
+   * valid URI cannot be computed.
    *
-   * @param source the source to get URI for
-   * @return the absolute URI representing the given source
+   * The computation should be based solely on [source.fullName].
    */
   Uri restoreAbsolute(Source source) => null;
 }

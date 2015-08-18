@@ -283,10 +283,7 @@ class FileUriResolver extends UriResolver {
 
   @override
   Uri restoreAbsolute(Source source) {
-    if (source is FileBasedSource) {
-      return new Uri.file(source.fullName);
-    }
-    return null;
+    return new Uri.file(source.fullName);
   }
 
   /**
