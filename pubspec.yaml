@@ -10,7 +10,7 @@ dependencies:
   path: ^1.3.6
   args: ^0.13.2
   shelf: ^0.6.1+2
-  yaml: ^2.1.3
+  yaml: ^2.1.0
 
 environment:
   sdk: '>=1.11.0 <2.0.0'
