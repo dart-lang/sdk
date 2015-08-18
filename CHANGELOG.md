@@ -145,6 +145,15 @@
   * Echo stdout/stderr in the Observatory debugger.  Standalone-only so far.
   * Minor fixes to service protocol documentation.
 
+* dartdocgen and docgen
+  * Deprecated in favor of dartdoc (see below). Currently plan is to remove
+    dartdocgen in 1.13.
+
+* dartdoc
+  * New tool to generate static HTML for API docs.
+    [Learn more](https://pub.dartlang.org/packages/dartdoc).
+
+
 ### VM Service Protocol Changes
 
 * **BREAKING** The service protocol now sends JSON-RPC 2.0-compatible
