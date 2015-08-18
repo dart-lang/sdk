@@ -1839,6 +1839,9 @@ int main() {
   }
 
   test_perform_dart2js() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.dart2jsHint = true;
+    prepareAnalysisContext(options);
     Source source = newSource(
         '/test.dart',
         '''

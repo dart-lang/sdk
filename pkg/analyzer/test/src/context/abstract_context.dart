@@ -98,16 +98,22 @@ class AbstractContextTest {
     return sources;
   }
 
-  void setUp() {
-    // prepare AnalysisContext
+  void prepareAnalysisContext([AnalysisOptions options]) {
     sourceFactory = new SourceFactory(<UriResolver>[
       new DartUriResolver(sdk),
       new ResourceUriResolver(resourceProvider)
     ]);
     context = createAnalysisContext();
+    if (options != null) {
+      context.analysisOptions = options;
+    }
     context.sourceFactory = sourceFactory;
     analysisCache = context.analysisCache;
     analysisDriver = context.driver;
+  }
+
+  void setUp() {
+    prepareAnalysisContext();
   }
 
   void tearDown() {}
