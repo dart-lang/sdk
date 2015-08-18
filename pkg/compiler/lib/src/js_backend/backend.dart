@@ -1325,6 +1325,7 @@ class JavaScriptBackend extends Backend {
         Element element = find(isolateHelperLibrary, name);
         enqueuer.addToWorkList(element);
         compiler.globalDependencies.registerDependency(element);
+        helpersUsed.add(element.declaration);
       }
     } else {
       enqueuer.addToWorkList(find(isolateHelperLibrary, START_ROOT_ISOLATE));

@@ -96,9 +96,6 @@ _IsolateContext _currentIsolate() => _globalState.currentContext;
  * call is not emitted.
  */
 void startRootIsolate(entry, args) {
-  // The dartMainRunner can inject a new arguments array. We pass the arguments
-  // through a "JS", so that the type-inferrer loses track of it.
-  args = JS("", "#", args);
   if (args == null) args = [];
   if (args is! List) {
     throw new ArgumentError("Arguments to main must be a List: $args");
