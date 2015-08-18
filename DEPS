@@ -240,7 +240,7 @@ deps = {
   Var("dart_root") + "/third_party/observatory_pub_packages":
      (Var("github_mirror") % "observatory_pub_packages")
       + Var("observatory_pub_packages_rev"),
-  Var("dart_root") + "/third_party/pkg/package_config":
+  Var("dart_root") + "/third_party/pkg_tested/package_config":
       (Var("github_mirror") % "package_config") +
       Var("package_config_tag"),
   Var("dart_root") + "/third_party/pkg/path":

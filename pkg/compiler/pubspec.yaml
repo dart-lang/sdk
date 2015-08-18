@@ -21,7 +21,7 @@ dev_dependencies:
 #
 # dependency_overrides:
 #   package_config:
-#     path: ../../third_party/pkg/package_config
+#     path: ../../third_party/pkg_tested/package_config
 #   path:
 #     path: ../../third_party/pkg/path
 #   charcode:
