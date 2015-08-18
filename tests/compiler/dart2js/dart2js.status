@@ -34,6 +34,8 @@ mirrors/library_imports_shown_test: Fail
 
 patch_test/bug: RuntimeError # Issue 21132
 
+http_test: Pass, Slow
+
 # These tests are for the now-deleted dart2dart variant of the CPS IR.
 # We want to adapt them to test the JS variant of the CPS IR instead,
 # but for now they are disabled.
@@ -58,7 +60,6 @@ deferred_mirrors_test: Pass, Slow
 mirror_final_field_inferrer2_test: Pass, Slow
 check_elements_invariants_test: Slow, Pass
 import_mirrors_test: Slow, Pass
-http_test: Pass, Slow
 exit_code_test: Pass, Slow
 
 [ $mode == debug ]

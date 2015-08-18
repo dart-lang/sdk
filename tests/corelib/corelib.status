@@ -218,7 +218,9 @@ int_parse_radix_test/*: Pass, Slow
 big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == dart2js && $cps_ir ]
+data_resource_test: Crash # bailout: (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
 error_stack_trace1_test: Pass # H.unwrapException(...).get$stackTrace is not a function
+growable_list_test: RuntimeError # Typed lists
 iterable_empty_test: RuntimeError # Please triage this failure.
 iterable_return_type_test/none: RuntimeError # Please triage this failure.
 iterable_to_list_test: RuntimeError # Please triage this failure.
@@ -230,6 +232,7 @@ list_unmodifiable_test: RuntimeError # Please triage this failure.
 map_values2_test: RuntimeError # Please triage this failure.
 map_values3_test: RuntimeError # Please triage this failure.
 map_values4_test: RuntimeError # Please triage this failure.
+package_resource_test: Crash # bailout: (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
 regexp/pcre_test: Crash # Stack Overflow
 shuffle_test: RuntimeError # this.get$length is not a function
 string_fromcharcodes_test: RuntimeError # this.get$length is not a function
