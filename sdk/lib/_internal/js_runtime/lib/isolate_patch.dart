@@ -73,7 +73,7 @@ class Isolate {
                 isolate.addOnErrorListener(onError);
               }
               if (!paused) {
-                isolate.resume(Isolate.pauseCapability);
+                isolate.resume(isolate.pauseCapability);
               }
             }
             return isolate;
