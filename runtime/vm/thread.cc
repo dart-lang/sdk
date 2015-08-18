@@ -173,7 +173,9 @@ void Thread::EnterIsolateAsHelper(Isolate* isolate) {
   ASSERT(thread->isolate() == NULL);
   thread->isolate_ = isolate;
   ASSERT(thread->store_buffer_block_ == NULL);
-  thread->StoreBufferAcquire();
+  // TODO(koda): Use StoreBufferAcquire once we properly flush before Scavenge.
+  thread->store_buffer_block_ =
+      thread->isolate()->store_buffer()->PopEmptyBlock();
   ASSERT(isolate->heap() != NULL);
   thread->heap_ = isolate->heap();
   ASSERT(thread->thread_state() == NULL);
