@@ -23,6 +23,8 @@ earier.
 
 ## Status
 
+[![Build Status](https://travis-ci.org/dart-lang/dart2js_info.svg)](https://travis-ci.org/dart-lang/dart2js_info)
+
 Currently, most tools available here can be used to analyze code-size and
 attibution of code-size to different parts of your app. With time, we hope to
 add more data to the `.info.json` files, and include better tools to help
