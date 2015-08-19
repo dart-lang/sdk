@@ -7,14 +7,14 @@ patch bool debugger({bool when: true,
 
 patch Object inspect(Object object) native "Developer_inspect";
 
-patch log(String message,
-          {DateTime time,
-           int sequenceNumber,
-           int level: 0,
-           String name: '',
-           Zone zone,
-           Object error,
-           StackTrace stackTrace}) {
+patch void log(String message,
+               {DateTime time,
+                int sequenceNumber,
+                int level: 0,
+                String name: '',
+                Zone zone,
+                Object error,
+                StackTrace stackTrace}) {
   if (message is! String) {
     throw new ArgumentError(message, "message", "Must be a String");
   }
