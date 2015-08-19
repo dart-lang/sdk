@@ -711,7 +711,7 @@ class GetField extends Primitive {
   accept(Visitor visitor) => visitor.visitGetField(this);
 
   bool get isSafeForElimination => objectIsNotNull;
-  bool get isSafeForReordering => objectIsNotNull && field.isFinal;
+  bool get isSafeForReordering => false;
 }
 
 /// Get the length of a string or native list.
