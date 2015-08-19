@@ -61,8 +61,8 @@ abstract class BasicInfo implements Info {
       this.coverageId);
 
   BasicInfo._fromId(String serializedId)
-     : kind = _kindFromSerializedId(serializedId),
-       id = _idFromSerializedId(serializedId);
+      : kind = _kindFromSerializedId(serializedId),
+        id = _idFromSerializedId(serializedId);
 
   Map toJson() {
     var res = {
@@ -88,7 +88,6 @@ abstract class CodeInfo implements Info {
   /// How does this function or field depend on others.
   final List<DependencyInfo> uses = <DependencyInfo>[];
 }
-
 
 /// The entire information produced while compiling a program.
 class AllInfo {
@@ -262,10 +261,10 @@ class _ParseHelper {
 
     json['holding'].forEach((k, deps) {
       var src = idMap[k];
-      assert (src != null);
+      assert(src != null);
       for (var dep in deps) {
         var target = idMap[dep['id']];
-        assert (target != null);
+        assert(target != null);
         src.uses.add(new DependencyInfo(target, dep['mask']));
       }
     });
@@ -281,10 +280,11 @@ class _ParseHelper {
 
   LibraryInfo parseLibrary(Map json) {
     LibraryInfo result = parseId(json['id']);
-    result..name = json['name']
-        ..uri = Uri.parse(json['canonicalUri'])
-        ..outputUnit = parseId(json['outputUnit'])
-        ..size = json['size'];
+    result
+      ..name = json['name']
+      ..uri = Uri.parse(json['canonicalUri'])
+      ..outputUnit = parseId(json['outputUnit'])
+      ..size = json['size'];
     for (var child in json['children'].map(parseId)) {
       if (child is FunctionInfo) {
         result.topLevelFunctions.add(child);
@@ -302,11 +302,12 @@ class _ParseHelper {
 
   ClassInfo parseClass(Map json) {
     ClassInfo result = parseId(json['id']);
-    result..name = json['name']
-        ..parent = parseId(json['parent'])
-        ..outputUnit = parseId(json['outputUnit'])
-        ..size = json['size']
-        ..isAbstract = json['modifiers']['abstract'] == true;
+    result
+      ..name = json['name']
+      ..parent = parseId(json['parent'])
+      ..outputUnit = parseId(json['outputUnit'])
+      ..size = json['size']
+      ..isAbstract = json['modifiers']['abstract'] == true;
     assert(result is ClassInfo);
     for (var child in json['children'].map(parseId)) {
       if (child is FunctionInfo) {
@@ -321,7 +322,8 @@ class _ParseHelper {
 
   FieldInfo parseField(Map json) {
     FieldInfo result = parseId(json['id']);
-    return result..name = json['name']
+    return result
+      ..name = json['name']
       ..parent = parseId(json['parent'])
       ..coverageId = json['coverageId']
       ..outputUnit = parseId(json['outputUnit'])
@@ -343,18 +345,19 @@ class _ParseHelper {
 
   TypedefInfo parseTypedef(Map json) {
     TypedefInfo result = parseId(json['id']);
-    return result..name = json['name']
+    return result
+      ..name = json['name']
       ..parent = parseId(json['parent'])
       ..type = json['type']
       ..size = 0;
   }
 
-  ProgramInfo parseProgram(Map json) =>
-      new ProgramInfo()..size = json['size'];
+  ProgramInfo parseProgram(Map json) => new ProgramInfo()..size = json['size'];
 
   FunctionInfo parseFunction(Map json) {
     FunctionInfo result = parseId(json['id']);
-    return result..name = json['name']
+    return result
+      ..name = json['name']
       ..parent = parseId(json['parent'])
       ..coverageId = json['coverageId']
       ..outputUnit = parseId(json['outputUnit'])
@@ -381,25 +384,25 @@ class _ParseHelper {
   }
 
   Info parseId(String serializedId) => registry.putIfAbsent(serializedId, () {
-    if (serializedId == null) {
-      return null;
-    } else if (serializedId.startsWith('function/')) {
-      return new FunctionInfo._(serializedId);
-    } else if (serializedId.startsWith('library/')) {
-      return new LibraryInfo._(serializedId);
-    } else if (serializedId.startsWith('class/')) {
-      return new ClassInfo._(serializedId);
-    } else if (serializedId.startsWith('field/')) {
-      return new FieldInfo._(serializedId);
-    } else if (serializedId.startsWith('constant/')) {
-      return new ConstantInfo._(serializedId);
-    } else if (serializedId.startsWith('typedef/')) {
-      return new TypedefInfo._(serializedId);
-    } else if (serializedId.startsWith('outputUnit/')) {
-      return new OutputUnitInfo._(serializedId);
-    }
-    assert(false);
-  });
+        if (serializedId == null) {
+          return null;
+        } else if (serializedId.startsWith('function/')) {
+          return new FunctionInfo._(serializedId);
+        } else if (serializedId.startsWith('library/')) {
+          return new LibraryInfo._(serializedId);
+        } else if (serializedId.startsWith('class/')) {
+          return new ClassInfo._(serializedId);
+        } else if (serializedId.startsWith('field/')) {
+          return new FieldInfo._(serializedId);
+        } else if (serializedId.startsWith('constant/')) {
+          return new ConstantInfo._(serializedId);
+        } else if (serializedId.startsWith('typedef/')) {
+          return new TypedefInfo._(serializedId);
+        } else if (serializedId.startsWith('outputUnit/')) {
+          return new OutputUnitInfo._(serializedId);
+        }
+        assert(false);
+      });
 }
 
 /// Info associated with a library element.
@@ -497,16 +500,12 @@ class ConstantInfo extends BasicInfo {
 
   static int _ids = 0;
   // TODO(sigmund): Add coverage support to constants?
-  ConstantInfo(
-      {int size: 0,
-      this.code,
-      OutputUnitInfo outputUnit})
+  ConstantInfo({int size: 0, this.code, OutputUnitInfo outputUnit})
       : super(InfoKind.constant, _ids++, null, outputUnit, size, null);
 
   ConstantInfo._(String serializedId) : super._fromId(serializedId);
 
-  Map toJson() => super.toJson()
-    ..addAll({'code': code});
+  Map toJson() => super.toJson()..addAll({'code': code});
 
   void accept(InfoVisitor visitor) => visitor.visitConstant(this);
 }
@@ -547,12 +546,13 @@ class FieldInfo extends BasicInfo with CodeInfo {
   FieldInfo._(String serializedId) : super._fromId(serializedId);
 
   Map toJson() {
-    var result = super.toJson()..addAll({
-      'children': closures.map((i) => i.serializedId).toList(),
-      'inferredType': inferredType,
-      'code': code,
-      'type': type,
-    });
+    var result = super.toJson()
+      ..addAll({
+        'children': closures.map((i) => i.serializedId).toList(),
+        'inferredType': inferredType,
+        'code': code,
+        'type': type,
+      });
     if (isConst) {
       result['const'] = true;
       if (initializer != null) result['initializer'] = initializer.serializedId;
@@ -723,15 +723,23 @@ enum InfoKind {
 }
 
 String _kindToString(InfoKind kind) {
-  switch(kind) {
-    case InfoKind.library: return 'library';
-    case InfoKind.clazz: return 'class';
-    case InfoKind.function: return 'function';
-    case InfoKind.field: return 'field';
-    case InfoKind.constant: return 'constant';
-    case InfoKind.outputUnit: return 'outputUnit';
-    case InfoKind.typedef: return 'typedef';
-    default: return null;
+  switch (kind) {
+    case InfoKind.library:
+      return 'library';
+    case InfoKind.clazz:
+      return 'class';
+    case InfoKind.function:
+      return 'function';
+    case InfoKind.field:
+      return 'field';
+    case InfoKind.constant:
+      return 'constant';
+    case InfoKind.outputUnit:
+      return 'outputUnit';
+    case InfoKind.typedef:
+      return 'typedef';
+    default:
+      return null;
   }
 }
 
@@ -742,15 +750,23 @@ InfoKind _kindFromSerializedId(String serializedId) =>
     _kindFromString(serializedId.substring(0, serializedId.indexOf('/')));
 
 InfoKind _kindFromString(String kind) {
-  switch(kind) {
-    case 'library': return InfoKind.library;
-    case 'class': return InfoKind.clazz;
-    case 'function': return InfoKind.function;
-    case 'field': return InfoKind.field;
-    case 'constant': return InfoKind.constant;
-    case 'outputUnit': return InfoKind.outputUnit;
-    case 'typedef': return InfoKind.typedef;
-    default: return null;
+  switch (kind) {
+    case 'library':
+      return InfoKind.library;
+    case 'class':
+      return InfoKind.clazz;
+    case 'function':
+      return InfoKind.function;
+    case 'field':
+      return InfoKind.field;
+    case 'constant':
+      return InfoKind.constant;
+    case 'outputUnit':
+      return InfoKind.outputUnit;
+    case 'typedef':
+      return InfoKind.typedef;
+    default:
+      return null;
   }
 }
 

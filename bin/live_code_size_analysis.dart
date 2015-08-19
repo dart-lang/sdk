@@ -112,6 +112,7 @@ main(args) {
 _showHeader(String msg, String header1, String header2) {
   print(' ${pad(msg, 30, right: true)} ${pad(header1, 8)} ${pad(header2, 6)}');
 }
+
 _show(String msg, int size, int total) {
   var percent = (size * 100 / total).toStringAsFixed(2);
   print(' ${pad(msg, 30, right: true)} ${pad(size, 8)} ${pad(percent, 6)}%');

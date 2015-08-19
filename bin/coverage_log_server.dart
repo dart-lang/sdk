@@ -32,16 +32,17 @@ const _DEFAULT_OUT_TEMPLATE = '<dart2js-out-file>.coverage.json';
 main(argv) async {
   var parser = new ArgParser()
     ..addOption('port', abbr: 'p', help: 'port number', defaultsTo: "8080")
-    ..addOption('host', help: 'host name (use 0.0.0.0 for all interfaces)',
+    ..addOption('host',
+        help: 'host name (use 0.0.0.0 for all interfaces)',
         defaultsTo: 'localhost')
-    ..addFlag('help', abbr: 'h', help: 'show this help message',
-        negatable: false)
+    ..addFlag('help',
+        abbr: 'h', help: 'show this help message', negatable: false)
     ..addOption('uri-prefix',
         help: 'uri path prefix that will hit this server. This will be injected'
-              ' into the .js file',
+            ' into the .js file',
         defaultsTo: '')
-    ..addOption('out', abbr: 'o', help: 'output log file',
-        defaultsTo: _DEFAULT_OUT_TEMPLATE);
+    ..addOption('out',
+        abbr: 'o', help: 'output log file', defaultsTo: _DEFAULT_OUT_TEMPLATE);
   var args = parser.parse(argv);
   if (args['help'] == true || args.rest.isEmpty) {
     print('usage: dart coverage_logging.dart [options] '
@@ -95,8 +96,8 @@ class _Server {
 
   String get _serializedData => new JsonEncoder.withIndent(' ').convert(data);
 
-  _Server(this.hostname, this.port, String jsPath, this.htmlPath,
-      this.outPath, String prefix)
+  _Server(this.hostname, this.port, String jsPath, this.htmlPath, this.outPath,
+      String prefix)
       : jsPath = jsPath,
         jsCode = _adjustRequestUrl(new File(jsPath).readAsStringSync(), prefix),
         prefix = _normalize(prefix);
@@ -121,8 +122,9 @@ class _Server {
 
     // Serve an HTML file at the default prefix, or a path matching the HTML
     // file name
-    if (urlPath == prefix || urlPath == '$prefix/'
-        || urlPath == _expectedPath(baseHtmlName)) {
+    if (urlPath == prefix ||
+        urlPath == '$prefix/' ||
+        urlPath == _expectedPath(baseHtmlName)) {
       var contents = htmlPath == null
           ? '<html><script src="$baseJsName"></script>'
           : await new File(htmlPath).readAsString();
@@ -167,8 +169,8 @@ class _Server {
       await new Future.delayed(new Duration(seconds: 3));
       await new File(outPath).writeAsString(_serializedData);
       var diff = data.length - _total;
-      print(diff ? ' - no new element covered'
-          : ' - $diff new elements covered');
+      print(
+          diff ? ' - no new element covered' : ' - $diff new elements covered');
       _savePending = false;
       _total = data.length;
     }
@@ -184,8 +186,7 @@ _normalize(String uriPath) {
 
 _adjustRequestUrl(String code, String prefix) {
   var newUrl = prefix == '' ? 'coverage' : '$prefix/coverage';
-  return code.replaceFirst(
-      '"/coverage_uri_to_amend_by_server"',
+  return code.replaceFirst('"/coverage_uri_to_amend_by_server"',
       '"/$newUrl" /*url-prefix updated!*/');
 }
 

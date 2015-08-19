@@ -46,7 +46,7 @@ main(args) {
   var json;
   try {
     json = JSON.decode(new File(args[0]).readAsStringSync());
-  } catch(e) {
+  } catch (e) {
     print('error: could not read ${args[0]}');
     exit(1);
   }
@@ -59,12 +59,10 @@ main(args) {
       print('missing arguments for `some_path`');
       exit(1);
     }
-    var source =
-        info.functions.firstWhere(_longNameMatcher(new RegExp(args[2])),
-        orElse: () => null);
-    var target =
-        info.functions.firstWhere(_longNameMatcher(new RegExp(args[3])),
-        orElse: () => null);
+    var source = info.functions
+        .firstWhere(_longNameMatcher(new RegExp(args[2])), orElse: () => null);
+    var target = info.functions
+        .firstWhere(_longNameMatcher(new RegExp(args[3])), orElse: () => null);
     print('query: some_path');
     if (source == null) {
       print("source '${args[2]}' not found in '${args[0]}'");

@@ -20,8 +20,8 @@ main(args) {
   showCodeDistribution(info);
 }
 
-showCodeDistribution(AllInfo info, {bool filter(Info info),
-    bool showLibrarySizes: false}) {
+showCodeDistribution(AllInfo info,
+    {bool filter(Info info), bool showLibrarySizes: false}) {
   var realTotal = info.program.size;
   if (filter == null) filter = (i) => true;
   var reported = []
@@ -74,8 +74,8 @@ showCodeDistribution(AllInfo info, {bool filter(Info info),
   }
   helper(mainMethod);
   reported.forEach((n) => dominatedSize.putIfAbsent(n, () => n.size));
-  reported.sort((a, b) => (dominatedSize[b] + nodeData[b].maxSize)
-      - (dominatedSize[a] + nodeData[a].maxSize));
+  reported.sort((a, b) => (dominatedSize[b] + nodeData[b].maxSize) -
+      (dominatedSize[a] + nodeData[a].maxSize));
 
   if (showLibrarySizes) {
     print(' --- Results per library ---');
@@ -97,7 +97,7 @@ showCodeDistribution(AllInfo info, {bool filter(Info info),
     var reportedByLibrary = totals.keys.toList();
     reportedByLibrary.sort((a, b) => totals[b] - totals[a]);
     reportedByLibrary.forEach((name) {
-        _showLib(name, totals[name], realTotal, longest + 1);
+      _showLib(name, totals[name], realTotal, longest + 1);
     });
   }
 
@@ -118,7 +118,11 @@ class _SccData {
   _SccData();
 
   int _maxSize;
-  int get maxSize { compute(); return _maxSize; }
+  int get maxSize {
+    compute();
+    return _maxSize;
+  }
+
   void compute() {
     if (_maxSize != null) return;
     var max = 0;

@@ -57,8 +57,8 @@ main(args) {
   int accounted = totalLib + constantsSize;
 
   if (accounted != realTotal) {
-    var percent = ((realTotal - accounted) * 100 / realTotal)
-        .toStringAsFixed(2);
+    var percent =
+        ((realTotal - accounted) * 100 / realTotal).toStringAsFixed(2);
     _fail('$percent% size missing: $accounted (all libs + consts) '
         '< $realTotal (total)');
   }

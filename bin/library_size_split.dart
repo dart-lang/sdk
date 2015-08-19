@@ -77,14 +77,13 @@ main(args) {
   var json = JSON.decode(new File(filename).readAsStringSync());
   var info = AllInfo.parseFromJson(json);
 
-  var groupingText = args.length > 1
-      ? new File(args[1]).readAsStringSync() : defaultGrouping;
+  var groupingText =
+      args.length > 1 ? new File(args[1]).readAsStringSync() : defaultGrouping;
   var groupingYaml = loadYaml(groupingText);
   var groups = [];
   for (var group in groupingYaml['groups']) {
-    groups.add(new _Group(group['name'],
-        new RegExp(group['regexp']),
-        group['cluster'] ?? 0));
+    groups.add(new _Group(
+        group['name'], new RegExp(group['regexp']), group['cluster'] ?? 0));
   }
 
   var sizes = {};
@@ -124,8 +123,9 @@ main(args) {
       return;
     }
 
-    var percent = row.value == realTotal ? '100'
-      : (row.value * 100 / realTotal).toStringAsFixed(2);
+    var percent = row.value == realTotal
+        ? '100'
+        : (row.value * 100 / realTotal).toStringAsFixed(2);
     print(' ${_pad(row.label, longest + 1, right: true)}'
         ' ${_pad(row.value, 8)} ${_pad(percent, 6)}%');
   }

@@ -5,7 +5,8 @@ import 'graph.dart';
 
 /// Computes a graph of dependencies from [info].
 Graph<Info> graphFromInfo(AllInfo info) {
-  print('  info: dependency graph information is work in progress and might be incomplete');
+  print('  info: dependency graph information is work in progress and'
+      ' might be incomplete');
   // Note: we are combining dependency information that is computed in two ways
   // (functionInfo.uses vs allInfo.dependencies).
   // TODO(sigmund): fix inconsistencies between these two ways, stick with one
