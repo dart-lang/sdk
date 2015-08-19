@@ -85,20 +85,20 @@ template<typename KeyTraits, intptr_t kPayloadSize, intptr_t kMetaDataSize>
 class HashTable : public ValueObject {
  public:
   typedef KeyTraits Traits;
-  // Uses 'isolate' for handle allocation. 'Release' must be called at the end
+  // Uses 'zone' for handle allocation. 'Release' must be called at the end
   // to obtain the final table after potential growth/shrinkage.
-  HashTable(Isolate* isolate, RawArray* data)
-      : isolate_(isolate),
-        key_handle_(Object::Handle(isolate_)),
-        smi_handle_(Smi::Handle(isolate_)),
-        data_(&Array::Handle(isolate_, data)),
+  HashTable(Zone* zone, RawArray* data)
+      : zone_(zone),
+        key_handle_(Object::Handle(zone_)),
+        smi_handle_(Smi::Handle(zone_)),
+        data_(&Array::Handle(zone_, data)),
         released_data_(NULL) {}
-  // Like above, except uses current isolate.
+  // Like above, except uses current zone.
   explicit HashTable(RawArray* data)
-      : isolate_(Isolate::Current()),
-        key_handle_(Object::Handle(isolate_)),
-        smi_handle_(Smi::Handle(isolate_)),
-        data_(&Array::Handle(isolate_, data)),
+      : zone_(Thread::Current()->zone()),
+        key_handle_(Object::Handle(zone_)),
+        smi_handle_(Smi::Handle(zone_)),
+        data_(&Array::Handle(zone_, data)),
         released_data_(NULL) {}
 
   // Returns the final table. The handle is cleared when this HashTable is
@@ -296,7 +296,7 @@ class HashTable : public ValueObject {
   }
 
   intptr_t GetSmiValueAt(intptr_t index) const {
-    ASSERT(Object::Handle(isolate(), data_->At(index)).IsSmi());
+    ASSERT(Object::Handle(zone(), data_->At(index)).IsSmi());
     return Smi::Value(Smi::RawCast(data_->At(index)));
   }
 
@@ -309,9 +309,9 @@ class HashTable : public ValueObject {
     SetSmiValueAt(index, (GetSmiValueAt(index) + delta));
   }
 
-  Isolate* isolate() const { return isolate_; }
+  Zone* zone() const { return zone_; }
 
-  Isolate* isolate_;
+  Zone* zone_;
   Object& key_handle_;
   Smi& smi_handle_;
   // Exactly one of these is non-NULL, depending on whether Release was called.
@@ -329,8 +329,8 @@ class UnorderedHashTable : public HashTable<KeyTraits, kUserPayloadSize, 0> {
   typedef HashTable<KeyTraits, kUserPayloadSize, 0> BaseTable;
   static const intptr_t kPayloadSize = kUserPayloadSize;
   explicit UnorderedHashTable(RawArray* data) : BaseTable(data) {}
-  UnorderedHashTable(Isolate* isolate, RawArray* data)
-      : BaseTable(isolate, data) {}
+  UnorderedHashTable(Zone* zone, RawArray* data)
+      : BaseTable(zone, data) {}
   // Note: Does not check for concurrent modification.
   class Iterator {
    public:
@@ -367,8 +367,8 @@ class EnumIndexHashTable
   typedef HashTable<KeyTraits, kUserPayloadSize + 1, 1> BaseTable;
   static const intptr_t kPayloadSize = kUserPayloadSize;
   static const intptr_t kNextEnumIndex = BaseTable::kMetaDataIndex;
-  EnumIndexHashTable(Isolate* isolate, RawArray* data)
-      : BaseTable(isolate, data) {}
+  EnumIndexHashTable(Zone* zone, RawArray* data)
+      : BaseTable(zone, data) {}
   explicit EnumIndexHashTable(RawArray* data) : BaseTable(data) {}
   // Note: Does not check for concurrent modification.
   class Iterator {
@@ -503,7 +503,7 @@ template<typename BaseIterTable>
 class HashMap : public BaseIterTable {
  public:
   explicit HashMap(RawArray* data) : BaseIterTable(data) {}
-  HashMap(Isolate* isolate, RawArray* data) : BaseIterTable(isolate, data) {}
+  HashMap(Zone* zone, RawArray* data) : BaseIterTable(zone, data) {}
   template<typename Key>
   RawObject* GetOrNull(const Key& key, bool* present = NULL) const {
     intptr_t entry = BaseIterTable::FindKey(key);
@@ -589,7 +589,7 @@ class UnorderedHashMap : public HashMap<UnorderedHashTable<KeyTraits, 1> > {
  public:
   typedef HashMap<UnorderedHashTable<KeyTraits, 1> > BaseMap;
   explicit UnorderedHashMap(RawArray* data) : BaseMap(data) {}
-  UnorderedHashMap(Isolate* isolate, RawArray* data) : BaseMap(isolate, data) {}
+  UnorderedHashMap(Zone* zone, RawArray* data) : BaseMap(zone, data) {}
 };
 
 
@@ -598,7 +598,7 @@ class EnumIndexHashMap : public HashMap<EnumIndexHashTable<KeyTraits, 1> > {
  public:
   typedef HashMap<EnumIndexHashTable<KeyTraits, 1> > BaseMap;
   explicit EnumIndexHashMap(RawArray* data) : BaseMap(data) {}
-  EnumIndexHashMap(Isolate* isolate, RawArray* data) : BaseMap(isolate, data) {}
+  EnumIndexHashMap(Zone* zone, RawArray* data) : BaseMap(zone, data) {}
 };
 
 
@@ -606,7 +606,7 @@ template<typename BaseIterTable>
 class HashSet : public BaseIterTable {
  public:
   explicit HashSet(RawArray* data) : BaseIterTable(data) {}
-  HashSet(Isolate* isolate, RawArray* data) : BaseIterTable(isolate, data) {}
+  HashSet(Zone* zone, RawArray* data) : BaseIterTable(zone, data) {}
   bool Insert(const Object& key) {
     EnsureCapacity();
     intptr_t entry = -1;
@@ -683,7 +683,7 @@ class UnorderedHashSet : public HashSet<UnorderedHashTable<KeyTraits, 0> > {
  public:
   typedef HashSet<UnorderedHashTable<KeyTraits, 0> > BaseSet;
   explicit UnorderedHashSet(RawArray* data) : BaseSet(data) {}
-  UnorderedHashSet(Isolate* isolate, RawArray* data) : BaseSet(isolate, data) {}
+  UnorderedHashSet(Zone* zone, RawArray* data) : BaseSet(zone, data) {}
 };
 
 
@@ -692,7 +692,7 @@ class EnumIndexHashSet : public HashSet<EnumIndexHashTable<KeyTraits, 0> > {
  public:
   typedef HashSet<EnumIndexHashTable<KeyTraits, 0> > BaseSet;
   explicit EnumIndexHashSet(RawArray* data) : BaseSet(data) {}
-  EnumIndexHashSet(Isolate* isolate, RawArray* data) : BaseSet(isolate, data) {}
+  EnumIndexHashSet(Zone* zone, RawArray* data) : BaseSet(zone, data) {}
 };
 
 }  // namespace dart
