@@ -8,7 +8,7 @@ homepage: http://dart-lang.github.io/dart2js_info/doc/api/
 
 dependencies:
   path: ^1.3.6
-  args: ^0.13.2
+  args: ^0.13.0
   shelf: ^0.6.1+2
   yaml: ^2.1.0
 
