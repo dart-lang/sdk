@@ -8,11 +8,15 @@
   let _isolate_helper = dart_library.import('dart/_isolate_helper');
   _isolate_helper.startRootIsolate(function() {}, []);
 
+  let async_helper = dart_library.import('async_helper/async_helper');
+
   function dartLanguageTests(tests) {
     for (const name of tests) {
-      test(name, () => {
-        console.debug('Running language test: ' + name);
+      test(name, (done) => {
+        async_helper.asyncTestInitialize(done);
+        console.debug('Running language test:  ' + name);
         dart_library.import('language/' + name).main();
+        if (!async_helper.asyncTestStarted) done();
       });
     }
   }
@@ -48,7 +52,8 @@
       'async_rethrow_test',
       // TODO(jmesserly): fix errors
       // 'async_return_types_test',
-      'async_switch_test',
+      // TODO(jmesserly): https://github.com/dart-lang/dev_compiler/issues/294
+      // 'async_switch_test',
       'async_test',
       'async_this_bound_test',
       'async_throw_in_catch_test'
@@ -63,7 +68,8 @@
       //'async_star_cancel_and_throw_in_finally_test',
       'async_star_regression_23116_test',
       'asyncstar_concat_test',
-      'asyncstar_throw_in_catch_test',
+      // TODO(jmesserly): https://github.com/dart-lang/dev_compiler/issues/294
+      // 'asyncstar_throw_in_catch_test',
       'asyncstar_yield_test',
       'asyncstar_yieldstar_test'
     ]);
