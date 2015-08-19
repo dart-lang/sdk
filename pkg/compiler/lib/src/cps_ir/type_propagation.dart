@@ -1614,6 +1614,19 @@ class TransformingVisitor extends LeafVisitor {
     Continuation cont = node.continuation.definition;
     Primitive arg(int n) => node.arguments[n].definition;
     AbstractValue argType(int n) => getValue(arg(n));
+
+    bool replaceWithBinary(BuiltinOperator operator,
+                           Primitive left,
+                           Primitive right) {
+      Primitive prim =
+          new ApplyBuiltinOperator(operator, <Primitive>[left, right],
+                                   node.sourceInformation);
+      LetPrim let = makeLetPrimInvoke(prim, cont);
+      replaceSubtree(node, let);
+      push(let);
+      return true; // So returning early is more convenient.
+    }
+
     if (node.target.library.isInternalLibrary) {
       switch(node.target.name) {
         case InternalMethod.Stringify:
@@ -1623,6 +1636,14 @@ class TransformingVisitor extends LeafVisitor {
             replaceSubtree(node, invoke);
             push(invoke);
             return true;
+          }
+          break;
+      }
+    } else if (node.target.library.isDartCore) {
+      switch(node.target.name) {
+        case CorelibMethod.Identical:
+          if (node.arguments.length == 2) {
+            return replaceWithBinary(BuiltinOperator.Identical, arg(0), arg(1));
           }
           break;
       }
@@ -2545,6 +2566,11 @@ class AbstractValue {
 /// Enum-like class with the names of internal methods we care about.
 abstract class InternalMethod {
   static const String Stringify = 'S';
+}
+
+/// Enum-like class with the names of dart:core methods we care about.
+abstract class CorelibMethod {
+  static const String Identical = 'identical';
 }
 
 /// Suggested name for a synthesized loop index.
