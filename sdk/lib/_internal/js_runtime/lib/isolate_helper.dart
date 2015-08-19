@@ -1069,6 +1069,7 @@ class IsolateNatives {
       } else {
         topLevel();
       }
+      context._updateGlobalState();
     }
 
     if (startPaused) {
