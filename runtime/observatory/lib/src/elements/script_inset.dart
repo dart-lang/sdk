@@ -161,9 +161,12 @@ class CallSiteAnnotation extends Annotation {
   CallSiteAnnotation(this.callSite) {
     line = callSite.line;
     columnStart = callSite.column - 1;  // Call site is 1-origin.
-    var tokenLength = callSite.name.length;  // Approximate.
-    if (callSite.name.startsWith("get:") ||
-        callSite.name.startsWith("set:")) tokenLength -= 4;
+    var tokenLength = callSite.script.guessTokenLength(line, columnStart);
+    if (tokenLength == null) {
+      tokenLength = callSite.name.length;  // Approximate.
+      if (callSite.name.startsWith("get:") ||
+          callSite.name.startsWith("set:")) tokenLength -= 4;
+    }
     columnStop = columnStart + tokenLength;
   }
 
@@ -475,7 +478,11 @@ class ScriptInsetElement extends ObservatoryElement {
       var a = new CurrentExecutionAnnotation();
       a.line = _currentLine;
       a.columnStart = _currentCol;
-      a.columnStop = _currentCol + 1;
+      var length = script.guessTokenLength(_currentLine, _currentCol);
+      if (length == null) {
+        length = 1;
+      }
+      a.columnStop = _currentCol + length;
       annotations.add(a);
     }
   }

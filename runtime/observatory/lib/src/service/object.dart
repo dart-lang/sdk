@@ -972,10 +972,10 @@ class HeapSnapshot {
                                                  limit: limit)) {
       result.add(isolate.getObjectByAddress(v.address)
                         .then((ServiceObject obj) {
-        if (obj is Instance) {
-          // TODO(rmacnak): size/retainedSize are properties of all heap
-          // objects, not just Instances.
+        if (obj is HeapObject) {
           obj.retainedSize = v.retainedSize;
+        } else {
+          print("${obj.runtimeType} should be a HeapObject");
         }
         return obj;
       }));
@@ -2161,7 +2161,7 @@ class Instance extends HeapObject {
   @observable Context context;  // If a closure.
   @observable String name;  // If a Type.
   @observable int length; // If a List, Map or TypedData.
-  @observable String pattern;  // If a RegExp.
+  @observable Instance pattern;  // If a RegExp.
 
   @observable var typeClass;
   @observable var fields;
@@ -2682,12 +2682,73 @@ class Script extends HeapObject with Coverage {
   }
 
   /// This function maps a token position to a line number.
-  int tokenToLine(int token) => _tokenToLine[token];
+  int tokenToLine(int tokenPos) => _tokenToLine[tokenPos];
   Map _tokenToLine = {};
 
   /// This function maps a token position to a column number.
-  int tokenToCol(int token) => _tokenToCol[token];
+  int tokenToCol(int tokenPos) => _tokenToCol[tokenPos];
   Map _tokenToCol = {};
+
+  int guessTokenLength(int line, int column) {
+    String source = getLine(line).text;
+
+    var pos = column;
+    if (pos >= source.length) {
+      return null;
+    }
+
+    var c = source.codeUnitAt(pos);
+    if (c == 123) return 1; // { - Map literal
+
+    if (c == 91) return 1; // [ - List literal, index, index assignment
+
+    if (_isOperatorChar(c)) {
+      while (++pos < source.length &&
+             _isOperatorChar(source.codeUnitAt(pos)));
+      return pos - column;
+    }
+
+    if (_isInitialIdentifierChar(c)) {
+      while (++pos < source.length &&
+             _isIdentifierChar(source.codeUnitAt(pos)));
+      return pos - column;
+    }
+
+    return null;
+  }
+
+  static bool _isOperatorChar(int c) {
+    switch (c) {
+    case 25: // %
+    case 26: // &
+    case 42: // *
+    case 43: // +
+    case 45: // -:
+    case 47: // /
+    case 60: // <
+    case 61: // =
+    case 62: // >
+    case 94: // ^
+    case 124: // |
+    case 126: // ~
+      return true;
+    default:
+      return false;
+    }
+  }
+
+  static bool _isInitialIdentifierChar(int c) {
+    if (c >= 65 && c <= 90) return true; // Upper
+    if (c >= 97 && c <= 122) return true; // Lower
+    if (c == 95) return true; // Underscore
+    if (c == 36) return true; // Dollar
+    return false;
+  }
+
+  static bool _isIdentifierChar(int c) {
+    if (_isInitialIdentifierChar(c)) return true;
+    return c >= 48 && c <= 75; // Digit
+  }
 
   void _update(ObservableMap map, bool mapIsRef) {
     _upgradeCollection(map, isolate);
