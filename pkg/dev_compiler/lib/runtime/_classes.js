@@ -24,7 +24,7 @@ dart_library.library('dart_runtime/_classes', null, /* Imports */[
   const copyTheseProperties = dart_utils.copyTheseProperties;
   const defineMemoizedGetter = dart_utils.defineMemoizedGetter;
   const safeGetOwnProperty = dart_utils.safeGetOwnProperty;
-  const throwError = dart_utils.throwError;
+  const throwInternalError = dart_utils.throwInternalError;
 
   const defineProperty = Object.defineProperty;
   const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
@@ -110,12 +110,12 @@ dart_library.library('dart_runtime/_classes', null, /* Imports */[
   function generic(typeConstructor) {
     let length = typeConstructor.length;
     if (length < 1) {
-      throwError('must have at least one generic type argument');
+      throwInternalError('must have at least one generic type argument');
     }
     let resultMap = new Map();
     function makeGenericType(/*...arguments*/) {
       if (arguments.length != length && arguments.length != 0) {
-        throwError('requires ' + length + ' or 0 type arguments');
+        throwInternalError('requires ' + length + ' or 0 type arguments');
       }
       let args = slice.call(arguments);
       while (args.length < length) args.push(types.dynamic);
@@ -124,7 +124,7 @@ dart_library.library('dart_runtime/_classes', null, /* Imports */[
       for (let i = 0; i < length; i++) {
         let arg = args[i];
         if (arg == null) {
-          throwError('type arguments should not be null: '
+          throwInternalError('type arguments should not be null: '
                             + typeConstructor);
         }
         let map = value;

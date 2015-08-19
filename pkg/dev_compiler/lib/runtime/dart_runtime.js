@@ -89,6 +89,7 @@ dart_library.library('dart_runtime/dart', null, /* Imports */[
     'notNull',
     'stackPrint',
     'stackTrace',
+    'strongInstanceOf',
     'throw',
     'toString',
   ])

@@ -464,15 +464,19 @@ class InvalidParameterDeclaration extends StaticError {
   @override String get message => 'Type check failed: {0} is not of type {1}';
 }
 
-class InvalidRuntimeCheckError extends StaticError {
+class NonGroundTypeCheckInfo extends StaticInfo {
   final DartType type;
+  final AstNode node;
 
-  InvalidRuntimeCheckError(AstNode node, this.type) : super(node) {
+  NonGroundTypeCheckInfo(this.node, this.type) {
     assert(node is IsExpression || node is AsExpression);
   }
 
   @override List<Object> get arguments => [type];
-  String get message => "Invalid runtime check on non-ground type {0}";
+  String get message =>
+      "Runtime check on non-ground type {0} may throw StrongModeError";
+
+  toErrorCode() => new HintCode(name, message);
 }
 
 // Invalid override of an instance member of a class.

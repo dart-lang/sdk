@@ -2516,18 +2516,18 @@ void main() {
 
           void main() {
             bool b;
-            b = /*severe:InvalidRuntimeCheckError*/foo is I2I;
-            b = /*severe:InvalidRuntimeCheckError*/foo is D2I;
-            b = /*severe:InvalidRuntimeCheckError*/foo is I2D;
+            b = /*info:NonGroundTypeCheckInfo*/foo is I2I;
+            b = /*info:NonGroundTypeCheckInfo*/foo is D2I;
+            b = /*info:NonGroundTypeCheckInfo*/foo is I2D;
             b = foo is D2D;
 
-            b = /*severe:InvalidRuntimeCheckError*/bar is II2I;
-            b = /*severe:InvalidRuntimeCheckError*/bar is DI2I;
-            b = /*severe:InvalidRuntimeCheckError*/bar is ID2I;
-            b = /*severe:InvalidRuntimeCheckError*/bar is II2D;
-            b = /*severe:InvalidRuntimeCheckError*/bar is DD2I;
-            b = /*severe:InvalidRuntimeCheckError*/bar is DI2D;
-            b = /*severe:InvalidRuntimeCheckError*/bar is ID2D;
+            b = /*info:NonGroundTypeCheckInfo*/bar is II2I;
+            b = /*info:NonGroundTypeCheckInfo*/bar is DI2I;
+            b = /*info:NonGroundTypeCheckInfo*/bar is ID2I;
+            b = /*info:NonGroundTypeCheckInfo*/bar is II2D;
+            b = /*info:NonGroundTypeCheckInfo*/bar is DD2I;
+            b = /*info:NonGroundTypeCheckInfo*/bar is DI2D;
+            b = /*info:NonGroundTypeCheckInfo*/bar is ID2D;
             b = bar is DD2D;
 
             // For as, the validity of checks is deferred to runtime.

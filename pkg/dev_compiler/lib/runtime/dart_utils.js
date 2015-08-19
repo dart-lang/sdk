@@ -21,16 +21,28 @@ var dart_utils =
 
   const slice = [].slice;
 
+  class StrongModeError extends Error {
+    constructor(message) {
+      super(message);
+    }
+  }
+
+  /** This error indicates a strong mode specific failure.
+   */
+  function throwStrongModeError(message) {
+    throw new StrongModeError(message);
+  }
+  dart_utils.throwStrongModeError = throwStrongModeError;
 
   /** This error indicates a bug in the runtime or the compiler.
    */
-  function throwError(message) {
+  function throwInternalError(message) {
     throw Error(message);
   }
-  dart_utils.throwError = throwError;
+  dart_utils.throwInternalError = throwInternalError;
 
   function assert(condition) {
-    if (!condition) throwError("The compiler is broken: failed assert");
+    if (!condition) throwInternalError("The compiler is broken: failed assert");
   }
   dart_utils.assert = assert;
 
@@ -60,7 +72,7 @@ var dart_utils =
       value = x;
     }
     function circularInitError() {
-      throwError('circular initialization for field ' + name);
+      throwInternalError('circular initialization for field ' + name);
     }
     function lazyGetter() {
       if (init == null) return value;

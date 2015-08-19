@@ -48,7 +48,7 @@ var dart_library =
       for (let name of list) {
         let lib = libraries[name];
         if (!lib) {
-          dart_utils.throwError('Library not available: ' + name);
+          dart_utils.throwInternalError('Library not available: ' + name);
         }
         results.push(handler(lib));
       }
@@ -58,7 +58,7 @@ var dart_library =
     load(inheritedPendingSet) {
       // Check for cycles
       if (this._state == LibraryLoader.LOADING) {
-        dart_utils.throwError('Circular dependence on library: '
+        dart_utils.throwInternalError('Circular dependence on library: '
                               + this._name);
       } else if (this._state >= LibraryLoader.LOADED) {
         return this._library;
@@ -105,7 +105,9 @@ var dart_library =
   function import_(libraryName) {
     bootstrap();
     let loader = libraries[libraryName];
-    if (!loader) dart_utils.throwError('Library not found: ' + libraryName);
+    // TODO(vsm): A user might call this directly from JS (as we do in tests).
+    // We may want a different error type.
+    if (!loader) dart_utils.throwInternalError('Library not found: ' + libraryName);
     return loader.load();
   }
   dart_library.import = import_;

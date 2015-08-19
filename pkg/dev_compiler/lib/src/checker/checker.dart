@@ -694,7 +694,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void _checkRuntimeTypeCheck(AstNode node, TypeName typeName) {
     var type = getType(typeName);
     if (!rules.isGroundType(type)) {
-      _recordMessage(new InvalidRuntimeCheckError(node, type));
+      _recordMessage(new NonGroundTypeCheckInfo(node, type));
     }
   }
 

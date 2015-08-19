@@ -29,4 +29,13 @@ dart_library.library('dart_runtime/_errors', null, /* Imports */[
     operations.throw(new core.AssertionError());
   }
   exports.throwAssertionError = throwAssertionError;
+
+  function throwNullValueError() {
+    // TODO(vsm): Per spec, we should throw an NSM here.  Technically, we ought
+    // to thread through method info, but that uglifies the code and can't
+    // actually be queried ... it only affects how the error is printed.
+    operations.throw(new core.NoSuchMethodError(null,
+      new core.Symbol('<Unexpected Null Value>'), null, null, null));
+  }
+  exports.throwNullValueError = throwNullValueError;
 });

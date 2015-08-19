@@ -191,26 +191,47 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
     return false;
   }
 
-  function instanceOf(obj, type) {
+  function strongInstanceOf(obj, type) {
     return types.isSubtype(rtti.realRuntimeType(obj), type);
+  }
+  exports.strongInstanceOf = strongInstanceOf;
+
+  function instanceOfOrNull(obj, type) {
+    if ((obj == null) || strongInstanceOf(obj, type)) return true;
+    return false;
+  }
+
+  function instanceOf(obj, type) {
+    if (strongInstanceOf(obj, type)) return true;
+    // TODO(vsm): This is perhaps too eager to throw a StrongModeError?
+    // It will throw on <int>[] is List<String>.
+    // TODO(vsm): We can statically detect many cases where this
+    // check is unnecessary.
+    if (types.isGroundType(type)) return false;
+    let actual = rtti.realRuntimeType(obj);
+    dart_utils.throwStrongModeError('Strong mode is check failure: ' +
+      types.typeName(actual) + ' does not soundly subtype ' +
+      types.typeName(type));
   }
   exports.instanceOf = instanceOf;
 
-  function instanceOfOrNull(obj, type) {
-    if ((obj == null) || instanceOf(obj, type)) return true;
-    let actual = rtti.realRuntimeType(obj);
-    if (_ignoreTypeFailure(actual, type)) return true;
-    return false;
-  }
-  exports.instanceOfOrNull = instanceOfOrNull;
-
   function cast(obj, type) {
     // TODO(vsm): handle non-nullable types
-    if (obj == null) return obj;
+    if (instanceOfOrNull(obj, type)) return obj;
     let actual = rtti.realRuntimeType(obj);
-    if (types.isSubtype(actual, type)) return obj;
-    if (_ignoreTypeFailure(actual, type)) return obj;
-    errors.throwCastError(actual, type);
+    if (_ignoreTypeFailure(actual, type)) {
+      // TODO(vsm): track why this is happening in our async / await tests.
+      if (types.isGroundType(type)) {
+        console.error('Should not ignore cast failure from ' +
+          types.typeName(actual) + ' to ' + types.typeName(type));
+      }
+      return obj;
+    }
+    if (types.isGroundType(type)) {
+      errors.throwCastError(actual, type);
+    }
+    dart_utils.throwStrongModeError('Strong mode cast failure from ' +
+      types.typeName(actual) + ' to ' + types.typeName(type));
   }
   exports.cast = cast;
 
@@ -230,8 +251,7 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
 
   /** Checks that `x` is not null or undefined. */
   function notNull(x) {
-    // TODO(leafp): This is probably not the right error to throw.
-    if (x == null) throwError('expected not-null value');
+    if (x == null) errors.throwNullValueError();
     return x;
   }
   exports.notNull = notNull;
