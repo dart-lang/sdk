@@ -27,7 +27,7 @@
 ///     application server to proxy to the log server any GET request for the
 ///     .dart.js file and /coverage POST requests that send coverage data.
 ///
-///   * Load your app and use it to excersize the entire code.
+///   * Load your app and use it to exercise the entire code.
 ///
 ///   * Shut down the coverage server (Ctrl-C)
 ///
@@ -43,7 +43,7 @@ import 'function_size_analysis.dart';
 
 main(args) {
   if (args.length < 2) {
-    print('usage: dart tool/live_code_analysis.dart path-to-info.json '
+    print('usage: dart tool/live_code_size_analysis.dart path-to-info.json '
         'path-to-coverage.json [-v]');
     exit(1);
   }

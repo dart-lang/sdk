@@ -14,16 +14,22 @@ import 'package:dart2js_info/src/graph.dart';
 
 main(args) {
   if (args.length < 1) {
-    print('usage: dart tool/debug_info.dart path-to-info.json');
+    print('usage: dart tool/debug_info.dart path-to-info.json '
+        '[--show-library libname]');
     exit(1);
   }
 
   var filename = args[0];
   var json = JSON.decode(new File(filename).readAsStringSync());
   var info = AllInfo.parseFromJson(json);
+  var debugLibName;
+
+  if (args.length > 2 && args[1] == '--show-library') {
+    debugLibName = args[2];
+  }
 
   // Gather data from visiting all info elements.
-  var tracker = new _SizeTracker();
+  var tracker = new _SizeTracker(debugLibName);
   info.accept(tracker);
 
   // Validate that listed elements include elements of each library.
@@ -35,12 +41,12 @@ main(args) {
     _pass('all fields and functions are covered');
   } else {
     if (diff1.length > 0) {
-      _fail('some elements where listed globally that weren\'t part of any '
-          'library (non-zero ${diff1.where((f) => f.size > 0).length})');
+      _fail("some elements where listed globally that weren't part of any "
+          "library (non-zero ${diff1.where((f) => f.size > 0).length})");
     }
     if (diff2.length > 0) {
-      _fail('some elements found in libraries weren\'t part of the global list'
-          ' (non-zero ${diff2.where((f) => f.size > 0).length})');
+      _fail("some elements found in libraries weren't part of the global list"
+          " (non-zero ${diff2.where((f) => f.size > 0).length})");
     }
   }
 
@@ -62,7 +68,10 @@ main(args) {
 }
 
 class _SizeTracker extends RecursiveInfoVisitor {
-  _SizeTracker();
+  /// A library name for which to print debugging information (if not null).
+  final String _debugLibName;
+
+  _SizeTracker(this._debugLibName);
 
   /// [FunctionInfo]s and [FieldInfo]s transitively reachable from [LibraryInfo]
   /// elements.
@@ -107,9 +116,7 @@ class _SizeTracker extends RecursiveInfoVisitor {
 
   bool _debug = false;
   visitLibrary(LibraryInfo info) {
-    if ('$info'.contains('dart.js')) {
-      //_debug = true;
-    }
+    if (_debugLibName != null) _debug = info.name.contains(_debugLibName);
     _push();
     if (_debug) {
       _debugCode.write('{\n');
@@ -237,7 +244,7 @@ void compareGraphs(AllInfo info) {
   }
   info.functions.forEach(_sameEdges);
   info.fields.forEach(_sameEdges);
-  if (inUsesNotInDependencies == 0 && inDependenciesNotInUses) {
+  if (inUsesNotInDependencies == 0 && inDependenciesNotInUses == 0) {
     _pass('dependency data is consistent');
   } else {
     _fail('inconsistencies in dependency data:\n'

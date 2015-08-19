@@ -240,7 +240,7 @@ pub global run dart2js_info:coverage_log_server main.dart.js
     any GET request for the .dart.js file and /coverage POST requests that send
     coverage data.
 
-  * Load your app and use it to excersize the entire code.
+  * Load your app and use it to exercise the entire code.
 
   * Shut down the coverage server (Ctrl-C). This will emit a file named
     `mail.dart.js.coverage.json`
