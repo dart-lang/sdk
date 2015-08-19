@@ -338,7 +338,7 @@ class Object {
   }
 
   static Object& Handle() {
-    return Handle(Isolate::Current(), null_);
+    return Handle(Thread::Current()->zone(), null_);
   }
 
   static Object& Handle(Zone* zone) {
@@ -350,7 +350,7 @@ class Object {
   }
 
   static Object& Handle(RawObject* raw_ptr) {
-    return Handle(Isolate::Current(), raw_ptr);
+    return Handle(Thread::Current()->zone(), raw_ptr);
   }
 
   static Object& ZoneHandle(Zone* zone, RawObject* raw_ptr) {

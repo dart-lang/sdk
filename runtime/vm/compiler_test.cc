@@ -29,7 +29,7 @@ TEST_CASE(CompileScript) {
 }
 
 
-static void CompileFunctionImpl() {
+TEST_CASE(CompileFunction) {
   const char* kScriptChars =
             "class A {\n"
             "  static foo() { return 42; }\n"
@@ -70,18 +70,14 @@ static void CompileFunctionImpl() {
 }
 
 
-TEST_CASE(CompileFunction) {
-  CompileFunctionImpl();
-}
-
-
-// Runs 'CompileFunctionImpl' on a helper thread.
 class CompileFunctionTask : public ThreadPool::Task {
  public:
   CompileFunctionTask(Isolate* isolate,
-                 Monitor* done_monitor,
-                 bool* done)
+                      const Function& func,
+                      Monitor* done_monitor,
+                      bool* done)
       : isolate_(isolate),
+        func_(func),
         done_monitor_(done_monitor),
         done_(done) {
   }
@@ -92,7 +88,12 @@ class CompileFunctionTask : public ThreadPool::Task {
       Thread* thread = Thread::Current();
       StackZone stack_zone(thread);
       HANDLESCOPE(thread);
-      CompileFunctionImpl();
+      EXPECT(func_.HasCode());
+      EXPECT(!func_.HasOptimizedCode());
+      const Error& err =
+          Error::Handle(Compiler::CompileOptimizedFunction(thread, func_));
+      EXPECT(err.IsNull());
+      EXPECT(func_.HasOptimizedCode());
     }
     Thread::ExitIsolateAsHelper();
     // Tell main thread that we are done.
@@ -106,6 +107,7 @@ class CompileFunctionTask : public ThreadPool::Task {
 
  private:
   Isolate* isolate_;
+  const Function& func_;
   Monitor* done_monitor_;
   bool* done_;
 };
@@ -120,8 +122,35 @@ TEST_CASE(CompileFunctionOnHelperThread) {
   // the helper, in this test), but it should be done for all *threads*
   // after/at safepointing.
   Thread::PrepareForGC();
+
+  // Create a simple function and compile it without optimization.
+  const char* kScriptChars =
+            "class A {\n"
+            "  static foo() { return 42; }\n"
+            "}\n";
+  String& url =
+      String::Handle(String::New("dart-test:CompileFunctionOnHelperThread"));
+  String& source = String::Handle(String::New(kScriptChars));
+  Script& script = Script::Handle(Script::New(url,
+                                              source,
+                                              RawScript::kScriptTag));
+  Library& lib = Library::Handle(Library::CoreLibrary());
+  EXPECT(CompilerTest::TestCompileScript(lib, script));
+  EXPECT(ClassFinalizer::ProcessPendingClasses());
+  Class& cls = Class::Handle(
+      lib.LookupClass(String::Handle(Symbols::New("A"))));
+  EXPECT(!cls.IsNull());
+  String& function_foo_name = String::Handle(String::New("foo"));
+  Function& func =
+      Function::Handle(cls.LookupStaticFunction(function_foo_name));
+  EXPECT(!func.HasCode());
+  CompilerTest::TestCompileFunction(func);
+  EXPECT(func.HasCode());
+  EXPECT(!func.HasOptimizedCode());
+
+  // Now optimize it on a helper thread.
   Dart::thread_pool()->Run(
-      new CompileFunctionTask(isolate, &done_monitor, &done));
+      new CompileFunctionTask(isolate, func, &done_monitor, &done));
   {
     // Manually wait.
     // TODO(koda): Replace with execution of Dart and/or VM code when GC
