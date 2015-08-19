@@ -2456,9 +2456,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     String code;
     if (member != null && member is MethodElement && !isStatic) {
       // Tear-off methods: explicitly bind it.
-      // TODO(leafp): Attach runtime types to these static tearoffs
       if (_requiresStaticDispatch(target, memberId.name)) {
-        return js.call('dart.#.bind(#)', [name, _visit(target)]);
+        var type = member.type;
+        var clos = js.call('dart.#.bind(#)', [name, _visit(target)]);
+        return js.call('dart.fn(#, #)', [clos, _emitFunctionTypeParts(type)]);
       }
       code = 'dart.bind(#, #)';
     } else if (_requiresStaticDispatch(target, memberId.name)) {

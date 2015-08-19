@@ -675,6 +675,16 @@ suite('instanceOf', () => {
     checkType(c.ListBase.listToString,
               dart.functionType(core.String, [core.String]), false, true);
 
+    // Tear-off of extension methods on primitives
+    checkType(dart.bind(3.0, dartx.floor),
+              dart.functionType(core.int, []));
+    checkType(dart.bind(3.0, dartx.floor),
+              dart.functionType(core.String, []), false, true);
+    checkType(dart.bind("", dartx.endsWith),
+              dart.functionType(core.bool, [core.String]));
+    checkType(dart.bind("", dartx.endsWith),
+              dart.functionType(core.bool, [core.int]), false, true);
+
     // Tear off a mixin method
     class Base {
       m(x) {return x;}

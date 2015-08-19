@@ -75,6 +75,10 @@ dart_library.library('methods', null, /* Imports */[
     let g = dart.bind(a, 'x');
     let aa = new A();
     let h = dart.dload(aa, 'x');
+    let ts = dart.fn(dart.toString.bind(a), core.String, []);
+    let nsm = dart.fn(dart.noSuchMethod.bind(a), dart.dynamic, [core.Invocation]);
+    let c = dart.bind("", dartx.padLeft);
+    let r = dart.bind(3.0, dartx.floor);
   }
   dart.fn(test);
   // Exports:

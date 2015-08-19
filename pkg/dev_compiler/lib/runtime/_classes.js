@@ -336,6 +336,9 @@ dart_library.library('dart_runtime/_classes', null, /* Imports */[
       copyTheseProperties(jsProto, extProto, getOwnPropertySymbols(extProto));
       extProto = extProto.__proto__;
     }
+    let originalSigFn = getOwnPropertyDescriptor(dartExtType, _methodSig).get;
+    assert(originalSigFn);
+    defineMemoizedGetter(jsType, _methodSig, originalSigFn);
   }
   exports.registerExtension = registerExtension;
 
