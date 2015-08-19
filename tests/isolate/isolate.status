@@ -55,9 +55,6 @@ message3_test/constMap: RuntimeError  # Issue 21817
 message3_test/constInstance: RuntimeError # Issue 21817
 browser/issue_12474_test: CompileTimeError # Issue 22529
 enum_const_test/02: RuntimeError # Issue 21817
-error_exit_at_spawn_test: Fail  # Issue 23876
-error_at_spawn_test: Fail  # Issue 23876
-exit_at_spawn_test: Fail  # Issue 23876
 
 [ $compiler == dart2js && $runtime != d8 ]
 error_exit_at_spawn_test: Skip # Issue 23876
