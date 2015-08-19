@@ -15,6 +15,7 @@
 # ....bin/
 # ......dart or dart.exe (executable)
 # ......dart.lib (import library for VM native extensions on Windows)
+# ......dartdoc
 # ......dartfmt
 # ......dart2js
 # ......dartanalyzer
@@ -23,9 +24,15 @@
 # ........analysis_server.dart.snapshot
 # ........dart2js.dart.snapshot
 # ........dartanalyzer.dart.snapshot
+# ........dartdoc.dart.snapshot
 # ........dartfmt.dart.snapshot
 # ........pub.dart.snapshot
 # ........utils_wrapper.dart.snapshot
+#.........resources/
+#...........dartdoc/
+#..............packages
+#.............resources/
+#.............templates/
 # ....include/
 # ......dart_api.h
 # ......dart_mirrors_api.h
@@ -114,17 +121,31 @@ def CopyShellScript(src_file, dest_dir):
 
 def CopyDartScripts(home, sdk_root):
   for executable in ['dart2js_sdk', 'dartanalyzer_sdk', 'dartfmt_sdk', 'docgen',
-                     'dartdocgen', 'pub_sdk']:
+                     'dartdocgen', 'pub_sdk', 'dartdoc']:
     CopyShellScript(os.path.join(home, 'sdk', 'bin', executable),
                     os.path.join(sdk_root, 'bin'))
 
 
 def CopySnapshots(snapshots, sdk_root):
   for snapshot in ['analysis_server', 'dart2js', 'dartanalyzer', 'dartfmt',
-                   'utils_wrapper', 'pub']:
+                   'utils_wrapper', 'pub', 'dartdoc']:
     snapshot += '.dart.snapshot'
     copyfile(join(snapshots, snapshot),
              join(sdk_root, 'bin', 'snapshots', snapshot))
+
+def CopyDartdocResources(home,sdk_root):
+  RESOURCE_DIR = join(sdk_root, 'bin', 'snapshots', 'resources')
+  DARTDOC = join(RESOURCE_DIR, 'dartdoc')
+
+  copytree(join(home, 'third_party', 'pkg', 'dartdoc', 'lib', 'templates'),
+           join(DARTDOC, 'templates'))
+  copytree(join(home, 'third_party', 'pkg', 'dartdoc', 'lib', 'resources'),
+           join(DARTDOC, 'resources'))
+  # write the .packages file
+  PACKAGES_FILE = join(DARTDOC, '.packages')
+  packages_file = open(PACKAGES_FILE, 'w')
+  packages_file.write('dartdoc:.')
+  packages_file.close() 
 
 
 def Main():
@@ -251,6 +272,7 @@ def Main():
   # Copy dart2js/pub.
   CopyDartScripts(HOME, SDK_tmp)
   CopySnapshots(SNAPSHOT, SDK_tmp)
+  CopyDartdocResources(HOME, SDK_tmp)
 
   # Write the 'version' file
   version = utils.GetVersion()
