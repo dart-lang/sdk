@@ -5203,6 +5203,7 @@ bool Function::HasBreakpoint() const {
 
 void Function::SetInstructions(const Code& value) const {
   StorePointer(&raw_ptr()->instructions_, value.instructions());
+  StoreNonPointer(&raw_ptr()->entry_point_, value.EntryPoint());
 }
 
 void Function::AttachCode(const Code& value) const {
@@ -5223,8 +5224,7 @@ bool Function::HasCode() const {
 void Function::ClearCode() const {
   ASSERT(ic_data_array() == Array::null());
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
-  StorePointer(&raw_ptr()->instructions_,
-      Code::Handle(StubCode::LazyCompile_entry()->code()).instructions());
+  SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
 }
 
 

@@ -218,12 +218,11 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // R4: Arguments descriptor.
   // R0: Function.
   ASSERT(locs()->in(0).reg() == R0);
-  __ LoadFieldFromOffset(R2, R0, Function::instructions_offset());
+  __ LoadFieldFromOffset(R2, R0, Function::entry_point_offset());
 
   // R2: instructions.
   // R5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
   __ LoadImmediate(R5, 0);
-  __ AddImmediate(R2, R2, Instructions::HeaderSize() - kHeapObjectTag);
   __ blr(R2);
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the

@@ -311,8 +311,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   // Remove the stub frame.
   __ LeaveStubFrame();
   // Jump to the dart function.
-  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
-  __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ ldr(R0, FieldAddress(R0, Code::entry_point_offset()));
   __ bx(R0);
 }
 
@@ -333,8 +332,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   // Remove the stub frame.
   __ LeaveStubFrame();
   // Jump to the dart function.
-  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
-  __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ ldr(R0, FieldAddress(R0, Code::entry_point_offset()));
   __ bx(R0);
 }
 
@@ -352,8 +350,7 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
   // Remove the stub frame.
   __ LeaveStubFrame();
   // Jump to the dart function.
-  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
-  __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ ldr(R0, FieldAddress(R0, Code::entry_point_offset()));
   __ bx(R0);
 }
 
@@ -585,8 +582,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   }
 
   // Tail-call to target function.
-  __ ldr(R2, FieldAddress(R0, Function::instructions_offset()));
-  __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
   __ bx(R2);
 }
 
@@ -1470,8 +1466,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Comment("Call target");
   __ Bind(&call_target_function);
   // R0: target function.
-  __ ldr(R2, FieldAddress(R0, Function::instructions_offset()));
-  __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
   if (range_collection_mode == kCollectRanges) {
     __ ldr(R1, Address(SP, 0 * kWordSize));
     if (num_args == 2) {
@@ -1651,11 +1646,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Get function and call it, if possible.
   __ LoadFromOffset(kWord, R0, R6, target_offset);
-  __ ldr(R2, FieldAddress(R0, Function::instructions_offset()));
-
-  // R0: function.
-  // R2: target instructions.
-  __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
   __ bx(R2);
 
   if (FLAG_support_debugger) {
@@ -1700,8 +1691,7 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ PopList((1 << R4) | (1 << R5));  // Restore arg desc. and IC data.
   __ LeaveStubFrame();
 
-  __ ldr(R2, FieldAddress(R0, Function::instructions_offset()));
-  __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
   __ bx(R2);
 }
 
@@ -1906,8 +1896,7 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ Pop(R0);  // Discard argument.
   __ Pop(R0);  // Get Code object
   __ Pop(R4);  // Restore argument descriptor.
-  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
-  __ AddImmediate(R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ ldr(R0, FieldAddress(R0, Code::entry_point_offset()));
   __ LeaveStubFrame();
   __ bx(R0);
   __ bkpt(0);
@@ -2069,10 +2058,7 @@ void StubCode::EmitMegamorphicLookup(
   // be invoked as a normal Dart function.
   __ add(IP, R2, Operand(R3, LSL, 2));
   __ ldr(R0, FieldAddress(IP, base + kWordSize));
-  __ ldr(target, FieldAddress(R0, Function::instructions_offset()));
-  // TODO(srdjan): Evaluate performance impact of moving the instruction below
-  // to the call site, instead of having it here.
-  __ AddImmediate(target, Instructions::HeaderSize() - kHeapObjectTag);
+  __ ldr(target, FieldAddress(R0, Function::entry_point_offset()));
 }
 
 

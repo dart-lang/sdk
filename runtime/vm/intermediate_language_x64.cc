@@ -6337,13 +6337,12 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Function in RAX.
   ASSERT(locs()->in(0).reg() == RAX);
-  __ movq(RCX, FieldAddress(RAX, Function::instructions_offset()));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
 
   // RAX: Function.
   // R10: Arguments descriptor array.
   // RBX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
   __ xorq(RBX, RBX);
-  __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ call(RCX);
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the

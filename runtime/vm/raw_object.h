@@ -771,6 +771,7 @@ class RawFunction : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->unoptimized_code_);
   }
+  uword entry_point_;
 
   int32_t token_pos_;
   int32_t end_token_pos_;
@@ -1003,6 +1004,7 @@ class RawCode : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->comments_);
   }
+  uword entry_point_;
 
   // Compilation timestamp.
   int64_t compile_timestamp_;

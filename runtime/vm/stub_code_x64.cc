@@ -283,8 +283,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   // Remove the stub frame as we are about to jump to the dart function.
   __ LeaveStubFrame();
 
-  __ movq(RBX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RBX, FieldAddress(RAX, Code::entry_point_offset()));
   __ jmp(RBX);
 }
 
@@ -300,8 +299,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   __ popq(RAX);  // Get Code object.
   __ popq(R10);  // Restore arguments descriptor array.
-  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RAX, FieldAddress(RAX, Code::entry_point_offset()));
   __ LeaveStubFrame();
   __ jmp(RAX);
   __ int3();
@@ -316,8 +314,7 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
   __ PushObject(Object::null_object());
   __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
   __ popq(RAX);  // Get Code object.
-  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RAX, FieldAddress(RAX, Code::entry_point_offset()));
   __ LeaveStubFrame();
   __ jmp(RAX);
   __ int3();
@@ -557,8 +554,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
     __ Bind(&call_target_function);
   }
 
-  __ movq(RCX, FieldAddress(RAX, Function::instructions_offset()));
-  __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
   __ jmp(RCX);
 }
 
@@ -1492,8 +1488,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Bind(&call_target_function);
   // RAX: Target function.
   Label is_compiled;
-  __ movq(RCX, FieldAddress(RAX, Function::instructions_offset()));
-  __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
   if (range_collection_mode == kCollectRanges) {
     __ movq(R8, Address(RSP, + 1 * kWordSize));
     if (num_args == 2) {
@@ -1692,9 +1687,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Get function and call it, if possible.
   __ movq(RAX, Address(R12, target_offset));
-  __ movq(RCX, FieldAddress(RAX, Function::instructions_offset()));
-  // RCX: Target instructions.
-  __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
   __ jmp(RCX);
 
   if (FLAG_support_debugger) {
@@ -1745,8 +1738,7 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ popq(R10);  // Restore arguments descriptor array.
   __ LeaveStubFrame();
 
-  __ movq(RAX, FieldAddress(RAX, Function::instructions_offset()));
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RAX, FieldAddress(RAX, Function::entry_point_offset()));
   __ jmp(RAX);
 }
 
@@ -1973,8 +1965,7 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ popq(RAX);  // Disard argument.
   __ popq(RAX);  // Get Code object.
   __ popq(R10);  // Restore argument descriptor.
-  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RAX, FieldAddress(RAX, Code::entry_point_offset()));
   __ LeaveStubFrame();
   __ jmp(RAX);
   __ int3();
@@ -2124,11 +2115,7 @@ void StubCode::EmitMegamorphicLookup(
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
   __ movq(RAX, FieldAddress(RDI, RCX, TIMES_8, base + kWordSize));
-  __ movq(target, FieldAddress(RAX, Function::instructions_offset()));
-  // TODO(srdjan): Evaluate performance impact of moving the instruction below
-  // to the call site, instead of having it here.
-  __ AddImmediate(
-      target, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(target, FieldAddress(RAX, Function::entry_point_offset()));
 }
 
 

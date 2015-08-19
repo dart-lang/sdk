@@ -2142,8 +2142,8 @@ class Function : public Object {
   void set_unoptimized_code(const Code& value) const;
   bool HasCode() const;
 
-  static intptr_t instructions_offset() {
-    return OFFSET_OF(RawFunction, instructions_);
+  static intptr_t entry_point_offset() {
+    return OFFSET_OF(RawFunction, entry_point_);
   }
 
   // Returns true if there is at least one debugger breakpoint
@@ -4029,9 +4029,11 @@ class DeoptInfo : public AllStatic {
 class Code : public Object {
  public:
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
-  static intptr_t instructions_offset() {
-    return OFFSET_OF(RawCode, instructions_);
+
+  static intptr_t entry_point_offset() {
+    return OFFSET_OF(RawCode, entry_point_);
   }
+
   intptr_t pointer_offsets_length() const {
     return PtrOffBits::decode(raw_ptr()->state_bits_);
   }
@@ -4046,8 +4048,9 @@ class Code : public Object {
   void set_is_alive(bool value) const;
 
   uword EntryPoint() const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    return instr.EntryPoint();
+    ASSERT(raw_ptr()->entry_point_ ==
+           Instructions::Handle(instructions()).EntryPoint());
+    return raw_ptr()->entry_point_;
   }
   intptr_t Size() const {
     const Instructions& instr = Instructions::Handle(instructions());
@@ -4338,6 +4341,9 @@ class Code : public Object {
     // RawInstructions are never allocated in New space and hence a
     // store buffer update is not needed here.
     StorePointer(&raw_ptr()->instructions_, instructions);
+    uword entry_point = reinterpret_cast<uword>(instructions->ptr()) +
+        Instructions::HeaderSize();
+    StoreNonPointer(&raw_ptr()->entry_point_, entry_point);
   }
 
   void set_pointer_offsets_length(intptr_t value) {

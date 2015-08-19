@@ -296,6 +296,9 @@ class MarkingVisitor : public ObjectPointerVisitor {
         func->StorePointer(
             &(func->ptr()->instructions_),
             StubCode::LazyCompile_entry()->code()->ptr()->instructions_);
+        uword entry_point = StubCode::LazyCompile_entry()->EntryPoint();
+        func->ptr()->entry_point_ = entry_point;
+
         if (FLAG_log_code_drop) {
           // NOTE: This code runs while GC is in progress and runs within
           // a NoHandleScope block. Hence it is not okay to use a regular Zone

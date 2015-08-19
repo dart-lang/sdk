@@ -6761,13 +6761,12 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // EBX: Code (compiled code or lazy compile stub).
   ASSERT(locs()->in(0).reg() == EAX);
-  __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));
+  __ movl(EBX, FieldAddress(EAX, Function::entry_point_offset()));
 
   // EAX: Function.
   // EDX: Arguments descriptor array.
   // ECX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
   __ xorl(ECX, ECX);
-  __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ call(EBX);
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the
