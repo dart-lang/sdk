@@ -22,7 +22,7 @@
       </div>
 
       <div class="memberItem" title="Space for this object in memory">
-        <div class="memberName">size</div>
+        <div class="memberName">shallow size</div>
         <div class="memberValue">{{ object.size | formatSize }}</div>
       </div>
 
@@ -50,12 +50,15 @@
             </eval-link>
           </template>
           <template if="{{ path != null }}">
+            <template if="{{ path['length'] == 0 }}">
+              &lt;root&gt;
+            </template>
             <template repeat="{{ element in path['elements'] }}">
             <div class="memberItem">
               <div class="memberName">[{{ element['index']}}]</div>
               <div class="memberValue">
                 <template if="{{ element['parentField'] != null }}">
-                  from <field-ref ref="{{ element['parentField'] }}"></field-ref> of
+                  from <any-service-ref ref="{{ element['parentField'] }}"></any-service-ref> of
                 </template>
                 <template if="{{ element['parentListIndex'] != null }}">
                   from [{{ element['parentListIndex'] }}] of
@@ -89,6 +92,9 @@
             </eval-link>
           </template>
           <template if="{{ inboundReferences != null }}">
+            <template if="{{ inboundReferences['references'].length == 0 }}">
+              &lt;root&gt;
+            </template>
             <template repeat="{{ reference in inboundReferences['references'] }}">
               <inbound-reference ref="{{ reference }}"></inbound-reference>
             </template>

@@ -41,14 +41,14 @@ var tests = [
 
     // Assert e is referenced by at least n, array, and the top-level
     // field e.
-    hasReferenceSuchThat((r) => r['slot'] is Field &&
-                         r['slot'].name=='edge' &&
-                         r['source'].isInstance &&
-                         r['source'].clazz.name=='Node');
-    hasReferenceSuchThat((r) => r['slot'] == 1 &&
-                         r['source'].isList);
-    hasReferenceSuchThat((r) => r['slot']=='<unknown>' &&
-                         r['source'] is Field);
+    hasReferenceSuchThat((r) => r['parentField'] != null &&
+                                r['parentField'].name == 'edge' &&
+                                r['source'].isInstance &&
+                                r['source'].clazz.name == 'Node');
+    hasReferenceSuchThat((r) => r['parentListIndex'] == 1 &&
+                                r['source'].isList);
+    hasReferenceSuchThat((r) => r['source'] is Field &&
+                                r['source'].name == 'e');
   }
 
 ];
