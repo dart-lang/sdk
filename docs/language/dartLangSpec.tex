@@ -2047,7 +2047,8 @@ A  mixin application of the form  \code{$S$ \WITH{} $M_1, \ldots, M_k$;} defines
 In both cases above, $C$ declares the same instance members as $M$ (respectively, $M_k$). If any of the instance fields of $M$ (respectively, $M_k$) have initializers, they are executed in the scope of $M$ (respectively, $M_k$) to initialize the corresponding fields of $C$. 
 
 \LMHash{}
-For each generative constructor named $q_i(T_{i1}$ $ a_{i1}, \ldots , T_{ik_i}$ $ a_{ik_i}), i \in 1..n$ of $S$, $C$ has an implicitly declared constructor named
+Let $L_M$ be the library in which $M$ is declared.
+For each generative constructor named $q_i(T_{i1}$ $ a_{i1}, \ldots , T_{ik_i}$ $ a_{ik_i}), i \in 1..n$ of $S$ that is accessible to $L_M$, $C$ has an implicitly declared constructor named
 $q'_i = [C/S]q_i$ of the form 
 
 $q'_i(a_{i1}, \ldots , a_{ik_i}):\SUPER(a_{i1}, \ldots , a_{ik_i});$.
@@ -6788,7 +6789,7 @@ In contrast a library comprises both imports and their usage; the library is und
 }
 
 \LMHash{}
-It is a static warning to import two different libraries with the same name.
+It is a static warning to import two different libraries with the same name unless their name is the empty string.
 
 \commentary{
 A widely disseminated library should be given a name that will not conflict with other such libraries. The preferred mechanism for this is using pub, the Dart package manager, which provides a global namespace for libraries, and conventions that leverage that namespace.
@@ -6879,7 +6880,7 @@ See the discussion in section \ref{imports} for the reasoning behind this rule.
 We say that $L$ {\em re-exports library } $B$, and also that $L$ {\em re-exports namespace } $NS_n$. When no confusion can arise, we may simply state that $L$ {\em re-exports }$B$, or that $L$ {\em re-exports }$NS_n$.
 
 \LMHash{}
-It is a compile-time error if a name $N$ is re-exported by a library $L$ and $N$ is  introduced into the export namespace of $L$ by more than one export, unless all  exports refer to same declaration for the name $N$.  It is a static warning to export two different libraries with the same name.
+It is a compile-time error if a name $N$ is re-exported by a library $L$ and $N$ is  introduced into the export namespace of $L$ by more than one export, unless all  exports refer to same declaration for the name $N$.  It is a static warning to export two different libraries with the same name unless their name is the empty string.
 
 
 
@@ -7051,6 +7052,8 @@ This ensures that the developer is spared a series of cascading warnings as the 
 \LMHash{}
 A type $T$ is {\em deferred} iff it is of the form $p.T$ where $p$ is a deferred prefix.
 It is a static warning to use a deferred type in a type annotation, type test, type cast or as a type parameter. However, all other static warnings must be issued under the assumption that all deferred libraries have successfully been loaded.
+
+% Now, when passed to a generic, p.T also has to be treated as dynamic - otherwise we have to fail immediately. Where do we say that? And how does this fit with idea that as a type object it fails? Should we say that the accessor on p returns dynamic instead of failing? Do we distinguish its use in a constructor vs its use in an annotation? It's not that we evaluate type objects in constructor args - these cannot represent parameterized types.
 
 
 \subsubsection{Type Promotion}   
