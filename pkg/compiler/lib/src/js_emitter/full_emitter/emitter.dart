@@ -806,9 +806,11 @@ class Emitter implements js_emitter.Emitter {
 
   jsAst.Statement buildConstantInitializer(ConstantValue constant) {
     jsAst.Name name = namer.constantName(constant);
-    return js.statement('#.# = #',
+    jsAst.Statement initializer = js.statement('#.# = #',
                         [namer.globalObjectForConstant(constant), name,
                          constantInitializerExpression(constant)]);
+    compiler.dumpInfoTask.registerConstantAst(constant, initializer);
+    return initializer;
   }
 
   jsAst.Expression constantListGenerator(jsAst.Expression array) {
