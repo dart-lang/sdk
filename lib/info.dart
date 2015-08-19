@@ -495,7 +495,7 @@ class ClassInfo extends BasicInfo {
 /// Information about a constant value.
 // TODO(sigmund): add dependency data for ConstantInfo
 class ConstantInfo extends BasicInfo {
-  /// The actual generated code for the field.
+  /// The actual generated code for the constant.
   String code;
 
   static int _ids = 0;
