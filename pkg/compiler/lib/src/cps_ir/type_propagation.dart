@@ -1788,6 +1788,13 @@ class TransformingVisitor extends LeafVisitor {
           <Primitive>[prim, prim, prim],
           node.sourceInformation);
     }
+    if (node.type == dartTypes.coreTypes.numType ||
+        node.type == dartTypes.coreTypes.doubleType) {
+      return new ApplyBuiltinOperator(
+          BuiltinOperator.IsNumber,
+          <Primitive>[prim],
+          node.sourceInformation);
+    }
     return null;
   }
 

@@ -863,13 +863,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
       case BuiltinOperator.IsFalsy:
         return new js.Prefix('!', args[0]);
       case BuiltinOperator.IsNumber:
-        return js.js("typeof # === 'number'", args);
+        return js.js('typeof # === "number"', args);
       case BuiltinOperator.IsNotNumber:
-        return js.js("typeof # !== 'number'", args);
+        return js.js('typeof # !== "number"', args);
       case BuiltinOperator.IsFloor:
-        return js.js("Math.floor(#) === #", args);
+        return js.js('Math.floor(#) === #', args);
       case BuiltinOperator.IsNumberAndFloor:
-        return js.js("typeof # === 'number' && Math.floor(#) === #", args);
+        return js.js('typeof # === "number" && Math.floor(#) === #', args);
     }
   }
 
