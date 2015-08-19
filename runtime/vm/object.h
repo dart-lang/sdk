@@ -2002,6 +2002,8 @@ class ICData : public Object {
                         bool is_static_call) const;
 
  private:
+  static RawICData* New();
+
   RawArray* ic_data() const {
     return raw_ptr()->ic_data_;
   }
@@ -4376,6 +4378,7 @@ class Code : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;
+  friend class SnapshotWriter;
 
   // So that the RawFunction pointer visitor can determine whether code the
   // function points to is optimized.

@@ -1539,7 +1539,8 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
   isolate->object_store()->set_root_library(Library::Handle(isolate));
   FullSnapshotWriter writer(vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer,
-                            ApiReallocate);
+                            ApiReallocate,
+                            false /* snapshot_code */);
   writer.WriteFullSnapshot();
   *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
   *isolate_snapshot_size = writer.IsolateSnapshotSize();

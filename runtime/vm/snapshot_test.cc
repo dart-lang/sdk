@@ -897,7 +897,8 @@ class TestSnapshotWriter : public SnapshotWriter {
                        alloc,
                        kInitialSize,
                        &forward_list_,
-                       true),
+                       true, /* can_send_any_object */
+                       false /* snapshot_code */),
         forward_list_(kMaxPredefinedObjectIds) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
@@ -1244,7 +1245,8 @@ UNIT_TEST_CASE(FullSnapshot) {
     {
       FullSnapshotWriter writer(NULL,
                                 &isolate_snapshot_buffer,
-                                &malloc_allocator);
+                                &malloc_allocator,
+                                false /* snapshot_code */);
       writer.WriteFullSnapshot();
     }
   }
@@ -1302,7 +1304,8 @@ UNIT_TEST_CASE(FullSnapshot1) {
     {
       FullSnapshotWriter writer(NULL,
                                 &isolate_snapshot_buffer,
-                                &malloc_allocator);
+                                &malloc_allocator,
+                                false /* snapshot_code */);
       writer.WriteFullSnapshot();
     }
 

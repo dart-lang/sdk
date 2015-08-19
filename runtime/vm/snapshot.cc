@@ -177,6 +177,7 @@ SnapshotReader::SnapshotReader(
     Zone* zone)
     : BaseReader(buffer, size),
       kind_(kind),
+      snapshot_code_(false),
       isolate_(isolate),
       zone_(zone),
       heap_(isolate->heap()),
@@ -926,6 +927,32 @@ RawFunction* SnapshotReader::NewFunction() {
 }
 
 
+RawCode* SnapshotReader::NewCode(intptr_t pointer_offsets_length) {
+  ASSERT(pointer_offsets_length == 0);
+  ALLOC_NEW_OBJECT(Code);
+}
+
+
+RawObjectPool* SnapshotReader::NewObjectPool(intptr_t length) {
+  ALLOC_NEW_OBJECT(ObjectPool);
+}
+
+
+RawICData* SnapshotReader::NewICData() {
+  ALLOC_NEW_OBJECT(ICData);
+}
+
+
+RawMegamorphicCache* SnapshotReader::NewMegamorphicCache() {
+  ALLOC_NEW_OBJECT(MegamorphicCache);
+}
+
+
+RawSubtypeTestCache* SnapshotReader::NewSubtypeTestCache() {
+  ALLOC_NEW_OBJECT(SubtypeTestCache);
+}
+
+
 RawField* SnapshotReader::NewField() {
   ALLOC_NEW_OBJECT(Field);
 }
@@ -1033,6 +1060,12 @@ RawStacktrace* SnapshotReader::NewStacktrace() {
 }
 
 
+RawInstructions* SnapshotReader::GetInstructionsById(int32_t id) {
+  // TODO(rmacnak): Read from shared library.
+  return Instructions::null();
+}
+
+
 intptr_t SnapshotReader::LookupInternalClass(intptr_t class_header) {
   // If the header is an object Id, lookup singleton VM classes or classes
   // stored in the object store.
@@ -1089,6 +1122,9 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   }
   if (object_id == kSentinelObject) {
     return Object::sentinel().raw();
+  }
+  if (object_id == kTransitionSentinelObject) {
+    return Object::transition_sentinel().raw();
   }
   if (object_id == kEmptyArrayObject) {
     return Object::empty_array().raw();
@@ -1354,7 +1390,8 @@ SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
                                ReAlloc alloc,
                                intptr_t initial_size,
                                ForwardList* forward_list,
-                               bool can_send_any_object)
+                               bool can_send_any_object,
+                               bool snapshot_code)
     : BaseWriter(buffer, alloc, initial_size),
       kind_(kind),
       isolate_(Isolate::Current()),
@@ -1364,7 +1401,8 @@ SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
       exception_type_(Exceptions::kNone),
       exception_msg_(NULL),
       unmarked_objects_(false),
-      can_send_any_object_(can_send_any_object) {
+      can_send_any_object_(can_send_any_object),
+      snapshot_code_(snapshot_code) {
   ASSERT(forward_list_ != NULL);
 }
 
@@ -1398,6 +1436,12 @@ void SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   // Check if it is a singleton sentinel object.
   if (rawobj == Object::sentinel().raw()) {
     WriteVMIsolateObject(kSentinelObject);
+    return;
+  }
+
+  // Check if it is a singleton sentinel object.
+  if (rawobj == Object::transition_sentinel().raw()) {
+    WriteVMIsolateObject(kTransitionSentinelObject);
     return;
   }
 
@@ -1487,7 +1531,9 @@ void SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
       }
     }
   }
-  UNREACHABLE();
+
+  const Object& obj = Object::Handle(rawobj);
+  FATAL1("Unexpected reference to object in VM isolate: %s\n", obj.ToCString());
 }
 
 #undef VM_OBJECT_WRITE
@@ -1532,7 +1578,8 @@ class ScriptVisitor : public ObjectVisitor {
 
 FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
                                        uint8_t** isolate_snapshot_buffer,
-                                       ReAlloc alloc)
+                                       ReAlloc alloc,
+                                       bool snapshot_code)
     : isolate_(Isolate::Current()),
       vm_isolate_snapshot_buffer_(vm_isolate_snapshot_buffer),
       isolate_snapshot_buffer_(isolate_snapshot_buffer),
@@ -1541,7 +1588,8 @@ FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
       isolate_snapshot_size_(0),
       forward_list_(NULL),
       scripts_(Array::Handle(isolate_)),
-      symbol_table_(Array::Handle(isolate_)) {
+      symbol_table_(Array::Handle(isolate_)),
+      snapshot_code_(snapshot_code) {
   ASSERT(isolate_snapshot_buffer_ != NULL);
   ASSERT(alloc_ != NULL);
   ASSERT(isolate_ != NULL);
@@ -1592,7 +1640,8 @@ void FullSnapshotWriter::WriteVmIsolateSnapshot() {
                         alloc_,
                         kInitialSize,
                         forward_list_,
-                        true);  // Can send any kind of object.
+                        true, /* can_send_any_object */
+                        snapshot_code_);
   // Write full snapshot for the VM isolate.
   // Setup for long jump in case there is an exception while writing
   // the snapshot.
@@ -1636,7 +1685,8 @@ void FullSnapshotWriter::WriteIsolateFullSnapshot() {
                         alloc_,
                         kInitialSize,
                         forward_list_,
-                        true);
+                        true, /* can_send_any_object */
+                        snapshot_code_);
   ObjectStore* object_store = isolate_->object_store();
   ASSERT(object_store != NULL);
 
@@ -1677,6 +1727,20 @@ void FullSnapshotWriter::WriteFullSnapshot() {
   }
   WriteIsolateFullSnapshot();
 }
+
+
+PrecompiledSnapshotWriter::PrecompiledSnapshotWriter(
+    uint8_t** vm_isolate_snapshot_buffer,
+    uint8_t** isolate_snapshot_buffer,
+    ReAlloc alloc)
+  : FullSnapshotWriter(vm_isolate_snapshot_buffer,
+                       isolate_snapshot_buffer,
+                       alloc,
+                       true /* snapshot_code */) {
+}
+
+
+PrecompiledSnapshotWriter::~PrecompiledSnapshotWriter() {}
 
 
 uword SnapshotWriter::GetObjectTags(RawObject* raw) {
@@ -1809,7 +1873,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
 
   // Check if it is a code object in that case just write a Null object
   // as we do not want code objects in the snapshot.
-  if (cid == kCodeCid) {
+  if (cid == kCodeCid && !snapshot_code()) {
     WriteVMIsolateObject(kNullObject);
     return true;
   }
@@ -2326,7 +2390,8 @@ ScriptSnapshotWriter::ScriptSnapshotWriter(uint8_t** buffer,
                      alloc,
                      kInitialSize,
                      &forward_list_,
-                     true),
+                     true, /* can_send_any_object */
+                     false /* snapshot_code */),
       forward_list_(kMaxPredefinedObjectIds) {
   ASSERT(buffer != NULL);
   ASSERT(alloc != NULL);
@@ -2380,7 +2445,8 @@ MessageWriter::MessageWriter(uint8_t** buffer,
                      alloc,
                      kInitialSize,
                      &forward_list_,
-                     can_send_any_object),
+                     can_send_any_object,
+                     false /* snapshot_code */),
       forward_list_(kMaxPredefinedObjectIds) {
   ASSERT(buffer != NULL);
   ASSERT(alloc != NULL);

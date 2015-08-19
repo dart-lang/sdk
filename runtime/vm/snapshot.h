@@ -45,18 +45,22 @@ class RawFloat32x4;
 class RawFloat64x2;
 class RawFunction;
 class RawGrowableObjectArray;
+class RawICData;
 class RawImmutableArray;
+class RawInstructions;
 class RawInt32x4;
 class RawLanguageError;
 class RawLibrary;
 class RawLibraryPrefix;
 class RawLinkedHashMap;
 class RawLiteralToken;
+class RawMegamorphicCache;
 class RawMint;
 class RawMixinAppType;
 class RawBigint;
 class RawNamespace;
 class RawObject;
+class RawObjectPool;
 class RawOneByteString;
 class RawPatchClass;
 class RawReceivePort;
@@ -65,6 +69,7 @@ class RawScript;
 class RawSendPort;
 class RawSmi;
 class RawStacktrace;
+class RawSubtypeTestCache;
 class RawTokenStream;
 class RawTwoByteString;
 class RawType;
@@ -308,7 +313,7 @@ class SnapshotReader : public BaseReader {
   ExternalTypedData* DataHandle() { return &data_; }
   TypedData* TypedDataHandle() { return &typed_data_; }
   Snapshot::Kind kind() const { return kind_; }
-  bool allow_code() const { return false; }
+  bool snapshot_code() const { return snapshot_code_; }
 
   // Reads an object.
   RawObject* ReadObject();
@@ -357,6 +362,11 @@ class SnapshotReader : public BaseReader {
   RawClosureData* NewClosureData();
   RawRedirectionData* NewRedirectionData();
   RawFunction* NewFunction();
+  RawCode* NewCode(intptr_t pointer_offsets_length);
+  RawObjectPool* NewObjectPool(intptr_t length);
+  RawICData* NewICData();
+  RawMegamorphicCache* NewMegamorphicCache();
+  RawSubtypeTestCache* NewSubtypeTestCache();
   RawField* NewField();
   RawLibrary* NewLibrary();
   RawLibraryPrefix* NewLibraryPrefix();
@@ -372,6 +382,8 @@ class SnapshotReader : public BaseReader {
   RawUnhandledException* NewUnhandledException();
   RawObject* NewInteger(int64_t value);
   RawStacktrace* NewStacktrace();
+
+  RawInstructions* GetInstructionsById(int32_t id);
 
  protected:
   SnapshotReader(const uint8_t* buffer,
@@ -453,6 +465,7 @@ class SnapshotReader : public BaseReader {
   bool is_vm_isolate() const;
 
   Snapshot::Kind kind_;  // Indicates type of snapshot(full, script, message).
+  bool snapshot_code_;
   Isolate* isolate_;  // Current isolate.
   Zone* zone_;  // Zone for allocations while reading snapshot.
   Heap* heap_;  // Heap of the current isolate.
@@ -476,39 +489,44 @@ class SnapshotReader : public BaseReader {
 
   friend class ApiError;
   friend class Array;
+  friend class Bigint;
   friend class BoundedType;
-  friend class MixinAppType;
   friend class Class;
+  friend class ClosureData;
+  friend class Code;
   friend class Context;
   friend class ContextScope;
+  friend class ExceptionHandlers;
   friend class Field;
-  friend class ClosureData;
-  friend class RedirectionData;
   friend class Function;
   friend class GrowableObjectArray;
-  friend class LinkedHashMap;
+  friend class ICData;
   friend class ImmutableArray;
   friend class JSRegExp;
   friend class LanguageError;
   friend class Library;
   friend class LibraryPrefix;
-  friend class Namespace;
-  friend class Bigint;
+  friend class LinkedHashMap;
   friend class LiteralToken;
+  friend class LocalVarDescriptors;
+  friend class MegamorphicCache;
+  friend class MirrorReference;
+  friend class MixinAppType;
+  friend class Namespace;
+  friend class ObjectPool;
   friend class PatchClass;
+  friend class RedirectionData;
   friend class Script;
   friend class Stacktrace;
+  friend class SubtypeTestCache;
   friend class TokenStream;
   friend class Type;
   friend class TypeArguments;
   friend class TypeParameter;
   friend class TypeRef;
-  friend class UnresolvedClass;
   friend class UnhandledException;
+  friend class UnresolvedClass;
   friend class WeakProperty;
-  friend class MirrorReference;
-  friend class ExceptionHandlers;
-  friend class LocalVarDescriptors;
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
 };
 
@@ -722,12 +740,12 @@ class SnapshotWriter : public BaseWriter {
                  ReAlloc alloc,
                  intptr_t initial_size,
                  ForwardList* forward_list,
-                 bool can_send_any_object);
+                 bool can_send_any_object,
+                 bool snapshot_code);
 
  public:
   // Snapshot kind.
   Snapshot::Kind kind() const { return kind_; }
-  bool allow_code() const { return false; }
 
   // Serialize an object into the buffer.
   void WriteObject(RawObject* raw);
@@ -745,12 +763,15 @@ class SnapshotWriter : public BaseWriter {
     exception_msg_ = msg;
   }
   bool can_send_any_object() const { return can_send_any_object_; }
+  bool snapshot_code() const { return snapshot_code_; }
   void ThrowException(Exceptions::ExceptionType type, const char* msg);
 
   // Write a version string for the snapshot.
   void WriteVersion();
 
   static intptr_t FirstObjectId();
+
+  int32_t GetInstructionsId(RawInstructions* instructions) { return 0; }
 
  protected:
   void UnmarkAll() {
@@ -811,26 +832,30 @@ class SnapshotWriter : public BaseWriter {
   const char* exception_msg_;  // Message associated with exception.
   bool unmarked_objects_;  // True if marked objects have been unmarked.
   bool can_send_any_object_;  // True if any Dart instance can be sent.
+  bool snapshot_code_;
 
   friend class FullSnapshotWriter;
   friend class RawArray;
   friend class RawClass;
   friend class RawClosureData;
+  friend class RawExceptionHandlers;
   friend class RawGrowableObjectArray;
-  friend class RawLinkedHashMap;
   friend class RawImmutableArray;
+  friend class RawInstructions;
   friend class RawJSRegExp;
   friend class RawLibrary;
+  friend class RawLinkedHashMap;
   friend class RawLiteralToken;
+  friend class RawLocalVarDescriptors;
   friend class RawMirrorReference;
+  friend class RawObjectPool;
   friend class RawReceivePort;
   friend class RawScript;
   friend class RawStacktrace;
+  friend class RawSubtypeTestCache;
   friend class RawTokenStream;
   friend class RawTypeArguments;
   friend class RawUserTag;
-  friend class RawExceptionHandlers;
-  friend class RawLocalVarDescriptors;
   friend class SnapshotWriterVisitor;
   friend class WriteInlinedObjectVisitor;
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);
@@ -842,7 +867,8 @@ class FullSnapshotWriter {
   static const intptr_t kInitialSize = 64 * KB;
   FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
                      uint8_t** isolate_snapshot_buffer,
-                     ReAlloc alloc);
+                     ReAlloc alloc,
+                     bool snapshot_code);
   ~FullSnapshotWriter();
 
   uint8_t** vm_isolate_snapshot_buffer() {
@@ -879,8 +905,18 @@ class FullSnapshotWriter {
   ForwardList* forward_list_;
   Array& scripts_;
   Array& symbol_table_;
+  bool snapshot_code_;
 
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotWriter);
+};
+
+
+class PrecompiledSnapshotWriter : public FullSnapshotWriter {
+ public:
+  PrecompiledSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
+                            uint8_t** isolate_snapshot_buffer,
+                            ReAlloc alloc);
+  ~PrecompiledSnapshotWriter();
 };
 
 

@@ -11100,7 +11100,7 @@ void PcDescriptors::PrintHeaderString() {
 
 const char* PcDescriptors::ToCString() const {
   if (Length() == 0) {
-    return "No pc descriptors\n";
+    return "empty PcDescriptors\n";
   }
   // 4 bits per hex digit.
   const int addr_width = kBitsPerWord / 4;
@@ -11428,6 +11428,9 @@ static int PrintVarInfo(char* buffer, int len,
 const char* LocalVarDescriptors::ToCString() const {
   if (IsNull()) {
     return "LocalVarDescriptors(NULL)";
+  }
+  if (Length() == 0) {
+    return "empty LocalVarDescriptors";
   }
   intptr_t len = 1;  // Trailing '\0'.
   String& var_name = String::Handle();
@@ -12364,6 +12367,22 @@ bool ICData::IsUsedAt(intptr_t i) const {
 }
 
 
+RawICData* ICData::New() {
+  ICData& result = ICData::Handle();
+  {
+    // IC data objects are long living objects, allocate them in old generation.
+    RawObject* raw = Object::Allocate(ICData::kClassId,
+                                      ICData::InstanceSize(),
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+  }
+  result.set_deopt_id(Isolate::kNoDeoptId);
+  result.set_state_bits(0);
+  return result.raw();
+}
+
+
 RawICData* ICData::New(const Function& owner,
                        const String& target_name,
                        const Array& arguments_descriptor,
@@ -13117,11 +13136,13 @@ intptr_t Code::GetDeoptIdForOsr(uword pc) const {
 
 
 const char* Code::ToCString() const {
-  const char* kFormat = "Code entry:%p";
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, EntryPoint()) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, EntryPoint());
-  return chars;
+  Zone* zone = Thread::Current()->zone();
+  if (IsStubCode()) {
+    const char* name = StubCode::NameOfStub(EntryPoint());
+    return zone->PrintToString("[stub: %s]", name);
+  } else {
+    return zone->PrintToString("Code entry:%" Px, EntryPoint());
+  }
 }
 
 
