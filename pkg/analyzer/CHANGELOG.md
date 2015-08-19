@@ -1,3 +1,17 @@
+## 0.26.1
+
+* Fix line starts in multiline comments (issue 23919).
+* Various small fixes to Windows path handling.
+* Update LineInfo computation during incremental resolution.
+* Make exclude list apply to contexts (issue 23941).
+* Fix type propagation for asynchronous for-in statements.
+* Fix ToStringVisitor for external functions (issue 23968).
+* Fix sorting of compilation unit members.
+* Add forwarding for DefaultFormalParameter metadata.
+* Fix most implementations of UriResolver.restoreAbsolute.
+* Disable dart2js hints by default.
+* Support older SDKs (Dart 1.11).
+
 ## 0.26.0
 
 * Add hook for listening to implicitly analyzed files
