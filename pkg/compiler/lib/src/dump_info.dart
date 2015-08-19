@@ -471,7 +471,11 @@ class DumpInfoTask extends CompilerTask {
     }
   }
 
-  int sizeOfNode(jsAst.Node node) => _nodeToSize[node] ?? 0;
+  int sizeOfNode(jsAst.Node node) {
+    // TODO(sigmund): switch back to null aware operators (issue #24136)
+    var size = _nodeToSize[node];
+    return size == null ? 0 : size;
+  }
 
   String codeOf(Element element) {
     List<jsAst.Node> code = _elementToNodes[element];
