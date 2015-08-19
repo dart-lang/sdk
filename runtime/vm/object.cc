@@ -988,7 +988,9 @@ void Object::RegisterPrivateClass(const Class& cls,
 
 
 RawError* Object::Init(Isolate* isolate) {
-  TIMERSCOPE(isolate, time_bootstrap);
+  Thread* thread = Thread::Current();
+  ASSERT(isolate == thread->isolate());
+  TIMERSCOPE(thread, time_bootstrap);
   TimelineDurationScope tds(isolate,
                             isolate->GetIsolateStream(),
                             "Object::Init");
@@ -8542,7 +8544,7 @@ void Script::Tokenize(const String& private_key) const {
   }
   // Get the source, scan and allocate the token stream.
   VMTagScope tagScope(thread, VMTag::kCompileScannerTagId);
-  CSTAT_TIMER_SCOPE(isolate, scanner_timer);
+  CSTAT_TIMER_SCOPE(thread, scanner_timer);
   const String& src = String::Handle(zone, Source());
   Scanner scanner(src, private_key);
   set_tokens(TokenStream::Handle(zone,
@@ -11032,8 +11034,9 @@ void PcDescriptors::CopyData(GrowableArray<uint8_t>* delta_encoded_data) {
 
 RawPcDescriptors* PcDescriptors::New(GrowableArray<uint8_t>* data) {
   ASSERT(Object::pc_descriptors_class() != Class::null());
-  Isolate* isolate = Isolate::Current();
-  PcDescriptors& result = PcDescriptors::Handle(isolate);
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  PcDescriptors& result = PcDescriptors::Handle(thread->zone());
   {
     uword size = PcDescriptors::InstanceSize(data->length());
     RawObject* raw = Object::Allocate(PcDescriptors::kClassId,
@@ -11052,8 +11055,9 @@ RawPcDescriptors* PcDescriptors::New(GrowableArray<uint8_t>* data) {
 
 RawPcDescriptors* PcDescriptors::New(intptr_t length) {
   ASSERT(Object::pc_descriptors_class() != Class::null());
-  Isolate* isolate = Isolate::Current();
-  PcDescriptors& result = PcDescriptors::Handle(isolate);
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  PcDescriptors& result = PcDescriptors::Handle(thread->zone());
   {
     uword size = PcDescriptors::InstanceSize(length);
     RawObject* raw = Object::Allocate(PcDescriptors::kClassId,

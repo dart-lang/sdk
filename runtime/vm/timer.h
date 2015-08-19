@@ -178,8 +178,8 @@ class TimerScope : public StackResource {
 
 class PauseTimerScope : public StackResource {
  public:
-  PauseTimerScope(bool flag, Timer* timer, Isolate* isolate = NULL)
-      : StackResource(isolate),
+  PauseTimerScope(bool flag, Timer* timer, Thread* thread = NULL)
+      : StackResource(thread),
         nested_(false),
         timer_(flag ? timer : NULL) {
     if (timer_) {
@@ -214,13 +214,14 @@ isolate->timer_list().name().Start();
 #define STOP_TIMER(isolate, name)                                              \
 isolate->timer_list().name().Stop();
 
-#define TIMERSCOPE(isolate, name)                                              \
-  TimerScope vm_internal_timer_(true, &(isolate->timer_list().name()), isolate)
+#define TIMERSCOPE(thread, name)                                               \
+  TimerScope vm_internal_timer_(                                               \
+      true, &(thread->isolate()->timer_list().name()), thread)
 
-#define PAUSETIMERSCOPE(isolate, name)                                         \
+#define PAUSETIMERSCOPE(thread, name)                                          \
 PauseTimerScope vm_internal_timer_(true,                                       \
-                                   &(isolate->timer_list().name()),            \
-                                   isolate)
+                                   &(thread->isolate()->timer_list().name()),  \
+                                   thread)
 
 }  // namespace dart
 

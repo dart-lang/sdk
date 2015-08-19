@@ -380,21 +380,24 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
 
 
 bool IsolateMessageHandler::HandleMessage(Message* message) {
-  StackZone zone(I);
-  HandleScope handle_scope(I);
-  TimelineDurationScope tds(I, I->GetIsolateStream(), "HandleMessage");
+  ASSERT(IsCurrentIsolate());
+  Thread* thread = Thread::Current();
+  StackZone stack_zone(thread);
+  Zone* zone = stack_zone.GetZone();
+  HandleScope handle_scope(thread);
+  TimelineDurationScope tds(thread, I->GetIsolateStream(), "HandleMessage");
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "isolateName", I->name());
 
   // TODO(turnidge): Rework collection total dart execution.  This can
   // overcount when other things (gc, compilation) are active.
-  TIMERSCOPE(isolate_, time_dart_execution);
+  TIMERSCOPE(thread, time_dart_execution);
 
   // If the message is in band we lookup the handler to dispatch to.  If the
   // receive port was closed, we drop the message without deserializing it.
   // Illegal port is a special case for artificially enqueued isolate library
   // messages which are handled in C++ code below.
-  Object& msg_handler = Object::Handle(I);
+  Object& msg_handler = Object::Handle(zone);
   if (!message->IsOOB() && (message->dest_port() != Message::kIllegalPort)) {
     msg_handler = DartLibraryCalls::LookupHandler(message->dest_port());
     if (msg_handler.IsError()) {
@@ -416,8 +419,8 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   // Parse the message.
   MessageSnapshotReader reader(message->data(),
                                message->len(),
-                               I, zone.GetZone());
-  const Object& msg_obj = Object::Handle(I, reader.ReadObject());
+                               I, zone);
+  const Object& msg_obj = Object::Handle(zone, reader.ReadObject());
   if (msg_obj.IsError()) {
     // An error occurred while reading the message.
     delete message;
@@ -432,7 +435,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
     UNREACHABLE();
   }
 
-  Instance& msg = Instance::Handle(I);
+  Instance& msg = Instance::Handle(zone);
   msg ^= msg_obj.raw();  // Can't use Instance::Cast because may be null.
 
   bool success = true;
@@ -443,7 +446,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
     if (msg.IsArray()) {
       const Array& oob_msg = Array::Cast(msg);
       if (oob_msg.Length() > 0) {
-        const Object& oob_tag = Object::Handle(I, oob_msg.At(0));
+        const Object& oob_tag = Object::Handle(zone, oob_msg.At(0));
         if (oob_tag.IsSmi()) {
           switch (Smi::Cast(oob_tag).Value()) {
             case Message::kServiceOOBMsg: {
@@ -472,7 +475,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
     if (msg.IsArray()) {
       const Array& msg_arr = Array::Cast(msg);
       if (msg_arr.Length() > 0) {
-        const Object& oob_tag = Object::Handle(I, msg_arr.At(0));
+        const Object& oob_tag = Object::Handle(zone, msg_arr.At(0));
         if (oob_tag.IsSmi() &&
             (Smi::Cast(oob_tag).Value() == Message::kDelayedIsolateLibOOBMsg)) {
           success = HandleLibMessage(Array::Cast(msg_arr));
@@ -480,7 +483,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
       }
     }
   } else {
-    const Object& result = Object::Handle(I,
+    const Object& result = Object::Handle(zone,
         DartLibraryCalls::HandleMessage(msg_handler, msg));
     if (result.IsError()) {
       success = ProcessUnhandledException(Error::Cast(result));

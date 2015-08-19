@@ -393,7 +393,7 @@ RawString* Symbols::NewSymbol(const StringType& str) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
-  String& symbol = String::Handle(isolate);
+  String& symbol = String::Handle(zone);
   {
     Isolate* vm_isolate = Dart::vm_isolate();
     SymbolTable table(zone, vm_isolate->object_store()->symbol_table());

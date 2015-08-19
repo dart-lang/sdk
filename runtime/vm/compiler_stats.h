@@ -67,10 +67,10 @@ class CompilerStats {
 #define INC_STAT(isolate, counter, incr)                                       \
   if (FLAG_compiler_stats) { (isolate)->compiler_stats()->counter += (incr); }
 
-#define CSTAT_TIMER_SCOPE(iso, t)                                              \
+#define CSTAT_TIMER_SCOPE(thr, t)                                              \
   TimerScope timer(FLAG_compiler_stats,                                        \
-  FLAG_compiler_stats ? &((iso)->compiler_stats()->t) : NULL,                  \
-  iso);
+      FLAG_compiler_stats ? &((thr)->isolate()->compiler_stats()->t) : NULL,   \
+      thr);
 
 }  // namespace dart
 

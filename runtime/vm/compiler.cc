@@ -297,9 +297,9 @@ RawError* Compiler::CompileClass(const Class& cls) {
   VMTagScope tagScope(thread, VMTag::kCompileClassTagId);
   Class& parse_class = Class::Handle(isolate);
   const GrowableObjectArray& parse_list =
-      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New(4));
+      GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New(4));
   const GrowableObjectArray& patch_list =
-      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New(4));
+      GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New(4));
 
   // Parse the class and all the interfaces it implements and super classes.
   LongJumpScope jump;
@@ -395,7 +395,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
   Thread* const thread = Thread::Current();
   Zone* const zone = thread->zone();
   Isolate* const isolate = thread->isolate();
-  CSTAT_TIMER_SCOPE(isolate, codegen_timer);
+  CSTAT_TIMER_SCOPE(thread, codegen_timer);
   HANDLESCOPE(thread);
 
   // We may reattempt compilation if the function needs to be assembled using
@@ -421,7 +421,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
       // TimerScope needs an isolate to be properly terminated in case of a
       // LongJump.
       {
-        CSTAT_TIMER_SCOPE(isolate, graphbuilder_timer);
+        CSTAT_TIMER_SCOPE(thread, graphbuilder_timer);
         ZoneGrowableArray<const ICData*>* ic_data_array =
             new(zone) ZoneGrowableArray<const ICData*>();
         if (optimized) {
@@ -467,7 +467,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
       }
 
       if (optimized) {
-        CSTAT_TIMER_SCOPE(isolate, ssa_timer);
+        CSTAT_TIMER_SCOPE(thread, ssa_timer);
         // Transform to SSA (virtual register 0 and no inlining arguments).
         flow_graph->ComputeSSA(0, NULL);
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -488,7 +488,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         inline_id_to_function.Add(&function);
         // Top scope function has no caller (-1).
         caller_inline_id.Add(-1);
-        CSTAT_TIMER_SCOPE(isolate, graphoptimizer_timer);
+        CSTAT_TIMER_SCOPE(thread, graphoptimizer_timer);
 
         FlowGraphOptimizer optimizer(flow_graph);
         if (Compiler::always_optimize()) {
@@ -506,7 +506,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
         // Inlining (mutates the flow graph)
         if (FLAG_use_inlining) {
-          CSTAT_TIMER_SCOPE(isolate, graphinliner_timer);
+          CSTAT_TIMER_SCOPE(thread, graphinliner_timer);
           // Propagate types to create more inlining opportunities.
           FlowGraphTypePropagator::Propagate(flow_graph);
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -720,16 +720,16 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
                                        inline_id_to_function,
                                        caller_inline_id);
       {
-        CSTAT_TIMER_SCOPE(isolate, graphcompiler_timer);
+        CSTAT_TIMER_SCOPE(thread, graphcompiler_timer);
         graph_compiler.CompileGraph();
         pipeline->FinalizeCompilation();
       }
       {
-        CSTAT_TIMER_SCOPE(isolate, codefinalizer_timer);
+        CSTAT_TIMER_SCOPE(thread, codefinalizer_timer);
         // CreateDeoptInfo uses the object pool and needs to be done before
         // FinalizeCode.
         const Array& deopt_info_array =
-            Array::Handle(isolate, graph_compiler.CreateDeoptInfo(&assembler));
+            Array::Handle(zone, graph_compiler.CreateDeoptInfo(&assembler));
         INC_STAT(isolate, total_code_size,
                  deopt_info_array.Length() * sizeof(uword));
         const Code& code = Code::Handle(
@@ -742,13 +742,13 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         code.SetInlinedIntervals(intervals);
 
         const Array& inlined_id_array =
-            Array::Handle(isolate, graph_compiler.InliningIdToFunction());
+            Array::Handle(zone, graph_compiler.InliningIdToFunction());
         INC_STAT(isolate, total_code_size,
                  inlined_id_array.Length() * sizeof(uword));
         code.SetInlinedIdToFunction(inlined_id_array);
 
         const Array& caller_inlining_id_map_array =
-            Array::Handle(isolate, graph_compiler.CallerInliningIdMap());
+            Array::Handle(zone, graph_compiler.CallerInliningIdMap());
         INC_STAT(isolate, total_code_size,
                  caller_inlining_id_map_array.Length() * sizeof(uword));
         code.SetInlinedCallerIdMap(caller_inlining_id_map_array);
@@ -1024,7 +1024,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     Isolate* const isolate = thread->isolate();
     StackZone stack_zone(thread);
     Zone* const zone = stack_zone.GetZone();
-    TIMERSCOPE(isolate, time_compilation);
+    TIMERSCOPE(thread, time_compilation);
     Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
     per_compile_timer.Start();
 
@@ -1120,7 +1120,7 @@ RawError* Compiler::CompileFunction(Thread* thread,
                                     const Function& function) {
   Isolate* isolate = thread->isolate();
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
-  TIMELINE_FUNCTION_COMPILATION_DURATION(isolate, "Function", function);
+  TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "Function", function);
 
   if (!isolate->compilation_allowed()) {
     FATAL3("Precompilation missed function %s (%" Pd ", %s)\n",
@@ -1173,9 +1173,8 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
 RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
-  Isolate* isolate = thread->isolate();
   VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
-  TIMELINE_FUNCTION_COMPILATION_DURATION(isolate,
+  TIMELINE_FUNCTION_COMPILATION_DURATION(thread,
                                          "OptimizedFunction", function);
 
   CompilationPipeline* pipeline =
@@ -1356,7 +1355,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
     Isolate* const isolate = thread->isolate();
     StackZone zone(thread);
     const Error& error =
-        Error::Handle(isolate, isolate->object_store()->sticky_error());
+        Error::Handle(thread->zone(), isolate->object_store()->sticky_error());
     isolate->object_store()->clear_sticky_error();
     return error.raw();
   }

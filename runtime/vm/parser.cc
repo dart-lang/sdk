@@ -52,7 +52,8 @@ DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
-// Quick access to the current isolate and zone.
+// Quick access to the current thread, isolate and zone.
+#define T (thread())
 #define I (isolate())
 #define Z (zone())
 
@@ -447,7 +448,7 @@ void Parser::ParseCompilationUnit(const Library& library,
                                   const Script& script) {
   Thread* thread = Thread::Current();
   ASSERT(thread->long_jump_base()->IsSafeToJump());
-  CSTAT_TIMER_SCOPE(thread->isolate(), parser_timer);
+  CSTAT_TIMER_SCOPE(thread, parser_timer);
   VMTagScope tagScope(thread, VMTag::kCompileTopLevelTagId);
   Parser parser(script, library, 0);
   parser.ParseTopLevel();
@@ -773,9 +774,8 @@ struct TopLevel {
 void Parser::ParseClass(const Class& cls) {
   if (!cls.is_synthesized_class()) {
     Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
     Zone* zone = thread->zone();
-    CSTAT_TIMER_SCOPE(isolate, parser_timer);
+    CSTAT_TIMER_SCOPE(thread, parser_timer);
     ASSERT(thread->long_jump_base()->IsSafeToJump());
     const Script& script = Script::Handle(zone, cls.script());
     const Library& lib = Library::Handle(zone, cls.library());
@@ -783,9 +783,8 @@ void Parser::ParseClass(const Class& cls) {
     parser.ParseClassDefinition(cls);
   } else if (cls.is_enum_class()) {
     Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
     Zone* zone = thread->zone();
-    CSTAT_TIMER_SCOPE(isolate, parser_timer);
+    CSTAT_TIMER_SCOPE(thread, parser_timer);
     ASSERT(thread->long_jump_base()->IsSafeToJump());
     const Script& script = Script::Handle(zone, cls.script());
     const Library& lib = Library::Handle(zone, cls.library());
@@ -880,7 +879,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   ASSERT(thread == Thread::Current());
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
-  CSTAT_TIMER_SCOPE(isolate, parser_timer);
+  CSTAT_TIMER_SCOPE(thread, parser_timer);
   INC_STAT(isolate, num_functions_compiled, 1);
   VMTagScope tagScope(thread, VMTag::kCompileParseFunctionTagId,
                       FLAG_profile_vm);
@@ -11941,7 +11940,7 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(const Field& field,
       ASSERT(func.kind() == RawFunction::kImplicitStaticFinalGetter);
       Object& const_value = Object::Handle(Z);
       {
-        PAUSETIMERSCOPE(I, time_compilation);
+        PAUSETIMERSCOPE(T, time_compilation);
         const_value = DartEntry::InvokeFunction(func, Object::empty_array());
       }
       if (const_value.IsError()) {
@@ -12022,7 +12021,7 @@ RawObject* Parser::EvaluateConstConstructorCall(
       ArgumentsDescriptor::New(num_arguments, arguments->names()));
   Object& result = Object::Handle(Z);
   {
-    PAUSETIMERSCOPE(I, time_compilation);
+    PAUSETIMERSCOPE(T, time_compilation);
     result = DartEntry::InvokeFunction(
         constructor, arg_values, args_descriptor);
   }
@@ -13483,7 +13482,7 @@ String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
   // Call interpolation function.
   Object& result = Object::Handle(Z);
   {
-    PAUSETIMERSCOPE(I, time_compilation);
+    PAUSETIMERSCOPE(T, time_compilation);
     result = DartEntry::InvokeFunction(func, interpolate_arg);
   }
   if (result.IsUnhandledException()) {

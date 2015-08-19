@@ -236,8 +236,9 @@ Isolate* Dart::CreateIsolate(const char* name_prefix,
 
 RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
-  Isolate* isolate = Isolate::Current();
-  TIMERSCOPE(isolate, time_isolate_initialization);
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  TIMERSCOPE(thread, time_isolate_initialization);
   TimelineDurationScope tds(isolate,
                             isolate->GetIsolateStream(),
                             "InitializeIsolate");

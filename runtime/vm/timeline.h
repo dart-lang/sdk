@@ -228,9 +228,9 @@ class TimelineStream {
   V(Isolate, false)                                                            \
 
 
-#define TIMELINE_FUNCTION_COMPILATION_DURATION(isolate, suffix, function)      \
-  TimelineDurationScope tds(isolate,                                           \
-                            isolate->GetCompilerStream(),                      \
+#define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, suffix, function)       \
+  TimelineDurationScope tds(thread,                                            \
+                            thread->isolate()->GetCompilerStream(),            \
                             "Compile" suffix);                                 \
   if (tds.enabled()) {                                                         \
     tds.SetNumArguments(1);                                                    \

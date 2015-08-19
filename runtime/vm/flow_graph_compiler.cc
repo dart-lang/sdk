@@ -175,7 +175,8 @@ FlowGraphCompiler::FlowGraphCompiler(
         block_info_(block_order_.length()),
         deopt_infos_(),
         static_calls_target_table_(GrowableObjectArray::ZoneHandle(
-            GrowableObjectArray::New())),
+            // TODO(srdjan): Zone-allocate this array instead?
+            GrowableObjectArray::New(Heap::kOld))),
         is_optimizing_(is_optimizing),
         may_reoptimize_(false),
         intrinsic_mode_(false),
@@ -516,7 +517,7 @@ void FlowGraphCompiler::VisitBlocks() {
   }
 
   if (is_optimizing()) {
-    LogBlock lb(Isolate::Current());
+    LogBlock lb(Thread::Current());
     intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
     inlined_code_intervals_ =
         Array::New(intervals.length() * Code::kInlIntNumEntries, Heap::kOld);

@@ -9,8 +9,6 @@ cc/CodeImmutability: Crash
 
 cc/SNPrint_BadArgs: Skip
 
-cc/CompileFunctionOnHelperThread: Skip # Issue 24109.
-
 # Flaky on buildbot. Issue 5133 and 10409.
 cc/Sleep: Pass, Fail
 
