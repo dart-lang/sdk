@@ -394,13 +394,17 @@ class Compiler extends leg.Compiler {
         }
         // The input provider may put a trailing 0 byte when it reads a source
         // file, which confuses the package config parser.
-        if (packageConfigContents.length > 0
-            && packageConfigContents.last == 0) {
+        if (packageConfigContents.length > 0 &&
+            packageConfigContents.last == 0) {
           packageConfigContents = packageConfigContents.sublist(
               0, packageConfigContents.length - 1);
         }
         packages =
             new MapPackages(pkgs.parse(packageConfigContents, packageConfig));
+      }).catchError((error) {
+        reportError(NO_LOCATION_SPANNABLE, MessageKind.INVALID_PACKAGE_CONFIG,
+            {'uri': packageConfig, 'exception': error});
+        packages = Packages.noPackages;
       });
     } else {
       if (packagesDiscoveryProvider == null) {
