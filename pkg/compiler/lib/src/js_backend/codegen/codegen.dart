@@ -226,10 +226,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
         sourceInformation: node.sourceInformation);
   }
 
-  js.Expression compileConstant(ParameterElement parameter) {
-    return buildConstant(glue.getConstantValueForVariable(parameter));
-  }
-
   js.Expression buildStaticInvoke(Element target,
                                   List<js.Expression> arguments,
                                   {SourceInformation sourceInformation}) {

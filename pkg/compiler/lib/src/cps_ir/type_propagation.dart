@@ -74,6 +74,10 @@ class TypeMaskSystem {
     return mask.locateSingleElement(selector, mask, classWorld.compiler);
   }
 
+  ClassElement singleClass(TypeMask mask) {
+    return mask.singleClass(classWorld);
+  }
+
   bool needsNoSuchMethodHandling(TypeMask mask, Selector selector) {
     return mask.needsNoSuchMethodHandling(selector, classWorld);
   }
@@ -1795,9 +1799,33 @@ class TransformingVisitor extends LeafVisitor {
     node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
   }
 
-  void visitInterceptor(Interceptor node) {
-    // Filter out intercepted classes that do not match the input type.
+  Primitive visitInterceptor(Interceptor node) {
     AbstractValue value = getValue(node.input.definition);
+    // If the exact class of the input is known, replace with a constant
+    // or the input itself.
+    ClassElement singleClass;
+    if (lattice.isDefinitelyInt(value)) {
+      // Classes like JSUInt31 and JSUInt32 do not exist at runtime, so ensure
+      // all the int classes get mapped tor their runtime class.
+      singleClass = backend.jsIntClass;
+    } else if (lattice.isDefinitelyNativeList(value)) {
+      // Ensure all the array subclasses get mapped to the array class.
+      singleClass = backend.jsArrayClass;
+    } else {
+      singleClass = typeSystem.singleClass(value.type);
+    }
+    if (singleClass != null) {
+      if (singleClass.isSubclassOf(backend.jsInterceptorClass)) {
+        Primitive constant = makeConstantPrimitive(
+            new InterceptorConstantValue(singleClass.rawType));
+        constant.hint = node.hint;
+        return constant;
+      } else {
+        node.input.definition.substituteFor(node);
+        return null;
+      }
+    }
+    // Filter out intercepted classes that do not match the input type.
     node.interceptedClasses.retainWhere((ClassElement clazz) {
       if (clazz == typeSystem.jsNullClass) {
         return value.isNullable;
@@ -1810,6 +1838,7 @@ class TransformingVisitor extends LeafVisitor {
     if (node.interceptedClasses.isEmpty) {
       node.input.definition.substituteFor(node);
     }
+    return null;
   }
 }
 
