@@ -7,6 +7,34 @@ library engine.utilities.dart;
 import 'java_core.dart';
 
 /**
+ * Check whether [uri1] starts with (or 'is prefixed by') [uri2] by checking
+ * path segments.
+ */
+bool startsWith(Uri uri1, Uri uri2) {
+  List<String> uri1Segments = uri1.pathSegments;
+  List<String> uri2Segments = uri2.pathSegments.toList();
+  // Punt if empty (https://github.com/dart-lang/sdk/issues/24126)
+  if (uri2Segments.isEmpty) {
+    return false;
+  }
+  // Trim trailing empty segments ('/foo/' => ['foo', ''])
+  if (uri2Segments.last == '') {
+    uri2Segments.removeLast();
+  }
+
+  if (uri2Segments.length > uri1Segments.length) {
+    return false;
+  }
+
+  for (int i = 0; i < uri2Segments.length; ++i) {
+    if (uri2Segments[i] != uri1Segments[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
  * The enumeration `ParameterKind` defines the different kinds of parameters. There are two
  * basic kinds of parameters: required and optional. Optional parameters are further divided into
  * two kinds: positional optional and named optional.
@@ -34,28 +62,4 @@ class ParameterKind extends Enum<ParameterKind> {
    */
   const ParameterKind(String name, int ordinal, this.isOptional)
       : super(name, ordinal);
-}
-
-/**
- * Check whether [uri1] starts with (or 'is prefixed by') [uri2] by checking
- * path segments.
- */
-bool startsWith(Uri uri1, Uri uri2) {
-  List<String> uri1Segments = uri1.pathSegments;
-  List<String> uri2Segments = uri2.pathSegments.toList();
-  // Trim trailing empty segments ('/foo/' => ['foo', ''])
-  if (uri2Segments.last == '') {
-    uri2Segments.removeLast();
-  }
-
-  if (uri2Segments.length > uri1Segments.length) {
-    return false;
-  }
-
-  for (int i = 0; i < uri2Segments.length; ++i) {
-    if (uri2Segments[i] != uri1Segments[i]) {
-      return false;
-    }
-  }
-  return true;
 }

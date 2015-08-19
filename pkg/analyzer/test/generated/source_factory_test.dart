@@ -182,6 +182,9 @@ foo:http://www.google.com
             isTrue);
         expect(utils.startsWith(Uri.parse('/foo/bar'), Uri.parse('/foo/b')),
             isFalse);
+        // Handle odd URIs (https://github.com/dart-lang/sdk/issues/24126)
+        expect(utils.startsWith(Uri.parse('/foo/bar'), Uri.parse('')), isFalse);
+        expect(utils.startsWith(Uri.parse(''), Uri.parse('/foo/bar')), isFalse);
       });
     });
   });
