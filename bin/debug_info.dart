@@ -53,9 +53,14 @@ main(args) {
   // Validate that code-size adds up.
   int realTotal = info.program.size;
   int totalLib = info.libraries.fold(0, (n, lib) => n + lib.size);
-  if (totalLib != realTotal) {
-    var percent = ((realTotal - totalLib) * 100 / realTotal).toStringAsFixed(2);
-    _fail('$percent% size missing (sum of all libs < total)');
+  int constantsSize = info.constants.fold(0, (n, c) => n + c.size);
+  int accounted = totalLib + constantsSize;
+
+  if (accounted != realTotal) {
+    var percent = ((realTotal - accounted) * 100 / realTotal)
+        .toStringAsFixed(2);
+    _fail('$percent% size missing: $accounted (all libs + consts) '
+        '< $realTotal (total)');
   }
   var missingTotal = tracker.missing.values.fold(0, (a, b) => a + b);
   if (missingTotal > 0) {

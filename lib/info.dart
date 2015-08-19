@@ -111,6 +111,12 @@ class AllInfo {
   /// Information about fields (in any class).
   List<FieldInfo> fields = <FieldInfo>[];
 
+  /// Information about constants anywhere in the program.
+  // TODO(sigmund): expand docs about canonicalization. We don't put these
+  // inside library because a single constant can be used in more than one lib,
+  // and we'll include it only once in the output.
+  List<ConstantInfo> constants = <ConstantInfo>[];
+
   /// Information about output units (should be just one entry if not using
   /// deferred loading).
   List<OutputUnitInfo> outputUnits = <OutputUnitInfo>[];
@@ -177,6 +183,7 @@ class AllInfo {
           'function': _listAsJsonMap(functions),
           'typedef': _listAsJsonMap(typedefs),
           'field': _listAsJsonMap(fields),
+          'constant': _listAsJsonMap(constants),
         },
         'holding': _extractHoldingInfo(),
         'dependencies': _extractDependencies(),
@@ -238,6 +245,12 @@ class _ParseHelper {
     result.functions.addAll(elements['function'].values.map(parseFunction));
     result.fields.addAll(elements['field'].values.map(parseField));
     result.typedefs.addAll(elements['typedef'].values.map(parseTypedef));
+
+    // TODO(sigmund): remove null check on next breaking version
+    var constants = elements['constant'];
+    if (constants != null) {
+      result.constants.addAll(constants.values.map(parseConstant));
+    }
 
     var idMap = {};
     for (var f in result.functions) {
@@ -316,7 +329,16 @@ class _ParseHelper {
       ..type = json['type']
       ..inferredType = json['inferredType']
       ..code = json['code']
+      ..isConst = json['const'] ?? false
+      ..initializer = parseId(json['initializer'])
       ..closures = json['children'].map(parseId).toList();
+  }
+
+  ConstantInfo parseConstant(Map json) {
+    ConstantInfo result = parseId(json['id']);
+    return result
+      ..code = json['code']
+      ..size = json['size'];
   }
 
   TypedefInfo parseTypedef(Map json) {
@@ -369,6 +391,8 @@ class _ParseHelper {
       return new ClassInfo._(serializedId);
     } else if (serializedId.startsWith('field/')) {
       return new FieldInfo._(serializedId);
+    } else if (serializedId.startsWith('constant/')) {
+      return new ConstantInfo._(serializedId);
     } else if (serializedId.startsWith('typedef/')) {
       return new TypedefInfo._(serializedId);
     } else if (serializedId.startsWith('outputUnit/')) {
@@ -465,6 +489,28 @@ class ClassInfo extends BasicInfo {
   void accept(InfoVisitor visitor) => visitor.visitClass(this);
 }
 
+/// Information about a constant value.
+// TODO(sigmund): add dependency data for ConstantInfo
+class ConstantInfo extends BasicInfo {
+  /// The actual generated code for the field.
+  String code;
+
+  static int _ids = 0;
+  // TODO(sigmund): Add coverage support to constants?
+  ConstantInfo(
+      {int size: 0,
+      this.code,
+      OutputUnitInfo outputUnit})
+      : super(InfoKind.constant, _ids++, null, outputUnit, size, null);
+
+  ConstantInfo._(String serializedId) : super._fromId(serializedId);
+
+  Map toJson() => super.toJson()
+    ..addAll({'code': code});
+
+  void accept(InfoVisitor visitor) => visitor.visitConstant(this);
+}
+
 /// Information about a field element.
 class FieldInfo extends BasicInfo with CodeInfo {
   /// The type of the field.
@@ -479,6 +525,12 @@ class FieldInfo extends BasicInfo with CodeInfo {
   /// The actual generated code for the field.
   String code;
 
+  /// Whether this corresponds to a const field declaration.
+  bool isConst;
+
+  /// When [isConst] is true, the constant initializer expression.
+  ConstantInfo initializer;
+
   static int _ids = 0;
   FieldInfo(
       {String name,
@@ -488,18 +540,25 @@ class FieldInfo extends BasicInfo with CodeInfo {
       this.inferredType,
       this.closures,
       this.code,
-      OutputUnitInfo outputUnit})
+      OutputUnitInfo outputUnit,
+      this.isConst})
       : super(InfoKind.field, _ids++, name, outputUnit, size, coverageId);
 
   FieldInfo._(String serializedId) : super._fromId(serializedId);
 
-  Map toJson() => super.toJson()
-    ..addAll({
+  Map toJson() {
+    var result = super.toJson()..addAll({
       'children': closures.map((i) => i.serializedId).toList(),
       'inferredType': inferredType,
       'code': code,
       'type': type,
     });
+    if (isConst) {
+      result['const'] = true;
+      if (initializer != null) result['initializer'] = initializer.serializedId;
+    }
+    return result;
+  }
 
   void accept(InfoVisitor visitor) => visitor.visitField(this);
 }
@@ -658,6 +717,7 @@ enum InfoKind {
   clazz,
   function,
   field,
+  constant,
   outputUnit,
   typedef,
 }
@@ -668,6 +728,7 @@ String _kindToString(InfoKind kind) {
     case InfoKind.clazz: return 'class';
     case InfoKind.function: return 'function';
     case InfoKind.field: return 'field';
+    case InfoKind.constant: return 'constant';
     case InfoKind.outputUnit: return 'outputUnit';
     case InfoKind.typedef: return 'typedef';
     default: return null;
@@ -686,6 +747,7 @@ InfoKind _kindFromString(String kind) {
     case 'class': return InfoKind.clazz;
     case 'function': return InfoKind.function;
     case 'field': return InfoKind.field;
+    case 'constant': return InfoKind.constant;
     case 'outputUnit': return InfoKind.outputUnit;
     case 'typedef': return InfoKind.typedef;
     default: return null;
@@ -699,6 +761,7 @@ class InfoVisitor {
   visitLibrary(LibraryInfo info) {}
   visitClass(ClassInfo info) {}
   visitField(FieldInfo info) {}
+  visitConstant(ConstantInfo info) {}
   visitFunction(FunctionInfo info) {}
   visitTypedef(TypedefInfo info) {}
   visitOutput(OutputUnitInfo info) {}
@@ -715,6 +778,7 @@ class RecursiveInfoVisitor extends InfoVisitor {
     // Note: we don't visit functions, fields, classes, and typedefs because
     // they are reachable from the library info.
     info.libraries.forEach(visitLibrary);
+    info.constants.forEach(visitConstant);
   }
 
   visitLibrary(LibraryInfo info) {

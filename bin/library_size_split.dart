@@ -30,14 +30,9 @@
 ///
 /// ```yaml
 /// groups:
-/// # This group shows the total size of all libraries together, it is shown in
-/// # cluster #3, which happens to be the last cluster in this example:
-/// - name: "Total (excludes preambles, statics & consts)"
-///   regexp: ".*"
-///   cluster: 3
-///
 /// # This group shows the total size for all libraries that were loaded from
-/// # file:// urls:
+/// # file:// urls, it is shown in cluster #2, which happens to be the last
+/// # cluster in this example before the totals are shown:
 /// - { name: "Loose files", regexp: "file://.*", cluster: 2}
 ///
 /// # This group shows the total size of all code loaded from packages:
@@ -93,7 +88,9 @@ main(args) {
   }
 
   var sizes = {};
+  var allLibs = 0;
   for (LibraryInfo lib in info.libraries) {
+    allLibs += lib.size;
     groups.forEach((group) {
       var match = group.matcher.firstMatch('${lib.uri}');
       if (match != null) {
@@ -106,25 +103,49 @@ main(args) {
     });
   }
 
+  var allConstants = 0;
+  for (var constant in info.constants) {
+    allConstants += constant.size;
+  }
+
   var all = sizes.keys.toList();
   all.sort((a, b) => sizes[a].compareTo(sizes[b]));
   var realTotal = info.program.size;
-  var longest = all.fold(0, (count, value) => max(count, value.length));
-  longest = max(longest, 'Program Size'.length);
+  var longest = 0;
+  var rows = [];
+  _addRow(String label, int value) {
+    rows.add(new _Row(label, value));
+    longest = max(longest, label.length);
+  }
+
+  _printRow(_Row row) {
+    if (row is _Divider) {
+      print(' ' + ('-' * (longest + 18)));
+      return;
+    }
+
+    var percent = row.value == realTotal ? '100'
+      : (row.value * 100 / realTotal).toStringAsFixed(2);
+    print(' ${_pad(row.label, longest + 1, right: true)}'
+        ' ${_pad(row.value, 8)} ${_pad(percent, 6)}%');
+  }
+
   var lastCluster = 0;
   for (var name in all) {
     var entry = sizes[name];
     if (lastCluster < entry.cluster) {
-      print(' ' + ('-' * (longest + 18)));
+      rows.add(const _Divider());
       lastCluster = entry.cluster;
     }
     var size = entry.size;
-    var percent = (size * 100 / realTotal).toStringAsFixed(2);
-    print(' ${_pad(name, longest + 1, right: true)}'
-          ' ${_pad(size, 8)} ${_pad(percent, 6)}%');
+    _addRow(name, size);
   }
-  print(' ${_pad("Program Size", longest + 1, right: true)}'
-      ' ${_pad(realTotal, 8)} ${_pad(100, 6)}%');
+  rows.add(const _Divider());
+  _addRow("All libraries (excludes preambles, statics & consts)", allLibs);
+  _addRow("Shared consts", allConstants);
+  _addRow("Total accounted", allLibs + allConstants);
+  _addRow("Program Size", realTotal);
+  rows.forEach(_printRow);
 }
 
 /// A group defined in the configuration.
@@ -156,6 +177,16 @@ class _SizeEntry {
       cluster == other.cluster ? size - other.size : cluster - other.cluster;
 }
 
+class _Row {
+  final String label;
+  final int value;
+  const _Row(this.label, this.value);
+}
+
+class _Divider extends _Row {
+  const _Divider() : super('', 0);
+}
+
 _pad(value, n, {bool right: false}) {
   var s = '$value';
   if (s.length >= n) return s;
@@ -168,7 +199,6 @@ _pad(value, n, {bool right: false}) {
 /// files.
 final defaultGrouping = """
 groups:
-- { name: "Total (excludes preambles, statics & consts)", regexp: ".*", cluster: 3}
 - { name: "Loose files", regexp: "file://.*", cluster: 2}
 - { name: "All packages", regexp: "package:.*", cluster: 2}
 - { name: "Core libs", regexp: "dart:.*", cluster: 2}

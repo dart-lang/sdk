@@ -150,15 +150,12 @@ Here is an example configuration, with comments about what each entry does:
 
 ```yaml
 groups:
-# This group shows the total size of all libraries together, it is shown in
-# cluster #3, which happens to be the last cluster in this example:
-- name: "Total (excludes preambles, statics & consts)"
-  regexp: ".*"
-  cluster: 3
-
 # This group shows the total size for all libraries that were loaded from
-# file:// urls:
-- { name: "Loose files", regexp: "file://.*", cluster: 2}
+# file:// urls, it is shown in cluster #2, which happens to be the last
+# cluster in this example before the totals are shown:
+- name: "Loose files"
+  regexp: "file://.*"
+  cluster: 2
 
 # This group shows the total size of all code loaded from packages:
 - { name: "All packages", regexp: "package:.*", cluster: 2}
@@ -180,6 +177,13 @@ groups:
 from a file:// url, and we use as a name the relative path to it.
 - regexp: "file:///my/project/dir/(.*)"
 ```
+
+Regardless of the grouping configuration, the tool will display the total code
+size attributed of all libraries, constants, and the program size.
+
+**Note**: eventually you should expect all numbers to add up to the program
+size. Currently dart2js's `--dump-info` is not complete, so numbers for
+bootstraping code and lazy static initializers are missing.
 
 ### Function size analysis tool
 
