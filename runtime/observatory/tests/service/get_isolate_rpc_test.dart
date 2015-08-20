@@ -29,6 +29,23 @@ var tests = [
     expect(result['_heaps']['new']['type'], equals('HeapSpace'));
     expect(result['_heaps']['old']['type'], equals('HeapSpace'));
   },
+
+  (VM vm) async {
+    var params = {
+      'isolateId': 'badid',
+    };
+    bool caughtException;
+    try {
+      await vm.invokeRpcNoUpgrade('getIsolate', params);
+      expect(false, isTrue, reason:'Unreachable');
+    } on ServerRpcException catch(e) {
+      caughtException = true;
+      expect(e.code, equals(ServerRpcException.kInvalidParams));
+      expect(e.message,
+             "getIsolate: invalid 'isolateId' parameter: badid");
+    }
+    expect(caughtException, isTrue);
+  },
 ];
 
 main(args) async => runVMTests(args, tests);

@@ -139,20 +139,9 @@ class Message {
     _completer.complete(response);
   }
 
-  void setErrorResponse(String message) {
-    var response = {
-      'jsonrpc': '2.0',
-      'id': serial,
-      'result' : {
-        'type': 'Error',
-        'message': message,
-        'request': {
-          'method': method,
-          'params': params
-        }
-      }
-    };
-    _completer.complete(JSON.encode(response));
+  void setErrorResponse(int code, String details) {
+    _completer.complete(encodeRpcError(this, code,
+                                       details: '$method: $details'));
   }
 }
 

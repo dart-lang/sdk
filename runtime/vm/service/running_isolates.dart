@@ -29,7 +29,8 @@ class RunningIsolates implements MessageRouter {
     String isolateParam = message.params['isolateId'];
     int isolateId;
     if (!isolateParam.startsWith('isolates/')) {
-      message.setErrorResponse('Malformed isolate id $isolateParam');
+      message.setErrorResponse(
+          kInvalidParams, "invalid 'isolateId' parameter: $isolateParam");
       return message.response;
     }
     isolateParam = isolateParam.substring('isolates/'.length);
@@ -39,13 +40,15 @@ class RunningIsolates implements MessageRouter {
       try {
         isolateId = int.parse(isolateParam);
       } catch (e) {
-        message.setErrorResponse('Could not parse isolate id: $e');
+        message.setErrorResponse(
+            kInvalidParams, "invalid 'isolateId' parameter: $isolateParam");
         return message.response;
       }
     }
     var isolate = isolates[isolateId];
     if (isolate == null) {
-      message.setErrorResponse('Cannot find isolate id: $isolateId');
+      message.setErrorResponse(
+          kInvalidParams, "invalid 'isolateId' parameter: $isolateParam");
       return message.response;
     }
     return isolate.route(message);

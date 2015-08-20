@@ -21,6 +21,36 @@ final RawReceivePort scriptLoadPort = new RawReceivePort();
 
 typedef ShutdownCallback();
 
+// These must be kept in sync with the declarations in vm/json_stream.h.
+const kInvalidParams = -32602;
+const kInternalError = -32603;
+const kStreamAlreadySubscribed = 103;
+const kStreamNotSubscribed = 104;
+
+var _errorMessages = {
+  kInvalidParams: 'Invalid params',
+  kInternalError: 'Internal error',
+  kStreamAlreadySubscribed: 'Stream already subscribed',
+  kStreamNotSubscribed: 'Stream not subscribed',
+};
+
+String encodeRpcError(Message message, int code, {String details}) {
+  var response = {
+    'jsonrpc': '2.0',
+    'id' : message.serial,
+    'error' : {
+      'code': code,
+      'message': _errorMessages[code],
+    },
+  };
+  if (details != null) {
+    response['error']['data'] = {
+      'details': details,
+    };
+  }
+  return JSON.encode(response);
+}
+
 class VMService extends MessageRouter {
   static VMService _instance;
 
@@ -143,34 +173,6 @@ class VMService extends MessageRouter {
     message.setResponse(JSON.encode(result));
   }
 
-  // These must be kept in sync with the declarations in vm/json_stream.h.
-  static const _kInvalidParams = -32602;
-  static const _kStreamAlreadySubscribed = 103;
-  static const _kStreamNotSubscribed = 104;
-
-  var _errorMessages = {
-    _kInvalidParams: 'Invalid params"',
-    _kStreamAlreadySubscribed: 'Stream already subscribed',
-    _kStreamNotSubscribed: 'Stream not subscribed',
-  };
-
-  String _encodeError(Message message, int code, {String details}) {
-    var response = {
-      'jsonrpc': '2.0',
-      'id' : message.serial,
-      'error' : {
-        'code': code,
-        'message': _errorMessages[code],
-      },
-    };
-    if (details != null) {
-      response['error']['data'] = {
-        'details': details,
-      };
-    }
-    return JSON.encode(response);
-  }
-
   String _encodeResult(Message message, Map result) {
     var response = {
       'jsonrpc': '2.0',
@@ -194,12 +196,12 @@ class VMService extends MessageRouter {
     var streamId = message.params['streamId'];
 
     if (client.streams.contains(streamId)) {
-      return _encodeError(message, _kStreamAlreadySubscribed);
+      return encodeRpcError(message, kStreamAlreadySubscribed);
     }
     if (!_isAnyClientSubscribed(streamId)) {
       if (!_vmListenStream(streamId)) {
-        return _encodeError(
-            message, _kInvalidParams,
+        return encodeRpcError(
+            message, kInvalidParams,
             details:"streamListen: invalid 'streamId' parameter: ${streamId}");
       }
     }
@@ -214,7 +216,7 @@ class VMService extends MessageRouter {
     var streamId = message.params['streamId'];
 
     if (!client.streams.contains(streamId)) {
-      return _encodeError(message, _kStreamNotSubscribed);
+      return encodeRpcError(message, kStreamNotSubscribed);
     }
     client.streams.remove(streamId);
     if (!_isAnyClientSubscribed(streamId)) {
