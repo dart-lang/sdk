@@ -799,8 +799,6 @@ class SimpleTypeInferrerVisitor<T>
         elements.getGetterSelectorInComplexSendSet(node);
     TypeMask getterMask =
         elements.getGetterTypeMaskInComplexSendSet(node);
-    Selector operatorSelector =
-        elements.getOperatorSelectorInComplexSendSet(node);
     TypeMask operatorMask =
         elements.getOperatorTypeMaskInComplexSendSet(node);
     Selector setterSelector = elements.getSelector(node);
@@ -859,53 +857,53 @@ class SimpleTypeInferrerVisitor<T>
           node, element, setterSelector, setterMask, receiverType, rhsType,
           node.arguments.head);
     } else {
-      // [: foo++ :] or [: foo += 1 :].
-      ArgumentsTypes operatorArguments = new ArgumentsTypes<T>([rhsType], null);
+      // [foo ??= bar], [: foo++ :] or [: foo += 1 :].
       T getterType;
       T newType;
-      if (Elements.isErroneous(element)) {
-        getterType = types.dynamicType;
-        newType = types.dynamicType;
-      } else if (Elements.isStaticOrTopLevelField(element)) {
+
+      if (Elements.isErroneous(element)) return types.dynamicType;
+
+      if (Elements.isStaticOrTopLevelField(element)) {
         Element getterElement = elements[node.selector];
         getterType = handleStaticSend(
             node, getterSelector, getterMask, getterElement, null);
+      } else if (Elements.isUnresolved(element)
+                 || element.isSetter
+                 || element.isField) {
+        getterType = handleDynamicSend(
+            node, getterSelector, getterMask, receiverType, null);
+      } else if (element.isLocal) {
+        LocalElement local = element;
+        getterType = locals.use(local);
+      } else {
+        // Bogus SendSet, for example [: myMethod += 42 :].
+        getterType = types.dynamicType;
+      }
+
+      if (op == '??=') {
+        newType = types.allocateDiamondPhi(getterType, rhsType);
+      } else {
+        Selector operatorSelector =
+          elements.getOperatorSelectorInComplexSendSet(node);
         newType = handleDynamicSend(
             node, operatorSelector, operatorMask,
-            getterType, operatorArguments);
+            getterType, new ArgumentsTypes<T>([rhsType], null));
+      }
+
+      if (Elements.isStaticOrTopLevelField(element)) {
         handleStaticSend(
             node, setterSelector, setterMask, element,
             new ArgumentsTypes<T>([newType], null));
       } else if (Elements.isUnresolved(element)
                  || element.isSetter
                  || element.isField) {
-        getterType = handleDynamicSend(
-            node, getterSelector, getterMask, receiverType, null);
-        newType = handleDynamicSend(
-            node, operatorSelector, operatorMask,
-            getterType, operatorArguments);
         handleDynamicSend(node, setterSelector, setterMask, receiverType,
                           new ArgumentsTypes<T>([newType], null));
       } else if (element.isLocal) {
-        LocalElement local = element;
-        getterType = locals.use(local);
-        newType = handleDynamicSend(
-            node, operatorSelector, operatorMask,
-            getterType, operatorArguments);
         locals.update(element, newType, node);
-      } else {
-        // Bogus SendSet, for example [: myMethod += 42 :].
-        getterType = types.dynamicType;
-        newType = handleDynamicSend(
-            node, operatorSelector, operatorMask,
-            getterType, operatorArguments);
       }
 
-      if (node.isPostfix) {
-        return getterType;
-      } else {
-        return newType;
-      }
+      return node.isPostfix ? getterType : newType;
     }
   }
 
@@ -932,12 +930,18 @@ class SimpleTypeInferrerVisitor<T>
         getterMask,
         receiverType,
         new ArgumentsTypes<T>([indexType], null));
-    T returnType = handleDynamicSend(
-        node,
-        operatorSelector,
-        operatorMask,
-        getterType,
-        new ArgumentsTypes<T>([rhsType], null));
+
+    T returnType;
+    if (node.isIfNullAssignment) {
+      returnType = types.allocateDiamondPhi(getterType, rhsType);
+    } else {
+      returnType = handleDynamicSend(
+          node,
+          operatorSelector,
+          operatorMask,
+          getterType,
+          new ArgumentsTypes<T>([rhsType], null));
+    }
     handleDynamicSend(
         node,
         setterSelector,
