@@ -40,6 +40,7 @@
 
 # IntelliJ project files
 *.iml
+.idea
 
 # Built by chromebot and downloaded from Google Storage
 client/tests/drt
