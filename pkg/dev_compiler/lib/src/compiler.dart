@@ -84,7 +84,11 @@ class BatchCompiler extends AbstractCompiler {
 
   BatchCompiler(AnalysisContext context, CompilerOptions options,
       {AnalysisErrorListener reporter})
-      : super(context, options, reporter) {
+      : super(
+            context,
+            options,
+            new ErrorCollector(
+                reporter ?? AnalysisErrorListener.NULL_LISTENER)) {
     _inputBaseDir = options.inputBaseDir;
     if (outputDir != null) {
       _jsGen = new JSGenerator(this);
@@ -92,6 +96,8 @@ class BatchCompiler extends AbstractCompiler {
     }
     _dartCore = context.typeProvider.objectType.element.library;
   }
+
+  ErrorCollector get reporter => checker.reporter;
 
   void reset() {
     _compiled.clear();
@@ -127,12 +133,13 @@ class BatchCompiler extends AbstractCompiler {
   void compileSource(Source source) {
     if (AnalysisEngine.isHtmlFileName(source.uri.path)) {
       _compileHtml(source);
-      return;
+    } else {
+      _compileLibrary(context.computeLibraryElement(source));
     }
-    compileLibrary(context.computeLibraryElement(source));
+    reporter.flush();
   }
 
-  void compileLibrary(LibraryElement library) {
+  void _compileLibrary(LibraryElement library) {
     if (!_compiled.add(library)) return;
 
     if (!options.checkSdk && library.source.uri.scheme == 'dart') {
@@ -142,9 +149,9 @@ class BatchCompiler extends AbstractCompiler {
 
     // TODO(jmesserly): in incremental mode, we can skip the transitive
     // compile of imports/exports.
-    compileLibrary(_dartCore); // implicit dart:core dependency
-    library.importedLibraries.forEach(compileLibrary);
-    library.exportedLibraries.forEach(compileLibrary);
+    _compileLibrary(_dartCore); // implicit dart:core dependency
+    library.importedLibraries.forEach(_compileLibrary);
+    library.exportedLibraries.forEach(_compileLibrary);
 
     var unitElements = [library.definingCompilationUnit]..addAll(library.parts);
     var units = <CompilationUnit>[];
@@ -209,7 +216,7 @@ class BatchCompiler extends AbstractCompiler {
 
       if (scriptSource != null) {
         var lib = context.computeLibraryElement(scriptSource);
-        compileLibrary(lib);
+        _compileLibrary(lib);
         script.replaceWith(_linkLibraries(lib, loadedLibs, from: htmlOutDir));
       }
     }
@@ -272,7 +279,7 @@ abstract class AbstractCompiler {
       : context = context,
         options = options,
         checker = createChecker(context.typeProvider, options.strongOptions,
-            reporter == null ? AnalysisErrorListener.NULL_LISTENER : reporter) {
+            reporter ?? AnalysisErrorListener.NULL_LISTENER) {
     enableDevCompilerInference(context, options.strongOptions);
   }
 

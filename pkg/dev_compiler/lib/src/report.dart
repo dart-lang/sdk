@@ -18,25 +18,65 @@ import 'summary.dart';
 
 final _checkerLogger = new Logger('dev_compiler.checker');
 
+/// Collects errors, and then sorts them and sends them
+class ErrorCollector implements AnalysisErrorListener {
+  final AnalysisErrorListener listener;
+  final List<AnalysisError> _errors = [];
+
+  ErrorCollector(this.listener);
+
+  /// Flushes errors to the log. Until this is called, errors are buffered.
+  void flush() {
+    // TODO(jmesserly): this code was taken from analyzer_cli.
+    // sort errors
+    _errors.sort((AnalysisError error1, AnalysisError error2) {
+      // severity
+      var severity1 = _strongModeErrorSeverity(error1);
+      var severity2 = _strongModeErrorSeverity(error2);
+      int compare = severity2.compareTo(severity1);
+      if (compare != 0) {
+        return compare;
+      }
+      // path
+      compare = Comparable.compare(error1.source.fullName.toLowerCase(),
+          error2.source.fullName.toLowerCase());
+      if (compare != 0) {
+        return compare;
+      }
+      // offset
+      return error1.offset - error2.offset;
+    });
+
+    _errors.forEach(listener.onError);
+    _errors.clear();
+  }
+
+  void onError(AnalysisError error) {
+    _errors.add(error);
+  }
+}
+
+ErrorSeverity _strongModeErrorSeverity(AnalysisError error) {
+  // Upgrade analyzer warnings to errors.
+  // TODO(jmesserly: reconcile this with analyzer_cli
+  var severity = error.errorCode.errorSeverity;
+  if (!error.errorCode.name.startsWith('dev_compiler.') &&
+      severity == ErrorSeverity.WARNING) {
+    return ErrorSeverity.ERROR;
+  }
+  return severity;
+}
+
 /// Simple reporter that logs checker messages as they are seen.
 class LogReporter implements AnalysisErrorListener {
   final AnalysisContext _context;
   final bool useColors;
+  final List<AnalysisError> _errors = [];
 
   LogReporter(this._context, {this.useColors: false});
 
-  // TODO(jmesserly): these messages seem to come out in a different order if
-  // a new message gets added or removed. We may want to collect them and sort,
-  // like analyzer_cli does.
   void onError(AnalysisError error) {
-    var level = _severityToLevel[error.errorCode.errorSeverity];
-
-    // Upgrade analyzer warnings to errors.
-    // TODO(jmesserly: reconcile this with analyzer_cli
-    if (!error.errorCode.name.startsWith('dev_compiler.') &&
-        level == Level.WARNING) {
-      level = Level.SEVERE;
-    }
+    var level = _severityToLevel[_strongModeErrorSeverity(error)];
 
     // TODO(jmesserly): figure out what to do with the error's name.
     var lineInfo = _context.computeLineInfo(error.source);
