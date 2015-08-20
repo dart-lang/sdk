@@ -167,11 +167,10 @@ package/scenarios/packages_dir_only/packages_dir_only_test: CompileTimeError
 package/scenarios/packages_file_only/packages_file_only_test: CompileTimeError
 package/scenarios/both_dir_and_file/prefers_packages_file_test: CompileTimeError
 package/scenarios/packages_file_in_parent/sub/packages_file_in_parent_test: CompileTimeError
-package/scenarios/invalid/non_existent_packages_file_test: Crash # Issue 24123
-package/scenarios/invalid/invalid_utf8_test: Crash # Issue 24127
-package/scenarios/invalid/invalid_package_name_test: Crash # Issue 24125
-package/scenarios/invalid/same_package_twice_test: Crash # Issue 24124
-package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Crash # Issue 24126
+package/scenarios/invalid/non_existent_packages_file_test: Crash, OK # Analyzer exits on invalid package config
+package/scenarios/invalid/invalid_utf8_test: Crash, OK # Analyzer exits on invalid package config
+package/scenarios/invalid/invalid_package_name_test: Crash, OK # Analyzer exits on invalid package config
+package/scenarios/invalid/same_package_twice_test: Crash, OK # Analyzer exits on invalid package config
 
 [ $system == windows ]
 io/skipping_dart2js_compilations_test: Fail # Issue 19551.
