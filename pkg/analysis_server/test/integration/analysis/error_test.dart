@@ -35,4 +35,64 @@ main() {
       expect(errors[0].location.file, equals(pathname));
     });
   }
+
+  test_super_mixins_disabled() async {
+    String pathname = sourcePath('test.dart');
+    writeFile(
+        pathname,
+        '''
+class Test extends Object with C {
+  void foo() {}
+}
+abstract class B {
+  void foo();
+}
+abstract class C extends B {
+  void bar() {
+    super.foo();
+  }
+}
+''');
+    standardAnalysisSetup();
+    await analysisFinished;
+    expect(currentAnalysisErrors[pathname], isList);
+    List<AnalysisError> errors = currentAnalysisErrors[pathname];
+    expect(errors, hasLength(2));
+    Set<String> allErrorMessages =
+        errors.map((AnalysisError e) => e.message).toSet();
+    expect(
+        allErrorMessages,
+        contains(
+            "The class 'C' cannot be used as a mixin because it extends a class other than Object"));
+    expect(
+        allErrorMessages,
+        contains(
+            "The class 'C' cannot be used as a mixin because it references 'super'"));
+  }
+
+  test_super_mixins_enabled() async {
+    String pathname = sourcePath('test.dart');
+    writeFile(
+        pathname,
+        '''
+class Test extends Object with C {
+  void foo() {}
+}
+abstract class B {
+  void foo();
+}
+abstract class C extends B {
+  void bar() {
+    super.foo();
+  }
+}
+''');
+    await sendAnalysisUpdateOptions(
+        new AnalysisOptions()..enableSuperMixins = true);
+    standardAnalysisSetup();
+    await analysisFinished;
+    expect(currentAnalysisErrors[pathname], isList);
+    List<AnalysisError> errors = currentAnalysisErrors[pathname];
+    expect(errors, isEmpty);
+  }
 }
