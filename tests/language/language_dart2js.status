@@ -104,7 +104,6 @@ regress_22976_test/02: CompileTimeError # Issue 23132
 
 if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/14: Crash # Issue 23491
-nullaware_opt_test: Fail # Fails at e?.f ??= 200;
 
 if_null_assignment_behavior_test/29: Crash # Issue 23611
 prefix_assignment_test/01: Crash # Issue 23611
