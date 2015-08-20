@@ -5012,7 +5012,7 @@ class SsaBuilder extends ast.Visitor
         add(conversion);
         inputs[0] = conversion;
       }
-      js.Template code = js.js.parseForeignJS('Array(#)');
+      js.Template code = js.js.parseForeignJS('new Array(#)');
       var behavior = new native.NativeBehavior();
       behavior.typesReturned.add(expectedType);
       // The allocation can throw only if the given length is a double
