@@ -7,6 +7,9 @@ part of dart.core;
 /**
  * A resource that can be read into the program.
  *
+ * WARNING: This API is _experimental_,
+ * and it may be changed or removed in future releases
+ *
  * A resource is data that can be located using a URI and read into
  * the program at runtime.
  * The URI may use the `package` scheme to read resources provided
