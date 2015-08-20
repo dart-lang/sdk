@@ -103,6 +103,7 @@ dart_library.library('dart_runtime/dart', null, /* Imports */[
     'definiteFunctionType',
     'dynamic',
     'functionType',
+    'jsobject',
     'typedef',
     'typeName',
     'void',

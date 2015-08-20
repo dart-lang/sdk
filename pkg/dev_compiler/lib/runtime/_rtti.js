@@ -137,7 +137,9 @@ dart_library.library('dart_runtime/_rtti', null, /* Imports */[
     if (result) return result;
     result = obj.constructor;
     if (result == Function) {
-      return getFunctionType(obj);
+      // An undecorated Function should have come from
+      // JavaScript.  Treat as untyped.
+      return types.jsobject;
     }
     return result;
   }

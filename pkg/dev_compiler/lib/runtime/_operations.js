@@ -192,7 +192,8 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
   }
 
   function strongInstanceOf(obj, type) {
-    return types.isSubtype(rtti.realRuntimeType(obj), type);
+    let actual = rtti.realRuntimeType(obj);
+    return types.isSubtype(actual, type) || actual == types.jsobject;
   }
   exports.strongInstanceOf = strongInstanceOf;
 
@@ -203,7 +204,7 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
 
   function instanceOf(obj, type) {
     if (strongInstanceOf(obj, type)) return true;
-    // TODO(vsm): This is perhaps too eager to throw a StrongModeError?
+    // TODO(#296): This is perhaps too eager to throw a StrongModeError?
     // It will throw on <int>[] is List<String>.
     // TODO(vsm): We can statically detect many cases where this
     // check is unnecessary.
@@ -216,20 +217,14 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
   exports.instanceOf = instanceOf;
 
   function cast(obj, type) {
+    // TODO(#296): This is perhaps too eager to throw a StrongModeError?
     // TODO(vsm): handle non-nullable types
     if (instanceOfOrNull(obj, type)) return obj;
     let actual = rtti.realRuntimeType(obj);
-    if (_ignoreTypeFailure(actual, type)) {
-      // TODO(vsm): track why this is happening in our async / await tests.
-      if (types.isGroundType(type)) {
-        console.error('Should not ignore cast failure from ' +
-          types.typeName(actual) + ' to ' + types.typeName(type));
-      }
-      return obj;
-    }
-    if (types.isGroundType(type)) {
-      errors.throwCastError(actual, type);
-    }
+    if (types.isGroundType(type)) errors.throwCastError(actual, type);
+
+    if (_ignoreTypeFailure(actual, type)) return obj;
+
     dart_utils.throwStrongModeError('Strong mode cast failure from ' +
       types.typeName(actual) + ' to ' + types.typeName(type));
   }

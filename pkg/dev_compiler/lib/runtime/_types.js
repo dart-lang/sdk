@@ -68,6 +68,12 @@ dart_library.library('dart_runtime/_types', null, /* Imports */[
   let bottomR = new Bottom();
   exports.bottom = bottomR;
 
+  class JSObject extends TypeRep {
+    toString() { return "NativeJavaScriptObject"; }
+  };
+  let jsobjectR = new JSObject();
+  exports.jsobject = jsobjectR;
+
   class AbstractFunctionType extends TypeRep {
     constructor() {
       super();
