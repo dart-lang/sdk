@@ -272,7 +272,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       ConstantExpression constant,
       Node rhs,
       arg) {
-    visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_INVOKE,
+    visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_SET,
         constant: constant.getText(), rhs: rhs));
     super.visitClassTypeLiteralSet(node, constant, rhs, arg);
   }

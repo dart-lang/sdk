@@ -426,7 +426,7 @@ Future testFor() {
 
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
-    Expect.equals(7, map(visitor).length);
+    Expect.equals(5, map(visitor).length);
 
     VariableDefinitions initializer = tree.initializer;
     Node iNode = initializer.definitions.nodes.head;
@@ -447,24 +447,16 @@ Future testFor() {
     checkSend(iElement, nodes[1], elements[1]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
-    //                         ^
-    checkIdentifier(iElement, nodes[2], elements[2]);
-
-    // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                             ^
-    checkSend(iElement, nodes[3], elements[3]);
+    checkSend(iElement, nodes[2], elements[2]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                         ^^^^^^^^^
-    checkSendSet(iElement, nodes[4], elements[4]);
-
-    // for (int i = 0; i < 10; i = i + 1) { i = 5; };
-    //                                      ^
-    checkIdentifier(iElement, nodes[5], elements[5]);
+    checkSendSet(iElement, nodes[3], elements[3]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                                      ^^^^^
-    checkSendSet(iElement, nodes[6], elements[6]);
+    checkSendSet(iElement, nodes[4], elements[4]);
   });
 }
 
@@ -603,8 +595,8 @@ Future testTwoInterfaces() {
     compiler.resolveStatement("Foo bar;");
 
     ClassElement c = compiler.mainApp.find('C');
-    Element i1 = compiler.mainApp.find('I1');
-    Element i2 = compiler.mainApp.find('I2');
+    ClassElement i1 = compiler.mainApp.find('I1');
+    ClassElement i2 = compiler.mainApp.find('I2');
 
     Expect.equals(2, length(c.interfaces));
     Expect.equals(i1.computeType(compiler), at(c.interfaces, 0));

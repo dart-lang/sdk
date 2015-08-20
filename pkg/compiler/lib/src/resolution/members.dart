@@ -2660,6 +2660,56 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return result;
   }
 
+  /// Handle update of a parameter, local variable or local function.
+  ResolutionResult handleLocalUpdate(Send node, Name name, Element element) {
+    AccessSemantics semantics;
+    ErroneousElement error;
+    if (element.isParameter) {
+      if (element.isFinal) {
+        error = reportAndCreateErroneousElement(
+            node.selector, name.text,
+            MessageKind.CANNOT_RESOLVE_SETTER, const {});
+        semantics = new StaticAccess.finalParameter(element);
+      } else {
+        semantics = new StaticAccess.parameter(element);
+      }
+    } else if (element.isVariable) {
+      if (element.isFinal || element.isConst) {
+        error = reportAndCreateErroneousElement(
+            node.selector, name.text,
+            MessageKind.CANNOT_RESOLVE_SETTER, const {});
+        semantics = new StaticAccess.finalLocalVariable(element);
+      } else {
+        semantics = new StaticAccess.localVariable(element);
+      }
+    } else {
+      assert(invariant(node, element.isFunction,
+          message: "Unexpected local $element."));
+      error = reportAndCreateErroneousElement(
+          node.selector, name.text,
+          MessageKind.ASSIGNING_METHOD, const {});
+      semantics = new StaticAccess.localFunction(element);
+    }
+    if (isPotentiallyMutableTarget(element)) {
+      registry.registerPotentialMutation(element, node);
+      if (enclosingElement != element.enclosingElement) {
+        registry.registerPotentialMutationInClosure(element, node);
+      }
+      for (Node scope in promotionScope) {
+        registry.registerPotentialMutationIn(scope, element, node);
+      }
+    }
+
+    ResolutionResult result = handleUpdate(node, name, semantics);
+    if (error != null) {
+      registry.registerThrowNoSuchMethod();
+      // TODO(23998): Remove this when all information goes through
+      // the [SendStructure].
+      registry.useElement(node, error);
+    }
+    return result;
+  }
+
   /// Handle access of a static or top level [element].
   ResolutionResult handleStaticOrTopLevelAccess(
         Send node, Name name, Element element) {
@@ -2869,6 +2919,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else if (element.isTypeVariable) {
       // `T = b`, `T++`, or 'T += b` where 'T' is a type variable.
       return handleTypeVariableTypeLiteralUpdate(node, name, element);
+    } else if (element.isLocal) {
+      return handleLocalUpdate(node, name, element);
     }
     return oldVisitSendSet(node);
   }

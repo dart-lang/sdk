@@ -3613,6 +3613,17 @@ class SsaBuilder extends ast.Visitor
     stack.add(value);
   }
 
+  void generateNoSuchSetter(ast.Node location,
+                            Element element,
+                            HInstruction value) {
+    List<HInstruction> arguments =
+        value == null ? const <HInstruction>[] : <HInstruction>[value];
+    // An erroneous element indicates an unresolved static setter.
+    generateThrowNoSuchMethod(
+        location, noSuchMethodTargetSymbolString(element, 'set'),
+        argumentValues: arguments);
+  }
+
   void generateNonInstanceSetter(ast.SendSet send,
                                  Element element,
                                  HInstruction value,
@@ -3634,12 +3645,7 @@ class SsaBuilder extends ast.Visitor
       stack.add(value);
     } else if (Elements.isErroneous(element)) {
       if (element is ErroneousElement) {
-        List<HInstruction> arguments =
-            send == null ? const <HInstruction>[] : <HInstruction>[value];
-        // An erroneous element indicates an unresolved static setter.
-        generateThrowNoSuchMethod(
-            location, noSuchMethodTargetSymbolString(element, 'set'),
-            argumentValues: arguments);
+        generateNoSuchSetter(location, element,  send == null ? null : value);
       } else {
         // TODO(ahe): Do something like [generateWrongArgumentCountError].
         stack.add(graph.addConstantNull(compiler));
@@ -6405,7 +6411,7 @@ class SsaBuilder extends ast.Visitor
       ParameterElement parameter,
       ast.Node rhs,
       _) {
-    generateNonInstanceSetter(node, parameter, visitAndPop(rhs));
+    generateNoSuchSetter(node, parameter, visitAndPop(rhs));
   }
 
   @override
@@ -6423,7 +6429,7 @@ class SsaBuilder extends ast.Visitor
       LocalVariableElement variable,
       ast.Node rhs,
       _) {
-    generateNonInstanceSetter(node, variable, visitAndPop(rhs));
+    generateNoSuchSetter(node, variable, visitAndPop(rhs));
   }
 
   @override
@@ -6432,7 +6438,7 @@ class SsaBuilder extends ast.Visitor
       LocalFunctionElement function,
       ast.Node rhs,
       _) {
-    generateNonInstanceSetter(node, function, visitAndPop(rhs));
+    generateNoSuchSetter(node, function, visitAndPop(rhs));
   }
 
   @override
@@ -6933,13 +6939,14 @@ class SsaBuilder extends ast.Visitor
          !link.isEmpty;
          link = link.tail) {
       ast.Node definition = link.head;
+      LocalElement local = elements[definition];
       if (definition is ast.Identifier) {
         HInstruction initialValue = graph.addConstantNull(compiler);
-        LocalElement local = elements[definition];
         localsHandler.updateLocal(local, initialValue);
       } else {
-        assert(definition is ast.SendSet);
-        visitSendSet(definition);
+        ast.SendSet node = definition;
+        generateNonInstanceSetter(
+            node, local, visitAndPop(node.arguments.first));
         pop();  // Discard value.
       }
     }

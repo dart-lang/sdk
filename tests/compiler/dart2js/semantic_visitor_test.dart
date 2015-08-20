@@ -195,15 +195,7 @@ const List<VisitKind> UNTESTABLE_KINDS = const <VisitKind>[
   VisitKind.VISIT_SUPER_METHOD_SETTER_COMPOUND,
   VisitKind.VISIT_SUPER_METHOD_SETTER_PREFIX,
   VisitKind.VISIT_SUPER_METHOD_SETTER_POSTFIX,
-  // The constant expressions of assignment to constant type literals cannot be
-  // handled the compile constant evaluator.
-  VisitKind.VISIT_CLASS_TYPE_LITERAL_SET,
-  VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_SET,
   // Invalid assignments is currently report through an erroneous element.
-  VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_SET,
-  VisitKind.VISIT_FINAL_PARAMETER_SET,
-  VisitKind.VISIT_FINAL_LOCAL_VARIABLE_SET,
-  VisitKind.VISIT_LOCAL_FUNCTION_SET,
   VisitKind.VISIT_STATIC_GETTER_SET,
   VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
   VisitKind.VISIT_STATIC_FUNCTION_SET,

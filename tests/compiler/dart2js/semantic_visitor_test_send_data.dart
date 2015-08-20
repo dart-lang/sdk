@@ -19,10 +19,9 @@ const Map<String, List<Test>> SEND_TESTS = const {
                     element: 'parameter(m#o)',
                     arguments: '(null,42)',
                     selector: 'CallStructure(arity=2)')),
-    // TODO(johnniwinther): Expect [VISIT_FINAL_PARAMETER_SET] instead.
     const Test('m(final o) { o = 42; }',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_FINAL_PARAMETER_SET,
+                    element: 'parameter(m#o)',
                     rhs:'42')),
   ],
   'Local variables': const [
@@ -39,15 +38,13 @@ const Map<String, List<Test>> SEND_TESTS = const {
                     element: 'variable(m#o)',
                     arguments: '(null,42)',
                     selector: 'CallStructure(arity=2)')),
-    // TODO(johnniwinther): Expect [VISIT_FINAL_LOCAL_VARIABLE_SET] instead.
     const Test('m() { final o = 0; o = 42; }',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_FINAL_LOCAL_VARIABLE_SET,
+                    element: 'variable(m#o)',
                     rhs:'42')),
-    // TODO(johnniwinther): Expect [VISIT_FINAL_LOCAL_VARIABLE_SET] instead.
     const Test('m() { const o = 0; o = 42; }',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_FINAL_LOCAL_VARIABLE_SET,
+                    element: 'variable(m#o)',
                     rhs:'42')),
   ],
   'Local functions': const [
@@ -65,10 +62,9 @@ const Map<String, List<Test>> SEND_TESTS = const {
                     element: 'function(m#o)',
                     arguments: '(null,42)',
                     selector: 'CallStructure(arity=2)')),
-    // TODO(johnniwinther): Expect [VISIT_LOCAL_FUNCTION_SET] instead.
     const Test('m() { o(a, b) {}; o = 42; }',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_LOCAL_FUNCTION_SET,
+                    element: 'function(m#o)',
                     rhs: '42')),
   ],
   'Static fields': const [
@@ -1419,6 +1415,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test(
         '''
         class C {}
+        m() => C = 42;
+        ''',
+        const Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_SET,
+                    constant: 'C',
+                    rhs: '42')),
+    const Test(
+        '''
+        class C {}
         m() => C += 42;
         ''',
         const Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_COMPOUND,
@@ -1473,6 +1477,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test(
         '''
         typedef F();
+        m() => F = 42;
+        ''',
+        const Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_SET,
+                    constant: 'F',
+                    rhs: '42')),
+    const Test(
+        '''
+        typedef F();
         m() => F += 42;
         ''',
         const Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_COMPOUND,
@@ -1515,6 +1527,15 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_INVOKE,
                     element: 'type_variable(C#T)',
                     arguments: '(null,42)')),
+    const Test.clazz(
+        '''
+        class C<T> {
+          m() => T = 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_SET,
+                    element: 'type_variable(C#T)',
+                    rhs: '42')),
     const Test.clazz(
         '''
         class C<T> {
