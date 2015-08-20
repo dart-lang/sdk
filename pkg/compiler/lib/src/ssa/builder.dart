@@ -6468,7 +6468,7 @@ class SsaBuilder extends ast.Visitor
       ast.Node rhs,
       _) {
     generateIsDeferredLoadedCheckOfSend(node);
-    generateNonInstanceSetter(node, getter, visitAndPop(rhs));
+    generateNoSuchSetter(node, getter, visitAndPop(rhs));
   }
 
   @override
@@ -6488,7 +6488,7 @@ class SsaBuilder extends ast.Visitor
       ast.Node rhs,
       _) {
     generateIsDeferredLoadedCheckOfSend(node);
-    generateNonInstanceSetter(node, function, visitAndPop(rhs));
+    generateNoSuchSetter(node, function, visitAndPop(rhs));
   }
 
   @override
@@ -6518,7 +6518,7 @@ class SsaBuilder extends ast.Visitor
       ast.Node rhs,
       _) {
     generateIsDeferredLoadedCheckOfSend(node);
-    generateNonInstanceSetter(node, getter, visitAndPop(rhs));
+    generateNoSuchSetter(node, getter, visitAndPop(rhs));
   }
 
   @override
@@ -6538,7 +6538,7 @@ class SsaBuilder extends ast.Visitor
       ast.Node rhs,
       _) {
     generateIsDeferredLoadedCheckOfSend(node);
-    generateNonInstanceSetter(node, function, visitAndPop(rhs));
+    generateNoSuchSetter(node, function, visitAndPop(rhs));
   }
 
   @override

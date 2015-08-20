@@ -316,8 +316,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { o = 42; }
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
+                    element: 'field(C#o)',
                     rhs: '42')),
     const Test.clazz(
         '''
@@ -354,8 +354,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { o = 42; }
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
+                    element: 'field(C#o)',
                     rhs: '42')),
     const Test.clazz(
         '''
@@ -432,8 +432,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { o = 42; }
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_STATIC_GETTER_SET,
+                    element: 'getter(C#o)',
                     rhs: '42')),
     const Test.clazz(
         '''
@@ -659,8 +659,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { o = 42; }
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_STATIC_FUNCTION_SET,
+                    element: 'function(C#o)',
                     rhs: '42')),
     const Test.clazz(
         '''
@@ -802,8 +802,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         final o = 0;
         m() { o = 42; }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_FINAL_TOP_LEVEL_FIELD_SET,
+                    element: 'field(o)',
                     rhs: '42')),
     const Test.prefix(
         '''
@@ -818,8 +818,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const o = 0;
         m() { o = 42; }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_FINAL_TOP_LEVEL_FIELD_SET,
+                    element: 'field(o)',
                     rhs: '42')),
     const Test.prefix(
         '''
@@ -892,8 +892,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         get o => null;
         m() { o = 42; }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_SET,
+                    element: 'getter(o)',
                     rhs: '42')),
     const Test.prefix(
         '''
@@ -1037,8 +1037,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         o(a, b) {}
         m() { o = 42; }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_SET,
+                    element: 'function(o)',
                     rhs: '42')),
     const Test.prefix(
         '''

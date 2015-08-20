@@ -1219,7 +1219,9 @@ testCantAssignMethods() {
   checkWarningOn('''
       m() {}
       main() { m = 4; }
-      ''', [MessageKind.ASSIGNING_METHOD]);
+      ''', [MessageKind.ASSIGNING_METHOD,
+            // TODO(johnniwinther): Avoid duplicate warnings.
+            MessageKind.NOT_ASSIGNABLE]);
 
   // Can't override instance methods
   checkWarningOn('''

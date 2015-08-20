@@ -569,6 +569,8 @@ class ResolutionRegistry implements Registry {
   Setlet<Element> get otherDependencies => mapping.otherDependencies;
 
   void registerStaticInvocation(Element element) {
+    // TODO(johnniwinther): Increase precision of [registerStaticUse] and
+    // [registerDependency].
     if (element == null) return;
     registerStaticUse(element);
     registerDependency(element);

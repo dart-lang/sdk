@@ -195,13 +195,6 @@ const List<VisitKind> UNTESTABLE_KINDS = const <VisitKind>[
   VisitKind.VISIT_SUPER_METHOD_SETTER_COMPOUND,
   VisitKind.VISIT_SUPER_METHOD_SETTER_PREFIX,
   VisitKind.VISIT_SUPER_METHOD_SETTER_POSTFIX,
-  // Invalid assignments is currently report through an erroneous element.
-  VisitKind.VISIT_STATIC_GETTER_SET,
-  VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
-  VisitKind.VISIT_STATIC_FUNCTION_SET,
-  VisitKind.VISIT_FINAL_TOP_LEVEL_FIELD_SET,
-  VisitKind.VISIT_TOP_LEVEL_GETTER_SET,
-  VisitKind.VISIT_TOP_LEVEL_FUNCTION_SET,
   // The only undefined unary, `+`, is currently handled and skipped in the
   // parser.
   VisitKind.ERROR_UNDEFINED_UNARY_EXPRESSION,

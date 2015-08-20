@@ -2848,6 +2848,109 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return result;
   }
 
+  /// Handle update of a static or top level [element].
+  ResolutionResult handleStaticOrTopLevelUpdate(
+        SendSet node, Name name, Element element) {
+    AccessSemantics semantics;
+    if (element.isAbstractField) {
+      AbstractFieldElement abstractField = element;
+      if (abstractField.setter == null) {
+        ErroneousElement error = reportAndCreateErroneousElement(
+            node.selector, name.text,
+            MessageKind.CANNOT_RESOLVE_SETTER, const {});
+        registry.registerThrowNoSuchMethod();
+
+        if (node.isComplex) {
+          // `a++` or `a += b` where `a` has no setter.
+          semantics = new CompoundAccessSemantics(
+              element.isTopLevel
+                  ? CompoundAccessKind.UNRESOLVED_TOPLEVEL_SETTER
+                  : CompoundAccessKind.UNRESOLVED_STATIC_SETTER,
+              abstractField.getter,
+              error);
+        } else {
+          // `a = b` where `a` has no setter.
+          semantics = element.isTopLevel
+              ? new StaticAccess.topLevelGetter(abstractField.getter)
+              : new StaticAccess.staticGetter(abstractField.getter);
+        }
+        registry.registerStaticUse(abstractField.getter);
+      } else if (node.isComplex) {
+        if (abstractField.getter == null) {
+          ErroneousElement error = reportAndCreateErroneousElement(
+              node.selector, name.text,
+              MessageKind.CANNOT_RESOLVE_GETTER, const {});
+          registry.registerThrowNoSuchMethod();
+          // `a++` or `a += b` where `a` has no getter.
+          semantics = new CompoundAccessSemantics(
+              element.isTopLevel
+                  ? CompoundAccessKind.UNRESOLVED_TOPLEVEL_GETTER
+                  : CompoundAccessKind.UNRESOLVED_STATIC_GETTER,
+              error,
+              abstractField.setter);
+          registry.registerStaticUse(abstractField.setter);
+        } else {
+          // `a++` or `a += b` where `a` has both a getter and a setter.
+          semantics = new CompoundAccessSemantics(
+              element.isTopLevel
+                  ? CompoundAccessKind.TOPLEVEL_GETTER_SETTER
+                  : CompoundAccessKind.STATIC_GETTER_SETTER,
+              abstractField.getter,
+              abstractField.setter);
+          registry.registerStaticUse(abstractField.getter);
+          registry.registerStaticUse(abstractField.setter);
+        }
+      } else {
+        // `a = b` where `a` has a setter.
+        semantics = element.isTopLevel
+            ? new StaticAccess.topLevelSetter(abstractField.setter)
+            : new StaticAccess.staticSetter(abstractField.setter);
+        registry.registerStaticUse(abstractField.setter);
+      }
+    } else {
+      MemberElement member = element;
+      // TODO(johnniwinther): Needed to provoke a parsing and with it discovery
+      // of parse errors to make [element] erroneous. Fix this!
+      member.computeType(compiler);
+      registry.registerStaticUse(member);
+      if (member.isErroneous) {
+        // [member] has parse errors.
+        semantics = new StaticAccess.unresolved(member);
+      } else if (member.isFunction) {
+        // `a = b`, `a++` or `a += b` where `a` is a function.
+        ErroneousElement error = reportAndCreateErroneousElement(
+            node.selector, name.text,
+            MessageKind.ASSIGNING_METHOD, const {});
+        registry.registerThrowNoSuchMethod();
+        if (node.isComplex) {
+          // `a++` or `a += b` where `a` is a function.
+          registry.registerGetOfStaticFunction(element);
+        }
+        semantics = member.isTopLevel
+            ? new StaticAccess.topLevelMethod(member)
+            : new StaticAccess.staticMethod(member);
+      } else {
+        // `a = b`, `a++` or `a += b` where `a` is a field.
+        assert(invariant(node, member.isField,
+            message: "Unexpected element: $member."));
+        if (member.isFinal || member.isConst) {
+          ErroneousElement error = reportAndCreateErroneousElement(
+               node.selector, name.text,
+               MessageKind.CANNOT_RESOLVE_SETTER, const {});
+          registry.registerThrowNoSuchMethod();
+          semantics = member.isTopLevel
+              ? new StaticAccess.finalTopLevelField(member)
+              : new StaticAccess.finalStaticField(member);
+        } else {
+          semantics = member.isTopLevel
+              ? new StaticAccess.topLevelField(member)
+              : new StaticAccess.staticField(member);
+        }
+      }
+    }
+    return handleUpdate(node, name, semantics);
+  }
+
   /// Handle access to resolved [element].
   ResolutionResult handleResolvedSend(Send node, Name name, Element element) {
     if (element.isAmbiguous) {
@@ -2921,6 +3024,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       return handleTypeVariableTypeLiteralUpdate(node, name, element);
     } else if (element.isLocal) {
       return handleLocalUpdate(node, name, element);
+    } else if (element.isStatic || element.isTopLevel) {
+      return handleStaticOrTopLevelUpdate(node, name, element);
     }
     return oldVisitSendSet(node);
   }
