@@ -138,7 +138,8 @@ class ThreadRegistry {
     }
   }
 
- private:
+  void PruneThread(Thread* thread);
+
   struct Entry {
     // NOTE: |thread| is deleted automatically when the thread exits.
     // In other words, it is not safe to dereference |thread| unless you are on
@@ -148,6 +149,25 @@ class ThreadRegistry {
     Thread::State state;
   };
 
+  class EntryIterator {
+   public:
+    explicit EntryIterator(ThreadRegistry* registry);
+    ~EntryIterator();
+
+    // Returns false when there are no more entries.
+    bool HasNext() const;
+
+    // Returns the next entry and moves forward.
+    const Entry& Next();
+
+   private:
+    void Reset(ThreadRegistry* registry);
+
+    intptr_t index_;
+    ThreadRegistry* registry_;
+  };
+
+ private:
   // Returns Entry corresponding to thread in registry or NULL.
   // Note: Lock should be taken before this function is called.
   // TODO(koda): Add method Monitor::IsOwnedByCurrentThread.

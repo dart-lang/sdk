@@ -169,7 +169,8 @@ void Profiler::BeginExecution(Isolate* isolate) {
   if (profiler_data == NULL) {
     return;
   }
-  ThreadInterrupter::Register(RecordSampleInterruptCallback, isolate);
+  Thread* thread = Thread::Current();
+  thread->SetThreadInterrupter(RecordSampleInterruptCallback, isolate);
   ThreadInterrupter::WakeUp();
 }
 
@@ -182,7 +183,8 @@ void Profiler::EndExecution(Isolate* isolate) {
     return;
   }
   ASSERT(initialized_);
-  ThreadInterrupter::Unregister();
+  Thread* thread = Thread::Current();
+  thread->SetThreadInterrupter(NULL, NULL);
 }
 
 

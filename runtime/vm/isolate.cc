@@ -1766,14 +1766,23 @@ intptr_t Isolate::ProfileInterrupt() {
     // Paused at start / exit . Don't tick.
     return 0;
   }
-  InterruptableThreadState* state = thread_state();
-  if (state == NULL) {
-    // Isolate is not scheduled on a thread.
+  if (mutator_thread_ == NULL) {
+    // No active mutator.
     ProfileIdle();
     return 1;
   }
-  ASSERT(state->id != OSThread::kInvalidThreadId);
-  ThreadInterrupter::InterruptThread(state);
+
+  // TODO(johnmccutchan): Sample all threads, not just the mutator thread.
+  // TODO(johnmccutchan): Keep a global list of threads and use that
+  // instead of Isolate.
+  ThreadRegistry::EntryIterator it(thread_registry());
+  while (it.HasNext()) {
+    const ThreadRegistry::Entry& entry = it.Next();
+    if (entry.thread == mutator_thread_) {
+      ThreadInterrupter::InterruptThread(mutator_thread_);
+      break;
+    }
+  }
   return 1;
 }
 
@@ -1924,19 +1933,6 @@ void Isolate::RemoveIsolateFromList(Isolate* isolate) {
   }
   UNREACHABLE();
 }
-
-
-#if defined(DEBUG)
-void Isolate::CheckForDuplicateThreadState(InterruptableThreadState* state) {
-  MonitorLocker ml(isolates_list_monitor_);
-  ASSERT(state != NULL);
-  Isolate* current = isolates_list_head_;
-  while (current) {
-    ASSERT(current->thread_state() != state);
-    current = current->next_;
-  }
-}
-#endif
 
 
 template<class T>

@@ -8,36 +8,9 @@
 #include "vm/allocation.h"
 #include "vm/signal_handler.h"
 #include "vm/os_thread.h"
-
+#include "vm/thread.h"
 
 namespace dart {
-
-struct InterruptedThreadState {
-  ThreadId tid;
-  uintptr_t pc;
-  uintptr_t csp;
-  uintptr_t dsp;
-  uintptr_t fp;
-  uintptr_t lr;
-};
-
-// When a thread is interrupted the thread specific interrupt callback will be
-// invoked. Each callback is given an InterruptedThreadState and the user data
-// pointer. When inside a thread interrupt callback doing any of the following
-// is forbidden:
-//   * Accessing TLS.
-//   * Allocating memory.
-//   * Taking a lock.
-typedef void (*ThreadInterruptCallback)(const InterruptedThreadState& state,
-                                        void* data);
-
-// State stored per registered thread.
-class InterruptableThreadState {
- public:
-  ThreadId id;
-  ThreadInterruptCallback callback;
-  void* data;
-};
 
 class ThreadInterrupter : public AllStatic {
  public:
@@ -54,19 +27,13 @@ class ThreadInterrupter : public AllStatic {
 
   // Register the currently running thread for interrupts. If the current thread
   // is already registered, callback and data will be updated.
-  static InterruptableThreadState* Register(ThreadInterruptCallback callback,
-                                            void* data);
+  static void Register(ThreadInterruptCallback callback, void* data);
+
   // Unregister the currently running thread for interrupts.
   static void Unregister();
 
-  // Get the current thread state. Will create a thread state if one hasn't
-  // been allocated.
-  static InterruptableThreadState* GetCurrentThreadState();
-  // Get the current thread state. Will not create one if one doesn't exist.
-  static InterruptableThreadState* CurrentThreadState();
-
   // Interrupt a thread.
-  static void InterruptThread(InterruptableThreadState* thread_state);
+  static void InterruptThread(Thread* thread);
 
  private:
   static const intptr_t kMaxThreads = 4096;
@@ -82,10 +49,7 @@ class ThreadInterrupter : public AllStatic {
     return current_wait_time_ == Monitor::kNoTimeout;
   }
 
-  static InterruptableThreadState* _EnsureThreadStateCreated();
   static void UpdateStateObject(ThreadInterruptCallback callback, void* data);
-
-  static void SetCurrentThreadState(InterruptableThreadState* state);
 
   static void ThreadMain(uword parameters);
 

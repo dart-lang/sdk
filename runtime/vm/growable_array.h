@@ -99,6 +99,17 @@ class BaseGrowableArray : public B {
     }
   }
 
+  // Swap entries |i| and |j|.
+  void Swap(intptr_t i, intptr_t j) {
+    ASSERT(i >= 0);
+    ASSERT(j >= 0);
+    ASSERT(i < length_);
+    ASSERT(j < length_);
+    T temp = data_[i];
+    data_[i] = data_[j];
+    data_[j] = temp;
+  }
+
   // The content is uninitialized after calling it.
   void SetLength(intptr_t new_length);
 

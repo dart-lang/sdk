@@ -67,6 +67,74 @@ void ThreadRegistry::ResumeAllThreads() {
 }
 
 
+void ThreadRegistry::PruneThread(Thread* thread) {
+  MonitorLocker ml(monitor_);
+  intptr_t length = entries_.length();
+  if (length == 0) {
+    return;
+  }
+  intptr_t found_index = -1;
+  for (intptr_t index = 0; index < length; index++) {
+    if (entries_.At(index).thread == thread) {
+      found_index = index;
+      break;
+    }
+  }
+  if (found_index < 0) {
+    return;
+  }
+  if (found_index != (length - 1)) {
+    // Swap with last entry.
+    entries_.Swap(found_index, length - 1);
+  }
+  entries_.RemoveLast();
+}
+
+
+ThreadRegistry::EntryIterator::EntryIterator(ThreadRegistry* registry)
+    : index_(0),
+      registry_(NULL) {
+  Reset(registry);
+}
+
+
+ThreadRegistry::EntryIterator::~EntryIterator() {
+  Reset(NULL);
+}
+
+
+void ThreadRegistry::EntryIterator::Reset(ThreadRegistry* registry) {
+  // Reset index.
+  index_ = 0;
+
+  // Unlock old registry.
+  if (registry_ != NULL) {
+    registry_->monitor_->Exit();
+  }
+
+  registry_ = registry;
+
+  // Lock new registry.
+  if (registry_ != NULL) {
+    registry_->monitor_->Enter();
+  }
+}
+
+
+bool ThreadRegistry::EntryIterator::HasNext() const {
+  if (registry_ == NULL) {
+    return false;
+  }
+  return index_ < registry_->entries_.length();
+}
+
+
+const ThreadRegistry::Entry& ThreadRegistry::EntryIterator::Next() {
+  ASSERT(HasNext());
+  return registry_->entries_.At(index_++);
+}
+
+
 void ThreadRegistry::CheckSafepointLocked() {
   int64_t last_round = -1;
   while (in_rendezvous_) {
