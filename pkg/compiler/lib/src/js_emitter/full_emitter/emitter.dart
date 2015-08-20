@@ -35,6 +35,7 @@ import '../../elements/elements.dart' show
     ConstructorBodyElement,
     ElementKind,
     FieldElement,
+    Name,
     ParameterElement,
     TypeVariableElement,
     MethodElement,

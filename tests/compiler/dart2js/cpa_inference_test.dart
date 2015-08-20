@@ -1648,7 +1648,7 @@ testSelectors() {
     ClassElement y = findElement(result.compiler, 'Y');
     ClassElement z = findElement(result.compiler, 'Z');
 
-    Selector foo = new Selector.call("foo", null, 0);
+    Selector foo = new Selector.call(const PublicName("foo"), 0);
 
     result.checkSelectorHasType(
         foo,
@@ -1674,7 +1674,8 @@ testSelectors() {
         new TypeMask.unionOf([b, c].map((cls) =>
             new TypeMask.nonNullExact(cls, world)), world));
 
-    result.checkSelectorHasType(new Selector.call("bar", null, 0), null, null);
+    result.checkSelectorHasType(
+        new Selector.call(const PublicName("bar"), 0), null, null);
   });
 }
 

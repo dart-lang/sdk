@@ -131,14 +131,14 @@ class DartBackend extends Backend {
     }
     // Enqueue the methods that the VM might invoke on user objects because
     // we don't trust the resolution to always get these included.
-    world.registerInvocation(
-        new UniverseSelector(new Selector.call("toString", null, 0), null));
-    world.registerInvokedGetter(
-        new UniverseSelector(new Selector.getter("hashCode", null), null));
+    world.registerInvocation(new UniverseSelector(
+        new Selector.call(const PublicName("toString"), 0), null));
+    world.registerInvokedGetter(new UniverseSelector(
+        new Selector.getter(const PublicName("hashCode")), null));
     world.registerInvocation(
         new UniverseSelector(new Selector.binaryOperator("=="), null));
-    world.registerInvocation(
-        new UniverseSelector(new Selector.call("compareTo", null, 1), null));
+    world.registerInvocation(new UniverseSelector(
+        new Selector.call(const PublicName("compareTo"), 1), null));
   }
 
   WorldImpact codegen(CodegenWorkItem work) => const WorldImpact();

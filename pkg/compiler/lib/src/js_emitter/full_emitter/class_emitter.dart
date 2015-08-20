@@ -422,8 +422,10 @@ class ClassEmitter extends CodeEmitterHelper {
                                                     ClassBuilder builder,
                                                     {bool isGetter}) {
     Selector selector = isGetter
-        ? new Selector.getter(member.name, member.library)
-        : new Selector.setter(member.name, member.library);
+        ? new Selector.getter(
+            new Name(member.name, member.library))
+        : new Selector.setter(
+            new Name(member.name, member.library, isSetter: true));
     String reflectionName = emitter.getReflectionName(selector, name);
     if (reflectionName != null) {
       var reflectable =

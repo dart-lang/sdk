@@ -101,7 +101,7 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
         registerCallForLaterAnalysis(info);
       }
     } else if (info.selector.isGetter &&
-        info.selector.name == Compiler.CALL_OPERATOR_NAME) {
+        info.selector.memberName == Names.call) {
       // We are potentially tearing off ourself here
       addNewEscapeInformation(info);
     }

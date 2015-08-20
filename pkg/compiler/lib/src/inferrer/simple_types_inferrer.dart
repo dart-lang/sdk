@@ -7,6 +7,8 @@ library simple_types_inferrer;
 import '../closure.dart' show
     ClosureClassMap,
     ClosureScope;
+import '../common/names.dart' show
+    Selectors;
 import '../compiler.dart' show
     Compiler;
 import '../constants/values.dart' show
@@ -438,12 +440,12 @@ abstract class InferrerEngine<T, V extends TypeSystem>
       elements.setTypeMask(node, mask);
     } else {
       assert(astNode.asForIn() != null);
-      if (selector == compiler.iteratorSelector) {
+      if (selector == Selectors.iterator) {
         elements.setIteratorTypeMask(node, mask);
-      } else if (selector == compiler.currentSelector) {
+      } else if (selector == Selectors.current) {
         elements.setCurrentTypeMask(node, mask);
       } else {
-        assert(selector == compiler.moveNextSelector);
+        assert(selector == Selectors.moveNext);
         elements.setMoveNextTypeMask(node, mask);
       }
     }

@@ -460,14 +460,14 @@ class Namer {
   String get deferredTypesName => 'deferredTypes';
   String get isolateName => 'Isolate';
   String get isolatePropertiesName => r'$isolateProperties';
-  jsAst.Name get noSuchMethodName => publicInstanceMethodNameByArity(
-      Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
+  jsAst.Name get noSuchMethodName => invocationName(Selectors.noSuchMethod_);
+
   /**
    * Some closures must contain their name. The name is stored in
    * [STATIC_CLOSURE_NAME_NAME].
    */
   String get STATIC_CLOSURE_NAME_NAME => r'$name';
-  String get closureInvocationSelectorName => Compiler.CALL_OPERATOR_NAME;
+  String get closureInvocationSelectorName => Identifiers.call;
   bool get shouldMinify => false;
 
   /// Returns the string that is to be used as the result of a call to
@@ -633,13 +633,6 @@ class Namer {
     return invocationName(new Selector.fromElement(method));
   }
 
-  /// Annotated name for a public method with the given [originalName]
-  /// and [arity] and no named parameters.
-  jsAst.Name publicInstanceMethodNameByArity(String originalName,
-                                             int arity) {
-    return invocationName(new Selector.call(originalName, null, arity));
-  }
-
   /// Returns the annotated name for a variant of `call`.
   /// The result has the form:
   ///
@@ -702,7 +695,7 @@ class Namer {
 
       case SelectorKind.CALL:
         List<String> suffix = callSuffixForStructure(selector.callStructure);
-        if (selector.name == Compiler.CALL_OPERATOR_NAME) {
+        if (selector.name == Identifiers.call) {
           // Derive the annotated name for this variant of 'call'.
           return deriveCallMethodName(suffix);
         }

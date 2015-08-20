@@ -968,7 +968,7 @@ abstract class MemberElement extends Element implements ExecutableElement {
   /// The local functions defined within this member.
   List<FunctionElement> get nestedClosures;
 
-  /// The name of this member taking privacy into account.
+  /// The name of this member, taking privacy into account.
   Name get memberName;
 }
 
@@ -1279,6 +1279,9 @@ abstract class ConstructorBodyElement extends MethodElement {
 /// [TypeDeclarationElement] defines the common interface for class/interface
 /// declarations and typedefs.
 abstract class TypeDeclarationElement extends Element implements AstElement {
+  /// The name of this type declaration, taking privacy into account.
+  Name get memberName;
+
   /// Do not use [computeType] outside of the resolver; instead retrieve the
   /// type from the [thisType] or [rawType], depending on the use case.
   ///
@@ -1488,6 +1491,8 @@ abstract class JumpTarget extends Local {
 /// The [Element] for a type variable declaration on a generic class or typedef.
 abstract class TypeVariableElement extends Element
     implements AstElement, TypedElement {
+  /// The name of this type variable, taking privacy into account.
+  Name get memberName;
 
   /// Use [typeDeclaration] instead.
   @deprecated

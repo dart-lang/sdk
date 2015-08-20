@@ -9,7 +9,7 @@ import '../mock_compiler.dart';
 import '../mock_libraries.dart';
 import '../output_collector.dart';
 import 'package:compiler/compiler.dart';
-import 'package:compiler/src/compiler.dart' as leg;
+import 'package:compiler/src/common/names.dart' show Identifiers;
 import 'package:compiler/src/dart_backend/dart_backend.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/tree/tree.dart';
@@ -633,7 +633,7 @@ main() {
   asyncTest(() => compiler.init().then((_) {
     assert(compiler.backend is DartBackend);
     compiler.parseScript(src);
-    FunctionElement mainElement = compiler.mainApp.find(leg.Compiler.MAIN);
+    FunctionElement mainElement = compiler.mainApp.find(Identifiers.main);
     compiler.processQueue(compiler.enqueuer.resolution, mainElement);
     PlaceholderCollector collector = collectPlaceholders(compiler, mainElement);
     FunctionExpression mainNode = mainElement.node;

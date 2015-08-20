@@ -4,6 +4,8 @@
 
 library dart2js.ir_builder;
 
+import '../common/names.dart' show
+    Names;
 import '../compile_time_constants.dart' show
     BackendConstantEnvironment;
 import '../constants/constant_system.dart';
@@ -829,7 +831,7 @@ class IrBuilder {
     // TODO(johnniwinther): This should have its own ir node.
     return _buildInvokeSuper(
         method,
-        new Selector.getter(method.name, method.library),
+        new Selector.getter(method.memberName),
         const <ir.Primitive>[],
         sourceInformation);
   }
@@ -840,7 +842,7 @@ class IrBuilder {
     // TODO(johnniwinther): This should have its own ir node.
     return _buildInvokeSuper(
         getter,
-        new Selector.getter(getter.name, getter.library),
+        new Selector.getter(getter.memberName),
         const <ir.Primitive>[],
         sourceInformation);
   }
@@ -853,7 +855,7 @@ class IrBuilder {
     // TODO(johnniwinther): This should have its own ir node.
     _buildInvokeSuper(
         setter,
-        new Selector.setter(setter.name, setter.library),
+        new Selector.setter(setter.memberName),
         <ir.Primitive>[value],
         sourceInformation);
     return value;
@@ -1014,7 +1016,7 @@ class IrBuilder {
   /// Create a getter invocation of the static [getter].
   ir.Primitive buildStaticGetterGet(MethodElement getter,
                                     SourceInformation sourceInformation) {
-    Selector selector = new Selector.getter(getter.name, getter.library);
+    Selector selector = new Selector.getter(getter.memberName);
     return _buildInvokeStatic(
         getter, selector, const <ir.Primitive>[], sourceInformation);
   }
@@ -1038,7 +1040,7 @@ class IrBuilder {
   ir.Primitive buildStaticSetterSet(MethodElement setter,
                                     ir.Primitive value,
                                     {SourceInformation sourceInformation}) {
-    Selector selector = new Selector.setter(setter.name, setter.library);
+    Selector selector = new Selector.setter(setter.memberName);
     _buildInvokeStatic(
         setter, selector, <ir.Primitive>[value], sourceInformation);
     return value;
@@ -1356,7 +1358,7 @@ class IrBuilder {
     ir.Continuation iteratorInvoked = new ir.Continuation([iterator]);
     add(new ir.LetCont(iteratorInvoked,
         new ir.InvokeMethod(expressionReceiver,
-            new Selector.getter("iterator", null),
+            new Selector.getter(const PublicName("iterator")),
             iteratorMask,
             emptyArguments,
             iteratorInvoked)));
@@ -1373,7 +1375,7 @@ class IrBuilder {
     ir.Continuation moveNextInvoked = new ir.Continuation([condition]);
     add(new ir.LetCont(moveNextInvoked,
         new ir.InvokeMethod(iterator,
-            new Selector.call("moveNext", null, 0),
+            new Selector.call(Names.moveNext, 0),
             moveNextMask,
             emptyArguments,
             moveNextInvoked)));
@@ -1396,7 +1398,7 @@ class IrBuilder {
     bodyBuilder.add(new ir.LetCont(currentInvoked,
         new ir.InvokeMethod(
             iterator,
-            new Selector.getter("current", null),
+            new Selector.getter(Names.current),
             currentMask,
             emptyArguments, currentInvoked)));
     // TODO(sra): Does this cover all cases? The general setter case include
@@ -1406,7 +1408,8 @@ class IrBuilder {
       bodyBuilder.buildLocalVariableSet(variableElement, currentValue);
     } else if (Elements.isErroneous(variableElement)) {
       bodyBuilder.buildErroneousInvocation(variableElement,
-          new Selector.setter(variableElement.name, variableElement.library),
+          new Selector.setter(
+              new Name(variableElement.name, variableElement.library)),
           <ir.Primitive>[currentValue]);
     } else if (Elements.isStaticOrTopLevel(variableElement)) {
       if (variableElement.isField) {
@@ -2491,13 +2494,13 @@ class IrBuilder {
     return value;
   }
 
-  ir.Primitive buildInvokeDirectly(FunctionElement target,
+  ir.Primitive buildInvokeDirectly(MethodElement target,
                                    ir.Primitive receiver,
                                    List<ir.Primitive> arguments,
                                    {SourceInformation sourceInformation}) {
     assert(isOpen);
     Selector selector =
-        new Selector.call(target.name, target.library, arguments.length);
+        new Selector.call(target.memberName, arguments.length);
     return _continueWithExpression(
         (k) => new ir.InvokeMethodDirectly(
             receiver, target, selector, arguments, k, sourceInformation));

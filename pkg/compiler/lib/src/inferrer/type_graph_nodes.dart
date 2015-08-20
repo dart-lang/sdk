@@ -550,8 +550,8 @@ class ParameterTypeInformation extends ElementTypeInformation {
       return safeType(inferrer);
     }
     if (function.isInstanceMember &&
-        (function.name == Compiler.NO_SUCH_METHOD ||
-        (function.name == Compiler.CALL_OPERATOR_NAME &&
+        (function.name == Identifiers.noSuchMethod_ ||
+        (function.name == Identifiers.call &&
          disableInferenceForClosures))) {
       // Do not infer types for parameters of [noSuchMethod] and
       // [call] instance methods.
@@ -767,7 +767,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     return targets.any((Element e) {
       return e is FunctionElement &&
              e.isInstanceMember &&
-             e.name == Compiler.NO_SUCH_METHOD &&
+             e.name == Identifiers.noSuchMethod_ &&
              inferrer.backend.isComplexNoSuchMethod(e);
     });
   }

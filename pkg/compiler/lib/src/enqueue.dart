@@ -7,6 +7,8 @@ library dart2js.enqueue;
 import 'dart:collection' show
     Queue;
 
+import 'common/names.dart' show
+    Identifiers;
 import 'common/work.dart' show
     ItemCompilationContext,
     WorkItem;
@@ -42,6 +44,7 @@ import 'elements/elements.dart' show
     Member,
     MemberElement,
     MethodElement,
+    Name,
     TypedElement,
     TypedefElement;
 import 'js/js.dart' as js;
@@ -246,10 +249,10 @@ abstract class Enqueuer {
     } else if (member.isFunction) {
       FunctionElement function = member;
       function.computeType(compiler);
-      if (function.name == Compiler.NO_SUCH_METHOD) {
+      if (function.name == Identifiers.noSuchMethod_) {
         registerNoSuchMethod(function);
       }
-      if (function.name == Compiler.CALL_OPERATOR_NAME &&
+      if (function.name == Identifiers.call &&
           !cls.typeVariables.isEmpty) {
         registerCallMethodWithFreeTypeVariables(
             function, compiler.globalDependencies);
@@ -411,7 +414,8 @@ abstract class Enqueuer {
         registerSelectorUse(selector);
         if (element.isField) {
           UniverseSelector selector = new UniverseSelector(
-              new Selector.setter(element.name, element.library), null);
+              new Selector.setter(new Name(
+                  element.name, element.library, isSetter: true)), null);
           registerInvokedSetter(selector);
         }
       }
@@ -820,7 +824,7 @@ class ResolutionEnqueuer extends Enqueuer {
       }
     }
 
-    if (element.isGetter && element.name == Compiler.RUNTIME_TYPE) {
+    if (element.isGetter && element.name == Identifiers.runtimeType_) {
       // Enable runtime type support if we discover a getter called runtimeType.
       // We have to enable runtime type before hitting the codegen, so
       // that constructors know whether they need to generate code for

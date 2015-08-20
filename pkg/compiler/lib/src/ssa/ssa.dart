@@ -12,6 +12,9 @@ import '../closure.dart';
 import '../common/codegen.dart' show
     CodegenRegistry,
     CodegenWorkItem;
+import '../common/names.dart' show
+    Identifiers,
+    Selectors;
 import '../common/tasks.dart' show
     CompilerTask;
 import '../compiler.dart' show

@@ -16,6 +16,9 @@ import '../common/backend_api.dart' show
 import '../common/codegen.dart' show
     CodegenRegistry,
     CodegenWorkItem;
+import '../common/names.dart' show
+    Identifiers,
+    Selectors;
 import '../common/registry.dart' show
     Registry;
 import '../common/tasks.dart' show

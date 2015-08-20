@@ -893,7 +893,7 @@ class JavaScriptBackend extends Backend {
     if (enqueuer.isResolutionQueue) {
       cls.ensureResolved(compiler);
       cls.forEachMember((ClassElement classElement, Element member) {
-        if (member.name == Compiler.CALL_OPERATOR_NAME) {
+        if (member.name == Identifiers.call) {
           compiler.reportError(
               member,
               MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS);
@@ -1302,7 +1302,7 @@ class JavaScriptBackend extends Backend {
   void enableNoSuchMethod(Enqueuer world) {
     enqueue(world, getCreateInvocationMirror(), compiler.globalDependencies);
     world.registerInvocation(
-        new UniverseSelector(compiler.noSuchMethodSelector, null));
+        new UniverseSelector(Selectors.noSuchMethod_, null));
   }
 
   void enableIsolateSupport(Enqueuer enqueuer) {
@@ -3054,7 +3054,8 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     registerBackendStaticInvocation(
         backend.getCreateInvocationMirror(), registry);
     registerBackendStaticInvocation(
-        backend.compiler.objectClass.lookupLocalMember(Compiler.NO_SUCH_METHOD),
+        backend.compiler.objectClass.lookupLocalMember(
+            Identifiers.noSuchMethod_),
         registry);
     registerBackendInstantiation(backend.compiler.listClass, registry);
     registerBackendInstantiation(backend.compiler.stringClass, registry);

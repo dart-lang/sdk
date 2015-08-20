@@ -2471,7 +2471,7 @@ class SsaBuilder extends ast.Visitor
           <HInstruction>[buildFunctionType(type), original];
       pushInvokeDynamic(
           null,
-          new Selector.call(name, backend.jsHelperLibrary, 1),
+          new Selector.call(new Name(name, backend.jsHelperLibrary), 1),
           null,
           arguments);
 
@@ -3752,7 +3752,7 @@ class SsaBuilder extends ast.Visitor
       List arguments = [buildFunctionType(type), expression];
       pushInvokeDynamic(
           node,
-          new Selector.call('_isTest', backend.jsHelperLibrary, 1),
+          new Selector.call(new Name('_isTest', backend.jsHelperLibrary), 1),
           null,
           arguments);
       return new HIs.compound(type, expression, pop(), backend.boolType);
@@ -4406,7 +4406,7 @@ class SsaBuilder extends ast.Visitor
     String name = selector.name;
 
     ClassElement cls = currentNonClosureClass;
-    Element element = cls.lookupSuperMember(Compiler.NO_SUCH_METHOD);
+    Element element = cls.lookupSuperMember(Identifiers.noSuchMethod_);
     if (compiler.enabledInvokeOn
         && element.enclosingElement.declaration != compiler.objectClass) {
       // Register the call as dynamic if [noSuchMethod] on the super
@@ -4449,7 +4449,7 @@ class SsaBuilder extends ast.Visitor
                      typeMask: backend.dynamicType);
 
     var inputs = <HInstruction>[pop()];
-    push(buildInvokeSuper(compiler.noSuchMethodSelector, element, inputs));
+    push(buildInvokeSuper(Selectors.noSuchMethod_, element, inputs));
   }
 
   /// Generate a call to a super method or constructor.
@@ -7133,7 +7133,7 @@ class SsaBuilder extends ast.Visitor
                  buildBody);
     }, () {
       pushInvokeDynamic(node,
-          new Selector.call("cancel", null, 0),
+          Selectors.cancel,
           null,
           [streamIterator]);
       push(new HAwait(pop(), new TypeMask.subclass(compiler.objectClass,
@@ -8305,12 +8305,13 @@ class StringBuilderVisitor extends ast.Visitor {
 
     // If the `toString` method is guaranteed to return a string we can call it
     // directly.
-    Selector selector = new Selector.call('toString', null, 0);
+    Selector selector = Selectors.toString_;
     TypeMask type = TypeMaskFactory.inferredTypeForSelector(
         selector, expression.instructionType, compiler);
     if (type.containsOnlyString(compiler.world)) {
       builder.pushInvokeDynamic(
-          node, selector, expression.instructionType, <HInstruction>[expression]);
+          node, selector,
+          expression.instructionType, <HInstruction>[expression]);
       append(builder.pop());
       return;
     }

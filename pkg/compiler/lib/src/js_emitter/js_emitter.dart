@@ -6,6 +6,9 @@ library dart2js.js_emitter;
 
 import '../common.dart';
 
+import '../common/names.dart' show
+    Identifiers;
+
 import '../constants/values.dart';
 
 import '../closure.dart' show

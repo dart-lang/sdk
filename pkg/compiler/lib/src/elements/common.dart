@@ -6,6 +6,8 @@
 
 library elements.common;
 
+import '../common/names.dart' show
+    Names;
 import '../compiler.dart' show
     Compiler,
     isPrivateName;
@@ -433,8 +435,7 @@ abstract class ClassElementCommon implements ClassElement {
   }
 
   FunctionType get callType {
-    MemberSignature member =
-        lookupInterfaceMember(const PublicName(Compiler.CALL_OPERATOR_NAME));
+    MemberSignature member = lookupInterfaceMember(Names.call);
     return member != null && member.isMethod ? member.type : null;
   }
 }

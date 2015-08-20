@@ -4,6 +4,8 @@
 
 library dart2js.resolution.members;
 
+import '../common/names.dart' show
+    Selectors;
 import '../compiler.dart' show
     Compiler,
     isPrivateName;
@@ -418,8 +420,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (isNamedConstructor(node)) {
       String constructorName = node.selector.asIdentifier().source;
       return new Selector.callConstructor(
-          constructorName,
-          enclosingElement.library);
+          new Name(constructorName, enclosingElement.library));
     } else {
       return new Selector.callDefaultConstructor();
     }
@@ -807,7 +808,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (op == null) {
         // Unsupported operator. An error has been reported during parsing.
         return new Selector.call(
-            source, library, node.argumentsNode.slowLength(), []);
+            new Name(source, library), node.argumentsNode.slowLength(), []);
       }
       return node.arguments.isEmpty
           ? new Selector.unaryOperator(op)
@@ -817,9 +818,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     Identifier identifier = node.selector.asIdentifier();
     if (node.isPropertyAccess) {
       assert(!isSet);
-      return new Selector.getter(identifier.source, library);
+      return new Selector.getter(
+          new Name(identifier.source, library));
     } else if (isSet) {
-      return new Selector.setter(identifier.source, library);
+      return new Selector.setter(
+          new Name(identifier.source, library, isSetter: true));
     }
 
     // Compute the arity and the list of named arguments.
@@ -838,13 +841,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     if (element != null && element.isConstructor) {
       return new Selector.callConstructor(
-          element.name, library, arity, named);
+          new Name(element.name, library), arity, named);
     }
 
     // If we're invoking a closure, we do not have an identifier.
     return (identifier == null)
         ? new Selector.callClosure(arity, named)
-        : new Selector.call(identifier.source, library, arity, named);
+        : new Selector.call(new Name(identifier.source, library), arity, named);
   }
 
   Selector resolveSelector(Send node, Element element) {
@@ -4251,7 +4254,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult visitStringInterpolation(StringInterpolation node) {
     registry.registerInstantiatedType(coreTypes.stringType);
     registry.registerStringInterpolation();
-    registerImplicitInvocation('toString', 0);
+    registerImplicitInvocation(Selectors.toString_);
 
     bool isValidAsConstant = true;
     List<ConstantExpression> parts = <ConstantExpression>[];
@@ -4334,19 +4337,18 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return const NoneResult();
   }
 
-  registerImplicitInvocation(String name, int arity) {
-    Selector selector = new Selector.call(name, null, arity);
+  registerImplicitInvocation(Selector selector) {
     registry.registerDynamicInvocation(new UniverseSelector(selector, null));
   }
 
   ResolutionResult visitAsyncForIn(AsyncForIn node) {
     registry.registerAsyncForIn(node);
-    registry.setCurrentSelector(node, compiler.currentSelector);
+    registry.setCurrentSelector(node, Selectors.current);
     registry.registerDynamicGetter(
-        new UniverseSelector(compiler.currentSelector, null));
-    registry.setMoveNextSelector(node, compiler.moveNextSelector);
+        new UniverseSelector(Selectors.current, null));
+    registry.setMoveNextSelector(node, Selectors.moveNext);
     registry.registerDynamicInvocation(
-        new UniverseSelector(compiler.moveNextSelector, null));
+        new UniverseSelector(Selectors.moveNext, null));
 
     visit(node.expression);
 
@@ -4358,15 +4360,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult visitSyncForIn(SyncForIn node) {
     registry.registerSyncForIn(node);
-    registry.setIteratorSelector(node, compiler.iteratorSelector);
+    registry.setIteratorSelector(node, Selectors.iterator);
     registry.registerDynamicGetter(
-        new UniverseSelector(compiler.iteratorSelector, null));
-    registry.setCurrentSelector(node, compiler.currentSelector);
+        new UniverseSelector(Selectors.iterator, null));
+    registry.setCurrentSelector(node, Selectors.current);
     registry.registerDynamicGetter(
-        new UniverseSelector(compiler.currentSelector, null));
-    registry.setMoveNextSelector(node, compiler.moveNextSelector);
+        new UniverseSelector(Selectors.current, null));
+    registry.setMoveNextSelector(node, Selectors.moveNext);
     registry.registerDynamicInvocation(
-        new UniverseSelector(compiler.moveNextSelector, null));
+        new UniverseSelector(Selectors.moveNext, null));
 
     visit(node.expression);
 
@@ -4398,7 +4400,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (identifier == null) {
         compiler.reportError(send.selector, MessageKind.INVALID_FOR_IN);
       } else {
-        loopVariableSelector = new Selector.setter(identifier.source, library);
+        loopVariableSelector = new Selector.setter(
+            new Name(identifier.source, library));
       }
       if (send.receiver != null) {
         compiler.reportError(send.receiver, MessageKind.INVALID_FOR_IN);
@@ -4413,7 +4416,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (identifier == null) {
         compiler.reportError(first, MessageKind.INVALID_FOR_IN);
       } else {
-        loopVariableSelector = new Selector.setter(identifier.source, library);
+        loopVariableSelector = new Selector.setter(
+            new Name(identifier.source, library));
         loopVariable = registry.getDefinition(identifier);
       }
     } else {

@@ -104,7 +104,7 @@ class NoSuchMethodRegistry {
   /// implementation. An implementation is complex if it falls into
   /// category C, as described above.
   bool isComplex(FunctionElement element) {
-    assert(element.name == Compiler.NO_SUCH_METHOD);
+    assert(element.name == Identifiers.noSuchMethod_);
     return otherImpls.contains(element);
   }
 
@@ -119,7 +119,7 @@ class NoSuchMethodRegistry {
   }
 
   NsmCategory _categorizeImpl(FunctionElement element) {
-    assert(element.name == Compiler.NO_SUCH_METHOD);
+    assert(element.name == Identifiers.noSuchMethod_);
     if (defaultImpls.contains(element)) {
       return NsmCategory.DEFAULT;
     }
@@ -129,7 +129,7 @@ class NoSuchMethodRegistry {
     if (otherImpls.contains(element)) {
       return NsmCategory.OTHER;
     }
-    if (!_compiler.noSuchMethodSelector.signatureApplies(element)) {
+    if (!Selectors.noSuchMethod_.signatureApplies(element)) {
       otherImpls.add(element);
       return NsmCategory.OTHER;
     }
@@ -140,7 +140,7 @@ class NoSuchMethodRegistry {
       // If the implementation is 'noSuchMethod(x) => super.noSuchMethod(x);'
       // then it is in the same category as the super call.
       Element superCall = element.enclosingClass
-          .lookupSuperByName(_compiler.noSuchMethodSelector.memberName);
+          .lookupSuperByName(Selectors.noSuchMethod_.memberName);
       NsmCategory category = _categorizeImpl(superCall);
       switch(category) {
         case NsmCategory.DEFAULT:
@@ -190,7 +190,7 @@ class NoSuchMethodRegistry {
     if (expr is Send &&
         expr.isSuperCall &&
         expr.selector is Identifier &&
-        (expr.selector as Identifier).source == Compiler.NO_SUCH_METHOD) {
+        (expr.selector as Identifier).source == Identifiers.noSuchMethod_) {
       var arg = expr.arguments.head;
       if (expr.arguments.tail.isEmpty &&
           arg is Send &&

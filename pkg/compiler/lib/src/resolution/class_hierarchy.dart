@@ -201,7 +201,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         registry.registerThrowNoSuchMethod();
       } else {
         ConstructorElement superConstructor = superMember;
-        Selector callToMatch = new Selector.call("", element.library, 0);
+        Selector callToMatch = new Selector.call(const PublicName(''), 0);
         superConstructor.computeType(compiler);
         if (!callToMatch.applies(superConstructor, compiler.world)) {
           MessageKind kind = MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT;

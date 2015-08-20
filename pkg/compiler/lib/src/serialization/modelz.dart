@@ -1233,6 +1233,14 @@ abstract class TypeDeclarationMixin<T extends GenericType>
   List<DartType> _typeVariables;
   T _rawType;
   T _thisType;
+  Name _memberName;
+
+  Name get memberName {
+    if (_memberName == null) {
+      _memberName = new Name(name, library);
+    }
+    return _memberName;
+  }
 
   void _ensureTypes() {
     if (_typeVariables == null) {
@@ -1318,9 +1326,17 @@ class TypeVariableElementZ extends DeserializedElementZ
   TypeDeclarationElement _typeDeclaration;
   TypeVariableType _type;
   DartType _bound;
+  Name _memberName;
 
   TypeVariableElementZ(ObjectDecoder decoder)
       : super(decoder);
+
+  Name get memberName {
+    if (_memberName == null) {
+      _memberName = new Name(name, library);
+    }
+    return _memberName;
+  }
 
   @override
   ElementKind get kind => ElementKind.TYPE_VARIABLE;

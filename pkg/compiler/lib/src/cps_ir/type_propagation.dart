@@ -4,6 +4,8 @@
 
 import 'optimizers.dart';
 
+import '../common/names.dart' show
+    Selectors;
 import '../compiler.dart' as dart2js show
     Compiler;
 import '../constants/constant_system.dart';
@@ -1102,7 +1104,7 @@ class TransformingVisitor extends LeafVisitor {
   }
 
   /// Tries to replace [node] with a direct `length` or index access.
-  /// 
+  ///
   /// Returns `true` if the node was replaced.
   bool specializeIndexableAccess(InvokeMethod node) {
     Primitive receiver = getDartReceiver(node);
@@ -1214,7 +1216,7 @@ class TransformingVisitor extends LeafVisitor {
         return true;
 
       case 'elementAt':
-        if (!node.selector.isCall || 
+        if (!node.selector.isCall ||
             node.selector.positionalArgumentCount != 1 ||
             node.selector.namedArgumentCount != 0) {
           return false;
@@ -1272,16 +1274,14 @@ class TransformingVisitor extends LeafVisitor {
         Continuation iteratorCont = cont;
 
         // Check that all uses of the iterator are 'moveNext' and 'current'.
-        Selector moveNextSelector = new Selector.call('moveNext', null, 0);
-        Selector currentSelector = new Selector.getter('current', null);
-        assert(!isInterceptedSelector(moveNextSelector));
-        assert(!isInterceptedSelector(currentSelector));
+        assert(!isInterceptedSelector(Selectors.moveNext));
+        assert(!isInterceptedSelector(Selectors.current));
         for (Reference ref = iterator.firstRef; ref != null; ref = ref.next) {
           if (ref.parent is! InvokeMethod) return false;
           InvokeMethod use = ref.parent;
           if (ref != use.receiver) return false;
-          if (use.selector != moveNextSelector &&
-              use.selector != currentSelector) {
+          if (use.selector != Selectors.moveNext &&
+              use.selector != Selectors.current) {
             return false;
           }
         }
@@ -1296,7 +1296,7 @@ class TransformingVisitor extends LeafVisitor {
         while (iterator.firstRef != null) {
           InvokeMethod use = iterator.firstRef.parent;
           Continuation useCont = use.continuation.definition;
-          if (use.selector == currentSelector) {
+          if (use.selector == Selectors.current) {
             // Rewrite iterator.current to a use of the 'current' variable.
             Parameter result = useCont.parameters.single;
             if (result.hint != null) {
@@ -1307,7 +1307,7 @@ class TransformingVisitor extends LeafVisitor {
             LetPrim let = makeLetPrimInvoke(new GetMutable(current), useCont);
             replaceSubtree(use, let);
           } else {
-            assert (use.selector == moveNextSelector);
+            assert (use.selector == Selectors.moveNext);
             // Rewrite iterator.moveNext() to:
             //
             //   if (index < list.length) {

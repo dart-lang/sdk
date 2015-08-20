@@ -6,6 +6,8 @@ library dart2js.resolution;
 
 import 'dart:collection' show Queue;
 
+import '../common/names.dart' show
+    Identifiers;
 import '../common/tasks.dart' show
     CompilerTask,
     DeferredAction;
@@ -249,7 +251,7 @@ class ResolverTask extends CompilerTask {
 
       // TODO(9631): support noSuchMethod on native classes.
       if (Elements.isInstanceMethod(element) &&
-          element.name == Compiler.NO_SUCH_METHOD &&
+          element.name == Identifiers.noSuchMethod_ &&
           _isNativeClassOrExtendsNativeClass(enclosingClass)) {
         error(tree, MessageKind.NO_SUCH_METHOD_IN_NATIVE);
       }
@@ -616,7 +618,7 @@ class ResolverTask extends CompilerTask {
       }
     });
 
-    computeClassMember(element, Compiler.CALL_OPERATOR_NAME);
+    computeClassMember(element, Identifiers.call);
   }
 
   void computeClassMembers(ClassElement element) {

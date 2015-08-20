@@ -872,7 +872,7 @@ testPatchAndSelector() {
 
     // Check that a method just in the patch class is a target for a
     // typed selector.
-    Selector selector = new Selector.call('method', compiler.coreLibrary, 0);
+    Selector selector = new Selector.call(const PublicName('method'), 0);
     TypeMask typeMask = new TypeMask.exact(cls, world);
     FunctionElement method = cls.implementation.lookupLocalMember('method');
     method.computeType(compiler);
@@ -881,7 +881,7 @@ testPatchAndSelector() {
 
     // Check that the declaration method in the declaration class is a target
     // for a typed selector.
-    selector = new Selector.call('clear', compiler.coreLibrary, 0);
+    selector = new Selector.call(const PublicName('clear'), 0);
     typeMask = new TypeMask.exact(cls, world);
     method = cls.lookupLocalMember('clear');
     method.computeType(compiler);
