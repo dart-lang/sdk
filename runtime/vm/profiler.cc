@@ -965,11 +965,6 @@ void Profiler::RecordAllocation(Isolate* isolate, intptr_t cid) {
 
   const bool exited_dart_code = ExitedDart(isolate);
 
-  if (!exited_dart_code && !FLAG_profile_vm) {
-    // No Dart frames on stack and we are not profiling the vm.
-    return;
-  }
-
   SampleBuffer* sample_buffer = GetSampleBuffer(isolate);
   if (sample_buffer == NULL) {
     // Profiler not initialized.
@@ -1010,14 +1005,22 @@ void Profiler::RecordAllocation(Isolate* isolate, intptr_t cid) {
                                                   fp,
                                                   sp);
     native_stack_walker.walk();
-  } else {
-    ASSERT(exited_dart_code);
+  } else if (exited_dart_code) {
     Sample* sample = SetupSample(isolate,
                                  sample_buffer,
                                  OSThread::GetCurrentThreadId());
     sample->SetAllocationCid(cid);
     ProfilerDartExitStackWalker dart_exit_stack_walker(isolate, sample);
     dart_exit_stack_walker.walk();
+  } else {
+    // Fall back.
+    uintptr_t pc = GetProgramCounter();
+    Sample* sample = SetupSample(isolate,
+                                 sample_buffer,
+                                 OSThread::GetCurrentThreadId());
+    sample->SetAllocationCid(cid);
+    sample->set_vm_tag(VMTag::kEmbedderTagId);
+    sample->SetAt(0, pc);
   }
 }
 
