@@ -116,13 +116,12 @@ class BoolScope : public ValueObject {
 };
 
 
-static RawTypeArguments* NewTypeArguments(const GrowableObjectArray& objs) {
+static RawTypeArguments* NewTypeArguments(
+    const GrowableArray<AbstractType*>& objs) {
   const TypeArguments& a =
-      TypeArguments::Handle(TypeArguments::New(objs.Length()));
-  AbstractType& type = AbstractType::Handle();
-  for (int i = 0; i < objs.Length(); i++) {
-    type ^= objs.At(i);
-    a.SetTypeAt(i, type);
+      TypeArguments::Handle(TypeArguments::New(objs.length()));
+  for (int i = 0; i < objs.length(); i++) {
+    a.SetTypeAt(i, *objs.At(i));
   }
   // Cannot canonicalize TypeArgument yet as its types may not have been
   // finalized yet.
@@ -5211,8 +5210,7 @@ void Parser::SkipType(bool allow_void) {
 void Parser::ParseTypeParameters(const Class& cls) {
   TRACE_PARSER("ParseTypeParameters");
   if (CurrentToken() == Token::kLT) {
-    const GrowableObjectArray& type_parameters_array =
-        GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+    GrowableArray<AbstractType*> type_parameters_array;
     intptr_t index = 0;
     TypeParameter& type_parameter = TypeParameter::Handle(Z);
     TypeParameter& existing_type_parameter = TypeParameter::Handle(Z);
@@ -5228,7 +5226,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
           *ExpectUserDefinedTypeIdentifier("type parameter expected");
       // Check for duplicate type parameters.
       for (intptr_t i = 0; i < index; i++) {
-        existing_type_parameter ^= type_parameters_array.At(i);
+        existing_type_parameter ^= type_parameters_array.At(i)->raw();
         existing_type_parameter_name = existing_type_parameter.name();
         if (existing_type_parameter_name.Equals(type_parameter_name)) {
           ReportError(type_parameter_pos, "duplicate type parameter '%s'",
@@ -5250,7 +5248,8 @@ void Parser::ParseTypeParameters(const Class& cls) {
                                           type_parameter_name,
                                           type_parameter_bound,
                                           declaration_pos);
-      type_parameters_array.Add(type_parameter);
+      type_parameters_array.Add(
+          &AbstractType::ZoneHandle(Z, type_parameter.raw()));
       if (metadata_pos >= 0) {
         library_.AddTypeParameterMetadata(type_parameter, metadata_pos);
       }
@@ -5285,8 +5284,7 @@ RawTypeArguments* Parser::ParseTypeArguments(
     ClassFinalizer::FinalizationKind finalization) {
   TRACE_PARSER("ParseTypeArguments");
   if (CurrentToken() == Token::kLT) {
-    const GrowableObjectArray& types =
-        GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+    GrowableArray<AbstractType*> types;
     AbstractType& type = AbstractType::Handle(Z);
     do {
       ConsumeToken();
@@ -5295,7 +5293,7 @@ RawTypeArguments* Parser::ParseTypeArguments(
       if (type.IsMalformed()) {
         type = Type::DynamicType();
       }
-      types.Add(type);
+      types.Add(&AbstractType::ZoneHandle(Z, type.raw()));
     } while (CurrentToken() == Token::kCOMMA);
     Token::Kind token = CurrentToken();
     if ((token == Token::kGT) || (token == Token::kSHR)) {
