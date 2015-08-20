@@ -756,7 +756,7 @@ will be the _OptimizedOut_ [Sentinel](#sentinel).
 ### Breakpoint
 
 ```
-class Breakpoint extends Response {
+class Breakpoint extends Object {
   int breakpointNumber;
   bool resolved;
   SourceLocation location;
@@ -782,7 +782,7 @@ class Class extends Object {
   string name;
 
   // The error which occurred during class finalization, if it exists.
-  @Instance error [optional];
+  @Error error [optional];
 
   // Is this an abstract class?
   bool abstract;
@@ -1164,11 +1164,8 @@ A _Flag_ represents a single VM command line flag.
 
 ```
 class FlagList extends Response {
-  // A list of all flags which are set to default values.
-  Flag[] unmodifiedFlags;
-
-  // A list of all flags which have been modified by the user.
-  Flag[] modifiedFlags;
+  // A list of all flags in the VM.
+  Flag[] flags;
 }
 ```
 
@@ -1181,8 +1178,7 @@ class Frame extends Response {
   int index;
   @Function function;
   @Code code;
-  @Script script;
-  int tokenPos;
+  SourceLocation location;
   BoundVariable[] vars;
 }
 ```
