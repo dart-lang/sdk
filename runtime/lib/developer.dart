@@ -29,14 +29,14 @@ patch void log(String message,
   } else {
     _nextSequenceNumber = sequenceNumber + 1;
   }
-  return _log(message,
-              time.millisecondsSinceEpoch,
-              sequenceNumber,
-              level,
-              name,
-              zone,
-              error,
-              stackTrace);
+  _log(message,
+       time.millisecondsSinceEpoch,
+       sequenceNumber,
+       level,
+       name,
+       zone,
+       error,
+       stackTrace);
 }
 
 int _nextSequenceNumber = 0;
