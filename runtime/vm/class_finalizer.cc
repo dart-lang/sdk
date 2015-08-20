@@ -1642,8 +1642,7 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
       for (intptr_t i = 0; i < num_super_type_params; i++) {
         param ^= super_type_params.TypeAt(i);
         param_name = param.name();
-        param_name = String::Concat(param_name, Symbols::Backtick());
-        param_name = Symbols::New(param_name);
+        param_name = Symbols::FromConcat(param_name, Symbols::Backtick());
         cloned_param = TypeParameter::New(mixin_app_class,
                                           cloned_index,
                                           param_name,
@@ -2104,8 +2103,7 @@ void ClassFinalizer::CreateForwardingConstructors(
       const String& ctor_name = String::Handle(func.name());
       String& clone_name = String::Handle(
           String::SubString(ctor_name, super_name.Length()));
-      clone_name = String::Concat(mixin_name, clone_name);
-      clone_name = Symbols::New(clone_name);
+      clone_name = Symbols::FromConcat(mixin_name, clone_name);
 
       if (FLAG_trace_class_finalization) {
         ISL_Print("Cloning constructor '%s' as '%s'\n",

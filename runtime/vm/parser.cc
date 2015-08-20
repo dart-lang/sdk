@@ -1121,8 +1121,7 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
 
   const String& field_name = String::Handle(zone, field.name());
   String& init_name = String::Handle(zone,
-      String::Concat(Symbols::InitPrefix(), field_name));
-  init_name = Symbols::New(init_name);
+      Symbols::FromConcat(Symbols::InitPrefix(), field_name));
 
   const Function& initializer = Function::ZoneHandle(zone,
       Function::New(init_name,
@@ -4840,8 +4839,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
 void Parser::AddImplicitConstructor(const Class& cls) {
   // The implicit constructor is unnamed, has no explicit parameter.
   String& ctor_name = String::ZoneHandle(Z, cls.Name());
-  ctor_name = String::Concat(ctor_name, Symbols::Dot());
-  ctor_name = Symbols::New(ctor_name);
+  ctor_name = Symbols::FromConcat(ctor_name, Symbols::Dot());
   // To indicate that this is an implicit constructor, we set the
   // token position and end token position of the function
   // to the token position of the class.
@@ -11677,8 +11675,7 @@ AstNode* Parser::ParseClosurization(AstNode* primary) {
   if (is_setter_name) {
     extractor_name = String::Concat(Symbols::SetterPrefix(), extractor_name);
   }
-  extractor_name = String::Concat(Symbols::HashMark(), extractor_name);
-  extractor_name = Symbols::New(extractor_name);
+  extractor_name = Symbols::FromConcat(Symbols::HashMark(), extractor_name);
   return new(Z) InstanceGetterNode(property_pos, primary, extractor_name);
 }
 
@@ -13044,9 +13041,10 @@ static String& BuildConstructorName(const String& type_class_name,
   // unnamed constructor for class 'A' is labeled 'A.'.
   // This convention prevents users from explicitly calling constructors.
   String& constructor_name =
-      String::Handle(String::Concat(type_class_name, Symbols::Dot()));
+      String::Handle(Symbols::FromConcat(type_class_name, Symbols::Dot()));
   if (named_constructor != NULL) {
-    constructor_name = String::Concat(constructor_name, *named_constructor);
+    constructor_name =
+        Symbols::FromConcat(constructor_name, *named_constructor);
   }
   return constructor_name;
 }
@@ -13663,8 +13661,7 @@ AstNode* Parser::ParsePrimary() {
           // field access.
           String& qualified_name = String::ZoneHandle(Z, prefix.name());
           qualified_name = String::Concat(qualified_name, Symbols::Dot());
-          qualified_name = String::Concat(qualified_name, ident);
-          qualified_name = Symbols::New(qualified_name);
+          qualified_name = Symbols::FromConcat(qualified_name, ident);
           InvocationMirror::Type call_type =
               CurrentToken() == Token::kLPAREN ?
                   InvocationMirror::kMethod : InvocationMirror::kGetter;
@@ -13680,8 +13677,7 @@ AstNode* Parser::ParsePrimary() {
         // primary != NULL.
         String& qualified_name = String::ZoneHandle(Z, prefix.name());
         qualified_name = String::Concat(qualified_name, Symbols::Dot());
-        qualified_name = String::Concat(qualified_name, ident);
-        qualified_name = Symbols::New(qualified_name);
+        qualified_name = Symbols::FromConcat(qualified_name, ident);
         InvocationMirror::Type call_type =
             CurrentToken() == Token::kLPAREN ?
                 InvocationMirror::kMethod : InvocationMirror::kGetter;

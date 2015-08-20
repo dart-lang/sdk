@@ -7154,7 +7154,7 @@ void RedirectionData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 RawString* Field::GetterName(const String& field_name) {
-  return String::Concat(Symbols::GetterPrefix(), field_name);
+  return Field::GetterSymbol(field_name);
 }
 
 

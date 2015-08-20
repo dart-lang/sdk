@@ -383,7 +383,13 @@ RawString* Symbols::FromUTF32(const int32_t* utf32_array, intptr_t len) {
 
 
 RawString* Symbols::FromConcat(const String& str1, const String& str2) {
-  return NewSymbol(ConcatString(str1, str2));
+  if (str1.Length() == 0) {
+    return New(str2);
+  } else if (str2.Length() == 0) {
+    return New(str1);
+  } else {
+    return NewSymbol(ConcatString(str1, str2));
+  }
 }
 
 
