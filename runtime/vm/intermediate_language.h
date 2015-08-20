@@ -3473,7 +3473,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
                           Value* value,
                           StoreBarrierType emit_store_barrier,
                           intptr_t token_pos)
-      : field_(Field::Handle()),
+      : field_(Field::ZoneHandle()),
         offset_in_bytes_(offset_in_bytes),
         emit_store_barrier_(emit_store_barrier),
         token_pos_(token_pos),
@@ -3875,7 +3875,7 @@ class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
   StringInterpolateInstr(Value* value, intptr_t token_pos)
       : TemplateDefinition(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
-        function_(Function::Handle()) {
+        function_(Function::ZoneHandle()) {
     SetInputAt(0, value);
   }
 

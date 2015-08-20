@@ -1513,7 +1513,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                      *StubCode::CallStaticFunction_entry(),
                      RawPcDescriptors::kOther,
                      locs);
-    const Function& function = Function::Handle(zone(), ic_data.GetTargetAt(0));
+    const Function& function = Function::ZoneHandle(
+        zone(), ic_data.GetTargetAt(0));
     AddStaticCallTarget(function);
     __ Drop(argument_count, RCX);
     if (kNumChecks > 1) {

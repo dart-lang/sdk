@@ -1141,7 +1141,7 @@ RawError* Compiler::CompileFunction(Thread* thread,
 
 
 RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
-                                     const Function& function) {
+                                          const Function& function) {
   if (function.unoptimized_code() != Object::null()) {
     return Error::null();
   }

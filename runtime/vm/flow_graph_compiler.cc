@@ -174,9 +174,7 @@ FlowGraphCompiler::FlowGraphCompiler(
         stackmap_table_builder_(NULL),
         block_info_(block_order_.length()),
         deopt_infos_(),
-        static_calls_target_table_(GrowableObjectArray::ZoneHandle(
-            // TODO(srdjan): Zone-allocate this array instead?
-            GrowableObjectArray::New(Heap::kOld))),
+        static_calls_target_table_(),
         is_optimizing_(is_optimizing),
         may_reoptimize_(false),
         intrinsic_mode_(false),
@@ -718,26 +716,16 @@ void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
 
 
 void FlowGraphCompiler::AddStaticCallTarget(const Function& func) {
-  ASSERT(Code::kSCallTableEntryLength == 3);
-  ASSERT(Code::kSCallTableOffsetEntry == 0);
+  ASSERT(func.IsZoneHandle());
   static_calls_target_table_.Add(
-      Smi::Handle(Smi::New(assembler()->CodeSize())));
-  ASSERT(Code::kSCallTableFunctionEntry == 1);
-  static_calls_target_table_.Add(func);
-  ASSERT(Code::kSCallTableCodeEntry == 2);
-  static_calls_target_table_.Add(Code::Handle());
+      StaticCallsStruct(assembler()->CodeSize(), &func, NULL));
 }
 
 
 void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
-  ASSERT(Code::kSCallTableEntryLength == 3);
-  ASSERT(Code::kSCallTableOffsetEntry == 0);
+  ASSERT(code.IsZoneHandle());
   static_calls_target_table_.Add(
-      Smi::Handle(Smi::New(assembler()->CodeSize())));
-  ASSERT(Code::kSCallTableFunctionEntry == 1);
-  static_calls_target_table_.Add(Function::Handle());
-  ASSERT(Code::kSCallTableCodeEntry == 2);
-  static_calls_target_table_.Add(code);
+      StaticCallsStruct(assembler()->CodeSize(), NULL, &code));
 }
 
 
@@ -1001,8 +989,23 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
 
 void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
   ASSERT(code.static_calls_target_table() == Array::null());
-  const Array& targets =
-      Array::Handle(Array::MakeArray(static_calls_target_table_));
+  const Array& targets = Array::Handle(zone(), Array::New(
+      (static_calls_target_table_.length() * Code::kSCallTableEntryLength),
+      Heap::kOld));
+  Smi& smi_offset = Smi::Handle(zone());
+  for (intptr_t i = 0; i < static_calls_target_table_.length(); i++) {
+    const intptr_t target_ix = Code::kSCallTableEntryLength * i;
+    smi_offset = Smi::New(static_calls_target_table_[i].offset);
+    targets.SetAt(target_ix + Code::kSCallTableOffsetEntry, smi_offset);
+    if (static_calls_target_table_[i].function != NULL) {
+      targets.SetAt(target_ix + Code::kSCallTableFunctionEntry,
+          *static_calls_target_table_[i].function);
+    }
+    if (static_calls_target_table_[i].code != NULL) {
+      targets.SetAt(target_ix + Code::kSCallTableCodeEntry,
+          *static_calls_target_table_[i].code);
+    }
+  }
   code.set_static_calls_target_table(targets);
   INC_STAT(isolate(), total_code_size, targets.Length() * sizeof(uword));
 }

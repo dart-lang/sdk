@@ -1812,16 +1812,14 @@ class BoxAllocationSlowPath : public SlowPathCode {
         result_(result) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    Isolate* isolate = compiler->isolate();
-
     if (Assembler::EmittingComments()) {
       __ Comment("%s slow path allocation of %s",
                  instruction_->DebugName(),
                  String::Handle(cls_.PrettyName()).ToCString());
     }
     __ Bind(entry_label());
-    const Code& stub =
-        Code::Handle(isolate, StubCode::GetAllocationStubForClass(cls_));
+    const Code& stub = Code::ZoneHandle(
+        compiler->zone(), StubCode::GetAllocationStubForClass(cls_));
     const StubEntry stub_entry(stub);
 
     LocationSummary* locs = instruction_->locs();
@@ -2394,8 +2392,8 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       return;
     }
   }
-  const Code& stub = Code::Handle(compiler->isolate(),
-                                  StubCode::AllocateArray_entry()->code());
+  const Code& stub = Code::ZoneHandle(compiler->zone(),
+                                      StubCode::AllocateArray_entry()->code());
   compiler->AddStubCallTarget(stub);
   compiler->GenerateCall(token_pos(),
                          *StubCode::AllocateArray_entry(),
@@ -2684,8 +2682,8 @@ class AllocateContextSlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
 
     __ LoadImmediate(R1, instruction_->num_context_variables());
-    const Code& stub = Code::Handle(compiler->isolate(),
-                                    StubCode::AllocateContext_entry()->code());
+    const Code& stub = Code::ZoneHandle(
+        compiler->zone(), StubCode::AllocateContext_entry()->code());
     compiler->AddStubCallTarget(stub);
     compiler->GenerateCall(instruction_->token_pos(),
                            *StubCode::AllocateContext_entry(),
@@ -6812,9 +6810,8 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
 
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Isolate* isolate = compiler->isolate();
-  const Code& stub = Code::Handle(isolate,
-                                  StubCode::GetAllocationStubForClass(cls()));
+  const Code& stub = Code::ZoneHandle(
+      compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
   const StubEntry stub_entry(stub);
   compiler->GenerateCall(token_pos(),
                          stub_entry,
