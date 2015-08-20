@@ -1,0 +1,19 @@
+# Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+install:
+# TODO: Switch back to chocolatey once 1.12.0 is available.
+#  - choco install -y dart-sdk -version 1.11.1
+  - ps: wget https://gsdview.appspot.com/dart-archive/channels/dev/raw/latest/sdk/dartsdk-windows-x64-release.zip -OutFile dart-sdk.zip
+  - cmd: echo "Unzipping dart-sdk..."
+  - cmd: 7z x dart-sdk.zip -o"C:\tools" -y > nul
+  - set PATH=%PATH%;C:\tools\dart-sdk\bin
+  - set PATH=%PATH%;%APPDATA%\Pub\Cache\bin
+  - pub get
+
+build: off
+
+test_script:
+#  - pub run test -j1
+  - dart test\all.dart
