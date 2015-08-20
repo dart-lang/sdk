@@ -25,11 +25,35 @@ class Isolate {
   static Future<Isolate> spawn(void entryPoint(message), var message,
                                {bool paused: false, bool errorsAreFatal,
                                 SendPort onExit, SendPort onError}) {
+    bool forcePause = (errorsAreFatal != null) ||
+                      (onExit != null) ||
+                      (onError != null);
     try {
-      return IsolateNatives.spawnFunction(entryPoint, message, paused)
-          .then((msg) => new Isolate(msg[1],
-                                     pauseCapability: msg[2],
-                                     terminateCapability: msg[3]));
+      // TODO: Consider passing the errorsAreFatal/onExit/onError values
+      //       as arguments to the internal spawnUri instead of setting
+      //       them after the isolate has been created.
+      return IsolateNatives.spawnFunction(entryPoint, message,
+                                          paused || forcePause)
+          .then((msg) {
+            var isolate = new Isolate(msg[1],
+                                      pauseCapability: msg[2],
+                                      terminateCapability: msg[3]);
+            if (forcePause) {
+              if (errorsAreFatal != null) {
+                isolate.setErrorsFatal(errorsAreFatal);
+              }
+              if (onExit != null) {
+                isolate.addOnExitListener(onExit);
+              }
+              if (onError != null) {
+                isolate.addErrorListener(onError);
+              }
+              if (!paused) {
+                isolate.resume(isolate.pauseCapability);
+              }
+            }
+            return isolate;
+          });
     } catch (e, st) {
       return new Future<Isolate>.error(e, st);
     }
@@ -41,6 +65,9 @@ class Isolate {
       {bool paused: false, bool checked, Uri packageRoot, bool errorsAreFatal,
        SendPort onExit, SendPort onError}) {
     if (packageRoot != null) throw new UnimplementedError("packageRoot");
+    bool forcePause = (errorsAreFatal != null) ||
+                      (onExit != null) ||
+                      (onError != null);
     try {
       if (args is List<String>) {
         for (int i = 0; i < args.length; i++) {
@@ -51,10 +78,30 @@ class Isolate {
       } else if (args != null) {
         throw new ArgumentError("Args must be a list of Strings $args");
       }
-      return IsolateNatives.spawnUri(uri, args, message, paused)
-          .then((msg) => new Isolate(msg[1],
-                                     pauseCapability: msg[2],
-                                     terminateCapability: msg[3]));
+      // TODO: Consider passing the errorsAreFatal/onExit/onError values
+      //       as arguments to the internal spawnUri instead of setting
+      //       them after the isolate has been created.
+      return IsolateNatives.spawnUri(uri, args, message, paused || forcePause)
+          .then((msg) {
+            var isolate = new Isolate(msg[1],
+                                      pauseCapability: msg[2],
+                                      terminateCapability: msg[3]);
+            if (forcePause) {
+              if (errorsAreFatal != null) {
+                isolate.setErrorsFatal(errorsAreFatal);
+              }
+              if (onExit != null) {
+                isolate.addOnExitListener(onExit);
+              }
+              if (onError != null) {
+                isolate.addErrorListener(onError);
+              }
+              if (!paused) {
+                isolate.resume(isolate.pauseCapability);
+              }
+            }
+            return isolate;
+          });
     } catch (e, st) {
       return new Future<Isolate>.error(e, st);
     }

@@ -66,9 +66,9 @@ String extractParameter(String argument, {bool isOptionalArgument: false}) {
   return m[2];
 }
 
-String extractPath(String argument) {
+String extractPath(String argument, {bool isDirectory: true}) {
   String path = nativeToUriPath(extractParameter(argument));
-  return path.endsWith("/") ? path : "$path/";
+  return !path.endsWith("/") && isDirectory ? "$path/" : path;
 }
 
 void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
@@ -143,7 +143,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
 
   setPackageConfig(String argument) {
-    packageConfig = currentDirectory.resolve(extractPath(argument));
+    packageConfig =
+        currentDirectory.resolve(extractPath(argument, isDirectory: false));
   }
 
   setOutput(Iterator<String> arguments) {

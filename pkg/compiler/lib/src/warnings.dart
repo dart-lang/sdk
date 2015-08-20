@@ -252,6 +252,7 @@ enum MessageKind {
   INVALID_OVERRIDE_METHOD,
   INVALID_OVERRIDE_SETTER,
   INVALID_OVERRIDE_SETTER_WITH_FIELD,
+  INVALID_PACKAGE_CONFIG,
   INVALID_PACKAGE_URI,
   INVALID_PARAMETER,
   INVALID_RECEIVER_IN_INITIALIZER,
@@ -2223,6 +2224,13 @@ import '../../Udyn[mic ils/expect.dart';
 
 main() {}
 """]),
+
+      MessageKind.INVALID_PACKAGE_CONFIG:
+          const MessageTemplate(MessageKind.INVALID_PACKAGE_CONFIG,
+            """Package config file '#{uri}' is invalid.
+#{exception}""",
+            howToFix: DONT_KNOW_HOW_TO_FIX
+      ),
 
       MessageKind.INVALID_PACKAGE_URI:
         const MessageTemplate(MessageKind.INVALID_PACKAGE_URI,

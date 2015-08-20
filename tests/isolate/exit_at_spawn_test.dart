@@ -9,9 +9,30 @@ import "dart:async";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
+// Isolate exiting immediately.
 isomain(args) {}
 
+// Isolate exiting after running microtasks.
+isomain2(args) {
+  scheduleMicrotask((){});
+}
+
+// Isolate exiting after running timers.
+isomain3(args) {
+  new Timer(Duration.ZERO, (){});
+}
+
 main(){
+  asyncStart();
+
+  test(isomain);
+  test(isomain2);
+  test(isomain3);
+
+  asyncEnd();
+}
+
+void test(mainFunction) {
   asyncStart();
 
   RawReceivePort exitPort = new RawReceivePort();
@@ -20,8 +41,8 @@ main(){
     exitPort.close();
     asyncEnd();
   };
-  
-  Isolate.spawn(isomain,
+
+  Isolate.spawn(mainFunction,
                 null,
                 // Setup handler as part of spawn.
                 errorsAreFatal: false,
