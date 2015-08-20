@@ -1264,18 +1264,6 @@ export 'lib2.dart';''');
     verify([source]);
   }
 
-  void test_exportDuplicatedLibraryUnnamed() {
-    Source source = addSource(r'''
-library test;
-export 'lib1.dart';
-export 'lib2.dart';''');
-    addNamedSource("/lib1.dart", "");
-    addNamedSource("/lib2.dart", "");
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_UNNAMED]);
-    verify([source]);
-  }
-
   void test_extraPositionalArguments() {
     Source source = addSource(r'''
 f() {}
@@ -1482,22 +1470,6 @@ import 'lib2.dart';''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [
       StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED,
-      HintCode.UNUSED_IMPORT,
-      HintCode.UNUSED_IMPORT
-    ]);
-    verify([source]);
-  }
-
-  void test_importDuplicatedLibraryUnnamed() {
-    Source source = addSource(r'''
-library test;
-import 'lib1.dart';
-import 'lib2.dart';''');
-    addNamedSource("/lib1.dart", "");
-    addNamedSource("/lib2.dart", "");
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [
-      StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_UNNAMED,
       HintCode.UNUSED_IMPORT,
       HintCode.UNUSED_IMPORT
     ]);
