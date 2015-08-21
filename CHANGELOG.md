@@ -1,3 +1,7 @@
+# 0.1.2
+
+* Fixed false positives in `unnecessary_brace_in_string_interp` lint. Fix #112.
+
 # 0.1.1
 
 * Internal code and dependency constraint cleanup.
