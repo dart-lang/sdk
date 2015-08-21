@@ -1668,6 +1668,17 @@ class SimpleTypeInferrerVisitor<T>
     return handleConstructorSend(node.send, element);
   }
 
+  @override
+  T errorNonConstantConstructorInvoke(
+      ast.NewExpression node,
+      Element element,
+      DartType type,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return bulkHandleNew(node, _);
+  }
+
   /// Handle invocation of a top level or static field or getter [element].
   T handleStaticFieldOrGetterInvoke(ast.Send node, Element element) {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
