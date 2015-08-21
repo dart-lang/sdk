@@ -59,7 +59,6 @@ class CallPattern : public ValueObject {
   CallPattern(uword pc, const Code& code);
 
   RawICData* IcData();
-  RawArray* ClosureArgumentsDescriptor();
 
   uword TargetAddress() const;
   void SetTargetAddress(uword target_address) const;
@@ -74,11 +73,9 @@ class CallPattern : public ValueObject {
   const ObjectPool& object_pool_;
 
   uword end_;
-  uword args_desc_load_end_;
   uword ic_data_load_end_;
 
   intptr_t target_address_pool_index_;
-  Array& args_desc_;
   ICData& ic_data_;
 
   DISALLOW_COPY_AND_ASSIGN(CallPattern);

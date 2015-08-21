@@ -3628,6 +3628,7 @@ class ObjectPool : public Object {
   // Returns the pool index from the offset relative to a tagged RawObjectPool*,
   // adjusting for the tag-bit.
   static intptr_t IndexFromOffset(intptr_t offset) {
+    ASSERT(Utils::IsAligned(offset + kHeapObjectTag, kWordSize));
     return (offset + kHeapObjectTag - data_offset()) / kBytesPerElement;
   }
 
