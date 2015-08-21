@@ -216,12 +216,12 @@ const char* Dart::Cleanup() {
   vm_isolate_ = NULL;
 
   TargetCPUFeatures::Cleanup();
+  StoreBuffer::ShutDown();
 #endif
 
   Profiler::Shutdown();
   CodeObservers::DeleteAll();
   Timeline::Shutdown();
-  StoreBuffer::ShutDown();
 
   return NULL;
 }
