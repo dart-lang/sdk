@@ -29,7 +29,9 @@ var tests = [
       isolate.pauseEvent.kind == ServiceEvent.kPauseStart) {
     // Wait for the isolate to hit PauseStart.
     subscription.cancel();
+    print('subscription cancelled.');
   } else {
+    print('waiting for pause start event.');
     await completer.future;
   }
 
@@ -41,12 +43,14 @@ var tests = [
       subscription.cancel();
       completer.complete();
     }
+    print('Got ${event.kind}');
   });
 
   print('Stepping...');
   isolate.stepInto();
 
   // Wait for the isolate to hit PauseBreakpoint.
+  print('Waiting for PauseBreakpoint');
   await completer.future;
 },
 

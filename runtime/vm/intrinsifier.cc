@@ -277,7 +277,7 @@ static void PrepareIndexedOp(BlockBuilder* builder,
       new LoadFieldInstr(new Value(array),
                          length_offset,
                          Type::ZoneHandle(Type::SmiType()),
-                         true));  // immutable
+                         Scanner::kNoSourcePos));
   builder->AddInstruction(
       new CheckArrayBoundInstr(new Value(length),
                                new Value(index),

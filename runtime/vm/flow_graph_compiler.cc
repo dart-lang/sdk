@@ -83,7 +83,6 @@ static void NooptModeHandler(bool value) {
     FLAG_load_deferred_eagerly = true;
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
-    FLAG_collect_code = false;
     FLAG_guess_other_cid = true;
     Compiler::set_always_optimize(true);
     // Triggers assert if we try to recompile (e.g., because of deferred

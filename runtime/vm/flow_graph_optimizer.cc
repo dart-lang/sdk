@@ -771,7 +771,7 @@ void FlowGraphOptimizer::ConvertUse(Value* use, Representation from_rep) {
 void FlowGraphOptimizer::ConvertEnvironmentUse(Value* use,
                                                Representation from_rep) {
   const Representation to_rep = kTagged;
-  if (from_rep == to_rep || to_rep == kNoRepresentation) {
+  if (from_rep == to_rep) {
     return;
   }
   InsertConversion(from_rep, to_rep, use, /*is_environment_use=*/ true);

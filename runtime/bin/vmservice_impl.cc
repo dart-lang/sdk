@@ -313,7 +313,7 @@ Dart_Handle VmService::LoadResource(Dart_Handle library,
   RETURN_ERROR_HANDLE(result);
   ASSERT(data_buffer_length == data_list_buffer_length);
   ASSERT(data_list_buffer != NULL);
-  ASSERT(type = Dart_TypedData_kUint8);
+  ASSERT(type == Dart_TypedData_kUint8);
   memmove(data_list_buffer, &data_buffer[0], data_buffer_length);
   result = Dart_TypedDataReleaseData(data_list);
   RETURN_ERROR_HANDLE(result);

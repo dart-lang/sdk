@@ -58,7 +58,7 @@ class DeoptimizedCodeSet : public ZoneAllocated {
       return false;
     }
     NoSafepointScope no_safepoint_scope;
-    for (intptr_t i = 0; array.Length(); i++) {
+    for (intptr_t i = 0; i < array.Length(); i++) {
       if (code.raw() == array.At(i)) {
         return true;
       }

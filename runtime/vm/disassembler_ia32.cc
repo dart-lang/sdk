@@ -1405,17 +1405,17 @@ int X86Decoder::InstructionDecode(uword pc) {
             data += 5;
           } else if (*(data+2) == 0x80 &&
                      *(data+3) == 0x00 &&
-                     *(data+3) == 0x00 &&
-                     *(data+3) == 0x00 &&
-                     *(data+4) == 0x00) {
+                     *(data+4) == 0x00 &&
+                     *(data+5) == 0x00 &&
+                     *(data+6) == 0x00) {
             Print("nop");
             data += 7;
           } else if (*(data+2) == 0x84 &&
                      *(data+3) == 0x00 &&
-                     *(data+3) == 0x00 &&
-                     *(data+3) == 0x00 &&
-                     *(data+3) == 0x00 &&
-                     *(data+4) == 0x00) {
+                     *(data+4) == 0x00 &&
+                     *(data+5) == 0x00 &&
+                     *(data+6) == 0x00 &&
+                     *(data+7) == 0x00) {
             Print("nop");
             data += 8;
           } else {
