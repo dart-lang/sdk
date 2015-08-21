@@ -1084,6 +1084,10 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, Symbols::_List(), core_lib);
   pending_classes.Add(cls);
   // We cannot use NewNonParameterizedType(cls), because Array is parameterized.
+  // Warning: class _List has not been patched yet. Its declared number of type
+  // parameters is still 0. It will become 1 after patching. The array type
+  // allocated below represents the raw type _List and not _List<E> as we
+  // could expect. Use with caution.
   type ^= Type::New(Object::Handle(isolate, cls.raw()),
                     TypeArguments::Handle(isolate),
                     Scanner::kNoSourcePos);
@@ -1874,7 +1878,7 @@ RawType* Class::SignatureType() const {
   // Return the first canonical signature type if already computed at class
   // finalization time. The optimizer may canonicalize instantiated function
   // types of the same signature class, but these will be added after the
-  // uninstantiated signature class at index 0.
+  // uninstantiated signature class at index 1.
   Array& signature_types = Array::Handle();
   signature_types ^= canonical_types();
   if (signature_types.IsNull()) {
@@ -1884,8 +1888,9 @@ RawType* Class::SignatureType() const {
   // The canonical_types array is initialized to the empty array.
   ASSERT(!signature_types.IsNull());
   if (signature_types.Length() > 0) {
+    ASSERT(signature_types.Length() > 1);
     Type& signature_type = Type::Handle();
-    signature_type ^= signature_types.At(0);
+    signature_type ^= signature_types.At(1);
     ASSERT(!signature_type.IsNull());
     return signature_type.raw();
   }
@@ -3603,20 +3608,32 @@ void Class::set_canonical_types(const Object& value) const {
 }
 
 
-intptr_t Class::NumCanonicalTypes() const {
-  if (CanonicalType() != Type::null()) {
-    return 1;
+RawType* Class::CanonicalType() const {
+  if ((NumTypeArguments() == 0) && !IsSignatureClass()) {
+    return reinterpret_cast<RawType*>(raw_ptr()->canonical_types_);
   }
-  const Object& types = Object::Handle(canonical_types());
-  if (types.IsNull()) {
-    return 0;
+  Array& types = Array::Handle();
+  types ^= canonical_types();
+  if (!types.IsNull() && (types.Length() > 0)) {
+    return reinterpret_cast<RawType*>(types.At(0));
   }
-  intptr_t num_types = Array::Cast(types).Length();
-  while ((num_types > 0) &&
-         (Array::Cast(types).At(num_types - 1) == Type::null())) {
-    num_types--;
+  return reinterpret_cast<RawType*>(Object::null());
+}
+
+
+void Class::SetCanonicalType(const Type& type) const {
+  ASSERT(type.IsCanonical());
+  if ((NumTypeArguments() == 0) && !IsSignatureClass()) {
+    ASSERT((canonical_types() == Object::null() ||
+           (canonical_types() == type.raw())));  // Set during own finalization.
+    set_canonical_types(type);
+  } else {
+    Array& types = Array::Handle();
+    types ^= canonical_types();
+    ASSERT(!types.IsNull() && (types.Length() > 1));
+    ASSERT((types.At(0) == Object::null()) || (types.At(0) == type.raw()));
+    types.SetAt(0, type);
   }
-  return num_types;
 }
 
 
@@ -3626,6 +3643,8 @@ intptr_t Class::FindCanonicalTypeIndex(const Type& needle) const {
     return -1;
   }
   if (needle.raw() == CanonicalType()) {
+    // For a generic type or signature type, there exists another index with the
+    // same type. It will never be returned by this function.
     return 0;
   }
   REUSABLE_OBJECT_HANDLESCOPE(isolate);
@@ -14389,7 +14408,10 @@ RawType* Instance::GetType() const {
     return Type::NullType();
   }
   const Class& cls = Class::Handle(clazz());
-  Type& type = Type::Handle(cls.CanonicalType());
+  Type& type = Type::Handle();
+  if (cls.NumTypeArguments() == 0) {
+    type = cls.CanonicalType();
+  }
   if (type.IsNull()) {
     TypeArguments& type_arguments = TypeArguments::Handle();
     if (cls.NumTypeArguments() > 0) {
@@ -15663,7 +15685,7 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
   // list of canonicalized types.
   // TODO(asiva): Try to re-factor this lookup code to make sharing
   // easy between the 4 versions of this loop.
-  intptr_t index = 0;
+  intptr_t index = 1;  // Slot 0 is reserved for CanonicalType().
   while (index < length) {
     type ^= canonical_types.At(index);
     if (type.IsNull()) {
@@ -15707,10 +15729,11 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
   }
 
   // The type needs to be added to the list. Grow the list if it is full.
-  if (index == length) {
+  if (index >= length) {
+    ASSERT((index == length) || ((index == 1) && (length == 0)));
     const intptr_t new_length = (length > 64) ?
         (length + 64) :
-        ((length == 0) ? 1 : (length * 2));
+        ((length == 0) ? 2 : (length * 2));
     const Array& new_canonical_types = Array::Handle(
         isolate, Array::Grow(canonical_types, new_length, Heap::kOld));
     cls.set_canonical_types(new_canonical_types);
@@ -15719,7 +15742,7 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
     canonical_types.SetAt(index, *this);
   }
 #ifdef DEBUG
-  if ((index == 0) && cls.IsCanonicalSignatureClass()) {
+  if ((index == 1) && cls.IsCanonicalSignatureClass()) {
     // Verify that the first canonical type is the signature type by checking
     // that the type argument vector of the canonical type ends with the
     // uninstantiated type parameters of the signature class. Note that these

@@ -11855,21 +11855,23 @@ bool Parser::ParsingStaticMember() const {
 
 const AbstractType* Parser::ReceiverType(const Class& cls) {
   ASSERT(!cls.IsNull());
-  AbstractType& type = AbstractType::ZoneHandle(Z, cls.CanonicalType());
+  Type& type = Type::ZoneHandle(Z, cls.CanonicalType());
   if (!type.IsNull()) {
-    // This requirement is embedded in 'CanonicalType' function.
-    ASSERT((cls.NumTypeArguments() == 0) && !cls.IsSignatureClass());
     return &type;
   }
-
-  const TypeArguments& type_arguments = TypeArguments::Handle(Z,
-      (cls.NumTypeParameters() > 0) ?
-          cls.type_parameters() : TypeArguments::null());
-  type = Type::New(cls, type_arguments, cls.token_pos());
+  if (cls.IsSignatureClass()) {
+    type = cls.SignatureType();
+  } else {
+    const TypeArguments& type_arguments = TypeArguments::Handle(Z,
+        (cls.NumTypeParameters() > 0) ?
+            cls.type_parameters() : TypeArguments::null());
+    type = Type::New(cls, type_arguments, cls.token_pos());
+  }
   if (cls.is_type_finalized()) {
     type ^= ClassFinalizer::FinalizeType(
         cls, type, ClassFinalizer::kCanonicalizeWellFormed);
     // Note that the receiver type may now be a malbounded type.
+    cls.SetCanonicalType(type);
   }
   return &type;
 }

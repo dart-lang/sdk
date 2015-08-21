@@ -1034,12 +1034,16 @@ class Class : public Object {
     return OFFSET_OF(RawClass, type_arguments_field_offset_in_words_);
   }
 
-  RawType* CanonicalType() const {
-    if ((NumTypeArguments() == 0) && !IsSignatureClass()) {
-      return reinterpret_cast<RawType*>(raw_ptr()->canonical_types_);
-    }
-    return reinterpret_cast<RawType*>(Object::null());
-  }
+  // Returns the cached canonical type of this class, i.e. the canonical type
+  // whose type class is this class and whose type arguments are the
+  // uninstantiated type parameters declared by this class if it is generic,
+  // e.g. Map<K, V>.
+  // Returns Type::null() if the canonical type is not cached yet.
+  RawType* CanonicalType() const;
+
+  // Caches the canonical type of this class.
+  void SetCanonicalType(const Type& type) const;
+
   static intptr_t canonical_types_offset() {
     return OFFSET_OF(RawClass, canonical_types_);
   }
@@ -1193,7 +1197,6 @@ class Class : public Object {
 
   void InsertCanonicalConstant(intptr_t index, const Instance& constant) const;
 
-  intptr_t NumCanonicalTypes() const;
   intptr_t FindCanonicalTypeIndex(const Type& needle) const;
   RawType* CanonicalTypeFromIndex(intptr_t idx) const;
 

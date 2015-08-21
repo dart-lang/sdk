@@ -3980,7 +3980,7 @@ TEST_CASE(TypeGetNonParamtericTypes) {
 }
 
 
-TEST_CASE(TypeGetParamterizedTypes) {
+TEST_CASE(TypeGetParameterizedTypes) {
   const char* kScriptChars =
       "class MyClass0<A, B> {\n"
       "}\n"
