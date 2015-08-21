@@ -1015,6 +1015,10 @@ bool Isolate::MakeRunnable() {
     event->Instant("Runnable");
     event->Complete();
   }
+  if (Service::isolate_stream.enabled()) {
+    ServiceEvent runnableEvent(this, ServiceEvent::kIsolateRunnable);
+    Service::HandleEvent(&runnableEvent);
+  }
   return true;
 }
 
@@ -1704,7 +1708,9 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 
   const Library& lib =
       Library::Handle(object_store()->root_library());
-  jsobj.AddProperty("rootLib", lib);
+  if (!lib.IsNull()) {
+    jsobj.AddProperty("rootLib", lib);
+  }
 
   timer_list().PrintTimersToJSONProperty(&jsobj);
   {

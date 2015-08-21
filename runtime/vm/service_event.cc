@@ -62,6 +62,8 @@ const char* ServiceEvent::KindAsCString() const {
   switch (kind()) {
     case kIsolateStart:
       return "IsolateStart";
+    case kIsolateRunnable:
+      return "IsolateRunnable";
     case kIsolateExit:
       return "IsolateExit";
     case kIsolateUpdate:
@@ -106,6 +108,7 @@ const char* ServiceEvent::KindAsCString() const {
 const char* ServiceEvent::stream_id() const {
   switch (kind()) {
     case kIsolateStart:
+    case kIsolateRunnable:
     case kIsolateExit:
     case kIsolateUpdate:
       return Service::isolate_stream.id();

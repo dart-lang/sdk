@@ -1334,6 +1334,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   void _onEvent(ServiceEvent event) {
     switch(event.kind) {
       case ServiceEvent.kIsolateStart:
+      case ServiceEvent.kIsolateRunnable:
       case ServiceEvent.kIsolateExit:
       case ServiceEvent.kInspect:
         // Handled elsewhere.
@@ -1706,6 +1707,7 @@ Level _findLogLevel(int value) {
 class ServiceEvent extends ServiceObject {
   /// The possible 'kind' values.
   static const kIsolateStart           = 'IsolateStart';
+  static const kIsolateRunnable        = 'IsolateRunnable';
   static const kIsolateExit            = 'IsolateExit';
   static const kIsolateUpdate          = 'IsolateUpdate';
   static const kPauseStart             = 'PauseStart';

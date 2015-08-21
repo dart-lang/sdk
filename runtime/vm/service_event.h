@@ -15,6 +15,7 @@ class ServiceEvent {
  public:
   enum EventKind {
     kIsolateStart,       // New isolate has started
+    kIsolateRunnable,    // Isolate is ready to run
     kIsolateExit,        // Isolate has exited
     kIsolateUpdate,      // Isolate identity information has changed
 

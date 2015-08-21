@@ -620,7 +620,7 @@ The _streamId_ parameter may have the following published values:
 
 streamId | event types provided
 -------- | -----------
-Isolate | IsolateStart, IsolateExit, IsolateUpdate
+Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect
 GC | GC
 
@@ -1016,6 +1016,9 @@ For more information, see [events](#events).
 enum EventKind {
   // Notification that a new isolate has started.
   IsolateStart,
+
+  // Notification that an isolate is ready to run.
+  IsolateRunnable,
 
   // Notification that an isolate has exited.
   IsolateExit,
@@ -1581,9 +1584,6 @@ class Isolate extends Response {
   // Suitable to pass to DateTime.fromMillisecondsSinceEpoch.
   int startTime;
 
-  // The entry function for this isolate.
-  @Function entry [optional];
-
   // The number of live ports for this isolate.
   int livePorts;
 
@@ -1594,17 +1594,26 @@ class Isolate extends Response {
   // running, this will be a resume event.
   Event pauseEvent;
 
-  // The error that is causing this isolate to exit, if applicable.
-  Error error [optional];
+  // The entry function for this isolate.
+  //
+  // Guaranteed to be initialized when the IsolateRunnable event fires.
+  @Function entry [optional];
 
   // The root library for this isolate.
-  @Library rootLib;
+  //
+  // Guaranteed to be initialized when the IsolateRunnable event fires.
+  @Library rootLib [optional];
 
   // A list of all libraries for this isolate.
+  //
+  // Guaranteed to be initialized when the IsolateRunnable event fires.
   @Library[] libraries;
 
   // A list of all breakpoints for this isolate.
   Breakpoint[] breakpoints;
+
+  // The error that is causing this isolate to exit, if applicable.
+  Error error [optional];
 }
 ```
 
