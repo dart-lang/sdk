@@ -102,7 +102,10 @@ void Thread::CleanUp() {
 
 Thread::Thread(bool init_vm_constants)
     : id_(OSThread::GetCurrentThreadId()),
+      thread_interrupt_callback_(NULL),
+      thread_interrupt_data_(NULL),
       isolate_(NULL),
+      heap_(NULL),
       store_buffer_block_(NULL) {
   ClearState();
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
