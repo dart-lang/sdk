@@ -154,11 +154,11 @@ class LibraryResolverWithInference extends LibraryResolver {
       var element = cls.element;
       var type = element.type;
       if (seen.contains(type)) return;
+      seen.add(type);
       for (var supertype in element.allSupertypes) {
         var supertypeClass = typeToDeclaration[supertype];
         if (supertypeClass != null) visit(supertypeClass);
       }
-      seen.add(type);
 
       if (_options.inferFromOverrides) {
         // Infer field types from overrides first, otherwise from initializers.
@@ -466,7 +466,10 @@ class RestrictedResolverVisitor extends ResolverVisitor {
     var element = node.element;
     if (element is FieldFormalParameterElement) {
       if (element.type.isDynamic) {
-        element.type = element.field.type;
+        // In malformed code, there may be no actual field.
+        if (element.field != null) {
+          element.type = element.field.type;
+        }
       }
     }
     super.visitFieldFormalParameter(node);

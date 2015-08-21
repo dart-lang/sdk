@@ -264,7 +264,8 @@ class RestrictedRules extends TypeRules {
       return true;
     }
 
-    throw new StateError("Unexpected type");
+    // We should not see any other type aside from malformed code.
+    return false;
   }
 
   /// Check that f1 is a subtype of f2. [ignoreReturn] is used in the DDC
@@ -407,6 +408,10 @@ class RestrictedRules extends TypeRules {
       return isSubTypeOf(bound, t2);
     }
 
+    if (t2 is TypeParameterType) {
+      return false;
+    }
+
     if (t2.isDartCoreFunction) {
       if (t1 is FunctionType) return true;
       if (t1.element is ClassElement) {
@@ -513,6 +518,10 @@ class RestrictedRules extends TypeRules {
   }
 
   DartType elementType(Element e) {
+    if (e == null) {
+      // Malformed code - just return dynamic.
+      return provider.dynamicType;
+    }
     return (e as dynamic).type;
   }
 
@@ -704,6 +713,7 @@ class DownwardsInference {
     // Check that we were not passed any type arguments
     if (classTypeName.typeArguments != null) return false;
     // Infer type arguments
+    if (t is! InterfaceType) return false;
     var targs = _matchTypes(type, t);
     if (targs == null) return false;
     if (e.staticElement == null) return false;

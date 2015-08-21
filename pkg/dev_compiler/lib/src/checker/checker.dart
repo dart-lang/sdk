@@ -83,12 +83,14 @@ class _OverrideChecker {
   void _checkSuperOverrides(ClassDeclaration node) {
     var seen = new Set<String>();
     var current = node.element.type;
+    var visited = new Set<InterfaceType>();
     do {
+      visited.add(current);
       current.mixins.reversed
           .forEach((m) => _checkIndividualOverridesFromClass(node, m, seen));
       _checkIndividualOverridesFromClass(node, current.superclass, seen);
       current = current.superclass;
-    } while (!current.isObject);
+    } while (!current.isObject && !visited.contains(current));
   }
 
   /// Checks that implementations correctly override all reachable interfaces.
@@ -152,9 +154,20 @@ class _OverrideChecker {
   /// invalid override, for [InterfaceType]s we use [errorLocation] instead.
   void _checkInterfacesOverrides(
       cls, Iterable<InterfaceType> interfaces, Set<String> seen,
-      {bool includeParents: true, AstNode errorLocation}) {
+      {Set<InterfaceType> visited,
+      bool includeParents: true,
+      AstNode errorLocation}) {
     var node = cls is ClassDeclaration ? cls : null;
     var type = cls is InterfaceType ? cls : node.element.type;
+
+    if (visited == null) {
+      visited = new Set<InterfaceType>();
+    } else if (visited.contains(type)) {
+      // Malformed type.
+      return;
+    } else {
+      visited.add(type);
+    }
 
     // Check direct overrides on [type]
     for (var interfaceType in interfaces) {
@@ -186,7 +199,7 @@ class _OverrideChecker {
       // No need to copy [seen] here because we made copies above when reporting
       // errors on mixins.
       _checkInterfacesOverrides(parent, interfaces, seen,
-          includeParents: true, errorLocation: loc);
+          visited: visited, includeParents: true, errorLocation: loc);
     }
   }
 
@@ -232,6 +245,7 @@ class _OverrideChecker {
           var setter = element.setter;
           bool found = _checkSingleOverride(getter, baseType, variable, member);
           if (!variable.isFinal &&
+              !variable.isConst &&
               _checkSingleOverride(setter, baseType, variable, member)) {
             found = true;
           }
@@ -389,10 +403,12 @@ class CodeChecker extends RecursiveAstVisitor {
         : rules.provider.iterableType;
     var loopVariable = node.identifier != null
         ? node.identifier
-        : node.loopVariable.identifier;
-    var iteratorType = loopVariable.staticType;
-    var checkedType = iterableType.substitute4([iteratorType]);
-    checkAssignment(expr, checkedType);
+        : node.loopVariable?.identifier;
+    if (loopVariable != null) {
+      var iteratorType = loopVariable.staticType;
+      var checkedType = iterableType.substitute4([iteratorType]);
+      checkAssignment(expr, checkedType);
+    }
     node.visitChildren(this);
   }
 
