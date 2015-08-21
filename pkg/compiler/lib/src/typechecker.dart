@@ -1041,6 +1041,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       Element receiverElement = elements[node.receiver];
       if (receiverElement != null) {
         if (receiverElement.isPrefix) {
+          if (node.isConditional) {
+            // Skip cases like `prefix?.topLevel`.
+            return const DynamicAccess();
+          }
           assert(invariant(node, element != null,
               message: 'Prefixed node has no element.'));
           return computeResolvedAccess(node, name, element, memberKind);

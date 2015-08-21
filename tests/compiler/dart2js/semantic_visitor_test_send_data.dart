@@ -138,6 +138,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test(
         '''
         class C {
+          var o;
+        }
+        m() { C.o = 42; }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test(
+        '''
+        class C {
           C.o();
         }
         m() => C.o;
@@ -300,14 +310,13 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.ERROR_INVALID_INVOKE,
                     error: MessageKind.THIS_PROPERTY,
                     arguments: '(null,42)')),
-    // TODO(johnniwinther): Expect [VISIT_FINAL_STATIC_FIELD_SET] instead.
     const Test(
         '''
         class C { static final o = 0; }
         m() { C.o = 42; }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
+                    element: 'field(C#o)',
                     rhs: '42')),
     const Test.clazz(
         '''
@@ -326,8 +335,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { C.o = 42; }
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
+                    element: 'field(C#o)',
                     rhs: '42')),
     const Test.prefix(
         '''
@@ -336,16 +345,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         'm() { p.C.o = 42; }',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
+                    element: 'field(C#o)',
                     rhs: '42')),
     const Test(
         '''
         class C { static const o = 0; }
         m() { C.o = 42; }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
+                    element: 'field(C#o)',
                     rhs: '42')),
     const Test.clazz(
         '''
@@ -364,8 +373,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { C.o = 42; }
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
+                    element: 'field(C#o)',
                     rhs: '42')),
     const Test.prefix(
         '''
@@ -374,8 +383,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         'm() { p.C.o = 42; }',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
+                    element: 'field(C#o)',
                     rhs: '42')),
   ],
   'Static properties': const [
@@ -416,14 +425,13 @@ const Map<String, List<Test>> SEND_TESTS = const {
         'm() => p.C.o;',
         const Visit(VisitKind.VISIT_STATIC_GETTER_GET,
                     element: 'getter(C#o)')),
-    // TODO(johnniwinther): Expected [VISIT_STATIC_GETTER_SET] instead.
     const Test(
         '''
         class C { static get o => 42; }
         m() { C.o = 42; }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_STATIC_GETTER_SET,
+                    element: 'getter(C#o)',
                     rhs: '42')),
     const Test.clazz(
         '''
@@ -442,8 +450,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { C.o = 42; }
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_STATIC_GETTER_SET,
+                    element: 'getter(C#o)',
                     rhs: '42')),
     const Test.prefix(
         '''
@@ -452,8 +460,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         'm() { p.C.o = 42; }',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_STATIC_GETTER_SET,
+                    element: 'getter(C#o)',
                     rhs: '42')),
     const Test(
         '''
@@ -643,14 +651,13 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_GET,
                     element: 'function(C#o)')),
-    // TODO(johnniwinther): Expect [VISIT_STATIC_FUNCTION_SET] instead.
     const Test(
         '''
         class C { static o(a, b) {} }
         m() { C.o = 42; }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_STATIC_FUNCTION_SET,
+                    element: 'function(C#o)',
                     rhs: '42')),
     const Test.clazz(
         '''
@@ -669,8 +676,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { C.o = 42; }
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_STATIC_FUNCTION_SET,
+                    element: 'function(C#o)',
                     rhs: '42')),
     const Test.prefix(
         '''
@@ -679,8 +686,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         '''
         m() { p.C.o = 42; }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_STATIC_FUNCTION_SET,
+                    element: 'function(C#o)',
                     rhs: '42')),
     const Test(
         '''
@@ -796,7 +803,6 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_SET,
                     element: 'field(o)',
                     rhs: '42')),
-    // TODO(johnniwinther): Expect [VISIT_FINAL_TOP_LEVEL_FIELD_SET] instead.
     const Test(
         '''
         final o = 0;
@@ -810,8 +816,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         final o = 0;
         ''',
         'm() { p.o = 42; }',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_FINAL_TOP_LEVEL_FIELD_SET,
+                    element: 'field(o)',
                     rhs: '42')),
     const Test(
         '''
@@ -826,8 +832,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const o = 0;
         ''',
         'm() { p.o = 42; }',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_FINAL_TOP_LEVEL_FIELD_SET,
+                    element: 'field(o)',
                     rhs: '42')),
     const Test(
         '''
@@ -851,6 +857,13 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_GET,
                     name: 'o')),
+    const Test(
+        '''
+        m() { o = 42; }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
   ],
   'Top level properties': const [
     // Top level properties
@@ -886,7 +899,6 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_GET,
                     element: 'setter(o)')),
-    // TODO(johnniwinther): Expect [VISIT_TOP_LEVEL_GETTER_SET] instead.
     const Test(
         '''
         get o => null;
@@ -900,8 +912,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         get o => null;
         ''',
         'm() { p.o = 42; }',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_SET,
+                    element: 'getter(o)',
                     rhs: '42')),
     const Test(
         '''
@@ -1031,7 +1043,6 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.ERROR_INVALID_INVOKE,
                     error: MessageKind.PREFIX_AS_EXPRESSION,
                     arguments: '(null,42)')),
-    // TODO(johnniwinther): Expect [VISIT_TOP_LEVEL_FUNCTION_SET] instead.
     const Test(
         '''
         o(a, b) {}
@@ -1045,8 +1056,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         o(a, b) {}
         ''',
         'm() { p.o = 42; }',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_SET,
+                    element: 'function(o)',
                     rhs: '42')),
   ],
   'Dynamic properties': const [

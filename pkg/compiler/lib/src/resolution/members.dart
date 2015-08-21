@@ -639,148 +639,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return const NoneResult();
   }
 
-  ResolutionResult resolveSend(Send node) {
-    Selector selector = resolveSelector(node, null);
-    if (node.isSuperCall) registry.registerSuperUse(node);
-
-    if (node.receiver == null) {
-      // If this send is of the form "assert(expr);", then
-      // this is an assertion.
-      if (selector.isAssert) {
-        internalError(node, "Unexpected assert: $node");
-      }
-
-      return node.selector.accept(this);
-    }
-
-    var oldCategory = allowedCategory;
-    allowedCategory |= ElementCategory.PREFIX | ElementCategory.SUPER;
-
-    bool oldSendIsMemberAccess = sendIsMemberAccess;
-    int oldAllowedCategory = allowedCategory;
-
-    // Conditional sends like `e?.foo` treat the receiver as an expression.  So
-    // `C?.foo` needs to be treated like `(C).foo`, not like C.foo. Prefixes and
-    // super are not allowed on their own in that context.
-    if (node.isConditional) {
-      sendIsMemberAccess = false;
-      allowedCategory =
-          ElementCategory.VARIABLE |
-          ElementCategory.FUNCTION |
-          ElementCategory.IMPLIES_TYPE;
-    }
-    ResolutionResult resolvedReceiver = visit(node.receiver);
-    if (node.isConditional) {
-      sendIsMemberAccess = oldSendIsMemberAccess;
-      allowedCategory = oldAllowedCategory;
-    }
-
-    allowedCategory = oldCategory;
-
-    Element target;
-    String name = node.selector.asIdentifier().source;
-    if (identical(name, 'this')) {
-      error(node.selector, MessageKind.THIS_PROPERTY);
-      return const NoneResult();
-    } else if (node.isSuperCall) {
-      if (node.isOperator) {
-        if (isUserDefinableOperator(name)) {
-          name = selector.name;
-        } else {
-          error(node.selector, MessageKind.ILLEGAL_SUPER_SEND, {'name': name});
-          return const NoneResult();
-        }
-      }
-      if (!inInstanceContext) {
-        error(node.receiver, MessageKind.NO_INSTANCE_AVAILABLE, {'name': name});
-        return const NoneResult();
-      }
-      if (currentClass.supertype == null) {
-        // This is just to guard against internal errors, so no need
-        // for a real error message.
-        error(node.receiver, MessageKind.GENERIC,
-              {'text': "Object has no superclass"});
-        return const NoneResult();
-      }
-      // TODO(johnniwinther): Ensure correct behavior if currentClass is a
-      // patch.
-      target = currentClass.lookupSuperByName(selector.memberName);
-      // [target] may be null which means invoking noSuchMethod on
-      // super.
-      if (target == null) {
-        target = reportAndCreateErroneousElement(
-            node, name, MessageKind.NO_SUCH_SUPER_MEMBER,
-            {'className': currentClass.name, 'memberName': name});
-        // We still need to register the invocation, because we might
-        // call [:super.noSuchMethod:] which calls
-        // [JSInvocationMirror._invokeOn].
-        registry.registerDynamicInvocation(
-            new UniverseSelector(selector, null));
-        registry.registerSuperNoSuchMethod();
-      }
-    } else if (Elements.isUnresolved(resolvedReceiver.element)) {
-      return const NoneResult();
-    } else if (resolvedReceiver.element.isClass) {
-      ClassElement receiverClass = resolvedReceiver.element;
-      receiverClass.ensureResolved(compiler);
-      if (node.isOperator) {
-        // When the resolved receiver is a class, we can have two cases:
-        //  1) a static send: C.foo, or
-        //  2) an operator send, where the receiver is a class literal: 'C + 1'.
-        // The following code that looks up the selector on the resolved
-        // receiver will treat the second as the invocation of a static operator
-        // if the resolved receiver is not null.
-        return const NoneResult();
-      }
-      MembersCreator.computeClassMembersByName(
-          compiler, receiverClass.declaration, name);
-      target = receiverClass.lookupLocalMember(name);
-      if (target == null || target.isInstanceMember) {
-        registry.registerThrowNoSuchMethod();
-        // TODO(johnniwinther): With the simplified [TreeElements] invariant,
-        // try to resolve injected elements if [currentClass] is in the patch
-        // library of [receiverClass].
-
-        // TODO(karlklose): this should be reported by the caller of
-        // [resolveSend] to select better warning messages for getters and
-        // setters.
-        MessageKind kind = (target == null)
-            ? MessageKind.MEMBER_NOT_FOUND
-            : MessageKind.MEMBER_NOT_STATIC;
-        return new ElementResult(reportAndCreateErroneousElement(
-            node, name, kind,
-            {'className': receiverClass.name, 'memberName': name}));
-      } else if (isPrivateName(name) &&
-                 target.library != enclosingElement.library) {
-        registry.registerThrowNoSuchMethod();
-        return new ElementResult(reportAndCreateErroneousElement(
-            node, name, MessageKind.PRIVATE_ACCESS,
-            {'libraryName': target.library.getLibraryOrScriptName(),
-             'name': name}));
-      }
-    } else if (resolvedReceiver.element.isPrefix) {
-      PrefixElement prefix = resolvedReceiver.element;
-      target = prefix.lookupLocalMember(name);
-      if (Elements.isUnresolved(target)) {
-        registry.registerThrowNoSuchMethod();
-        return new ElementResult(reportAndCreateErroneousElement(
-            node, name, MessageKind.NO_SUCH_LIBRARY_MEMBER,
-            {'libraryName': prefix.name, 'memberName': name}));
-      } else if (target.isAmbiguous) {
-        registry.registerThrowNoSuchMethod();
-        AmbiguousElement ambiguous = target;
-        target = reportAndCreateErroneousElement(
-            node, name, ambiguous.messageKind, ambiguous.messageArguments);
-        ambiguous.diagnose(enclosingElement, compiler);
-        return new ElementResult(target);
-      } else if (target.kind == ElementKind.CLASS) {
-        ClassElement classElement = target;
-        classElement.ensureResolved(compiler);
-      }
-    }
-    return new ResolutionResult.forElement(target);
-  }
-
   static Selector computeSendSelector(Send node,
                                       LibraryElement library,
                                       Element element) {
@@ -898,47 +756,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         new CallStructure(argumentCount, namedArguments),
         argumentResults,
         isValidAsConstant: isValidAsConstant);
-  }
-
-  void registerTypeLiteralAccess(Send node, Element target) {
-    // Set the type of the node to [Type] to mark this send as a
-    // type literal.
-    DartType type;
-
-    // TODO(johnniwinther): Remove this hack when we can pass more complex
-    // information between methods than resolved elements.
-    if (target == compiler.typeClass && node.receiver == null) {
-      // Potentially a 'dynamic' type literal.
-      type = registry.getType(node.selector);
-    }
-    if (type == null) {
-      if (target.isTypedef || target.isClass) {
-        TypeDeclarationElement typeDeclaration = target;
-        typeDeclaration.computeType(compiler);
-        type = typeDeclaration.rawType;
-      } else {
-        TypeVariableElement typeVariable = target;
-        type = typeVariable.type;
-      }
-    }
-    registry.registerTypeLiteral(node, type);
-
-    if (!target.isTypeVariable) {
-      // Don't try to make constants of calls and assignments to type literals.
-      if (!node.isCall && node.asSendSet() == null) {
-        analyzeConstantDeferred(node, enforceConst: false);
-      } else {
-        // The node itself is not a constant but we register the selector (the
-        // identifier that refers to the class/typedef) as a constant.
-        if (node.receiver != null) {
-          // This is a hack for the case of prefix.Type, we need to store
-          // the element on the selector, so [analyzeConstant] can build
-          // the type literal from the selector.
-          registry.useElement(node.selector, target);
-        }
-        analyzeConstantDeferred(node.selector, enforceConst: false);
-      }
-    }
   }
 
   /// Check that access to `super` is currently allowed. Returns an
@@ -1947,6 +1764,29 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         node, name, new StaticAccess.unresolved(error));
   }
 
+  /// Handle qualified update to an unresolved static class member, like
+  /// `a.b = c` or `a.b++` where `a` is a class and `b` is unresolved.
+  ResolutionResult handleUnresolvedStaticMemberUpdate(
+      SendSet node, Name name, ClassElement receiverClass) {
+    // TODO(johnniwinther): Share code with [handleStaticInstanceMemberUpdate]
+    // and [handlePrivateStaticMemberUpdate].
+    registry.registerThrowNoSuchMethod();
+    // TODO(johnniwinther): Produce a different error if [name] is resolves to
+    // a constructor.
+
+    // TODO(johnniwinther): With the simplified [TreeElements] invariant,
+    // try to resolve injected elements if [currentClass] is in the patch
+    // library of [receiverClass].
+
+    // TODO(johnniwinther): Produce a different error for complex update.
+    ErroneousElement error = reportAndCreateErroneousElement(
+        node, name.text, MessageKind.MEMBER_NOT_FOUND,
+        {'className': receiverClass.name, 'memberName': name.text});
+    // TODO(johnniwinther): Add an [AccessSemantics] for unresolved static
+    // member access.
+    return handleUpdate(node, name, new StaticAccess.unresolved(error));
+  }
+
   /// Handle qualified access of an instance member, like `a.b` or `a.b()` where
   /// `a` is a class and `b` is a non-static member.
   ResolutionResult handleStaticInstanceMemberAccess(
@@ -1970,8 +1810,28 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         node, name, new StaticAccess.unresolved(error));
   }
 
+  /// Handle qualified update of an instance member, like `a.b = c` or `a.b++`
+  /// where `a` is a class and `b` is a non-static member.
+  ResolutionResult handleStaticInstanceMemberUpdate(
+      SendSet node, Name name, ClassElement receiverClass, Element member) {
+
+    registry.registerThrowNoSuchMethod();
+    // TODO(johnniwinther): With the simplified [TreeElements] invariant,
+    // try to resolve injected elements if [currentClass] is in the patch
+    // library of [receiverClass].
+
+    // TODO(johnniwinther): Produce a different error for complex update.
+    ErroneousElement error = reportAndCreateErroneousElement(
+        node, name.text, MessageKind.MEMBER_NOT_STATIC,
+        {'className': receiverClass.name, 'memberName': name});
+
+    // TODO(johnniwinther): Add an [AccessSemantics] for statically accessed
+    // instance members.
+    return handleUpdate(node, name, new StaticAccess.unresolved(error));
+  }
+
   /// Handle qualified access of an inaccessible private static class member,
-  /// like `a._b` or `a.b()` where `a` is class, `_b` is static member of `a`
+  /// like `a._b` or `a._b()` where `a` is class, `_b` is static member of `a`
   /// but `a` is not defined in the current library.
   ResolutionResult handlePrivateStaticMemberAccess(
       Send node, Name name, ClassElement receiverClass, Element member) {
@@ -1984,6 +1844,21 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // member access.
     return handleErroneousAccess(
         node, name, new StaticAccess.unresolved(error));
+  }
+
+  /// Handle qualified update of an inaccessible private static class member,
+  /// like `a._b = c` or `a._b++` where `a` is class, `_b` is static member of
+  /// `a` but `a` is not defined in the current library.
+  ResolutionResult handlePrivateStaticMemberUpdate(
+      SendSet node, Name name, ClassElement receiverClass, Element member) {
+    registry.registerThrowNoSuchMethod();
+    ErroneousElement error = reportAndCreateErroneousElement(
+        node, name.text, MessageKind.PRIVATE_ACCESS,
+        {'libraryName': member.library.getLibraryOrScriptName(),
+         'name': name});
+    // TODO(johnniwinther): Add an [AccessSemantics] for unresolved static
+    // member access.
+    return handleUpdate(node, name, new StaticAccess.unresolved(error));
   }
 
   /// Handle qualified access to a static member, like `a.b` or `a.b()` where
@@ -2017,6 +1892,31 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           node, memberName, receiverClass, member);
     } else {
       return handleStaticOrTopLevelAccess(node, memberName, member);
+    }
+  }
+
+  /// Handle qualified update to a static member, like `a.b = c` or `a.b++`
+  /// where `a` is a class and `b` is a static member of `a`.
+  ResolutionResult handleStaticMemberUpdate(
+      Send node, Name memberName, ClassElement receiverClass) {
+    String name = memberName.text;
+    receiverClass.ensureResolved(compiler);
+    MembersCreator.computeClassMembersByName(
+        compiler, receiverClass.declaration, name);
+    Element member = receiverClass.lookupLocalMember(name);
+    if (member == null) {
+      return handleUnresolvedStaticMemberUpdate(
+          node, memberName, receiverClass);
+    } else if (member.isAmbiguous) {
+      return handleAmbiguousUpdate(node, memberName, member);
+    } else if (member.isInstanceMember) {
+      return handleStaticInstanceMemberUpdate(
+          node, memberName, receiverClass, member);
+    } else if (memberName.isPrivate && memberName.library != member.library) {
+      return handlePrivateStaticMemberUpdate(
+          node, memberName, receiverClass, member);
+    } else {
+      return handleStaticOrTopLevelUpdate(node, memberName, member);
     }
   }
 
@@ -2331,6 +2231,34 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return result;
   }
 
+  /// Handle qualified [SendSet] where the receiver resolves to a [prefix],
+  /// like `prefix.toplevelField = b` or `prefix.Class.staticField++` where
+  /// `prefix` is a library prefix.
+  ResolutionResult handleLibraryPrefixSendSet(
+      SendSet node, Name name, PrefixElement prefix) {
+    ResolutionResult result;
+    Element member = prefix.lookupLocalMember(name.text);
+    if (member == null) {
+      registry.registerThrowNoSuchMethod();
+      Element error = reportAndCreateErroneousElement(
+          node, name.text, MessageKind.NO_SUCH_LIBRARY_MEMBER,
+          {'libraryName': prefix.name, 'memberName': name});
+      return handleUpdate(node, name, new StaticAccess.unresolved(error));
+    } else {
+      result = handleResolvedSendSet(node, name, member);
+    }
+    if (result.kind == ResultKind.PREFIX) {
+      // [member] is a class prefix of a static access like `prefix.Class` of
+      // `prefix.Class.foo`. No need to call [handleDeferredAccess]; it will
+      // called on the parent `prefix.Class.foo` node.
+      result = new PrefixResult(prefix, result.element);
+    } else if (prefix.isDeferred &&
+               (member == null || !member.isDeferredLoaderGetter)) {
+      result = handleDeferredAccess(node, prefix, result);
+    }
+    return result;
+  }
+
   /// Handle a [Send] that resolves to a [prefix]. Like `prefix` in
   /// `prefix.Class` or `prefix` in `prefix()`, the latter being a compile time
   /// error.
@@ -2371,6 +2299,27 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else {
       assert(element.isClass);
       ResolutionResult result = handleStaticMemberAccess(node, name, element);
+      if (prefixResult.isDeferred) {
+        result = handleDeferredAccess(node, prefixResult.prefix, result);
+      }
+      return result;
+    }
+  }
+
+  /// Handle qualified [SendSet] where the receiver resolves to an [Element],
+  /// like `a.b = c` where `a` is a prefix or a class.
+  ResolutionResult handlePrefixSendSet(
+      SendSet node, Name name, PrefixResult prefixResult) {
+    Element element = prefixResult.element;
+    if (element.isPrefix) {
+      if (node.isConditional) {
+        return handleLibraryPrefix(node, name, element);
+      } else {
+        return handleLibraryPrefixSendSet(node, name, element);
+      }
+    } else {
+      assert(element.isClass);
+      ResolutionResult result = handleStaticMemberUpdate(node, name, element);
       if (prefixResult.isDeferred) {
         result = handleDeferredAccess(node, prefixResult.prefix, result);
       }
@@ -2479,6 +2428,37 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // TODO(johnniwinther): Use the `element` of [result].
       return handleDynamicAccessSemantics(
           node, name, const DynamicAccess.dynamicProperty());
+    }
+  }
+
+  /// Handle a qualified [SendSet], that is where the receiver is non-null, like
+  /// `a.b = c`, `a.b++`, and `a.b += c`.
+  ResolutionResult handleQualifiedSendSet(SendSet node) {
+    Identifier selector = node.selector.asIdentifier();
+    String text = selector.source;
+    Name name = new Name(text, enclosingElement.library);
+    if (text == 'this') {
+      return handleQualifiedThisAccess(node, name);
+    } else if (node.receiver.isThis()) {
+      if (checkThisAccess(node)) {
+        return handleThisPropertyUpdate(node, name, null);
+      }
+      // TODO(johnniwinther): Handle invalid this access as an
+      // [AccessSemantics].
+      return const NoneResult();
+    }
+    ResolutionResult result = visitExpressionPrefix(node.receiver);
+    if (result.kind == ResultKind.PREFIX) {
+      return handlePrefixSendSet(node, name, result);
+    } else if (node.isConditional) {
+      return handleDynamicUpdateSemantics(
+          node, name, null, const DynamicAccess.ifNotNullProperty());
+    } else {
+      // Handle dynamic property access, like `a.b = c`, `a.b++` or `a.b += c`
+      // where `a` is not a prefix or class.
+      // TODO(johnniwinther): Use the `element` of [result].
+      return handleDynamicUpdateSemantics(
+          node, name, null, const DynamicAccess.dynamicProperty());
     }
   }
 
@@ -3030,7 +3010,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else if (element.isStatic || element.isTopLevel) {
       return handleStaticOrTopLevelUpdate(node, name, element);
     }
-    return oldVisitSendSet(node);
+    return internalError(node, "Unexpected resolved send: $element");
   }
 
   /// Handle an unqualified [Send], that is where the `node.receiver` is null,
@@ -3499,150 +3479,23 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult visitSendSet(SendSet node) {
     if (node.isIndex) {
+      // `a[b] = c`
       if (node.isSuperCall) {
+        // `super[b] = c`
         return handleSuperIndexSendSet(node);
       } else {
         return handleIndexSendSet(node);
       }
     } else if (node.isSuperCall) {
+      // `super.a = c`
       return handleSuperSendSet(node);
     } else if (node.receiver == null) {
+      // `a = c`
       return handleUnqualifiedSendSet(node);
+    } else {
+      // `a.b = c`
+      return handleQualifiedSendSet(node);
     }
-    return oldVisitSendSet(node);
-  }
-
-  ResolutionResult oldVisitSendSet(SendSet node) {
-    bool oldSendIsMemberAccess = sendIsMemberAccess;
-    sendIsMemberAccess = node.isPropertyAccess || node.isCall;
-    ResolutionResult result = resolveSend(node);
-    sendIsMemberAccess = oldSendIsMemberAccess;
-    Element target = result.element;
-    Element setter = target;
-    Element getter = target;
-    String operatorName = node.assignmentOperator.source;
-    String source = operatorName;
-    bool isComplex = !identical(source, '=');
-    if (!(result is AssertResult || Elements.isUnresolved(target))) {
-      if (target.isAbstractField) {
-        AbstractFieldElement field = target;
-        setter = field.setter;
-        getter = field.getter;
-        if (setter == null) {
-          if (!inInstanceContext || getter.isTopLevel || getter.isStatic) {
-            setter = reportAndCreateErroneousElement(node.selector, field.name,
-                MessageKind.CANNOT_RESOLVE_SETTER, const {});
-            registry.registerThrowNoSuchMethod();
-          }
-        }
-        if (isComplex && getter == null && !inInstanceContext) {
-          getter = reportAndCreateErroneousElement(node.selector, field.name,
-              MessageKind.CANNOT_RESOLVE_GETTER, const {});
-          registry.registerThrowNoSuchMethod();
-        }
-      } else if (target.impliesType) {
-        if (node.isIfNullAssignment) {
-          setter = reportAndCreateErroneousElement(node.selector, target.name,
-              MessageKind.IF_NULL_ASSIGNING_TYPE, const {});
-          // In this case, no assignment happens, the rest of the compiler can
-          // treat the expression `C ??= e` as if it's just reading `C`.
-        } else {
-          setter = reportAndCreateErroneousElement(node.selector, target.name,
-              MessageKind.ASSIGNING_TYPE, const {});
-          registry.registerThrowNoSuchMethod();
-        }
-        registerTypeLiteralAccess(node, target);
-      } else if (target.isFinal || target.isConst) {
-        if (Elements.isStaticOrTopLevelField(target) || target.isLocal) {
-          setter = reportAndCreateErroneousElement(
-              node.selector, target.name, MessageKind.CANNOT_RESOLVE_SETTER,
-              const {});
-        } else if (node.isSuperCall) {
-          setter = reportAndCreateErroneousElement(
-              node.selector, target.name, MessageKind.SETTER_NOT_FOUND_IN_SUPER,
-              {'name': target.name, 'className': currentClass.name});
-          registry.registerSuperNoSuchMethod();
-        } else {
-          // For instance fields we don't report a warning here because the type
-          // checker will detect this as well and report a better error message
-          // with the context of the containing class.
-        }
-        registry.registerThrowNoSuchMethod();
-      } else if (target.isFunction && target.name != '[]=') {
-        assert(!target.isSetter);
-        if (Elements.isStaticOrTopLevelFunction(target) || target.isLocal) {
-          setter = reportAndCreateErroneousElement(
-              node.selector, target.name, MessageKind.ASSIGNING_METHOD,
-              const {});
-        } else if (node.isSuperCall) {
-          setter = reportAndCreateErroneousElement(
-              node.selector, target.name, MessageKind.ASSIGNING_METHOD_IN_SUPER,
-              {'name': target.name,
-               'superclassName': target.enclosingClass.name});
-          registry.registerSuperNoSuchMethod();
-        } else {
-          // For instance methods we don't report a warning here because the
-          // type checker will detect this as well and report a better error
-          // message with the context of the containing class.
-        }
-        registry.registerThrowNoSuchMethod();
-      }
-      if (isPotentiallyMutableTarget(target)) {
-        registry.registerPotentialMutation(target, node);
-        if (enclosingElement != target.enclosingElement) {
-          registry.registerPotentialMutationInClosure(target, node);
-        }
-        for (Node scope in promotionScope) {
-          registry.registerPotentialMutationIn(scope, target, node);
-        }
-      }
-    }
-
-    resolveArguments(node.argumentsNode);
-
-    Selector selector = registry.getSelector(node);
-    if (isComplex) {
-      Selector getterSelector;
-      if (selector.isSetter) {
-        getterSelector = new Selector.getterFrom(selector);
-      } else {
-        assert(selector.isIndexSet);
-        getterSelector = new Selector.index();
-      }
-      registerSend(getterSelector, getter);
-      registry.setGetterSelectorInComplexSendSet(node, getterSelector);
-      if (node.isSuperCall) {
-        getter = currentClass.lookupSuperByName(getterSelector.memberName);
-        if (getter == null) {
-          target = reportAndCreateErroneousElement(
-              node, selector.name, MessageKind.NO_SUCH_SUPER_MEMBER,
-              {'className': currentClass.name, 'memberName': selector.name});
-          registry.registerSuperNoSuchMethod();
-        }
-      }
-      registry.useElement(node.selector, getter);
-
-      // Make sure we include the + and - operators if we are using
-      // the ++ and -- ones.  Also, if op= form is used, include op itself.
-      void registerBinaryOperator(String name) {
-        Selector binop = new Selector.binaryOperator(name);
-        registry.registerDynamicInvocation(
-            new UniverseSelector(binop, null));
-        registry.setOperatorSelectorInComplexSendSet(node, binop);
-      }
-      if (identical(source, '++')) {
-        registerBinaryOperator('+');
-        registry.registerInstantiatedClass(compiler.intClass);
-      } else if (identical(source, '--')) {
-        registerBinaryOperator('-');
-        registry.registerInstantiatedClass(compiler.intClass);
-      } else if (source.endsWith('=')) {
-        registerBinaryOperator(Elements.mapToUserOperator(operatorName));
-      }
-    }
-
-    registerSend(selector, setter);
-    return new ResolutionResult.forElement(registry.useElement(node, setter));
   }
 
   void registerSend(Selector selector, Element target) {

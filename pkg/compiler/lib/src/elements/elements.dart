@@ -521,7 +521,7 @@ class Elements {
     if (element == null) return !isClosureSend(send, element);
     return isInstanceMethod(element) ||
            isInstanceField(element) ||
-           send.isConditional;
+           (send.isConditional && !element.isStatic);
   }
 
   static bool isClosureSend(Send send, Element element) {
@@ -658,12 +658,6 @@ class Elements {
     if (identical(op, '??=')) return '??';
 
     return null;
-  }
-
-  static String mapToUserOperator(String op) {
-    String userOperator = mapToUserOperatorOrNull(op);
-    if (userOperator == null) throw 'Unhandled operator: $op';
-    else return userOperator;
   }
 
   static bool isNumberOrStringSupertype(Element element, Compiler compiler) {

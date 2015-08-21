@@ -3628,11 +3628,13 @@ class SsaBuilder extends ast.Visitor
                                  Element element,
                                  HInstruction value,
                                  {ast.Node location}) {
-    assert(send == null || !Elements.isInstanceSend(send, elements));
     if (location == null) {
       assert(send != null);
       location = send;
     }
+    assert(invariant(location,
+        send == null || !Elements.isInstanceSend(send, elements),
+        message: "Unexpected non instance setter: $element."));
     if (Elements.isStaticOrTopLevelField(element)) {
       if (element.isSetter) {
         pushInvokeStatic(location, element, <HInstruction>[value]);

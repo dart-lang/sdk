@@ -766,11 +766,6 @@ class Selector {
                       name.getter,
                       CallStructure.NO_ARGS);
 
-  factory Selector.getterFrom(Selector selector)
-      => new Selector(SelectorKind.GETTER,
-                      selector.memberName.getter,
-                      CallStructure.NO_ARGS);
-
   factory Selector.setter(Name name)
       => new Selector(SelectorKind.SETTER,
                       name.setter,
