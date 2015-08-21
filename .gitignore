@@ -5,3 +5,4 @@ build
 .project
 .settings
 pubspec.lock
+.packages
