@@ -125,7 +125,7 @@ abstract class Token implements Spannable {
    * produces ..., SymbolToken($), StringToken(a), StringToken((), ...
    *
    * After parsing the identifier 'a', the parser tests for a function
-   * declaration using [:identical(next.stringValue, '('):], which (rihgtfully)
+   * declaration using [:identical(next.stringValue, '('):], which (rightfully)
    * returns false because stringValue returns [:null:].
    */
   String get stringValue;
@@ -368,6 +368,7 @@ class StringToken extends Token {
     }
   }
 
+  /// See [Token.stringValue] for an explanation.
   String get stringValue => null;
 
   bool isIdentifier() => identical(kind, IDENTIFIER_TOKEN);
