@@ -1700,6 +1700,7 @@ class DebuggerPageElement extends ObservatoryElement {
     debugger.page = this;
   }
 
+  StreamSubscription _resizeSubscription;
   Future<StreamSubscription> _isolateSubscriptionFuture;
   Future<StreamSubscription> _debugSubscriptionFuture;
   Future<StreamSubscription> _stdoutSubscriptionFuture;
@@ -1709,21 +1710,7 @@ class DebuggerPageElement extends ObservatoryElement {
   @override
   void attached() {
     super.attached();
-
-    var navbarDiv = $['navbarDiv'];
-    var stackDiv = $['stackDiv'];
-    var splitterDiv = $['splitterDiv'];
-    var cmdDiv = $['commandDiv'];
-
-    int navbarHeight = navbarDiv.clientHeight;
-    int splitterHeight = splitterDiv.clientHeight;
-    int cmdHeight = cmdDiv.clientHeight;
-
-    int windowHeight = window.innerHeight;
-    int fixedHeight = navbarHeight + splitterHeight + cmdHeight;
-    int available = windowHeight - fixedHeight;
-    int stackHeight = available ~/ 1.6;
-    stackDiv.style.setProperty('height', '${stackHeight}px');
+    _onResize(null);
 
     // Wire the debugger object to the stack, console, and command line.
     var stackElement = $['stackElement'];
@@ -1734,6 +1721,7 @@ class DebuggerPageElement extends ObservatoryElement {
     debugger.input.debugger = debugger;
     debugger.init();
 
+    _resizeSubscription = window.onResize.listen(_onResize);
     _isolateSubscriptionFuture =
         app.vm.listenEventStream(VM.kIsolateStream, debugger.onEvent);
     _debugSubscriptionFuture =
@@ -1774,9 +1762,28 @@ class DebuggerPageElement extends ObservatoryElement {
     debugger.flushStdio();
   }
 
+  void _onResize(_) {
+    var navbarDiv = $['navbarDiv'];
+    var stackDiv = $['stackDiv'];
+    var splitterDiv = $['splitterDiv'];
+    var cmdDiv = $['commandDiv'];
+
+    int navbarHeight = navbarDiv.clientHeight;
+    int splitterHeight = splitterDiv.clientHeight;
+    int cmdHeight = cmdDiv.clientHeight;
+
+    int windowHeight = window.innerHeight;
+    int fixedHeight = navbarHeight + splitterHeight + cmdHeight;
+    int available = windowHeight - fixedHeight;
+    int stackHeight = available ~/ 1.6;
+    stackDiv.style.setProperty('height', '${stackHeight}px');
+  }
+
   @override
   void detached() {
     debugger.isolate = null;
+    _resizeSubscription.cancel();
+    _resizeSubscrption = null;
     cancelFutureSubscription(_isolateSubscriptionFuture);
     _isolateSubscriptionFuture = null;
     cancelFutureSubscription(_debugSubscriptionFuture);
