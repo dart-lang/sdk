@@ -15,7 +15,7 @@ final _lowerCaseUnderScore = new RegExp(r'^([a-z]+([_]?[a-z0-9]+)*)+$');
 final _lowerCaseUnderScoreWithDots =
     new RegExp(r'^([a-z]+([_]?[a-z0-9]+)?)+(.([a-z]+([_]?[a-z0-9]+)?))*$');
 
-final _pubspec = new RegExp(r'^[_]?pubspec.yaml$');
+final _pubspec = new RegExp(r'^[_]?pubspec\.yaml$');
 
 /// Create a library name prefix based on [libraryPath], [projectRoot] and
 /// current [packageName].
