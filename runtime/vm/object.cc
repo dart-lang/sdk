@@ -10033,8 +10033,7 @@ RawClass* Library::LookupCoreClass(const String& class_name) {
   String& name = String::Handle(class_name.raw());
   if (class_name.CharAt(0) == kPrivateIdentifierStart) {
     // Private identifiers are mangled on a per library basis.
-    name = String::Concat(name, String::Handle(core_lib.private_key()));
-    name = Symbols::New(name);
+    name = Symbols::FromConcat(name, String::Handle(core_lib.private_key()));
   }
   return core_lib.LookupClass(name);
 }
@@ -10047,8 +10046,7 @@ RawString* Library::PrivateName(const String& name) const {
   // ASSERT(strchr(name, '@') == NULL);
   String& str = String::Handle();
   str = name.raw();
-  str = String::Concat(str, String::Handle(this->private_key()));
-  str = Symbols::New(str);
+  str = Symbols::FromConcat(str, String::Handle(this->private_key()));
   return str.raw();
 }
 
@@ -14951,8 +14949,7 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     } else {
       bound_name = String::New(Symbols::OptimizedOut());
     }
-    type_name = String::Concat(type_name, bound_name);
-    return Symbols::New(type_name);
+    return Symbols::FromConcat(type_name, bound_name);
   }
   if (IsTypeParameter()) {
     return TypeParameter::Cast(*this).name();

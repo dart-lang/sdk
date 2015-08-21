@@ -2349,7 +2349,7 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
     return;
   }
   String& super_ctor_name = String::Handle(Z, super_class.Name());
-  super_ctor_name = String::Concat(super_ctor_name, Symbols::Dot());
+  super_ctor_name = Symbols::FromConcat(super_ctor_name, Symbols::Dot());
 
   ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
   // Implicit 'this' parameter is the first argument.
@@ -2410,11 +2410,11 @@ AstNode* Parser::ParseSuperInitializer(const Class& cls,
   const Class& super_class = Class::Handle(Z, cls.SuperClass());
   ASSERT(!super_class.IsNull());
   String& ctor_name = String::Handle(Z, super_class.Name());
-  ctor_name = String::Concat(ctor_name, Symbols::Dot());
+  ctor_name = Symbols::FromConcat(ctor_name, Symbols::Dot());
   if (CurrentToken() == Token::kPERIOD) {
     ConsumeToken();
-    ctor_name = String::Concat(ctor_name,
-                               *ExpectIdentifier("constructor name expected"));
+    ctor_name = Symbols::FromConcat(
+        ctor_name, *ExpectIdentifier("constructor name expected"));
   }
   CheckToken(Token::kLPAREN, "parameter list expected");
 
@@ -5211,7 +5211,7 @@ void Parser::SkipType(bool allow_void) {
 void Parser::ParseTypeParameters(const Class& cls) {
   TRACE_PARSER("ParseTypeParameters");
   if (CurrentToken() == Token::kLT) {
-    GrowableArray<AbstractType*> type_parameters_array;
+    GrowableArray<AbstractType*> type_parameters_array(Z, 2);
     intptr_t index = 0;
     TypeParameter& type_parameter = TypeParameter::Handle(Z);
     TypeParameter& existing_type_parameter = TypeParameter::Handle(Z);
