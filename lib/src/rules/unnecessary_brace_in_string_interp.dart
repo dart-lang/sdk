@@ -8,8 +8,6 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:linter/src/linter.dart';
 
-final RegExp alphaNumeric = new RegExp(r'^[a-zA-Z0-9]');
-
 const desc = 'Avoid using braces in interpolation when not needed.';
 
 const details = r'''
@@ -29,15 +27,18 @@ print("Hi, ${name}!");
 ```
 ''';
 
-bool isAlphaNumeric(Token token) =>
-    token is StringToken && token.lexeme.startsWith(alphaNumeric);
+final RegExp identifierPart = new RegExp(r'^[a-zA-Z0-9_]');
+
+bool isIdentifierPart(Token token) =>
+    token is StringToken && token.lexeme.startsWith(identifierPart);
 
 class UnnecessaryBraceInStringInterp extends LintRule {
-  UnnecessaryBraceInStringInterp() : super(
-          name: 'unnecessary_brace_in_string_interp',
-          description: desc,
-          details: details,
-          group: Group.style);
+  UnnecessaryBraceInStringInterp()
+      : super(
+            name: 'unnecessary_brace_in_string_interp',
+            description: desc,
+            details: details,
+            group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);
@@ -53,7 +54,7 @@ class Visitor extends SimpleAstVisitor {
     for (InterpolationExpression expression in expressions) {
       if (expression.expression is SimpleIdentifier) {
         Token bracket = expression.rightBracket;
-        if (bracket != null && !isAlphaNumeric(bracket.next)) {
+        if (bracket != null && !isIdentifierPart(bracket.next)) {
           rule.reportLint(expression);
         }
       }

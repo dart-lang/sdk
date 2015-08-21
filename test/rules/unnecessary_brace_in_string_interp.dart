@@ -10,4 +10,5 @@ main(args) {
   print('hello ${args}'); //LINT [16:7]
   print('hello ${args}!'); //LINT
   print('hello ${args.length}');
+  print('hello _${args}_');
 }
