@@ -1377,7 +1377,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     Debugger::SignalIsolateInterrupted();
 
     Dart_IsolateInterruptCallback callback = isolate->InterruptCallback();
-    if (callback) {
+    if (callback != NULL) {
       if ((*callback)()) {
         return;
       } else {
