@@ -675,6 +675,24 @@ int c;
 ''');
   }
 
+  void test_unitMembers_topLevelVariable_withConst() {
+    _parseTestUnit(r'''
+int c;
+int a;
+const B = 2;
+int b;
+const A = 1;
+''');
+    // validate change
+    _assertSort(r'''
+const A = 1;
+const B = 2;
+int a;
+int b;
+int c;
+''');
+  }
+
   void _assertSort(String expectedCode) {
     MemberSorter sorter = new MemberSorter(testCode, testUnit);
     List<SourceEdit> edits = sorter.sort();
