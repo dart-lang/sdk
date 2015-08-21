@@ -1766,7 +1766,12 @@ intptr_t Isolate::ProfileInterrupt() {
     // Paused at start / exit . Don't tick.
     return 0;
   }
-  if (mutator_thread_ == NULL) {
+  // Make sure that the isolate's mutator thread does not change behind our
+  // backs. Otherwise we find the entry in the registry and end up reading
+  // the field again. Only by that time it has been reset to NULL because the
+  // thread was in process of exiting the isolate.
+  Thread* mutator = mutator_thread_;
+  if (mutator == NULL) {
     // No active mutator.
     ProfileIdle();
     return 1;
@@ -1778,8 +1783,8 @@ intptr_t Isolate::ProfileInterrupt() {
   ThreadRegistry::EntryIterator it(thread_registry());
   while (it.HasNext()) {
     const ThreadRegistry::Entry& entry = it.Next();
-    if (entry.thread == mutator_thread_) {
-      ThreadInterrupter::InterruptThread(mutator_thread_);
+    if (entry.thread == mutator) {
+      ThreadInterrupter::InterruptThread(mutator);
       break;
     }
   }
