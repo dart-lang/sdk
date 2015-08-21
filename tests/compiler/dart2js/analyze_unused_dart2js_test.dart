@@ -29,7 +29,10 @@ const Map<String, List<String>> WHITE_LIST = const {
   "lib/src/resolution/semantic_visitor.dart": const [
       "The method 'error"],
   "lib/src/resolution/semantic_visitor_mixins.dart": const [
-      "The class 'Base", "The method 'error", "The method 'visit"],
+      "The class 'SuperBulkMixin'",
+      "The class 'Base",
+      "The method 'error",
+      "The method 'visit"],
 
   // Uncalled type predicate.  Keep while related predicates are used.
   "lib/src/ssa/nodes.dart": const [

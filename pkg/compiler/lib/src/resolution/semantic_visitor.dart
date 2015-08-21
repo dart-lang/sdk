@@ -3606,7 +3606,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      CallStructure callStreucture,
+      CallStructure callStructure,
       A arg);
 
   /// Read of the unresolved [element].

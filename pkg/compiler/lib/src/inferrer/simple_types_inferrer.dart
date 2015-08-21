@@ -850,7 +850,13 @@ class SimpleTypeInferrerVisitor<T>
         isCallOnThis = true;
       }
     } else {
-      receiverType = visit(node.receiver);
+      if (node.receiver != null) {
+        Element receiver = elements[node.receiver];
+        if (receiver is! PrefixElement && receiver is! ClassElement) {
+          // TODO(johnniwinther): Avoid blindly recursing on the receiver.
+          receiverType = visit(node.receiver);
+        }
+      }
       isCallOnThis = isThisOrSuper(node.receiver);
     }
 
@@ -1357,20 +1363,6 @@ class SimpleTypeInferrerVisitor<T>
         node, selector, mask, element, null);
   }
 
-  /// Handle super constructor invocation.
-  @override
-  T handleSuperConstructorInvoke(ast.Send node) {
-    Element element = elements[node];
-    ArgumentsTypes arguments = analyzeArguments(node.arguments);
-    assert(visitingInitializers);
-    seenSuperConstructorCall = true;
-    analyzeSuperConstructorCall(element, arguments);
-    Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
-    return handleStaticSend(
-        node, selector, mask, element, arguments);
-  }
-
   @override
   T visitUnresolvedSuperIndex(
       ast.Send node,
@@ -1478,6 +1470,16 @@ class SimpleTypeInferrerVisitor<T>
       _) {
     return handleSuperMethodInvoke(
         node, method, analyzeArguments(arguments.nodes));
+  }
+
+  @override
+  T visitSuperSetterInvoke(
+      ast.Send node,
+      FunctionElement setter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleErroneousSuperSend(node);
   }
 
   @override
@@ -1663,7 +1665,8 @@ class SimpleTypeInferrerVisitor<T>
     }
   }
 
-  T handleNewExpression(ast.NewExpression node) {
+  @override
+  T bulkHandleNew(ast.NewExpression node, _) {
     Element element = elements[node.send];
     return handleConstructorSend(node.send, element);
   }
@@ -1843,15 +1846,6 @@ class SimpleTypeInferrerVisitor<T>
       isThisExposed = isThisExposed || argument.isThis();
     }
     return new ArgumentsTypes<T>(positional, named);
-  }
-
-  T visitGetterSend(ast.Send node) {
-    if (elements[node] is! PrefixElement) {
-      // TODO(johnniwinther): Remove this when no longer called from
-      // [handleSendSet].
-      internalError(node, "Unexpected visitGetterSend");
-    }
-    return null;
   }
 
   /// Read a local variable, function or parameter.
