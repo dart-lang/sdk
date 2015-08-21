@@ -790,15 +790,6 @@ class Class extends Object {
   // Is this a const class?
   bool const;
 
-  // Has this class been finalized?
-  bool finalized;
-
-  // Is this class implemented?
-  bool implemented;
-
-  // Is this a vm patch class?
-  bool patch;
-
   // The library which contains this class.
   @Library library;
 
