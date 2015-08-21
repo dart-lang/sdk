@@ -1179,7 +1179,7 @@ abstract class InferrerVisitor
         locals.update(elements[definition], types.nullType, node);
       } else {
         assert(definition.asSendSet() != null);
-        visit(definition);
+        handleSendSet(definition);
       }
     }
     return null;

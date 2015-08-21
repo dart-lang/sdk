@@ -68,6 +68,7 @@ abstract class ResolvedKindVisitor<R> {
   R visitClosureSend(Send node);
   @deprecated
   R visitDynamicSend(Send node);
+  @deprecated
   R visitStaticSend(Send node);
 
   R handleSuperConstructorInvoke(Send node);
@@ -273,6 +274,11 @@ abstract class NewResolvedVisitor<R> extends BaseResolvedVisitor<R>
   @override
   R visitAssertSend(Send node) {
     return internalError(node, "visitAssertSend is deprecated");
+  }
+
+  @override
+  R visitStaticSend(Send node) {
+    return internalError(node, "visitStaticSend is deprecated");
   }
 
   bool checkResolvedKind(Node node,

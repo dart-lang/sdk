@@ -592,7 +592,17 @@ class SimpleTypeInferrerVisitor<T>
         synthesizeForwardingCall(spannable, constructor.definingConstructor);
       } else {
         visitingInitializers = true;
-        visit(node.initializers);
+        if (node.initializers != null) {
+          for (ast.Node initializer in node.initializers) {
+            ast.SendSet fieldInitializer = initializer.asSendSet();
+            if (fieldInitializer != null) {
+              handleSendSet(fieldInitializer);
+            } else {
+              Element element = elements[initializer];
+              handleConstructorSend(initializer, element);
+            }
+          }
+        }
         visitingInitializers = false;
         // For a generative constructor like: `Foo();`, we synthesize
         // a call to the default super constructor (the one that takes
@@ -1583,12 +1593,6 @@ class SimpleTypeInferrerVisitor<T>
     return super.handleTypeLiteralInvoke(arguments);
   }
 
-  T visitStaticSend(ast.Send node) {
-    assert(!elements.isAssert(node));
-    Element element = elements[node];
-    return handleConstructorSend(node, element);
-  }
-
   /// Handle constructor invocation of [element].
   T handleConstructorSend(ast.Send node, ConstructorElement element) {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
@@ -1660,7 +1664,8 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   T handleNewExpression(ast.NewExpression node) {
-    return visitStaticSend(node.send);
+    Element element = elements[node.send];
+    return handleConstructorSend(node.send, element);
   }
 
   /// Handle invocation of a top level or static field or getter [element].
