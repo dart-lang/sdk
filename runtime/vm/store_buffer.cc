@@ -26,6 +26,12 @@ void StoreBuffer::InitOnce() {
 }
 
 
+void StoreBuffer::ShutDown() {
+  delete global_empty_;
+  delete global_mutex_;
+}
+
+
 StoreBuffer::StoreBuffer() : mutex_(new Mutex()) {
 }
 
@@ -105,7 +111,7 @@ StoreBufferBlock* StoreBuffer::PopEmptyBlock() {
   {
     MutexLocker ml(global_mutex_);
     if (!global_empty_->IsEmpty()) {
-      global_empty_->Pop();
+      return global_empty_->Pop();
     }
   }
   return new StoreBufferBlock();

@@ -23,6 +23,7 @@
 #include "vm/service_isolate.h"
 #include "vm/simulator.h"
 #include "vm/snapshot.h"
+#include "vm/store_buffer.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/thread_interrupter.h"
@@ -220,6 +221,7 @@ const char* Dart::Cleanup() {
   Profiler::Shutdown();
   CodeObservers::DeleteAll();
   Timeline::Shutdown();
+  StoreBuffer::ShutDown();
 
   return NULL;
 }
