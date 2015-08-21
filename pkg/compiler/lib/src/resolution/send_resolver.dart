@@ -222,8 +222,6 @@ abstract class SendResolverMixin {
 
   SendStructure computeSendStructure(Send node) {
     SendStructure sendStructure = elements.getSendStructure(node);
-    assert(invariant(node, sendStructure != null,
-        message: "Send without a SendStructure"));
     if (sendStructure != null) {
       return sendStructure;
     }
