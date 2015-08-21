@@ -11,6 +11,7 @@
 #endif
 
 #include "vm/constants_arm.h"
+#include "vm/native_entry.h"
 #include "vm/object.h"
 
 namespace dart {
@@ -72,6 +73,27 @@ class CallPattern : public ValueObject {
   ICData& ic_data_;
 
   DISALLOW_COPY_AND_ASSIGN(CallPattern);
+};
+
+
+class NativeCallPattern : public ValueObject {
+ public:
+  NativeCallPattern(uword pc, const Code& code);
+
+  uword target() const;
+  void set_target(uword target_address) const;
+
+  NativeFunction native_function() const;
+  void set_native_function(NativeFunction target) const;
+
+ private:
+  const ObjectPool& object_pool_;
+
+  uword end_;
+  intptr_t native_function_pool_index_;
+  intptr_t target_address_pool_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(NativeCallPattern);
 };
 
 

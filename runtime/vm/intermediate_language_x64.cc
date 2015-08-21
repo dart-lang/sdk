@@ -781,14 +781,21 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     __ leaq(RAX, Address(RBP, kFirstLocalSlotFromFp * kWordSize));
   }
-  ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
-  __ LoadExternalLabel(RBX, &label, kNotPatchable);
   __ LoadImmediate(R10, Immediate(argc_tag));
-  const StubEntry& stub_entry = (is_bootstrap_native() || is_leaf_call) ?
-      *StubCode::CallBootstrapCFunction_entry() :
-      *StubCode::CallNativeCFunction_entry();
+  const StubEntry* stub_entry;
+  if (link_lazily()) {
+    stub_entry = StubCode::CallBootstrapCFunction_entry();
+    __ LoadExternalLabel(
+        RBX, &NativeEntry::LinkNativeCallLabel(), kPatchable);
+  } else {
+    stub_entry = (is_bootstrap_native() || is_leaf_call)
+        ? StubCode::CallBootstrapCFunction_entry()
+        : StubCode::CallNativeCFunction_entry();
+    const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
+    __ LoadExternalLabel(RBX, &label, kNotPatchable);
+  }
   compiler->GenerateCall(token_pos(),
-                         stub_entry,
+                         *stub_entry,
                          RawPcDescriptors::kOther,
                          locs());
   __ popq(result);

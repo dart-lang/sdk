@@ -78,6 +78,27 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
 }
 
 
+void CodePatcher::PatchNativeCallAt(uword return_address,
+                                    const Code& code,
+                                    NativeFunction target,
+                                    const Code& trampoline) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  NativeCallPattern call(return_address, code);
+  call.set_target(trampoline.EntryPoint());
+  call.set_native_function(target);
+}
+
+
+uword CodePatcher::GetNativeCallAt(uword return_address,
+                                   const Code& code,
+                                   NativeFunction* target) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  NativeCallPattern call(return_address, code);
+  *target = call.native_function();
+  return call.target();
+}
+
+
 // This class pattern matches on a load from the object pool.  Loading on
 // ARM is complicated because it can take four possible different forms.  We
 // match backwards from the end of the sequence so we can reuse the code for

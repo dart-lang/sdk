@@ -828,11 +828,19 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     __ leal(EAX, Address(EBP, kFirstLocalSlotFromFp * kWordSize));
   }
-  __ movl(ECX, Immediate(reinterpret_cast<uword>(native_c_function())));
   __ movl(EDX, Immediate(argc_tag));
-  const StubEntry* stub_entry = (is_bootstrap_native() || is_leaf_call) ?
-      StubCode::CallBootstrapCFunction_entry() :
-      StubCode::CallNativeCFunction_entry();
+
+  const StubEntry* stub_entry;
+  if (link_lazily()) {
+    stub_entry = StubCode::CallBootstrapCFunction_entry();
+    __ movl(ECX, Immediate(NativeEntry::LinkNativeCallLabel().address()));
+  } else {
+    stub_entry = (is_bootstrap_native() || is_leaf_call) ?
+        StubCode::CallBootstrapCFunction_entry() :
+        StubCode::CallNativeCFunction_entry();
+    const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
+    __ movl(ECX, Immediate(label.address()));
+  }
   compiler->GenerateCall(token_pos(),
                          *stub_entry,
                          RawPcDescriptors::kOther,

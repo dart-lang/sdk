@@ -43,6 +43,51 @@ int CallPattern::LengthInBytes() {
 }
 
 
+NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
+    : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
+      end_(pc),
+      native_function_pool_index_(-1),
+      target_address_pool_index_(-1) {
+  ASSERT(code.ContainsInstructionAt(pc));
+  // Last instruction: blx lr.
+  ASSERT(*(reinterpret_cast<uword*>(end_) - 1) == 0xe12fff3e);
+
+  Register reg;
+  uword native_function_load_end =
+      InstructionPattern::DecodeLoadWordFromPool(end_ - Instr::kInstrSize,
+                                                 &reg,
+                                                 &target_address_pool_index_);
+  ASSERT(reg == LR);
+  InstructionPattern::DecodeLoadWordFromPool(native_function_load_end,
+                                             &reg,
+                                             &native_function_pool_index_);
+  ASSERT(reg == R5);
+}
+
+
+uword NativeCallPattern::target() const {
+  return object_pool_.RawValueAt(target_address_pool_index_);
+}
+
+
+void NativeCallPattern::set_target(uword target_address) const {
+  object_pool_.SetRawValueAt(target_address_pool_index_, target_address);
+  // No need to flush the instruction cache, since the code is not modified.
+}
+
+
+NativeFunction NativeCallPattern::native_function() const {
+  return reinterpret_cast<NativeFunction>(
+      object_pool_.RawValueAt(native_function_pool_index_));
+}
+
+
+void NativeCallPattern::set_native_function(NativeFunction func) const {
+  object_pool_.SetRawValueAt(native_function_pool_index_,
+      reinterpret_cast<uword>(func));
+}
+
+
 // Decodes a load sequence ending at 'end' (the last instruction of the load
 // sequence is the instruction before the one at end).  Returns a pointer to
 // the first instruction in the sequence.  Returns the register being loaded

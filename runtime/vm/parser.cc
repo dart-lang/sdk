@@ -45,6 +45,7 @@ DEFINE_FLAG(bool, load_deferred_eagerly, false,
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, supermixin, false, "Allow super calls in mixins.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
+DEFINE_FLAG(bool, link_natives_lazily, false, "Link native calls lazily");
 
 DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, load_deferred_eagerly);
@@ -7333,7 +7334,8 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
           native_name,
           native_function,
           current_block_->scope,
-          is_bootstrap_native)));
+          is_bootstrap_native,
+          FLAG_link_natives_lazily)));
 }
 
 

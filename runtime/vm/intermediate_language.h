@@ -3409,6 +3409,10 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
     return ast_node_.is_bootstrap_native();
   }
 
+  bool link_lazily() const {
+    return ast_node_.link_lazily();
+  }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }

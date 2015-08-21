@@ -107,7 +107,7 @@ DEFINE_FLAG_HANDLER(NooptModeHandler,
 DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, interpret_irregexp);
 DECLARE_FLAG(bool, enable_mirrors);
-
+DECLARE_FLAG(bool, link_natives_lazily);
 
 static void PrecompileModeHandler(bool value) {
   if (value) {
@@ -116,6 +116,7 @@ static void PrecompileModeHandler(bool value) {
     FLAG_interpret_irregexp = true;
     FLAG_enable_mirrors = false;
     FLAG_precompile_collect_closures = true;
+    FLAG_link_natives_lazily = true;
   }
 }
 

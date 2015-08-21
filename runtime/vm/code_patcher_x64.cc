@@ -23,8 +23,8 @@ namespace dart {
 class UnoptimizedCall : public ValueObject {
  public:
   UnoptimizedCall(uword return_address, const Code& code)
-      : start_(return_address - kCallPatternSize),
-        object_pool_(ObjectPool::Handle(code.GetObjectPool())) {
+      : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
+        start_(return_address - kCallPatternSize) {
     ASSERT(IsValid(return_address));
     ASSERT((kCallPatternSize - 7) == Assembler::kCallExternalLabelSize);
   }
@@ -40,9 +40,12 @@ class UnoptimizedCall : public ValueObject {
            (code_bytes[9] == 0x97);
   }
 
+  intptr_t argument_index() const {
+    return IndexFromPPLoad(start_ + 3);
+  }
+
   RawObject* ic_data() const {
-    intptr_t index = IndexFromPPLoad(start_ + 3);
-    return object_pool_.ObjectAt(index);
+    return object_pool_.ObjectAt(argument_index());
   }
 
   uword target() const {
@@ -56,10 +59,33 @@ class UnoptimizedCall : public ValueObject {
     // No need to flush the instruction cache, since the code is not modified.
   }
 
+ protected:
+  const ObjectPool& object_pool_;
+
  private:
   uword start_;
-  const ObjectPool& object_pool_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(UnoptimizedCall);
+};
+
+
+class NativeCall : public UnoptimizedCall {
+ public:
+  NativeCall(uword return_address, const Code& code)
+      : UnoptimizedCall(return_address, code) {
+  }
+
+  NativeFunction native_function() const {
+    return reinterpret_cast<NativeFunction>(
+        object_pool_.RawValueAt(argument_index()));
+  }
+
+  void set_native_function(NativeFunction func) const {
+    object_pool_.SetRawValueAt(argument_index(),
+        reinterpret_cast<uword>(func));
+  }
+
+ private:
+  DISALLOW_IMPLICIT_CONSTRUCTORS(NativeCall);
 };
 
 
@@ -208,6 +234,27 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
     *ic_data_result = ic_data.raw();
   }
   return ic_data.GetTargetAt(0);
+}
+
+
+void CodePatcher::PatchNativeCallAt(uword return_address,
+                                    const Code& code,
+                                    NativeFunction target,
+                                    const Code& trampoline) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  NativeCall call(return_address, code);
+  call.set_target(trampoline.EntryPoint());
+  call.set_native_function(target);
+}
+
+
+uword CodePatcher::GetNativeCallAt(uword return_address,
+                                   const Code& code,
+                                   NativeFunction* target) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  NativeCall call(return_address, code);
+  *target = call.native_function();
+  return call.target();
 }
 
 

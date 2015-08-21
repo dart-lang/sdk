@@ -988,32 +988,42 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Compute the effective address. When running under the simulator,
   // this is a redirection address that forces the simulator to call
   // into the runtime system.
-  uword entry = reinterpret_cast<uword>(native_c_function());
+  uword entry;
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
   const bool is_leaf_call =
     (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
-  const StubEntry* stub_entry = NULL;
-  if (is_bootstrap_native() || is_leaf_call) {
+  const StubEntry* stub_entry;
+  if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapCFunction_entry();
+    entry = reinterpret_cast<uword>(&NativeEntry::LinkNativeCall);
 #if defined(USING_SIMULATOR)
     entry = Simulator::RedirectExternalReference(
         entry, Simulator::kBootstrapNativeCall, function().NumParameters());
 #endif
   } else {
-    // In the case of non bootstrap native methods the CallNativeCFunction
-    // stub generates the redirection address when running under the simulator
-    // and hence we do not change 'entry' here.
-    stub_entry = StubCode::CallNativeCFunction_entry();
+    entry = reinterpret_cast<uword>(native_c_function());
+    if (is_bootstrap_native() || is_leaf_call) {
+      stub_entry = StubCode::CallBootstrapCFunction_entry();
 #if defined(USING_SIMULATOR)
-    if (!function().IsNativeAutoSetupScope()) {
       entry = Simulator::RedirectExternalReference(
           entry, Simulator::kBootstrapNativeCall, function().NumParameters());
-    }
 #endif
+    } else {
+      // In the case of non bootstrap native methods the CallNativeCFunction
+      // stub generates the redirection address when running under the simulator
+      // and hence we do not change 'entry' here.
+      stub_entry = StubCode::CallNativeCFunction_entry();
+#if defined(USING_SIMULATOR)
+      if (!function().IsNativeAutoSetupScope()) {
+        entry = Simulator::RedirectExternalReference(
+            entry, Simulator::kBootstrapNativeCall, function().NumParameters());
+      }
+#endif
+    }
   }
+  __ LoadImmediate(A1, argc_tag);
   ExternalLabel label(entry);
   __ LoadExternalLabel(T5, &label, kNotPatchable);
-  __ LoadImmediate(A1, argc_tag);
   compiler->GenerateCall(token_pos(),
                          *stub_entry,
                          RawPcDescriptors::kOther,
