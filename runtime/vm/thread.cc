@@ -200,7 +200,8 @@ void Thread::EnterIsolateAsHelper(Isolate* isolate) {
       thread->isolate()->store_buffer()->PopEmptyBlock();
   ASSERT(isolate->heap() != NULL);
   thread->heap_ = isolate->heap();
-  ASSERT(thread->thread_state() == NULL);
+  ASSERT(thread->thread_interrupt_callback_ == NULL);
+  ASSERT(thread->thread_interrupt_data_ == NULL);
   // Do not update isolate->mutator_thread, but perform sanity check:
   // this thread should not be both the main mutator and helper.
   ASSERT(!isolate->MutatorThreadIsCurrentThread());
@@ -215,7 +216,6 @@ void Thread::ExitIsolateAsHelper() {
   thread->Unschedule();
   // TODO(koda): Move store_buffer_block_ into State.
   thread->StoreBufferRelease();
-  thread->set_thread_state(NULL);
   thread->isolate_ = NULL;
   thread->heap_ = NULL;
   ASSERT(!isolate->MutatorThreadIsCurrentThread());

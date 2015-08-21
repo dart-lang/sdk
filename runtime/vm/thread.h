@@ -14,7 +14,6 @@ namespace dart {
 class CHA;
 class HandleScope;
 class Heap;
-class InterruptableThreadState;
 class Isolate;
 class LongJumpScope;
 class Object;
@@ -142,15 +141,6 @@ class Thread {
     return OFFSET_OF(Thread, state_) + OFFSET_OF(State, top_resource);
   }
 
-  void set_thread_state(InterruptableThreadState* state) {
-    ASSERT((thread_state() == NULL) || (state == NULL));
-    state_.thread_state = state;
-  }
-
-  InterruptableThreadState* thread_state() const {
-    return state_.thread_state;
-  }
-
   static intptr_t heap_offset() {
     return OFFSET_OF(Thread, heap_);
   }
@@ -220,8 +210,6 @@ class Thread {
     uword top_exit_frame_info;
     StackResource* top_resource;
     TimelineEventBlock* timeline_block;
-    // TODO(koda): Migrate individual fields of InterruptableThreadState.
-    InterruptableThreadState* thread_state;
     LongJumpScope* long_jump_base;
 #if defined(DEBUG)
     HandleScope* top_handle_scope;

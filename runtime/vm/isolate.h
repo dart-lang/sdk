@@ -48,7 +48,6 @@ class ICData;
 class Instance;
 class IsolateProfilerData;
 class IsolateSpawnState;
-class InterruptableThreadState;
 class Library;
 class Log;
 class MessageHandler;

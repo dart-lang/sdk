@@ -41,7 +41,7 @@ UNIT_TEST_CASE(Monitor) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   // Thread interrupter interferes with this test, disable interrupts.
-  thread->set_thread_state(NULL);
+  thread->SetThreadInterrupter(NULL, NULL);
   Profiler::EndExecution(isolate);
   Monitor* monitor = new Monitor();
   monitor->Enter();
