@@ -41,17 +41,17 @@ class UnoptimizedCall : public ValueObject {
   }
 
   RawObject* ic_data() const {
-    intptr_t index = InstructionPattern::IndexFromPPLoad(start_ + 3);
+    intptr_t index = IndexFromPPLoad(start_ + 3);
     return object_pool_.ObjectAt(index);
   }
 
   uword target() const {
-    intptr_t index = InstructionPattern::IndexFromPPLoad(start_ + 10);
+    intptr_t index = IndexFromPPLoad(start_ + 10);
     return object_pool_.RawValueAt(index);
   }
 
   void set_target(uword target) const {
-    intptr_t index = InstructionPattern::IndexFromPPLoad(start_ + 10);
+    intptr_t index = IndexFromPPLoad(start_ + 10);
     object_pool_.SetRawValueAt(index, target);
     // No need to flush the instruction cache, since the code is not modified.
   }
@@ -117,7 +117,7 @@ class PoolPointerCall : public ValueObject {
   }
 
   intptr_t pp_index() const {
-    return InstructionPattern::IndexFromPPLoad(start_ + 3);
+    return IndexFromPPLoad(start_ + 3);
   }
 
   uword Target() const {
@@ -190,11 +190,11 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
 
 void CodePatcher::InsertCallAt(uword start, uword target) {
   // The inserted call should not overlap the lazy deopt jump code.
-  ASSERT(start + ShortCallPattern::InstructionLength() <= target);
+  ASSERT(start + ShortCallPattern::pattern_length_in_bytes() <= target);
   *reinterpret_cast<uint8_t*>(start) = 0xE8;
   ShortCallPattern call(start);
   call.SetTargetAddress(target);
-  CPU::FlushICache(start, ShortCallPattern::InstructionLength());
+  CPU::FlushICache(start, ShortCallPattern::pattern_length_in_bytes());
 }
 
 
@@ -227,7 +227,7 @@ class EdgeCounter : public ValueObject {
   }
 
   RawObject* edge_counter() const {
-    return object_pool_.ObjectAt(InstructionPattern::IndexFromPPLoad(end_ - 4));
+    return object_pool_.ObjectAt(IndexFromPPLoad(end_ - 4));
   }
 
  private:

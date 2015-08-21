@@ -150,9 +150,7 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
       end = DecodeLoadWordImmediate(end, reg, &offset);
     }
   }
-  offset += kHeapObjectTag;
-  ASSERT(Utils::IsAligned(offset, 4));
-  *index = (offset - Array::data_offset()) / 4;
+  *index = ObjectPool::IndexFromOffset(offset);
   return start;
 }
 

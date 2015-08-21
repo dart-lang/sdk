@@ -3625,8 +3625,14 @@ class ObjectPool : public Object {
 
   static RawObjectPool* New(intptr_t len);
 
+  // Returns the pool index from the offset relative to a tagged RawObjectPool*,
+  // adjusting for the tag-bit.
   static intptr_t IndexFromOffset(intptr_t offset) {
     return (offset + kHeapObjectTag - data_offset()) / kBytesPerElement;
+  }
+
+  static intptr_t OffsetFromIndex(intptr_t index) {
+    return element_offset(index) - kHeapObjectTag;
   }
 
   void DebugPrint() const;

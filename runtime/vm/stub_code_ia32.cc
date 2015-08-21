@@ -458,7 +458,7 @@ void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
   // Correct return address to point just after the call that is being
   // deoptimized.
   __ popl(EBX);
-  __ subl(EBX, Immediate(CallPattern::InstructionLength()));
+  __ subl(EBX, Immediate(CallPattern::pattern_length_in_bytes()));
   __ pushl(EBX);
   GenerateDeoptimizationSequence(assembler, true);  // Preserve EAX.
 }

@@ -11,61 +11,6 @@
 
 namespace dart {
 
-bool InstructionPattern::TestBytesWith(const int* data, int num_bytes) const {
-  ASSERT(data != NULL);
-  const uint8_t* byte_array = reinterpret_cast<const uint8_t*>(start_);
-  for (int i = 0; i < num_bytes; i++) {
-    // Skip comparison for data[i] < 0.
-    if ((data[i] >= 0) && (byte_array[i] != (0xFF & data[i]))) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-uword CallOrJumpPattern::TargetAddress() const {
-  ASSERT(IsValid());
-  return start() + kLengthInBytes + *reinterpret_cast<uword*>(start() + 1);
-}
-
-
-void CallOrJumpPattern::SetTargetAddress(uword target) const {
-  ASSERT(IsValid());
-  *reinterpret_cast<uword*>(start() + 1) = target - start() - kLengthInBytes;
-  CPU::FlushICache(start() + 1, kWordSize);
-}
-
-
-const int* CallPattern::pattern() const {
-  static const int kCallPattern[kLengthInBytes] = {0xE8, -1, -1, -1, -1};
-  return kCallPattern;
-}
-
-
-const int* JumpPattern::pattern() const {
-  static const int kJumpPattern[kLengthInBytes] = {0xE9, -1, -1, -1, -1};
-  return kJumpPattern;
-}
-
-
-const int* ReturnPattern::pattern() const {
-  static const int kReturnPattern[kLengthInBytes] = { 0xC3 };
-  return kReturnPattern;
-}
-
-
-const int* ProloguePattern::pattern() const {
-  static const int kProloguePattern[kLengthInBytes] = { 0x55, 0x89, 0xe5 };
-  return kProloguePattern;
-}
-
-
-const int* SetFramePointerPattern::pattern() const {
-  static const int kFramePointerPattern[kLengthInBytes] = { 0x89, 0xe5 };
-  return kFramePointerPattern;
-}
-
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

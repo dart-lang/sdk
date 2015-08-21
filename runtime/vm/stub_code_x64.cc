@@ -479,7 +479,7 @@ void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
   // Correct return address to point just after the call that is being
   // deoptimized.
   __ popq(RBX);
-  __ subq(RBX, Immediate(ShortCallPattern::InstructionLength()));
+  __ subq(RBX, Immediate(ShortCallPattern::pattern_length_in_bytes()));
   __ pushq(RBX);
   GenerateDeoptimizationSequence(assembler, true);  // Preserve RAX.
 }

@@ -118,9 +118,7 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
     // Offset is signed, so add the upper 16 bits.
     offset += (instr->UImmField() << 16);
   }
-  offset += kHeapObjectTag;
-  ASSERT(Utils::IsAligned(offset, 4));
-  *index = (offset - Array::data_offset()) / 4;
+  *index = ObjectPool::IndexFromOffset(offset);
   return start;
 }
 

@@ -11,6 +11,7 @@
 #endif
 
 #include "vm/allocation.h"
+#include "vm/cpu.h"
 #include "vm/object.h"
 
 namespace dart {
@@ -20,23 +21,21 @@ class RawClass;
 class Immediate;
 class RawObject;
 
-// Abstract class for all instruction pattern classes.
-class InstructionPattern : public ValueObject {
+// Template class for all instruction pattern classes.
+// P has to specify a static pattern and a pattern length method.
+template<class P> class InstructionPattern : public ValueObject {
  public:
   explicit InstructionPattern(uword pc) : start_(pc) {
     ASSERT(pc != 0);
   }
-  virtual ~InstructionPattern() {}
 
   // Call to check if the instruction pattern at 'pc' match the instruction.
-  virtual bool IsValid() const {
-    return TestBytesWith(pattern(), pattern_length_in_bytes());
+  // 'P::pattern()' returns the expected byte pattern in form of an integer
+  // array with length of 'P::pattern_length_in_bytes()'. A '-1' element means
+  // 'any byte'.
+  bool IsValid() const {
+    return TestBytesWith(P::pattern(), P::pattern_length_in_bytes());
   }
-
-  // 'pattern' returns the expected byte pattern in form of an integer array
-  // with length of 'pattern_length_in_bytes'. A '-1' element means 'any byte'.
-  virtual const int* pattern() const = 0;
-  virtual int pattern_length_in_bytes() const = 0;
 
  protected:
   uword start() const { return start_; }
@@ -45,7 +44,17 @@ class InstructionPattern : public ValueObject {
   // Returns true if the 'num_bytes' bytes at 'start_' correspond to
   // array of integers 'data'. 'data' elements are either a byte or -1, which
   // represents any byte.
-  bool TestBytesWith(const int* data, int num_bytes) const;
+  bool TestBytesWith(const int* data, int num_bytes) const {
+    ASSERT(data != NULL);
+    const uint8_t* byte_array = reinterpret_cast<const uint8_t*>(start_);
+    for (int i = 0; i < num_bytes; i++) {
+      // Skip comparison for data[i] < 0.
+      if ((data[i] >= 0) && (byte_array[i] != (0xFF & data[i]))) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   const uword start_;
 
@@ -53,54 +62,74 @@ class InstructionPattern : public ValueObject {
 };
 
 
-class CallOrJumpPattern : public InstructionPattern {
+template<class P>
+class CallOrJumpPattern : public InstructionPattern<P> {
  public:
-  virtual int pattern_length_in_bytes() const {
-    return kLengthInBytes;
+  uword TargetAddress() const {
+    ASSERT(this->IsValid());
+    return this->start() +
+        P::pattern_length_in_bytes() +
+        *reinterpret_cast<uword*>(this->start() + 1);
   }
-  uword TargetAddress() const;
-  void SetTargetAddress(uword new_target) const;
+
+  void SetTargetAddress(uword new_target) const {
+    ASSERT(this->IsValid());
+    *reinterpret_cast<uword*>(this->start() + 1) =
+        new_target - this->start() - P::pattern_length_in_bytes();
+    CPU::FlushICache(this->start() + 1, kWordSize);
+  }
 
  protected:
-  explicit CallOrJumpPattern(uword pc) : InstructionPattern(pc) {}
-  static const int kLengthInBytes = 5;
+  explicit CallOrJumpPattern(uword pc) : InstructionPattern<P>(pc) {}
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CallOrJumpPattern);
 };
 
 
-class CallPattern : public CallOrJumpPattern {
+class CallPattern : public CallOrJumpPattern<CallPattern> {
  public:
   explicit CallPattern(uword pc) : CallOrJumpPattern(pc) {}
-  static int InstructionLength() {
-    return kLengthInBytes;
+
+  static int pattern_length_in_bytes() { return kLengthInBytes; }
+  static const int* pattern() {
+    static const int kCallPattern[kLengthInBytes] = {0xE8, -1, -1, -1, -1};
+    return kCallPattern;
   }
 
  private:
-  virtual const int* pattern() const;
+  static const int kLengthInBytes = 5;
 
   DISALLOW_COPY_AND_ASSIGN(CallPattern);
 };
 
 
-class JumpPattern : public CallOrJumpPattern {
+class JumpPattern : public CallOrJumpPattern<JumpPattern> {
  public:
   JumpPattern(uword pc, const Code& code) : CallOrJumpPattern(pc) {}
 
+  static int pattern_length_in_bytes() { return kLengthInBytes; }
+  static const int* pattern() {
+    static const int kJumpPattern[kLengthInBytes] = {0xE9, -1, -1, -1, -1};
+    return kJumpPattern;
+  }
+
  private:
-  virtual const int* pattern() const;
+  static const int kLengthInBytes = 5;
 
   DISALLOW_COPY_AND_ASSIGN(JumpPattern);
 };
 
 
-class ReturnPattern : public InstructionPattern {
+class ReturnPattern : public InstructionPattern<ReturnPattern> {
  public:
   explicit ReturnPattern(uword pc) : InstructionPattern(pc) {}
 
-  virtual const int* pattern() const;
-  virtual int pattern_length_in_bytes() const { return kLengthInBytes; }
+  static const int* pattern() {
+    static const int kReturnPattern[kLengthInBytes] = { 0xC3 };
+    return kReturnPattern;
+  }
+  static int pattern_length_in_bytes() { return kLengthInBytes; }
 
  private:
   static const int kLengthInBytes = 1;
@@ -109,12 +138,16 @@ class ReturnPattern : public InstructionPattern {
 
 // push ebp
 // mov ebp, esp
-class ProloguePattern : public InstructionPattern {
+class ProloguePattern : public InstructionPattern<ProloguePattern> {
  public:
   explicit ProloguePattern(uword pc) : InstructionPattern(pc) {}
 
-  virtual const int* pattern() const;
-  virtual int pattern_length_in_bytes() const { return kLengthInBytes; }
+  static const int* pattern() {
+    static const int kProloguePattern[kLengthInBytes] = { 0x55, 0x89, 0xe5 };
+    return kProloguePattern;
+  }
+
+  static int pattern_length_in_bytes() { return kLengthInBytes; }
 
  private:
   static const int kLengthInBytes = 3;
@@ -122,12 +155,17 @@ class ProloguePattern : public InstructionPattern {
 
 
 // mov ebp, esp
-class SetFramePointerPattern : public InstructionPattern {
+class SetFramePointerPattern :
+    public InstructionPattern<SetFramePointerPattern> {
  public:
   explicit SetFramePointerPattern(uword pc) : InstructionPattern(pc) {}
 
-  virtual const int* pattern() const;
-  virtual int pattern_length_in_bytes() const { return kLengthInBytes; }
+  static const int* pattern() {
+    static const int kFramePointerPattern[kLengthInBytes] = { 0x89, 0xe5 };
+    return kFramePointerPattern;
+  }
+
+  static int pattern_length_in_bytes() { return kLengthInBytes; }
 
  private:
   static const int kLengthInBytes = 2;

@@ -208,8 +208,9 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
       offset |= instr->Imm16Field();
     }
   }
+  // PP is untagged on ARM64.
   ASSERT(Utils::IsAligned(offset, 8));
-  *index = (offset - Array::data_offset()) / 8;
+  *index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
   return start;
 }
 
