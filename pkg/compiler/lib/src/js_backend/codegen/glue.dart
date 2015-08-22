@@ -252,4 +252,12 @@ class Glue {
 
   ClassElement get jsExtendableArrayClass => _backend.jsExtendableArrayClass;
   ClassElement get jsMutableArrayClass => _backend.jsMutableArrayClass;
+
+  bool isStringClass(ClassElement classElement) =>
+      classElement == _backend.jsStringClass ||
+      classElement == _compiler.stringClass;
+
+  bool isBoolClass(ClassElement classElement) =>
+      classElement == _backend.jsBoolClass ||
+      classElement == _compiler.boolClass;
 }

@@ -358,10 +358,26 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
       // Handle some special checks against classes that exist only in
       // the compile-time class hierarchy, not at runtime.
+      // TODO(sra): Is this correct? The field tests are only valid with the
+      // precondition that [value] is an Array. They will crash on `null`.
       if (clazz == glue.jsExtendableArrayClass) {
+        assert(node.isTypeTest);
         return js.js(r'!#.fixed$length', <js.Expression>[value]);
       } else if (clazz == glue.jsMutableArrayClass) {
+        assert(node.isTypeTest);
         return js.js(r'!#.immutable$list', <js.Expression>[value]);
+      }
+
+      if (glue.isStringClass(clazz)) {
+        if (node.isTypeTest) {
+          return js.js(r'typeof # === "string"', <js.Expression>[value]);
+        }
+        // TODO(sra): Implement fast cast via calling 'stringTypeCast'.
+      } else if (glue.isBoolClass(clazz)) {
+        if (node.isTypeTest) {
+          return js.js(r'typeof # === "boolean"', <js.Expression>[value]);
+        }
+        // TODO(sra): Implement fast cast via calling 'boolTypeCast'.
       }
 
       // The helper we use needs the JSArray class to exist, but for some
