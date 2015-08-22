@@ -903,8 +903,13 @@ class IncrementalResolver {
    * Initialize a newly created incremental resolver to resolve a node in the
    * given source in the given library.
    */
-  IncrementalResolver(this.oldEntry, this.newSourceEntry, this.newUnitEntry,
-      this._definingUnit, this._updateOffset, this._updateEndOld,
+  IncrementalResolver(
+      this.oldEntry,
+      this.newSourceEntry,
+      this.newUnitEntry,
+      this._definingUnit,
+      this._updateOffset,
+      this._updateEndOld,
       this._updateEndNew) {
     _updateDelta = _updateEndNew - _updateEndOld;
     _definingLibrary = _definingUnit.library;
@@ -1231,8 +1236,10 @@ class IncrementalResolver {
     try {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
-      ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter,
-          _definingLibrary, _typeProvider,
+      ErrorVerifier errorVerifier = new ErrorVerifier(
+          errorReporter,
+          _definingLibrary,
+          _typeProvider,
           new InheritanceManager(_definingLibrary),
           _context.analysisOptions.enableSuperMixins);
       if (_resolutionContext.enclosingClassDeclaration != null) {
@@ -1279,9 +1286,15 @@ class PoorMansIncrementalResolver {
   List<AnalysisError> _newScanErrors = <AnalysisError>[];
   List<AnalysisError> _newParseErrors = <AnalysisError>[];
 
-  PoorMansIncrementalResolver(this._typeProvider, this._unitSource,
-      this._oldEntry, this._newSourceEntry, this._newUnitEntry, this._oldUnit,
-      bool resolveApiChanges, this._options) {
+  PoorMansIncrementalResolver(
+      this._typeProvider,
+      this._unitSource,
+      this._oldEntry,
+      this._newSourceEntry,
+      this._newUnitEntry,
+      this._oldUnit,
+      bool resolveApiChanges,
+      this._options) {
     _resolveApiChanges = resolveApiChanges;
   }
 
@@ -1338,8 +1351,13 @@ class PoorMansIncrementalResolver {
             _shiftTokens(firstPair.oldToken);
             {
               IncrementalResolver incrementalResolver = new IncrementalResolver(
-                  _oldEntry, _newSourceEntry, _newUnitEntry, _unitElement,
-                  _updateOffset, _updateEndOld, _updateEndNew);
+                  _oldEntry,
+                  _newSourceEntry,
+                  _newUnitEntry,
+                  _unitElement,
+                  _updateOffset,
+                  _updateEndOld,
+                  _updateEndNew);
               incrementalResolver._updateElementNameOffsets();
               incrementalResolver._shiftEntryErrors();
             }
@@ -1385,7 +1403,8 @@ class PoorMansIncrementalResolver {
                 found = true;
               }
             }
-            if (oldParent is FunctionBody && newParent is FunctionBody) {
+            if (oldParent is BlockFunctionBody &&
+                newParent is BlockFunctionBody) {
               oldNode = oldParent;
               newNode = newParent;
               found = true;
@@ -1428,8 +1447,13 @@ class PoorMansIncrementalResolver {
         }
         // perform incremental resolution
         IncrementalResolver incrementalResolver = new IncrementalResolver(
-            _oldEntry, _newSourceEntry, _newUnitEntry, _unitElement,
-            _updateOffset, _updateEndOld, _updateEndNew);
+            _oldEntry,
+            _newSourceEntry,
+            _newUnitEntry,
+            _unitElement,
+            _updateOffset,
+            _updateEndOld,
+            _updateEndNew);
         bool success = incrementalResolver.resolve(newNode);
         // check if success
         if (!success) {
@@ -1493,9 +1517,14 @@ class PoorMansIncrementalResolver {
     // replace node
     NodeReplacer.replace(oldComment, newComment);
     // update elements
-    IncrementalResolver incrementalResolver = new IncrementalResolver(_oldEntry,
-        _newSourceEntry, _newUnitEntry, _unitElement, _updateOffset,
-        _updateEndOld, _updateEndNew);
+    IncrementalResolver incrementalResolver = new IncrementalResolver(
+        _oldEntry,
+        _newSourceEntry,
+        _newUnitEntry,
+        _unitElement,
+        _updateOffset,
+        _updateEndOld,
+        _updateEndNew);
     incrementalResolver._updateElementNameOffsets();
     incrementalResolver._shiftEntryErrors();
     _updateEntry();
@@ -1565,13 +1594,15 @@ class PoorMansIncrementalResolver {
     _newSourceEntry.setState(DART_ERRORS, CacheState.INVALID);
     // scan results
     _newSourceEntry.setState(SCAN_ERRORS, CacheState.INVALID);
-    List<TargetedResult> scanDeps =
-        <TargetedResult>[new TargetedResult(_unitSource, CONTENT)];
+    List<TargetedResult> scanDeps = <TargetedResult>[
+      new TargetedResult(_unitSource, CONTENT)
+    ];
     _newSourceEntry.setValue(LINE_INFO, _newLineInfo, scanDeps);
     _newSourceEntry.setValue(SCAN_ERRORS, _newScanErrors, scanDeps);
     // parse results
-    List<TargetedResult> parseDeps =
-        <TargetedResult>[new TargetedResult(_unitSource, TOKEN_STREAM)];
+    List<TargetedResult> parseDeps = <TargetedResult>[
+      new TargetedResult(_unitSource, TOKEN_STREAM)
+    ];
     _newSourceEntry.setState(PARSE_ERRORS, CacheState.INVALID);
     _newSourceEntry.setValue(PARSE_ERRORS, _newParseErrors, parseDeps);
     _newSourceEntry.setValue(PARSED_UNIT, _oldUnit, parseDeps);

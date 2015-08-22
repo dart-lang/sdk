@@ -3746,6 +3746,21 @@ main() {
         expectedSuccess: false);
   }
 
+  void test_false_expressionBody() {
+    _resolveUnit(r'''
+class A {
+  final f = (() => 1)();
+}
+''');
+    _updateAndValidate(
+        r'''
+class A {
+  final f = (() => 2)();
+}
+''',
+        expectedSuccess: false);
+  }
+
   void test_false_topLevelFunction_name() {
     _resolveUnit(r'''
 a() {}
