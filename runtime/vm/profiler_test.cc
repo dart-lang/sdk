@@ -14,9 +14,10 @@
 namespace dart {
 
 DECLARE_FLAG(bool, profile_vm);
+DECLARE_FLAG(int, max_profile_depth);
 
 // Some tests are written assuming native stack trace profiling is disabled.
-class DisableNativeProfileScope {
+class DisableNativeProfileScope : public ValueObject {
  public:
   DisableNativeProfileScope()
       : FLAG_profile_vm_(FLAG_profile_vm) {
@@ -29,6 +30,23 @@ class DisableNativeProfileScope {
 
  private:
   const bool FLAG_profile_vm_;
+};
+
+
+// Temporarily adjust the maximum profile depth.
+class MaxProfileDepthScope : public ValueObject {
+ public:
+  explicit MaxProfileDepthScope(intptr_t new_max_depth)
+      : FLAG_max_profile_depth_(FLAG_max_profile_depth) {
+    Profiler::SetSampleDepth(new_max_depth);
+  }
+
+  ~MaxProfileDepthScope() {
+    Profiler::SetSampleDepth(FLAG_max_profile_depth_);
+  }
+
+ private:
+  const intptr_t FLAG_max_profile_depth_;
 };
 
 
@@ -186,9 +204,10 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
 
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -264,9 +283,10 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
 
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -281,9 +301,10 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
   EXPECT_VALID(result);
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -335,9 +356,10 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
   EXPECT_VALID(result);
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -375,9 +397,10 @@ TEST_CASE(Profiler_CodeTicks) {
   EXPECT_VALID(result);
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -397,9 +420,10 @@ TEST_CASE(Profiler_CodeTicks) {
   EXPECT_VALID(result);
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -468,9 +492,10 @@ TEST_CASE(Profiler_FunctionTicks) {
   EXPECT_VALID(result);
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -490,9 +515,10 @@ TEST_CASE(Profiler_FunctionTicks) {
   EXPECT_VALID(result);
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -1141,9 +1167,10 @@ TEST_CASE(Profiler_FunctionInline) {
   // At this point B.boo should be optimized and inlined B.foo and B.choo.
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -1159,9 +1186,10 @@ TEST_CASE(Profiler_FunctionInline) {
   EXPECT_VALID(result);
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -1260,9 +1288,10 @@ TEST_CASE(Profiler_FunctionInline) {
 
   // Test code transition tags.
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter,
@@ -1334,6 +1363,114 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_STREQ("B.choo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Inline End]", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+}
+
+
+TEST_CASE(Profiler_ChainedSamples) {
+  MaxProfileDepthScope mpds(32);
+  // Each sample holds 8 stack frames.
+  // This chain is 20 stack frames deep.
+  const char* kScript =
+      "class A {\n"
+      "  var a;\n"
+      "  var b;\n"
+      "}\n"
+      "class B {\n"
+      "  static boo() {\n"
+      "    return new A();\n"
+      "  }\n"
+      "}\n"
+      "go() => init();\n"
+      "init() => secondInit();\n"
+      "secondInit() => apple();\n"
+      "apple() => banana();\n"
+      "banana() => cantaloupe();\n"
+      "cantaloupe() => dog();\n"
+      "dog() => elephant();\n"
+      "elephant() => fred();\n"
+      "fred() => granola();\n"
+      "granola() => haystack();\n"
+      "haystack() => ice();\n"
+      "ice() => jeep();\n"
+      "jeep() => kindle();\n"
+      "kindle() => lemon();\n"
+      "lemon() => mayo();\n"
+      "mayo() => napkin();\n"
+      "napkin() => orange();\n"
+      "orange() => B.boo();\n"
+      "main() {\n"
+      "  return go();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+
+  const Class& class_a = Class::Handle(GetClass(root_library, "A"));
+  EXPECT(!class_a.IsNull());
+  class_a.SetTraceAllocation(true);
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+
+  {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have 1 allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    walker.Reset(Profile::kExclusiveCode);
+    // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("orange", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("napkin", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("mayo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("lemon", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("kindle", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("jeep", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("ice", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("haystack", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("granola", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("fred", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("elephant", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("dog", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("cantaloupe", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("banana", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("apple", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("secondInit", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("init", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("go", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("main", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 }

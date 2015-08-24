@@ -14,7 +14,7 @@
 
 namespace dart {
 
-DECLARE_FLAG(int, profile_depth);
+DECLARE_FLAG(int, max_profile_depth);
 DECLARE_FLAG(int, profile_period);
 
 DEFINE_FLAG(bool, trace_profiler, false, "Trace profiler.");
@@ -2043,7 +2043,7 @@ void Profile::PrintJSON(JSONStream* stream) {
   obj.AddProperty("samplePeriod",
                   static_cast<intptr_t>(FLAG_profile_period));
   obj.AddProperty("stackDepth",
-                  static_cast<intptr_t>(FLAG_profile_depth));
+                  static_cast<intptr_t>(FLAG_max_profile_depth));
   obj.AddProperty("sampleCount", sample_count());
   obj.AddProperty("timeSpan", MicrosecondsToSeconds(GetTimeSpan()));
   {

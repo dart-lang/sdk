@@ -25,6 +25,8 @@
 namespace dart {
 
 
+static const intptr_t kSampleSize = 8;
+
 DECLARE_FLAG(bool, trace_profiler);
 
 DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
@@ -38,7 +40,7 @@ DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
   DEFINE_FLAG(int, profile_period, 1000,
               "Time between profiler samples in microseconds. Minimum 50.");
 #endif
-DEFINE_FLAG(int, profile_depth, 8,
+DEFINE_FLAG(int, max_profile_depth, kSampleSize,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
 #if defined(USING_SIMULATOR)
 DEFINE_FLAG(bool, profile_vm, true,
@@ -51,18 +53,11 @@ DEFINE_FLAG(bool, profile_vm, false,
 bool Profiler::initialized_ = false;
 SampleBuffer* Profiler::sample_buffer_ = NULL;
 
-static intptr_t NumberOfFramesToCollect() {
-  if (FLAG_profile_depth <= 0) {
-    return 0;
-  }
-  // Subtract to reserve space for the possible missing frame.
-  return FLAG_profile_depth - 1;
-}
 
 void Profiler::InitOnce() {
   // Place some sane restrictions on user controlled flags.
   SetSamplePeriod(FLAG_profile_period);
-  SetSampleDepth(FLAG_profile_depth);
+  SetSampleDepth(FLAG_max_profile_depth);
   Sample::InitOnce();
   if (!FLAG_profile) {
     return;
@@ -90,11 +85,11 @@ void Profiler::SetSampleDepth(intptr_t depth) {
   const int kMinimumDepth = 2;
   const int kMaximumDepth = 255;
   if (depth < kMinimumDepth) {
-    FLAG_profile_depth = kMinimumDepth;
+    FLAG_max_profile_depth = kMinimumDepth;
   } else if (depth > kMaximumDepth) {
-    FLAG_profile_depth = kMaximumDepth;
+    FLAG_max_profile_depth = kMaximumDepth;
   } else {
-    FLAG_profile_depth = depth;
+    FLAG_max_profile_depth = depth;
   }
 }
 
@@ -228,8 +223,7 @@ intptr_t Sample::instance_size_ = 0;
 
 
 void Sample::InitOnce() {
-  ASSERT(FLAG_profile_depth >= 2);
-  pcs_length_ = FLAG_profile_depth;
+  pcs_length_ = kSampleSize;
   instance_size_ =
       sizeof(Sample) + (sizeof(uword) * pcs_length_);  // NOLINT.
 }
@@ -265,13 +259,30 @@ Sample* SampleBuffer::At(intptr_t idx) const {
 }
 
 
-Sample* SampleBuffer::ReserveSample() {
+intptr_t SampleBuffer::ReserveSampleSlot() {
   ASSERT(samples_ != NULL);
   uintptr_t cursor = AtomicOperations::FetchAndIncrement(&cursor_);
   // Map back into sample buffer range.
   cursor = cursor % capacity_;
-  return At(cursor);
+  return cursor;
 }
+
+Sample* SampleBuffer::ReserveSample() {
+  return At(ReserveSampleSlot());
+}
+
+
+Sample* SampleBuffer::ReserveSampleAndLink(Sample* previous) {
+  ASSERT(previous != NULL);
+  intptr_t next_index = ReserveSampleSlot();
+  Sample* next = At(next_index);
+  next->Init(previous->isolate(), previous->timestamp(), previous->tid());
+  next->set_head_sample(false);
+  // Mark that previous continues at next.
+  previous->SetContinuationIndex(next_index);
+  return next;
+}
+
 
 // Attempts to find the true return address when a Dart frame is being setup
 // or torn down.
@@ -407,50 +418,96 @@ void ClearProfileVisitor::VisitSample(Sample* sample) {
 }
 
 
-// Given an exit frame, walk the Dart stack.
-class ProfilerDartExitStackWalker : public ValueObject {
+class ProfilerStackWalker : public ValueObject {
  public:
-  ProfilerDartExitStackWalker(Isolate* isolate, Sample* sample)
-      : sample_(sample),
-        frame_iterator_(isolate) {
+  ProfilerStackWalker(Isolate* isolate,
+                      Sample* head_sample,
+                      SampleBuffer* sample_buffer)
+    : isolate_(isolate),
+      sample_(head_sample),
+      sample_buffer_(sample_buffer),
+      frame_index_(0),
+      total_frames_(0) {
+    ASSERT(isolate_ != NULL);
     ASSERT(sample_ != NULL);
+    ASSERT(sample_buffer_ != NULL);
+    ASSERT(sample_->head_sample());
+  }
+
+  bool Append(uword pc) {
+    if (total_frames_ >= FLAG_max_profile_depth) {
+      sample_->set_truncated_trace(true);
+      return false;
+    }
+    ASSERT(sample_ != NULL);
+    if (frame_index_ == kSampleSize) {
+      Sample* new_sample = sample_buffer_->ReserveSampleAndLink(sample_);
+      if (new_sample == NULL) {
+        // Could not reserve new sample- mark this as truncated.
+        sample_->set_truncated_trace(true);
+        return false;
+      }
+      frame_index_ = 0;
+      sample_ = new_sample;
+    }
+    ASSERT(frame_index_ < kSampleSize);
+    sample_->SetAt(frame_index_, pc);
+    frame_index_++;
+    total_frames_++;
+    return true;
+  }
+
+ protected:
+  Isolate* isolate_;
+  Sample* sample_;
+  SampleBuffer* sample_buffer_;
+  intptr_t frame_index_;
+  intptr_t total_frames_;
+};
+
+
+// Given an exit frame, walk the Dart stack.
+class ProfilerDartExitStackWalker : public ProfilerStackWalker {
+ public:
+  ProfilerDartExitStackWalker(Isolate* isolate,
+                              Sample* sample,
+                              SampleBuffer* sample_buffer)
+      : ProfilerStackWalker(isolate, sample, sample_buffer),
+        frame_iterator_(isolate) {
   }
 
   void walk() {
     // Mark that this sample was collected from an exit frame.
     sample_->set_exit_frame_sample(true);
-    intptr_t frame_index = 0;
+
     StackFrame* frame = frame_iterator_.NextFrame();
     while (frame != NULL) {
-      sample_->SetAt(frame_index, frame->pc());
-      frame_index++;
-      if (frame_index >= NumberOfFramesToCollect()) {
-        sample_->set_truncated_trace(true);
-        break;
+      if (!Append(frame->pc())) {
+        return;
       }
       frame = frame_iterator_.NextFrame();
     }
   }
 
  private:
-  Sample* sample_;
   DartFrameIterator frame_iterator_;
 };
 
 
 // Executing Dart code, walk the stack.
-class ProfilerDartStackWalker : public ValueObject {
+class ProfilerDartStackWalker : public ProfilerStackWalker {
  public:
-  ProfilerDartStackWalker(Sample* sample,
+  ProfilerDartStackWalker(Isolate* isolate,
+                          Sample* sample,
+                          SampleBuffer* sample_buffer,
                           uword stack_lower,
                           uword stack_upper,
                           uword pc,
                           uword fp,
                           uword sp)
-      : sample_(sample),
+      : ProfilerStackWalker(isolate, sample, sample_buffer),
         stack_upper_(stack_upper),
         stack_lower_(stack_lower) {
-    ASSERT(sample_ != NULL);
     pc_ = reinterpret_cast<uword*>(pc);
     fp_ = reinterpret_cast<uword*>(fp);
     sp_ = reinterpret_cast<uword*>(sp);
@@ -474,13 +531,14 @@ class ProfilerDartStackWalker : public ValueObject {
         return;
       }
     }
-    for (int i = 0; i < NumberOfFramesToCollect(); i++) {
-      sample_->SetAt(i, reinterpret_cast<uword>(pc_));
+    while (true) {
+      if (!Append(reinterpret_cast<uword>(pc_))) {
+        return;
+      }
       if (!Next()) {
         return;
       }
     }
-    sample_->set_truncated_trace(true);
   }
 
  private:
@@ -583,7 +641,6 @@ class ProfilerDartStackWalker : public ValueObject {
   uword* pc_;
   uword* fp_;
   uword* sp_;
-  Sample* sample_;
   const uword stack_upper_;
   uword stack_lower_;
 };
@@ -593,27 +650,28 @@ class ProfilerDartStackWalker : public ValueObject {
 // recent GCC versions with optimizing enabled) the stack walking code may
 // fail.
 //
-class ProfilerNativeStackWalker : public ValueObject {
+class ProfilerNativeStackWalker : public ProfilerStackWalker {
  public:
-  ProfilerNativeStackWalker(Sample* sample,
+  ProfilerNativeStackWalker(Isolate* isolate,
+                            Sample* sample,
+                            SampleBuffer* sample_buffer,
                             uword stack_lower,
                             uword stack_upper,
                             uword pc,
                             uword fp,
                             uword sp)
-      : sample_(sample),
+      : ProfilerStackWalker(isolate, sample, sample_buffer),
         stack_upper_(stack_upper),
         original_pc_(pc),
         original_fp_(fp),
         original_sp_(sp),
         lower_bound_(stack_lower) {
-    ASSERT(sample_ != NULL);
   }
 
   void walk() {
     const uword kMaxStep = VirtualMemory::PageSize();
 
-    sample_->SetAt(0, original_pc_);
+    Append(original_pc_);
 
     uword* pc = reinterpret_cast<uword*>(original_pc_);
     uword* fp = reinterpret_cast<uword*>(original_fp_);
@@ -630,8 +688,10 @@ class ProfilerNativeStackWalker : public ValueObject {
       return;
     }
 
-    for (int i = 0; i < NumberOfFramesToCollect(); i++) {
-      sample_->SetAt(i, reinterpret_cast<uword>(pc));
+    while (true) {
+      if (!Append(reinterpret_cast<uword>(pc))) {
+        return;
+      }
 
       pc = CallerPC(fp);
       previous_fp = fp;
@@ -660,8 +720,6 @@ class ProfilerNativeStackWalker : public ValueObject {
       // Move the lower bound up.
       lower_bound_ = reinterpret_cast<uword>(fp);
     }
-
-    sample_->set_truncated_trace(true);
   }
 
  private:
@@ -693,7 +751,6 @@ class ProfilerNativeStackWalker : public ValueObject {
     return r;
   }
 
-  Sample* sample_;
   const uword stack_upper_;
   const uword original_pc_;
   const uword original_fp_;
@@ -1000,7 +1057,9 @@ void Profiler::RecordAllocation(Isolate* isolate, intptr_t cid) {
                                  sample_buffer,
                                  OSThread::GetCurrentThreadId());
     sample->SetAllocationCid(cid);
-    ProfilerNativeStackWalker native_stack_walker(sample,
+    ProfilerNativeStackWalker native_stack_walker(isolate,
+                                                  sample,
+                                                  sample_buffer,
                                                   stack_lower,
                                                   stack_upper,
                                                   pc,
@@ -1012,7 +1071,9 @@ void Profiler::RecordAllocation(Isolate* isolate, intptr_t cid) {
                                  sample_buffer,
                                  OSThread::GetCurrentThreadId());
     sample->SetAllocationCid(cid);
-    ProfilerDartExitStackWalker dart_exit_stack_walker(isolate, sample);
+    ProfilerDartExitStackWalker dart_exit_stack_walker(isolate,
+                                                       sample,
+                                                       sample_buffer);
     dart_exit_stack_walker.walk();
   } else {
     // Fall back.
@@ -1102,16 +1163,22 @@ void Profiler::RecordSampleInterruptCallback(
   ASSERT(counters != NULL);
   counters->Increment(sample->vm_tag());
 
-  ProfilerNativeStackWalker native_stack_walker(sample,
+  ProfilerNativeStackWalker native_stack_walker(isolate,
+                                                sample,
+                                                sample_buffer,
                                                 stack_lower,
                                                 stack_upper,
                                                 pc,
                                                 fp,
                                                 sp);
 
-  ProfilerDartExitStackWalker dart_exit_stack_walker(isolate, sample);
+  ProfilerDartExitStackWalker dart_exit_stack_walker(isolate,
+                                                     sample,
+                                                     sample_buffer);
 
-  ProfilerDartStackWalker dart_stack_walker(sample,
+  ProfilerDartStackWalker dart_stack_walker(isolate,
+                                            sample,
+                                            sample_buffer,
                                             stack_lower,
                                             stack_upper,
                                             pc,
@@ -1147,6 +1214,10 @@ ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
       // Bad sample.
       continue;
     }
+    if (!sample->head_sample()) {
+        // An inner sample in a chain of samples.
+        continue;
+      }
     if (sample->isolate() != filter->isolate()) {
       // Another isolate.
       continue;
@@ -1188,7 +1259,7 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(Sample* sample) {
   bool truncated = false;
   Sample* current = sample;
   while (current != NULL) {
-    for (intptr_t i = 0; i < FLAG_profile_depth; i++) {
+    for (intptr_t i = 0; i < kSampleSize; i++) {
       if (current->At(i) == 0) {
         break;
       }
@@ -1196,7 +1267,7 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(Sample* sample) {
     }
 
     truncated = truncated || current->truncated_trace();
-    current = Next(sample);
+    current = Next(current);
   }
 
   if (!sample->exit_frame_sample()) {
@@ -1214,13 +1285,27 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(Sample* sample) {
 
 
 Sample* SampleBuffer::Next(Sample* sample) {
-  // TODO(johnmccutchan): Support chaining samples for complete stack traces.
-  return NULL;
+  if (!sample->is_continuation_sample())
+    return NULL;
+  Sample* next_sample = At(sample->continuation_index());
+  // Sanity check.
+  ASSERT(sample != next_sample);
+  // Detect invalid chaining.
+  if (sample->isolate() != next_sample->isolate()) {
+    return NULL;
+  }
+  if (sample->timestamp() != next_sample->timestamp()) {
+    return NULL;
+  }
+  if (sample->tid() != next_sample->tid()) {
+    return NULL;
+  }
+  return next_sample;
 }
 
 
 ProcessedSample::ProcessedSample()
-    : pcs_(FLAG_profile_depth),
+    : pcs_(kSampleSize),
       timestamp_(0),
       vm_tag_(0),
       user_tag_(0),
