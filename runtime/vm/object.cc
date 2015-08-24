@@ -1868,30 +1868,17 @@ bool Class::IsInFullSnapshot() const {
 
 RawType* Class::SignatureType() const {
   ASSERT(IsSignatureClass());
-  const Function& function = Function::Handle(signature_function());
+  Zone* zone = Thread::Current()->zone();
+  const Function& function = Function::Handle(zone, signature_function());
   ASSERT(!function.IsNull());
   if (function.signature_class() != raw()) {
     // This class is a function type alias. Return the canonical signature type.
-    const Class& canonical_class = Class::Handle(function.signature_class());
-    return canonical_class.SignatureType();
+    const Class& canonical_signature_class =
+        Class::Handle(zone, function.signature_class());
+    return canonical_signature_class.SignatureType();
   }
-  // Return the first canonical signature type if already computed at class
-  // finalization time. The optimizer may canonicalize instantiated function
-  // types of the same signature class, but these will be added after the
-  // uninstantiated signature class at index 1.
-  Array& signature_types = Array::Handle();
-  signature_types ^= canonical_types();
-  if (signature_types.IsNull()) {
-    set_canonical_types(empty_array());
-    signature_types ^= canonical_types();
-  }
-  // The canonical_types array is initialized to the empty array.
-  ASSERT(!signature_types.IsNull());
-  if (signature_types.Length() > 0) {
-    ASSERT(signature_types.Length() > 1);
-    Type& signature_type = Type::Handle();
-    signature_type ^= signature_types.At(1);
-    ASSERT(!signature_type.IsNull());
+  const Type& signature_type = Type::Handle(zone, CanonicalType());
+  if (!signature_type.IsNull()) {
     return signature_type.raw();
   }
   // A signature class extends class Instance and is parameterized in the same
@@ -1903,13 +1890,9 @@ RawType* Class::SignatureType() const {
   // argument vector. Therefore, we only need to set the type arguments
   // matching the type parameters here.
   const TypeArguments& signature_type_arguments =
-      TypeArguments::Handle(type_parameters());
-  const Type& signature_type = Type::Handle(
-      Type::New(*this, signature_type_arguments, token_pos()));
-
+      TypeArguments::Handle(zone, type_parameters());
   // Return the still unfinalized signature type.
-  ASSERT(!signature_type.IsFinalized());
-  return signature_type.raw();
+  return Type::New(*this, signature_type_arguments, token_pos());
 }
 
 
@@ -3609,7 +3592,7 @@ void Class::set_canonical_types(const Object& value) const {
 
 
 RawType* Class::CanonicalType() const {
-  if ((NumTypeArguments() == 0) && !IsSignatureClass()) {
+  if (NumTypeArguments() == 0) {
     return reinterpret_cast<RawType*>(raw_ptr()->canonical_types_);
   }
   Array& types = Array::Handle();
@@ -3623,9 +3606,9 @@ RawType* Class::CanonicalType() const {
 
 void Class::SetCanonicalType(const Type& type) const {
   ASSERT(type.IsCanonical());
-  if ((NumTypeArguments() == 0) && !IsSignatureClass()) {
-    ASSERT((canonical_types() == Object::null() ||
-           (canonical_types() == type.raw())));  // Set during own finalization.
+  if (NumTypeArguments() == 0) {
+    ASSERT((canonical_types() == Object::null()) ||
+           (canonical_types() == type.raw()));  // Set during own finalization.
     set_canonical_types(type);
   } else {
     Array& types = Array::Handle();
@@ -6478,6 +6461,9 @@ RawFunction* Function::ImplicitClosureFunction() const {
   } else {
     closure_function.set_signature_class(signature_class);
   }
+  // Finalize types in signature class here, so that the
+  // signature type is not computed twice.
+  ClassFinalizer::FinalizeTypesInClass(signature_class);
   const Type& signature_type = Type::Handle(signature_class.SignatureType());
   if (!signature_type.IsFinalized()) {
     ClassFinalizer::FinalizeType(
@@ -15662,7 +15648,7 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
     return Object::dynamic_type();
   }
   // Fast canonical lookup/registry for simple types.
-  if ((cls.NumTypeArguments() == 0) && !cls.IsSignatureClass()) {
+  if (cls.NumTypeArguments() == 0) {
     type = cls.CanonicalType();
     if (type.IsNull()) {
       ASSERT(!cls.raw()->IsVMHeapObject() || (isolate == Dart::vm_isolate()));
@@ -15737,12 +15723,12 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
     const Array& new_canonical_types = Array::Handle(
         isolate, Array::Grow(canonical_types, new_length, Heap::kOld));
     cls.set_canonical_types(new_canonical_types);
-    new_canonical_types.SetAt(index, *this);
-  } else {
-    canonical_types.SetAt(index, *this);
+    canonical_types = new_canonical_types.raw();
   }
-#ifdef DEBUG
+  canonical_types.SetAt(index, *this);
   if ((index == 1) && cls.IsCanonicalSignatureClass()) {
+    canonical_types.SetAt(0, *this);  // Also set canonical signature type at 0.
+#ifdef DEBUG
     // Verify that the first canonical type is the signature type by checking
     // that the type argument vector of the canonical type ends with the
     // uninstantiated type parameters of the signature class. Note that these
@@ -15768,8 +15754,8 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
       type_param ^= type_params.TypeAt(i);
       ASSERT(type_arg.Equals(type_param));
     }
-  }
 #endif
+  }
   ASSERT(IsOld());
   ASSERT(type_args.IsNull() || type_args.IsOld());
   SetCanonical();

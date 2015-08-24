@@ -1892,12 +1892,14 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
         signature_function.set_signature_class(signature_class);
       }
       ASSERT(signature_function.signature_class() == signature_class.raw());
-      Type& signature_type =
-          Type::ZoneHandle(Z, signature_class.SignatureType());
-      if (!is_top_level_ && !signature_type.IsFinalized()) {
-        signature_type ^= ClassFinalizer::FinalizeType(
-            signature_class, signature_type, ClassFinalizer::kCanonicalize);
+      if (!is_top_level_) {
+        // Finalize types in signature class here, so that the
+        // signature type is not computed twice.
+        ClassFinalizer::FinalizeTypesInClass(signature_class);
       }
+      const Type& signature_type =
+          Type::ZoneHandle(Z, signature_class.SignatureType());
+      ASSERT(is_top_level_ || signature_type.IsFinalized());
       // A signature type itself cannot be malformed or malbounded, only its
       // signature function's result type or parameter types may be.
       ASSERT(!signature_type.IsMalformed());
@@ -6565,11 +6567,11 @@ RawFunction* Parser::OpenSyncGeneratorFunction(intptr_t func_pos) {
       library_.AddClass(sig_cls);
     }
     body.set_signature_class(sig_cls);
+    // Finalize types in signature class here, so that the
+    // signature type is not computed twice.
+    ClassFinalizer::FinalizeTypesInClass(sig_cls);
     const Type& sig_type = Type::Handle(Z, sig_cls.SignatureType());
-    if (!sig_type.IsFinalized()) {
-      ClassFinalizer::FinalizeType(
-          sig_cls, sig_type, ClassFinalizer::kCanonicalize);
-    }
+    ASSERT(sig_type.IsFinalized());
     ASSERT(AbstractType::Handle(Z, body.result_type()).IsResolved());
     ASSERT(body.NumParameters() == closure_params.parameters->length());
   }
@@ -6705,11 +6707,11 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t async_func_pos) {
       library_.AddClass(sig_cls);
     }
     closure.set_signature_class(sig_cls);
+    // Finalize types in signature class here, so that the
+    // signature type is not computed twice.
+    ClassFinalizer::FinalizeTypesInClass(sig_cls);
     const Type& sig_type = Type::Handle(Z, sig_cls.SignatureType());
-    if (!sig_type.IsFinalized()) {
-      ClassFinalizer::FinalizeType(
-          sig_cls, sig_type, ClassFinalizer::kCanonicalize);
-    }
+    ASSERT(sig_type.IsFinalized());
     ASSERT(AbstractType::Handle(Z, closure.result_type()).IsResolved());
     ASSERT(closure.NumParameters() == closure_params.parameters->length());
   }
@@ -6846,11 +6848,11 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(intptr_t async_func_pos) {
       library_.AddClass(sig_cls);
     }
     closure.set_signature_class(sig_cls);
+    // Finalize types in signature class here, so that the
+    // signature type is not computed twice.
+    ClassFinalizer::FinalizeTypesInClass(sig_cls);
     const Type& sig_type = Type::Handle(Z, sig_cls.SignatureType());
-    if (!sig_type.IsFinalized()) {
-      ClassFinalizer::FinalizeType(
-          sig_cls, sig_type, ClassFinalizer::kCanonicalize);
-    }
+    ASSERT(sig_type.IsFinalized());
     ASSERT(AbstractType::Handle(Z, closure.result_type()).IsResolved());
     ASSERT(closure.NumParameters() == closure_params.parameters->length());
   }
@@ -7711,27 +7713,11 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     CaptureInstantiator();
   }
 
-  // Since the signature type is cached by the signature class, it may have
-  // been finalized already.
-  Type& signature_type =
-      Type::Handle(Z, signature_class.SignatureType());
-  TypeArguments& signature_type_arguments =
-      TypeArguments::Handle(Z, signature_type.arguments());
-
-  if (!signature_type.IsFinalized()) {
-    signature_type ^= ClassFinalizer::FinalizeType(
-        signature_class, signature_type, ClassFinalizer::kCanonicalize);
-
-    // The call to ClassFinalizer::FinalizeType may have
-    // extended the vector of type arguments.
-    signature_type_arguments = signature_type.arguments();
-    ASSERT(signature_type_arguments.IsNull() ||
-           (signature_type_arguments.Length() ==
-            signature_class.NumTypeArguments()));
-
-    // The signature_class should not have changed.
-    ASSERT(signature_type.type_class() == signature_class.raw());
-  }
+  // Finalize types in signature class here, so that the
+  // signature type is not computed twice.
+  ClassFinalizer::FinalizeTypesInClass(signature_class);
+  const Type& signature_type = Type::Handle(Z, signature_class.SignatureType());
+  ASSERT(signature_type.IsFinalized());
 
   // A signature type itself cannot be malformed or malbounded, only its
   // signature function's result type or parameter types may be.
@@ -7741,7 +7727,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   if (variable_name != NULL) {
     // Patch the function type of the variable now that the signature is known.
     function_type.set_type_class(signature_class);
-    function_type.set_arguments(signature_type_arguments);
+    function_type.set_arguments(
+        TypeArguments::Handle(Z, signature_type.arguments()));
 
     // The function type was initially marked as instantiated, but it may
     // actually be uninstantiated.
@@ -11862,10 +11849,8 @@ const AbstractType* Parser::ReceiverType(const Class& cls) {
   if (cls.IsSignatureClass()) {
     type = cls.SignatureType();
   } else {
-    const TypeArguments& type_arguments = TypeArguments::Handle(Z,
-        (cls.NumTypeParameters() > 0) ?
-            cls.type_parameters() : TypeArguments::null());
-    type = Type::New(cls, type_arguments, cls.token_pos());
+    type = Type::New(cls,
+        TypeArguments::Handle(Z, cls.type_parameters()), cls.token_pos());
   }
   if (cls.is_type_finalized()) {
     type ^= ClassFinalizer::FinalizeType(
@@ -13024,14 +13009,13 @@ RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
     library_.AddClass(sig_cls);
   }
   closure.set_signature_class(sig_cls);
+  // Finalize types in signature class here, so that the
+  // signature type is not computed twice.
+  ClassFinalizer::FinalizeTypesInClass(sig_cls);
   const Type& sig_type = Type::Handle(Z, sig_cls.SignatureType());
-  if (!sig_type.IsFinalized()) {
-    // Finalization would be premature when top-level parsing.
-    ASSERT(!is_top_level_);
-    ClassFinalizer::FinalizeType(sig_cls,
-                                 sig_type,
-                                 ClassFinalizer::kCanonicalize);
-  }
+  ASSERT(sig_type.IsFinalized());
+  // Finalization would be premature when top-level parsing.
+  ASSERT(!is_top_level_);
   return closure.raw();
 }
 
