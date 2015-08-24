@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="css/shared.css">
     <div>
       <template if="{{ ref['parentField'] != null }}">
-        from <any-service-ref ref="{{ element['parentField'] }}"></any-service-ref>
+        from <any-service-ref ref="{{ ref['parentField'] }}"></any-service-ref>
       </template>
       <template if="{{ ref['parentListIndex'] != null }}">
         from [{{ ref['parentListIndex'] }}] of

@@ -1784,7 +1784,7 @@ class DebuggerPageElement extends ObservatoryElement {
   void detached() {
     debugger.isolate = null;
     _resizeSubscription.cancel();
-    _resizeSubscrption = null;
+    _resizeSubscription = null;
     cancelFutureSubscription(_isolateSubscriptionFuture);
     _isolateSubscriptionFuture = null;
     cancelFutureSubscription(_debugSubscriptionFuture);
