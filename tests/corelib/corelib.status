@@ -232,7 +232,7 @@ list_unmodifiable_test: RuntimeError # Please triage this failure.
 map_values2_test: RuntimeError # Please triage this failure.
 map_values3_test: RuntimeError # Please triage this failure.
 map_values4_test: RuntimeError # Please triage this failure.
-package_resource_test: Crash # bailout: (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
+package_resource_test: Crash # (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
 regexp/pcre_test: Crash # Stack Overflow
 shuffle_test: RuntimeError # this.get$length is not a function
 string_fromcharcodes_test: RuntimeError # this.get$length is not a function

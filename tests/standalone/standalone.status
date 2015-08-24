@@ -195,4 +195,4 @@ io/file_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functi
 io/http_client_connect_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 io/observatory_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 io/skipping_dart2js_compilations_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-priority_queue_stress_test: RuntimeError # Cannot read property 'any$1' of undefined
+priority_queue_stress_test: RuntimeError # Cannot read property 'length' of undefined
