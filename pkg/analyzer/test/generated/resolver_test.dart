@@ -237,6 +237,9 @@ class AnalysisContextFactory {
     // Stream
     ClassElementImpl streamElement =
         ElementFactory.classElement2("Stream", ["T"]);
+    streamElement.constructors = <ConstructorElement>[
+      ElementFactory.constructorElement2(streamElement, null)
+    ];
     DartType returnType = streamSubscriptionElement.type
         .substitute4(streamElement.type.typeArguments);
     List<DartType> parameterTypes = <DartType>[
