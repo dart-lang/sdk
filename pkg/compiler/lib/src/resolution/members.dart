@@ -790,13 +790,18 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return null;
   }
 
-  /// Check that access to `this` is currently allowed.
-  bool checkThisAccess(Send node) {
+  /// Check that access to `this` is currently allowed. Returns an
+  /// [AccessSemantics] in case of an error, `null` otherwise.
+  AccessSemantics checkThisAccess(Send node) {
     if (!inInstanceContext) {
-      compiler.reportError(node, MessageKind.NO_THIS_AVAILABLE);
-      return false;
+      ErroneousElement error = reportAndCreateErroneousElement(
+          node,
+          'this',
+          MessageKind.NO_THIS_AVAILABLE,
+          const {});
+      return new StaticAccess.invalid(error);
     }
-    return true;
+    return null;
   }
 
   /// Compute the [AccessSemantics] corresponding to a super access of [target].
@@ -1564,22 +1569,24 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// Handle access on `this`, like `this()` and `this` when it is parsed as a
   /// [Send] node.
   ResolutionResult handleThisAccess(Send node) {
-    AccessSemantics accessSemantics = const DynamicAccess.thisAccess();
     if (node.isCall) {
       CallStructure callStructure =
           resolveArguments(node.argumentsNode).callStructure;
       Selector selector = callStructure.callSelector;
       // TODO(johnniwinther): Handle invalid this access as an
       // [AccessSemantics].
-      if (checkThisAccess(node)) {
+      AccessSemantics accessSemantics = checkThisAccess(node);
+      if (accessSemantics == null) {
+        accessSemantics = const DynamicAccess.thisAccess();
         registry.registerDynamicInvocation(
             new UniverseSelector(selector, null));
-        registry.registerSendStructure(node,
-            new InvokeStructure(accessSemantics, selector));
       }
+      registry.registerSendStructure(node,
+          new InvokeStructure(accessSemantics, selector));
       // TODO(23998): Remove this when all information goes through
       // the [SendStructure].
       registry.setSelector(node, selector);
+      return const NoneResult();
     } else {
       // TODO(johnniwinther): Handle get of `this` when it is a [Send] node.
       internalError(node, "Unexpected node '$node'.");
@@ -2409,12 +2416,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else if (node.isSuperCall) {
       return handleSuperPropertyAccess(node, name);
     } else if (node.receiver.isThis()) {
-      if (checkThisAccess(node)) {
+      AccessSemantics semantics = checkThisAccess(node);
+      if (semantics == null) {
         return handleThisPropertyAccess(node, name);
+      } else {
+        // TODO(johnniwinther): Handle invalid this access as an
+        // [AccessSemantics].
+        return handleErroneousAccess(node, name, semantics);
       }
-      // TODO(johnniwinther): Handle invalid this access as an
-      // [AccessSemantics].
-      return const NoneResult();
     }
     ResolutionResult result = visitExpressionPrefix(node.receiver);
     if (result.kind == ResultKind.PREFIX) {
@@ -2440,12 +2449,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (text == 'this') {
       return handleQualifiedThisAccess(node, name);
     } else if (node.receiver.isThis()) {
-      if (checkThisAccess(node)) {
+      AccessSemantics semantics = checkThisAccess(node);
+      if (semantics == null) {
         return handleThisPropertyUpdate(node, name, null);
+      } else {
+        // TODO(johnniwinther): Handle invalid this access as an
+        // [AccessSemantics].
+        return handleUpdate(node, name, semantics);
       }
-      // TODO(johnniwinther): Handle invalid this access as an
-      // [AccessSemantics].
-      return const NoneResult();
     }
     ResolutionResult result = visitExpressionPrefix(node.receiver);
     if (result.kind == ResultKind.PREFIX) {

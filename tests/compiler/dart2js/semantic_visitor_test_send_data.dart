@@ -1107,6 +1107,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_THIS_INVOKE,
                     arguments: '(null,42)')),
+    const Test.clazz(
+        '''
+        class C {
+          call(a, b) {}
+          static m() { this(null, 42); }
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_INVOKE,
+                    error: MessageKind.NO_THIS_AVAILABLE,
+                    arguments: '(null,42)')),
   ],
   'This properties': const [
     // This properties
@@ -1137,6 +1147,15 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_THIS_PROPERTY_GET,
                     name: 'foo')),
+    const Test.clazz(
+        '''
+        class C {
+          var foo;
+          static m() => this.foo;
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_GET,
+                    error: MessageKind.NO_THIS_AVAILABLE)),
     const Test.clazz(
         '''
         class C {
@@ -1205,6 +1224,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_THIS_PROPERTY_INVOKE,
                     name: 'foo',
+                    arguments: '(null,42)')),
+    const Test.clazz(
+        '''
+        class C {
+          var foo;
+          static m() { this.foo(null, 42); }
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_INVOKE,
+                    error: MessageKind.NO_THIS_AVAILABLE,
                     arguments: '(null,42)')),
   ],
   'Super fields': const [
