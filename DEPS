@@ -50,7 +50,7 @@ vars = {
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
   "dart2js_info_rev" : "@bad01369f1f605ab688d505c135db54de927318f",
-  "dartdoc_tag" : "@v0.5.0+3",
+  "dartdoc_rev" : "@23dbfa91819e3c6b72e635eb9cb64a0a3224ef84",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.0",
   "dev_compiler_rev": "@0.1.6",
@@ -199,7 +199,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/dart2js_info":
       (Var("github_mirror") % "dart2js_info") + Var("dart2js_info_rev"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
-      (Var("github_mirror") % "dartdoc") + Var("dartdoc_tag"),
+      (Var("github_mirror") % "dartdoc") + Var("dartdoc_rev"),
   Var("dart_root") + "/third_party/pkg/dev_compiler":
       (Var("github_mirror") % "dev_compiler") + Var("dev_compiler_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
