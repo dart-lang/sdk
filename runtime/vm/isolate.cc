@@ -1692,7 +1692,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     ASSERT(debugger()->PauseEvent() == NULL);
     ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
     jsobj.AddProperty("pauseEvent", &pause_event);
-  } else if (debugger()->PauseEvent() != NULL) {
+  } else if (debugger()->PauseEvent() != NULL && !resume_request_) {
     ServiceEvent pause_event(debugger()->PauseEvent());
     jsobj.AddProperty("pauseEvent", &pause_event);
   } else {
