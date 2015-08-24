@@ -1666,8 +1666,8 @@ void Isolate::SetTimelineEventRecorder(
 }
 
 void Isolate::RemoveTimelineEventRecorder() {
-  SetTimelineEventRecorder(NULL);
   delete timeline_event_recorder_;
+  SetTimelineEventRecorder(NULL);
 }
 
 
@@ -1789,14 +1789,28 @@ intptr_t Isolate::ProfileInterrupt() {
     // Paused at start / exit . Don't tick.
     return 0;
   }
-  InterruptableThreadState* state = thread_state();
-  if (state == NULL) {
-    // Isolate is not scheduled on a thread.
+  // Make sure that the isolate's mutator thread does not change behind our
+  // backs. Otherwise we find the entry in the registry and end up reading
+  // the field again. Only by that time it has been reset to NULL because the
+  // thread was in process of exiting the isolate.
+  Thread* mutator = mutator_thread_;
+  if (mutator == NULL) {
+    // No active mutator.
     ProfileIdle();
     return 1;
   }
-  ASSERT(state->id != OSThread::kInvalidThreadId);
-  ThreadInterrupter::InterruptThread(state);
+
+  // TODO(johnmccutchan): Sample all threads, not just the mutator thread.
+  // TODO(johnmccutchan): Keep a global list of threads and use that
+  // instead of Isolate.
+  ThreadRegistry::EntryIterator it(thread_registry());
+  while (it.HasNext()) {
+    const ThreadRegistry::Entry& entry = it.Next();
+    if (entry.thread == mutator) {
+      ThreadInterrupter::InterruptThread(mutator);
+      break;
+    }
+  }
   return 1;
 }
 
@@ -1947,19 +1961,6 @@ void Isolate::RemoveIsolateFromList(Isolate* isolate) {
   }
   UNREACHABLE();
 }
-
-
-#if defined(DEBUG)
-void Isolate::CheckForDuplicateThreadState(InterruptableThreadState* state) {
-  MonitorLocker ml(isolates_list_monitor_);
-  ASSERT(state != NULL);
-  Isolate* current = isolates_list_head_;
-  while (current) {
-    ASSERT(current->thread_state() != state);
-    current = current->next_;
-  }
-}
-#endif
 
 
 template<class T>

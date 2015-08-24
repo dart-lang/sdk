@@ -632,15 +632,6 @@ class Isolate : public BaseIsolate {
 
   void PrintJSON(JSONStream* stream, bool ref = true);
 
-  void set_thread_state(InterruptableThreadState* state) {
-    ASSERT((thread_state_ == NULL) || (state == NULL));
-    thread_state_ = state;
-  }
-
-  InterruptableThreadState* thread_state() const {
-    return thread_state_;
-  }
-
   CompilerStats* compiler_stats() {
     return compiler_stats_;
   }
@@ -925,7 +916,6 @@ class Isolate : public BaseIsolate {
   // Manage list of existing isolates.
   static void AddIsolateTolist(Isolate* isolate);
   static void RemoveIsolateFromList(Isolate* isolate);
-  static void CheckForDuplicateThreadState(InterruptableThreadState* state);
 
   static Monitor* isolates_list_monitor_;  // Protects isolates_list_head_
   static Isolate* isolates_list_head_;
