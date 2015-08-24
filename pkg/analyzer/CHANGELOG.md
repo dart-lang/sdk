@@ -1,3 +1,8 @@
+## 0.26.1+1
+
+* Removed a warning about importing unnamed libraries
+* Fix handling of empty URIs in `.packages` files (issue 24126)
+
 ## 0.26.1
 
 * Fix line starts in multiline comments (issue 23919).
