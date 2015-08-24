@@ -12,7 +12,7 @@
 
 ## Updating the dart2js\_info dart docs
 
-We use `dartdoc` and hosted the generated documentation as a [github page][1] in
+We use `dartdoc` and host the generated documentation as a [github page][1] in
 this repo. Here is how to update it:
 
 * Make sure you have the dartdoc tool installed:
