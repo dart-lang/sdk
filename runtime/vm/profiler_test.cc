@@ -1370,6 +1370,8 @@ TEST_CASE(Profiler_FunctionInline) {
 
 TEST_CASE(Profiler_ChainedSamples) {
   MaxProfileDepthScope mpds(32);
+  DisableNativeProfileScope dnps;
+
   // Each sample holds 8 stack frames.
   // This chain is 20 stack frames deep.
   const char* kScript =
