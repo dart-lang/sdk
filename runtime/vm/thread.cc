@@ -22,6 +22,24 @@ namespace dart {
 ThreadLocalKey Thread::thread_key_ = OSThread::kUnsetThreadLocalKey;
 
 
+// Remove |thread| from each isolate's thread registry.
+class ThreadPruner : public IsolateVisitor {
+ public:
+  explicit ThreadPruner(Thread* thread)
+      : thread_(thread) {
+    ASSERT(thread_ != NULL);
+  }
+
+  void VisitIsolate(Isolate* isolate) {
+    ThreadRegistry* registry = isolate->thread_registry();
+    ASSERT(registry != NULL);
+    registry->PruneThread(thread_);
+  }
+ private:
+  Thread* thread_;
+};
+
+
 static void DeleteThread(void* thread) {
   delete reinterpret_cast<Thread*>(thread);
 }
@@ -30,6 +48,9 @@ static void DeleteThread(void* thread) {
 Thread::~Thread() {
   // We should cleanly exit any isolate before destruction.
   ASSERT(isolate_ == NULL);
+  // Clear |this| from all isolate's thread registry.
+  ThreadPruner pruner(this);
+  Isolate::VisitIsolates(&pruner);
 }
 
 
@@ -38,8 +59,11 @@ void Thread::InitOnceBeforeIsolate() {
   thread_key_ = OSThread::CreateThreadLocal(DeleteThread);
   ASSERT(thread_key_ != OSThread::kUnsetThreadLocalKey);
   ASSERT(Thread::Current() == NULL);
-  // Postpone initialization of VM constants for this first thread.
-  SetCurrent(new Thread(false));
+  // Allocate a new Thread and postpone initialization of VM constants for
+  // this first thread.
+  Thread* thread = new Thread(false);
+  // Verify that current thread was set.
+  ASSERT(Thread::Current() == thread);
 }
 
 
@@ -58,7 +82,10 @@ void Thread::SetCurrent(Thread* current) {
 
 void Thread::EnsureInit() {
   if (Thread::Current() == NULL) {
-    SetCurrent(new Thread());
+    // Allocate a new Thread.
+    Thread* thread = new Thread();
+    // Verify that current thread was set.
+    ASSERT(Thread::Current() == thread);
   }
 }
 
@@ -75,7 +102,11 @@ void Thread::CleanUp() {
 
 
 Thread::Thread(bool init_vm_constants)
-    : isolate_(NULL),
+    : id_(OSThread::GetCurrentThreadId()),
+      thread_interrupt_callback_(NULL),
+      thread_interrupt_data_(NULL),
+      isolate_(NULL),
+      heap_(NULL),
       store_buffer_block_(NULL) {
   ClearState();
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
@@ -85,6 +116,7 @@ CACHED_CONSTANTS_LIST(DEFAULT_INIT)
   if (init_vm_constants) {
     InitVMConstants();
   }
+  SetCurrent(this);
 }
 
 
@@ -126,23 +158,14 @@ void Thread::EnterIsolate(Isolate* isolate) {
   ASSERT(!isolate->HasMutatorThread());
   thread->isolate_ = isolate;
   isolate->MakeCurrentThreadMutator(thread);
-  // TODO(koda): Migrate thread_state_ and profile_data_ to Thread, to allow
-  // helper threads concurrent with mutator.
-  ASSERT(isolate->thread_state() == NULL);
-  InterruptableThreadState* thread_state =
-      ThreadInterrupter::GetCurrentThreadState();
-#if defined(DEBUG)
-  Isolate::CheckForDuplicateThreadState(thread_state);
-#endif
-  ASSERT(thread_state != NULL);
-  Profiler::BeginExecution(isolate);
-  isolate->set_thread_state(thread_state);
   isolate->set_vm_tag(VMTag::kVMTagId);
   ASSERT(thread->store_buffer_block_ == NULL);
   thread->store_buffer_block_ = isolate->store_buffer()->PopBlock();
   ASSERT(isolate->heap() != NULL);
   thread->heap_ = isolate->heap();
   thread->Schedule(isolate);
+  // TODO(koda): Migrate profiler interface to use Thread.
+  Profiler::BeginExecution(isolate);
 }
 
 
@@ -151,6 +174,7 @@ void Thread::ExitIsolate() {
   // TODO(koda): Audit callers; they should know whether they're in an isolate.
   if (thread == NULL || thread->isolate() == NULL) return;
   Isolate* isolate = thread->isolate();
+  Profiler::EndExecution(isolate);
   thread->Unschedule();
   StoreBufferBlock* block = thread->store_buffer_block_;
   thread->store_buffer_block_ = NULL;
@@ -160,8 +184,6 @@ void Thread::ExitIsolate() {
   } else {
     isolate->set_vm_tag(VMTag::kLoadWaitTagId);
   }
-  isolate->set_thread_state(NULL);
-  Profiler::EndExecution(isolate);
   isolate->ClearMutatorThread();
   thread->isolate_ = NULL;
   ASSERT(Isolate::Current() == NULL);
@@ -242,6 +264,32 @@ CHA* Thread::cha() const {
 void Thread::set_cha(CHA* value) {
   ASSERT(isolate_ != NULL);
   isolate_->cha_ = value;
+}
+
+
+void Thread::SetThreadInterrupter(ThreadInterruptCallback callback,
+                                  void* data) {
+  ASSERT(Thread::Current() == this);
+  thread_interrupt_callback_ = callback;
+  thread_interrupt_data_ = data;
+}
+
+
+bool Thread::IsThreadInterrupterEnabled(ThreadInterruptCallback* callback,
+                                        void** data) const {
+#if defined(TARGET_OS_WINDOWS)
+  // On Windows we expect this to be called from the thread interrupter thread.
+  ASSERT(id() != OSThread::GetCurrentThreadId());
+#else
+  // On posix platforms, we expect this to be called from signal handler.
+  ASSERT(id() == OSThread::GetCurrentThreadId());
+#endif
+  ASSERT(callback != NULL);
+  ASSERT(data != NULL);
+  *callback = thread_interrupt_callback_;
+  *data = thread_interrupt_data_;
+  return (*callback != NULL) &&
+         (*data != NULL);
 }
 
 

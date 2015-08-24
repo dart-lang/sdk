@@ -1,9 +1,9 @@
 Welcome to the Dart API reference documentation, covering the official Dart API
 libraries. Some of the most fundamental Dart libraries include:
    
-  * [dart:core](dart-core/index.html): Core functionality such as strings, numbers, collections, errors, dates, and URIs.
-  * [dart:html](dart-html/index.html): DOM manipulation for web apps.
-  * [dart:io](dart-io/index.html): I/O for command-line apps.
+  * [dart:core](dart-core/dart-core-library.html): Core functionality such as strings, numbers, collections, errors, dates, and URIs.
+  * [dart:html](dart-html/dart-html-library.html): DOM manipulation for web apps.
+  * [dart:io](dart-io/dart-io-library.html): I/O for command-line apps.
   
 Except for `dart:core`, you must import a library before you can use it. Here's
 an example of importing `dart:html` and `dart:math`:

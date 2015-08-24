@@ -79,6 +79,7 @@ class StoreBuffer {
   StoreBuffer();
   ~StoreBuffer();
   static void InitOnce();
+  static void ShutDown();
 
   // Interrupt when crossing this threshold of non-empty blocks in the buffer.
   static const intptr_t kMaxNonEmpty = 100;

@@ -120,7 +120,6 @@ regress_22976_test/02: CompileTimeError # Issue 23132
 
 if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/14: Crash # Issue 23491
-nullaware_opt_test: Fail # Fails at e?.f ??= 200;
 
 if_null_assignment_behavior_test/29: Crash # Issue 23611
 prefix_assignment_test/01: Crash # Issue 23611
@@ -488,20 +487,6 @@ generic2_test: RuntimeError # Please triage this failure.
 generic_field_mixin3_test: RuntimeError # Please triage this failure.
 generic_instanceof_test: RuntimeError # Please triage this failure.
 generic_native_test: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/12: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/28: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/01: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/03: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/04: RuntimeError # v0.get$b is not a function
-if_null_assignment_static_test/05: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/29: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/31: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/32: RuntimeError # v0.get$b is not a function
-if_null_assignment_static_test/33: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/36: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/38: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/39: RuntimeError # v0.get$b is not a function
-if_null_assignment_static_test/40: RuntimeError # v0.get$a is not a function
 infinite_switch_label_test: Crash # (switch (target){l0:...  continue to a labeled switch case
 instance_creation_in_function_annotation_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
 instanceof2_test: RuntimeError # Please triage this failure.

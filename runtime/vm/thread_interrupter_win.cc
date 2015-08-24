@@ -51,57 +51,55 @@ class ThreadInterrupterWin : public AllStatic {
   }
 
 
-  static void Interrupt(InterruptableThreadState* state) {
-    ASSERT(!OSThread::Compare(GetCurrentThreadId(), state->id));
+  static void Interrupt(Thread* thread) {
+    ASSERT(!OSThread::Compare(GetCurrentThreadId(), thread->id()));
     HANDLE handle = OpenThread(THREAD_GET_CONTEXT |
                                THREAD_QUERY_INFORMATION |
                                THREAD_SUSPEND_RESUME,
                                false,
-                               state->id);
+                               thread->id());
     ASSERT(handle != NULL);
     DWORD result = SuspendThread(handle);
     if (result == kThreadError) {
       if (FLAG_trace_thread_interrupter) {
-        OS::Print("ThreadInterrupted failed to suspend thread %p\n",
-                  reinterpret_cast<void*>(state->id));
+        OS::Print("ThreadInterrupter failed to suspend thread %p\n",
+                  reinterpret_cast<void*>(thread->id()));
       }
       CloseHandle(handle);
       return;
     }
     InterruptedThreadState its;
-    its.tid = state->id;
+    its.tid = thread->id();
     if (!GrabRegisters(handle, &its)) {
       // Failed to get thread registers.
       ResumeThread(handle);
       if (FLAG_trace_thread_interrupter) {
-        OS::Print("ThreadInterrupted failed to get registers for %p\n",
-                  reinterpret_cast<void*>(state->id));
+        OS::Print("ThreadInterrupter failed to get registers for %p\n",
+                  reinterpret_cast<void*>(thread->id()));
       }
       CloseHandle(handle);
       return;
     }
-    if (state->callback == NULL) {
-      // No callback registered.
-      ResumeThread(handle);
-      CloseHandle(handle);
-      return;
+    ThreadInterruptCallback callback = NULL;
+    void* callback_data = NULL;
+    if (thread->IsThreadInterrupterEnabled(&callback, &callback_data)) {
+      callback(its, callback_data);
     }
-    state->callback(its, state->data);
     ResumeThread(handle);
     CloseHandle(handle);
   }
 };
 
 
-void ThreadInterrupter::InterruptThread(InterruptableThreadState* state) {
+void ThreadInterrupter::InterruptThread(Thread* thread) {
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter suspending %p\n",
-              reinterpret_cast<void*>(state->id));
+              reinterpret_cast<void*>(thread->id()));
   }
-  ThreadInterrupterWin::Interrupt(state);
+  ThreadInterrupterWin::Interrupt(thread);
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter resuming %p\n",
-              reinterpret_cast<void*>(state->id));
+              reinterpret_cast<void*>(thread->id()));
   }
 }
 
