@@ -235,6 +235,7 @@ void MessageHandler::TaskCallback() {
   ASSERT(Isolate::Current() == NULL);
   bool ok = true;
   bool run_end_callback = false;
+  bool notify_paused_on_exit = false;
   {
     MonitorLocker ml(&monitor_);
     // Initialize the message handler by running its start function,
@@ -242,7 +243,12 @@ void MessageHandler::TaskCallback() {
     // main() function.
     if (pause_on_start()) {
       if (!paused_on_start_) {
+        // Temporarily drop the lock when calling out to NotifyPauseOnStart.
+        // This avoids a dead lock that can occur when this message handler
+        // tries to post a message while a message is being posted to it.
+        monitor_.Exit();
         NotifyPauseOnStart();
+        monitor_.Enter();
         paused_on_start_ = true;
       }
       HandleMessages(false, false);
@@ -278,7 +284,7 @@ void MessageHandler::TaskCallback() {
             OS::PrintErr("Isolate %s paused before exiting. "
                        "Use the Observatory to release it.\n", name());
           }
-          NotifyPauseOnExit();
+          notify_paused_on_exit = true;
           paused_on_exit_ = true;
         }
       } else {
@@ -293,6 +299,10 @@ void MessageHandler::TaskCallback() {
         paused_on_exit_ = false;
       }
     }
+  }
+  // At this point we no longer hold the message handler lock.
+  if (notify_paused_on_exit) {
+    NotifyPauseOnExit();
   }
   if (run_end_callback && end_callback_ != NULL) {
     end_callback_(callback_data_);
