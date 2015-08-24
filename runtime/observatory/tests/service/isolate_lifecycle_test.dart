@@ -81,7 +81,7 @@ var tests = [
   (VM vm) async {
     Completer completer = new Completer();
     var stream = await vm.getEventStream(VM.kDebugStream);
-    if (numPaused(vm) < spawnCount) {
+    if (numPaused(vm) < (spawnCount + 1)) {
       var subscription;
       subscription = stream.listen((ServiceEvent event) {
         if (event.kind == ServiceEvent.kPauseExit) {
