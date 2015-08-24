@@ -733,11 +733,7 @@ class FunctionType extends DartType {
 
   String get name => 'Function';
 
-  int computeArity() {
-    int arity = 0;
-    parameterTypes.forEach((_) { arity++; });
-    return arity;
-  }
+  int computeArity() => parameterTypes.length;
 
   int get hashCode {
     int hash = 3 * returnType.hashCode;

@@ -32,8 +32,7 @@ import 'cps_ir_builder_task.dart' show
 
 import '../common.dart' as types show
     TypeMask;
-import '../js/js.dart' as js show
-    Template;
+import '../js/js.dart' as js show Template, js, LiteralStatement;
 import '../native/native.dart' show
     NativeBehavior;
 
@@ -2040,6 +2039,80 @@ class IrBuilder {
     }
   }
 
+  /// Build a call to the closure conversion helper for the [Function] typed
+  /// value in [value].
+  ir.Primitive _convertDartClosure(ir.Primitive value, FunctionType type) {
+    ir.Constant arity = buildIntegerConstant(type.computeArity());
+    return buildStaticFunctionInvocation(
+        program.closureConverter,
+        CallStructure.TWO_ARGS,
+        <ir.Primitive>[value, arity]);
+  }
+
+  /// Generate the body for a native function [function] that is annotated with
+  /// an implementation in JavaScript (provided as string in [javaScriptCode]).
+  void buildNativeFunctionBody(FunctionElement function,
+                               String javaScriptCode) {
+    NativeBehavior behavior = new NativeBehavior();
+    behavior.sideEffects.setAllSideEffects();
+    // Generate a [ForeignCode] statement from the given native code.
+    buildForeignCode(
+        js.js.statementTemplateYielding(
+            new js.LiteralStatement(javaScriptCode)),
+        <ir.Primitive>[],
+        behavior);
+  }
+
+  /// Generate the body for a native function that redirects to a native
+  /// JavaScript function, getter, or setter.
+  ///
+  /// Generates a call to the real target, which is given by [functions]'s
+  /// `fixedBackendName`, passing all parameters as arguments.  The target can
+  /// be the JavaScript implementation of a function, getter, or setter.
+  void buildRedirectingNativeFunctionBody(FunctionElement function,
+                                          SourceInformation source) {
+    String name = function.fixedBackendName;
+    List<ir.Primitive> arguments = <ir.Primitive>[];
+    NativeBehavior behavior = new NativeBehavior();
+    behavior.sideEffects.setAllSideEffects();
+    program.addNativeMethod(function);
+    // Construct the access of the target element.
+    String code = function.isInstanceMember ? '#.$name' : name;
+    if (function.isInstanceMember) {
+      arguments.add(state.thisParameter);
+    }
+    // Collect all parameters of the function and templates for them to be
+    // inserted into the JavaScript code.
+    List<String> argumentTemplates = <String>[];
+    function.functionSignature.forEachParameter((ParameterElement parameter) {
+      ir.Primitive input = environment.lookup(parameter);
+      DartType type = program.unaliasType(parameter.type);
+      if (type is FunctionType) {
+        // The parameter type is a function type either directly or through
+        // typedef(s).
+        input = _convertDartClosure(input, type);
+      }
+      arguments.add(input);
+      argumentTemplates.add('#');
+    });
+    // Construct the application of parameters for functions and setters.
+    if (function.kind == ElementKind.FUNCTION) {
+      code = "$code(${argumentTemplates.join(', ')})";
+    } else if (function.kind == ElementKind.SETTER) {
+      code = "$code = ${argumentTemplates.single}";
+    } else {
+      assert(argumentTemplates.isEmpty);
+      assert(function.kind == ElementKind.GETTER);
+    }
+    // Generate the [ForeignCode] expression and a return statement to return
+    // its value.
+    ir.Primitive value = buildForeignCode(
+        js.js.uncachedExpressionTemplate(code),
+        arguments,
+        behavior);
+    buildReturn(value: value, sourceInformation: source);
+  }
+
   /// Create a blocks of [statements] by applying [build] to all reachable
   /// statements. The first statement is assumed to be reachable.
   // TODO(johnniwinther): Type [statements] as `Iterable` when `NodeList` uses
@@ -2620,6 +2693,7 @@ class IrBuilder {
                                 List<ir.Primitive> arguments,
                                 NativeBehavior behavior,
                                 {Element dependency}) {
+    assert(behavior != null);
     types.TypeMask type = program.getTypeMaskForForeign(behavior);
     ir.Primitive result = _continueWithExpression((k) => new ir.ForeignCode(
         codeTemplate,
@@ -2629,7 +2703,7 @@ class IrBuilder {
         k,
         dependency: dependency));
     if (!codeTemplate.isExpression) {
-      // Close the term if this is a "throw" expression.
+      // Close the term if this is a "throw" expression or native body.
       add(new ir.Unreachable());
       _current = null;
     }

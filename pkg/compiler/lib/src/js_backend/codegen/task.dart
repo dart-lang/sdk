@@ -46,7 +46,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
   final Glue glue;
   final SourceInformationStrategy sourceInformationFactory;
 
-  // TODO(karlklose,sigurm): remove and update dart-doc of [compile].
+  // TODO(karlklose,sigurdm): remove and update dart-doc of [compile].
   final FunctionCompiler fallbackCompiler;
 
   Tracer get tracer => compiler.tracer;
@@ -72,10 +72,9 @@ class CpsFunctionCompiler implements FunctionCompiler {
     JavaScriptBackend backend = compiler.backend;
     return compiler.withCurrentElement(element, () {
       try {
-        // TODO(karlklose): remove this fallback.
-        // Fallback for a few functions that we know require try-finally and
-        // switch.
-        if (element.isNative) {
+        // TODO(karlklose): remove this fallback when we do not need it for
+        // testing anymore.
+        if (false) {
           compiler.log('Using SSA compiler for platform element $element');
           return fallbackCompiler.compile(work);
         }
@@ -107,11 +106,6 @@ class CpsFunctionCompiler implements FunctionCompiler {
   }
 
   cps.FunctionDefinition compileToCpsIR(AstElement element) {
-    // TODO(sigurdm): Support these constructs.
-    if (element.isNative) {
-      giveUp('unsupported element kind: ${element.name}:${element.kind}');
-    }
-
     cps.FunctionDefinition cpsNode = irBuilderTask.buildNode(element);
     if (cpsNode == null) {
       if (irBuilderTask.bailoutMessage == null) {

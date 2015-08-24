@@ -421,17 +421,39 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return null;
   }
 
+  static final RegExp nativeRedirectionRegExp =
+      new RegExp(r'^[a-zA-Z][a-zA-Z_$0-9]*$');
+
   // Build(Return(e), C) = C'[InvokeContinuation(return, x)]
   //   where (C', x) = Build(e, C)
   //
   // Return without a subexpression is translated as if it were return null.
-  ir.Primitive visitReturn(ast.Return node) {
+  visitReturn(ast.Return node) {
     assert(irBuilder.isOpen);
-    assert(invariant(node, node.beginToken.value != 'native'));
-    irBuilder.buildReturn(
-        value: build(node.expression),
-        sourceInformation: sourceInformationBuilder.buildReturn(node));
-    return null;
+    SourceInformation source = sourceInformationBuilder.buildReturn(node);
+    if (node.beginToken.value == 'native') {
+      FunctionElement function = irBuilder.state.currentElement;
+      assert(function.isNative);
+      ast.Node nativeBody = node.expression;
+      if (nativeBody != null) {
+        ast.LiteralString jsCode = nativeBody.asLiteralString();
+        String javaScriptCode = jsCode.dartString.slowToString();
+        assert(invariant(nativeBody,
+            !nativeRedirectionRegExp.hasMatch(javaScriptCode),
+          message: "Deprecated syntax, use @JSName('name') instead."));
+        assert(invariant(nativeBody,
+            function.functionSignature.parameterCount == 0,
+            message: 'native "..." syntax is restricted to '
+              'functions with zero parameters.'));
+        irBuilder.buildNativeFunctionBody(function, javaScriptCode);
+      } else {
+        irBuilder.buildRedirectingNativeFunctionBody(function, source);
+      }
+    } else {
+      irBuilder.buildReturn(
+          value: build(node.expression),
+          sourceInformation: source);
+    }
   }
 
   visitSwitchStatement(ast.SwitchStatement node) {
@@ -2302,11 +2324,22 @@ class GlobalProgramInformation {
   DartType unaliasType(DartType type) => type.unalias(_compiler);
 
   TypeMask getTypeMaskForForeign(NativeBehavior behavior) {
+    if (behavior == null) {
+      return _backend.dynamicType;
+    }
     return TypeMaskFactory.fromNativeBehavior(behavior, _compiler);
   }
 
   FieldElement locateSingleField(Selector selector, TypeMask type) {
     return _compiler.world.locateSingleField(selector, type);
+  }
+
+  Element get closureConverter {
+    return _backend.getClosureConverter();
+  }
+
+  void addNativeMethod(FunctionElement function) {
+    _backend.emitter.nativeEmitter.nativeMethods.add(function);
   }
 }
 
