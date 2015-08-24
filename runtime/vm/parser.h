@@ -512,7 +512,7 @@ class Parser : public ValueObject {
 
   static bool ParseFormalParameters(const Function& func, ParamList* params);
 
-  static void SetupDefaultsForOptionalParams(const ParamList* params,
+  static void SetupDefaultsForOptionalParams(const ParamList& params,
                                              Array* default_values);
   ClosureNode* CreateImplicitClosureNode(const Function& func,
                                          intptr_t token_pos,

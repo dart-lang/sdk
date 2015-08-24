@@ -515,7 +515,7 @@ struct ParamDesc {
   const AbstractType* type;
   intptr_t name_pos;
   const String* name;
-  const Object* default_value;  // NULL if not an optional parameter.
+  const Instance* default_value;  // NULL if not an optional parameter.
   const Object* metadata;  // NULL if no metadata or metadata not evaluated.
   LocalVariable* var;  // Scope variable allocated for this parameter.
   bool is_final;
@@ -1357,7 +1357,7 @@ SequenceNode* Parser::ParseConstructorClosure(const Function& func,
   // Replace the types parsed from the constructor.
   params.EraseParameterTypes();
 
-  SetupDefaultsForOptionalParams(&params, default_values);
+  SetupDefaultsForOptionalParams(params, default_values);
   ASSERT(func.num_fixed_parameters() == params.num_fixed_parameters);
   ASSERT(func.NumOptionalParameters() == params.num_optional_parameters);
 
@@ -1419,7 +1419,7 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func,
     const bool allow_explicit_default_values = true;
     SkipFunctionPreamble();
     ParseFormalParameterList(allow_explicit_default_values, false, &params);
-    SetupDefaultsForOptionalParams(&params, default_values);
+    SetupDefaultsForOptionalParams(params, default_values);
   }
 
   // Populate function scope with the formal parameters.
@@ -1510,14 +1510,14 @@ void Parser::BuildDispatcherScope(const Function& func,
     intptr_t index = i - desc.PositionalCount();
     p.name = &String::ZoneHandle(Z, desc.NameAt(index));
     p.type = &Type::ZoneHandle(Z, Type::DynamicType());
-    p.default_value = &Object::null_object();
+    p.default_value = &Object::null_instance();
     params.parameters->Add(p);
     params.num_optional_parameters++;
     params.has_optional_named_parameters = true;
   }
   ASSERT(desc.NamedCount() == params.num_optional_parameters);
 
-  SetupDefaultsForOptionalParams(&params, default_values);
+  SetupDefaultsForOptionalParams(params, default_values);
 
   // Build local scope for function and populate with the formal parameters.
   OpenFunctionBlock(func);
@@ -1924,7 +1924,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       // Skip default value parsing.
       SkipExpr();
     } else {
-      const Object& const_value = ParseConstExpr()->literal();
+      const Instance& const_value = ParseConstExpr()->literal();
       parameter.default_value = &const_value;
     }
   } else {
@@ -1932,7 +1932,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
         params->has_optional_named_parameters) {
       // Implicit default value is null.
       params->num_optional_parameters++;
-      parameter.default_value = &Object::null_object();
+      parameter.default_value = &Object::null_instance();
     } else {
       params->num_fixed_parameters++;
       ASSERT(params->num_optional_parameters == 0);
@@ -2948,7 +2948,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   }
   ParseFormalParameterList(allow_explicit_default_values, false, &params);
 
-  SetupDefaultsForOptionalParams(&params, default_parameter_values);
+  SetupDefaultsForOptionalParams(params, default_parameter_values);
   ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
   ASSERT(func.NumParameters() == params.parameters->length());
 
@@ -3274,7 +3274,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     AddFormalParamsToScope(&params, current_block_->scope);
   } else if (func.IsAsyncClosure()) {
     AddAsyncClosureParameters(&params);
-    SetupDefaultsForOptionalParams(&params, default_parameter_values);
+    SetupDefaultsForOptionalParams(params, default_parameter_values);
     AddFormalParamsToScope(&params, current_block_->scope);
     ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
     ASSERT(func.NumParameters() == params.parameters->length());
@@ -3288,7 +3288,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     }
   } else if (func.IsSyncGenClosure()) {
     AddSyncGenClosureParameters(&params);
-    SetupDefaultsForOptionalParams(&params, default_parameter_values);
+    SetupDefaultsForOptionalParams(params, default_parameter_values);
     AddFormalParamsToScope(&params, current_block_->scope);
     ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
     if (!Function::Handle(func.parent_function()).IsGetterFunction()) {
@@ -3301,7 +3301,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     }
   } else if (func.IsAsyncGenClosure()) {
     AddAsyncGenClosureParameters(&params);
-    SetupDefaultsForOptionalParams(&params, default_parameter_values);
+    SetupDefaultsForOptionalParams(params, default_parameter_values);
     AddFormalParamsToScope(&params, current_block_->scope);
     ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
     ASSERT(func.NumParameters() == params.parameters->length());
@@ -3321,7 +3321,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     if (func.IsLocalFunction()) {
       AddFormalParamsToFunction(&params, func);
     }
-    SetupDefaultsForOptionalParams(&params, default_parameter_values);
+    SetupDefaultsForOptionalParams(params, default_parameter_values);
     ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
     ASSERT(func.NumParameters() == params.parameters->length());
 
@@ -7223,17 +7223,17 @@ SequenceNode* Parser::CloseAsyncClosure(SequenceNode* body) {
 
 
 // Set up default values for all optional parameters to the function.
-void Parser::SetupDefaultsForOptionalParams(const ParamList* params,
+void Parser::SetupDefaultsForOptionalParams(const ParamList& params,
                                             Array* default_values) {
-  if (params->num_optional_parameters > 0) {
+  if (params.num_optional_parameters > 0) {
     // Build array of default parameter values.
-    ParamDesc* param =
-      params->parameters->data() + params->num_fixed_parameters;
-    *default_values = Array::New(params->num_optional_parameters);
-    for (int i = 0; i < params->num_optional_parameters; i++) {
-      ASSERT(param->default_value != NULL);
-      default_values->SetAt(i, *param->default_value);
-      param++;
+    *default_values = Array::New(params.num_optional_parameters);
+    const ZoneGrowableArray<ParamDesc>& parameters = *params.parameters;
+    const int first_opt_param_offset = params.num_fixed_parameters;
+    for (int i = 0; i < params.num_optional_parameters; i++) {
+      const Object* default_value =
+          parameters[i + first_opt_param_offset].default_value;
+      default_values->SetAt(i, *default_value);
     }
   }
 }
