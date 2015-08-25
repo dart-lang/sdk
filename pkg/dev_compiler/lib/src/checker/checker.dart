@@ -389,7 +389,8 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     var field = node.fieldName;
-    DartType staticType = rules.elementType(field.staticElement);
+    var element = field.staticElement;
+    DartType staticType = rules.elementType(element);
     checkAssignment(node.expression, staticType);
     node.visitChildren(this);
   }
@@ -791,6 +792,8 @@ class CodeChecker extends RecursiveAstVisitor {
           checkBoolean(node.rightOperand);
           break;
         case TokenType.BANG_EQ:
+          break;
+        case TokenType.QUESTION_QUESTION:
           break;
         default:
           assert(false);

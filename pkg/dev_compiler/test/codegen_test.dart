@@ -22,9 +22,18 @@ import 'package:dev_compiler/src/compiler.dart' show defaultRuntimeFiles;
 import 'package:dev_compiler/src/options.dart';
 
 import 'testing.dart' show realSdkContext, testDirectory;
+import 'multitest.dart';
 
 final ArgParser argParser = new ArgParser()
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null);
+
+Iterable<String> _findTests(String dir, RegExp filePattern) {
+  return new Directory(dir)
+      .listSync()
+      .where((f) => f is File)
+      .map((f) => f.path)
+      .where((p) => p.endsWith('.dart') && filePattern.hasMatch(p));
+}
 
 main(arguments) {
   if (arguments == null) arguments = [];
@@ -75,14 +84,53 @@ main(arguments) {
       .where((d) => d is Directory && path.basename(d.path) == 'packages');
   packagesDirs.forEach((d) => d.deleteSync());
 
+  {
+    // Expand wacky multitests into a bunch of test files.
+    // We'll compile each one as if it was an input.
+    var languageDir = path.join(inputDir, 'language');
+    var testFiles = _findTests(languageDir, filePattern);
+
+    for (var filePath in testFiles) {
+      if (filePath.endsWith('_multi.dart')) continue;
+
+      var contents = new File(filePath).readAsStringSync();
+      if (isMultiTest(contents)) {
+        var tests = new Map<String, String>();
+        var outcomes = new Map<String, Set<String>>();
+        extractTestsFromMultitest(filePath, contents, tests, outcomes);
+
+        // For now skip all tests that aren't `ok` or `runtime error`
+        outcomes.forEach((name, Set<String> outcomes) {
+          // TODO(jmesserly): unfortunately we can't communicate this status
+          // to the test runner, so if an error is expected, it's encoded in
+          // language-tests.js. We should probably encode expected error in the
+          // name, and then have our runner just load all multi tests it finds,
+          // using the file name to expect either success or failure.
+          outcomes.remove('ok');
+          outcomes.remove('runtime error');
+          if (outcomes.isNotEmpty) {
+            // Skip all other outcomes.
+            //
+            // They are handled by analyzer/static type system, and
+            // therefore are not interesting to run.
+            tests.remove(name);
+          }
+        });
+
+        var filename = path.basenameWithoutExtension(filePath);
+        tests.forEach((name, contents) {
+          new File(path.join(languageDir, '${filename}_${name}_multi.dart'))
+              .writeAsStringSync(contents);
+        });
+      }
+    }
+  }
+
   for (var dir in [null, 'language']) {
     group('dartdevc ' + path.join('test', 'codegen', dir), () {
-      var testFiles = new Directory(path.join(inputDir, dir))
-          .listSync()
-          .where((f) => f is File)
-          .map((f) => f.path)
-          .where((p) => p.endsWith('.dart') && filePattern.hasMatch(p));
+      var outDir = path.join(expectDir, dir);
 
+      var testFiles = _findTests(path.join(inputDir, dir), filePattern);
       for (var filePath in testFiles) {
         var filename = path.basenameWithoutExtension(filePath);
 
@@ -96,16 +144,12 @@ main(arguments) {
               compile(filePath, realSdkContext, sourceMaps: sourceMaps);
 
           // Write compiler messages to disk.
-          var outDir = path.join(expectDir, dir);
           new File(path.join(outDir, '$filename.txt'))
-              .writeAsStringSync(compilerMessages.toString());
+              .writeAsStringSync('$compilerMessages');
 
           var outFile = new File(path.join(outDir, '$filename.js'));
           expect(outFile.existsSync(), success,
               reason: '${outFile.path} was created iff compilation succeeds');
-
-          // TODO(jmesserly): ideally we'd diff the output here. For now it
-          // happens in the containing shell script.
         });
       }
     });

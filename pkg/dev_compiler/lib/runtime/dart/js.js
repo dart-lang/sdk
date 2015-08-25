@@ -75,6 +75,7 @@ dart_library.library('dart/js', null, /* Imports */[
         dart.throw(new core.ArgumentError("property is not a String or num"));
       }
       this[_jsObject][property] = _convertToJS(value);
+      return value;
     }
     get hashCode() {
       return 0;
@@ -212,6 +213,7 @@ dart_library.library('dart/js', null, /* Imports */[
           this[_checkIndex](index);
         }
         super.set(index, value);
+        return value;
       }
       get length() {
         let len = this[_jsObject].length;

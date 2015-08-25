@@ -100,6 +100,18 @@ class AstBuilder {
     return parenthesizedExpression(exp);
   }
 
+  static PropertyAccess propertyAccess(
+      Expression target, SimpleIdentifier name) {
+    var p = new Token(TokenType.PERIOD, 0);
+    return new PropertyAccess(target, p, name);
+  }
+
+  static MethodInvocation methodInvoke(
+      Expression target, SimpleIdentifier name, NodeList<Expression> args) {
+    var p = new Token(TokenType.PERIOD, 0);
+    return new MethodInvocation(target, p, name, null, argumentList(args));
+  }
+
   static TokenType getTokenType(String lexeme) {
     switch (lexeme) {
       case "&":
@@ -218,6 +230,10 @@ class AstBuilder {
         return TokenType.BACKSLASH;
       case "...":
         return TokenType.PERIOD_PERIOD_PERIOD;
+      case "??":
+        return TokenType.QUESTION_QUESTION;
+      case "??=":
+        return TokenType.QUESTION_QUESTION_EQ;
       default:
         return null;
     }

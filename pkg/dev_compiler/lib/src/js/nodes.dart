@@ -445,7 +445,25 @@ class Return extends Statement {
   }
 
   Return _clone() => new Return(value);
+
+  static bool foundIn(Node node) {
+    _returnFinder.found = false;
+    node.accept(_returnFinder);
+    return _returnFinder.found;
+  }
 }
+
+final _returnFinder = new _ReturnFinder();
+class _ReturnFinder extends BaseVisitor {
+  bool found = false;
+  visitReturn(Return node) {
+    found = true;
+  }
+  visitNode(Node node) {
+    if (!found) super.visitNode(node);
+  }
+}
+
 
 class Throw extends Statement {
   final Expression expression;

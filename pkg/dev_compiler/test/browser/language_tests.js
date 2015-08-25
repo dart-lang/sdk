@@ -7,19 +7,51 @@
 
   let _isolate_helper = dart_library.import('dart/_isolate_helper');
   _isolate_helper.startRootIsolate(function() {}, []);
-
   let async_helper = dart_library.import('async_helper/async_helper');
 
+  function dartLanguageTest(name) {
+    test(name, (done) => {
+      async_helper.asyncTestInitialize(done);
+      console.debug('Running language test:  ' + name);
+      dart_library.import('language/' + name).main();
+      if (!async_helper.asyncTestStarted) done();
+    });
+  }
+
   function dartLanguageTests(tests) {
-    for (const name of tests) {
-      test(name, (done) => {
-        async_helper.asyncTestInitialize(done);
-        console.debug('Running language test:  ' + name);
-        dart_library.import('language/' + name).main();
-        if (!async_helper.asyncTestStarted) done();
-      });
+    for (let name of tests) {
+      if (name instanceof Array) {
+        let multitestName = name[0];
+        let testCases = name.slice(1);
+        for (let testCase of testCases) {
+          if (typeof testCase == 'number') {
+            testCase = (testCase < 10 ? '0' : '') + testCase;
+          }
+          dartLanguageTest(`${multitestName}_${testCase}_multi`);
+        }
+      } else {
+        dartLanguageTest(name);
+      }
     }
   }
+
+  suite('null aware ops', () => {
+    dartLanguageTests([
+      ['conditional_method_invocation_test', 'none', 1, 2, 3, 4],
+      ['conditional_property_access_test', 'none', 1, 2, 3],
+      ['conditional_property_assignment_test', 'none', 1, 2, 3, 7, 8, 9],
+      ['conditional_property_increment_decrement_test',
+          'none', 1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15],
+      ['if_null_assignment_behavior_test', 'none',
+          1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+          25, 26, 27, 28, 31, 32],
+      ['if_null_assignment_static_test', 'none',
+          1, 3, 5, 8, 10, 12, 15, 17, 19, 22, 24, 26, 29, 31, 33, 36, 38, 40],
+      'nullaware_opt_test',
+      ['super_conditional_operator_test', 'none'],
+      ['this_conditional_operator_test', 'none']
+    ]);
+  });
 
   suite('sync*', () => {
     test('syncstar_syntax', () => {
@@ -60,7 +92,7 @@
     ]);
   });
 
-  dart_library.import('language/async_star_test').main();
+  dart_library.import('language/async_star_test_none_multi').main();
 
   suite('async*', () => {
     dartLanguageTests([

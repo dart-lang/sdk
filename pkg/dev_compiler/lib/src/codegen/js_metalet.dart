@@ -41,7 +41,7 @@ class MetaLet extends Expression {
   final Map<String, Expression> variables;
 
   /// A list of expressions in the body.
-  /// Conceptually this is like a comma expression: the last value is returned.
+  /// The last value should represent the returned value.
   final List<Expression> body;
 
   /// True if the final expression in [body] can be skipped in [toStatement].
@@ -120,14 +120,44 @@ class MetaLet extends Expression {
     return _finishStatement(statements);
   }
 
-  accept(NodeVisitor visitor) => toExpression().accept(visitor);
+  accept(NodeVisitor visitor) {
+    // TODO(jmesserly): we special case vistors from js_ast.Template, because it
+    // doesn't know about MetaLet. Should we integrate directly?
+    if (visitor is InstantiatorGeneratorVisitor) {
+      return _templateVisitMetaLet(visitor);
+    } else if (visitor is InterpolatedNodeAnalysis) {
+      return visitor.visitNode(this);
+    } else {
+      return toExpression().accept(visitor);
+    }
+  }
 
   void visitChildren(NodeVisitor visitor) {
-    toExpression().visitChildren(visitor);
+    // TODO(jmesserly): we special case vistors from js_ast.Template, because it
+    // doesn't know about MetaLet. Should we integrate directly?
+    if (visitor is InterpolatedNodeAnalysis ||
+        visitor is InstantiatorGeneratorVisitor) {
+      variables.values.forEach((v) => v.accept(visitor));
+      body.forEach((v) => v.accept(visitor));
+    } else {
+      toExpression().visitChildren(visitor);
+    }
   }
 
   /// This generates as either a comma expression or a call.
   int get precedenceLevel => variables.isEmpty ? EXPRESSION : CALL;
+
+  /// Patch to pretend [Template] supports visitMetaLet.
+  Instantiator _templateVisitMetaLet(InstantiatorGeneratorVisitor visitor) {
+    var valueInstantiators = variables.values.map(visitor.visit);
+    var bodyInstantiators = body.map(visitor.visit);
+
+    return (args) => new MetaLet(
+        new Map.fromIterables(
+            variables.keys, valueInstantiators.map((i) => i(args))),
+        bodyInstantiators.map((i) => i(args)).toList(),
+        statelessResult: statelessResult);
+  }
 
   Expression _toInvokedFunction(Statement block) {
     var finder = new _YieldFinder();
@@ -209,7 +239,10 @@ class MetaLet extends Expression {
     String name = last.nameOrPosition;
     if (!variables.containsKey(name)) return null;
 
-    // Variables declared can't be used inside their initializer.
+    // Variables declared can't be used inside their initializer, so make
+    // sure we don't transform an assignment into an initializer.
+    // If this already was a declaration, then we know it's legal, so we can
+    // skip the check.
     if (!isDeclaration) {
       var finder = new _IdentFinder(left.name);
       for (var expr in body) {

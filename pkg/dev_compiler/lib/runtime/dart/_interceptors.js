@@ -386,6 +386,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         if (dart.notNull(index) >= dart.notNull(this[dartx.length]) || dart.notNull(index) < 0)
           dart.throw(new core.RangeError.value(index));
         this[index] = value;
+        return value;
       }
       [dartx.asMap]() {
         return new (_internal.IterableMixinWorkaround$(E))().asMapList(this);

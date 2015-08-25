@@ -1195,8 +1195,27 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     var params = _visit(node.parameters) as List<JS.Parameter>;
     if (params == null) params = <JS.Parameter>[];
 
-    return new JS.Method(
-        _elementMemberName(node.element), _emitFunctionBody(params, node.body),
+    JS.Fun fn = _emitFunctionBody(params, node.body);
+    if (node.operatorKeyword != null &&
+        node.name.name == '[]=' &&
+        params.isNotEmpty) {
+      // []= methods need to return the value. We could also address this at
+      // call sites, but it's cleaner to instead transform the operator method.
+      var returnValue = new JS.Return(params.last);
+      var body = fn.body;
+      if (JS.Return.foundIn(fn)) {
+        // If a return is inside body, transform `(params) { body }` to
+        // `(params) { (() => { body })(); return value; }`.
+        // TODO(jmesserly): we could instead generate the return differently,
+        // and avoid the immediately invoked function.
+        body = new JS.Call(new JS.ArrowFun([], fn.body), []).toStatement();
+      }
+      // Rewrite the function to include the return.
+      fn = new JS.Fun(fn.params, new JS.Block([body, returnValue]))
+        ..sourceInformation = fn.sourceInformation;
+    }
+
+    return new JS.Method(_elementMemberName(node.element), fn,
         isGetter: node.isGetter,
         isSetter: node.isSetter,
         isStatic: node.isStatic);
@@ -1620,14 +1639,32 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     var left = node.leftHandSide;
     var right = node.rightHandSide;
     if (node.operator.type == TokenType.EQ) return _emitSet(left, right);
-    return _emitOpAssign(
-        left, right, node.operator.lexeme[0], node.staticElement,
-        context: node);
+    var op = node.operator.lexeme;
+    assert(op.endsWith('='));
+    op = op.substring(0, op.length - 1); // remove trailing '='
+    return _emitOpAssign(left, right, op, node.staticElement, context: node);
   }
 
   JS.MetaLet _emitOpAssign(
       Expression left, Expression right, String op, MethodElement element,
       {Expression context}) {
+    if (op == '??') {
+      // Desugar `l ??= r` as ((x) => x == null ? l = r : x)(l)
+      // Note that if `x` contains subexpressions, we need to ensure those
+      // are also evaluated only once. This is similar to desguaring for
+      // postfix expressions like `i++`.
+
+      // Handle the left hand side, to ensure each of its subexpressions are
+      // evaluated only once.
+      var vars = <String, JS.Expression>{};
+      var x = _bindLeftHandSide(vars, left, context: left);
+      // Capture the result of evaluating the left hand side in a temp.
+      var t = _bindValue(vars, 't', x, context: x);
+      return new JS.MetaLet(vars, [
+        js.call('# == null ? # : #', [_visit(t), _emitSet(x, right), _visit(t)])
+      ]);
+    }
+
     // Desugar `x += y` as `x = x + y`, ensuring that if `x` has subexpressions
     // (for example, x is IndexExpression) we evaluate those once.
     var vars = <String, JS.Expression>{};
@@ -1651,6 +1688,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     Expression target = null;
     SimpleIdentifier id;
     if (lhs is PropertyAccess) {
+      if (lhs.operator.lexeme == '?.') {
+        return _emitNullSafeSet(lhs, rhs);
+      }
+
       target = _getTarget(lhs);
       id = lhs.propertyName;
     } else if (lhs is PrefixedIdentifier) {
@@ -1667,6 +1708,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     }
 
     return _visit(rhs).toAssignExpression(_visit(lhs));
+  }
+
+  JS.Expression _emitNullSafeSet(PropertyAccess node, Expression right) {
+    // Emit `obj?.prop = expr` as:
+    //
+    //     (_ => _ == null ? null : _.prop = expr)(obj).
+    //
+    // We could use a helper, e.g.:  `nullSafeSet(e1, _ => _.v = e2)`
+    //
+    // However with MetaLet, we get clean code in statement or void context,
+    // or when one of the expressions is stateless, which seems common.
+    var vars = <String, JS.Expression>{};
+    var left = _bindValue(vars, 'l', node.target);
+    var body = js.call('# == null ? null : #',
+        [_visit(left), _emitSet(_stripNullAwareOp(node, left), right)]);
+    return new JS.MetaLet(vars, [body]);
   }
 
   @override
@@ -1693,8 +1750,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
   @override
   visitMethodInvocation(MethodInvocation node) {
-    var target = node.isCascaded ? _cascadeTarget : node.target;
+    if (node.operator != null && node.operator.lexeme == '?.') {
+      return _emitNullSafe(node);
+    }
 
+    var target = _getTarget(node);
     var result = _emitForeignJS(node);
     if (result != null) return result;
 
@@ -2078,6 +2138,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
     // TODO(vsm): Revisit whether we really need this when we get
     // better non-nullability in the type system.
+    // TODO(jmesserly): we do recursive calls in a few places. This could
+    // leads to O(depth) cost for calling this function. We could store the
+    // resulting value if that becomes an issue, so we maintain the invariant
+    // that each node is visited once.
 
     if (expr is Literal && expr is! NullLiteral) return true;
     if (expr is IsExpression) return true;
@@ -2099,6 +2163,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
         case TokenType.AMPERSAND_AMPERSAND:
         case TokenType.BAR_BAR:
           return true;
+        case TokenType.QUESTION_QUESTION:
+          return _isNonNullableExpression(expr.rightOperand);
       }
       type = getStaticType(expr.leftOperand);
     } else if (expr is PrefixExpression) {
@@ -2164,6 +2230,19 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
         code = '${bang}dart.equals(#, #)';
       }
       return js.call(code, [_visit(left), _visit(right)]);
+    }
+
+    if (op.type.lexeme == '??') {
+      // TODO(jmesserly): leave RHS for debugging?
+      // This should be a hint or warning for dead code.
+      if (_isNonNullableExpression(left)) return _visit(left);
+
+      var vars = <String, JS.Expression>{};
+      // Desugar `l ?? r` as `l != null ? l : r`
+      var l = _visit(_bindValue(vars, 'l', left, context: left));
+      return new JS.MetaLet(vars, [
+        js.call('# != null ? # : #', [l, l, _visit(right)])
+      ]);
     }
 
     if (binaryOperationIsPrimitive(leftType, rightType) ||
@@ -2262,6 +2341,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
           prop.propertyName);
     } else if (expr is PrefixedIdentifier) {
       PrefixedIdentifier ident = expr;
+      if (isLibraryPrefix(ident.prefix)) {
+        return expr;
+      }
       result = new PrefixedIdentifier(
           _bindValue(scope, 'o', ident.prefix, context: context)
           as SimpleIdentifier,
@@ -2291,7 +2373,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     // No need to do anything for stateless expressions.
     if (isStateless(expr, context)) return expr;
 
-    var t = _createTemporary('#$name', expr.staticType);
+    var t = _createTemporary('#$name', getStaticType(expr));
     scope[name] = _visit(expr);
     return t;
   }
@@ -2357,11 +2439,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
         return js.call('$op#', _visit(expr));
       } else if (op.lexeme == '++' || op.lexeme == '--') {
         // We need a null check, so the increment must be expanded out.
-        var mathop = op.lexeme[0];
         var vars = <String, JS.Expression>{};
         var x = _bindLeftHandSide(vars, expr, context: expr);
-        var body = js.call('# = # $mathop 1', [_visit(x), notNull(x)]);
-        return new JS.MetaLet(vars, [body]);
+
+        var one = AstBuilder.integerLiteral(1)..staticType = types.intType;
+        var increment = AstBuilder.binaryExpression(x, op.lexeme[0], one)
+          ..staticElement = node.staticElement
+          ..staticType = getStaticType(expr);
+
+        return new JS.MetaLet(vars, [_emitSet(x, increment)]);
       } else {
         return js.call('$op#', notNull(expr));
       }
@@ -2421,8 +2507,64 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitPropertyAccess(PropertyAccess node) =>
-      _emitGet(_getTarget(node), node.propertyName);
+  visitPropertyAccess(PropertyAccess node) {
+    if (node.operator.lexeme == '?.') {
+      return _emitNullSafe(node);
+    }
+    return _emitGet(_getTarget(node), node.propertyName);
+  }
+
+  JS.Expression _emitNullSafe(Expression node) {
+    // Desugar ?. sequence by passing a sequence of callbacks that applies
+    // each operation in sequence:
+    //
+    //     obj?.foo()?.bar
+    // -->
+    //     nullSafe(obj, _ => _.foo(), _ => _.bar);
+    //
+    // This pattern has the benefit of preserving order, as well as minimizing
+    // code expansion: each `?.` becomes `, _ => _`, plus one helper call.
+    //
+    // TODO(jmesserly): we could desugar with MetaLet instead, which may
+    // lead to higher performing code, but at the cost of readability.
+    var tail = <JS.Expression>[];
+    for (;;) {
+      var op = _getOperator(node);
+      if (op != null && op.lexeme == '?.') {
+        var nodeTarget = _getTarget(node);
+        if (_isNonNullableExpression(nodeTarget)) {
+          node = _stripNullAwareOp(node, nodeTarget);
+          break;
+        }
+
+        var param = _createTemporary('_', nodeTarget.staticType);
+        var baseNode = _stripNullAwareOp(node, param);
+        tail.add(new JS.ArrowFun([_visit(param)], _visit(baseNode)));
+        node = nodeTarget;
+      } else {
+        break;
+      }
+    }
+    if (tail.isEmpty) return _visit(node);
+    return js.call('dart.nullSafe(#, #)', [_visit(node), tail.reversed]);
+  }
+
+  static Token _getOperator(Expression node) {
+    if (node is PropertyAccess) return node.operator;
+    if (node is MethodInvocation) return node.operator;
+    return null;
+  }
+
+  // TODO(jmesserly): this is dropping source location.
+  Expression _stripNullAwareOp(Expression node, Expression newTarget) {
+    if (node is PropertyAccess) {
+      return AstBuilder.propertyAccess(newTarget, node.propertyName);
+    } else {
+      var invoke = node as MethodInvocation;
+      return AstBuilder.methodInvoke(
+          newTarget, invoke.methodName, invoke.argumentList.arguments);
+    }
+  }
 
   bool _requiresStaticDispatch(Expression target, String memberName) {
     var type = getStaticType(target);
@@ -2509,11 +2651,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   bool _useNativeJsIndexer(DartType type) =>
       findAnnotation(type.element, _isJsNameAnnotation) != null;
 
-  /// Gets the target of a [PropertyAccess] or [IndexExpression].
-  /// Those two nodes are special because they're both allowed on left side of
-  /// an assignment expression and cascades.
+  /// Gets the target of a [PropertyAccess], [IndexExpression], or
+  /// [MethodInvocation]. These three nodes can appear in a [CascadeExpression].
   Expression _getTarget(node) {
-    assert(node is IndexExpression || node is PropertyAccess);
+    assert(node is IndexExpression ||
+        node is PropertyAccess ||
+        node is MethodInvocation);
     return node.isCascaded ? _cascadeTarget : node.target;
   }
 

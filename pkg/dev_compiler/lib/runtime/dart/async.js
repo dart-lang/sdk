@@ -863,8 +863,8 @@ dart_library.library('dart/async', null, /* Imports */[
   let _cancelFuture = Symbol('_cancelFuture');
   let _pending = Symbol('_pending');
   let _setPendingEvents = Symbol('_setPendingEvents');
-  let _extractPending = Symbol('_extractPending');
   let _isCanceled = Symbol('_isCanceled');
+  let _extractPending = Symbol('_extractPending');
   let _isPaused = Symbol('_isPaused');
   let _isInputPaused = Symbol('_isInputPaused');
   let _inCallback = Symbol('_inCallback');
@@ -884,8 +884,8 @@ dart_library.library('dart/async', null, /* Imports */[
   let _sendData = Symbol('_sendData');
   let _addPending = Symbol('_addPending');
   let _sendError = Symbol('_sendError');
-  let _close = Symbol('_close');
   let _sendDone = Symbol('_sendDone');
+  let _close = Symbol('_close');
   let _checkState = Symbol('_checkState');
   let _BufferingStreamSubscription$ = dart.generic(function(T) {
     class _BufferingStreamSubscription extends core.Object {

@@ -2290,6 +2290,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         dart.as(key, K);
         dart.as(value, V);
         dart.throw(new core.UnsupportedError("Cannot modify unmodifiable map"));
+        return value;
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
@@ -2414,6 +2415,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         dart.as(key, K);
         dart.as(value, V);
         this[_map].set(key, value);
+        return value;
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
@@ -3324,8 +3326,8 @@ dart_library.library('dart/collection', null, /* Imports */[
   let _root = Symbol('_root');
   let _count = Symbol('_count');
   let _splayCount = Symbol('_splayCount');
-  let _splay = Symbol('_splay');
   let _compare = Symbol('_compare');
+  let _splay = Symbol('_splay');
   let _splayMin = Symbol('_splayMin');
   let _splayMax = Symbol('_splayMax');
   let _addNewRoot = Symbol('_addNewRoot');
@@ -3561,17 +3563,20 @@ dart_library.library('dart/collection', null, /* Imports */[
         return null;
       }
       set(key, value) {
-        dart.as(key, K);
-        dart.as(value, V);
-        if (key == null)
-          dart.throw(new core.ArgumentError(key));
-        let comp = this[_splay](key);
-        if (comp == 0) {
-          let mapRoot = dart.as(this[_root], _SplayTreeMapNode);
-          mapRoot.value = value;
-          return;
-        }
-        this[_addNewRoot](new (_SplayTreeMapNode$(K, dart.dynamic))(key, value), comp);
+        ((() => {
+          dart.as(key, K);
+          dart.as(value, V);
+          if (key == null)
+            dart.throw(new core.ArgumentError(key));
+          let comp = this[_splay](key);
+          if (comp == 0) {
+            let mapRoot = dart.as(this[_root], _SplayTreeMapNode);
+            mapRoot.value = value;
+            return;
+          }
+          this[_addNewRoot](new (_SplayTreeMapNode$(K, dart.dynamic))(key, value), comp);
+        }).bind(this))();
+        return value;
       }
       putIfAbsent(key, ifAbsent) {
         dart.as(key, K);
@@ -4227,6 +4232,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         } else {
           this[_set](key, value);
         }
+        return value;
       }
       [_set](key, value) {
         dart.as(key, K);
@@ -4489,6 +4495,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         dart.as(key, K);
         dart.as(value, V);
         super[_set](key, value);
+        return value;
       }
       containsKey(key) {
         if (!dart.notNull(this[_validKey](key)))
@@ -4718,6 +4725,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         } else {
           this[_set](key, value);
         }
+        return value;
       }
       [_set](key, value) {
         dart.as(key, K);
@@ -4970,6 +4978,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         dart.as(key, K);
         dart.as(value, V);
         super[_set](key, value);
+        return value;
       }
       containsKey(key) {
         if (!dart.notNull(this[_validKey](key)))

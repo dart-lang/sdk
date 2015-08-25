@@ -2665,6 +2665,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       } else {
         this[_upgrade]().set(key, value);
       }
+      return value;
     }
     addAll(other) {
       other.forEach(dart.fn(((key, value) => {

@@ -62,6 +62,7 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
     // TODO(vsm): Implement NSM and type checks.
     // See: https://github.com/dart-lang/dev_compiler/issues/170
     obj[field] = value;
+    return value;
   }
   exports.dput = dput;
 
@@ -168,7 +169,8 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
   exports.dindex = dindex;
 
   function dsetindex(obj, index, value) {
-    return callMethod(obj, 'set', [index, value], '[]=');
+    callMethod(obj, 'set', [index, value], '[]=');
+    return value;
   }
   exports.dsetindex = dsetindex;
 
@@ -317,6 +319,23 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
     return _js_helper.getTraceFromException(error);
   }
   exports.stackTrace = stackTrace;
+
+  /**
+   * Implements a sequence of .? operations.
+   *
+   * Will call each successive callback, unless one returns null, which stops
+   * the sequence.
+   */
+  function nullSafe(obj /*, ...callbacks*/) {
+    let callbacks = slice.call(arguments, 1);
+    if (obj == null) return obj;
+    for (const callback of callbacks) {
+      obj = callback(obj);
+      if (obj == null) break;
+    }
+    return obj;
+  }
+  exports.nullSafe = nullSafe;
 
   let _value = Symbol('_value');
   /**

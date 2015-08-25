@@ -1179,6 +1179,7 @@ dart_library.library('dart/core', null, /* Imports */[
           _js_helper.Primitives.setProperty(object, Expando$()._EXPANDO_PROPERTY_NAME, values);
         }
         _js_helper.Primitives.setProperty(values, this[_getKey](), value);
+        return value;
       }
       [_getKey]() {
         let key = dart.as(_js_helper.Primitives.getProperty(this, Expando$()._KEY_PROPERTY_NAME), String);

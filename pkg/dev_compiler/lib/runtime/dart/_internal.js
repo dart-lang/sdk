@@ -1655,6 +1655,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
       set(index, value) {
         dart.as(value, E);
         dart.throw(new core.UnsupportedError("Cannot modify an unmodifiable list"));
+        return value;
       }
       set length(newLength) {
         dart.throw(new core.UnsupportedError("Cannot change the length of an unmodifiable list"));
@@ -1857,6 +1858,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
       set(key, value) {
         dart.as(value, E);
         dart.throw(new core.UnsupportedError("Cannot modify an unmodifiable map"));
+        return value;
       }
       putIfAbsent(key, ifAbsent) {
         dart.as(ifAbsent, dart.functionType(E, []));

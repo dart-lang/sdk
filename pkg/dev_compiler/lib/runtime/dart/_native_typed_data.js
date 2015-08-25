@@ -232,6 +232,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       this[_storage].set(dart.notNull(index) * 4 + 1, value.y);
       this[_storage].set(dart.notNull(index) * 4 + 2, value.z);
       this[_storage].set(dart.notNull(index) * 4 + 3, value.w);
+      return value;
     }
     sublist(start, end) {
       if (end === void 0)
@@ -340,6 +341,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       this[_storage].set(dart.notNull(index) * 4 + 1, value.y);
       this[_storage].set(dart.notNull(index) * 4 + 2, value.z);
       this[_storage].set(dart.notNull(index) * 4 + 3, value.w);
+      return value;
     }
     sublist(start, end) {
       if (end === void 0)
@@ -442,6 +444,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       this[_checkIndex](index, this.length);
       this[_storage].set(dart.notNull(index) * 2 + 0, value.x);
       this[_storage].set(dart.notNull(index) * 2 + 1, value.y);
+      return value;
     }
     sublist(start, end) {
       if (end === void 0)
@@ -745,6 +748,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     set(index, value) {
       this[_checkIndex](index, this.length);
       this[index] = value;
+      return value;
     }
     setRange(start, end, iterable, skipCount) {
       if (skipCount === void 0)
@@ -771,6 +775,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     set(index, value) {
       this[_checkIndex](index, this.length);
       this[index] = value;
+      return value;
     }
     setRange(start, end, iterable, skipCount) {
       if (skipCount === void 0)
