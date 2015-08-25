@@ -895,6 +895,7 @@ class MethodElementHandle extends ExecutableElementHandle
  * `ParameterElement`.
  */
 class ParameterElementHandle extends VariableElementHandle
+    with ParameterElementMixin
     implements ParameterElement {
   /**
    * Initialize a newly created element handle to represent the given element.
