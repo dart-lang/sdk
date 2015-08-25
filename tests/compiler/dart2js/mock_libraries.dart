@@ -81,6 +81,7 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
         String toString() { return null; }
         noSuchMethod(im) { throw im; }
       }''',
+  'Resource': 'class Resource {}',
   'StackTrace': 'abstract class StackTrace {}',
   'String': 'class String implements Pattern {}',
   'Symbol': 'class Symbol { final name; const Symbol(this.name); }',

@@ -15,7 +15,7 @@ abstract class CoreTypes {
   /// The `bool` type defined in 'dart:core'.
   InterfaceType get boolType;
 
-  /// The `bool` type defined in 'dart:core'.
+  /// The `num` type defined in 'dart:core'.
   InterfaceType get numType;
 
   /// The `int` type defined in 'dart:core'.
@@ -23,6 +23,9 @@ abstract class CoreTypes {
 
   /// The `double` type defined in 'dart:core'.
   InterfaceType get doubleType;
+
+  /// The `Resource` type defined in 'dart:core'.
+  InterfaceType get resourceType;
 
   /// The `String` type defined in 'dart:core'.
   InterfaceType get stringType;

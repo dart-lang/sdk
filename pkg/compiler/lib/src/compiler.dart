@@ -297,6 +297,7 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement get numClass => _coreTypes.numClass;
   ClassElement get intClass => _coreTypes.intClass;
   ClassElement get doubleClass => _coreTypes.doubleClass;
+  ClassElement get resourceClass => _coreTypes.resourceClass;
   ClassElement get stringClass => _coreTypes.stringClass;
   ClassElement get functionClass => _coreTypes.functionClass;
   ClassElement get nullClass => _coreTypes.nullClass;
@@ -912,6 +913,7 @@ abstract class Compiler implements DiagnosticListener {
     _coreTypes.numClass = lookupCoreClass('num');
     _coreTypes.intClass = lookupCoreClass('int');
     _coreTypes.doubleClass = lookupCoreClass('double');
+    _coreTypes.resourceClass = lookupCoreClass('Resource');
     _coreTypes.stringClass = lookupCoreClass('String');
     _coreTypes.functionClass = lookupCoreClass('Function');
     _coreTypes.listClass = lookupCoreClass('List');
@@ -1678,6 +1680,7 @@ class _CompilerCoreTypes implements CoreTypes {
   ClassElement futureClass;
   ClassElement iterableClass;
   ClassElement streamClass;
+  ClassElement resourceClass;
 
   _CompilerCoreTypes(this.compiler);
 
@@ -1695,6 +1698,9 @@ class _CompilerCoreTypes implements CoreTypes {
 
   @override
   InterfaceType get intType => intClass.computeType(compiler);
+
+  @override
+  InterfaceType get resourceType => resourceClass.computeType(compiler);
 
   @override
   InterfaceType listType([DartType elementType]) {
