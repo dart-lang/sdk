@@ -676,12 +676,12 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive visitExpressionInvoke(ast.Send node,
                                      ast.Node expression,
                                      ast.NodeList argumentsNode,
-                                     Selector selector, _) {
+                                     CallStructure callStructure, _) {
     ir.Primitive receiver = visit(expression);
     List<ir.Primitive> arguments = node.arguments.mapToList(visit);
-    arguments = normalizeDynamicArguments(selector.callStructure, arguments);
+    arguments = normalizeDynamicArguments(callStructure, arguments);
     return irBuilder.buildCallInvocation(
-        receiver, selector.callStructure, arguments,
+        receiver, callStructure, arguments,
         sourceInformation:
             sourceInformationBuilder.buildCall(node, argumentsNode));
   }
@@ -710,11 +710,11 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive handleDynamicGet(
       ast.Send node,
       ast.Node receiver,
-      Selector selector,
+      Name name,
       _) {
     return irBuilder.buildDynamicGet(
         translateReceiver(receiver),
-        selector,
+        new Selector.getter(name),
         elements.getTypeMask(node),
         sourceInformationBuilder.buildGet(node));
   }
@@ -723,13 +723,15 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive visitIfNotNullDynamicPropertyGet(
       ast.Send node,
       ast.Node receiver,
-      Selector selector,
+      Name name,
       _) {
     ir.Primitive target = visit(receiver);
     return irBuilder.buildIfNotNullSend(
         target,
         nested(() => irBuilder.buildDynamicGet(
-            target, selector, elements.getTypeMask(node),
+            target,
+            new Selector.getter(name),
+            elements.getTypeMask(node),
             sourceInformationBuilder.buildGet(node))));
   }
 
@@ -1352,12 +1354,12 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive handleDynamicSet(
       ast.SendSet node,
       ast.Node receiver,
-      Selector selector,
+      Name name,
       ast.Node rhs,
       _) {
     return irBuilder.buildDynamicSet(
         translateReceiver(receiver),
-        selector,
+        new Selector.setter(name),
         elements.getTypeMask(node),
         visit(rhs));
   }
@@ -1366,14 +1368,17 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive visitIfNotNullDynamicPropertySet(
       ast.SendSet node,
       ast.Node receiver,
-      Selector selector,
+      Name name,
       ast.Node rhs,
       _) {
     ir.Primitive target = visit(receiver);
     return irBuilder.buildIfNotNullSend(
         target,
         nested(() => irBuilder.buildDynamicSet(
-            target, selector, elements.getTypeMask(node), visit(rhs))));
+            target,
+            new Selector.setter(name),
+            elements.getTypeMask(node),
+            visit(rhs))));
   }
 
   @override
@@ -1451,9 +1456,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive handleDynamicCompounds(
       ast.SendSet node,
       ast.Node receiver,
+      Name name,
       CompoundRhs rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       arg) {
     ir.Primitive target = translateReceiver(receiver);
     ir.Primitive helper() {
@@ -1461,13 +1465,16 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           node,
           getValue: () => irBuilder.buildDynamicGet(
               target,
-              getterSelector,
+              new Selector.getter(name),
               elements.getGetterTypeMaskInComplexSendSet(node),
               sourceInformationBuilder.buildGet(node)),
           rhs: rhs,
           setValue: (ir.Primitive result) {
             irBuilder.buildDynamicSet(
-                target, setterSelector, elements.getTypeMask(node), result);
+                target,
+                new Selector.setter(name),
+                elements.getTypeMask(node),
+                result);
           });
     }
     return node.isConditional

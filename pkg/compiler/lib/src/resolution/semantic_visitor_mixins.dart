@@ -223,9 +223,8 @@ abstract class PrefixBulkMixin<R, A>
   R visitDynamicPropertyPrefix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return bulkHandlePrefix(node, arg);
   }
@@ -233,9 +232,8 @@ abstract class PrefixBulkMixin<R, A>
   R visitIfNotNullDynamicPropertyPrefix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return bulkHandlePrefix(node, arg);
   }
@@ -402,9 +400,8 @@ abstract class PrefixBulkMixin<R, A>
   @override
   R visitThisPropertyPrefix(
       Send node,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return bulkHandlePrefix(node, arg);
   }
@@ -650,9 +647,8 @@ abstract class PostfixBulkMixin<R, A>
   R visitDynamicPropertyPostfix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return bulkHandlePostfix(node, arg);
   }
@@ -661,9 +657,8 @@ abstract class PostfixBulkMixin<R, A>
   R visitIfNotNullDynamicPropertyPostfix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return bulkHandlePostfix(node, arg);
   }
@@ -829,9 +824,8 @@ abstract class PostfixBulkMixin<R, A>
   @override
   R visitThisPropertyPostfix(
       Send node,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return bulkHandlePostfix(node, arg);
   }
@@ -1085,10 +1079,9 @@ abstract class CompoundBulkMixin<R, A>
   R visitDynamicPropertyCompound(
       Send node,
       Node receiver,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return bulkHandleCompound(node, arg);
   }
@@ -1097,10 +1090,9 @@ abstract class CompoundBulkMixin<R, A>
   R visitIfNotNullDynamicPropertyCompound(
       Send node,
       Node receiver,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return bulkHandleCompound(node, arg);
   }
@@ -1214,10 +1206,9 @@ abstract class CompoundBulkMixin<R, A>
   @override
   R visitThisPropertyCompound(
       Send node,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return bulkHandleCompound(node, arg);
   }
@@ -1537,7 +1528,7 @@ abstract class InvokeBulkMixin<R, A>
       Send node,
       Node expression,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
@@ -1825,7 +1816,7 @@ abstract class GetBulkMixin<R, A>
   R visitDynamicPropertyGet(
       Send node,
       Node receiver,
-      Selector selector,
+      Name name,
       A arg) {
     return bulkHandleGet(node, arg);
   }
@@ -1834,7 +1825,7 @@ abstract class GetBulkMixin<R, A>
   R visitIfNotNullDynamicPropertyGet(
       Send node,
       Node receiver,
-      Selector selector,
+      Name name,
       A arg) {
     return bulkHandleGet(node, arg);
   }
@@ -1927,7 +1918,7 @@ abstract class GetBulkMixin<R, A>
   @override
   R visitThisPropertyGet(
       Send node,
-      Selector selector,
+      Name name,
       A arg) {
     return bulkHandleGet(node, arg);
   }
@@ -2037,7 +2028,7 @@ abstract class SetBulkMixin<R, A>
   R visitDynamicPropertySet(
       SendSet node,
       Node receiver,
-      Selector selector,
+      Name name,
       Node rhs,
       A arg) {
     return bulkHandleSet(node, arg);
@@ -2047,7 +2038,7 @@ abstract class SetBulkMixin<R, A>
   R visitIfNotNullDynamicPropertySet(
       SendSet node,
       Node receiver,
-      Selector selector,
+      Name name,
       Node rhs,
       A arg) {
     return bulkHandleSet(node, arg);
@@ -2110,7 +2101,7 @@ abstract class SetBulkMixin<R, A>
   @override
   R visitThisPropertySet(
       SendSet node,
-      Selector selector,
+      Name name,
       Node rhs,
       A arg) {
     return bulkHandleSet(node, arg);
@@ -4267,10 +4258,9 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   R visitDynamicPropertyCompound(
       Send node,
       Node receiver,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     apply(receiver, arg);
     apply(rhs, arg);
@@ -4281,10 +4271,9 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   R visitIfNotNullDynamicPropertyCompound(
       Send node,
       Node receiver,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     apply(receiver, arg);
     apply(rhs, arg);
@@ -4295,7 +4284,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   R visitDynamicPropertyGet(
       Send node,
       Node receiver,
-      Selector selector,
+      Name name,
       A arg) {
     apply(receiver, arg);
     return null;
@@ -4305,7 +4294,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   R visitIfNotNullDynamicPropertyGet(
       Send node,
       Node receiver,
-      Selector selector,
+      Name name,
       A arg) {
     apply(receiver, arg);
     return null;
@@ -4339,9 +4328,8 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   R visitDynamicPropertyPostfix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     apply(receiver, arg);
     return null;
@@ -4351,9 +4339,8 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   R visitIfNotNullDynamicPropertyPostfix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     apply(receiver, arg);
     return null;
@@ -4363,9 +4350,8 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   R visitDynamicPropertyPrefix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     apply(receiver, arg);
     return null;
@@ -4375,9 +4361,8 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   R visitIfNotNullDynamicPropertyPrefix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     apply(receiver, arg);
     return null;
@@ -4387,7 +4372,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   R visitDynamicPropertySet(
       SendSet node,
       Node receiver,
-      Selector selector,
+      Name name,
       Node rhs,
       A arg) {
     apply(receiver, arg);
@@ -4399,7 +4384,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   R visitIfNotNullDynamicPropertySet(
       SendSet node,
       Node receiver,
-      Selector selector,
+      Name name,
       Node rhs,
       A arg) {
     apply(receiver, arg);
@@ -4471,7 +4456,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       Node expression,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(expression, arg);
     apply(arguments, arg);
@@ -5260,10 +5245,9 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitThisPropertyCompound(
       Send node,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     apply(rhs, arg);
     return null;
@@ -5272,7 +5256,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitThisPropertyGet(
       Send node,
-      Selector selector,
+      Name name,
       A arg) {
     return null;
   }
@@ -5290,9 +5274,8 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitThisPropertyPostfix(
       Send node,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return null;
   }
@@ -5300,9 +5283,8 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitThisPropertyPrefix(
       Send node,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return null;
   }
@@ -5310,7 +5292,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   @override
   R visitThisPropertySet(
       SendSet node,
-      Selector selector,
+      Name name,
       Node rhs,
       A arg) {
     apply(rhs, arg);
@@ -8082,7 +8064,7 @@ abstract class BaseImplementationOfDynamicsMixin<R, A>
   R handleDynamicGet(
       Send node,
       Node receiver,
-      Selector selector,
+      Name name,
       A arg);
 
   R handleDynamicInvoke(
@@ -8095,7 +8077,7 @@ abstract class BaseImplementationOfDynamicsMixin<R, A>
   R handleDynamicSet(
       SendSet node,
       Node receiver,
-      Selector selector,
+      Name name,
       Node rhs,
       A arg);
 
@@ -8103,19 +8085,19 @@ abstract class BaseImplementationOfDynamicsMixin<R, A>
   R visitDynamicPropertyGet(
       Send node,
       Node receiver,
-      Selector selector,
+      Name name,
       A arg) {
-    return handleDynamicGet(node, receiver, selector, arg);
+    return handleDynamicGet(node, receiver, name, arg);
   }
 
   @override
   R visitIfNotNullDynamicPropertyGet(
       Send node,
       Node receiver,
-      Selector selector,
+      Name name,
       A arg) {
     // TODO(johnniwinther): should these redirect to handleDynamicX?
-    return handleDynamicGet(node, receiver, selector, arg);
+    return handleDynamicGet(node, receiver, name, arg);
   }
 
   @override
@@ -8142,28 +8124,28 @@ abstract class BaseImplementationOfDynamicsMixin<R, A>
   R visitDynamicPropertySet(
       SendSet node,
       Node receiver,
-      Selector selector,
+      Name name,
       Node rhs,
       A arg) {
-    return handleDynamicSet(node, receiver, selector, rhs, arg);
+    return handleDynamicSet(node, receiver, name, rhs, arg);
   }
 
   @override
   R visitIfNotNullDynamicPropertySet(
       SendSet node,
       Node receiver,
-      Selector selector,
+      Name name,
       Node rhs,
       A arg) {
-    return handleDynamicSet(node, receiver, selector, rhs, arg);
+    return handleDynamicSet(node, receiver, name, rhs, arg);
   }
 
   @override
   R visitThisPropertyGet(
       Send node,
-      Selector selector,
+      Name name,
       A arg) {
-    return handleDynamicGet(node, null, selector, arg);
+    return handleDynamicGet(node, null, name, arg);
   }
 
   @override
@@ -8178,10 +8160,10 @@ abstract class BaseImplementationOfDynamicsMixin<R, A>
   @override
   R visitThisPropertySet(
       SendSet node,
-      Selector selector,
+      Name name,
       Node rhs,
       A arg) {
-    return handleDynamicSet(node, null, selector, rhs, arg);
+    return handleDynamicSet(node, null, name, rhs, arg);
   }
 }
 
@@ -8196,18 +8178,16 @@ abstract class BaseImplementationOfDynamicCompoundsMixin<R, A>
   R handleDynamicCompound(
       Send node,
       Node receiver,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg);
 
   R handleDynamicPostfixPrefix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg,
       {bool isPrefix});
 
@@ -8223,114 +8203,98 @@ abstract class BaseImplementationOfDynamicCompoundsMixin<R, A>
   R visitDynamicPropertyCompound(
       Send node,
       Node receiver,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicCompound(
-        node, receiver, operator, rhs, getterSelector, setterSelector, arg);
+        node, receiver, name, operator, rhs, arg);
   }
 
   @override
   R visitIfNotNullDynamicPropertyCompound(
       Send node,
       Node receiver,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicCompound(
-        node, receiver, operator, rhs, getterSelector, setterSelector, arg);
+        node, receiver, name, operator, rhs, arg);
   }
 
   @override
   R visitDynamicPropertyPostfix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicPostfixPrefix(
-        node, receiver, operator,
-        getterSelector, setterSelector, arg, isPrefix: false);
+        node, receiver, name, operator, arg, isPrefix: false);
   }
 
   @override
   R visitIfNotNullDynamicPropertyPostfix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicPostfixPrefix(
-        node, receiver, operator,
-        getterSelector, setterSelector, arg, isPrefix: false);
+        node, receiver, name, operator, arg, isPrefix: false);
   }
 
   @override
   R visitDynamicPropertyPrefix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicPostfixPrefix(
-        node, receiver, operator,
-        getterSelector, setterSelector, arg, isPrefix: true);
+        node, receiver, name, operator, arg, isPrefix: true);
   }
 
   @override
   R visitIfNotNullDynamicPropertyPrefix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicPostfixPrefix(
-        node, receiver, operator,
-        getterSelector, setterSelector, arg, isPrefix: true);
+        node, receiver, name, operator, arg, isPrefix: true);
   }
 
   @override
   R visitThisPropertyCompound(
       Send node,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
-    return handleDynamicCompound(
-        node, null, operator, rhs, getterSelector, setterSelector, arg);
+    return handleDynamicCompound(node, null, name, operator, rhs, arg);
   }
 
   @override
   R visitThisPropertyPostfix(
       Send node,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicPostfixPrefix(
-        node, null, operator,
-        getterSelector, setterSelector, arg, isPrefix: false);
+        node, null, name, operator, arg, isPrefix: false);
   }
 
   @override
   R visitThisPropertyPrefix(
       Send node,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicPostfixPrefix(
-        node, null, operator,
-        getterSelector, setterSelector, arg, isPrefix: true);
+        node, null, name, operator, arg, isPrefix: true);
   }
 
   @override
@@ -8487,59 +8451,52 @@ abstract class BaseImplementationOfCompoundsMixin<R, A>
   R handleDynamicCompounds(
       Send node,
       Node receiver,
+      Name name,
       CompoundRhs rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg);
 
   R visitDynamicPropertyCompound(
       Send node,
       Node receiver,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicCompounds(
         node,
         receiver,
+        name,
         new AssignmentCompound(operator, rhs),
-        getterSelector,
-        setterSelector,
         arg);
   }
 
   R visitIfNotNullDynamicPropertyCompound(
       Send node,
       Node receiver,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicCompounds(
         node,
         receiver,
+        name,
         new AssignmentCompound(operator, rhs),
-        getterSelector,
-        setterSelector,
         arg);
   }
 
   @override
   R visitThisPropertyCompound(
       Send node,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicCompounds(
         node,
         null,
+        name,
         new AssignmentCompound(operator, rhs),
-        getterSelector,
-        setterSelector,
         arg);
   }
 
@@ -8896,32 +8853,28 @@ abstract class BaseImplementationOfCompoundsMixin<R, A>
   R visitDynamicPropertyPrefix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicCompounds(
         node,
         receiver,
+        name,
         new IncDecCompound(CompoundKind.PREFIX, operator),
-        getterSelector,
-        setterSelector,
         arg);
   }
 
   R visitIfNotNullDynamicPropertyPrefix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicCompounds(
         node,
         receiver,
+        name,
         new IncDecCompound(CompoundKind.PREFIX, operator),
-        getterSelector,
-        setterSelector,
         arg);
   }
 
@@ -8970,16 +8923,14 @@ abstract class BaseImplementationOfCompoundsMixin<R, A>
 
   R visitThisPropertyPrefix(
       Send node,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicCompounds(
         node,
         null,
+        name,
         new IncDecCompound(CompoundKind.PREFIX, operator),
-        getterSelector,
-        setterSelector,
         arg);
   }
 
@@ -9216,16 +9167,14 @@ abstract class BaseImplementationOfCompoundsMixin<R, A>
   R visitDynamicPropertyPostfix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicCompounds(
         node,
         receiver,
+        name,
         new IncDecCompound(CompoundKind.POSTFIX, operator),
-        getterSelector,
-        setterSelector,
         arg);
   }
 
@@ -9233,16 +9182,14 @@ abstract class BaseImplementationOfCompoundsMixin<R, A>
   R visitIfNotNullDynamicPropertyPostfix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicCompounds(
         node,
         receiver,
+        name,
         new IncDecCompound(CompoundKind.POSTFIX, operator),
-        getterSelector,
-        setterSelector,
         arg);
   }
 
@@ -9291,16 +9238,14 @@ abstract class BaseImplementationOfCompoundsMixin<R, A>
 
   R visitThisPropertyPostfix(
       Send node,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg) {
     return handleDynamicCompounds(
         node,
         null,
+        name,
         new IncDecCompound(CompoundKind.POSTFIX, operator),
-        getterSelector,
-        setterSelector,
         arg);
   }
 

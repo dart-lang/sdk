@@ -27,6 +27,7 @@ import '../util/util.dart' show
     Link,
     Setlet;
 import '../universe/universe.dart' show
+    CallStructure,
     Selector;
 
 import 'enum_creator.dart';
@@ -201,9 +202,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         registry.registerThrowNoSuchMethod();
       } else {
         ConstructorElement superConstructor = superMember;
-        Selector callToMatch = new Selector.call(const PublicName(''), 0);
         superConstructor.computeType(compiler);
-        if (!callToMatch.applies(superConstructor, compiler.world)) {
+        if (!CallStructure.NO_ARGS.signatureApplies(
+                superConstructor.functionSignature)) {
           MessageKind kind = MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT;
           compiler.reportError(node, kind);
           superMember = new ErroneousElementX(kind, {}, '', element);

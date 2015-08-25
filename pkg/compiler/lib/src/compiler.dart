@@ -123,6 +123,7 @@ import 'typechecker.dart' show
     TypeCheckerTask;
 import 'types/types.dart' as ti;
 import 'universe/universe.dart' show
+    CallStructure,
     Selector,
     Universe;
 import 'util/characters.dart' show $_;
@@ -440,7 +441,7 @@ abstract class Compiler implements DiagnosticListener {
   QueueFilter enqueuerFilter = new QueueFilter();
 
   final Selector symbolValidatedConstructorSelector = new Selector.call(
-      const PublicName('validated'), 1);
+      const PublicName('validated'), CallStructure.ONE_ARG);
 
   static const String CREATE_INVOCATION_MIRROR =
       'createInvocationMirror';

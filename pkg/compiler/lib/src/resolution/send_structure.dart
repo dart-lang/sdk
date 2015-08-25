@@ -311,7 +311,7 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
             node,
             node.selector,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.THIS:
         return visitor.visitThisInvoke(
@@ -454,10 +454,7 @@ class GetStructure<R, A> implements SendStructure<R, A> {
   /// The target of the read access.
   final AccessSemantics semantics;
 
-  /// The [Selector] for the getter invocation.
-  final Selector selector;
-
-  GetStructure(this.semantics, this.selector);
+  GetStructure(this.semantics);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -465,13 +462,13 @@ class GetStructure<R, A> implements SendStructure<R, A> {
         return visitor.visitIfNotNullDynamicPropertyGet(
             node,
             node.receiver,
-            selector,
+            semantics.name,
             arg);
       case AccessKind.DYNAMIC_PROPERTY:
         return visitor.visitDynamicPropertyGet(
             node,
             node.receiver,
-            selector,
+            semantics.name,
             arg);
       case AccessKind.LOCAL_FUNCTION:
         return visitor.visitLocalFunctionGet(
@@ -561,7 +558,7 @@ class GetStructure<R, A> implements SendStructure<R, A> {
       case AccessKind.THIS_PROPERTY:
         return visitor.visitThisPropertyGet(
             node,
-            selector,
+            semantics.name,
             arg);
       case AccessKind.SUPER_FIELD:
       case AccessKind.SUPER_FINAL_FIELD:
@@ -611,7 +608,7 @@ class GetStructure<R, A> implements SendStructure<R, A> {
     throw new SpannableAssertionFailure(node, "Invalid getter: ${semantics}");
   }
 
-  String toString() => 'get($selector, $semantics)';
+  String toString() => 'get($semantics)';
 }
 
 /// The structure for a [Send] that is an assignment.
@@ -619,10 +616,7 @@ class SetStructure<R, A> implements SendStructure<R, A> {
   /// The target of the assignment.
   final AccessSemantics semantics;
 
-  /// The [Selector] for the setter invocation.
-  final Selector selector;
-
-  SetStructure(this.semantics, this.selector);
+  SetStructure(this.semantics);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -630,14 +624,14 @@ class SetStructure<R, A> implements SendStructure<R, A> {
         return visitor.visitIfNotNullDynamicPropertySet(
           node,
           node.receiver,
-          selector,
+          semantics.name,
           node.arguments.single,
           arg);
       case AccessKind.DYNAMIC_PROPERTY:
         return visitor.visitDynamicPropertySet(
           node,
           node.receiver,
-          selector,
+          semantics.name,
           node.arguments.single,
           arg);
       case AccessKind.LOCAL_FUNCTION:
@@ -763,7 +757,7 @@ class SetStructure<R, A> implements SendStructure<R, A> {
       case AccessKind.THIS_PROPERTY:
         return visitor.visitThisPropertySet(
             node,
-            selector,
+            semantics.name,
             node.arguments.single,
             arg);
       case AccessKind.SUPER_FIELD:
@@ -820,31 +814,21 @@ class SetStructure<R, A> implements SendStructure<R, A> {
     throw new SpannableAssertionFailure(node, "Invalid setter: ${semantics}");
   }
 
-  String toString() => 'set($selector,$semantics)';
+  String toString() => 'set($semantics)';
 }
 
 /// The structure for a [Send] that is a negation, i.e. of the form `!e`.
 class NotStructure<R, A> implements SendStructure<R, A> {
-  /// The target of the negation.
-  final AccessSemantics semantics;
-
-  NotStructure(this.semantics);
+  const NotStructure();
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
-    switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
-        return visitor.visitNot(
-            node,
-            node.receiver,
-            arg);
-     default:
-        // This is not a valid case.
-        break;
-    }
-    throw new SpannableAssertionFailure(node, "Invalid setter: ${semantics}");
+    return visitor.visitNot(
+        node,
+        node.receiver,
+        arg);
   }
 
-  String toString() => 'not($semantics)';
+  String toString() => 'not()';
 }
 
 /// The structure for a [Send] that is an invocation of a user definable unary
@@ -860,7 +844,7 @@ class UnaryStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitUnary(
             node,
             operator,
@@ -921,7 +905,7 @@ class IndexStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitIndex(
             node,
             node.receiver,
@@ -963,7 +947,7 @@ class EqualsStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitEquals(
             node,
             node.receiver,
@@ -1001,7 +985,7 @@ class NotEqualsStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitNotEquals(
             node,
             node.receiver,
@@ -1043,7 +1027,7 @@ class BinaryStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitBinary(
             node,
             node.receiver,
@@ -1105,15 +1089,11 @@ class IndexSetStructure<R, A> implements SendStructure<R, A> {
   /// The target of the index set operation.
   final AccessSemantics semantics;
 
-  // TODO(johnniwinther): Should we store this?
-  /// The [Selector] for the `[]=` operator invocation.
-  final Selector selector;
-
-  IndexSetStructure(this.semantics, this.selector);
+  IndexSetStructure(this.semantics);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitIndexSet(
             node,
             node.receiver,
@@ -1162,22 +1142,11 @@ class IndexPrefixStructure<R, A> implements SendStructure<R, A> {
   /// The `++` or `--` operator used in the operation.
   final IncDecOperator operator;
 
-  // TODO(johnniwinther): Should we store this?
-  /// The [Selector] for the `[]` invocation.
-  final Selector getterSelector;
-
-  // TODO(johnniwinther): Should we store this?
-  /// The [Selector] for the `[]=` invocation.
-  final Selector setterSelector;
-
-  IndexPrefixStructure(this.semantics,
-                       this.operator,
-                       this.getterSelector,
-                       this.setterSelector);
+  IndexPrefixStructure(this.semantics, this.operator);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitIndexPrefix(
             node,
             node.receiver,
@@ -1248,22 +1217,11 @@ class IndexPostfixStructure<R, A> implements SendStructure<R, A> {
   /// The `++` or `--` operator used in the operation.
   final IncDecOperator operator;
 
-  // TODO(johnniwinther): Should we store this?
-  /// The [Selector] for the `[]` invocation.
-  final Selector getterSelector;
-
-  // TODO(johnniwinther): Should we store this?
-  /// The [Selector] for the `[]=` invocation.
-  final Selector setterSelector;
-
-  IndexPostfixStructure(this.semantics,
-                        this.operator,
-                        this.getterSelector,
-                        this.setterSelector);
+  IndexPostfixStructure(this.semantics, this.operator);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitIndexPostfix(
             node,
             node.receiver,
@@ -1334,16 +1292,8 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
   /// The assignment operator used in the compound assignment.
   final AssignmentOperator operator;
 
-  /// The [Selector] for the getter invocation.
-  final Selector getterSelector;
-
-  /// The [Selector] for the setter invocation.
-  final Selector setterSelector;
-
   CompoundStructure(this.semantics,
-                    this.operator,
-                    this.getterSelector,
-                    this.setterSelector);
+                    this.operator);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -1351,19 +1301,17 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
         return visitor.visitIfNotNullDynamicPropertyCompound(
             node,
             node.receiver,
+            semantics.name,
             operator,
             node.arguments.single,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.DYNAMIC_PROPERTY:
         return visitor.visitDynamicPropertyCompound(
             node,
             node.receiver,
+            semantics.name,
             operator,
             node.arguments.single,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.LOCAL_FUNCTION:
         return visitor.visitLocalFunctionCompound(
@@ -1491,10 +1439,9 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
       case AccessKind.THIS_PROPERTY:
         return visitor.visitThisPropertyCompound(
             node,
+            semantics.name,
             operator,
             node.arguments.single,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.SUPER_FIELD:
         return visitor.visitSuperFieldCompound(
@@ -1684,19 +1631,11 @@ class CompoundIndexSetStructure<R, A> implements SendStructure<R, A> {
   /// The assignment operator used in the compound assignment.
   final AssignmentOperator operator;
 
-  /// The [Selector] for the `[]` operator invocation.
-  final Selector getterSelector;
-
-  /// The [Selector] for the `[]=` operator invocation.
-  final Selector setterSelector;
-
-  CompoundIndexSetStructure(this.semantics, this.operator,
-                            this.getterSelector,
-                            this.setterSelector);
+  CompoundIndexSetStructure(this.semantics, this.operator);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitCompoundIndexSet(
             node,
             node.receiver,
@@ -1775,16 +1714,8 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
   /// The `++` or `--` operator used in the operation.
   final IncDecOperator operator;
 
-  /// The [Selector] for the getter invocation.
-  final Selector getterSelector;
-
-  /// The [Selector] for the setter invocation.
-  final Selector setterSelector;
-
   PrefixStructure(this.semantics,
-                  this.operator,
-                  this.getterSelector,
-                  this.setterSelector);
+                  this.operator);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -1792,17 +1723,15 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
         return visitor.visitIfNotNullDynamicPropertyPrefix(
             node,
             node.receiver,
+            semantics.name,
             operator,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.DYNAMIC_PROPERTY:
         return visitor.visitDynamicPropertyPrefix(
             node,
             node.receiver,
+            semantics.name,
             operator,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.LOCAL_FUNCTION:
         return visitor.visitLocalFunctionPrefix(
@@ -1915,9 +1844,8 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
       case AccessKind.THIS_PROPERTY:
         return visitor.visitThisPropertyPrefix(
             node,
+            semantics.name,
             operator,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.SUPER_FIELD:
         return visitor.visitSuperFieldPrefix(
@@ -2097,16 +2025,8 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
   /// The `++` or `--` operator used in the operation.
   final IncDecOperator operator;
 
-  /// The [Selector] for the getter invocation.
-  final Selector getterSelector;
-
-  /// The [Selector] for the setter invocation.
-  final Selector setterSelector;
-
   PostfixStructure(this.semantics,
-                   this.operator,
-                   this.getterSelector,
-                   this.setterSelector);
+                   this.operator);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -2114,17 +2034,15 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
         return visitor.visitIfNotNullDynamicPropertyPostfix(
             node,
             node.receiver,
+            semantics.name,
             operator,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.DYNAMIC_PROPERTY:
         return visitor.visitDynamicPropertyPostfix(
             node,
             node.receiver,
+            semantics.name,
             operator,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.LOCAL_FUNCTION:
         return visitor.visitLocalFunctionPostfix(
@@ -2237,9 +2155,8 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
       case AccessKind.THIS_PROPERTY:
         return visitor.visitThisPropertyPostfix(
             node,
+            semantics.name,
             operator,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.SUPER_FIELD:
         return visitor.visitSuperFieldPostfix(

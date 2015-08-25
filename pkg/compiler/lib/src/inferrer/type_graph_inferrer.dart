@@ -4,57 +4,63 @@
 
 library type_graph_inferrer;
 
-import 'dart:collection' show Queue, IterableBase;
+import 'dart:collection' show
+    IterableBase,
+    Queue;
 
-import '../common/names.dart'
-    show Identifiers,
-         Names;
-import '../compiler.dart'
-    show Compiler;
+import '../common/names.dart' show
+    Identifiers,
+    Names;
+import '../compiler.dart' show
+    Compiler;
 import '../constants/values.dart';
-import '../cps_ir/cps_ir_nodes.dart' as cps_ir
-    show Node;
-import '../dart_types.dart'
-    show DartType,
-         FunctionType,
-         InterfaceType,
-         TypeKind;
-import '../diagnostics/invariant.dart'
-    show invariant;
-import '../diagnostics/spannable.dart'
-    show Spannable;
+import '../cps_ir/cps_ir_nodes.dart' as cps_ir show
+    Node;
+import '../dart_types.dart' show
+    DartType,
+    FunctionType,
+    InterfaceType,
+    TypeKind;
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/spannable.dart' show
+    Spannable;
 import '../elements/elements.dart';
+import '../js_backend/js_backend.dart' show
+    Annotations,
+    JavaScriptBackend;
 import '../native/native.dart' as native;
-import '../resolution/tree_elements.dart'
-    show TreeElementMapping;
-import '../tree/tree.dart' as ast
-    show DartString,
-         Node,
-         Send,
-         SendSet,
-         TryStatement;
-import '../types/types.dart'
-    show ContainerTypeMask,
-         DictionaryTypeMask,
-         MapTypeMask,
-         TypeMask,
-         TypesInferrer,
-         ValueTypeMask;
-import '../types/constants.dart'
-    show computeTypeMask;
-import '../universe/universe.dart'
-    show Selector,
-         SideEffects,
-         TypedSelector;
-import '../util/util.dart'
-    show ImmutableEmptySet,
-         Setlet;
-import '../js_backend/js_backend.dart' show Annotations, JavaScriptBackend;
-import '../world.dart' show ClassWorld;
+import '../resolution/tree_elements.dart' show
+    TreeElementMapping;
+import '../tree/tree.dart' as ast show
+    DartString,
+    Node,
+    Send,
+    SendSet,
+    TryStatement;
+import '../types/types.dart' show
+    ContainerTypeMask,
+    DictionaryTypeMask,
+    MapTypeMask,
+    TypeMask,
+    TypesInferrer,
+    ValueTypeMask;
+import '../types/constants.dart' show
+    computeTypeMask;
+import '../universe/universe.dart' show
+    CallStructure,
+    Selector,
+    SideEffects,
+    TypedSelector;
+import '../util/util.dart' show
+    ImmutableEmptySet,
+    Setlet;
+import '../world.dart' show
+    ClassWorld;
 
-import 'inferrer_visitor.dart'
-    show ArgumentsTypes,
-         TypeSystem;
+import 'inferrer_visitor.dart' show
+    ArgumentsTypes,
+    TypeSystem;
 import 'simple_types_inferrer.dart';
 
 part 'closure_tracer.dart';
@@ -586,11 +592,11 @@ class TypeGraphInferrerEngine
       new Selector.getter(const PublicName('first')),
       new Selector.getter(const PublicName('last')),
       new Selector.getter(const PublicName('single')),
-      new Selector.call(const PublicName('singleWhere'), 1),
-      new Selector.call(const PublicName('elementAt'), 1),
+      new Selector.call(const PublicName('singleWhere'), CallStructure.ONE_ARG),
+      new Selector.call(const PublicName('elementAt'), CallStructure.ONE_ARG),
       new Selector.index(),
-      new Selector.call(const PublicName('removeAt'), 1),
-      new Selector.call(const PublicName('removeLast'), 0)
+      new Selector.call(const PublicName('removeAt'), CallStructure.ONE_ARG),
+      new Selector.call(const PublicName('removeLast'), CallStructure.NO_ARGS)
     ]);
 
   bool returnsListElementType(Selector selector, TypeMask mask) {

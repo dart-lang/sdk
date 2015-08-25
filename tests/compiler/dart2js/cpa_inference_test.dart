@@ -7,7 +7,9 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/inferrer/concrete_types_inferrer.dart';
-import 'package:compiler/src/universe/universe.dart' show Selector;
+import 'package:compiler/src/universe/universe.dart' show
+    CallStructure,
+    Selector;
 
 import "compiler_helper.dart";
 import "type_mask_test_helper.dart";
@@ -1648,7 +1650,8 @@ testSelectors() {
     ClassElement y = findElement(result.compiler, 'Y');
     ClassElement z = findElement(result.compiler, 'Z');
 
-    Selector foo = new Selector.call(const PublicName("foo"), 0);
+    Selector foo =
+        new Selector.call(const PublicName("foo"), CallStructure.NO_ARGS);
 
     result.checkSelectorHasType(
         foo,
@@ -1675,7 +1678,8 @@ testSelectors() {
             new TypeMask.nonNullExact(cls, world)), world));
 
     result.checkSelectorHasType(
-        new Selector.call(const PublicName("bar"), 0), null, null);
+        new Selector.call(const PublicName("bar"), CallStructure.NO_ARGS),
+        null, null);
   });
 }
 

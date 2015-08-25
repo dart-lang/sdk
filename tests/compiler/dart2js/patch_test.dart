@@ -6,12 +6,15 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
+import 'package:compiler/src/diagnostics/messages.dart' show
+    MessageKind;
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/modelx.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/types/types.dart';
-import 'package:compiler/src/universe/universe.dart' show Selector;
+import 'package:compiler/src/universe/universe.dart' show
+    CallStructure,
+    Selector;
 import 'package:compiler/src/world.dart';
 
 import 'mock_compiler.dart';
@@ -872,7 +875,8 @@ testPatchAndSelector() {
 
     // Check that a method just in the patch class is a target for a
     // typed selector.
-    Selector selector = new Selector.call(const PublicName('method'), 0);
+    Selector selector =
+        new Selector.call(const PublicName('method'), CallStructure.NO_ARGS);
     TypeMask typeMask = new TypeMask.exact(cls, world);
     FunctionElement method = cls.implementation.lookupLocalMember('method');
     method.computeType(compiler);
@@ -881,7 +885,8 @@ testPatchAndSelector() {
 
     // Check that the declaration method in the declaration class is a target
     // for a typed selector.
-    selector = new Selector.call(const PublicName('clear'), 0);
+    selector =
+        new Selector.call(const PublicName('clear'), CallStructure.NO_ARGS);
     typeMask = new TypeMask.exact(cls, world);
     method = cls.lookupLocalMember('clear');
     method.computeType(compiler);

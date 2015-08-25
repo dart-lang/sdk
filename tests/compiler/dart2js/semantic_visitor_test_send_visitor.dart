@@ -293,39 +293,35 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   visitDynamicPropertyPrefix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_PREFIX,
-        receiver: receiver, operator: operator,
-        getter: getterSelector, setter: setterSelector));
-    apply(receiver, arg);
+        receiver: receiver, operator: operator, name: name));
+    super.visitDynamicPropertyPrefix(node, receiver, name, operator, arg);
   }
 
   @override
   visitDynamicPropertyPostfix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_POSTFIX,
-        receiver: receiver, operator: operator,
-        getter: getterSelector, setter: setterSelector));
-    apply(receiver, arg);
+        receiver: receiver, operator: operator, name: name));
+    super.visitDynamicPropertyPostfix(node, receiver, name, operator, arg);
   }
 
   @override
   visitDynamicPropertyGet(
       Send node,
       Node receiver,
-      Selector selector,
+      Name name,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_GET,
-        receiver: receiver, name: selector.name));
-    apply(receiver, arg);
+        receiver: receiver, name: name));
+    super.visitDynamicPropertyGet(node, receiver, name, arg);
   }
 
   @override
@@ -337,20 +333,19 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_INVOKE,
         receiver: receiver, name: selector.name, arguments: arguments));
-    apply(receiver, arg);
-    apply(arguments, arg);
+    super.visitDynamicPropertyInvoke(node, receiver, arguments, selector, arg);
   }
 
   @override
   visitDynamicPropertySet(
       SendSet node,
       Node receiver,
-      Selector selector,
+      Name name,
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_SET,
-        receiver: receiver, name: selector.name, rhs: rhs));
-    super.visitDynamicPropertySet(node, receiver, selector, rhs, arg);
+        receiver: receiver, name: name, rhs: rhs));
+    super.visitDynamicPropertySet(node, receiver, name, rhs, arg);
   }
 
   @override
@@ -389,7 +384,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Send node,
       Node expression,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_EXPRESSION_INVOKE,
         receiver: expression, arguments: arguments));
@@ -800,10 +795,11 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   @override
   visitThisPropertyGet(
       Send node,
-      Selector selector,
+      Name name,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_THIS_PROPERTY_GET,
-                         name: selector.name));
+                         name: name));
+    super.visitThisPropertyGet(node, name, arg);
   }
 
   @override
@@ -814,18 +810,18 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_THIS_PROPERTY_INVOKE,
                          name: selector.name, arguments: arguments));
-    apply(arguments, arg);
+    super.visitThisPropertyInvoke(node, arguments, selector, arg);
   }
 
   @override
   visitThisPropertySet(
       SendSet node,
-      Selector selector,
+      Name name,
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_THIS_PROPERTY_SET,
-                         name: selector.name, rhs: rhs));
-    apply(rhs, arg);
+                         name: name, rhs: rhs));
+    super.visitThisPropertySet(node, name, rhs, arg);
   }
 
   @override
@@ -1319,16 +1315,15 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   visitDynamicPropertyCompound(
       Send node,
       Node receiver,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_COMPOUND,
         receiver: receiver, operator: operator, rhs: rhs,
-        getter: getterSelector, setter: setterSelector));
-    apply(receiver, arg);
-    apply(rhs, arg);
+        name: name));
+    super.visitDynamicPropertyCompound(
+        node, receiver, name, operator, rhs, arg);
   }
 
   @override
@@ -1562,15 +1557,13 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   @override
   visitThisPropertyCompound(
       Send node,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_THIS_PROPERTY_COMPOUND,
-        operator: operator, rhs: rhs,
-        getter: getterSelector, setter: setterSelector));
-    apply(rhs, arg);
+        name: name, operator: operator, rhs: rhs));
+    super.visitThisPropertyCompound(node, name, operator, rhs, arg);
   }
 
   @override
@@ -1983,13 +1976,12 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   @override
   visitThisPropertyPrefix(
       Send node,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_THIS_PROPERTY_PREFIX,
-        operator: operator,
-        getter: getterSelector, setter: setterSelector));
+        name: name, operator: operator));
+    super.visitThisPropertyPrefix(node, name, operator, arg);
   }
 
   @override
@@ -2204,13 +2196,12 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   @override
   visitThisPropertyPostfix(
       Send node,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_THIS_PROPERTY_POSTFIX,
-        operator: operator,
-        getter: getterSelector, setter: setterSelector));
+        name: name, operator: operator));
+    super.visitThisPropertyPostfix(node, name, operator, arg);
   }
 
   @override
@@ -3003,23 +2994,23 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   visitIfNotNullDynamicPropertyGet(
       Send node,
       Node receiver,
-      Selector selector,
+      Name name,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_GET,
-        receiver: receiver, name: selector.name));
-    super.visitIfNotNullDynamicPropertyGet(node, receiver, selector, arg);
+        receiver: receiver, name: name));
+    super.visitIfNotNullDynamicPropertyGet(node, receiver, name, arg);
   }
 
   @override
   visitIfNotNullDynamicPropertySet(
       Send node,
       Node receiver,
-      Selector selector,
+      Name name,
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_SET,
-        receiver: receiver, name: selector.name, rhs: rhs));
-    super.visitIfNotNullDynamicPropertySet(node, receiver, selector, rhs, arg);
+        receiver: receiver, name: name, rhs: rhs));
+    super.visitIfNotNullDynamicPropertySet(node, receiver, name, rhs, arg);
   }
 
   @override
@@ -3039,46 +3030,40 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   visitIfNotNullDynamicPropertyPrefix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_PREFIX,
-        receiver: receiver, operator: operator,
-        getter: getterSelector, setter: setterSelector));
+        receiver: receiver, name: name, operator: operator));
     super.visitIfNotNullDynamicPropertyPrefix(
-        node, receiver, operator, getterSelector, setterSelector, arg);
+        node, receiver, name, operator, arg);
   }
 
   @override
   visitIfNotNullDynamicPropertyPostfix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_POSTFIX,
-        receiver: receiver, operator: operator,
-        getter: getterSelector, setter: setterSelector));
+        receiver: receiver, name: name, operator: operator));
     super.visitIfNotNullDynamicPropertyPostfix(
-        node, receiver, operator, getterSelector, setterSelector, arg);
+        node, receiver, name, operator, arg);
   }
 
   @override
   visitIfNotNullDynamicPropertyCompound(
       Send node,
       Node receiver,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_COMPOUND,
-        receiver: receiver, operator: operator, rhs: rhs,
-        getter: getterSelector, setter: setterSelector));
+        receiver: receiver, name: name, operator: operator, rhs: rhs));
     super.visitIfNotNullDynamicPropertyCompound(
-        node, receiver, operator, rhs, getterSelector, setterSelector, arg);
+        node, receiver, name, operator, rhs, arg);
   }
 
   @override

@@ -10,6 +10,7 @@ import '../elements/elements.dart' show
     Name,
     PublicName;
 import '../universe/universe.dart' show
+    CallStructure,
     Selector;
 
 /// [String]s commonly used.
@@ -60,7 +61,7 @@ class Names {
 class Selectors {
   /// The selector for calling the cancel method on 'StreamIterator'.
   static final Selector cancel =
-      new Selector.call(const PublicName('cancel'), 0);
+      new Selector.call(const PublicName('cancel'), CallStructure.NO_ARGS);
 
   /// The selector for getting the current element property used in for-each
   /// loops.
@@ -70,12 +71,20 @@ class Selectors {
   static final Selector iterator = new Selector.getter(Names.iterator);
 
   /// The selector for calling the move next method used in for-each loops.
-  static final Selector moveNext = new Selector.call(Names.moveNext, 0);
+  static final Selector moveNext =
+      new Selector.call(Names.moveNext, CallStructure.NO_ARGS);
 
   /// The selector for calling the no such method handler on 'Object'.
   static final Selector noSuchMethod_ =
-      new Selector.call(Names.noSuchMethod_, 1);
+      new Selector.call(Names.noSuchMethod_, CallStructure.ONE_ARG);
 
   /// The selector for calling the to-string method on 'Object'.
-  static final Selector toString_ = new Selector.call(Names.toString_, 0);
+  static final Selector toString_ =
+      new Selector.call(Names.toString_, CallStructure.NO_ARGS);
+
+  static final Selector hashCode_ =
+      new Selector.getter(const PublicName('hashCode'));
+
+  static final Selector compareTo =
+      new Selector.call(const PublicName("compareTo"), CallStructure.ONE_ARG);
 }

@@ -2471,7 +2471,8 @@ class SsaBuilder extends ast.Visitor
           <HInstruction>[buildFunctionType(type), original];
       pushInvokeDynamic(
           null,
-          new Selector.call(new Name(name, backend.jsHelperLibrary), 1),
+          new Selector.call(
+              new Name(name, backend.jsHelperLibrary), CallStructure.ONE_ARG),
           null,
           arguments);
 
@@ -3473,7 +3474,7 @@ class SsaBuilder extends ast.Visitor
   void visitDynamicPropertyGet(
       ast.Send node,
       ast.Node receiver,
-      Selector selector,
+      Name name,
       _) {
     generateDynamicGet(node);
   }
@@ -3482,7 +3483,7 @@ class SsaBuilder extends ast.Visitor
   void visitIfNotNullDynamicPropertyGet(
       ast.Send node,
       ast.Node receiver,
-      Selector selector,
+      Name name,
       _) {
     // exp?.x compiled as:
     //   t1 = exp;
@@ -3555,7 +3556,7 @@ class SsaBuilder extends ast.Visitor
   @override
   void visitThisPropertyGet(
       ast.Send node,
-      Selector selector,
+      Name name,
       _) {
     generateDynamicGet(node);
   }
@@ -3754,7 +3755,9 @@ class SsaBuilder extends ast.Visitor
       List arguments = [buildFunctionType(type), expression];
       pushInvokeDynamic(
           node,
-          new Selector.call(new Name('_isTest', backend.jsHelperLibrary), 1),
+          new Selector.call(
+              new PrivateName('_isTest', backend.jsHelperLibrary),
+              CallStructure.ONE_ARG),
           null,
           arguments);
       return new HIs.compound(type, expression, pop(), backend.boolType);
@@ -3936,7 +3939,7 @@ class SsaBuilder extends ast.Visitor
       ast.Send node,
       ast.Node expression,
       ast.NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       _) {
     generateCallInvoke(
         node,
@@ -6346,7 +6349,7 @@ class SsaBuilder extends ast.Visitor
   @override
   void visitThisPropertySet(
       ast.SendSet node,
-      Selector selector,
+      Name name,
       ast.Node rhs,
       _) {
     generateInstanceSetterWithCompiledReceiver(
@@ -6359,7 +6362,7 @@ class SsaBuilder extends ast.Visitor
   void visitDynamicPropertySet(
       ast.SendSet node,
       ast.Node receiver,
-      Selector selector,
+      Name name,
       ast.Node rhs,
       _) {
     generateInstanceSetterWithCompiledReceiver(
@@ -6372,7 +6375,7 @@ class SsaBuilder extends ast.Visitor
   void visitIfNotNullDynamicPropertySet(
       ast.SendSet node,
       ast.Node receiver,
-      Selector selector,
+      Name name,
       ast.Node rhs,
       _) {
     // compile e?.x = e2 to:
@@ -6697,9 +6700,8 @@ class SsaBuilder extends ast.Visitor
   void handleDynamicCompounds(
       ast.Send node,
       ast.Node receiver,
+      Name name,
       CompoundRhs rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       _) {
     handleCompoundSendSet(node);
   }

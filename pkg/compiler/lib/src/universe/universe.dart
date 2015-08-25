@@ -745,7 +745,7 @@ class Selector {
             new CallStructure(arity, namedArguments));
       } else {
         return new Selector.call(
-            name, arity, namedArguments);
+            name, new CallStructure(arity, namedArguments));
       }
     } else if (element.isSetter) {
       return new Selector.setter(name);
@@ -789,11 +789,8 @@ class Selector {
       => new Selector(SelectorKind.INDEX, INDEX_SET_NAME,
                       CallStructure.TWO_ARGS);
 
-  factory Selector.call(Name name,
-                        int arity,
-                        [List<String> namedArguments])
-      => new Selector(SelectorKind.CALL, name,
-          new CallStructure(arity, namedArguments));
+  factory Selector.call(Name name, CallStructure callStructure)
+      => new Selector(SelectorKind.CALL, name, callStructure);
 
   factory Selector.callClosure(int arity, [List<String> namedArguments])
       => new Selector(SelectorKind.CALL, CALL_NAME,

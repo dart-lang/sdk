@@ -5,7 +5,8 @@
 library dart2js.ir_builder;
 
 import '../common/names.dart' show
-    Names;
+    Names,
+    Selectors;
 import '../compile_time_constants.dart' show
     BackendConstantEnvironment;
 import '../constants/constant_system.dart';
@@ -1357,7 +1358,7 @@ class IrBuilder {
     ir.Continuation iteratorInvoked = new ir.Continuation([iterator]);
     add(new ir.LetCont(iteratorInvoked,
         new ir.InvokeMethod(expressionReceiver,
-            new Selector.getter(const PublicName("iterator")),
+            Selectors.iterator,
             iteratorMask,
             emptyArguments,
             iteratorInvoked)));
@@ -1374,7 +1375,7 @@ class IrBuilder {
     ir.Continuation moveNextInvoked = new ir.Continuation([condition]);
     add(new ir.LetCont(moveNextInvoked,
         new ir.InvokeMethod(iterator,
-            new Selector.call(Names.moveNext, 0),
+            Selectors.moveNext,
             moveNextMask,
             emptyArguments,
             moveNextInvoked)));
@@ -1397,7 +1398,7 @@ class IrBuilder {
     bodyBuilder.add(new ir.LetCont(currentInvoked,
         new ir.InvokeMethod(
             iterator,
-            new Selector.getter(Names.current),
+            Selectors.current,
             currentMask,
             emptyArguments, currentInvoked)));
     // TODO(sra): Does this cover all cases? The general setter case include
@@ -2573,7 +2574,7 @@ class IrBuilder {
                                    {SourceInformation sourceInformation}) {
     assert(isOpen);
     Selector selector =
-        new Selector.call(target.memberName, arguments.length);
+        new Selector.call(target.memberName, new CallStructure(arguments.length));
     return _continueWithExpression(
         (k) => new ir.InvokeMethodDirectly(
             receiver, target, selector, arguments, k, sourceInformation));

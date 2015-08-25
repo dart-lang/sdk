@@ -1890,7 +1890,7 @@ class SimpleTypeInferrerVisitor<T>
   T visitDynamicPropertyGet(
       ast.Send node,
       ast.Node receiver,
-      Selector selector,
+      Name name,
       _) {
     return handleDynamicGet(node);
   }
@@ -1899,7 +1899,7 @@ class SimpleTypeInferrerVisitor<T>
   T visitIfNotNullDynamicPropertyGet(
       ast.Send node,
       ast.Node receiver,
-      Selector selector,
+      Name name,
       _) {
     return handleDynamicGet(node);
   }
@@ -1955,7 +1955,7 @@ class SimpleTypeInferrerVisitor<T>
   @override
   T visitThisPropertyGet(
       ast.Send node,
-      Selector selector,
+      Name name,
       _) {
     return handleDynamicGet(node);
   }
@@ -2023,7 +2023,7 @@ class SimpleTypeInferrerVisitor<T>
       ast.Send node,
       ast.Node expression,
       ast.NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       _) {
     return handleCallInvoke(node, expression.accept(this));
    }

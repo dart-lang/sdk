@@ -2274,9 +2274,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_COMPOUND,
-              receiver: 'a', operator: '+=', rhs: '42',
-              getter: 'Selector(getter, b, arity=0)',
-              setter: 'Selector(setter, b, arity=1)'),
+              receiver: 'a', name: 'b', operator: '+=', rhs: '42'),
           const Visit(VisitKind.VISIT_PARAMETER_GET,
               element: 'parameter(m#a)')
         ]),
@@ -2486,9 +2484,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_THIS_PROPERTY_COMPOUND,
-            operator: '+=', rhs: '42',
-            getter: 'Selector(getter, a, arity=0)',
-            setter: 'Selector(setter, a, arity=1)')),
+            operator: '+=', name: 'a', rhs: '42')),
     const Test.clazz(
         '''
         class C {
@@ -2497,9 +2493,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_THIS_PROPERTY_COMPOUND,
-            operator: '+=', rhs: '42',
-            getter: 'Selector(getter, a, arity=0)',
-            setter: 'Selector(setter, a, arity=1)')),
+            name: 'a', operator: '+=', rhs: '42')),
     const Test.clazz(
         '''
         class B {
@@ -2800,9 +2794,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_PREFIX,
-              receiver: 'a', operator: '--',
-              getter: 'Selector(getter, b, arity=0)',
-              setter: 'Selector(setter, b, arity=1)'),
+              receiver: 'a', name: 'b', operator: '--'),
           const Visit(VisitKind.VISIT_PARAMETER_GET,
               element: 'parameter(m#a)')
         ]),
@@ -2963,9 +2955,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_THIS_PROPERTY_PREFIX,
-            operator: '--',
-            getter: 'Selector(getter, a, arity=0)',
-            setter: 'Selector(setter, a, arity=1)')),
+            name: 'a', operator: '--')),
     const Test.clazz(
         '''
         class C {
@@ -2974,9 +2964,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_THIS_PROPERTY_PREFIX,
-            operator: '++',
-            getter: 'Selector(getter, a, arity=0)',
-            setter: 'Selector(setter, a, arity=1)')),
+            name: 'a', operator: '++')),
     const Test.clazz(
         '''
         class B {
@@ -3191,9 +3179,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_POSTFIX,
-              receiver: 'a', operator: '--',
-              getter: 'Selector(getter, b, arity=0)',
-              setter: 'Selector(setter, b, arity=1)'),
+              receiver: 'a', name: 'b', operator: '--'),
           const Visit(VisitKind.VISIT_PARAMETER_GET,
               element: 'parameter(m#a)')
         ]),
@@ -3354,9 +3340,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_THIS_PROPERTY_POSTFIX,
-            operator: '--',
-            getter: 'Selector(getter, a, arity=0)',
-            setter: 'Selector(setter, a, arity=1)')),
+            name: 'a', operator: '--')),
     const Test.clazz(
         '''
         class C {
@@ -3365,9 +3349,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         }
         ''',
         const Visit(VisitKind.VISIT_THIS_PROPERTY_POSTFIX,
-            operator: '++',
-            getter: 'Selector(getter, a, arity=0)',
-            setter: 'Selector(setter, a, arity=1)')),
+            name: 'a', operator: '++')),
     const Test.clazz(
         '''
         class B {
@@ -3923,10 +3905,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const [
           const Visit(
               VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_PREFIX,
-              receiver: 'a',
-              getter: 'Selector(getter, b, arity=0)',
-              setter: 'Selector(setter, b, arity=1)',
-              operator: '++'),
+              receiver: 'a', name: 'b', operator: '++'),
           const Visit(
               VisitKind.VISIT_PARAMETER_GET,
               element: 'parameter(m#a)'),
@@ -3938,10 +3917,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const [
           const Visit(
               VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_POSTFIX,
-              receiver: 'a',
-              getter: 'Selector(getter, b, arity=0)',
-              setter: 'Selector(setter, b, arity=1)',
-              operator: '--'),
+              receiver: 'a', name: 'b', operator: '--'),
           const Visit(
               VisitKind.VISIT_PARAMETER_GET,
               element: 'parameter(m#a)'),
@@ -3953,11 +3929,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const [
           const Visit(
               VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_COMPOUND,
-              receiver: 'a',
-              getter: 'Selector(getter, b, arity=0)',
-              setter: 'Selector(setter, b, arity=1)',
-              operator: '*=',
-              rhs: '42'),
+              receiver: 'a', name: 'b', operator: '*=', rhs: '42'),
           const Visit(
               VisitKind.VISIT_PARAMETER_GET,
               element: 'parameter(m#a)'),

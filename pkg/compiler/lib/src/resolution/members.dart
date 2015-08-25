@@ -42,7 +42,6 @@ import '../util/util.dart' show
 import '../universe/universe.dart' show
     CallStructure,
     Selector,
-    SelectorKind,
     UniverseSelector;
 
 import 'access_semantics.dart';
@@ -666,7 +665,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (op == null) {
         // Unsupported operator. An error has been reported during parsing.
         return new Selector.call(
-            new Name(source, library), node.argumentsNode.slowLength(), []);
+            new Name(source, library),
+            new CallStructure.unnamed(node.argumentsNode.slowLength()));
       }
       return node.arguments.isEmpty
           ? new Selector.unaryOperator(op)
@@ -705,7 +705,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // If we're invoking a closure, we do not have an identifier.
     return (identifier == null)
         ? new Selector.callClosure(arity, named)
-        : new Selector.call(new Name(identifier.source, library), arity, named);
+        : new Selector.call(new Name(identifier.source, library),
+                            new CallStructure(arity, named));
   }
 
   Selector resolveSelector(Send node, Element element) {
@@ -1212,7 +1213,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
     } else {
       ResolutionResult expressionResult = visitExpression(expression);
-      semantics = const DynamicAccess.dynamicProperty();
+      semantics = const DynamicAccess.expression();
       registry.registerDynamicInvocation(new UniverseSelector(selector, null));
 
       if (expressionResult.isConstant) {
@@ -1257,8 +1258,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     Node expression = node.receiver;
     ResolutionResult result = visitExpression(expression);
-    registry.registerSendStructure(node,
-        new NotStructure(const DynamicAccess.dynamicProperty()));
+    registry.registerSendStructure(node, const NotStructure());
 
     if (result.isConstant) {
       ConstantExpression expressionConstant = result.constant;
@@ -1388,7 +1388,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       ResolutionResult leftResult = visitExpression(left);
       ResolutionResult rightResult = visitExpression(right);
       registry.registerDynamicInvocation(new UniverseSelector(selector, null));
-      semantics = const DynamicAccess.dynamicProperty();
+      semantics = const DynamicAccess.expression();
 
       if (leftResult.isConstant && rightResult.isConstant) {
         bool isValidConstant;
@@ -1557,7 +1557,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// Handle access of a property of [name] on `this`, like `this.name` and
   /// `this.name()`, or `name` and `name()` in instance context.
   ResolutionResult handleThisPropertyAccess(Send node, Name name) {
-    AccessSemantics semantics = const DynamicAccess.thisProperty();
+    AccessSemantics semantics = new DynamicAccess.thisProperty(name);
     return handleDynamicAccessSemantics(node, name, semantics);
   }
 
@@ -1565,7 +1565,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// `this.name++`, or `name = b` and `name++` in instance context.
   ResolutionResult handleThisPropertyUpdate(
       SendSet node, Name name, Element element) {
-    AccessSemantics semantics = const DynamicAccess.thisProperty();
+    AccessSemantics semantics = new DynamicAccess.thisProperty(name);
     return handleDynamicUpdateSemantics(node, name, element, semantics);
   }
 
@@ -1601,13 +1601,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult handleSuperPropertyAccess(Send node, Name name) {
     Element target;
     Selector selector;
-    CallStructure callStructure = CallStructure.NO_ARGS;
+    CallStructure callStructure;
     if (node.isCall) {
-      callStructure =
-          resolveArguments(node.argumentsNode).callStructure;
-      selector = new Selector(SelectorKind.CALL, name, callStructure);
+      callStructure = resolveArguments(node.argumentsNode).callStructure;
+      selector = new Selector.call(name, callStructure);
     } else {
-      selector = new Selector(SelectorKind.GETTER, name, callStructure);
+      selector = new Selector.getter(name);
     }
     AccessSemantics semantics = checkSuperAccess(node);
     if (semantics == null) {
@@ -1677,8 +1676,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           internalError(node, "Unexpected super property access $semantics.");
           break;
       }
-      registry.registerSendStructure(node,
-          new GetStructure(semantics, selector));
+      registry.registerSendStructure(node, new GetStructure(semantics));
     }
     target = semantics.element;
 
@@ -1973,9 +1971,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           new InvokeStructure(semantics, selector));
     } else {
       // TODO(johnniwinther): Avoid the need for a [Selector] here.
-      registry.registerSendStructure(node,
-          new GetStructure(semantics,
-              new Selector(SelectorKind.GETTER, name, CallStructure.NO_ARGS)));
+      registry.registerSendStructure(node, new GetStructure(semantics));
     }
     return const NoneResult();
   }
@@ -2055,9 +2051,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       analyzeConstantDeferred(node, enforceConst: false);
 
       // TODO(johnniwinther): Avoid the need for a [Selector] here.
-      registry.registerSendStructure(node,
-          new GetStructure(semantics,
-              new Selector(SelectorKind.GETTER, name, CallStructure.NO_ARGS)));
+      registry.registerSendStructure(node, new GetStructure(semantics));
       return new ConstantResult(node, semantics.constant);
     }
   }
@@ -2348,17 +2342,16 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (node.isCall) {
       CallStructure callStructure =
           resolveArguments(node.argumentsNode).callStructure;
-      selector = new Selector(SelectorKind.CALL, name, callStructure);
+      selector = new Selector.call(name, callStructure);
       registry.registerDynamicInvocation(
           new UniverseSelector(selector, null));
       sendStructure = new InvokeStructure(semantics, selector);
     } else {
       assert(invariant(node, node.isPropertyAccess));
-      selector = new Selector(
-          SelectorKind.GETTER, name, CallStructure.NO_ARGS);
+      selector = new Selector.getter(name);
       registry.registerDynamicGetter(
           new UniverseSelector(selector, null));
-      sendStructure = new GetStructure(semantics, selector);
+      sendStructure = new GetStructure(semantics);
     }
     registry.registerSendStructure(node, sendStructure);
     // TODO(23998): Remove this when all information goes through
@@ -2370,10 +2363,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// Handle dynamic update of [semantics].
   ResolutionResult handleDynamicUpdateSemantics(
       SendSet node, Name name, Element element, AccessSemantics semantics) {
-    Selector getterSelector =
-        new Selector(SelectorKind.GETTER, name, CallStructure.NO_ARGS);
-    Selector setterSelector =
-        new Selector(SelectorKind.SETTER, name.setter, CallStructure.ONE_ARG);
+    Selector getterSelector = new Selector.getter(name);
+    Selector setterSelector = new Selector.setter(name.setter);
     registry.registerDynamicSetter(
         new UniverseSelector(setterSelector, null));
     if (node.isComplex) {
@@ -2437,13 +2428,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       return handlePrefixSend(node, name, result);
     } else if (node.isConditional) {
       return handleDynamicAccessSemantics(
-          node, name, const DynamicAccess.ifNotNullProperty());
+          node, name, new DynamicAccess.ifNotNullProperty(name));
     } else {
       // Handle dynamic property access, like `a.b` or `a.b()` where `a` is not
       // a prefix or class.
       // TODO(johnniwinther): Use the `element` of [result].
       return handleDynamicAccessSemantics(
-          node, name, const DynamicAccess.dynamicProperty());
+          node, name, new DynamicAccess.dynamicProperty(name));
     }
   }
 
@@ -2470,13 +2461,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       return handlePrefixSendSet(node, name, result);
     } else if (node.isConditional) {
       return handleDynamicUpdateSemantics(
-          node, name, null, const DynamicAccess.ifNotNullProperty());
+          node, name, null, new DynamicAccess.ifNotNullProperty(name));
     } else {
       // Handle dynamic property access, like `a.b = c`, `a.b++` or `a.b += c`
       // where `a` is not a prefix or class.
       // TODO(johnniwinther): Use the `element` of [result].
       return handleDynamicUpdateSemantics(
-          node, name, null, const DynamicAccess.dynamicProperty());
+          node, name, null, new DynamicAccess.dynamicProperty(name));
     }
   }
 
@@ -2497,17 +2488,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (node.isCall) {
       CallStructure callStructure =
           resolveArguments(node.argumentsNode).callStructure;
-      selector = new Selector(SelectorKind.CALL, name, callStructure);
-      registry.registerDynamicInvocation(
-          new UniverseSelector(selector, null));
+      selector = new Selector.call(name, callStructure);
+      registry.registerDynamicInvocation(new UniverseSelector(selector, null));
       sendStructure = new InvokeStructure(semantics, selector);
     } else {
       assert(invariant(node, node.isPropertyAccess));
-      selector = new Selector(
-          SelectorKind.GETTER, name, CallStructure.NO_ARGS);
-      registry.registerDynamicGetter(
-          new UniverseSelector(selector, null));
-      sendStructure = new GetStructure(semantics, selector);
+      selector = new Selector.getter(name);
+      registry.registerDynamicGetter(new UniverseSelector(selector, null));
+      sendStructure = new GetStructure(semantics);
     }
     // TODO(23998): Remove this when all information goes through
     // the [SendStructure].
@@ -2575,7 +2563,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (node.isCall) {
       CallStructure callStructure =
           resolveArguments(node.argumentsNode).callStructure;
-      selector = new Selector(SelectorKind.CALL, name, callStructure);
+      selector = new Selector.call(name, callStructure);
       bool isIncompatibleInvoke = false;
       switch (semantics.kind) {
         case AccessKind.LOCAL_FUNCTION:
@@ -2647,9 +2635,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               "Unexpected local access $semantics.");
           break;
       }
-      selector = new Selector(SelectorKind.GETTER, name, CallStructure.NO_ARGS);
-      registry.registerSendStructure(node,
-          new GetStructure(semantics, selector));
+      selector = new Selector.getter(name);
+      registry.registerSendStructure(node, new GetStructure(semantics));
     }
 
     // TODO(23998): Remove these when all information goes through
@@ -2747,7 +2734,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       ArgumentsResult argumentsResult =
           resolveArguments(node.argumentsNode);
       CallStructure callStructure = argumentsResult.callStructure;
-      selector = new Selector(SelectorKind.CALL, name, callStructure);
+      selector = new Selector.call(name, callStructure);
 
       bool isIncompatibleInvoke = false;
       switch (semantics.kind) {
@@ -2801,7 +2788,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               ? new IncompatibleInvokeStructure(semantics, selector)
               : new InvokeStructure(semantics, selector));
     } else {
-      selector = new Selector(SelectorKind.GETTER, name, CallStructure.NO_ARGS);
+      selector = new Selector.getter(name);
       switch (semantics.kind) {
         case AccessKind.STATIC_METHOD:
         case AccessKind.TOPLEVEL_METHOD:
@@ -2831,8 +2818,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               "Unexpected statically resolved access $semantics.");
           break;
       }
-      registry.registerSendStructure(node,
-          new GetStructure(semantics, selector));
+      registry.registerSendStructure(node, new GetStructure(semantics));
       if (member.isConst) {
         FieldElement field = member;
         result = new ConstantResult(
@@ -3156,10 +3142,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     Node index = node.arguments.head;
     visitExpression(receiver);
     visitExpression(index);
+    AccessSemantics semantics = const DynamicAccess.expression();
     if (node.isPrefix || node.isPostfix) {
       // `a[b]++` or `++a[b]`.
       IncDecOperator operator = IncDecOperator.parse(operatorText);
-      AccessSemantics semantics = const DynamicAccess.dynamicProperty();
       Selector getterSelector = new Selector.index();
       Selector setterSelector = new Selector.indexSet();
       Selector operatorSelector =
@@ -3179,10 +3165,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           new UniverseSelector(operatorSelector, null));
 
       SendStructure sendStructure = node.isPrefix
-          ? new IndexPrefixStructure(
-              semantics, operator, getterSelector, setterSelector)
-          : new IndexPostfixStructure(
-              semantics, operator, getterSelector, setterSelector);
+          ? new IndexPrefixStructure(semantics, operator)
+          : new IndexPostfixStructure(semantics, operator);
       registry.registerSendStructure(node, sendStructure);
       return const NoneResult();
     } else {
@@ -3192,7 +3176,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       AssignmentOperator operator = AssignmentOperator.parse(operatorText);
       if (operator.kind == AssignmentOperatorKind.ASSIGN) {
         // `a[b] = c`.
-        AccessSemantics semantics = const DynamicAccess.dynamicProperty();
         Selector setterSelector = new Selector.indexSet();
 
         // TODO(23998): Remove this when selectors are only accessed
@@ -3201,13 +3184,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         registry.registerDynamicInvocation(
             new UniverseSelector(setterSelector, null));
 
-        SendStructure sendStructure =
-            new IndexSetStructure(semantics, setterSelector);
+        SendStructure sendStructure = new IndexSetStructure(semantics);
         registry.registerSendStructure(node, sendStructure);
         return const NoneResult();
       } else {
         // `a[b] += c`.
-        AccessSemantics semantics = const DynamicAccess.dynamicProperty();
         Selector getterSelector = new Selector.index();
         Selector setterSelector = new Selector.indexSet();
         Selector operatorSelector =
@@ -3226,8 +3207,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         registry.registerDynamicInvocation(
             new UniverseSelector(operatorSelector, null));
 
-        SendStructure sendStructure = new CompoundIndexSetStructure(
-                semantics, operator, getterSelector, setterSelector);
+        SendStructure sendStructure =
+            new CompoundIndexSetStructure(semantics, operator);
         registry.registerSendStructure(node, sendStructure);
         return const NoneResult();
       }
@@ -3272,10 +3253,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           new UniverseSelector(operatorSelector, null));
 
       SendStructure sendStructure = node.isPrefix
-          ? new IndexPrefixStructure(
-              semantics, operator, getterSelector, setterSelector)
-          : new IndexPostfixStructure(
-              semantics, operator, getterSelector, setterSelector);
+          ? new IndexPrefixStructure(semantics, operator)
+          : new IndexPostfixStructure(semantics, operator);
       registry.registerSendStructure(node, sendStructure);
       return const NoneResult();
     } else {
@@ -3300,8 +3279,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         registry.setSelector(node, setterSelector);
         registry.registerStaticInvocation(semantics.setter);
 
-        SendStructure sendStructure =
-            new IndexSetStructure(semantics, setterSelector);
+        SendStructure sendStructure = new IndexSetStructure(semantics);
         registry.registerSendStructure(node, sendStructure);
         return const NoneResult();
       } else {
@@ -3332,8 +3310,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         registry.registerDynamicInvocation(
             new UniverseSelector(operatorSelector, null));
 
-        SendStructure sendStructure = new CompoundIndexSetStructure(
-                semantics, operator, getterSelector, setterSelector);
+        SendStructure sendStructure =
+            new CompoundIndexSetStructure(semantics, operator);
         registry.registerSendStructure(node, sendStructure);
         return const NoneResult();
       }
@@ -3348,10 +3326,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     String text = selector.source;
     Name name = new Name(text, enclosingElement.library);
     String operatorText = node.assignmentOperator.source;
-    Selector getterSelector = new Selector(
-        SelectorKind.GETTER, name, CallStructure.NO_ARGS);
-    Selector setterSelector = new Selector(
-        SelectorKind.SETTER, name.setter, CallStructure.ONE_ARG);
+    Selector getterSelector = new Selector.getter(name);
+    Selector setterSelector = new Selector.setter(name);
     AccessSemantics semantics = checkSuperAccess(node);
     if (node.isPrefix || node.isPostfix) {
       // `super.a++` or `++super.a`.
@@ -3420,10 +3396,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       AccessSemantics semantics) {
     SendStructure sendStructure;
     String operatorText = node.assignmentOperator.source;
-    Selector getterSelector =
-        new Selector(SelectorKind.GETTER, name, CallStructure.NO_ARGS);
-    Selector setterSelector =
-        new Selector(SelectorKind.SETTER, name.setter, CallStructure.ONE_ARG);
+    Selector getterSelector = new Selector.getter(name);
+    Selector setterSelector = new Selector.setter(name);
     if (node.isPrefix || node.isPostfix) {
       // `e++` or `++e`.
       IncDecOperator operator = IncDecOperator.parse(operatorText);
@@ -3445,10 +3419,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           new UniverseSelector(operatorSelector, null));
 
       SendStructure sendStructure = node.isPrefix
-          ? new PrefixStructure(
-              semantics, operator, getterSelector, setterSelector)
-          : new PostfixStructure(
-              semantics, operator, getterSelector, setterSelector);
+          ? new PrefixStructure(semantics, operator)
+          : new PostfixStructure(semantics, operator);
       registry.registerSendStructure(node, sendStructure);
     } else {
       Node rhs = node.arguments.head;
@@ -3466,8 +3438,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         // through the send structure.
         registry.setSelector(node, setterSelector);
 
-        SendStructure sendStructure =
-            new SetStructure(semantics, setterSelector);
+        SendStructure sendStructure = new SetStructure(semantics);
         registry.registerSendStructure(node, sendStructure);
       } else {
         // `e1 += e2`.
@@ -3488,8 +3459,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         registry.registerDynamicInvocation(
             new UniverseSelector(operatorSelector, null));
 
-        SendStructure sendStructure = new CompoundStructure(
-                semantics, operator, getterSelector, setterSelector);
+        SendStructure sendStructure =
+            new CompoundStructure(semantics, operator);
         registry.registerSendStructure(node, sendStructure);
       }
     }
