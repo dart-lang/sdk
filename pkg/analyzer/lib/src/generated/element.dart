@@ -553,6 +553,12 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   SourceRange withClauseRange;
 
   /**
+   * A flag indicating whether the types associated with the instance members of
+   * this class have been inferred.
+   */
+  bool hasBeenInferred = false;
+
+  /**
    * Initialize a newly created class element to have the given [name] at the
    * given [offset] in the file that contains the declaration of this element.
    */

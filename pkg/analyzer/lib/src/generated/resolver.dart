@@ -10706,6 +10706,11 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     super.visitDefaultFormalParameter(node);
+    ParameterElement element = node.element;
+    if (element.initializer != null && node.defaultValue != null) {
+      (element.initializer as FunctionElementImpl).returnType =
+          node.defaultValue.staticType;
+    }
     FormalParameterList parent = node.parent;
     AstNode grandparent = parent.parent;
     if (grandparent is ConstructorDeclaration &&
@@ -11131,6 +11136,10 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     VariableElement element = node.element;
+    if (element.initializer != null && node.initializer != null) {
+      (element.initializer as FunctionElementImpl).returnType =
+          node.initializer.staticType;
+    }
     // Note: in addition to cloning the initializers for const variables, we
     // have to clone the initializers for non-static final fields (because if
     // they occur in a class with a const constructor, they will be needed to
@@ -14677,6 +14686,12 @@ abstract class TypeSystem {
    * Compute the least upper bound of two types.
    */
   DartType getLeastUpperBound(DartType type1, DartType type2);
+
+  /**
+   * Return `true` if the [leftType] is a subtype of the [rightType] (that is,
+   * if leftType <: rightType).
+   */
+  bool isSubtypeOf(DartType leftType, DartType rightType);
 }
 
 /**
@@ -14765,6 +14780,11 @@ class TypeSystemImpl implements TypeSystem {
       assert(false);
       return typeProvider.dynamicType;
     }
+  }
+
+  @override
+  bool isSubtypeOf(DartType leftType, DartType rightType) {
+    return leftType.isSubtypeOf(rightType);
   }
 }
 
