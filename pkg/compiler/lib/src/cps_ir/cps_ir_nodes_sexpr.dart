@@ -427,11 +427,11 @@ class ConstantStringifier extends ConstantValueVisitor<String, Null> {
   }
 
   String visitInterceptor(InterceptorConstantValue constant, _) {
-    return _failWith(constant);
+    return '(Interceptor "${constant.unparse()}")';
   }
 
   String visitSynthetic(SyntheticConstantValue constant, _) {
-    return _failWith(constant);
+    return '(Synthetic "${constant.unparse()}")';
   }
 
   String visitDeferred(DeferredConstantValue constant, _) {

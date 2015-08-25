@@ -17,8 +17,10 @@ import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../js_backend/codegen/task.dart' show CpsFunctionCompiler;
+import '../resolution/access_semantics.dart';
 import '../resolution/operators.dart';
-import '../tree/tree.dart' show DartString, ConsDartString, LiteralDartString;
+import '../resolution/send_structure.dart';
+import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
 import '../universe/universe.dart';
@@ -479,7 +481,7 @@ class ConstantPropagationLattice {
   }
 
   AbstractValue stringConstant(String value) {
-    return constant(new StringConstantValue(new DartString.literal(value)));
+    return constant(new StringConstantValue(new ast.DartString.literal(value)));
   }
 
   AbstractValue stringify(AbstractValue value) {
@@ -1651,9 +1653,77 @@ class TransformingVisitor extends LeafVisitor {
     return false;
   }
 
+  /// Try to inline static invocations.
+  ///
+  /// Performs the inlining and returns true if the call was inlined.  Inlining
+  /// uses a fixed heuristic:
+  ///
+  /// * Inline functions with a single expression statement or return statement
+  /// provided that the subexpression is an invocation of foreign code.
+  bool inlineInvokeStatic(InvokeStatic node) {
+    // The target might not have an AST, for example if it deferred.
+    if (!node.target.hasNode) return false;
+
+    // An expression is non-expansive (in a sense) if it is just a call to
+    // a foreign function.
+    bool isNonExpansive(ast.Expression expr) {
+      if (expr is ast.Send) {
+        SendStructure structure =
+            node.target.treeElements.getSendStructure(expr);
+        if (structure is InvokeStructure) {
+          return structure.semantics.kind == AccessKind.TOPLEVEL_METHOD &&
+              compiler.backend.isForeign(structure.semantics.element);
+        }
+      }
+      return false;
+    }
+
+    ast.Statement body = node.target.node.body;
+    bool shouldInline() {
+      // At compile time, 'getInterceptor' from the Javascript runtime has a
+      // foreign body that returns undefined.  It is later mutated by replacing
+      // it with a specialized version.  Inlining undefined would be wrong.
+      // TODO(kmillikin): matching the name prevents inlining other functions
+      // with the same name.
+      if (node.target.name == 'getInterceptor') return false;
+
+      // Inline functions that are a single return statement, expression
+      // statement, or block containing a return statement or expression
+      // statement.
+      if (body is ast.Return) {
+        return isNonExpansive(body.expression);
+      } else if (body is ast.ExpressionStatement) {
+        return isNonExpansive(body.expression);
+      } else if (body is ast.Block) {
+        var link = body.statements.nodes;
+        if (link.isNotEmpty && link.tail.isEmpty) {
+          if (link.head is ast.Return) {
+            return isNonExpansive(link.head.expression);
+          } else if (link.head is ast.ExpressionStatement) {
+            return isNonExpansive(link.head.expression);
+          }
+        }
+      }
+      return false;
+    }
+
+    if (!shouldInline()) return false;
+
+    FunctionDefinition target = functionCompiler.compileToCpsIR(node.target);
+    for (int i = 0; i < node.arguments.length; ++i) {
+      node.arguments[i].definition.substituteFor(target.parameters[i]);
+    }
+    node.continuation.definition.substituteFor(target.returnContinuation);
+
+    replaceSubtree(node, target.body);
+    push(target.body);
+    return true;
+  }
+
   void visitInvokeStatic(InvokeStatic node) {
     if (constifyExpression(node)) return;
     if (specializeInternalMethodCall(node)) return;
+    if (inlineInvokeStatic(node)) return;
   }
 
   AbstractValue getValue(Primitive primitive) {
@@ -1670,7 +1740,7 @@ class TransformingVisitor extends LeafVisitor {
   //
 
   void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
-    DartString getString(AbstractValue value) {
+    ast.DartString getString(AbstractValue value) {
       StringConstantValue constant = value.constant;
       return constant.primitiveValue;
     }
@@ -1686,15 +1756,16 @@ class TransformingVisitor extends LeafVisitor {
           AbstractValue secondValue = getValue(node.arguments[i++].definition);
           if (!secondValue.isConstant) continue;
 
-          DartString string =
-              new ConsDartString(getString(firstValue), getString(secondValue));
+          ast.DartString string =
+              new ast.ConsDartString(getString(firstValue),
+                                     getString(secondValue));
 
           // We found a sequence of at least two constants.
           // Look for the end of the sequence.
           while (i < node.arguments.length) {
             AbstractValue value = getValue(node.arguments[i].definition);
             if (!value.isConstant) break;
-            string = new ConsDartString(string, getString(value));
+            string = new ast.ConsDartString(string, getString(value));
             ++i;
           }
           Constant prim =
@@ -2154,7 +2225,7 @@ class TypePropagationVisitor implements Visitor {
   void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     switch (node.operator) {
       case BuiltinOperator.StringConcatenate:
-        DartString stringValue = const LiteralDartString('');
+        ast.DartString stringValue = const ast.LiteralDartString('');
         for (Reference<Primitive> arg in node.arguments) {
           AbstractValue value = getValue(arg.definition);
           if (value.isNothing) {
@@ -2164,7 +2235,7 @@ class TypePropagationVisitor implements Visitor {
                      stringValue != null) {
             StringConstantValue constant = value.constant;
             stringValue =
-                new ConsDartString(stringValue, constant.primitiveValue);
+                new ast.ConsDartString(stringValue, constant.primitiveValue);
           } else {
             stringValue = null;
             break;
