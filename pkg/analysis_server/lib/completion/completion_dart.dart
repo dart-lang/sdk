@@ -5,6 +5,7 @@
 library analysis_server.completion.completion_dart;
 
 import 'package:analysis_server/completion/completion_core.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -18,7 +19,7 @@ import 'package:analyzer/src/generated/source.dart';
  */
 abstract class DartCompletionContributor extends CompletionContributor {
   @override
-  CompletionResult computeSuggestions(CompletionRequest request) {
+  List<CompletionSuggestion> computeSuggestions(CompletionRequest request) {
     if (request is DartCompletionRequest) {
       return internalComputeSuggestions(request);
     }
@@ -48,11 +49,10 @@ abstract class DartCompletionContributor extends CompletionContributor {
 
   /**
    * Compute a list of completion suggestions based on the given completion
-   * [request] and return a result that includes those suggestions. This method
-   * is called after specific phases of analysis until the contributor indicates
-   * computation is complete by setting [CompletionResult.isLast] to `true`.
+   * [request]. Return the suggestions that were computed.
    */
-  CompletionResult internalComputeSuggestions(DartCompletionRequest request);
+  List<CompletionSuggestion> internalComputeSuggestions(
+      DartCompletionRequest request);
 }
 
 /**
