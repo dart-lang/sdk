@@ -32,6 +32,7 @@
 
 # Gyp generated files
 *.xcodeproj
+*.intermediate
 
 # Dart Editor config files - also in all subdirectories.
 .children
