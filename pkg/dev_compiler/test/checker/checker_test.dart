@@ -1488,7 +1488,7 @@ void main() {
           class Child extends Base {
             void set f1(A value) {}
             /*severe:InvalidMethodOverride*/void set f2(C value) {}
-            /*severe:InvalidMethodOverride*/void set f3(value) {}
+            void set f3(value) {}
             /*severe:InvalidMethodOverride*/void set f4(dynamic value) {}
             set f5(B value) {}
           }
@@ -1518,7 +1518,7 @@ void main() {
 
             void set f1(A value) {}
             /*severe:InvalidMethodOverride*/void set f2(C value) {}
-            /*severe:InvalidMethodOverride*/void set f3(value) {}
+            void set f3(value) {}
             /*severe:InvalidMethodOverride*/void set f4(dynamic value) {}
             set f5(B value) {}
           }
@@ -1547,7 +1547,7 @@ void main() {
             /*severe:InvalidMethodOverride*/C m2(C value) {}
             /*severe:InvalidMethodOverride*/A m3(C value) {}
             C m4(A value) {}
-            /*severe:InvalidMethodOverride*/m5(value) {}
+            m5(value) {}
             /*severe:InvalidMethodOverride*/dynamic m6(dynamic value) {}
           }
        '''
@@ -2025,14 +2025,14 @@ void main() {
                 implements I1 {}
 
             class T2 extends Base implements I1 {
-                /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/m(a) {}
+                /*severe:InvalidMethodOverride*/m(a) {}
             }
 
             class T3 extends Object with /*severe:InvalidMethodOverride*/Base
                 implements I1 {}
 
             class T4 extends Object with Base implements I1 {
-                /*severe:InvalidMethodOverride,severe:InvalidMethodOverride*/m(a) {}
+                /*severe:InvalidMethodOverride*/m(a) {}
             }
          '''
     });

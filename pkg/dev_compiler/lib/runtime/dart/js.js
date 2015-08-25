@@ -201,15 +201,15 @@ dart_library.library('dart/js', null, /* Imports */[
         }
       }
       get(index) {
-        if (dart.is(index, core.num) && dart.equals(index, dart.dsend(index, 'toInt'))) {
-          this[_checkIndex](dart.as(index, core.int));
+        if (dart.is(index, core.num) && index == index[dartx.toInt]()) {
+          this[_checkIndex](index);
         }
         return dart.as(super.get(index), E);
       }
       set(index, value) {
         dart.as(value, E);
-        if (dart.is(index, core.num) && dart.equals(index, dart.dsend(index, 'toInt'))) {
-          this[_checkIndex](dart.as(index, core.int));
+        if (dart.is(index, core.num) && index == index[dartx.toInt]()) {
+          this[_checkIndex](index);
         }
         super.set(index, value);
       }
@@ -282,8 +282,8 @@ dart_library.library('dart/js', null, /* Imports */[
       methods: () => ({
         [_checkIndex]: [dart.dynamic, [core.int]],
         [_checkInsertIndex]: [dart.dynamic, [core.int]],
-        get: [E, [dart.dynamic]],
-        set: [dart.void, [dart.dynamic, E]],
+        get: [E, [core.int]],
+        set: [dart.void, [core.int, E]],
         add: [dart.void, [E]],
         addAll: [dart.void, [core.Iterable$(E)]],
         insert: [dart.void, [core.int, E]],

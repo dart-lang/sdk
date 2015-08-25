@@ -168,10 +168,10 @@ class LibraryResolverWithInference extends LibraryResolver {
             .forEach((f) => _inferFieldTypeFromOverride(f, pending));
         if (pending.isNotEmpty) _inferVariableFromInitializer(pending);
 
-        // Infer return-types from overrides
+        // Infer return-types and param-types from overrides
         cls.members
             .where((m) => m is MethodDeclaration && !m.isStatic)
-            .forEach(_inferMethodReturnTypeFromOverride);
+            .forEach(_inferMethodTypesFromOverride);
       } else {
         _inferVariableFromInitializer(cls.members
             .where(_isInstanceField)
@@ -231,16 +231,36 @@ class LibraryResolverWithInference extends LibraryResolver {
     }
   }
 
-  void _inferMethodReturnTypeFromOverride(MethodDeclaration method) {
+  void _inferMethodTypesFromOverride(MethodDeclaration method) {
     var methodElement = method.element;
-    if ((methodElement is MethodElement ||
-            methodElement is PropertyAccessorElement) &&
-        methodElement.returnType.isDynamic &&
-        method.returnType == null) {
-      var enclosingElement = methodElement.enclosingElement as ClassElement;
-      var type = searchTypeFor(enclosingElement.type, methodElement);
-      if (type != null && !type.returnType.isDynamic) {
+    if (methodElement is! MethodElement &&
+        methodElement is! PropertyAccessorElement) return;
+
+    var enclosingElement = methodElement.enclosingElement as ClassElement;
+    FunctionType type = null;
+
+    // Infer the return type if omitted
+    if (methodElement.returnType.isDynamic && method.returnType == null) {
+      type = searchTypeFor(enclosingElement.type, methodElement);
+      if (type == null) return;
+      if (!type.returnType.isDynamic) {
         methodElement.returnType = type.returnType;
+      }
+    }
+
+    // Infer parameter types if omitted
+    if (method.parameters == null) return;
+    var parameters = method.parameters.parameters;
+    var length = parameters.length;
+    for (int i = 0; i < length; ++i) {
+      var parameter = parameters[i];
+      if (parameter is DefaultFormalParameter) parameter = parameter.parameter;
+      if (parameter is SimpleFormalParameter && parameter.type == null) {
+        type = type ?? searchTypeFor(enclosingElement.type, methodElement);
+        if (type == null) return;
+        if (type.parameters.length > i && !type.parameters[i].type.isDynamic) {
+          parameter.element.type = type.parameters[i].type;
+        }
       }
     }
   }
