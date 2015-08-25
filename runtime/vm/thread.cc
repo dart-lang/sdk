@@ -93,9 +93,9 @@ void Thread::EnsureInit() {
 void Thread::CleanUp() {
   Thread* current = Current();
   if (current != NULL) {
+    SetCurrent(NULL);
     delete current;
   }
-  SetCurrent(NULL);
 }
 #endif
 
