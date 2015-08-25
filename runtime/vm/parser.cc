@@ -890,17 +890,18 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   const Script& script = Script::Handle(zone, func.script());
   Parser parser(script, parsed_function, func.token_pos());
   SequenceNode* node_sequence = NULL;
-  Array& default_parameter_values = Array::ZoneHandle(zone, Array::null());
+  ZoneGrowableArray<const Instance*>* default_parameter_values =
+      new ZoneGrowableArray<const Instance*>(zone, 2);
   switch (func.kind()) {
     case RawFunction::kClosureFunction:
       if (func.IsImplicitClosureFunction()) {
         node_sequence =
-            parser.ParseImplicitClosure(func, &default_parameter_values);
+            parser.ParseImplicitClosure(func, default_parameter_values);
         break;
       }
       if (func.IsConstructorClosureFunction()) {
         node_sequence =
-            parser.ParseConstructorClosure(func, &default_parameter_values);
+            parser.ParseConstructorClosure(func, default_parameter_values);
         break;
       }
       // Fall-through: Handle non-implicit closures.
@@ -913,7 +914,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       if (!func.IsImplicitConstructor()) {
         parser.SkipFunctionPreamble();
       }
-      node_sequence = parser.ParseFunc(func, &default_parameter_values);
+      node_sequence = parser.ParseFunc(func, default_parameter_values);
       break;
     case RawFunction::kImplicitGetter:
       ASSERT(!func.is_static());
@@ -932,11 +933,11 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       break;
     case RawFunction::kNoSuchMethodDispatcher:
       node_sequence =
-          parser.ParseNoSuchMethodDispatcher(func, &default_parameter_values);
+          parser.ParseNoSuchMethodDispatcher(func, default_parameter_values);
       break;
     case RawFunction::kInvokeFieldDispatcher:
       node_sequence =
-          parser.ParseInvokeFieldDispatcher(func, &default_parameter_values);
+          parser.ParseInvokeFieldDispatcher(func, default_parameter_values);
       break;
     case RawFunction::kIrregexpFunction:
       UNREACHABLE();  // Irregexp functions have their own parser.
@@ -1148,7 +1149,6 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
 
   SequenceNode* body = parser.ParseStaticInitializer();
   parsed_function->SetNodeSequence(body);
-  parsed_function->set_default_parameter_values(Object::null_array());
 
   if (parsed_function->has_expression_temp_var()) {
     body->scope()->AddVariable(parsed_function->expression_temp_var());
@@ -1334,8 +1334,9 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
 }
 
 
-SequenceNode* Parser::ParseConstructorClosure(const Function& func,
-                                              Array* default_values) {
+SequenceNode* Parser::ParseConstructorClosure(
+    const Function& func,
+    ZoneGrowableArray<const Instance*>* default_values) {
   TRACE_PARSER("ParseConstructorClosure");
   const intptr_t token_pos = func.token_pos();
 
@@ -1389,8 +1390,8 @@ SequenceNode* Parser::ParseConstructorClosure(const Function& func,
 }
 
 
-SequenceNode* Parser::ParseImplicitClosure(const Function& func,
-                                           Array* default_values) {
+SequenceNode* Parser::ParseImplicitClosure(
+    const Function& func, ZoneGrowableArray<const Instance*>* default_values) {
   TRACE_PARSER("ParseImplicitClosure");
   intptr_t token_pos = func.token_pos();
 
@@ -1484,9 +1485,10 @@ SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
 }
 
 
-void Parser::BuildDispatcherScope(const Function& func,
-                                  const ArgumentsDescriptor& desc,
-                                  Array* default_values) {
+void Parser::BuildDispatcherScope(
+    const Function& func,
+    const ArgumentsDescriptor& desc,
+    ZoneGrowableArray<const Instance*>* default_values) {
   ParamList params;
   // Receiver first.
   intptr_t token_pos = func.token_pos();
@@ -1524,8 +1526,9 @@ void Parser::BuildDispatcherScope(const Function& func,
   AddFormalParamsToScope(&params, current_block_->scope);
 }
 
-SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
-                                                  Array* default_values) {
+SequenceNode* Parser::ParseNoSuchMethodDispatcher(
+    const Function& func,
+    ZoneGrowableArray<const Instance*>* default_values) {
   TRACE_PARSER("ParseNoSuchMethodDispatcher");
   ASSERT(FLAG_lazy_dispatchers);
 
@@ -1582,8 +1585,9 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
 }
 
 
-SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
-                                                 Array* default_values) {
+SequenceNode* Parser::ParseInvokeFieldDispatcher(
+    const Function& func,
+    ZoneGrowableArray<const Instance*>* default_values) {
   TRACE_PARSER("ParseInvokeFieldDispatcher");
   ASSERT(FLAG_lazy_dispatchers);
 
@@ -2907,8 +2911,9 @@ void Parser::CheckRecursiveInvocation() {
 
 // Parser is at the opening parenthesis of the formal parameter declaration
 // of function. Parse the formal parameters, initializers and code.
-SequenceNode* Parser::ParseConstructor(const Function& func,
-                                       Array* default_parameter_values) {
+SequenceNode* Parser::ParseConstructor(
+    const Function& func,
+    ZoneGrowableArray<const Instance*>* default_parameter_values) {
   TRACE_PARSER("ParseConstructor");
   ASSERT(func.IsGenerativeConstructor());
   ASSERT(!func.IsFactory());
@@ -3216,8 +3221,9 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
 // Parser is at the opening parenthesis of the formal parameter
 // declaration of the function or constructor.
 // Parse the formal parameters and code.
-SequenceNode* Parser::ParseFunc(const Function& func,
-                                Array* default_parameter_values) {
+SequenceNode* Parser::ParseFunc(
+    const Function& func,
+    ZoneGrowableArray<const Instance*>* default_parameter_values) {
   TRACE_PARSER("ParseFunc");
   Function& saved_innermost_function =
       Function::Handle(Z, innermost_function().raw());
@@ -7225,17 +7231,17 @@ SequenceNode* Parser::CloseAsyncClosure(SequenceNode* body) {
 
 
 // Set up default values for all optional parameters to the function.
-void Parser::SetupDefaultsForOptionalParams(const ParamList& params,
-                                            Array* default_values) {
+void Parser::SetupDefaultsForOptionalParams(
+    const ParamList& params,
+    ZoneGrowableArray<const Instance*>* default_values) {
   if (params.num_optional_parameters > 0) {
     // Build array of default parameter values.
-    *default_values = Array::New(params.num_optional_parameters);
     const ZoneGrowableArray<ParamDesc>& parameters = *params.parameters;
     const int first_opt_param_offset = params.num_fixed_parameters;
     for (int i = 0; i < params.num_optional_parameters; i++) {
-      const Object* default_value =
+      const Instance* default_value =
           parameters[i + first_opt_param_offset].default_value;
-      default_values->SetAt(i, *default_value);
+      default_values->Add(default_value);
     }
   }
 }
@@ -7672,9 +7678,10 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   }
 
   // Parse the local function.
-  Array& default_parameter_values = Array::Handle(Z);
+  ZoneGrowableArray<const Instance*>* default_parameter_values =
+      new ZoneGrowableArray<const Instance*>(Z, 2);
   SequenceNode* statements = Parser::ParseFunc(function,
-                                               &default_parameter_values);
+                                               default_parameter_values);
 
   // Now that the local function has formal parameters, lookup the signature
   // class in the current library (but not in its imports) and only create a new

@@ -209,8 +209,9 @@ CODEGEN_TEST_GENERATE(NativeDecCodegen, test) {
   local_scope->InsertParameterAt(0, NewTestLocalVariable("a"));
   local_scope->InsertParameterAt(1, NewTestLocalVariable("b"));
   ASSERT(local_scope->num_variables() == num_params);
-  const Array& default_values = Array::ZoneHandle(Array::New(num_opt_params));
-  default_values.SetAt(0, Smi::ZoneHandle(Smi::New(1)));  // b = 1.
+  ZoneGrowableArray<const Instance*>* default_values =
+      new ZoneGrowableArray<const Instance*>(num_opt_params);
+  default_values->Add(&Smi::ZoneHandle(Smi::New(1)));  // b = 1.
   test->set_default_parameter_values(default_values);
   const Function& function = test->function();
   function.set_is_native(true);
@@ -383,10 +384,11 @@ CODEGEN_TEST_GENERATE(NativeSumCodegen, test) {
   local_scope->InsertParameterAt(3, NewTestLocalVariable("d"));
   local_scope->InsertParameterAt(4, NewTestLocalVariable("e"));
   ASSERT(local_scope->num_variables() == num_params);
-  const Array& default_values = Array::ZoneHandle(Array::New(num_opt_params));
-  default_values.SetAt(0, Smi::ZoneHandle(Smi::New(10)));
-  default_values.SetAt(1, Smi::ZoneHandle(Smi::New(21)));
-  default_values.SetAt(2, Smi::ZoneHandle(Smi::New(-32)));
+  ZoneGrowableArray<const Instance*>* default_values =
+      new ZoneGrowableArray<const Instance*>(num_opt_params);
+  default_values->Add(&Smi::ZoneHandle(Smi::New(10)));
+  default_values->Add(&Smi::ZoneHandle(Smi::New(21)));
+  default_values->Add(&Smi::ZoneHandle(Smi::New(-32)));
   test->set_default_parameter_values(default_values);
   const Function& function = test->function();
   function.set_is_native(true);

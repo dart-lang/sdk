@@ -454,8 +454,8 @@ class CodeGenTest {
 
   SequenceNode* node_sequence() const { return node_sequence_; }
 
-  void set_default_parameter_values(const Array& value) {
-    default_parameter_values_ = value.raw();
+  void set_default_parameter_values(ZoneGrowableArray<const Instance*>* value) {
+    default_parameter_values_ = value;
   }
 
   // Compile test and set code in function.
@@ -464,7 +464,7 @@ class CodeGenTest {
  private:
   Function& function_;
   SequenceNode* node_sequence_;
-  Array& default_parameter_values_;
+  ZoneGrowableArray<const Instance*>* default_parameter_values_;
 
   DISALLOW_COPY_AND_ASSIGN(CodeGenTest);
 };

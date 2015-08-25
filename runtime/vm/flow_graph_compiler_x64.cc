@@ -873,9 +873,8 @@ void FlowGraphCompiler::CopyParameters() {
       __ jmp(&assign_optional_parameter, Assembler::kNearJump);
       __ Bind(&load_default_value);
       // Load RAX with default argument.
-      const Object& value = Object::ZoneHandle(zone(),
-          parsed_function().default_parameter_values().At(
-              param_pos - num_fixed_params));
+      const Instance& value = parsed_function().DefaultParameterValueAt(
+          param_pos - num_fixed_params);
       __ LoadObject(RAX, value);
       __ Bind(&assign_optional_parameter);
       // Assign RAX to fp[kFirstLocalSlotFromFp - param_pos].
@@ -909,8 +908,7 @@ void FlowGraphCompiler::CopyParameters() {
       __ CompareImmediate(RCX, Immediate(param_pos));
       __ j(GREATER, &next_parameter, Assembler::kNearJump);
       // Load RAX with default argument.
-      const Object& value = Object::ZoneHandle(zone(),
-          parsed_function().default_parameter_values().At(i));
+      const Object& value = parsed_function().DefaultParameterValueAt(i);
       __ LoadObject(RAX, value);
       // Assign RAX to fp[kFirstLocalSlotFromFp - param_pos].
       // We do not use the final allocation index of the variable here, i.e.

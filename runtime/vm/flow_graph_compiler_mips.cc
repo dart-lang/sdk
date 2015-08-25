@@ -880,9 +880,8 @@ void FlowGraphCompiler::CopyParameters() {
 
       __ Bind(&load_default_value);
       // Load T3 with default argument.
-      const Object& value = Object::ZoneHandle(zone(),
-          parsed_function().default_parameter_values().At(
-              param_pos - num_fixed_params));
+      const Instance& value = parsed_function().DefaultParameterValueAt(
+          param_pos - num_fixed_params);
       __ LoadObject(T3, value);
       __ Bind(&assign_optional_parameter);
       // Assign T3 to fp[kFirstLocalSlotFromFp - param_pos].
@@ -914,8 +913,7 @@ void FlowGraphCompiler::CopyParameters() {
       const int param_pos = num_fixed_params + i;
       __ BranchSignedGreater(T2, Immediate(param_pos), &next_parameter);
       // Load T3 with default argument.
-      const Object& value = Object::ZoneHandle(zone(),
-          parsed_function().default_parameter_values().At(i));
+      const Object& value = parsed_function().DefaultParameterValueAt(i);
       __ LoadObject(T3, value);
       // Assign T3 to fp[kFirstLocalSlotFromFp - param_pos].
       // We do not use the final allocation index of the variable here, i.e.

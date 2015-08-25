@@ -1401,7 +1401,6 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // here.
     ParsedFunction* parsed_function = new ParsedFunction(thread, func);
     parsed_function->SetNodeSequence(fragment);
-    parsed_function->set_default_parameter_values(Object::null_array());
     fragment->scope()->AddVariable(parsed_function->EnsureExpressionTemp());
     fragment->scope()->AddVariable(
         parsed_function->current_context_var());

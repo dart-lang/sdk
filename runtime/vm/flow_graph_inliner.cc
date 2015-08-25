@@ -97,8 +97,7 @@ static bool IsCallRecursive(const Code& code, Definition* call) {
 // Helper to get the default value of a formal parameter.
 static ConstantInstr* GetDefaultValue(intptr_t i,
                                       const ParsedFunction& parsed_function) {
-  return new ConstantInstr(Object::ZoneHandle(
-      parsed_function.default_parameter_values().At(i)));
+  return new ConstantInstr(parsed_function.DefaultParameterValueAt(i));
 }
 
 
@@ -1200,10 +1199,8 @@ class CallSiteInliner : public ValueObject {
       // For each optional positional parameter without an actual, add its
       // default value.
       for (intptr_t i = arg_count; i < param_count; ++i) {
-        const Object& object =
-            Object::ZoneHandle(
-                parsed_function.default_parameter_values().At(
-                    i - fixed_param_count));
+        const Instance& object =
+            parsed_function.DefaultParameterValueAt(i - fixed_param_count);
         ConstantInstr* constant = new(Z) ConstantInstr(object);
         arguments->Add(NULL);
         param_stubs->Add(constant);

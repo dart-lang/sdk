@@ -508,8 +508,6 @@ void AstPrinter::PrintLocalScope(const LocalScope* scope,
 void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
   HANDLESCOPE(Isolate::Current());
   const Function& function = parsed_function.function();
-  const Array& default_parameter_values =
-      parsed_function.default_parameter_values();
   SequenceNode* node_sequence = parsed_function.node_sequence();
   ASSERT(node_sequence != NULL);
   const LocalScope* scope = node_sequence->scope();
@@ -538,8 +536,8 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
               param->name().ToCString());
     // Print the default value if the parameter is optional.
     if (pos >= num_fixed_params && pos < num_params) {
-      const Object& default_parameter_value = Object::Handle(
-          default_parameter_values.At(pos - num_fixed_params));
+      const Instance& default_parameter_value =
+          parsed_function.DefaultParameterValueAt(pos - num_fixed_params);
       ISL_Print(" =%s", default_parameter_value.ToCString());
     }
     if (param->HasIndex()) {
