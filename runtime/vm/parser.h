@@ -88,6 +88,7 @@ class ParsedFunction : public ZoneAllocated {
   void set_default_parameter_values(ZoneGrowableArray<const Instance*>* list) {
     default_parameter_values_ = list;
 #if defined(DEBUG)
+    if (list == NULL) return;
     for (intptr_t i = 0; i < list->length(); i++) {
       ASSERT(list->At(i)->IsZoneHandle() || list->At(i)->InVMHeap());
     }
@@ -98,6 +99,10 @@ class ParsedFunction : public ZoneAllocated {
   const Instance& DefaultParameterValueAt(intptr_t i) const {
     ASSERT(default_parameter_values_ != NULL);
     return *default_parameter_values_->At(i);
+  }
+
+  ZoneGrowableArray<const Instance*>* default_parameter_values() const {
+    return default_parameter_values_;
   }
 
   LocalVariable* current_context_var() const {
@@ -518,9 +523,7 @@ class Parser : public ValueObject {
 
   static bool ParseFormalParameters(const Function& func, ParamList* params);
 
-  static void SetupDefaultsForOptionalParams(
-      const ParamList& params,
-      ZoneGrowableArray<const Instance*>* default_values);
+  void SetupDefaultsForOptionalParams(const ParamList& params);
   ClosureNode* CreateImplicitClosureNode(const Function& func,
                                          intptr_t token_pos,
                                          AstNode* receiver);
@@ -528,10 +531,8 @@ class Parser : public ValueObject {
                                         const Function& func);
   void AddFormalParamsToScope(const ParamList* params, LocalScope* scope);
 
-  SequenceNode* ParseConstructor(
-      const Function& func, ZoneGrowableArray<const Instance*>* default_values);
-  SequenceNode* ParseFunc(
-      const Function& func, ZoneGrowableArray<const Instance*>* default_values);
+  SequenceNode* ParseConstructor(const Function& func);
+  SequenceNode* ParseFunc(const Function& func);
 
   void ParseNativeFunctionBlock(const ParamList* params, const Function& func);
 
@@ -540,18 +541,13 @@ class Parser : public ValueObject {
   SequenceNode* ParseStaticFinalGetter(const Function& func);
   SequenceNode* ParseStaticInitializer();
   SequenceNode* ParseMethodExtractor(const Function& func);
-  SequenceNode* ParseNoSuchMethodDispatcher(
-      const Function& func, ZoneGrowableArray<const Instance*>* default_values);
-  SequenceNode* ParseInvokeFieldDispatcher(
-      const Function& func, ZoneGrowableArray<const Instance*>* default_values);
-  SequenceNode* ParseImplicitClosure(
-      const Function& func, ZoneGrowableArray<const Instance*>* default_values);
-  SequenceNode* ParseConstructorClosure(
-      const Function& func, ZoneGrowableArray<const Instance*>* default_values);
+  SequenceNode* ParseNoSuchMethodDispatcher(const Function& func);
+  SequenceNode* ParseInvokeFieldDispatcher(const Function& func);
+  SequenceNode* ParseImplicitClosure(const Function& func);
+  SequenceNode* ParseConstructorClosure(const Function& func);
 
   void BuildDispatcherScope(const Function& func,
-                            const ArgumentsDescriptor& desc,
-                            ZoneGrowableArray<const Instance*>* default_values);
+                            const ArgumentsDescriptor& desc);
 
   void EnsureHasReturnStatement(SequenceNode* seq, intptr_t return_pos);
   void ChainNewBlock(LocalScope* outer_scope);
