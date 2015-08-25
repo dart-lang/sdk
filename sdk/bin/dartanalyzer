@@ -45,16 +45,41 @@ DART_ROOT="$(cd "${SDK_DIR}/.." ; pwd -P)"
 
 ANALYZER="$DART_ROOT/third_party/pkg/analyzer_cli/bin/analyzer.dart"
 
-if [ -z "$DART_CONFIGURATION" ];
+if [[ `uname` == 'Darwin' ]];
 then
-  DART_CONFIGURATION="ReleaseIA32"
+  OUT_DIR="$DART_ROOT/xcodebuild/"
+else
+  OUT_DIR="$DART_ROOT/out/"
 fi
 
-if [[ `uname` == 'Darwin' ]]; then
-  BUILD_DIR="$DART_ROOT/xcodebuild/$DART_CONFIGURATION"
-else
-  BUILD_DIR="$DART_ROOT/out/$DART_CONFIGURATION"
+if [ -z "$DART_CONFIGURATION" ];
+then
+  DIRS=$( ls "$OUT_DIR" )
+  # list of possible configurations in decreasing desirability
+  CONFIGS=("ReleaseIA32" "ReleaseX64" "DebugIA32" "DebugX64"
+    "ReleaseARM"    "ReleaseARM64"    "ReleaseARMV5TE"    "ReleaseMIPS"
+    "DebugARM"      "DebugARM64"      "DebugARMV5TE"      "DebugMIPS")
+  DART_CONFIGURATION="None"
+  for CONFIG in ${CONFIGS[*]}
+  do
+    for DIR in $DIRS;
+    do
+      if [ "$CONFIG" = "$DIR" ];
+      then
+        # choose most desirable configuration that is available and break
+        DART_CONFIGURATION="$DIR"
+        break 2
+      fi
+    done
+  done
+  if [ "$DART_CONFIGURATION" = "None" ]
+  then
+    echo "No valid dart configuration found in $OUT_DIR"
+    exit 1
+  fi
 fi
+
+BUILD_DIR="$OUT_DIR$DART_CONFIGURATION"
 
 PACKAGE_ROOT="$BUILD_DIR/packages/"
 
