@@ -11227,7 +11227,11 @@ class ResolverVisitor extends ScopedVisitor {
           return null;
         }
         DartType eventType = onDataParameters[0].type;
-        if (eventType.element == streamType.typeParameters[0]) {
+        // TODO(paulberry): checking that typeParameters.isNotEmpty is a
+        // band-aid fix for dartbug.com/24191.  Figure out what the correct
+        // logic should be.
+        if (streamType.typeParameters.isNotEmpty &&
+            eventType.element == streamType.typeParameters[0]) {
           return streamType.typeArguments[0];
         }
       }

@@ -2898,6 +2898,22 @@ main() {
     verify([source]);
   }
 
+  void test_issue_24191() {
+    Source source = addSource('''
+import 'dart:async';
+
+class S extends Stream {}
+f(S s) async {
+  await for (var v in s) {
+    print(v);
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_listElementTypeNotAssignable() {
     Source source = addSource(r'''
 var v1 = <int> [42];
