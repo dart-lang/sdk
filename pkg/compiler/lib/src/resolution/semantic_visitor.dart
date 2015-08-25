@@ -44,7 +44,7 @@ abstract class SemanticSendResolvedMixin<R, A>
     // TODO(johnniwinther): Support argument.
     A arg = null;
 
-    SendStructure structure = computeSendStructure(node);
+    SendStructure structure = elements.getSendStructure(node);
     if (structure == null) {
       return internalError(node, 'No structure for $node');
     } else {

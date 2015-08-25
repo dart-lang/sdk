@@ -783,6 +783,11 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
   }
 
   @override
+  T bulkHandleError(Node node, ErroneousElement error, _) {
+    return types.dynamicType;
+  }
+
+  @override
   T visitAssert(Send node, Node expression, _) {
     if (!compiler.enableUserAssertions) {
       return types.nullType;

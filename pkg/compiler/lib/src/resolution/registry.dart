@@ -416,6 +416,10 @@ class ResolutionRegistry implements Registry {
     backend.resolutionCallbacks.onThrowRuntimeError(this);
   }
 
+  void registerCompileTimeError(ErroneousElement error) {
+    backend.resolutionCallbacks.onCompileTimeError(this, error);
+  }
+
   void registerTypeVariableBoundCheck() {
     backend.resolutionCallbacks.onTypeVariableBoundCheck(this);
   }

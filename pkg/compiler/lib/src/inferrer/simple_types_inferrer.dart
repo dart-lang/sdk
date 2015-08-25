@@ -850,9 +850,12 @@ class SimpleTypeInferrerVisitor<T>
         isCallOnThis = true;
       }
     } else {
-      if (node.receiver != null && elements[node.receiver] is! PrefixElement) {
-        // TODO(johnniwinther): Avoid blindly recursing on the receiver.
-        receiverType = visit(node.receiver);
+      if (node.receiver != null) {
+        Element receiver = elements[node.receiver];
+        if (receiver is! PrefixElement && receiver is! ClassElement) {
+          // TODO(johnniwinther): Avoid blindly recursing on the receiver.
+          receiverType = visit(node.receiver);
+        }
       }
       isCallOnThis = isThisOrSuper(node.receiver);
     }

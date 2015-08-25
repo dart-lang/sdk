@@ -3049,6 +3049,13 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     registerBackendInstantiation(backend.compiler.stringClass, registry);
   }
 
+  void onCompileTimeError(Registry registry, ErroneousElement error) {
+    if (backend.compiler.generateCodeWithCompileTimeErrors) {
+      // TODO(johnniwinther): This should have its own uncatchable error.
+      onThrowRuntimeError(registry);
+    }
+  }
+
   void onSuperNoSuchMethod(Registry registry) {
     assert(registry.isForResolution);
     registerBackendStaticInvocation(
