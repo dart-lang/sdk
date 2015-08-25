@@ -6577,8 +6577,12 @@ SequenceNode* Parser::CloseSyncGenFunction(const Function& closure,
   // corresponding function block.
   CloseBlock();
 
-  closure_body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
-  closure_body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
+  LocalVariable* existing_var =
+      closure_body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
+  existing_var =
+      closure_body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
 
   // :await_jump_var = -1;
   LocalVariable* jump_var =
@@ -6880,13 +6884,24 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
 
   // Make sure the implicit variables of the async generator function
   // are captured.
-  closure_body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
-  closure_body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
-  closure_body->scope()->LookupVariable(Symbols::Controller(), false);
-  closure_body->scope()->LookupVariable(Symbols::AsyncOperation(), false);
-  closure_body->scope()->LookupVariable(Symbols::AsyncThenCallback(), false);
-  closure_body->scope()->LookupVariable(
+  LocalVariable* existing_var = closure_body->scope()->LookupVariable(
+      Symbols::AwaitJumpVar(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
+  existing_var = closure_body->scope()->LookupVariable(
+      Symbols::AwaitContextVar(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
+  existing_var = closure_body->scope()->LookupVariable(
+      Symbols::Controller(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
+  existing_var = closure_body->scope()->LookupVariable(
+      Symbols::AsyncOperation(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
+  existing_var = closure_body->scope()->LookupVariable(
+      Symbols::AsyncThenCallback(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
+  existing_var = closure_body->scope()->LookupVariable(
       Symbols::AsyncCatchErrorCallback(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
 
   const Library& async_lib = Library::Handle(Library::AsyncLibrary());
 
@@ -7010,13 +7025,24 @@ SequenceNode* Parser::CloseAsyncGeneratorClosure(SequenceNode* body) {
   // Implicitly mark those variables below as captured. We currently mark all
   // variables of all scopes as captured, but as soon as we do something
   // smarter we rely on these internal variables to be available.
-  new_body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
-  new_body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
-  new_body->scope()->LookupVariable(Symbols::Controller(), false);
-  new_body->scope()->LookupVariable(Symbols::AsyncOperationParam(), false);
-  new_body->scope()->LookupVariable(Symbols::AsyncOperationErrorParam(), false);
-  new_body->scope()->LookupVariable(
+  LocalVariable* existing_var = new_body->scope()->LookupVariable(
+      Symbols::AwaitJumpVar(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
+  existing_var = new_body->scope()->LookupVariable(
+      Symbols::AwaitContextVar(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
+  existing_var = new_body->scope()->LookupVariable(
+      Symbols::Controller(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
+  existing_var = new_body->scope()->LookupVariable(
+      Symbols::AsyncOperationParam(), false);
+  ASSERT(existing_var != NULL);
+  existing_var = new_body->scope()->LookupVariable(
+      Symbols::AsyncOperationErrorParam(), false);
+  ASSERT(existing_var != NULL);
+  existing_var = new_body->scope()->LookupVariable(
       Symbols::AsyncOperationStackTraceParam(), false);
+  ASSERT(existing_var != NULL);
   new_body->scope()->RecursivelyCaptureAllVariables();
   return new_body;
 }
@@ -7061,9 +7087,15 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   // corresponding function block.
   CloseBlock();
 
-  closure_body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
-  closure_body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
-  closure_body->scope()->CaptureVariable(Symbols::AsyncCompleter());
+  LocalVariable* existing_var =
+      closure_body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
+  existing_var =
+      closure_body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
+  existing_var =
+      closure_body->scope()->LookupVariable(Symbols::AsyncCompleter(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
 
   // Create and return a new future that executes a closure with the current
   // body.
@@ -7204,9 +7236,15 @@ SequenceNode* Parser::CloseAsyncClosure(SequenceNode* body) {
   SequenceNode* new_body = CloseAsyncTryBlock(body);
   ASSERT(new_body != NULL);
   ASSERT(new_body->scope() != NULL);
-  new_body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
-  new_body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
-  new_body->scope()->LookupVariable(Symbols::AsyncCompleter(), false);
+  LocalVariable* existing_var =
+      new_body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
+  existing_var =
+      new_body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
+  existing_var =
+      new_body->scope()->LookupVariable(Symbols::AsyncCompleter(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
   new_body->scope()->RecursivelyCaptureAllVariables();
   return new_body;
 }
@@ -8497,7 +8535,7 @@ static LocalVariable* LookupAsyncSavedTryContextVar(LocalScope* scope,
               Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
               try_index))));
   LocalVariable* var = scope->LocalLookupVariable(async_saved_try_ctx_name);
-  ASSERT((var != NULL) && var->is_captured());\
+  ASSERT((var != NULL) && var->is_captured());
   return var;
 }
 
@@ -8533,7 +8571,8 @@ void Parser::CheckAsyncOpInTryBlock(
       // The block declaring :saved_try_ctx_var variable is the parent of the
       // pushed try block.
       *saved_try_ctx = LookupSavedTryContextVar(scope->parent());
-      *async_saved_try_ctx = LookupAsyncSavedTryContextVar(scope, try_index);
+      *async_saved_try_ctx = LookupAsyncSavedTryContextVar(async_temp_scope_,
+                                                           try_index);
       if ((try_stack_->outer_try() != NULL) && !try_stack_->inside_finally()) {
         // Collecting the outer try scope is not necessary if we
         // are in a finally block.
@@ -8542,7 +8581,7 @@ void Parser::CheckAsyncOpInTryBlock(
         if (scope->function_level() == current_function_level) {
           *outer_saved_try_ctx = LookupSavedTryContextVar(scope->parent());
           *outer_async_saved_try_ctx =
-              LookupAsyncSavedTryContextVar(scope, try_index);
+              LookupAsyncSavedTryContextVar(async_temp_scope_, try_index);
         }
       }
     }
@@ -9214,7 +9253,7 @@ SequenceNode* Parser::EnsureFinallyClause(
         LocalVariable* saved_try_ctx =
             LookupSavedTryContextVar(scope->parent());
         LocalVariable* async_saved_try_ctx =
-            LookupAsyncSavedTryContextVar(scope->parent(),
+            LookupAsyncSavedTryContextVar(async_temp_scope_,
                                           try_stack_->try_index());
         current_block_->statements->Add(
             new (Z) StoreLocalNode(
@@ -9488,7 +9527,7 @@ SequenceNode* Parser::ParseCatchClauses(
         LocalVariable* saved_try_ctx =
             LookupSavedTryContextVar(scope->parent());
         LocalVariable* async_saved_try_ctx =
-            LookupAsyncSavedTryContextVar(scope->parent(),
+            LookupAsyncSavedTryContextVar(async_temp_scope_,
                                           try_block->try_index());
         async_code->Add(
             new (Z) StoreLocalNode(

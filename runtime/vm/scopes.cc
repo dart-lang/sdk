@@ -432,12 +432,19 @@ bool LocalScope::CaptureVariable(const String& name) {
     LocalVariable* var = current_scope->LocalLookupVariable(name);
     if (var != NULL) {
       var->set_is_captured();
-      // Insert aliases of the variable in intermediate scopes.
-      LocalScope* intermediate_scope = this;
-      while (intermediate_scope != current_scope) {
-        intermediate_scope->variables_.Add(var);
-        ASSERT(var->owner() != intermediate_scope);  // Item is an alias.
-        intermediate_scope = intermediate_scope->parent();
+      LocalScope* scope = this;
+      while (var->owner()->function_level() != scope->function_level()) {
+        // Insert an alias of the variable in the top scope of each function
+        // level so that the variable is found in the context.
+        LocalScope* parent_scope = scope->parent();
+        while ((parent_scope != NULL) &&
+               (parent_scope->function_level() == scope->function_level())) {
+          scope = parent_scope;
+          parent_scope = scope->parent();
+        }
+        scope->variables_.Add(var);
+        ASSERT(var->owner() != scope);  // Item is an alias.
+        scope = parent_scope;
       }
       return true;
     }
