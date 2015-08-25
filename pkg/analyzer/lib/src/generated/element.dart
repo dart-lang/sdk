@@ -8691,6 +8691,12 @@ abstract class ParameterElement
    */
   List<TypeParameterElement> get typeParameters;
 
+  /**
+   * Append the type, name and possibly the default value of this parameter to
+   * the given [buffer].
+   */
+  void appendToWithoutDelimiters(StringBuffer buffer);
+
   @override
   FormalParameter computeNode();
 }
@@ -8699,7 +8705,7 @@ abstract class ParameterElement
  * A concrete implementation of a [ParameterElement].
  */
 class ParameterElementImpl extends VariableElementImpl
-    with PotentiallyConstVariableElement
+    with ParameterElementMixin, PotentiallyConstVariableElement
     implements ParameterElement {
   /**
    * An empty list of parameter elements.
@@ -8835,24 +8841,6 @@ class ParameterElementImpl extends VariableElementImpl
     buffer.write(right);
   }
 
-  /**
-   * Append the type and name of this parameter to the given [buffer].
-   */
-  void appendToWithoutDelimiters(StringBuffer buffer) {
-    buffer.write(type);
-    buffer.write(" ");
-    buffer.write(displayName);
-    if (_defaultValueCode != null) {
-      if (parameterKind == ParameterKind.NAMED) {
-        buffer.write(": ");
-      }
-      if (parameterKind == ParameterKind.POSITIONAL) {
-        buffer.write(" = ");
-      }
-      buffer.write(_defaultValueCode);
-    }
-  }
-
   @override
   FormalParameter computeNode() =>
       getNodeMatching((node) => node is FormalParameter);
@@ -8898,6 +8886,28 @@ class ParameterElementImpl extends VariableElementImpl
 }
 
 /**
+ * A mixin that provides a common implementation for methods defined in
+ * [ParameterElement].
+ */
+abstract class ParameterElementMixin implements ParameterElement {
+  @override
+  void appendToWithoutDelimiters(StringBuffer buffer) {
+    buffer.write(type);
+    buffer.write(" ");
+    buffer.write(displayName);
+    if (defaultValueCode != null) {
+      if (parameterKind == ParameterKind.NAMED) {
+        buffer.write(": ");
+      }
+      if (parameterKind == ParameterKind.POSITIONAL) {
+        buffer.write(" = ");
+      }
+      buffer.write(defaultValueCode);
+    }
+  }
+}
+
+/**
  * A type with type parameters, such as a class or function type alias.
  */
 abstract class ParameterizedType implements DartType {
@@ -8921,7 +8931,9 @@ abstract class ParameterizedType implements DartType {
  * A parameter element defined in a parameterized type where the values of the
  * type parameters are known.
  */
-class ParameterMember extends VariableMember implements ParameterElement {
+class ParameterMember extends VariableMember
+    with ParameterElementMixin
+    implements ParameterElement {
   /**
    * Initialize a newly created element to represent a constructor, based on the
    * [baseElement], defined by the [definingType].

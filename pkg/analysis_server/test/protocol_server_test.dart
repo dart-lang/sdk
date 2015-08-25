@@ -517,7 +517,7 @@ myLabel:
         '/test.dart',
         '''
 class A {
-  static List<String> myMethod(int a, {String b}) {
+  static List<String> myMethod(int a, {String b, int c}) {
     return null;
   }
 }''');
@@ -535,7 +535,7 @@ class A {
       expect(location.startLine, 2);
       expect(location.startColumn, 23);
     }
-    expect(element.parameters, '(int a, {String b})');
+    expect(element.parameters, '(int a, {String b, int c})');
     expect(element.returnType, 'List<String>');
     expect(element.flags, Element.FLAG_STATIC);
   }

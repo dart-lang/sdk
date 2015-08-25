@@ -127,7 +127,8 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
   @override
   CompletionSuggestion assertSuggestImportedClass(String name,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      int relevance: DART_RELEVANCE_DEFAULT, String importUri,
+      int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri,
       String elemFile}) {
     return assertSuggestClass(name,
         relevance: relevance,
@@ -526,8 +527,7 @@ main() {new ^ String x = "hello";}''');
       expect(suggestion.hasNamedParameters, false);
 
       suggestion = assertSuggestImportedConstructor('C.bar');
-      expect(
-          suggestion.element.parameters, "({dynamic boo: 'hoo'}, {int z: 0})");
+      expect(suggestion.element.parameters, "({dynamic boo: 'hoo', int z: 0})");
       expect(suggestion.parameterNames, hasLength(2));
       expect(suggestion.parameterNames[0], 'boo');
       expect(suggestion.parameterTypes[0], 'dynamic');
