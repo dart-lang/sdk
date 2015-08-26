@@ -87,7 +87,7 @@ defineTests() {
     group('files', () {
       test('basic', () {
         expect(
-            collectFiles('test/_data/p1').map((f) => f.path),
+            collectFiles(p.join('test', '_data', 'p1')).map((f) => f.path),
             unorderedEquals([
               p.join('test', '_data', 'p1', 'p1.dart'),
               p.join('test', '_data', 'p1', '_pubspec.yaml'),

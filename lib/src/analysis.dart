@@ -21,18 +21,12 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:linter/src/io.dart';
-import 'package:path/path.dart' as p;
 import 'package:linter/src/project.dart';
 import 'package:linter/src/rules.dart';
+import 'package:path/path.dart' as p;
 
-
-Source createSource(Uri sourceUri) {
-  try {
-    return new FileBasedSource(new JavaFile(sourceUri.toFilePath()));
-  } on Exception catch(e) {
-    throw new Exception('$sourceUri : ${e.toString()}');
-  }
-}
+Source createSource(Uri sourceUri) =>
+    new FileBasedSource(new JavaFile(sourceUri.toFilePath()));
 
 AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
@@ -44,8 +38,6 @@ AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
 }
 
 class AnalysisDriver {
-
-
   /// The sources which have been analyzed so far.  This is used to avoid
   /// analyzing a source more than once, and to compute the total number of
   /// sources analyzed for statistics.
@@ -155,14 +147,15 @@ class AnalysisDriver {
   Iterable<Source> _getAllUnitSources(
       AnalysisContext context, Source librarySource) {
     List<Source> result = <Source>[librarySource];
-    result.addAll(context.getLibraryElement(librarySource).parts
+    result.addAll(context
+        .getLibraryElement(librarySource)
+        .parts
         .map((CompilationUnitElement e) => e.source));
     return result;
   }
 }
 
 class DriverOptions {
-
   /// The maximum number of sources for which AST structures should be kept
   /// in the cache.  The default is 512.
   int cacheSize = 512;
