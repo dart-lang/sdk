@@ -106,6 +106,32 @@ class C implements A, B {
     expect(getterC.returnType.isDynamic, isTrue);
   }
 
+  void test_inferCompilationUnit_field_multiple_different_generic() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String fieldName = 'f';
+    CompilationUnitElement unit = resolve('''
+class A<E> {
+  E $fieldName;
+}
+class B<E> {
+  E $fieldName;
+}
+class C implements A<int>, B<double> {
+  var $fieldName;
+}
+''');
+    ClassElement classC = unit.getType('C');
+    FieldElement fieldC = classC.getField(fieldName);
+    PropertyAccessorElement getterC = classC.getGetter(fieldName);
+    expect(fieldC.type.isDynamic, isTrue);
+    expect(getterC.returnType.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    expect(fieldC.type.isDynamic, isTrue);
+    expect(getterC.returnType.isDynamic, isTrue);
+  }
+
   void test_inferCompilationUnit_field_multiple_dynamic() {
     InstanceMemberInferrer inferrer = createInferrer;
     String fieldName = 'f';
@@ -252,6 +278,30 @@ class B extends A {
 
     expect(fieldB.type, fieldA.type);
     expect(getterB.returnType, getterA.returnType);
+  }
+
+  void test_inferCompilationUnit_field_single_generic() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String fieldName = 'f';
+    CompilationUnitElement unit = resolve('''
+class A<E> {
+  E $fieldName;
+}
+class B<E> extends A<E> {
+  var $fieldName;
+}
+''');
+    ClassElement classB = unit.getType('B');
+    DartType typeBE = classB.typeParameters[0].type;
+    FieldElement fieldB = classB.getField(fieldName);
+    PropertyAccessorElement getterB = classB.getGetter(fieldName);
+    expect(fieldB.type.isDynamic, isTrue);
+    expect(getterB.returnType.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    expect(fieldB.type, typeBE);
+    expect(getterB.returnType, typeBE);
   }
 
   void test_inferCompilationUnit_field_single_inconsistentAccessors() {
@@ -411,6 +461,30 @@ class B extends A {
     expect(getterB.returnType, getterA.returnType);
   }
 
+  void test_inferCompilationUnit_getter_single_generic() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String getterName = 'g';
+    CompilationUnitElement unit = resolve('''
+class A<E> {
+  E get $getterName => 0;
+}
+class B<E> extends A<E> {
+  get $getterName => 0;
+}
+''');
+    ClassElement classB = unit.getType('B');
+    DartType typeBE = classB.typeParameters[0].type;
+    FieldElement fieldB = classB.getField(getterName);
+    PropertyAccessorElement getterB = classB.getGetter(getterName);
+    expect(fieldB.type.isDynamic, isTrue);
+    expect(getterB.returnType.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    expect(fieldB.type, typeBE);
+    expect(getterB.returnType, typeBE);
+  }
+
   void test_inferCompilationUnit_getter_single_inconsistentAccessors() {
     InstanceMemberInferrer inferrer = createInferrer;
     String getterName = 'g';
@@ -445,7 +519,156 @@ class C extends B {}
     inferrer.inferCompilationUnit(unit);
   }
 
-  void test_inferCompilationUnit_method_multiple_different() {
+  void test_inferCompilationUnit_method_parameter_multiple_different() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String methodName = 'm';
+    CompilationUnitElement unit = resolve('''
+class A {
+  $methodName(int p) => 0;
+}
+class B {
+  $methodName(double p) => 0;
+}
+class C implements A, B {
+  $methodName(p) => 0;
+}
+''');
+    ClassElement classC = unit.getType('C');
+    MethodElement methodC = classC.getMethod(methodName);
+    ParameterElement parameterC = methodC.parameters[0];
+    expect(parameterC.type.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    expect(parameterC.type.isDynamic, isTrue);
+  }
+
+  void test_inferCompilationUnit_method_parameter_multiple_named_different() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String methodName = 'm';
+    CompilationUnitElement unit = resolve('''
+class A {
+  $methodName({int p}) => 0;
+}
+class B {
+  $methodName({int q}) => 0;
+}
+class C implements A, B {
+  $methodName({p}) => 0;
+}
+''');
+    ClassElement classC = unit.getType('C');
+    MethodElement methodC = classC.getMethod(methodName);
+    ParameterElement parameterC = methodC.parameters[0];
+    expect(parameterC.type.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    expect(parameterC.type.isDynamic, isTrue);
+  }
+
+  void test_inferCompilationUnit_method_parameter_multiple_named_same() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String methodName = 'm';
+    CompilationUnitElement unit = resolve('''
+class A {
+  $methodName({int p}) => 0;
+}
+class B {
+  $methodName({int p}) => 0;
+}
+class C implements A, B {
+  $methodName({p}) => 0;
+}
+''');
+    ClassElement classA = unit.getType('A');
+    MethodElement methodA = classA.getMethod(methodName);
+    ParameterElement parameterA = methodA.parameters[0];
+    DartType expectedType = parameterA.type;
+    ClassElement classC = unit.getType('C');
+    MethodElement methodC = classC.getMethod(methodName);
+    ParameterElement parameterC = methodC.parameters[0];
+    expect(parameterC.type.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    expect(parameterC.type, expectedType);
+  }
+
+  void test_inferCompilationUnit_method_parameter_multiple_namedAndRequired() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String methodName = 'm';
+    CompilationUnitElement unit = resolve('''
+class A {
+  $methodName({int p}) => 0;
+}
+class B {
+  $methodName(int p) => 0;
+}
+class C implements A, B {
+  $methodName(p) => 0;
+}
+''');
+    ClassElement classC = unit.getType('C');
+    MethodElement methodC = classC.getMethod(methodName);
+    ParameterElement parameterC = methodC.parameters[0];
+    expect(parameterC.type.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    expect(parameterC.type.isDynamic, isTrue);
+  }
+
+  void test_inferCompilationUnit_method_parameter_multiple_optionalAndRequired() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String methodName = 'm';
+    CompilationUnitElement unit = resolve('''
+class A {
+  $methodName(int p) => 0;
+}
+class B {
+  $methodName([int p]) => 0;
+}
+class C implements A, B {
+  $methodName(p) => 0;
+}
+''');
+    ClassElement classA = unit.getType('A');
+    MethodElement methodA = classA.getMethod(methodName);
+    ParameterElement parameterA = methodA.parameters[0];
+    DartType expectedType = parameterA.type;
+    ClassElement classC = unit.getType('C');
+    MethodElement methodC = classC.getMethod(methodName);
+    ParameterElement parameterC = methodC.parameters[0];
+    expect(parameterC.type.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    expect(parameterC.type, expectedType);
+  }
+
+  void test_inferCompilationUnit_method_parameter_single_generic() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String methodName = 'm';
+    CompilationUnitElement unit = resolve('''
+class A<E> {
+  $methodName(E p) => 0;
+}
+class C<E> implements A<E> {
+  $methodName(p) => 0;
+}
+''');
+    ClassElement classC = unit.getType('C');
+    MethodElement methodC = classC.getMethod(methodName);
+    ParameterElement parameterC = methodC.parameters[0];
+    expect(parameterC.type.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    expect(parameterC.type, classC.typeParameters[0].type);
+  }
+
+  void test_inferCompilationUnit_method_return_multiple_different() {
     InstanceMemberInferrer inferrer = createInferrer;
     String methodName = 'm';
     CompilationUnitElement unit = resolve('''
@@ -468,7 +691,30 @@ class C implements A, B {
     expect(methodC.returnType.isDynamic, isTrue);
   }
 
-  void test_inferCompilationUnit_method_multiple_dynamic() {
+  void test_inferCompilationUnit_method_return_multiple_different_generic() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String methodName = 'm';
+    CompilationUnitElement unit = resolve('''
+class A<E> {
+  E $methodName() => null;
+}
+class B<E> {
+  E $methodName() => null;
+}
+class C implements A<int>, B<double> {
+  $methodName() => null;
+}
+''');
+    ClassElement classC = unit.getType('C');
+    MethodElement methodC = classC.getMethod(methodName);
+    expect(methodC.returnType.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    expect(methodC.returnType.isDynamic, isTrue);
+  }
+
+  void test_inferCompilationUnit_method_return_multiple_dynamic() {
     InstanceMemberInferrer inferrer = createInferrer;
     String methodName = 'm';
     CompilationUnitElement unit = resolve('''
@@ -491,7 +737,30 @@ class C implements A, B {
     expect(methodC.returnType.isDynamic, isTrue);
   }
 
-  void test_inferCompilationUnit_method_multiple_same_nonVoid() {
+  void test_inferCompilationUnit_method_return_multiple_same_generic() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String methodName = 'm';
+    CompilationUnitElement unit = resolve('''
+class A<E> {
+  E $methodName() => 0;
+}
+class B<E> {
+  E $methodName() => 0;
+}
+class C<E> implements A<E>, B<E> {
+  $methodName() => 0;
+}
+''');
+    ClassElement classC = unit.getType('C');
+    MethodElement methodC = classC.getMethod(methodName);
+    expect(methodC.returnType.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    expect(methodC.returnType, classC.typeParameters[0].type);
+  }
+
+  void test_inferCompilationUnit_method_return_multiple_same_nonVoid() {
     InstanceMemberInferrer inferrer = createInferrer;
     String methodName = 'm';
     CompilationUnitElement unit = resolve('''
@@ -499,7 +768,7 @@ class A {
   int $methodName() => 0;
 }
 class B {
-  int $methodName() => 0.0;
+  int $methodName() => 0;
 }
 class C implements A, B {
   $methodName() => 0;
@@ -517,7 +786,7 @@ class C implements A, B {
     expect(methodC.returnType, expectedType);
   }
 
-  void test_inferCompilationUnit_method_multiple_same_void() {
+  void test_inferCompilationUnit_method_return_multiple_same_void() {
     InstanceMemberInferrer inferrer = createInferrer;
     String methodName = 'm';
     CompilationUnitElement unit = resolve('''
@@ -543,7 +812,7 @@ class C implements A, B {
     expect(methodC.returnType, expectedType);
   }
 
-  void test_inferCompilationUnit_method_multiple_void() {
+  void test_inferCompilationUnit_method_return_multiple_void() {
     InstanceMemberInferrer inferrer = createInferrer;
     String methodName = 'm';
     CompilationUnitElement unit = resolve('''
@@ -566,7 +835,7 @@ class C implements A, B {
     expect(methodC.returnType.isDynamic, isTrue);
   }
 
-  void test_inferCompilationUnit_method_single() {
+  void test_inferCompilationUnit_method_return_single() {
     InstanceMemberInferrer inferrer = createInferrer;
     String methodName = 'm';
     CompilationUnitElement unit = resolve('''
@@ -586,5 +855,25 @@ class B extends A {
     inferrer.inferCompilationUnit(unit);
 
     expect(methodB.returnType, methodA.returnType);
+  }
+
+  void test_inferCompilationUnit_method_return_single_generic() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String methodName = 'm';
+    CompilationUnitElement unit = resolve('''
+class A<E> {
+  E $methodName() => 0;
+}
+class B<E> extends A<E> {
+  $methodName() => 0;
+}
+''');
+    ClassElement classB = unit.getType('B');
+    MethodElement methodB = classB.getMethod(methodName);
+    expect(methodB.returnType.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    expect(methodB.returnType, classB.typeParameters[0].type);
   }
 }

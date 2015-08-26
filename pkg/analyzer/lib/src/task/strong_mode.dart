@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * An object used to find static variables whose types should be inferred and
@@ -164,6 +165,32 @@ class InstanceMemberInferrer {
   }
 
   /**
+   * Compute the best type for the [parameter] at the given [index] that must be
+   * compatible with the types of the corresponding parameters of the given
+   * [overriddenMethods].
+   *
+   * At the moment, this method will only return a type other than 'dynamic' if
+   * the types of all of the parameters are the same. In the future we might
+   * want to be smarter about it, such as by returning the least upper bound of
+   * the parameter types.
+   */
+  DartType _computeParameterType(ParameterElement parameter, int index,
+      List<ExecutableElement> overriddenMethods) {
+    DartType parameterType = null;
+    int length = overriddenMethods.length;
+    for (int i = 0; i < length; i++) {
+      DartType type = _getTypeOfCorrespondingParameter(
+          parameter, index, overriddenMethods[i]);
+      if (parameterType == null) {
+        parameterType = type;
+      } else if (parameterType != type) {
+        return typeProvider.dynamicType;
+      }
+    }
+    return parameterType == null ? typeProvider.dynamicType : parameterType;
+  }
+
+  /**
    * Compute the best return type for a method that must be compatible with the
    * return types of each of the given [overriddenMethods].
    *
@@ -206,6 +233,49 @@ class InstanceMemberInferrer {
       return typeProvider.dynamicType;
     }
     return returnType;
+  }
+
+  /**
+   * Given a [method], return the type of the parameter in the method that
+   * corresponds to the given [parameter]. If the parameter is positional, then
+   * it appears at the given [index] in its enclosing element's list of
+   * parameters.
+   */
+  DartType _getTypeOfCorrespondingParameter(
+      ParameterElement parameter, int index, ExecutableElement method) {
+    //
+    // Find the corresponding parameter.
+    //
+    List<ParameterElement> methodParameters = method.parameters;
+    ParameterElement matchingParameter = null;
+    if (parameter.parameterKind == ParameterKind.NAMED) {
+      //
+      // If we're looking for a named parameter, only a named parameter with
+      // the same name will be matched.
+      //
+      matchingParameter = methodParameters.lastWhere(
+          (ParameterElement methodParameter) =>
+              methodParameter.parameterKind == ParameterKind.NAMED &&
+                  methodParameter.name == parameter.name,
+          orElse: () => null);
+    } else {
+      //
+      // If we're looking for a positional parameter we ignore the difference
+      // between required and optional parameters.
+      //
+      if (index < methodParameters.length) {
+        matchingParameter = methodParameters[index];
+        if (matchingParameter.parameterKind == ParameterKind.NAMED) {
+          matchingParameter = null;
+        }
+      }
+    }
+    //
+    // Then return the type of the parameter.
+    //
+    return matchingParameter == null
+        ? typeProvider.dynamicType
+        : matchingParameter.type;
   }
 
   /**
@@ -324,15 +394,43 @@ class InstanceMemberInferrer {
    * for which no return type was provided, infer the return type of the method.
    */
   void _inferMethod(MethodElement methodElement) {
-    if (!methodElement.isSynthetic &&
-        !methodElement.isStatic &&
-        methodElement.hasImplicitReturnType &&
+    if (methodElement.isSynthetic || methodElement.isStatic) {
+      return;
+    }
+    List<ExecutableElement> overriddenMethods = null;
+    //
+    // Infer the return type.
+    //
+    if (methodElement.hasImplicitReturnType &&
         _getReturnType(methodElement).isDynamic) {
-      List<ExecutableElement> overriddenMethods = inheritanceManager
-          .lookupOverrides(methodElement.enclosingElement, methodElement.name);
-      if (overriddenMethods.isNotEmpty && _onlyMethods(overriddenMethods)) {
-        MethodElementImpl element = methodElement as MethodElementImpl;
-        _setReturnType(element, _computeReturnType(overriddenMethods));
+      overriddenMethods = inheritanceManager.lookupOverrides(
+          methodElement.enclosingElement, methodElement.name);
+      if (overriddenMethods.isEmpty || !_onlyMethods(overriddenMethods)) {
+        return;
+      }
+      MethodElementImpl element = methodElement as MethodElementImpl;
+      _setReturnType(element, _computeReturnType(overriddenMethods));
+    }
+    //
+    // Infer the parameter types.
+    //
+    List<ParameterElement> parameters = methodElement.parameters;
+    var length = parameters.length;
+    for (int i = 0; i < length; ++i) {
+      ParameterElement parameter = parameters[i];
+      if (parameter.hasImplicitType && parameter.type.isDynamic) {
+        overriddenMethods = overriddenMethods ??
+            inheritanceManager.lookupOverrides(
+                methodElement.enclosingElement, methodElement.name);
+        if (overriddenMethods.isEmpty || !_onlyMethods(overriddenMethods)) {
+          return;
+        }
+        DartType type = _computeParameterType(parameter, i, overriddenMethods);
+        if (!type.isDynamic) {
+          if (parameter is ParameterElementImpl) {
+            parameter.type = type;
+          }
+        }
       }
     }
   }
