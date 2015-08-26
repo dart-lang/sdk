@@ -157,8 +157,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         previous = previous.previous;
       }
       if (previous != null && previous.type == TokenType.EQ) {
-        _addSuggestions(
-            [Keyword.FALSE, Keyword.NEW, Keyword.NULL, Keyword.TRUE]);
+        _addSuggestions([
+          Keyword.CONST,
+          Keyword.FALSE,
+          Keyword.NEW,
+          Keyword.NULL,
+          Keyword.TRUE
+        ]);
       } else {
         _addSuggestion(Keyword.IN, DART_RELEVANCE_HIGH);
       }
@@ -228,6 +233,15 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       // no keywords in 'new ^' expression
     } else {
       super.visitInstanceCreationExpression(node);
+    }
+  }
+
+  @override
+  visitIsExpression(IsExpression node) {
+    if (entity == node.isOperator) {
+      _addSuggestion(Keyword.IS, DART_RELEVANCE_HIGH);
+    } else {
+      _addExpressionKeywords(node);
     }
   }
 
@@ -367,7 +381,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   void _addExpressionKeywords(AstNode node) {
-    _addSuggestions([Keyword.FALSE, Keyword.NEW, Keyword.NULL, Keyword.TRUE,]);
+    _addSuggestions([
+      Keyword.CONST,
+      Keyword.FALSE,
+      Keyword.NEW,
+      Keyword.NULL,
+      Keyword.TRUE,
+    ]);
     if (_inClassMemberBody(node)) {
       _addSuggestions([Keyword.SUPER, Keyword.THIS,]);
     }
@@ -404,9 +424,15 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     if (_inAsyncMethodOrFunction(node)) {
       _addSuggestion2(AWAIT);
     }
+    if (_inLoop(node)) {
+      _addSuggestions([Keyword.BREAK, Keyword.CONTINUE]);
+    }
+    if (_inSwitch(node)) {
+      _addSuggestions([Keyword.BREAK]);
+    }
     _addSuggestions([
       Keyword.ASSERT,
-      Keyword.CONTINUE,
+      Keyword.CONST,
       Keyword.DO,
       Keyword.FINAL,
       Keyword.FOR,
@@ -434,8 +460,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       offset = completion.length;
     }
     request.addSuggestion(new CompletionSuggestion(
-        CompletionSuggestionKind.KEYWORD, relevance, completion, offset, 0,
-        false, false));
+        CompletionSuggestionKind.KEYWORD,
+        relevance,
+        completion,
+        offset,
+        0,
+        false,
+        false));
   }
 
   void _addSuggestions(List<Keyword> keywords,
@@ -463,4 +494,20 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       node = parent;
     }
   }
+
+  bool _inDoLoop(AstNode node) =>
+      node.getAncestor((p) => p is DoStatement) != null;
+
+  bool _inForLoop(AstNode node) =>
+      node.getAncestor((p) => p is ForStatement || p is ForEachStatement) !=
+          null;
+
+  bool _inLoop(AstNode node) =>
+      _inDoLoop(node) || _inForLoop(node) || _inWhileLoop(node);
+
+  bool _inSwitch(AstNode node) =>
+      node.getAncestor((p) => p is SwitchStatement) != null;
+
+  bool _inWhileLoop(AstNode node) =>
+      node.getAncestor((p) => p is WhileStatement) != null;
 }

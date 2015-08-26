@@ -4291,11 +4291,12 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_SwitchStatement_case() {
     // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
-    addTestSource('class A {String g(int x) {switch(x) {case 0: ^}}}');
+    addTestSource('class A {String g(int x) {var t; switch(x) {case 0: ^}}}');
     computeFast();
     return computeFull((bool result) {
       assertSuggestLocalClass('A');
       assertSuggestLocalMethod('g', 'A', 'String');
+      assertSuggestLocalVariable('t', null);
       assertSuggestImportedClass('String');
     });
   }
