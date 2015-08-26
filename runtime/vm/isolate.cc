@@ -44,7 +44,7 @@
 
 namespace dart {
 
-DECLARE_FLAG(charp, timeline_trace_dir);
+DECLARE_FLAG(bool, print_metrics);
 
 DEFINE_FLAG(bool, trace_isolates, false,
             "Trace isolate creation and shut down.");
@@ -1539,6 +1539,15 @@ void Isolate::Shutdown() {
       Symbols::DumpStats();
       OS::Print("[-] Stopping isolate:\n"
                 "\tisolate:    %s\n", name());
+    }
+    if (FLAG_print_metrics) {
+      LogBlock lb(this);
+      ISL_Print("Printing metrics for %s\n", name());
+#define ISOLATE_METRIC_PRINT(type, variable, name, unit)                       \
+  ISL_Print("%s\n", metric_##variable##_.ToString());
+  ISOLATE_METRIC_LIST(ISOLATE_METRIC_PRINT);
+#undef ISOLATE_METRIC_PRINT
+      ISL_Print("\n");
     }
   }
 

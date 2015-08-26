@@ -35,6 +35,8 @@ class Metric {
 
   static void InitOnce();
 
+  static void Cleanup();
+
   // Initialize and register a metric for an isolate.
   void Init(Isolate* isolate,
             const char* name,
@@ -49,6 +51,12 @@ class Metric {
   virtual ~Metric();
 
   void PrintJSON(JSONStream* stream);
+
+  // Returns a zone allocated string.
+  static char* ValueToString(int64_t value, Unit unit);
+
+  // Returns a zone allocated string.
+  char* ToString();
 
   int64_t value() const { return value_; }
   void set_value(int64_t value) { value_ = value; }

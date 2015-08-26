@@ -222,6 +222,7 @@ const char* Dart::Cleanup() {
   Profiler::Shutdown();
   CodeObservers::DeleteAll();
   Timeline::Shutdown();
+  Metric::Cleanup();
 
   return NULL;
 }
