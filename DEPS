@@ -42,6 +42,7 @@ vars = {
   "args_tag": "@0.13.0",
   "async_tag": "@1.2.0",
   "barback_tag" : "@0.15.2+6",
+  "boringssl_rev" : "@daeafc22c66ad48f6b32fc8d3362eb9ba31b774e",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
   "clang_rev" : "@28450",
@@ -89,6 +90,7 @@ vars = {
   "pub_cache_tag": "@v0.1.0",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
+  "root_certificates_rev": "@c3a41df63afacec62fcb8135196177e35fe72f71",
   "scheduled_test_tag": "@0.12.1+2",
   "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
   "smoke_rev" : "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",
@@ -142,6 +144,14 @@ deps = {
   Var("dart_root") + "/third_party/net_nss":
       Var("chromium_git") + "/chromium/src/net/third_party/nss.git" +
       Var("net_nss_rev"),
+
+  Var("dart_root") + "/third_party/boringssl/src":
+      "https://boringssl.googlesource.com/boringssl.git" +
+      Var("boringssl_rev"),
+
+  Var("dart_root") + "/third_party/root_certificates":
+      "https://github.com/dart-lang/root_certificates.git" +
+      Var("root_certificates_rev"),
 
   Var("dart_root") + "/third_party/jinja2":
       Var("chromium_git") + "/chromium/src/third_party/jinja2.git" +

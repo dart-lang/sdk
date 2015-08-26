@@ -1256,6 +1256,7 @@ class _HttpClientConnection {
   final String key;
   final Socket _socket;
   final bool _proxyTunnel;
+  final SecurityContext _context;
   final _HttpParser _httpParser;
   StreamSubscription _subscription;
   final _HttpClient _httpClient;
@@ -1268,7 +1269,7 @@ class _HttpClientConnection {
   Future _streamFuture;
 
   _HttpClientConnection(this.key, this._socket, this._httpClient,
-                        [this._proxyTunnel = false])
+                        [this._proxyTunnel = false, this._context])
       : _httpParser = new _HttpParser.responseParser() {
     _httpParser.listenToStream(_socket);
 
@@ -1496,7 +1497,10 @@ class _HttpClientConnection {
           }
           var socket = response._httpRequest._httpClientConnection._socket;
           return SecureSocket.secure(
-              socket, host: host, onBadCertificate: callback);
+              socket,
+              host: host,
+              context: _context,
+              onBadCertificate: callback);
         })
         .then((secureSocket) {
           String key = _HttpClientConnection.makeKey(true, host, port);
@@ -1543,12 +1547,17 @@ class _ConnectionTarget {
   final String host;
   final int port;
   final bool isSecure;
+  final SecurityContext context;
   final Set<_HttpClientConnection> _idle = new HashSet();
   final Set<_HttpClientConnection> _active = new HashSet();
   final Queue _pending = new ListQueue();
   int _connecting = 0;
 
-  _ConnectionTarget(this.key, this.host, this.port, this.isSecure);
+  _ConnectionTarget(this.key,
+                    this.host,
+                    this.port,
+                    this.isSecure,
+                    this.context);
 
   bool get isEmpty => _idle.isEmpty && _active.isEmpty && _connecting == 0;
 
@@ -1620,12 +1629,13 @@ class _ConnectionTarget {
       return completer.future;
     }
     var currentBadCertificateCallback = client._badCertificateCallback;
-    bool callback(X509Certificate certificate) =>
+    callback(X509Certificate certificate) =>
         currentBadCertificateCallback == null ? false :
         currentBadCertificateCallback(certificate, uriHost, uriPort);
     Future socketFuture = (isSecure && proxy.isDirect
         ? SecureSocket.connect(host,
                                port,
+                               context: context,
                                sendClientCertificate: true,
                                onBadCertificate: callback)
         : Socket.connect(host, port));
@@ -1633,7 +1643,8 @@ class _ConnectionTarget {
     return socketFuture.then((socket) {
         _connecting--;
         socket.setOption(SocketOption.TCP_NODELAY, true);
-        var connection = new _HttpClientConnection(key, socket, client);
+        var connection =
+            new _HttpClientConnection(key, socket, client, false, context);
         if (isSecure && !proxy.isDirect) {
           connection._dispose = true;
           return connection.createProxyTunnel(uriHost, uriPort, proxy, callback)
@@ -1662,6 +1673,7 @@ class _HttpClient implements HttpClient {
       = new HashMap<String, _ConnectionTarget>();
   final List<_Credentials> _credentials = [];
   final List<_ProxyCredentials> _proxyCredentials = [];
+  final SecurityContext _context;
   Function _authenticate;
   Function _authenticateProxy;
   Function _findProxy = HttpClient.findProxyFromEnvironment;
@@ -1675,6 +1687,8 @@ class _HttpClient implements HttpClient {
   bool autoUncompress = true;
 
   String userAgent = _getHttpVersion();
+
+  _HttpClient(SecurityContext this._context);
 
   void set idleTimeout(Duration timeout) {
     _idleTimeout = timeout;
@@ -1894,8 +1908,9 @@ class _HttpClient implements HttpClient {
 
   _ConnectionTarget _getConnectionTarget(String host, int port, bool isSecure) {
     String key = _HttpClientConnection.makeKey(isSecure, host, port);
-    return _connectionTargets.putIfAbsent(
-        key, () => new _ConnectionTarget(key, host, port, isSecure));
+    return _connectionTargets.putIfAbsent(key, () {
+      return new _ConnectionTarget(key, host, port, isSecure, _context);
+    });
   }
 
   // Get a new _HttpClientConnection, from the matching _ConnectionTarget.
@@ -2207,6 +2222,7 @@ class _HttpServer
 
   static Future<HttpServer> bindSecure(address,
                                        int port,
+                                       SecurityContext context,
                                        int backlog,
                                        bool v6Only,
                                        String certificate_name,
@@ -2215,7 +2231,7 @@ class _HttpServer
     return SecureServerSocket.bind(
         address,
         port,
-        certificate_name,
+        context,
         backlog: backlog,
         v6Only: v6Only,
         requestClientCertificate: requestClientCertificate,

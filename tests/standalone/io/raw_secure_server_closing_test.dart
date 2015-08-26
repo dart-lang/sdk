@@ -14,7 +14,15 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 InternetAddress HOST;
-const CERTIFICATE = "localhost_cert";
+String localFile(path) => Platform.script.resolve(path).toFilePath();
+
+SecurityContext serverContext = new SecurityContext()
+  ..useCertificateChain(localFile('certificates/server_chain.pem'))
+  ..usePrivateKey(localFile('certificates/server_key.pem'),
+                  password: 'dartdart');
+
+SecurityContext clientContext = new SecurityContext()
+  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
 
 void testCloseOneEnd(String toClose) {
   asyncStart();
@@ -25,7 +33,7 @@ void testCloseOneEnd(String toClose) {
       .then((_) {
         asyncEnd();
       });
-  RawSecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
+  RawSecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     server.listen((serverConnection) {
       serverConnection.listen((event) {
         if (toClose == "server" || event == RawSocketEvent.READ_CLOSED) {
@@ -39,7 +47,8 @@ void testCloseOneEnd(String toClose) {
     onDone: () {
       serverDone.complete(null);
     });
-    RawSecureSocket.connect(HOST, server.port).then((clientConnection) {
+    RawSecureSocket.connect(HOST, server.port, context: clientContext)
+    .then((clientConnection) {
       clientConnection.listen((event){
         if (toClose == "client" || event == RawSocketEvent.READ_CLOSED) {
           clientConnection.shutdown(SocketDirection.SEND);
@@ -55,8 +64,9 @@ void testCloseOneEnd(String toClose) {
 
 void testCloseBothEnds() {
   asyncStart();
-  RawSecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
-    var clientEndFuture = RawSecureSocket.connect(HOST, server.port);
+  RawSecureServerSocket.bind(HOST, 0, serverContext).then((server) {
+    var clientEndFuture =
+        RawSecureSocket.connect(HOST, server.port, context: clientContext);
     server.listen((serverEnd) {
       clientEndFuture.then((clientEnd) {
         clientEnd.close();
@@ -77,7 +87,7 @@ testPauseServerSocket() {
 
   RawSecureServerSocket.bind(HOST,
                              0,
-                             CERTIFICATE,
+                             serverContext,
                              backlog: 2 * socketCount).then((server) {
     Expect.isTrue(server.port > 0);
     var subscription;
@@ -96,7 +106,8 @@ testPauseServerSocket() {
     subscription.pause();
     var connectCount = 0;
     for (int i = 0; i < socketCount; i++) {
-      RawSecureSocket.connect(HOST, server.port).then((connection) {
+      RawSecureSocket.connect(HOST, server.port, context: clientContext)
+      .then((connection) {
         connection.shutdown(SocketDirection.SEND);
       });
     }
@@ -104,7 +115,8 @@ testPauseServerSocket() {
       subscription.resume();
       resumed = true;
       for (int i = 0; i < socketCount; i++) {
-        RawSecureSocket.connect(HOST, server.port).then((connection) {
+        RawSecureSocket.connect(HOST, server.port, context: clientContext)
+        .then((connection) {
           connection.shutdown(SocketDirection.SEND);
         });
       }
@@ -117,7 +129,7 @@ testCloseServer() {
   asyncStart();
   List ends = [];
 
-  RawSecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
+  RawSecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     Expect.isTrue(server.port > 0);
     void checkDone() {
       if (ends.length < 2 * socketCount) return;
@@ -134,7 +146,8 @@ testCloseServer() {
     });
 
     for (int i = 0; i < socketCount; i++) {
-      RawSecureSocket.connect(HOST, server.port).then((connection) {
+      RawSecureSocket.connect(HOST, server.port, context: clientContext)
+      .then((connection) {
         ends.add(connection);
         checkDone();
       });
@@ -145,10 +158,6 @@ testCloseServer() {
 
 main() {
   asyncStart();
-  var certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
-  SecureSocket.initialize(database: certificateDatabase,
-                          password: 'dartdart',
-                          useBuiltinRoots: false);
   InternetAddress.lookup("localhost").then((hosts) {
     HOST = hosts.first;
     runTests();

@@ -36,6 +36,7 @@ part "../../../sdk/lib/io/platform_impl.dart";
 part "../../../sdk/lib/io/service_object.dart";
 part "../../../sdk/lib/io/secure_socket.dart";
 part "../../../sdk/lib/io/secure_server_socket.dart";
+part "../../../sdk/lib/io/security_context.dart";
 part "../../../sdk/lib/io/socket.dart";
 part "../../../sdk/lib/io/websocket.dart";
 part "../../../sdk/lib/io/websocket_impl.dart";

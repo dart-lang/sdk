@@ -1,0 +1,2 @@
+# ignore the checkout of boringssl.
+src/

@@ -158,10 +158,6 @@ Future test(bool hostnameInConnect) {
 
 
 main() {
-  String certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
-  SecureSocket.initialize(database: certificateDatabase,
-                          password: 'dartdart',
-                          useBuiltinRoots: false);
   asyncStart();
   InternetAddress.lookup("localhost").then((hosts) {
     HOST = hosts.first;

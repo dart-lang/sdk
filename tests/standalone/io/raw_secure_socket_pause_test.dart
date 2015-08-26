@@ -13,12 +13,22 @@ import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
+String localFile(path) => Platform.script.resolve(path).toFilePath();
+
+SecurityContext serverContext = new SecurityContext()
+  ..useCertificateChain(localFile('certificates/server_chain.pem'))
+  ..usePrivateKey(localFile('certificates/server_key.pem'),
+                  password: 'dartdart');
+
+SecurityContext clientContext = new SecurityContext()
+  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+
 Future<HttpServer> startServer() {
   return HttpServer.bindSecure(
       "localhost",
       0,
-      backlog: 5,
-      certificateName: 'localhost_cert').then((server) {
+      serverContext,
+      backlog: 5).then((server) {
     server.listen((HttpRequest request) {
       request.listen(
         (_) { },
@@ -34,77 +44,72 @@ Future<HttpServer> startServer() {
   });
 }
 
-void InitializeSSL() {
-  var testPkcertDatabase = Platform.script.resolve('pkcert').toFilePath();
-  SecureSocket.initialize(database: testPkcertDatabase,
-                          password: 'dartdart');
-}
-
-void main() {
+main() async {
   List<int> message = "GET / HTTP/1.0\r\nHost: localhost\r\n\r\n".codeUnits;
   int written = 0;
   List<int> body = <int>[];
-  InitializeSSL();
-  startServer().then((server) {
-    RawSecureSocket.connect("localhost", server.port).then((socket) {
-      StreamSubscription subscription;
-      bool paused = false;
-      bool readEventsTested = false;
-      bool readEventsPaused = false;
+  var server = await startServer();
+  var socket = await RawSecureSocket.connect("localhost",
+                                             server.port,
+                                             context: clientContext);
+  StreamSubscription subscription;
+  bool paused = false;
+  bool readEventsTested = false;
+  bool readEventsPaused = false;
 
-      void runPauseTest() {
-        subscription.pause();
-        paused = true;
-        new Timer(const Duration(milliseconds: 500), () {
-            paused = false;
-            subscription.resume();
-        });
-      }
-
-      void runReadEventTest() {
-        if (readEventsTested) return;
-        readEventsTested = true;
-        socket.readEventsEnabled = false;
-        readEventsPaused = true;
-        new Timer(const Duration(milliseconds: 500), () {
-            readEventsPaused = false;
-            socket.readEventsEnabled = true;
-        });
-      }
-
-      subscription = socket.listen(
-          (RawSocketEvent event) {
-            Expect.isFalse(paused);
-            switch (event) {
-              case RawSocketEvent.READ:
-                Expect.isFalse(readEventsPaused);
-                runReadEventTest();
-                body.addAll(socket.read());
-                break;
-              case RawSocketEvent.WRITE:
-                written +=
-                    socket.write(message, written, message.length - written);
-                if (written < message.length) {
-                  socket.writeEventsEnabled = true;
-                } else {
-                  socket.shutdown(SocketDirection.SEND);
-                  runPauseTest();
-                }
-                break;
-              case RawSocketEvent.READ_CLOSED:
-                Expect.isTrue(body.length > 100);
-                Expect.equals(72, body[0]);
-                Expect.equals(9, body[body.length - 1]);
-                server.close();
-                break;
-              default: throw "Unexpected event $event";
-            }
-          },
-          onError: (e, trace) {
-            String msg = "onError handler of RawSecureSocket stream hit: $e";
-            if (trace != null) msg += "\nStackTrace: $trace";
-            Expect.fail(msg);
-          });
+  void runPauseTest() {
+    subscription.pause();
+    paused = true;
+    new Timer(const Duration(milliseconds: 500), () {
+        paused = false;
+        subscription.resume();
     });
-  });
+  }
+
+  void runReadEventTest() {
+    if (readEventsTested) return;
+    readEventsTested = true;
+    socket.readEventsEnabled = false;
+    readEventsPaused = true;
+    new Timer(const Duration(milliseconds: 500), () {
+        readEventsPaused = false;
+        socket.readEventsEnabled = true;
+    });
+  }
+
+  void handleRawEvent(RawSocketEvent event) {
+    Expect.isFalse(paused);
+    switch (event) {
+      case RawSocketEvent.READ:
+        Expect.isFalse(readEventsPaused);
+        runReadEventTest();
+        body.addAll(socket.read());
+        break;
+      case RawSocketEvent.WRITE:
+        written +=
+            socket.write(message, written, message.length - written);
+        if (written < message.length) {
+          socket.writeEventsEnabled = true;
+        } else {
+          socket.shutdown(SocketDirection.SEND);
+          runPauseTest();
+        }
+        break;
+      case RawSocketEvent.READ_CLOSED:
+        Expect.isTrue(body.length > 100);
+        Expect.equals(72, body.first);
+        Expect.equals(9, body.last);
+        server.close();
+        break;
+      default: throw "Unexpected event $event";
+    }
+  }
+
+  subscription = socket.listen(
+      handleRawEvent,
+      onError: (e, trace) {
+        String msg = "onError handler of RawSecureSocket stream hit: $e";
+        if (trace != null) msg += "\nStackTrace: $trace";
+        Expect.fail(msg);
+      });
 }

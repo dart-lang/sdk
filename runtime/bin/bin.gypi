@@ -222,11 +222,6 @@
         ['exclude', '_test\\.(cc|h)$'],
       ],
       'conditions': [
-        ['dart_io_support==1 and dart_io_secure_socket==1', {
-          'dependencies': [
-            'bin/net/ssl.gyp:libssl_dart',
-          ],
-        }],
         ['dart_io_secure_socket==0', {
           'defines': [
             'DART_IO_SECURE_SOCKET_DISABLED'
@@ -292,14 +287,14 @@
         'io_natives.cc',
       ],
       'conditions': [
-        ['dart_io_support==1 and dart_io_secure_socket==1', {
-          'dependencies': [
-            'bin/net/ssl.gyp:libssl_dart',
-          ],
-        }],
-        ['dart_io_support==1 and dart_io_secure_socket==0', {
+        ['dart_io_support==1', {
           'dependencies': [
             'bin/net/zlib.gyp:zlib_dart',
+          ],
+        }],
+        ['dart_io_support==1 and dart_io_secure_socket==1', {
+          'dependencies': [
+            '../third_party/boringssl/boringssl_dart.gyp:boringssl',
           ],
         }],
         ['dart_io_secure_socket==0', {
@@ -333,19 +328,6 @@
           },
         }],
       ],
-      'configurations': {
-        'Dart_Android_Base': {
-          'target_conditions': [
-            ['_toolset=="target"', {
-              'defines': [
-                # Needed for sources outside of nss that include pr and ssl
-                # header files.
-                'MDCPUCFG="md/_linux.cfg"',
-              ],
-            }],
-          ],
-        },
-      },
     },
     {
       'target_name': 'libdart_nosnapshot',

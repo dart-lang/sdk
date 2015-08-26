@@ -8,6 +8,11 @@
 import "dart:async";
 import "dart:io";
 
+String localFile(path) => Platform.script.resolve(path).toFilePath();
+
+SecurityContext clientContext = new SecurityContext()
+  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+
 class ExpectException implements Exception {
   ExpectException(this.message);
   String toString() => "ExpectException: $message";
@@ -26,7 +31,7 @@ Future runClients(int port) {
   var testFutures = [];
   for (int i = 0; i < 20; ++i) {
     testFutures.add(
-        SecureSocket.connect(HOST_NAME, port)
+        SecureSocket.connect(HOST_NAME, port, context: clientContext)
           .then((SecureSocket socket) {
             expect(false);
           }, onError: (e) {
@@ -38,7 +43,6 @@ Future runClients(int port) {
 
 
 void main(List<String> args) {
-  SecureSocket.initialize();
   runClients(int.parse(args[0]))
     .then((_) => print('SUCCESS'));
 }

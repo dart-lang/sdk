@@ -7,86 +7,33 @@ import "dart:async";
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:path/path.dart";
 
-void main(List<String> args) {
-  if (!args.contains('--child')) {
-    runAllTestsInChildProcesses();
-  } else {
-    InitializeSSL(useDatabase: args.contains('--database'),
-                  useBuiltinRoots: args.contains('--builtin-roots'));
-    testGoogleUrl(args.contains('--builtin-roots'));
-  }
-}
-
-void InitializeSSL({bool useDatabase, bool useBuiltinRoots}) {
-  // If the built-in root certificates aren't loaded, the connection
-  // should signal an error.  Even when an external database is loaded,
-  // they should not be loaded.
-  if (useDatabase) {
-    var certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
-    SecureSocket.initialize(database: certificateDatabase,
-                            password: 'dartdart',
-                            useBuiltinRoots: useBuiltinRoots);
-  } else {
-    SecureSocket.initialize(useBuiltinRoots: useBuiltinRoots);
-  }
-}
-
-void testGoogleUrl(bool expectSuccess) {
+Future testGoogleUrl(SecurityContext context, String outcome) async {
+  var client = new HttpClient(context: context);
   // We need to use an external server that is backed by a
   // built-in root certificate authority.
-
-  // First, check if the lookup fails.  If not then run the test.
-  InternetAddress.lookup('www.google.com').then((_) {
-    HttpClient client = new HttpClient();
-    client.getUrl(Uri.parse('https://www.google.com'))
-      .then((request) {
-        request.followRedirects = false;
-        return request.close();
-      })
-      .then((response) {
-        Expect.isTrue(expectSuccess, "Unexpected successful connection");
-        print('SUCCESS');
-        return response.drain().catchError((_) {});
-      })
-      .catchError((error) {
-        // Allow SocketExceptions if www.google.com is unreachable or down.
-        Expect.isTrue((!expectSuccess && error is HandshakeException) ||
-                      error is SocketException);
-        print('SUCCESS');
-      })
-      .whenComplete(client.close);
-  },
-  onError: (e) {
-    // Lookup failed.
-    Expect.isTrue(e is SocketException);
-    print('SUCCESS');
-  });
+  try {
+  // First, check if the lookup works.
+    await InternetAddress.lookup('www.google.com');
+    var request = await client.getUrl(Uri.parse('https://www.google.com'));
+    request.followRedirects = false;
+    var response = await request.close();
+    Expect.equals('pass', outcome, 'Unexpected successful connection');
+    try { await response.drain(); } catch (e) { }
+  } on HandshakeException {
+    Expect.equals('fail', outcome, 'Unexpected failed connection');
+  } on SocketException {
+    // Lookup failed or connection failed.  Don't report a failure.
+  } finally {
+    client.close();
+  }
 }
 
-void runAllTestsInChildProcesses() {
-  Future runChild(List<String> scriptArguments) {
-    return Process.run(Platform.executable,
-                       []..addAll(Platform.executableArguments)
-                         ..add(Platform.script.toFilePath())
-                         ..addAll(scriptArguments))
-    .then((ProcessResult result) {
-      if (result.exitCode != 0 || !result.stdout.contains('SUCCESS')) {
-        print("Client failed");
-        print("  stdout:");
-        print(result.stdout);
-        print("  stderr:");
-        print(result.stderr);
-        Expect.fail('Client subprocess exit code: ${result.exitCode}');
-      }
-    });
-  }
 
+main() async {
   asyncStart();
-  Future.wait([runChild(['--child']),
-               runChild(['--child', '--database']),
-               runChild(['--child', '--builtin-roots']),
-               runChild(['--child', '--builtin-roots', '--database'])])
-      .then((_) => asyncEnd());
-  }
+  await testGoogleUrl(null, "pass");
+  await testGoogleUrl(SecurityContext.defaultContext, "pass");
+  await testGoogleUrl(new SecurityContext(), "fail");
+  asyncEnd();
+}

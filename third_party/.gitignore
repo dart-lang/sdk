@@ -1,7 +1,9 @@
 # ignore everything
 *
-# except for items in the pkg directory and self
+# except for items in the pkg directory and self.
+# except for our files in boringssl.  The checkout is in boringssl/src.
 !.gitignore
 !pkg
 !pkg_tested
+!boringssl
 !d8

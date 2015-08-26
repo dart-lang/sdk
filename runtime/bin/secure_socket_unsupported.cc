@@ -99,6 +99,66 @@ void FUNCTION_NAME(SecureSocket_NewServicePort)(Dart_NativeArguments args) {
       "Secure Sockets unsupported on this platform"));
 }
 
+void FUNCTION_NAME(SecurityContext_Allocate)(Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
+void FUNCTION_NAME(SecurityContext_UsePrivateKey)(Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
+void FUNCTION_NAME(SecurityContext_SetAlpnProtocols)(
+    Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
+void FUNCTION_NAME(SecurityContext_SetClientAuthorities)(
+    Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
+void FUNCTION_NAME(SecurityContext_SetTrustedCertificates)(
+    Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
+void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
+    Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
+void FUNCTION_NAME(SecurityContext_UseCertificateChain)(
+    Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
+void FUNCTION_NAME(X509_Subject)(Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
+void FUNCTION_NAME(X509_Issuer)(Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
+void FUNCTION_NAME(X509_StartValidity)(Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
+void FUNCTION_NAME(X509_EndValidity)(Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
 class SSLFilter {
  public:
   static CObject* ProcessFilterRequest(const CObjectArray& request);

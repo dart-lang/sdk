@@ -4,52 +4,78 @@
 
 // This test verifies that the bad certificate callback works in HttpClient.
 
-import "package:expect/expect.dart";
-import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
 
-const HOST_NAME = "localhost";
-const CERTIFICATE = "localhost_cert";
+import "package:expect/expect.dart";
 
-Future<SecureServerSocket> runServer() {
-  SecureSocket.initialize(
-      database: Platform.script.resolve('pkcert').toFilePath(),
+final HOST_NAME = 'localhost';
+
+String localFile(path) => Platform.script.resolve(path).toFilePath();
+
+SecurityContext serverContext = new SecurityContext()
+  ..useCertificateChain(localFile('certificates/server_chain.pem'))
+  ..usePrivateKey(localFile('certificates/server_key.pem'),
       password: 'dartdart');
 
-  return HttpServer.bindSecure(
-      HOST_NAME, 0, backlog: 5, certificateName: 'localhost_cert')
-  .then((server) {
-    server.listen((HttpRequest request) {
-      request.listen((_) { }, onDone: () { request.response.close(); });
-    }, onError: (e) { if (e is! HandshakeException) throw e; });
-    return server;
-  });
-}
+class CustomException {}
 
 main() async {
-  var clientScript = Platform.script
-                             .resolve('https_bad_certificate_client.dart')
-                             .toFilePath();
-  Future clientProcess(int port, String acceptCertificate) {
-    return Process.run(Platform.executable,
-        [clientScript, port.toString(), acceptCertificate])
-    .then((ProcessResult result) {
-      if (result.exitCode != 0 || !result.stdout.contains('SUCCESS')) {
-        print("Client failed, acceptCertificate: $acceptCertificate");
-        print("  stdout:");
-        print(result.stdout);
-        print("  stderr:");
-        print(result.stderr);
-        Expect.fail('Client subprocess exit code: ${result.exitCode}');
-      }
+  var HOST = (await InternetAddress.lookup(HOST_NAME)).first;
+  var server = await HttpServer.bindSecure(HOST, 0, serverContext, backlog: 5);
+  server.listen((request) {
+    request.listen((_) {
+    }, onDone: () {
+      request.response.close();
     });
-  }
+  });
 
-  var server = await runServer();
-  await clientProcess(server.port, 'true');
-  await clientProcess(server.port, 'false');
-  await clientProcess(server.port, 'fisk');
-  await clientProcess(server.port, 'exception');
+  SecurityContext goodContext = new SecurityContext()
+    ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+  SecurityContext badContext = new SecurityContext();
+  SecurityContext defaultContext = SecurityContext.defaultContext;
+
+  await runClient(server.port, goodContext, true, 'pass');
+  await runClient(server.port, goodContext, false, 'pass');
+  await runClient(server.port, goodContext, 'fisk', 'pass');
+  await runClient(server.port, goodContext, 'exception', 'pass');
+  await runClient(server.port, badContext, true, 'pass');
+  await runClient(server.port, badContext, false, 'fail');
+  await runClient(server.port, badContext, 'fisk', 'fail');
+  await runClient(server.port, badContext, 'exception', 'throw');
+  await runClient(server.port, defaultContext, true, 'pass');
+  await runClient(server.port, defaultContext, false, 'fail');
+  await runClient(server.port, defaultContext, 'fisk', 'fail');
+  await runClient(server.port, defaultContext, 'exception', 'throw');
   server.close();
+}
+
+
+Future runClient(int port,
+                 SecurityContext context,
+                 callbackReturns,
+                 result) async {
+  HttpClient client = new HttpClient(context: context);
+  client.badCertificateCallback = (X509Certificate certificate, host, port) {
+    Expect.equals('/CN=rootauthority', certificate.subject);
+    Expect.equals('/CN=rootauthority', certificate.issuer);
+    // Throw exception if one is requested.
+    if (callbackReturns == 'exception') throw new CustomException();
+    return callbackReturns;
+  };
+
+  try {
+    var request = await client.getUrl(Uri.parse('https://$HOST_NAME:$port/'));
+    Expect.equals('pass', result);
+    await request.close();
+  } catch (error) {
+    Expect.notEquals(result, 'pass');
+    if (result == 'fail') {
+      Expect.isTrue(error is HandshakeException);
+    } else if (result == 'throw') {
+      Expect.isTrue(error is CustomException);
+    } else {
+      Expect.fail('Unknown expectation $result');
+    }
+  }
 }
