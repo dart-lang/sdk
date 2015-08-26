@@ -37,7 +37,7 @@ main() {
   defineRuleUnitTests();
 }
 
-const String ruleDir = 'test/rules';
+final String ruleDir = p.join('test', 'rules');
 
 /// Linter engine tests
 void defineLinterEngineTests() {
