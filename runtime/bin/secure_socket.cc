@@ -872,7 +872,11 @@ void SSLFilter::Connect(const char* hostname,
   SSL_set_mode(ssl_, SSL_MODE_AUTO_RETRY);  // TODO(whesse): Is this right?
   SSL_set_ex_data(ssl_, filter_ssl_index, this);
 
-  if (!is_server_) {
+  if (is_server_) {
+    // Do not request a client certificate.
+    // TODO(24069): Allow server to request a client certificate, when desired.
+    SSL_set_verify(ssl_, SSL_VERIFY_NONE, NULL);
+  } else {
     SetAlpnProtocolList(protocols_handle, ssl_, NULL, false);
     // Sets the hostname in the certificate-checking object, so it is checked
     // against the certificate presented by the server.
@@ -884,6 +888,7 @@ void SSLFilter::Connect(const char* hostname,
     // TODO(24186) free hostname_ if it is not freed when SSL is destroyed.
     // otherwise, make it a local variable, not a instance field.
   }
+  // Make the connection:
   if (is_server_) {
     status = SSL_accept(ssl_);
     if (SSL_LOG_STATUS) Log::Print("SSL_accept status: %d\n", status);
