@@ -20,7 +20,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/html.dart';
-import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
 import 'package:analyzer/task/model.dart';
 
@@ -71,9 +70,7 @@ class HtmlWorkManager implements WorkManager {
     priorityResultQueue.add(new TargetedResult(target, result));
   }
 
-  /**
-   * Notifies the manager about changes in the explicit source list.
-   */
+  @override
   void applyChange(List<Source> addedSources, List<Source> changedSources,
       List<Source> removedSources) {
     addedSources = addedSources.where(_isHtmlSource).toList();
@@ -103,26 +100,23 @@ class HtmlWorkManager implements WorkManager {
     }
   }
 
-  /**
-   * Return an [AnalysisErrorInfo] containing the list of all of the errors and
-   * the line info associated with the given [source]. The list of errors will
-   * be empty if the source is not known to the context or if there are no
-   * errors in the source. The errors contained in the list can be incomplete.
-   */
-  AnalysisErrorInfo getErrors(Source source) {
-    if (analysisCache.getState(source, HTML_ERRORS) == CacheState.VALID) {
-      List<AnalysisError> errors = analysisCache.getValue(source, HTML_ERRORS);
-      LineInfo lineInfo = analysisCache.getValue(source, LINE_INFO);
-      return new AnalysisErrorInfoImpl(errors, lineInfo);
+  @override
+  List<AnalysisError> getErrors(Source source) {
+    if (!_isHtmlSource(source)) {
+      return AnalysisError.NO_ERRORS;
     }
+    // If analysis is finished, use all the errors.
+    if (analysisCache.getState(source, HTML_ERRORS) == CacheState.VALID) {
+      return analysisCache.getValue(source, HTML_ERRORS);
+    }
+    // If analysis is in progress, combine all known partial results.
     List<AnalysisError> errors = <AnalysisError>[];
     errors.addAll(analysisCache.getValue(source, HTML_DOCUMENT_ERRORS));
     List<DartScript> scripts = analysisCache.getValue(source, DART_SCRIPTS);
     for (DartScript script in scripts) {
       errors.addAll(context.getErrors(script).errors);
     }
-    LineInfo lineInfo = analysisCache.getValue(source, LINE_INFO);
-    return new AnalysisErrorInfoImpl(errors, lineInfo);
+    return errors;
   }
 
   @override
@@ -210,7 +204,7 @@ class HtmlWorkManager implements WorkManager {
         }
       });
       if (shouldSetErrors) {
-        AnalysisErrorInfo info = getErrors(target);
+        AnalysisErrorInfo info = context.getErrors(target);
         context.getNotice(target).setErrors(info.errors, info.lineInfo);
       }
     }

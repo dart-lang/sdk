@@ -24,7 +24,7 @@ import 'package:analyzer/src/task/dart.dart'
 import 'package:analyzer/task/dart.dart'
     show DART_ERRORS, LibrarySpecificUnit, PARSED_UNIT, TOKEN_STREAM;
 import 'package:analyzer/task/general.dart' show CONTENT, LINE_INFO;
-import 'package:analyzer/task/model.dart' show ResultDescriptor;
+import 'package:analyzer/task/model.dart' show ResultDescriptor, TargetedResult;
 
 import 'ast.dart';
 import 'element.dart';

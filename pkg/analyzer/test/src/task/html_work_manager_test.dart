@@ -134,18 +134,15 @@ class HtmlWorkManagerTest {
         new AnalysisError(source1, 1, 0, HtmlErrorCode.PARSE_ERROR, ['']);
     AnalysisError error2 =
         new AnalysisError(source1, 2, 0, HtmlErrorCode.PARSE_ERROR, ['']);
-    LineInfo lineInfo = new LineInfo([0]);
     entry1.setValue(HTML_DOCUMENT_ERRORS, <AnalysisError>[error1], []);
-    entry1.setValue(LINE_INFO, lineInfo, []);
 
     DartScript script = new DartScript(source1, []);
     entry1.setValue(DART_SCRIPTS, [script], []);
     CacheEntry scriptEntry = context.getCacheEntry(script);
     scriptEntry.setValue(DART_ERRORS, [error2], []);
 
-    AnalysisErrorInfo errorInfo = manager.getErrors(source1);
-    expect(errorInfo.errors, unorderedEquals([error1, error2]));
-    expect(errorInfo.lineInfo, lineInfo);
+    List<AnalysisError> errors = manager.getErrors(source1);
+    expect(errors, unorderedEquals([error1, error2]));
   }
 
   void test_getErrors_partialList() {
@@ -153,13 +150,10 @@ class HtmlWorkManagerTest {
         new AnalysisError(source1, 1, 0, HtmlErrorCode.PARSE_ERROR, ['']);
     AnalysisError error2 =
         new AnalysisError(source1, 2, 0, HtmlErrorCode.PARSE_ERROR, ['']);
-    LineInfo lineInfo = new LineInfo([0]);
     entry1.setValue(HTML_DOCUMENT_ERRORS, <AnalysisError>[error1, error2], []);
-    entry1.setValue(LINE_INFO, lineInfo, []);
 
-    AnalysisErrorInfo errorInfo = manager.getErrors(source1);
-    expect(errorInfo.errors, unorderedEquals([error1, error2]));
-    expect(errorInfo.lineInfo, lineInfo);
+    List<AnalysisError> errors = manager.getErrors(source1);
+    expect(errors, unorderedEquals([error1, error2]));
   }
 
   void test_getNextResult_hasNormal_firstIsError() {

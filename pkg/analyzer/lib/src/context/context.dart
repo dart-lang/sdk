@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -33,8 +34,6 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/driver.dart';
-import 'package:analyzer/src/task/html.dart';
-import 'package:analyzer/src/task/html_work_manager.dart';
 import 'package:analyzer/src/task/incremental_element_builder.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/dart.dart';
@@ -122,14 +121,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   TaskManager _taskManager;
 
   /**
+   * A list of all [WorkManager]s used by this context.
+   */
+  final List<WorkManager> workManagers = <WorkManager>[];
+
+  /**
    * The [DartWorkManager] instance that performs Dart specific scheduling.
    */
   DartWorkManager dartWorkManager;
-
-  /**
-   * The work manager that performs HTML specific scheduling.
-   */
-  HtmlWorkManager htmlWorkManager;
 
   /**
    * The analysis driver used to perform analysis.
@@ -219,11 +218,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     _privatePartition = new UniversalCachePartition(this);
     _cache = createCacheFromSourceFactory(null);
     _taskManager = AnalysisEngine.instance.taskManager;
-    // TODO(scheglov) Get WorkManager(Factory)(s) from plugins.
-    dartWorkManager = new DartWorkManager(this);
-    htmlWorkManager = new HtmlWorkManager(this);
-    driver = new AnalysisDriver(
-        _taskManager, <WorkManager>[dartWorkManager, htmlWorkManager], this);
+    for (WorkManagerFactory factory
+        in AnalysisEngine.instance.enginePlugin.workManagerFactories) {
+      WorkManager workManager = factory(this);
+      if (workManager != null) {
+        workManagers.add(workManager);
+        if (workManager is DartWorkManager) {
+          dartWorkManager = workManager;
+        }
+      }
+    }
+    driver = new AnalysisDriver(_taskManager, workManagers, this);
     _onSourcesChangedController =
         new StreamController<SourcesChangedEvent>.broadcast();
     _implicitAnalysisEventsController =
@@ -268,8 +273,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.lint = options.lint;
     this._options.preserveComments = options.preserveComments;
     if (needsRecompute) {
-      dartWorkManager.onAnalysisOptionsChanged();
-      htmlWorkManager.onAnalysisOptionsChanged();
+      for (WorkManager workManager in workManagers) {
+        workManager.onAnalysisOptionsChanged();
+      }
     }
   }
 
@@ -287,8 +293,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _priorityOrder = sources;
       }
     }
-    dartWorkManager.applyPriorityTargets(_priorityOrder);
-    htmlWorkManager.applyPriorityTargets(_priorityOrder);
+    for (WorkManager workManager in workManagers) {
+      workManager.applyPriorityTargets(_priorityOrder);
+    }
   }
 
   @override
@@ -360,7 +367,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * Make _pendingFutureSources available to unit tests.
    */
-  HashMap<AnalysisTarget, List<PendingFuture>> get pendingFutureSources_forTesting =>
+  HashMap<AnalysisTarget,
+      List<PendingFuture>> get pendingFutureSources_forTesting =>
       _pendingFutureTargets;
 
   @override
@@ -389,8 +397,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     factory.context = this;
     _sourceFactory = factory;
     _cache = createCacheFromSourceFactory(factory);
-    dartWorkManager.onSourceFactoryChanged();
-    htmlWorkManager.onSourceFactoryChanged();
+    for (WorkManager workManager in workManagers) {
+      workManager.onSourceFactoryChanged();
+    }
   }
 
   @override
@@ -531,10 +540,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (Source source in removedSources) {
       _sourceRemoved(source);
     }
-    dartWorkManager.applyChange(
-        changeSet.addedSources, changeSet.changedSources, removedSources);
-    htmlWorkManager.applyChange(
-        changeSet.addedSources, changeSet.changedSources, removedSources);
+    for (WorkManager workManager in workManagers) {
+      workManager.applyChange(
+          changeSet.addedSources, changeSet.changedSources, removedSources);
+    }
     _onSourcesChangedController.add(new SourcesChangedEvent(changeSet));
   }
 
@@ -635,8 +644,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return new CancelableFuture.error(new AnalysisNotScheduledError());
     }
     var unitTarget = new LibrarySpecificUnit(librarySource, unitSource);
-    return new _AnalysisFutureHelper<CompilationUnit>(this).computeAsync(
-        unitTarget, (CacheEntry entry) {
+    return new _AnalysisFutureHelper<CompilationUnit>(this)
+        .computeAsync(unitTarget, (CacheEntry entry) {
       CacheState state = entry.getState(RESOLVED_UNIT);
       if (state == CacheState.ERROR) {
         throw entry.exception;
@@ -801,13 +810,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   AnalysisErrorInfo getErrors(Source source) {
-    String name = source.shortName;
-    if (AnalysisEngine.isDartFileName(name) || source is DartScript) {
-      return dartWorkManager.getErrors(source);
-    } else if (AnalysisEngine.isHtmlFileName(name)) {
-      return htmlWorkManager.getErrors(source);
+    List<AnalysisError> allErrors = <AnalysisError>[];
+    for (WorkManager workManager in workManagers) {
+      List<AnalysisError> errors = workManager.getErrors(source);
+      allErrors.addAll(errors);
     }
-    return new AnalysisErrorInfoImpl(AnalysisError.NO_ERRORS, null);
+    LineInfo lineInfo = getLineInfo(source);
+    return new AnalysisErrorInfoImpl(allErrors, lineInfo);
   }
 
   @override
@@ -1530,8 +1539,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * related to it. If so, add the source to the set of sources that need to be
    * processed. This method is intended to be used for testing purposes only.
    */
-  void _getSourcesNeedingProcessing(Source source, CacheEntry entry,
-      bool isPriority, bool hintsEnabled, bool lintsEnabled,
+  void _getSourcesNeedingProcessing(
+      Source source,
+      CacheEntry entry,
+      bool isPriority,
+      bool hintsEnabled,
+      bool lintsEnabled,
       HashSet<Source> sources) {
     CacheState state = entry.getState(CONTENT);
     if (state == CacheState.INVALID ||
@@ -1763,10 +1776,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       entry.setState(CONTENT, CacheState.INVALID);
     }
-    dartWorkManager.applyChange(
-        Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
-    htmlWorkManager.applyChange(
-        Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
+    for (WorkManager workManager in workManagers) {
+      workManager.applyChange(
+          Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
+    }
   }
 
   /**
@@ -1846,11 +1859,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // do resolution
       Stopwatch perfCounter = new Stopwatch()..start();
       PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
-          typeProvider, unitSource, null, sourceEntry, unitEntry, oldUnit,
-          analysisOptions.incrementalApi, analysisOptions);
+          typeProvider,
+          unitSource,
+          null,
+          sourceEntry,
+          unitEntry,
+          oldUnit,
+          analysisOptions.incrementalApi,
+          analysisOptions);
       bool success = resolver.resolve(newCode);
       AnalysisEngine.instance.instrumentationService.logPerformance(
-          AnalysisPerformanceKind.INCREMENTAL, perfCounter,
+          AnalysisPerformanceKind.INCREMENTAL,
+          perfCounter,
           'success=$success,context_id=$_id,code_length=${newCode.length}');
       if (!success) {
         return false;

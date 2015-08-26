@@ -9,6 +9,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show
         AnalysisErrorInfo,
+        AnalysisErrorInfoImpl,
         CacheState,
         ChangeNoticeImpl,
         InternalAnalysisContext;
@@ -294,15 +295,12 @@ class DartWorkManagerTest {
     AnalysisError error2 =
         new AnalysisError(source1, 2, 0, ScannerErrorCode.MISSING_DIGIT);
     when(context.getLibrariesContaining(source1)).thenReturn([source2]);
-    LineInfo lineInfo = new LineInfo([0]);
-    entry1.setValue(LINE_INFO, lineInfo, []);
     entry1.setValue(SCAN_ERRORS, <AnalysisError>[error1], []);
     context
         .getCacheEntry(new LibrarySpecificUnit(source2, source1))
         .setValue(VERIFY_ERRORS, <AnalysisError>[error2], []);
-    AnalysisErrorInfo errorInfo = manager.getErrors(source1);
-    expect(errorInfo.errors, unorderedEquals([error1, error2]));
-    expect(errorInfo.lineInfo, lineInfo);
+    List<AnalysisError> errors = manager.getErrors(source1);
+    expect(errors, unorderedEquals([error1, error2]));
   }
 
   void test_getErrors_hasFullList() {
@@ -311,12 +309,9 @@ class DartWorkManagerTest {
     AnalysisError error2 =
         new AnalysisError(source1, 2, 0, ScannerErrorCode.MISSING_DIGIT);
     when(context.getLibrariesContaining(source1)).thenReturn([source2]);
-    LineInfo lineInfo = new LineInfo([0]);
-    entry1.setValue(LINE_INFO, lineInfo, []);
     entry1.setValue(DART_ERRORS, <AnalysisError>[error1, error2], []);
-    AnalysisErrorInfo errorInfo = manager.getErrors(source1);
-    expect(errorInfo.errors, unorderedEquals([error1, error2]));
-    expect(errorInfo.lineInfo, lineInfo);
+    List<AnalysisError> errors = manager.getErrors(source1);
+    expect(errors, unorderedEquals([error1, error2]));
   }
 
   void test_getLibrariesContainingPart() {
@@ -530,12 +525,14 @@ class DartWorkManagerTest {
   }
 
   void test_resultsComputed_errors_forLibrarySpecificUnit() {
+    LineInfo lineInfo = new LineInfo([0]);
     AnalysisError error1 =
         new AnalysisError(source1, 1, 0, ScannerErrorCode.MISSING_DIGIT);
     AnalysisError error2 =
         new AnalysisError(source1, 2, 0, ScannerErrorCode.MISSING_DIGIT);
     when(context.getLibrariesContaining(source1)).thenReturn([source2]);
-    LineInfo lineInfo = new LineInfo([0]);
+    when(context.getErrors(source1))
+        .thenReturn(new AnalysisErrorInfoImpl([error1, error2], lineInfo));
     entry1.setValue(LINE_INFO, lineInfo, []);
     entry1.setValue(SCAN_ERRORS, <AnalysisError>[error1], []);
     AnalysisTarget unitTarget = new LibrarySpecificUnit(source2, source1);
@@ -552,12 +549,14 @@ class DartWorkManagerTest {
   }
 
   void test_resultsComputed_errors_forSource() {
+    LineInfo lineInfo = new LineInfo([0]);
     AnalysisError error1 =
         new AnalysisError(source1, 1, 0, ScannerErrorCode.MISSING_DIGIT);
     AnalysisError error2 =
         new AnalysisError(source1, 2, 0, ScannerErrorCode.MISSING_DIGIT);
     when(context.getLibrariesContaining(source1)).thenReturn([source2]);
-    LineInfo lineInfo = new LineInfo([0]);
+    when(context.getErrors(source1))
+        .thenReturn(new AnalysisErrorInfoImpl([error1, error2], lineInfo));
     entry1.setValue(LINE_INFO, lineInfo, []);
     entry1.setValue(SCAN_ERRORS, <AnalysisError>[error1], []);
     entry1.setValue(PARSE_ERRORS, <AnalysisError>[error2], []);
@@ -615,8 +614,10 @@ class DartWorkManagerTest {
   }
 
   void test_resultsComputed_parsedUnit() {
-    when(context.getLibrariesContaining(source1)).thenReturn([]);
     LineInfo lineInfo = new LineInfo([0]);
+    when(context.getLibrariesContaining(source1)).thenReturn([]);
+    when(context.getErrors(source1))
+        .thenReturn(new AnalysisErrorInfoImpl([], lineInfo));
     entry1.setValue(LINE_INFO, lineInfo, []);
     CompilationUnit unit = AstFactory.compilationUnit();
     manager.resultsComputed(source1, {PARSED_UNIT: unit});
@@ -627,8 +628,10 @@ class DartWorkManagerTest {
   }
 
   void test_resultsComputed_resolvedUnit() {
-    when(context.getLibrariesContaining(source2)).thenReturn([]);
     LineInfo lineInfo = new LineInfo([0]);
+    when(context.getLibrariesContaining(source2)).thenReturn([]);
+    when(context.getErrors(source2))
+        .thenReturn(new AnalysisErrorInfoImpl([], lineInfo));
     entry2.setValue(LINE_INFO, lineInfo, []);
     CompilationUnit unit = AstFactory.compilationUnit();
     manager.resultsComputed(
