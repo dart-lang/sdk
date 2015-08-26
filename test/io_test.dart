@@ -6,6 +6,7 @@ library linter.test.io;
 
 import 'package:linter/src/io.dart';
 import 'package:mockito/mockito.dart';
+import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
@@ -85,12 +86,13 @@ defineTests() {
   group('collecting', () {
     group('files', () {
       test('basic', () {
-        expect(collectFiles('test/_data/p1').map((f) => f.path),
+        expect(
+            collectFiles('test/_data/p1').map((f) => f.path),
             unorderedEquals([
-          'test/_data/p1/p1.dart',
-          'test/_data/p1/_pubspec.yaml',
-          'test/_data/p1/src/p2.dart'
-        ]));
+              p.join('test', '_data', 'p1', 'p1.dart'),
+              p.join('test', '_data', 'p1', '_pubspec.yaml'),
+              p.join('test', '_data', 'p1', 'src', 'p2.dart')
+            ]));
       });
     });
   });

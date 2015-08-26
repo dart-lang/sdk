@@ -26,8 +26,13 @@ import 'package:linter/src/project.dart';
 import 'package:linter/src/rules.dart';
 
 
-Source createSource(Uri sourceUri) =>
-    new FileBasedSource(new JavaFile(sourceUri.toFilePath()));
+Source createSource(Uri sourceUri) {
+  try {
+    return new FileBasedSource(new JavaFile(sourceUri.toFilePath()));
+  } on Exception catch(e) {
+    throw new Exception('$sourceUri : ${e.toString()}');
+  }
+}
 
 AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
