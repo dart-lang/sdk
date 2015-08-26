@@ -14,6 +14,7 @@ import 'package:unittest/unittest.dart';
 
 import '../../utils.dart';
 import 'completion_test_util.dart';
+import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 
 main() {
   initializeTestEnvironment();
@@ -51,7 +52,8 @@ class ImportUriContributorTest extends AbstractCompletionTest {
     expect(request.replacementOffset, completionOffset - 1);
     expect(request.replacementLength, 1);
     assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
-    assertNotSuggested('dart:core');
+    assertSuggest('dart:core',
+        csKind: CompletionSuggestionKind.IMPORT, relevance: DART_RELEVANCE_LOW);
     assertNotSuggested('dart:_internal');
     assertSuggest('dart:async', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('dart:math', csKind: CompletionSuggestionKind.IMPORT);
@@ -63,9 +65,10 @@ class ImportUriContributorTest extends AbstractCompletionTest {
     expect(request.replacementOffset, completionOffset - 1);
     expect(request.replacementLength, 1);
     assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
-    assertNotSuggested('dart:core');
+    assertSuggest('dart:core',
+        csKind: CompletionSuggestionKind.IMPORT, relevance: DART_RELEVANCE_LOW);
     assertNotSuggested('dart:_internal');
-    assertNotSuggested('dart:async');
+    assertSuggest('dart:async', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('dart:math', csKind: CompletionSuggestionKind.IMPORT);
   }
 
@@ -83,9 +86,9 @@ class ImportUriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('completion.dart');
     assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('foo');
-    assertSuggest('foo${separator}', csKind: CompletionSuggestionKind.IMPORT);
-    assertNotSuggested('foo${separator}bar.dart');
-    assertNotSuggested('..${separator}blat.dart');
+    assertSuggest('foo/', csKind: CompletionSuggestionKind.IMPORT);
+    assertNotSuggested('foo/bar.dart');
+    assertNotSuggested('../blat.dart');
   }
 
   test_import_file2() {
@@ -102,9 +105,9 @@ class ImportUriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('completion.dart');
     assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('foo');
-    assertSuggest('foo${separator}', csKind: CompletionSuggestionKind.IMPORT);
-    assertNotSuggested('foo${separator}bar.dart');
-    assertNotSuggested('..${separator}blat.dart');
+    assertSuggest('foo/', csKind: CompletionSuggestionKind.IMPORT);
+    assertNotSuggested('foo/bar.dart');
+    assertNotSuggested('../blat.dart');
   }
 
   test_import_file_child() {
@@ -121,10 +124,9 @@ class ImportUriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
     assertNotSuggested('foo');
-    assertNotSuggested('foo${separator}');
-    assertSuggest('foo${separator}bar.dart',
-        csKind: CompletionSuggestionKind.IMPORT);
-    assertNotSuggested('..${separator}blat.dart');
+    assertNotSuggested('foo/');
+    assertSuggest('foo/bar.dart', csKind: CompletionSuggestionKind.IMPORT);
+    assertNotSuggested('../blat.dart');
   }
 
   test_import_file_parent() {
@@ -141,10 +143,9 @@ class ImportUriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
     assertNotSuggested('foo');
-    assertNotSuggested('foo${separator}');
-    assertNotSuggested('foo${separator}bar.dart');
-    assertSuggest('..${separator}blat.dart',
-        csKind: CompletionSuggestionKind.IMPORT);
+    assertNotSuggested('foo/');
+    assertNotSuggested('foo/bar.dart');
+    assertSuggest('../blat.dart', csKind: CompletionSuggestionKind.IMPORT);
   }
 
   test_import_package() {
@@ -218,9 +219,9 @@ class ImportUriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('completion.dart');
     assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('foo');
-    assertSuggest('foo${separator}', csKind: CompletionSuggestionKind.IMPORT);
-    assertNotSuggested('foo${separator}bar.dart');
-    assertNotSuggested('..${separator}blat.dart');
+    assertSuggest('foo/', csKind: CompletionSuggestionKind.IMPORT);
+    assertNotSuggested('foo/bar.dart');
+    assertNotSuggested('../blat.dart');
   }
 
   test_part_file2() {
@@ -237,9 +238,9 @@ class ImportUriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('completion.dart');
     assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('foo');
-    assertSuggest('foo${separator}', csKind: CompletionSuggestionKind.IMPORT);
-    assertNotSuggested('foo${separator}bar.dart');
-    assertNotSuggested('..${separator}blat.dart');
+    assertSuggest('foo/', csKind: CompletionSuggestionKind.IMPORT);
+    assertNotSuggested('foo/bar.dart');
+    assertNotSuggested('../blat.dart');
   }
 
   test_part_file_child() {
@@ -256,10 +257,9 @@ class ImportUriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
     assertNotSuggested('foo');
-    assertNotSuggested('foo${separator}');
-    assertSuggest('foo${separator}bar.dart',
-        csKind: CompletionSuggestionKind.IMPORT);
-    assertNotSuggested('..${separator}blat.dart');
+    assertNotSuggested('foo/');
+    assertSuggest('foo/bar.dart', csKind: CompletionSuggestionKind.IMPORT);
+    assertNotSuggested('../blat.dart');
   }
 
   test_part_file_parent() {
@@ -276,9 +276,8 @@ class ImportUriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
     assertNotSuggested('foo');
-    assertNotSuggested('foo${separator}');
-    assertNotSuggested('foo${separator}bar.dart');
-    assertSuggest('..${separator}blat.dart',
-        csKind: CompletionSuggestionKind.IMPORT);
+    assertNotSuggested('foo/');
+    assertNotSuggested('foo/bar.dart');
+    assertSuggest('../blat.dart', csKind: CompletionSuggestionKind.IMPORT);
   }
 }

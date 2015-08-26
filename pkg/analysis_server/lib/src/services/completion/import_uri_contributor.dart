@@ -5,7 +5,6 @@
 library services.completion.contributor.dart.importuri;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:core' hide Resource;
 
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
@@ -39,7 +38,6 @@ class ImportUriContributor extends DartCompletionContributor {
 
 class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
   final DartCompletionRequest request;
-  HashSet<String> _importedUris;
 
   _ImportUriSuggestionBuilder(this.request);
 
@@ -68,7 +66,6 @@ class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
     if (parent is ImportDirective && parent.uri == node) {
       String partial = node.literal.lexeme.substring(
           node.contentsOffset - node.offset, request.offset - node.offset);
-      _computeImportedUris();
       request.replacementOffset = node.contentsOffset;
       request.replacementLength = node.contentsEnd - node.contentsOffset;
       _addDartSuggestions();
@@ -77,7 +74,6 @@ class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
     } else if (parent is PartDirective && parent.uri == node) {
       String partial = node.literal.lexeme.substring(
           node.contentsOffset - node.offset, request.offset - node.offset);
-      _computeImportedUris();
       request.replacementOffset = node.contentsOffset;
       request.replacementLength = node.contentsEnd - node.contentsOffset;
       _addFileSuggestions(partial);
@@ -90,7 +86,10 @@ class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
     for (SdkLibrary lib in factory.dartSdk.sdkLibraries) {
       if (!lib.isInternal && !lib.isImplementation) {
         if (!lib.shortName.startsWith('dart:_')) {
-          _addSuggestion(lib.shortName);
+          _addSuggestion(lib.shortName,
+              relevance: lib.shortName == 'dart:core'
+                  ? DART_RELEVANCE_LOW
+                  : DART_RELEVANCE_DEFAULT);
         }
       }
     }
@@ -160,24 +159,15 @@ class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
     }
   }
 
-  void _addSuggestion(String completion) {
-    if (!_importedUris.contains(completion)) {
-      request.addSuggestion(new CompletionSuggestion(
-          CompletionSuggestionKind.IMPORT, DART_RELEVANCE_DEFAULT, completion,
-          completion.length, 0, false, false));
-    }
-  }
-
-  void _computeImportedUris() {
-    _importedUris = new HashSet<String>();
-    _importedUris.add('dart:core');
-    for (Directive directive in request.unit.directives) {
-      if (directive is ImportDirective) {
-        String uri = directive.uriContent;
-        if (uri != null && uri.length > 0) {
-          _importedUris.add(uri);
-        }
-      }
-    }
+  void _addSuggestion(String completion,
+      {int relevance: DART_RELEVANCE_DEFAULT}) {
+    request.addSuggestion(new CompletionSuggestion(
+        CompletionSuggestionKind.IMPORT,
+        relevance,
+        completion,
+        completion.length,
+        0,
+        false,
+        false));
   }
 }
