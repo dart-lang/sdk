@@ -1510,12 +1510,6 @@ class Primitives {
     return JS('', '#.apply(#, #)', jsFunction, function, positionalArguments);
   }
 
-  static bool identicalImplementation(a, b) {
-    return JS('bool', '# == null', a)
-      ? JS('bool', '# == null', b)
-      : JS('bool', '# === #', a, b);
-  }
-
   static StackTrace extractStackTrace(Error error) {
     return getTraceFromException(JS('', r'#.$thrownJsError', error));
   }

@@ -20,6 +20,8 @@ import 'dart:_js_helper' show patch,
                               Closure,
                               readHttp;
 
+import 'dart:_foreign_helper' show JS;
+
 import 'dart:_native_typed_data' show NativeUint8List;
 
 import 'dart:async' show StreamController;
@@ -403,7 +405,7 @@ class RegExp {
 // Patch for 'identical' function.
 @patch
 bool identical(Object a, Object b) {
-  return Primitives.identicalImplementation(a, b);
+  return JS('bool', '(# == null ? # == null : # === #)', a, b, a, b);
 }
 
 @patch
