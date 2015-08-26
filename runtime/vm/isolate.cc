@@ -45,6 +45,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, print_metrics);
+DECLARE_FLAG(bool, trace_service);
 
 DEFINE_FLAG(bool, trace_isolates, false,
             "Trace isolate creation and shut down.");
@@ -503,6 +504,9 @@ void IsolateMessageHandler::NotifyPauseOnStart() {
     HandleScope handle_scope(I);
     ServiceEvent pause_event(isolate(), ServiceEvent::kPauseStart);
     Service::HandleEvent(&pause_event);
+  } else  if (FLAG_trace_service) {
+    OS::Print("vm-service: Dropping event of type PauseStart (%s)\n",
+              isolate()->name());
   }
 }
 
@@ -514,6 +518,9 @@ void IsolateMessageHandler::NotifyPauseOnExit() {
     HandleScope handle_scope(I);
     ServiceEvent pause_event(isolate(), ServiceEvent::kPauseExit);
     Service::HandleEvent(&pause_event);
+  } else  if (FLAG_trace_service) {
+    OS::Print("vm-service: Dropping event of type PauseExit (%s)\n",
+              isolate()->name());
   }
 }
 

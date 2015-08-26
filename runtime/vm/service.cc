@@ -644,8 +644,8 @@ void Service::SendEvent(const char* stream_id,
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
     OS::Print(
-        "vm-service: Pushing event of type %s to stream %s, len %" Pd "\n",
-        event_type, stream_id, len);
+        "vm-service: Pushing event of type %s to stream %s (%s), len %" Pd "\n",
+        event_type, stream_id, isolate->name(), len);
   }
   // TODO(turnidge): For now we ignore failure to send an event.  Revisit?
   PortMap::PostMessage(
@@ -736,8 +736,11 @@ void Service::PostEvent(const char* stream_id,
   list_values[1] = &json_cobj;
 
   if (FLAG_trace_service) {
+    Isolate* isolate = Isolate::Current();
+    ASSERT(isolate != NULL);
     OS::Print(
-        "vm-service: Pushing event of type %s to stream %s\n", kind, stream_id);
+        "vm-service: Pushing event of type %s to stream %s (%s)\n",
+        kind, stream_id, isolate->name());
   }
 
   Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);

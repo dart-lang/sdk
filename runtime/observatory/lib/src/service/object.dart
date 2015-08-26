@@ -514,6 +514,9 @@ abstract class VM extends ServiceObjectOwner {
   // TODO(turnidge): The connection should not be stored in the VM object.
   bool get isDisconnected;
 
+  // Used for verbose logging.
+  bool verbose = false;
+
   // TODO(johnmccutchan): Ensure that isolates do not end up in _cache.
   Map<String,ServiceObject> _cache = new Map<String,ServiceObject>();
   final ObservableMap<String,Isolate> _isolateCache =
@@ -1281,6 +1284,9 @@ class Isolate extends ServiceObjectOwner with Coverage {
     exceptionsPauseInfo = map['_debuggerSettings']['_exceptions'];
 
     pauseEvent = map['pauseEvent'];
+    if (vm.verbose) {
+      print('VM-VERBOSE: $name reloaded. pause event= $pauseEvent');
+    }
     _updateRunState();
     error = map['error'];
 
@@ -1332,6 +1338,9 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   void _onEvent(ServiceEvent event) {
+    if (vm.verbose) {
+      print('VM-VERBOSE: $name _onEvent $event');
+    }
     switch(event.kind) {
       case ServiceEvent.kIsolateStart:
       case ServiceEvent.kIsolateRunnable:
@@ -1361,6 +1370,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       case ServiceEvent.kPauseException:
       case ServiceEvent.kResume:
         pauseEvent = event;
+        print('VM-VERBOSE: $name pause event $pauseEvent');
         _updateRunState();
         break;
 

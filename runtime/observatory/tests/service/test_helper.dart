@@ -109,7 +109,8 @@ void runIsolateTests(List<String> mainArgs,
                       void testeeConcurrent(),
                       bool pause_on_start: false,
                       bool pause_on_exit: false,
-                      bool trace_service: false}) {
+                      bool trace_service: false,
+                      bool verbose_vm: false}) {
   assert(!pause_on_start || testeeBefore == null);
   if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
     if (!pause_on_start) {
@@ -140,6 +141,7 @@ void runIsolateTests(List<String> mainArgs,
         new WebSocketVM(new WebSocketVMTarget(addr)).load()
             .then((VM vm) => vm.isolates.first.load())
             .then((Isolate isolate) => Future.forEach(tests, (test) {
+              isolate.vm.verbose = verbose_vm;
               print('Running $name [$testIndex/$totalTests]');
               testIndex++;
               return test(isolate);
@@ -285,7 +287,8 @@ Future runVMTests(List<String> mainArgs,
                    Future testeeConcurrent(),
                    bool pause_on_start: false,
                    bool pause_on_exit: false,
-                   bool trace_service: false}) async {
+                   bool trace_service: false,
+                   bool verbose_vm: false}) async {
   if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
     if (!pause_on_start) {
       if (testeeBefore != null) {
@@ -316,6 +319,7 @@ Future runVMTests(List<String> mainArgs,
       runZoned(() {
         new WebSocketVM(new WebSocketVMTarget(addr)).load()
             .then((VM vm) => Future.forEach(tests, (test) {
+              vm.verbose = verbose_vm;
               print('Running $name [$testIndex/$totalTests]');
               testIndex++;
               return test(vm);
