@@ -9592,30 +9592,3 @@ LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Pass # Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Pass # Please triage this failure.
-LibTest/typed_data/Float32List/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Float32List/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Float32List/setRange_A02_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Float64List/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Float64List/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Float64List/setRange_A02_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int16List/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int16List/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int16List/setRange_A02_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int32List/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int32List/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int32List/setRange_A02_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int8List/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int8List/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int8List/setRange_A02_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint16List/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint16List/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint16List/setRange_A02_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint32List/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint32List/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint32List/setRange_A02_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint8ClampedList/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint8ClampedList/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint8ClampedList/setRange_A02_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint8List/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint8List/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint8List/setRange_A02_t01: RuntimeError # this.get$length is not a function

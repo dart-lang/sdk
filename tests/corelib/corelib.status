@@ -226,16 +226,12 @@ iterable_return_type_test/none: RuntimeError # Please triage this failure.
 iterable_to_list_test: RuntimeError # Please triage this failure.
 iterable_to_set_test: RuntimeError # Please triage this failure.
 list_filled_type_argument_test: RuntimeError # Please triage this failure.
-list_test/01: RuntimeError # this.get$length is not a function
-list_test/none: RuntimeError # this.get$length is not a function
 list_unmodifiable_test: RuntimeError # Please triage this failure.
 map_values2_test: RuntimeError # Please triage this failure.
 map_values3_test: RuntimeError # Please triage this failure.
 map_values4_test: RuntimeError # Please triage this failure.
 package_resource_test: Crash # (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
 regexp/pcre_test: Crash # Stack Overflow
-shuffle_test: RuntimeError # this.get$length is not a function
-string_fromcharcodes_test: RuntimeError # this.get$length is not a function
 symbol_operator_test/03: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/03: Pass # Please triage this failure.
 symbol_reserved_word_test/06: RuntimeError # Please triage this failure.

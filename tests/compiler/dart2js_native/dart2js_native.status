@@ -29,7 +29,5 @@ native_no_such_method_exception3_frog_test: RuntimeError # Please triage this fa
 optimization_hints_test: RuntimeError # Please triage this failure.
 subclassing_constructor_1_test: RuntimeError # Please triage this failure.
 subclassing_constructor_2_test: RuntimeError # Please triage this failure.
-subclassing_super_call_test: RuntimeError # this.get$afield is not a function
 subclassing_super_field_1_test: RuntimeError # Please triage this failure.
 subclassing_super_field_2_test: RuntimeError # Please triage this failure.
-super_call_test: RuntimeError # this.bar$0 is not a function

@@ -74,6 +74,13 @@ class TypeMaskSystem {
                            classWorld);
   }
 
+  bool methodUsesReceiverArgument(FunctionElement function) {
+    assert(backend.isInterceptedMethod(function));
+    ClassElement clazz = function.enclosingClass.declaration;
+    return clazz.isSubclassOf(backend.jsInterceptorClass) || 
+           classWorld.isUsedAsMixin(clazz);
+  }
+
   Element locateSingleElement(TypeMask mask, Selector selector) {
     return mask.locateSingleElement(selector, mask, classWorld.compiler);
   }
@@ -88,7 +95,14 @@ class TypeMaskSystem {
 
   TypeMask getReceiverType(MethodElement method) {
     assert(method.isInstanceMember);
-    return nonNullSubclass(method.enclosingClass);
+    if (classWorld.isUsedAsMixin(method.enclosingClass.declaration)) {
+      // If used as a mixin, the receiver could be any of the classes that mix
+      // in the class, and these are not considered subclasses.
+      // TODO(asgerf): Exclude the subtypes that only `implement` the class.
+      return nonNullSubtype(method.enclosingClass);
+    } else {
+      return nonNullSubclass(method.enclosingClass);
+    }
   }
 
   TypeMask getParameterType(ParameterElement parameter) {
@@ -126,6 +140,11 @@ class TypeMaskSystem {
   TypeMask nonNullSubclass(ClassElement element) {
     if (element.isClosure) return functionType;
     return new TypeMask.nonNullSubclass(element.declaration, classWorld);
+  }
+
+  TypeMask nonNullSubtype(ClassElement element) {
+    if (element.isClosure) return functionType;
+    return new TypeMask.nonNullSubtype(element.declaration, classWorld);
   }
 
   bool isDefinitelyBool(TypeMask t, {bool allowNull: false}) {
@@ -1581,6 +1600,30 @@ class TransformingVisitor extends LeafVisitor {
 
     AbstractValue receiver = getValue(node.receiver.definition);
     node.receiverIsNotNull = receiver.isDefinitelyNotNull;
+
+    if (isInterceptedSelector(node.selector) &&
+        node.receiver.definition == node.arguments[0].definition) {
+      // The receiver and first argument are the same; that means we already
+      // determined in visitInterceptor that we are targeting a non-interceptor.
+
+      // Check if any of the possible targets depend on the extra receiver
+      // argument. Mixins do this, and tear-offs always needs the extra receiver
+      // argument because BoundClosure uses it for equality and hash code.
+      bool needsReceiver(Element target) {
+        if (target is! FunctionElement) return false;
+        FunctionElement function = target;
+        return typeSystem.methodUsesReceiverArgument(function) ||
+               node.selector.isGetter && !function.isGetter;
+      }
+      if (!getAllTargets(receiver.type, node.selector).any(needsReceiver)) {
+        // Replace the extra receiver argument with a dummy value if the
+        // target definitely does not use it.
+        Constant dummy = makeConstantPrimitive(new IntConstantValue(0));
+        insertLetPrim(node, dummy);
+        node.arguments[0].unlink();
+        node.arguments[0] = new Reference<Primitive>(dummy);
+      }
+    }
   }
 
   void visitTypeCast(TypeCast node) {
@@ -2069,9 +2112,15 @@ class TypePropagationVisitor implements Visitor {
   void visitFunctionDefinition(FunctionDefinition node) {
     int firstActualParameter = 0;
     if (backend.isInterceptedMethod(node.element)) {
-      setValue(node.thisParameter, nonConstant(typeSystem.nonNullType));
-      setValue(node.parameters[0],
-               nonConstant(typeSystem.getReceiverType(node.element)));
+      if (typeSystem.methodUsesReceiverArgument(node.element)) {
+        setValue(node.thisParameter, nonConstant(typeSystem.nonNullType));
+        setValue(node.parameters[0],
+                 nonConstant(typeSystem.getReceiverType(node.element)));
+      } else {
+        setValue(node.thisParameter, 
+              nonConstant(typeSystem.getReceiverType(node.element)));
+        setValue(node.parameters[0], nonConstant());
+      }
       firstActualParameter = 1;
     } else if (node.thisParameter != null) {
       setValue(node.thisParameter,

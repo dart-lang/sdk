@@ -194,4 +194,3 @@ analyzer/test/src/task/html_work_manager_test: Crash # (Iterable<JavaFile> ...  
 analyzer/test/src/task/inputs_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
 analyzer/test/src/task/manager_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
 analyzer/test/src/task/model_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
-typed_data/test/typed_buffers_test/none: RuntimeError # Please triage this failure.

@@ -52,7 +52,15 @@ class UnsugarVisitor extends RecursiveVisitor {
 
   UnsugarVisitor(this._glue);
 
+  bool methodUsesReceiverArgument(FunctionElement function) {
+    assert(_glue.isInterceptedMethod(function));
+    ClassElement clazz = function.enclosingClass.declaration;
+    return _glue.isInterceptorClass(clazz) || 
+           _glue.isUsedAsMixin(clazz);
+  }
+
   void rewrite(FunctionDefinition function) {
+    thisParameter = function.thisParameter;
     bool inInterceptedMethod = _glue.isInterceptedMethod(function.element);
 
     if (function.element.name == '==' &&
@@ -64,7 +72,6 @@ class UnsugarVisitor extends RecursiveVisitor {
     }
 
     if (inInterceptedMethod) {
-      thisParameter = function.thisParameter;
       ThisParameterLocal holder = thisParameter.hint;
       explicitReceiverParameter = new Parameter(
           new ExplicitReceiverParameterEntity(
@@ -75,7 +82,7 @@ class UnsugarVisitor extends RecursiveVisitor {
     // Set all parent pointers.
     _parentVisitor.visit(function);
 
-    if (inInterceptedMethod) {
+    if (inInterceptedMethod && methodUsesReceiverArgument(function.element)) {
       explicitReceiverParameter.substituteFor(thisParameter);
     }
 
@@ -235,8 +242,13 @@ class UnsugarVisitor extends RecursiveVisitor {
   /// The type propagation pass will later narrow the set of interceptors
   /// based on the input type, and the let sinking pass will propagate the
   /// getInterceptor call closer to its use when this is profitable.
-  Interceptor getInterceptorFor(Primitive prim, Selector selector,
-                                SourceInformation sourceInformation) {
+  Primitive getInterceptorFor(Primitive prim, Selector selector,
+                              SourceInformation sourceInformation) {
+    if (prim == explicitReceiverParameter) {
+      // If the receiver is the explicit receiver, we are calling a method in
+      // the same interceptor.
+      return thisParameter;
+    }
     assert(prim is! Interceptor);
     Interceptor interceptor = interceptors[prim];
     if (interceptor == null) {
@@ -255,37 +267,24 @@ class UnsugarVisitor extends RecursiveVisitor {
   }
 
   processInvokeMethod(InvokeMethod node) {
-    Selector selector = node.selector;
-    if (!_glue.isInterceptedSelector(selector)) return;
-
-    Primitive receiver = node.receiver.definition;
-    Primitive newReceiver;
-
-    if (receiver == explicitReceiverParameter) {
-      // If the receiver is the explicit receiver, we are calling a method in
-      // the same interceptor:
-      //  Change 'receiver.foo()'  to  'this.foo(receiver)'.
-      newReceiver = thisParameter;
-    } else {
-      newReceiver = getInterceptorFor(
-          receiver, node.selector, node.sourceInformation);
+    if (_glue.isInterceptedSelector(node.selector)) {
+      // Rewrite `x.foo()` => `INTERCEPTOR.foo(x, ..)`.
+      Primitive receiver = node.receiver.definition;
+      Primitive newReceiver = 
+          getInterceptorFor(receiver, node.selector, node.sourceInformation);
+      node.arguments.insert(0, node.receiver);
+      node.receiver = new Reference<Primitive>(newReceiver);
     }
-
-    node.arguments.insert(0, node.receiver);
-    node.receiver = new Reference<Primitive>(newReceiver);
   }
 
   processInvokeMethodDirectly(InvokeMethodDirectly node) {
     if (_glue.isInterceptedMethod(node.target)) {
-      Primitive nullPrim = nullConstant;
-      insertLetPrim(nullPrim, node);
+      // Rewrite `x.foo()` => `INTERCEPTOR.foo(x, ..)`.
+      Primitive receiver = node.receiver.definition;
+      Primitive newReceiver = 
+          getInterceptorFor(receiver, node.selector, node.sourceInformation);
       node.arguments.insert(0, node.receiver);
-      // TODO(sra): `null` is not adequate.  Interceptors project the class
-      // hierarchy onto an interceptor hierarchy.  A super call that does a
-      // method call will use the javascript 'this' parameter to avoid calling
-      // getInterceptor again, so the receiver must be the interceptor (likely
-      // `this`), not `null`.
-      node.receiver = new Reference<Primitive>(nullPrim);
+      node.receiver = new Reference<Primitive>(newReceiver);
     }
   }
 

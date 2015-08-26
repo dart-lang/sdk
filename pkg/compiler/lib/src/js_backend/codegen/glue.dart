@@ -54,6 +54,10 @@ class Glue {
     _compiler.internalError(_compiler.currentElement, message);
   }
 
+  bool isUsedAsMixin(ClassElement clazz) {
+    return classWorld.isUsedAsMixin(clazz);
+  }
+
   ConstantValue getConstantValueForVariable(VariableElement variable) {
     return _backend.constants.getConstantValueForVariable(variable);
   }
@@ -112,6 +116,10 @@ class Glue {
 
   bool isInterceptedMethod(Element element) {
     return _backend.isInterceptedMethod(element);
+  }
+
+  bool isInterceptorClass(ClassElement element) {
+    return element.isSubclassOf(_backend.jsInterceptorClass);
   }
 
   Set<ClassElement> getInterceptedClassesOn(Selector selector) {

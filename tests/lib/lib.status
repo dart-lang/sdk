@@ -336,9 +336,7 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.
 async/async_await_zones_test: Crash # (await for(var x in bar().take(100)){sum+= x;}): await for
 async/stream_empty_test: RuntimeError # $async$temp1.runTest_unreachable is not a function
 async/stream_iterator_test: Crash # (Stream createCancel...  cannot handle sync*/async* functions
-convert/ascii_test: RuntimeError # this.get$length is not a function
 convert/json_pretty_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-convert/latin1_test: RuntimeError # this.get$length is not a function
 convert/line_splitter_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 mirrors/abstract_class_test/00: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 mirrors/abstract_class_test/none: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
@@ -564,4 +562,3 @@ mirrors/typedef_reflected_type_test/01: Crash # (static Iterable<Str...  cannot 
 mirrors/typedef_reflected_type_test/none: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 mirrors/unnamed_library_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 mirrors/variable_is_const_test/none: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-typed_data/typed_data_list_test: RuntimeError # this.get$length is not a function
