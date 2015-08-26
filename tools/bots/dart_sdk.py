@@ -47,7 +47,7 @@ def BuildDartdocAPIDocs(dirname):
   with bot.BuildStep('Build API docs by dartdoc'):
     subprocess.call([dart_exe, '--package-root=' + packages_dir, dartdoc_dart, 
                     '--sdk-docs','--output', dirname, '--dart-sdk', dart_sdk, 
-                    '--footer' , footer_file, '--package-root=%s' % packages_dir], 
+                    '--footer' , footer_file], 
                      stdout=open(os.devnull, 'wb'))
 
 def CreateUploadVersionFile():
