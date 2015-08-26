@@ -130,7 +130,7 @@ dev_dependencies:
         File ps = new File('test/_data/p1/_pubspec.yaml');
         Pubspec spec =
             new Pubspec.parse(ps.readAsStringSync(), sourceUrl: ps.path);
-        expect(spec.name.key.span.sourceUrl.toFilePath(),
+        expect(spec.name.key.span.sourceUrl.toFilePath(windows: false),
             equals('test/_data/p1/_pubspec.yaml'));
       });
     });
