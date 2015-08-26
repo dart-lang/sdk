@@ -11,6 +11,7 @@
 #include "vm/lockers.h"
 #include "vm/object.h"
 #include "vm/os_thread.h"
+#include "vm/thread_registry.h"
 #include "vm/verified_memory.h"
 #include "vm/virtual_memory.h"
 
@@ -767,6 +768,12 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     }
     set_tasks(1);
   }
+  // Ensure that all threads for this isolate are at a safepoint (either stopped
+  // or in native code). If two threads are racing at this point, the loser
+  // will continue with its collection after waiting for the winner to complete.
+  // TODO(koda): Consider moving SafepointThreads into allocation failure/retry
+  // logic to avoid needless collections.
+  isolate->thread_registry()->SafepointThreads();
 
   // Perform various cleanup that relies on no tasks interfering.
   isolate->class_table()->FreeOldTables();
@@ -906,6 +913,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     OS::Print("Executable Freelist (after GC):\n");
     freelist_[HeapPage::kExecutable].Print();
   }
+
+  isolate->thread_registry()->ResumeAllThreads();
 
   // Done, reset the task count.
   {

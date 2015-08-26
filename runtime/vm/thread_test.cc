@@ -498,12 +498,12 @@ TEST_CASE(HelperAllocAndGC) {
   Thread::PrepareForGC();
   Dart::thread_pool()->Run(new AllocAndGCTask(isolate, &done_monitor, &done));
   {
-    // Manually wait.
-    // TODO(koda): Replace with execution of Dart and/or VM code when GC
-    // actually safepoints everything.
-    MonitorLocker ml(&done_monitor);
-    while (!done) {
-      ml.Wait();
+    while (true) {
+      isolate->thread_registry()->CheckSafepoint();
+      MonitorLocker ml(&done_monitor);
+      if (done) {
+        break;
+      }
     }
   }
 }

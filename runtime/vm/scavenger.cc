@@ -16,6 +16,7 @@
 #include "vm/object_id_ring.h"
 #include "vm/stack_frame.h"
 #include "vm/store_buffer.h"
+#include "vm/thread_registry.h"
 #include "vm/verified_memory.h"
 #include "vm/verifier.h"
 #include "vm/visitor.h"
@@ -799,10 +800,18 @@ void Scavenger::Scavenge() {
 
 
 void Scavenger::Scavenge(bool invoke_api_callbacks) {
+  Isolate* isolate = heap_->isolate();
+  // Ensure that all threads for this isolate are at a safepoint (either stopped
+  // or in native code). If two threads are racing at this point, the loser
+  // will continue with its scavenge after waiting for the winner to complete.
+  // TODO(koda): Consider moving SafepointThreads into allocation failure/retry
+  // logic to avoid needless collections.
+  isolate->thread_registry()->SafepointThreads();
+
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
   scavenging_ = true;
-  Isolate* isolate = heap_->isolate();
+
   PageSpace* page_space = heap_->old_space();
   NoSafepointScope no_safepoints;
 
@@ -861,6 +870,8 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // Done scavenging. Reset the marker.
   ASSERT(scavenging_);
   scavenging_ = false;
+
+  isolate->thread_registry()->ResumeAllThreads();
 }
 
 
