@@ -226,8 +226,10 @@ void defineLinterEngineTests() {
         test('html - strong', () {
           Hyperlink link =
               new Hyperlink('dart', 'http://dartlang.org', bold: true);
-          expect(link.html, equals(
-              '<a href="http://dartlang.org"><strong>dart</strong></a>'));
+          expect(
+              link.html,
+              equals(
+                  '<a href="http://dartlang.org"><strong>dart</strong></a>'));
         });
       });
 
@@ -257,7 +259,6 @@ void defineLinterEngineTests() {
 
 /// Rule tests
 defineRuleTests() {
-
   //TODO: if ruleDir cannot be found print message to set CWD to project root
   group('rule', () {
     group('dart', () {
@@ -268,7 +269,7 @@ defineRuleTests() {
       }
     });
     group('pub', () {
-      for (var entry in new Directory(ruleDir + '/pub').listSync()) {
+      for (var entry in new Directory(p.join(ruleDir, 'pub')).listSync()) {
         if (entry is! Directory) continue;
         Directory pubTestDir = entry;
         for (var file in pubTestDir.listSync()) {
@@ -375,7 +376,8 @@ defineRuleUnitTests() {
         values.forEach((s) => test('${s[3]}', () => expect(f(s), m)));
       }
 
-      bool isGoodPrefx(List<String> v) => matchesOrIsPrefixedBy(v[3],
+      bool isGoodPrefx(List<String> v) => matchesOrIsPrefixedBy(
+          v[3],
           createLibraryNamePrefix(
               libraryPath: v[0], projectRoot: v[1], packageName: v[2]));
 
@@ -410,8 +412,9 @@ defineSanityTests() {
         expect(extractAnnotation('int x;'), isNull);
         expect(extractAnnotation('dynamic x; // LINT dynamic is bad').message,
             equals('dynamic is bad'));
-        expect(extractAnnotation(
-                'dynamic x; // LINT [1:3] dynamic is bad').message,
+        expect(
+            extractAnnotation('dynamic x; // LINT [1:3] dynamic is bad')
+                .message,
             equals('dynamic is bad'));
         expect(
             extractAnnotation('dynamic x; // LINT [1:3] dynamic is bad').column,
@@ -431,13 +434,16 @@ defineSanityTests() {
           matchesAnnotation('Message', ErrorType.LINT, 1));
     });
     test('inequality', () {
-      expect(() => expect(new Annotation('Message', ErrorType.LINT, 1),
+      expect(
+          () => expect(new Annotation('Message', ErrorType.LINT, 1),
               matchesAnnotation('Message', ErrorType.HINT, 1)),
           throwsA(new isInstanceOf<TestFailure>()));
-      expect(() => expect(new Annotation('Message', ErrorType.LINT, 1),
+      expect(
+          () => expect(new Annotation('Message', ErrorType.LINT, 1),
               matchesAnnotation('Message2', ErrorType.LINT, 1)),
           throwsA(new isInstanceOf<TestFailure>()));
-      expect(() => expect(new Annotation('Message', ErrorType.LINT, 1),
+      expect(
+          () => expect(new Annotation('Message', ErrorType.LINT, 1),
               matchesAnnotation('Message', ErrorType.LINT, 2)),
           throwsA(new isInstanceOf<TestFailure>()));
     });
@@ -527,11 +533,11 @@ class Annotation {
   Annotation(this.message, this.type, this.lineNumber,
       {this.column, this.length});
 
-  Annotation.forError(AnalysisError error, LineInfo lineInfo) : this(
-          error.message, error.errorCode.type,
-          lineInfo.getLocation(error.offset).lineNumber,
-          column: lineInfo.getLocation(error.offset).columnNumber,
-          length: error.length);
+  Annotation.forError(AnalysisError error, LineInfo lineInfo)
+      : this(error.message, error.errorCode.type,
+            lineInfo.getLocation(error.offset).lineNumber,
+            column: lineInfo.getLocation(error.offset).columnNumber,
+            length: error.length);
 
   Annotation.forLint([String message, int column, int length])
       : this(message, ErrorType.LINT, null, column: column, length: length);
@@ -579,11 +585,12 @@ class AnnotationMatcher extends Matcher {
 class MockLinter extends LintRule {
   VisitorCallback visitorCallback;
 
-  MockLinter([nodeVisitor v]) : super(
-          name: 'MockLint',
-          group: Group.style,
-          description: 'Desc',
-          details: 'And so on...') {
+  MockLinter([nodeVisitor v])
+      : super(
+            name: 'MockLint',
+            group: Group.style,
+            description: 'Desc',
+            details: 'And so on...') {
     visitorCallback = () => new MockVisitor(v);
   }
 
