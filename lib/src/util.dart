@@ -21,16 +21,17 @@ final _pubspec = new RegExp(r'^[_]?pubspec\.yaml$');
 /// current [packageName].
 String createLibraryNamePrefix(
     {String libraryPath, String projectRoot, String packageName}) {
-  var libraryDirectory = p.dirname(libraryPath);
-  var path = p.relative(libraryDirectory, from: projectRoot);
-  // Drop 'lib/'
+  // Use the posix context to canonicalize separators (`\`).
+  var libraryDirectory = p.posix.dirname(libraryPath);
+  var path = p.posix.relative(libraryDirectory, from: projectRoot);
+  // Drop 'lib/'.
   var segments = p.split(path);
   if (segments[0] == 'lib') {
-    path = p.joinAll(segments.sublist(1));
+    path = p.posix.joinAll(segments.sublist(1));
   }
-  // Replace separators
+  // Replace separators.
   path = path.replaceAll('/', '.');
-  // Add separator if needed
+  // Add separator if needed.
   if (path.isNotEmpty) {
     path = '.$path';
   }
