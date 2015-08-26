@@ -50,6 +50,8 @@ class CompilerStats {
   int64_t num_tokens_consumed;
   int64_t num_token_checks;
   int64_t num_tokens_lookahead;
+  int64_t num_cached_consts;
+  int64_t num_const_cache_hits;
 
   int64_t num_classes_compiled;
   int64_t num_functions_compiled;

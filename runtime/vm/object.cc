@@ -18142,6 +18142,11 @@ static intptr_t HashImpl(const T* characters, intptr_t len) {
 }
 
 
+intptr_t String::Hash(const char* characters, intptr_t len) {
+  return HashImpl(characters, len);
+}
+
+
 intptr_t String::Hash(const uint8_t* characters, intptr_t len) {
   return HashImpl(characters, len);
 }

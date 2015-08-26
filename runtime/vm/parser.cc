@@ -16,6 +16,7 @@
 #include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
+#include "vm/hash_table.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
 #include "vm/longjump.h"
@@ -11900,6 +11901,66 @@ bool Parser::IsInstantiatorRequired() const {
 }
 
 
+class ConstMapKeyEqualsTraits {
+ public:
+  static bool IsMatch(const Object& a, const Object& b) {
+    return String::Cast(a).Equals(String::Cast(b));
+  }
+  static bool IsMatch(const char* key, const Object& b) {
+    return String::Cast(b).Equals(key);
+  }
+  static uword Hash(const Object& obj) {
+    return String::Cast(obj).Hash();
+  }
+  static uword Hash(const char* key) {
+    return String::Hash(key, strlen(key));
+  }
+};
+typedef UnorderedHashMap<ConstMapKeyEqualsTraits> ConstantsMap;
+
+
+void Parser::CacheConstantValue(intptr_t token_pos, const Instance& value) {
+  String& key = String::Handle(Z, script_.url());
+  String& suffix =
+      String::Handle(Z, String::NewFormatted("_%" Pd "", token_pos));
+  key = Symbols::FromConcat(key, suffix);
+  if (isolate()->object_store()->compile_time_constants() == Array::null()) {
+    const intptr_t kInitialConstMapSize = 16;
+    isolate()->object_store()->set_compile_time_constants(
+        Array::Handle(Z, HashTables::New<ConstantsMap>(kInitialConstMapSize,
+                                                       Heap::kNew)));
+  }
+  ConstantsMap constants(isolate()->object_store()->compile_time_constants());
+  constants.UpdateOrInsert(key, value);
+  if (FLAG_compiler_stats) {
+    isolate_->compiler_stats()->num_cached_consts = constants.NumOccupied();
+  }
+  isolate()->object_store()->set_compile_time_constants(constants.Release());
+}
+
+
+bool Parser::GetCachedConstant(intptr_t token_pos, Instance* value) {
+  if (isolate()->object_store()->compile_time_constants() == Array::null()) {
+    return false;
+  }
+  // We don't want to allocate anything in the heap here since this code
+  // is called from the optimizing compiler in the background thread. Allocate
+  // the key value in the zone instead.
+  const char* key = Z->PrintToString("%s_%" Pd "",
+      String::Handle(Z, script_.url()).ToCString(),
+      token_pos);
+  ConstantsMap constants(isolate()->object_store()->compile_time_constants());
+  bool is_present = false;
+  *value ^= constants.GetOrNull<const char *>(key, &is_present);
+  ASSERT(constants.Release().raw() ==
+      isolate()->object_store()->compile_time_constants());
+  if (FLAG_compiler_stats && is_present) {
+    isolate_->compiler_stats()->num_const_cache_hits++;
+  }
+  return is_present;
+}
+
+
 RawInstance* Parser::TryCanonicalize(const Instance& instance,
                                      intptr_t token_pos) {
   if (instance.IsNull()) {
@@ -12522,6 +12583,15 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
   ASSERT(type_pos >= 0);
   ASSERT(CurrentToken() == Token::kLBRACK || CurrentToken() == Token::kINDEX);
   const intptr_t literal_pos = TokenPos();
+
+  if (is_const) {
+    Instance& existing_const = Instance::ZoneHandle(Z);
+    if (GetCachedConstant(literal_pos, &existing_const)) {
+      SkipListLiteral();
+      return new(Z) LiteralNode(literal_pos, existing_const);
+    }
+  }
+
   bool is_empty_literal = CurrentToken() == Token::kINDEX;
   ConsumeToken();
 
@@ -12589,8 +12659,8 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
 
   if (is_const) {
     // Allocate and initialize the const list at compile time.
-    Array& const_list =
-        Array::ZoneHandle(Z, Array::New(element_list.length(), Heap::kOld));
+    Array& const_list = Array::ZoneHandle(Z,
+        Array::New(element_list.length(), Heap::kOld));
     const_list.SetTypeArguments(
         TypeArguments::Handle(Z, list_type_arguments.Canonicalize()));
     Error& malformed_error = Error::Handle(Z);
@@ -12622,6 +12692,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     }
     const_list.MakeImmutable();
     const_list ^= TryCanonicalize(const_list, literal_pos);
+    CacheConstantValue(literal_pos, const_list);
     return new(Z) LiteralNode(literal_pos, const_list);
   } else {
     // Factory call at runtime.
@@ -12715,8 +12786,16 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   ASSERT(type_pos >= 0);
   ASSERT(CurrentToken() == Token::kLBRACE);
   const intptr_t literal_pos = TokenPos();
-  ConsumeToken();
 
+  if (is_const) {
+    Instance& existing_const = Instance::ZoneHandle(Z);
+    if (GetCachedConstant(literal_pos, &existing_const)) {
+      SkipMapLiteral();
+      return new(Z) LiteralNode(literal_pos, existing_const);
+    }
+  }
+
+  ConsumeToken();  // Opening brace.
   AbstractType& key_type = Type::ZoneHandle(Z, Type::DynamicType());
   AbstractType& value_type = Type::ZoneHandle(Z, Type::DynamicType());
   TypeArguments& map_type_arguments =
@@ -12873,6 +12952,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                    "error executing const Map constructor");
     } else {
       const Instance& const_instance = Instance::Cast(constructor_result);
+      CacheConstantValue(literal_pos, const_instance);
       return new(Z) LiteralNode(
           literal_pos, Instance::ZoneHandle(Z, const_instance.raw()));
     }
@@ -13415,41 +13495,43 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                   "const object creation",
                   external_constructor_name.ToCString());
     }
-    const Object& constructor_result = Object::Handle(Z,
-        EvaluateConstConstructorCall(type_class,
-                                     type_arguments,
-                                     constructor,
-                                     arguments));
-    if (constructor_result.IsUnhandledException()) {
-      // It's a compile-time error if invocation of a const constructor
-      // call fails.
-      ReportErrors(Error::Cast(constructor_result),
-                   script_, new_pos,
-                   "error while evaluating const constructor");
+
+    Instance& const_instance = Instance::ZoneHandle(Z);
+    if (GetCachedConstant(new_pos, &const_instance)) {
+      // Cache hit, nothing else to do.
     } else {
-      // Const constructors can return null in the case where a const native
-      // factory returns a null value. Thus we cannot use a Instance::Cast here.
-      Instance& const_instance = Instance::Handle(Z);
-      const_instance ^= constructor_result.raw();
-      new_object = new(Z) LiteralNode(
-          new_pos, Instance::ZoneHandle(Z, const_instance.raw()));
-      if (!type_bound.IsNull()) {
-        ASSERT(!type_bound.IsMalformed());
-        Error& malformed_error = Error::Handle(Z);
-        ASSERT(!is_top_level_);  // We cannot check unresolved types.
-        if (!const_instance.IsInstanceOf(type_bound,
-                                         TypeArguments::Handle(Z),
-                                         &malformed_error)) {
-          type_bound = ClassFinalizer::NewFinalizedMalformedType(
-              malformed_error,
-              script_,
-              new_pos,
-              "const factory result is not an instance of '%s'",
-              String::Handle(Z, type_bound.UserVisibleName()).ToCString());
-          new_object = ThrowTypeError(new_pos, type_bound);
-        }
-        type_bound = AbstractType::null();
+      Object& constructor_result = Object::Handle(Z,
+          EvaluateConstConstructorCall(type_class,
+                                       type_arguments,
+                                       constructor,
+                                       arguments));
+      if (constructor_result.IsUnhandledException()) {
+        // It's a compile-time error if invocation of a const constructor
+        // call fails.
+        ReportErrors(Error::Cast(constructor_result),
+                     script_, new_pos,
+                     "error while evaluating const constructor");
       }
+      const_instance ^= constructor_result.raw();
+      CacheConstantValue(new_pos, const_instance);
+    }
+    new_object = new(Z) LiteralNode(new_pos, const_instance);
+    if (!type_bound.IsNull()) {
+      ASSERT(!type_bound.IsMalformed());
+      Error& malformed_error = Error::Handle(Z);
+      ASSERT(!is_top_level_);  // We cannot check unresolved types.
+      if (!const_instance.IsInstanceOf(type_bound,
+                                       TypeArguments::Handle(Z),
+                                       &malformed_error)) {
+        type_bound = ClassFinalizer::NewFinalizedMalformedType(
+            malformed_error,
+            script_,
+            new_pos,
+            "const factory result is not an instance of '%s'",
+            String::Handle(Z, type_bound.UserVisibleName()).ToCString());
+        new_object = ThrowTypeError(new_pos, type_bound);
+      }
+      type_bound = AbstractType::null();
     }
   } else {
     CheckConstructorCallTypeArguments(new_pos, constructor, type_arguments);

@@ -5943,7 +5943,7 @@ class String : public Instance {
 
   static intptr_t hash_offset() { return OFFSET_OF(RawString, hash_); }
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
-  static intptr_t HashLatin1(const uint8_t* characters, intptr_t len);
+  static intptr_t Hash(const char* characters, intptr_t len);
   static intptr_t Hash(const uint16_t* characters, intptr_t len);
   static intptr_t Hash(const int32_t* characters, intptr_t len);
   static intptr_t HashRawSymbol(const RawString* symbol) {

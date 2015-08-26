@@ -426,6 +426,13 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, library_load_error_table_);
   }
 
+  RawArray* compile_time_constants() const {
+    return compile_time_constants_;
+  }
+  void set_compile_time_constants(const Array& value) {
+    compile_time_constants_ = value.raw();
+  }
+
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -515,8 +522,9 @@ class ObjectStore {
   RawTypedData* empty_uint32_array_;
   RawFunction* handle_message_function_;
   RawArray* library_load_error_table_;
+  RawArray* compile_time_constants_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&library_load_error_table_);
+    return reinterpret_cast<RawObject**>(&compile_time_constants_);
   }
 
   friend class SnapshotReader;

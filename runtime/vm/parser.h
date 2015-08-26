@@ -820,6 +820,8 @@ class Parser : public ValueObject {
                             ArgumentListNode* arguments);
 
   RawInstance* TryCanonicalize(const Instance& instance, intptr_t token_pos);
+  void CacheConstantValue(intptr_t token_pos, const Instance& value);
+  bool GetCachedConstant(intptr_t token_pos, Instance* value);
 
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return isolate_; }
