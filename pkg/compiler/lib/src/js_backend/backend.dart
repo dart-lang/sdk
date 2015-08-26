@@ -2819,6 +2819,8 @@ class Annotations {
   ClassElement expectTrustTypeAnnotationsClass;
   ClassElement expectAssumeDynamicClass;
 
+  JavaScriptBackend get backend => compiler.backend;
+
   Annotations(this.compiler);
 
   void onLibraryScanned(LibraryElement library) {
@@ -2839,8 +2841,11 @@ class Annotations {
 
   /// Returns `true` if inlining is disabled for [element].
   bool noInline(Element element) {
-    // TODO(floitsch): restrict to test directory.
-    return _hasAnnotation(element, expectNoInlineClass);
+    if (_hasAnnotation(element, expectNoInlineClass)) {
+      // TODO(floitsch): restrict to elements from the test directory.
+      return true;
+    }
+    return _hasAnnotation(element, backend.noInlineClass);
   }
 
   /// Returns `true` if parameter and returns types should be trusted for

@@ -1672,7 +1672,7 @@ class TransformingVisitor extends LeafVisitor {
             node.target.treeElements.getSendStructure(expr);
         if (structure is InvokeStructure) {
           return structure.semantics.kind == AccessKind.TOPLEVEL_METHOD &&
-              compiler.backend.isForeign(structure.semantics.element);
+              backend.isForeign(structure.semantics.element);
         }
       }
       return false;
@@ -1680,12 +1680,9 @@ class TransformingVisitor extends LeafVisitor {
 
     ast.Statement body = node.target.node.body;
     bool shouldInline() {
-      // At compile time, 'getInterceptor' from the Javascript runtime has a
-      // foreign body that returns undefined.  It is later mutated by replacing
-      // it with a specialized version.  Inlining undefined would be wrong.
-      // TODO(kmillikin): matching the name prevents inlining other functions
-      // with the same name.
-      if (node.target.name == 'getInterceptor') return false;
+      if (backend.annotations.noInline(node.target)) {
+        return false;
+      }
 
       // Inline functions that are a single return statement, expression
       // statement, or block containing a return statement or expression
