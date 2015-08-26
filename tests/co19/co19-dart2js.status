@@ -1902,7 +1902,6 @@ LayoutTests/fast/css/link-alternate-stylesheet-3_t01: RuntimeError # Please tria
 LayoutTests/fast/css/link-alternate-stylesheet-4_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/link-alternate-stylesheet-5_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/link-disabled-attr-parser_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/list-item-text-align_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/margin-start-end_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/max-device-aspect-ratio_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/media-query-recovery_t01: RuntimeError # Please triage this failure
@@ -2142,7 +2141,6 @@ LayoutTests/fast/dom/click-method-on-html-element_t01: RuntimeError # Please tri
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/containerNode_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/css-delete-doc_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/css-mediarule-functions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-rule-functions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-selectorText_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-shortHands_t01: RuntimeError # Please triage this failure
@@ -2470,7 +2468,6 @@ LayoutTests/fast/forms/text-control-select-blurred_t01: RuntimeError # Please tr
 LayoutTests/fast/forms/textarea-maxlength_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-no-scroll-on-blur_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-paste-newline_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/textarea-rows-cols_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-set-defaultvalue-after-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-trailing-newline_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textfield-clone_t01: RuntimeError # Please triage this failure
@@ -3071,6 +3068,7 @@ LayoutTests/fast/dom/Attr/access-after-element-destruction_t01: RuntimeError # P
 LayoutTests/fast/dom/HTMLOutputElement/htmloutputelement-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/surroundContents-check-boundary-points_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/surroundContents-for-detached-node_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/encoding/css-charset-dom_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/insertAdjacentElement_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/insertAllBefore_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/insertAllBefore_A02_t01: RuntimeError # Please triage this failure
@@ -3093,10 +3091,13 @@ WebPlatformTest/html-templates/serializing-html-templates/outerhtml_t01: Runtime
 [ $compiler == dart2js && $runtime == ff && $system != windows ]
 LayoutTests/fast/canvas/canvas-resetTransform_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-setTransform_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/list-item-text-align_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-object-fit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyle-text-decoration-style_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/css-mediarule-functions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/observe-options-attributes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/observe-options-character-data_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/textarea-rows-cols_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/incorrect-colgroup-span-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open_t01: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/responseType_A01_t02: RuntimeError # Please triage this failure
