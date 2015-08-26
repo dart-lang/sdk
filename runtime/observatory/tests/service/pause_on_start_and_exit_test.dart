@@ -15,24 +15,32 @@ void testMain() {
 var tests = [
 
 (Isolate isolate) async {
+  print('Getting stream...');
   Completer completer = new Completer();
   var stream = await isolate.vm.getEventStream(VM.kDebugStream);
+  print('Subscribing...');
   var subscription;
   subscription = stream.listen((ServiceEvent event) {
     if (event.kind == ServiceEvent.kPauseStart) {
-      print('Received PauseStart');
+      print('Received $event');
       subscription.cancel();
       completer.complete();
+    } else {
+      print('Ignoring event $event');
     }
   });
+  print('Subscribed.  Pause event is ${isolate.pauseEvent}');
 
   if (isolate.pauseEvent != null &&
       isolate.pauseEvent.kind == ServiceEvent.kPauseStart) {
     // Wait for the isolate to hit PauseStart.
     subscription.cancel();
+    print('Subscription cancelled.');
   } else {
+    print('Waiting for pause start event.');
     await completer.future;
   }
+  print('Done waiting for pause event.');
 
   // Grab the timestamp.
   var pausetime1 = isolate.pauseEvent.timestamp;
