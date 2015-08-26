@@ -447,6 +447,11 @@ class Isolate : public BaseIsolate {
   // Requests that the debugger resume execution.
   void Resume() {
     resume_request_ = true;
+    last_resume_timestamp_ = OS::GetCurrentTimeMillis();
+  }
+
+  int64_t last_resume_timestamp() const {
+    return last_resume_timestamp_;
   }
 
   // Returns whether the vm service has requested that the debugger
@@ -803,6 +808,7 @@ class Isolate : public BaseIsolate {
   Debugger* debugger_;
   bool single_step_;
   bool resume_request_;
+  int64_t last_resume_timestamp_;
   bool has_compiled_;
   Flags flags_;
   Random random_;

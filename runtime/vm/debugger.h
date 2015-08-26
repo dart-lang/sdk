@@ -355,7 +355,8 @@ class DebuggerEvent {
         breakpoint_(NULL),
         exception_(NULL),
         async_continuation_(NULL),
-        at_async_jump_(false) {}
+        at_async_jump_(false),
+        timestamp_(-1) {}
 
   Isolate* isolate() const { return isolate_; }
 
@@ -414,6 +415,12 @@ class DebuggerEvent {
     return isolate_->main_port();
   }
 
+  void UpdateTimestamp();
+
+  int64_t timestamp() const {
+    return timestamp_;
+  }
+
  private:
   Isolate* isolate_;
   EventType type_;
@@ -422,6 +429,7 @@ class DebuggerEvent {
   const Object* exception_;
   const Object* async_continuation_;
   bool at_async_jump_;
+  int64_t timestamp_;
 };
 
 

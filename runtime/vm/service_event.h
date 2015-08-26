@@ -51,20 +51,7 @@ class ServiceEvent {
     const Instance* stack_trace;
   };
 
-  ServiceEvent(Isolate* isolate, EventKind event_kind)
-      : isolate_(isolate),
-        kind_(event_kind),
-        embedder_kind_(NULL),
-        embedder_stream_id_(NULL),
-        breakpoint_(NULL),
-        top_frame_(NULL),
-        exception_(NULL),
-        async_continuation_(NULL),
-        at_async_jump_(false),
-        inspectee_(NULL),
-        gc_stats_(NULL),
-        bytes_(NULL),
-        bytes_length_(0) {}
+  ServiceEvent(Isolate* isolate, EventKind event_kind);
 
   explicit ServiceEvent(const DebuggerEvent* debugger_event);
 
@@ -164,6 +151,10 @@ class ServiceEvent {
     log_record_ = log_record;
   }
 
+  int64_t timestamp() const {
+    return timestamp_;
+  }
+
   void PrintJSON(JSONStream* js) const;
 
   void PrintJSONHeader(JSONObject* jsobj) const;
@@ -183,6 +174,7 @@ class ServiceEvent {
   const uint8_t* bytes_;
   intptr_t bytes_length_;
   LogRecord log_record_;
+  int64_t timestamp_;
 };
 
 }  // namespace dart

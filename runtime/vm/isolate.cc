@@ -661,6 +661,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       debugger_(NULL),
       single_step_(false),
       resume_request_(false),
+      last_resume_timestamp_(OS::GetCurrentTimeMillis()),
       has_compiled_(false),
       flags_(),
       random_(),
@@ -1674,7 +1675,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     return;
   }
   int64_t start_time_millis = start_time() / kMicrosecondsPerMillisecond;
-  jsobj.AddProperty64("startTime", start_time_millis);
+  jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
   IsolateSpawnState* state = spawn_state();
   if (state != NULL) {
     const Object& entry = Object::Handle(this, state->ResolveFunction());

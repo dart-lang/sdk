@@ -6,8 +6,10 @@
 
 #include "vm/dart.h"
 #include "vm/lockers.h"
+#include "vm/os.h"
 #include "vm/port.h"
 #include "vm/thread_interrupter.h"
+
 
 namespace dart {
 
@@ -42,6 +44,7 @@ MessageHandler::MessageHandler()
       pause_on_exit_(false),
       paused_on_start_(false),
       paused_on_exit_(false),
+      paused_timestamp_(-1),
       pool_(NULL),
       task_(NULL),
       start_callback_(NULL),
@@ -250,6 +253,7 @@ void MessageHandler::TaskCallback() {
         NotifyPauseOnStart();
         monitor_.Enter();
         paused_on_start_ = true;
+        paused_timestamp_ = OS::GetCurrentTimeMillis();
       }
       HandleMessages(false, false);
       if (pause_on_start()) {
@@ -258,6 +262,7 @@ void MessageHandler::TaskCallback() {
         return;
       } else {
         paused_on_start_ = false;
+        paused_timestamp_ = -1;
       }
     }
 
@@ -286,6 +291,7 @@ void MessageHandler::TaskCallback() {
           }
           notify_paused_on_exit = true;
           paused_on_exit_ = true;
+          paused_timestamp_ = OS::GetCurrentTimeMillis();
         }
       } else {
         if (FLAG_trace_isolates) {
@@ -297,6 +303,7 @@ void MessageHandler::TaskCallback() {
         pool_ = NULL;
         run_end_callback = true;
         paused_on_exit_ = false;
+        paused_timestamp_ = -1;
       }
     }
   }

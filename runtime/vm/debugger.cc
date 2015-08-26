@@ -234,6 +234,11 @@ ActivationFrame::ActivationFrame(
 }
 
 
+void DebuggerEvent::UpdateTimestamp() {
+  timestamp_ = OS::GetCurrentTimeMillis();
+}
+
+
 bool Debugger::HasEventHandler() {
   return ((event_handler_ != NULL) ||
           Service::isolate_stream.enabled() ||
@@ -2314,6 +2319,7 @@ void Debugger::Pause(DebuggerEvent* event) {
   ASSERT(obj_cache_ == NULL);
 
   pause_event_ = event;
+  pause_event_->UpdateTimestamp();
   obj_cache_ = new RemoteObjectCache(64);
 
   InvokeEventHandler(event);

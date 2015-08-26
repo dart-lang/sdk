@@ -984,6 +984,7 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
         if (text != NULL) {
           event.AddProperty("text", text);
         }
+        event.AddPropertyTimeMillis("timestamp", OS::GetCurrentTimeMillis());
       }
     }
   }
@@ -2543,6 +2544,7 @@ void Service::SendGraphEvent(Isolate* isolate) {
           event.AddProperty("type", "Event");
           event.AddProperty("kind", "_Graph");
           event.AddProperty("isolate", isolate);
+          event.AddPropertyTimeMillis("timestamp", OS::GetCurrentTimeMillis());
 
           event.AddProperty("chunkIndex", i);
           event.AddProperty("chunkCount", num_chunks);
@@ -2875,7 +2877,7 @@ static bool GetVM(Isolate* isolate, JSONStream* js) {
   jsobj.AddProperty("_typeChecksEnabled", isolate->flags().type_checks());
   int64_t start_time_millis = (Dart::vm_isolate()->start_time() /
                                kMicrosecondsPerMillisecond);
-  jsobj.AddProperty64("startTime", start_time_millis);
+  jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
   // Construct the isolate list.
   {
     JSONArray jsarr(&jsobj, "isolates");

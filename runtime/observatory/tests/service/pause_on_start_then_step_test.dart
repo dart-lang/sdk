@@ -4,6 +4,7 @@
 // VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
+import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'dart:async';
 
@@ -35,6 +36,15 @@ var tests = [
     await completer.future;
   }
 
+  // Grab the timestamp.
+  var pausetime1 = isolate.pauseEvent.timestamp;
+  expect(pausetime1, isNotNull);
+  // Reload the isolate.
+  await isolate.reload();
+  // Verify that it is the same.
+  expect(pausetime1.millisecondsSinceEpoch,
+         equals(isolate.pauseEvent.timestamp.millisecondsSinceEpoch));
+
   completer = new Completer();
   stream = await isolate.vm.getEventStream(VM.kDebugStream);
   subscription = stream.listen((ServiceEvent event) {
@@ -52,6 +62,18 @@ var tests = [
   // Wait for the isolate to hit PauseBreakpoint.
   print('Waiting for PauseBreakpoint');
   await completer.future;
+
+  // Grab the timestamp.
+  var pausetime2 = isolate.pauseEvent.timestamp;
+  expect(pausetime2, isNotNull);
+  // Reload the isolate.
+  await isolate.reload();
+  // Verify that it is the same.
+  expect(pausetime2.millisecondsSinceEpoch,
+         equals(isolate.pauseEvent.timestamp.millisecondsSinceEpoch));
+
+ expect(pausetime2.millisecondsSinceEpoch,
+        greaterThan(pausetime1.millisecondsSinceEpoch));
 },
 
 ];

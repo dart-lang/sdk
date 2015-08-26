@@ -959,6 +959,11 @@ class Event extends Response {
   // The isolate with which this event is associated.
   @Isolate isolate;
 
+  // The timestamp (in milliseconds since the epoch) associated with this event.
+  // For some isolate pause events, the timestamp is from when the isolate was
+  // paused. For other events, the timestamp is from when the event was created.
+  int timestamp;
+
   // The breakpoint which was added, removed, or resolved.
   //
   // This is provided for the event kinds:
