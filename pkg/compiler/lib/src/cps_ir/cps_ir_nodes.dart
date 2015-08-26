@@ -23,6 +23,10 @@ abstract class Node {
   /// A pointer to the parent node. Is null until set by optimization passes.
   Node parent;
 
+  /// Workaround for a slow Object.hashCode in the VM.
+  static int _usedHashCodes = 0;
+  final int hashCode = ++_usedHashCodes;
+
   accept(Visitor visitor);
 }
 

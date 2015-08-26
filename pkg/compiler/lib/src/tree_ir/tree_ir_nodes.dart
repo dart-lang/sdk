@@ -43,6 +43,9 @@ import '../types/types.dart' as types show TypeMask;
  * The base class of all Tree nodes.
  */
 abstract class Node {
+  /// Workaround for a slow Object.hashCode in the VM.
+  static int _usedHashCodes = 0;
+  final int hashCode = ++_usedHashCodes;
 }
 
 /**
