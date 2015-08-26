@@ -1033,7 +1033,7 @@ void main(int argc, char** argv) {
   }
 
   // Initialize the Dart VM.
-  if (!Dart_Initialize(vm_isolate_snapshot_buffer,
+  if (!Dart_Initialize(vm_isolate_snapshot_buffer, NULL,
                        CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
                        DartUtils::OpenFile,
                        DartUtils::ReadFile,

@@ -865,6 +865,7 @@ typedef bool (*Dart_EntropySource)(uint8_t* buffer, intptr_t length);
  */
 DART_EXPORT bool Dart_Initialize(
     const uint8_t* vm_isolate_snapshot,
+    const uint8_t* instructions_snapshot,
     Dart_IsolateCreateCallback create,
     Dart_IsolateInterruptCallback interrupt,
     Dart_IsolateUnhandledExceptionCallback unhandled_exception,

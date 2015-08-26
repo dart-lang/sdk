@@ -1266,6 +1266,7 @@ DART_EXPORT const char* Dart_VersionString() {
 
 DART_EXPORT bool Dart_Initialize(
     const uint8_t* vm_isolate_snapshot,
+    const uint8_t* instructions_snapshot,
     Dart_IsolateCreateCallback create,
     Dart_IsolateInterruptCallback interrupt,
     Dart_IsolateUnhandledExceptionCallback unhandled,
@@ -1276,6 +1277,7 @@ DART_EXPORT bool Dart_Initialize(
     Dart_FileCloseCallback file_close,
     Dart_EntropySource entropy_source) {
   const char* err_msg = Dart::InitOnce(vm_isolate_snapshot,
+                                       instructions_snapshot,
                                        create, interrupt, unhandled, shutdown,
                                        file_open, file_read, file_write,
                                        file_close, entropy_source);
