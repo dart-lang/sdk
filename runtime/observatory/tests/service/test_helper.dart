@@ -26,13 +26,19 @@ class _TestLauncher {
                             Platform.script.toFilePath(),
                             _TESTEE_MODE_FLAG] {}
 
-  Future<int> launch(bool pause_on_start, bool pause_on_exit) {
+  Future<int> launch(bool pause_on_start, bool pause_on_exit, bool trace_service) {
+    assert(pause_on_start != null);
+    assert(pause_on_exit != null);
+    assert(trace_service != null);
     String dartExecutable = Platform.executable;
     var fullArgs = [];
-    if (pause_on_start == true) {
+    if (trace_service) {
+      fullArgs.add('--trace-service');
+    }
+    if (pause_on_start) {
       fullArgs.add('--pause-isolates-on-start');
     }
-    if (pause_on_exit == true) {
+    if (pause_on_exit) {
       fullArgs.add('--pause-isolates-on-exit');
     }
     fullArgs.addAll(Platform.executableArguments);
@@ -102,7 +108,8 @@ void runIsolateTests(List<String> mainArgs,
                      {void testeeBefore(),
                       void testeeConcurrent(),
                       bool pause_on_start: false,
-                      bool pause_on_exit: false}) {
+                      bool pause_on_exit: false,
+                      bool trace_service: false}) {
   assert(!pause_on_start || testeeBefore == null);
   if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
     if (!pause_on_start) {
@@ -120,7 +127,7 @@ void runIsolateTests(List<String> mainArgs,
     }
   } else {
     var process = new _TestLauncher();
-    process.launch(pause_on_start, pause_on_exit).then((port) {
+    process.launch(pause_on_start, pause_on_exit, trace_service).then((port) {
       if (mainArgs.contains("--gdb")) {
         port = 8181;
       }
@@ -277,7 +284,8 @@ Future runVMTests(List<String> mainArgs,
                   {Future testeeBefore(),
                    Future testeeConcurrent(),
                    bool pause_on_start: false,
-                   bool pause_on_exit: false}) async {
+                   bool pause_on_exit: false,
+                   bool trace_service: false}) async {
   if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
     if (!pause_on_start) {
       if (testeeBefore != null) {
@@ -294,7 +302,9 @@ Future runVMTests(List<String> mainArgs,
     }
   } else {
     var process = new _TestLauncher();
-    process.launch(pause_on_start, pause_on_exit).then((port) async {
+    process.launch(pause_on_start,
+                   pause_on_exit,
+                   trace_service).then((port) async {
       if (mainArgs.contains("--gdb")) {
         port = 8181;
       }
