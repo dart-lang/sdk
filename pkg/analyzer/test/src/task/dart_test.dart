@@ -49,6 +49,7 @@ main() {
   runReflectiveTests(LibraryErrorsReadyTaskTest);
   runReflectiveTests(LibraryUnitErrorsTaskTest);
   runReflectiveTests(ParseDartTaskTest);
+  runReflectiveTests(PartiallyResolveReferencesTaskTest);
   runReflectiveTests(ResolveUnitTypeNamesTaskTest);
   runReflectiveTests(ResolveLibraryTypeNamesTaskTest);
   runReflectiveTests(ResolveReferencesTaskTest);
@@ -2333,6 +2334,74 @@ class B {}''');
 }
 
 @reflectiveTest
+class PartiallyResolveReferencesTaskTest extends _AbstractDartTaskTest {
+  test_perform() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+int a = b;
+int b = c;
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT5);
+    expect(task, new isInstanceOf<PartiallyResolveUnitReferencesTask>());
+    // Test the outputs
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    expect(unit, same(outputs[RESOLVED_UNIT5]));
+    // Test the state of the AST
+    TopLevelVariableDeclaration a = unit.declarations[0];
+    VariableDeclaration variableA = a.variables.variables[0];
+    SimpleIdentifier initializer = variableA.initializer;
+    expect(initializer.staticElement, isNotNull);
+    // Test the error generation
+    _fillErrorListener(PARTIALLY_RESOLVE_REFERENCES_ERRORS);
+    errorListener.assertErrorsWithCodes(
+        <ErrorCode>[StaticWarningCode.UNDEFINED_IDENTIFIER]);
+  }
+
+  test_perform_importExport() {
+    newSource(
+        '/a.dart',
+        '''
+library a;
+class A<T> {
+  T m() {}
+}
+''');
+    newSource(
+        '/b.dart',
+        '''
+library b;
+export 'a.dart';
+''');
+    Source sourceC = newSource(
+        '/c.dart',
+        '''
+library c;
+import 'b.dart';
+main() {
+  new A<int>().m();
+}
+''');
+    computeResult(new LibrarySpecificUnit(sourceC, sourceC), RESOLVED_UNIT5);
+    expect(task, new isInstanceOf<PartiallyResolveUnitReferencesTask>());
+    // validate
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    expect(unit, isNotNull);
+
+    FunctionDeclaration functionDeclaration = unit.declarations[0];
+    BlockFunctionBody body = functionDeclaration.functionExpression.body;
+    List<Statement> statements = body.block.statements;
+    ExpressionStatement statement = statements[0];
+    MethodInvocation invocation = statement.expression;
+    MethodElement methodElement = invocation.methodName.staticElement;
+    expect(methodElement, isNotNull);
+    expect(methodElement.type, isNotNull);
+    expect(methodElement.returnType.toString(), 'int');
+  }
+}
+
+@reflectiveTest
 class ResolveLibraryTypeNamesTaskTest extends _AbstractDartTaskTest {
   test_perform() {
     Source sourceLib = newSource(
@@ -2407,15 +2476,15 @@ main(A a) {
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     // prepare unit and "a.m()" invocation
-    computeResult(target, RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    computeResult(target, RESOLVED_UNIT8);
+    CompilationUnit unit = outputs[RESOLVED_UNIT8];
     // walk the AST
     FunctionDeclaration function = unit.declarations[1];
     BlockFunctionBody body = function.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
     MethodInvocation invocation = statement.expression;
     expect(task, new isInstanceOf<ResolveUnitReferencesTask>());
-    expect(unit, same(outputs[RESOLVED_UNIT5]));
+    expect(unit, same(outputs[RESOLVED_UNIT8]));
     // a.m() is resolved now
     expect(invocation.methodName.staticElement, isNotNull);
   }
@@ -2431,7 +2500,7 @@ main(A a) {
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT5);
+    computeResult(target, RESOLVED_UNIT8);
     expect(task, new isInstanceOf<ResolveUnitReferencesTask>());
     // validate
     _fillErrorListener(RESOLVE_REFERENCES_ERRORS);
@@ -2463,10 +2532,10 @@ main() {
   new A<int>().m();
 }
 ''');
-    computeResult(new LibrarySpecificUnit(sourceC, sourceC), RESOLVED_UNIT5);
+    computeResult(new LibrarySpecificUnit(sourceC, sourceC), RESOLVED_UNIT8);
     expect(task, new isInstanceOf<ResolveUnitReferencesTask>());
     // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    CompilationUnit unit = outputs[RESOLVED_UNIT8];
     expect(unit, isNotNull);
     {
       FunctionDeclaration functionDeclaration = unit.declarations[0];
