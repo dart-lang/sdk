@@ -6477,12 +6477,12 @@ RawFunction* Function::ImplicitClosureFunction() const {
 
 
 RawString* Function::UserVisibleFormalParameters() const {
-  const GrowableObjectArray& pieces =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  // Typically 3, 5,.. elements in 'pieces', e.g.:
+  // '_LoadRequest', CommaSpace, '_LoadError'.
+  GrowableArray<const String*> pieces(5);
   const TypeArguments& instantiator = TypeArguments::Handle();
-  BuildSignatureParameters(false, kUserVisibleName, instantiator, pieces);
-  const Array& strings = Array::Handle(Array::MakeArray(pieces));
-  return String::ConcatAll(strings);
+  BuildSignatureParameters(false, kUserVisibleName, instantiator, &pieces);
+  return Symbols::FromConcatAll(pieces);
 }
 
 
@@ -6490,15 +6490,17 @@ void Function::BuildSignatureParameters(
     bool instantiate,
     NameVisibility name_visibility,
     const TypeArguments& instantiator,
-    const GrowableObjectArray& pieces) const {
-  AbstractType& param_type = AbstractType::Handle();
+    GrowableArray<const String*>* pieces) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  AbstractType& param_type = AbstractType::Handle(zone);
   const intptr_t num_params = NumParameters();
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
   const intptr_t num_opt_named_params = NumOptionalNamedParameters();
   const intptr_t num_opt_params = num_opt_pos_params + num_opt_named_params;
   ASSERT((num_fixed_params + num_opt_params) == num_params);
-  String& name = String::Handle();
   intptr_t i = 0;
   if (name_visibility == kUserVisibleName) {
     // Hide implicit parameters.
@@ -6510,42 +6512,44 @@ void Function::BuildSignatureParameters(
     if (instantiate && !param_type.IsInstantiated()) {
       param_type = param_type.InstantiateFrom(instantiator, NULL);
     }
-    name = param_type.BuildName(name_visibility);
-    pieces.Add(name);
+    const String& name =
+        String::ZoneHandle(zone, param_type.BuildName(name_visibility));
+    pieces->Add(&name);
     if (i != (num_params - 1)) {
-      pieces.Add(Symbols::CommaSpace());
+      pieces->Add(&Symbols::CommaSpace());
     }
     i++;
   }
   if (num_opt_params > 0) {
     if (num_opt_pos_params > 0) {
-      pieces.Add(Symbols::LBracket());
+      pieces->Add(&Symbols::LBracket());
     } else {
-      pieces.Add(Symbols::LBrace());
+      pieces->Add(&Symbols::LBrace());
     }
     for (intptr_t i = num_fixed_params; i < num_params; i++) {
       // The parameter name of an optional positional parameter does not need
       // to be part of the signature, since it is not used.
       if (num_opt_named_params > 0) {
-        name = ParameterNameAt(i);
-        pieces.Add(name);
-        pieces.Add(Symbols::ColonSpace());
+        const String& name = String::ZoneHandle(zone, ParameterNameAt(i));
+        pieces->Add(&name);
+        pieces->Add(&Symbols::ColonSpace());
       }
       param_type = ParameterTypeAt(i);
       if (instantiate && !param_type.IsInstantiated()) {
         param_type = param_type.InstantiateFrom(instantiator, NULL);
       }
       ASSERT(!param_type.IsNull());
-      name = param_type.BuildName(name_visibility);
-      pieces.Add(name);
+      const String& name =
+          String::ZoneHandle(zone, param_type.BuildName(name_visibility));
+      pieces->Add(&name);
       if (i != (num_params - 1)) {
-        pieces.Add(Symbols::CommaSpace());
+        pieces->Add(&Symbols::CommaSpace());
       }
     }
     if (num_opt_pos_params > 0) {
-      pieces.Add(Symbols::RBracket());
+      pieces->Add(&Symbols::RBracket());
     } else {
-      pieces.Add(Symbols::RBrace());
+      pieces->Add(&Symbols::RBrace());
     }
   }
 }
@@ -6586,56 +6590,58 @@ RawInstance* Function::ImplicitInstanceClosure(const Instance& receiver) const {
 RawString* Function::BuildSignature(bool instantiate,
                                     NameVisibility name_visibility,
                                     const TypeArguments& instantiator) const {
-  const GrowableObjectArray& pieces =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  String& name = String::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  GrowableArray<const String*> pieces(zone, 4);
   if (!instantiate && !is_static() && (name_visibility == kInternalName)) {
     // Prefix the signature with its signature class and type parameters, if any
     // (e.g. "Map<K, V>(K) => bool"). In case of a function type alias, the
     // signature class name is the alias name.
     // The signature of static functions cannot be type parameterized.
-    const Class& function_class = Class::Handle(Owner());
+    const Class& function_class = Class::Handle(zone, Owner());
     ASSERT(!function_class.IsNull());
     const TypeArguments& type_parameters = TypeArguments::Handle(
-        function_class.type_parameters());
+        zone, function_class.type_parameters());
     if (!type_parameters.IsNull()) {
-      const String& function_class_name = String::Handle(function_class.Name());
-      pieces.Add(function_class_name);
+      const String& function_class_name =
+          String::ZoneHandle(zone, function_class.Name());
+      pieces.Add(&function_class_name);
       const intptr_t num_type_parameters = type_parameters.Length();
-      pieces.Add(Symbols::LAngleBracket());
-      TypeParameter& type_parameter = TypeParameter::Handle();
-      AbstractType& bound = AbstractType::Handle();
+      pieces.Add(&Symbols::LAngleBracket());
+      TypeParameter& type_parameter = TypeParameter::Handle(zone);
+      AbstractType& bound = AbstractType::Handle(zone);
       for (intptr_t i = 0; i < num_type_parameters; i++) {
         type_parameter ^= type_parameters.TypeAt(i);
-        name = type_parameter.name();
-        pieces.Add(name);
+        const String& name = String::ZoneHandle(zone, type_parameter.name());
+        pieces.Add(&name);
         bound = type_parameter.bound();
         if (!bound.IsNull() && !bound.IsObjectType()) {
-          pieces.Add(Symbols::SpaceExtendsSpace());
-          name = bound.BuildName(name_visibility);
-          pieces.Add(name);
+          pieces.Add(&Symbols::SpaceExtendsSpace());
+          const String& name =
+              String::ZoneHandle(zone, bound.BuildName(name_visibility));
+          pieces.Add(&name);
         }
         if (i < num_type_parameters - 1) {
-          pieces.Add(Symbols::CommaSpace());
+          pieces.Add(&Symbols::CommaSpace());
         }
       }
-      pieces.Add(Symbols::RAngleBracket());
+      pieces.Add(&Symbols::RAngleBracket());
     }
   }
-  pieces.Add(Symbols::LParen());
+  pieces.Add(&Symbols::LParen());
   BuildSignatureParameters(instantiate,
                            name_visibility,
                            instantiator,
-                           pieces);
-  pieces.Add(Symbols::RParenArrow());
-  AbstractType& res_type = AbstractType::Handle(result_type());
+                           &pieces);
+  pieces.Add(&Symbols::RParenArrow());
+  AbstractType& res_type = AbstractType::Handle(zone, result_type());
   if (instantiate && !res_type.IsInstantiated()) {
     res_type = res_type.InstantiateFrom(instantiator, NULL);
   }
-  name = res_type.BuildName(name_visibility);
-  pieces.Add(name);
-  const Array& strings = Array::Handle(Array::MakeArray(pieces));
-  return Symbols::New(String::Handle(String::ConcatAll(strings)));
+  const String& name =
+      String::ZoneHandle(zone, res_type.BuildName(name_visibility));
+  pieces.Add(&name);
+  return Symbols::FromConcatAll(pieces);
 }
 
 

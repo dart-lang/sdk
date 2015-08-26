@@ -5,6 +5,7 @@
 #ifndef VM_SYMBOLS_H_
 #define VM_SYMBOLS_H_
 
+#include "vm/growable_array.h"
 #include "vm/object.h"
 #include "vm/snapshot_ids.h"
 
@@ -593,6 +594,8 @@ class Symbols : public AllStatic {
                         intptr_t length);
 
   static RawString* FromConcat(const String& str1, const String& str2);
+
+  static RawString* FromConcatAll(const GrowableArray<const String*>& strs);
 
   // Returns char* of predefined symbol.
   static const char* Name(SymbolId symbol);

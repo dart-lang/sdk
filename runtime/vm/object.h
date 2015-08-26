@@ -2700,7 +2700,7 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
   void BuildSignatureParameters(bool instantiate,
                                 NameVisibility name_visibility,
                                 const TypeArguments& instantiator,
-                                const GrowableObjectArray& pieces) const;
+                                GrowableArray<const String*>* pieces) const;
   RawString* BuildSignature(bool instantiate,
                             NameVisibility name_visibility,
                             const TypeArguments& instantiator) const;

@@ -393,6 +393,33 @@ RawString* Symbols::FromConcat(const String& str1, const String& str2) {
 }
 
 
+// TODO(srdjan): If this becomes performance critical code, consider looking
+// up symbol from pieces instead of concatenating them first into a big string.
+RawString* Symbols::FromConcatAll(const GrowableArray<const String*>& strs) {
+  GrowableArray<const char*> cchars(strs.length());
+  GrowableArray<intptr_t> lengths(strs.length());
+  intptr_t len_sum = 0;
+  for (intptr_t i = 0; i < strs.length(); i++) {
+    const char* to_cstr = strs[i]->ToCString();
+    intptr_t len = strlen(to_cstr);
+    cchars.Add(to_cstr);
+    lengths.Add(len);
+    len_sum += len;
+  }
+
+  Zone* zone = Thread::Current()->zone();
+  char* buffer = zone->Alloc<char>(len_sum);
+  const char* const orig_buffer = buffer;
+  for (intptr_t i = 0; i < cchars.length(); i++) {
+    intptr_t len = lengths[i];
+    strncpy(buffer, cchars[i], len);
+    buffer += len;
+  }
+  ASSERT(len_sum == buffer - orig_buffer);
+  return Symbols::New(orig_buffer, len_sum);
+}
+
+
 // StringType can be StringSlice, ConcatString, or {Latin1,UTF16,UTF32}Array.
 template<typename StringType>
 RawString* Symbols::NewSymbol(const StringType& str) {
