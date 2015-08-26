@@ -43,7 +43,7 @@ void main() {
 
           // Check the boolean conversion of the condition.
           print((/*severe:StaticTypeError*/i) ? false : true);
-          print((/*warning:DownCastImplicit*/obj) ? false : true);
+          print((/*info:DownCastImplicit*/obj) ? false : true);
           print((/*info:DynamicCast*/dyn) ? false : true);
         }
       '''
@@ -59,22 +59,22 @@ void main() {
 
         if (b) {}
         if (/*info:DynamicCast*/dyn) {}
-        if (/*warning:DownCastImplicit*/obj) {}
+        if (/*info:DownCastImplicit*/obj) {}
         if (/*severe:StaticTypeError*/i) {}
 
         while (b) {}
         while (/*info:DynamicCast*/dyn) {}
-        while (/*warning:DownCastImplicit*/obj) {}
+        while (/*info:DownCastImplicit*/obj) {}
         while (/*severe:StaticTypeError*/i) {}
 
         do {} while (b);
         do {} while (/*info:DynamicCast*/dyn);
-        do {} while (/*warning:DownCastImplicit*/obj);
+        do {} while (/*info:DownCastImplicit*/obj);
         do {} while (/*severe:StaticTypeError*/i);
 
         for (;b;) {}
         for (;/*info:DynamicCast*/dyn;) {}
-        for (;/*warning:DownCastImplicit*/obj;) {}
+        for (;/*info:DownCastImplicit*/obj;) {}
         for (;/*severe:StaticTypeError*/i;) {}
       }
     '''
@@ -238,13 +238,13 @@ void main() {
           // int is non-nullable
           x = /*severe:StaticTypeError*/null;
           x = 42;
-          x = /*warning:DownCastImplicit*/z;
+          x = /*info:DownCastImplicit*/z;
 
           // double is non-nullable
           y = /*severe:StaticTypeError*/null;
           y = /*severe:StaticTypeError*/42;
           y = 42.0;
-          y = /*warning:DownCastImplicit*/z;
+          y = /*info:DownCastImplicit*/z;
 
           // num is nullable
           z = null;
@@ -269,7 +269,7 @@ void main() {
           T x;
 
           // TODO(vsm): Should this be a different type of DownCast?
-          T foo() => /*warning:DownCastImplicit*/null;
+          T foo() => /*info:DownCastImplicit*/null;
 
           void bar() {
             int /*severe:InvalidVariableDeclaration*/x;
@@ -279,7 +279,7 @@ void main() {
             T /*severe:InvalidVariableDeclaration*/z;
           }
 
-          void baz(T x, [T /*severe:InvalidVariableDeclaration*/y, T z = /*warning:DownCastImplicit*/null]) {
+          void baz(T x, [T /*severe:InvalidVariableDeclaration*/y, T z = /*info:DownCastImplicit*/null]) {
           }
         }
 
@@ -296,7 +296,7 @@ void main() {
           T x;
 
           // TODO(vsm): Should this be a different type of DownCast?
-          T foo() => /*warning:DownCastImplicit*/null;
+          T foo() => /*info:DownCastImplicit*/null;
         }
       '''
   }, nonnullableTypes: <String>[
@@ -315,7 +315,7 @@ void main() {
 
         A(this.x) : this.y = /*severe:StaticTypeError*/42;
 
-        A.c1(p): this.x = /*warning:DownCastImplicit*/z, this.y = /*info:DynamicCast*/p;
+        A.c1(p): this.x = /*info:DownCastImplicit*/z, this.y = /*info:DynamicCast*/p;
 
         A.c2(this.x, this.y);
 
@@ -328,12 +328,12 @@ void main() {
         B.c2(int x, String y) : super.c2(/*severe:StaticTypeError*/y, 
                                          /*severe:StaticTypeError*/x);
 
-        B.c3(num x, Object y) : super.c3(x, /*warning:DownCastImplicit*/y);
+        B.c3(num x, Object y) : super.c3(x, /*info:DownCastImplicit*/y);
       }
 
       void main() {
-         A a = new A.c2(/*warning:DownCastImplicit*/z, /*severe:StaticTypeError*/z);
-         var b = new B.c2(/*severe:StaticTypeError*/"hello", /*warning:DownCastImplicit*/obj);
+         A a = new A.c2(/*info:DownCastImplicit*/z, /*severe:StaticTypeError*/z);
+         var b = new B.c2(/*severe:StaticTypeError*/"hello", /*info:DownCastImplicit*/obj);
       }
    '''
   });
@@ -422,7 +422,7 @@ void main() {
          d = /*severe:StaticTypeError*/a;
          n = /*severe:StaticTypeError*/a;
          a = a;
-         b = /*warning:DownCastImplicit*/a;
+         b = /*info:DownCastImplicit*/a;
       }
    '''
   });
@@ -475,21 +475,21 @@ void main() {
            top = bot;
          }
          {
-           left = /*warning:DownCastImplicit*/top;
+           left = /*info:DownCastImplicit*/top;
            left = left;
            left = /*severe:StaticTypeError*/right;
            left = bot;
          }
          {
-           right = /*warning:DownCastImplicit*/top;
+           right = /*info:DownCastImplicit*/top;
            right = /*severe:StaticTypeError*/left;
            right = right;
            right = bot;
          }
          {
-           bot = /*warning:DownCastImplicit*/top;
-           bot = /*warning:DownCastImplicit*/left;
-           bot = /*warning:DownCastImplicit*/right;
+           bot = /*info:DownCastImplicit*/top;
+           bot = /*info:DownCastImplicit*/left;
+           bot = /*info:DownCastImplicit*/right;
            bot = bot;
          }
       }
@@ -508,7 +508,7 @@ void main() {
       Object top(int x) => x;
       int left(int x) => x;
       Object right(Object x) => x;
-      int _bot(Object x) => /*warning:DownCastImplicit*/x;
+      int _bot(Object x) => /*info:DownCastImplicit*/x;
       int bot(Object x) => x as int;
 
       void main() {
@@ -561,7 +561,7 @@ void main() {
       typedef B Bot(A x);   // Bottom of the lattice
 
       B left(B x) => x;
-      B _bot(A x) => /*warning:DownCastImplicit*/x;
+      B _bot(A x) => /*info:DownCastImplicit*/x;
       B bot(A x) => x as B;
       A top(B x) => x;
       A right(A x) => x;
@@ -998,8 +998,8 @@ void main() {
            f = /*severe:StaticTypeError*/new B();
            f = /*severe:StaticTypeError*/i2i;
            f = /*severe:StaticTypeError*/n2n;
-           f = /*warning:DownCastImplicit*/i2i as Object;
-           f = /*warning:DownCastImplicit*/n2n as Function;
+           f = /*info:DownCastImplicit*/i2i as Object;
+           f = /*info:DownCastImplicit*/n2n as Function;
          }
          {
            B f;
@@ -1007,8 +1007,8 @@ void main() {
            f = new B();
            f = /*severe:StaticTypeError*/i2i;
            f = /*severe:StaticTypeError*/n2n;
-           f = /*warning:DownCastImplicit*/i2i as Object;
-           f = /*warning:DownCastImplicit*/n2n as Function;
+           f = /*info:DownCastImplicit*/i2i as Object;
+           f = /*info:DownCastImplicit*/n2n as Function;
          }
          {
            Function f;
@@ -1016,7 +1016,7 @@ void main() {
            f = new B();
            f = i2i;
            f = n2n;
-           f = /*warning:DownCastImplicit*/i2i as Object;
+           f = /*info:DownCastImplicit*/i2i as Object;
            f = (n2n as Function);
          }
       }
@@ -1136,10 +1136,10 @@ void main() {
         mOfCs = /*severe:StaticTypeError*/ns;
 
         // Concrete subclass subtyping
-        ns = /*warning:DownCastImplicit*/lOfAs;
+        ns = /*info:DownCastImplicit*/lOfAs;
         ns = /*severe:StaticTypeError*/lOfBs;
         ns = /*severe:StaticTypeError*/lOfCs;
-        ns = /*warning:DownCastImplicit*/mOfAs;
+        ns = /*info:DownCastImplicit*/mOfAs;
         ns = /*severe:StaticTypeError*/mOfBs;
         ns = /*severe:StaticTypeError*/mOfCs;
         ns = ns;
@@ -1203,16 +1203,16 @@ void main() {
           mOfDs = mOfDs;
           mOfDs = mOfOs;
           mOfDs = mOfAs;
-          mOfDs = /*warning:DownCastImplicit*/lOfDs;
-          mOfDs = /*warning:DownCastImplicit*/lOfOs;
-          mOfDs = /*warning:DownCastImplicit*/lOfAs;
+          mOfDs = /*info:DownCastImplicit*/lOfDs;
+          mOfDs = /*info:DownCastImplicit*/lOfOs;
+          mOfDs = /*info:DownCastImplicit*/lOfAs;
         }
         {
           mOfOs = mOfDs;
           mOfOs = mOfOs;
           mOfOs = mOfAs;
-          mOfOs = /*warning:DownCastImplicit*/lOfDs;
-          mOfOs = /*warning:DownCastImplicit*/lOfOs;
+          mOfOs = /*info:DownCastImplicit*/lOfDs;
+          mOfOs = /*info:DownCastImplicit*/lOfOs;
           mOfOs = /*severe:StaticTypeError*/lOfAs;
         }
         {
@@ -1265,8 +1265,8 @@ void main() {
             {
                List<int> l = <int>[i];
                l = <int>[/*severe:StaticTypeError*/s];
-               l = <int>[/*warning:DownCastImplicit*/n];
-               l = <int>[i, /*warning:DownCastImplicit*/n, /*severe:StaticTypeError*/s];
+               l = <int>[/*info:DownCastImplicit*/n];
+               l = <int>[i, /*info:DownCastImplicit*/n, /*severe:StaticTypeError*/s];
             }
             {
                List l = [i];
@@ -1277,9 +1277,9 @@ void main() {
             {
                Map<String, int> m = <String, int>{s: i};
                m = <String, int>{s: /*severe:StaticTypeError*/s};
-               m = <String, int>{s: /*warning:DownCastImplicit*/n};
+               m = <String, int>{s: /*info:DownCastImplicit*/n};
                m = <String, int>{s: i,
-                                 s: /*warning:DownCastImplicit*/n,
+                                 s: /*info:DownCastImplicit*/n,
                                  s: /*severe:StaticTypeError*/s};
             }
            // TODO(leafp): We can't currently test for key errors since the
@@ -1305,13 +1305,13 @@ void main() {
             static const num n = 3.0;
             static const int i = /*info:AssignmentCast*/n;
             final int fi;
-            const A(num a) : this.fi = /*warning:DownCastImplicit*/a;
+            const A(num a) : this.fi = /*info:DownCastImplicit*/a;
           }
           class B extends A {
-            const B(Object a) : super(/*warning:DownCastImplicit*/a);
+            const B(Object a) : super(/*info:DownCastImplicit*/a);
           }
           void foo(Object o) {
-            var a = const A(/*warning:DownCastImplicit*/o);
+            var a = const A(/*info:DownCastImplicit*/o);
           }
      '''
   });
@@ -1696,10 +1696,10 @@ void main() {
             z += 5;
             z += 3.14;
 
-            x = /*warning:DownCastImplicit*/x + z;
-            x += /*warning:DownCastImplicit*/z;
-            y = /*warning:DownCastImplicit*/y + z;
-            y += /*warning:DownCastImplicit*/z;
+            x = /*info:DownCastImplicit*/x + z;
+            x += /*info:DownCastImplicit*/z;
+            y = /*info:DownCastImplicit*/y + z;
+            y += /*info:DownCastImplicit*/z;
 
             dynamic w = 42;
             x += /*info:DynamicCast*/w;
@@ -2653,18 +2653,18 @@ void main() {
           printDouble(min(1.0, 2.0));
 
           // No help for user-defined functions from num->num->num.
-          printInt(/*warning:DownCastImplicit*/myMax(1, 2));
+          printInt(/*info:DownCastImplicit*/myMax(1, 2));
           printInt(myMax(1, 2) as int);
 
           // Mixing int and double means return type is num.
-          printInt(/*warning:DownCastImplicit*/max(1, 2.0));
-          printInt(/*warning:DownCastImplicit*/min(1, 2.0));
-          printDouble(/*warning:DownCastImplicit*/max(1, 2.0));
-          printDouble(/*warning:DownCastImplicit*/min(1, 2.0));
+          printInt(/*info:DownCastImplicit*/max(1, 2.0));
+          printInt(/*info:DownCastImplicit*/min(1, 2.0));
+          printDouble(/*info:DownCastImplicit*/max(1, 2.0));
+          printDouble(/*info:DownCastImplicit*/min(1, 2.0));
 
           // Types other than int and double are not accepted.
           printInt(
-              /*warning:DownCastImplicit*/min(
+              /*info:DownCastImplicit*/min(
                   /*severe:StaticTypeError*/"hi",
                   /*severe:StaticTypeError*/"there"));
         }

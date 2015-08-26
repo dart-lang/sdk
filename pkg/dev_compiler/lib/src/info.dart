@@ -332,7 +332,7 @@ class DownCastImplicit extends DownCast {
   DownCastImplicit(TypeRules rules, Expression expression, Cast cast)
       : super._internal(rules, expression, cast);
 
-  toErrorCode() => new StaticTypeWarningCode(name, message);
+  toErrorCode() => new HintCode(name, message);
 }
 
 // An inferred type for the wrapped expression, which may need to be
