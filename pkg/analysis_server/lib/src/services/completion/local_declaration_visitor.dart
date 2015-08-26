@@ -14,10 +14,17 @@ import 'package:analyzer/src/generated/scanner.dart';
  * which catches the exception thrown by [finished()].
  */
 abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
-  static final TypeName STACKTRACE_TYPE = new TypeName(new SimpleIdentifier(
-      new StringToken(TokenType.IDENTIFIER, 'StackTrace', 0)), null);
+  static final TypeName STACKTRACE_TYPE = new TypeName(
+      new SimpleIdentifier(
+          new StringToken(TokenType.IDENTIFIER, 'StackTrace', 0)),
+      null);
 
   final int offset;
+
+  /**
+   * `true` if local inherited types should be visited.
+   */
+  bool includeLocalInheritedTypes = true;
 
   LocalDeclarationVisitor(this.offset);
 
@@ -113,9 +120,11 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   void visitClassDeclaration(ClassDeclaration node) {
     _visitClassDeclarationMembers(node);
     // imported types are handled by the imported reference contributor
-    visitInheritedTypes(node, localDeclaration: (ClassDeclaration classNode) {
-      _visitClassDeclarationMembers(classNode);
-    });
+    if (includeLocalInheritedTypes) {
+      visitInheritedTypes(node, localDeclaration: (ClassDeclaration classNode) {
+        _visitClassDeclarationMembers(classNode);
+      });
+    }
     visitNode(node);
   }
 
@@ -231,7 +240,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 
   void _visitClassDeclarationMembers(ClassDeclaration node) {
-    node.members.forEach((ClassMember member) {
+    for (ClassMember member in node.members) {
       if (member is FieldDeclaration) {
         member.fields.variables.forEach((VariableDeclaration varDecl) {
           declaredField(member, varDecl);
@@ -239,7 +248,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
       } else if (member is MethodDeclaration) {
         declaredMethod(member);
       }
-    });
+    }
   }
 
   void _visitParamList(FormalParameterList paramList) {

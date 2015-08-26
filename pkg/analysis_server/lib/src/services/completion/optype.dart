@@ -14,7 +14,6 @@ import 'package:analyzer/src/generated/scanner.dart';
  * suggestions were requested.
  */
 class OpType {
-
   /**
    * Indicates whether constructor suggestions should be included.
    */
@@ -48,6 +47,11 @@ class OpType {
   bool includeCaseLabelSuggestions = false;
 
   /**
+   * Indicates whether the completion location is in the body of a static method.
+   */
+  bool inStaticMethodBody = false;
+
+  /**
    * Indicates whether the completion target is prefixed.
    */
   bool isPrefixed = false;
@@ -60,6 +64,10 @@ class OpType {
     OpType optype = new OpType._();
     target.containingNode
         .accept(new _OpTypeAstVisitor(optype, target.entity, offset));
+    var mthDecl =
+        target.containingNode.getAncestor((p) => p is MethodDeclaration);
+    optype.inStaticMethodBody =
+        mthDecl is MethodDeclaration && mthDecl.isStatic;
     return optype;
   }
 
@@ -74,7 +82,6 @@ class OpType {
 }
 
 class _OpTypeAstVisitor extends GeneralizingAstVisitor {
-
   /**
    * The entity (AstNode or Token) which will be replaced or displaced by the
    * added text.

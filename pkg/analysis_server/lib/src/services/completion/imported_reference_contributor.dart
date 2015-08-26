@@ -187,7 +187,7 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
    */
   void _addInheritedSuggestions(AstNode node) {
     var classDecl = node.getAncestor((p) => p is ClassDeclaration);
-    if (classDecl is ClassDeclaration) {
+    if (classDecl is ClassDeclaration && !optype.inStaticMethodBody) {
       // Build a list of inherited types that are imported
       // and include any inherited imported members
       List<String> inheritedTypes = new List<String>();

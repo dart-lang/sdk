@@ -3481,6 +3481,46 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_MethodDeclaration_body_static() {
+    // Block  BlockFunctionBody  MethodDeclaration
+    addSource(
+        '/testC.dart',
+        '''
+      class C {
+        c1() {}
+        var c2;
+        static c3() {}
+        static var c4;}''');
+    addTestSource('''
+      import "/testC.dart";
+      class B extends C {
+        b1() {}
+        var b2;
+        static b3() {}
+        static var b4;}
+      class A extends B {
+        a1() {}
+        var a2;
+        static a3() {}
+        static var a4;
+        static a() {^}}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertNotSuggested('a1');
+      assertNotSuggested('a2');
+      assertSuggestLocalMethod('a3', 'A', null);
+      assertSuggestLocalField('a4', null);
+      assertNotSuggested('b1');
+      assertNotSuggested('b2');
+      assertNotSuggested('b3');
+      assertNotSuggested('b4');
+      assertNotSuggested('c1');
+      assertNotSuggested('c2');
+      assertNotSuggested('c3');
+      assertNotSuggested('c4');
+    });
+  }
+
   test_MethodDeclaration_members() {
     // Block  BlockFunctionBody  MethodDeclaration
     addTestSource('class A {@deprecated X f; Z _a() {^} var _g;}');
