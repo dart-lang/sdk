@@ -249,11 +249,11 @@ void MessageHandler::TaskCallback() {
         // Temporarily drop the lock when calling out to NotifyPauseOnStart.
         // This avoids a dead lock that can occur when this message handler
         // tries to post a message while a message is being posted to it.
+        paused_on_start_ = true;
+        paused_timestamp_ = OS::GetCurrentTimeMillis();
         monitor_.Exit();
         NotifyPauseOnStart();
         monitor_.Enter();
-        paused_on_start_ = true;
-        paused_timestamp_ = OS::GetCurrentTimeMillis();
       }
       HandleMessages(false, false);
       if (pause_on_start()) {
