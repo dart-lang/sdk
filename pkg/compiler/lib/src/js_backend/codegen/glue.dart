@@ -54,8 +54,8 @@ class Glue {
     _compiler.internalError(_compiler.currentElement, message);
   }
 
-  bool isUsedAsMixin(ClassElement classElement) {
-    return classWorld.isUsedAsMixin(classElement);
+  bool isUsedAsMixin(ClassElement clazz) {
+    return classWorld.isUsedAsMixin(clazz);
   }
 
   ConstantValue getConstantValueForVariable(VariableElement variable) {
