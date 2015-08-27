@@ -164,7 +164,6 @@ class FlowGraphBuilder : public ValueObject {
 
   intptr_t next_await_counter() { return jump_count_++; }
 
-  ZoneGrowableArray<intptr_t>* await_levels() const { return await_levels_; }
   ZoneGrowableArray<JoinEntryInstr*>* await_joins() const {
     return await_joins_;
   }
@@ -254,7 +253,6 @@ class FlowGraphBuilder : public ValueObject {
 
   intptr_t jump_count_;
   ZoneGrowableArray<JoinEntryInstr*>* await_joins_;
-  ZoneGrowableArray<intptr_t>* await_levels_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };
@@ -464,18 +462,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   Definition* ExitTempLocalScope(LocalVariable* var);
 
   void BuildLetTempExpressions(LetNode* node);
-
-  void BuildSyncYieldJump(LocalVariable* old_context,
-                          LocalVariable* iterator_param,
-                          const intptr_t old_ctx_level,
-                          JoinEntryInstr* target);
-
-  void BuildAsyncJump(LocalVariable* old_context,
-                      LocalVariable* continuation_result,
-                      LocalVariable* continuation_error,
-                      LocalVariable* continuation_stack_trace,
-                      const intptr_t old_ctx_level,
-                      JoinEntryInstr* target);
 
   void BuildInstanceGetterConditional(InstanceGetterNode* node);
   void BuildInstanceCallConditional(InstanceCallNode* node);

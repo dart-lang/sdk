@@ -6602,17 +6602,12 @@ RawFunction* Parser::OpenSyncGeneratorFunction(intptr_t func_pos) {
 
   OpenFunctionBlock(body);
   AddFormalParamsToScope(&closure_params, current_block_->scope);
-  OpenBlock();
   async_temp_scope_ = current_block_->scope;
   return body.raw();
 }
 
 SequenceNode* Parser::CloseSyncGenFunction(const Function& closure,
                                            SequenceNode* closure_body) {
-  // The block for the closure body has already been closed. Close the
-  // corresponding function block.
-  CloseBlock();
-
   LocalVariable* existing_var =
       closure_body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
   ASSERT((existing_var != NULL) && existing_var->is_captured());
@@ -6745,7 +6740,6 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t async_func_pos) {
   }
   OpenFunctionBlock(closure);
   AddFormalParamsToScope(&closure_params, current_block_->scope);
-  OpenBlock();
   async_temp_scope_ = current_block_->scope;
   return closure.raw();
 }
@@ -6759,11 +6753,11 @@ void Parser::AddContinuationVariables() {
   LocalVariable* await_jump_var = new (Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AwaitJumpVar(), dynamic_type);
   current_block_->scope->AddVariable(await_jump_var);
-  current_block_->scope->CaptureVariable(Symbols::AwaitJumpVar());
+  current_block_->scope->CaptureVariable(await_jump_var);
   LocalVariable* await_ctx_var = new (Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AwaitContextVar(), dynamic_type);
   current_block_->scope->AddVariable(await_ctx_var);
-  current_block_->scope->CaptureVariable(Symbols::AwaitContextVar());
+  current_block_->scope->CaptureVariable(await_ctx_var);
 }
 
 
@@ -6777,19 +6771,19 @@ void Parser::AddAsyncClosureVariables() {
   LocalVariable* async_op_var = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncOperation(), dynamic_type);
   current_block_->scope->AddVariable(async_op_var);
-  current_block_->scope->CaptureVariable(Symbols::AsyncOperation());
+  current_block_->scope->CaptureVariable(async_op_var);
   LocalVariable* async_then_callback_var = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncThenCallback(), dynamic_type);
   current_block_->scope->AddVariable(async_then_callback_var);
-  current_block_->scope->CaptureVariable(Symbols::AsyncThenCallback());
+  current_block_->scope->CaptureVariable(async_then_callback_var);
   LocalVariable* async_catch_error_callback_var = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncCatchErrorCallback(), dynamic_type);
   current_block_->scope->AddVariable(async_catch_error_callback_var);
-  current_block_->scope->CaptureVariable(Symbols::AsyncCatchErrorCallback());
+  current_block_->scope->CaptureVariable(async_catch_error_callback_var);
   LocalVariable* async_completer = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncCompleter(), dynamic_type);
   current_block_->scope->AddVariable(async_completer);
-  current_block_->scope->CaptureVariable(Symbols::AsyncCompleter());
+  current_block_->scope->CaptureVariable(async_completer);
 }
 
 
@@ -6808,20 +6802,19 @@ void Parser::AddAsyncGeneratorVariables() {
   LocalVariable* controller_var = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::Controller(), dynamic_type);
   current_block_->scope->AddVariable(controller_var);
-  current_block_->scope->CaptureVariable(Symbols::Controller());
-
+  current_block_->scope->CaptureVariable(controller_var);
   LocalVariable* async_op_var = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncOperation(), dynamic_type);
   current_block_->scope->AddVariable(async_op_var);
-  current_block_->scope->CaptureVariable(Symbols::AsyncOperation());
+  current_block_->scope->CaptureVariable(async_op_var);
   LocalVariable* async_then_callback_var = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncThenCallback(), dynamic_type);
   current_block_->scope->AddVariable(async_then_callback_var);
-  current_block_->scope->CaptureVariable(Symbols::AsyncThenCallback());
+  current_block_->scope->CaptureVariable(async_then_callback_var);
   LocalVariable* async_catch_error_callback_var = new(Z) LocalVariable(
       Scanner::kNoSourcePos, Symbols::AsyncCatchErrorCallback(), dynamic_type);
   current_block_->scope->AddVariable(async_catch_error_callback_var);
-  current_block_->scope->CaptureVariable(Symbols::AsyncCatchErrorCallback());
+  current_block_->scope->CaptureVariable(async_catch_error_callback_var);
 }
 
 
@@ -6887,7 +6880,6 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(intptr_t async_func_pos) {
 
   OpenFunctionBlock(closure);
   AddFormalParamsToScope(&closure_params, current_block_->scope);
-  OpenBlock();
   async_temp_scope_ = current_block_->scope;
   return closure.raw();
 }
@@ -6913,10 +6905,6 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
   TRACE_PARSER("CloseAsyncGeneratorFunction");
   ASSERT(!closure_func.IsNull());
   ASSERT(closure_body != NULL);
-
-  // The block for the async closure body has already been closed. Close the
-  // corresponding function block.
-  CloseBlock();
 
   // Make sure the implicit variables of the async generator function
   // are captured.
@@ -7119,10 +7107,6 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   ASSERT(!closure.IsNull());
   ASSERT(closure_body != NULL);
 
-  // The block for the async closure body has already been closed. Close the
-  // corresponding function block.
-  CloseBlock();
-
   LocalVariable* existing_var =
       closure_body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
   ASSERT((existing_var != NULL) && existing_var->is_captured());
@@ -7138,7 +7122,7 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
 
   // No need to capture parameters or other variables, since they have already
   // been captured in the corresponding scope as the body has been parsed within
-  // a nested block (contained in the async funtion's block).
+  // a nested block (contained in the async function's block).
   const Class& future =
       Class::ZoneHandle(Z, I->object_store()->future_class());
   ASSERT(!future.IsNull());
@@ -7429,14 +7413,10 @@ LocalVariable* Parser::LookupPhaseParameter() {
 
 void Parser::CaptureInstantiator() {
   ASSERT(current_block_->scope->function_level() > 0);
-  bool found = false;
-  if (current_function().IsInFactoryScope()) {
-    found = current_block_->scope->CaptureVariable(
-        Symbols::TypeArgumentsParameter());
-  } else {
-    found = current_block_->scope->CaptureVariable(Symbols::This());
-  }
-  ASSERT(found);
+  const String* variable_name = current_function().IsInFactoryScope() ?
+      &Symbols::TypeArgumentsParameter() : &Symbols::This();
+  current_block_->scope->CaptureVariable(
+      current_block_->scope->LookupVariable(*variable_name, true));
 }
 
 
@@ -7524,14 +7504,10 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
     LocalVariable* existing_var =
         current_block_->scope->LookupVariable(variable->name(), true);
     ASSERT(existing_var != NULL);
-    if (existing_var->owner() == current_block_->scope) {
-      ReportError(ident_pos, "identifier '%s' already defined",
-                  variable->name().ToCString());
-    } else {
-      ReportError(ident_pos, "'%s' from outer scope has already been used, "
-                  "cannot redefine",
-                  variable->name().ToCString());
-    }
+    // Use before define cases have already been detected and reported above.
+    ASSERT(existing_var->owner() == current_block_->scope);
+    ReportError(ident_pos, "identifier '%s' already defined",
+                variable->name().ToCString());
   }
   if (is_final || is_const) {
     variable->set_is_final();
@@ -7724,15 +7700,10 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
           current_block_->scope->LookupVariable(function_variable->name(),
                                                 true);
       ASSERT(existing_var != NULL);
-      if (existing_var->owner() == current_block_->scope) {
-        ReportError(function_pos, "identifier '%s' already defined",
-                    function_variable->name().ToCString());
-      } else {
-        ReportError(function_pos,
-                    "'%s' from outer scope has already been used, "
-                    "cannot redefine",
-                    function_variable->name().ToCString());
-      }
+      // Use before define cases have already been detected and reported above.
+      ASSERT(existing_var->owner() == current_block_->scope);
+      ReportError(function_pos, "identifier '%s' already defined",
+                  function_variable->name().ToCString());
     }
   }
 
@@ -9602,7 +9573,7 @@ void Parser::SetupSavedTryContext(LocalVariable* saved_try_context) {
       Type::ZoneHandle(Z, Type::DynamicType()));
   ASSERT(async_temp_scope_ != NULL);
   async_temp_scope_->AddVariable(async_saved_try_ctx);
-  current_block_->scope->CaptureVariable(async_saved_try_ctx_name);
+  current_block_->scope->CaptureVariable(async_saved_try_ctx);
   ASSERT(saved_try_context != NULL);
   current_block_->statements->Add(new(Z) StoreLocalNode(
       Scanner::kNoSourcePos,
