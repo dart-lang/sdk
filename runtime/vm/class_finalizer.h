@@ -7,22 +7,9 @@
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
+#include "vm/object.h"
 
 namespace dart {
-
-class AbstractType;
-class Class;
-class Error;
-class Function;
-class GrowableObjectArray;
-class MixinAppType;
-class RawAbstractType;
-class RawClass;
-class RawType;
-class Script;
-class Type;
-class TypeArguments;
-class UnresolvedClass;
 
 // Traverses all pending, unfinalized classes, validates and marks them as
 // finalized.
@@ -149,7 +136,7 @@ class ClassFinalizer : public AllStatic {
                                     intptr_t num_uninitialized_arguments,
                                     Error* bound_error,
                                     GrowableObjectArray* pending_types,
-                                    GrowableObjectArray* trail);
+                                    TrailPtr trail);
   static void CheckRecursiveType(const Class& cls,
                                  const Type& type,
                                  GrowableObjectArray* pending_types);

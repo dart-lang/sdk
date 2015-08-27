@@ -1527,6 +1527,9 @@ class UnresolvedClass : public Object {
 };
 
 
+typedef ZoneGrowableArray<const AbstractType*> Trail;
+typedef ZoneGrowableArray<const AbstractType*>* TrailPtr;
+
 // A TypeArguments is an array of AbstractType.
 class TypeArguments : public Object {
  public:
@@ -1592,22 +1595,21 @@ class TypeArguments : public Object {
     return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length());
   }
 
-  bool IsEquivalent(const TypeArguments& other,
-                    GrowableObjectArray* trail = NULL) const {
+  bool IsEquivalent(const TypeArguments& other, TrailPtr trail = NULL) const {
     return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(), trail);
   }
   bool IsSubvectorEquivalent(const TypeArguments& other,
                              intptr_t from_index,
                              intptr_t len,
-                             GrowableObjectArray* trail = NULL) const;
+                             TrailPtr trail = NULL) const;
 
   // Check if the vector is instantiated (it must not be null).
-  bool IsInstantiated(GrowableObjectArray* trail = NULL) const {
+  bool IsInstantiated(TrailPtr trail = NULL) const {
     return IsSubvectorInstantiated(0, Length(), trail);
   }
   bool IsSubvectorInstantiated(intptr_t from_index,
                                intptr_t len,
-                               GrowableObjectArray* trail = NULL) const;
+                               TrailPtr trail = NULL) const;
   bool IsUninstantiatedIdentity() const;
   bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
 
@@ -1628,11 +1630,10 @@ class TypeArguments : public Object {
   // arguments, changing the class owner of type parameters.
   // Instantiated type arguments are shared.
   RawTypeArguments* CloneUninstantiated(
-      const Class& new_owner,
-      GrowableObjectArray* trail = NULL) const;
+      const Class& new_owner, TrailPtr trail = NULL) const;
 
   // Canonicalize only if instantiated, otherwise returns 'this'.
-  RawTypeArguments* Canonicalize(GrowableObjectArray* trail = NULL) const;
+  RawTypeArguments* Canonicalize(TrailPtr trail = NULL) const;
 
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
   // not refer to type parameters. Otherwise, return a new type argument vector
@@ -1642,7 +1643,7 @@ class TypeArguments : public Object {
   RawTypeArguments* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      GrowableObjectArray* trail = NULL) const;
+      TrailPtr trail = NULL) const;
 
   // Runtime instantiation with canonicalization. Not to be used during type
   // finalization at compile time.
@@ -4971,15 +4972,14 @@ class AbstractType : public Instance {
   virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const;
   virtual intptr_t token_pos() const;
-  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
+  virtual bool IsInstantiated(TrailPtr trail = NULL) const;
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
   virtual bool Equals(const Instance& other) const {
     return IsEquivalent(other);
   }
-  virtual bool IsEquivalent(const Instance& other,
-                            GrowableObjectArray* trail = NULL) const;
+  virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
 
   // Instantiate this type using the given type argument vector.
@@ -4988,7 +4988,7 @@ class AbstractType : public Instance {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      GrowableObjectArray* trail = NULL) const;
+      TrailPtr trail = NULL) const;
 
   // Return a clone of this unfinalized type or the type itself if it is
   // already finalized. Apply recursively to type arguments, i.e. finalized
@@ -5001,25 +5001,22 @@ class AbstractType : public Instance {
   // Apply recursively to type arguments, i.e. instantiated type arguments of
   // an uninstantiated type are not cloned, but shared.
   virtual RawAbstractType* CloneUninstantiated(
-      const Class& new_owner,
-      GrowableObjectArray* trail = NULL) const;
+      const Class& new_owner, TrailPtr trail = NULL) const;
 
   virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
     return Canonicalize();
   }
 
   // Return the canonical version of this type.
-  virtual RawAbstractType* Canonicalize(
-      GrowableObjectArray* trail = NULL) const;
+  virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
 
   // Return the object associated with the receiver in the trail or
-  // Object::null() if the receiver is not contained in the trail.
-  RawObject* OnlyBuddyInTrail(GrowableObjectArray* trail) const;
+  // AbstractType::null() if the receiver is not contained in the trail.
+  RawAbstractType* OnlyBuddyInTrail(TrailPtr trail) const;
 
   // If the trail is null, allocate a trail, add the pair <receiver, buddy> to
   // the trail. The receiver may only be added once with its only buddy.
-  void AddOnlyBuddyToTrail(GrowableObjectArray** trail,
-                           const Object& buddy) const;
+  void AddOnlyBuddyToTrail(TrailPtr* trail, const AbstractType& buddy) const;
 
   // The name of this type, including the names of its type arguments, if any.
   virtual RawString* Name() const {
@@ -5158,20 +5155,18 @@ class Type : public AbstractType {
   virtual RawTypeArguments* arguments() const;
   void set_arguments(const TypeArguments& value) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
-  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
-  virtual bool IsEquivalent(const Instance& other,
-                            GrowableObjectArray* trail = NULL) const;
+  virtual bool IsInstantiated(TrailPtr trail = NULL) const;
+  virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* malformed_error,
-      GrowableObjectArray* trail = NULL) const;
+      TrailPtr trail = NULL) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner,
-      GrowableObjectArray* trail = NULL) const;
-  virtual RawAbstractType* Canonicalize(
-      GrowableObjectArray* trail = NULL) const;
+      TrailPtr trail = NULL) const;
+  virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
 
   virtual intptr_t Hash() const;
 
@@ -5280,33 +5275,31 @@ class TypeRef : public AbstractType {
   virtual intptr_t token_pos() const {
     return AbstractType::Handle(type()).token_pos();
   }
-  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
+  virtual bool IsInstantiated(TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other,
-                            GrowableObjectArray* trail = NULL) const;
+                            TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return true; }
   virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      GrowableObjectArray* trail = NULL) const;
+      TrailPtr trail = NULL) const;
   virtual RawTypeRef* CloneUninstantiated(
       const Class& new_owner,
-      GrowableObjectArray* trail = NULL) const;
-  virtual RawAbstractType* Canonicalize(
-      GrowableObjectArray* trail = NULL) const;
+      TrailPtr trail = NULL) const;
+  virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
 
   virtual intptr_t Hash() const;
 
   // Return true if the receiver is contained in the trail.
   // Otherwise, if the trail is null, allocate a trail, then add the receiver to
   // the trail and return false.
-  bool TestAndAddToTrail(GrowableObjectArray** trail) const;
+  bool TestAndAddToTrail(TrailPtr* trail) const;
 
   // Return true if the pair <receiver, buddy> is contained in the trail.
   // Otherwise, if the trail is null, allocate a trail, add the pair <receiver,
   // buddy> to the trail and return false.
   // The receiver may be added several times, each time with a different buddy.
-  bool TestAndAddBuddyToTrail(GrowableObjectArray** trail,
-                              const Object& buddy) const;
+  bool TestAndAddBuddyToTrail(TrailPtr* trail, const AbstractType& buddy) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawTypeRef));
@@ -5361,22 +5354,19 @@ class TypeParameter : public AbstractType {
                   const AbstractType& upper_bound,
                   Error* bound_error) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
-  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const {
+  virtual bool IsInstantiated(TrailPtr trail = NULL) const {
     return false;
   }
-  virtual bool IsEquivalent(const Instance& other,
-                            GrowableObjectArray* trail = NULL) const;
+  virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return false; }
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      GrowableObjectArray* trail = NULL) const;
+      TrailPtr trail = NULL) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
-      const Class& new_owner,
-      GrowableObjectArray* trail = NULL) const;
-  virtual RawAbstractType* Canonicalize(
-      GrowableObjectArray* trail = NULL) const {
+      const Class& new_owner, TrailPtr trail = NULL) const;
+  virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const {
     return raw();
   }
 
@@ -5444,26 +5434,23 @@ class BoundedType : public AbstractType {
   virtual intptr_t token_pos() const {
     return AbstractType::Handle(type()).token_pos();
   }
-  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const {
+  virtual bool IsInstantiated(TrailPtr trail = NULL) const {
     // It is not possible to encounter an instantiated bounded type with an
     // uninstantiated upper bound. Therefore, we do not need to check if the
     // bound is instantiated. Moreover, doing so could lead into cycles, as in
     // class C<T extends C<C>> { }.
     return AbstractType::Handle(type()).IsInstantiated();
   }
-  virtual bool IsEquivalent(const Instance& other,
-                            GrowableObjectArray* trail = NULL) const;
+  virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      GrowableObjectArray* trail = NULL) const;
+      TrailPtr trail = NULL) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
-      const Class& new_owner,
-      GrowableObjectArray* trail = NULL) const;
-  virtual RawAbstractType* Canonicalize(
-      GrowableObjectArray* trail = NULL) const {
+      const Class& new_owner, TrailPtr trail = NULL) const;
+  virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const {
     return raw();
   }
 

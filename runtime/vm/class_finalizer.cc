@@ -655,7 +655,7 @@ void ClassFinalizer::FinalizeTypeArguments(
     intptr_t num_uninitialized_arguments,
     Error* bound_error,
     GrowableObjectArray* pending_types,
-    GrowableObjectArray* trail) {
+    TrailPtr trail) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
   if (!cls.is_type_finalized()) {
     FinalizeTypeParameters(cls, pending_types);
@@ -1092,10 +1092,9 @@ RawAbstractType* ClassFinalizer::FinalizeType(
         owner_class = type_class.raw();
       }
       if (offset > 0) {
-        GrowableObjectArray& trail =
-            GrowableObjectArray::Handle(isolate, GrowableObjectArray::New());
+        TrailPtr trail = new Trail(4);
         FinalizeTypeArguments(owner_class, full_arguments, offset,
-                              &bound_error, pending_types, &trail);
+                              &bound_error, pending_types, trail);
       }
       if (full_arguments.IsRaw(0, num_type_arguments)) {
         // The parameterized_type is raw. Set its argument vector to null, which

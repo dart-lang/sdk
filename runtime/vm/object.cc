@@ -4459,7 +4459,7 @@ RawString* TypeArguments::SubvectorName(intptr_t from_index,
 bool TypeArguments::IsSubvectorEquivalent(const TypeArguments& other,
                                           intptr_t from_index,
                                           intptr_t len,
-                                          GrowableObjectArray* trail) const {
+                                          TrailPtr trail) const {
   if (this->raw() == other.raw()) {
     return true;
   }
@@ -4656,7 +4656,7 @@ bool TypeArguments::IsResolved() const {
 
 bool TypeArguments::IsSubvectorInstantiated(intptr_t from_index,
                                             intptr_t len,
-                                            GrowableObjectArray* trail) const {
+                                            TrailPtr trail) const {
   ASSERT(!IsNull());
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
@@ -4814,7 +4814,7 @@ bool TypeArguments::IsBounded() const {
 RawTypeArguments* TypeArguments::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    GrowableObjectArray* trail) const {
+    TrailPtr trail) const {
   ASSERT(!IsInstantiated());
   if (!instantiator_type_arguments.IsNull() &&
       IsUninstantiatedIdentity() &&
@@ -5048,7 +5048,7 @@ RawTypeArguments* TypeArguments::CloneUnfinalized() const {
 
 RawTypeArguments* TypeArguments::CloneUninstantiated(
     const Class& new_owner,
-    GrowableObjectArray* trail) const {
+    TrailPtr trail) const {
   ASSERT(!IsNull());
   ASSERT(IsFinalized());
   ASSERT(!IsInstantiated());
@@ -5068,8 +5068,7 @@ RawTypeArguments* TypeArguments::CloneUninstantiated(
 }
 
 
-RawTypeArguments* TypeArguments::Canonicalize(
-    GrowableObjectArray* trail) const {
+RawTypeArguments* TypeArguments::Canonicalize(TrailPtr trail) const {
   if (IsNull() || IsCanonical()) {
     ASSERT(IsOld());
     return this->raw();
@@ -14806,7 +14805,7 @@ intptr_t AbstractType::token_pos() const {
 }
 
 
-bool AbstractType::IsInstantiated(GrowableObjectArray* trail) const {
+bool AbstractType::IsInstantiated(TrailPtr trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -14861,8 +14860,7 @@ void AbstractType::set_error(const LanguageError& value) const {
 }
 
 
-bool AbstractType::IsEquivalent(const Instance& other,
-                                GrowableObjectArray* trail) const {
+bool AbstractType::IsEquivalent(const Instance& other, TrailPtr trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -14879,7 +14877,7 @@ bool AbstractType::IsRecursive() const {
 RawAbstractType* AbstractType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    GrowableObjectArray* trail) const {
+    TrailPtr trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -14894,46 +14892,49 @@ RawAbstractType* AbstractType::CloneUnfinalized() const {
 
 
 RawAbstractType* AbstractType::CloneUninstantiated(
-    const Class& new_owner,
-    GrowableObjectArray* trail) const {
+    const Class& new_owner, TrailPtr trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
 }
 
 
-RawAbstractType* AbstractType::Canonicalize(GrowableObjectArray* trail) const {
+RawAbstractType* AbstractType::Canonicalize(TrailPtr trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
 }
 
 
-RawObject* AbstractType::OnlyBuddyInTrail(GrowableObjectArray* trail) const {
+RawAbstractType* AbstractType::OnlyBuddyInTrail(TrailPtr trail) const {
   if (trail == NULL) {
-    return Object::null();
+    return AbstractType::null();
   }
-  const intptr_t len = trail->Length();
+  const intptr_t len = trail->length();
   ASSERT((len % 2) == 0);
   for (intptr_t i = 0; i < len; i += 2) {
-    if (trail->At(i) == this->raw()) {
-      ASSERT(trail->At(i + 1) != Object::null());
-      return trail->At(i + 1);
+    ASSERT(trail->At(i)->IsZoneHandle());
+    ASSERT(trail->At(i + 1)->IsZoneHandle());
+    if (trail->At(i)->raw() == this->raw()) {
+      ASSERT(!trail->At(i + 1)->IsNull());
+      return trail->At(i + 1)->raw();
     }
   }
-  return Object::null();
+  return AbstractType::null();
 }
 
 
-void AbstractType::AddOnlyBuddyToTrail(GrowableObjectArray** trail,
-                                       const Object& buddy) const {
+void AbstractType::AddOnlyBuddyToTrail(TrailPtr* trail,
+                                       const AbstractType& buddy) const {
   if (*trail == NULL) {
-    *trail = &GrowableObjectArray::ZoneHandle(GrowableObjectArray::New());
+    *trail = new Trail(4);
   } else {
-    ASSERT(OnlyBuddyInTrail(*trail) == Object::null());
+    ASSERT(OnlyBuddyInTrail(*trail) == AbstractType::null());
   }
-  (*trail)->Add(*this);
-  (*trail)->Add(buddy);
+  AbstractType& t = AbstractType::ZoneHandle(this->raw());
+  AbstractType& b = AbstractType::ZoneHandle(buddy.raw());
+  (*trail)->Add(&t);
+  (*trail)->Add(&b);
 }
 
 
@@ -15438,7 +15439,7 @@ RawTypeArguments* Type::arguments() const {
 }
 
 
-bool Type::IsInstantiated(GrowableObjectArray* trail) const {
+bool Type::IsInstantiated(TrailPtr trail) const {
   if (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) {
     return true;
   }
@@ -15472,7 +15473,7 @@ bool Type::IsInstantiated(GrowableObjectArray* trail) const {
 RawAbstractType* Type::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    GrowableObjectArray* trail) const {
+    TrailPtr trail) const {
   ASSERT(IsFinalized() || IsBeingFinalized());
   ASSERT(!IsInstantiated());
   // Return the uninstantiated type unchanged if malformed. No copy needed.
@@ -15518,8 +15519,7 @@ RawAbstractType* Type::InstantiateFrom(
 }
 
 
-bool Type::IsEquivalent(const Instance& other,
-                        GrowableObjectArray* trail) const {
+bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   ASSERT(!IsNull());
   if (raw() == other.raw()) {
     return true;
@@ -15614,7 +15614,7 @@ RawAbstractType* Type::CloneUnfinalized() const {
 
 
 RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
-                                           GrowableObjectArray* trail) const {
+                                           TrailPtr trail) const {
   ASSERT(IsFinalized());
   ASSERT(!IsMalformed());
   if (IsInstantiated()) {
@@ -15641,7 +15641,7 @@ RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
 }
 
 
-RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
+RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   ASSERT(IsFinalized());
   if (IsCanonical() || IsMalformed()) {
     ASSERT(IsMalformed() || TypeArguments::Handle(arguments()).IsOld());
@@ -15889,7 +15889,7 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-bool TypeRef::IsInstantiated(GrowableObjectArray* trail) const {
+bool TypeRef::IsInstantiated(TrailPtr trail) const {
   if (TestAndAddToTrail(&trail)) {
     return true;
   }
@@ -15897,12 +15897,14 @@ bool TypeRef::IsInstantiated(GrowableObjectArray* trail) const {
 }
 
 
-bool TypeRef::IsEquivalent(const Instance& other,
-                           GrowableObjectArray* trail) const {
+bool TypeRef::IsEquivalent(const Instance& other, TrailPtr trail) const {
   if (raw() == other.raw()) {
     return true;
   }
-  if (TestAndAddBuddyToTrail(&trail, other)) {
+  if (!other.IsAbstractType()) {
+    return false;
+  }
+  if (TestAndAddBuddyToTrail(&trail, AbstractType::Cast(other))) {
     return true;
   }
   return AbstractType::Handle(type()).IsEquivalent(other, trail);
@@ -15912,7 +15914,7 @@ bool TypeRef::IsEquivalent(const Instance& other,
 RawTypeRef* TypeRef::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    GrowableObjectArray* trail) const {
+    TrailPtr trail) const {
   TypeRef& instantiated_type_ref = TypeRef::Handle();
   instantiated_type_ref ^= OnlyBuddyInTrail(trail);
   if (!instantiated_type_ref.IsNull()) {
@@ -15931,7 +15933,7 @@ RawTypeRef* TypeRef::InstantiateFrom(
 
 
 RawTypeRef* TypeRef::CloneUninstantiated(const Class& new_owner,
-                                         GrowableObjectArray* trail) const {
+                                         TrailPtr trail) const {
   TypeRef& cloned_type_ref = TypeRef::Handle();
   cloned_type_ref ^= OnlyBuddyInTrail(trail);
   if (!cloned_type_ref.IsNull()) {
@@ -15959,7 +15961,7 @@ void TypeRef::set_type(const AbstractType& value) const {
 // Consider the type Derived, where class Derived extends Base<Derived>.
 // The first type argument of its flattened type argument vector is Derived,
 // represented by a TypeRef pointing to itself.
-RawAbstractType* TypeRef::Canonicalize(GrowableObjectArray* trail) const {
+RawAbstractType* TypeRef::Canonicalize(TrailPtr trail) const {
   if (TestAndAddToTrail(&trail)) {
     return raw();
   }
@@ -15980,38 +15982,43 @@ intptr_t TypeRef::Hash() const {
 }
 
 
-bool TypeRef::TestAndAddToTrail(GrowableObjectArray** trail) const {
+bool TypeRef::TestAndAddToTrail(TrailPtr* trail) const {
   if (*trail == NULL) {
-    *trail = &GrowableObjectArray::ZoneHandle(GrowableObjectArray::New());
+    *trail = new Trail(4);
   } else {
-    const intptr_t len = (*trail)->Length();
+    const intptr_t len = (*trail)->length();
     for (intptr_t i = 0; i < len; i++) {
-      if ((*trail)->At(i) == this->raw()) {
+      if ((*trail)->At(i)->raw() == this->raw()) {
         return true;
       }
     }
   }
-  (*trail)->Add(*this);
+  AbstractType& t = AbstractType::ZoneHandle(this->raw());
+  (*trail)->Add(&t);
   return false;
 }
 
 
-bool TypeRef::TestAndAddBuddyToTrail(GrowableObjectArray** trail,
-                                     const Object& buddy) const {
+bool TypeRef::TestAndAddBuddyToTrail(TrailPtr* trail,
+                                     const AbstractType& buddy) const {
   if (*trail == NULL) {
-    *trail = &GrowableObjectArray::ZoneHandle(GrowableObjectArray::New());
+    *trail = new Trail(4);
   } else {
-    const intptr_t len = (*trail)->Length();
+    const intptr_t len = (*trail)->length();
     ASSERT((len % 2) == 0);
     for (intptr_t i = 0; i < len; i += 2) {
-      if (((*trail)->At(i) == this->raw()) &&
-          ((*trail)->At(i + 1) == buddy.raw())) {
+      ASSERT((*trail)->At(i)->IsZoneHandle());
+      ASSERT((*trail)->At(i + 1)->IsZoneHandle());
+      if (((*trail)->At(i)->raw() == this->raw()) &&
+          ((*trail)->At(i + 1)->raw() == buddy.raw())) {
         return true;
       }
     }
   }
-  (*trail)->Add(*this);
-  (*trail)->Add(buddy);
+  AbstractType& t = AbstractType::ZoneHandle(this->raw());
+  AbstractType& b = AbstractType::ZoneHandle(buddy.raw());
+  (*trail)->Add(&t);
+  (*trail)->Add(&b);
   return false;
 }
 
@@ -16074,8 +16081,7 @@ void TypeParameter::set_is_finalized() const {
 }
 
 
-bool TypeParameter::IsEquivalent(const Instance& other,
-                                 GrowableObjectArray* trail) const {
+bool TypeParameter::IsEquivalent(const Instance& other, TrailPtr trail) const {
   if (raw() == other.raw()) {
     return true;
   }
@@ -16127,7 +16133,7 @@ void TypeParameter::set_bound(const AbstractType& value) const {
 RawAbstractType* TypeParameter::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    GrowableObjectArray* trail) const {
+    TrailPtr trail) const {
   ASSERT(IsFinalized());
   if (instantiator_type_arguments.IsNull()) {
     return Type::DynamicType();
@@ -16203,8 +16209,7 @@ RawAbstractType* TypeParameter::CloneUnfinalized() const {
 
 
 RawAbstractType* TypeParameter::CloneUninstantiated(
-    const Class& new_owner,
-    GrowableObjectArray* trail) const {
+    const Class& new_owner, TrailPtr trail) const {
   ASSERT(IsFinalized());
   AbstractType& upper_bound = AbstractType::Handle(bound());
   upper_bound = upper_bound.CloneUninstantiated(new_owner, trail);
@@ -16327,8 +16332,7 @@ RawLanguageError* BoundedType::error() const {
 }
 
 
-bool BoundedType::IsEquivalent(const Instance& other,
-                               GrowableObjectArray* trail) const {
+bool BoundedType::IsEquivalent(const Instance& other, TrailPtr trail) const {
   // BoundedType are not canonicalized, because their bound may get finalized
   // after the BoundedType is created and initialized.
   if (raw() == other.raw()) {
@@ -16392,7 +16396,7 @@ void BoundedType::set_type_parameter(const TypeParameter& value) const {
 RawAbstractType* BoundedType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    GrowableObjectArray* trail) const {
+    TrailPtr trail) const {
   ASSERT(IsFinalized());
   AbstractType& bounded_type = AbstractType::Handle(type());
   ASSERT(bounded_type.IsFinalized());
@@ -16448,8 +16452,7 @@ RawAbstractType* BoundedType::CloneUnfinalized() const {
 
 
 RawAbstractType* BoundedType::CloneUninstantiated(
-    const Class& new_owner,
-    GrowableObjectArray* trail) const {
+    const Class& new_owner, TrailPtr trail) const {
   if (IsInstantiated()) {
     return raw();
   }
