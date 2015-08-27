@@ -41,6 +41,6 @@ ServiceExtensionHandler _lookupExtension(String method) {
 }
 
 @patch
-void _registerExtension(String method, ServiceExtensionHandler handler) {
+_registerExtension(String method, ServiceExtensionHandler handler) {
   _extensions[method] = handler;
 }
