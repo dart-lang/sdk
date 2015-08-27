@@ -56,7 +56,7 @@ abstract class V8Runner {
             "--harmony_arrow_functions",
             "--harmony_classes",
             "--harmony_computed_property_names",
-            "--harmony_modules",
+            "--harmony_generators",
             "--harmony_object_literals",
             "--harmony_rest_parameters",
             "--harmony_spreadcalls",
