@@ -36,7 +36,7 @@ void log(String message,
 final _extensions = new Map<String, ServiceExtensionHandler>();
 
 @patch
-ServiceExtensionHandler _lookupExtension(String method);
+ServiceExtensionHandler _lookupExtension(String method) {
   return _extensions[method];
 }
 
