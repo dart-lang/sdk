@@ -543,8 +543,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         }
       }
     }
-    _recordStaticType(node, _typeProvider.mapType
-        .substitute4(<DartType>[staticKeyType, staticValueType]));
+    _recordStaticType(
+        node,
+        _typeProvider.mapType
+            .substitute4(<DartType>[staticKeyType, staticValueType]));
     return null;
   }
 
@@ -1179,9 +1181,25 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  void _inferLocalVariableType(
+      VariableDeclaration node, Expression initializer) {
+    if (initializer != null &&
+        (node.parent as VariableDeclarationList).type == null &&
+        (node.element is LocalVariableElementImpl) &&
+        (initializer.staticType != null) &&
+        (!initializer.staticType.isBottom)) {
+      LocalVariableElementImpl element = node.element;
+      element.type = initializer.staticType;
+      node.name.staticType = initializer.staticType;
+    }
+  }
+
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     Expression initializer = node.initializer;
+    if (_resolver.definingLibrary.context.analysisOptions.strongMode) {
+      _inferLocalVariableType(node, initializer);
+    }
     if (initializer != null) {
       DartType rightType = initializer.bestType;
       SimpleIdentifier name = node.name;
