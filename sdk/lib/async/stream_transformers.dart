@@ -250,7 +250,7 @@ class _StreamHandlerTransformer<S, T> extends _StreamSinkTransformer<S, T> {
   /** Default error handler forwards all errors. */
   static void _defaultHandleError(error, StackTrace stackTrace,
                                   EventSink sink) {
-    sink.addError(error);
+    sink.addError(error, stackTrace);
   }
 
   /** Default done handler forwards done. */

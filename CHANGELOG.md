@@ -11,6 +11,11 @@
     The `HttpServer` still gracefully receives fragments, but discards them
     before delivering the request.
 
+* `dart:async`
+  * `StreamTransformer`s created with `fromHandlers` with no `handleError`
+    callback now forward stack traces along with errors to the resulting
+    streams.
+
 ## 1.12.0
 
 ### Language changes
