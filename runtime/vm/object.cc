@@ -2990,17 +2990,15 @@ void Class::AddField(const Field& field) const {
 }
 
 
-void Class::AddFields(const GrowableObjectArray& new_fields) const {
-  const intptr_t num_new_fields = new_fields.Length();
+void Class::AddFields(const GrowableArray<const Field*>& new_fields) const {
+  const intptr_t num_new_fields = new_fields.length();
   if (num_new_fields == 0) return;
   const Array& arr = Array::Handle(fields());
   const intptr_t num_old_fields = arr.Length();
   const Array& new_arr = Array::Handle(
       Array::Grow(arr, num_old_fields + num_new_fields, Heap::kOld));
-  Field& field = Field::Handle();
   for (intptr_t i = 0; i < num_new_fields; i++) {
-    field ^= new_fields.At(i);
-    new_arr.SetAt(i + num_old_fields, field);
+    new_arr.SetAt(i + num_old_fields, *new_fields.At(i));
   }
   SetFields(new_arr);
 }
@@ -11635,7 +11633,7 @@ RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
   }
   const Array& handled_types_data = (num_handlers == 0) ?
       Object::empty_array() :
-      Array::Handle(Array::New(num_handlers));
+      Array::Handle(Array::New(num_handlers, Heap::kOld));
   result.set_handled_types_data(handled_types_data);
   return result.raw();
 }
@@ -13827,7 +13825,7 @@ RawSubtypeTestCache* SubtypeTestCache::New() {
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
-  const Array& cache = Array::Handle(Array::New(kTestEntryLength));
+  const Array& cache = Array::Handle(Array::New(kTestEntryLength, Heap::kOld));
   result.set_cache(cache);
   return result.raw();
 }

@@ -35,7 +35,7 @@ class ClassDesc;
 struct MemberDesc;
 struct ParamList;
 struct QualIdent;
-struct TopLevel;
+class TopLevel;
 
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {

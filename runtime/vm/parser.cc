@@ -685,30 +685,32 @@ struct MemberDesc {
 
 class ClassDesc : public ValueObject {
  public:
-  ClassDesc(const Class& cls,
+  ClassDesc(Zone* zone,
+            const Class& cls,
             const String& cls_name,
             bool is_interface,
             intptr_t token_pos)
-      : clazz_(cls),
+      : zone_(zone),
+        clazz_(cls),
         class_name_(cls_name),
         token_pos_(token_pos),
-        functions_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
-        fields_(GrowableObjectArray::Handle(GrowableObjectArray::New())) {
+        functions_(zone, 4),
+        fields_(zone, 4) {
   }
 
   void AddFunction(const Function& function) {
-    functions_.Add(function);
+    functions_.Add(&Function::ZoneHandle(zone_, function.raw()));
   }
 
-  const GrowableObjectArray& functions() const {
+  const GrowableArray<const Function*>& functions() const {
     return functions_;
   }
 
   void AddField(const Field& field) {
-    fields_.Add(field);
+    fields_.Add(&Field::ZoneHandle(zone_, field.raw()));
   }
 
-  const GrowableObjectArray& fields() const {
+  const GrowableArray<const Field*>& fields() const {
     return fields_;
   }
 
@@ -721,10 +723,9 @@ class ClassDesc : public ValueObject {
   }
 
   bool has_constructor() const {
-    Function& func = Function::Handle();
-    for (int i = 0; i < functions_.Length(); i++) {
-      func ^= functions_.At(i);
-      if (func.kind() == RawFunction::kConstructor) {
+    for (int i = 0; i < functions_.length(); i++) {
+      const Function* func = functions_.At(i);
+      if (func->kind() == RawFunction::kConstructor) {
         return true;
       }
     }
@@ -752,23 +753,53 @@ class ClassDesc : public ValueObject {
     return NULL;
   }
 
+  RawArray* MakeFunctionsArray() {
+    const intptr_t len = functions_.length();
+    const Array& res = Array::Handle(zone_, Array::New(len, Heap::kOld));
+    for (intptr_t i = 0; i < len; i++) {
+      res.SetAt(i, *functions_[i]);
+    }
+    return res.raw();
+  }
+
  private:
+  Zone* zone_;
   const Class& clazz_;
   const String& class_name_;
   intptr_t token_pos_;   // Token index of "class" keyword.
-  GrowableObjectArray& functions_;
-  GrowableObjectArray& fields_;
+  GrowableArray<const Function*> functions_;
+  GrowableArray<const Field*> fields_;
   GrowableArray<MemberDesc> members_;
 };
 
 
-struct TopLevel {
-  TopLevel() :
-      fields(GrowableObjectArray::Handle(GrowableObjectArray::New())),
-      functions(GrowableObjectArray::Handle(GrowableObjectArray::New())) { }
+class TopLevel : public ValueObject {
+ public:
+  explicit TopLevel(Zone* zone) :
+      zone_(zone),
+      fields_(zone, 4),
+      functions_(zone, 4) { }
 
-  GrowableObjectArray& fields;
-  GrowableObjectArray& functions;
+  void AddField(const Field& field) {
+    fields_.Add(&Field::ZoneHandle(zone_, field.raw()));
+  }
+
+  void AddFunction(const Function& function) {
+    functions_.Add(&Function::ZoneHandle(zone_, function.raw()));
+  }
+
+  const GrowableArray<const Field*>& fields() const {
+    return fields_;
+  }
+
+  const GrowableArray<const Function*>& functions() const {
+    return functions_;
+  }
+
+ private:
+  Zone* zone_;
+  GrowableArray<const Field*> fields_;
+  GrowableArray<const Function*> functions_;
 };
 
 
@@ -1179,12 +1210,15 @@ RawObject* Parser::ParseFunctionFromSource(const Class& owning_class,
     parser.is_top_level_ = true;
     parser.set_current_class(owning_class);
     const String& class_name = String::Handle(owning_class.Name());
-    ClassDesc members(owning_class, class_name, false, token_pos);
+    ClassDesc members(stack_zone.GetZone(),
+                      owning_class,
+                      class_name,
+                      false,  /* is_interface */
+                      token_pos);
     const intptr_t metadata_pos = parser.SkipMetadata();
     parser.ParseClassMemberDefinition(&members, metadata_pos);
-    ASSERT(members.functions().Length() == 1);
-    const Function& func =
-        Function::ZoneHandle(Function::RawCast(members.functions().At(0)));
+    ASSERT(members.functions().length() == 1);
+    const Function& func = *members.functions().At(0);
     func.set_eval_script(script);
     ParsedFunction* parsed_function = new ParsedFunction(thread, func);
     Parser::ParseFunction(parsed_function);
@@ -4610,7 +4644,7 @@ void Parser::ParseClassDefinition(const Class& cls) {
   }
   ExpectToken(Token::kCLASS);
   const intptr_t class_pos = TokenPos();
-  ClassDesc members(cls, class_name, false, class_pos);
+  ClassDesc members(Z, cls, class_name, false, class_pos);
   while (CurrentToken() != Token::kLBRACE) {
     ConsumeToken();
   }
@@ -4631,7 +4665,7 @@ void Parser::ParseClassDefinition(const Class& cls) {
   cls.AddFields(members.fields());
 
   // Creating a new array for functions marks the class as parsed.
-  const Array& array = Array::Handle(Z, Array::MakeArray(members.functions()));
+  Array& array = Array::Handle(Z, members.MakeFunctionsArray());
   cls.SetFunctions(array);
 
   // Add an implicit constructor if no explicit constructor is present.
@@ -4662,7 +4696,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   ExpectToken(Token::kENUM);
 
   const String& enum_name = String::Handle(Z, cls.Name());
-  ClassDesc enum_members(cls, enum_name, false, cls.token_pos());
+  ClassDesc enum_members(Z, cls, enum_name, false, cls.token_pos());
 
   // Add instance field 'final int index'.
   Field& index_field = Field::ZoneHandle(Z);
@@ -4820,8 +4854,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   enum_members.AddFunction(hash_code_func);
 
   cls.AddFields(enum_members.fields());
-  const Array& functions =
-      Array::Handle(Z, Array::MakeArray(enum_members.functions()));
+  const Array& functions = Array::Handle(Z, enum_members.MakeFunctionsArray());
   cls.SetFunctions(functions);
 }
 
@@ -5397,7 +5430,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
                        current_class(), name_pos);
     field.set_type(type);
     field.set_value(Object::null_instance());
-    top_level->fields.Add(field);
+    top_level->AddField(field);
     library_.AddObject(field, var_name);
     if (metadata_pos >= 0) {
       library_.AddFieldMetadata(field, metadata_pos);
@@ -5430,7 +5463,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
         if (library_.is_dart_scheme() && library_.IsPrivate(var_name)) {
           getter.set_is_reflectable(false);
         }
-        top_level->functions.Add(getter);
+        top_level->AddFunction(getter);
       }
     } else if (is_final) {
       ReportError(name_pos, "missing initializer for final or const variable");
@@ -5575,7 +5608,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     func.set_is_reflectable(false);
   }
   AddFormalParamsToFunction(&params, func);
-  top_level->functions.Add(func);
+  top_level->AddFunction(func);
   if (!is_patch) {
     library_.AddObject(func, func_name);
   } else {
@@ -5729,7 +5762,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     func.set_is_reflectable(false);
   }
   AddFormalParamsToFunction(&params, func);
-  top_level->functions.Add(func);
+  top_level->AddFunction(func);
   if (!is_patch) {
     library_.AddObject(func, accessor_name);
   } else {
@@ -6040,7 +6073,7 @@ void Parser::ParseTopLevel() {
       GrowableObjectArray::Handle(Z, object_store->pending_classes());
   SetPosition(0);
   is_top_level_ = true;
-  TopLevel top_level;
+  TopLevel top_level(Z);
   Class& toplevel_class = Class::Handle(Z,
       Class::New(Symbols::TopLevel(), script_, TokenPos()));
   toplevel_class.set_library(library_);
@@ -6087,13 +6120,15 @@ void Parser::ParseTopLevel() {
   }
 
   if ((library_.num_anonymous_classes() == 0) ||
-    (top_level.fields.Length() > 0) || (top_level.functions.Length() > 0)) {
-    toplevel_class.AddFields(top_level.fields);
-
-    const Array& array = Array::Handle(Z,
-                                       Array::MakeArray(top_level.functions));
+      (top_level.fields().length() > 0) ||
+      (top_level.functions().length() > 0)) {
+    toplevel_class.AddFields(top_level.fields());
+    const intptr_t len = top_level.functions().length();
+    const Array& array = Array::Handle(Z, Array::New(len, Heap::kOld));
+    for (intptr_t i = 0; i < len; i++) {
+      array.SetAt(i, *top_level.functions()[i]);
+    }
     toplevel_class.SetFunctions(array);
-
     library_.AddAnonymousClass(toplevel_class);
     pending_classes.Add(toplevel_class, Heap::kOld);
   }

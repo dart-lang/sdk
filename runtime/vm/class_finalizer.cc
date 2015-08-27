@@ -2144,11 +2144,11 @@ void ClassFinalizer::CreateForwardingConstructors(
 
 
 void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
-  Isolate* isolate = Isolate::Current();
-  const Type& mixin_type = Type::Handle(isolate, cls.mixin());
+  Zone* zone = Thread::Current()->zone();
+  const Type& mixin_type = Type::Handle(zone, cls.mixin());
   ASSERT(!mixin_type.IsNull());
   ASSERT(mixin_type.HasResolvedTypeClass());
-  const Class& mixin_cls = Class::Handle(isolate, mixin_type.type_class());
+  const Class& mixin_cls = Class::Handle(zone, mixin_type.type_class());
   FinalizeClass(mixin_cls);
   // If the mixin is a mixin application alias class, there are no members to
   // apply here. A new synthesized class representing the aliased mixin
@@ -2156,7 +2156,7 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   // class. Members of the actual mixin class will be applied when visiting
   // the mixin application class referring to the actual mixin.
   ASSERT(!mixin_cls.is_mixin_app_alias() ||
-         Class::Handle(isolate, cls.SuperClass()).IsMixinApplication());
+         Class::Handle(zone, cls.SuperClass()).IsMixinApplication());
   // A default constructor will be created for the mixin app alias class.
 
   if (FLAG_trace_class_finalization) {
@@ -2167,12 +2167,12 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   }
 
   const GrowableObjectArray& cloned_funcs =
-      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New());
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
 
   CreateForwardingConstructors(cls, cloned_funcs);
 
-  Array& functions = Array::Handle(isolate);
-  Function& func = Function::Handle(isolate);
+  Array& functions = Array::Handle(zone);
+  Function& func = Function::Handle(zone);
   // The parser creates the mixin application class with no functions.
   ASSERT((functions = cls.functions(), functions.Length() == 0));
   // Now clone the functions from the mixin class.
@@ -2185,7 +2185,7 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
       if (!func.IsImplicitConstructor()) {
         ReportError(cls, cls.token_pos(),
                     "mixin class '%s' must not have constructors\n",
-                    String::Handle(isolate, mixin_cls.Name()).ToCString());
+                    String::Handle(zone, mixin_cls.Name()).ToCString());
       }
       continue;  // Skip the implicit constructor.
     }
@@ -2203,18 +2203,17 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   // Now clone the fields from the mixin class. There should be no
   // existing fields in the mixin application class.
   ASSERT(Array::Handle(cls.fields()).Length() == 0);
-  const Array& fields = Array::Handle(isolate, mixin_cls.fields());
-  Field& field = Field::Handle(isolate);
-  const GrowableObjectArray& cloned_fields =
-      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New());
+  const Array& fields = Array::Handle(zone, mixin_cls.fields());
   const intptr_t num_fields = fields.Length();
+  Field& field = Field::Handle(zone);
+  GrowableArray<const Field*> cloned_fields(num_fields);
   for (intptr_t i = 0; i < num_fields; i++) {
     field ^= fields.At(i);
     // Static fields are shared between the mixin class and the mixin
     // application class.
     if (!field.is_static()) {
-      field = field.Clone(cls);
-      cloned_fields.Add(field);
+      const Field& cloned = Field::ZoneHandle(zone, field.Clone(cls));
+      cloned_fields.Add(&cloned);
     }
   }
   cls.AddFields(cloned_fields);
