@@ -583,6 +583,7 @@ class RawObject {
   friend class ScavengerVisitor;
   friend class SizeExcludingClassVisitor;  // GetClassId
   friend class RetainingPathVisitor;  // GetClassId
+  friend class SkippedCodeFunctions;  // StorePointer
   friend class SnapshotReader;
   friend class SnapshotWriter;
   friend class String;
@@ -743,8 +744,8 @@ class RawFunction : public RawObject {
   };
 
  private:
-  // So that the MarkingVisitor::DetachCode can null out the code fields.
-  friend class MarkingVisitor;
+  // So that the SkippedCodeFunctions::DetachCode can null out the code fields.
+  friend class SkippedCodeFunctions;
   friend class Class;
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
   static bool ShouldVisitCode(RawCode* raw_code);
@@ -1026,6 +1027,7 @@ class RawCode : public RawObject {
 
   friend class Function;
   friend class MarkingVisitor;
+  friend class SkippedCodeFunctions;
   friend class StackFrame;
 };
 
@@ -1077,6 +1079,7 @@ class RawInstructions : public RawObject {
   friend class Code;
   friend class StackFrame;
   friend class MarkingVisitor;
+  friend class SkippedCodeFunctions;
   friend class Function;
 };
 

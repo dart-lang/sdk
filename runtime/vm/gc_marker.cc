@@ -74,6 +74,70 @@ class DelaySet {
 };
 
 
+class SkippedCodeFunctions : public ZoneAllocated {
+ public:
+  SkippedCodeFunctions() {}
+
+  void Add(RawFunction* func) {
+    skipped_code_functions_.Add(func);
+  }
+
+  void DetachCode() {
+    intptr_t unoptimized_code_count = 0;
+    intptr_t current_code_count = 0;
+    for (int i = 0; i < skipped_code_functions_.length(); i++) {
+      RawFunction* func = skipped_code_functions_[i];
+      RawCode* code = func->ptr()->instructions_->ptr()->code_;
+      if (!code->IsMarked()) {
+        // If the code wasn't strongly visited through other references
+        // after skipping the function's code pointer, then we disconnect the
+        // code from the function.
+        func->StorePointer(
+            &(func->ptr()->instructions_),
+            StubCode::LazyCompile_entry()->code()->ptr()->instructions_);
+        uword entry_point = StubCode::LazyCompile_entry()->EntryPoint();
+        func->ptr()->entry_point_ = entry_point;
+        if (FLAG_log_code_drop) {
+          // NOTE: This code runs while GC is in progress and runs within
+          // a NoHandleScope block. Hence it is not okay to use a regular Zone
+          // or Scope handle. We use a direct stack handle so the raw pointer in
+          // this handle is not traversed. The use of a handle is mainly to
+          // be able to reuse the handle based code and avoid having to add
+          // helper functions to the raw object interface.
+          String name;
+          name = func->ptr()->name_;
+          ISL_Print("Detaching code: %s\n", name.ToCString());
+          current_code_count++;
+        }
+      }
+
+      code = func->ptr()->unoptimized_code_;
+      if (!code->IsMarked()) {
+        // If the code wasn't strongly visited through other references
+        // after skipping the function's code pointer, then we disconnect the
+        // code from the function.
+        func->StorePointer(&(func->ptr()->unoptimized_code_), Code::null());
+        if (FLAG_log_code_drop) {
+          unoptimized_code_count++;
+        }
+      }
+    }
+    if (FLAG_log_code_drop) {
+      ISL_Print("  total detached current: %" Pd "\n", current_code_count);
+      ISL_Print("  total detached unoptimized: %" Pd "\n",
+                unoptimized_code_count);
+    }
+    // Clean up.
+    skipped_code_functions_.Clear();
+  }
+
+ private:
+  GrowableArray<RawFunction*> skipped_code_functions_;
+
+  DISALLOW_COPY_AND_ASSIGN(SkippedCodeFunctions);
+};
+
+
 class MarkingVisitor : public ObjectPointerVisitor {
  public:
   MarkingVisitor(Isolate* isolate,
@@ -81,7 +145,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
                  PageSpace* page_space,
                  MarkingStack* marking_stack,
                  DelaySet* delay_set,
-                 bool visit_function_code)
+                 SkippedCodeFunctions* skipped_code_functions)
       : ObjectPointerVisitor(isolate),
         thread_(Thread::Current()),
         heap_(heap),
@@ -91,7 +155,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
         work_list_(marking_stack),
         delay_set_(delay_set),
         visiting_old_object_(NULL),
-        visit_function_code_(visit_function_code),
+        skipped_code_functions_(skipped_code_functions),
         marked_bytes_(0) {
     ASSERT(heap_ != vm_heap_);
     ASSERT(thread_->isolate() == isolate);
@@ -131,10 +195,13 @@ class MarkingVisitor : public ObjectPointerVisitor {
     }
   }
 
-  bool visit_function_code() const { return visit_function_code_; }
+  bool visit_function_code() const {
+    return skipped_code_functions_ == NULL;
+  }
 
-  virtual MallocGrowableArray<RawFunction*>* skipped_code_functions() {
-    return &skipped_code_functions_;
+  virtual void add_skipped_code_function(RawFunction* func) {
+    ASSERT(!visit_function_code());
+    skipped_code_functions_->Add(func);
   }
 
   // Returns the mark bit. Sets the watch bit if unmarked. (The prior value of
@@ -171,10 +238,10 @@ class MarkingVisitor : public ObjectPointerVisitor {
 
   // Called when all marking is complete.
   void Finalize() {
-    if (!visit_function_code_) {
-      DetachCode();
-    }
     work_list_.Finalize();
+    if (skipped_code_functions_ != NULL) {
+      skipped_code_functions_->DetachCode();
+    }
   }
 
   void VisitingOldObject(RawObject* obj) {
@@ -283,56 +350,6 @@ class MarkingVisitor : public ObjectPointerVisitor {
     MarkAndPush(raw_obj);
   }
 
-  void DetachCode() {
-    intptr_t unoptimized_code_count = 0;
-    intptr_t current_code_count = 0;
-    for (int i = 0; i < skipped_code_functions_.length(); i++) {
-      RawFunction* func = skipped_code_functions_[i];
-      RawCode* code = func->ptr()->instructions_->ptr()->code_;
-      if (!code->IsMarked()) {
-        // If the code wasn't strongly visited through other references
-        // after skipping the function's code pointer, then we disconnect the
-        // code from the function.
-        func->StorePointer(
-            &(func->ptr()->instructions_),
-            StubCode::LazyCompile_entry()->code()->ptr()->instructions_);
-        uword entry_point = StubCode::LazyCompile_entry()->EntryPoint();
-        func->ptr()->entry_point_ = entry_point;
-
-        if (FLAG_log_code_drop) {
-          // NOTE: This code runs while GC is in progress and runs within
-          // a NoHandleScope block. Hence it is not okay to use a regular Zone
-          // or Scope handle. We use a direct stack handle so the raw pointer in
-          // this handle is not traversed. The use of a handle is mainly to
-          // be able to reuse the handle based code and avoid having to add
-          // helper functions to the raw object interface.
-          String name;
-          name = func->ptr()->name_;
-          ISL_Print("Detaching code: %s\n", name.ToCString());
-          current_code_count++;
-        }
-      }
-
-      code = func->ptr()->unoptimized_code_;
-      if (!code->IsMarked()) {
-        // If the code wasn't strongly visited through other references
-        // after skipping the function's code pointer, then we disconnect the
-        // code from the function.
-        func->StorePointer(&(func->ptr()->unoptimized_code_), Code::null());
-        if (FLAG_log_code_drop) {
-          unoptimized_code_count++;
-        }
-      }
-    }
-    if (FLAG_log_code_drop) {
-      ISL_Print("  total detached current: %" Pd "\n", current_code_count);
-      ISL_Print("  total detached unoptimized: %" Pd "\n",
-                unoptimized_code_count);
-    }
-    // Clean up.
-    skipped_code_functions_.Clear();
-  }
-
   Thread* thread_;
   Heap* heap_;
   Heap* vm_heap_;
@@ -341,8 +358,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
   WorkList work_list_;
   DelaySet* delay_set_;
   RawObject* visiting_old_object_;
-  const bool visit_function_code_;
-  MallocGrowableArray<RawFunction*> skipped_code_functions_;
+  SkippedCodeFunctions* skipped_code_functions_;
   uintptr_t marked_bytes_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitor);
@@ -529,22 +545,24 @@ void GCMarker::MarkObjects(Isolate* isolate,
                            PageSpace* page_space,
                            bool invoke_api_callbacks,
                            bool collect_code) {
-  const bool visit_function_code = !collect_code;
   Prologue(isolate, invoke_api_callbacks);
   // The API prologue/epilogue may create/destroy zones, so we must not
   // depend on zone allocations surviving beyond the epilogue callback.
   {
-    StackZone zone(Thread::Current());
+    StackZone stack_zone(Thread::Current());
+    Zone* zone = stack_zone.GetZone();
     MarkingStack marking_stack;
     DelaySet delay_set;
+    SkippedCodeFunctions* skipped_code_functions =
+        collect_code ? new(zone) SkippedCodeFunctions() : NULL;
     MarkingVisitor mark(isolate, heap_, page_space, &marking_stack,
-                        &delay_set, visit_function_code);
+                        &delay_set, skipped_code_functions);
     IterateRoots(isolate, &mark, !invoke_api_callbacks);
     mark.DrainMarkingStack();
     IterateWeakReferences(isolate, &mark);
     MarkingWeakVisitor mark_weak;
     IterateWeakRoots(isolate, &mark_weak, invoke_api_callbacks);
-    // TODO(koda): Add hand-over callback and centralize skipped code functions.
+    // TODO(koda): Add hand-over callback.
     marked_bytes_ = mark.marked_bytes();
     mark.Finalize();
     delay_set.ClearReferences();

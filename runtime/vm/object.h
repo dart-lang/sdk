@@ -6168,8 +6168,8 @@ class String : public Instance {
   friend class TwoByteString;
   friend class ExternalOneByteString;
   friend class ExternalTwoByteString;
-  // So that the MarkingVisitor can print a debug string from a NoHandleScope.
-  friend class MarkingVisitor;
+  // So that SkippedCodeFunctions can print a debug string from a NoHandleScope.
+  friend class SkippedCodeFunctions;
 };
 
 
