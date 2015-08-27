@@ -96,6 +96,8 @@ def PubBuild(dart_executable, pub_executable, pkg_root, silent, output_dir):
 def Deploy(input_dir, output_dir):
   shutil.rmtree(output_dir)
   shutil.copytree(input_dir, output_dir, ignore=IGNORE_PATTERNS)
+  index_file = os.path.join(output_dir, 'web', 'index.html')
+  os.utime(index_file, None)
   return 0
 
 def RewritePubSpec(input_path, output_path, search, replace):
