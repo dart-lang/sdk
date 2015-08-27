@@ -737,10 +737,13 @@ void Service::PostEvent(const char* stream_id,
 
   if (FLAG_trace_service) {
     Isolate* isolate = Isolate::Current();
-    ASSERT(isolate != NULL);
+    const char* isolate_name = "<no current isolate>";
+    if (isolate != NULL) {
+      isolate_name = isolate->name();
+    }
     OS::Print(
         "vm-service: Pushing event of type %s to stream %s (%s)\n",
-        kind, stream_id, isolate->name());
+        kind, stream_id, isolate_name);
   }
 
   Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
