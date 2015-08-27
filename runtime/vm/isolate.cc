@@ -493,6 +493,15 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
     }
   }
   delete message;
+  if (success) {
+    const Object& result =
+        Object::Handle(zone, I->InvokePendingServiceExtensionCalls());
+    if (result.IsError()) {
+      success = ProcessUnhandledException(Error::Cast(result));
+    } else {
+      ASSERT(result.IsNull());
+    }
+  }
   return success;
 }
 
@@ -504,7 +513,7 @@ void IsolateMessageHandler::NotifyPauseOnStart() {
     HandleScope handle_scope(I);
     ServiceEvent pause_event(isolate(), ServiceEvent::kPauseStart);
     Service::HandleEvent(&pause_event);
-  } else  if (FLAG_trace_service) {
+  } else if (FLAG_trace_service) {
     OS::Print("vm-service: Dropping event of type PauseStart (%s)\n",
               isolate()->name());
   }
@@ -518,7 +527,7 @@ void IsolateMessageHandler::NotifyPauseOnExit() {
     HandleScope handle_scope(I);
     ServiceEvent pause_event(isolate(), ServiceEvent::kPauseExit);
     Service::HandleEvent(&pause_event);
-  } else  if (FLAG_trace_service) {
+  } else if (FLAG_trace_service) {
     OS::Print("vm-service: Dropping event of type PauseExit (%s)\n",
               isolate()->name());
   }
@@ -704,6 +713,8 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       default_tag_(UserTag::null()),
       collected_closures_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
+      pending_service_extension_calls_(GrowableObjectArray::null()),
+      registered_service_extension_handlers_(GrowableObjectArray::null()),
       metrics_list_head_(NULL),
       compilation_allowed_(true),
       cha_(NULL),
@@ -1641,6 +1652,14 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&deoptimized_code_array_));
 
+  // Visit the pending service extension calls.
+  visitor->VisitPointer(
+      reinterpret_cast<RawObject**>(&pending_service_extension_calls_));
+
+  // Visit the registered service extension handlers.
+  visitor->VisitPointer(
+      reinterpret_cast<RawObject**>(&registered_service_extension_handlers_));
+
   // Visit objects in the debugger.
   debugger()->VisitObjectPointers(visitor);
 
@@ -1859,6 +1878,169 @@ void Isolate::TrackDeoptimizedCode(const Code& code) {
   // TODO(johnmccutchan): Scan this array and the isolate's profile before
   // old space GC and remove the keep_code flag.
   deoptimized_code.Add(code);
+}
+
+
+void Isolate::set_pending_service_extension_calls(
+      const GrowableObjectArray& value) {
+  pending_service_extension_calls_ = value.raw();
+}
+
+
+void Isolate::set_registered_service_extension_handlers(
+    const GrowableObjectArray& value) {
+  registered_service_extension_handlers_ = value.raw();
+}
+
+
+RawObject* Isolate::InvokePendingServiceExtensionCalls() {
+  GrowableObjectArray& calls =
+      GrowableObjectArray::Handle(GetAndClearPendingServiceExtensionCalls());
+  if (calls.IsNull()) {
+    return Object::null();
+  }
+  // Grab run function.
+  const Library& developer_lib = Library::Handle(Library::DeveloperLibrary());
+  ASSERT(!developer_lib.IsNull());
+  const Function& run_extension = Function::Handle(
+      developer_lib.LookupLocalFunction(Symbols::_runExtension()));
+  ASSERT(!run_extension.IsNull());
+
+  const Array& arguments =
+      Array::Handle(Array::New(kPendingEntrySize, Heap::kNew));
+  Object& result = Object::Handle();
+  String& method_name = String::Handle();
+  Instance& closure = Instance::Handle();
+  Array& parameter_keys = Array::Handle();
+  Array& parameter_values = Array::Handle();
+  Instance& reply_port = Instance::Handle();
+  Instance& id = Instance::Handle();
+  for (intptr_t i = 0; i < calls.Length(); i += kPendingEntrySize) {
+    // Grab arguments for call.
+    closure ^= calls.At(i + kPendingHandlerIndex);
+    ASSERT(!closure.IsNull());
+    arguments.SetAt(kPendingHandlerIndex, closure);
+    method_name ^= calls.At(i + kPendingMethodNameIndex);
+    ASSERT(!method_name.IsNull());
+    arguments.SetAt(kPendingMethodNameIndex, method_name);
+    parameter_keys ^= calls.At(i + kPendingKeysIndex);
+    ASSERT(!parameter_keys.IsNull());
+    arguments.SetAt(kPendingKeysIndex, parameter_keys);
+    parameter_values ^= calls.At(i + kPendingValuesIndex);
+    ASSERT(!parameter_values.IsNull());
+    arguments.SetAt(kPendingValuesIndex, parameter_values);
+    reply_port ^= calls.At(i + kPendingReplyPortIndex);
+    ASSERT(!reply_port.IsNull());
+    arguments.SetAt(kPendingReplyPortIndex, reply_port);
+    id ^= calls.At(i + kPendingIdIndex);
+    arguments.SetAt(kPendingIdIndex, id);
+
+    result = DartEntry::InvokeFunction(run_extension, arguments);
+    if (result.IsError()) {
+      if (result.IsUnwindError()) {
+        // Propagate the unwind error. Remaining service extension calls
+        // are dropped.
+        return result.raw();
+      } else {
+        // Send error back over the protocol.
+        Service::PostError(method_name,
+                           parameter_keys,
+                           parameter_values,
+                           reply_port,
+                           id,
+                           Error::Cast(result));
+      }
+    }
+    result = DartLibraryCalls::DrainMicrotaskQueue();
+    if (result.IsError()) {
+      return result.raw();
+    }
+  }
+  return Object::null();
+}
+
+
+RawGrowableObjectArray* Isolate::GetAndClearPendingServiceExtensionCalls() {
+  RawGrowableObjectArray* r = pending_service_extension_calls_;
+  pending_service_extension_calls_ = GrowableObjectArray::null();
+  return r;
+}
+
+
+void Isolate::AppendServiceExtensionCall(const Instance& closure,
+                                         const String& method_name,
+                                         const Array& parameter_keys,
+                                         const Array& parameter_values,
+                                         const Instance& reply_port,
+                                         const Instance& id) {
+  GrowableObjectArray& calls =
+      GrowableObjectArray::Handle(pending_service_extension_calls());
+  if (calls.IsNull()) {
+    calls ^= GrowableObjectArray::New();
+    ASSERT(!calls.IsNull());
+    set_pending_service_extension_calls(calls);
+  }
+  ASSERT(kPendingHandlerIndex == 0);
+  calls.Add(closure);
+  ASSERT(kPendingMethodNameIndex == 1);
+  calls.Add(method_name);
+  ASSERT(kPendingKeysIndex == 2);
+  calls.Add(parameter_keys);
+  ASSERT(kPendingValuesIndex == 3);
+  calls.Add(parameter_values);
+  ASSERT(kPendingReplyPortIndex == 4);
+  calls.Add(reply_port);
+  ASSERT(kPendingIdIndex == 5);
+  calls.Add(id);
+}
+
+
+// This function is written in C++ and not Dart because we must do this
+// operation atomically in the face of random OOB messages. Do not port
+// to Dart code unless you can ensure that the operations will can be
+// done atomically.
+void Isolate::RegisterServiceExtensionHandler(const String& name,
+                                              const Instance& closure) {
+  GrowableObjectArray& handlers =
+      GrowableObjectArray::Handle(registered_service_extension_handlers());
+  if (handlers.IsNull()) {
+    handlers ^= GrowableObjectArray::New(Heap::kOld);
+    set_registered_service_extension_handlers(handlers);
+  }
+#if defined(DEBUG)
+  {
+    // Sanity check.
+    const Instance& existing_handler =
+        Instance::Handle(LookupServiceExtensionHandler(name));
+    ASSERT(existing_handler.IsNull());
+  }
+#endif
+  ASSERT(kRegisteredNameIndex == 0);
+  handlers.Add(name, Heap::kOld);
+  ASSERT(kRegisteredHandlerIndex == 1);
+  handlers.Add(closure, Heap::kOld);
+}
+
+
+// This function is written in C++ and not Dart because we must do this
+// operation atomically in the face of random OOB messages. Do not port
+// to Dart code unless you can ensure that the operations will can be
+// done atomically.
+RawInstance* Isolate::LookupServiceExtensionHandler(const String& name) {
+  const GrowableObjectArray& handlers =
+      GrowableObjectArray::Handle(registered_service_extension_handlers());
+  if (handlers.IsNull()) {
+    return Instance::null();
+  }
+  String& handler_name = String::Handle();
+  for (intptr_t i = 0; i < handlers.Length(); i += kRegisteredEntrySize) {
+    handler_name ^= handlers.At(i + kRegisteredNameIndex);
+    ASSERT(!handler_name.IsNull());
+    if (handler_name.Equals(name)) {
+      return Instance::RawCast(handlers.At(i + kRegisteredHandlerIndex));
+    }
+  }
+  return Instance::null();
 }
 
 

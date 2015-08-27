@@ -558,6 +558,20 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
 }
 
 
+RawObject* DartLibraryCalls::DrainMicrotaskQueue() {
+  Isolate* isolate = Isolate::Current();
+  Library& isolate_lib = Library::Handle(isolate, Library::IsolateLibrary());
+  ASSERT(!isolate_lib.IsNull());
+  Function& function = Function::Handle(isolate,
+      isolate_lib.LookupFunctionAllowPrivate(
+          Symbols::_runPendingImmediateCallback()));
+  const Object& result = Object::Handle(isolate,
+      DartEntry::InvokeFunction(function, Object::empty_array()));
+  ASSERT(result.IsNull() || result.IsError());
+  return result.raw();
+}
+
+
 RawObject* DartLibraryCalls::MapSetAt(const Instance& map,
                                       const Instance& key,
                                       const Instance& value) {

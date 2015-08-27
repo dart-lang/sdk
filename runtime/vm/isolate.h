@@ -707,6 +707,17 @@ class Isolate : public BaseIsolate {
     compilation_allowed_ = allowed;
   }
 
+  RawObject* InvokePendingServiceExtensionCalls();
+  void AppendServiceExtensionCall(const Instance& closure,
+                           const String& method_name,
+                           const Array& parameter_keys,
+                           const Array& parameter_values,
+                           const Instance& reply_port,
+                           const Instance& id);
+  void RegisterServiceExtensionHandler(const String& name,
+                                       const Instance& closure);
+  RawInstance* LookupServiceExtensionHandler(const String& name);
+
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
   void set_reusable_##object##_handle_scope_active(bool value) {               \
@@ -769,6 +780,17 @@ class Isolate : public BaseIsolate {
   void set_user_tag(uword tag) {
     user_tag_ = tag;
   }
+
+  RawGrowableObjectArray* GetAndClearPendingServiceExtensionCalls();
+  RawGrowableObjectArray* pending_service_extension_calls() const {
+    return pending_service_extension_calls_;
+  }
+  void set_pending_service_extension_calls(const GrowableObjectArray& value);
+  RawGrowableObjectArray* registered_service_extension_handlers() const {
+    return registered_service_extension_handlers_;
+  }
+  void set_registered_service_extension_handlers(
+      const GrowableObjectArray& value);
 
   void ClearMutatorThread() {
     mutator_thread_ = NULL;
@@ -861,6 +883,26 @@ class Isolate : public BaseIsolate {
 
   RawGrowableObjectArray* collected_closures_;
   RawGrowableObjectArray* deoptimized_code_array_;
+
+  // We use 6 list entries for each pending service extension calls.
+  enum {
+    kPendingHandlerIndex = 0,
+    kPendingMethodNameIndex,
+    kPendingKeysIndex,
+    kPendingValuesIndex,
+    kPendingReplyPortIndex,
+    kPendingIdIndex,
+    kPendingEntrySize
+  };
+  RawGrowableObjectArray* pending_service_extension_calls_;
+
+  // We use 2 list entries for each registered extension handler.
+  enum {
+    kRegisteredNameIndex = 0,
+    kRegisteredHandlerIndex,
+    kRegisteredEntrySize
+  };
+  RawGrowableObjectArray* registered_service_extension_handlers_;
 
   Metric* metrics_list_head_;
 

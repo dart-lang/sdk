@@ -397,7 +397,8 @@ class ObjectPointerVisitor;
   V(removeLast, "removeLast")                                                  \
   V(add, "add")                                                                \
   V(ConstructorClosurePrefix, "new#")                                          \
-  V(_scheduleExtension, "_scheduleExtension")                                  \
+  V(_runExtension, "_runExtension")                                            \
+  V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

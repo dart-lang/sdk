@@ -505,6 +505,25 @@ static bool ValidateParameters(const MethodParameter* const* parameters,
 }
 
 
+void Service::PostError(const String& method_name,
+                        const Array& parameter_keys,
+                        const Array& parameter_values,
+                        const Instance& reply_port,
+                        const Instance& id,
+                        const Error& error) {
+  Isolate* isolate = Isolate::Current();
+  StackZone zone(isolate);
+  HANDLESCOPE(isolate);
+  JSONStream js;
+  js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
+           id, method_name, parameter_keys, parameter_values);
+  js.PrintError(kExtensionError,
+                "Error in extension `%s`: %s",
+                js.method(), error.ToErrorCString());
+  js.PostReply();
+}
+
+
 void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
   ASSERT(isolate != NULL);
   ASSERT(!msg.IsNull());
@@ -591,11 +610,15 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
       return;
     }
 
-    if (ScheduleExtensionHandler(method_name,
-                                 param_keys,
-                                 param_values,
-                                 reply_port,
-                                 seq)) {
+    const Instance& extension_handler =
+        Instance::Handle(isolate->LookupServiceExtensionHandler(method_name));
+    if (!extension_handler.IsNull()) {
+      ScheduleExtensionHandler(extension_handler,
+                               method_name,
+                               param_keys,
+                               param_values,
+                               reply_port,
+                               seq);
       // Schedule was successful. Extension code will post a reply
       // asynchronously.
       return;
@@ -891,28 +914,25 @@ EmbedderServiceHandler* Service::FindRootEmbedderHandler(
 }
 
 
-bool Service::ScheduleExtensionHandler(const String& method_name,
+void Service::ScheduleExtensionHandler(const Instance& handler,
+                                       const String& method_name,
                                        const Array& parameter_keys,
                                        const Array& parameter_values,
                                        const Instance& reply_port,
                                        const Instance& id) {
+  ASSERT(!handler.IsNull());
   ASSERT(!method_name.IsNull());
   ASSERT(!parameter_keys.IsNull());
   ASSERT(!parameter_values.IsNull());
   ASSERT(!reply_port.IsNull());
-  const Library& developer_lib = Library::Handle(Library::DeveloperLibrary());
-  ASSERT(!developer_lib.IsNull());
-  const Function& schedule_extension = Function::Handle(
-      developer_lib.LookupLocalFunction(Symbols::_scheduleExtension()));
-  ASSERT(!schedule_extension.IsNull());
-  const Array& arguments = Array::Handle(Array::New(5));
-  arguments.SetAt(0, method_name);
-  arguments.SetAt(1, parameter_keys);
-  arguments.SetAt(2, parameter_values);
-  arguments.SetAt(3, reply_port);
-  arguments.SetAt(4, id);
-  return (DartEntry::InvokeFunction(schedule_extension, arguments) ==
-          Object::bool_true().raw());
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  isolate->AppendServiceExtensionCall(handler,
+                                      method_name,
+                                      parameter_keys,
+                                      parameter_values,
+                                      reply_port,
+                                      id);
 }
 
 

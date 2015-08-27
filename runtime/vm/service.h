@@ -15,6 +15,7 @@ namespace dart {
 
 class Array;
 class EmbedderServiceHandler;
+class Error;
 class GCEvent;
 class GrowableObjectArray;
 class Instance;
@@ -120,6 +121,13 @@ class Service : public AllStatic {
                            const Object& error,
                            const Instance& stack_trace);
 
+  static void PostError(const String& method_name,
+                        const Array& parameter_keys,
+                        const Array& parameter_values,
+                        const Instance& reply_port,
+                        const Instance& id,
+                        const Error& error);
+
   // Well-known streams.
   static StreamInfo isolate_stream;
   static StreamInfo debug_stream;
@@ -146,7 +154,8 @@ class Service : public AllStatic {
 
   static EmbedderServiceHandler* FindIsolateEmbedderHandler(const char* name);
   static EmbedderServiceHandler* FindRootEmbedderHandler(const char* name);
-  static bool ScheduleExtensionHandler(const String& name,
+  static void ScheduleExtensionHandler(const Instance& handler,
+                                       const String& method_name,
                                        const Array& parameter_keys,
                                        const Array& parameter_values,
                                        const Instance& reply_port,

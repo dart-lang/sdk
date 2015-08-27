@@ -86,12 +86,15 @@ class ServiceExtensionResponse {
 typedef Future<ServiceExtensionResponse>
     ServiceExtensionHandler(String method, Map parameters);
 
-final _extensions = new Map<String, ServiceExtensionHandler>();
-
 /// Register a [ServiceExtensionHandler] that will be invoked in this isolate
 /// for [method].
 void registerExtension(String method, ServiceExtensionHandler handler) {
-  if (_extensions[method] != null) {
+  if (method is! String) {
+    throw new ArgumentError.value(method,
+                                  'method',
+                                  'Must be a String');
+  }
+  if (_lookupExtension(method) != null) {
     throw new ArgumentError('Extension already registered: $method');
   }
   if (handler is! ServiceExtensionHandler) {
@@ -99,59 +102,68 @@ void registerExtension(String method, ServiceExtensionHandler handler) {
                                   'handler',
                                   'Must be a ServiceExtensionHandler');
   }
-  _extensions[method] = handler;
+  _registerExtension(method, handler);
 }
 
-bool _scheduleExtension(String method,
-                        List<String> parameterKeys,
-                        List<String> parameterValues,
-                        SendPort replyPort,
-                        Object id) {
-  ServiceExtensionHandler handler = _extensions[method];
-  if (handler == null) {
-    return false;
+// Both of these functions are written inside C++ to avoid updating the data
+// structures in Dart, getting an OOB, and observing stale state. Do not move
+// these into Dart code unless you can ensure that the operations will can be
+// done atomically. Native code lives in vm/isolate.cc-
+// LookupServiceExtensionHandler and RegisterServiceExtensionHandler.
+external ServiceExtensionHandler _lookupExtension(String method);
+external _registerExtension(String method, ServiceExtensionHandler handler);
+
+// This code is only invoked when there is no other Dart code on the stack.
+_runExtension(ServiceExtensionHandler handler,
+              String method,
+              List<String> parameterKeys,
+              List<String> parameterValues,
+              SendPort replyPort,
+              Object id) {
+  var parameters = {};
+  for (var i = 0; i < parameterKeys.length; i++) {
+    parameters[parameterKeys[i]] = parameterValues[i];
   }
-  // Defer execution of handler until next event loop.
-  Timer.run(() {
-    var parameters = {};
-    for (var i = 0; i < parameterKeys.length; i++) {
-      parameters[parameterKeys[i]] = parameterValues[i];
-    }
-    var response;
-    try {
-      response = handler(method, parameters);
-    } catch (e, st) {
-      var errorDetails = (st == null) ? '$e' : '$e\n$st';
+  var response;
+  try {
+    response = handler(method, parameters);
+  } catch (e, st) {
+    var errorDetails = (st == null) ? '$e' : '$e\n$st';
+    response = new ServiceExtensionResponse.error(
+        ServiceExtensionResponse.kExtensionError,
+        errorDetails);
+    _postResponse(replyPort, id, response);
+    return;
+  }
+  if (response is! Future) {
+    response = new ServiceExtensionResponse.error(
+          ServiceExtensionResponse.kExtensionError,
+          "Extension handler must return a Future");
+    _postResponse(replyPort, id, response);
+    return;
+  }
+  response.catchError((e, st) {
+    // Catch any errors eagerly and wrap them in a ServiceExtensionResponse.
+    var errorDetails = (st == null) ? '$e' : '$e\n$st';
+    return new ServiceExtensionResponse.error(
+        ServiceExtensionResponse.kExtensionError,
+        errorDetails);
+  }).then((response) {
+    // Post the valid response or the wrapped error after verifying that
+    // the response is a ServiceExtensionResponse.
+    if (response is! ServiceExtensionResponse) {
       response = new ServiceExtensionResponse.error(
           ServiceExtensionResponse.kExtensionError,
-          errorDetails);
-      _postResponse(replyPort, id, response);
-      return;
+          "Extension handler must complete to a ServiceExtensionResponse");
     }
-    if (response is! Future) {
-      response = new ServiceExtensionResponse.error(
-            ServiceExtensionResponse.kExtensionError,
-            "Extension handler must return a Future");
-      _postResponse(replyPort, id, response);
-      return;
-    }
-    response.catchError((e, st) {
-      var errorDetails = (st == null) ? '$e' : '$e\n$st';
-      return new ServiceExtensionResponse.error(
-          ServiceExtensionResponse.kExtensionError,
-          errorDetails);
-    }).then((response) {
-      if (response == null) {
-        response = new ServiceExtensionResponse.error(
-            ServiceExtensionResponse.kExtensionError,
-            "Extension handler returned null");
-      }
-      _postResponse(replyPort, id, response);
-    });
+    _postResponse(replyPort, id, response);
+  }).catchError((e, st) {
+    // We do not expect any errors to occur in the .then or .catchError blocks
+    // but, suppress them just in case.
   });
-  return true;
 }
 
+// This code is only invoked by _runExtension.
 _postResponse(SendPort replyPort,
               Object id,
               ServiceExtensionResponse response) {

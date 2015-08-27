@@ -59,4 +59,18 @@ DEFINE_NATIVE_ENTRY(Developer_log, 8) {
   return Object::null();
 }
 
+
+DEFINE_NATIVE_ENTRY(Developer_lookupExtension, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(0));
+  return isolate->LookupServiceExtensionHandler(name);
+}
+
+
+DEFINE_NATIVE_ENTRY(Developer_registerExtension, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, handler, arguments->NativeArgAt(1));
+  isolate->RegisterServiceExtensionHandler(name, handler);
+  return Object::null();
+}
+
 }  // namespace dart

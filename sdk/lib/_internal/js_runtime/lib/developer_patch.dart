@@ -32,3 +32,15 @@ void log(String message,
           StackTrace stackTrace}) {
   // TODO.
 }
+
+final _extensions = new Map<String, ServiceExtensionHandler>();
+
+@patch
+bool _extensionExists(String method) {
+  return _extensions[method] != null;
+}
+
+@patch
+void _registerExtension(String method, ServiceExtensionHandler handler) {
+  _extensions[method] = handler;
+}

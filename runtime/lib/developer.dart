@@ -49,3 +49,9 @@ _log(String message,
      Zone zone,
      Object error,
      StackTrace stackTrace) native "Developer_log";
+
+patch ServiceExtensionHandler _lookupExtension(String method)
+    native "Developer_lookupExtension";
+
+patch _registerExtension(String method, ServiceExtensionHandler handler)
+    native "Developer_registerExtension";

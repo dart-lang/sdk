@@ -42,6 +42,8 @@ enum JSONRpcErrorCode {
   kInvalidParams  = -32602,
   kInternalError  = -32603,
 
+  kExtensionError = -32000,
+
   kFeatureDisabled         = 100,
   kVMMustBePaused          = 101,
   kCannotAddBreakpoint     = 102,

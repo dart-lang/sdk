@@ -70,6 +70,8 @@ namespace dart {
   V(Bigint_allocate, 4)                                                        \
   V(Developer_debugger, 2)                                                     \
   V(Developer_inspect, 1)                                                      \
+  V(Developer_lookupExtension, 1)                                              \
+  V(Developer_registerExtension, 2)                                            \
   V(Developer_log, 8)                                                          \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \

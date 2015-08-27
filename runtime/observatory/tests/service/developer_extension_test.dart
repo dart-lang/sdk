@@ -47,6 +47,12 @@ Future<ServiceExtensionResponse> Handler(String method,
   }
 }
 
+Future<ServiceExtensionResponse> LanguageErrorHandler(String method,
+                                                      Map paremeters) {
+  // The following is an intentional syntax error.
+  klajsdlkjfad
+}
+
 void test() {
   registerExtension('__delay', Handler);
   registerExtension('__error', Handler);
@@ -61,6 +67,7 @@ void test() {
     exceptionThrown = true;
   }
   expect(exceptionThrown, isTrue);
+  registerExtension('__languageError', LanguageErrorHandler);
 }
 
 var tests = [
@@ -98,7 +105,8 @@ var tests = [
       await isolate.invokeRpcNoUpgrade('__nullFuture', {});
     } on ServerRpcException catch (e, st) {
       expect(e.code, equals(ServiceExtensionResponse.kExtensionError));
-      expect(e.message, equals('Extension handler returned null'));
+      expect(e.message, equals('Extension handler must complete to a '
+                               'ServiceExtensionResponse'));
     }
 
     result = await isolate.invokeRpcNoUpgrade('__success',
@@ -108,6 +116,16 @@ var tests = [
     expect(result['parameters']['isolateId'], isNotNull);
     expect(result['parameters']['apple'], equals('banana'));
 
+
+    try {
+      result = await isolate.invokeRpcNoUpgrade('__languageError', {});
+    } on ServerRpcException catch (e, st) {
+      expect(e.code, equals(ServiceExtensionResponse.kExtensionError));
+      expect(e.message, stringContainsInOrder([
+          'Error in extension `__languageError`:',
+          'developer_extension_test.dart',
+          'semicolon expected']));
+    }
 
   },
 ];
