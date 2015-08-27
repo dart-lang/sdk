@@ -15,7 +15,8 @@ import '../diagnostics/invariant.dart' as dart2js show
     InternalErrorFunction;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
-import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import '../js_backend/js_backend.dart' show JavaScriptBackend,
+    SyntheticConstantKind;
 import '../js_backend/codegen/task.dart' show CpsFunctionCompiler;
 import '../resolution/access_semantics.dart';
 import '../resolution/operators.dart';
@@ -1609,6 +1610,8 @@ class TransformingVisitor extends LeafVisitor {
       // Check if any of the possible targets depend on the extra receiver
       // argument. Mixins do this, and tear-offs always needs the extra receiver
       // argument because BoundClosure uses it for equality and hash code.
+      // TODO(15933): Make automatically generated property extraction
+      // closures work with the dummy receiver optimization.
       bool needsReceiver(Element target) {
         if (target is! FunctionElement) return false;
         FunctionElement function = target;
@@ -1618,7 +1621,10 @@ class TransformingVisitor extends LeafVisitor {
       if (!getAllTargets(receiver.type, node.selector).any(needsReceiver)) {
         // Replace the extra receiver argument with a dummy value if the
         // target definitely does not use it.
-        Constant dummy = makeConstantPrimitive(new IntConstantValue(0));
+        ConstantValue constant = new SyntheticConstantValue(
+            SyntheticConstantKind.DUMMY_INTERCEPTOR,
+            receiver.type);
+        Constant dummy = makeConstantPrimitive(constant);
         insertLetPrim(node, dummy);
         node.arguments[0].unlink();
         node.arguments[0] = new Reference<Primitive>(dummy);
@@ -2476,13 +2482,7 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitConstant(Constant node) {
-    ConstantValue value = node.value;
-    if (value.isDummy || !value.isConstant) {
-      // TODO(asgerf): Explain how this happens and why we don't want them.
-      setValue(node, nonConstant(typeSystem.getTypeOf(value)));
-    } else {
-      setValue(node, constantValue(value, typeSystem.getTypeOf(value)));
-    }
+    setValue(node, constantValue(node.value, typeSystem.getTypeOf(node.value)));
   }
 
   void visitCreateFunction(CreateFunction node) {
@@ -2635,8 +2635,13 @@ class AbstractValue {
   AbstractValue.nothing()
       : this._internal(NOTHING, null, new TypeMask.nonNullEmpty());
 
-  AbstractValue.constantValue(ConstantValue constant, TypeMask type)
-      : this._internal(CONSTANT, constant, type);
+  factory AbstractValue.constantValue(ConstantValue constant, TypeMask type) {
+    if (constant.isDummy || !constant.isConstant) {
+      return new AbstractValue._internal(NONCONST, null, type);
+    } else {
+      return new AbstractValue._internal(CONSTANT, constant, type);
+    }
+  }
 
   factory AbstractValue.nonConstant(TypeMask type) {
     if (type.isEmpty) {
