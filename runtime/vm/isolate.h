@@ -447,6 +447,10 @@ class Isolate : public BaseIsolate {
   // Requests that the debugger resume execution.
   void Resume() {
     resume_request_ = true;
+    set_last_resume_timestamp();
+  }
+
+  void set_last_resume_timestamp() {
     last_resume_timestamp_ = OS::GetCurrentTimeMillis();
   }
 

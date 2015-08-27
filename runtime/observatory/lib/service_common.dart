@@ -209,7 +209,7 @@ abstract class CommonWebSocketVM extends VM {
       }
       var event = map['params']['event'];
       var streamId = map['params']['streamId'];
-      postServiceEvent(streamId, event, data);
+      scheduleMicrotask(() { postServiceEvent(streamId, event, data); });
     });
   }
 
@@ -222,7 +222,7 @@ abstract class CommonWebSocketVM extends VM {
     if (map['method'] == 'streamNotify') {
       var event = map['params']['event'];
       var streamId = map['params']['streamId'];
-      postServiceEvent(streamId, event, null);
+      scheduleMicrotask(() { postServiceEvent(streamId, event, null); });
       return;
     }
 

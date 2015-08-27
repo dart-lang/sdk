@@ -1283,10 +1283,11 @@ class Isolate extends ServiceObjectOwner with Coverage {
     _updateBreakpoints(map['breakpoints']);
     exceptionsPauseInfo = map['_debuggerSettings']['_exceptions'];
 
-    pauseEvent = map['pauseEvent'];
-    if (vm.verbose) {
-      print('VM-VERBOSE: $name reloaded. pause event= $pauseEvent');
-    }
+    var newPauseEvent = map['pauseEvent'];
+    assert((pauseEvent == null) ||
+           (newPauseEvent == null) ||
+           !newPauseEvent.timestamp.isBefore(pauseEvent.timestamp));
+    pauseEvent = newPauseEvent;
     _updateRunState();
     error = map['error'];
 
@@ -1338,9 +1339,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   void _onEvent(ServiceEvent event) {
-    if (vm.verbose) {
-      print('VM-VERBOSE: $name _onEvent $event');
-    }
     switch(event.kind) {
       case ServiceEvent.kIsolateStart:
       case ServiceEvent.kIsolateRunnable:
@@ -1369,8 +1367,9 @@ class Isolate extends ServiceObjectOwner with Coverage {
       case ServiceEvent.kPauseInterrupted:
       case ServiceEvent.kPauseException:
       case ServiceEvent.kResume:
+        assert((pauseEvent == null) ||
+               !event.timestamp.isBefore(pauseEvent.timestamp));
         pauseEvent = event;
-        print('VM-VERBOSE: $name pause event $pauseEvent');
         _updateRunState();
         break;
 
@@ -1834,10 +1833,11 @@ class ServiceEvent extends ServiceObject {
 
   String toString() {
     if (data == null) {
-      return "ServiceEvent(owner='${owner.id}', kind='${kind}')";
+      return "ServiceEvent(owner='${owner.id}', kind='${kind}', "
+          "time=${timestamp})";
     } else {
       return "ServiceEvent(owner='${owner.id}', kind='${kind}', "
-          "data.lengthInBytes=${data.lengthInBytes})";
+          "data.lengthInBytes=${data.lengthInBytes}, time=${timestamp})";
     }
   }
 }

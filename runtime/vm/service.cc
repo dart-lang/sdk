@@ -2336,6 +2336,7 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
       isolate->debugger()->EnterSingleStepMode();
     }
     isolate->message_handler()->set_pause_on_start(false);
+    isolate->set_last_resume_timestamp();
     if (Service::debug_stream.enabled()) {
       ServiceEvent event(isolate, ServiceEvent::kResume);
       Service::HandleEvent(&event);
