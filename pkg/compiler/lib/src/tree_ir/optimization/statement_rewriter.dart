@@ -207,15 +207,19 @@ class StatementRewriter extends Transformer implements Pass {
     return newJump != null ? newJump : jump;
   }
 
-  void inEmptyEnvironment(void action()) {
+  void inEmptyEnvironment(void action(), {bool keepConstants: true}) {
     List oldEnvironment = environment;
     Map oldConstantEnvironment = constantEnvironment;
     environment = <Expression>[];
-    constantEnvironment = <Variable, Expression>{};
+    if (!keepConstants) {
+      constantEnvironment = <Variable, Expression>{};
+    }
     action();
     assert(environment.isEmpty);
     environment = oldEnvironment;
-    constantEnvironment = oldConstantEnvironment;
+    if (!keepConstants) {
+      constantEnvironment = oldConstantEnvironment;
+    }
   }
 
   /// Left-hand side of the given assignment, or `null` if not an assignment.
@@ -657,9 +661,11 @@ class StatementRewriter extends Transformer implements Pass {
   Statement visitWhileTrue(WhileTrue node) {
     // Do not propagate assignments into loops.  Doing so is not safe for
     // variables modified in the loop (the initial value will be propagated).
+    // Do not propagate effective constant expressions into loops, since
+    // computing them is not free (e.g. interceptors are expensive).
     inEmptyEnvironment(() {
       node.body = visitStatement(node.body);
-    });
+    }, keepConstants: false);
     return node;
   }
 
