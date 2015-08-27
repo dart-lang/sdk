@@ -389,15 +389,16 @@ void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
   if ((instr->token_pos() == Scanner::kNoSourcePos) || (instr->env() == NULL)) {
     return;
   }
-  const Function& function =
-      Function::Handle(instr->env()->code().function());
-  const Script& s = Script::Handle(function.script());
+  const Script& script =
+      Script::Handle(zone(), instr->env()->function().script());
   intptr_t line_nr;
   intptr_t column_nr;
-  s.GetTokenLocation(instr->token_pos(), &line_nr, &column_nr);
-  const String& line = String::Handle(s.GetLine(line_nr));
+  script.GetTokenLocation(instr->token_pos(), &line_nr, &column_nr);
+  const String& line = String::Handle(zone(), script.GetLine(line_nr));
   assembler()->Comment("Line %" Pd " in '%s':\n           %s",
-      line_nr, function.ToFullyQualifiedCString(), line.ToCString());
+      line_nr,
+      instr->env()->function().ToFullyQualifiedCString(),
+      line.ToCString());
 }
 
 

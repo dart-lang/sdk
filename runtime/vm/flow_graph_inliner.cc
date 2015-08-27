@@ -82,10 +82,10 @@ DECLARE_FLAG(bool, verify_compiler);
 
 
 // Test if a call is recursive by looking in the deoptimization environment.
-static bool IsCallRecursive(const Code& code, Definition* call) {
+static bool IsCallRecursive(const Function& function, Definition* call) {
   Environment* env = call->env();
   while (env != NULL) {
-    if (code.raw() == env->code().raw()) {
+    if (function.raw() == env->function().raw()) {
       return true;
     }
     env = env->outer();
@@ -667,7 +667,7 @@ class CallSiteInliner : public ValueObject {
     // Abort if this is a recursive occurrence.
     Definition* call = call_data->call;
     // Added 'volatile' works around a possible GCC 4.9 compiler bug.
-    volatile bool is_recursive_call = IsCallRecursive(unoptimized_code, call);
+    volatile bool is_recursive_call = IsCallRecursive(function, call);
     if (is_recursive_call &&
         inlining_recursion_depth_ >= FLAG_inlining_recursion_depth_threshold) {
       TRACE_INLINING(ISL_Print("     Bailout: recursive function\n"));

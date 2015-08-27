@@ -97,11 +97,9 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   Zone* zone = compiler->zone();
 
   // Current PP, FP, and PC.
-  builder->AddPp(Function::Handle(zone, current->code().function()), slot_ix++);
+  builder->AddPp(current->function(), slot_ix++);
   builder->AddCallerFp(slot_ix++);
-  builder->AddReturnAddress(Function::Handle(zone, current->code().function()),
-                            deopt_id(),
-                            slot_ix++);
+  builder->AddReturnAddress(current->function(), deopt_id(), slot_ix++);
 
   // Callee's PC marker is not used anymore. Pass Code::null() to set to 0.
   builder->AddPcMarker(Function::Handle(zone), slot_ix++);
@@ -122,20 +120,18 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   current = current->outer();
   while (current != NULL) {
     // PP, FP, and PC.
-    builder->AddPp(
-        Function::Handle(zone, current->code().function()), slot_ix++);
+    builder->AddPp(current->function(), slot_ix++);
     builder->AddCallerFp(slot_ix++);
 
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
     builder->AddReturnAddress(
-        Function::Handle(zone, current->code().function()),
+        current->function(),
         Isolate::ToDeoptAfter(current->deopt_id()),
         slot_ix++);
 
     // PC marker.
-    builder->AddPcMarker(Function::Handle(zone, previous->code().function()),
-                         slot_ix++);
+    builder->AddPcMarker(previous->function(), slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
     // we must read them from the previous environment.
@@ -167,8 +163,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   builder->AddCallerPc(slot_ix++);
 
   // PC marker.
-  builder->AddPcMarker(Function::Handle(zone, previous->code().function()),
-                       slot_ix++);
+  builder->AddPcMarker(previous->function(), slot_ix++);
 
   // For the outermost environment, set the incoming arguments.
   for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {

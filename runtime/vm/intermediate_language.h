@@ -8015,7 +8015,7 @@ class Environment : public ZoneAllocated {
     return count;
   }
 
-  const Code& code() const { return parsed_function_.code(); }
+  const Function& function() const { return parsed_function_.function(); }
 
   Environment* DeepCopy(Zone* zone) const {
     return DeepCopy(zone, Length());
