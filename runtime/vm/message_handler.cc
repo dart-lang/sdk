@@ -238,7 +238,6 @@ void MessageHandler::TaskCallback() {
   ASSERT(Isolate::Current() == NULL);
   bool ok = true;
   bool run_end_callback = false;
-  bool notify_paused_on_exit = false;
   {
     MonitorLocker ml(&monitor_);
     // Initialize the message handler by running its start function,
@@ -255,9 +254,11 @@ void MessageHandler::TaskCallback() {
         NotifyPauseOnStart();
         monitor_.Enter();
       }
+      // More messages may have come in while we released monitor_.
       HandleMessages(false, false);
       if (pause_on_start()) {
         // Still paused.
+        ASSERT(oob_queue_->IsEmpty());
         task_ = NULL;  // No task in queue.
         return;
       } else {
@@ -280,36 +281,50 @@ void MessageHandler::TaskCallback() {
     if (ok) {
       ok = HandleMessages(true, true);
     }
-    task_ = NULL;  // No task in queue.
 
     if (!ok || !HasLivePorts()) {
       if (pause_on_exit()) {
         if (!paused_on_exit_) {
           if (FLAG_trace_service_pause_events) {
             OS::PrintErr("Isolate %s paused before exiting. "
-                       "Use the Observatory to release it.\n", name());
+                         "Use the Observatory to release it.\n", name());
           }
-          notify_paused_on_exit = true;
+          // Temporarily drop the lock when calling out to NotifyPauseOnExit.
+          // This avoids a dead lock that can occur when this message handler
+          // tries to post a message while a message is being posted to it.
           paused_on_exit_ = true;
           paused_timestamp_ = OS::GetCurrentTimeMillis();
+          monitor_.Exit();
+          NotifyPauseOnExit();
+          monitor_.Enter();
         }
-      } else {
-        if (FLAG_trace_isolates) {
+        // More messages may have come in while we released monitor_.
+        HandleMessages(false, false);
+        if (pause_on_exit()) {
+          // Still paused.
+          ASSERT(oob_queue_->IsEmpty());
+          task_ = NULL;  // No task in queue.
+          return;
+        } else {
+          paused_on_exit_ = false;
+          paused_timestamp_ = -1;
+        }
+      }
+      if (FLAG_trace_isolates) {
         OS::Print("[-] Stopping message handler (%s):\n"
                   "\thandler:    %s\n",
                   (ok ? "no live ports" : "error"),
                   name());
-        }
-        pool_ = NULL;
-        run_end_callback = true;
-        paused_on_exit_ = false;
-        paused_timestamp_ = -1;
       }
+      pool_ = NULL;
+      run_end_callback = true;
     }
-  }
-  // At this point we no longer hold the message handler lock.
-  if (notify_paused_on_exit) {
-    NotifyPauseOnExit();
+
+    // Clear the task_ last.  We don't want any other tasks to start up
+    // until we are done with all messages and pause notifications.
+    ASSERT(oob_queue_->IsEmpty());
+    ASSERT(!ok || queue_->IsEmpty());
+    task_ = NULL;
   }
   if (run_end_callback && end_callback_ != NULL) {
     end_callback_(callback_data_);
