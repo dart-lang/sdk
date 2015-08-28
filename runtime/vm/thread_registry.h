@@ -48,10 +48,11 @@ class ThreadRegistry {
     CheckSafepointLocked();
   }
 
-  bool RestoreStateTo(Thread* thread, Thread::State* state) {
+  bool RestoreStateTo(Thread* thread, Thread::State* state,
+                      bool bypass_safepoint) {
     MonitorLocker ml(monitor_);
     // Wait for any rendezvous in progress.
-    while (in_rendezvous_) {
+    while (!bypass_safepoint && in_rendezvous_) {
       ml.Wait(Monitor::kNoTimeout);
     }
     Entry* entry = FindEntry(thread);
@@ -83,14 +84,15 @@ class ThreadRegistry {
     return false;
   }
 
-  void SaveStateFrom(Thread* thread, const Thread::State& state) {
+  void SaveStateFrom(Thread* thread, const Thread::State& state,
+                     bool bypass_safepoint) {
     MonitorLocker ml(monitor_);
     Entry* entry = FindEntry(thread);
     ASSERT(entry != NULL);
     ASSERT(entry->scheduled);
     entry->scheduled = false;
     entry->state = state;
-    if (in_rendezvous_) {
+    if (!bypass_safepoint && in_rendezvous_) {
       // Don't wait for this thread.
       ASSERT(remaining_ > 0);
       if (--remaining_ == 0) {

@@ -22,6 +22,10 @@
 
 namespace dart {
 
+DEFINE_FLAG(int, marker_tasks, 1,
+            "The number of tasks to spawn during old gen GC marking (0 means "
+            "perform all marking on main thread).");
+
 typedef StoreBufferBlock PointerBlock;  // TODO(koda): Rename to PointerBlock.
 typedef StoreBuffer MarkingStack;  // TODO(koda): Create shared base class.
 
@@ -541,6 +545,108 @@ void GCMarker::ProcessObjectIdTable(Isolate* isolate) {
 }
 
 
+class MarkTask : public ThreadPool::Task {
+ public:
+  MarkTask(GCMarker* marker,
+           Isolate* isolate,
+           Heap* heap,
+           PageSpace* page_space,
+           MarkingStack* marking_stack,
+           DelaySet* delay_set,
+           bool collect_code,
+           bool visit_prologue_weak_persistent_handles)
+      : marker_(marker),
+        isolate_(isolate),
+        heap_(heap),
+        page_space_(page_space),
+        marking_stack_(marking_stack),
+        delay_set_(delay_set),
+        collect_code_(collect_code),
+        visit_prologue_weak_persistent_handles_(
+            visit_prologue_weak_persistent_handles) {
+  }
+
+  virtual void Run() {
+    Thread::EnterIsolateAsHelper(isolate_, true);
+    {
+      StackZone stack_zone(Thread::Current());
+      Zone* zone = stack_zone.GetZone();
+      SkippedCodeFunctions* skipped_code_functions =
+        collect_code_ ? new(zone) SkippedCodeFunctions() : NULL;
+      MarkingVisitor visitor(isolate_, heap_, page_space_, marking_stack_,
+                             delay_set_, skipped_code_functions);
+      // Phase 1: Populate and drain marking stack in task.
+      // TODO(koda): Split root iteration work among multiple tasks.
+      marker_->IterateRoots(isolate_, &visitor,
+                            visit_prologue_weak_persistent_handles_);
+      visitor.DrainMarkingStack();
+      marker_->TaskSync();
+      // Phase 2: Weak processing and follow-up marking on main thread.
+      marker_->TaskSync();
+      // Phase 3: Finalize results from all markers (detach code, etc.).
+      marker_->FinalizeResultsFrom(&visitor);
+    }
+    Thread::ExitIsolateAsHelper(true);
+    // This task is done. Notify the original thread.
+    marker_->TaskNotifyDone();
+  }
+
+ private:
+  GCMarker* marker_;
+  Isolate* isolate_;
+  Heap* heap_;
+  PageSpace* page_space_;
+  MarkingStack* marking_stack_;
+  DelaySet* delay_set_;
+  bool collect_code_;
+  bool visit_prologue_weak_persistent_handles_;
+
+  DISALLOW_COPY_AND_ASSIGN(MarkTask);
+};
+
+
+void GCMarker::MainSync(intptr_t num_tasks) {
+  MonitorLocker ml(&monitor_);
+  while (done_count_ < num_tasks) {
+    ml.Wait();
+  }
+  done_count_ = 0;  // Tasks may now resume.
+  // TODO(koda): Add barrier utility with two condition variables to allow for
+  // Notify rather than NotifyAll. Also use it for safepoints.
+  ml.NotifyAll();
+}
+
+
+void GCMarker::TaskNotifyDone() {
+  MonitorLocker ml(&monitor_);
+  ++done_count_;
+  // TODO(koda): Add barrier utility with two condition variables to allow for
+  // Notify rather than NotifyAll. Also use it for safepoints.
+  ml.NotifyAll();
+}
+
+
+void GCMarker::TaskSync() {
+  MonitorLocker ml(&monitor_);
+  ++done_count_;
+  ml.NotifyAll();  // Notify controller that this thread reached end of phase.
+  ASSERT(done_count_ > 0);
+  while (done_count_ > 0) {
+    // Wait for the controller to release into next phase.
+    ml.Wait();
+  }
+}
+
+
+void GCMarker::FinalizeResultsFrom(MarkingVisitor* visitor) {
+  {
+    MonitorLocker ml(&monitor_);
+    marked_bytes_ += visitor->marked_bytes();
+  }
+  visitor->Finalize();
+}
+
+
 void GCMarker::MarkObjects(Isolate* isolate,
                            PageSpace* page_space,
                            bool invoke_api_callbacks,
@@ -553,18 +659,55 @@ void GCMarker::MarkObjects(Isolate* isolate,
     Zone* zone = stack_zone.GetZone();
     MarkingStack marking_stack;
     DelaySet delay_set;
-    SkippedCodeFunctions* skipped_code_functions =
-        collect_code ? new(zone) SkippedCodeFunctions() : NULL;
-    MarkingVisitor mark(isolate, heap_, page_space, &marking_stack,
-                        &delay_set, skipped_code_functions);
-    IterateRoots(isolate, &mark, !invoke_api_callbacks);
-    mark.DrainMarkingStack();
-    IterateWeakReferences(isolate, &mark);
-    MarkingWeakVisitor mark_weak;
-    IterateWeakRoots(isolate, &mark_weak, invoke_api_callbacks);
-    // TODO(koda): Add hand-over callback.
-    marked_bytes_ = mark.marked_bytes();
-    mark.Finalize();
+    const bool visit_prologue_weak_persistent_handles = !invoke_api_callbacks;
+    marked_bytes_ = 0;
+    const int num_tasks = FLAG_marker_tasks;
+    if (num_tasks == 0) {
+      // Mark everything on main thread.
+      SkippedCodeFunctions* skipped_code_functions =
+          collect_code ? new(zone) SkippedCodeFunctions() : NULL;
+      MarkingVisitor mark(isolate, heap_, page_space, &marking_stack,
+                          &delay_set, skipped_code_functions);
+      IterateRoots(isolate, &mark, visit_prologue_weak_persistent_handles);
+      mark.DrainMarkingStack();
+      IterateWeakReferences(isolate, &mark);
+      MarkingWeakVisitor mark_weak;
+      IterateWeakRoots(isolate, &mark_weak,
+                       !visit_prologue_weak_persistent_handles);
+      // All marking done; detach code, etc.
+      FinalizeResultsFrom(&mark);
+    } else {
+      if (num_tasks > 1) {
+        // TODO(koda): Support multiple:
+        // 1. non-concurrent tasks, after splitting root iteration work, then
+        // 2. concurrent tasks, after synchronizing headers.
+        FATAL("Multiple marking tasks not yet supported");
+      }
+      // Phase 1: Populate and drain marking stack in task.
+      MarkTask* mark_task =
+          new MarkTask(this, isolate, heap_, page_space, &marking_stack,
+                       &delay_set, collect_code,
+                       visit_prologue_weak_persistent_handles);
+      ThreadPool* pool = Dart::thread_pool();
+      pool->Run(mark_task);
+      MainSync(num_tasks);
+      // Phase 2: Weak processing and follow-up marking on main thread.
+      SkippedCodeFunctions* skipped_code_functions =
+          collect_code ? new(zone) SkippedCodeFunctions() : NULL;
+      MarkingVisitor mark(isolate, heap_, page_space, &marking_stack,
+                          &delay_set, skipped_code_functions);
+      IterateWeakReferences(isolate, &mark);
+      MarkingWeakVisitor mark_weak;
+      IterateWeakRoots(isolate, &mark_weak,
+                       !visit_prologue_weak_persistent_handles);
+      // TODO(koda): Move this into Phase 3 after making ISL_Print thread-safe
+      // (used in SkippedCodeFunctions::DetachCode).
+      FinalizeResultsFrom(&mark);
+      MainSync(num_tasks);
+      // Phase 3: Finalize results from all markers (detach code, etc.).
+      MainSync(num_tasks);
+      // Finalization complete and all tasks exited.
+    }
     delay_set.ClearReferences();
     ProcessWeakTables(page_space);
     ProcessObjectIdTable(isolate);

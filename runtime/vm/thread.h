@@ -83,8 +83,9 @@ class Thread {
   // "helper" to gain limited concurrent access to the isolate. One example is
   // SweeperTask (which uses the class table, which is copy-on-write).
   // TODO(koda): Properly synchronize heap access to expand allowed operations.
-  static void EnterIsolateAsHelper(Isolate* isolate);
-  static void ExitIsolateAsHelper();
+  static void EnterIsolateAsHelper(Isolate* isolate,
+                                   bool bypass_safepoint = false);
+  static void ExitIsolateAsHelper(bool bypass_safepoint = false);
 
   // Called when the current thread transitions from mutator to collector.
   // Empties the store buffer block into the isolate.
@@ -287,8 +288,8 @@ CACHED_CONSTANTS_LIST(DECLARE_MEMBERS)
 
   static void SetCurrent(Thread* current);
 
-  void Schedule(Isolate* isolate);
-  void Unschedule();
+  void Schedule(Isolate* isolate, bool bypass_safepoint = false);
+  void Unschedule(bool bypass_safepoint = false);
 
   friend class ApiZone;
   friend class Isolate;

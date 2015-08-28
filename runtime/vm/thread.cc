@@ -133,19 +133,19 @@ CACHED_CONSTANTS_LIST(INIT_VALUE)
 }
 
 
-void Thread::Schedule(Isolate* isolate) {
+void Thread::Schedule(Isolate* isolate, bool bypass_safepoint) {
   State st;
-  if (isolate->thread_registry()->RestoreStateTo(this, &st)) {
+  if (isolate->thread_registry()->RestoreStateTo(this, &st, bypass_safepoint)) {
     ASSERT(isolate->thread_registry()->Contains(this));
     state_ = st;
   }
 }
 
 
-void Thread::Unschedule() {
+void Thread::Unschedule(bool bypass_safepoint) {
   ThreadRegistry* reg = isolate_->thread_registry();
   ASSERT(reg->Contains(this));
-  reg->SaveStateFrom(this, state_);
+  reg->SaveStateFrom(this, state_, bypass_safepoint);
   ClearState();
 }
 
@@ -189,7 +189,7 @@ void Thread::ExitIsolate() {
 }
 
 
-void Thread::EnterIsolateAsHelper(Isolate* isolate) {
+void Thread::EnterIsolateAsHelper(Isolate* isolate, bool bypass_safepoint) {
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
   ASSERT(thread->isolate() == NULL);
@@ -205,15 +205,15 @@ void Thread::EnterIsolateAsHelper(Isolate* isolate) {
   // Do not update isolate->mutator_thread, but perform sanity check:
   // this thread should not be both the main mutator and helper.
   ASSERT(!isolate->MutatorThreadIsCurrentThread());
-  thread->Schedule(isolate);
+  thread->Schedule(isolate, bypass_safepoint);
 }
 
 
-void Thread::ExitIsolateAsHelper() {
+void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  thread->Unschedule();
+  thread->Unschedule(bypass_safepoint);
   // TODO(koda): Move store_buffer_block_ into State.
   thread->StoreBufferRelease();
   thread->isolate_ = NULL;

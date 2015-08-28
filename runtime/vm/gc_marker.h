@@ -22,7 +22,8 @@ class RawWeakProperty;
 // of the mark-sweep collection. The marking bit used is defined in RawObject.
 class GCMarker : public ValueObject {
  public:
-  explicit GCMarker(Heap* heap) : heap_(heap), marked_bytes_(0) { }
+  explicit GCMarker(Heap* heap)
+      : heap_(heap), marked_bytes_(0), done_count_(0) { }
   ~GCMarker() { }
 
   void MarkObjects(Isolate* isolate,
@@ -45,10 +46,22 @@ class GCMarker : public ValueObject {
   void ProcessWeakTables(PageSpace* page_space);
   void ProcessObjectIdTable(Isolate* isolate);
 
+  // Synchronization between GCMarker's main thread and its marking tasks.
+  // Called by main thread: wait for 'num_tasks' tasks, then let them resume.
+  void MainSync(intptr_t num_tasks);
+  // Called by tasks: notify main thread; wait until it lets us continue.
+  void TaskSync();
+  // Called by tasks: notify main thread, but don't wait (used for exiting).
+  void TaskNotifyDone();
+  // Called by anyone: finalize and accumulate stats from 'visitor'.
+  void FinalizeResultsFrom(MarkingVisitor* visitor);
 
+  Monitor monitor_;  // Protects marked_bytes_ and done_count_.
   Heap* heap_;
   uintptr_t marked_bytes_;
+  intptr_t done_count_;
 
+  friend class MarkTask;
   DISALLOW_IMPLICIT_CONSTRUCTORS(GCMarker);
 };
 
