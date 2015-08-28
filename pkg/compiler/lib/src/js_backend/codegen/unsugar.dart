@@ -43,8 +43,6 @@ class UnsugarVisitor extends RecursiveVisitor {
   Parameter thisParameter;
   Parameter explicitReceiverParameter;
 
-  Map<Primitive, Interceptor> interceptors = <Primitive, Interceptor>{};
-
   // In a catch block, rethrow implicitly throws the block's exception
   // parameter.  This is the exception parameter when nested in a catch
   // block and null otherwise.
@@ -233,59 +231,54 @@ class UnsugarVisitor extends RecursiveVisitor {
     // worry about unlinking.
   }
 
-  /// Returns an interceptor for the given value, capable of responding to
-  /// [selector].
-  ///
-  /// A single getInterceptor call will be created per primitive, bound
-  /// immediately after the primitive is bound.
-  ///
-  /// The type propagation pass will later narrow the set of interceptors
-  /// based on the input type, and the let sinking pass will propagate the
-  /// getInterceptor call closer to its use when this is profitable.
-  Primitive getInterceptorFor(Primitive prim, Selector selector,
-                              SourceInformation sourceInformation) {
-    if (prim == explicitReceiverParameter) {
-      // If the receiver is the explicit receiver, we are calling a method in
-      // the same interceptor.
-      return thisParameter;
-    }
-    assert(prim is! Interceptor);
-    Interceptor interceptor = interceptors[prim];
-    if (interceptor == null) {
-      interceptor = new Interceptor(prim, sourceInformation);
-      interceptors[prim] = interceptor;
-      InteriorNode parent = prim.parent;
-      insertLetPrim(interceptor, parent.body);
-      if (prim.hint != null) {
-        interceptor.hint = new InterceptorEntity(prim.hint);
-      }
-    }
-    // Add the interceptor classes that can respond to the given selector.
-    interceptor.interceptedClasses.addAll(
-        _glue.getInterceptedClassesOn(selector));
-    return interceptor;
-  }
-
   processInvokeMethod(InvokeMethod node) {
-    if (_glue.isInterceptedSelector(node.selector)) {
-      // Rewrite `x.foo()` => `INTERCEPTOR.foo(x, ..)`.
-      Primitive receiver = node.receiver.definition;
-      Primitive newReceiver = 
-          getInterceptorFor(receiver, node.selector, node.sourceInformation);
-      node.arguments.insert(0, node.receiver);
-      node.receiver = new Reference<Primitive>(newReceiver);
+    Selector selector = node.selector;
+    if (!_glue.isInterceptedSelector(selector)) return;
+
+    Primitive receiver = node.receiver.definition;
+    Primitive newReceiver;
+
+    if (receiver == explicitReceiverParameter) {
+      // If the receiver is the explicit receiver, we are calling a method in
+      // the same interceptor:
+      //  Change 'receiver.foo()'  to  'this.foo(receiver)'.
+      newReceiver = thisParameter;
+    } else {
+      LetCont contBinding = node.parent;
+      newReceiver = new Interceptor(receiver, node.sourceInformation)
+          ..interceptedClasses.addAll(_glue.getInterceptedClassesOn(selector));
+      if (receiver.hint != null) {
+        newReceiver.hint = new InterceptorEntity(receiver.hint);
+      }
+      insertLetPrim(newReceiver, contBinding);
     }
+    node.arguments.insert(0, node.receiver);
+    node.receiver = new Reference<Primitive>(newReceiver);
   }
 
   processInvokeMethodDirectly(InvokeMethodDirectly node) {
-    if (_glue.isInterceptedMethod(node.target)) {
-      // Rewrite `x.foo()` => `INTERCEPTOR.foo(x, ..)`.
-      Primitive receiver = node.receiver.definition;
-      Primitive newReceiver = 
-          getInterceptorFor(receiver, node.selector, node.sourceInformation);
-      node.arguments.insert(0, node.receiver);
-      node.receiver = new Reference<Primitive>(newReceiver);
+    if (!_glue.isInterceptedMethod(node.target)) return;
+
+    Selector selector = node.selector;
+    Primitive receiver = node.receiver.definition;
+    Primitive newReceiver;
+
+    if (receiver == explicitReceiverParameter) {
+      // If the receiver is the explicit receiver, we are calling a method in
+      // the same interceptor:
+      //  Change 'receiver.foo()'  to  'this.foo(receiver)'.
+      newReceiver = thisParameter;
+    } else {
+      LetCont contBinding = node.parent;
+      newReceiver = new Interceptor(receiver, node.sourceInformation)
+        ..interceptedClasses.addAll(_glue.getInterceptedClassesOn(selector));
+      if (receiver.hint != null) {
+        newReceiver.hint = new InterceptorEntity(receiver.hint);
+      }
+      insertLetPrim(newReceiver, contBinding);
     }
+    node.arguments.insert(0, node.receiver);
+    node.receiver = new Reference<Primitive>(newReceiver);
   }
 
   processBranch(Branch node) {

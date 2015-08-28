@@ -70,6 +70,7 @@ invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy
 16407_test: Pass # Please triage this failure.
 22868_test: RuntimeError # Issue 23997
 22895_test: RuntimeError # Issue 23997
+23432_test: RuntimeError # Issue 23432
 async_stacktrace_test/asyncStar: Crash # (foo()async*{try {tr...  cannot handle sync*/async* functions
 async_stacktrace_test/none: RuntimeError # $async$temp1.Tracer$ is not a function
 closure_capture5_test: Crash # (i=0): For-loop variable captured in loop header
