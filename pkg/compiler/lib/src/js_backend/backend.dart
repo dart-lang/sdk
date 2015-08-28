@@ -223,8 +223,6 @@ class JavaScriptBackend extends Backend {
   static final Uri DART_JS_HELPER = new Uri(scheme: 'dart', path: '_js_helper');
   static final Uri DART_INTERCEPTORS =
       new Uri(scheme: 'dart', path: '_interceptors');
-  static final Uri DART_INTERNAL =
-      new Uri(scheme: 'dart', path: '_internal');
   static final Uri DART_FOREIGN_HELPER =
       new Uri(scheme: 'dart', path: '_foreign_helper');
   static final Uri DART_JS_MIRRORS =
@@ -235,8 +233,6 @@ class JavaScriptBackend extends Backend {
       new Uri(scheme: 'dart', path: '_js_embedded_names');
   static final Uri DART_ISOLATE_HELPER =
       new Uri(scheme: 'dart', path: '_isolate_helper');
-  static final Uri DART_ASYNC = new Uri(scheme: 'dart', path: 'async');
-  static final Uri DART_HTML = new Uri(scheme: 'dart', path: 'html');
 
   static const String INVOKE_ON = '_getCachedInvocation';
   static const String START_ROOT_ISOLATE = 'startRootIsolate';
@@ -2030,9 +2026,9 @@ class JavaScriptBackend extends Backend {
     Uri uri = library.canonicalUri;
     if (uri == DART_JS_HELPER) {
       jsHelperLibrary = library;
-    } else if (uri == DART_ASYNC) {
+    } else if (uri == Uris.dart_async) {
       asyncLibrary = library;
-    } else if (uri == DART_INTERNAL) {
+    } else if (uri == Uris.dart__internal) {
       internalLibrary = library;
     } else if (uri ==  DART_INTERCEPTORS) {
       interceptorsLibrary = library;
@@ -2135,7 +2131,7 @@ class JavaScriptBackend extends Backend {
       } else if (uri == DART_EMBEDDED_NAMES) {
         jsGetNameEnum = find(library, 'JsGetName');
         jsBuiltinEnum = find(library, 'JsBuiltin');
-      } else if (uri == DART_HTML) {
+      } else if (uri == Uris.dart_html) {
         htmlLibraryIsLoaded = true;
       }
       annotations.onLibraryScanned(library);
@@ -2143,11 +2139,11 @@ class JavaScriptBackend extends Backend {
   }
 
   Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
-    if (!loadedLibraries.containsLibrary(Compiler.DART_CORE)) {
+    if (!loadedLibraries.containsLibrary(Uris.dart_core)) {
       return new Future.value();
     }
 
-    assert(loadedLibraries.containsLibrary(Compiler.DART_CORE));
+    assert(loadedLibraries.containsLibrary(Uris.dart_core));
     assert(loadedLibraries.containsLibrary(DART_INTERCEPTORS));
     assert(loadedLibraries.containsLibrary(DART_JS_HELPER));
 

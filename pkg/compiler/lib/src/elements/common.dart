@@ -7,7 +7,8 @@
 library elements.common;
 
 import '../common/names.dart' show
-    Names;
+    Names,
+    Uris;
 import '../compiler.dart' show
     Compiler,
     isPrivateName;
@@ -123,7 +124,7 @@ abstract class ElementCommon implements Element {
 
 abstract class LibraryElementCommon implements LibraryElement {
   @override
-  bool get isDartCore => canonicalUri == Compiler.DART_CORE;
+  bool get isDartCore => canonicalUri == Uris.dart_core;
 
   @override
   bool get isPlatformLibrary => canonicalUri.scheme == 'dart';

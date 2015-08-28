@@ -230,10 +230,10 @@ class DartBackend extends Backend {
       }
     });
     if (useMirrorHelperLibrary &&
-        loadedLibraries.containsLibrary(Compiler.DART_MIRRORS)) {
+        loadedLibraries.containsLibrary(Uris.dart_mirrors)) {
       return compiler.libraryLoader.loadLibrary(
           compiler.translateResolvedUri(
-              loadedLibraries.getLibrary(Compiler.DART_MIRRORS),
+              loadedLibraries.getLibrary(Uris.dart_mirrors),
               MirrorRenamerImpl.DART_MIRROR_HELPER, null)).
           then((LibraryElement library) {
         mirrorRenamer = new MirrorRenamerImpl(compiler, this, library);

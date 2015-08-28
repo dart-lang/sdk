@@ -6,6 +6,8 @@ library dart2js.library_loader;
 
 import 'dart:async';
 
+import 'common/names.dart' show
+    Uris;
 import 'common/tasks.dart' show
     CompilerTask;
 import 'compiler.dart' show
@@ -411,8 +413,8 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         checkDuplicatedLibraryName(library);
 
         // Import dart:core if not already imported.
-        if (!importsDartCore && library.canonicalUri != Compiler.DART_CORE) {
-          return createLibrary(handler, null, Compiler.DART_CORE)
+        if (!importsDartCore && library.canonicalUri != Uris.dart_core) {
+          return createLibrary(handler, null, Uris.dart_core)
               .then((LibraryElement coreLibrary) {
             handler.registerDependency(library, null, coreLibrary);
           });

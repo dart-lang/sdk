@@ -18,7 +18,8 @@ import '../common/codegen.dart' show
     CodegenWorkItem;
 import '../common/names.dart' show
     Identifiers,
-    Selectors;
+    Selectors,
+    Uris;
 import '../common/registry.dart' show
     Registry;
 import '../common/tasks.dart' show

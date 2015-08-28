@@ -14,7 +14,8 @@ import '../common/backend_api.dart' show
 import '../common/codegen.dart' show
     CodegenWorkItem;
 import '../common/names.dart' show
-    Selectors;
+    Selectors,
+    Uris;
 import '../common/registry.dart' show
     Registry;
 import '../common/resolution.dart' show
@@ -46,8 +47,6 @@ import '../enqueue.dart' show
 import '../library_loader.dart' show
     LoadedLibraries;
 import '../mirror_renamer/mirror_renamer.dart';
-import '../resolution/operators.dart' show
-    BinaryOperator;
 import '../resolution/tree_elements.dart' show
     TreeElements,
     TreeElementMapping;

@@ -19,7 +19,8 @@ import 'common/codegen.dart' show
     CodegenRegistry,
     CodegenWorkItem;
 import 'common/names.dart' show
-    Identifiers;
+    Identifiers,
+    Uris;
 import 'common/registry.dart' show
     Registry;
 import 'common/resolution.dart' show
@@ -133,12 +134,6 @@ import 'world.dart' show
     World;
 
 abstract class Compiler implements DiagnosticListener {
-  static final Uri DART_CORE = new Uri(scheme: 'dart', path: 'core');
-  static final Uri DART_MIRRORS = new Uri(scheme: 'dart', path: 'mirrors');
-  static final Uri DART_NATIVE_TYPED_DATA =
-      new Uri(scheme: 'dart', path: '_native_typed_data');
-  static final Uri DART_INTERNAL = new Uri(scheme: 'dart', path: '_internal');
-  static final Uri DART_ASYNC = new Uri(scheme: 'dart', path: 'async');
 
   final Stopwatch totalCompileTime = new Stopwatch();
   int nextFreeClassId = 0;
@@ -728,11 +723,11 @@ abstract class Compiler implements DiagnosticListener {
   /// been resolved.
   void onLibraryCreated(LibraryElement library) {
     Uri uri = library.canonicalUri;
-    if (uri == DART_CORE) {
+    if (uri == Uris.dart_core) {
       coreLibrary = library;
-    } else if (uri == DART_NATIVE_TYPED_DATA) {
+    } else if (uri == Uris.dart__native_typed_data) {
       typedDataLibrary = library;
-    } else if (uri == DART_MIRRORS) {
+    } else if (uri == Uris.dart_mirrors) {
       mirrorsLibrary = library;
     }
     backend.onLibraryCreated(library);
@@ -749,20 +744,20 @@ abstract class Compiler implements DiagnosticListener {
   /// for [library].
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
     Uri uri = library.canonicalUri;
-    if (uri == DART_CORE) {
+    if (uri == Uris.dart_core) {
       initializeCoreClasses();
       identicalFunction = coreLibrary.find('identical');
-    } else if (uri == DART_INTERNAL) {
+    } else if (uri == Uris.dart__internal) {
       symbolImplementationClass = findRequiredElement(library, 'Symbol');
-    } else if (uri == DART_MIRRORS) {
+    } else if (uri == Uris.dart_mirrors) {
       mirrorSystemClass = findRequiredElement(library, 'MirrorSystem');
       mirrorsUsedClass = findRequiredElement(library, 'MirrorsUsed');
-    } else if (uri == DART_ASYNC) {
+    } else if (uri == Uris.dart_async) {
       asyncLibrary = library;
       deferredLibraryClass = findRequiredElement(library, 'DeferredLibrary');
       _coreTypes.futureClass = findRequiredElement(library, 'Future');
       _coreTypes.streamClass = findRequiredElement(library, 'Stream');
-    } else if (uri == DART_NATIVE_TYPED_DATA) {
+    } else if (uri == Uris.dart__native_typed_data) {
       typedDataClass = findRequiredElement(library, 'NativeTypedData');
     } else if (uri == js_backend.JavaScriptBackend.DART_JS_HELPER) {
       patchAnnotationClass = findRequiredElement(library, '_Patch');
@@ -781,11 +776,11 @@ abstract class Compiler implements DiagnosticListener {
   /// libraries.
   Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
     return new Future.sync(() {
-      if (!loadedLibraries.containsLibrary(DART_CORE)) {
+      if (!loadedLibraries.containsLibrary(Uris.dart_core)) {
         return null;
       }
       if (!enableExperimentalMirrors &&
-          loadedLibraries.containsLibrary(DART_MIRRORS)) {
+          loadedLibraries.containsLibrary(Uris.dart_mirrors)) {
         // TODO(johnniwinther): Move computation of dependencies to the library
         // loader.
         Uri rootUri = loadedLibraries.rootUri;
@@ -795,7 +790,7 @@ abstract class Compiler implements DiagnosticListener {
         // The maximum number of imports chains to show.
         final int compactChainLimit = verbose ? 20 : 10;
         int chainCount = 0;
-        loadedLibraries.forEachImportChain(DART_MIRRORS,
+        loadedLibraries.forEachImportChain(Uris.dart_mirrors,
             callback: (Link<Uri> importChainReversed) {
           Link<CodeLocation> compactImportChain = const Link<CodeLocation>();
           CodeLocation currentCodeLocation =
@@ -855,7 +850,7 @@ abstract class Compiler implements DiagnosticListener {
                   coreLibrary.find('proxy')));
 
       if (preserveComments) {
-        return libraryLoader.loadLibrary(DART_MIRRORS)
+        return libraryLoader.loadLibrary(Uris.dart_mirrors)
             .then((LibraryElement libraryElement) {
           documentClass = libraryElement.find('Comment');
         });

@@ -9,6 +9,8 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:compiler/compiler.dart' as api;
+import 'package:compiler/src/common/names.dart' show
+    Uris;
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
@@ -110,7 +112,7 @@ class MockCompiler extends Compiler {
 
     clearMessages();
 
-    registerSource(Compiler.DART_CORE,
+    registerSource(Uris.dart_core,
                    buildLibrarySource(DEFAULT_CORE_LIBRARY, coreSource));
     registerSource(PATCH_CORE, DEFAULT_PATCH_CORE_SOURCE);
 
@@ -122,7 +124,7 @@ class MockCompiler extends Compiler {
                    buildLibrarySource(DEFAULT_INTERCEPTORS_LIBRARY));
     registerSource(JavaScriptBackend.DART_ISOLATE_HELPER,
                    buildLibrarySource(DEFAULT_ISOLATE_HELPER_LIBRARY));
-    registerSource(Compiler.DART_MIRRORS,
+    registerSource(Uris.dart_mirrors,
                    buildLibrarySource(DEFAULT_MIRRORS_LIBRARY));
 
     Map<String, String> asyncLibrarySource = <String, String>{};
@@ -130,7 +132,7 @@ class MockCompiler extends Compiler {
     if (enableAsyncAwait) {
       asyncLibrarySource.addAll(ASYNC_AWAIT_LIBRARY);
     }
-    registerSource(Compiler.DART_ASYNC,
+    registerSource(Uris.dart_async,
                    buildLibrarySource(asyncLibrarySource));
   }
 

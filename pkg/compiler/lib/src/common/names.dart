@@ -88,3 +88,25 @@ class Selectors {
   static final Selector compareTo =
       new Selector.call(const PublicName("compareTo"), CallStructure.ONE_ARG);
 }
+
+/// [Uri]s commonly used.
+class Uris {
+  /// The URI for 'dart:async'.
+  static final Uri dart_async = new Uri(scheme: 'dart', path: 'async');
+
+  /// The URI for 'dart:core'.
+  static final Uri dart_core = new Uri(scheme: 'dart', path: 'core');
+
+  /// The URI for 'dart:html'.
+  static final Uri dart_html = new Uri(scheme: 'dart', path: 'html');
+
+  /// The URI for 'dart:mirrors'.
+  static final Uri dart_mirrors = new Uri(scheme: 'dart', path: 'mirrors');
+
+  /// The URI for 'dart:_internal'.
+  static final Uri dart__internal = new Uri(scheme: 'dart', path: '_internal');
+
+  /// The URI for 'dart:_native_typed_data'.
+  static final Uri dart__native_typed_data =
+      new Uri(scheme: 'dart', path: '_native_typed_data');
+}
