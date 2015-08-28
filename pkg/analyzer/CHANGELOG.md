@@ -1,3 +1,10 @@
+## 0.26.1+2
+
+* Extension point for WorkManagerFactory(s).
+* Resolve enum documentation comments.
+* Fix display of parameter lists in servers Element structure (issue 24194)
+* Band-aid fix for issue #24191.
+
 ## 0.26.1+1
 
 * Removed a warning about importing unnamed libraries
