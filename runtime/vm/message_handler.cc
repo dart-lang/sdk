@@ -320,10 +320,9 @@ void MessageHandler::TaskCallback() {
       run_end_callback = true;
     }
 
-    // Clear the task_ last.  We don't want any other tasks to start up
-    // until we are done with all messages and pause notifications.
+    // Clear the task_ last.  This allows other tasks to potentially start
+    // for this message handler.
     ASSERT(oob_queue_->IsEmpty());
-    ASSERT(!ok || queue_->IsEmpty());
     task_ = NULL;
   }
   if (run_end_callback && end_callback_ != NULL) {
