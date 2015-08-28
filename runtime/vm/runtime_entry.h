@@ -25,7 +25,6 @@ typedef void (*RuntimeFunction)(NativeArguments arguments);
   V(BreakpointRuntimeHandler)                                                  \
   V(SingleStepHandler)                                                         \
   V(CloneContext)                                                              \
-  V(Deoptimize)                                                                \
   V(FixCallersTarget)                                                          \
   V(FixAllocationStubTarget)                                                   \
   V(InlineCacheMissHandlerOneArg)                                              \

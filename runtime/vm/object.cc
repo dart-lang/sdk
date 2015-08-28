@@ -11002,17 +11002,45 @@ void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
+static const char* DescribeExternalLabel(uword addr) {
+  const char* stub_name = StubCode::NameOfStub(addr);
+  if (stub_name != NULL) {
+    return stub_name;
+  }
+
+  RuntimeFunctionId rt_id = RuntimeEntry::RuntimeFunctionIdFromAddress(addr);
+  if (rt_id != kNoRuntimeFunctionId) {
+    return "runtime entry";
+  }
+
+  if (addr == NativeEntry::LinkNativeCallLabel().address()) {
+    return "link native";
+  }
+
+  if (addr == reinterpret_cast<uword>(Symbols::PredefinedAddress())) {
+    return "predefined symbols";
+  }
+
+  return "UNKNOWN";
+}
+
+
 void ObjectPool::DebugPrint() const {
   ISL_Print("Object Pool: {\n");
   for (intptr_t i = 0; i < Length(); i++) {
+    intptr_t offset = OffsetFromIndex(i);
+    ISL_Print("  %" Pd " PP+0x%" Px ": ", i, offset);
     if (InfoAt(i) == kTaggedObject) {
-      ISL_Print("  %" Pd ": 0x%" Px " %s (obj)\n", i,
-          reinterpret_cast<uword>(ObjectAt(i)),
-          Object::Handle(ObjectAt(i)).ToCString());
+      RawObject* obj = ObjectAt(i);
+      ISL_Print("0x%" Px " %s (obj)\n",
+          reinterpret_cast<uword>(obj),
+          Object::Handle(obj).ToCString());
     } else if (InfoAt(i) == kExternalLabel) {
-      ISL_Print("  %" Pd ": 0x%" Px " (external label)\n", i, RawValueAt(i));
+      uword addr = RawValueAt(i);
+      ISL_Print("0x%" Px " (external label: %s)\n",
+                addr, DescribeExternalLabel(addr));
     } else {
-      ISL_Print("  %" Pd ": 0x%" Px " (raw)\n", i, RawValueAt(i));
+      ISL_Print("0x%" Px " (raw)\n", RawValueAt(i));
     }
   }
   ISL_Print("}\n");
