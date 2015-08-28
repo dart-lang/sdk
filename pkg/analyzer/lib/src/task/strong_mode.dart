@@ -90,35 +90,6 @@ class InferrenceFinder extends SimpleAstVisitor {
  * instance methods within a single compilation unit.
  */
 class InstanceMemberInferrer {
-  //
-  // Previously, all of our analysis tasks have had the property that they only
-  // set fields in the element model that were previously null, and they express
-  // all their dependencies using the task model. That had the advantage that
-  // if a subtle dependency change causes us to re-execute some tasks that we've
-  // executed previously, we can be confident that the results from the previous
-  // execution won't pollute the results of the re-execution.
-  //
-  // The algorithm in this class doesn't have that property, since it decides
-  // which types to infer based on looking for types that are "dynamic", and
-  // then it *replaces* those types with the inferred types.  This means that if
-  // type inference is re-run, it won't re-infer already-inferred types. There
-  // is concern that a situation could arising where, for example, class A
-  // extends class B, and a change to class B requires inference to be re-run on
-  // class A, but since class A has already had inference run on it once before,
-  // it will not re-infer properly.
-  //
-  // This probably isn't a problem today because changing class B will cause
-  // class A's element model to be re-built from scratch (wiping out any
-  // inference results), but one day we might try to make things more
-  // incremental, and that could cause subtle breakages. Similar problems might
-  // arise if the type of a declaration in class A is in turn inferred from some
-  // other elements.
-  //
-  // In the future we might want the element model to keep track of a
-  // "preliminary type" distinct from the "static type" in order to avoid these
-  // problems.
-  //
-
   /**
    * The type provider used to look up types.
    */
@@ -286,8 +257,7 @@ class InstanceMemberInferrer {
     if (!accessorElement.isSynthetic &&
         accessorElement.isGetter &&
         !accessorElement.isStatic &&
-        accessorElement.hasImplicitReturnType &&
-        _getReturnType(accessorElement).isDynamic) {
+        accessorElement.hasImplicitReturnType) {
       List<ExecutableElement> overriddenGetters = inheritanceManager
           .lookupOverrides(
               accessorElement.enclosingElement, accessorElement.name);
@@ -301,10 +271,11 @@ class InstanceMemberInferrer {
         if (setter != null) {
           overriddenSetters.add(setter);
         }
-        if (_isCompatible(newType, overriddenSetters)) {
-          _setReturnType(accessorElement, newType);
-          (accessorElement.variable as FieldElementImpl).type = newType;
+        if (!_isCompatible(newType, overriddenSetters)) {
+          newType = typeProvider.dynamicType;
         }
+        _setReturnType(accessorElement, newType);
+        (accessorElement.variable as FieldElementImpl).type = newType;
       }
     }
   }
@@ -354,8 +325,7 @@ class InstanceMemberInferrer {
   void _inferField(FieldElement fieldElement) {
     if (!fieldElement.isSynthetic &&
         !fieldElement.isStatic &&
-        fieldElement.hasImplicitType &&
-        fieldElement.type.isDynamic) {
+        fieldElement.hasImplicitType) {
       //
       // First look for overridden getters with the same name as the field.
       //
@@ -381,11 +351,12 @@ class InstanceMemberInferrer {
           newType = fieldElement.initializer.returnType;
         }
       }
-      if (newType != null && !newType.isBottom) {
-        (fieldElement as FieldElementImpl).type = newType;
-        _setReturnType(fieldElement.getter, newType);
-        _setParameterType(fieldElement.setter, newType);
+      if (newType == null || newType.isBottom) {
+        newType = typeProvider.dynamicType;
       }
+      (fieldElement as FieldElementImpl).type = newType;
+      _setReturnType(fieldElement.getter, newType);
+      _setParameterType(fieldElement.setter, newType);
     }
   }
 
@@ -401,8 +372,7 @@ class InstanceMemberInferrer {
     //
     // Infer the return type.
     //
-    if (methodElement.hasImplicitReturnType &&
-        _getReturnType(methodElement).isDynamic) {
+    if (methodElement.hasImplicitReturnType) {
       overriddenMethods = inheritanceManager.lookupOverrides(
           methodElement.enclosingElement, methodElement.name);
       if (overriddenMethods.isEmpty || !_onlyMethods(overriddenMethods)) {
@@ -418,19 +388,14 @@ class InstanceMemberInferrer {
     var length = parameters.length;
     for (int i = 0; i < length; ++i) {
       ParameterElement parameter = parameters[i];
-      if (parameter.hasImplicitType && parameter.type.isDynamic) {
+      if (parameter is ParameterElementImpl && parameter.hasImplicitType) {
         overriddenMethods = overriddenMethods ??
             inheritanceManager.lookupOverrides(
                 methodElement.enclosingElement, methodElement.name);
         if (overriddenMethods.isEmpty || !_onlyMethods(overriddenMethods)) {
           return;
         }
-        DartType type = _computeParameterType(parameter, i, overriddenMethods);
-        if (!type.isDynamic) {
-          if (parameter is ParameterElementImpl) {
-            parameter.type = type;
-          }
-        }
+        parameter.type = _computeParameterType(parameter, i, overriddenMethods);
       }
     }
   }
