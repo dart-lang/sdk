@@ -82,7 +82,7 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
     bool newBackendIsDart = template.options.contains('--output-type=dart');
 
     Compiler compiler = compilerFor(
-        example,
+        memorySourceFiles: example,
         diagnosticHandler: new LegacyCompilerDiagnostics(collect),
         options: ['--analyze-only',
                   '--enable-experimental-mirrors']..addAll(template.options),

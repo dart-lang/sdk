@@ -201,7 +201,7 @@ Future analyze(String serializedData, Uri entryPoint, Test test) async {
 }
 
 Future<String> serializeDartCore() async {
-  Compiler compiler = compilerFor({},
+  Compiler compiler = compilerFor(
       options: ['--analyze-all', '--output-type=dart']);
   await compiler.runCompiler(Uri.parse('dart:core'));
   return serialize(compiler.libraryLoader.libraries);

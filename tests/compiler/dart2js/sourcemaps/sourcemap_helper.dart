@@ -120,7 +120,7 @@ class SourceMapProcessor {
       if (verbose) print('Using the new source information system.');
       useNewSourceInfo = true;
     }
-    api.Compiler compiler = await compilerFor({},
+    api.Compiler compiler = await compilerFor(
         outputProvider: outputProvider,
         // TODO(johnniwinther): Use [verbose] to avoid showing diagnostics.
         options: ['--out=$targetUri', '--source-map=$sourceMapFileUri']

@@ -1046,6 +1046,30 @@ abstract class Compiler implements DiagnosticListener {
     }
   }
 
+  /// Analyze all member of the library in [libraryUri].
+  ///
+  /// If [skipLibraryWithPartOfTag] is `true`, member analysis is skipped if the
+  /// library has a `part of` tag, assuming it is a part and not a library.
+  ///
+  /// This operation assumes an unclosed resolution queue and is only supported
+  /// when the '--analyze-main' option is used.
+  Future<LibraryElement> analyzeUri(
+      Uri libraryUri,
+      {bool skipLibraryWithPartOfTag: true}) {
+    assert(analyzeMain);
+    log('Analyzing $libraryUri ($buildId)');
+    return libraryLoader.loadLibrary(libraryUri).then((LibraryElement library) {
+      var compilationUnit = library.compilationUnit;
+      if (skipLibraryWithPartOfTag && compilationUnit.partTag != null) {
+        return null;
+      }
+      fullyEnqueueLibrary(library, enqueuer.resolution);
+      emptyQueue(enqueuer.resolution);
+      enqueuer.resolution.logSummary(log);
+      return library;
+    });
+  }
+
   /// Performs the compilation when all libraries have been loaded.
   void compileLoadedLibraries() {
     computeMain();
@@ -1183,6 +1207,17 @@ abstract class Compiler implements DiagnosticListener {
     }
   }
 
+  /**
+   * Empty the [world] queue.
+   */
+  void emptyQueue(Enqueuer world) {
+    world.forEach((WorkItem work) {
+      withCurrentElement(work.element, () {
+        world.applyImpact(work.element, work.run(this, world));
+      });
+    });
+  }
+
   void processQueue(Enqueuer world, Element main) {
     world.nativeEnqueuer.processNativeClasses(libraryLoader.libraries);
     if (main != null && !main.isErroneous) {
@@ -1204,11 +1239,7 @@ abstract class Compiler implements DiagnosticListener {
     if (verbose) {
       progress.reset();
     }
-    world.forEach((WorkItem work) {
-      withCurrentElement(work.element, () {
-        world.applyImpact(work.element, work.run(this, world));
-      });
-    });
+    emptyQueue(world);
     world.queueIsClosed = true;
     assert(compilationFailed || world.checkNoEnqueuedInvokedInstanceMethods());
   }
@@ -1395,8 +1426,7 @@ abstract class Compiler implements DiagnosticListener {
     if (uri == null && currentElement != null) {
       uri = currentElement.compilationUnit.script.resourceUri;
     }
-    return SourceSpan.withCharacterOffsets(begin, end,
-      (beginOffset, endOffset) => new SourceSpan(uri, beginOffset, endOffset));
+    return new SourceSpan.fromTokens(uri, begin, end);
   }
 
   SourceSpan spanFromNode(Node node) {

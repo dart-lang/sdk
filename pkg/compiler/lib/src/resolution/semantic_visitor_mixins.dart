@@ -7700,6 +7700,12 @@ class TraversalVisitor<R, A> extends SemanticVisitor<R, A>
     node.visitChildren(this);
     return null;
   }
+
+  @override
+  R visitTypeAnnotation(TypeAnnotation node) {
+    // Skip [Send] contained in type annotations, like `prefix.Type`.
+    return null;
+  }
 }
 
 /// Mixin that groups all non-compound `visitStaticX` and `visitTopLevelX`

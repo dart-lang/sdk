@@ -696,6 +696,7 @@ class CompilationUnitElementX extends ElementX
   void setPartOf(PartOf tag, DiagnosticListener listener) {
     LibraryElementX library = enclosingElement;
     if (library.entryCompilationUnit == this) {
+      partTag = tag;
       listener.reportError(tag, MessageKind.IMPORT_PART_OF);
       return;
     }

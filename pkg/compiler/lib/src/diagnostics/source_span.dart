@@ -6,6 +6,8 @@ library dart2js.diagnostics.source_span;
 
 import '../scanner/scannerlib.dart' show
     Token;
+import '../tree/tree.dart' show
+    Node;
 import 'spannable.dart' show
     Spannable;
 
@@ -16,15 +18,19 @@ class SourceSpan implements Spannable {
 
   const SourceSpan(this.uri, this.begin, this.end);
 
-  static withCharacterOffsets(Token begin, Token end,
-                     f(int beginOffset, int endOffset)) {
+  factory SourceSpan.fromNode(Uri uri, Node node) {
+    return new SourceSpan.fromTokens(
+        uri, node.getBeginToken(), node.getEndToken());
+  }
+
+  factory SourceSpan.fromTokens(Uri uri, Token begin, Token end) {
     final beginOffset = begin.charOffset;
     final endOffset = end.charOffset + end.charCount;
 
     // [begin] and [end] might be the same for the same empty token. This
     // happens for instance when scanning '$$'.
     assert(endOffset >= beginOffset);
-    return f(beginOffset, endOffset);
+    return new SourceSpan(uri, beginOffset, endOffset);
   }
 
   int get hashCode {

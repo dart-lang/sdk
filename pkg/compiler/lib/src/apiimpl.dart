@@ -382,6 +382,16 @@ class Compiler extends leg.Compiler {
         });
   }
 
+  Future<elements.LibraryElement> analyzeUri(
+      Uri uri,
+      {bool skipLibraryWithPartOfTag: true}) {
+    if (packages == null) {
+      return setupPackages(uri).then((_) => super.analyzeUri(uri));
+    }
+    return super.analyzeUri(
+        uri, skipLibraryWithPartOfTag: skipLibraryWithPartOfTag);
+  }
+
   Future setupPackages(Uri uri) {
     if (packageRoot != null) {
       // Use "non-file" packages because the file version requires a [Directory]

@@ -1576,6 +1576,8 @@ class ResolvedAst {
   final TreeElements elements;
 
   ResolvedAst(this.element, this.node, this.elements);
+
+  String toString() => '$element:$node';
 }
 
 /// A [MemberSignature] is a member of an interface.

@@ -66,7 +66,8 @@ runTests(List<TestEntry> tests) {
   for (TestEntry test in tests) {
     Map files = {TEST_MAIN_FILE: test.source};
     asyncTest(() {
-      Compiler compiler = compilerFor(files, options: <String>['--use-cps-ir']);
+      Compiler compiler = compilerFor(
+          memorySourceFiles: files, options: <String>['--use-cps-ir']);
       ir.FunctionDefinition irNodeForMain;
 
       void cacheIrNodeForMain(Element function, ir.FunctionDefinition irNode) {

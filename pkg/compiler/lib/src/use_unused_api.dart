@@ -11,6 +11,7 @@ library dart2js.use_unused_api;
 import '../compiler.dart' as api;
 
 import 'colors.dart' as colors;
+import 'compiler.dart' as compiler;
 import 'constants/constant_system.dart' as constants;
 import 'constants/constructors.dart' as constants;
 import 'constants/evaluation.dart' as constants;
@@ -22,6 +23,7 @@ import 'tree_ir/tree_ir_nodes.dart' as tree_ir;
 import 'dart_types.dart' as dart_types;
 import 'dart2js.dart' as dart2js;
 import 'compiler.dart' as dart2jslib;
+import 'diagnostics/source_span.dart' as diagnostics;
 import 'elements/elements.dart' as elements;
 import 'elements/modelx.dart' as modelx;
 import 'elements/visitor.dart' as elements_visitor;
@@ -84,7 +86,9 @@ void main(List<String> arguments) {
   useTreeVisitors();
 }
 
-useApi(api.ReadStringFromUri uri) {
+useApi([api.ReadStringFromUri uri, compiler.Compiler compiler]) {
+  compiler.analyzeUri(null);
+  new diagnostics.SourceSpan.fromNode(null, null);
 }
 
 class NullConstantConstructorVisitor

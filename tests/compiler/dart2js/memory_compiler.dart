@@ -100,13 +100,15 @@ class MultiDiagnostics implements CompilerDiagnostics {
 CompilerDiagnostics createCompilerDiagnostics(
     CompilerDiagnostics diagnostics,
     SourceFileProvider provider,
-    bool showDiagnostics) {
+    {bool showDiagnostics: true,
+     bool verbose: false}) {
   CompilerDiagnostics handler = diagnostics;
   if (showDiagnostics) {
     if (diagnostics == null) {
-      handler = new FormattingDiagnosticHandler(provider);
+      handler = new FormattingDiagnosticHandler(provider)..verbose = verbose;
     } else {
-      var formattingHandler = new FormattingDiagnosticHandler(provider);
+      var formattingHandler =
+          new FormattingDiagnosticHandler(provider)..verbose = verbose;
       handler = new MultiDiagnostics([diagnostics, formattingHandler]);
     }
   } else if (diagnostics == null) {
@@ -135,7 +137,7 @@ Future<CompilationResult> runCompiler(
     entryPoint = Uri.parse('memory:main.dart');
   }
   Compiler compiler = compilerFor(
-      memorySourceFiles,
+      memorySourceFiles: memorySourceFiles,
       diagnosticHandler: diagnosticHandler,
       outputProvider: outputProvider,
       options: options,
@@ -153,8 +155,8 @@ Future<CompilationResult> runCompiler(
 }
 
 Compiler compilerFor(
-    Map<String, String> memorySourceFiles,
-    {CompilerDiagnostics diagnosticHandler,
+    {Map<String, String> memorySourceFiles: const <String, String>{},
+     CompilerDiagnostics diagnosticHandler,
      CompilerOutput outputProvider,
      List<String> options: const <String>[],
      Compiler cachedCompiler,
@@ -181,8 +183,10 @@ Compiler compilerFor(
     provider = expando[cachedCompiler.provider];
     provider.memorySourceFiles = memorySourceFiles;
   }
-  diagnosticHandler =
-      createCompilerDiagnostics(diagnosticHandler, provider, showDiagnostics);
+  diagnosticHandler = createCompilerDiagnostics(
+      diagnosticHandler, provider,
+      showDiagnostics: showDiagnostics,
+      verbose: options.contains('-v') || options.contains('--verbose'));
 
   if (outputProvider == null) {
     outputProvider = const NullCompilerOutput();
