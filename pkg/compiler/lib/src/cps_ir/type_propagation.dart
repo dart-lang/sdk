@@ -77,7 +77,7 @@ class TypeMaskSystem {
   bool methodUsesReceiverArgument(FunctionElement function) {
     assert(backend.isInterceptedMethod(function));
     ClassElement clazz = function.enclosingClass.declaration;
-    return clazz.isSubclassOf(backend.jsInterceptorClass) || 
+    return clazz.isSubclassOf(backend.jsInterceptorClass) ||
            classWorld.isUsedAsMixin(clazz);
   }
 
@@ -829,12 +829,14 @@ class TransformingVisitor extends LeafVisitor {
     AbstractBool boolifiedValue = lattice.boolify(conditionValue);
 
     if (boolifiedValue == AbstractBool.True) {
+      replaceSubtree(falseCont.body, new Unreachable());
       InvokeContinuation invoke = new InvokeContinuation(trueCont, []);
       replaceSubtree(node, invoke);
       push(invoke);
       return;
     }
     if (boolifiedValue == AbstractBool.False) {
+      replaceSubtree(trueCont.body, new Unreachable());
       InvokeContinuation invoke = new InvokeContinuation(falseCont, []);
       replaceSubtree(node, invoke);
       push(invoke);
@@ -2117,7 +2119,7 @@ class TypePropagationVisitor implements Visitor {
         setValue(node.parameters[0],
                  nonConstant(typeSystem.getReceiverType(node.element)));
       } else {
-        setValue(node.thisParameter, 
+        setValue(node.thisParameter,
               nonConstant(typeSystem.getReceiverType(node.element)));
         setValue(node.parameters[0], nonConstant());
       }
@@ -2395,23 +2397,20 @@ class TypePropagationVisitor implements Visitor {
   void visitBranch(Branch node) {
     IsTrue isTrue = node.condition;
     AbstractValue conditionCell = getValue(isTrue.value.definition);
-
-    if (conditionCell.isNothing) {
-      return;  // And come back later.
-    } else if (conditionCell.isNonConst) {
-      setReachable(node.trueContinuation.definition);
-      setReachable(node.falseContinuation.definition);
-    } else if (conditionCell.isConstant && !conditionCell.constant.isBool) {
-      // Treat non-bool constants in condition as non-const since they result
-      // in type errors in checked mode.
-      // TODO(jgruber): Default to false in unchecked mode.
-      setReachable(node.trueContinuation.definition);
-      setReachable(node.falseContinuation.definition);
-      setValue(isTrue.value.definition, nonConstant(typeSystem.boolType));
-    } else if (conditionCell.isConstant && conditionCell.constant.isBool) {
-      BoolConstantValue boolConstant = conditionCell.constant;
-      setReachable((boolConstant.isTrue) ?
-          node.trueContinuation.definition : node.falseContinuation.definition);
+    AbstractBool boolifiedValue = lattice.boolify(conditionCell);
+    switch (boolifiedValue) {
+      case AbstractBool.Nothing:
+        break;
+      case AbstractBool.True:
+        setReachable(node.trueContinuation.definition);
+        break;
+      case AbstractBool.False:
+        setReachable(node.falseContinuation.definition);
+        break;
+      case AbstractBool.Maybe:
+        setReachable(node.trueContinuation.definition);
+        setReachable(node.falseContinuation.definition);
+        break;
     }
   }
 
