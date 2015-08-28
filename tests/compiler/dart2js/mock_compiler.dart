@@ -50,6 +50,8 @@ class WarningMessage {
 
 final Uri PATCH_CORE = new Uri(scheme: 'patch', path: 'core');
 
+typedef String LibrarySourceProvider(Uri uri);
+
 class MockCompiler extends Compiler {
   api.DiagnosticHandler diagnosticHandler;
   List<WarningMessage> warnings;
@@ -65,6 +67,7 @@ class MockCompiler extends Compiler {
   final Map<String, SourceFile> sourceFiles;
   Node parsedTree;
   final String testedPatchVersion;
+  final LibrarySourceProvider librariesOverride;
 
   MockCompiler.internal(
       {Map<String, String> coreSource,
@@ -85,7 +88,8 @@ class MockCompiler extends Compiler {
        int this.expectedWarnings,
        int this.expectedErrors,
        api.CompilerOutputProvider outputProvider,
-       String patchVersion})
+       String patchVersion,
+       LibrarySourceProvider this.librariesOverride})
       : sourceFiles = new Map<String, SourceFile>(),
         testedPatchVersion = patchVersion,
         super(enableTypeAssertions: enableTypeAssertions,
@@ -167,9 +171,16 @@ class MockCompiler extends Compiler {
 
   /**
    * Registers the [source] with [uri] making it possible load [source] as a
-   * library.
+   * library.  If an override has been provided in [librariesOverride], that
+   * is used instead.
    */
   void registerSource(Uri uri, String source) {
+    if (librariesOverride != null) {
+      String override = librariesOverride(uri);
+      if (override != null) {
+        source = override;
+      }
+    }
     sourceFiles[uri.toString()] = new MockFile(source);
   }
 
