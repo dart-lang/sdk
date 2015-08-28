@@ -2551,7 +2551,16 @@ class TypePropagationVisitor implements Visitor {
   void visitInterceptor(Interceptor node) {
     push(node.input.definition);
     AbstractValue value = getValue(node.input.definition);
-    if (!value.isNothing) {
+    if (value.isNothing) {
+      setValue(node, nothing);
+    } else if (value.isNullable &&
+        !node.interceptedClasses.contains(backend.jsNullClass)) {
+      // If the input is null and null is not mapped to an interceptor then
+      // null gets returned.
+      // TODO(asgerf): Add the NullInterceptor when it enables us to
+      //               propagate an assignment.
+      setValue(node, nonConstant());
+    } else {
       setValue(node, nonConstant(typeSystem.nonNullType));
     }
   }
