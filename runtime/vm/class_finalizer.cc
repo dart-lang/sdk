@@ -167,15 +167,16 @@ bool ClassFinalizer::ProcessPendingClasses() {
 
 // Adds all interfaces of cls into 'collected'. Duplicate entries may occur.
 // No cycles are allowed.
-void ClassFinalizer::CollectInterfaces(const Class& cls,
-                                       const GrowableObjectArray& collected) {
-  const Array& interface_array = Array::Handle(cls.interfaces());
-  AbstractType& interface = AbstractType::Handle();
-  Class& interface_class = Class::Handle();
+void ClassFinalizer::CollectInterfaces(
+    const Class& cls, GrowableArray<const Class*>* collected) {
+  Zone* zone = Thread::Current()->zone();
+  const Array& interface_array = Array::Handle(zone, cls.interfaces());
+  AbstractType& interface = AbstractType::Handle(zone);
+  Class& interface_class = Class::Handle(zone);
   for (intptr_t i = 0; i < interface_array.Length(); i++) {
     interface ^= interface_array.At(i);
     interface_class = interface.type_class();
-    collected.Add(interface_class);
+    collected->Add(&Class::ZoneHandle(zone, interface_class.raw()));
     CollectInterfaces(interface_class, collected);
   }
 }
@@ -1301,14 +1302,14 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   //   instance method.
 
   // Resolve type of fields and check for conflicts in super classes.
-  Isolate* I = Isolate::Current();
-  Array& array = Array::Handle(I, cls.fields());
-  Field& field = Field::Handle(I);
-  AbstractType& type = AbstractType::Handle(I);
-  String& name = String::Handle(I);
-  String& getter_name = String::Handle(I);
-  String& setter_name = String::Handle(I);
-  Class& super_class = Class::Handle(I);
+  Zone* Z = Thread::Current()->zone();
+  Array& array = Array::Handle(Z, cls.fields());
+  Field& field = Field::Handle(Z);
+  AbstractType& type = AbstractType::Handle(Z);
+  String& name = String::Handle(Z);
+  String& getter_name = String::Handle(Z);
+  String& setter_name = String::Handle(Z);
+  Class& super_class = Class::Handle(Z);
   const intptr_t num_fields = array.Length();
   for (intptr_t i = 0; i < num_fields; i++) {
     field ^= array.At(i);
@@ -1320,8 +1321,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       getter_name = Field::GetterSymbol(name);
       super_class = FindSuperOwnerOfInstanceMember(cls, name, getter_name);
       if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(I, cls.Name());
-        const String& super_class_name = String::Handle(I, super_class.Name());
+        const String& class_name = String::Handle(Z, cls.Name());
+        const String& super_class_name = String::Handle(Z, super_class.Name());
         ReportError(cls, field.token_pos(),
                     "static field '%s' of class '%s' conflicts with "
                     "instance member '%s' of super class '%s'",
@@ -1336,8 +1337,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       setter_name = Field::SetterSymbol(name);
       super_class = FindSuperOwnerOfFunction(cls, setter_name);
       if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(I, cls.Name());
-        const String& super_class_name = String::Handle(I, super_class.Name());
+        const String& class_name = String::Handle(Z, cls.Name());
+        const String& super_class_name = String::Handle(Z, super_class.Name());
         ReportError(cls, field.token_pos(),
                     "static field '%s' of class '%s' conflicts with "
                     "instance setter '%s=' of super class '%s'",
@@ -1352,8 +1353,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       // (but not getter).
       super_class = FindSuperOwnerOfFunction(cls, name);
       if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(I, cls.Name());
-        const String& super_class_name = String::Handle(I, super_class.Name());
+        const String& class_name = String::Handle(Z, cls.Name());
+        const String& super_class_name = String::Handle(Z, super_class.Name());
         ReportError(cls, field.token_pos(),
                     "field '%s' of class '%s' conflicts with method '%s' "
                     "of super class '%s'",
@@ -1368,13 +1369,13 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         (field.value() != Object::sentinel().raw())) {
       // The parser does not preset the value if the type is a type parameter or
       // is parameterized unless the value is null.
-      Error& error = Error::Handle(I);
+      Error& error = Error::Handle(Z);
       if (type.IsMalformedOrMalbounded()) {
         error = type.error();
       } else {
         ASSERT(type.IsInstantiated());
       }
-      const Instance& const_value = Instance::Handle(I, field.value());
+      const Instance& const_value = Instance::Handle(Z, field.value());
       if (!error.IsNull() ||
           (!type.IsDynamicType() &&
            !const_value.IsInstanceOf(type,
@@ -1382,10 +1383,10 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                                      &error))) {
         if (Isolate::Current()->flags().error_on_bad_type()) {
           const AbstractType& const_value_type = AbstractType::Handle(
-              I, const_value.GetType());
+              Z, const_value.GetType());
           const String& const_value_type_name = String::Handle(
-              I, const_value_type.UserVisibleName());
-          const String& type_name = String::Handle(I, type.UserVisibleName());
+              Z, const_value_type.UserVisibleName());
+          const String& type_name = String::Handle(Z, type.UserVisibleName());
           ReportErrors(error, cls, field.token_pos(),
                        "error initializing static %s field '%s': "
                        "type '%s' is not a subtype of type '%s'",
@@ -1403,7 +1404,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
           // we create an implicit static final getter and reset the field value
           // to the sentinel value.
           const Function& getter = Function::Handle(
-              I,
+              Z,
               Function::New(getter_name,
                             RawFunction::kImplicitStaticFinalGetter,
                             /* is_static = */ true,
@@ -1422,23 +1423,22 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
     }
   }
   // Collect interfaces, super interfaces, and super classes of this class.
-  const GrowableObjectArray& interfaces =
-      GrowableObjectArray::Handle(I, GrowableObjectArray::New());
-  CollectInterfaces(cls, interfaces);
+  GrowableArray<const Class*> interfaces(Z, 4);
+  CollectInterfaces(cls, &interfaces);
   // Include superclasses in list of interfaces and super interfaces.
   super_class = cls.SuperClass();
   while (!super_class.IsNull()) {
-    interfaces.Add(super_class);
-    CollectInterfaces(super_class, interfaces);
+    interfaces.Add(&Class::ZoneHandle(Z, super_class.raw()));
+    CollectInterfaces(super_class, &interfaces);
     super_class = super_class.SuperClass();
   }
   // Resolve function signatures and check for conflicts in super classes and
   // interfaces.
   array = cls.functions();
-  Function& function = Function::Handle(I);
-  Function& overridden_function = Function::Handle(I);
+  Function& function = Function::Handle(Z);
+  Function& overridden_function = Function::Handle(Z);
   const intptr_t num_functions = array.Length();
-  Error& error = Error::Handle(I);
+  Error& error = Error::Handle(Z);
   for (intptr_t i = 0; i < num_functions; i++) {
     function ^= array.At(i);
     ResolveAndFinalizeSignature(cls, function);
@@ -1447,18 +1447,18 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
     if (Isolate::Current()->flags().error_on_bad_override() &&
         !function.is_static() && !function.IsGenerativeConstructor()) {
       // A constructor cannot override anything.
-      for (intptr_t i = 0; i < interfaces.Length(); i++) {
-        super_class ^= interfaces.At(i);
+      for (intptr_t i = 0; i < interfaces.length(); i++) {
+        const Class* super_class = interfaces.At(i);
         // Finalize superclass since overrides check relies on all members
         // of the superclass to be finalized.
-        FinalizeClass(super_class);
-        overridden_function = super_class.LookupDynamicFunction(name);
+        FinalizeClass(*super_class);
+        overridden_function = super_class->LookupDynamicFunction(name);
         if (!overridden_function.IsNull() &&
             !function.HasCompatibleParametersWith(overridden_function,
                                                   &error)) {
-          const String& class_name = String::Handle(I, cls.Name());
+          const String& class_name = String::Handle(Z, cls.Name());
           const String& super_class_name =
-              String::Handle(I, super_class.Name());
+              String::Handle(Z, super_class->Name());
           ReportErrors(error, cls, function.token_pos(),
                        "class '%s' overrides method '%s' of super "
                        "class '%s' with incompatible parameters",
@@ -1472,9 +1472,9 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       if (function.is_static()) {
         super_class = FindSuperOwnerOfFunction(cls, name);
         if (!super_class.IsNull()) {
-          const String& class_name = String::Handle(I, cls.Name());
+          const String& class_name = String::Handle(Z, cls.Name());
           const String& super_class_name =
-              String::Handle(I, super_class.Name());
+              String::Handle(Z, super_class.Name());
           ReportError(cls, function.token_pos(),
                       "static setter '%s=' of class '%s' conflicts with "
                       "instance setter '%s=' of super class '%s'",
@@ -1495,8 +1495,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
     if (function.is_static()) {
       super_class = FindSuperOwnerOfInstanceMember(cls, name, getter_name);
       if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(I, cls.Name());
-        const String& super_class_name = String::Handle(I, super_class.Name());
+        const String& class_name = String::Handle(Z, cls.Name());
+        const String& super_class_name = String::Handle(Z, super_class.Name());
         ReportError(cls, function.token_pos(),
                     "static %s '%s' of class '%s' conflicts with "
                     "instance member '%s' of super class '%s'",
@@ -1513,7 +1513,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         // However, the redirection type should be finalized.
         // If the redirection type is from a deferred library and is not
         // yet loaded, do not attempt to resolve.
-        Type& type = Type::Handle(I, function.RedirectionType());
+        Type& type = Type::Handle(Z, function.RedirectionType());
         if (IsLoaded(type)) {
           type ^= FinalizeType(cls, type, kCanonicalize);
           function.SetRedirectionType(type);
@@ -1523,8 +1523,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                function.IsImplicitGetterFunction()) {
       super_class = FindSuperOwnerOfFunction(cls, name);
       if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(I, cls.Name());
-        const String& super_class_name = String::Handle(I, super_class.Name());
+        const String& class_name = String::Handle(Z, cls.Name());
+        const String& super_class_name = String::Handle(Z, super_class.Name());
         ReportError(cls, function.token_pos(),
                     "getter '%s' of class '%s' conflicts with "
                     "method '%s' of super class '%s'",
@@ -1539,8 +1539,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       // have the same name. Thus, we do not need to check setters.
       super_class = FindSuperOwnerOfFunction(cls, getter_name);
       if (!super_class.IsNull()) {
-        const String& class_name = String::Handle(I, cls.Name());
-        const String& super_class_name = String::Handle(I, super_class.Name());
+        const String& class_name = String::Handle(Z, cls.Name());
+        const String& super_class_name = String::Handle(Z, super_class.Name());
         ReportError(cls, function.token_pos(),
                     "method '%s' of class '%s' conflicts with "
                     "getter '%s' of super class '%s'",

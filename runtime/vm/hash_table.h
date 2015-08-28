@@ -41,7 +41,7 @@ namespace dart {
 // lookup key types (e.g., look up a char* in a set of String objects), and
 // any equality and hash code computation.
 //
-// The classes all wrap an Array handle, and metods like HashSet::Insert can
+// The classes all wrap an Array handle, and methods like HashSet::Insert can
 // trigger growth into a new RawArray, updating the handle. Debug mode asserts
 // that 'Release' was called once to access the final array before destruction.
 // NOTE: The handle returned by 'Release' is cleared by ~HashTable.

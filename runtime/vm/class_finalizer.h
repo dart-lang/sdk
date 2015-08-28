@@ -150,8 +150,9 @@ class ClassFinalizer : public AllStatic {
                                           const Function& function);
   static void ResolveAndFinalizeMemberTypes(const Class& cls);
   static void PrintClassInformation(const Class& cls);
-  static void CollectInterfaces(const Class& cls,
-                                const GrowableObjectArray& interfaces);
+  static void CollectInterfaces(
+      const Class& cls, GrowableArray<const Class*>* collected);
+
   static void MarkTypeMalformed(const Error& prev_error,
                                 const Script& script,
                                 const Type& type,
