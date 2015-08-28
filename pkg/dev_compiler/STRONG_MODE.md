@@ -202,7 +202,7 @@ To avoid this, strong mode uses limited inference.  In the case above, the stron
 - Local variables
 - Allocation expressions
 
-In all cases, inference tightens the static type or runtime type as compared to the Dart specification.  The `dynamic` type, either alone or in the context of a function or generic parameter type, is inferred to a more specific type.  The effect of this inference (other than stricter type errors) should not be observable at runtime outside the use of the mirrors API.  (Note, in the next section, we discuss corresponding restrictions on `is` and `as` type checks.)
+In all cases, inference tightens the static type or runtime type as compared to the Dart specification.  The `dynamic` type, either alone or in the context of a function or generic parameter type, is inferred to a more specific type.  The effect of this inference (other than stricter type errors) should not be observable at runtime outside the use of the mirrors API or by explicitly examining Object.runtimeType.  (Note, in the next section, we discuss corresponding restrictions on `is` and `as` type checks.)
 
 ### Top-level and Static Fields
 
