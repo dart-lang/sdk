@@ -76,14 +76,6 @@ main(arguments) {
     return new BatchCompiler(context, options, reporter: reporter).run();
   }
 
-  // Remove old output, and `packages` symlinks which mess up the diff.
-  var dir = new Directory(expectDir);
-  if (dir.existsSync()) dir.deleteSync(recursive: true);
-  var packagesDirs = new Directory(inputDir)
-      .listSync(recursive: true)
-      .where((d) => d is Directory && path.basename(d.path) == 'packages');
-  packagesDirs.forEach((d) => d.deleteSync());
-
   {
     // Expand wacky multitests into a bunch of test files.
     // We'll compile each one as if it was an input.

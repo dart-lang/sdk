@@ -3,6 +3,6 @@ info: [DynamicInvoke] ++f[index] requires dynamic invoke (test/codegen/opassign.
 info: [DynamicInvoke] f[index]++ requires dynamic invoke (test/codegen/opassign.dart, line 22, col 16)
 info: [DynamicInvoke] ++foo.x requires dynamic invoke (test/codegen/opassign.dart, line 25, col 3)
 info: [DynamicInvoke] foo.x requires dynamic invoke (test/codegen/opassign.dart, line 25, col 5)
-info: [DynamicInvoke] foo.x++ requires dynamic invoke (test/codegen/opassign.dart, line 26, col 16)
 info: [DynamicInvoke] foo.x requires dynamic invoke (test/codegen/opassign.dart, line 26, col 16)
+info: [DynamicInvoke] foo.x++ requires dynamic invoke (test/codegen/opassign.dart, line 26, col 16)
 info: [DynamicInvoke] f[index] += f[index] requires dynamic invoke (test/codegen/opassign.dart, line 29, col 3)

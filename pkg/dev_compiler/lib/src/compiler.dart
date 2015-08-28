@@ -78,6 +78,7 @@ class BatchCompiler extends AbstractCompiler {
 
   /// Already compiled sources, so we don't compile them again.
   final _compiled = new HashSet<LibraryElement>();
+  bool _sdkCopied = false;
 
   bool _failure = false;
   bool get failure => _failure;
@@ -101,6 +102,7 @@ class BatchCompiler extends AbstractCompiler {
 
   void reset() {
     _compiled.clear();
+    _sdkCopied = false;
   }
 
   /// Compiles every file in [options.inputs].
@@ -178,11 +180,17 @@ class BatchCompiler extends AbstractCompiler {
   }
 
   void _copyDartRuntime() {
+    if (_sdkCopied) return;
+    _sdkCopied = true;
     for (var file in defaultRuntimeFiles) {
-      var input = path.join(options.runtimeDir, file);
-      var output = path.join(_runtimeOutputDir, file);
-      new Directory(path.dirname(output)).createSync(recursive: true);
-      new File(input).copySync(output);
+      var input = new File(path.join(options.runtimeDir, file));
+      var output = new File(path.join(_runtimeOutputDir, file));
+      if (output.existsSync() &&
+          output.lastModifiedSync() == input.lastModifiedSync()) {
+        continue;
+      }
+      new Directory(path.dirname(output.path)).createSync(recursive: true);
+      input.copySync(output.path);
     }
   }
 

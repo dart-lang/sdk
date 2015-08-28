@@ -34,17 +34,19 @@ class ErrorCollector implements AnalysisErrorListener {
       var severity1 = _strongModeErrorSeverity(error1);
       var severity2 = _strongModeErrorSeverity(error2);
       int compare = severity2.compareTo(severity1);
-      if (compare != 0) {
-        return compare;
-      }
+      if (compare != 0) return compare;
+
       // path
       compare = Comparable.compare(error1.source.fullName.toLowerCase(),
           error2.source.fullName.toLowerCase());
-      if (compare != 0) {
-        return compare;
-      }
+      if (compare != 0) return compare;
+
       // offset
-      return error1.offset - error2.offset;
+      compare = error1.offset - error2.offset;
+      if (compare != 0) return compare;
+
+      // compare message, in worst case.
+      return error1.message.compareTo(error2.message);
     });
 
     _errors.forEach(listener.onError);
