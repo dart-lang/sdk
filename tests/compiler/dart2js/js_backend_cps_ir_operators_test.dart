@@ -19,7 +19,7 @@ function() {
   P.print(V.foo() ? "hello world" : "bad bad");
 }"""),
   const TestEntry("""
-foo() => null;
+foo() { print('foo'); }
 main() {
   print(foo() ? "hello world" : "bad bad");
 }""","""

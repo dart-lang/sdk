@@ -19,7 +19,7 @@ function() {
     ;
 }"""),
   const TestEntry("""
-foo(a) => a;
+foo(a) { print(a); return a; }
 
 main() {
   while (true) {
@@ -46,7 +46,7 @@ function() {
       }
 }"""),
   const TestEntry("""
-foo(a) => a;
+foo(a) { print(a); return a; }
 
 main() {
   for (int i = 0; foo(true); i = foo(i)) {
@@ -65,7 +65,7 @@ function() {
   P.print(2);
 }"""),
 const TestEntry("""
-foo(a) => a;
+foo(a) { print(a); return a; }
 
 main() {
  if (foo(true)) {
@@ -80,7 +80,7 @@ function() {
   P.print(3);
 }"""),
 const TestEntry("""
-foo(a) => a;
+foo(a) { print(a); return a; }
 
 main() {
  if (foo(true)) {
@@ -114,7 +114,7 @@ function() {
   P.print("good");
 }"""),
   const TestEntry("""
-foo() => 2;
+foo() { print('2'); return 2; }
 main() {
   if (foo()) {
     print('bad');
