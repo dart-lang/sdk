@@ -10757,9 +10757,21 @@ class ResolverVisitor extends ScopedVisitor {
       ElementResolver.setMetadata(node.element, node);
     }
     //
-    // There is nothing else to do because everything else was resolved by the
-    // element builder.
+    // Continue the enum resolution.
     //
+    ClassElement outerType = enclosingClass;
+    try {
+      enclosingClass = node.element;
+      typeAnalyzer.thisType =
+          enclosingClass == null ? null : enclosingClass.type;
+      super.visitEnumDeclaration(node);
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
+    } finally {
+      typeAnalyzer.thisType = outerType == null ? null : outerType.type;
+      enclosingClass = outerType;
+      _enclosingClassDeclaration = null;
+    }
     return null;
   }
 
@@ -12093,6 +12105,38 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       _implicitLabelScope = outerImplicitScope;
     }
     return null;
+  }
+
+  @override
+  Object visitEnumDeclaration(EnumDeclaration node) {
+    ClassElement classElement = node.element;
+    Scope outerScope = nameScope;
+    try {
+      if (classElement == null) {
+        AnalysisEngine.instance.logger.logInformation(
+            "Missing element for enum declaration ${node.name.name} in ${definingLibrary.source.fullName}",
+            new CaughtException(new AnalysisException(), null));
+        super.visitEnumDeclaration(node);
+      } else {
+        ClassElement outerClass = enclosingClass;
+        try {
+          enclosingClass = node.element;
+          nameScope = new ClassScope(nameScope, classElement);
+          visitEnumMembersInScope(node);
+        } finally {
+          enclosingClass = outerClass;
+        }
+      }
+    } finally {
+      nameScope = outerScope;
+    }
+    return null;
+  }
+
+  void visitEnumMembersInScope(EnumDeclaration node) {
+    safelyVisit(node.documentationComment);
+    node.metadata.accept(this);
+    node.constants.accept(this);
   }
 
   @override

@@ -10,6 +10,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
 import '../utils.dart';
@@ -827,6 +828,43 @@ abstract class A {
           unit, code, "p]", (node) => node is SimpleIdentifier);
       EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement,
           ParameterElement, ref.staticElement);
+    }
+  }
+
+  void test_commentReference_beforeEnum() {
+    String code = r'''
+/// This is the [Samurai] kind.
+enum Samurai {
+  /// Use [int].
+  WITH_SWORD,
+  /// Like [WITH_SWORD], but only without one.
+  WITHOUT_SWORD
+}''';
+    Source source = addSource(code);
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = _getResolvedLibraryUnit(source);
+    {
+      SimpleIdentifier ref = EngineTestCase.findNode(
+          unit, code, "Samurai]", (node) => node is SimpleIdentifier);
+      ClassElement refElement = ref.staticElement;
+      expect(refElement, isNotNull);
+      expect(refElement.name, 'Samurai');
+    }
+    {
+      SimpleIdentifier ref = EngineTestCase.findNode(
+          unit, code, "int]", (node) => node is SimpleIdentifier);
+      ClassElement refElement = ref.staticElement;
+      expect(refElement, isNotNull);
+      expect(refElement.name, 'int');
+    }
+    {
+      SimpleIdentifier ref = EngineTestCase.findNode(
+          unit, code, "WITH_SWORD]", (node) => node is SimpleIdentifier);
+      PropertyAccessorElement refElement = ref.staticElement;
+      expect(refElement, isNotNull);
+      expect(refElement.name, 'WITH_SWORD');
     }
   }
 

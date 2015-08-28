@@ -584,6 +584,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitEnumDeclaration(EnumDeclaration node) {
+    ClassElement outerClass = _enclosingClass;
+    try {
+      _isInNativeClass = false;
+      _enclosingClass = node.element;
+      return super.visitEnumDeclaration(node);
+    } finally {
+      _enclosingClass = outerClass;
+    }
+  }
+
+  @override
   Object visitExportDirective(ExportDirective node) {
     ExportElement exportElement = node.element;
     if (exportElement != null) {
