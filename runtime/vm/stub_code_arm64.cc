@@ -448,8 +448,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
                                            bool preserve_result) {
   // DeoptimizeCopyFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
-  __ EnterFrame(0);
-  __ TagAndPushPPAndPcMarker(ZR);
+  __ EnterStubFrame();
 
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
@@ -480,13 +479,12 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
 
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
-  __ LeaveDartFrame();
+  __ LeaveStubFrame();
   __ sub(SP, FP, Operand(R0));
 
   // DeoptimizeFillFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
-  __ EnterFrame(0);
-  __ TagAndPushPPAndPcMarker(ZR);
+  __ EnterStubFrame();
 
   if (preserve_result) {
     __ Push(R1);  // Preserve result as first local.
@@ -500,7 +498,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
   // Code above cannot cause GC.
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
-  __ LeaveDartFrame();
+  __ LeaveStubFrame();
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they

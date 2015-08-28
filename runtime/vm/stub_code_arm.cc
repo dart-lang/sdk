@@ -200,7 +200,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ LoadImmediate(R2, entry);
   __ blx(R2);
 #else
-  __ BranchLink(&NativeEntry::NativeCallWrapperLabel());
+  __ BranchLink(&NativeEntry::NativeCallWrapperLabel(), kNotPatchable);
 #endif
 
   // Mark that the isolate is executing Dart code.
@@ -427,6 +427,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ mov(FP, Operand(SP));
   __ Push(PP);
 
+  __ LoadPoolPointer();
+
   // Now that IP holding the return address has been written to the stack,
   // we can clobber it with 0 to write the null PC marker.
   __ mov(IP, Operand(0));
@@ -469,9 +471,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
   // DeoptimizeFillFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
-  __ mov(IP, Operand(LR));
-  __ mov(LR, Operand(0));
-  __ EnterFrame((1 << PP) | (1 << FP) | (1 << IP) | (1 << LR), 0);
+  __ EnterStubFrame();
   __ mov(R0, Operand(FP));  // Get last FP address.
   if (preserve_result) {
     __ Push(R1);  // Preserve result as first local.
@@ -483,7 +483,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ ldr(R1, Address(FP, kFirstLocalSlotFromFp * kWordSize));
   }
   // Code above cannot cause GC.
-  __ LeaveDartFrame();
+  __ LeaveStubFrame();
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they

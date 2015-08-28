@@ -67,6 +67,7 @@ DECLARE_FLAG(bool, use_cha_deopt);
 DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(bool, precompile_collect_closures);
+DECLARE_FLAG(bool, print_stop_message);
 
 
 static void NooptModeHandler(bool value) {
@@ -92,6 +93,9 @@ static void NooptModeHandler(bool value) {
     // TODO(srdjan): Enable CHA deoptimization when eager class finalization is
     // implemented, either with precompilation or as a special pass.
     FLAG_use_cha_deopt = false;
+    // Calling the PrintStopMessage stub is not supported in precompiled code
+    // since it is done at places where no pool pointer is loaded.
+    FLAG_print_stop_message = false;
   }
 }
 

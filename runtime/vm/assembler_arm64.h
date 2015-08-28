@@ -1198,37 +1198,14 @@ class Assembler : public ValueObject {
     LslImmediate(dst, src, kSmiTagSize);
   }
 
-  // Branching to ExternalLabels.
-  void Branch(const ExternalLabel* label) {
-    LoadExternalLabel(TMP, label);
-    br(TMP);
-  }
-
   void Branch(const StubEntry& stub_entry);
-
-  // Fixed length branch to label.
-  void BranchPatchable(const ExternalLabel* label) {
-    // TODO(zra): Use LoadExternalLabelFixed if possible.
-    LoadImmediateFixed(TMP, label->address());
-    br(TMP);
-  }
-
   void BranchPatchable(const StubEntry& stub_entry);
 
-  void BranchLink(const ExternalLabel* label) {
-    LoadExternalLabel(TMP, label);
-    blr(TMP);
-  }
-
+  void BranchLink(const ExternalLabel* label);
   void BranchLink(const StubEntry& stub_entry);
 
   // BranchLinkPatchable must be a fixed-length sequence so we can patch it
   // with the debugger.
-  void BranchLinkPatchable(const ExternalLabel* label) {
-    LoadExternalLabelFixed(TMP, label, kPatchable);
-    blr(TMP);
-  }
-
   void BranchLinkPatchable(const StubEntry& stub_entry);
 
   // Macros accepting a pp Register argument may attempt to load values from
@@ -1447,6 +1424,10 @@ class Assembler : public ValueObject {
   GrowableArray<CodeComment*> comments_;
 
   bool constant_pool_allowed_;
+
+  void Branch(const ExternalLabel* label);
+  void BranchPatchable(const ExternalLabel* label);
+  void BranchLinkPatchable(const ExternalLabel* label);
 
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
 

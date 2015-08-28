@@ -912,50 +912,13 @@ class Assembler : public ValueObject {
     SubuDetectOverflow(rd, rs, rd, ro);
   }
 
-  void Branch(const ExternalLabel* label) {
-    ASSERT(!in_delay_slot_);
-    LoadImmediate(TMP, label->address());
-    jr(TMP);
-  }
-
   void Branch(const StubEntry& stub_entry);
-
-  void BranchPatchable(const ExternalLabel* label) {
-    ASSERT(!in_delay_slot_);
-    const uint16_t low = Utils::Low16Bits(label->address());
-    const uint16_t high = Utils::High16Bits(label->address());
-    lui(T9, Immediate(high));
-    ori(T9, T9, Immediate(low));
-    jr(T9);
-    delay_slot_available_ = false;  // CodePatcher expects a nop.
-  }
 
   void BranchPatchable(const StubEntry& stub_entry);
 
-  void BranchLink(const ExternalLabel* label) {
-    ASSERT(!in_delay_slot_);
-    LoadImmediate(T9, label->address());
-    jalr(T9);
-  }
-
-  void BranchLink(const StubEntry& stub_entry);
-
-  void BranchLink(const ExternalLabel* label, Patchability patchable) {
-    ASSERT(!in_delay_slot_);
-    const int32_t offset = ObjectPool::element_offset(
-        object_pool_wrapper_.FindExternalLabel(label, patchable));
-    LoadWordFromPoolOffset(T9, offset - kHeapObjectTag);
-    jalr(T9);
-    if (patchable == kPatchable) {
-      delay_slot_available_ = false;  // CodePatcher expects a nop.
-    }
-  }
-
-  void BranchLink(const StubEntry& stub_entry, Patchability patchable);
-
-  void BranchLinkPatchable(const ExternalLabel* label) {
-    BranchLink(label, kPatchable);
-  }
+  void BranchLink(const ExternalLabel* label, Patchability patchable);
+  void BranchLink(const StubEntry& stub_entry,
+                  Patchability patchable = kNotPatchable);
 
   void BranchLinkPatchable(const StubEntry& stub_entry);
 
@@ -1669,6 +1632,8 @@ class Assembler : public ValueObject {
   GrowableArray<CodeComment*> comments_;
 
   bool constant_pool_allowed_;
+
+  void BranchLink(const ExternalLabel* label);
 
   void LoadObjectHelper(Register rd, const Object& object, bool is_unique);
 

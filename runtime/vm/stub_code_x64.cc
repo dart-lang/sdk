@@ -184,7 +184,9 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movq(CallingConventions::kArg1Reg, RSP);
   // Pass pointer to function entrypoint.
   __ movq(CallingConventions::kArg2Reg, RBX);
-  __ CallCFunction(&NativeEntry::NativeCallWrapperLabel());
+  __ LoadExternalLabel(
+      RAX, &NativeEntry::NativeCallWrapperLabel(), kNotPatchable);
+  __ CallCFunction(RAX);
 
   // Mark that the isolate is executing Dart code.
   __ movq(Address(R12, Isolate::vm_tag_offset()),
@@ -384,9 +386,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
                                            bool preserve_result) {
   // DeoptimizeCopyFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
-  __ EnterFrame(0);
-  __ pushq(Immediate(0));
-  __ pushq(PP);
+  __ EnterStubFrame();
 
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
@@ -419,7 +419,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
 
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
-  __ LeaveDartFrame();
+  __ LeaveStubFrame();
 
   __ popq(RCX);   // Preserve return address.
   __ movq(RSP, RBP);  // Discard optimized frame.
@@ -428,9 +428,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
   // DeoptimizeFillFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
-  __ EnterFrame(0);
-  __ pushq(Immediate(0));
-  __ pushq(PP);
+  __ EnterStubFrame();
 
   if (preserve_result) {
     __ pushq(RBX);  // Preserve result as first local.
@@ -445,7 +443,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
   // Code above cannot cause GC.
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
-  __ LeaveDartFrame();
+  __ LeaveStubFrame();
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they

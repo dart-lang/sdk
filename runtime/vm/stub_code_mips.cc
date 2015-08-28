@@ -207,7 +207,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ LoadImmediate(T9, entry);
   __ jalr(T9);
 #else
-  __ BranchLink(&NativeEntry::NativeCallWrapperLabel());
+  __ BranchLink(&NativeEntry::NativeCallWrapperLabel(), kNotPatchable);
 #endif
   __ Comment("CallNativeCFunctionStub return");
 
@@ -460,6 +460,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ sw(PP, Address(SP, kPushedRegistersSize - 4 * kWordSize));
   __ addiu(FP, SP, Immediate(kPushedRegistersSize - 3 * kWordSize));
 
+  __ LoadPoolPointer();
+
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
@@ -490,20 +492,12 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ lw(T1, Address(FP, saved_result_slot_from_fp * kWordSize));
   }
 
-  __ addiu(SP, FP, Immediate(-kWordSize));
-  __ lw(RA, Address(SP, 2 * kWordSize));
-  __ lw(FP, Address(SP, 1 * kWordSize));
-  __ lw(PP, Address(SP, 0 * kWordSize));
+  __ LeaveDartFrame();
   __ subu(SP, FP, V0);
 
   // DeoptimizeFillFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
-  __ addiu(SP, SP, Immediate(-4 * kWordSize));
-  __ sw(ZR, Address(SP, 3 * kWordSize));
-  __ sw(RA, Address(SP, 2 * kWordSize));
-  __ sw(FP, Address(SP, 1 * kWordSize));
-  __ sw(PP, Address(SP, 0 * kWordSize));
-  __ addiu(FP, SP, Immediate(kWordSize));
+  __ EnterStubFrame();
 
   __ mov(A0, FP);  // Get last FP address.
   if (preserve_result) {
@@ -516,11 +510,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ lw(T1, Address(FP, kFirstLocalSlotFromFp * kWordSize));
   }
   // Code above cannot cause GC.
-  __ addiu(SP, FP, Immediate(-kWordSize));
-  __ lw(RA, Address(SP, 2 * kWordSize));
-  __ lw(FP, Address(SP, 1 * kWordSize));
-  __ lw(PP, Address(SP, 0 * kWordSize));
-  __ addiu(SP, SP, Immediate(4 * kWordSize));
+  __ LeaveStubFrame();
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
