@@ -658,6 +658,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     });
   }
 
+  @override
   Object /*V*/ computeResult(
       AnalysisTarget target, ResultDescriptor /*<V>*/ descriptor) {
     CacheEntry entry = getCacheEntry(target);
@@ -710,7 +711,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (Source librarySource in containingLibraries) {
       LibrarySpecificUnit target =
           new LibrarySpecificUnit(librarySource, unitSource);
-      CompilationUnit unit = _cache.getValue(target, RESOLVED_UNIT);
+      CompilationUnit unit = getResult(target, RESOLVED_UNIT);
       if (unit == null) {
         units = null;
         break;
@@ -764,7 +765,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   CompilationUnitElement getCompilationUnitElement(
       Source unitSource, Source librarySource) {
     AnalysisTarget target = new LibrarySpecificUnit(librarySource, unitSource);
-    return _cache.getValue(target, COMPILATION_UNIT_ELEMENT);
+    return getResult(target, COMPILATION_UNIT_ELEMENT);
   }
 
   @override
@@ -837,7 +838,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (Source source in _cache.sources) {
       if (AnalysisEngine.isHtmlFileName(source.shortName)) {
         List<Source> referencedLibraries =
-            analysisCache.getValue(source, REFERENCED_LIBRARIES);
+            getResult(source, REFERENCED_LIBRARIES);
         if (_containsAny(referencedLibraries, librarySources)) {
           htmlSources.add(source);
         }
@@ -853,7 +854,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   SourceKind getKindOf(Source source) {
     String name = source.shortName;
     if (AnalysisEngine.isDartFileName(name)) {
-      return _cache.getValue(source, SOURCE_KIND);
+      return getResult(source, SOURCE_KIND);
     } else if (AnalysisEngine.isHtmlFileName(name)) {
       return SourceKind.HTML;
     }
@@ -900,10 +901,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   LibraryElement getLibraryElement(Source source) =>
-      _cache.getValue(source, LIBRARY_ELEMENT);
+      getResult(source, LIBRARY_ELEMENT);
 
   @override
-  LineInfo getLineInfo(Source source) => _cache.getValue(source, LINE_INFO);
+  LineInfo getLineInfo(Source source) => getResult(source, LINE_INFO);
 
   @override
   int getModificationStamp(Source source) {
@@ -954,7 +955,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         !AnalysisEngine.isDartFileName(librarySource.shortName)) {
       return null;
     }
-    return _cache.getValue(
+    return getResult(
         new LibrarySpecificUnit(librarySource, unitSource), RESOLVED_UNIT);
   }
 
@@ -964,6 +965,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     // TODO(brianwilkerson) Remove this method after switching to the new task
     // model.
     throw new UnimplementedError('Not supported in the new task model');
+  }
+
+  @override
+  Object getResult(AnalysisTarget target, ResultDescriptor result) {
+    return _cache.getValue(target, result);
   }
 
   @override
@@ -1020,7 +1026,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   void invalidateLibraryHints(Source librarySource) {
-    List<Source> sources = _cache.getValue(librarySource, UNITS);
+    List<Source> sources = getResult(librarySource, UNITS);
     if (sources != null) {
       for (Source source in sources) {
         getCacheEntry(source).setState(HINTS, CacheState.INVALID);

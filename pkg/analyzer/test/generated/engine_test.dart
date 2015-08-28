@@ -5901,6 +5901,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
+  Object computeResult(AnalysisTarget target, ResultDescriptor result) {
+    fail("Unexpected invocation of computeResult");
+    return null;
+  }
+
+  @override
   void dispose() {
     fail("Unexpected invocation of dispose");
   }
@@ -6039,6 +6045,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @deprecated
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
     fail("Unexpected invocation of getResolvedHtmlUnit");
+    return null;
+  }
+
+  @override
+  Object getResult(AnalysisTarget target, ResultDescriptor result) {
+    fail("Unexpected invocation of getResult");
     return null;
   }
 

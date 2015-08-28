@@ -553,6 +553,12 @@ abstract class AnalysisContext {
       Source source, Source librarySource);
 
   /**
+   * Perform work until the given [result] has been computed for the given
+   * [target]. Return the computed value.
+   */
+  Object /*V*/ computeResult(AnalysisTarget target, ResultDescriptor /*<V>*/ result);
+
+  /**
    * Notifies the context that the client is going to stop using this context.
    */
   void dispose();
@@ -716,6 +722,14 @@ abstract class AnalysisContext {
    */
   @deprecated
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource);
+
+  /**
+   * Return the value of the given [result] for the given [target].
+   *
+   * If the corresponding [target] does not exist, or the [result] is not
+   * computed yet, then the default value is returned.
+   */
+  Object /*V*/ getResult(AnalysisTarget target, ResultDescriptor /*<V>*/ result);
 
   /**
    * Return a list of the sources being analyzed in this context whose full path
@@ -1805,6 +1819,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     });
   }
 
+  @override
+  Object computeResult(AnalysisTarget target, ResultDescriptor result) {
+    return result.defaultValue;
+  }
+
   /**
    * Create an analysis cache based on the given source [factory].
    */
@@ -2180,6 +2199,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT);
     }
     return null;
+  }
+
+  @override
+  Object getResult(AnalysisTarget target, ResultDescriptor result) {
+    return result.defaultValue;
   }
 
   @override
@@ -4169,23 +4193,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   bool _isTooBigHtmlSourceEntry(Source source, SourceEntry sourceEntry) =>
       false;
 
-  /**
-   * Log the given debugging [message].
-   */
-  void _logInformation(String message) {
-    AnalysisEngine.instance.logger.logInformation(message);
-  }
-
-  /**
-   * Notify all of the analysis listeners that a task is about to be performed.
-   */
-  void _notifyAboutToPerformTask(String taskDescription) {
-    int count = _listeners.length;
-    for (int i = 0; i < count; i++) {
-      _listeners[i].aboutToPerformTask(this, taskDescription);
-    }
-  }
-
 //  /**
 //   * Notify all of the analysis listeners that the given source is no longer included in the set of
 //   * sources that are being analyzed.
@@ -4263,6 +4270,23 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //      _listeners[i].resolvedHtml(this, source, unit);
 //    }
 //  }
+
+  /**
+   * Log the given debugging [message].
+   */
+  void _logInformation(String message) {
+    AnalysisEngine.instance.logger.logInformation(message);
+  }
+
+  /**
+   * Notify all of the analysis listeners that a task is about to be performed.
+   */
+  void _notifyAboutToPerformTask(String taskDescription) {
+    int count = _listeners.length;
+    for (int i = 0; i < count; i++) {
+      _listeners[i].aboutToPerformTask(this, taskDescription);
+    }
+  }
 
   /**
    * Notify all of the analysis listeners that the errors associated with the
