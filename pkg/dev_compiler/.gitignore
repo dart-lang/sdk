@@ -17,6 +17,7 @@ node_modules
 test/codegen/expect/dev_compiler/
 test/codegen/expect/language/
 test/codegen/expect/sunflower/dev_compiler/
+test/codegen/expect/matcher/
 test/codegen/language/*_multi.dart
 
 # Created by ./tool/build_sdk.sh

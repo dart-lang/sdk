@@ -24,6 +24,8 @@ module.exports = function(config) {
       'test/codegen/expect/async_helper/async_helper.js',
       'test/codegen/expect/dom/dom.js',
       'test/codegen/expect/expect/expect.js',
+      'test/codegen/expect/matcher/matcher.js',
+      'test/codegen/expect/matcher/src/*.js',
       'test/codegen/expect/unittest/unittest.js',
       'test/codegen/expect/syncstar_syntax.js',
       'test/codegen/expect/language/*.js',
