@@ -880,11 +880,12 @@ void SSLFilter::Connect(const char* hostname,
     SetAlpnProtocolList(protocols_handle, ssl_, NULL, false);
     // Sets the hostname in the certificate-checking object, so it is checked
     // against the certificate presented by the server.
-    X509_VERIFY_PARAM* certificate_checking_parameters_ = SSL_get0_param(ssl_);
+    X509_VERIFY_PARAM* certificate_checking_parameters = SSL_get0_param(ssl_);
     hostname_ = strdup(hostname);
-    X509_VERIFY_PARAM_set_hostflags(certificate_checking_parameters_, 0);
-    X509_VERIFY_PARAM_set1_host(certificate_checking_parameters_,
-                                hostname_, 0);
+    X509_VERIFY_PARAM_set_hostflags(certificate_checking_parameters, 0);
+    X509_VERIFY_PARAM_set1_host(certificate_checking_parameters,
+                                hostname_, strlen(hostname_));
+    // TODO(24225) Check return value of set1_host().
     // TODO(24186) free hostname_ if it is not freed when SSL is destroyed.
     // otherwise, make it a local variable, not a instance field.
   }

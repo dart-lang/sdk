@@ -2,8 +2,7 @@
 X509 TLS certificates and private keys needed to run tests of Dart's
 secure networking code.  The SecureSocket and SecureServer classes
 are tested by making TLS (formerly called SSL) connections, secured
-by certificates created by the create_test_certificates script in
-the parent directory, and copied into this directory.
+by certificates from a self-signed test root authority.
 
 server_chain.pem:
   Contains the chain of certificates, from the self-signed
