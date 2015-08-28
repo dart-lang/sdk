@@ -7,8 +7,6 @@
  */
 library dart2js.access_semantics;
 
-import '../common/names.dart' show
-    Names;
 import '../constants/expressions.dart';
 import '../elements/elements.dart';
 import '../dart_types.dart';

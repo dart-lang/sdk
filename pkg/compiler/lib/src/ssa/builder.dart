@@ -990,6 +990,7 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
  */
 class SsaBuilder extends ast.Visitor
     with BaseImplementationOfCompoundsMixin,
+         BaseImplementationOfSetIfNullsMixin,
          SendResolverMixin,
          SemanticSendResolvedMixin,
          NewBulkMixin,
@@ -6728,6 +6729,70 @@ class SsaBuilder extends ast.Visitor
     handleCompoundSendSet(node);
   }
 
+  @override
+  handleDynamicSetIfNulls(
+      ast.Send node,
+      ast.Node receiver,
+      Name name,
+      ast.Node rhs,
+      arg) {
+    handleCompoundSendSet(node);
+  }
+
+  @override
+  handleLocalSetIfNulls(
+      ast.SendSet node,
+      LocalElement local,
+      ast.Node rhs,
+      arg,
+      {bool isSetterValid}) {
+    handleCompoundSendSet(node);
+  }
+
+  @override
+  handleStaticSetIfNulls(
+      ast.SendSet node,
+      Element getter,
+      CompoundGetter getterKind,
+      Element setter,
+      CompoundSetter setterKind,
+      ast.Node rhs,
+      arg) {
+    handleCompoundSendSet(node);
+  }
+
+  @override
+  handleSuperSetIfNulls(
+      ast.SendSet node,
+      Element getter,
+      CompoundGetter getterKind,
+      Element setter,
+      CompoundSetter setterKind,
+      ast.Node rhs,
+      arg) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  handleTypeLiteralConstantSetIfNulls(
+      ast.SendSet node,
+      ConstantExpression constant,
+      ast.Node rhs,
+      arg) {
+    // The type variable is never `null`.
+    generateConstantTypeLiteral(node);
+  }
+
+  @override
+  visitTypeVariableTypeLiteralSetIfNull(
+      ast.Send node,
+      TypeVariableElement element,
+      ast.Node rhs,
+      arg) {
+    // The type variable is never `null`.
+    generateTypeVariableLiteral(node, element.type);
+  }
+
   void visitLiteralInt(ast.LiteralInt node) {
     stack.add(graph.addConstantInt(node.value, compiler));
   }
@@ -8191,11 +8256,7 @@ class SsaBuilder extends ast.Visitor
       ConstantExpression constant,
       CompoundRhs rhs,
       _) {
-    if (rhs.operator.kind == BinaryOperatorKind.IF_NULL) {
-      handleCompoundSendSet(node);
-    } else {
-      handleTypeLiteralCompound(node);
-    }
+    handleTypeLiteralCompound(node);
   }
 
   @override

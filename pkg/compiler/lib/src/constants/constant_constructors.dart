@@ -37,6 +37,7 @@ class ConstantConstructorComputer extends SemanticVisitor
          InvokeBulkMixin,
          IndexSetBulkMixin,
          CompoundBulkMixin,
+         SetIfNullBulkMixin,
          UnaryBulkMixin,
          BaseBulkMixin,
          BinaryBulkMixin,

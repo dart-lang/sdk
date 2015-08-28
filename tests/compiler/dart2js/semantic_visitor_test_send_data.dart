@@ -1472,6 +1472,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test(
         '''
         class C {}
+        m() => C ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_SET_IF_NULL,
+                    constant: 'C',
+                    rhs: '42')),
+    const Test(
+        '''
+        class C {}
         m() => ++C;
         ''',
         const Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_PREFIX,
@@ -1534,6 +1542,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test(
         '''
         typedef F();
+        m() => F ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_SET_IF_NULL,
+                    constant: 'F',
+                    rhs: '42')),
+    const Test(
+        '''
+        typedef F();
         m() => ++F;
         ''',
         const Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_PREFIX,
@@ -1589,6 +1605,15 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test.clazz(
         '''
         class C<T> {
+          m() => T ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_SET_IF_NULL,
+                    element: 'type_variable(C#T)',
+                    rhs: '42')),
+    const Test.clazz(
+        '''
+        class C<T> {
           m() => ++T;
         }
         ''',
@@ -1624,12 +1649,20 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test.clazz(
         '''
         class C<T> {
-          static m() => T += 42;
+          static m() => T ??= 42;
         }
         ''',
-        const Visit(VisitKind.ERROR_INVALID_COMPOUND,
+        const Visit(VisitKind.ERROR_INVALID_SET_IF_NULL,
                     error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
-                    operator: '+=',
+                    rhs: '42')),
+    const Test.clazz(
+        '''
+        class C<T> {
+          static m() => T ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_SET_IF_NULL,
+                    error: MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
                     rhs: '42')),
     const Test.clazz(
         '''
@@ -1682,6 +1715,13 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_COMPOUND,
                     constant: 'dynamic',
                     operator: '+=',
+                    rhs: '42')),
+    const Test(
+        '''
+        m() => dynamic ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_SET_IF_NULL,
+                    constant: 'dynamic',
                     rhs: '42')),
     const Test(
         '''
@@ -3936,6 +3976,18 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ]),
     const Test(
         '''
+        m(a) => a?.b ??= 42;
+        ''',
+        const [
+          const Visit(
+              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_SET_IF_NULL,
+              receiver: 'a', name: 'b', rhs: '42'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#a)'),
+        ]),
+    const Test(
+        '''
         m(a, b) => a ?? b;
         ''',
         const [
@@ -3953,9 +4005,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m(a) => a ??= 42;
         ''',
         const Visit(
-            VisitKind.VISIT_PARAMETER_COMPOUND,
+            VisitKind.VISIT_PARAMETER_SET_IF_NULL,
             element: 'parameter(m#a)',
-            operator: '??=',
             rhs: '42')),
     const Test.prefix(
         '''
@@ -3964,5 +4015,454 @@ const Map<String, List<Test>> SEND_TESTS = const {
         'm() => p?.o;',
         const Visit(VisitKind.ERROR_INVALID_GET,
             error: MessageKind.PREFIX_AS_EXPRESSION)),
+  ],
+  'Set if null': const [
+    const Test(
+        '''
+        m(a) => a.b ??= 42;
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_SET_IF_NULL,
+              receiver: 'a', name: 'b', rhs: '42'),
+          const Visit(VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#a)')
+        ]),
+    const Test(
+        '''
+        m(a) => a ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_PARAMETER_SET_IF_NULL,
+            element: 'parameter(m#a)', rhs: '42')),
+    const Test(
+        '''
+        m(final a) => a ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_FINAL_PARAMETER_SET_IF_NULL,
+            element: 'parameter(m#a)', rhs: '42')),
+    const Test(
+        '''
+        m() {
+          var a;
+          a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_LOCAL_VARIABLE_SET_IF_NULL,
+            element: 'variable(m#a)', rhs: '42')),
+    const Test(
+        '''
+        m() {
+          final a = 0;
+          a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_FINAL_LOCAL_VARIABLE_SET_IF_NULL,
+            element: 'variable(m#a)', rhs: '42')),
+    const Test(
+        '''
+        m() {
+          a() {}
+          a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_LOCAL_FUNCTION_SET_IF_NULL,
+            element: 'function(m#a)', rhs: '42')),
+    const Test(
+        '''
+        var a;
+        m() => a ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_SET_IF_NULL,
+            element: 'field(a)', rhs: '42')),
+    const Test(
+        '''
+        get a => 0;
+        set a(_) {}
+        m() => a ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_SETTER_SET_IF_NULL,
+            getter: 'getter(a)', setter: 'setter(a)',
+            rhs: '42')),
+    const Test(
+        '''
+        class C {
+          static var a;
+        }
+        m() => C.a ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_STATIC_FIELD_SET_IF_NULL,
+            element: 'field(C#a)', rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          static var a;
+          m() => C.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_STATIC_FIELD_SET_IF_NULL,
+            element: 'field(C#a)', rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          static var a;
+          m() => a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_STATIC_FIELD_SET_IF_NULL,
+            element: 'field(C#a)', rhs: '42')),
+    const Test.prefix(
+        '''
+        class C {
+          static var a;
+        }
+        ''',
+        '''
+        m() => p.C.a ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_STATIC_FIELD_SET_IF_NULL,
+            element: 'field(C#a)', rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          var o;
+          static m() { o ??= 42; }
+        }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_SET_IF_NULL,
+                    error: MessageKind.NO_INSTANCE_AVAILABLE,
+                    rhs: '42')),
+    const Test(
+        '''
+        class C {
+          static get a => 0;
+          static set a(_) {}
+        }
+        m() => C.a ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_SET_IF_NULL,
+            getter: 'getter(C#a)', setter: 'setter(C#a)',
+            rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          static get a => 0;
+          static set a(_) {}
+          m() => C.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_SET_IF_NULL,
+            getter: 'getter(C#a)', setter: 'setter(C#a)',
+            rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          static get a => 0;
+          static set a(_) {}
+          m() => a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_SET_IF_NULL,
+            getter: 'getter(C#a)', setter: 'setter(C#a)',
+            rhs: '42')),
+    const Test.prefix(
+        '''
+        class C {
+          static get a => 0;
+          static set a(_) {}
+        }
+        ''',
+        '''
+        m() => p.C.a ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_SET_IF_NULL,
+            getter: 'getter(C#a)', setter: 'setter(C#a)',
+            rhs: '42')),
+    // TODO(johnniwinther): Enable these when dart2js supports method and setter
+    // with the same name.
+    /*const Test(
+        '''
+        class C {
+          static a() {}
+          static set a(_) {}
+        }
+        m() => C.a ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_STATIC_METHOD_SETTER_SET_IF_NULL,
+            getter: 'function(C#a)', setter: 'setter(C#a)',
+            rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          static a() {}
+          static set a(_) {}
+          m() => C.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_STATIC_METHOD_SETTER_SET_IF_NULL,
+            getter: 'function(C#a)', setter: 'setter(C#a)',
+            rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          static a() {}
+          static set a(_) {}
+          m() => a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_STATIC_METHOD_SETTER_SET_IF_NULL,
+            getter: 'function(C#a)', setter: 'setter(C#a)',
+            rhs: '42')),
+    const Test.prefix(
+        '''
+        class C {
+          static a() {}
+          static set a(_) {}
+        }
+        ''',
+        '''
+        m() => p.C.a ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_STATIC_METHOD_SETTER_SET_IF_NULL,
+            getter: 'function(C#a)', setter: 'setter(C#a)',
+            rhs: '42')),*/
+    const Test.clazz(
+        '''
+        class C {
+          var a;
+          m() => a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_THIS_PROPERTY_SET_IF_NULL,
+            name: 'a', rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          var a = 0;
+          m() => this.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_THIS_PROPERTY_SET_IF_NULL,
+            name: 'a', rhs: '42')),
+    const Test.clazz(
+        '''
+        class B {
+          var a = 0;
+        }
+        class C extends B {
+          m() => super.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_SUPER_FIELD_SET_IF_NULL,
+            element: 'field(B#a)', rhs: '42')),
+    const Test.clazz(
+        '''
+        class B {
+          final a = 0;
+        }
+        class C extends B {
+          m() => super.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_SUPER_FINAL_FIELD_SET_IF_NULL,
+            element: 'field(B#a)', rhs: '42')),
+    const Test.clazz(
+        '''
+        class B {
+          get a => 0;
+          set a (_) {}
+        }
+        class C extends B {
+          m() => super.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_SUPER_GETTER_SETTER_SET_IF_NULL,
+            getter: 'getter(B#a)', setter: 'setter(B#a)',
+            rhs: '42')),
+    const Test.clazz(
+        '''
+        class A {
+          get a => 0;
+        }
+        class B extends A {
+          set a (_) {}
+        }
+        class C extends B {
+          m() => super.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_SUPER_GETTER_SETTER_SET_IF_NULL,
+            getter: 'getter(A#a)', setter: 'setter(B#a)',
+            rhs: '42')),
+    const Test.clazz(
+        '''
+        class A {
+          var a;
+        }
+        class B extends A {
+          get a => 0;
+        }
+
+        class C extends B {
+          m() => super.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_SUPER_GETTER_FIELD_SET_IF_NULL,
+            getter: 'getter(B#a)', setter: 'field(A#a)',
+            rhs: '42')),
+    const Test.clazz(
+        '''
+        class A {
+          var a;
+        }
+        class B extends A {
+          set a(_) {}
+        }
+
+        class C extends B {
+          m() => super.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_SUPER_FIELD_SETTER_SET_IF_NULL,
+            getter: 'field(A#a)', setter: 'setter(B#a)',
+            rhs: '42')),
+    // TODO(johnniwinther): Enable this when dart2js supports shadow setters.
+    /*const Test.clazz(
+        '''
+        class A {
+          var a;
+        }
+        class B extends A {
+          final a = 0;
+        }
+
+        class C extends B {
+          m() => super.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_SUPER_FIELD_FIELD_SET_IF_NULL,
+            getter: 'field(B#a)', setter: 'field(A#a)',
+            rhs: '42')),*/
+    const Test.clazz(
+        '''
+        class B {
+          a() {}
+        }
+        class C extends B {
+          m() => super.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_SUPER_METHOD_SET_IF_NULL,
+            element: 'function(B#a)',
+            rhs: '42')),
+    const Test.clazz(
+        '''
+        class B {
+        }
+        class C extends B {
+          m() => super.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SET_IF_NULL,
+            name: 'a', rhs: '42')),
+    const Test.clazz(
+        '''
+        class B {
+          set a(_) {}
+        }
+        class C extends B {
+          m() => super.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_SET_IF_NULL,
+            setter: 'setter(B#a)', rhs: '42')),
+    const Test.clazz(
+        '''
+        class B {
+          get a => 42;
+        }
+        class C extends B {
+          m() => super.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_SET_IF_NULL,
+            getter: 'getter(B#a)', rhs: '42')),
+
+    const Test.clazz(
+        '''
+        class C {
+          static set a(var value) { }
+          m() => a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_STATIC_GETTER_SET_IF_NULL,
+            setter: 'setter(C#a)', rhs: '42')),
+
+    const Test.clazz(
+        '''
+        class C {
+          static get a => 42;
+          m() => C.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_STATIC_SETTER_SET_IF_NULL,
+            getter: 'getter(C#a)', rhs: '42')),
+
+    const Test.clazz(
+        '''
+        class C {
+          static final a = 42;
+          m() => C.a ??= 42;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_STATIC_FINAL_FIELD_SET_IF_NULL,
+            element: 'field(C#a)', rhs: '42')),
+
+    const Test(
+        '''
+        class C {
+          static a(var value) { }
+        }
+        m() => C.a ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_STATIC_METHOD_SET_IF_NULL,
+            element: 'function(C#a)', rhs: '42')),
+
+    const Test(
+        '''
+        set a(var value) { }
+        m() => a ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_TOP_LEVEL_GETTER_SET_IF_NULL,
+            setter: 'setter(a)', rhs: '42')),
+
+    const Test(
+        '''
+        get a => 42;
+        m() => a ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_TOP_LEVEL_SETTER_SET_IF_NULL,
+            getter: 'getter(a)', rhs: '42')),
+
+    const Test(
+        '''
+        a(var value) { }
+        m() => a ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_TOP_LEVEL_METHOD_SET_IF_NULL,
+            element: 'function(a)', rhs: '42')),
+
+    const Test(
+        '''
+        final a = 42;
+        m() => a ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_TOP_LEVEL_FINAL_FIELD_SET_IF_NULL,
+            element: 'field(a)', rhs: '42')),
+
+    const Test(
+        '''
+        m() => unresolved ??= 42;
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET_IF_NULL,
+            name: 'unresolved', rhs: '42')),
   ],
 };

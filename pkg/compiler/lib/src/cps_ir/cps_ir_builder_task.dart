@@ -122,6 +122,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
          BaseImplementationOfConstantsMixin<ir.Primitive, dynamic>,
          BaseImplementationOfNewMixin<ir.Primitive, dynamic>,
          BaseImplementationOfCompoundsMixin<ir.Primitive, dynamic>,
+         BaseImplementationOfSetIfNullsMixin<ir.Primitive, dynamic>,
          BaseImplementationOfIndexCompoundsMixin<ir.Primitive, dynamic>
     implements SemanticSendVisitor<ir.Primitive, dynamic> {
   final TreeElements elements;
@@ -1350,6 +1351,21 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return rhs.kind == CompoundKind.POSTFIX ? value : result;
   }
 
+  ir.Primitive translateSetIfNull(
+      ast.SendSet node,
+      {ir.Primitive getValue(),
+       ast.Node rhs,
+       void setValue(ir.Primitive value)}) {
+    ir.Primitive value = getValue();
+    // Unlike other compound operators if-null conditionally will not do the
+    // assignment operation.
+    return irBuilder.buildIfNull(value, nested(() {
+      ir.Primitive newValue = build(rhs);
+      setValue(newValue);
+      return newValue;
+    }));
+  }
+
   @override
   ir.Primitive handleDynamicSet(
       ast.SendSet node,
@@ -1453,6 +1469,17 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
+  ir.Primitive handleTypeLiteralConstantSetIfNulls(
+      ast.SendSet node,
+      ConstantExpression constant,
+      ast.Node rhs,
+      _) {
+    // The type literal is never `null`.
+    return buildConstantExpression(constant,
+        sourceInformationBuilder.buildGet(node));
+  }
+
+  @override
   ir.Primitive handleDynamicCompounds(
       ast.SendSet node,
       ast.Node receiver,
@@ -1462,6 +1489,36 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     ir.Primitive target = translateReceiver(receiver);
     ir.Primitive helper() {
       return translateCompounds(
+          node,
+          getValue: () => irBuilder.buildDynamicGet(
+              target,
+              new Selector.getter(name),
+              elements.getGetterTypeMaskInComplexSendSet(node),
+              sourceInformationBuilder.buildGet(node)),
+          rhs: rhs,
+          setValue: (ir.Primitive result) {
+            irBuilder.buildDynamicSet(
+                target,
+                new Selector.setter(name),
+                elements.getTypeMask(node),
+                result);
+          });
+    }
+    return node.isConditional
+        ? irBuilder.buildIfNotNullSend(target, nested(helper))
+        : helper();
+  }
+
+  @override
+  ir.Primitive handleDynamicSetIfNulls(
+      ast.Send node,
+      ast.Node receiver,
+      Name name,
+      ast.Node rhs,
+      _) {
+    ir.Primitive target = translateReceiver(receiver);
+    ir.Primitive helper() {
+      return translateSetIfNull(
           node,
           getValue: () => irBuilder.buildDynamicGet(
               target,
@@ -1496,6 +1553,32 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       arg,
       {bool isSetterValid}) {
     return translateCompounds(
+        node,
+        getValue: () {
+          if (local.isFunction) {
+            return irBuilder.buildLocalFunctionGet(local);
+          } else {
+            return irBuilder.buildLocalVariableGet(local);
+          }
+        },
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          if (isSetterValid) {
+            irBuilder.buildLocalVariableSet(local, result);
+          } else {
+            return buildLocalNoSuchSetter(local, result);
+          }
+        });
+  }
+
+  @override
+  ir.Primitive handleLocalSetIfNulls(
+      ast.SendSet node,
+      LocalElement local,
+      ast.Node rhs,
+      _,
+      {bool isSetterValid}) {
+    return translateSetIfNull(
         node,
         getValue: () {
           if (local.isFunction) {
@@ -1559,9 +1642,45 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
             case CompoundSetter.SETTER:
               return irBuilder.buildStaticSetterSet(setter, result);
             case CompoundSetter.INVALID:
-              // TODO(johnniwinther): Ensure [setter] is non null.
-              return buildStaticNoSuchSetter(
-                  setter != null ? setter : getter, result);
+              return buildStaticNoSuchSetter(setter, result);
+          }
+        });
+  }
+
+  @override
+  ir.Primitive handleStaticSetIfNulls(
+      ast.SendSet node,
+      Element getter,
+      CompoundGetter getterKind,
+      Element setter,
+      CompoundSetter setterKind,
+      ast.Node rhs,
+      _) {
+    return translateSetIfNull(
+        node,
+        getValue: () {
+          switch (getterKind) {
+            case CompoundGetter.FIELD:
+              SourceInformation src = sourceInformationBuilder.buildGet(node);
+              return irBuilder.buildStaticFieldGet(getter, src);
+            case CompoundGetter.GETTER:
+              return irBuilder.buildStaticGetterGet(
+                  getter, sourceInformationBuilder.buildGet(node));
+            case CompoundGetter.METHOD:
+              return irBuilder.buildStaticFunctionGet(getter);
+            case CompoundGetter.UNRESOLVED:
+              return buildStaticNoSuchGetter(getter);
+          }
+        },
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          switch (setterKind) {
+            case CompoundSetter.FIELD:
+              return irBuilder.buildStaticFieldSet(setter, result);
+            case CompoundSetter.SETTER:
+              return irBuilder.buildStaticSetterSet(setter, result);
+            case CompoundSetter.INVALID:
+              return buildStaticNoSuchSetter(setter, result);
           }
         });
   }
@@ -1603,9 +1722,48 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
             case CompoundGetter.METHOD:
               return irBuilder.buildSuperMethodGet(getter);
             case CompoundGetter.UNRESOLVED:
-              // TODO(johnniwinther): Ensure [getter] is not null.
               return buildSuperNoSuchGetter(
-                  getter != null ? getter : setter,
+                  getter,
+                  elements.getGetterTypeMaskInComplexSendSet(node));
+          }
+        },
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          switch (setterKind) {
+            case CompoundSetter.FIELD:
+              return irBuilder.buildSuperFieldSet(setter, result);
+            case CompoundSetter.SETTER:
+              return irBuilder.buildSuperSetterSet(setter, result);
+            case CompoundSetter.INVALID:
+              return buildSuperNoSuchSetter(
+                  setter, elements.getTypeMask(node), result);
+          }
+        });
+  }
+
+  @override
+  ir.Primitive handleSuperSetIfNulls(
+      ast.SendSet node,
+      Element getter,
+      CompoundGetter getterKind,
+      Element setter,
+      CompoundSetter setterKind,
+      ast.Node rhs,
+      _) {
+    return translateSetIfNull(
+        node,
+        getValue: () {
+          switch (getterKind) {
+            case CompoundGetter.FIELD:
+              return irBuilder.buildSuperFieldGet(getter);
+            case CompoundGetter.GETTER:
+              return irBuilder.buildSuperGetterGet(
+                  getter, sourceInformationBuilder.buildGet(node));
+            case CompoundGetter.METHOD:
+              return irBuilder.buildSuperMethodGet(getter);
+            case CompoundGetter.UNRESOLVED:
+              return buildSuperNoSuchGetter(
+                  getter,
                   elements.getGetterTypeMaskInComplexSendSet(node));
           }
         },
@@ -1638,6 +1796,17 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         },
         rhs: rhs,
         setValue: (value) {}); // The binary operator will throw before this.
+  }
+
+  @override
+  ir.Primitive visitTypeVariableTypeLiteralSetIfNull(
+      ast.Send node,
+      TypeVariableElement element,
+      ast.Node rhs,
+      _) {
+    // The type variable is never `null`.
+    return translateTypeVariableTypeLiteral(element,
+        sourceInformationBuilder.buildGet(node));
   }
 
   @override

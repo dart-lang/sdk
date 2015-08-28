@@ -105,6 +105,17 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
+  errorInvalidSetIfNull(
+      Send node,
+      ErroneousElement error,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_SET_IF_NULL,
+        error: error.messageKind, rhs: rhs));
+    super.errorInvalidSetIfNull(node, error, rhs, arg);
+  }
+
+  @override
   errorInvalidUnary(
       Send node,
       UnaryOperator operator,
@@ -3104,5 +3115,447 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       PrefixElement prefix,
       arg) {
     visits.add(new Visit(VisitKind.PREVISIT_DEFERRED_ACCESS, element: prefix));
+  }
+
+  @override
+  visitClassTypeLiteralSetIfNull(
+      Send node,
+      ConstantExpression constant,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_SET_IF_NULL,
+        constant: constant.getText(), rhs: rhs));
+    super.visitClassTypeLiteralSetIfNull(node, constant, rhs, arg);
+  }
+
+  @override
+  visitDynamicPropertySetIfNull(
+      Send node,
+      Node receiver,
+      Name name,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_SET_IF_NULL,
+        receiver: receiver, name: name, rhs: rhs));
+    super.visitDynamicPropertySetIfNull(node, receiver, name, rhs, arg);
+  }
+
+  @override
+  visitDynamicTypeLiteralSetIfNull(
+      Send node,
+      ConstantExpression constant,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_SET_IF_NULL,
+        constant: constant.getText(), rhs: rhs));
+    super.visitDynamicTypeLiteralSetIfNull(node, constant, rhs, arg);
+  }
+
+  @override
+  visitFinalLocalVariableSetIfNull(
+      Send node,
+      LocalVariableElement variable,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_FINAL_LOCAL_VARIABLE_SET_IF_NULL,
+        element: variable, rhs: rhs));
+    super.visitFinalLocalVariableSetIfNull(node, variable, rhs, arg);
+  }
+
+  @override
+  visitFinalParameterSetIfNull(
+      Send node,
+      ParameterElement parameter,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_FINAL_PARAMETER_SET_IF_NULL,
+        element: parameter, rhs: rhs));
+    super.visitFinalParameterSetIfNull(node, parameter, rhs, arg);
+  }
+
+  @override
+  visitFinalStaticFieldSetIfNull(
+      Send node,
+      FieldElement field,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_STATIC_FINAL_FIELD_SET_IF_NULL,
+        element: field, rhs: rhs));
+    super.visitFinalStaticFieldSetIfNull(node, field, rhs, arg);
+  }
+
+  @override
+  visitFinalSuperFieldSetIfNull(
+      Send node,
+      FieldElement field,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_FINAL_FIELD_SET_IF_NULL,
+        element: field, rhs: rhs));
+    super.visitFinalSuperFieldSetIfNull(node, field, rhs, arg);
+  }
+
+  @override
+  visitFinalTopLevelFieldSetIfNull(
+      Send node,
+      FieldElement field,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_FINAL_FIELD_SET_IF_NULL,
+        element: field, rhs: rhs));
+    super.visitFinalTopLevelFieldSetIfNull(node, field, rhs, arg);
+  }
+
+  @override
+  visitIfNotNullDynamicPropertySetIfNull(
+      Send node,
+      Node receiver,
+      Name name,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_SET_IF_NULL,
+        receiver: receiver, name: name, rhs: rhs));
+    super.visitIfNotNullDynamicPropertySetIfNull(
+        node, receiver, name, rhs, arg);
+  }
+
+  @override
+  visitLocalFunctionSetIfNull(
+      Send node,
+      LocalFunctionElement function,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_LOCAL_FUNCTION_SET_IF_NULL,
+        element: function, rhs: rhs));
+    super.visitLocalFunctionSetIfNull(node, function, rhs, arg);
+  }
+
+  @override
+  visitLocalVariableSetIfNull(
+      Send node,
+      LocalVariableElement variable,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_LOCAL_VARIABLE_SET_IF_NULL,
+        element: variable, rhs: rhs));
+    super.visitLocalVariableSetIfNull(node, variable, rhs, arg);
+  }
+
+  @override
+  visitParameterSetIfNull(
+      Send node,
+      ParameterElement parameter,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_PARAMETER_SET_IF_NULL,
+        element: parameter, rhs: rhs));
+    super.visitParameterSetIfNull(node, parameter, rhs, arg);
+  }
+
+  @override
+  visitStaticFieldSetIfNull(
+      Send node,
+      FieldElement field,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_STATIC_FIELD_SET_IF_NULL,
+        element: field, rhs: rhs));
+    super.visitStaticFieldSetIfNull(node, field, rhs, arg);
+  }
+
+  @override
+  visitStaticGetterSetterSetIfNull(
+      Send node,
+      FunctionElement getter,
+      FunctionElement setter,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_STATIC_GETTER_SETTER_SET_IF_NULL,
+        getter: getter, setter: setter, rhs: rhs));
+    super.visitStaticGetterSetterSetIfNull(node, getter, setter, rhs, arg);
+  }
+
+  @override
+  visitStaticMethodSetIfNull(
+      Send node,
+      FunctionElement method,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_STATIC_METHOD_SET_IF_NULL,
+        element: method, rhs: rhs));
+    super.visitStaticMethodSetIfNull(node, method, rhs, arg);
+  }
+
+  @override
+  visitStaticMethodSetterSetIfNull(
+      Send node,
+      MethodElement method,
+      MethodElement setter,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_STATIC_METHOD_SETTER_SET_IF_NULL,
+        getter: method, setter: setter, rhs: rhs));
+    super.visitStaticMethodSetterSetIfNull(node, method, setter, rhs, arg);
+  }
+
+  @override
+  visitSuperFieldFieldSetIfNull(
+      Send node,
+      FieldElement readField,
+      FieldElement writtenField,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_FIELD_FIELD_SET_IF_NULL,
+        getter: readField, setter: writtenField, rhs: rhs));
+    super.visitSuperFieldFieldSetIfNull(
+        node, readField, writtenField, rhs, arg);
+  }
+
+  @override
+  visitSuperFieldSetIfNull(
+      Send node,
+      FieldElement field,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_FIELD_SET_IF_NULL,
+        element: field, rhs: rhs));
+    super.visitSuperFieldSetIfNull(node, field, rhs, arg);
+  }
+
+  @override
+  visitSuperFieldSetterSetIfNull(
+      Send node,
+      FieldElement field,
+      FunctionElement setter,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_FIELD_SETTER_SET_IF_NULL,
+        getter: field, setter: setter, rhs: rhs));
+    super.visitSuperFieldSetterSetIfNull(node, field, setter, rhs, arg);
+  }
+
+  @override
+  visitSuperGetterFieldSetIfNull(
+      Send node,
+      FunctionElement getter,
+      FieldElement field,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_GETTER_FIELD_SET_IF_NULL,
+        getter: getter, setter: field, rhs: rhs));
+    super.visitSuperGetterFieldSetIfNull(node, getter, field, rhs, arg);
+  }
+
+  @override
+  visitSuperGetterSetterSetIfNull(
+      Send node,
+      FunctionElement getter,
+      FunctionElement setter,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_GETTER_SETTER_SET_IF_NULL,
+        getter: getter, setter: setter, rhs: rhs));
+    super.visitSuperGetterSetterSetIfNull(node, getter, setter, rhs, arg);
+  }
+
+  @override
+  visitSuperMethodSetIfNull(
+      Send node,
+      FunctionElement method,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_METHOD_SET_IF_NULL,
+        element: method, rhs: rhs));
+    super.visitSuperMethodSetIfNull(node, method, rhs, arg);
+  }
+
+  @override
+  visitSuperMethodSetterSetIfNull(
+      Send node,
+      FunctionElement method,
+      FunctionElement setter,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_METHOD_SETTER_SET_IF_NULL,
+        getter: method, setter: setter, rhs: rhs));
+    super.visitSuperMethodSetterSetIfNull(node, method, setter, rhs, arg);
+  }
+
+  @override
+  visitThisPropertySetIfNull(
+      Send node,
+      Name name,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_THIS_PROPERTY_SET_IF_NULL,
+        name: name, rhs: rhs));
+    super.visitThisPropertySetIfNull(node, name, rhs, arg);
+  }
+
+  @override
+  visitTopLevelFieldSetIfNull(
+      Send node,
+      FieldElement field,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_SET_IF_NULL,
+        element: field, rhs: rhs));
+    super.visitTopLevelFieldSetIfNull(node, field, rhs, arg);
+  }
+
+  @override
+  visitTopLevelGetterSetterSetIfNull(
+      Send node,
+      FunctionElement getter,
+      FunctionElement setter,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_SETTER_SET_IF_NULL,
+        getter: getter, setter: setter, rhs: rhs));
+    super.visitTopLevelGetterSetterSetIfNull(node, getter, setter, rhs, arg);
+  }
+
+  @override
+  visitTopLevelMethodSetIfNull(
+      Send node,
+      FunctionElement method,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_METHOD_SET_IF_NULL,
+        element: method, rhs: rhs));
+    super.visitTopLevelMethodSetIfNull(node, method, rhs, arg);
+  }
+
+  @override
+  visitTopLevelMethodSetterSetIfNull(
+      Send node,
+      FunctionElement method,
+      FunctionElement setter,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_METHOD_SETTER_SET_IF_NULL,
+        getter: method, setter: setter, rhs: rhs));
+    super.visitTopLevelMethodSetterSetIfNull(node, method, setter, rhs, arg);
+  }
+
+  @override
+  visitTypeVariableTypeLiteralSetIfNull(
+      Send node,
+      TypeVariableElement element,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_SET_IF_NULL,
+        element: element, rhs: rhs));
+    super.visitTypeVariableTypeLiteralSetIfNull(node, element, rhs, arg);
+  }
+
+  @override
+  visitTypedefTypeLiteralSetIfNull(
+      Send node,
+      ConstantExpression constant,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_SET_IF_NULL,
+        constant: constant.getText(), rhs: rhs));
+    super.visitTypedefTypeLiteralSetIfNull(node, constant, rhs, arg);
+  }
+
+  @override
+  visitUnresolvedSetIfNull(
+      Send node,
+      Element element,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SET_IF_NULL,
+        name: element.name, rhs: rhs));
+    super.visitUnresolvedSetIfNull(node, element, rhs, arg);
+  }
+
+  @override
+  visitUnresolvedStaticGetterSetIfNull(
+      Send node,
+      Element element,
+      MethodElement setter,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_STATIC_GETTER_SET_IF_NULL,
+        setter: setter, rhs: rhs));
+    super.visitUnresolvedStaticGetterSetIfNull(node, element, setter, rhs, arg);
+  }
+
+  @override
+  visitUnresolvedStaticSetterSetIfNull(
+      Send node,
+      MethodElement getter,
+      Element element,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_STATIC_SETTER_SET_IF_NULL,
+        getter: getter, rhs: rhs));
+    super.visitUnresolvedStaticSetterSetIfNull(node, getter, element, rhs, arg);
+  }
+
+  @override
+  visitUnresolvedSuperGetterSetIfNull(
+      Send node,
+      Element element,
+      MethodElement setter,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_SET_IF_NULL,
+        setter: setter, rhs: rhs));
+    super.visitUnresolvedSuperGetterSetIfNull(node, element, setter, rhs, arg);
+  }
+
+  @override
+  visitUnresolvedSuperSetIfNull(
+      Send node,
+      Element element,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SET_IF_NULL,
+        name: element.name, rhs: rhs));
+    super.visitUnresolvedSuperSetIfNull(node, element, rhs, arg);
+  }
+
+  @override
+  visitUnresolvedSuperSetterSetIfNull(
+      Send node,
+      MethodElement getter,
+      Element element,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_SET_IF_NULL,
+        getter: getter, rhs: rhs));
+    super.visitUnresolvedSuperSetterSetIfNull(node, getter, element, rhs, arg);
+  }
+
+  @override
+  visitUnresolvedTopLevelGetterSetIfNull(
+      Send node,
+      Element element,
+      MethodElement setter,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_UNRESOLVED_TOP_LEVEL_GETTER_SET_IF_NULL,
+        setter: setter, rhs: rhs));
+    super.visitUnresolvedTopLevelGetterSetIfNull(
+        node, element, setter, rhs, arg);
+  }
+
+  @override
+  visitUnresolvedTopLevelSetterSetIfNull(
+      Send node,
+      MethodElement getter,
+      Element element,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_UNRESOLVED_TOP_LEVEL_SETTER_SET_IF_NULL,
+        getter: getter, rhs: rhs));
+    super.visitUnresolvedTopLevelSetterSetIfNull(
+        node, getter, element, rhs, arg);
   }
 }

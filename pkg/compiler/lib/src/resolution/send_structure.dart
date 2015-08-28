@@ -1562,8 +1562,13 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
                 node.arguments.single,
                 arg);
           case CompoundAccessKind.SUPER_FIELD_FIELD:
-            // TODO(johnniwinther): Handle this.
-            break;
+            return visitor.visitSuperFieldFieldCompound(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                operator,
+                node.arguments.single,
+                arg);
           case CompoundAccessKind.SUPER_GETTER_SETTER:
             return visitor.visitSuperGetterSetterCompound(
                 node,
@@ -1620,6 +1625,307 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
   }
 
   String toString() => 'compound($operator,$semantics)';
+}
+
+/// The structure for a [Send] that is an if-null assignment. For instance
+/// `a ??= b`.
+class SetIfNullStructure<R, A> implements SendStructure<R, A> {
+  /// The target of the if-null assignment, i.e. the left-hand side.
+  final AccessSemantics semantics;
+
+  SetIfNullStructure(this.semantics);
+
+  R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
+    switch (semantics.kind) {
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
+        return visitor.visitIfNotNullDynamicPropertySetIfNull(
+            node,
+            node.receiver,
+            semantics.name,
+            node.arguments.single,
+            arg);
+      case AccessKind.DYNAMIC_PROPERTY:
+        return visitor.visitDynamicPropertySetIfNull(
+            node,
+            node.receiver,
+            semantics.name,
+            node.arguments.single,
+            arg);
+      case AccessKind.LOCAL_FUNCTION:
+        return visitor.visitLocalFunctionSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.LOCAL_VARIABLE:
+        return visitor.visitLocalVariableSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.FINAL_LOCAL_VARIABLE:
+        return visitor.visitFinalLocalVariableSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.PARAMETER:
+        return visitor.visitParameterSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.FINAL_PARAMETER:
+        return visitor.visitFinalParameterSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.STATIC_FIELD:
+        return visitor.visitStaticFieldSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.FINAL_STATIC_FIELD:
+        return visitor.visitFinalStaticFieldSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.STATIC_METHOD:
+        return visitor.visitStaticMethodSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.STATIC_GETTER:
+        // This is not a valid case.
+        break;
+      case AccessKind.STATIC_SETTER:
+        // This is not a valid case.
+        break;
+      case AccessKind.TOPLEVEL_FIELD:
+        return visitor.visitTopLevelFieldSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.FINAL_TOPLEVEL_FIELD:
+        return visitor.visitFinalTopLevelFieldSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.TOPLEVEL_METHOD:
+        return visitor.visitTopLevelMethodSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.TOPLEVEL_GETTER:
+        // This is not a valid case.
+        break;
+      case AccessKind.TOPLEVEL_SETTER:
+        // This is not a valid case.
+        break;
+      case AccessKind.CLASS_TYPE_LITERAL:
+        return visitor.visitClassTypeLiteralSetIfNull(
+            node,
+            semantics.constant,
+            node.arguments.single,
+            arg);
+      case AccessKind.TYPEDEF_TYPE_LITERAL:
+        return visitor.visitTypedefTypeLiteralSetIfNull(
+            node,
+            semantics.constant,
+            node.arguments.single,
+            arg);
+      case AccessKind.DYNAMIC_TYPE_LITERAL:
+        return visitor.visitDynamicTypeLiteralSetIfNull(
+            node,
+            semantics.constant,
+            node.arguments.single,
+            arg);
+      case AccessKind.TYPE_PARAMETER_TYPE_LITERAL:
+        return visitor.visitTypeVariableTypeLiteralSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.EXPRESSION:
+        // This is not a valid case.
+        break;
+      case AccessKind.THIS:
+        // This is not a valid case.
+        break;
+      case AccessKind.THIS_PROPERTY:
+        return visitor.visitThisPropertySetIfNull(
+            node,
+            semantics.name,
+            node.arguments.single,
+            arg);
+      case AccessKind.SUPER_FIELD:
+        return visitor.visitSuperFieldSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.SUPER_FINAL_FIELD:
+        return visitor.visitFinalSuperFieldSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.SUPER_METHOD:
+        return visitor.visitSuperMethodSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.SUPER_GETTER:
+        // This is not a valid case.
+        break;
+      case AccessKind.SUPER_SETTER:
+        // This is not a valid case.
+        break;
+      case AccessKind.CONSTANT:
+        // TODO(johnniwinther): Should this be a valid case?
+        break;
+      case AccessKind.UNRESOLVED_SUPER:
+        return visitor.visitUnresolvedSuperSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.UNRESOLVED:
+        return visitor.visitUnresolvedSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.COMPOUND:
+        CompoundAccessSemantics compoundSemantics = semantics;
+        switch (compoundSemantics.compoundAccessKind) {
+          case CompoundAccessKind.STATIC_GETTER_SETTER:
+            return visitor.visitStaticGetterSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.STATIC_METHOD_SETTER:
+            return visitor.visitStaticMethodSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_STATIC_GETTER:
+            return visitor.visitUnresolvedStaticGetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_STATIC_SETTER:
+            return visitor.visitUnresolvedStaticSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.TOPLEVEL_GETTER_SETTER:
+            return visitor.visitTopLevelGetterSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.TOPLEVEL_METHOD_SETTER:
+            return visitor.visitTopLevelMethodSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_TOPLEVEL_GETTER:
+            return visitor.visitUnresolvedTopLevelGetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_TOPLEVEL_SETTER:
+            return visitor.visitUnresolvedTopLevelSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.SUPER_FIELD_FIELD:
+            return visitor.visitSuperFieldFieldSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.SUPER_GETTER_SETTER:
+            return visitor.visitSuperGetterSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.SUPER_GETTER_FIELD:
+            return visitor.visitSuperGetterFieldSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.SUPER_METHOD_SETTER:
+            return visitor.visitSuperMethodSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.SUPER_FIELD_SETTER:
+            return visitor.visitSuperFieldSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_SUPER_GETTER:
+            return visitor.visitUnresolvedSuperGetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_SUPER_SETTER:
+            return visitor.visitUnresolvedSuperSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+        }
+        break;
+    }
+    throw new SpannableAssertionFailure(node,
+        "Invalid if-null assigment: ${semantics}");
+  }
+
+  String toString() => 'ifNull($semantics)';
 }
 
 /// The structure for a [Send] that is a compound assignment on the index

@@ -692,6 +692,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
     with SendResolverMixin,
          SemanticSendResolvedMixin<T, dynamic>,
          CompoundBulkMixin<T, dynamic>,
+         SetIfNullBulkMixin<T, dynamic>,
          PrefixBulkMixin<T, dynamic>,
          PostfixBulkMixin<T, dynamic>,
          ErrorBulkMixin<T, dynamic>,
@@ -769,6 +770,11 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
 
   @override
   T bulkHandleCompound(SendSet node, _) {
+    return handleSendSet(node);
+  }
+
+  @override
+  T bulkHandleSetIfNull(SendSet node, _) {
     return handleSendSet(node);
   }
 

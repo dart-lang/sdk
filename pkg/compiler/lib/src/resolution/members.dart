@@ -3459,8 +3459,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         registry.registerDynamicInvocation(
             new UniverseSelector(operatorSelector, null));
 
-        SendStructure sendStructure =
-            new CompoundStructure(semantics, operator);
+        SendStructure sendStructure;
+        if (operator.kind == AssignmentOperatorKind.IF_NULL) {
+          sendStructure = new SetIfNullStructure(semantics);
+        } else {
+          sendStructure = new CompoundStructure(semantics, operator);
+        }
         registry.registerSendStructure(node, sendStructure);
       }
     }

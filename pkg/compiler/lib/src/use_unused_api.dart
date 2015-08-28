@@ -325,9 +325,7 @@ useProgramBuilder(program_builder.ProgramBuilder builder) {
 useSemanticVisitor() {
   operators.UnaryOperator.fromKind(null);
   operators.BinaryOperator.fromKind(null);
-  new semantic_visitor.BulkSendVisitor()
-      ..apply(null, null)
-      ..visitSuperFieldFieldCompound(null, null, null, null, null, null);
+  new semantic_visitor.BulkSendVisitor()..apply(null, null);
   new semantic_visitor.TraversalVisitor(null).apply(null, null);
   new semantic_visitor.BulkDeclarationVisitor().apply(null, null);
 }
