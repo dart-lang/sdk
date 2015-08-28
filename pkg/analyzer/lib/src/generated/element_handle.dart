@@ -610,9 +610,6 @@ class FieldElementHandle extends PropertyInducingElementHandle
   bool get isEnumConstant => actualElement.isEnumConstant;
 
   @override
-  bool get isStatic => actualElement.isStatic;
-
-  @override
   ElementKind get kind => ElementKind.FIELD;
 
   @override
@@ -1021,9 +1018,6 @@ abstract class PropertyInducingElementHandle extends VariableElementHandle
   PropertyAccessorElement get getter => actualElement.getter;
 
   @override
-  bool get isStatic => actualElement.isStatic;
-
-  @override
   DartType get propagatedType => actualElement.propagatedType;
 
   @override
@@ -1110,6 +1104,9 @@ abstract class VariableElementHandle extends ElementHandle
   @override
   bool get isPotentiallyMutatedInScope =>
       actualElement.isPotentiallyMutatedInScope;
+
+  @override
+  bool get isStatic => actualElement.isStatic;
 
   @override
   DartType get type => actualElement.type;

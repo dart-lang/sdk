@@ -161,6 +161,18 @@ final ListResultDescriptor<Source> IMPORT_EXPORT_SOURCE_CLOSURE =
     new ListResultDescriptor<Source>('IMPORT_EXPORT_SOURCE_CLOSURE', null);
 
 /**
+ * A list of the [VariableElement]s whose type should be inferred that another
+ * inferable static variable (the target) depends on.
+ *
+ * The result is only available for [VariableElement]s, and only when strong
+ * mode is enabled.
+ */
+final ListResultDescriptor<
+        VariableElement> INFERABLE_STATIC_VARIABLE_DEPENDENCIES =
+    new ListResultDescriptor<VariableElement>(
+        'INFERABLE_STATIC_VARIABLE_DEPENDENCIES', null);
+
+/**
  * A list of the [VariableElement]s defined in a unit whose type should be
  * inferred. This includes variables defined at the library level as well as
  * static members inside classes.
@@ -470,10 +482,8 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
       'BuildCompilationUnitElementTask',
       createTask,
       buildInputs, <ResultDescriptor>[
-    CLASSES_IN_UNIT,
     COMPILATION_UNIT_CONSTANTS,
     COMPILATION_UNIT_ELEMENT,
-    INFERABLE_STATIC_VARIABLES_IN_UNIT,
     RESOLVED_UNIT1
   ]);
 
@@ -520,23 +530,10 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     List<ConstantEvaluationTarget> constants = new List<
         ConstantEvaluationTarget>.from(constantFinder.constantsToCompute);
     //
-    // Prepare targets for inference.
-    //
-    List<VariableElement> staticVariables = <VariableElement>[];
-    List<ClassElement> classes = <ClassElement>[];
-    if (context.analysisOptions.strongMode) {
-      InferrenceFinder inferrenceFinder = new InferrenceFinder();
-      unit.accept(inferrenceFinder);
-      staticVariables = inferrenceFinder.staticVariables;
-      classes = inferrenceFinder.classes;
-    }
-    //
     // Record outputs.
     //
-    outputs[CLASSES_IN_UNIT] = classes;
     outputs[COMPILATION_UNIT_CONSTANTS] = constants;
     outputs[COMPILATION_UNIT_ELEMENT] = element;
-    outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT] = staticVariables;
     outputs[RESOLVED_UNIT1] = unit;
   }
 
@@ -1489,7 +1486,6 @@ class ComputeConstantDependenciesTask extends ConstantEvaluationAnalysisTask {
     // constant dependencies.
     //
     ConstantEvaluationTarget constant = target;
-    AnalysisContext context = constant.context;
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     //
     // Compute dependencies.
@@ -1529,7 +1525,7 @@ class ComputeConstantDependenciesTask extends ConstantEvaluationAnalysisTask {
   }
 
   /**
-   * Create a [ResolveUnitReferencesTask] based on the given [target] in
+   * Create a [ComputeConstantDependenciesTask] based on the given [target] in
    * the given [context].
    */
   static ComputeConstantDependenciesTask createTask(
@@ -1627,6 +1623,92 @@ class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
   static ComputeConstantValueTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ComputeConstantValueTask(context, target);
+  }
+}
+
+/**
+ * A task that computes the [INFERABLE_STATIC_VARIABLE_DEPENDENCIES] for a
+ * static variable whose type should be inferred.
+ */
+class ComputeInferableStaticVariableDependenciesTask
+    extends ConstantEvaluationAnalysisTask {
+  /**
+   * The name of the [RESOLVED_UNIT5] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ComputeInferableStaticVariableDependenciesTask',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[INFERABLE_STATIC_VARIABLE_DEPENDENCIES]);
+
+  ComputeInferableStaticVariableDependenciesTask(
+      InternalAnalysisContext context, VariableElement variable)
+      : super(context, variable);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    //
+    // Prepare inputs.
+    //
+    VariableElement variable = target;
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    //
+    // Compute dependencies.
+    //
+    NodeLocator locator = new NodeLocator(variable.nameOffset);
+    AstNode node = locator.searchWithin(unit);
+    VariableDeclaration declaration =
+        node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
+    if (declaration == null || declaration.name != node) {
+      throw new AnalysisException(
+          "NodeLocator failed to find a variable's declaration");
+    }
+    VariableGatherer gatherer = new VariableGatherer(_isInferableStatic);
+    declaration.initializer.accept(gatherer);
+    //
+    // Record outputs.
+    //
+    outputs[INFERABLE_STATIC_VARIABLE_DEPENDENCIES] = gatherer.results;
+  }
+
+  /**
+   * Return `true` if the given [variable] is a static variable whose type
+   * should be inferred.
+   */
+  bool _isInferableStatic(VariableElement variable) => variable.isStatic &&
+      variable.hasImplicitType &&
+      variable.initializer != null;
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    if (target is VariableElement) {
+      CompilationUnitElementImpl unit = target
+          .getAncestor((Element element) => element is CompilationUnitElement);
+      return <String, TaskInput>{
+        UNIT_INPUT: RESOLVED_UNIT5
+            .of(new LibrarySpecificUnit(unit.librarySource, unit.source))
+      };
+    }
+    throw new AnalysisException(
+        'Cannot build inputs for a ${target.runtimeType}');
+  }
+
+  /**
+   * Create a [ComputeInferableStaticVariableDependenciesTask] based on the
+   * given [target] in the given [context].
+   */
+  static ComputeInferableStaticVariableDependenciesTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ComputeInferableStaticVariableDependenciesTask(context, target);
   }
 }
 
@@ -2669,8 +2751,12 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'PartiallyResolveUnitReferencesTask',
       createTask,
-      buildInputs,
-      <ResultDescriptor>[PARTIALLY_RESOLVE_REFERENCES_ERRORS, RESOLVED_UNIT5]);
+      buildInputs, <ResultDescriptor>[
+    CLASSES_IN_UNIT,
+    INFERABLE_STATIC_VARIABLES_IN_UNIT,
+    PARTIALLY_RESOLVE_REFERENCES_ERRORS,
+    RESOLVED_UNIT5
+  ]);
 
   PartiallyResolveUnitReferencesTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -2702,8 +2788,21 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
         inheritanceManager: inheritanceManager);
     unit.accept(visitor);
     //
+    // Prepare targets for inference.
+    //
+    List<VariableElement> staticVariables = <VariableElement>[];
+    List<ClassElement> classes = <ClassElement>[];
+    if (context.analysisOptions.strongMode) {
+      InferrenceFinder inferrenceFinder = new InferrenceFinder();
+      unit.accept(inferrenceFinder);
+      staticVariables = inferrenceFinder.staticVariables;
+      classes = inferrenceFinder.classes;
+    }
+    //
     // Record outputs.
     //
+    outputs[CLASSES_IN_UNIT] = classes;
+    outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT] = staticVariables;
     outputs[PARTIALLY_RESOLVE_REFERENCES_ERRORS] =
         removeDuplicateErrors(errorListener.errors);
     outputs[RESOLVED_UNIT5] = unit;

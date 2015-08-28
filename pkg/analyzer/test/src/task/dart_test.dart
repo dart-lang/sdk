@@ -40,6 +40,7 @@ main() {
   runReflectiveTests(BuildTypeProviderTaskTest);
   runReflectiveTests(ComputeConstantDependenciesTaskTest);
   runReflectiveTests(ComputeConstantValueTaskTest);
+  runReflectiveTests(ComputeInferableStaticVariableDependenciesTaskTest);
   runReflectiveTests(ContainingLibrariesTaskTest);
   runReflectiveTests(DartErrorsTaskTest);
   runReflectiveTests(EvaluateUnitConstantsTaskTest);
@@ -62,15 +63,6 @@ main() {
 class BuildCompilationUnitElementTaskTest extends _AbstractDartTaskTest {
   Source source;
   LibrarySpecificUnit target;
-
-  /**
-   * Enable strong mode in the current analysis context.
-   */
-  void enableStrongMode() {
-    AnalysisOptionsImpl options = context.analysisOptions;
-    options.strongMode = true;
-    context.analysisOptions = options;
-  }
 
   test_buildInputs() {
     LibrarySpecificUnit target =
@@ -111,8 +103,7 @@ class BuildCompilationUnitElementTaskTest extends _AbstractDartTaskTest {
     expect(descriptor, isNotNull);
   }
 
-  test_perform_find_constants_strong() {
-    enableStrongMode();
+  test_perform_find_constants() {
     _performBuildTask('''
 const x = 1;
 class C {
@@ -138,46 +129,11 @@ f() {
           context, source, source, annotation),
       unitElement.types[0].constructors[0].parameters[0]
     ];
-    expect(outputs[CLASSES_IN_UNIT], hasLength(1));
     expect(
         outputs[COMPILATION_UNIT_CONSTANTS].toSet(), expectedConstants.toSet());
-    expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(2));
   }
 
-  test_perform_find_constants_weak() {
-    _performBuildTask('''
-const x = 1;
-class C {
-  static const y = 1;
-  const C([p = 1]);
-}
-@x
-f() {
-  const z = 1;
-}
-''');
-    CompilationUnit unit = outputs[RESOLVED_UNIT1];
-    CompilationUnitElement unitElement = outputs[COMPILATION_UNIT_ELEMENT];
-    Annotation annotation = unit.declarations
-        .firstWhere((m) => m is FunctionDeclaration)
-        .metadata[0];
-    List<ConstantEvaluationTarget> expectedConstants = [
-      unitElement.accessors.firstWhere((e) => e.isGetter).variable,
-      unitElement.types[0].fields[0],
-      unitElement.functions[0].localVariables[0],
-      unitElement.types[0].constructors[0],
-      new ConstantEvaluationTarget_Annotation(
-          context, source, source, annotation),
-      unitElement.types[0].constructors[0].parameters[0]
-    ];
-    expect(outputs[CLASSES_IN_UNIT], hasLength(0));
-    expect(
-        outputs[COMPILATION_UNIT_CONSTANTS].toSet(), expectedConstants.toSet());
-    expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(0));
-  }
-
-  test_perform_library_strong() {
-    enableStrongMode();
+  test_perform_library() {
     _performBuildTask(r'''
 library lib;
 import 'lib2.dart';
@@ -189,31 +145,9 @@ class A {
 }
 class B = Object with A;
 ''');
-    expect(outputs, hasLength(5));
-    expect(outputs[CLASSES_IN_UNIT], hasLength(2));
+    expect(outputs, hasLength(3));
     expect(outputs[COMPILATION_UNIT_CONSTANTS], isNotNull);
     expect(outputs[COMPILATION_UNIT_ELEMENT], isNotNull);
-    expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(2));
-    expect(outputs[RESOLVED_UNIT1], isNotNull);
-  }
-
-  test_perform_library_weak() {
-    _performBuildTask(r'''
-library lib;
-import 'lib2.dart';
-export 'lib3.dart';
-part 'part.dart';
-final x = '';
-class A {
-  static final y = 0;
-}
-class B = Object with A;
-''');
-    expect(outputs, hasLength(5));
-    expect(outputs[CLASSES_IN_UNIT], hasLength(0));
-    expect(outputs[COMPILATION_UNIT_CONSTANTS], isNotNull);
-    expect(outputs[COMPILATION_UNIT_ELEMENT], isNotNull);
-    expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(0));
     expect(outputs[RESOLVED_UNIT1], isNotNull);
   }
 
@@ -1556,6 +1490,32 @@ const x = 1;
 }
 
 @reflectiveTest
+class ComputeInferableStaticVariableDependenciesTaskTest
+    extends _AbstractDartTaskTest {
+  test_perform() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+const a = b;
+const b = 0;
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    TopLevelVariableElement elementA = unit.element.topLevelVariables[0];
+    TopLevelVariableElement elementB = unit.element.topLevelVariables[1];
+
+    computeResult(elementA, INFERABLE_STATIC_VARIABLE_DEPENDENCIES);
+    expect(task,
+        new isInstanceOf<ComputeInferableStaticVariableDependenciesTask>());
+    expect(outputs, hasLength(1));
+    Set<VariableElement> dependencies =
+        outputs[INFERABLE_STATIC_VARIABLE_DEPENDENCIES];
+    expect(dependencies, unorderedEquals([elementB]));
+  }
+}
+
+@reflectiveTest
 class ContainingLibrariesTaskTest extends _AbstractDartTaskTest {
   test_buildInputs() {
     Map<String, TaskInput> inputs =
@@ -2336,16 +2296,25 @@ class B {}''');
 @reflectiveTest
 class PartiallyResolveReferencesTaskTest extends _AbstractDartTaskTest {
   test_perform() {
+    enableStrongMode();
     Source source = newSource(
         '/test.dart',
         '''
 int a = b;
 int b = c;
+var d = 0;
+class A {}
+class C {
+  static final f = '';
+  var g = 0;
+}
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     computeResult(target, RESOLVED_UNIT5);
     expect(task, new isInstanceOf<PartiallyResolveUnitReferencesTask>());
     // Test the outputs
+    expect(outputs[CLASSES_IN_UNIT], hasLength(2));
+    expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(2));
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
     expect(unit, same(outputs[RESOLVED_UNIT5]));
     // Test the state of the AST
@@ -2386,6 +2355,8 @@ main() {
     computeResult(new LibrarySpecificUnit(sourceC, sourceC), RESOLVED_UNIT5);
     expect(task, new isInstanceOf<PartiallyResolveUnitReferencesTask>());
     // validate
+    expect(outputs[CLASSES_IN_UNIT], hasLength(0));
+    expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(0));
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
     expect(unit, isNotNull);
 
@@ -2899,6 +2870,15 @@ class _AbstractDartTaskTest extends AbstractContextTest {
     Source source = newSource('/test.html', htmlContent);
     return new DartScript(
         source, [new ScriptFragment(97, 5, 36, scriptContent)]);
+  }
+
+  /**
+   * Enable strong mode in the current analysis context.
+   */
+  void enableStrongMode() {
+    AnalysisOptionsImpl options = context.analysisOptions;
+    options.strongMode = true;
+    context.analysisOptions = options;
   }
 
   void setUp() {

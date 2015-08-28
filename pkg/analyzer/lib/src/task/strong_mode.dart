@@ -8,8 +8,15 @@ import 'dart:collection';
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+
+/**
+ * A function that returns `true` if the given [variable] passes the filter.
+ */
+typedef bool VariableFilter(VariableElement element);
 
 /**
  * An object used to find static variables whose types should be inferred and
@@ -79,7 +86,10 @@ class InferrenceFinder extends SimpleAstVisitor {
   void _addVariables(NodeList<VariableDeclaration> variables) {
     for (VariableDeclaration variable in variables) {
       if (variable.initializer != null) {
-        staticVariables.add(variable.element);
+        VariableElement element = variable.element;
+        if (element.hasImplicitType) {
+          staticVariables.add(element);
+        }
       }
     }
   }
@@ -488,6 +498,43 @@ class InstanceMemberInferrer {
       if (functionType is FunctionTypeImpl) {
         element.type =
             new FunctionTypeImpl(element, functionType.prunedTypedefs);
+      }
+    }
+  }
+}
+
+/**
+ * A visitor that will gather all of the variables referenced within a given
+ * AST structure. The collection can be restricted to contain only those
+ * variables that pass a specified filter.
+ */
+class VariableGatherer extends RecursiveAstVisitor {
+  /**
+   * The filter used to limit which variables are gathered, or `null` if no
+   * filtering is to be performed.
+   */
+  final VariableFilter filter;
+
+  /**
+   * The variables that were found.
+   */
+  final Set<VariableElement> results = new HashSet<VariableElement>();
+
+  /**
+   * Initialize a newly created gatherer to gather all of the variables that
+   * pass the given [filter] (or all variables if no filter is provided).
+   */
+  VariableGatherer([this.filter = null]);
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (!node.inDeclarationContext()) {
+      Element element = node.staticElement;
+      if (element is PropertyAccessorElement && element.isSynthetic) {
+        element = (element as PropertyAccessorElement).variable;
+      }
+      if (element is VariableElement && (filter == null || filter(element))) {
+        results.add(element);
       }
     }
   }

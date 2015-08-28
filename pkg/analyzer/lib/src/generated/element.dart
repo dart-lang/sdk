@@ -4144,9 +4144,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
       enclosingElement != null ? enclosingElement.isEnum : false;
 
   @override
-  bool get isStatic => hasModifier(Modifier.STATIC);
-
-  @override
   ElementKind get kind => ElementKind.FIELD;
 
   /**
@@ -4259,9 +4256,6 @@ class FieldMember extends VariableMember implements FieldElement {
 
   @override
   bool get isEnumConstant => baseElement.isEnumConstant;
-
-  @override
-  bool get isStatic => baseElement.isStatic;
 
   @override
   DartType get propagatedType => substituteFor(baseElement.propagatedType);
@@ -9532,13 +9526,6 @@ abstract class PropertyInducingElement implements VariableElement {
   PropertyAccessorElement get getter;
 
   /**
-   * Return `true` if this element is a static element. A static element is an
-   * element that is not associated with a particular instance, but rather with
-   * an entire library or class.
-   */
-  bool get isStatic;
-
-  /**
    * Return the propagated type of this variable, or `null` if type propagation
    * has not been performed, for example because the variable is not final.
    */
@@ -10537,6 +10524,19 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   bool get isPotentiallyMutatedInScope;
 
   /**
+   * Return `true` if this element is a static variable, as per section 8 of the
+   * Dart Language Specification:
+   *
+   * > A static variable is a variable that is not associated with a particular
+   * > instance, but rather with an entire library or class. Static variables
+   * > include library variables and class variables. Class variables are
+   * > variables whose declaration is immediately nested inside a class
+   * > declaration and includes the modifier static. A library variable is
+   * > implicitly static.
+   */
+  bool get isStatic;
+
+  /**
    * Return the declared type of this variable, or `null` if the variable did
    * not have a declared type (such as if it was declared using the keyword
    * 'var').
@@ -10645,6 +10645,9 @@ abstract class VariableElementImpl extends ElementImpl
   bool get isPotentiallyMutatedInScope => false;
 
   @override
+  bool get isStatic => hasModifier(Modifier.STATIC);
+
+  @override
   void appendTo(StringBuffer buffer) {
     buffer.write(type);
     buffer.write(" ");
@@ -10699,6 +10702,9 @@ abstract class VariableMember extends Member implements VariableElement {
   @override
   bool get isPotentiallyMutatedInScope =>
       baseElement.isPotentiallyMutatedInScope;
+
+  @override
+  bool get isStatic => baseElement.isStatic;
 
   @override
   DartType get type => substituteFor(baseElement.type);

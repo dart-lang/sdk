@@ -7,6 +7,8 @@ library test.src.task.strong_mode_test;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:unittest/unittest.dart';
@@ -19,6 +21,7 @@ main() {
   initializeTestEnvironment();
   runReflectiveTests(InferrenceFinderTest);
   runReflectiveTests(InstanceMemberInferrerTest);
+  runReflectiveTests(VariableGathererTest);
 }
 
 @reflectiveTest
@@ -37,8 +40,10 @@ class InferrenceFinderTest extends AbstractContextTest {
 const c = 1;
 final f = '';
 var v = const A();
+int i;
 class A {
   static final fa = 0;
+  static int fi;
   const A();
 }
 class B extends A {
@@ -51,8 +56,10 @@ class B extends A {
 class C = Object with A;
 typedef int F(int x);
 ''');
-    computeResult(source, PARSED_UNIT);
-    CompilationUnit unit = outputs[PARSED_UNIT];
+    LibrarySpecificUnit librarySpecificUnit =
+        new LibrarySpecificUnit(source, source);
+    computeResult(librarySpecificUnit, RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
     InferrenceFinder finder = new InferrenceFinder();
     unit.accept(finder);
     expect(finder.classes, hasLength(3));
@@ -875,5 +882,74 @@ class B<E> extends A<E> {
     inferrer.inferCompilationUnit(unit);
 
     expect(methodB.returnType, classB.typeParameters[0].type);
+  }
+}
+
+@reflectiveTest
+class VariableGathererTest extends AbstractContextTest {
+  void test_creation_withFilter() {
+    VariableFilter filter = (variable) => true;
+    VariableGatherer gatherer = new VariableGatherer(filter);
+    expect(gatherer, isNotNull);
+    expect(gatherer.filter, filter);
+  }
+
+  void test_creation_withoutFilter() {
+    VariableGatherer gatherer = new VariableGatherer();
+    expect(gatherer, isNotNull);
+    expect(gatherer.filter, isNull);
+  }
+
+  void test_visit_noReferences() {
+    Source source = addSource(
+        '/test.dart',
+        '''
+library lib;
+import 'dart:math';
+int zero = 0;
+class C {
+  void m() => null;
+}
+typedef void F();
+''');
+    CompilationUnit unit = context.resolveCompilationUnit2(source, source);
+    VariableGatherer gatherer = new VariableGatherer();
+    unit.accept(gatherer);
+    expect(gatherer.results, hasLength(0));
+  }
+
+  void test_visit_withFilter() {
+    VariableFilter filter = (VariableElement variable) => variable.isStatic;
+    expect(_gather(filter), hasLength(1));
+  }
+
+  void test_visit_withoutFilter() {
+    expect(_gather(), hasLength(4));
+  }
+
+  Set<VariableElement> _gather([VariableFilter filter = null]) {
+    Source source = addSource(
+        '/test.dart',
+        '''
+const int zero = 0;
+class Counter {
+  int value = zero;
+  void inc() {
+    value++;
+  }
+  void dec() {
+    value = value - 1;
+  }
+  void fromZero(f(int index)) {
+    for (int i = zero; i < value; i++) {
+      f(i);
+    }
+  }
+}
+''');
+    CompilationUnit unit = context.resolveCompilationUnit2(source, source);
+    VariableGatherer gatherer = new VariableGatherer(filter);
+    unit.accept(gatherer);
+    return gatherer.results;
   }
 }
