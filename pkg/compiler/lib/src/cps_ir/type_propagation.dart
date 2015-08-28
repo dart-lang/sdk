@@ -1709,15 +1709,33 @@ class TransformingVisitor extends LeafVisitor {
     // The target might not have an AST, for example if it deferred.
     if (!node.target.hasNode) return false;
 
-    // An expression is non-expansive (in a sense) if it is just a call to
-    // a foreign function.
+    // True if an expression is non-expansive, in the sense defined by this
+    // predicate.
     bool isNonExpansive(ast.Expression expr) {
+      if (expr is ast.LiteralNull ||
+          expr is ast.LiteralBool ||
+          expr is ast.LiteralInt ||
+          expr is ast.LiteralDouble) {
+        return true;
+      }
       if (expr is ast.Send) {
         SendStructure structure =
             node.target.treeElements.getSendStructure(expr);
         if (structure is InvokeStructure) {
+          // Calls to foreign functions.
           return structure.semantics.kind == AccessKind.TOPLEVEL_METHOD &&
               backend.isForeign(structure.semantics.element);
+        } else if (structure is IsStructure || structure is IsNotStructure) {
+          // is and is! checks on nonexpansive expressions.
+          return isNonExpansive(expr.receiver);
+        } else if (structure is EqualsStructure ||
+            structure is NotEqualsStructure) {
+          // == and != on nonexpansive expressions.
+          return isNonExpansive(expr.receiver) &&
+              isNonExpansive(expr.argumentsNode.nodes.head);
+        } else if (structure is GetStructure) {
+          // Parameters.
+          return structure.semantics.kind == AccessKind.PARAMETER;
         }
       }
       return false;
