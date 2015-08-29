@@ -395,13 +395,14 @@ class InstanceMemberInferrer {
     // Infer the parameter types.
     //
     List<ParameterElement> parameters = methodElement.parameters;
-    var length = parameters.length;
+    int length = parameters.length;
     for (int i = 0; i < length; ++i) {
       ParameterElement parameter = parameters[i];
       if (parameter is ParameterElementImpl && parameter.hasImplicitType) {
-        overriddenMethods = overriddenMethods ??
-            inheritanceManager.lookupOverrides(
-                methodElement.enclosingElement, methodElement.name);
+        if (overriddenMethods == null) {
+          overriddenMethods = inheritanceManager.lookupOverrides(
+              methodElement.enclosingElement, methodElement.name);
+        }
         if (overriddenMethods.isEmpty || !_onlyMethods(overriddenMethods)) {
           return;
         }
