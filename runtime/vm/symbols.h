@@ -596,7 +596,8 @@ class Symbols : public AllStatic {
 
   static RawString* FromConcat(const String& str1, const String& str2);
 
-  static RawString* FromConcatAll(const GrowableArray<const String*>& strs);
+  static RawString* FromConcatAll(
+      const GrowableHandlePtrArray<const String>& strs);
 
   // Returns char* of predefined symbol.
   static const char* Name(SymbolId symbol);

@@ -937,17 +937,17 @@ RawAbstractType* ClassFinalizer::FinalizeType(
     return type.raw();
   }
 
-  Isolate* isolate = Isolate::Current();
+  Zone* Z = Thread::Current()->zone();
   if (FLAG_trace_type_finalization) {
     ISL_Print("Finalizing type '%s' for class '%s'\n",
-              String::Handle(isolate, type.Name()).ToCString(),
+              String::Handle(Z, type.Name()).ToCString(),
               cls.ToCString());
   }
 
   if (type.IsTypeParameter()) {
     const TypeParameter& type_parameter = TypeParameter::Cast(type);
     const Class& parameterized_class =
-        Class::Handle(isolate, type_parameter.parameterized_class());
+        Class::Handle(Z, type_parameter.parameterized_class());
     ASSERT(!parameterized_class.IsNull());
     // The index must reflect the position of this type parameter in the type
     // arguments vector of its parameterized class. The offset to add is the
@@ -967,7 +967,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(
 
     if (FLAG_trace_type_finalization) {
       ISL_Print("Done finalizing type parameter '%s' with index %" Pd "\n",
-                String::Handle(isolate, type_parameter.name()).ToCString(),
+                String::Handle(Z, type_parameter.name()).ToCString(),
                 type_parameter.index());
     }
 
@@ -981,7 +981,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   // This type is the root type of the type graph if no pending types queue is
   // allocated yet.
   const bool is_root_type = (pending_types == NULL);
-  GrowableObjectArray& types = GrowableObjectArray::Handle(isolate);
+  GrowableObjectArray& types = GrowableObjectArray::Handle(Z);
   if (is_root_type) {
     types = GrowableObjectArray::New();
     pending_types = &types;
@@ -992,7 +992,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   // the type itself, a precondition to calling FinalizeType).
   // Also, the interfaces of the type class must be resolved and the type
   // parameters of the type class must be finalized.
-  Class& type_class = Class::Handle(isolate, parameterized_type.type_class());
+  Class& type_class = Class::Handle(Z, parameterized_type.type_class());
   if (!type_class.is_type_finalized()) {
     FinalizeTypeParameters(type_class, pending_types);
     ResolveUpperBounds(type_class);
@@ -1008,12 +1008,12 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   // Specifying no type arguments indicates a raw type, which is not an error.
   // However, type parameter bounds are checked below, even for a raw type.
   TypeArguments& arguments =
-      TypeArguments::Handle(isolate, parameterized_type.arguments());
+      TypeArguments::Handle(Z, parameterized_type.arguments());
   if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
     // Wrong number of type arguments. The type is mapped to the raw type.
     if (Isolate::Current()->flags().error_on_bad_type()) {
       const String& type_class_name =
-          String::Handle(isolate, type_class.Name());
+          String::Handle(Z, type_class.Name());
       ReportError(cls, parameterized_type.token_pos(),
                   "wrong number of type arguments for class '%s'",
                   type_class_name.ToCString());
@@ -1033,8 +1033,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   // The full type argument vector consists of the type arguments of the
   // super types of type_class, which are initialized from the parsed
   // type arguments, followed by the parsed type arguments.
-  TypeArguments& full_arguments = TypeArguments::Handle(isolate);
-  Error& bound_error = Error::Handle(isolate);
+  TypeArguments& full_arguments = TypeArguments::Handle(Z);
+  Error& bound_error = Error::Handle(Z);
   if (num_type_arguments > 0) {
     // If no type arguments were parsed and if the super types do not prepend
     // type arguments to the vector, we can leave the vector as null.
@@ -1044,7 +1044,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(
       // argument vector.
       const intptr_t offset = num_type_arguments - num_type_parameters;
       AbstractType& type_arg =
-          AbstractType::Handle(isolate, Type::DynamicType());
+          AbstractType::Handle(Z, Type::DynamicType());
       // Leave the temporary type arguments at indices [0..offset[ as null.
       for (intptr_t i = 0; i < num_type_parameters; i++) {
         // If no type parameters were provided, a raw type is desired, so we
@@ -1083,17 +1083,17 @@ RawAbstractType* ClassFinalizer::FinalizeType(
       // signature function may either be an alias or the enclosing class of a
       // local function, in which case the super type of the enclosing class is
       // also considered when filling up the argument vector.
-      Class& owner_class = Class::Handle(isolate);
+      Class& owner_class = Class::Handle(Z);
       if (type_class.IsSignatureClass()) {
         const Function& signature_fun =
-            Function::Handle(isolate, type_class.signature_function());
+            Function::Handle(Z, type_class.signature_function());
         ASSERT(!signature_fun.is_static());
         owner_class = signature_fun.Owner();
       } else {
         owner_class = type_class.raw();
       }
       if (offset > 0) {
-        TrailPtr trail = new Trail(4);
+        TrailPtr trail = new Trail(Z, 4);
         FinalizeTypeArguments(owner_class, full_arguments, offset,
                               &bound_error, pending_types, trail);
       }
@@ -1120,13 +1120,13 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   // If we are done finalizing a graph of mutually recursive types, check their
   // bounds.
   if (is_root_type) {
-    Type& type = Type::Handle(isolate);
+    Type& type = Type::Handle(Z);
     for (intptr_t i = types.Length() - 1; i >= 0; i--) {
       type ^= types.At(i);
       CheckTypeBounds(cls, type);
       if (FLAG_trace_type_finalization && type.IsRecursive()) {
         ISL_Print("Done finalizing recursive type '%s': %s\n",
-                  String::Handle(isolate, type.Name()).ToCString(),
+                  String::Handle(Z, type.Name()).ToCString(),
                   type.ToCString());
       }
     }
@@ -1145,7 +1145,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(
 
   if (FLAG_trace_type_finalization) {
     ISL_Print("Done finalizing type '%s' with %" Pd " type args: %s\n",
-              String::Handle(isolate, parameterized_type.Name()).ToCString(),
+              String::Handle(Z, parameterized_type.Name()).ToCString(),
               parameterized_type.arguments() == TypeArguments::null() ?
                   0 : num_type_arguments,
               parameterized_type.ToCString());
@@ -1153,10 +1153,10 @@ RawAbstractType* ClassFinalizer::FinalizeType(
 
   if (finalization >= kCanonicalize) {
     if (FLAG_trace_type_finalization && parameterized_type.IsRecursive()) {
-      AbstractType& type = Type::Handle(isolate);
+      AbstractType& type = Type::Handle(Z);
       type = parameterized_type.Canonicalize();
       ISL_Print("Done canonicalizing recursive type '%s': %s\n",
-                String::Handle(isolate, type.Name()).ToCString(),
+                String::Handle(Z, type.Name()).ToCString(),
                 type.ToCString());
       return type.raw();
     }

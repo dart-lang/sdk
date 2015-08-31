@@ -395,12 +395,13 @@ RawString* Symbols::FromConcat(const String& str1, const String& str2) {
 
 // TODO(srdjan): If this becomes performance critical code, consider looking
 // up symbol from pieces instead of concatenating them first into a big string.
-RawString* Symbols::FromConcatAll(const GrowableArray<const String*>& strs) {
+RawString* Symbols::FromConcatAll(
+    const GrowableHandlePtrArray<const String>& strs) {
   GrowableArray<const char*> cchars(strs.length());
   GrowableArray<intptr_t> lengths(strs.length());
   intptr_t len_sum = 0;
   for (intptr_t i = 0; i < strs.length(); i++) {
-    const char* to_cstr = strs[i]->ToCString();
+    const char* to_cstr = strs[i].ToCString();
     intptr_t len = strlen(to_cstr);
     cchars.Add(to_cstr);
     lengths.Add(len);

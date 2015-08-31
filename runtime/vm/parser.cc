@@ -4289,14 +4289,14 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
 
     // We must be dealing with a constructor or named constructor.
     member.kind = RawFunction::kConstructor;
-    GrowableArray<const String*> to_concat(Z, 3);
-    to_concat.Add(&String::ZoneHandle(Z, member.name->raw()));
-    to_concat.Add(&Symbols::Dot());
+    GrowableHandlePtrArray<const String> to_concat(Z, 3);
+    to_concat.Add(*member.name);
+    to_concat.Add(Symbols::Dot());
     if (CurrentToken() == Token::kPERIOD) {
       // Named constructor.
       ConsumeToken();
       member.dict_name = ExpectIdentifier("identifier expected");
-      to_concat.Add(&String::ZoneHandle(Z, member.dict_name->raw()));
+      to_concat.Add(*member.dict_name);
     }
     *member.name = Symbols::FromConcatAll(to_concat);
     CheckToken(Token::kLPAREN);

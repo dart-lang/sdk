@@ -1528,8 +1528,8 @@ class UnresolvedClass : public Object {
 };
 
 
-typedef ZoneGrowableArray<const AbstractType*> Trail;
-typedef ZoneGrowableArray<const AbstractType*>* TrailPtr;
+typedef ZoneGrowableHandlePtrArray<const AbstractType> Trail;
+typedef ZoneGrowableHandlePtrArray<const AbstractType>* TrailPtr;
 
 // A TypeArguments is an array of AbstractType.
 class TypeArguments : public Object {
@@ -2699,10 +2699,11 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
 
   static RawFunction* New();
 
-  void BuildSignatureParameters(bool instantiate,
-                                NameVisibility name_visibility,
-                                const TypeArguments& instantiator,
-                                GrowableArray<const String*>* pieces) const;
+  void BuildSignatureParameters(
+      bool instantiate,
+      NameVisibility name_visibility,
+      const TypeArguments& instantiator,
+      GrowableHandlePtrArray<const String>* pieces) const;
   RawString* BuildSignature(bool instantiate,
                             NameVisibility name_visibility,
                             const TypeArguments& instantiator) const;

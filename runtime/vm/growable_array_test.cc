@@ -96,4 +96,20 @@ TEST_CASE(GrowableArraySort) {
   EXPECT_EQ(4, g.Last());
 }
 
+
+TEST_CASE(GrowableHandlePtr) {
+  Zone* zone = Thread::Current()->zone();
+  GrowableHandlePtrArray<const String> test1(zone, 1);
+  EXPECT_EQ(0, test1.length());
+  test1.Add(Symbols::Int());
+  EXPECT(test1[0].raw() == Symbols::Int().raw());
+  EXPECT_EQ(1, test1.length());
+
+  ZoneGrowableHandlePtrArray<const String>* test2 =
+      new ZoneGrowableHandlePtrArray<const String>(zone, 1);
+  test2->Add(Symbols::GetterPrefix());
+  EXPECT((*test2)[0].raw() == Symbols::GetterPrefix().raw());
+  EXPECT_EQ(1, test2->length());
+}
+
 }  // namespace dart

@@ -4432,25 +4432,24 @@ intptr_t TypeArguments::Hash() const {
 RawString* TypeArguments::SubvectorName(intptr_t from_index,
                                         intptr_t len,
                                         NameVisibility name_visibility) const {
+  Zone* zone = Thread::Current()->zone();
   ASSERT(from_index + len <= Length());
-  String& name = String::Handle();
+  String& name = String::Handle(zone);
   const intptr_t num_strings = (len == 0) ? 2 : 2*len + 1;  // "<""T"", ""T"">".
-  const Array& strings = Array::Handle(Array::New(num_strings));
-  intptr_t s = 0;
-  strings.SetAt(s++, Symbols::LAngleBracket());
+  GrowableHandlePtrArray<const String> pieces(zone, num_strings);
+  pieces.Add(Symbols::LAngleBracket());
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type = TypeAt(from_index + i);
     name = type.BuildName(name_visibility);
-    strings.SetAt(s++, name);
+    pieces.Add(name);
     if (i < len - 1) {
-      strings.SetAt(s++, Symbols::CommaSpace());
+      pieces.Add(Symbols::CommaSpace());
     }
   }
-  strings.SetAt(s++, Symbols::RAngleBracket());
-  ASSERT(s == num_strings);
-  name = String::ConcatAll(strings);
-  return Symbols::New(name);
+  pieces.Add(Symbols::RAngleBracket());
+  ASSERT(pieces.length() == num_strings);
+  return Symbols::FromConcatAll(pieces);
 }
 
 
@@ -6476,7 +6475,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
 RawString* Function::UserVisibleFormalParameters() const {
   // Typically 3, 5,.. elements in 'pieces', e.g.:
   // '_LoadRequest', CommaSpace, '_LoadError'.
-  GrowableArray<const String*> pieces(5);
+  GrowableHandlePtrArray<const String> pieces(Thread::Current()->zone(), 5);
   const TypeArguments& instantiator = TypeArguments::Handle();
   BuildSignatureParameters(false, kUserVisibleName, instantiator, &pieces);
   return Symbols::FromConcatAll(pieces);
@@ -6487,7 +6486,7 @@ void Function::BuildSignatureParameters(
     bool instantiate,
     NameVisibility name_visibility,
     const TypeArguments& instantiator,
-    GrowableArray<const String*>* pieces) const {
+    GrowableHandlePtrArray<const String>* pieces) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
@@ -6503,50 +6502,49 @@ void Function::BuildSignatureParameters(
     // Hide implicit parameters.
     i = NumImplicitParameters();
   }
+  String& name = String::Handle(zone);
   while (i < num_fixed_params) {
     param_type = ParameterTypeAt(i);
     ASSERT(!param_type.IsNull());
     if (instantiate && !param_type.IsInstantiated()) {
       param_type = param_type.InstantiateFrom(instantiator, NULL);
     }
-    const String& name =
-        String::ZoneHandle(zone, param_type.BuildName(name_visibility));
-    pieces->Add(&name);
+    name = param_type.BuildName(name_visibility);
+    pieces->Add(name);
     if (i != (num_params - 1)) {
-      pieces->Add(&Symbols::CommaSpace());
+      pieces->Add(Symbols::CommaSpace());
     }
     i++;
   }
   if (num_opt_params > 0) {
     if (num_opt_pos_params > 0) {
-      pieces->Add(&Symbols::LBracket());
+      pieces->Add(Symbols::LBracket());
     } else {
-      pieces->Add(&Symbols::LBrace());
+      pieces->Add(Symbols::LBrace());
     }
     for (intptr_t i = num_fixed_params; i < num_params; i++) {
       // The parameter name of an optional positional parameter does not need
       // to be part of the signature, since it is not used.
       if (num_opt_named_params > 0) {
-        const String& name = String::ZoneHandle(zone, ParameterNameAt(i));
-        pieces->Add(&name);
-        pieces->Add(&Symbols::ColonSpace());
+        name = ParameterNameAt(i);
+        pieces->Add(name);
+        pieces->Add(Symbols::ColonSpace());
       }
       param_type = ParameterTypeAt(i);
       if (instantiate && !param_type.IsInstantiated()) {
         param_type = param_type.InstantiateFrom(instantiator, NULL);
       }
       ASSERT(!param_type.IsNull());
-      const String& name =
-          String::ZoneHandle(zone, param_type.BuildName(name_visibility));
-      pieces->Add(&name);
+      name = param_type.BuildName(name_visibility);
+      pieces->Add(name);
       if (i != (num_params - 1)) {
-        pieces->Add(&Symbols::CommaSpace());
+        pieces->Add(Symbols::CommaSpace());
       }
     }
     if (num_opt_pos_params > 0) {
-      pieces->Add(&Symbols::RBracket());
+      pieces->Add(Symbols::RBracket());
     } else {
-      pieces->Add(&Symbols::RBrace());
+      pieces->Add(Symbols::RBrace());
     }
   }
 }
@@ -6589,7 +6587,8 @@ RawString* Function::BuildSignature(bool instantiate,
                                     const TypeArguments& instantiator) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  GrowableArray<const String*> pieces(zone, 4);
+  GrowableHandlePtrArray<const String> pieces(zone, 4);
+  String& name = String::Handle(zone);
   if (!instantiate && !is_static() && (name_visibility == kInternalName)) {
     // Prefix the signature with its signature class and type parameters, if any
     // (e.g. "Map<K, V>(K) => bool"). In case of a function type alias, the
@@ -6601,43 +6600,41 @@ RawString* Function::BuildSignature(bool instantiate,
         zone, function_class.type_parameters());
     if (!type_parameters.IsNull()) {
       const String& function_class_name =
-          String::ZoneHandle(zone, function_class.Name());
-      pieces.Add(&function_class_name);
+          String::Handle(zone, function_class.Name());
+      pieces.Add(function_class_name);
       const intptr_t num_type_parameters = type_parameters.Length();
-      pieces.Add(&Symbols::LAngleBracket());
+      pieces.Add(Symbols::LAngleBracket());
       TypeParameter& type_parameter = TypeParameter::Handle(zone);
       AbstractType& bound = AbstractType::Handle(zone);
       for (intptr_t i = 0; i < num_type_parameters; i++) {
         type_parameter ^= type_parameters.TypeAt(i);
-        const String& name = String::ZoneHandle(zone, type_parameter.name());
-        pieces.Add(&name);
+        name = type_parameter.name();
+        pieces.Add(name);
         bound = type_parameter.bound();
         if (!bound.IsNull() && !bound.IsObjectType()) {
-          pieces.Add(&Symbols::SpaceExtendsSpace());
-          const String& name =
-              String::ZoneHandle(zone, bound.BuildName(name_visibility));
-          pieces.Add(&name);
+          pieces.Add(Symbols::SpaceExtendsSpace());
+          name = bound.BuildName(name_visibility);
+          pieces.Add(name);
         }
         if (i < num_type_parameters - 1) {
-          pieces.Add(&Symbols::CommaSpace());
+          pieces.Add(Symbols::CommaSpace());
         }
       }
-      pieces.Add(&Symbols::RAngleBracket());
+      pieces.Add(Symbols::RAngleBracket());
     }
   }
-  pieces.Add(&Symbols::LParen());
+  pieces.Add(Symbols::LParen());
   BuildSignatureParameters(instantiate,
                            name_visibility,
                            instantiator,
                            &pieces);
-  pieces.Add(&Symbols::RParenArrow());
+  pieces.Add(Symbols::RParenArrow());
   AbstractType& res_type = AbstractType::Handle(zone, result_type());
   if (instantiate && !res_type.IsInstantiated()) {
     res_type = res_type.InstantiateFrom(instantiator, NULL);
   }
-  const String& name =
-      String::ZoneHandle(zone, res_type.BuildName(name_visibility));
-  pieces.Add(&name);
+  name = res_type.BuildName(name_visibility);
+  pieces.Add(name);
   return Symbols::FromConcatAll(pieces);
 }
 
@@ -14939,11 +14936,11 @@ RawAbstractType* AbstractType::OnlyBuddyInTrail(TrailPtr trail) const {
   const intptr_t len = trail->length();
   ASSERT((len % 2) == 0);
   for (intptr_t i = 0; i < len; i += 2) {
-    ASSERT(trail->At(i)->IsZoneHandle());
-    ASSERT(trail->At(i + 1)->IsZoneHandle());
-    if (trail->At(i)->raw() == this->raw()) {
-      ASSERT(!trail->At(i + 1)->IsNull());
-      return trail->At(i + 1)->raw();
+    ASSERT(trail->At(i).IsZoneHandle());
+    ASSERT(trail->At(i + 1).IsZoneHandle());
+    if (trail->At(i).raw() == this->raw()) {
+      ASSERT(!trail->At(i + 1).IsNull());
+      return trail->At(i + 1).raw();
     }
   }
   return AbstractType::null();
@@ -14953,18 +14950,17 @@ RawAbstractType* AbstractType::OnlyBuddyInTrail(TrailPtr trail) const {
 void AbstractType::AddOnlyBuddyToTrail(TrailPtr* trail,
                                        const AbstractType& buddy) const {
   if (*trail == NULL) {
-    *trail = new Trail(4);
+    *trail = new Trail(Thread::Current()->zone(), 4);
   } else {
     ASSERT(OnlyBuddyInTrail(*trail) == AbstractType::null());
   }
-  AbstractType& t = AbstractType::ZoneHandle(this->raw());
-  AbstractType& b = AbstractType::ZoneHandle(buddy.raw());
-  (*trail)->Add(&t);
-  (*trail)->Add(&b);
+  (*trail)->Add(*this);
+  (*trail)->Add(buddy);
 }
 
 
 RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
+  Zone* zone = Thread::Current()->zone();
   if (IsBoundedType()) {
     const AbstractType& type = AbstractType::Handle(
         BoundedType::Cast(*this).type());
@@ -14973,37 +14969,41 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     } else if (name_visibility == kUserVisibleName) {
       return type.BuildName(kUserVisibleName);
     }
-    String& type_name = String::Handle(type.BuildName(kInternalName));
-    type_name = String::Concat(type_name, Symbols::SpaceExtendsSpace());
+    GrowableHandlePtrArray<const String> pieces(zone, 5);
+    String& type_name = String::Handle(zone, type.BuildName(kInternalName));
+    pieces.Add(type_name);
+    pieces.Add(Symbols::SpaceExtendsSpace());
     // Build the bound name without causing divergence.
     const AbstractType& bound = AbstractType::Handle(
-        BoundedType::Cast(*this).bound());
-    String& bound_name = String::Handle();
+        zone, BoundedType::Cast(*this).bound());
+    String& bound_name = String::Handle(zone);
     if (bound.IsTypeParameter()) {
       bound_name = TypeParameter::Cast(bound).name();
+      pieces.Add(bound_name);
     } else if (bound.IsType()) {
-      const Class& cls = Class::Handle(Type::Cast(bound).type_class());
+      const Class& cls = Class::Handle(zone, Type::Cast(bound).type_class());
       bound_name = cls.Name();
       if (Type::Cast(bound).arguments() != TypeArguments::null()) {
-        bound_name = String::Concat(bound_name, Symbols::OptimizedOut());
+        pieces.Add(bound_name);
+        pieces.Add(Symbols::OptimizedOut());
       }
     } else {
-      bound_name = String::New(Symbols::OptimizedOut());
+      pieces.Add(Symbols::OptimizedOut());
     }
-    return Symbols::FromConcat(type_name, bound_name);
+    return Symbols::FromConcatAll(pieces);
   }
   if (IsTypeParameter()) {
     return TypeParameter::Cast(*this).name();
   }
   // If the type is still being finalized, we may be reporting an error about
   // a malformed type, so proceed with caution.
-  const TypeArguments& args = TypeArguments::Handle(arguments());
+  const TypeArguments& args = TypeArguments::Handle(zone, arguments());
   const intptr_t num_args = args.IsNull() ? 0 : args.Length();
-  String& class_name = String::Handle();
+  String& class_name = String::Handle(zone);
   intptr_t first_type_param_index;
   intptr_t num_type_params;  // Number of type parameters to print.
   if (HasResolvedTypeClass()) {
-    const Class& cls = Class::Handle(type_class());
+    const Class& cls = Class::Handle(zone, type_class());
     if (IsResolved() || !cls.IsMixinApplication()) {
       // Do not print the full vector, but only the declared type parameters.
       num_type_params = cls.NumTypeParameters();
@@ -15051,7 +15051,7 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
       // signature class) as a regular, possibly parameterized, class.
       if (cls.IsCanonicalSignatureClass()) {
         const Function& signature_function = Function::Handle(
-            cls.signature_function());
+            zone, cls.signature_function());
         // Signature classes have no super type, however, they take as many
         // type arguments as the owner class of their signature function (if it
         // is non static and generic, see Class::NumTypeArguments()). Therefore,
@@ -15061,26 +15061,28 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
       }
     }
   } else {
-    const UnresolvedClass& cls = UnresolvedClass::Handle(unresolved_class());
+    const UnresolvedClass& cls =
+        UnresolvedClass::Handle(zone, unresolved_class());
     class_name = cls.Name();
     num_type_params = num_args;
     first_type_param_index = 0;
   }
-  String& type_name = String::Handle();
+  GrowableHandlePtrArray<const String> pieces(zone, 4);
+  pieces.Add(class_name);
   if ((num_type_params == 0) ||
       args.IsRaw(first_type_param_index, num_type_params)) {
-    type_name = class_name.raw();
+    // Do nothing.
   } else {
-    const String& args_name = String::Handle(
+    const String& args_name = String::Handle(zone,
         args.SubvectorName(first_type_param_index,
                            num_type_params,
                            name_visibility));
-    type_name = String::Concat(class_name, args_name);
+    pieces.Add(args_name);
   }
   // The name is only used for type checking and debugging purposes.
   // Unless profiling data shows otherwise, it is not worth caching the name in
   // the type.
-  return Symbols::New(type_name);
+  return Symbols::FromConcatAll(pieces);
 }
 
 
@@ -16010,17 +16012,16 @@ intptr_t TypeRef::Hash() const {
 
 bool TypeRef::TestAndAddToTrail(TrailPtr* trail) const {
   if (*trail == NULL) {
-    *trail = new Trail(4);
+    *trail = new Trail(Thread::Current()->zone(), 4);
   } else {
     const intptr_t len = (*trail)->length();
     for (intptr_t i = 0; i < len; i++) {
-      if ((*trail)->At(i)->raw() == this->raw()) {
+      if ((*trail)->At(i).raw() == this->raw()) {
         return true;
       }
     }
   }
-  AbstractType& t = AbstractType::ZoneHandle(this->raw());
-  (*trail)->Add(&t);
+  (*trail)->Add(*this);
   return false;
 }
 
@@ -16028,23 +16029,19 @@ bool TypeRef::TestAndAddToTrail(TrailPtr* trail) const {
 bool TypeRef::TestAndAddBuddyToTrail(TrailPtr* trail,
                                      const AbstractType& buddy) const {
   if (*trail == NULL) {
-    *trail = new Trail(4);
+    *trail = new Trail(Thread::Current()->zone(), 4);
   } else {
     const intptr_t len = (*trail)->length();
     ASSERT((len % 2) == 0);
     for (intptr_t i = 0; i < len; i += 2) {
-      ASSERT((*trail)->At(i)->IsZoneHandle());
-      ASSERT((*trail)->At(i + 1)->IsZoneHandle());
-      if (((*trail)->At(i)->raw() == this->raw()) &&
-          ((*trail)->At(i + 1)->raw() == buddy.raw())) {
+      if (((*trail)->At(i).raw() == this->raw()) &&
+          ((*trail)->At(i + 1).raw() == buddy.raw())) {
         return true;
       }
     }
   }
-  AbstractType& t = AbstractType::ZoneHandle(this->raw());
-  AbstractType& b = AbstractType::ZoneHandle(buddy.raw());
-  (*trail)->Add(&t);
-  (*trail)->Add(&b);
+  (*trail)->Add(*this);
+  (*trail)->Add(buddy);
   return false;
 }
 
