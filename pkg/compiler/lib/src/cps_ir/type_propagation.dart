@@ -1611,6 +1611,8 @@ class TransformingVisitor extends LeafVisitor {
       // Check if any of the possible targets depend on the extra receiver
       // argument. Mixins do this, and tear-offs always needs the extra receiver
       // argument because BoundClosure uses it for equality and hash code.
+      // TODO(15933): Make automatically generated property extraction
+      // closures work with the dummy receiver optimization.
       bool needsReceiver(Element target) {
         if (target is! FunctionElement) return false;
         FunctionElement function = target;
