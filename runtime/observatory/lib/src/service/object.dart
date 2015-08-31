@@ -2724,7 +2724,9 @@ class Script extends HeapObject with Coverage {
     var c = source.codeUnitAt(pos);
     if (c == 123) return 1; // { - Map literal
 
-    if (c == 91) return 1; // [ - List literal, index, index assignment
+    if (c == 91) return 1;  // [ - List literal, index, index assignment
+
+    if (c == 40) return 1;  // ( - Closure call
 
     if (_isOperatorChar(c)) {
       while (++pos < source.length &&
