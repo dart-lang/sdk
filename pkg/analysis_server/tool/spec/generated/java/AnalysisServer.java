@@ -86,6 +86,9 @@ public interface AnalysisServer {
    *
    * Return library dependency information for use in client-side indexing and package URI
    * resolution.
+   *
+   * Clients that are only using the libraries field should consider using the analyzedFiles
+   * notification instead.
    */
   public void analysis_getLibraryDependencies(GetLibraryDependenciesConsumer consumer);
 
@@ -104,6 +107,10 @@ public interface AnalysisServer {
    * same navigation region in response to multiple requests. Clients can avoid this by always
    * choosing a region that starts at the beginning of a line and ends at the end of a (possibly
    * different) line in the file.
+   *
+   * If a request is made for a file which does not exist, or which is not currently subject to
+   * analysis (e.g. because it is not associated with any analysis root specified to
+   * analysis.setAnalysisRoots), an error of type GET_NAVIGATION_INVALID_FILE will be generated.
    *
    * @param file The file in which navigation information is being requested.
    * @param offset The offset of the region for which navigation information is being requested.
@@ -166,6 +173,19 @@ public interface AnalysisServer {
   public void analysis_setAnalysisRoots(List<String> included, List<String> excluded, Map<String, String> packageRoots);
 
   /**
+   * {@code analysis.setGeneralSubscriptions}
+   *
+   * Subscribe for general services (that is, services that are not specific to individual files).
+   * All previous subscriptions are replaced by the given set of services.
+   *
+   * It is an error if any of the elements in the list are not valid services. If there is an error,
+   * then the current subscriptions will remain unchanged.
+   *
+   * @param subscriptions A list of the services being subscribed to.
+   */
+  public void analysis_setGeneralSubscriptions(List<String> subscriptions);
+
+  /**
    * {@code analysis.setPriorityFiles}
    *
    * Set the priority files to the files in the given list. A priority file is a file that is given
@@ -191,10 +211,10 @@ public interface AnalysisServer {
   /**
    * {@code analysis.setSubscriptions}
    *
-   * Subscribe for services. All previous subscriptions are replaced by the current set of
-   * subscriptions. If a given service is not included as a key in the map then no files will be
-   * subscribed to the service, exactly as if the service had been included in the map with an
-   * explicit empty list of files.
+   * Subscribe for services that are specific to individual files. All previous subscriptions are
+   * replaced by the current set of subscriptions. If a given service is not included as a key in the
+   * map then no files will be subscribed to the service, exactly as if the service had been included
+   * in the map with an explicit empty list of files.
    *
    * Note that this request determines the set of requested subscriptions. The actual set of
    * subscriptions at any given time is the intersection of this set with the set of files currently
@@ -329,6 +349,23 @@ public interface AnalysisServer {
    *         options are not known.
    */
   public void edit_getRefactoring(String kind, String file, int offset, int length, boolean validateOnly, RefactoringOptions options, GetRefactoringConsumer consumer);
+
+  /**
+   * {@code edit.organizeDirectives}
+   *
+   * Organizes all of the directives - removes unused imports and sorts directives of the given Dart
+   * file according to the Dart Style Guide.
+   *
+   * If a request is made for a file that does not exist, does not belong to an analysis root or is
+   * not a Dart file, FILE_NOT_ANALYZED will be generated.
+   *
+   * If directives of the Dart file cannot be organized, for example because it has scan or parse
+   * errors, or by other reasons, ORGANIZE_DIRECTIVES_ERROR will be generated. The message will
+   * provide datails about the reason.
+   *
+   * @param file The Dart file to organize directives in.
+   */
+  public void edit_organizeDirectives(String file, OrganizeDirectivesConsumer consumer);
 
   /**
    * {@code edit.sortMembers}

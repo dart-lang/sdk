@@ -15,6 +15,7 @@
 # ....bin/
 # ......dart or dart.exe (executable)
 # ......dart.lib (import library for VM native extensions on Windows)
+# ......dartdoc
 # ......dartfmt
 # ......dart2js
 # ......dartanalyzer
@@ -23,14 +24,20 @@
 # ........analysis_server.dart.snapshot
 # ........dart2js.dart.snapshot
 # ........dartanalyzer.dart.snapshot
+# ........dartdoc.dart.snapshot
 # ........dartfmt.dart.snapshot
 # ........pub.dart.snapshot
 # ........utils_wrapper.dart.snapshot
+#.........resources/
+#...........dartdoc/
+#..............packages
+#.............resources/
+#.............templates/
 # ....include/
 # ......dart_api.h
-# ......dart_debugger_api.h
 # ......dart_mirrors_api.h
 # ......dart_native_api.h
+# ......dart_tools_api.h
 # ....lib/
 # ......_internal/
 # ......async/
@@ -114,17 +121,31 @@ def CopyShellScript(src_file, dest_dir):
 
 def CopyDartScripts(home, sdk_root):
   for executable in ['dart2js_sdk', 'dartanalyzer_sdk', 'dartfmt_sdk', 'docgen',
-                     'dartdocgen', 'pub_sdk']:
+                     'dartdocgen', 'pub_sdk', 'dartdoc']:
     CopyShellScript(os.path.join(home, 'sdk', 'bin', executable),
                     os.path.join(sdk_root, 'bin'))
 
 
 def CopySnapshots(snapshots, sdk_root):
   for snapshot in ['analysis_server', 'dart2js', 'dartanalyzer', 'dartfmt',
-                   'utils_wrapper', 'pub']:
+                   'utils_wrapper', 'pub', 'dartdoc']:
     snapshot += '.dart.snapshot'
     copyfile(join(snapshots, snapshot),
              join(sdk_root, 'bin', 'snapshots', snapshot))
+
+def CopyDartdocResources(home,sdk_root):
+  RESOURCE_DIR = join(sdk_root, 'bin', 'snapshots', 'resources')
+  DARTDOC = join(RESOURCE_DIR, 'dartdoc')
+
+  copytree(join(home, 'third_party', 'pkg', 'dartdoc', 'lib', 'templates'),
+           join(DARTDOC, 'templates'))
+  copytree(join(home, 'third_party', 'pkg', 'dartdoc', 'lib', 'resources'),
+           join(DARTDOC, 'resources'))
+  # write the .packages file
+  PACKAGES_FILE = join(DARTDOC, '.packages')
+  packages_file = open(PACKAGES_FILE, 'w')
+  packages_file.write('dartdoc:.')
+  packages_file.close() 
 
 
 def Main():
@@ -182,12 +203,12 @@ def Main():
   os.makedirs(INCLUDE)
   copyfile(join(HOME, 'runtime', 'include', 'dart_api.h'),
            join(INCLUDE, 'dart_api.h'))
-  copyfile(join(HOME, 'runtime', 'include', 'dart_debugger_api.h'),
-           join(INCLUDE, 'dart_debugger_api.h'))
   copyfile(join(HOME, 'runtime', 'include', 'dart_mirrors_api.h'),
            join(INCLUDE, 'dart_mirrors_api.h'))
   copyfile(join(HOME, 'runtime', 'include', 'dart_native_api.h'),
            join(INCLUDE, 'dart_native_api.h'))
+  copyfile(join(HOME, 'runtime', 'include', 'dart_tools_api.h'),
+           join(INCLUDE, 'dart_tools_api.h'))
 
   #
   # Create and populate sdk/lib.
@@ -204,7 +225,8 @@ def Main():
 
   for library in [join('_blink', 'dartium'),
                   join('_chrome', 'dart2js'), join('_chrome', 'dartium'),
-                  join('_internal', 'compiler'),
+                  join('_internal', 'js_runtime'),
+                  join('_internal', 'sdk_library_metadata'),
                   'async', 'collection', 'convert', 'core', 'developer',
                   'internal', 'io', 'isolate',
                   join('html', 'dart2js'), join('html', 'dartium'),
@@ -219,8 +241,15 @@ def Main():
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh',
                                     '.gitignore'))
 
-  # Copy lib/_internal/libraries.dart.
-  copyfile(join(HOME, 'sdk', 'lib', '_internal', 'libraries.dart'),
+  # Copy libraries.dart to lib/_internal/libraries.dart for backwards
+  # compatibility.
+  #
+  # TODO(sigmund): stop copying libraries.dart. Old versions (<=0.25.1-alpha.4)
+  # of the analyzer package do not support the new location of this file. We
+  # should be able to remove the old file once we release a newer version of
+  # analyzer and popular frameworks have migrated to use it.
+  copyfile(join(HOME, 'sdk', 'lib', '_internal',
+                'sdk_library_metadata', 'lib', 'libraries.dart'),
            join(LIB, '_internal', 'libraries.dart'))
 
   # Create and copy tools.
@@ -229,7 +258,7 @@ def Main():
 
   RESOURCE = join(SDK_tmp, 'lib', '_internal', 'pub', 'asset')
   os.makedirs(os.path.dirname(RESOURCE))
-  copytree(join(HOME, 'third_party', 'pkg_tested', 'pub', 'lib', 'src',
+  copytree(join(HOME, 'third_party', 'pkg', 'pub', 'lib', 'src',
                 'asset'),
            join(RESOURCE),
            ignore=ignore_patterns('.svn'))
@@ -243,6 +272,7 @@ def Main():
   # Copy dart2js/pub.
   CopyDartScripts(HOME, SDK_tmp)
   CopySnapshots(SNAPSHOT, SDK_tmp)
+  CopyDartdocResources(HOME, SDK_tmp)
 
   # Write the 'version' file
   version = utils.GetVersion()
@@ -251,7 +281,7 @@ def Main():
   versionFile.close()
 
   # Write the 'revision' file
-  revision = utils.GetSVNRevision()
+  revision = utils.GetGitRevision()
 
   if revision is not None:
     with open(os.path.join(SDK_tmp, 'revision'), 'w') as f:

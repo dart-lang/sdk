@@ -12,6 +12,7 @@ namespace dart {
 
 class HandleScope;
 class StackResource;
+class Thread;
 class Zone;
 
 // A BaseIsolate contains just enough functionality to allocate
@@ -19,73 +20,11 @@ class Zone;
 // constructor/destructor for performance.
 class BaseIsolate {
  public:
-  StackResource* top_resource() const { return top_resource_; }
-  void set_top_resource(StackResource* value) { top_resource_ = value; }
-  static intptr_t top_resource_offset() {
-    return OFFSET_OF(BaseIsolate, top_resource_);
-  }
-
-  // DEPRECATED: Use Thread::current_zone.
-  Zone* current_zone() const { return current_zone_; }
-  void set_current_zone(Zone* zone) { current_zone_ = zone; }
-
-  HandleScope* top_handle_scope() const {
 #if defined(DEBUG)
-    return top_handle_scope_;
+  void AssertCurrentThreadIsMutator() const;
 #else
-    return 0;
-#endif
-  }
-
-  void set_top_handle_scope(HandleScope* handle_scope) {
-#if defined(DEBUG)
-    top_handle_scope_ = handle_scope;
-#endif
-  }
-
-  int32_t no_handle_scope_depth() const {
-#if defined(DEBUG)
-    return no_handle_scope_depth_;
-#else
-    return 0;
-#endif
-  }
-
-  void IncrementNoHandleScopeDepth() {
-#if defined(DEBUG)
-    ASSERT(no_handle_scope_depth_ < INT_MAX);
-    no_handle_scope_depth_ += 1;
-#endif
-  }
-
-  void DecrementNoHandleScopeDepth() {
-#if defined(DEBUG)
-    ASSERT(no_handle_scope_depth_ > 0);
-    no_handle_scope_depth_ -= 1;
-#endif
-  }
-
-  int32_t no_safepoint_scope_depth() const {
-#if defined(DEBUG)
-    return no_safepoint_scope_depth_;
-#else
-    return 0;
-#endif
-  }
-
-  void IncrementNoSafepointScopeDepth() {
-#if defined(DEBUG)
-    ASSERT(no_safepoint_scope_depth_ < INT_MAX);
-    no_safepoint_scope_depth_ += 1;
-#endif
-  }
-
-  void DecrementNoSafepointScopeDepth() {
-#if defined(DEBUG)
-    ASSERT(no_safepoint_scope_depth_ > 0);
-    no_safepoint_scope_depth_ -= 1;
-#endif
-  }
+  void AssertCurrentThreadIsMutator() const {}
+#endif  // DEBUG
 
   int32_t no_callback_scope_depth() const {
     return no_callback_scope_depth_;
@@ -107,30 +46,21 @@ class BaseIsolate {
 
  protected:
   BaseIsolate()
-      : top_resource_(NULL),
-        current_zone_(NULL),
-#if defined(DEBUG)
-        top_handle_scope_(NULL),
-        no_handle_scope_depth_(0),
-        no_safepoint_scope_depth_(0),
-#endif
-        no_callback_scope_depth_(0)
-  {}
+      : mutator_thread_(NULL),
+        no_callback_scope_depth_(0) {
+  }
 
   ~BaseIsolate() {
     // Do not delete stack resources: top_resource_ and current_zone_.
   }
 
-  StackResource* top_resource_;
-  Zone* current_zone_;
-#if defined(DEBUG)
-  HandleScope* top_handle_scope_;
-  int32_t no_handle_scope_depth_;
-  int32_t no_safepoint_scope_depth_;
-#endif
+  Thread* mutator_thread_;
   int32_t no_callback_scope_depth_;
 
  private:
+  // During migration, some deprecated interfaces will default to using the
+  // mutator_thread_ (can't use accessor in Isolate due to circular deps).
+  friend class StackResource;
   DISALLOW_COPY_AND_ASSIGN(BaseIsolate);
 };
 

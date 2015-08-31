@@ -17,6 +17,10 @@ import '../dart_types.dart';
 /// Enum representing the different kinds of destinations which a property
 /// access or method or function invocation might refer to.
 enum AccessKind {
+  /// The destination of the conditional access is an instance method, property,
+  /// or field of a class, and thus must be determined dynamically.
+  CONDITIONAL_DYNAMIC_PROPERTY,
+
   /// The destination of the access is an instance method, property, or field
   /// of a class, and thus must be determined dynamically.
   DYNAMIC_PROPERTY,
@@ -139,6 +143,10 @@ enum AccessKind {
 
   /// The destination of the access is unresolved super access.
   UNRESOLVED_SUPER,
+
+  /// The destination is invalid as an access. For instance a prefix used
+  /// as an expression.
+  INVALID,
 }
 
 enum CompoundAccessKind {
@@ -174,7 +182,7 @@ enum CompoundAccessKind {
   /// Read from a superclass getter and write to a superclass field.
   SUPER_GETTER_FIELD,
 
-  /// Read from a superclass where the getter (and maybe setter) is unresolved.
+  /// Read from a superclass where the getter is unresolved.
   UNRESOLVED_SUPER_GETTER,
   /// Read from a superclass getter and write to an unresolved setter.
   UNRESOLVED_SUPER_SETTER,
@@ -223,6 +231,14 @@ class AccessSemantics {
 
   ConstantExpression get constant => null;
 
+  /// The element for the getter in case of a compound access,
+  /// [element] otherwise.
+  Element get getter => element;
+
+  /// The element for the setter in case of a compound access,
+  /// [element] otherwise.
+  Element get setter => element;
+
   AccessSemantics.expression()
       : kind = AccessKind.EXPRESSION;
 
@@ -256,6 +272,9 @@ class DynamicAccess extends AccessSemantics {
 
   DynamicAccess.dynamicProperty(this.target)
       : super._(AccessKind.DYNAMIC_PROPERTY);
+
+  DynamicAccess.ifNotNullProperty(this.target)
+      : super._(AccessKind.CONDITIONAL_DYNAMIC_PROPERTY);
 }
 
 class ConstantAccess extends AccessSemantics {
@@ -350,6 +369,9 @@ class StaticAccess extends AccessSemantics {
 
   StaticAccess.unresolvedSuper(this.element)
       : super._(AccessKind.UNRESOLVED_SUPER);
+
+  StaticAccess.invalid(this.element)
+      : super._(AccessKind.INVALID);
 }
 
 class CompoundAccessSemantics extends AccessSemantics {

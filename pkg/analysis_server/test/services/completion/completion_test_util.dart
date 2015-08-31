@@ -115,7 +115,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
       {CompletionSuggestionKind csKind: CompletionSuggestionKind.INVOCATION,
       int relevance: DART_RELEVANCE_DEFAULT, String importUri,
       protocol.ElementKind elemKind: null, bool isDeprecated: false,
-      bool isPotential: false}) {
+      bool isPotential: false, String elemFile, int elemOffset}) {
     CompletionSuggestion cs =
         getSuggest(completion: completion, csKind: csKind, elemKind: elemKind);
     if (cs == null) {
@@ -133,18 +133,34 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     expect(cs.selectionLength, equals(0));
     expect(cs.isDeprecated, equals(isDeprecated));
     expect(cs.isPotential, equals(isPotential));
+    if (cs.element != null) {
+      expect(cs.element.location, isNotNull);
+      expect(cs.element.location.file, isNotNull);
+      expect(cs.element.location.offset, isNotNull);
+      expect(cs.element.location.length, isNotNull);
+      expect(cs.element.location.startColumn, isNotNull);
+      expect(cs.element.location.startLine, isNotNull);
+    }
+    if (elemFile != null) {
+      expect(cs.element.location.file, elemFile);
+    }
+    if (elemOffset != null) {
+      expect(cs.element.location.offset, elemOffset);
+    }
     return cs;
   }
 
   CompletionSuggestion assertSuggestClass(String name,
       {int relevance: DART_RELEVANCE_DEFAULT, String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      bool isDeprecated: false}) {
+      bool isDeprecated: false, String elemFile, int elemOffset}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
         importUri: importUri,
-        isDeprecated: isDeprecated);
+        isDeprecated: isDeprecated,
+        elemFile: elemFile,
+        elemOffset: elemOffset);
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.CLASS));
@@ -171,9 +187,10 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestConstructor(String name,
-      {int relevance: DART_RELEVANCE_DEFAULT, String importUri}) {
-    CompletionSuggestion cs =
-        assertSuggest(name, relevance: relevance, importUri: importUri);
+      {int relevance: DART_RELEVANCE_DEFAULT, String importUri,
+      int elemOffset}) {
+    CompletionSuggestion cs = assertSuggest(name,
+        relevance: relevance, importUri: importUri, elemOffset: elemOffset);
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.CONSTRUCTOR));
@@ -573,7 +590,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   CompletionSuggestion assertSuggestImportedClass(String name,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      int relevance: DART_RELEVANCE_DEFAULT, String importUri}) {
+      int relevance: DART_RELEVANCE_DEFAULT, String importUri,
+      String elemFile}) {
     return assertNotSuggested(name);
   }
 
@@ -683,7 +701,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   CompletionSuggestion assertSuggestLocalClass(String name,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
+      int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false,
+      String elemFile, int elemOffset}) {
     return assertNotSuggested(name);
   }
 
@@ -692,7 +711,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return assertNotSuggested(name);
   }
 
-  CompletionSuggestion assertSuggestLocalConstructor(String name) {
+  CompletionSuggestion assertSuggestLocalConstructor(String name,
+      {int elemOffset}) {
     return assertNotSuggested(name);
   }
 
@@ -1249,7 +1269,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
 
-      assertSuggestLocalClass('X');
+      assertSuggestLocalClass('X', elemFile: testFile);
       assertSuggestLocalClass('Z');
       assertSuggestLocalMethod('a', 'X', null);
       assertSuggestLocalMethod('b', 'X', 'void');
@@ -1260,7 +1280,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('x');
       assertNotSuggested('partT8');
 
-      assertSuggestImportedClass('A');
+      assertSuggestImportedClass('A', elemFile: '/testAB.dart');
       assertNotSuggested('_B');
       assertSuggestImportedClass('C');
       assertNotSuggested('partBoo');
@@ -1945,7 +1965,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestLocalClass('A');
+      assertSuggestLocalClass('A', elemOffset: 6);
       assertSuggestImportedClass('Object');
       assertNotSuggested('x');
     });
@@ -3983,6 +4003,35 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertNotSuggested('a');
       assertNotSuggested('Object');
       assertNotSuggested('==');
+    });
+  }
+
+  test_SwitchStatement_c() {
+    // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('class A {String g(int x) {switch(x) {c^}}}');
+    computeFast();
+    return computeFull((bool result) {
+      assertNoSuggestions();
+    });
+  }
+
+  test_SwitchStatement_case() {
+    // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('class A {String g(int x) {switch(x) {case 0: ^}}}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestLocalClass('A');
+      assertSuggestLocalMethod('g', 'A', 'String');
+      assertSuggestImportedClass('String');
+    });
+  }
+
+  test_SwitchStatement_empty() {
+    // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('class A {String g(int x) {switch(x) {^}}}');
+    computeFast();
+    return computeFull((bool result) {
+      assertNoSuggestions();
     });
   }
 

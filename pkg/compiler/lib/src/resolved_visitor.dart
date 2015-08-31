@@ -327,10 +327,13 @@ class ResolvedSemanticDispatcher<R> extends Object
       Node node,
       String message,
       ResolvedKindVisitor<R> visitor) {
-    return bulkHandleError(node, visitor);
+    return bulkHandleError(node, null, visitor);
   }
 
-  R bulkHandleError(Node node, ResolvedKindVisitor<R> visitor) {
+  R bulkHandleError(
+      Node node,
+      ErroneousElement error,
+      ResolvedKindVisitor<R> visitor) {
     if (node.asSendSet() != null) {
       return visitor.handleSendSet(node);
     } else if (node.asNewExpression() != null) {
@@ -386,6 +389,13 @@ class ResolvedSemanticDispatcher<R> extends Object
   @override
   R bulkHandleNew(NewExpression node, ResolvedKindVisitor<R> visitor) {
     return visitor.handleNewExpression(node);
+  }
+
+  @override
+  void previsitDeferredAccess(
+      Send node,
+      PrefixElement prefix,
+      ResolvedKindVisitor<R> visitor) {
   }
 
   @override
@@ -804,5 +814,15 @@ class ResolvedSemanticDispatcher<R> extends Object
       Node index,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitSuperSend(node);
+  }
+
+  @override
+  R visitLocalFunctionIncompatibleInvoke(
+      Send node,
+      LocalFunctionElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      ResolvedKindVisitor<R> visitor) {
+    return visitor.visitClosureSend(node);
   }
 }

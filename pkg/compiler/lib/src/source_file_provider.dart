@@ -10,12 +10,14 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import '../compiler.dart' as api show Diagnostic, DiagnosticHandler;
+import '../compiler_new.dart' as api show CompilerInput, CompilerDiagnostics;
 import 'dart2js.dart' show AbortLeg;
 import 'colors.dart' as colors;
 import 'io/source_file.dart';
 import 'filenames.dart';
 import 'util/uri_extras.dart';
 import 'dart:typed_data';
+import '../compiler_new.dart';
 
 List<int> readAll(String filename) {
   var file = (new File(filename)).openSync();
@@ -27,7 +29,7 @@ List<int> readAll(String filename) {
   return buffer;
 }
 
-abstract class SourceFileProvider {
+abstract class SourceFileProvider implements CompilerInput {
   bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = currentDirectory;
   Map<Uri, SourceFile> sourceFiles = <Uri, SourceFile>{};
@@ -100,16 +102,27 @@ abstract class SourceFileProvider {
          });
   }
 
+  // TODO(johnniwinther): Remove this when no longer needed for the old compiler
+  // API.
   Future/*<List<int> | String>*/ call(Uri resourceUri);
 
   relativizeUri(Uri uri) => relativize(cwd, uri, isWindows);
+
+  SourceFile getSourceFile(Uri resourceUri) {
+    return sourceFiles[resourceUri];
+  }
 }
 
 class CompilerSourceFileProvider extends SourceFileProvider {
-  Future<List<int>> call(Uri resourceUri) => readUtf8BytesFromUri(resourceUri);
+  // TODO(johnniwinther): Remove this when no longer needed for the old compiler
+  // API.
+  Future<List<int>> call(Uri resourceUri) => readFromUri(resourceUri);
+
+  @override
+  Future readFromUri(Uri uri) => readUtf8BytesFromUri(uri);
 }
 
-class FormattingDiagnosticHandler {
+class FormattingDiagnosticHandler implements CompilerDiagnostics {
   final SourceFileProvider provider;
   bool showWarnings = true;
   bool showHints = true;
@@ -156,8 +169,9 @@ class FormattingDiagnosticHandler {
     throw 'Unexpected diagnostic kind: $kind (${kind.ordinal})';
   }
 
-  void diagnosticHandler(Uri uri, int begin, int end, String message,
-                         api.Diagnostic kind) {
+  @override
+  void report(var code, Uri uri, int begin, int end, String message,
+              api.Diagnostic kind) {
     // TODO(ahe): Remove this when source map is handled differently.
     if (identical(kind.name, 'source map')) return;
 
@@ -173,10 +187,9 @@ class FormattingDiagnosticHandler {
 
     message = prefixMessage(message, kind);
 
-    // [previousKind]/[lastKind] records the previous non-INFO kind we saw.
+    // [lastKind] records the previous non-INFO kind we saw.
     // This is used to suppress info about a warning when warnings are
     // suppressed, and similar for hints.
-    var previousKind = lastKind;
     if (kind != api.Diagnostic.INFO) {
       lastKind = kind;
     }
@@ -220,8 +233,10 @@ class FormattingDiagnosticHandler {
     }
   }
 
+  // TODO(johnniwinther): Remove this when no longer needed for the old compiler
+  // API.
   void call(Uri uri, int begin, int end, String message, api.Diagnostic kind) {
-    return diagnosticHandler(uri, begin, end, message, kind);
+    return report(null, uri, begin, end, message, kind);
   }
 }
 
@@ -254,7 +269,6 @@ class RandomAccessFileOutputProvider {
 
   EventSink<String> call(String name, String extension) {
     Uri uri;
-    String sourceMapFileName;
     bool isPrimaryOutput = false;
     // TODO (johnniwinther, sigurdm): Make a better interface for
     // output-providers.
@@ -264,8 +278,6 @@ class RandomAccessFileOutputProvider {
       if (extension == 'js' || extension == 'dart') {
         isPrimaryOutput = true;
         uri = out;
-        sourceMapFileName =
-            sourceMapOut.path.substring(sourceMapOut.path.lastIndexOf('/') + 1);
       } else if (extension == 'precompiled.js') {
         uri = computePrecompiledUri(out);
         onInfo("File ($uri) is compatible with header"

@@ -249,6 +249,13 @@ int LocalScope::AllocateVariables(int first_parameter_index,
 }
 
 
+// The parser creates internal variables that start with ":"
+static bool IsInternalIdentifier(const String& str) {
+  ASSERT(str.Length() > 0);
+  return str.CharAt(0) == ':';
+}
+
+
 RawLocalVarDescriptors* LocalScope::GetVarDescriptors(const Function& func) {
   GrowableArray<VarDesc> vars(8);
   // First enter all variables from scopes of outer functions.
@@ -257,9 +264,19 @@ RawLocalVarDescriptors* LocalScope::GetVarDescriptors(const Function& func) {
   if (!context_scope.IsNull()) {
     ASSERT(func.IsLocalFunction());
     for (int i = 0; i < context_scope.num_variables(); i++) {
+      String& name = String::Handle(context_scope.NameAt(i));
+      RawLocalVarDescriptors::VarInfoKind kind;
+      if (!IsInternalIdentifier(name)) {
+        kind = RawLocalVarDescriptors::kContextVar;
+      } else if (name.raw() == Symbols::AsyncOperation().raw()) {
+        kind = RawLocalVarDescriptors::kAsyncOperation;
+      } else {
+        continue;
+      }
+
       VarDesc desc;
-      desc.name = &String::Handle(context_scope.NameAt(i));
-      desc.info.set_kind(RawLocalVarDescriptors::kContextVar);
+      desc.name = &name;
+      desc.info.set_kind(kind);
       desc.info.scope_id = context_scope.ContextLevelAt(i);
       desc.info.begin_pos = begin_token_pos();
       desc.info.end_pos = end_token_pos();
@@ -281,13 +298,6 @@ RawLocalVarDescriptors* LocalScope::GetVarDescriptors(const Function& func) {
     var_desc.SetVar(i, *(vars[i].name), &vars[i].info);
   }
   return var_desc.raw();
-}
-
-
-// The parser creates internal variables that start with ":"
-static bool IsInternalIdentifier(const String& str) {
-  ASSERT(str.Length() > 0);
-  return str.CharAt(0) == ':';
 }
 
 
@@ -333,6 +343,23 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
         desc.name = &var->name();
         desc.info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
         desc.info.scope_id = 0;
+        desc.info.begin_pos = 0;
+        desc.info.end_pos = 0;
+        desc.info.set_index(var->index());
+        vars->Add(desc);
+      } else if (var->name().raw() == Symbols::AsyncOperation().raw()) {
+        // The async continuation.
+        ASSERT(var->is_captured());
+        VarDesc desc;
+        desc.name = &var->name();
+        desc.info.set_kind(RawLocalVarDescriptors::kAsyncOperation);
+        if (var->is_captured()) {
+          ASSERT(var->owner() != NULL);
+          ASSERT(var->owner()->context_level() >= 0);
+          desc.info.scope_id = var->owner()->context_level();
+        } else {
+          desc.info.scope_id = *scope_id;
+        }
         desc.info.begin_pos = 0;
         desc.info.end_pos = 0;
         desc.info.set_index(var->index());

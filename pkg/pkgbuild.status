@@ -12,12 +12,13 @@ samples/third_party/angular_todo: Fail # angular needs to be updated
 samples/third_party/todomvc_performance: Skip # dependencies are not in the repo
 
 [ $use_public_packages ]
+pkg/compiler: SkipByDesign # js_ast is not published
 samples/third_party/angular_todo: Pass, Slow
-third_party/pkg/async_await: Skip # Uses expect package.
 samples/third_party/todomvc_performance: Pass, Slow
 
 [ $builder_tag == russian ]
 samples/third_party/angular_todo: Fail # Issue 16356
+samples/third_party/dromaeo: Fail # Issue 23760
 
 [ $use_public_packages && $system == windows ]
 samples/third_party/todomvc_performance: Fail # Issue 18086

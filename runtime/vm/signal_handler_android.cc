@@ -12,7 +12,9 @@ namespace dart {
 uintptr_t SignalHandler::GetProgramCounter(const mcontext_t& mcontext) {
   uintptr_t pc = 0;
 
-#if defined(HOST_ARCH_ARM)
+#if defined(HOST_ARCH_IA32)
+  pc = static_cast<uintptr_t>(mcontext.gregs[REG_EIP]);
+#elif defined(HOST_ARCH_ARM)
   pc = static_cast<uintptr_t>(mcontext.arm_pc);
 #elif defined(HOST_ARCH_ARM64)
   pc = static_cast<uintptr_t>(mcontext.pc);
@@ -26,7 +28,9 @@ uintptr_t SignalHandler::GetProgramCounter(const mcontext_t& mcontext) {
 uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
   uintptr_t fp = 0;
 
-#if defined(HOST_ARCH_ARM)
+#if defined(HOST_ARCH_IA32)
+  fp = static_cast<uintptr_t>(mcontext.gregs[REG_EBP]);
+#elif defined(HOST_ARCH_ARM)
   fp = static_cast<uintptr_t>(mcontext.arm_fp);
 #elif defined(HOST_ARCH_ARM64)
   fp = static_cast<uintptr_t>(mcontext.regs[29]);
@@ -41,7 +45,9 @@ uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
 uintptr_t SignalHandler::GetCStackPointer(const mcontext_t& mcontext) {
   uintptr_t sp = 0;
 
-#if defined(HOST_ARCH_ARM)
+#if defined(HOST_ARCH_IA32)
+  sp = static_cast<uintptr_t>(mcontext.gregs[REG_ESP]);
+#elif defined(HOST_ARCH_ARM)
   sp = static_cast<uintptr_t>(mcontext.arm_sp);
 #elif defined(HOST_ARCH_ARM64)
   sp = static_cast<uintptr_t>(mcontext.sp);
@@ -55,7 +61,9 @@ uintptr_t SignalHandler::GetCStackPointer(const mcontext_t& mcontext) {
 uintptr_t SignalHandler::GetDartStackPointer(const mcontext_t& mcontext) {
   uintptr_t sp = 0;
 
-#if defined(HOST_ARCH_ARM)
+#if defined(HOST_ARCH_IA32)
+  sp = static_cast<uintptr_t>(mcontext.gregs[REG_ESP]);
+#elif defined(HOST_ARCH_ARM)
   sp = static_cast<uintptr_t>(mcontext.arm_sp);
 #elif defined(HOST_ARCH_ARM64)
   sp = static_cast<uintptr_t>(mcontext.regs[18]);
@@ -68,7 +76,10 @@ uintptr_t SignalHandler::GetDartStackPointer(const mcontext_t& mcontext) {
 
 uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
   uintptr_t lr = 0;
-#if defined(HOST_ARCH_ARM)
+
+#if defined(HOST_ARCH_IA32)
+  lr = 0;
+#elif defined(HOST_ARCH_ARM)
   lr = static_cast<uintptr_t>(mcontext.arm_lr);
 #elif defined(HOST_ARCH_ARM64)
   lr = static_cast<uintptr_t>(mcontext.regs[30]);

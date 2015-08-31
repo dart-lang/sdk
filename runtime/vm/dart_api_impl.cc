@@ -36,6 +36,7 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
+#include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/unicode.h"
 #include "vm/verifier.h"
@@ -69,6 +70,49 @@ const char* CanonicalFunction(const char* func) {
     return func;
   }
 }
+
+
+#if defined(DEBUG)
+// An object visitor which will iterate over all the function objects in the
+// heap and check if the result type and parameter types are canonicalized
+// or not. An assertion is raised if a type is not canonicalized.
+class FunctionVisitor : public ObjectVisitor {
+ public:
+  explicit FunctionVisitor(Isolate* isolate) :
+      ObjectVisitor(isolate),
+      classHandle_(Class::Handle(isolate)),
+      funcHandle_(Function::Handle(isolate)),
+      typeHandle_(AbstractType::Handle(isolate)) {}
+
+  void VisitObject(RawObject* obj) {
+    if (obj->IsFunction()) {
+      funcHandle_ ^= obj;
+      classHandle_ ^= funcHandle_.Owner();
+      // Verify that the result type of a function is canonical or a
+      // TypeParameter.
+      typeHandle_ ^= funcHandle_.result_type();
+      ASSERT(typeHandle_.IsNull() ||
+             !typeHandle_.IsResolved() ||
+             typeHandle_.IsTypeParameter() ||
+             typeHandle_.IsCanonical());
+      // Verify that the types in the function signature are all canonical or
+      // a TypeParameter.
+      const intptr_t num_parameters = funcHandle_.NumParameters();
+      for (intptr_t i = 0; i < num_parameters; i++) {
+        typeHandle_ = funcHandle_.ParameterTypeAt(i);
+        ASSERT(typeHandle_.IsTypeParameter() ||
+               !typeHandle_.IsResolved() ||
+               typeHandle_.IsCanonical());
+      }
+    }
+  }
+
+ private:
+  Class& classHandle_;
+  Function& funcHandle_;
+  AbstractType& typeHandle_;
+};
+#endif  // #if defined(DEBUG).
 
 
 static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
@@ -309,7 +353,7 @@ Dart_Handle Api::InitNewHandle(Isolate* isolate, RawObject* raw) {
   ASSERT(local_handles != NULL);
   LocalHandle* ref = local_handles->AllocateHandle();
   ref->set_raw(raw);
-  return reinterpret_cast<Dart_Handle>(ref);
+  return ref->apiHandle();
 }
 
 
@@ -335,7 +379,7 @@ RawObject* Api::UnwrapHandle(Dart_Handle object) {
   ASSERT(state != NULL);
   ASSERT(!FLAG_verify_handles ||
          state->IsValidLocalHandle(object) ||
-         Dart::vm_isolate()->api_state()->IsValidLocalHandle(object));
+         Dart::IsReadOnlyApiHandle(object));
   ASSERT(FinalizablePersistentHandle::raw_offset() == 0 &&
          PersistentHandle::raw_offset() == 0 &&
          LocalHandle::raw_offset() == 0);
@@ -398,7 +442,9 @@ Dart_Isolate Api::CastIsolate(Isolate* isolate) {
 
 
 Dart_Handle Api::NewError(const char* format, ...) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
 
@@ -407,13 +453,13 @@ Dart_Handle Api::NewError(const char* format, ...) {
   intptr_t len = OS::VSNPrint(NULL, 0, format, args);
   va_end(args);
 
-  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
+  char* buffer = zone->Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, format);
   OS::VSNPrint(buffer, (len + 1), format, args2);
   va_end(args2);
 
-  const String& message = String::Handle(isolate, String::New(buffer));
+  const String& message = String::Handle(zone, String::New(buffer));
   return Api::NewHandle(isolate, ApiError::New(message));
 }
 
@@ -452,23 +498,32 @@ void Api::InitOnce() {
 }
 
 
+static Dart_Handle InitNewReadOnlyApiHandle(RawObject* raw) {
+  ASSERT(raw->IsVMHeapObject());
+  LocalHandle* ref = Dart::AllocateReadOnlyApiHandle();
+  ref->set_raw(raw);
+  return ref->apiHandle();
+}
+
+
 void Api::InitHandles() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ASSERT(isolate == Dart::vm_isolate());
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
+
   ASSERT(true_handle_ == NULL);
-  true_handle_ = Api::InitNewHandle(isolate, Bool::True().raw());
+  true_handle_ = InitNewReadOnlyApiHandle(Bool::True().raw());
 
   ASSERT(false_handle_ == NULL);
-  false_handle_ = Api::InitNewHandle(isolate, Bool::False().raw());
+  false_handle_ = InitNewReadOnlyApiHandle(Bool::False().raw());
 
   ASSERT(null_handle_ == NULL);
-  null_handle_ = Api::InitNewHandle(isolate, Object::null());
+  null_handle_ = InitNewReadOnlyApiHandle(Object::null());
 
   ASSERT(empty_string_handle_ == NULL);
-  empty_string_handle_ = Api::InitNewHandle(isolate, Symbols::Empty().raw());
+  empty_string_handle_ = InitNewReadOnlyApiHandle(Symbols::Empty().raw());
 }
 
 
@@ -764,9 +819,15 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
 
-  const Instance& obj = Api::UnwrapInstanceHandle(isolate, exception);
-  if (obj.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, exception, Instance);
+  Instance& obj = Instance::Handle(isolate);
+  intptr_t class_id = Api::ClassId(exception);
+  if ((class_id == kApiErrorCid) || (class_id == kLanguageErrorCid)) {
+    obj = String::New(::Dart_GetError(exception));
+  } else {
+    obj = Api::UnwrapInstanceHandle(isolate, exception).raw();
+    if (obj.IsNull()) {
+      RETURN_TYPE_ERROR(isolate, exception, Instance);
+    }
   }
   const Stacktrace& stacktrace = Stacktrace::Handle(isolate);
   return Api::NewHandle(isolate, UnhandledException::New(obj, stacktrace));
@@ -1303,28 +1364,31 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
   }
   Isolate* isolate = Dart::CreateIsolate(isolate_name, *flags);
   free(isolate_name);
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
-  // We enter an API scope here as InitializeIsolate could compile some
-  // bootstrap library files which call out to a tag handler that may create
-  // Api Handles when an error is encountered.
-  Dart_EnterScope();
-  const Error& error_obj =
-      Error::Handle(isolate, Dart::InitializeIsolate(snapshot, callback_data));
-  if (error_obj.IsNull()) {
-#if defined(DART_NO_SNAPSHOT)
-    if (FLAG_check_function_fingerprints) {
-      Library::CheckFunctionFingerprints();
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    // We enter an API scope here as InitializeIsolate could compile some
+    // bootstrap library files which call out to a tag handler that may create
+    // Api Handles when an error is encountered.
+    Dart_EnterScope();
+    const Error& error_obj =
+        Error::Handle(isolate,
+                      Dart::InitializeIsolate(snapshot, callback_data));
+    if (error_obj.IsNull()) {
+  #if defined(DART_NO_SNAPSHOT)
+      if (FLAG_check_function_fingerprints) {
+        Library::CheckFunctionFingerprints();
+      }
+  #endif  // defined(DART_NO_SNAPSHOT).
+      // We exit the API scope entered above.
+      Dart_ExitScope();
+      START_TIMER(isolate, time_total_runtime);
+      return Api::CastIsolate(isolate);
     }
-#endif  // defined(DART_NO_SNAPSHOT).
+    *error = strdup(error_obj.ToErrorCString());
     // We exit the API scope entered above.
     Dart_ExitScope();
-    START_TIMER(isolate, time_total_runtime);
-    return Api::CastIsolate(isolate);
   }
-  *error = strdup(error_obj.ToErrorCString());
-  // We exit the API scope entered above.
-  Dart_ExitScope();
   Dart::ShutdownIsolate();
   return reinterpret_cast<Dart_Isolate>(NULL);
 }
@@ -1378,7 +1442,7 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
   // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  if (iso->mutator_thread() != NULL) {
+  if (iso->HasMutatorThread()) {
     FATAL("Multiple mutators within one isolate is not supported.");
   }
   Thread::EnsureInit();
@@ -1463,6 +1527,12 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
   if (::Dart_IsError(state)) {
     return state;
   }
+  isolate->heap()->CollectAllGarbage();
+#if defined(DEBUG)
+  FunctionVisitor check_canonical(isolate);
+  isolate->heap()->IterateObjects(&check_canonical);
+#endif  // #if defined(DEBUG).
+
   // Since this is only a snapshot the root library should not be set.
   isolate->object_store()->set_root_library(Library::Handle(isolate));
   FullSnapshotWriter writer(vm_isolate_snapshot_buffer,
@@ -1475,8 +1545,9 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
 }
 
 
-DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
-                                                  intptr_t* size) {
+static Dart_Handle createLibrarySnapshot(Dart_Handle library,
+                                         uint8_t** buffer,
+                                         intptr_t* size) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   TIMERSCOPE(isolate, time_creating_snapshot);
@@ -1491,17 +1562,34 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
   if (::Dart_IsError(state)) {
     return state;
   }
-  Library& library =
-      Library::Handle(isolate, isolate->object_store()->root_library());
-  if (library.IsNull()) {
-    return
-        Api::NewError("%s expects the isolate to have a script loaded in it.",
-                      CURRENT_FUNC);
+  Library& lib = Library::Handle(isolate);
+  if (library == Dart_Null()) {
+    lib ^= isolate->object_store()->root_library();
+  } else {
+    lib ^= Api::UnwrapHandle(library);
   }
+  isolate->heap()->CollectAllGarbage();
+#if defined(DEBUG)
+  FunctionVisitor check_canonical(isolate);
+  isolate->heap()->IterateObjects(&check_canonical);
+#endif  // #if defined(DEBUG).
   ScriptSnapshotWriter writer(buffer, ApiReallocate);
-  writer.WriteScriptSnapshot(library);
+  writer.WriteScriptSnapshot(lib);
   *size = writer.BytesWritten();
   return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
+                                                  intptr_t* size) {
+  return createLibrarySnapshot(Dart_Null(), buffer, size);
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreateLibrarySnapshot(Dart_Handle library,
+                                                   uint8_t** buffer,
+                                                   intptr_t* size) {
+  return createLibrarySnapshot(library, buffer, size);
 }
 
 
@@ -1693,19 +1781,20 @@ DART_EXPORT Dart_Port Dart_GetMainPortId() {
 // --- Scopes ----
 
 DART_EXPORT void Dart_EnterScope() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   ApiLocalScope* new_scope = state->reusable_scope();
   if (new_scope == NULL) {
     new_scope = new ApiLocalScope(state->top_scope(),
-                                  isolate->top_exit_frame_info());
+                                  thread->top_exit_frame_info());
     ASSERT(new_scope != NULL);
   } else {
-    new_scope->Reinit(isolate,
+    new_scope->Reinit(thread,
                       state->top_scope(),
-                      isolate->top_exit_frame_info());
+                      thread->top_exit_frame_info());
     state->set_reusable_scope(NULL);
   }
   state->set_top_scope(new_scope);  // New scope is now the top scope.
@@ -1713,14 +1802,15 @@ DART_EXPORT void Dart_EnterScope() {
 
 
 DART_EXPORT void Dart_ExitScope() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   CHECK_ISOLATE_SCOPE(isolate);
   ApiState* state = isolate->api_state();
   ApiLocalScope* scope = state->top_scope();
   ApiLocalScope* reusable_scope = state->reusable_scope();
   state->set_top_scope(scope->previous());  // Reset top scope to previous.
   if (reusable_scope == NULL) {
-    scope->Reset(isolate);  // Reset the old scope which we just exited.
+    scope->Reset(thread);  // Reset the old scope which we just exited.
     state->set_reusable_scope(scope);
   } else {
     ASSERT(reusable_scope != scope);
@@ -3507,7 +3597,8 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
                                                   Dart_TypedData_Type* type,
                                                   void** data,
                                                   intptr_t* len) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   DARTSCOPE(isolate);
   intptr_t class_id = Api::ClassId(object);
   if (!RawObject::IsExternalTypedDataClassId(class_id) &&
@@ -3545,7 +3636,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     ASSERT(!obj.IsNull());
     length = obj.Length();
     size_in_bytes = length * TypedData::ElementSizeInBytes(class_id);
-    isolate->IncrementNoSafepointScopeDepth();
+    thread->IncrementNoSafepointScopeDepth();
     START_NO_CALLBACK_SCOPE(isolate);
     data_tmp = obj.DataAddr(0);
   } else {
@@ -3559,7 +3650,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     val ^= TypedDataView::OffsetInBytes(view_obj);
     intptr_t offset_in_bytes = val.Value();
     const Instance& obj = Instance::Handle(TypedDataView::Data(view_obj));
-    isolate->IncrementNoSafepointScopeDepth();
+    thread->IncrementNoSafepointScopeDepth();
     START_NO_CALLBACK_SCOPE(isolate);
     if (TypedData::IsTypedData(obj)) {
       const TypedData& data_obj = TypedData::Cast(obj);
@@ -3572,6 +3663,11 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     }
   }
   if (FLAG_verify_acquired_data) {
+    if (external) {
+      ASSERT(!isolate->heap()->Contains(reinterpret_cast<uword>(data_tmp)));
+    } else {
+      ASSERT(isolate->heap()->Contains(reinterpret_cast<uword>(data_tmp)));
+    }
     const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
     WeakTable* table = isolate->api_state()->acquired_table();
     intptr_t current = table->GetValue(obj.raw());
@@ -3592,7 +3688,8 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
 
 
 DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   DARTSCOPE(isolate);
   intptr_t class_id = Api::ClassId(object);
   if (!RawObject::IsExternalTypedDataClassId(class_id) &&
@@ -3601,7 +3698,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
     RETURN_TYPE_ERROR(isolate, object, 'TypedData');
   }
   if (!RawObject::IsExternalTypedDataClassId(class_id)) {
-    isolate->DecrementNoSafepointScopeDepth();
+    thread->DecrementNoSafepointScopeDepth();
     END_NO_CALLBACK_SCOPE(isolate);
   }
   if (FLAG_verify_acquired_data) {
@@ -5607,6 +5704,171 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
     Dart_ServiceRequestCallback callback,
     void* user_data) {
   Service::RegisterRootEmbedderCallback(name, callback, user_data);
+}
+
+
+DART_EXPORT Dart_Handle Dart_SetServiceStreamCallbacks(
+    Dart_ServiceStreamListenCallback listen_callback,
+    Dart_ServiceStreamCancelCallback cancel_callback) {
+  if (listen_callback != NULL) {
+    if (Service::stream_listen_callback() != NULL) {
+      return Api::NewError(
+          "%s permits only one listen callback to be registered, please "
+          "remove the existing callback and then add this callback",
+          CURRENT_FUNC);
+    }
+  } else {
+    if (Service::stream_listen_callback() == NULL) {
+      return Api::NewError(
+          "%s expects 'listen_callback' to be present in the callback set.",
+          CURRENT_FUNC);
+    }
+  }
+  if (cancel_callback != NULL) {
+    if (Service::stream_cancel_callback() != NULL) {
+      return Api::NewError(
+          "%s permits only one cancel callback to be registered, please "
+          "remove the existing callback and then add this callback",
+          CURRENT_FUNC);
+    }
+  } else {
+    if (Service::stream_cancel_callback() == NULL) {
+      return Api::NewError(
+          "%s expects 'cancel_callback' to be present in the callback set.",
+          CURRENT_FUNC);
+    }
+  }
+  Service::SetEmbedderStreamCallbacks(listen_callback, cancel_callback);
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
+                                                  const char* event_kind,
+                                                  const uint8_t* bytes,
+                                                  intptr_t bytes_length) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (stream_id == NULL) {
+    RETURN_NULL_ERROR(stream_id);
+  }
+  if (event_kind == NULL) {
+    RETURN_NULL_ERROR(event_kind);
+  }
+  if (bytes == NULL) {
+    RETURN_NULL_ERROR(bytes);
+  }
+  if (bytes_length < 0) {
+    return Api::NewError("%s expects argument 'bytes_length' to be >= 0.",
+                         CURRENT_FUNC);
+  }
+  Service::SendEmbedderEvent(isolate, stream_id, event_kind,
+                             bytes, bytes_length);
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_TimelineDuration(const char* label,
+                                              int64_t start_micros,
+                                              int64_t end_micros) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (label == NULL) {
+    RETURN_NULL_ERROR(label);
+  }
+  if (start_micros > end_micros) {
+    const char* msg = "%s: start_micros must be <= end_micros";
+    return Api::NewError(msg, CURRENT_FUNC);
+  }
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  ASSERT(stream != NULL);
+  TimelineEvent* event = stream->StartEvent();
+  if (event != NULL) {
+    event->Duration(label, start_micros, end_micros);
+    event->Complete();
+  }
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_TimelineInstant(const char* label) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (label == NULL) {
+    RETURN_NULL_ERROR(label);
+  }
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  ASSERT(stream != NULL);
+  TimelineEvent* event = stream->StartEvent();
+  if (event != NULL) {
+    event->Instant(label);
+    event->Complete();
+  }
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_TimelineAsyncBegin(const char* label,
+                                                int64_t* async_id) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (label == NULL) {
+    RETURN_NULL_ERROR(label);
+  }
+  if (async_id == NULL) {
+    RETURN_NULL_ERROR(async_id);
+  }
+  *async_id = -1;
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  ASSERT(stream != NULL);
+  TimelineEvent* event = stream->StartEvent();
+  if (event != NULL) {
+    *async_id = event->AsyncBegin(label);
+    event->Complete();
+  }
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_TimelineAsyncInstant(const char* label,
+                                                  int64_t async_id) {
+  if (async_id < 0) {
+    return Api::Success();
+  }
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (label == NULL) {
+    RETURN_NULL_ERROR(label);
+  }
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  ASSERT(stream != NULL);
+  TimelineEvent* event = stream->StartEvent();
+  if (event != NULL) {
+    event->AsyncInstant(label, async_id);
+    event->Complete();
+  }
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
+                                              int64_t async_id) {
+  if (async_id < 0) {
+    return Api::Success();
+  }
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (label == NULL) {
+    RETURN_NULL_ERROR(label);
+  }
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  ASSERT(stream != NULL);
+  TimelineEvent* event = stream->StartEvent();
+  if (event != NULL) {
+    event->AsyncEnd(label, async_id);
+    event->Complete();
+  }
+  return Api::Success();
 }
 
 }  // namespace dart

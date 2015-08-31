@@ -693,7 +693,8 @@ class Listener {
   void reportError(Spannable spannable,
                    MessageKind messageKind,
                    [Map arguments = const {}]) {
-    String message = messageKind.message(arguments, true).toString();
+    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
+    String message = template.message(arguments, true).toString();
     Token token;
     if (spannable is Token) {
       token = spannable;
@@ -746,9 +747,6 @@ class Listener {
           break;
       }
       reportError(token, kind, arguments);
-    } else if (token is UnsupportedNullAwareToken) {
-      reportError(token, MessageKind.NULL_AWARE_OPERATORS_DISABLED,
-          {'operator' : token.operator});
     } else if (token is UnmatchedToken) {
       String begin = token.begin.value;
       String end = closeBraceFor(begin);
@@ -945,10 +943,9 @@ class ElementListener extends Listener {
   void endClassDeclaration(int interfacesCount, Token beginToken,
                            Token extendsKeyword, Token implementsKeyword,
                            Token endToken) {
-    NodeList interfaces =
-        makeNodeList(interfacesCount, implementsKeyword, null, ",");
-    Node supertype = popNode();
-    NodeList typeParameters = popNode();
+    makeNodeList(interfacesCount, implementsKeyword, null, ","); // interfaces
+    popNode(); // superType
+    popNode(); // typeParameters
     Identifier name = popNode();
     int id = idGenerator();
     PartialClassElement element = new PartialClassElement(
@@ -967,9 +964,9 @@ class ElementListener extends Listener {
   }
 
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
-    NodeList typeVariables = popNode(); // TOOD(karlklose): do not throw away.
+    popNode(); // TODO(karlklose): do not throw away typeVariables.
     Identifier name = popNode();
-    TypeAnnotation returnType = popNode();
+    popNode(); // returnType
     pushElement(
         new PartialTypedefElement(
             name.source, compilationUnitElement, typedefKeyword, endToken));
@@ -1010,7 +1007,7 @@ class ElementListener extends Listener {
     bool hasParseError = currentMemberHasParseError;
     memberErrors = memberErrors.tail;
     Identifier name = popNode();
-    TypeAnnotation type = popNode();
+    popNode(); // type
     Modifiers modifiers = popNode();
     PartialFunctionElement element = new PartialFunctionElement(
         name.source, beginToken, getOrSet, endToken,
@@ -1027,7 +1024,7 @@ class ElementListener extends Listener {
           new FieldElementX(name, compilationUnitElement, fields));
     }
     NodeList variables = makeNodeList(count, null, null, ",");
-    TypeAnnotation type = popNode();
+    popNode(); // type
     Modifiers modifiers = popNode();
     buildFieldElements(modifiers, variables, compilationUnitElement,
                        buildFieldElement,
@@ -1135,8 +1132,8 @@ class ElementListener extends Listener {
     } else {
       reportFatalError(
           token,
-          MessageKind.MISSING_TOKEN_BEFORE_THIS.message(
-              {'token': string}, true).toString());
+          MessageTemplate.TEMPLATES[MessageKind.MISSING_TOKEN_BEFORE_THIS]
+              .message({'token': string}, true).toString());
     }
     return skipToEof(token);
   }
@@ -1553,10 +1550,10 @@ class NodeListener extends ElementListener {
   }
 
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
-    Statement body = popNode();
-    NodeList formalParameters = popNode();
+    popNode(); // body
+    popNode(); // formalParameters
     Identifier name = popNode();
-    TypeAnnotation type = popNode();
+    popNode(); // type
     Modifiers modifiers = popNode();
     PartialFunctionElement element = new PartialFunctionElement(
         name.source, beginToken, getOrSet, endToken,
@@ -2569,12 +2566,17 @@ class PartialMetadataAnnotation extends MetadataAnnotationX
 
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
-    Metadata metadata = parse(listener,
-                              annotatedElement,
-                              declarationSite,
-                              (p) => p.parseMetadata(beginToken));
-    cachedNode = metadata.expression;
-    return cachedNode;
+    var metadata = parse(listener,
+                         annotatedElement,
+                         declarationSite,
+                         (p) => p.parseMetadata(beginToken));
+    if (metadata is Metadata) {
+      cachedNode = metadata.expression;
+      return cachedNode;
+    } else {
+      assert (metadata is ErrorNode);
+      return metadata;
+    }
   }
 
   bool get hasNode => cachedNode != null;

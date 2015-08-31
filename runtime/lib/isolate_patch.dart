@@ -274,13 +274,16 @@ patch class Isolate {
   /* patch */ static Isolate get current => _currentIsolate;
 
   /* patch */ static Future<Isolate> spawn(
-      void entryPoint(message), var message, { bool paused: false }) {
+      void entryPoint(message), var message,
+      {bool paused: false, bool errorsAreFatal,
+       SendPort onExit, SendPort onError}) {
     // `paused` isn't handled yet.
     RawReceivePort readyPort;
     try {
       // The VM will invoke [_startIsolate] with entryPoint as argument.
       readyPort = new RawReceivePort();
-      _spawnFunction(readyPort.sendPort, entryPoint, message, paused);
+      _spawnFunction(readyPort.sendPort, entryPoint, message,
+                     paused, errorsAreFatal, onExit, onError);
       Completer completer = new Completer<Isolate>.sync();
       readyPort.handler = (readyMessage) {
         readyPort.close();
@@ -298,12 +301,13 @@ patch class Isolate {
         readyPort.close();
       }
       return new Future<Isolate>.error(e, st);
-    };
+    }
   }
 
   /* patch */ static Future<Isolate> spawnUri(
       Uri uri, List<String> args, var message,
-      { bool paused: false, bool checked, Uri packageRoot }) {
+      {bool paused: false, bool checked, Uri packageRoot, bool errorsAreFatal,
+       SendPort onExit, SendPort onError}) {
     RawReceivePort readyPort;
     try {
       // The VM will invoke [_startIsolate] and not `main`.
@@ -311,7 +315,8 @@ patch class Isolate {
       var packageRootString =
           (packageRoot == null) ? null : packageRoot.toString();
       _spawnUri(readyPort.sendPort, uri.toString(), args, message,
-                paused, checked, packageRootString);
+                paused, checked, packageRootString,
+                errorsAreFatal, onExit, onError);
       Completer completer = new Completer<Isolate>.sync();
       readyPort.handler = (readyMessage) {
         readyPort.close();
@@ -329,7 +334,7 @@ patch class Isolate {
         readyPort.close();
       }
       return new Future<Isolate>.error(e, st);
-    };
+    }
     return completer.future;
   }
 
@@ -348,12 +353,14 @@ patch class Isolate {
 
 
   static void _spawnFunction(SendPort readyPort, Function topLevelFunction,
-                             var message, bool paused)
+                             var message, bool paused, bool errorsAreFatal,
+                             SendPort onExit, SendPort onError)
       native "Isolate_spawnFunction";
 
   static void _spawnUri(SendPort readyPort, String uri,
                         List<String> args, var message,
-                        bool paused, bool checked, String packageRoot)
+                        bool paused, bool checked, String packageRoot,
+                        bool errorsAreFatal, SendPort onExit, SendPort onError)
       native "Isolate_spawnUri";
 
   static void _sendOOB(port, msg) native "Isolate_sendOOB";

@@ -301,15 +301,22 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (instruction != null) return instruction;
 
     Selector selector = node.selector;
+    TypeMask mask = node.mask;
     HInstruction input = node.inputs[1];
 
     World world = compiler.world;
+
+    bool applies(Element element) {
+      return selector.applies(element, world) &&
+             (mask == null || mask.canHit(element, selector, world));
+    }
+
     if (selector.isCall || selector.isOperator) {
       Element target;
       if (input.isExtendableArray(compiler)) {
-        if (selector.applies(backend.jsArrayRemoveLast, world)) {
+        if (applies(backend.jsArrayRemoveLast)) {
           target = backend.jsArrayRemoveLast;
-        } else if (selector.applies(backend.jsArrayAdd, world)) {
+        } else if (applies(backend.jsArrayAdd)) {
           // The codegen special cases array calls, but does not
           // inline argument type checks.
           if (!compiler.enableTypeAssertions) {
@@ -317,12 +324,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
           }
         }
       } else if (input.isStringOrNull(compiler)) {
-        if (selector.applies(backend.jsStringSplit, world)) {
+        if (applies(backend.jsStringSplit)) {
           HInstruction argument = node.inputs[2];
           if (argument.isString(compiler)) {
             target = backend.jsStringSplit;
           }
-        } else if (selector.applies(backend.jsStringOperatorAdd, world)) {
+        } else if (applies(backend.jsStringOperatorAdd)) {
           // `operator+` is turned into a JavaScript '+' so we need to
           // make sure the receiver and the argument are not null.
           // TODO(sra): Do this via [node.specializer].
@@ -332,7 +339,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
             return new HStringConcat(input, argument, null,
                                      node.instructionType);
           }
-        } else if (selector.applies(backend.jsStringToString, world)
+        } else if (applies(backend.jsStringToString)
                    && !input.canBeNull()) {
           return input;
         }
@@ -347,12 +354,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // bounds check will become explicit, so we won't need this
         // optimization.
         HInvokeDynamicMethod result = new HInvokeDynamicMethod(
-            node.selector, node.inputs.sublist(1), node.instructionType);
+            node.selector, node.mask,
+            node.inputs.sublist(1), node.instructionType);
         result.element = target;
         return result;
       }
     } else if (selector.isGetter) {
-      if (selector.asUntyped.applies(backend.jsIndexableLength, world)) {
+      if (selector.applies(backend.jsIndexableLength, world)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
       }
@@ -368,15 +376,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     TypeMask receiverType = node.getDartReceiver(compiler).instructionType;
-    Selector selector =
-        new TypedSelector(receiverType, node.selector, compiler.world);
-    Element element = compiler.world.locateSingleElement(selector);
+    Element element =
+        compiler.world.locateSingleElement(node.selector, receiverType);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
     if (element != null
         && element.isFunction
         // If we found out that the only target is a [:noSuchMethod:],
         // we just ignore it.
-        && element.name == selector.name) {
+        && element.name == node.selector.name) {
       FunctionElement method = element;
 
       if (method.isNative) {
@@ -386,8 +393,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // TODO(ngeoffray): If the method has optional parameters,
         // we should pass the default values.
         FunctionSignature parameters = method.functionSignature;
-        if (parameters.optionalParameterCount == 0
-            || parameters.parameterCount == node.selector.argumentCount) {
+        if (parameters.optionalParameterCount == 0 ||
+            parameters.parameterCount ==
+                node.selector.argumentCount) {
           node.element = element;
         }
       }
@@ -426,8 +434,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     int inputPosition = 1;  // Skip receiver.
     bool canInline = true;
     signature.forEachParameter((ParameterElement element) {
-      if (inputPosition < inputs.length && canInline) {
-        HInstruction input = inputs[inputPosition++];
+      if (inputPosition++ < inputs.length && canInline) {
         DartType type = element.type.unalias(compiler);
         if (type is FunctionType) {
           canInline = false;
@@ -451,7 +458,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     TypeMask returnType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
     HInvokeDynamicMethod result =
-        new HInvokeDynamicMethod(node.selector, inputs, returnType);
+        new HInvokeDynamicMethod(node.selector, node.mask, inputs, returnType);
     result.element = method;
     return result;
   }
@@ -697,7 +704,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitTypeConversion(HTypeConversion node) {
-    HInstruction value = node.inputs[0];
     DartType type = node.typeExpression;
     if (type != null) {
       if (type.isMalformed) {
@@ -731,8 +737,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   VariableElement findConcreteFieldForDynamicAccess(HInstruction receiver,
                                                     Selector selector) {
     TypeMask receiverType = receiver.instructionType;
-    return compiler.world.locateSingleField(
-        new TypedSelector(receiverType, selector, compiler.world));
+    return compiler.world.locateSingleField(selector, receiverType);
   }
 
   HInstruction visitFieldGet(HFieldGet node) {
@@ -804,7 +809,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (folded != node) return folded;
     }
     HInstruction receiver = node.getDartReceiver(compiler);
-    Element field = findConcreteFieldForDynamicAccess(receiver, node.selector);
+    Element field = findConcreteFieldForDynamicAccess(
+        receiver, node.selector);
     if (field == null) return node;
     return directFieldGet(receiver, field);
   }
@@ -1037,6 +1043,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   Map<HInstruction, bool> trivialDeadStoreReceivers =
       new Maplet<HInstruction, bool>();
   bool eliminatedSideEffects = false;
+
   SsaDeadCodeEliminator(this.compiler, this.optimizer);
 
   HInstruction zapInstructionCache;
@@ -1044,7 +1051,9 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     if (zapInstructionCache == null) {
       // A constant with no type does not pollute types at phi nodes.
       ConstantValue constant =
-          new DummyConstantValue(const TypeMask.nonNullEmpty());
+          new SyntheticConstantValue(
+              SyntheticConstantKind.EMPTY_VALUE,
+              const TypeMask.nonNullEmpty());
       zapInstructionCache = analyzer.graph.addConstant(constant, compiler);
     }
     return zapInstructionCache;
@@ -1142,7 +1151,8 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       }
       return false;
     }
-    return instruction is HForeignNew
+    return instruction.isAllocation
+        && instruction.isPure()
         && trivialDeadStoreReceivers.putIfAbsent(instruction,
             () => instruction.usedBy.every(isDeadUse));
   }
@@ -1156,14 +1166,14 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     if (!instruction.usedBy.isEmpty) return false;
     if (isTrivialDeadStore(instruction)) return true;
     if (instruction.sideEffects.hasSideEffects()) return false;
-    if (instruction.canThrow()
-        && instruction.onlyThrowsNSM()
-        && hasFollowingThrowingNSM(instruction)) {
+    if (instruction.canThrow() &&
+        instruction.onlyThrowsNSM() &&
+        hasFollowingThrowingNSM(instruction)) {
       return true;
     }
     return !instruction.canThrow()
-           && instruction is !HParameterValue
-           && instruction is !HLocalSet;
+        && instruction is !HParameterValue
+        && instruction is !HLocalSet;
   }
 
   void visitGraph(HGraph graph) {

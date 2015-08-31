@@ -37,8 +37,8 @@ class Thread;
 #define CHECK_STACK_ALIGNMENT { }
 #else
 #define CHECK_STACK_ALIGNMENT {                                                \
-  uword (*func)() =                                                            \
-      reinterpret_cast<uword (*)()>(StubCode::GetStackPointerEntryPoint());    \
+  uword (*func)() = reinterpret_cast<uword (*)()>(                             \
+      StubCode::GetStackPointer_entry()->EntryPoint());                        \
   uword current_sp = func();                                                   \
   ASSERT(Utils::IsAligned(current_sp, OS::ActivationFrameAlignment()));        \
 }

@@ -416,7 +416,6 @@ class HtmlParser extends XmlParser {
       LineInfo_Location location = _lineInfo.getLocation(contentOffset);
       sc.Scanner scanner = new sc.Scanner(source,
           new sc.SubSequenceReader(contents, contentOffset), _errorListener);
-      scanner.enableNullAwareOperators = _options.enableNullAwareOperators;
       scanner.setSourceStart(location.lineNumber, location.columnNumber);
       sc.Token firstToken = scanner.tokenize();
       Parser parser = new Parser(source, _errorListener);
@@ -508,6 +507,7 @@ class HtmlParser extends XmlParser {
  * Instances of the class `HtmlScriptTagNode` represent a script tag within an HTML file that
  * references a Dart script.
  */
+@deprecated
 class HtmlScriptTagNode extends XmlTagNode {
   /**
    * The AST structure representing the Dart code within this tag.
@@ -563,6 +563,7 @@ class HtmlScriptTagNode extends XmlTagNode {
 /**
  * Instances of the class `HtmlUnit` represent the contents of an HTML file.
  */
+@deprecated
 class HtmlUnit extends XmlNode {
   /**
    * The first token in the token stream that was parsed to form this HTML unit.
@@ -1159,11 +1160,7 @@ class XmlExpression_Reference {
 
   int length = 0;
 
-  XmlExpression_Reference(Element element, int offset, int length) {
-    this.element = element;
-    this.offset = offset;
-    this.length = length;
-  }
+  XmlExpression_Reference(this.element, this.offset, this.length);
 }
 
 /**

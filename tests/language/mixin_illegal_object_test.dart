@@ -2,11 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class C0 extends Object
+// Object has a non-trivial constructor and hence cannot be used as mixin.
+
+class S { }
+
+class C0 extends S
 with Object                       /// 01: compile-time error
 { }
 
-class C1 = Object with Object;  /// 02: compile-time error
+class C1 = S with Object;         /// 02: compile-time error
 
 main() {
   new C0();

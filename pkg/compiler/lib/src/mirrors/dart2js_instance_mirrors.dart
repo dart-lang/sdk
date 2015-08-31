@@ -18,6 +18,10 @@ abstract class ObjectMirrorMixin implements ObjectMirror {
                         [Map<Symbol, dynamic> namedArguments]) {
     throw new UnsupportedError('ObjectMirror.invoke unsupported.');
   }
+
+  delegate(Invocation invocation) {
+    throw new UnsupportedError('ObjectMirror.delegate unsupported');
+  }
 }
 
 abstract class InstanceMirrorMixin implements InstanceMirror {
@@ -25,10 +29,6 @@ abstract class InstanceMirrorMixin implements InstanceMirror {
 
   get reflectee {
     throw new UnsupportedError('InstanceMirror.reflectee unsupported.');
-  }
-
-  delegate(Invocation invocation) {
-    throw new UnsupportedError('InstanceMirror.delegate unsupported');
   }
 }
 

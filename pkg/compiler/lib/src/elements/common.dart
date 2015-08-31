@@ -8,7 +8,6 @@ library elements.common;
 
 import '../dart2jslib.dart' show Compiler, isPrivateName;
 import '../dart_types.dart' show DartType, InterfaceType, FunctionType;
-import '../universe/universe.dart' show Selector;
 import '../util/util.dart' show Link;
 
 import 'elements.dart';
@@ -127,6 +126,28 @@ abstract class LibraryElementCommon implements LibraryElement {
   @override
   bool get isInternalLibrary =>
       isPlatformLibrary && canonicalUri.path.startsWith('_');
+
+  String getLibraryOrScriptName() {
+    if (hasLibraryName()) {
+      return getLibraryName();
+    } else {
+      // Use the file name as script name.
+      String path = canonicalUri.path;
+      return path.substring(path.lastIndexOf('/') + 1);
+    }
+  }
+
+  int compareTo(LibraryElement other) {
+    if (this == other) return 0;
+    return getLibraryOrScriptName().compareTo(other.getLibraryOrScriptName());
+  }
+}
+
+abstract class CompilationUnitElementCommon implements CompilationUnitElement {
+  int compareTo(CompilationUnitElement other) {
+    if (this == other) return 0;
+    return '${script.readableUri}'.compareTo('${other.script.readableUri}');
+  }
 }
 
 abstract class ClassElementCommon implements ClassElement {

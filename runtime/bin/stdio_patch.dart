@@ -32,7 +32,7 @@ patch class _StdIOUtils {
   static int _socketType(nativeSocket) {
     var result = _getSocketType(nativeSocket);
     if (result is OSError) {
-      throw new FileSystemException("Error retreiving socket type", result);
+      throw new FileSystemException("Error retreiving socket type", "", result);
     }
     return result;
   }

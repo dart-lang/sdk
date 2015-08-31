@@ -15,6 +15,8 @@ DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
 DEFINE_FLAG(charp, print_flow_graph_filter, NULL,
     "Print only IR of functions with matching names");
 
+DECLARE_FLAG(bool, trace_inlining_intervals);
+
 void BufferFormatter::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -136,6 +138,9 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
   }
   if (!instr->IsBlockEntry()) ISL_Print("    ");
   ISL_Print("%s", str);
+  if (FLAG_trace_inlining_intervals) {
+    ISL_Print(" iid: %" Pd "", instr->inlining_id());
+  }
 }
 
 
@@ -180,7 +185,7 @@ const char* CompileType::ToCString() const {
   char buffer[1024];
   BufferFormatter f(buffer, sizeof(buffer));
   PrintTo(&f);
-  return Isolate::Current()->current_zone()->MakeCopyOfString(buffer);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
 
@@ -247,7 +252,7 @@ const char* Instruction::ToCString() const {
   char buffer[1024];
   BufferFormatter f(buffer, sizeof(buffer));
   PrintTo(&f);
-  return Isolate::Current()->current_zone()->MakeCopyOfString(buffer);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
 
@@ -321,7 +326,7 @@ void ConstantInstr::PrintOperandsTo(BufferFormatter* f) const {
     f->Print("#%s", cstr);
   } else {
     const intptr_t pos = new_line - cstr;
-    char* buffer = Isolate::Current()->current_zone()->Alloc<char>(pos + 1);
+    char* buffer = Thread::Current()->zone()->Alloc<char>(pos + 1);
     strncpy(buffer, cstr, pos);
     buffer[pos] = '\0';
     f->Print("#%s\\n...", buffer);
@@ -351,7 +356,7 @@ const char* Range::ToCString(const Range* range) {
   char buffer[256];
   BufferFormatter f(buffer, sizeof(buffer));
   range->PrintTo(&f);
-  return Isolate::Current()->current_zone()->MakeCopyOfString(buffer);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
 
@@ -382,7 +387,7 @@ const char* RangeBoundary::ToCString() const {
   char buffer[256];
   BufferFormatter f(buffer, sizeof(buffer));
   PrintTo(&f);
-  return Isolate::Current()->current_zone()->MakeCopyOfString(buffer);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
 
@@ -1210,7 +1215,7 @@ const char* Environment::ToCString() const {
   char buffer[1024];
   BufferFormatter bf(buffer, 1024);
   PrintTo(&bf);
-  return Isolate::Current()->current_zone()->MakeCopyOfString(buffer);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
 }  // namespace dart

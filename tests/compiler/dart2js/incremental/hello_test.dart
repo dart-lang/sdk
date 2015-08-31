@@ -17,8 +17,11 @@ import 'package:dart2js_incremental/dart2js_incremental.dart' show
 import 'package:compiler/compiler.dart' show
     Diagnostic;
 
-import 'package:compiler/src/dart2jslib.dart' show
-    NullSink;
+import 'package:compiler/src/null_compiler_output.dart' show
+    NullCompilerOutput;
+
+import 'package:compiler/src/old_to_new_api.dart' show
+    LegacyCompilerDiagnostics;
 
 import 'package:async_helper/async_helper.dart' show
     asyncTest;
@@ -94,9 +97,9 @@ Future runTests(
     Uri packageRoot,
     MemorySourceFileProvider provider) {
   IncrementalCompiler compiler = new IncrementalCompiler(
-      diagnosticHandler: handler,
+      diagnosticHandler: new LegacyCompilerDiagnostics(handler),
       inputProvider: provider,
-      outputProvider: NullSink.outputProvider,
+      outputProvider: const NullCompilerOutput(),
       options: ['--analyze-main'],
       libraryRoot: libraryRoot,
       packageRoot: packageRoot);

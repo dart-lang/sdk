@@ -104,10 +104,11 @@ Expression climbPropertyAccess(AstNode node) {
  *
  * Returns the absolute (non-file) URI or `null`.
  */
-String findAbsoluteUri(AnalysisContext context, String path) {
-  Source fileSource = new NonExistingSource(path, null, UriKind.FILE_URI);
+String findNonFileUri(AnalysisContext context, String path) {
+  Source fileSource =
+      new NonExistingSource(path, toUri(path), UriKind.FILE_URI);
   Uri uri = context.sourceFactory.restoreUri(fileSource);
-  if (uri == null) {
+  if (uri == null || uri.scheme == 'file') {
     return null;
   }
   return uri.toString();

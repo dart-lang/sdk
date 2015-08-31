@@ -10,6 +10,9 @@
     'configurations': {
       'Dart_Linux_Base': {
         'abstract': 1,
+        'defines': [
+          '_FORTIFY_SOURCE=2',
+        ],
         'cflags': [
           '-Werror',
           '<@(common_gcc_warning_flags)',
@@ -25,6 +28,12 @@
           '-fno-exceptions',
           # '-fvisibility=hidden',
           # '-fvisibility-inlines-hidden',
+          '-fstack-protector',
+        ],
+        'ldflags': [
+          '-Wa,--noexecstack',
+          '-Wl,-z,now',
+          '-Wl,-z,relro',
         ],
       },
 
@@ -171,9 +180,13 @@
         'target_conditions': [
           ['_toolset=="target"', {
             'cflags': [
+              '-EL',
               '-march=mips32',
               '-mhard-float',
               '-fno-strict-overflow',
+            ],
+            'ldflags': [
+              '-EL',
             ],
           }],
           ['_toolset=="host"',{

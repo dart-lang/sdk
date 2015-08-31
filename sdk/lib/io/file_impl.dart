@@ -344,8 +344,11 @@ class _File extends FileSystemEntity implements File {
   Future<RandomAccessFile> open({FileMode mode: FileMode.READ}) {
     if (mode != FileMode.READ &&
         mode != FileMode.WRITE &&
-        mode != FileMode.APPEND) {
-      return new Future.error(new ArgumentError());
+        mode != FileMode.APPEND &&
+        mode != FileMode.WRITE_ONLY &&
+        mode != FileMode.WRITE_ONLY_APPEND) {
+      return new Future.error(
+          new ArgumentError('Invalid file mode for this operation'));
     }
     return _IOService._dispatch(_FILE_OPEN, [path, mode._mode])
         .then((response) {
@@ -401,10 +404,10 @@ class _File extends FileSystemEntity implements File {
   RandomAccessFile openSync({FileMode mode: FileMode.READ}) {
     if (mode != FileMode.READ &&
         mode != FileMode.WRITE &&
-        mode != FileMode.APPEND) {
-      throw new FileSystemException("Unknown file mode. Use FileMode.READ, "
-                              "FileMode.WRITE or FileMode.APPEND.",
-                              path);
+        mode != FileMode.APPEND &&
+        mode != FileMode.WRITE_ONLY &&
+        mode != FileMode.WRITE_ONLY_APPEND) {
+      throw new ArgumentError('Invalid file mode for this operation');
     }
     var id = _open(path, mode._mode);
     throwIfError(id, "Cannot open file", path);
@@ -428,9 +431,10 @@ class _File extends FileSystemEntity implements File {
   IOSink openWrite({FileMode mode: FileMode.WRITE,
                     Encoding encoding: UTF8}) {
     if (mode != FileMode.WRITE &&
-        mode != FileMode.APPEND) {
-      throw new ArgumentError(
-          "Wrong FileMode. Use FileMode.WRITE or FileMode.APPEND");
+        mode != FileMode.APPEND &&
+        mode != FileMode.WRITE_ONLY &&
+        mode != FileMode.WRITE_ONLY_APPEND) {
+      throw new ArgumentError('Invalid file mode for this operation');
     }
     var consumer = new _FileStreamConsumer(this, mode);
     return new IOSink(consumer, encoding: encoding);

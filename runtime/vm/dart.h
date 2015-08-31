@@ -13,6 +13,7 @@ namespace dart {
 // Forward declarations.
 class DebugInfo;
 class Isolate;
+class LocalHandle;
 class RawError;
 class ReadOnlyHandles;
 class ThreadPool;
@@ -45,6 +46,9 @@ class Dart : public AllStatic {
     pprof_symbol_generator_ = value;
   }
   static DebugInfo* pprof_symbol_generator() { return pprof_symbol_generator_; }
+
+  static LocalHandle* AllocateReadOnlyApiHandle();
+  static bool IsReadOnlyApiHandle(Dart_Handle handle);
 
   static uword AllocateReadOnlyHandle();
   static bool IsReadOnlyHandle(uword address);

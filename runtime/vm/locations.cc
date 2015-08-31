@@ -219,7 +219,7 @@ const char* Location::ToCString() const {
   char buffer[1024];
   BufferFormatter bf(buffer, 1024);
   PrintTo(&bf);
-  return Isolate::Current()->current_zone()->MakeCopyOfString(buffer);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
 

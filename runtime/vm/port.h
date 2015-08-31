@@ -8,6 +8,7 @@
 #include "include/dart_api.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
+#include "vm/json_stream.h"
 #include "vm/random.h"
 
 namespace dart {
@@ -18,7 +19,7 @@ class MessageHandler;
 class Mutex;
 class PortMapTestPeer;
 
-class PortMap: public AllStatic {
+class PortMap : public AllStatic {
  public:
   enum PortState {
     kNewPort = 0,      // a newly allocated port
@@ -54,6 +55,9 @@ class PortMap: public AllStatic {
   static Isolate* GetIsolate(Dart_Port id);
 
   static void InitOnce();
+
+  static void PrintPortsForMessageHandler(MessageHandler* handler,
+                                          JSONStream* stream);
 
  private:
   friend class dart::PortMapTestPeer;

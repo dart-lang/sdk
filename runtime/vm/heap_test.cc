@@ -213,7 +213,9 @@ class FindOnly : public FindObjectVisitor {
  public:
   FindOnly(Isolate* isolate, RawObject* target)
       : FindObjectVisitor(isolate), target_(target) {
-    ASSERT(isolate->no_safepoint_scope_depth() != 0);
+#if defined(DEBUG)
+    EXPECT_GT(Thread::Current()->no_safepoint_scope_depth(), 0);
+#endif
   }
   virtual ~FindOnly() { }
 

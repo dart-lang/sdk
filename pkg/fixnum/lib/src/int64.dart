@@ -70,10 +70,7 @@ class Int64 implements IntX {
    * [Int64].
    */
   static Int64 parseRadix(String s, int radix) {
-    if ((radix <= 1) || (radix > 36)) {
-      throw new ArgumentError("Bad radix: $radix");
-    }
-    return _parseRadix(s, radix);
+    return _parseRadix(s, Int32._validateRadix(radix));
   }
 
   static Int64 _parseRadix(String s, int radix) {
@@ -210,15 +207,15 @@ class Int64 implements IntX {
 
   // Returns the [Int64] representation of the specified value. Throws
   // [ArgumentError] for non-integer arguments.
-  static Int64 _promote(val) {
-    if (val is Int64) {
-      return val;
-    } else if (val is int) {
-      return new Int64(val);
-    } else if (val is Int32) {
-      return val.toInt64();
+  static Int64 _promote(value) {
+    if (value is Int64) {
+      return value;
+    } else if (value is int) {
+      return new Int64(value);
+    } else if (value is Int32) {
+      return value.toInt64();
     }
-    throw new ArgumentError(val);
+    throw new ArgumentError.value(value);
   }
 
   Int64 operator +(other) {
@@ -353,7 +350,7 @@ class Int64 implements IntX {
 
   Int64 operator <<(int n) {
     if (n < 0) {
-      throw new ArgumentError(n);
+      throw new ArgumentError.value(n);
     }
     n &= 63;
 
@@ -377,7 +374,7 @@ class Int64 implements IntX {
 
   Int64 operator >>(int n) {
     if (n < 0) {
-      throw new ArgumentError(n);
+      throw new ArgumentError.value(n);
     }
     n &= 63;
 
@@ -420,7 +417,7 @@ class Int64 implements IntX {
 
   Int64 shiftRightUnsigned(int n) {
     if (n < 0) {
-      throw new ArgumentError(n);
+      throw new ArgumentError.value(n);
     }
     n &= 63;
 
@@ -583,7 +580,7 @@ class Int64 implements IntX {
   }
 
   Int64 toSigned(int width) {
-    if (width < 1 || width > 64) throw new ArgumentError(width);
+    if (width < 1 || width > 64) throw new RangeError.range(width, 1, 64);
     if (width > _BITS01) {
       return Int64._masked(_l, _m, _h.toSigned(width - _BITS01));
     } else if (width > _BITS) {
@@ -600,7 +597,7 @@ class Int64 implements IntX {
   }
 
   Int64 toUnsigned(int width) {
-    if (width < 0 || width > 64) throw new ArgumentError(width);
+    if (width < 0 || width > 64) throw new RangeError.range(width, 0, 64);
     if (width > _BITS01) {
       int h = _h.toUnsigned(width - _BITS01);
       return Int64._masked(_l, _m, h);
@@ -684,10 +681,7 @@ class Int64 implements IntX {
   }
 
   String toRadixString(int radix) {
-    if ((radix <= 1) || (radix > 36)) {
-      throw new ArgumentError("Bad radix: $radix");
-    }
-    return _toRadixString(radix);
+    return _toRadixString(Int32._validateRadix(radix));
   }
 
   String _toRadixString(int radix) {

@@ -134,19 +134,27 @@ class SExpressionUnstringifier {
   static const String LET_PRIM = "LetPrim";
   static const String LET_CONT = "LetCont";
   static const String LET_MUTABLE = "LetMutable";
-  static const String SET_MUTABLE_VARIABLE = "SetMutableVariable";
-  static const String TYPE_OPERATOR = "TypeOperator";
-  static const String SET_STATIC = "SetStatic";
+  static const String TYPE_CAST = "TypeCast";
   static const String GET_LAZY_STATIC = "GetLazyStatic";
+  static const String UNREACHABLE = "Unreachable";
 
   // Primitives
   static const String CONSTANT = "Constant";
   static const String CREATE_FUNCTION = "CreateFunction";
-  static const String GET_MUTABLE_VARIABLE = "GetMutableVariable";
+  static const String GET_MUTABLE = "GetMutable";
+  static const String SET_MUTABLE = "SetMutable";
   static const String LITERAL_LIST = "LiteralList";
   static const String LITERAL_MAP = "LiteralMap";
   static const String REIFY_TYPE_VAR = "ReifyTypeVar";
   static const String GET_STATIC = "GetStatic";
+  static const String SET_STATIC = "SetStatic";
+  static const String TYPE_TEST = "TypeTest";
+  static const String APPLY_BUILTIN_OPERATOR = "ApplyBuiltinOperator";
+  static const String GET_LENGTH = "GetLength";
+  static const String GET_INDEX = "GetIndex";
+  static const String SET_INDEX = "SetIndex";
+  static const String GET_FIELD = "GetField";
+  static const String SET_FIELD = "SetField";
 
   // Other
   static const String FUNCTION_DEFINITION = "FunctionDefinition";
@@ -245,14 +253,12 @@ class SExpressionUnstringifier {
         return parseLetCont();
       case LET_MUTABLE:
         return parseLetMutable();
-      case SET_MUTABLE_VARIABLE:
-        return parseSetMutableVariable();
-      case TYPE_OPERATOR:
-        return parseTypeOperator();
-      case SET_STATIC:
-        return parseSetStatic();
+      case TYPE_CAST:
+        return parseTypeCast();
       case GET_LAZY_STATIC:
         return parseGetLazyStatic();
+      case UNREACHABLE:
+        return parseUnreachable();
       default:
         assert(false);
     }
@@ -538,29 +544,24 @@ class SExpressionUnstringifier {
     return new LetMutable(local, value)..plug(body);
   }
 
-  /// (SetMutableVariable name value body)
-  SetMutableVariable parseSetMutableVariable() {
-    tokens.consumeStart(SET_MUTABLE_VARIABLE);
+  /// (SetMutable name value)
+  SetMutable parseSetMutable() {
+    tokens.consumeStart(SET_MUTABLE);
 
     MutableVariable local = name2variable[tokens.read()];
     Primitive value = name2variable[tokens.read()];
     assert(value != null);
 
-    Expression body = parseExpression();
-
     tokens.consumeEnd();
-    return new SetMutableVariable(local, value)
-                  ..plug(body);
+    return new SetMutable(local, value);
   }
 
-  /// (TypeOperator operator recv type cont)
-  TypeOperator parseTypeOperator() {
-    tokens.consumeStart(TYPE_OPERATOR);
+  /// (TypeCast value type args cont)
+  TypeCast parseTypeCast() {
+    tokens.consumeStart(TYPE_CAST);
 
-    String operator = tokens.read();
-
-    Primitive recv = name2variable[tokens.read()];
-    assert(recv != null);
+    Primitive value = name2variable[tokens.read()];
+    assert(value != null);
 
     dart_types.DartType type = new DummyNamedType(tokens.read());
 
@@ -570,21 +571,80 @@ class SExpressionUnstringifier {
     assert(cont != null);
 
     tokens.consumeEnd();
-    return new TypeOperator(recv, type, typeArguments, cont,
-                            isTypeTest: operator == 'is');
+    return new TypeCast(value, type, typeArguments, cont);
   }
 
-  /// (SetStatic field value body)
+  /// (TypeTest value type args)
+  TypeTest parseTypeTest() {
+    tokens.consumeStart(TYPE_TEST);
+
+    Primitive value = name2variable[tokens.read()];
+    assert(value != null);
+
+    dart_types.DartType type = new DummyNamedType(tokens.read());
+
+    List<ir.Primitive> typeArguments = parsePrimitiveList();
+
+    tokens.consumeEnd();
+    return new TypeTest(value, type, typeArguments);
+  }
+
+  /// (ApplyBuiltinOperator operator args)
+  ApplyBuiltinOperator parseApplyBuiltinOperator() {
+    tokens.consumeStart(APPLY_BUILTIN_OPERATOR);
+
+    String operatorName = tokens.read();
+    BuiltinOperator operator;
+    for (BuiltinOperator op in BuiltinOperator.values) {
+      if (op.toString() == operatorName) {
+        operator = op;
+        break;
+      }
+    }
+    assert(operator != null);
+    List<ir.Primitive> arguments = parsePrimitiveList();
+
+    tokens.consumeEnd();
+    return new ApplyBuiltinOperator(operator, arguments);
+  }
+
+  /// (GetLength object)
+  GetLength parseGetLength() {
+    tokens.consumeStart(GET_LENGTH);
+    Primitive object = name2variable[tokens.read()];
+    tokens.consumeEnd();
+    return new GetLength(object);
+  }
+
+  /// (GetIndex object index)
+  GetIndex parseGetIndex() {
+    tokens.consumeStart(GET_INDEX);
+    Primitive object = name2variable[tokens.read()];
+    Primitive index = name2variable[tokens.read()];
+    tokens.consumeEnd();
+    return new GetIndex(object, index);
+  }
+
+  /// (SetIndex object index value)
+  SetIndex parseSetIndex() {
+    tokens.consumeStart(SET_INDEX);
+    Primitive object = name2variable[tokens.read()];
+    Primitive index = name2variable[tokens.read()];
+    Primitive value = name2variable[tokens.read()];
+    tokens.consumeEnd();
+    return new SetIndex(object, index, value);
+  }
+
+  /// (SetStatic field value)
   SetStatic parseSetStatic() {
     tokens.consumeStart(SET_STATIC);
 
     Element fieldElement = new DummyElement(tokens.read());
     Primitive value = name2variable[tokens.read()];
     assert(value != null);
-    Expression body = parseExpression();
 
     tokens.consumeEnd();
-    return new SetStatic(fieldElement, value, null)..plug(body);
+    return new SetStatic(fieldElement, value, null);
   }
 
   /// (GetLazyStatic field cont)
@@ -597,6 +657,13 @@ class SExpressionUnstringifier {
 
     tokens.consumeEnd();
     return new GetLazyStatic(fieldElement, cont, null);
+  }
+
+  /// (Unreachable)
+  Unreachable parseUnreachable() {
+    tokens.consumeStart(UNREACHABLE);
+    tokens.consumeEnd();
+    return new Unreachable();
   }
 
   /// (LetPrim (name primitive) body)
@@ -627,8 +694,10 @@ class SExpressionUnstringifier {
         return parseConstant();
       case CREATE_FUNCTION:
         return parseCreateFunction();
-      case GET_MUTABLE_VARIABLE:
-        return parseGetMutableVariable();
+      case GET_MUTABLE:
+        return parseGetMutable();
+      case SET_MUTABLE:
+        return parseSetMutable();
       case LITERAL_LIST:
         return parseLiteralList();
       case LITERAL_MAP:
@@ -637,6 +706,22 @@ class SExpressionUnstringifier {
         return parseReifyTypeVar();
       case GET_STATIC:
         return parseGetStatic();
+      case SET_STATIC:
+        return parseSetStatic();
+      case TYPE_TEST:
+        return parseTypeTest();
+      case APPLY_BUILTIN_OPERATOR:
+        return parseApplyBuiltinOperator();
+      case GET_LENGTH:
+        return parseGetLength();
+      case GET_INDEX:
+        return parseGetIndex();
+      case SET_INDEX:
+        return parseSetIndex();
+      case GET_FIELD:
+        return parseGetField();
+      case SET_FIELD:
+        return parseSetField();
       default:
         assert(false);
     }
@@ -720,13 +805,13 @@ class SExpressionUnstringifier {
     return variable;
   }
 
-  /// (GetMutableVariable name)
-  GetMutableVariable parseGetMutableVariable() {
-    tokens.consumeStart(GET_MUTABLE_VARIABLE);
+  /// (GetMutable name)
+  GetMutable parseGetMutable() {
+    tokens.consumeStart(GET_MUTABLE);
     MutableVariable local = name2variable[tokens.read()];
     tokens.consumeEnd();
 
-    return new GetMutableVariable(local);
+    return new GetMutable(local);
   }
 
   /// (LiteralList (values))
@@ -771,5 +856,28 @@ class SExpressionUnstringifier {
 
     tokens.consumeEnd();
     return new GetStatic(field, null);
+  }
+
+  /// (GetField object field)
+  GetField parseGetField() {
+    tokens.consumeStart(GET_FIELD);
+
+    Primitive object = name2variable[tokens.read()];
+    Element field = new DummyElement(tokens.read());
+
+    tokens.consumeEnd();
+    return new GetField(object, field);
+  }
+
+  /// (SetField object field value)
+  SetField parseSetField() {
+    tokens.consumeStart(SET_FIELD);
+
+    Primitive object = name2variable[tokens.read()];
+    Element field = new DummyElement(tokens.read());
+    Primitive value = name2variable[tokens.read()];
+
+    tokens.consumeEnd();
+    return new SetField(object, field, value);
   }
 }

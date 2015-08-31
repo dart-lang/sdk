@@ -7,10 +7,7 @@
 
 library engine.all_the_rest_test;
 
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -66,13 +63,14 @@ main() {
   runReflectiveTests(ExitDetectorTest2);
   runReflectiveTests(FileBasedSourceTest);
   runReflectiveTests(FileUriResolverTest);
-  runReflectiveTests(HtmlParserTest);
-  runReflectiveTests(HtmlTagInfoBuilderTest);
-  runReflectiveTests(HtmlUnitBuilderTest);
-  runReflectiveTests(HtmlWarningCodeTest);
+  if (!AnalysisEngine.instance.useTaskModel) {
+    runReflectiveTests(HtmlParserTest);
+    runReflectiveTests(HtmlTagInfoBuilderTest);
+    runReflectiveTests(HtmlUnitBuilderTest);
+    runReflectiveTests(HtmlWarningCodeTest);
+  }
   runReflectiveTests(ReferenceFinderTest);
   runReflectiveTests(SDKLibrariesReaderTest);
-  runReflectiveTests(SourceFactoryTest);
   runReflectiveTests(ToSourceVisitorTest);
   runReflectiveTests(UriKindTest);
   runReflectiveTests(StringScannerTest);
@@ -876,7 +874,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 
   EvaluationResult _getExpressionValue(String contents) {
     Source source = addSource("var x = $contents;");
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(source, library);
     expect(unit, isNotNull);
@@ -1063,6 +1061,8 @@ class ConstantFinderTest extends EngineTestCase {
           ElementFactory.constructorElement(classElement, '', true);
       constructorDeclaration.element = constructorElement;
       classElement.constructors = <ConstructorElement>[constructorElement];
+    } else {
+      classElement.constructors = ConstructorElement.EMPTY_LIST;
     }
     return variableDeclaration;
   }
@@ -1264,7 +1264,7 @@ class C {
 const int a = c;
 const int b = a;
 const int c = b;''');
-    LibraryElement libraryElement = resolve(librarySource);
+    LibraryElement libraryElement = resolve2(librarySource);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
     analysisContext.computeErrors(librarySource);
@@ -1283,7 +1283,7 @@ const int c = b;''');
     Source librarySource = addSource(r'''
 const int b = a;
 const int a = 0;''');
-    LibraryElement libraryElement = resolve(librarySource);
+    LibraryElement libraryElement = resolve2(librarySource);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
     expect(unit, isNotNull);
@@ -1311,7 +1311,7 @@ const int a = 0;''');
 part of lib;
 const int b = a;
 const int d = c;''');
-    LibraryElement libraryElement = resolve(librarySource);
+    LibraryElement libraryElement = resolve2(librarySource);
     CompilationUnit libraryUnit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
     expect(libraryUnit, isNotNull);
@@ -1336,7 +1336,7 @@ const int d = c;''');
 
   void test_computeValues_singleVariable() {
     Source librarySource = addSource("const int a = 0;");
-    LibraryElement libraryElement = resolve(librarySource);
+    LibraryElement libraryElement = resolve2(librarySource);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
     expect(unit, isNotNull);
@@ -1353,7 +1353,7 @@ const int d = c;''');
 enum E { id0, id1 }
 const E e = E.id0;
 ''');
-    LibraryElement libraryElement = resolve(librarySource);
+    LibraryElement libraryElement = resolve2(librarySource);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
     expect(unit, isNotNull);
@@ -2169,7 +2169,7 @@ const A a = const A();
   void _assertProperDependencies(String sourceText,
       [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     Source source = addSource(sourceText);
-    LibraryElement element = resolve(source);
+    LibraryElement element = resolve2(source);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(source, element);
     expect(unit, isNotNull);
@@ -5391,6 +5391,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(declaration.functionExpression.element, same(function));
     expect(function.isExternal, isTrue);
     expect(function.isSynthetic, isFalse);
+    expect(function.typeParameters, hasLength(0));
   }
 
   void test_visitFunctionDeclaration_getter() {
@@ -5412,6 +5413,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(accessor.isExternal, isFalse);
     expect(accessor.isSetter, isFalse);
     expect(accessor.isSynthetic, isFalse);
+    expect(accessor.typeParameters, hasLength(0));
     PropertyInducingElement variable = accessor.variable;
     EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
         TopLevelVariableElement, variable);
@@ -5435,6 +5437,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(declaration.functionExpression.element, same(function));
     expect(function.isExternal, isFalse);
     expect(function.isSynthetic, isFalse);
+    expect(function.typeParameters, hasLength(0));
   }
 
   void test_visitFunctionDeclaration_setter() {
@@ -5456,10 +5459,38 @@ class ElementBuilderTest extends EngineTestCase {
     expect(accessor.isExternal, isFalse);
     expect(accessor.isSetter, isTrue);
     expect(accessor.isSynthetic, isFalse);
+    expect(accessor.typeParameters, hasLength(0));
     PropertyInducingElement variable = accessor.variable;
     EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
         TopLevelVariableElement, variable);
     expect(variable.isSynthetic, isTrue);
+  }
+
+  void test_visitFunctionDeclaration_typeParameters() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String functionName = 'f';
+    String typeParameterName = 'E';
+    FunctionExpression expression = AstFactory.functionExpression3(
+        AstFactory.typeParameterList([typeParameterName]),
+        AstFactory.formalParameterList(), AstFactory.blockFunctionBody2());
+    FunctionDeclaration declaration =
+        AstFactory.functionDeclaration(null, null, functionName, expression);
+    declaration.accept(builder);
+    List<FunctionElement> functions = holder.functions;
+    expect(functions, hasLength(1));
+    FunctionElement function = functions[0];
+    expect(function, isNotNull);
+    expect(function.name, functionName);
+    expect(function.isExternal, isFalse);
+    expect(function.isSynthetic, isFalse);
+    expect(declaration.element, same(function));
+    expect(expression.element, same(function));
+    List<TypeParameterElement> typeParameters = function.typeParameters;
+    expect(typeParameters, hasLength(1));
+    TypeParameterElement typeParameter = typeParameters[0];
+    expect(typeParameter, isNotNull);
+    expect(typeParameter.name, typeParameterName);
   }
 
   void test_visitFunctionExpression() {
@@ -5474,6 +5505,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(function, isNotNull);
     expect(expression.element, same(function));
     expect(function.isSynthetic, isFalse);
+    expect(function.typeParameters, hasLength(0));
   }
 
   void test_visitFunctionTypeAlias() {
@@ -5515,11 +5547,34 @@ class ElementBuilderTest extends EngineTestCase {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.parameterKind, ParameterKind.REQUIRED);
-    {
-      SourceRange visibleRange = parameter.visibleRange;
-      expect(100, visibleRange.offset);
-      expect(110, visibleRange.end);
-    }
+    SourceRange visibleRange = parameter.visibleRange;
+    expect(100, visibleRange.offset);
+    expect(110, visibleRange.end);
+  }
+
+  void test_visitFunctionTypedFormalParameter_withTypeParameters() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String parameterName = "p";
+    FunctionTypedFormalParameter formalParameter =
+        AstFactory.functionTypedFormalParameter(null, parameterName);
+    formalParameter.typeParameters = AstFactory.typeParameterList(['F']);
+    _useParameterInMethod(formalParameter, 100, 110);
+    formalParameter.accept(builder);
+    List<ParameterElement> parameters = holder.parameters;
+    expect(parameters, hasLength(1));
+    ParameterElement parameter = parameters[0];
+    expect(parameter, isNotNull);
+    expect(parameter.name, parameterName);
+    expect(parameter.initializer, isNull);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    expect(parameter.typeParameters, hasLength(1));
+    SourceRange visibleRange = parameter.visibleRange;
+    expect(100, visibleRange.offset);
+    expect(110, visibleRange.end);
   }
 
   void test_visitLabeledStatement() {
@@ -5554,6 +5609,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method.labels, hasLength(0));
     expect(method.localVariables, hasLength(0));
     expect(method.parameters, hasLength(0));
+    expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isTrue);
     expect(method.isExternal, isFalse);
     expect(method.isStatic, isFalse);
@@ -5579,6 +5635,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method.labels, hasLength(0));
     expect(method.localVariables, hasLength(0));
     expect(method.parameters, hasLength(0));
+    expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
     expect(method.isExternal, isTrue);
     expect(method.isStatic, isFalse);
@@ -5691,6 +5748,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method.labels, hasLength(0));
     expect(method.localVariables, hasLength(0));
     expect(method.parameters, hasLength(0));
+    expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
     expect(method.isExternal, isFalse);
     expect(method.isStatic, isFalse);
@@ -5716,6 +5774,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method.labels, hasLength(0));
     expect(method.localVariables, hasLength(0));
     expect(method.parameters, hasLength(1));
+    expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
     expect(method.isExternal, isFalse);
     expect(method.isStatic, isFalse);
@@ -5831,9 +5890,35 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method.labels, hasLength(0));
     expect(method.localVariables, hasLength(0));
     expect(method.parameters, hasLength(0));
+    expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
     expect(method.isExternal, isFalse);
     expect(method.isStatic, isTrue);
+    expect(method.isSynthetic, isFalse);
+  }
+
+  void test_visitMethodDeclaration_typeParameters() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(null,
+        null, null, null, AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(), AstFactory.blockFunctionBody2());
+    methodDeclaration.typeParameters = AstFactory.typeParameterList(['E']);
+    methodDeclaration.accept(builder);
+    List<MethodElement> methods = holder.methods;
+    expect(methods, hasLength(1));
+    MethodElement method = methods[0];
+    expect(method, isNotNull);
+    expect(method.name, methodName);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(0));
+    expect(method.typeParameters, hasLength(1));
+    expect(method.isAbstract, isFalse);
+    expect(method.isExternal, isFalse);
+    expect(method.isStatic, isFalse);
     expect(method.isSynthetic, isFalse);
   }
 
@@ -5863,6 +5948,7 @@ class ElementBuilderTest extends EngineTestCase {
     MethodElement method = methods[0];
     expect(method, isNotNull);
     expect(method.name, methodName);
+    expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
     expect(method.isExternal, isFalse);
     expect(method.isStatic, isFalse);
@@ -6591,7 +6677,7 @@ core.int value;''');
    */
   CompilationUnit _resolveContents(String code) {
     Source source = addSource(code);
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     return analysisContext.resolveCompilationUnit(source, library);
@@ -7330,7 +7416,7 @@ String f(E e) {
   return x;
 }
 ''');
-    LibraryElement element = resolve(source);
+    LibraryElement element = resolve2(source);
     CompilationUnit unit = resolveCompilationUnit(source, element);
     FunctionDeclaration function = unit.declarations.last;
     BlockFunctionBody body = function.functionExpression.body;
@@ -7352,7 +7438,7 @@ String f(E e) {
   return x;
 }
 ''');
-    LibraryElement element = resolve(source);
+    LibraryElement element = resolve2(source);
     CompilationUnit unit = resolveCompilationUnit(source, element);
     FunctionDeclaration function = unit.declarations.last;
     BlockFunctionBody body = function.functionExpression.body;
@@ -7372,7 +7458,7 @@ String f(E e) {
   }
 }
 ''');
-    LibraryElement element = resolve(source);
+    LibraryElement element = resolve2(source);
     CompilationUnit unit = resolveCompilationUnit(source, element);
     FunctionDeclaration function = unit.declarations.last;
     BlockFunctionBody body = function.functionExpression.body;
@@ -7392,7 +7478,7 @@ String f(E e) {
   }
 }
 ''');
-    LibraryElement element = resolve(source);
+    LibraryElement element = resolve2(source);
     CompilationUnit unit = resolveCompilationUnit(source, element);
     FunctionDeclaration function = unit.declarations.last;
     BlockFunctionBody body = function.functionExpression.body;
@@ -8121,7 +8207,7 @@ class ReferenceFinderTest extends EngineTestCase {
   }
   void test_visitSimpleIdentifier_nonConst() {
     _visitNode(_makeTailVariable("v2", false));
-    _assertNoArcs();
+    _assertOneArc(_tail);
   }
   void test_visitSuperConstructorInvocation_const() {
     _visitNode(_makeTailSuperConstructorInvocation("A", true));
@@ -8129,7 +8215,7 @@ class ReferenceFinderTest extends EngineTestCase {
   }
   void test_visitSuperConstructorInvocation_nonConst() {
     _visitNode(_makeTailSuperConstructorInvocation("A", false));
-    _assertNoArcs();
+    _assertOneArc(_tail);
   }
   void test_visitSuperConstructorInvocation_unresolved() {
     SuperConstructorInvocation superConstructorInvocation =
@@ -8259,98 +8345,6 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
 }
 
 @reflectiveTest
-class SourceFactoryTest {
-  void test_creation() {
-    expect(new SourceFactory([]), isNotNull);
-  }
-  void test_fromEncoding_invalidUri() {
-    SourceFactory factory = new SourceFactory([]);
-    try {
-      factory.fromEncoding("<:&%>");
-      fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException {}
-  }
-  void test_fromEncoding_noResolver() {
-    SourceFactory factory = new SourceFactory([]);
-    try {
-      factory.fromEncoding("foo:/does/not/exist.dart");
-      fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException {}
-  }
-  void test_fromEncoding_valid() {
-    String encoding = "file:///does/not/exist.dart";
-    SourceFactory factory = new SourceFactory(
-        [new UriResolver_SourceFactoryTest_test_fromEncoding_valid(encoding)]);
-    expect(factory.fromEncoding(encoding), isNotNull);
-  }
-  void test_resolveUri_absolute() {
-    UriResolver_absolute resolver = new UriResolver_absolute();
-    SourceFactory factory = new SourceFactory([resolver]);
-    factory.resolveUri(null, "dart:core");
-    expect(resolver.invoked, isTrue);
-  }
-  void test_resolveUri_nonAbsolute_absolute() {
-    SourceFactory factory =
-        new SourceFactory([new UriResolver_nonAbsolute_absolute()]);
-    String absolutePath = "/does/not/matter.dart";
-    Source containingSource =
-        new FileBasedSource(FileUtilities2.createFile("/does/not/exist.dart"));
-    Source result = factory.resolveUri(containingSource, absolutePath);
-    expect(result.fullName,
-        FileUtilities2.createFile(absolutePath).getAbsolutePath());
-  }
-  void test_resolveUri_nonAbsolute_relative() {
-    SourceFactory factory =
-        new SourceFactory([new UriResolver_nonAbsolute_relative()]);
-    Source containingSource =
-        new FileBasedSource(FileUtilities2.createFile("/does/not/have.dart"));
-    Source result = factory.resolveUri(containingSource, "exist.dart");
-    expect(result.fullName,
-        FileUtilities2.createFile("/does/not/exist.dart").getAbsolutePath());
-  }
-
-  void test_resolveUri_nonAbsolute_relative_package() {
-    MemoryResourceProvider provider = new MemoryResourceProvider();
-    Context context = provider.pathContext;
-    String packagePath =
-        context.joinAll([context.separator, 'path', 'to', 'package']);
-    String libPath = context.joinAll([packagePath, 'lib']);
-    String dirPath = context.joinAll([libPath, 'dir']);
-    String firstPath = context.joinAll([dirPath, 'first.dart']);
-    String secondPath = context.joinAll([dirPath, 'second.dart']);
-
-    provider.newFolder(packagePath);
-    Folder libFolder = provider.newFolder(libPath);
-    provider.newFolder(dirPath);
-    File firstFile = provider.newFile(firstPath, '');
-    provider.newFile(secondPath, '');
-
-    PackageMapUriResolver resolver =
-        new PackageMapUriResolver(provider, {'package': [libFolder]});
-    SourceFactory factory = new SourceFactory([resolver]);
-    Source librarySource =
-        firstFile.createSource(Uri.parse('package:package/dir/first.dart'));
-
-    Source result = factory.resolveUri(librarySource, 'second.dart');
-    expect(result, isNotNull);
-    expect(result.fullName, secondPath);
-    expect(result.uri.toString(), 'package:package/dir/second.dart');
-  }
-
-  void test_restoreUri() {
-    JavaFile file1 = FileUtilities2.createFile("/some/file1.dart");
-    JavaFile file2 = FileUtilities2.createFile("/some/file2.dart");
-    Source source1 = new FileBasedSource(file1);
-    Source source2 = new FileBasedSource(file2);
-    Uri expected1 = parseUriWithException("file:///my_file.dart");
-    SourceFactory factory =
-        new SourceFactory([new UriResolver_restoreUri(source1, expected1)]);
-    expect(factory.restoreUri(source1), same(expected1));
-    expect(factory.restoreUri(source2), same(null));
-  }
-}
-
-@reflectiveTest
 class StringScannerTest extends AbstractScannerTest {
   @override
   ht.AbstractScanner newScanner(String input) {
@@ -8423,66 +8417,6 @@ class UriKindTest {
     expect(UriKind.DART_URI.encoding, 0x64);
     expect(UriKind.FILE_URI.encoding, 0x66);
     expect(UriKind.PACKAGE_URI.encoding, 0x70);
-  }
-}
-
-class UriResolver_absolute extends UriResolver {
-  bool invoked = false;
-
-  UriResolver_absolute();
-
-  @override
-  Source resolveAbsolute(Uri uri) {
-    invoked = true;
-    return null;
-  }
-}
-
-class UriResolver_nonAbsolute_absolute extends UriResolver {
-  @override
-  Source resolveAbsolute(Uri uri) {
-    return new FileBasedSource(new JavaFile.fromUri(uri), uri);
-  }
-}
-
-class UriResolver_nonAbsolute_relative extends UriResolver {
-  @override
-  Source resolveAbsolute(Uri uri) {
-    return new FileBasedSource(new JavaFile.fromUri(uri), uri);
-  }
-}
-
-class UriResolver_restoreUri extends UriResolver {
-  Source source1;
-
-  Uri expected1;
-
-  UriResolver_restoreUri(this.source1, this.expected1);
-
-  @override
-  Source resolveAbsolute(Uri uri) => null;
-
-  @override
-  Uri restoreAbsolute(Source source) {
-    if (identical(source, source1)) {
-      return expected1;
-    }
-    return null;
-  }
-}
-
-class UriResolver_SourceFactoryTest_test_fromEncoding_valid
-    extends UriResolver {
-  String encoding;
-
-  UriResolver_SourceFactoryTest_test_fromEncoding_valid(this.encoding);
-
-  @override
-  Source resolveAbsolute(Uri uri) {
-    if (uri.toString() == encoding) {
-      return new TestSource();
-    }
-    return null;
   }
 }
 

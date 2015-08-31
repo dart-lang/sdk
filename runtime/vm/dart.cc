@@ -23,27 +23,19 @@
 #include "vm/service_isolate.h"
 #include "vm/simulator.h"
 #include "vm/snapshot.h"
+#include "vm/store_buffer.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/thread_interrupter.h"
 #include "vm/thread_pool.h"
+#include "vm/timeline.h"
 #include "vm/virtual_memory.h"
 #include "vm/zone.h"
 
 namespace dart {
 
-DEFINE_FLAG(int, new_gen_semi_max_size, (kWordSize <= 4) ? 16 : 32,
-            "Max size of new gen semi space in MB");
-DEFINE_FLAG(int, old_gen_heap_size, 0,
-            "Max size of old gen heap size in MB, or 0 for unlimited,"
-            "e.g: --old_gen_heap_size=1024 allows up to 1024MB old gen heap");
-DEFINE_FLAG(int, external_max_size, (kWordSize <= 4) ? 512 : 1024,
-            "Max total size of external allocations in MB, or 0 for unlimited,"
-            "e.g: --external_max_size=1024 allows up to 1024MB of externals");
-
 DEFINE_FLAG(bool, keep_code, false,
             "Keep deoptimized code for profiling.");
-
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
 
@@ -69,6 +61,7 @@ class ReadOnlyHandles {
 
  private:
   VMHandles handles_;
+  LocalHandles api_handles_;
 
   friend class Dart;
   DISALLOW_COPY_AND_ASSIGN(ReadOnlyHandles);
@@ -93,7 +86,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Isolate::SetEntropySourceCallback(entropy_source);
   OS::InitOnce();
   VirtualMemory::InitOnce();
-  Thread::InitOnce();
+  Thread::InitOnceBeforeIsolate();
   Isolate::InitOnce();
   PortMap::InitOnce();
   FreeListElement::InitOnce();
@@ -103,6 +96,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Profiler::InitOnce();
   SemiSpace::InitOnce();
   Metric::InitOnce();
+  StoreBuffer::InitOnce();
 
 #if defined(USING_SIMULATOR)
   Simulator::InitOnce();
@@ -117,7 +111,6 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
     const bool is_vm_isolate = true;
-    Thread::EnsureInit();
 
     // Setup default flags for the VM isolate.
     Isolate::Flags vm_flags;
@@ -127,15 +120,13 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
 
     StackZone zone(vm_isolate_);
     HandleScope handle_scope(vm_isolate_);
-    Heap::Init(vm_isolate_,
-               0,  // New gen size 0; VM isolate should only allocate in old.
-               FLAG_old_gen_heap_size * MBInWords,
-               FLAG_external_max_size * MBInWords);
+    Object::InitNull(vm_isolate_);
     ObjectStore::Init(vm_isolate_);
     TargetCPUFeatures::InitOnce();
     Object::InitOnce(vm_isolate_);
     ArgumentsDescriptor::InitOnce();
     StubCode::InitOnce();
+    Thread::InitOnceAfterObjectAndStubCode();
     // Now that the needed stub has been generated, set the stack limit.
     vm_isolate_->InitializeStackLimit();
     if (vm_isolate_snapshot != NULL) {
@@ -177,10 +168,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     vm_isolate_->heap()->Verify(kRequireMarked);
 #endif
   }
-  // There is a planned and known asymmetry here: We enter one scope for the VM
-  // isolate so that we can allocate the "persistent" scoped handles for the
-  // predefined API values (such as Dart_True, Dart_False and Dart_Null).
-  Dart_EnterScope();
+  // Allocate the "persistent" scoped handles for the predefined API
+  // values (such as Dart_True, Dart_False and Dart_Null).
   Api::InitHandles();
 
   Thread::ExitIsolate();  // Unregister the VM isolate from this thread.
@@ -223,6 +212,7 @@ const char* Dart::Cleanup() {
   vm_isolate_ = NULL;
 
   TargetCPUFeatures::Cleanup();
+  StoreBuffer::ShutDown();
 #endif
 
   Profiler::Shutdown();
@@ -248,10 +238,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   ASSERT(isolate != NULL);
   StackZone zone(isolate);
   HandleScope handle_scope(isolate);
-  Heap::Init(isolate,
-             FLAG_new_gen_semi_max_size * MBInWords,
-             FLAG_old_gen_heap_size * MBInWords,
-             FLAG_external_max_size * MBInWords);
   ObjectStore::Init(isolate);
 
   // Setup for profiling.
@@ -298,12 +284,12 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   Object::VerifyBuiltinVtables();
 
   StubCode::Init(isolate);
+  isolate->megamorphic_cache_table()->InitMissHandler();
   if (snapshot_buffer == NULL) {
     if (!isolate->object_store()->PreallocateObjects()) {
       return isolate->object_store()->sticky_error();
     }
   }
-  isolate->megamorphic_cache_table()->InitMissHandler();
 
   isolate->heap()->EnableGrowthControl();
   isolate->set_init_callback_data(data);
@@ -323,6 +309,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Set up default UserTag.
   const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag());
   isolate->set_current_tag(default_tag);
+
+  isolate->SetTimelineEventRecorder(new TimelineEventRingRecorder());
 
   if (FLAG_keep_code) {
     isolate->set_deoptimized_code_array(
@@ -357,9 +345,22 @@ uword Dart::AllocateReadOnlyHandle() {
 }
 
 
+LocalHandle* Dart::AllocateReadOnlyApiHandle() {
+  ASSERT(Isolate::Current() == Dart::vm_isolate());
+  ASSERT(predefined_handles_ != NULL);
+  return predefined_handles_->api_handles_.AllocateHandle();
+}
+
+
 bool Dart::IsReadOnlyHandle(uword address) {
   ASSERT(predefined_handles_ != NULL);
   return predefined_handles_->handles_.IsValidScopedHandle(address);
+}
+
+
+bool Dart::IsReadOnlyApiHandle(Dart_Handle handle) {
+  ASSERT(predefined_handles_ != NULL);
+  return predefined_handles_->api_handles_.IsValidHandle(handle);
 }
 
 }  // namespace dart

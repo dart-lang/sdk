@@ -1,7 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override --verbose-debug
+// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override --verbose-debug
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -69,7 +69,8 @@ testAsync(Isolate isolate) async {
         expect(result.valueAsString, equals('true'));
       });
 
-  await for (ServiceEvent event in isolate.vm.events.stream) {
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
+  await for (ServiceEvent event in stream) {
     if (event.kind == ServiceEvent.kPauseBreakpoint) {
       var bp = event.breakpoint;
       print('Hit $bp');

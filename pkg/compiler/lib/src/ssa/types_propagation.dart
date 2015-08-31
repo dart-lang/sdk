@@ -218,7 +218,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         ? instruction.selector
         : null;
     HTypeConversion converted = new HTypeConversion(
-        null, kind, type, input, selector);
+        null, kind, type, input, selector)
+        ..sourceInformation = instruction.sourceInformation;
     instruction.block.addBefore(instruction, converted);
     input.replaceAllUsersDominatedBy(instruction, converted);
   }
@@ -252,7 +253,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       return true;
     } else if (instruction.element == null) {
       Iterable<Element> targets =
-          compiler.world.allFunctions.filter(instruction.selector);
+          compiler.world.allFunctions.filter(
+              instruction.selector, instruction.mask);
       if (targets.length == 1) {
         Element target = targets.first;
         ClassElement cls = target.enclosingClass;
@@ -335,7 +337,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           if (checkReceiver(instruction)) {
             addAllUsersBut(instruction, instruction.inputs[1]);
           }
-          if (!selector.isUnaryOperator && checkArgument(instruction)) {
+          if (!selector.isUnaryOperator &&
+              checkArgument(instruction)) {
             addAllUsersBut(instruction, instruction.inputs[2]);
           }
         }
@@ -344,14 +347,13 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
     HInstruction receiver = instruction.getDartReceiver(compiler);
     TypeMask receiverType = receiver.instructionType;
-    Selector selector =
-        new TypedSelector(receiverType, instruction.selector, classWorld);
-    instruction.selector = selector;
+    instruction.mask = receiverType;
 
     // Try to specialize the receiver after this call.
     if (receiver.dominatedUsers(instruction).length != 1
-        && !selector.isClosureCall) {
-      TypeMask newType = compiler.world.allFunctions.receiverType(selector);
+        && !instruction.selector.isClosureCall) {
+      TypeMask newType = compiler.world.allFunctions.receiverType(
+              instruction.selector, instruction.mask);
       newType = newType.intersection(receiverType, classWorld);
       var next = instruction.next;
       if (next is HTypeKnown && next.checkedInput == receiver) {

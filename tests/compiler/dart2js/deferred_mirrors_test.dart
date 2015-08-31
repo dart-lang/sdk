@@ -6,19 +6,18 @@
 // to determine which elements can be deferred and which libraries
 // much be included in the initial download (loaded eagerly).
 
+import 'dart:async';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
-import 'memory_source_file_helper.dart';
-import "memory_compiler.dart";
-
+import 'package:async_helper/async_helper.dart';
+import 'memory_compiler.dart';
 import 'package:compiler/src/dart2jslib.dart'
        as dart2js;
 
-runTest(String mainScript, test) {
-  Compiler compiler = compilerFor(MEMORY_SOURCE_FILES,
-      outputProvider: new OutputCollector());
-  asyncTest(() => compiler.run(Uri.parse(mainScript))
-      .then((_) => test(compiler)));
+Future runTest(String mainScript, test) async {
+  CompilationResult result = await runCompiler(
+      entryPoint: Uri.parse(mainScript),
+      memorySourceFiles: MEMORY_SOURCE_FILES);
+  test(result.compiler);
 }
 
 lookupLibrary(compiler, name) {
@@ -26,7 +25,11 @@ lookupLibrary(compiler, name) {
 }
 
 void main() {
-  runTest('memory:main.dart', (compiler) {
+  asyncTest(runTests);
+}
+
+runTests() async {
+  await runTest('memory:main.dart', (compiler) {
     var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
     Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(main);
@@ -44,12 +47,12 @@ void main() {
     Expect.equals(outputUnitForElement(main), outputUnitForElement(sin));
     Expect.equals(outputUnitForElement(foo2), outputUnitForElement(field2));
   });
-  runTest('memory:main2.dart', (compiler) {
+  await runTest('memory:main2.dart', (compiler) {
     // Just check that the compile runs.
     // This is a regression test.
     Expect.isTrue(true);
   });
-  runTest('memory:main3.dart', (compiler) {
+  await runTest('memory:main3.dart', (compiler) {
     var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
     Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(main);
@@ -64,7 +67,7 @@ void main() {
     Expect.notEquals(outputUnitForElement(main), outputUnitForElement(foo));
     Expect.equals(outputUnitForElement(main), outputUnitForElement(C));
   });
-  runTest('memory:main4.dart', (compiler) {
+  await runTest('memory:main4.dart', (compiler) {
     var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
     Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(main);

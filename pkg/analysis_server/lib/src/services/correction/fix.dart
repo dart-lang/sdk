@@ -6,6 +6,7 @@ library analysis_server.src.services.correction.fix;
 
 import 'package:analysis_server/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -15,13 +16,14 @@ import 'package:analyzer/src/generated/java_engine.dart';
  * reported after it's source was analyzed in the given [context]. The [plugin]
  * is used to get the list of fix contributors.
  */
-List<Fix> computeFixes(
-    ServerPlugin plugin, AnalysisContext context, AnalysisError error) {
+List<Fix> computeFixes(ServerPlugin plugin, ResourceProvider resourceProvider,
+    AnalysisContext context, AnalysisError error) {
   List<Fix> fixes = <Fix>[];
   List<FixContributor> contributors = plugin.fixContributors;
   for (FixContributor contributor in contributors) {
     try {
-      List<Fix> contributedFixes = contributor.computeFixes(context, error);
+      List<Fix> contributedFixes =
+          contributor.computeFixes(resourceProvider, context, error);
       if (contributedFixes != null) {
         fixes.addAll(contributedFixes);
       }
@@ -44,7 +46,8 @@ class DartFixKind {
   static const ADD_FIELD_FORMAL_PARAMETERS = const FixKind(
       'ADD_FIELD_FORMAL_PARAMETERS', 30, "Add final field formal parameters");
   static const ADD_MISSING_PARAMETER_POSITIONAL = const FixKind(
-      'ADD_MISSING_PARAMETER_POSITIONAL', 31,
+      'ADD_MISSING_PARAMETER_POSITIONAL',
+      31,
       "Add optional positional parameter");
   static const ADD_MISSING_PARAMETER_REQUIRED = const FixKind(
       'ADD_MISSING_PARAMETER_REQUIRED', 30, "Add required parameter");
@@ -53,7 +56,8 @@ class DartFixKind {
   static const ADD_PART_OF =
       const FixKind('ADD_PART_OF', 50, "Add 'part of' directive");
   static const ADD_SUPER_CONSTRUCTOR_INVOCATION = const FixKind(
-      'ADD_SUPER_CONSTRUCTOR_INVOCATION', 50,
+      'ADD_SUPER_CONSTRUCTOR_INVOCATION',
+      50,
       "Add super constructor {0} invocation");
   static const CHANGE_TO = const FixKind('CHANGE_TO', 49, "Change to '{0}'");
   static const CHANGE_TO_STATIC_ACCESS = const FixKind(
@@ -63,7 +67,8 @@ class DartFixKind {
   static const CREATE_CONSTRUCTOR =
       const FixKind('CREATE_CONSTRUCTOR', 50, "Create constructor '{0}'");
   static const CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS = const FixKind(
-      'CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS', 50,
+      'CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS',
+      50,
       "Create constructor for final fields");
   static const CREATE_CONSTRUCTOR_SUPER = const FixKind(
       'CREATE_CONSTRUCTOR_SUPER', 50, "Create constructor to call {0}");
@@ -98,10 +103,12 @@ class DartFixKind {
   static const REMOVE_DEAD_CODE =
       const FixKind('REMOVE_DEAD_CODE', 50, "Remove dead code");
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION = const FixKind(
-      'REMOVE_PARAMETERS_IN_GETTER_DECLARATION', 50,
+      'REMOVE_PARAMETERS_IN_GETTER_DECLARATION',
+      50,
       "Remove parameters in getter declaration");
   static const REMOVE_PARENTHESIS_IN_GETTER_INVOCATION = const FixKind(
-      'REMOVE_PARENTHESIS_IN_GETTER_INVOCATION', 50,
+      'REMOVE_PARENTHESIS_IN_GETTER_INVOCATION',
+      50,
       "Remove parentheses in getter invocation");
   static const REMOVE_UNNECASSARY_CAST =
       const FixKind('REMOVE_UNNECASSARY_CAST', 50, "Remove unnecessary cast");
@@ -118,11 +125,13 @@ class DartFixKind {
   static const REPLACE_VAR_WITH_DYNAMIC = const FixKind(
       'REPLACE_VAR_WITH_DYNAMIC', 50, "Replace 'var' with 'dynamic'");
   static const REPLACE_RETURN_TYPE_FUTURE = const FixKind(
-      'REPLACE_RETURN_TYPE_FUTURE', 50,
+      'REPLACE_RETURN_TYPE_FUTURE',
+      50,
       "Return 'Future' from 'async' function");
   static const USE_CONST = const FixKind('USE_CONST', 50, "Change to constant");
   static const USE_EFFECTIVE_INTEGER_DIVISION = const FixKind(
-      'USE_EFFECTIVE_INTEGER_DIVISION', 50,
+      'USE_EFFECTIVE_INTEGER_DIVISION',
+      50,
       "Use effective integer division ~/");
   static const USE_EQ_EQ_NULL =
       const FixKind('USE_EQ_EQ_NULL', 50, "Use == null instead of 'is Null'");

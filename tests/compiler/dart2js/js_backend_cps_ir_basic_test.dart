@@ -25,16 +25,14 @@ main() {
   print('($m)');
 }""",r"""
 function() {
-  var l = [1, 2, 3], m = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]);
   P.print("()");
-  P.print("(" + true + ")");
-  P.print("(" + 1 + ")");
+  P.print("(true)");
+  P.print("(1)");
   P.print("(" + H.S([1, 2, 3]) + ")");
   P.print("(" + H.S(P.LinkedHashMap_LinkedHashMap$_literal(["s", 1])) + ")");
-  P.print("(" + 1 + ")");
-  P.print("(" + H.S(l) + ")");
-  P.print("(" + H.S(m) + ")");
-  return null;
+  P.print("(1)");
+  P.print("(" + H.S([1, 2, 3]) + ")");
+  P.print("(" + H.S(P.LinkedHashMap_LinkedHashMap$_literal(["s", 1])) + ")");
 }"""),
   const TestEntry("""
 foo(a, [b = "b"]) => b;
@@ -56,7 +54,6 @@ function() {
   V.bar(4, 5, "c");
   V.bar(6, "b", 7);
   V.bar(8, 9, 10);
-  return null;
 }"""),
   const TestEntry(
   """
@@ -83,7 +80,6 @@ function() {
   P.print(a);
   P.print(a);
   P.print(V.foo(b));
-  return null;
 }"""),
   const TestEntry(
   """
@@ -97,7 +93,6 @@ main() { return foo(); }
   const TestEntry("main() { return 42; }"),
   const TestEntry("main() { return; }", """
 function() {
-  return null;
 }"""),
   // Constructor invocation
   const TestEntry("""
@@ -108,7 +103,6 @@ main() {
 function() {
   P.print(P.LinkedHashSet_LinkedHashSet(null, null, null, null));
   P.print(P.LinkedHashSet_LinkedHashSet$from([1, 2, 3], null));
-  return null;
 }"""),
   // Call synthetic constructor.
   const TestEntry("""
@@ -123,7 +117,6 @@ main() {
 }""", r"""
 function() {
   P.print(P.DateTime$now().isBefore$1(P.DateTime$now()));
-  return null;
 }"""),
   // Static calls
   const TestEntry("""
@@ -132,7 +125,6 @@ main() { foo(); }
 """, r"""
 function() {
   V.foo();
-  return null;
 }"""),
   // Static getters
   const TestEntry("""
@@ -141,7 +133,6 @@ main() { print(foo); }
 """, r"""
 function() {
   P.print($.foo);
-  return null;
 }"""),
   const TestEntry("""
 get foo { print(42); }
@@ -149,7 +140,6 @@ main() { foo; }
 """, r"""
 function() {
   V.foo();
-  return null;
 }"""),
   // Static setters
   const TestEntry("""
@@ -160,7 +150,6 @@ function() {
   var v0 = 42;
   $.foo = v0;
   P.print(v0);
-  return null;
 }"""),
   const TestEntry("""
 set foo(x) { print(x); }
@@ -168,7 +157,6 @@ main() { foo = 42; }
 """, r"""
 function() {
   V.foo(42);
-  return null;
 }"""),
   // Assert
   const TestEntry("""
@@ -181,7 +169,6 @@ main() {
 }""", r"""
 function() {
   P.print("Done");
-  return null;
 }""")
 ];
 

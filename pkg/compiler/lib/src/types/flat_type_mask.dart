@@ -50,14 +50,21 @@ class FlatTypeMask implements TypeMask {
       return new FlatTypeMask.internal(base, flags);
     }
     if ((flags >> 1) == SUBTYPE) {
-      if (!world.hasAnySubtype(base) || world.hasOnlySubclasses(base)) {
+      if (!world.hasAnyStrictSubtype(base) || world.hasOnlySubclasses(base)) {
         flags = (flags & 0x1) | (SUBCLASS << 1);
       }
     }
-    if (((flags >> 1) == SUBCLASS) && !world.hasAnySubclass(base)) {
+    if (((flags >> 1) == SUBCLASS) && !world.hasAnyStrictSubclass(base)) {
       flags = (flags & 0x1) | (EXACT << 1);
     }
-    return new FlatTypeMask.internal(base, flags);
+    Map<ClassElement, TypeMask> cachedMasks =
+        world.canonicalizedTypeMasks[flags];
+    if (cachedMasks == null) {
+      world.canonicalizedTypeMasks[flags] = cachedMasks =
+          <ClassElement, TypeMask>{};
+    }
+    return cachedMasks.putIfAbsent(base,
+        () => new FlatTypeMask.internal(base, flags));
   }
 
   bool get isEmpty => (flags >> 1) == EMPTY;
@@ -624,19 +631,22 @@ class FlatTypeMask implements TypeMask {
 
     Iterable<ClassElement> subclassesToCheck;
     if (isSubtype) {
-      subclassesToCheck = classWorld.subtypesOf(base);
+      subclassesToCheck = classWorld.strictSubtypesOf(base);
     } else {
       assert(isSubclass);
-      subclassesToCheck = classWorld.subclassesOf(base);
+      subclassesToCheck = classWorld.strictSubclassesOf(base);
     }
 
     return subclassesToCheck != null &&
            subclassesToCheck.any(needsNoSuchMethod);
   }
 
-  Element locateSingleElement(Selector selector, Compiler compiler) {
+  Element locateSingleElement(Selector selector,
+                              TypeMask mask,
+                              Compiler compiler) {
     if (isEmpty) return null;
-    Iterable<Element> targets = compiler.world.allFunctions.filter(selector);
+    Iterable<Element> targets =
+        compiler.world.allFunctions.filter(selector, mask);
     if (targets.length != 1) return null;
     Element result = targets.first;
     ClassElement enclosing = result.enclosingClass;
@@ -648,6 +658,7 @@ class FlatTypeMask implements TypeMask {
   }
 
   bool operator ==(var other) {
+    if (identical(this, other)) return true;
     if (other is !FlatTypeMask) return false;
     FlatTypeMask otherMask = other;
     return (flags == otherMask.flags) && (base == otherMask.base);
@@ -693,10 +704,10 @@ class FlatTypeMask implements TypeMask {
     if (x.isExact) {
       return null;
     } else if (x.isSubclass) {
-      return classWorld.subclassesOf(element);
+      return classWorld.strictSubclassesOf(element);
     } else {
       assert(x.isSubtype);
-      return classWorld.subtypesOf(element);
+      return classWorld.strictSubtypesOf(element);
     }
   }
 }

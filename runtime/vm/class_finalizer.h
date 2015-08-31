@@ -130,7 +130,7 @@ class ClassFinalizer : public AllStatic {
       const GrowableObjectArray& visited_factories);
   static void CloneMixinAppTypeParameters(const Class& mixin_app_class);
   static void ApplyMixinAppAlias(const Class& mixin_app_class,
-                                 bool has_uninstantiated_bounds);
+                                 const TypeArguments& instantiator);
   static void ApplyMixinMembers(const Class& cls);
   static void CreateForwardingConstructors(
       const Class& mixin_app,

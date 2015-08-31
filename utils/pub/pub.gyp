@@ -18,7 +18,7 @@
           'action_name': 'generate_pub_snapshot',
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '../../sdk/lib/_internal/libraries.dart',
+            '../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart',
             '<(SHARED_INTERMEDIATE_DIR)/dart2js_files.stamp',
             '<(SHARED_INTERMEDIATE_DIR)/pkg_files.stamp',
             '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
@@ -30,7 +30,7 @@
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '--package-root=<(PRODUCT_DIR)/packages/',
             '--snapshot=<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
-            '../../third_party/pkg_tested/pub/bin/pub.dart',
+            '../../third_party/pkg/pub/bin/pub.dart',
           ]
         },
       ],

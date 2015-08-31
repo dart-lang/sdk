@@ -543,7 +543,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
-      optype.includeVoidReturnSuggestions = true;
     }
   }
 
@@ -552,6 +551,21 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
+    }
+    if (identical(entity, node.rightBracket)) {
+      if (node.members.isNotEmpty) {
+        optype.includeReturnValueSuggestions = true;
+        optype.includeTypeNameSuggestions = true;
+        optype.includeVoidReturnSuggestions = true;
+      }
+    }
+    if (entity is SwitchMember && entity != node.members.first) {
+      SwitchMember member = entity as SwitchMember;
+      if (offset <= member.offset) {
+          optype.includeReturnValueSuggestions = true;
+          optype.includeTypeNameSuggestions = true;
+          optype.includeVoidReturnSuggestions = true;
+      }
     }
   }
 

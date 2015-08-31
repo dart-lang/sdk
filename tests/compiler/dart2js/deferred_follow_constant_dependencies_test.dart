@@ -4,35 +4,17 @@
 
 // Test that constants depended on by other constants are correctly deferred.
 
-import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/constants/values.dart';
+import 'package:compiler/src/dart2jslib.dart';
 import 'package:expect/expect.dart';
-import 'memory_source_file_helper.dart';
-
-
-class FakeOutputStream<T> extends EventSink<T> {
-  void add(T event) {}
-  void addError(T event, [StackTrace stackTrace]) {}
-  void close() {}
-}
+import 'memory_compiler.dart';
 
 void main() {
-  Uri script = currentDirectory.resolveUri(Platform.script);
-  Uri libraryRoot = script.resolve('../../../sdk/');
-  Uri packageRoot = script.resolve('./packages/');
-
-  var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
-  var handler = new FormattingDiagnosticHandler(provider);
-
-  Compiler compiler = new Compiler(provider.readStringFromUri,
-                                   (name, extension) => new FakeOutputStream(),
-                                   handler.diagnosticHandler,
-                                   libraryRoot,
-                                   packageRoot,
-                                   [],
-                                   {});
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+  asyncTest(() async {
+    CompilationResult result =
+        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+    Compiler compiler = result.compiler;
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
     var outputUnitForConstant = compiler.deferredLoadTask.outputUnitForConstant;
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
@@ -55,7 +37,7 @@ void main() {
       Expect.notEquals(null, outputUnitForConstant(constant));
       Expect.notEquals(mainOutputUnit, outputUnitForConstant(constant));
     }
-  }));
+  });
 }
 
 // The main library imports lib1 and lib2 deferred and use lib1.foo1 and

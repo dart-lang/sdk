@@ -57,6 +57,10 @@ class DartAssistKind {
       const AssistKind('CONVERT_INTO_IS_NOT', 30, "Convert into is!");
   static const CONVERT_INTO_IS_NOT_EMPTY = const AssistKind(
       'CONVERT_INTO_IS_NOT_EMPTY', 30, "Convert into 'isNotEmpty'");
+  static const CONVERT_TO_FIELD_PARAMETER = const AssistKind(
+      'CONVERT_TO_FIELD_PARAMETER', 30, "Convert to field formal parameter");
+  static const CONVERT_TO_NORMAL_PARAMETER = const AssistKind(
+      'CONVERT_TO_NORMAL_PARAMETER', 30, "Convert to normal parameter");
   static const ENCAPSULATE_FIELD =
       const AssistKind('ENCAPSULATE_FIELD', 30, "Encapsulate field");
   static const EXCHANGE_OPERANDS =

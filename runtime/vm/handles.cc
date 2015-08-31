@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/dart_api_state.h"
 #include "vm/flags.h"
 #include "vm/isolate.h"
 #include "vm/os.h"
@@ -43,7 +44,16 @@ void VMHandles::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
+#if defined(DEBUG)
+static bool IsCurrentApiNativeScope(Zone* zone) {
+  ApiNativeScope* scope = ApiNativeScope::Current();
+  return (scope != NULL) && (scope->zone() == zone);
+}
+#endif  // DEBUG
+
+
 uword VMHandles::AllocateHandle(Zone* zone) {
+  DEBUG_ASSERT(!IsCurrentApiNativeScope(zone));
   return Handles<kVMHandleSizeInWords,
                  kVMHandlesPerChunk,
                  kOffsetOfRawPtr>::AllocateHandle(zone);
@@ -51,6 +61,7 @@ uword VMHandles::AllocateHandle(Zone* zone) {
 
 
 uword VMHandles::AllocateZoneHandle(Zone* zone) {
+  DEBUG_ASSERT(!IsCurrentApiNativeScope(zone));
   return Handles<kVMHandleSizeInWords,
                  kVMHandlesPerChunk,
                  kOffsetOfRawPtr>::AllocateZoneHandle(zone);
@@ -65,62 +76,72 @@ bool VMHandles::IsZoneHandle(uword handle) {
 
 
 int VMHandles::ScopedHandleCount() {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->current_zone() != NULL);
-  VMHandles* handles = isolate->current_zone()->handles();
+  Thread* thread = Thread::Current();
+  ASSERT(thread->zone() != NULL);
+  VMHandles* handles = thread->zone()->handles();
   return handles->CountScopedHandles();
 }
 
 
 int VMHandles::ZoneHandleCount() {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->current_zone() != NULL);
-  VMHandles* handles = isolate->current_zone()->handles();
+  Thread* thread = Thread::Current();
+  ASSERT(thread->zone() != NULL);
+  VMHandles* handles = thread->zone()->handles();
   return handles->CountZoneHandles();
 }
 
 
-HandleScope::HandleScope(Isolate* isolate) : StackResource(isolate) {
-  ASSERT(isolate->no_handle_scope_depth() == 0);
-  VMHandles* handles = isolate->current_zone()->handles();
+void HandleScope::Initialize() {
+  ASSERT(thread()->no_handle_scope_depth() == 0);
+  VMHandles* handles = thread()->zone()->handles();
   ASSERT(handles != NULL);
   saved_handle_block_ = handles->scoped_blocks_;
   saved_handle_slot_ = handles->scoped_blocks_->next_handle_slot();
 #if defined(DEBUG)
-  link_ = isolate->top_handle_scope();
-  isolate->set_top_handle_scope(this);
+  link_ = thread()->top_handle_scope();
+  thread()->set_top_handle_scope(this);
 #endif
 }
 
 
+HandleScope::HandleScope(Thread* thread) : StackResource(thread) {
+  Initialize();
+}
+
+
+HandleScope::HandleScope(Isolate* isolate) : StackResource(isolate) {
+  Initialize();
+}
+
+
 HandleScope::~HandleScope() {
-  ASSERT(isolate()->current_zone() != NULL);
-  VMHandles* handles = isolate()->current_zone()->handles();
+  ASSERT(thread()->zone() != NULL);
+  VMHandles* handles = thread()->zone()->handles();
   ASSERT(handles != NULL);
   handles->scoped_blocks_ = saved_handle_block_;
   handles->scoped_blocks_->set_next_handle_slot(saved_handle_slot_);
 #if defined(DEBUG)
   handles->VerifyScopedHandleState();
   handles->ZapFreeScopedHandles();
-  ASSERT(isolate()->top_handle_scope() == this);
-  isolate()->set_top_handle_scope(link_);
+  ASSERT(thread()->top_handle_scope() == this);
+  thread()->set_top_handle_scope(link_);
 #endif
 }
 
 
 #if defined(DEBUG)
 NoHandleScope::NoHandleScope(Isolate* isolate) : StackResource(isolate) {
-  isolate->IncrementNoHandleScopeDepth();
+  thread()->IncrementNoHandleScopeDepth();
 }
 
 
-NoHandleScope::NoHandleScope() : StackResource(Isolate::Current()) {
-  isolate()->IncrementNoHandleScopeDepth();
+NoHandleScope::NoHandleScope() : StackResource(Thread::Current()) {
+  thread()->IncrementNoHandleScopeDepth();
 }
 
 
 NoHandleScope::~NoHandleScope() {
-  isolate()->DecrementNoHandleScopeDepth();
+  thread()->DecrementNoHandleScopeDepth();
 }
 #endif  // defined(DEBUG)
 

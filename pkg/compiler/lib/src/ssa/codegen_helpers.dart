@@ -111,8 +111,9 @@ class SsaInstructionSelection extends HBaseVisitor {
       //     b.get$thing().foo$1(0, x)
       //
       Selector selector = node.selector;
+      TypeMask mask = node.mask;
       if (backend.isInterceptedSelector(selector) &&
-          !backend.isInterceptedMixinSelector(selector)) {
+          !backend.isInterceptedMixinSelector(selector, mask)) {
         HInstruction interceptor = node.inputs[0];
         HInstruction receiverArgument = node.inputs[1];
 
@@ -120,7 +121,8 @@ class SsaInstructionSelection extends HBaseVisitor {
           // TODO(15933): Make automatically generated property extraction
           // closures work with the dummy receiver optimization.
           if (!selector.isGetter) {
-            ConstantValue constant = new DummyConstantValue(
+            ConstantValue constant = new SyntheticConstantValue(
+                SyntheticConstantKind.DUMMY_INTERCEPTOR,
                 receiverArgument.instructionType);
             HConstant dummy = graph.addConstant(constant, compiler);
             receiverArgument.usedBy.remove(node);

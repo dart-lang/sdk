@@ -40,56 +40,56 @@ void check(Map<String, List<String>> testFiles,
     Map<String, Set<String>> testOutcomes = {};
     String fileName = 'tests/$testFile';
     ExtractTestsFromMultitest(new Path(fileName), testSources, testOutcomes);
-    return Future.forEach(testSources.keys, (String testName) {
+    return Future.forEach(testSources.keys, (String testName) async {
       String testFileName = '$fileName/$testName';
       Set<String> expectedOutcome = testOutcomes[testName];
       bool expectFailure = testFiles[testFile].contains(testName);
       DiagnosticCollector collector = new DiagnosticCollector();
-      var compiler = compilerFor(
-           {testFileName: testSources[testName]},
-           diagnosticHandler: collector,
-           options: ['--analyze-only']..addAll(options),
-           showDiagnostics: verbose,
-           cachedCompiler: cachedCompiler);
-      return compiler.run(Uri.parse('memory:$testFileName')).then((_) {
-        bool unexpectedResult = false;
-        if (expectedOutcome.contains('compile-time error')) {
-          if (collector.errors.isEmpty) {
-            print('$testFileName: Missing compile-time error.');
-            unexpectedResult = true;
-          }
-        } else if (expectedOutcome.contains('static type warning')) {
-          if (collector.warnings.isEmpty) {
-            print('$testFileName: Missing static type warning.');
-            unexpectedResult = true;
-          }
-        } else {
-          // Expect ok.
-          if (!collector.errors.isEmpty ||
-              !collector.warnings.isEmpty) {
-            collector.errors.forEach((message) {
-              print('$testFileName: Unexpected error: ${message.message}');
-            });
-            collector.warnings.forEach((message) {
-              print('$testFileName: Unexpected warning: ${message.message}');
-            });
-            unexpectedResult = true;
-          }
+      CompilationResult result = await runCompiler(
+          entryPoint: Uri.parse('memory:$testFileName'),
+          memorySourceFiles: {testFileName: testSources[testName]},
+          diagnosticHandler: collector,
+          options: ['--analyze-only']..addAll(options),
+          showDiagnostics: verbose,
+          cachedCompiler: cachedCompiler);
+      var compiler = result.compiler;
+      bool unexpectedResult = false;
+      if (expectedOutcome.contains('compile-time error')) {
+        if (collector.errors.isEmpty) {
+          print('$testFileName: Missing compile-time error.');
+          unexpectedResult = true;
         }
-        if (expectFailure) {
-          if (unexpectedResult) {
-            unexpectedResult = false;
-          } else {
-            print('$testFileName: The test is white-listed '
-                  'and therefore expected to fail.');
-            unexpectedResult = true;
-          }
+      } else if (expectedOutcome.contains('static type warning')) {
+        if (collector.warnings.isEmpty) {
+          print('$testFileName: Missing static type warning.');
+          unexpectedResult = true;
         }
+      } else {
+        // Expect ok.
+        if (!collector.errors.isEmpty ||
+            !collector.warnings.isEmpty) {
+          collector.errors.forEach((message) {
+            print('$testFileName: Unexpected error: ${message.message}');
+          });
+          collector.warnings.forEach((message) {
+            print('$testFileName: Unexpected warning: ${message.message}');
+          });
+          unexpectedResult = true;
+        }
+      }
+      if (expectFailure) {
         if (unexpectedResult) {
-          outcomeMismatch = true;
+          unexpectedResult = false;
+        } else {
+          print('$testFileName: The test is white-listed '
+                'and therefore expected to fail.');
+          unexpectedResult = true;
         }
-        cachedCompiler = compiler;
-      });
+      }
+      if (unexpectedResult) {
+        outcomeMismatch = true;
+      }
+      cachedCompiler = compiler;
     });
   }).then((_) {
     if (outcomeMismatch) {

@@ -33,6 +33,7 @@ final web_sqlBlinkMap = {
   'SQLTransaction': () => SqlTransaction,
 
 };
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -100,48 +101,48 @@ class SqlDatabase extends NativeFieldWrapperClass2 {
 
   @DomName('Database.version')
   @DocsEditable()
-  String get version => _blink.BlinkDatabase.instance.version_Getter_(this);
-
+  String get version => _blink.BlinkDatabase.instance.version_Getter_(unwrap_jso(this));
+  
   void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) {
     if (successCallback != null) {
-      _blink.BlinkDatabase.instance.changeVersion_Callback_5_(this, oldVersion, newVersion, callback, errorCallback, successCallback);
+      _blink.BlinkDatabase.instance.changeVersion_Callback_5_(unwrap_jso(this), oldVersion, newVersion, unwrap_jso(callback), unwrap_jso(errorCallback), unwrap_jso(successCallback));
       return;
     }
     if (errorCallback != null) {
-      _blink.BlinkDatabase.instance.changeVersion_Callback_4_(this, oldVersion, newVersion, callback, errorCallback);
+      _blink.BlinkDatabase.instance.changeVersion_Callback_4_(unwrap_jso(this), oldVersion, newVersion, unwrap_jso(callback), unwrap_jso(errorCallback));
       return;
     }
     if (callback != null) {
-      _blink.BlinkDatabase.instance.changeVersion_Callback_3_(this, oldVersion, newVersion, callback);
+      _blink.BlinkDatabase.instance.changeVersion_Callback_3_(unwrap_jso(this), oldVersion, newVersion, unwrap_jso(callback));
       return;
     }
-    _blink.BlinkDatabase.instance.changeVersion_Callback_2_(this, oldVersion, newVersion);
+    _blink.BlinkDatabase.instance.changeVersion_Callback_2_(unwrap_jso(this), oldVersion, newVersion);
     return;
   }
 
   void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) {
     if (successCallback != null) {
-      _blink.BlinkDatabase.instance.readTransaction_Callback_3_(this, callback, errorCallback, successCallback);
+      _blink.BlinkDatabase.instance.readTransaction_Callback_3_(unwrap_jso(this), unwrap_jso(callback), unwrap_jso(errorCallback), unwrap_jso(successCallback));
       return;
     }
     if (errorCallback != null) {
-      _blink.BlinkDatabase.instance.readTransaction_Callback_2_(this, callback, errorCallback);
+      _blink.BlinkDatabase.instance.readTransaction_Callback_2_(unwrap_jso(this), unwrap_jso(callback), unwrap_jso(errorCallback));
       return;
     }
-    _blink.BlinkDatabase.instance.readTransaction_Callback_1_(this, callback);
+    _blink.BlinkDatabase.instance.readTransaction_Callback_1_(unwrap_jso(this), unwrap_jso(callback));
     return;
   }
 
   void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) {
     if (successCallback != null) {
-      _blink.BlinkDatabase.instance.transaction_Callback_3_(this, callback, errorCallback, successCallback);
+      _blink.BlinkDatabase.instance.transaction_Callback_3_(unwrap_jso(this), unwrap_jso(callback), unwrap_jso(errorCallback), unwrap_jso(successCallback));
       return;
     }
     if (errorCallback != null) {
-      _blink.BlinkDatabase.instance.transaction_Callback_2_(this, callback, errorCallback);
+      _blink.BlinkDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(callback), unwrap_jso(errorCallback));
       return;
     }
-    _blink.BlinkDatabase.instance.transaction_Callback_1_(this, callback);
+    _blink.BlinkDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(callback));
     return;
   }
 
@@ -195,12 +196,12 @@ class SqlError extends NativeFieldWrapperClass2 {
 
   @DomName('SQLError.code')
   @DocsEditable()
-  int get code => _blink.BlinkSQLError.instance.code_Getter_(this);
-
+  int get code => _blink.BlinkSQLError.instance.code_Getter_(unwrap_jso(this));
+  
   @DomName('SQLError.message')
   @DocsEditable()
-  String get message => _blink.BlinkSQLError.instance.message_Getter_(this);
-
+  String get message => _blink.BlinkSQLError.instance.message_Getter_(unwrap_jso(this));
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -219,16 +220,16 @@ class SqlResultSet extends NativeFieldWrapperClass2 {
 
   @DomName('SQLResultSet.insertId')
   @DocsEditable()
-  int get insertId => _blink.BlinkSQLResultSet.instance.insertId_Getter_(this);
-
+  int get insertId => _blink.BlinkSQLResultSet.instance.insertId_Getter_(unwrap_jso(this));
+  
   @DomName('SQLResultSet.rows')
   @DocsEditable()
-  SqlResultSetRowList get rows => _blink.BlinkSQLResultSet.instance.rows_Getter_(this);
-
+  SqlResultSetRowList get rows => wrap_jso(_blink.BlinkSQLResultSet.instance.rows_Getter_(unwrap_jso(this)));
+  
   @DomName('SQLResultSet.rowsAffected')
   @DocsEditable()
-  int get rowsAffected => _blink.BlinkSQLResultSet.instance.rowsAffected_Getter_(this);
-
+  int get rowsAffected => _blink.BlinkSQLResultSet.instance.rowsAffected_Getter_(unwrap_jso(this));
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -247,16 +248,16 @@ class SqlResultSetRowList extends NativeFieldWrapperClass2 with ListMixin<Map>, 
 
   @DomName('SQLResultSetRowList.length')
   @DocsEditable()
-  int get length => _blink.BlinkSQLResultSetRowList.instance.length_Getter_(this);
-
+  int get length => _blink.BlinkSQLResultSetRowList.instance.length_Getter_(unwrap_jso(this));
+  
   Map operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.index(index, this);
-    return _blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(this, index);
+    return _blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(unwrap_jso(this), index);
   }
 
-  Map _nativeIndexedGetter(int index) => _blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(this, index);
-
+  Map _nativeIndexedGetter(int index) => _blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(unwrap_jso(this), index);
+ 
   void operator[]=(int index, Map value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -297,8 +298,8 @@ class SqlResultSetRowList extends NativeFieldWrapperClass2 with ListMixin<Map>, 
 
   @DomName('SQLResultSetRowList.item')
   @DocsEditable()
-  Map item(int index) => _blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(this, index);
-
+  Map item(int index) => _blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(unwrap_jso(this), index);
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -320,6 +321,6 @@ class SqlTransaction extends NativeFieldWrapperClass2 {
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable()
-  void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) => _blink.BlinkSQLTransaction.instance.executeSql_Callback_4_(this, sqlStatement, arguments, callback, errorCallback);
-
+  void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) => _blink.BlinkSQLTransaction.instance.executeSql_Callback_4_(unwrap_jso(this), sqlStatement, arguments, unwrap_jso(callback), unwrap_jso(errorCallback));
+  
 }

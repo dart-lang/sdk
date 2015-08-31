@@ -75,6 +75,22 @@ abstract class Stream<T> {
   Stream();
 
   /**
+   * Internal use only. We do not want to promise that Stream stays const.
+   *
+   * If mixins become compatible with const constructors, we may use a
+   * stream mixin instead of extending Stream from a const class.
+   */
+  const Stream._internal();
+
+  /**
+   * Creates an empty broadcast stream.
+   *
+   * This is a stream which does nothing except sending a done event
+   * when it's listened to.
+   */
+  const factory Stream.empty() = _EmptyStream<T>;
+
+  /**
    * Creates a new single-subscription stream from the future.
    *
    * When the future completes, the stream will fire one event, either
@@ -462,12 +478,22 @@ abstract class Stream<T> {
   }
 
   /**
-   * Binds this stream as the input of the provided [StreamConsumer].
+   * Pipe the events of this stream into [streamConsumer].
    *
-   * The `streamConsumer` is closed when the stream has been added to it.
+   * The events of this stream are added to `streamConsumer` using
+   * [StreamConsumer.addStream].
+   * The `streamConsumer` is closed when this stream has been successfully added
+   * to it - when the future returned by `addStream` completes without an error.
    *
    * Returns a future which completes when the stream has been consumed
    * and the consumer has been closed.
+   *
+   * The returned future completes with the same result as the future returned
+   * by [StreamConsumer.close].
+   * If the adding of the stream itself fails in some way,
+   * then the consumer is expected to be closed, and won't be closed again.
+   * In that case the returned future completes with the error from calling
+   * `addStream`.
    */
   Future pipe(StreamConsumer<T> streamConsumer) {
     return streamConsumer.addStream(this).then((_) => streamConsumer.close());
@@ -816,7 +842,7 @@ abstract class Stream<T> {
    * the returned stream is listened to.
    */
   Stream<T> take(int count) {
-    return new _TakeStream(this, count);
+    return new _TakeStream<T>(this, count);
   }
 
   /**
@@ -838,7 +864,7 @@ abstract class Stream<T> {
    * the returned stream is listened to.
    */
   Stream<T> takeWhile(bool test(T element)) {
-    return new _TakeWhileStream(this, test);
+    return new _TakeWhileStream<T>(this, test);
   }
 
   /**
@@ -849,7 +875,7 @@ abstract class Stream<T> {
    * the returned stream is listened to.
    */
   Stream<T> skip(int count) {
-    return new _SkipStream(this, count);
+    return new _SkipStream<T>(this, count);
   }
 
   /**
@@ -865,7 +891,7 @@ abstract class Stream<T> {
    * the returned stream is listened to.
    */
   Stream<T> skipWhile(bool test(T element)) {
-    return new _SkipWhileStream(this, test);
+    return new _SkipWhileStream<T>(this, test);
   }
 
   /**
@@ -882,7 +908,7 @@ abstract class Stream<T> {
    * will individually perform the `equals` test.
    */
   Stream<T> distinct([bool equals(T previous, T next)]) {
-    return new _DistinctStream(this, equals);
+    return new _DistinctStream<T>(this, equals);
   }
 
   /**
@@ -1279,7 +1305,7 @@ abstract class Stream<T> {
 }
 
 /**
- * A subscritption on events from a [Stream].
+ * A subscription on events from a [Stream].
  *
  * When you listen on a [Stream] using [Stream.listen],
  * a [StreamSubscription] object is returned.
@@ -1423,11 +1449,19 @@ class StreamView<T> extends Stream<T> {
 
 
 /**
- * The target of a [Stream.pipe] call.
+ * Abstract interface for a "sink" accepting multiple entire streams.
  *
- * The [Stream.pipe] call will pass itself to this object, and then return
- * the resulting [Future]. The pipe should complete the future when it's
- * done.
+ * A consumer can accept a number of consequtive streams using [addStream],
+ * and when no further data need to be added, the [close] method tells the
+ * consumer to complete its work and shut down.
+ *
+ * This class is not just a [Sink<Stream>] because it is also combined with
+ * other [Sink] classes, like it's combined with [EventSink] in the
+ * [StreamSink] class.
+ *
+ * The [Stream.pipe] accepts a `StreamConsumer` and will pass the stream
+ * to the consumer's [addStream] method. When that completes, it will
+ * call [close] and then complete its own returned future.
  */
 abstract class StreamConsumer<S> {
   /**
@@ -1435,22 +1469,38 @@ abstract class StreamConsumer<S> {
    *
    * Listens on [stream] and does something for each event.
    *
-   * The consumer may stop listening after an error, or it may consume
-   * all the errors and only stop at a done event.
+   * Returns a future which is completed when the stream is done being added,
+   * and the consumer is ready to accept a new stream.
+   * No further calls to [addStream] or [close] should happen before the
+   * returned future has completed.
+   *
+   * The consumer may stop listening to the stream after an error,
+   * it may consume all the errors and only stop at a done event,
+   * or it may be canceled early if the receiver don't want any further events.
+   *
+   * If the consumer stops listening because of some error preventing it
+   * from continuing, it may report this error in the returned future,
+   * otherwise it will just complete the future with `null`.
    */
   Future addStream(Stream<S> stream);
 
   /**
-   * Tell the consumer that no futher streams will be added.
+   * Tells the consumer that no futher streams will be added.
    *
-   * Returns a future that is completed when the consumer is done handling
-   * events.
+   * This allows the consumer to complete any remaining work and release
+   * resources that are no longer needed
+   *
+   * Returns a future which is completed when the consumer has shut down.
+   * If cleaning up can fail, the error may be reported in the returned future,
+   * otherwise it completes with `null`.
    */
   Future close();
 }
 
 
 /**
+ * A object that accepts stream events both synchronously and asynchronously.
+ *
  * A [StreamSink] unifies the asynchronous methods from [StreamConsumer] and
  * the synchronous methods from [EventSink].
  *
@@ -1467,11 +1517,26 @@ abstract class StreamConsumer<S> {
  *
  * When [close] is called, it will return the [done] [Future].
  */
-abstract class StreamSink<S> implements StreamConsumer<S>, EventSink<S> {
+abstract class StreamSink<S> implements EventSink<S>, StreamConsumer<S> {
   /**
-   * As [EventSink.close], but returns a future.
+   * Tells the stream sink that no futher streams will be added.
+   *
+   * This allows the stream sink to complete any remaining work and release
+   * resources that are no longer needed
+   *
+   * Returns a future which is completed when the stream sink has shut down.
+   * If cleaning up can fail, the error may be reported in the returned future,
+   * otherwise it completes with `null`.
    *
    * Returns the same future as [done].
+   *
+   * The stream sink may close before the [close] method is called, either due
+   * to an error or because it is itself provding events to someone who has
+   * stopped listening. In that case, the [done] future is completed first,
+   * and the `close` method will return the `done` future when called.
+   *
+   * Unifies [StreamConsumer.close] and [EventSink.close] which both mark their
+   * object as not expecting any further events.
    */
   Future close();
 
@@ -1599,7 +1664,7 @@ abstract class StreamTransformer<S, T> {
 }
 
 /**
- * An [Iterable] like interface for the values of a [Stream].
+ * An [Iterator] like interface for the values of a [Stream].
  *
  * This wraps a [Stream] and a subscription on the stream. It listens
  * on the stream, and completes the future returned by [moveNext] when the
@@ -1616,19 +1681,30 @@ abstract class StreamIterator<T> {
   /**
    * Wait for the next stream value to be available.
    *
-   * It is not allowed to call this function again until the future has
-   * completed. If the returned future completes with anything except `true`,
-   * the iterator is done, and no new value will ever be available.
+   * Returns a future which will complete with either `true` or `false`.
+   * Completing with `true` means that another event has been received and
+   * can be read as [current].
+   * Completing with `false` means that the stream itearation is done and
+   * no further events will ever be available.
+   * The future may complete with an error, if the stream produces an error,
+   * which also ends iteration.
    *
-   * The future may complete with an error, if the stream produces an error.
+   * The function must not be called again until the future returned by a
+   * previous call is completed.
    */
   Future<bool> moveNext();
 
   /**
    * The current value of the stream.
    *
-   * Only valid when the future returned by [moveNext] completes with `true`
-   * as value, and only until the next call to [moveNext].
+   * Is `null` before the first call to [moveNext] and after a call to
+   * `moveNext` completes with a `false` result or an error.
+   *
+   * When a `moveNext` call completes with `true`, the `current` field holds
+   * the most recent event of the stream, and it stays like that until the next
+   * call to `moveNext`.
+   * Between a call to `moveNext` and when its returned future completes,
+   * the value is unspecified.
    */
   T get current;
 
@@ -1638,12 +1714,13 @@ abstract class StreamIterator<T> {
    * The stream iterator is automatically canceled if the [moveNext] future
    * completes with either `false` or an error.
    *
-   * If a [moveNext] call has been made, it will complete with `false` as value,
-   * as will all further calls to [moveNext].
-   *
    * If you need to stop listening for values before the stream iterator is
    * automatically closed, you must call [cancel] to ensure that the stream
    * is properly closed.
+   *
+   * If [moveNext] has been called when the iterator is cancelled,
+   * its returned future will complete with `false` as value,
+   * as will all further calls to [moveNext].
    *
    * Returns a future if the cancel-operation is not completed synchronously.
    * Otherwise returns `null`.

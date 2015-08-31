@@ -22,6 +22,7 @@ export 'package:compiler/src/dart2jslib.dart'
        show Constant,
             Message,
             MessageKind,
+            MessageTemplate,
             Selector,
             TypedSelector,
             SourceSpan,
@@ -109,6 +110,7 @@ MockCompiler compilerFor(String code, Uri uri,
       expectedWarnings: expectedWarnings,
       outputProvider: outputProvider);
   compiler.registerSource(uri, code);
+  compiler.diagnosticHandler = createHandler(compiler, code);
   return compiler;
 }
 

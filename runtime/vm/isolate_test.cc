@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "include/dart_api.h"
 #include "platform/assert.h"
 #include "vm/globals.h"
 #include "vm/isolate.h"
@@ -10,14 +11,11 @@
 namespace dart {
 
 UNIT_TEST_CASE(IsolateCurrent) {
-  Isolate::Flags vm_flags;
-  Dart_IsolateFlags api_flags;
-  vm_flags.CopyTo(&api_flags);
-  Isolate* isolate = Isolate::Init(NULL, api_flags);
-  EXPECT_EQ(isolate, Isolate::Current());
-  isolate->Shutdown();
-  EXPECT_EQ(reinterpret_cast<Isolate*>(NULL), Isolate::Current());
-  delete isolate;
+  Dart_Isolate isolate = Dart_CreateIsolate(
+      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
+  EXPECT_EQ(isolate, Dart_CurrentIsolate());
+  Dart_ShutdownIsolate();
+  EXPECT_EQ(reinterpret_cast<Dart_Isolate>(NULL), Dart_CurrentIsolate());
 }
 
 

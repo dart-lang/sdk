@@ -12,7 +12,7 @@ import sys
 
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
-PUB_PATH = os.path.join(DART_ROOT, 'third_party/pkg_tested/pub/bin/pub.dart')
+PUB_PATH = os.path.join(DART_ROOT, 'third_party/pkg/pub/bin/pub.dart')
 CANARY_PATH = os.path.join(DART_ROOT, 'tools', 'canary.dart')
 
 usage = """run_pub.py --package-root=<package root>"""

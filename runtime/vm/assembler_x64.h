@@ -19,6 +19,7 @@ namespace dart {
 
 // Forward declarations.
 class RuntimeEntry;
+class StubEntry;
 
 class Immediate : public ValueObject {
  public:
@@ -370,7 +371,7 @@ class Assembler : public ValueObject {
   void pushq(Register reg);
   void pushq(const Address& address);
   void pushq(const Immediate& imm);
-  void PushImmediate(const Immediate& imm, Register pp);
+  void PushImmediate(const Immediate& imm);
 
   void popq(Register reg);
   void popq(const Address& address);
@@ -397,6 +398,7 @@ class Assembler : public ValueObject {
   void movsxw(Register dst, const Address& src);
   void movw(Register dst, const Address& src);
   void movw(const Address& dst, Register src);
+  void movw(const Address& dst, const Immediate& imm);
 
   void movq(Register dst, const Immediate& imm);
   void movq(Register dst, Register src);
@@ -512,6 +514,9 @@ class Assembler : public ValueObject {
 
   void cmpb(const Address& address, const Immediate& imm);
 
+  void cmpw(Register reg, const Address& address);
+  void cmpw(const Address& address, const Immediate& imm);
+
   void cmpl(Register reg, const Immediate& imm);
   void cmpl(Register reg0, Register reg1);
   void cmpl(Register reg, const Address& address);
@@ -523,9 +528,8 @@ class Assembler : public ValueObject {
   void cmpq(Register reg0, Register reg1);
   void cmpq(Register reg, const Address& address);
 
-  void CompareImmediate(Register reg, const Immediate& imm, Register pp);
-  void CompareImmediate(const Address& address, const Immediate& imm,
-                        Register pp);
+  void CompareImmediate(Register reg, const Immediate& imm);
+  void CompareImmediate(const Address& address, const Immediate& imm);
 
   void testl(Register reg1, Register reg2);
   void testl(Register reg, const Immediate& imm);
@@ -533,7 +537,7 @@ class Assembler : public ValueObject {
 
   void testq(Register reg1, Register reg2);
   void testq(Register reg, const Immediate& imm);
-  void TestImmediate(Register dst, const Immediate& imm, Register pp);
+  void TestImmediate(Register dst, const Immediate& imm);
 
   void andl(Register dst, Register src);
   void andl(Register dst, const Immediate& imm);
@@ -547,18 +551,18 @@ class Assembler : public ValueObject {
   void andq(Register dst, Register src);
   void andq(Register dst, const Address& address);
   void andq(Register dst, const Immediate& imm);
-  void AndImmediate(Register dst, const Immediate& imm, Register pp);
+  void AndImmediate(Register dst, const Immediate& imm);
 
   void orq(Register dst, Register src);
   void orq(Register dst, const Address& address);
   void orq(Register dst, const Immediate& imm);
-  void OrImmediate(Register dst, const Immediate& imm, Register pp);
+  void OrImmediate(Register dst, const Immediate& imm);
 
   void xorq(Register dst, Register src);
   void xorq(Register dst, const Address& address);
   void xorq(const Address& dst, Register src);
   void xorq(Register dst, const Immediate& imm);
-  void XorImmediate(Register dst, const Immediate& imm, Register pp);
+  void XorImmediate(Register dst, const Immediate& imm);
 
   void addl(Register dst, Register src);
   void addl(Register dst, const Immediate& imm);
@@ -593,7 +597,7 @@ class Assembler : public ValueObject {
   void imulq(Register dst, Register src);
   void imulq(Register dst, const Address& address);
   void imulq(Register dst, const Immediate& imm);
-  void MulImmediate(Register reg, const Immediate& imm, Register pp);
+  void MulImmediate(Register reg, const Immediate& imm);
   void mulq(Register reg);
 
   void subl(Register dst, Register src);
@@ -689,6 +693,7 @@ class Assembler : public ValueObject {
   // Note: verified_mem mode forces far jumps.
   void jmp(Label* label, bool near = kFarJump);
   void jmp(const ExternalLabel* label);
+  void jmp(const StubEntry& stub_entry);
 
   void lock();
   void cmpxchgl(const Address& address, Register reg);
@@ -735,39 +740,48 @@ class Assembler : public ValueObject {
   void MoveRegister(Register to, Register from);
   void PopRegister(Register r);
 
-  // Macros accepting a pp Register argument may attempt to load values from
-  // the object pool when possible. Unless you are sure that the untagged object
-  // pool pointer is in another register, or that it is not available at all,
-  // PP should be passed for pp.
+  // Macros for adding/subtracting an immediate value that may be loaded from
+  // the constant pool.
   // TODO(koda): Assert that these are not used for heap objects.
-  void AddImmediate(Register reg, const Immediate& imm, Register pp);
-  void AddImmediate(const Address& address, const Immediate& imm, Register pp);
-  void SubImmediate(Register reg, const Immediate& imm, Register pp);
-  void SubImmediate(const Address& address, const Immediate& imm, Register pp);
+  void AddImmediate(Register reg, const Immediate& imm);
+  void AddImmediate(const Address& address, const Immediate& imm);
+  void SubImmediate(Register reg, const Immediate& imm);
+  void SubImmediate(const Address& address, const Immediate& imm);
 
   void Drop(intptr_t stack_elements, Register tmp = TMP);
 
-  bool allow_constant_pool() const {
-    return allow_constant_pool_;
+  bool constant_pool_allowed() const {
+    return constant_pool_allowed_;
   }
-  void set_allow_constant_pool(bool b) {
-    allow_constant_pool_ = b;
+  void set_constant_pool_allowed(bool b) {
+    constant_pool_allowed_ = b;
   }
 
-  bool CanLoadImmediateFromPool(const Immediate& imm, Register pp);
-  void LoadImmediate(Register reg, const Immediate& imm, Register pp);
+  void LoadImmediate(Register reg, const Immediate& imm);
   void LoadIsolate(Register dst);
-  void LoadObject(Register dst, const Object& obj, Register pp);
+  void LoadObject(Register dst, const Object& obj);
+  void LoadUniqueObject(Register dst, const Object& obj);
+  void LoadExternalLabel(Register dst,
+                         const ExternalLabel* label,
+                         Patchability patchable);
+  void LoadFunctionFromCalleePool(Register dst,
+                                  const Function& function,
+                                  Register new_pp);
   void JmpPatchable(const ExternalLabel* label, Register pp);
+  void JmpPatchable(const StubEntry& stub_entry, Register pp);
   void Jmp(const ExternalLabel* label, Register pp);
+  void Jmp(const StubEntry& stub_entry, Register pp);
   void J(Condition condition, const ExternalLabel* label, Register pp);
+  void J(Condition condition, const StubEntry& stub_entry, Register pp);
   void CallPatchable(const ExternalLabel* label);
-  void Call(const ExternalLabel* label, Register pp);
+  void CallPatchable(const StubEntry& stub_entry);
+  void Call(const ExternalLabel* label);
+  void Call(const StubEntry& stub_entry);
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
   // TODO(koda): Add StackAddress/HeapAddress types to prevent misuse.
-  void StoreObject(const Address& dst, const Object& obj, Register pp);
-  void PushObject(const Object& object, Register pp);
-  void CompareObject(Register reg, const Object& object, Register pp);
+  void StoreObject(const Address& dst, const Object& obj);
+  void PushObject(const Object& object);
+  void CompareObject(Register reg, const Object& object);
 
   // When storing into a heap object field, knowledge of the previous content
   // is expressed through these constants.
@@ -795,13 +809,11 @@ class Assembler : public ValueObject {
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value,
-                                Register pp,
                                 FieldContent old_content = kHeapObjectOrSmi);
   void InitializeFieldNoBarrier(Register object,
                                 const Address& dest,
-                                const Object& value,
-                                Register pp) {
-    return StoreIntoObjectNoBarrier(object, dest, value, pp, kEmptyOrSmiOrNull);
+                                const Object& value) {
+    return StoreIntoObjectNoBarrier(object, dest, value, kEmptyOrSmiOrNull);
   }
 
   // Stores a Smi value into a heap object field that always contains a Smi.
@@ -845,12 +857,13 @@ class Assembler : public ValueObject {
    */
   void LoadClassId(Register result, Register object);
 
-  void LoadClassById(Register result, Register class_id, Register pp);
+  void LoadClassById(Register result, Register class_id);
 
-  void LoadClass(Register result, Register object, Register pp);
+  void LoadClass(Register result, Register object);
 
   void CompareClassId(Register object, intptr_t class_id);
 
+  void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
   // CheckClassIs fused with optimistic SmiUntag.
@@ -902,17 +915,18 @@ class Assembler : public ValueObject {
   const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
     return buffer_.pointer_offsets();
   }
-  const GrowableObjectArray& object_pool_data() const {
-    return object_pool_.data();
-  }
 
-  ObjectPool& object_pool() { return object_pool_; }
+  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
+
+  RawObjectPool* MakeObjectPool() {
+    return object_pool_wrapper_.MakeObjectPool();
+  }
 
   void FinalizeInstructions(const MemoryRegion& region) {
     buffer_.FinalizeInstructions(region);
   }
 
-  void LoadPoolPointer(Register pp);
+  void LoadPoolPointer(Register pp = PP);
 
   // Set up a Dart frame on entry with a frame pointer and PC information to
   // enable easy access to the RawInstruction object of code corresponding
@@ -933,7 +947,6 @@ class Assembler : public ValueObject {
   //   ...
   //   pushq r15
   //   .....
-  void EnterDartFrame(intptr_t frame_size);
   void EnterDartFrameWithInfo(intptr_t frame_size,
                               Register new_pp, Register pc_marker_override);
   void LeaveDartFrame();
@@ -957,7 +970,7 @@ class Assembler : public ValueObject {
   //   movq rbp, rsp
   //   pushq immediate(0)
   //   .....
-  void EnterStubFrame(bool load_pp = false);
+  void EnterStubFrame();
   void LeaveStubFrame();
 
   // Instruction pattern from entrypoint is used in dart frame prologues
@@ -974,33 +987,42 @@ class Assembler : public ValueObject {
   }
 
   void UpdateAllocationStats(intptr_t cid,
-                             Heap::Space space);
+                             Heap::Space space,
+                             bool inline_isolate = true);
 
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      Register size_reg,
-                                     Heap::Space space);
+                                     Heap::Space space,
+                                     bool inline_isolate = true);
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      intptr_t instance_size,
-                                     Heap::Space space);
+                                     Heap::Space space,
+                                     bool inline_isolate = true);
+
+  // If allocation tracing for |cid| is enabled, will jump to |trace| label,
+  // which will allocate in the runtime where tracing occurs.
+  void MaybeTraceAllocation(intptr_t cid,
+                            Label* trace,
+                            bool near_jump,
+                            bool inline_isolate = true);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
   // Allocated instance is returned in 'instance_reg'.
   // Only the tags field of the object is initialized.
-  // Loads large immediates from the object pool with pool pointer in PP if it
-  // is not kNoRegister
   void TryAllocate(const Class& cls,
                    Label* failure,
                    bool near_jump,
                    Register instance_reg,
-                   Register pp);
+                   Register temp);
 
   void TryAllocateArray(intptr_t cid,
                         intptr_t instance_size,
                         Label* failure,
                         bool near_jump,
                         Register instance,
-                        Register end_address);
+                        Register end_address,
+                        Register temp);
 
   // Debugging and bringup support.
   void Stop(const char* message, bool fixed_length_encoding = false);
@@ -1033,8 +1055,7 @@ class Assembler : public ValueObject {
  private:
   AssemblerBuffer buffer_;
 
-  // Objects and jump targets.
-  ObjectPool object_pool_;
+  ObjectPoolWrapper object_pool_wrapper_;
 
   intptr_t prologue_offset_;
 
@@ -1054,15 +1075,12 @@ class Assembler : public ValueObject {
   };
 
   GrowableArray<CodeComment*> comments_;
-  bool allow_constant_pool_;
+  bool constant_pool_allowed_;
 
   intptr_t FindImmediate(int64_t imm);
-  void LoadExternalLabel(Register dst,
-                         const ExternalLabel* label,
-                         Patchability patchable,
-                         Register pp);
-  bool CanLoadFromObjectPool(const Object& object);
-  void LoadWordFromPoolOffset(Register dst, Register pp, int32_t offset);
+  bool CanLoadFromObjectPool(const Object& object) const;
+  void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
+  void LoadWordFromPoolOffset(Register dst, int32_t offset);
 
   inline void EmitUint8(uint8_t value);
   inline void EmitInt32(int32_t value);
@@ -1113,7 +1131,7 @@ class Assembler : public ValueObject {
                      Register value,
                      FieldContent old_content);
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
-  void MoveImmediate(const Address& dst, const Immediate& imm, Register pp);
+  void MoveImmediate(const Address& dst, const Immediate& imm);
 
   void ComputeCounterAddressesForCid(intptr_t cid,
                                      Heap::Space space,

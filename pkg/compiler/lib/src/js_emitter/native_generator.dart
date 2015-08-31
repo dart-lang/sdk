@@ -17,7 +17,7 @@ class NativeGenerator {
   static jsAst.Statement generateIsolateAffinityTagInitialization(
       JavaScriptBackend backend,
       jsAst.Expression generateEmbeddedGlobalAccess(String global),
-      jsAst.Expression convertToFastObject) {
+      jsAst.Expression internStringFunction) {
     assert(backend.needToInitializeIsolateAffinityTag);
 
     jsAst.Expression getIsolateTagAccess =
@@ -29,13 +29,7 @@ class NativeGenerator {
 
     return js.statement('''
       !function() {
-        // On V8, the 'intern' function converts a string to a symbol, which
-        // makes property access much faster.
-        function intern(s) {
-          var o = {};
-          o[s] = 1;
-          return Object.keys(#convertToFastObject(o))[0];
-        }
+        var intern = #internStringFunction;
 
         #getIsolateTag = function(name) {
           return intern("___dart_" + name + #isolateTag);
@@ -63,7 +57,7 @@ class NativeGenerator {
       }();
     ''',
     {'initializeDispatchProperty': backend.needToInitializeDispatchProperty,
-     'convertToFastObject': convertToFastObject,
+     'internStringFunction': internStringFunction,
      'getIsolateTag': getIsolateTagAccess,
      'isolateTag': isolateTagAccess,
      'dispatchPropertyName': dispatchPropertyNameAccess});
@@ -72,5 +66,142 @@ class NativeGenerator {
   static String generateIsolateTagRoot() {
     // TODO(sra): MD5 of contributing source code or URIs?
     return 'ZxYxX';
+  }
+
+  /// Encodes the collected native information so that it can be treated by
+  /// the native info-handler below.
+  ///
+  /// The encoded information has the form:
+  ///
+  //    "%": "leafTag1|leafTag2|...;nonleafTag1|...;Class1|Class2|...",
+  //
+  // If there is no data following a semicolon, the semicolon can be omitted.
+  static jsAst.Expression encodeNativeInfo(Class cls) {
+    List<String> leafTags = cls.nativeLeafTags;
+    List<String> nonLeafTags = cls.nativeNonLeafTags;
+    List<Class> extensions = cls.nativeExtensions;
+
+    String formatTags(Iterable<String> tags) {
+      if (tags == null) return '';
+      return (tags.toList()
+        ..sort()).join('|');
+    }
+
+    String leafStr = formatTags(leafTags);
+    String nonLeafStr = formatTags(nonLeafTags);
+
+    StringBuffer sb = new StringBuffer(leafStr);
+    if (nonLeafStr != '') {
+      sb
+        ..write(';')
+        ..write(nonLeafStr);
+    }
+
+    String encoding = sb.toString();
+
+    if (cls.isNative || encoding != '' || extensions != null) {
+      List<jsAst.Literal> parts = <jsAst.Literal>[js.stringPart(encoding)];
+      if (extensions != null) {
+        parts
+          ..add(js.stringPart(';'))
+          ..addAll(
+            js.joinLiterals(extensions.map((Class cls) => cls.name),
+            js.stringPart('|')));
+      }
+      return jsAst.concatenateStrings(parts, addQuotes: true);
+    }
+    return null;
+  }
+
+  /// Returns a JavaScript template that fills the embedded globals referenced
+  /// by [interceptorsByTagAccess] and [leafTagsAccess].
+  ///
+  /// This code must be invoked for every class that has a native info before
+  /// the program starts.
+  ///
+  /// The [infoAccess] parameter must evaluate to an expression that contains
+  /// the info (as a JavaScript string).
+  ///
+  /// The [constructorAccess] parameter must evaluate to an expression that
+  /// contains the constructor of the class. The constructor's prototype must
+  /// be set up.
+  ///
+  /// The [subclassReadGenerator] function must evaluate to a JS expression
+  /// that returns a reference to the constructor (with evaluated prototype)
+  /// of the given JS expression.
+  ///
+  /// The [interceptorsByTagAccess] must point to the embedded global
+  /// [embeddedNames.INTERCEPTORS_BY_TAG] and must be initialized with an empty
+  /// JS Object (used as a map).
+  ///
+  /// Similarly, the [leafTagsAccess] must point to the embedded global
+  /// [embeddedNames.LEAF_TAGS] and must be initialized with an empty JS Object
+  /// (used as a map).
+  ///
+  /// Both variables are passed in (instead of creating the access here) to
+  /// make sure the caller is aware of these globals.
+  static jsAst.Statement buildNativeInfoHandler(
+      jsAst.Expression infoAccess,
+      jsAst.Expression constructorAccess,
+      jsAst.Expression subclassReadGenerator(jsAst.Expression subclass),
+      jsAst.Expression interceptorsByTagAccess,
+      jsAst.Expression leafTagsAccess) {
+    jsAst.Expression subclassRead =
+        subclassReadGenerator(js('subclasses[i]', []));
+    return js.statement('''
+          // The native info looks like this:
+          //
+          // HtmlElement: {
+          //     "%": "HTMLDivElement|HTMLAnchorElement;HTMLElement;FancyButton"
+          //
+          // The first two semicolon-separated parts contain dispatch tags, the
+          // third contains the JavaScript names for classes.
+          //
+          // The tags indicate that JavaScript objects with the dispatch tags
+          // (usually constructor names) HTMLDivElement, HTMLAnchorElement and
+          // HTMLElement all map to the Dart native class named HtmlElement.
+          // The first set is for effective leaf nodes in the hierarchy, the
+          // second set is non-leaf nodes.
+          //
+          // The third part contains the JavaScript names of Dart classes that
+          // extend the native class. Here, FancyButton extends HtmlElement, so
+          // the runtime needs to know that window.HTMLElement.prototype is the
+          // prototype that needs to be extended in creating the custom element.
+          //
+          // The information is used to build tables referenced by
+          // getNativeInterceptor and custom element support.
+          {
+            var nativeSpec = #info.split(";");
+            if (nativeSpec[0]) {
+              var tags = nativeSpec[0].split("|");
+              for (var i = 0; i < tags.length; i++) {
+                #interceptorsByTagAccess[tags[i]] = #constructor;
+                #leafTagsAccess[tags[i]] = true;
+              }
+            }
+            if (nativeSpec[1]) {
+              tags = nativeSpec[1].split("|");
+              if (#allowNativesSubclassing) {
+                if (nativeSpec[2]) {
+                  var subclasses = nativeSpec[2].split("|");
+                  for (var i = 0; i < subclasses.length; i++) {
+                    var subclass = #subclassRead;
+                    subclass.#nativeSuperclassTagName = tags[0];
+                  }
+                }
+                for (i = 0; i < tags.length; i++) {
+                  #interceptorsByTagAccess[tags[i]] = #constructor;
+                  #leafTagsAccess[tags[i]] = false;
+                }
+              }
+            }
+          }
+    ''', {'info': infoAccess,
+          'constructor': constructorAccess,
+          'subclassRead': subclassRead,
+          'interceptorsByTagAccess': interceptorsByTagAccess,
+          'leafTagsAccess': leafTagsAccess,
+          'nativeSuperclassTagName': embeddedNames.NATIVE_SUPERCLASS_TAG_NAME,
+          'allowNativesSubclassing': true});
   }
 }

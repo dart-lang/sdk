@@ -5,6 +5,7 @@
 #include "bin/dartutils.h"
 
 #include "include/dart_api.h"
+#include "include/dart_tools_api.h"
 #include "include/dart_native_api.h"
 
 #include "platform/assert.h"
@@ -15,6 +16,7 @@
 #include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/io_buffer.h"
+#include "bin/isolate_data.h"
 #include "bin/platform.h"
 #include "bin/socket.h"
 #include "bin/utils.h"
@@ -480,13 +482,9 @@ void DartUtils::WriteMagicNumber(File* file) {
 Dart_Handle DartUtils::LoadScript(const char* script_uri,
                                   Dart_Handle builtin_lib) {
   Dart_Handle uri = Dart_NewStringFromCString(script_uri);
-
-  Dart_Port load_port = Dart_ServiceWaitForLoadPort();
-  if (load_port == ILLEGAL_PORT) {
-    return NewDartUnsupportedError("Service did not return load port.");
-  }
-  Builtin::SetLoadPort(load_port);
-
+  IsolateData* isolate_data =
+      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
+  Dart_TimelineAsyncBegin("LoadScript", &(isolate_data->load_async_id));
   return LoadDataAsync_Invoke(Dart_Null(), uri, Dart_Null(), builtin_lib);
 }
 
@@ -591,6 +589,11 @@ void FUNCTION_NAME(Builtin_LoadSource)(Dart_NativeArguments args) {
 // no more outstanding load requests.
 void FUNCTION_NAME(Builtin_DoneLoading)(Dart_NativeArguments args) {
   Dart_Handle res = Dart_FinalizeLoading(true);
+  IsolateData* isolate_data =
+      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
+  if (isolate_data->load_async_id >= 0) {
+    Dart_TimelineAsyncEnd("LoadScript", isolate_data->load_async_id);
+  }
   if (Dart_IsError(res)) {
     // TODO(hausner): If compilation/loading errors are supposed to
     // be observable by the program, we need to mark the bad library
@@ -623,11 +626,12 @@ void FUNCTION_NAME(Builtin_GetCurrentDirectory)(Dart_NativeArguments args) {
 }
 
 
-void DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
-                                      Dart_Handle internal_lib,
-                                      bool is_service_isolate,
-                                      bool trace_loading,
-                                      const char* package_root) {
+Dart_Handle DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
+                                             Dart_Handle internal_lib,
+                                             bool is_service_isolate,
+                                             bool trace_loading,
+                                             const char* package_root,
+                                             const char* packages_file) {
   // Setup the internal library's 'internalPrint' function.
   Dart_Handle print = Dart_Invoke(
       builtin_lib, NewString("_getPrintClosure"), 0, NULL);
@@ -646,16 +650,20 @@ void DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                              NewString("_traceLoading"), Dart_True());
       DART_CHECK_VALID(result);
     }
-  }
-
-  if (!is_service_isolate) {
     // Set current working directory.
     result = SetWorkingDirectory(builtin_lib);
     DART_CHECK_VALID(result);
+    // Wait for the service isolate to initialize the load port.
+    Dart_Port load_port = Dart_ServiceWaitForLoadPort();
+    if (load_port == ILLEGAL_PORT) {
+      return NewDartUnsupportedError("Service did not return load port.");
+    }
+    Builtin::SetLoadPort(load_port);
   }
 
   // Set up package root if specified.
   if (package_root != NULL) {
+    ASSERT(packages_file == NULL);
     result = NewString(package_root);
     DART_CHECK_VALID(result);
     const int kNumArgs = 1;
@@ -666,7 +674,19 @@ void DartUtils::PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                          kNumArgs,
                          dart_args);
     DART_CHECK_VALID(result);
+  } else if (packages_file != NULL) {
+    result = NewString(packages_file);
+    DART_CHECK_VALID(result);
+    const int kNumArgs = 1;
+    Dart_Handle dart_args[kNumArgs];
+    dart_args[0] = result;
+    result = Dart_Invoke(builtin_lib,
+                         NewString("_loadPackagesMap"),
+                         kNumArgs,
+                         dart_args);
+    DART_CHECK_VALID(result);
   }
+  return Dart_True();
 }
 
 
@@ -709,6 +729,7 @@ void DartUtils::PrepareIsolateLibrary(Dart_Handle isolate_lib) {
 
 
 Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
+                                               const char* packages_file,
                                                bool is_service_isolate,
                                                bool trace_loading,
                                                Dart_Handle builtin_lib) {
@@ -737,11 +758,14 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
   Dart_Handle result = Dart_FinalizeLoading(false);
   DART_CHECK_VALID(result);
 
-  PrepareBuiltinLibrary(builtin_lib,
-                        internal_lib,
-                        is_service_isolate,
-                        trace_loading,
-                        package_root);
+  result = PrepareBuiltinLibrary(builtin_lib,
+                                 internal_lib,
+                                 is_service_isolate,
+                                 trace_loading,
+                                 package_root,
+                                 packages_file);
+  DART_CHECK_VALID(result);
+
   PrepareAsyncLibrary(async_lib, isolate_lib);
   PrepareCoreLibrary(core_lib, builtin_lib, is_service_isolate);
   PrepareIsolateLibrary(isolate_lib);

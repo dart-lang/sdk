@@ -5,9 +5,6 @@
 library engine.resolver;
 
 import 'dart:collection';
-import "dart:math" as math;
-
-import 'package:analyzer/src/generated/utilities_collection.dart';
 
 import 'ast.dart';
 import 'constant.dart';
@@ -296,9 +293,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @return `true` if and only if an hint code is generated on the passed node
    * See [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
    */
-  bool _checkForArgumentTypeNotAssignable(Expression expression,
-      DartType expectedStaticType, DartType actualStaticType,
-      DartType expectedPropagatedType, DartType actualPropagatedType,
+  bool _checkForArgumentTypeNotAssignable(
+      Expression expression,
+      DartType expectedStaticType,
+      DartType actualStaticType,
+      DartType expectedPropagatedType,
+      DartType actualPropagatedType,
       ErrorCode hintCode) {
     //
     // Warning case: test static type information
@@ -350,8 +350,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     DartType propagatedParameterType = propagatedParameterElement == null
         ? null
         : propagatedParameterElement.type;
-    return _checkForArgumentTypeNotAssignableWithExpectedTypes(argument,
-        staticParameterType, propagatedParameterType,
+    return _checkForArgumentTypeNotAssignableWithExpectedTypes(
+        argument,
+        staticParameterType,
+        propagatedParameterType,
         HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
   }
 
@@ -367,11 +369,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * See [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
    */
   bool _checkForArgumentTypeNotAssignableWithExpectedTypes(
-          Expression expression, DartType expectedStaticType,
-          DartType expectedPropagatedType, ErrorCode errorCode) =>
-      _checkForArgumentTypeNotAssignable(expression, expectedStaticType,
-          expression.staticType, expectedPropagatedType,
-          expression.propagatedType, errorCode);
+          Expression expression,
+          DartType expectedStaticType,
+          DartType expectedPropagatedType,
+          ErrorCode errorCode) =>
+      _checkForArgumentTypeNotAssignable(
+          expression,
+          expectedStaticType,
+          expression.staticType,
+          expectedPropagatedType,
+          expression.propagatedType,
+          errorCode);
 
   /**
    * This verifies that the passed arguments can be assigned to their corresponding parameters.
@@ -544,7 +552,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
     if (importedLibrary.hasLoadLibraryFunction) {
       _errorReporter.reportErrorForNode(
-          HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, node,
+          HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
+          node,
           [importedLibrary.name]);
       return true;
     }
@@ -743,12 +752,16 @@ class ClassScope extends EnclosedScope {
   AnalysisError getErrorForDuplicate(Element existing, Element duplicate) {
     if (existing is PropertyAccessorElement && duplicate is MethodElement) {
       if (existing.nameOffset < duplicate.nameOffset) {
-        return new AnalysisError(duplicate.source, duplicate.nameOffset,
+        return new AnalysisError(
+            duplicate.source,
+            duplicate.nameOffset,
             duplicate.displayName.length,
             CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME,
             [existing.displayName]);
       } else {
-        return new AnalysisError(existing.source, existing.nameOffset,
+        return new AnalysisError(
+            existing.source,
+            existing.nameOffset,
             existing.displayName.length,
             CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME,
             [existing.displayName]);
@@ -922,8 +935,11 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
             new ConstantEvaluationEngine(_typeProvider, declaredVariables);
         ConstantVisitor constantVisitor =
             new ConstantVisitor(evaluationEngine, _errorReporter);
-        evaluationEngine.evaluateConstructorCall(node,
-            node.argumentList.arguments, constructor, constantVisitor,
+        evaluationEngine.evaluateConstructorCall(
+            node,
+            node.argumentList.arguments,
+            constructor,
+            constantVisitor,
             _errorReporter);
       }
     }
@@ -979,7 +995,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           if (_implementsEqualsWhenNotAllowed(type)) {
             _errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-                key, [type.displayName]);
+                key,
+                [type.displayName]);
           }
         }
       } else {
@@ -1043,7 +1060,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
             if (firstType != nType) {
               _errorReporter.reportErrorForNode(
                   CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
-                  expression, [expression.toSource(), firstType.displayName]);
+                  expression,
+                  [expression.toSource(), firstType.displayName]);
               foundError = true;
             }
           }
@@ -1096,7 +1114,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     // report error
     _errorReporter.reportErrorForToken(
         CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-        node.switchKeyword, [type.displayName]);
+        node.switchKeyword,
+        [type.displayName]);
     return true;
   }
 
@@ -1302,11 +1321,13 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
                   new ErrorReporter(errorListener, _errorReporter.source);
               DartObjectImpl result = initializer.accept(new ConstantVisitor(
                   new ConstantEvaluationEngine(
-                      _typeProvider, declaredVariables), subErrorReporter));
+                      _typeProvider, declaredVariables),
+                  subErrorReporter));
               if (result == null) {
                 _errorReporter.reportErrorForNode(
                     CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
-                    errorSite, [variableDeclaration.name.name]);
+                    errorSite,
+                    [variableDeclaration.name.name]);
               }
             }
           }
@@ -1628,10 +1649,10 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
               int offset = catchClause.offset;
               int length = lastCatchClause.end - offset;
               _errorReporter.reportErrorForOffset(
-                  HintCode.DEAD_CODE_ON_CATCH_SUBTYPE, offset, length, [
-                currentType.displayName,
-                type.displayName
-              ]);
+                  HintCode.DEAD_CODE_ON_CATCH_SUBTYPE,
+                  offset,
+                  length,
+                  [currentType.displayName, type.displayName]);
               return null;
             }
           }
@@ -1928,9 +1949,10 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     String uri = _getStringValue(node.uri);
     if (uri != null) {
       LibraryElement library = _enclosingUnit.library;
-      ExportElement exportElement = _findExport(library.exports,
-          _enclosingUnit.context.sourceFactory.resolveUri(
-              _enclosingUnit.source, uri));
+      ExportElement exportElement = _findExport(
+          library.exports,
+          _enclosingUnit.context.sourceFactory
+              .resolveUri(_enclosingUnit.source, uri));
       node.element = exportElement;
     }
     return super.visitExportDirective(node);
@@ -2034,9 +2056,11 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     String uri = _getStringValue(node.uri);
     if (uri != null) {
       LibraryElement library = _enclosingUnit.library;
-      ImportElement importElement = _findImport(library.imports,
-          _enclosingUnit.context.sourceFactory.resolveUri(
-              _enclosingUnit.source, uri), node.prefix);
+      ImportElement importElement = _findImport(
+          library.imports,
+          _enclosingUnit.context.sourceFactory
+              .resolveUri(_enclosingUnit.source, uri),
+          node.prefix);
       node.element = importElement;
     }
     return super.visitImportDirective(node);
@@ -2087,8 +2111,8 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   Object visitPartDirective(PartDirective node) {
     String uri = _getStringValue(node.uri);
     if (uri != null) {
-      Source partSource = _enclosingUnit.context.sourceFactory.resolveUri(
-          _enclosingUnit.source, uri);
+      Source partSource = _enclosingUnit.context.sourceFactory
+          .resolveUri(_enclosingUnit.source, uri);
       node.element = _findPart(_enclosingUnit.library.parts, partSource);
     }
     return super.visitPartDirective(node);
@@ -2506,7 +2530,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     interfaceType.typeArguments = typeArguments;
     element.type = interfaceType;
     // set default constructor
-    element.constructors = _createDefaultConstructors(interfaceType);
     for (FunctionTypeImpl functionType in _functionTypesToFix) {
       functionType.typeArguments = typeArguments;
     }
@@ -2631,6 +2654,11 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     enumElement.enum2 = true;
     InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
     enumElement.type = enumType;
+    // The equivalent code for enums in the spec shows a single constructor,
+    // but that constructor is not callable (since it is a compile-time error
+    // to subclass, mix-in, implement, or explicitly instantiate an enum).  So
+    // we represent this as having no constructors.
+    enumElement.constructors = ConstructorElement.EMPTY_LIST;
     _currentHolder.addEnum(enumElement);
     enumName.staticElement = enumElement;
     return super.visitEnumDeclaration(node);
@@ -2671,7 +2699,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     //
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
-    (node.element as ParameterElementImpl).parameters = holder.parameters;
+    ParameterElementImpl element = node.element;
+    element.parameters = holder.parameters;
+    element.typeParameters = holder.typeParameters;
     holder.validate();
     return null;
   }
@@ -2701,6 +2731,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         element.labels = holder.labels;
         element.localVariables = holder.localVariables;
         element.parameters = holder.parameters;
+        element.typeParameters = holder.typeParameters;
         if (body.isAsynchronous) {
           element.asynchronous = true;
         }
@@ -2808,6 +2839,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.labels = holder.labels;
     element.localVariables = holder.localVariables;
     element.parameters = holder.parameters;
+    element.typeParameters = holder.typeParameters;
     if (body.isAsynchronous) {
       element.asynchronous = true;
     }
@@ -2870,7 +2902,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     //
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
-    (node.element as ParameterElementImpl).parameters = holder.parameters;
+    ParameterElementImpl element = node.element;
+    element.parameters = holder.parameters;
+    element.typeParameters = holder.typeParameters;
     holder.validate();
     return null;
   }
@@ -2920,6 +2954,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         element.localVariables = holder.localVariables;
         element.parameters = holder.parameters;
         element.static = isStatic;
+        element.typeParameters = holder.typeParameters;
         if (body.isAsynchronous) {
           element.asynchronous = true;
         }
@@ -3004,8 +3039,8 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       } else {
         String message =
             "Exception caught in ElementBuilder.visitMethodDeclaration()";
-        AnalysisEngine.instance.logger.logError(
-            message, new CaughtException(exception, stackTrace));
+        AnalysisEngine.instance.logger
+            .logError(message, new CaughtException(exception, stackTrace));
       }
     } finally {
       if (node.name.staticElement == null) {
@@ -3017,7 +3052,8 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         buffer.write(" in ");
         buffer.write(classNode.name);
         buffer.write(" was not set while trying to resolve types.");
-        AnalysisEngine.instance.logger.logError(buffer.toString(),
+        AnalysisEngine.instance.logger.logError(
+            buffer.toString(),
             new CaughtException(
                 new AnalysisException(buffer.toString()), null));
       }
@@ -3718,8 +3754,10 @@ class EnclosedScope extends Scope {
     if (_hasHiddenName) {
       Element hiddenElement = _hiddenElements[name];
       if (hiddenElement != null) {
-        errorListener.onError(new AnalysisError(getSource(identifier),
-            identifier.offset, identifier.length,
+        errorListener.onError(new AnalysisError(
+            getSource(identifier),
+            identifier.offset,
+            identifier.length,
             CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, []));
         return hiddenElement;
       }
@@ -4294,28 +4332,35 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 }
 
 /**
- * Instances of the class `FunctionScope` implement the scope defined by a function.
+ * The scope defined by a function.
  */
 class FunctionScope extends EnclosedScope {
+  /**
+   * The element representing the function that defines this scope.
+   */
   final ExecutableElement _functionElement;
 
+  /**
+   * A flag indicating whether the parameters have already been defined, used to
+   * prevent the parameters from being defined multiple times.
+   */
   bool _parametersDefined = false;
 
   /**
-   * Initialize a newly created scope enclosed within another scope.
-   *
-   * @param enclosingScope the scope in which this scope is lexically enclosed
-   * @param functionElement the element representing the type represented by this scope
+   * Initialize a newly created scope enclosed within the [enclosingScope] that
+   * represents the given [_functionElement].
    */
   FunctionScope(Scope enclosingScope, this._functionElement)
-      : super(new EnclosedScope(enclosingScope)) {
+      : super(new EnclosedScope(new EnclosedScope(enclosingScope))) {
     if (_functionElement == null) {
       throw new IllegalArgumentException("function element cannot be null");
     }
+    _defineTypeParameters();
   }
 
   /**
-   * Define the parameters for the given function in the scope that encloses this function.
+   * Define the parameters for the given function in the scope that encloses
+   * this function.
    */
   void defineParameters() {
     if (_parametersDefined) {
@@ -4329,11 +4374,21 @@ class FunctionScope extends EnclosedScope {
       }
     }
   }
+
+  /**
+   * Define the type parameters for the function.
+   */
+  void _defineTypeParameters() {
+    Scope typeParameterScope = enclosingScope.enclosingScope;
+    for (TypeParameterElement typeParameter
+        in _functionElement.typeParameters) {
+      typeParameterScope.define(typeParameter);
+    }
+  }
 }
 
 /**
- * Instances of the class `FunctionTypeScope` implement the scope defined by a function type
- * alias.
+ * The scope defined by a function type alias.
  */
 class FunctionTypeScope extends EnclosedScope {
   final FunctionTypeAliasElement _typeElement;
@@ -4341,10 +4396,8 @@ class FunctionTypeScope extends EnclosedScope {
   bool _parametersDefined = false;
 
   /**
-   * Initialize a newly created scope enclosed within another scope.
-   *
-   * @param enclosingScope the scope in which this scope is lexically enclosed
-   * @param typeElement the element representing the type alias represented by this scope
+   * Initialize a newly created scope enclosed within the [enclosingScope] that
+   * represents the given [_typeElement].
    */
   FunctionTypeScope(Scope enclosingScope, this._typeElement)
       : super(new EnclosedScope(enclosingScope)) {
@@ -4353,8 +4406,6 @@ class FunctionTypeScope extends EnclosedScope {
 
   /**
    * Define the parameters for the function type alias.
-   *
-   * @param typeElement the element representing the type represented by this scope
    */
   void defineParameters() {
     if (_parametersDefined) {
@@ -4368,8 +4419,6 @@ class FunctionTypeScope extends EnclosedScope {
 
   /**
    * Define the type parameters for the function type alias.
-   *
-   * @param typeElement the element representing the type represented by this scope
    */
   void _defineTypeParameters() {
     Scope typeParameterScope = enclosingScope;
@@ -4739,12 +4788,7 @@ class HtmlTagInfo {
    * @param classToTagsMap a table mapping the classes defined in the HTML file to an array
    *          containing the names of tags with that class
    */
-  HtmlTagInfo(List<String> allTags, HashMap<String, String> idToTagMap,
-      HashMap<String, List<String>> classToTagsMap) {
-    this.allTags = allTags;
-    this.idToTagMap = idToTagMap;
-    this.classToTagsMap = classToTagsMap;
-  }
+  HtmlTagInfo(this.allTags, this.idToTagMap, this.classToTagsMap);
 
   /**
    * Return an array containing the tags that have the given class, or {@code null} if there are no
@@ -5141,275 +5185,6 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
     int offset = attribute.valueToken.offset + 1;
     int length = attribute.valueToken.length - 2;
     _reportErrorForOffset(errorCode, offset, length, arguments);
-  }
-}
-
-/**
- * Instances of the class `ImplicitConstructorBuilder` are used to build
- * implicit constructors for mixin applications, and to check for errors
- * related to super constructor calls in class declarations with mixins.
- *
- * The visitor methods don't directly build the implicit constructors or check
- * for errors, since they don't in general visit the classes in the proper
- * order to do so correctly.  Instead, they pass closures to
- * ImplicitConstructorBuilderCallback to inform it of the computations to be
- * done and their ordering dependencies.
- */
-class ImplicitConstructorBuilder extends SimpleElementVisitor {
-  final AnalysisErrorListener errorListener;
-
-  /**
-   * Callback to receive the computations to be performed.
-   */
-  final ImplicitConstructorBuilderCallback _callback;
-
-  /**
-   * Initialize a newly created visitor to build implicit constructors.
-   *
-   * The visit methods will pass closures to [_callback] to indicate what
-   * computation needs to be performed, and its dependency order.
-   */
-  ImplicitConstructorBuilder(this.errorListener, this._callback);
-
-  @override
-  void visitClassElement(ClassElement classElement) {
-    (classElement as ClassElementImpl).mixinErrorsReported = false;
-    if (classElement.isMixinApplication) {
-      _visitClassTypeAlias(classElement);
-    } else {
-      _visitClassDeclaration(classElement);
-    }
-  }
-
-  @override
-  void visitCompilationUnitElement(CompilationUnitElement element) {
-    element.types.forEach(visitClassElement);
-  }
-
-  @override
-  void visitLibraryElement(LibraryElement element) {
-    element.units.forEach(visitCompilationUnitElement);
-  }
-
-  /**
-   * Create an implicit constructor that is copied from the given constructor, but that is in the
-   * given class.
-   *
-   * @param classType the class in which the implicit constructor is defined
-   * @param explicitConstructor the constructor on which the implicit constructor is modeled
-   * @param parameterTypes the types to be replaced when creating parameters
-   * @param argumentTypes the types with which the parameters are to be replaced
-   * @return the implicit constructor that was created
-   */
-  ConstructorElement _createImplicitContructor(InterfaceType classType,
-      ConstructorElement explicitConstructor, List<DartType> parameterTypes,
-      List<DartType> argumentTypes) {
-    ConstructorElementImpl implicitConstructor =
-        new ConstructorElementImpl(explicitConstructor.name, -1);
-    implicitConstructor.synthetic = true;
-    implicitConstructor.redirectedConstructor = explicitConstructor;
-    implicitConstructor.const2 = explicitConstructor.isConst;
-    implicitConstructor.returnType = classType;
-    List<ParameterElement> explicitParameters = explicitConstructor.parameters;
-    int count = explicitParameters.length;
-    if (count > 0) {
-      List<ParameterElement> implicitParameters =
-          new List<ParameterElement>(count);
-      for (int i = 0; i < count; i++) {
-        ParameterElement explicitParameter = explicitParameters[i];
-        ParameterElementImpl implicitParameter =
-            new ParameterElementImpl(explicitParameter.name, -1);
-        implicitParameter.const3 = explicitParameter.isConst;
-        implicitParameter.final2 = explicitParameter.isFinal;
-        implicitParameter.parameterKind = explicitParameter.parameterKind;
-        implicitParameter.synthetic = true;
-        implicitParameter.type =
-            explicitParameter.type.substitute2(argumentTypes, parameterTypes);
-        implicitParameters[i] = implicitParameter;
-      }
-      implicitConstructor.parameters = implicitParameters;
-    }
-    FunctionTypeImpl type = new FunctionTypeImpl(implicitConstructor);
-    type.typeArguments = classType.typeArguments;
-    implicitConstructor.type = type;
-    return implicitConstructor;
-  }
-
-  /**
-   * Find all the constructors that should be forwarded from the given
-   * [superType], to the class or mixin application [classElement],
-   * and pass information about them to [callback].
-   *
-   * Return true if some constructors were considered.  (A false return value
-   * can only happen if the supeclass is a built-in type, in which case it
-   * can't be used as a mixin anyway).
-   */
-  bool _findForwardedConstructors(ClassElementImpl classElement,
-      InterfaceType superType, void callback(
-          ConstructorElement explicitConstructor, List<DartType> parameterTypes,
-          List<DartType> argumentTypes)) {
-    ClassElement superclassElement = superType.element;
-    List<ConstructorElement> constructors = superclassElement.constructors;
-    int count = constructors.length;
-    if (count == 0) {
-      return false;
-    }
-    List<DartType> parameterTypes =
-        TypeParameterTypeImpl.getTypes(superType.typeParameters);
-    List<DartType> argumentTypes = _getArgumentTypes(superType, parameterTypes);
-    for (int i = 0; i < count; i++) {
-      ConstructorElement explicitConstructor = constructors[i];
-      if (!explicitConstructor.isFactory &&
-          classElement.isSuperConstructorAccessible(explicitConstructor)) {
-        callback(explicitConstructor, parameterTypes, argumentTypes);
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Return a list of argument types that corresponds to the [parameterTypes]
-   * and that are derived from the type arguments of the given [superType].
-   */
-  List<DartType> _getArgumentTypes(
-      InterfaceType superType, List<DartType> parameterTypes) {
-    DynamicTypeImpl dynamic = DynamicTypeImpl.instance;
-    int parameterCount = parameterTypes.length;
-    List<DartType> types = new List<DartType>(parameterCount);
-    if (superType == null) {
-      types = new List<DartType>.filled(parameterCount, dynamic);
-    } else {
-      List<DartType> typeArguments = superType.typeArguments;
-      int argumentCount = math.min(typeArguments.length, parameterCount);
-      for (int i = 0; i < argumentCount; i++) {
-        types[i] = typeArguments[i];
-      }
-      for (int i = argumentCount; i < parameterCount; i++) {
-        types[i] = dynamic;
-      }
-    }
-    return types;
-  }
-
-  void _visitClassDeclaration(ClassElementImpl classElement) {
-    DartType superType = classElement.supertype;
-    if (superType != null && classElement.mixins.isNotEmpty) {
-      // We don't need to build any implicitly constructors for the mixin
-      // application (since there isn't an explicit element for it), but we
-      // need to verify that they _could_ be built.
-      if (superType is! InterfaceType) {
-        TypeProvider typeProvider = classElement.context.typeProvider;
-        superType = typeProvider.objectType;
-      }
-      ClassElement superElement = superType.element;
-      if (superElement != null) {
-        _callback(classElement, superElement, () {
-          bool constructorFound = false;
-          void callback(ConstructorElement explicitConstructor,
-              List<DartType> parameterTypes, List<DartType> argumentTypes) {
-            constructorFound = true;
-          }
-          if (_findForwardedConstructors(classElement, superType, callback) &&
-              !constructorFound) {
-            SourceRange withRange = classElement.withClauseRange;
-            errorListener.onError(new AnalysisError(classElement.source,
-                withRange.offset, withRange.length,
-                CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
-                [superElement.name]));
-            classElement.mixinErrorsReported = true;
-          }
-        });
-      }
-    }
-  }
-
-  void _visitClassTypeAlias(ClassElementImpl classElement) {
-    InterfaceType superType = classElement.supertype;
-    if (superType is InterfaceType) {
-      ClassElement superElement = superType.element;
-      _callback(classElement, superElement, () {
-        List<ConstructorElement> implicitConstructors =
-            new List<ConstructorElement>();
-        void callback(ConstructorElement explicitConstructor,
-            List<DartType> parameterTypes, List<DartType> argumentTypes) {
-          implicitConstructors.add(_createImplicitContructor(classElement.type,
-              explicitConstructor, parameterTypes, argumentTypes));
-        }
-        if (_findForwardedConstructors(classElement, superType, callback)) {
-          if (implicitConstructors.isEmpty) {
-            errorListener.onError(new AnalysisError(classElement.source,
-                classElement.nameOffset, classElement.name.length,
-                CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
-                [superElement.name]));
-          } else {
-            classElement.constructors = implicitConstructors;
-          }
-        }
-      });
-    }
-  }
-}
-
-/**
- * An instance of this class is capable of running ImplicitConstructorBuilder
- * over all classes in a library cycle.
- */
-class ImplicitConstructorComputer {
-  /**
-   * Directed graph of dependencies between classes that need to have their
-   * implicit constructors computed.  Each edge in the graph points from a
-   * derived class to its superclass.  Implicit constructors will be computed
-   * for the superclass before they are compute for the derived class.
-   */
-  DirectedGraph<ClassElement> _dependencies = new DirectedGraph<ClassElement>();
-
-  /**
-   * Map from ClassElement to the function which will compute the class's
-   * implicit constructors.
-   */
-  Map<ClassElement, VoidFunction> _computations =
-      new HashMap<ClassElement, VoidFunction>();
-
-  /**
-   * Add the given [libraryElement] to the list of libraries which need to have
-   * implicit constructors built for them.
-   */
-  void add(AnalysisErrorListener errorListener, LibraryElement libraryElement) {
-    libraryElement
-        .accept(new ImplicitConstructorBuilder(errorListener, _defer));
-  }
-
-  /**
-   * Compute the implicit constructors for all compilation units that have been
-   * passed to [add].
-   */
-  void compute() {
-    List<List<ClassElement>> topologicalSort =
-        _dependencies.computeTopologicalSort();
-    for (List<ClassElement> classesInCycle in topologicalSort) {
-      // Note: a cycle could occur if there is a loop in the inheritance graph.
-      // Such loops are forbidden by Dart but could occur in the analysis of
-      // incorrect code.  If this happens, we simply visit the classes
-      // constituting the loop in any order.
-      for (ClassElement classElement in classesInCycle) {
-        VoidFunction computation = _computations[classElement];
-        if (computation != null) {
-          computation();
-        }
-      }
-    }
-  }
-
-  /**
-   * Defer execution of [computation], which builds implicit constructors for
-   * [classElement], until after implicit constructors have been built for
-   * [superclassElement].
-   */
-  void _defer(ClassElement classElement, ClassElement superclassElement,
-      void computation()) {
-    assert(!_computations.containsKey(classElement));
-    _computations[classElement] = computation;
-    _dependencies.addEdge(classElement, superclassElement);
   }
 }
 
@@ -5928,7 +5703,8 @@ class InheritanceManager {
    * @return the passed function type with any parameterized types substituted
    */
   FunctionType substituteTypeArgumentsInMemberFromInheritance(
-      FunctionType baseFunctionType, String memberName,
+      FunctionType baseFunctionType,
+      String memberName,
       InterfaceType definingType) {
     // if the baseFunctionType is null, or does not have any parameters,
     // return it.
@@ -6037,9 +5813,14 @@ class InheritanceManager {
               String key = map.getKey(j);
               ExecutableElement value = map.getValue(j);
               if (key != null) {
-                if (resultMap.get(key) == null ||
-                    (resultMap.get(key) != null && !_isAbstract(value))) {
-                  resultMap.put(key, value);
+                ClassElement definingClass = value
+                    .getAncestor((Element element) => element is ClassElement);
+                if (!definingClass.type.isObject) {
+                  ExecutableElement existingValue = resultMap.get(key);
+                  if (existingValue == null ||
+                      (existingValue != null && !_isAbstract(value))) {
+                    resultMap.put(key, value);
+                  }
                 }
               }
             }
@@ -6480,12 +6261,12 @@ class InheritanceManager {
               if (!classHasMember) {
                 String firstTwoFuntionTypesStr =
                     "${executableElementTypes[0]}, ${executableElementTypes[1]}";
-                _reportError(classElt, classElt.nameOffset,
+                _reportError(
+                    classElt,
+                    classElt.nameOffset,
                     classElt.displayName.length,
-                    StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE, [
-                  key,
-                  firstTwoFuntionTypesStr
-                ]);
+                    StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+                    [key, firstTwoFuntionTypesStr]);
               }
             } else {
               //
@@ -6497,9 +6278,8 @@ class InheritanceManager {
               // Tests: test_getMapOfMembersInheritedFromInterfaces_
               // union_multipleSubtypes_*
               //
-              List<ExecutableElement> elementArrayToMerge =
-                  new List<ExecutableElement>(
-                      subtypesOfAllOtherTypesIndexes.length);
+              List<ExecutableElement> elementArrayToMerge = new List<
+                  ExecutableElement>(subtypesOfAllOtherTypesIndexes.length);
               for (int i = 0; i < elementArrayToMerge.length; i++) {
                 elementArrayToMerge[i] =
                     elements[subtypesOfAllOtherTypesIndexes[i]];
@@ -6510,7 +6290,9 @@ class InheritanceManager {
             }
           }
         } else {
-          _reportError(classElt, classElt.nameOffset,
+          _reportError(
+              classElt,
+              classElt.nameOffset,
               classElt.displayName.length,
               StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
               [key]);
@@ -6633,8 +6415,11 @@ class InheritanceManager {
       }
       namedParametersList.addAll(_getNamedParameterNames(element));
     }
-    return _createSyntheticExecutableElement(elementArrayToMerge,
-        elementArrayToMerge[0].displayName, r, h - r,
+    return _createSyntheticExecutableElement(
+        elementArrayToMerge,
+        elementArrayToMerge[0].displayName,
+        r,
+        h - r,
         new List.from(namedParametersList));
   }
 
@@ -6650,8 +6435,10 @@ class InheritanceManager {
    * @return the created synthetic element
    */
   static ExecutableElement _createSyntheticExecutableElement(
-      List<ExecutableElement> elementArrayToMerge, String name,
-      int numOfRequiredParameters, int numOfPositionalParameters,
+      List<ExecutableElement> elementArrayToMerge,
+      String name,
+      int numOfRequiredParameters,
+      int numOfPositionalParameters,
       List<String> namedParameters) {
     DynamicTypeImpl dynamicType = DynamicTypeImpl.instance;
     SimpleIdentifier nameIdentifier = new SimpleIdentifier(
@@ -6872,7 +6659,7 @@ class Library {
   /**
    * The listener to which analysis errors will be reported.
    */
-  final AnalysisErrorListener _errorListener;
+  final AnalysisErrorListener errorListener;
 
   /**
    * The source specifying the defining compilation unit of this library.
@@ -6924,7 +6711,7 @@ class Library {
    * @param errorListener the listener to which analysis errors will be reported
    * @param librarySource the source specifying the defining compilation unit of this library
    */
-  Library(this._analysisContext, this._errorListener, this.librarySource) {
+  Library(this._analysisContext, this.errorListener, this.librarySource) {
     this._libraryElement =
         _analysisContext.getLibraryElement(librarySource) as LibraryElementImpl;
   }
@@ -7033,8 +6820,8 @@ class Library {
   LibraryElementImpl get libraryElement {
     if (_libraryElement == null) {
       try {
-        _libraryElement = _analysisContext
-            .computeLibraryElement(librarySource) as LibraryElementImpl;
+        _libraryElement = _analysisContext.computeLibraryElement(librarySource)
+            as LibraryElementImpl;
       } on AnalysisException catch (exception, stackTrace) {
         AnalysisEngine.instance.logger.logError(
             "Could not compute library element for ${librarySource.fullName}",
@@ -7063,7 +6850,7 @@ class Library {
    */
   LibraryScope get libraryScope {
     if (_libraryScope == null) {
-      _libraryScope = new LibraryScope(_libraryElement, _errorListener);
+      _libraryScope = new LibraryScope(_libraryElement, errorListener);
     }
     return _libraryScope;
   }
@@ -7094,7 +6881,7 @@ class Library {
   Source getSource(UriBasedDirective directive) {
     StringLiteral uriLiteral = directive.uri;
     if (uriLiteral is StringInterpolation) {
-      _errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
+      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
           uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION));
       return null;
     }
@@ -7111,13 +6898,16 @@ class Library {
       Source source =
           _analysisContext.sourceFactory.resolveUri(librarySource, uriContent);
       if (!_analysisContext.exists(source)) {
-        _errorListener.onError(new AnalysisError(librarySource,
-            uriLiteral.offset, uriLiteral.length,
-            CompileTimeErrorCode.URI_DOES_NOT_EXIST, [uriContent]));
+        errorListener.onError(new AnalysisError(
+            librarySource,
+            uriLiteral.offset,
+            uriLiteral.length,
+            CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+            [uriContent]));
       }
       return source;
     } on URISyntaxException {
-      _errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
+      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
           uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
     }
     return null;
@@ -7218,21 +7008,24 @@ class LibraryElementBuilder {
           String partLibraryName =
               _getPartLibraryName(partSource, partUnit, directivesToResolve);
           if (partLibraryName == null) {
-            _errorListener.onError(new AnalysisError(librarySource,
-                partUri.offset, partUri.length,
-                CompileTimeErrorCode.PART_OF_NON_PART, [partUri.toSource()]));
+            _errorListener.onError(new AnalysisError(
+                librarySource,
+                partUri.offset,
+                partUri.length,
+                CompileTimeErrorCode.PART_OF_NON_PART,
+                [partUri.toSource()]));
           } else if (libraryNameNode == null) {
             // TODO(brianwilkerson) Collect the names declared by the part.
             // If they are all the same then we can use that name as the
             // inferred name of the library and present it in a quick-fix.
             // partLibraryNames.add(partLibraryName);
           } else if (libraryNameNode.name != partLibraryName) {
-            _errorListener.onError(new AnalysisError(librarySource,
-                partUri.offset, partUri.length,
-                StaticWarningCode.PART_OF_DIFFERENT_LIBRARY, [
-              libraryNameNode.name,
-              partLibraryName
-            ]));
+            _errorListener.onError(new AnalysisError(
+                librarySource,
+                partUri.offset,
+                partUri.length,
+                StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
+                [libraryNameNode.name, partLibraryName]));
           }
           if (entryPoint == null) {
             entryPoint = _findEntryPoint(part);
@@ -7322,21 +7115,24 @@ class LibraryElementBuilder {
             String partLibraryName =
                 _getPartLibraryName(partSource, partUnit, directivesToResolve);
             if (partLibraryName == null) {
-              _errorListener.onError(new AnalysisError(librarySource,
-                  partUri.offset, partUri.length,
-                  CompileTimeErrorCode.PART_OF_NON_PART, [partUri.toSource()]));
+              _errorListener.onError(new AnalysisError(
+                  librarySource,
+                  partUri.offset,
+                  partUri.length,
+                  CompileTimeErrorCode.PART_OF_NON_PART,
+                  [partUri.toSource()]));
             } else if (libraryNameNode == null) {
               // TODO(brianwilkerson) Collect the names declared by the part.
               // If they are all the same then we can use that name as the
               // inferred name of the library and present it in a quick-fix.
               // partLibraryNames.add(partLibraryName);
             } else if (libraryNameNode.name != partLibraryName) {
-              _errorListener.onError(new AnalysisError(librarySource,
-                  partUri.offset, partUri.length,
-                  StaticWarningCode.PART_OF_DIFFERENT_LIBRARY, [
-                libraryNameNode.name,
-                partLibraryName
-              ]));
+              _errorListener.onError(new AnalysisError(
+                  librarySource,
+                  partUri.offset,
+                  partUri.length,
+                  StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
+                  [libraryNameNode.name, partLibraryName]));
             }
             if (entryPoint == null) {
               entryPoint = _findEntryPoint(part);
@@ -7541,8 +7337,10 @@ class LibraryImportScope extends Scope {
         libraryNames[i] = _getLibraryName(conflictingMembers[i]);
       }
       libraryNames.sort();
-      errorListener.onError(new AnalysisError(getSource(identifier),
-          identifier.offset, identifier.length,
+      errorListener.onError(new AnalysisError(
+          getSource(identifier),
+          identifier.offset,
+          identifier.length,
           StaticWarningCode.AMBIGUOUS_IMPORT, [
         foundEltName,
         StringUtilities.printListOfQuotedNames(libraryNames)
@@ -7643,13 +7441,12 @@ class LibraryImportScope extends Scope {
     if (sdkElement != null && nonSdkElements.length > 0) {
       String sdkLibName = _getLibraryName(sdkElement);
       String otherLibName = _getLibraryName(nonSdkElements[0]);
-      errorListener.onError(new AnalysisError(getSource(identifier),
-          identifier.offset, identifier.length,
-          StaticWarningCode.CONFLICTING_DART_IMPORT, [
-        name,
-        sdkLibName,
-        otherLibName
-      ]));
+      errorListener.onError(new AnalysisError(
+          getSource(identifier),
+          identifier.offset,
+          identifier.length,
+          StaticWarningCode.CONFLICTING_DART_IMPORT,
+          [name, sdkLibName, otherLibName]));
     }
     if (nonSdkElements.length == conflictingElements.length) {
       // None of the members were removed
@@ -7837,7 +7634,6 @@ class LibraryResolver {
     }
     _buildDirectiveModels();
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
-    _buildTypeAliases();
     _buildTypeHierarchies();
     //
     // Perform resolution and type analysis.
@@ -7917,9 +7713,7 @@ class LibraryResolver {
     _buildDirectiveModels();
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
     _buildEnumMembers();
-    _buildTypeAliases();
     _buildTypeHierarchies();
-    _buildImplicitConstructors();
     //
     // Perform resolution and type analysis.
     //
@@ -8001,7 +7795,8 @@ class LibraryResolver {
    * @param visitedLibraries the libraries that have already been visited, used to prevent infinite
    *          recursion
    */
-  void _addToDependencyMap(Library library,
+  void _addToDependencyMap(
+      Library library,
       HashMap<Library, List<Library>> dependencyMap,
       Set<Library> visitedLibraries) {
     if (visitedLibraries.add(library)) {
@@ -8106,8 +7901,11 @@ class LibraryResolver {
                 ErrorCode errorCode = (importElement.isDeferred
                     ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
                     : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
-                _errorListener.onError(new AnalysisError(library.librarySource,
-                    uriLiteral.offset, uriLiteral.length, errorCode,
+                _errorListener.onError(new AnalysisError(
+                    library.librarySource,
+                    uriLiteral.offset,
+                    uriLiteral.length,
+                    errorCode,
                     [uriLiteral.toSource()]));
               }
             }
@@ -8136,8 +7934,10 @@ class LibraryResolver {
               exports.add(exportElement);
               if (analysisContext.computeKindOf(exportedSource) !=
                   SourceKind.LIBRARY) {
-                _errorListener.onError(new AnalysisError(library.librarySource,
-                    uriLiteral.offset, uriLiteral.length,
+                _errorListener.onError(new AnalysisError(
+                    library.librarySource,
+                    uriLiteral.offset,
+                    uriLiteral.length,
                     CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
                     [uriLiteral.toSource()]));
               }
@@ -8200,53 +8000,6 @@ class LibraryResolver {
   }
 
   /**
-   * Finish steps that the [buildTypeHierarchies] could not perform, see
-   * [ImplicitConstructorBuilder].
-   *
-   * @throws AnalysisException if any of the type hierarchies could not be resolved
-   */
-  void _buildImplicitConstructors() {
-    PerformanceStatistics.resolve.makeCurrentWhile(() {
-      ImplicitConstructorComputer computer = new ImplicitConstructorComputer();
-      for (Library library in _librariesInCycles) {
-        computer.add(_errorListener, library.libraryElement);
-      }
-      computer.compute();
-    });
-  }
-
-  /**
-   * Resolve the types referenced by function type aliases across all of the function type aliases
-   * defined in the current cycle.
-   *
-   * @throws AnalysisException if any of the function type aliases could not be resolved
-   */
-  void _buildTypeAliases() {
-    PerformanceStatistics.resolve.makeCurrentWhile(() {
-      List<LibraryResolver_TypeAliasInfo> typeAliases =
-          new List<LibraryResolver_TypeAliasInfo>();
-      for (Library library in _librariesInCycles) {
-        for (Source source in library.compilationUnitSources) {
-          CompilationUnit ast = library.getAST(source);
-          for (CompilationUnitMember member in ast.declarations) {
-            if (member is FunctionTypeAlias) {
-              typeAliases.add(
-                  new LibraryResolver_TypeAliasInfo(library, source, member));
-            }
-          }
-        }
-      }
-      // TODO(brianwilkerson) We need to sort the type aliases such that all
-      // aliases referenced by an alias T are resolved before we resolve T.
-      for (LibraryResolver_TypeAliasInfo info in typeAliases) {
-        TypeResolverVisitor visitor = new TypeResolverVisitor.con1(
-            info._library, info._source, _typeProvider);
-        info._typeAlias.accept(visitor);
-      }
-    });
-  }
-
-  /**
    * Resolve the type hierarchy across all of the types declared in the libraries in the current
    * cycle.
    *
@@ -8259,7 +8012,9 @@ class LibraryResolver {
           TypeResolverVisitorFactory typeResolverVisitorFactory =
               analysisContext.typeResolverVisitorFactory;
           TypeResolverVisitor visitor = (typeResolverVisitorFactory == null)
-              ? new TypeResolverVisitor.con1(library, source, _typeProvider)
+              ? new TypeResolverVisitor(library.libraryElement, source,
+                  _typeProvider, library.errorListener,
+                  nameScope: library.libraryScope)
               : typeResolverVisitorFactory(library, source, _typeProvider);
           library.getAST(source).accept(visitor);
         }
@@ -8339,7 +8094,8 @@ class LibraryResolver {
    */
   void _computeLibraryDependencies(Library library) {
     Source librarySource = library.librarySource;
-    _computeLibraryDependenciesFromDirectives(library,
+    _computeLibraryDependenciesFromDirectives(
+        library,
         analysisContext.computeImportedLibraries(librarySource),
         analysisContext.computeExportedLibraries(librarySource));
   }
@@ -8493,7 +8249,9 @@ class LibraryResolver {
             ErrorReporter errorReporter =
                 new ErrorReporter(_errorListener, source);
             ConstantVerifier constantVerifier = new ConstantVerifier(
-                errorReporter, library.libraryElement, _typeProvider,
+                errorReporter,
+                library.libraryElement,
+                _typeProvider,
                 analysisContext.declaredVariables);
             unit.accept(constantVerifier);
           } on AnalysisException catch (exception, stackTrace) {
@@ -8518,13 +8276,17 @@ class LibraryResolver {
     PerformanceStatistics.resolve.makeCurrentWhile(() {
       for (Source source in library.compilationUnitSources) {
         CompilationUnit ast = library.getAST(source);
-        ast.accept(
-            new VariableResolverVisitor.con1(library, source, _typeProvider));
+        ast.accept(new VariableResolverVisitor(library.libraryElement, source,
+            _typeProvider, library.errorListener,
+            nameScope: library.libraryScope));
         ResolverVisitorFactory visitorFactory =
             analysisContext.resolverVisitorFactory;
         ResolverVisitor visitor = visitorFactory != null
             ? visitorFactory(library, source, _typeProvider)
-            : new ResolverVisitor.con1(library, source, _typeProvider);
+            : new ResolverVisitor(library.libraryElement, source, _typeProvider,
+                library.errorListener,
+                nameScope: library.libraryScope,
+                inheritanceManager: library.inheritanceManager);
         ast.accept(visitor);
       }
     });
@@ -8685,9 +8447,7 @@ class LibraryResolver2 {
     _buildDirectiveModels();
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
     _buildEnumMembers();
-    _buildTypeAliases();
     _buildTypeHierarchies();
-    _buildImplicitConstructors();
     //
     // Perform resolution and type analysis.
     //
@@ -8794,8 +8554,11 @@ class LibraryResolver2 {
                 ErrorCode errorCode = (importElement.isDeferred
                     ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
                     : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
-                _errorListener.onError(new AnalysisError(library.librarySource,
-                    uriLiteral.offset, uriLiteral.length, errorCode,
+                _errorListener.onError(new AnalysisError(
+                    library.librarySource,
+                    uriLiteral.offset,
+                    uriLiteral.length,
+                    errorCode,
                     [uriLiteral.toSource()]));
               }
             }
@@ -8827,8 +8590,10 @@ class LibraryResolver2 {
               exports.add(exportElement);
               if (analysisContext.computeKindOf(exportedSource) !=
                   SourceKind.LIBRARY) {
-                _errorListener.onError(new AnalysisError(library.librarySource,
-                    uriLiteral.offset, uriLiteral.length,
+                _errorListener.onError(new AnalysisError(
+                    library.librarySource,
+                    uriLiteral.offset,
+                    uriLiteral.length,
                     CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
                     [uriLiteral.toSource()]));
               }
@@ -8889,22 +8654,6 @@ class LibraryResolver2 {
     });
   }
 
-  /**
-   * Finish steps that the [buildTypeHierarchies] could not perform, see
-   * [ImplicitConstructorBuilder].
-   *
-   * @throws AnalysisException if any of the type hierarchies could not be resolved
-   */
-  void _buildImplicitConstructors() {
-    PerformanceStatistics.resolve.makeCurrentWhile(() {
-      ImplicitConstructorComputer computer = new ImplicitConstructorComputer();
-      for (ResolvableLibrary library in _librariesInCycle) {
-        computer.add(_errorListener, library.libraryElement);
-      }
-      computer.compute();
-    });
-  }
-
   HashMap<Source, ResolvableLibrary> _buildLibraryMap() {
     HashMap<Source, ResolvableLibrary> libraryMap =
         new HashMap<Source, ResolvableLibrary>();
@@ -8925,38 +8674,6 @@ class LibraryResolver2 {
   }
 
   /**
-   * Resolve the types referenced by function type aliases across all of the function type aliases
-   * defined in the current cycle.
-   *
-   * @throws AnalysisException if any of the function type aliases could not be resolved
-   */
-  void _buildTypeAliases() {
-    PerformanceStatistics.resolve.makeCurrentWhile(() {
-      List<LibraryResolver2_TypeAliasInfo> typeAliases =
-          new List<LibraryResolver2_TypeAliasInfo>();
-      for (ResolvableLibrary library in _librariesInCycle) {
-        for (ResolvableCompilationUnit unit
-            in library.resolvableCompilationUnits) {
-          for (CompilationUnitMember member
-              in unit.compilationUnit.declarations) {
-            if (member is FunctionTypeAlias) {
-              typeAliases.add(new LibraryResolver2_TypeAliasInfo(
-                  library, unit.source, member));
-            }
-          }
-        }
-      }
-      // TODO(brianwilkerson) We need to sort the type aliases such that all
-      // aliases referenced by an alias T are resolved before we resolve T.
-      for (LibraryResolver2_TypeAliasInfo info in typeAliases) {
-        TypeResolverVisitor visitor = new TypeResolverVisitor.con4(
-            info._library, info._source, _typeProvider);
-        info._typeAlias.accept(visitor);
-      }
-    });
-  }
-
-  /**
    * Resolve the type hierarchy across all of the types declared in the libraries in the current
    * cycle.
    *
@@ -8969,8 +8686,12 @@ class LibraryResolver2 {
             in library.resolvableCompilationUnits) {
           Source source = unit.source;
           CompilationUnit ast = unit.compilationUnit;
-          TypeResolverVisitor visitor =
-              new TypeResolverVisitor.con4(library, source, _typeProvider);
+          TypeResolverVisitor visitor = new TypeResolverVisitor(
+              library.libraryElement,
+              source,
+              _typeProvider,
+              library.libraryScope.errorListener,
+              nameScope: library.libraryScope);
           ast.accept(visitor);
         }
       }
@@ -9018,7 +8739,9 @@ class LibraryResolver2 {
           ErrorReporter errorReporter =
               new ErrorReporter(_errorListener, unit.source);
           ConstantVerifier constantVerifier = new ConstantVerifier(
-              errorReporter, library.libraryElement, _typeProvider,
+              errorReporter,
+              library.libraryElement,
+              _typeProvider,
               analysisContext.declaredVariables);
           ast.accept(constantVerifier);
         }
@@ -9051,10 +8774,13 @@ class LibraryResolver2 {
           in library.resolvableCompilationUnits) {
         Source source = unit.source;
         CompilationUnit ast = unit.compilationUnit;
-        ast.accept(
-            new VariableResolverVisitor.con3(library, source, _typeProvider));
-        ResolverVisitor visitor =
-            new ResolverVisitor.con4(library, source, _typeProvider);
+        ast.accept(new VariableResolverVisitor(library.libraryElement, source,
+            _typeProvider, library.libraryScope.errorListener,
+            nameScope: library.libraryScope));
+        ResolverVisitor visitor = new ResolverVisitor(library.libraryElement,
+            source, _typeProvider, library._libraryScope.errorListener,
+            nameScope: library._libraryScope,
+            inheritanceManager: library.inheritanceManager);
         ast.accept(visitor);
       }
     });
@@ -9153,7 +8879,9 @@ class LibraryScope extends EnclosedScope {
           offset = accessor.variable.nameOffset;
         }
       }
-      return new AnalysisError(duplicate.source, offset,
+      return new AnalysisError(
+          duplicate.source,
+          offset,
           duplicate.displayName.length,
           CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
           [existing.displayName]);
@@ -9635,7 +9363,8 @@ class NamespaceBuilder {
           definedNames.addAll(exportedNames);
         }
       }
-      _addAllFromNamespace(definedNames,
+      _addAllFromNamespace(
+          definedNames,
           (library.context as InternalAnalysisContext)
               .getPublicNamespace(library));
       return definedNames;
@@ -10339,63 +10068,42 @@ class ResolverVisitor extends ScopedVisitor {
   bool resolveOnlyCommentInFunctionBody = false;
 
   /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param library the library containing the compilation unit being resolved
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   */
-  ResolverVisitor.con1(
-      Library library, Source source, TypeProvider typeProvider,
-      {StaticTypeAnalyzer typeAnalyzer,
-      StaticTypeAnalyzerFactory typeAnalyzerFactory})
-      : super.con1(library, source, typeProvider) {
-    this._inheritanceManager = library.inheritanceManager;
-    this.elementResolver = new ElementResolver(this);
-    this.typeAnalyzer = typeAnalyzer != null
-        ? typeAnalyzer
-        : (typeAnalyzerFactory != null
-            ? typeAnalyzerFactory(this)
-            : new StaticTypeAnalyzer(this));
-  }
-
-  /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param definingLibrary the element for the library containing the compilation unit being
-   *          visited
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during resolution
-   */
-  ResolverVisitor.con2(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, InheritanceManager inheritanceManager,
-      AnalysisErrorListener errorListener)
-      : super.con2(definingLibrary, source, typeProvider, errorListener) {
-    this._inheritanceManager = inheritanceManager;
-    this.elementResolver = new ElementResolver(this);
-    this.typeAnalyzer = new StaticTypeAnalyzer(this);
-  }
-
-  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
-   * @param definingLibrary the element for the library containing the node being visited
-   * @param source the source representing the compilation unit containing the node being visited
-   * @param typeProvider the object used to access the types from the core library
-   * @param nameScope the scope used to resolve identifiers in the node that will first be visited
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during resolution
+   * [definingLibrary] is the element for the library containing the node being
+   * visited.
+   * [source] is the source representing the compilation unit containing the
+   * node being visited.
+   * [typeProvider] the object used to access the types from the core library.
+   * [errorListener] the error listener that will be informed of any errors
+   * that are found during resolution.
+   * [nameScope] is the scope used to resolve identifiers in the node that will
+   * first be visited.  If `null` or unspecified, a new [LibraryScope] will be
+   * created based on [definingLibrary] and [typeProvider].
+   * [inheritanceManager] is used to perform inheritance lookups.  If `null` or
+   * unspecified, a new [InheritanceManager] will be created based on
+   * [definingLibrary].
+   * [typeAnalyzerFactory] is used to create the type analyzer.  If `null` or
+   * unspecified, a type analyzer of type [StaticTypeAnalyzer] will be created.
    */
-  ResolverVisitor.con3(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, Scope nameScope,
-      AnalysisErrorListener errorListener)
-      : super.con3(
-          definingLibrary, source, typeProvider, nameScope, errorListener) {
-    this._inheritanceManager = new InheritanceManager(definingLibrary);
+  ResolverVisitor(LibraryElement definingLibrary, Source source,
+      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+      {Scope nameScope,
+      InheritanceManager inheritanceManager,
+      StaticTypeAnalyzerFactory typeAnalyzerFactory})
+      : super(definingLibrary, source, typeProvider, errorListener,
+            nameScope: nameScope) {
+    if (inheritanceManager == null) {
+      this._inheritanceManager = new InheritanceManager(definingLibrary);
+    } else {
+      this._inheritanceManager = inheritanceManager;
+    }
     this.elementResolver = new ElementResolver(this);
-    this.typeAnalyzer = new StaticTypeAnalyzer(this);
+    if (typeAnalyzerFactory == null) {
+      this.typeAnalyzer = new StaticTypeAnalyzer(this);
+    } else {
+      this.typeAnalyzer = typeAnalyzerFactory(this);
+    }
   }
 
   /**
@@ -10404,14 +10112,18 @@ class ResolverVisitor extends ScopedVisitor {
    * @param library the library containing the compilation unit being resolved
    * @param source the source representing the compilation unit being visited
    * @param typeProvider the object used to access the types from the core library
+   *
+   * Deprecated.  Please use unnamed constructor instead.
    */
-  ResolverVisitor.con4(
-      ResolvableLibrary library, Source source, TypeProvider typeProvider)
-      : super.con4(library, source, typeProvider) {
-    this._inheritanceManager = library.inheritanceManager;
-    this.elementResolver = new ElementResolver(this);
-    this.typeAnalyzer = new StaticTypeAnalyzer(this);
-  }
+  @deprecated
+  ResolverVisitor.con1(
+      Library library, Source source, TypeProvider typeProvider,
+      {StaticTypeAnalyzerFactory typeAnalyzerFactory})
+      : this(
+            library.libraryElement, source, typeProvider, library.errorListener,
+            nameScope: library.libraryScope,
+            inheritanceManager: library.inheritanceManager,
+            typeAnalyzerFactory: typeAnalyzerFactory);
 
   /**
    * Return the element representing the function containing the current node, or `null` if
@@ -10994,10 +10706,12 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
     //
-    // Resolve the metadata in the library scope.
+    // Resolve the metadata in the library scope
+    // and associate the annotations with the element.
     //
     if (node.metadata != null) {
       node.metadata.accept(this);
+      ElementResolver.setMetadata(node.element, node);
     }
     //
     // There is nothing else to do because everything else was resolved by the
@@ -11065,9 +10779,16 @@ class ResolverVisitor extends ScopedVisitor {
         if (loopVariable != null && iterable != null) {
           LocalVariableElement loopElement = loopVariable.element;
           if (loopElement != null) {
-            DartType iteratorElementType = _getIteratorElementType(iterable);
-            overrideVariable(loopElement, iteratorElementType, true);
-            _recordPropagatedType(loopVariable.identifier, iteratorElementType);
+            DartType propagatedType = null;
+            if (node.awaitKeyword == null) {
+              propagatedType = _getIteratorElementType(iterable);
+            } else {
+              propagatedType = _getStreamElementType(iterable);
+            }
+            if (propagatedType != null) {
+              overrideVariable(loopElement, propagatedType, true);
+              _recordPropagatedType(loopVariable.identifier, propagatedType);
+            }
           }
         } else if (identifier != null && iterable != null) {
           Element identifierElement = identifier.staticElement;
@@ -11449,12 +11170,11 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * The given expression is the expression used to compute the iterator for a for-each statement.
-   * Attempt to compute the type of objects that will be assigned to the loop variable and return
-   * that type. Return `null` if the type could not be determined.
-   *
-   * @param iterator the iterator for a for-each statement
-   * @return the type of objects that will be assigned to the loop variable
+   * The given expression is the expression used to compute the iterator for a
+   * for-each statement. Attempt to compute the type of objects that will be
+   * assigned to the loop variable and return that type. Return `null` if the
+   * type could not be determined. The [iteratorExpression] is the expression
+   * that will return the Iterable being iterated over.
    */
   DartType _getIteratorElementType(Expression iteratorExpression) {
     DartType expressionType = iteratorExpression.bestType;
@@ -11482,6 +11202,44 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
+   * The given expression is the expression used to compute the stream for an
+   * asyncronous for-each statement. Attempt to compute the type of objects that
+   * will be assigned to the loop variable and return that type. Return `null`
+   * if the type could not be determined. The [streamExpression] is the
+   * expression that will return the stream being iterated over.
+   */
+  DartType _getStreamElementType(Expression streamExpression) {
+    DartType streamType = streamExpression.bestType;
+    if (streamType is InterfaceType) {
+      FunctionType listenFunction =
+          _inheritanceManager.lookupMemberType(streamType, "listen");
+      if (listenFunction == null) {
+        return null;
+      }
+      List<ParameterElement> listenParameters = listenFunction.parameters;
+      if (listenParameters == null || listenParameters.length < 1) {
+        return null;
+      }
+      DartType onDataType = listenParameters[0].type;
+      if (onDataType is FunctionType) {
+        List<ParameterElement> onDataParameters = onDataType.parameters;
+        if (onDataParameters == null || onDataParameters.length < 1) {
+          return null;
+        }
+        DartType eventType = onDataParameters[0].type;
+        // TODO(paulberry): checking that typeParameters.isNotEmpty is a
+        // band-aid fix for dartbug.com/24191.  Figure out what the correct
+        // logic should be.
+        if (streamType.typeParameters.isNotEmpty &&
+            eventType.element == streamType.typeParameters[0]) {
+          return streamType.typeArguments[0];
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * If given "mayBeClosure" is [FunctionExpression] without explicit parameters types and its
    * required type is [FunctionType], then infer parameters types from [FunctionType].
    */
@@ -11500,7 +11258,7 @@ class ResolverVisitor extends ScopedVisitor {
     // If the expectedClosureType is not more specific than the static type,
     // return.
     DartType staticClosureType =
-        (closure.element != null ? closure.element.type : null) as DartType;
+        closure.element != null ? closure.element.type : null;
     if (staticClosureType != null &&
         !expectedClosureType.isMoreSpecificThan(staticClosureType)) {
       return;
@@ -11890,8 +11648,11 @@ abstract class Scope {
     // TODO(jwren) There are 4 error codes for duplicate, but only 1 is being
     // generated.
     Source source = duplicate.source;
-    return new AnalysisError(source, duplicate.nameOffset,
-        duplicate.displayName.length, CompileTimeErrorCode.DUPLICATE_DEFINITION,
+    return new AnalysisError(
+        source,
+        duplicate.nameOffset,
+        duplicate.displayName.length,
+        CompileTimeErrorCode.DUPLICATE_DEFINITION,
         [existing.displayName]);
   }
 
@@ -11990,7 +11751,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   /**
    * The element for the library containing the compilation unit being visited.
    */
-  LibraryElement _definingLibrary;
+  final LibraryElement definingLibrary;
 
   /**
    * The source representing the compilation unit being visited.
@@ -12000,7 +11761,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   /**
    * The error listener that will be informed of any errors that are found during resolution.
    */
-  AnalysisErrorListener _errorListener;
+  final AnalysisErrorListener errorListener;
 
   /**
    * The scope used to resolve identifiers.
@@ -12030,75 +11791,29 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   ClassElement enclosingClass;
 
   /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   * Initialize a newly created visitor to resolve the nodes in a compilation
+   * unit.
    *
-   * @param library the library containing the compilation unit being resolved
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
+   * [definingLibrary] is the element for the library containing the
+   * compilation unit being visited.
+   * [source] is the source representing the compilation unit being visited.
+   * [typeProvider] is the object used to access the types from the core
+   * library.
+   * [errorListener] is the error listener that will be informed of any errors
+   * that are found during resolution.
+   * [nameScope] is the scope used to resolve identifiers in the node that will
+   * first be visited.  If `null` or unspecified, a new [LibraryScope] will be
+   * created based on [definingLibrary] and [typeProvider].
    */
-  ScopedVisitor.con1(Library library, this.source, this.typeProvider) {
-    this._definingLibrary = library.libraryElement;
-    LibraryScope libraryScope = library.libraryScope;
-    this._errorListener = libraryScope.errorListener;
-    this.nameScope = libraryScope;
+  ScopedVisitor(
+      this.definingLibrary, this.source, this.typeProvider, this.errorListener,
+      {Scope nameScope}) {
+    if (nameScope == null) {
+      this.nameScope = new LibraryScope(definingLibrary, errorListener);
+    } else {
+      this.nameScope = nameScope;
+    }
   }
-
-  /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param definingLibrary the element for the library containing the compilation unit being
-   *          visited
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during resolution
-   */
-  ScopedVisitor.con2(LibraryElement definingLibrary, this.source,
-      this.typeProvider, AnalysisErrorListener errorListener) {
-    this._definingLibrary = definingLibrary;
-    this._errorListener = errorListener;
-    this.nameScope = new LibraryScope(definingLibrary, errorListener);
-  }
-
-  /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param definingLibrary the element for the library containing the compilation unit being
-   *          visited
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   * @param nameScope the scope used to resolve identifiers in the node that will first be visited
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during resolution
-   */
-  ScopedVisitor.con3(LibraryElement definingLibrary, this.source,
-      this.typeProvider, Scope nameScope, AnalysisErrorListener errorListener) {
-    this._definingLibrary = definingLibrary;
-    this._errorListener = errorListener;
-    this.nameScope = nameScope;
-  }
-
-  /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param library the library containing the compilation unit being resolved
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   */
-  ScopedVisitor.con4(
-      ResolvableLibrary library, this.source, this.typeProvider) {
-    this._definingLibrary = library.libraryElement;
-    LibraryScope libraryScope = library.libraryScope;
-    this._errorListener = libraryScope.errorListener;
-    this.nameScope = libraryScope;
-  }
-
-  /**
-   * Return the library element for the library containing the compilation unit being resolved.
-   *
-   * @return the library element for the library containing the compilation unit being resolved
-   */
-  LibraryElement get definingLibrary => _definingLibrary;
 
   /**
    * Return the implicit label scope in which the current node is being
@@ -12136,7 +11851,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    */
   void reportErrorForNode(ErrorCode errorCode, AstNode node,
       [List<Object> arguments]) {
-    _errorListener.onError(new AnalysisError(
+    errorListener.onError(new AnalysisError(
         source, node.offset, node.length, errorCode, arguments));
   }
 
@@ -12150,7 +11865,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    */
   void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
       [List<Object> arguments]) {
-    _errorListener.onError(
+    errorListener.onError(
         new AnalysisError(source, offset, length, errorCode, arguments));
   }
 
@@ -12163,7 +11878,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    */
   void reportErrorForToken(ErrorCode errorCode, sc.Token token,
       [List<Object> arguments]) {
-    _errorListener.onError(new AnalysisError(
+    errorListener.onError(new AnalysisError(
         source, token.offset, token.length, errorCode, arguments));
   }
 
@@ -12479,6 +12194,29 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     try {
       nameScope = new FunctionTypeScope(nameScope, node.element);
       super.visitFunctionTypeAlias(node);
+    } finally {
+      nameScope = outerScope;
+    }
+    return null;
+  }
+
+  @override
+  Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    Scope outerScope = nameScope;
+    try {
+      ParameterElement parameterElement = node.element;
+      if (parameterElement == null) {
+        AnalysisEngine.instance.logger.logInformation(
+            "Missing element for function typed formal parameter ${node.identifier.name} in ${definingLibrary.source.fullName}",
+            new CaughtException(new AnalysisException(), null));
+      } else {
+        nameScope = new EnclosedScope(nameScope);
+        for (TypeParameterElement typeParameter
+            in parameterElement.typeParameters) {
+          nameScope.define(typeParameter);
+        }
+      }
+      super.visitFunctionTypedFormalParameter(node);
     } finally {
       nameScope = outerScope;
     }
@@ -13608,13 +13346,13 @@ class TypeProviderImpl implements TypeProvider {
 
   @override
   List<InterfaceType> get nonSubtypableTypes => <InterfaceType>[
-    nullType,
-    numType,
-    intType,
-    doubleType,
-    boolType,
-    stringType
-  ];
+        nullType,
+        numType,
+        intType,
+        doubleType,
+        boolType,
+        stringType
+      ];
 
   @override
   DartObjectImpl get nullObject {
@@ -13727,65 +13465,25 @@ class TypeResolverVisitor extends ScopedVisitor {
   bool _hasReferenceToSuper = false;
 
   /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param library the library containing the compilation unit being resolved
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   */
-  TypeResolverVisitor.con1(
-      Library library, Source source, TypeProvider typeProvider)
-      : super.con1(library, source, typeProvider) {
-    _dynamicType = typeProvider.dynamicType;
-    _undefinedType = typeProvider.undefinedType;
-  }
-
-  /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param definingLibrary the element for the library containing the compilation unit being
-   *          visited
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during resolution
-   */
-  TypeResolverVisitor.con2(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, AnalysisErrorListener errorListener)
-      : super.con2(definingLibrary, source, typeProvider, errorListener) {
-    _dynamicType = typeProvider.dynamicType;
-    _undefinedType = typeProvider.undefinedType;
-  }
-
-  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
-   * @param definingLibrary the element for the library containing the node being visited
-   * @param source the source representing the compilation unit containing the node being visited
-   * @param typeProvider the object used to access the types from the core library
-   * @param nameScope the scope used to resolve identifiers in the node that will first be visited
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during resolution
+   * [definingLibrary] is the element for the library containing the node being
+   * visited.
+   * [source] is the source representing the compilation unit containing the
+   * node being visited.
+   * [typeProvider] is the object used to access the types from the core
+   * library.
+   * [errorListener] is the error listener that will be informed of any errors
+   * that are found during resolution.
+   * [nameScope] is the scope used to resolve identifiers in the node that will
+   * first be visited.  If `null` or unspecified, a new [LibraryScope] will be
+   * created based on [definingLibrary] and [typeProvider].
    */
-  TypeResolverVisitor.con3(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, Scope nameScope,
-      AnalysisErrorListener errorListener)
-      : super.con3(
-          definingLibrary, source, typeProvider, nameScope, errorListener) {
-    _dynamicType = typeProvider.dynamicType;
-    _undefinedType = typeProvider.undefinedType;
-  }
-
-  /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param library the library containing the compilation unit being resolved
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   */
-  TypeResolverVisitor.con4(
-      ResolvableLibrary library, Source source, TypeProvider typeProvider)
-      : super.con4(library, source, typeProvider) {
+  TypeResolverVisitor(LibraryElement definingLibrary, Source source,
+      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+      {Scope nameScope})
+      : super(definingLibrary, source, typeProvider, errorListener,
+            nameScope: nameScope) {
     _dynamicType = typeProvider.dynamicType;
     _undefinedType = typeProvider.undefinedType;
   }
@@ -14040,11 +13738,8 @@ class TypeResolverVisitor extends ScopedVisitor {
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     FunctionTypeAliasElementImpl element =
         node.element as FunctionTypeAliasElementImpl;
-    if (element.returnType == null) {
-      // Only visit function type aliases once.
-      super.visitFunctionTypeAlias(node);
-      element.returnType = _computeReturnType(node.returnType);
-    }
+    super.visitFunctionTypeAlias(node);
+    element.returnType = _computeReturnType(node.returnType);
     return null;
   }
 
@@ -14184,13 +13879,15 @@ class TypeResolverVisitor extends ScopedVisitor {
                 (parent.parent as InstanceCreationExpression).isConst) {
               // If, if this is a const expression, then generate a
               // CompileTimeErrorCode.CONST_WITH_NON_TYPE error.
-              reportErrorForNode(CompileTimeErrorCode.CONST_WITH_NON_TYPE,
+              reportErrorForNode(
+                  CompileTimeErrorCode.CONST_WITH_NON_TYPE,
                   prefixedIdentifier.identifier,
                   [prefixedIdentifier.identifier.name]);
             } else {
               // Else, if this expression is a new expression, report a
               // NEW_WITH_NON_TYPE warning.
-              reportErrorForNode(StaticWarningCode.NEW_WITH_NON_TYPE,
+              reportErrorForNode(
+                  StaticWarningCode.NEW_WITH_NON_TYPE,
                   prefixedIdentifier.identifier,
                   [prefixedIdentifier.identifier.name]);
             }
@@ -14368,11 +14065,8 @@ class TypeResolverVisitor extends ScopedVisitor {
           typeArguments[i] = argumentType;
         }
       } else {
-        reportErrorForNode(_getInvalidTypeParametersErrorCode(node), node, [
-          typeName.name,
-          parameterCount,
-          argumentCount
-        ]);
+        reportErrorForNode(_getInvalidTypeParametersErrorCode(node), node,
+            [typeName.name, parameterCount, argumentCount]);
         for (int i = 0; i < parameterCount; i++) {
           typeArguments[i] = _dynamicType;
         }
@@ -14736,7 +14430,8 @@ class TypeResolverVisitor extends ScopedVisitor {
   void _resolve(ClassElementImpl classElement, WithClause withClause,
       ImplementsClause implementsClause) {
     if (withClause != null) {
-      List<InterfaceType> mixinTypes = _resolveTypes(withClause.mixinTypes,
+      List<InterfaceType> mixinTypes = _resolveTypes(
+          withClause.mixinTypes,
           CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
           CompileTimeErrorCode.MIXIN_OF_ENUM,
           CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
@@ -14748,7 +14443,8 @@ class TypeResolverVisitor extends ScopedVisitor {
     }
     if (implementsClause != null) {
       NodeList<TypeName> interfaces = implementsClause.interfaces;
-      List<InterfaceType> interfaceTypes = _resolveTypes(interfaces,
+      List<InterfaceType> interfaceTypes = _resolveTypes(
+          interfaces,
           CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
           CompileTimeErrorCode.IMPLEMENTS_ENUM,
           CompileTimeErrorCode.IMPLEMENTS_DYNAMIC);
@@ -14823,8 +14519,10 @@ class TypeResolverVisitor extends ScopedVisitor {
    * @param dynamicTypeError the error to produce if the type name is "dynamic"
    * @return an array containing all of the types that were resolved.
    */
-  List<InterfaceType> _resolveTypes(NodeList<TypeName> typeNames,
-      ErrorCode nonTypeError, ErrorCode enumTypeError,
+  List<InterfaceType> _resolveTypes(
+      NodeList<TypeName> typeNames,
+      ErrorCode nonTypeError,
+      ErrorCode enumTypeError,
       ErrorCode dynamicTypeError) {
     List<InterfaceType> types = new List<InterfaceType>();
     for (TypeName typeName in typeNames) {
@@ -14925,6 +14623,114 @@ class TypeResolverVisitor extends ScopedVisitor {
 }
 
 /**
+ * The interface `TypeSystem` defines the behavior of an object representing
+ * the type system.  This provides a common location to put methods that act on
+ * types but may need access to more global data structures, and it paves the
+ * way for a possible future where we may wish to make the type system
+ * pluggable.
+ */
+abstract class TypeSystem {
+  /**
+   * Return the [TypeProvider] associated with this [TypeSystem].
+   */
+  TypeProvider get typeProvider;
+
+  /**
+   * Compute the least upper bound of two types.
+   */
+  DartType getLeastUpperBound(DartType type1, DartType type2);
+}
+
+/**
+ * Implementation of [TypeSystem] using the rules in the Dart specification.
+ */
+class TypeSystemImpl implements TypeSystem {
+  @override
+  final TypeProvider typeProvider;
+
+  TypeSystemImpl(this.typeProvider);
+
+  @override
+  DartType getLeastUpperBound(DartType type1, DartType type2) {
+    // The least upper bound relation is reflexive.
+    if (identical(type1, type2)) {
+      return type1;
+    }
+    // The least upper bound of dynamic and any type T is dynamic.
+    if (type1.isDynamic) {
+      return type1;
+    }
+    if (type2.isDynamic) {
+      return type2;
+    }
+    // The least upper bound of void and any type T != dynamic is void.
+    if (type1.isVoid) {
+      return type1;
+    }
+    if (type2.isVoid) {
+      return type2;
+    }
+    // The least upper bound of bottom and any type T is T.
+    if (type1.isBottom) {
+      return type2;
+    }
+    if (type2.isBottom) {
+      return type1;
+    }
+    // Let U be a type variable with upper bound B.  The least upper bound of U
+    // and a type T is the least upper bound of B and T.
+    while (type1 is TypeParameterType) {
+      // TODO(paulberry): is this correct in the complex of F-bounded
+      // polymorphism?
+      DartType bound = (type1 as TypeParameterType).element.bound;
+      if (bound == null) {
+        bound = typeProvider.objectType;
+      }
+      type1 = bound;
+    }
+    while (type2 is TypeParameterType) {
+      // TODO(paulberry): is this correct in the context of F-bounded
+      // polymorphism?
+      DartType bound = (type2 as TypeParameterType).element.bound;
+      if (bound == null) {
+        bound = typeProvider.objectType;
+      }
+      type2 = bound;
+    }
+    // The least upper bound of a function type and an interface type T is the
+    // least upper bound of Function and T.
+    if (type1 is FunctionType && type2 is InterfaceType) {
+      type1 = typeProvider.functionType;
+    }
+    if (type2 is FunctionType && type1 is InterfaceType) {
+      type2 = typeProvider.functionType;
+    }
+
+    // At this point type1 and type2 should both either be interface types or
+    // function types.
+    if (type1 is InterfaceType && type2 is InterfaceType) {
+      InterfaceType result =
+          InterfaceTypeImpl.computeLeastUpperBound(type1, type2);
+      if (result == null) {
+        return typeProvider.dynamicType;
+      }
+      return result;
+    } else if (type1 is FunctionType && type2 is FunctionType) {
+      FunctionType result =
+          FunctionTypeImpl.computeLeastUpperBound(type1, type2);
+      if (result == null) {
+        return typeProvider.functionType;
+      }
+      return result;
+    } else {
+      // Should never happen.  As a defensive measure, return the dynamic type.
+      assert(false);
+      return typeProvider.dynamicType;
+    }
+  }
+}
+
+/**
  * Instances of the class [UnusedLocalElementsVerifier] traverse an element
  * structure looking for cases of [HintCode.UNUSED_ELEMENT],
  * [HintCode.UNUSED_FIELD], [HintCode.UNUSED_LOCAL_VARIABLE], etc.
@@ -14948,10 +14754,8 @@ class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
   @override
   visitClassElement(ClassElement element) {
     if (!_isUsedElement(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element, [
-        element.kind.displayName,
-        element.displayName
-      ]);
+      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
+          [element.kind.displayName, element.displayName]);
     }
     super.visitClassElement(element);
   }
@@ -14968,10 +14772,8 @@ class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
   @override
   visitFunctionElement(FunctionElement element) {
     if (!_isUsedElement(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element, [
-        element.kind.displayName,
-        element.displayName
-      ]);
+      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
+          [element.kind.displayName, element.displayName]);
     }
     super.visitFunctionElement(element);
   }
@@ -14979,10 +14781,8 @@ class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
   @override
   visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     if (!_isUsedElement(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element, [
-        element.kind.displayName,
-        element.displayName
-      ]);
+      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
+          [element.kind.displayName, element.displayName]);
     }
     super.visitFunctionTypeAliasElement(element);
   }
@@ -15005,10 +14805,8 @@ class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
   @override
   visitMethodElement(MethodElement element) {
     if (!_isUsedMember(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element, [
-        element.kind.displayName,
-        element.displayName
-      ]);
+      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
+          [element.kind.displayName, element.displayName]);
     }
     super.visitMethodElement(element);
   }
@@ -15016,10 +14814,8 @@ class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
   @override
   visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (!_isUsedMember(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element, [
-        element.kind.displayName,
-        element.displayName
-      ]);
+      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
+          [element.kind.displayName, element.displayName]);
     }
     super.visitPropertyAccessorElement(element);
   }
@@ -15079,8 +14875,11 @@ class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
   void _reportErrorForElement(
       ErrorCode errorCode, Element element, List<Object> arguments) {
     if (element != null) {
-      _errorListener.onError(new AnalysisError(element.source,
-          element.nameOffset, element.displayName.length, errorCode,
+      _errorListener.onError(new AnalysisError(
+          element.source,
+          element.nameOffset,
+          element.displayName.length,
+          errorCode,
           arguments));
     }
   }
@@ -15190,31 +14989,25 @@ class VariableResolverVisitor extends ScopedVisitor {
   ExecutableElement _enclosingFunction;
 
   /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param library the library containing the compilation unit being resolved
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   */
-  VariableResolverVisitor.con1(
-      Library library, Source source, TypeProvider typeProvider)
-      : super.con1(library, source, typeProvider);
-
-  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
-   * @param definingLibrary the element for the library containing the node being visited
-   * @param source the source representing the compilation unit containing the node being visited
-   * @param typeProvider the object used to access the types from the core library
-   * @param nameScope the scope used to resolve identifiers in the node that will first be visited
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during resolution
+   * [definingLibrary] is the element for the library containing the node being
+   * visited.
+   * [source] is the source representing the compilation unit containing the
+   * node being visited
+   * [typeProvider] is the object used to access the types from the core
+   * library.
+   * [errorListener] is the error listener that will be informed of any errors
+   * that are found during resolution.
+   * [nameScope] is the scope used to resolve identifiers in the node that will
+   * first be visited.  If `null` or unspecified, a new [LibraryScope] will be
+   * created based on [definingLibrary] and [typeProvider].
    */
-  VariableResolverVisitor.con2(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, Scope nameScope,
-      AnalysisErrorListener errorListener)
-      : super.con3(
-          definingLibrary, source, typeProvider, nameScope, errorListener);
+  VariableResolverVisitor(LibraryElement definingLibrary, Source source,
+      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+      {Scope nameScope})
+      : super(definingLibrary, source, typeProvider, errorListener,
+            nameScope: nameScope);
 
   /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
@@ -15222,10 +15015,15 @@ class VariableResolverVisitor extends ScopedVisitor {
    * @param library the library containing the compilation unit being resolved
    * @param source the source representing the compilation unit being visited
    * @param typeProvider the object used to access the types from the core library
+   *
+   * Deprecated.  Please use unnamed constructor instead.
    */
-  VariableResolverVisitor.con3(
-      ResolvableLibrary library, Source source, TypeProvider typeProvider)
-      : super.con4(library, source, typeProvider);
+  @deprecated
+  VariableResolverVisitor.con1(
+      Library library, Source source, TypeProvider typeProvider)
+      : this(
+            library.libraryElement, source, typeProvider, library.errorListener,
+            nameScope: library.libraryScope);
 
   @override
   Object visitExportDirective(ExportDirective node) => null;
@@ -15334,11 +15132,14 @@ class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
 
   List<ParameterElement> parameterElements;
 
-  _ConstantVerifier_validateInitializerExpression(TypeProvider typeProvider,
-      ErrorReporter errorReporter, this.verifier, this.parameterElements,
+  _ConstantVerifier_validateInitializerExpression(
+      TypeProvider typeProvider,
+      ErrorReporter errorReporter,
+      this.verifier,
+      this.parameterElements,
       DeclaredVariables declaredVariables)
       : super(new ConstantEvaluationEngine(typeProvider, declaredVariables),
-          errorReporter);
+            errorReporter);
 
   @override
   DartObjectImpl visitSimpleIdentifier(SimpleIdentifier node) {

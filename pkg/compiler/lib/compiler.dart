@@ -6,7 +6,8 @@ library compiler;
 
 import 'dart:async';
 import 'package:package_config/packages.dart';
-import 'src/apiimpl.dart';
+import 'compiler_new.dart' as new_api;
+import 'src/old_to_new_api.dart';
 
 // Unless explicitly allowed, passing [:null:] for any argument to the
 // methods of library will result in an Error being thrown.
@@ -113,25 +114,26 @@ Future<CompilationResult> compile(
      Map<String, dynamic> environment = const {},
      Uri packageConfig,
      PackagesDiscoveryProvider packagesDiscoveryProvider]) {
-  if (!libraryRoot.path.endsWith("/")) {
-    throw new ArgumentError("libraryRoot must end with a /");
-  }
-  if (packageRoot != null && !packageRoot.path.endsWith("/")) {
-    throw new ArgumentError("packageRoot must end with a /");
-  }
-  // TODO(ahe): Consider completing the future with an exception if
-  // code is null.
-  Compiler compiler = new Compiler(inputProvider,
-                                   outputProvider,
-                                   handler,
-                                   libraryRoot,
-                                   packageRoot,
-                                   options,
-                                   environment,
-                                   packageConfig,
-                                   packagesDiscoveryProvider);
-  return compiler.run(script).then((bool success) {
-    return new CompilationResult(compiler, isSuccess: success);
+
+  new_api.CompilerOptions compilerOptions = new new_api.CompilerOptions(
+      entryPoint: script,
+      libraryRoot: libraryRoot,
+      packageRoot: packageRoot,
+      packageConfig: packageConfig,
+      packagesDiscoveryProvider: packagesDiscoveryProvider,
+      options: options,
+      environment: environment);
+
+  new_api.CompilerInput compilerInput = new LegacyCompilerInput(inputProvider);
+  new_api.CompilerDiagnostics compilerDiagnostics =
+      new LegacyCompilerDiagnostics(handler);
+  new_api.CompilerOutput compilerOutput =
+      new LegacyCompilerOutput(outputProvider);
+
+  return new_api.compile(compilerOptions, compilerInput,
+                         compilerDiagnostics, compilerOutput)
+      .then((new_api.CompilationResult result) {
+    return new CompilationResult(result.compiler, isSuccess: result.isSuccess);
   });
 }
 

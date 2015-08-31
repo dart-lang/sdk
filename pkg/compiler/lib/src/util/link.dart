@@ -132,7 +132,7 @@ abstract class LinkBuilder<T> {
 
   List<T> toList();
 
-  void addLast(T t);
+  Link<T> addLast(T t);
 
   final int length;
   final bool isEmpty;

@@ -21,6 +21,7 @@ namespace dart {
 
 // Forward declarations.
 class RuntimeEntry;
+class StubEntry;
 
 class Immediate : public ValueObject {
  public:
@@ -119,7 +120,7 @@ class Address : public ValueObject {
   // is unscaled.
   Address(Register rn, int32_t offset = 0, AddressType at = Offset,
           OperandSize sz = kDoubleWord) {
-    ASSERT((rn != R31) && (rn != ZR));
+    ASSERT((rn != kNoRegister) && (rn != R31) && (rn != ZR));
     ASSERT(CanHoldOffset(offset, at, sz));
     const Register crn = ConcreteRegister(rn);
     const int32_t scale = Log2OperandSizeBytes(sz);
@@ -476,11 +477,11 @@ class Assembler : public ValueObject {
     return buffer_.pointer_offsets();
   }
 
-  const GrowableObjectArray& object_pool_data() const {
-    return object_pool_.data();
-  }
+  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
 
-  ObjectPool& object_pool() { return object_pool_; }
+  RawObjectPool* MakeObjectPool() {
+    return object_pool_wrapper_.MakeObjectPool();
+  }
 
   bool use_far_branches() const {
     return FLAG_use_far_branches || use_far_branches_;
@@ -1161,6 +1162,8 @@ class Assembler : public ValueObject {
   void PopAndUntagPP() {
     ldr(PP, Address(SP, 1 * kWordSize, Address::PostIndex));
     sub(PP, PP, Operand(kHeapObjectTag));
+    // The caller of PopAndUntagPP() must explicitly allow use of popped PP.
+    set_constant_pool_allowed(false);
   }
   void tst(Register rn, Operand o) {
     ands(ZR, rn, o);
@@ -1196,10 +1199,12 @@ class Assembler : public ValueObject {
   }
 
   // Branching to ExternalLabels.
-  void Branch(const ExternalLabel* label, Register pp) {
-    LoadExternalLabel(TMP, label, kNotPatchable, pp);
+  void Branch(const ExternalLabel* label) {
+    LoadExternalLabel(TMP, label);
     br(TMP);
   }
+
+  void Branch(const StubEntry& stub_entry);
 
   // Fixed length branch to label.
   void BranchPatchable(const ExternalLabel* label) {
@@ -1208,69 +1213,65 @@ class Assembler : public ValueObject {
     br(TMP);
   }
 
-  void BranchLink(const ExternalLabel* label, Register pp) {
-    LoadExternalLabel(TMP, label, kNotPatchable, pp);
+  void BranchPatchable(const StubEntry& stub_entry);
+
+  void BranchLink(const ExternalLabel* label) {
+    LoadExternalLabel(TMP, label);
     blr(TMP);
   }
+
+  void BranchLink(const StubEntry& stub_entry);
 
   // BranchLinkPatchable must be a fixed-length sequence so we can patch it
   // with the debugger.
   void BranchLinkPatchable(const ExternalLabel* label) {
-    LoadExternalLabelFixed(TMP, label, kPatchable, PP);
+    LoadExternalLabelFixed(TMP, label, kPatchable);
     blr(TMP);
   }
+
+  void BranchLinkPatchable(const StubEntry& stub_entry);
 
   // Macros accepting a pp Register argument may attempt to load values from
   // the object pool when possible. Unless you are sure that the untagged object
   // pool pointer is in another register, or that it is not available at all,
   // PP should be passed for pp.
-  void AddImmediate(Register dest, Register rn, int64_t imm, Register pp);
-  void AddImmediateSetFlags(
-      Register dest, Register rn, int64_t imm, Register pp);
-  void SubImmediateSetFlags(
-      Register dest, Register rn, int64_t imm, Register pp);
-  void AndImmediate(Register rd, Register rn, int64_t imm, Register pp);
-  void OrImmediate(Register rd, Register rn, int64_t imm, Register pp);
-  void XorImmediate(Register rd, Register rn, int64_t imm, Register pp);
-  void TestImmediate(Register rn, int64_t imm, Register pp);
-  void CompareImmediate(Register rn, int64_t imm, Register pp);
+  void AddImmediate(Register dest, Register rn, int64_t imm);
+  void AddImmediateSetFlags(Register dest, Register rn, int64_t imm);
+  void SubImmediateSetFlags(Register dest, Register rn, int64_t imm);
+  void AndImmediate(Register rd, Register rn, int64_t imm);
+  void OrImmediate(Register rd, Register rn, int64_t imm);
+  void XorImmediate(Register rd, Register rn, int64_t imm);
+  void TestImmediate(Register rn, int64_t imm);
+  void CompareImmediate(Register rn, int64_t imm);
 
   void LoadFromOffset(Register dest, Register base, int32_t offset,
-                      Register pp, OperandSize sz = kDoubleWord);
+                      OperandSize sz = kDoubleWord);
   void LoadFieldFromOffset(Register dest, Register base, int32_t offset,
-                           Register pp, OperandSize sz = kDoubleWord) {
-    LoadFromOffset(dest, base, offset - kHeapObjectTag, pp, sz);
+                           OperandSize sz = kDoubleWord) {
+    LoadFromOffset(dest, base, offset - kHeapObjectTag, sz);
   }
-  void LoadDFromOffset(
-      VRegister dest, Register base, int32_t offset, Register pp);
-  void LoadDFieldFromOffset(
-      VRegister dest, Register base, int32_t offset, Register pp) {
-    LoadDFromOffset(dest, base, offset - kHeapObjectTag, pp);
+  void LoadDFromOffset(VRegister dest, Register base, int32_t offset);
+  void LoadDFieldFromOffset(VRegister dest, Register base, int32_t offset) {
+    LoadDFromOffset(dest, base, offset - kHeapObjectTag);
   }
-  void LoadQFromOffset(
-      VRegister dest, Register base, int32_t offset, Register pp);
-  void LoadQFieldFromOffset(
-      VRegister dest, Register base, int32_t offset, Register pp) {
-    LoadQFromOffset(dest, base, offset - kHeapObjectTag, pp);
+  void LoadQFromOffset(VRegister dest, Register base, int32_t offset);
+  void LoadQFieldFromOffset(VRegister dest, Register base, int32_t offset) {
+    LoadQFromOffset(dest, base, offset - kHeapObjectTag);
   }
 
   void StoreToOffset(Register src, Register base, int32_t offset,
-                     Register pp, OperandSize sz = kDoubleWord);
+                     OperandSize sz = kDoubleWord);
   void StoreFieldToOffset(Register src, Register base, int32_t offset,
-                          Register pp, OperandSize sz = kDoubleWord) {
-    StoreToOffset(src, base, offset - kHeapObjectTag, pp, sz);
+                          OperandSize sz = kDoubleWord) {
+    StoreToOffset(src, base, offset - kHeapObjectTag, sz);
   }
-  void StoreDToOffset(
-      VRegister src, Register base, int32_t offset, Register pp);
-  void StoreDFieldToOffset(
-      VRegister src, Register base, int32_t offset, Register pp) {
-    StoreDToOffset(src, base, offset - kHeapObjectTag, pp);
+  void StoreDToOffset(VRegister src, Register base, int32_t offset);
+  void StoreDFieldToOffset(VRegister src, Register base, int32_t offset) {
+    StoreDToOffset(src, base, offset - kHeapObjectTag);
   }
-  void StoreQToOffset(
-      VRegister src, Register base, int32_t offset, Register pp);
-  void StoreQFieldToOffset(
-      VRegister src, Register base, int32_t offset, Register pp) {
-    StoreQToOffset(src, base, offset - kHeapObjectTag, pp);
+  void StoreQToOffset(VRegister src, Register base, int32_t offset);
+  void StoreQFieldToOffset(VRegister src, Register base, int32_t offset) {
+    StoreQToOffset(src, base, offset - kHeapObjectTag);
   }
 
   // Storing into an object.
@@ -1281,61 +1282,60 @@ class Assembler : public ValueObject {
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
-                             Register pp,
                              bool can_value_be_smi = true);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
   void StoreIntoObjectOffsetNoBarrier(Register object,
                                       int32_t offset,
-                                      Register value,
-                                      Register pp);
+                                      Register value);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value);
   void StoreIntoObjectOffsetNoBarrier(Register object,
                                       int32_t offset,
-                                      const Object& value,
-                                      Register pp);
+                                      const Object& value);
 
   // Object pool, loading from pool, etc.
-  void LoadPoolPointer(Register pp);
+  void LoadPoolPointer(Register pp = PP);
 
-  bool allow_constant_pool() const {
-    return allow_constant_pool_;
+  bool constant_pool_allowed() const {
+    return constant_pool_allowed_;
   }
-  void set_allow_constant_pool(bool b) {
-    allow_constant_pool_ = b;
+  void set_constant_pool_allowed(bool b) {
+    constant_pool_allowed_ = b;
   }
 
-  void LoadWordFromPoolOffset(Register dst, Register pp, uint32_t offset);
-  void LoadWordFromPoolOffsetFixed(Register dst, Register pp, uint32_t offset);
+  void LoadWordFromPoolOffset(Register dst, uint32_t offset);
+  void LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset);
   intptr_t FindImmediate(int64_t imm);
-  bool CanLoadObjectFromPool(const Object& object);
-  bool CanLoadImmediateFromPool(int64_t imm, Register pp);
-  void LoadExternalLabel(Register dst, const ExternalLabel* label,
-                         Patchability patchable, Register pp);
+  bool CanLoadFromObjectPool(const Object& object) const;
+  void LoadExternalLabel(Register dst, const ExternalLabel* label);
   void LoadExternalLabelFixed(Register dst,
                               const ExternalLabel* label,
-                              Patchability patchable,
-                              Register pp);
-  void LoadIsolate(Register dst, Register pp);
-  void LoadObject(Register dst, const Object& obj, Register pp);
-  void LoadDecodableImmediate(Register reg, int64_t imm, Register pp);
+                              Patchability patchable);
+  void LoadFunctionFromCalleePool(Register dst,
+                                  const Function& function,
+                                  Register new_pp);
+  void LoadIsolate(Register dst);
+  void LoadObject(Register dst, const Object& obj);
+  void LoadUniqueObject(Register dst, const Object& obj);
+  void LoadDecodableImmediate(Register reg, int64_t imm);
   void LoadImmediateFixed(Register reg, int64_t imm);
-  void LoadImmediate(Register reg, int64_t imm, Register pp);
-  void LoadDImmediate(VRegister reg, double immd, Register pp);
+  void LoadImmediate(Register reg, int64_t imm);
+  void LoadDImmediate(VRegister reg, double immd);
 
-  void PushObject(const Object& object, Register pp) {
-    LoadObject(TMP, object, pp);
+  void PushObject(const Object& object) {
+    LoadObject(TMP, object);
     Push(TMP);
   }
-  void CompareObject(Register reg, const Object& object, Register pp);
+  void CompareObject(Register reg, const Object& object);
 
-  void LoadClassId(Register result, Register object, Register pp);
-  void LoadClassById(Register result, Register class_id, Register pp);
-  void LoadClass(Register result, Register object, Register pp);
-  void CompareClassId(Register object, intptr_t class_id, Register pp);
+  void LoadClassId(Register result, Register object);
+  void LoadClassById(Register result, Register class_id);
+  void LoadClass(Register result, Register object);
+  void CompareClassId(Register object, intptr_t class_id);
+  void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
   void ComputeRange(Register result,
@@ -1373,17 +1373,24 @@ class Assembler : public ValueObject {
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
-  void EnterStubFrame(bool load_pp = false);
+  void EnterStubFrame();
   void LeaveStubFrame();
 
   void UpdateAllocationStats(intptr_t cid,
-                             Register pp,
-                             Heap::Space space);
+                             Heap::Space space,
+                             bool inline_isolate = true);
 
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      Register size_reg,
-                                     Register pp,
-                                     Heap::Space space);
+                                     Heap::Space space,
+                                     bool inline_isolate = true);
+
+  // If allocation tracing for |cid| is enabled, will jump to |trace| label,
+  // which will allocate in the runtime where tracing occurs.
+  void MaybeTraceAllocation(intptr_t cid,
+                            Register temp_reg,
+                            Label* trace,
+                            bool inline_isolate = true);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
@@ -1392,8 +1399,7 @@ class Assembler : public ValueObject {
   void TryAllocate(const Class& cls,
                    Label* failure,
                    Register instance_reg,
-                   Register temp_reg,
-                   Register pp);
+                   Register temp_reg);
 
   void TryAllocateArray(intptr_t cid,
                         intptr_t instance_size,
@@ -1418,8 +1424,7 @@ class Assembler : public ValueObject {
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
 
-  // Objects and patchable jump targets.
-  ObjectPool object_pool_;
+  ObjectPoolWrapper object_pool_wrapper_;
 
   int32_t prologue_offset_;
 
@@ -1442,7 +1447,9 @@ class Assembler : public ValueObject {
 
   GrowableArray<CodeComment*> comments_;
 
-  bool allow_constant_pool_;
+  bool constant_pool_allowed_;
+
+  void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
 
   void AddSubHelper(OperandSize os, bool set_flags, bool subtract,
                     Register rd, Register rn, Operand o) {

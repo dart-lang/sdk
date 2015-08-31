@@ -40,9 +40,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
                                                          1));
 
   __ LoadObject(S5, ic_data);
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  ExternalLabel target_label(stub_code->OneArgCheckInlineCacheEntryPoint());
-  __ BranchLinkPatchable(&target_label);
+  __ BranchLinkPatchable(*StubCode::OneArgCheckInlineCache_entry());
   __ Ret();
 }
 

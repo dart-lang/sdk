@@ -43,9 +43,15 @@ main() {
   runReflectiveTests(ScopeTest);
   runReflectiveTests(ElementResolverTest);
   runReflectiveTests(InheritanceManagerTest);
-  runReflectiveTests(LibraryElementBuilderTest);
-  runReflectiveTests(LibraryResolver2Test);
-  runReflectiveTests(LibraryResolverTest);
+  if (!AnalysisEngine.instance.useTaskModel) {
+    runReflectiveTests(LibraryElementBuilderTest);
+  }
+  if (!AnalysisEngine.instance.useTaskModel) {
+    runReflectiveTests(LibraryResolver2Test);
+  }
+  if (!AnalysisEngine.instance.useTaskModel) {
+    runReflectiveTests(LibraryResolverTest);
+  }
   runReflectiveTests(LibraryTest);
   runReflectiveTests(StaticTypeAnalyzerTest);
   runReflectiveTests(StaticTypeAnalyzer2Test);
@@ -159,7 +165,8 @@ class AnalysisContextFactory {
         ElementFactory.topLevelVariableElement3(
             "deprecated", true, false, provider.deprecatedType);
     deprecatedTopLevelVariableElt.constantInitializer = AstFactory
-        .instanceCreationExpression2(Keyword.CONST,
+        .instanceCreationExpression2(
+            Keyword.CONST,
             AstFactory.typeName(provider.deprecatedType.element),
             [AstFactory.string2('next release')]);
     coreUnit.accessors = <PropertyAccessorElement>[
@@ -223,10 +230,32 @@ class AnalysisContextFactory {
     (completerConstructor.type as FunctionTypeImpl).typeArguments =
         completerElement.type.typeArguments;
     completerElement.constructors = <ConstructorElement>[completerConstructor];
+    // StreamSubscription
+    ClassElementImpl streamSubscriptionElement =
+        ElementFactory.classElement2("StreamSubscription", ["T"]);
+    // Stream
+    ClassElementImpl streamElement =
+        ElementFactory.classElement2("Stream", ["T"]);
+    streamElement.constructors = <ConstructorElement>[
+      ElementFactory.constructorElement2(streamElement, null)
+    ];
+    DartType returnType = streamSubscriptionElement.type
+        .substitute4(streamElement.type.typeArguments);
+    List<DartType> parameterTypes = <DartType>[
+      ElementFactory
+          .functionElement3('onData', VoidTypeImpl.instance.element,
+              <TypeDefiningElement>[streamElement.typeParameters[0]], null)
+          .type,
+    ];
+    // TODO(brianwilkerson) This is missing the optional parameters.
+    MethodElementImpl listenMethod =
+        ElementFactory.methodElement('listen', returnType, parameterTypes);
+    streamElement.methods = <MethodElement>[listenMethod];
+
     asyncUnit.types = <ClassElement>[
       completerElement,
       futureElement,
-      ElementFactory.classElement2("Stream", ["T"])
+      streamElement
     ];
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
         coreContext, AstFactory.libraryIdentifier2(["dart", "async"]));
@@ -300,8 +329,10 @@ class AnalysisContextFactory {
     Source mathSource = sourceFactory.forUri(_DART_MATH);
     coreContext.setContents(mathSource, "");
     mathUnit.librarySource = mathUnit.source = mathSource;
-    FunctionElement cosElement = ElementFactory.functionElement3("cos",
-        provider.doubleType.element, <ClassElement>[provider.numType.element],
+    FunctionElement cosElement = ElementFactory.functionElement3(
+        "cos",
+        provider.doubleType.element,
+        <ClassElement>[provider.numType.element],
         ClassElement.EMPTY_LIST);
     TopLevelVariableElement ln10Element = ElementFactory
         .topLevelVariableElement3("LN10", true, false, provider.doubleType);
@@ -317,11 +348,15 @@ class AnalysisContextFactory {
     seedParam.type = provider.intType;
     randomConstructor.parameters = <ParameterElement>[seedParam];
     randomElement.constructors = <ConstructorElement>[randomConstructor];
-    FunctionElement sinElement = ElementFactory.functionElement3("sin",
-        provider.doubleType.element, <ClassElement>[provider.numType.element],
+    FunctionElement sinElement = ElementFactory.functionElement3(
+        "sin",
+        provider.doubleType.element,
+        <ClassElement>[provider.numType.element],
         ClassElement.EMPTY_LIST);
-    FunctionElement sqrtElement = ElementFactory.functionElement3("sqrt",
-        provider.doubleType.element, <ClassElement>[provider.numType.element],
+    FunctionElement sqrtElement = ElementFactory.functionElement3(
+        "sqrt",
+        provider.doubleType.element,
+        <ClassElement>[provider.numType.element],
         ClassElement.EMPTY_LIST);
     mathUnit.accessors = <PropertyAccessorElement>[
       ln10Element.getter,
@@ -393,8 +428,6 @@ class AnalysisContextForTests extends AnalysisContextImpl {
         currentOptions.dart2jsHint != options.dart2jsHint ||
         (currentOptions.hint && !options.hint) ||
         currentOptions.preserveComments != options.preserveComments ||
-        currentOptions.enableNullAwareOperators !=
-            options.enableNullAwareOperators ||
         currentOptions.enableStrictCallChecks != options.enableStrictCallChecks;
     if (needsRecompute) {
       fail(
@@ -589,7 +622,7 @@ class C {
   const C(this.a);
 }
 var v = const C(const B());''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -603,7 +636,7 @@ class A {
   const A(String this.x);
 }
 var v = const A(null);''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
     verify([source]);
   }
@@ -622,7 +655,7 @@ class C {
   const C(this.a);
 }
 var v = const C(const B());''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -634,7 +667,7 @@ class A {
   const A(List<int> x);
 }
 var x = const A(const [1, 2, 3]);''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -646,7 +679,7 @@ class A {
   const A(List<num> x);
 }
 var x = const A(const <int>[1, 2, 3]);''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -659,7 +692,7 @@ class A {
   const A(Map<int, int> x);
 }
 var x = const A(const {1: 2});''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -672,7 +705,7 @@ class A {
   const A(Map<num, int> x);
 }
 var x = const A(const <int, int>{1: 2});''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -685,7 +718,7 @@ class A {
   const A(Map<int, num> x);
 }
 var x = const A(const <int, int>{1: 2});''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -699,7 +732,7 @@ class A {
   const A(this.x);
 }
 var v = const A(5);''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -712,7 +745,7 @@ class A {
   const A(this.x);
 }
 var v = const A(null);''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -728,7 +761,7 @@ class A {
 }
 foo(x) => 1;
 var v = const A(foo);''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -742,7 +775,7 @@ class A<T> {
   const A(this.x);
 }
 var v = const A<int>(3);''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -754,7 +787,7 @@ class A {
   const A(this.x);
 }
 var v = const A('foo');''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
@@ -778,7 +811,7 @@ class C {
   const C(this.b);
 }
 var v = const C(const A());''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
@@ -792,7 +825,7 @@ class A {
   const A(String this.x);
 }
 var v = const A('foo');''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE
@@ -807,7 +840,7 @@ class A {
   const A(String this.x);
 }
 var v = const A('foo');''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.UNDEFINED_CLASS
@@ -829,7 +862,7 @@ class C {
   const C(this.b);
 }
 var v = const C(const A());''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
@@ -843,7 +876,7 @@ class A {
   const A(List<int> x);
 }
 var x = const A(const <num>[1, 2, 3]);''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
@@ -858,7 +891,7 @@ class A {
   const A(Map<int, int> x);
 }
 var x = const A(const <num, int>{1: 2});''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
@@ -873,7 +906,7 @@ class A {
   const A(Map<int, int> x);
 }
 var x = const A(const <int, num>{1: 2});''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
@@ -887,7 +920,7 @@ class A {
   const A([this.x = 'foo']);
 }
 var v = const A();''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticTypeWarningCode.INVALID_ASSIGNMENT
@@ -906,7 +939,7 @@ class A {
 }
 int foo(String x) => 1;
 var v = const A(foo);''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
@@ -920,7 +953,7 @@ class A {
   final int x;
   const A() : x = '';
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
       StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE
@@ -935,7 +968,7 @@ class A {
   final int y;
 }
 var v = const A('foo');''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH
     ]);
@@ -951,7 +984,7 @@ class C<T> {
 const y = 1;
 var v = const C<String>();
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
       HintCode.INVALID_ASSIGNMENT
@@ -966,7 +999,7 @@ class A {
   final Unresolved y;
 }
 var v = const A('foo');''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
       StaticWarningCode.UNDEFINED_CLASS
@@ -983,7 +1016,7 @@ class C<T> {
 const y = 1;
 var v = const C<int>();
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
@@ -995,7 +1028,7 @@ class A {
   final int y;
 }
 var v = const A(null);''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1009,14 +1042,14 @@ class A {
   final Unresolved y;
 }
 var v = const A(null);''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
     verify([source]);
   }
 
   void test_listElementTypeNotAssignable() {
     Source source = addSource("var v = const <String> [42];");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
       StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
@@ -1026,7 +1059,7 @@ var v = const A(null);''');
 
   void test_mapKeyTypeNotAssignable() {
     Source source = addSource("var v = const <String, int > {1 : 2};");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
       StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE
@@ -1036,7 +1069,7 @@ var v = const A(null);''');
 
   void test_mapValueTypeNotAssignable() {
     Source source = addSource("var v = const <String, String> {'a' : 2};");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
       StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE
@@ -1051,7 +1084,7 @@ class A {
   const A(int x);
 }
 var v = const A(null);''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1062,7 +1095,7 @@ class A<T> {
   const A(T x);
 }
 var v = const A<int>(3);''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1075,7 +1108,7 @@ class A {
   const A(Unresolved x);
 }
 var v = const A(null);''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
     verify([source]);
   }
@@ -1086,7 +1119,7 @@ class A {
   const A(int x);
 }
 var v = const A('foo');''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
@@ -1100,7 +1133,7 @@ class A<T> {
   const A(T x);
 }
 var v = const A<int>('foo');''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
@@ -1114,7 +1147,7 @@ class A {
   const A(Unresolved x);
 }
 var v = const A('foo');''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
       StaticWarningCode.UNDEFINED_CLASS
@@ -1129,7 +1162,7 @@ class A {
   const A.a2(String x);
 }
 var v = const A.a1(0);''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
     ]);
@@ -1138,7 +1171,7 @@ var v = const A.a1(0);''');
 
   void test_topLevelVarAssignable_null() {
     Source source = addSource("const int x = null;");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -1147,14 +1180,14 @@ var v = const A.a1(0);''');
     // Null always passes runtime type checks, even when the type is
     // unresolved.
     Source source = addSource("const Unresolved x = null;");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS]);
     verify([source]);
   }
 
   void test_topLevelVarNotAssignable() {
     Source source = addSource("const int x = 'foo';");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
       StaticTypeWarningCode.INVALID_ASSIGNMENT
@@ -1164,7 +1197,7 @@ var v = const A.a1(0);''');
 
   void test_topLevelVarNotAssignable_undefined() {
     Source source = addSource("const Unresolved x = 'foo';");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
       StaticWarningCode.UNDEFINED_CLASS
@@ -1204,8 +1237,9 @@ class ElementResolverTest extends EngineTestCase {
     fail("Not yet tested");
     // Need to set up the exported library so that the identifier can be
     // resolved.
-    ExportDirective directive =
-        AstFactory.exportDirective2(null, [AstFactory.hideCombinator2(["A"])]);
+    ExportDirective directive = AstFactory.exportDirective2(null, [
+      AstFactory.hideCombinator2(["A"])
+    ]);
     _resolveNode(directive);
     _listener.assertNoErrors();
   }
@@ -1219,8 +1253,9 @@ class ElementResolverTest extends EngineTestCase {
     fail("Not yet tested");
     // Need to set up the imported library so that the identifier can be
     // resolved.
-    ImportDirective directive = AstFactory.importDirective3(
-        null, null, [AstFactory.showCombinator2(["A"])]);
+    ImportDirective directive = AstFactory.importDirective3(null, null, [
+      AstFactory.showCombinator2(["A"])
+    ]);
     _resolveNode(directive);
     _listener.assertNoErrors();
   }
@@ -1320,8 +1355,10 @@ class ElementResolverTest extends EngineTestCase {
     _resolveNode(expression);
     var stringElement = stringType.element;
     expect(expression.staticElement, isNotNull);
-    expect(expression.staticElement, stringElement.lookUpMethod(
-        TokenType.EQ_EQ.lexeme, stringElement.library));
+    expect(
+        expression.staticElement,
+        stringElement.lookUpMethod(
+            TokenType.EQ_EQ.lexeme, stringElement.library));
     expect(expression.propagatedElement, isNull);
     _listener.assertNoErrors();
   }
@@ -1337,8 +1374,10 @@ class ElementResolverTest extends EngineTestCase {
         left, TokenType.EQ_EQ, AstFactory.identifier3("j"));
     _resolveNode(expression);
     var stringElement = stringType.element;
-    expect(expression.staticElement, stringElement.lookUpMethod(
-        TokenType.EQ_EQ.lexeme, stringElement.library));
+    expect(
+        expression.staticElement,
+        stringElement.lookUpMethod(
+            TokenType.EQ_EQ.lexeme, stringElement.library));
     expect(expression.propagatedElement, isNull);
     _listener.assertNoErrors();
   }
@@ -1609,12 +1648,17 @@ class ElementResolverTest extends EngineTestCase {
         AstFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation = AstFactory.instanceCreationExpression(
-        Keyword.NEW, name,
+        Keyword.NEW,
+        name,
         [AstFactory.namedExpression2(parameterName, AstFactory.integer(0))]);
     _resolveNode(creation);
     expect(creation.staticElement, same(constructor));
-    expect((creation.argumentList.arguments[
-        0] as NamedExpression).name.label.staticElement, same(parameter));
+    expect(
+        (creation.argumentList.arguments[0] as NamedExpression)
+            .name
+            .label
+            .staticElement,
+        same(parameter));
     _listener.assertNoErrors();
   }
 
@@ -1644,8 +1688,12 @@ class ElementResolverTest extends EngineTestCase {
         [AstFactory.namedExpression2(parameterName, AstFactory.integer(0))]);
     _resolveNode(invocation);
     expect(invocation.methodName.staticElement, same(method));
-    expect((invocation.argumentList.arguments[
-        0] as NamedExpression).name.label.staticElement, same(parameter));
+    expect(
+        (invocation.argumentList.arguments[0] as NamedExpression)
+            .name
+            .label
+            .staticElement,
+        same(parameter));
     _listener.assertNoErrors();
   }
 
@@ -1804,8 +1852,13 @@ class ElementResolverTest extends EngineTestCase {
     SuperExpression target = AstFactory.superExpression();
     target.staticType = ElementFactory.classElement("B", classA.type).type;
     PropertyAccess access = AstFactory.propertyAccess2(target, getterName);
-    AstFactory.methodDeclaration2(null, null, null, null,
-        AstFactory.identifier3("m"), AstFactory.formalParameterList(),
+    AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        null,
+        AstFactory.identifier3("m"),
+        AstFactory.formalParameterList(),
         AstFactory.expressionFunctionBody(access));
     _resolveNode(access);
     expect(access.propertyName.staticElement, same(getter));
@@ -1906,8 +1959,12 @@ class ElementResolverTest extends EngineTestCase {
     ]);
     _resolveInClass(invocation, subclass);
     expect(invocation.staticElement, superConstructor);
-    expect((invocation.argumentList.arguments[
-        0] as NamedExpression).name.label.staticElement, same(parameter));
+    expect(
+        (invocation.argumentList.arguments[0] as NamedExpression)
+            .name
+            .label
+            .staticElement,
+        same(parameter));
     _listener.assertNoErrors();
   }
 
@@ -1928,7 +1985,10 @@ class ElementResolverTest extends EngineTestCase {
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
     Library library = new Library(context, _listener, source);
     library.libraryElement = _definingLibrary;
-    _visitor = new ResolverVisitor.con1(library, source, _typeProvider);
+    _visitor = new ResolverVisitor(
+        library.libraryElement, source, _typeProvider, library.errorListener,
+        nameScope: library.libraryScope,
+        inheritanceManager: library.inheritanceManager);
     try {
       return _visitor.elementResolver;
     } catch (exception) {
@@ -2125,7 +2185,7 @@ class A {
     }
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER]);
     verify([source]);
   }
@@ -2140,7 +2200,7 @@ class A {
     }
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH]);
     verify([source]);
   }
@@ -2152,7 +2212,7 @@ class C {
     int get x => 0;
   }
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     var unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
@@ -2186,7 +2246,7 @@ f() {
     var two = 2;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2198,21 +2258,21 @@ f() {
   throw 'Stop here';
   var two = 2;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
 
   void fail_isInt() {
     Source source = addSource("var v = 1 is int;");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.IS_INT]);
     verify([source]);
   }
 
   void fail_isNotInt() {
     Source source = addSource("var v = 1 is! int;");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.IS_NOT_INT]);
     verify([source]);
   }
@@ -2222,7 +2282,7 @@ f() {
 class A {
   bool operator ==(x) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE]);
     verify([source]);
   }
@@ -2234,13 +2294,17 @@ library L;
 import 'lib1.dart' as one;
 import 'lib2.dart' as one;
 one.A a;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
+    Source source2 = addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 class A {}''');
-    Source source3 = addNamedSource("/lib2.dart", r'''
+    Source source3 = addNamedSource(
+        "/lib2.dart",
+        r'''
 library lib2;
 class B {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
     assertNoErrors(source2);
     assertNoErrors(source3);
@@ -2256,7 +2320,7 @@ m() {
 class A {
   n(void f(int i)) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
@@ -2275,7 +2339,7 @@ m() {
   n(i);
 }
 n(int i) {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
@@ -2285,7 +2349,7 @@ n(int i) {}''');
 f() {
   true ? 1 : 2;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2296,7 +2360,7 @@ f() {
 f() {
   true ? true : false && false;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2306,7 +2370,7 @@ f() {
 f() {
   false ? 1 : 2;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2317,7 +2381,7 @@ f() {
 f() {
   false ? false && false : true;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2327,7 +2391,7 @@ f() {
 f() {
   if(true) {} else {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2338,7 +2402,7 @@ f() {
 f() {
   if(true) {} else {if (false) {}}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2348,7 +2412,7 @@ f() {
 f() {
   if(false) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2359,7 +2423,7 @@ f() {
 f() {
   if(false) {if(false) {}}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2369,7 +2433,7 @@ f() {
 f() {
   while(false) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2380,7 +2444,7 @@ f() {
 f() {
   while(false) {if(false) {}}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2391,7 +2455,7 @@ class A {}
 f() {
   try {} catch (e) {} catch (e) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
     verify([source]);
   }
@@ -2403,7 +2467,7 @@ class A {}
 f() {
   try {} catch (e) {} catch (e) {if(false) {}}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
     verify([source]);
   }
@@ -2413,7 +2477,7 @@ f() {
 f() {
   try {} on Object catch (e) {} catch (e) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
     verify([source]);
   }
@@ -2424,7 +2488,7 @@ f() {
 f() {
   try {} on Object catch (e) {} catch (e) {if(false) {}}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH]);
     verify([source]);
   }
@@ -2436,7 +2500,7 @@ class B extends A {}
 f() {
   try {} on A catch (e) {} on B catch (e) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE_ON_CATCH_SUBTYPE]);
     verify([source]);
   }
@@ -2449,7 +2513,7 @@ class B extends A {}
 f() {
   try {} on A catch (e) {} on B catch (e) {if(false) {}}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE_ON_CATCH_SUBTYPE]);
     verify([source]);
   }
@@ -2459,7 +2523,7 @@ f() {
 f() {
   bool b = false && false;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2469,7 +2533,7 @@ f() {
 f() {
   bool b = false && (false && false);
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2479,7 +2543,7 @@ f() {
 f() {
   bool b = true || true;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2489,7 +2553,7 @@ f() {
 f() {
   bool b = true || (false && false);
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2504,7 +2568,7 @@ f(v) {
       var a;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2518,7 +2582,7 @@ f() {
     var a;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2531,7 +2595,7 @@ f() {
     var a;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2545,7 +2609,7 @@ f(v) {
       var a;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2558,7 +2622,7 @@ f(v) {
     var a;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2572,7 +2636,7 @@ f() {
     var a;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2585,7 +2649,7 @@ f() {
     var a;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2598,7 +2662,7 @@ f(v) {
     var a;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2610,7 +2674,7 @@ f() {
   return;
   var two = 2;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2624,7 +2688,7 @@ f(bool b) {
     var two = 2;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2638,7 +2702,7 @@ class A {
     var two = 2;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2650,7 +2714,7 @@ f() {
   return;
   if(false) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2664,7 +2728,7 @@ f() {
   return;
   var three = 3;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
     verify([source]);
   }
@@ -2679,7 +2743,7 @@ f(A a) {
   A b;
   a += b;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -2691,7 +2755,7 @@ class A {
   m() {}
   n() {m();}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -2703,18 +2767,20 @@ class A {
   m() {}
   n() {m();}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
 
   void test_deprecatedAnnotationUse_export() {
     Source source = addSource("export 'deprecated_library.dart';");
-    addNamedSource("/deprecated_library.dart", r'''
+    addNamedSource(
+        "/deprecated_library.dart",
+        r'''
 @deprecated
 library deprecated_library;
 class A {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -2728,7 +2794,7 @@ class A {
 f(A a) {
   return a.m;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -2737,11 +2803,13 @@ f(A a) {
     Source source = addSource(r'''
 import 'deprecated_library.dart';
 f(A a) {}''');
-    addNamedSource("/deprecated_library.dart", r'''
+    addNamedSource(
+        "/deprecated_library.dart",
+        r'''
 @deprecated
 library deprecated_library;
 class A {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -2755,7 +2823,7 @@ class A {
 f(A a) {
   return a[1];
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -2769,7 +2837,7 @@ class A {
 f() {
   A a = new A(1);
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -2783,7 +2851,7 @@ class A {
 f() {
   A a = new A.named(1);
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -2798,7 +2866,7 @@ f(A a) {
   A b;
   return a + b;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -2812,7 +2880,7 @@ class A {
 f(A a) {
   return a.s = 1;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -2826,7 +2894,7 @@ class A {
 class B extends A {
   B() : super() {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -2840,7 +2908,7 @@ class A {
 class B extends A {
   B() : super.named() {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);
   }
@@ -2850,7 +2918,7 @@ class B extends A {
 f(double x, double y) {
   var v = (x / y).toInt();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
     verify([source]);
   }
@@ -2860,7 +2928,7 @@ f(double x, double y) {
 f(int x, int y) {
   var v = (x / y).toInt();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
     verify([source]);
   }
@@ -2873,7 +2941,7 @@ f(x, y) {
   y = 1;
   var v = (x / y).toInt();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
     verify([source]);
   }
@@ -2883,7 +2951,7 @@ f(x, y) {
 f(int x, int y) {
   var v = (((x / y))).toInt();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DIVISION_OPTIMIZATION]);
     verify([source]);
   }
@@ -2894,10 +2962,12 @@ library L;
 import 'lib1.dart';
 import 'lib1.dart';
 A a;''');
-    addNamedSource("/lib1.dart", r'''
+    addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 class A {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DUPLICATE_IMPORT]);
     verify([source]);
   }
@@ -2909,10 +2979,12 @@ import 'lib1.dart';
 import 'lib1.dart';
 import 'lib1.dart';
 A a;''');
-    addNamedSource("/lib1.dart", r'''
+    addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 class A {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(
         source, [HintCode.DUPLICATE_IMPORT, HintCode.DUPLICATE_IMPORT]);
     verify([source]);
@@ -2924,11 +2996,13 @@ library L;
 import 'lib1.dart' as M show A hide B;
 import 'lib1.dart' as M show A hide B;
 M.A a;''');
-    addNamedSource("/lib1.dart", r'''
+    addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 class A {}
 class B {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DUPLICATE_IMPORT]);
     verify([source]);
   }
@@ -2943,7 +3017,9 @@ f() {}''',
 library root;
 import 'lib1.dart' deferred as lib1;
 main() { lib1.f(); }'''
-    ], <ErrorCode>[HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION]);
+    ], <ErrorCode>[
+      HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION
+    ]);
   }
 
   void test_invalidAssignment_instanceVariable() {
@@ -2957,7 +3033,7 @@ f(var y) {
     a.x = y;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
@@ -2969,7 +3045,7 @@ f(var y) {
     int x = y;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
@@ -2991,7 +3067,7 @@ f(var y) {
     A.x = y;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
@@ -3011,21 +3087,21 @@ main() {
   var p2 = new Point(10, 10);
   int n = p1 + p2;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
 
   void test_isDouble() {
     Source source = addSource("var v = 1 is double;");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.IS_DOUBLE]);
     verify([source]);
   }
 
   void test_isNotDouble() {
     Source source = addSource("var v = 1 is! double;");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.IS_NOT_DOUBLE]);
     verify([source]);
   }
@@ -3035,14 +3111,14 @@ main() {
 import 'dart:async';
 Future<int> f() async {}
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);
   }
 
   void test_missingReturn_function() {
     Source source = addSource("int f() {}");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);
   }
@@ -3052,7 +3128,7 @@ Future<int> f() async {}
 class A {
   int m() {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);
   }
@@ -3067,7 +3143,7 @@ class B extends A {
   @override
   int get m => 1;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER]);
     verify([source]);
   }
@@ -3082,7 +3158,7 @@ class B extends A {
   @override
   int m() => 1;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD]);
     verify([source]);
   }
@@ -3097,7 +3173,7 @@ class B extends A {
   @override
   set m(int x) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER]);
     verify([source]);
   }
@@ -3107,7 +3183,7 @@ class B extends A {
 m(i) {
   bool b = i is Null;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.TYPE_CHECK_IS_NULL]);
     verify([source]);
   }
@@ -3117,7 +3193,7 @@ m(i) {
 m(i) {
   bool b = i is! Null;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.TYPE_CHECK_IS_NOT_NULL]);
     verify([source]);
   }
@@ -3130,7 +3206,7 @@ f(var a) {
     return a.m;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_GETTER]);
   }
 
@@ -3148,7 +3224,7 @@ f() {
   var a = 'str';
   a.notAMethodOnString();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_METHOD]);
   }
 
@@ -3162,7 +3238,7 @@ class B {
     a += a2;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_METHOD]);
   }
 
@@ -3174,7 +3250,7 @@ f(var a) {
     a + 1;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
@@ -3186,7 +3262,7 @@ f(var a) {
     a[0]++;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
@@ -3198,7 +3274,7 @@ f(var a) {
     a[0];
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
@@ -3210,7 +3286,7 @@ f(var a) {
     a[0] = 1;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
@@ -3222,7 +3298,7 @@ f(var a) {
     a++;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
@@ -3234,7 +3310,7 @@ f(var a) {
     ++a;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
   }
 
@@ -3246,7 +3322,7 @@ f(var a) {
     a.m = 0;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNDEFINED_SETTER]);
   }
 
@@ -3263,7 +3339,7 @@ f(var a) {
 m(int i) {
   var b = i as Object;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_CAST]);
     verify([source]);
   }
@@ -3273,21 +3349,21 @@ m(int i) {
 m(num i) {
   var b = i as num;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_CAST]);
     verify([source]);
   }
 
   void test_unnecessaryTypeCheck_null_is_Null() {
     Source source = addSource("bool b = null is Null;");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_TRUE]);
     verify([source]);
   }
 
   void test_unnecessaryTypeCheck_null_not_Null() {
     Source source = addSource("bool b = null is! Null;");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_FALSE]);
     verify([source]);
   }
@@ -3297,7 +3373,7 @@ m(num i) {
 m(i) {
   bool b = i is dynamic;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_TRUE]);
     verify([source]);
   }
@@ -3307,7 +3383,7 @@ m(i) {
 m(i) {
   bool b = i is Object;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_TRUE]);
     verify([source]);
   }
@@ -3317,7 +3393,7 @@ m(i) {
 m(i) {
   bool b = i is! dynamic;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_FALSE]);
     verify([source]);
   }
@@ -3327,7 +3403,7 @@ m(i) {
 m(i) {
   bool b = i is! Object;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNNECESSARY_TYPE_CHECK_FALSE]);
     verify([source]);
   }
@@ -3338,7 +3414,7 @@ m(i) {
 class _A {}
 class B extends _A {}
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3349,7 +3425,7 @@ class B extends _A {}
 class _A {}
 class B implements _A {}
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3361,7 +3437,7 @@ class _A {}
 main() {
   new _A();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3375,7 +3451,7 @@ class _A {
 main() {
   _A.F;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3389,7 +3465,7 @@ class _A {
 main() {
   _A.m();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3402,7 +3478,7 @@ main() {
   var v = new List<_A>();
   print(v);
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3419,7 +3495,7 @@ class _A {
   }
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3432,7 +3508,7 @@ class _A {
   _A.named() {}
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3446,7 +3522,7 @@ main(p) {
   }
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3457,7 +3533,7 @@ main(p) {
 class _A {}
 main() {
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3472,7 +3548,7 @@ main() {
 }
 print(x) {}
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3484,7 +3560,7 @@ enum _MyEnum {A, B, C}
 main() {
   print(_MyEnum.B);
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3495,7 +3571,7 @@ main() {
 enum _MyEnum {A, B, C}
 main() {
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3508,7 +3584,7 @@ main() {
 }
 print(x) {}
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3520,7 +3596,7 @@ main() {
   f() {}
   f();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3534,7 +3610,7 @@ main() {
 }
 print(x) {}
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3545,7 +3621,7 @@ print(x) {}
 main() {
   f() {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3558,7 +3634,7 @@ main() {
     _f(p - 1);
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3570,7 +3646,7 @@ _f() {}
 main() {
   _f();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3584,7 +3660,7 @@ main() {
 }
 print(x) {}
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3595,7 +3671,7 @@ print(x) {}
 _f() {}
 main() {
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3608,7 +3684,7 @@ _f(int p) {
 }
 main() {
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3622,7 +3698,7 @@ main(f) {
     print('F');
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3633,7 +3709,7 @@ main(f) {
 typedef _F(a, b);
 main(_F f) {
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3646,7 +3722,7 @@ main() {
   var v = new List<_F>();
   print(v);
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3658,7 +3734,7 @@ typedef _F(a, b);
 class A {
   _F f;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3669,7 +3745,7 @@ class A {
 typedef _F(a, b);
 main() {
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3683,7 +3759,7 @@ class A {
     var v = _g;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3698,7 +3774,7 @@ main(A a) {
   var v = a._g;
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3713,7 +3789,7 @@ main() {
   var v = new A()._g;
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3724,7 +3800,7 @@ main() {
 class A {
   get _g => null;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3737,7 +3813,7 @@ class A {
     return _g;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3753,7 +3829,7 @@ class A {
 }
 print(x) {}
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3772,7 +3848,7 @@ class B extends A {
 }
 print(x) {}
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3786,7 +3862,7 @@ class A {
 main(A a) {
   a._m;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3800,7 +3876,7 @@ class A {
 main() {
   new A()._m;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3814,7 +3890,7 @@ class A {
     _m();
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3831,7 +3907,7 @@ class A {
 class B extends A {
   _m() {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3845,7 +3921,7 @@ class A<T> {
 main(A<int> a) {
   a._m(0);
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3860,7 +3936,7 @@ main() {
   var a = new A();
   a._m();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3875,7 +3951,7 @@ main() {
   A a = new A();
   a._m();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3892,7 +3968,7 @@ class B extends A {
 main(A a) {
   a._m();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3905,7 +3981,7 @@ class A {
 }
 main() {
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3919,7 +3995,7 @@ class A {
 main() {
   A._m();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3930,7 +4006,7 @@ main() {
 class A {
   static _m() {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3943,7 +4019,7 @@ class A {
     _m(p - 1);
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -3957,7 +4033,7 @@ class A {
     _s = 42;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3972,7 +4048,7 @@ main(A a) {
   a._s = 42;
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3987,7 +4063,7 @@ main() {
   new A()._s = 42;
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -3998,7 +4074,7 @@ main() {
 class A {
   set _s(x) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -4013,7 +4089,7 @@ class A {
     }
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
     verify([source]);
   }
@@ -4028,7 +4104,7 @@ class A {
   }
 }
 print(x) {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -4043,7 +4119,7 @@ class A {
   }
 }
 print(x) {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -4055,7 +4131,7 @@ class A {
   int _f;
   m() => _f;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -4073,7 +4149,7 @@ class B extends A {
   int _f;
 }
 print(x) {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -4089,7 +4165,7 @@ main() {
   print(a._f);
 }
 print(x) {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -4105,7 +4181,7 @@ main() {
   print(a._f);
 }
 print(x) {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -4120,7 +4196,7 @@ main(a) {
   print(a._f);
 }
 print(x) {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -4134,7 +4210,7 @@ class A {
     _f += 2;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
@@ -4146,7 +4222,7 @@ class A {
   int _f;
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
@@ -4160,7 +4236,7 @@ class A {
     _f++;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
@@ -4174,7 +4250,7 @@ class A {
     ++_f;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
@@ -4192,7 +4268,7 @@ main(A a) {
   a._f = 2;
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_FIELD]);
     verify([source]);
   }
@@ -4202,7 +4278,7 @@ main(A a) {
 library L;
 import 'lib1.dart';''');
     Source source2 = addNamedSource("/lib1.dart", "library lib1;");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
     assertNoErrors(source2);
     verify([source, source2]);
@@ -4214,10 +4290,12 @@ library L;
 import 'lib1.dart';
 import 'lib1.dart' as one;
 one.A a;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
+    Source source2 = addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 class A {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
     assertNoErrors(source2);
     verify([source, source2]);
@@ -4229,10 +4307,12 @@ library L;
 import 'lib1.dart';
 import 'lib1.dart' hide A;
 A a;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
+    Source source2 = addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 class A {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
     assertNoErrors(source2);
     verify([source, source2]);
@@ -4244,11 +4324,13 @@ library L;
 import 'lib1.dart' show A;
 import 'lib1.dart' show B;
 A a;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
+    Source source2 = addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 class A {}
 class B {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
     assertNoErrors(source2);
     verify([source, source2]);
@@ -4262,7 +4344,7 @@ main() {
   } on String catch (exception) {
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_CATCH_CLAUSE]);
     verify([source]);
   }
@@ -4276,7 +4358,7 @@ main() {
     print(stack);
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -4289,7 +4371,7 @@ main() {
   } catch (exception) {
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -4302,7 +4384,7 @@ main() {
   } catch (exception, stackTrace) {
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_CATCH_STACK]);
     verify([source]);
   }
@@ -4317,7 +4399,7 @@ main() {
   }
 }
 print(x) {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -4332,7 +4414,7 @@ main() {
     }
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -4344,7 +4426,7 @@ main() {
   var v = 1;
   v = 2;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
     verify([source]);
   }
@@ -4358,7 +4440,7 @@ class A {
     v = 2;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
     verify([source]);
   }
@@ -4371,7 +4453,7 @@ main() {
   Foo foo;
   foo();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -4383,7 +4465,7 @@ main() {
   var v = 1;
   v += 2;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
     verify([source]);
   }
@@ -4395,7 +4477,7 @@ main() {
   var v = 1;
   v++;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
     verify([source]);
   }
@@ -4407,7 +4489,7 @@ main() {
   var v = 1;
   ++v;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_LOCAL_VARIABLE]);
     verify([source]);
   }
@@ -4420,7 +4502,7 @@ main() {
   print(++v);
 }
 print(x) {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -4436,7 +4518,7 @@ main() {
   a.foo();
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source]);
   }
@@ -4450,7 +4532,7 @@ class A {
     a = f();
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
@@ -4464,7 +4546,7 @@ class A {
     a = m();
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
@@ -4477,7 +4559,7 @@ class A {
     for(var a = m();;) {}
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
@@ -4490,7 +4572,7 @@ class A {
     var a = f();
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
@@ -4503,7 +4585,7 @@ class A {
     var a = m();
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
   }
@@ -4516,7 +4598,7 @@ class A {
     var a = m(), b = m();
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(
         source, [HintCode.USE_OF_VOID_RESULT, HintCode.USE_OF_VOID_RESULT]);
     verify([source]);
@@ -5780,14 +5862,20 @@ class LibraryElementBuilderTest extends EngineTestCase {
   }
 
   void test_accessorsAcrossFiles() {
-    Source librarySource = addSource("/lib.dart", r'''
+    Source librarySource = addSource(
+        "/lib.dart",
+        r'''
 library lib;
 part 'first.dart';
 part 'second.dart';''');
-    addSource("/first.dart", r'''
+    addSource(
+        "/first.dart",
+        r'''
 part of lib;
 int get V => 0;''');
-    addSource("/second.dart", r'''
+    addSource(
+        "/second.dart",
+        r'''
 part of lib;
 void set V(int v) {}''');
     LibraryElement element = _buildLibrary(librarySource);
@@ -5833,7 +5921,9 @@ void set V(int v) {}''');
 
   void test_missingPartOfDirective() {
     addSource("/a.dart", "class A {}");
-    Source librarySource = addSource("/lib.dart", r'''
+    Source librarySource = addSource(
+        "/lib.dart",
+        r'''
 library lib;
 
 part 'a.dart';''');
@@ -5843,16 +5933,22 @@ part 'a.dart';''');
   }
 
   void test_multipleFiles() {
-    Source librarySource = addSource("/lib.dart", r'''
+    Source librarySource = addSource(
+        "/lib.dart",
+        r'''
 library lib;
 part 'first.dart';
 part 'second.dart';
 
 class A {}''');
-    addSource("/first.dart", r'''
+    addSource(
+        "/first.dart",
+        r'''
 part of lib;
 class B {}''');
-    addSource("/second.dart", r'''
+    addSource(
+        "/second.dart",
+        r'''
 part of lib;
 class C {}''');
     LibraryElement element = _buildLibrary(librarySource);
@@ -5870,7 +5966,9 @@ class C {}''');
   }
 
   void test_singleFile() {
-    Source librarySource = addSource("/lib.dart", r'''
+    Source librarySource = addSource(
+        "/lib.dart",
+        r'''
 library lib;
 
 class A {}''');
@@ -5939,13 +6037,13 @@ class LibraryImportScopeTest extends ResolverTestCase {
     ClassElement typeB2 = ElementFactory.classElement2(typeNameB);
     ClassElement typeC = ElementFactory.classElement2(typeNameC);
     LibraryElement importedLibrary1 = createTestLibrary(context, "imported1");
-    (importedLibrary1.definingCompilationUnit as CompilationUnitElementImpl).types =
-        <ClassElement>[typeA, typeB1];
+    (importedLibrary1.definingCompilationUnit as CompilationUnitElementImpl)
+        .types = <ClassElement>[typeA, typeB1];
     ImportElementImpl import1 =
         ElementFactory.importFor(importedLibrary1, null);
     LibraryElement importedLibrary2 = createTestLibrary(context, "imported2");
-    (importedLibrary2.definingCompilationUnit as CompilationUnitElementImpl).types =
-        <ClassElement>[typeB2, typeC];
+    (importedLibrary2.definingCompilationUnit as CompilationUnitElementImpl)
+        .types = <ClassElement>[typeB2, typeC];
     ImportElementImpl import2 =
         ElementFactory.importFor(importedLibrary2, null);
     LibraryElementImpl importingLibrary =
@@ -6001,8 +6099,8 @@ class LibraryImportScopeTest extends ResolverTestCase {
     ClassElement importedType =
         new ClassElementImpl.forNode(AstFactory.identifier3(importedTypeName));
     LibraryElement importedLibrary = createTestLibrary(context, "imported");
-    (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl).types =
-        <ClassElement>[importedType];
+    (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
+        .types = <ClassElement>[importedType];
     LibraryElementImpl definingLibrary =
         createTestLibrary(context, "importing");
     ImportElementImpl importElement = new ImportElementImpl(0);
@@ -6028,8 +6126,8 @@ class LibraryImportScopeTest extends ResolverTestCase {
     String typeName = "List";
     ClassElement type = ElementFactory.classElement2(typeName);
     LibraryElement importedLibrary = createTestLibrary(context, "lib");
-    (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl).types =
-        <ClassElement>[type];
+    (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
+        .types = <ClassElement>[type];
     ImportElementImpl importCore = ElementFactory.importFor(
         context.getLibraryElement(context.sourceFactory.forUri("dart:core")),
         null);
@@ -6053,8 +6151,8 @@ class LibraryImportScopeTest extends ResolverTestCase {
     ClassElement typeA = ElementFactory.classElement2(typeNameA);
     ClassElement typeB = ElementFactory.classElement2(typeNameB);
     LibraryElement importedLibrary = createTestLibrary(context, "imported");
-    (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl).types =
-        <ClassElement>[typeA, typeB];
+    (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
+        .types = <ClassElement>[typeA, typeB];
     ImportElementImpl import1 = ElementFactory.importFor(importedLibrary, null);
     ImportElementImpl import2 = ElementFactory.importFor(importedLibrary, null);
     LibraryElementImpl importingLibrary =
@@ -6078,14 +6176,14 @@ class LibraryImportScopeTest extends ResolverTestCase {
     ClassElement nonPrefixedType = ElementFactory.classElement2(typeName);
     LibraryElement prefixedLibrary =
         createTestLibrary(context, "import.prefixed");
-    (prefixedLibrary.definingCompilationUnit as CompilationUnitElementImpl).types =
-        <ClassElement>[prefixedType];
+    (prefixedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
+        .types = <ClassElement>[prefixedType];
     ImportElementImpl prefixedImport = ElementFactory.importFor(
         prefixedLibrary, ElementFactory.prefix(prefixName));
     LibraryElement nonPrefixedLibrary =
         createTestLibrary(context, "import.nonPrefixed");
-    (nonPrefixedLibrary.definingCompilationUnit as CompilationUnitElementImpl).types =
-        <ClassElement>[nonPrefixedType];
+    (nonPrefixedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
+        .types = <ClassElement>[nonPrefixedType];
     ImportElementImpl nonPrefixedImport =
         ElementFactory.importFor(nonPrefixedLibrary, null);
     LibraryElementImpl importingLibrary =
@@ -6130,7 +6228,9 @@ class LibraryResolver2Test extends ResolverTestCase {
 library libA;
 import 'libB.dart';
 class A {}''');
-    Source sourceB = addNamedSource("/libB.dart", r'''
+    Source sourceB = addNamedSource(
+        "/libB.dart",
+        r'''
 library libB;
 import 'test.dart
 class B {}''');
@@ -6217,8 +6317,8 @@ class LibraryScopeTest extends ResolverTestCase {
     ClassElement importedType =
         new ClassElementImpl.forNode(AstFactory.identifier3(importedTypeName));
     LibraryElement importedLibrary = createTestLibrary(context, "imported");
-    (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl).types =
-        <ClassElement>[importedType];
+    (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
+        .types = <ClassElement>[importedType];
     LibraryElementImpl definingLibrary =
         createTestLibrary(context, "importing");
     ImportElementImpl importElement = new ImportElementImpl(0);
@@ -6339,7 +6439,9 @@ class LibraryTest extends EngineTestCase {
   }
 
   Library _createLibrary(String definingCompilationUnitPath) => new Library(
-      _analysisContext, _errorListener, new FileBasedSource(
+      _analysisContext,
+      _errorListener,
+      new FileBasedSource(
           FileUtilities2.createFile(definingCompilationUnitPath)));
 }
 
@@ -6405,8 +6507,6 @@ class NewAnalysisContextForTests extends newContext.AnalysisContextImpl {
         currentOptions.dart2jsHint != options.dart2jsHint ||
         (currentOptions.hint && !options.hint) ||
         currentOptions.preserveComments != options.preserveComments ||
-        currentOptions.enableNullAwareOperators !=
-            options.enableNullAwareOperators ||
         currentOptions.enableStrictCallChecks != options.enableStrictCallChecks;
     if (needsRecompute) {
       fail(
@@ -6454,7 +6554,7 @@ const bool DEBUG = true;
 f() {
   DEBUG ? 1 : 2;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6465,7 +6565,7 @@ const bool DEBUG = false;
 f() {
   DEBUG ? 1 : 2;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6476,7 +6576,7 @@ const bool DEBUG = true;
 f() {
   if(DEBUG) {} else {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6489,7 +6589,7 @@ class A {
 f() {
   if(A.DEBUG) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6501,12 +6601,14 @@ import 'lib2.dart';
 f() {
   if(A.DEBUG) {}
 }''');
-    addNamedSource("/lib2.dart", r'''
+    addNamedSource(
+        "/lib2.dart",
+        r'''
 library lib2;
 class A {
   static const bool DEBUG = false;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6518,12 +6620,14 @@ import 'lib2.dart' as LIB;
 f() {
   if(LIB.A.DEBUG) {}
 }''');
-    addNamedSource("/lib2.dart", r'''
+    addNamedSource(
+        "/lib2.dart",
+        r'''
 library lib2;
 class A {
   static const bool DEBUG = false;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6534,7 +6638,7 @@ const bool DEBUG = false;
 f() {
   if(DEBUG) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6545,7 +6649,7 @@ const bool DEBUG = false;
 f() {
   while(DEBUG) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6557,7 +6661,7 @@ class B extends A {}
 f() {
   try {} on B catch (e) {} on A catch (e) {} catch (e) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6568,7 +6672,7 @@ const bool DEBUG = false;
 f() {
   bool b = DEBUG && false;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6579,7 +6683,7 @@ const bool DEBUG = true;
 f() {
   bool b = DEBUG || true;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6589,7 +6693,7 @@ f() {
 f(int x, int y) {
   var v = x / y.toInt();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6599,7 +6703,7 @@ f(int x, int y) {
 f(x, y) {
   var v = (x / y).toInt();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6612,7 +6716,7 @@ class A {
 f(A x, A y) {
   var v = (x / y).toInt();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6624,10 +6728,12 @@ import 'lib1.dart';
 import 'lib1.dart' as one;
 A a;
 one.A a2;''');
-    addNamedSource("/lib1.dart", r'''
+    addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 class A {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6639,11 +6745,13 @@ import 'lib1.dart';
 import 'lib1.dart' hide A;
 A a;
 B b;''');
-    addNamedSource("/lib1.dart", r'''
+    addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 class A {}
 class B {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6655,11 +6763,13 @@ import 'lib1.dart';
 import 'lib1.dart' show A;
 A a;
 B b;''');
-    addNamedSource("/lib1.dart", r'''
+    addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 class A {}
 class B {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6685,7 +6795,7 @@ f(var message, var dynamic_) {
   }
   int s = message;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6702,7 +6812,7 @@ f(var message) {
   }
   int s = message;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6718,7 +6828,7 @@ f(var message) {
   }
   String s = message;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6728,28 +6838,28 @@ f(var message) {
 abstract class A {
   int m();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
 
   void test_missingReturn_expressionFunctionBody() {
     Source source = addSource("int f() => 0;");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
 
   void test_missingReturn_noReturnType() {
     Source source = addSource("f() {}");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
 
   void test_missingReturn_voidReturnType() {
     Source source = addSource("void f() {}");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6760,7 +6870,7 @@ class A {
   bool operator ==(x) { return x; }
   get hashCode => 0;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6776,7 +6886,7 @@ class B implements A {
   @override
   int get m => 1;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6792,7 +6902,7 @@ class B extends A {
   @override
   int get m => 1;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6808,7 +6918,7 @@ class B implements A {
   @override
   int m() => 1;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6824,7 +6934,7 @@ class B extends A {
   @override
   int m() => 1;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6840,7 +6950,7 @@ class B implements A {
   @override
   set m(int x) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6856,7 +6966,7 @@ class B extends A {
   @override
   set m(int x) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6873,7 +6983,7 @@ class Z {
     y.x.add(new A());
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -6892,7 +7002,7 @@ f(var a) {
   a++;
   ++a;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -6912,7 +7022,7 @@ class B {
     ++a;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -6932,7 +7042,7 @@ class B {
 }
 @proxy
 class A {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -6947,7 +7057,7 @@ f(var a) {
     return a.b;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -6962,7 +7072,7 @@ f(var a, var a2) {
   a2 = new A();
   a += a2;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -6972,7 +7082,7 @@ class D<T extends dynamic> {
   fieldAccess(T t) => t.abc;
   methodAccess(T t) => t.xyz(1, 2, 'three');
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -6986,7 +7096,7 @@ f() {
   var a = new A();
   a.b();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -7007,7 +7117,7 @@ f(A a, B b) {
   }
   ab.m();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -7026,7 +7136,7 @@ f(A a, B b) {
   }
   ab.m(0);
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -7041,7 +7151,7 @@ f(var a) {
     a + 1;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -7056,7 +7166,7 @@ f(var a) {
     a[0]++;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -7071,7 +7181,7 @@ f(var a) {
     a[0];
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -7086,7 +7196,7 @@ f(var a) {
     a[0] = 1;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -7101,7 +7211,7 @@ f(var a) {
     a++;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -7116,7 +7226,7 @@ f(var a) {
     ++a;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -7131,7 +7241,7 @@ f(var a) {
     a.b = 0;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -7147,7 +7257,7 @@ class B<E> {
     (e as A).a();
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -7160,7 +7270,7 @@ class B implements I {}
 I m(A a, B b) {
   return a == null ? b as I : a as I;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -7170,7 +7280,7 @@ I m(A a, B b) {
 m(v) {
   var b = v as Object;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -7183,7 +7293,7 @@ Future<int> f() => new Future.value(0);
 void g(bool c) {
   (c ? f(): new Future.value(0) as Future<int>).then((int value) {});
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -7193,7 +7303,7 @@ void g(bool c) {
 m(v) {
   var b = Object as dynamic;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -7203,12 +7313,14 @@ m(v) {
 library L;
 @A()
 import 'lib1.dart';''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
+    Source source2 = addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 class A {
   const A() {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source);
     verify([source, source2]);
   }
@@ -7221,13 +7333,17 @@ import 'lib1.dart' as one;
 import 'lib2.dart' as one;
 one.A a;
 one.B b;''');
-    Source source2 = addNamedSource("/lib1.dart", r'''
+    Source source2 = addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 class A {}''');
-    Source source3 = addNamedSource("/lib2.dart", r'''
+    Source source3 = addNamedSource(
+        "/lib2.dart",
+        r'''
 library lib2;
 class B {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source);
     assertNoErrors(source2);
     assertNoErrors(source3);
@@ -7238,7 +7354,7 @@ class B {}''');
     Source source = addSource(r'''
 library L;
 import 'dart:core';''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -7248,14 +7364,18 @@ import 'dart:core';''');
 library L;
 import 'lib1.dart';
 Two two;''');
-    addNamedSource("/lib1.dart", r'''
+    addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 export 'lib2.dart';
 class One {}''');
-    addNamedSource("/lib2.dart", r'''
+    addNamedSource(
+        "/lib2.dart",
+        r'''
 library lib2;
 class Two {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -7265,18 +7385,24 @@ class Two {}''');
 library L;
 import 'lib1.dart';
 Three three;''');
-    addNamedSource("/lib1.dart", r'''
+    addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 export 'lib2.dart';
 class One {}''');
-    addNamedSource("/lib2.dart", r'''
+    addNamedSource(
+        "/lib2.dart",
+        r'''
 library lib2;
 export 'lib3.dart';
 class Two {}''');
-    addNamedSource("/lib3.dart", r'''
+    addNamedSource(
+        "/lib3.dart",
+        r'''
 library lib3;
 class Three {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -7286,19 +7412,25 @@ class Three {}''');
 library L;
 import 'lib1.dart';
 Two two;''');
-    addNamedSource("/lib1.dart", r'''
+    addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 export 'lib2.dart';
 class One {}''');
-    addNamedSource("/lib2.dart", r'''
+    addNamedSource(
+        "/lib2.dart",
+        r'''
 library lib2;
 export 'lib3.dart';
 class Two {}''');
-    addNamedSource("/lib3.dart", r'''
+    addNamedSource(
+        "/lib3.dart",
+        r'''
 library lib3;
 export 'lib2.dart';
 class Three {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -7312,10 +7444,12 @@ class A {
   final int value;
   const A(this.value);
 }''');
-    addNamedSource("/lib1.dart", r'''
+    addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 const x = 0;''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -7331,11 +7465,13 @@ class A {
     one.topLevelFunction();
   }
 }''');
-    addNamedSource("/lib1.dart", r'''
+    addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 class One {}
 topLevelFunction() {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -7348,7 +7484,7 @@ class A {
     var a = f();
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -7359,7 +7495,7 @@ int f() => 1;
 g() {
   var a = f();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -7368,13 +7504,13 @@ g() {
 class PubSuggestionCodeTest extends ResolverTestCase {
   void test_import_package() {
     Source source = addSource("import 'package:somepackage/other.dart';");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
 
   void test_import_packageWithDotDot() {
     Source source = addSource("import 'package:somepackage/../other.dart';");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CompileTimeErrorCode.URI_DOES_NOT_EXIST,
       HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT
@@ -7383,7 +7519,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
 
   void test_import_packageWithLeadingDotDot() {
     Source source = addSource("import 'package:../other.dart';");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [
       CompileTimeErrorCode.URI_DOES_NOT_EXIST,
       HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT
@@ -7395,7 +7531,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/lib/other.dart", "");
     Source source =
         addNamedSource("/myproj/web/test.dart", "import '../lib/other.dart';");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(
         source, [HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE]);
   }
@@ -7404,7 +7540,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/lib/other.dart", "");
     Source source =
         addNamedSource("/myproj/web/test.dart", "import '../lib/other.dart';");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -7413,7 +7549,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/web/other.dart", "");
     Source source =
         addNamedSource("/myproj/lib/test.dart", "import '../web/other.dart';");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(
         source, [HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE]);
   }
@@ -7422,7 +7558,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/web/other.dart", "");
     Source source =
         addNamedSource("/myproj/lib/test.dart", "import '../web/other.dart';");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -7431,7 +7567,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/lib/other.dart", "");
     Source source =
         addNamedSource("/myproj/lib/test.dart", "import 'other.dart';");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -7440,7 +7576,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/lib/bar/other.dart", "");
     Source source = addNamedSource(
         "/myproj/lib/foo/test.dart", "import '../bar/other.dart';");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -7449,7 +7585,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/web/other.dart", "");
     Source source =
         addNamedSource("/myproj/lib2/test.dart", "import '../web/other.dart';");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 }
@@ -7830,6 +7966,15 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
+   * Computes errors for the given [librarySource].
+   * This assumes that the given [librarySource] and its parts have already
+   * been added to the content provider using the method [addNamedSource].
+   */
+  void computeLibrarySourceErrors(Source librarySource) {
+    analysisContext.computeErrors(librarySource);
+  }
+
+  /**
    * Create a library element that represents a library named `"test"` containing a single
    * empty compilation unit.
    *
@@ -7846,7 +7991,8 @@ class ResolverTestCase extends EngineTestCase {
    * @return the library element that was created
    */
   LibraryElementImpl createTestLibrary(
-      AnalysisContext context, String libraryName, [List<String> typeNames]) {
+      AnalysisContext context, String libraryName,
+      [List<String> typeNames]) {
     String fileName = "$libraryName.dart";
     FileBasedSource definingCompilationUnitSource =
         _createNamedSource(fileName);
@@ -7926,7 +8072,7 @@ class ResolverTestCase extends EngineTestCase {
    * @return the element representing the resolved library
    * @throws AnalysisException if the analysis could not be performed
    */
-  LibraryElement resolve(Source librarySource) =>
+  LibraryElement resolve2(Source librarySource) =>
       analysisContext2.computeLibraryElement(librarySource);
 
   /**
@@ -7962,7 +8108,8 @@ class ResolverTestCase extends EngineTestCase {
     return null;
   }
 
-  void resolveWithAndWithoutExperimental(List<String> strSources,
+  void resolveWithAndWithoutExperimental(
+      List<String> strSources,
       List<ErrorCode> codesWithoutExperimental,
       List<ErrorCode> codesWithExperimental) {
     // Setup analysis context as non-experimental
@@ -8038,7 +8185,8 @@ class Scope_EnclosedScopeTest_test_define_duplicate extends Scope {
 
   @override
   Element internalLookup(Identifier identifier, String name,
-      LibraryElement referencingLibrary) => null;
+          LibraryElement referencingLibrary) =>
+      null;
 }
 
 class Scope_EnclosedScopeTest_test_define_normal extends Scope {
@@ -8051,7 +8199,8 @@ class Scope_EnclosedScopeTest_test_define_normal extends Scope {
 
   @override
   Element internalLookup(Identifier identifier, String name,
-      LibraryElement referencingLibrary) => null;
+          LibraryElement referencingLibrary) =>
+      null;
 }
 
 @reflectiveTest
@@ -8133,7 +8282,7 @@ void main() {
   new C().x += 1;
 }
 ''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that both the getter and setter for "x" in "new C().x" refer to
@@ -8147,7 +8296,8 @@ void main() {
     expect(
         propertyAccess.propertyName.staticElement.enclosingElement.name, 'M2');
     expect(
-        propertyAccess.propertyName.auxiliaryElements.staticElement.enclosingElement.name,
+        propertyAccess
+            .propertyName.auxiliaryElements.staticElement.enclosingElement.name,
         'M2');
   }
 
@@ -8161,7 +8311,7 @@ class B {
     A.g(1,0);
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -8274,7 +8424,7 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     CompilationUnitElement unit = library.definingCompilationUnit;
     // find "a.sss = 0"
     AssignmentExpression assignment;
@@ -8310,7 +8460,7 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     CompilationUnitElement unit = library.definingCompilationUnit;
     // find "a.b.sss = 0"
     AssignmentExpression assignment;
@@ -8343,7 +8493,7 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     CompilationUnitElement unit = library.definingCompilationUnit;
     // find "a.sss = 0"
     AssignmentExpression assignment;
@@ -8378,7 +8528,7 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     CompilationUnitElement unit = library.definingCompilationUnit;
     // find "a.b.sss = 0"
     AssignmentExpression assignment;
@@ -8536,7 +8686,7 @@ class A {
 int f(A a) {
   return a(0);
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -8546,7 +8696,7 @@ int f(A a) {
 class A extends B implements C {}
 class B {}
 class C {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -8560,7 +8710,7 @@ class A {
   A.n() {}
   m() {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -8573,7 +8723,7 @@ class A {
   /** [e] [f] */
   m(e, f()) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -8582,7 +8732,7 @@ class A {
     Source source = addSource(r'''
 /// [A]
 class A {}''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -8716,19 +8866,23 @@ void f() {
 
   void test_empty() {
     Source source = addSource("");
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
 
   void test_entryPoint_exported() {
-    addNamedSource("/two.dart", r'''
+    addNamedSource(
+        "/two.dart",
+        r'''
 library two;
 main() {}''');
-    Source source = addNamedSource("/one.dart", r'''
+    Source source = addNamedSource(
+        "/one.dart",
+        r'''
 library one;
 export 'two.dart';''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     FunctionElement main = library.entryPoint;
     expect(main, isNotNull);
@@ -8738,10 +8892,12 @@ export 'two.dart';''');
   }
 
   void test_entryPoint_local() {
-    Source source = addNamedSource("/one.dart", r'''
+    Source source = addNamedSource(
+        "/one.dart",
+        r'''
 library one;
 main() {}''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     FunctionElement main = library.entryPoint;
     expect(main, isNotNull);
@@ -8752,7 +8908,7 @@ main() {}''');
 
   void test_entryPoint_none() {
     Source source = addNamedSource("/one.dart", "library one;");
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     expect(library.entryPoint, isNull);
     assertNoErrors(source);
@@ -8760,7 +8916,9 @@ main() {}''');
   }
 
   void test_enum_externalLibrary() {
-    addNamedSource("/my_lib.dart", r'''
+    addNamedSource(
+        "/my_lib.dart",
+        r'''
 library my_lib;
 enum EEE {A, B, C}''');
     Source source = addSource(r'''
@@ -8768,7 +8926,7 @@ import 'my_lib.dart';
 main() {
   EEE e = null;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -8782,7 +8940,7 @@ abstract class Comparable<T> {
 class A {
   void sort([compare = Comparable.compare]) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -8793,7 +8951,7 @@ class A {
   int x;
   A(this.x) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -8805,7 +8963,7 @@ f() {
   for (int x in list) {}
   for (int x in list) {}
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -8818,7 +8976,7 @@ f() {
   for (int i = 0; i < 3; i++) {
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -8832,7 +8990,7 @@ class A {
     if (p(e)) {}
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -8854,7 +9012,7 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that both the getter and setter for "x" in C.f() refer to the
@@ -8885,7 +9043,7 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that the getter for "x" in C.f() refers to the getter defined in
@@ -8912,7 +9070,7 @@ void main() {
   var y = new C().x;
 }
 ''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that the getter for "x" in "new C().x" refers to the getter
@@ -8935,7 +9093,7 @@ class A {
 g (A a) {
   a.f = a.f.toString();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(
         source, [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES]);
     verify([source]);
@@ -8945,7 +9103,7 @@ g (A a) {
     Source source = addSource(r'''
 class A {}
 class B {toString() => super.toString();}''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
@@ -8958,14 +9116,20 @@ class B {toString() => super.toString();}''');
   }
 
   void test_import_hide() {
-    addNamedSource("lib1.dart", r'''
+    addNamedSource(
+        "lib1.dart",
+        r'''
 library lib1;
 set foo(value) {}
 class A {}''');
-    addNamedSource("lib2.dart", r'''
+    addNamedSource(
+        "lib2.dart",
+        r'''
 library lib2;
 set foo(value) {}''');
-    Source source = addNamedSource("lib3.dart", r'''
+    Source source = addNamedSource(
+        "lib3.dart",
+        r'''
 import 'lib1.dart' hide foo;
 import 'lib2.dart';
 
@@ -8973,39 +9137,47 @@ main() {
   foo = 0;
 }
 A a;''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
 
   void test_import_prefix() {
-    addNamedSource("/two.dart", r'''
+    addNamedSource(
+        "/two.dart",
+        r'''
 library two;
 f(int x) {
   return x * x;
 }''');
-    Source source = addNamedSource("/one.dart", r'''
+    Source source = addNamedSource(
+        "/one.dart",
+        r'''
 library one;
 import 'two.dart' as _two;
 main() {
   _two.f(0);
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
 
   void test_import_spaceInUri() {
-    addNamedSource("sub folder/lib.dart", r'''
+    addNamedSource(
+        "sub folder/lib.dart",
+        r'''
 library lib;
 foo() {}''');
-    Source source = addNamedSource("app.dart", r'''
+    Source source = addNamedSource(
+        "app.dart",
+        r'''
 import 'sub folder/lib.dart';
 
 main() {
   foo();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -9020,7 +9192,7 @@ f() {
   List<List<List<int>>> c;
   c[0][0][0];
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -9031,7 +9203,7 @@ f() {
   List<List<int>> b;
   b[0][0] = 'hi';
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
@@ -9053,7 +9225,7 @@ g(int x) {}
 main() {
   g(f()[0]);
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -9066,7 +9238,7 @@ class A {
     X.last;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -9075,7 +9247,7 @@ class A {
     Source source = addSource(r'''
 class A extends B {}
 class B {}''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
@@ -9091,7 +9263,7 @@ class B {}''');
 class A {
   A() {}
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
@@ -9109,7 +9281,7 @@ class A {
     return super.toString();
   }
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
@@ -9122,7 +9294,7 @@ class A {
 
   void test_isValidMixin_valid() {
     Source source = addSource("class A {}");
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
@@ -9145,7 +9317,7 @@ void doSwitch(int target) {
       continue l1;
   }
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     assertNoErrors(source);
     verify([source]);
@@ -9158,10 +9330,10 @@ main() {
   var myVar = (int p) => 'foo';
   myVar(42);
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnit unit =
-        analysisContext.getResolvedCompilationUnit(source, library);
+        analysisContext.resolveCompilationUnit(source, library);
     expect(unit, isNotNull);
     List<bool> found = [false];
     List<CaughtException> thrownException = new List<CaughtException>(1);
@@ -9178,7 +9350,7 @@ main() {
     Source source = addSource(r'''
 const A = null;
 @A class C<A> {}''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unitElement = library.definingCompilationUnit;
     expect(unitElement, isNotNull);
@@ -9191,9 +9363,9 @@ const A = null;
     CompilationUnit unit = resolveCompilationUnit(source, library);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(2));
-    Element expectedElement = (declarations[
-            0] as TopLevelVariableDeclaration).variables.variables[
-        0].name.staticElement;
+    Element expectedElement = (declarations[0] as TopLevelVariableDeclaration)
+        .variables
+        .variables[0].name.staticElement;
     EngineTestCase.assertInstanceOf((obj) => obj is PropertyInducingElement,
         PropertyInducingElement, expectedElement);
     expectedElement = (expectedElement as PropertyInducingElement).getter;
@@ -9208,7 +9380,7 @@ const A = null;
 class C {
   @A int f;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
@@ -9228,7 +9400,7 @@ class C {
   int f;
   C(@A this.f);
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
@@ -9248,7 +9420,7 @@ class C {
     Source source = addSource(r'''
 const A = null;
 @A f() {}''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
@@ -9264,7 +9436,7 @@ const A = null;
     Source source = addSource(r'''
 const A = null;
 f(@A int p(int x)) {}''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
@@ -9282,7 +9454,7 @@ f(@A int p(int x)) {}''');
     Source source = addSource(r'''
 @A library lib;
 const A = null;''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     List<ElementAnnotation> annotations = library.metadata;
     expect(annotations, hasLength(1));
@@ -9296,7 +9468,7 @@ const A = null;
 class C {
   @A void m() {}
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
@@ -9313,7 +9485,7 @@ class C {
     Source source = addSource(r'''
 const A = null;
 f({@A int p : 0}) {}''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
@@ -9331,7 +9503,7 @@ f({@A int p : 0}) {}''');
     Source source = addSource(r'''
 const A = null;
 f([@A int p = 0]) {}''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
@@ -9349,7 +9521,7 @@ f([@A int p = 0]) {}''');
     Source source = addSource(r'''
 const A = null;
 f(@A p1, @A int p2) {}''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
@@ -9369,7 +9541,7 @@ f(@A p1, @A int p2) {}''');
     Source source = addSource(r'''
 const A = null;
 @A typedef F<A>();''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unitElement = library.definingCompilationUnit;
     expect(unitElement, isNotNull);
@@ -9382,9 +9554,9 @@ const A = null;
     CompilationUnit unit = resolveCompilationUnit(source, library);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(2));
-    Element expectedElement = (declarations[
-            0] as TopLevelVariableDeclaration).variables.variables[
-        0].name.staticElement;
+    Element expectedElement = (declarations[0] as TopLevelVariableDeclaration)
+        .variables
+        .variables[0].name.staticElement;
     EngineTestCase.assertInstanceOf((obj) => obj is PropertyInducingElement,
         PropertyInducingElement, expectedElement);
     expectedElement = (expectedElement as PropertyInducingElement).getter;
@@ -9406,7 +9578,7 @@ class C extends B with A {
   bar() => super.bar();
   foo() => super.foo();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -9425,7 +9597,7 @@ void main() {
   new C().f();
 }
 ''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that the "f" in "new C().f()" refers to the "f" defined in M2.
@@ -9452,7 +9624,7 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that the call to f() in C.g() refers to the method defined in M2.
@@ -9479,7 +9651,7 @@ void main() {
   new C().f();
 }
 ''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that the call to f() in "new C().f()" refers to the method
@@ -9504,7 +9676,7 @@ class C extends B {
 f(C c) {
   c.m1();
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -9520,7 +9692,7 @@ class A {
      ..m2();
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -9538,7 +9710,7 @@ class A {
      ..m2();
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     // failing with error code: INVOCATION_OF_NON_FUNCTION
     assertNoErrors(source);
     verify([source]);
@@ -9549,7 +9721,7 @@ class A {
 f(var p) {
   return null == p;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -9568,7 +9740,7 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that the setter for "x" in C.f() refers to the setter defined in
@@ -9596,7 +9768,7 @@ void main() {
   new C().x = 1;
 }
 ''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     // Verify that the setter for "x" in "new C().x" refers to the setter
@@ -9621,7 +9793,7 @@ class B extends A {
   int get x => super.x == null ? 0 : super.x;
   int f() => x = 1;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -9634,7 +9806,7 @@ set s(x) {
 main() {
   s = 123;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -9661,7 +9833,7 @@ main() {
    *           valid
    */
   void _validateArgumentResolution(Source source, List<int> indices) {
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     ClassElement classElement = library.definingCompilationUnit.types[0];
     List<ParameterElement> parameters = classElement.methods[1].parameters;
@@ -9805,7 +9977,7 @@ main(p) {
   void _resolveTestUnit(String code) {
     testCode = code;
     testSource = addSource(testCode);
-    LibraryElement library = resolve(testSource);
+    LibraryElement library = resolve2(testSource);
     assertNoErrors(testSource);
     verify([testSource]);
     testUnit = resolveCompilationUnit(testSource, library);
@@ -9905,11 +10077,15 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // class A extends Derived<int> implements Derived<num> { ... }
     ClassElementImpl classA =
         ElementFactory.classElement('A', derivedType.substitute4([intType]));
-    classA.interfaces = <InterfaceType>[derivedType.substitute4([numType])];
+    classA.interfaces = <InterfaceType>[
+      derivedType.substitute4([numType])
+    ];
     // class B extends Future<num> implements Future<int> { ... }
     ClassElementImpl classB =
         ElementFactory.classElement('B', derivedType.substitute4([numType]));
-    classB.interfaces = <InterfaceType>[derivedType.substitute4([intType])];
+    classB.interfaces = <InterfaceType>[
+      derivedType.substitute4([intType])
+    ];
     // flatten(A) = flatten(B) = int, since int is more specific than num.
     // The code in flatten() that inhibits infinite recursion shouldn't be
     // fooled by the fact that Derived appears twice in the type hierarchy.
@@ -9924,11 +10100,15 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // class A extends Future<int> implements Future<num> { ... }
     ClassElementImpl classA =
         ElementFactory.classElement('A', futureType.substitute4([intType]));
-    classA.interfaces = <InterfaceType>[futureType.substitute4([numType])];
+    classA.interfaces = <InterfaceType>[
+      futureType.substitute4([numType])
+    ];
     // class B extends Future<num> implements Future<int> { ... }
     ClassElementImpl classB =
         ElementFactory.classElement('B', futureType.substitute4([numType]));
-    classB.interfaces = <InterfaceType>[futureType.substitute4([intType])];
+    classB.interfaces = <InterfaceType>[
+      futureType.substitute4([intType])
+    ];
     // flatten(A) = flatten(B) = int, since int is more specific than num.
     expect(_flatten(classA.type), intType);
     expect(_flatten(classB.type), intType);
@@ -9965,11 +10145,15 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // class A extends Future<int> implements Future<String> { ... }
     ClassElementImpl classA =
         ElementFactory.classElement('A', futureType.substitute4([intType]));
-    classA.interfaces = <InterfaceType>[futureType.substitute4([stringType])];
+    classA.interfaces = <InterfaceType>[
+      futureType.substitute4([stringType])
+    ];
     // class B extends Future<String> implements Future<int> { ... }
     ClassElementImpl classB =
         ElementFactory.classElement('B', futureType.substitute4([stringType]));
-    classB.interfaces = <InterfaceType>[futureType.substitute4([intType])];
+    classB.interfaces = <InterfaceType>[
+      futureType.substitute4([intType])
+    ];
     // flatten(A) = A and flatten(B) = B, since neither string nor int is more
     // specific than the other.
     expect(_flatten(classA.type), classA.type);
@@ -10012,7 +10196,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // double d; d ??= 0
     Expression node = AstFactory.assignmentExpression(
         _resolvedVariable(_typeProvider.doubleType, 'd'),
-        TokenType.QUESTION_QUESTION_EQ, _resolvedInteger(0));
+        TokenType.QUESTION_QUESTION_EQ,
+        _resolvedInteger(0));
     expect(_analyze(node), same(_typeProvider.numType));
     _listener.assertNoErrors();
   }
@@ -10021,7 +10206,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // int i; i ??= 0
     Expression node = AstFactory.assignmentExpression(
         _resolvedVariable(_typeProvider.intType, 'i'),
-        TokenType.QUESTION_QUESTION_EQ, _resolvedInteger(0));
+        TokenType.QUESTION_QUESTION_EQ,
+        _resolvedInteger(0));
     expect(_analyze(node), same(_typeProvider.intType));
     _listener.assertNoErrors();
   }
@@ -10078,7 +10264,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitBinaryExpression_logicalAnd() {
     // false && true
     Expression node = AstFactory.binaryExpression(
-        AstFactory.booleanLiteral(false), TokenType.AMPERSAND_AMPERSAND,
+        AstFactory.booleanLiteral(false),
+        TokenType.AMPERSAND_AMPERSAND,
         AstFactory.booleanLiteral(true));
     expect(_analyze(node), same(_typeProvider.boolType));
     _listener.assertNoErrors();
@@ -10087,9 +10274,22 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitBinaryExpression_logicalOr() {
     // false || true
     Expression node = AstFactory.binaryExpression(
-        AstFactory.booleanLiteral(false), TokenType.BAR_BAR,
+        AstFactory.booleanLiteral(false),
+        TokenType.BAR_BAR,
         AstFactory.booleanLiteral(true));
     expect(_analyze(node), same(_typeProvider.boolType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitBinaryExpression_minusID_propagated() {
+    // a - b
+    BinaryExpression node = AstFactory.binaryExpression(
+        _propagatedVariable(_typeProvider.intType, 'a'),
+        TokenType.MINUS,
+        _propagatedVariable(_typeProvider.doubleType, 'b'));
+    node.propagatedElement = getMethod(_typeProvider.numType, "+");
+    _analyze(node);
+    expect(node.propagatedType, same(_typeProvider.doubleType));
     _listener.assertNoErrors();
   }
 
@@ -10119,6 +10319,18 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  void test_visitBinaryExpression_plusII_propagated() {
+    // a + b
+    BinaryExpression node = AstFactory.binaryExpression(
+        _propagatedVariable(_typeProvider.intType, 'a'),
+        TokenType.PLUS,
+        _propagatedVariable(_typeProvider.intType, 'b'));
+    node.propagatedElement = getMethod(_typeProvider.numType, "+");
+    _analyze(node);
+    expect(node.propagatedType, same(_typeProvider.intType));
+    _listener.assertNoErrors();
+  }
+
   void test_visitBinaryExpression_slash() {
     // 2 / 2
     BinaryExpression node = AstFactory.binaryExpression(
@@ -10138,9 +10350,11 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     MethodElement operator =
         ElementFactory.methodElement("*", typeA, [_typeProvider.doubleType]);
     classA.methods = <MethodElement>[operator];
-    BinaryExpression node = AstFactory.binaryExpression(AstFactory.asExpression(
+    BinaryExpression node = AstFactory.binaryExpression(
+        AstFactory.asExpression(
             AstFactory.identifier3("a"), AstFactory.typeName(classA)),
-        TokenType.PLUS, _resolvedDouble(2.0));
+        TokenType.PLUS,
+        _resolvedDouble(2.0));
     node.staticElement = operator;
     expect(_analyze(node), same(typeA));
     _listener.assertNoErrors();
@@ -10180,7 +10394,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitConditionalExpression_differentTypes() {
     // true ? 1.0 : 0
     Expression node = AstFactory.conditionalExpression(
-        AstFactory.booleanLiteral(true), _resolvedDouble(1.0),
+        AstFactory.booleanLiteral(true),
+        _resolvedDouble(1.0),
         _resolvedInteger(0));
     expect(_analyze(node), same(_typeProvider.numType));
     _listener.assertNoErrors();
@@ -10189,7 +10404,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void test_visitConditionalExpression_sameTypes() {
     // true ? 1 : 0
     Expression node = AstFactory.conditionalExpression(
-        AstFactory.booleanLiteral(true), _resolvedInteger(1),
+        AstFactory.booleanLiteral(true),
+        _resolvedInteger(1),
         _resolvedInteger(0));
     expect(_analyze(node), same(_typeProvider.intType));
     _listener.assertNoErrors();
@@ -10341,10 +10557,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _analyze5(p1);
     _analyze5(p2);
     DartType resultType = _analyze(node);
-    _assertFunctionType(dynamicType, <DartType>[
-      dynamicType,
-      dynamicType
-    ], null, null, resultType);
+    _assertFunctionType(dynamicType, <DartType>[dynamicType, dynamicType], null,
+        null, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10456,10 +10670,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _analyze5(p1);
     _analyze5(p2);
     DartType resultType = _analyze(node);
-    _assertFunctionType(dynamicType, null, <DartType>[
-      dynamicType,
-      dynamicType
-    ], null, resultType);
+    _assertFunctionType(dynamicType, null, <DartType>[dynamicType, dynamicType],
+        null, resultType);
     _listener.assertNoErrors();
   }
 
@@ -10562,7 +10774,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     constructor.type = constructorType;
     classElement.constructors = <ConstructorElement>[constructor];
     InstanceCreationExpression node = AstFactory.instanceCreationExpression2(
-        null, AstFactory.typeName(classElement),
+        null,
+        AstFactory.typeName(classElement),
         [AstFactory.identifier3(constructorName)]);
     node.staticElement = constructor;
     expect(_analyze(node), same(classElement.type));
@@ -10635,8 +10848,10 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // []
     Expression node = AstFactory.listLiteral();
     DartType resultType = _analyze(node);
-    _assertType2(_typeProvider.listType
-        .substitute4(<DartType>[_typeProvider.dynamicType]), resultType);
+    _assertType2(
+        _typeProvider.listType
+            .substitute4(<DartType>[_typeProvider.dynamicType]),
+        resultType);
     _listener.assertNoErrors();
   }
 
@@ -10644,8 +10859,10 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // [0]
     Expression node = AstFactory.listLiteral([_resolvedInteger(0)]);
     DartType resultType = _analyze(node);
-    _assertType2(_typeProvider.listType
-        .substitute4(<DartType>[_typeProvider.dynamicType]), resultType);
+    _assertType2(
+        _typeProvider.listType
+            .substitute4(<DartType>[_typeProvider.dynamicType]),
+        resultType);
     _listener.assertNoErrors();
   }
 
@@ -10653,7 +10870,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // {}
     Expression node = AstFactory.mapLiteral2();
     DartType resultType = _analyze(node);
-    _assertType2(_typeProvider.mapType.substitute4(
+    _assertType2(
+        _typeProvider.mapType.substitute4(
             <DartType>[_typeProvider.dynamicType, _typeProvider.dynamicType]),
         resultType);
     _listener.assertNoErrors();
@@ -10664,7 +10882,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     Expression node = AstFactory
         .mapLiteral2([AstFactory.mapLiteralEntry("k", _resolvedInteger(0))]);
     DartType resultType = _analyze(node);
-    _assertType2(_typeProvider.mapType.substitute4(
+    _assertType2(
+        _typeProvider.mapType.substitute4(
             <DartType>[_typeProvider.dynamicType, _typeProvider.dynamicType]),
         resultType);
     _listener.assertNoErrors();
@@ -10890,8 +11109,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   void test_visitThisExpression() {
     // this
-    InterfaceType thisType = ElementFactory.classElement(
-        "B", ElementFactory.classElement2("A").type).type;
+    InterfaceType thisType = ElementFactory
+        .classElement("B", ElementFactory.classElement2("A").type)
+        .type;
     Expression node = AstFactory.thisExpression();
     expect(_analyze3(node, thisType), same(thisType));
     _listener.assertNoErrors();
@@ -10990,9 +11210,12 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    * @param expectedNamedTypes the expected types of the named parameters
    * @param actualType the type being tested
    */
-  void _assertFunctionType(DartType expectedReturnType,
-      List<DartType> expectedNormalTypes, List<DartType> expectedOptionalTypes,
-      Map<String, DartType> expectedNamedTypes, DartType actualType) {
+  void _assertFunctionType(
+      DartType expectedReturnType,
+      List<DartType> expectedNormalTypes,
+      List<DartType> expectedOptionalTypes,
+      Map<String, DartType> expectedNamedTypes,
+      DartType actualType) {
     EngineTestCase.assertInstanceOf(
         (obj) => obj is FunctionType, FunctionType, actualType);
     FunctionType functionType = actualType as FunctionType;
@@ -11069,7 +11292,10 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
     Library library = new Library(context, _listener, source);
     library.libraryElement = definingLibrary;
-    _visitor = new ResolverVisitor.con1(library, source, _typeProvider);
+    _visitor = new ResolverVisitor(
+        library.libraryElement, source, _typeProvider, library.errorListener,
+        nameScope: library.libraryScope,
+        inheritanceManager: library.inheritanceManager);
     _visitor.overrideManager.enterScope();
     try {
       return _visitor.typeAnalyzer;
@@ -11081,6 +11307,25 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   DartType _flatten(DartType type) =>
       StaticTypeAnalyzer.flattenFutures(_typeProvider, type);
+
+  /**
+   * Return a simple identifier that has been resolved to a variable element with the given type.
+   *
+   * @param type the type of the variable being represented
+   * @param variableName the name of the variable
+   * @return a simple identifier that has been resolved to a variable element with the given type
+   */
+  SimpleIdentifier _propagatedVariable(
+      InterfaceType type, String variableName) {
+    SimpleIdentifier identifier = AstFactory.identifier3(variableName);
+    VariableElementImpl element =
+        ElementFactory.localVariableElement(identifier);
+    element.type = type;
+    identifier.staticType = _typeProvider.dynamicType;
+    identifier.propagatedElement = element;
+    identifier.propagatedType = type;
+    return identifier;
+  }
 
   /**
    * Return an integer literal that has been resolved to the correct type.
@@ -11405,7 +11650,7 @@ int f(List<int> list) {
     sum += list[i];
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
@@ -11422,7 +11667,7 @@ int f(num n) {
   assert (n is int);
   return n & 0x0F;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
@@ -11431,7 +11676,7 @@ int f(num n) {
 int f(num n) {
   return (n is int && n > 0) ? n & 0x0F : 0;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -11440,7 +11685,7 @@ int f(num n) {
 int f(num n) {
   return (n is int) ? n & 0x0F : 0;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -11449,7 +11694,7 @@ int f(num n) {
 int f(num n) {
   return (n is! int) ? 0 : n & 0x0F;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
@@ -11458,7 +11703,7 @@ int f(num n) {
 int f(num n) {
   return (n is! int || n < 0) ? 0 : n & 0x0F;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
@@ -11470,7 +11715,7 @@ int f(List<int> list) {
     sum += n & 0x0F;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
@@ -11482,7 +11727,7 @@ int f(num n) {
   }
   return 0;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -11494,7 +11739,7 @@ int f(num n) {
   }
   return 0;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -11507,7 +11752,7 @@ int f(num n) {
     return n & 0x0F;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
@@ -11519,7 +11764,7 @@ int f(num n) {
   }
   return n & 0x0F;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
@@ -11532,7 +11777,7 @@ int f(num n) {
     return n & 0x0F;
   }
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
@@ -11542,7 +11787,7 @@ int f() {
   num n = 1234;
   return n & 0x0F;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 }
@@ -11723,7 +11968,9 @@ class TypeOverrideManagerTest extends EngineTestCase {
 @reflectiveTest
 class TypePropagationTest extends ResolverTestCase {
   void fail_finalPropertyInducingVariable_classMember_instance() {
-    addNamedSource("/lib.dart", r'''
+    addNamedSource(
+        "/lib.dart",
+        r'''
 class A {
   final v = 0;
 }''');
@@ -11737,7 +11984,9 @@ f(A a) {
   }
 
   void fail_finalPropertyInducingVariable_classMember_instance_inherited() {
-    addNamedSource("/lib.dart", r'''
+    addNamedSource(
+        "/lib.dart",
+        r'''
 class A {
   final v = 0;
 }''');
@@ -11753,7 +12002,9 @@ class B extends A {
   }
 
   void fail_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
-    addNamedSource("/lib.dart", r'''
+    addNamedSource(
+        "/lib.dart",
+        r'''
 class A {
   final v = 0;
 }''');
@@ -11769,7 +12020,9 @@ f(p) {
   }
 
   void fail_finalPropertyInducingVariable_classMember_static() {
-    addNamedSource("/lib.dart", r'''
+    addNamedSource(
+        "/lib.dart",
+        r'''
 class A {
   static final V = 0;
 }''');
@@ -11806,7 +12059,8 @@ f() {
 
   void fail_mergePropagatedTypesAtJoinPoint_1() {
     // https://code.google.com/p/dart/issues/detail?id=19929
-    _assertTypeOfMarkedExpression(r'''
+    _assertTypeOfMarkedExpression(
+        r'''
 f1(x) {
   var y = [];
   if (x) {
@@ -11817,12 +12071,15 @@ f1(x) {
   // Propagated type is [List] here: incorrect.
   // Best we can do is [Object]?
   return y; // marker
-}''', null, typeProvider.dynamicType);
+}''',
+        null,
+        typeProvider.dynamicType);
   }
 
   void fail_mergePropagatedTypesAtJoinPoint_2() {
     // https://code.google.com/p/dart/issues/detail?id=19929
-    _assertTypeOfMarkedExpression(r'''
+    _assertTypeOfMarkedExpression(
+        r'''
 f2(x) {
   var y = [];
   if (x) {
@@ -11832,12 +12089,15 @@ f2(x) {
   // Propagated type is [List] here: incorrect.
   // Best we can do is [Object]?
   return y; // marker
-}''', null, typeProvider.dynamicType);
+}''',
+        null,
+        typeProvider.dynamicType);
   }
 
   void fail_mergePropagatedTypesAtJoinPoint_3() {
     // https://code.google.com/p/dart/issues/detail?id=19929
-    _assertTypeOfMarkedExpression(r'''
+    _assertTypeOfMarkedExpression(
+        r'''
 f4(x) {
   var y = [];
   if (x) {
@@ -11849,12 +12109,15 @@ f4(x) {
   // A correct answer is the least upper bound of [int] and [double],
   // i.e. [num].
   return y; // marker
-}''', null, typeProvider.numType);
+}''',
+        null,
+        typeProvider.numType);
   }
 
   void fail_mergePropagatedTypesAtJoinPoint_5() {
     // https://code.google.com/p/dart/issues/detail?id=19929
-    _assertTypeOfMarkedExpression(r'''
+    _assertTypeOfMarkedExpression(
+        r'''
 f6(x,y) {
   var z = [];
   if (x || (z = y) < 0) {
@@ -11864,7 +12127,9 @@ f6(x,y) {
   // Propagated type is [List] here: incorrect.
   // Best we can do is [Object]?
   return z; // marker
-}''', null, typeProvider.dynamicType);
+}''',
+        null,
+        typeProvider.dynamicType);
   }
 
   void fail_mergePropagatedTypesAtJoinPoint_7() {
@@ -11950,7 +12215,7 @@ A f(var p) {
     return null;
   }
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -11973,7 +12238,7 @@ A f(var p) {
   assert (p is A);
   return p;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -11994,7 +12259,7 @@ f() {
   v = 0;
   return v;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12013,7 +12278,7 @@ f() {
   v = 1.0;
   return v;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12035,7 +12300,7 @@ main() {
     CompilationUnit unit;
     {
       Source source = addSource(code);
-      LibraryElement library = resolve(source);
+      LibraryElement library = resolve2(source);
       assertNoErrors(source);
       verify([source]);
       unit = resolveCompilationUnit(source, library);
@@ -12067,7 +12332,7 @@ main(CanvasElement canvas) {
   var context = canvas.getContext('2d');
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12085,7 +12350,35 @@ main() {
   }
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    InterfaceType stringType = typeProvider.stringType;
+    // in the declaration
+    {
+      SimpleIdentifier identifier = EngineTestCase.findNode(
+          unit, code, "e in", (node) => node is SimpleIdentifier);
+      expect(identifier.propagatedType, same(stringType));
+    }
+    // in the loop body
+    {
+      SimpleIdentifier identifier = EngineTestCase.findNode(
+          unit, code, "e;", (node) => node is SimpleIdentifier);
+      expect(identifier.propagatedType, same(stringType));
+    }
+  }
+
+  void test_forEach_async() {
+    String code = r'''
+import 'dart:async';
+f(Stream<String> stream) async {
+  await for (var e in stream) {
+    e;
+  }
+}''';
+    Source source = addSource(code);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12116,7 +12409,7 @@ f(MyMap<int, String> m) {
   });
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12150,7 +12443,7 @@ f(MyMap<int, String> m) {
   m2.forEach((k, v) {});
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12174,7 +12467,7 @@ main() {
   });
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12202,7 +12495,7 @@ f(MyList list) {
   });
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12228,7 +12521,7 @@ x() {
   a.m(() => 0);
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12251,7 +12544,7 @@ f(MyList<String> list) {
   });
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12278,7 +12571,7 @@ main(Future<int> firstFuture) {
   });
 }''';
     Source source = addSource(code);
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12302,7 +12595,7 @@ f() {
   var v = 0;
   return v;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12332,7 +12625,7 @@ f() {
   var v = 'String';
   v.
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
     BlockFunctionBody body =
@@ -12350,7 +12643,7 @@ f() {
   int v = 0;
   return v;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12381,7 +12674,7 @@ f() {
   List<int> v = <int>[];
   return v;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12415,7 +12708,7 @@ main() {
     CompilationUnit unit;
     {
       Source source = addSource(code);
-      LibraryElement library = resolve(source);
+      LibraryElement library = resolve2(source);
       assertNoErrors(source);
       verify([source]);
       unit = resolveCompilationUnit(source, library);
@@ -12440,7 +12733,7 @@ class A {}
 A f(var p) {
   return (p is A) ? p : null;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12467,7 +12760,7 @@ A f(var p) {
     return null;
   }
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12507,7 +12800,7 @@ A f(A p) {
     return null;
   }
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12533,7 +12826,7 @@ A f(var p) {
     return null;
   }
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12556,7 +12849,7 @@ A f(var p) {
   A a = (p is A) ? p : throw null;
   return p;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12581,7 +12874,7 @@ A f(var p) {
   }
   return p;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12607,7 +12900,7 @@ A f(A p) {
   }
   return p;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[2] as FunctionDeclaration;
@@ -12630,7 +12923,7 @@ A f(var p) {
   }
   return p;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12652,7 +12945,7 @@ class A {}
 A f(var p) {
   return (p is! A) ? null : p;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12679,7 +12972,7 @@ A f(var p) {
     return p;
   }
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12705,7 +12998,7 @@ A f(var p) {
     return p;
   }
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
@@ -12727,7 +13020,7 @@ A f(var p) {
   A a = (p is! A) ? throw null : p;
   return p;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12750,7 +13043,7 @@ A f(var p) {
   }
   return p;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12824,7 +13117,7 @@ f() {
   var v = [0, '1', 2];
   return v[2];
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12842,7 +13135,7 @@ f() {
   var v = [0, 1, 2];
   return v[2];
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12866,7 +13159,7 @@ f() {
   var v = {'0' : 0, 1 : '1', '2' : 2};
   return v;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12889,7 +13182,7 @@ f() {
   var v = {'a' : 0, 'b' : 1, 'c' : 2};
   return v;
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -12926,18 +13219,22 @@ main() {
   }
 
   void test_mergePropagatedTypes_afterIfThen_same() {
-    _assertTypeOfMarkedExpression(r'''
+    _assertTypeOfMarkedExpression(
+        r'''
 main() {
   var v = 1;
   if (v != null) {
     v = 2;
   }
   return v; // marker
-}''', null, typeProvider.intType);
+}''',
+        null,
+        typeProvider.intType);
   }
 
   void test_mergePropagatedTypes_afterIfThenElse_different() {
-    _assertTypeOfMarkedExpression(r'''
+    _assertTypeOfMarkedExpression(
+        r'''
 main() {
   var v = 1;
   if (v != null) {
@@ -12946,11 +13243,14 @@ main() {
     v = '3';
   }
   return v; // marker
-}''', null, null);
+}''',
+        null,
+        null);
   }
 
   void test_mergePropagatedTypes_afterIfThenElse_same() {
-    _assertTypeOfMarkedExpression(r'''
+    _assertTypeOfMarkedExpression(
+        r'''
 main() {
   var v = 1;
   if (v != null) {
@@ -12959,12 +13259,15 @@ main() {
     v = 3;
   }
   return v; // marker
-}''', null, typeProvider.intType);
+}''',
+        null,
+        typeProvider.intType);
   }
 
   void test_mergePropagatedTypesAtJoinPoint_4() {
     // https://code.google.com/p/dart/issues/detail?id=19929
-    _assertTypeOfMarkedExpression(r'''
+    _assertTypeOfMarkedExpression(
+        r'''
 f5(x) {
   var y = [];
   if (x) {
@@ -12974,7 +13277,9 @@ f5(x) {
   }
   // Propagated type is [int] here: correct.
   return y; // marker
-}''', null, typeProvider.intType);
+}''',
+        null,
+        typeProvider.intType);
   }
 
   void test_mutatedOutsideScope() {
@@ -13004,7 +13309,7 @@ void g() {
   }
   x = null;
 }''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
 
@@ -13015,38 +13320,50 @@ void g() {
     // static type of [bool] for [==] comparison and the implementation
     // was already consistent with the spec there. But, it's another
     // [Object] method, so it's included here.
-    _assertTypeOfMarkedExpression(r'''
+    _assertTypeOfMarkedExpression(
+        r'''
 f1(x) {
   var v = (x == x);
   return v; // marker
-}''', null, typeProvider.boolType);
+}''',
+        null,
+        typeProvider.boolType);
   }
 
   void test_objectMethodOnDynamicExpression_hashCode() {
     // https://code.google.com/p/dart/issues/detail?id=20342
-    _assertTypeOfMarkedExpression(r'''
+    _assertTypeOfMarkedExpression(
+        r'''
 f1(x) {
   var v = x.hashCode;
   return v; // marker
-}''', null, typeProvider.intType);
+}''',
+        null,
+        typeProvider.intType);
   }
 
   void test_objectMethodOnDynamicExpression_runtimeType() {
     // https://code.google.com/p/dart/issues/detail?id=20342
-    _assertTypeOfMarkedExpression(r'''
+    _assertTypeOfMarkedExpression(
+        r'''
 f1(x) {
   var v = x.runtimeType;
   return v; // marker
-}''', null, typeProvider.typeType);
+}''',
+        null,
+        typeProvider.typeType);
   }
 
   void test_objectMethodOnDynamicExpression_toString() {
     // https://code.google.com/p/dart/issues/detail?id=20342
-    _assertTypeOfMarkedExpression(r'''
+    _assertTypeOfMarkedExpression(
+        r'''
 f1(x) {
   var v = x.toString();
   return v; // marker
-}''', null, typeProvider.stringType);
+}''',
+        null,
+        typeProvider.stringType);
   }
 
   void test_propagatedReturnType_function_hasReturnType_returnsNull() {
@@ -13145,7 +13462,7 @@ main() {
   var b3 = query('body div');
   return [v1, v2, v3, v4, v5, v6, v7, m1, b1, b2, b3];
 }''');
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -13207,7 +13524,7 @@ main() {
   SimpleIdentifier _findMarkedIdentifier(String code, String marker) {
     try {
       Source source = addSource(code);
-      LibraryElement library = resolve(source);
+      LibraryElement library = resolve2(source);
       assertNoErrors(source);
       verify([source]);
       CompilationUnit unit = resolveCompilationUnit(source, library);
@@ -13350,32 +13667,12 @@ class TypeResolverVisitorTest extends EngineTestCase {
    */
   TypeResolverVisitor _visitor;
 
-  /**
-   * The visitor used to resolve types needed to form the type hierarchy.
-   */
-  ImplicitConstructorBuilder _implicitConstructorBuilder;
-
   void fail_visitConstructorDeclaration() {
     fail("Not yet tested");
     _listener.assertNoErrors();
   }
 
-  void fail_visitFunctionDeclaration() {
-    fail("Not yet tested");
-    _listener.assertNoErrors();
-  }
-
   void fail_visitFunctionTypeAlias() {
-    fail("Not yet tested");
-    _listener.assertNoErrors();
-  }
-
-  void fail_visitFunctionTypedFormalParameter() {
-    fail("Not yet tested");
-    _listener.assertNoErrors();
-  }
-
-  void fail_visitMethodDeclaration() {
     fail("Not yet tested");
     _listener.assertNoErrors();
   }
@@ -13403,16 +13700,9 @@ class TypeResolverVisitorTest extends EngineTestCase {
         new CompilationUnitElementImpl("lib.dart");
     _library.libraryElement = element;
     _typeProvider = new TestTypeProvider();
-    _visitor =
-        new TypeResolverVisitor.con1(_library, librarySource, _typeProvider);
-    _implicitConstructorBuilder = new ImplicitConstructorBuilder(_listener,
-        (ClassElement classElement, ClassElement superclassElement,
-            void computation()) {
-      // For these tests, we assume the classes for which implicit
-      // constructors need to be built are visited in proper dependency order,
-      // so we just invoke the computation immediately.
-      computation();
-    });
+    _visitor = new TypeResolverVisitor(_library.libraryElement, librarySource,
+        _typeProvider, _library.errorListener,
+        nameScope: _library.libraryScope);
   }
 
   void test_visitCatchClause_exception() {
@@ -13689,6 +13979,170 @@ class TypeResolverVisitorTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  void test_visitFunctionDeclaration() {
+    // R f(P p) {}
+    // class R {}
+    // class P {}
+    ClassElement elementR = ElementFactory.classElement2('R');
+    ClassElement elementP = ElementFactory.classElement2('P');
+    FunctionElement elementF = ElementFactory.functionElement('f');
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+        AstFactory.typeName4('R'),
+        null,
+        'f',
+        AstFactory.functionExpression2(
+            AstFactory.formalParameterList([
+              AstFactory.simpleFormalParameter4(AstFactory.typeName4('P'), 'p')
+            ]),
+            null));
+    declaration.name.staticElement = elementF;
+    _resolveNode(declaration, [elementR, elementP]);
+    expect(declaration.returnType.type, elementR.type);
+    SimpleFormalParameter parameter =
+        declaration.functionExpression.parameters.parameters[0];
+    expect(parameter.type.type, elementP.type);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitFunctionDeclaration_typeParameter() {
+    // E f<E>(E e) {}
+    TypeParameterElement elementE = ElementFactory.typeParameterElement('E');
+    FunctionElementImpl elementF = ElementFactory.functionElement('f');
+    elementF.typeParameters = <TypeParameterElement>[elementE];
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+        AstFactory.typeName4('E'),
+        null,
+        'f',
+        AstFactory.functionExpression2(
+            AstFactory.formalParameterList([
+              AstFactory.simpleFormalParameter4(AstFactory.typeName4('E'), 'e')
+            ]),
+            null));
+    declaration.name.staticElement = elementF;
+    _resolveNode(declaration, []);
+    expect(declaration.returnType.type, elementE.type);
+    SimpleFormalParameter parameter =
+        declaration.functionExpression.parameters.parameters[0];
+    expect(parameter.type.type, elementE.type);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitFunctionTypedFormalParameter() {
+    // R f(R g(P p)) {}
+    // class R {}
+    // class P {}
+    ClassElement elementR = ElementFactory.classElement2('R');
+    ClassElement elementP = ElementFactory.classElement2('P');
+    FunctionElement elementF = ElementFactory.functionElement('f');
+    ParameterElementImpl requiredParameter =
+        ElementFactory.requiredParameter('p');
+    FunctionTypedFormalParameter parameterDeclaration = AstFactory
+        .functionTypedFormalParameter(AstFactory.typeName4('R'), 'g', [
+      AstFactory.simpleFormalParameter4(AstFactory.typeName4('P'), 'p')
+    ]);
+    parameterDeclaration.identifier.staticElement = requiredParameter;
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+        AstFactory.typeName4('R'),
+        null,
+        'f',
+        AstFactory.functionExpression2(
+            AstFactory.formalParameterList([parameterDeclaration]), null));
+    declaration.name.staticElement = elementF;
+    _resolveNode(declaration, [elementR, elementP]);
+    expect(declaration.returnType.type, elementR.type);
+    FunctionTypedFormalParameter parameter =
+        declaration.functionExpression.parameters.parameters[0];
+    expect(parameter.returnType.type, elementR.type);
+    SimpleFormalParameter innerParameter = parameter.parameters.parameters[0];
+    expect(innerParameter.type.type, elementP.type);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitFunctionTypedFormalParameter_typeParameter() {
+    // R f(R g<E>(E e)) {}
+    // class R {}
+    ClassElement elementR = ElementFactory.classElement2('R');
+    TypeParameterElement elementE = ElementFactory.typeParameterElement('E');
+    FunctionElement elementF = ElementFactory.functionElement('f');
+    ParameterElementImpl requiredParameter =
+        ElementFactory.requiredParameter('g');
+    requiredParameter.typeParameters = <TypeParameterElement>[elementE];
+    FunctionTypedFormalParameter parameterDeclaration = AstFactory
+        .functionTypedFormalParameter(AstFactory.typeName4('R'), 'g', [
+      AstFactory.simpleFormalParameter4(AstFactory.typeName4('E'), 'e')
+    ]);
+    parameterDeclaration.identifier.staticElement = requiredParameter;
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+        AstFactory.typeName4('R'),
+        null,
+        'f',
+        AstFactory.functionExpression2(
+            AstFactory.formalParameterList([parameterDeclaration]), null));
+    declaration.name.staticElement = elementF;
+    _resolveNode(declaration, [elementR]);
+    expect(declaration.returnType.type, elementR.type);
+    FunctionTypedFormalParameter parameter =
+        declaration.functionExpression.parameters.parameters[0];
+    expect(parameter.returnType.type, elementR.type);
+    SimpleFormalParameter innerParameter = parameter.parameters.parameters[0];
+    expect(innerParameter.type.type, elementE.type);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitMethodDeclaration() {
+    // class A {
+    //   R m(P p) {}
+    // }
+    // class R {}
+    // class P {}
+    ClassElementImpl elementA = ElementFactory.classElement2('A');
+    ClassElement elementR = ElementFactory.classElement2('R');
+    ClassElement elementP = ElementFactory.classElement2('P');
+    MethodElement elementM = ElementFactory.methodElement('m', null);
+    elementA.methods = <MethodElement>[elementM];
+    MethodDeclaration declaration = AstFactory.methodDeclaration(
+        null,
+        AstFactory.typeName4('R'),
+        null,
+        null,
+        AstFactory.identifier3('m'),
+        AstFactory.formalParameterList([
+          AstFactory.simpleFormalParameter4(AstFactory.typeName4('P'), 'p')
+        ]));
+    declaration.name.staticElement = elementM;
+    _resolveNode(declaration, [elementA, elementR, elementP]);
+    expect(declaration.returnType.type, elementR.type);
+    SimpleFormalParameter parameter = declaration.parameters.parameters[0];
+    expect(parameter.type.type, elementP.type);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitMethodDeclaration_typeParameter() {
+    // class A {
+    //   E m<E>(E e) {}
+    // }
+    ClassElementImpl elementA = ElementFactory.classElement2('A');
+    TypeParameterElement elementE = ElementFactory.typeParameterElement('E');
+    MethodElementImpl elementM = ElementFactory.methodElement('m', null);
+    elementM.typeParameters = <TypeParameterElement>[elementE];
+    elementA.methods = <MethodElement>[elementM];
+    MethodDeclaration declaration = AstFactory.methodDeclaration(
+        null,
+        AstFactory.typeName4('E'),
+        null,
+        null,
+        AstFactory.identifier3('m'),
+        AstFactory.formalParameterList([
+          AstFactory.simpleFormalParameter4(AstFactory.typeName4('E'), 'e')
+        ]));
+    declaration.name.staticElement = elementM;
+    _resolveNode(declaration, [elementA]);
+    expect(declaration.returnType.type, elementE.type);
+    SimpleFormalParameter parameter = declaration.parameters.parameters[0];
+    expect(parameter.type.type, elementE.type);
+    _listener.assertNoErrors();
+  }
+
   void test_visitSimpleFormalParameter_noType() {
     // p
     FormalParameter node = AstFactory.simpleFormalParameter3("p");
@@ -13812,9 +14266,6 @@ class TypeResolverVisitorTest extends EngineTestCase {
       }
     }
     node.accept(_visitor);
-    if (node is Declaration) {
-      node.element.accept(_implicitConstructorBuilder);
-    }
   }
 }
 

@@ -125,9 +125,13 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
   @override
   CompletionSuggestion assertSuggestImportedClass(String name,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      int relevance: DART_RELEVANCE_DEFAULT, String importUri}) {
+      int relevance: DART_RELEVANCE_DEFAULT, String importUri,
+      String elemFile}) {
     return assertSuggestClass(name,
-        relevance: relevance, kind: kind, importUri: importUri);
+        relevance: relevance,
+        kind: kind,
+        importUri: importUri,
+        elemFile: elemFile);
   }
 
   @override

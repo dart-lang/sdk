@@ -45,27 +45,29 @@ public class AnalysisOptions {
   public static final List<AnalysisOptions> EMPTY_LIST = Lists.newArrayList();
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed async feature.
    */
   private final Boolean enableAsync;
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed deferred loading feature.
    */
   private final Boolean enableDeferredLoading;
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed enum feature.
    */
   private final Boolean enableEnums;
 
   /**
+   * Deprecated: this feature is always enabled.
+   *
    * True if the client wants to enable support for the proposed "null aware operators" feature.
    */
   private final Boolean enableNullAwareOperators;
@@ -139,7 +141,7 @@ public class AnalysisOptions {
   }
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed async feature.
    */
@@ -148,7 +150,7 @@ public class AnalysisOptions {
   }
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed deferred loading feature.
    */
@@ -157,7 +159,7 @@ public class AnalysisOptions {
   }
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed enum feature.
    */
@@ -166,6 +168,8 @@ public class AnalysisOptions {
   }
 
   /**
+   * Deprecated: this feature is always enabled.
+   *
    * True if the client wants to enable support for the proposed "null aware operators" feature.
    */
   public Boolean getEnableNullAwareOperators() {

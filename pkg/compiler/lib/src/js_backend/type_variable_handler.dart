@@ -20,15 +20,15 @@ class TypeVariableHandler {
    *  Maps a class element to a list with indices that point to type variables
    *  constants for each of the class' type variables.
    */
-  Map<ClassElement, List<int>> _typeVariables =
-      new Map<ClassElement, List<int>>();
+  Map<ClassElement, List<jsAst.Expression>> _typeVariables =
+      new Map<ClassElement, List<jsAst.Expression>>();
 
   /**
    *  Maps a TypeVariableType to the index pointing to the constant representing
    *  the corresponding type variable at runtime.
    */
-  Map<TypeVariableElement, int> _typeVariableConstants =
-      new Map<TypeVariableElement, int>();
+  Map<TypeVariableElement, jsAst.Expression> _typeVariableConstants =
+      new Map<TypeVariableElement, jsAst.Expression>();
 
   TypeVariableHandler(this._compiler);
 
@@ -60,14 +60,17 @@ class TypeVariableHandler {
       }
     } else {
       if (_backend.isAccessibleByReflection(cls)) {
-        _processTypeVariablesOf(cls);
+        processTypeVariablesOf(cls);
       }
     }
   }
 
-  void _processTypeVariablesOf(ClassElement cls) {
+  void processTypeVariablesOf(ClassElement cls) {
+    // Do not process classes twice.
+    if (_typeVariables.containsKey(cls)) return;
+
     InterfaceType typeVariableType = _typeVariableClass.thisType;
-    List<int> constants = <int>[];
+    List<jsAst.Expression> constants = <jsAst.Expression>[];
 
     for (TypeVariableType currentTypeVariable in cls.typeVariables) {
       TypeVariableElement typeVariableElement = currentTypeVariable.element;
@@ -78,12 +81,19 @@ class TypeVariableHandler {
           new StringConstantExpression(currentTypeVariable.name),
           _backend.constantSystem.createString(
               new DartString.literal(currentTypeVariable.name)));
-      int boundIndex = _metadataCollector.reifyType(typeVariableElement.bound);
+      jsAst.Expression boundIndex =
+          _metadataCollector.reifyType(typeVariableElement.bound);
+      ConstantValue boundValue =
+          new SyntheticConstantValue(
+              SyntheticConstantKind.TYPEVARIABLE_REFERENCE,
+              boundIndex);
+      ConstantExpression boundExpression =
+          new SyntheticConstantExpression(boundValue);
       AstConstant bound = new AstConstant(
           typeVariableElement,
           typeVariableElement.node,
-          new IntConstantExpression(boundIndex),
-          _backend.constantSystem.createInt(boundIndex));
+          boundExpression,
+          boundValue);
       AstConstant type = new AstConstant(
           typeVariableElement,
           typeVariableElement.node,
@@ -123,17 +133,16 @@ class TypeVariableHandler {
    * entry in the list has already been reserved and the constant is added
    * there, otherwise a new entry for [c] is created.
    */
-  int _reifyTypeVariableConstant(ConstantValue c, TypeVariableElement variable) {
+  jsAst.Expression _reifyTypeVariableConstant(ConstantValue c,
+                                              TypeVariableElement variable) {
     jsAst.Expression name = _task.constantReference(c);
-    int index;
+    jsAst.Expression result = _metadataCollector.reifyExpression(name);
     if (_typeVariableConstants.containsKey(variable)) {
-      index = _typeVariableConstants[variable];
-      _metadataCollector.globalMetadata[index] = name;
-    } else {
-      index = _metadataCollector.addGlobalMetadata(name);
-      _typeVariableConstants[variable] = index;
+      Placeholder placeholder = _typeVariableConstants[variable];
+      placeholder.bind(result);
     }
-    return index;
+    _typeVariableConstants[variable] = result;
+    return result;
   }
 
   /**
@@ -146,21 +155,20 @@ class TypeVariableHandler {
    * [reifyTypeVariableConstant] will be called and the constant will be added
    * on the allocated entry.
    */
-  int reifyTypeVariable(TypeVariableElement variable) {
+  jsAst.Expression reifyTypeVariable(TypeVariableElement variable) {
     if (_typeVariableConstants.containsKey(variable)) {
       return _typeVariableConstants[variable];
     }
 
-    // TODO(15613): Remove quotes.
-    _metadataCollector.globalMetadata.add(js('"Placeholder for ${variable}"'));
-    return _typeVariableConstants[variable] =
-        _metadataCollector.globalMetadata.length - 1;
+    Placeholder placeholder =
+        _metadataCollector.getMetadataPlaceholder(variable);
+    return _typeVariableConstants[variable] = placeholder;
   }
 
-  List<int> typeVariablesOf(ClassElement classElement) {
-    List<int> result = _typeVariables[classElement];
+  List<jsAst.Expression> typeVariablesOf(ClassElement classElement) {
+    List<jsAst.Expression> result = _typeVariables[classElement];
     if (result == null) {
-      result = const <int>[];
+      result = const <jsAst.Expression>[];
     }
     return result;
   }

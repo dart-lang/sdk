@@ -55,6 +55,10 @@
       <template if="{{ !(code.isDartCode && code.isOptimized) }}">
         <h1>Code for {{ code.name }}</h1>
       </template>
+      <object-common object="{{ code }}"></object-common>
+
+      <br><br>
+
       <div class="memberList">
         <div class="memberItem">
           <div class="memberName">Kind</div>
@@ -107,32 +111,34 @@
         </template>
       </div>
     </div>
-    <hr>
-    <table id="inlineRangeTable" class="table">
-      <thead id="inlineRangeTableHead">
-        <tr>
-          <th class="address" title="Address range">Address Range</th>
-          <th class="tick" title="Inclusive">Inclusive</th>
-          <th class="tick" title="Exclusive">Exclusive</th>
-          <th title="Functions">Functions</th>
-        </tr>
-      </thead>
-      <tbody class="monospace" id="inlineRangeTableBody">
-      </tbody>
-    </table>
-    <hr>
-    <table id="disassemblyTable" class="table">
-      <thead id="disassemblyTableHead">
-      <tr>
-        <th class="address" title="Address">Address</th>
-        <th class="tick" title="Inclusive">Inclusive</th>
-        <th class="tick" title="Exclusive">Exclusive</th>
-        <th class="disassembly" title="Disassembly">Disassembly</th>
-      </tr>
-      </thead>
-      <tbody class="monospace" id="disassemblyTableBody">
-      </tbody>
-    </table>
+    <div class="content-centered-big">
+      <hr>
+      <table id="inlineRangeTable" class="table">
+        <thead id="inlineRangeTableHead">
+          <tr>
+            <th class="address" title="Address range">Address Range</th>
+            <th class="tick" title="Inclusive">Inclusive</th>
+            <th class="tick" title="Exclusive">Exclusive</th>
+            <th title="Functions">Functions</th>
+          </tr>
+        </thead>
+        <tbody class="monospace" id="inlineRangeTableBody">
+        </tbody>
+      </table>
+      <hr>
+      <table id="disassemblyTable" class="table">
+        <thead id="disassemblyTableHead">
+          <tr>
+            <th class="address" title="Address">Address</th>
+            <th class="tick" title="Inclusive">Inclusive</th>
+            <th class="tick" title="Exclusive">Exclusive</th>
+            <th class="disassembly" title="Disassembly">Disassembly</th>
+          </tr>
+        </thead>
+        <tbody class="monospace" id="disassemblyTableBody">
+        </tbody>
+      </table>
+    </div>
     <view-footer></view-footer>
   </template>
 </polymer-element>

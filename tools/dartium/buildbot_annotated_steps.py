@@ -79,7 +79,7 @@ def main():
   with utils.ChangedWorkingDirectory(DART_PATH):
     dart_tools_utils = imp.load_source('dart_tools_utils',
                                        os.path.join('tools', 'utils.py'))
-    dart_revision = dart_tools_utils.GetSVNRevision()
+    dart_revision = dart_tools_utils.GetArchiveVersion()
 
   version = '%s.0' % dart_revision
   info = upload_steps.BuildInfo(dart_revision, version)

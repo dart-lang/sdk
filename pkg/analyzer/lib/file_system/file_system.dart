@@ -15,6 +15,11 @@ import 'package:watcher/watcher.dart';
  */
 abstract class File extends Resource {
   /**
+   * Watch for changes to this file
+   */
+  Stream<WatchEvent> get changes;
+
+  /**
    * Return the last-modified stamp of the file.
    * Throws [FileSystemException] if the file does not exist.
    */
@@ -134,6 +139,20 @@ abstract class ResourceProvider {
   Context get pathContext;
 
   /**
+   * Return a [File] that corresponds to the given [path].
+   * 
+   * A file may or may not exist at this location.
+   */
+  File getFile(String path);
+
+  /**
+   * Return a [Folder] that corresponds to the given [path].
+   * 
+   * A folder may or may not exist at this location.
+   */
+  Folder getFolder(String path);
+
+  /**
    * Return the [Resource] that corresponds to the given [path].
    */
   Resource getResource(String path);
@@ -162,14 +181,14 @@ class ResourceUriResolver extends UriResolver {
   ResourceUriResolver(this._provider);
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     if (!_isFileUri(uri)) {
       return null;
     }
     Resource resource =
         _provider.getResource(_provider.pathContext.fromUri(uri));
     if (resource is File) {
-      return resource.createSource(uri);
+      return resource.createSource(actualUri != null ? actualUri : uri);
     }
     return null;
   }

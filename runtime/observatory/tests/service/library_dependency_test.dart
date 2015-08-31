@@ -1,13 +1,11 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override
+// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
-import 'package:observatory/debugger.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
-import 'dart:async';
 
 export 'dart:collection';
 import 'dart:mirrors' as mirrors;
@@ -17,7 +15,8 @@ var tests = [
 
 (Isolate isolate) async {
   var lib = await isolate.rootLibrary.load();
-
+  // Use mirrors to shutup the analyzer.
+  mirrors.currentMirrorSystem();
   importOf(String uri) {
     return lib.dependencies.singleWhere((dep) => dep.target.uri == uri);
   }
@@ -37,6 +36,10 @@ var tests = [
   expect(importOf("dart:convert").isDeferred, isTrue);
   expect(importOf("dart:convert").prefix, equals("convert"));
 },
+
+(Isolate isolate) async {
+  return convert.loadLibrary();
+}
 ];
 
 main(args) => runIsolateTests(args, tests);

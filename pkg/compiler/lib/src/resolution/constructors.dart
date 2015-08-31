@@ -6,12 +6,18 @@ part of resolution;
 
 class InitializerResolver {
   final ResolverVisitor visitor;
-  final Map<Element, Node> initialized;
+  final ConstructorElementX constructor;
+  final FunctionExpression functionNode;
+  final Map<FieldElement, Node> initialized = <FieldElement, Node>{};
+  final Map<FieldElement, ConstantExpression> fieldInitializers =
+      <FieldElement, ConstantExpression>{};
   Link<Node> initializers;
-  bool hasSuper;
+  bool hasSuper = false;
+  bool isValidAsConstant = true;
 
-  InitializerResolver(this.visitor)
-    : initialized = new Map<Element, Node>(), hasSuper = false;
+  bool get isConst => constructor.isConst;
+
+  InitializerResolver(this.visitor, this.constructor, this.functionNode);
 
   ResolutionRegistry get registry => visitor.registry;
 
@@ -37,12 +43,12 @@ class InitializerResolver {
     visitor.compiler.reportInfo(
         existing,
         MessageKind.ALREADY_INITIALIZED, {'fieldName': field.name});
+    isValidAsConstant = false;
   }
 
   void checkForDuplicateInitializers(FieldElementX field, Node init) {
     // [field] can be null if it could not be resolved.
     if (field == null) return;
-    String name = field.name;
     if (initialized.containsKey(field)) {
       reportDuplicateInitializerError(field, init, initialized[field]);
     } else if (field.isFinal) {
@@ -55,12 +61,13 @@ class InitializerResolver {
     initialized[field] = init;
   }
 
-  void resolveFieldInitializer(FunctionElement constructor, SendSet init) {
+  void resolveFieldInitializer(SendSet init) {
     // init is of the form [this.]field = value.
     final Node selector = init.selector;
     final String name = selector.asIdentifier().source;
     // Lookup target field.
     Element target;
+    FieldElement field;
     if (isFieldInitializer(init)) {
       target = constructor.enclosingClass.lookupLocalMember(name);
       if (target == null) {
@@ -73,6 +80,8 @@ class InitializerResolver {
             selector.asIdentifier(), constructor.enclosingClass);
       } else if (!target.isInstanceMember) {
         error(selector, MessageKind.INIT_STATIC_FIELD, {'fieldName': name});
+      } else {
+        field = target;
       }
     } else {
       error(init, MessageKind.INVALID_RECEIVER_IN_INITIALIZER);
@@ -81,39 +90,44 @@ class InitializerResolver {
     registry.registerStaticUse(target);
     checkForDuplicateInitializers(target, init);
     // Resolve initializing value.
-    visitor.visitInStaticContext(init.arguments.head);
-  }
-
-  ClassElement getSuperOrThisLookupTarget(FunctionElement constructor,
-                                          bool isSuperCall,
-                                          Node diagnosticNode) {
-    ClassElement lookupTarget = constructor.enclosingClass;
-    if (isSuperCall) {
-      // Calculate correct lookup target and constructor name.
-      if (identical(lookupTarget, visitor.compiler.objectClass)) {
-        error(diagnosticNode, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
+    ResolutionResult result = visitor.visitInStaticContext(
+        init.arguments.head,
+        inConstantInitializer: isConst);
+    if (isConst) {
+      if (result.isConstant && field != null) {
+        // TODO(johnniwinther): Report error if `result.constant` is `null`.
+        fieldInitializers[field] = result.constant;
       } else {
-        return lookupTarget.supertype.element;
+        isValidAsConstant = false;
       }
     }
-    return lookupTarget;
   }
 
-  Element resolveSuperOrThisForSend(FunctionElement constructor,
-                                    FunctionExpression functionNode,
-                                    Send call) {
-    // Resolve the selector and the arguments.
-    ResolverTask resolver = visitor.compiler.resolver;
-    visitor.inStaticContext(() {
-      visitor.resolveSelector(call, null);
-      visitor.resolveArguments(call.argumentsNode);
-    });
-    Selector selector = registry.getSelector(call);
-    bool isSuperCall = Initializers.isSuperConstructorCall(call);
+  InterfaceType getSuperOrThisLookupTarget(Node diagnosticNode,
+                                           {bool isSuperCall}) {
+    if (isSuperCall) {
+      // Calculate correct lookup target and constructor name.
+      if (identical(constructor.enclosingClass, visitor.compiler.objectClass)) {
+        error(diagnosticNode, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
+        isValidAsConstant = false;
+      } else {
+        return constructor.enclosingClass.supertype;
+      }
+    }
+    return constructor.enclosingClass.thisType;
+  }
 
-    ClassElement lookupTarget = getSuperOrThisLookupTarget(constructor,
-                                                           isSuperCall,
-                                                           call);
+  ResolutionResult resolveSuperOrThisForSend(Send call) {
+    // Resolve the selector and the arguments.
+    ArgumentsResult argumentsResult = visitor.inStaticContext(() {
+      visitor.resolveSelector(call, null);
+      return visitor.resolveArguments(call.argumentsNode);
+    }, inConstantInitializer: isConst);
+
+    bool isSuperCall = Initializers.isSuperConstructorCall(call);
+    InterfaceType targetType =
+        getSuperOrThisLookupTarget(call, isSuperCall: isSuperCall);
+    ClassElement lookupTarget = targetType.element;
     Selector constructorSelector =
         visitor.getRedirectingThisOrSuperConstructorSelector(call);
     FunctionElement calledConstructor =
@@ -121,9 +135,8 @@ class InitializerResolver {
 
     final bool isImplicitSuperCall = false;
     final String className = lookupTarget.name;
-    verifyThatConstructorMatchesCall(constructor,
-                                     calledConstructor,
-                                     selector.callStructure,
+    verifyThatConstructorMatchesCall(calledConstructor,
+                                     argumentsResult.callStructure,
                                      isImplicitSuperCall,
                                      call,
                                      className,
@@ -131,11 +144,28 @@ class InitializerResolver {
 
     registry.useElement(call, calledConstructor);
     registry.registerStaticUse(calledConstructor);
-    return calledConstructor;
+    if (isConst) {
+      if (isValidAsConstant &&
+          calledConstructor.isConst &&
+          argumentsResult.isValidAsConstant) {
+        CallStructure callStructure = argumentsResult.callStructure;
+        List<ConstantExpression> arguments = argumentsResult.constantArguments;
+        return new ConstantResult(
+            call,
+            new ConstructedConstantExpression(
+                targetType,
+                calledConstructor,
+                callStructure,
+                arguments),
+            element: calledConstructor);
+      } else {
+        isValidAsConstant = false;
+      }
+    }
+    return new ResolutionResult.forElement(calledConstructor);
   }
 
-  void resolveImplicitSuperConstructorSend(FunctionElement constructor,
-                                           FunctionExpression functionNode) {
+  ConstructedConstantExpression resolveImplicitSuperConstructorSend() {
     // If the class has a super resolve the implicit super call.
     ClassElement classElement = constructor.enclosingClass;
     ClassElement superClass = classElement.superclass;
@@ -143,18 +173,16 @@ class InitializerResolver {
       assert(superClass != null);
       assert(superClass.isResolved);
 
-      final bool isSuperCall = true;
-      ClassElement lookupTarget = getSuperOrThisLookupTarget(constructor,
-                                                             isSuperCall,
-                                                             functionNode);
+      InterfaceType targetType =
+          getSuperOrThisLookupTarget(functionNode, isSuperCall: true);
+      ClassElement lookupTarget = targetType.element;
       Selector constructorSelector = new Selector.callDefaultConstructor();
       Element calledConstructor = lookupTarget.lookupConstructor(
           constructorSelector.name);
 
       final String className = lookupTarget.name;
       final bool isImplicitSuperCall = true;
-      verifyThatConstructorMatchesCall(constructor,
-                                       calledConstructor,
+      verifyThatConstructorMatchesCall(calledConstructor,
                                        CallStructure.NO_ARGS,
                                        isImplicitSuperCall,
                                        functionNode,
@@ -162,19 +190,27 @@ class InitializerResolver {
                                        constructorSelector);
       registry.registerImplicitSuperCall(calledConstructor);
       registry.registerStaticUse(calledConstructor);
+
+      if (isConst && isValidAsConstant) {
+        return new ConstructedConstantExpression(
+            targetType,
+            calledConstructor,
+            CallStructure.NO_ARGS,
+            const <ConstantExpression>[]);
+      }
     }
+    return null;
   }
 
   void verifyThatConstructorMatchesCall(
-      FunctionElement caller,
       ConstructorElementX lookedupConstructor,
       CallStructure call,
       bool isImplicitSuperCall,
       Node diagnosticNode,
       String className,
       Selector constructorSelector) {
-    if (lookedupConstructor == null
-        || !lookedupConstructor.isGenerativeConstructor) {
+    if (lookedupConstructor == null ||
+        !lookedupConstructor.isGenerativeConstructor) {
       String fullConstructorName = Elements.constructorNameForDiagnostics(
               className,
               constructorSelector.name);
@@ -183,19 +219,22 @@ class InitializerResolver {
           : MessageKind.CANNOT_RESOLVE_CONSTRUCTOR;
       visitor.compiler.reportError(
           diagnosticNode, kind, {'constructorName': fullConstructorName});
+      isValidAsConstant = false;
     } else {
-      lookedupConstructor.computeSignature(visitor.compiler);
-      if (!call.signatureApplies(lookedupConstructor)) {
+      lookedupConstructor.computeType(visitor.compiler);
+      if (!call.signatureApplies(lookedupConstructor.functionSignature)) {
         MessageKind kind = isImplicitSuperCall
                            ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
                            : MessageKind.NO_MATCHING_CONSTRUCTOR;
         visitor.compiler.reportError(diagnosticNode, kind);
-      } else if (caller.isConst
+        isValidAsConstant = false;
+      } else if (constructor.isConst
                  && !lookedupConstructor.isConst) {
         MessageKind kind = isImplicitSuperCall
                            ? MessageKind.CONST_CALLS_NON_CONST_FOR_IMPLICIT
                            : MessageKind.CONST_CALLS_NON_CONST;
         visitor.compiler.reportError(diagnosticNode, kind);
+        isValidAsConstant = false;
       }
     }
   }
@@ -204,16 +243,50 @@ class InitializerResolver {
    * Resolve all initializers of this constructor. In the case of a redirecting
    * constructor, the resolved constructor's function element is returned.
    */
-  ConstructorElement resolveInitializers(ConstructorElementX constructor,
-                                         FunctionExpression functionNode) {
+  ConstructorElement resolveInitializers() {
+    Map<dynamic/*String|int*/, ConstantExpression> defaultValues =
+        <dynamic/*String|int*/, ConstantExpression>{};
+    ConstructedConstantExpression constructorInvocation;
     // Keep track of all "this.param" parameters specified for constructor so
     // that we can ensure that fields are initialized only once.
     FunctionSignature functionParameters = constructor.functionSignature;
-    functionParameters.forEachParameter((ParameterElement element) {
+    functionParameters.forEachParameter((ParameterElementX element) {
+      if (isConst) {
+        if (element.isOptional) {
+          if (element.constantCache == null) {
+            // TODO(johnniwinther): Remove this when all constant expressions
+            // can be computed during resolution.
+            isValidAsConstant = false;
+          } else {
+            ConstantExpression defaultValue = element.constant;
+            if (defaultValue != null) {
+              if (element.isNamed) {
+                defaultValues[element.name] = defaultValue;
+              } else {
+                int index =
+                    element.functionDeclaration.parameters.indexOf(element);
+                defaultValues[index] = defaultValue;
+              }
+            } else {
+              isValidAsConstant = false;
+            }
+          }
+        }
+      }
       if (element.isInitializingFormal) {
-        InitializingFormalElement initializingFormal = element;
-        checkForDuplicateInitializers(initializingFormal.fieldElement,
-                                      element.initializer);
+        InitializingFormalElementX initializingFormal = element;
+        FieldElement field = initializingFormal.fieldElement;
+        checkForDuplicateInitializers(field, element.initializer);
+        if (isConst) {
+          if (element.isNamed) {
+            fieldInitializers[field] = new NamedArgumentReference(element.name);
+          } else {
+            int index = element.functionDeclaration.parameters.indexOf(element);
+            fieldInitializers[field] = new PositionalArgumentReference(index);
+          }
+        } else {
+          isValidAsConstant = false;
+        }
       }
     });
 
@@ -226,7 +299,7 @@ class InitializerResolver {
     for (Link<Node> link = initializers; !link.isEmpty; link = link.tail) {
       if (link.head.asSendSet() != null) {
         final SendSet init = link.head.asSendSet();
-        resolveFieldInitializer(constructor, init);
+        resolveFieldInitializer(init);
       } else if (link.head.asSend() != null) {
         final Send call = link.head.asSend();
         if (call.argumentsNode == null) {
@@ -237,7 +310,14 @@ class InitializerResolver {
           if (resolvedSuper) {
             error(call, MessageKind.DUPLICATE_SUPER_INITIALIZER);
           }
-          resolveSuperOrThisForSend(constructor, functionNode, call);
+          ResolutionResult result = resolveSuperOrThisForSend(call);
+          if (isConst) {
+            if (result.isConstant) {
+              constructorInvocation = result.constant;
+            } else {
+              isValidAsConstant = false;
+            }
+          }
           resolvedSuper = true;
         } else if (Initializers.isConstructorRedirect(call)) {
           // Check that there is no body (Language specification 7.5.1).  If the
@@ -253,15 +333,29 @@ class InitializerResolver {
             constructor.isRedirectingGenerative = true;
           }
           // Check that there are no field initializing parameters.
-          Compiler compiler = visitor.compiler;
           FunctionSignature signature = constructor.functionSignature;
           signature.forEachParameter((ParameterElement parameter) {
             if (parameter.isInitializingFormal) {
               Node node = parameter.node;
               error(node, MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED);
+              isValidAsConstant = false;
             }
           });
-          return resolveSuperOrThisForSend(constructor, functionNode, call);
+          ResolutionResult result = resolveSuperOrThisForSend(call);
+          if (isConst) {
+            if (result.isConstant) {
+              constructorInvocation = result.constant;
+            } else {
+              isValidAsConstant = false;
+            }
+            if (isConst && isValidAsConstant) {
+              constructor.constantConstructor =
+                  new RedirectingGenerativeConstantConstructor(
+                      defaultValues,
+                      constructorInvocation);
+            }
+          }
+          return result.element;
         } else {
           visitor.error(call, MessageKind.CONSTRUCTOR_CALL_EXPECTED);
           return null;
@@ -271,7 +365,14 @@ class InitializerResolver {
       }
     }
     if (!resolvedSuper) {
-      resolveImplicitSuperConstructorSend(constructor, functionNode);
+      constructorInvocation = resolveImplicitSuperConstructorSend();
+    }
+    if (isConst && isValidAsConstant) {
+      constructor.constantConstructor = new GenerativeConstantConstructor(
+          constructor.enclosingClass.thisType,
+          defaultValues,
+          fieldInitializers,
+          constructorInvocation);
     }
     return null;  // If there was no redirection always return null.
   }

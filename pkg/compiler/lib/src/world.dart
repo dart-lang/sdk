@@ -54,22 +54,12 @@ abstract class ClassWorld {
   /// including [cls] itself.
   Iterable<ClassElement> strictSubclassesOf(ClassElement cls);
 
-  /// Returns an iterable over the live classes that implement [cls] including
-  /// [cls] if it is live.
-  Iterable<ClassElement> subtypesOf(ClassElement cls);
-
   /// Returns an iterable over the live classes that implement [cls] _not_
   /// including [cls] if it is live.
   Iterable<ClassElement> strictSubtypesOf(ClassElement cls);
 
-  /// Returns `true` if any live class extends [cls].
-  bool hasAnySubclass(ClassElement cls);
-
   /// Returns `true` if any live class other than [cls] extends [cls].
   bool hasAnyStrictSubclass(ClassElement cls);
-
-  /// Returns `true` if any live class implements [cls].
-  bool hasAnySubtype(ClassElement cls);
 
   /// Returns `true` if any live class other than [cls] implements [cls].
   bool hasAnyStrictSubtype(ClassElement cls);
@@ -111,8 +101,10 @@ class World implements ClassWorld {
   ClassElement get doubleClass => compiler.doubleClass;
   ClassElement get stringClass => compiler.stringClass;
 
-  Map<Selector, Map<ti.TypeMask, TypedSelector>> canonicalizedValues =
-     new Map<Selector, Map<ti.TypeMask, TypedSelector>>();
+  /// Cache of [ti.FlatTypeMask]s grouped by the 8 possible values of the
+  /// [ti.FlatTypeMask.flags] property.
+  List<Map<ClassElement, ti.TypeMask>> canonicalizedTypeMasks =
+      new List<Map<ClassElement, ti.TypeMask>>.filled(8, null);
 
   bool checkInvariants(ClassElement cls, {bool mustBeInstantiated: true}) {
     return
@@ -157,60 +149,55 @@ class World implements ClassWorld {
     return compiler.resolverWorld.isInstantiated(cls);
   }
 
-  /// Returns an iterable over the live classes that extend [cls] including
-  /// [cls] itself.
+  /// Returns an iterable over the directly instantiated classes that extend
+  /// [cls] possibly including [cls] itself, if it is live.
   Iterable<ClassElement> subclassesOf(ClassElement cls) {
-    Set<ClassElement> subclasses = _subclasses[cls.declaration];
+    ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
+    if (hierarchy == null) return const <ClassElement>[];
+    assert(invariant(cls, isInstantiated(cls.declaration),
+        message: 'Class $cls has not been instantiated.'));
+    return hierarchy.subclasses();
+  }
+
+  /// Returns an iterable over the directly instantiated classes that extend
+  /// [cls] _not_ including [cls] itself.
+  Iterable<ClassElement> strictSubclassesOf(ClassElement cls) {
+    ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return const <ClassElement>[];
     assert(invariant(cls, isInstantiated(cls.declaration),
         message: 'Class $cls has not been instantiated.'));
-    return subclasses;
+    return subclasses.strictSubclasses();
   }
 
-  /// Returns an iterable over the live classes that extend [cls] _not_
-  /// including [cls] itself.
-  Iterable<ClassElement> strictSubclassesOf(ClassElement cls) {
-    return subclassesOf(cls).where((c) => c != cls);
-  }
-
-  /// Returns an iterable over the live classes that implement [cls] including
-  /// [cls] if it is live.
-  Iterable<ClassElement> subtypesOf(ClassElement cls) {
+  /// Returns an iterable over the directly instantiated that implement [cls]
+  /// _not_ including [cls].
+  Iterable<ClassElement> strictSubtypesOf(ClassElement cls) {
     Set<ClassElement> subtypes = _subtypes[cls.declaration];
     return subtypes != null ? subtypes : const <ClassElement>[];
   }
 
-  /// Returns an iterable over the live classes that implement [cls] _not_
-  /// including [cls] if it is live.
-  Iterable<ClassElement> strictSubtypesOf(ClassElement cls) {
-    return subtypesOf(cls).where((c) => c != cls);
-  }
-
-  /// Returns `true` if any live class extends [cls].
-  bool hasAnySubclass(ClassElement cls) {
-    return !subclassesOf(cls).isEmpty;
-  }
-
-  /// Returns `true` if any live class other than [cls] extends [cls].
+  /// Returns `true` if any directly instantiated class other than [cls] extends
+  /// [cls].
   bool hasAnyStrictSubclass(ClassElement cls) {
-    return !strictSubclassesOf(cls).isEmpty;
+    ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
+    if (subclasses == null) return false;
+    assert(invariant(cls, isInstantiated(cls.declaration),
+        message: 'Class $cls has not been instantiated.'));
+    return subclasses.isIndirectlyInstantiated;
   }
 
-  /// Returns `true` if any live class implements [cls].
-  bool hasAnySubtype(ClassElement cls) {
-    return !subtypesOf(cls).isEmpty;
-  }
-
-  /// Returns `true` if any live class other than [cls] implements [cls].
+  /// Returns `true` if any directly instantiated class other than [cls]
+  /// implements [cls].
   bool hasAnyStrictSubtype(ClassElement cls) {
     return !strictSubtypesOf(cls).isEmpty;
   }
 
-  /// Returns `true` if all live classes that implement [cls] extend it.
+  /// Returns `true` if all directly instantiated classes that implement [cls]
+  /// extend it.
   bool hasOnlySubclasses(ClassElement cls) {
-    Iterable<ClassElement> subtypes = subtypesOf(cls);
+    Iterable<ClassElement> subtypes = strictSubtypesOf(cls);
     if (subtypes == null) return true;
-    Iterable<ClassElement> subclasses = subclassesOf(cls);
+    Iterable<ClassElement> subclasses = strictSubclassesOf(cls);
     return subclasses != null && (subclasses.length == subtypes.length);
   }
 
@@ -318,8 +305,8 @@ class World implements ClassWorld {
 
   // We keep track of subtype and subclass relationships in four
   // distinct sets to make class hierarchy analysis faster.
-  final Map<ClassElement, Set<ClassElement>> _subclasses =
-      new Map<ClassElement, Set<ClassElement>>();
+  final Map<ClassElement, ClassHierarchyNode> _classHierarchyNodes =
+      <ClassElement, ClassHierarchyNode>{};
   final Map<ClassElement, Set<ClassElement>> _subtypes =
       new Map<ClassElement, Set<ClassElement>>();
 
@@ -353,7 +340,40 @@ class World implements ClassWorld {
         this.compiler = compiler,
         alreadyPopulated = compiler.cacheStrategy.newSet();
 
+  ClassHierarchyNode classHierarchyNode(ClassElement cls) {
+    return _classHierarchyNodes[cls];
+  }
+
   void populate() {
+
+    /// Ensure that a [ClassHierarchyNode] exists for [cls]. Updates the
+    /// `isDirectlyInstantiated` and `isIndirectlyInstantiated` property of the
+    /// node according the provided arguments and returns the node.
+    ClassHierarchyNode createClassHierarchyNodeForClass(
+        ClassElement cls,
+        {bool directlyInstantiated: false,
+         bool indirectlyInstantiated: false}) {
+      assert(isInstantiated(cls));
+
+      ClassHierarchyNode node = _classHierarchyNodes.putIfAbsent(cls, () {
+        ClassHierarchyNode node = new ClassHierarchyNode(cls);
+        if (cls.superclass != null) {
+          createClassHierarchyNodeForClass(cls.superclass,
+              indirectlyInstantiated:
+                directlyInstantiated || indirectlyInstantiated)
+              .addDirectSubclass(node);
+        }
+        return node;
+      });
+      if (directlyInstantiated) {
+        node.isDirectlyInstantiated = true;
+      }
+      if (indirectlyInstantiated) {
+        node.isIndirectlyInstantiated = true;
+      }
+      return node;
+    }
+
     void addSubtypes(ClassElement cls) {
       if (compiler.hasIncrementalSupport && !alreadyPopulated.add(cls)) {
         return;
@@ -362,6 +382,8 @@ class World implements ClassWorld {
       if (!cls.isResolved) {
         compiler.internalError(cls, 'Class "${cls.name}" is not resolved.');
       }
+
+      createClassHierarchyNodeForClass(cls, directlyInstantiated: true);
 
       for (DartType type in cls.allSupertypes) {
         Set<Element> subtypesOfSupertype =
@@ -373,10 +395,6 @@ class World implements ClassWorld {
       // implemented by that type on the superclasses.
       ClassElement superclass = cls.superclass;
       while (superclass != null) {
-        Set<Element> subclassesOfSuperclass =
-            _subclasses.putIfAbsent(superclass, () => new Set<ClassElement>());
-        subclassesOfSuperclass.add(cls);
-
         Set<Element> typesImplementedBySubclassesOfCls =
             _typesImplementedBySubclasses.putIfAbsent(
                 superclass, () => new Set<ClassElement>());
@@ -405,8 +423,8 @@ class World implements ClassWorld {
     users.add(mixinApplication);
   }
 
-  bool hasAnyUserDefinedGetter(Selector selector) {
-    return allFunctions.filter(selector).any((each) => each.isGetter);
+  bool hasAnyUserDefinedGetter(Selector selector, ti.TypeMask mask) {
+    return allFunctions.filter(selector, mask).any((each) => each.isGetter);
   }
 
   void registerUsedElement(Element element) {
@@ -415,16 +433,26 @@ class World implements ClassWorld {
     }
   }
 
-  VariableElement locateSingleField(Selector selector) {
-    Element result = locateSingleElement(selector);
+  VariableElement locateSingleField(Selector selector, ti.TypeMask mask) {
+    Element result = locateSingleElement(selector, mask);
     return (result != null && result.isField) ? result : null;
   }
 
-  Element locateSingleElement(Selector selector) {
-    ti.TypeMask mask = selector.mask == null
+  Element locateSingleElement(Selector selector, ti.TypeMask mask) {
+    mask = mask == null
         ? compiler.typesTask.dynamicType
-        : selector.mask;
-    return mask.locateSingleElement(selector, compiler);
+        : mask;
+    return mask.locateSingleElement(selector, mask, compiler);
+  }
+
+  ti.TypeMask extendMaskIfReachesAll(Selector selector, ti.TypeMask mask) {
+    bool canReachAll = true;
+    if (mask != null) {
+      canReachAll =
+          compiler.enabledInvokeOn &&
+          mask.needsNoSuchMethodHandling(selector, this);
+    }
+    return canReachAll ? compiler.typesTask.dynamicType : mask;
   }
 
   void addFunctionCalledInLoop(Element element) {
@@ -475,11 +503,11 @@ class World implements ClassWorld {
     sideEffectsFreeElements.add(element);
   }
 
-  SideEffects getSideEffectsOfSelector(Selector selector) {
+  SideEffects getSideEffectsOfSelector(Selector selector, ti.TypeMask mask) {
     // We're not tracking side effects of closures.
     if (selector.isClosureCall) return new SideEffects();
     SideEffects sideEffects = new SideEffects.empty();
-    for (Element e in allFunctions.filter(selector)) {
+    for (Element e in allFunctions.filter(selector, mask)) {
       if (e.isField) {
         if (selector.isGetter) {
           if (!fieldNeverChanges(e)) {

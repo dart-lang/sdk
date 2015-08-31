@@ -27,7 +27,6 @@ import '../dart2jslib.dart' show InterfaceType,
                                  isPrivateName;
 
 import '../dart_types.dart';
-import '../helpers/helpers.dart';
 
 import '../scanner/scannerlib.dart' show Token,
                                          isUserDefinableOperator,
@@ -188,16 +187,6 @@ abstract class Element implements Entity {
   ElementKind get kind;
   Element get enclosingElement;
   Link<MetadataAnnotation> get metadata;
-
-  /// Do not use [computeType] outside of the resolver; instead retrieve the
-  /// type from the corresponding field:
-  /// - `type` for fields, variables, type variable, and function elements.
-  /// - `thisType` or `rawType` for [TypeDeclarationElement]s (classes and
-  ///    typedefs), depending on the use case.
-  /// Trying to access a type that has not been computed in resolution is an
-  /// error and calling [computeType] covers that error.
-  /// This method will go away!
-  @deprecated DartType computeType(Compiler compiler);
 
   /// `true` if this element is a library.
   bool get isLibrary;
@@ -847,10 +836,8 @@ abstract class CompilationUnitElement extends Element {
   get enclosingElement;
 
   Script get script;
-  PartOf get partTag;
 
   void forEachLocalMember(f(Element element));
-  bool get hasMembers;
 
   int compareTo(CompilationUnitElement other);
 }
@@ -913,6 +900,15 @@ abstract class LibraryElement extends Element
 
   bool hasLibraryName();
   String getLibraryName();
+
+  /**
+   * Returns the library name (as defined by the library tag) or for script
+   * (which have no library tag) the script file name. The latter case is used
+   * to provide a 'library name' for scripts to use for instance in dartdoc.
+   *
+   * Note: the returned filename is still escaped ("a%20b.dart" instead of
+   * "a b.dart").
+   */
   String getLibraryOrScriptName();
 
   int compareTo(LibraryElement other);
@@ -987,6 +983,9 @@ abstract class LocalElement extends Element
 
 /// A top level, static or instance field, a formal parameter or local variable.
 abstract class VariableElement extends ExecutableElement {
+  @override
+  VariableDefinitions get node;
+
   Expression get initializer;
 
   /// The constant expression defining the value of the variable if `const`,
@@ -1090,8 +1089,8 @@ abstract class InitializingFormalElement extends ParameterElement {
  * field named "x", a getter named "x", and a setter named "x=".
  */
 abstract class AbstractFieldElement extends Element {
-  FunctionElement get getter;
-  FunctionElement get setter;
+  GetterElement get getter;
+  SetterElement get setter;
 }
 
 abstract class FunctionSignature {
@@ -1128,14 +1127,6 @@ abstract class FunctionElement extends Element
 
   FunctionElement get patch;
   FunctionElement get origin;
-
-  /// Do not use [computeSignature] outside of the resolver; instead retrieve
-  /// the signature through the [functionSignature] field.
-  /// Trying to access a function signature that has not been computed in
-  /// resolution is an error and calling [computeSignature] covers that error.
-  /// This method will go away!
-  // TODO(johnniwinther): Rename to `ensureFunctionSignature`.
-  @deprecated FunctionSignature computeSignature(Compiler compiler);
 
   bool get hasFunctionSignature;
 
@@ -1292,6 +1283,15 @@ abstract class ConstructorBodyElement extends MethodElement {
 /// [TypeDeclarationElement] defines the common interface for class/interface
 /// declarations and typedefs.
 abstract class TypeDeclarationElement extends Element implements AstElement {
+  /// Do not use [computeType] outside of the resolver; instead retrieve the
+  /// type from the [thisType] or [rawType], depending on the use case.
+  ///
+  /// Trying to access a type that has not been computed in resolution is an
+  /// error and calling [computeType] covers that error.
+  /// This method will go away!
+  @deprecated
+  GenericType computeType(Compiler compiler);
+
   /**
    * The `this type` for this type declaration.
    *
@@ -1500,6 +1500,9 @@ abstract class TypeVariableElement extends Element
   /// The class or typedef on which this type variable is defined.
   TypeDeclarationElement get typeDeclaration;
 
+  /// The index of this type variable within its type declaration.
+  int get index;
+
   /// The [type] defined by the type variable.
   TypeVariableType get type;
 
@@ -1524,6 +1527,15 @@ abstract class MetadataAnnotation implements Spannable {
 
 /// An [Element] that has a type.
 abstract class TypedElement extends Element {
+  /// Do not use [computeType] outside of the resolver; instead retrieve the
+  /// type from  [type] property.
+  ///
+  /// Trying to access a type that has not been computed in resolution is an
+  /// error and calling [computeType] covers that error.
+  /// This method will go away!
+  @deprecated
+  DartType computeType(Compiler compiler);
+
   DartType get type;
 }
 

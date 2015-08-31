@@ -148,7 +148,7 @@ class Unmarker : public ObjectVisitor {
 
   static void UnmarkAll(Isolate* isolate) {
     Unmarker unmarker(isolate);
-    isolate->heap()->VisitObjects(&unmarker);
+    isolate->heap()->IterateObjects(&unmarker);
   }
 
  private:
@@ -172,13 +172,8 @@ ObjectGraph::~ObjectGraph() {
 
 void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
   NoSafepointScope no_safepoint_scope_;
-  PageSpace* old_space = isolate()->heap()->old_space();
-  MonitorLocker ml(old_space->tasks_lock());
-  while (old_space->tasks() > 0) {
-    ml.Wait();
-  }
   Stack stack(isolate());
-  isolate()->VisitObjectPointers(&stack, false, false);
+  isolate()->IterateObjectPointers(&stack, false, false);
   stack.TraverseGraph(visitor);
   Unmarker::UnmarkAll(isolate());
 }
@@ -187,11 +182,6 @@ void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
 void ObjectGraph::IterateObjectsFrom(const Object& root,
                                      ObjectGraph::Visitor* visitor) {
   NoSafepointScope no_safepoint_scope_;
-  PageSpace* old_space = isolate()->heap()->old_space();
-  MonitorLocker ml(old_space->tasks_lock());
-  while (old_space->tasks() > 0) {
-    ml.Wait();
-  }
   Stack stack(isolate());
   RawObject* root_raw = root.raw();
   stack.VisitPointer(&root_raw);
@@ -266,14 +256,30 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
   // We cannot use a GrowableObjectArray, since we must not trigger GC.
   RetainingPathVisitor(RawObject* obj, const Array& path)
       : obj_(obj), path_(path), length_(0) {
-    ASSERT(Isolate::Current()->no_safepoint_scope_depth() != 0);
+    ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0);
   }
 
   intptr_t length() const { return length_; }
 
+  bool ShouldSkip(RawObject* obj) {
+    // A retaining path through ICData is never the only retaining path,
+    // and it is less informative than its alternatives.
+    intptr_t cid = obj->GetClassId();
+    switch (cid) {
+    case kICDataCid:
+      return true;
+    default:
+      return false;
+    }
+  }
+
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     if (it->Get() != obj_) {
-      return kProceed;
+      if (ShouldSkip(it->Get())) {
+        return kBacktrack;
+      } else {
+        return kProceed;
+      }
     } else {
       HANDLESCOPE(Isolate::Current());
       Object& current = Object::Handle();
@@ -323,7 +329,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
                            Object* scratch)
     : ObjectVisitor(isolate), ObjectPointerVisitor(isolate), source_(NULL),
       target_(target), references_(references), scratch_(scratch), length_(0) {
-    ASSERT(Isolate::Current()->no_safepoint_scope_depth() != 0);
+    ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0);
   }
 
   intptr_t length() const { return length_; }
@@ -377,7 +383,7 @@ intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
   Object& scratch = Object::Handle();
   NoSafepointScope no_safepoint_scope_;
   InboundReferencesVisitor visitor(isolate(), obj->raw(), references, &scratch);
-  isolate()->heap()->VisitObjects(&visitor);
+  isolate()->heap()->IterateObjects(&visitor);
   return visitor.length();
 }
 
@@ -466,7 +472,7 @@ intptr_t ObjectGraph::Serialize(WriteStream* stream) {
   stream->WriteUnsigned(0);
   {
     WritePointerVisitor ptr_writer(isolate(), stream);
-    isolate()->VisitObjectPointers(&ptr_writer, false, false);
+    isolate()->IterateObjectPointers(&ptr_writer, false, false);
   }
   stream->WriteUnsigned(0);
   IterateObjects(&visitor);

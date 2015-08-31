@@ -303,7 +303,7 @@ class SdkLibraryImpl implements SdkLibrary {
    * The short name of the library. This is the name used after 'dart:' in a
    * URI.
    */
-  String _shortName = null;
+  final String shortName;
 
   /**
    * The path to the file defining the library. The path is relative to the
@@ -337,9 +337,7 @@ class SdkLibraryImpl implements SdkLibrary {
    * Initialize a newly created library to represent the library with the given
    * [name].
    */
-  SdkLibraryImpl(String name) {
-    this._shortName = name;
-  }
+  SdkLibraryImpl(this.shortName);
 
   /**
    * Set whether the library is documented.
@@ -372,9 +370,6 @@ class SdkLibraryImpl implements SdkLibrary {
 
   @override
   bool get isVmLibrary => (_platforms & VM_PLATFORM) != 0;
-
-  @override
-  String get shortName => _shortName;
 
   /**
    * Record that this library can be compiled to JavaScript by dart2js.

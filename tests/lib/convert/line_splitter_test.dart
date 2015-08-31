@@ -11,9 +11,12 @@ import 'dart:math' as MATH;
 
 void main() {
   testSimpleConvert();
+  testSplit();
+  testSplitWithOffsets();
   testManyLines();
   testReadLine1();
   testReadLine2();
+  testChunkedConversion();
 }
 
 void testManyLines() {
@@ -135,4 +138,91 @@ void testReadLine2() {
   controller.add("\nLine6\n".codeUnits);
   controller.close();
   Expect.equals(expectedLines.length, index);
+}
+
+
+void testSplit() {
+  var test = """line1
+line2
+line3""";
+
+
+  var result = LineSplitter.split(test).toList();
+
+  Expect.listEquals(['line1', 'line2', 'line3'], result);
+
+  test = "Line1\nLine2\r\nLine3\rLi"
+      "ne4\n"
+       "\n\n\r\n\r\n\r\r";
+
+  result = LineSplitter.split(test).toList();
+
+  Expect.listEquals(
+      ['Line1', 'Line2', 'Line3', 'Line4', '', '', '', '', '', ''],
+      result);
+}
+
+void testSplitWithOffsets() {
+  var test = """line1
+line2
+line3""";
+
+  var result = LineSplitter.split(test, 4).toList();
+  Expect.listEquals(['1', 'line2', 'line3'], result);
+
+  result = LineSplitter.split(test, 5).toList();
+  Expect.listEquals(['', 'line2', 'line3'], result);
+
+  result = LineSplitter.split(test, 6).toList();
+  Expect.listEquals(['line2', 'line3'], result);
+
+  result = LineSplitter.split(test, 0, 8).toList();
+  Expect.listEquals(['line1', 'li'], result);
+
+  result = LineSplitter.split(test, 6, 11).toList();
+  Expect.listEquals(['line2'], result);
+
+  test = "Line1\nLine2\r\nLine3\rLi"
+      "ne4\n"
+       "\n\n\r\n\r\n\r\r";
+
+  result = LineSplitter.split(test).toList();
+
+  Expect.listEquals(
+      ['Line1', 'Line2', 'Line3', 'Line4', '', '', '', '', '', ''],
+      result);
+
+  test = "a\n\nb\r\nc\n\rd\r\re\r\n\nf\r\n";
+  result = LineSplitter.split(test).toList();
+  Expect.listEquals(["a", "", "b", "c", "", "d", "", "e", "", "f"], result);
+}
+
+void testChunkedConversion() {
+  // Test any split of this complex string.
+  var test = "a\n\nb\r\nc\n\rd\r\re\r\n\nf\rg\nh\r\n";
+  var result = ["a", "", "b","c", "", "d", "", "e", "", "f", "g", "h"];
+  for (int i = 0; i < test.length; i++) {
+    var output = [];
+    var splitter = new LineSplitter();
+    var outSink = new ChunkedConversionSink.withCallback(output.addAll);
+    var sink = splitter.startChunkedConversion(outSink);
+    sink.addSlice(test, 0, i, false);
+    sink.addSlice(test, i, test.length, false);
+    sink.close();
+    Expect.listEquals(result, output);
+  }
+
+  // Test the string split into three parts in any way.
+  for (int i = 0; i < test.length; i++) {
+    for (int j = i; j < test.length; j++) {
+      var output = [];
+      var splitter = new LineSplitter();
+      var outSink = new ChunkedConversionSink.withCallback(output.addAll);
+      var sink = splitter.startChunkedConversion(outSink);
+      sink.addSlice(test, 0, i, false);
+      sink.addSlice(test, i, j, false);
+      sink.addSlice(test, j, test.length, true);
+      Expect.listEquals(result, output);
+    }
+  }
 }

@@ -1409,14 +1409,15 @@ void DbgMsgQueueList::IsolateEventHandler(Dart_IsolateId isolate_id,
     msg_queue->SendIsolateEvent(isolate_id, kind);
   } else {
     DbgMsgQueue* msg_queue = GetIsolateMsgQueue(isolate_id);
-    ASSERT(msg_queue != NULL);
-    msg_queue->SendQueuedMsgs();
-    msg_queue->SendIsolateEvent(isolate_id, kind);
-    if (kind == kInterrupted) {
-      msg_queue->MessageLoop();
-    } else {
-      ASSERT(kind == kShutdown);
-      RemoveIsolateMsgQueue(isolate_id);
+    if (msg_queue != NULL) {
+      msg_queue->SendQueuedMsgs();
+      msg_queue->SendIsolateEvent(isolate_id, kind);
+      if (kind == kInterrupted) {
+        msg_queue->MessageLoop();
+      } else {
+        ASSERT(kind == kShutdown);
+        RemoveIsolateMsgQueue(isolate_id);
+      }
     }
   }
   Dart_ExitScope();

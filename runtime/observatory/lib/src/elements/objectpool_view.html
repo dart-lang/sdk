@@ -1,0 +1,57 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="class_ref.html">
+<link rel="import" href="error_view.html">
+<link rel="import" href="field_ref.html">
+<link rel="import" href="function_ref.html">
+<link rel="import" href="inbound_reference.html">
+<link rel="import" href="instance_ref.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="object_common.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="eval_link.html">
+
+<polymer-element name="objectpool-view" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <vm-nav-menu vm="{{ pool.isolate.vm }}"></vm-nav-menu>
+      <isolate-nav-menu isolate="{{ pool.isolate }}"></isolate-nav-menu>
+      <nav-menu link="." anchor="object" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <object-common object="{{ pool }}"></object-common>
+
+      <br><br>
+
+      entries ({{ pool.entries.length }})
+      <div class="memberList">
+        <template repeat="{{ index in pool.entries.asMap().keys }}">
+          <div class="memberItem">
+            <div class="memberName">[{{ index }}]</div>
+            <div class="memberValue">
+              <template if="{{ isServiceObject(pool.entries[index]) }}">
+                <any-service-ref ref="{{ pool.entries[index] }}">
+                </any-service-ref>
+              </template>
+              <template if="{{ !isServiceObject(pool.entries[index]) }}">
+                0x{{ pool.entries[index].toRadixString(16) }}
+                <template if="{{ annotatedEntries != null && annotatedEntries[index] != null }}">
+                  (<any-service-ref ref="{{ annotatedEntries[index] }}"></any-service-ref>)
+                </template>
+             </template>
+            </div>
+          </div>
+        </template>
+      </div>
+
+    </div>
+  
+    <hr>
+    <view-footer></view-footer>
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="objectpool_view.dart"></script>

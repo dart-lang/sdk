@@ -207,6 +207,66 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Object_instanceOfNum, 2) {
+  const Instance& instance =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(1));
+  bool is_instance_of = instance.IsNumber();
+  if (negate.value()) {
+    is_instance_of = !is_instance_of;
+  }
+  return Bool::Get(is_instance_of).raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(Object_instanceOfInt, 2) {
+  const Instance& instance =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(1));
+  bool is_instance_of = instance.IsInteger();
+  if (negate.value()) {
+    is_instance_of = !is_instance_of;
+  }
+  return Bool::Get(is_instance_of).raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(Object_instanceOfSmi, 2) {
+  const Instance& instance =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(1));
+  bool is_instance_of = instance.IsSmi();
+  if (negate.value()) {
+    is_instance_of = !is_instance_of;
+  }
+  return Bool::Get(is_instance_of).raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(Object_instanceOfDouble, 2) {
+  const Instance& instance =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(1));
+  bool is_instance_of = instance.IsDouble();
+  if (negate.value()) {
+    is_instance_of = !is_instance_of;
+  }
+  return Bool::Get(is_instance_of).raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(Object_instanceOfString, 2) {
+  const Instance& instance =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(1));
+  bool is_instance_of = instance.IsString();
+  if (negate.value()) {
+    is_instance_of = !is_instance_of;
+  }
+  return Bool::Get(is_instance_of).raw();
+}
+
+
 DEFINE_NATIVE_ENTRY(Object_as, 4) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   // Instantiator at position 1 is not used. It is passed along so that the call
@@ -315,6 +375,13 @@ DEFINE_NATIVE_ENTRY(LibraryPrefix_loadError, 1) {
   // in the isolate's death.
   const Instance& error = Instance::Handle(prefix.LoadError());
   return error.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(LibraryPrefix_isLoaded, 1) {
+  const LibraryPrefix& prefix =
+      LibraryPrefix::CheckedHandle(arguments->NativeArgAt(0));
+  return Bool::Get(prefix.is_loaded()).raw();
 }
 
 

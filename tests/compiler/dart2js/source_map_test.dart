@@ -30,7 +30,7 @@ void find(String text, String substring, bool expected) {
   }
 }
 
-void test({String out, String sourceMap, String mapping, String file}) {
+test({String out, String sourceMap, String mapping, String file}) async {
   OutputCollector collector = new OutputCollector();
   List<String> options = <String>[];
   if (out != null) {
@@ -39,35 +39,37 @@ void test({String out, String sourceMap, String mapping, String file}) {
   if (sourceMap != null) {
     options.add("--source-map=$sourceMap");
   }
-  var compiler = compilerFor(SOURCE,
-                             showDiagnostics: true,
-                             outputProvider: collector,
-                             options: options);
-  asyncTest(() => compiler.runCompiler(Uri.parse('memory:/main.dart')).then(
-      (_) {
-    String jsOutput = collector.getOutput('', 'js');
-    Expect.isNotNull(jsOutput);
-    if (mapping != null) {
-      find(jsOutput, '//# sourceMappingURL=$mapping', true);
-    } else {
-      find(jsOutput, '//# sourceMappingURL=', false);
-    }
-    String jsSourceMapOutput = collector.getOutput('', 'js.map');
-    Expect.isNotNull(jsSourceMapOutput);
-    if (file != null) {
-      find(jsSourceMapOutput, '"file": "$file"', true);
-    } else {
-      find(jsSourceMapOutput, '"file": ', false);
-    }
-  }));
+
+  await runCompiler(
+      entryPoint: Uri.parse('memory:/main.dart'),
+      memorySourceFiles: SOURCE,
+      showDiagnostics: true,
+      outputProvider: collector,
+      options: options);
+  String jsOutput = collector.getOutput('', 'js');
+  Expect.isNotNull(jsOutput);
+  if (mapping != null) {
+    find(jsOutput, '//# sourceMappingURL=$mapping', true);
+  } else {
+    find(jsOutput, '//# sourceMappingURL=', false);
+  }
+  String jsSourceMapOutput = collector.getOutput('', 'js.map');
+  Expect.isNotNull(jsSourceMapOutput);
+  if (file != null) {
+    find(jsSourceMapOutput, '"file": "$file"', true);
+  } else {
+    find(jsSourceMapOutput, '"file": ', false);
+  }
 }
 
 void main() {
-  test();
-  test(sourceMap: 'file:/out.js.map');
-  test(out: 'file:/out.js');
-  test(out: 'file:/out.js', sourceMap: 'file:/out.js.map',
-       file: 'out.js', mapping: 'out.js.map');
-  test(out: 'file:/dir/out.js', sourceMap: 'file:/dir/out.js.map',
-       file: 'out.js', mapping: 'out.js.map');
+  asyncTest(() async {
+    await test();
+    await test(sourceMap: 'file:/out.js.map');
+    await test(out: 'file:/out.js');
+    await test(out: 'file:/out.js', sourceMap: 'file:/out.js.map',
+               file: 'out.js', mapping: 'out.js.map');
+    await test(out: 'file:/dir/out.js', sourceMap: 'file:/dir/out.js.map',
+               file: 'out.js', mapping: 'out.js.map');
+  });
 }

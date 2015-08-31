@@ -243,6 +243,23 @@ final Matcher isAnalysisSetAnalysisRootsParams = new LazyMatcher(() => new Match
 final Matcher isAnalysisSetAnalysisRootsResult = isNull;
 
 /**
+ * analysis.setGeneralSubscriptions params
+ *
+ * {
+ *   "subscriptions": List<GeneralAnalysisService>
+ * }
+ */
+final Matcher isAnalysisSetGeneralSubscriptionsParams = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.setGeneralSubscriptions params", {
+    "subscriptions": isListOf(isGeneralAnalysisService)
+  }));
+
+/**
+ * analysis.setGeneralSubscriptions result
+ */
+final Matcher isAnalysisSetGeneralSubscriptionsResult = isNull;
+
+/**
  * analysis.setPriorityFiles params
  *
  * {
@@ -313,6 +330,18 @@ final Matcher isAnalysisUpdateOptionsParams = new LazyMatcher(() => new MatchesJ
  * analysis.updateOptions result
  */
 final Matcher isAnalysisUpdateOptionsResult = isNull;
+
+/**
+ * analysis.analyzedFiles params
+ *
+ * {
+ *   "directories": List<FilePath>
+ * }
+ */
+final Matcher isAnalysisAnalyzedFilesParams = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.analyzedFiles params", {
+    "directories": isListOf(isFilePath)
+  }));
 
 /**
  * analysis.errors params
@@ -820,6 +849,30 @@ final Matcher isEditSortMembersParams = new LazyMatcher(() => new MatchesJsonObj
  */
 final Matcher isEditSortMembersResult = new LazyMatcher(() => new MatchesJsonObject(
   "edit.sortMembers result", {
+    "edit": isSourceFileEdit
+  }));
+
+/**
+ * edit.organizeDirectives params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ */
+final Matcher isEditOrganizeDirectivesParams = new LazyMatcher(() => new MatchesJsonObject(
+  "edit.organizeDirectives params", {
+    "file": isFilePath
+  }));
+
+/**
+ * edit.organizeDirectives result
+ *
+ * {
+ *   "edit": SourceFileEdit
+ * }
+ */
+final Matcher isEditOrganizeDirectivesResult = new LazyMatcher(() => new MatchesJsonObject(
+  "edit.organizeDirectives result", {
     "edit": isSourceFileEdit
   }));
 
@@ -1345,6 +1398,17 @@ final Matcher isFoldingRegion = new LazyMatcher(() => new MatchesJsonObject(
   }));
 
 /**
+ * GeneralAnalysisService
+ *
+ * enum {
+ *   ANALYZED_FILES
+ * }
+ */
+final Matcher isGeneralAnalysisService = new MatchesEnum("GeneralAnalysisService", [
+  "ANALYZED_FILES"
+]);
+
+/**
  * HighlightRegion
  *
  * {
@@ -1373,6 +1437,10 @@ final Matcher isHighlightRegion = new LazyMatcher(() => new MatchesJsonObject(
  *   CONSTRUCTOR
  *   DIRECTIVE
  *   DYNAMIC_TYPE
+ *   DYNAMIC_LOCAL_VARIABLE_DECLARATION
+ *   DYNAMIC_LOCAL_VARIABLE_REFERENCE
+ *   DYNAMIC_PARAMETER_DECLARATION
+ *   DYNAMIC_PARAMETER_REFERENCE
  *   ENUM
  *   ENUM_CONSTANT
  *   FIELD
@@ -1383,16 +1451,29 @@ final Matcher isHighlightRegion = new LazyMatcher(() => new MatchesJsonObject(
  *   GETTER_DECLARATION
  *   IDENTIFIER_DEFAULT
  *   IMPORT_PREFIX
+ *   INSTANCE_FIELD_DECLARATION
+ *   INSTANCE_FIELD_REFERENCE
+ *   INSTANCE_GETTER_DECLARATION
+ *   INSTANCE_GETTER_REFERENCE
+ *   INSTANCE_METHOD_DECLARATION
+ *   INSTANCE_METHOD_REFERENCE
+ *   INSTANCE_SETTER_DECLARATION
+ *   INSTANCE_SETTER_REFERENCE
+ *   INVALID_STRING_ESCAPE
  *   KEYWORD
  *   LABEL
+ *   LIBRARY_NAME
  *   LITERAL_BOOLEAN
  *   LITERAL_DOUBLE
  *   LITERAL_INTEGER
  *   LITERAL_LIST
  *   LITERAL_MAP
  *   LITERAL_STRING
+ *   LOCAL_FUNCTION_DECLARATION
+ *   LOCAL_FUNCTION_REFERENCE
  *   LOCAL_VARIABLE
  *   LOCAL_VARIABLE_DECLARATION
+ *   LOCAL_VARIABLE_REFERENCE
  *   METHOD
  *   METHOD_DECLARATION
  *   METHOD_DECLARATION_STATIC
@@ -1400,8 +1481,26 @@ final Matcher isHighlightRegion = new LazyMatcher(() => new MatchesJsonObject(
  *   PARAMETER
  *   SETTER_DECLARATION
  *   TOP_LEVEL_VARIABLE
+ *   PARAMETER_DECLARATION
+ *   PARAMETER_REFERENCE
+ *   STATIC_FIELD_DECLARATION
+ *   STATIC_GETTER_DECLARATION
+ *   STATIC_GETTER_REFERENCE
+ *   STATIC_METHOD_DECLARATION
+ *   STATIC_METHOD_REFERENCE
+ *   STATIC_SETTER_DECLARATION
+ *   STATIC_SETTER_REFERENCE
+ *   TOP_LEVEL_FUNCTION_DECLARATION
+ *   TOP_LEVEL_FUNCTION_REFERENCE
+ *   TOP_LEVEL_GETTER_DECLARATION
+ *   TOP_LEVEL_GETTER_REFERENCE
+ *   TOP_LEVEL_SETTER_DECLARATION
+ *   TOP_LEVEL_SETTER_REFERENCE
+ *   TOP_LEVEL_VARIABLE_DECLARATION
  *   TYPE_NAME_DYNAMIC
  *   TYPE_PARAMETER
+ *   UNRESOLVED_INSTANCE_MEMBER_REFERENCE
+ *   VALID_STRING_ESCAPE
  * }
  */
 final Matcher isHighlightRegionType = new MatchesEnum("HighlightRegionType", [
@@ -1414,6 +1513,10 @@ final Matcher isHighlightRegionType = new MatchesEnum("HighlightRegionType", [
   "CONSTRUCTOR",
   "DIRECTIVE",
   "DYNAMIC_TYPE",
+  "DYNAMIC_LOCAL_VARIABLE_DECLARATION",
+  "DYNAMIC_LOCAL_VARIABLE_REFERENCE",
+  "DYNAMIC_PARAMETER_DECLARATION",
+  "DYNAMIC_PARAMETER_REFERENCE",
   "ENUM",
   "ENUM_CONSTANT",
   "FIELD",
@@ -1424,16 +1527,29 @@ final Matcher isHighlightRegionType = new MatchesEnum("HighlightRegionType", [
   "GETTER_DECLARATION",
   "IDENTIFIER_DEFAULT",
   "IMPORT_PREFIX",
+  "INSTANCE_FIELD_DECLARATION",
+  "INSTANCE_FIELD_REFERENCE",
+  "INSTANCE_GETTER_DECLARATION",
+  "INSTANCE_GETTER_REFERENCE",
+  "INSTANCE_METHOD_DECLARATION",
+  "INSTANCE_METHOD_REFERENCE",
+  "INSTANCE_SETTER_DECLARATION",
+  "INSTANCE_SETTER_REFERENCE",
+  "INVALID_STRING_ESCAPE",
   "KEYWORD",
   "LABEL",
+  "LIBRARY_NAME",
   "LITERAL_BOOLEAN",
   "LITERAL_DOUBLE",
   "LITERAL_INTEGER",
   "LITERAL_LIST",
   "LITERAL_MAP",
   "LITERAL_STRING",
+  "LOCAL_FUNCTION_DECLARATION",
+  "LOCAL_FUNCTION_REFERENCE",
   "LOCAL_VARIABLE",
   "LOCAL_VARIABLE_DECLARATION",
+  "LOCAL_VARIABLE_REFERENCE",
   "METHOD",
   "METHOD_DECLARATION",
   "METHOD_DECLARATION_STATIC",
@@ -1441,8 +1557,26 @@ final Matcher isHighlightRegionType = new MatchesEnum("HighlightRegionType", [
   "PARAMETER",
   "SETTER_DECLARATION",
   "TOP_LEVEL_VARIABLE",
+  "PARAMETER_DECLARATION",
+  "PARAMETER_REFERENCE",
+  "STATIC_FIELD_DECLARATION",
+  "STATIC_GETTER_DECLARATION",
+  "STATIC_GETTER_REFERENCE",
+  "STATIC_METHOD_DECLARATION",
+  "STATIC_METHOD_REFERENCE",
+  "STATIC_SETTER_DECLARATION",
+  "STATIC_SETTER_REFERENCE",
+  "TOP_LEVEL_FUNCTION_DECLARATION",
+  "TOP_LEVEL_FUNCTION_REFERENCE",
+  "TOP_LEVEL_GETTER_DECLARATION",
+  "TOP_LEVEL_GETTER_REFERENCE",
+  "TOP_LEVEL_SETTER_DECLARATION",
+  "TOP_LEVEL_SETTER_REFERENCE",
+  "TOP_LEVEL_VARIABLE_DECLARATION",
   "TYPE_NAME_DYNAMIC",
-  "TYPE_PARAMETER"
+  "TYPE_PARAMETER",
+  "UNRESOLVED_INSTANCE_MEMBER_REFERENCE",
+  "VALID_STRING_ESCAPE"
 ]);
 
 /**
@@ -1826,15 +1960,18 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *
  * enum {
  *   CONTENT_MODIFIED
+ *   FILE_NOT_ANALYZED
  *   FORMAT_INVALID_FILE
  *   FORMAT_WITH_ERRORS
  *   GET_ERRORS_INVALID_FILE
+ *   GET_NAVIGATION_INVALID_FILE
  *   INVALID_ANALYSIS_ROOT
  *   INVALID_EXECUTION_CONTEXT
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
  *   NO_INDEX_GENERATED
+ *   ORGANIZE_DIRECTIVES_ERROR
  *   REFACTORING_REQUEST_CANCELLED
  *   SERVER_ALREADY_STARTED
  *   SERVER_ERROR
@@ -1848,15 +1985,18 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  */
 final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "CONTENT_MODIFIED",
+  "FILE_NOT_ANALYZED",
   "FORMAT_INVALID_FILE",
   "FORMAT_WITH_ERRORS",
   "GET_ERRORS_INVALID_FILE",
+  "GET_NAVIGATION_INVALID_FILE",
   "INVALID_ANALYSIS_ROOT",
   "INVALID_EXECUTION_CONTEXT",
   "INVALID_OVERLAY_CHANGE",
   "INVALID_PARAMETER",
   "INVALID_REQUEST",
   "NO_INDEX_GENERATED",
+  "ORGANIZE_DIRECTIVES_ERROR",
   "REFACTORING_REQUEST_CANCELLED",
   "SERVER_ALREADY_STARTED",
   "SERVER_ERROR",

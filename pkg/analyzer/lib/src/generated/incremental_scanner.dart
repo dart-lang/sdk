@@ -224,7 +224,6 @@ class IncrementalScanner {
   Token _scanRange(int start, int end) {
     Scanner scanner = new Scanner(
         source, new CharacterRangeReader(reader, start, end), errorListener);
-    scanner.enableNullAwareOperators = _options.enableNullAwareOperators;
     return scanner.tokenize();
   }
 

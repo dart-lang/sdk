@@ -19,8 +19,12 @@ class RuntimeEntry;
   V(VM)            /* Catch all */                                             \
   V(CompileOptimized)                                                          \
   V(CompileUnoptimized)                                                        \
+  V(CompileClass)                                                              \
   V(CompileTopLevel)                                                           \
   V(CompileScanner)                                                            \
+  V(CompileParseFunction)                                                      \
+  V(CompileParseRegExp)                                                        \
+  V(CompileFlowGraphBuilder)                                                   \
   V(Dart)                                                                      \
   V(GCNewSpace)                                                                \
   V(GCOldSpace)                                                                \
@@ -39,6 +43,13 @@ class VMTag : public AllStatic {
     kNumVMTags,
     kRootTagId,       // Special tag used as root of all profiles.
     kTruncatedTagId,  // Special tag used to indicate a truncated call stack.
+    // ProfileInfo tags.
+    kNoneCodeTagId,
+    kOptimizedCodeTagId,
+    kUnoptimizedCodeTagId,
+    kNativeCodeTagId,
+    kInlineStartCodeTagId,
+    kInlineEndCodeTagId,
     kLastTagId,
   };
 
@@ -64,7 +75,7 @@ class VMTag : public AllStatic {
 
 class VMTagScope : StackResource {
  public:
-  VMTagScope(Isolate* isolate, uword tag);
+  VMTagScope(Isolate* isolate, uword tag, bool conditional_set = true);
   ~VMTagScope();
  private:
   uword previous_tag_;

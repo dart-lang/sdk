@@ -12,6 +12,7 @@
 #include "vm/object.h"
 #include "vm/service_event.h"
 #include "vm/service.h"
+#include "vm/timeline.h"
 #include "vm/unicode.h"
 
 
@@ -26,7 +27,7 @@ JSONStream::JSONStream(intptr_t buf_size)
                        ObjectIdRing::kAllocateId),
       id_zone_(&default_id_zone_),
       reply_port_(ILLEGAL_PORT),
-      seq_(""),
+      seq_(Instance::Handle(Instance::null())),
       method_(""),
       param_keys_(NULL),
       param_values_(NULL),
@@ -40,12 +41,12 @@ JSONStream::~JSONStream() {
 
 void JSONStream::Setup(Zone* zone,
                        Dart_Port reply_port,
-                       const String& seq,
+                       const Instance& seq,
                        const String& method,
                        const Array& param_keys,
                        const Array& param_values) {
   set_reply_port(reply_port);
-  seq_ = seq.ToCString();
+  seq_ ^= seq.raw();
   method_ = method.ToCString();
 
   String& string_iterator = String::Handle();
@@ -73,13 +74,13 @@ void JSONStream::Setup(Zone* zone,
               isolate_name, method_);
     setup_time_micros_ = OS::GetCurrentTimeMicros();
   }
-  buffer_.Printf("{\"json-rpc\":\"2.0\", \"result\":");
+  buffer_.Printf("{\"jsonrpc\":\"2.0\", \"result\":");
 }
 
 
 void JSONStream::SetupError() {
   buffer_.Clear();
-  buffer_.Printf("{\"json-rpc\":\"2.0\", \"error\":");
+  buffer_.Printf("{\"jsonrpc\":\"2.0\", \"error\":");
 }
 
 
@@ -130,14 +131,12 @@ void JSONStream::PrintError(intptr_t code,
     JSONObject data(&jsobj, "data");
     PrintRequest(&data, this);
     if (details_format != NULL) {
-      Isolate* isolate = Isolate::Current();
-
       va_list args;
       va_start(args, details_format);
       intptr_t len = OS::VSNPrint(NULL, 0, details_format, args);
       va_end(args);
 
-      char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
+      char* buffer = Thread::Current()->zone()->Alloc<char>(len + 1);
       va_list args2;
       va_start(args2, details_format);
       OS::VSNPrint(buffer, (len + 1), details_format, args2);
@@ -163,8 +162,22 @@ void JSONStream::PostReply() {
   if (FLAG_trace_service) {
     process_delta_micros = OS::GetCurrentTimeMicros() - setup_time_micros_;
   }
-  // TODO(turnidge): Handle non-string sequence numbers.
-  buffer_.Printf(", \"id\":\"%s\"}", seq());
+
+  if (seq_.IsString()) {
+    const String& str = String::Cast(seq_);
+    PrintProperty("id", str.ToCString());
+  } else if (seq_.IsInteger()) {
+    const Integer& integer = Integer::Cast(seq_);
+    PrintProperty64("id", integer.AsInt64Value());
+  } else if (seq_.IsDouble()) {
+    const Double& dbl = Double::Cast(seq_);
+    PrintProperty("id", dbl.value());
+  } else if (seq_.IsNull()) {
+    // JSON-RPC 2.0 says that a request with a null ID shouldn't get a reply.
+    return;
+  }
+  buffer_.AddChar('}');
+
   const String& reply = String::Handle(String::New(ToCString()));
   ASSERT(!reply.IsNull());
 
@@ -271,9 +284,50 @@ void JSONStream::PrintValue64(int64_t i) {
 }
 
 
+void JSONStream::PrintValueTimeMillis(int64_t millis) {
+  PrintValue(static_cast<double>(millis));
+}
+
+
 void JSONStream::PrintValue(double d) {
   PrintCommaIfNeeded();
   buffer_.Printf("%f", d);
+}
+
+
+static const char base64_digits[65] =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char base64_pad = '=';
+
+
+void JSONStream::PrintValueBase64(const uint8_t* bytes, intptr_t length) {
+  PrintCommaIfNeeded();
+  buffer_.AddChar('"');
+
+  intptr_t odd_bits = length % 3;
+  intptr_t even_bits = length - odd_bits;
+  for (intptr_t i = 0; i < even_bits; i += 3) {
+    intptr_t triplet = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2];
+    buffer_.AddChar(base64_digits[triplet >> 18]);
+    buffer_.AddChar(base64_digits[(triplet >> 12) & 63]);
+    buffer_.AddChar(base64_digits[(triplet >> 6) & 63]);
+    buffer_.AddChar(base64_digits[triplet & 63]);
+  }
+  if (odd_bits == 1) {
+    intptr_t triplet = bytes[even_bits] << 16;
+    buffer_.AddChar(base64_digits[triplet >> 18]);
+    buffer_.AddChar(base64_digits[(triplet >> 12) & 63]);
+    buffer_.AddChar(base64_pad);
+    buffer_.AddChar(base64_pad);
+  } else if (odd_bits == 2) {
+    intptr_t triplet = (bytes[even_bits] << 16) | (bytes[even_bits + 1] << 8);
+    buffer_.AddChar(base64_digits[triplet >> 18]);
+    buffer_.AddChar(base64_digits[(triplet >> 12) & 63]);
+    buffer_.AddChar(base64_digits[(triplet >> 6) & 63]);
+    buffer_.AddChar(base64_pad);
+  }
+
+  buffer_.AddChar('"');
 }
 
 
@@ -355,6 +409,12 @@ void JSONStream::PrintValue(Isolate* isolate, bool ref) {
 }
 
 
+void JSONStream::PrintValue(TimelineEvent* timeline_event) {
+  PrintCommaIfNeeded();
+  timeline_event->PrintJSON(this);
+}
+
+
 void JSONStream::PrintServiceId(const Object& o) {
   ASSERT(id_zone_ != NULL);
   PrintProperty("id", id_zone_->GetServiceId(o));
@@ -381,6 +441,11 @@ void JSONStream::PrintProperty64(const char* name, int64_t i) {
 }
 
 
+void JSONStream::PrintPropertyTimeMillis(const char* name, int64_t millis) {
+  PrintProperty(name, static_cast<double>(millis));
+}
+
+
 void JSONStream::PrintProperty(const char* name, double d) {
   PrintPropertyName(name);
   PrintValue(d);
@@ -390,6 +455,14 @@ void JSONStream::PrintProperty(const char* name, double d) {
 void JSONStream::PrintProperty(const char* name, const char* s) {
   PrintPropertyName(name);
   PrintValue(s);
+}
+
+
+void JSONStream::PrintPropertyBase64(const char* name,
+                                     const uint8_t* b,
+                                     intptr_t len) {
+  PrintPropertyName(name);
+  PrintValueBase64(b, len);
 }
 
 
@@ -434,6 +507,13 @@ void JSONStream::PrintProperty(const char* name, MessageQueue* queue) {
 void JSONStream::PrintProperty(const char* name, Isolate* isolate) {
   PrintPropertyName(name);
   PrintValue(isolate);
+}
+
+
+void JSONStream::PrintProperty(const char* name,
+                               TimelineEvent* timeline_event) {
+  PrintPropertyName(name);
+  PrintValue(timeline_event);
 }
 
 

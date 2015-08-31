@@ -124,11 +124,12 @@ class DartUtils {
                                        Dart_Handle url);
   static Dart_Handle LoadScript(const char* script_uri,
                                 Dart_Handle builtin_lib);
-  static void PrepareBuiltinLibrary(Dart_Handle builtin_lib,
-                                    Dart_Handle internal_lib,
-                                    bool is_service_isolate,
-                                    bool trace_loading,
-                                    const char* package_root);
+  static Dart_Handle PrepareBuiltinLibrary(Dart_Handle builtin_lib,
+                                           Dart_Handle internal_lib,
+                                           bool is_service_isolate,
+                                           bool trace_loading,
+                                           const char* package_root,
+                                           const char* packages_file);
   static void PrepareCoreLibrary(Dart_Handle core_lib,
                                  Dart_Handle builtin_lib,
                                  bool is_service_isolate);
@@ -137,6 +138,7 @@ class DartUtils {
   static void PrepareIOLibrary(Dart_Handle io_lib);
   static void PrepareIsolateLibrary(Dart_Handle isolate_lib);
   static Dart_Handle PrepareForScriptLoading(const char* package_root,
+                                             const char* packages_file,
                                              bool is_service_isolate,
                                              bool trace_loading,
                                              Dart_Handle builtin_lib);

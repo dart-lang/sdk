@@ -1,7 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override
+// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
 
 import 'dart:async';
 
@@ -185,7 +185,7 @@ void testCommandRunNotFound() {
   RootCommand cmd = new RootCommand([new TestCommand(out, 'alpha', [])]);
 
   cmd.runCommand('goose').catchError(expectAsync((e) {
-      expect(e, equals('notfound'));
+      expect(e, equals('No such command'));
   }));
 }
 
@@ -196,7 +196,7 @@ void testCommandRunAmbiguous() {
                                      new TestCommand(out, 'ankle', [])]);
 
   cmd.runCommand('a 55').catchError(expectAsync((e) {
-      expect(e, equals('ambiguous'));
+      expect(e, equals('Ambiguous command'));
       out.clear();
       cmd.runCommand('ankl 55').then(expectAsync((_) {
           expect(out.toString(), equals('executing ankle([55])\n'));

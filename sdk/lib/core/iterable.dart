@@ -392,8 +392,8 @@ abstract class Iterable<E> {
    *
    * The `count` must not be negative.
    */
-  Iterable<E> take(int n) {
-    return new TakeIterable<E>(this, n);
+  Iterable<E> take(int count) {
+    return new TakeIterable<E>(this, count);
   }
 
   /**
@@ -422,8 +422,8 @@ abstract class Iterable<E> {
    *
    * The `count` must not be negative.
    */
-  Iterable<E> skip(int n) {
-    return new SkipIterable<E>(this, n);
+  Iterable<E> skip(int count) {
+    return new SkipIterable<E>(this, count);
   }
 
   /**

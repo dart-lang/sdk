@@ -96,8 +96,8 @@ class HtmlGenerator {
 
   /**
    * Execute [callback], collecting any code that is output using [write],
-   * [writeln], [add], or [addAll], and return the result as a list of HTML
-   * nodes.
+   * [writeln], [add], [addAll] or [element], and return the result as a list
+   * of HTML nodes.
    */
   List<dom.Node> collectHtml(void callback()) {
     List<dom.Node> oldHtml = _html;

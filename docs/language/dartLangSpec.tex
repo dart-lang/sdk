@@ -6,8 +6,9 @@
 \usepackage{hyperref}
 \usepackage{lmodern}
 \newcommand{\code}[1]{{\sf #1}}
-\title{Dart Programming Language  Specification \\
-{\large Version 1.9}}
+\title{Dart Programming Language  Specification  \\
+(4th edition draft)\\
+{\large Version 1.11}}
 
 % For information about Location Markers (and in particular the
 % commands \LMHash and \LMLabel), see the long comment at the
@@ -1851,7 +1852,7 @@ A class has a set of direct superinterfaces. This set includes the interface of 
 The scope of the \IMPLEMENTS{} clause of a class $C$ is the type-parameter scope of $C$.
 
 \LMHash{}
-It is a compile-time error if  the \IMPLEMENTS{}  clause of a class $C$ specifies a type variable as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies an enumerated type (\ref{enums}),  a malformed type or deferred type (\ref{staticTypes}) as a superinterface  It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies  a type $T$ as a superinterface more than once.
+It is a compile-time error if  the \IMPLEMENTS{}  clause of a class $C$ specifies a type variable as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies an enumerated type (\ref{enums}),  a malformed type or deferred type (\ref{staticTypes}) as a superinterface.  It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies  a type $T$ as a superinterface more than once.
 It is a compile-time error if the superclass of a class $C$ is specified as a superinterface of $C$.
 
 \rationale{
@@ -2012,18 +2013,12 @@ The current solution is a tad complex, but is robust in the face of type annotat
 A mixin describes the difference between a class and its superclass. A mixin is always derived from an existing class declaration. 
 
 \LMHash{}
-It is a compile-time error if a declared or derived mixin refers to \SUPER{}. It is a compile-time error if a declared or derived mixin explicitly declares a constructor. It is a compile-time error if a mixin is derived from a class whose superclass is not \code{Object}.
+It is a compile-time error if a declared or derived mixin explicitly declares a constructor. 
 
 \rationale{
-These restrictions are temporary.  We expect to remove them in later versions of Dart.
-
-The restriction on the use of \SUPER{} avoids the problem of rebinding \SUPER{} when the mixin is bound to difference superclasses.
+This restriction is temporary.  We expect to remove it in later versions of Dart.
 
 The restriction on constructors simplifies the construction of mixin applications because the process of creating instances is simpler.
-
-The restriction on the superclass means that the type of a class  from which a mixin is derived is always implemented by any class that mixes it in. This allows us to defer the question of whether and how to express the type of the mixin independently of its superclass and super interface types.
-
-Reasonable answers exist for all these issues, but their implementation is non-trivial.
 }
 
 \subsection{Mixin Application}
@@ -2076,6 +2071,12 @@ If, for example, $M$ declares an instance member $im$ whose type is at odds with
 \LMHash{}
 The effect of a class definition of the form \code{\CLASS{} $C$ = $M$; } or the form 
  \code{\CLASS{} $C<T_1, \ldots, T_n>$ = $M$; } in library $L$  is to introduce the name $C$ into the scope of $L$, bound to the class (\ref{classes}) defined by the mixin application $M$. The name of the class is also set to $C$. Iff the  class is prefixed by the built-in identifier \ABSTRACT{}, the class being defined is an abstract class.
+ 
+ Let $M_A$ be a mixin derived from a class $M$ with direct superclass $S_{static}$.
+
+Let $A$ be an application of $M_A$. It is a static warning if the superclass of $A$ is not a subtype of $S_{static}$.
+
+Let $C$ be a class declaration that includes $M_A$ in a with clause. It is a static warning if $C$ does not implement, directly or indirectly, all the direct superinterfaces of $M$.
  
 
 \subsection{Mixin Composition}
@@ -2344,7 +2345,7 @@ An {\em expression} is a fragment of Dart code that can be evaluated at run time
 
 \begin{grammar}
 {\bf primary:}thisExpression;
-      \SUPER{} assignableSelector;
+      \SUPER{} unconditionalAssignableSelector;
       functionExpression;
       literal;
       identifier;
@@ -2526,7 +2527,7 @@ The reserved word \NULL{} denotes the {\em null object}.
 \end{grammar}
 
 \LMHash{}
-The null object is the sole instance of the built-in class \code{Null}. Attempting to instantiate \code{Null} causes a run-time error. It is a compile-time error for a class to attempt to extend or implement \code{Null}. 
+The null object is the sole instance of the built-in class \code{Null}. Attempting to instantiate \code{Null} causes a run-time error. It is a compile-time error for a class to attempt to extend, mix in or implement \code{Null}. 
 Invoking a method on \NULL{}  yields a \code{NoSuchMethodError} unless the method is explicitly implemented by class \code{Null}.
 
 \LMHash{}
@@ -2576,7 +2577,7 @@ For example, implementations may choose to limit the range to facilitate efficie
 }
 
 \LMHash{}
-It is a compile-time error for a class to attempt to extend or implement \code{int}. It is a compile-time error for a class to attempt to extend or implement \code{double}. It is a compile-time error for any type other than the types \code{int} and \code{double} to attempt to extend or implement \code{num}.
+It is a compile-time error for a class to attempt to extend, mix in or implement \code{int}. It is a compile-time error for a class to attempt to extend, mix in or implement \code{double}. It is a compile-time error for any type other than the types \code{int} and \code{double} to attempt to extend, mix in or implement \code{num}.
 
 \LMHash{}
 An {\em integer literal} is either a hexadecimal integer literal or a  decimal integer literal. Invoking the getter \code{runtimeType} on an integer literal returns the \code{Type} object that is the value of the expression \code{int}. The static type of an integer literal is \code{int}. 
@@ -2598,7 +2599,7 @@ The reserved words \TRUE{} and \FALSE{} denote objects that represent the boolea
 \end{grammar}
 
 \LMHash{}
-Both  \TRUE{} and \FALSE{} implement the built-in class \code{bool}.  It is a compile-time error for a class to attempt to extend or implement\code{ bool}. 
+Both  \TRUE{} and \FALSE{} implement the built-in class \code{bool}.  It is a compile-time error for a class to attempt to extend, mix in or implement\code{ bool}. 
 
 \commentary{
 It follows that the two boolean literals are the only two instances of \code{bool}. 
@@ -2748,6 +2749,10 @@ Multiline strings are delimited by either matching triples of single quotes or m
  \rationale{
  The idea is to ignore whitespace, where whitespace is defined as tabs, spaces and newlines. These can be represented directly, but since for most characters prefixing by backslash is an identity, we allow those forms as well.
  }
+ 
+ % could be clearer. Is the first line in  """\t
+ %    """ ignored not. It depends if we mean whitespace before escapes are interpreted,
+ % or after, or both.  See https://code.google.com/p/dart/issues/detail?id=23020
 
 \LMHash{}
 Strings support escape sequences for special characters. The escapes are:
@@ -2802,7 +2807,7 @@ It is a compile-time error if a non-raw string literal contains a character sequ
  \end{grammar}
  
 \LMHash{}
-All string literals implement the built-in class \code{String}. It is a compile-time error for a class to attempt to extend or implement \code{String}. Invoking the getter \code{runtimeType} on a string literal returns the \code{Type} object that is the value of the expression \code{String}. The static type of a string literal is \code{String}.
+All string literals implement the built-in class \code{String}. It is a compile-time error for a class to attempt to extend, mix in or implement \code{String}. Invoking the getter \code{runtimeType} on a string literal returns the \code{Type} object that is the value of the expression \code{String}. The static type of a string literal is \code{String}.
 
 \subsubsection{String Interpolation}
 \LMLabel{stringInterpolation}
@@ -3666,6 +3671,8 @@ where $id$ is an identifier.
 \LMHash{}
 If there exists a lexically visible declaration named $id$, let $f_{id}$ be the innermost such declaration. Then:
 \begin{itemize}
+\item 
+If $f_{id}$ is a prefix object, a compile-time error occurs.
 \item
  If $f_{id}$ is a local function, a library function, a library or static getter or a variable then $i$ is interpreted as a function expression invocation (\ref{functionExpressionInvocation}).
  \item
@@ -3673,17 +3680,12 @@ Otherwise, if $f_{id}$ is a static method of the enclosing class $C$, $i$ is equ
 \item Otherwise, $f_{id}$ is considered equivalent to the ordinary method invocation $\THIS{}.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 \end{itemize}
 
-%Otherwise, if there is an accessible (\ref{privacy}) static method named $id$ declared in a superclass $S$ of the immediately enclosing class $C$ then i is equivalent to the static method invocation $S.id(a_1, \ldots, a_n, x_{n+1}: a_{n+1}, \ldots, x_{n+k}: a_{n+k})$.  
-
-%\rationale{
-%Unqualified access to static methods of superclasses is inconsistent with the idea that static methods are not inherited. It is not particularly necessary and  may be restricted in future versions.
-%}
-
 \LMHash{}
 Otherwise, if $i$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, evaluation of $i$ causes a \cd{NoSuchMethodError} to be thrown.
 
 \LMHash{}
 If $i$ does not occur inside a top level or static function, $i$ is equivalent to $\THIS{}.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
+
 
 % Should also say:
 % It is a static warning if $i$  occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer and there is no lexically visible declaration named $id$ in scope.
@@ -3732,7 +3734,7 @@ The result of a lookup of a method $m$ in object $o$ with respect to library $L$
 
 \LMHash{}
 The result of  a lookup of method $m$ in class $C$ with respect to library $L$ is:
-If $C$ declares a concrete instance method named $m$ that is accessible to $L$,  then that method is the result of the lookup. Otherwise, if $C$ has a superclass $S$, then the result of the lookup is the result of looking up $m$  in $S$ with respect to $L$. Otherwise, we say that the method lookup has failed.
+If $C$ declares a concrete instance method named $m$ that is accessible to $L$,  then that method is the result of the lookup, and we say that the method was {\em looked up in $C$}. Otherwise, if $C$ has a superclass $S$, then the result of the lookup is the result of looking up $m$  in $S$ with respect to $L$. Otherwise, we say that the method lookup has failed.
 
 \rationale {
 The motivation for skipping abstract members during lookup is largely to allow smoother mixin composition. 
@@ -3747,7 +3749,7 @@ The result of a lookup of a getter (respectively setter) $m$ in object $o$  with
 
 \LMHash{}
 The result of a lookup of a getter (respectively setter) $m$ in class $C$  with respect to library $L$ is:
-If $C$ declares a concrete instance getter (respectively setter) named $m$  that is accessible to $L$,  then that getter (respectively setter) is the result of the lookup. Otherwise, if $C$ has a superclass $S$, then the result of the lookup is the result of looking up getter (respectively setter) $m$ in $S$ with respect to $L$. Otherwise, we say that the lookup has failed.
+If $C$ declares a concrete instance getter (respectively setter) named $m$  that is accessible to $L$,  then that getter (respectively setter) is the result of the lookup, and we say that the getter (respectively setter) was {\em looked up in $C$}. Otherwise, if $C$ has a superclass $S$, then the result of the lookup is the result of looking up getter (respectively setter) $m$ in $S$ with respect to $L$. Otherwise, we say that the lookup has failed.
 
 \rationale {
 The motivation for skipping abstract members during lookup is largely to allow smoother mixin composition. 
@@ -3792,6 +3794,8 @@ is equivalent to the evaluation of the expression
 
 \LMHash{}
 $((x) => x == \NULL ? \NULL : x.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k}))(o)$. 
+
+unless $o$ is  a type literal, in which case it is equivalent to $o.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 
 \LMHash{}
 The static type of $e$ is the same as the static type of $o.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$. Exactly the same static warnings that would be caused by $o.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ are also generated in the case of $o?.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
@@ -3869,6 +3873,8 @@ Let $T$ be the  static type of $o$. It is a static type warning if $T$ does not 
 \item
 $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}.  Or
 \item  $T$ is \code{Type}, $e$ is a constant type literal and the class corresponding to $e$ has a static getter named $m$.
+\item $T$ is \code{Function} and $m$ is \CALL. \rationale {The type \code{Function} is treated as if it has a \code{call} method for any possible signature of \CALL. The expectation is that any concrete subclass of \code{Function} will implement \CALL. Note that a warning will be issue if this is not the case. Furthermore, any use of \CALL{} on a subclass of \code{Function} that fails to implement \CALL{} will also provoke a a warning, as this exemption is limited to type \code{Function}, and does not apply to its subtypes. 
+}
 \end{itemize}
 
 \LMHash{}
@@ -3916,7 +3922,7 @@ $\SUPER{}.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 Evaluation of $i$ proceeds as follows:
 
 \LMHash{}
-First, the argument list $(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is evaluated  yielding actual argument objects $o_1, \ldots , o_{n+k}$. Let $S$ be the superclass of the immediately enclosing class, and let $f$ be the result of looking up method (\ref{ordinaryInvocation})  $m$ in $S$  with respect to the current library $L$. 
+First, the argument list $(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is evaluated  yielding actual argument objects $o_1, \ldots , o_{n+k}$. Let $g$ be the method currently executing, and let $C$ be the class in which $g$ was looked up (\ref{methodLookup}). Let $S_{dynamic}$ be the superclass of $C$, and let $f$ be the result of looking up method (\ref{methodLookup})  $m$ in $S_{dynamic}$  with respect to the current library $L$. 
 Let $p_1 \ldots p_h$ be the required parameters of $f$,  let $p_1 \ldots p_m$ be the positional parameters of $f$ and let $p_{h+1}, \ldots, p_{h+l}$ be the optional parameters declared by $f$.
 
 \LMHash{}
@@ -3926,8 +3932,8 @@ If  $n < h$, or $n > m$, the method lookup has failed. Furthermore, each $x_i, n
 If the method lookup succeeded, the body of $f$ is executed with respect to the bindings that resulted from the evaluation of the argument list, and with \THIS{} bound to the current value of \THIS{}. The value of $i$ is the value returned after $f$ is executed.
 
 \LMHash{}
-If the method lookup has failed, then let $g$ be the result of looking up getter (\ref{getterAndSetterLookup}) $m$ in $S$ with respect to $L$. If the getter lookup succeeded, let $v_g$ be the value of the getter invocation $\SUPER{}.m$. Then the value of $i$ is the result of invoking 
-the static method \code{Function.apply()} with arguments $v.g, [o_1, \ldots , o_n], \{x_{n+1}: o_{n+1}, \ldots , x_{n+k}: o_{n+k}\}$.
+If the method lookup has failed, then let $g$ be the result of looking up getter (\ref{getterAndSetterLookup}) $m$ in $S_{dynamic}$ with respect to $L$. If the getter lookup succeeded, let $v_g$ be the value of the getter invocation $\SUPER{}.m$. Then the value of $i$ is the result of invoking 
+the static method \code{Function.apply()} with arguments $v_g, [o_1, \ldots , o_n], \{x_{n+1}: o_{n+1}, \ldots , x_{n+k}: o_{n+k}\}$.
  
 \LMHash{}
 If  getter lookup has also failed, then a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
@@ -3937,7 +3943,7 @@ If  getter lookup has also failed, then a new instance $im$  of the predefined c
 \item \code{im.positionalArguments} evaluates to an immutable list with the same  values as  \code{[$o_1, \ldots, o_n$]}.
 \item \code{im.namedArguments} evaluates to an immutable map with the same keys and values as \code{\{$x_{n+1}: o_{n+1}, \ldots, x_{n+k} : o_{n+k}$\}}.
 \end{itemize}
-Then the method \code{noSuchMethod()} is looked up in $S$ and invoked on \THIS{} with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on \THIS{} with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
+Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked on \THIS{} with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on \THIS{} with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
 \begin{itemize}
 \item  \code{im'.isMethod} evaluates to \code{\TRUE{}}.
 \item  \code{im'.memberName} evaluates to \code{\#noSuchMethod}.
@@ -3952,7 +3958,7 @@ and the result of this latter invocation is the result of evaluating $i$.
 It is a compile-time error if a super method invocation occurs in a top-level function or variable initializer, in an instance variable initializer or initializer list, in class \code{Object}, in a factory constructor or in a static method or variable initializer.
 
 \LMHash{}
-It is a static type warning if $S$ does not have an accessible (\ref{privacy}) instance member named $m$ unless $S$ or a superinterface of $S$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}. If $S.m$ exists, it  is a static type warning if the type $F$ of $S.m$ may not be assigned to a function type. If $S.m$ does not exist, or if $F$ is not a function type, the static type of $i$ is \DYNAMIC{}; otherwise the static type of $i$ is the declared return type of  $F$.  
+Let $S_{static}$ be the superclass of the immediately enclosing class. It is a static type warning if $S_{static}$ does not have an accessible (\ref{privacy}) instance member named $m$ unless $S_{static}$ or a superinterface of $S_{static}$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}. If $S_{static}.m$ exists, it  is a static type warning if the type $F$ of $S_{static}.m$ may not be assigned to a function type. If $S_{static}.m$ does not exist, or if $F$ is not a function type, the static type of $i$ is \DYNAMIC{}; otherwise the static type of $i$ is the declared return type of  $F$.  
 % The following is not needed because it is specified in 'Binding Actuals to Formals"
 %Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a static warning if $F$ is not a supertype of  $(T_1, \ldots, t_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \to \bot$.
 
@@ -3990,11 +3996,10 @@ Property extraction can be either {\em conditional} or {\em unconditional}.
 Tear-offs using the \cd{ x\#id}  syntax cannot be conditional at this time; this is inconsistent, and is likely to be addressed in the near future, perhaps via  notation such as  \cd{ x?\#id} . As indicated in section \ref{ecmaConformance}, experimentation in this area is allowed.
 }
 
-Evaluation of a {\em conditional property extraction expression} $e$ of the form $e_1?.id$  is equivalent to the evaluation of the expression  $((x) => x == \NULL ? \NULL : x.id)(e_1)$. The static type of $e$ is the same as the static type of $e_1.id$. Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable o type $T$. Exactly the same static warnings that would be caused by $y.id$ are also generated in the case of $e_1?.id$.
+Evaluation of a {\em conditional property extraction expression} $e$ of the form $e_1?.id$  is equivalent to the evaluation of the expression  $((x) => x == \NULL ? \NULL : x.id)(e_1)$. 
+unless $e_1$ is  a type literal, in which case it is equivalent to $e_1.m$.
 
-\commentary{
-One might be tempted to conclude that for $e \ne \NULL{}$, $e?.v$ is always equivalent to $e.v$. However this is not the case. If $e$ is a type literal representing a type with static member $v$, then $e.v$ refers to that member, but $e?.v$ does not.
-}
+The static type of $e$ is the same as the static type of $e_1.id$. Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by $y.id$ are also generated in the case of $e_1?.id$.
 
 \LMHash{}
 Unconditional property extraction takes several syntactic forms: $e.m$ (\ref{getterAccessAndMethodExtraction}), $\SUPER.m$ (\ref{superGetterAccessAndMethodClosurization}), $e\#m$ (\ref{generalClosurization}), $\NEW{}$ $T\#m$ (\ref{namedConstructorExtraction}), $\NEW{}$ $T\#$ (\ref{anonymousConstructorExtraction}) and $\SUPER\#m$ (\ref{generalSuperPropertyExtraction}), where $e$ is an expression, $m$ is an identifier optionally followed by an equal sign and $T$ is a type.
@@ -4067,10 +4072,10 @@ The static type of $i$ is:
 Evaluation of a property extraction $i$ of the form $\SUPER.m$ proceeds as follows:
 
 \LMHash{}
- Let $S$ be the superclass of the immediately enclosing class. Let $f$ be the result of looking up method $m$ in $S$ with respect to the current library $L$.  If method lookup succeeds then $i$ evaluates to the closurization of method $f$ with respect to superclass $S$ (\ref{superClosurization}).  
+Let $g$ be the method currently executing, and let $C$ be the class in which $g$ was looked up.  Let $S_{dynamic}$ be the superclass of $C$. Let $f$ be the result of looking up method $m$ in $S_{dynamic}$ with respect to the current library $L$.  If method lookup succeeds then $i$ evaluates to the closurization of method $f$ with respect to superclass $S_{dynamic}$ (\ref{superClosurization}).  
  
 \LMHash{}
- Otherwise, $i$ is a getter invocation.  Let $f$ be the result of  looking up getter $m$ in $S$  with respect to $L$.  The body of $f$  is executed with \THIS{} bound to the current value of  \THIS{}.  The value of $i$ is the result returned by the call to the getter function. 
+ Otherwise, $i$ is a getter invocation.  Let $f$ be the result of  looking up getter $m$ in $S_{dynamic}$  with respect to $L$.  The body of $f$  is executed with \THIS{} bound to the current value of  \THIS{}.  The value of $i$ is the result returned by the call to the getter function. 
 
 \LMHash{}
 If the getter lookup has failed, then a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
@@ -4080,7 +4085,7 @@ If the getter lookup has failed, then a new instance $im$  of the predefined cla
 \item \code{im.positionalArguments} evaluates to the value of \code{\CONST{} []}.
 \item \code{im.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
 \end{itemize}
-Then the method \code{noSuchMethod()} is looked up in $S$ and invoked  with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on \THIS{} with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
+Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked  with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on \THIS{} with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
 \begin{itemize}
 \item  \code{im'.isMethod} evaluates to \code{\TRUE{}}.
 \item  \code{im'.memberName} evaluates to \code{\#noSuchMethod}.
@@ -4090,12 +4095,12 @@ Then the method \code{noSuchMethod()} is looked up in $S$ and invoked  with argu
 and the result of this latter invocation is the result of evaluating $i$.
 
 \LMHash{}
-It is a static type warning if $S$ does not have an accessible instance method or getter named $m$.  
+Let $S_{static}$ be the superclass of the immediately enclosing class. It is a static type warning if $S_{static}$ does not have an accessible instance method or getter named $m$.  
 
 The static type of $i$ is:
 \begin{itemize}
-\item The declared return type of $S.m$, if $S$ has an accessible instance getter named $m$.
-\item The static type of function $S.m$ if $S$ has an accessible instance method named $m$.
+\item The declared return type of $S_{static}.m$, if $S_{static}$ has an accessible instance getter named $m$.
+\item The static type of function $S_{static}.m$ if $S_{static}$ has an accessible instance method named $m$.
 \item The type  \DYNAMIC{} otherwise. 
 \end{itemize}
 
@@ -4155,14 +4160,16 @@ This restriction is in line with other limitations on the use of prefixes as obj
 \LMHash{}
 Let $T$ be the static type of $e$. It is a static type warning if $T$ does not have an accessible instance method or getter named $m$ unless either:
 \begin{itemize}
-\item $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant proxy defined in \cd{dart:core}. Or
+\item $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \cd{dart:core}. Or
 \item $T$ is \cd{Type}, $e$ is a constant type literal and the class corresponding to $e$ declares an accessible static method or getter named $m$.
+\item $T$ is \code{Function} and $m$ is \CALL.
 \end{itemize}
 
 The static type of $i$ is:
 \begin{itemize}
 \item The static type of function $T.m$, if $T$ has an accessible instance member named $m$.
 \item The static type of function $T.m$, if $T$ is \cd{Type}, $e$ is a constant type literal and the class corresponding to $e$ declares an accessible static member or constructor named $m$.
+\item \code{Function} if $T$ is \code{Function} and $m$ is \CALL.
 \item The type  \DYNAMIC{} otherwise. 
 \end{itemize}
 
@@ -4202,21 +4209,21 @@ The static type of $i$ is the type of the constructor function $T()$, if $T$ den
 Evaluation of a property extraction $i$ of the form \SUPER$\#m$ proceeds as follows:
 
  \LMHash{}
-Let $S$ be the superclass of the immediately enclosing class.
+Let $g$ be the method currently executing, and let $C$ be the class in which $g$ was looked up.  Let $S_{dynamic}$ be the superclass of $C$. 
 
  \LMHash{}
-If $m$ is a setter name, let $f$ be the result of looking up setter $m$ in $S$ with respect to the current library $L$. If setter lookup succeeds then $i$ evaluates to the closurization of setter $f$  with respect to superclass $S$  (\ref{superClosurization}).  If setter lookup failed, a \cd{NoSuchMethodError} is thrown.
+If $m$ is a setter name, let $f$ be the result of looking up setter $m$ in $S_{dynamic}$ with respect to the current library $L$. If setter lookup succeeds then $i$ evaluates to the closurization of setter $f$  with respect to superclass $S_{dynamic}$  (\ref{superClosurization}).  If setter lookup failed, a \cd{NoSuchMethodError} is thrown.
 
-If $m$ is not a setter name, let $f$ be the result of looking up method $m$ in $S$ with respect to the current library $L$. If method lookup succeeds then $i$ evaluates to the closurization of method $m$ with respect to superclass $S$ (\ref{superClosurization}).
-
-\LMHash{}
- Otherwise, let $f$ be the result of looking up getter $m$ in $S$ with respect to the current library $L$.  If getter lookup succeeds then $i$ evaluates to the closurization of getter $f$ with respect to superclass $S$ (\ref{superClosurization}).   If getter lookup failed, a \cd{NoSuchMethodError} is thrown.
+If $m$ is not a setter name, let $f$ be the result of looking up method $m$ in $S_{dynamic}$ with respect to the current library $L$. If method lookup succeeds then $i$ evaluates to the closurization of method $m$ with respect to superclass $S_{dynamic}$ (\ref{superClosurization}).
 
 \LMHash{}
-It is a static type warning if $S$ does not have an accessible instance member named $m$.
+ Otherwise, let $f$ be the result of looking up getter $m$ in $S_{dynamic}$ with respect to the current library $L$.  If getter lookup succeeds then $i$ evaluates to the closurization of getter $f$ with respect to superclass $S_{dynamic}$ (\ref{superClosurization}).   If getter lookup failed, a \cd{NoSuchMethodError} is thrown.
 
 \LMHash{}
-The static type of $i$ is the static type of the function $S.m$,  if $S$ has an accessible instance member named $m$. Otherwise the static type of $i$ is \DYNAMIC{}.
+Let $S_{static}$ be the superclass of the immediately enclosing class.It is a static type warning if $S_{static}$ does not have an accessible instance member named $m$.
+
+\LMHash{}
+The static type of $i$ is the static type of the function $S_{static}.m$,  if $S_{static}$ has an accessible instance member named $m$. Otherwise the static type of $i$ is \DYNAMIC{}.
 
 
 
@@ -4398,14 +4405,17 @@ Evaluation of an assignment $a$ of the form $v$ \code{=} $e$ proceeds as follows
 % \item Otherwise, the assignment is equivalent to the assignment \code{ \THIS{}.$v$ = $e$}. 
 % \end{itemize}
  
-%Otherwise,  
+%Otherwise 
 
 \LMHash{}
 Let $d$ be the innermost declaration whose name is $v$ or $v=$, if it exists.
+It is a compile-time error if $d$ denotes a prefix object.
 
 \LMHash{}
 If $d$ is the declaration of a local variable, the expression $e$ is evaluated to an object $o$. Then, the variable $v$ is bound to $o$ unless $v$ is \FINAL{} or \CONST{}, in which case a dynamic error occurs.
 If no error occurs, the value of the assignment expression is $o$.  
+
+% add local functions per bug 23218
 
 \LMHash{}
 If $d$ is the declaration of a library variable, top level getter or top level setter, the expression $e$ is evaluated to an object $o$. Then the setter $v=$ is invoked with its formal parameter bound to $o$. The value of the assignment expression is $o$.  
@@ -4426,7 +4436,9 @@ In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interf
 It is a static type warning if the static type of $e$ may not be assigned to the static type of $v$. The static type of the expression $v$ \code{=} $e$ is the static type of $e$.
 
 \LMHash{}
-Evaluation of an assignment $a$ of the form $e_1?.v$ \code{=} $e_2$ is equivalent to the evaluation of the expression $((x) => x == \NULL? \NULL: x.v = e_2)(e_1)$. The static type of $a$ is the static type of $e_2$. Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by $y.v = e_2$ are also generated in the case of $e_1?.v$ \code{=} $e_2$.
+Evaluation of an assignment $a$ of the form $e_1?.v$ \code{=} $e_2$ is equivalent to the evaluation of the expression $((x) => x == \NULL? \NULL: x.v = e_2)(e_1)$
+ unless $e_1$ is  a type literal, in which case it is equivalent to $e_1.v$ \code{=} $e_2$.
+. The static type of $a$ is the static type of $e_2$. Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by $y.v = e_2$ are also generated in the case of $e_1?.v$ \code{=} $e_2$.
 
 \LMHash{}
 Evaluation of an assignment of the form $e_1.v$ \code{=} $e_2$ proceeds as follows:
@@ -4475,8 +4487,8 @@ It is a static type warning if the static type of $e_2$ may not be assigned to t
 Evaluation of an assignment of the form $\SUPER.v$ \code{=} $e$ proceeds as follows:
 
 \LMHash{}
-Let $S$ be the superclass of the immediately enclosing class.
-The expression $e$ is evaluated to an object $o$.  Then, the setter $v=$ is looked up (\ref{getterAndSetterLookup}) in $S$ with respect to the current library.  The body  of $v=$ is executed with its formal parameter bound to $o$ and \THIS{} bound to \THIS{}. 
+Let $g$ be the method currently executing, and let $C$ be the class in which $g$ was looked up.  Let $S_{dynamic}$ be the superclass of $C$. 
+The expression $e$ is evaluated to an object $o$.  Then, the setter $v=$ is looked up (\ref{getterAndSetterLookup}) in $S_{dynamic}$ with respect to the current library.  The body  of $v=$ is executed with its formal parameter bound to $o$ and \THIS{} bound to \THIS{}. 
 
 \LMHash{}
 If the setter lookup has failed, then a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
@@ -4488,7 +4500,7 @@ If the setter lookup has failed, then a new instance $im$  of the predefined cla
 \end{itemize}
 
 \LMHash{}
-Then the method \code{noSuchMethod()} is looked up in $S$ and invoked  with argument $im$. 
+Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked  with argument $im$. 
 However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on \THIS{} with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
 \begin{itemize}
 \item  \code{im'.isMethod} evaluates to \code{\TRUE{}}.
@@ -4504,7 +4516,7 @@ The value of the assignment expression is $o$ irrespective of whether setter loo
 In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interface of the class of $o$ is not a subtype of the actual type of $S.v$.
 
 \LMHash{}
-It is a static type warning if $S$ does not have an accessible instance setter named $v=$ unless $S$ or a superinterface of $S$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}. 
+Let $S_{static}$ be the superclass of the immediately enclosing class. It is a static type warning if $S_{static}$ does not have an accessible instance setter named $v=$ unless $S_{static}$ or a superinterface of $S_{static}$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}. 
 
 \LMHash{}
 It is a static type warning if the static type of $e$ may not be assigned to the static type of the formal parameter of the setter $v=$.   The static type of the expression $\SUPER.v$ \code{=} $e$ is the static type of $e$.
@@ -4535,12 +4547,31 @@ It is a compile-time error to invoke any of the setters of class \cd{Object} on 
 \LMLabel{compoundAssignment}
 
 \LMHash{}
-Evaluation of a compound assignment of the form $v$ {\em ??=} $e$ is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$ ?  $v=e : x)(v)$ where $x$ is a fresh variable that is not used in $e$. Evaluation of a compound assignment of the form $C.v$ {\em ??=} $e$, where $C$ is a type literal, is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$?  $C.v=e: x)(C.v)$ where $x$ is a fresh variable that is not used in $e$. Evaluation of a compound assignment of the form $e_1.v$ {\em ??=} $e_2$ is equivalent to the evaluation of the expression  $((x) =>((y) => y == \NULL{}$ ? $ x.v = e_2: y)(x.v))(e_1)$ where $x$ and $y$ are distinct fresh variables that are not used in $e_2$. Evaluation of a compound assignment of the form  $e_1[e_2]$  {\em ??=} $e_3$ is equivalent to the evaluation of the expression  
-$((a, i) => ((x) => x == \NULL{}$ ?  $a[i] = e_3: x)(a[i]))(e_1, e_2)$ where $x$, $a$ and $i$ are distinct fresh variables that are not used in $e_3$. Evaluation of a compound assignment of the form $\SUPER.v$  {\em ??=} $e$ is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$ ? $\SUPER.v = e: x)(\SUPER.v)$ where $x$ is a fresh variable that is not used in $e$.
+Evaluation of a compound assignment of the form $v$ {\em ??=} $e$ is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$ ?  $v=e : x)(v)$ where $x$ is a fresh variable that is not used in $e$. 
+
+\LMHash{}
+Evaluation of a compound assignment of the form $C.v$ {\em ??=} $e$, where $C$ is a type literal, is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$?  $C.v=e: x)(C.v)$ where $x$ is a fresh variable that is not used in $e$. 
+
+\commentary {
+The two rules above also apply when the variable v or the type C is prefixed.
+}
+
+\LMHash{}
+Evaluation of a compound assignment of the form $e_1.v$ {\em ??=} $e_2$ is equivalent to the evaluation of the expression  $((x) =>((y) => y == \NULL{}$ ? $ x.v = e_2: y)(x.v))(e_1)$ where $x$ and $y$ are distinct fresh variables that are not used in $e_2$. 
+
+\LMHash{}
+Evaluation of a compound assignment of the form  $e_1[e_2]$  {\em ??=} $e_3$ is equivalent to the evaluation of the expression  
+$((a, i) => ((x) => x == \NULL{}$ ?  $a[i] = e_3: x)(a[i]))(e_1, e_2)$ where $x$, $a$ and $i$ are distinct fresh variables that are not used in $e_3$. 
+
+\LMHash{}
+Evaluation of a compound assignment of the form $\SUPER.v$  {\em ??=} $e$ is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$ ? $\SUPER.v = e: x)(\SUPER.v)$ where $x$ is a fresh variable that is not used in $e$.
 
 \LMHash{}
 Evaluation of a compound assignment of the form $e_1?.v$  {\em ??=} $e_2$ is equivalent to the evaluation of the expression \code{((x) $=>$ x == \NULL{} ?  \NULL: $x.v ??=  e_2$)($e_1$)} where $x$ is a variable that is not used in $e_2$. 
+% But what about C?.v ??= e
 
+\LMHash{}
+A compound assignment of the form $C?.v$  {\em ??=} $e_2$ is equivalent to the expression $C.v$ {\em ??=} $e$.
 
 \LMHash{}
 The static type of a compound assignment of the form $v$ {\em ??=} $e$ is the least upper bound of the static type of $v$ and the static type of $e$.  Exactly the same static warnings that would be caused by $v = e$ are also generated in the case of $v$ {\em ??=} $e$.
@@ -4550,7 +4581,7 @@ The static type of a compound assignment of the form $v$ {\em ??=} $e$ is the le
 The static type of a compound assignment of the form  $C.v$ {\em ??=} $e$  is the least upper bound of the static type of $C.v$ and the static type of $e$.  Exactly the same static warnings that would be caused by $C.v = e$ are also generated in the case of $C.v$ {\em ??=} $e$.
 
 \LMHash{}
-The static type of a compound assignment of the form $e_1.v$  {\em ??=} $e_2$ is the least upper bound of the static type of $e_1.v$ and the static type of $e_2$. Let $T$ be the static type of $e_1$ and let $z$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by $z.v = e$ are also generated in the case of $e_1.v$  {\em ??=} $e_2$.
+The static type of a compound assignment of the form $e_1.v$  {\em ??=} $e_2$ is the least upper bound of the static type of $e_1.v$ and the static type of $e_2$. Let $T$ be the static type of $e_1$ and let $z$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by $z.v = e_2$ are also generated in the case of $e_1.v$  {\em ??=} $e_2$.
 
 \LMHash{}
 The static type of a compound assignment of the form $e_1[e_2]$  {\em ??=} $e_3$  is the least upper bound of the static type of $e_1[e_2]$ and the static type of $e_3$. Exactly the same static warnings that would be caused by $e_1[e_2] = e_3$ are also generated in the case of $e_1[e_2]$  {\em ??=} $e_3$.
@@ -4564,6 +4595,10 @@ For any other valid operator $op$, a compound assignment of the form $v$ $op\cod
 
 \LMHash{}
 Evaluation of a compound assignment of the form $e_1?.v$ $op = e_2$ is equivalent to \code{((x) $=>$ x?.v = x.v $op$ $e_2$)($e_1$)} where $x$ is a variable that is not used in $e_2$. The static type of $e_1?.v$ $op = e_2$ is the static type of $e_1.v$ $op$ $e_2$. Exactly the same static warnings that would be caused by $e_1.v$ $op = e_2$ are also generated in the case of $e_1?.v$ $op = e_2$.
+
+\LMHash{}
+A compound assignment of the form $C?.v$ $op = e_2$ is equivalent to the expression 
+$C.v$ $op = e_2$. 
 
 \begin{grammar}
 {\bf compoundAssignmentOperator:}`*=';
@@ -4998,46 +5033,97 @@ Postfix expressions invoke the postfix operators on objects.
  A {\em postfix expression} is either a primary expression, a function, method or getter invocation, or an invocation of a postfix operator on an expression $e$.
 
 \LMHash{}
-A postfix expression of the form \code{$v$++}, where $v$ is an identifier, is equivalent to \code{()\{var r = $v$; $v$ = r + 1; return r\}()}.
+Execution of a postfix expression of the form \code{$v$++}, where $v$ is an identifier, is equivalent to executing \code{()\{\VAR{} r = $v$; $v$ = r + 1; \RETURN{} r\}()}.
+
+\LMHash{}
+The static type of such an expression is the static type of $v$.
+
 
 \rationale{The above ensures that if $v$ is a field, the getter gets called exactly once. Likewise in the cases below. 
 }
 
 \LMHash{}
-A postfix expression of the form \code{$C.v$ ++} is equivalent to 
+Execution of a postfix expression of the form \code{$C.v$ ++} is equivalent to executing 
 
-\code{()\{var r = $C.v$; $C.v$ = r + 1; return r\}()}.
-
-\LMHash{}
-A postfix expression of the form \code{$e_1.v$++} is equivalent to 
-
-\code{(x)\{var r = x.v; x.v = r + 1; \RETURN{} r\}($e_1$)}.
+\code{()\{\VAR{} r = $C.v$; $C.v$ = r + 1; \RETURN{} r\}()}.
 
 \LMHash{}
-A postfix expression of the form \code{$e_1[e_2]$++},  is equivalent to 
+The static type of such an expression is the static type of $C.v$.
 
-\code{(a, i)\{var r = a[i]; a[i] = r + 1; return r\}($e_1$, $e_2$)}.
-
-\LMHash{}
-A postfix expression of the form \code{$v$-{}-}, where $v$ is an identifier, is equivalent to 
-
-\code{()\{var r = $v$; $v$ = r - 1; return r\}()}.
 
 \LMHash{}
-A postfix expression of the form \code{$C.v$-{}-} is equivalent to 
+Execution of a postfix expression of the form \code{$e_1.v$++} is equivalent to executing 
 
-\code{()\{var r = $C.v$; $C.v$ = r - 1; return r\}()}.
-
-\LMHash{}
-A postfix expression of the form \code{$e_1.v$-{}-} is equivalent to 
-
-\code{(x)\{var r = x.v; x.v = r - 1; \RETURN{} r\}($e_1$)}.
+\code{(x)\{\VAR{} r = x.v; x.v = r + 1; \RETURN{} r\}($e_1$)}.
 
 \LMHash{}
-A postfix expression of the form \code{$e_1[e_2]$-{}-},  is equivalent to 
+The static type of such an expression is the static type of $e_1.v$.
 
-\code{(a, i)\{var r = a[i]; a[i] = r - 1; return r\}($e_1$, $e_2$)}.
- 
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1[e_2]$++},  is equivalent to executing 
+
+\code{(a, i)\{\VAR{} r = a[i]; a[i] = r + 1; \RETURN{} r\}($e_1$, $e_2$)}.
+
+\LMHash{}
+The static type of such an expression is the static type of $e_1[e_2]$.
+
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$v$-{}-}, where $v$ is an identifier, is equivalent to executing 
+
+\code{()\{\VAR{} r = $v$; $v$ = r - 1; \RETURN{} r\}()}.
+
+\LMHash{}
+The static type of such an expression is the static type of $v$.
+
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$C.v$-{}-} is equivalent to executing 
+
+\code{()\{\VAR{} r = $C.v$; $C.v$ = r - 1; \RETURN{} r\}()}.
+
+\LMHash{}
+The static type of such an expression is the static type of $C.v$.
+
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1.v$-{}-} is equivalent to executing 
+
+\code{(x)\{\VAR{} r = x.v; x.v = r - 1; \RETURN{} r\}($e_1$)}.
+
+\LMHash{}
+The static type of such an expression is the static type of $e_1.v$.
+
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1[e_2]$-{}-},  is equivalent to executing 
+
+\code{(a, i)\{\VAR{} r = a[i]; a[i] = r - 1; \RETURN{} r\}($e_1$, $e_2$)}.
+
+\LMHash{}
+The static type of such an expression is the static type of $e_1[e_2]$.
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1?.v$++} is equivalent to executing 
+
+\code{((x) =$>$ x == \NULL? \NULL : x.v++)($e_1$)}
+unless $e_1$ is a type literal, in which case it is equivalent to \code{$e_1.v$++}
+.
+
+\LMHash{}
+The static type of such an expression is the static type of $e_1.v$.
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1?.v$-{}-} is equivalent to executing 
+
+\code{((x) =$>$ x == \NULL? \NULL : x.v-{}-)($e_1$)}
+unless $e_1$ is a type literal, in which case it is equivalent to \code{$e_1.v$-{}-}
+.
+
+\LMHash{}
+The static type of such an expression is the static type of $e_1.v$.
+
 
 \subsection{ Assignable Expressions}
 \LMLabel{assignableExpressions}
@@ -5620,11 +5706,9 @@ var n0 = $e$.iterator;
    $s$ 
 \}
 \end{dartCode}
-where \code{n0} is an identifier that does not occur anywhere in the program.
+where \code{n0} is an identifier that does not occur anywhere in the program, except that for purposes of static typechecking, it is checked under the assumption that $n0$ is declared to be of type $T$, where $T$ is the static type of $e.iterator$.
 
-\commentary{
-Note that in fact, using a  \CONST{} variable would give rise to a compile time error since \cd{n0.current} is not a constant expression.  
-}
+ 
  
 \subsubsection{Asynchronous For-in}
 \LMLabel{asynchronousFor-in}
@@ -5711,7 +5795,7 @@ The {\em switch statement} supports dispatching control among a large number of 
 
 
 {\bf switchCase:}
-      label* (\CASE{} expression `{\escapegrammar :}') statements
+      label* \CASE{} expression `{\escapegrammar :}' statements
     .
 
 {\bf defaultCase:}
@@ -5723,21 +5807,21 @@ The {\em switch statement} supports dispatching control among a large number of 
  Given a switch statement of the form 
  
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$ 
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
-   \DEFAULT{}: $s_{n+1}$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+   $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
 \end{dartCode}
  
  or the form 
  
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
 \end{dartCode}
  
@@ -5767,21 +5851,21 @@ The \SWITCH{}  statement should only be used in very limited situations (e.g., i
 Execution of a switch statement of the form
 
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$ 
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
-   \DEFAULT{}: $s_{n+1}$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+   $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
 \end{dartCode}
  
 or the form 
  
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
 \end{dartCode}
 
@@ -5802,11 +5886,11 @@ A case clause introduces a new scope, nested in the lexically surrounding scope.
 Execution of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a  switch statement  
 
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$ 
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
-   \DEFAULT{}: $s_{n+1}$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+   $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
 \end{dartCode}
 
@@ -5822,10 +5906,10 @@ If execution reaches the point after $s_h$  then  a runtime error occurs, unless
 Execution of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a  switch statement  
 
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
 \end{dartCode}
 
@@ -5839,7 +5923,7 @@ If execution reaches the point after $s_h$  then  a runtime error occurs, unless
 
 
 \commentary{
-In other words, there is no implicit fall-through between cases. The last case in a switch (default or otherwise) can `fall-through' to the end of the statement.
+In other words, there is no implicit fall-through between non-empty cases. The last case in a switch (default or otherwise) can `fall-through' to the end of the statement.
 }
 
 \LMHash{}
@@ -6557,16 +6641,23 @@ An import directive $I$ may optionally include a namespace combinator clauses us
 Let $I$ be an import directive that refers to a URI via the string $s_1$. Evaluation of $I$  proceeds as follows:
 
 \LMHash{}
-If $I$ is a deferred import, no evaluation takes place. Instead, a mapping of the name of the prefix, $p$ to a {\em deferred prefix object} is added to the scope of $L$.
+If $I$ is a deferred import, no evaluation takes place. Instead, a mapping of the name of the prefix, $p$ to a {\em deferred prefix object} is added to the scope of the current library $L$.
 The deferred prefix object has the following methods:
 
 \begin{itemize}
 \item \code{loadLibrary}. This method returns a future $f$. When called, the method causes an immediate import $I'$ to be executed at some future time, where $I'$ is is derived from $I$ by eliding the word \DEFERRED{} and adding a \HIDE{} \code{loadLibrary}  combinator clause. When $I'$ executes without error, $f$ completes successfully. If $I'$ executes without error, we say that the call to \code{loadLibrary} has succeeded, otherwise we say the call has failed.
-\item  For every top level function $f$ named $id$ in $L$, a corresponding method named $id$ with the same signature as $f$. Calling the method results in a runtime error.
-\item For every top level getter $g$ named $id$ in $L$, a corresponding getter named $id$ with the same signature as $g$.  Calling the method results in a runtime error.
-\item For every top level setter $s$ named $id$ in $L$, a corresponding setter named $id$ with the same signature as $s$.  Calling the method results in a runtime error.
-\item For every type $T$ named $id$ in $L$, a corresponding getter named $id$ with return type \code{Type}.  Calling the method results in a runtime error.
+\item  For every top level function $f$ named $id$ in the imported library $B$, a corresponding method named $id$ with the same signature as $f$. Calling the method results in a runtime error.
+\item For every top level getter $g$ named $id$ in $B$, a corresponding getter named $id$ with the same signature as $g$.  Calling the method results in a runtime error.
+\item For every top level setter $s$ named $id$ in $B$, a corresponding setter named $id$ with the same signature as $s$.  Calling the method results in a runtime error.
+\item For every type $T$ named $id$ in $B$, a corresponding getter named $id$ with return type \code{Type}.  Calling the method results in a runtime error.
 \end{itemize}
+
+\rationale {
+The purpose of adding members of $B$ to $p$ is to ensure that any warnings  issued when using $p$ are correct, and no spurious warnings are generated.  In fact, at runtime we cannot add these members until $B$ is loaded; but any such invocations will fail at runtime as specified by virtue of being completely absent.
+}
+%But this is still a lie detectable by reflection. Probably revise so the type of p has these members but p does not.
+
+The static type of the prefix object $p$ is a unique interface type that has those members whose names and signatures are listed above.
 
 \LMHash{}
 After a call succeeds, the name $p$ is mapped to a non-deferred prefix object as described below. In addition, the prefix object also supports the \code{loadLibrary} method, and so it is possible to call \code{loadLibrary} again. If a call fails, nothing happens, and one again has the option to call \code{loadLibrary} again. Whether a repeated call to \code{loadLibrary} succeeds will vary as described below.
@@ -6621,7 +6712,7 @@ where $show(l,n)$ takes a list of identifiers $l$ and a namespace $n$, and produ
 
 then let $NS_i = \HIDE{}([id_1, \ldots, id_k], NS_{i-1}$) 
 
-where $hide(l, n)$ takes a list of identfiers $l$ and a namespace $n$, and produces a namespace that is identical to $n$ except that for each name $k$ in $l$, $k$ and $k=$ are undefined. 
+where $hide(l, n)$ takes a list of identifiers $l$ and a namespace $n$, and produces a namespace that is identical to $n$ except that for each name $k$ in $l$, $k$ and $k=$ are undefined. 
 \end{itemize}
  
 \LMHash{}
@@ -6637,6 +6728,9 @@ Next, if $I$ includes a prefix clause of the form \AS{} $p$, let $NS =  NS_n \cu
 \LMHash{}
 Otherwise, let $NS = NS_n$.
 It is a compile-time error if the current library declares a top-level member named $p$.
+
+The static type of the prefix object $p$ is a unique interface type that has those members whose names and signatures are listed above.
+% What is the static type of a prefix object. Need to state that is a(n anonymous) type that has members with the same names as signatures as above.
 
 % This is problematic, because it implies that p.T would be available even in a scope that declared p. We really need to think of p as a single object with properties p.T etc., except it isn't really that
 % either. After all, p isn't actually available as a stand alone name.
@@ -6877,14 +6971,10 @@ This specification does not discuss the interpretation of URIs, with the followi
 A URI of the form \code{dart:$s$} is interpreted as a reference to a system library (\ref{imports}) $s$. 
  
 \LMHash{}
-A URI of the form \code{package:$s$} is interpreted as a URI of the form \code{packages/s} relative to an implementation specified location.
-
-\commentary{ 
-This location will often be the location of the root library presented to the Dart compiler. However, implementations may supply means to override or replace this choice.
-}
+A URI of the form \code{package:$s$} is interpreted in an implementation specific manner.
 
 \rationale{
-The intent is that, during development, Dart programmers can rely on a package manager to find elements of their program. Such package managers may provide a directory structure starting at a local directory \code{packages} where they place the required dart code (or links thereto).
+The intent is that, during development, Dart programmers can rely on a package manager to find elements of their program. 
 }
 
 \LMHash{}
@@ -7270,7 +7360,7 @@ If a type $I$ includes an instance method named \CALL{}, and the type of \CALL{}
 %\commentary{Need to specify how a function values dynamic type is derived from its static signature.}
 
 \LMHash{}
-A function type $(T_1, \ldots T_{k}, [T_{k+1}  \ldots, T_{n+m}]) \rightarrow T$ is a more specific than the
+A function type $(T_1, \ldots T_{k}, [T_{k+1}  \ldots, T_{n+m}]) \rightarrow T$ is more specific than the
 function type $(S_1, \ldots, S_{k+j}, [S_{k+j+1} \ldots, S_{n}]) \rightarrow S$, if all of the following conditions are met:
 \begin{enumerate}
 \item Either
@@ -7438,7 +7528,8 @@ where $depth(T)$ is the number of steps in the longest inheritance path from $T$
 \LMHash{}
 The least upper bound of \DYNAMIC{} and any type $T$ is \DYNAMIC{}.
 The least upper bound of \VOID{} and any type $T \ne \DYNAMIC{}$ is \VOID{}.
-Let $U$ be a type variable with upper bound $B$. The least upper bound of $U$ and a type $T$ is the least upper bound of $B$ and $T$. 
+The least upper bound of $\bot$ and any type $T$ is $T$.
+Let $U$ be a type variable with upper bound $B$. The least upper bound of $U$ and a type $T \ne \bot$ is the least upper bound of $B$ and $T$. 
 
 \LMHash{}
 The least upper bound relation is symmetric and reflexive.

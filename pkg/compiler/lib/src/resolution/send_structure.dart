@@ -175,15 +175,14 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
+        return visitor.visitIfNotNullDynamicPropertyInvoke(
+            node,
+            node.receiver,
+            node.argumentsNode,
+            selector,
+            arg);
       case AccessKind.DYNAMIC_PROPERTY:
-        if (node.isConditional) {
-          return visitor.visitIfNotNullDynamicPropertyInvoke(
-              node,
-              node.receiver,
-              node.argumentsNode,
-              selector,
-              arg);
-        }
         return visitor.visitDynamicPropertyInvoke(
             node,
             node.receiver,
@@ -374,6 +373,13 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
             node.argumentsNode,
             selector,
             arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidInvoke(
+            node,
+            semantics.element,
+            node.argumentsNode,
+            selector,
+            arg);
       case AccessKind.COMPOUND:
         // This is not a valid case.
         break;
@@ -423,6 +429,13 @@ class IncompatibleInvokeStructure<R, A> implements SendStructure<R, A> {
             node.argumentsNode,
             callStructure,
             arg);
+      case AccessKind.LOCAL_FUNCTION:
+        return visitor.visitLocalFunctionIncompatibleInvoke(
+            node,
+            semantics.element,
+            node.argumentsNode,
+            callStructure,
+            arg);
      default:
         // TODO(johnniwinther): Support more variants of this invoke structure.
         break;
@@ -446,14 +459,13 @@ class GetStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
+        return visitor.visitIfNotNullDynamicPropertyGet(
+            node,
+            node.receiver,
+            selector,
+            arg);
       case AccessKind.DYNAMIC_PROPERTY:
-        if (node.isConditional) {
-          return visitor.visitIfNotNullDynamicPropertyGet(
-              node,
-              node.receiver,
-              selector,
-              arg);
-        }
         return visitor.visitDynamicPropertyGet(
             node,
             node.receiver,
@@ -585,6 +597,11 @@ class GetStructure<R, A> implements SendStructure<R, A> {
             node,
             semantics.element,
             arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidGet(
+            node,
+            semantics.element,
+            arg);
       case AccessKind.COMPOUND:
         // This is not a valid case.
         break;
@@ -607,15 +624,14 @@ class SetStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
+        return visitor.visitIfNotNullDynamicPropertySet(
+          node,
+          node.receiver,
+          selector,
+          node.arguments.single,
+          arg);
       case AccessKind.DYNAMIC_PROPERTY:
-        if (node.isConditional) {
-          return visitor.visitIfNotNullDynamicPropertySet(
-            node,
-            node.receiver,
-            selector,
-            node.arguments.single,
-            arg);
-        }
         return visitor.visitDynamicPropertySet(
           node,
           node.receiver,
@@ -789,6 +805,12 @@ class SetStructure<R, A> implements SendStructure<R, A> {
             semantics.element,
             node.arguments.single,
             arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidSet(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
       case AccessKind.COMPOUND:
         // This is not a valid case.
         break;
@@ -813,7 +835,7 @@ class NotStructure<R, A> implements SendStructure<R, A> {
             node,
             node.receiver,
             arg);
-      default:
+     default:
         // This is not a valid case.
         break;
     }
@@ -850,6 +872,12 @@ class UnaryStructure<R, A> implements SendStructure<R, A> {
             arg);
       case AccessKind.UNRESOLVED_SUPER:
         return visitor.visitUnresolvedSuperUnary(
+            node,
+            operator,
+            semantics.element,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidUnary(
             node,
             operator,
             semantics.element,
@@ -909,6 +937,12 @@ class IndexStructure<R, A> implements SendStructure<R, A> {
             semantics.element,
             node.arguments.single,
             arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidIndex(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
       default:
         // This is not a valid case.
         break;
@@ -935,6 +969,12 @@ class EqualsStructure<R, A> implements SendStructure<R, A> {
             arg);
       case AccessKind.SUPER_METHOD:
         return visitor.visitSuperEquals(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidEquals(
             node,
             semantics.element,
             node.arguments.single,
@@ -967,6 +1007,12 @@ class NotEqualsStructure<R, A> implements SendStructure<R, A> {
             arg);
       case AccessKind.SUPER_METHOD:
         return visitor.visitSuperNotEquals(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidNotEquals(
             node,
             semantics.element,
             node.arguments.single,
@@ -1011,6 +1057,13 @@ class BinaryStructure<R, A> implements SendStructure<R, A> {
             arg);
       case AccessKind.UNRESOLVED_SUPER:
         return visitor.visitUnresolvedSuperBinary(
+            node,
+            semantics.element,
+            operator,
+            node.arguments.single,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidBinary(
             node,
             semantics.element,
             operator,
@@ -1080,6 +1133,13 @@ class IndexSetStructure<R, A> implements SendStructure<R, A> {
             node.arguments.first,
             node.arguments.tail.head,
             arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidIndexSet(
+            node,
+            semantics.element,
+            node.arguments.first,
+            node.arguments.tail.head,
+            arg);
       default:
         // This is not a valid case.
         break;
@@ -1124,6 +1184,13 @@ class IndexPrefixStructure<R, A> implements SendStructure<R, A> {
             arg);
       case AccessKind.UNRESOLVED_SUPER:
         return visitor.visitUnresolvedSuperIndexPrefix(
+            node,
+            semantics.element,
+            node.arguments.single,
+            operator,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidIndexPrefix(
             node,
             semantics.element,
             node.arguments.single,
@@ -1208,6 +1275,13 @@ class IndexPostfixStructure<R, A> implements SendStructure<R, A> {
             node.arguments.single,
             operator,
             arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidIndexPostfix(
+            node,
+            semantics.element,
+            node.arguments.single,
+            operator,
+            arg);
       case AccessKind.COMPOUND:
         CompoundAccessSemantics compoundSemantics = semantics;
         switch (compoundSemantics.compoundAccessKind) {
@@ -1271,17 +1345,16 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
+        return visitor.visitIfNotNullDynamicPropertyCompound(
+            node,
+            node.receiver,
+            operator,
+            node.arguments.single,
+            getterSelector,
+            setterSelector,
+            arg);
       case AccessKind.DYNAMIC_PROPERTY:
-        if (node.isConditional) {
-          return visitor.visitIfNotNullDynamicPropertyCompound(
-              node,
-              node.receiver,
-              operator,
-              node.arguments.single,
-              getterSelector,
-              setterSelector,
-              arg);
-        }
         return visitor.visitDynamicPropertyCompound(
             node,
             node.receiver,
@@ -1465,6 +1538,13 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
             operator,
             node.arguments.single,
             arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidCompound(
+            node,
+            semantics.element,
+            operator,
+            node.arguments.single,
+            arg);
       case AccessKind.COMPOUND:
         CompoundAccessSemantics compoundSemantics = semantics;
         switch (compoundSemantics.compoundAccessKind) {
@@ -1630,6 +1710,14 @@ class CompoundIndexSetStructure<R, A> implements SendStructure<R, A> {
             operator,
             node.arguments.tail.head,
             arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidCompoundIndexSet(
+            node,
+            semantics.element,
+            node.arguments.first,
+            operator,
+            node.arguments.tail.head,
+            arg);
       case AccessKind.COMPOUND:
         CompoundAccessSemantics compoundSemantics = semantics;
         switch (compoundSemantics.compoundAccessKind) {
@@ -1698,16 +1786,15 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
+        return visitor.visitIfNotNullDynamicPropertyPrefix(
+            node,
+            node.receiver,
+            operator,
+            getterSelector,
+            setterSelector,
+            arg);
       case AccessKind.DYNAMIC_PROPERTY:
-        if (node.isConditional) {
-          return visitor.visitIfNotNullDynamicPropertyPrefix(
-              node,
-              node.receiver,
-              operator,
-              getterSelector,
-              setterSelector,
-              arg);
-        }
         return visitor.visitDynamicPropertyPrefix(
             node,
             node.receiver,
@@ -1869,6 +1956,12 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
             semantics.element,
             operator,
             arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidPrefix(
+            node,
+            semantics.element,
+            operator,
+            arg);
       case AccessKind.COMPOUND:
         CompoundAccessSemantics compoundSemantics = semantics;
         switch (compoundSemantics.compoundAccessKind) {
@@ -2015,16 +2108,15 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
+        return visitor.visitIfNotNullDynamicPropertyPostfix(
+            node,
+            node.receiver,
+            operator,
+            getterSelector,
+            setterSelector,
+            arg);
       case AccessKind.DYNAMIC_PROPERTY:
-        if (node.isConditional) {
-          return visitor.visitIfNotNullDynamicPropertyPostfix(
-              node,
-              node.receiver,
-              operator,
-              getterSelector,
-              setterSelector,
-              arg);
-        }
         return visitor.visitDynamicPropertyPostfix(
             node,
             node.receiver,
@@ -2186,6 +2278,12 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
             semantics.element,
             operator,
             arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidPostfix(
+            node,
+            semantics.element,
+            operator,
+            arg);
       case AccessKind.COMPOUND:
         CompoundAccessSemantics compoundSemantics = semantics;
         switch (compoundSemantics.compoundAccessKind) {
@@ -2302,6 +2400,30 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
 
   String toString() => 'postfix($operator,$semantics)';
 }
+
+
+/// The structure for a [Send] whose prefix is a prefix for a deferred library.
+/// For instance `deferred.a` where `deferred` is a deferred prefix.
+class DeferredPrefixStructure<R, A> implements SendStructure<R, A> {
+  /// The deferred prefix element.
+  final PrefixElement prefix;
+
+  /// The send structure for the whole [Send] node. For instance a
+  /// [GetStructure] for `deferred.a` where `a` is a top level member of the
+  /// deferred library.
+  final SendStructure sendStructure;
+
+  DeferredPrefixStructure(this.prefix, this.sendStructure) {
+    assert(sendStructure != null);
+  }
+
+  @override
+  R dispatch(SemanticSendVisitor<R, A> visitor, Send send, A arg) {
+    visitor.previsitDeferredAccess(send, prefix, arg);
+    return sendStructure.dispatch(visitor, send, arg);
+  }
+}
+
 
 /// The structure for a [NewExpression] of a new invocation.
 abstract class NewStructure<R, A> implements SemanticSendStructure<R, A> {

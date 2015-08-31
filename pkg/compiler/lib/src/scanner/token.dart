@@ -262,21 +262,6 @@ class BadInputToken extends ErrorToken {
   }
 }
 
-// TODO(sigmund): delete once we enable null-aware-operators by default.
-class UnsupportedNullAwareToken extends ErrorToken {
-  final String operator;
-
-  UnsupportedNullAwareToken(this.operator, int charOffset)
-      : super(charOffset);
-
-  String toString() => "UnsupportedNullAwareToken($operator)";
-
-  String get assertionMessage => "'$operator' isn't supported without "
-      "the --enable-null-aware-operators flag.";
-
-  int get charCount => operator.length;
-}
-
 class UnterminatedToken extends ErrorToken {
   final String start;
   final int endOffset;

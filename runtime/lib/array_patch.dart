@@ -45,6 +45,10 @@ patch class List<E> {
       list.add(e);
     }
     if (growable) return list;
+    if (list.length == 0) {
+      // Avoid getting an immutable list from makeListFixedLength.
+      return new List<E>(0);
+    }
     return makeListFixedLength(list);
   }
 

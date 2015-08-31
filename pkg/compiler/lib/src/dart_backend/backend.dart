@@ -18,6 +18,8 @@ class DartBackend extends Backend {
   final List<CompilerTask> tasks;
   final bool stripAsserts;
 
+  bool get supportsReflection => true;
+
   // TODO(zarah) Maybe change this to a command-line option.
   // Right now, it is set by the tests.
   bool useMirrorHelperLibrary = false;
@@ -49,7 +51,13 @@ class DartBackend extends Backend {
   final Set<ClassElement> _userImplementedPlatformClasses =
       new Set<ClassElement>();
 
-  bool get canHandleCompilationFailed => false;
+  bool enableCodegenWithErrorsIfSupported(Spannable node) {
+    compiler.reportHint(node,
+        MessageKind.GENERIC,
+        {'text': "Generation of code with compile time errors is not "
+                 "supported for dart2dart."});
+    return false;
+  }
 
   /**
    * Tells whether it is safe to remove type declarations from variables,
@@ -123,10 +131,14 @@ class DartBackend extends Backend {
     }
     // Enqueue the methods that the VM might invoke on user objects because
     // we don't trust the resolution to always get these included.
-    world.registerInvocation(new Selector.call("toString", null, 0));
-    world.registerInvokedGetter(new Selector.getter("hashCode", null));
-    world.registerInvocation(new Selector.binaryOperator("=="));
-    world.registerInvocation(new Selector.call("compareTo", null, 1));
+    world.registerInvocation(
+        new UniverseSelector(new Selector.call("toString", null, 0), null));
+    world.registerInvokedGetter(
+        new UniverseSelector(new Selector.getter("hashCode", null), null));
+    world.registerInvocation(
+        new UniverseSelector(new Selector.binaryOperator("=="), null));
+    world.registerInvocation(
+        new UniverseSelector(new Selector.call("compareTo", null, 1), null));
   }
 
   WorldImpact codegen(CodegenWorkItem work) => const WorldImpact();
@@ -144,9 +156,6 @@ class DartBackend extends Backend {
   }
 
   int assembleProgram() {
-    ElementAstCreationContext context =
-        new _ElementAstCreationContext(compiler, constantSystem);
-
     ElementAst computeElementAst(AstElement element) {
       return new ElementAst(element.resolvedAst.node,
                             element.resolvedAst.elements);
@@ -290,20 +299,21 @@ class DartBackend extends Backend {
             // Register selectors for all instance methods since these might
             // be called on user classes from within the platform
             // implementation.
-            superclass.forEachLocalMember((Element element) {
+            superclass.forEachLocalMember((MemberElement element) {
               if (element.isConstructor || element.isStatic) return;
 
               FunctionElement function = element.asFunctionElement();
-              if (function != null) {
-                function.computeSignature(compiler);
-              }
+              element.computeType(compiler);
               Selector selector = new Selector.fromElement(element);
               if (selector.isGetter) {
-                registry.registerDynamicGetter(selector);
+                registry.registerDynamicGetter(
+                    new UniverseSelector(selector, null));
               } else if (selector.isSetter) {
-                registry.registerDynamicSetter(selector);
+                registry.registerDynamicSetter(
+                    new UniverseSelector(selector, null));
               } else {
-                registry.registerDynamicInvocation(selector);
+                registry.registerDynamicInvocation(
+                    new UniverseSelector(selector, null));
               }
             });
           }
@@ -311,6 +321,13 @@ class DartBackend extends Backend {
       }
     }
 
+  }
+
+  @override
+  bool enableDeferredLoadingIfSupported(Spannable node, Registry registry) {
+    // TODO(sigurdm): Implement deferred loading for dart2dart.
+    compiler.reportWarning(node, MessageKind.DEFERRED_LIBRARY_DART_2_DART);
+    return false;
   }
 }
 
@@ -499,21 +516,4 @@ class DartConstantTask extends ConstantCompilerTask
     constantCompiler.constantValueMap.addAll(
         task.constantCompiler.constantValueMap);
   }
-}
-
-abstract class ElementAstCreationContext {
-  DartTypes get dartTypes;
-  ConstantSystem get constantSystem;
-  InternalErrorFunction get internalError;
-}
-
-class _ElementAstCreationContext implements ElementAstCreationContext {
-  final Compiler compiler;
-  final ConstantSystem constantSystem;
-
-  _ElementAstCreationContext(this.compiler, this.constantSystem);
-
-  DartTypes get dartTypes => compiler.types;
-
-  InternalErrorFunction get internalError => compiler.internalError;
 }

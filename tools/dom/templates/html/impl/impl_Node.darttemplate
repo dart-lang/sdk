@@ -276,5 +276,68 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     String value = nodeValue;  // Fetch DOM Node property once.
     return value == null ? super.toString() : value;
   }
+
+$if JSINTEROP
+  List<Node> _childNodes;
+
+  /**
+   * A list of this node's children.
+   *
+   * ## Other resources
+   *
+   * * [Node.childNodes]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
+   * from MDN.
+   */
+  @DomName('Node.childNodes')
+  @DocsEditable()
+  @Returns('NodeList')
+  @Creates('NodeList')
+  List<Node> get childNodes {
+    if (_childNodes == null) {
+       List<Node> nodes = new List<Node>();
+       var jsCollection = _blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this));
+       var collectionLen = jsCollection['length'];
+       for (var i = 0; i < collectionLen; i++) {
+         nodes.add(wrap_jso(jsCollection.callMethod('item', [i])));
+       }
+      _childNodes = nodes;
+    }
+    return _childNodes;
+  }
+$else
+  $if DARTIUM
+  /**
+   * A list of this node's children.
+   *
+   * ## Other resources
+   *
+   * * [Node.childNodes]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
+   * from MDN.
+   */
+  @DomName('Node.childNodes')
+  @DocsEditable()
+  @Returns('NodeList')
+  @Creates('NodeList')
+  List<Node> get childNodes => _blink.BlinkNode.instance.childNodes_Getter_(this);
+  $else
+  /**
+   * A list of this node's children.
+   *
+   * ## Other resources
+   *
+   * * [Node.childNodes]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
+   * from MDN.
+   */
+  @DomName('Node.childNodes')
+  @DocsEditable()
+  @Returns('NodeList')
+  @Creates('NodeList')
+  final List<Node> childNodes;
+
+  $endif
+$endif
 $!MEMBERS
 }

@@ -54,4 +54,8 @@ class InstanceRefElement extends ServiceRefElement {
       onDone();
     }
   }
+
+  String makeExpandKey(String key) {
+    return '${expandKey}/${key}';
+  }
 }

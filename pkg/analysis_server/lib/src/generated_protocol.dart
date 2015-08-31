@@ -69,7 +69,7 @@ class ServerGetVersionResult implements HasToJson {
       }
       return new ServerGetVersionResult(version);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "server.getVersion result");
+      throw jsonDecoder.mismatch(jsonPath, "server.getVersion result", json);
     }
   }
 
@@ -189,7 +189,7 @@ class ServerSetSubscriptionsParams implements HasToJson {
       }
       return new ServerSetSubscriptionsParams(subscriptions);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "server.setSubscriptions params");
+      throw jsonDecoder.mismatch(jsonPath, "server.setSubscriptions params", json);
     }
   }
 
@@ -288,7 +288,7 @@ class ServerConnectedParams implements HasToJson {
       }
       return new ServerConnectedParams(version);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "server.connected params");
+      throw jsonDecoder.mismatch(jsonPath, "server.connected params", json);
     }
   }
 
@@ -416,7 +416,7 @@ class ServerErrorParams implements HasToJson {
       }
       return new ServerErrorParams(isFatal, message, stackTrace);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "server.error params");
+      throw jsonDecoder.mismatch(jsonPath, "server.error params", json);
     }
   }
 
@@ -521,7 +521,7 @@ class ServerStatusParams implements HasToJson {
       }
       return new ServerStatusParams(analysis: analysis, pub: pub);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "server.status params");
+      throw jsonDecoder.mismatch(jsonPath, "server.status params", json);
     }
   }
 
@@ -606,7 +606,7 @@ class AnalysisGetErrorsParams implements HasToJson {
       }
       return new AnalysisGetErrorsParams(file);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.getErrors params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.getErrors params", json);
     }
   }
 
@@ -684,7 +684,7 @@ class AnalysisGetErrorsResult implements HasToJson {
       }
       return new AnalysisGetErrorsResult(errors);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.getErrors result");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.getErrors result", json);
     }
   }
 
@@ -785,7 +785,7 @@ class AnalysisGetHoverParams implements HasToJson {
       }
       return new AnalysisGetHoverParams(file, offset);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.getHover params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.getHover params", json);
     }
   }
 
@@ -874,7 +874,7 @@ class AnalysisGetHoverResult implements HasToJson {
       }
       return new AnalysisGetHoverResult(hovers);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.getHover result");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.getHover result", json);
     }
   }
 
@@ -1000,7 +1000,7 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
       }
       return new AnalysisGetLibraryDependenciesResult(libraries, packageMap);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.getLibraryDependencies result");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.getLibraryDependencies result", json);
     }
   }
 
@@ -1131,7 +1131,7 @@ class AnalysisGetNavigationParams implements HasToJson {
       }
       return new AnalysisGetNavigationParams(file, offset, length);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.getNavigation params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.getNavigation params", json);
     }
   }
 
@@ -1265,7 +1265,7 @@ class AnalysisGetNavigationResult implements HasToJson {
       }
       return new AnalysisGetNavigationResult(files, targets, regions);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.getNavigation result");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.getNavigation result", json);
     }
   }
 
@@ -1346,7 +1346,7 @@ class AnalysisReanalyzeParams implements HasToJson {
       }
       return new AnalysisReanalyzeParams(roots: roots);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.reanalyze params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.reanalyze params", json);
     }
   }
 
@@ -1514,7 +1514,7 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
       }
       return new AnalysisSetAnalysisRootsParams(included, excluded, packageRoots: packageRoots);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.setAnalysisRoots params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.setAnalysisRoots params", json);
     }
   }
 
@@ -1582,6 +1582,105 @@ class AnalysisSetAnalysisRootsResult {
 }
 
 /**
+ * analysis.setGeneralSubscriptions params
+ *
+ * {
+ *   "subscriptions": List<GeneralAnalysisService>
+ * }
+ */
+class AnalysisSetGeneralSubscriptionsParams implements HasToJson {
+  List<GeneralAnalysisService> _subscriptions;
+
+  /**
+   * A list of the services being subscribed to.
+   */
+  List<GeneralAnalysisService> get subscriptions => _subscriptions;
+
+  /**
+   * A list of the services being subscribed to.
+   */
+  void set subscriptions(List<GeneralAnalysisService> value) {
+    assert(value != null);
+    this._subscriptions = value;
+  }
+
+  AnalysisSetGeneralSubscriptionsParams(List<GeneralAnalysisService> subscriptions) {
+    this.subscriptions = subscriptions;
+  }
+
+  factory AnalysisSetGeneralSubscriptionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<GeneralAnalysisService> subscriptions;
+      if (json.containsKey("subscriptions")) {
+        subscriptions = jsonDecoder._decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new GeneralAnalysisService.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "subscriptions");
+      }
+      return new AnalysisSetGeneralSubscriptionsParams(subscriptions);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analysis.setGeneralSubscriptions params", json);
+    }
+  }
+
+  factory AnalysisSetGeneralSubscriptionsParams.fromRequest(Request request) {
+    return new AnalysisSetGeneralSubscriptionsParams.fromJson(
+        new RequestDecoder(request), "params", request._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["subscriptions"] = subscriptions.map((GeneralAnalysisService value) => value.toJson()).toList();
+    return result;
+  }
+
+  Request toRequest(String id) {
+    return new Request(id, "analysis.setGeneralSubscriptions", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisSetGeneralSubscriptionsParams) {
+      return _listEqual(subscriptions, other.subscriptions, (GeneralAnalysisService a, GeneralAnalysisService b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, subscriptions.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+/**
+ * analysis.setGeneralSubscriptions result
+ */
+class AnalysisSetGeneralSubscriptionsResult {
+  Response toResponse(String id) {
+    return new Response(id, result: null);
+  }
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisSetGeneralSubscriptionsResult) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 386759562;
+  }
+}
+
+/**
  * analysis.setPriorityFiles params
  *
  * {
@@ -1621,7 +1720,7 @@ class AnalysisSetPriorityFilesParams implements HasToJson {
       }
       return new AnalysisSetPriorityFilesParams(files);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.setPriorityFiles params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.setPriorityFiles params", json);
     }
   }
 
@@ -1722,7 +1821,7 @@ class AnalysisSetSubscriptionsParams implements HasToJson {
       }
       return new AnalysisSetSubscriptionsParams(subscriptions);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.setSubscriptions params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.setSubscriptions params", json);
     }
   }
 
@@ -1823,7 +1922,7 @@ class AnalysisUpdateContentParams implements HasToJson {
       }
       return new AnalysisUpdateContentParams(files);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.updateContent params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.updateContent params", json);
     }
   }
 
@@ -1877,7 +1976,7 @@ class AnalysisUpdateContentResult implements HasToJson {
     if (json is Map) {
       return new AnalysisUpdateContentResult();
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.updateContent result");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.updateContent result", json);
     }
   }
 
@@ -1953,7 +2052,7 @@ class AnalysisUpdateOptionsParams implements HasToJson {
       }
       return new AnalysisUpdateOptionsParams(options);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.updateOptions params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.updateOptions params", json);
     }
   }
 
@@ -2009,6 +2108,84 @@ class AnalysisUpdateOptionsResult {
   @override
   int get hashCode {
     return 179689467;
+  }
+}
+
+/**
+ * analysis.analyzedFiles params
+ *
+ * {
+ *   "directories": List<FilePath>
+ * }
+ */
+class AnalysisAnalyzedFilesParams implements HasToJson {
+  List<String> _directories;
+
+  /**
+   * A list of the paths of the files that are being analyzed.
+   */
+  List<String> get directories => _directories;
+
+  /**
+   * A list of the paths of the files that are being analyzed.
+   */
+  void set directories(List<String> value) {
+    assert(value != null);
+    this._directories = value;
+  }
+
+  AnalysisAnalyzedFilesParams(List<String> directories) {
+    this.directories = directories;
+  }
+
+  factory AnalysisAnalyzedFilesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<String> directories;
+      if (json.containsKey("directories")) {
+        directories = jsonDecoder._decodeList(jsonPath + ".directories", json["directories"], jsonDecoder._decodeString);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "directories");
+      }
+      return new AnalysisAnalyzedFilesParams(directories);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analysis.analyzedFiles params", json);
+    }
+  }
+
+  factory AnalysisAnalyzedFilesParams.fromNotification(Notification notification) {
+    return new AnalysisAnalyzedFilesParams.fromJson(
+        new ResponseDecoder(null), "params", notification._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["directories"] = directories;
+    return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("analysis.analyzedFiles", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisAnalyzedFilesParams) {
+      return _listEqual(directories, other.directories, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, directories.hashCode);
+    return _JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2075,7 +2252,7 @@ class AnalysisErrorsParams implements HasToJson {
       }
       return new AnalysisErrorsParams(file, errors);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.errors params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.errors params", json);
     }
   }
 
@@ -2156,7 +2333,7 @@ class AnalysisFlushResultsParams implements HasToJson {
       }
       return new AnalysisFlushResultsParams(files);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.flushResults params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.flushResults params", json);
     }
   }
 
@@ -2257,7 +2434,7 @@ class AnalysisFoldingParams implements HasToJson {
       }
       return new AnalysisFoldingParams(file, regions);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.folding params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.folding params", json);
     }
   }
 
@@ -2369,7 +2546,7 @@ class AnalysisHighlightsParams implements HasToJson {
       }
       return new AnalysisHighlightsParams(file, regions);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.highlights params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.highlights params", json);
     }
   }
 
@@ -2523,7 +2700,7 @@ class AnalysisInvalidateParams implements HasToJson {
       }
       return new AnalysisInvalidateParams(file, offset, length, delta);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.invalidate params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.invalidate params", json);
     }
   }
 
@@ -2695,7 +2872,7 @@ class AnalysisNavigationParams implements HasToJson {
       }
       return new AnalysisNavigationParams(file, regions, targets, files);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.navigation params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.navigation params", json);
     }
   }
 
@@ -2805,7 +2982,7 @@ class AnalysisOccurrencesParams implements HasToJson {
       }
       return new AnalysisOccurrencesParams(file, occurrences);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.occurrences params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.occurrences params", json);
     }
   }
 
@@ -2909,7 +3086,7 @@ class AnalysisOutlineParams implements HasToJson {
       }
       return new AnalysisOutlineParams(file, outline);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.outline params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.outline params", json);
     }
   }
 
@@ -3013,7 +3190,7 @@ class AnalysisOverridesParams implements HasToJson {
       }
       return new AnalysisOverridesParams(file, overrides);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.overrides params");
+      throw jsonDecoder.mismatch(jsonPath, "analysis.overrides params", json);
     }
   }
 
@@ -3117,7 +3294,7 @@ class CompletionGetSuggestionsParams implements HasToJson {
       }
       return new CompletionGetSuggestionsParams(file, offset);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "completion.getSuggestions params");
+      throw jsonDecoder.mismatch(jsonPath, "completion.getSuggestions params", json);
     }
   }
 
@@ -3198,7 +3375,7 @@ class CompletionGetSuggestionsResult implements HasToJson {
       }
       return new CompletionGetSuggestionsResult(id);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "completion.getSuggestions result");
+      throw jsonDecoder.mismatch(jsonPath, "completion.getSuggestions result", json);
     }
   }
 
@@ -3388,7 +3565,7 @@ class CompletionResultsParams implements HasToJson {
       }
       return new CompletionResultsParams(id, replacementOffset, replacementLength, results, isLast);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "completion.results params");
+      throw jsonDecoder.mismatch(jsonPath, "completion.results params", json);
     }
   }
 
@@ -3528,7 +3705,7 @@ class SearchFindElementReferencesParams implements HasToJson {
       }
       return new SearchFindElementReferencesParams(file, offset, includePotential);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "search.findElementReferences params");
+      throw jsonDecoder.mismatch(jsonPath, "search.findElementReferences params", json);
     }
   }
 
@@ -3641,7 +3818,7 @@ class SearchFindElementReferencesResult implements HasToJson {
       }
       return new SearchFindElementReferencesResult(id: id, element: element);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "search.findElementReferences result");
+      throw jsonDecoder.mismatch(jsonPath, "search.findElementReferences result", json);
     }
   }
 
@@ -3726,7 +3903,7 @@ class SearchFindMemberDeclarationsParams implements HasToJson {
       }
       return new SearchFindMemberDeclarationsParams(name);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "search.findMemberDeclarations params");
+      throw jsonDecoder.mismatch(jsonPath, "search.findMemberDeclarations params", json);
     }
   }
 
@@ -3804,7 +3981,7 @@ class SearchFindMemberDeclarationsResult implements HasToJson {
       }
       return new SearchFindMemberDeclarationsResult(id);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "search.findMemberDeclarations result");
+      throw jsonDecoder.mismatch(jsonPath, "search.findMemberDeclarations result", json);
     }
   }
 
@@ -3882,7 +4059,7 @@ class SearchFindMemberReferencesParams implements HasToJson {
       }
       return new SearchFindMemberReferencesParams(name);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "search.findMemberReferences params");
+      throw jsonDecoder.mismatch(jsonPath, "search.findMemberReferences params", json);
     }
   }
 
@@ -3960,7 +4137,7 @@ class SearchFindMemberReferencesResult implements HasToJson {
       }
       return new SearchFindMemberReferencesResult(id);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "search.findMemberReferences result");
+      throw jsonDecoder.mismatch(jsonPath, "search.findMemberReferences result", json);
     }
   }
 
@@ -4040,7 +4217,7 @@ class SearchFindTopLevelDeclarationsParams implements HasToJson {
       }
       return new SearchFindTopLevelDeclarationsParams(pattern);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "search.findTopLevelDeclarations params");
+      throw jsonDecoder.mismatch(jsonPath, "search.findTopLevelDeclarations params", json);
     }
   }
 
@@ -4118,7 +4295,7 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
       }
       return new SearchFindTopLevelDeclarationsResult(id);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "search.findTopLevelDeclarations result");
+      throw jsonDecoder.mismatch(jsonPath, "search.findTopLevelDeclarations result", json);
     }
   }
 
@@ -4221,7 +4398,7 @@ class SearchGetTypeHierarchyParams implements HasToJson {
       }
       return new SearchGetTypeHierarchyParams(file, offset);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "search.getTypeHierarchy params");
+      throw jsonDecoder.mismatch(jsonPath, "search.getTypeHierarchy params", json);
     }
   }
 
@@ -4315,7 +4492,7 @@ class SearchGetTypeHierarchyResult implements HasToJson {
       }
       return new SearchGetTypeHierarchyResult(hierarchyItems: hierarchyItems);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "search.getTypeHierarchy result");
+      throw jsonDecoder.mismatch(jsonPath, "search.getTypeHierarchy result", json);
     }
   }
 
@@ -4443,7 +4620,7 @@ class SearchResultsParams implements HasToJson {
       }
       return new SearchResultsParams(id, results, isLast);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "search.results params");
+      throw jsonDecoder.mismatch(jsonPath, "search.results params", json);
     }
   }
 
@@ -4593,7 +4770,7 @@ class EditFormatParams implements HasToJson {
       }
       return new EditFormatParams(file, selectionOffset, selectionLength, lineLength: lineLength);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.format params");
+      throw jsonDecoder.mismatch(jsonPath, "edit.format params", json);
     }
   }
 
@@ -4730,7 +4907,7 @@ class EditFormatResult implements HasToJson {
       }
       return new EditFormatResult(edits, selectionOffset, selectionLength);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.format result");
+      throw jsonDecoder.mismatch(jsonPath, "edit.format result", json);
     }
   }
 
@@ -4860,7 +5037,7 @@ class EditGetAssistsParams implements HasToJson {
       }
       return new EditGetAssistsParams(file, offset, length);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.getAssists params");
+      throw jsonDecoder.mismatch(jsonPath, "edit.getAssists params", json);
     }
   }
 
@@ -4944,7 +5121,7 @@ class EditGetAssistsResult implements HasToJson {
       }
       return new EditGetAssistsResult(assists);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.getAssists result");
+      throw jsonDecoder.mismatch(jsonPath, "edit.getAssists result", json);
     }
   }
 
@@ -5068,7 +5245,7 @@ class EditGetAvailableRefactoringsParams implements HasToJson {
       }
       return new EditGetAvailableRefactoringsParams(file, offset, length);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.getAvailableRefactorings params");
+      throw jsonDecoder.mismatch(jsonPath, "edit.getAvailableRefactorings params", json);
     }
   }
 
@@ -5152,7 +5329,7 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
       }
       return new EditGetAvailableRefactoringsResult(kinds);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.getAvailableRefactorings result");
+      throw jsonDecoder.mismatch(jsonPath, "edit.getAvailableRefactorings result", json);
     }
   }
 
@@ -5253,7 +5430,7 @@ class EditGetFixesParams implements HasToJson {
       }
       return new EditGetFixesParams(file, offset);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.getFixes params");
+      throw jsonDecoder.mismatch(jsonPath, "edit.getFixes params", json);
     }
   }
 
@@ -5334,7 +5511,7 @@ class EditGetFixesResult implements HasToJson {
       }
       return new EditGetFixesResult(fixes);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.getFixes result");
+      throw jsonDecoder.mismatch(jsonPath, "edit.getFixes result", json);
     }
   }
 
@@ -5534,7 +5711,7 @@ class EditGetRefactoringParams implements HasToJson {
       }
       return new EditGetRefactoringParams(kind, file, offset, length, validateOnly, options: options);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.getRefactoring params");
+      throw jsonDecoder.mismatch(jsonPath, "edit.getRefactoring params", json);
     }
   }
 
@@ -5771,7 +5948,7 @@ class EditGetRefactoringResult implements HasToJson {
       }
       return new EditGetRefactoringResult(initialProblems, optionsProblems, finalProblems, feedback: feedback, change: change, potentialEdits: potentialEdits);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.getRefactoring result");
+      throw jsonDecoder.mismatch(jsonPath, "edit.getRefactoring result", json);
     }
   }
 
@@ -5870,7 +6047,7 @@ class EditSortMembersParams implements HasToJson {
       }
       return new EditSortMembersParams(file);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.sortMembers params");
+      throw jsonDecoder.mismatch(jsonPath, "edit.sortMembers params", json);
     }
   }
 
@@ -5950,7 +6127,7 @@ class EditSortMembersResult implements HasToJson {
       }
       return new EditSortMembersResult(edit);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.sortMembers result");
+      throw jsonDecoder.mismatch(jsonPath, "edit.sortMembers result", json);
     }
   }
 
@@ -5975,6 +6152,164 @@ class EditSortMembersResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is EditSortMembersResult) {
+      return edit == other.edit;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, edit.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.organizeDirectives params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ */
+class EditOrganizeDirectivesParams implements HasToJson {
+  String _file;
+
+  /**
+   * The Dart file to organize directives in.
+   */
+  String get file => _file;
+
+  /**
+   * The Dart file to organize directives in.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  EditOrganizeDirectivesParams(String file) {
+    this.file = file;
+  }
+
+  factory EditOrganizeDirectivesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "file");
+      }
+      return new EditOrganizeDirectivesParams(file);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.organizeDirectives params", json);
+    }
+  }
+
+  factory EditOrganizeDirectivesParams.fromRequest(Request request) {
+    return new EditOrganizeDirectivesParams.fromJson(
+        new RequestDecoder(request), "params", request._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    return result;
+  }
+
+  Request toRequest(String id) {
+    return new Request(id, "edit.organizeDirectives", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is EditOrganizeDirectivesParams) {
+      return file == other.file;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * edit.organizeDirectives result
+ *
+ * {
+ *   "edit": SourceFileEdit
+ * }
+ */
+class EditOrganizeDirectivesResult implements HasToJson {
+  SourceFileEdit _edit;
+
+  /**
+   * The file edit that is to be applied to the given file to effect the
+   * organizing.
+   */
+  SourceFileEdit get edit => _edit;
+
+  /**
+   * The file edit that is to be applied to the given file to effect the
+   * organizing.
+   */
+  void set edit(SourceFileEdit value) {
+    assert(value != null);
+    this._edit = value;
+  }
+
+  EditOrganizeDirectivesResult(SourceFileEdit edit) {
+    this.edit = edit;
+  }
+
+  factory EditOrganizeDirectivesResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      SourceFileEdit edit;
+      if (json.containsKey("edit")) {
+        edit = new SourceFileEdit.fromJson(jsonDecoder, jsonPath + ".edit", json["edit"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "edit");
+      }
+      return new EditOrganizeDirectivesResult(edit);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "edit.organizeDirectives result", json);
+    }
+  }
+
+  factory EditOrganizeDirectivesResult.fromResponse(Response response) {
+    return new EditOrganizeDirectivesResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["edit"] = edit.toJson();
+    return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is EditOrganizeDirectivesResult) {
       return edit == other.edit;
     }
     return false;
@@ -6030,7 +6365,7 @@ class ExecutionCreateContextParams implements HasToJson {
       }
       return new ExecutionCreateContextParams(contextRoot);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "execution.createContext params");
+      throw jsonDecoder.mismatch(jsonPath, "execution.createContext params", json);
     }
   }
 
@@ -6108,7 +6443,7 @@ class ExecutionCreateContextResult implements HasToJson {
       }
       return new ExecutionCreateContextResult(id);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "execution.createContext result");
+      throw jsonDecoder.mismatch(jsonPath, "execution.createContext result", json);
     }
   }
 
@@ -6186,7 +6521,7 @@ class ExecutionDeleteContextParams implements HasToJson {
       }
       return new ExecutionDeleteContextParams(id);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "execution.deleteContext params");
+      throw jsonDecoder.mismatch(jsonPath, "execution.deleteContext params", json);
     }
   }
 
@@ -6325,7 +6660,7 @@ class ExecutionMapUriParams implements HasToJson {
       }
       return new ExecutionMapUriParams(id, file: file, uri: uri);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "execution.mapUri params");
+      throw jsonDecoder.mismatch(jsonPath, "execution.mapUri params", json);
     }
   }
 
@@ -6434,7 +6769,7 @@ class ExecutionMapUriResult implements HasToJson {
       }
       return new ExecutionMapUriResult(file: file, uri: uri);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "execution.mapUri result");
+      throw jsonDecoder.mismatch(jsonPath, "execution.mapUri result", json);
     }
   }
 
@@ -6519,7 +6854,7 @@ class ExecutionSetSubscriptionsParams implements HasToJson {
       }
       return new ExecutionSetSubscriptionsParams(subscriptions);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "execution.setSubscriptions params");
+      throw jsonDecoder.mismatch(jsonPath, "execution.setSubscriptions params", json);
     }
   }
 
@@ -6664,7 +6999,7 @@ class ExecutionLaunchDataParams implements HasToJson {
       }
       return new ExecutionLaunchDataParams(file, kind: kind, referencedFiles: referencedFiles);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "execution.launchData params");
+      throw jsonDecoder.mismatch(jsonPath, "execution.launchData params", json);
     }
   }
 
@@ -6746,7 +7081,7 @@ class AddContentOverlay implements HasToJson {
     }
     if (json is Map) {
       if (json["type"] != "add") {
-        throw jsonDecoder.mismatch(jsonPath, "equal " + "add");
+        throw jsonDecoder.mismatch(jsonPath, "equal " + "add", json);
       }
       String content;
       if (json.containsKey("content")) {
@@ -6756,7 +7091,7 @@ class AddContentOverlay implements HasToJson {
       }
       return new AddContentOverlay(content);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "AddContentOverlay");
+      throw jsonDecoder.mismatch(jsonPath, "AddContentOverlay", json);
     }
   }
 
@@ -6922,7 +7257,7 @@ class AnalysisError implements HasToJson {
       }
       return new AnalysisError(severity, type, location, message, correction: correction);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "AnalysisError");
+      throw jsonDecoder.mismatch(jsonPath, "AnalysisError", json);
     }
   }
 
@@ -7032,7 +7367,7 @@ class AnalysisErrorFixes implements HasToJson {
       }
       return new AnalysisErrorFixes(error, fixes: fixes);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorFixes");
+      throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorFixes", json);
     }
   }
 
@@ -7109,7 +7444,7 @@ class AnalysisErrorSeverity implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorSeverity");
+    throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorSeverity", json);
   }
 
   @override
@@ -7188,7 +7523,7 @@ class AnalysisErrorType implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorType");
+    throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorType", json);
   }
 
   @override
@@ -7226,14 +7561,14 @@ class AnalysisOptions implements HasToJson {
   bool _generateLints;
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed async feature.
    */
   bool get enableAsync => _enableAsync;
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed async feature.
    */
@@ -7242,7 +7577,7 @@ class AnalysisOptions implements HasToJson {
   }
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed deferred
    * loading feature.
@@ -7250,7 +7585,7 @@ class AnalysisOptions implements HasToJson {
   bool get enableDeferredLoading => _enableDeferredLoading;
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed deferred
    * loading feature.
@@ -7260,14 +7595,14 @@ class AnalysisOptions implements HasToJson {
   }
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed enum feature.
    */
   bool get enableEnums => _enableEnums;
 
   /**
-   * Deprecated
+   * Deprecated: this feature is always enabled.
    *
    * True if the client wants to enable support for the proposed enum feature.
    */
@@ -7276,12 +7611,16 @@ class AnalysisOptions implements HasToJson {
   }
 
   /**
+   * Deprecated: this feature is always enabled.
+   *
    * True if the client wants to enable support for the proposed "null aware
    * operators" feature.
    */
   bool get enableNullAwareOperators => _enableNullAwareOperators;
 
   /**
+   * Deprecated: this feature is always enabled.
+   *
    * True if the client wants to enable support for the proposed "null aware
    * operators" feature.
    */
@@ -7376,7 +7715,7 @@ class AnalysisOptions implements HasToJson {
       }
       return new AnalysisOptions(enableAsync: enableAsync, enableDeferredLoading: enableDeferredLoading, enableEnums: enableEnums, enableNullAwareOperators: enableNullAwareOperators, generateDart2jsHints: generateDart2jsHints, generateHints: generateHints, generateLints: generateLints);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "AnalysisOptions");
+      throw jsonDecoder.mismatch(jsonPath, "AnalysisOptions", json);
     }
   }
 
@@ -7455,6 +7794,10 @@ class AnalysisService implements Enum {
 
   static const HIGHLIGHTS = const AnalysisService._("HIGHLIGHTS");
 
+  /**
+   * This service is not currently implemented and will become a
+   * GeneralAnalysisService in a future release.
+   */
   static const INVALIDATE = const AnalysisService._("INVALIDATE");
 
   static const NAVIGATION = const AnalysisService._("NAVIGATION");
@@ -7502,7 +7845,7 @@ class AnalysisService implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "AnalysisService");
+    throw jsonDecoder.mismatch(jsonPath, "AnalysisService", json);
   }
 
   @override
@@ -7573,7 +7916,7 @@ class AnalysisStatus implements HasToJson {
       }
       return new AnalysisStatus(isAnalyzing, analysisTarget: analysisTarget);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "AnalysisStatus");
+      throw jsonDecoder.mismatch(jsonPath, "AnalysisStatus", json);
     }
   }
 
@@ -7641,7 +7984,7 @@ class ChangeContentOverlay implements HasToJson {
     }
     if (json is Map) {
       if (json["type"] != "change") {
-        throw jsonDecoder.mismatch(jsonPath, "equal " + "change");
+        throw jsonDecoder.mismatch(jsonPath, "equal " + "change", json);
       }
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
@@ -7651,7 +7994,7 @@ class ChangeContentOverlay implements HasToJson {
       }
       return new ChangeContentOverlay(edits);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "ChangeContentOverlay");
+      throw jsonDecoder.mismatch(jsonPath, "ChangeContentOverlay", json);
     }
   }
 
@@ -8142,7 +8485,7 @@ class CompletionSuggestion implements HasToJson {
       }
       return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary: docSummary, docComplete: docComplete, declaringType: declaringType, element: element, returnType: returnType, parameterNames: parameterNames, parameterTypes: parameterTypes, requiredParameterCount: requiredParameterCount, hasNamedParameters: hasNamedParameters, parameterName: parameterName, parameterType: parameterType, importUri: importUri);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "CompletionSuggestion");
+      throw jsonDecoder.mismatch(jsonPath, "CompletionSuggestion", json);
     }
   }
 
@@ -8346,7 +8689,7 @@ class CompletionSuggestionKind implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "CompletionSuggestionKind");
+    throw jsonDecoder.mismatch(jsonPath, "CompletionSuggestionKind", json);
   }
 
   @override
@@ -8569,7 +8912,7 @@ class Element implements HasToJson {
       }
       return new Element(kind, name, flags, location: location, parameters: parameters, returnType: returnType, typeParameters: typeParameters);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "Element");
+      throw jsonDecoder.mismatch(jsonPath, "Element", json);
     }
   }
 
@@ -8771,7 +9114,7 @@ class ElementKind implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "ElementKind");
+    throw jsonDecoder.mismatch(jsonPath, "ElementKind", json);
   }
 
   @override
@@ -8843,7 +9186,7 @@ class ExecutableFile implements HasToJson {
       }
       return new ExecutableFile(file, kind);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "ExecutableFile");
+      throw jsonDecoder.mismatch(jsonPath, "ExecutableFile", json);
     }
   }
 
@@ -8925,7 +9268,7 @@ class ExecutableKind implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "ExecutableKind");
+    throw jsonDecoder.mismatch(jsonPath, "ExecutableKind", json);
   }
 
   @override
@@ -8969,7 +9312,7 @@ class ExecutionService implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "ExecutionService");
+    throw jsonDecoder.mismatch(jsonPath, "ExecutionService", json);
   }
 
   @override
@@ -9033,7 +9376,7 @@ class FoldingKind implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "FoldingKind");
+    throw jsonDecoder.mismatch(jsonPath, "FoldingKind", json);
   }
 
   @override
@@ -9128,7 +9471,7 @@ class FoldingRegion implements HasToJson {
       }
       return new FoldingRegion(kind, offset, length);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "FoldingRegion");
+      throw jsonDecoder.mismatch(jsonPath, "FoldingRegion", json);
     }
   }
 
@@ -9161,6 +9504,50 @@ class FoldingRegion implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, length.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
+}
+
+/**
+ * GeneralAnalysisService
+ *
+ * enum {
+ *   ANALYZED_FILES
+ * }
+ */
+class GeneralAnalysisService implements Enum {
+  static const ANALYZED_FILES = const GeneralAnalysisService._("ANALYZED_FILES");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<GeneralAnalysisService> VALUES = const <GeneralAnalysisService>[ANALYZED_FILES];
+
+  final String name;
+
+  const GeneralAnalysisService._(this.name);
+
+  factory GeneralAnalysisService(String name) {
+    switch (name) {
+      case "ANALYZED_FILES":
+        return ANALYZED_FILES;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory GeneralAnalysisService.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new GeneralAnalysisService(json);
+      } catch(_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "GeneralAnalysisService", json);
+  }
+
+  @override
+  String toString() => "GeneralAnalysisService.$name";
+
+  String toJson() => name;
 }
 
 /**
@@ -9249,7 +9636,7 @@ class HighlightRegion implements HasToJson {
       }
       return new HighlightRegion(type, offset, length);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "HighlightRegion");
+      throw jsonDecoder.mismatch(jsonPath, "HighlightRegion", json);
     }
   }
 
@@ -9297,6 +9684,10 @@ class HighlightRegion implements HasToJson {
  *   CONSTRUCTOR
  *   DIRECTIVE
  *   DYNAMIC_TYPE
+ *   DYNAMIC_LOCAL_VARIABLE_DECLARATION
+ *   DYNAMIC_LOCAL_VARIABLE_REFERENCE
+ *   DYNAMIC_PARAMETER_DECLARATION
+ *   DYNAMIC_PARAMETER_REFERENCE
  *   ENUM
  *   ENUM_CONSTANT
  *   FIELD
@@ -9307,16 +9698,29 @@ class HighlightRegion implements HasToJson {
  *   GETTER_DECLARATION
  *   IDENTIFIER_DEFAULT
  *   IMPORT_PREFIX
+ *   INSTANCE_FIELD_DECLARATION
+ *   INSTANCE_FIELD_REFERENCE
+ *   INSTANCE_GETTER_DECLARATION
+ *   INSTANCE_GETTER_REFERENCE
+ *   INSTANCE_METHOD_DECLARATION
+ *   INSTANCE_METHOD_REFERENCE
+ *   INSTANCE_SETTER_DECLARATION
+ *   INSTANCE_SETTER_REFERENCE
+ *   INVALID_STRING_ESCAPE
  *   KEYWORD
  *   LABEL
+ *   LIBRARY_NAME
  *   LITERAL_BOOLEAN
  *   LITERAL_DOUBLE
  *   LITERAL_INTEGER
  *   LITERAL_LIST
  *   LITERAL_MAP
  *   LITERAL_STRING
+ *   LOCAL_FUNCTION_DECLARATION
+ *   LOCAL_FUNCTION_REFERENCE
  *   LOCAL_VARIABLE
  *   LOCAL_VARIABLE_DECLARATION
+ *   LOCAL_VARIABLE_REFERENCE
  *   METHOD
  *   METHOD_DECLARATION
  *   METHOD_DECLARATION_STATIC
@@ -9324,8 +9728,26 @@ class HighlightRegion implements HasToJson {
  *   PARAMETER
  *   SETTER_DECLARATION
  *   TOP_LEVEL_VARIABLE
+ *   PARAMETER_DECLARATION
+ *   PARAMETER_REFERENCE
+ *   STATIC_FIELD_DECLARATION
+ *   STATIC_GETTER_DECLARATION
+ *   STATIC_GETTER_REFERENCE
+ *   STATIC_METHOD_DECLARATION
+ *   STATIC_METHOD_REFERENCE
+ *   STATIC_SETTER_DECLARATION
+ *   STATIC_SETTER_REFERENCE
+ *   TOP_LEVEL_FUNCTION_DECLARATION
+ *   TOP_LEVEL_FUNCTION_REFERENCE
+ *   TOP_LEVEL_GETTER_DECLARATION
+ *   TOP_LEVEL_GETTER_REFERENCE
+ *   TOP_LEVEL_SETTER_DECLARATION
+ *   TOP_LEVEL_SETTER_REFERENCE
+ *   TOP_LEVEL_VARIABLE_DECLARATION
  *   TYPE_NAME_DYNAMIC
  *   TYPE_PARAMETER
+ *   UNRESOLVED_INSTANCE_MEMBER_REFERENCE
+ *   VALID_STRING_ESCAPE
  * }
  */
 class HighlightRegionType implements Enum {
@@ -9345,31 +9767,119 @@ class HighlightRegionType implements Enum {
 
   static const DIRECTIVE = const HighlightRegionType._("DIRECTIVE");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const DYNAMIC_TYPE = const HighlightRegionType._("DYNAMIC_TYPE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const DYNAMIC_LOCAL_VARIABLE_DECLARATION = const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const DYNAMIC_LOCAL_VARIABLE_REFERENCE = const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const DYNAMIC_PARAMETER_DECLARATION = const HighlightRegionType._("DYNAMIC_PARAMETER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const DYNAMIC_PARAMETER_REFERENCE = const HighlightRegionType._("DYNAMIC_PARAMETER_REFERENCE");
 
   static const ENUM = const HighlightRegionType._("ENUM");
 
   static const ENUM_CONSTANT = const HighlightRegionType._("ENUM_CONSTANT");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const FIELD = const HighlightRegionType._("FIELD");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const FIELD_STATIC = const HighlightRegionType._("FIELD_STATIC");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const FUNCTION = const HighlightRegionType._("FUNCTION");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const FUNCTION_DECLARATION = const HighlightRegionType._("FUNCTION_DECLARATION");
 
   static const FUNCTION_TYPE_ALIAS = const HighlightRegionType._("FUNCTION_TYPE_ALIAS");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const GETTER_DECLARATION = const HighlightRegionType._("GETTER_DECLARATION");
 
   static const IDENTIFIER_DEFAULT = const HighlightRegionType._("IDENTIFIER_DEFAULT");
 
   static const IMPORT_PREFIX = const HighlightRegionType._("IMPORT_PREFIX");
 
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INSTANCE_FIELD_DECLARATION = const HighlightRegionType._("INSTANCE_FIELD_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INSTANCE_FIELD_REFERENCE = const HighlightRegionType._("INSTANCE_FIELD_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INSTANCE_GETTER_DECLARATION = const HighlightRegionType._("INSTANCE_GETTER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INSTANCE_GETTER_REFERENCE = const HighlightRegionType._("INSTANCE_GETTER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INSTANCE_METHOD_DECLARATION = const HighlightRegionType._("INSTANCE_METHOD_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INSTANCE_METHOD_REFERENCE = const HighlightRegionType._("INSTANCE_METHOD_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INSTANCE_SETTER_DECLARATION = const HighlightRegionType._("INSTANCE_SETTER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INSTANCE_SETTER_REFERENCE = const HighlightRegionType._("INSTANCE_SETTER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const INVALID_STRING_ESCAPE = const HighlightRegionType._("INVALID_STRING_ESCAPE");
+
   static const KEYWORD = const HighlightRegionType._("KEYWORD");
 
   static const LABEL = const HighlightRegionType._("LABEL");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const LIBRARY_NAME = const HighlightRegionType._("LIBRARY_NAME");
 
   static const LITERAL_BOOLEAN = const HighlightRegionType._("LITERAL_BOOLEAN");
 
@@ -9383,32 +9893,161 @@ class HighlightRegionType implements Enum {
 
   static const LITERAL_STRING = const HighlightRegionType._("LITERAL_STRING");
 
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const LOCAL_FUNCTION_DECLARATION = const HighlightRegionType._("LOCAL_FUNCTION_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const LOCAL_FUNCTION_REFERENCE = const HighlightRegionType._("LOCAL_FUNCTION_REFERENCE");
+
+  /**
+   * Only for version 1 of highlight.
+   */
   static const LOCAL_VARIABLE = const HighlightRegionType._("LOCAL_VARIABLE");
 
   static const LOCAL_VARIABLE_DECLARATION = const HighlightRegionType._("LOCAL_VARIABLE_DECLARATION");
 
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const LOCAL_VARIABLE_REFERENCE = const HighlightRegionType._("LOCAL_VARIABLE_REFERENCE");
+
+  /**
+   * Only for version 1 of highlight.
+   */
   static const METHOD = const HighlightRegionType._("METHOD");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const METHOD_DECLARATION = const HighlightRegionType._("METHOD_DECLARATION");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const METHOD_DECLARATION_STATIC = const HighlightRegionType._("METHOD_DECLARATION_STATIC");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const METHOD_STATIC = const HighlightRegionType._("METHOD_STATIC");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const PARAMETER = const HighlightRegionType._("PARAMETER");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const SETTER_DECLARATION = const HighlightRegionType._("SETTER_DECLARATION");
 
+  /**
+   * Only for version 1 of highlight.
+   */
   static const TOP_LEVEL_VARIABLE = const HighlightRegionType._("TOP_LEVEL_VARIABLE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const PARAMETER_DECLARATION = const HighlightRegionType._("PARAMETER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const PARAMETER_REFERENCE = const HighlightRegionType._("PARAMETER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const STATIC_FIELD_DECLARATION = const HighlightRegionType._("STATIC_FIELD_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const STATIC_GETTER_DECLARATION = const HighlightRegionType._("STATIC_GETTER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const STATIC_GETTER_REFERENCE = const HighlightRegionType._("STATIC_GETTER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const STATIC_METHOD_DECLARATION = const HighlightRegionType._("STATIC_METHOD_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const STATIC_METHOD_REFERENCE = const HighlightRegionType._("STATIC_METHOD_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const STATIC_SETTER_DECLARATION = const HighlightRegionType._("STATIC_SETTER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const STATIC_SETTER_REFERENCE = const HighlightRegionType._("STATIC_SETTER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const TOP_LEVEL_FUNCTION_DECLARATION = const HighlightRegionType._("TOP_LEVEL_FUNCTION_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const TOP_LEVEL_FUNCTION_REFERENCE = const HighlightRegionType._("TOP_LEVEL_FUNCTION_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const TOP_LEVEL_GETTER_DECLARATION = const HighlightRegionType._("TOP_LEVEL_GETTER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const TOP_LEVEL_GETTER_REFERENCE = const HighlightRegionType._("TOP_LEVEL_GETTER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const TOP_LEVEL_SETTER_DECLARATION = const HighlightRegionType._("TOP_LEVEL_SETTER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const TOP_LEVEL_SETTER_REFERENCE = const HighlightRegionType._("TOP_LEVEL_SETTER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const TOP_LEVEL_VARIABLE_DECLARATION = const HighlightRegionType._("TOP_LEVEL_VARIABLE_DECLARATION");
 
   static const TYPE_NAME_DYNAMIC = const HighlightRegionType._("TYPE_NAME_DYNAMIC");
 
   static const TYPE_PARAMETER = const HighlightRegionType._("TYPE_PARAMETER");
 
   /**
+   * Only for version 2 of highlight.
+   */
+  static const UNRESOLVED_INSTANCE_MEMBER_REFERENCE = const HighlightRegionType._("UNRESOLVED_INSTANCE_MEMBER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const VALID_STRING_ESCAPE = const HighlightRegionType._("VALID_STRING_ESCAPE");
+
+  /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<HighlightRegionType> VALUES = const <HighlightRegionType>[ANNOTATION, BUILT_IN, CLASS, COMMENT_BLOCK, COMMENT_DOCUMENTATION, COMMENT_END_OF_LINE, CONSTRUCTOR, DIRECTIVE, DYNAMIC_TYPE, ENUM, ENUM_CONSTANT, FIELD, FIELD_STATIC, FUNCTION, FUNCTION_DECLARATION, FUNCTION_TYPE_ALIAS, GETTER_DECLARATION, IDENTIFIER_DEFAULT, IMPORT_PREFIX, KEYWORD, LABEL, LITERAL_BOOLEAN, LITERAL_DOUBLE, LITERAL_INTEGER, LITERAL_LIST, LITERAL_MAP, LITERAL_STRING, LOCAL_VARIABLE, LOCAL_VARIABLE_DECLARATION, METHOD, METHOD_DECLARATION, METHOD_DECLARATION_STATIC, METHOD_STATIC, PARAMETER, SETTER_DECLARATION, TOP_LEVEL_VARIABLE, TYPE_NAME_DYNAMIC, TYPE_PARAMETER];
+  static const List<HighlightRegionType> VALUES = const <HighlightRegionType>[ANNOTATION, BUILT_IN, CLASS, COMMENT_BLOCK, COMMENT_DOCUMENTATION, COMMENT_END_OF_LINE, CONSTRUCTOR, DIRECTIVE, DYNAMIC_TYPE, DYNAMIC_LOCAL_VARIABLE_DECLARATION, DYNAMIC_LOCAL_VARIABLE_REFERENCE, DYNAMIC_PARAMETER_DECLARATION, DYNAMIC_PARAMETER_REFERENCE, ENUM, ENUM_CONSTANT, FIELD, FIELD_STATIC, FUNCTION, FUNCTION_DECLARATION, FUNCTION_TYPE_ALIAS, GETTER_DECLARATION, IDENTIFIER_DEFAULT, IMPORT_PREFIX, INSTANCE_FIELD_DECLARATION, INSTANCE_FIELD_REFERENCE, INSTANCE_GETTER_DECLARATION, INSTANCE_GETTER_REFERENCE, INSTANCE_METHOD_DECLARATION, INSTANCE_METHOD_REFERENCE, INSTANCE_SETTER_DECLARATION, INSTANCE_SETTER_REFERENCE, INVALID_STRING_ESCAPE, KEYWORD, LABEL, LIBRARY_NAME, LITERAL_BOOLEAN, LITERAL_DOUBLE, LITERAL_INTEGER, LITERAL_LIST, LITERAL_MAP, LITERAL_STRING, LOCAL_FUNCTION_DECLARATION, LOCAL_FUNCTION_REFERENCE, LOCAL_VARIABLE, LOCAL_VARIABLE_DECLARATION, LOCAL_VARIABLE_REFERENCE, METHOD, METHOD_DECLARATION, METHOD_DECLARATION_STATIC, METHOD_STATIC, PARAMETER, SETTER_DECLARATION, TOP_LEVEL_VARIABLE, PARAMETER_DECLARATION, PARAMETER_REFERENCE, STATIC_FIELD_DECLARATION, STATIC_GETTER_DECLARATION, STATIC_GETTER_REFERENCE, STATIC_METHOD_DECLARATION, STATIC_METHOD_REFERENCE, STATIC_SETTER_DECLARATION, STATIC_SETTER_REFERENCE, TOP_LEVEL_FUNCTION_DECLARATION, TOP_LEVEL_FUNCTION_REFERENCE, TOP_LEVEL_GETTER_DECLARATION, TOP_LEVEL_GETTER_REFERENCE, TOP_LEVEL_SETTER_DECLARATION, TOP_LEVEL_SETTER_REFERENCE, TOP_LEVEL_VARIABLE_DECLARATION, TYPE_NAME_DYNAMIC, TYPE_PARAMETER, UNRESOLVED_INSTANCE_MEMBER_REFERENCE, VALID_STRING_ESCAPE];
 
   final String name;
 
@@ -9434,6 +10073,14 @@ class HighlightRegionType implements Enum {
         return DIRECTIVE;
       case "DYNAMIC_TYPE":
         return DYNAMIC_TYPE;
+      case "DYNAMIC_LOCAL_VARIABLE_DECLARATION":
+        return DYNAMIC_LOCAL_VARIABLE_DECLARATION;
+      case "DYNAMIC_LOCAL_VARIABLE_REFERENCE":
+        return DYNAMIC_LOCAL_VARIABLE_REFERENCE;
+      case "DYNAMIC_PARAMETER_DECLARATION":
+        return DYNAMIC_PARAMETER_DECLARATION;
+      case "DYNAMIC_PARAMETER_REFERENCE":
+        return DYNAMIC_PARAMETER_REFERENCE;
       case "ENUM":
         return ENUM;
       case "ENUM_CONSTANT":
@@ -9454,10 +10101,30 @@ class HighlightRegionType implements Enum {
         return IDENTIFIER_DEFAULT;
       case "IMPORT_PREFIX":
         return IMPORT_PREFIX;
+      case "INSTANCE_FIELD_DECLARATION":
+        return INSTANCE_FIELD_DECLARATION;
+      case "INSTANCE_FIELD_REFERENCE":
+        return INSTANCE_FIELD_REFERENCE;
+      case "INSTANCE_GETTER_DECLARATION":
+        return INSTANCE_GETTER_DECLARATION;
+      case "INSTANCE_GETTER_REFERENCE":
+        return INSTANCE_GETTER_REFERENCE;
+      case "INSTANCE_METHOD_DECLARATION":
+        return INSTANCE_METHOD_DECLARATION;
+      case "INSTANCE_METHOD_REFERENCE":
+        return INSTANCE_METHOD_REFERENCE;
+      case "INSTANCE_SETTER_DECLARATION":
+        return INSTANCE_SETTER_DECLARATION;
+      case "INSTANCE_SETTER_REFERENCE":
+        return INSTANCE_SETTER_REFERENCE;
+      case "INVALID_STRING_ESCAPE":
+        return INVALID_STRING_ESCAPE;
       case "KEYWORD":
         return KEYWORD;
       case "LABEL":
         return LABEL;
+      case "LIBRARY_NAME":
+        return LIBRARY_NAME;
       case "LITERAL_BOOLEAN":
         return LITERAL_BOOLEAN;
       case "LITERAL_DOUBLE":
@@ -9470,10 +10137,16 @@ class HighlightRegionType implements Enum {
         return LITERAL_MAP;
       case "LITERAL_STRING":
         return LITERAL_STRING;
+      case "LOCAL_FUNCTION_DECLARATION":
+        return LOCAL_FUNCTION_DECLARATION;
+      case "LOCAL_FUNCTION_REFERENCE":
+        return LOCAL_FUNCTION_REFERENCE;
       case "LOCAL_VARIABLE":
         return LOCAL_VARIABLE;
       case "LOCAL_VARIABLE_DECLARATION":
         return LOCAL_VARIABLE_DECLARATION;
+      case "LOCAL_VARIABLE_REFERENCE":
+        return LOCAL_VARIABLE_REFERENCE;
       case "METHOD":
         return METHOD;
       case "METHOD_DECLARATION":
@@ -9488,10 +10161,46 @@ class HighlightRegionType implements Enum {
         return SETTER_DECLARATION;
       case "TOP_LEVEL_VARIABLE":
         return TOP_LEVEL_VARIABLE;
+      case "PARAMETER_DECLARATION":
+        return PARAMETER_DECLARATION;
+      case "PARAMETER_REFERENCE":
+        return PARAMETER_REFERENCE;
+      case "STATIC_FIELD_DECLARATION":
+        return STATIC_FIELD_DECLARATION;
+      case "STATIC_GETTER_DECLARATION":
+        return STATIC_GETTER_DECLARATION;
+      case "STATIC_GETTER_REFERENCE":
+        return STATIC_GETTER_REFERENCE;
+      case "STATIC_METHOD_DECLARATION":
+        return STATIC_METHOD_DECLARATION;
+      case "STATIC_METHOD_REFERENCE":
+        return STATIC_METHOD_REFERENCE;
+      case "STATIC_SETTER_DECLARATION":
+        return STATIC_SETTER_DECLARATION;
+      case "STATIC_SETTER_REFERENCE":
+        return STATIC_SETTER_REFERENCE;
+      case "TOP_LEVEL_FUNCTION_DECLARATION":
+        return TOP_LEVEL_FUNCTION_DECLARATION;
+      case "TOP_LEVEL_FUNCTION_REFERENCE":
+        return TOP_LEVEL_FUNCTION_REFERENCE;
+      case "TOP_LEVEL_GETTER_DECLARATION":
+        return TOP_LEVEL_GETTER_DECLARATION;
+      case "TOP_LEVEL_GETTER_REFERENCE":
+        return TOP_LEVEL_GETTER_REFERENCE;
+      case "TOP_LEVEL_SETTER_DECLARATION":
+        return TOP_LEVEL_SETTER_DECLARATION;
+      case "TOP_LEVEL_SETTER_REFERENCE":
+        return TOP_LEVEL_SETTER_REFERENCE;
+      case "TOP_LEVEL_VARIABLE_DECLARATION":
+        return TOP_LEVEL_VARIABLE_DECLARATION;
       case "TYPE_NAME_DYNAMIC":
         return TYPE_NAME_DYNAMIC;
       case "TYPE_PARAMETER":
         return TYPE_PARAMETER;
+      case "UNRESOLVED_INSTANCE_MEMBER_REFERENCE":
+        return UNRESOLVED_INSTANCE_MEMBER_REFERENCE;
+      case "VALID_STRING_ESCAPE":
+        return VALID_STRING_ESCAPE;
     }
     throw new Exception('Illegal enum value: $name');
   }
@@ -9504,7 +10213,7 @@ class HighlightRegionType implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "HighlightRegionType");
+    throw jsonDecoder.mismatch(jsonPath, "HighlightRegionType", json);
   }
 
   @override
@@ -9794,7 +10503,7 @@ class HoverInformation implements HasToJson {
       }
       return new HoverInformation(offset, length, containingLibraryPath: containingLibraryPath, containingLibraryName: containingLibraryName, containingClassDescription: containingClassDescription, dartdoc: dartdoc, elementDescription: elementDescription, elementKind: elementKind, parameter: parameter, propagatedType: propagatedType, staticType: staticType);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "HoverInformation");
+      throw jsonDecoder.mismatch(jsonPath, "HoverInformation", json);
     }
   }
 
@@ -9959,7 +10668,7 @@ class LinkedEditGroup implements HasToJson {
       }
       return new LinkedEditGroup(positions, length, suggestions);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "LinkedEditGroup");
+      throw jsonDecoder.mismatch(jsonPath, "LinkedEditGroup", json);
     }
   }
 
@@ -10077,7 +10786,7 @@ class LinkedEditSuggestion implements HasToJson {
       }
       return new LinkedEditSuggestion(value, kind);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "LinkedEditSuggestion");
+      throw jsonDecoder.mismatch(jsonPath, "LinkedEditSuggestion", json);
     }
   }
 
@@ -10159,7 +10868,7 @@ class LinkedEditSuggestionKind implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "LinkedEditSuggestionKind");
+    throw jsonDecoder.mismatch(jsonPath, "LinkedEditSuggestionKind", json);
   }
 
   @override
@@ -10304,7 +11013,7 @@ class Location implements HasToJson {
       }
       return new Location(file, offset, length, startLine, startColumn);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "Location");
+      throw jsonDecoder.mismatch(jsonPath, "Location", json);
     }
   }
 
@@ -10435,7 +11144,7 @@ class NavigationRegion implements HasToJson {
       }
       return new NavigationRegion(offset, length, targets);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "NavigationRegion");
+      throw jsonDecoder.mismatch(jsonPath, "NavigationRegion", json);
     }
   }
 
@@ -10631,7 +11340,7 @@ class NavigationTarget implements HasToJson {
       }
       return new NavigationTarget(kind, fileIndex, offset, length, startLine, startColumn);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "NavigationTarget");
+      throw jsonDecoder.mismatch(jsonPath, "NavigationTarget", json);
     }
   }
 
@@ -10761,7 +11470,7 @@ class Occurrences implements HasToJson {
       }
       return new Occurrences(element, offsets, length);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "Occurrences");
+      throw jsonDecoder.mismatch(jsonPath, "Occurrences", json);
     }
   }
 
@@ -10910,7 +11619,7 @@ class Outline implements HasToJson {
       }
       return new Outline(element, offset, length, children: children);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "Outline");
+      throw jsonDecoder.mismatch(jsonPath, "Outline", json);
     }
   }
 
@@ -11061,7 +11770,7 @@ class Override implements HasToJson {
       }
       return new Override(offset, length, superclassMember: superclassMember, interfaceMembers: interfaceMembers);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "Override");
+      throw jsonDecoder.mismatch(jsonPath, "Override", json);
     }
   }
 
@@ -11166,7 +11875,7 @@ class OverriddenMember implements HasToJson {
       }
       return new OverriddenMember(element, className);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "OverriddenMember");
+      throw jsonDecoder.mismatch(jsonPath, "OverriddenMember", json);
     }
   }
 
@@ -11261,7 +11970,7 @@ class Position implements HasToJson {
       }
       return new Position(file, offset);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "Position");
+      throw jsonDecoder.mismatch(jsonPath, "Position", json);
     }
   }
 
@@ -11335,7 +12044,7 @@ class PubStatus implements HasToJson {
       }
       return new PubStatus(isListingPackageDirs);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "PubStatus");
+      throw jsonDecoder.mismatch(jsonPath, "PubStatus", json);
     }
   }
 
@@ -11439,7 +12148,7 @@ class RefactoringKind implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "RefactoringKind");
+    throw jsonDecoder.mismatch(jsonPath, "RefactoringKind", json);
   }
 
   @override
@@ -11582,7 +12291,7 @@ class RefactoringMethodParameter implements HasToJson {
       }
       return new RefactoringMethodParameter(kind, type, name, id: id, parameters: parameters);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "RefactoringMethodParameter");
+      throw jsonDecoder.mismatch(jsonPath, "RefactoringMethodParameter", json);
     }
   }
 
@@ -11744,7 +12453,7 @@ class RefactoringMethodParameterKind implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "RefactoringMethodParameterKind");
+    throw jsonDecoder.mismatch(jsonPath, "RefactoringMethodParameterKind", json);
   }
 
   @override
@@ -11840,7 +12549,7 @@ class RefactoringProblem implements HasToJson {
       }
       return new RefactoringProblem(severity, message, location: location);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "RefactoringProblem");
+      throw jsonDecoder.mismatch(jsonPath, "RefactoringProblem", json);
     }
   }
 
@@ -11927,7 +12636,7 @@ class RefactoringProblemSeverity implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "RefactoringProblemSeverity");
+    throw jsonDecoder.mismatch(jsonPath, "RefactoringProblemSeverity", json);
   }
 
   /**
@@ -11958,11 +12667,11 @@ class RemoveContentOverlay implements HasToJson {
     }
     if (json is Map) {
       if (json["type"] != "remove") {
-        throw jsonDecoder.mismatch(jsonPath, "equal " + "remove");
+        throw jsonDecoder.mismatch(jsonPath, "equal " + "remove", json);
       }
       return new RemoveContentOverlay();
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "RemoveContentOverlay");
+      throw jsonDecoder.mismatch(jsonPath, "RemoveContentOverlay", json);
     }
   }
 
@@ -12076,7 +12785,7 @@ class RequestError implements HasToJson {
       }
       return new RequestError(code, message, stackTrace: stackTrace);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "RequestError");
+      throw jsonDecoder.mismatch(jsonPath, "RequestError", json);
     }
   }
 
@@ -12118,15 +12827,18 @@ class RequestError implements HasToJson {
  *
  * enum {
  *   CONTENT_MODIFIED
+ *   FILE_NOT_ANALYZED
  *   FORMAT_INVALID_FILE
  *   FORMAT_WITH_ERRORS
  *   GET_ERRORS_INVALID_FILE
+ *   GET_NAVIGATION_INVALID_FILE
  *   INVALID_ANALYSIS_ROOT
  *   INVALID_EXECUTION_CONTEXT
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
  *   NO_INDEX_GENERATED
+ *   ORGANIZE_DIRECTIVES_ERROR
  *   REFACTORING_REQUEST_CANCELLED
  *   SERVER_ALREADY_STARTED
  *   SERVER_ERROR
@@ -12147,6 +12859,12 @@ class RequestErrorCode implements Enum {
   static const CONTENT_MODIFIED = const RequestErrorCode._("CONTENT_MODIFIED");
 
   /**
+   * A request specified a FilePath which does not match a file in an analysis
+   * root, or the requested operation is not available for the file.
+   */
+  static const FILE_NOT_ANALYZED = const RequestErrorCode._("FILE_NOT_ANALYZED");
+
+  /**
    * An "edit.format" request specified a FilePath which does not match a Dart
    * file in an analysis root.
    */
@@ -12162,6 +12880,12 @@ class RequestErrorCode implements Enum {
    * a file currently subject to analysis.
    */
   static const GET_ERRORS_INVALID_FILE = const RequestErrorCode._("GET_ERRORS_INVALID_FILE");
+
+  /**
+   * An "analysis.getNavigation" request specified a FilePath which does not
+   * match a file currently subject to analysis.
+   */
+  static const GET_NAVIGATION_INVALID_FILE = const RequestErrorCode._("GET_NAVIGATION_INVALID_FILE");
 
   /**
    * A path passed as an argument to a request (such as analysis.reanalyze) is
@@ -12196,6 +12920,12 @@ class RequestErrorCode implements Enum {
    * this API call requires an index to have been generated.
    */
   static const NO_INDEX_GENERATED = const RequestErrorCode._("NO_INDEX_GENERATED");
+
+  /**
+   * An "edit.organizeDirectives" request specified a Dart file that cannot be
+   * analyzed. The reason is described in the message.
+   */
+  static const ORGANIZE_DIRECTIVES_ERROR = const RequestErrorCode._("ORGANIZE_DIRECTIVES_ERROR");
 
   /**
    * Another refactoring request was received during processing of this one.
@@ -12263,7 +12993,7 @@ class RequestErrorCode implements Enum {
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FORMAT_INVALID_FILE, FORMAT_WITH_ERRORS, GET_ERRORS_INVALID_FILE, INVALID_ANALYSIS_ROOT, INVALID_EXECUTION_CONTEXT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNKNOWN_SOURCE, UNSUPPORTED_FEATURE];
+  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FILE_NOT_ANALYZED, FORMAT_INVALID_FILE, FORMAT_WITH_ERRORS, GET_ERRORS_INVALID_FILE, GET_NAVIGATION_INVALID_FILE, INVALID_ANALYSIS_ROOT, INVALID_EXECUTION_CONTEXT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, ORGANIZE_DIRECTIVES_ERROR, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNKNOWN_SOURCE, UNSUPPORTED_FEATURE];
 
   final String name;
 
@@ -12273,12 +13003,16 @@ class RequestErrorCode implements Enum {
     switch (name) {
       case "CONTENT_MODIFIED":
         return CONTENT_MODIFIED;
+      case "FILE_NOT_ANALYZED":
+        return FILE_NOT_ANALYZED;
       case "FORMAT_INVALID_FILE":
         return FORMAT_INVALID_FILE;
       case "FORMAT_WITH_ERRORS":
         return FORMAT_WITH_ERRORS;
       case "GET_ERRORS_INVALID_FILE":
         return GET_ERRORS_INVALID_FILE;
+      case "GET_NAVIGATION_INVALID_FILE":
+        return GET_NAVIGATION_INVALID_FILE;
       case "INVALID_ANALYSIS_ROOT":
         return INVALID_ANALYSIS_ROOT;
       case "INVALID_EXECUTION_CONTEXT":
@@ -12291,6 +13025,8 @@ class RequestErrorCode implements Enum {
         return INVALID_REQUEST;
       case "NO_INDEX_GENERATED":
         return NO_INDEX_GENERATED;
+      case "ORGANIZE_DIRECTIVES_ERROR":
+        return ORGANIZE_DIRECTIVES_ERROR;
       case "REFACTORING_REQUEST_CANCELLED":
         return REFACTORING_REQUEST_CANCELLED;
       case "SERVER_ALREADY_STARTED":
@@ -12321,7 +13057,7 @@ class RequestErrorCode implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "RequestErrorCode");
+    throw jsonDecoder.mismatch(jsonPath, "RequestErrorCode", json);
   }
 
   @override
@@ -12449,7 +13185,7 @@ class SearchResult implements HasToJson {
       }
       return new SearchResult(location, kind, isPotential, path);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "SearchResult");
+      throw jsonDecoder.mismatch(jsonPath, "SearchResult", json);
     }
   }
 
@@ -12574,7 +13310,7 @@ class SearchResultKind implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "SearchResultKind");
+    throw jsonDecoder.mismatch(jsonPath, "SearchResultKind", json);
   }
 
   @override
@@ -12618,7 +13354,7 @@ class ServerService implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "ServerService");
+    throw jsonDecoder.mismatch(jsonPath, "ServerService", json);
   }
 
   @override
@@ -12743,7 +13479,7 @@ class SourceChange implements HasToJson {
       }
       return new SourceChange(message, edits: edits, linkedEditGroups: linkedEditGroups, selection: selection);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "SourceChange");
+      throw jsonDecoder.mismatch(jsonPath, "SourceChange", json);
     }
   }
 
@@ -12936,7 +13672,7 @@ class SourceEdit implements HasToJson {
       }
       return new SourceEdit(offset, length, replacement, id: id);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "SourceEdit");
+      throw jsonDecoder.mismatch(jsonPath, "SourceEdit", json);
     }
   }
 
@@ -13084,7 +13820,7 @@ class SourceFileEdit implements HasToJson {
       }
       return new SourceFileEdit(file, fileStamp, edits: edits);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "SourceFileEdit");
+      throw jsonDecoder.mismatch(jsonPath, "SourceFileEdit", json);
     }
   }
 
@@ -13333,7 +14069,7 @@ class TypeHierarchyItem implements HasToJson {
       }
       return new TypeHierarchyItem(classElement, displayName: displayName, memberElement: memberElement, superclass: superclass, interfaces: interfaces, mixins: mixins, subclasses: subclasses);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "TypeHierarchyItem");
+      throw jsonDecoder.mismatch(jsonPath, "TypeHierarchyItem", json);
     }
   }
 
@@ -13548,7 +14284,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
       }
       return new ExtractLocalVariableFeedback(names, offsets, lengths);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "extractLocalVariable feedback");
+      throw jsonDecoder.mismatch(jsonPath, "extractLocalVariable feedback", json);
     }
   }
 
@@ -13652,7 +14388,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJso
       }
       return new ExtractLocalVariableOptions(name, extractAll);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "extractLocalVariable options");
+      throw jsonDecoder.mismatch(jsonPath, "extractLocalVariable options", json);
     }
   }
 
@@ -13904,7 +14640,7 @@ class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
       }
       return new ExtractMethodFeedback(offset, length, returnType, names, canCreateGetter, parameters, offsets, lengths);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "extractMethod feedback");
+      throw jsonDecoder.mismatch(jsonPath, "extractMethod feedback", json);
     }
   }
 
@@ -14110,7 +14846,7 @@ class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
       }
       return new ExtractMethodOptions(returnType, createGetter, name, parameters, extractAll);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "extractMethod options");
+      throw jsonDecoder.mismatch(jsonPath, "extractMethod options", json);
     }
   }
 
@@ -14219,7 +14955,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback implements HasToJs
       }
       return new InlineLocalVariableFeedback(name, occurrences);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "inlineLocalVariable feedback");
+      throw jsonDecoder.mismatch(jsonPath, "inlineLocalVariable feedback", json);
     }
   }
 
@@ -14355,7 +15091,7 @@ class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
       }
       return new InlineMethodFeedback(methodName, isDeclaration, className: className);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "inlineMethod feedback");
+      throw jsonDecoder.mismatch(jsonPath, "inlineMethod feedback", json);
     }
   }
 
@@ -14459,7 +15195,7 @@ class InlineMethodOptions extends RefactoringOptions implements HasToJson {
       }
       return new InlineMethodOptions(deleteSource, inlineAll);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "inlineMethod options");
+      throw jsonDecoder.mismatch(jsonPath, "inlineMethod options", json);
     }
   }
 
@@ -14553,7 +15289,7 @@ class MoveFileOptions extends RefactoringOptions implements HasToJson {
       }
       return new MoveFileOptions(newFile);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "moveFile options");
+      throw jsonDecoder.mismatch(jsonPath, "moveFile options", json);
     }
   }
 
@@ -14698,7 +15434,7 @@ class RenameFeedback extends RefactoringFeedback implements HasToJson {
       }
       return new RenameFeedback(offset, length, elementKindName, oldName);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "rename feedback");
+      throw jsonDecoder.mismatch(jsonPath, "rename feedback", json);
     }
   }
 
@@ -14776,7 +15512,7 @@ class RenameOptions extends RefactoringOptions implements HasToJson {
       }
       return new RenameOptions(newName);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "rename options");
+      throw jsonDecoder.mismatch(jsonPath, "rename options", json);
     }
   }
 

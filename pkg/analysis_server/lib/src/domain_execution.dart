@@ -6,6 +6,7 @@ library domain.execution;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:core' hide Resource;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -192,7 +193,7 @@ class ExecutionDomainHandler implements RequestHandler {
    * analysis root.
    */
   bool _isInAnalysisRoot(String filePath) =>
-      server.contextDirectoryManager.isInAnalysisRoot(filePath);
+      server.contextManager.isInAnalysisRoot(filePath);
 
   void _reportCurrentFileStatus() {
     for (AnalysisContext context in server.getAnalysisContexts()) {

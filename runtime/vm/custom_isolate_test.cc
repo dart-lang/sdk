@@ -312,6 +312,8 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
 
 
 UNIT_TEST_CASE(CustomIsolates) {
+  FLAG_verify_handles = true;
+  FLAG_verify_on_transition = true;
   event_queue = new EventQueue();
 
   Dart_Isolate dart_isolate = TestCase::CreateTestIsolate();

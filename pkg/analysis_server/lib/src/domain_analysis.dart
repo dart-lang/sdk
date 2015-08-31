@@ -5,9 +5,11 @@
 library domain.analysis;
 
 import 'dart:async';
+import 'dart:core' hide Resource;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
+import 'package:analysis_server/src/computer/computer_navigation.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
@@ -104,6 +106,50 @@ class AnalysisDomainHandler implements RequestHandler {
     return Response.DELAYED_RESPONSE;
   }
 
+  /**
+   * Implement the `analysis.getNavigation` request.
+   */
+  Response getNavigation(Request request) {
+    var params = new AnalysisGetNavigationParams.fromRequest(request);
+    String file = params.file;
+    Future<AnalysisDoneReason> analysisFuture =
+        server.onFileAnalysisComplete(file);
+    if (analysisFuture == null) {
+      return new Response.getNavigationInvalidFile(request);
+    }
+    analysisFuture.then((AnalysisDoneReason reason) {
+      switch (reason) {
+        case AnalysisDoneReason.COMPLETE:
+          List<CompilationUnit> units =
+              server.getResolvedCompilationUnits(file);
+          if (units.isEmpty) {
+            server.sendResponse(new Response.getNavigationInvalidFile(request));
+          } else {
+            DartUnitNavigationComputer computer =
+                new DartUnitNavigationComputer();
+            _GetNavigationAstVisitor visitor = new _GetNavigationAstVisitor(
+                params.offset, params.offset + params.length, computer);
+            for (CompilationUnit unit in units) {
+              unit.accept(visitor);
+            }
+            server.sendResponse(new AnalysisGetNavigationResult(
+                    computer.files, computer.targets, computer.regions)
+                .toResponse(request.id));
+          }
+          break;
+        case AnalysisDoneReason.CONTEXT_REMOVED:
+          // The active contexts have changed, so try again.
+          Response response = getNavigation(request);
+          if (response != Response.DELAYED_RESPONSE) {
+            server.sendResponse(response);
+          }
+          break;
+      }
+    });
+    // delay response
+    return Response.DELAYED_RESPONSE;
+  }
+
   @override
   Response handleRequest(Request request) {
     try {
@@ -114,10 +160,14 @@ class AnalysisDomainHandler implements RequestHandler {
         return getHover(request);
       } else if (requestName == ANALYSIS_GET_LIBRARY_DEPENDENCIES) {
         return getLibraryDependencies(request);
+      } else if (requestName == ANALYSIS_GET_NAVIGATION) {
+        return getNavigation(request);
       } else if (requestName == ANALYSIS_REANALYZE) {
         return reanalyze(request);
       } else if (requestName == ANALYSIS_SET_ANALYSIS_ROOTS) {
         return setAnalysisRoots(request);
+      } else if (requestName == ANALYSIS_SET_GENERAL_SUBSCRIPTIONS) {
+        return setGeneralSubscriptions(request);
       } else if (requestName == ANALYSIS_SET_PRIORITY_FILES) {
         return setPriorityFiles(request);
       } else if (requestName == ANALYSIS_SET_SUBSCRIPTIONS) {
@@ -141,7 +191,7 @@ class AnalysisDomainHandler implements RequestHandler {
         new AnalysisReanalyzeParams.fromRequest(request);
     List<String> roots = params.roots;
     if (roots == null || roots.isNotEmpty) {
-      List<String> includedPaths = server.contextDirectoryManager.includedPaths;
+      List<String> includedPaths = server.contextManager.includedPaths;
       List<Resource> rootResources = null;
       if (roots != null) {
         rootResources = <Resource>[];
@@ -166,6 +216,16 @@ class AnalysisDomainHandler implements RequestHandler {
     server.setAnalysisRoots(request.id, params.included, params.excluded,
         params.packageRoots == null ? {} : params.packageRoots);
     return new AnalysisSetAnalysisRootsResult().toResponse(request.id);
+  }
+
+  /**
+   * Implement the 'analysis.setGeneralSubscriptions' request.
+   */
+  Response setGeneralSubscriptions(Request request) {
+    AnalysisSetGeneralSubscriptionsParams params =
+        new AnalysisSetGeneralSubscriptionsParams.fromRequest(request);
+    server.setGeneralAnalysisSubscriptions(params.subscriptions);
+    return new AnalysisSetGeneralSubscriptionsResult().toResponse(request.id);
   }
 
   /**
@@ -206,11 +266,6 @@ class AnalysisDomainHandler implements RequestHandler {
     var params = new AnalysisUpdateOptionsParams.fromRequest(request);
     AnalysisOptions newOptions = params.options;
     List<OptionUpdater> updaters = new List<OptionUpdater>();
-    if (newOptions.enableNullAwareOperators != null) {
-      updaters.add((engine.AnalysisOptionsImpl options) {
-        options.enableNullAwareOperators = newOptions.enableNullAwareOperators;
-      });
-    }
     if (newOptions.generateDart2jsHints != null) {
       updaters.add((engine.AnalysisOptionsImpl options) {
         options.dart2jsHint = newOptions.generateDart2jsHints;
@@ -228,5 +283,38 @@ class AnalysisDomainHandler implements RequestHandler {
     }
     server.updateOptions(updaters);
     return new AnalysisUpdateOptionsResult().toResponse(request.id);
+  }
+}
+
+/**
+ * An AST visitor that computer navigation regions in the givne region.
+ */
+class _GetNavigationAstVisitor extends UnifyingAstVisitor {
+  final int rangeStart;
+  final int rangeEnd;
+  final DartUnitNavigationComputer computer;
+
+  _GetNavigationAstVisitor(this.rangeStart, this.rangeEnd, this.computer);
+
+  bool isInRange(int offset) {
+    return rangeStart <= offset && offset <= rangeEnd;
+  }
+
+  @override
+  visitNode(AstNode node) {
+    // The node ends before the range starts.
+    if (node.end < rangeStart) {
+      return;
+    }
+    // The node starts after the range ends.
+    if (node.offset > rangeEnd) {
+      return;
+    }
+    // The node starts or ends in the range.
+    if (isInRange(node.offset) || isInRange(node.end)) {
+      computer.compute(node);
+      return;
+    }
+    super.visitNode(node);
   }
 }

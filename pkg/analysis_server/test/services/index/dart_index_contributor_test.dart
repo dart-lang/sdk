@@ -1502,7 +1502,7 @@ main(A a, p) {
   LocationImpl _assertRecordedRelationForName(String expectedName,
       RelationshipImpl expectedRelationship,
       ExpectedLocation expectedLocation) {
-    _assertRecordedRelationForElement(
+    return _assertRecordedRelationForElement(
         new NameElement(expectedName), expectedRelationship, expectedLocation);
   }
 

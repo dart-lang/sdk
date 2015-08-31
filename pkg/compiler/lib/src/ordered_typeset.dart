@@ -32,7 +32,7 @@ class OrderedTypeSet {
   final Link<DartType> types;
   final Link<DartType> _supertypes;
 
-  OrderedTypeSet._internal(List<Link<DartType>> this._levels,
+  OrderedTypeSet.internal(List<Link<DartType>> this._levels,
                            Link<DartType> this.types,
                            Link<DartType> this._supertypes);
 
@@ -41,7 +41,7 @@ class OrderedTypeSet {
         new LinkEntry<DartType>(type, const Link<DartType>());
     List<Link<DartType>> list = new List<Link<DartType>>(1);
     list[0] = types;
-    return new OrderedTypeSet._internal(list, types, const Link<DartType>());
+    return new OrderedTypeSet.internal(list, types, const Link<DartType>());
   }
 
   /// Creates a new [OrderedTypeSet] for [type] when it directly extends the
@@ -58,7 +58,7 @@ class OrderedTypeSet {
       list[i] = _levels[i];
     }
     list[levels] = extendedTypes;
-    return new OrderedTypeSet._internal(
+    return new OrderedTypeSet.internal(
         list, extendedTypes, _supertypes.prepend(types.head));
   }
 
@@ -73,6 +73,21 @@ class OrderedTypeSet {
       return _levels[index];
     }
     return const Link<DartType>();
+  }
+
+  /// Returns the offsets into [types] at which each level begins.
+  List<int> get levelOffsets {
+    List<int> offsets = new List.filled(levels, -1);
+    int offset = 0;
+    Link<DartType> pointer = types;
+    for (int depth = maxDepth; depth >= 0; depth--) {
+      while (!identical(pointer, _levels[depth])) {
+        pointer = pointer.tail;
+        offset++;
+      }
+      offsets[depth] = offset;
+    }
+    return offsets;
   }
 
   void forEach(int level, void f(DartType type)) {
@@ -180,7 +195,7 @@ class OrderedTypeSetBuilder {
   OrderedTypeSet toTypeSet() {
     List<Link<DartType>> levels = new List<Link<DartType>>(maxDepth + 1);
     if (maxDepth < 0) {
-      return new OrderedTypeSet._internal(
+      return new OrderedTypeSet.internal(
           levels, const Link<DartType>(), const Link<DartType>());
     }
     Link<DartType> next = const Link<DartType>();
@@ -198,7 +213,7 @@ class OrderedTypeSetBuilder {
         next = first;
       }
     }
-    return new OrderedTypeSet._internal(
+    return new OrderedTypeSet.internal(
         levels, levels.last, allSupertypes.toLink());
   }
 

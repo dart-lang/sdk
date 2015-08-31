@@ -229,8 +229,6 @@ const Instance* ComparisonNode::EvalConstExpr() const {
       return NULL;
     case Token::kEQ:
     case Token::kNE:
-    case Token::kEQ_STRICT:
-    case Token::kNE_STRICT:
       // The comparison is a compile time const if both operands are either a
       // number, string, or boolean value (but not necessarily the same type).
       if ((left_val->IsNumber() ||
@@ -244,6 +242,11 @@ const Instance* ComparisonNode::EvalConstExpr() const {
         return &Bool::False();
       }
       return NULL;
+    case Token::kEQ_STRICT:
+    case Token::kNE_STRICT:
+      // identical(a, b) is a compile time const if both operands are
+      // compile time constants, regardless of their type.
+      return &Bool::True();
     default:
       return NULL;
   }
@@ -262,6 +265,7 @@ bool BinaryOpNode::IsKindValid() const {
     case Token::kMOD:
     case Token::kOR:
     case Token::kAND:
+    case Token::kIFNULL:
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
     case Token::kBIT_AND:
@@ -529,18 +533,23 @@ AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
 
 
 AstNode* InstanceGetterNode::MakeAssignmentNode(AstNode* rhs) {
-  return new InstanceSetterNode(token_pos(), receiver(), field_name(), rhs);
+  return new InstanceSetterNode(token_pos(),
+                                receiver(),
+                                field_name(),
+                                rhs,
+                                is_conditional());
 }
 
 
 bool InstanceGetterNode::IsPotentiallyConst() const {
   return field_name().Equals(Symbols::Length()) &&
+    !is_conditional() &&
     receiver()->IsPotentiallyConst();
 }
 
 
 const Instance* InstanceGetterNode::EvalConstExpr() const {
-  if (field_name().Equals(Symbols::Length())) {
+  if (field_name().Equals(Symbols::Length()) && !is_conditional()) {
     const Instance* receiver_val = receiver()->EvalConstExpr();
     if ((receiver_val != NULL) && receiver_val->IsString()) {
       return &Instance::ZoneHandle(Smi::New(1));

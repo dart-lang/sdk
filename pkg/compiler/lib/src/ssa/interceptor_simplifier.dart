@@ -347,7 +347,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
         List<HInstruction> inputs = new List<HInstruction>.from(user.inputs);
         inputs[0] = nullConstant;
         HOneShotInterceptor oneShotInterceptor = new HOneShotInterceptor(
-            user.selector, inputs, user.instructionType, interceptedClasses);
+            user.selector, user.mask,
+            inputs, user.instructionType, interceptedClasses);
         oneShotInterceptor.sourceInformation = user.sourceInformation;
         oneShotInterceptor.sourceElement = user.sourceElement;
         return replaceUserWith(oneShotInterceptor);
@@ -380,16 +381,19 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     if (constant == null) return false;
 
     Selector selector = node.selector;
+    TypeMask mask = node.mask;
     HInstruction instruction;
     if (selector.isGetter) {
       instruction = new HInvokeDynamicGetter(
           selector,
+          mask,
           node.element,
           <HInstruction>[constant, node.inputs[1]],
           node.instructionType);
     } else if (selector.isSetter) {
       instruction = new HInvokeDynamicSetter(
           selector,
+          mask,
           node.element,
           <HInstruction>[constant, node.inputs[1], node.inputs[2]],
           node.instructionType);
@@ -397,7 +401,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       List<HInstruction> inputs = new List<HInstruction>.from(node.inputs);
       inputs[0] = constant;
       instruction = new HInvokeDynamicMethod(
-          selector, inputs, node.instructionType, true);
+          selector, mask, inputs, node.instructionType, true);
     }
 
     HBasicBlock block = node.block;

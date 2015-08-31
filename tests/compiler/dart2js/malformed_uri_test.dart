@@ -20,11 +20,13 @@ main () { print("Hi"); }
 };
 
 testMalformedUri() {
-  var collector = new DiagnosticCollector();
-  var compiler = compilerFor(MEMORY_SOURCE_FILES, diagnosticHandler: collector);
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+  asyncTest(() async {
+    var collector = new DiagnosticCollector();
+    await runCompiler(
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        diagnosticHandler: collector);
     Expect.equals(1, collector.errors.length);
-  }));
+  });
 }
 
 void main() {

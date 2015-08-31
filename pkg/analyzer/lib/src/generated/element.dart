@@ -85,7 +85,8 @@ class BottomTypeImpl extends TypeImpl {
 
   @override
   bool isMoreSpecificThan(DartType type,
-      [bool withDynamic = false, Set<Element> visitedElements]) => true;
+          [bool withDynamic = false, Set<Element> visitedElements]) =>
+      true;
 
   @override
   bool isSubtypeOf(DartType type) => true;
@@ -98,8 +99,9 @@ class BottomTypeImpl extends TypeImpl {
 
   @override
   BottomTypeImpl substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes,
-      [List<FunctionTypeAliasElement> prune]) => this;
+          List<DartType> argumentTypes, List<DartType> parameterTypes,
+          [List<FunctionTypeAliasElement> prune]) =>
+      this;
 }
 
 /**
@@ -128,7 +130,7 @@ class CircularTypeImpl extends DynamicTypeImpl {
 /**
  * An element that represents a class.
  */
-abstract class ClassElement implements Element {
+abstract class ClassElement implements TypeDefiningElement {
   /**
    * An empty list of class elements.
    */
@@ -265,9 +267,7 @@ abstract class ClassElement implements Element {
    */
   InterfaceType get supertype;
 
-  /**
-   * Return the type defined by the class.
-   */
+  @override
   InterfaceType get type;
 
   /**
@@ -503,9 +503,15 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   List<PropertyAccessorElement> _accessors = PropertyAccessorElement.EMPTY_LIST;
 
   /**
-   * A list containing all of the constructors contained in this class.
+   * For classes which are not mixin applications, a list containing all of the
+   * constructors contained in this class, or `null` if the list of
+   * constructors has not yet been built.
+   *
+   * For classes which are mixin applications, the list of constructors is
+   * computed on the fly by the [constructors] getter, and this field is
+   * `null`.
    */
-  List<ConstructorElement> _constructors = ConstructorElement.EMPTY_LIST;
+  List<ConstructorElement> _constructors;
 
   /**
    * A list containing all of the fields contained in this class.
@@ -588,16 +594,72 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @override
-  List<ConstructorElement> get constructors => _constructors;
+  List<ConstructorElement> get constructors {
+    if (!isMixinApplication) {
+      assert(_constructors != null);
+      return _constructors == null
+          ? ConstructorElement.EMPTY_LIST
+          : _constructors;
+    }
+
+    return _computeMixinAppConstructors();
+  }
 
   /**
    * Set the constructors contained in this class to the given [constructors].
+   *
+   * Should only be used for class elements that are not mixin applications.
    */
   void set constructors(List<ConstructorElement> constructors) {
+    assert(!isMixinApplication);
     for (ConstructorElement constructor in constructors) {
       (constructor as ConstructorElementImpl).enclosingElement = this;
     }
     this._constructors = constructors;
+  }
+
+  /**
+   * Return `true` if [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS] should
+   * be reported for this class.
+   */
+  bool get doesMixinLackConstructors {
+    if (!isMixinApplication && mixins.isEmpty) {
+      // This class is not a mixin application and it doesn't have a "with"
+      // clause, so CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS is
+      // inapplicable.
+      return false;
+    }
+    if (supertype == null) {
+      // Should never happen, since Object is the only class that has no
+      // supertype, and it should have been caught by the test above.
+      assert(false);
+      return false;
+    }
+    // Find the nearest class in the supertype chain that is not a mixin
+    // application.
+    ClassElement nearestNonMixinClass = supertype.element;
+    if (nearestNonMixinClass.isMixinApplication) {
+      // Use a list to keep track of the classes we've seen, so that we won't
+      // go into an infinite loop in the event of a non-trivial loop in the
+      // class hierarchy.
+      List<ClassElementImpl> classesSeen = <ClassElementImpl>[this];
+      while (nearestNonMixinClass.isMixinApplication) {
+        if (classesSeen.contains(nearestNonMixinClass)) {
+          // Loop in the class hierarchy (which is reported elsewhere).  Don't
+          // confuse the user with further errors.
+          return false;
+        }
+        classesSeen.add(nearestNonMixinClass);
+        if (nearestNonMixinClass.supertype == null) {
+          // Should never happen, since Object is the only class that has no
+          // supertype, and it is not a mixin application.
+          assert(false);
+          return false;
+        }
+        nearestNonMixinClass = nearestNonMixinClass.supertype.element;
+      }
+    }
+    return !nearestNonMixinClass.constructors.any(isSuperConstructorAccessible);
   }
 
   /**
@@ -732,16 +794,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   void set mixinApplication(bool isMixinApplication) {
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
-  }
-
-  bool get mixinErrorsReported => hasModifier(Modifier.MIXIN_ERRORS_REPORTED);
-
-  /**
-   * Set whether an error has reported explaining why this class is an
-   * invalid mixin application.
-   */
-  void set mixinErrorsReported(bool value) {
-    setModifier(Modifier.MIXIN_ERRORS_REPORTED, value);
   }
 
   @override
@@ -998,6 +1050,103 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
   }
 
+  /**
+   * Compute a list of constructors for this class, which is a mixin
+   * application.  If specified, [visitedClasses] is a list of the other mixin
+   * application classes which have been visited on the way to reaching this
+   * one (this is used to detect circularities).
+   */
+  List<ConstructorElement> _computeMixinAppConstructors(
+      [List<ClassElementImpl> visitedClasses = null]) {
+    // First get the list of constructors of the superclass which need to be
+    // forwarded to this class.
+    Iterable<ConstructorElement> constructorsToForward;
+    if (supertype == null) {
+      // Shouldn't ever happen, since the only class with no supertype is
+      // Object, and it isn't a mixin application.  But for safety's sake just
+      // assume an empty list.
+      assert(false);
+      constructorsToForward = <ConstructorElement>[];
+    } else if (!supertype.element.isMixinApplication) {
+      List<ConstructorElement> superclassConstructors =
+          supertype.element.constructors;
+      // Filter out any constructors with optional parameters (see
+      // dartbug.com/15101).
+      constructorsToForward =
+          superclassConstructors.where(isSuperConstructorAccessible);
+    } else {
+      if (visitedClasses == null) {
+        visitedClasses = <ClassElementImpl>[this];
+      } else {
+        if (visitedClasses.contains(this)) {
+          // Loop in the class hierarchy.  Don't try to forward any
+          // constructors.
+          return <ConstructorElement>[];
+        }
+        visitedClasses.add(this);
+      }
+      try {
+        ClassElementImpl superclass = supertype.element;
+        constructorsToForward =
+            superclass._computeMixinAppConstructors(visitedClasses);
+      } finally {
+        visitedClasses.removeLast();
+      }
+    }
+
+    // Figure out the type parameter substitution we need to perform in order
+    // to produce constructors for this class.  We want to be robust in the
+    // face of errors, so drop any extra type arguments and fill in any missing
+    // ones with `dynamic`.
+    List<DartType> parameterTypes =
+        TypeParameterTypeImpl.getTypes(supertype.typeParameters);
+    List<DartType> argumentTypes = new List<DartType>.filled(
+        parameterTypes.length, DynamicTypeImpl.instance);
+    for (int i = 0; i < supertype.typeArguments.length; i++) {
+      if (i >= argumentTypes.length) {
+        break;
+      }
+      argumentTypes[i] = supertype.typeArguments[i];
+    }
+
+    // Now create an implicit constructor for every constructor found above,
+    // substituting type parameters as appropriate.
+    return constructorsToForward
+        .map((ConstructorElement superclassConstructor) {
+      ConstructorElementImpl implicitConstructor =
+          new ConstructorElementImpl(superclassConstructor.name, -1);
+      implicitConstructor.synthetic = true;
+      implicitConstructor.redirectedConstructor = superclassConstructor;
+      implicitConstructor.const2 = superclassConstructor.isConst;
+      implicitConstructor.returnType = type;
+      List<ParameterElement> superParameters = superclassConstructor.parameters;
+      int count = superParameters.length;
+      if (count > 0) {
+        List<ParameterElement> implicitParameters =
+            new List<ParameterElement>(count);
+        for (int i = 0; i < count; i++) {
+          ParameterElement superParameter = superParameters[i];
+          ParameterElementImpl implicitParameter =
+              new ParameterElementImpl(superParameter.name, -1);
+          implicitParameter.const3 = superParameter.isConst;
+          implicitParameter.final2 = superParameter.isFinal;
+          implicitParameter.parameterKind = superParameter.parameterKind;
+          implicitParameter.synthetic = true;
+          implicitParameter.type =
+              superParameter.type.substitute2(argumentTypes, parameterTypes);
+          implicitParameters[i] = implicitParameter;
+        }
+        implicitConstructor.parameters = implicitParameters;
+      }
+      FunctionTypeImpl constructorType =
+          new FunctionTypeImpl(implicitConstructor);
+      constructorType.typeArguments = type.typeArguments;
+      implicitConstructor.type = constructorType;
+      implicitConstructor.enclosingElement = this;
+      return implicitConstructor;
+    }).toList();
+  }
+
   PropertyAccessorElement _internalLookUpConcreteGetter(
       String getterName, LibraryElement library, bool includeThisClass) {
     PropertyAccessorElement getter =
@@ -1007,8 +1156,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       if (definingClass is! ClassElementImpl) {
         return null;
       }
-      getter = (definingClass as ClassElementImpl)._internalLookUpGetter(
-          getterName, library, false);
+      getter = (definingClass as ClassElementImpl)
+          ._internalLookUpGetter(getterName, library, false);
     }
     return getter;
   }
@@ -1036,8 +1185,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       if (definingClass is! ClassElementImpl) {
         return null;
       }
-      setter = (definingClass as ClassElementImpl)._internalLookUpSetter(
-          setterName, library, false);
+      setter = (definingClass as ClassElementImpl)
+          ._internalLookUpSetter(setterName, library, false);
     }
     return setter;
   }
@@ -2051,7 +2200,12 @@ abstract class DartType {
   /**
    * Return the least upper bound of this type and the given [type], or `null`
    * if there is no least upper bound.
+   *
+   * Deprecated, since it is impossible to implement the correct algorithm
+   * without access to a [TypeProvider].  Please use
+   * [TypeSystem.getLeastUpperBound] instead.
    */
+  @deprecated
   DartType getLeastUpperBound(DartType type);
 
   /**
@@ -2154,16 +2308,14 @@ class DefaultParameterElementImpl extends ParameterElementImpl
 /**
  * The synthetic element representing the declaration of the type `dynamic`.
  */
-class DynamicElementImpl extends ElementImpl {
+class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
   /**
    * Return the unique instance of this class.
    */
   static DynamicElementImpl get instance =>
       DynamicTypeImpl.instance.element as DynamicElementImpl;
 
-  /**
-   * The type defined by this element.
-   */
+  @override
   DynamicTypeImpl type;
 
   /**
@@ -2388,6 +2540,8 @@ abstract class Element implements AnalysisTarget {
   int get nameOffset;
 
   /**
+   * **DEPRECATED** Use `computeNode()` instead.
+   *
    * Return the resolved [AstNode] node that declares this element, or `null` if
    * this element is synthetic or isn't contained in a compilation unit, such as
    * a [LibraryElement].
@@ -3261,10 +3415,12 @@ abstract class ElementVisitor<R> {
 
   R visitConstructorElement(ConstructorElement element);
 
+  @deprecated
   R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element);
 
   R visitExportElement(ExportElement element);
 
+  @deprecated
   R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element);
 
   R visitFieldElement(FieldElement element);
@@ -3275,6 +3431,7 @@ abstract class ElementVisitor<R> {
 
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element);
 
+  @deprecated
   R visitHtmlElement(HtmlElement element);
 
   R visitImportElement(ImportElement element);
@@ -3303,6 +3460,7 @@ abstract class ElementVisitor<R> {
 /**
  * A script tag in an HTML file having content that defines a Dart library.
  */
+@deprecated
 abstract class EmbeddedHtmlScriptElement implements HtmlScriptElement {
   /**
    * Return the library element defined by the content of the script tag.
@@ -3313,6 +3471,7 @@ abstract class EmbeddedHtmlScriptElement implements HtmlScriptElement {
 /**
  * A concrete implementation of an [EmbeddedHtmlScriptElement].
  */
+@deprecated
 class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl
     implements EmbeddedHtmlScriptElement {
   /**
@@ -3438,6 +3597,12 @@ abstract class ExecutableElement implements Element {
    * Return the type of function defined by this executable element.
    */
   FunctionType get type;
+
+  /**
+   * Return a list containing all of the type parameters defined for this
+   * executable element.
+   */
+  List<TypeParameterElement> get typeParameters;
 }
 
 /**
@@ -3473,6 +3638,12 @@ abstract class ExecutableElementImpl extends ElementImpl
    * A list containing all of the parameters defined by this executable element.
    */
   List<ParameterElement> _parameters = ParameterElement.EMPTY_LIST;
+
+  /**
+   * A list containing all of the type parameters defined for this executable
+   * element.
+   */
+  List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
 
   /**
    * The return type defined by this executable element.
@@ -3591,8 +3762,33 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   @override
+  List<TypeParameterElement> get typeParameters => _typeParameters;
+
+  /**
+   * Set the type parameters defined by this executable element to the given
+   * [typeParameters].
+   */
+  void set typeParameters(List<TypeParameterElement> typeParameters) {
+    for (TypeParameterElement parameter in typeParameters) {
+      (parameter as TypeParameterElementImpl).enclosingElement = this;
+    }
+    this._typeParameters = typeParameters;
+  }
+
+  @override
   void appendTo(StringBuffer buffer) {
     if (this.kind != ElementKind.GETTER) {
+      int typeParameterCount = _typeParameters.length;
+      if (typeParameterCount > 0) {
+        buffer.write('<');
+        for (int i = 0; i < typeParameterCount; i++) {
+          if (i > 0) {
+            buffer.write(", ");
+          }
+          (_typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
+        }
+        buffer.write('>');
+      }
       buffer.write("(");
       String closing = null;
       ParameterKind kind = ParameterKind.REQUIRED;
@@ -3748,6 +3944,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   FunctionType get type => substituteFor(baseElement.type);
 
   @override
+  List<TypeParameterElement> get typeParameters => baseElement.typeParameters;
+
+  @override
   void visitChildren(ElementVisitor visitor) {
     // TODO(brianwilkerson) We need to finish implementing the accessors used
     // below so that we can safely invoke them.
@@ -3828,6 +4027,7 @@ class ExportElementImpl extends UriReferencedElementImpl
  * A script tag in an HTML file having a `source` attribute that references a
  * Dart library source file.
  */
+@deprecated
 abstract class ExternalHtmlScriptElement implements HtmlScriptElement {
   /**
    * Return the source referenced by this element, or `null` if this element
@@ -3839,6 +4039,7 @@ abstract class ExternalHtmlScriptElement implements HtmlScriptElement {
 /**
  * A concrete implementation of an [ExternalHtmlScriptElement].
  */
+@deprecated
 class ExternalHtmlScriptElementImpl extends HtmlScriptElementImpl
     implements ExternalHtmlScriptElement {
   /**
@@ -3890,7 +4091,8 @@ abstract class FieldElement
  * A concrete implementation of a [FieldElement].
  */
 class FieldElementImpl extends PropertyInducingElementImpl
-    with PotentiallyConstVariableElement implements FieldElement {
+    with PotentiallyConstVariableElement
+    implements FieldElement {
   /**
    * An empty list of field elements.
    */
@@ -4371,7 +4573,7 @@ abstract class FunctionType implements ParameterizedType {
 /**
  * A function type alias (`typedef`).
  */
-abstract class FunctionTypeAliasElement implements Element {
+abstract class FunctionTypeAliasElement implements TypeDefiningElement {
   /**
    * An empty array of type alias elements.
    */
@@ -4394,9 +4596,7 @@ abstract class FunctionTypeAliasElement implements Element {
    */
   DartType get returnType;
 
-  /**
-   * Return the type of function defined by this type alias.
-   */
+  @override
   FunctionType get type;
 
   /**
@@ -4766,8 +4966,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         DartType type = parameter.type;
         if (typeArguments.length != 0 &&
             typeArguments.length == typeParameters.length) {
-          type = (type as TypeImpl).substitute2(
-              typeArguments, typeParameters, newPrune);
+          type = (type as TypeImpl)
+              .substitute2(typeArguments, typeParameters, newPrune);
         } else {
           type = (type as TypeImpl).pruned(newPrune);
         }
@@ -4812,8 +5012,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         DartType type = parameter.type;
         if (typeArguments.length != 0 &&
             typeArguments.length == typeParameters.length) {
-          type = (type as TypeImpl).substitute2(
-              typeArguments, typeParameters, newPrune);
+          type = (type as TypeImpl)
+              .substitute2(typeArguments, typeParameters, newPrune);
         } else {
           type = (type as TypeImpl).pruned(newPrune);
         }
@@ -4837,8 +5037,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         DartType type = parameter.type;
         if (typeArguments.length != 0 &&
             typeArguments.length == typeParameters.length) {
-          type = (type as TypeImpl).substitute2(
-              typeArguments, typeParameters, newPrune);
+          type = (type as TypeImpl)
+              .substitute2(typeArguments, typeParameters, newPrune);
         } else {
           type = (type as TypeImpl).pruned(newPrune);
         }
@@ -4903,12 +5103,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return false;
     }
     FunctionTypeImpl otherType = object as FunctionTypeImpl;
-    return TypeImpl.equalArrays(
+    return returnType == otherType.returnType &&
+        TypeImpl.equalArrays(
             normalParameterTypes, otherType.normalParameterTypes) &&
         TypeImpl.equalArrays(
             optionalParameterTypes, otherType.optionalParameterTypes) &&
-        _equals(namedParameterTypes, otherType.namedParameterTypes) &&
-        returnType == otherType.returnType;
+        _equals(namedParameterTypes, otherType.namedParameterTypes);
   }
 
   @override
@@ -5020,8 +5220,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         return false;
       } else if (t.normalParameterTypes.length > 0) {
         for (int i = 0; i < tTypes.length; i++) {
-          if (!(tTypes[i] as TypeImpl).isMoreSpecificThan(
-              sTypes[i], withDynamic)) {
+          if (!(tTypes[i] as TypeImpl)
+              .isMoreSpecificThan(sTypes[i], withDynamic)) {
             return false;
           }
         }
@@ -5041,8 +5241,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         if (typeT == null) {
           return false;
         }
-        if (!(typeT as TypeImpl).isMoreSpecificThan(
-            namedTypesS[keyS], withDynamic)) {
+        if (!(typeT as TypeImpl)
+            .isMoreSpecificThan(namedTypesS[keyS], withDynamic)) {
           return false;
         }
       }
@@ -5062,8 +5262,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       if (tOpTypes.length == 0 && sOpTypes.length == 0) {
         // No positional arguments, don't copy contents to new array
         for (int i = 0; i < sTypes.length; i++) {
-          if (!(tTypes[i] as TypeImpl).isMoreSpecificThan(
-              sTypes[i], withDynamic)) {
+          if (!(tTypes[i] as TypeImpl)
+              .isMoreSpecificThan(sTypes[i], withDynamic)) {
             return false;
           }
         }
@@ -5085,8 +5285,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
           sAllTypes[i] = sOpTypes[j];
         }
         for (int i = 0; i < sAllTypes.length; i++) {
-          if (!(tAllTypes[i] as TypeImpl).isMoreSpecificThan(
-              sAllTypes[i], withDynamic)) {
+          if (!(tAllTypes[i] as TypeImpl)
+              .isMoreSpecificThan(sAllTypes[i], withDynamic)) {
             return false;
           }
         }
@@ -5261,6 +5461,19 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       substitute2(argumentTypes, typeArguments);
 
   /**
+   * Compute the least upper bound of types [f] and [g], both of which are
+   * known to be function types.
+   *
+   * In the event that f and g have different numbers of required parameters,
+   * `null` is returned, in which case the least upper bound is the interface
+   * type `Function`.
+   */
+  static FunctionType computeLeastUpperBound(FunctionType f, FunctionType g) {
+    // TODO(paulberry): implement this.
+    return null;
+  }
+
+  /**
    * Return `true` if all of the name/type pairs in the first map ([firstTypes])
    * are equal to the corresponding name/type pairs in the second map
    * ([secondTypes]). The maps are expected to iterate over their entries in the
@@ -5360,6 +5573,7 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
+  @deprecated
   R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) =>
       visitHtmlScriptElement(element);
 
@@ -5369,6 +5583,7 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   R visitExportElement(ExportElement element) => visitElement(element);
 
   @override
+  @deprecated
   R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) =>
       visitHtmlScriptElement(element);
 
@@ -5388,8 +5603,10 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
       visitElement(element);
 
   @override
+  @deprecated
   R visitHtmlElement(HtmlElement element) => visitElement(element);
 
+  @deprecated
   R visitHtmlScriptElement(HtmlScriptElement element) => visitElement(element);
 
   @override
@@ -5489,6 +5706,7 @@ class HideElementCombinatorImpl implements HideElementCombinator {
 /**
  * An HTML file.
  */
+@deprecated
 abstract class HtmlElement implements Element {
   /**
    * An empty list of HTML file elements.
@@ -5507,6 +5725,7 @@ abstract class HtmlElement implements Element {
 /**
  * A concrete implementation of an [HtmlElement].
  */
+@deprecated
 class HtmlElementImpl extends ElementImpl implements HtmlElement {
   /**
    * An empty list of HTML file elements.
@@ -5593,6 +5812,7 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
  *
  * See [EmbeddedHtmlScriptElement], and [ExternalHtmlScriptElement].
  */
+@deprecated
 abstract class HtmlScriptElement implements Element {
   /**
    * An empty list of HTML script elements.
@@ -5603,6 +5823,7 @@ abstract class HtmlScriptElement implements Element {
 /**
  * A concrete implementation of an [HtmlScriptElement].
  */
+@deprecated
 abstract class HtmlScriptElementImpl extends ElementImpl
     implements HtmlScriptElement {
   /**
@@ -5816,6 +6037,7 @@ abstract class InterfaceType implements ParameterizedType {
    * and <i>J</i> is the sole element of <i>S<sub>q</sub></i>.
    */
   @override
+  @deprecated
   DartType getLeastUpperBound(DartType type);
 
   /**
@@ -6020,6 +6242,9 @@ abstract class InterfaceType implements ParameterizedType {
    */
   static InterfaceType getSmartLeastUpperBound(
       InterfaceType first, InterfaceType second) {
+    // TODO(paulberry): this needs to be deprecated and replaced with a method
+    // in [TypeSystem], since it relies on the deprecated functionality of
+    // [DartType.getLeastUpperBound].
     if (first.element == second.element) {
       return _leastUpperBound(first, second);
     }
@@ -6296,6 +6521,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       .from((element as ClassElementImpl).getGetter(getterName), this);
 
   @override
+  @deprecated
   DartType getLeastUpperBound(DartType type) {
     // quick check for self
     if (identical(type, this)) {
@@ -6311,45 +6537,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (type is! InterfaceType) {
       return null;
     }
-    // new names to match up with the spec
-    InterfaceType i = this;
-    InterfaceType j = type as InterfaceType;
-    // compute set of supertypes
-    Set<InterfaceType> si = computeSuperinterfaceSet(i);
-    Set<InterfaceType> sj = computeSuperinterfaceSet(j);
-    // union si with i and sj with j
-    si.add(i);
-    sj.add(j);
-    // compute intersection, reference as set 's'
-    List<InterfaceType> s = _intersection(si, sj);
-    // for each element in Set s, compute the largest inheritance path to Object
-    List<int> depths = new List<int>.filled(s.length, 0);
-    int maxDepth = 0;
-    for (int n = 0; n < s.length; n++) {
-      depths[n] = computeLongestInheritancePathToObject(s[n]);
-      if (depths[n] > maxDepth) {
-        maxDepth = depths[n];
-      }
-    }
-    // ensure that the currently computed maxDepth is unique,
-    // otherwise, decrement and test for uniqueness again
-    for (; maxDepth >= 0; maxDepth--) {
-      int indexOfLeastUpperBound = -1;
-      int numberOfTypesAtMaxDepth = 0;
-      for (int m = 0; m < depths.length; m++) {
-        if (depths[m] == maxDepth) {
-          numberOfTypesAtMaxDepth++;
-          indexOfLeastUpperBound = m;
-        }
-      }
-      if (numberOfTypesAtMaxDepth == 1) {
-        return s[indexOfLeastUpperBound];
-      }
-    }
-    // illegal state, log and return null- Object at maxDepth == 0 should always
-    // return itself as the least upper bound.
-    // TODO (jwren) log the error state
-    return null;
+    return computeLeastUpperBound(this, type);
   }
 
   @override
@@ -6450,8 +6638,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           return false;
         }
         for (int i = 0; i < tArguments.length; i++) {
-          if (!(tArguments[i] as TypeImpl).isMoreSpecificThan(
-              sArguments[i], withDynamic)) {
+          if (!(tArguments[i] as TypeImpl)
+              .isMoreSpecificThan(sArguments[i], withDynamic)) {
             return false;
           }
         }
@@ -6481,14 +6669,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return true;
       }
       for (InterfaceType interfaceType in interfaces) {
-        if ((interfaceType as InterfaceTypeImpl).isMoreSpecificThan(
-            type, withDynamic, visitedElements)) {
+        if ((interfaceType as InterfaceTypeImpl)
+            .isMoreSpecificThan(type, withDynamic, visitedElements)) {
           return true;
         }
       }
       for (InterfaceType mixinType in mixins) {
-        if ((mixinType as InterfaceTypeImpl).isMoreSpecificThan(
-            type, withDynamic, visitedElements)) {
+        if ((mixinType as InterfaceTypeImpl)
+            .isMoreSpecificThan(type, withDynamic, visitedElements)) {
           return true;
         }
       }
@@ -6696,10 +6884,57 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       substitute2(argumentTypes, typeArguments);
 
   /**
+   * Compute the least upper bound of types [i] and [j], both of which are
+   * known to be interface types.
+   *
+   * In the event that the algorithm fails (which might occur due to a bug in
+   * the analyzer), `null` is returned.
+   */
+  static InterfaceType computeLeastUpperBound(
+      InterfaceType i, InterfaceType j) {
+    // compute set of supertypes
+    Set<InterfaceType> si = computeSuperinterfaceSet(i);
+    Set<InterfaceType> sj = computeSuperinterfaceSet(j);
+    // union si with i and sj with j
+    si.add(i);
+    sj.add(j);
+    // compute intersection, reference as set 's'
+    List<InterfaceType> s = _intersection(si, sj);
+    // for each element in Set s, compute the largest inheritance path to Object
+    List<int> depths = new List<int>.filled(s.length, 0);
+    int maxDepth = 0;
+    for (int n = 0; n < s.length; n++) {
+      depths[n] = computeLongestInheritancePathToObject(s[n]);
+      if (depths[n] > maxDepth) {
+        maxDepth = depths[n];
+      }
+    }
+    // ensure that the currently computed maxDepth is unique,
+    // otherwise, decrement and test for uniqueness again
+    for (; maxDepth >= 0; maxDepth--) {
+      int indexOfLeastUpperBound = -1;
+      int numberOfTypesAtMaxDepth = 0;
+      for (int m = 0; m < depths.length; m++) {
+        if (depths[m] == maxDepth) {
+          numberOfTypesAtMaxDepth++;
+          indexOfLeastUpperBound = m;
+        }
+      }
+      if (numberOfTypesAtMaxDepth == 1) {
+        return s[indexOfLeastUpperBound];
+      }
+    }
+    // Should be impossible--there should always be exactly one type with the
+    // maximum depth.
+    assert(false);
+    return null;
+  }
+
+  /**
    * Return the length of the longest inheritance path from the given [type] to
    * Object.
    *
-   * See [InterfaceType.getLeastUpperBound].
+   * See [computeLeastUpperBound].
    */
   static int computeLongestInheritancePathToObject(InterfaceType type) =>
       _computeLongestInheritancePathToObject(
@@ -6708,7 +6943,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /**
    * Returns the set of all superinterfaces of the given [type].
    *
-   * See [getLeastUpperBound].
+   * See [computeLeastUpperBound].
    */
   static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) =>
       _computeSuperinterfaceSet(type, new HashSet<InterfaceType>());
@@ -6719,7 +6954,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * longest path from the subtype to this type. The set of [visitedTypes] is
    * used to prevent infinite recursion in the case of a cyclic type structure.
    *
-   * See [computeLongestInheritancePathToObject], and [getLeastUpperBound].
+   * See [computeLongestInheritancePathToObject], and [computeLeastUpperBound].
    */
   static int _computeLongestInheritancePathToObject(
       InterfaceType type, int depth, HashSet<ClassElement> visitedTypes) {
@@ -6763,7 +6998,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * Add all of the superinterfaces of the given [type] to the given [set].
    * Return the [set] as a convenience.
    *
-   * See [computeSuperinterfaceSet], and [getLeastUpperBound].
+   * See [computeSuperinterfaceSet], and [computeLeastUpperBound].
    */
   static Set<InterfaceType> _computeSuperinterfaceSet(
       InterfaceType type, HashSet<InterfaceType> set) {
@@ -7415,8 +7650,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     for (ImportElement importElement in _imports) {
       LibraryElement importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
-        (importedLibrary as LibraryElementImpl)._addVisibleLibraries(
-            visibleLibraries, true);
+        (importedLibrary as LibraryElementImpl)
+            ._addVisibleLibraries(visibleLibraries, true);
       }
     }
     // add exported libraries
@@ -7424,8 +7659,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       for (ExportElement exportElement in _exports) {
         LibraryElement exportedLibrary = exportElement.exportedLibrary;
         if (exportedLibrary != null) {
-          (exportedLibrary as LibraryElementImpl)._addVisibleLibraries(
-              visibleLibraries, true);
+          (exportedLibrary as LibraryElementImpl)
+              ._addVisibleLibraries(visibleLibraries, true);
         }
       }
     }
@@ -7519,7 +7754,8 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
  * A concrete implementation of a [LocalVariableElement].
  */
 class LocalVariableElementImpl extends VariableElementImpl
-    with PotentiallyConstVariableElement implements LocalVariableElement {
+    with PotentiallyConstVariableElement
+    implements LocalVariableElement {
   /**
    * An empty list of field elements.
    */
@@ -8032,41 +8268,34 @@ class Modifier extends Enum<Modifier> {
       const Modifier('MIXIN_APPLICATION', 12);
 
   /**
-   * Indicates that an error has reported explaining why this class is an
-   * invalid mixin application.
-   */
-  static const Modifier MIXIN_ERRORS_REPORTED =
-      const Modifier('MIXIN_ERRORS_REPORTED', 13);
-
-  /**
    * Indicates that the value of a parameter or local variable might be mutated
    * within the context.
    */
   static const Modifier POTENTIALLY_MUTATED_IN_CONTEXT =
-      const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 14);
+      const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 13);
 
   /**
    * Indicates that the value of a parameter or local variable might be mutated
    * within the scope.
    */
   static const Modifier POTENTIALLY_MUTATED_IN_SCOPE =
-      const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 15);
+      const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 14);
 
   /**
    * Indicates that a class contains an explicit reference to 'super'.
    */
   static const Modifier REFERENCES_SUPER =
-      const Modifier('REFERENCES_SUPER', 16);
+      const Modifier('REFERENCES_SUPER', 15);
 
   /**
    * Indicates that the pseudo-modifier 'set' was applied to the element.
    */
-  static const Modifier SETTER = const Modifier('SETTER', 17);
+  static const Modifier SETTER = const Modifier('SETTER', 16);
 
   /**
    * Indicates that the modifier 'static' was applied to the element.
    */
-  static const Modifier STATIC = const Modifier('STATIC', 18);
+  static const Modifier STATIC = const Modifier('STATIC', 17);
 
   /**
    * Indicates that the element does not appear in the source code but was
@@ -8074,7 +8303,7 @@ class Modifier extends Enum<Modifier> {
    * constructors, an implicit zero-argument constructor will be created and it
    * will be marked as being synthetic.
    */
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 19);
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 18);
 
   static const List<Modifier> values = const [
     ABSTRACT,
@@ -8090,7 +8319,6 @@ class Modifier extends Enum<Modifier> {
     HAS_EXT_URI,
     MIXIN,
     MIXIN_APPLICATION,
-    MIXIN_ERRORS_REPORTED,
     POTENTIALLY_MUTATED_IN_CONTEXT,
     POTENTIALLY_MUTATED_IN_SCOPE,
     REFERENCES_SUPER,
@@ -8422,6 +8650,13 @@ abstract class ParameterElement
    */
   List<ParameterElement> get parameters;
 
+  /**
+   * Return a list containing all of the type parameters defined by this
+   * parameter. A parameter will only define other parameters if it is a
+   * function typed parameter.
+   */
+  List<TypeParameterElement> get typeParameters;
+
   @override
   FormalParameter computeNode();
 }
@@ -8430,7 +8665,8 @@ abstract class ParameterElement
  * A concrete implementation of a [ParameterElement].
  */
 class ParameterElementImpl extends VariableElementImpl
-    with PotentiallyConstVariableElement implements ParameterElement {
+    with PotentiallyConstVariableElement
+    implements ParameterElement {
   /**
    * An empty list of parameter elements.
    */
@@ -8443,6 +8679,13 @@ class ParameterElementImpl extends VariableElementImpl
    * parameter.
    */
   List<ParameterElement> _parameters = ParameterElement.EMPTY_LIST;
+
+  /**
+   * A list containing all of the type parameters defined for this parameter
+   * element. There will only be parameters if this parameter is a function
+   * typed parameter.
+   */
+  List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
 
   /**
    * The kind of this parameter.
@@ -8512,6 +8755,20 @@ class ParameterElementImpl extends VariableElementImpl
       (parameter as ParameterElementImpl).enclosingElement = this;
     }
     this._parameters = parameters;
+  }
+
+  @override
+  List<TypeParameterElement> get typeParameters => _typeParameters;
+
+  /**
+   * Set the type parameters defined by this parameter element to the given
+   * [typeParameters].
+   */
+  void set typeParameters(List<TypeParameterElement> typeParameters) {
+    for (TypeParameterElement parameter in typeParameters) {
+      (parameter as TypeParameterElementImpl).enclosingElement = this;
+    }
+    this._typeParameters = typeParameters;
   }
 
   @override
@@ -8668,6 +8925,9 @@ class ParameterMember extends VariableMember implements ParameterElement {
     }
     return parameterizedParameters;
   }
+
+  @override
+  List<TypeParameterElement> get typeParameters => baseElement.typeParameters;
 
   @override
   SourceRange get visibleRange => baseElement.visibleRange;
@@ -9323,6 +9583,7 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
+  @deprecated
   R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) {
     element.visitChildren(this);
     return null;
@@ -9335,6 +9596,7 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
+  @deprecated
   R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) {
     element.visitChildren(this);
     return null;
@@ -9365,6 +9627,7 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
+  @deprecated
   R visitHtmlElement(HtmlElement element) {
     element.visitChildren(this);
     return null;
@@ -9513,12 +9776,14 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitConstructorElement(ConstructorElement element) => null;
 
   @override
+  @deprecated
   R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) => null;
 
   @override
   R visitExportElement(ExportElement element) => null;
 
   @override
+  @deprecated
   R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) => null;
 
   @override
@@ -9535,6 +9800,7 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) => null;
 
   @override
+  @deprecated
   R visitHtmlElement(HtmlElement element) => null;
 
   @override
@@ -9589,7 +9855,8 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
  * A concrete implementation of a [TopLevelVariableElement].
  */
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
-    with PotentiallyConstVariableElement implements TopLevelVariableElement {
+    with PotentiallyConstVariableElement
+    implements TopLevelVariableElement {
   /**
    * An empty list of top-level variable elements.
    */
@@ -9621,6 +9888,16 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @override
   VariableDeclaration computeNode() =>
       getNodeMatching((node) => node is VariableDeclaration);
+}
+
+/**
+ * An element that defines a type.
+ */
+abstract class TypeDefiningElement implements Element {
+  /**
+   * Return the type defined by this element.
+   */
+  DartType get type;
 }
 
 /**
@@ -9822,8 +10099,8 @@ abstract class TypeImpl implements DartType {
     }
     List<DartType> newTypes = new List<DartType>(length);
     for (int i = 0; i < length; i++) {
-      newTypes[i] = (types[i] as TypeImpl).substitute2(
-          argumentTypes, parameterTypes, prune);
+      newTypes[i] = (types[i] as TypeImpl)
+          .substitute2(argumentTypes, parameterTypes, prune);
     }
     return newTypes;
   }
@@ -9832,7 +10109,7 @@ abstract class TypeImpl implements DartType {
 /**
  * A type parameter.
  */
-abstract class TypeParameterElement implements Element {
+abstract class TypeParameterElement implements TypeDefiningElement {
   /**
    * An empty list of type parameter elements.
    */
@@ -10426,8 +10703,9 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
 
   @override
   VoidTypeImpl substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes,
-      [List<FunctionTypeAliasElement> prune]) => this;
+          List<DartType> argumentTypes, List<DartType> parameterTypes,
+          [List<FunctionTypeAliasElement> prune]) =>
+      this;
 }
 
 /**

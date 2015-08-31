@@ -10,26 +10,23 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A computer for navigation regions in a Dart [CompilationUnit].
  */
 class DartUnitNavigationComputer {
-  final CompilationUnit _unit;
-
   final List<String> files = <String>[];
   final Map<String, int> fileMap = new HashMap<String, int>();
   final List<protocol.NavigationTarget> targets = <protocol.NavigationTarget>[];
   final Map<Element, int> targetMap = new HashMap<Element, int>();
   final List<protocol.NavigationRegion> regions = <protocol.NavigationRegion>[];
 
-  DartUnitNavigationComputer(this._unit);
-
   /**
    * Computes [regions], [targets] and [files].
    */
-  void compute() {
-    _unit.accept(new _DartUnitNavigationComputerVisitor(this));
+  void compute(AstNode node) {
+    node.accept(new _DartUnitNavigationComputerVisitor(this));
   }
 
   int _addFile(String file) {
@@ -161,8 +158,8 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
   visitExportDirective(ExportDirective node) {
     ExportElement exportElement = node.element;
     if (exportElement != null) {
-      Element element = exportElement.exportedLibrary;
-      computer._addRegion_tokenStart_nodeEnd(node.keyword, node.uri, element);
+      Element libraryElement = exportElement.exportedLibrary;
+      _addUriDirectiveRegion(node, libraryElement);
     }
     super.visitExportDirective(node);
   }
@@ -171,8 +168,8 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
   visitImportDirective(ImportDirective node) {
     ImportElement importElement = node.element;
     if (importElement != null) {
-      Element element = importElement.importedLibrary;
-      computer._addRegion_tokenStart_nodeEnd(node.keyword, node.uri, element);
+      Element libraryElement = importElement.importedLibrary;
+      _addUriDirectiveRegion(node, libraryElement);
     }
     super.visitImportDirective(node);
   }
@@ -185,8 +182,7 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
 
   @override
   visitPartDirective(PartDirective node) {
-    computer._addRegion_tokenStart_nodeEnd(
-        node.keyword, node.uri, node.element);
+    _addUriDirectiveRegion(node, node.element);
     super.visitPartDirective(node);
   }
 
@@ -246,16 +242,27 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
     }
     // add regions
     TypeName typeName = node.type;
+    computer._addRegionForNode(typeName.name, element);
+    // <TypeA, TypeB>
     TypeArgumentList typeArguments = typeName.typeArguments;
-    if (typeArguments == null) {
-      computer._addRegion_nodeStart_nodeEnd(parent, node, element);
-    } else {
-      computer._addRegion_nodeStart_nodeEnd(parent, typeName.name, element);
-      // <TypeA, TypeB>
+    if (typeArguments != null) {
       typeArguments.accept(this);
-      // optional ".name"
-      if (node.period != null) {
-        computer._addRegion_tokenStart_nodeEnd(node.period, node, element);
+    }
+    // optional "name"
+    if (node.name != null) {
+      computer._addRegionForNode(node.name, element);
+    }
+  }
+
+  /**
+   * If the source of the given [element] (referenced by the [node]) exists,
+   * then add the navigation region from the [node] to the [element].
+   */
+  void _addUriDirectiveRegion(UriBasedDirective node, Element element) {
+    if (element != null) {
+      Source source = element.source;
+      if (element.context.exists(source)) {
+        computer._addRegionForNode(node.uri, element);
       }
     }
   }

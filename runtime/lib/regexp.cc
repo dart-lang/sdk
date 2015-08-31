@@ -8,11 +8,14 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/regexp_parser.h"
+#include "vm/regexp_assembler_ir.h"
+#include "vm/regexp_assembler_bytecode.h"
 #include "vm/thread.h"
 
 namespace dart {
 
 DECLARE_FLAG(bool, trace_irregexp);
+DECLARE_FLAG(bool, interpret_irregexp);
 
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
@@ -82,18 +85,23 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getGroupCount, 1) {
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ExecuteMatch, 3) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  GET_NON_NULL_NATIVE_ARGUMENT(String, str, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, subject, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_index, arguments->NativeArgAt(2));
 
+  if (FLAG_interpret_irregexp) {
+    return BytecodeRegExpMacroAssembler::Interpret(regexp, subject, start_index,
+                                                   zone);
+  }
+
   // This function is intrinsified. See Intrinsifier::JSRegExp_ExecuteMatch.
-  const intptr_t cid = str.GetClassId();
+  const intptr_t cid = subject.GetClassId();
 
   // Retrieve the cached function.
   const Function& fn = Function::Handle(regexp.function(cid));
   ASSERT(!fn.IsNull());
 
   // And finally call the generated code.
-  return IRRegExpMacroAssembler::Execute(fn, str, start_index, zone);
+  return IRRegExpMacroAssembler::Execute(fn, subject, start_index, zone);
 }
 
 }  // namespace dart

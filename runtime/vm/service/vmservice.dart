@@ -156,6 +156,7 @@ class VMService extends MessageRouter {
 
   String _encodeError(Message message, int code, {String details}) {
     var response = {
+      'jsonrpc': '2.0',
       'id' : message.serial,
       'error' : {
         'code': code,
@@ -172,15 +173,11 @@ class VMService extends MessageRouter {
 
   String _encodeResult(Message message, Map result) {
     var response = {
+      'jsonrpc': '2.0',
       'id' : message.serial,
       'result' : result,
     };
     return JSON.encode(response);
-  }
-
-  bool _isValidStream(String streamId) {
-    final validStreams = [ 'Isolate', 'Debug', 'GC', '_Echo', '_Graph' ];
-    return validStreams.contains(streamId);
   }
 
   bool _isAnyClientSubscribed(String streamId) {
@@ -196,16 +193,15 @@ class VMService extends MessageRouter {
     var client = message.client;
     var streamId = message.params['streamId'];
 
-    if (!_isValidStream(streamId)) {
-      return _encodeError(
-          message, _kInvalidParams,
-          details:"streamListen: invalid 'streamId' parameter: ${streamId}");
-    }
     if (client.streams.contains(streamId)) {
       return _encodeError(message, _kStreamAlreadySubscribed);
     }
     if (!_isAnyClientSubscribed(streamId)) {
-      _vmListenStream(streamId);
+      if (!_vmListenStream(streamId)) {
+        return _encodeError(
+            message, _kInvalidParams,
+            details:"streamListen: invalid 'streamId' parameter: ${streamId}");
+      }
     }
     client.streams.add(streamId);
 
@@ -217,11 +213,6 @@ class VMService extends MessageRouter {
     var client = message.client;
     var streamId = message.params['streamId'];
 
-    if (!_isValidStream(streamId)) {
-      return _encodeError(
-          message, _kInvalidParams,
-          details:"streamCancel: invalid 'streamId' parameter: ${streamId}");
-    }
     if (!client.streams.contains(streamId)) {
       return _encodeError(message, _kStreamNotSubscribed);
     }
@@ -270,7 +261,7 @@ class VMService extends MessageRouter {
     // Make requests to each isolate.
     for (var isolate in isolates) {
       for (var request in perIsolateRequests) {
-        var message = new Message.forIsolate(request, isolate);
+        var message = new Message.forIsolate(client, request, isolate);
         // Decode the JSON and and insert it into the map. The map key
         // is the request Uri.
         var response = JSON.decode(await isolate.route(message));
@@ -331,6 +322,6 @@ void _onStart() native "VMService_OnStart";
 
 void _onExit() native "VMService_OnExit";
 
-void _vmListenStream(String streamId) native "VMService_ListenStream";
+bool _vmListenStream(String streamId) native "VMService_ListenStream";
 
 void _vmCancelStream(String streamId) native "VMService_CancelStream";

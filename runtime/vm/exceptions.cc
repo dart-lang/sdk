@@ -220,7 +220,7 @@ static void JumpToExceptionHandler(Thread* thread,
 #else
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.
-  StackResource::Unwind(thread->isolate());
+  StackResource::Unwind(thread);
 
   // Call a stub to set up the exception object in kExceptionObjectReg,
   // to set up the stacktrace object in kStackTraceObjectReg, and to
@@ -228,7 +228,7 @@ static void JumpToExceptionHandler(Thread* thread,
   typedef void (*ExcpHandler)(uword, uword, uword, RawObject*, RawObject*,
                               Thread*);
   ExcpHandler func = reinterpret_cast<ExcpHandler>(
-      StubCode::JumpToExceptionHandlerEntryPoint());
+      StubCode::JumpToExceptionHandler_entry()->EntryPoint());
 
   // Unpoison the stack before we tear it down in the generated stub code.
   uword current_sp = Isolate::GetCurrentStackPointer() - 1024;

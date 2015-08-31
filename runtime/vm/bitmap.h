@@ -24,7 +24,7 @@ class BitmapBuilder : public ZoneAllocated {
   BitmapBuilder()
       : length_(0),
         data_size_in_bytes_(kInitialSizeInBytes),
-        data_(Isolate::Current()->current_zone()->Alloc<uint8_t>(
+        data_(Thread::Current()->zone()->Alloc<uint8_t>(
             kInitialSizeInBytes)) {
     memset(data_, 0, kInitialSizeInBytes);
   }

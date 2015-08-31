@@ -4,6 +4,7 @@
 
 library engine.incremental_resolver_test;
 
+import 'package:analyzer/src/context/cache.dart' as task;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -18,6 +19,7 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -2447,7 +2449,7 @@ class B extends Object with A {}
   void _assertMatchKind(
       DeclarationMatchKind expectMatch, String oldContent, String newContent) {
     Source source = addSource(oldContent);
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     CompilationUnit oldUnit = resolveCompilationUnit(source, library);
     // parse
     CompilationUnit newUnit = ParserTestCase.parseCompilationUnit(newContent);
@@ -2473,13 +2475,22 @@ class IncrementalResolverTest extends ResolverTestCase {
 
   @override
   void reset() {
-    analysisContext2 = AnalysisContextFactory.oldContextWithCore();
+    if (AnalysisEngine.instance.useTaskModel) {
+      analysisContext2 = AnalysisContextFactory.contextWithCore();
+    } else {
+      analysisContext2 = AnalysisContextFactory.oldContextWithCore();
+    }
   }
 
   @override
   void resetWithOptions(AnalysisOptions options) {
-    analysisContext2 =
-        AnalysisContextFactory.oldContextWithCoreAndOptions(options);
+    if (AnalysisEngine.instance.useTaskModel) {
+      analysisContext2 =
+          AnalysisContextFactory.contextWithCoreAndOptions(options);
+    } else {
+      analysisContext2 =
+          AnalysisContextFactory.oldContextWithCoreAndOptions(options);
+    }
   }
 
   void setUp() {
@@ -2812,10 +2823,19 @@ class B {
     int updateOffset = edit.offset;
     int updateEndOld = updateOffset + edit.length;
     int updateOldNew = updateOffset + edit.replacement.length;
-    IncrementalResolver resolver = new IncrementalResolver(
-        (analysisContext2 as AnalysisContextImpl)
-            .getReadableSourceEntryOrNull(source), null, null, unit.element,
-        updateOffset, updateEndOld, updateOldNew);
+    IncrementalResolver resolver;
+    if (AnalysisEngine.instance.useTaskModel) {
+      LibrarySpecificUnit lsu = new LibrarySpecificUnit(source, source);
+      task.AnalysisCache cache = analysisContext2.analysisCache;
+      resolver = new IncrementalResolver(null, cache.get(source),
+          cache.get(lsu), unit.element, updateOffset, updateEndOld,
+          updateOldNew);
+    } else {
+      resolver = new IncrementalResolver(
+          (analysisContext2 as AnalysisContextImpl)
+              .getReadableSourceEntryOrNull(source), null, null, unit.element,
+          updateOffset, updateEndOld, updateOldNew);
+    }
     bool success = resolver.resolve(newNode);
     expect(success, isTrue);
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
@@ -2824,7 +2844,7 @@ class B {
     {
       source = addSource(newCode);
       _runTasks();
-      LibraryElement library = resolve(source);
+      LibraryElement library = resolve2(source);
       fullNewUnit = resolveCompilationUnit(source, library);
     }
     try {
@@ -2843,7 +2863,7 @@ class B {
   void _resolveUnit(String code) {
     this.code = code;
     source = addSource(code);
-    library = resolve(source);
+    library = resolve2(source);
     unit = resolveCompilationUnit(source, library);
     _runTasks();
   }
@@ -3079,7 +3099,7 @@ main() {
 /// aaa [main] bbb
 /// ccc [int] ddd
 main() {
-  return 2;
+  return 1;
 }
 ''');
   }
@@ -3095,7 +3115,7 @@ main() {
     _updateAndValidate(r'''
 /// aaa bbb
 main() {
-  return 2;
+  return 1;
 }
 ''');
   }
@@ -3691,7 +3711,7 @@ class A {
     expect(errors, isEmpty);
   }
 
-  void test_updateErrors_addNew_hint() {
+  void test_updateErrors_addNew_hint1() {
     _resolveUnit(r'''
 int main() {
   return 42;
@@ -3703,7 +3723,7 @@ int main() {
 ''');
   }
 
-  void test_updateErrors_addNew_hints() {
+  void test_updateErrors_addNew_hint2() {
     _resolveUnit(r'''
 main() {
   int v = 0;
@@ -3852,6 +3872,20 @@ f3() {
 ''');
   }
 
+  void _assertEqualLineInfo(LineInfo incrLineInfo, LineInfo fullLineInfo) {
+    for (int offset = 0; offset < 1000; offset++) {
+      LineInfo_Location incrLocation = incrLineInfo.getLocation(offset);
+      LineInfo_Location fullLocation = fullLineInfo.getLocation(offset);
+      if (incrLocation.lineNumber != fullLocation.lineNumber ||
+          incrLocation.columnNumber != fullLocation.columnNumber) {
+        fail('At offset $offset ' +
+            '(${incrLocation.lineNumber}, ${incrLocation.columnNumber})' +
+            ' != ' +
+            '(${fullLocation.lineNumber}, ${fullLocation.columnNumber})');
+      }
+    }
+  }
+
   /**
    * Reset the analysis context to have the 'incremental' option set to the
    * given value.
@@ -3868,7 +3902,7 @@ f3() {
   void _resolveUnit(String code) {
     this.code = code;
     source = addSource(code);
-    oldLibrary = resolve(source);
+    oldLibrary = resolve2(source);
     oldUnit = resolveCompilationUnit(source, oldLibrary);
     oldUnitElement = oldUnit.element;
   }
@@ -3890,6 +3924,7 @@ f3() {
     analysisContext2.setContents(source, newCode);
     CompilationUnit newUnit = resolveCompilationUnit(source, oldLibrary);
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
+    LineInfo newLineInfo = analysisContext.getLineInfo(source);
     // check for expected failure
     if (!expectedSuccess) {
       expect(newUnit.element, isNot(same(oldUnitElement)));
@@ -3908,10 +3943,12 @@ f3() {
       source = addSource(newCode + ' ');
       source = addSource(newCode);
       _runTasks();
-      LibraryElement library = resolve(source);
+      LibraryElement library = resolve2(source);
       CompilationUnit fullNewUnit = resolveCompilationUnit(source, library);
       // Validate tokens.
       _assertEqualTokens(newUnit, fullNewUnit);
+      // Validate LineInfo
+      _assertEqualLineInfo(newLineInfo, analysisContext.getLineInfo(source));
       // Validate that "incremental" and "full" units have the same resolution.
       try {
         assertSameResolution(newUnit, fullNewUnit, validateTypes: true);
@@ -3921,7 +3958,6 @@ f3() {
       List<AnalysisError> newFullErrors =
           analysisContext.getErrors(source).errors;
       _assertEqualErrors(newErrors, newFullErrors);
-      // TODO(scheglov) check line info
     }
   }
 

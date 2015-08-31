@@ -532,6 +532,10 @@ final coreImports = [
     "kind": "class"
   },
   {
+    "name": "Resource",
+    "kind": "class"
+  },
+  {
     "name": "Set",
     "kind": "class"
   },

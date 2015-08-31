@@ -9,11 +9,13 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/starter.dart';
+import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -264,6 +266,12 @@ class Driver implements ServerStarter {
   static const String NO_INDEX = "no-index";
 
   /**
+   * The name of the flag used to enable version 2 of semantic highlight
+   * notification.
+   */
+  static const String USE_ANALISYS_HIGHLIGHT2 = "useAnalysisHighlight2";
+
+  /**
    * The option for specifying the http diagnostic port.
    * If specified, users can review server status and performance information
    * by opening a web browser on http://localhost:<port>
@@ -281,6 +289,19 @@ class Driver implements ServerStarter {
    * The instrumentation server that is to be used by the analysis server.
    */
   InstrumentationServer instrumentationServer;
+
+  /**
+   * The context manager used to create analysis contexts within each of the
+   * analysis roots.
+   */
+  ContextManager contextManager;
+
+  /**
+   * The package resolver provider used to override the way package URI's are
+   * resolved in some contexts.
+   */
+  @deprecated
+  ResolverProvider packageResolverProvider;
 
   /**
    * The plugins that are defined outside the analysis_server package.
@@ -342,6 +363,8 @@ class Driver implements ServerStarter {
         results[INCREMENTAL_RESOLUTION_VALIDATION];
     analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
     analysisServerOptions.noIndex = results[NO_INDEX];
+    analysisServerOptions.useAnalysisHighlight2 =
+        results[USE_ANALISYS_HIGHLIGHT2];
     analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
 
     _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
@@ -388,8 +411,8 @@ class Driver implements ServerStarter {
     //
     // Create the sockets and start listening for requests.
     //
-    socketServer = new SocketServer(
-        analysisServerOptions, defaultSdk, service, serverPlugin);
+    socketServer = new SocketServer(analysisServerOptions, defaultSdk, service,
+        serverPlugin, contextManager, packageResolverProvider);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
     socketServer.userDefinedPlugins = _userDefinedPlugins;
@@ -488,6 +511,10 @@ class Driver implements ServerStarter {
         negatable: false);
     parser.addFlag(NO_INDEX,
         help: "disable indexing sources", defaultsTo: false, negatable: false);
+    parser.addFlag(USE_ANALISYS_HIGHLIGHT2,
+        help: "enable version 2 of semantic highlight",
+        defaultsTo: false,
+        negatable: false);
     parser.addOption(FILE_READ_MODE,
         help: "an option of the ways files can be read from disk, " +
             "some clients normalize end of line characters which would make " +

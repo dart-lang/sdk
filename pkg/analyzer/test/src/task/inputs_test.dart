@@ -19,6 +19,8 @@ main() {
   runReflectiveTests(ListToListTaskInputBuilderTest);
   runReflectiveTests(ListToMapTaskInputBuilderTest);
   runReflectiveTests(ListToMapTaskInputTest);
+  runReflectiveTests(ObjectToListTaskInputBuilderTest);
+  runReflectiveTests(ObjectToListTaskInputTest);
   runReflectiveTests(SimpleTaskInputTest);
   runReflectiveTests(SimpleTaskInputBuilderTest);
   runReflectiveTests(TopLevelTaskInputBuilderTest);
@@ -460,20 +462,27 @@ class ListToMapTaskInputTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class SimpleTaskInputBuilderTest extends EngineTestCase {
+class ObjectToListTaskInputBuilderTest extends EngineTestCase {
   static final AnalysisTarget target = new TestSource();
   static final ResultDescriptorImpl result =
       new ResultDescriptorImpl('result', null);
-  static final SimpleTaskInput input = new SimpleTaskInput(target, result);
+  static final SimpleTaskInput baseInput = new SimpleTaskInput(target, result);
+  static final Function mapper = (x) => [x];
+  static final ObjectToListTaskInput input =
+      new ObjectToListTaskInput(baseInput, mapper);
+
+  ObjectToListTaskInputBuilder builder;
+
+  void setUp() {
+    builder = new ObjectToListTaskInputBuilder(input);
+  }
 
   test_create() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     expect(builder, isNotNull);
     expect(builder.input, input);
   }
 
   test_currentResult_afterComplete() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     builder.moveNext();
     builder.currentValue = 'value';
     builder.moveNext();
@@ -481,7 +490,6 @@ class SimpleTaskInputBuilderTest extends EngineTestCase {
   }
 
   test_currentResult_afterCurrentValueNotAvailable() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     builder.moveNext();
     builder.currentValueNotAvailable();
     builder.moveNext();
@@ -489,18 +497,15 @@ class SimpleTaskInputBuilderTest extends EngineTestCase {
   }
 
   test_currentResult_afterOneMoveNext() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     builder.moveNext();
     expect(builder.currentResult, result);
   }
 
   test_currentResult_beforeMoveNext() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     expect(builder.currentResult, null);
   }
 
   test_currentTarget_afterComplete() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     builder.moveNext();
     builder.currentValue = 'value';
     builder.moveNext();
@@ -508,7 +513,6 @@ class SimpleTaskInputBuilderTest extends EngineTestCase {
   }
 
   test_currentTarget_afterCurrentValueNotAvailable() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     builder.moveNext();
     builder.currentValueNotAvailable();
     builder.moveNext();
@@ -516,44 +520,184 @@ class SimpleTaskInputBuilderTest extends EngineTestCase {
   }
 
   test_currentTarget_afterOneMoveNext() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     builder.moveNext();
     expect(builder.currentTarget, target);
   }
 
   test_currentTarget_beforeMoveNext() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     expect(builder.currentTarget, null);
   }
 
   test_currentValue_afterOneMoveNext() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     builder.moveNext();
     builder.currentValue = 'value';
   }
 
   test_currentValue_beforeMoveNext() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     expect(() {
       builder.currentValue = 'value';
     }, throwsStateError);
   }
 
   test_currentValueNotAvailable_afterOneMoveNext() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     builder.moveNext();
     builder.currentValueNotAvailable();
   }
 
   test_currentValueNotAvailable_beforeMoveNext() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     expect(() {
       builder.currentValueNotAvailable();
     }, throwsStateError);
   }
 
   test_inputValue_afterComplete() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
+    builder.moveNext();
+    String value = 'value';
+    builder.currentValue = value;
+    builder.moveNext();
+    expect(builder.inputValue, [value]);
+  }
+
+  test_inputValue_afterCurrentValueNotAvailable() {
+    builder.moveNext();
+    builder.currentValueNotAvailable();
+    builder.moveNext();
+    expect(builder.inputValue, [null]);
+  }
+
+  test_inputValue_afterOneMoveNext() {
+    builder.moveNext();
+    expect(() => builder.inputValue, throwsStateError);
+  }
+
+  test_inputValue_beforeMoveNext() {
+    expect(() => builder.inputValue, throwsStateError);
+  }
+
+  test_moveNext_withoutSet() {
+    expect(builder.moveNext(), true);
+    expect(() => builder.moveNext(), throwsStateError);
+  }
+
+  test_moveNext_withSet() {
+    expect(builder.moveNext(), true);
+    builder.currentValue = 'value';
+    expect(builder.moveNext(), false);
+    expect(builder.moveNext(), false);
+  }
+}
+
+@reflectiveTest
+class ObjectToListTaskInputTest extends EngineTestCase {
+  static final AnalysisTarget target = new TestSource();
+  static final ResultDescriptorImpl result =
+      new ResultDescriptorImpl('result', null);
+
+  test_create() {
+    SimpleTaskInput baseInput = new SimpleTaskInput(target, result);
+    Function mapper = (x) => [x];
+    ObjectToListTaskInput input = new ObjectToListTaskInput(baseInput, mapper);
+    expect(input, isNotNull);
+    expect(input.baseInput, baseInput);
+    expect(input.mapper, equals(mapper));
+  }
+
+  test_createBuilder() {
+    SimpleTaskInput baseInput = new SimpleTaskInput(target, result);
+    Function mapper = (x) => [x];
+    ObjectToListTaskInput input = new ObjectToListTaskInput(baseInput, mapper);
+    expect(input.createBuilder(),
+        new isInstanceOf<ObjectToListTaskInputBuilder>());
+  }
+}
+
+@reflectiveTest
+class SimpleTaskInputBuilderTest extends EngineTestCase {
+  static final AnalysisTarget target = new TestSource();
+  static final ResultDescriptorImpl result =
+      new ResultDescriptorImpl('result', null);
+  static final SimpleTaskInput input = new SimpleTaskInput(target, result);
+
+  SimpleTaskInputBuilder builder;
+
+  void setUp() {
+    builder = new SimpleTaskInputBuilder(input);
+  }
+
+  test_create() {
+    expect(builder, isNotNull);
+    expect(builder.input, input);
+  }
+
+  test_currentResult_afterComplete() {
+    builder.moveNext();
+    builder.currentValue = 'value';
+    builder.moveNext();
+    expect(builder.currentResult, null);
+  }
+
+  test_currentResult_afterCurrentValueNotAvailable() {
+    builder.moveNext();
+    builder.currentValueNotAvailable();
+    builder.moveNext();
+    expect(builder.currentResult, null);
+  }
+
+  test_currentResult_afterOneMoveNext() {
+    builder.moveNext();
+    expect(builder.currentResult, result);
+  }
+
+  test_currentResult_beforeMoveNext() {
+    expect(builder.currentResult, null);
+  }
+
+  test_currentTarget_afterComplete() {
+    builder.moveNext();
+    builder.currentValue = 'value';
+    builder.moveNext();
+    expect(builder.currentTarget, null);
+  }
+
+  test_currentTarget_afterCurrentValueNotAvailable() {
+    builder.moveNext();
+    builder.currentValueNotAvailable();
+    builder.moveNext();
+    expect(builder.currentTarget, null);
+  }
+
+  test_currentTarget_afterOneMoveNext() {
+    builder.moveNext();
+    expect(builder.currentTarget, target);
+  }
+
+  test_currentTarget_beforeMoveNext() {
+    expect(builder.currentTarget, null);
+  }
+
+  test_currentValue_afterOneMoveNext() {
+    builder.moveNext();
+    builder.currentValue = 'value';
+  }
+
+  test_currentValue_beforeMoveNext() {
+    expect(() {
+      builder.currentValue = 'value';
+    }, throwsStateError);
+  }
+
+  test_currentValueNotAvailable_afterOneMoveNext() {
+    builder.moveNext();
+    builder.currentValueNotAvailable();
+  }
+
+  test_currentValueNotAvailable_beforeMoveNext() {
+    expect(() {
+      builder.currentValueNotAvailable();
+    }, throwsStateError);
+  }
+
+  test_inputValue_afterComplete() {
     builder.moveNext();
     String value = 'value';
     builder.currentValue = value;
@@ -562,7 +706,6 @@ class SimpleTaskInputBuilderTest extends EngineTestCase {
   }
 
   test_inputValue_afterCurrentValueNotAvailable() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     builder.moveNext();
     builder.currentValueNotAvailable();
     builder.moveNext();
@@ -570,24 +713,20 @@ class SimpleTaskInputBuilderTest extends EngineTestCase {
   }
 
   test_inputValue_afterOneMoveNext() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     builder.moveNext();
     expect(() => builder.inputValue, throwsStateError);
   }
 
   test_inputValue_beforeMoveNext() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     expect(() => builder.inputValue, throwsStateError);
   }
 
   test_moveNext_withoutSet() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     expect(builder.moveNext(), true);
     expect(() => builder.moveNext(), throwsStateError);
   }
 
   test_moveNext_withSet() {
-    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     expect(builder.moveNext(), true);
     builder.currentValue = 'value';
     expect(builder.moveNext(), false);

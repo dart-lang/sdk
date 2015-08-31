@@ -33,16 +33,12 @@ const char* VMTag::TagName(uword tag) {
 
 
 bool VMTag::IsNativeEntryTag(uword tag) {
-  if ((tag == kRootTagId) || (tag == kTruncatedTagId)) {
-    return false;
-  }
-  ASSERT(tag != kInvalidTagId);
-  ASSERT(tag != kNumVMTags);
-  ASSERT(tag != kLastTagId);
-  return (tag > kNumVMTags) && !IsRuntimeEntryTag(tag);
+  return (tag > kLastTagId) && !IsRuntimeEntryTag(tag);
 }
 
+
 static RuntimeEntry* runtime_entry_list = NULL;
+
 
 bool VMTag::IsRuntimeEntryTag(uword id) {
   const RuntimeEntry* current = runtime_entry_list;
@@ -85,11 +81,13 @@ VMTag::TagEntry VMTag::entries_[] = {
 };
 
 
-VMTagScope::VMTagScope(Isolate* base_isolate, uword tag)
+VMTagScope::VMTagScope(Isolate* base_isolate, uword tag, bool conditional_set)
     : StackResource(base_isolate) {
   ASSERT(isolate() != NULL);
   previous_tag_ = isolate()->vm_tag();
-  isolate()->set_vm_tag(tag);
+  if (conditional_set) {
+    isolate()->set_vm_tag(tag);
+  }
 }
 
 

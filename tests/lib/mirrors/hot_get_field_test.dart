@@ -10,6 +10,7 @@ import 'package:expect/expect.dart';
 class C {
   var field;
   var _field;
+  operator +(other) => field + other;
 }
 
 const int optimizationThreshold = 20;
@@ -44,8 +45,22 @@ testPrivateWrongLibrary() {
   }
 }
 
+testOperator() {
+  var plus = const Symbol("+");
+  var c = new C();
+  var im = reflect(c);
+
+  for (int i = 0; i < (2 * optimizationThreshold); i++) {
+    c.field = i;
+    var closurizedPlus = im.getField(plus).reflectee;
+    Expect.isTrue(closurizedPlus is Function);
+    Expect.equals(2 * i, closurizedPlus(i));
+  }
+}
+
 main() {
   testPublic();
   testPrivate();
   testPrivateWrongLibrary();
+  testOperator();
 }

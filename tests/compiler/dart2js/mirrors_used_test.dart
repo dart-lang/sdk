@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 
 import 'memory_compiler.dart' show
-    compilerFor;
+    runCompiler;
 
 import 'package:compiler/src/apiimpl.dart' show
     Compiler;
@@ -25,6 +25,12 @@ import 'package:compiler/src/elements/elements.dart' show
 
 import 'package:compiler/src/js_backend/js_backend.dart' show
     JavaScriptBackend;
+
+import 'package:compiler/src/js_emitter/full_emitter/emitter.dart'
+    as full show Emitter;
+
+import 'package:compiler/src/old_to_new_api.dart' show
+    LegacyCompilerDiagnostics;
 
 void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
   if (kind.name == 'verbose info') {
@@ -44,10 +50,12 @@ void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
 }
 
 void main() {
-  Compiler compiler = compilerFor(
-      MEMORY_SOURCE_FILES, diagnosticHandler: expectOnlyVerboseInfo,
+  asyncTest(() async {
+    var result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      diagnosticHandler: new LegacyCompilerDiagnostics(expectOnlyVerboseInfo),
       options: ['--enable-experimental-mirrors']);
-  asyncTest(() => compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
+    Compiler compiler = result.compiler;
     print('');
     List generatedCode =
         Elements.sortedByPosition(compiler.enqueuer.codegen.generatedCode.keys);
@@ -86,12 +94,16 @@ void main() {
         ];
     JavaScriptBackend backend = compiler.backend;
     Iterable<String> nativeNames = nativeClasses.map(backend.namer.className);
+    expectedNames = expectedNames.map(backend.namer.asName).toList();
     expectedNames.addAll(nativeNames);
 
+    // Mirrors only work in the full emitter. We can thus be certain that the
+    // emitter is the full emitter.
+    full.Emitter fullEmitter = backend.emitter.emitter;
     Set recordedNames = new Set()
-        ..addAll(backend.emitter.oldEmitter.recordedMangledNames)
-        ..addAll(backend.emitter.oldEmitter.mangledFieldNames.keys)
-        ..addAll(backend.emitter.oldEmitter.mangledGlobalFieldNames.keys);
+        ..addAll(fullEmitter.recordedMangledNames)
+        ..addAll(fullEmitter.mangledFieldNames.keys)
+        ..addAll(fullEmitter.mangledGlobalFieldNames.keys);
     Expect.setEquals(new Set.from(expectedNames), recordedNames);
 
     for (var library in compiler.libraryLoader.libraries) {
@@ -136,7 +148,7 @@ void main() {
     Expect.equals(
         1, fooConstantCount,
         "The type literal 'Foo' is duplicated or missing.");
-  }));
+  });
 }
 
 const MEMORY_SOURCE_FILES = const <String, String> {

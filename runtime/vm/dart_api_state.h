@@ -35,11 +35,11 @@ class ApiZone {
  public:
   // Create an empty zone.
   ApiZone() : zone_() {
-    Isolate* isolate = Isolate::Current();
-    Zone* current_zone = isolate != NULL ? isolate->current_zone() : NULL;
-    zone_.Link(current_zone);
-    if (isolate != NULL) {
-      isolate->set_current_zone(&zone_);
+    Thread* thread = Thread::Current();
+    Zone* zone = thread != NULL ? thread->zone() : NULL;
+    zone_.Link(zone);
+    if (thread != NULL) {
+      thread->set_zone(&zone_);
     }
 #ifdef DEBUG
     if (FLAG_trace_zones) {
@@ -52,9 +52,15 @@ class ApiZone {
 
   // Delete all memory associated with the zone.
   ~ApiZone() {
-    Isolate* isolate = Isolate::Current();
-    if ((isolate != NULL) && (isolate->current_zone() == &zone_)) {
-      isolate->set_current_zone(zone_.previous_);
+    Thread* thread = Thread::Current();
+#if defined(DEBUG)
+    if (thread == NULL) {
+      ASSERT(zone_.handles()->CountScopedHandles() == 0);
+      ASSERT(zone_.handles()->CountZoneHandles() == 0);
+    }
+#endif
+    if ((thread != NULL) && (thread->zone() == &zone_)) {
+      thread->set_zone(zone_.previous_);
     }
 #ifdef DEBUG
     if (FLAG_trace_zones) {
@@ -95,18 +101,18 @@ class ApiZone {
 
   Zone* GetZone() { return &zone_; }
 
-  void Reinit(Isolate* isolate) {
-    if (isolate == NULL) {
+  void Reinit(Thread* thread) {
+    if (thread == NULL) {
       zone_.Link(NULL);
     } else {
-      zone_.Link(isolate->current_zone());
-      isolate->set_current_zone(&zone_);
+      zone_.Link(thread->zone());
+      thread->set_zone(&zone_);
     }
   }
 
-  void Reset(Isolate* isolate) {
-    if ((isolate != NULL) && (isolate->current_zone() == &zone_)) {
-      isolate->set_current_zone(zone_.previous_);
+  void Reset(Thread* thread) {
+    if ((thread != NULL) && (thread->zone() == &zone_)) {
+      thread->set_zone(zone_.previous_);
     }
     zone_.DeleteAll();
   }
@@ -128,6 +134,10 @@ class LocalHandle {
   RawObject* raw() const { return raw_; }
   void set_raw(RawObject* raw) { raw_ = raw; }
   static intptr_t raw_offset() { return OFFSET_OF(LocalHandle, raw_); }
+
+  Dart_Handle apiHandle() {
+    return reinterpret_cast<Dart_Handle>(this);
+  }
 
  private:
   LocalHandle() { }
@@ -582,16 +592,16 @@ class ApiLocalScope {
   }
 
   // Reinit the ApiLocalScope to new values.
-  void Reinit(Isolate* isolate, ApiLocalScope* previous, uword stack_marker) {
+  void Reinit(Thread* thread, ApiLocalScope* previous, uword stack_marker) {
     previous_ = previous;
     stack_marker_ = stack_marker;
-    zone_.Reinit(isolate);
+    zone_.Reinit(thread);
   }
 
   // Reset the ApiLocalScope so that it can be reused again.
-  void Reset(Isolate* isolate) {
+  void Reset(Thread* thread) {
     local_handles_.Reset();
-    zone_.Reset(isolate);
+    zone_.Reset(thread);
     previous_ = NULL;
     stack_marker_ = 0;
   }
@@ -632,7 +642,12 @@ class ApiNativeScope {
         OSThread::GetThreadLocal(Api::api_native_key_));
   }
 
-  Zone* zone() { return zone_.GetZone(); }
+  Zone* zone() {
+    Zone* result = zone_.GetZone();
+    ASSERT(result->handles()->CountScopedHandles() == 0);
+    ASSERT(result->handles()->CountZoneHandles() == 0);
+    return result;
+  }
 
  private:
   ApiZone zone_;

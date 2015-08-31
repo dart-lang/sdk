@@ -19,8 +19,10 @@ import 'non_error_resolver_test.dart' as non_error_resolver_test;
 import 'parser_test.dart' as parser_test;
 import 'resolver_test.dart' as resolver_test;
 import 'scanner_test.dart' as scanner_test;
+import 'source_factory_test.dart' as source_factory_test;
 import 'static_type_warning_code_test.dart' as static_type_warning_code_test;
 import 'static_warning_code_test.dart' as static_warning_code_test;
+import 'type_system_test.dart' as type_system_test;
 import 'utilities_test.dart' as utilities_test;
 
 /// Utility for manually running all tests.
@@ -40,8 +42,10 @@ main() {
     parser_test.main();
     resolver_test.main();
     scanner_test.main();
+    source_factory_test.main();
     static_type_warning_code_test.main();
     static_warning_code_test.main();
+    type_system_test.main();
     utilities_test.main();
   });
 }

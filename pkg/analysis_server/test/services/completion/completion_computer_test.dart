@@ -7,7 +7,7 @@ library test.services.completion.suggestion;
 import 'dart:async';
 
 import 'package:analysis_server/completion/completion_core.dart'
-    show CompletionRequest;
+    show CompletionRequest, CompletionResult;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
@@ -93,7 +93,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
         case 1:
           contributor1.assertCalls(context, source, 0, searchEngine);
           contributor2.assertCalls(context, source, 0, searchEngine);
-          expect(r.last, isFalse);
+          expect(r.isLast, isFalse);
           expect(r.suggestions, hasLength(1));
           expect(r.suggestions, contains(suggestion1));
           resolveLibrary();
@@ -101,7 +101,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
         case 2:
           contributor1.assertFull(0);
           contributor2.assertFull(1);
-          expect(r.last, isTrue);
+          expect(r.isLast, isTrue);
           expect(r.suggestions, hasLength(2));
           expect(r.suggestions, contains(suggestion1));
           expect(r.suggestions, contains(suggestion2));
@@ -132,7 +132,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
         case 1:
           contributor1.assertCalls(context, source, 0, searchEngine);
           contributor2.assertCalls(context, source, 0, searchEngine);
-          expect(r.last, isTrue);
+          expect(r.isLast, isTrue);
           expect(r.suggestions, hasLength(2));
           expect(r.suggestions, contains(suggestion1));
           expect(r.suggestions, contains(suggestion2));

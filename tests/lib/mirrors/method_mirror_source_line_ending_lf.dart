@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This file is marked executable so source control will preserve the type of
-// line ending.
+// Note: This test relies on LF line endings in the source file.
 
 library line_endings.lf;
 

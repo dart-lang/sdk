@@ -61,64 +61,74 @@ testEncodeDecodeQueryComponent(String orig,
   }
 }
 
-testUriPerRFCs(Uri base) {
+testUriPerRFCs() {
+  final urisSample = "http://a/b/c/d;p?q";
+  Uri base = Uri.parse(urisSample);
+  testResolve(expect, relative) {
+    Expect.stringEquals(expect, base.resolve(relative).toString());
+  }
+
   // From RFC 3986.
-  Expect.stringEquals("g:h", base.resolve("g:h").toString());
-  Expect.stringEquals("http://a/b/c/g", base.resolve("g").toString());
-  Expect.stringEquals("http://a/b/c/g", base.resolve("./g").toString());
-  Expect.stringEquals("http://a/b/c/g/", base.resolve("g/").toString());
-  Expect.stringEquals("http://a/g", base.resolve("/g").toString());
-  Expect.stringEquals("http://g", base.resolve("//g").toString());
-  Expect.stringEquals("http://a/b/c/d;p?y", base.resolve("?y").toString());
-  Expect.stringEquals("http://a/b/c/g?y", base.resolve("g?y").toString());
-  Expect.stringEquals("http://a/b/c/d;p?q#s", base.resolve("#s").toString());
-  Expect.stringEquals("http://a/b/c/g#s", base.resolve("g#s").toString());
-  Expect.stringEquals("http://a/b/c/g?y#s", base.resolve("g?y#s").toString());
-  Expect.stringEquals("http://a/b/c/;x", base.resolve(";x").toString());
-  Expect.stringEquals("http://a/b/c/g;x", base.resolve("g;x").toString());
-  Expect.stringEquals("http://a/b/c/g;x?y#s",
-                      base.resolve("g;x?y#s").toString());
-  Expect.stringEquals("http://a/b/c/d;p?q", base.resolve("").toString());
-  Expect.stringEquals("http://a/b/c/", base.resolve(".").toString());
-  Expect.stringEquals("http://a/b/c/", base.resolve("./").toString());
-  Expect.stringEquals("http://a/b/", base.resolve("..").toString());
-  Expect.stringEquals("http://a/b/", base.resolve("../").toString());
-  Expect.stringEquals("http://a/b/g", base.resolve("../g").toString());
-  Expect.stringEquals("http://a/", base.resolve("../..").toString());
-  Expect.stringEquals("http://a/", base.resolve("../../").toString());
-  Expect.stringEquals("http://a/g", base.resolve("../../g").toString());
-  Expect.stringEquals("http://a/g", base.resolve("../../../g").toString());
-  Expect.stringEquals("http://a/g", base.resolve("../../../../g").toString());
-  Expect.stringEquals("http://a/g", base.resolve("/./g").toString());
-  Expect.stringEquals("http://a/g", base.resolve("/../g").toString());
-  Expect.stringEquals("http://a/b/c/g.", base.resolve("g.").toString());
-  Expect.stringEquals("http://a/b/c/.g", base.resolve(".g").toString());
-  Expect.stringEquals("http://a/b/c/g..", base.resolve("g..").toString());
-  Expect.stringEquals("http://a/b/c/..g", base.resolve("..g").toString());
-  Expect.stringEquals("http://a/b/g", base.resolve("./../g").toString());
-  Expect.stringEquals("http://a/b/c/g/", base.resolve("./g/.").toString());
-  Expect.stringEquals("http://a/b/c/g/h", base.resolve("g/./h").toString());
-  Expect.stringEquals("http://a/b/c/h", base.resolve("g/../h").toString());
-  Expect.stringEquals("http://a/b/c/g;x=1/y",
-                      base.resolve("g;x=1/./y").toString());
-  Expect.stringEquals("http://a/b/c/y", base.resolve("g;x=1/../y").toString());
-  Expect.stringEquals("http://a/b/c/g?y/./x",
-                      base.resolve("g?y/./x").toString());
-  Expect.stringEquals("http://a/b/c/g?y/../x",
-                      base.resolve("g?y/../x").toString());
-  Expect.stringEquals("http://a/b/c/g#s/./x",
-                      base.resolve("g#s/./x").toString());
-  Expect.stringEquals("http://a/b/c/g#s/../x",
-                      base.resolve("g#s/../x").toString());
-  Expect.stringEquals("http:g", base.resolve("http:g").toString());
+  testResolve("g:h",                   "g:h");
+  testResolve("http://a/b/c/g",        "g");
+  testResolve("http://a/b/c/g",        "./g");
+  testResolve("http://a/b/c/g/",       "g/");
+  testResolve("http://a/g",            "/g");
+  testResolve("http://g",              "//g");
+  testResolve("http://a/b/c/d;p?y",    "?y");
+  testResolve("http://a/b/c/g?y",      "g?y");
+  testResolve("http://a/b/c/d;p?q#s",  "#s");
+  testResolve("http://a/b/c/g#s",      "g#s");
+  testResolve("http://a/b/c/g?y#s",    "g?y#s");
+  testResolve("http://a/b/c/;x",       ";x");
+  testResolve("http://a/b/c/g;x",      "g;x");
+  testResolve("http://a/b/c/g;x?y#s",  "g;x?y#s");
+  testResolve("http://a/b/c/d;p?q",    "");
+  testResolve("http://a/b/c/",         ".");
+  testResolve("http://a/b/c/",         "./");
+  testResolve("http://a/b/",           "..");
+  testResolve("http://a/b/",           "../");
+  testResolve("http://a/b/g",          "../g");
+  testResolve("http://a/",             "../..");
+  testResolve("http://a/",             "../../");
+  testResolve("http://a/g",            "../../g");
+  testResolve("http://a/g",            "../../../g");
+  testResolve("http://a/g",            "../../../../g");
+  testResolve("http://a/g",            "/./g");
+  testResolve("http://a/g",            "/../g");
+  testResolve("http://a/b/c/g.",       "g.");
+  testResolve("http://a/b/c/.g",       ".g");
+  testResolve("http://a/b/c/g..",      "g..");
+  testResolve("http://a/b/c/..g",      "..g");
+  testResolve("http://a/b/g",          "./../g");
+  testResolve("http://a/b/c/g/",       "./g/.");
+  testResolve("http://a/b/c/g/h",      "g/./h");
+  testResolve("http://a/b/c/h",        "g/../h");
+  testResolve("http://a/b/c/g;x=1/y",  "g;x=1/./y");
+  testResolve("http://a/b/c/y",        "g;x=1/../y");
+  testResolve("http://a/b/c/g?y/./x",  "g?y/./x");
+  testResolve("http://a/b/c/g?y/../x", "g?y/../x");
+  testResolve("http://a/b/c/g#s/./x",  "g#s/./x");
+  testResolve("http://a/b/c/g#s/../x", "g#s/../x");
+  testResolve("http:g",                "http:g");
 
   // Additional tests (not from RFC 3986).
-  Expect.stringEquals("http://a/b/g;p/h;s",
-                      base.resolve("../g;p/h;s").toString());
+  testResolve("http://a/b/g;p/h;s",    "../g;p/h;s");
+
+  // Test non-URI base (no scheme, no authority, relative path).
+  base = Uri.parse("a/b/c?_#_");
+  testResolve("a/b/g?q#f", "g?q#f");
+  testResolve("../", "../../..");
+  testResolve("a/b/", ".");
+  testResolve("c", "../../c");
+
+  base = Uri.parse("s:a/b");
+  testResolve("s:/c", "../c");
 }
 
 void testResolvePath(String expected, String path) {
-  Expect.equals(expected, new Uri().resolveUri(new Uri(path: path)).path);
+  Expect.equals(expected,
+                new Uri(path: '/').resolveUri(new Uri(path: path)).path);
   Expect.equals(
       "http://localhost$expected",
       Uri.parse("http://localhost").resolveUri(new Uri(path: path)).toString());
@@ -471,11 +481,7 @@ main() {
   testResolvePath("/a/b/e/", "./a/b/./c/d/../../e/./.");
   testResolvePath("/a/b/e/", "./a/b/./c/d/../../e/././.");
 
-  final urisSample = "http://a/b/c/d;p?q";
-  Uri baseFromString = Uri.parse(urisSample);
-  testUriPerRFCs(baseFromString);
-  Uri base = Uri.parse(urisSample);
-  testUriPerRFCs(base);
+  testUriPerRFCs();
 
   Expect.stringEquals(
       "http://example.com",

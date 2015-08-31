@@ -231,7 +231,7 @@ testBigintModInverse() {
   Expect.equals(0, x.modInverse(m));
   x = 0;
   m = 1000000001;
-  Expect.throws(() => x.modInverse(m), (e) => e is RangeError);  // Not coprime.
+  Expect.throws(() => x.modInverse(m), (e) => e is Exception);  // Not coprime.
   x = 1234567890;
   m = 19;
   Expect.equals(11, x.modInverse(m));
@@ -240,7 +240,7 @@ testBigintModInverse() {
   Expect.equals(189108911, x.modInverse(m));
   x = 19;
   m = 1000000001;
-  Expect.throws(() => x.modInverse(m), (e) => e is RangeError);  // Not coprime.
+  Expect.throws(() => x.modInverse(m), (e) => e is Exception);  // Not coprime.
   x = 19;
   m = 1234567890;
   Expect.equals(519818059, x.modInverse(m));
@@ -249,7 +249,7 @@ testBigintModInverse() {
   Expect.equals(1001100101, x.modInverse(m));
   x = 1000000001;
   m = 19;
-  Expect.throws(() => x.modInverse(m), (e) => e is RangeError);  // Not coprime.
+  Expect.throws(() => x.modInverse(m), (e) => e is Exception);  // Not coprime.
   x = 12345678901234567890;
   m = 19;
   Expect.equals(3, x.modInverse(m));
@@ -276,7 +276,7 @@ testBigintModInverse() {
   Expect.equals(3, x.modInverse(m));
   x = 123456789012345678901234567890;
   m = 123456789012345678901234567899;
-  Expect.throws(() => x.modInverse(m), (e) => e is RangeError);  // Not coprime.
+  Expect.throws(() => x.modInverse(m), (e) => e is Exception);  // Not coprime.
   x = 123456789012345678901234567890;
   m = 123456789012345678901234567891;
   Expect.equals(123456789012345678901234567890, x.modInverse(m));
@@ -285,7 +285,7 @@ testBigintModInverse() {
   Expect.equals(77160493132716049313271604932, x.modInverse(m));
   x = 123456789012345678901234567899;
   m = 123456789012345678901234567890;
-  Expect.throws(() => x.modInverse(m), (e) => e is RangeError);  // Not coprime.
+  Expect.throws(() => x.modInverse(m), (e) => e is Exception);  // Not coprime.
   x = 123456789012345678901234567891;
   m = 123456789012345678901234567890;
   Expect.equals(1, x.modInverse(m));
@@ -310,10 +310,31 @@ testBigintGcd() {
   Expect.equals(21 <<40, x.gcd(m));
   x = 0;
   m = 1000000001;
-  Expect.throws(() => x.gcd(m), (e) => e is RangeError);
+  Expect.equals(m, x.gcd(m));
   x = 1000000001;
   m = 0;
-  Expect.throws(() => x.gcd(m), (e) => e is RangeError);
+  Expect.equals(x, x.gcd(m));
+  x = 0;
+  m = -1000000001;
+  Expect.equals(-m, x.gcd(m));
+  x = -1000000001;
+  m = 0;
+  Expect.equals(-x, x.gcd(m));
+  x = 0;
+  m = 0;
+  Expect.equals(0, x.gcd(m));
+  x = 0;
+  m = 123456789012345678901234567890;
+  Expect.equals(m, x.gcd(m));
+  x = 123456789012345678901234567890;
+  m = 0;
+  Expect.equals(x, x.gcd(m));
+  x = 0;
+  m = -123456789012345678901234567890;
+  Expect.equals(-m, x.gcd(m));
+  x = -123456789012345678901234567890;
+  m = 0;
+  Expect.equals(-x, x.gcd(m));
   x = 1234567890;
   m = 19;
   Expect.equals(1, x.gcd(m));

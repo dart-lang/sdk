@@ -4,57 +4,31 @@
 
 // Test that tree-shaking hasn't been turned off.
 
-import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
-import 'memory_source_file_helper.dart';
-
-import 'package:compiler/src/dart2jslib.dart'
-       show NullSink;
-
-import 'package:compiler/compiler.dart'
-       show Diagnostic;
-
-import 'dart:async';
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/dart2jslib.dart';
 import 'package:compiler/src/js_backend/js_backend.dart'
        show JavaScriptBackend;
+import 'package:expect/expect.dart';
+import 'memory_compiler.dart';
 
 main() {
-  Uri script = currentDirectory.resolveUri(Platform.script);
-  Uri libraryRoot = script.resolve('../../../sdk/');
-  Uri packageRoot = script.resolve('./packages/');
-
-  var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
-  void diagnosticHandler(Uri uri, int begin, int end,
-                         String message, Diagnostic kind) {
-    if (kind == Diagnostic.VERBOSE_INFO
-        || kind == Diagnostic.WARNING
-        || kind == Diagnostic.HINT) {
-      return;
-    }
-    throw '$uri:$begin:$end:$message:$kind';
-  }
-
-  EventSink<String> outputProvider(String name, String extension) {
-    return new NullSink('$name.$extension');
-  }
-
-  Compiler compiler = new Compiler(provider.readStringFromUri,
-                                   outputProvider,
-                                   diagnosticHandler,
-                                   libraryRoot,
-                                   packageRoot,
-                                   [],
-                                   {});
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+  DiagnosticCollector collector = new DiagnosticCollector();
+  asyncTest(() async {
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES, diagnosticHandler: collector);
+    Compiler compiler = result.compiler;
+    Expect.isTrue(collector.errors.isEmpty);
+    Expect.isTrue(collector.infos.isEmpty);
     Expect.isFalse(compiler.compilationFailed);
     Expect.isFalse(compiler.enqueuer.resolution.hasEnqueuedReflectiveElements);
-    Expect.isFalse(compiler.enqueuer.resolution.hasEnqueuedReflectiveStaticFields);
+    Expect.isFalse(
+        compiler.enqueuer.resolution.hasEnqueuedReflectiveStaticFields);
     Expect.isFalse(compiler.enqueuer.codegen.hasEnqueuedReflectiveElements);
     Expect.isFalse(compiler.enqueuer.codegen.hasEnqueuedReflectiveStaticFields);
     Expect.isFalse(compiler.disableTypeInference);
     JavaScriptBackend backend = compiler.backend;
     Expect.isFalse(backend.hasRetainedMetadata);
-  }));
+  });
 }
 
 const Map MEMORY_SOURCE_FILES = const {

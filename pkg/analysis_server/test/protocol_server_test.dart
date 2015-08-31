@@ -275,8 +275,7 @@ enum E2 { three, four }''');
     engine.CompilationUnit unit = resolveLibraryUnit(source);
     {
       engine.ClassElement engineElement = findElementInUnit(unit, '_E1');
-      // TODO (danrubel) determine why enum is not deprecated
-      expect(engineElement.isDeprecated, isFalse);
+      expect(engineElement.isDeprecated, isTrue);
       // create notification Element
       Element element = newElement_fromEngine(engineElement);
       expect(element.kind, ElementKind.ENUM);
@@ -329,11 +328,11 @@ enum E2 { three, four }''');
       expect(element.parameters, isNull);
       expect(element.returnType, '_E1');
       // TODO(danrubel) determine why enum constant is not marked as deprecated
-      engine.ClassElement classElement = engineElement.enclosingElement;
+      //engine.ClassElement classElement = engineElement.enclosingElement;
+      //expect(classElement.isDeprecated, isTrue);
       expect(element.flags,
-          (classElement.isDeprecated ? Element.FLAG_DEPRECATED : 0) |
-              Element.FLAG_CONST |
-              Element.FLAG_STATIC);
+          // Element.FLAG_DEPRECATED |
+          Element.FLAG_CONST | Element.FLAG_STATIC);
     }
     {
       engine.FieldElement engineElement = findElementInUnit(unit, 'three');

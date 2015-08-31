@@ -281,7 +281,7 @@ TEST_CASE(InstanceClass) {
   const Array& one_fields = Array::Handle(Array::New(1));
   const String& field_name = String::Handle(Symbols::New("the_field"));
   const Field& field = Field::Handle(
-      Field::New(field_name, false, false, false, false, one_field_class, 0));
+      Field::New(field_name, false, false, false, true, one_field_class, 0));
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
   one_field_class.Finalize();
@@ -2991,7 +2991,7 @@ static RawField* CreateTestField(const char* name) {
   const Class& cls = Class::Handle(CreateTestClass("global:"));
   const String& field_name = String::Handle(Symbols::New(name));
   const Field& field =
-      Field::Handle(Field::New(field_name, true, false, false, false, cls, 0));
+      Field::Handle(Field::New(field_name, true, false, false, true, cls, 0));
   return field.raw();
 }
 
@@ -4248,19 +4248,9 @@ class ObjectAccumulator : public ObjectVisitor {
 TEST_CASE(PrintJSON) {
   Heap* heap = Isolate::Current()->heap();
   heap->CollectAllGarbage();
-  // We don't want to print garbage objects, so wait for concurrent sweeper.
-  // TODO(21620): Add heap iteration interface that excludes garbage (or
-  // use ObjectGraph).
-  PageSpace* old_space = heap->old_space();
-  {
-    MonitorLocker ml(old_space->tasks_lock());
-    while (old_space->tasks() > 0) {
-      ml.Wait();
-    }
-  }
   GrowableArray<Object*> objects;
   ObjectAccumulator acc(&objects);
-  heap->VisitObjects(&acc);
+  heap->IterateObjects(&acc);
   for (intptr_t i = 0; i < objects.length(); ++i) {
     JSONStream js;
     objects[i]->PrintJSON(&js, false);

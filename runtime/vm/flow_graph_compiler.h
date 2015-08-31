@@ -177,7 +177,7 @@ class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
     const char* kFormat = "Deopt stub for id %d, reason: %s";
     const intptr_t len = OS::SNPrint(NULL, 0, kFormat,
         deopt_id(), DeoptReasonToCString(reason())) + 1;
-    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    char* chars = Thread::Current()->zone()->Alloc<char>(len);
     OS::SNPrint(chars, len, kFormat,
         deopt_id(), DeoptReasonToCString(reason()));
     return chars;
@@ -337,13 +337,13 @@ class FlowGraphCompiler : public ValueObject {
                            LocationSummary* locs);
 
   void GenerateCall(intptr_t token_pos,
-                    const ExternalLabel* label,
+                    const StubEntry& stub_entry,
                     RawPcDescriptors::Kind kind,
                     LocationSummary* locs);
 
   void GenerateDartCall(intptr_t deopt_id,
                         intptr_t token_pos,
-                        const ExternalLabel* label,
+                        const StubEntry& stub_entry,
                         RawPcDescriptors::Kind kind,
                         LocationSummary* locs);
 
@@ -393,19 +393,26 @@ class FlowGraphCompiler : public ValueObject {
   static int32_t EdgeCounterIncrementSizeInBytes();
 #endif  // !TARGET_ARCH_ARM64 && !TARGET_ARCH_MIPS
 
-  void EmitOptimizedInstanceCall(ExternalLabel* target_label,
+  void EmitOptimizedInstanceCall(const StubEntry& stub_entry,
                                  const ICData& ic_data,
                                  intptr_t argument_count,
                                  intptr_t deopt_id,
                                  intptr_t token_pos,
                                  LocationSummary* locs);
 
-  void EmitInstanceCall(ExternalLabel* target_label,
+  void EmitInstanceCall(const StubEntry& stub_entry,
                         const ICData& ic_data,
                         intptr_t argument_count,
                         intptr_t deopt_id,
                         intptr_t token_pos,
                         LocationSummary* locs);
+
+  void EmitPolymorphicInstanceCall(const ICData& ic_data,
+                                   intptr_t argument_count,
+                                   const Array& argument_names,
+                                   intptr_t deopt_id,
+                                   intptr_t token_pos,
+                                   LocationSummary* locs);
 
   void EmitMegamorphicInstanceCall(const ICData& ic_data,
                                    intptr_t argument_count,
@@ -414,10 +421,10 @@ class FlowGraphCompiler : public ValueObject {
                                    LocationSummary* locs);
 
   void EmitTestAndCall(const ICData& ic_data,
-                       Register class_id_reg,
                        intptr_t arg_count,
                        const Array& arg_names,
-                       Label* deopt,
+                       Label* failed,
+                       Label* match_found,
                        intptr_t deopt_id,
                        intptr_t token_index,
                        LocationSummary* locs);
@@ -531,6 +538,8 @@ class FlowGraphCompiler : public ValueObject {
   }
 
   RawArray* InliningIdToFunction() const;
+
+  RawArray* CallerInliningIdMap() const;
 
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.

@@ -89,6 +89,7 @@ class _InvocationMirror implements Invocation {
         _namedArguments[new internal.Symbol.unvalidated(arg_name)] =
             arg_value;
       }
+      _namedArguments = new Map.unmodifiable(_namedArguments);
     }
     return _namedArguments;
   }

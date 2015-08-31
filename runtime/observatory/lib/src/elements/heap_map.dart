@@ -51,7 +51,7 @@ class ObjectInfo {
 
 @CustomTag('heap-map')
 class HeapMapElement extends ObservatoryElement {
-  var _fragmentationCanvas;
+  CanvasElement _fragmentationCanvas;
   var _fragmentationData;
   var _pageHeight;
   var _classIdToColor = {};
@@ -125,6 +125,9 @@ class HeapMapElement extends ObservatoryElement {
   }
 
   ObjectInfo _objectAt(Point<int> point) {
+    if (fragmentation == null || _fragmentationCanvas == null) {
+      return null;
+    }
     var pagePixels = _pageHeight * _fragmentationData.width;
     var index = new PixelReference(_fragmentationData, point).index;
     var pageIndex = index ~/ pagePixels;
@@ -153,6 +156,10 @@ class HeapMapElement extends ObservatoryElement {
 
   void _handleMouseMove(MouseEvent event) {
     var info = _objectAt(event.offset);
+    if (info == null) {
+      status = '';
+      return;
+    }
     var addressString = '${info.size}B @ 0x${info.address.toRadixString(16)}';
     var className = _classNameAt(event.offset);
     status = (className == '') ? '-' : '$className $addressString';

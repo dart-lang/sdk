@@ -65,7 +65,7 @@ class DominatorTreeRow extends TableTreeRow {
     percentNode.text =  Utils.formatPercentNormalized(percentRetained);
     percentNode.style.minWidth = '5em';
     percentNode.style.textAlign = 'right';
-    percentNode.title = "Retaining x of y.";
+    percentNode.title = "Percent of heap being retained";
     percentNode.style.display = 'inline-block';
     firstColumn.children.add(percentNode);
 
@@ -75,8 +75,7 @@ class DominatorTreeRow extends TableTreeRow {
     firstColumn.children.add(gap);
 
     AnyServiceRefElement objectRef = new Element.tag("any-service-ref");
-    String hexAddress = vertex.address.toRadixString(16);
-    snapshot.isolate.getObjectByAddress(hexAddress).then((obj) {
+    snapshot.isolate.getObjectByAddress(vertex.address).then((obj) {
       objectRef.ref = obj;
     });
     objectRef.style.alignSelf = 'center';

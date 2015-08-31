@@ -56,6 +56,7 @@ abstract class HVisitor<R> {
   R visitPhi(HPhi node);
   R visitRangeConversion(HRangeConversion node);
   R visitReadModifyWrite(HReadModifyWrite node);
+  R visitRef(HRef node);
   R visitReturn(HReturn node);
   R visitShiftLeft(HShiftLeft node);
   R visitShiftRight(HShiftRight node);
@@ -172,11 +173,14 @@ class HGraph {
     return result;
   }
 
-  HConstant addConstant(ConstantValue constant, Compiler compiler) {
+  HConstant addConstant(ConstantValue constant, Compiler compiler,
+                        {SourceInformation sourceInformation}) {
     HConstant result = constants[constant];
+    // TODO(johnniwinther): Support source information per constant reference.
     if (result == null) {
       TypeMask type = computeTypeMask(compiler, constant);
-      result = new HConstant.internal(constant, type);
+      result = new HConstant.internal(constant, type)
+          ..sourceInformation = sourceInformation;
       entry.addAtExit(result);
       constants[constant] = result;
     } else if (result.block == null) {
@@ -187,12 +191,13 @@ class HGraph {
   }
 
   HConstant addDeferredConstant(ConstantValue constant, PrefixElement prefix,
+                                SourceInformation sourceInformation,
                                 Compiler compiler) {
     // TODO(sigurdm,johnniwinter): These deferred constants should be created
     // by the constant evaluator.
     ConstantValue wrapper = new DeferredConstantValue(constant, prefix);
     compiler.deferredLoadTask.registerConstantDeferredUse(wrapper, prefix);
-    return addConstant(wrapper, compiler);
+    return addConstant(wrapper, compiler, sourceInformation: sourceInformation);
   }
 
   HConstant addConstantInt(int i, Compiler compiler) {
@@ -208,6 +213,14 @@ class HGraph {
                               Compiler compiler) {
     return addConstant(
         compiler.backend.constantSystem.createString(str),
+        compiler);
+  }
+
+  HConstant addConstantStringFromName(js.Name name,
+                                      Compiler compiler) {
+    return addConstant(
+        new SyntheticConstantValue(SyntheticConstantKind.NAME,
+                                   js.quoteName(name)),
         compiler);
   }
 
@@ -335,6 +348,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitParameterValue(HParameterValue node) => visitLocalValue(node);
   visitRangeConversion(HRangeConversion node) => visitCheck(node);
   visitReadModifyWrite(HReadModifyWrite node) => visitInstruction(node);
+  visitRef(HRef node) => node.value.accept(this);
   visitReturn(HReturn node) => visitControlFlow(node);
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
   visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
@@ -1295,6 +1309,32 @@ abstract class HInstruction implements Spannable {
   }
 }
 
+/// A reference to a [HInstruction] that can hold its own source information.
+///
+/// This used for attaching source information to reads of locals.
+class HRef extends HInstruction {
+  HRef(HInstruction value, SourceInformation sourceInformation)
+      : super([value], value.instructionType) {
+    this.sourceInformation = sourceInformation;
+  }
+
+  HInstruction get value => inputs[0];
+
+  @override
+  HInstruction convertType(Compiler compiler, DartType type, int kind) {
+    HInstruction converted = value.convertType(compiler, type, kind);
+    if (converted == value) return this;
+    HTypeConversion conversion = converted;
+    conversion.inputs[0] = this;
+    return conversion;
+  }
+
+  @override
+  accept(HVisitor visitor) => visitor.visitRef(this);
+
+  String toString() => 'HRef(${value})';
+}
+
 /**
  * Late instructions are used after the main optimization phases.  They capture
  * codegen decisions just prior to generating JavaScript.
@@ -1308,6 +1348,7 @@ class HBoolify extends HInstruction {
   HBoolify(HInstruction value, TypeMask type)
       : super(<HInstruction>[value], type) {
     setUseGvn();
+    sourceInformation = value.sourceInformation;
   }
 
   accept(HVisitor visitor) => visitor.visitBoolify(this);
@@ -1393,16 +1434,19 @@ abstract class HInvoke extends HInstruction {
     // We know it's a selector call if it follows the interceptor
     // calling convention, which adds the actual receiver as a
     // parameter to the call.
-    return (selector != null) && (inputs.length - 2 == selector.argumentCount);
+    return (selector != null) &&
+           (inputs.length - 2 == selector.argumentCount);
   }
 }
 
 abstract class HInvokeDynamic extends HInvoke {
   final InvokeDynamicSpecializer specializer;
   Selector selector;
+  TypeMask mask;
   Element element;
 
   HInvokeDynamic(Selector selector,
+                 this.mask,
                  this.element,
                  List<HInstruction> inputs,
                  TypeMask type,
@@ -1412,7 +1456,7 @@ abstract class HInvokeDynamic extends HInvoke {
       specializer = isIntercepted
           ? InvokeDynamicSpecializer.lookupSpecializer(selector)
           : const InvokeDynamicSpecializer();
-  toString() => 'invoke dynamic: $selector';
+  toString() => 'invoke dynamic: selector=$selector, mask=$mask';
   HInstruction get receiver => inputs[0];
   HInstruction getDartReceiver(Compiler compiler) {
     return isCallOnInterceptor(compiler) ? inputs[1] : inputs[0];
@@ -1437,8 +1481,10 @@ abstract class HInvokeDynamic extends HInvoke {
 }
 
 class HInvokeClosure extends HInvokeDynamic {
-  HInvokeClosure(Selector selector, List<HInstruction> inputs, TypeMask type)
-    : super(selector, null, inputs, type) {
+  HInvokeClosure(Selector selector,
+                 List<HInstruction> inputs,
+                 TypeMask type)
+      : super(selector, null, null, inputs, type) {
     assert(selector.isClosureCall);
   }
   accept(HVisitor visitor) => visitor.visitInvokeClosure(this);
@@ -1446,34 +1492,38 @@ class HInvokeClosure extends HInvokeDynamic {
 
 class HInvokeDynamicMethod extends HInvokeDynamic {
   HInvokeDynamicMethod(Selector selector,
+                       TypeMask mask,
                        List<HInstruction> inputs,
                        TypeMask type,
                        [bool isIntercepted = false])
-    : super(selector, null, inputs, type, isIntercepted);
+    : super(selector, mask, null, inputs, type, isIntercepted);
 
-  String toString() => 'invoke dynamic method: $selector';
+  String toString() => 'invoke dynamic method: selector=$selector, mask=$mask';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 }
 
 abstract class HInvokeDynamicField extends HInvokeDynamic {
   HInvokeDynamicField(
-      Selector selector, Element element, List<HInstruction> inputs,
+      Selector selector, TypeMask mask,
+      Element element, List<HInstruction> inputs,
       TypeMask type)
-      : super(selector, element, inputs, type);
-  toString() => 'invoke dynamic field: $selector';
+      : super(selector, mask, element, inputs, type);
+  toString() => 'invoke dynamic field: selector=$selector, mask=$mask';
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
-  HInvokeDynamicGetter(selector, element, inputs, type)
-    : super(selector, element, inputs, type);
-  toString() => 'invoke dynamic getter: $selector';
+  HInvokeDynamicGetter(Selector selector, TypeMask mask,
+      Element element, List<HInstruction> inputs, TypeMask type)
+    : super(selector, mask, element, inputs, type);
+  toString() => 'invoke dynamic getter: selector=$selector, mask=$mask';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
-  HInvokeDynamicSetter(selector, element, inputs, type)
-    : super(selector, element, inputs, type);
-  toString() => 'invoke dynamic setter: $selector';
+  HInvokeDynamicSetter(Selector selector, TypeMask mask,
+      Element element, List<HInstruction> inputs, TypeMask type)
+    : super(selector, mask, element, inputs, type);
+  toString() => 'invoke dynamic setter: selector=$selector, mask=$mask';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicSetter(this);
 }
 
@@ -1511,8 +1561,11 @@ class HInvokeSuper extends HInvokeStatic {
                this.selector,
                inputs,
                type,
+               SourceInformation sourceInformation,
                {this.isSetter})
-      : super(element, inputs, type);
+      : super(element, inputs, type) {
+    this.sourceInformation = sourceInformation;
+  }
 
   HInstruction get receiver => inputs[0];
   HInstruction getDartReceiver(Compiler compiler) {
@@ -1689,8 +1742,11 @@ abstract class HLocalAccess extends HInstruction {
 class HLocalGet extends HLocalAccess {
   // No need to use GVN for a [HLocalGet], it is just a local
   // access.
-  HLocalGet(Local variable, HLocalValue local, TypeMask type)
-      : super(variable, <HInstruction>[local], type);
+  HLocalGet(Local variable, HLocalValue local, TypeMask type,
+            SourceInformation sourceInformation)
+      : super(variable, <HInstruction>[local], type) {
+    this.sourceInformation = sourceInformation;
+  }
 
   accept(HVisitor visitor) => visitor.visitLocalGet(this);
 
@@ -1770,6 +1826,8 @@ class HForeignCode extends HForeign {
   bool get isAllocation => nativeBehavior != null &&
       nativeBehavior.isAllocation &&
       !canBeNull();
+
+  String toString() => 'HForeignCode("${codeTemplate.source}",$inputs)';
 }
 
 class HForeignNew extends HForeign {
@@ -1792,7 +1850,8 @@ class HForeignNew extends HForeign {
 
 abstract class HInvokeBinary extends HInstruction {
   final Selector selector;
-  HInvokeBinary(HInstruction left, HInstruction right, this.selector, type)
+  HInvokeBinary(
+      HInstruction left, HInstruction right, this.selector, TypeMask type)
       : super(<HInstruction>[left, right], type) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
@@ -1806,13 +1865,15 @@ abstract class HInvokeBinary extends HInstruction {
 }
 
 abstract class HBinaryArithmetic extends HInvokeBinary {
-  HBinaryArithmetic(left, right, selector, type)
+  HBinaryArithmetic(
+      HInstruction left, HInstruction right, Selector selector, TypeMask type)
       : super(left, right, selector, type);
   BinaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HAdd extends HBinaryArithmetic {
-  HAdd(left, right, selector, type) : super(left, right, selector, type);
+  HAdd(HInstruction left, HInstruction right, Selector selector, TypeMask type)
+      : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1823,7 +1884,9 @@ class HAdd extends HBinaryArithmetic {
 }
 
 class HDivide extends HBinaryArithmetic {
-  HDivide(left, right, selector, type) : super(left, right, selector, type);
+  HDivide(
+      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+      : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitDivide(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1834,7 +1897,9 @@ class HDivide extends HBinaryArithmetic {
 }
 
 class HMultiply extends HBinaryArithmetic {
-  HMultiply(left, right, selector, type) : super(left, right, selector, type);
+  HMultiply(
+      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+      : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitMultiply(this);
 
   BinaryOperation operation(ConstantSystem operations)
@@ -1845,7 +1910,9 @@ class HMultiply extends HBinaryArithmetic {
 }
 
 class HSubtract extends HBinaryArithmetic {
-  HSubtract(left, right, selector, type) : super(left, right, selector, type);
+  HSubtract(
+      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+      : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitSubtract(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1856,7 +1923,8 @@ class HSubtract extends HBinaryArithmetic {
 }
 
 class HTruncatingDivide extends HBinaryArithmetic {
-  HTruncatingDivide(left, right, selector, type)
+  HTruncatingDivide(
+      HInstruction left, HInstruction right, Selector selector, TypeMask type)
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
 
@@ -1891,12 +1959,15 @@ class HSwitch extends HControlFlow {
 }
 
 abstract class HBinaryBitOp extends HInvokeBinary {
-  HBinaryBitOp(left, right, selector, type)
+  HBinaryBitOp(
+      HInstruction left, HInstruction right, Selector selector, TypeMask type)
       : super(left, right, selector, type);
 }
 
 class HShiftLeft extends HBinaryBitOp {
-  HShiftLeft(left, right, selector, type) : super(left, right, selector, type);
+  HShiftLeft(
+      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+      : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1907,7 +1978,9 @@ class HShiftLeft extends HBinaryBitOp {
 }
 
 class HShiftRight extends HBinaryBitOp {
-  HShiftRight(left, right, selector, type) : super(left, right, selector, type);
+  HShiftRight(
+      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+      : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitShiftRight(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1918,7 +1991,9 @@ class HShiftRight extends HBinaryBitOp {
 }
 
 class HBitOr extends HBinaryBitOp {
-  HBitOr(left, right, selector, type) : super(left, right, selector, type);
+  HBitOr(
+      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+      : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitOr(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1929,7 +2004,9 @@ class HBitOr extends HBinaryBitOp {
 }
 
 class HBitAnd extends HBinaryBitOp {
-  HBitAnd(left, right, selector, type) : super(left, right, selector, type);
+  HBitAnd(
+      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+      : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitAnd(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1940,7 +2017,9 @@ class HBitAnd extends HBinaryBitOp {
 }
 
 class HBitXor extends HBinaryBitOp {
-  HBitXor(left, right, selector, type) : super(left, right, selector, type);
+  HBitXor(
+      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+      : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitXor(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1965,7 +2044,8 @@ abstract class HInvokeUnary extends HInstruction {
 }
 
 class HNegate extends HInvokeUnary {
-  HNegate(input, selector, type) : super(input, selector, type);
+  HNegate(HInstruction input, Selector selector, TypeMask type)
+      : super(input, selector, type);
   accept(HVisitor visitor) => visitor.visitNegate(this);
 
   UnaryOperation operation(ConstantSystem constantSystem)
@@ -1976,7 +2056,8 @@ class HNegate extends HInvokeUnary {
 }
 
 class HBitNot extends HInvokeUnary {
-  HBitNot(input, selector, type) : super(input, selector, type);
+  HBitNot(HInstruction input, Selector selector, TypeMask type)
+      : super(input, selector, type);
   accept(HVisitor visitor) => visitor.visitBitNot(this);
 
   UnaryOperation operation(ConstantSystem constantSystem)
@@ -2262,14 +2343,19 @@ class HLessEqual extends HRelational {
 }
 
 class HReturn extends HControlFlow {
-  HReturn(value) : super(<HInstruction>[value]);
+  HReturn(HInstruction value, SourceInformation sourceInformation)
+      : super(<HInstruction>[value]) {
+    this.sourceInformation = sourceInformation;
+  }
   toString() => 'return';
   accept(HVisitor visitor) => visitor.visitReturn(this);
 }
 
 class HThrowExpression extends HInstruction {
-  HThrowExpression(value)
-      : super(<HInstruction>[value], const TypeMask.nonNullEmpty());
+  HThrowExpression(HInstruction value, SourceInformation sourceInformation)
+      : super(<HInstruction>[value], const TypeMask.nonNullEmpty()) {
+    this.sourceInformation = sourceInformation;
+  }
   toString() => 'throw expression';
   accept(HVisitor visitor) => visitor.visitThrowExpression(this);
   bool canThrow() => true;
@@ -2297,7 +2383,12 @@ class HYield extends HInstruction {
 
 class HThrow extends HControlFlow {
   final bool isRethrow;
-  HThrow(value, {this.isRethrow: false}) : super(<HInstruction>[value]);
+  HThrow(HInstruction value,
+         SourceInformation sourceInformation,
+         {this.isRethrow: false})
+      : super(<HInstruction>[value]) {
+    this.sourceInformation = sourceInformation;
+  }
   toString() => 'throw';
   accept(HVisitor visitor) => visitor.visitThrow(this);
 }
@@ -2338,8 +2429,10 @@ class HInterceptor extends HInstruction {
   //     (a && C.JSArray_methods).get$first(a)
   //
 
-  HInterceptor(HInstruction receiver, TypeMask type)
+  HInterceptor(HInstruction receiver,
+               TypeMask type)
       : super(<HInstruction>[receiver], type) {
+    this.sourceInformation = receiver.sourceInformation;
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     setUseGvn();
@@ -2379,16 +2472,17 @@ class HInterceptor extends HInstruction {
 class HOneShotInterceptor extends HInvokeDynamic {
   Set<ClassElement> interceptedClasses;
   HOneShotInterceptor(Selector selector,
+                      TypeMask mask,
                       List<HInstruction> inputs,
                       TypeMask type,
                       this.interceptedClasses)
-      : super(selector, null, inputs, type, true) {
+      : super(selector, mask, null, inputs, type, true) {
     assert(inputs[0] is HConstant);
     assert(inputs[0].isNull());
   }
   bool isCallOnInterceptor(Compiler compiler) => true;
 
-  String toString() => 'one shot interceptor on $selector';
+  String toString() => 'one shot interceptor: selector=$selector, mask=$mask';
   accept(HVisitor visitor) => visitor.visitOneShotInterceptor(this);
 }
 
@@ -2442,7 +2536,10 @@ class HLiteralList extends HInstruction {
  */
 class HIndex extends HInstruction {
   final Selector selector;
-  HIndex(HInstruction receiver, HInstruction index, this.selector, type)
+  HIndex(HInstruction receiver,
+         HInstruction index,
+         this.selector,
+         TypeMask type)
       : super(<HInstruction>[receiver, index], type) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
@@ -2655,7 +2752,14 @@ class HTypeConversion extends HCheck {
   HInstruction get context => inputs[1];
 
   HInstruction convertType(Compiler compiler, DartType type, int kind) {
-    if (typeExpression == type) return this;
+    if (typeExpression == type) {
+      // Don't omit a boolean conversion (which doesn't allow `null`) unless
+      // this type conversion is already a boolean conversion.
+      if (kind != BOOLEAN_CONVERSION_CHECK ||
+          isBooleanConversionCheck) {
+        return this;
+      }
+    }
     return super.convertType(compiler, type, kind);
   }
 

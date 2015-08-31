@@ -1377,16 +1377,30 @@ class RegExpEngine: public AllStatic {
           graph_entry(NULL),
           num_blocks(-1),
           num_stack_locals(-1),
-          error_message(error_message) {}
+          error_message(error_message),
+          bytecode(NULL),
+          num_registers(-1) {}
+
+    CompilationResult(TypedData* bytecode, intptr_t num_registers)
+        : backtrack_goto(NULL),
+          graph_entry(NULL),
+          num_blocks(-1),
+          num_stack_locals(-1),
+          error_message(NULL),
+          bytecode(bytecode),
+          num_registers(num_registers) {}
+
     CompilationResult(IndirectGotoInstr* backtrack_goto,
                       GraphEntryInstr* graph_entry,
                       intptr_t num_blocks,
-                      intptr_t num_stack_locals)
+                      intptr_t num_stack_locals,
+                      intptr_t num_registers)
       : backtrack_goto(backtrack_goto),
         graph_entry(graph_entry),
         num_blocks(num_blocks),
         num_stack_locals(num_stack_locals),
-        error_message(NULL) {}
+        error_message(NULL),
+        bytecode(NULL) {}
 
     IndirectGotoInstr* backtrack_goto;
     GraphEntryInstr* graph_entry;
@@ -1394,12 +1408,21 @@ class RegExpEngine: public AllStatic {
     const intptr_t num_stack_locals;
 
     const char* error_message;
+
+    TypedData* bytecode;
+    intptr_t num_registers;
   };
 
-  static CompilationResult Compile(
+  static CompilationResult CompileIR(
       RegExpCompileData* input,
       const ParsedFunction* parsed_function,
       const ZoneGrowableArray<const ICData*>& ic_data_array);
+
+  static CompilationResult CompileBytecode(
+      RegExpCompileData* data,
+      const JSRegExp& regexp,
+      bool is_one_byte,
+      Zone* zone);
 
   static RawJSRegExp* CreateJSRegExp(
       Zone* zone,

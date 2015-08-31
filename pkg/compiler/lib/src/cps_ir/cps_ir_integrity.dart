@@ -32,18 +32,8 @@ class CheckCpsIntegrity extends RecursiveVisitor {
   Map<Definition, Set<Reference>> seenReferences =
       <Definition, Set<Reference>>{};
 
-  Map<Definition, Node> bindings = <Definition, Node>{};
+  Set<Definition> inScope = new Set<Definition>();
   Set<Continuation> insideContinuations = new Set<Continuation>();
-
-  doInScope(Iterable<Definition> defs, Node binding, action()) {
-    for (Definition def in defs) {
-      bindings[def] = binding;
-    }
-    action();
-    for (Definition def in defs) {
-      bindings.remove(def);
-    }
-  }
 
   void markAsSeen(Definition def) {
     if (!seenDefinitions.add(def)) {
@@ -52,70 +42,92 @@ class CheckCpsIntegrity extends RecursiveVisitor {
     seenReferences[def] = new Set<Reference>();
   }
 
-  @override
-  visitLetCont(LetCont node) {
-    // Analyze each continuation separately without the others in scope.
-    for (Continuation continuation in node.continuations) {
-      // We always consider a continuation to be in scope of itself.
-      // The isRecursive flag is checked explicitly to give more useful
-      // error messages.
-      doInScope([continuation], node, () => visit(continuation));
-    }
-    // Analyze the body with all continuations in scope.
-    doInScope(node.continuations, node, () => visit(node.body));
+  void enterScope(Iterable<Definition> definitions) {
+    inScope.addAll(definitions);
+    pushAction(() => inScope.removeAll(definitions));
+  }
+
+  void enterContinuation(Continuation cont) {
+    insideContinuations.add(cont);
+    pushAction(() => insideContinuations.remove(cont));
+  }
+
+  void check(FunctionDefinition node) {
+    topLevelNode = node;
+    visit(node);
+    // Check for broken reference chains. We check this last, so out-of-scope
+    // references are not classified as a broken reference chain.
+    seenDefinitions.forEach(checkReferenceChain);
   }
 
   @override
-  visitContinuation(Continuation node) {
-    markAsSeen(node);
-    if (node.isReturnContinuation) {
-      error('Non-return continuation missing body', node);
-    }
-    node.parameters.forEach(markAsSeen);
-    insideContinuations.add(node);
-    doInScope(node.parameters, node, () => visit(node.body));
-    insideContinuations.remove(node);
+  Expression traverseLetCont(LetCont node) {
+    node.continuations.forEach(markAsSeen);
+    node.continuations.forEach(push);
+
+    // Put all continuations in scope when visiting the body.
+    enterScope(node.continuations);
+
+    return node.body;
   }
 
   @override
-  visitLetPrim(LetPrim node) {
+  Expression traverseLetPrim(LetPrim node) {
     markAsSeen(node.primitive);
+
+    // Process references in the primitive.
     visit(node.primitive);
-    doInScope([node.primitive], node, () => visit(node.body));
+
+    // Put the primitive in scope when visiting the body.
+    enterScope([node.primitive]);
+
+    return node.body;
   }
 
   @override
-  visitLetMutable(LetMutable node) {
+  Expression traverseLetMutable(LetMutable node) {
     markAsSeen(node.variable);
     processReference(node.value);
-    doInScope([node.variable], node, () => visit(node.body));
+    
+    // Put the primitive in scope when visiting the body.
+    enterScope([node.variable]);
+
+    return node.body;
+  }
+
+  @override
+  Expression traverseContinuation(Continuation cont) {
+    if (cont.isReturnContinuation) {
+      error('Non-return continuation missing body', cont);
+    }
+    cont.parameters.forEach(markAsSeen);
+    enterScope(cont.parameters);
+    // Put every continuation in scope at its own body. The isRecursive
+    // flag is checked explicitly using [insideContinuations].
+    enterScope([cont]);
+    enterContinuation(cont);
+    return cont.body;
   }
 
   @override
   visitFunctionDefinition(FunctionDefinition node) {
     if (node.thisParameter != null) {
       markAsSeen(node.thisParameter);
+      enterScope([node.thisParameter]);
     }
     node.parameters.forEach(markAsSeen);
+    enterScope(node.parameters);
     markAsSeen(node.returnContinuation);
+    enterScope([node.returnContinuation]);
     if (!node.returnContinuation.isReturnContinuation) {
       error('Return continuation with a body', node);
     }
-    doInOptionalScope(node.thisParameter, node,
-        () => doInScope(node.parameters, node,
-            () => doInScope([node.returnContinuation], node,
-                () => visit(node.body))));
-  }
-
-  doInOptionalScope(Parameter parameter, Node node, action) {
-    return (parameter == null)
-        ? action()
-        : doInScope([parameter], node, action);
+    visit(node.body);
   }
 
   @override
   processReference(Reference reference) {
-    if (!bindings.containsKey(reference.definition)) {
+    if (!inScope.contains(reference.definition)) {
       error('Referenced out of scope: ${reference.definition}', reference);
     }
     if (!seenReferences[reference.definition].add(reference)) {
@@ -179,15 +191,6 @@ class CheckCpsIntegrity extends RecursiveVisitor {
           '$message\n\n'
           'SExpr dump (offending node marked with **):\n\n'
           '$sexpr\n';
-  }
-
-  void check(FunctionDefinition node) {
-    topLevelNode = node;
-    visit(node);
-
-    // Check this last, so out-of-scope references are not classified as
-    // a broken reference chain.
-    seenDefinitions.forEach(checkReferenceChain);
   }
 
 }

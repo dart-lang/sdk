@@ -281,7 +281,7 @@ abstract class JsonDecoder {
    * Create an exception to throw if the JSON object at [jsonPath] fails to
    * match the API definition of [expected].
    */
-  dynamic mismatch(String jsonPath, String expected);
+  dynamic mismatch(String jsonPath, String expected, [Object actual]);
 
   /**
    * Create an exception to throw if the JSON object at [jsonPath] is missing
@@ -301,7 +301,7 @@ abstract class JsonDecoder {
     } else if (json == 'false') {
       return false;
     }
-    throw mismatch(jsonPath, 'bool');
+    throw mismatch(jsonPath, 'bool', json);
   }
 
   /**
@@ -313,10 +313,10 @@ abstract class JsonDecoder {
       return json;
     } else if (json is String) {
       return int.parse(json, onError: (String value) {
-        throw mismatch(jsonPath, 'int');
+        throw mismatch(jsonPath, 'int', json);
       });
     }
-    throw mismatch(jsonPath, 'int');
+    throw mismatch(jsonPath, 'int', json);
   }
 
   /**
@@ -334,7 +334,7 @@ abstract class JsonDecoder {
       }
       return result;
     } else {
-      throw mismatch(jsonPath, 'List');
+      throw mismatch(jsonPath, 'List', json);
     }
   }
 
@@ -362,7 +362,7 @@ abstract class JsonDecoder {
       });
       return result;
     } else {
-      throw mismatch(jsonPath, 'Map');
+      throw mismatch(jsonPath, 'Map', json);
     }
   }
 
@@ -373,7 +373,7 @@ abstract class JsonDecoder {
     if (json is String) {
       return json;
     } else {
-      throw mismatch(jsonPath, 'String');
+      throw mismatch(jsonPath, 'String', json);
     }
   }
 
@@ -392,11 +392,12 @@ abstract class JsonDecoder {
       var disambiguatorPath = '$jsonPath[${JSON.encode(field)}]';
       String disambiguator = _decodeString(disambiguatorPath, json[field]);
       if (!decoders.containsKey(disambiguator)) {
-        throw mismatch(disambiguatorPath, 'One of: ${decoders.keys.toList()}');
+        throw mismatch(
+            disambiguatorPath, 'One of: ${decoders.keys.toList()}', json);
       }
       return decoders[disambiguator](jsonPath, json);
     } else {
-      throw mismatch(jsonPath, 'Map');
+      throw mismatch(jsonPath, 'Map', json);
     }
   }
 }
@@ -513,17 +514,54 @@ class Request {
       : _params = params != null ? params : new HashMap<String, Object>();
 
   /**
-   * Return a request parsed from the given [data], or `null` if the [data] is
+   * Return a request parsed from the given json, or `null` if the [data] is
    * not a valid json representation of a request. The [data] is expected to
    * have the following format:
    *
    *   {
+   *     'clientRequestTime': millisecondsSinceEpoch
    *     'id': String,
    *     'method': methodName,
    *     'params': {
    *       paramter_name: value
    *     }
+   *   }
+   *
+   * where both the parameters and clientRequestTime are optional.
+   * The parameters can contain any number of name/value pairs.
+   * The clientRequestTime must be an int representing the time at which
+   * the client issued the request (milliseconds since epoch).
+   */
+  factory Request.fromJson(Map<String, dynamic> result) {
+    var id = result[Request.ID];
+    var method = result[Request.METHOD];
+    if (id is! String || method is! String) {
+      return null;
+    }
+    var time = result[Request.CLIENT_REQUEST_TIME];
+    if (time != null && time is! int) {
+      return null;
+    }
+    var params = result[Request.PARAMS];
+    if (params is Map || params == null) {
+      return new Request(id, method, params, time);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Return a request parsed from the given [data], or `null` if the [data] is
+   * not a valid json representation of a request. The [data] is expected to
+   * have the following format:
+   *
+   *   {
    *     'clientRequestTime': millisecondsSinceEpoch
+   *     'id': String,
+   *     'method': methodName,
+   *     'params': {
+   *       paramter_name: value
+   *     }
    *   }
    *
    * where both the parameters and clientRequestTime are optional.
@@ -534,24 +572,10 @@ class Request {
   factory Request.fromString(String data) {
     try {
       var result = JSON.decode(data);
-      if (result is! Map) {
-        return null;
+      if (result is Map) {
+        return new Request.fromJson(result);
       }
-      var id = result[Request.ID];
-      var method = result[Request.METHOD];
-      if (id is! String || method is! String) {
-        return null;
-      }
-      var time = result[Request.CLIENT_REQUEST_TIME];
-      if (time != null && time is! int) {
-        return null;
-      }
-      var params = result[Request.PARAMS];
-      if (params is Map || params == null) {
-        return new Request(id, method, params, time);
-      } else {
-        return null;
-      }
+      return null;
     } catch (exception) {
       return null;
     }
@@ -593,9 +617,17 @@ class RequestDecoder extends JsonDecoder {
   }
 
   @override
-  dynamic mismatch(String jsonPath, String expected) {
-    return new RequestFailure(new Response.invalidParameter(
-        _request, jsonPath, 'Expected to be $expected'));
+  dynamic mismatch(String jsonPath, String expected, [Object actual]) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('Expected to be ');
+    buffer.write(expected);
+    if (actual != null) {
+      buffer.write('; found "');
+      buffer.write(JSON.encode(actual));
+      buffer.write('"');
+    }
+    return new RequestFailure(
+        new Response.invalidParameter(_request, jsonPath, buffer.toString()));
   }
 
   @override
@@ -690,20 +722,31 @@ class Response {
       : _result = result;
 
   /**
+   * Initialize a newly created instance to represent the
+   * FILE_NOT_ANALYZED error condition.
+   */
+  Response.fileNotAnalyzed(Request request, String file)
+      : this(request.id,
+            error: new RequestError(RequestErrorCode.FILE_NOT_ANALYZED,
+                'File is not analyzed: $file.'));
+
+  /**
    * Initialize a newly created instance to represent the FORMAT_INVALID_FILE
    * error condition.
    */
-  Response.formatInvalidFile(Request request) : this(request.id,
-          error: new RequestError(RequestErrorCode.FORMAT_INVALID_FILE,
-              'Error during `edit.format`: invalid file.'));
+  Response.formatInvalidFile(Request request)
+      : this(request.id,
+            error: new RequestError(RequestErrorCode.FORMAT_INVALID_FILE,
+                'Error during `edit.format`: invalid file.'));
 
   /**
    * Initialize a newly created instance to represent the FORMAT_WITH_ERROR
    * error condition.
    */
-  Response.formatWithErrors(Request request) : this(request.id,
-          error: new RequestError(RequestErrorCode.FORMAT_WITH_ERRORS,
-              'Error during `edit.format`: source contains syntax errors.'));
+  Response.formatWithErrors(Request request)
+      : this(request.id,
+            error: new RequestError(RequestErrorCode.FORMAT_WITH_ERRORS,
+                'Error during `edit.format`: source contains syntax errors.'));
 
   /**
    * Initialize a newly created instance based upon the given JSON data
@@ -735,29 +778,40 @@ class Response {
    * Initialize a newly created instance to represent the
    * GET_ERRORS_INVALID_FILE error condition.
    */
-  Response.getErrorsInvalidFile(Request request) : this(request.id,
-          error: new RequestError(RequestErrorCode.GET_ERRORS_INVALID_FILE,
-              'Error during `analysis.getErrors`: invalid file.'));
+  Response.getErrorsInvalidFile(Request request)
+      : this(request.id,
+            error: new RequestError(RequestErrorCode.GET_ERRORS_INVALID_FILE,
+                'Error during `analysis.getErrors`: invalid file.'));
+
+  /**
+   * Initialize a newly created instance to represent the
+   * GET_NAVIGATION_INVALID_FILE error condition.
+   */
+  Response.getNavigationInvalidFile(Request request)
+      : this(request.id,
+            error: new RequestError(
+                RequestErrorCode.GET_NAVIGATION_INVALID_FILE,
+                'Error during `analysis.getNavigation`: invalid file.'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by an analysis.reanalyze [request] that specifies an analysis root that is
    * not in the current list of analysis roots.
    */
-  Response.invalidAnalysisRoot(Request request, String rootPath) : this(
-          request.id,
-          error: new RequestError(RequestErrorCode.INVALID_ANALYSIS_ROOT,
-              "Invalid analysis root: $rootPath"));
+  Response.invalidAnalysisRoot(Request request, String rootPath)
+      : this(request.id,
+            error: new RequestError(RequestErrorCode.INVALID_ANALYSIS_ROOT,
+                "Invalid analysis root: $rootPath"));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a [request] that specifies an execution context whose context root does
    * not exist.
    */
-  Response.invalidExecutionContext(Request request, String contextId) : this(
-          request.id,
-          error: new RequestError(RequestErrorCode.INVALID_EXECUTION_CONTEXT,
-              "Invalid execution context: $contextId"));
+  Response.invalidExecutionContext(Request request, String contextId)
+      : this(request.id,
+            error: new RequestError(RequestErrorCode.INVALID_EXECUTION_CONTEXT,
+                "Invalid execution context: $contextId"));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -768,33 +822,45 @@ class Response {
    */
   Response.invalidParameter(Request request, String path, String expectation)
       : this(request.id,
-          error: new RequestError(RequestErrorCode.INVALID_PARAMETER,
-              "Invalid parameter '$path'. $expectation."));
+            error: new RequestError(RequestErrorCode.INVALID_PARAMETER,
+                "Invalid parameter '$path'. $expectation."));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a malformed request.
    */
-  Response.invalidRequestFormat() : this('',
-          error: new RequestError(
-              RequestErrorCode.INVALID_REQUEST, 'Invalid request'));
+  Response.invalidRequestFormat()
+      : this('',
+            error: new RequestError(
+                RequestErrorCode.INVALID_REQUEST, 'Invalid request'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a request that requires an index, but indexing is disabled.
    */
-  Response.noIndexGenerated(Request request) : this(request.id,
-          error: new RequestError(
-              RequestErrorCode.NO_INDEX_GENERATED, 'Indexing is disabled'));
+  Response.noIndexGenerated(Request request)
+      : this(request.id,
+            error: new RequestError(
+                RequestErrorCode.NO_INDEX_GENERATED, 'Indexing is disabled'));
+
+  /**
+   * Initialize a newly created instance to represent the
+   * ORGANIZE_DIRECTIVES_ERROR error condition.
+   */
+  Response.organizeDirectivesError(Request request, String message)
+      : this(request.id,
+            error: new RequestError(
+                RequestErrorCode.ORGANIZE_DIRECTIVES_ERROR, message));
 
   /**
    * Initialize a newly created instance to represent the
    * REFACTORING_REQUEST_CANCELLED error condition.
    */
-  Response.refactoringRequestCancelled(Request request) : this(request.id,
-          error: new RequestError(
-              RequestErrorCode.REFACTORING_REQUEST_CANCELLED,
-              'The `edit.getRefactoring` request was cancelled.'));
+  Response.refactoringRequestCancelled(Request request)
+      : this(request.id,
+            error: new RequestError(
+                RequestErrorCode.REFACTORING_REQUEST_CANCELLED,
+                'The `edit.getRefactoring` request was cancelled.'));
 
   /**
    * Initialize a newly created instance to represent the SERVER_ERROR error
@@ -813,49 +879,52 @@ class Response {
    * Initialize a newly created instance to represent the
    * SORT_MEMBERS_INVALID_FILE error condition.
    */
-  Response.sortMembersInvalidFile(Request request) : this(request.id,
-          error: new RequestError(RequestErrorCode.SORT_MEMBERS_INVALID_FILE,
-              'Error during `edit.sortMembers`: invalid file.'));
+  Response.sortMembersInvalidFile(Request request)
+      : this(request.id,
+            error: new RequestError(RequestErrorCode.SORT_MEMBERS_INVALID_FILE,
+                'Error during `edit.sortMembers`: invalid file.'));
 
   /**
    * Initialize a newly created instance to represent the
    * SORT_MEMBERS_PARSE_ERRORS error condition.
    */
-  Response.sortMembersParseErrors(Request request, int numErrors) : this(
-          request.id,
-          error: new RequestError(RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS,
-              'Error during `edit.sortMembers`: file has $numErrors scan/parse errors.'));
+  Response.sortMembersParseErrors(Request request, int numErrors)
+      : this(request.id,
+            error: new RequestError(RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS,
+                'Error during `edit.sortMembers`: file has $numErrors scan/parse errors.'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a `analysis.setPriorityFiles` [request] that includes one or more files
    * that are not being analyzed.
    */
-  Response.unanalyzedPriorityFiles(String requestId, String fileNames) : this(
-          requestId,
-          error: new RequestError(RequestErrorCode.UNANALYZED_PRIORITY_FILES,
-              "Unanalyzed files cannot be a priority: '$fileNames'"));
+  Response.unanalyzedPriorityFiles(String requestId, String fileNames)
+      : this(requestId,
+            error: new RequestError(RequestErrorCode.UNANALYZED_PRIORITY_FILES,
+                "Unanalyzed files cannot be a priority: '$fileNames'"));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a [request] that cannot be handled by any known handlers.
    */
-  Response.unknownRequest(Request request) : this(request.id,
-          error: new RequestError(
-              RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request'));
+  Response.unknownRequest(Request request)
+      : this(request.id,
+            error: new RequestError(
+                RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a [request] referencing a source that does not exist.
    */
-  Response.unknownSource(Request request) : this(request.id,
-          error: new RequestError(
-              RequestErrorCode.UNKNOWN_SOURCE, 'Unknown source'));
+  Response.unknownSource(Request request)
+      : this(request.id,
+            error: new RequestError(
+                RequestErrorCode.UNKNOWN_SOURCE, 'Unknown source'));
 
-  Response.unsupportedFeature(String requestId, String message) : this(
-          requestId,
-          error: new RequestError(
-              RequestErrorCode.UNSUPPORTED_FEATURE, message));
+  Response.unsupportedFeature(String requestId, String message)
+      : this(requestId,
+            error: new RequestError(
+                RequestErrorCode.UNSUPPORTED_FEATURE, message));
 
   /**
    * Return a table representing the structure of the Json object that will be
@@ -884,8 +953,18 @@ class ResponseDecoder extends JsonDecoder {
   ResponseDecoder(this.refactoringKind);
 
   @override
-  dynamic mismatch(String jsonPath, String expected) {
-    return new Exception('Expected $expected at $jsonPath');
+  dynamic mismatch(String jsonPath, String expected, [Object actual]) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('Expected ');
+    buffer.write(expected);
+    if (actual != null) {
+      buffer.write(' found "');
+      buffer.write(JSON.encode(actual));
+      buffer.write('"');
+    }
+    buffer.write(' at ');
+    buffer.write(jsonPath);
+    return new Exception(buffer.toString());
   }
 
   @override

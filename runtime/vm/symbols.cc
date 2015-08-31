@@ -350,7 +350,7 @@ RawString* Symbols::FromUTF8(const uint8_t* utf8_array, intptr_t array_len) {
   Utf8::Type type;
   intptr_t len = Utf8::CodeUnitCount(utf8_array, array_len, &type);
   ASSERT(len != 0);
-  Zone* zone = Isolate::Current()->current_zone();
+  Zone* zone = Thread::Current()->zone();
   if (type == Utf8::kLatin1) {
     uint8_t* characters = zone->Alloc<uint8_t>(len);
     Utf8::DecodeToLatin1(utf8_array, array_len, characters, len);

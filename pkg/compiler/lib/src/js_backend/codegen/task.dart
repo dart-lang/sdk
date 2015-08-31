@@ -20,7 +20,7 @@ import '../../types/types.dart' show TypeMask, UnionTypeMask, FlatTypeMask,
     ForwardingTypeMask;
 import '../../elements/elements.dart';
 import '../../js/js.dart' as js;
-import '../../io/source_information.dart' show SourceInformationFactory;
+import '../../io/source_information.dart' show SourceInformationStrategy;
 import '../../tree_ir/tree_ir_builder.dart' as tree_builder;
 import '../../cps_ir/optimizers.dart';
 import '../../cps_ir/optimizers.dart' as cps_opt;
@@ -31,15 +31,12 @@ import '../../tree_ir/optimization/optimization.dart';
 import '../../tree_ir/optimization/optimization.dart' as tree_opt;
 import '../../tree_ir/tree_ir_integrity.dart';
 import '../../cps_ir/cps_ir_nodes_sexpr.dart';
-import 'js_tree_builder.dart';
 
 class CpsFunctionCompiler implements FunctionCompiler {
   final ConstantSystem constantSystem;
   final Compiler compiler;
   final Glue glue;
-  final SourceInformationFactory sourceInformationFactory;
-
-  TypeSystem types;
+  final SourceInformationStrategy sourceInformationFactory;
 
   // TODO(karlklose,sigurm): remove and update dart-doc of [compile].
   final FunctionCompiler fallbackCompiler;
@@ -49,7 +46,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
   IrBuilderTask get irBuilderTask => compiler.irBuilder;
 
   CpsFunctionCompiler(Compiler compiler, JavaScriptBackend backend,
-                      SourceInformationFactory sourceInformationFactory)
+                      SourceInformationStrategy sourceInformationFactory)
       : fallbackCompiler =
             new ssa.SsaFunctionCompiler(backend, sourceInformationFactory),
         this.sourceInformationFactory = sourceInformationFactory,
@@ -59,21 +56,20 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   String get name => 'CPS Ir pipeline';
 
-  /// Generates JavaScript code for `work.element`. First tries to use the
-  /// Cps Ir -> tree ir -> js pipeline, and if that fails due to language
-  /// features not implemented it will fall back to the ssa pipeline (for
-  /// platform code) or will cancel compilation (for user code).
+  /// Generates JavaScript code for `work.element`.
   js.Fun compile(CodegenWorkItem work) {
-    types = new TypeMaskSystem(compiler);
     AstElement element = work.element;
     JavaScriptBackend backend = compiler.backend;
     return compiler.withCurrentElement(element, () {
-      if (element.library.isPlatformLibrary ||
-          element.library == backend.interceptorsLibrary) {
-        compiler.log('Using SSA compiler for platform element $element');
-        return fallbackCompiler.compile(work);
-      }
       try {
+        // TODO(karlklose): remove this fallback.
+        // Fallback for a few functions that we know require try-finally and
+        // switch.
+        if (element.isNative) {
+          compiler.log('Using SSA compiler for platform element $element');
+          return fallbackCompiler.compile(work);
+        }
+
         if (tracer != null) {
           tracer.traceCompilation(element.name, null);
         }
@@ -115,6 +111,10 @@ class CpsFunctionCompiler implements FunctionCompiler {
       }
     }
     traceGraph("IR Builder", cpsNode);
+    // Eliminating redundant phis before the unsugaring pass will make it
+    // insert fewer getInterceptor calls.
+    new RedundantPhiEliminator().rewrite(cpsNode);
+    traceGraph("Redundant phi elimination", cpsNode);
     new UnsugarVisitor(glue).rewrite(cpsNode);
     traceGraph("Unsugaring", cpsNode);
     return cpsNode;
@@ -138,7 +138,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
   }
 
   void dumpTypedIR(cps.FunctionDefinition cpsNode,
-                   TypePropagator<TypeMask> typePropagator) {
+                   TypePropagator typePropagator) {
     if (PRINT_TYPED_IR_FILTER != null &&
         PRINT_TYPED_IR_FILTER.matchAsPrefix(cpsNode.element.name) != null) {
       String printType(nodeOrRef, String s) {
@@ -166,22 +166,22 @@ class CpsFunctionCompiler implements FunctionCompiler {
       assert(checkCpsIntegrity(cpsNode));
     }
 
-    TypePropagator typePropagator = new TypePropagator<TypeMask>(
-        compiler.types,
-        constantSystem,
-        new TypeMaskSystem(compiler),
-        compiler.internalError);
+    TypePropagator typePropagator = new TypePropagator(compiler);
     applyCpsPass(typePropagator);
     dumpTypedIR(cpsNode, typePropagator);
+    applyCpsPass(new ShrinkingReducer());
+    applyCpsPass(new MutableVariableEliminator());
+    applyCpsPass(new RedundantJoinEliminator());
     applyCpsPass(new RedundantPhiEliminator());
     applyCpsPass(new ShrinkingReducer());
+    applyCpsPass(new LetSinker());
 
     return cpsNode;
   }
 
   tree_ir.FunctionDefinition compileToTreeIR(cps.FunctionDefinition cpsNode) {
-    tree_builder.Builder builder = new JsTreeBuilder(
-        compiler.internalError, compiler.identicalFunction, glue);
+    tree_builder.Builder builder = new tree_builder.Builder(
+        compiler.internalError);
     tree_ir.FunctionDefinition treeNode = builder.buildFunction(cpsNode);
     assert(treeNode != null);
     traceGraph('Tree builder', treeNode);
@@ -201,7 +201,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
       assert(checkTreeIntegrity(node));
     }
 
-    applyTreePass(new StatementRewriter(isDartMode: false));
+    applyTreePass(new StatementRewriter());
     applyTreePass(new VariableMerger());
     applyTreePass(new LoopRewriter());
     applyTreePass(new LogicalRewriter());
@@ -223,7 +223,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   js.Node attachPosition(js.Node node, AstElement element) {
     return node.withSourceInformation(
-        sourceInformationFactory.forContext(element)
+        sourceInformationFactory.createBuilderForContext(element)
             .buildDeclaration(element));
   }
 }

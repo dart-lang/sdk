@@ -10,18 +10,18 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 
 import 'memory_compiler.dart' show
-    compilerFor, OutputCollector;
+    runCompiler, OutputCollector;
 
-Future<String> compileSources(sources, {bool minify, bool preserveUri}) {
+Future<String> compileSources(sources, {bool minify, bool preserveUri}) async {
   var options = [];
   if (minify) options.add("--minify");
   if (preserveUri) options.add("--preserve-uris");
   OutputCollector outputCollector = new OutputCollector();
-  var compiler = compilerFor(
-      sources, options: options, outputProvider: outputCollector);
-  return compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
-    return outputCollector.getOutput('', 'js');
-  });
+  await runCompiler(
+      memorySourceFiles: sources,
+      options: options,
+      outputProvider: outputCollector);
+  return outputCollector.getOutput('', 'js');
 }
 
 Future test(sources, { bool libName, bool fileName }) {

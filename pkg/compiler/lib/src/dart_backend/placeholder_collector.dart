@@ -337,7 +337,6 @@ class PlaceholderCollector extends Visitor {
     // collector logic in visitVariableDefinitions when resolver becomes better
     // and/or catch syntax changes.
     if (node.type == null) return;
-    Element definitionElement = treeElements[node.definitions.nodes.head];
     bool requiresVar = !node.modifiers.isFinalOrConst;
     declarationTypePlaceholders.add(
         new DeclarationTypePlaceholder(node.type, requiresVar));

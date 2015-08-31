@@ -21,8 +21,9 @@ import 'dart2jslib.dart' show
 import 'types/types.dart' show TypeMask;
 import 'deferred_load.dart' show OutputUnit;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
+import 'js_emitter/full_emitter/emitter.dart' as full show Emitter;
 import 'js/js.dart' as jsAst;
-import 'universe/universe.dart' show Selector;
+import 'universe/universe.dart' show Selector, UniverseSelector;
 import 'util/util.dart' show NO_LOCATION_SPANNABLE;
 
 /// Maps objects to an id.  Supports lookups in
@@ -389,8 +390,8 @@ class ElementToJsonVisitor
 
 class Selection {
   final Element selectedElement;
-  final Selector selector;
-  Selection(this.selectedElement, this.selector);
+  final TypeMask mask;
+  Selection(this.selectedElement, this.mask);
 }
 
 class DumpInfoTask extends CompilerTask {
@@ -414,9 +415,8 @@ class DumpInfoTask extends CompilerTask {
   // A mapping from Javascript AST Nodes to the size of their
   // pretty-printed contents.
   final Map<jsAst.Node, int> _nodeToSize = <jsAst.Node, int>{};
-  final Map<Element, int> _fieldNameToSize = <Element, int>{};
 
-  final Map<Element, Set<Selector>> selectorsFromElement = {};
+  final Map<Element, Set<UniverseSelector>> selectorsFromElement = {};
   final Map<Element, int> inlineCount = <Element, int>{};
   // A mapping from an element to a list of elements that are
   // inlined inside of it.
@@ -438,10 +438,10 @@ class DumpInfoTask extends CompilerTask {
    * Registers that a function uses a selector in the
    * function body
    */
-  void elementUsesSelector(Element element, Selector selector) {
+  void elementUsesSelector(Element element, UniverseSelector selector) {
     if (compiler.dumpInfo) {
       selectorsFromElement
-          .putIfAbsent(element, () => new Set<Selector>())
+          .putIfAbsent(element, () => new Set<UniverseSelector>())
           .add(selector);
     }
   }
@@ -456,9 +456,11 @@ class DumpInfoTask extends CompilerTask {
       return const <Selection>[];
     } else {
       return selectorsFromElement[element].expand(
-        (selector) {
-          return compiler.world.allFunctions.filter(selector).map((element) {
-            return new Selection(element, selector);
+        (UniverseSelector selector) {
+          return compiler.world.allFunctions.filter(
+              selector.selector, selector.mask)
+              .map((element) {
+            return new Selection(element, selector.mask);
           });
         });
     }
@@ -494,19 +496,10 @@ class DumpInfoTask extends CompilerTask {
     }
   }
 
-  // Field names are treated differently by the dart compiler
-  // so they must be recorded seperately.
-  void recordFieldNameSize(Element element, int size) {
-    _fieldNameToSize[element] = size;
-  }
-
   // Returns the size of the source code that
   // was generated for an element.  If no source
   // code was produced, return 0.
   int sizeOf(Element element) {
-    if (_fieldNameToSize.containsKey(element)) {
-      return _fieldNameToSize[element];
-    }
     if (_elementToNodes.containsKey(element)) {
       return _elementToNodes[element]
         .map(sizeOfNode)
@@ -573,7 +566,7 @@ class DumpInfoTask extends CompilerTask {
             .map((selection) {
               return <String, String>{
                 "id": infoCollector.idOf(selection.selectedElement),
-                "mask": selection.selector.mask.toString()
+                "mask": selection.mask.toString()
               };
             })
             // Filter non-null ids for the same reason as above.
@@ -604,6 +597,9 @@ class DumpInfoTask extends CompilerTask {
         new List<Map<String, dynamic>>();
 
     JavaScriptBackend backend = compiler.backend;
+    // Dump-info currently only works with the full emitter. If another
+    // emitter is used it will fail here.
+    full.Emitter fullEmitter = backend.emitter.emitter;
 
     for (OutputUnit outputUnit in
         infoCollector.mapper._outputUnit._elementToId.keys) {
@@ -611,7 +607,7 @@ class DumpInfoTask extends CompilerTask {
       outputUnits.add(<String, dynamic> {
         'id': id,
         'name': outputUnit.name,
-        'size': backend.emitter.oldEmitter.outputBuffers[outputUnit].length,
+        'size': fullEmitter.outputBuffers[outputUnit].length,
       });
     }
 
@@ -643,9 +639,10 @@ class DumpInfoTask extends CompilerTask {
       encoder.startChunkedConversion(
           new StringConversionSink.fromStringSink(buffer));
     sink.add(outJson);
-    compiler.reportInfo(NO_LOCATION_SPANNABLE,
-        const MessageKind(
-            "View the dumped .info.json file at "
-            "https://dart-lang.github.io/dump-info-visualizer"));
+    compiler.reportInfo(
+        NO_LOCATION_SPANNABLE,
+        MessageKind.GENERIC,
+        {'text': "View the dumped .info.json file at "
+                 "https://dart-lang.github.io/dump-info-visualizer"});
   }
 }

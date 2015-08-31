@@ -335,6 +335,8 @@ class Value : public ZoneAllocated {
 
   void PrintTo(BufferFormatter* f) const;
 
+  const char* ToCString() const;
+
   const char* DebugName() const { return "Value"; }
 
   bool IsSmiValue() { return Type()->ToCid() == kSmiCid; }
@@ -1748,7 +1750,7 @@ class Definition : public Instruction {
   //    - non-constant sentinel
   //    - a constant (any non-sentinel value)
   //    - unknown sentinel
-  Object& constant_value() const { return constant_value_; }
+  Object& constant_value();
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
@@ -1801,7 +1803,7 @@ class Definition : public Instruction {
   Value* input_use_list_;
   Value* env_use_list_;
 
-  Object& constant_value_;
+  Object* constant_value_;
 
   DISALLOW_COPY_AND_ASSIGN(Definition);
 };

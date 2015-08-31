@@ -10,100 +10,18 @@ part of tree;
  * TODO(smok): Add main() to run from command-line to print out tree for given
  * .dart file.
  */
-class PrettyPrinter extends Indentation implements Visitor {
-
-  StringBuffer sb;
-  Link<String> tagStack;
-
-  PrettyPrinter() :
-      sb = new StringBuffer(),
-      tagStack = const Link<String>();
-
-  void pushTag(String tag) {
-    tagStack = tagStack.prepend(tag);
-    indentMore();
-  }
-
-  String popTag() {
-    assert(!tagStack.isEmpty);
-    String tag = tagStack.head;
-    tagStack = tagStack.tail;
-    indentLess();
-    return tag;
-  }
-
-  /**
-   * Adds given string to result string.
-   */
-  void add(String string) {
-    sb.write(string);
-  }
-
-  void addBeginAndEndTokensToParams(Node node, Map params) {
+class PrettyPrinter extends Indentation with Tagging<Node> implements Visitor {
+  @override
+  void addDefaultParameters(Node node, Map params) {
     params['getBeginToken'] = tokenToStringOrNull(node.getBeginToken());
     params['getEndToken'] = tokenToStringOrNull(node.getEndToken());
   }
 
-  /**
-   * Adds given node type to result string.
-   * The method "opens" the node, meaning that all output after calling
-   * this method and before calling closeNode() will represent contents
-   * of given node.
-   */
-  void openNode(Node node, String type, [Map params]) {
-    if (params == null) params = new Map();
-    addCurrentIndent();
-    sb.write("<");
-    addBeginAndEndTokensToParams(node, params);
-    addTypeWithParams(type, params);
-    sb.write(">\n");
-    pushTag(type);
-  }
-
-  /**
-   * Adds given node to result string.
-   */
-  void openAndCloseNode(Node node, String type, [Map params]) {
-    if (params == null) params = new Map();
-    addCurrentIndent();
-    sb.write("<");
-    addBeginAndEndTokensToParams(node, params);
-    addTypeWithParams(type, params);
-    sb.write("/>\n");
-  }
-
-  /**
-   * Closes current node type.
-   */
-  void closeNode() {
-    String tag = popTag();
-    addCurrentIndent();
-    sb.write("</");
-    addTypeWithParams(tag);
-    sb.write(">\n");
-  }
-
-  void addTypeWithParams(String type, [Map params]) {
-    if (params == null) params = new Map();
-    sb.write("${type}");
-    params.forEach((k, v) {
-      String value;
-      if (v != null) {
-        var str = v;
-        if (v is Token) str = v.value;
-        value = str
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "'");
-      } else {
-        value = "[null]";
-      }
-      sb.write(' $k="$value"');
-    });
-  }
-
-  void addCurrentIndent() {
-    sb.write(indentation);
+  String valueToString(var value) {
+    if (value is Token) {
+      return value.value;
+    }
+    return value;
   }
 
   /**

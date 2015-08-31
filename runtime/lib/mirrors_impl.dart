@@ -371,6 +371,25 @@ abstract class _LocalObjectMirror extends _LocalMirror implements ObjectMirror {
     this._invokeSetter(_reflectee, _n(memberName), value);
     return reflect(value);
   }
+
+  delegate(Invocation invocation) {
+    if (invocation.isMethod) {
+      return this.invoke(invocation.memberName,
+                         invocation.positionalArguments,
+                         invocation.namedArguments).reflectee;
+    }
+    if (invocation.isGetter) {
+      return this.getField(invocation.memberName).reflectee;
+    }
+    if (invocation.isSetter) {
+      var unwrapped = _n(invocation.memberName);
+      var withoutEqual = _s(unwrapped.substring(0, unwrapped.length - 1));
+      var arg = invocation.positionalArguments[0];
+      this.setField(withoutEqual, arg).reflectee;
+      return arg;
+    }
+    throw "UNREACHABLE";
+  }
 }
 
 class _LocalInstanceMirror extends _LocalObjectMirror
@@ -392,25 +411,6 @@ class _LocalInstanceMirror extends _LocalObjectMirror
   bool get hasReflectee => true;
 
   get reflectee => _reflectee;
-
-  delegate(Invocation invocation) {
-    if (invocation.isMethod) {
-      return this.invoke(invocation.memberName,
-                         invocation.positionalArguments,
-                         invocation.namedArguments).reflectee;
-    }
-    if (invocation.isGetter) {
-      return this.getField(invocation.memberName).reflectee;
-    }
-    if (invocation.isSetter) {
-      var unwrapped = _n(invocation.memberName);
-      var withoutEqual = _s(unwrapped.substring(0, unwrapped.length - 1));
-      var arg = invocation.positionalArguments[0];
-      this.setField(withoutEqual, arg).reflectee;
-      return arg;
-    }
-    throw "UNREACHABLE";
-  }
 
   String toString() => 'InstanceMirror on ${Error.safeToString(_reflectee)}';
 
@@ -447,11 +447,16 @@ class _LocalInstanceMirror extends _LocalObjectMirror
     var result = reflect(_invokeGetter(_reflectee, unwrapped));
     // Wait until success to avoid creating closures for non-existent getters,
     // and defer the creation until the next getField invocation.
-    _getFieldClosures[unwrapped] = (receiver) {
-      var getterClosure = _createGetterClosure(unwrapped);
-      _getFieldClosures[unwrapped] = getterClosure;
-      return getterClosure(receiver);
-    };
+    // o.<operator> is not valid Dart and will cause a compilation error, so
+    // don't attempt to generate such a closure.
+    bool isOperator = _LocalMethodMirror._operators.contains(unwrapped);
+    if (!isOperator) {
+      _getFieldClosures[unwrapped] = (receiver) {
+        var getterClosure = _createGetterClosure(unwrapped);
+        _getFieldClosures[unwrapped] = getterClosure;
+        return getterClosure(receiver);
+      };
+    }
     return result;
   }
 

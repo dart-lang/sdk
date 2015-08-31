@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/apiimpl.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/elements/elements.dart'
     show ClassElement;
 import 'package:compiler/src/resolution/class_members.dart'
     show ClassMemberMixin;
-import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart';
 
 
@@ -32,13 +32,12 @@ void checkClassInvariants(ClassElement cls) {
       "Not all members have been computed for $cls.");
 }
 
-Future checkElementInvariantsAfterCompiling(Uri uri) {
-  var compiler = compilerFor({}, options: DART2JS_OPTIONS);
-   return compiler.run(uri).then((passed) {
-     Expect.isTrue(passed, "Compilation of dart2js failed.");
+Future checkElementInvariantsAfterCompiling(Uri uri) async {
+  CompilationResult result =
+      await runCompiler(entryPoint: uri, options: DART2JS_OPTIONS);
+  Expect.isTrue(result.isSuccess, "Compilation of dart2js failed.");
 
-     computeLiveClasses(compiler).forEach(checkClassInvariants);
-   });
+  computeLiveClasses(result.compiler).forEach(checkClassInvariants);
 }
 
 void main () {

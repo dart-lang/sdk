@@ -14,6 +14,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/organize_directives.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -156,8 +157,8 @@ class EditDomainHandler implements RequestHandler {
         for (engine.AnalysisError error in errorInfo.errors) {
           int errorLine = lineInfo.getLocation(error.offset).lineNumber;
           if (errorLine == requestLine) {
-            List<Fix> fixes =
-                computeFixes(server.serverPlugin, unit.element.context, error);
+            List<Fix> fixes = computeFixes(server.serverPlugin,
+                server.resourceProvider, unit.element.context, error);
             if (fixes.isNotEmpty) {
               AnalysisError serverError =
                   newAnalysisError_fromEngine(lineInfo, error);
@@ -190,6 +191,8 @@ class EditDomainHandler implements RequestHandler {
         return getFixes(request);
       } else if (requestName == EDIT_GET_REFACTORING) {
         return _getRefactoring(request);
+      } else if (requestName == EDIT_ORGANIZE_DIRECTIVES) {
+        return organizeDirectives(request);
       } else if (requestName == EDIT_SORT_MEMBERS) {
         return sortMembers(request);
       }
@@ -197,6 +200,38 @@ class EditDomainHandler implements RequestHandler {
       return exception.response;
     }
     return null;
+  }
+
+  Response organizeDirectives(Request request) {
+    var params = new EditOrganizeDirectivesParams.fromRequest(request);
+    // prepare file
+    String file = params.file;
+    if (!engine.AnalysisEngine.isDartFileName(file)) {
+      return new Response.fileNotAnalyzed(request, file);
+    }
+    // prepare resolved units
+    List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+    if (units.isEmpty) {
+      return new Response.fileNotAnalyzed(request, file);
+    }
+    // prepare context
+    CompilationUnit unit = units.first;
+    engine.AnalysisContext context = unit.element.context;
+    Source source = unit.element.source;
+    List<engine.AnalysisError> errors = context.computeErrors(source);
+    // check if there are scan/parse errors in the file
+    int numScanParseErrors = _getNumberOfScanParseErrors(errors);
+    if (numScanParseErrors != 0) {
+      return new Response.organizeDirectivesError(
+          request, 'File has $numScanParseErrors scan/parse errors.');
+    }
+    // do organize
+    int fileStamp = context.getModificationStamp(source);
+    String code = context.getContents(source).data;
+    DirectiveOrganizer sorter = new DirectiveOrganizer(code, unit, errors);
+    List<SourceEdit> edits = sorter.organize();
+    SourceFileEdit fileEdit = new SourceFileEdit(file, fileStamp, edits: edits);
+    return new EditOrganizeDirectivesResult(fileEdit).toResponse(request.id);
   }
 
   Response sortMembers(Request request) {
@@ -215,15 +250,9 @@ class EditDomainHandler implements RequestHandler {
     CompilationUnit unit = units.first;
     engine.AnalysisContext context = unit.element.context;
     Source source = unit.element.source;
-    // check if there are no scan/parse errors in the file
+    // check if there are scan/parse errors in the file
     engine.AnalysisErrorInfo errors = context.getErrors(source);
-    int numScanParseErrors = 0;
-    errors.errors.forEach((engine.AnalysisError error) {
-      if (error.errorCode is engine.ScannerErrorCode ||
-          error.errorCode is engine.ParserErrorCode) {
-        numScanParseErrors++;
-      }
-    });
+    int numScanParseErrors = _getNumberOfScanParseErrors(errors.errors);
     if (numScanParseErrors != 0) {
       return new Response.sortMembersParseErrors(request, numScanParseErrors);
     }
@@ -303,6 +332,17 @@ class EditDomainHandler implements RequestHandler {
    */
   void _newRefactoringManager() {
     refactoringManager = new _RefactoringManager(server, searchEngine);
+  }
+
+  static int _getNumberOfScanParseErrors(List<engine.AnalysisError> errors) {
+    int numScanParseErrors = 0;
+    for (engine.AnalysisError error in errors) {
+      if (error.errorCode is engine.ScannerErrorCode ||
+          error.errorCode is engine.ParserErrorCode) {
+        numScanParseErrors++;
+      }
+    }
+    return numScanParseErrors;
   }
 }
 

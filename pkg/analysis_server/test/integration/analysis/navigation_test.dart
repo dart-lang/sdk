@@ -41,7 +41,7 @@ function(FunctionTypeAlias parameter) {
 int topLevelVariable;
 
 main() {
-  Class<int> localVariable = new Class<int>.constructor();
+  Class<int> localVariable = new Class<int>.constructor(); // usage
   function(() => localVariable.field);
   localVariable.method();
   localVariable.field = 1;
@@ -100,8 +100,11 @@ part of foo;
       // as a navigation target?
       checkLocal('Class<int>', 'Class<TypeParameter>', ElementKind.CLASS);
       checkRemote(
-          "part 'test2.dart';", r'test2.dart$', ElementKind.COMPILATION_UNIT);
-      checkLocal('new Class<int>.constructor',
+          "'test2.dart';", r'test2.dart$', ElementKind.COMPILATION_UNIT);
+      checkLocal('Class<int>.constructor',
+          'constructor(); /* constructor declaration */',
+          ElementKind.CONSTRUCTOR);
+      checkLocal('constructor(); // usage',
           'constructor(); /* constructor declaration */',
           ElementKind.CONSTRUCTOR);
       checkLocal('field;', 'field;', ElementKind.FIELD);
@@ -110,7 +113,7 @@ part of foo;
       checkLocal('FunctionTypeAlias parameter', 'FunctionTypeAlias();',
           ElementKind.FUNCTION_TYPE_ALIAS);
       checkLocal('field)', 'field;', ElementKind.GETTER);
-      checkRemote("import 'dart:async'", r'async\.dart$', ElementKind.LIBRARY);
+      checkRemote("'dart:async'", r'async\.dart$', ElementKind.LIBRARY);
       checkLocal(
           'localVariable.field', 'localVariable =', ElementKind.LOCAL_VARIABLE);
       checkLocal('method();', 'method() {', ElementKind.METHOD);

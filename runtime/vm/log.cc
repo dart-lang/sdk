@@ -118,7 +118,7 @@ void Log::DisableManualFlush() {
 
 
 LogBlock::LogBlock(Thread* thread, Log* log)
-    : StackResource(thread->isolate()),
+    : StackResource(thread),
       log_(log), cursor_(log->cursor()) {
   CommonConstructor();
 }
@@ -132,7 +132,7 @@ LogBlock::LogBlock(Isolate* isolate)
 
 
 LogBlock::LogBlock(Thread* thread)
-    : StackResource(thread->isolate()),
+    : StackResource(thread),
       log_(thread->isolate()->Log()),
       cursor_(thread->isolate()->Log()->cursor()) {
   CommonConstructor();

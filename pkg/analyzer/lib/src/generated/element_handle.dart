@@ -549,6 +549,9 @@ abstract class ExecutableElementHandle extends ElementHandle
 
   @override
   FunctionType get type => actualElement.type;
+
+  @override
+  List<TypeParameterElement> get typeParameters => actualElement.typeParameters;
 }
 
 /**
@@ -917,6 +920,9 @@ class ParameterElementHandle extends VariableElementHandle
 
   @override
   List<ParameterElement> get parameters => actualElement.parameters;
+
+  @override
+  List<TypeParameterElement> get typeParameters => actualElement.typeParameters;
 
   @override
   SourceRange get visibleRange => actualElement.visibleRange;

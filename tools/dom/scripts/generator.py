@@ -514,13 +514,55 @@ class OperationInfo(object):
       parameter_count = len(self.param_infos)
     return ', '.join(map(param_name, self.param_infos[:parameter_count]))
 
-  def ParametersAsListOfVariables(self, parameter_count=None):
+  def wrap_unwrap_list_blink(self, return_type, type_registry):
+    """Return True if the type is a List<Node>"""
+    return return_type.startswith('List<Node>')
+
+  def wrap_unwrap_type_blink(self, return_type, type_registry):
+    """Returns True if the type is a blink type that requires wrap_jso or unwrap_jso.
+    Notice we look for any class that starts with HtmlNNNN e.g., HtmlDocument, etc. """
+    return (type_registry.HasInterface(return_type) or not(return_type) or
+            return_type == 'Object' or return_type.startswith('Html') or
+            return_type == 'MutationObserver')
+
+  def ParametersAsListOfVariables(self, parameter_count=None, type_registry=None, dart_js_interop=False):
     """Returns a list of the first parameter_count parameter names
     as raw variables.
     """
     if parameter_count is None:
       parameter_count = len(self.param_infos)
-    return [p.name for p in self.param_infos[:parameter_count]]
+    if not type_registry:
+      return [p.name for p in self.param_infos[:parameter_count]]
+    else:
+      parameters = []
+      for p in self.param_infos[:parameter_count]:
+        type_id = p.type_id
+        # Unwrap the type to get the JsObject if Type is:
+        #
+        #    - known IDL type
+        #    - type_id is None then it's probably a union type or overloaded
+        #      it's a dynamic/any type
+        #    - type is Object
+        #
+        # JsObject maybe stored in the Dart class.
+        if (self.wrap_unwrap_type_blink(type_id, type_registry)):
+          if dart_js_interop and type_id == 'EventListener' and (self.name == 'addEventListener' or
+                                                                 self.name == 'addListener'):
+            # Events fired need to wrap the Javascript Object passed as a parameter in event.
+            parameters.append('unwrap_jso((Event event) => %s(wrap_jso(event)))' % p.name)
+          else:
+            parameters.append('unwrap_jso(%s)' % p.name)
+        else:
+          if dart_js_interop:
+            passParam = p.name
+            if type_id == 'Dictionary':
+              # Need to pass the IDL Dictionary from Dart Map to JavaScript object.
+              passParam = '{0} != null ? new js.JsObject.jsify({0}) : {0}'.format(p.name)
+          else:
+            passParam = p.name
+          parameters.append(passParam)
+
+      return parameters
 
   def ParametersAsStringOfVariables(self, parameter_count=None):
     """Returns a string containing the first parameter_count parameter names
@@ -1281,6 +1323,9 @@ class TypeRegistry(object):
     self._database = database
     self._renamer = renamer
     self._cache = {}
+
+  def HasInterface(self, type_name):
+    return self._database.HasInterface(type_name)
 
   def TypeInfo(self, type_name):
     if not type_name in self._cache:

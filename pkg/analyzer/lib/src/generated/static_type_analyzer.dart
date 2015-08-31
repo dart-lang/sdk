@@ -42,6 +42,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   TypeProvider _typeProvider;
 
   /**
+   * The type system in use for static type analysis.
+   */
+  TypeSystem _typeSystem;
+
+  /**
    * The type representing the type 'dynamic'.
    */
   DartType _dynamicType;
@@ -78,6 +83,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     _dynamicType = _typeProvider.dynamicType;
     _overrideManager = _resolver.overrideManager;
     _promoteManager = _resolver.promoteManager;
+    _typeSystem = new TypeSystemImpl(_typeProvider);
   }
 
   /**
@@ -247,12 +253,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
     ExecutableElement staticMethodElement = node.staticElement;
     DartType staticType = _computeStaticReturnType(staticMethodElement);
-    staticType = _refineBinaryExpressionType(node, staticType);
+    staticType = _refineBinaryExpressionType(node, staticType, _getStaticType);
     _recordStaticType(node, staticType);
     MethodElement propagatedMethodElement = node.propagatedElement;
     if (!identical(propagatedMethodElement, staticMethodElement)) {
       DartType propagatedType =
           _computeStaticReturnType(propagatedMethodElement);
+      propagatedType =
+          _refineBinaryExpressionType(node, propagatedType, _getBestType);
       _resolver.recordPropagatedTypeIfBetter(node, propagatedType);
     }
     return null;
@@ -1202,7 +1210,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       // TODO(brianwilkerson) Determine whether this can still happen.
       staticType2 = _dynamicType;
     }
-    DartType staticType = staticType1.getLeastUpperBound(staticType2);
+    DartType staticType =
+        _typeSystem.getLeastUpperBound(staticType1, staticType2);
     if (staticType == null) {
       staticType = _dynamicType;
     }
@@ -1217,7 +1226,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         propagatedType2 = staticType2;
       }
       DartType propagatedType =
-          propagatedType1.getLeastUpperBound(propagatedType2);
+          _typeSystem.getLeastUpperBound(propagatedType1, propagatedType2);
       _resolver.recordPropagatedTypeIfBetter(node, propagatedType);
     }
   }
@@ -1266,7 +1275,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
     if (body is BlockFunctionBody) {
       _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction visitor =
-          new _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction();
+          new _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction(
+              _typeSystem);
       body.accept(visitor);
       return visitor.result;
     }
@@ -1370,6 +1380,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else {
       return type;
     }
+  }
+
+  /**
+   * Return the best type of the given [expression].
+   */
+  DartType _getBestType(Expression expression) {
+    return expression.bestType;
   }
 
   /**
@@ -1499,10 +1516,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return the static type of the given expression.
-   *
-   * @param expression the expression whose type is to be returned
-   * @return the static type of the given expression
+   * Return the static type of the given [expression].
    */
   DartType _getStaticType(Expression expression) {
     DartType type = expression.staticType;
@@ -1689,15 +1703,15 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Attempts to make a better guess for the static type of the given binary expression.
-   *
-   * @param node the binary expression to analyze
-   * @param staticType the static type of the expression as resolved
-   * @return the better type guess, or the same static type as given
+   * Attempts to make a better guess for the type of the given binary
+   * [expression], given that resolution has so far produced the [currentType].
+   * The [typeAccessor] is used to access the corresponding type of the left
+   * and right operands.
    */
   DartType _refineBinaryExpressionType(
-      BinaryExpression node, DartType staticType) {
-    sc.TokenType operator = node.operator.type;
+      BinaryExpression expression, DartType currentType,
+      [DartType typeAccessor(Expression node)]) {
+    sc.TokenType operator = expression.operator.type;
     // bool
     if (operator == sc.TokenType.AMPERSAND_AMPERSAND ||
         operator == sc.TokenType.BAR_BAR ||
@@ -1706,14 +1720,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       return _typeProvider.boolType;
     }
     DartType intType = _typeProvider.intType;
-    if (_getStaticType(node.leftOperand) == intType) {
+    if (typeAccessor(expression.leftOperand) == intType) {
       // int op double
       if (operator == sc.TokenType.MINUS ||
           operator == sc.TokenType.PERCENT ||
           operator == sc.TokenType.PLUS ||
           operator == sc.TokenType.STAR) {
         DartType doubleType = _typeProvider.doubleType;
-        if (_getStaticType(node.rightOperand) == doubleType) {
+        if (typeAccessor(expression.rightOperand) == doubleType) {
           return doubleType;
         }
       }
@@ -1723,13 +1737,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           operator == sc.TokenType.PLUS ||
           operator == sc.TokenType.STAR ||
           operator == sc.TokenType.TILDE_SLASH) {
-        if (_getStaticType(node.rightOperand) == intType) {
-          staticType = intType;
+        if (typeAccessor(expression.rightOperand) == intType) {
+          return intType;
         }
       }
     }
     // default
-    return staticType;
+    return currentType;
   }
 
   /**
@@ -1927,9 +1941,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
 
 class _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction
     extends GeneralizingAstVisitor<Object> {
+  final TypeSystem typeSystem;
   DartType result = null;
 
-  _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction();
+  _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction(this.typeSystem);
 
   @override
   Object visitExpression(Expression node) => null;
@@ -1948,7 +1963,7 @@ class _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction
     if (result == null) {
       result = type;
     } else {
-      result = result.getLeastUpperBound(type);
+      result = typeSystem.getLeastUpperBound(result, type);
     }
     return null;
   }

@@ -12,6 +12,7 @@
         'utils/compiler/compiler.gyp:dart2js',
         'utils/pub/pub.gyp:pub',
         'utils/dartfmt/dartfmt.gyp:dartfmt',
+        'utils/dartdoc/dartdoc.gyp:dartdoc',
         'utils/analysis_server/analysis_server.gyp:analysis_server',
         'utils/dartanalyzer/dartanalyzer.gyp:dartanalyzer',
       ],
@@ -28,7 +29,7 @@
                 '"^(?!.*pub/test).*dart$",'
                 '"sdk/lib"])',
             '<!@(["python", "tools/list_files.py", "", '
-                '"sdk/lib/_internal/compiler/js_lib/preambles"])',
+                '"sdk/lib/_internal/js_runtime/lib/preambles"])',
             '<!@(["python", "tools/list_files.py", "", "sdk/bin"])',
             'tools/create_sdk.py',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
@@ -38,6 +39,7 @@
             '<(SHARED_INTERMEDIATE_DIR)/dartanalyzer.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/dartfmt.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/analysis_server.dart.snapshot',
+            '<(SHARED_INTERMEDIATE_DIR)/dartdoc.dart.snapshot',
             'tools/VERSION'
           ],
           'outputs': [

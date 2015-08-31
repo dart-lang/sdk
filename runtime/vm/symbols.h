@@ -66,6 +66,7 @@ class ObjectPointerVisitor;
   V(NoSuchMethodError, "NoSuchMethodError")                                    \
   V(CyclicInitializationError, "CyclicInitializationError")                    \
   V(ThrowNew, "_throwNew")                                                     \
+  V(ThrowNewIfNotLoaded, "_throwNewIfNotLoaded")                               \
   V(Symbol, "Symbol")                                                          \
   V(SymbolCtor, "Symbol.")                                                     \
   V(List, "List")                                                              \
@@ -150,6 +151,7 @@ class ObjectPointerVisitor;
   V(Namespace, "Namespace")                                                    \
   V(Code, "Code")                                                              \
   V(Instructions, "Instructions")                                              \
+  V(ObjectPool, "ObjectPool")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \
   V(Stackmap, "Stackmap")                                                      \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
@@ -310,6 +312,11 @@ class ObjectPointerVisitor;
   V(TwoNewlines, "\n\n")                                                       \
   V(TwoSpaces, "  ")                                                           \
   V(_instanceOf, "_instanceOf")                                                \
+  V(_instanceOfSmi, "_instanceOfSmi")                                          \
+  V(_instanceOfNum, "_instanceOfNum")                                          \
+  V(_instanceOfInt, "_instanceOfInt")                                          \
+  V(_instanceOfDouble, "_instanceOfDouble")                                    \
+  V(_instanceOfString, "_instanceOfString")                                    \
   V(_as, "_as")                                                                \
   V(GetterPrefix, "get:")                                                      \
   V(SetterPrefix, "set:")                                                      \
@@ -382,6 +389,7 @@ class ObjectPointerVisitor;
   V(last, "last")                                                              \
   V(removeLast, "removeLast")                                                  \
   V(add, "add")                                                                \
+  V(ConstructorClosurePrefix, "new#")                                          \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This
@@ -495,6 +503,9 @@ class Symbols : public AllStatic {
   }
   static const String& At() {
     return *(symbol_handles_[kNullCharId + '@']);
+  }
+  static const String& HashMark() {
+    return *(symbol_handles_[kNullCharId + '#']);
   }
   static const String& Semicolon() {
     return *(symbol_handles_[kNullCharId + ';']);

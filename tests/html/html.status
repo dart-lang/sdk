@@ -6,6 +6,9 @@ interactive_test: Skip # Must be run manually.
 dromaeo_smoke_test: Skip # Issue 14521, 8257
 cross_frame_test: Skip # Test reloads itself. Issue 18558
 
+js_array_test: Skip # Issue 23676, 23677
+js_typed_interop_test: Skip # Issue 23676, 23677
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Issue 18931 (Disabled for Chrome 35 roll)
 form_data_test/functional: Skip # Issue 19726
@@ -17,6 +20,7 @@ media_stream_test/constructors: Pass, Crash # Issue 22267
 element_animate_test/simple_timing: Fail # Not supported on Dartium
 element_animate_test/omit_timing: Fail # Not supported on Dartium
 element_animate_test/timing_dict: Fail # Not supported on Dartium
+trusted_html_tree_sanitizer_test/untrusted: Fail # We make adoptNode throw to verify it's not being called. That doesn't work on Dartium.
 
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 datalistelement_test: Skip # Issue 20540
@@ -102,6 +106,8 @@ element_types_test/supported_meter: RuntimeError # Issue 18573
 
 [ $runtime == chrome ]
 touchevent_test/supported: Fail # Touch events are only supported on touch devices
+element_animate_test/omit_timing: RuntimeError # Also timing out on MacOS. Issue 23507
+element_animate_test/timing_dict: RuntimeError # Also timing out on MacOS. Issue 23507
 
 [ $runtime == chrome && $system == macos ]
 element_animate_test/omit_timing: Skip # Timing out on MacOS. Issue 23507
@@ -412,149 +418,3 @@ typing_test: StaticWarning
 webgl_1_test: StaticWarning
 window_nosuchmethod_test: StaticWarning
 
-[ $compiler == dart2js && $cps_ir ]
-async_spawnuri_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-audiobuffersourcenode_test: Crash #  try/finally
-audiocontext_test: Crash #  try/finally
-audioelement_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-b_element_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-blob_constructor_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-cache_test: Crash #  try/finally
-callbacks_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-canvas_pixel_array_type_alias_test: Crash #  try/finally
-canvas_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-canvasrenderingcontext2d_test: Crash #  try/finally
-cdata_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-client_rect_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-cross_domain_iframe_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-crypto_test: Crash #  try/finally
-css_rule_list_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-css_test: Crash #  try/finally
-cssstyledeclaration_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-custom/attribute_changed_callback_test: Crash #  try/finally
-custom/constructor_calls_created_synchronously_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-custom/created_callback_test: Crash # (try {test();}catch (e){rethrow;}finally {js.context['testExpectsGlobalError']=false;}): try/finally
-custom/document_register_basic_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-custom/document_register_type_extensions_test: Crash #  try/finally
-custom/element_upgrade_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-custom/entered_left_view_test: Crash #  try/finally
-custom/js_custom_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-custom/mirrors_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-custom_element_method_clash_test: Crash #  try/finally
-custom_element_name_clash_test: Crash #  try/finally
-custom_elements_23127_test: Crash #  try/finally
-custom_elements_test: Crash #  try/finally
-custom_tags_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-dart_object_local_storage_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-datalistelement_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-document_test: Crash #  try/finally
-documentfragment_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-dom_constructors_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-domparser_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-element_add_test: Crash #  try/finally
-element_animate_test: Crash #  try/finally
-element_classes_svg_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-element_classes_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-element_constructor_1_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-element_dimensions_test: Crash #  try/finally
-element_offset_test: Crash #  try/finally
-element_test: Crash #  try/finally
-element_types_constructors1_test: Crash #  try/finally
-element_types_constructors2_test: Crash #  try/finally
-element_types_constructors3_test: Crash #  try/finally
-element_types_constructors4_test: Crash #  try/finally
-element_types_constructors5_test: Crash #  try/finally
-element_types_constructors6_test: Crash #  try/finally
-element_types_test: Crash #  try/finally
-event_customevent_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-event_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-events_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-exceptions_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-fileapi_test: Crash #  try/finally
-filereader_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-fontface_loaded_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-fontface_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-form_data_test: Crash #  try/finally
-form_element_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-geolocation_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-hidden_dom_1_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-hidden_dom_2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-history_test: Crash #  try/finally
-htmlcollection_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-htmlelement_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-htmloptionscollection_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-indexeddb_1_test: Crash #  try/finally
-indexeddb_2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-indexeddb_3_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-indexeddb_4_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-indexeddb_5_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-input_element_test: Crash #  try/finally
-instance_of_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-isolates_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-js_interop_1_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-js_test: Crash #  try/finally
-keyboard_event_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-localstorage_test: Crash # (try {fn();}finally {window.localStorage.clear();}): try/finally
-location_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-media_stream_test: Crash #  try/finally
-mediasource_test: Crash #  try/finally
-messageevent_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mouse_event_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mutationobserver_test: Crash #  try/finally
-native_gc_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-navigator_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-node_test: Crash #  try/finally
-node_validator_important_if_you_suppress_make_the_bug_critical_test: Crash #  try/finally
-non_instantiated_is_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-notification_test: Crash #  try/finally
-performance_api_test: Crash #  try/finally
-postmessage_structured_test: Crash #  try/finally
-query_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-queryall_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-range_test: Crash #  try/finally
-request_animation_frame_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-rtc_test: Crash #  try/finally
-selectelement_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-serialized_script_value_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-shadow_dom_test: Crash #  try/finally
-shadowroot_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-speechrecognition_test: Crash #  try/finally
-storage_quota_test/missingenumcheck: Crash # Instance of 'TypeOperator': type casts not implemented.
-storage_quota_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
-storage_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-streams_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-svg_test: Crash #  try/finally
-svgelement_test: Crash #  try/finally
-table_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-text_event_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-touchevent_test: Crash #  try/finally
-track_element_constructor_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-transferables_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-transition_event_test: Crash #  try/finally
-typed_arrays_1_test: Crash #  try/finally
-typed_arrays_2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-typed_arrays_3_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-typed_arrays_4_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-typed_arrays_5_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-typed_arrays_arraybuffer_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-typed_arrays_dataview_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-typed_arrays_range_checks_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-typed_arrays_simd_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-typing_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-unknownelement_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-uri_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-url_test: Crash #  try/finally
-webgl_1_test: Crash #  try/finally
-websocket_test: Crash #  try/finally
-websql_test: Crash #  try/finally
-wheelevent_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-window_eq_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-window_mangling_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-window_nosuchmethod_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-window_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-worker_api_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-worker_test: Crash #  try/finally
-xhr_cross_origin_test: Crash #  try/finally
-xhr_test: Crash #  try/finally
-xsltprocessor_test: Crash #  try/finally

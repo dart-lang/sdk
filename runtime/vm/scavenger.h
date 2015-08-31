@@ -211,7 +211,7 @@ class Scavenger {
     return collections_;
   }
 
-  void PrintToJSONObject(JSONObject* object);
+  void PrintToJSONObject(JSONObject* object) const;
 
   void AllocateExternal(intptr_t size);
   void FreeExternal(intptr_t size);

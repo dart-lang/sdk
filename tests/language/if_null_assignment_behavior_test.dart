@@ -5,8 +5,6 @@
 // Verify semantics of the ??= operator, including order of operations, by
 // keeping track of the operations performed.
 
-// SharedOptions=--enable-null-aware-operators
-
 import "package:expect/expect.dart";
 import "if_null_assignment_helper.dart" as h;
 
@@ -170,6 +168,8 @@ main() {
   { final l = 1; check(1, () => l ??= bad(), []); } /// 13: static type warning
   { final l = null; yGetValue = 1; checkThrows(noMethod, () => l ??= y, ['y']); } /// 14: static type warning
   check(C, () => C ??= bad(), []); /// 15: static type warning
+  h ??= null; /// 29: compile-time error
+  h[0] ??= null; /// 30: compile-time error
 
   // C.v ??= e is equivalent to ((x) => x == null ? C.v = e : x)(C.v)
   C.xGetValue = 1; check(1, () => C.x ??= bad(), ['C.x']); /// 16: ok
@@ -201,4 +201,14 @@ main() {
   check(1, () => x?.v ??= bad(), ['x', 'x.v']);     /// 27: continued
   xGetValue = new C('x'); yGetValue = 1;                 /// 28: ok
   check(1, () => x?.v ??= y, ['x', 'x.v', 'y', 'x.v=1']); /// 28: continued
+
+  // C?.v ??= e2 is equivalent to C.v ??= e2.
+  C.xGetValue = 1;                         /// 29: ok
+  check(1, () => C?.x ??= bad(), ['C.x']); /// 29: continued
+  h.C.xgetValue = 1;                           /// 30: ok
+  check(1, () => h.c?.x ??= bad(), ['h.C.x']); /// 30: continued
+  yGetValue = 1;                                     /// 31: ok
+  check(1, () => C?.x ??= y, ['C.x', 'y', 'C.x=1']); /// 31: continued
+  yGetValue = 1;                                           /// 32: ok
+  check(1, () => h.C?.x ??= y, ['h.C.x', 'y', 'h.C.x=1']); /// 32: continued
 }

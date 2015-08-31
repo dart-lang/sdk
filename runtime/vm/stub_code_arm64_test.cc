@@ -45,9 +45,9 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler,
   const Smi& smi1 = Smi::ZoneHandle(Smi::New(value1));
   const Smi& smi2 = Smi::ZoneHandle(Smi::New(value2));
   __ EnterDartFrame(0);
-  __ PushObject(Object::null_object(), PP);  // Push Null obj for return value.
-  __ PushObject(smi1, PP);  // Push argument 1 smi1.
-  __ PushObject(smi2, PP);  // Push argument 2 smi2.
+  __ PushObject(Object::null_object());  // Push Null obj for return value.
+  __ PushObject(smi1);  // Push argument 1 smi1.
+  __ PushObject(smi2);  // Push argument 2 smi2.
   ASSERT(kTestSmiSubRuntimeEntry.argument_count() == argc);
   __ CallRuntime(kTestSmiSubRuntimeEntry, argc);  // Call SmiSub runtime func.
   __ add(SP, SP, Operand(argc * kWordSize));
@@ -82,8 +82,8 @@ static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
   const Smi& smi2 = Smi::ZoneHandle(Smi::New(value2));
   __ EnterDartFrame(0);
   __ ReserveAlignedFrameSpace(0);
-  __ LoadObject(R0, smi1, PP);  // Set up argument 1 smi1.
-  __ LoadObject(R1, smi2, PP);  // Set up argument 2 smi2.
+  __ LoadObject(R0, smi1);  // Set up argument 1 smi1.
+  __ LoadObject(R1, smi2);  // Set up argument 2 smi2.
   __ CallRuntime(kTestLeafSmiAddRuntimeEntry, 2);  // Call SmiAdd runtime func.
   __ LeaveDartFrame();
   __ ret();  // Return value is in R0.

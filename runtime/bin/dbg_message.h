@@ -9,7 +9,7 @@
 #include "bin/thread.h"
 #include "bin/utils.h"
 
-#include "include/dart_debugger_api.h"
+#include "include/dart_tools_api.h"
 
 #include "platform/globals.h"
 #include "platform/json.h"

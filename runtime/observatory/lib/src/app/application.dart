@@ -23,6 +23,7 @@ class ObservatoryApplication extends Observable {
   @observable Page currentPage;
   VM _vm;
   VM get vm => _vm;
+
   set vm(VM vm) {
     if (_vm == vm) {
       // Do nothing.
@@ -53,7 +54,8 @@ class ObservatoryApplication extends Observable {
                 new ServiceEvent.connectionClosed(reason)));
       });
 
-      vm.events.stream.listen(_onEvent);
+      vm.listenEventStream(VM.kIsolateStream, _onEvent);
+      vm.listenEventStream(VM.kDebugStream, _onEvent);
     }
     _vm = vm;
   }
@@ -88,11 +90,10 @@ class ObservatoryApplication extends Observable {
     switch(event.kind) {
       case ServiceEvent.kIsolateStart:
       case ServiceEvent.kIsolateUpdate:
-      case ServiceEvent.kGraph:
       case ServiceEvent.kBreakpointAdded:
       case ServiceEvent.kBreakpointResolved:
       case ServiceEvent.kBreakpointRemoved:
-      case ServiceEvent.kGC:
+      case ServiceEvent.kDebuggerSettingsUpdate:
         // Ignore for now.
         break;
 
@@ -136,6 +137,8 @@ class ObservatoryApplication extends Observable {
     _pageRegistry.add(new IsolateReconnectPage(this));
     _pageRegistry.add(new ErrorViewPage(this));
     _pageRegistry.add(new MetricsPage(this));
+    _pageRegistry.add(new PortsPage(this));
+    _pageRegistry.add(new LoggingPage(this));
     // Note that ErrorPage must be the last entry in the list as it is
     // the catch all.
     _pageRegistry.add(new ErrorPage(this));
@@ -223,4 +226,7 @@ class ObservatoryApplication extends Observable {
     Logger.root.warning('Caught exception: ${e}\n${st}');
     notifications.add(new Notification.fromException(e, st));
   }
+
+  // This map keeps track of which curly-blocks have been expanded by the user.
+  Map<String,bool> expansions = {};
 }

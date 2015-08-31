@@ -27,8 +27,6 @@ import 'elements/modelx.dart' show
     LibraryElementX,
     PrefixElementX;
 
-import 'helpers/helpers.dart';  // Included for debug helpers.
-
 import 'native/native.dart' as native;
 
 import 'tree/tree.dart';
@@ -104,9 +102,10 @@ import 'util/util.dart' show
  * 'dart:core' and 'dart:_js_helper' are not readable themselves but are instead
  * resolved into a readable URI using the library root URI provided from the
  * command line and the list of platform libraries found in
- * 'sdk/lib/_internal/libraries.dart'. This is done through the
- * [Compiler.translateResolvedUri] method which checks whether a library by that
- * name exists and in case of internal libraries whether access is granted.
+ * 'sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart'. This is done
+ * through the [Compiler.translateResolvedUri] method which checks whether a
+ * library by that name exists and in case of internal libraries whether access
+ * is granted.
  *
  * ## Resource URI ##
  *
@@ -484,7 +483,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
           then((Script sourceScript) {
             if (sourceScript == null) return;
 
-            CompilationUnitElement unit =
+            CompilationUnitElementX unit =
                 new CompilationUnitElementX(sourceScript, library);
             compiler.withCurrentElement(unit, () {
               compiler.scanner.scan(unit);
@@ -525,6 +524,23 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         });
   }
 
+  /// Loads the deserialized [library] with the [handler].
+  ///
+  /// All libraries imported or exported transitively from [library] will be
+  /// loaded as well.
+  Future<LibraryElement> loadDeserializedLibrary(
+      LibraryDependencyHandler handler,
+      LibraryElement library) {
+    compiler.onLibraryCreated(library);
+    libraryCanonicalUriMap[library.canonicalUri] = library;
+    return compiler.onLibraryScanned(library, handler).then((_) {
+      return Future.forEach(library.tags, (LibraryTag tag) {
+        LibraryElement dependency = library.getLibraryFromTag(tag);
+        return createLibrary(handler, library, dependency.canonicalUri);
+      }).then((_) => library);
+    });
+  }
+
   /**
    * Create (or reuse) a library element for the library specified by the
    * [resolvedUri].
@@ -540,6 +556,10 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     LibraryElement library = libraryCanonicalUriMap[resolvedUri];
     if (library != null) {
       return new Future.value(library);
+    }
+    library = compiler.serialization.readLibrary(resolvedUri);
+    if (library != null) {
+      return loadDeserializedLibrary(handler, library);
     }
     var readScript = compiler.readScript;
     if (readableUri == null) {

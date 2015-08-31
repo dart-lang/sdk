@@ -102,8 +102,18 @@ part of $LIBRARYNAME;
 
 
   class_file.write("""
+$if DART2JS
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
     $(CLASSNAME)Base $IMPLEMENTS {
+$else
+  $if JSINTEROP
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS) class $CLASSNAME extends
+    $(CLASSNAME)Base $IMPLEMENTS {
+  $else
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
+    $(CLASSNAME)Base $IMPLEMENTS {
+  $endif
+$endif
   factory $CLASSNAME() => new CssStyleDeclaration.css('');
 
   factory $CLASSNAME.css(String css) {
@@ -150,10 +160,14 @@ $else
     return _hasProperty(propertyName);
 $endif
   }
-$if DARTIUM
 
+$if DARTIUM
   bool _hasProperty(String propertyName) =>
+  $if JSINTEROP
+      _blink.BlinkCSSStyleDeclaration.instance.$__propertyQuery___Callback_1_(unwrap_jso(this), propertyName) != null;
+  $else
       _blink.BlinkCSSStyleDeclaration.$__propertyQuery___Callback_1(this, propertyName);
+  $endif
 $endif
 
   @DomName('CSSStyleDeclaration.setProperty')
@@ -252,7 +266,15 @@ $if DART2JS
 $endif
 }
 
+$if DART2JS
 class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
+$else
+  $if JSINTEROP
+class _CssStyleDeclarationSet extends CssStyleDeclarationBase {
+  $else
+class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
+  $endif
+$endif
   final Iterable<Element> _elementIterable;
   Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
 
@@ -302,9 +324,23 @@ $endif
   // items in the MEMBERS set if you want that functionality.
 }
 
+$if DART2JS
 abstract class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
   void setProperty(String propertyName, String value, [String priority]);
+$else
+  $if JSINTEROP
+class CssStyleDeclarationBase {
+  String getPropertyValue(String propertyName) =>
+    throw new StateError('getProperty not overridden in dart:html');
+  void setProperty(String propertyName, String value, [String priority]) =>
+    throw new StateError('setProperty not overridden in dart:html');
+  $else
+abstract class CssStyleDeclarationBase {
+  String getPropertyValue(String propertyName);
+  void setProperty(String propertyName, String value, [String priority]);
+  $endif
+$endif
 """)
 
   class_lines = [];

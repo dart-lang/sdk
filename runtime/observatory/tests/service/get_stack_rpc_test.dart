@@ -1,7 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override
+// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -19,7 +19,7 @@ void msgHandler(_) { }
 
 void periodicTask(_) {
   port.sendPort.send(34);
-  developer.debugger(msg: "foo", when: true); // We will be at the next line.
+  developer.debugger(message: "fo", when: true); // We will be at the next line.
   counter++;
   if (counter % 300 == 0) {
     print('counter = $counter');

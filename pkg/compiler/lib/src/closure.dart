@@ -88,7 +88,7 @@ class ClosureTask extends CompilerTask {
 
 /// Common interface for [BoxFieldElement] and [ClosureFieldElement] as
 /// non-elements.
-abstract class CapturedVariable {}
+abstract class CapturedVariable implements Element {}
 
 // TODO(ahe): These classes continuously cause problems.  We need to
 // find a more general solution.
@@ -651,7 +651,8 @@ class ClosureTranslator extends Visitor {
       // things in the builder.
       // Note that nested (named) functions are immutable.
       if (variable != closureData.thisLocal &&
-          variable != closureData.closureElement) {
+          variable != closureData.closureElement &&
+          variable is! TypeVariableLocal) {
         closureData.variablesUsedInTryOrGenerator.add(variable);
       }
     } else if (variable is LocalParameterElement &&

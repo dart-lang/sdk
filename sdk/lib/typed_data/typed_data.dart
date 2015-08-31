@@ -10,6 +10,7 @@ import 'dart:collection';
 
 /**
  * A sequence of bytes underlying a typed data object.
+ * 
  * Used to process large quantities of binary or numerical data
  * more efficiently using a typed view.
  */
@@ -403,6 +404,7 @@ class Endianness {
  * A fixed-length, random-access sequence of bytes that also provides random
  * and unaligned access to the fixed-width integers and floating point
  * numbers represented by those bytes.
+ * 
  * `ByteData` may be used to pack and unpack data from external sources
  * (such as networks or files systems), and to process large quantities
  * of numerical data more efficiently than would be possible
@@ -448,7 +450,9 @@ abstract class ByteData implements TypedData {
   /**
    * Returns the (possibly negative) integer represented by the byte at the
    * specified [byteOffset] in this object, in two's complement binary
-   * representation. The return value will be between -128 and 127, inclusive.
+   * representation.
+   * 
+   * The return value will be between -128 and 127, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
    * greater than or equal to the length of this object.
@@ -458,8 +462,9 @@ abstract class ByteData implements TypedData {
   /**
    * Sets the byte at the specified [byteOffset] in this object to the
    * two's complement binary representation of the specified [value], which
-   * must fit in a single byte. In other words, [value] must be between
-   * -128 and 127, inclusive.
+   * must fit in a single byte.
+   * 
+   * In other words, [value] must be between -128 and 127, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
    * greater than or equal to the length of this object.
@@ -468,8 +473,9 @@ abstract class ByteData implements TypedData {
 
   /**
    * Returns the positive integer represented by the byte at the specified
-   * [byteOffset] in this object, in unsigned binary form. The
-   * return value will be between 0 and 255, inclusive.
+   * [byteOffset] in this object, in unsigned binary form.
+   * 
+   * The return value will be between 0 and 255, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
    * greater than or equal to the length of this object.
@@ -479,8 +485,9 @@ abstract class ByteData implements TypedData {
   /**
    * Sets the byte at the specified [byteOffset] in this object to the
    * unsigned binary representation of the specified [value], which must fit
-   * in a single byte. in other words, [value] must be between 0 and 255,
-   * inclusive.
+   * in a single byte.
+   * 
+   * In other words, [value] must be between 0 and 255, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative,
    * or greater than or equal to the length of this object.
@@ -491,6 +498,7 @@ abstract class ByteData implements TypedData {
    * Returns the (possibly negative) integer represented by the two bytes at
    * the specified [byteOffset] in this object, in two's complement binary
    * form.
+   * 
    * The return value will be between 2<sup>15</sup> and 2<sup>15</sup> - 1,
    * inclusive.
    *
@@ -502,7 +510,9 @@ abstract class ByteData implements TypedData {
   /**
    * Sets the two bytes starting at the specified [byteOffset] in this
    * object to the two's complement binary representation of the specified
-   * [value], which must fit in two bytes. In other words, [value] must lie
+   * [value], which must fit in two bytes.
+   * 
+   * In other words, [value] must lie
    * between 2<sup>15</sup> and 2<sup>15</sup> - 1, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -516,6 +526,7 @@ abstract class ByteData implements TypedData {
    * Returns the positive integer represented by the two bytes starting
    * at the specified [byteOffset] in this object, in unsigned binary
    * form.
+   * 
    * The return value will be between 0 and  2<sup>16</sup> - 1, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -526,7 +537,9 @@ abstract class ByteData implements TypedData {
   /**
    * Sets the two bytes starting at the specified [byteOffset] in this object
    * to the unsigned binary representation of the specified [value],
-   * which must fit in two bytes. in other words, [value] must be between
+   * which must fit in two bytes.
+   * 
+   * In other words, [value] must be between
    * 0 and 2<sup>16</sup> - 1, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -540,6 +553,7 @@ abstract class ByteData implements TypedData {
    * Returns the (possibly negative) integer represented by the four bytes at
    * the specified [byteOffset] in this object, in two's complement binary
    * form.
+   * 
    * The return value will be between 2<sup>31</sup> and 2<sup>31</sup> - 1,
    * inclusive.
    *
@@ -551,7 +565,9 @@ abstract class ByteData implements TypedData {
   /**
    * Sets the four bytes starting at the specified [byteOffset] in this
    * object to the two's complement binary representation of the specified
-   * [value], which must fit in four bytes. In other words, [value] must lie
+   * [value], which must fit in four bytes.
+   * 
+   * In other words, [value] must lie
    * between 2<sup>31</sup> and 2<sup>31</sup> - 1, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -565,6 +581,7 @@ abstract class ByteData implements TypedData {
    * Returns the positive integer represented by the four bytes starting
    * at the specified [byteOffset] in this object, in unsigned binary
    * form.
+   * 
    * The return value will be between 0 and  2<sup>32</sup> - 1, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -575,7 +592,9 @@ abstract class ByteData implements TypedData {
   /**
    * Sets the four bytes starting at the specified [byteOffset] in this object
    * to the unsigned binary representation of the specified [value],
-   * which must fit in four bytes. in other words, [value] must be between
+   * which must fit in four bytes.
+   * 
+   * In other words, [value] must be between
    * 0 and 2<sup>32</sup> - 1, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -589,6 +608,7 @@ abstract class ByteData implements TypedData {
    * Returns the (possibly negative) integer represented by the eight bytes at
    * the specified [byteOffset] in this object, in two's complement binary
    * form.
+   * 
    * The return value will be between 2<sup>63</sup> and 2<sup>63</sup> - 1,
    * inclusive.
    *
@@ -600,7 +620,9 @@ abstract class ByteData implements TypedData {
   /**
    * Sets the eight bytes starting at the specified [byteOffset] in this
    * object to the two's complement binary representation of the specified
-   * [value], which must fit in eight bytes. In other words, [value] must lie
+   * [value], which must fit in eight bytes.
+   * 
+   * In other words, [value] must lie
    * between 2<sup>63</sup> and 2<sup>63</sup> - 1, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -614,6 +636,7 @@ abstract class ByteData implements TypedData {
    * Returns the positive integer represented by the eight bytes starting
    * at the specified [byteOffset] in this object, in unsigned binary
    * form.
+   * 
    * The return value will be between 0 and  2<sup>64</sup> - 1, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -624,7 +647,9 @@ abstract class ByteData implements TypedData {
   /**
    * Sets the eight bytes starting at the specified [byteOffset] in this object
    * to the unsigned binary representation of the specified [value],
-   * which must fit in eight bytes. in other words, [value] must be between
+   * which must fit in eight bytes.
+   * 
+   * In other words, [value] must be between
    * 0 and 2<sup>64</sup> - 1, inclusive.
    *
    * Throws [RangeError] if [byteOffset] is negative, or
@@ -693,6 +718,7 @@ abstract class ByteData implements TypedData {
 
 /**
  * A fixed-length list of 8-bit signed integers.
+ * 
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
@@ -734,6 +760,7 @@ abstract class Int8List implements List<int>, TypedData {
 
 /**
  * A fixed-length list of 8-bit unsigned integers.
+ * 
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
@@ -775,6 +802,7 @@ abstract class Uint8List implements List<int>, TypedData {
 
 /**
  * A fixed-length list of 8-bit unsigned integers.
+ * 
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  * Indexed store clamps the value to range 0..0xFF.
@@ -818,7 +846,9 @@ abstract class Uint8ClampedList implements List<int>, TypedData {
 
 /**
  * A fixed-length list of 16-bit signed integers that is viewable as a
- * [TypedData]. For long lists, this implementation can be considerably
+ * [TypedData].
+ * 
+ * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
 abstract class Int16List implements List<int>, TypedData {
@@ -862,7 +892,9 @@ abstract class Int16List implements List<int>, TypedData {
 
 /**
  * A fixed-length list of 16-bit unsigned integers that is viewable as a
- * [TypedData]. For long lists, this implementation can be considerably
+ * [TypedData].
+ * 
+ * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
 abstract class Uint16List implements List<int>, TypedData {
@@ -907,7 +939,9 @@ abstract class Uint16List implements List<int>, TypedData {
 
 /**
  * A fixed-length list of 32-bit signed integers that is viewable as a
- * [TypedData]. For long lists, this implementation can be considerably
+ * [TypedData].
+ * 
+ * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
 abstract class Int32List implements List<int>, TypedData {
@@ -951,7 +985,9 @@ abstract class Int32List implements List<int>, TypedData {
 
 /**
  * A fixed-length list of 32-bit unsigned integers that is viewable as a
- * [TypedData]. For long lists, this implementation can be considerably
+ * [TypedData].
+ * 
+ * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
 abstract class Uint32List implements List<int>, TypedData {
@@ -996,7 +1032,9 @@ abstract class Uint32List implements List<int>, TypedData {
 
 /**
  * A fixed-length list of 64-bit signed integers that is viewable as a
- * [TypedData]. For long lists, this implementation can be considerably
+ * [TypedData].
+ * 
+ * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
 abstract class Int64List implements List<int>, TypedData {
@@ -1040,7 +1078,9 @@ abstract class Int64List implements List<int>, TypedData {
 
 /**
  * A fixed-length list of 64-bit unsigned integers that is viewable as a
- * [TypedData]. For long lists, this implementation can be considerably
+ * [TypedData].
+ * 
+ * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
 abstract class Uint64List implements List<int>, TypedData {
@@ -1085,7 +1125,9 @@ abstract class Uint64List implements List<int>, TypedData {
 
 /**
  * A fixed-length list of IEEE 754 single-precision binary floating-point
- * numbers  that is viewable as a [TypedData]. For long lists, this
+ * numbers  that is viewable as a [TypedData].
+ * 
+ * For long lists, this
  * implementation can be considerably more space- and time-efficient than
  * the default [List] implementation.
  */
@@ -1130,7 +1172,9 @@ abstract class Float32List implements List<double>, TypedData {
 
 /**
  * A fixed-length list of IEEE 754 double-precision binary floating-point
- * numbers  that is viewable as a [TypedData]. For long lists, this
+ * numbers  that is viewable as a [TypedData].
+ * 
+ * For long lists, this
  * implementation can be considerably more space- and time-efficient than
  * the default [List] implementation.
  */
@@ -1175,7 +1219,9 @@ abstract class Float64List implements List<double>, TypedData {
 
 /**
  * A fixed-length list of Float32x4 numbers that is viewable as a
- * [TypedData]. For long lists, this implementation will be considerably more
+ * [TypedData].
+ * 
+ * For long lists, this implementation will be considerably more
  * space- and time-efficient than the default [List] implementation.
  */
 abstract class Float32x4List implements List<Float32x4>, TypedData {
@@ -1219,7 +1265,9 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
 
 /**
  * A fixed-length list of Int32x4 numbers that is viewable as a
- * [TypedData]. For long lists, this implementation will be considerably more
+ * [TypedData].
+ * 
+ * For long lists, this implementation will be considerably more
  * space- and time-efficient than the default [List] implementation.
  */
 abstract class Int32x4List implements List<Int32x4>, TypedData {
@@ -1263,7 +1311,9 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
 
 /**
  * A fixed-length list of Float64x2 numbers that is viewable as a
- * [TypedData]. For long lists, this implementation will be considerably more
+ * [TypedData].
+ * 
+ * For long lists, this implementation will be considerably more
  * space- and time-efficient than the default [List] implementation.
  */
 abstract class Float64x2List implements List<Float64x2>, TypedData {
@@ -1307,6 +1357,7 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
 
 /**
  * Float32x4 immutable value type and operations.
+ * 
  * Float32x4 stores 4 32-bit floating point values in "lanes".
  * The lanes are "x", "y", "z", and "w" respectively.
  */
@@ -1661,6 +1712,7 @@ abstract class Float32x4 {
 
 /**
  * Int32x4 and operations.
+ * 
  * Int32x4 stores 4 32-bit bit-masks in "lanes".
  * The lanes are "x", "y", "z", and "w" respectively.
  */
@@ -1997,6 +2049,7 @@ abstract class Int32x4 {
 
 /**
  * Float64x2 immutable value type and operations.
+ * 
  * Float64x2 stores 2 64-bit floating point values in "lanes".
  * The lanes are "x" and "y" respectively.
  */

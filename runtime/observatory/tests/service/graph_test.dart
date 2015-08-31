@@ -1,7 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override
+// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/object_graph.dart';
 import 'package:observatory/service_io.dart';
@@ -71,7 +71,7 @@ var tests = [
                                       bVertex.shallowSize +
                                       rVertex.shallowSize));
 
-  const int fixedSizeListCid = 61;
+  const int fixedSizeListCid = 62;
   List<ObjectVertex> lists = new List.from(graph.vertices.where(
       (ObjectVertex obj) => obj.vmCid == fixedSizeListCid));
   expect(lists.length >= 2, isTrue);

@@ -6,13 +6,22 @@ library dart2js.test.memory_compiler;
 
 import 'memory_source_file_helper.dart';
 
-import 'package:compiler/src/compile_time_constants.dart';
 
-import 'package:compiler/src/dart2jslib.dart'
-       show NullSink;
+import 'package:compiler/src/null_compiler_output.dart' show
+    NullCompilerOutput;
 
-import 'package:compiler/compiler.dart'
-    show Diagnostic, DiagnosticHandler, CompilerOutputProvider;
+import 'package:compiler/src/dart2jslib.dart' show
+    Message;
+
+import 'package:compiler/compiler.dart' show
+    DiagnosticHandler;
+
+import 'package:compiler/compiler_new.dart' show
+    CompilationResult,
+    CompilerDiagnostics,
+    CompilerOutput,
+    Diagnostic,
+    PackagesDiscoveryProvider;
 
 import 'dart:async';
 
@@ -23,65 +32,91 @@ import 'package:compiler/src/library_loader.dart'
     show LoadedLibraries;
 
 export 'output_collector.dart';
+export 'package:compiler/compiler_new.dart' show
+    CompilationResult;
 
 class DiagnosticMessage {
+  final Message message;
   final Uri uri;
   final int begin;
   final int end;
-  final String message;
+  final String text;
   final Diagnostic kind;
 
-  DiagnosticMessage(this.uri, this.begin, this.end, this.message, this.kind);
+  DiagnosticMessage(
+      this.message, this.uri, this.begin, this.end, this.text, this.kind);
 
-  String toString() => '$uri:$begin:$end:$message:$kind';
+  String toString() => '$uri:$begin:$end:$text:$kind';
 }
 
-class DiagnosticCollector {
+class DiagnosticCollector implements CompilerDiagnostics {
   List<DiagnosticMessage> messages = <DiagnosticMessage>[];
 
-  void call(Uri uri, int begin, int end, String message,
-                         Diagnostic kind) {
-    messages.add(new DiagnosticMessage(uri, begin, end, message, kind));
+  void call(Uri uri, int begin, int end, String message, Diagnostic kind) {
+    report(null, uri, begin, end, message, kind);
   }
 
-  Iterable<DiagnosticMessage> filterMessagesByKind(Diagnostic kind) {
+  @override
+  void report(Message message,
+              Uri uri, int begin, int end, String text, Diagnostic kind) {
+    messages.add(new DiagnosticMessage(message, uri, begin, end, text, kind));
+  }
+
+  Iterable<DiagnosticMessage> filterMessagesByKinds(List<Diagnostic> kinds) {
     return messages.where(
-      (DiagnosticMessage message) => message.kind == kind);
+      (DiagnosticMessage message) => kinds.contains(message.kind));
   }
 
   Iterable<DiagnosticMessage> get errors {
-    return filterMessagesByKind(Diagnostic.ERROR);
+    return filterMessagesByKinds([Diagnostic.ERROR]);
   }
 
   Iterable<DiagnosticMessage> get warnings {
-    return filterMessagesByKind(Diagnostic.WARNING);
+    return filterMessagesByKinds([Diagnostic.WARNING]);
   }
 
   Iterable<DiagnosticMessage> get hints {
-    return filterMessagesByKind(Diagnostic.HINT);
+    return filterMessagesByKinds([Diagnostic.HINT]);
   }
 
   Iterable<DiagnosticMessage> get infos {
-    return filterMessagesByKind(Diagnostic.INFO);
+    return filterMessagesByKinds([Diagnostic.INFO]);
+  }
+
+  /// `true` if non-verbose messages has been collected.
+  bool get hasRegularMessages {
+    return messages.any((m) => m.kind != Diagnostic.VERBOSE_INFO);
   }
 }
 
-DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,
-                                          SourceFileProvider provider,
-                                          bool showDiagnostics) {
-  var handler = diagnosticHandler;
+class MultiDiagnostics implements CompilerDiagnostics {
+  final List<CompilerDiagnostics> diagnosticsList;
+
+  const MultiDiagnostics([this.diagnosticsList = const []]);
+
+  @override
+  void report(Message message, Uri uri, int begin, int end,
+              String text, Diagnostic kind) {
+    for (CompilerDiagnostics diagnostics in diagnosticsList) {
+      diagnostics.report(message, uri, begin, end, text, kind);
+    }
+  }
+}
+
+CompilerDiagnostics createCompilerDiagnostics(
+    CompilerDiagnostics diagnostics,
+    SourceFileProvider provider,
+    bool showDiagnostics) {
+  CompilerDiagnostics handler = diagnostics;
   if (showDiagnostics) {
-    if (diagnosticHandler == null) {
+    if (diagnostics == null) {
       handler = new FormattingDiagnosticHandler(provider);
     } else {
       var formattingHandler = new FormattingDiagnosticHandler(provider);
-      handler = (Uri uri, int begin, int end, String message, Diagnostic kind) {
-        diagnosticHandler(uri, begin, end, message, kind);
-        formattingHandler(uri, begin, end, message, kind);
-      };
+      handler = new MultiDiagnostics([diagnostics, formattingHandler]);
     }
-  } else if (diagnosticHandler == null) {
-    handler = (Uri uri, int begin, int end, String message, Diagnostic kind) {};
+  } else if (diagnostics == null) {
+    handler = new MultiDiagnostics();
   }
   return handler;
 }
@@ -89,51 +124,87 @@ DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,
 Expando<MemorySourceFileProvider> expando =
     new Expando<MemorySourceFileProvider>();
 
-Compiler compilerFor(Map<String,String> memorySourceFiles,
-                     {DiagnosticHandler diagnosticHandler,
-                      CompilerOutputProvider outputProvider,
-                      List<String> options: const [],
-                      Compiler cachedCompiler,
-                      bool showDiagnostics: true,
-                      Uri packageRoot}) {
+Future<CompilationResult> runCompiler(
+    {Map<String, String> memorySourceFiles: const <String, String>{},
+     Uri entryPoint,
+     List<Uri> entryPoints,
+     CompilerDiagnostics diagnosticHandler,
+     CompilerOutput outputProvider,
+     List<String> options: const <String>[],
+     Compiler cachedCompiler,
+     bool showDiagnostics: true,
+     Uri packageRoot,
+     Uri packageConfig,
+     PackagesDiscoveryProvider packagesDiscoveryProvider,
+     void beforeRun(Compiler compiler)}) async {
+  if (entryPoint == null) {
+    entryPoint = Uri.parse('memory:main.dart');
+  }
+  Compiler compiler = compilerFor(
+      memorySourceFiles,
+      diagnosticHandler: diagnosticHandler,
+      outputProvider: outputProvider,
+      options: options,
+      cachedCompiler: cachedCompiler,
+      showDiagnostics: showDiagnostics,
+      packageRoot: packageRoot,
+      packageConfig: packageConfig,
+      packagesDiscoveryProvider: packagesDiscoveryProvider);
+  compiler.librariesToAnalyzeWhenRun = entryPoints;
+  if (beforeRun != null) {
+    beforeRun(compiler);
+  }
+  bool isSuccess = await compiler.run(entryPoint);
+  return new CompilationResult(compiler, isSuccess: isSuccess);
+}
+
+Compiler compilerFor(
+    Map<String, String> memorySourceFiles,
+    {CompilerDiagnostics diagnosticHandler,
+     CompilerOutput outputProvider,
+     List<String> options: const <String>[],
+     Compiler cachedCompiler,
+     bool showDiagnostics: true,
+     Uri packageRoot,
+     Uri packageConfig,
+     PackagesDiscoveryProvider packagesDiscoveryProvider}) {
   Uri libraryRoot = Uri.base.resolve('sdk/');
-  if (packageRoot == null) {
+  if (packageRoot == null &&
+      packageConfig == null &&
+      packagesDiscoveryProvider == null) {
     packageRoot = Uri.base.resolveUri(new Uri.file('${Platform.packageRoot}/'));
   }
 
   MemorySourceFileProvider provider;
-  var readStringFromUri;
   if (cachedCompiler == null) {
     provider = new MemorySourceFileProvider(memorySourceFiles);
-    readStringFromUri = provider.readStringFromUri;
     // Saving the provider in case we need it later for a cached compiler.
-    expando[readStringFromUri] = provider;
+    expando[provider] = provider;
   } else {
     // When using a cached compiler, it has read a number of files from disk
     // already (and will not attempt to read them again due to caching). These
     // files must be available to the new diagnostic handler.
     provider = expando[cachedCompiler.provider];
-    readStringFromUri = cachedCompiler.provider;
     provider.memorySourceFiles = memorySourceFiles;
   }
-  var handler =
-      createDiagnosticHandler(diagnosticHandler, provider, showDiagnostics);
+  diagnosticHandler =
+      createCompilerDiagnostics(diagnosticHandler, provider, showDiagnostics);
 
-  EventSink<String> noOutputProvider(String name, String extension) {
-    if (name != '') throw 'Attempt to output file "$name.$extension"';
-    return new NullSink('$name.$extension');
-  }
   if (outputProvider == null) {
-    outputProvider = noOutputProvider;
+    outputProvider = const NullCompilerOutput();
   }
 
-  Compiler compiler = new Compiler(readStringFromUri,
-                                   outputProvider,
-                                   handler,
-                                   libraryRoot,
-                                   packageRoot,
-                                   options,
-                                   {});
+  Compiler compiler = new Compiler(
+      provider,
+      outputProvider,
+      diagnosticHandler,
+      libraryRoot,
+      packageRoot,
+      options,
+      {},
+      packageConfig,
+      packagesDiscoveryProvider);
+
   if (cachedCompiler != null) {
     compiler.coreLibrary =
         cachedCompiler.libraryLoader.lookupLibrary(Uri.parse('dart:core'));
@@ -222,6 +293,27 @@ class MemoryLoadedLibraries implements LoadedLibraries {
 
   @override
   Uri get rootUri => null;
+}
+
+
+DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,
+                                          SourceFileProvider provider,
+                                          bool showDiagnostics) {
+  var handler = diagnosticHandler;
+  if (showDiagnostics) {
+    if (diagnosticHandler == null) {
+      handler = new FormattingDiagnosticHandler(provider);
+    } else {
+      var formattingHandler = new FormattingDiagnosticHandler(provider);
+      handler = (Uri uri, int begin, int end, String message, Diagnostic kind) {
+        diagnosticHandler(uri, begin, end, message, kind);
+        formattingHandler(uri, begin, end, message, kind);
+      };
+    }
+  } else if (diagnosticHandler == null) {
+    handler = (Uri uri, int begin, int end, String message, Diagnostic kind) {};
+  }
+  return handler;
 }
 
 Future<MirrorSystem> mirrorSystemFor(Map<String,String> memorySourceFiles,

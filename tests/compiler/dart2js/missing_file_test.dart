@@ -6,17 +6,11 @@
 
 library dart2js.test.missing_file;
 
-import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
-import 'memory_source_file_helper.dart';
-
-import 'package:compiler/src/dart2jslib.dart'
-       show NullSink;
-
-import 'package:compiler/compiler.dart'
-       show DiagnosticHandler, Diagnostic;
-
 import 'dart:async';
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/dart2jslib.dart';
+import 'package:expect/expect.dart';
+import 'memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
   'main.dart': '''
@@ -27,56 +21,28 @@ main() {}
 ''',
 };
 
-Future runCompiler(Uri main, String expectedMessage) {
+Future runTest(Uri main, MessageKind expectedMessageKind) async {
   print("\n\n\n");
-  Uri script = currentDirectory.resolveUri(Platform.script);
-  Uri libraryRoot = script.resolve('../../../sdk/');
-  Uri packageRoot = script.resolve('./packages/');
 
-  var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
-  var handler = new FormattingDiagnosticHandler(provider);
-  var errors = [];
+  DiagnosticCollector diagnostics = new DiagnosticCollector();
+  OutputCollector output = new OutputCollector();
+  await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      diagnosticHandler: diagnostics,
+      outputProvider: output);
 
-  void diagnosticHandler(Uri uri, int begin, int end, String message,
-                         Diagnostic kind) {
-    if (kind == Diagnostic.ERROR) {
-      errors.add(message);
-    }
-    handler(uri, begin, end, message, kind);
-  }
-
-
-  EventSink<String> outputProvider(String name, String extension) {
-    if (name != '') throw 'Attempt to output file "$name.$extension"';
-    return new NullSink('$name.$extension');
-  }
-
-  Compiler compiler = new Compiler(provider,
-                                   outputProvider,
-                                   diagnosticHandler,
-                                   libraryRoot,
-                                   packageRoot,
-                                   [],
-                                   {});
-
-  return compiler.run(main).then((_) {
-    Expect.equals(1, errors.length);
-    Expect.equals(expectedMessage,
-                  errors[0]);
-  });
+  Expect.isFalse(output.hasExtraOutput);
+  Expect.equals(1, diagnostics.errors.length);
+  Expect.equals(expectedMessageKind, diagnostics.errors.first.message.kind);
 }
 
 void main() {
-  asyncTest(() => Future.forEach([
-  () => runCompiler(
-      Uri.parse('memory:main.dart'),
-      "Can't read 'memory:foo.dart' "
-      "(Exception: No such file memory:foo.dart)."),
-  () => runCompiler(
-      Uri.parse('memory:foo.dart'),
-      "Exception: No such file memory:foo.dart"),
-  () => runCompiler(
-      Uri.parse('dart:foo'),
-      "Library not found 'dart:foo'."),
-  ], (f) => f()));
+  asyncTest(() async {
+    await runTest(
+        Uri.parse('memory:main.dart'), MessageKind.READ_SCRIPT_ERROR);
+    await runTest(
+        Uri.parse('memory:foo.dart'), MessageKind.READ_SCRIPT_ERROR);
+    await runTest(
+        Uri.parse('dart:foo'), MessageKind.READ_SCRIPT_ERROR);
+  });
 }

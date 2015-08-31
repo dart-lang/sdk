@@ -7,6 +7,7 @@
 
 [ $compiler == none ]
 built_in_identifier_prefix_test: Fail # Issue 6970
+tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
 
 # These bugs refer currently ongoing language discussions.
 constructor_initializer_test/none: Fail # Issue 12633
@@ -17,36 +18,25 @@ closure_in_initializer_test: Fail # Issue 6422
 # Regular bugs which should be fixed.
 duplicate_export_negative_test: Fail # Issue 6134
 
-[ $compiler == none ]
-# Null-aware operators aren't implemented in the VM yet.
-if_null_evaluation_order_test: Fail
-if_null_precedence_test: Fail
-if_null_behavior_test: Fail
-if_null_assignment_behavior_test: Fail
-if_null_assignment_static_test: Fail
-conditional_property_assignment_test: Fail
-conditional_property_access_test: Fail
-conditional_method_invocation_test: Fail
-this_conditional_operator_test/none: Fail
-
 deferred_redirecting_factory_test: Fail # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 
-[ $compiler == none ]
 # Non-contractive types are not supported in the vm.
 cyclic_type_test/02: Fail, OK
 cyclic_type_test/04: Fail, OK
 cyclic_type2_test: Fail, OK
 least_upper_bound_expansive_test/*: Fail, OK
 
-async_star_test/01: CompileTimeError, RuntimeError # drt only runtime-errs.
-async_star_test/02: RuntimeError
-async_star_test/05: Timeout, RuntimeError
+async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runtime-errs.
+async_star_cancel_while_paused_test: RuntimeError
+async_star_await_pauses_test: Skip # Times out. Issue 23996
+async_star_regression_fisk_test: RuntimeError # Issue 23994
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
+try_catch_optimized1_test: Skip # Srdjan investigating
 
 [ $compiler == none && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
@@ -103,3 +93,8 @@ gc_test: SkipSlow # Times out flakily. Issue 20956
 
 [ $compiler == none && $runtime == vm && ( $arch == simarm || $arch == arm || $arch == simarmv5te || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
+
+[ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
+mixin_super_test: Fail # Can't pass VMOptions to dartium.
+mixin_super_bound2_test: Fail # Can't pass VMOptions to dartium.
+issue23244_test: Fail # Can't run spawnFunction on dartium.

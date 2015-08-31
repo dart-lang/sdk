@@ -5,6 +5,7 @@
 library analysis_server.edit.fix.fix_dart;
 
 import 'package:analysis_server/edit/fix/fix_core.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -18,7 +19,8 @@ import 'package:analyzer/src/generated/source.dart';
  */
 abstract class DartFixContributor extends FixContributor {
   @override
-  List<Fix> computeFixes(AnalysisContext context, AnalysisError error) {
+  List<Fix> computeFixes(ResourceProvider resourceProvider,
+      AnalysisContext context, AnalysisError error) {
     Source source = error.source;
     if (!AnalysisEngine.isDartFileName(source.fullName)) {
       return Fix.EMPTY_LIST;
@@ -32,12 +34,13 @@ abstract class DartFixContributor extends FixContributor {
     if (unit == null) {
       return Fix.EMPTY_LIST;
     }
-    return internalComputeFixes(unit, error);
+    return internalComputeFixes(resourceProvider, unit, error);
   }
 
   /**
    * Return a list of fixes for the given [error]. The error was reported
    * against the given compilation [unit].
    */
-  List<Fix> internalComputeFixes(CompilationUnit unit, AnalysisError error);
+  List<Fix> internalComputeFixes(ResourceProvider resourceProvider,
+      CompilationUnit unit, AnalysisError error);
 }

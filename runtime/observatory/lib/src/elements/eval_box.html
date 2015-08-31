@@ -11,10 +11,13 @@
         font: 400 16px 'Montserrat', sans-serif;
       }
       .bigtextbox {
+        flex-grow: 1;
         font: 400 16px 'Montserrat', sans-serif;
       }
       .button {
         font: 400 16px 'Montserrat', sans-serif;
+        margin-left: 0.5em;
+        margin-right: 0.5em;
       }
       .radios {
         display: inline;
@@ -42,13 +45,29 @@
         display: block;
         padding: 6px 6px;
       }
+      a.boxclose {
+        margin-left: 20px;
+        valign: top;
+        display: block;
+        height: 18px;
+        width: 18px;
+        line-height: 16px;
+        border-radius: 9px;
+        color: black;
+        font-size: 18px;
+        cursor: pointer;
+        text-align: center;
+      }
+      a.boxclose:hover {
+        background: lightgray;
+      }
     </style>
     <form style="display:flex; flex-direction:row; align-items:flex-end">
       <template if="{{ lineMode == '1-line' }}">
         <input class="textbox" type="text" value="{{ text }}">
       </template>
       <template if="{{ lineMode == 'N-line' }}">
-        <textarea class="bigtextbox" rows="5" cols="80"
+        <textarea class="bigtextbox"
                   value="{{ text }}"></textarea>
       </template>
 
@@ -85,6 +104,10 @@
                 <div style="color:#aaa;cursor:wait;">&lt;pending&gt;</div>
               </template>
             </template>
+          </td>
+          <td>
+            <a class="boxclose" on-click="{{ closeItem }}"
+               closeId="{{ result['id'] }}">&times;</a>
           </td>
         </tr>
       </table>

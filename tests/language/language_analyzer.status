@@ -12,10 +12,13 @@ await_backwards_compatibility_test/none: CompileTimeError # Issue 22052
 await_test: CompileTimeError # Issue 22052
 async_await_test/02: CompileTimeError # Issue 22052
 regress_17382_test: Skip # don't care about the static warning.
+regress_23408_test: Skip # don't care about the warning.
 regress_23038_test/01: Skip # Issue 23038
 getter_setter_in_lib_test: Fail # issue 23286
 
 issue13179_test: CompileTimeError # Issue 13179
+tearoff_basic_test: Skip # Tear-off not supported
+tearoff_constructor_basic_test: Skip # Tear-off not supported
 
 sync_generator2_test/01: MissingCompileTimeError # Issue 22252
 sync_generator2_test/02: MissingCompileTimeError # Issue 22252
@@ -74,6 +77,13 @@ mixin_forwarding_constructor4_test/03: MissingCompileTimeError # Issue 19576
 mixin_super_constructor_named_test/01: MissingCompileTimeError # Issue 19576
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError # Issue 19576
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 21565
+
+multiline_newline_test/01: CompileTimeError # Issue 23888
+multiline_newline_test/02: CompileTimeError # Issue 23888
+multiline_newline_test/03: CompileTimeError # Issue 23888
+multiline_newline_test/04: MissingCompileTimeError # Issue 23888
+multiline_newline_test/05: MissingCompileTimeError # Issue 23888
+multiline_newline_test/06: MissingCompileTimeError # Issue 23888
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
@@ -349,6 +359,9 @@ mixin_type_parameters_super_test: StaticWarning
 mixin_with_two_implicit_constructors_test: StaticWarning
 mixin_invalid_bound_test/none: StaticWarning # legitimate StaticWarning, cannot be annotated
 mixin_invalid_bound2_test/none: StaticWarning # legitimate StaticWarning, cannot be annotated
+mixin_super_bound_test: StaticWarning # legitimate StaticWarning, cannot be annotated
+mixin_super_bound2_test: CompileTimeError # Issue 23772
+mixin_super_test: CompileTimeError # Issue 23772
 named_constructor_test/01: StaticWarning
 named_constructor_test/03: StaticWarning
 named_parameters2_test: StaticWarning

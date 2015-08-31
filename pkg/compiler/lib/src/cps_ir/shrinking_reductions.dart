@@ -14,14 +14,14 @@ import 'optimizers.dart';
 class ShrinkingReducer extends Pass {
   String get passName => 'Shrinking reductions';
 
-  Set<_ReductionTask> _worklist;
+  List<_ReductionTask> _worklist;
 
   static final _DeletedNode _DELETED = new _DeletedNode();
 
   /// Applies shrinking reductions to root, mutating root in the process.
   @override
   void rewrite(FunctionDefinition root) {
-    _worklist = new Set<_ReductionTask>();
+    _worklist = new List<_ReductionTask>();
     _RedexVisitor redexVisitor = new _RedexVisitor(_worklist);
 
     // Set all parent pointers.
@@ -32,8 +32,7 @@ class ShrinkingReducer extends Pass {
 
     // Process the worklist.
     while (_worklist.isNotEmpty) {
-      _ReductionTask task = _worklist.first;
-      _worklist.remove(task);
+      _ReductionTask task = _worklist.removeLast();
       _processTask(task);
     }
   }
@@ -246,8 +245,11 @@ class ShrinkingReducer extends Pass {
   }
 }
 
-/// Returns true iff the bound primitive is unused.
-bool _isDeadVal(LetPrim node) => !node.primitive.hasAtLeastOneUse;
+/// Returns true iff the bound primitive is unused, and has no effects
+/// preventing it from being eliminated.
+bool _isDeadVal(LetPrim node) {
+  return node.primitive.hasNoUses && node.primitive.isSafeForElimination;
+}
 
 /// Returns true iff the continuation is unused.
 bool _isDeadCont(Continuation cont) {
@@ -275,9 +277,12 @@ bool _isBetaContLin(Continuation cont) {
 
   // Beta-reduction will move the continuation's body to its unique invocation
   // site.  This is not safe if the body is moved into an exception handler
-  // binding.
+  // binding.  Search from the invocation to the continuation binding to
+  // make sure that there is no binding for a handler.
   Node current = invoke.parent;
   while (current != cont.parent) {
+    // There is no need to reduce a beta-redex inside a deleted subterm.
+    if (current == ShrinkingReducer._DELETED) return false;
     if (current is LetHandler) return false;
     current = current.parent;
   }
@@ -394,7 +399,7 @@ bool _isDeadParameter(Parameter parameter) {
 
 /// Traverses a term and adds any found redexes to the worklist.
 class _RedexVisitor extends RecursiveVisitor {
-  final Set<_ReductionTask> worklist;
+  final List<_ReductionTask> worklist;
 
   _RedexVisitor(this.worklist);
 
@@ -440,7 +445,7 @@ class _RedexVisitor extends RecursiveVisitor {
 /// any corresponding tasks can be skipped.  Nodes are marked so by setting
 /// their parent to the deleted sentinel.
 class _RemovalVisitor extends RecursiveVisitor {
-  final Set<_ReductionTask> worklist;
+  final List<_ReductionTask> worklist;
 
   _RemovalVisitor(this.worklist);
 
@@ -551,26 +556,25 @@ class ParentVisitor extends RecursiveVisitor {
     node.arguments.forEach((Reference ref) => ref.parent = node);
   }
 
-  processConcatenateStrings(ConcatenateStrings node) {
-    node.continuation.parent = node;
-    node.arguments.forEach((Reference ref) => ref.parent = node);
-  }
-
   processBranch(Branch node) {
     node.condition.parent = node;
     node.trueContinuation.parent = node;
     node.falseContinuation.parent = node;
   }
 
-  processTypeOperator(TypeOperator node) {
+  processTypeCast(TypeCast node) {
     node.typeArguments.forEach((Reference ref) => ref.parent = node);
     node.continuation.parent = node;
     node.value.parent = node;
   }
 
-  processSetMutableVariable(SetMutableVariable node) {
+  processTypeTest(TypeTest node) {
+    node.typeArguments.forEach((Reference ref) => ref.parent = node);
+    node.value.parent = node;
+  }
+
+  processSetMutable(SetMutable node) {
     node.variable.parent = node;
-    node.body.parent = node;
     node.value.parent = node;
   }
 
@@ -610,11 +614,6 @@ class ParentVisitor extends RecursiveVisitor {
     node.value.parent = node;
   }
 
-  processIdentical(Identical node) {
-    node.left.parent = node;
-    node.right.parent = node;
-  }
-
   processInterceptor(Interceptor node) {
     node.input.parent = node;
   }
@@ -622,7 +621,6 @@ class ParentVisitor extends RecursiveVisitor {
   processSetField(SetField node) {
     node.object.parent = node;
     node.value.parent = node;
-    node.body.parent = node;
   }
 
   processGetField(GetField node) {
@@ -634,10 +632,9 @@ class ParentVisitor extends RecursiveVisitor {
 
   processSetStatic(SetStatic node) {
     node.value.parent = node;
-    node.body.parent = node;
   }
 
-  processGetMutableVariable(GetMutableVariable node) {
+  processGetMutable(GetMutable node) {
     node.variable.parent = node;
   }
 
@@ -663,6 +660,32 @@ class ParentVisitor extends RecursiveVisitor {
 
   processCreateInvocationMirror(CreateInvocationMirror node) {
     node.arguments.forEach((Reference ref) => ref.parent = node);
+  }
+
+  processApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    node.arguments.forEach((Reference ref) => ref.parent = node);
+  }
+
+  processForeignCode(ForeignCode node) {
+    if (node.continuation != null) {
+      node.continuation.parent = node;
+    }
+    node.arguments.forEach((Reference ref) => ref.parent = node);
+  }
+
+  processGetLength(GetLength node) {
+    node.object.parent = node;
+  }
+
+  processGetIndex(GetIndex node) {
+    node.object.parent = node;
+    node.index.parent = node;
+  }
+
+  processSetIndex(SetIndex node) {
+    node.object.parent = node;
+    node.index.parent = node;
+    node.value.parent = node;
   }
 }
 

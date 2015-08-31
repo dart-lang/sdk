@@ -25,8 +25,11 @@ const String ANALYSIS_GET_ERRORS = 'analysis.getErrors';
 const String ANALYSIS_GET_HOVER = 'analysis.getHover';
 const String ANALYSIS_GET_LIBRARY_DEPENDENCIES =
     'analysis.getLibraryDependencies';
+const String ANALYSIS_GET_NAVIGATION = 'analysis.getNavigation';
 const String ANALYSIS_REANALYZE = 'analysis.reanalyze';
 const String ANALYSIS_SET_ANALYSIS_ROOTS = 'analysis.setAnalysisRoots';
+const String ANALYSIS_SET_GENERAL_SUBSCRIPTIONS =
+    'analysis.setGeneralSubscriptions';
 const String ANALYSIS_SET_PRIORITY_FILES = 'analysis.setPriorityFiles';
 const String ANALYSIS_SET_SUBSCRIPTIONS = 'analysis.setSubscriptions';
 const String ANALYSIS_UPDATE_CONTENT = 'analysis.updateContent';
@@ -35,6 +38,7 @@ const String ANALYSIS_UPDATE_OPTIONS = 'analysis.updateOptions';
 //
 // Analysis notifications
 //
+const String ANALYSIS_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_ERRORS = 'analysis.errors';
 const String ANALYSIS_HIGHLIGHTS = 'analysis.highlights';
 const String ANALYSIS_NAVIGATION = 'analysis.navigation';
@@ -75,6 +79,7 @@ const String EDIT_GET_ASSISTS = 'edit.getAssists';
 const String EDIT_GET_AVAILABLE_REFACTORINGS = 'edit.getAvailableRefactorings';
 const String EDIT_GET_FIXES = 'edit.getFixes';
 const String EDIT_GET_REFACTORING = 'edit.getRefactoring';
+const String EDIT_ORGANIZE_DIRECTIVES = 'edit.organizeDirectives';
 const String EDIT_SORT_MEMBERS = 'edit.sortMembers';
 
 //

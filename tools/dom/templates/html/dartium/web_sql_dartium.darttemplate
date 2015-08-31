@@ -27,3 +27,10 @@ $!GENERATED_DART_FILES
 final web_sqlBlinkMap = {
 $!TYPE_MAP
 };
+
+$if JSINTEROP
+// FIXME: Can we make this private?
+final web_sqlBlinkFunctionMap = {
+$!TYPE_FUNCTION_MAP
+};
+$endif

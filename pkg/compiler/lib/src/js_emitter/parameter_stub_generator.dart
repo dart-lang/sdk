@@ -83,7 +83,6 @@ class ParameterStubGenerator {
     // Includes extra receiver argument when using interceptor convention
     int indexOfLastOptionalArgumentInParameters = optionalParameterStart - 1;
 
-    int parameterIndex = 0;
     parameters.orderedForEachParameter((ParameterElement element) {
       String jsName = backend.namer.safeVariableName(element.name);
       assert(jsName != receiverArgumentName);
@@ -126,7 +125,7 @@ class ParameterStubGenerator {
     } else if (member.isInstanceMember) {
       if (needsSuperGetter(member)) {
         ClassElement superClass = member.enclosingClass;
-        String methodName = namer.instanceMethodName(member);
+        jsAst.Name methodName = namer.instanceMethodName(member);
         // When redirecting, we must ensure that we don't end up in a subclass.
         // We thus can't just invoke `this.foo$1.call(filledInArguments)`.
         // Instead we need to call the statically resolved target.
@@ -149,8 +148,8 @@ class ParameterStubGenerator {
 
     jsAst.Fun function = js('function(#) { #; }', [parametersBuffer, body]);
 
-    String name = namer.invocationName(selector);
-    String callName =
+    jsAst.Name name = member.isStatic ? null : namer.invocationName(selector);
+    jsAst.Name callName =
         (callSelector != null) ? namer.invocationName(callSelector) : null;
     return new ParameterStubMethod(name, callName, function);
   }
@@ -201,28 +200,28 @@ class ParameterStubGenerator {
     // The set of selectors that apply to `member`. For example, for
     // a member `foo(x, [y])` the following selectors may apply:
     // `foo(x)`, and `foo(x, y)`.
-    Set<Selector> selectors;
+    Map<Selector, TypeMaskSet> selectors;
     // The set of selectors that apply to `member` if it's name was `call`.
     // This happens when a member is torn off. In that case calls to the
     // function use the name `call`, and we must be able to handle every
     // `call` invocation that matches the signature. For example, for
     // a member `foo(x, [y])` the following selectors would be possible
     // call-selectors: `call(x)`, and `call(x, y)`.
-    Set<Selector> callSelectors;
+    Map<Selector, TypeMaskSet> callSelectors;
 
     // Only instance members (not static methods) need stubs.
     if (member.isInstanceMember) {
-        selectors = compiler.codegenWorld.invokedNames[member.name];
+        selectors = compiler.codegenWorld.invocationsByName(member.name);
     }
 
     if (canTearOff) {
       String call = namer.closureInvocationSelectorName;
-      callSelectors = compiler.codegenWorld.invokedNames[call];
+      callSelectors = compiler.codegenWorld.invocationsByName(call);
     }
 
     assert(emptySelectorSet.isEmpty);
-    if (selectors == null) selectors = emptySelectorSet;
-    if (callSelectors == null) callSelectors = emptySelectorSet;
+    if (selectors == null) selectors = const <Selector, TypeMaskSet>{};
+    if (callSelectors == null) callSelectors = const <Selector, TypeMaskSet>{};
 
     List<ParameterStubMethod> stubs = <ParameterStubMethod>[];
 
@@ -242,7 +241,7 @@ class ParameterStubGenerator {
 
     // Start with the callSelectors since they imply the generation of the
     // non-call version.
-    for (Selector selector in callSelectors) {
+    for (Selector selector in callSelectors.keys) {
       Selector renamedSelector = new Selector(
           SelectorKind.CALL,
           member.memberName,
@@ -251,7 +250,7 @@ class ParameterStubGenerator {
 
       if (!renamedSelector.appliesUnnamed(member, compiler.world)) continue;
 
-      if (untypedSelectors.add(renamedSelector.asUntyped)) {
+      if (untypedSelectors.add(renamedSelector)) {
         ParameterStubMethod stub =
             generateParameterStub(member, renamedSelector, selector);
         if (stub != null) {
@@ -263,11 +262,14 @@ class ParameterStubGenerator {
     // Now run through the actual member selectors (eg. `foo$2(x, y)` and not
     // `call$2(x, y)`. Some of them have already been generated because of the
     // call-selectors (and they are in the renamedCallSelectors set.
-    for (Selector selector in selectors) {
+    for (Selector selector in selectors.keys) {
       if (renamedCallSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member, compiler.world)) continue;
+      if (!selectors[selector].applies(member, selector, compiler.world)) {
+        continue;
+      }
 
-      if (untypedSelectors.add(selector.asUntyped)) {
+      if (untypedSelectors.add(selector)) {
         ParameterStubMethod stub =
             generateParameterStub(member, selector, null);
         if (stub != null) {

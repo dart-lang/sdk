@@ -38,8 +38,11 @@ DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, support_debugger, true, "Emit code needed for debugging");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
+DEFINE_FLAG(bool, precompile_collect_closures, false,
+            "Collect all closure functions referenced from compiled code.");
 
 DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(bool, use_field_guards);
 
@@ -1335,6 +1338,36 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
       }
     }
     return;
+  } else if (node->kind() == Token::kIFNULL) {
+    // left ?? right. This operation cannot be overloaded.
+    // temp = left; temp === null ? right : temp
+    ValueGraphVisitor for_left_value(owner());
+    node->left()->Visit(&for_left_value);
+    Append(for_left_value);
+    Do(BuildStoreExprTemp(for_left_value.value()));
+
+    LocalVariable* temp_var = owner()->parsed_function().expression_temp_var();
+    LoadLocalNode* load_temp =
+        new(Z) LoadLocalNode(Scanner::kNoSourcePos, temp_var);
+    LiteralNode* null_constant =
+        new(Z) LiteralNode(Scanner::kNoSourcePos, Object::null_instance());
+    ComparisonNode* check_is_null =
+        new(Z) ComparisonNode(Scanner::kNoSourcePos,
+                              Token::kEQ_STRICT,
+                              load_temp,
+                              null_constant);
+    TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
+    check_is_null->Visit(&for_test);
+
+    ValueGraphVisitor for_right_value(owner());
+    node->right()->Visit(&for_right_value);
+    for_right_value.Do(BuildStoreExprTemp(for_right_value.value()));
+
+    ValueGraphVisitor for_temp(owner());
+    // Nothing to do, left value is already loaded into temp.
+
+    Join(for_test, for_right_value, for_temp);
+    return;
   }
   ValueGraphVisitor for_left_value(owner());
   node->left()->Visit(&for_left_value);
@@ -1410,7 +1443,39 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     }
     ReturnDefinition(BuildLoadExprTemp());
     return;
+  } else if (node->kind() == Token::kIFNULL) {
+    // left ?? right. This operation cannot be overloaded.
+    // temp = left; temp === null ? right : temp
+    ValueGraphVisitor for_left_value(owner());
+    node->left()->Visit(&for_left_value);
+    Append(for_left_value);
+    Do(BuildStoreExprTemp(for_left_value.value()));
+
+    LocalVariable* temp_var = owner()->parsed_function().expression_temp_var();
+    LoadLocalNode* load_temp =
+        new(Z) LoadLocalNode(Scanner::kNoSourcePos, temp_var);
+    LiteralNode* null_constant =
+        new(Z) LiteralNode(Scanner::kNoSourcePos, Object::null_instance());
+    ComparisonNode* check_is_null =
+        new(Z) ComparisonNode(Scanner::kNoSourcePos,
+                              Token::kEQ_STRICT,
+                              load_temp,
+                              null_constant);
+    TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
+    check_is_null->Visit(&for_test);
+
+    ValueGraphVisitor for_right_value(owner());
+    node->right()->Visit(&for_right_value);
+    for_right_value.Do(BuildStoreExprTemp(for_right_value.value()));
+
+    ValueGraphVisitor for_temp(owner());
+    // Nothing to do, left value is already loaded into temp.
+
+    Join(for_test, for_right_value, for_temp);
+    ReturnDefinition(BuildLoadExprTemp());
+    return;
   }
+
   EffectGraphVisitor::VisitBinaryOpNode(node);
 }
 
@@ -1749,6 +1814,44 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ValueGraphVisitor for_left_value(owner());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
+
+  if (!FLAG_warn_on_javascript_compatibility) {
+    if (type.IsNumberType() || type.IsIntType() || type.IsDoubleType() ||
+        type.IsSmiType() || type.IsStringType()) {
+      String& method_name = String::ZoneHandle(Z);
+      if (type.IsNumberType()) {
+        method_name = Symbols::_instanceOfNum().raw();
+      } else if (type.IsIntType()) {
+        method_name = Symbols::_instanceOfInt().raw();
+      } else if (type.IsDoubleType()) {
+        method_name = Symbols::_instanceOfDouble().raw();
+      } else if (type.IsSmiType()) {
+        method_name = Symbols::_instanceOfSmi().raw();
+      } else if (type.IsStringType()) {
+        method_name = Symbols::_instanceOfString().raw();
+      }
+      ASSERT(!method_name.IsNull());
+      PushArgumentInstr* push_left = PushArgument(for_left_value.value());
+      ZoneGrowableArray<PushArgumentInstr*>* arguments =
+          new(Z) ZoneGrowableArray<PushArgumentInstr*>(2);
+      arguments->Add(push_left);
+      const Bool& negate = Bool::Get(node->kind() == Token::kISNOT);
+      Value* negate_arg = Bind(new(Z) ConstantInstr(negate));
+      arguments->Add(PushArgument(negate_arg));
+      const intptr_t kNumArgsChecked = 1;
+      InstanceCallInstr* call = new(Z) InstanceCallInstr(
+          node->token_pos(),
+          Library::PrivateCoreLibName(method_name),
+          node->kind(),
+          arguments,
+          Object::null_array(),  // No argument names.
+          kNumArgsChecked,
+          owner()->ic_data_array());
+      ReturnDefinition(call);
+      return;
+    }
+  }
+
   PushArgumentInstr* push_left = PushArgument(for_left_value.value());
   PushArgumentInstr* push_instantiator = NULL;
   PushArgumentInstr* push_type_args = NULL;
@@ -1766,9 +1869,8 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   arguments->Add(push_instantiator);
   arguments->Add(push_type_args);
   ASSERT(!node->right()->AsTypeNode()->type().IsNull());
-  Value* type_arg = Bind(
-      new(Z) ConstantInstr(node->right()->AsTypeNode()->type()));
-  arguments->Add(PushArgument(type_arg));
+  Value* type_const = Bind(new(Z) ConstantInstr(type));
+  arguments->Add(PushArgument(type_const));
   const Bool& negate = Bool::Get(node->kind() == Token::kISNOT);
   Value* negate_arg = Bind(new(Z) ConstantInstr(negate));
   arguments->Add(PushArgument(negate_arg));
@@ -2421,10 +2523,10 @@ LocalVariable* EffectGraphVisitor::EnterTempLocalScope(Value* value) {
 
 
 Definition* EffectGraphVisitor::ExitTempLocalScope(LocalVariable* var) {
-    Value* tmp = Bind(new(Z) LoadLocalInstr(*var));
-    owner()->DeallocateTemps(1);
-    ASSERT(GetCurrentTempLocalIndex() == var->index());
-    return new(Z) DropTempsInstr(1, tmp);
+  Value* tmp = Bind(new(Z) LoadLocalInstr(*var));
+  owner()->DeallocateTemps(1);
+  ASSERT(GetCurrentTempLocalIndex() == var->index());
+  return new(Z) DropTempsInstr(1, tmp);
 }
 
 
@@ -2565,8 +2667,27 @@ void EffectGraphVisitor::VisitStringInterpolateNode(
 }
 
 
+// TODO(rmacnak): De-dup closures in inlined-finally and track down other
+// stragglers to use Class::closures instead.
+static void CollectClosureFunction(const Function& function) {
+  if (function.HasCode()) return;
+
+  Isolate* isolate = Isolate::Current();
+  if (isolate->collected_closures() == GrowableObjectArray::null()) {
+    isolate->set_collected_closures(
+        GrowableObjectArray::Handle(GrowableObjectArray::New()));
+  }
+  const GrowableObjectArray& functions =
+      GrowableObjectArray::Handle(isolate, isolate->collected_closures());
+  functions.Add(function);
+}
+
+
 void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   const Function& function = node->function();
+  if (FLAG_precompile_collect_closures) {
+    CollectClosureFunction(function);
+  }
 
   if (function.IsImplicitStaticClosureFunction()) {
     const Instance& closure =
@@ -2699,26 +2820,80 @@ void EffectGraphVisitor::BuildPushArguments(
 }
 
 
+void EffectGraphVisitor::BuildInstanceCallConditional(InstanceCallNode* node) {
+  LocalVariable* temp_var = owner()->parsed_function().expression_temp_var();
+  LoadLocalNode* load_temp =
+      new(Z) LoadLocalNode(Scanner::kNoSourcePos, temp_var);
+
+  LiteralNode* null_constant =
+      new(Z) LiteralNode(Scanner::kNoSourcePos, Object::null_instance());
+  ComparisonNode* check_is_null =
+      new(Z) ComparisonNode(Scanner::kNoSourcePos,
+                            Token::kEQ,
+                            load_temp,
+                            null_constant);
+  TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
+  check_is_null->Visit(&for_test);
+
+  EffectGraphVisitor for_true(owner());
+  EffectGraphVisitor for_false(owner());
+
+  StoreLocalNode* store_null =
+      new(Z) StoreLocalNode(Scanner::kNoSourcePos, temp_var, null_constant);
+  store_null->Visit(&for_true);
+
+  InstanceCallNode* call =
+      new(Z) InstanceCallNode(node->token_pos(),
+                              load_temp,
+                              node->function_name(),
+                              node->arguments());
+  StoreLocalNode* store_result =
+      new(Z) StoreLocalNode(Scanner::kNoSourcePos, temp_var, call);
+  store_result->Visit(&for_false);
+
+  Join(for_test, for_true, for_false);
+}
+
+
+void ValueGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
+  if (node->is_conditional()) {
+    ValueGraphVisitor for_receiver(owner());
+    node->receiver()->Visit(&for_receiver);
+    Append(for_receiver);
+    Do(BuildStoreExprTemp(for_receiver.value()));
+    BuildInstanceCallConditional(node);
+    ReturnDefinition(BuildLoadExprTemp());
+  } else {
+    EffectGraphVisitor::VisitInstanceCallNode(node);
+  }
+}
+
+
 void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
   ValueGraphVisitor for_receiver(owner());
   node->receiver()->Visit(&for_receiver);
   Append(for_receiver);
-  PushArgumentInstr* push_receiver = PushArgument(for_receiver.value());
-  ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(Z) ZoneGrowableArray<PushArgumentInstr*>(
-          node->arguments()->length() + 1);
-  arguments->Add(push_receiver);
+  if (node->is_conditional()) {
+    Do(BuildStoreExprTemp(for_receiver.value()));
+    BuildInstanceCallConditional(node);
+  } else {
+    PushArgumentInstr* push_receiver = PushArgument(for_receiver.value());
+    ZoneGrowableArray<PushArgumentInstr*>* arguments =
+        new(Z) ZoneGrowableArray<PushArgumentInstr*>(
+            node->arguments()->length() + 1);
+    arguments->Add(push_receiver);
 
-  BuildPushArguments(*node->arguments(), arguments);
-  InstanceCallInstr* call = new(Z) InstanceCallInstr(
-      node->token_pos(),
-      node->function_name(),
-      Token::kILLEGAL,
-      arguments,
-      node->arguments()->names(),
-      1,
-      owner()->ic_data_array());
-  ReturnDefinition(call);
+    BuildPushArguments(*node->arguments(), arguments);
+    InstanceCallInstr* call = new(Z) InstanceCallInstr(
+        node->token_pos(),
+        node->function_name(),
+        Token::kILLEGAL,
+        arguments,
+        node->arguments()->names(),
+        1,
+        owner()->ic_data_array());
+    ReturnDefinition(call);
+  }
 }
 
 
@@ -3059,24 +3234,79 @@ void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 }
 
 
+
+void EffectGraphVisitor::BuildInstanceGetterConditional(
+    InstanceGetterNode* node) {
+  LocalVariable* temp_var = owner()->parsed_function().expression_temp_var();
+  LoadLocalNode* load_temp =
+      new(Z) LoadLocalNode(Scanner::kNoSourcePos, temp_var);
+
+  LiteralNode* null_constant =
+      new(Z) LiteralNode(Scanner::kNoSourcePos, Object::null_instance());
+  ComparisonNode* check_is_null =
+      new(Z) ComparisonNode(Scanner::kNoSourcePos,
+                            Token::kEQ,
+                            load_temp,
+                            null_constant);
+  TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
+  check_is_null->Visit(&for_test);
+
+  EffectGraphVisitor for_true(owner());
+  EffectGraphVisitor for_false(owner());
+
+  StoreLocalNode* store_null =
+      new(Z) StoreLocalNode(Scanner::kNoSourcePos, temp_var, null_constant);
+  store_null->Visit(&for_true);
+
+  InstanceGetterNode* getter =
+      new(Z) InstanceGetterNode(node->token_pos(),
+                                load_temp,
+                                node->field_name());
+  StoreLocalNode* store_getter =
+      new(Z) StoreLocalNode(Scanner::kNoSourcePos, temp_var, getter);
+  store_getter->Visit(&for_false);
+
+  Join(for_test, for_true, for_false);
+}
+
+
+void ValueGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
+  if (node->is_conditional()) {
+    ValueGraphVisitor for_receiver(owner());
+    node->receiver()->Visit(&for_receiver);
+    Append(for_receiver);
+    Do(BuildStoreExprTemp(for_receiver.value()));
+    BuildInstanceGetterConditional(node);
+    ReturnDefinition(BuildLoadExprTemp());
+  } else {
+    EffectGraphVisitor::VisitInstanceGetterNode(node);
+  }
+}
+
+
 void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
   ValueGraphVisitor for_receiver(owner());
   node->receiver()->Visit(&for_receiver);
   Append(for_receiver);
-  PushArgumentInstr* push_receiver = PushArgument(for_receiver.value());
-  ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(Z) ZoneGrowableArray<PushArgumentInstr*>(1);
-  arguments->Add(push_receiver);
-  const String& name =
-      String::ZoneHandle(Z, Field::GetterSymbol(node->field_name()));
-  InstanceCallInstr* call = new(Z) InstanceCallInstr(
-      node->token_pos(),
-      name,
-      Token::kGET,
-      arguments, Object::null_array(),
-      1,
-      owner()->ic_data_array());
-  ReturnDefinition(call);
+  if (node->is_conditional()) {
+    Do(BuildStoreExprTemp(for_receiver.value()));
+    BuildInstanceGetterConditional(node);
+  } else {
+    PushArgumentInstr* push_receiver = PushArgument(for_receiver.value());
+    ZoneGrowableArray<PushArgumentInstr*>* arguments =
+        new(Z) ZoneGrowableArray<PushArgumentInstr*>(1);
+    arguments->Add(push_receiver);
+    const String& name =
+        String::ZoneHandle(Z, Field::GetterSymbol(node->field_name()));
+    InstanceCallInstr* call = new(Z) InstanceCallInstr(
+        node->token_pos(),
+        name,
+        Token::kGET,
+        arguments, Object::null_array(),
+        1,
+        owner()->ic_data_array());
+    ReturnDefinition(call);
+  }
 }
 
 
@@ -3104,6 +3334,37 @@ void EffectGraphVisitor::BuildInstanceSetterArguments(
 
 
 void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
+  if (node->is_conditional()) {
+    ValueGraphVisitor for_receiver(owner());
+    node->receiver()->Visit(&for_receiver);
+    Append(for_receiver);
+    Do(BuildStoreExprTemp(for_receiver.value()));
+
+    LocalVariable* temp_var = owner()->parsed_function().expression_temp_var();
+    LoadLocalNode* load_temp =
+        new(Z) LoadLocalNode(Scanner::kNoSourcePos, temp_var);
+    LiteralNode* null_constant =
+        new(Z) LiteralNode(Scanner::kNoSourcePos, Object::null_instance());
+    ComparisonNode* check_is_null =
+        new(Z) ComparisonNode(Scanner::kNoSourcePos,
+                              Token::kEQ,
+                              load_temp,
+                              null_constant);
+    TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
+    check_is_null->Visit(&for_test);
+
+    EffectGraphVisitor for_true(owner());
+    EffectGraphVisitor for_false(owner());
+
+    InstanceSetterNode* setter =
+        new(Z) InstanceSetterNode(node->token_pos(),
+                                  load_temp,
+                                  node->field_name(),
+                                  node->value());
+    setter->Visit(&for_false);
+    Join(for_test, for_true, for_false);
+    return;
+  }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new(Z) ZoneGrowableArray<PushArgumentInstr*>(2);
   BuildInstanceSetterArguments(node, arguments, kResultNotNeeded);
@@ -3122,6 +3383,42 @@ void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
 
 
 void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
+  if (node->is_conditional()) {
+    ValueGraphVisitor for_receiver(owner());
+    node->receiver()->Visit(&for_receiver);
+    Append(for_receiver);
+    Do(BuildStoreExprTemp(for_receiver.value()));
+
+    LocalVariable* temp_var = owner()->parsed_function().expression_temp_var();
+    LoadLocalNode* load_temp =
+        new(Z) LoadLocalNode(Scanner::kNoSourcePos, temp_var);
+    LiteralNode* null_constant =
+        new(Z) LiteralNode(Scanner::kNoSourcePos, Object::null_instance());
+    ComparisonNode* check_is_null =
+        new(Z) ComparisonNode(Scanner::kNoSourcePos,
+                              Token::kEQ,
+                              load_temp,
+                              null_constant);
+    TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
+    check_is_null->Visit(&for_test);
+
+    ValueGraphVisitor for_true(owner());
+    null_constant->Visit(&for_true);
+    for_true.Do(BuildStoreExprTemp(for_true.value()));
+
+    ValueGraphVisitor for_false(owner());
+    InstanceSetterNode* setter =
+        new(Z) InstanceSetterNode(node->token_pos(),
+                                  load_temp,
+                                  node->field_name(),
+                                  node->value());
+    setter->Visit(&for_false);
+    for_false.Do(BuildStoreExprTemp(for_false.value()));
+
+    Join(for_test, for_true, for_false);
+    ReturnDefinition(BuildLoadExprTemp());
+    return;
+  }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new(Z) ZoneGrowableArray<PushArgumentInstr*>(2);
   BuildInstanceSetterArguments(node, arguments, kResultNeeded);
@@ -3923,6 +4220,11 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   ASSERT((node->label() == NULL) || !is_top_level_sequence);
   NestedBlock nested_block(owner(), node);
 
+  if (FLAG_support_debugger && is_top_level_sequence) {
+    AddInstruction(new(Z) DebugStepCheckInstr(function.token_pos(),
+                                              RawPcDescriptors::kRuntimeCall));
+  }
+
   if (num_context_variables > 0) {
     // The local scope declares variables that are captured.
     // Allocate and chain a new context (Except don't chain when at the function
@@ -4482,6 +4784,9 @@ void EffectGraphVisitor::VisitStopNode(StopNode* node) {
 
 
 FlowGraph* FlowGraphBuilder::BuildGraph() {
+  VMTagScope tagScope(Thread::Current()->isolate(),
+                      VMTag::kCompileFlowGraphBuilderTagId,
+                      FLAG_profile_vm);
   if (FLAG_print_ast) {
     // Print the function ast before IL generation.
     AstPrinter::PrintFunctionNodes(parsed_function());

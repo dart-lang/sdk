@@ -4,8 +4,6 @@
 
 // Verify that the ?. operator cannot be used with "super".
 
-// SharedOptions=--enable-null-aware-operators
-
 class B {
   B();
   B.namedConstructor();

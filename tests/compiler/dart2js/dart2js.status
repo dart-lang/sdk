@@ -42,6 +42,11 @@ backend_dart/opt_constprop_test: Skip
 backend_dart/opt_shrinking_test: Skip
 backend_dart/opt_redundant_phi_test: Skip
 
+# These tests run the compiler multiple times.
+js_backend_cps_ir_basic_test: Pass, Slow
+js_backend_cps_ir_closures_test: Pass, Slow
+js_backend_cps_ir_constructor_test: Pass, Slow
+
 [ $unchecked ]
 exit_code_test: Skip # This tests requires checked mode.
 
@@ -70,8 +75,6 @@ duplicate_library_test: Pass, Slow
 exit_code_test: Pass, Slow
 import_mirrors_test: Pass, Slow
 in_user_code_test: Pass, Slow
-js_backend_cps_ir_basic_test: Pass, Slow
-js_backend_cps_ir_closures_test: Pass, Slow
 message_kind_test: Pass, Slow
 show_package_warnings_test: Pass, Slow
 source_map_pub_build_validity_test: Pass, Slow

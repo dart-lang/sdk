@@ -62,6 +62,35 @@ main() {
       expect(fragment.children.length, equals(1));
       expect(fragment.children[0], isSpanElement);
     });
+
+    test('html interpreted in correct context', () {
+      // appendHtml, in order to sanitize, needs to create a document fragment,
+      // but it needs to be created in the right context. If we try to append
+      // table components then the document fragment needs the table context
+      // or it will fail to create them.
+      var el = new TableElement();
+      el.appendHtml('<tr><td>foo</td></tr>');
+      expect(el.children.length, 1);
+      var section = el.children.first;
+      expect(section is TableSectionElement, isTrue);
+      var row = section.children.first;
+      expect(row is TableRowElement, isTrue);
+      var item = row.children.first;
+      expect(item is TableCellElement, isTrue);
+      expect(item.innerHtml, 'foo');
+    });
+
+    test("use body context for elements that are don't support it", () {
+      // Some elements can't be used as context for createContextualFragment,
+      // often because it doesn't make any sense. So adding children to a
+      // <br> has no real effect on the page, but we can do it. But the
+      // document fragment will have to be created in the body context. Verify
+      // that this doesn't throw and that the children show up.
+      var el = new BRElement();
+      el.appendHtml("<p>Stuff</p>");
+      expect(el.children.length, 1);
+      expect(el.children[0].outerHtml, "<p>Stuff</p>");
+    });
   });
 
   group('appendText', () {

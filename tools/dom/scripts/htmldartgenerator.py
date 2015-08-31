@@ -68,7 +68,7 @@ class HtmlDartGenerator(object):
         "\n  $TYPE get on =>\n    new $TYPE(this);\n",
         TYPE=events_class_name)
 
-  def AddMembers(self, interface, declare_only=False):
+  def AddMembers(self, interface, declare_only=False, dart_js_interop=False):
     for const in sorted(interface.constants, ConstantOutputOrder):
       self.AddConstant(const)
 
@@ -102,7 +102,7 @@ class HtmlDartGenerator(object):
     for id in sorted(operationsByName.keys()):
       operations = operationsByName[id]
       info = AnalyzeOperation(interface, operations)
-      self.AddOperation(info, declare_only)
+      self.AddOperation(info, declare_only, dart_js_interop)
       if ('%s.%s' % (interface.id, info.declared_name) in
           convert_to_future_members):
         self.AddOperation(ConvertToFuture(info), declare_only)
@@ -309,7 +309,7 @@ class HtmlDartGenerator(object):
     else:
       self.EmitAttribute(attribute, attr_name, read_only)
 
-  def AddOperation(self, info, declare_only=False):
+  def AddOperation(self, info, declare_only=False, dart_js_interop=False):
     """ Adds an operation to the generated class.
     Arguments:
       info - The operation info of the operation to be added.
@@ -334,7 +334,7 @@ class HtmlDartGenerator(object):
       self.DeclareOperation(info,
           self.SecureOutputType(info.type_name), method_name)
     else:
-      self.EmitOperation(info, method_name)
+      self.EmitOperation(info, method_name, dart_js_interop)
 
   def _GenerateOverloadDispatcher(self,
       info,
@@ -785,6 +785,13 @@ class HtmlDartGenerator(object):
   def SecureBaseName(self, type_name):
     if type_name in _secure_base_types:
       return _secure_base_types[type_name]
+
+  def is_DOM_type(self, type_name):
+    try:
+        self._type_registry.TypeInfo(type_name)
+        return True
+    except RuntimeError:
+        return False
 
   def _NarrowToImplementationType(self, type_name):
     return self._type_registry.TypeInfo(type_name).narrow_dart_type()

@@ -5,8 +5,6 @@
 // Verify that the ?. operator cannot be used for forwarding "this"
 // constructors.
 
-// SharedOptions=--enable-null-aware-operators
-
 class B {
   B();
   B.namedConstructor();

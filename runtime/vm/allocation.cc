@@ -20,21 +20,21 @@ static void* Allocate(uword size, Zone* zone) {
 
 
 void* ZoneAllocated::operator new(uword size) {
-  return Allocate(size, Isolate::Current()->current_zone());
+  return Allocate(size, Thread::Current()->zone());
 }
 
 
 void* ZoneAllocated::operator new(uword size, Zone* zone) {
-  ASSERT(zone == Isolate::Current()->current_zone());
+  ASSERT(zone == Thread::Current()->zone());
   return Allocate(size, zone);
 }
 
 
-void StackResource::UnwindAbove(Isolate* isolate, StackResource* new_top) {
-  StackResource* current_resource = isolate->top_resource();
+void StackResource::UnwindAbove(Thread* thread, StackResource* new_top) {
+  StackResource* current_resource = thread->top_resource();
   while (current_resource != new_top) {
     current_resource->~StackResource();
-    current_resource = isolate->top_resource();
+    current_resource = thread->top_resource();
   }
 }
 

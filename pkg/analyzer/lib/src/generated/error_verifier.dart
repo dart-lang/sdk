@@ -255,10 +255,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   List<InterfaceType> _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT;
 
   /**
+   * If `true`, mixins are allowed to inherit from types other than Object, and
+   * are allowed to reference `super`.
+   */
+  final bool enableSuperMixins;
+
+  /**
    * Initialize a newly created error verifier.
    */
   ErrorVerifier(this._errorReporter, this._currentLibrary, this._typeProvider,
-      this._inheritanceManager) {
+      this._inheritanceManager, this.enableSuperMixins) {
     this._isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
     this._hasExtUri = _currentLibrary.hasExtUri;
     _isEnclosingConstructorConst = false;
@@ -422,6 +428,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           _checkForConflictingInstanceGetterAndSuperclassMember();
           _checkImplementsSuperClass(node);
           _checkImplementsFunctionWithoutCall(node);
+          _checkForMixinHasNoConstructors(node);
         }
       }
       visitClassDeclarationIncrementally(node);
@@ -474,6 +481,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _checkForImplementsDeferredClass(implementsClause);
         _checkForRecursiveInterfaceInheritance(_enclosingClass);
         _checkForNonAbstractClassInheritsAbstractMember(node.name);
+        _checkForMixinHasNoConstructors(node);
       }
     } finally {
       _enclosingClass = outerClassElement;
@@ -857,9 +865,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     Expression target = node.realTarget;
     SimpleIdentifier methodName = node.methodName;
     if (target != null) {
-      bool isConditional = node.operator.type == sc.TokenType.QUESTION_PERIOD;
-      ClassElement typeReference =
-          ElementResolver.getTypeReference(target, isConditional);
+      ClassElement typeReference = ElementResolver.getTypeReference(target);
       _checkForStaticAccessToInstanceMember(typeReference, methodName);
       _checkForInstanceAccessToStaticMember(typeReference, methodName);
     } else {
@@ -896,7 +902,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (node.parent is! Annotation) {
       ClassElement typeReference =
-          ElementResolver.getTypeReference(node.prefix, false);
+          ElementResolver.getTypeReference(node.prefix);
       SimpleIdentifier name = node.identifier;
       _checkForStaticAccessToInstanceMember(typeReference, name);
       _checkForInstanceAccessToStaticMember(typeReference, name);
@@ -921,7 +927,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitPropertyAccess(PropertyAccess node) {
     bool isConditional = node.operator.type == sc.TokenType.QUESTION_PERIOD;
     ClassElement typeReference =
-        ElementResolver.getTypeReference(node.realTarget, isConditional);
+        ElementResolver.getTypeReference(node.realTarget);
     SimpleIdentifier propertyName = node.propertyName;
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(typeReference, propertyName);
@@ -1651,7 +1657,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         if (_checkForMixinDeclaresConstructor(mixinName, mixinElement)) {
           problemReported = true;
         }
-        if (_checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
+        if (!enableSuperMixins &&
+            _checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
           problemReported = true;
         }
         if (_checkForMixinReferencesSuper(mixinName, mixinElement)) {
@@ -4111,9 +4118,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     for (int i = 0; i < nameCount; i++) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH, statement,
-          [constantNames[i]]);
+      int offset = statement.offset;
+      int end = statement.rightParenthesis.end;
+      _errorReporter.reportErrorForOffset(
+          CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH, offset,
+          end - offset, [constantNames[i]]);
     }
     return true;
   }
@@ -4165,6 +4174,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Report the error [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS] if
+   * appropriate.
+   */
+  void _checkForMixinHasNoConstructors(AstNode node) {
+    if ((_enclosingClass as ClassElementImpl).doesMixinLackConstructors) {
+      ErrorCode errorCode = CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS;
+      _errorReporter.reportErrorForNode(
+          errorCode, node, [_enclosingClass.supertype]);
+    }
+  }
+
+  /**
    * Verify that the given mixin has the 'Object' superclass. The [mixinName] is
    * the node to report problem on. The [mixinElement] is the mixing to
    * evaluate.
@@ -4195,7 +4216,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForMixinReferencesSuper(
       TypeName mixinName, ClassElement mixinElement) {
-    if (mixinElement.hasReferenceToSuper) {
+    if (!enableSuperMixins && mixinElement.hasReferenceToSuper) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MIXIN_REFERENCES_SUPER, mixinName,
           [mixinElement.name]);
@@ -4290,7 +4311,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       ClassDeclaration declaration) {
     // do nothing if mixin errors have already been reported for this class.
     ClassElementImpl enclosingClass = _enclosingClass;
-    if (enclosingClass.mixinErrorsReported) {
+    if (enclosingClass.doesMixinLackConstructors) {
       return false;
     }
     // do nothing if there is explicit constructor
@@ -5183,7 +5204,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // do nothing if mixin errors have already been reported for this class.
     ClassElementImpl enclosingClass = _enclosingClass;
-    if (enclosingClass.mixinErrorsReported) {
+    if (enclosingClass.doesMixinLackConstructors) {
       return false;
     }
     //

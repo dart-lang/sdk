@@ -60,11 +60,15 @@ String getCodeForMethod(Compiler compiler,
 runTests(List<TestEntry> tests) {
   for (TestEntry test in tests) {
     Map files = {TEST_MAIN_FILE: test.source};
-    asyncTest(() {
-      Compiler compiler = compilerFor(files, options: <String>['--use-cps-ir']);
+    asyncTest(() async {
       Uri uri = Uri.parse('memory:$TEST_MAIN_FILE');
-      return compiler.run(uri).then((bool success) {
-        Expect.isTrue(success);
+      try {
+        CompilationResult result = await runCompiler(
+            entryPoint: uri,
+            memorySourceFiles: files,
+            options: <String>['--use-cps-ir']);
+        Expect.isTrue(result.isSuccess);
+        Compiler compiler = result.compiler;
         String expectation = test.expectation;
         if (expectation != null) {
           String expected = test.expectation;
@@ -75,11 +79,11 @@ runTests(List<TestEntry> tests) {
             Expect.fail('Expected:\n$expected\nbut found\n$found');
           }
         }
-      }).catchError((e) {
+      } catch (e) {
         print(e);
         Expect.fail('The following test failed to compile:\n'
                     '${formatTest(files)}');
-      });
+      }
     });
   }
 }

@@ -5,8 +5,6 @@
 // Verify that the static type of a ??= b is the least upper bound of the
 // static types of a and b.
 
-// SharedOptions=--enable-null-aware-operators
-
 import "package:expect/expect.dart";
 
 // Determine whether the VM is running in checked mode.

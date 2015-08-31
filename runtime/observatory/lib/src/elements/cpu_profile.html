@@ -6,6 +6,237 @@
 <link rel="import" href="sliding_checkbox.html">
 <link rel="import" href="view_footer.html">
 
+<polymer-element name="sample-buffer-control" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+    .statusMessage {
+      font-size: 150%;
+      font-weight: bold;
+    }
+
+    .statusBox {
+      height: 100%;
+      padding: 1em;
+    }
+
+    .center {
+      align-items: center;
+      justify-content: center;
+    }
+
+    .notice {
+      background-color: #fcf8e3;
+    }
+
+    .red {
+      background-color: #f2dede;
+    }
+    </style>
+    <div class="content-centered-big">
+      <template if="{{ state != 'kNotLoaded' }}">
+        <h2>Sample buffer</h2>
+        <hr>
+      </template>
+      <template if="{{ state == 'kFetching' }}">
+        <div class="statusBox shadow center">
+          <div class="statusMessage">Fetching profile from VM...</div>
+        </div>
+      </template>
+      <template if="{{ state == 'kLoading' }}">
+        <div class="statusBox shadow center">
+          <div class="statusMessage">Loading profile...</div>
+        </div>
+      </template>
+      <template if="{{ state == 'kDisabled' }}">
+        <div class="statusBox shadow center">
+          <div>
+            <h1>Profiling is disabled</h1>
+            <br>
+            Perhaps the <b>profile</b> flag has been disabled for this VM.
+            <br><br>
+            See all
+            <a on-click="{{ goto }}" _href="{{ gotoLink('/flags') }}">vm flags</a>
+          </div>
+        </div>
+      </template>
+      <template if="{{ state == 'kException' }}">
+        <div class="statusBox shadow center">
+          <div class="statusMessage">
+            <h1>Profiling is disabled due to unexpected exception:</h1>
+            <br>
+            <pre>{{ exception.toString() }}</pre>
+            <br>
+            <h1>Stack trace:</h1>
+            <br>
+            <pre>{{ stackTrace.toString() }}</pre>
+          </div>
+        </div>
+      </template>
+      <template if="{{ state == 'kLoaded' }}">
+        <div class="memberList">
+          <div class="memberItem">
+            <div class="memberName">Refreshed at </div>
+            <div class="memberValue">{{ refreshTime }} (fetched in {{ fetchTime  }}) (loaded in {{ loadTime }})</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Profile contains</div>
+            <div class="memberValue">{{ sampleCount }} samples (spanning {{ timeSpan }})</div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">Sampling</div>
+            <div class="memberValue">{{ stackDepth }} stack frames @ {{ sampleRate }} Hz</div>
+          </div>
+          <template if="{{ showTagSelector }}">
+            <div class="memberItem">
+              <div class="memberName">Tag Order</div>
+              <div class="memberValue">
+                <select value="{{tagSelector}}">
+                  <option value="UserVM">User &gt; VM</option>
+                  <option value="UserOnly">User</option>
+                  <option value="VMUser">VM &gt; User</option>
+                  <option value="VMOnly">VM</option>
+                  <option value="None">None</option>
+                </select>
+              </div>
+            </div>
+          </template>
+        </div>
+      </template>
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="stack-trace-tree-config" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+    .statusBox {
+      height: 100%;
+      padding: 1em;
+    }
+    </style>
+    <div class="content-centered-big">
+      <template if="{{ show }}">
+        <h2>Tree display</h2>
+        <hr>
+        <div class="memberList">
+          <template if="{{ showModeSelector }}">
+            <div class="memberItem">
+              <div class="memberName">Mode</div>
+              <div class="memberValue">
+                <select value="{{modeSelector}}">
+                  <option value="Code">Code</option>
+                  <option value="Function">Function</option>
+                </select>
+              </div>
+            </div>
+          </template>
+          <template if="{{ showDirectionSelector }}">
+            <div class="memberItem">
+              <div class="memberName">Call Tree Direction</div>
+              <div class="memberValue">
+                <select value="{{directionSelector}}">
+                  <option value="Down">Top down</option>
+                  <option value="Up">Bottom up</option>
+                </select>
+              </div>
+            </div>
+          </template>
+        </div>
+        <template if="{{ directionSelector == 'Down' }}">
+          <br>
+          <div class="statusBox shadow">
+            <div>Tree is rooted at main.</div>
+            <br>
+            <div>Child nodes are callees.</div>
+          </div>
+        </template>
+        <template if="{{ directionSelector == 'Up' }}">
+          <br>
+          <div class="statusBox shadow">
+            <div>Tree is rooted at executing function / code.</div>
+            <br>
+            <div>Child nodes are callers.</div>
+          </div>
+        </template>
+      </template>
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="cpu-profile-tree" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+    .infoBox {
+      position: absolute;
+      top: 100%;
+      left: 0%;
+      z-index: 999;
+      opacity: 1;
+      padding: 1em;
+      background-color: #ffffff;
+      border-left: solid 2px #ECECEC;
+      border-bottom: solid 2px #ECECEC;
+      border-right: solid 2px #ECECEC;
+    }
+    .full-width {
+      width: 100%;
+    }
+    .tree {
+      border-spacing: 0px;
+      width: 100%;
+      margin-bottom: 20px
+      vertical-align: middle;
+    }
+    .tree tbody tr {
+      animation: fadeIn 0.5s;
+      -moz-animation: fadeIn 0.5s;
+      -webkit-animation: fadeIn 0.5s;
+    }
+    .tree tbody tr:hover {
+      background-color: #FAFAFA;
+    }
+    .tree tr td:first-child,
+    .tree tr th:first-child {
+      width: 100%;
+    }
+    .tree thead > tr > th {
+      padding: 8px;
+      vertical-align: bottom;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    tr {
+      background-color: #FFFFFF;
+    }
+    tbody tr {
+      animation: fadeIn 0.5s;
+      -moz-animation: fadeIn 0.5s;
+      -webkit-animation: fadeIn 0.5s;
+    }
+    tbody tr:hover {
+      background-color: #FAFAFA;
+    }
+    tr td:first-child,
+    tr th:first-child {
+      width: 100%;
+    }
+    </style>
+    <table id="treeTable" class="full-width tree">
+      <thead id="treeHeader">
+      <tr>
+        <th>Method</th>
+        <th>Executing</th>
+      </tr>
+      </thead>
+      <tbody id="treeBody">
+      </tbody>
+    </table>
+  </template>
+</polymer-element>
+
 <polymer-element name="cpu-profile-table" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
@@ -139,68 +370,8 @@
       }
 
     </style>
-    <div class="content-centered-big">
-      <template if="{{ state == 'Requested' }}">
-        <div class="statusBox shadow center">
-          <div class="statusMessage">Fetching profile from VM...</div>
-        </div>
-      </template>
-      <template if="{{ state == 'Loading' }}">
-        <div class="statusBox shadow center">
-          <div class="statusMessage">Loading profile...</div>
-        </div>
-      </template>
-      <template if="{{ state == 'Disabled' }}">
-        <div class="statusBox shadow center">
-          <div>
-            <h1>Profiling is disabled</h1>
-            <br>
-            Perhaps the <b>profile</b> flag has been disabled for this VM.
-            <br><br>
-            See all
-            <a on-click="{{ goto }}" _href="{{ gotoLink('/flags') }}">vm flags</a>
-          </div>
-        </div>
-      </template>
-      <template if="{{ state == 'Exception' }}">
-        <div class="statusBox shadow center">
-          <div class="statusMessage">
-            <h1>Profiling is disabled due to unexpected exception:</h1>
-            <br>
-            <pre>{{ exception.toString() }}</pre>
-            <br>
-            <h1>Stack trace:</h1>
-            <br>
-            <pre>{{ stackTrace.toString() }}</pre>
-          </div>
-        </div>
-      </template>
-      <template if="{{ state == 'Loaded' }}">
-        <div class="memberList">
-          <div class="memberItem">
-            <div class="memberName">Refreshed at </div>
-            <div class="memberValue">{{ refreshTime }} (fetched in {{ fetchTime  }}) (loaded in {{ loadTime }})</div>
-          </div>
-          <div class="memberItem">
-            <div class="memberName">Profile contains</div>
-            <div class="memberValue">{{ sampleCount }} samples (spanning {{ timeSpan }})</div>
-          </div>
-          <div class="memberItem">
-            <div class="memberName">Sampling</div>
-            <div class="memberValue">{{ stackDepth }} stack frames @ {{ sampleRate }} Hz</div>
-          </div>
-          <div class="memberItem">
-            <div class="memberName">Call Tree Direction</div>
-            <div class="memberValue">
-              <select value="{{directionSelector}}">
-                <option value="Down">Top down</option>
-                <option value="Up">Bottom up</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </template>
-    </div>
+    <sample-buffer-control id="sampleBufferControl"></sample-buffer-control>
+    <br>
     <hr>
     <div id="main" class="flex-row centered">
       <div class="flex-item-45-percent full-height outlined scroll">
@@ -257,28 +428,24 @@
       </div>
     </div>
     <br>
+    <stack-trace-tree-config id="stackTraceTreeConfig"></stack-trace-tree-config>
     <br>
-    <div class="focused-function-label">
-      <template if="{{ focusedFunction != null }}">
-        <span>Filtered tree: </span>
-        <function-ref ref="{{ focusedFunction }}"></function-ref>
-      </template>
-      <template if="{{ focusedFunction == null }}">
-        <span>No focused function</span>
-      </template>
+    <div class="content-centered-big">
+      <div class="focused-function-label">
+        <template if="{{ focusedFunction != null }}">
+          <span>Filtered tree: </span>
+          <function-ref ref="{{ focusedFunction }}"></function-ref>
+        </template>
+        <template if="{{ focusedFunction == null }}">
+          <span>No focused function</span>
+        </template>
+      </div>
     </div>
+    <br>
+    <br>
     <div class="flex-row centered">
       <div class="flex-item-90-percent outlined" style="margin: 16px; margin-left: 8px; margin-right: 8px">
-        <table class="full-width tree">
-          <thead id="treeHeader">
-          <tr>
-            <th>Method</th>
-            <th>Executing</th>
-          </tr>
-          </thead>
-          <tbody id="treeBody">
-          </tbody>
-        </table>
+        <cpu-profile-tree id="cpuProfileTree"></cpu-profile-tree>
       </div>
     </div>
   </template>
@@ -300,195 +467,14 @@
         background-color: #ECECEC;
         padding: 0.2em;
       }
-
-      .table {
-        border-spacing: 0px;
-        width: 100%;
-        margin-bottom: 20px
-        vertical-align: middle;
-      }
-
-      tr {
-        background-color: #FFFFFF;
-      }
-
-      tbody tr {
-        animation: fadeIn 0.5s;
-        -moz-animation: fadeIn 0.5s;
-        -webkit-animation: fadeIn 0.5s;
-      }
-
-      tbody tr:hover {
-        background-color: #FAFAFA;
-      }
-
-      tr td:first-child,
-      tr th:first-child {
-        width: 100%;
-      }
-
-      .table thead > tr > th {
-        padding: 8px;
-        vertical-align: bottom;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-      }
-
-      .infoBox {
-        position: absolute;
-        top: 100%;
-        left: 0%;
-        z-index: 999;
-        opacity: 1;
-        padding: 1em;
-        background-color: #ffffff;
-        border-left: solid 2px #ECECEC;
-        border-bottom: solid 2px #ECECEC;
-        border-right: solid 2px #ECECEC;
-      }
-
-      .statusMessage {
-        font-size: 150%;
-        font-weight: bold;
-      }
-
-      .statusBox {
-        height: 100%;
-        padding: 1em;
-      }
-
-      .center {
-        align-items: center;
-        justify-content: center;
-      }
-
-      .notice {
-        background-color: #fcf8e3;
-      }
-
-      .red {
-        background-color: #f2dede;
-      }
-
     </style>
+    <sample-buffer-control id="sampleBufferControl"></sample-buffer-control>
+    <br>
+    <stack-trace-tree-config id="stackTraceTreeConfig"></stack-trace-tree-config>
+    <br>
     <div class="content-centered-big">
-      <h1>Sampled CPU profile</h1>
-      <hr>
-      <template if="{{ state == 'Requested' }}">
-        <div class="statusBox shadow center">
-          <div class="statusMessage">Fetching profile from VM...</div>
-        </div>
-      </template>
-      <template if="{{ state == 'Loading' }}">
-        <div class="statusBox shadow center">
-          <div class="statusMessage">Loading profile...</div>
-        </div>
-      </template>
-      <template if="{{ state == 'Disabled' }}">
-        <div class="statusBox shadow center">
-          <div>
-            <h1>Profiling is disabled</h1>
-            <br>
-            Perhaps the <b>profile</b> flag has been disabled for this VM.
-            <br><br>
-            See all
-            <a on-click="{{ goto }}" _href="{{ gotoLink('/flags') }}">vm flags</a>
-          </div>
-        </div>
-      </template>
-      <template if="{{ state == 'Exception' }}">
-        <div class="statusBox shadow center">
-          <div class="statusMessage">
-            <h1>Profiling is disabled due to unexpected exception:</h1>
-            <br>
-            <pre>{{ exception.toString() }}</pre>
-            <br>
-            <h1>Stack trace:</h1>
-            <br>
-            <pre>{{ stackTrace.toString() }}</pre>
-          </div>
-        </div>
-      </template>
-      <template if="{{ state == 'Loaded' }}">
-        <div class="memberList">
-          <div class="memberItem">
-            <div class="memberName">Refreshed at </div>
-            <div class="memberValue">{{ refreshTime }} (fetched in {{ fetchTime  }}) (loaded in {{ loadTime }})</div>
-          </div>
-          <div class="memberItem">
-            <div class="memberName">Profile contains</div>
-            <div class="memberValue">{{ sampleCount }} samples (spanning {{ timeSpan }})</div>
-          </div>
-          <div class="memberItem">
-            <div class="memberName">Sampling</div>
-            <div class="memberValue">{{ stackDepth }} stack frames @ {{ sampleRate }} Hz</div>
-          </div>
-          <div class="memberItem">
-            <div class="memberName">Mode</div>
-            <div class="memberValue">
-              <select value="{{modeSelector}}">
-                <option value="Code">Code</option>
-                <option value="Function">Function</option>
-              </select>
-            </div>
-          </div>
-          <div class="memberItem">
-            <div class="memberName">Tag Order</div>
-            <div class="memberValue">
-              <select value="{{tagSelector}}">
-                <option value="UserVM">User &gt; VM</option>
-                <option value="UserOnly">User</option>
-                <option value="VMUser">VM &gt; User</option>
-                <option value="VMOnly">VM</option>
-                <option value="None">None</option>
-              </select>
-            </div>
-          </div>
-          <!--- Experimental
-          <div class="memberItem">
-            <div class="memberName">Call Tree Direction</div>
-            <div class="memberValue">
-              <select value="{{directionSelector}}">
-                <option value="Down">Top down</option>
-                <option value="Up">Bottom up</option>
-              </select>
-            </div>
-          </div>
-           --->
-        </div>
-      </template>
-      <template if="{{ state == 'Loaded' && directionSelector == 'Down' }}">
-        <br>
-        <div class="statusBox shadow">
-          <div>Tree is rooted at main.</div>
-          <br>
-          <div>Child nodes are callees.</div>
-          <br>
-          <div class="notice">To get the most out of this mode you may need to launch Dart with a higher --profile-depth flag value.</div>
-          <div class="notice">Try 16, 32, ... up to 256 until [Truncated] approaches zero.</div>
-          <div class="red">NOTE: Higher values will impact performance</div>
-        </div>
-      </template>
-      <template if="{{ state == 'Loaded' && directionSelector == 'Up' }}">
-        <br>
-        <div class="statusBox shadow">
-          <div>Tree is rooted at executing function / code.</div>
-          <br>
-          <div>Child nodes are callers.</div>
-        </div>
-      </template>
-      <br><br>
       <div class="tableWell shadow">
-        <table class="table">
-          <thead id="treeHeader">
-          <tr>
-            <th>Method</th>
-            <th>Executing</th>
-          </tr>
-          </thead>
-          <tbody id="treeBody">
-          </tbody>
-        </table>
+        <cpu-profile-tree id="cpuProfileTree"></cpu-profile-tree>
       </div>
     </div>
     <view-footer></view-footer>

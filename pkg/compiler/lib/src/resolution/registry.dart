@@ -29,17 +29,17 @@ class EagerRegistry implements Registry {
   }
 
   @override
-  void registerDynamicGetter(Selector selector) {
+  void registerDynamicGetter(UniverseSelector selector) {
     world.registerDynamicGetter(selector);
   }
 
   @override
-  void registerDynamicInvocation(Selector selector) {
+  void registerDynamicInvocation(UniverseSelector selector) {
     world.registerDynamicInvocation(selector);
   }
 
   @override
-  void registerDynamicSetter(Selector selector) {
+  void registerDynamicSetter(UniverseSelector selector) {
     world.registerDynamicSetter(selector);
   }
 
@@ -63,9 +63,9 @@ class EagerRegistry implements Registry {
 
 class ResolutionWorldImpact implements WorldImpact {
   final Registry registry;
-  Setlet<Selector> _dynamicInvocations;
-  Setlet<Selector> _dynamicGetters;
-  Setlet<Selector> _dynamicSetters;
+  Setlet<UniverseSelector> _dynamicInvocations;
+  Setlet<UniverseSelector> _dynamicGetters;
+  Setlet<UniverseSelector> _dynamicSetters;
   Setlet<InterfaceType> _instantiatedTypes;
   Setlet<Element> _staticUses;
   Setlet<DartType> _checkedTypes;
@@ -74,41 +74,43 @@ class ResolutionWorldImpact implements WorldImpact {
   ResolutionWorldImpact(Compiler compiler, TreeElementMapping mapping)
       : this.registry = new EagerRegistry(compiler, mapping);
 
-  void registerDynamicGetter(Selector selector) {
+  void registerDynamicGetter(UniverseSelector selector) {
     if (_dynamicGetters == null) {
-      _dynamicGetters = new Setlet<Selector>();
+      _dynamicGetters = new Setlet<UniverseSelector>();
     }
     _dynamicGetters.add(selector);
   }
 
   @override
-  Iterable<Selector> get dynamicGetters {
-    return _dynamicGetters != null ? _dynamicGetters : const <Selector>[];
+  Iterable<UniverseSelector> get dynamicGetters {
+    return _dynamicGetters != null
+        ? _dynamicGetters : const <UniverseSelector>[];
   }
 
-  void registerDynamicInvocation(Selector selector) {
+  void registerDynamicInvocation(UniverseSelector selector) {
     if (_dynamicInvocations == null) {
-      _dynamicInvocations = new Setlet<Selector>();
+      _dynamicInvocations = new Setlet<UniverseSelector>();
     }
     _dynamicInvocations.add(selector);
   }
 
   @override
-  Iterable<Selector> get dynamicInvocations {
+  Iterable<UniverseSelector> get dynamicInvocations {
     return _dynamicInvocations != null
-        ? _dynamicInvocations : const <Selector>[];
+        ? _dynamicInvocations : const <UniverseSelector>[];
   }
 
-  void registerDynamicSetter(Selector selector) {
+  void registerDynamicSetter(UniverseSelector selector) {
     if (_dynamicSetters == null) {
-      _dynamicSetters = new Setlet<Selector>();
+      _dynamicSetters = new Setlet<UniverseSelector>();
     }
     _dynamicSetters.add(selector);
   }
 
   @override
-  Iterable<Selector> get dynamicSetters {
-    return _dynamicSetters != null ? _dynamicSetters : const <Selector>[];
+  Iterable<UniverseSelector> get dynamicSetters {
+    return _dynamicSetters != null
+        ? _dynamicSetters : const <UniverseSelector>[];
   }
 
   void registerInstantiatedType(InterfaceType type) {
@@ -279,6 +281,10 @@ class ResolutionRegistry implements Registry {
 
   ConstantExpression getConstant(Node node) => mapping.getConstant(node);
 
+  void setConstant(Node node, ConstantExpression constant) {
+    mapping.setConstant(node, constant);
+  }
+
   //////////////////////////////////////////////////////////////////////////////
   //  Target/Label functionality.
   //////////////////////////////////////////////////////////////////////////////
@@ -392,11 +398,13 @@ class ResolutionRegistry implements Registry {
   void registerIsCheck(DartType type) {
     worldImpact.registerCheckedType(type);
     backend.resolutionCallbacks.onIsCheck(type, this);
+    mapping.addRequiredType(type);
   }
 
   void registerAsCheck(DartType type) {
     registerIsCheck(type);
     backend.resolutionCallbacks.onAsCheck(type, this);
+    mapping.addRequiredType(type);
   }
 
   void registerClosure(LocalFunctionElement element) {
@@ -407,7 +415,7 @@ class ResolutionRegistry implements Registry {
     mapping.addSuperUse(node);
   }
 
-  void registerDynamicInvocation(Selector selector) {
+  void registerDynamicInvocation(UniverseSelector selector) {
     worldImpact.registerDynamicInvocation(selector);
   }
 
@@ -456,11 +464,11 @@ class ResolutionRegistry implements Registry {
     worldImpact.registerClosurizedFunction(element);
   }
 
-  void registerDynamicGetter(Selector selector) {
+  void registerDynamicGetter(UniverseSelector selector) {
     worldImpact.registerDynamicGetter(selector);
   }
 
-  void registerDynamicSetter(Selector selector) {
+  void registerDynamicSetter(UniverseSelector selector) {
     worldImpact.registerDynamicSetter(selector);
   }
 
@@ -474,6 +482,7 @@ class ResolutionRegistry implements Registry {
 
   void registerInstantiatedType(InterfaceType type) {
     world.registerInstantiatedType(type, this);
+    mapping.addRequiredType(type);
   }
 
   void registerAbstractClassInstantiation() {
@@ -486,6 +495,7 @@ class ResolutionRegistry implements Registry {
 
   void registerRequiredType(DartType type, Element enclosingElement) {
     backend.registerRequiredType(type, enclosingElement);
+    mapping.addRequiredType(type);
   }
 
   void registerStringInterpolation() {
@@ -548,6 +558,12 @@ class ResolutionRegistry implements Registry {
 
   void registerSendStructure(Send node, SendStructure sendStructure) {
     mapping.setSendStructure(node, sendStructure);
+  }
+
+  // TODO(johnniwinther): Remove this when [SendStructure]s are part of the
+  // [ResolutionResult].
+  SendStructure getSendStructure(Send node) {
+    return mapping.getSendStructure(node);
   }
 
   void registerAsyncMarker(FunctionElement element) {

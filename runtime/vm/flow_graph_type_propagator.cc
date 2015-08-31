@@ -543,8 +543,8 @@ intptr_t CompileType::ToNullableCid() {
       // Don't infer a cid from an abstract type for signature classes since
       // there can be multiple compatible classes with different cids.
       if (!type_class.IsSignatureClass() &&
-          !cha->IsImplemented(type_class) &&
-          !cha->HasSubclasses(type_class)) {
+          !CHA::IsImplemented(type_class) &&
+          !CHA::HasSubclasses(type_class)) {
         if (type_class.IsPrivate()) {
           // Type of a private class cannot change through later loaded libs.
           cid_ = type_class.id();
@@ -780,7 +780,7 @@ CompileType ParameterInstr::ComputeType() const {
     if (type.HasResolvedTypeClass()) {
       Thread* thread = Thread::Current();
       const Class& type_class = Class::Handle(type.type_class());
-      if (!thread->cha()->HasSubclasses(type_class)) {
+      if (!CHA::HasSubclasses(type_class)) {
         if (type_class.IsPrivate()) {
           // Private classes can never be subclassed by later loaded libs.
           cid = type_class.id();
@@ -1038,10 +1038,9 @@ CompileType LoadFieldInstr::ComputeType() const {
   }
 
   const AbstractType* abstract_type = NULL;
-  if (Isolate::Current()->flags().type_checks()) {
-    ASSERT(!type().HasResolvedTypeClass() ||
-           !Field::IsExternalizableCid(Class::Handle(
-                type().type_class()).id()));
+  if (Isolate::Current()->flags().type_checks() &&
+      type().HasResolvedTypeClass() &&
+      !Field::IsExternalizableCid(Class::Handle(type().type_class()).id())) {
     abstract_type = &type();
   }
 

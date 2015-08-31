@@ -27,6 +27,7 @@ DEFINE_FLAG(bool, use_slow_path, false,
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, support_debugger);
+DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Input parameters:
 //   RA : return address.
@@ -44,18 +45,14 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   __ SetPrologueOffset();
   __ Comment("CallToRuntimeStub");
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ sw(ZR, Address(SP, 2 * kWordSize));  // Push 0 for the PC marker
-  __ sw(RA, Address(SP, 1 * kWordSize));
-  __ sw(FP, Address(SP, 0 * kWordSize));
-  __ mov(FP, SP);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << S6)) != 0);
   __ LoadIsolate(S6);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ sw(FP, Address(S6, Isolate::top_exit_frame_info_offset()));
+  __ sw(FP, Address(THR, Thread::top_exit_frame_info_offset()));
 
 #if defined(DEBUG)
   { Label ok;
@@ -110,13 +107,9 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ sw(A2, Address(S6, Isolate::vm_tag_offset()));
 
   // Reset exit frame information in Isolate structure.
-  __ sw(ZR, Address(S6, Isolate::top_exit_frame_info_offset()));
+  __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
 
-  __ mov(SP, FP);
-  __ lw(RA, Address(SP, 1 * kWordSize));
-  __ lw(FP, Address(SP, 0 * kWordSize));
-  __ Ret();
-  __ delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
+  __ LeaveStubFrameAndReturn();
 }
 
 
@@ -153,18 +146,14 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ SetPrologueOffset();
   __ Comment("CallNativeCFunctionStub");
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ sw(ZR, Address(SP, 2 * kWordSize));  // Push 0 for the PC marker
-  __ sw(RA, Address(SP, 1 * kWordSize));
-  __ sw(FP, Address(SP, 0 * kWordSize));
-  __ mov(FP, SP);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << S6)) != 0);
   __ LoadIsolate(S6);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ sw(FP, Address(S6, Isolate::top_exit_frame_info_offset()));
+  __ sw(FP, Address(THR, Thread::top_exit_frame_info_offset()));
 
 #if defined(DEBUG)
   { Label ok;
@@ -227,13 +216,9 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ sw(A2, Address(S6, Isolate::vm_tag_offset()));
 
   // Reset exit frame information in Isolate structure.
-  __ sw(ZR, Address(S6, Isolate::top_exit_frame_info_offset()));
+  __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
 
-  __ mov(SP, FP);
-  __ lw(RA, Address(SP, 1 * kWordSize));
-  __ lw(FP, Address(SP, 0 * kWordSize));
-  __ Ret();
-  __ delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
+  __ LeaveStubFrameAndReturn();
 }
 
 
@@ -251,18 +236,14 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   __ SetPrologueOffset();
   __ Comment("CallNativeCFunctionStub");
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ sw(ZR, Address(SP, 2 * kWordSize));  // Push 0 for the PC marker
-  __ sw(RA, Address(SP, 1 * kWordSize));
-  __ sw(FP, Address(SP, 0 * kWordSize));
-  __ mov(FP, SP);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << S6)) != 0);
   __ LoadIsolate(S6);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ sw(FP, Address(S6, Isolate::top_exit_frame_info_offset()));
+  __ sw(FP, Address(THR, Thread::top_exit_frame_info_offset()));
 
 #if defined(DEBUG)
   { Label ok;
@@ -320,13 +301,9 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ sw(A2, Address(S6, Isolate::vm_tag_offset()));
 
   // Reset exit frame information in Isolate structure.
-  __ sw(ZR, Address(S6, Isolate::top_exit_frame_info_offset()));
+  __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
 
-  __ mov(SP, FP);
-  __ lw(RA, Address(SP, 1 * kWordSize));
-  __ lw(FP, Address(SP, 0 * kWordSize));
-  __ Ret();
-  __ delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
+  __ LeaveStubFrameAndReturn();
 }
 
 
@@ -409,48 +386,16 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
 }
 
 
-// Called from array allocate instruction when the allocation stub has been
-// disabled.
-// A0: element type (preserved).
-// A1: length (preserved).
-void StubCode::GenerateFixAllocateArrayStubTargetStub(Assembler* assembler) {
-  __ Comment("FixAllocationStubTarget");
-  __ EnterStubFrame();
-  // Setup space on stack for return value.
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ sw(A0, Address(SP, 2 * kWordSize));
-  __ sw(A1, Address(SP, 1 * kWordSize));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
-  __ sw(TMP, Address(SP, 0 * kWordSize));
-  __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
-  // Get Code object result.
-  __ lw(T0, Address(SP, 0 * kWordSize));
-  __ lw(A1, Address(SP, 1 * kWordSize));
-  __ lw(A0, Address(SP, 2 * kWordSize));
-  __ addiu(SP, SP, Immediate(3 * kWordSize));
-
-  // Jump to the dart function.
-  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
-  __ AddImmediate(T0, T0, Instructions::HeaderSize() - kHeapObjectTag);
-
-  // Remove the stub frame.
-  __ LeaveStubFrameAndReturn(T0);
-}
-
-
 // Input parameters:
 //   A1: Smi-tagged argument count, may be zero.
 //   FP[kParamEndSlotFromFp + 1]: Last argument.
 static void PushArgumentsArray(Assembler* assembler) {
-  StubCode* stub_code = Isolate::Current()->stub_code();
   __ Comment("PushArgumentsArray");
   // Allocate array to store arguments of caller.
   __ LoadImmediate(A0, reinterpret_cast<intptr_t>(Object::null()));
   // A0: Null element type for raw Array.
   // A1: Smi-tagged argument count, may be zero.
-  const Code& array_stub = Code::Handle(stub_code->GetAllocateArrayStub());
-  const ExternalLabel array_label(array_stub.EntryPoint());
-  __ BranchLink(&array_label);
+  __ BranchLink(*StubCode::AllocateArray_entry());
   __ Comment("PushArgumentsArray return");
   // V0: newly allocated array.
   // A1: Smi-tagged argument count, may be zero (was preserved by the stub).
@@ -591,7 +536,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
   // Enter stub frame with loading PP. The caller's PP is not materialized yet.
-  __ EnterStubFrame(true);
+  __ EnterStubFrame();
   if (preserve_result) {
     __ Push(T1);  // Preserve result, it will be GC-d here.
   }
@@ -621,6 +566,41 @@ void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   GenerateDeoptimizationSequence(assembler, false);  // Don't preserve V0.
+}
+
+
+static void GenerateDispatcherCode(Assembler* assembler,
+                                   Label* call_target_function) {
+  __ Comment("NoSuchMethodDispatch");
+  // When lazily generated invocation dispatchers are disabled, the
+  // miss-handler may return null.
+  __ BranchNotEqual(T0, Object::null_object(), call_target_function);
+  __ EnterStubFrame();
+  // Load the receiver.
+  __ lw(A1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
+  __ sll(TMP, A1, 1);  // A1 is a Smi.
+  __ addu(TMP, FP, TMP);
+  __ lw(T6, Address(TMP, kParamEndSlotFromFp * kWordSize));
+
+  // Push space for the return value.
+  // Push the receiver.
+  // Push IC data object.
+  // Push arguments descriptor array.
+  // Push original arguments array.
+  __ addiu(SP, SP, Immediate(-4 * kWordSize));
+  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ sw(TMP, Address(SP, 3 * kWordSize));
+  __ sw(T6, Address(SP, 2 * kWordSize));
+  __ sw(S5, Address(SP, 1 * kWordSize));
+  __ sw(S4, Address(SP, 0 * kWordSize));
+  // A1: Smi-tagged arguments array length.
+  PushArgumentsArray(assembler);
+  const intptr_t kNumArgs = 4;
+  __ CallRuntime(kInvokeNoSuchMethodDispatcherRuntimeEntry, kNumArgs);
+  __ lw(V0, Address(SP, 4 * kWordSize));  // Return value.
+  __ addiu(SP, SP, Immediate(5 * kWordSize));
+  __ LeaveStubFrame();
+  __ Ret();
 }
 
 
@@ -657,6 +637,12 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 
   __ LeaveStubFrame();
 
+  if (!FLAG_lazy_dispatchers) {
+    Label call_target_function;
+    GenerateDispatcherCode(assembler, &call_target_function);
+    __ Bind(&call_target_function);
+  }
+
   __ lw(T2, FieldAddress(T0, Function::instructions_offset()));
   __ AddImmediate(T2, Instructions::HeaderSize() - kHeapObjectTag);
   __ jr(T2);
@@ -670,12 +656,9 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 //   A0: array element type (either NULL or an instantiated type).
 // NOTE: A1 cannot be clobbered here as the caller relies on it being saved.
 // The newly allocated object is returned in V0.
-void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
-    uword* entry_patch_offset, uword* patch_code_pc_offset) {
+void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ Comment("AllocateArrayStub");
-  *entry_patch_offset = assembler->CodeSize();
   Label slow_case;
-
   // Compute the size to be allocated, it is based on the array length
   // and is computed as:
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
@@ -683,13 +666,21 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 
   // Check that length is a positive Smi.
   __ andi(CMPRES1, T3, Immediate(kSmiTagMask));
-  __ bne(CMPRES1, ZR, &slow_case);
+  if (FLAG_use_slow_path) {
+    __ b(&slow_case);
+  } else {
+    __ bne(CMPRES1, ZR, &slow_case);
+  }
   __ bltz(T3, &slow_case);
 
   // Check for maximum allowed length.
   const intptr_t max_len =
       reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements));
   __ BranchUnsignedGreater(T3, Immediate(max_len), &slow_case);
+
+  const intptr_t cid = kArrayCid;
+  __ MaybeTraceAllocation(kArrayCid, T4, &slow_case,
+                          /* inline_isolate = */ false);
 
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ LoadImmediate(T2, fixed_size);
@@ -701,12 +692,11 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 
   // T2: Allocation size.
 
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
-  const intptr_t cid = kArrayCid;
-  Heap::Space space = heap->SpaceForAllocation(cid);
-  __ LoadImmediate(T3, heap->TopAddress(space));
-  __ lw(T0, Address(T3, 0));  // Potential new object start.
+  Heap::Space space = Heap::SpaceForAllocation(cid);
+  __ LoadIsolate(T3);
+  __ lw(T3, Address(T3, Isolate::heap_offset()));
+  // Potential new object start.
+  __ lw(T0, Address(T3, Heap::TopOffset(space)));
 
   __ addu(T1, T0, T2);  // Potential next object start.
   __ BranchUnsignedLess(T1, T0, &slow_case);  // Branch on unsigned overflow.
@@ -715,15 +705,17 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   // T0: potential new object start.
   // T1: potential next object start.
   // T2: allocation size.
-  __ LoadImmediate(T4, heap->EndAddress(space));
-  __ lw(T4, Address(T4, 0));
+  // T3: heap.
+  __ lw(T4, Address(T3, Heap::EndOffset(space)));
   __ BranchUnsignedGreaterEqual(T1, T4, &slow_case);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ sw(T1, Address(T3, 0));
+  // T3: heap.
+  __ sw(T1, Address(T3, Heap::TopOffset(space)));
   __ addiu(T0, T0, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(cid, T2, T4, space);
+  __ UpdateAllocationStatsWithSize(cid, T2, T4, space,
+                                   /* inline_isolate = */ false);
 
   // Initialize the tags.
   // T0: new object start as a tagged pointer.
@@ -803,9 +795,6 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ addiu(SP, SP, Immediate(3 * kWordSize));
 
   __ LeaveStubFrameAndReturn();
-  *patch_code_pc_offset = assembler->CodeSize();
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  __ BranchPatchable(&stub_code->FixAllocateArrayStubTargetLabel());
 }
 
 
@@ -866,11 +855,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Save top resource and top exit frame info. Use T0 as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ lw(T0, Address(T2, Isolate::top_resource_offset()));
-  __ sw(ZR, Address(T2, Isolate::top_resource_offset()));
+  __ lw(T0, Address(THR, Thread::top_resource_offset()));
+  __ sw(ZR, Address(THR, Thread::top_resource_offset()));
   __ sw(T0, Address(SP, 1 * kWordSize));
-  __ lw(T0, Address(T2, Isolate::top_exit_frame_info_offset()));
-  __ sw(ZR, Address(T2, Isolate::top_exit_frame_info_offset()));
+  __ lw(T0, Address(THR, Thread::top_exit_frame_info_offset()));
+  __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
   ASSERT(kExitLinkSlotFromEntryFp == -23);
   __ sw(T0, Address(SP, 0 * kWordSize));
@@ -922,9 +911,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the saved top resource and top exit frame info back into the
   // Isolate structure. Uses T0 as a temporary register for this.
   __ lw(T0, Address(SP, 1 * kWordSize));
-  __ sw(T0, Address(S6, Isolate::top_resource_offset()));
+  __ sw(T0, Address(THR, Thread::top_resource_offset()));
   __ lw(T0, Address(SP, 0 * kWordSize));
-  __ sw(T0, Address(S6, Isolate::top_exit_frame_info_offset()));
+  __ sw(T0, Address(THR, Thread::top_exit_frame_info_offset()));
 
   // Restore C++ ABI callee-saved registers.
   for (int i = S0; i <= S7; i++) {
@@ -958,7 +947,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ Comment("AllocateContext");
   if (FLAG_inline_alloc) {
     Label slow_case;
-    Heap* heap = Isolate::Current()->heap();
     // First compute the rounded instance size.
     // T1: number of context variables.
     intptr_t fixed_size = sizeof(RawContext) + kObjectAlignment - 1;
@@ -969,13 +957,16 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ LoadImmediate(T0, ~((kObjectAlignment) - 1));
     __ and_(T2, T2, T0);
 
+    __ MaybeTraceAllocation(kContextCid, T4, &slow_case,
+                            /* inline_isolate = */ false);
     // Now allocate the object.
     // T1: number of context variables.
     // T2: object size.
     const intptr_t cid = kContextCid;
-    Heap::Space space = heap->SpaceForAllocation(cid);
-    __ LoadImmediate(T5, heap->TopAddress(space));
-    __ lw(V0, Address(T5, 0));
+    Heap::Space space = Heap::SpaceForAllocation(cid);
+    __ LoadIsolate(T5);
+    __ lw(T5, Address(T5, Isolate::heap_offset()));
+    __ lw(V0, Address(T5, Heap::TopOffset(space)));
     __ addu(T3, T2, V0);
 
     // Check if the allocation fits into the remaining space.
@@ -983,8 +974,8 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // T1: number of context variables.
     // T2: object size.
     // T3: potential next object start.
-    __ LoadImmediate(TMP, heap->EndAddress(space));
-    __ lw(CMPRES1, Address(TMP, 0));
+    // T5: heap.
+    __ lw(CMPRES1, Address(T5, Heap::EndOffset(space)));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
@@ -997,9 +988,11 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // T1: number of context variables.
     // T2: object size.
     // T3: next object start.
-    __ sw(T3, Address(T5, 0));
+    // T5: heap.
+    __ sw(T3, Address(T5, Heap::TopOffset(space)));
     __ addiu(V0, V0, Immediate(kHeapObjectTag));
-    __ UpdateAllocationStatsWithSize(cid, T2, T5, space);
+    __ UpdateAllocationStatsWithSize(cid, T2, T5, space,
+                                     /* inline_isolate = */ false);
 
     // Calculate the size tag.
     // V0: new object.
@@ -1098,15 +1091,9 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ ori(T2, T2, Immediate(1 << RawObject::kRememberedBit));
   __ sw(T2, FieldAddress(T0, Object::tags_offset()));
 
-  // Load the isolate.
-  // Spilled: T1, T2, T3.
-  // T0: Address being stored.
-  __ LoadIsolate(T1);
-
-  // Load the StoreBuffer block out of the isolate. Then load top_ out of the
+  // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
-  // T1: Isolate.
-  __ lw(T1, Address(T1, Isolate::store_buffer_offset()));
+  __ lw(T1, Address(THR, Thread::store_buffer_block_offset()));
   __ lw(T2, Address(T1, StoreBufferBlock::top_offset()));
   __ sll(T3, T2, 2);
   __ addu(T3, T1, T3);
@@ -1132,7 +1119,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(1 * kWordSize);
-  __ LoadIsolate(A0);
+  __ mov(A0, THR);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   __ Comment("UpdateStoreBufferStub return");
   // Restore callee-saved registers, tear down frame.
@@ -1166,22 +1153,23 @@ void StubCode::GenerateAllocationStubForClass(
     __ lw(T1, Address(SP, 0 * kWordSize));
     // T1: type arguments.
   }
-  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
+  Isolate* isolate = Isolate::Current();
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size) &&
+      !cls.TraceAllocation(isolate)) {
     Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // T1: instantiated type arguments (if is_cls_parameterized).
-    Heap* heap = Isolate::Current()->heap();
-    Heap::Space space = heap->SpaceForAllocation(cls.id());
-    __ LoadImmediate(T5, heap->TopAddress(space));
-    __ lw(T2, Address(T5));
+    Heap::Space space = Heap::SpaceForAllocation(cls.id());
+    __ lw(T5, Address(THR, Thread::heap_offset()));
+    __ lw(T2, Address(T5, Heap::TopOffset(space)));
     __ LoadImmediate(T4, instance_size);
     __ addu(T3, T2, T4);
     // Check if the allocation fits into the remaining space.
     // T2: potential new object start.
     // T3: potential next object start.
-    __ LoadImmediate(TMP, heap->EndAddress(space));
-    __ lw(CMPRES1, Address(TMP));
+    // T5: heap.
+    __ lw(CMPRES1, Address(T5, Heap::EndOffset(space)));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
@@ -1189,8 +1177,8 @@ void StubCode::GenerateAllocationStubForClass(
     }
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
-    __ sw(T3, Address(T5));
-    __ UpdateAllocationStats(cls.id(), T5, space);
+    __ sw(T3, Address(T5, Heap::TopOffset(space)));
+    __ UpdateAllocationStats(cls.id(), T5, space, /* inline_isolate = */ false);
 
     // T2: new object start.
     // T3: next object start.
@@ -1249,7 +1237,7 @@ void StubCode::GenerateAllocationStubForClass(
   // T1: new object type arguments (instantiated or not).
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  __ EnterStubFrame(true);  // Uses pool pointer to pass cls to runtime.
+  __ EnterStubFrame();  // Uses pool pointer to pass cls to runtime.
   __ LoadObject(TMP, cls);
 
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
@@ -1274,8 +1262,7 @@ void StubCode::GenerateAllocationStubForClass(
   // Restore the frame pointer and return.
   __ LeaveStubFrameAndReturn(RA);
   *patch_code_pc_offset = assembler->CodeSize();
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  __ BranchPatchable(&stub_code->FixAllocationStubTargetLabel());
+  __ BranchPatchable(*StubCode::FixAllocationStubTarget_entry());
 }
 
 
@@ -1598,7 +1585,12 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ LeaveStubFrame();
 
   Label call_target_function;
-  __ b(&call_target_function);
+  if (!FLAG_lazy_dispatchers) {
+    __ mov(T0, T3);
+    GenerateDispatcherCode(assembler, &call_target_function);
+  } else {
+    __ b(&call_target_function);
+  }
 
   __ Bind(&found);
   __ Comment("Update caller's counter");
@@ -2069,7 +2061,7 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ LoadImmediate(A2, VMTag::kDartTagId);
   __ sw(A2, Address(A3, Isolate::vm_tag_offset()));
   // Clear top exit frame.
-  __ sw(ZR, Address(A3, Isolate::top_exit_frame_info_offset()));
+  __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
 
   __ jr(A0);  // Jump to the exception handler code.
   __ delay_slot()->mov(SP, A1);  // Stack pointer.
@@ -2112,11 +2104,11 @@ DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
 // Returns: CMPRES1 is zero if equal, non-zero otherwise.
 // Note: A Mint cannot contain a value that would fit in Smi, a Bigint
 // cannot contain a value that fits in Mint or Smi.
-void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
-                                                    const Register left,
-                                                    const Register right,
-                                                    const Register temp1,
-                                                    const Register temp2) {
+static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
+                                                 const Register left,
+                                                 const Register right,
+                                                 const Register temp1,
+                                                 const Register temp2) {
   __ Comment("IdenticalWithNumberCheckStub");
   Label reference_compare, done, check_mint, check_bigint;
   // If any of the arguments is Smi do reference compare.

@@ -13,6 +13,8 @@ class VMLibraryHooks {
   static var timerFactory;
   // Example: "dart:io _EventHandler._sendData"
   static var eventHandlerSendData;
+  // Implementation of Resource.readAsBytes.
+  static var resourceReadAsBytes;
 }
 
 patch class CodeUnits {

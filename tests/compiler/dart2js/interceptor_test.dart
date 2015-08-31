@@ -31,7 +31,7 @@ main() {
     // https://code.google.com/p/dart/issues/detail?id=8106.
     compile(TEST_ONE, entry: 'foo', check: (String generated) {
       Expect.isTrue(
-          generated.contains(new RegExp(r'[$A-Z]+\.toString\$0\(a\)')));
+          generated.contains(new RegExp(r'[$A-Z]+\.toString\$0\$\(a\)')));
       Expect.isTrue(generated.contains('myVariableName'));
     }),
     // Check that an intercepted getter that does not need to be

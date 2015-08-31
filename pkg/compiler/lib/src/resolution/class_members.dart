@@ -9,6 +9,7 @@ import '../elements/elements.dart'
          Name,
          PublicName,
          Member,
+         MemberElement,
          MemberSignature,
          LibraryElement,
          ClassElement,
@@ -19,7 +20,6 @@ import '../dart2jslib.dart'
          MessageKind,
          invariant,
          isPrivateName;
-import '../helpers/helpers.dart';  // Included for debug helpers.
 import '../util/util.dart';
 
 part 'member_impl.dart';
@@ -163,7 +163,7 @@ abstract class MembersCreator {
       LibraryElement library = cls.library;
       InterfaceType thisType = cls.thisType;
 
-      void createMember(Element element) {
+      void createMember(MemberElement element) {
         if (element.isConstructor) return;
         String elementName = element.name;
         if (shouldSkipName(elementName)) return;

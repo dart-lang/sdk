@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/driver.dart';
+import 'package:analyzer/task/model.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
@@ -26,6 +27,10 @@ class AbstractContextTest {
   AnalysisContextImpl context;
   AnalysisCache analysisCache;
   AnalysisDriver analysisDriver;
+
+  AnalysisTask task;
+  Map<ResultDescriptor<dynamic>, dynamic> oldOutputs;
+  Map<ResultDescriptor<dynamic>, dynamic> outputs;
 
   Source addSource(String path, String contents) {
     Source source = newSource(path, contents);
@@ -62,6 +67,17 @@ class AbstractContextTest {
       }
     }
     expect(elements, hasLength(names.length));
+  }
+
+  /**
+   * Compute the given [result] for the given [target].
+   */
+  void computeResult(AnalysisTarget target, ResultDescriptor result) {
+    oldOutputs = outputs;
+    task = analysisDriver.computeResult(target, result);
+    expect(task, isNotNull);
+    expect(task.caughtException, isNull);
+    outputs = task.outputs;
   }
 
   AnalysisContextImpl createAnalysisContext() {

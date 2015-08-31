@@ -19,9 +19,7 @@ Set<String> doesNotEscapeListSet = new Set<String>.from(
     'isEmpty',
     'isNotEmpty',
     'length',
-    'any',
     'contains',
-    'every',
     'join',
 
     // From List.

@@ -240,6 +240,9 @@ abstract class IntegrationTestMixin {
    * Return library dependency information for use in client-side indexing and
    * package URI resolution.
    *
+   * Clients that are only using the libraries field should consider using the
+   * analyzedFiles notification instead.
+   *
    * Returns
    *
    * libraries ( List<FilePath> )
@@ -276,6 +279,11 @@ abstract class IntegrationTestMixin {
    * response to multiple requests. Clients can avoid this by always choosing a
    * region that starts at the beginning of a line and ends at the end of a
    * (possibly different) line in the file.
+   *
+   * If a request is made for a file which does not exist, or which is not
+   * currently subject to analysis (e.g. because it is not associated with any
+   * analysis root specified to analysis.setAnalysisRoots), an error of type
+   * GET_NAVIGATION_INVALID_FILE will be generated.
    *
    * Parameters
    *
@@ -408,6 +416,30 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Subscribe for general services (that is, services that are not specific to
+   * individual files). All previous subscriptions are replaced by the given
+   * set of services.
+   *
+   * It is an error if any of the elements in the list are not valid services.
+   * If there is an error, then the current subscriptions will remain
+   * unchanged.
+   *
+   * Parameters
+   *
+   * subscriptions ( List<GeneralAnalysisService> )
+   *
+   *   A list of the services being subscribed to.
+   */
+  Future sendAnalysisSetGeneralSubscriptions(List<GeneralAnalysisService> subscriptions) {
+    var params = new AnalysisSetGeneralSubscriptionsParams(subscriptions).toJson();
+    return server.send("analysis.setGeneralSubscriptions", params)
+        .then((result) {
+      expect(result, isNull);
+      return null;
+    });
+  }
+
+  /**
    * Set the priority files to the files in the given list. A priority file is
    * a file that is given priority when scheduling which analysis work to do
    * first. The list typically contains those files that are visible to the
@@ -442,11 +474,11 @@ abstract class IntegrationTestMixin {
   }
 
   /**
-   * Subscribe for services. All previous subscriptions are replaced by the
-   * current set of subscriptions. If a given service is not included as a key
-   * in the map then no files will be subscribed to the service, exactly as if
-   * the service had been included in the map with an explicit empty list of
-   * files.
+   * Subscribe for services that are specific to individual files. All previous
+   * subscriptions are replaced by the current set of subscriptions. If a given
+   * service is not included as a key in the map then no files will be
+   * subscribed to the service, exactly as if the service had been included in
+   * the map with an explicit empty list of files.
    *
    * Note that this request determines the set of requested subscriptions. The
    * actual set of subscriptions at any given time is the intersection of this
@@ -529,6 +561,26 @@ abstract class IntegrationTestMixin {
       return null;
     });
   }
+
+  /**
+   * Reports the paths of the files that are being analyzed.
+   *
+   * This notification is not subscribed to by default. Clients can subscribe
+   * by including the value "ANALYZED_FILES" in the list of services passed in
+   * an analysis.setGeneralSubscriptions request.
+   *
+   * Parameters
+   *
+   * directories ( List<FilePath> )
+   *
+   *   A list of the paths of the files that are being analyzed.
+   */
+  Stream<AnalysisAnalyzedFilesParams> onAnalysisAnalyzedFiles;
+
+  /**
+   * Stream controller for [onAnalysisAnalyzedFiles].
+   */
+  StreamController<AnalysisAnalyzedFilesParams> _onAnalysisAnalyzedFiles;
 
   /**
    * Reports the errors associated with a given file. The set of errors
@@ -1338,6 +1390,39 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Organizes all of the directives - removes unused imports and sorts
+   * directives of the given Dart file according to the Dart Style Guide.
+   *
+   * If a request is made for a file that does not exist, does not belong to an
+   * analysis root or is not a Dart file, FILE_NOT_ANALYZED will be generated.
+   *
+   * If directives of the Dart file cannot be organized, for example because it
+   * has scan or parse errors, or by other reasons, ORGANIZE_DIRECTIVES_ERROR
+   * will be generated. The message will provide datails about the reason.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The Dart file to organize directives in.
+   *
+   * Returns
+   *
+   * edit ( SourceFileEdit )
+   *
+   *   The file edit that is to be applied to the given file to effect the
+   *   organizing.
+   */
+  Future<EditOrganizeDirectivesResult> sendEditOrganizeDirectives(String file) {
+    var params = new EditOrganizeDirectivesParams(file).toJson();
+    return server.send("edit.organizeDirectives", params)
+        .then((result) {
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new EditOrganizeDirectivesResult.fromJson(decoder, 'result', result);
+    });
+  }
+
+  /**
    * Create an execution context for the executable file with the given path.
    * The context that is created will persist until execution.deleteContext is
    * used to delete it. Clients, therefore, are responsible for managing the
@@ -1507,6 +1592,8 @@ abstract class IntegrationTestMixin {
     onServerError = _onServerError.stream.asBroadcastStream();
     _onServerStatus = new StreamController<ServerStatusParams>(sync: true);
     onServerStatus = _onServerStatus.stream.asBroadcastStream();
+    _onAnalysisAnalyzedFiles = new StreamController<AnalysisAnalyzedFilesParams>(sync: true);
+    onAnalysisAnalyzedFiles = _onAnalysisAnalyzedFiles.stream.asBroadcastStream();
     _onAnalysisErrors = new StreamController<AnalysisErrorsParams>(sync: true);
     onAnalysisErrors = _onAnalysisErrors.stream.asBroadcastStream();
     _onAnalysisFlushResults = new StreamController<AnalysisFlushResultsParams>(sync: true);
@@ -1551,6 +1638,10 @@ abstract class IntegrationTestMixin {
       case "server.status":
         expect(params, isServerStatusParams);
         _onServerStatus.add(new ServerStatusParams.fromJson(decoder, 'params', params));
+        break;
+      case "analysis.analyzedFiles":
+        expect(params, isAnalysisAnalyzedFilesParams);
+        _onAnalysisAnalyzedFiles.add(new AnalysisAnalyzedFilesParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.errors":
         expect(params, isAnalysisErrorsParams);

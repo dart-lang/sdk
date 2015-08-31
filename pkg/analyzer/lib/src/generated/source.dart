@@ -11,8 +11,11 @@ import 'dart:collection';
 import "dart:math" as math;
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
 import 'package:analyzer/task/model.dart';
+import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
 
 import 'engine.dart';
@@ -106,7 +109,7 @@ class CustomUriResolver extends UriResolver {
   CustomUriResolver(this._urlMappings);
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     String mapping = _urlMappings[uri.toString()];
     if (mapping == null) return null;
 
@@ -114,7 +117,7 @@ class CustomUriResolver extends UriResolver {
     if (!fileUri.isAbsolute) return null;
 
     JavaFile javaFile = new JavaFile.fromUri(fileUri);
-    return new FileBasedSource(javaFile);
+    return new FileBasedSource(javaFile, actualUri != null ? actualUri : uri);
   }
 }
 
@@ -153,7 +156,7 @@ class DartUriResolver extends UriResolver {
   DartSdk get dartSdk => _sdk;
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     if (!isDartUri(uri)) {
       return null;
     }
@@ -575,6 +578,17 @@ class SourceFactory {
   AnalysisContext context;
 
   /**
+   * URI processor used to find mappings for `package:` URIs found in a `.packages` config
+   * file.
+   */
+  final Packages _packages;
+
+  /**
+   * Resource provider used in working with package maps.
+   */
+  final ResourceProvider _resourceProvider;
+
+  /**
    * The resolvers used to resolve absolute URI's.
    */
   final List<UriResolver> _resolvers;
@@ -585,11 +599,14 @@ class SourceFactory {
   LocalSourcePredicate _localSourcePredicate = LocalSourcePredicate.NOT_SDK;
 
   /**
-   * Initialize a newly created source factory.
-   *
-   * @param resolvers the resolvers used to resolve absolute URI's
+   * Initialize a newly created source factory with the given absolute URI [resolvers] and
+   * optional [packages] resolution helper.
    */
-  SourceFactory(this._resolvers);
+  SourceFactory(this._resolvers,
+      [this._packages, ResourceProvider resourceProvider])
+      : _resourceProvider = resourceProvider != null
+          ? resourceProvider
+          : PhysicalResourceProvider.INSTANCE;
 
   /**
    * Return the [DartSdk] associated with this [SourceFactory], or `null` if there
@@ -620,6 +637,19 @@ class SourceFactory {
   /// A table mapping package names to paths of directories containing
   /// the package (or [null] if there is no registered package URI resolver).
   Map<String, List<Folder>> get packageMap {
+    // Start by looking in .packages.
+    if (_packages != null) {
+      Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
+      _packages.asMap().forEach((String name, Uri uri) {
+        if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
+          packageMap[name] =
+              <Folder>[_resourceProvider.getFolder(uri.toFilePath())];
+        }
+      });
+      return packageMap;
+    }
+
+    // Default to the PackageMapUriResolver.
     PackageMapUriResolver resolver = _resolvers.firstWhere(
         (r) => r is PackageMapUriResolver, orElse: () => null);
     return resolver != null ? resolver.packageMap : null;
@@ -727,13 +757,42 @@ class SourceFactory {
    * @return the absolute URI representing the given source
    */
   Uri restoreUri(Source source) {
+    // First see if a resolver can restore the URI.
     for (UriResolver resolver in _resolvers) {
       Uri uri = resolver.restoreAbsolute(source);
       if (uri != null) {
+        // Now see if there's a package mapping.
+        Uri packageMappedUri = _getPackageMapping(uri);
+        if (packageMappedUri != null) {
+          return packageMappedUri;
+        }
+        // Fall back to the resolver's computed URI.
         return uri;
       }
     }
+
     return null;
+  }
+
+  Uri _getPackageMapping(Uri sourceUri) {
+    if (_packages == null) {
+      return null;
+    }
+    if (sourceUri.scheme != 'file') {
+      //TODO(pquitslund): verify this works for non-file URIs.
+      return null;
+    }
+
+    Uri packageUri;
+    _packages.asMap().forEach((String name, Uri uri) {
+      if (packageUri == null) {
+        if (utils.startsWith(sourceUri, uri)) {
+          packageUri = Uri.parse(
+              'package:$name/${sourceUri.path.substring(uri.path.length)}');
+        }
+      }
+    });
+    return packageUri;
   }
 
   /**
@@ -755,12 +814,30 @@ class SourceFactory {
       }
       containedUri = containingSource.resolveRelativeUri(containedUri);
     }
+
+    Uri actualUri = containedUri;
+
+    // Check .packages and update target and actual URIs as appropriate.
+    if (_packages != null && containedUri.scheme == 'package') {
+      Uri packageUri =
+          _packages.resolve(containedUri, notFound: (Uri packageUri) => null);
+
+      if (packageUri != null) {
+        // Ensure scheme is set.
+        if (packageUri.scheme == '') {
+          packageUri = packageUri.replace(scheme: 'file');
+        }
+        containedUri = packageUri;
+      }
+    }
+
     for (UriResolver resolver in _resolvers) {
-      Source result = resolver.resolveAbsolute(containedUri);
+      Source result = resolver.resolveAbsolute(containedUri, actualUri);
       if (result != null) {
         return result;
       }
     }
+
     return null;
   }
 }
@@ -993,9 +1070,10 @@ abstract class UriResolver {
    * resolved because the URI is invalid.
    *
    * @param uri the URI to be resolved
+   * @param actualUri the actual uri for this source -- if `null`, the value of [uri] will be used
    * @return a [Source] representing the file to which given URI was resolved
    */
-  Source resolveAbsolute(Uri uri);
+  Source resolveAbsolute(Uri uri, [Uri actualUri]);
 
   /**
    * Return an absolute URI that represents the given source, or `null` if a valid URI cannot

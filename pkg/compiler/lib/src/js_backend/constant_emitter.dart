@@ -6,6 +6,8 @@ part of js_backend;
 
 typedef jsAst.Expression _ConstantReferenceGenerator(ConstantValue constant);
 
+typedef jsAst.Expression _ConstantListGenerator(jsAst.Expression array);
+
 /**
  * Generates the JavaScript expressions for constants.
  *
@@ -24,7 +26,7 @@ class ConstantEmitter
   final Compiler compiler;
   final Namer namer;
   final _ConstantReferenceGenerator constantReferenceGenerator;
-  final jsAst.Template makeConstantListTemplate;
+  final _ConstantListGenerator makeConstantList;
 
   /**
    * The given [constantReferenceGenerator] function must, when invoked with a
@@ -35,7 +37,7 @@ class ConstantEmitter
       this.compiler,
       this.namer,
       jsAst.Expression this.constantReferenceGenerator(ConstantValue constant),
-      this.makeConstantListTemplate);
+      this.makeConstantList);
 
   /**
    * Constructs a literal expression that evaluates to the constant. Uses a
@@ -160,7 +162,7 @@ class ConstantEmitter
         .map(constantReferenceGenerator)
         .toList(growable: false);
     jsAst.ArrayInitializer array = new jsAst.ArrayInitializer(elements);
-    jsAst.Expression value = makeConstantListTemplate.instantiate([array]);
+    jsAst.Expression value = makeConstantList(array);
     return maybeAddTypeArguments(constant.type, value);
   }
 
@@ -250,10 +252,9 @@ class ConstantEmitter
   @override
   jsAst.Expression visitType(TypeConstantValue constant, [_]) {
     DartType type = constant.representedType;
-    String name = namer.runtimeTypeName(type.element);
-    jsAst.Expression typeName = new jsAst.LiteralString("'$name'");
+    jsAst.Name typeName = namer.runtimeTypeName(type.element);
     return new jsAst.Call(getHelperProperty(backend.getCreateRuntimeType()),
-                          [typeName]);
+                          [js.quoteName(typeName)]);
   }
 
   @override
@@ -263,8 +264,19 @@ class ConstantEmitter
   }
 
   @override
-  jsAst.Expression visitDummy(DummyConstantValue constant, [_]) {
-    return new jsAst.LiteralNumber('0');
+  jsAst.Expression visitSynthetic(SyntheticConstantValue constant, [_]) {
+    switch (constant.kind) {
+      case SyntheticConstantKind.DUMMY_INTERCEPTOR:
+      case SyntheticConstantKind.EMPTY_VALUE:
+        return new jsAst.LiteralNumber('0');
+      case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
+      case SyntheticConstantKind.NAME:
+        return constant.payload;
+      default:
+        compiler.internalError(NO_LOCATION_SPANNABLE,
+                               "Unexpected DummyConstantKind ${constant.kind}");
+        return null;
+    }
   }
 
   @override

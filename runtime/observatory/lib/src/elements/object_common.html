@@ -46,7 +46,7 @@
           <template if="{{ path == null }}">
             <eval-link callback="{{ retainingPath }}"
                        label="[find]"
-                       expr="10">
+                       expr="20">
             </eval-link>
           </template>
           <template if="{{ path != null }}">
@@ -54,13 +54,16 @@
             <div class="memberItem">
               <div class="memberName">[{{ element['index']}}]</div>
               <div class="memberValue">
-                <any-service-ref ref="{{ element['value'] }}"></any-service-ref>
                 <template if="{{ element['parentField'] != null }}">
-                  in <field-ref ref="{{ element['parentField'] }}"></field-ref> of
+                  from <field-ref ref="{{ element['parentField'] }}"></field-ref> of
                 </template>
                 <template if="{{ element['parentListIndex'] != null }}">
-                  in [{{ element['parentListIndex'] }}] of
+                  from [{{ element['parentListIndex'] }}] of
                 </template>
+                <template if="{{ element['_parentWordOffset'] != null }}">
+                  from word[{{ element['_parentWordOffset'] }}] of
+                </template>
+                <any-service-ref ref="{{ element['value'] }}"></any-service-ref>
               </div>
               </div>
             </template>

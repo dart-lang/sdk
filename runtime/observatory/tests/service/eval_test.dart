@@ -1,7 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override
+// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -14,7 +14,7 @@ class MyClass {
   static int staticVar = 1000;
 
   static void printValue(int value) {
-    print(value);   // line 16
+    print(value);   // line 17
   }
 }
 
@@ -34,16 +34,20 @@ var tests = [
   return isolate.rootLibrary.load().then((_) {
       // Set up a listener to wait for breakpoint events.
       Completer completer = new Completer();
-      isolate.vm.events.stream.listen((ServiceEvent event) {
-        if (event.kind == ServiceEvent.kPauseBreakpoint) {
-          print('Breakpoint reached');
-          completer.complete();
-        }
+      isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
+        var subscription;
+        subscription = stream.listen((ServiceEvent event) {
+          if (event.kind == ServiceEvent.kPauseBreakpoint) {
+            print('Breakpoint reached');
+            subscription.cancel();
+            completer.complete();
+          }
+        });
       });
 
       // Add the breakpoint.
       var script = isolate.rootLibrary.scripts[0];
-      var line = 16;
+      var line = 17;
       return isolate.addBreakpoint(script, line).then((ServiceObject bpt) {
           return completer.future;  // Wait for breakpoint reached.
       });

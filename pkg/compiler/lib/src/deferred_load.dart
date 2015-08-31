@@ -4,7 +4,6 @@
 
 library deferred_load;
 
-import 'constants/expressions.dart';
 import 'constants/values.dart' show
     ConstantValue,
     ConstructedConstantValue,
@@ -17,9 +16,6 @@ import 'dart2jslib.dart' show
     CompilerTask,
     invariant,
     MessageKind;
-
-import 'dart_backend/dart_backend.dart' show
-    DartBackend;
 
 import 'js_backend/js_backend.dart' show
     JavaScriptBackend;
@@ -256,6 +252,30 @@ class DeferredLoadTask extends CompilerTask {
       Set<ConstantValue> constants,
       isMirrorUsage) {
 
+    /// Recursively collects all the dependencies of [type].
+    void collectTypeDependencies(DartType type) {
+      if (type is GenericType) {
+        type.typeArguments.forEach(collectTypeDependencies);
+      }
+      if (type is FunctionType) {
+        for (DartType argumentType in type.parameterTypes) {
+          collectTypeDependencies(argumentType);
+        }
+        for (DartType argumentType in type.optionalParameterTypes) {
+          collectTypeDependencies(argumentType);
+        }
+        for (DartType argumentType in type.namedParameterTypes) {
+          collectTypeDependencies(argumentType);
+        }
+        collectTypeDependencies(type.returnType);
+      } else if (type is TypedefType) {
+        elements.add(type.element);
+        collectTypeDependencies(type.unalias(compiler));
+      } else if (type is InterfaceType) {
+        elements.add(type.element);
+      }
+    }
+
     /// Collects all direct dependencies of [element].
     ///
     /// The collected dependent elements and constants are are added to
@@ -284,10 +304,20 @@ class DeferredLoadTask extends CompilerTask {
 
         elements.add(dependency);
       }
+
+      for (DartType type in treeElements.requiredTypes) {
+        collectTypeDependencies(type);
+      }
+
       treeElements.forEachConstantNode((Node node, _) {
         // Explicitly depend on the backend constants.
-        constants.add(
-            backend.constants.getConstantValueForNode(node, treeElements));
+        ConstantValue value =
+            backend.constants.getConstantValueForNode(node, treeElements);
+        if (value != null) {
+          // TODO(johnniwinther): Assert that all constants have values when
+          // these are directly evaluated.
+          constants.add(value);
+        }
       });
       elements.addAll(treeElements.otherDependencies);
     }
@@ -301,33 +331,10 @@ class DeferredLoadTask extends CompilerTask {
       }
     }
 
-    collectTypeDependencies(DartType type) {
-      if (type is FunctionType) {
-        for (DartType argumentType in type.parameterTypes) {
-          collectTypeDependencies(argumentType);
-        }
-        for (DartType argumentType in type.optionalParameterTypes) {
-          collectTypeDependencies(argumentType);
-        }
-        for (DartType argumentType in type.namedParameterTypes) {
-          collectTypeDependencies(argumentType);
-        }
-        collectTypeDependencies(type.returnType);
-      } else if (type is TypedefType) {
-        elements.add(type.element);
-        collectTypeDependencies(type.unalias(compiler));
-      } else if (type is InterfaceType) {
-        elements.add(type.element);
-      }
-    }
-
     if (element is FunctionElement &&
         compiler.resolverWorld.closurizedMembers.contains(element)) {
       collectTypeDependencies(element.type);
     }
-
-    // TODO(sigurdm): Also collect types that are used in is checks and for
-    // checked mode.
 
     if (element.isClass) {
       // If we see a class, add everything its live instance members refer
@@ -770,16 +777,9 @@ class DeferredLoadTask extends CompilerTask {
         }
       });
     }
-    Backend backend = compiler.backend;
-    if (isProgramSplit && backend is JavaScriptBackend) {
-      backend.registerCheckDeferredIsLoaded(compiler.globalDependencies);
-    }
-    if (isProgramSplit && backend is DartBackend) {
-      // TODO(sigurdm): Implement deferred loading for dart2dart.
-      compiler.reportWarning(
-          lastDeferred,
-          MessageKind.DEFERRED_LIBRARY_DART_2_DART);
-      isProgramSplit = false;
+    if (isProgramSplit) {
+      isProgramSplit = compiler.backend.enableDeferredLoadingIfSupported(
+            lastDeferred, compiler.globalDependencies);
     }
   }
 

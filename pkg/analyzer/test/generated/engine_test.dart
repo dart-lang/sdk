@@ -10,6 +10,7 @@ library engine.engine_test;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart' show CacheEntry;
 import 'package:analyzer/src/generated/ast.dart';
@@ -33,8 +34,8 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer/src/task/task_dart.dart';
 import 'package:analyzer/task/model.dart' hide AnalysisTask;
+import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
@@ -47,30 +48,34 @@ import 'test_support.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(AnalysisCacheTest);
-  runReflectiveTests(AnalysisContextImplTest);
-  runReflectiveTests(AnalysisTaskTest);
-  runReflectiveTests(AnalysisOptionsImplTest);
-  runReflectiveTests(DartEntryTest);
-  runReflectiveTests(GenerateDartErrorsTaskTest);
-  runReflectiveTests(GenerateDartHintsTaskTest);
-  runReflectiveTests(GenerateDartLintsTaskTest);
-  runReflectiveTests(GetContentTaskTest);
-  runReflectiveTests(HtmlEntryTest);
-  runReflectiveTests(IncrementalAnalysisCacheTest);
-  runReflectiveTests(IncrementalAnalysisTaskTest);
-  runReflectiveTests(LintGeneratorTest);
-  runReflectiveTests(ParseDartTaskTest);
-  runReflectiveTests(ParseHtmlTaskTest);
-  runReflectiveTests(PartitionManagerTest);
-  runReflectiveTests(ResolveDartLibraryTaskTest);
-  runReflectiveTests(ResolveDartUnitTaskTest);
-  runReflectiveTests(ResolveHtmlTaskTest);
-  runReflectiveTests(ScanDartTaskTest);
-  runReflectiveTests(SdkCachePartitionTest);
+  // Tests for the classes used in both old and new analysis implementations.
   runReflectiveTests(SourcesChangedEventTest);
-  runReflectiveTests(UniversalCachePartitionTest);
-  runReflectiveTests(WorkManagerTest);
+  // Tests for the classes used in the old analysis implementation.
+  if (!AnalysisEngine.instance.useTaskModel) {
+    runReflectiveTests(AnalysisCacheTest);
+    runReflectiveTests(AnalysisContextImplTest);
+    runReflectiveTests(AnalysisTaskTest);
+    runReflectiveTests(AnalysisOptionsImplTest);
+    runReflectiveTests(DartEntryTest);
+    runReflectiveTests(GenerateDartErrorsTaskTest);
+    runReflectiveTests(GenerateDartHintsTaskTest);
+    runReflectiveTests(GenerateDartLintsTaskTest);
+    runReflectiveTests(GetContentTaskTest);
+    runReflectiveTests(HtmlEntryTest);
+    runReflectiveTests(IncrementalAnalysisCacheTest);
+    runReflectiveTests(IncrementalAnalysisTaskTest);
+    runReflectiveTests(LintGeneratorTest);
+    runReflectiveTests(ParseDartTaskTest);
+    runReflectiveTests(ParseHtmlTaskTest);
+    runReflectiveTests(PartitionManagerTest);
+    runReflectiveTests(ResolveDartLibraryTaskTest);
+    runReflectiveTests(ResolveDartUnitTaskTest);
+    runReflectiveTests(ResolveHtmlTaskTest);
+    runReflectiveTests(ScanDartTaskTest);
+    runReflectiveTests(SdkCachePartitionTest);
+    runReflectiveTests(UniversalCachePartitionTest);
+    runReflectiveTests(WorkManagerTest);
+  }
 }
 
 @reflectiveTest
@@ -189,14 +194,6 @@ class AnalysisContextImplTest extends EngineTestCase {
    * The source factory associated with the analysis [context].
    */
   SourceFactory _sourceFactory;
-
-  void fail_extractContext() {
-    fail("Implement this");
-  }
-
-  void fail_mergeContext() {
-    fail("Implement this");
-  }
 
   void fail_performAnalysisTask_importedLibraryDelete_html() {
     Source htmlSource = _addSource("/page.html", r'''
@@ -449,6 +446,42 @@ import 'libB.dart';''';
       listener.assertEvent(wereSourcesRemovedOrDeleted: true);
       listener.assertNoMoreEvents();
     });
+  }
+
+  /**
+   * IDEA uses the following scenario:
+   * 1. Add overlay.
+   * 2. Change overlay.
+   * 3. If the contents of the document buffer is the same as the contents
+   *    of the file, remove overlay.
+   * So, we need to try to use incremental resolution for removing overlays too.
+   */
+  void test_applyChanges_remove_incremental() {
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    Source source = resourceProvider.newFile('/test.dart', r'''
+main() {
+  print(1);
+}
+''').createSource();
+    _context = AnalysisContextFactory.oldContextWithCore();
+    _context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
+    _context.applyChanges(new ChangeSet()..addedSource(source));
+    // remember compilation unit
+    _analyzeAll_assertFinished();
+    CompilationUnit unit = _context.getResolvedCompilationUnit2(source, source);
+    // add overlay
+    _context.setContents(source, r'''
+main() {
+  print(12);
+}
+''');
+    _analyzeAll_assertFinished();
+    expect(_context.getResolvedCompilationUnit2(source, source), unit);
+    // remove overlay
+    _context.setContents(source, null);
+    _context.validateCacheConsistency();
+    _analyzeAll_assertFinished();
+    expect(_context.getResolvedCompilationUnit2(source, source), unit);
   }
 
   Future test_applyChanges_removeContainer() {
@@ -1300,6 +1333,21 @@ main() {}''');
 //    assertLength(0, statistics.getSources());
   }
 
+  Future test_implicitAnalysisEvents_added() async {
+    AnalyzedSourcesListener listener = new AnalyzedSourcesListener();
+    _context.implicitAnalysisEvents.listen(listener.onData);
+    //
+    // Create a file that references an file that is not explicitly being
+    // analyzed and fully analyze it. Ensure that the listener is told about
+    // the implicitly analyzed file.
+    //
+    Source sourceA = _addSource('/a.dart', "library a; import 'b.dart';");
+    Source sourceB = _createSource('/b.dart', "library b;");
+    _context.computeErrors(sourceA);
+    await pumpEventQueue();
+    listener.expectAnalyzed(sourceB);
+  }
+
   void test_isClientLibrary_dart() {
     _context = AnalysisContextFactory.oldContextWithCore();
     _sourceFactory = _context.sourceFactory;
@@ -2118,6 +2166,12 @@ library test2;''');
     _context.applyChanges(changeSet);
   }
 
+  Source _createSource(String fileName, String contents) {
+    Source source = new FileBasedSource(FileUtilities2.createFile(fileName));
+    _context.setContents(source, contents);
+    return source;
+  }
+
   /**
    * Search the given compilation unit for a class with the given name. Return the class with the
    * given name, or `null` if the class cannot be found.
@@ -2208,24 +2262,26 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       options.analyzeFunctionBodies = booleanValue;
       options.cacheSize = i;
       options.dart2jsHint = booleanValue;
-      options.enableNullAwareOperators = booleanValue;
       options.enableStrictCallChecks = booleanValue;
+      options.enableSuperMixins = booleanValue;
       options.generateImplicitErrors = booleanValue;
       options.generateSdkErrors = booleanValue;
       options.hint = booleanValue;
       options.incremental = booleanValue;
       options.preserveComments = booleanValue;
+      options.strongMode = booleanValue;
       AnalysisOptionsImpl copy = new AnalysisOptionsImpl.from(options);
       expect(copy.analyzeFunctionBodies, options.analyzeFunctionBodies);
       expect(copy.cacheSize, options.cacheSize);
       expect(copy.dart2jsHint, options.dart2jsHint);
-      expect(copy.enableNullAwareOperators, options.enableNullAwareOperators);
       expect(copy.enableStrictCallChecks, options.enableStrictCallChecks);
+      expect(copy.enableSuperMixins, options.enableSuperMixins);
       expect(copy.generateImplicitErrors, options.generateImplicitErrors);
       expect(copy.generateSdkErrors, options.generateSdkErrors);
       expect(copy.hint, options.hint);
       expect(copy.incremental, options.incremental);
       expect(copy.preserveComments, options.preserveComments);
+      expect(copy.strongMode, options.strongMode);
     }
   }
 
@@ -2249,6 +2305,13 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     bool value = !options.dart2jsHint;
     options.dart2jsHint = value;
     expect(options.dart2jsHint, value);
+  }
+
+  void test_enableSuperMixins() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    bool value = !options.enableSuperMixins;
+    options.enableSuperMixins = value;
+    expect(options.enableSuperMixins, value);
   }
 
   void test_generateImplicitErrors() {
@@ -2285,6 +2348,13 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     options.preserveComments = value;
     expect(options.preserveComments, value);
   }
+
+  void test_strongMode() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    bool value = !options.strongMode;
+    options.strongMode = value;
+    expect(options.strongMode, value);
+  }
 }
 
 class AnalysisTask_test_perform_exception extends AnalysisTask {
@@ -2309,6 +2379,48 @@ class AnalysisTaskTest extends EngineTestCase {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     AnalysisTask task = new AnalysisTask_test_perform_exception(context);
     task.perform(new TestTaskVisitor<Object>());
+  }
+}
+
+/**
+ * A listener used to gather the [ImplicitAnalysisEvent]s that are produced
+ * during analysis.
+ */
+class AnalyzedSourcesListener {
+  /**
+   * The events that have been gathered.
+   */
+  List<ImplicitAnalysisEvent> actualEvents = <ImplicitAnalysisEvent>[];
+
+  /**
+   * The sources that are being implicitly analyzed.
+   */
+  List<Source> analyzedSources = <Source>[];
+
+  /**
+   * Assert that the given source is currently being implicitly analyzed.
+   */
+  void expectAnalyzed(Source source) {
+    expect(analyzedSources, contains(source));
+  }
+
+  /**
+   * Assert that the given source is not currently being implicitly analyzed.
+   */
+  void expectNotAnalyzed(Source source) {
+    expect(analyzedSources, isNot(contains(source)));
+  }
+
+  /**
+   * Record that the given event was produced.
+   */
+  void onData(ImplicitAnalysisEvent event) {
+    actualEvents.add(event);
+    if (event.isAnalyzed) {
+      analyzedSources.add(event.source);
+    } else {
+      analyzedSources.remove(event.source);
+    }
   }
 }
 
@@ -5437,6 +5549,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  Stream<ImplicitAnalysisEvent> get implicitAnalysisEvents {
+    fail("Unexpected invocation of analyzedSources");
+    return null;
+  }
+  @override
   bool get isDisposed {
     fail("Unexpected invocation of isDisposed");
     return false;
@@ -5480,6 +5597,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of getPrioritySources");
     return null;
   }
+
   @override
   List<AnalysisTarget> get priorityTargets {
     fail("Unexpected invocation of visitCacheItems");
@@ -5497,7 +5615,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of getResolverVisitorFactory");
     return null;
   }
-
   @override
   SourceFactory get sourceFactory {
     fail("Unexpected invocation of getSourceFactory");
@@ -5559,6 +5676,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  @deprecated
   HtmlElement computeHtmlElement(Source source) {
     fail("Unexpected invocation of computeHtmlElement");
     return null;
@@ -5640,6 +5758,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  @deprecated
   HtmlElement getHtmlElement(Source source) {
     fail("Unexpected invocation of getHtmlElement");
     return null;
@@ -5707,6 +5826,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  @deprecated
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
     fail("Unexpected invocation of getResolvedHtmlUnit");
     return null;
@@ -5737,8 +5857,18 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return false;
   }
   @override
+  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
+    fail("Unexpected invocation of onResultComputed");
+    return null;
+  }
+  @override
   CompilationUnit parseCompilationUnit(Source source) {
     fail("Unexpected invocation of parseCompilationUnit");
+    return null;
+  }
+  @override
+  Document parseHtmlDocument(Source source) {
+    fail("Unexpected invocation of parseHtmlDocument");
     return null;
   }
   @override
@@ -5746,11 +5876,13 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of parseHtmlUnit");
     return null;
   }
+
   @override
   AnalysisResult performAnalysisTask() {
     fail("Unexpected invocation of performAnalysisTask");
     return null;
   }
+
   @override
   void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
     fail("Unexpected invocation of recordLibraryElements");
@@ -5776,6 +5908,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
+  @deprecated
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
     fail("Unexpected invocation of resolveHtmlUnit");
     return null;
@@ -5786,7 +5919,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
       int oldLength, int newLength) {
     fail("Unexpected invocation of setChangedContents");
   }
-
   @override
   void setContents(Source source, String contents) {
     fail("Unexpected invocation of setContents");
@@ -5797,10 +5929,28 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of shouldErrorsBeAnalyzed");
     return false;
   }
+
+  @override
+  void test_flushAstStructures(Source source) {
+    fail("Unexpected invocation of test_flushAstStructures");
+  }
+
+  @override
+  bool validateCacheConsistency() {
+    fail("Unexpected invocation of validateCacheConsistency");
+    return false;
+  }
+
+  @deprecated
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
     fail("Unexpected invocation of visitCacheItems");
+  }
+
+  @override
+  void visitContentCache(ContentCacheVisitor visitor) {
+    fail("Unexpected invocation of visitContentCache");
   }
 }
 
@@ -5849,6 +5999,7 @@ class TestAnalysisContext_test_computeHtmlElement extends TestAnalysisContext {
   bool invoked = false;
   TestAnalysisContext_test_computeHtmlElement();
   @override
+  @deprecated
   HtmlElement computeHtmlElement(Source source) {
     invoked = true;
     return null;
@@ -5983,6 +6134,7 @@ class TestAnalysisContext_test_getHtmlElement extends TestAnalysisContext {
   bool invoked = false;
   TestAnalysisContext_test_getHtmlElement();
   @override
+  @deprecated
   HtmlElement getHtmlElement(Source source) {
     invoked = true;
     return null;
@@ -6154,6 +6306,7 @@ class TestAnalysisContext_test_getResolvedHtmlUnit extends TestAnalysisContext {
   bool invoked = false;
   TestAnalysisContext_test_getResolvedHtmlUnit();
   @override
+  @deprecated
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
     invoked = true;
     return null;
@@ -6289,6 +6442,7 @@ class TestAnalysisContext_test_resolveHtmlUnit extends TestAnalysisContext {
   bool invoked = false;
   TestAnalysisContext_test_resolveHtmlUnit();
   @override
+  @deprecated
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
     invoked = true;
     return null;
@@ -6348,12 +6502,6 @@ class TestAnalysisContext_test_setSourceFactory extends TestAnalysisContext {
  * failure.
  */
 class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
-  @override
-  E visitBuildUnitElementTask(BuildUnitElementTask task) {
-    fail("Unexpectedly invoked visitGenerateDartErrorsTask");
-    return null;
-  }
-
   @override
   E visitGenerateDartErrorsTask(GenerateDartErrorsTask task) {
     fail("Unexpectedly invoked visitGenerateDartErrorsTask");

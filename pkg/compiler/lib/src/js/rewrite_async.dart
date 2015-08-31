@@ -7,15 +7,13 @@ library rewrite_async;
 import "dart:math" show max;
 import 'dart:collection';
 
-import 'package:_internal/compiler/js_lib/shared/async_await_error_codes.dart'
+import 'package:js_runtime/shared/async_await_error_codes.dart'
     as error_codes;
 
 import "js.dart" as js;
 
 import '../util/util.dart';
 import '../dart2jslib.dart' show DiagnosticListener;
-
-import "../helpers/helpers.dart";
 
 /// Rewrites a [js.Fun] with async/sync*/async* functions and await and yield
 /// (with dart-like semantics) to an equivalent function without these.
@@ -117,11 +115,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   /// or error case.
   String errorCodeName;
 
-  final String suggestedBodyName;
   /// The inner function that is scheduled to do each await/yield,
   /// and called to do a new iteration for sync*.
-  js.VariableUse get body => new js.VariableUse(bodyName);
-  String bodyName;
+  js.Name bodyName;
 
   /// Used to simulate a goto.
   ///
@@ -181,7 +177,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   AsyncRewriterBase(this.diagnosticListener,
                     spannable,
                     this.safeVariableName,
-                    this.suggestedBodyName)
+                    this.bodyName)
       : _spannable = spannable;
 
   /// Initialize names used by the subClass.
@@ -201,7 +197,6 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     // generated after the analysis.
     resultName = freshName("result");
     errorCodeName = freshName("errorCode");
-    bodyName = freshName(suggestedBodyName);
     gotoName = freshName("goto");
     handlerName = freshName("handler");
     nextName = freshName("next");
@@ -1183,9 +1178,24 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   js.Expression visitLiteralString(js.LiteralString node) => node;
 
   @override
+  js.Expression visitStringConcatenation(js.StringConcatenation node) => node;
+
+  @override
+  js.Name visitName(js.Name node) => node;
+
+  @override
   visitNamedFunction(js.NamedFunction node) {
     unsupported(node);
   }
+
+  @override
+  js.Expression visitDeferredExpression(js.DeferredExpression node) => node;
+
+  @override
+  js.Expression visitDeferredNumber(js.DeferredNumber node) => node;
+
+  @override
+  js.Expression visitDeferredString(js.DeferredString node) => node;
 
   @override
   js.Expression visitNew(js.New node) {
@@ -1271,12 +1281,20 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   @override
   void visitReturn(js.Return node) {
-    assert(node.value == null || (!isSyncStar && !isAsyncStar));
     js.Node target = analysis.targets[node];
     if (node.value != null) {
-      withExpression(node.value, (js.Expression value) {
-        addStatement(js.js.statement("# = #;", [returnValue, value]));
-      }, store: false);
+      if(isSyncStar || isAsyncStar) {
+        // Even though `return expr;` is not allowed in the dart sync* and
+        // async*  code, the backend sometimes generates code like this, but
+        // only when it is known that the 'expr' throws, and the return is just
+        // to tell the JavaScript VM that the code won't continue here.
+        // It is therefore interpreted as `expr; return;`
+        visitExpressionIgnoreResult(node.value);
+      } else {
+        withExpression(node.value, (js.Expression value) {
+          addStatement(js.js.statement("# = #;", [returnValue, value]));
+        }, store: false);
+      }
     }
     translateJump(target, exitLabel);
   }
@@ -1677,7 +1695,7 @@ class AsyncRewriter extends AsyncRewriterBase {
                 {this.asyncHelper,
                  this.newCompleter,
                  String safeVariableName(String proposedName),
-                 String bodyName})
+                 js.Name bodyName})
         : super(diagnosticListener,
                 spannable,
                 safeVariableName,
@@ -1740,12 +1758,12 @@ class AsyncRewriter extends AsyncRewriterBase {
   js.Statement awaitStatement(js.Expression value) {
     return js.js.statement("""
           return #asyncHelper(#value,
-                              #body,
+                              #bodyName,
                               #completer);
           """, {
             "asyncHelper": asyncHelper,
             "value": value,
-            "body": body,
+            "bodyName": bodyName,
             "completer": completer});
   }
 
@@ -1809,7 +1827,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
                  this.yieldStarExpression,
                  this.uncaughtErrorExpression,
                  String safeVariableName(String proposedName),
-                 String bodyName})
+                 js.Name bodyName})
         : super(diagnosticListener,
                 spannable,
                 safeVariableName,
@@ -1979,7 +1997,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
                  this.yieldExpression,
                  this.yieldStarExpression,
                  String safeVariableName(String proposedName),
-                 String bodyName})
+                 js.Name bodyName})
         : super(diagnosticListener,
                 spannable,
                 safeVariableName,
@@ -2007,12 +2025,12 @@ class AsyncStarRewriter extends AsyncRewriterBase {
         [nextWhenCanceled, new js.ArrayInitializer(
             enclosingFinallyLabels.map(js.number).toList())]));
     addStatement(js.js.statement("""
-        return #asyncStarHelper(#yieldExpression(#expression), #body,
+        return #asyncStarHelper(#yieldExpression(#expression), #bodyName,
             #controller);""", {
       "asyncStarHelper": asyncStarHelper,
       "yieldExpression": node.hasStar ? yieldStarExpression : yieldExpression,
       "expression": expression,
-      "body": body,
+      "bodyName": bodyName,
       "controller": controllerName,
     }));
   }
@@ -2110,12 +2128,12 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   js.Statement awaitStatement(js.Expression value) {
     return js.js.statement("""
           return #asyncHelper(#value,
-                              #body,
+                              #bodyName,
                               #controller);
           """, {
             "asyncHelper": asyncStarHelper,
             "value": value,
-            "body": body,
+            "bodyName": bodyName,
             "controller": controllerName});
   }
 }
@@ -2385,6 +2403,21 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
   }
 
   @override
+  bool visitDeferredExpression(js.DeferredExpression node) {
+    return false;
+  }
+
+  @override
+  bool visitDeferredNumber(js.DeferredNumber node) {
+    return false;
+  }
+
+  @override
+  bool visitDeferredString(js.DeferredString node) {
+    return false;
+  }
+
+  @override
   bool visitLiteralBool(js.LiteralBool node) {
     return false;
   }
@@ -2412,6 +2445,16 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
   @override
   bool visitLiteralString(js.LiteralString node) {
     return false;
+  }
+
+  @override
+  bool visitStringConcatenation(js.StringConcatenation node) {
+    return true;
+  }
+
+  @override
+  bool visitName(js.Name node) {
+    return true;
   }
 
   @override

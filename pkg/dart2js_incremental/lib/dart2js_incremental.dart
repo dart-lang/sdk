@@ -14,17 +14,20 @@ import 'dart:profiler' show
 import 'package:compiler/src/apiimpl.dart' show
     Compiler;
 
-import 'package:compiler/compiler.dart' show
-    CompilerInputProvider,
-    CompilerOutputProvider,
-    Diagnostic,
-    DiagnosticHandler;
+import 'package:compiler/compiler_new.dart' show
+    CompilerDiagnostics,
+    CompilerInput,
+    CompilerOutput,
+    Diagnostic;
 
-import 'package:compiler/src/dart2jslib.dart' show
-    NullSink;
+import 'package:compiler/src/null_compiler_output.dart' show
+    NullCompilerOutput;
 
 import 'package:compiler/src/js_backend/js_backend.dart' show
     JavaScriptBackend;
+
+import 'package:compiler/src/js_emitter/full_emitter/emitter.dart'
+    as full show Emitter;
 
 import 'package:compiler/src/elements/elements.dart' show
     LibraryElement;
@@ -48,10 +51,10 @@ const List<String> INCREMENTAL_OPTIONS = const <String>[
 class IncrementalCompiler {
   final Uri libraryRoot;
   final Uri packageRoot;
-  final CompilerInputProvider inputProvider;
-  final DiagnosticHandler diagnosticHandler;
+  final CompilerInput inputProvider;
+  final CompilerDiagnostics diagnosticHandler;
   final List<String> options;
-  final CompilerOutputProvider outputProvider;
+  final CompilerOutput outputProvider;
   final Map<String, dynamic> environment;
   final List<String> _updates = <String>[];
   final IncrementalCompilerContext _context = new IncrementalCompilerContext();

@@ -306,7 +306,7 @@ class HInstructionStringifier implements HVisitor<String> {
     int offset = HInvoke.ARGUMENTS_OFFSET;
     List arguments = invoke.inputs.sublist(offset);
     return visitGenericInvoke("Invoke", target, arguments) +
-        "(${invoke.selector.mask})";
+        "(${invoke.mask})";
   }
 
   String visitInvokeDynamicMethod(HInvokeDynamicMethod node)
@@ -387,6 +387,10 @@ class HInstructionStringifier implements HVisitor<String> {
     }
     buffer.write(")");
     return buffer.toString();
+  }
+
+  String visitRef(HRef node) {
+    return 'Ref ${temporaryId(node.value)}';
   }
 
   String visitReturn(HReturn node) => "Return ${temporaryId(node.inputs[0])}";

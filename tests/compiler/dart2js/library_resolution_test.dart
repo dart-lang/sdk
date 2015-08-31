@@ -22,9 +22,16 @@ import 'package:compiler/src/elements/elements.dart' show
 
 import 'package:compiler/src/dart2jslib.dart' show
     MessageKind,
-    NullSink;
+    MessageTemplate;
 
-import 'package:_internal/libraries.dart' show
+import 'package:compiler/src/null_compiler_output.dart' show
+    NullCompilerOutput;
+
+import 'package:compiler/src/old_to_new_api.dart' show
+    LegacyCompilerDiagnostics,
+    LegacyCompilerInput;
+
+import 'package:sdk_library_metadata/libraries.dart' show
     DART2JS_PLATFORM,
     LibraryInfo;
 
@@ -40,13 +47,13 @@ const LibraryInfo mock2LibraryInfo = const LibraryInfo(
     documented: false,
     platforms: DART2JS_PLATFORM);
 
+
 class CustomCompiler extends Compiler {
   final Map<String, LibraryInfo> customLibraryInfo;
 
   CustomCompiler(
       this.customLibraryInfo,
       provider,
-      outputProvider,
       handler,
       libraryRoot,
       packageRoot,
@@ -54,7 +61,7 @@ class CustomCompiler extends Compiler {
       environment)
       : super(
           provider,
-          outputProvider,
+          const NullCompilerOutput(),
           handler,
           libraryRoot,
           packageRoot,
@@ -75,11 +82,6 @@ main() {
   var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
   var handler = new FormattingDiagnosticHandler(provider);
 
-  outputProvider(String name, String extension) {
-    if (name != '') throw 'Attempt to output file "$name.$extension"';
-    return new NullSink('$name.$extension');
-  }
-
   Future wrappedProvider(Uri uri) {
     if (uri == sdkRoot.resolve('lib/mock1.dart')) {
       return provider.readStringFromUri(Uri.parse('memory:mock1.dart'));
@@ -91,7 +93,7 @@ main() {
   }
 
   String expectedMessage =
-      MessageKind.LIBRARY_NOT_FOUND.message(
+      MessageTemplate.TEMPLATES[MessageKind.LIBRARY_NOT_FOUND].message(
           {'resolvedUri': 'dart:mock2.dart'}).computeMessage();
 
   int actualMessageCount = 0;
@@ -111,9 +113,8 @@ main() {
 
   Compiler compiler = new CustomCompiler(
       {},
-      wrappedProvider,
-      outputProvider,
-      wrappedHandler,
+      new LegacyCompilerInput(wrappedProvider),
+      new LegacyCompilerDiagnostics(wrappedHandler),
       sdkRoot,
       packageRoot,
       [],

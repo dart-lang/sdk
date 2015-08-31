@@ -273,18 +273,7 @@ class _IOSinkImpl extends _StreamSinkImpl<List<int>> implements IOSink {
   }
 
   void write(Object obj) {
-    // This comment is copied from runtime/lib/string_buffer_patch.dart.
-    // TODO(srdjan): The following four lines could be replaced by
-    // '$obj', but apparently this is too slow on the Dart VM.
-    String string;
-    if (obj is String) {
-      string = obj;
-    } else {
-      string = obj.toString();
-      if (string is! String) {
-        throw new ArgumentError('toString() did not return a string');
-      }
-    }
+    String string = '$obj';
     if (string.isEmpty) return;
     add(_encoding.encode(string));
   }

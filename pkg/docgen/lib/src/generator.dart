@@ -268,10 +268,10 @@ void _ensureOutputDirectory(String outputDirectory) {
 Future<MirrorSystem> analyzeLibraries(List<Uri> libraries, String
     libraryRoot, {String packageRoot}) {
   SourceFileProvider provider = new CompilerSourceFileProvider();
-  api.DiagnosticHandler diagnosticHandler = (new FormattingDiagnosticHandler(
+  api.DiagnosticHandler diagnosticHandler = new FormattingDiagnosticHandler(
       provider)
       ..showHints = false
-      ..showWarnings = false).diagnosticHandler;
+      ..showWarnings = false;
   Uri libraryUri = new Uri.file(appendSlash(libraryRoot));
   Uri packageUri = null;
   if (packageRoot == null) {

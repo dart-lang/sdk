@@ -95,10 +95,11 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
     return false;
   }
 
-  void diagnosticHandler(Uri uri, int begin, int end, String message,
-                         api.Diagnostic kind) {
+  @override
+  void report(Message message, Uri uri, int begin, int end, String text,
+              api.Diagnostic kind) {
     if (kind == api.Diagnostic.WARNING) {
-      if (checkWhiteList(uri, message)) {
+      if (checkWhiteList(uri, text)) {
         // Suppress whitelisted warnings.
         lastWasWhitelisted = true;
         return;
@@ -106,7 +107,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
       hasWarnings = true;
     }
     if (kind == api.Diagnostic.HINT) {
-      if (checkWhiteList(uri, message)) {
+      if (checkWhiteList(uri, text)) {
         // Suppress whitelisted hints.
         lastWasWhitelisted = true;
         return;
@@ -114,7 +115,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
       hasHint = true;
     }
     if (kind == api.Diagnostic.ERROR) {
-      if (checkWhiteList(uri, message)) {
+      if (checkWhiteList(uri, text)) {
         // Suppress whitelisted errors.
         lastWasWhitelisted = true;
         return;
@@ -125,7 +126,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
       return;
     }
     lastWasWhitelisted = false;
-    super.diagnosticHandler(uri, begin, end, message, kind);
+    super.report(message, uri, begin, end, text, kind);
   }
 }
 
@@ -158,10 +159,11 @@ Future analyze(List<Uri> uriList,
     '--show-package-warnings'];
   if (analyzeAll) options.add('--analyze-all');
   var compiler = new Compiler(
-      provider.readStringFromUri,
+      provider,
       null,
-      handler.diagnosticHandler,
-      libraryRoot, packageRoot,
+      handler,
+      libraryRoot,
+      packageRoot,
       options,
       {});
   String MESSAGE = """

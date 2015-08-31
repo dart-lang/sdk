@@ -6,6 +6,8 @@ library class_view_element;
 
 import 'dart:async';
 import 'observatory_element.dart';
+import 'package:observatory/cpu_profile.dart';
+import 'package:observatory/elements.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
@@ -15,6 +17,10 @@ class ClassViewElement extends ObservatoryElement {
   @observable ServiceMap instances;
   @observable int retainedBytes;
   @observable ObservableList mostRetained;
+  SampleBufferControlElement sampleBufferControlElement;
+  StackTraceTreeConfigElement stackTraceTreeConfigElement;
+  CpuProfileTreeElement cpuProfileTreeElement;
+
   ClassViewElement.created() : super.created();
 
   Future<ServiceObject> evaluate(String expression) {
@@ -45,7 +51,24 @@ class ClassViewElement extends ObservatoryElement {
   }
 
   void attached() {
+    super.attached();
+    sampleBufferControlElement =
+        shadowRoot.querySelector('#sampleBufferControl');
+    assert(sampleBufferControlElement != null);
+    sampleBufferControlElement.onSampleBufferUpdate = onSampleBufferChange;
+    sampleBufferControlElement.state =
+        SampleBufferControlElement.kNotLoadedState;
+    stackTraceTreeConfigElement =
+        shadowRoot.querySelector('#stackTraceTreeConfig');
+    assert(stackTraceTreeConfigElement != null);
+    stackTraceTreeConfigElement.onTreeConfigChange = onTreeConfigChange;
+    stackTraceTreeConfigElement.show = false;
+    cpuProfileTreeElement = shadowRoot.querySelector('#cpuProfileTree');
+    assert(cpuProfileTreeElement != null);
+    cpuProfileTreeElement.profile = sampleBufferControlElement.profile;
+    cpuProfileTreeElement.show = false;
     cls.fields.forEach((field) => field.reload());
+    sampleBufferControlElement.allocationProfileClass = cls;
   }
 
   Future refresh() {
@@ -60,5 +83,36 @@ class ClassViewElement extends ObservatoryElement {
 
   Future refreshCoverage() {
     return cls.refreshCoverage();
+  }
+
+  onSampleBufferChange(CpuProfile sampleBuffer) {
+    stackTraceTreeConfigElement.show = sampleBuffer.sampleCount > 0;
+    cpuProfileTreeElement.show = sampleBuffer.sampleCount > 0;
+    cpuProfileTreeElement.render();
+  }
+
+  onTreeConfigChange(String modeSelector, String directionSelector) {
+    ProfileTreeDirection direction = ProfileTreeDirection.Exclusive;
+    if (directionSelector != 'Up') {
+      direction = ProfileTreeDirection.Inclusive;
+    }
+    ProfileTreeMode mode = ProfileTreeMode.Function;
+    if (modeSelector == 'Code') {
+      mode = ProfileTreeMode.Code;
+    }
+    cpuProfileTreeElement.direction = direction;
+    cpuProfileTreeElement.mode = mode;
+    cpuProfileTreeElement.render();
+  }
+
+  Future refreshAllocationProfile() async {
+    return sampleBufferControlElement.reload(cls.isolate);
+  }
+
+  Future toggleAllocationTrace() {
+    if (cls == null) {
+      return new Future(refresh);
+    }
+    return cls.setTraceAllocations(!cls.traceAllocations).whenComplete(refresh);
   }
 }

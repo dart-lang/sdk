@@ -133,6 +133,14 @@ class BlockGraphBuilder extends RecursiveVisitor {
     _currentBlock = newBlock(catchBlock: catchBlock)..predecessors.add(block);
   }
 
+  /// Starts a new block with the given blocks as predecessors.
+  void joinFrom(Block block1, Block block2) {
+    assert(block1.catchBlock == block2.catchBlock);
+    _currentBlock = newBlock(catchBlock: block1.catchBlock);
+    _currentBlock.predecessors.add(block1);
+    _currentBlock.predecessors.add(block2);
+  }
+
   /// Called when reading from [variable].
   ///
   /// Appends a read operation to the current basic block.
@@ -172,8 +180,10 @@ class BlockGraphBuilder extends RecursiveVisitor {
     Block afterCondition = _currentBlock;
     branchFrom(afterCondition);
     visitStatement(node.thenStatement);
+    Block afterThen = _currentBlock;
     branchFrom(afterCondition);
     visitStatement(node.elseStatement);
+    joinFrom(_currentBlock, afterThen);
   }
 
   visitLabeledStatement(LabeledStatement node) {
@@ -211,14 +221,20 @@ class BlockGraphBuilder extends RecursiveVisitor {
   }
 
   visitTry(Try node) {
-    Block catchBlock = newBlock();
+    Block outerCatchBlock = _currentBlock.catchBlock;
+    Block catchBlock = newBlock(catchBlock: outerCatchBlock);
     branchFrom(_currentBlock, catchBlock: catchBlock);
     visitStatement(node.tryBody);
+    Block afterTry = _currentBlock;
     _currentBlock = catchBlock;
     // Catch parameters cannot be hoisted to the top of the function, so to
     // avoid complications with scoping, we do not attempt to merge them.
     node.catchParameters.forEach(ignoreVariable);
     visitStatement(node.catchBody);
+    Block afterCatch = _currentBlock;
+    _currentBlock = newBlock(catchBlock: outerCatchBlock);
+    _currentBlock.predecessors.add(afterCatch);
+    _currentBlock.predecessors.add(afterTry);
   }
 
   visitConditional(Conditional node) {
@@ -226,15 +242,18 @@ class BlockGraphBuilder extends RecursiveVisitor {
     Block afterCondition = _currentBlock;
     branchFrom(afterCondition);
     visitExpression(node.thenExpression);
+    Block afterThen = _currentBlock;
     branchFrom(afterCondition);
     visitExpression(node.elseExpression);
+    joinFrom(_currentBlock, afterThen);
   }
 
   visitLogicalOperator(LogicalOperator node) {
     visitExpression(node.left);
-    Block afterCondition = _currentBlock;
-    branchFrom(afterCondition);
+    Block afterLeft = _currentBlock;
+    branchFrom(afterLeft);
     visitExpression(node.right);
+    joinFrom(_currentBlock, afterLeft);
   }
 }
 
@@ -324,7 +343,7 @@ void _computeLiveness(List<Block> blocks) {
 /// For testing purposes, this flag can be passed to merge variables that
 /// originated from different source variables.
 ///
-/// Correctness should not depend on the fact that we only merge variable
+/// Correctness should not depend on the fact that we only merge variables
 /// originating from the same source variable. Setting this flag makes a bug
 /// more likely to provoke a test case failure.
 const bool NO_PRESERVE_VARS = const bool.fromEnvironment('NO_PRESERVE_VARS');
@@ -426,7 +445,7 @@ Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks,
       continue;
     }
 
-    // Optimization: If there are no inteference edges for this variable,
+    // Optimization: If there are no interference edges for this variable,
     // assign it the first color without copying the register list.
     Set<Variable> interferenceSet = interference[v1];
     if (interferenceSet.isEmpty) {

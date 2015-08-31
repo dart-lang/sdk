@@ -212,7 +212,6 @@ abstract class SendResolverMixin {
     }
 
     AssignmentOperator assignmentOperator;
-    UnaryOperator unaryOperator;
     BinaryOperator binaryOperator;
     IncDecOperator incDecOperator;
 
@@ -334,7 +333,9 @@ abstract class SendResolverMixin {
           case AccessKind.SUPER_METHOD:
           case AccessKind.TOPLEVEL_METHOD:
             // TODO(johnniwinther): Should local function also be handled here?
-            if (!selector.callStructure.signatureApplies(semantics.element)) {
+            FunctionElement function = semantics.element;
+            FunctionSignature signature = function.functionSignature;
+            if (!selector.callStructure.signatureApplies(signature)) {
               return new IncompatibleInvokeStructure(semantics, selector);
             }
             break;
@@ -499,11 +500,12 @@ abstract class SendResolverMixin {
       } else {
         return new StaticAccess.superMethod(element);
       }
-    } else if (node.isOperator || node.isConditional) {
+    } else if (node.isConditional) {
       // Conditional sends (e?.x) are treated as dynamic property reads because
       // they are equivalent to do ((a) => a == null ? null : a.x)(e). If `e` is
       // a type `A`, this is equivalent to write `(A).x`.
-      // TODO(johnniwinther): maybe add DynamicAccess.conditionalDynamicProperty
+      return new DynamicAccess.ifNotNullProperty(node.receiver);
+    } else if (node.isOperator) {
       return new DynamicAccess.dynamicProperty(node.receiver);
     } else if (Elements.isClosureSend(node, element)) {
       if (element == null) {
@@ -586,7 +588,7 @@ abstract class SendResolverMixin {
           type,
           effectiveTargetSemantics);
     } else {
-      if (!callStructure.signatureApplies(constructor)) {
+      if (!callStructure.signatureApplies(constructor.functionSignature)) {
         return new ConstructorAccessSemantics(
             ConstructorAccessKind.INCOMPATIBLE,
             constructor,

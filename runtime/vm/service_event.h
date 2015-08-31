@@ -13,7 +13,7 @@ namespace dart {
 
 class ServiceEvent {
  public:
-  enum EventType {
+  enum EventKind {
     kIsolateStart,       // New isolate has started
     kIsolateExit,        // Isolate has exited
     kIsolateUpdate,      // Isolate identity information has changed
@@ -28,37 +28,70 @@ class ServiceEvent {
     kBreakpointResolved,
     kBreakpointRemoved,
     kInspect,
+    kDebuggerSettingsUpdate,
 
     kGC,
+
+    kEmbedder,
+
+    kLogging,
 
     kIllegal,
   };
 
-  ServiceEvent(Isolate* isolate, EventType event_type)
+  struct LogRecord {
+    int64_t sequence_number;
+    int64_t timestamp;
+    intptr_t level;
+    const String* name;
+    const String* message;
+    const Instance* zone;
+    const Object* error;
+    const Instance* stack_trace;
+  };
+
+  ServiceEvent(Isolate* isolate, EventKind event_kind)
       : isolate_(isolate),
-        type_(event_type),
+        kind_(event_kind),
+        embedder_kind_(NULL),
+        embedder_stream_id_(NULL),
         breakpoint_(NULL),
         top_frame_(NULL),
         exception_(NULL),
+        async_continuation_(NULL),
         inspectee_(NULL),
-        gc_stats_(NULL) {}
+        gc_stats_(NULL),
+        bytes_(NULL),
+        bytes_length_(0) {}
 
   explicit ServiceEvent(const DebuggerEvent* debugger_event);
 
   Isolate* isolate() const { return isolate_; }
 
-  EventType type() const { return type_; }
+  EventKind kind() const { return kind_; }
+
+  const char* embedder_kind() const { return embedder_kind_; }
+
+  const char* KindAsCString() const;
+
+  void set_embedder_kind(const char* embedder_kind) {
+    embedder_kind_ = embedder_kind;
+  }
 
   const char* stream_id() const;
+
+  void set_embedder_stream_id(const char* stream_id) {
+    embedder_stream_id_ = stream_id;
+  }
 
   Breakpoint* breakpoint() const {
     return breakpoint_;
   }
   void set_breakpoint(Breakpoint* bpt) {
-    ASSERT(type() == kPauseBreakpoint ||
-           type() == kBreakpointAdded ||
-           type() == kBreakpointResolved ||
-           type() == kBreakpointRemoved);
+    ASSERT(kind() == kPauseBreakpoint ||
+           kind() == kBreakpointAdded ||
+           kind() == kBreakpointResolved ||
+           kind() == kBreakpointRemoved);
     breakpoint_ = bpt;
   }
 
@@ -66,10 +99,10 @@ class ServiceEvent {
     return top_frame_;
   }
   void set_top_frame(ActivationFrame* frame) {
-    ASSERT(type() == kPauseBreakpoint ||
-           type() == kPauseInterrupted ||
-           type() == kPauseException ||
-           type() == kResume);
+    ASSERT(kind() == kPauseBreakpoint ||
+           kind() == kPauseInterrupted ||
+           kind() == kPauseException ||
+           kind() == kResume);
     top_frame_ = frame;
   }
 
@@ -77,15 +110,23 @@ class ServiceEvent {
     return exception_;
   }
   void set_exception(const Object* exception) {
-    ASSERT(type_ == kPauseException);
+    ASSERT(kind_ == kPauseException);
     exception_ = exception;
+  }
+
+  const Object* async_continuation() const {
+    return async_continuation_;
+  }
+  void set_async_continuation(const Object* closure) {
+    ASSERT(kind_ == kPauseBreakpoint);
+    async_continuation_ = closure;
   }
 
   const Object* inspectee() const {
     return inspectee_;
   }
   void set_inspectee(const Object* inspectee) {
-    ASSERT(type_ == kInspect);
+    ASSERT(kind_ == kInspect);
     inspectee_ = inspectee;
   }
 
@@ -97,18 +138,41 @@ class ServiceEvent {
     gc_stats_ = gc_stats;
   }
 
+  const uint8_t* bytes() const {
+    return bytes_;
+  }
+
+  intptr_t bytes_length() const {
+    return bytes_length_;
+  }
+
+  void set_bytes(const uint8_t* bytes, intptr_t bytes_length) {
+    bytes_ = bytes;
+    bytes_length_ = bytes_length;
+  }
+
+  void set_log_record(const LogRecord& log_record) {
+    log_record_ = log_record;
+  }
+
   void PrintJSON(JSONStream* js) const;
 
-  static const char* EventTypeToCString(EventType type);
+  void PrintJSONHeader(JSONObject* jsobj) const;
 
  private:
   Isolate* isolate_;
-  EventType type_;
+  EventKind kind_;
+  const char* embedder_kind_;
+  const char* embedder_stream_id_;
   Breakpoint* breakpoint_;
   ActivationFrame* top_frame_;
   const Object* exception_;
+  const Object* async_continuation_;
   const Object* inspectee_;
   const Heap::GCStats* gc_stats_;
+  const uint8_t* bytes_;
+  intptr_t bytes_length_;
+  LogRecord log_record_;
 };
 
 }  // namespace dart

@@ -8,9 +8,10 @@
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <div>
-      from <any-service-ref ref="{{ source }}"></any-service-ref>
-      <template if="{{ slotIsArrayIndex }}">via [{{ slot }}]</template>
-      <template if="{{ slotIsField }}">via <field-ref ref="{{ slot }}"></field-ref></template>
+      from
+      <template if="{{ slotIsArrayIndex }}">[{{ slot }}] of</template>
+      <template if="{{ slotIsField }}"><field-ref ref="{{ slot }}"></field-ref> of</template>
+      <any-service-ref ref="{{ source }}"></any-service-ref>
 
       <curly-block callback="{{ expander() }}">
         <div class="memberList">

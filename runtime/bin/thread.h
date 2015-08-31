@@ -7,6 +7,14 @@
 
 #include "platform/globals.h"
 
+namespace dart {
+namespace bin {
+class Thread;
+class Mutex;
+class Monitor;
+}
+}
+
 // Declare the OS-specific types ahead of defining the generic classes.
 #if defined(TARGET_OS_ANDROID)
 #include "bin/thread_android.h"

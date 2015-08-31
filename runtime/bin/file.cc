@@ -10,11 +10,21 @@
 #include "bin/utils.h"
 
 #include "include/dart_api.h"
+#include "include/dart_tools_api.h"
 
 namespace dart {
 namespace bin {
 
 static const int kMSPerSecond = 1000;
+
+// Are we capturing output from either stdout or stderr for the VM Service?
+bool capture_stdio = false;
+
+// Are we capturing output from stdout for the VM service?
+bool capture_stdout = false;
+
+// Are we capturing output from stderr for the VM service?
+bool capture_stderr = false;
 
 
 // The file pointer has been passed into Dart as an intptr_t and it is safe
@@ -52,6 +62,18 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
     remaining -= bytes_written;  // Reduce the number of remaining bytes.
     current_buffer += bytes_written;  // Move the buffer forward.
   }
+  if (capture_stdio) {
+    intptr_t fd = GetFD();
+    if (fd == STDOUT_FILENO && capture_stdout) {
+      Dart_ServiceSendDataEvent("Stdout", "WriteEvent",
+                                reinterpret_cast<const uint8_t*>(buffer),
+                                num_bytes);
+    } else if (fd == STDERR_FILENO && capture_stderr) {
+      Dart_ServiceSendDataEvent("Stderr", "WriteEvent",
+                                reinterpret_cast<const uint8_t*>(buffer),
+                                num_bytes);
+    }
+  }
   return true;
 }
 
@@ -59,12 +81,20 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
 File::FileOpenMode File::DartModeToFileMode(DartFileOpenMode mode) {
   ASSERT(mode == File::kDartRead ||
          mode == File::kDartWrite ||
-         mode == File::kDartAppend);
+         mode == File::kDartAppend ||
+         mode == File::kDartWriteOnly ||
+         mode == File::kDartWriteOnlyAppend);
   if (mode == File::kDartWrite) {
     return File::kWriteTruncate;
   }
   if (mode == File::kDartAppend) {
     return File::kWrite;
+  }
+  if (mode == File::kDartWriteOnly) {
+    return File::kWriteOnlyTruncate;
+  }
+  if (mode == File::kDartWriteOnlyAppend) {
+    return File::kWriteOnly;
   }
   return File::kRead;
 }
@@ -573,7 +603,7 @@ void FUNCTION_NAME(File_ResolveSymbolicLinks)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_OpenStdio)(Dart_NativeArguments args) {
   int64_t fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  ASSERT(fd == 0 || fd == 1 || fd == 2);
+  ASSERT(fd == STDIN_FILENO || fd == STDOUT_FILENO || fd == STDERR_FILENO);
   File* file = File::OpenStdio(static_cast<int>(fd));
   Dart_SetReturnValue(args, Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
 }
@@ -581,7 +611,7 @@ void FUNCTION_NAME(File_OpenStdio)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_GetStdioHandleType)(Dart_NativeArguments args) {
   int64_t fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  ASSERT(fd == 0 || fd == 1 || fd == 2);
+  ASSERT(fd == STDIN_FILENO || fd == STDOUT_FILENO || fd == STDERR_FILENO);
   File::StdioHandleType type = File::GetStdioHandleType(static_cast<int>(fd));
   Dart_SetReturnValue(args, Dart_NewInteger(type));
 }

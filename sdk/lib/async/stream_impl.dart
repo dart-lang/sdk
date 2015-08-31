@@ -512,7 +512,7 @@ class _GeneratedStreamImpl<T> extends _StreamImpl<T> {
       bool cancelOnError) {
     if (_isUsed) throw new StateError("Stream has already been listened to.");
     _isUsed = true;
-    return new _BufferingStreamSubscription(
+    return new _BufferingStreamSubscription<T>(
         onData, onError, onDone, cancelOnError).._setPendingEvents(_pending());
   }
 }
@@ -1079,5 +1079,17 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
     _subscription.pause();
     _futureOrPrefetch = null;
     _state = _STATE_EXTRA_DONE;
+  }
+}
+
+/** An empty broadcast stream, sending a done event as soon as possible. */
+class _EmptyStream<T> extends Stream<T> {
+  const _EmptyStream() : super._internal();
+  bool get isBroadcast => true;
+  StreamSubscription<T> listen(void onData(T data),
+                               {Function onError,
+                                void onDone(),
+                                bool cancelOnError}) {
+    return new _DoneStreamSubscription<T>(onDone);
   }
 }

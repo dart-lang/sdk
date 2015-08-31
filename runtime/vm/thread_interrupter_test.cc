@@ -17,11 +17,12 @@ class ThreadInterrupterTestHelper : public AllStatic {
   static void InterruptTest(const intptr_t run_time, const intptr_t period) {
     const double allowed_error = 0.25;  // +/- 25%
     intptr_t count = 0;
-    ThreadInterrupter::Unregister();
+    Thread::EnsureInit();
+    Thread* thread = Thread::Current();
+    thread->SetThreadInterrupter(IncrementCallback, &count);
     ThreadInterrupter::SetInterruptPeriod(period);
-    ThreadInterrupter::Register(IncrementCallback, &count);
     OS::Sleep(run_time * kMillisecondsPerSecond);
-    ThreadInterrupter::Unregister();
+    thread->SetThreadInterrupter(NULL, NULL);
     intptr_t run_time_micros = run_time * kMicrosecondsPerSecond;
     intptr_t expected_interrupts = run_time_micros / period;
     intptr_t error = allowed_error * expected_interrupts;

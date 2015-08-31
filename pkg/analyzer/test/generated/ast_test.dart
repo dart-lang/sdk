@@ -2132,6 +2132,16 @@ class ToSourceVisitorTest extends EngineTestCase {
             .formalParameterList([AstFactory.simpleFormalParameter3("b")])));
   }
 
+  void test_visitFieldFormalParameter_functionTyped_typeParameters() {
+    _assertSource("A this.a<E, F>(b)", new FieldFormalParameter(null, null,
+        null, AstFactory.typeName4('A'),
+        TokenFactory.tokenFromKeyword(Keyword.THIS),
+        TokenFactory.tokenFromType(TokenType.PERIOD),
+        AstFactory.identifier3('a'), AstFactory.typeParameterList(['E', 'F']),
+        AstFactory
+            .formalParameterList([AstFactory.simpleFormalParameter3("b")])));
+  }
+
   void test_visitFieldFormalParameter_keyword() {
     _assertSource(
         "var this.a", AstFactory.fieldFormalParameter(Keyword.VAR, null, "a"));
@@ -2406,6 +2416,13 @@ class ToSourceVisitorTest extends EngineTestCase {
         null, Keyword.SET, "f", AstFactory.functionExpression()));
   }
 
+  void test_visitFunctionDeclaration_typeParameters() {
+    _assertSource("f<E>() {}", AstFactory.functionDeclaration(null, null, "f",
+        AstFactory.functionExpression3(AstFactory.typeParameterList(['E']),
+            AstFactory.formalParameterList(),
+            AstFactory.blockFunctionBody2())));
+  }
+
   void test_visitFunctionDeclaration_withMetadata() {
     FunctionDeclaration declaration = AstFactory.functionDeclaration(
         null, null, "f", AstFactory.functionExpression());
@@ -2423,9 +2440,21 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("() {}", AstFactory.functionExpression());
   }
 
-  void test_visitFunctionExpressionInvocation() {
+  void test_visitFunctionExpression_typeParameters() {
+    _assertSource("<E>() {}", AstFactory.functionExpression3(
+        AstFactory.typeParameterList(['E']), AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2()));
+  }
+
+  void test_visitFunctionExpressionInvocation_minimal() {
     _assertSource("f()",
         AstFactory.functionExpressionInvocation(AstFactory.identifier3("f")));
+  }
+
+  void test_visitFunctionExpressionInvocation_typeArguments() {
+    _assertSource("f<A>()", AstFactory.functionExpressionInvocation2(
+        AstFactory.identifier3("f"),
+        AstFactory.typeArgumentList([AstFactory.typeName4('A')])));
   }
 
   void test_visitFunctionTypeAlias_generic() {
@@ -2455,6 +2484,13 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitFunctionTypedFormalParameter_type() {
     _assertSource("T f()", AstFactory.functionTypedFormalParameter(
         AstFactory.typeName4("T"), "f"));
+  }
+
+  void test_visitFunctionTypedFormalParameter_typeParameters() {
+    _assertSource("T f<E>()", new FunctionTypedFormalParameter(null, null,
+        AstFactory.typeName4("T"), AstFactory.identifier3('f'),
+        AstFactory.typeParameterList(['E']),
+        AstFactory.formalParameterList([])));
   }
 
   void test_visitIfStatement_withElse() {
@@ -2758,6 +2794,12 @@ class ToSourceVisitorTest extends EngineTestCase {
         AstFactory.blockFunctionBody2()));
   }
 
+  void test_visitMethodDeclaration_typeParameters() {
+    _assertSource("m<E>() {}", AstFactory.methodDeclaration3(null, null, null,
+        null, AstFactory.identifier3("m"), AstFactory.typeParameterList(['E']),
+        AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
+  }
+
   void test_visitMethodDeclaration_withMetadata() {
     MethodDeclaration declaration = AstFactory.methodDeclaration2(null, null,
         null, null, AstFactory.identifier3("m"),
@@ -2779,6 +2821,11 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitMethodInvocation_target() {
     _assertSource(
         "t.m()", AstFactory.methodInvocation(AstFactory.identifier3("t"), "m"));
+  }
+
+  void test_visitMethodInvocation_typeArguments() {
+    _assertSource("m<A>()", AstFactory.methodInvocation3(
+        null, "m", AstFactory.typeArgumentList([AstFactory.typeName4('A')])));
   }
 
   void test_visitNamedExpression() {

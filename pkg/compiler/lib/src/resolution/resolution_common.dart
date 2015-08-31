@@ -13,7 +13,13 @@ class ResolverTask extends CompilerTask {
 
   WorldImpact resolve(Element element) {
     return measure(() {
-      if (Elements.isErroneous(element)) return null;
+      if (Elements.isErroneous(element)) {
+        // TODO(johnniwinther): Add a predicate for this.
+        assert(invariant(element, element is! ErroneousElement,
+            message: "Element $element expected to have parse errors."));
+        _ensureTreeElements(element);
+        return const WorldImpact();
+      }
 
       WorldImpact processMetadata([WorldImpact result]) {
         for (MetadataAnnotation metadata in element.metadata) {
@@ -154,9 +160,9 @@ class ResolverTask extends CompilerTask {
       if (element.isGenerativeConstructor) {
         // Even if there is no initializer list we still have to do the
         // resolution in case there is an implicit super constructor call.
-        InitializerResolver resolver = new InitializerResolver(visitor);
-        FunctionElement redirection =
-            resolver.resolveInitializers(element, tree);
+        InitializerResolver resolver =
+            new InitializerResolver(visitor, element, tree);
+        FunctionElement redirection = resolver.resolveInitializers();
         if (redirection != null) {
           resolveRedirectingConstructor(resolver, tree, element, redirection);
         }
@@ -734,9 +740,9 @@ class ResolverTask extends CompilerTask {
     }
     AbstractFieldElement field = lookupElement;
 
-    MethodElementX getter = field.getter;
+    GetterElementX getter = field.getter;
     if (getter == null) return;
-    MethodElementX setter = field.setter;
+    SetterElementX setter = field.setter;
     if (setter == null) return;
     int getterFlags = getter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
     int setterFlags = setter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
@@ -983,7 +989,7 @@ class CommonResolverVisitor<R> extends Visitor<R> {
     compiler.reportWarning(node, kind, arguments);
   }
 
-  void internalError(Spannable node, message) {
+  internalError(Spannable node, message) {
     compiler.internalError(node, message);
   }
 

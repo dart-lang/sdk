@@ -37,12 +37,14 @@ class CollectingFormattingDiagnosticHandler
    messages.add([message, kind]);
   }
 
-  void diagnosticHandler(Uri uri, int begin, int end, String message, kind) {
+  @override
+  void report(var code, Uri uri, int begin, int end, String message, kind) {
     messages.add([message, kind]);
   }
 
+  @override
   void call(Uri uri, int begin, int end, String message, kind) {
-    diagnosticHandler(uri, begin, end, message, kind);
+    report(null, uri, begin, end, message, kind);
   }
 
   String prefixMessage(String message, Diagnostic kind) {

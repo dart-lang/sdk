@@ -144,7 +144,7 @@ class ExitFrame : public StackFrame {
 class EntryFrame : public StackFrame {
  public:
   bool IsValid() const {
-    return StubCode::InInvocationStubForIsolate(isolate(), pc());
+    return StubCode::InInvocationStub(pc());
   }
   bool IsDartFrame(bool validate = true) const { return false; }
   bool IsStubFrame() const { return false; }
@@ -206,7 +206,7 @@ class StackFrameIterator : public ValueObject {
       }
       const uword pc = *(reinterpret_cast<uword*>(
           sp_ + (kSavedPcSlotFromSp * kWordSize)));
-      return !StubCode::InInvocationStubForIsolate(isolate_, pc);
+      return !StubCode::InInvocationStub(pc);
     }
 
     // Get next non entry/exit frame in the set (assumes a next frame exists).
@@ -323,7 +323,7 @@ class InlinedFunctionsIterator : public ValueObject {
   Function& function_;
   uword pc_;
   GrowableArray<DeoptInstr*> deopt_instructions_;
-  Array& object_table_;
+  ObjectPool& object_table_;
 
   DISALLOW_COPY_AND_ASSIGN(InlinedFunctionsIterator);
 };

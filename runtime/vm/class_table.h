@@ -6,6 +6,7 @@
 #define VM_CLASS_TABLE_H_
 
 #include "platform/assert.h"
+#include "vm/bitfield.h"
 #include "vm/globals.h"
 
 namespace dart {
@@ -102,6 +103,12 @@ class ClassHeapStats {
     return OFFSET_OF(ClassHeapStats, recent) +
            OFFSET_OF(AllocStats<intptr_t>, old_size);
   }
+  static intptr_t state_offset() {
+    return OFFSET_OF(ClassHeapStats, state_);
+  }
+  static intptr_t TraceAllocationMask() {
+    return (1 << kTraceAllocationBit);
+  }
 
   void Initialize();
   void ResetAtNewGC();
@@ -112,10 +119,25 @@ class ClassHeapStats {
   void PrintToJSONObject(const Class& cls, JSONObject* obj) const;
   void Verify();
 
+  bool trace_allocation() const {
+    return TraceAllocationBit::decode(state_);
+  }
+
+  void set_trace_allocation(bool trace_allocation) {
+    state_ = TraceAllocationBit::update(trace_allocation, state_);
+  }
+
  private:
+  enum StateBits {
+    kTraceAllocationBit = 0,
+  };
+
+  class TraceAllocationBit : public BitField<bool, kTraceAllocationBit, 1> {};
+
   // Recent old at start of last new GC (used to compute promoted_*).
   intptr_t old_pre_new_gc_count_;
   intptr_t old_pre_new_gc_size_;
+  intptr_t state_;
 };
 
 
@@ -133,7 +155,7 @@ class ClassTable {
     return table_[index];
   }
 
-  intptr_t IsValidIndex(intptr_t index) const {
+  bool IsValidIndex(intptr_t index) const {
     return (index > 0) && (index < top_);
   }
 
@@ -156,6 +178,7 @@ class ClassTable {
 
   void PrintToJSONObject(JSONObject* object);
 
+  // Used by the generated code.
   static intptr_t table_offset() {
     return OFFSET_OF(ClassTable, table_);
   }
@@ -172,19 +195,20 @@ class ClassTable {
   void UpdatePromoted();
 
   // Used by the generated code.
-  uword TableAddress() {
-    return reinterpret_cast<uword>(&table_);
-  }
+  static intptr_t ClassOffsetFor(intptr_t cid);
 
   // Used by the generated code.
-  uword PredefinedClassHeapStatsTableAddress() {
-    return reinterpret_cast<uword>(predefined_class_heap_stats_table_);
-  }
+  ClassHeapStats** TableAddressFor(intptr_t cid);
+  static intptr_t TableOffsetFor(intptr_t cid);
 
-  // Used by generated code.
-  uword ClassStatsTableAddress() {
-    return reinterpret_cast<uword>(&class_heap_stats_table_);
-  }
+  // Used by the generated code.
+  static intptr_t CounterOffsetFor(intptr_t cid, bool is_new_space);
+
+  // Used by the generated code.
+  static intptr_t StateOffsetFor(intptr_t cid);
+
+  // Used by the generated code.
+  static intptr_t SizeOffsetFor(intptr_t cid, bool is_new_space);
 
   ClassHeapStats* StatsWithUpdatedSize(intptr_t cid);
 
@@ -193,6 +217,9 @@ class ClassTable {
 
   // Deallocates table copies. Do not call during concurrent access to table.
   void FreeOldTables();
+
+  void SetTraceAllocationFor(intptr_t cid, bool trace);
+  bool TraceAllocationFor(intptr_t cid);
 
  private:
   friend class MarkingVisitor;

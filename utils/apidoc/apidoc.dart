@@ -20,12 +20,11 @@ import 'dart:io';
 
 import 'html_diff.dart';
 
-// TODO(rnystrom): Use "package:" URL (#4968).
-import '../../pkg/compiler/lib/src/mirrors/source_mirrors.dart';
-import '../../pkg/compiler/lib/src/mirrors/mirrors_util.dart';
-import '../../pkg/compiler/lib/src/filenames.dart';
-import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
-import '../../sdk/lib/_internal/libraries.dart';
+import 'package:compiler/src/mirrors/source_mirrors.dart';
+import 'package:compiler/src/mirrors/mirrors_util.dart';
+import 'package:compiler/src/filenames.dart';
+import 'package:dartdoc/dartdoc.dart';
+import 'package:sdk_library_metadata/libraries.dart';
 import 'package:path/path.dart' as path;
 
 HtmlDiff _diff;

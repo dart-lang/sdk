@@ -23,6 +23,7 @@
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/thread_registry.h"
 #include "vm/verifier.h"
 
 namespace dart {
@@ -69,6 +70,7 @@ DEFINE_FLAG(int, deoptimize_every, 0,
             "Deoptimize on every N stack overflow checks");
 DEFINE_FLAG(charp, deoptimize_filter, NULL,
             "Deoptimize in named function on stack overflow checks");
+DEFINE_FLAG(bool, lazy_dispatchers, true, "Lazily generate dispatchers");
 
 #ifdef DEBUG
 DEFINE_FLAG(charp, gc_at_instance_allocation, NULL,
@@ -698,7 +700,6 @@ static void CheckResultError(const Object& result) {
 // Gets called from debug stub when code reaches a breakpoint
 // set on a runtime stub call.
 DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
-  ASSERT(isolate->debugger() != NULL);
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
@@ -711,7 +712,6 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
 
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
-  ASSERT(isolate->debugger() != NULL);
   isolate->debugger()->DebuggerStepCallback();
 }
 
@@ -725,6 +725,7 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
                                      const String& target_name,
                                      const Array& arguments_descriptor,
                                      Function* result) {
+  ASSERT(FLAG_lazy_dispatchers);
   // 1. Check if there is a getter with the same name.
   const String& getter_name = String::Handle(Field::GetterName(target_name));
   const int kNumArguments = 1;
@@ -765,6 +766,10 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
 RawFunction* InlineCacheMissHelper(
     const Instance& receiver,
     const ICData& ic_data) {
+  if (!FLAG_lazy_dispatchers) {
+    return Function::null();  // We'll handle it in the runtime.
+  }
+
   const Array& args_descriptor = Array::Handle(ic_data.arguments_descriptor());
 
   const Class& receiver_class = Class::Handle(receiver.clazz());
@@ -811,7 +816,10 @@ static RawFunction* InlineCacheMissHandler(
     }
     target_function = InlineCacheMissHelper(receiver, ic_data);
   }
-  ASSERT(!target_function.IsNull());
+  if (target_function.IsNull()) {
+    ASSERT(!FLAG_lazy_dispatchers);
+    return target_function.raw();
+  }
   if (args.length() == 1) {
     ic_data.AddReceiverCheck(args[0]->GetClassId(), target_function);
   } else {
@@ -1012,14 +1020,158 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   if (target_function.IsNull()) {
     target_function = InlineCacheMissHelper(receiver, ic_data);
   }
-
-  ASSERT(!target_function.IsNull());
+  if (target_function.IsNull()) {
+    ASSERT(!FLAG_lazy_dispatchers);
+    arguments.SetReturn(target_function);
+    return;
+  }
   // Insert function found into cache and return it.
   cache.EnsureCapacity();
   const Smi& class_id = Smi::Handle(Smi::New(cls.id()));
   cache.Insert(class_id, target_function);
   arguments.SetReturn(target_function);
 }
+
+
+// Invoke appropriate noSuchMethod or closure from getter.
+// Arg0: receiver
+// Arg1: IC data
+// Arg2: arguments descriptor array
+// Arg3: arguments array
+DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
+  ASSERT(!FLAG_lazy_dispatchers);
+  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
+  const Array& orig_arguments_desc = Array::CheckedHandle(arguments.ArgAt(2));
+  const Array& orig_arguments = Array::CheckedHandle(arguments.ArgAt(3));
+  const String& target_name = String::Handle(ic_data.target_name());
+
+  Class& cls = Class::Handle(receiver.clazz());
+  Function& function = Function::Handle();
+
+  // Dart distinguishes getters and regular methods and allows their calls
+  // to mix with conversions, and its selectors are independent of arity. So do
+  // a zigzagged lookup to see if this call failed because of an arity mismatch,
+  // need for conversion, or there really is no such method.
+
+#define NO_SUCH_METHOD()                                                       \
+  const Object& result = Object::Handle(                                       \
+      DartEntry::InvokeNoSuchMethod(receiver,                                  \
+                                    target_name,                               \
+                                    orig_arguments,                            \
+                                    orig_arguments_desc));                     \
+  CheckResultError(result);                                                    \
+  arguments.SetReturn(result);                                                 \
+
+#define CLOSURIZE(some_function)                                               \
+  const Function& closure_function =                                           \
+      Function::Handle(some_function.ImplicitClosureFunction());               \
+  const Object& result =                                                       \
+      Object::Handle(closure_function.ImplicitInstanceClosure(receiver));      \
+  arguments.SetReturn(result);                                                 \
+
+  const bool is_getter = Field::IsGetterName(target_name);
+  if (is_getter) {
+    // o.foo (o.get:foo) failed, closurize o.foo() if it exists. Or,
+    // o#foo (o.get:#foo) failed, closurizee o.foo or o.foo(), whichever is
+    // encountered first on the inheritance chain. Or,
+    // o#foo= (o.get:#set:foo) failed, closurize o.foo= if it exists.
+    String& field_name =
+        String::Handle(Field::NameFromGetter(target_name));
+
+    const bool is_extractor = field_name.CharAt(0) == '#';
+    if (is_extractor) {
+      field_name = String::SubString(field_name, 1);
+      ASSERT(!Field::IsGetterName(field_name));
+      field_name = Symbols::New(field_name);
+
+      if (!Field::IsSetterName(field_name)) {
+        const String& getter_name =
+            String::Handle(Field::GetterName(field_name));
+
+        // Zigzagged lookup: closure either a regular method or a getter.
+        while (!cls.IsNull()) {
+          function ^= cls.LookupDynamicFunction(field_name);
+          if (!function.IsNull()) {
+            CLOSURIZE(function);
+            return;
+          }
+          function ^= cls.LookupDynamicFunction(getter_name);
+          if (!function.IsNull()) {
+            CLOSURIZE(function);
+            return;
+          }
+          cls = cls.SuperClass();
+        }
+        NO_SUCH_METHOD();
+        return;
+      } else {
+        // Fall through for non-ziggaged lookup for o#foo=.
+      }
+    }
+
+    while (!cls.IsNull()) {
+      function ^= cls.LookupDynamicFunction(field_name);
+      if (!function.IsNull()) {
+        CLOSURIZE(function);
+        return;
+      }
+      cls = cls.SuperClass();
+    }
+
+    // Fall through for noSuchMethod
+  } else {
+    // o.foo(...) failed, invoke noSuchMethod is foo exists but has the wrong
+    // number of arguments, or try (o.foo).call(...)
+
+    if ((target_name.raw() == Symbols::Call().raw()) && receiver.IsClosure()) {
+      // Special case: closures are implemented with a call getter instead of a
+      // call method and with lazy dispatchers the field-invocation-dispatcher
+      // would perform the closure call.
+      const Object& result =
+        Object::Handle(DartEntry::InvokeClosure(orig_arguments,
+                                                orig_arguments_desc));
+      CheckResultError(result);
+      arguments.SetReturn(result);
+      return;
+    }
+
+    const String& getter_name = String::Handle(Field::GetterName(target_name));
+    while (!cls.IsNull()) {
+      function ^= cls.LookupDynamicFunction(target_name);
+      if (!function.IsNull()) {
+        ArgumentsDescriptor args_desc(orig_arguments_desc);
+        ASSERT(!function.AreValidArguments(args_desc, NULL));
+        break;  // mismatch, invoke noSuchMethod
+      }
+      function ^= cls.LookupDynamicFunction(getter_name);
+      if (!function.IsNull()) {
+        const Array& getter_arguments = Array::Handle(Array::New(1));
+        getter_arguments.SetAt(0, receiver);
+        const Object& getter_result =
+          Object::Handle(DartEntry::InvokeFunction(function,
+                                                   getter_arguments));
+        CheckResultError(getter_result);
+        ASSERT(getter_result.IsNull() || getter_result.IsInstance());
+
+        orig_arguments.SetAt(0, getter_result);
+        const Object& call_result =
+          Object::Handle(DartEntry::InvokeClosure(orig_arguments,
+                                                  orig_arguments_desc));
+        CheckResultError(call_result);
+        arguments.SetReturn(call_result);
+        return;
+      }
+      cls = cls.SuperClass();
+    }
+  }
+
+  NO_SUCH_METHOD();
+
+#undef NO_SUCH_METHOD
+#undef CLOSURIZE
+}
+
 
 
 // Invoke appropriate noSuchMethod function.
@@ -1193,11 +1345,14 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   }
 
   uword interrupt_bits = isolate->GetAndClearInterrupts();
-  if ((interrupt_bits & Isolate::kStoreBufferInterrupt) != 0) {
-    if (FLAG_verbose_gc) {
-      OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
+  if ((interrupt_bits & Isolate::kVMInterrupt) != 0) {
+    isolate->thread_registry()->CheckSafepoint();
+    if (isolate->store_buffer()->Overflowed()) {
+      if (FLAG_verbose_gc) {
+        OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
+      }
+      isolate->heap()->CollectGarbage(Heap::kNew);
     }
-    isolate->heap()->CollectGarbage(Heap::kNew);
   }
   if ((interrupt_bits & Isolate::kMessageInterrupt) != 0) {
     bool ok = isolate->message_handler()->HandleOOBMessages();
@@ -1402,7 +1557,7 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
   alloc_class ^= stub.owner();
   Code& alloc_stub = Code::Handle(isolate, alloc_class.allocation_stub());
   if (alloc_stub.IsNull()) {
-    alloc_stub = isolate->stub_code()->GetAllocationStubForClass(alloc_class);
+    alloc_stub = StubCode::GetAllocationStubForClass(alloc_class);
     ASSERT(!CodePatcher::IsEntryPatched(alloc_stub));
   }
   const Instructions& instrs =

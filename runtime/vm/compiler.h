@@ -72,6 +72,7 @@ class Compiler : public AllStatic {
   // The return value is either a RawInstance on success or a RawError
   // on compilation failure.
   static RawObject* EvaluateStaticInitializer(const Field& field);
+  static void CompileStaticInitializer(const Field& field);
 
   // Generates local var descriptors and sets it in 'code'. Do not call if the
   // local var descriptor already exists.
@@ -90,13 +91,14 @@ class Compiler : public AllStatic {
   static bool always_optimize() { return always_optimize_; }
   static void set_always_optimize(bool value) { always_optimize_ = value; }
 
-  // Default: true.
-  static bool guess_other_cid() { return guess_other_cid_; }
-  static void set_guess_other_cid(bool value) { guess_other_cid_ = value; }
+  static bool allow_recompilation() { return allow_recompilation_; }
+  static void set_allow_recompilation(bool value) {
+    allow_recompilation_ = value;
+  }
 
  private:
   static bool always_optimize_;
-  static bool guess_other_cid_;
+  static bool allow_recompilation_;
 };
 
 }  // namespace dart

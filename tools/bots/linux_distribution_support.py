@@ -39,7 +39,7 @@ def SrcConfig(name, is_buildbot):
 def ArchiveArtifacts(tarfile, builddir, channel, linux_system):
   namer = bot_utils.GCSNamer(channel=channel)
   gsutil = bot_utils.GSUtil()
-  revision = utils.GetSVNRevision()
+  revision = utils.GetArchiveVersion()
   # Archive the src tar to the src dir
   remote_tarfile = '/'.join([namer.src_directory(revision),
                              os.path.basename(tarfile)])

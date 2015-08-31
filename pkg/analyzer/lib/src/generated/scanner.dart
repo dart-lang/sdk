@@ -723,12 +723,6 @@ class Scanner {
   bool _hasUnmatchedGroups = false;
 
   /**
-   * A flag indicating whether null-aware operators ('?.', '??', and '??=')
-   * should be tokenized.
-   */
-  bool enableNullAwareOperators = false;
-
-  /**
    * Initialize a newly created scanner to scan characters from the given
    * [source]. The given character [_reader] will be used to read the characters
    * in the source. The given [_errorListener] will be informed of any errors
@@ -1507,8 +1501,8 @@ class Scanner {
         }
         recordStartOfLine();
       } else if (next == 0xA) {
-        recordStartOfLine();
         next = _reader.advance();
+        recordStartOfLine();
       } else {
         next = _reader.advance();
       }
@@ -1664,11 +1658,11 @@ class Scanner {
   int _tokenizeQuestion() {
     // ? ?. ?? ??=
     int next = _reader.advance();
-    if (enableNullAwareOperators && next == 0x2E) {
+    if (next == 0x2E) {
       // '.'
       _appendTokenOfType(TokenType.QUESTION_PERIOD);
       return _reader.advance();
-    } else if (enableNullAwareOperators && next == 0x3F) {
+    } else if (next == 0x3F) {
       // '?'
       next = _reader.advance();
       if (next == 0x3D) {
@@ -2016,9 +2010,7 @@ class Token {
   /**
    * Initialize a newly created token to have the given [type] and [offset].
    */
-  Token(this.type, int offset) {
-    this.offset = offset;
-  }
+  Token(this.type, this.offset);
 
   /**
    * Return the offset from the beginning of the file to the character after the

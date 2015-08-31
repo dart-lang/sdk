@@ -517,9 +517,8 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
   }
 
   @override
-  Selector newTypedSelector(ConcreteType receiver, Selector selector) {
-    return new TypedSelector(concreteTypeToTypeMask(receiver), selector,
-        compiler.world);
+  TypeMask newTypedSelector(ConcreteType receiver, TypeMask mask) {
+    return concreteTypeToTypeMask(receiver);
   }
 
   @override
@@ -558,12 +557,12 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
 
   @override
   ConcreteType nonNullSubclass(ClassElement cls) {
-    return nonNullSubX(cls, compiler.world.subclassesOf);
+    return nonNullSubX(cls, compiler.world.strictSubclassesOf);
   }
 
   @override
   ConcreteType nonNullSubtype(ClassElement cls) {
-    return nonNullSubX(cls, compiler.world.subtypesOf);
+    return nonNullSubX(cls, compiler.world.strictSubtypesOf);
   }
 
   @override
@@ -574,12 +573,14 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
   }
 
   @override
-  bool selectorNeedsUpdate(ConcreteType type, Selector selector) {
-    return concreteTypeToTypeMask(type) != selector.mask;
+  bool selectorNeedsUpdate(ConcreteType type, TypeMask mask) {
+    return concreteTypeToTypeMask(type) != mask;
   }
 
   @override
-  ConcreteType refineReceiver(Selector selector, ConcreteType receiverType,
+  ConcreteType refineReceiver(Selector selector,
+                              TypeMask mask,
+                              ConcreteType receiverType,
       bool isConditional) {
     if (isConditional) {
       throw new UnimplementedError("isConditional in concrete type inferrer");
@@ -707,7 +708,6 @@ class ConcreteTypeCartesianProductIterator
       _current = null;
       return false;
     }
-    Element keyToIncrement = null;
     for (final key in concreteTypes.keys) {
       final iterator = state[key];
       if (iterator != null && iterator.moveNext()) {
@@ -993,7 +993,9 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  Element locateSingleElement(Selector selector, Compiler compiler) {
+  Element locateSingleElement(Selector selector,
+                              TypeMask mask,
+                              Compiler compiler) {
     throw new UnsupportedError("");
   }
 
@@ -1279,12 +1281,12 @@ class ConcreteTypesInferrer
    *
    * Precondition: [:(typeOfThis != null) && (returnType != null):]
    */
-  void augmentInferredSelectorType(Selector selector, TypeMask typeOfThis,
+  void augmentInferredSelectorType(Selector selector,
+                                   TypeMask typeOfThis,
                                    TypeMask returnType) {
     assert(returnType != null);
     assert(typeOfThis != null);
 
-    selector = selector.asUntyped;
     Map<TypeMask, TypeMask> currentMap = inferredSelectorTypes.putIfAbsent(
         selector, () => new Map<TypeMask, TypeMask>());
     TypeMask currentReturnType = currentMap[typeOfThis];
@@ -1493,21 +1495,19 @@ class ConcreteTypesInferrer
    * "I don't know".
    */
   @override
-  TypeMask getTypeOfSelector(Selector selector) {
-    Map<TypeMask, TypeMask> candidates =
-        inferredSelectorTypes[selector.asUntyped];
+  TypeMask getTypeOfSelector(Selector selector, TypeMask mask) {
+    Map<TypeMask, TypeMask> candidates = inferredSelectorTypes[selector];
     if (candidates == null) {
       return null;
     }
     TypeMask result = new TypeMask.nonNullEmpty();
-    if (selector.mask == null) {
+    if (mask == null) {
       candidates.forEach((TypeMask receiverType, TypeMask returnType) {
         result = typeMaskUnion(result, returnType);
       });
     } else {
       candidates.forEach((TypeMask receiverType, TypeMask returnType) {
-        TypeMask intersection =
-            receiverType.intersection(selector.mask, compiler.world);
+        TypeMask intersection = receiverType.intersection(mask, compiler.world);
         if (!intersection.isEmpty || intersection.isNullable) {
           result = typeMaskUnion(result, returnType);
         }
@@ -1919,7 +1919,9 @@ class ConcreteTypesInferrer
   }
 
   @override
-  void forEachElementMatching(Selector selector, bool f(Element element)) {
+  void forEachElementMatching(Selector selector,
+                              TypeMask mask,
+                              bool f(Element element)) {
     getMembersBySelector(selector).forEach(f);
   }
 
@@ -1989,6 +1991,7 @@ class ConcreteTypesInferrer
   @override
   ConcreteType registerCalledElement(Spannable node,
                                      Selector selector,
+                                     TypeMask mask,
                                      Element caller,
                                      Element callee,
                                      ArgumentsTypes<ConcreteType> arguments,
@@ -2068,6 +2071,7 @@ class ConcreteTypesInferrer
   @override
   ConcreteType registerCalledSelector(Node node,
                                       Selector selector,
+                                      TypeMask mask,
                                       ConcreteType receiverType,
                                       Element caller,
                                       ArgumentsTypes<ConcreteType> arguments,
@@ -2255,6 +2259,7 @@ class ConcreteTypesInferrer
   @override
   ConcreteType registerCalledClosure(Node node,
                                      Selector selector,
+                                     TypeMask mask,
                                      ConcreteType closure,
                                      Element caller,
                                      ArgumentsTypes<ConcreteType> arguments,

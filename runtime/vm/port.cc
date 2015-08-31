@@ -4,6 +4,7 @@
 
 #include "vm/port.h"
 
+#include "vm/dart_entry.h"
 #include "platform/utils.h"
 #include "vm/dart_api_impl.h"
 #include "vm/isolate.h"
@@ -299,6 +300,29 @@ void PortMap::InitOnce() {
   capacity_ = kInitialCapacity;
   used_ = 0;
   deleted_ = 0;
+}
+
+
+void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
+                                          JSONStream* stream) {
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", "_Ports");
+  Object& msg_handler = Object::Handle();
+  {
+    JSONArray ports(&jsobj, "ports");
+    MutexLocker ml(mutex_);
+    for (intptr_t i = 0; i < capacity_; i++) {
+      if (map_[i].handler == handler) {
+        if (map_[i].state == kLivePort) {
+          JSONObject port(&ports);
+          port.AddProperty("type", "_Port");
+          port.AddPropertyF("name", "Isolate Port (%" Pd64 ")", map_[i].port);
+          msg_handler = DartLibraryCalls::LookupHandler(map_[i].port);
+          port.AddProperty("handler", msg_handler);
+        }
+      }
+    }
+  }
 }
 
 }  // namespace dart

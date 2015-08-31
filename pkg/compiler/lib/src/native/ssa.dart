@@ -92,7 +92,10 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
             js.js.uncachedExpressionTemplate(nativeMethodCall),
             backend.dynamicType,
             inputs, effects: new SideEffects()));
-    builder.close(new HReturn(builder.pop())).addSuccessor(builder.graph.exit);
+    // TODO(johnniwinther): Provide source information.
+    builder
+        .close(new HReturn(builder.pop(), null))
+        .addSuccessor(builder.graph.exit);
   } else {
     if (parameters.parameterCount != 0) {
       compiler.internalError(nativeBody,

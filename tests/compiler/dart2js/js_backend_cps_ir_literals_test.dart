@@ -29,7 +29,6 @@ function() {
   P.print(P.LinkedHashMap_LinkedHashMap$_empty());
   P.print(P.LinkedHashMap_LinkedHashMap$_literal([1, 2]));
   P.print(P.LinkedHashMap_LinkedHashMap$_literal([[1, 2], [3, 4]]));
-  return null;
 }"""),
 ];
 

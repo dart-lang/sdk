@@ -7,8 +7,6 @@
 // static type of e is the least upper bound of the static type of e1 and the
 // static type of e2.
 
-// SharedOptions=--enable-null-aware-operators
-
 import "package:expect/expect.dart";
 
 class A {

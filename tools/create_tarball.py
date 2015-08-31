@@ -102,9 +102,9 @@ def GenerateChangeLog(filename, version):
     f.write(' -- Dart Team <misc@dartlang.org>  %s\n' %
             datetime.datetime.utcnow().strftime('%a, %d %b %Y %X +0000'))
 
-def GenerateSvnRevision(filename, svn_revision):
+def GenerateGitRevision(filename, git_revision):
   with open(filename, 'w') as f:
-    f.write(str(svn_revision))
+    f.write(str(git_revision))
 
 
 def CreateTarball(tarfilename):
@@ -138,11 +138,11 @@ def CreateTarball(tarfilename):
       GenerateChangeLog(change_log, version)
       tar.add(change_log, arcname='%s/debian/changelog' % versiondir)
 
-      # For bleeding_edge add the SVN_REVISION file.
+      # For bleeding_edge add the GIT_REVISION file.
       if utils.GetChannel() == 'be':
-        svn_revision = join(temp_dir, 'SVN_REVISION')
-        GenerateSvnRevision(svn_revision, utils.GetSVNRevision())
-        tar.add(svn_revision, arcname='%s/dart/tools/SVN_REVISION' % versiondir)
+        git_revision = join(temp_dir, 'GIT_REVISION')
+        GenerateGitRevision(git_revision, utils.GetGitRevision())
+        tar.add(git_revision, arcname='%s/dart/tools/GIT_REVISION' % versiondir)
 
 def Main():
   if HOST_OS != 'linux':

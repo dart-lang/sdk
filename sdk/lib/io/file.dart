@@ -10,13 +10,20 @@ part of dart.io;
 class FileMode {
   /// The mode for opening a file only for reading.
   static const READ = const FileMode._internal(0);
-  /// The mode for opening a file for reading and writing. The file is
+  /// Mode for opening a file for reading and writing. The file is
   /// overwritten if it already exists. The file is created if it does not
   /// already exist.
   static const WRITE = const FileMode._internal(1);
-  /// The mode for opening a file for reading and writing to the
+  /// Mode for opening a file for reading and writing to the
   /// end of it. The file is created if it does not already exist.
   static const APPEND = const FileMode._internal(2);
+  /// Mode for opening a file for writing *only*. The file is
+  /// overwritten if it already exists. The file is created if it does not
+  /// already exist.
+  static const WRITE_ONLY = const FileMode._internal(3);
+  /// Mode for opening a file for writing *only* to the
+  /// end of it. The file is created if it does not already exist.
+  static const WRITE_ONLY_APPEND = const FileMode._internal(4);
   final int _mode;
 
   const FileMode._internal(this._mode);
@@ -31,6 +38,13 @@ const WRITE = FileMode.WRITE;
 /// The mode for opening a file for reading and writing to the
 /// end of it. The file is created if it does not already exist.
 const APPEND = FileMode.APPEND;
+/// Mode for opening a file for writing *only*. The file is
+/// overwritten if it already exists. The file is created if it does not
+/// already exist.
+const WRITE_ONLY = FileMode.WRITE_ONLY;
+/// Mode for opening a file for writing *only* to the
+/// end of it. The file is created if it does not already exist.
+const WRITE_ONLY_APPEND = FileMode.WRITE_ONLY_APPEND;
 
 
 /// Type of lock when requesting a lock on a file.

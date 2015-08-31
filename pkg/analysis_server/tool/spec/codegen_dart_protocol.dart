@@ -349,7 +349,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       String humanReadableNameString =
           literalString(impliedType.humanReadableName);
       writeln(
-          'throw jsonDecoder.mismatch(jsonPath, $humanReadableNameString);');
+          'throw jsonDecoder.mismatch(jsonPath, $humanReadableNameString, json);');
     });
     writeln('}');
   }
@@ -590,7 +590,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
             writeln('if ($fieldAccessor != $valueString) {');
             indent(() {
               writeln(
-                  'throw jsonDecoder.mismatch(jsonPath, "equal " + $valueString);');
+                  'throw jsonDecoder.mismatch(jsonPath, "equal " + $valueString, json);');
             });
             writeln('}');
             continue;
@@ -627,7 +627,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       writeln('} else {');
       indent(() {
         writeln(
-            'throw jsonDecoder.mismatch(jsonPath, $humanReadableNameString);');
+            'throw jsonDecoder.mismatch(jsonPath, $humanReadableNameString, json);');
       });
       writeln('}');
     });

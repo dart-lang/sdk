@@ -112,7 +112,7 @@ class AstFactory {
   static MethodInvocation cascadedMethodInvocation(String methodName,
       [List<Expression> arguments]) => new MethodInvocation(null,
       TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
-      identifier3(methodName), argumentList(arguments));
+      identifier3(methodName), null, argumentList(arguments));
 
   static PropertyAccess cascadedPropertyAccess(String propertyName) =>
       new PropertyAccess(null,
@@ -362,7 +362,7 @@ class AstFactory {
       null, keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
       type, TokenFactory.tokenFromKeyword(Keyword.THIS),
       TokenFactory.tokenFromType(TokenType.PERIOD), identifier3(identifier),
-      parameterList);
+      null, parameterList);
 
   static FieldFormalParameter fieldFormalParameter2(String identifier) =>
       fieldFormalParameter(null, null, identifier);
@@ -417,20 +417,31 @@ class AstFactory {
           functionDeclaration(type, keyword, name, functionExpression));
 
   static FunctionExpression functionExpression() =>
-      new FunctionExpression(formalParameterList(), blockFunctionBody2());
+      new FunctionExpression(null, formalParameterList(), blockFunctionBody2());
 
   static FunctionExpression functionExpression2(
           FormalParameterList parameters, FunctionBody body) =>
-      new FunctionExpression(parameters, body);
+      new FunctionExpression(null, parameters, body);
+
+  static FunctionExpression functionExpression3(
+          TypeParameterList typeParameters, FormalParameterList parameters,
+          FunctionBody body) =>
+      new FunctionExpression(typeParameters, parameters, body);
 
   static FunctionExpressionInvocation functionExpressionInvocation(
           Expression function, [List<Expression> arguments]) =>
-      new FunctionExpressionInvocation(function, argumentList(arguments));
+      functionExpressionInvocation2(function, null, arguments);
+
+  static FunctionExpressionInvocation functionExpressionInvocation2(
+          Expression function,
+          [TypeArgumentList typeArguments, List<Expression> arguments]) =>
+      new FunctionExpressionInvocation(
+          function, typeArguments, argumentList(arguments));
 
   static FunctionTypedFormalParameter functionTypedFormalParameter(
       TypeName returnType, String identifier,
       [List<FormalParameter> parameters]) => new FunctionTypedFormalParameter(
-      null, null, returnType, identifier3(identifier),
+      null, null, returnType, identifier3(identifier), null,
       formalParameterList(parameters));
 
   static HideCombinator hideCombinator(List<SimpleIdentifier> identifiers) =>
@@ -610,7 +621,7 @@ class AstFactory {
       returnType,
       property == null ? null : TokenFactory.tokenFromKeyword(property),
       operator == null ? null : TokenFactory.tokenFromKeyword(operator), name,
-      parameters, emptyFunctionBody());
+      null, parameters, emptyFunctionBody());
 
   static MethodDeclaration methodDeclaration2(Keyword modifier,
       TypeName returnType, Keyword property, Keyword operator,
@@ -620,17 +631,35 @@ class AstFactory {
       returnType,
       property == null ? null : TokenFactory.tokenFromKeyword(property),
       operator == null ? null : TokenFactory.tokenFromKeyword(operator), name,
-      parameters, body);
+      null, parameters, body);
+
+  static MethodDeclaration methodDeclaration3(Keyword modifier,
+      TypeName returnType, Keyword property, Keyword operator,
+      SimpleIdentifier name, TypeParameterList typeParameters,
+      FormalParameterList parameters,
+      FunctionBody body) => new MethodDeclaration(null, null, null,
+      modifier == null ? null : TokenFactory.tokenFromKeyword(modifier),
+      returnType,
+      property == null ? null : TokenFactory.tokenFromKeyword(property),
+      operator == null ? null : TokenFactory.tokenFromKeyword(operator), name,
+      typeParameters, parameters, body);
 
   static MethodInvocation methodInvocation(Expression target, String methodName,
       [List<Expression> arguments,
       TokenType operator = TokenType.PERIOD]) => new MethodInvocation(target,
       target == null ? null : TokenFactory.tokenFromType(operator),
-      identifier3(methodName), argumentList(arguments));
+      identifier3(methodName), null, argumentList(arguments));
 
   static MethodInvocation methodInvocation2(String methodName,
           [List<Expression> arguments]) =>
       methodInvocation(null, methodName, arguments);
+
+  static MethodInvocation methodInvocation3(
+      Expression target, String methodName, TypeArgumentList typeArguments,
+      [List<Expression> arguments,
+      TokenType operator = TokenType.PERIOD]) => new MethodInvocation(target,
+      target == null ? null : TokenFactory.tokenFromType(operator),
+      identifier3(methodName), typeArguments, argumentList(arguments));
 
   static NamedExpression namedExpression(Label label, Expression expression) =>
       new NamedExpression(label, expression);

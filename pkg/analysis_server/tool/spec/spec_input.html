@@ -5,7 +5,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.7.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.9.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -396,6 +396,10 @@
           Return library dependency information for use in client-side indexing
           and package URI resolution.
         </p>
+        <p>
+        Clients that are only using the libraries field should consider using the
+        analyzedFiles notification instead.
+        </p>
         <result>
           <field name="libraries">
             <list><ref>FilePath</ref></list>
@@ -440,6 +444,13 @@
           region in response to multiple requests. Clients can avoid this by
           always choosing a region that starts at the beginning of a line and
           ends at the end of a (possibly different) line in the file.
+        </p>
+        <p>
+          If a request is made for a file which does not exist, or
+          which is not currently subject to analysis (e.g. because it
+          is not associated with any analysis root specified to
+          analysis.setAnalysisRoots), an error of type
+          <tt>GET_NAVIGATION_INVALID_FILE</tt> will be generated.
         </p>
         <params>
           <field name="file">
@@ -584,6 +595,24 @@
           </field>
         </params>
       </request>
+     <request method="setGeneralSubscriptions">
+        <p>
+          Subscribe for general services (that is, services that are not
+          specific to individual files). All previous subscriptions are replaced
+          by the given set of services.
+        </p>
+        <p>
+          It is an error if any of the elements in the list are not valid
+          services. If there is an error, then the current subscriptions will
+          remain unchanged.
+        </p>
+        <params>
+          <field name="subscriptions">
+            <list><ref>GeneralAnalysisService</ref></list>
+            <p>A list of the services being subscribed to.</p>
+          </field>
+        </params>
+      </request>
       <request method="setPriorityFiles">
         <p>
           Set the priority files to the files in the given list. A
@@ -621,11 +650,11 @@
       </request>
       <request method="setSubscriptions">
         <p>
-          Subscribe for services. All previous subscriptions are
-          replaced by the current set of subscriptions. If a given
-          service is not included as a key in the map then no files
-          will be subscribed to the service, exactly as if the service
-          had been included in the map with an explicit empty list of
+          Subscribe for services that are specific to individual files.
+          All previous subscriptions are replaced by the current set of
+          subscriptions. If a given service is not included as a key in the map
+          then no files will be subscribed to the service, exactly as if the
+          service had been included in the map with an explicit empty list of
           files.
         </p>
         <p>
@@ -717,6 +746,24 @@
           </field>
         </params>
       </request>
+      <notification event="analyzedFiles">
+        <p>
+          Reports the paths of the files that are being analyzed.
+        </p>
+        <p>
+          This notification is not subscribed to by default. Clients can
+          subscribe by including the value <tt>"ANALYZED_FILES"</tt> in the list
+          of services passed in an analysis.setGeneralSubscriptions request.
+        </p>
+        <params>
+          <field name="directories">
+            <list><ref>FilePath</ref></list>
+              <p>
+                A list of the paths of the files that are being analyzed.
+              </p>
+            </field>
+        </params>
+      </notification>
       <notification event="errors">
         <p>
           Reports the errors associated with a given file. The set of
@@ -1650,6 +1697,41 @@
           </field>
         </result>
       </request>
+      <request method="organizeDirectives">
+        <p>
+          Organizes all of the directives - removes unused imports and sorts
+          directives of the given Dart file according to the
+          <a href="https://www.dartlang.org/articles/style-guide/">Dart Style Guide</a>.
+        </p>
+        <p>
+          If a request is made for a file that does not exist, does not belong
+          to an analysis root or is not a Dart file,
+          <tt>FILE_NOT_ANALYZED</tt> will be generated.
+        </p>
+        <p>
+          If directives of the Dart file cannot be organized, for example
+          because it has scan or parse errors, or by other reasons,
+          <tt>ORGANIZE_DIRECTIVES_ERROR</tt> will be generated. The message
+          will provide datails about the reason.
+        </p>
+        <params>
+          <field name="file">
+            <ref>FilePath</ref>
+            <p>
+              The Dart file to organize directives in.
+            </p>
+          </field>
+        </params>
+        <result>
+          <field name="edit">
+            <ref>SourceFileEdit</ref>
+            <p>
+              The file edit that is to be applied to the given file to effect
+              the organizing.
+            </p>
+          </field>
+        </result>
+      </request>
     </domain>
     <domain name="execution">
       <p>
@@ -1941,7 +2023,7 @@
         <object>
           <field name="enableAsync" optional="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b></p>
+            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed async feature.
@@ -1949,7 +2031,7 @@
           </field>
           <field name="enableDeferredLoading" optional="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b></p>
+            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed deferred loading feature.
@@ -1957,7 +2039,7 @@
           </field>
           <field name="enableEnums" optional="true">
             <ref>bool</ref>
-            <p><b><i>Deprecated</i></b></p>
+            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed enum feature.
@@ -1965,6 +2047,7 @@
           </field>
           <field name="enableNullAwareOperators" optional="true">
             <ref>bool</ref>
+            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed "null aware operators" feature.
@@ -1995,13 +2078,19 @@
       </type>
       <type name="AnalysisService">
         <p>
-          An enumeration of the services provided by the analysis
-          domain.
+          An enumeration of the services provided by the analysis domain that
+          are related to a specific list of files.
         </p>
         <enum>
           <value><code>FOLDING</code></value>
           <value><code>HIGHLIGHTS</code></value>
-          <value><code>INVALIDATE</code></value>
+          <value>
+            <code>INVALIDATE</code>
+            <p>
+              This service is not currently implemented and will become a
+              GeneralAnalysisService in a future release.
+            </p>
+          </value>
           <value><code>NAVIGATION</code></value>
           <value><code>OCCURRENCES</code></value>
           <value><code>OUTLINE</code></value>
@@ -2454,6 +2543,15 @@
           </field>
         </object>
       </type>
+      <type name="GeneralAnalysisService">
+        <p>
+          An enumeration of the services provided by the analysis domain that are
+          general in nature (that is, are not specific to some list of files).
+        </p>
+        <enum>
+          <value><code>ANALYZED_FILES</code></value>
+        </enum>
+      </type>
       <type name="HighlightRegion">
         <p>
           A description of a region that could have special highlighting
@@ -2494,36 +2592,218 @@
           <value><code>COMMENT_END_OF_LINE</code></value>
           <value><code>CONSTRUCTOR</code></value>
           <value><code>DIRECTIVE</code></value>
-          <value><code>DYNAMIC_TYPE</code></value>
+          <value>
+            <code>DYNAMIC_TYPE</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>DYNAMIC_LOCAL_VARIABLE_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>DYNAMIC_LOCAL_VARIABLE_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>DYNAMIC_PARAMETER_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>DYNAMIC_PARAMETER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
           <value><code>ENUM</code></value>
           <value><code>ENUM_CONSTANT</code></value>
-          <value><code>FIELD</code></value>
-          <value><code>FIELD_STATIC</code></value>
-          <value><code>FUNCTION</code></value>
-          <value><code>FUNCTION_DECLARATION</code></value>
+          <value>
+            <code>FIELD</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>FIELD_STATIC</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>FUNCTION</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>FUNCTION_DECLARATION</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
           <value><code>FUNCTION_TYPE_ALIAS</code></value>
-          <value><code>GETTER_DECLARATION</code></value>
+          <value>
+            <code>GETTER_DECLARATION</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
           <value><code>IDENTIFIER_DEFAULT</code></value>
           <value><code>IMPORT_PREFIX</code></value>
+          <value>
+            <code>INSTANCE_FIELD_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>INSTANCE_FIELD_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>INSTANCE_GETTER_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>INSTANCE_GETTER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>INSTANCE_METHOD_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>INSTANCE_METHOD_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>INSTANCE_SETTER_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>INSTANCE_SETTER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>INVALID_STRING_ESCAPE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
           <value><code>KEYWORD</code></value>
           <value><code>LABEL</code></value>
+          <value>
+            <code>LIBRARY_NAME</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
           <value><code>LITERAL_BOOLEAN</code></value>
           <value><code>LITERAL_DOUBLE</code></value>
           <value><code>LITERAL_INTEGER</code></value>
           <value><code>LITERAL_LIST</code></value>
           <value><code>LITERAL_MAP</code></value>
           <value><code>LITERAL_STRING</code></value>
-          <value><code>LOCAL_VARIABLE</code></value>
+          <value>
+            <code>LOCAL_FUNCTION_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>LOCAL_FUNCTION_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>LOCAL_VARIABLE</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
           <value><code>LOCAL_VARIABLE_DECLARATION</code></value>
-          <value><code>METHOD</code></value>
-          <value><code>METHOD_DECLARATION</code></value>
-          <value><code>METHOD_DECLARATION_STATIC</code></value>
-          <value><code>METHOD_STATIC</code></value>
-          <value><code>PARAMETER</code></value>
-          <value><code>SETTER_DECLARATION</code></value>
-          <value><code>TOP_LEVEL_VARIABLE</code></value>
+          <value>
+            <code>LOCAL_VARIABLE_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>METHOD</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>METHOD_DECLARATION</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>METHOD_DECLARATION_STATIC</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>METHOD_STATIC</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>PARAMETER</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>SETTER_DECLARATION</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>TOP_LEVEL_VARIABLE</code>
+            <p>Only for version 1 of highlight.</p>
+          </value>
+          <value>
+            <code>PARAMETER_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>PARAMETER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>STATIC_FIELD_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>STATIC_GETTER_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>STATIC_GETTER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>STATIC_METHOD_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>STATIC_METHOD_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>STATIC_SETTER_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>STATIC_SETTER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>TOP_LEVEL_FUNCTION_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>TOP_LEVEL_FUNCTION_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>TOP_LEVEL_GETTER_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>TOP_LEVEL_GETTER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>TOP_LEVEL_SETTER_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>TOP_LEVEL_SETTER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>TOP_LEVEL_VARIABLE_DECLARATION</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
           <value><code>TYPE_NAME_DYNAMIC</code></value>
           <value><code>TYPE_PARAMETER</code></value>
+          <value>
+            <code>UNRESOLVED_INSTANCE_MEMBER_REFERENCE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
+          <value>
+            <code>VALID_STRING_ESCAPE</code>
+            <p>Only for version 2 of highlight.</p>
+          </value>
         </enum>
       </type>
       <type name="HoverInformation">
@@ -3139,6 +3419,14 @@
             </p>
           </value>
           <value>
+            <code>FILE_NOT_ANALYZED</code>
+            <p>
+              A request specified a FilePath which does not match a file in
+              an analysis root, or the requested operation is not available
+              for the file.
+            </p>
+          </value>
+          <value>
             <code>FORMAT_INVALID_FILE</code>
             <p>
               An "edit.format" request specified a FilePath
@@ -3156,6 +3444,14 @@
             <code>GET_ERRORS_INVALID_FILE</code>
             <p>
               An "analysis.getErrors" request specified a FilePath
+              which does not match a file currently subject to
+              analysis.
+            </p>
+          </value>
+          <value>
+            <code>GET_NAVIGATION_INVALID_FILE</code>
+            <p>
+              An "analysis.getNavigation" request specified a FilePath
               which does not match a file currently subject to
               analysis.
             </p>
@@ -3200,6 +3496,13 @@
             <p>
               The "--no-index" flag was passed when the analysis server created,
               but this API call requires an index to have been generated.
+            </p>
+          </value>
+          <value>
+            <code>ORGANIZE_DIRECTIVES_ERROR</code>
+            <p>
+              An "edit.organizeDirectives" request specified a Dart file that
+              cannot be analyzed. The reason is described in the message.
             </p>
           </value>
           <value>

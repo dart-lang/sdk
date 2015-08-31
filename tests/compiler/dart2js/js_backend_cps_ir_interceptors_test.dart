@@ -18,9 +18,7 @@ main() {
 }""",
 r"""
 function() {
-  var g = 1;
-  P.print(J.getInterceptor$ns(g).$add(g, 3));
-  return null;
+  P.print(4);
 }"""),
   const TestEntry("""
 main() {
@@ -35,19 +33,19 @@ main() {
 }""",
 r"""
 function() {
-  var l = ["hest", ["h", "e", "s", "t"]], i, x, j;
-  P.print(J.getInterceptor$as(l).get$length(l));
-  i = 0;
-  while (J.getInterceptor$n(i).$lt(i, J.getInterceptor$as(l).get$length(l))) {
-    x = J.getInterceptor$as(l).$index(l, i);
+  var l = ["hest", ["h", "e", "s", "t"]], i = 0, x_, x, j;
+  P.print(l.length);
+  while (i < l.length) {
+    if (i < 0 || i >= l.length)
+      H.ioore(l, i);
+    x_ = J.getInterceptor$as(x = l[i]);
     j = 0;
-    while (J.getInterceptor$n(j).$lt(j, J.getInterceptor$as(x).get$length(x))) {
-      P.print(J.getInterceptor$as(x).$index(x, j));
-      j = J.getInterceptor$ns(j).$add(j, 1);
+    while (j < x_.get$length(x)) {
+      P.print(x_.$index(x, j));
+      j = j + 1;
     }
-    i = J.getInterceptor$ns(i).$add(i, 1);
+    i = i + 1;
   }
-  return null;
 }"""),
 ];
 

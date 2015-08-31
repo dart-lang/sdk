@@ -383,6 +383,7 @@ class DartiumBackend(HtmlDartGenerator):
     self._cpp_impl_includes = None
     self._cpp_definitions_emitter = None
     self._cpp_resolver_emitter = None
+    self._dart_js_interop = options.dart_js_interop
 
   def ImplementsMergedMembers(self):
     # We could not add merged functions to implementation class because
@@ -666,22 +667,24 @@ class DartiumBackend(HtmlDartGenerator):
         self._interface, self._interface.id, '  ')
 
     self._members_emitter.Emit(
-        '\n  $(ANNOTATIONS)factory $CTOR($PARAMS) => _create($FACTORY_PARAMS);\n',
+        '\n  $(ANNOTATIONS)factory $CTOR($PARAMS) => wrap_jso(_create($FACTORY_PARAMS));\n',
         ANNOTATIONS=annotations,
         CTOR=constructor_info._ConstructorFullName(self._DartType),
         PARAMS=constructor_info.ParametersAsDeclaration(self._DartType),
         FACTORY_PARAMS= \
             constructor_info.ParametersAsArgumentList())
 
-    constructor_callback_cpp_name = 'constructorCallback'
-    self._EmitConstructorInfrastructure(
-        constructor_info, "", constructor_callback_cpp_name, '_create',
-        is_custom=True)
+    # MutationObserver has custom _create.  TODO(terry): Consider table but this is only one.
+    if self._interface.id != 'MutationObserver':
+        constructor_callback_cpp_name = 'constructorCallback'
+        self._EmitConstructorInfrastructure(
+            constructor_info, "", constructor_callback_cpp_name, '_create',
+            is_custom=True)
 
-    self._cpp_declarations_emitter.Emit(
-        '\n'
-        'void $CPP_CALLBACK(Dart_NativeArguments);\n',
-        CPP_CALLBACK=constructor_callback_cpp_name)
+        self._cpp_declarations_emitter.Emit(
+            '\n'
+            'void $CPP_CALLBACK(Dart_NativeArguments);\n',
+            CPP_CALLBACK=constructor_callback_cpp_name)
 
     return True
 
@@ -916,6 +919,24 @@ class DartiumBackend(HtmlDartGenerator):
     dart_declaration = '%s get %s' % (return_type, html_name)
     is_custom = _IsCustom(attr) and (_IsCustomValue(attr, None) or
                                      _IsCustomValue(attr, 'Getter'))
+
+    # Operation uses blink?
+    wrap_unwrap_list = [];
+    return_wrap_jso = False
+    if self._dart_use_blink:
+        # Unwrap the type to get the JsObject if Type is:
+        #
+        #    - known IDL type
+        #    - type_id is None then it's probably a union type or overloaded
+        #      it's a dynamic/any type
+        #    - type is Object
+        #
+        # JsObject maybe stored in the Dart class.
+        return_wrap_jso = (isinstance(type_info, InterfaceIDLTypeInfo) or
+                           not(type_info) or attr.type.id == 'Object')
+    wrap_unwrap_list.append(return_wrap_jso)       # wrap_jso the returned object
+    wrap_unwrap_list.append(self._dart_use_blink)  # this must be unwrap_jso
+
     # This seems to have been replaced with Custom=Getter (see above), but
     # check to be sure we don't see the old syntax
     assert(not ('CustomGetter' in attr.ext_attrs))
@@ -925,7 +946,8 @@ class DartiumBackend(HtmlDartGenerator):
         self.DeriveNativeEntry(attr.id, 'Getter', None)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
         dart_declaration, attr.is_static, return_type, parameters,
-        native_suffix, is_custom, auto_scope_setup, native_entry=native_entry)
+        native_suffix, is_custom, auto_scope_setup, native_entry=native_entry,
+        wrap_unwrap_list=wrap_unwrap_list)
     if is_custom:
       return
 
@@ -963,10 +985,17 @@ class DartiumBackend(HtmlDartGenerator):
         auto_scope_setup)
 
   def _AddSetter(self, attr, html_name):
-    type_info = self._TypeInfo(attr.type.id)
     return_type = 'void'
-    parameters = ['value']
     ptype = self._DartType(attr.type.id)
+
+    type_info = self._TypeInfo(attr.type.id)
+
+    # Is the setter value a DartClass (that has a JsObject) or the type is
+    # None (it's a dynamic/any type) then unwrap_jso before passing to blink.
+    parameters = ['unwrap_jso(value)' if (isinstance(type_info, InterfaceIDLTypeInfo) or
+                                          not(attr.type.id) or ptype == 'Object')
+                  else 'value']
+
     dart_declaration = 'void set %s(%s value)' % (html_name, ptype)
     is_custom = _IsCustom(attr) and (_IsCustomValue(attr, None) or
                                      _IsCustomValue(attr, 'Setter'))
@@ -978,9 +1007,14 @@ class DartiumBackend(HtmlDartGenerator):
     auto_scope_setup = self._GenerateAutoSetupScope(attr.id, native_suffix)
     native_entry = \
         self.DeriveNativeEntry(attr.id, 'Setter', None)
+
+    # setters return no object and if blink this must be unwrapped.?
+    wrap_unwrap_list = [False, self._dart_use_blink];
+
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
         dart_declaration, attr.is_static, return_type, parameters,
-        native_suffix, is_custom, auto_scope_setup, native_entry=native_entry)
+        native_suffix, is_custom, auto_scope_setup, native_entry=native_entry,
+        wrap_unwrap_list=wrap_unwrap_list)
     if is_custom:
       return
 
@@ -1047,18 +1081,41 @@ class DartiumBackend(HtmlDartGenerator):
       dart_qualified_name = \
           self.DeriveQualifiedBlinkName(self._interface.id,
                                         dart_native_name)
-      self._members_emitter.Emit(
-          '\n'
-          '  $TYPE operator[](int index) {\n'
-          '    if (index < 0 || index >= length)\n'
-          '      throw new RangeError.index(index, this);\n'
-          '    return $(DART_NATIVE_NAME)(this, index);\n'
-          '  }\n\n'
-          '  $TYPE _nativeIndexedGetter(int index) =>'
-          ' $(DART_NATIVE_NAME)(this, index);\n',
-          DART_NATIVE_NAME=dart_qualified_name,
-          TYPE=self.SecureOutputType(element_type),
-          INTERFACE=self._interface.id)
+
+      type_info = self._TypeInfo(element_type)
+      # Does nativeIndexGetter return a DartClass (JsObject) if so wrap_jso.
+      wrap_jso_start = ''
+      wrap_jso_end = ''
+      if isinstance(type_info, InterfaceIDLTypeInfo):
+          wrap_jso_start = 'wrap_jso('
+          wrap_jso_end = ')'
+      blinkNativeIndexed = """
+  $TYPE operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.index(index, this);
+    return %s$(DART_NATIVE_NAME)(unwrap_jso(this), index)%s;
+  }
+
+  $TYPE _nativeIndexedGetter(int index) => %s$(DART_NATIVE_NAME)(unwrap_jso(this), index)%s;
+ """ % (wrap_jso_start, wrap_jso_end, wrap_jso_start, wrap_jso_end)
+      # Wrap the type to store the JsObject if Type is:
+      #
+      #    - known IDL type
+      #    - type_id is None then it's probably a union type or overloaded
+      #      it's a dynamic/any type
+      #    - type is Object
+      #
+      # JsObject maybe stored in the Dart class.
+      if isinstance(type_info, InterfaceIDLTypeInfo) or not(type_info) or dart_element_type == 'Object':
+          blinkNativeIndexedGetter = \
+              ' {0}$(DART_NATIVE_NAME)(unwrap_jso(this), index){1};\n'.format('wrap_jso(', ')')
+      else:
+          blinkNativeIndexedGetter = \
+              ' $(DART_NATIVE_NAME)(unwrap_jso(this), index);\n'
+      self._members_emitter.Emit(blinkNativeIndexed,
+                                 DART_NATIVE_NAME=dart_qualified_name,
+                                 TYPE=self.SecureOutputType(element_type),
+                                 INTERFACE=self._interface.id)
 
     if self._HasNativeIndexSetter():
       self._EmitNativeIndexSetter(dart_element_type)
@@ -1127,14 +1184,16 @@ class DartiumBackend(HtmlDartGenerator):
       dart_declaration, False, return_type, parameters,
       'Callback', True, False)
 
-  def EmitOperation(self, info, html_name):
+  def EmitOperation(self, info, html_name, dart_js_interop=False):
     """
     Arguments:
       info: An OperationInfo object.
     """
     return_type = self.SecureOutputType(info.type_name, False, True)
+
     formals = info.ParametersAsDeclaration(self._DartType)
-    parameters = info.ParametersAsListOfVariables()
+
+    parameters = info.ParametersAsListOfVariables(None, self._type_registry if self._dart_use_blink else None, dart_js_interop)
     dart_declaration = '%s%s %s(%s)' % (
         'static ' if info.IsStatic() else '',
         return_type,
@@ -1142,9 +1201,29 @@ class DartiumBackend(HtmlDartGenerator):
         formals)
 
     operation = info.operations[0]
+
     is_custom = _IsCustom(operation)
     has_optional_arguments = any(IsOptional(argument) for argument in operation.arguments)
     needs_dispatcher = not is_custom and (len(info.operations) > 1 or has_optional_arguments)
+
+    # Operation uses blink?
+    wrap_unwrap_list = [];
+    return_wrap_jso = False
+    # return type wrapped?
+    if self._dart_use_blink:
+        # Wrap the type to store the JsObject if Type is:
+        #
+        #    - known IDL type
+        #    - type_id is None then it's probably a union type or overloaded
+        #      it's a dynamic/any type
+        #    - type is Object
+        #
+        # JsObject maybe stored in the Dart class.
+        return_wrap_jso = (info.wrap_unwrap_type_blink(return_type, self._type_registry) or
+                           return_type == 'Rectangle' or
+                           info.wrap_unwrap_list_blink(return_type, self._type_registry))
+    wrap_unwrap_list.append(return_wrap_jso)       # wrap_jso the returned object
+    wrap_unwrap_list.append(self._dart_use_blink)  # The 'this' parameter must be unwrap_jso
 
     if info.callback_args:
       self._AddFutureifiedOperation(info, html_name)
@@ -1159,7 +1238,8 @@ class DartiumBackend(HtmlDartGenerator):
         info.name, argument_count, dart_declaration,
         info.IsStatic(), return_type, parameters,
         native_suffix, is_custom, auto_scope_setup,
-        native_entry=native_entry)
+        native_entry=native_entry,
+        wrap_unwrap_list=wrap_unwrap_list)
       if not is_custom:
         self._GenerateOperationNativeCallback(operation, operation.arguments, cpp_callback_name, auto_scope_setup)
     else:
@@ -1170,16 +1250,23 @@ class DartiumBackend(HtmlDartGenerator):
     def GenerateCall(
         stmts_emitter, call_emitter, version, operation, argument_count):
       native_suffix = 'Callback'
-      actuals = info.ParametersAsListOfVariables(argument_count)
+      actuals = info.ParametersAsListOfVariables(argument_count,
+                                                 self._type_registry if self._dart_use_blink else None,
+                                                 self._dart_js_interop)
       actuals_s = ", ".join(actuals)
       formals=actuals
       return_type = self.SecureOutputType(operation.type.id)
+
+      return_wrap_jso = False
+      if self._dart_use_blink:
+         return_wrap_jso = self._type_registry.HasInterface(return_type)
+
       native_suffix = 'Callback'
       is_custom = _IsCustom(operation)
       base_name = '_%s_%s' % (operation.id, version)
       static = True
       if not operation.is_static:
-        actuals = ['this'] + actuals
+        actuals = ['unwrap_jso(this)' if self._dart_use_blink else 'this'] + actuals
         formals = ['mthis'] + formals
       actuals_s = ", ".join(actuals)
       formals_s = ", ".join(formals)
@@ -1191,7 +1278,10 @@ class DartiumBackend(HtmlDartGenerator):
       overload_name = \
           self.DeriveQualifiedBlinkName(self._interface.id,
                                         overload_base_name)
-      call_emitter.Emit('$NAME($ARGS)', NAME=overload_name, ARGS=actuals_s)
+      if return_wrap_jso:
+          call_emitter.Emit('wrap_jso($NAME($ARGS))', NAME=overload_name, ARGS=actuals_s)
+      else:
+          call_emitter.Emit('$NAME($ARGS)', NAME=overload_name, ARGS=actuals_s)
       auto_scope_setup = \
         self._GenerateAutoSetupScope(base_name, native_suffix)
       cpp_callback_name = self._GenerateNativeBinding(
@@ -1604,7 +1694,7 @@ class DartiumBackend(HtmlDartGenerator):
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       static, return_type, parameters, native_suffix, is_custom,
       auto_scope_setup=True, emit_metadata=True, emit_to_native=False,
-      native_entry=None):
+      native_entry=None, wrap_unwrap_list=[]):
     metadata = []
     if emit_metadata:
       metadata = self._metadata.GetFormattedMetadata(
@@ -1623,7 +1713,10 @@ class DartiumBackend(HtmlDartGenerator):
 
     if not static:
         formals = ", ".join(['mthis'] + parameters)
-        actuals = ", ".join(['this'] + parameters)
+        if wrap_unwrap_list and wrap_unwrap_list[1]:
+            actuals = ", ".join(['unwrap_jso(this)'] + parameters)
+        else:
+            actuals = ", ".join(['this'] + parameters)
     else:
         formals = ", ".join(parameters)
         actuals = ", ".join(parameters)
@@ -1640,13 +1733,28 @@ class DartiumBackend(HtmlDartGenerator):
                 METADATA=metadata,
                 DART_DECLARATION=dart_declaration)
         else:
-            caller_emitter.Emit(
-                '\n'
-                '  $METADATA$DART_DECLARATION => $DART_NAME($ACTUALS);\n',
-                METADATA=metadata,
-                DART_DECLARATION=dart_declaration,
-                DART_NAME=full_dart_name,
-                ACTUALS=actuals)
+            emit_template = '''
+  $METADATA$DART_DECLARATION => $DART_NAME($ACTUALS);
+  '''
+            if wrap_unwrap_list and wrap_unwrap_list[0]:
+                emit_jso_template = '''
+  $METADATA$DART_DECLARATION => %s($DART_NAME($ACTUALS));
+  '''
+                if return_type == 'Rectangle':
+                    jso_util_method = 'make_dart_rectangle'
+                # TODO(terry): More checks that the return is a List<Node>.
+                elif return_type.startswith('List<'):
+                    jso_util_method = 'wrap_jso_list'
+                else:
+                    jso_util_method = 'wrap_jso'
+                # Always return List<String> unwrapped.
+                if return_type != 'List<String>':
+                  emit_template = emit_jso_template % jso_util_method
+            caller_emitter.Emit(emit_template,
+                                METADATA=metadata,
+                                DART_DECLARATION=dart_declaration,
+                                DART_NAME=full_dart_name,
+                                ACTUALS=actuals)
     cpp_callback_name = '%s%s' % (idl_name, native_suffix)
 
     self._cpp_resolver_emitter.Emit(

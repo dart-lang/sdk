@@ -1213,7 +1213,6 @@ class TreePrinter {
     }
 
     if (supertype != null) {
-      tree.Node superclass;
       if (supertype.element.isUnnamedMixinApplication) {
         while (supertype.element.isUnnamedMixinApplication) {
           elements.MixinApplicationElement mixinApplication = supertype.element;

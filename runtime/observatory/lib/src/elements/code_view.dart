@@ -197,9 +197,10 @@ class CodeViewElement extends ObservatoryElement {
   }
 
   void _fillDisassemblyDOMRow(TableRowElement tr, int rowIndex) {
-    var row = disassemblyTable.rows[rowIndex];
-    for (var i = 0; i < row.values.length; i++) {
-      var cell = tr.children[i];
+    final row = disassemblyTable.rows[rowIndex];
+    final n = row.values.length;
+    for (var i = 0; i < n; i++) {
+      final cell = tr.children[i];
       cell.title = row.values[i].toString();
       cell.text = row.values[i].toString();
     }
@@ -226,11 +227,13 @@ class CodeViewElement extends ObservatoryElement {
     }
 
     assert(tableBody.children.length == disassemblyTable.sortedRows.length);
+
     // Fill table.
-    for (var i = 0; i < disassemblyTable.sortedRows.length; i++) {
+    var i = 0;
+    for (var tr in tableBody.children) {
       var rowIndex = disassemblyTable.sortedRows[i];
-      var tr = tableBody.children[i];
       _fillDisassemblyDOMRow(tr, rowIndex);
+      i++;
     }
   }
 

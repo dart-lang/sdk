@@ -18,8 +18,7 @@ main() {
   defineReflectiveTests(AnalysisNotificationNavigationTest);
 }
 
-@reflectiveTest
-class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
+class AbstractNavigationTest extends AbstractAnalysisTest {
   List<NavigationRegion> regions;
   List<NavigationTarget> targets;
   List<String> targetFiles;
@@ -166,7 +165,10 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
           '${regions.join('\n')}');
     }
   }
+}
 
+@reflectiveTest
+class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
   Future prepareNavigation() {
     addAnalysisSubscription(AnalysisService.NAVIGATION, testFile);
     return waitForTasksFinished().then((_) {
@@ -295,8 +297,14 @@ class B {
 }
 ''');
     return prepareNavigation().then((_) {
-      assertHasRegionString('B.named');
-      assertHasTarget('named();');
+      {
+        assertHasRegionString('B.named;', 'B'.length);
+        assertHasTarget('named();');
+      }
+      {
+        assertHasRegionString('named;', 'named'.length);
+        assertHasTarget('named();');
+      }
     });
   }
 
@@ -320,7 +328,7 @@ class C<T> {
         assertHasTarget('A {');
       }
       {
-        assertHasRegion('.named;', '.named'.length);
+        assertHasRegion('named;', 'named'.length);
         assertHasTarget('named() {}');
       }
     });
@@ -436,6 +444,23 @@ import 'dart:math';
     });
   }
 
+  test_inComment() async {
+    addTestFile('''
+class FirstClass {}
+class SecondClass {
+  /**
+   * Return a [FirstClass] object equivalent to this object in every other way.
+   */
+  convert() {
+    return new FirstClass();
+  }
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('FirstClass]', 'FirstClass {');
+    assertHasRegionTarget('FirstClass(', 'FirstClass {');
+  }
+
   test_instanceCreation_implicit() {
     addTestFile('''
 class A {
@@ -445,7 +470,7 @@ main() {
 }
 ''');
     return prepareNavigation().then((_) {
-      assertHasRegionString('new A');
+      assertHasRegionString('A()', 'A'.length);
       assertHasTarget('A {');
     });
   }
@@ -460,7 +485,7 @@ main() {
 ''');
     return prepareNavigation().then((_) {
       {
-        assertHasRegion('new B<A>', 'new B'.length);
+        assertHasRegion('B<A>', 'B'.length);
         assertHasTarget('B<T> {');
       }
       {
@@ -480,8 +505,14 @@ main() {
 }
 ''');
     return prepareNavigation().then((_) {
-      assertHasRegionString('new A.named');
-      assertHasTarget('named() {}');
+      {
+        assertHasRegionString('A.named();', 'A'.length);
+        assertHasTarget('named() {}');
+      }
+      {
+        assertHasRegionString('named();', 'named'.length);
+        assertHasTarget('named() {}');
+      }
     });
   }
 
@@ -497,7 +528,7 @@ main() {
 ''');
     return prepareNavigation().then((_) {
       {
-        assertHasRegionString('new B');
+        assertHasRegionString('B<A>', 'B'.length);
         assertHasTarget('named() {}');
       }
       {
@@ -505,7 +536,7 @@ main() {
         assertHasTarget('A {');
       }
       {
-        assertHasRegion('.named();', '.named'.length);
+        assertHasRegion('named();', 'named'.length);
         assertHasTarget('named() {}');
       }
     });
@@ -521,7 +552,7 @@ main() {
 }
 ''');
     return prepareNavigation().then((_) {
-      assertHasRegionString('new A');
+      assertHasRegionString('A();', 'A'.length);
       assertHasTarget('A() {}', 0);
     });
   }
@@ -538,7 +569,7 @@ main() {
 ''');
     return prepareNavigation().then((_) {
       {
-        assertHasRegionString('new B');
+        assertHasRegionString('B<A>();', 'B'.length);
         assertHasTarget('B() {}', 0);
       }
       {
@@ -641,7 +672,7 @@ main() {
     var libFile = addFile('$projectPath/bin/lib.dart', libCode);
     addTestFile('export "lib.dart";');
     return prepareNavigation().then((_) {
-      assertHasRegionString('export "lib.dart"');
+      assertHasRegionString('"lib.dart"');
       assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
     });
   }
@@ -649,7 +680,7 @@ main() {
   test_string_export_unresolvedUri() {
     addTestFile('export "no.dart";');
     return prepareNavigation().then((_) {
-      assertNoRegionString('export "no.dart"');
+      assertNoRegionString('"no.dart"');
     });
   }
 
@@ -658,7 +689,7 @@ main() {
     var libFile = addFile('$projectPath/bin/lib.dart', libCode);
     addTestFile('import "lib.dart";');
     return prepareNavigation().then((_) {
-      assertHasRegionString('import "lib.dart"');
+      assertHasRegionString('"lib.dart"');
       assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
     });
   }
@@ -673,7 +704,7 @@ main() {
   test_string_import_unresolvedUri() {
     addTestFile('import "no.dart";');
     return prepareNavigation().then((_) {
-      assertNoRegionString('import "no.dart"');
+      assertNoRegionString('"no.dart"');
     });
   }
 
@@ -685,7 +716,7 @@ library lib;
 part "test_unit.dart";
 ''');
     return prepareNavigation().then((_) {
-      assertHasRegionString('part "test_unit.dart"');
+      assertHasRegionString('"test_unit.dart"');
       assertHasFileTarget(unitFile, 0, 0);
     });
   }
@@ -696,7 +727,7 @@ library lib;
 part "test_unit.dart";
 ''');
     return prepareNavigation().then((_) {
-      assertNoRegionString('part "test_unit.dart"');
+      assertNoRegionString('"test_unit.dart"');
     });
   }
 

@@ -13,14 +13,12 @@ namespace dart {
 // TODO(turnidge): This function obscures the line number of failing
 // EXPECTs.  Rework this.
 static void ExpectSubstringF(const char* buff, const char* fmt, ...) {
-  Isolate* isolate = Isolate::Current();
-
   va_list args;
   va_start(args, fmt);
   intptr_t len = OS::VSNPrint(NULL, 0, fmt, args);
   va_end(args);
 
-  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
+  char* buffer = Thread::Current()->zone()->Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, fmt);
   OS::VSNPrint(buffer, (len + 1), fmt, args2);

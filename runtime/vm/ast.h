@@ -1421,11 +1421,13 @@ class InstanceCallNode : public AstNode {
   InstanceCallNode(intptr_t token_pos,
                    AstNode* receiver,
                    const String& function_name,
-                   ArgumentListNode* arguments)
+                   ArgumentListNode* arguments,
+                   bool is_conditional = false)
       : AstNode(token_pos),
         receiver_(receiver),
         function_name_(function_name),
-        arguments_(arguments) {
+        arguments_(arguments),
+        is_conditional_(is_conditional) {
     ASSERT(receiver_ != NULL);
     ASSERT(function_name_.IsNotTemporaryScopedHandle());
     ASSERT(function_name_.IsSymbol());
@@ -1435,6 +1437,7 @@ class InstanceCallNode : public AstNode {
   AstNode* receiver() const { return receiver_; }
   const String& function_name() const { return function_name_; }
   ArgumentListNode* arguments() const { return arguments_; }
+  bool is_conditional() const { return is_conditional_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     receiver()->Visit(visitor);
@@ -1447,6 +1450,7 @@ class InstanceCallNode : public AstNode {
   AstNode* receiver_;
   const String& function_name_;
   ArgumentListNode* arguments_;
+  const bool is_conditional_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceCallNode);
 };
@@ -1456,10 +1460,12 @@ class InstanceGetterNode : public AstNode {
  public:
   InstanceGetterNode(intptr_t token_pos,
                      AstNode* receiver,
-                     const String& field_name)
+                     const String& field_name,
+                     bool is_conditional = false)
       : AstNode(token_pos),
         receiver_(receiver),
-        field_name_(field_name) {
+        field_name_(field_name),
+        is_conditional_(is_conditional) {
     ASSERT(receiver_ != NULL);
     ASSERT(field_name_.IsNotTemporaryScopedHandle());
     ASSERT(field_name_.IsSymbol());
@@ -1467,6 +1473,7 @@ class InstanceGetterNode : public AstNode {
 
   AstNode* receiver() const { return receiver_; }
   const String& field_name() const { return field_name_; }
+  bool is_conditional() const { return is_conditional_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     receiver()->Visit(visitor);
@@ -1482,6 +1489,7 @@ class InstanceGetterNode : public AstNode {
  private:
   AstNode* receiver_;
   const String& field_name_;
+  const bool is_conditional_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceGetterNode);
 };
@@ -1492,11 +1500,13 @@ class InstanceSetterNode : public AstNode {
   InstanceSetterNode(intptr_t token_pos,
                      AstNode* receiver,
                      const String& field_name,
-                     AstNode* value)
+                     AstNode* value,
+                     bool is_conditional = false)
       : AstNode(token_pos),
         receiver_(receiver),
         field_name_(field_name),
-        value_(value) {
+        value_(value),
+        is_conditional_(is_conditional) {
     ASSERT(receiver_ != NULL);
     ASSERT(value_ != NULL);
     ASSERT(field_name_.IsZoneHandle());
@@ -1506,6 +1516,7 @@ class InstanceSetterNode : public AstNode {
   AstNode* receiver() const { return receiver_; }
   const String& field_name() const { return field_name_; }
   AstNode* value() const { return value_; }
+  bool is_conditional() const { return is_conditional_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     receiver()->Visit(visitor);
@@ -1518,6 +1529,7 @@ class InstanceSetterNode : public AstNode {
   AstNode* receiver_;
   const String& field_name_;
   AstNode* value_;
+  const bool is_conditional_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceSetterNode);
 };

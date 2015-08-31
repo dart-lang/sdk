@@ -15,7 +15,6 @@ import '../elements/elements.dart'
          FunctionElement,
          PrefixElement;
 import '../tree/tree.dart' hide unparse;
-import '../types/types.dart' as ti show TypeMask;
 import '../util/util.dart' show Hashing;
 
 abstract class ConstantValueVisitor<R, A> {
@@ -32,7 +31,7 @@ abstract class ConstantValueVisitor<R, A> {
   R visitConstructed(ConstructedConstantValue constant, A arg);
   R visitType(TypeConstantValue constant, A arg);
   R visitInterceptor(InterceptorConstantValue constant, A arg);
-  R visitDummy(DummyConstantValue constant, A arg);
+  R visitSynthetic(SyntheticConstantValue constant, A arg);
   R visitDeferred(DeferredConstantValue constant, A arg);
 }
 
@@ -80,7 +79,7 @@ abstract class ConstantValue {
   /// expression from the value so the unparse of these is best effort.
   ///
   /// For the synthetic constants, [DeferredConstantValue],
-  /// [DummyConstantValue], [InterceptorConstantValue] the unparse is
+  /// [SyntheticConstantValue], [InterceptorConstantValue] the unparse is
   /// descriptive only.
   String unparse();
 
@@ -603,30 +602,32 @@ class InterceptorConstantValue extends ConstantValue {
   }
 }
 
-// TODO(johnniwinther): Remove this class.
-class DummyConstantValue extends ConstantValue {
-  final ti.TypeMask typeMask;
+class SyntheticConstantValue extends ConstantValue {
+  final payload;
+  final kind;
 
-  DummyConstantValue(this.typeMask);
+  SyntheticConstantValue(this.kind, this.payload);
 
   bool get isDummy => true;
 
   bool operator ==(other) {
-    return other is DummyConstantValue
-        && typeMask == other.typeMask;
+    return other is SyntheticConstantValue
+        && payload == other.payload;
   }
 
-  get hashCode => typeMask.hashCode;
+  get hashCode => payload.hashCode * 17 + kind.hashCode;
 
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
-  accept(ConstantValueVisitor visitor, arg) => visitor.visitDummy(this, arg);
+  accept(ConstantValueVisitor visitor, arg) {
+    return visitor.visitSynthetic(this, arg);
+  }
 
   DartType getType(CoreTypes types) => const DynamicType();
 
-  String unparse() => 'dummy($typeMask)';
+  String unparse() => 'synthetic($kind, $payload)';
 
-  String toStructuredString() => 'DummyConstant($typeMask)';
+  String toStructuredString() => 'SyntheticConstant($kind, $payload)';
 }
 
 class ConstructedConstantValue extends ObjectConstantValue {
@@ -639,6 +640,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
       hashCode = Hashing.mapHash(fields, Hashing.objectHash(type)),
       super(type) {
     assert(type != null);
+    assert(!fields.containsValue(null));
   }
 
   bool get isConstructedObject => true;

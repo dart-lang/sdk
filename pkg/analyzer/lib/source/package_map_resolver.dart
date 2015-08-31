@@ -4,6 +4,8 @@
 
 library source.package_map_resolver;
 
+import 'dart:core' hide Resource;
+
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/asserts.dart' as asserts;
@@ -42,7 +44,7 @@ class PackageMapUriResolver extends UriResolver {
   }
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     if (!isPackageUri(uri)) {
       return null;
     }

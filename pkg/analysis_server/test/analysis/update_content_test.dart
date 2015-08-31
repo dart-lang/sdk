@@ -4,6 +4,7 @@
 
 library test.analysis.updateContent;
 
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
@@ -177,6 +178,24 @@ f() {}
     expect(_getUserSources(context2), isEmpty);
   }
 
+  test_removeOverlay_incrementalChange() async {
+    createProject();
+    addTestFile('main() { print(1); }');
+    await server.onAnalysisComplete;
+    CompilationUnit unit = _getTestUnit();
+    // add an overlay
+    server.updateContent(
+        '1', {testFile: new AddContentOverlay('main() { print(2); }')});
+    // it was an incremental change
+    await server.onAnalysisComplete;
+    expect(_getTestUnit(), same(unit));
+    // remove overlay
+    server.updateContent('2', {testFile: new RemoveContentOverlay()});
+    // it was an incremental change
+    await server.onAnalysisComplete;
+    expect(_getTestUnit(), same(unit));
+  }
+
   test_sendNoticesAfterNopChange() async {
     createProject();
     addTestFile('');
@@ -205,13 +224,20 @@ f() {}
     await server.onAnalysisComplete;
     // clear errors and make a no-op change
     filesErrors.clear();
-    server.test_flushResolvedUnit(testFile);
+    server.test_flushAstStructures(testFile);
     server.updateContent('2', {
       testFile: new ChangeContentOverlay([new SourceEdit(0, 4, 'main')])
     });
     await server.onAnalysisComplete;
     // errors should have been resent
     expect(filesErrors, isNotEmpty);
+  }
+
+  CompilationUnit _getTestUnit() {
+    ContextSourcePair pair = server.getContextSourcePair(testFile);
+    AnalysisContext context = pair.context;
+    Source source = pair.source;
+    return context.getResolvedCompilationUnit2(source, source);
   }
 
   List<Source> _getUserSources(AnalysisContext context) {

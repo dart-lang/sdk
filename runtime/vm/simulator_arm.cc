@@ -3859,7 +3859,7 @@ void Simulator::Longjmp(uword pc,
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous C++ frames.
   Isolate* isolate = thread->isolate();
-  StackResource::Unwind(isolate);
+  StackResource::Unwind(thread);
 
   // Unwind the C++ stack and continue simulation in the target frame.
   set_register(PC, static_cast<int32_t>(pc));

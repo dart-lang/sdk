@@ -30,7 +30,7 @@ bool StackFrame::IsStubFrame() const {
 
 const char* StackFrame::ToCString() const {
   ASSERT(isolate_ == Isolate::Current());
-  Zone* zone = Isolate::Current()->current_zone();
+  Zone* zone = Thread::Current()->zone();
   if (IsDartFrame()) {
     const Code& code = Code::Handle(LookupDartCode());
     ASSERT(!code.IsNull());
@@ -434,7 +434,7 @@ InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
     function_(Function::Handle()),
     pc_(pc),
     deopt_instructions_(),
-    object_table_(Array::Handle()) {
+    object_table_(ObjectPool::Handle()) {
   ASSERT(code_.is_optimized());
   ASSERT(pc_ != 0);
   ASSERT(code.ContainsInstructionAt(pc));
@@ -452,7 +452,7 @@ InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
     ASSERT(!deopt_table.IsNull());
     DeoptInfo::Unpack(deopt_table, deopt_info_, &deopt_instructions_);
     num_materializations_ = DeoptInfo::NumMaterializations(deopt_instructions_);
-    object_table_ = code_.ObjectPool();
+    object_table_ = code_.GetObjectPool();
     Advance();
   }
 }

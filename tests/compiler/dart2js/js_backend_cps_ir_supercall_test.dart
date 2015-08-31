@@ -23,7 +23,7 @@ main() {
 }""",
 r"""
 function(x) {
-  return V.Base.prototype.m$1.call(this, J.getInterceptor$ns(x).$add(x, 10));
+  return V.Base.prototype.m$1.call(this, x + 10);
 }"""),
 
   // Reenable when we support compiling functions that
@@ -53,7 +53,7 @@ function(x) {
 
 const TestEntry.forMethod('function(Sub#m)', """
 class Base {
-  var field;
+  var field = 123;
 }
 class Sub extends Base {
   m(x) => x + super.field;
@@ -63,7 +63,7 @@ main() {
 }""",
 r"""
 function(x) {
-  return J.getInterceptor$ns(x).$add(x, this.field);
+  return x + this.field;
 }"""),
 
 

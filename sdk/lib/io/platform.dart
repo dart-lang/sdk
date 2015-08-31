@@ -53,9 +53,9 @@ part of dart.io;
  *       String os = Platform.operatingSystem;
  *       // Or, use a predicate getter.
  *       if (Platform.isMacOS) {
- *         Print('is a Mac');
+ *         print('is a Mac');
  *       } else {
- *        print('is not a Mac');
+ *         print('is not a Mac');
  *       }
  *     }
  *

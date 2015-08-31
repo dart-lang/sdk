@@ -4,7 +4,7 @@
 
 library analyze_api;
 
-import '../../../sdk/lib/_internal/libraries.dart';
+import 'package:sdk_library_metadata/libraries.dart';
 import 'analyze_helper.dart';
 import "package:async_helper/async_helper.dart";
 

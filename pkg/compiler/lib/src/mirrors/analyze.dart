@@ -11,6 +11,7 @@ import 'dart2js_mirrors.dart' show Dart2JsMirrorSystem;
 import '../../compiler.dart' as api;
 import '../apiimpl.dart' as apiimpl;
 import '../dart2jslib.dart' show Compiler;
+import '../old_to_new_api.dart';
 
 //------------------------------------------------------------------------------
 // Analysis entry point.
@@ -53,15 +54,16 @@ Future<MirrorSystem> analyze(List<Uri> libraries,
     diagnosticHandler(uri, begin, end, message, kind);
   }
 
-  Compiler compiler = new apiimpl.Compiler(inputProvider,
-                                           null,
-                                           internalDiagnosticHandler,
-                                           libraryRoot,
-                                           packageRoot,
-                                           options,
-                                           const {},
-                                           packageConfig,
-                                           findPackages);
+  Compiler compiler = new apiimpl.Compiler(
+      new LegacyCompilerInput(inputProvider),
+      new LegacyCompilerOutput(),
+      new LegacyCompilerDiagnostics(internalDiagnosticHandler),
+      libraryRoot,
+      packageRoot,
+      options,
+      const {},
+      packageConfig,
+      findPackages);
   compiler.librariesToAnalyzeWhenRun = libraries;
   return compiler.run(null).then((bool success) {
     if (success && !compilationFailed) {

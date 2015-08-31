@@ -4,7 +4,7 @@
 
 import 'dart:async';
 import 'package:expect/expect.dart';
-
+import 'package:compiler/src/null_compiler_output.dart';
 import 'memory_source_file_helper.dart';
 
 Future<Map<String, String>> generate(String code,
@@ -16,9 +16,9 @@ Future<Map<String, String>> generate(String code,
   var provider = new MemorySourceFileProvider({ 'main.dart': code });
   var handler = new FormattingDiagnosticHandler(provider);
 
-  Compiler compiler = new Compiler(provider.readStringFromUri,
-                                   null,
-                                   handler.diagnosticHandler,
+  Compiler compiler = new Compiler(provider,
+                                   const NullCompilerOutput(),
+                                   handler,
                                    libraryRoot,
                                    packageRoot,
                                    options,

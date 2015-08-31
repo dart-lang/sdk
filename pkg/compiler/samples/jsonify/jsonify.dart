@@ -7,7 +7,7 @@ import 'dart:convert';
 
 import 'dart:mirrors';
 
-import 'package:_internal/libraries.dart'
+import 'package:sdk_library_metadata/libraries.dart'
     show LIBRARIES, LibraryInfo;
 
 import '../../lib/src/mirrors/analyze.dart'

@@ -26,6 +26,7 @@ namespace dart {
 
 // Forward declarations.
 class RuntimeEntry;
+class StubEntry;
 
 class Immediate : public ValueObject {
  public:
@@ -241,7 +242,7 @@ class Assembler : public ValueObject {
         delay_slot_available_(false),
         in_delay_slot_(false),
         comments_(),
-        allow_constant_pool_(true) { }
+        constant_pool_allowed_(true) { }
   ~Assembler() { }
 
   void PopRegister(Register r) { Pop(r); }
@@ -263,11 +264,11 @@ class Assembler : public ValueObject {
     return buffer_.pointer_offsets();
   }
 
-  const GrowableObjectArray& object_pool_data() const {
-    return object_pool_.data();
-  }
+  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
 
-  ObjectPool& object_pool() { return object_pool_; }
+  RawObjectPool* MakeObjectPool() {
+    return object_pool_wrapper_.MakeObjectPool();
+  }
 
   void FinalizeInstructions(const MemoryRegion& region) {
     buffer_.FinalizeInstructions(region);
@@ -287,7 +288,7 @@ class Assembler : public ValueObject {
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
-  void EnterStubFrame(bool load_pp = false);
+  void EnterStubFrame();
   void LeaveStubFrame();
   // A separate macro for when a Ret immediately follows, so that we can use
   // the branch delay slot.
@@ -304,13 +305,20 @@ class Assembler : public ValueObject {
 
   void UpdateAllocationStats(intptr_t cid,
                              Register temp_reg,
-                             Heap::Space space);
+                             Heap::Space space,
+                             bool inline_isolate = true);
 
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      Register size_reg,
                                      Register temp_reg,
-                                     Heap::Space space);
+                                     Heap::Space space,
+                                     bool inline_isolate = true);
 
+
+  void MaybeTraceAllocation(intptr_t cid,
+                            Register temp_reg,
+                            Label* trace,
+                            bool inline_isolate = true);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
@@ -910,6 +918,8 @@ class Assembler : public ValueObject {
     jr(TMP);
   }
 
+  void Branch(const StubEntry& stub_entry);
+
   void BranchPatchable(const ExternalLabel* label) {
     ASSERT(!in_delay_slot_);
     const uint16_t low = Utils::Low16Bits(label->address());
@@ -920,20 +930,34 @@ class Assembler : public ValueObject {
     delay_slot_available_ = false;  // CodePatcher expects a nop.
   }
 
+  void BranchPatchable(const StubEntry& stub_entry);
+
   void BranchLink(const ExternalLabel* label) {
     ASSERT(!in_delay_slot_);
     LoadImmediate(T9, label->address());
     jalr(T9);
   }
 
-  void BranchLinkPatchable(const ExternalLabel* label) {
+  void BranchLink(const StubEntry& stub_entry);
+
+  void BranchLink(const ExternalLabel* label, Patchability patchable) {
     ASSERT(!in_delay_slot_);
-    const int32_t offset = Array::element_offset(
-        object_pool_.FindExternalLabel(label, kPatchable));
+    const int32_t offset = ObjectPool::element_offset(
+        object_pool_wrapper_.FindExternalLabel(label, patchable));
     LoadWordFromPoolOffset(T9, offset - kHeapObjectTag);
     jalr(T9);
-    delay_slot_available_ = false;  // CodePatcher expects a nop.
+    if (patchable == kPatchable) {
+      delay_slot_available_ = false;  // CodePatcher expects a nop.
+    }
   }
+
+  void BranchLink(const StubEntry& stub_entry, Patchability patchable);
+
+  void BranchLinkPatchable(const ExternalLabel* label) {
+    BranchLink(label, kPatchable);
+  }
+
+  void BranchLinkPatchable(const StubEntry& stub_entry);
 
   void Drop(intptr_t stack_elements) {
     ASSERT(stack_elements >= 0);
@@ -1533,6 +1557,10 @@ class Assembler : public ValueObject {
 
   void LoadWordFromPoolOffset(Register rd, int32_t offset);
   void LoadObject(Register rd, const Object& object);
+  void LoadUniqueObject(Register rd, const Object& object);
+  void LoadExternalLabel(Register rd,
+                         const ExternalLabel* label,
+                         Patchability patchable);
   void PushObject(const Object& object);
 
   void LoadIsolate(Register result);
@@ -1540,6 +1568,7 @@ class Assembler : public ValueObject {
   void LoadClassId(Register result, Register object);
   void LoadClassById(Register result, Register class_id);
   void LoadClass(Register result, Register object);
+  void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
   void ComputeRange(Register result,
@@ -1605,16 +1634,16 @@ class Assembler : public ValueObject {
   static bool IsSafe(const Object& object) { return true; }
   static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
 
-  bool allow_constant_pool() const {
-    return allow_constant_pool_;
+  bool constant_pool_allowed() const {
+    return constant_pool_allowed_;
   }
-  void set_allow_constant_pool(bool b) {
-    allow_constant_pool_ = b;
+  void set_constant_pool_allowed(bool b) {
+    constant_pool_allowed_ = b;
   }
 
  private:
   AssemblerBuffer buffer_;
-  ObjectPool object_pool_;  // Objects and patchable jump targets.
+  ObjectPoolWrapper object_pool_wrapper_;
 
   intptr_t prologue_offset_;
 
@@ -1639,7 +1668,9 @@ class Assembler : public ValueObject {
 
   GrowableArray<CodeComment*> comments_;
 
-  bool allow_constant_pool_;
+  bool constant_pool_allowed_;
+
+  void LoadObjectHelper(Register rd, const Object& object, bool is_unique);
 
   void Emit(int32_t value) {
     // Emitting an instruction clears the delay slot state.

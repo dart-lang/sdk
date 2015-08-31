@@ -43,7 +43,7 @@ dt.typeDefinition {
 </style></head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version 1.7.0</h1>
+    <h1 style="color:#999999">Version 1.9.0</h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -384,6 +384,8 @@ dt.typeDefinition {
       
       
       
+     
+      
       
       
       
@@ -506,6 +508,10 @@ dt.typeDefinition {
           Return library dependency information for use in client-side indexing
           and package URI resolution.
         </p>
+        <p>
+        Clients that are only using the libraries field should consider using the
+        analyzedFiles notification instead.
+        </p>
         
       <h4>Returns</h4><dl><dt class="field"><b><i>libraries ( List&lt;<a href="#type_FilePath">FilePath</a>&gt; )</i></b></dt><dd>
             
@@ -554,6 +560,13 @@ dt.typeDefinition {
           region in response to multiple requests. Clients can avoid this by
           always choosing a region that starts at the beginning of a line and
           ends at the end of a (possibly different) line in the file.
+        </p>
+        <p>
+          If a request is made for a file which does not exist, or
+          which is not currently subject to analysis (e.g. because it
+          is not associated with any analysis root specified to
+          analysis.setAnalysisRoots), an error of type
+          <tt>GET_NAVIGATION_INVALID_FILE</tt> will be generated.
         </p>
         
         
@@ -698,6 +711,30 @@ dt.typeDefinition {
               or the empty map is specified, that indicates that the
               normal pubspec.yaml mechanism should always be used.
             </p>
+          </dd></dl></dd><dt class="request"><a name="request_analysis.setGeneralSubscriptions">analysis.setGeneralSubscriptions</a> (<a href="#request_analysis.setGeneralSubscriptions">#</a>)</dt><dd><div class="box"><pre>request: {
+  "id": String
+  "method": "analysis.setGeneralSubscriptions"
+  "params": {
+    "<b>subscriptions</b>": List&lt;<a href="#type_GeneralAnalysisService">GeneralAnalysisService</a>&gt;
+  }
+}</pre><br><pre>response: {
+  "id": String
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
+}</pre></div>
+        <p>
+          Subscribe for general services (that is, services that are not
+          specific to individual files). All previous subscriptions are replaced
+          by the given set of services.
+        </p>
+        <p>
+          It is an error if any of the elements in the list are not valid
+          services. If there is an error, then the current subscriptions will
+          remain unchanged.
+        </p>
+        
+      <h4>Parameters</h4><dl><dt class="field"><b><i>subscriptions ( List&lt;<a href="#type_GeneralAnalysisService">GeneralAnalysisService</a>&gt; )</i></b></dt><dd>
+            
+            <p>A list of the services being subscribed to.</p>
           </dd></dl></dd><dt class="request"><a name="request_analysis.setPriorityFiles">analysis.setPriorityFiles</a> (<a href="#request_analysis.setPriorityFiles">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.setPriorityFiles"
@@ -750,11 +787,11 @@ dt.typeDefinition {
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
         <p>
-          Subscribe for services. All previous subscriptions are
-          replaced by the current set of subscriptions. If a given
-          service is not included as a key in the map then no files
-          will be subscribed to the service, exactly as if the service
-          had been included in the map with an explicit empty list of
+          Subscribe for services that are specific to individual files.
+          All previous subscriptions are replaced by the current set of
+          subscriptions. If a given service is not included as a key in the map
+          then no files will be subscribed to the service, exactly as if the
+          service had been included in the map with an explicit empty list of
           files.
         </p>
         <p>
@@ -842,7 +879,27 @@ dt.typeDefinition {
             <p>
               The options that are to be used to control analysis.
             </p>
-          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_analysis.errors">analysis.errors</a> (<a href="#notification_analysis.errors">#</a>)</dt><dd><div class="box"><pre>notification: {
+          </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_analysis.analyzedFiles">analysis.analyzedFiles</a> (<a href="#notification_analysis.analyzedFiles">#</a>)</dt><dd><div class="box"><pre>notification: {
+  "event": "analysis.analyzedFiles"
+  "params": {
+    "<b>directories</b>": List&lt;<a href="#type_FilePath">FilePath</a>&gt;
+  }
+}</pre></div>
+        <p>
+          Reports the paths of the files that are being analyzed.
+        </p>
+        <p>
+          This notification is not subscribed to by default. Clients can
+          subscribe by including the value <tt>"ANALYZED_FILES"</tt> in the list
+          of services passed in an analysis.setGeneralSubscriptions request.
+        </p>
+        
+      <h4>Parameters</h4><dl><dt class="field"><b><i>directories ( List&lt;<a href="#type_FilePath">FilePath</a>&gt; )</i></b></dt><dd>
+            
+              <p>
+                A list of the paths of the files that are being analyzed.
+              </p>
+            </dd></dl></dd><dt class="notification"><a name="notification_analysis.errors">analysis.errors</a> (<a href="#notification_analysis.errors">#</a>)</dt><dd><div class="box"><pre>notification: {
   "event": "analysis.errors"
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
@@ -1518,6 +1575,7 @@ dt.typeDefinition {
       
       
       
+      
     <h3>Requests</h3><dl><dt class="request"><a name="request_edit.format">edit.format</a> (<a href="#request_edit.format">#</a>)</dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.format"
@@ -1883,6 +1941,48 @@ dt.typeDefinition {
               The file edit that is to be applied to the given file to effect
               the sorting.
             </p>
+          </dd></dl></dd><dt class="request"><a name="request_edit.organizeDirectives">edit.organizeDirectives</a> (<a href="#request_edit.organizeDirectives">#</a>)</dt><dd><div class="box"><pre>request: {
+  "id": String
+  "method": "edit.organizeDirectives"
+  "params": {
+    "<b>file</b>": <a href="#type_FilePath">FilePath</a>
+  }
+}</pre><br><pre>response: {
+  "id": String
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
+  "result": {
+    "<b>edit</b>": <a href="#type_SourceFileEdit">SourceFileEdit</a>
+  }
+}</pre></div>
+        <p>
+          Organizes all of the directives - removes unused imports and sorts
+          directives of the given Dart file according to the
+          <a href="https://www.dartlang.org/articles/style-guide/">Dart Style Guide</a>.
+        </p>
+        <p>
+          If a request is made for a file that does not exist, does not belong
+          to an analysis root or is not a Dart file,
+          <tt>FILE_NOT_ANALYZED</tt> will be generated.
+        </p>
+        <p>
+          If directives of the Dart file cannot be organized, for example
+          because it has scan or parse errors, or by other reasons,
+          <tt>ORGANIZE_DIRECTIVES_ERROR</tt> will be generated. The message
+          will provide datails about the reason.
+        </p>
+        
+        
+      <h4>Parameters</h4><dl><dt class="field"><b><i>file ( <a href="#type_FilePath">FilePath</a> )</i></b></dt><dd>
+            
+            <p>
+              The Dart file to organize directives in.
+            </p>
+          </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>edit ( <a href="#type_SourceFileEdit">SourceFileEdit</a> )</i></b></dt><dd>
+            
+            <p>
+              The file edit that is to be applied to the given file to effect
+              the organizing.
+            </p>
           </dd></dl></dd></dl>
     <h2 class="domain"><a name="domain_execution">Domain: execution</a></h2>
       <p>
@@ -2143,6 +2243,7 @@ dt.typeDefinition {
       
       
       
+      
     <dl><dt class="typeDefinition"><a name="type_AddContentOverlay">AddContentOverlay: object</a></dt><dd>
         <p>
           A directive to begin overlaying the contents of a file.  The
@@ -2231,27 +2332,28 @@ dt.typeDefinition {
         
       <dl><dt class="field"><b><i>enableAsync ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
             
-            <p><b><i>Deprecated</i></b></p>
+            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed async feature.
             </p>
           </dd><dt class="field"><b><i>enableDeferredLoading ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
             
-            <p><b><i>Deprecated</i></b></p>
+            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed deferred loading feature.
             </p>
           </dd><dt class="field"><b><i>enableEnums ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
             
-            <p><b><i>Deprecated</i></b></p>
+            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed enum feature.
             </p>
           </dd><dt class="field"><b><i>enableNullAwareOperators ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
             
+            <p><b><i>Deprecated</i></b>: this feature is always enabled.</p>
             <p>
               True if the client wants to enable support for the
               proposed "null aware operators" feature.
@@ -2276,11 +2378,17 @@ dt.typeDefinition {
             </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_AnalysisService">AnalysisService: String</a></dt><dd>
         <p>
-          An enumeration of the services provided by the analysis
-          domain.
+          An enumeration of the services provided by the analysis domain that
+          are related to a specific list of files.
         </p>
         
-      <dl><dt class="value">FOLDING</dt><dt class="value">HIGHLIGHTS</dt><dt class="value">INVALIDATE</dt><dt class="value">NAVIGATION</dt><dt class="value">OCCURRENCES</dt><dt class="value">OUTLINE</dt><dt class="value">OVERRIDES</dt></dl></dd><dt class="typeDefinition"><a name="type_AnalysisStatus">AnalysisStatus: object</a></dt><dd>
+      <dl><dt class="value">FOLDING</dt><dt class="value">HIGHLIGHTS</dt><dt class="value">INVALIDATE</dt><dd>
+            
+            <p>
+              This service is not currently implemented and will become a
+              GeneralAnalysisService in a future release.
+            </p>
+          </dd><dt class="value">NAVIGATION</dt><dt class="value">OCCURRENCES</dt><dt class="value">OUTLINE</dt><dt class="value">OVERRIDES</dt></dl></dd><dt class="typeDefinition"><a name="type_AnalysisStatus">AnalysisStatus: object</a></dt><dd>
         <p>
           An indication of the current state of analysis.
         </p>
@@ -2626,7 +2734,13 @@ dt.typeDefinition {
             <p>
               The length of the region to be folded.
             </p>
-          </dd></dl></dd><dt class="typeDefinition"><a name="type_HighlightRegion">HighlightRegion: object</a></dt><dd>
+          </dd></dl></dd><dt class="typeDefinition"><a name="type_GeneralAnalysisService">GeneralAnalysisService: String</a></dt><dd>
+        <p>
+          An enumeration of the services provided by the analysis domain that are
+          general in nature (that is, are not specific to some list of files).
+        </p>
+        
+      <dl><dt class="value">ANALYZED_FILES</dt></dl></dd><dt class="typeDefinition"><a name="type_HighlightRegion">HighlightRegion: object</a></dt><dd>
         <p>
           A description of a region that could have special highlighting
           associated with it.
@@ -2653,7 +2767,154 @@ dt.typeDefinition {
           applied to files.
         </p>
         
-      <dl><dt class="value">ANNOTATION</dt><dt class="value">BUILT_IN</dt><dt class="value">CLASS</dt><dt class="value">COMMENT_BLOCK</dt><dt class="value">COMMENT_DOCUMENTATION</dt><dt class="value">COMMENT_END_OF_LINE</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">DIRECTIVE</dt><dt class="value">DYNAMIC_TYPE</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">FIELD</dt><dt class="value">FIELD_STATIC</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_DECLARATION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER_DECLARATION</dt><dt class="value">IDENTIFIER_DEFAULT</dt><dt class="value">IMPORT_PREFIX</dt><dt class="value">KEYWORD</dt><dt class="value">LABEL</dt><dt class="value">LITERAL_BOOLEAN</dt><dt class="value">LITERAL_DOUBLE</dt><dt class="value">LITERAL_INTEGER</dt><dt class="value">LITERAL_LIST</dt><dt class="value">LITERAL_MAP</dt><dt class="value">LITERAL_STRING</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">LOCAL_VARIABLE_DECLARATION</dt><dt class="value">METHOD</dt><dt class="value">METHOD_DECLARATION</dt><dt class="value">METHOD_DECLARATION_STATIC</dt><dt class="value">METHOD_STATIC</dt><dt class="value">PARAMETER</dt><dt class="value">SETTER_DECLARATION</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_NAME_DYNAMIC</dt><dt class="value">TYPE_PARAMETER</dt></dl></dd><dt class="typeDefinition"><a name="type_HoverInformation">HoverInformation: object</a></dt><dd>
+      <dl><dt class="value">ANNOTATION</dt><dt class="value">BUILT_IN</dt><dt class="value">CLASS</dt><dt class="value">COMMENT_BLOCK</dt><dt class="value">COMMENT_DOCUMENTATION</dt><dt class="value">COMMENT_END_OF_LINE</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">DIRECTIVE</dt><dt class="value">DYNAMIC_TYPE</dt><dd>
+            
+            <p>Only for version 1 of highlight.</p>
+          </dd><dt class="value">DYNAMIC_LOCAL_VARIABLE_DECLARATION</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">DYNAMIC_LOCAL_VARIABLE_REFERENCE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">DYNAMIC_PARAMETER_DECLARATION</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">DYNAMIC_PARAMETER_REFERENCE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">FIELD</dt><dd>
+            
+            <p>Only for version 1 of highlight.</p>
+          </dd><dt class="value">FIELD_STATIC</dt><dd>
+            
+            <p>Only for version 1 of highlight.</p>
+          </dd><dt class="value">FUNCTION</dt><dd>
+            
+            <p>Only for version 1 of highlight.</p>
+          </dd><dt class="value">FUNCTION_DECLARATION</dt><dd>
+            
+            <p>Only for version 1 of highlight.</p>
+          </dd><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER_DECLARATION</dt><dd>
+            
+            <p>Only for version 1 of highlight.</p>
+          </dd><dt class="value">IDENTIFIER_DEFAULT</dt><dt class="value">IMPORT_PREFIX</dt><dt class="value">INSTANCE_FIELD_DECLARATION</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">INSTANCE_FIELD_REFERENCE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">INSTANCE_GETTER_DECLARATION</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">INSTANCE_GETTER_REFERENCE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">INSTANCE_METHOD_DECLARATION</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">INSTANCE_METHOD_REFERENCE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">INSTANCE_SETTER_DECLARATION</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">INSTANCE_SETTER_REFERENCE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">INVALID_STRING_ESCAPE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">KEYWORD</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY_NAME</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">LITERAL_BOOLEAN</dt><dt class="value">LITERAL_DOUBLE</dt><dt class="value">LITERAL_INTEGER</dt><dt class="value">LITERAL_LIST</dt><dt class="value">LITERAL_MAP</dt><dt class="value">LITERAL_STRING</dt><dt class="value">LOCAL_FUNCTION_DECLARATION</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">LOCAL_FUNCTION_REFERENCE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">LOCAL_VARIABLE</dt><dd>
+            
+            <p>Only for version 1 of highlight.</p>
+          </dd><dt class="value">LOCAL_VARIABLE_DECLARATION</dt><dt class="value">LOCAL_VARIABLE_REFERENCE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">METHOD</dt><dd>
+            
+            <p>Only for version 1 of highlight.</p>
+          </dd><dt class="value">METHOD_DECLARATION</dt><dd>
+            
+            <p>Only for version 1 of highlight.</p>
+          </dd><dt class="value">METHOD_DECLARATION_STATIC</dt><dd>
+            
+            <p>Only for version 1 of highlight.</p>
+          </dd><dt class="value">METHOD_STATIC</dt><dd>
+            
+            <p>Only for version 1 of highlight.</p>
+          </dd><dt class="value">PARAMETER</dt><dd>
+            
+            <p>Only for version 1 of highlight.</p>
+          </dd><dt class="value">SETTER_DECLARATION</dt><dd>
+            
+            <p>Only for version 1 of highlight.</p>
+          </dd><dt class="value">TOP_LEVEL_VARIABLE</dt><dd>
+            
+            <p>Only for version 1 of highlight.</p>
+          </dd><dt class="value">PARAMETER_DECLARATION</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">PARAMETER_REFERENCE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">STATIC_FIELD_DECLARATION</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">STATIC_GETTER_DECLARATION</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">STATIC_GETTER_REFERENCE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">STATIC_METHOD_DECLARATION</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">STATIC_METHOD_REFERENCE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">STATIC_SETTER_DECLARATION</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">STATIC_SETTER_REFERENCE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">TOP_LEVEL_FUNCTION_DECLARATION</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">TOP_LEVEL_FUNCTION_REFERENCE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">TOP_LEVEL_GETTER_DECLARATION</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">TOP_LEVEL_GETTER_REFERENCE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">TOP_LEVEL_SETTER_DECLARATION</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">TOP_LEVEL_SETTER_REFERENCE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">TOP_LEVEL_VARIABLE_DECLARATION</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">TYPE_NAME_DYNAMIC</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNRESOLVED_INSTANCE_MEMBER_REFERENCE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd><dt class="value">VALID_STRING_ESCAPE</dt><dd>
+            
+            <p>Only for version 2 of highlight.</p>
+          </dd></dl></dd><dt class="typeDefinition"><a name="type_HoverInformation">HoverInformation: object</a></dt><dd>
         <p>
           The hover information associated with a specific location.
         </p>
@@ -3142,6 +3403,13 @@ dt.typeDefinition {
               not be satisfied because the content of the file changed before
               the requested results could be computed.
             </p>
+          </dd><dt class="value">FILE_NOT_ANALYZED</dt><dd>
+            
+            <p>
+              A request specified a FilePath which does not match a file in
+              an analysis root, or the requested operation is not available
+              for the file.
+            </p>
           </dd><dt class="value">FORMAT_INVALID_FILE</dt><dd>
             
             <p>
@@ -3158,6 +3426,13 @@ dt.typeDefinition {
             
             <p>
               An "analysis.getErrors" request specified a FilePath
+              which does not match a file currently subject to
+              analysis.
+            </p>
+          </dd><dt class="value">GET_NAVIGATION_INVALID_FILE</dt><dd>
+            
+            <p>
+              An "analysis.getNavigation" request specified a FilePath
               which does not match a file currently subject to
               analysis.
             </p>
@@ -3196,6 +3471,12 @@ dt.typeDefinition {
             <p>
               The "--no-index" flag was passed when the analysis server created,
               but this API call requires an index to have been generated.
+            </p>
+          </dd><dt class="value">ORGANIZE_DIRECTIVES_ERROR</dt><dd>
+            
+            <p>
+              An "edit.organizeDirectives" request specified a Dart file that
+              cannot be analyzed. The reason is described in the message.
             </p>
           </dd><dt class="value">REFACTORING_REQUEST_CANCELLED</dt><dd>
             

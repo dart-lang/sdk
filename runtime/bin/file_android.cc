@@ -158,7 +158,12 @@ File* File::Open(const char* name, FileOpenMode mode) {
   }
   int flags = O_RDONLY;
   if ((mode & kWrite) != 0) {
+    ASSERT((mode & kWriteOnly) == 0);
     flags = (O_RDWR | O_CREAT);
+  }
+  if ((mode & kWriteOnly) != 0) {
+    ASSERT((mode & kWrite) == 0);
+    flags = (O_WRONLY | O_CREAT);
   }
   if ((mode & kTruncate) != 0) {
     flags = flags | O_TRUNC;
@@ -168,7 +173,8 @@ File* File::Open(const char* name, FileOpenMode mode) {
   if (fd < 0) {
     return NULL;
   }
-  if (((mode & kWrite) != 0) && ((mode & kTruncate) == 0)) {
+  if ((((mode & kWrite) != 0) && ((mode & kTruncate) == 0)) ||
+      (((mode & kWriteOnly) != 0) && ((mode & kTruncate) == 0))) {
     int64_t position = lseek64(fd, 0, SEEK_END);
     if (position < 0) {
       return NULL;

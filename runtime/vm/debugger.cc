@@ -236,8 +236,8 @@ ActivationFrame::ActivationFrame(
 
 bool Debugger::HasEventHandler() {
   return ((event_handler_ != NULL) ||
-          Service::NeedsIsolateEvents() ||
-          Service::NeedsDebugEvents());
+          Service::isolate_stream.enabled() ||
+          Service::debug_stream.enabled());
 }
 
 
@@ -251,11 +251,11 @@ static bool ServiceNeedsDebuggerEvent(DebuggerEvent::EventType type) {
     case DebuggerEvent::kBreakpointReached:
     case DebuggerEvent::kExceptionThrown:
     case DebuggerEvent::kIsolateInterrupted:
-      return Service::NeedsDebugEvents();
+      return Service::debug_stream.enabled();
 
     case DebuggerEvent::kIsolateCreated:
     case DebuggerEvent::kIsolateShutdown:
-      return Service::NeedsIsolateEvents();
+      return Service::isolate_stream.enabled();
 
     default:
       UNREACHABLE();
@@ -317,7 +317,6 @@ void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
 void Debugger::SignalIsolateInterrupted() {
   if (HasEventHandler()) {
     Debugger* debugger = Isolate::Current()->debugger();
-    ASSERT(debugger != NULL);
     debugger->SignalIsolateEvent(DebuggerEvent::kIsolateInterrupted);
   }
 }
@@ -325,10 +324,10 @@ void Debugger::SignalIsolateInterrupted() {
 
 // The vm service handles breakpoint notifications in a different way
 // than the regular debugger breakpoint notifications.
-static void SendServiceBreakpointEvent(ServiceEvent::EventType type,
+static void SendServiceBreakpointEvent(ServiceEvent::EventKind kind,
                                        Breakpoint* bpt) {
-  if (Service::NeedsDebugEvents()) {
-    ServiceEvent service_event(Isolate::Current(), type);
+  if (Service::debug_stream.enabled()) {
+    ServiceEvent service_event(Isolate::Current(), kind);
     service_event.set_breakpoint(bpt);
     Service::HandleEvent(&service_event);
   }
@@ -405,7 +404,7 @@ const char* Debugger::QualifiedFunctionName(const Function& func) {
       func_class.IsTopLevel() ? "" : ".",
       func_name.ToCString());
   len++;  // String terminator.
-  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  char* chars = Thread::Current()->zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat,
               func_class.IsTopLevel() ? "" : class_name.ToCString(),
               func_class.IsTopLevel() ? "" : ".",
@@ -476,6 +475,24 @@ void Debugger::PrintBreakpointsToJSONArray(JSONArray* jsarr) const {
       bpt = bpt->next();
     }
     sbpt = sbpt->next_;
+  }
+}
+
+
+void Debugger::PrintSettingsToJSONObject(JSONObject* jsobj) const {
+  // This won't cut it when we support filtering by class, etc.
+  switch (GetExceptionPauseInfo()) {
+    case kNoPauseOnExceptions:
+      jsobj->AddProperty("_exceptions", "none");
+      break;
+    case kPauseOnAllExceptions:
+      jsobj->AddProperty("_exceptions", "all");
+      break;
+    case kPauseOnUnhandledExceptions:
+      jsobj->AddProperty("_exceptions", "unhandled");
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -641,12 +658,27 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
         OS::PrintErr("\tFound saved current ctx at index %d\n",
             var_info.index());
       }
-      ctx_ ^= GetLocalVar(var_info.index());
+      ctx_ ^= GetStackVar(var_info.index());
       return ctx_;
     }
   }
   UNREACHABLE();
   return Context::ZoneHandle(Context::null());
+}
+
+
+RawObject* ActivationFrame::GetAsyncOperation() {
+  GetVarDescriptors();
+  intptr_t var_desc_len = var_descriptors_.Length();
+  for (intptr_t i = 0; i < var_desc_len; i++) {
+    RawLocalVarDescriptors::VarInfo var_info;
+    var_descriptors_.GetInfo(i, &var_info);
+    const int8_t kind = var_info.kind();
+    if (kind == RawLocalVarDescriptors::kAsyncOperation) {
+      return GetContextVar(var_info.scope_id, var_info.index());
+    }
+  }
+  return Object::null();
 }
 
 
@@ -799,7 +831,7 @@ RawObject* ActivationFrame::GetClosure() {
 }
 
 
-RawObject* ActivationFrame::GetLocalVar(intptr_t slot_index) {
+RawObject* ActivationFrame::GetStackVar(intptr_t slot_index) {
   if (deopt_frame_.IsNull()) {
     uword var_address = fp() + slot_index * kWordSize;
     return reinterpret_cast<RawObject*>(
@@ -810,25 +842,15 @@ RawObject* ActivationFrame::GetLocalVar(intptr_t slot_index) {
 }
 
 
-RawInstance* ActivationFrame::GetLocalInstanceVar(intptr_t slot_index) {
-  Instance& instance = Instance::Handle();
-  instance ^= GetLocalVar(slot_index);
-  return instance.raw();
-}
-
-
 void ActivationFrame::PrintContextMismatchError(
-    const String& var_name,
     intptr_t ctx_slot,
     intptr_t frame_ctx_level,
     intptr_t var_ctx_level) {
   OS::PrintErr("-------------------------\n"
                "Encountered context mismatch\n"
-               "\tvar name: %s\n"
                "\tctx_slot: %" Pd "\n"
                "\tframe_ctx_level: %" Pd "\n"
                "\tvar_ctx_level: %" Pd "\n\n",
-               var_name.ToCString(),
                ctx_slot,
                frame_ctx_level,
                var_ctx_level);
@@ -886,44 +908,45 @@ void ActivationFrame::VariableAt(intptr_t i,
   ASSERT(value != NULL);
   const int8_t kind = var_info.kind();
   if (kind == RawLocalVarDescriptors::kStackVar) {
-    *value = GetLocalInstanceVar(var_info.index());
+    *value = GetStackVar(var_info.index());
   } else {
     ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-    const Context& ctx = GetSavedCurrentContext();
-    ASSERT(!ctx.IsNull());
+    *value = GetContextVar(var_info.scope_id, var_info.index());
+  }
+}
 
-    // The context level at the PC/token index of this activation frame.
-    intptr_t frame_ctx_level = ContextLevel();
 
-    // The context level of the variable.
-    intptr_t var_ctx_level = var_info.scope_id;
-    intptr_t level_diff = frame_ctx_level - var_ctx_level;
-    intptr_t ctx_slot = var_info.index();
-    if (level_diff == 0) {
-      if ((ctx_slot < 0) ||
-          (ctx_slot >= ctx.num_variables())) {
-        PrintContextMismatchError(*name, ctx_slot,
-                                  frame_ctx_level, var_ctx_level);
-      }
-      ASSERT((ctx_slot >= 0) && (ctx_slot < ctx.num_variables()));
-      *value = ctx.At(ctx_slot);
-    } else {
-      ASSERT(level_diff > 0);
-      Context& var_ctx = Context::Handle(ctx.raw());
-      while (level_diff > 0 && !var_ctx.IsNull()) {
-        level_diff--;
-        var_ctx = var_ctx.parent();
-      }
-      if (var_ctx.IsNull() ||
-          (ctx_slot < 0) ||
-          (ctx_slot >= var_ctx.num_variables())) {
-        PrintContextMismatchError(*name, ctx_slot,
-                                  frame_ctx_level, var_ctx_level);
-      }
-      ASSERT(!var_ctx.IsNull());
-      ASSERT((ctx_slot >= 0) && (ctx_slot < var_ctx.num_variables()));
-      *value = var_ctx.At(ctx_slot);
+RawObject* ActivationFrame::GetContextVar(intptr_t var_ctx_level,
+                                          intptr_t ctx_slot) {
+  const Context& ctx = GetSavedCurrentContext();
+  ASSERT(!ctx.IsNull());
+
+  // The context level at the PC/token index of this activation frame.
+  intptr_t frame_ctx_level = ContextLevel();
+
+  intptr_t level_diff = frame_ctx_level - var_ctx_level;
+  if (level_diff == 0) {
+    if ((ctx_slot < 0) ||
+        (ctx_slot >= ctx.num_variables())) {
+      PrintContextMismatchError(ctx_slot, frame_ctx_level, var_ctx_level);
     }
+    ASSERT((ctx_slot >= 0) && (ctx_slot < ctx.num_variables()));
+    return ctx.At(ctx_slot);
+  } else {
+    ASSERT(level_diff > 0);
+    Context& var_ctx = Context::Handle(ctx.raw());
+    while (level_diff > 0 && !var_ctx.IsNull()) {
+      level_diff--;
+      var_ctx = var_ctx.parent();
+    }
+    if (var_ctx.IsNull() ||
+        (ctx_slot < 0) ||
+        (ctx_slot >= var_ctx.num_variables())) {
+      PrintContextMismatchError(ctx_slot, frame_ctx_level, var_ctx_level);
+    }
+    ASSERT(!var_ctx.IsNull());
+    ASSERT((ctx_slot >= 0) && (ctx_slot < var_ctx.num_variables()));
+    return var_ctx.At(ctx_slot);
   }
 }
 
@@ -1003,7 +1026,7 @@ const char* ActivationFrame::ToCString() {
   const String& url = String::Handle(SourceUrl());
   intptr_t line = LineNumber();
   const char* func_name = Debugger::QualifiedFunctionName(function());
-  return Isolate::Current()->current_zone()->
+  return Thread::Current()->zone()->
       PrintToString("[ Frame pc(0x%" Px ") fp(0x%" Px ") sp(0x%" Px ")\n"
                     "\tfunction = %s\n"
                     "\turl = %s\n"
@@ -1246,6 +1269,7 @@ void Debugger::SetStepOver() {
 void Debugger::SetStepOut() {
   resume_action_ = kStepOut;
 }
+
 
 RawFunction* Debugger::ResolveFunction(const Library& library,
                                        const String& class_name,
@@ -1507,7 +1531,7 @@ void Debugger::SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info) {
 }
 
 
-Dart_ExceptionPauseInfo Debugger::GetExceptionPauseInfo() {
+Dart_ExceptionPauseInfo Debugger::GetExceptionPauseInfo() const {
   return exc_pause_info_;
 }
 
@@ -1827,8 +1851,8 @@ RawFunction* Debugger::FindBestFit(const Script& script,
 
 
 BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
-                                          intptr_t token_pos,
-                                          intptr_t last_token_pos) {
+                                            intptr_t token_pos,
+                                            intptr_t last_token_pos) {
   Function& func = Function::Handle(isolate_);
   func = FindBestFit(script, token_pos);
   if (func.IsNull()) {
@@ -1949,17 +1973,39 @@ Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
 }
 
 
-Breakpoint* Debugger::SetBreakpointAtActivation(
-    const Instance& closure) {
+Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure) {
   if (!closure.IsClosure()) {
     return NULL;
   }
   const Function& func = Function::Handle(Closure::function(closure));
   const Script& script = Script::Handle(func.script());
-  BreakpointLocation* bpt = SetBreakpoint(script,
-                                          func.token_pos(),
-                                          func.end_token_pos());
-  return bpt->AddPerClosure(this, closure);
+  BreakpointLocation* bpt_location = SetBreakpoint(script,
+                                                   func.token_pos(),
+                                                   func.end_token_pos());
+  return bpt_location->AddPerClosure(this, closure);
+}
+
+
+Breakpoint* Debugger::BreakpointAtActivation(const Instance& closure) {
+  if (!closure.IsClosure()) {
+    return NULL;
+  }
+
+  BreakpointLocation* loc = breakpoint_locations_;
+  while (loc != NULL) {
+    Breakpoint* bpt = loc->breakpoints();
+    while (bpt != NULL) {
+      if (bpt->IsPerClosure()) {
+        if (closure.raw() == bpt->closure()) {
+          return bpt;
+        }
+      }
+      bpt = bpt->next();
+    }
+    loc = loc->next();
+  }
+
+  return NULL;
 }
 
 
@@ -2277,6 +2323,13 @@ void Debugger::Pause(DebuggerEvent* event) {
 }
 
 
+void Debugger::EnterSingleStepMode() {
+  stepping_fp_ = 0;
+  DeoptimizeWorld();
+  isolate_->set_single_step(true);
+}
+
+
 void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace) {
   stepping_fp_ = 0;
   if (resume_action_ == kSingleStep) {
@@ -2337,9 +2390,12 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
     RemoveBreakpoint(bpt->id());
     bpt = NULL;
   }
+
   DebuggerEvent event(isolate_, DebuggerEvent::kBreakpointReached);
   event.set_top_frame(top_frame);
   event.set_breakpoint(bpt);
+  Object& closure_or_null = Object::Handle(top_frame->GetAsyncOperation());
+  event.set_async_continuation(&closure_or_null);
   Pause(&event);
 }
 

@@ -27,13 +27,22 @@ class MetricsPageElement extends ObservatoryElement {
     if ((isolate != null) && (page != null) &&
         (page.selectedMetricId != null)) {
       selectedMetric = isolate.dartMetrics[page.selectedMetricId];
-      if (selectedMetric == null) {
-        selectedMetric = isolate.nativeMetrics[page.selectedMetricId];
+      if (selectedMetric != null) {
+        return;
       }
+      selectedMetric = isolate.nativeMetrics[page.selectedMetricId];
     }
     if ((selectedMetric == null) && (isolate != null)) {
-      var values = isolate.dartMetrics.values;
-      if (values != null) {
+      var values = isolate.dartMetrics.values.toList();
+      if ((values != null) && (values.length > 0)) {
+        // Fall back and pick the first isolate metric.
+        selectedMetric = values.first;
+      }
+      if (selectedMetric != null) {
+        return;
+      }
+      values = isolate.nativeMetrics.values.toList();
+      if ((values != null) && (values.length > 0)) {
         // Fall back and pick the first isolate metric.
         selectedMetric = values.first;
       }

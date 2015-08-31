@@ -7,11 +7,14 @@ part of js_backend;
 /**
  * Assigns JavaScript identifiers to Dart variables, class-names and members.
  */
-class MinifyNamer extends Namer {
+class MinifyNamer extends Namer with _MinifiedFieldNamer,
+    _MinifyConstructorBodyNamer, _MinifiedOneShotInterceptorNamer {
   MinifyNamer(Compiler compiler) : super(compiler) {
     reserveBackendNames();
     fieldRegistry = new _FieldNamingRegistry(this);
   }
+
+  _FieldNamingRegistry fieldRegistry;
 
   String get isolateName => 'I';
   String get isolatePropertiesName => 'p';
@@ -24,18 +27,17 @@ class MinifyNamer extends Namer {
   final ALPHABET_CHARACTERS = 52;  // a-zA-Z.
   final ALPHANUMERIC_CHARACTERS = 62;  // a-zA-Z0-9.
 
-  _FieldNamingRegistry fieldRegistry;
-
   /// You can pass an invalid identifier to this and unlike its non-minifying
   /// counterpart it will never return the proposedName as the new fresh name.
   ///
   /// [sanitizeForNatives] and [sanitizeForAnnotations] are ignored because the
   /// minified names will always avoid clashing with annotated names or natives.
-  String getFreshName(String proposedName,
-                      Set<String> usedNames,
-                      Map<String, String> suggestedNames,
-                      {bool sanitizeForNatives: false,
-                       bool sanitizeForAnnotations: false}) {
+  @override
+  String _generateFreshStringForName(String proposedName,
+      Set<String> usedNames,
+      Map<String, String> suggestedNames,
+      {bool sanitizeForNatives: false,
+       bool sanitizeForAnnotations: false}) {
     String freshName;
     String suggestion = suggestedNames[proposedName];
     if (suggestion != null && !usedNames.contains(suggestion)) {
@@ -53,7 +55,7 @@ class MinifyNamer extends Namer {
   // OK to use them as fields, as we only access fields directly if we know
   // the receiver type.
   static const List<String> _reservedNativeProperties = const <String>[
-      'Q', 'a', 'b', 'c', 'd', 'e', 'f', 'r', 'x', 'y', 'z',
+      'a', 'b', 'c', 'd', 'e', 'f', 'r', 'x', 'y', 'z', 'Q',
       // 2-letter:
       'ch', 'cx', 'cy', 'db', 'dx', 'dy', 'fr', 'fx', 'fy', 'go', 'id', 'k1',
       'k2', 'k3', 'k4', 'r1', 'r2', 'rx', 'ry', 'x1', 'x2', 'y1', 'y2',
@@ -143,7 +145,7 @@ class MinifyNamer extends Namer {
         assert(c != $Z);
         c = (c == $z) ? $A : c + 1;
         letter = new String.fromCharCodes([c]);
-      } while (used.contains(letter));
+      } while (_hasBannedPrefix(letter) || used.contains(letter));
       assert(suggestionMap[name] == null);
       suggestionMap[name] = letter;
     }
@@ -191,7 +193,7 @@ class MinifyNamer extends Namer {
 
   /// Instance members starting with g and s are reserved for getters and
   /// setters.
-  bool _hasBannedPrefix(String name) {
+  static bool _hasBannedPrefix(String name) {
     int code = name.codeUnitAt(0);
     return code == $g || code == $s;
   }
@@ -209,10 +211,17 @@ class MinifyNamer extends Namer {
     return h;
   }
 
+  /// Remember bad hashes to avoid using a the same character with long numbers
+  /// for frequent hashes. For example, `closure` is a very common name.
+  Map<int, int> _badNames = new Map<int, int>();
+
   /// If we can't find a hash based name in the three-letter space, then base
   /// the name on a letter and a counter.
   String _badName(int hash, Set<String> usedNames) {
-    String startLetter = new String.fromCharCodes([_letterNumber(hash)]);
+    int count = _badNames.putIfAbsent(hash, () => 0);
+    String startLetter =
+        new String.fromCharCodes([_letterNumber(hash + count)]);
+    _badNames[hash] = count + 1;
     String name;
     int i = 0;
     do {
@@ -237,208 +246,108 @@ class MinifyNamer extends Namer {
     return $0 + x - 52;
   }
 
-  String instanceFieldPropertyName(Element element) {
-    if (element.hasFixedBackendName) {
-      return element.fixedBackendName;
+  @override
+  jsAst.Name instanceFieldPropertyName(Element element) {
+    jsAst.Name proposed = _minifiedInstanceFieldPropertyName(element);
+    if (proposed != null) {
+      return proposed;
     }
-
-    _FieldNamingScope names;
-    if (element is BoxFieldElement) {
-      names = new _FieldNamingScope.forBox(element.box, fieldRegistry);
-    } else {
-      ClassElement cls = element is ClosureFieldElement
-          ? element.closureClass : element.enclosingClass;
-      names = new _FieldNamingScope.forClass(cls, compiler.world,
-          fieldRegistry);
-    }
-
-    // The inheritance scope based naming did not yield a name. For instance,
-    // this could be because the field belongs to a mixin.
-    if (!names.containsField(element)) {
-      return super.instanceFieldPropertyName(element);
-    }
-
-    return names[element];
+    return super.instanceFieldPropertyName(element);
   }
 }
 
-/**
- * Encapsulates the global state of field naming.
- */
-class _FieldNamingRegistry {
-  final MinifyNamer namer;
+/// Implements naming for constructor bodies.
+///
+/// Constructor bodies are only called in settings where the target is
+/// statically known. Therefore, we can share their names between classes.
+/// However, to support calling the constructor body of a super constructor,
+/// each level in the inheritance tree has to use its own names.
+///
+/// This class implements a naming scheme by counting the distance from
+/// a given constructor to [Object], where distance is the number of
+/// constructors declared along the inheritance chain.
+class _ConstructorBodyNamingScope {
+  final int _startIndex;
+  final List _constructors;
 
-  final Map<Entity, _FieldNamingScope> scopes =
-      new Map<Entity, _FieldNamingScope>();
+  int get numberOfConstructors => _constructors.length;
 
-  final Map<Entity, String> globalNames = new Map<Entity, String>();
+  _ConstructorBodyNamingScope _superScope;
 
-  int globalCount = 0;
+  _ConstructorBodyNamingScope.rootScope(ClassElement cls)
+      : _superScope = null,
+        _startIndex = 0,
+        _constructors = cls.constructors.toList(growable: false);
 
-  final List<String> nameStore = new List<String>();
+  _ConstructorBodyNamingScope.forClass(ClassElement cls,
+                                       _ConstructorBodyNamingScope superScope)
+      : _superScope = superScope,
+        _startIndex = superScope._startIndex + superScope.numberOfConstructors,
+        _constructors = cls.constructors.toList(growable: false);
 
-  _FieldNamingRegistry(this.namer);
+  // Mixin Applications have constructors but we never generate code for them,
+  // so they do not count in the inheritance chain.
+  _ConstructorBodyNamingScope.forMixinApplication(ClassElement cls,
+      _ConstructorBodyNamingScope superScope)
+      : _superScope = superScope,
+        _startIndex = superScope._startIndex + superScope.numberOfConstructors,
+        _constructors = const [];
 
-  String getName(int count) {
-    if (count >= nameStore.length) {
-      // The namer usually does not use certain names as they clash with
-      // existing properties on JS objects (see [_reservedNativeProperties]).
-      // However, some of them are really short and safe to use for fields.
-      // Thus, we shortcut the namer to use those first.
-      if (count < MinifyNamer._reservedNativeProperties.length &&
-          MinifyNamer._reservedNativeProperties[count].length <= 2) {
-        nameStore.add(MinifyNamer._reservedNativeProperties[count]);
-      } else {
-        nameStore.add(namer.getFreshName("field$count",
-            namer.usedInstanceNames, namer.suggestedInstanceNames));
-      }
-    }
-
-    return nameStore[count];
-  }
-}
-
-/**
- * A [_FieldNamingScope] encodes a node in the inheritance tree of the current
- * class hierarchy. The root node typically is the node corresponding to the
- * `Object` class. It is used to assign a unique name to each field of a class.
- * Unique here means unique wrt. all fields along the path back to the root.
- * This is achieved at construction time via the [_fieldNameCounter] field that counts the
- * number of fields on the path to the root node that have been encountered so
- * far.
- *
- * Obviously, this only works if no fields are added to a parent node after its
- * children have added their first field.
- */
-class _FieldNamingScope {
-  final _FieldNamingScope superScope;
-  final Entity container;
-  final Map<Element, String> names = new Maplet<Element, String>();
-  final _FieldNamingRegistry registry;
-
-  /// Naming counter used for fields of ordinary classes.
-  int _fieldNameCounter;
-
-  /// The number of fields along the superclass chain that use inheritance
-  /// based naming, including the ones allocated for this scope.
-  int get inheritanceBasedFieldNameCounter => _fieldNameCounter;
-
-  /// The number of locally used fields. Depending on the naming source
-  /// (e.g. inheritance based or globally unique for mixixns) this
-  /// might be different from [inheritanceBasedFieldNameCounter].
-  int get _localFieldNameCounter => _fieldNameCounter;
-  void set _localFieldNameCounter(int val) { _fieldNameCounter = val; }
-
-  factory _FieldNamingScope.forClass(ClassElement cls, ClassWorld world,
-      _FieldNamingRegistry registry) {
-    _FieldNamingScope result = registry.scopes[cls];
-    if (result != null) return result;
-
-    if (world.isUsedAsMixin(cls)) {
-      result = new _MixinFieldNamingScope.mixin(cls, registry);
-    } else {
+  factory _ConstructorBodyNamingScope(ClassElement cls,
+      Map<ClassElement, _ConstructorBodyNamingScope> registry) {
+    return registry.putIfAbsent(cls, () {
       if (cls.superclass == null) {
-        result = new _FieldNamingScope.rootScope(cls, registry);
+        return new _ConstructorBodyNamingScope.rootScope(cls);
+      } else if (cls.isMixinApplication) {
+        return new _ConstructorBodyNamingScope.forMixinApplication(cls,
+            new _ConstructorBodyNamingScope(cls.superclass, registry));
       } else {
-        _FieldNamingScope superScope = new _FieldNamingScope.forClass(
-            cls.superclass, world, registry);
-        if (cls.isMixinApplication) {
-          result = new _MixinFieldNamingScope.mixedIn(cls, superScope,
-              registry);
-        } else {
-          result = new _FieldNamingScope.inherit(cls, superScope, registry);
-        }
+        return new _ConstructorBodyNamingScope.forClass(cls,
+            new _ConstructorBodyNamingScope(cls.superclass, registry));
       }
-    }
-
-    cls.forEachInstanceField((cls, field) => result.add(field));
-
-    registry.scopes[cls] = result;
-    return result;
+    });
   }
 
-  factory _FieldNamingScope.forBox(Local box, _FieldNamingRegistry registry) {
-    return registry.scopes.putIfAbsent(box,
-        () => new _BoxFieldNamingScope(box, registry));
-  }
-
-  _FieldNamingScope.rootScope(this.container, this.registry)
-    : superScope = null,
-      _fieldNameCounter = 0;
-
-  _FieldNamingScope.inherit(this.container, this.superScope, this.registry) {
-    _fieldNameCounter = superScope.inheritanceBasedFieldNameCounter;
-  }
-
-  /**
-   * Checks whether [name] is already used in the current scope chain.
-   */
-  _isNameUnused(String name) {
-    return !names.values.contains(name) &&
-        ((superScope == null) || superScope._isNameUnused(name));
-  }
-
-  String _nextName() => registry.getName(_localFieldNameCounter++);
-
-  String operator[](Element field) {
-    String name = names[field];
-    if (name == null && superScope != null) return superScope[field];
-    return name;
-  }
-
-  void add(Element field) {
-    if (names.containsKey(field)) return;
-
-    String value = _nextName();
-    assert(invariant(field, _isNameUnused(value)));
-    names[field] = value;
-  }
-
-  bool containsField(Element field) => names.containsKey(field);
-}
-
-/**
- * Field names for mixins have two constraints: They need to be unique in the
- * hierarchy of each application of a mixin and they need to be the same for
- * all applications of a mixin. To achieve this, we use global naming for
- * mixins from the same name pool as fields and add a `$` at the end to ensure
- * they do not collide with normal field names. The `$` sign is typically used
- * as a separator between method names and argument counts and does not appear
- * in generated names themselves.
- */
-class _MixinFieldNamingScope extends _FieldNamingScope {
-  int get _localFieldNameCounter => registry.globalCount;
-  void set _localFieldNameCounter(int val) { registry.globalCount = val; }
-
-  Map<Entity, String> get names => registry.globalNames;
-
-  _MixinFieldNamingScope.mixin(ClassElement cls, _FieldNamingRegistry registry)
-    : super.rootScope(cls, registry);
-
-  _MixinFieldNamingScope.mixedIn(MixinApplicationElement container,
-      _FieldNamingScope superScope, _FieldNamingRegistry registry)
-    : super.inherit(container, superScope, registry);
-
-  String _nextName() {
-    String proposed = super._nextName();
-    return proposed + r'$';
+  String constructorBodyKeyFor(ConstructorBodyElement body) {
+    int position = _constructors.indexOf(body.constructor);
+    assert(invariant(body, position >= 0, message: "constructor body missing"));
+    return "@constructorBody@${_startIndex + position}";
   }
 }
 
-/**
- * [BoxFieldElement] fields work differently in that they do not belong to an
- * actual class but an anonymous box associated to a [Local]. As there is no
- * inheritance chain, we do not need to compute fields a priori but can assign
- * names on the fly.
- */
-class _BoxFieldNamingScope extends _FieldNamingScope {
-  _BoxFieldNamingScope(Local box, _FieldNamingRegistry registry) :
-    super.rootScope(box, registry);
+abstract class _MinifyConstructorBodyNamer implements Namer {
+  Map<ClassElement, _ConstructorBodyNamingScope> _constructorBodyScopes =
+      new Map<ClassElement, _ConstructorBodyNamingScope>();
 
-  bool containsField(_) => true;
-
-  String operator[](Element field) {
-    if (!names.containsKey(field)) add(field);
-    return names[field];
+  @override
+  jsAst.Name constructorBodyName(FunctionElement method) {
+    _ConstructorBodyNamingScope scope =
+        new _ConstructorBodyNamingScope(method.enclosingClass,
+                                        _constructorBodyScopes);
+    String key = scope.constructorBodyKeyFor(method);
+    return _disambiguateMemberByKey(key,
+        () => _proposeNameForConstructorBody(method));
   }
 }
+
+abstract class _MinifiedOneShotInterceptorNamer implements Namer {
+  /// Property name used for the one-shot interceptor method for the given
+  /// [selector] and return-type specialization.
+  @override
+  jsAst.Name nameForGetOneShotInterceptor(Selector selector,
+      Iterable<ClassElement> classes) {
+    String root = selector.isOperator
+        ? operatorNameToIdentifier(selector.name)
+        : privateName(selector.memberName);
+    String prefix = selector.isGetter
+        ? r"$get"
+        : selector.isSetter ? r"$set" : "";
+    String callSuffix =
+        selector.isCall ? callSuffixForStructure(selector.callStructure).join()
+                        : "";
+    String suffix = suffixForGetInterceptor(classes);
+    String fullName = "\$intercepted$prefix\$$root$callSuffix\$$suffix";
+    return _disambiguateInternalGlobal(fullName);
+  }
+}
+

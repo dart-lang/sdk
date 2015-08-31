@@ -217,11 +217,15 @@ static void Spawn(Isolate* parent_isolate, IsolateSpawnState* state) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 4) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, paused, arguments->NativeArgAt(3));
+  GET_NATIVE_ARGUMENT(Bool, fatalErrors, arguments->NativeArgAt(4));
+  GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(5));
+  GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(6));
+
   if (closure.IsClosure()) {
     Function& func = Function::Handle();
     func = Closure::function(closure);
@@ -233,10 +237,18 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 4) {
 #endif
       // Get the parent function so that we get the right function name.
       func = func.parent_function();
+
+      bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
+      Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
+      Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
+
       Spawn(isolate, new IsolateSpawnState(port.Id(),
                                            func,
                                            message,
-                                           paused.value()));
+                                           paused.value(),
+                                           fatal_errors,
+                                           on_exit_port,
+                                           on_error_port));
       return Object::null();
     }
   }
@@ -247,7 +259,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 4) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 7) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 10) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, args, arguments->NativeArgAt(2));
@@ -255,6 +267,9 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 7) {
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, paused, arguments->NativeArgAt(4));
   GET_NATIVE_ARGUMENT(Bool, checked, arguments->NativeArgAt(5));
   GET_NATIVE_ARGUMENT(String, package_root, arguments->NativeArgAt(6));
+  GET_NATIVE_ARGUMENT(Bool, fatalErrors, arguments->NativeArgAt(7));
+  GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(8));
+  GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(9));
 
   // Canonicalize the uri with respect to the current isolate.
   char* error = NULL;
@@ -275,12 +290,19 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 7) {
     utf8_package_root[len] = '\0';
   }
 
+  bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
+  Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
+  Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
+
   IsolateSpawnState* state = new IsolateSpawnState(port.Id(),
                                                    canonical_uri,
                                                    utf8_package_root,
                                                    args,
                                                    message,
-                                                   paused.value());
+                                                   paused.value(),
+                                                   fatal_errors,
+                                                   on_exit_port,
+                                                   on_error_port);
   // If we were passed a value then override the default flags state for
   // checked mode.
   if (!checked.IsNull()) {

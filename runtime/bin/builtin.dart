@@ -4,9 +4,17 @@
 
 library builtin;
 // NOTE: Do not import 'dart:io' in builtin.
+import 'dart:async';
 import 'dart:collection';
+import 'dart:_internal';
 import 'dart:isolate';
 import 'dart:typed_data';
+
+
+// Before handling an embedder entrypoint we finalize the setup of the
+// dart:_builtin library.
+bool _setupCompleted = false;
+
 
 // The root library (aka the script) is imported into this library. The
 // standalone embedder uses this to lookup the main entrypoint in the
@@ -49,10 +57,11 @@ _getUriBaseClosure() => _uriBase;
 // The embedder forwards most loading requests to this library.
 
 // See Dart_LibraryTag in dart_api.h
-const Dart_kScriptTag = null;
-const Dart_kImportTag = 0;
-const Dart_kSourceTag = 1;
-const Dart_kCanonicalizeUrl = 2;
+const _Dart_kScriptTag = null;
+const _Dart_kImportTag = 0;
+const _Dart_kSourceTag = 1;
+const _Dart_kCanonicalizeUrl = 2;
+const _Dart_kResourceLoad = 3;
 
 // Embedder sets this to true if the --trace-loading flag was passed on the
 // command line.
@@ -78,15 +87,32 @@ Uri _workingDirectory;
 // package imports can be resolved relative to it. The root script is the basis
 // for the root library in the VM.
 Uri _rootScript;
+
+// Packages are either resolved looking up in a map or resolved from within a
+// package root.
+bool _packagesReady() => (_packageRoot != null) || (_packageMap != null);
 // The directory to look in to resolve "package:" scheme URIs. By detault it is
 // the 'packages' directory right next to the script.
-Uri _packageRoot = _rootScript.resolve('packages/');
+Uri _packageRoot = null; // Used to be _rootScript.resolve('packages/');
+// The map describing how certain package names are mapped to Uris.
+Map<String, Uri> _packageMap = null;
+// A list of pending packags which have been requested while resolving the
+// location of the package root or the contents of the package map.
+List<_LoadRequest> _pendingPackageLoads = [];
+
+// If we have outstanding loads or pending package loads waiting for resolution,
+// then we do have pending loads.
+bool _pendingLoads() => !_reqMap.isEmpty || !_pendingPackageLoads.isEmpty;
 
 // Special handling for Windows paths so that they are compatible with URI
 // handling.
 // Embedder sets this to true if we are running on Windows.
 bool _isWindows = false;
 
+// Logging from builtin.dart is prefixed with a '*'.
+_log(msg) {
+  _print("* $msg");
+}
 
 // A class wrapping the load error message in an Error object.
 class _LoadError extends Error {
@@ -102,9 +128,16 @@ class _LoadRequest {
   final int _id;
   final int _tag;
   final String _uri;
-  final String _libraryUri;
+  final Uri _resourceUri;
+  final _context;
 
-  _LoadRequest(this._id, this._tag, this._uri, this._libraryUri);
+  _LoadRequest(this._id,
+               this._tag,
+               this._uri,
+               this._resourceUri,
+               this._context);
+
+  toString() => "LoadRequest($_id, $_tag, $_uri, $_resourceUri, $_context)";
 }
 
 
@@ -171,12 +204,15 @@ _enforceTrailingSlash(uri) {
 // Embedder Entrypoint:
 // The embedder calls this method with the current working directory.
 void _setWorkingDirectory(cwd) {
+  if (!_setupCompleted) {
+    _setupHooks();
+  }
   if (_traceLoading) {
-    _print('# Setting working directory: $cwd');
+    _log('Setting working directory: $cwd');
   }
   _workingDirectory = new Uri.directory(cwd);
   if (_traceLoading) {
-    _print('# Working directory URI: $_workingDirectory');
+    _log('Working directory URI: $_workingDirectory');
   }
 }
 
@@ -184,8 +220,11 @@ void _setWorkingDirectory(cwd) {
 // Embedder Entrypoint:
 // The embedder calls this method with a custom package root.
 _setPackageRoot(String packageRoot) {
+  if (!_setupCompleted) {
+    _setupHooks();
+  }
   if (_traceLoading) {
-    _print('# Setting package root: $packageRoot');
+    _log('Setting package root: $packageRoot');
   }
   packageRoot = _enforceTrailingSlash(packageRoot);
   if (packageRoot.startsWith('file:') ||
@@ -198,7 +237,7 @@ _setPackageRoot(String packageRoot) {
     _packageRoot = _workingDirectory.resolveUri(new Uri.file(packageRoot));
   }
   if (_traceLoading) {
-    _print('# Package root URI: $_packageRoot');
+    _log('Package root URI: $_packageRoot');
   }
 }
 
@@ -216,16 +255,36 @@ Uri _resolvePackageUri(Uri uri) {
   }
 
   if (_traceLoading) {
-    _print('# Package root: $_packageRoot');
-    _print('# uri path: ${uri.path}');
+    _log('Resolving package with uri path: ${uri.path}');
   }
-  return _packageRoot.resolve(uri.path);
+  var resolvedUri;
+  if (_packageRoot != null) {
+    resolvedUri = _packageRoot.resolve(uri.path);
+  } else {
+    var packageName = uri.pathSegments[0];
+    var mapping = _packageMap[packageName];
+    if (_traceLoading) {
+      _log("Mapped '$packageName' package to '$mapping'");
+    }
+    if (mapping == null) {
+      throw "No mapping for '$packageName' package when resolving '$uri'.";
+    }
+    var path = uri.path.substring(packageName.length + 1);
+    resolvedUri = mapping.resolve(path);
+  }
+  if (_traceLoading) {
+    _log("Resolved '$uri' to '$resolvedUri'.");
+  }
+  return resolvedUri;
 }
 
 
 // Resolves the script uri in the current working directory iff the given uri
 // did not specify a scheme (e.g. a path to a script file on the command line).
 Uri _resolveScriptUri(String scriptName) {
+  if (_traceLoading) {
+    _log("Resolving script: $scriptName");
+  }
   if (_workingDirectory == null) {
     throw 'No current working directory set.';
   }
@@ -243,24 +302,27 @@ Uri _resolveScriptUri(String scriptName) {
   _rootScript = scriptUri;
 
   if (_traceLoading) {
-    _print('# Resolved entry point to: $_rootScript');
+    _log('Resolved entry point to: $_rootScript');
   }
   return scriptUri;
 }
 
 
 void _finishLoadRequest(_LoadRequest req) {
-  // Now that we are done with loading remove the request from the map.
-  var tmp = _reqMap.remove(req._id);
-  assert(tmp == req);
-  if (_traceLoading) {
-    _print("Loading of ${req._uri} finished, "
-    "${_reqMap.length} requests remaining");
+  if (req != null) {
+    // Now that we are done with loading remove the request from the map.
+    var tmp = _reqMap.remove(req._id);
+    assert(tmp == req);
+    if (_traceLoading) {
+      _log("Loading of ${req._uri} finished: "
+           "${_reqMap.length} requests remaining, "
+           "${_pendingPackageLoads.length} packages pending.");
+    }
   }
 
-  if (_reqMap.isEmpty) {
+  if (!_pendingLoads()) {
     if (_traceLoading) {
-      _print("Closing loading port.");
+      _log("Closing loading port.");
     }
     _receivePort.close();
     _receivePort = null;
@@ -278,29 +340,36 @@ void _handleLoaderReply(msg) {
   var req = _reqMap[id];
   try {
     if (dataOrError is Uint8List) {
-      _loadScript(req, dataOrError);
+      // Successfully loaded the data.
+      if (req._tag == _Dart_kResourceLoad) {
+        Completer c = req._context;
+        c.complete(dataOrError);
+      } else {
+        // TODO: Currently a compilation error while loading the script is
+        // fatal for the isolate. _loadScriptCallback() does not return and
+        // the number of requests remains out of sync.
+        _loadScriptCallback(req._tag, req._uri, req._context, dataOrError);
+      }
+      _finishLoadRequest(req);
     } else {
       assert(dataOrError is String);
       var error = new _LoadError(req._uri, dataOrError.toString());
-      _asyncLoadError(req, error);
+      _asyncLoadError(req, error, null);
     }
   } catch(e, s) {
     // Wrap inside a _LoadError unless we are already propagating a
     // previous _LoadError.
     var error = (e is _LoadError) ? e : new _LoadError(req._uri, e.toString());
     assert(req != null);
-    _asyncLoadError(req, error);
+    _asyncLoadError(req, error, s);
   }
 }
 
 
-void _startLoadRequest(int tag,
-                       String uri,
-                       String libraryUri,
-                       Uri resourceUri) {
-  if (_reqMap.isEmpty) {
+void _startLoadRequest(int tag, String uri, Uri resourceUri, context) {
+  if (_receivePort == null) {
     if (_traceLoading) {
-      _print("Initializing load port.");
+      _log("Initializing load port.");
     }
     assert(_receivePort == null);
     assert(_sendPort == null);
@@ -311,59 +380,215 @@ void _startLoadRequest(int tag,
   var curId = _reqId++;
 
   assert(_reqMap[curId] == null);
-  _reqMap[curId] = new _LoadRequest(curId, tag, uri, libraryUri);
+  _reqMap[curId] = new _LoadRequest(curId, tag, uri, resourceUri, context);
 
-  var msg = new List(3);
+  assert(_receivePort != null);
+  assert(_sendPort != null);
+
+  var msg = new List(4);
   msg[0] = _sendPort;
-  msg[1] = curId;
-  msg[2] = resourceUri.toString();
+  msg[1] = _traceLoading;
+  msg[2] = curId;
+  msg[3] = resourceUri.toString();
   _loadPort.send(msg);
 
   if (_traceLoading) {
-    _print("Loading of $resourceUri for $uri started with id: $curId, "
-           "${_reqMap.length} requests outstanding");
+    _log("Loading of $resourceUri for $uri started with id: $curId. "
+         "${_reqMap.length} requests remaining, "
+         "${_pendingPackageLoads.length} packages pending.");
   }
 }
 
 
-void _loadScript(_LoadRequest req, Uint8List data) {
-  // TODO: Currently a compilation error while loading the script is
-  // fatal for the isolate. _loadScriptCallback() does not return and
-  // the number of requests remains out of sync.
-  _loadScriptCallback(req._tag, req._uri, req._libraryUri, data);
-  _finishLoadRequest(req);
-}
+RawReceivePort _packagesPort;
 
+void _handlePackagesReply(msg) {
+  // Make sure to close the _packagePort before any other action.
+  _packagesPort.close();
 
-void _asyncLoadError(_LoadRequest req, _LoadError error) {
   if (_traceLoading) {
-    _print("_asyncLoadError(${req._uri}), error: $error");
+    _log("Got packages reply: $msg");
   }
-  var libraryUri = req._libraryUri;
-  if (req._tag == Dart_kImportTag) {
-    // When importing a library, the libraryUri is the imported
-    // uri.
-    libraryUri = req._uri;
+  if (msg is String) {
+    if (_traceLoading) {
+      _log("Got failure response on package port: '$msg'");
+    }
+    throw msg;
   }
-  _asyncLoadErrorCallback(req._uri, libraryUri, error);
+  if (msg.length == 1) {
+    if (_traceLoading) {
+      _log("Received package root: '${msg[0]}'");
+    }
+    _packageRoot = Uri.parse(msg[0]);
+  } else {
+    assert((msg.length % 2) == 0);
+    _packageMap = new Map<String, Uri>();
+    for (var i = 0; i < msg.length; i+=2) {
+      // TODO(iposva): Complain about duplicate entries.
+      _packageMap[msg[i]] = Uri.parse(msg[i+1]);
+    }
+    if (_traceLoading) {
+      _log("Setup package map: $_packageMap");
+    }
+  }
+
+  // Resolve all pending package loads now that we know how to resolve them.
+  while (_pendingPackageLoads.length > 0) {
+    var req = _pendingPackageLoads.removeLast();
+    if (req != null) {
+      if (_traceLoading) {
+        _log("Handling deferred load request: $req");
+      }
+      _loadPackage(req._tag, req._uri, req._resourceUri, req._context);
+    } else {
+      if (_traceLoading) {
+        _log("Skipping dummy deferred request.");
+      }
+    }
+  }
+  // Reset the pending package loads to empty. So that we eventually can
+  // finish loading.
+  _pendingPackageLoads = [];
+  // Make sure that the receive port is closed if no other loads are pending.
+  _finishLoadRequest(null);
+}
+
+
+void _requestPackagesMap() {
+  assert(_packagesPort == null);
+  assert(_rootScript != null);
+  // Create a port to receive the packages map on.
+  _packagesPort = new RawReceivePort(_handlePackagesReply);
+  var sp = _packagesPort.sendPort;
+
+  var msg = new List(4);
+  msg[0] = sp;
+  msg[1] = _traceLoading;
+  msg[2] = -1;
+  msg[3] = _rootScript.toString();
+  _loadPort.send(msg);
+
+  if (_traceLoading) {
+    _log("Requested packages map for '$_rootScript'.");
+  }
+}
+
+
+// Embedder Entrypoint:
+// Request the load of a particular packages map.
+void _loadPackagesMap(String packagesParam) {
+  if (!_setupCompleted) {
+    _setupHooks();
+  }
+  // First convert the packages parameter from the command line to a URI which
+  // can be handled by the loader code.
+  // TODO(iposva): Consider refactoring the common code below which is almost
+  // shared with resolution of the root script.
+  if (_traceLoading) {
+    _log("Resolving packages map: $packagesParam");
+  }
+  if (_workingDirectory == null) {
+    throw 'No current working directory set.';
+  }
+  var packagesName = _sanitizeWindowsPath(packagesParam);
+  var packagesUri = Uri.parse(packagesName);
+  if (packagesUri.scheme == '') {
+    // Script does not have a scheme, assume that it is a path,
+    // resolve it against the working directory.
+    packagesUri = _workingDirectory.resolveUri(packagesUri);
+  }
+  if (_traceLoading) {
+    _log('Resolved packages map to: $packagesUri');
+  }
+
+  // Request the loading and parsing of the packages map at the specified URI.
+  // Create a port to receive the packages map on.
+  assert(_packagesPort == null);
+  _packagesPort = new RawReceivePort(_handlePackagesReply);
+  var sp = _packagesPort.sendPort;
+
+  var msg = new List(4);
+  msg[0] = sp;
+  msg[1] = _traceLoading;
+  msg[2] = -2;
+  msg[3] = packagesUri.toString();
+  _loadPort.send(msg);
+
+  // Signal that the resolution of the packages map has started. But in this
+  // case it is not tied to a particular request.
+  _pendingPackageLoads.add(null);
+
+  if (_traceLoading) {
+    _log("Requested packages map at '$packagesUri'.");
+  }
+}
+
+
+void _asyncLoadError(_LoadRequest req, _LoadError error, StackTrace stack) {
+  if (_traceLoading) {
+    _log("_asyncLoadError(${req._uri}), error: $error\nstack: $stack");
+  }
+  if (req._tag == _Dart_kResourceLoad) {
+    Completer c = req._context;
+    c.completeError(error, stack);
+  } else {
+    String libraryUri = req._context;
+    if (req._tag == _Dart_kImportTag) {
+      // When importing a library, the libraryUri is the imported
+      // uri.
+      libraryUri = req._uri;
+    }
+    _asyncLoadErrorCallback(req._uri, libraryUri, error);
+  }
   _finishLoadRequest(req);
 }
 
 
-_loadDataFromLoadPort(int tag,
-                      String uri,
-                      String libraryUri,
-                      Uri resourceUri) {
+_loadDataFromLoadPort(int tag, String uri, Uri resourceUri, context) {
   try {
-    _startLoadRequest(tag, uri, libraryUri, resourceUri);
-  } catch (e) {
+    _startLoadRequest(tag, uri, resourceUri, context);
+  } catch (e, s) {
     if (_traceLoading) {
-      _print("Exception when communicating with service isolate: $e");
+      _log("Exception when communicating with service isolate: $e");
     }
     // Wrap inside a _LoadError unless we are already propagating a previously
     // seen _LoadError.
     var error = (e is _LoadError) ? e : new _LoadError(e.toString());
-    _asyncLoadError(tag, uri, libraryUri, error);
+    _asyncLoadError(tag, uri, context, error, s);
+  }
+}
+
+
+// Loading a package URI needs to first map the package name to a loadable
+// URI.
+_loadPackage(int tag, String uri, Uri resourceUri, context) {
+  if (_packagesReady()) {
+    _loadData(tag, uri, _resolvePackageUri(resourceUri), context);
+  } else {
+    if (_pendingPackageLoads.isEmpty) {
+      // Package resolution has not been setup yet, and this is the first
+      // request for package resolution & loading.
+      _requestPackagesMap();
+    }
+    var req = new _LoadRequest(-1, tag, uri, resourceUri, context);
+    _pendingPackageLoads.add(req);
+    if (_traceLoading) {
+      _log("Pending package load of '$uri': "
+      "${_pendingPackageLoads.length} pending");
+    }
+  }
+}
+
+
+// Load the data associated with the resourceUri.
+_loadData(int tag, String uri, Uri resourceUri, context) {
+  if (resourceUri.scheme == 'package') {
+    // package based uris need to be resolved to the correct loadable location.
+    // The logic of which is handled seperately, and then _loadData is called
+    // recursively.
+    _loadPackage(tag, uri, resourceUri, context);
+  } else {
+    _loadDataFromLoadPort(tag, uri, resourceUri, context);
   }
 }
 
@@ -371,20 +596,17 @@ _loadDataFromLoadPort(int tag,
 // Embedder Entrypoint:
 // Asynchronously loads script data through a http[s] or file uri.
 _loadDataAsync(int tag, String uri, String libraryUri) {
+  if (!_setupCompleted) {
+    _setupHooks();
+  }
   var resourceUri;
-  if (tag == Dart_kScriptTag) {
+  if (tag == _Dart_kScriptTag) {
     resourceUri = _resolveScriptUri(uri);
     uri = resourceUri.toString();
   } else {
     resourceUri = Uri.parse(uri);
   }
-
-  // package based uris need to be resolved to the correct loadable location.
-  if (resourceUri.scheme == 'package') {
-    resourceUri = _resolvePackageUri(resourceUri);
-  }
-
-  _loadDataFromLoadPort(tag, uri, libraryUri, resourceUri);
+  _loadData(tag, uri, resourceUri, libraryUri);
 }
 
 
@@ -392,8 +614,11 @@ _loadDataAsync(int tag, String uri, String libraryUri) {
 // Function called by standalone embedder to resolve uris when the VM requests
 // Dart_kCanonicalizeUrl from the tag handler.
 String _resolveUri(String base, String userString) {
+  if (!_setupCompleted) {
+    _setupHooks();
+  }
   if (_traceLoading) {
-    _print('# Resolving: $userString from $base');
+    _log('Resolving: $userString from $base');
   }
   var baseUri = Uri.parse(base);
   var result;
@@ -404,15 +629,29 @@ String _resolveUri(String base, String userString) {
     result = baseUri.resolve(userString).toString();
   }
   if (_traceLoading) {
-    _print('Resolved $userString in $base to $result');
+    _log('Resolved $userString in $base to $result');
   }
   return result;
+}
+
+
+// Handling of Resource class by dispatching to the load port.
+Future<List<int>> _resourceReadAsBytes(Uri uri) {
+  var completer = new Completer<List<int>>();
+  // Request the load of the resource associating the completer as the context
+  // for the load.
+  _loadData(_Dart_kResourceLoad, uri.toString(), uri, completer);
+  // Return the future that will be triggered once the resource has been loaded.
+  return completer.future;
 }
 
 
 // Embedder Entrypoint (gen_snapshot):
 // Resolve relative paths relative to working directory.
 String _resolveInWorkingDirectory(String fileName) {
+  if (!_setupCompleted) {
+    _setupHooks();
+  }
   if (_workingDirectory == null) {
     throw 'No current working directory set.';
   }
@@ -425,7 +664,7 @@ String _resolveInWorkingDirectory(String fileName) {
   uri = _workingDirectory.resolveUri(uri);
 
   if (_traceLoading) {
-    _print('# Resolved in working directory: $fileName -> $uri');
+    _log('Resolved in working directory: $fileName -> $uri');
   }
   return uri.toString();
 }
@@ -453,7 +692,7 @@ String _platformExtensionFileName(String name) {
 String _filePathFromUri(String userUri) {
   var uri = Uri.parse(userUri);
   if (_traceLoading) {
-    _print('# Getting file path from: $uri');
+    _log('Getting file path from: $uri');
   }
 
   var path;
@@ -471,7 +710,7 @@ String _filePathFromUri(String userUri) {
     // Only handling file, http, and package URIs
     // in standalone binary.
     if (_traceLoading) {
-      _print('# Unknown scheme (${uri.scheme}) in $uri.');
+      _log('Unknown scheme (${uri.scheme}) in $uri.');
     }
     throw 'Not a known scheme: $uri';
   }
@@ -487,6 +726,9 @@ String _filePathFromUri(String userUri) {
 // The filename part is the extension name, with the platform-dependent
 // prefixes and extensions added.
 _extensionPathFromUri(String userUri) {
+  if (!_setupCompleted) {
+    _setupHooks();
+  }
   if (!userUri.startsWith(_DART_EXT)) {
     throw 'Unexpected internal error: Extension URI $userUri missing dart-ext:';
   }
@@ -513,4 +755,11 @@ _extensionPathFromUri(String userUri) {
   var filename = _platformExtensionFileName(name);
 
   return [path, filename, name];
+}
+
+
+// Register callbacks and hooks with the rest of the core libraries.
+_setupHooks() {
+  _setupCompleted = true;
+  VMLibraryHooks.resourceReadAsBytes = _resourceReadAsBytes;
 }

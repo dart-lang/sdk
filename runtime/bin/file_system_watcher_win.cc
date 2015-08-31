@@ -13,6 +13,7 @@
 #include "bin/builtin.h"
 #include "bin/log.h"
 #include "bin/utils.h"
+#include "bin/utils_win.h"
 
 
 namespace dart {
@@ -38,7 +39,7 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                                       int events,
                                       bool recursive) {
   USE(id);
-  const wchar_t* name = StringUtils::Utf8ToWide(path);
+  const wchar_t* name = StringUtilsWin::Utf8ToWide(path);
   HANDLE dir = CreateFileW(name,
                            FILE_LIST_DIRECTORY,
                            FILE_SHARE_READ |

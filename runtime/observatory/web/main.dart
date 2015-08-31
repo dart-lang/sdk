@@ -19,7 +19,8 @@ main() {
       print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });
   Logger.root.info('Starting Observatory');
-  GoogleChart.initOnce().then((_) {
+  var chartsLoaded = GoogleChart.initOnce();
+  chartsLoaded.then((_) {
     // Charts loaded, initialize polymer.
     initPolymer().then((zone) {
       Logger.root.info('Polymer initialized');

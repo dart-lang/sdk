@@ -18,9 +18,6 @@ ping_test: Skip           # Resolve test issues
 ping_pause_test: Skip     # Resolve test issues
 kill3_test: Pass, Fail    # Bad test: expects total message order
 
-message3_test/constList_identical: RuntimeError # Issue 21816
-message3_test/constMap: RuntimeError  # Issue 21816
-message3_test/constInstance: RuntimeError # Issue 21816
 message3_test/byteBuffer: Crash # Issue 21818
 message3_test/int32x4: Crash # Issue 21818
 
@@ -49,12 +46,20 @@ issue_21398_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
 issue_21398_parent_isolate1_test: SkipByDesign # Test uses a ".dart" URI.
 issue_21398_parent_isolate2_test: SkipByDesign # Test uses a ".dart" URI.
 function_send1_test: SkipByDesign   # Test uses a ".dart" URI.
+error_exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
+error_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
+exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
 message3_test/constList: RuntimeError # Issue 21817
 message3_test/constList_identical: RuntimeError # Issue 21817
 message3_test/constMap: RuntimeError  # Issue 21817
 message3_test/constInstance: RuntimeError # Issue 21817
 browser/issue_12474_test: CompileTimeError # Issue 22529
 enum_const_test/02: RuntimeError # Issue 21817
+
+[ $compiler == dart2js && $runtime != d8 ]
+error_exit_at_spawn_test: Skip # Issue 23876
+error_at_spawn_test: Skip # Issue 23876
+exit_at_spawn_test: Skip # Issue 23876
 
 [ $compiler == dart2js && $jscl ]
 spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
@@ -117,6 +122,13 @@ deferred_in_isolate2_test: Fail, OK  # Issue 16209, 13921 Dom isolates don't sup
 bool_from_environment_default_value_test: Skip
 int_from_environment_default_value_test: Skip
 string_from_environment_default_value_test: Skip
+error_exit_at_spawn_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+error_at_spawn_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+exit_at_spawn_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+error_exit_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+error_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+exit_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
+
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
@@ -126,38 +138,9 @@ mint_maker_test: StaticWarning
 package_root_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js && $cps_ir ]
-count_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-cross_isolate_message_test: Crash #  Unhandled node
-deferred_in_isolate2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-function_send_test: Crash # (try {p.send(func);}finally {p.send(0);}): try/finally
-handle_error2_test: Crash #  Unhandled node
-handle_error3_test: Crash #  Unhandled node
-handle_error_test: Crash #  Unhandled node
-illegal_msg_function_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-illegal_msg_mirror_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-isolate_complex_messages_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-isolate_current_test: Crash #  Unhandled node
-mandel_isolate_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-message2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-message3_test/byteBuffer: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/constInstance: Crash # Please triage this failure.
-message3_test/constList: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/constList_identical: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/constMap: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/fun: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/int32x4: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mint_maker_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-nested_spawn2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-nested_spawn_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-raw_port_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-request_reply_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-spawn_function_custom_class_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-spawn_function_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-spawn_uri_multi_test/01: Crash # Instance of 'TypeOperator': type casts not implemented.
-spawn_uri_multi_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
-stacktrace_message_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-static_function_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-timer_isolate_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-unresolved_ports_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+deferred_in_isolate2_test: Crash # (lib.f()): deferred access is not implemented
+isolate_current_test: RuntimeError # Please triage this failure.
+message3_test/byteBuffer: RuntimeError # Please triage this failure.
+message3_test/fun: RuntimeError # Please triage this failure.
+message3_test/int32x4: RuntimeError # Please triage this failure.
+message3_test/none: RuntimeError # Please triage this failure.

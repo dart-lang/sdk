@@ -6,6 +6,7 @@ library analysis.server;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:core' hide Resource;
 import 'dart:math' show max;
 
 import 'package:analysis_server/plugin/analyzed_files.dart';
@@ -20,11 +21,10 @@ import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.dart';
+import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/context/context.dart' as newContext;
+import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -33,8 +33,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/task/dart.dart';
 import 'package:plugin/plugin.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
@@ -72,7 +70,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.7.0';
+  static final String VERSION = '1.9.0';
 
   /**
    * The number of milliseconds to perform operations before inserting
@@ -80,6 +78,11 @@ class AnalysisServer {
    * to stdin. This should be removed once the underlying problem is fixed.
    */
   static int performOperationDelayFreqency = 25;
+
+  /**
+   * The options of this server instance.
+   */
+  AnalysisServerOptions options;
 
   /**
    * The channel from which requests are received and to which responses should
@@ -108,10 +111,10 @@ class AnalysisServer {
   final ServerPlugin serverPlugin;
 
   /**
-   * [ContextManager] which handles the mapping from analysis roots
-   * to context directories.
+   * The [ContextManager] that handles the mapping from analysis roots to
+   * context directories.
    */
-  ServerContextManager contextDirectoryManager;
+  ContextManager contextManager;
 
   /**
    * A flag indicating whether the server is running.  When false, contexts
@@ -162,6 +165,12 @@ class AnalysisServer {
    * A set of the [ServerService]s to send notifications for.
    */
   Set<ServerService> serverServices = new HashSet<ServerService>();
+
+  /**
+   * A set of the [GeneralAnalysisService]s to send notifications for.
+   */
+  Set<GeneralAnalysisService> generalAnalysisServices =
+      new HashSet<GeneralAnalysisService>();
 
   /**
    * A table mapping [AnalysisService]s to the file paths for which these
@@ -251,8 +260,31 @@ class AnalysisServer {
   List<Plugin> userDefinedPlugins;
 
   /**
+   * If the "analysis.analyzedFiles" notification is currently being subscribed
+   * to (see [generalAnalysisServices]), and at least one such notification has
+   * been sent since the subscription was enabled, the set of analyzed files
+   * that was delivered in the most recently sent notification.  Otherwise
+   * `null`.
+   */
+  Set<String> prevAnalyzedFiles;
+
+  /**
+   * The default options used to create new analysis contexts.
+   */
+  AnalysisOptionsImpl defaultContextOptions = new AnalysisOptionsImpl();
+
+  /**
+   * The controller for sending [ContextsChangedEvent]s.
+   */
+  StreamController<ContextsChangedEvent> _onContextsChangedController =
+      new StreamController<ContextsChangedEvent>.broadcast();
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
+   *
+   * If a [contextManager] is provided, then the [packageResolverProvider] will
+   * be ignored.
    *
    * If [rethrowExceptions] is true, then any exceptions thrown by analysis are
    * propagated up the call stack.  The default is true to allow analysis
@@ -260,23 +292,30 @@ class AnalysisServer {
    * running a full analysis server.
    */
   AnalysisServer(this.channel, this.resourceProvider,
-      OptimizingPubPackageMapProvider packageMapProvider, Index _index,
-      this.serverPlugin, AnalysisServerOptions analysisServerOptions,
-      this.defaultSdk, this.instrumentationService,
-      {this.rethrowExceptions: true})
+      PubPackageMapProvider packageMapProvider, Index _index, this.serverPlugin,
+      this.options, this.defaultSdk, this.instrumentationService,
+      {ContextManager contextManager: null,
+      ResolverProvider packageResolverProvider: null,
+      this.rethrowExceptions: true})
       : index = _index,
         searchEngine = _index != null ? createSearchEngine(_index) : null {
     _performance = performanceDuringStartup;
     operationQueue = new ServerOperationQueue();
-    contextDirectoryManager = new ServerContextManager(
-        this, resourceProvider, packageMapProvider, instrumentationService);
-    contextDirectoryManager.defaultOptions.incremental = true;
-    contextDirectoryManager.defaultOptions.incrementalApi =
-        analysisServerOptions.enableIncrementalResolutionApi;
-    contextDirectoryManager.defaultOptions.incrementalValidation =
-        analysisServerOptions.enableIncrementalResolutionValidation;
-    contextDirectoryManager.defaultOptions.generateImplicitErrors = false;
-    _noErrorNotification = analysisServerOptions.noErrorNotification;
+    if (contextManager == null) {
+      contextManager = new ContextManagerImpl(resourceProvider,
+          packageResolverProvider, packageMapProvider, instrumentationService);
+    }
+    ServerContextManagerCallbacks contextManagerCallbacks =
+        new ServerContextManagerCallbacks(this, resourceProvider);
+    contextManager.callbacks = contextManagerCallbacks;
+    defaultContextOptions.incremental = true;
+    defaultContextOptions.incrementalApi =
+        options.enableIncrementalResolutionApi;
+    defaultContextOptions.incrementalValidation =
+        options.enableIncrementalResolutionValidation;
+    defaultContextOptions.generateImplicitErrors = false;
+    this.contextManager = contextManager;
+    _noErrorNotification = options.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();
     _onFileAnalyzedController = new StreamController.broadcast();
@@ -320,7 +359,7 @@ class AnalysisServer {
    * The stream that is notified when contexts are added or removed.
    */
   Stream<ContextsChangedEvent> get onContextsChanged =>
-      contextDirectoryManager.onContextsChanged;
+      _onContextsChangedController.stream;
 
   /**
    * The stream that is notified when a single file has been analyzed.
@@ -373,7 +412,7 @@ class AnalysisServer {
    * analyzed.
    */
   void fileAnalyzed(ChangeNotice notice) {
-    if (contextDirectoryManager.isInAnalysisRoot(notice.source.fullName)) {
+    if (contextManager.isInAnalysisRoot(notice.source.fullName)) {
       _onFileAnalyzedController.add(notice);
     }
   }
@@ -465,13 +504,13 @@ class AnalysisServer {
       AnalysisContext containingContext = getContainingContext(path);
       if (containingContext != null) {
         Source source =
-            ContextManager.createSourceInContext(containingContext, file);
+            ContextManagerImpl.createSourceInContext(containingContext, file);
         return new ContextSourcePair(containingContext, source);
       }
     }
     // try to find a context that analysed the file
     for (AnalysisContext context in folderMap.values) {
-      Source source = ContextManager.createSourceInContext(context, file);
+      Source source = ContextManagerImpl.createSourceInContext(context, file);
       SourceKind kind = context.getKindOf(source);
       if (kind != SourceKind.UNKNOWN) {
         return new ContextSourcePair(context, source);
@@ -746,6 +785,10 @@ class AnalysisServer {
         ServerPerformanceStatistics.intertask.makeCurrent();
         _schedulePerformOperation();
       } else {
+        if (generalAnalysisServices
+            .contains(GeneralAnalysisService.ANALYZED_FILES)) {
+          sendAnalysisNotificationAnalyzedFiles(this);
+        }
         sendStatusNotification(null);
         if (_onAnalysisCompleteCompleter != null) {
           _onAnalysisCompleteCompleter.complete();
@@ -771,7 +814,7 @@ class AnalysisServer {
     }
     // Instruct the contextDirectoryManager to rebuild all contexts from
     // scratch.
-    contextDirectoryManager.refresh(roots);
+    contextManager.refresh(roots);
   }
 
   /**
@@ -833,7 +876,15 @@ class AnalysisServer {
     if (stackTrace != null) {
       stackTraceString = stackTrace.toString();
     } else {
-      stackTraceString = 'null stackTrace';
+      try {
+        throw 'ignored';
+      } catch (ignored, stackTrace) {
+        stackTraceString = stackTrace.toString();
+      }
+      if (stackTraceString == null) {
+        // This code should be unreachable.
+        stackTraceString = 'null stackTrace';
+      }
     }
     // send the notification
     channel.sendNotification(
@@ -876,8 +927,7 @@ class AnalysisServer {
   void setAnalysisRoots(String requestId, List<String> includedPaths,
       List<String> excludedPaths, Map<String, String> packageRoots) {
     try {
-      contextDirectoryManager.setRoots(
-          includedPaths, excludedPaths, packageRoots);
+      contextManager.setRoots(includedPaths, excludedPaths, packageRoots);
     } on UnimplementedError catch (e) {
       throw new RequestFailure(
           new Response.unsupportedFeature(requestId, e.message));
@@ -936,6 +986,25 @@ class AnalysisServer {
   }
 
   /**
+   * Implementation for `analysis.setGeneralSubscriptions`.
+   */
+  void setGeneralAnalysisSubscriptions(
+      List<GeneralAnalysisService> subscriptions) {
+    Set<GeneralAnalysisService> newServices = subscriptions.toSet();
+    if (newServices.contains(GeneralAnalysisService.ANALYZED_FILES) &&
+        !generalAnalysisServices
+            .contains(GeneralAnalysisService.ANALYZED_FILES) &&
+        isAnalysisComplete()) {
+      sendAnalysisNotificationAnalyzedFiles(this);
+    } else if (!newServices.contains(GeneralAnalysisService.ANALYZED_FILES) &&
+        generalAnalysisServices
+            .contains(GeneralAnalysisService.ANALYZED_FILES)) {
+      prevAnalyzedFiles = null;
+    }
+    generalAnalysisServices = newServices;
+  }
+
+  /**
    * Set the priority files to the given [files].
    */
   void setPriorityFiles(String requestId, List<String> files) {
@@ -961,7 +1030,8 @@ class AnalysisServer {
             Uri uri = context.sourceFactory.restoreUri(source);
             if (uri.scheme != 'file') {
               preferredContext = context;
-              source = ContextManager.createSourceInContext(context, resource);
+              source =
+                  ContextManagerImpl.createSourceInContext(context, resource);
               break;
             }
           }
@@ -1008,8 +1078,7 @@ class AnalysisServer {
    * absolute path.
    */
   bool shouldSendErrorsNotificationFor(String file) {
-    return !_noErrorNotification &&
-        contextDirectoryManager.isInAnalysisRoot(file);
+    return !_noErrorNotification && contextManager.isInAnalysisRoot(file);
   }
 
   void shutdown() {
@@ -1026,24 +1095,12 @@ class AnalysisServer {
     });
   }
 
-  void test_flushResolvedUnit(String file) {
+  void test_flushAstStructures(String file) {
     if (AnalysisEngine.isDartFileName(file)) {
       ContextSourcePair contextSource = getContextSourcePair(file);
-      AnalysisContext context = contextSource.context;
+      InternalAnalysisContext context = contextSource.context;
       Source source = contextSource.source;
-      if (context is AnalysisContextImpl) {
-        DartEntry dartEntry = context.getReadableSourceEntryOrNull(source);
-        dartEntry.flushAstStructures();
-      } else if (context is newContext.AnalysisContextImpl) {
-        CacheEntry entry = context.getCacheEntry(source);
-        entry.setState(RESOLVED_UNIT1, CacheState.FLUSHED);
-        entry.setState(RESOLVED_UNIT2, CacheState.FLUSHED);
-        entry.setState(RESOLVED_UNIT3, CacheState.FLUSHED);
-        entry.setState(RESOLVED_UNIT4, CacheState.FLUSHED);
-        entry.setState(RESOLVED_UNIT5, CacheState.FLUSHED);
-        entry.setState(RESOLVED_UNIT6, CacheState.FLUSHED);
-        entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
-      }
+      context.test_flushAstStructures(source);
     }
   }
 
@@ -1168,26 +1225,26 @@ class AnalysisServer {
         optionUpdater(options);
       });
       context.analysisOptions = options;
+      // TODO(brianwilkerson) As far as I can tell, this doesn't cause analysis
+      // to be scheduled for this context.
     });
     //
     // Update the defaults used to create new contexts.
     //
-    AnalysisOptionsImpl options = contextDirectoryManager.defaultOptions;
     optionUpdaters.forEach((OptionUpdater optionUpdater) {
-      optionUpdater(options);
+      optionUpdater(defaultContextOptions);
     });
   }
 
   /**
-   * Return a set of contexts containing all of the resources in the given list
-   * of [resources].
+   * Return a set of all contexts whose associated folder is contained within,
+   * or equal to, one of the resources in the given list of [resources].
    */
   Set<AnalysisContext> _getContexts(List<Resource> resources) {
     Set<AnalysisContext> contexts = new HashSet<AnalysisContext>();
     resources.forEach((Resource resource) {
       if (resource is Folder) {
-        contexts
-            .addAll(contextDirectoryManager.contextsInAnalysisRoot(resource));
+        contexts.addAll(contextManager.contextsInAnalysisRoot(resource));
       }
     });
     return contexts;
@@ -1250,35 +1307,8 @@ class AnalysisServerOptions {
   bool enableIncrementalResolutionValidation = false;
   bool noErrorNotification = false;
   bool noIndex = false;
+  bool useAnalysisHighlight2 = false;
   String fileReadMode = 'as-is';
-}
-
-/**
- * A [ContextsChangedEvent] indicate what contexts were added or removed.
- *
- * No context should be added to the event more than once. It does not make
- * sense, for example, for a context to be both added and removed.
- */
-class ContextsChangedEvent {
-
-  /**
-   * The contexts that were added to the server.
-   */
-  final List<AnalysisContext> added;
-
-  /**
-   * The contexts that were changed.
-   */
-  final List<AnalysisContext> changed;
-
-  /**
-   * The contexts that were removed from the server.
-   */
-  final List<AnalysisContext> removed;
-
-  ContextsChangedEvent({this.added: AnalysisContext.EMPTY_LIST,
-      this.changed: AnalysisContext.EMPTY_LIST,
-      this.removed: AnalysisContext.EMPTY_LIST});
 }
 
 /**
@@ -1311,42 +1341,26 @@ class PriorityChangeEvent {
   PriorityChangeEvent(this.firstSource);
 }
 
-class ServerContextManager extends ContextManager {
+class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   final AnalysisServer analysisServer;
 
   /**
-   * The default options used to create new analysis contexts.
+   * The [ResourceProvider] by which paths are converted into [Resource]s.
    */
-  AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
+  final ResourceProvider resourceProvider;
 
-  /**
-   * The controller for sending [ContextsChangedEvent]s.
-   */
-  StreamController<ContextsChangedEvent> _onContextsChangedController;
-
-  ServerContextManager(this.analysisServer, ResourceProvider resourceProvider,
-      OptimizingPubPackageMapProvider packageMapProvider,
-      InstrumentationService service)
-      : super(resourceProvider, packageMapProvider, service) {
-    _onContextsChangedController =
-        new StreamController<ContextsChangedEvent>.broadcast();
-  }
-
-  /**
-   * The stream that is notified when contexts are added or removed.
-   */
-  Stream<ContextsChangedEvent> get onContextsChanged =>
-      _onContextsChangedController.stream;
+  ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
 
   @override
-  AnalysisContext addContext(Folder folder, UriResolver packageUriResolver) {
+  AnalysisContext addContext(Folder folder, FolderDisposition disposition) {
     InternalAnalysisContext context =
         AnalysisEngine.instance.createAnalysisContext();
     context.contentCache = analysisServer.overlayState;
     analysisServer.folderMap[folder] = context;
-    context.sourceFactory = _createSourceFactory(packageUriResolver);
-    context.analysisOptions = new AnalysisOptionsImpl.from(defaultOptions);
-    _onContextsChangedController
+    context.sourceFactory = _createSourceFactory(disposition);
+    context.analysisOptions =
+        new AnalysisOptionsImpl.from(analysisServer.defaultContextOptions);
+    analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(added: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
     return context;
@@ -1377,20 +1391,15 @@ class ServerContextManager extends ContextManager {
   }
 
   @override
-  void removeContext(Folder folder) {
+  void removeContext(Folder folder, List<String> flushedFiles) {
     AnalysisContext context = analysisServer.folderMap.remove(folder);
-
-    // See dartbug.com/22689, the AnalysisContext is computed in
-    // computeFlushedFiles instead of using the referenced context above, this
-    // is an attempt to be careful concerning the referenced issue.
-    List<String> flushedFiles = computeFlushedFiles(folder);
     sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
 
     if (analysisServer.index != null) {
       analysisServer.index.removeContext(context);
     }
     analysisServer.operationQueue.contextRemoved(context);
-    _onContextsChangedController
+    analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(removed: [context]));
     analysisServer.sendContextAnalysisDoneNotifications(
         context, AnalysisDoneReason.CONTEXT_REMOVED);
@@ -1417,10 +1426,10 @@ class ServerContextManager extends ContextManager {
 
   @override
   void updateContextPackageUriResolver(
-      Folder contextFolder, UriResolver packageUriResolver) {
+      Folder contextFolder, FolderDisposition disposition) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
-    context.sourceFactory = _createSourceFactory(packageUriResolver);
-    _onContextsChangedController
+    context.sourceFactory = _createSourceFactory(disposition);
+    analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
   }
@@ -1434,16 +1443,17 @@ class ServerContextManager extends ContextManager {
   }
 
   /**
-   * Set up a [SourceFactory] that resolves packages using the given
-   * [packageUriResolver].
+   * Set up a [SourceFactory] that resolves packages as appropriate for the
+   * given [disposition].
    */
-  SourceFactory _createSourceFactory(UriResolver packageUriResolver) {
+  SourceFactory _createSourceFactory(FolderDisposition disposition) {
     UriResolver dartResolver = new DartUriResolver(analysisServer.defaultSdk);
     UriResolver resourceResolver = new ResourceUriResolver(resourceProvider);
-    List<UriResolver> resolvers = packageUriResolver != null
-        ? <UriResolver>[dartResolver, packageUriResolver, resourceResolver]
-        : <UriResolver>[dartResolver, resourceResolver];
-    return new SourceFactory(resolvers);
+    List<UriResolver> resolvers = [];
+    resolvers.add(dartResolver);
+    resolvers.addAll(disposition.createPackageUriResolvers(resourceProvider));
+    resolvers.add(resourceResolver);
+    return new SourceFactory(resolvers, disposition.packages);
   }
 }
 

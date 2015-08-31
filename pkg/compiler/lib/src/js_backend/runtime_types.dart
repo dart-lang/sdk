@@ -32,7 +32,7 @@ class RuntimeTypes {
 
   JavaScriptBackend get backend => compiler.backend;
 
-  String get getFunctionThatReturnsNullName
+  jsAst.Name get getFunctionThatReturnsNullName
       => backend.namer.internalGlobal('functionThatReturnsNull');
 
   RuntimeTypes(Compiler compiler)
@@ -134,7 +134,7 @@ class RuntimeTypes {
       classesNeedingRti.add(cls);
 
       // TODO(ngeoffray): This should use subclasses, not subtypes.
-      Iterable<ClassElement> classes = compiler.world.subtypesOf(cls);
+      Iterable<ClassElement> classes = compiler.world.strictSubtypesOf(cls);
       classes.forEach((ClassElement sub) {
         potentiallyAddForRti(sub);
       });
@@ -401,7 +401,7 @@ class RuntimeTypes {
   String getTypeRepresentationForTypeConstant(DartType type) {
     JavaScriptBackend backend = compiler.backend;
     Namer namer = backend.namer;
-    if (type.isDynamic) return namer.runtimeTypeName(null);
+    if (type.isDynamic) return "dynamic";
     String name = namer.uniqueNameForTypeConstantElement(type.element);
     if (!type.element.isClass) return name;
     InterfaceType interface = type;
@@ -541,10 +541,10 @@ class RuntimeTypes {
         getTypeEncoding(type, alwaysGenerateFunction: true);
     if (contextClass != null) {
       JavaScriptBackend backend = compiler.backend;
-      String contextName = backend.namer.className(contextClass);
+      jsAst.Name contextName = backend.namer.className(contextClass);
       return js('function () { return #(#, #, #); }',
           [ backend.emitter.staticFunctionAccess(backend.getComputeSignature()),
-              encoding, this_, js.string(contextName) ]);
+              encoding, this_, js.quoteName(contextName) ]);
     } else {
       return encoding;
     }

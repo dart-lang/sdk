@@ -10,9 +10,11 @@
 #include "vm/allocation.h"
 #include "vm/service.h"
 
+
 namespace dart {
 
 class Array;
+class Breakpoint;
 class Field;
 class GrowableObjectArray;
 class Instance;
@@ -23,8 +25,8 @@ class Metric;
 class Object;
 class Script;
 class ServiceEvent;
-class Breakpoint;
 class String;
+class TimelineEvent;
 class Zone;
 
 
@@ -55,7 +57,7 @@ class JSONStream : ValueObject {
 
   void Setup(Zone* zone,
              Dart_Port reply_port,
-             const String& seq,
+             const Instance& seq,
              const String& method,
              const Array& param_keys,
              const Array& param_values);
@@ -98,7 +100,6 @@ class JSONStream : ValueObject {
   // otherwise.
   bool ParamIs(const char* key, const char* value) const;
 
-  const char* seq() const { return seq_; }
   const char* method() const { return method_; }
   const char** param_keys() const { return param_keys_; }
   const char** param_values() const { return param_values_; }
@@ -115,7 +116,9 @@ class JSONStream : ValueObject {
   void PrintValueBool(bool b);
   void PrintValue(intptr_t i);
   void PrintValue64(int64_t i);
+  void PrintValueTimeMillis(int64_t millis);
   void PrintValue(double d);
+  void PrintValueBase64(const uint8_t* bytes, intptr_t length);
   void PrintValue(const char* s);
   void PrintValue(const char* s, intptr_t len);
   void PrintValueNoEscape(const char* s);
@@ -127,12 +130,17 @@ class JSONStream : ValueObject {
   void PrintValue(MessageQueue* queue);
   void PrintValue(Isolate* isolate, bool ref = true);
   bool PrintValueStr(const String& s, intptr_t limit);
+  void PrintValue(TimelineEvent* timeline_event);
 
   void PrintServiceId(const Object& o);
   void PrintPropertyBool(const char* name, bool b);
   void PrintProperty(const char* name, intptr_t i);
   void PrintProperty64(const char* name, int64_t i);
+  void PrintPropertyTimeMillis(const char* name, int64_t millis);
   void PrintProperty(const char* name, double d);
+  void PrintPropertyBase64(const char* name,
+                           const uint8_t* bytes,
+                           intptr_t length);
   void PrintProperty(const char* name, const char* s);
   bool PrintPropertyStr(const char* name, const String& s, intptr_t limit);
   void PrintPropertyNoEscape(const char* name, const char* s);
@@ -145,6 +153,7 @@ class JSONStream : ValueObject {
   void PrintProperty(const char* name, Metric* metric);
   void PrintProperty(const char* name, MessageQueue* queue);
   void PrintProperty(const char* name, Isolate* isolate);
+  void PrintProperty(const char* name, TimelineEvent* timeline_event);
   void PrintPropertyName(const char* name);
   void PrintCommaIfNeeded();
   bool NeedComma();
@@ -161,7 +170,7 @@ class JSONStream : ValueObject {
   RingServiceIdZone default_id_zone_;
   ServiceIdZone* id_zone_;
   Dart_Port reply_port_;
-  const char* seq_;
+  Instance& seq_;
   const char* method_;
   const char** param_keys_;
   const char** param_values_;
@@ -206,8 +215,16 @@ class JSONObject : public ValueObject {
   void AddProperty64(const char* name, int64_t i) const {
     stream_->PrintProperty64(name, i);
   }
+  void AddPropertyTimeMillis(const char* name, int64_t millis) const {
+    stream_->PrintPropertyTimeMillis(name, millis);
+  }
   void AddProperty(const char* name, double d) const {
     stream_->PrintProperty(name, d);
+  }
+  void AddPropertyBase64(const char* name,
+                         const uint8_t* bytes,
+                         intptr_t length) const {
+    stream_->PrintPropertyBase64(name, bytes, length);
   }
   void AddProperty(const char* name, const char* s) const {
     stream_->PrintProperty(name, s);
@@ -237,6 +254,9 @@ class JSONObject : public ValueObject {
   }
   void AddProperty(const char* name, Isolate* isolate) const {
     stream_->PrintProperty(name, isolate);
+  }
+  void AddProperty(const char* name, TimelineEvent* timeline_event) const {
+    stream_->PrintProperty(name, timeline_event);
   }
   void AddPropertyF(const char* name, const char* format, ...) const
       PRINTF_ATTRIBUTE(3, 4);
@@ -269,6 +289,9 @@ class JSONArray : public ValueObject {
   void AddValue(bool b) const { stream_->PrintValueBool(b); }
   void AddValue(intptr_t i) const { stream_->PrintValue(i); }
   void AddValue64(int64_t i) const { stream_->PrintValue64(i); }
+  void AddValueTimeMillis(int64_t millis) const {
+    stream_->PrintValueTimeMillis(millis);
+  }
   void AddValue(double d) const { stream_->PrintValue(d); }
   void AddValue(const char* s) const { stream_->PrintValue(s); }
   void AddValue(const Object& obj, bool ref = true) const {
@@ -288,6 +311,9 @@ class JSONArray : public ValueObject {
   }
   void AddValue(MessageQueue* queue) const {
     stream_->PrintValue(queue);
+  }
+  void AddValue(TimelineEvent* timeline_event) const {
+    stream_->PrintValue(timeline_event);
   }
   void AddValueF(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
 

@@ -254,7 +254,6 @@ class JavaScriptConstantSystem extends ConstantSystem {
   BoolConstantValue createBool(bool value) => new BoolConstantValue(value);
   NullConstantValue createNull() => new NullConstantValue();
 
-
   @override
   ListConstantValue createList(InterfaceType type,
                                List<ConstantValue> values) {

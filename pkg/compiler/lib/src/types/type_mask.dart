@@ -22,7 +22,8 @@ abstract class TypeMask {
 
   factory TypeMask.exact(ClassElement base, ClassWorld classWorld) {
     assert(invariant(base, classWorld.isInstantiated(base),
-        message: "Cannot create extact type mask for uninstantiated class"));
+        message: "Cannot create extact type mask for uninstantiated class "
+          "${base.name}"));
     return new FlatTypeMask.exact(base);
   }
 
@@ -32,7 +33,7 @@ abstract class TypeMask {
   }
 
   factory TypeMask.subclass(ClassElement base, ClassWorld classWorld) {
-    if (classWorld.hasAnySubclass(base)) {
+    if (classWorld.hasAnyStrictSubclass(base)) {
       return new FlatTypeMask.subclass(base);
     } else {
       return new TypeMask.exactOrEmpty(base, classWorld);
@@ -43,7 +44,7 @@ abstract class TypeMask {
     if (classWorld.hasOnlySubclasses(base)) {
       return new TypeMask.subclass(base, classWorld);
     }
-    if (classWorld.hasAnySubtype(base)) {
+    if (classWorld.hasAnyStrictSubtype(base)) {
       return new FlatTypeMask.subtype(base);
     } else {
       return new TypeMask.exactOrEmpty(base, classWorld);
@@ -68,7 +69,7 @@ abstract class TypeMask {
   }
 
   factory TypeMask.nonNullSubclass(ClassElement base, ClassWorld classWorld) {
-    if (classWorld.hasAnySubclass(base)) {
+    if (classWorld.hasAnyStrictSubclass(base)) {
       return new FlatTypeMask.nonNullSubclass(base);
     } else {
       return new TypeMask.nonNullExactOrEmpty(base, classWorld);
@@ -79,7 +80,7 @@ abstract class TypeMask {
     if (classWorld.hasOnlySubclasses(base)) {
       return new TypeMask.nonNullSubclass(base, classWorld);
     }
-    if (classWorld.hasAnySubtype(base)) {
+    if (classWorld.hasAnyStrictSubtype(base)) {
       return new FlatTypeMask.nonNullSubtype(base);
     } else {
       return new TypeMask.nonNullExactOrEmpty(base, classWorld);
@@ -125,13 +126,13 @@ abstract class TypeMask {
         return null;
       }
       if (mask.isSubclass) {
-        if (!classWorld.hasAnySubclass(mask.base)) {
+        if (!classWorld.hasAnyStrictSubclass(mask.base)) {
           return 'Subclass ${mask.base} does not have any subclasses.';
         }
         return null;
       }
       assert(mask.isSubtype);
-      if (!classWorld.hasAnySubtype(mask.base)) {
+      if (!classWorld.hasAnyStrictSubtype(mask.base)) {
         return 'Subtype ${mask.base} does not have any subclasses.';
       }
       if (classWorld.hasOnlySubclasses(mask.base)) {
@@ -265,5 +266,8 @@ abstract class TypeMask {
    * on this mask. Returns null if there is none.
    */
   // TODO(johnniwinther): Move this method to [World].
-  Element locateSingleElement(Selector selector, Compiler compiler);
+  Element locateSingleElement(
+      Selector selector,
+      TypeMask mask,
+      Compiler compiler);
 }

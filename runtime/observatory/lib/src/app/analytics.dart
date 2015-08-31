@@ -19,8 +19,13 @@ class Analytics {
 
   /// Called whenever an Observatory page is viewed.
   static Future reportPageView(Uri uri) {
-    // The screen name is the uri's path. e.g. inspect, profile.
-    final screenName = uri.path;
-    return _googleAnalytics.sendScreenView(screenName);
+    // Only report analytics when running in JavaScript.
+    if (Utils.runningInJavaScript()) {
+      // The screen name is the uri's path. e.g. inspect, profile.
+      final screenName = uri.path;
+      return _googleAnalytics.sendScreenView(screenName);
+    } else {
+      return new Future.value(null);
+    }
   }
 }

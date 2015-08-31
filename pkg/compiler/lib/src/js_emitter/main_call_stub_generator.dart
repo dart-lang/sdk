@@ -52,7 +52,9 @@ class MainCallStubGenerator {
           callback(null);
           return;
         }
-        if (document.currentScript) {
+        // When running as a content-script of a chrome-extension the
+        // 'currentScript' is `null` (but not undefined).
+        if (typeof document.currentScript != 'undefined') {
           callback(document.currentScript);
           return;
         }

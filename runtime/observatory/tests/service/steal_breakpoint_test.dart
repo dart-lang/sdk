@@ -1,7 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override --steal-breakpoints
+// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override --steal-breakpoints
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -29,8 +29,9 @@ var tests = [
 
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+  subscription = stream.listen((ServiceEvent event) {
     if (event.kind == ServiceEvent.kPauseBreakpoint) {
       print('Isolate paused at breakpoint');
       subscription.cancel();
@@ -61,8 +62,9 @@ var tests = [
 // Resume
 (Isolate isolate) async {
   Completer completer = new Completer();
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+  subscription = stream.listen((ServiceEvent event) {
     if (event.kind == ServiceEvent.kResume) {
       print('Isolate resumed');
       subscription.cancel();

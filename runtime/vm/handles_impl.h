@@ -96,10 +96,8 @@ uword Handles<kHandleSizeInWords,
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
   ASSERT(thread->zone() == zone);
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL);
-  ASSERT(isolate->top_handle_scope() != NULL);
-  ASSERT(isolate->no_handle_scope_depth() == 0);
+  ASSERT(thread->top_handle_scope() != NULL);
+  ASSERT(thread->no_handle_scope_depth() == 0);
 #endif  // DEBUG
   Handles* handles = zone->handles();
   ASSERT(handles != NULL);
@@ -116,9 +114,7 @@ uword Handles<kHandleSizeInWords,
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
   ASSERT(thread->zone() == zone);
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL);
-  ASSERT(isolate->no_handle_scope_depth() == 0);
+  ASSERT(thread->no_handle_scope_depth() == 0);
 #endif  // DEBUG
   Handles* handles = zone->handles();
   ASSERT(handles != NULL);
@@ -127,18 +123,18 @@ uword Handles<kHandleSizeInWords,
 }
 
 
-// Figure out the current zone using the current Isolate and
+// Figure out the current zone using the current Thread and
 // check if the specified handle has been allocated in this zone.
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 bool Handles<kHandleSizeInWords,
              kHandlesPerChunk,
              kOffsetOfRawPtr>::IsZoneHandle(uword handle) {
-  // TODO(5411412): Accessing the current isolate is a performance problem,
+  // TODO(5411412): Accessing the current thread is a performance problem,
   // consider passing it down as a parameter.
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  ASSERT(isolate->current_zone() != NULL);
-  Handles* handles = isolate->current_zone()->handles();
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+  ASSERT(thread->zone() != NULL);
+  Handles* handles = thread->zone()->handles();
   ASSERT(handles != NULL);
   return handles->IsValidZoneHandle(handle);
 }

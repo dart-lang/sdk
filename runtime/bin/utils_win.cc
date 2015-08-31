@@ -11,6 +11,7 @@
 #include "bin/utils.h"
 #include "bin/utils_win.h"
 #include "bin/log.h"
+#include "platform/assert.h"
 
 
 namespace dart {
@@ -44,7 +45,7 @@ OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
   static const int kMaxMessageLength = 256;
   wchar_t message[kMaxMessageLength];
   FormatMessageIntoBuffer(code_, message, kMaxMessageLength);
-  char* utf8 = StringUtils::WideToUtf8(message);
+  char* utf8 = StringUtilsWin::WideToUtf8(message);
   SetMessage(utf8);
   free(utf8);
 }
@@ -56,72 +57,115 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   static const int kMaxMessageLength = 256;
   wchar_t message[kMaxMessageLength];
   FormatMessageIntoBuffer(code_, message, kMaxMessageLength);
-  char* utf8 = StringUtils::WideToUtf8(message);
+  char* utf8 = StringUtilsWin::WideToUtf8(message);
   SetMessage(utf8);
   free(utf8);
 }
 
-char* StringUtils::ConsoleStringToUtf8(char* str) {
-  int len = MultiByteToWideChar(CP_ACP, 0, str, -1, NULL, 0);
-  wchar_t* unicode = new wchar_t[len+1];
-  MultiByteToWideChar(CP_ACP, 0, str, -1, unicode, len);
-  unicode[len] = '\0';
-  char* utf8 = StringUtils::WideToUtf8(unicode);
-  delete[] unicode;
+char* StringUtils::ConsoleStringToUtf8(char* str,
+                                       intptr_t len,
+                                       intptr_t* result_len) {
+  int wide_len = MultiByteToWideChar(CP_ACP, 0, str, len, NULL, 0);
+  wchar_t* wide = new wchar_t[wide_len];
+  MultiByteToWideChar(CP_ACP, 0, str, len, wide, wide_len);
+  char* utf8 = StringUtilsWin::WideToUtf8(wide, wide_len, result_len);
+  delete[] wide;
   return utf8;
 }
 
-char* StringUtils::Utf8ToConsoleString(char* utf8) {
-  wchar_t* unicode = Utf8ToWide(utf8);
-  int len = WideCharToMultiByte(CP_ACP, 0, unicode, -1, NULL, 0, NULL, NULL);
-  char* ansi = reinterpret_cast<char*>(malloc(len + 1));
-  WideCharToMultiByte(CP_ACP, 0, unicode, -1, ansi, len, NULL, NULL);
-  ansi[len] = '\0';
-  free(unicode);
+char* StringUtils::Utf8ToConsoleString(char* utf8,
+                                       intptr_t len,
+                                       intptr_t* result_len) {
+  intptr_t wide_len;
+  wchar_t* wide = StringUtilsWin::Utf8ToWide(utf8, len, &wide_len);
+  int system_len = WideCharToMultiByte(
+      CP_ACP, 0, wide, wide_len, NULL, 0, NULL, NULL);
+  char* ansi = reinterpret_cast<char*>(malloc(system_len));
+  if (ansi == NULL) {
+    free(wide);
+    return NULL;
+  }
+  WideCharToMultiByte(CP_ACP, 0, wide, wide_len, ansi, system_len, NULL, NULL);
+  free(wide);
+  if (result_len != NULL) {
+    *result_len = system_len;
+  }
   return ansi;
 }
 
-char* StringUtils::WideToUtf8(wchar_t* wide) {
-  int len = WideCharToMultiByte(CP_UTF8, 0, wide, -1, NULL, 0, NULL, NULL);
-  char* utf8 = reinterpret_cast<char*>(malloc(len + 1));
-  WideCharToMultiByte(CP_UTF8, 0, wide, -1, utf8, len, NULL, NULL);
-  utf8[len] = '\0';
+char* StringUtilsWin::WideToUtf8(wchar_t* wide,
+                                 intptr_t len,
+                                 intptr_t* result_len) {
+  // If len is -1 then WideCharToMultiByte will include the terminating
+  // NUL byte in the length.
+  int utf8_len = WideCharToMultiByte(
+      CP_UTF8, 0, wide, len, NULL, 0, NULL, NULL);
+  char* utf8 = reinterpret_cast<char*>(malloc(utf8_len));
+  WideCharToMultiByte(CP_UTF8, 0, wide, len, utf8, utf8_len, NULL, NULL);
+  if (result_len != NULL) {
+    *result_len = utf8_len;
+  }
   return utf8;
 }
 
 
-wchar_t* StringUtils::Utf8ToWide(char* utf8) {
-  int len = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, NULL, 0);
-  wchar_t* unicode =
-      reinterpret_cast<wchar_t*>(malloc((len + 1) * sizeof(wchar_t)));
-  MultiByteToWideChar(CP_UTF8, 0, utf8, -1, unicode, len);
-  unicode[len] = '\0';
-  return unicode;
+wchar_t* StringUtilsWin::Utf8ToWide(char* utf8,
+                                    intptr_t len,
+                                    intptr_t* result_len) {
+  // If len is -1 then MultiByteToWideChar will include the terminating
+  // NUL byte in the length.
+  int wide_len = MultiByteToWideChar(CP_UTF8, 0, utf8, len, NULL, 0);
+  wchar_t* wide =
+      reinterpret_cast<wchar_t*>(malloc((wide_len) * sizeof(wchar_t)));
+  MultiByteToWideChar(CP_UTF8, 0, utf8, len, wide, wide_len);
+  if (result_len != NULL) {
+    *result_len = wide_len;
+  }
+  return wide;
 }
 
-const char* StringUtils::Utf8ToConsoleString(const char* utf8) {
-  return const_cast<const char*>(Utf8ToConsoleString(const_cast<char*>(utf8)));
+const char* StringUtils::Utf8ToConsoleString(
+    const char* utf8, intptr_t len, intptr_t* result_len) {
+  return const_cast<const char*>(
+      StringUtils::Utf8ToConsoleString(
+          const_cast<char*>(utf8), len, result_len));
 }
 
-const char* StringUtils::ConsoleStringToUtf8(const char* str) {
-  return const_cast<const char*>(ConsoleStringToUtf8(const_cast<char*>(str)));
+const char* StringUtils::ConsoleStringToUtf8(
+    const char* str, intptr_t len, intptr_t* result_len) {
+  return const_cast<const char*>(
+      StringUtils::ConsoleStringToUtf8(
+          const_cast<char*>(str), len, result_len));
 }
 
-const char* StringUtils::WideToUtf8(const wchar_t* wide) {
-  return const_cast<const char*>(WideToUtf8(const_cast<wchar_t*>(wide)));
+const char* StringUtilsWin::WideToUtf8(
+    const wchar_t* wide, intptr_t len, intptr_t* result_len) {
+  return const_cast<const char*>(
+      StringUtilsWin::WideToUtf8(const_cast<wchar_t*>(wide), len, result_len));
 }
 
-const wchar_t* StringUtils::Utf8ToWide(const char* utf8) {
-  return const_cast<const wchar_t*>(Utf8ToWide(const_cast<char*>(utf8)));
+const wchar_t* StringUtilsWin::Utf8ToWide(
+    const char* utf8, intptr_t len, intptr_t* result_len) {
+  return const_cast<const wchar_t*>(
+      StringUtilsWin::Utf8ToWide(const_cast<char*>(utf8), len, result_len));
 }
 
-wchar_t** ShellUtils::GetUnicodeArgv(int* argc) {
+bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   wchar_t* command_line = GetCommandLineW();
-  return CommandLineToArgvW(command_line, argc);
-}
-
-void ShellUtils::FreeUnicodeArgv(wchar_t** argv) {
-  LocalFree(argv);
+  int unicode_argc;
+  wchar_t** unicode_argv = CommandLineToArgvW(command_line, &unicode_argc);
+  if (unicode_argv == NULL) return false;
+  // The argc passed to main should have the same argc as we get here.
+  ASSERT(argc == unicode_argc);
+  if (argc < unicode_argc) {
+    unicode_argc = argc;
+  }
+  for (int i = 0; i < unicode_argc; i++) {
+    wchar_t* arg = unicode_argv[i];
+    argv[i] = StringUtilsWin::WideToUtf8(arg);
+  }
+  LocalFree(unicode_argv);
+  return true;
 }
 
 int64_t TimerUtils::GetCurrentTimeMilliseconds() {

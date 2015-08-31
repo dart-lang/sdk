@@ -303,7 +303,7 @@ void recurse(dom.Element parent, String context,
       if (elementProcessors.containsKey(node.localName)) {
         elementProcessors[node.localName](node);
       } else if (specialElements.contains(node.localName)) {
-        throw new Exception('$context: Unexpected use of <${node.localName}');
+        throw new Exception('$context: Unexpected use of <${node.localName}>');
       } else {
         recurse(node, context, elementProcessors);
       }

@@ -13,7 +13,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
       : super(compiler, typedefElement, registry);
 
   visitTypedef(Typedef node) {
-    TypedefType type = element.computeType(compiler);
+    element.computeType(compiler);
     scope = new TypeDeclarationScope(scope, element);
     resolveTypeVariableBounds(node.typeParameters);
 

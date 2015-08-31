@@ -9,11 +9,29 @@
 
 <polymer-element name="object-ref" extends="service-ref">
   <template><link rel="stylesheet" href="css/shared.css">
-    <template if="{{ nameIsEmpty }}">
-      <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.vmType }}</em></a>
+
+    <template if="{{ ref.isObjectPool }}">
+      <a on-click="{{ goto }}" _href="{{ url }}">
+        <em>{{ ref.vmType }}</em> ({{ ref.length }})
+      </a>
     </template>
-    <template if="{{ !nameIsEmpty }}">
-      <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ name }}</em></a>
+    <template if="{{ ref.isICData }}">
+      <a on-click="{{ goto }}" _href="{{ url }}">
+        <em>{{ ref.vmType }}</em> ({{ ref.selector }})
+      </a>
+    </template>
+    <template if="{{ ref.isInstructions }}">
+      <a on-click="{{ goto }}" _href="{{ url }}">
+        <em>{{ ref.vmType }}</em> ({{ ref.code.name }})
+      </a>
+    </template>
+    <template if="{{ !(ref.isObjectPool || ref.isICData || ref.isInstructions) }}">
+      <template if="{{ nameIsEmpty }}">
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.vmType }}</em></a>
+      </template>
+      <template if="{{ !nameIsEmpty }}">
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ name }}</em></a>
+      </template>
     </template>
   </template>
 </polymer-element>

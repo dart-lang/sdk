@@ -6,7 +6,8 @@ part of dart2js.js_emitter;
 
 class NativeEmitter {
 
-  final Map<Element, ClassBuilder> cachedBuilders;
+  // TODO(floitsch): the native-emitter should not know about ClassBuilders.
+  final Map<Element, full_js_emitter.ClassBuilder> cachedBuilders;
 
   final CodeEmitterTask emitterTask;
 
@@ -30,6 +31,7 @@ class NativeEmitter {
         cachedBuilders = emitterTask.compiler.cacheStrategy.newMap();
 
   Compiler get compiler => emitterTask.compiler;
+
   JavaScriptBackend get backend => compiler.backend;
 
   jsAst.Expression get defPropFunction {
@@ -43,8 +45,9 @@ class NativeEmitter {
    * Removes trivial classes (that can be represented by a super type) and
    * generates properties that have to be added to classes (native or not).
    *
-   * Updates the `nativeInfo` field of the given classes. This data
-   * must be emitted with the corresponding classes.
+   * Updates the `nativeLeafTags`, `nativeNonLeafTags` and `nativeExtensions`
+   * fields of the given classes. This data must be emitted with the
+   * corresponding classes.
    *
    * The interceptors are filtered to avoid emitting trivial interceptors.  For
    * example, if the program contains no code that can distinguish between the
@@ -59,8 +62,16 @@ class NativeEmitter {
    *
    * [classes] contains native classes, mixin applications, and user subclasses
    * of native classes.
+   *
+   * [interceptorClassesNeededByConstants] contains the interceptors that are
+   * referenced by constants.
+   *
+   * [classesModifiedByEmitRTISupport] contains the list of classes that must
+   * exist, because runtime-type support adds information to the class.
    */
-  Set<Class> prepareNativeClasses(List<Class> classes) {
+  Set<Class> prepareNativeClasses(List<Class> classes,
+      Set<ClassElement> interceptorClassesNeededByConstants,
+      Set<ClassElement> classesModifiedByEmitRTISupport) {
     assert(classes.every((Class cls) => cls != null));
 
     hasNativeClasses = classes.isNotEmpty;
@@ -73,6 +84,7 @@ class NativeEmitter {
 
     Class objectClass = null;
     Class jsInterceptorClass = null;
+
     void walk(Class cls) {
       if (cls.element == compiler.objectClass) {
         objectClass = cls;
@@ -94,16 +106,11 @@ class NativeEmitter {
     // needed class.
 
     Set<Class> neededClasses = new Set<Class>();
-    Set<Class> nonleafClasses = new Set<Class>();
+    Set<Class> nonLeafClasses = new Set<Class>();
 
     Map<Class, List<Class>> extensionPoints = computeExtensionPoints(preOrder);
 
     neededClasses.add(objectClass);
-
-    Set<ClassElement> neededByConstant = emitterTask
-        .computeInterceptorsReferencedFromConstants();
-    Set<ClassElement> modifiedClasses = emitterTask.typeTestRegistry
-        .computeClassesModifiedByEmitRuntimeTypeSupport();
 
     for (Class cls in preOrder.reversed) {
       ClassElement classElement = cls.element;
@@ -118,9 +125,9 @@ class NativeEmitter {
         needed = true;
       } else if (!isTrivialClass(cls)) {
         needed = true;
-      } else if (neededByConstant.contains(classElement)) {
+      } else if (interceptorClassesNeededByConstants.contains(classElement)) {
         needed = true;
-      } else if (modifiedClasses.contains(classElement)) {
+      } else if (classesModifiedByEmitRTISupport.contains(classElement)) {
         // TODO(9556): Remove this test when [emitRuntimeTypeSupport] no longer
         // adds information to a class prototype or constructor.
         needed = true;
@@ -130,13 +137,13 @@ class NativeEmitter {
       if (cls.isNative &&
           native.nativeTagsForcedNonLeaf(classElement)) {
         needed = true;
-        nonleafClasses.add(cls);
+        nonLeafClasses.add(cls);
       }
 
       if (needed || neededClasses.contains(cls)) {
         neededClasses.add(cls);
         neededClasses.add(cls.superclass);
-        nonleafClasses.add(cls.superclass);
+        nonLeafClasses.add(cls.superclass);
       }
     }
 
@@ -149,7 +156,7 @@ class NativeEmitter {
       if (!cls.isNative) continue;
       List<String> nativeTags = native.nativeTagsOfClass(cls.element);
 
-      if (nonleafClasses.contains(cls) ||
+      if (nonLeafClasses.contains(cls) ||
           extensionPoints.containsKey(cls)) {
         nonleafTags
             .putIfAbsent(cls, () => new Set<String>())
@@ -168,47 +175,26 @@ class NativeEmitter {
       }
     }
 
+    void fillNativeInfo(Class cls) {
+      assert(cls.nativeLeafTags == null &&
+          cls.nativeNonLeafTags == null &&
+          cls.nativeExtensions == null);
+      if (leafTags[cls] != null) {
+        cls.nativeLeafTags = leafTags[cls].toList(growable: false);
+      }
+      if (nonleafTags[cls] != null) {
+        cls.nativeNonLeafTags = nonleafTags[cls].toList(growable: false);
+      }
+      cls.nativeExtensions = extensionPoints[cls];
+    }
     // Add properties containing the information needed to construct maps used
     // by getNativeInterceptor and custom elements.
     if (compiler.enqueuer.codegen.nativeEnqueuer
         .hasInstantiatedNativeClasses()) {
-      void generateClassInfo(Class cls) {
-        // Property has the form:
-        //
-        //    "%": "leafTag1|leafTag2|...;nonleafTag1|...;Class1|Class2|...",
-        //
-        // If there is no data following a semicolon, the semicolon can be
-        // omitted.
-
-        String formatTags(Iterable<String> tags) {
-          if (tags == null) return '';
-          return (tags.toList()..sort()).join('|');
-        }
-
-        List<Class> extensions = extensionPoints[cls];
-
-        String leafStr = formatTags(leafTags[cls]);
-        String nonleafStr = formatTags(nonleafTags[cls]);
-
-        StringBuffer sb = new StringBuffer(leafStr);
-        if (nonleafStr != '') {
-          sb..write(';')..write(nonleafStr);
-        }
-        if (extensions != null) {
-          sb..write(';')
-            ..writeAll(extensions.map((Class cls) => cls.name), '|');
-        }
-        String encoding = sb.toString();
-
-        if (cls.isNative || encoding != '') {
-          assert(cls.nativeInfo == null);
-          cls.nativeInfo = encoding;
-        }
-      }
-      generateClassInfo(jsInterceptorClass);
+      fillNativeInfo(jsInterceptorClass);
       for (Class cls in classes) {
         if (!cls.isNative || neededClasses.contains(cls)) {
-          generateClassInfo(cls);
+          fillNativeInfo(cls);
         }
       }
     }
@@ -301,7 +287,7 @@ class NativeEmitter {
   List<jsAst.Statement> generateParameterStubStatements(
       FunctionElement member,
       bool isInterceptedMethod,
-      String invocationName,
+      jsAst.Name invocationName,
       List<jsAst.Parameter> stubParameters,
       List<jsAst.Expression> argumentsBuffer,
       int indexOfLastOptionalArgumentInParameters) {
@@ -343,22 +329,7 @@ class NativeEmitter {
     return statements;
   }
 
-  bool isSupertypeOfNativeClass(Element element) {
-    if (element.isTypeVariable) {
-      compiler.internalError(element, "Is check for type variable.");
-      return false;
-    }
-    if (element.computeType(compiler).unalias(compiler) is FunctionType) {
-      // The element type is a function type either directly or through
-      // typedef(s).
-      return false;
-    }
-
-    if (!element.isClass) {
-      compiler.internalError(element, "Is check does not handle element.");
-      return false;
-    }
-
+  bool isSupertypeOfNativeClass(ClassElement element) {
     if (backend.classesMixedIntoInterceptedClasses.contains(element)) {
       return true;
     }
@@ -377,97 +348,5 @@ class NativeEmitter {
     ClassElement cls = element;
     if (Elements.isNativeOrExtendsNative(cls)) return true;
     return isSupertypeOfNativeClass(element);
-  }
-
-  /// Returns a JavaScript template that fills the embedded globals referenced
-  /// by [interceptorsByTagAccess] and [leafTagsAccess].
-  ///
-  /// This code must be invoked for every class that has a native info before
-  /// the program starts.
-  ///
-  /// The [infoAccess] parameter must evaluate to an expression that contains
-  /// the info (as a JavaScript string).
-  ///
-  /// The [constructorAccess] parameter must evaluate to an expression that
-  /// contains the constructor of the class. The constructor's prototype must
-  /// be set up.
-  ///
-  /// The [subclassReadGenerator] function must evaluate to a JS expression
-  /// that returns a reference to the constructor (with evaluated prototype)
-  /// of the given JS expression.
-  ///
-  /// The [interceptorsByTagAccess] must point to the embedded global
-  /// [embeddedNames.INTERCEPTORS_BY_TAG] and must be initialized with an empty
-  /// JS Object (used as a map).
-  ///
-  /// Similarly, the [leafTagsAccess] must point to the embedded global
-  /// [embeddedNames.LEAF_TAGS] and must be initialized with an empty JS Object
-  /// (used as a map).
-  ///
-  /// Both variables are passed in (instead of creating the access here) to
-  /// make sure the caller is aware of these globals.
-  jsAst.Statement buildNativeInfoHandler(
-      jsAst.Expression infoAccess,
-      jsAst.Expression constructorAccess,
-      jsAst.Expression subclassReadGenerator(jsAst.Expression subclass),
-      jsAst.Expression interceptorsByTagAccess,
-      jsAst.Expression leafTagsAccess) {
-    jsAst.Expression subclassRead =
-        subclassReadGenerator(js('subclasses[i]', []));
-    return js.statement('''
-          // The native info looks like this:
-          //
-          // HtmlElement: {
-          //     "%": "HTMLDivElement|HTMLAnchorElement;HTMLElement;FancyButton"
-          //
-          // The first two semicolon-separated parts contain dispatch tags, the
-          // third contains the JavaScript names for classes.
-          //
-          // The tags indicate that JavaScript objects with the dispatch tags
-          // (usually constructor names) HTMLDivElement, HTMLAnchorElement and
-          // HTMLElement all map to the Dart native class named HtmlElement.
-          // The first set is for effective leaf nodes in the hierarchy, the
-          // second set is non-leaf nodes.
-          //
-          // The third part contains the JavaScript names of Dart classes that
-          // extend the native class. Here, FancyButton extends HtmlElement, so
-          // the runtime needs to know that window.HTMLElement.prototype is the
-          // prototype that needs to be extended in creating the custom element.
-          //
-          // The information is used to build tables referenced by
-          // getNativeInterceptor and custom element support.
-          {
-            var nativeSpec = #info.split(";");
-            if (nativeSpec[0]) {
-              var tags = nativeSpec[0].split("|");
-              for (var i = 0; i < tags.length; i++) {
-                #interceptorsByTagAccess[tags[i]] = #constructor;
-                #leafTagsAccess[tags[i]] = true;
-              }
-            }
-            if (nativeSpec[1]) {
-              tags = nativeSpec[1].split("|");
-              if (#allowNativesSubclassing) {
-                if (nativeSpec[2]) {
-                  var subclasses = nativeSpec[2].split("|");
-                  for (var i = 0; i < subclasses.length; i++) {
-                    var subclass = #subclassRead;
-                    subclass.#nativeSuperclassTagName = tags[0];
-                  }
-                }
-                for (i = 0; i < tags.length; i++) {
-                  #interceptorsByTagAccess[tags[i]] = #constructor;
-                  #leafTagsAccess[tags[i]] = false;
-                }
-              }
-            }
-          }
-    ''', {'info': infoAccess,
-          'constructor': constructorAccess,
-          'subclassRead': subclassRead,
-          'interceptorsByTagAccess': interceptorsByTagAccess,
-          'leafTagsAccess': leafTagsAccess,
-          'nativeSuperclassTagName': embeddedNames.NATIVE_SUPERCLASS_TAG_NAME,
-          'allowNativesSubclassing': true});
   }
 }

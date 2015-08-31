@@ -48,8 +48,7 @@ class ApiMessageReader : public BaseReader {
   // recommended.
   ApiMessageReader(const uint8_t* buffer,
                    intptr_t length,
-                   ReAlloc alloc,
-                   bool use_vm_isolate_snapshot = true);
+                   ReAlloc alloc);
   ~ApiMessageReader() { }
 
   Dart_CObject* ReadMessage();
@@ -147,7 +146,6 @@ class ApiMessageReader : public BaseReader {
   ApiGrowableArray<BackRefNode*> backward_references_;
   ApiGrowableArray<Dart_CObject*> vm_isolate_references_;
   Dart_CObject** vm_symbol_references_;
-  intptr_t max_vm_isolate_object_id_;
 
   Dart_CObject type_arguments_marker;
   Dart_CObject dynamic_type_marker;
@@ -202,7 +200,6 @@ class ApiMessageWriter : public BaseWriter {
   Dart_CObject** forward_list_;
   intptr_t forward_list_length_;
   intptr_t forward_id_;
-  intptr_t max_vm_isolate_object_id_;
 
   DISALLOW_COPY_AND_ASSIGN(ApiMessageWriter);
 };

@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'memory_compiler.dart' show compilerFor, OutputCollector;
+import 'memory_compiler.dart' show runCompiler, OutputCollector;
 
 const MEMORY_SOURCE_FILES = const <String, String> {
   'main.dart': """
@@ -39,24 +39,22 @@ class Super {
 """
 };
 
-runTest(bool preserveUris) {
+runTest(bool preserveUris) async {
   OutputCollector collector = new OutputCollector();
   var options = ["--minify"];
   if (preserveUris) options.add("--preserve-uris");
-  var compiler = compilerFor(MEMORY_SOURCE_FILES,
-                             outputProvider: collector,
-                             options: options);
-  return compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
-    String jsOutput = collector.getOutput('', 'js');
-    Expect.equals(preserveUris, jsOutput.contains("main.dart"));
-    Expect.equals(preserveUris, jsOutput.contains("lib.dart"));
-  });
+  await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      outputProvider: collector,
+      options: options);
+  String jsOutput = collector.getOutput('', 'js');
+  Expect.equals(preserveUris, jsOutput.contains("main.dart"));
+  Expect.equals(preserveUris, jsOutput.contains("lib.dart"));
 }
 
 void main() {
-  asyncStart();
-  new Future.value()
-    .then((_) => runTest(true))
-    .then((_) => runTest(false))
-    .whenComplete(asyncEnd);
+  asyncTest(() async {
+    await runTest(true);
+    await runTest(false);
+  });
 }

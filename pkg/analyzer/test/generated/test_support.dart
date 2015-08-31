@@ -551,7 +551,7 @@ class TestLogger implements Logger {
 class TestSource extends Source {
   String _name;
   String _contents;
-  int modificationStamp = 0;
+  int _modificationStamp = 0;
   bool exists2 = true;
 
   /**
@@ -559,6 +559,9 @@ class TestSource extends Source {
    * is made to access the contents of this source.
    */
   bool generateExceptionOnRead = false;
+
+  @override
+  int get modificationStamp => generateExceptionOnRead ? -1 : _modificationStamp;
 
   /**
    * The number of times that the contents of this source have been requested.
@@ -611,7 +614,8 @@ class TestSource extends Source {
     return new Uri(scheme: 'file', path: _name).resolveUri(uri);
   }
   void setContents(String value) {
-    modificationStamp = new DateTime.now().millisecondsSinceEpoch;
+    generateExceptionOnRead = false;
+    _modificationStamp = new DateTime.now().millisecondsSinceEpoch;
     _contents = value;
   }
   @override

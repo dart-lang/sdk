@@ -9,12 +9,14 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:compiler/compiler.dart' as api;
+import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/js_backend.dart'
     show JavaScriptBackend;
 import 'package:compiler/src/resolution/resolution.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/tree/tree.dart';
+import 'package:compiler/src/old_to_new_api.dart';
 import 'package:compiler/src/util/util.dart';
 import 'parser_helper.dart';
 
@@ -92,7 +94,7 @@ class MockCompiler extends Compiler {
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
               showPackageWarnings: true,
-              outputProvider: outputProvider) {
+              outputProvider: new LegacyCompilerOutput(outputProvider)) {
     this.disableInlining = disableInlining;
 
     deferredLoadTask = new MockDeferredLoadTask(this);
@@ -164,8 +166,9 @@ class MockCompiler extends Compiler {
   // warnings.
   void reportWarning(Spannable node, MessageKind messageKind,
                      [Map arguments = const {}]) {
+    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
     reportDiagnostic(node,
-                     messageKind.message(arguments, terseDiagnostics),
+                     template.message(arguments, terseDiagnostics),
                      api.Diagnostic.WARNING);
   }
 
@@ -360,6 +363,12 @@ class CollectingTreeElements extends TreeElementMapping {
   void remove(Node node) {
     map.remove(node);
   }
+
+  List<ConstantExpression> get constants {
+    List<ConstantExpression> list = <ConstantExpression>[];
+    forEachConstantNode((_, c) => list.add(c));
+    return list;
+  }
 }
 
 // The mock compiler does not split the program in output units.
@@ -382,9 +391,9 @@ api.DiagnosticHandler createHandler(MockCompiler compiler, String text,
       sourceFile = compiler.sourceFiles[uri.toString()];
     }
     if (sourceFile != null && begin != null && end != null) {
-      print(sourceFile.getLocationMessage(message, begin, end));
+      print('${kind}: ${sourceFile.getLocationMessage(message, begin, end)}');
     } else {
-      print(message);
+      print('${kind}: $message');
     }
   };
 }

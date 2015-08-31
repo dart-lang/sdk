@@ -36,6 +36,6 @@ main() {
     var element = cls.lookupLocalMember(name);
     Expect.isNotNull(element);
     Selector selector = new Selector.getter(name, null);
-    Expect.isFalse(compiler.world.hasAnyUserDefinedGetter(selector));
+    Expect.isFalse(compiler.world.hasAnyUserDefinedGetter(selector, null));
   }));
 }

@@ -9,11 +9,10 @@ import 'dart:collection' show Queue;
 import 'dart:profiler' show
     UserTag;
 
-import '../compiler.dart' as api;
+import '../compiler_new.dart' as api;
 import 'cache_strategy.dart';
 import 'closure.dart' as closureMapping;
 import 'compile_time_constants.dart';
-import 'constant_system_dart.dart';
 import 'constants/constant_system.dart';
 import 'constants/expressions.dart';
 import 'constants/values.dart';
@@ -44,6 +43,7 @@ import 'library_loader.dart'
          LibraryLoaderTask,
          LoadedLibraries;
 import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
+import 'null_compiler_output.dart';
 import 'native/native.dart' as native;
 import 'ordered_typeset.dart';
 import 'patch_parser.dart';
@@ -53,16 +53,18 @@ import 'resolution/semantic_visitor.dart';
 import 'resolution/send_structure.dart';
 import 'resolution/operators.dart' as op;
 import 'scanner/scannerlib.dart';
+import 'serialization/task.dart';
 import 'ssa/ssa.dart';
 import 'io/source_file.dart' show SourceFile;
 import 'tracer.dart' show Tracer;
 import 'tree/tree.dart';
 import 'types/types.dart' as ti;
 import 'universe/universe.dart';
+import 'universe/class_set.dart';
 import 'util/characters.dart' show $_;
 import 'util/uri_extras.dart' as uri_extras show relativize;
 import 'util/util.dart';
-import 'dart_backend/dart_backend.dart';
+import 'warnings.dart';
 
 export 'helpers/helpers.dart';
 export 'resolution/resolution.dart' show TreeElements, TreeElementMapping;
@@ -76,6 +78,7 @@ export 'util/util.dart'
     show Spannable,
          CURRENT_ELEMENT_SPANNABLE,
          NO_LOCATION_SPANNABLE;
+export 'warnings.dart';
 
 part 'compiler.dart';
 part 'diagnostic_listener.dart';
@@ -83,5 +86,4 @@ part 'enqueue.dart';
 part 'resolved_visitor.dart';
 part 'script.dart';
 part 'typechecker.dart';
-part 'warnings.dart';
 part 'world.dart';

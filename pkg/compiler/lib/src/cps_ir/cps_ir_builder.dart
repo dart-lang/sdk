@@ -6,18 +6,22 @@ library dart2js.ir_builder;
 
 import '../compile_time_constants.dart' show BackendConstantEnvironment;
 import '../constants/constant_system.dart';
-import '../constants/expressions.dart';
 import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../dart_types.dart';
 import '../dart2jslib.dart';
 import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
+import '../types/types.dart' show TypeMask;
 import '../closure.dart' hide ClosureScope;
 import '../universe/universe.dart' show SelectorKind;
 import 'cps_ir_nodes.dart' as ir;
 import 'cps_ir_builder_task.dart' show DartCapturedVariables,
     GlobalProgramInformation;
+
+import '../common.dart' as types show TypeMask;
+import '../js/js.dart' as js show Template;
+import '../native/native.dart' show NativeBehavior;
 
 /// A mapping from variable elements to their compile-time values.
 ///
@@ -64,24 +68,25 @@ class Environment {
 
   void extend(Local element, ir.Primitive value) {
     // Assert that the name is not already in the environment.  `null` is used
-    // as the name of anonymous variables.  Because the variable2index map is
-    // shared, `null` can already occur.  This is safe because such variables
-    // are not looked up by name.
-    //
-    // TODO(kmillikin): This is still kind of fishy.  Refactor to not share
-    // name maps or else garbage collect unneeded names.
-    assert(element == null || !variable2index.containsKey(element));
-    variable2index[element] = index2variable.length;
+    // as the name of anonymous variables.
+    assert(!variable2index.containsKey(element));
+    if (element != null) variable2index[element] = index2variable.length;
     index2variable.add(element);
     index2value.add(value);
   }
 
-  void discard(int count) {
+  /// Drop [count] values from the environment.
+  ///
+  /// Return the previous last value in the environment for convenience.
+  ir.Primitive discard(int count) {
+    assert(count > 0);
     assert(count <= index2variable.length);
+    ir.Primitive value = index2value.last;
     // The map from variables to their index are shared, so we cannot remove
     // the mapping in `variable2index`.
     index2variable.length -= count;
     index2value.length -= count;
+    return value;
   }
 
   ir.Primitive lookup(Local element) {
@@ -104,10 +109,12 @@ class Environment {
       Local variable = index2variable[i];
       if (variable != other.index2variable[i]) return false;
 
-      // The variable maps to the same index in both environments.
-      int index = variable2index[variable];
-      if (index == null || index != other.variable2index[variable]) {
-        return false;
+      // A named variable maps to the same index in both environments.
+      if (variable != null) {
+        int index = variable2index[variable];
+        if (index == null || index != other.variable2index[variable]) {
+          return false;
+        }
       }
     }
     return true;
@@ -127,7 +134,15 @@ abstract class JumpCollector {
   final List<Iterable<LocalVariableElement>> _boxedTryVariables =
       <Iterable<LocalVariableElement>>[];
 
-  JumpCollector(this._continuationEnvironment, this.target);
+  /// Construct a collector for a given environment and optionally a target.
+  ///
+  /// The environment is the one in effect at the point where the jump's
+  /// continuation will be bound.  Continuations can take an extra argument
+  /// (see [addJump]).
+  JumpCollector(this._continuationEnvironment, this.target,
+      bool hasExtraArgument) {
+    if (hasExtraArgument) _continuationEnvironment.extend(null, null);
+  }
 
   /// True if the collector has not recorded any jumps to its continuation.
   bool get isEmpty;
@@ -140,7 +155,12 @@ abstract class JumpCollector {
   Environment get environment;
 
   /// Emit a jump to the continuation for a given [IrBuilder].
-  void addJump(IrBuilder builder);
+  ///
+  /// Jumps can take a single extra argument.  This is used to pass return
+  /// values to finally blocks for returns inside try/finally and to pass
+  /// values of expressions that have internal control flow to their join-point
+  /// continuations.
+  void addJump(IrBuilder builder, [ir.Primitive value]);
 
   /// Add a set of variables that were boxed on entry to a try block.
   ///
@@ -171,6 +191,12 @@ abstract class JumpCollector {
       }
     }
   }
+
+  /// True if a jump inserted now will escape from a try block.
+  ///
+  /// Concretely, this is true when [enterTry] has been called without
+  /// its corresponding [leaveTry] call.
+  bool get isEscapingTry => _boxedTryVariables.isNotEmpty;
 }
 
 /// A class to collect 'forward' jumps.
@@ -202,8 +228,9 @@ class ForwardJumpCollector extends JumpCollector {
   /// continuation represented by this collector will be bound.  The
   /// environment is copied by the collector.  Subsequent mutation of the
   /// original environment will not affect the collector.
-  ForwardJumpCollector(Environment environment, {JumpTarget target: null})
-      : super(new Environment.from(environment), target);
+  ForwardJumpCollector(Environment environment,
+      {JumpTarget target, bool hasExtraArgument: false})
+      : super(new Environment.from(environment), target, hasExtraArgument);
 
   bool get isEmpty => _invocations.isEmpty;
 
@@ -217,12 +244,21 @@ class ForwardJumpCollector extends JumpCollector {
     return _continuationEnvironment;
   }
 
-  void addJump(IrBuilder builder) {
+  void addJump(IrBuilder builder, [ir.Primitive value]) {
     assert(_continuation == null);
     _buildTryExit(builder);
-    ir.InvokeContinuation invoke = new ir.InvokeContinuation.uninitialized();
+    ir.InvokeContinuation invoke = new ir.InvokeContinuation.uninitialized(
+        isEscapingTry: isEscapingTry);
     builder.add(invoke);
     _invocations.add(invoke);
+    // Truncate the environment at the invocation site so it only includes
+    // values that will be continuation arguments.  If an extra value is passed
+    // it will already be included in the continuation environment, but it is
+    // not present in the invocation environment.
+    int delta = builder.environment.length - _continuationEnvironment.length;
+    if (value != null) ++delta;
+    if (delta > 0) builder.environment.discard(delta);
+    if (value != null) builder.environment.extend(null, value);
     _invocationEnvironments.add(builder.environment);
     builder._current = null;
     // TODO(kmillikin): Can we set builder.environment to null to make it
@@ -304,8 +340,9 @@ class BackwardJumpCollector extends JumpCollector {
   /// continuation represented by this collector will be bound.  The
   /// translation of the continuation body will use an environment with the
   /// same shape, but with fresh continuation parameters for each variable.
-  BackwardJumpCollector(Environment environment, {JumpTarget target: null})
-      : super(new Environment.fresh(environment), target) {
+  BackwardJumpCollector(Environment environment,
+      {JumpTarget target, bool hasExtraArgument: false})
+      : super(new Environment.fresh(environment), target, hasExtraArgument) {
     List<ir.Parameter> parameters =
         new List<ir.Parameter>.from(_continuationEnvironment.index2value);
     _continuation = new ir.Continuation(parameters, isRecursive: true);
@@ -316,14 +353,22 @@ class BackwardJumpCollector extends JumpCollector {
   ir.Continuation get continuation => _continuation;
   Environment get environment => _continuationEnvironment;
 
-  void addJump(IrBuilder builder) {
+  void addJump(IrBuilder builder, [ir.Primitive value]) {
     assert(_continuation.parameters.length <= builder.environment.length);
     isEmpty = false;
     _buildTryExit(builder);
+    // Truncate the environment at the invocation site so it only includes
+    // values that will be continuation arguments.  If an extra value is passed
+    // it will already be included in the continuation environment, but it is
+    // not present in the invocation environment.
+    int delta = builder.environment.length - _continuationEnvironment.length;
+    if (value != null) ++delta;
+    if (delta > 0) builder.environment.discard(delta);
+    if (value != null) builder.environment.extend(null, value);
     builder.add(new ir.InvokeContinuation(_continuation,
-        builder.environment.index2value.take(_continuation.parameters.length)
-            .toList(),
-        isRecursive: true));
+        builder.environment.index2value,
+        isRecursive: true,
+        isEscapingTry: isEscapingTry));
     builder._current = null;
   }
 }
@@ -385,33 +430,45 @@ abstract class IrBuilderMixin<N> {
 
 /// Shared state between delimited IrBuilders within the same function.
 class IrBuilderSharedState {
+  final GlobalProgramInformation program;
+
   final BackendConstantEnvironment constants;
 
   ConstantSystem get constantSystem => constants.constantSystem;
 
   /// A stack of collectors for breaks.
-  final List<JumpCollector> breakCollectors = <JumpCollector>[];
+  List<JumpCollector> breakCollectors = <JumpCollector>[];
 
   /// A stack of collectors for continues.
-  final List<JumpCollector> continueCollectors = <JumpCollector>[];
-
-  final List<ConstDeclaration> localConstants = <ConstDeclaration>[];
+  List<JumpCollector> continueCollectors = <JumpCollector>[];
 
   final ExecutableElement currentElement;
 
   final ir.Continuation returnContinuation = new ir.Continuation.retrn();
-  ir.Parameter _thisParameter;
-  ir.Parameter enclosingMethodThisParameter;
+
+  /// The target of a return from the function.
+  ///
+  /// A null value indicates that the target is the function's return
+  /// continuation.  Otherwise, when inside the try block of try/finally
+  /// a return is intercepted to give a place to generate the finally code.
+  JumpCollector returnCollector = null;
+
+  /// Parameter holding the internal value of 'this' passed to the function.
+  ///
+  /// For nested functions, this is *not* captured receiver, but the function
+  /// object itself.
+  ir.Parameter thisParameter;
+
+  /// If non-null, this refers to the receiver (`this`) in the enclosing method.
+  ir.Primitive enclosingThis;
 
   final List<ir.Parameter> functionParameters = <ir.Parameter>[];
 
-  IrBuilderSharedState(this.constants, this.currentElement);
+  /// Maps boxed locals to their location. These locals are not part of
+  /// the environment.
+  final Map<Local, ClosureLocation> boxedVariables = {};
 
-  ir.Parameter get thisParameter => _thisParameter;
-  void set thisParameter(ir.Parameter value) {
-    assert(_thisParameter == null);
-    _thisParameter = value;
-  }
+  IrBuilderSharedState(this.program, this.constants, this.currentElement);
 }
 
 class ThisParameterLocal implements Local {
@@ -421,72 +478,24 @@ class ThisParameterLocal implements Local {
   toString() => 'ThisParameterLocal($executableContext)';
 }
 
-/// A factory for building the cps IR.
+/// The IR builder maintains an environment and an IR fragment.
 ///
-/// [DartIrBuilder] and [JsIrBuilder] implement nested functions and captured
-/// variables in different ways.
-abstract class IrBuilder {
-  IrBuilder _makeInstance();
-
-  void declareLocalVariable(LocalVariableElement element,
-                            {ir.Primitive initialValue});
-
-  /// Called when entering a nested function with free variables.
-  ///
-  /// The free variables must subsequently be accessible using [buildLocalGet]
-  /// and [buildLocalSet].
-  void _enterClosureEnvironment(ClosureEnvironment env);
-
-  /// Called when entering a function body or loop body.
-  ///
-  /// This is not called for for-loops, which instead use the methods
-  /// [_enterForLoopInitializer], [_enterForLoopBody], and [_enterForLoopUpdate]
-  /// due to their special scoping rules.
-  ///
-  /// The boxed variables declared in this scope must subsequently be available
-  /// using [buildLocalGet], [buildLocalSet], etc.
-  void _enterScope(ClosureScope scope);
-
-  /// Called before building the initializer of a for-loop.
-  ///
-  /// The loop variables will subsequently be declared using
-  /// [declareLocalVariable].
-  void _enterForLoopInitializer(ClosureScope scope,
-                                List<LocalElement> loopVariables);
-
-  /// Called before building the body of a for-loop.
-  void _enterForLoopBody(ClosureScope scope,
-                         List<LocalElement> loopVariables);
-
-  /// Called before building the update of a for-loop.
-  void _enterForLoopUpdate(ClosureScope scope,
-                           List<LocalElement> loopVariables);
-
-  /// Add the given function parameter to the IR, and bind it in the environment
-  /// or put it in its box, if necessary.
-  void _createFunctionParameter(Local parameterElement);
-  void _createThisParameter();
-
-  /// Reifies the value of [variable] on the current receiver object.
-  ir.Primitive buildReifyTypeVariable(TypeVariableType variable);
-
-  /// Creates an access to the receiver from the current (or enclosing) method.
-  ///
-  /// If inside a closure class, [buildThis] will redirect access through
-  /// closure fields in order to access the receiver from the enclosing method.
-  ir.Primitive buildThis();
-
-  /// Creates a type test or type cast of [value] against [type].
-  ir.Primitive buildTypeOperator(ir.Primitive value,
-                                 DartType type,
-                                 {bool isTypeTest});
-
-  // TODO(johnniwinther): Make these field final and remove the default values
-  // when [IrBuilder] is a property of [IrBuilderVisitor] instead of a mixin.
-
+/// The IR fragment is an expression with a hole in it. The hole represents
+/// the focus where new expressions can be added. The fragment is implemented
+/// by [_root] which is the root of the expression and [_current] which is the
+/// expression that immediately contains the hole. Not all expressions have a
+/// hole (e.g., invocations, which always occur in tail position, do not have a
+/// hole). Expressions with a hole have a plug method.
+///
+/// The environment maintains the reaching definition of each local variable,
+/// including some synthetic locals such as [TypeVariableLocal].
+///
+/// Internally, IR builders also maintains a [JumpCollector] stack and tracks
+/// which variables are currently boxed or held in a mutable local variable.
+class IrBuilder {
   final List<ir.Parameter> _parameters = <ir.Parameter>[];
 
-  IrBuilderSharedState state;
+  final IrBuilderSharedState state;
 
   /// A map from variable indexes to their values.
   ///
@@ -500,6 +509,36 @@ abstract class IrBuilder {
   /// side effects.
   Map<Local, ir.MutableVariable> mutableVariables;
 
+  ir.Expression _root = null;
+  ir.Expression _current = null;
+
+  GlobalProgramInformation get program => state.program;
+
+  IrBuilder(GlobalProgramInformation program,
+            BackendConstantEnvironment constants,
+            ExecutableElement currentElement)
+    : state = new IrBuilderSharedState(program, constants, currentElement),
+      environment = new Environment.empty(),
+      mutableVariables = <Local, ir.MutableVariable>{};
+
+  IrBuilder._internal(this.state, this.environment, this.mutableVariables);
+
+  /// Construct a delimited visitor for visiting a subtree.
+  ///
+  /// Build a subterm that is not (yet) connected to the CPS term.  The
+  /// delimited visitor has its own has its own context for building an IR
+  /// expression, so the built expression is not plugged into the parent's
+  /// context.  It has its own compile-time environment mapping local
+  /// variables to their values.  If an optional environment argument is
+  /// supplied, it is used as the builder's initial environment.  Otherwise
+  /// the environment is initially a copy of the parent builder's environment.
+  IrBuilder makeDelimitedBuilder([Environment env = null]) {
+    return new IrBuilder._internal(
+        state,
+        env != null ? env : new Environment.from(environment),
+        mutableVariables);
+  }
+
   /// True if [local] should currently be accessed from a [ir.MutableVariable].
   bool isInMutableVariable(Local local) {
     return mutableVariables.containsKey(local);
@@ -507,7 +546,8 @@ abstract class IrBuilder {
 
   /// Creates a [ir.MutableVariable] for the given local.
   void makeMutableVariable(Local local) {
-    mutableVariables[local] = new ir.MutableVariable(local);
+    mutableVariables[local] =
+        new ir.MutableVariable(local);
   }
 
   /// Remove an [ir.MutableVariable] for a local.
@@ -523,57 +563,6 @@ abstract class IrBuilder {
     return mutableVariables[local];
   }
 
-  // The IR builder maintains a context, which is an expression with a hole in
-  // it.  The hole represents the focus where new expressions can be added.
-  // The context is implemented by 'root' which is the root of the expression
-  // and 'current' which is the expression that immediately contains the hole.
-  // Not all expressions have a hole (e.g., invocations, which always occur in
-  // tail position, do not have a hole).  Expressions with a hole have a plug
-  // method.
-  //
-  // Conceptually, visiting a statement takes a context as input and returns
-  // either a new context or else an expression without a hole if all
-  // control-flow paths through the statement have exited.  An expression
-  // without a hole is represented by a (root, current) pair where root is the
-  // expression and current is null.
-  //
-  // Conceptually again, visiting an expression takes a context as input and
-  // returns either a pair of a new context and a definition denoting
-  // the expression's value, or else an expression without a hole if all
-  // control-flow paths through the expression have exited.
-  //
-  // We do not pass contexts as arguments or return them.  Rather we use the
-  // current context (root, current) as the visitor state and mutate current.
-  // Visiting a statement returns null; visiting an expression returns the
-  // primitive denoting its value.
-
-  ir.Expression _root = null;
-  ir.Expression _current = null;
-
-  /// Initialize a new top-level IR builder.
-  void _init(BackendConstantEnvironment constants,
-             ExecutableElement currentElement) {
-    state = new IrBuilderSharedState(constants, currentElement);
-    environment = new Environment.empty();
-    mutableVariables = <Local, ir.MutableVariable>{};
-  }
-
-  /// Construct a delimited visitor for visiting a subtree.
-  ///
-  /// Build a subterm that is not (yet) connected to the CPS term.  The
-  /// delimited visitor has its own has its own context for building an IR
-  /// expression, so the built expression is not plugged into the parent's
-  /// context.  It has its own compile-time environment mapping local
-  /// variables to their values.  If an optional environment argument is
-  /// supplied, it is used as the builder's initial environment.  Otherwise
-  /// the environment is initially a copy of the parent builder's environment.
-  IrBuilder makeDelimitedBuilder([Environment env = null]) {
-    return _makeInstance()
-        ..state = state
-        ..environment = env != null ? env : new Environment.from(environment)
-        ..mutableVariables = mutableVariables;
-  }
-
   bool get isOpen => _root == null || _current != null;
 
   List<ir.Primitive> buildFunctionHeader(Iterable<Local> parameters,
@@ -587,18 +576,11 @@ abstract class IrBuilder {
   }
 
   /// Creates a parameter for [local] and adds it to the current environment.
-  ir.Parameter createLocalParameter(Local local) {
+  ir.Parameter _createLocalParameter(Local local) {
     ir.Parameter parameter = new ir.Parameter(local);
     _parameters.add(parameter);
     environment.extend(local, parameter);
     return parameter;
-  }
-
-  /// Adds the constant [variableElement] to the environment with [value] as its
-  /// constant value.
-  void declareLocalConstant(LocalVariableElement variableElement,
-                            ConstantExpression value) {
-    state.localConstants.add(new ConstDeclaration(variableElement, value));
   }
 
   /// Plug an expression into the 'hole' in the context being accumulated.  The
@@ -643,82 +625,74 @@ abstract class IrBuilder {
 
   ir.Primitive _buildInvokeSuper(Element target,
                                  Selector selector,
-                                 List<ir.Primitive> arguments) {
+                                 List<ir.Primitive> arguments,
+                                 SourceInformation sourceInformation) {
     assert(target.isInstanceMember);
     assert(isOpen);
     return _continueWithExpression(
         (k) => new ir.InvokeMethodDirectly(
-            buildThis(), target, selector, arguments, k));
+            buildThis(), target, selector, arguments, k, sourceInformation));
   }
 
   ir.Primitive _buildInvokeDynamic(ir.Primitive receiver,
                                    Selector selector,
+                                   TypeMask mask,
                                    List<ir.Primitive> arguments,
-                                   {SourceInformation sourceInformation}) {
+                                   SourceInformation sourceInformation) {
     assert(isOpen);
     return _continueWithExpression(
-        (k) => new ir.InvokeMethod(receiver, selector, arguments, k,
-            sourceInformation: sourceInformation));
+        (k) => new ir.InvokeMethod(receiver, selector, mask, arguments, k,
+                                   sourceInformation));
   }
 
   ir.Primitive _buildInvokeCall(ir.Primitive target,
                                 CallStructure callStructure,
+                                TypeMask mask,
                                 List<ir.Definition> arguments,
                                 {SourceInformation sourceInformation}) {
     Selector selector = callStructure.callSelector;
-    return _buildInvokeDynamic(target, selector, arguments,
-        sourceInformation: sourceInformation);
+    return _buildInvokeDynamic(
+        target, selector, mask, arguments, sourceInformation);
   }
 
 
-  /// Create a [ir.Constant] from [constant] and add it to the CPS term.
-  // TODO(johnniwinther): Remove [value] when [ConstantValue] can be computed
-  // directly from [constant].
-  ir.Constant buildConstant(ConstantExpression constant, ConstantValue value) {
+  /// Create a [ir.Constant] from [value] and add it to the CPS term.
+  ir.Constant buildConstant(ConstantValue value,
+                            {SourceInformation sourceInformation}) {
     assert(isOpen);
-    return addPrimitive(new ir.Constant(constant, value));
+    return addPrimitive(
+        new ir.Constant(value, sourceInformation: sourceInformation));
   }
 
   /// Create an integer constant and add it to the CPS term.
   ir.Constant buildIntegerConstant(int value) {
-    return buildConstant(
-        new IntConstantExpression(value),
-        state.constantSystem.createInt(value));
+    return buildConstant(state.constantSystem.createInt(value));
   }
 
   /// Create a double constant and add it to the CPS term.
   ir.Constant buildDoubleConstant(double value) {
-    return buildConstant(
-        new DoubleConstantExpression(value),
-        state.constantSystem.createDouble(value));
+    return buildConstant(state.constantSystem.createDouble(value));
   }
 
   /// Create a Boolean constant and add it to the CPS term.
   ir.Constant buildBooleanConstant(bool value) {
-    return buildConstant(
-        new BoolConstantExpression(value),
-        state.constantSystem.createBool(value));
+    return buildConstant(state.constantSystem.createBool(value));
   }
 
   /// Create a null constant and add it to the CPS term.
   ir.Constant buildNullConstant() {
-    return buildConstant(
-        new NullConstantExpression(),
-        state.constantSystem.createNull());
+    return buildConstant(state.constantSystem.createNull());
   }
 
   /// Create a string constant and add it to the CPS term.
   ir.Constant buildStringConstant(String value) {
     return buildConstant(
-        new StringConstantExpression(value),
         state.constantSystem.createString(new ast.DartString.literal(value)));
   }
 
   /// Create a string constant and add it to the CPS term.
   ir.Constant buildDartStringConstant(ast.DartString value) {
-    return buildConstant(
-        new StringConstantExpression(value.slowToString()),
-        state.constantSystem.createString(value));
+    return buildConstant(state.constantSystem.createString(value));
   }
 
   /// Creates a non-constant list literal of the provided [type] and with the
@@ -768,20 +742,10 @@ abstract class IrBuilder {
     // expressions cannot introduce variable bindings.
     assert(environment.length == thenBuilder.environment.length);
     assert(environment.length == elseBuilder.environment.length);
-    // Extend the join-point environment with a placeholder for the value of
-    // the expression.  Optimistically assume that the value is the value of
-    // the first subexpression.  This value might noe even be in scope at the
-    // join-point because it's bound in the first subexpression.  However, if
-    // that is the case, it will necessarily differ from the value of the
-    // other subexpression and cause the introduction of a join-point
-    // continuation parameter.  If the two values do happen to be the same,
-    // this will avoid inserting a useless continuation parameter.
-    environment.extend(null, thenValue);
-    thenBuilder.environment.extend(null, thenValue);
-    elseBuilder.environment.extend(null, elseValue);
-    JumpCollector join = new ForwardJumpCollector(environment);
-    thenBuilder.jumpTo(join);
-    elseBuilder.jumpTo(join);
+    JumpCollector join =
+        new ForwardJumpCollector(environment, hasExtraArgument: true);
+    thenBuilder.jumpTo(join, thenValue);
+    elseBuilder.jumpTo(join, elseValue);
 
     // Build the term
     //   let cont join(x, ..., result) = [] in
@@ -794,16 +758,12 @@ abstract class IrBuilder {
     thenContinuation.body = thenBuilder._root;
     elseContinuation.body = elseBuilder._root;
     add(new ir.LetCont(join.continuation,
-            new ir.LetCont.many(<ir.Continuation>[thenContinuation,
-                                                  elseContinuation],
+            new ir.LetCont.two(thenContinuation, elseContinuation,
                 new ir.Branch(new ir.IsTrue(condition),
                               thenContinuation,
                               elseContinuation))));
     environment = join.environment;
-    environment.discard(1);
-    return (thenValue == elseValue)
-        ? thenValue
-        : join.continuation.parameters.last;
+    return environment.discard(1);
   }
 
   /**
@@ -837,82 +797,74 @@ abstract class IrBuilder {
   /// Create a invocation of the [method] on the super class where the call
   /// structure is defined [callStructure] and the argument values are defined
   /// by [arguments].
-  ir.Primitive buildSuperMethodInvocation(MethodElement method,
-                                          CallStructure callStructure,
-                                          List<ir.Primitive> arguments) {
+  ir.Primitive buildSuperMethodInvocation(
+      MethodElement method,
+      CallStructure callStructure,
+      List<ir.Primitive> arguments,
+      {SourceInformation sourceInformation}) {
     // TODO(johnniwinther): This shouldn't be necessary.
     SelectorKind kind = Elements.isOperatorName(method.name)
         ? SelectorKind.OPERATOR : SelectorKind.CALL;
     Selector selector =
         new Selector(kind, method.memberName, callStructure);
-    return _buildInvokeSuper(method, selector, arguments);
-  }
-
-  /// Create a read access of the [field] on the super class.
-  ir.Primitive buildSuperFieldGet(FieldElement field) {
-    // TODO(johnniwinther): This should have its own ir node.
-    return _buildInvokeSuper(
-        field,
-        new Selector.getter(field.name, field.library),
-        const <ir.Primitive>[]);
+    return _buildInvokeSuper(method, selector, arguments, sourceInformation);
   }
 
   /// Create a read access of the [method] on the super class, i.e. a
   /// closurization of [method].
-  ir.Primitive buildSuperMethodGet(MethodElement method) {
+  ir.Primitive buildSuperMethodGet(MethodElement method,
+                                   {SourceInformation sourceInformation}) {
     // TODO(johnniwinther): This should have its own ir node.
     return _buildInvokeSuper(
         method,
         new Selector.getter(method.name, method.library),
-        const <ir.Primitive>[]);
+        const <ir.Primitive>[],
+        sourceInformation);
   }
 
   /// Create a getter invocation of the [getter] on the super class.
-  ir.Primitive buildSuperGetterGet(MethodElement getter) {
+  ir.Primitive buildSuperGetterGet(MethodElement getter,
+                                   SourceInformation sourceInformation) {
     // TODO(johnniwinther): This should have its own ir node.
     return _buildInvokeSuper(
         getter,
         new Selector.getter(getter.name, getter.library),
-        const <ir.Primitive>[]);
-  }
-
-  /// Create a write access to the [field] on the super class of with [value].
-  ir.Primitive buildSuperFieldSet(Element field, ir.Primitive value) {
-    // TODO(johnniwinther): This should have its own ir node.
-    _buildInvokeSuper(
-        field,
-        new Selector.setter(field.name, field.library),
-        <ir.Primitive>[value]);
-    return value;
+        const <ir.Primitive>[],
+        sourceInformation);
   }
 
   /// Create an setter invocation of the [setter] on the super class with
   /// [value].
   ir.Primitive buildSuperSetterSet(MethodElement setter,
-                                          ir.Primitive value) {
+                                   ir.Primitive value,
+                                   {SourceInformation sourceInformation}) {
     // TODO(johnniwinther): This should have its own ir node.
     _buildInvokeSuper(
         setter,
         new Selector.setter(setter.name, setter.library),
-        <ir.Primitive>[value]);
+        <ir.Primitive>[value],
+        sourceInformation);
     return value;
   }
 
   /// Create an invocation of the index [method] on the super class with
   /// the provided [index].
   ir.Primitive buildSuperIndex(MethodElement method,
-                               ir.Primitive index) {
+                               ir.Primitive index,
+                               {SourceInformation sourceInformation}) {
     return _buildInvokeSuper(
-        method, new Selector.index(), <ir.Primitive>[index]);
+        method, new Selector.index(), <ir.Primitive>[index],
+        sourceInformation);
   }
 
   /// Create an invocation of the index set [method] on the super class with
   /// the provided [index] and [value].
   ir.Primitive buildSuperIndexSet(MethodElement method,
                                   ir.Primitive index,
-                                  ir.Primitive value) {
+                                  ir.Primitive value,
+                                  {SourceInformation sourceInformation}) {
     _buildInvokeSuper(method, new Selector.indexSet(),
-        <ir.Primitive>[index, value]);
+        <ir.Primitive>[index, value], sourceInformation);
     return value;
   }
 
@@ -921,51 +873,63 @@ abstract class IrBuilder {
   /// defined by [arguments].
   ir.Primitive buildDynamicInvocation(ir.Primitive receiver,
                                       Selector selector,
-                                      List<ir.Primitive> arguments) {
-    return _buildInvokeDynamic(receiver, selector, arguments);
+                                      TypeMask mask,
+                                      List<ir.Primitive> arguments,
+                                      {SourceInformation sourceInformation}) {
+    return _buildInvokeDynamic(
+        receiver, selector, mask, arguments, sourceInformation);
   }
-
-  /// Create an if-null expression. This is equivalent to a conditional
-  /// expression whose result is either [value] if [value] is not null, or
-  /// `right` if [value] is null. Only when [value] is null, [buildRight] is
-  /// evaluated to produce the `right` value.
-  ir.Primitive buildIfNull(ir.Primitive value,
-                           ir.Primitive buildRight(IrBuilder builder));
-
-  /// Create a conditional send. This is equivalent to a conditional expression
-  /// that checks if [receiver] is null, if so, it returns null, otherwise it
-  /// evaluates the [buildSend] expression.
-  ir.Primitive buildIfNotNullSend(ir.Primitive receiver,
-                                  ir.Primitive buildSend(IrBuilder builder));
 
   /// Create a dynamic getter invocation on [receiver] where the getter name is
   /// defined by [selector].
-  ir.Primitive buildDynamicGet(ir.Primitive receiver, Selector selector) {
+  ir.Primitive buildDynamicGet(ir.Primitive receiver,
+                               Selector selector,
+                               TypeMask mask,
+                               SourceInformation sourceInformation) {
     assert(selector.isGetter);
-    return _buildInvokeDynamic(receiver, selector, const <ir.Primitive>[]);
+    FieldElement field = program.locateSingleField(selector, mask);
+    if (field != null) {
+      // If the world says this resolves to a unique field, then it MUST be
+      // treated as a field access, since the getter might not be emitted.
+      return buildFieldGet(receiver, field);
+    } else {
+      return _buildInvokeDynamic(
+          receiver, selector, mask, const <ir.Primitive>[], sourceInformation);
+    }
   }
 
   /// Create a dynamic setter invocation on [receiver] where the setter name and
   /// argument are defined by [selector] and [value], respectively.
   ir.Primitive buildDynamicSet(ir.Primitive receiver,
                                Selector selector,
-                               ir.Primitive value) {
+                               TypeMask mask,
+                               ir.Primitive value,
+                               {SourceInformation sourceInformation}) {
     assert(selector.isSetter);
-    _buildInvokeDynamic(receiver, selector, <ir.Primitive>[value]);
+    FieldElement field = program.locateSingleField(selector, mask);
+    if (field != null) {
+      // If the world says this resolves to a unique field, then it MUST be
+      // treated as a field access, since the setter might not be emitted.
+      buildFieldSet(receiver, field, value);
+    } else {
+      _buildInvokeDynamic(receiver, selector, mask, <ir.Primitive>[value],
+                          sourceInformation);
+    }
     return value;
   }
 
   /// Create a dynamic index set invocation on [receiver] with the provided
   /// [index] and [value].
-  ir.Primitive  buildDynamicIndexSet(ir.Primitive receiver,
-                                     ir.Primitive index,
-                                     ir.Primitive value) {
+  ir.Primitive buildDynamicIndexSet(ir.Primitive receiver,
+                                    TypeMask mask,
+                                    ir.Primitive index,
+                                    ir.Primitive value,
+                                    {SourceInformation sourceInformation}) {
     _buildInvokeDynamic(
-        receiver, new Selector.indexSet(), <ir.Primitive>[index, value]);
+        receiver, new Selector.indexSet(), mask, <ir.Primitive>[index, value],
+        sourceInformation);
     return value;
   }
-
-  ir.Primitive _buildLocalGet(LocalElement element);
 
   /// Create a read access of the [local] variable or parameter.
   ir.Primitive buildLocalVariableGet(LocalElement local) {
@@ -980,18 +944,17 @@ abstract class IrBuilder {
     return _buildLocalGet(function);
   }
 
-  /// Create a write access to the [local] variable or parameter with the
-  /// provided [value].
-  ir.Primitive buildLocalVariableSet(LocalElement local, ir.Primitive value);
-
   /// Create an invocation of the the [local] variable or parameter where
   /// argument structure is defined by [callStructure] and the argument values
   /// are defined by [arguments].
-  ir.Primitive buildLocalVariableInvocation(LocalVariableElement local,
-                                            CallStructure callStructure,
-                                            List<ir.Primitive> arguments) {
+  ir.Primitive buildLocalVariableInvocation(
+      LocalVariableElement local,
+      CallStructure callStructure,
+      List<ir.Primitive> arguments,
+      {SourceInformation callSourceInformation}) {
     return buildCallInvocation(
-        buildLocalVariableGet(local), callStructure, arguments);
+        buildLocalVariableGet(local), callStructure, arguments,
+        sourceInformation: callSourceInformation);
   }
 
   /// Create an invocation of the local [function] where argument structure is
@@ -1000,10 +963,12 @@ abstract class IrBuilder {
   ir.Primitive buildLocalFunctionInvocation(
       LocalFunctionElement function,
       CallStructure callStructure,
-      List<ir.Primitive> arguments) {
+      List<ir.Primitive> arguments,
+      SourceInformation sourceInformation) {
     // TODO(johnniwinther): Maybe this should have its own ir node.
     return buildCallInvocation(
-        buildLocalFunctionGet(function), callStructure, arguments);
+        buildLocalFunctionGet(function), callStructure, arguments,
+        sourceInformation: sourceInformation);
   }
 
   /// Create a static invocation of [function] where argument structure is
@@ -1036,7 +1001,7 @@ abstract class IrBuilder {
 
   /// Create a getter invocation of the static [getter].
   ir.Primitive buildStaticGetterGet(MethodElement getter,
-                                    {SourceInformation sourceInformation}) {
+                                    SourceInformation sourceInformation) {
     Selector selector = new Selector.getter(getter.name, getter.library);
     return _buildInvokeStatic(
         getter, selector, const <ir.Primitive>[], sourceInformation);
@@ -1053,7 +1018,7 @@ abstract class IrBuilder {
   ir.Primitive buildStaticFieldSet(FieldElement field,
                                    ir.Primitive value,
                                    [SourceInformation sourceInformation]) {
-    add(new ir.SetStatic(field, value, sourceInformation));
+    addPrimitive(new ir.SetStatic(field, value, sourceInformation));
     return value;
   }
 
@@ -1078,29 +1043,28 @@ abstract class IrBuilder {
     return _buildInvokeStatic(element, selector, arguments, null);
   }
 
-  /// Create a constructor invocation of [element] on [type] where the
-  /// constructor name and argument structure are defined by [callStructure] and
-  /// the argument values are defined by [arguments].
-  ir.Primitive buildConstructorInvocation(FunctionElement element,
-                                          CallStructure callStructure,
-                                          DartType type,
-                                          List<ir.Primitive> arguments);
-
-  /// Create a string concatenation of the [arguments].
-  ir.Primitive buildStringConcatenation(List<ir.Primitive> arguments) {
+  /// Concatenate string values.
+  ///
+  /// The arguments must be strings; usually a call to [buildStringify] is
+  /// needed to ensure the proper conversion takes places.
+  ir.Primitive buildStringConcatenation(List<ir.Primitive> arguments,
+                                        {SourceInformation sourceInformation}) {
     assert(isOpen);
-    return _continueWithExpression(
-        (k) => new ir.ConcatenateStrings(arguments, k));
+    return addPrimitive(new ir.ApplyBuiltinOperator(
+        ir.BuiltinOperator.StringConcatenate,
+        arguments,
+        sourceInformation));
   }
 
   /// Create an invocation of the `call` method of [functionExpression], where
   /// the structure of arguments are given by [callStructure].
+  // TODO(johnniwinther): This should take a [TypeMask].
   ir.Primitive buildCallInvocation(
       ir.Primitive functionExpression,
       CallStructure callStructure,
       List<ir.Definition> arguments,
       {SourceInformation sourceInformation}) {
-    return _buildInvokeCall(functionExpression, callStructure, arguments,
+    return _buildInvokeCall(functionExpression, callStructure, null, arguments,
         sourceInformation: sourceInformation);
   }
 
@@ -1181,8 +1145,8 @@ abstract class IrBuilder {
     }
   }
 
-  void jumpTo(JumpCollector collector) {
-    collector.addJump(this);
+  void jumpTo(JumpCollector collector, [ir.Primitive value]) {
+    collector.addJump(this, value);
   }
 
   void addRecursiveContinuation(BackwardJumpCollector collector) {
@@ -1309,8 +1273,7 @@ abstract class IrBuilder {
     // Note the order of continuations: the first one is the one that will
     // be filled by LetCont.plug.
     ir.LetCont branch =
-        new ir.LetCont.many(<ir.Continuation>[exitContinuation,
-                                              bodyContinuation],
+        new ir.LetCont.two(exitContinuation, bodyContinuation,
             new ir.Branch(new ir.IsTrue(condition),
                           bodyContinuation,
                           exitContinuation));
@@ -1351,6 +1314,10 @@ abstract class IrBuilder {
                    SubbuildFunction buildVariableDeclaration,
                    Element variableElement,
                    Selector variableSelector,
+                   TypeMask variableMask,
+                   TypeMask currentMask,
+                   TypeMask iteratorMask,
+                   TypeMask moveNextMask,
                    SubbuildFunction buildBody,
                    JumpTarget target,
                    ClosureScope closureScope}) {
@@ -1378,6 +1345,7 @@ abstract class IrBuilder {
     add(new ir.LetCont(iteratorInvoked,
         new ir.InvokeMethod(expressionReceiver,
             new Selector.getter("iterator", null),
+            iteratorMask,
             emptyArguments,
             iteratorInvoked)));
 
@@ -1394,6 +1362,7 @@ abstract class IrBuilder {
     add(new ir.LetCont(moveNextInvoked,
         new ir.InvokeMethod(iterator,
             new Selector.call("moveNext", null, 0),
+            moveNextMask,
             emptyArguments,
             moveNextInvoked)));
 
@@ -1413,7 +1382,10 @@ abstract class IrBuilder {
     ir.Parameter currentValue = new ir.Parameter(null);
     ir.Continuation currentInvoked = new ir.Continuation([currentValue]);
     bodyBuilder.add(new ir.LetCont(currentInvoked,
-        new ir.InvokeMethod(iterator, new Selector.getter("current", null),
+        new ir.InvokeMethod(
+            iterator,
+            new Selector.getter("current", null),
+            currentMask,
             emptyArguments, currentInvoked)));
     // TODO(sra): Does this cover all cases? The general setter case include
     // super.
@@ -1433,7 +1405,8 @@ abstract class IrBuilder {
     } else {
       ir.Primitive receiver = bodyBuilder.buildThis();
       assert(receiver != null);
-      bodyBuilder.buildDynamicSet(receiver, variableSelector, currentValue);
+      bodyBuilder.buildDynamicSet(
+          receiver, variableSelector, variableMask, currentValue);
     }
 
     // Translate the body in the hole in the delimited term above, and add
@@ -1460,8 +1433,7 @@ abstract class IrBuilder {
     // Note the order of continuations: the first one is the one that will
     // be filled by LetCont.plug.
     ir.LetCont branch =
-        new ir.LetCont.many(<ir.Continuation>[exitContinuation,
-                                              bodyContinuation],
+        new ir.LetCont.two(exitContinuation, bodyContinuation,
             new ir.Branch(new ir.IsTrue(condition),
                           bodyContinuation,
                           exitContinuation));
@@ -1536,8 +1508,7 @@ abstract class IrBuilder {
     // Note the order of continuations: the first one is the one that will
     // be filled by LetCont.plug.
     ir.LetCont branch =
-        new ir.LetCont.many(<ir.Continuation>[exitContinuation,
-                                              bodyContinuation],
+        new ir.LetCont.two(exitContinuation, bodyContinuation,
             new ir.Branch(new ir.IsTrue(condition),
                           bodyContinuation,
                           exitContinuation));
@@ -1623,8 +1594,7 @@ abstract class IrBuilder {
     repeatContinuation.body = repeatBuilder._root;
 
     continueBuilder.add(
-        new ir.LetCont.many(<ir.Continuation>[exitContinuation,
-                                              repeatContinuation],
+        new ir.LetCont.two(exitContinuation, repeatContinuation,
             new ir.Branch(new ir.IsTrue(condition),
                           repeatContinuation,
                           exitContinuation)));
@@ -1644,28 +1614,157 @@ abstract class IrBuilder {
     environment = breakCollector.environment;
   }
 
-  /// Creates a try-statement.
+  void buildSimpleSwitch(JumpTarget target,
+                         ir.Primitive value,
+                         List<SwitchCaseInfo> cases,
+                         SwitchCaseInfo defaultCase,
+                         Element error,
+                         SourceInformation sourceInformation) {
+    assert(isOpen);
+    JumpCollector join = new ForwardJumpCollector(environment, target: target);
+
+    IrBuilder casesBuilder = makeDelimitedBuilder();
+    casesBuilder.state.breakCollectors.add(join);
+    for (SwitchCaseInfo caseInfo in cases) {
+      buildConditionsFrom(int index) => (IrBuilder builder) {
+        ir.Primitive comparison = builder.buildIdentical(
+            value, caseInfo.constants[index]);
+        return (index == caseInfo.constants.length - 1)
+            ? comparison
+            : builder.buildLogicalOperator(
+                comparison, buildConditionsFrom(index + 1), isLazyOr: true);
+      };
+
+      ir.Primitive condition = buildConditionsFrom(0)(casesBuilder);
+      IrBuilder thenBuilder = makeDelimitedBuilder();
+      caseInfo.buildBody(thenBuilder);
+      if (thenBuilder.isOpen) {
+        // It is a runtime error to reach the end of a switch case, unless
+        // it is the last case.
+        if (caseInfo == cases.last && defaultCase == null) {
+          thenBuilder.jumpTo(join);
+        } else {
+          ir.Primitive exception = thenBuilder._buildInvokeStatic(
+              error,
+              new Selector.fromElement(error),
+              <ir.Primitive>[],
+              sourceInformation);
+          thenBuilder.buildThrow(exception);
+        }
+      }
+
+      ir.Continuation thenContinuation = new ir.Continuation([]);
+      thenContinuation.body = thenBuilder._root;
+      ir.Continuation elseContinuation = new ir.Continuation([]);
+      // A LetCont.many term has a hole as the body of the first listed
+      // continuation, to be plugged by the translation.  Therefore put the
+      // else continuation first.
+      casesBuilder.add(
+          new ir.LetCont.two(elseContinuation, thenContinuation,
+              new ir.Branch(new ir.IsTrue(condition),
+                            thenContinuation,
+                            elseContinuation)));
+    }
+
+    if (defaultCase != null) {
+      defaultCase.buildBody(casesBuilder);
+    }
+    if (casesBuilder.isOpen) casesBuilder.jumpTo(join);
+
+    casesBuilder.state.breakCollectors.removeLast();
+
+    if (!join.isEmpty) {
+      add(new ir.LetCont(join.continuation, casesBuilder._root));
+      environment = join.environment;
+    } else if (casesBuilder._root != null) {
+      add(casesBuilder._root);
+      _current = casesBuilder._current;
+      environment = casesBuilder.environment;
+    } else {
+      // The translation of the cases did not emit any code.
+    }
+  }
+
+  /// Utility function to translate try/catch into the IR.
   ///
-  /// [tryInfo] provides information on local variables declared and boxed
-  /// within this try statement.
+  /// The translation treats try/finally and try/catch/finally as if they
+  /// were macro-expanded into try/catch.  This utility function generates
+  /// that try/catch.  The function is parameterized over a list of variables
+  /// that should be boxed on entry to the try, and over functions to emit
+  /// code for entering the try, building the try body, leaving the try body,
+  /// building the catch body, and leaving the entire try/catch.
+  ///
+  /// Please see the function's implementation for where these functions are
+  /// called.
+  void _helpBuildTryCatch(TryStatementInfo variables,
+      void enterTry(IrBuilder builder),
+      SubbuildFunction buildTryBlock,
+      void leaveTry(IrBuilder builder),
+      List<ir.Parameter> buildCatch(IrBuilder builder, JumpCollector join),
+      void leaveTryCatch(IrBuilder builder, JumpCollector join,
+          ir.Expression body)) {
+    JumpCollector join = new ForwardJumpCollector(environment);
+    IrBuilder tryCatchBuilder = makeDelimitedBuilder();
+
+    // Variables treated as mutable in a try are not mutable outside of it.
+    // Work with a copy of the outer builder's mutable variables.
+    tryCatchBuilder.mutableVariables =
+        new Map<Local, ir.MutableVariable>.from(mutableVariables);
+    for (LocalVariableElement variable in variables.boxedOnEntry) {
+      assert(!tryCatchBuilder.isInMutableVariable(variable));
+      ir.Primitive value = tryCatchBuilder.buildLocalVariableGet(variable);
+      tryCatchBuilder.makeMutableVariable(variable);
+      tryCatchBuilder.declareLocalVariable(variable, initialValue: value);
+    }
+
+    IrBuilder tryBuilder = tryCatchBuilder.makeDelimitedBuilder();
+    enterTry(tryBuilder);
+    buildTryBlock(tryBuilder);
+    if (tryBuilder.isOpen) {
+      join.enterTry(variables.boxedOnEntry);
+      tryBuilder.jumpTo(join);
+      join.leaveTry();
+    }
+    leaveTry(tryBuilder);
+
+    IrBuilder catchBuilder = tryCatchBuilder.makeDelimitedBuilder();
+    for (LocalVariableElement variable in variables.boxedOnEntry) {
+      assert(catchBuilder.isInMutableVariable(variable));
+      ir.Primitive value = catchBuilder.buildLocalVariableGet(variable);
+      // After this point, the variables that were boxed on entry to the try
+      // are no longer treated as mutable.
+      catchBuilder.removeMutableVariable(variable);
+      catchBuilder.environment.update(variable, value);
+    }
+
+    List<ir.Parameter> catchParameters = buildCatch(catchBuilder, join);
+    ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
+    catchContinuation.body = catchBuilder._root;
+    tryCatchBuilder.add(
+        new ir.LetHandler(catchContinuation, tryBuilder._root));
+
+    leaveTryCatch(this, join, tryCatchBuilder._root);
+  }
+
+  /// Translates a try/catch.
+  ///
+  /// [variables] provides information on local variables declared and boxed
+  /// within the try body.
   /// [buildTryBlock] builds the try block.
   /// [catchClauseInfos] provides access to the catch type, exception variable,
   /// and stack trace variable, and a function for building the catch block.
-  void buildTry(
-      {TryStatementInfo tryStatementInfo,
-       SubbuildFunction buildTryBlock,
-       List<CatchClauseInfo> catchClauseInfos: const <CatchClauseInfo>[],
-       ClosureClassMap closureClassMap}) {
+  void buildTryCatch(TryStatementInfo variables,
+                     SubbuildFunction buildTryBlock,
+                     List<CatchClauseInfo> catchClauseInfos) {
     assert(isOpen);
-
     // Catch handlers are in scope for their body.  The CPS translation of
-    // [[try tryBlock catch (e) catchBlock; successor]] is:
+    // [[try tryBlock catch (ex, st) catchBlock; successor]] is:
     //
     // let cont join(v0, v1, ...) = [[successor]] in
     //   let mutable m0 = x0 in
     //     let mutable m1 = x1 in
     //       ...
-    //       let handler catch_(e) =
+    //       let handler catch_(ex, st) =
     //         let prim p0 = GetMutable(m0) in
     //           let prim p1 = GetMutable(m1) in
     //             ...
@@ -1687,130 +1786,225 @@ abstract class IrBuilder {
     // scope of the handler.  The mutable bindings are dereferenced at the end
     // of the try block and at the beginning of the catch block, so the
     // variables are unboxed in the catch block and at the join point.
-    JumpCollector join = new ForwardJumpCollector(environment);
-    IrBuilder tryCatchBuilder = makeDelimitedBuilder();
 
-    // Variables treated as mutable in a try are not mutable outside of it.
-    // Work with a copy of the outer builder's mutable variables.
-    tryCatchBuilder.mutableVariables =
-        new Map<Local, ir.MutableVariable>.from(mutableVariables);
-    for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
-      assert(!tryCatchBuilder.isInMutableVariable(variable));
-      ir.Primitive value = tryCatchBuilder.buildLocalVariableGet(variable);
-      tryCatchBuilder.makeMutableVariable(variable);
-      tryCatchBuilder.declareLocalVariable(variable, initialValue: value);
-    }
-
-    IrBuilder tryBuilder = tryCatchBuilder.makeDelimitedBuilder();
-
-    void interceptJumps(JumpCollector collector) {
-      collector.enterTry(tryStatementInfo.boxedOnEntry);
-    }
-    void restoreJumps(JumpCollector collector) {
-      collector.leaveTry();
-    }
-    tryBuilder.state.breakCollectors.forEach(interceptJumps);
-    tryBuilder.state.continueCollectors.forEach(interceptJumps);
-    buildTryBlock(tryBuilder);
-    if (tryBuilder.isOpen) {
-      interceptJumps(join);
-      tryBuilder.jumpTo(join);
-      restoreJumps(join);
-    }
-    tryBuilder.state.breakCollectors.forEach(restoreJumps);
-    tryBuilder.state.continueCollectors.forEach(restoreJumps);
-
-    IrBuilder catchBuilder = tryCatchBuilder.makeDelimitedBuilder();
-    for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
-      assert(catchBuilder.isInMutableVariable(variable));
-      ir.Primitive value = catchBuilder.buildLocalVariableGet(variable);
-      // After this point, the variables that were boxed on entry to the try
-      // are no longer treated as mutable.
-      catchBuilder.removeMutableVariable(variable);
-      catchBuilder.environment.update(variable, value);
-    }
-
-    // Handlers are always translated as having both exception and stack trace
-    // parameters.  Multiple clauses do not have to use the same names for
-    // them.  Choose the first of each as the name hint for the respective
-    // handler parameter.
-    ir.Parameter exceptionParameter =
-        new ir.Parameter(catchClauseInfos.first.exceptionVariable);
-    LocalVariableElement traceVariable;
-    CatchClauseInfo catchAll;
-    for (int i = 0; i < catchClauseInfos.length; ++i) {
-      CatchClauseInfo info = catchClauseInfos[i];
-      if (info.type == null) {
-        catchAll = info;
-        catchClauseInfos.length = i;
-        break;
+    void enterTry(IrBuilder builder) {
+      // On entry to try of try/catch, update the builder's state to reflect the
+      // variables that have been boxed.
+      void interceptJump(JumpCollector collector) {
+        collector.enterTry(variables.boxedOnEntry);
       }
-      if (traceVariable == null) {
-        traceVariable = info.stackTraceVariable;
-      }
-    }
-    ir.Parameter traceParameter = new ir.Parameter(traceVariable);
-    // Expand multiple catch clauses into an explicit if/then/else.  Iterate
-    // them in reverse so the current block becomes the next else block.
-    ir.Expression catchBody;
-    if (catchAll == null) {
-      catchBody = new ir.Rethrow();
-    } else {
-      IrBuilder clauseBuilder = catchBuilder.makeDelimitedBuilder();
-      clauseBuilder.declareLocalVariable(catchAll.exceptionVariable,
-                                         initialValue: exceptionParameter);
-      if (catchAll.stackTraceVariable != null) {
-        clauseBuilder.declareLocalVariable(catchAll.stackTraceVariable,
-                                           initialValue: traceParameter);
-      }
-      catchAll.buildCatchBlock(clauseBuilder);
-      if (clauseBuilder.isOpen) clauseBuilder.jumpTo(join);
-      catchBody = clauseBuilder._root;
-    }
-    for (CatchClauseInfo clause in catchClauseInfos.reversed) {
-      IrBuilder clauseBuilder = catchBuilder.makeDelimitedBuilder();
-      clauseBuilder.declareLocalVariable(clause.exceptionVariable,
-                                         initialValue: exceptionParameter);
-      if (clause.stackTraceVariable != null) {
-        clauseBuilder.declareLocalVariable(clause.stackTraceVariable,
-                                           initialValue: traceParameter);
-      }
-      clause.buildCatchBlock(clauseBuilder);
-      if (clauseBuilder.isOpen) clauseBuilder.jumpTo(join);
-      ir.Continuation thenContinuation = new ir.Continuation([]);
-      thenContinuation.body = clauseBuilder._root;
-      ir.Continuation elseContinuation = new ir.Continuation([]);
-      elseContinuation.body = catchBody;
-
-      // Build the type test guarding this clause. We can share the environment
-      // with the nested builder because this part cannot mutate it.
-      IrBuilder checkBuilder = catchBuilder.makeDelimitedBuilder(environment);
-      ir.Primitive typeMatches =
-          checkBuilder.buildTypeOperator(exceptionParameter,
-                                         clause.type,
-                                         isTypeTest: true);
-      checkBuilder.add(new ir.LetCont.many([thenContinuation, elseContinuation],
-                           new ir.Branch(new ir.IsTrue(typeMatches),
-                                         thenContinuation,
-                                         elseContinuation)));
-      catchBody = checkBuilder._root;
+      builder.state.breakCollectors.forEach(interceptJump);
+      builder.state.continueCollectors.forEach(interceptJump);
     }
 
-    List<ir.Parameter> catchParameters =
-        <ir.Parameter>[exceptionParameter, traceParameter];
-    ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
-    catchBuilder.add(catchBody);
-    catchContinuation.body = catchBuilder._root;
+    void leaveTry(IrBuilder builder) {
+      // On exit from try of try/catch, update the builder's state to reflect
+      // the variables that are no longer boxed.
+      void restoreJump(JumpCollector collector) {
+        collector.leaveTry();
+      }
+      builder.state.breakCollectors.forEach(restoreJump);
+      builder.state.continueCollectors.forEach(restoreJump);
+    }
 
-    tryCatchBuilder.add(
-        new ir.LetHandler(catchContinuation, tryBuilder._root));
-    add(new ir.LetCont(join.continuation, tryCatchBuilder._root));
-    environment = join.environment;
+    List<ir.Parameter> buildCatch(IrBuilder builder,
+                                  JumpCollector join) {
+      // Translate the catch clauses.  Multiple clauses are translated as if
+      // they were explicitly cascaded if/else type tests.
+
+      // Handlers are always translated as having both exception and stack trace
+      // parameters.  Multiple clauses do not have to use the same names for
+      // them.  Choose the first of each as the name hint for the respective
+      // handler parameter.
+      ir.Parameter exceptionParameter =
+          new ir.Parameter(catchClauseInfos.first.exceptionVariable);
+      LocalVariableElement traceVariable;
+      CatchClauseInfo catchAll;
+      for (int i = 0; i < catchClauseInfos.length; ++i) {
+        CatchClauseInfo info = catchClauseInfos[i];
+        if (info.type == null) {
+          catchAll = info;
+          catchClauseInfos.length = i;
+          break;
+        }
+        if (traceVariable == null) {
+          traceVariable = info.stackTraceVariable;
+        }
+      }
+      ir.Parameter traceParameter = new ir.Parameter(traceVariable);
+
+      ir.Expression buildCatchClause(CatchClauseInfo clause) {
+        IrBuilder clauseBuilder = builder.makeDelimitedBuilder();
+        if (clause.exceptionVariable != null) {
+          clauseBuilder.declareLocalVariable(clause.exceptionVariable,
+              initialValue: exceptionParameter);
+        }
+        if (clause.stackTraceVariable != null) {
+          clauseBuilder.declareLocalVariable(clause.stackTraceVariable,
+              initialValue: traceParameter);
+        }
+        clause.buildCatchBlock(clauseBuilder);
+        if (clauseBuilder.isOpen) clauseBuilder.jumpTo(join);
+        return clauseBuilder._root;
+      }
+
+      // Expand multiple catch clauses into an explicit if/then/else.  Iterate
+      // them in reverse so the current block becomes the next else block.
+      ir.Expression catchBody = (catchAll == null)
+          ? new ir.Rethrow()
+          : buildCatchClause(catchAll);
+      for (CatchClauseInfo clause in catchClauseInfos.reversed) {
+        ir.Continuation thenContinuation = new ir.Continuation([]);
+        ir.Continuation elseContinuation = new ir.Continuation([]);
+        thenContinuation.body = buildCatchClause(clause);
+        elseContinuation.body = catchBody;
+
+        // Build the type test guarding this clause. We can share the
+        // environment with the nested builder because this part cannot mutate
+        // it.
+        IrBuilder checkBuilder = builder.makeDelimitedBuilder(environment);
+        ir.Primitive typeMatches =
+            checkBuilder.buildTypeOperator(exceptionParameter,
+                clause.type,
+                isTypeTest: true);
+        checkBuilder.add(new ir.LetCont.two(thenContinuation, elseContinuation,
+                new ir.Branch(new ir.IsTrue(typeMatches),
+                    thenContinuation,
+                    elseContinuation)));
+        catchBody = checkBuilder._root;
+      }
+      builder.add(catchBody);
+
+      return <ir.Parameter>[exceptionParameter, traceParameter];
+    }
+
+    void leaveTryCatch(IrBuilder builder, JumpCollector join,
+                       ir.Expression body) {
+      // Add the binding for the join-point continuation and continue the
+      // translation in its body.
+      builder.add(new ir.LetCont(join.continuation, body));
+      builder.environment = join.environment;
+    }
+
+    _helpBuildTryCatch(variables, enterTry, buildTryBlock, leaveTry,
+        buildCatch, leaveTryCatch);
+  }
+
+  /// Translates a try/finally.
+  ///
+  /// [variables] provides information on local variables declared and boxed
+  /// within the try body.
+  /// [buildTryBlock] builds the try block.
+  /// [buildFinallyBlock] builds the finally block.
+  void buildTryFinally(TryStatementInfo variables,
+                       SubbuildFunction buildTryBlock,
+                       SubbuildFunction buildFinallyBlock) {
+    assert(isOpen);
+    // Try/finally is implemented in terms of try/catch and by duplicating the
+    // code for finally at all exits.  The encoding is:
+    //
+    // try tryBlock finally finallyBlock
+    // ==>
+    // try tryBlock catch (ex, st) { finallyBlock; rethrow } finallyBlock
+    //
+    // Where in tryBlock, all of the break, continue, and return exits are
+    // translated as jumps to continuations (bound outside the catch handler)
+    // that include the finally code followed by a break, continue, or
+    // return respectively.
+
+    List<JumpCollector> savedBreaks, newBreaks, savedContinues, newContinues;
+    JumpCollector savedReturn, newReturn;
+    void enterTry(IrBuilder builder) {
+      // On entry to the try of try/finally, update the builder's state to
+      // relfect the variables that have been boxed.  Then intercept all break,
+      // continue, and return jumps out of the try so that they can go to
+      // continuations that include the finally code.
+      JumpCollector interceptJump(JumpCollector collector) {
+        JumpCollector result =
+            new ForwardJumpCollector(environment, target: collector.target);
+        result.enterTry(variables.boxedOnEntry);
+        return result;
+      }
+      savedBreaks = builder.state.breakCollectors;
+      savedContinues = builder.state.continueCollectors;
+      savedReturn = builder.state.returnCollector;
+
+      builder.state.breakCollectors = newBreaks =
+          savedBreaks.map(interceptJump).toList();
+      builder.state.continueCollectors = newContinues =
+          savedContinues.map(interceptJump).toList();
+      builder.state.returnCollector = newReturn =
+          new ForwardJumpCollector(environment, hasExtraArgument: true)
+              ..enterTry(variables.boxedOnEntry);
+    }
+
+    void leaveTry(IrBuilder builder) {
+      // On exit from the try of try/finally, update the builder's state to
+      // reflect the variables that are no longer boxed and restore the
+      // original, unintercepted break, continue, and return targets.
+      void restoreJump(JumpCollector collector) {
+        collector.leaveTry();
+      }
+      newBreaks.forEach(restoreJump);
+      newContinues.forEach(restoreJump);
+      newReturn.leaveTry();
+      builder.state.breakCollectors = savedBreaks;
+      builder.state.continueCollectors = savedContinues;
+      builder.state.returnCollector = savedReturn;
+    }
+
+    List<ir.Parameter> buildCatch(IrBuilder builder,
+                                  JumpCollector join) {
+      // The catch block of the try/catch used for try/finally is the finally
+      // code followed by a rethrow.
+      buildFinallyBlock(builder);
+      if (builder.isOpen) {
+        builder.add(new ir.Rethrow());
+        builder._current = null;
+      }
+      return <ir.Parameter>[new ir.Parameter(null), new ir.Parameter(null)];
+    }
+
+    void leaveTryCatch(IrBuilder builder, JumpCollector join,
+                       ir.Expression body) {
+      // Build a list of continuations for jumps from the try block and
+      // duplicate the finally code before jumping to the actual target.
+      List<ir.Continuation> exits = <ir.Continuation>[join.continuation];
+      void addJump(JumpCollector newCollector,
+                   JumpCollector originalCollector) {
+        if (newCollector.isEmpty) return;
+        IrBuilder builder = makeDelimitedBuilder(newCollector.environment);
+        buildFinallyBlock(builder);
+        if (builder.isOpen) builder.jumpTo(originalCollector);
+        newCollector.continuation.body = builder._root;
+        exits.add(newCollector.continuation);
+      }
+      for (int i = 0; i < newBreaks.length; ++i) {
+        addJump(newBreaks[i], savedBreaks[i]);
+      }
+      for (int i = 0; i < newContinues.length; ++i) {
+        addJump(newContinues[i], savedContinues[i]);
+      }
+      if (!newReturn.isEmpty) {
+        IrBuilder builder = makeDelimitedBuilder(newReturn.environment);
+        ir.Primitive value = builder.environment.discard(1);
+        buildFinallyBlock(builder);
+        if (builder.isOpen) builder.buildReturn(value: value);
+        newReturn.continuation.body = builder._root;
+        exits.add(newReturn.continuation);
+      }
+      builder.add(new ir.LetCont.many(exits, body));
+      builder.environment = join.environment;
+      buildFinallyBlock(builder);
+    }
+
+    _helpBuildTryCatch(variables, enterTry, buildTryBlock, leaveTry,
+        buildCatch, leaveTryCatch);
   }
 
   /// Create a return statement `return value;` or `return;` if [value] is
   /// null.
-  void buildReturn([ir.Primitive value]) {
+  void buildReturn({ir.Primitive value, SourceInformation sourceInformation}) {
     // Build(Return(e), C) = C'[InvokeContinuation(return, x)]
     //   where (C', x) = Build(e, C)
     //
@@ -1819,8 +2013,16 @@ abstract class IrBuilder {
     if (value == null) {
       value = buildNullConstant();
     }
-    add(new ir.InvokeContinuation(state.returnContinuation, [value]));
-    _current = null;
+    if (state.returnCollector == null) {
+      add(new ir.InvokeContinuation(state.returnContinuation, [value],
+              sourceInformation: sourceInformation));
+      _current = null;
+    } else {
+      // Inside the try block of try/finally, all returns go to a join-point
+      // continuation that contains the finally code.  The return value is
+      // passed as an extra argument.
+      jumpTo(state.returnCollector, value);
+    }
   }
 
   /// Create a blocks of [statements] by applying [build] to all reachable
@@ -1904,7 +2106,10 @@ abstract class IrBuilder {
 
   ir.Primitive buildNonTailThrow(ir.Primitive value) {
     assert(isOpen);
-    return addPrimitive(new ir.NonTailThrow(value));
+    ir.Parameter param = new ir.Parameter(null);
+    ir.Continuation cont = new ir.Continuation(<ir.Parameter>[param]);
+    add(new ir.LetCont(cont, new ir.Throw(value)));
+    return param;
   }
 
   void buildRethrow() {
@@ -1925,9 +2130,7 @@ abstract class IrBuilder {
     ir.Continuation elseContinuation = new ir.Continuation([]);
 
     ir.Constant makeBoolConstant(bool value) {
-      return new ir.Constant(
-          new BoolConstantExpression(value),
-          state.constantSystem.createBool(value));
+      return new ir.Constant(state.constantSystem.createBool(value));
     }
 
     ir.Constant trueConstant = makeBoolConstant(true);
@@ -1939,8 +2142,7 @@ abstract class IrBuilder {
         ..plug(new ir.InvokeContinuation(joinContinuation, [trueConstant]));
 
     add(new ir.LetCont(joinContinuation,
-          new ir.LetCont.many(<ir.Continuation>[thenContinuation,
-                                                elseContinuation],
+          new ir.LetCont.two(thenContinuation, elseContinuation,
               new ir.Branch(new ir.IsTrue(condition),
                             thenContinuation,
                             elseContinuation))));
@@ -1979,24 +2181,19 @@ abstract class IrBuilder {
     ir.Constant rightTrue = rightTrueBuilder.buildBooleanConstant(true);
     ir.Constant rightFalse = rightFalseBuilder.buildBooleanConstant(false);
 
-    // Treat the result values as named values in the environment, so they
-    // will be treated as arguments to the join-point continuation.
+    // Result values are passed as continuation arguments, which are
+    // constructed based on environments.  These assertions are a sanity check.
     assert(environment.length == emptyBuilder.environment.length);
     assert(environment.length == rightTrueBuilder.environment.length);
     assert(environment.length == rightFalseBuilder.environment.length);
-    // Treat the value of the expression as a local variable so it will get
-    // a continuation parameter.
-    environment.extend(null, null);
-    emptyBuilder.environment.extend(null, leftBool);
-    rightTrueBuilder.environment.extend(null, rightTrue);
-    rightFalseBuilder.environment.extend(null, rightFalse);
 
     // Wire up two continuations for the left subexpression, two continuations
     // for the right subexpression, and a three-way join continuation.
-    JumpCollector join = new ForwardJumpCollector(environment);
-    emptyBuilder.jumpTo(join);
-    rightTrueBuilder.jumpTo(join);
-    rightFalseBuilder.jumpTo(join);
+    JumpCollector join =
+        new ForwardJumpCollector(environment, hasExtraArgument: true);
+    emptyBuilder.jumpTo(join, leftBool);
+    rightTrueBuilder.jumpTo(join, rightTrue);
+    rightFalseBuilder.jumpTo(join, rightFalse);
     ir.Continuation leftTrueContinuation = new ir.Continuation([]);
     ir.Continuation leftFalseContinuation = new ir.Continuation([]);
     ir.Continuation rightTrueContinuation = new ir.Continuation([]);
@@ -2005,8 +2202,7 @@ abstract class IrBuilder {
     rightFalseContinuation.body = rightFalseBuilder._root;
     // The right subexpression has two continuations.
     rightBuilder.add(
-        new ir.LetCont.many(<ir.Continuation>[rightTrueContinuation,
-                                              rightFalseContinuation],
+        new ir.LetCont.two(rightTrueContinuation, rightFalseContinuation,
             new ir.Branch(new ir.IsTrue(rightValue),
                           rightTrueContinuation,
                           rightFalseContinuation)));
@@ -2022,62 +2218,25 @@ abstract class IrBuilder {
     }
 
     add(new ir.LetCont(join.continuation,
-            new ir.LetCont.many(<ir.Continuation>[leftTrueContinuation,
-                                                  leftFalseContinuation],
+            new ir.LetCont.two(leftTrueContinuation, leftFalseContinuation,
                 new ir.Branch(new ir.IsTrue(leftValue),
                               leftTrueContinuation,
                               leftFalseContinuation))));
     environment = join.environment;
-    environment.discard(1);
-    // There is always a join parameter for the result value, because it
-    // is different on at least two paths.
-    return join.continuation.parameters.last;
-  }
-}
-
-/// State shared between JsIrBuilders within the same function.
-///
-/// Note that this is not shared between builders of nested functions.
-class JsIrBuilderSharedState {
-  /// Maps boxed locals to their location. These locals are not part of
-  /// the environment.
-  final Map<Local, ClosureLocation> boxedVariables = {};
-
-  /// If non-null, this refers to the receiver (`this`) in the enclosing method.
-  ir.Primitive receiver;
-
-  /// `true` when we are currently building expressions inside the initializer
-  /// list of a constructor.
-  bool inInitializers = false;
-}
-
-/// JS-specific subclass of [IrBuilder].
-///
-/// Inner functions are represented by a [ClosureClassElement], and captured
-/// variables are boxed as necessary using [CreateBox], [GetField], [SetField].
-class JsIrBuilder extends IrBuilder {
-  final JsIrBuilderSharedState jsState;
-  final GlobalProgramInformation program;
-
-  IrBuilder _makeInstance() => new JsIrBuilder._blank(program, jsState);
-  JsIrBuilder._blank(this.program, this.jsState);
-
-  JsIrBuilder(this.program, BackendConstantEnvironment constants,
-      ExecutableElement currentElement)
-      : jsState = new JsIrBuilderSharedState() {
-    _init(constants, currentElement);
+    return environment.discard(1);
   }
 
-  void enterInitializers() {
-    assert(jsState.inInitializers == false);
-    jsState.inInitializers = true;
+  ir.Primitive buildIdentical(ir.Primitive x, ir.Primitive y,
+                              {SourceInformation sourceInformation}) {
+    return addPrimitive(new ir.ApplyBuiltinOperator(
+        ir.BuiltinOperator.Identical, <ir.Primitive>[x, y],
+        sourceInformation));
   }
 
-  void leaveInitializers() {
-    assert(jsState.inInitializers == true);
-    jsState.inInitializers = false;
-  }
-
+  /// Called when entering a nested function with free variables.
+  ///
+  /// The free variables must subsequently be accessible using [buildLocalGet]
+  /// and [buildLocalSet].
   void _enterClosureEnvironment(ClosureEnvironment env) {
     if (env == null) return;
 
@@ -2088,7 +2247,7 @@ class JsIrBuilder extends IrBuilder {
     env.freeVariables.forEach((Local local, ClosureLocation location) {
       if (location.isBox) {
         // Boxed variables are loaded from their box on-demand.
-        jsState.boxedVariables[local] = location;
+        state.boxedVariables[local] = location;
       } else {
         // Unboxed variables are loaded from the function object immediately.
         // This includes BoxLocals which are themselves unboxed variables.
@@ -2100,7 +2259,7 @@ class JsIrBuilder extends IrBuilder {
     // If the function captures a reference to the receiver from the
     // enclosing method, remember which primitive refers to the receiver object.
     if (env.thisLocal != null && env.freeVariables.containsKey(env.thisLocal)) {
-      jsState.receiver = environment.lookup(env.thisLocal);
+      state.enclosingThis = environment.lookup(env.thisLocal);
     }
 
     // If the function has a self-reference, use the value of `this`.
@@ -2116,34 +2275,46 @@ class JsIrBuilder extends IrBuilder {
   /// [declareLocalVariable], [buildLocalGet], and [buildLocalSet].
   void enterScope(ClosureScope scope) => _enterScope(scope);
 
+  /// Called when entering a function body or loop body.
+  ///
+  /// This is not called for for-loops, which instead use the methods
+  /// [_enterForLoopInitializer], [_enterForLoopBody], and [_enterForLoopUpdate]
+  /// due to their special scoping rules.
+  ///
+  /// The boxed variables declared in this scope must subsequently be available
+  /// using [buildLocalGet], [buildLocalSet], etc.
   void _enterScope(ClosureScope scope) {
     if (scope == null) return;
     ir.CreateBox boxPrim = addPrimitive(new ir.CreateBox());
     environment.extend(scope.box, boxPrim);
     boxPrim.useElementAsHint(scope.box);
     scope.capturedVariables.forEach((Local local, ClosureLocation location) {
-      assert(!jsState.boxedVariables.containsKey(local));
+      assert(!state.boxedVariables.containsKey(local));
       if (location.isBox) {
-        jsState.boxedVariables[local] = location;
+        state.boxedVariables[local] = location;
       }
     });
   }
 
+  /// Add the given function parameter to the IR, and bind it in the environment
+  /// or put it in its box, if necessary.
   void _createFunctionParameter(Local parameterElement) {
     ir.Parameter parameter = new ir.Parameter(parameterElement);
     _parameters.add(parameter);
     state.functionParameters.add(parameter);
-    ClosureLocation location = jsState.boxedVariables[parameterElement];
+    ClosureLocation location = state.boxedVariables[parameterElement];
     if (location != null) {
-      add(new ir.SetField(environment.lookup(location.box),
-                          location.field,
-                          parameter));
+      addPrimitive(new ir.SetField(
+          environment.lookup(location.box),
+          location.field,
+          parameter));
     } else {
       environment.extend(parameterElement, parameter);
     }
   }
 
   void _createThisParameter() {
+    assert(state.thisParameter == null);
     if (Elements.isStaticOrTopLevel(state.currentElement)) return;
     if (state.currentElement.isLocal) return;
     state.thisParameter =
@@ -2156,14 +2327,16 @@ class JsIrBuilder extends IrBuilder {
     if (initialValue == null) {
       initialValue = buildNullConstant();
     }
-    ClosureLocation location = jsState.boxedVariables[variableElement];
+    ClosureLocation location = state.boxedVariables[variableElement];
     if (location != null) {
-      add(new ir.SetField(environment.lookup(location.box),
-                          location.field,
-                          initialValue));
+      addPrimitive(new ir.SetField(
+          environment.lookup(location.box),
+          location.field,
+          initialValue));
     } else if (isInMutableVariable(variableElement)) {
-      add(new ir.LetMutable(getMutableVariable(variableElement),
-                            initialValue));
+      add(new ir.LetMutable(
+          getMutableVariable(variableElement),
+          initialValue));
     } else {
       initialValue.useElementAsHint(variableElement);
       environment.extend(variableElement, initialValue);
@@ -2172,12 +2345,15 @@ class JsIrBuilder extends IrBuilder {
 
   /// Add [functionElement] to the environment with provided [definition].
   void declareLocalFunction(LocalFunctionElement functionElement,
-                            ClosureClassElement classElement) {
-    ir.Primitive closure = buildFunctionExpression(classElement);
+                            ClosureClassElement classElement,
+                            SourceInformation sourceInformation) {
+    ir.Primitive closure =
+         buildFunctionExpression(classElement, sourceInformation);
     declareLocalVariable(functionElement, initialValue: closure);
   }
 
-  ir.Primitive buildFunctionExpression(ClosureClassElement classElement) {
+  ir.Primitive buildFunctionExpression(ClosureClassElement classElement,
+                                       SourceInformation sourceInformation) {
     List<ir.Primitive> arguments = <ir.Primitive>[];
     for (ClosureFieldElement field in classElement.closureFields) {
       // Captured 'this' is not available as a local in the current environment,
@@ -2187,22 +2363,21 @@ class JsIrBuilder extends IrBuilder {
           : environment.lookup(field.local);
       arguments.add(value);
     }
-    return addPrimitive(
-        new ir.CreateInstance(classElement, arguments, const <ir.Primitive>[]));
+    return addPrimitive(new ir.CreateInstance(
+        classElement, arguments, const <ir.Primitive>[], sourceInformation));
   }
 
   /// Create a read access of [local] variable or parameter.
-  @override
   ir.Primitive _buildLocalGet(LocalElement local) {
     assert(isOpen);
-    ClosureLocation location = jsState.boxedVariables[local];
+    ClosureLocation location = state.boxedVariables[local];
     if (location != null) {
       ir.Primitive result = new ir.GetField(environment.lookup(location.box),
                                             location.field);
       result.useElementAsHint(local);
       return addPrimitive(result);
     } else if (isInMutableVariable(local)) {
-      return addPrimitive(new ir.GetMutableVariable(getMutableVariable(local)));
+      return addPrimitive(new ir.GetMutable(getMutableVariable(local)));
     } else {
       return environment.lookup(local);
     }
@@ -2210,16 +2385,17 @@ class JsIrBuilder extends IrBuilder {
 
   /// Create a write access to [local] variable or parameter with the provided
   /// [value].
-  @override
   ir.Primitive buildLocalVariableSet(LocalElement local, ir.Primitive value) {
     assert(isOpen);
-    ClosureLocation location = jsState.boxedVariables[local];
+    ClosureLocation location = state.boxedVariables[local];
     if (location != null) {
-      add(new ir.SetField(environment.lookup(location.box),
-                          location.field,
-                          value));
+      addPrimitive(new ir.SetField(
+          environment.lookup(location.box),
+          location.field,
+          value));
     } else if (isInMutableVariable(local)) {
-      add(new ir.SetMutableVariable(getMutableVariable(local), value));
+      addPrimitive(new ir.SetMutable(
+          getMutableVariable(local), value));
     } else {
       value.useElementAsHint(local);
       environment.update(local, value);
@@ -2227,6 +2403,10 @@ class JsIrBuilder extends IrBuilder {
     return value;
   }
 
+  /// Called before building the initializer of a for-loop.
+  ///
+  /// The loop variables will subsequently be declared using
+  /// [declareLocalVariable].
   void _enterForLoopInitializer(ClosureScope scope,
                                 List<LocalElement> loopVariables) {
     if (scope == null) return;
@@ -2236,6 +2416,7 @@ class JsIrBuilder extends IrBuilder {
     _enterScope(scope);
   }
 
+  /// Called before building the body of a for-loop.
   void _enterForLoopBody(ClosureScope scope,
                          List<LocalElement> loopVariables) {
     if (scope == null) return;
@@ -2245,6 +2426,7 @@ class JsIrBuilder extends IrBuilder {
     _enterScope(scope);
   }
 
+  /// Called before building the update of a for-loop.
   void _enterForLoopUpdate(ClosureScope scope,
                            List<LocalElement> loopVariables) {
     if (scope == null) return;
@@ -2257,37 +2439,50 @@ class JsIrBuilder extends IrBuilder {
     for (VariableElement loopVar in scope.boxedLoopVariables) {
       ClosureLocation location = scope.capturedVariables[loopVar];
       ir.Primitive value = addPrimitive(new ir.GetField(box, location.field));
-      add(new ir.SetField(newBox, location.field, value));
+      addPrimitive(new ir.SetField(newBox, location.field, value));
     }
     environment.update(scope.box, newBox);
   }
 
+  /// Creates an access to the receiver from the current (or enclosing) method.
+  ///
+  /// If inside a closure class, [buildThis] will redirect access through
+  /// closure fields in order to access the receiver from the enclosing method.
   ir.Primitive buildThis() {
-    if (jsState.receiver != null) return jsState.receiver;
+    if (state.enclosingThis != null) return state.enclosingThis;
     assert(state.thisParameter != null);
     return state.thisParameter;
   }
 
-  @override
+  ir.Primitive buildFieldGet(ir.Primitive receiver, FieldElement target) {
+    return addPrimitive(new ir.GetField(receiver, target));
+  }
+
+  void buildFieldSet(ir.Primitive receiver,
+                     FieldElement target,
+                     ir.Primitive value) {
+    addPrimitive(new ir.SetField(receiver, target, value));
+  }
+
   ir.Primitive buildSuperFieldGet(FieldElement target) {
     return addPrimitive(new ir.GetField(buildThis(), target));
   }
 
-  @override
   ir.Primitive buildSuperFieldSet(FieldElement target, ir.Primitive value) {
-    add(new ir.SetField(buildThis(), target, value));
+    addPrimitive(new ir.SetField(buildThis(), target, value));
     return value;
   }
 
   ir.Primitive buildInvokeDirectly(FunctionElement target,
                                    ir.Primitive receiver,
-                                   List<ir.Primitive> arguments) {
+                                   List<ir.Primitive> arguments,
+                                   {SourceInformation sourceInformation}) {
     assert(isOpen);
     Selector selector =
         new Selector.call(target.name, target.library, arguments.length);
     return _continueWithExpression(
         (k) => new ir.InvokeMethodDirectly(
-            receiver, target, selector, arguments, k));
+            receiver, target, selector, arguments, k, sourceInformation));
   }
 
   /// Loads parameters to a constructor body into the environment.
@@ -2299,19 +2494,23 @@ class JsIrBuilder extends IrBuilder {
                                   ClosureScope closureScope) {
     _createThisParameter();
     for (Local param in parameters) {
-      ir.Parameter parameter = createLocalParameter(param);
+      ir.Parameter parameter = _createLocalParameter(param);
       state.functionParameters.add(parameter);
     }
     if (closureScope != null) {
-      jsState.boxedVariables.addAll(closureScope.capturedVariables);
+      state.boxedVariables.addAll(closureScope.capturedVariables);
     }
   }
 
-  @override
-  ir.Primitive buildConstructorInvocation(ConstructorElement element,
-                                          CallStructure callStructure,
-                                          DartType type,
-                                          List<ir.Primitive> arguments) {
+  /// Create a constructor invocation of [element] on [type] where the
+  /// constructor name and argument structure are defined by [callStructure] and
+  /// the argument values are defined by [arguments].
+  ir.Primitive buildConstructorInvocation(
+      ConstructorElement element,
+      CallStructure callStructure,
+      DartType type,
+      List<ir.Primitive> arguments,
+      SourceInformation sourceInformation) {
     assert(isOpen);
     Selector selector =
         new Selector(SelectorKind.CALL, element.memberName, callStructure);
@@ -2328,14 +2527,15 @@ class JsIrBuilder extends IrBuilder {
           ..addAll(typeArguments);
     }
     return _continueWithExpression(
-        (k) => new ir.InvokeConstructor(type, element, selector,
-            arguments, k));
+        (k) => new ir.InvokeConstructor(
+            type, element, selector, arguments, k, sourceInformation));
   }
 
   ir.Primitive buildTypeExpression(DartType type) {
+    type = program.unaliasType(type);
     if (type is TypeVariableType) {
       return buildTypeVariableAccess(type);
-    } else if (type is InterfaceType) {
+    } else if (type is InterfaceType || type is FunctionType) {
       List<ir.Primitive> arguments = <ir.Primitive>[];
       type.forEachTypeVariable((TypeVariableType variable) {
         ir.Primitive value = buildTypeVariableAccess(variable);
@@ -2356,7 +2556,8 @@ class JsIrBuilder extends IrBuilder {
   /// if we are currently building a constructor field initializer, from the
   /// corresponding type argument (field initializers are evaluated before the
   /// receiver object is created).
-  ir.Primitive buildTypeVariableAccess(TypeVariableType variable) {
+  ir.Primitive buildTypeVariableAccess(TypeVariableType variable,
+                                       {SourceInformation sourceInformation}) {
     // If the local exists in the environment, use that.
     // This is put here when we are inside a constructor or field initializer,
     // (or possibly a closure inside one of these).
@@ -2368,7 +2569,8 @@ class JsIrBuilder extends IrBuilder {
     // If the type variable is not in a local, read its value from the
     // receiver object.
     ir.Primitive target = buildThis();
-    return addPrimitive(new ir.ReadTypeVariable(variable, target));
+    return addPrimitive(
+        new ir.ReadTypeVariable(variable, target, sourceInformation));
   }
 
   /// Make the given type variable accessible through the local environment
@@ -2379,10 +2581,13 @@ class JsIrBuilder extends IrBuilder {
         buildTypeExpression(binding));
   }
 
-  @override
-  ir.Primitive buildReifyTypeVariable(TypeVariableType variable) {
-    ir.Primitive typeArgument = buildTypeVariableAccess(variable);
-    return addPrimitive(new ir.ReifyRuntimeType(typeArgument));
+  /// Reifies the value of [variable] on the current receiver object.
+  ir.Primitive buildReifyTypeVariable(TypeVariableType variable,
+                                      SourceInformation sourceInformation) {
+    ir.Primitive typeArgument =
+        buildTypeVariableAccess(variable, sourceInformation: sourceInformation);
+    return addPrimitive(
+        new ir.ReifyRuntimeType(typeArgument, sourceInformation));
   }
 
   ir.Primitive buildInvocationMirror(Selector selector,
@@ -2390,12 +2595,34 @@ class JsIrBuilder extends IrBuilder {
     return addPrimitive(new ir.CreateInvocationMirror(selector, arguments));
   }
 
-  @override
+  ir.Primitive buildForeignCode(js.Template codeTemplate,
+                                List<ir.Primitive> arguments,
+                                NativeBehavior behavior,
+                                {Element dependency}) {
+    types.TypeMask type = program.getTypeMaskForForeign(behavior);
+    ir.Primitive result = _continueWithExpression((k) => new ir.ForeignCode(
+        codeTemplate,
+        type,
+        arguments,
+        behavior,
+        k,
+        dependency: dependency));
+    if (!codeTemplate.isExpression) {
+      // Close the term if this is a "throw" expression.
+      add(new ir.Unreachable());
+      _current = null;
+    }
+    return result;
+  }
+
+  /// Creates a type test or type cast of [value] against [type].
   ir.Primitive buildTypeOperator(ir.Primitive value,
                                  DartType type,
                                  {bool isTypeTest}) {
     assert(isOpen);
     assert(isTypeTest != null);
+
+    type = program.unaliasType(type);
 
     if (type.isMalformed) {
       FunctionElement helper = program.throwTypeErrorHelper;
@@ -2407,51 +2634,76 @@ class JsIrBuilder extends IrBuilder {
           <ir.Primitive>[message]);
     }
 
+    List<ir.Primitive> typeArguments = const <ir.Primitive>[];
+    if (type is GenericType && type.typeArguments.isNotEmpty) {
+      typeArguments = type.typeArguments.map(buildTypeExpression).toList();
+    } else if (type is TypeVariableType) {
+      typeArguments = <ir.Primitive>[buildTypeVariableAccess(type)];
+    } else if (type is FunctionType) {
+      typeArguments = <ir.Primitive>[buildTypeExpression(type)];
+    }
+
     if (isTypeTest) {
       // For type tests, we must treat specially the rare cases where `null`
       // satisfies the test (which otherwise never satisfies a type test).
       // This is not an optimization: the TypeOperator assumes that `null`
-      // cannot satisfy the type test.
+      // cannot satisfy the type test unless the type is a type variable.
       if (type.isObject || type.isDynamic) {
         // `x is Object` and `x is dynamic` are always true, even if x is null.
         return buildBooleanConstant(true);
       }
       if (type is InterfaceType && type.element == program.nullClass) {
         // `x is Null` is true if and only if x is null.
-        return addPrimitive(new ir.Identical(value, buildNullConstant()));
+        return _buildCheckNull(value);
       }
+      return addPrimitive(new ir.TypeTest(value, type, typeArguments));
+    } else {
+      if (type.isObject || type.isDynamic) {
+        // `x as Object` and `x as dynamic` are the same as `x`.
+        return value;
+      }
+      return _continueWithExpression(
+              (k) => new ir.TypeCast(value, type, typeArguments, k));
     }
-    List<ir.Primitive> typeArguments = const <ir.Primitive>[];
-    if (type is GenericType && type.typeArguments.isNotEmpty) {
-      typeArguments = type.typeArguments.map(buildTypeExpression).toList();
-    } else if (type is TypeVariableType) {
-      typeArguments = <ir.Primitive>[buildTypeVariableAccess(type)];
-    }
-    ir.Primitive check = _continueWithExpression(
-            (k) => new ir.TypeOperator(value,
-                       type, typeArguments, k, isTypeTest: isTypeTest));
-    return check;
   }
 
-  @override
+  /// Create an if-null expression. This is equivalent to a conditional
+  /// expression whose result is either [value] if [value] is not null, or
+  /// `right` if [value] is null. Only when [value] is null, [buildRight] is
+  /// evaluated to produce the `right` value.
   ir.Primitive buildIfNull(ir.Primitive value,
-                           ir.Primitive buildRight(IrBuilder builder)) {
-    ir.Primitive condition = _buildCheckNull(value);
+                           ir.Primitive buildRight(IrBuilder builder),
+                           {SourceInformation sourceInformation}) {
+    ir.Primitive condition =
+        _buildCheckNull(value, sourceInformation: sourceInformation);
     return buildConditional(condition, buildRight, (_) => value);
   }
 
-  @override
+  /// Create a conditional send. This is equivalent to a conditional expression
+  /// that checks if [receiver] is null, if so, it returns null, otherwise it
+  /// evaluates the [buildSend] expression.
   ir.Primitive buildIfNotNullSend(ir.Primitive receiver,
-                                  ir.Primitive buildSend(IrBuilder builder)) {
-    ir.Primitive condition = _buildCheckNull(receiver);
+                                  ir.Primitive buildSend(IrBuilder builder),
+                                  {SourceInformation sourceInformation}) {
+    ir.Primitive condition =
+        _buildCheckNull(receiver, sourceInformation: sourceInformation);
     return buildConditional(condition, (_) => receiver, buildSend);
   }
 
   /// Creates a type test checking whether [value] is null.
-  ir.Primitive _buildCheckNull(ir.Primitive value) {
+  ir.Primitive _buildCheckNull(ir.Primitive value,
+                               {SourceInformation sourceInformation}) {
     assert(isOpen);
-    ir.Primitive right = buildNullConstant();
-    return addPrimitive(new ir.Identical(value, right));
+    return buildIdentical(value, buildNullConstant(),
+        sourceInformation: sourceInformation);
+  }
+
+  /// Convert the given value to a string.
+  ir.Primitive buildStringify(ir.Primitive value) {
+    return buildStaticFunctionInvocation(
+        program.stringifyFunction,
+        new CallStructure.unnamed(1),
+        <ir.Primitive>[value]);
   }
 }
 
@@ -2524,4 +2776,13 @@ class CatchClauseInfo {
                    this.exceptionVariable,
                    this.stackTraceVariable,
                    this.buildCatchBlock});
+}
+
+class SwitchCaseInfo {
+  final List<ir.Primitive> constants = <ir.Primitive>[];
+  final SubbuildFunction buildBody;
+
+  SwitchCaseInfo(this.buildBody);
+
+  void addConstant(ir.Primitive constant) => constants.add(constant);
 }

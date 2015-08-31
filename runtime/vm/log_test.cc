@@ -4,7 +4,7 @@
 
 #include "platform/globals.h"
 
-#include "include/dart_debugger_api.h"
+#include "include/dart_tools_api.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"

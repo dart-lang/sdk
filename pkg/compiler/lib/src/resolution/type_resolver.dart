@@ -15,7 +15,6 @@ class TypeResolver {
                           Scope scope,
                           {bool deferredIsMalformed: true}) {
     Element element;
-    bool deferredTypeAnnotation = false;
     if (prefixName != null) {
       Element prefixElement =
           lookupInScope(compiler, prefixName, scope, prefixName.source);
@@ -40,7 +39,6 @@ class TypeResolver {
         element = null;
       }
     } else {
-      String stringValue = typeName.source;
       element = lookupInScope(compiler, typeName, scope, typeName.source);
     }
     return element;
@@ -140,7 +138,7 @@ class TypeResolver {
         // TODO(johnniwinther): [_ensureClassWillBeResolved] should imply
         // [computeType].
         compiler.resolver._ensureClassWillBeResolved(cls);
-        element.computeType(compiler);
+        cls.computeType(compiler);
         List<DartType> arguments = <DartType>[];
         bool hasTypeArgumentMismatch = resolveTypeArguments(
             visitor, node, cls.typeVariables, arguments);
@@ -160,7 +158,7 @@ class TypeResolver {
         TypedefElement typdef = element;
         // TODO(johnniwinther): [ensureResolved] should imply [computeType].
         typdef.ensureResolved(compiler);
-        element.computeType(compiler);
+        typdef.computeType(compiler);
         List<DartType> arguments = <DartType>[];
         bool hasTypeArgumentMismatch = resolveTypeArguments(
             visitor, node, typdef.typeVariables, arguments);
@@ -176,10 +174,9 @@ class TypeResolver {
           }
         }
       } else if (element.isTypeVariable) {
+        TypeVariableElement typeVariable = element;
         Element outer =
             visitor.enclosingElement.outermostEnclosingMemberOrTopLevel;
-        bool isInFactoryConstructor =
-            outer != null && outer.isFactoryConstructor;
         if (!outer.isClass &&
             !outer.isTypedef &&
             !Elements.hasAccessToTypeVariables(visitor.enclosingElement)) {
@@ -187,9 +184,9 @@ class TypeResolver {
           type = reportFailureAndCreateType(
               MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
               {'typeVariableName': node},
-              userProvidedBadType: element.computeType(compiler));
+              userProvidedBadType: typeVariable.type);
         } else {
-          type = element.computeType(compiler);
+          type = typeVariable.type;
         }
         type = checkNoTypeArguments(type);
       } else {

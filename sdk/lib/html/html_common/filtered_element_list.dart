@@ -5,11 +5,10 @@
 part of html_common;
 
 /**
- * An indexable collection of a node's descendants in the document tree,
+ * An indexable collection of a node's direct descendants in the document tree,
  * filtered so that only elements are in the collection.
  */
-class FilteredElementList<T extends Element> extends ListBase<T>
-    implements NodeListWrapper{
+class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
   final Node _node;
   final List<Node> _childNodes;
 
@@ -21,21 +20,28 @@ class FilteredElementList<T extends Element> extends ListBase<T>
    *     var filteredElements = new FilteredElementList(query("#container"));
    *     // filteredElements is [a, b, c].
    */
-  FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
+  FilteredElementList(Node node)
+      : _childNodes = node.nodes,
+        _node = node;
 
   // We can't memoize this, since it's possible that children will be messed
   // with externally to this class.
   //
-  // TODO(nweiz): we don't always need to create a new list. For example
-  // forEach, every, any, ... could directly work on the _childNodes.
-  List<T> get _filtered =>
-    new List<T>.from(_childNodes.where((n) => n is Element));
+  // We can't use where directly because the types don't agree and there's
+  // no way to cast it, so take advantage of being in the SDK to construct
+  // a WhereIterable directly. Even so it has to be of dynamic.
+  Iterable<Element> get _iterable =>
+      new WhereIterable(_childNodes, (n) => n is Element);
+  List<Element> get _filtered =>
+      new List<Element>.from(_iterable, growable: false);
 
-  void forEach(void f(T element)) {
+  void forEach(void f(Element element)) {
+    // This cannot use the iterator, because operations during iteration might
+    // modify the collection, e.g. addAll might append a node to another parent.
     _filtered.forEach(f);
   }
 
-  void operator []=(int index, T value) {
+  void operator []=(int index, Element value) {
     this[index].replaceWith(value);
   }
 
@@ -50,43 +56,44 @@ class FilteredElementList<T extends Element> extends ListBase<T>
     removeRange(newLength, len);
   }
 
-  void add(T value) {
+  void add(Element value) {
     _childNodes.add(value);
   }
 
-  void addAll(Iterable<T> iterable) {
-    for (T element in iterable) {
+  void addAll(Iterable<Element> iterable) {
+    for (Element element in iterable) {
       add(element);
     }
   }
 
   bool contains(Object needle) {
     if (needle is! Element) return false;
-    T element = needle;
+    Element element = needle;
     return element.parentNode == _node;
   }
 
-  Iterable<T> get reversed => _filtered.reversed;
+  Iterable<Element> get reversed => _filtered.reversed;
 
-  void sort([int compare(T a, T b)]) {
+  void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('Cannot sort filtered list');
   }
 
-  void setRange(int start, int end, Iterable<T> iterable,
-                [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<Element> iterable,
+      [int skipCount = 0]) {
     throw new UnsupportedError('Cannot setRange on filtered list');
   }
 
-  void fillRange(int start, int end, [T fillValue]) {
+  void fillRange(int start, int end, [Element fillValue]) {
     throw new UnsupportedError('Cannot fillRange on filtered list');
   }
 
-  void replaceRange(int start, int end, Iterable<T> iterable) {
+  void replaceRange(int start, int end, Iterable<Element> iterable) {
     throw new UnsupportedError('Cannot replaceRange on filtered list');
   }
 
   void removeRange(int start, int end) {
-    _filtered.sublist(start, end).forEach((el) => el.remove());
+    new List.from(_iterable.skip(start).take(end - start))
+        .forEach((el) => el.remove());
   }
 
   void clear() {
@@ -95,23 +102,33 @@ class FilteredElementList<T extends Element> extends ListBase<T>
     _childNodes.clear();
   }
 
-  T removeLast() {
-    final result = this.last;
+  Element removeLast() {
+    final result = _iterable.last;
     if (result != null) {
       result.remove();
     }
     return result;
   }
 
-  void insert(int index, T value) {
-    _childNodes.insert(index, value);
+  void insert(int index, Element value) {
+    if (index == length) {
+      add(value);
+    } else {
+      var element = _iterable.elementAt(index);
+      element.parentNode.insertBefore(value, element);
+    }
   }
 
-  void insertAll(int index, Iterable<T> iterable) {
-    _childNodes.insertAll(index, iterable);
+  void insertAll(int index, Iterable<Element> iterable) {
+    if (index == length) {
+      addAll(iterable);
+    } else {
+      var element = _iterable.elementAt(index);
+      element.parentNode.insertAllBefore(iterable, element);
+    }
   }
 
-  T removeAt(int index) {
+  Element removeAt(int index) {
     final result = this[index];
     result.remove();
     return result;
@@ -119,19 +136,19 @@ class FilteredElementList<T extends Element> extends ListBase<T>
 
   bool remove(Object element) {
     if (element is! Element) return false;
-    for (int i = 0; i < length; i++) {
-      T indexElement = this[i];
-      if (identical(indexElement, element)) {
-        indexElement.remove();
-        return true;
-      }
+    if (contains(element)) {
+      (element as Element).remove(); // Placate the type checker
+      return true;
+    } else {
+      return false;
     }
-    return false;
   }
 
-  int get length => _filtered.length;
-  T operator [](int index) => _filtered[index];
-  Iterator<T> get iterator => _filtered.iterator;
+  int get length => _iterable.length;
+  Element operator [](int index) => _iterable.elementAt(index);
+  // This cannot use the iterator, because operations during iteration might
+  // modify the collection, e.g. addAll might append a node to another parent.
+  Iterator<Element> get iterator => _filtered.iterator;
 
   List<Node> get rawList => _node.childNodes;
 }

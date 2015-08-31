@@ -4,33 +4,72 @@
 
 part of resolution;
 
-/// The result of resolving a node.
-abstract class ResolutionResult {
-  Element get element;
+enum ResultKind {
+  NONE,
+  ELEMENT,
+  TYPE,
+  ASSERT,
+  CONSTANT,
+  PREFIX,
 }
 
-/// The result for the resolution of a node that points to an [Element].
-class ElementResult implements ResolutionResult {
-  final Element element;
+/// The result of resolving a node.
+abstract class ResolutionResult {
+  const ResolutionResult();
 
   // TODO(johnniwinther): Remove this factory constructor when `null` is never
   // passed as an element result.
-  factory ElementResult(Element element) {
-    return element != null ? new ElementResult.internal(element) : null;
+  factory ResolutionResult.forElement(Element element) {
+    return element != null ? new ElementResult(element) : const NoneResult();
   }
 
-  ElementResult.internal(this.element);
+  ResultKind get kind;
+  Node get node => null;
+  Element get element => null;
+  DartType get type => null;
+  ConstantExpression get constant => null;
+  bool get isConstant => false;
+}
+
+/// The prefix of top level or member access, like `prefix.member`,
+/// `prefix.Class.member` or `Class.member`.
+class PrefixResult extends ResolutionResult {
+  final PrefixElement prefix;
+  final ClassElement cls;
+
+  PrefixResult(this.prefix, this.cls);
+
+  Element get element => cls != null ? cls : prefix;
+
+  bool get isDeferred => prefix != null && prefix.isDeferred;
+
+  ResultKind get kind => ResultKind.PREFIX;
+
+  String toString() => 'PrefixResult($prefix,$cls)';
+}
+
+/// The result for the resolution of a node that points to an [Element].
+class ElementResult extends ResolutionResult {
+  final Element element;
+
+  ResultKind get kind => ResultKind.ELEMENT;
+
+  ElementResult(this.element) {
+    assert(element != null);
+  }
 
   String toString() => 'ElementResult($element)';
 }
 
 /// The result for the resolution of a node that points to an [DartType].
-class TypeResult implements ResolutionResult {
+class TypeResult extends ResolutionResult {
   final DartType type;
 
   TypeResult(this.type) {
     assert(type != null);
   }
+
+  ResultKind get kind => ResultKind.TYPE;
 
   Element get element => type.element;
 
@@ -38,10 +77,63 @@ class TypeResult implements ResolutionResult {
 }
 
 /// The result for the resolution of the `assert` method.
-class AssertResult implements ResolutionResult {
+class AssertResult extends ResolutionResult {
   const AssertResult();
 
-  Element get element => null;
+  ResultKind get kind => ResultKind.ASSERT;
 
   String toString() => 'AssertResult()';
+}
+
+/// The result for resolving a constant expression.
+class ConstantResult extends ResolutionResult {
+  final Node node;
+  final ConstantExpression constant;
+  final Element element;
+
+  /// Creates a result for the [constant] expression. [node] is provided for
+  /// error reporting on the constant and [element] is provided if the
+  /// expression additionally serves an [Element] like [ElementResult].
+  ConstantResult(this.node, this.constant, {this.element});
+
+  bool get isConstant => true;
+
+  ResultKind get kind => ResultKind.CONSTANT;
+
+  String toString() => 'ConstantResult(${constant.getText()})';
+}
+
+class NoneResult extends ResolutionResult {
+  const NoneResult();
+
+  ResultKind get kind => ResultKind.NONE;
+
+  String toString() => 'NoneResult()';
+}
+
+/// The result of resolving a list of arguments.
+class ArgumentsResult {
+  /// The call structure of the arguments.
+  final CallStructure callStructure;
+
+  /// The resolutions results for each argument.
+  final List<ResolutionResult> argumentResults;
+
+  /// `true` if the arguments are valid as arguments to a constructed constant
+  /// expression.
+  final bool isValidAsConstant;
+
+  ArgumentsResult(
+      this.callStructure,
+      this.argumentResults,
+      {this.isValidAsConstant});
+
+  /// Returns the list of [ConstantExpression]s for each of the arguments. If
+  /// [isValidAsConstant] is `false`, `null` is returned.
+  List<ConstantExpression> get constantArguments {
+    if (!isValidAsConstant) return null;
+    return argumentResults.map((ResolutionResult result) {
+      return result.constant;
+    }).toList();
+  }
 }

@@ -31,11 +31,12 @@ main() {
 };
 
 main() {
-  var compiler = compilerFor(MEMORY_SOURCE_FILES);  
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+  asyncTest(() async {
+    var result = await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+    var compiler = result.compiler;
     var element = compiler.mainApp.findExported('main');
     var code = compiler.backend.assembleCode(element);
     Expect.isTrue(code.contains('return 2'));
-  }));
+  });
 }
 

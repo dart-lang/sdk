@@ -18,10 +18,6 @@ namespace dart {
 DEFINE_FLAG(bool, validate_overwrite, true, "Verify overwritten fields.");
 #endif  // DEBUG
 
-bool RawObject::IsVMHeapObject() const {
-  return Dart::vm_isolate()->heap()->Contains(ToAddr(this));
-}
-
 
 void RawObject::Validate(Isolate* isolate) const {
   if (Object::void_class_ == reinterpret_cast<RawClass*>(kHeapObjectTag)) {
@@ -113,6 +109,13 @@ intptr_t RawObject::SizeFromClass() const {
       const RawArray* raw_array = reinterpret_cast<const RawArray*>(this);
       intptr_t array_length = Smi::Value(raw_array->ptr()->length_);
       instance_size = Array::InstanceSize(array_length);
+      break;
+    }
+    case kObjectPoolCid: {
+      const RawObjectPool* raw_object_pool =
+          reinterpret_cast<const RawObjectPool*>(this);
+      intptr_t len = raw_object_pool->ptr()->length_;
+      instance_size = ObjectPool::InstanceSize(len);
       break;
     }
 #define SIZE_FROM_CLASS(clazz)                                                 \
@@ -520,6 +523,24 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
     }
   }
   return Code::InstanceSize(length);
+}
+
+
+intptr_t RawObjectPool::VisitObjectPoolPointers(
+    RawObjectPool* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointer(
+      reinterpret_cast<RawObject**>(&raw_obj->ptr()->info_array_));
+  const intptr_t len = raw_obj->ptr()->length_;
+  RawTypedData* info_array = raw_obj->ptr()->info_array_->ptr();
+  Entry* first = raw_obj->first_entry();
+  for (intptr_t i = 0; i < len; ++i) {
+    ObjectPool::EntryType entry_type =
+        static_cast<ObjectPool::EntryType>(info_array->data()[i]);
+    if (entry_type == ObjectPool::kTaggedObject) {
+      visitor->VisitPointer(&(first + i)->raw_obj_);
+    }
+  }
+  return ObjectPool::InstanceSize(raw_obj->ptr()->length_);
 }
 
 

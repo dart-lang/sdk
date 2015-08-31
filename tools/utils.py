@@ -294,7 +294,7 @@ def GetSemanticSDKVersion(ignore_svn_revision=False):
     return None
 
   if version.channel == 'be':
-    postfix = '-edge' if ignore_svn_revision else '-edge.%s' % GetSVNRevision()
+    postfix = '-edge' if ignore_svn_revision else '-edge.%s' % GetGitRevision()
   elif version.channel == 'dev':
     postfix = '-dev.%s.%s' % (version.prerelease, version.prerelease_patch)
   else:
@@ -303,23 +303,8 @@ def GetSemanticSDKVersion(ignore_svn_revision=False):
 
   return '%s.%s.%s%s' % (version.major, version.minor, version.patch, postfix)
 
-def GetEclipseVersionQualifier():
-  def pad(number, num_digits):
-    number_str = str(number)
-    return '0' * max(0, num_digits - len(number_str)) + number_str
-
-  version = ReadVersionFile()
-  if version.channel == 'be':
-    return 'edge_%s' % pad(GetSVNRevision(), 6)
-  elif version.channel == 'dev':
-    return 'dev_%s_%s' % (pad(version.prerelease, 2),
-                          pad(version.prerelease_patch, 2))
-  else:
-    return 'release'
-
 def GetVersion():
   return GetSemanticSDKVersion()
-
 
 # The editor used to produce the VERSION file put on gcs. We now produce this
 # in the bots archiving the sdk.
@@ -375,18 +360,6 @@ def ReadVersionFile():
     print "Warning: VERSION file (%s) has wrong format" % version_file
     return None
 
-def GetSVNRevision():
-  # When building from tarball use tools/SVN_REVISION
-  svn_revision_file = os.path.join(DART_DIR, 'tools', 'SVN_REVISION')
-  try:
-    with open(svn_revision_file) as fd:
-      return fd.read()
-  except:
-    pass
-
-  # TODO(ricow): Remove all calls to GetSVNRevision.
-  # For now, simply forward call to GetArchiveVersion
-  return GetArchiveVersion();
 
 # Our schema for releases and archiving is based on an increasing
 # sequence of numbers. In the svn world this was simply the revision of a
@@ -407,6 +380,14 @@ def GetArchiveVersion():
 
 
 def GetGitRevision():
+  # When building from tarball use tools/GIT_REVISION
+  git_revision_file = os.path.join(DART_DIR, 'tools', 'GIT_REVISION')
+  try:
+    with open(git_revision_file) as fd:
+      return fd.read()
+  except:
+    pass
+
   p = subprocess.Popen(['git', 'log', '-n', '1', '--pretty=format:%H'],
                        stdout = subprocess.PIPE,
                        stderr = subprocess.STDOUT, shell=IsWindows(),
@@ -418,7 +399,7 @@ def GetGitRevision():
     return None
   return output
 
-# To eliminate clashing with older archived builds on bleding edge we add
+# To eliminate clashing with older archived builds on bleeding edge we add
 # a base number bigger the largest svn revision (this also gives us an easy
 # way of seeing if an archive comes from git based or svn based commits).
 GIT_NUMBER_BASE = 100000

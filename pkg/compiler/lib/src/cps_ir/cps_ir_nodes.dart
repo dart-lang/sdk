@@ -3,12 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 library dart2js.ir_nodes;
 
-import '../constants/expressions.dart';
 import '../constants/values.dart' as values show ConstantValue;
 import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
-import '../universe/universe.dart' show Selector, SelectorKind;
+import '../types/types.dart' show TypeMask;
+import '../universe/universe.dart' show Selector;
+
+import 'builtin_operator.dart';
+export 'builtin_operator.dart';
+
+// These imports are only used for the JavaScript specific nodes.  If we want to
+// support more than one native backend, we should probably create better
+// abstractions for native code and its type and effect system.
+import '../js/js.dart' as js show Template;
+import '../native/native.dart' as native show NativeBehavior;
 
 abstract class Node {
   /// A pointer to the parent node. Is null until set by optimization passes.
@@ -27,8 +36,55 @@ abstract class Node {
 /// invoke a [Continuation] with the result as argument. Alternatively, values
 /// that can be obtained without side-effects, divergence, or throwing
 /// exceptions can be built using a [LetPrim].
+///
+/// All subclasses implement exactly one of [CallExpression],
+/// [InteriorExpression], or [TailExpression].
 abstract class Expression extends Node {
+  InteriorNode get parent; // Only InteriorNodes may contain expressions.
+
   Expression plug(Expression expr) => throw 'impossible';
+
+  /// The next expression in the basic block.
+  ///
+  /// For [InteriorExpression]s this is the body, for [CallExpressions] it is
+  /// the body of the continuation, and for [TailExpressions] it is `null`.
+  Expression get next;
+}
+
+/// Represents a node with a child node, which can be accessed through the
+/// `body` member. A typical usage is when removing a node from the CPS graph:
+///
+///     Node child          = node.body;
+///     InteriorNode parent = node.parent;
+///
+///     child.parent = parent;
+///     parent.body  = child;
+abstract class InteriorNode extends Node {
+  Expression get body;
+  void set body(Expression body);
+}
+
+/// An expression that creates new bindings and continues evaluation in
+/// a subexpression.
+///
+/// The interior expressions are [LetPrim], [LetCont], [LetHandler], and
+/// [LetMutable].
+abstract class InteriorExpression extends Expression implements InteriorNode {
+  Expression get next => body;
+}
+
+/// An expression that passes a continuation to a call.
+abstract class CallExpression extends Expression {
+  Reference<Continuation> get continuation;
+  Expression get next => continuation.definition.body;
+}
+
+/// An expression without a continuation or a subexpression body.
+///
+/// These break straight-line control flow and can be throught of as ending a
+/// basic block.
+abstract class TailExpression extends Expression {
+  Expression get next => null;
 }
 
 /// The base class of things that variables can refer to: primitives,
@@ -59,12 +115,10 @@ abstract class Definition<T extends Definition<T>> extends Node {
   }
 }
 
-/// An expression that cannot throw or diverge and has no side-effects.
-/// All primitives are named using the identity of the [Primitive] object.
+/// A named value.
 ///
-/// Primitives may allocate objects; this is not considered side-effect here.
-///
-/// Although primitives may not mutate state, they may depend on state.
+/// The identity of the [Primitive] object is the name of the value.
+/// The subclass describes how to compute the value.
 ///
 /// All primitives except [Parameter] must be bound by a [LetPrim].
 abstract class Primitive extends Definition<Primitive> {
@@ -80,6 +134,21 @@ abstract class Primitive extends Definition<Primitive> {
       this.hint = hint;
     }
   }
+
+  /// True if the primitive can be removed, assuming it has no uses
+  /// (this getter does not check if there are any uses).
+  ///
+  /// False must be returned for primitives that may throw, diverge, or have
+  /// observable side-effects.
+  bool get isSafeForElimination;
+
+  /// True if time-of-evaluation is irrelevant for the given primitive,
+  /// assuming its inputs are the same values.
+  bool get isSafeForReordering;
+
+  /// The source information associated with this primitive.
+  // TODO(johnniwinther): Require source information for all primitives.
+  SourceInformation get sourceInformation => null;
 }
 
 /// Operands to invocations and primitives are always variables.  They point to
@@ -108,6 +177,17 @@ class Reference<T extends Definition<T>> {
     }
     if (next != null) next.previous = previous;
   }
+
+  /// Changes the definition referenced by this object and updates
+  /// the reference chains accordingly.
+  void changeTo(Definition<T> newDefinition) {
+    unlink();
+    previous = null;
+    definition = newDefinition;
+    next = definition.firstRef;
+    if (next != null) next.previous = this;
+    definition.firstRef = this;
+  }
 }
 
 /// Evaluates a primitive and binds it to variable: `let val x = V in E`.
@@ -116,8 +196,8 @@ class Reference<T extends Definition<T>> {
 ///
 /// During one-pass construction a LetPrim with an empty body is used to
 /// represent the one-hole context `let val x = V in []`.
-class LetPrim extends Expression implements InteriorNode {
-  final Primitive primitive;
+class LetPrim extends InteriorExpression {
+  Primitive primitive;
   Expression body;
 
   LetPrim(this.primitive, [this.body = null]);
@@ -144,12 +224,15 @@ class LetPrim extends Expression implements InteriorNode {
 /// During one-pass construction a LetCont whose first continuation has an empty
 /// body is used to represent the one-hole context
 /// `let cont ... k(v) = [] ... in E`.
-class LetCont extends Expression implements InteriorNode {
+class LetCont extends InteriorExpression {
   List<Continuation> continuations;
   Expression body;
 
   LetCont(Continuation continuation, this.body)
       : continuations = <Continuation>[continuation];
+
+  LetCont.two(Continuation first, Continuation second, this.body)
+      : continuations = <Continuation>[first, second];
 
   LetCont.many(this.continuations, this.body);
 
@@ -172,7 +255,7 @@ class LetCont extends Expression implements InteriorNode {
 // [LetHandler] differs from a [LetCont] binding in that it (1) has the
 // runtime semantics of pushing/popping a handler from the dynamic exception
 // handler stack and (2) it does not have any explicit invocations.
-class LetHandler extends Expression implements InteriorNode {
+class LetHandler extends InteriorExpression {
   Continuation handler;
   Expression body;
 
@@ -190,7 +273,7 @@ class LetHandler extends Expression implements InteriorNode {
 /// to prevent unrestricted use of references to them.  During one-pass
 /// construction, a [LetMutable] with an empty body is use to represent the
 /// one-hole context 'let mutable v = P in []'.
-class LetMutable extends Expression implements InteriorNode {
+class LetMutable extends InteriorExpression {
   final MutableVariable variable;
   final Reference<Primitive> value;
   Expression body;
@@ -205,24 +288,6 @@ class LetMutable extends Expression implements InteriorNode {
   accept(Visitor visitor) => visitor.visitLetMutable(this);
 }
 
-abstract class Invoke {
-  Selector get selector;
-  List<Reference<Primitive>> get arguments;
-}
-
-/// Represents a node with a child node, which can be accessed through the
-/// `body` member. A typical usage is when removing a node from the CPS graph:
-///
-///     Node child          = node.body;
-///     InteriorNode parent = node.parent;
-///
-///     child.parent = parent;
-///     parent.body  = child;
-abstract class InteriorNode extends Node {
-  Expression get body;
-  void set body(Expression body);
-}
-
 /// Invoke a static function.
 ///
 /// All optional arguments declared by [target] are passed in explicitly, and
@@ -231,7 +296,7 @@ abstract class InteriorNode extends Node {
 /// Discussion:
 /// All information in the [selector] is technically redundant; it will likely
 /// be removed.
-class InvokeStatic extends Expression implements Invoke {
+class InvokeStatic extends CallExpression {
   final FunctionElement target;
   final Selector selector;
   final List<Reference<Primitive>> arguments;
@@ -242,9 +307,15 @@ class InvokeStatic extends Expression implements Invoke {
                this.selector,
                List<Primitive> args,
                Continuation cont,
-               this.sourceInformation)
+               [this.sourceInformation])
       : arguments = _referenceList(args),
         continuation = new Reference<Continuation>(cont);
+
+  InvokeStatic.byReference(this.target,
+                           this.selector,
+                           this.arguments,
+                           this.continuation,
+                           [this.sourceInformation]);
 
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
 }
@@ -258,30 +329,33 @@ class InvokeStatic extends Expression implements Invoke {
 ///
 /// The [selector] records the names of named arguments. The value of named
 /// arguments occur at the end of the [arguments] list, in normalized order.
-///
-/// Discussion:
-/// If the [selector] is a [TypedSelector], the type information contained
-/// there is used by optimization passes. This is likely to change.
-class InvokeMethod extends Expression implements Invoke {
+class InvokeMethod extends CallExpression {
   Reference<Primitive> receiver;
   Selector selector;
+  TypeMask mask;
   final List<Reference<Primitive>> arguments;
   final Reference<Continuation> continuation;
   final SourceInformation sourceInformation;
 
   /// If true, it is known that the receiver cannot be `null`.
-  ///
-  /// This field is `null` until initialized by optimization phases.
-  bool receiverIsNotNull;
+  bool receiverIsNotNull = false;
 
   InvokeMethod(Primitive receiver,
                this.selector,
+               this.mask,
                List<Primitive> arguments,
                Continuation continuation,
-               {this.sourceInformation})
+               [this.sourceInformation])
       : this.receiver = new Reference<Primitive>(receiver),
         this.arguments = _referenceList(arguments),
         this.continuation = new Reference<Continuation>(continuation);
+
+  InvokeMethod.byReference(this.receiver,
+                           this.selector,
+                           this.mask,
+                           this.arguments,
+                           this.continuation,
+                           this.sourceInformation);
 
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 }
@@ -305,18 +379,20 @@ class InvokeMethod extends Expression implements Invoke {
 ///
 /// All optional arguments declared by [target] are passed in explicitly, and
 /// occur at the end of [arguments] list, in normalized order.
-class InvokeMethodDirectly extends Expression implements Invoke {
+class InvokeMethodDirectly extends CallExpression {
   Reference<Primitive> receiver;
   final FunctionElement target;
   final Selector selector;
   final List<Reference<Primitive>> arguments;
   final Reference<Continuation> continuation;
+  final SourceInformation sourceInformation;
 
   InvokeMethodDirectly(Primitive receiver,
                        this.target,
                        this.selector,
                        List<Primitive> arguments,
-                       Continuation continuation)
+                       Continuation continuation,
+                       this.sourceInformation)
       : this.receiver = new Reference<Primitive>(receiver),
         this.arguments = _referenceList(arguments),
         this.continuation = new Reference<Continuation>(continuation);
@@ -339,28 +415,34 @@ class InvokeMethodDirectly extends Expression implements Invoke {
 ///
 /// Note that [InvokeConstructor] does it itself allocate an object.
 /// The invoked constructor will do that using [CreateInstance].
-class InvokeConstructor extends Expression implements Invoke {
+class InvokeConstructor extends CallExpression {
   final DartType type;
   final ConstructorElement target;
   final List<Reference<Primitive>> arguments;
   final Reference<Continuation> continuation;
   final Selector selector;
+  final SourceInformation sourceInformation;
 
   InvokeConstructor(this.type,
                     this.target,
                     this.selector,
                     List<Primitive> args,
-                    Continuation cont)
+                    Continuation cont,
+                    this.sourceInformation)
       : arguments = _referenceList(args),
         continuation = new Reference<Continuation>(cont);
 
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
 }
 
-// TODO(asgerf): Make a Primitive for "is" and an Expression for "as".
-
-/// An "as" cast or an "is" check.
-class TypeOperator extends Expression {
+/// An "is" type test.
+///
+/// Returns `true` if [value] is an instance of [type].
+///
+/// [type] must not be the [Object], `dynamic` or [Null] types (though it might
+/// be a type variable containing one of these types). This design is chosen
+/// to simplify code generation for type tests.
+class TypeTest extends Primitive {
   Reference<Primitive> value;
   final DartType type;
 
@@ -371,44 +453,77 @@ class TypeOperator extends Expression {
   /// If [type] is a [TypeVariableType], this is a singleton list with
   /// the internal representation of the type held in that type variable.
   ///
+  /// If [type] is a [FunctionType], this is a singleton list with the
+  /// internal representation of that type,
+  ///
   /// Otherwise the list is empty.
   final List<Reference<Primitive>> typeArguments;
-  final Reference<Continuation> continuation;
-  final bool isTypeTest;
 
-  TypeOperator(Primitive value,
-               this.type,
-               List<Primitive> typeArguments,
-               Continuation cont,
-               {bool this.isTypeTest})
-      : this.value = new Reference<Primitive>(value),
-        this.typeArguments = _referenceList(typeArguments),
-        this.continuation = new Reference<Continuation>(cont) {
-    assert(isTypeTest != null);
-  }
+  TypeTest(Primitive value,
+           this.type,
+           List<Primitive> typeArguments)
+  : this.value = new Reference<Primitive>(value),
+    this.typeArguments = _referenceList(typeArguments);
 
-  bool get isTypeCast => !isTypeTest;
+  accept(Visitor visitor) => visitor.visitTypeTest(this);
 
-  accept(Visitor visitor) => visitor.visitTypeOperator(this);
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
-/// Invoke [toString] on each argument and concatenate the results.
-class ConcatenateStrings extends Expression {
-  final List<Reference<Primitive>> arguments;
+/// An "as" type cast.
+///
+/// If [value] is `null` or is an instance of [type], [continuation] is invoked
+/// with [value] as argument. Otherwise, a [CastError] is thrown.
+///
+/// Discussion:
+/// The parameter to [continuation] is redundant since it will always equal
+/// [value], which is typically in scope in the continuation. However, it might
+/// simplify type propagation, since a better type can be computed for the
+/// continuation parameter without needing flow-sensitive analysis.
+class TypeCast extends CallExpression {
+  Reference<Primitive> value;
+  final DartType type;
+
+  /// See the corresponding field on [TypeTest].
+  final List<Reference<Primitive>> typeArguments;
   final Reference<Continuation> continuation;
 
-  ConcatenateStrings(List<Primitive> args, Continuation cont)
-      : arguments = _referenceList(args),
-        continuation = new Reference<Continuation>(cont);
+  TypeCast(Primitive value,
+           this.type,
+           List<Primitive> typeArguments,
+           Continuation cont)
+      : this.value = new Reference<Primitive>(value),
+        this.typeArguments = _referenceList(typeArguments),
+        this.continuation = new Reference<Continuation>(cont);
 
-  accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
+  accept(Visitor visitor) => visitor.visitTypeCast(this);
+}
+
+/// Apply a built-in operator.
+///
+/// It must be known that the arguments have the proper types.
+class ApplyBuiltinOperator extends Primitive {
+  BuiltinOperator operator;
+  List<Reference<Primitive>> arguments;
+  final SourceInformation sourceInformation;
+
+  ApplyBuiltinOperator(this.operator,
+                       List<Primitive> arguments,
+                       this.sourceInformation)
+      : this.arguments = _referenceList(arguments);
+
+  accept(Visitor visitor) => visitor.visitApplyBuiltinOperator(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Throw a value.
 ///
 /// Throw is an expression, i.e., it always occurs in tail position with
 /// respect to a body or expression.
-class Throw extends Expression {
+class Throw extends TailExpression {
   Reference<Primitive> value;
 
   Throw(Primitive value) : value = new Reference<Primitive>(value);
@@ -421,38 +536,35 @@ class Throw extends Expression {
 /// Rethrow can only occur inside a continuation bound by [LetHandler].  It
 /// implicitly throws the exception parameter of the enclosing handler with
 /// the same stack trace as the enclosing handler.
-class Rethrow extends Expression {
+class Rethrow extends TailExpression {
   accept(Visitor visitor) => visitor.visitRethrow(this);
 }
 
-/// A throw occurring in non-tail position.
+/// An expression that is known to be unreachable.
 ///
-/// The CPS translation of an expression produces a primitive as the value
-/// of the expression.  For convenience in the implementation of the
-/// translation, a [NonTailThrow] is used as that value.  A cleanup pass
-/// removes these and replaces them with [Throw] expressions.
-class NonTailThrow extends Primitive {
-  final Reference<Primitive> value;
-
-  NonTailThrow(Primitive value) : value = new Reference<Primitive>(value);
-
-  accept(Visitor visitor) => visitor.visitNonTailThrow(this);
+/// This can be placed as the body of a call continuation, when the caller is
+/// known never to invoke it, e.g. because the calling expression always throws.
+class Unreachable extends TailExpression {
+  accept(Visitor visitor) => visitor.visitUnreachable(this);
 }
 
 /// Gets the value from a [MutableVariable].
 ///
 /// [MutableVariable]s can be seen as ref cells that are not first-class
-/// values.  A [LetPrim] with a [GetMutableVariable] can then be seen as:
+/// values.  A [LetPrim] with a [GetMutable] can then be seen as:
 ///
 ///   let prim p = ![variable] in [body]
 ///
-class GetMutableVariable extends Primitive {
+class GetMutable extends Primitive {
   final Reference<MutableVariable> variable;
 
-  GetMutableVariable(MutableVariable variable)
+  GetMutable(MutableVariable variable)
       : this.variable = new Reference<MutableVariable>(variable);
 
-  accept(Visitor visitor) => visitor.visitGetMutableVariable(this);
+  accept(Visitor visitor) => visitor.visitGetMutable(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => false;
 }
 
 /// Assign a [MutableVariable].
@@ -461,34 +573,38 @@ class GetMutableVariable extends Primitive {
 /// values.  This can be seen as a dereferencing assignment:
 ///
 ///   { [variable] := [value]; [body] }
-class SetMutableVariable extends Expression implements InteriorNode {
+class SetMutable extends Primitive {
   final Reference<MutableVariable> variable;
   final Reference<Primitive> value;
-  Expression body;
 
-  SetMutableVariable(MutableVariable variable, Primitive value)
+  SetMutable(MutableVariable variable, Primitive value)
       : this.variable = new Reference<MutableVariable>(variable),
         this.value = new Reference<Primitive>(value);
 
-  accept(Visitor visitor) => visitor.visitSetMutableVariable(this);
+  accept(Visitor visitor) => visitor.visitSetMutable(this);
 
-  Expression plug(Expression expr) {
-    assert(body == null);
-    return body = expr;
-  }
+  bool get isSafeForElimination => false;
+  bool get isSafeForReordering => false;
 }
 
 /// Invoke a continuation in tail position.
-class InvokeContinuation extends Expression {
+class InvokeContinuation extends TailExpression {
   Reference<Continuation> continuation;
   List<Reference<Primitive>> arguments;
+  SourceInformation sourceInformation;
 
   // An invocation of a continuation is recursive if it occurs in the body of
   // the continuation itself.
   bool isRecursive;
 
+  /// True if this invocation escapes from the body of a [LetHandler]
+  /// (i.e. a try block). Notably, such an invocation cannot be inlined.
+  bool isEscapingTry;
+
   InvokeContinuation(Continuation cont, List<Primitive> args,
-                     {this.isRecursive: false})
+                     {this.isRecursive: false,
+                      this.isEscapingTry: false,
+                      this.sourceInformation})
       : continuation = new Reference<Continuation>(cont),
         arguments = _referenceList(args) {
     assert(cont.parameters == null || cont.parameters.length == args.length);
@@ -500,9 +616,11 @@ class InvokeContinuation extends Expression {
   ///
   /// Used as a placeholder for a jump whose target is not yet created
   /// (e.g., in the translation of break and continue).
-  InvokeContinuation.uninitialized({this.isRecursive: false})
+  InvokeContinuation.uninitialized({this.isRecursive: false,
+                                    this.isEscapingTry: false})
       : continuation = null,
-        arguments = null;
+        arguments = null,
+        sourceInformation = null;
 
   accept(Visitor visitor) => visitor.visitInvokeContinuation(this);
 }
@@ -522,7 +640,7 @@ class IsTrue extends Condition {
 /// Choose between a pair of continuations based on a condition value.
 ///
 /// The two continuations must not declare any parameters.
-class Branch extends Expression {
+class Branch extends TailExpression {
   final Condition condition;
   final Reference<Continuation> trueContinuation;
   final Reference<Continuation> falseContinuation;
@@ -535,62 +653,131 @@ class Branch extends Expression {
 }
 
 /// Directly assigns to a field on a given object.
-class SetField extends Expression implements InteriorNode {
+class SetField extends Primitive {
   final Reference<Primitive> object;
   FieldElement field;
   final Reference<Primitive> value;
-  Expression body;
 
   SetField(Primitive object, this.field, Primitive value)
       : this.object = new Reference<Primitive>(object),
         this.value = new Reference<Primitive>(value);
 
-  Expression plug(Expression expr) {
-    assert(body == null);
-    return body = expr;
-  }
-
   accept(Visitor visitor) => visitor.visitSetField(this);
+
+  bool get isSafeForElimination => false;
+  bool get isSafeForReordering => false;
 }
 
 /// Directly reads from a field on a given object.
+///
+/// The [object] must either be `null` or an object that has [field].
 class GetField extends Primitive {
   final Reference<Primitive> object;
   FieldElement field;
+
+  /// True if the object is known not to be null.
+  // TODO(asgerf): This is a placeholder until we agree on how to track
+  //               side effects.
+  bool objectIsNotNull = false;
 
   GetField(Primitive object, this.field)
       : this.object = new Reference<Primitive>(object);
 
   accept(Visitor visitor) => visitor.visitGetField(this);
+
+  bool get isSafeForElimination => objectIsNotNull;
+  bool get isSafeForReordering => objectIsNotNull && field.isFinal;
+}
+
+/// Get the length of a native list.
+class GetLength extends Primitive {
+  final Reference<Primitive> object;
+
+  /// True if the object is known not to be null.
+  bool objectIsNotNull = false;
+
+  GetLength(Primitive object) : this.object = new Reference<Primitive>(object);
+
+  bool get isSafeForElimination => objectIsNotNull;
+  bool get isSafeForReordering => false;
+
+  accept(Visitor v) => v.visitGetLength(this);
+}
+
+/// Read an entry from a native list.
+///
+/// [object] must be null or a native list, and [index] must be an integer.
+class GetIndex extends Primitive {
+  final Reference<Primitive> object;
+  final Reference<Primitive> index;
+
+  /// True if the object is known not to be null.
+  bool objectIsNotNull = false;
+
+  GetIndex(Primitive object, Primitive index)
+      : this.object = new Reference<Primitive>(object),
+        this.index = new Reference<Primitive>(index);
+
+  bool get isSafeForElimination => objectIsNotNull;
+  bool get isSafeForReordering => false;
+
+  accept(Visitor v) => v.visitGetIndex(this);
+}
+
+/// Set an entry on a native list.
+///
+/// [object] must be null or a native list, and [index] must be an integer.
+///
+/// The primitive itself has no value and may not be referenced.
+class SetIndex extends Primitive {
+  final Reference<Primitive> object;
+  final Reference<Primitive> index;
+  final Reference<Primitive> value;
+
+  SetIndex(Primitive object, Primitive index, Primitive value)
+      : this.object = new Reference<Primitive>(object),
+        this.index = new Reference<Primitive>(index),
+        this.value = new Reference<Primitive>(value);
+
+  bool get isSafeForElimination => false;
+  bool get isSafeForReordering => false;
+
+  accept(Visitor v) => v.visitSetIndex(this);
 }
 
 /// Reads the value of a static field or tears off a static method.
+///
+/// Note that lazily initialized fields should be read using GetLazyStatic.
 class GetStatic extends Primitive {
   /// Can be [FieldElement] or [FunctionElement].
   final Element element;
   final SourceInformation sourceInformation;
 
-  GetStatic(this.element, this.sourceInformation);
+  GetStatic(this.element, [this.sourceInformation]);
 
   accept(Visitor visitor) => visitor.visitGetStatic(this);
+
+  bool get isSafeForElimination {
+    return true;
+  }
+  bool get isSafeForReordering {
+    return element is FunctionElement || element.isFinal;
+  }
 }
 
 /// Sets the value of a static field.
-class SetStatic extends Expression implements InteriorNode {
+class SetStatic extends Primitive {
   final FieldElement element;
   final Reference<Primitive> value;
-  Expression body;
   final SourceInformation sourceInformation;
 
-  SetStatic(this.element, Primitive value, this.sourceInformation)
+  SetStatic(this.element, Primitive value, [this.sourceInformation])
       : this.value = new Reference<Primitive>(value);
 
-  Expression plug(Expression expr) {
-    assert(body == null);
-    return body = expr;
-  }
-
   accept(Visitor visitor) => visitor.visitSetStatic(this);
+
+  bool get isSafeForElimination => false;
+  bool get isSafeForReordering => false;
 }
 
 /// Reads the value of a lazily initialized static field.
@@ -599,14 +786,14 @@ class SetStatic extends Expression implements InteriorNode {
 /// and assigned to the field.
 ///
 /// [continuation] is then invoked with the value of the field as argument.
-class GetLazyStatic extends Expression {
+class GetLazyStatic extends CallExpression {
   final FieldElement element;
   final Reference<Continuation> continuation;
   final SourceInformation sourceInformation;
 
   GetLazyStatic(this.element,
                 Continuation continuation,
-                this.sourceInformation)
+                [this.sourceInformation])
       : continuation = new Reference<Continuation>(continuation);
 
   accept(Visitor visitor) => visitor.visitGetLazyStatic(this);
@@ -615,6 +802,9 @@ class GetLazyStatic extends Expression {
 /// Creates an object for holding boxed variables captured by a closure.
 class CreateBox extends Primitive {
   accept(Visitor visitor) => visitor.visitCreateBox(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Creates an instance of a class and initializes its fields and runtime type
@@ -633,33 +823,32 @@ class CreateInstance extends Primitive {
   /// is not needed at runtime.
   final List<Reference<Primitive>> typeInformation;
 
+  final SourceInformation sourceInformation;
+
   CreateInstance(this.classElement, List<Primitive> arguments,
-      List<Primitive> typeInformation)
+      List<Primitive> typeInformation,
+      this.sourceInformation)
       : this.arguments = _referenceList(arguments),
         this.typeInformation = _referenceList(typeInformation);
 
   accept(Visitor visitor) => visitor.visitCreateInstance(this);
-}
 
-/// Compare objects for identity.
-///
-/// It is an error pass in a value that does not correspond to a Dart value,
-/// such as an interceptor or a box.
-class Identical extends Primitive {
-  final Reference<Primitive> left;
-  final Reference<Primitive> right;
-  Identical(Primitive left, Primitive right)
-      : left = new Reference<Primitive>(left),
-        right = new Reference<Primitive>(right);
-  accept(Visitor visitor) => visitor.visitIdentical(this);
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 class Interceptor extends Primitive {
   final Reference<Primitive> input;
-  final Set<ClassElement> interceptedClasses;
-  Interceptor(Primitive input, this.interceptedClasses)
+  final Set<ClassElement> interceptedClasses = new Set<ClassElement>();
+  final SourceInformation sourceInformation;
+
+  Interceptor(Primitive input, this.sourceInformation)
       : this.input = new Reference<Primitive>(input);
+
   accept(Visitor visitor) => visitor.visitInterceptor(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Create an instance of [Invocation] for use in a call to `noSuchMethod`.
@@ -671,15 +860,37 @@ class CreateInvocationMirror extends Primitive {
       : this.arguments = _referenceList(arguments);
 
   accept(Visitor visitor) => visitor.visitCreateInvocationMirror(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
+}
+
+class ForeignCode extends CallExpression {
+  final js.Template codeTemplate;
+  final TypeMask type;
+  final List<Reference<Primitive>> arguments;
+  final native.NativeBehavior nativeBehavior;
+  final FunctionElement dependency;
+  final Reference<Continuation> continuation;
+
+  ForeignCode(this.codeTemplate, this.type, List<Primitive> arguments,
+      this.nativeBehavior, Continuation continuation, {this.dependency})
+      : this.arguments = _referenceList(arguments),
+        this.continuation = new Reference<Continuation>(continuation);
+
+  accept(Visitor visitor) => visitor.visitForeignCode(this);
 }
 
 class Constant extends Primitive {
-  final ConstantExpression expression;
   final values.ConstantValue value;
+  final SourceInformation sourceInformation;
 
-  Constant(this.expression, this.value);
+  Constant(this.value, {this.sourceInformation});
 
   accept(Visitor visitor) => visitor.visitConstant(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 class LiteralList extends Primitive {
@@ -691,6 +902,9 @@ class LiteralList extends Primitive {
       : this.values = _referenceList(values);
 
   accept(Visitor visitor) => visitor.visitLiteralList(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 class LiteralMapEntry {
@@ -709,6 +923,9 @@ class LiteralMap extends Primitive {
   LiteralMap(this.type, this.entries);
 
   accept(Visitor visitor) => visitor.visitLiteralMap(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Currently unused.
@@ -727,6 +944,9 @@ class CreateFunction extends Primitive {
   CreateFunction(this.definition);
 
   accept(Visitor visitor) => visitor.visitCreateFunction(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 class Parameter extends Primitive {
@@ -743,6 +963,9 @@ class Parameter extends Primitive {
   accept(Visitor visitor) => visitor.visitParameter(this);
 
   String toString() => 'Parameter(${hint == null ? null : hint.name})';
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Continuations are normally bound by 'let cont'.  A continuation with one
@@ -764,7 +987,9 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
 
   Continuation(this.parameters, {this.isRecursive: false});
 
-  Continuation.retrn() : parameters = <Parameter>[new Parameter(null)];
+  Continuation.retrn()
+    : parameters = <Parameter>[new Parameter(null)],
+      isRecursive = false;
 
   accept(Visitor visitor) => visitor.visitContinuation(this);
 }
@@ -804,11 +1029,17 @@ class ReifyRuntimeType extends Primitive {
   /// Reference to the internal representation of a type (as produced, for
   /// example, by [ReadTypeVariable]).
   final Reference<Primitive> value;
-  ReifyRuntimeType(Primitive value)
+
+  final SourceInformation sourceInformation;
+
+  ReifyRuntimeType(Primitive value, this.sourceInformation)
     : this.value = new Reference<Primitive>(value);
 
   @override
   accept(Visitor visitor) => visitor.visitReifyRuntimeType(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Read the value the type variable [variable] from the target object.
@@ -819,12 +1050,16 @@ class ReifyRuntimeType extends Primitive {
 class ReadTypeVariable extends Primitive {
   final TypeVariableType variable;
   final Reference<Primitive> target;
+  final SourceInformation sourceInformation;
 
-  ReadTypeVariable(this.variable, Primitive target)
+  ReadTypeVariable(this.variable, Primitive target, this.sourceInformation)
       : this.target = new Reference<Primitive>(target);
 
   @override
   accept(Visitor visitor) => visitor.visitReadTypeVariable(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Representation of a closed type (that is, a type without type variables).
@@ -847,6 +1082,9 @@ class TypeExpression extends Primitive {
   accept(Visitor visitor) {
     return visitor.visitTypeExpression(this);
   }
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 List<Reference<Primitive>> _referenceList(Iterable<Primitive> definitions) {
@@ -871,28 +1109,26 @@ abstract class Visitor<T> {
   T visitInvokeMethod(InvokeMethod node);
   T visitInvokeMethodDirectly(InvokeMethodDirectly node);
   T visitInvokeConstructor(InvokeConstructor node);
-  T visitConcatenateStrings(ConcatenateStrings node);
   T visitThrow(Throw node);
   T visitRethrow(Rethrow node);
   T visitBranch(Branch node);
-  T visitTypeOperator(TypeOperator node);
-  T visitSetMutableVariable(SetMutableVariable node);
+  T visitTypeCast(TypeCast node);
+  T visitSetMutable(SetMutable node);
   T visitSetStatic(SetStatic node);
   T visitGetLazyStatic(GetLazyStatic node);
   T visitSetField(SetField node);
+  T visitUnreachable(Unreachable node);
 
   // Definitions.
   T visitLiteralList(LiteralList node);
   T visitLiteralMap(LiteralMap node);
   T visitConstant(Constant node);
   T visitCreateFunction(CreateFunction node);
-  T visitGetMutableVariable(GetMutableVariable node);
+  T visitGetMutable(GetMutable node);
   T visitParameter(Parameter node);
   T visitContinuation(Continuation node);
   T visitMutableVariable(MutableVariable node);
-  T visitNonTailThrow(NonTailThrow node);
   T visitGetStatic(GetStatic node);
-  T visitIdentical(Identical node);
   T visitInterceptor(Interceptor node);
   T visitCreateInstance(CreateInstance node);
   T visitGetField(GetField node);
@@ -901,15 +1137,29 @@ abstract class Visitor<T> {
   T visitReadTypeVariable(ReadTypeVariable node);
   T visitTypeExpression(TypeExpression node);
   T visitCreateInvocationMirror(CreateInvocationMirror node);
+  T visitTypeTest(TypeTest node);
+  T visitApplyBuiltinOperator(ApplyBuiltinOperator node);
+  T visitGetLength(GetLength node);
+  T visitGetIndex(GetIndex node);
+  T visitSetIndex(SetIndex node);
 
   // Conditions.
   T visitIsTrue(IsTrue node);
+
+  // Support for literal foreign code.
+  T visitForeignCode(ForeignCode node);
 }
 
-/// Recursively visits the entire CPS term, and calls abstract `process*`
-/// (i.e. `processLetPrim`) functions in pre-order.
-class RecursiveVisitor implements Visitor {
-  const RecursiveVisitor();
+/// Visits all non-recursive children of a CPS term, i.e. anything
+/// not of type [Expression] or [Continuation].
+/// 
+/// Note that the non-recursive nodes can contain other nodes inside of them,
+/// e.g. [Branch] contains an [IsTrue] which contains a [Reference].
+/// 
+/// The `process*` methods are called in pre-order for every node visited.
+/// These can be overridden without disrupting the visitor traversal.
+class LeafVisitor implements Visitor {
+  const LeafVisitor();
 
   visit(Node node) => node.accept(this);
 
@@ -921,7 +1171,6 @@ class RecursiveVisitor implements Visitor {
     if (node.thisParameter != null) visit(node.thisParameter);
     node.parameters.forEach(visit);
     visit(node.returnContinuation);
-    visit(node.body);
   }
 
   // Expressions.
@@ -930,21 +1179,17 @@ class RecursiveVisitor implements Visitor {
   visitLetPrim(LetPrim node) {
     processLetPrim(node);
     visit(node.primitive);
-    visit(node.body);
   }
 
   processLetCont(LetCont node) {}
   visitLetCont(LetCont node) {
     processLetCont(node);
     node.continuations.forEach(visit);
-    visit(node.body);
   }
 
   processLetHandler(LetHandler node) {}
   visitLetHandler(LetHandler node) {
     processLetHandler(node);
-    visit(node.handler);
-    visit(node.body);
   }
 
   processLetMutable(LetMutable node) {}
@@ -952,7 +1197,6 @@ class RecursiveVisitor implements Visitor {
     processLetMutable(node);
     visit(node.variable);
     processReference(node.value);
-    visit(node.body);
   }
 
   processInvokeStatic(InvokeStatic node) {}
@@ -992,13 +1236,6 @@ class RecursiveVisitor implements Visitor {
     node.arguments.forEach(processReference);
   }
 
-  processConcatenateStrings(ConcatenateStrings node) {}
-  visitConcatenateStrings(ConcatenateStrings node) {
-    processConcatenateStrings(node);
-    processReference(node.continuation);
-    node.arguments.forEach(processReference);
-  }
-
   processThrow(Throw node) {}
   visitThrow(Throw node) {
     processThrow(node);
@@ -1018,20 +1255,26 @@ class RecursiveVisitor implements Visitor {
     visit(node.condition);
   }
 
-  processTypeOperator(TypeOperator node) {}
-  visitTypeOperator(TypeOperator node) {
-    processTypeOperator(node);
+  processTypeCast(TypeCast node) {}
+  visitTypeCast(TypeCast node) {
+    processTypeCast(node);
     processReference(node.continuation);
     processReference(node.value);
     node.typeArguments.forEach(processReference);
   }
 
-  processSetMutableVariable(SetMutableVariable node) {}
-  visitSetMutableVariable(SetMutableVariable node) {
-    processSetMutableVariable(node);
+  processTypeTest(TypeTest node) {}
+  visitTypeTest(TypeTest node) {
+    processTypeTest(node);
+    processReference(node.value);
+    node.typeArguments.forEach(processReference);
+  }
+
+  processSetMutable(SetMutable node) {}
+  visitSetMutable(SetMutable node) {
+    processSetMutable(node);
     processReference(node.variable);
     processReference(node.value);
-    visit(node.body);
   }
 
   processGetLazyStatic(GetLazyStatic node) {}
@@ -1071,9 +1314,9 @@ class RecursiveVisitor implements Visitor {
     processMutableVariable(node);
   }
 
-  processGetMutableVariable(GetMutableVariable node) {}
-  visitGetMutableVariable(GetMutableVariable node) {
-    processGetMutableVariable(node);
+  processGetMutable(GetMutable node) {}
+  visitGetMutable(GetMutable node) {
+    processGetMutable(node);
     processReference(node.variable);
   }
 
@@ -1086,20 +1329,12 @@ class RecursiveVisitor implements Visitor {
   visitContinuation(Continuation node) {
     processContinuation(node);
     node.parameters.forEach(visitParameter);
-    if (node.body != null) visit(node.body);
   }
 
   processIsTrue(IsTrue node) {}
   visitIsTrue(IsTrue node) {
     processIsTrue(node);
     processReference(node.value);
-  }
-
-  processIdentical(Identical node) {}
-  visitIdentical(Identical node) {
-    processIdentical(node);
-    processReference(node.left);
-    processReference(node.right);
   }
 
   processInterceptor(Interceptor node) {}
@@ -1120,7 +1355,6 @@ class RecursiveVisitor implements Visitor {
     processSetField(node);
     processReference(node.object);
     processReference(node.value);
-    visit(node.body);
   }
 
   processGetField(GetField node) {}
@@ -1138,7 +1372,6 @@ class RecursiveVisitor implements Visitor {
   visitSetStatic(SetStatic node) {
     processSetStatic(node);
     processReference(node.value);
-    visit(node.body);
   }
 
   processCreateBox(CreateBox node) {}
@@ -1164,15 +1397,180 @@ class RecursiveVisitor implements Visitor {
     node.arguments.forEach(processReference);
   }
 
-  processNonTailThrow(NonTailThrow node) {}
-  visitNonTailThrow(NonTailThrow node) {
-    processNonTailThrow(node);
-    processReference(node.value);
-  }
-
   processCreateInvocationMirror(CreateInvocationMirror node) {}
   visitCreateInvocationMirror(CreateInvocationMirror node) {
     processCreateInvocationMirror(node);
     node.arguments.forEach(processReference);
+  }
+
+  processApplyBuiltinOperator(ApplyBuiltinOperator node) {}
+  visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    processApplyBuiltinOperator(node);
+    node.arguments.forEach(processReference);
+  }
+
+  processForeignCode(ForeignCode node) {}
+  visitForeignCode(ForeignCode node) {
+    processForeignCode(node);
+    if (node.continuation != null) {
+      processReference(node.continuation);
+    }
+    node.arguments.forEach(processReference);
+  }
+
+  processUnreachable(Unreachable node) {}
+  visitUnreachable(Unreachable node) {
+    processUnreachable(node);
+  }
+
+  processGetLength(GetLength node) {}
+  visitGetLength(GetLength node) {
+    processGetLength(node);
+    processReference(node.object);
+  }
+
+  processGetIndex(GetIndex node) {}
+  visitGetIndex(GetIndex node) {
+    processGetIndex(node);
+    processReference(node.object);
+    processReference(node.index);
+  }
+
+  processSetIndex(SetIndex node) {}
+  visitSetIndex(SetIndex node) {
+    processSetIndex(node);
+    processReference(node.object);
+    processReference(node.index);
+    processReference(node.value);
+  }
+}
+
+typedef void StackAction();
+
+/// Calls `process*` for all nodes in a tree.
+/// For simple usage, only override the `process*` methods.
+/// 
+/// To avoid deep recursion, this class uses an "action stack" containing
+/// callbacks to be invoked after the processing of some term has finished.
+/// 
+/// To avoid excessive overhead from the action stack, basic blocks of
+/// interior nodes are iterated in a loop without using the action stack.
+/// 
+/// The iteration order can be controlled by overriding the `traverse*`
+/// methods for [LetCont], [LetPrim], [LetMutable], [LetHandler] and
+/// [Continuation].
+/// 
+/// The `traverse*` methods return the expression to visit next, and may
+/// push other subterms onto the stack using [push] or [pushAction] to visit
+/// them later. Actions pushed onto the stack will be executed after the body
+/// has been processed (and the stack actions it pushed have been executed).
+/// 
+/// By default, the `traverse` methods visit all non-recursive subterms, 
+/// push all bound continuations on the stack, and return the body of the term.
+/// 
+/// Subclasses should not override the `visit` methods for the nodes that have
+/// a `traverse` method.
+class RecursiveVisitor extends LeafVisitor {
+  List<StackAction> _stack = <StackAction>[];
+
+  void pushAction(StackAction callback) {
+    _stack.add(callback);
+  }
+
+  void push(Continuation cont) {
+    _stack.add(() {
+      if (cont.isReturnContinuation) {
+        traverseContinuation(cont);
+      } else {
+        _processBlock(traverseContinuation(cont));
+      }
+    });
+  }
+
+  visitFunctionDefinition(FunctionDefinition node) {
+    processFunctionDefinition(node);
+    if (node.thisParameter != null) visit(node.thisParameter);
+    node.parameters.forEach(visit);
+    visit(node.returnContinuation);
+    visit(node.body);
+  }
+
+  visitContinuation(Continuation cont) {
+    if (cont.isReturnContinuation) {
+      traverseContinuation(cont);
+    } else {
+      _trampoline(traverseContinuation(cont));
+    }
+  }
+
+  visitLetPrim(LetPrim node) => _trampoline(node);
+  visitLetCont(LetCont node) => _trampoline(node);
+  visitLetHandler(LetHandler node) => _trampoline(node);
+  visitLetMutable(LetMutable node) => _trampoline(node);
+
+  Expression traverseContinuation(Continuation cont) {
+    processContinuation(cont);
+    cont.parameters.forEach(visitParameter);
+    return cont.body;
+  }
+
+  Expression traverseLetCont(LetCont node) {
+    processLetCont(node);
+    node.continuations.forEach(push);
+    return node.body;
+  }
+
+  Expression traverseLetHandler(LetHandler node) {
+    processLetHandler(node);
+    push(node.handler);
+    return node.body;
+  }
+
+  Expression traverseLetPrim(LetPrim node) {
+    processLetPrim(node);
+    visit(node.primitive);
+    return node.body;
+  }
+
+  Expression traverseLetMutable(LetMutable node) {
+    processLetMutable(node);
+    visit(node.variable);
+    processReference(node.value);
+    return node.body;
+  }
+
+  void _trampoline(Expression node) {
+    int initialHeight = _stack.length;
+    _processBlock(node);
+    while (_stack.length > initialHeight) {
+      StackAction callback = _stack.removeLast();
+      callback();
+    }
+  }
+
+  _processBlock(Expression node) {
+    while (node is InteriorExpression) {
+      if (node is LetCont) {
+        node = traverseLetCont(node);
+      } else if (node is LetHandler) {
+        node = traverseLetHandler(node);
+      } else if (node is LetPrim) {
+        node = traverseLetPrim(node);
+      } else {
+        node = traverseLetMutable(node);
+      }
+    }
+    visit(node);
+  }
+}
+
+/// Visit a just-deleted subterm and unlink all [Reference]s in it.
+class RemovalVisitor extends RecursiveVisitor {
+  processReference(Reference reference) {
+    reference.unlink();
+  }
+
+  static void remove(Node node) {
+    (new RemovalVisitor()).visit(node);
   }
 }

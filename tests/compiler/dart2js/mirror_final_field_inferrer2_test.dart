@@ -6,7 +6,7 @@
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
-import 'memory_compiler.dart' show compilerFor;
+import 'memory_compiler.dart' show runCompiler;
 import 'compiler_helper.dart' show findElement;
 import 'type_mask_test_helper.dart';
 
@@ -24,13 +24,14 @@ main() {
 };
 
 void main() {
-  var compiler = compilerFor(MEMORY_SOURCE_FILES);
-  asyncTest(() => compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
+  asyncTest(() async {
+    var result = await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+    var compiler = result.compiler;
     var element = findElement(compiler, 'field');
     var typesTask = compiler.typesTask;
     var typesInferrer = typesTask.typesInferrer;
     Expect.equals(typesTask.uint31Type,
                   simplify(typesInferrer.getTypeOfElement(element), compiler),
                   'field');
-  }));
+  });
 }

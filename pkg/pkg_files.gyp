@@ -31,7 +31,8 @@
           'action_name': 'make_third_party_pkg_files_stamp',
           'inputs': [
             '../tools/create_timestamp_file.py',
-            '<!@(["python", "../tools/list_files.py", "\\.dart$",'
+            '<!@(["python", "../tools/list_files.py",'
+                '"^(?!.*_test.dart).*dart$",'
                 '"../third_party/pkg"])',
           ],
           'outputs': [

@@ -12,7 +12,7 @@ import 'context_test.dart' as context_test;
 /// Utility for manually running all tests.
 main() {
   groupSep = ' | ';
-  group('task tests', () {
+  group('context tests', () {
     cache_test.main();
     context_test.main();
   });

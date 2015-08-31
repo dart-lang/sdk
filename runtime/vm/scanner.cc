@@ -786,8 +786,16 @@ void Scanner::Scan() {
         }
         break;
 
-      case '?':
+      case '?':  // ?  ?.  ??  ??=
         Recognize(Token::kCONDITIONAL);
+        if (c0_ == '.') {
+          Recognize(Token::kQM_PERIOD);
+        } else if (c0_ == '?') {
+          Recognize(Token::kIFNULL);
+          if (c0_ == '=') {
+            Recognize(Token::kASSIGN_COND);
+          }
+        }
         break;
 
       case ':':

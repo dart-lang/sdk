@@ -62,12 +62,13 @@ _logger = logging.getLogger('dartdomgenerator')
 
 class GeneratorOptions(object):
   def __init__(self, templates, database, type_registry, renamer,
-      metadata):
+      metadata, dart_js_interop):
     self.templates = templates
     self.database = database
     self.type_registry = type_registry
     self.renamer = renamer
     self.metadata = metadata;
+    self.dart_js_interop = dart_js_interop
 
 def LoadDatabase(database_dir, use_database_cache):
   common_database = database.Database(database_dir)
@@ -79,7 +80,9 @@ def LoadDatabase(database_dir, use_database_cache):
 
 def GenerateFromDatabase(common_database, dart2js_output_dir,
                          dartium_output_dir, update_dom_metadata=False,
-                         logging_level=logging.WARNING):
+                         logging_level=logging.WARNING, dart_js_interop=False):
+  print '\n ----- Accessing DOM using %s -----\n' % ('dart:js' if dart_js_interop else 'C++')
+
   start_time = time.time()
 
   current_dir = os.path.dirname(__file__)
@@ -113,10 +116,10 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
   print 'GenerateFromDatabase %s seconds' % round((time.time() - start_time), 2)
 
   def RunGenerator(dart_libraries, dart_output_dir,
-                   template_loader, backend_factory):
+                   template_loader, backend_factory, dart_js_interop):
     options = GeneratorOptions(
         template_loader, webkit_database, type_registry, renamer,
-        metadata)
+        metadata, dart_js_interop)
     dart_library_emitter = DartLibraryEmitter(
         emitters, dart_output_dir, dart_libraries)
     event_generator = HtmlEventGenerator(webkit_database, renamer, metadata,
@@ -130,28 +133,30 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
 
     generator.Generate(webkit_database, common_database, generate_interface)
 
-    dart_library_emitter.EmitLibraries(auxiliary_dir)
+    dart_library_emitter.EmitLibraries(auxiliary_dir, dart_js_interop)
 
   if dart2js_output_dir:
     template_paths = ['html/dart2js', 'html/impl', 'html/interface', '']
     template_loader = TemplateLoader(template_dir,
                                      template_paths,
-                                     {'DARTIUM': False, 'DART2JS': True})
+                                     {'DARTIUM': False,
+                                      'DART2JS': True,
+                                      'JSINTEROP': False})
     backend_options = GeneratorOptions(
         template_loader, webkit_database, type_registry, renamer,
-        metadata)
+        metadata, dart_js_interop)
     backend_factory = lambda interface:\
         Dart2JSBackend(interface, backend_options, logging_level)
 
     dart_output_dir = os.path.join(dart2js_output_dir, 'dart')
     dart_libraries = DartLibraries(
-        HTML_LIBRARY_NAMES, template_loader, 'dart2js', dart2js_output_dir)
+        HTML_LIBRARY_NAMES, template_loader, 'dart2js', dart2js_output_dir, dart_js_interop)
 
     print '\nGenerating dart2js:\n'
     start_time = time.time()
 
     RunGenerator(dart_libraries, dart_output_dir, template_loader,
-                 backend_factory)
+                 backend_factory, dart_js_interop)
 
     print 'Generated dart2js in %s seconds' % round(time.time() - start_time, 2)
 
@@ -159,23 +164,25 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
     template_paths = ['html/dartium', 'html/impl', 'html/interface', '']
     template_loader = TemplateLoader(template_dir,
                                      template_paths,
-                                     {'DARTIUM': True, 'DART2JS': False})
+                                     {'DARTIUM': True,
+                                      'DART2JS': False,
+                                      'JSINTEROP': dart_js_interop})
     backend_options = GeneratorOptions(
         template_loader, webkit_database, type_registry, renamer,
-        metadata)
+        metadata, dart_js_interop)
     cpp_output_dir = os.path.join(dartium_output_dir, 'cpp')
     cpp_library_emitter = CPPLibraryEmitter(emitters, cpp_output_dir)
     dart_output_dir = os.path.join(dartium_output_dir, 'dart')
     backend_factory = lambda interface:\
         DartiumBackend(interface, cpp_library_emitter, backend_options)
     dart_libraries = DartLibraries(
-        HTML_LIBRARY_NAMES, template_loader, 'dartium', dartium_output_dir)
+        HTML_LIBRARY_NAMES, template_loader, 'dartium', dartium_output_dir, dart_js_interop)
 
     print '\nGenerating dartium:\n'
     start_time = time.time()
 
-    RunGenerator(dart_libraries, dart_output_dir,
-                 template_loader, backend_factory)
+    RunGenerator(dart_libraries, dart_output_dir, template_loader,
+                 backend_factory, dart_js_interop)
     print 'Generated dartium in %s seconds' % round(time.time() - start_time, 2)
 
     cpp_library_emitter.EmitDerivedSources(
@@ -239,6 +246,9 @@ def main():
   parser.add_option('--logging', dest='logging', type='int',
                     action='store', default=logging.NOTSET,
                     help='Level of logging 20 is Info, 30 is Warnings, 40 is Errors')
+  parser.add_option('--gen-interop', dest='dart_js_interop',
+                    action='store_true', default=False,
+                    help='Use Javascript objects (dart:js) accessing the DOM in _blink')
 
   (options, args) = parser.parse_args()
 
@@ -269,7 +279,7 @@ def main():
   database = fremontcutbuilder.main(options.parallel, logging_level=logging_level, examine_idls=options.examine_idls)
 
   GenerateFromDatabase(database, dart2js_output_dir, dartium_output_dir,
-      options.update_dom_metadata, logging_level)
+      options.update_dom_metadata, logging_level, options.dart_js_interop)
 
   file_generation_start_time = time.time()
 

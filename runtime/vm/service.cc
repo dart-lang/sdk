@@ -5,6 +5,7 @@
 #include "vm/service.h"
 
 #include "include/dart_api.h"
+#include "include/dart_native_api.h"
 #include "platform/globals.h"
 
 #include "vm/compiler.h"
@@ -74,32 +75,47 @@ EmbedderServiceHandler* Service::root_service_handler_head_ = NULL;
 struct ServiceMethodDescriptor;
 ServiceMethodDescriptor* FindMethod(const char* method_name);
 
-// TODO(turnidge): Build a general framework later.  For now, we have
-// a small set of well-known streams.
-bool Service::needs_isolate_events_ = false;
-bool Service::needs_debug_events_ = false;
-bool Service::needs_gc_events_ = false;
-bool Service::needs_echo_events_ = false;
-bool Service::needs_graph_events_ = false;
 
-void Service::ListenStream(const char* stream_id) {
+// Support for streams defined in embedders.
+Dart_ServiceStreamListenCallback Service::stream_listen_callback_ = NULL;
+Dart_ServiceStreamCancelCallback Service::stream_cancel_callback_ = NULL;
+
+
+// These are the set of streams known to the core VM.
+StreamInfo Service::isolate_stream("Isolate");
+StreamInfo Service::debug_stream("Debug");
+StreamInfo Service::gc_stream("GC");
+StreamInfo Service::echo_stream("_Echo");
+StreamInfo Service::graph_stream("_Graph");
+StreamInfo Service::logging_stream("_Logging");
+
+static StreamInfo* streams_[] = {
+  &Service::isolate_stream,
+  &Service::debug_stream,
+  &Service::gc_stream,
+  &Service::echo_stream,
+  &Service::graph_stream,
+  &Service::logging_stream,
+};
+
+
+bool Service::ListenStream(const char* stream_id) {
   if (FLAG_trace_service) {
     OS::Print("vm-service: starting stream '%s'\n",
               stream_id);
   }
-  if (strcmp(stream_id, "Isolate") == 0) {
-    needs_isolate_events_ = true;
-  } else if (strcmp(stream_id, "Debug") == 0) {
-    needs_debug_events_ = true;
-  } else if (strcmp(stream_id, "GC") == 0) {
-    needs_gc_events_ = true;
-  } else if (strcmp(stream_id, "_Echo") == 0) {
-    needs_echo_events_ = true;
-  } else if (strcmp(stream_id, "_Graph") == 0) {
-    needs_graph_events_ = true;
-  } else {
-    UNREACHABLE();
+  intptr_t num_streams = sizeof(streams_) /
+                         sizeof(streams_[0]);
+  for (intptr_t i = 0; i < num_streams; i++) {
+    if (strcmp(stream_id, streams_[i]->id()) == 0) {
+      streams_[i]->set_enabled(true);
+      return true;
+    }
   }
+  if (stream_listen_callback_) {
+    return (*stream_listen_callback_)(stream_id);
+  }
+  return false;
 }
 
 void Service::CancelStream(const char* stream_id) {
@@ -107,18 +123,16 @@ void Service::CancelStream(const char* stream_id) {
     OS::Print("vm-service: stopping stream '%s'\n",
               stream_id);
   }
-  if (strcmp(stream_id, "Isolate") == 0) {
-    needs_isolate_events_ = false;
-  } else if (strcmp(stream_id, "Debug") == 0) {
-    needs_debug_events_ = false;
-  } else if (strcmp(stream_id, "GC") == 0) {
-    needs_gc_events_ = false;
-  } else if (strcmp(stream_id, "_Echo") == 0) {
-    needs_echo_events_ = false;
-  } else if (strcmp(stream_id, "_Graph") == 0) {
-    needs_graph_events_ = false;
-  } else {
-    UNREACHABLE();
+  intptr_t num_streams = sizeof(streams_) /
+                         sizeof(streams_[0]);
+  for (intptr_t i = 0; i < num_streams; i++) {
+    if (strcmp(stream_id, streams_[i]->id()) == 0) {
+      streams_[i]->set_enabled(false);
+      return;
+    }
+  }
+  if (stream_cancel_callback_) {
+    return (*stream_cancel_callback_)(stream_id);
   }
 }
 
@@ -259,6 +273,48 @@ static bool GetCodeId(const char* s, int64_t* timestamp, uword* address) {
 }
 
 
+// Verifies that |s| begins with |prefix| and then calls |GetIntegerId| on
+// the remainder of |s|.
+static bool GetPrefixedIntegerId(const char* s,
+                                 const char* prefix,
+                                 intptr_t* service_id) {
+  if (s == NULL) {
+    return false;
+  }
+  ASSERT(prefix != NULL);
+  const intptr_t kInputLen = strlen(s);
+  const intptr_t kPrefixLen = strlen(prefix);
+  ASSERT(kPrefixLen > 0);
+  if (kInputLen <= kPrefixLen) {
+    return false;
+  }
+  if (strncmp(s, prefix, kPrefixLen) != 0) {
+    return false;
+  }
+  // Prefix satisfied. Move forward.
+  s += kPrefixLen;
+  // Attempt to read integer id.
+  return GetIntegerId(s, service_id);
+}
+
+
+static bool IsValidClassId(Isolate* isolate, intptr_t cid) {
+  ASSERT(isolate != NULL);
+  ClassTable* class_table = isolate->class_table();
+  ASSERT(class_table != NULL);
+  return class_table->IsValidIndex(cid) && class_table->HasValidClassAt(cid);
+}
+
+
+static RawClass* GetClassForId(Isolate* isolate, intptr_t cid) {
+  ASSERT(isolate == Isolate::Current());
+  ASSERT(isolate != NULL);
+  ClassTable* class_table = isolate->class_table();
+  ASSERT(class_table != NULL);
+  return class_table->At(cid);
+}
+
+
 // TODO(johnmccutchan): Split into separate file and write unit tests.
 class MethodParameter {
  public:
@@ -342,6 +398,9 @@ class UIntParameter : public MethodParameter {
   }
 
   static intptr_t Parse(const char* value) {
+    if (value == NULL) {
+      return -1;
+    }
     char* end_ptr = NULL;
     uintptr_t result = strtoul(value, &end_ptr, 10);
     ASSERT(*end_ptr == '\0');  // Parsed full string
@@ -450,7 +509,7 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
     HANDLESCOPE(isolate);
 
     Instance& reply_port = Instance::Handle(isolate);
-    String& seq = String::Handle(isolate);
+    Instance& seq = String::Handle(isolate);
     String& method_name = String::Handle(isolate);
     Array& param_keys = Array::Handle(isolate);
     Array& param_values = Array::Handle(isolate);
@@ -461,7 +520,7 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
     param_values ^= msg.At(5);
 
     ASSERT(!method_name.IsNull());
-    ASSERT(!seq.IsNull());
+    ASSERT(seq.IsNull() || seq.IsString() || seq.IsNumber());
     ASSERT(!param_keys.IsNull());
     ASSERT(!param_values.IsNull());
     ASSERT(param_keys.Length() == param_values.Length());
@@ -578,6 +637,7 @@ void Service::SendEvent(const char* stream_id,
 }
 
 
+// TODO(turnidge): Rewrite this method to use Post_CObject instead.
 void Service::SendEventWithData(const char* stream_id,
                                 const char* event_type,
                                 const String& meta,
@@ -613,17 +673,58 @@ void Service::HandleEvent(ServiceEvent* event) {
   if (ServiceIsolate::IsServiceIsolateDescendant(event->isolate())) {
     return;
   }
+  if (!ServiceIsolate::IsRunning()) {
+    return;
+  }
   JSONStream js;
   const char* stream_id = event->stream_id();
   ASSERT(stream_id != NULL);
   {
     JSONObject jsobj(&js);
-    jsobj.AddProperty("event", event);
-    jsobj.AddProperty("streamId", stream_id);
+    jsobj.AddProperty("jsonrpc", "2.0");
+    jsobj.AddProperty("method", "streamNotify");
+    JSONObject params(&jsobj, "params");
+    params.AddProperty("streamId", stream_id);
+    params.AddProperty("event", event);
   }
-  const String& message = String::Handle(String::New(js.ToCString()));
-  SendEvent(stream_id, ServiceEvent::EventTypeToCString(event->type()),
-            message);
+  PostEvent(stream_id, event->KindAsCString(), &js);
+}
+
+
+void Service::PostEvent(const char* stream_id,
+                        const char* kind,
+                        JSONStream* event) {
+  ASSERT(stream_id != NULL);
+  ASSERT(kind != NULL);
+  ASSERT(event != NULL);
+
+  // Message is of the format [<stream id>, <json string>].
+  //
+  // Build the event message in the C heap to avoid dart heap
+  // allocation.  This method can be called while we have acquired a
+  // direct pointer to typed data, so we can't allocate here.
+  Dart_CObject list_cobj;
+  Dart_CObject* list_values[2];
+  list_cobj.type = Dart_CObject_kArray;
+  list_cobj.value.as_array.length = 2;
+  list_cobj.value.as_array.values = list_values;
+
+  Dart_CObject stream_id_cobj;
+  stream_id_cobj.type = Dart_CObject_kString;
+  stream_id_cobj.value.as_string = const_cast<char*>(stream_id);
+  list_values[0] = &stream_id_cobj;
+
+  Dart_CObject json_cobj;
+  json_cobj.type = Dart_CObject_kString;
+  json_cobj.value.as_string = const_cast<char*>(event->ToCString());
+  list_values[1] = &json_cobj;
+
+  if (FLAG_trace_service) {
+    OS::Print(
+        "vm-service: Pushing event of type %s to stream %s\n", kind, stream_id);
+  }
+
+  Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
 }
 
 
@@ -747,6 +848,14 @@ void Service::RegisterRootEmbedderCallback(
 }
 
 
+void Service::SetEmbedderStreamCallbacks(
+    Dart_ServiceStreamListenCallback listen_callback,
+    Dart_ServiceStreamCancelCallback cancel_callback) {
+  stream_listen_callback_ = listen_callback;
+  stream_cancel_callback_ = cancel_callback;
+}
+
+
 EmbedderServiceHandler* Service::FindRootEmbedderHandler(
     const char* name) {
   EmbedderServiceHandler* current = root_service_handler_head_;
@@ -821,25 +930,30 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
   JSONStream js;
   {
     JSONObject jsobj(&js);
+    jsobj.AddProperty("jsonrpc", "2.0");
+    jsobj.AddProperty("method", "streamNotify");
     {
-      JSONObject event(&jsobj, "event");
-      event.AddProperty("type", "Event");
-      event.AddProperty("kind", "_Echo");
-      event.AddProperty("isolate", isolate);
-      if (text != NULL) {
-        event.AddProperty("text", text);
+      JSONObject params(&jsobj, "params");
+      params.AddProperty("streamId", echo_stream.id());
+      {
+        JSONObject event(&params, "event");
+        event.AddProperty("type", "Event");
+        event.AddProperty("kind", "_Echo");
+        event.AddProperty("isolate", isolate);
+        if (text != NULL) {
+          event.AddProperty("text", text);
+        }
       }
     }
-    jsobj.AddProperty("streamId", "_Echo");
   }
   const String& message = String::Handle(String::New(js.ToCString()));
   uint8_t data[] = {0, 128, 255};
-  SendEventWithData("_Echo", "_Echo", message, data, sizeof(data));
+  SendEventWithData(echo_stream.id(), "_Echo", message, data, sizeof(data));
 }
 
 
 static bool TriggerEchoEvent(Isolate* isolate, JSONStream* js) {
-  if (Service::NeedsEchoEvents()) {
+  if (Service::echo_stream.enabled()) {
     Service::SendEchoEvent(isolate, js->LookupParam("text"));
   }
   JSONObject jsobj(js);
@@ -1168,7 +1282,7 @@ static RawObject* LookupHeapObjectCode(Isolate* isolate,
 static RawObject* LookupHeapObject(Isolate* isolate,
                                    const char* id_original,
                                    ObjectIdRing::LookupResult* result) {
-  char* id = isolate->current_zone()->MakeCopyOfString(id_original);
+  char* id = Thread::Current()->zone()->MakeCopyOfString(id_original);
 
   // Parse the id by splitting at each '/'.
   const int MAX_PARTS = 8;
@@ -1296,7 +1410,7 @@ static bool PrintMessage(JSONStream* js, Isolate* isolate, const char* id) {
       MessageSnapshotReader reader(message->data(),
                                    message->len(),
                                    isolate,
-                                   isolate->current_zone());
+                                   Thread::Current()->zone());
       const Object& msg_obj = Object::Handle(reader.ReadObject());
       msg_obj.PrintJSON(js);
       return true;
@@ -1409,10 +1523,9 @@ static bool PrintRetainingPath(Isolate* isolate,
   jsobj.AddProperty("length", length);
   JSONArray elements(&jsobj, "elements");
   Object& element = Object::Handle();
-  Object& parent = Object::Handle();
-  Smi& offset_from_parent = Smi::Handle();
-  Class& parent_class = Class::Handle();
-  Array& parent_field_map = Array::Handle();
+  Smi& slot_offset = Smi::Handle();
+  Class& element_class = Class::Handle();
+  Array& element_field_map = Array::Handle();
   Field& field = Field::Handle();
   limit = Utils::Minimum(limit, length);
   for (intptr_t i = 0; i < limit; ++i) {
@@ -1422,22 +1535,23 @@ static bool PrintRetainingPath(Isolate* isolate,
     jselement.AddProperty("value", element);
     // Interpret the word offset from parent as list index or instance field.
     // TODO(koda): User-friendly interpretation for map entries.
-    offset_from_parent ^= path.At((i * 2) + 1);
-    int parent_i = i + 1;
-    if (parent_i < limit) {
-      parent = path.At(parent_i * 2);
-      if (parent.IsArray()) {
-        intptr_t element_index = offset_from_parent.Value() -
+    if (i > 0) {
+      slot_offset ^= path.At((i * 2) - 1);
+      if (element.IsArray()) {
+        intptr_t element_index = slot_offset.Value() -
             (Array::element_offset(0) >> kWordSizeLog2);
         jselement.AddProperty("parentListIndex", element_index);
-      } else if (parent.IsInstance()) {
-        parent_class ^= parent.clazz();
-        parent_field_map = parent_class.OffsetToFieldMap();
-        intptr_t offset = offset_from_parent.Value();
-        if (offset > 0 && offset < parent_field_map.Length()) {
-          field ^= parent_field_map.At(offset);
+      } else if (element.IsInstance()) {
+        element_class ^= element.clazz();
+        element_field_map = element_class.OffsetToFieldMap();
+        intptr_t offset = slot_offset.Value();
+        if (offset > 0 && offset < element_field_map.Length()) {
+          field ^= element_field_map.At(offset);
           jselement.AddProperty("parentField", field);
         }
+      } else {
+        intptr_t element_index = slot_offset.Value();
+        jselement.AddProperty("_parentWordOffset", element_index);
       }
     }
   }
@@ -1521,6 +1635,8 @@ static bool GetRetainedSize(Isolate* isolate, JSONStream* js) {
     }
     return true;
   }
+  // TODO(rmacnak): There is no way to get the size retained by a class object.
+  // SizeRetainedByClass should be a separate RPC.
   if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
     ObjectGraph graph(isolate);
@@ -1529,18 +1645,11 @@ static bool GetRetainedSize(Isolate* isolate, JSONStream* js) {
     result.PrintJSON(js, true);
     return true;
   }
-  if (obj.IsInstance() || obj.IsNull()) {
-    // We don't use Instance::Cast here because it doesn't allow null.
-    ObjectGraph graph(isolate);
-    intptr_t retained_size = graph.SizeRetainedByInstance(obj);
-    const Object& result = Object::Handle(Integer::New(retained_size));
-    result.PrintJSON(js, true);
-    return true;
-  }
-  js->PrintError(kInvalidParams,
-                 "%s: invalid 'targetId' parameter: "
-                 "id '%s' does not correspond to a "
-                 "library, class, or instance", js->method(), target_id);
+
+  ObjectGraph graph(isolate);
+  intptr_t retained_size = graph.SizeRetainedByInstance(obj);
+  const Object& result = Object::Handle(Integer::New(retained_size));
+  result.PrintJSON(js, true);
   return true;
 }
 
@@ -1825,6 +1934,7 @@ static bool GetHitsOrSites(Isolate* isolate, JSONStream* js, bool as_sites) {
 
 static const MethodParameter* get_coverage_params[] = {
   ISOLATE_PARAMETER,
+  new IdParameter("targetId", false),
   NULL,
 };
 
@@ -1837,7 +1947,7 @@ static bool GetCoverage(Isolate* isolate, JSONStream* js) {
 
 static const MethodParameter* get_call_site_data_params[] = {
   ISOLATE_PARAMETER,
-  new IdParameter("targetId", true),
+  new IdParameter("targetId", false),
   NULL,
 };
 
@@ -2149,8 +2259,13 @@ static const MethodParameter* resume_params[] = {
 static bool Resume(Isolate* isolate, JSONStream* js) {
   const char* step_param = js->LookupParam("step");
   if (isolate->message_handler()->paused_on_start()) {
+    // If the user is issuing a 'Over' or an 'Out' step, that is the
+    // same as a regular resume request.
+    if ((step_param != NULL) && (strcmp(step_param, "Into") == 0)) {
+      isolate->debugger()->EnterSingleStepMode();
+    }
     isolate->message_handler()->set_pause_on_start(false);
-    if (Service::NeedsDebugEvents()) {
+    if (Service::debug_stream.enabled()) {
       ServiceEvent event(isolate, ServiceEvent::kResume);
       Service::HandleEvent(&event);
     }
@@ -2224,27 +2339,57 @@ static const char* tags_enum_names[] = {
 };
 
 
-static ProfilerService::TagOrder tags_enum_values[] = {
-  ProfilerService::kNoTags,
-  ProfilerService::kUserVM,
-  ProfilerService::kUser,
-  ProfilerService::kVMUser,
-  ProfilerService::kVM,
-  ProfilerService::kNoTags,  // Default value.
+static Profile::TagOrder tags_enum_values[] = {
+  Profile::kNoTags,
+  Profile::kUserVM,
+  Profile::kUser,
+  Profile::kVMUser,
+  Profile::kVM,
+  Profile::kNoTags,  // Default value.
 };
 
 
 static const MethodParameter* get_cpu_profile_params[] = {
   ISOLATE_PARAMETER,
   new EnumParameter("tags", true, tags_enum_names),
+  new BoolParameter("_codeTransitionTags", false),
   NULL,
 };
 
 
+// TODO(johnmccutchan): Rename this to GetCpuSamples.
 static bool GetCpuProfile(Isolate* isolate, JSONStream* js) {
-  ProfilerService::TagOrder tag_order =
+  Profile::TagOrder tag_order =
       EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
-  ProfilerService::PrintJSON(js, tag_order);
+  intptr_t extra_tags = 0;
+  if (BoolParameter::Parse(js->LookupParam("_codeTransitionTags"))) {
+    extra_tags |= ProfilerService::kCodeTransitionTagsBit;
+  }
+  ProfilerService::PrintJSON(js, tag_order, extra_tags);
+  return true;
+}
+
+
+static const MethodParameter* get_allocation_samples_params[] = {
+  ISOLATE_PARAMETER,
+  new EnumParameter("tags", true, tags_enum_names),
+  new IdParameter("classId", false),
+  NULL,
+};
+
+
+static bool GetAllocationSamples(Isolate* isolate, JSONStream* js) {
+  Profile::TagOrder tag_order =
+      EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
+  const char* class_id = js->LookupParam("classId");
+  intptr_t cid = -1;
+  GetPrefixedIntegerId(class_id, "classes/", &cid);
+  if (IsValidClassId(isolate, cid)) {
+    const Class& cls = Class::Handle(GetClassForId(isolate, cid));
+    ProfilerService::PrintAllocationJSON(js, tag_order, cls);
+  } else {
+    PrintInvalidParamError(js, "classId");
+  }
   return true;
 }
 
@@ -2319,7 +2464,7 @@ static const MethodParameter* request_heap_snapshot_params[] = {
 
 
 static bool RequestHeapSnapshot(Isolate* isolate, JSONStream* js) {
-  if (Service::NeedsGraphEvents()) {
+  if (Service::graph_stream.enabled()) {
     Service::SendGraphEvent(isolate);
   }
   // TODO(koda): Provide some id that ties this request to async response(s).
@@ -2344,17 +2489,22 @@ void Service::SendGraphEvent(Isolate* isolate) {
     JSONStream js;
     {
       JSONObject jsobj(&js);
+      jsobj.AddProperty("jsonrpc", "2.0");
+      jsobj.AddProperty("method", "streamNotify");
       {
-        JSONObject event(&jsobj, "event");
-        event.AddProperty("type", "Event");
-        event.AddProperty("kind", "_Graph");
-        event.AddProperty("isolate", isolate);
+        JSONObject params(&jsobj, "params");
+        params.AddProperty("streamId", graph_stream.id());
+        {
+          JSONObject event(&params, "event");
+          event.AddProperty("type", "Event");
+          event.AddProperty("kind", "_Graph");
+          event.AddProperty("isolate", isolate);
 
-        event.AddProperty("chunkIndex", i);
-        event.AddProperty("chunkCount", num_chunks);
-        event.AddProperty("nodeCount", node_count);
+          event.AddProperty("chunkIndex", i);
+          event.AddProperty("chunkCount", num_chunks);
+          event.AddProperty("nodeCount", node_count);
+        }
       }
-      jsobj.AddProperty("streamId", "_Graph");
     }
 
     const String& message = String::Handle(String::New(js.ToCString()));
@@ -2364,17 +2514,58 @@ void Service::SendGraphEvent(Isolate* isolate) {
         ? stream.bytes_written() - (i * kChunkSize)
         : kChunkSize;
 
-    SendEventWithData("_Graph", "_Graph", message, chunk_start, chunk_size);
+    SendEventWithData(graph_stream.id(), "_Graph", message,
+                      chunk_start, chunk_size);
   }
 }
 
 
 void Service::SendInspectEvent(Isolate* isolate, const Object& inspectee) {
-  if (!Service::NeedsDebugEvents()) {
+  if (!Service::debug_stream.enabled()) {
     return;
   }
   ServiceEvent event(isolate, ServiceEvent::kInspect);
   event.set_inspectee(&inspectee);
+  Service::HandleEvent(&event);
+}
+
+
+void Service::SendEmbedderEvent(Isolate* isolate,
+                                const char* stream_id,
+                                const char* event_kind,
+                                const uint8_t* bytes,
+                                intptr_t bytes_len) {
+  if (!Service::debug_stream.enabled()) {
+    return;
+  }
+  ServiceEvent event(isolate, ServiceEvent::kEmbedder);
+  event.set_embedder_kind(event_kind);
+  event.set_embedder_stream_id(stream_id);
+  event.set_bytes(bytes, bytes_len);
+  Service::HandleEvent(&event);
+}
+
+
+void Service::SendLogEvent(Isolate* isolate,
+                           int64_t sequence_number,
+                           int64_t timestamp,
+                           intptr_t level,
+                           const String& name,
+                           const String& message,
+                           const Instance& zone,
+                           const Object& error,
+                           const Instance& stack_trace) {
+  ServiceEvent::LogRecord log_record;
+  log_record.sequence_number = sequence_number;
+  log_record.timestamp = timestamp;
+  log_record.level = level;
+  log_record.name = &name;
+  log_record.message = &message;
+  log_record.zone = &zone;
+  log_record.error = &error;
+  log_record.stack_trace = &stack_trace;
+  ServiceEvent event(isolate, ServiceEvent::kLogging);
+  event.set_log_record(log_record);
   Service::HandleEvent(&event);
 }
 
@@ -2407,6 +2598,29 @@ static const MethodParameter* get_object_by_address_params[] = {
 };
 
 
+static RawObject* GetObjectHelper(Isolate* isolate, uword addr) {
+  Object& object = Object::Handle(isolate);
+
+  {
+    NoSafepointScope no_safepoint;
+    ContainsAddressVisitor visitor(isolate, addr);
+    object = isolate->heap()->FindObject(&visitor);
+  }
+
+  if (!object.IsNull()) {
+    return object.raw();
+  }
+
+  {
+    NoSafepointScope no_safepoint;
+    ContainsAddressVisitor visitor(Dart::vm_isolate(), addr);
+    object = Dart::vm_isolate()->heap()->FindObject(&visitor);
+  }
+
+  return object.raw();
+}
+
+
 static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
   const char* addr_str = js->LookupParam("address");
   if (addr_str == NULL) {
@@ -2421,17 +2635,25 @@ static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
     return true;
   }
   bool ref = js->HasParam("ref") && js->ParamIs("ref", "true");
-  Object& object = Object::Handle(isolate);
-  {
-    NoSafepointScope no_safepoint;
-    ContainsAddressVisitor visitor(isolate, addr);
-    object = isolate->heap()->FindObject(&visitor);
-  }
-  if (object.IsNull()) {
+  const Object& obj = Object::Handle(isolate, GetObjectHelper(isolate, addr));
+  if (obj.IsNull()) {
     PrintSentinel(js, kFreeSentinel);
   } else {
-    object.PrintJSON(js, ref);
+    obj.PrintJSON(js, ref);
   }
+  return true;
+}
+
+
+static const MethodParameter* get_ports_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool GetPorts(Isolate* isolate, JSONStream* js) {
+  MessageHandler* message_handler = isolate->message_handler();
+  PortMap::PrintPortsForMessageHandler(message_handler, js);
   return true;
 }
 
@@ -2560,7 +2782,7 @@ static const MethodParameter* get_version_params[] = {
 static bool GetVersion(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
-  jsobj.AddProperty("major", static_cast<intptr_t>(1));
+  jsobj.AddProperty("major", static_cast<intptr_t>(2));
   jsobj.AddProperty("minor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
@@ -2616,6 +2838,43 @@ static bool GetVM(Isolate* isolate, JSONStream* js) {
     ServiceIsolateVisitor visitor(&jsarr);
     Isolate::VisitIsolates(&visitor);
   }
+  return true;
+}
+
+
+static const MethodParameter* set_exception_pause_info_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool SetExceptionPauseInfo(Isolate* isolate, JSONStream* js) {
+  const char* exceptions = js->LookupParam("exceptions");
+  if (exceptions == NULL) {
+    PrintMissingParamError(js, "exceptions");
+    return true;
+  }
+
+  Dart_ExceptionPauseInfo info = kNoPauseOnExceptions;
+  if (strcmp(exceptions, "none") == 0) {
+    info = kNoPauseOnExceptions;
+  } else if (strcmp(exceptions, "all") == 0) {
+    info = kPauseOnAllExceptions;
+  } else if (strcmp(exceptions, "unhandled") == 0) {
+    info = kPauseOnUnhandledExceptions;
+  } else {
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "Error");
+    jsobj.AddProperty("message", "illegal value for parameter 'exceptions'");
+    return true;
+  }
+
+  isolate->debugger()->SetExceptionPauseInfo(info);
+  if (Service::debug_stream.enabled()) {
+    ServiceEvent event(isolate, ServiceEvent::kDebuggerSettingsUpdate);
+    Service::HandleEvent(&event);
+  }
+  PrintSuccess(js);
   return true;
 }
 
@@ -2697,10 +2956,35 @@ static const MethodParameter* set_name_params[] = {
 
 static bool SetName(Isolate* isolate, JSONStream* js) {
   isolate->set_debugger_name(js->LookupParam("name"));
-  if (Service::NeedsIsolateEvents()) {
+  if (Service::isolate_stream.enabled()) {
     ServiceEvent event(isolate, ServiceEvent::kIsolateUpdate);
     Service::HandleEvent(&event);
   }
+  PrintSuccess(js);
+  return true;
+}
+
+
+static const MethodParameter* set_trace_class_allocation_params[] = {
+  ISOLATE_PARAMETER,
+  new IdParameter("classId", true),
+  new BoolParameter("enable", true),
+  NULL,
+};
+
+
+static bool SetTraceClassAllocation(Isolate* isolate, JSONStream* js) {
+  const char* class_id = js->LookupParam("classId");
+  const bool enable = BoolParameter::Parse(js->LookupParam("enable"));
+  intptr_t cid = -1;
+  GetPrefixedIntegerId(class_id, "classes/", &cid);
+  if (!IsValidClassId(isolate, cid)) {
+    PrintInvalidParamError(js, "classId");
+    return true;
+  }
+  const Class& cls = Class::Handle(GetClassForId(isolate, cid));
+  ASSERT(!cls.IsNull());
+  cls.SetTraceAllocation(enable);
   PrintSuccess(js);
   return true;
 }
@@ -2730,6 +3014,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     evaluate_in_frame_params },
   { "_getAllocationProfile", GetAllocationProfile,
     get_allocation_profile_params },
+  { "_getAllocationSamples", GetAllocationSamples,
+      get_allocation_samples_params },
   { "_getCallSiteData", GetCallSiteData,
     get_call_site_data_params },
   { "getClassList", GetClassList,
@@ -2738,7 +3024,7 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_coverage_params },
   { "_getCpuProfile", GetCpuProfile,
     get_cpu_profile_params },
-  { "getFlagList", GetFlagList ,
+  { "getFlagList", GetFlagList,
     get_flag_list_params },
   { "_getHeapMap", GetHeapMap,
     get_heap_map_params },
@@ -2756,6 +3042,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_object_params },
   { "_getObjectByAddress", GetObjectByAddress,
     get_object_by_address_params },
+  { "_getPorts", GetPorts,
+    get_ports_params },
   { "_getRetainedSize", GetRetainedSize,
     get_retained_size_params },
   { "_getRetainingPath", GetRetainingPath,
@@ -2782,12 +3070,16 @@ static ServiceMethodDescriptor service_methods_[] = {
     resume_params },
   { "_requestHeapSnapshot", RequestHeapSnapshot,
     request_heap_snapshot_params },
+  { "_setExceptionPauseInfo", SetExceptionPauseInfo,
+    set_exception_pause_info_params },
   { "_setFlag", SetFlag,
     set_flags_params },
   { "setLibraryDebuggable", SetLibraryDebuggable,
     set_library_debuggable_params },
   { "setName", SetName,
     set_name_params },
+  { "_setTraceClassAllocation", SetTraceClassAllocation,
+    set_trace_class_allocation_params },
 };
 
 

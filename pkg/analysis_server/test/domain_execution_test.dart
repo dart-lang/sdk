@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -225,12 +226,12 @@ main() {
       when(context.getLibrariesReferencedFromHtml(anyObject))
           .thenReturn([source6, source7]);
 
-      ServerContextManager manager = new ServerContextManagerMock();
+      ContextManager manager = new ServerContextManagerMock();
       when(manager.isInAnalysisRoot(anyString)).thenReturn(true);
 
       AnalysisServer server = new AnalysisServerMock();
       when(server.getAnalysisContexts()).thenReturn([context]);
-      when(server.contextDirectoryManager).thenReturn(manager);
+      when(server.contextManager).thenReturn(manager);
 
       StreamController controller = new StreamController.broadcast(sync: true);
       when(server.onFileAnalyzed).thenReturn(controller.stream);

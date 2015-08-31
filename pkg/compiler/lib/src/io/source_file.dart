@@ -115,6 +115,9 @@ abstract class SourceFile implements LineColumnProvider {
     return position - lineStarts[line];
   }
 
+  /// Returns the offset for 0-based [line] and [column] numbers.
+  int getOffset(int line, int column) => lineStarts[line] + column;
+
   String slowSubstring(int start, int end);
 
   /**
@@ -145,13 +148,7 @@ abstract class SourceFile implements LineColumnProvider {
     buf.write('\n$message\n');
 
     if (start != end && includeSourceLine) {
-      String textLine;
-      // +1 for 0-indexing, +1 again to avoid the last line of the file
-      if ((line + 2) < lineStarts.length) {
-        textLine = slowSubstring(lineStarts[line], lineStarts[line+1]);
-      } else {
-        textLine = '${slowSubstring(lineStarts[line], length)}\n';
-      }
+      String textLine = getLineText(line);
 
       int toColumn = min(column + (end-start), textLine.length);
       buf.write(textLine.substring(0, column));
@@ -169,6 +166,20 @@ abstract class SourceFile implements LineColumnProvider {
     }
 
     return buf.toString();
+  }
+
+  int get lines => lineStarts.length - 1;
+
+  /// Returns the text of line  at the 0-based [index] within this source file.
+  String getLineText(int index) {
+    // +1 for 0-indexing, +1 again to avoid the last line of the file
+    if ((index + 2) < lineStarts.length) {
+      return slowSubstring(lineStarts[index], lineStarts[index+1]);
+    } else if ((index + 1) < lineStarts.length) {
+      return '${slowSubstring(lineStarts[index], length)}\n';
+    } else {
+      throw new ArgumentError("Line index $index is out of bounds.");
+    }
   }
 }
 
@@ -212,7 +223,7 @@ class Utf8BytesSourceFile extends SourceFile {
   int get length {
     if (lengthCache == -1) {
       // During scanning the length is not yet assigned, so we use a slow path.
-      length = slowText().length;
+      lengthCache = slowText().length;
     }
     return lengthCache;
   }

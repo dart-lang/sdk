@@ -40,47 +40,32 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   }
 }
 
-const char* StringUtils::ConsoleStringToUtf8(const char* str) {
-  return str;
-}
-
-const char* StringUtils::Utf8ToConsoleString(const char* utf8) {
-  return utf8;
-}
-
-char* StringUtils::ConsoleStringToUtf8(char* str) {
-  return str;
-}
-
-char* StringUtils::Utf8ToConsoleString(char* utf8) {
-  return utf8;
-}
-
-wchar_t* StringUtils::Utf8ToWide(char* utf8) {
+const char* StringUtils::ConsoleStringToUtf8(
+    const char* str, intptr_t len, intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
 
-const wchar_t* StringUtils::Utf8ToWide(const char* utf8) {
+const char* StringUtils::Utf8ToConsoleString(
+    const char* utf8, intptr_t len, intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
 
-char* StringUtils::WideToUtf8(wchar_t* str) {
+char* StringUtils::ConsoleStringToUtf8(
+    char* str, intptr_t len, intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
 
-const char* StringUtils::WideToUtf8(const wchar_t* str) {
+char* StringUtils::Utf8ToConsoleString(
+    char* utf8, intptr_t len, intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
 
-wchar_t** ShellUtils::GetUnicodeArgv(int* argc) {
-  return NULL;
-}
-
-void ShellUtils::FreeUnicodeArgv(wchar_t** argv) {
+bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
+  return false;
 }
 
 int64_t TimerUtils::GetCurrentTimeMilliseconds() {

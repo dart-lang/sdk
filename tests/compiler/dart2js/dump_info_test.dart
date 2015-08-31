@@ -97,26 +97,29 @@ const String TEST_INLINED_2 = r"""
 
 typedef void JsonTaking(Map<String, dynamic> json);
 
-void jsonTest(String program, JsonTaking testFn) {
-  var compiler = compilerFor({'main.dart': program}, options: ['--dump-info']);
-  asyncTest(() => compiler.runCompiler(Uri.parse('memory:main.dart')).then(
-    (_) {
-      Expect.isFalse(compiler.compilationFailed);
-      var dumpTask = compiler.dumpInfoTask;
-      dumpTask.collectInfo();
-      var info = dumpTask.infoCollector;
+jsonTest(String program, JsonTaking testFn) async {
+  var result = await runCompiler(
+      memorySourceFiles: {'main.dart': program}, options: ['--dump-info']);
+  var compiler = result.compiler;
+  Expect.isFalse(compiler.compilationFailed);
+  var dumpTask = compiler.dumpInfoTask;
+  dumpTask.collectInfo();
+  var info = dumpTask.infoCollector;
 
-      StringBuffer sb = new StringBuffer();
-      dumpTask.dumpInfoJson(sb);
-      String json = sb.toString();
-      Map<String, dynamic> map = JSON.decode(json);
+  StringBuffer sb = new StringBuffer();
+  dumpTask.dumpInfoJson(sb);
+  String json = sb.toString();
+  Map<String, dynamic> map = JSON.decode(json);
 
-      testFn(map);
-    }));
+  testFn(map);
 }
 
 main() {
-  jsonTest(TEST_BASIC, (map) {
+  asyncTest(runTests);
+}
+
+runTests() async {
+  await jsonTest(TEST_BASIC, (map) {
     Expect.isTrue(map['elements'].isNotEmpty);
     Expect.isTrue(map['elements']['function'].isNotEmpty);
     Expect.isTrue(map['elements']['library'].isNotEmpty);
@@ -131,7 +134,7 @@ main() {
     }));
   });
 
-  jsonTest(TEST_CLOSURES, (map) {
+  await jsonTest(TEST_CLOSURES, (map) {
     var functions = map['elements']['function'].values;
     Expect.isTrue(functions.any((fn) {
       return fn['name'] == 'bar' && fn['children'].length == 11;
@@ -141,7 +144,7 @@ main() {
     }));
   });
 
-  jsonTest(TEST_STATICS, (map) {
+  await  jsonTest(TEST_STATICS, (map) {
     var functions = map['elements']['function'].values;
     var classes = map['elements']['class'].values;
     Expect.isTrue(functions.any((fn) {
@@ -153,7 +156,7 @@ main() {
     }));
   });
 
-  jsonTest(TEST_INLINED_1, (map) {
+  await jsonTest(TEST_INLINED_1, (map) {
     var functions = map['elements']['function'].values;
     var classes = map['elements']['class'].values;
     Expect.isTrue(functions.any((fn) {
@@ -166,7 +169,7 @@ main() {
     }));
   });
 
-  jsonTest(TEST_INLINED_2, (map) {
+  await jsonTest(TEST_INLINED_2, (map) {
     var functions = map['elements']['function'].values;
     var deps = map['holding'];
     var main_ = functions.firstWhere((v) => v['name'] == 'main');

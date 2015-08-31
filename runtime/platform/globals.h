@@ -306,6 +306,13 @@ typedef simd128_value_t fpu_register_t;
 #define Pu64 PRIu64
 #define Px64 PRIx64
 
+// Zero-padded pointer
+#if defined(ARCH_IS_32_BIT)
+#define Pp "08" PRIxPTR
+#else
+#define Pp "016" PRIxPTR
+#endif
+
 
 // Suffixes for 64-bit integer literals.
 #ifdef _MSC_VER
@@ -341,6 +348,15 @@ const int64_t kSignBitDouble = DART_INT64_C(0x8000000000000000);
 typedef intptr_t word;
 typedef uintptr_t uword;
 
+// Size of a class id.
+#if defined(ARCH_IS_32_BIT)
+typedef uint16_t classid_t;
+#elif defined(ARCH_IS_64_BIT)
+typedef uint32_t classid_t;
+#else
+#error Unexpected architecture word size
+#endif
+
 // Byte sizes.
 const int kWordSize = sizeof(word);
 const int kDoubleSize = sizeof(double);  // NOLINT
@@ -348,6 +364,7 @@ const int kFloatSize = sizeof(float);  // NOLINT
 const int kQuadSize = 4 * kFloatSize;
 const int kSimd128Size = sizeof(simd128_value_t);  // NOLINT
 const int kInt32Size = sizeof(int32_t);  // NOLINT
+const int kInt16Size = sizeof(int16_t);  // NOLINT
 #ifdef ARCH_IS_32_BIT
 const int kWordSizeLog2 = 2;
 const uword kUwordMax = kMaxUint32;
@@ -581,6 +598,12 @@ static inline T ReadUnaligned(const T* ptr) {
   __attribute__((__format__(__printf__, string_index, first_to_check)))
 #else
 #define PRINTF_ATTRIBUTE(string_index, first_to_check)
+#endif
+
+#if defined(_WIN32)
+#define STDIN_FILENO 0
+#define STDOUT_FILENO 1
+#define STDERR_FILENO 2
 #endif
 
 }  // namespace dart

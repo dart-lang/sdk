@@ -19,7 +19,8 @@
                 '"../third_party/pkg_tested"])',
             '<!@(["python", "../tools/list_pkg_directories.py", '
                 '"../runtime"])',
-            '../sdk/lib/_internal',
+            '../sdk/lib/_internal/js_runtime/lib',
+            '../sdk/lib/_internal/sdk_library_metadata/lib',
             '../site/try',
           ],
           'outputs': [

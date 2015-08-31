@@ -4,7 +4,7 @@
 
 #include "platform/globals.h"
 
-#include "include/dart_debugger_api.h"
+#include "include/dart_tools_api.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
@@ -77,14 +77,12 @@ static RawArray* Eval(Dart_Handle lib, const char* expr) {
 
 
 static RawArray* EvalF(Dart_Handle lib, const char* fmt, ...) {
-  Isolate* isolate = Isolate::Current();
-
   va_list args;
   va_start(args, fmt);
   intptr_t len = OS::VSNPrint(NULL, 0, fmt, args);
   va_end(args);
 
-  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
+  char* buffer = Thread::Current()->zone()->Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, fmt);
   OS::VSNPrint(buffer, (len + 1), fmt, args2);
@@ -532,15 +530,15 @@ TEST_CASE(Service_EmbedderRootHandler) {
 
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, "[0, port, '0', 'alpha', [], []]");
+  service_msg = Eval(lib, "[0, port, '\"', 'alpha', [], []]");
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"json-rpc\":\"2.0\", \"result\":alpha, \"id\":\"0\"}",
+  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":alpha,\"id\":\"\\\"\"}",
                handler.msg());
-  service_msg = Eval(lib, "[0, port, '0', 'beta', [], []]");
+  service_msg = Eval(lib, "[0, port, 1, 'beta', [], []]");
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"json-rpc\":\"2.0\", \"result\":beta, \"id\":\"0\"}",
+  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":beta,\"id\":1}",
                handler.msg());
 }
 
@@ -575,12 +573,12 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
   service_msg = Eval(lib, "[0, port, '0', 'alpha', [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"json-rpc\":\"2.0\", \"result\":alpha, \"id\":\"0\"}",
+  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":alpha,\"id\":\"0\"}",
                handler.msg());
   service_msg = Eval(lib, "[0, port, '0', 'beta', [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"json-rpc\":\"2.0\", \"result\":beta, \"id\":\"0\"}",
+  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":beta,\"id\":\"0\"}",
                handler.msg());
 }
 

@@ -249,23 +249,6 @@ class Object {
     return AtomicOperations::CompareAndSwapWord(
         &raw()->ptr()->tags_, old_tags, new_tags);
   }
-  void set_tags(intptr_t value) const {
-    ASSERT(!IsNull());
-    // TODO(asiva): Remove the capability of setting tags in general. The mask
-    // here only allows for canonical and from_snapshot flags to be set.
-    value = value & 0x0000000c;
-    uword tags = raw()->ptr()->tags_;
-    uword old_tags;
-    do {
-      old_tags = tags;
-      uword new_tags = (old_tags & ~0x0000000c) | value;
-      tags = CompareAndSwapTags(old_tags, new_tags);
-    } while (tags != old_tags);
-  }
-  void SetCreatedFromSnapshot() const {
-    ASSERT(!IsNull());
-    raw()->SetCreatedFromSnapshot();
-  }
   bool IsCanonical() const {
     ASSERT(!IsNull());
     return raw()->IsCanonical();
@@ -273,6 +256,10 @@ class Object {
   void SetCanonical() const {
     ASSERT(!IsNull());
     raw()->SetCanonical();
+  }
+  void ClearCanonical() const {
+    ASSERT(!IsNull());
+    raw()->ClearCanonical();
   }
   intptr_t GetClassId() const {
     return !raw()->IsHeapObject() ?
@@ -413,6 +400,11 @@ class Object {
     return *zero_array_;
   }
 
+  static const ObjectPool& empty_object_pool() {
+    ASSERT(empty_object_pool_ != NULL);
+    return *empty_object_pool_;
+  }
+
   static const PcDescriptors& empty_descriptors() {
     ASSERT(empty_descriptors_ != NULL);
     return *empty_descriptors_;
@@ -510,6 +502,7 @@ class Object {
   static RawClass* namespace_class() { return namespace_class_; }
   static RawClass* code_class() { return code_class_; }
   static RawClass* instructions_class() { return instructions_class_; }
+  static RawClass* object_pool_class() { return object_pool_class_; }
   static RawClass* pc_descriptors_class() { return pc_descriptors_class_; }
   static RawClass* stackmap_class() { return stackmap_class_; }
   static RawClass* var_descriptors_class() { return var_descriptors_class_; }
@@ -532,6 +525,7 @@ class Object {
   static RawClass* subtypetestcache_class() { return subtypetestcache_class_; }
 
   // Initialize the VM isolate.
+  static void InitNull(Isolate* isolate);
   static void InitOnce(Isolate* isolate);
   static void FinalizeVMIsolate(Isolate* isolate);
 
@@ -677,7 +671,7 @@ class Object {
     ASSERT(Contains(reinterpret_cast<uword>(addr) - 1) &&
            Contains(reinterpret_cast<uword>(addr) - kWordSize));
     // At least check that there is a NoSafepointScope and hope it's big enough.
-    ASSERT(Isolate::Current()->no_safepoint_scope_depth() > 0);
+    ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
     return const_cast<FieldType*>(addr);
   }
 
@@ -717,7 +711,10 @@ class Object {
     return -kWordSize;
   }
 
-  static void InitializeObject(uword address, intptr_t id, intptr_t size);
+  static void InitializeObject(uword address,
+                               intptr_t id,
+                               intptr_t size,
+                               bool is_vm_object);
 
   static void RegisterClass(const Class& cls,
                             const String& name,
@@ -768,6 +765,7 @@ class Object {
   static RawClass* namespace_class_;  // Class of Namespace vm object.
   static RawClass* code_class_;  // Class of the Code vm object.
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
+  static RawClass* object_pool_class_;  // Class of the ObjectPool vm object.
   static RawClass* pc_descriptors_class_;  // Class of PcDescriptors vm object.
   static RawClass* stackmap_class_;  // Class of Stackmap vm object.
   static RawClass* var_descriptors_class_;  // Class of LocalVarDescriptors.
@@ -792,6 +790,7 @@ class Object {
   static TypeArguments* null_type_arguments_;
   static Array* empty_array_;
   static Array* zero_array_;
+  static ObjectPool* empty_object_pool_;
   static PcDescriptors* empty_descriptors_;
   static LocalVarDescriptors* empty_var_descriptors_;
   static ExceptionHandlers* empty_exception_handlers_;
@@ -932,6 +931,7 @@ class Class : public Object {
   RawString* Name() const;
   RawString* PrettyName() const;
   RawString* UserVisibleName() const;
+  bool IsInFullSnapshot() const;
 
   virtual RawString* DictionaryName() const { return Name(); }
 
@@ -1040,6 +1040,9 @@ class Class : public Object {
     }
     return reinterpret_cast<RawType*>(Object::null());
   }
+  static intptr_t canonical_types_offset() {
+    return OFFSET_OF(RawClass, canonical_types_);
+  }
 
   // The super type of this class, Object type if not explicitly specified.
   // Note that the super type may be bounded, as in this example:
@@ -1098,6 +1101,10 @@ class Class : public Object {
   }
   static bool IsSignatureClass(RawClass* cls) {
     return cls->ptr()->signature_function_ != Object::null();
+  }
+  static bool IsInFullSnapshot(RawClass* cls) {
+    NoSafepointScope no_safepoint;
+    return cls->ptr()->library_->ptr()->is_in_fullsnapshot_;
   }
 
   // Check if this class represents a canonical signature class, i.e. not an
@@ -1266,6 +1273,11 @@ class Class : public Object {
   }
   void set_is_cycle_free() const;
 
+  bool is_allocated() const {
+    return IsAllocatedBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_allocated() const;
+
   uint16_t num_native_fields() const {
     return raw_ptr()->num_native_fields_;
   }
@@ -1354,6 +1366,9 @@ class Class : public Object {
   RawArray* cha_codes() const { return raw_ptr()->cha_codes_; }
   void set_cha_codes(const Array& value) const;
 
+  bool TraceAllocation(Isolate* isolate) const;
+  void SetTraceAllocation(bool trace_allocation) const;
+
  private:
   enum MemberKind {
     kAny = 0,
@@ -1377,6 +1392,7 @@ class Class : public Object {
     kFieldsMarkedNullableBit = 11,
     kCycleFreeBit = 12,
     kEnumBit = 13,
+    kIsAllocatedBit = 15,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
@@ -1393,6 +1409,7 @@ class Class : public Object {
       kFieldsMarkedNullableBit, 1> {};  // NOLINT
   class CycleFreeBit : public BitField<bool, kCycleFreeBit, 1> {};
   class EnumBit : public BitField<bool, kEnumBit, 1> {};
+  class IsAllocatedBit : public BitField<bool, kIsAllocatedBit, 1> {};
 
   void set_name(const String& value) const;
   void set_pretty_name(const String& value) const;
@@ -1426,6 +1443,9 @@ class Class : public Object {
     return raw_ptr()->num_type_arguments_;
   }
   void set_num_type_arguments(intptr_t value) const;
+  static intptr_t num_type_arguments_offset() {
+    return OFFSET_OF(RawClass, num_type_arguments_);
+  }
 
   int16_t num_own_type_arguments() const {
     return raw_ptr()->num_own_type_arguments_;
@@ -1468,6 +1488,7 @@ class Class : public Object {
   friend class Instance;
   friend class Object;
   friend class Type;
+  friend class Intrinsifier;
 };
 
 
@@ -2031,6 +2052,7 @@ class Function : public Object {
   RawString* UserVisibleName() const;
   RawString* QualifiedPrettyName() const;
   RawString* QualifiedUserVisibleName() const;
+  const char* QualifiedUserVisibleNameCString() const;
   virtual RawString* DictionaryName() const { return name(); }
 
   RawString* GetSource() const;
@@ -2172,6 +2194,8 @@ class Function : public Object {
   // Return the closure implicitly created for this function.
   // If none exists yet, create one and remember it.
   RawInstance* ImplicitStaticClosure() const;
+
+  RawInstance* ImplicitInstanceClosure(const Instance& receiver) const;
 
   // Redirection information for a redirecting factory.
   bool IsRedirectingFactory() const;
@@ -2454,6 +2478,8 @@ class Function : public Object {
   bool IsImplicitInstanceClosureFunction() const {
     return !is_static() && IsImplicitClosureFunction();
   }
+
+  bool IsConstructorClosureFunction() const;
 
   // Returns true if this function represents a local function.
   bool IsLocalFunction() const {
@@ -2775,8 +2801,14 @@ class Field : public Object {
   bool is_static() const { return StaticBit::decode(raw_ptr()->kind_bits_); }
   bool is_final() const { return FinalBit::decode(raw_ptr()->kind_bits_); }
   bool is_const() const { return ConstBit::decode(raw_ptr()->kind_bits_); }
-  bool is_synthetic() const {
-    return SyntheticBit::decode(raw_ptr()->kind_bits_);
+  bool is_reflectable() const {
+    return ReflectableBit::decode(raw_ptr()->kind_bits_);
+  }
+  bool is_double_initialized() const {
+    return DoubleInitializedBit::decode(raw_ptr()->kind_bits_);
+  }
+  void set_is_double_initialized(bool value) const {
+    set_kind_bits(DoubleInitializedBit::update(value, raw_ptr()->kind_bits_));
   }
 
   inline intptr_t Offset() const;
@@ -2799,7 +2831,7 @@ class Field : public Object {
                        bool is_static,
                        bool is_final,
                        bool is_const,
-                       bool is_synthetic,
+                       bool is_reflectable,
                        const Class& owner,
                        intptr_t token_pos);
 
@@ -2918,6 +2950,17 @@ class Field : public Object {
 
   void EvaluateInitializer() const;
 
+  RawFunction* initializer() const {
+    return raw_ptr()->initializer_;
+  }
+  void set_initializer(const Function& initializer) const;
+
+  // For static fields only. Constructs a closure that gets/sets the
+  // field value.
+  RawInstance* GetterClosure() const;
+  RawInstance* SetterClosure() const;
+  RawInstance* AccessorClosure(bool make_setter) const;
+
   // Constructs getter and setter names for fields and vice versa.
   static RawString* GetterName(const String& field_name);
   static RawString* GetterSymbol(const String& field_name);
@@ -2937,16 +2980,18 @@ class Field : public Object {
     kFinalBit,
     kHasInitializerBit,
     kUnboxingCandidateBit,
-    kSyntheticBit
+    kReflectableBit,
+    kDoubleInitializedBit,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
   class FinalBit : public BitField<bool, kFinalBit, 1> {};
   class HasInitializerBit : public BitField<bool, kHasInitializerBit, 1> {};
   class UnboxingCandidateBit : public BitField<bool,
-                                               kUnboxingCandidateBit, 1> {
-  };
-  class SyntheticBit : public BitField<bool, kSyntheticBit, 1> {};
+                                               kUnboxingCandidateBit, 1> {};
+  class ReflectableBit : public BitField<bool, kReflectableBit, 1> {};
+  class DoubleInitializedBit : public BitField<bool,
+                                               kDoubleInitializedBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
@@ -2962,8 +3007,8 @@ class Field : public Object {
   void set_is_const(bool value) const {
     set_kind_bits(ConstBit::update(value, raw_ptr()->kind_bits_));
   }
-  void set_is_synthetic(bool value) const {
-    set_kind_bits(SyntheticBit::update(value, raw_ptr()->kind_bits_));
+  void set_is_reflectable(bool value) const {
+    set_kind_bits(ReflectableBit::update(value, raw_ptr()->kind_bits_));
   }
   void set_owner(const Object& value) const {
     StorePointer(&raw_ptr()->owner_, value.raw());
@@ -3334,6 +3379,11 @@ class Library : public Object {
                     native_symbol_resolver);
   }
 
+  bool is_in_fullsnapshot() const { return raw_ptr()->is_in_fullsnapshot_; }
+  void set_is_in_fullsnapshot(bool value) const {
+    StoreNonPointer(&raw_ptr()->is_in_fullsnapshot_, value);
+  }
+
   RawError* Patch(const Script& script) const;
 
   RawString* PrivateName(const String& name) const;
@@ -3419,9 +3469,7 @@ class Library : public Object {
 
   static RawLibrary* New();
 
-  void set_num_imports(intptr_t value) const {
-    StoreNonPointer(&raw_ptr()->num_imports_, value);
-  }
+  void set_num_imports(intptr_t value) const;
   bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
   RawGrowableObjectArray* metadata() const { return raw_ptr()->metadata_; }
@@ -3495,6 +3543,107 @@ class Namespace : public Object {
 };
 
 
+// ObjectPool contains constants, immediates and addresses embedded in code
+// and deoptimization infos. Each entry has an type-info associated with it
+// which is stored in a typed data array (info_array).
+class ObjectPool : public Object {
+ public:
+  enum EntryType {
+    kTaggedObject,
+    kImmediate,
+  };
+
+  struct Entry {
+    Entry() : raw_value_(), type_() { }
+    explicit Entry(const Object* obj) : obj_(obj), type_(kTaggedObject) { }
+    Entry(uword value, EntryType info) : raw_value_(value), type_(info) { }
+    union {
+      const Object* obj_;
+      uword raw_value_;
+    };
+    EntryType type_;
+  };
+
+  intptr_t Length() const {
+    return raw_ptr()->length_;
+  }
+  void SetLength(intptr_t value) const {
+    StoreNonPointer(&raw_ptr()->length_, value);
+  }
+
+  RawTypedData* info_array() const {
+    return raw_ptr()->info_array_;
+  }
+
+  void set_info_array(const TypedData& info_array) const;
+
+  static intptr_t length_offset() { return OFFSET_OF(RawObjectPool, length_); }
+  static intptr_t data_offset() {
+    return OFFSET_OF_RETURNED_VALUE(RawObjectPool, data);
+  }
+  static intptr_t element_offset(intptr_t index) {
+    return OFFSET_OF_RETURNED_VALUE(RawObjectPool, data)
+        + kBytesPerElement * index;
+  }
+
+  EntryType InfoAt(intptr_t index) const;
+
+  RawObject* ObjectAt(intptr_t index) const {
+    ASSERT(InfoAt(index) == kTaggedObject);
+    return EntryAddr(index)->raw_obj_;
+  }
+  void SetObjectAt(intptr_t index, const Object& obj) const {
+    ASSERT(InfoAt(index) == kTaggedObject);
+    StorePointer(&EntryAddr(index)->raw_obj_, obj.raw());
+  }
+
+  uword RawValueAt(intptr_t index) const {
+    ASSERT(InfoAt(index) != kTaggedObject);
+    return EntryAddr(index)->raw_value_;
+  }
+  void SetRawValueAt(intptr_t index, uword raw_value) const {
+    ASSERT(InfoAt(index) != kTaggedObject);
+    StoreNonPointer(&EntryAddr(index)->raw_value_, raw_value);
+  }
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawObjectPool) ==
+           OFFSET_OF_RETURNED_VALUE(RawObjectPool, data));
+    return 0;
+  }
+
+  static const intptr_t kBytesPerElement = sizeof(RawObjectPool::Entry);
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  static intptr_t InstanceSize(intptr_t len) {
+    // Ensure that variable length data is not adding to the object length.
+    ASSERT(sizeof(RawObjectPool) == (sizeof(RawObject) + (2 * kWordSize)));
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawObjectPool) + (len * kBytesPerElement));
+  }
+
+  static RawObjectPool* New(intptr_t len);
+
+  static intptr_t IndexFromOffset(intptr_t offset) {
+    return (offset + kHeapObjectTag - data_offset()) / kBytesPerElement;
+  }
+
+  void DebugPrint() const;
+
+ private:
+  RawObjectPool::Entry const* EntryAddr(intptr_t index) const {
+    ASSERT((index >= 0) && (index < Length()));
+    return &raw_ptr()->data()[index];
+  }
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ObjectPool, Object);
+  friend class Class;
+  friend class Object;
+  friend class RawObjectPool;
+};
+
+
 class Instructions : public Object {
  public:
   intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
@@ -3502,7 +3651,7 @@ class Instructions : public Object {
   static intptr_t code_offset() {
     return OFFSET_OF(RawInstructions, code_);
   }
-  RawArray* object_pool() const { return raw_ptr()->object_pool_; }
+  RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
   static intptr_t object_pool_offset() {
     return OFFSET_OF(RawInstructions, object_pool_);
   }
@@ -3547,7 +3696,7 @@ class Instructions : public Object {
   void set_code(RawCode* code) const {
     StorePointer(&raw_ptr()->code_, code);
   }
-  void set_object_pool(RawArray* object_pool) const {
+  void set_object_pool(RawObjectPool* object_pool) const {
     StorePointer(&raw_ptr()->object_pool_, object_pool);
   }
 
@@ -3706,6 +3855,8 @@ class PcDescriptors : public Object {
  private:
   static const char* KindAsStr(RawPcDescriptors::Kind kind);
 
+  static RawPcDescriptors* New(intptr_t length);
+
   intptr_t Length() const;
   void SetLength(intptr_t value) const;
   void CopyData(GrowableArray<uint8_t>* data);
@@ -3756,6 +3907,10 @@ class Stackmap : public Object {
   static RawStackmap* New(intptr_t pc_offset,
                           BitmapBuilder* bmap,
                           intptr_t register_bit_count);
+
+  static RawStackmap* New(intptr_t length,
+                          intptr_t register_bit_count,
+                          intptr_t pc_offset);
 
  private:
   void SetLength(intptr_t length) const {
@@ -3808,6 +3963,7 @@ class ExceptionHandlers : public Object {
   }
 
   static RawExceptionHandlers* New(intptr_t num_handlers);
+  static RawExceptionHandlers* New(const Array& handled_types_data);
 
   // We would have a VisitPointers function here to traverse the
   // exception handler table to visit objects if any in the table.
@@ -3899,7 +4055,7 @@ class Code : public Object {
     const Instructions& instr = Instructions::Handle(instructions());
     return instr.size();
   }
-  RawArray* ObjectPool() const {
+  RawObjectPool* GetObjectPool() const {
     const Instructions& instr = Instructions::Handle(instructions());
     return instr.object_pool();
   }
@@ -4003,8 +4159,7 @@ class Code : public Object {
   enum InlinedIntervalEntries {
     kInlIntStart = 0,
     kInlIntInliningId = 1,
-    kInlIntCallerId = 2,
-    kInlIntNumEntries = 3,
+    kInlIntNumEntries = 2,
   };
 
   RawArray* GetInlinedIntervals() const;
@@ -4012,6 +4167,9 @@ class Code : public Object {
 
   RawArray* GetInlinedIdToFunction() const;
   void SetInlinedIdToFunction(const Array& value) const;
+
+  RawArray* GetInlinedCallerIdMap() const;
+  void SetInlinedCallerIdMap(const Array& value) const;
 
   void GetInlinedFunctionsAt(
       intptr_t offset, GrowableArray<Function*>* fs) const;
@@ -4728,7 +4886,7 @@ class LibraryPrefix : public Instance {
   virtual RawString* DictionaryName() const { return name(); }
 
   RawArray* imports() const { return raw_ptr()->imports_; }
-  int32_t num_imports() const { return raw_ptr()->num_imports_; }
+  intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   RawLibrary* importer() const { return raw_ptr()->importer_; }
 
   RawInstance* LoadError() const;
@@ -4905,6 +5063,9 @@ class AbstractType : public Instance {
 
   // Check if this type represents the 'num' type.
   bool IsNumberType() const;
+
+  // Check if this type represents the '_Smi' type.
+  bool IsSmiType() const;
 
   // Check if this type represents the 'String' type.
   bool IsStringType() const;
@@ -6308,6 +6469,8 @@ class ExternalOneByteString : public AllStatic {
   static void SetExternalData(const String& str,
                               ExternalStringData<uint8_t>* data) {
     ASSERT(str.IsExternalOneByteString());
+    ASSERT(!Isolate::Current()->heap()->Contains(
+        reinterpret_cast<uword>(data->data())));
     str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
   }
 
@@ -6384,6 +6547,8 @@ class ExternalTwoByteString : public AllStatic {
   static void SetExternalData(const String& str,
                               ExternalStringData<uint16_t>* data) {
     ASSERT(str.IsExternalTwoByteString());
+    ASSERT(!Isolate::Current()->heap()->Contains(
+        reinterpret_cast<uword>(data->data())));
     str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
   }
 
@@ -6803,7 +6968,6 @@ class TypedData : public Instance {
     return ElementSizeInBytes(cid);
   }
 
-
   TypedDataElementType ElementType() const {
     intptr_t cid = raw()->GetClassId();
     return ElementType(cid);
@@ -7066,6 +7230,8 @@ class ExternalTypedData : public Instance {
   }
 
   void SetData(uint8_t* data) const {
+    ASSERT(!Isolate::Current()->heap()->Contains(
+        reinterpret_cast<uword>(data)));
     StoreNonPointer(&raw_ptr()->data_, data);
   }
 
@@ -7529,9 +7695,16 @@ class JSRegExp : public Instance {
   bool is_ignore_case() const { return (flags() & kIgnoreCase); }
   bool is_multi_line() const { return (flags() & kMultiLine); }
 
+  intptr_t num_registers() const { return raw_ptr()->num_registers_; }
+
   RawString* pattern() const { return raw_ptr()->pattern_; }
   RawSmi* num_bracket_expressions() const {
     return raw_ptr()->num_bracket_expressions_;
+  }
+
+  RawTypedData* bytecode(bool is_one_byte) const {
+    return is_one_byte ? raw_ptr()->one_byte_bytecode_
+                       : raw_ptr()->two_byte_bytecode_;
   }
 
   static intptr_t function_offset(intptr_t cid) {
@@ -7561,6 +7734,7 @@ class JSRegExp : public Instance {
 
   void set_pattern(const String& pattern) const;
   void set_function(intptr_t cid, const Function& value) const;
+  void set_bytecode(bool is_one_byte, const TypedData& bytecode) const;
 
   void set_num_bracket_expressions(intptr_t value) const;
   void set_is_global() const { set_flags(flags() | kGlobal); }
@@ -7568,6 +7742,9 @@ class JSRegExp : public Instance {
   void set_is_multi_line() const { set_flags(flags() | kMultiLine); }
   void set_is_simple() const { set_type(kSimple); }
   void set_is_complex() const { set_type(kComplex); }
+  void set_num_registers(intptr_t value) const {
+    StoreNonPointer(&raw_ptr()->num_registers_, value);
+  }
 
   void* GetDataStartAddress() const;
   static RawJSRegExp* FromDataStartAddress(void* data);

@@ -20,7 +20,9 @@ abstract class BulkHandle<R, A> {
 abstract class ErrorBulkMixin<R, A>
     implements SemanticSendVisitor<R, A>, BulkHandle<R, A> {
 
-  R bulkHandleError(Node node, A arg) {
+  // TODO(johnniwinther): Ensure that all error methods have an
+  // [ErroneousElement].
+  R bulkHandleError(Node node, ErroneousElement error, A arg) {
     return bulkHandleNode(node, "Error expression `#` unhandled.", arg);
   }
 
@@ -29,7 +31,7 @@ abstract class ErrorBulkMixin<R, A>
       Send node,
       NodeList arguments,
       A arg) {
-    return bulkHandleError(node, arg);
+    return bulkHandleError(node, null, arg);
   }
 
   @override
@@ -40,7 +42,7 @@ abstract class ErrorBulkMixin<R, A>
       NodeList arguments,
       CallStructure callStructure,
       A arg) {
-    return bulkHandleError(node, arg);
+    return bulkHandleError(node, null, arg);
   }
 
   @override
@@ -49,7 +51,7 @@ abstract class ErrorBulkMixin<R, A>
       Operator operator,
       Node expression,
       A arg) {
-    return bulkHandleError(node, arg);
+    return bulkHandleError(node, null, arg);
   }
 
   @override
@@ -59,7 +61,149 @@ abstract class ErrorBulkMixin<R, A>
       Operator operator,
       Node right,
       A arg) {
-    return bulkHandleError(node, arg);
+    return bulkHandleError(node, null, arg);
+  }
+
+  @override
+  R errorInvalidCompound(
+      Send node,
+      ErroneousElement error,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg) {
+    return bulkHandleError(node, error, arg);
+  }
+
+  @override
+  R errorInvalidGet(
+      Send node,
+      ErroneousElement error,
+      A arg) {
+    return bulkHandleError(node, error, arg);
+  }
+
+  @override
+  R errorInvalidInvoke(
+      Send node,
+      ErroneousElement error,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    return bulkHandleError(node, error, arg);
+  }
+
+  @override
+  R errorInvalidPostfix(
+      Send node,
+      ErroneousElement error,
+      IncDecOperator operator,
+      A arg) {
+    return bulkHandleError(node, error, arg);
+  }
+
+  @override
+  R errorInvalidPrefix(
+      Send node,
+      ErroneousElement error,
+      IncDecOperator operator,
+      A arg) {
+    return bulkHandleError(node, error, arg);
+  }
+
+  @override
+  R errorInvalidSet(
+      Send node,
+      ErroneousElement error,
+      Node rhs,
+      A arg) {
+    return bulkHandleError(node, error, arg);
+  }
+
+  @override
+  R errorInvalidUnary(
+      Send node,
+      UnaryOperator operator,
+      ErroneousElement error,
+      A arg) {
+    return bulkHandleError(node, error, arg);
+  }
+
+  @override
+  R errorInvalidEquals(
+      Send node,
+      ErroneousElement error,
+      Node right,
+      A arg) {
+    return bulkHandleError(node, error, arg);
+  }
+
+  @override
+  R errorInvalidNotEquals(
+      Send node,
+      ErroneousElement error,
+      Node right,
+      A arg) {
+    return bulkHandleError(node, error, arg);
+  }
+
+  @override
+  R errorInvalidBinary(
+      Send node,
+      ErroneousElement error,
+      BinaryOperator operator,
+      Node right,
+      A arg) {
+    return bulkHandleError(node, error, arg);
+  }
+
+  @override
+  R errorInvalidIndex(
+      Send node,
+      ErroneousElement error,
+      Node index,
+      A arg) {
+    return bulkHandleError(node, error, arg);
+  }
+
+  @override
+  R errorInvalidIndexSet(
+      Send node,
+      ErroneousElement error,
+      Node index,
+      Node rhs,
+      A arg) {
+    return bulkHandleError(node, error, arg);
+  }
+
+  @override
+  R errorInvalidCompoundIndexSet(
+      Send node,
+      ErroneousElement error,
+      Node index,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg) {
+    return bulkHandleError(node, error, arg);
+  }
+
+  @override
+  R errorInvalidIndexPrefix(
+      Send node,
+      ErroneousElement error,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return bulkHandleError(node, error, arg);
+  }
+
+  @override
+  R errorInvalidIndexPostfix(
+      Send node,
+      ErroneousElement error,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    return bulkHandleError(node, error, arg);
   }
 }
 
@@ -1409,6 +1553,16 @@ abstract class InvokeBulkMixin<R, A>
   }
 
   @override
+  R visitLocalFunctionIncompatibleInvoke(
+      Send node,
+      LocalFunctionElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return bulkHandleInvoke(node, arg);
+  }
+
+  @override
   R visitLocalVariableInvoke(
       Send node,
       LocalVariableElement variable,
@@ -2468,6 +2622,14 @@ abstract class BaseBulkMixin<R, A>
       A arg) {
     return bulkHandleNode(node, 'Lazy or `#` unhandled.', arg);
   }
+
+  @override
+  void previsitDeferredAccess(
+      Send node,
+      PrefixElement prefix,
+      A arg) {
+    bulkHandleNode(node, 'Deferred access `#` unhandled.', arg);
+  }
 }
 
 /// Mixin that implements all visitor methods for `super` calls in
@@ -3500,11 +3662,173 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
+  void previsitDeferredAccess(
+      Send node,
+      PrefixElement prefix,
+      A arg) {
+  }
+
+  @override
   R errorInvalidAssert(
       Send node,
       NodeList arguments,
       A arg) {
     apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R errorInvalidCompound(
+      Send node,
+      ErroneousElement error,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg) {
+    apply(rhs, arg);
+    return null;
+  }
+
+  @override
+  R errorInvalidGet(
+      Send node,
+      ErroneousElement error,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R errorInvalidInvoke(
+      Send node,
+      ErroneousElement error,
+      NodeList arguments,
+      Selector selector,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R errorInvalidPostfix(
+      Send node,
+      ErroneousElement error,
+      IncDecOperator operator,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R errorInvalidPrefix(
+      Send node,
+      ErroneousElement error,
+      IncDecOperator operator,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R errorInvalidSet(
+      Send node,
+      ErroneousElement error,
+      Node rhs,
+      A arg) {
+    apply(rhs, arg);
+    return null;
+  }
+
+  @override
+  R errorInvalidUnary(
+      Send node,
+      UnaryOperator operator,
+      ErroneousElement error,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R errorInvalidEquals(
+      Send node,
+      ErroneousElement error,
+      Node right,
+      A arg) {
+    apply(right, arg);
+    return null;
+  }
+
+  @override
+  R errorInvalidNotEquals(
+      Send node,
+      ErroneousElement error,
+      Node right,
+      A arg) {
+    apply(right, arg);
+    return null;
+  }
+
+  @override
+  R errorInvalidBinary(
+      Send node,
+      ErroneousElement error,
+      BinaryOperator operator,
+      Node right,
+      A arg) {
+    apply(right, arg);
+    return null;
+  }
+
+  @override
+  R errorInvalidIndex(
+      Send node,
+      ErroneousElement error,
+      Node index,
+      A arg) {
+    apply(index, arg);
+    return null;
+  }
+
+  @override
+  R errorInvalidIndexSet(
+      Send node,
+      ErroneousElement error,
+      Node index,
+      Node rhs,
+      A arg) {
+    apply(index, arg);
+    apply(rhs, arg);
+    return null;
+  }
+
+  @override
+  R errorInvalidCompoundIndexSet(
+      Send node,
+      ErroneousElement error,
+      Node index,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg) {
+    apply(index, arg);
+    apply(rhs, arg);
+    return null;
+  }
+
+  @override
+  R errorInvalidIndexPrefix(
+      Send node,
+      ErroneousElement error,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    apply(index, arg);
+    return null;
+  }
+
+  @override
+  R errorInvalidIndexPostfix(
+      Send node,
+      ErroneousElement error,
+      Node index,
+      IncDecOperator operator,
+      A arg) {
+    apply(index, arg);
     return null;
   }
 
@@ -4208,6 +4532,17 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
 
   @override
   R visitLocalFunctionInvoke(
+      Send node,
+      LocalFunctionElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitLocalFunctionIncompatibleInvoke(
       Send node,
       LocalFunctionElement function,
       NodeList arguments,
@@ -7430,6 +7765,16 @@ abstract class BaseImplementationOfLocalsMixin<R, A>
 
   @override
   R visitLocalFunctionInvoke(
+      Send node,
+      LocalFunctionElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return handleLocalInvoke(node, function, arguments, callStructure, arg);
+  }
+
+  @override
+  R visitLocalFunctionIncompatibleInvoke(
       Send node,
       LocalFunctionElement function,
       NodeList arguments,

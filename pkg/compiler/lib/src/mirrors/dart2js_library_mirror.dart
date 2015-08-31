@@ -33,15 +33,7 @@ class Dart2JsLibraryMirror
    * file name (for scripts without a library tag). The latter case is used to
    * provide a 'library name' for scripts, to use for instance in dartdoc.
    */
-  String get _simpleNameString {
-    if (_element.libraryTag != null) {
-      return _element.libraryTag.name.toString();
-    } else {
-      // Use the file name as script name.
-      String path = _element.canonicalUri.path;
-      return path.substring(path.lastIndexOf('/') + 1);
-    }
-  }
+  String get _simpleNameString => _element.getLibraryOrScriptName();
 
   Symbol get qualifiedName => simpleName;
 

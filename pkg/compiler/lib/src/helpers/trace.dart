@@ -53,6 +53,12 @@ void _trace(String message, {bool condition(String stackTrace), int limit,
   }
 }
 
+/// Creates a function to use as an `condition` argument in [trace] that filters
+/// stack traces that contains any of the [exceptions].
+traceExceptions(List<String> exceptions) {
+  return (String stackTrace) => !exceptions.any(stackTrace.contains);
+}
+
 /// Function signature of [traceAndReport].
 typedef void TraceAndReport(Compiler compiler, Spannable node, String message,
                             {bool condition(String stackTrace), int limit,
@@ -149,7 +155,7 @@ class StackTraceLines {
           columnNo = line.substring(lastColon+1, rightParenPos);
           try {
             int.parse(lineNo);
-          } on FormatException catch (e) {
+          } on FormatException {
             lineNo = columnNo;
             columnNo = '';
             nextToLastColon = lastColon;

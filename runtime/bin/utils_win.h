@@ -12,6 +12,22 @@ namespace bin {
 
 void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length);
 
+class StringUtilsWin {
+ public:
+  static char* WideToUtf8(wchar_t* wide,
+                          intptr_t len = -1,
+                          intptr_t* result_len = NULL);
+  static const char* WideToUtf8(const wchar_t* wide,
+                                intptr_t len = -1,
+                                intptr_t* result_len = NULL);
+  static wchar_t* Utf8ToWide(char* utf8,
+                             intptr_t len = -1,
+                             intptr_t* result_len = NULL);
+  static const wchar_t* Utf8ToWide(const char* utf8,
+                                   intptr_t len = -1,
+                                   intptr_t* result_len = NULL);
+};
+
 }  // namespace bin
 }  // namespace dart
 

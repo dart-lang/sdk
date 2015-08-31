@@ -2,47 +2,36 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/compiler_new.dart' show Diagnostic;
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
-import 'memory_source_file_helper.dart';
+import 'memory_compiler.dart';
 
-import 'package:compiler/compiler.dart'
-       show Diagnostic;
+void main() {
+  DiagnosticCollector collector = new DiagnosticCollector();
+  asyncTest(() async {
+    CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES,
+      diagnosticHandler: collector,
+      options: ['--analyze-all']);
 
-main() {
-  Uri script = currentDirectory.resolveUri(Platform.script);
-  Uri libraryRoot = script.resolve('../../../sdk/');
-  Uri packageRoot = script.resolve('./packages/');
-
-  var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
-  var diagnostics = [];
-  void diagnosticHandler(Uri uri, int begin, int end,
-                         String message, Diagnostic kind) {
-    if (kind == Diagnostic.VERBOSE_INFO) {
-      return;
-    }
-    diagnostics.add('$uri:$begin:$end:$message:$kind');
-  }
-
-  Compiler compiler = new Compiler(provider.readStringFromUri,
-                                   (name, extension) => null,
-                                   diagnosticHandler,
-                                   libraryRoot,
-                                   packageRoot,
-                                   ['--analyze-only'],
-                                   {});
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+    List<String> diagnostics = <String>[];
+    collector.messages.forEach((DiagnosticMessage message) {
+      if (message.kind == Diagnostic.VERBOSE_INFO) return;
+      diagnostics.add(message.toString());
+    });
     diagnostics.sort();
     var expected = [
         "memory:exporter.dart:43:47:'hest' is defined here.:info",
         "memory:library.dart:41:45:'hest' is defined here.:info",
         "memory:main.dart:0:22:'hest' is imported here.:info",
         "memory:main.dart:23:46:'hest' is imported here.:info",
-        "memory:main.dart:86:90:Duplicate import of 'hest'.:error"
+        "memory:main.dart:86:92:Duplicate import of 'hest'.:warning",
     ];
     Expect.listEquals(expected, diagnostics);
-    Expect.isTrue(compiler.compilationFailed);
-  }));
+    Expect.isTrue(result.isSuccess);
+  });
 }
 
 const Map MEMORY_SOURCE_FILES = const {

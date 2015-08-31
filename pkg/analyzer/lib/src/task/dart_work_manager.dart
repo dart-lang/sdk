@@ -42,10 +42,10 @@ class DartWorkManager implements WorkManager {
    * The list of errors that are reported for raw Dart [LibrarySpecificUnit]s.
    */
   static final List<ResultDescriptor> _UNIT_ERRORS = <ResultDescriptor>[
-    BUILD_FUNCTION_TYPE_ALIASES_ERRORS,
     HINTS,
     RESOLVE_REFERENCES_ERRORS,
     RESOLVE_TYPE_NAMES_ERRORS,
+    VARIABLE_REFERENCE_ERRORS,
     VERIFY_ERRORS
   ];
 
@@ -82,7 +82,16 @@ class DartWorkManager implements WorkManager {
   /**
    * Initialize a newly created manager.
    */
-  DartWorkManager(this.context);
+  DartWorkManager(this.context) {
+    analysisCache.onResultInvalidated.listen((InvalidatedResult event) {
+      if (event.descriptor == LIBRARY_ERRORS_READY) {
+        CacheEntry entry = event.entry;
+        if (entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY) {
+          librarySourceQueue.add(entry.target);
+        }
+      }
+    });
+  }
 
   /**
    * Returns the correctly typed result of `context.analysisCache`.
@@ -127,21 +136,6 @@ class DartWorkManager implements WorkManager {
       partLibrariesMap.remove(removedSource);
       _onLibrarySourceChangedOrRemoved(removedSource);
     }
-    // Some of the libraries might have been invalidated, reschedule them.
-    {
-      MapIterator<AnalysisTarget, CacheEntry> iterator =
-          analysisCache.iterator();
-      while (iterator.moveNext()) {
-        AnalysisTarget target = iterator.key;
-        if (_isDartSource(target)) {
-          CacheEntry entry = iterator.value;
-          if (entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY &&
-              entry.getValue(LIBRARY_ERRORS_READY) != true) {
-            librarySourceQueue.add(target);
-          }
-        }
-      }
-    }
   }
 
   @override
@@ -158,8 +152,10 @@ class DartWorkManager implements WorkManager {
     for (AnalysisTarget target in targets) {
       if (_isDartSource(target)) {
         SourceKind sourceKind = analysisCache.getValue(target, SOURCE_KIND);
-        if (sourceKind == SourceKind.LIBRARY) {
-          addPriorityResult(target, LIBRARY_ERRORS_READY);
+        if (sourceKind == SourceKind.UNKNOWN) {
+          addPriorityResult(target, SOURCE_KIND);
+        } else if (sourceKind == SourceKind.LIBRARY) {
+          _schedulePriorityLibrarySourceAnalysis(target);
         } else if (sourceKind == SourceKind.PART) {
           List<Source> libraries = context.getLibrariesContaining(target);
           for (Source library in libraries) {
@@ -177,6 +173,11 @@ class DartWorkManager implements WorkManager {
    * errors in the source. The errors contained in the list can be incomplete.
    */
   AnalysisErrorInfo getErrors(Source source) {
+    if (analysisCache.getState(source, DART_ERRORS) == CacheState.VALID) {
+      List<AnalysisError> errors = analysisCache.getValue(source, DART_ERRORS);
+      LineInfo lineInfo = analysisCache.getValue(source, LINE_INFO);
+      return new AnalysisErrorInfoImpl(errors, lineInfo);
+    }
     List<AnalysisError> errors = <AnalysisError>[];
     for (ResultDescriptor descriptor in _SOURCE_ERRORS) {
       errors.addAll(analysisCache.getValue(source, descriptor));
@@ -269,12 +270,19 @@ class DartWorkManager implements WorkManager {
       AnalysisTarget target, Map<ResultDescriptor, dynamic> outputs) {
     // Organize sources.
     if (_isDartSource(target)) {
+      Source source = target;
       SourceKind kind = outputs[SOURCE_KIND];
       if (kind != null) {
-        unknownSourceQueue.remove(target);
-        if (kind == SourceKind.LIBRARY &&
-            context.shouldErrorsBeAnalyzed(target, null)) {
-          librarySourceQueue.add(target);
+        unknownSourceQueue.remove(source);
+        if (kind == SourceKind.LIBRARY) {
+          if (context.prioritySources.contains(source)) {
+            _schedulePriorityLibrarySourceAnalysis(source);
+          } else {
+            bool needErrors = _shouldErrorsBeComputed(source);
+            if (needErrors) {
+              librarySourceQueue.add(target);
+            }
+          }
         }
       }
     }
@@ -413,6 +421,24 @@ class DartWorkManager implements WorkManager {
     }
     _invalidateContainingLibraries(library);
   }
+
+  /**
+   * Schedule computing [RESOLVED_UNIT] for the given [librarySource].
+   * If errors should be computed, then schedule [LIBRARY_ERRORS_READY] instead,
+   * it also computes [RESOLVED_UNIT] in process.
+   */
+  void _schedulePriorityLibrarySourceAnalysis(Source librarySource) {
+    bool needErrors = _shouldErrorsBeComputed(librarySource);
+    if (needErrors) {
+      addPriorityResult(librarySource, LIBRARY_ERRORS_READY);
+    } else {
+      var target = new LibrarySpecificUnit(librarySource, librarySource);
+      addPriorityResult(target, RESOLVED_UNIT);
+    }
+  }
+
+  bool _shouldErrorsBeComputed(Source source) =>
+      context.shouldErrorsBeAnalyzed(source, null);
 
   static bool _isDartSource(AnalysisTarget target) {
     return target is Source && AnalysisEngine.isDartFileName(target.fullName);

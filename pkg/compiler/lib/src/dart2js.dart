@@ -18,7 +18,7 @@ import 'filenames.dart';
 import 'util/uri_extras.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
 import 'util/command_line.dart';
-import 'package:_internal/libraries.dart';
+import 'package:sdk_library_metadata/libraries.dart';
 import 'package:package_config/discovery.dart' show findPackages;
 
 const String LIBRARY_ROOT = '../../../../../sdk';
@@ -66,9 +66,9 @@ String extractParameter(String argument, {bool isOptionalArgument: false}) {
   return m[2];
 }
 
-String extractPath(String argument) {
+String extractPath(String argument, {bool isDirectory: true}) {
   String path = nativeToUriPath(extractParameter(argument));
-  return path.endsWith("/") ? path : "$path/";
+  return !path.endsWith("/") && isDirectory ? "$path/" : path;
 }
 
 void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
@@ -143,7 +143,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
 
   setPackageConfig(String argument) {
-    packageConfig = currentDirectory.resolve(extractPath(argument));
+    packageConfig =
+        currentDirectory.resolve(extractPath(argument, isDirectory: false));
   }
 
   setOutput(Iterator<String> arguments) {
@@ -311,11 +312,13 @@ Future<api.CompilationResult> compile(List<String> argv) {
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
         setOutputType),
     new OptionHandler('--use-cps-ir', passThrough),
+    new OptionHandler('--no-frequency-based-minification', passThrough),
     new OptionHandler('--verbose', setVerbose),
     new OptionHandler('--version', (_) => wantVersion = true),
     new OptionHandler('--library-root=.+', setLibraryRoot),
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler('--allow-mock-compilation', passThrough),
+    new OptionHandler('--fast-startup', passThrough),
     new OptionHandler('--minify|-m', implyCompilation),
     new OptionHandler('--preserve-uris', passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
@@ -358,7 +361,12 @@ Future<api.CompilationResult> compile(List<String> argv) {
           "Async-await is supported by default.",
           api.Diagnostic.HINT);
     }),
-    new OptionHandler('--enable-null-aware-operators', passThrough),
+    new OptionHandler('--enable-null-aware-operators',  (_) {
+      diagnosticHandler.info(
+          "Option '--enable-null-aware-operators' is no longer needed. "
+          "Null aware operators are supported by default.",
+          api.Diagnostic.HINT);
+    }),
     new OptionHandler('--enable-enum', (_) {
       diagnosticHandler.info(
           "Option '--enable-enum' is no longer needed. "
@@ -367,6 +375,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     }),
     new OptionHandler('--allow-native-extensions', setAllowNativeExtensions),
     new OptionHandler('--generate-code-with-compile-time-errors', passThrough),
+    new OptionHandler('--test-mode', passThrough),
 
     // The following three options must come last.
     new OptionHandler('-D.+=.*', addInEnvironment),
@@ -495,8 +504,8 @@ void writeString(Uri uri, String text) {
 
 void fail(String message) {
   if (diagnosticHandler != null) {
-    diagnosticHandler.diagnosticHandler(
-        null, -1, -1, message, api.Diagnostic.ERROR);
+    diagnosticHandler.report(
+        null, null, -1, -1, message, api.Diagnostic.ERROR);
   } else {
     print('Error: $message');
   }
@@ -647,6 +656,10 @@ be removed in a future version:
 
   --use-cps-ir
     Experimental.  Use the new CPS based backend for code generation.
+
+  --no-frequency-based-minification
+    Experimental.  Disabled the new frequency based minifying namer and use the
+    old namer instead.
 '''.trim());
 }
 

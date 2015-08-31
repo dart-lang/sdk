@@ -47,8 +47,7 @@ main() {
   Uri libUri = scriptUri.resolve('../../../sdk/');
   Uri inputUri = scriptUri.resolve('mirrors_helper.dart');
   var provider = new CompilerSourceFileProvider();
-  var diagnosticHandler =
-        new FormattingDiagnosticHandler(provider).diagnosticHandler;
+  var diagnosticHandler = new FormattingDiagnosticHandler(provider);
   asyncStart();
   var result = analyze([inputUri], libUri, packageRoot,
                        provider.readStringFromUri, diagnosticHandler,

@@ -60,7 +60,7 @@ class JumpPattern : public InstructionPattern {
  public:
   JumpPattern(uword pc, const Code& code)
       : InstructionPattern(pc),
-        object_pool_(Array::Handle(code.ObjectPool())) {}
+        object_pool_(ObjectPool::Handle(code.GetObjectPool())) {}
   static int InstructionLength() {
     return kLengthInBytes;
   }
@@ -73,7 +73,7 @@ class JumpPattern : public InstructionPattern {
   static const int kLengthInBytes = 7;
  private:
   virtual const int* pattern() const;
-  const Array& object_pool_;
+  const ObjectPool& object_pool_;
 
   DISALLOW_COPY_AND_ASSIGN(JumpPattern);
 };

@@ -104,8 +104,12 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ bkpt(0);
   __ Bind(&stack_ok);
 #endif
-  __ LeaveDartFrame();
+  ASSERT(__ constant_pool_allowed());
+  __ LeaveDartFrame();  // Disallows constant pool use.
   __ Ret();
+  // This ReturnInstr may be emitted out of order by the optimizer. The next
+  // block may be a target expecting a properly set constant pool pointer.
+  __ set_constant_pool_allowed(true);
 }
 
 
@@ -938,10 +942,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
   const bool is_leaf_call =
     (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
-  StubCode* stub_code = compiler->isolate()->stub_code();
-  const ExternalLabel* stub_entry;
+  const StubEntry* stub_entry = NULL;
   if (is_bootstrap_native() || is_leaf_call) {
-    stub_entry = &stub_code->CallBootstrapCFunctionLabel();
+    stub_entry = StubCode::CallBootstrapCFunction_entry();
 #if defined(USING_SIMULATOR)
     entry = Simulator::RedirectExternalReference(
         entry, Simulator::kBootstrapNativeCall, function().NumParameters());
@@ -950,7 +953,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // In the case of non bootstrap native methods the CallNativeCFunction
     // stub generates the redirection address when running under the simulator
     // and hence we do not change 'entry' here.
-    stub_entry = &stub_code->CallNativeCFunctionLabel();
+    stub_entry = StubCode::CallNativeCFunction_entry();
 #if defined(USING_SIMULATOR)
     if (!function().IsNativeAutoSetupScope()) {
       entry = Simulator::RedirectExternalReference(
@@ -961,7 +964,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(R5, entry);
   __ LoadImmediate(R1, argc_tag);
   compiler->GenerateCall(token_pos(),
-                         stub_entry,
+                         *stub_entry,
                          RawPcDescriptors::kOther,
                          locs());
   __ Pop(result);
@@ -980,6 +983,7 @@ LocationSummary* StringFromCharCodeInstr::MakeLocationSummary(Zone* zone,
 
 
 void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(compiler->is_optimizing());
   const Register char_code = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   __ LoadImmediate(result,
@@ -1571,6 +1575,8 @@ LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
 
 
 void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(sizeof(classid_t) == kInt16Size);
+
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t field_cid = field().guarded_cid();
   const intptr_t nullability = field().is_nullable() ? kNullCid : kIllegalCid;
@@ -1612,16 +1618,16 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     if (value_cid == kDynamicCid) {
       LoadValueCid(compiler, value_cid_reg, value_reg);
-      __ ldr(IP, field_cid_operand);
+      __ ldrh(IP, field_cid_operand);
       __ cmp(value_cid_reg, Operand(IP));
       __ b(&ok, EQ);
-      __ ldr(IP, field_nullability_operand);
+      __ ldrh(IP, field_nullability_operand);
       __ cmp(value_cid_reg, Operand(IP));
     } else if (value_cid == kNullCid) {
-      __ ldr(value_cid_reg, field_nullability_operand);
+      __ ldrh(value_cid_reg, field_nullability_operand);
       __ CompareImmediate(value_cid_reg, value_cid);
     } else {
-      __ ldr(value_cid_reg, field_cid_operand);
+      __ ldrh(value_cid_reg, field_cid_operand);
       __ CompareImmediate(value_cid_reg, value_cid);
     }
     __ b(&ok, EQ);
@@ -1635,17 +1641,17 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (!field().needs_length_check()) {
       // Uninitialized field can be handled inline. Check if the
       // field is still unitialized.
-      __ ldr(IP, field_cid_operand);
+      __ ldrh(IP, field_cid_operand);
       __ CompareImmediate(IP, kIllegalCid);
       __ b(fail, NE);
 
       if (value_cid == kDynamicCid) {
-        __ str(value_cid_reg, field_cid_operand);
-        __ str(value_cid_reg, field_nullability_operand);
+        __ strh(value_cid_reg, field_cid_operand);
+        __ strh(value_cid_reg, field_nullability_operand);
       } else {
         __ LoadImmediate(IP, value_cid);
-        __ str(IP, field_cid_operand);
-        __ str(IP, field_nullability_operand);
+        __ strh(IP, field_cid_operand);
+        __ strh(IP, field_nullability_operand);
       }
 
       if (deopt == NULL) {
@@ -1658,7 +1664,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(!compiler->is_optimizing());
       __ Bind(fail);
 
-      __ ldr(IP, FieldAddress(field_reg, Field::guarded_cid_offset()));
+      __ ldrh(IP, FieldAddress(field_reg, Field::guarded_cid_offset()));
       __ CompareImmediate(IP, kDynamicCid);
       __ b(&ok, EQ);
 
@@ -1806,7 +1812,6 @@ class BoxAllocationSlowPath : public SlowPathCode {
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     Isolate* isolate = compiler->isolate();
-    StubCode* stub_code = isolate->stub_code();
 
     if (Assembler::EmittingComments()) {
       __ Comment("%s slow path allocation of %s",
@@ -1815,8 +1820,8 @@ class BoxAllocationSlowPath : public SlowPathCode {
     }
     __ Bind(entry_label());
     const Code& stub =
-        Code::Handle(isolate, stub_code->GetAllocationStubForClass(cls_));
-    const ExternalLabel label(stub.EntryPoint());
+        Code::Handle(isolate, StubCode::GetAllocationStubForClass(cls_));
+    const StubEntry stub_entry(stub);
 
     LocationSummary* locs = instruction_->locs();
 
@@ -1824,9 +1829,10 @@ class BoxAllocationSlowPath : public SlowPathCode {
 
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
-                           &label,
+                           stub_entry,
                            RawPcDescriptors::kOther,
                            locs);
+    compiler->AddStubCallTarget(stub);
     __ MoveRegister(result_, R0);
     compiler->RestoreLiveRegisters(locs);
     __ b(exit_label());
@@ -2034,6 +2040,8 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
 
 
 void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(sizeof(classid_t) == kInt16Size);
+
   Label skip_store;
 
   const Register instance_reg = locs()->in(0).reg();
@@ -2108,7 +2116,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ LoadObject(temp, Field::ZoneHandle(field().raw()));
 
-    __ ldr(temp2, FieldAddress(temp, Field::is_nullable_offset()));
+    __ ldrh(temp2, FieldAddress(temp, Field::is_nullable_offset()));
     __ CompareImmediate(temp2, kNullCid);
     __ b(&store_pointer, EQ);
 
@@ -2116,15 +2124,15 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ tst(temp2, Operand(1 << Field::kUnboxingCandidateBit));
     __ b(&store_pointer, EQ);
 
-    __ ldr(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
+    __ ldrh(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
     __ CompareImmediate(temp2, kDoubleCid);
     __ b(&store_double, EQ);
 
-    __ ldr(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
+    __ ldrh(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
     __ CompareImmediate(temp2, kFloat32x4Cid);
     __ b(&store_float32x4, EQ);
 
-    __ ldr(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
+    __ ldrh(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
     __ CompareImmediate(temp2, kFloat64x2Cid);
     __ b(&store_float64x2, EQ);
 
@@ -2385,15 +2393,13 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       return;
     }
   }
-  Isolate* isolate = compiler->isolate();
-  const Code& stub = Code::Handle(
-      isolate, isolate->stub_code()->GetAllocateArrayStub());
-  const ExternalLabel label(stub.EntryPoint());
+  const Code& stub = Code::Handle(compiler->isolate(),
+                                  StubCode::AllocateArray_entry()->code());
+  compiler->AddStubCallTarget(stub);
   compiler->GenerateCall(token_pos(),
-                         &label,
+                         *StubCode::AllocateArray_entry(),
                          RawPcDescriptors::kOther,
                          locs());
-  compiler->AddStubCallTarget(stub);
   ASSERT(locs()->out(0).reg() == kResultReg);
 }
 
@@ -2427,6 +2433,8 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
 
 
 void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(sizeof(classid_t) == kInt16Size);
+
   const Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
     const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
@@ -2473,19 +2481,19 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     FieldAddress field_nullability_operand(result_reg,
                                            Field::is_nullable_offset());
 
-    __ ldr(temp, field_nullability_operand);
+    __ ldrh(temp, field_nullability_operand);
     __ CompareImmediate(temp, kNullCid);
     __ b(&load_pointer, EQ);
 
-    __ ldr(temp, field_cid_operand);
+    __ ldrh(temp, field_cid_operand);
     __ CompareImmediate(temp, kDoubleCid);
     __ b(&load_double, EQ);
 
-    __ ldr(temp, field_cid_operand);
+    __ ldrh(temp, field_cid_operand);
     __ CompareImmediate(temp, kFloat32x4Cid);
     __ b(&load_float32x4, EQ);
 
-    __ ldr(temp, field_cid_operand);
+    __ ldrh(temp, field_cid_operand);
     __ CompareImmediate(temp, kFloat64x2Cid);
     __ b(&load_float64x2, EQ);
 
@@ -2675,10 +2683,11 @@ class AllocateContextSlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
 
     __ LoadImmediate(R1, instruction_->num_context_variables());
-    StubCode* stub_code = compiler->isolate()->stub_code();
-    const ExternalLabel label(stub_code->AllocateContextEntryPoint());
+    const Code& stub = Code::Handle(compiler->isolate(),
+                                    StubCode::AllocateContext_entry()->code());
+    compiler->AddStubCallTarget(stub);
     compiler->GenerateCall(instruction_->token_pos(),
-                           &label,
+                           *StubCode::AllocateContext_entry(),
                            RawPcDescriptors::kOther,
                            locs);
     ASSERT(instruction_->locs()->out(0).reg() == R0);
@@ -2733,10 +2742,8 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->out(0).reg() == R0);
 
   __ LoadImmediate(R1, num_context_variables());
-  StubCode* stub_code = compiler->isolate()->stub_code();
-  const ExternalLabel label(stub_code->AllocateContextEntryPoint());
   compiler->GenerateCall(token_pos(),
-                         &label,
+                         *StubCode::AllocateContext_entry(),
                          RawPcDescriptors::kOther,
                          locs());
 }
@@ -2913,8 +2920,13 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  __ LoadImmediate(IP, Isolate::Current()->stack_limit_address());
-  __ ldr(IP, Address(IP));
+  if (compiler->is_optimizing()) {
+    __ LoadImmediate(IP, Isolate::Current()->stack_limit_address());
+    __ ldr(IP, Address(IP));
+  } else {
+    __ LoadIsolate(IP);
+    __ ldr(IP, Address(IP, Isolate::stack_limit_offset()));
+  }
   __ cmp(SP, Operand(IP));
   __ b(slow_path->entry_label(), LS);
   if (compiler->CanOSRFunction() && in_loop()) {
@@ -5857,41 +5869,6 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
 }
 
 
-void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(ic_data().NumArgsTested() == 1);
-  if (!with_checks()) {
-    ASSERT(ic_data().HasOneTarget());
-    const Function& target = Function::ZoneHandle(ic_data().GetTargetAt(0));
-    compiler->GenerateStaticCall(deopt_id(),
-                                 instance_call()->token_pos(),
-                                 target,
-                                 instance_call()->ArgumentCount(),
-                                 instance_call()->argument_names(),
-                                 locs(),
-                                 ICData::Handle());
-    return;
-  }
-
-  // Load receiver into R0.
-  __ LoadFromOffset(kWord, R0, SP,
-                    (instance_call()->ArgumentCount() - 1) * kWordSize);
-
-  Label* deopt = compiler->AddDeoptStub(
-      deopt_id(), ICData::kDeoptPolymorphicInstanceCallTestFail);
-  LoadValueCid(compiler, R2, R0,
-               (ic_data().GetReceiverClassIdAt(0) == kSmiCid) ? NULL : deopt);
-
-  compiler->EmitTestAndCall(ic_data(),
-                            R2,  // Class id register.
-                            instance_call()->ArgumentCount(),
-                            instance_call()->argument_names(),
-                            deopt,
-                            deopt_id(),
-                            instance_call()->token_pos(),
-                            locs());
-}
-
-
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone,
                                                   bool opt) const {
   comparison()->InitializeLocationSummary(zone, opt);
@@ -6835,12 +6812,11 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Isolate* isolate = compiler->isolate();
-  StubCode* stub_code = isolate->stub_code();
   const Code& stub = Code::Handle(isolate,
-                                  stub_code->GetAllocationStubForClass(cls()));
-  const ExternalLabel label(stub.EntryPoint());
+                                  StubCode::GetAllocationStubForClass(cls()));
+  const StubEntry stub_entry(stub);
   compiler->GenerateCall(token_pos(),
-                         &label,
+                         stub_entry,
                          RawPcDescriptors::kOther,
                          locs());
   compiler->AddStubCallTarget(stub);
@@ -6850,9 +6826,8 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
-  StubCode* stub_code = compiler->isolate()->stub_code();
-  const ExternalLabel label(stub_code->DebugStepCheckEntryPoint());
-  compiler->GenerateCall(token_pos(), &label, stub_kind_, locs());
+  compiler->GenerateCall(
+      token_pos(), *StubCode::DebugStepCheck_entry(), stub_kind_, locs());
 }
 
 

@@ -287,11 +287,11 @@ class InterceptorStubGenerator {
     return null;
   }
 
-  jsAst.Expression generateOneShotInterceptor(String name) {
+  jsAst.Expression generateOneShotInterceptor(jsAst.Name name) {
     Selector selector = backend.oneShotInterceptors[name];
     Set<ClassElement> classes =
         backend.getInterceptedClassesOn(selector.name);
-    String getInterceptorName = namer.nameForGetInterceptor(classes);
+    jsAst.Name getInterceptorName = namer.nameForGetInterceptor(classes);
 
     List<String> parameterNames = <String>[];
     parameterNames.add('receiver');
@@ -304,7 +304,7 @@ class InterceptorStubGenerator {
       }
     }
 
-    String invocationName = backend.namer.invocationName(selector);
+    jsAst.Name invocationName = backend.namer.invocationName(selector);
     String globalObject = namer.globalObjectFor(backend.interceptorsLibrary);
 
     jsAst.Statement optimizedPath =

@@ -7,12 +7,12 @@ library leg_apiimpl;
 import 'dart:async';
 import 'dart:convert';
 
-import '../compiler.dart' as api;
+import '../compiler_new.dart' as api;
 import 'dart2jslib.dart' as leg;
 import 'tree/tree.dart' as tree;
 import 'elements/elements.dart' as elements;
-import 'package:_internal/libraries.dart' hide LIBRARIES;
-import 'package:_internal/libraries.dart' as library_info show LIBRARIES;
+import 'package:sdk_library_metadata/libraries.dart' hide LIBRARIES;
+import 'package:sdk_library_metadata/libraries.dart' as library_info show LIBRARIES;
 import 'io/source_file.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgs;
@@ -24,8 +24,8 @@ const bool forceIncrementalSupport =
     const bool.fromEnvironment('DART2JS_EXPERIMENTAL_INCREMENTAL_SUPPORT');
 
 class Compiler extends leg.Compiler {
-  api.CompilerInputProvider provider;
-  api.DiagnosticHandler handler;
+  api.CompilerInput provider;
+  api.CompilerDiagnostics handler;
   final Uri libraryRoot;
   final Uri packageConfig;
   final Uri packageRoot;
@@ -41,7 +41,7 @@ class Compiler extends leg.Compiler {
   leg.GenericTask userPackagesDiscoveryTask;
 
   Compiler(this.provider,
-           api.CompilerOutputProvider outputProvider,
+           api.CompilerOutput outputProvider,
            this.handler,
            this.libraryRoot,
            this.packageRoot,
@@ -60,6 +60,8 @@ class Compiler extends leg.Compiler {
             trustPrimitives:
                 hasOption(options, '--trust-primitives'),
             enableMinification: hasOption(options, '--minify'),
+            useFrequencyNamer:
+                !hasOption(options, "--no-frequency-based-minification"),
             preserveUris: hasOption(options, '--preserve-uris'),
             enableNativeLiveTypeAnalysis:
                 !hasOption(options, '--disable-native-live-type-analysis'),
@@ -91,6 +93,7 @@ class Compiler extends leg.Compiler {
             showPackageWarnings:
                 hasOption(options, '--show-package-warnings'),
             useContentSecurityPolicy: hasOption(options, '--csp'),
+            useStartupEmitter: hasOption(options, '--fast-startup'),
             hasIncrementalSupport:
                 forceIncrementalSupport ||
                 hasOption(options, '--incremental-support'),
@@ -100,10 +103,9 @@ class Compiler extends leg.Compiler {
                 hasOption(options, '--enable-experimental-mirrors'),
             generateCodeWithCompileTimeErrors:
                 hasOption(options, '--generate-code-with-compile-time-errors'),
+            testMode: hasOption(options, '--test-mode'),
             allowNativeExtensions:
-                hasOption(options, '--allow-native-extensions'),
-            enableNullAwareOperators:
-                hasOption(options, '--enable-null-aware-operators')) {
+                hasOption(options, '--allow-native-extensions')) {
     tasks.addAll([
         userHandlerTask = new leg.GenericTask('Diagnostic handler', this),
         userProviderTask = new leg.GenericTask('Input provider', this),
@@ -195,7 +197,8 @@ class Compiler extends leg.Compiler {
   }
 
   void log(message) {
-    handler(null, null, null, message, api.Diagnostic.VERBOSE_INFO);
+    callUserHandler(
+        null, null, null, null, message, api.Diagnostic.VERBOSE_INFO);
   }
 
   /// See [leg.Compiler.translateResolvedUri].
@@ -366,46 +369,64 @@ class Compiler extends leg.Compiler {
         });
   }
 
-  Future setupPackages(Uri uri) async {
+  Future setupPackages(Uri uri) {
     if (packageRoot != null) {
       // Use "non-file" packages because the file version requires a [Directory]
       // and we can't depend on 'dart:io' classes.
       packages = new NonFilePackagesDirectoryPackages(packageRoot);
     } else if (packageConfig != null) {
-      var packageConfigContents = await provider(packageConfig);
-      if (packageConfigContents is String) {
-        packageConfigContents = UTF8.encode(packageConfigContents);
-      }
-      packages =
-          new MapPackages(pkgs.parse(packageConfigContents, packageConfig));
+      return callUserProvider(packageConfig).then((packageConfigContents) {
+        if (packageConfigContents is String) {
+          packageConfigContents = UTF8.encode(packageConfigContents);
+        }
+        // The input provider may put a trailing 0 byte when it reads a source
+        // file, which confuses the package config parser.
+        if (packageConfigContents.length > 0 &&
+            packageConfigContents.last == 0) {
+          packageConfigContents = packageConfigContents.sublist(
+              0, packageConfigContents.length - 1);
+        }
+        packages =
+            new MapPackages(pkgs.parse(packageConfigContents, packageConfig));
+      }).catchError((error) {
+        reportError(leg.NO_LOCATION_SPANNABLE,
+            leg.MessageKind.INVALID_PACKAGE_CONFIG,
+            {'uri': packageConfig, 'exception': error});
+        packages = Packages.noPackages;
+      });
     } else {
       if (packagesDiscoveryProvider == null) {
         packages = Packages.noPackages;
       } else {
-        packages = await callUserPackagesDiscovery(uri);
+        return callUserPackagesDiscovery(uri).then((p) {
+          packages = p;
+        });
       }
     }
+    return new Future.value();
   }
 
-  Future<bool> run(Uri uri) async {
+  Future<bool> run(Uri uri) {
     log('Allowed library categories: $allowedLibraryCategories');
 
-    await setupPackages(uri);
-    assert(packages != null);
+    return setupPackages(uri).then((_) {
+      assert(packages != null);
 
-    bool success = await super.run(uri);
-    int cumulated = 0;
-    for (final task in tasks) {
-      int elapsed = task.timing;
-      if (elapsed != 0) {
-        cumulated += elapsed;
-        log('${task.name} took ${elapsed}msec');
-      }
-    }
-    int total = totalCompileTime.elapsedMilliseconds;
-    log('Total compile-time ${total}msec;'
-        ' unaccounted ${total - cumulated}msec');
-    return success;
+      return super.run(uri).then((bool success) {
+        int cumulated = 0;
+        for (final task in tasks) {
+          int elapsed = task.timing;
+          if (elapsed != 0) {
+            cumulated += elapsed;
+            log('${task.name} took ${elapsed}msec');
+          }
+        }
+        int total = totalCompileTime.elapsedMilliseconds;
+        log('Total compile-time ${total}msec;'
+            ' unaccounted ${total - cumulated}msec');
+        return success;
+      });
+    });
   }
 
   void reportDiagnostic(leg.Spannable node,
@@ -420,9 +441,10 @@ class Compiler extends leg.Compiler {
     // [:span.uri:] might be [:null:] in case of a [Script] with no [uri]. For
     // instance in the [Types] constructor in typechecker.dart.
     if (span == null || span.uri == null) {
-      callUserHandler(null, null, null, '$message', kind);
+      callUserHandler(message, null, null, null, '$message', kind);
     } else {
-      callUserHandler(span.uri, span.begin, span.end, '$message', kind);
+      callUserHandler(
+          message, span.uri, span.begin, span.end, '$message', kind);
     }
   }
 
@@ -431,11 +453,11 @@ class Compiler extends leg.Compiler {
       && (options.indexOf('--allow-mock-compilation') != -1);
   }
 
-  void callUserHandler(Uri uri, int begin, int end,
-                       String message, api.Diagnostic kind) {
+  void callUserHandler(leg.Message message, Uri uri, int begin, int end,
+                       String text, api.Diagnostic kind) {
     try {
       userHandlerTask.measure(() {
-        handler(uri, begin, end, message, kind);
+        handler.report(message, uri, begin, end, text, kind);
       });
     } catch (ex, s) {
       diagnoseCrashInUserCode(
@@ -446,7 +468,7 @@ class Compiler extends leg.Compiler {
 
   Future callUserProvider(Uri uri) {
     try {
-      return userProviderTask.measure(() => provider(uri));
+      return userProviderTask.measure(() => provider.readFromUri(uri));
     } catch (ex, s) {
       diagnoseCrashInUserCode('Uncaught exception in input provider', ex, s);
       rethrow;

@@ -10,6 +10,7 @@ import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 const DYNAMIC = 'dynamic';
 
@@ -19,16 +20,28 @@ final TypeName NO_RETURN_TYPE = new TypeName(
 /**
  * Create a new protocol Element for inclusion in a completion suggestion.
  */
-protocol.Element createElement(protocol.ElementKind kind, SimpleIdentifier id,
+protocol.Element createElement(
+    Source source, protocol.ElementKind kind, SimpleIdentifier id,
     {String parameters, TypeName returnType, bool isAbstract: false,
     bool isDeprecated: false}) {
-  String name = id != null ? id.name : '';
+  String name;
+  Location location;
+  if (id != null) {
+    name = id.name;
+    // TODO(danrubel) use lineInfo to determine startLine and startColumn
+    location = new Location(source.fullName, id.offset, id.length, 0, 0);
+  } else {
+    name = '';
+    location = new Location(source.fullName, -1, 0, 1, 0);
+  }
   int flags = protocol.Element.makeFlags(
       isAbstract: isAbstract,
       isDeprecated: isDeprecated,
       isPrivate: Identifier.isPrivateName(name));
   return new protocol.Element(kind, name, flags,
-      parameters: parameters, returnType: nameForType(returnType));
+      location: location,
+      parameters: parameters,
+      returnType: nameForType(returnType));
 }
 
 /**
@@ -36,13 +49,13 @@ protocol.Element createElement(protocol.ElementKind kind, SimpleIdentifier id,
  * Return the new suggestion or `null` if it could not be created.
  */
 CompletionSuggestion createFieldSuggestion(
-    FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
+    Source source, FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
   bool deprecated = isDeprecated(fieldDecl) || isDeprecated(varDecl);
   TypeName type = fieldDecl.fields.type;
   return createSuggestion(
       varDecl.name, deprecated, DART_RELEVANCE_LOCAL_FIELD, type,
       classDecl: fieldDecl.parent,
-      element: createElement(protocol.ElementKind.FIELD, varDecl.name,
+      element: createElement(source, protocol.ElementKind.FIELD, varDecl.name,
           returnType: type, isDeprecated: deprecated));
 }
 

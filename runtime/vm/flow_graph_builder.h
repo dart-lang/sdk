@@ -477,6 +477,9 @@ class EffectGraphVisitor : public AstNodeVisitor {
                       const intptr_t old_ctx_level,
                       JoinEntryInstr* target);
 
+  void BuildInstanceGetterConditional(InstanceGetterNode* node);
+  void BuildInstanceCallConditional(InstanceCallNode* node);
+
   Isolate* isolate() const { return owner()->isolate(); }
   Zone* zone() const { return owner()->zone(); }
 
@@ -525,12 +528,14 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void VisitLoadLocalNode(LoadLocalNode* node);
   virtual void VisitStoreIndexedNode(StoreIndexedNode* node);
   virtual void VisitInstanceSetterNode(InstanceSetterNode* node);
+  virtual void VisitInstanceGetterNode(InstanceGetterNode* node);
   virtual void VisitThrowNode(ThrowNode* node);
   virtual void VisitClosureCallNode(ClosureCallNode* node);
   virtual void VisitStaticSetterNode(StaticSetterNode* node);
   virtual void VisitStoreStaticFieldNode(StoreStaticFieldNode* node);
   virtual void VisitTypeNode(TypeNode* node);
   virtual void VisitLetNode(LetNode* node);
+  virtual void VisitInstanceCallNode(InstanceCallNode* node);
 
   Value* value() const { return value_; }
 

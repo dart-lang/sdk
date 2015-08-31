@@ -233,7 +233,7 @@ class _Future<T> implements Future<T> {
     return result;
   }
 
-  Stream<T> asStream() => new Stream.fromFuture(this);
+  Stream<T> asStream() => new Stream<T>.fromFuture(this);
 
   void _markPendingCompletion() {
     if (!_mayComplete) throw new StateError("Future already completed");

@@ -14,48 +14,40 @@ const List<TestEntry> tests = const [
 foo() => foo();
 main() {
   print(foo() ? "hello world" : "bad bad");
-}""",
-"""function() {
-  V.foo();
-  P.print("bad bad");
-  return null;
+}""","""
+function() {
+  P.print(V.foo() ? "hello world" : "bad bad");
 }"""),
   const TestEntry("""
 foo() => null;
 main() {
   print(foo() ? "hello world" : "bad bad");
-}""",
-"""function() {
+}""","""
+function() {
   V.foo();
   P.print("bad bad");
-  return null;
 }"""),
   const TestEntry("""
 get foo => foo;
 main() {
   print(foo ? "hello world" : "bad bad");
-}""",
-"""function() {
-  V.foo();
-  P.print("bad bad");
-  return null;
+}""","""
+function() {
+  P.print(V.foo() ? "hello world" : "bad bad");
 }"""),
   const TestEntry("""
 get foo => foo;
-main() { print(foo && foo); }""",
-"""function() {
-  V.foo();
-  P.print(false);
-  return null;
+main() { print(foo && foo); }
+""", """
+function() {
+  P.print(V.foo() ? !!P.identical(V.foo(), true) : false);
 }"""),
   const TestEntry("""
 get foo => foo;
-main() { print(foo || foo); }""",
-"""function() {
-  V.foo();
-  V.foo();
-  P.print(false);
-  return null;
+main() { print(foo || foo); }
+""","""
+function() {
+  P.print(V.foo() ? true : !!P.identical(V.foo(), true));
 }"""),
 
 // Needs interceptor calling convention
@@ -81,10 +73,11 @@ main() {
   print(list);
 }""", r"""
 function() {
-  var list = [1, 2, 3];
-  J.getInterceptor$a(list).$indexSet(list, 1, 6);
+  var list = [1, 2, 3], v0 = 1;
+  if (v0 < 0 || v0 >= list.length)
+    H.ioore(list, v0);
+  list[v0] = 6;
   P.print(list);
-  return null;
 }"""),
 ];
 

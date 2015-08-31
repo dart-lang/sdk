@@ -173,6 +173,7 @@ class ComplexParserTest extends ParserTestCase {
         (obj) => obj is MethodInvocation, MethodInvocation,
         propertyAccess1.target);
     expect(invocation2.methodName.name, "d");
+    expect(invocation2.typeArguments, isNull);
     ArgumentList argumentList2 = invocation2.argumentList;
     expect(argumentList2, isNotNull);
     expect(argumentList2.arguments, hasLength(1));
@@ -182,6 +183,7 @@ class ComplexParserTest extends ParserTestCase {
     FunctionExpressionInvocation invocation3 = EngineTestCase.assertInstanceOf(
         (obj) => obj is FunctionExpressionInvocation,
         FunctionExpressionInvocation, invocation2.target);
+    expect(invocation3.typeArguments, isNull);
     ArgumentList argumentList3 = invocation3.argumentList;
     expect(argumentList3, isNotNull);
     expect(argumentList3.arguments, hasLength(1));
@@ -192,6 +194,45 @@ class ComplexParserTest extends ParserTestCase {
         (obj) => obj is MethodInvocation, MethodInvocation,
         invocation3.function);
     expect(invocation4.methodName.name, "a");
+    expect(invocation4.typeArguments, isNull);
+    ArgumentList argumentList4 = invocation4.argumentList;
+    expect(argumentList4, isNotNull);
+    expect(argumentList4.arguments, hasLength(1));
+  }
+
+  void test_assignableExpression_arguments_normal_chain_typeArguments() {
+    enableGenericMethods = true;
+    PropertyAccess propertyAccess1 = parseExpression("a<E>(b)<F>(c).d<G>(e).f");
+    expect(propertyAccess1.propertyName.name, "f");
+    //
+    // a<E>(b)<F>(c).d>G?(e)
+    //
+    MethodInvocation invocation2 = EngineTestCase.assertInstanceOf(
+        (obj) => obj is MethodInvocation, MethodInvocation,
+        propertyAccess1.target);
+    expect(invocation2.methodName.name, "d");
+    expect(invocation2.typeArguments, isNotNull);
+    ArgumentList argumentList2 = invocation2.argumentList;
+    expect(argumentList2, isNotNull);
+    expect(argumentList2.arguments, hasLength(1));
+    //
+    // a<E>(b)<F>(c)
+    //
+    FunctionExpressionInvocation invocation3 = EngineTestCase.assertInstanceOf(
+        (obj) => obj is FunctionExpressionInvocation,
+        FunctionExpressionInvocation, invocation2.target);
+    expect(invocation3.typeArguments, isNotNull);
+    ArgumentList argumentList3 = invocation3.argumentList;
+    expect(argumentList3, isNotNull);
+    expect(argumentList3.arguments, hasLength(1));
+    //
+    // a(b)
+    //
+    MethodInvocation invocation4 = EngineTestCase.assertInstanceOf(
+        (obj) => obj is MethodInvocation, MethodInvocation,
+        invocation3.function);
+    expect(invocation4.methodName.name, "a");
+    expect(invocation4.typeArguments, isNotNull);
     ArgumentList argumentList4 = invocation4.argumentList;
     expect(argumentList4, isNotNull);
     expect(argumentList4.arguments, hasLength(1));
@@ -318,7 +359,6 @@ class ComplexParserTest extends ParserTestCase {
   }
 
   void test_conditionalExpression_precedence_ifNullExpression() {
-    _enableNullAwareOperators = true;
     ConditionalExpression expression = parseExpression('a ?? b ? y : z');
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
         BinaryExpression, expression.condition);
@@ -368,21 +408,18 @@ class C {
   }
 
   void test_ifNullExpression() {
-    _enableNullAwareOperators = true;
     BinaryExpression expression = parseExpression('x ?? y ?? z');
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
         BinaryExpression, expression.leftOperand);
   }
 
   void test_ifNullExpression_precedence_logicalOr_left() {
-    _enableNullAwareOperators = true;
     BinaryExpression expression = parseExpression('x || y ?? z');
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
         BinaryExpression, expression.leftOperand);
   }
 
   void test_ifNullExpression_precendce_logicalOr_right() {
-    _enableNullAwareOperators = true;
     BinaryExpression expression = parseExpression('x ?? y || z');
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
         BinaryExpression, expression.rightOperand);
@@ -1297,13 +1334,11 @@ class Foo {
   }
 
   void test_invalidOperatorAfterSuper_assignableExpression() {
-    _enableNullAwareOperators = true;
     parse3('parseAssignableExpression', <Object>[false], 'super?.v',
         [ParserErrorCode.INVALID_OPERATOR_FOR_SUPER]);
   }
 
   void test_invalidOperatorAfterSuper_primaryExpression() {
-    _enableNullAwareOperators = true;
     parse4('parsePrimaryExpression', 'super?.v',
         [ParserErrorCode.INVALID_OPERATOR_FOR_SUPER]);
   }
@@ -1750,6 +1785,17 @@ class Foo {
         "parseCascadeSection", "..()", [ParserErrorCode.MISSING_IDENTIFIER]);
     expect(methodInvocation.target, isNull);
     expect(methodInvocation.methodName.name, "");
+    expect(methodInvocation.typeArguments, isNull);
+    expect(methodInvocation.argumentList.arguments, hasLength(0));
+  }
+
+  void test_parseCascadeSection_missingIdentifier_typeArguments() {
+    enableGenericMethods = true;
+    MethodInvocation methodInvocation = parse4(
+        "parseCascadeSection", "..<E>()", [ParserErrorCode.MISSING_IDENTIFIER]);
+    expect(methodInvocation.target, isNull);
+    expect(methodInvocation.methodName.name, "");
+    expect(methodInvocation.typeArguments, isNotNull);
     expect(methodInvocation.argumentList.arguments, hasLength(0));
   }
 
@@ -2528,10 +2574,10 @@ class ParserTestCase extends EngineTestCase {
   static bool parseFunctionBodies = true;
 
   /**
-   * If non-null, this value is used to override the default value of
-   * [Scanner.enableNullAwareOperators] before scanning.
+   * A flag indicating whether generic method support should be enabled for a
+   * specific test.
    */
-  bool _enableNullAwareOperators;
+  bool enableGenericMethods = false;
 
   /**
    * Return a CommentAndMetadata object with the given values that can be used for testing.
@@ -2576,15 +2622,13 @@ class ParserTestCase extends EngineTestCase {
     //
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
-    if (_enableNullAwareOperators != null) {
-      scanner.enableNullAwareOperators = _enableNullAwareOperators;
-    }
     Token tokenStream = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     //
     // Parse the source.
     //
     Parser parser = createParser(listener);
+    parser.parseGenericMethods = enableGenericMethods;
     parser.parseFunctionBodies = parseFunctionBodies;
     Object result =
         invokeParserMethodImpl(parser, methodName, objects, tokenStream);
@@ -2712,12 +2756,10 @@ class ParserTestCase extends EngineTestCase {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
-    if (_enableNullAwareOperators != null) {
-      scanner.enableNullAwareOperators = _enableNullAwareOperators;
-    }
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = createParser(listener);
+    parser.parseGenericMethods = enableGenericMethods;
     Expression expression = parser.parseExpression(token);
     expect(expression, isNotNull);
     listener.assertErrorsWithCodes(errorCodes);
@@ -4654,12 +4696,32 @@ class SimpleParserTest extends ParserTestCase {
     expect(_isFunctionDeclaration("f() => e"), isTrue);
   }
 
+  void test_isFunctionDeclaration_nameButNoReturn_typeParameters_block() {
+    enableGenericMethods = true;
+    expect(_isFunctionDeclaration("f<E>() {}"), isTrue);
+  }
+
+  void test_isFunctionDeclaration_nameButNoReturn_typeParameters_expression() {
+    enableGenericMethods = true;
+    expect(_isFunctionDeclaration("f<E>() => e"), isTrue);
+  }
+
   void test_isFunctionDeclaration_normalReturn_block() {
     expect(_isFunctionDeclaration("C f() {}"), isTrue);
   }
 
   void test_isFunctionDeclaration_normalReturn_expression() {
     expect(_isFunctionDeclaration("C f() => e"), isTrue);
+  }
+
+  void test_isFunctionDeclaration_normalReturn_typeParameters_block() {
+    enableGenericMethods = true;
+    expect(_isFunctionDeclaration("C f<E>() {}"), isTrue);
+  }
+
+  void test_isFunctionDeclaration_normalReturn_typeParameters_expression() {
+    enableGenericMethods = true;
+    expect(_isFunctionDeclaration("C f<E>() => e"), isTrue);
   }
 
   void test_isFunctionDeclaration_voidReturn_block() {
@@ -4670,6 +4732,16 @@ class SimpleParserTest extends ParserTestCase {
     expect(_isFunctionDeclaration("void f() => e"), isTrue);
   }
 
+  void test_isFunctionDeclaration_voidReturn_typeParameters_block() {
+    enableGenericMethods = true;
+    expect(_isFunctionDeclaration("void f<E>() {}"), isTrue);
+  }
+
+  void test_isFunctionDeclaration_voidReturn_typeParameters_expression() {
+    enableGenericMethods = true;
+    expect(_isFunctionDeclaration("void f<E>() => e"), isTrue);
+  }
+
   void test_isFunctionExpression_false_noBody() {
     expect(_isFunctionExpression("f();"), isFalse);
   }
@@ -4678,12 +4750,22 @@ class SimpleParserTest extends ParserTestCase {
     expect(_isFunctionExpression("(a + b) {"), isFalse);
   }
 
-  void test_isFunctionExpression_noName_block() {
+  void test_isFunctionExpression_noParameters_block() {
     expect(_isFunctionExpression("() {}"), isTrue);
   }
 
-  void test_isFunctionExpression_noName_expression() {
+  void test_isFunctionExpression_noParameters_expression() {
     expect(_isFunctionExpression("() => e"), isTrue);
+  }
+
+  void test_isFunctionExpression_noParameters_typeParameters_block() {
+    enableGenericMethods = true;
+    expect(_isFunctionExpression("<E>() {}"), isTrue);
+  }
+
+  void test_isFunctionExpression_noParameters_typeParameters_expression() {
+    enableGenericMethods = true;
+    expect(_isFunctionExpression("<E>() => e"), isTrue);
   }
 
   void test_isFunctionExpression_parameter_final() {
@@ -4935,6 +5017,22 @@ class SimpleParserTest extends ParserTestCase {
     FunctionExpressionInvocation invocation =
         propertyAccess.target as FunctionExpressionInvocation;
     expect(invocation.function, isNotNull);
+    expect(invocation.typeArguments, isNull);
+    ArgumentList argumentList = invocation.argumentList;
+    expect(argumentList, isNotNull);
+    expect(argumentList.arguments, hasLength(1));
+    expect(propertyAccess.operator, isNotNull);
+    expect(propertyAccess.propertyName, isNotNull);
+  }
+
+  void test_parseAssignableExpression_expression_args_dot_typeParameters() {
+    enableGenericMethods = true;
+    PropertyAccess propertyAccess =
+        parse("parseAssignableExpression", <Object>[false], "(x)<F>(y).z");
+    FunctionExpressionInvocation invocation =
+        propertyAccess.target as FunctionExpressionInvocation;
+    expect(invocation.function, isNotNull);
+    expect(invocation.typeArguments, isNotNull);
     ArgumentList argumentList = invocation.argumentList;
     expect(argumentList, isNotNull);
     expect(argumentList.arguments, hasLength(1));
@@ -4960,7 +5058,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAssignableExpression_expression_question_dot() {
-    _enableNullAwareOperators = true;
     PropertyAccess propertyAccess =
         parse("parseAssignableExpression", <Object>[false], "(x)?.y");
     expect(propertyAccess.target, isNotNull);
@@ -4979,6 +5076,21 @@ class SimpleParserTest extends ParserTestCase {
         parse("parseAssignableExpression", <Object>[false], "x(y).z");
     MethodInvocation invocation = propertyAccess.target as MethodInvocation;
     expect(invocation.methodName.name, "x");
+    expect(invocation.typeArguments, isNull);
+    ArgumentList argumentList = invocation.argumentList;
+    expect(argumentList, isNotNull);
+    expect(argumentList.arguments, hasLength(1));
+    expect(propertyAccess.operator, isNotNull);
+    expect(propertyAccess.propertyName, isNotNull);
+  }
+
+  void test_parseAssignableExpression_identifier_args_dot_typeParameters() {
+    enableGenericMethods = true;
+    PropertyAccess propertyAccess =
+        parse("parseAssignableExpression", <Object>[false], "x<E>(y).z");
+    MethodInvocation invocation = propertyAccess.target as MethodInvocation;
+    expect(invocation.methodName.name, "x");
+    expect(invocation.typeArguments, isNotNull);
     ArgumentList argumentList = invocation.argumentList;
     expect(argumentList, isNotNull);
     expect(argumentList.arguments, hasLength(1));
@@ -5005,7 +5117,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAssignableExpression_identifier_question_dot() {
-    _enableNullAwareOperators = true;
     PropertyAccess propertyAccess =
         parse("parseAssignableExpression", <Object>[false], "x?.y");
     expect(propertyAccess.target, isNotNull);
@@ -5056,7 +5167,6 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAssignableSelector_question_dot() {
-    _enableNullAwareOperators = true;
     PropertyAccess selector =
         parse("parseAssignableSelector", <Object>[null, true], "?.x");
     expect(selector.operator.type, TokenType.QUESTION_PERIOD);
@@ -5193,6 +5303,17 @@ class SimpleParserTest extends ParserTestCase {
         parse4("parseCascadeSection", "..[i](b)");
     EngineTestCase.assertInstanceOf(
         (obj) => obj is IndexExpression, IndexExpression, section.function);
+    expect(section.typeArguments, isNull);
+    expect(section.argumentList, isNotNull);
+  }
+
+  void test_parseCascadeSection_ia_typeArguments() {
+    enableGenericMethods = true;
+    FunctionExpressionInvocation section =
+        parse4("parseCascadeSection", "..[i]<E>(b)");
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is IndexExpression, IndexExpression, section.function);
+    expect(section.typeArguments, isNotNull);
     expect(section.argumentList, isNotNull);
   }
 
@@ -5202,6 +5323,20 @@ class SimpleParserTest extends ParserTestCase {
         (obj) => obj is MethodInvocation, MethodInvocation, section.target);
     expect(section.operator, isNotNull);
     expect(section.methodName, isNotNull);
+    expect(section.typeArguments, isNull);
+    expect(section.argumentList, isNotNull);
+    expect(section.argumentList.arguments, hasLength(1));
+  }
+
+  void test_parseCascadeSection_ii_typeArguments() {
+    enableGenericMethods = true;
+    MethodInvocation section =
+        parse4("parseCascadeSection", "..a<E>(b).c<F>(d)");
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is MethodInvocation, MethodInvocation, section.target);
+    expect(section.operator, isNotNull);
+    expect(section.methodName, isNotNull);
+    expect(section.typeArguments, isNotNull);
     expect(section.argumentList, isNotNull);
     expect(section.argumentList.arguments, hasLength(1));
   }
@@ -5231,6 +5366,17 @@ class SimpleParserTest extends ParserTestCase {
         (obj) => obj is IntegerLiteral, IntegerLiteral, rhs);
   }
 
+  void test_parseCascadeSection_p_assign_withCascade_typeArguments() {
+    enableGenericMethods = true;
+    AssignmentExpression section =
+        parse4("parseCascadeSection", "..a = 3..m<E>()");
+    expect(section.leftHandSide, isNotNull);
+    expect(section.operator, isNotNull);
+    Expression rhs = section.rightHandSide;
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is IntegerLiteral, IntegerLiteral, rhs);
+  }
+
   void test_parseCascadeSection_p_builtIn() {
     PropertyAccess section = parse4("parseCascadeSection", "..as");
     expect(section.target, isNull);
@@ -5243,6 +5389,18 @@ class SimpleParserTest extends ParserTestCase {
     expect(section.target, isNull);
     expect(section.operator, isNotNull);
     expect(section.methodName, isNotNull);
+    expect(section.typeArguments, isNull);
+    expect(section.argumentList, isNotNull);
+    expect(section.argumentList.arguments, hasLength(1));
+  }
+
+  void test_parseCascadeSection_pa_typeArguments() {
+    enableGenericMethods = true;
+    MethodInvocation section = parse4("parseCascadeSection", "..a<E>(b)");
+    expect(section.target, isNull);
+    expect(section.operator, isNotNull);
+    expect(section.methodName, isNotNull);
+    expect(section.typeArguments, isNotNull);
     expect(section.argumentList, isNotNull);
     expect(section.argumentList.arguments, hasLength(1));
   }
@@ -5252,6 +5410,18 @@ class SimpleParserTest extends ParserTestCase {
         parse4("parseCascadeSection", "..a(b)(c)");
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodInvocation, MethodInvocation, section.function);
+    expect(section.typeArguments, isNull);
+    expect(section.argumentList, isNotNull);
+    expect(section.argumentList.arguments, hasLength(1));
+  }
+
+  void test_parseCascadeSection_paa_typeArguments() {
+    enableGenericMethods = true;
+    FunctionExpressionInvocation section =
+        parse4("parseCascadeSection", "..a<E>(b)<F>(c)");
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is MethodInvocation, MethodInvocation, section.function);
+    expect(section.typeArguments, isNotNull);
     expect(section.argumentList, isNotNull);
     expect(section.argumentList.arguments, hasLength(1));
   }
@@ -5261,12 +5431,32 @@ class SimpleParserTest extends ParserTestCase {
         parse4("parseCascadeSection", "..a(b)(c).d(e)(f)");
     EngineTestCase.assertInstanceOf(
         (obj) => obj is MethodInvocation, MethodInvocation, section.function);
+    expect(section.typeArguments, isNull);
+    expect(section.argumentList, isNotNull);
+    expect(section.argumentList.arguments, hasLength(1));
+  }
+
+  void test_parseCascadeSection_paapaa_typeArguments() {
+    enableGenericMethods = true;
+    FunctionExpressionInvocation section =
+        parse4("parseCascadeSection", "..a<E>(b)<F>(c).d<G>(e)<H>(f)");
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is MethodInvocation, MethodInvocation, section.function);
+    expect(section.typeArguments, isNotNull);
     expect(section.argumentList, isNotNull);
     expect(section.argumentList.arguments, hasLength(1));
   }
 
   void test_parseCascadeSection_pap() {
     PropertyAccess section = parse4("parseCascadeSection", "..a(b).c");
+    expect(section.target, isNotNull);
+    expect(section.operator, isNotNull);
+    expect(section.propertyName, isNotNull);
+  }
+
+  void test_parseCascadeSection_pap_typeArguments() {
+    enableGenericMethods = true;
+    PropertyAccess section = parse4("parseCascadeSection", "..a<E>(b).c");
     expect(section.target, isNotNull);
     expect(section.operator, isNotNull);
     expect(section.propertyName, isNotNull);
@@ -5581,6 +5771,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.modifierKeyword, isNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNull);
@@ -5595,9 +5786,58 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.modifierKeyword, isNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
+  }
+
+  void test_parseClassMember_method_generic_noReturnType() {
+    enableGenericMethods = true;
+    MethodDeclaration method =
+        parse("parseClassMember", <Object>["C"], "m<T>() {}");
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNotNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_method_generic_returnType() {
+    enableGenericMethods = true;
+    MethodDeclaration method =
+        parse("parseClassMember", <Object>["C"], "T m<T>() {}");
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNotNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_method_generic_void() {
+    enableGenericMethods = true;
+    MethodDeclaration method =
+        parse("parseClassMember", <Object>["C"], "void m<T>() {}");
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNotNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
   }
 
   void test_parseClassMember_method_get_noType() {
@@ -5610,6 +5850,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.returnType, isNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -5624,6 +5865,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.returnType, isNotNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -5638,6 +5880,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.returnType, isNotNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -5652,6 +5895,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.returnType, isNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -5666,6 +5910,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.returnType, isNotNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -5680,6 +5925,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.returnType, isNotNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -5694,6 +5940,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.returnType, isNotNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -5708,6 +5955,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.returnType, isNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -5722,6 +5970,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.returnType, isNotNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -5736,6 +5985,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.returnType, isNotNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -5750,6 +6000,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.returnType, isNotNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNotNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -5764,6 +6015,7 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.returnType, isNotNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNotNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -6978,6 +7230,7 @@ void''');
     FunctionExpression expression = invocation.function as FunctionExpression;
     expect(expression.parameters, isNotNull);
     expect(expression.body, isNotNull);
+    expect(invocation.typeArguments, isNull);
     ArgumentList list = invocation.argumentList;
     expect(list, isNotNull);
     expect(list.arguments, hasLength(1));
@@ -6986,12 +7239,24 @@ void''');
   void test_parseExpression_nonAwait() {
     MethodInvocation expression = parseExpression("await()");
     expect(expression.methodName.name, 'await');
+    expect(expression.typeArguments, isNull);
+    expect(expression.argumentList, isNotNull);
   }
 
   void test_parseExpression_superMethodInvocation() {
     MethodInvocation invocation = parse4("parseExpression", "super.m()");
     expect(invocation.target, isNotNull);
     expect(invocation.methodName, isNotNull);
+    expect(invocation.typeArguments, isNull);
+    expect(invocation.argumentList, isNotNull);
+  }
+
+  void test_parseExpression_superMethodInvocation_typeArguments() {
+    enableGenericMethods = true;
+    MethodInvocation invocation = parse4("parseExpression", "super.m<E>()");
+    expect(invocation.target, isNotNull);
+    expect(invocation.methodName, isNotNull);
+    expect(invocation.typeArguments, isNotNull);
     expect(invocation.argumentList, isNotNull);
   }
 
@@ -7029,6 +7294,17 @@ void''');
         parse4("parseExpressionWithoutCascade", "super.m()");
     expect(invocation.target, isNotNull);
     expect(invocation.methodName, isNotNull);
+    expect(invocation.typeArguments, isNull);
+    expect(invocation.argumentList, isNotNull);
+  }
+
+  void test_parseExpressionWithoutCascade_superMethodInvocation_typeArguments() {
+    enableGenericMethods = true;
+    MethodInvocation invocation =
+        parse4("parseExpressionWithoutCascade", "super.m<E>()");
+    expect(invocation.target, isNotNull);
+    expect(invocation.methodName, isNotNull);
+    expect(invocation.typeArguments, isNotNull);
     expect(invocation.argumentList, isNotNull);
   }
 
@@ -7765,6 +8041,24 @@ void''');
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
     expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNull);
+    expect(expression.parameters, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
+  }
+
+  void test_parseFunctionDeclaration_functionWithTypeParameters() {
+    enableGenericMethods = true;
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
+    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
+    FunctionDeclaration declaration = parse("parseFunctionDeclaration",
+        <Object>[commentAndMetadata(comment), null, returnType], "f<E>() {}");
+    expect(declaration.documentationComment, comment);
+    expect(declaration.returnType, returnType);
+    expect(declaration.name, isNotNull);
+    FunctionExpression expression = declaration.functionExpression;
+    expect(expression, isNotNull);
+    expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNotNull);
     expect(expression.parameters, isNotNull);
     expect(declaration.propertyKeyword, isNull);
   }
@@ -7780,6 +8074,7 @@ void''');
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
     expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNull);
     expect(expression.parameters, isNull);
     expect(declaration.propertyKeyword, isNotNull);
   }
@@ -7795,6 +8090,7 @@ void''');
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
     expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNull);
     expect(expression.parameters, isNotNull);
     expect(declaration.propertyKeyword, isNotNull);
   }
@@ -7805,10 +8101,28 @@ void''');
     expect(statement.functionDeclaration, isNotNull);
   }
 
+  void test_parseFunctionDeclarationStatement_typeParameters() {
+    enableGenericMethods = true;
+    FunctionDeclarationStatement statement =
+        parse4("parseFunctionDeclarationStatement", "E f<E>(E p) => p * 2;");
+    expect(statement.functionDeclaration, isNotNull);
+  }
+
   void test_parseFunctionExpression_body_inExpression() {
     FunctionExpression expression =
         parse4("parseFunctionExpression", "(int i) => i++");
     expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNull);
+    expect(expression.parameters, isNotNull);
+    expect((expression.body as ExpressionFunctionBody).semicolon, isNull);
+  }
+
+  void test_parseFunctionExpression_typeParameters() {
+    enableGenericMethods = true;
+    FunctionExpression expression =
+        parse4("parseFunctionExpression", "<E>(E i) => i++");
+    expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNotNull);
     expect(expression.parameters, isNotNull);
     expect((expression.body as ExpressionFunctionBody).semicolon, isNull);
   }
@@ -7849,6 +8163,7 @@ void''');
     expect(method.modifierKeyword, staticKeyword);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNull);
     expect(method.propertyKeyword, isNotNull);
     expect(method.returnType, returnType);
@@ -8433,6 +8748,7 @@ void''');
     FunctionExpression expression = invocation.function as FunctionExpression;
     expect(expression.parameters, isNotNull);
     expect(expression.body, isNotNull);
+    expect(invocation.typeArguments, isNull);
     ArgumentList list = invocation.argumentList;
     expect(list, isNotNull);
     expect(list.arguments, hasLength(1));
@@ -8550,6 +8866,17 @@ void''');
         parse4("parseNormalFormalParameter", "a())");
     expect(parameter.returnType, isNull);
     expect(parameter.identifier, isNotNull);
+    expect(parameter.typeParameters, isNull);
+    expect(parameter.parameters, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_function_noType_typeParameters() {
+    enableGenericMethods = true;
+    FunctionTypedFormalParameter parameter =
+        parse4("parseNormalFormalParameter", "a<E>())");
+    expect(parameter.returnType, isNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.typeParameters, isNotNull);
     expect(parameter.parameters, isNotNull);
   }
 
@@ -8558,6 +8885,17 @@ void''');
         parse4("parseNormalFormalParameter", "A a())");
     expect(parameter.returnType, isNotNull);
     expect(parameter.identifier, isNotNull);
+    expect(parameter.typeParameters, isNull);
+    expect(parameter.parameters, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_function_type_typeParameters() {
+    enableGenericMethods = true;
+    FunctionTypedFormalParameter parameter =
+        parse4("parseNormalFormalParameter", "A a<E>())");
+    expect(parameter.returnType, isNotNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.typeParameters, isNotNull);
     expect(parameter.parameters, isNotNull);
   }
 
@@ -8566,6 +8904,17 @@ void''');
         parse4("parseNormalFormalParameter", "void a())");
     expect(parameter.returnType, isNotNull);
     expect(parameter.identifier, isNotNull);
+    expect(parameter.typeParameters, isNull);
+    expect(parameter.parameters, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_function_void_typeParameters() {
+    enableGenericMethods = true;
+    FunctionTypedFormalParameter parameter =
+        parse4("parseNormalFormalParameter", "void a<E>())");
+    expect(parameter.returnType, isNotNull);
+    expect(parameter.identifier, isNotNull);
+    expect(parameter.typeParameters, isNotNull);
     expect(parameter.parameters, isNotNull);
   }
 
@@ -8631,6 +8980,7 @@ void''');
     expect(method.modifierKeyword, isNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNotNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, returnType);
@@ -8682,15 +9032,36 @@ void''');
     expect(expression.target, isNotNull);
     expect(expression.operator.type, TokenType.PERIOD);
     expect(expression.methodName, isNotNull);
+    expect(expression.typeArguments, isNull);
     expect(expression.argumentList, isNotNull);
   }
 
   void test_parsePostfixExpression_none_methodInvocation_question_dot() {
-    _enableNullAwareOperators = true;
     MethodInvocation expression = parse4('parsePostfixExpression', 'a?.m()');
     expect(expression.target, isNotNull);
     expect(expression.operator.type, TokenType.QUESTION_PERIOD);
     expect(expression.methodName, isNotNull);
+    expect(expression.typeArguments, isNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parsePostfixExpression_none_methodInvocation_question_dot_typeArguments() {
+    enableGenericMethods = true;
+    MethodInvocation expression = parse4('parsePostfixExpression', 'a?.m<E>()');
+    expect(expression.target, isNotNull);
+    expect(expression.operator.type, TokenType.QUESTION_PERIOD);
+    expect(expression.methodName, isNotNull);
+    expect(expression.typeArguments, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parsePostfixExpression_none_methodInvocation_typeArguments() {
+    enableGenericMethods = true;
+    MethodInvocation expression = parse4("parsePostfixExpression", "a.m<E>()");
+    expect(expression.target, isNotNull);
+    expect(expression.operator.type, TokenType.PERIOD);
+    expect(expression.methodName, isNotNull);
+    expect(expression.typeArguments, isNotNull);
     expect(expression.argumentList, isNotNull);
   }
 
@@ -8961,6 +9332,7 @@ void''');
     expect(method.modifierKeyword, isNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNotNull);
     expect(method.returnType, returnType);
@@ -8982,6 +9354,7 @@ void''');
     expect(method.modifierKeyword, staticKeyword);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNotNull);
     expect(method.returnType, returnType);
@@ -9033,10 +9406,30 @@ void''');
     expect(argumentList.rightBracket, isNotNull);
   }
 
-  void test_parseStatement_functionDeclaration() {
+  void test_parseStatement_functionDeclaration_noReturnType() {
+    FunctionDeclarationStatement statement =
+        parse4("parseStatement", "f(a, b) {};");
+    expect(statement.functionDeclaration, isNotNull);
+  }
+
+  void test_parseStatement_functionDeclaration_noReturnType_typeParameters() {
+    enableGenericMethods = true;
+    FunctionDeclarationStatement statement =
+        parse4("parseStatement", "f(a, b) {};");
+    expect(statement.functionDeclaration, isNotNull);
+  }
+
+  void test_parseStatement_functionDeclaration_returnType() {
     // TODO(brianwilkerson) Implement more tests for this method.
     FunctionDeclarationStatement statement =
         parse4("parseStatement", "int f(a, b) {};");
+    expect(statement.functionDeclaration, isNotNull);
+  }
+
+  void test_parseStatement_functionDeclaration_returnType_typeParameters() {
+    enableGenericMethods = true;
+    FunctionDeclarationStatement statement =
+        parse4("parseStatement", "int f<E>(a, b) {};");
     expect(statement.functionDeclaration, isNotNull);
   }
 

@@ -2026,7 +2026,7 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleNegate, assembler) {
     double b;
   } constant0 = { 1.0, 2.0 };
   __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer(PP);
+  __ LoadPoolPointer();
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
   __ negatepd(XMM10);
@@ -2049,7 +2049,7 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleAbsolute, assembler) {
     double b;
   } constant0 = { -1.0, 2.0 };
   __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer(PP);
+  __ LoadPoolPointer();
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
   __ abspd(XMM10);
@@ -2496,7 +2496,7 @@ ASSEMBLER_TEST_RUN(PackedCompareNLE, test) {
 
 ASSEMBLER_TEST_GENERATE(PackedNegate, assembler) {
   __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer(PP);
+  __ LoadPoolPointer();
   __ movl(RAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
@@ -2516,7 +2516,7 @@ ASSEMBLER_TEST_RUN(PackedNegate, test) {
 
 ASSEMBLER_TEST_GENERATE(PackedAbsolute, assembler) {
   __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer(PP);
+  __ LoadPoolPointer();
   __ movl(RAX, Immediate(bit_cast<int32_t, float>(-15.3f)));
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
@@ -2536,7 +2536,7 @@ ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
 
 ASSEMBLER_TEST_GENERATE(PackedSetWZero, assembler) {
   __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer(PP);
+  __ LoadPoolPointer();
   __ set1ps(XMM0, RAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ zerowps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xFF));  // Copy the W lane which is now 0.0.
@@ -2658,8 +2658,8 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
   } constant1 =
       { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
   __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer(PP);
-  __ LoadImmediate(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)), PP);
+  __ LoadPoolPointer();
+  __ LoadImmediate(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
   __ movups(XMM9, Address(RAX, 0));
   __ notps(XMM9);
   __ movaps(XMM0, XMM9);
@@ -3067,26 +3067,26 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
   Label fail;
   __ EnterFrame(0);
   __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer(PP);
-  __ LoadObject(RAX, obj, PP);
-  __ CompareObject(RAX, obj, PP);
+  __ LoadPoolPointer();
+  __ LoadObject(RAX, obj);
+  __ CompareObject(RAX, obj);
   __ j(NOT_EQUAL, &fail);
-  __ LoadObject(RCX, obj, PP);
-  __ CompareObject(RCX, obj, PP);
+  __ LoadObject(RCX, obj);
+  __ CompareObject(RCX, obj);
   __ j(NOT_EQUAL, &fail);
   const Smi& smi = Smi::ZoneHandle(Smi::New(15));
-  __ LoadObject(RCX, smi, PP);
-  __ CompareObject(RCX, smi, PP);
+  __ LoadObject(RCX, smi);
+  __ CompareObject(RCX, smi);
   __ j(NOT_EQUAL, &fail);
   __ pushq(RAX);
-  __ StoreObject(Address(RSP, 0), obj, PP);
+  __ StoreObject(Address(RSP, 0), obj);
   __ popq(RCX);
-  __ CompareObject(RCX, obj, PP);
+  __ CompareObject(RCX, obj);
   __ j(NOT_EQUAL, &fail);
   __ pushq(RAX);
-  __ StoreObject(Address(RSP, 0), smi, PP);
+  __ StoreObject(Address(RSP, 0), smi);
   __ popq(RCX);
-  __ CompareObject(RCX, smi, PP);
+  __ CompareObject(RCX, smi);
   __ j(NOT_EQUAL, &fail);
   __ movl(RAX, Immediate(1));  // OK
   __ popq(PP);  // Restore caller's pool pointer.
@@ -3307,7 +3307,7 @@ ASSEMBLER_TEST_RUN(SquareRootDouble, test) {
 // Called from assembler_test.cc.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer(PP);
+  __ LoadPoolPointer();
   __ pushq(THR);
   __ movq(THR, CallingConventions::kArg4Reg);
   __ pushq(CTX);
@@ -3433,7 +3433,7 @@ ASSEMBLER_TEST_RUN(DoubleToDoubleTrunc, test) {
 
 ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
   __ pushq(PP);  // Save caller's pool pointer and load a new one here.
-  __ LoadPoolPointer(PP);
+  __ LoadPoolPointer();
   __ DoubleAbs(XMM0);
   __ popq(PP);  // Restore caller's pool pointer.
   __ ret();

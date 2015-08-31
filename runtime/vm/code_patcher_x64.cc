@@ -24,7 +24,7 @@ class UnoptimizedCall : public ValueObject {
  public:
   UnoptimizedCall(uword return_address, const Code& code)
       : start_(return_address - kCallPatternSize),
-        object_pool_(Array::Handle(code.ObjectPool())) {
+        object_pool_(ObjectPool::Handle(code.GetObjectPool())) {
     ASSERT(IsValid(return_address));
     ASSERT((kCallPatternSize - 7) == Assembler::kCallExternalLabelSize);
   }
@@ -42,24 +42,23 @@ class UnoptimizedCall : public ValueObject {
 
   RawObject* ic_data() const {
     intptr_t index = InstructionPattern::IndexFromPPLoad(start_ + 3);
-    return object_pool_.At(index);
+    return object_pool_.ObjectAt(index);
   }
 
   uword target() const {
     intptr_t index = InstructionPattern::IndexFromPPLoad(start_ + 10);
-    return reinterpret_cast<uword>(object_pool_.At(index));
+    return object_pool_.RawValueAt(index);
   }
 
   void set_target(uword target) const {
     intptr_t index = InstructionPattern::IndexFromPPLoad(start_ + 10);
-    const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(target));
-    object_pool_.SetAt(index, smi);
+    object_pool_.SetRawValueAt(index, target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
  private:
   uword start_;
-  const Array& object_pool_;
+  const ObjectPool& object_pool_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(UnoptimizedCall);
 };
 
@@ -104,7 +103,7 @@ class PoolPointerCall : public ValueObject {
  public:
   explicit PoolPointerCall(uword return_address, const Code& code)
       : start_(return_address - kCallPatternSize),
-        object_pool_(Array::Handle(code.ObjectPool())) {
+        object_pool_(ObjectPool::Handle(code.GetObjectPool())) {
     ASSERT(IsValid(return_address));
   }
 
@@ -122,18 +121,17 @@ class PoolPointerCall : public ValueObject {
   }
 
   uword Target() const {
-    return reinterpret_cast<uword>(object_pool_.At(pp_index()));
+    return object_pool_.RawValueAt(pp_index());
   }
 
   void SetTarget(uword target) const {
-    const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(target));
-    object_pool_.SetAt(pp_index(), smi);
+    object_pool_.SetRawValueAt(pp_index(), target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
  protected:
   uword start_;
-  const Array& object_pool_;
+  const ObjectPool& object_pool_;
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(PoolPointerCall);
@@ -219,7 +217,7 @@ class EdgeCounter : public ValueObject {
  public:
   EdgeCounter(uword pc, const Code& code)
       : end_(pc - FlowGraphCompiler::EdgeCounterIncrementSizeInBytes()),
-        object_pool_(Array::Handle(code.ObjectPool())) {
+        object_pool_(ObjectPool::Handle(code.GetObjectPool())) {
     ASSERT(IsValid(end_));
   }
 
@@ -229,12 +227,12 @@ class EdgeCounter : public ValueObject {
   }
 
   RawObject* edge_counter() const {
-    return object_pool_.At(InstructionPattern::IndexFromPPLoad(end_ - 4));
+    return object_pool_.ObjectAt(InstructionPattern::IndexFromPPLoad(end_ - 4));
   }
 
  private:
   uword end_;
-  const Array& object_pool_;
+  const ObjectPool& object_pool_;
 };
 
 

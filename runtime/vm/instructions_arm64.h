@@ -23,7 +23,7 @@ class InstructionPattern : public AllStatic {
   // being loaded and the loaded object in the output parameters 'reg' and
   // 'obj' respectively.
   static uword DecodeLoadObject(uword end,
-                                const Array& object_pool,
+                                const ObjectPool& object_pool,
                                 Register* reg,
                                 Object* obj);
 
@@ -71,7 +71,7 @@ class CallPattern : public ValueObject {
   static void InsertAt(uword pc, uword target_address);
 
  private:
-  const Array& object_pool_;
+  const ObjectPool& object_pool_;
 
   uword end_;
   uword args_desc_load_end_;

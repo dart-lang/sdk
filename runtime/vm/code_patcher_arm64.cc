@@ -25,7 +25,7 @@ class PoolPointerCall : public ValueObject {
  public:
   PoolPointerCall(uword pc, const Code& code)
       : end_(pc),
-        object_pool_(Array::Handle(code.ObjectPool())) {
+        object_pool_(ObjectPool::Handle(code.GetObjectPool())) {
     // Last instruction: blr ip0.
     ASSERT(*(reinterpret_cast<uint32_t*>(end_) - 1) == 0xd63f0200);
     InstructionPattern::DecodeLoadWordFromPool(
@@ -37,19 +37,18 @@ class PoolPointerCall : public ValueObject {
   }
 
   uword Target() const {
-    return reinterpret_cast<uword>(object_pool_.At(pp_index()));
+    return object_pool_.RawValueAt(pp_index());
   }
 
   void SetTarget(uword target) const {
-    const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(target));
-    object_pool_.SetAt(pp_index(), smi);
+    object_pool_.SetRawValueAt(pp_index(), target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
  private:
   static const int kCallPatternSize = 3 * Instr::kInstrSize;
   uword end_;
-  const Array& object_pool_;
+  const ObjectPool& object_pool_;
   Register reg_;
   intptr_t index_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(PoolPointerCall);
@@ -126,7 +125,8 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
 class EdgeCounter : public ValueObject {
  public:
   EdgeCounter(uword pc, const Code& code)
-      : end_(pc - kAdjust), object_pool_(Array::Handle(code.ObjectPool())) {
+      : end_(pc - kAdjust),
+        object_pool_(ObjectPool::Handle(code.GetObjectPool())) {
     // An IsValid predicate is complicated and duplicates the code in the
     // decoding function.  Instead we rely on decoding the pattern which
     // will assert partial validity.
@@ -137,7 +137,7 @@ class EdgeCounter : public ValueObject {
     intptr_t index;
     InstructionPattern::DecodeLoadWordFromPool(end_, &ignored, &index);
     ASSERT(ignored == R0);
-    return object_pool_.At(index);
+    return object_pool_.ObjectAt(index);
   }
 
  private:
@@ -149,7 +149,7 @@ class EdgeCounter : public ValueObject {
   static const intptr_t kAdjust = 3 * Instr::kInstrSize;
 
   uword end_;
-  const Array& object_pool_;
+  const ObjectPool& object_pool_;
 };
 
 

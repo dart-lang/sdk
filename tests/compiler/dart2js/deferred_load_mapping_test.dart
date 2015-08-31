@@ -8,26 +8,26 @@ import 'memory_source_file_helper.dart';
 import "memory_compiler.dart";
 
 void main() {
-  var collector = new OutputCollector();
-  Compiler compiler = compilerFor(MEMORY_SOURCE_FILES,
-                                  options: ['--deferred-map=deferred_map.json'],
-                                  outputProvider: collector);
-  asyncTest(() {
-    return compiler.run(Uri.parse('memory:main.dart')).then((success) {
-      // Ensure a mapping file is output.
-      Expect.isNotNull(
-          collector.getOutput("deferred_map.json", "deferred_map"));
+  asyncTest(() async {
+    var collector = new OutputCollector();
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        options: ['--deferred-map=deferred_map.json'],
+        outputProvider: collector);
+    Compiler compiler = result.compiler;
+    // Ensure a mapping file is output.
+    Expect.isNotNull(
+        collector.getOutput("deferred_map.json", "deferred_map"));
 
-      Map mapping = compiler.deferredLoadTask.computeDeferredMap();
-      // Test structure of mapping.
-      Expect.equals("<unnamed>", mapping["main.dart"]["name"]);
-      Expect.equals(2, mapping["main.dart"]["imports"]["lib1"].length);
-      Expect.equals(2, mapping["main.dart"]["imports"]["lib2"].length);
-      Expect.equals(1, mapping["main.dart"]["imports"]["convert"].length);
-      Expect.equals("lib1", mapping["memory:lib1.dart"]["name"]);
-      Expect.equals(1, mapping["memory:lib1.dart"]["imports"]["lib4_1"].length);
-      Expect.equals(1, mapping["memory:lib2.dart"]["imports"]["lib4_2"].length);
-    });
+    Map mapping = compiler.deferredLoadTask.computeDeferredMap();
+    // Test structure of mapping.
+    Expect.equals("<unnamed>", mapping["main.dart"]["name"]);
+    Expect.equals(2, mapping["main.dart"]["imports"]["lib1"].length);
+    Expect.equals(2, mapping["main.dart"]["imports"]["lib2"].length);
+    Expect.equals(1, mapping["main.dart"]["imports"]["convert"].length);
+    Expect.equals("lib1", mapping["memory:lib1.dart"]["name"]);
+    Expect.equals(1, mapping["memory:lib1.dart"]["imports"]["lib4_1"].length);
+    Expect.equals(1, mapping["memory:lib2.dart"]["imports"]["lib4_2"].length);
   });
 }
 

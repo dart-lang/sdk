@@ -5,15 +5,21 @@
 part of js_ast;
 
 
+typedef String Renamer(Name);
+
 class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;
   final bool minifyLocalVariables;
   final bool preferSemicolonToNewlineInMinifiedOutput;
+  final Renamer renamerForNames;
 
   JavaScriptPrintingOptions(
       {this.shouldCompressOutput: false,
        this.minifyLocalVariables: false,
-       this.preferSemicolonToNewlineInMinifiedOutput: false});
+       this.preferSemicolonToNewlineInMinifiedOutput: false,
+       this.renamerForNames: identityRenamer});
+
+  static String identityRenamer(Name name) => name.name;
 }
 
 
@@ -360,7 +366,9 @@ class Printer implements NodeVisitor {
       out("else");
       if (elsePart is If) {
         pendingSpace = true;
+        startNode(elsePart);
         ifOut(elsePart, false);
+        endNode(elsePart);
       } else {
         blockBody(unwrapBlockIfSingleStatement(elsePart),
                   needsSeparation: true, needsNewline: true);
@@ -628,7 +636,10 @@ class Printer implements NodeVisitor {
     VarCollector vars = new VarCollector();
     vars.visitFunctionDeclaration(declaration);
     indent();
-    functionOut(declaration.function, declaration.name, vars);
+    startNode(declaration.function);
+    currentNode.closingPosition =
+        functionOut(declaration.function, declaration.name, vars);
+    endNode(declaration.function);
     lineOut();
   }
 
@@ -924,9 +935,18 @@ class Printer implements NodeVisitor {
       if (isValidJavaScriptId(fieldWithQuotes)) {
         if (access.receiver is LiteralNumber) out(" ", isWhitespace: true);
         out(".");
+        startNode(selector);
         out(fieldWithQuotes.substring(1, fieldWithQuotes.length - 1));
+        endNode(selector);
         return;
       }
+    } else if (selector is Name) {
+      if (access.receiver is LiteralNumber) out(" ", isWhitespace: true);
+      out(".");
+      startNode(selector);
+      selector.accept(this);
+      endNode(selector);
+      return;
     }
     out("[");
     visitNestedExpression(selector, EXPRESSION,
@@ -952,7 +972,32 @@ class Printer implements NodeVisitor {
   }
 
   @override
-  void visitLiteralBool(LiteralBool node) {
+  visitDeferredExpression(DeferredExpression node) {
+    // Continue printing with the expression value.
+    assert(node.precedenceLevel == node.value.precedenceLevel);
+    node.value.accept(this);
+  }
+
+  outputNumberWithRequiredWhitespace(String number) {
+    int charCode = number.codeUnitAt(0);
+    if (charCode == charCodes.$MINUS && lastCharCode == charCodes.$MINUS) {
+      out(" ", isWhitespace: true);
+    }
+    out(number);
+  }
+
+  @override
+  visitDeferredNumber(DeferredNumber node) {
+    outputNumberWithRequiredWhitespace("${node.value}");
+  }
+
+  @override
+  visitDeferredString(DeferredString node) {
+    out(node.value);
+  }
+
+  @override
+  visitLiteralBool(LiteralBool node) {
     out(node.value ? "true" : "false");
   }
 
@@ -962,12 +1007,18 @@ class Printer implements NodeVisitor {
   }
 
   @override
-  void visitLiteralNumber(LiteralNumber node) {
-    int charCode = node.value.codeUnitAt(0);
-    if (charCode == charCodes.$MINUS && lastCharCode == charCodes.$MINUS) {
-      out(" ", isWhitespace: true);
-    }
-    out(node.value);
+  visitStringConcatenation(StringConcatenation node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  visitName(Name node) {
+    out(options.renamerForNames(node));
+  }
+
+  @override
+  visitLiteralNumber(LiteralNumber node) {
+    outputNumberWithRequiredWhitespace(node.value);
   }
 
   @override
@@ -986,7 +1037,9 @@ class Printer implements NodeVisitor {
         // in last position. Otherwise `[,]` (having length 1) would become
         // equal to `[]` (the empty array)
         // and [1,,] (array with 1 and a hole) would become [1,] = [1].
+        startNode(element);
         out(",");
+        endNode(element);
         continue;
       }
       if (i != 0) spaceOut();
@@ -1013,7 +1066,6 @@ class Printer implements NodeVisitor {
     out("{");
     indentMore();
     for (int i = 0; i < properties.length; i++) {
-      Expression value = properties[i].value;
       if (i != 0) {
         out(",");
         if (node.isOneLiner) spaceOut();
@@ -1034,6 +1086,7 @@ class Printer implements NodeVisitor {
 
   @override
   void visitProperty(Property node) {
+    startNode(node.name);
     if (node.name is LiteralString) {
       LiteralString nameString = node.name;
       String name = nameString.value;
@@ -1042,11 +1095,14 @@ class Printer implements NodeVisitor {
       } else {
         out(name);
       }
+    } else if (node.name is Name) {
+      node.name.accept(this);
     } else {
       assert(node.name is LiteralNumber);
       LiteralNumber nameNumber = node.name;
       out(nameNumber.value);
     }
+    endNode(node.name);
     out(":");
     spaceOut();
     visitNestedExpression(node.value, ASSIGNMENT,

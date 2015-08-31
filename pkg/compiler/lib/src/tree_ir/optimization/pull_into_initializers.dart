@@ -7,6 +7,15 @@ library tree_ir.optimization.pull_into_initializers;
 import 'optimization.dart' show Pass;
 import '../tree_ir_nodes.dart';
 
+/// Where a variable has been assigned.
+enum AssignArea {
+  /// The variable is only assigned in the initializer block.
+  Initializer,
+
+  // The variable has at least one assignment outside the initializer block.
+  Anywhere,
+}
+
 /// Pulls assignment expressions to the top of the function body so they can be
 /// translated into declaration-site variable initializaters.
 ///
@@ -48,30 +57,50 @@ import '../tree_ir_nodes.dart';
 /// [PullIntoInitializers] cannot pull `y` into an initializer because
 /// the impure expressions `foo()` and `bar()` would then be swapped.
 ///
-class PullIntoInitializers extends ExpressionVisitor<Expression>
+class PullIntoInitializers extends RecursiveTransformer
                            implements Pass {
   String get passName => 'Pull into initializers';
 
-  Set<Variable> assignedVariables = new Set<Variable>();
+  /// Denotes where each variable is currently assigned.
+  ///
+  /// Variables without assignments are absent from the map.
+  Map<Variable, AssignArea> assignArea = <Variable, AssignArea>{};
 
   /// The fragment between [first] and [last] holds the statements
   /// we pulled into the initializer block.
   ///
-  /// The *initializer block* is a sequence of [ExpressionStatement]s with
+  /// The "initializer block" is a sequence of [ExpressionStatement]s with
   /// [Assign]s that we create in the beginning of the body, with the intent
   /// that code generation will convert them to variable initializers.
   ///
   /// The block is empty when both are `null`.
   Statement first, last;
 
-  /// True if an impure expression has been returned by visitExpression.
+  /// The number of impure expressions separating the current program point
+  /// from the initializer block.
   ///
-  /// Expressions cannot be pulled into an initializer if this might reorder
-  /// impure expressions.
+  /// A pure expression is an expression that cannot throw, diverge, have side
+  /// effects, or depend on mutable state.
   ///
-  /// A visit method may not be called while this flag is set, meaning all
-  /// visitor methods must check the flag between visiting subexpressions.
-  bool seenImpure;
+  /// As a special case, variable uses are also considered pure when their only
+  /// reaching definition is an assignment in the initializer block.
+  int impureCounter = 0;
+
+  /// The number of assignments separating the current program point from the
+  /// initializer block. Note that these are also counted as impure expressions.
+  ///
+  /// Assignments are given special treatment because hoisting an assignment
+  /// may change the reaching definitions of a variable use. The analysis may
+  /// already have considered such a use to be pure, and we must then ensure
+  /// that it remains pure.
+  int assignCounter = 0;
+
+  /// The number of branch points separating the current program point from
+  /// the initializer block.
+  ///
+  /// We do not pull expressions out of branches, not even pure ones, but
+  /// we sometimes want to traverse branches to check if they are pure.
+  int branchCounter = 0;
 
   /// Appends a statement to the initializer block.
   void append(Statement node) {
@@ -83,54 +112,13 @@ class PullIntoInitializers extends ExpressionVisitor<Expression>
     }
   }
 
-  /// Pulls assignment expressions from [node] into the initializer block
-  /// by calling [append].
-  ///
-  /// Returns a transformed expression where the pulled assignments are
-  /// replaced by variable uses.
-  Expression rewriteExpression(Expression node) {
-    seenImpure = false;
-    return visitExpression(node);
-  }
-
   void rewrite(FunctionDefinition node) {
-    Statement body = node.body;
-    assignedVariables.addAll(node.parameters);
-
-    // [body] represents the first statement after the initializer block.
-    // Repeatedly pull assignment statements into the initializer block.
-    while (body is ExpressionStatement) {
-      ExpressionStatement stmt = body;
-      stmt.expression = rewriteExpression(stmt.expression);
-      if (stmt.expression is VariableUse) {
-        // The entire expression was pulled into an initializer.
-        // This can happen when the expression was an assignment that was
-        // pulled into the initializer block and replaced by a variable use.
-        // Discard the statement and try to pull in more initializers from
-        // the next statement.
-        destroyVariableUse(stmt.expression);
-        body = stmt.next;
-      } else {
-        // The whole expression could not be pulled into an initializer, so we
-        // have reached the end of the initializer block.
-        break;
-      }
+    for (Variable param in node.parameters) {
+      assignArea[param] = AssignArea.Initializer;
     }
-
-    // [If] and [Return] statements terminate the initializer block, but the
-    // initial expression they contain may be pulled up into an initializer.
-    // It's ok to pull an assignment across a label so look for the first
-    // non-labeled statement and try to pull its initial subexpression.
-    Statement entryNode = unfoldLabeledStatements(body);
-    if (entryNode is If) {
-      entryNode.condition = rewriteExpression(entryNode.condition);
-    } else if (entryNode is Return) {
-      entryNode.value = rewriteExpression(entryNode.value);
-    }
-
+    Statement body = visitStatement(node.body);
     append(body);
-    assert(first != null); // Because we just appended the body.
-
+    assert(first != null);
     node.body = first;
   }
 
@@ -138,116 +126,210 @@ class PullIntoInitializers extends ExpressionVisitor<Expression>
     --node.variable.readCount;
   }
 
-  Statement unfoldLabeledStatements(Statement node) {
-    while (node is LabeledStatement) {
-      node = (node as LabeledStatement).body;
+  Statement visitExpressionStatement(ExpressionStatement node) {
+    node.expression = visitExpression(node.expression);
+    if (node.expression is VariableUse) {
+      // The entire expression was pulled into an initializer.
+      // This can happen when the expression was an assignment that was
+      // pulled into the initializer block and replaced by a variable use.
+      // Discard the statement and try to pull in more initializers from
+      // the next statement.
+      destroyVariableUse(node.expression);
+      return visitStatement(node.next);
     }
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  Statement visitIf(If node) {
+    node.condition = visitExpression(node.condition);
+    // We could traverse the branches and pull out pure expressions, but
+    // some pure expressions might be too slow for this to pay off.
+    // A CPS transform should decide when things get hoisted out of branches.
+    return node;
+  }
+
+  Statement visitLabeledStatement(LabeledStatement node) {
+    node.body = visitStatement(node.body);
+    // The 'next' statement might not always get reached, so do not try to
+    // pull expressions up from there.
+    return node;
+  }
+
+  Statement visitWhileTrue(WhileTrue node) {
+    return node;
+  }
+
+  Statement visitWhileCondition(WhileCondition node) {
+    return node;
+  }
+
+  Statement visitTry(Try node) {
     return node;
   }
 
   Expression visitAssign(Assign node) {
-    assert(!seenImpure);
+    bool inImpureContext = impureCounter > 0;
+    bool inBranch = branchCounter > 0;
+
+    // Remember the number of impure expression seen yet, so we can tell if
+    // there are any impure expressions on the right-hand side.
+    int impureBefore = impureCounter;
+    int assignmentsBefore = assignCounter;
     node.value = visitExpression(node.value);
-    if (!assignedVariables.add(node.variable)) {
-      // This is not the first assignment to the variable, so it cannot be
-      // pulled into an initializer.
-      // We have to leave the assignment here, and assignments are impure.
-      seenImpure = true;
+    bool rightHandSideIsImpure = (impureCounter > impureBefore);
+    bool rightHandSideHasAssign = (assignCounter > assignmentsBefore);
+
+    bool alreadyAssigned = assignArea.containsKey(node.variable);
+
+    // An impure right-hand side cannot be pulled out of impure context.
+    // Expressions should not be pulled out of branches.
+    // If this is not the first assignment, it cannot be hoisted.
+    // If the right-hand side contains an unhoistable assignment, this
+    // assignment cannot be hoisted either.
+    if (inImpureContext && rightHandSideIsImpure ||
+        inBranch ||
+        alreadyAssigned ||
+        rightHandSideHasAssign) {
+      assignArea[node.variable] = AssignArea.Anywhere;
+      ++impureCounter;
+      ++assignCounter;
       return node;
-    } else {
-      // Pull the assignment into an initializer.
-      // We will leave behind a variable use, which is pure, so we can
-      // disregard any impure expressions seen in the right-hand side.
-      seenImpure = false;
-      append(new ExpressionStatement(node, null));
-      return new VariableUse(node.variable);
     }
+
+    // Pull the assignment into the initializer. Any side-effects in the
+    // right-hand side will move into the initializer block, so reset the
+    // impure counter.
+    assignArea[node.variable] = AssignArea.Initializer;
+    impureCounter = impureBefore;
+    append(new ExpressionStatement(node, null));
+    return new VariableUse(node.variable);
   }
 
-  void rewriteList(List<Expression> list) {
-    for (int i = 0; i < list.length; i++) {
-      list[i] = visitExpression(list[i]);
-      if (seenImpure) return;
+  Expression visitVariableUse(VariableUse node) {
+    if (assignArea[node.variable] == AssignArea.Anywhere) {
+      // There is a reaching definition outside the initializer block.
+      ++impureCounter;
     }
-  }
-
-  Expression visitInvokeStatic(InvokeStatic node) {
-    rewriteList(node.arguments);
-    seenImpure = true;
     return node;
+  }
+
+  void rewriteList(List<Expression> nodes) {
+    for (int i = 0; i < nodes.length; ++i) {
+      nodes[i] = visitExpression(nodes[i]);
+    }
   }
 
   Expression visitInvokeMethod(InvokeMethod node) {
     node.receiver = visitExpression(node.receiver);
-    if (seenImpure) return node;
+    if (!node.receiverIsNotNull) {
+      // If the receiver is null, the method lookup throws.
+      ++impureCounter;
+    }
     rewriteList(node.arguments);
-    seenImpure = true;
+    ++impureCounter;
+    return node;
+  }
+
+  Expression visitInvokeStatic(InvokeStatic node) {
+    super.visitInvokeStatic(node);
+    ++impureCounter;
     return node;
   }
 
   Expression visitInvokeMethodDirectly(InvokeMethodDirectly node) {
-    node.receiver = visitExpression(node.receiver);
-    if (seenImpure) return node;
-    rewriteList(node.arguments);
-    seenImpure = true;
+    super.visitInvokeMethodDirectly(node);
+    ++impureCounter;
     return node;
   }
 
   Expression visitInvokeConstructor(InvokeConstructor node) {
-    rewriteList(node.arguments);
-    seenImpure = true;
-    return node;
-  }
-
-  Expression visitConcatenateStrings(ConcatenateStrings node) {
-    rewriteList(node.arguments);
-    seenImpure = true;
-    return node;
-  }
-
-  Expression visitTypeExpression(TypeExpression node) {
-    rewriteList(node.arguments);
+    super.visitInvokeConstructor(node);
+    ++impureCounter;
     return node;
   }
 
   Expression visitConditional(Conditional node) {
     node.condition = visitExpression(node.condition);
-    if (seenImpure) return node;
+    // Visit the branches to detect impure subexpressions, but do not pull
+    // expressions out of the branch.
+    ++branchCounter;
     node.thenExpression = visitExpression(node.thenExpression);
-    if (seenImpure) return node;
     node.elseExpression = visitExpression(node.elseExpression);
+    --branchCounter;
     return node;
   }
 
   Expression visitLogicalOperator(LogicalOperator node) {
     node.left = visitExpression(node.left);
-    if (seenImpure) return node;
+    ++branchCounter;
     node.right = visitExpression(node.right);
+    --branchCounter;
     return node;
   }
 
   Expression visitLiteralList(LiteralList node) {
-    rewriteList(node.values);
-    if (node.type != null) seenImpure = true; // Type casts can throw.
+    super.visitLiteralList(node);
+    if (node.type != null) {
+      ++impureCounter; // Type casts can throw.
+    }
     return node;
   }
 
   Expression visitLiteralMap(LiteralMap node) {
-    for (LiteralMapEntry entry in node.entries) {
-      entry.key = visitExpression(entry.key);
-      if (seenImpure) return node;
-      entry.value = visitExpression(entry.value);
-      if (seenImpure) return node;
+    super.visitLiteralMap(node);
+    if (node.type != null) {
+      ++impureCounter; // Type casts can throw.
     }
-    if (node.type != null) seenImpure = true; // Type casts can throw.
     return node;
   }
 
   Expression visitTypeOperator(TypeOperator node) {
-    node.value = visitExpression(node.value);
-    if (seenImpure) return node;
-    rewriteList(node.typeArguments);
-    if (!node.isTypeTest) seenImpure = true; // Type cast can throw.
+    super.visitTypeOperator(node);
+    if (!node.isTypeTest) {
+      ++impureCounter; // Type casts can throw.
+    }
+    return node;
+  }
+
+  Expression visitGetField(GetField node) {
+    super.visitGetField(node);
+    ++impureCounter;
+    return node;
+  }
+
+  Expression visitSetField(SetField node) {
+    super.visitSetField(node);
+    ++impureCounter;
+    return node;
+  }
+
+  Expression visitGetStatic(GetStatic node) {
+    ++impureCounter;
+    return node;
+  }
+
+  Expression visitSetStatic(SetStatic node) {
+    super.visitSetStatic(node);
+    ++impureCounter;
+    return node;
+  }
+
+  Expression visitGetLength(GetLength node) {
+    super.visitGetLength(node);
+    ++impureCounter;
+    return node;
+  }
+
+  Expression visitGetIndex(GetIndex node) {
+    super.visitGetIndex(node);
+    ++impureCounter;
+    return node;
+  }
+
+  Expression visitSetIndex(SetIndex node) {
+    super.visitSetIndex(node);
+    ++impureCounter;
     return node;
   }
 
@@ -260,69 +342,17 @@ class PullIntoInitializers extends ExpressionVisitor<Expression>
     return node;
   }
 
-  Expression visitGetField(GetField node) {
-    node.object = visitExpression(node.object);
-    seenImpure = true;
-    return node;
-  }
-
-  Expression visitSetField(SetField node) {
-    node.object = visitExpression(node.object);
-    if (seenImpure) return node;
-    node.value = visitExpression(node.value);
-    seenImpure = true;
-    return node;
-  }
-
-  Expression visitGetStatic(GetStatic node) {
-    seenImpure = true;
-    return node;
-  }
-
-  Expression visitSetStatic(SetStatic node) {
-    node.value = visitExpression(node.value);
-    seenImpure = true;
-    return node;
-  }
-
-  Expression visitCreateBox(CreateBox node) {
-    return node;
-  }
-
-  Expression visitCreateInstance(CreateInstance node) {
+  Expression visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     rewriteList(node.arguments);
     return node;
   }
 
-  Expression visitReifyRuntimeType(ReifyRuntimeType node) {
-    node.value = visitExpression(node.value);
-    return node;
-  }
-
-  Expression visitReadTypeVariable(ReadTypeVariable node) {
-    node.target = visitExpression(node.target);
-    return node;
-  }
-
-  Expression visitConstant(Constant node) {
-    return node;
-  }
-
-  Expression visitThis(This node) {
-    return node;
-  }
-
-  Expression visitNot(Not node) {
-    node.operand = visitExpression(node.operand);
-    return node;
-  }
-
-  Expression visitVariableUse(VariableUse node) {
-    return node;
-  }
-
-  Expression visitCreateInvocationMirror(CreateInvocationMirror node) {
+  @override
+  Expression visitForeignExpression(ForeignExpression node) {
     rewriteList(node.arguments);
+    if (node.nativeBehavior.sideEffects.hasSideEffects()) {
+      ++impureCounter;
+    }
     return node;
   }
 }

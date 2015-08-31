@@ -85,8 +85,8 @@ class CodeGenerator {
   /**
    * Generate a doc comment based on the HTML in [docs].
    *
-   * If [javadocStyle] is true, then the output is compatable with Javadoc,
-   * which understands certain HTML constructs.
+   * When generating java code, the output is compatible with Javadoc, which
+   * understands certain HTML constructs.
    */
   void docComment(List<dom.Node> docs) {
     if (containsOnlyWhitespace(docs)) {
@@ -102,9 +102,12 @@ class CodeGenerator {
   }
 
   /**
-   * Execute [callback], indenting any code it outputs by two spaces.
+   * Execute [callback], indenting any code it outputs.
    */
-  void indent(void callback()) => indentSpecial('  ', '  ', callback);
+  void indent(void callback()) {
+    indentSpecial(codeGeneratorSettings.indent, codeGeneratorSettings.indent,
+      callback);
+  }
 
   /**
    * Execute [callback], using [additionalIndent] to indent any code it outputs.
@@ -237,10 +240,15 @@ class CodeGeneratorSettings {
    */
   int commentLineLength;
 
+  /**
+   * String used for indenting code.
+   */
+  String indent;
+
   CodeGeneratorSettings({this.languageName: 'java',
       this.lineCommentLineLeader: '// ', this.docCommentStartMarker: '/**',
       this.docCommentLineLeader: ' * ', this.docCommentEndMarker: ' */',
-      this.commentLineLength: 99});
+      this.commentLineLength: 99, this.indent: '  '});
 }
 
 abstract class GeneratedContent {
@@ -251,7 +259,7 @@ abstract class GeneratedContent {
 
 /**
  * Class representing a single output directory (either generated code or
- * generated HTML). No other content should exisit in the directory.
+ * generated HTML). No other content should exist in the directory.
  */
 class GeneratedDirectory extends GeneratedContent {
 
@@ -261,7 +269,7 @@ class GeneratedDirectory extends GeneratedContent {
   final String outputDirPath;
 
   /**
-   * Callback function which computes the directory contents.
+   * Callback function that computes the directory contents.
    */
   final DirectoryContentsComputer directoryContentsComputer;
 
@@ -286,7 +294,11 @@ class GeneratedDirectory extends GeneratedContent {
         String expectedContents = fileContentsComputer();
         File outputFile =
             new File(joinAll(posix.split(posix.join(outputDirPath, file))));
-        if (expectedContents != outputFile.readAsStringSync()) {
+        String actualContents = outputFile.readAsStringSync();
+        // Normalize Windows line endings to Unix line endings so that the
+        // comparison doesn't fail on Windows.
+        actualContents = actualContents.replaceAll('\r\n', '\n');
+        if (expectedContents != actualContents) {
           return false;
         }
       }
@@ -370,7 +382,11 @@ class GeneratedFile extends GeneratedContent {
   bool check() {
     String expectedContents = computeContents();
     try {
-      return expectedContents == outputFile.readAsStringSync();
+      String actualContents = outputFile.readAsStringSync();
+      // Normalize Windows line endings to Unix line endings so that the
+      // comparison doesn't fail on Windows.
+      actualContents = actualContents.replaceAll('\r\n', '\n');
+      return expectedContents == actualContents;
     } catch (e) {
       // There was a problem reading the file (most likely because it didn't
       // exist).  Treat that the same as if the file doesn't have the expected

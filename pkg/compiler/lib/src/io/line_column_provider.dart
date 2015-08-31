@@ -13,6 +13,9 @@ abstract class LineColumnProvider {
 
   /// Returns the column number (0-based) for [offset] at the given [line].
   int getColumn(int line, int offset);
+
+  /// Returns the offset for 0-based [line] and [column] numbers.
+  int getOffset(int line, int column);
 }
 
 /// [CodeOutputListener] that collects line information.
@@ -64,6 +67,8 @@ class LineColumnCollector extends CodeOutputListener
   int getColumn(int line, int offset) {
     return offset - lineStarts[line];
   }
+
+  int getOffset(int line, int column) => lineStarts[line] + column;
 
   @override
   void onDone(int length) {

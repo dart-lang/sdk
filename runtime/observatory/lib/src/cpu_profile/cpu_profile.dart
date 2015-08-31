@@ -43,10 +43,10 @@ class CodeCallTree {
   }
 
   _recordCallerAndCalleesInner(CodeCallTreeNode caller,
-                      CodeCallTreeNode callee) {
+                               CodeCallTreeNode callee) {
     if (caller != null) {
       caller.profileCode._recordCallee(callee.profileCode, callee.count);
-      callee.profileCode._recordCaller(caller.profileCode, callee.count);
+      callee.profileCode._recordCaller(caller.profileCode, caller.count);
     }
 
     for (var child in callee.children) {
@@ -135,15 +135,6 @@ class FunctionCallTreeNode {
   }
 
   setCodeAttributes() {
-    if (hasOptimizedCode()) {
-      attributes.add('optimized');
-    }
-    if (hasUnoptimizedCode()) {
-      attributes.add('unoptimized');
-    }
-    if (isInlined()) {
-      attributes.add('inlined');
-    }
   }
 }
 
@@ -299,10 +290,10 @@ class FunctionCallTree {
   }
 
   _markFunctionCallsInner(FunctionCallTreeNode caller,
-                     FunctionCallTreeNode callee) {
+                          FunctionCallTreeNode callee) {
     if (caller != null) {
       caller.profileFunction._recordCallee(callee.profileFunction, callee.count);
-      callee.profileFunction._recordCaller(caller.profileFunction, callee.count);
+      callee.profileFunction._recordCaller(caller.profileFunction, caller.count);
     }
     for (var child in callee.children) {
       _markFunctionCallsInner(callee, child);
@@ -544,15 +535,6 @@ class ProfileFunction {
     }
     profileCodes.sort(_sortCodes);
 
-    if (hasOptimizedCode()) {
-      attributes.add('optimized');
-    }
-    if (hasUnoptimizedCode()) {
-      attributes.add('unoptimized');
-    }
-    if (isInlined()) {
-      attributes.add('inlined');
-    }
     _addKindBasedAttributes(attributes);
     exclusiveTicks = int.parse(data['exclusiveTicks']);
     inclusiveTicks = int.parse(data['inclusiveTicks']);
@@ -598,6 +580,7 @@ class ProfileFunction {
 }
 
 
+// TODO(johnmccutchan): Rename to SampleProfile
 class CpuProfile {
   final double MICROSECONDS_PER_SECOND = 1000000.0;
   final double displayThreshold = 0.0002; // 0.02%.

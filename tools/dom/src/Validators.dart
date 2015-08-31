@@ -68,8 +68,26 @@ abstract class NodeTreeSanitizer {
    * will mark the entire tree as unsafe.
    */
   void sanitizeTree(Node node);
+
+  /**
+   * A sanitizer for trees that we trust. It does no validation and allows
+   * any elements. It is also more efficient, since it can pass the text
+   * directly through to the underlying APIs without creating a document 
+   * fragment to be sanitized.
+   */
+  static const trusted = const _TrustedHtmlTreeSanitizer();
 }
 
+/**
+ * A sanitizer for trees that we trust. It does no validation and allows
+ * any elements.
+ */
+class _TrustedHtmlTreeSanitizer implements NodeTreeSanitizer {
+  const _TrustedHtmlTreeSanitizer();
+
+  sanitizeTree(Node node) {}
+}
+  
 /**
  * Defines the policy for what types of uris are allowed for particular
  * attribute values.

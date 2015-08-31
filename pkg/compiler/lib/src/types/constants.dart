@@ -7,6 +7,7 @@ library types.constants;
 import '../constants/values.dart';
 import '../dart2jslib.dart';
 import 'types.dart';
+import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 
 /// Computes the [TypeMask] for the constant [value].
 TypeMask computeTypeMask(Compiler compiler, ConstantValue value) {
@@ -45,8 +46,21 @@ class ConstantValueTypeMasks extends ConstantValueVisitor<TypeMask, Compiler> {
   }
 
   @override
-  TypeMask visitDummy(DummyConstantValue constant, Compiler compiler) {
-    return constant.typeMask;
+  TypeMask visitSynthetic(SyntheticConstantValue constant, Compiler compiler) {
+    switch (constant.kind) {
+      case SyntheticConstantKind.DUMMY_INTERCEPTOR:
+        return constant.payload;
+      case SyntheticConstantKind.EMPTY_VALUE:
+        return constant.payload;
+      case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
+        return compiler.typesTask.intType;
+      case SyntheticConstantKind.NAME:
+        return compiler.typesTask.stringType;
+      default:
+        compiler.internalError(compiler.currentElement,
+                               "Unexpected DummyConstantKind.");
+        return null;
+    }
   }
 
   @override

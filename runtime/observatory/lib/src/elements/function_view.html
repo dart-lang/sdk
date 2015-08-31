@@ -27,7 +27,6 @@
 
     <div class="content">
       <h1>function {{ function.qualifiedName }}</h1>
-
       <div class="memberList">
         <div class="memberItem">
           <div class="memberName">kind</div>
@@ -54,7 +53,7 @@
 
         <template if="{{ function.code != null }}">
           <div class="memberItem">
-            <div class="memberName">optimized code</div>
+            <div class="memberName">current code</div>
             <div class="memberValue">
               <code-ref ref="{{ function.code }}"></code-ref>
             </div>
@@ -73,6 +72,12 @@
              </div>
            </div>
          </template>
+         <div class="memberItem">
+           <div class="memberName">ic data array</div>
+           <div class="memberValue">
+             <instance-ref ref="{{ function.icDataArray }}"></instance-ref>
+           </div>
+         </div>
          <div class="memberItem">
            <div class="memberName">deoptimizations</div>
            <div class="memberValue">{{ function.deoptimizations }}</div>

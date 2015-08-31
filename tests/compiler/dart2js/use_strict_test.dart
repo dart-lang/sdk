@@ -48,8 +48,9 @@ const MEMORY_SOURCE_FILES = const {
 
 main() {
   OutputCollector collector = new OutputCollector();
-  var compiler = compilerFor(MEMORY_SOURCE_FILES, outputProvider: collector);
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+  asyncTest(() async {
+    await runCompiler(
+        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     String jsOutput = collector.getOutput('', 'js');
 
     // Skip comments.
@@ -64,5 +65,5 @@ main() {
     // 'arguments'.
     RegExp re = new RegExp(r'[^\w$](arguments|eval)[^\w$]');
     Expect.isFalse(re.hasMatch(filtered));
-  }));
+  });
 }

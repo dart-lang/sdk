@@ -6,33 +6,16 @@
 // to determine which elements can be deferred and which libraries
 // much be included in the initial download (loaded eagerly).
 
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/dart2jslib.dart';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
-import 'memory_source_file_helper.dart';
-import "dart:async";
-
-class FakeOutputStream<T> extends EventSink<T> {
-  void add(T event) {}
-  void addError(T event, [StackTrace stackTrace]) {}
-  void close() {}
-}
+import 'memory_compiler.dart';
 
 void main() {
-  Uri script = currentDirectory.resolveUri(Platform.script);
-  Uri libraryRoot = script.resolve('../../../sdk/');
-  Uri packageRoot = script.resolve('./packages/');
-
-  var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
-  var handler = new FormattingDiagnosticHandler(provider);
-
-  Compiler compiler = new Compiler(provider.readStringFromUri,
-                                   (name, extension) => new FakeOutputStream(),
-                                   handler.diagnosticHandler,
-                                   libraryRoot,
-                                   packageRoot,
-                                   [],
-                                   {});
-  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+  asyncTest(() async {
+    CompilationResult result =
+        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+    Compiler compiler = result.compiler;
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
     var lib =
@@ -41,7 +24,7 @@ void main() {
     var f2 = lib.find("f2");
     Expect.notEquals(mainOutputUnit, outputUnitForElement(f1));
     Expect.equals(mainOutputUnit, outputUnitForElement(f2));
-  }));
+  });
 }
 
 // The main library imports lib1 and lib2 deferred and use lib1.foo1 and

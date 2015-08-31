@@ -13,6 +13,9 @@
 [ $runtime == vm || $runtime != vm ]
 # Tests that fail everywhere, including the analyzer.
 
+# No longer correct, y#$ now has a meaning. github.com/dart-lang/co19/issues/2
+Language/12_Expressions/30_Identifier_Reference_A01_t03: Skip
+
 LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
 LayoutTests/fast/mediastream/getusermedia_t01: Fail # co19 issue 738.
 
@@ -33,7 +36,6 @@ LibTest/async/Completer/completeError_A02_t01: RuntimeError # co19 issue 712
 LibTest/isolate/ReceivePort/asBroadcastStream_A02_t01: Fail # co19 issue 687
 LibTest/async/Stream/asBroadcastStream_A02_t01: Fail # co19 issue 687
 
-LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t04: RuntimeError # co19-roll r607: Please triage this failure
 
 Language/07_Classes/07_Classes_A13_t01: Pass, MissingCompileTimeError, Fail # co19-roll r623: Please triage this failure

@@ -174,7 +174,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     libraries.forEach((library) {
       library.implementation.forEachLocalMember((element) {
         if (element.isClass) {
-          String name = element.name;
           String extendsName = findExtendsNameOfClass(element);
           if (extendsName != null) {
             Set<ClassElement> potentialSubclasses =

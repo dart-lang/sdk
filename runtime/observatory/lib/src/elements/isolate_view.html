@@ -132,14 +132,15 @@
     <hr>
 
     <div class="content">
-      <div id="tagProfileChart" class="miniProfileChart" style="height: 600px"></div>
-    </div>
-
-    <hr>
-
-    <div class="content">
       <eval-box callback="{{ evaluate }}"></eval-box>
     </div>
+
+    <div class="content-centered-big">
+      <hr>
+      <script-inset script="{{ rootLibrary.rootScript }}">
+      </script-inset>
+    </div>
+
     <view-footer></view-footer>
   </template>
 </polymer-element>

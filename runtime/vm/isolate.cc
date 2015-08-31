@@ -31,10 +31,13 @@
 #include "vm/service_isolate.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
+#include "vm/store_buffer.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/thread_interrupter.h"
+#include "vm/thread_registry.h"
+#include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/visitor.h"
 
@@ -53,6 +56,18 @@ DEFINE_FLAG(bool, break_at_isolate_spawn, false,
 DEFINE_FLAG(charp, isolate_log_filter, NULL,
             "Log isolates whose name include the filter. "
             "Default: service isolate log messages are suppressed.");
+
+DEFINE_FLAG(charp, timeline_trace_dir, NULL,
+            "Enable all timeline trace streams and output traces "
+            "into specified directory.");
+DEFINE_FLAG(int, new_gen_semi_max_size, (kWordSize <= 4) ? 16 : 32,
+            "Max size of new gen semi space in MB");
+DEFINE_FLAG(int, old_gen_heap_size, 0,
+            "Max size of old gen heap size in MB, or 0 for unlimited,"
+            "e.g: --old_gen_heap_size=1024 allows up to 1024MB old gen heap");
+DEFINE_FLAG(int, external_max_size, (kWordSize <= 4) ? 512 : 1024,
+            "Max total size of external allocations in MB, or 0 for unlimited,"
+            "e.g: --external_max_size=1024 allows up to 1024MB of externals");
 
 // TODO(iposva): Make these isolate specific flags inaccessible using the
 // regular FLAG_xyz pattern.
@@ -368,6 +383,8 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
 bool IsolateMessageHandler::HandleMessage(Message* message) {
   StackZone zone(I);
   HandleScope handle_scope(I);
+  TimelineDurationScope tds(I, I->GetIsolateStream(), "HandleMessage");
+
   // TODO(turnidge): Rework collection total dart execution.  This can
   // overcount when other things (gc, compilation) are active.
   TIMERSCOPE(isolate_, time_dart_execution);
@@ -476,7 +493,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
 
 
 void IsolateMessageHandler::NotifyPauseOnStart() {
-  if (Service::NeedsDebugEvents()) {
+  if (Service::debug_stream.enabled()) {
     StartIsolateScope start_isolate(isolate());
     StackZone zone(I);
     HandleScope handle_scope(I);
@@ -487,7 +504,7 @@ void IsolateMessageHandler::NotifyPauseOnStart() {
 
 
 void IsolateMessageHandler::NotifyPauseOnExit() {
-  if (Service::NeedsDebugEvents()) {
+  if (Service::debug_stream.enabled()) {
     StartIsolateScope start_isolate(isolate());
     StackZone zone(I);
     HandleScope handle_scope(I);
@@ -596,6 +613,11 @@ void Isolate::Flags::CopyTo(Dart_IsolateFlags* api_flags) const {
 void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
   ASSERT(isolate == Isolate::Current());
 }
+
+void BaseIsolate::AssertCurrentThreadIsMutator() const {
+  ASSERT(Isolate::Current() == this);
+  ASSERT(Isolate::Current()->MutatorThreadIsCurrentThread());
+}
 #endif  // defined(DEBUG)
 
 #if defined(DEBUG)
@@ -609,9 +631,9 @@ void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
   object##_handle_(NULL),
 
 Isolate::Isolate(const Dart_IsolateFlags& api_flags)
-  :   mutator_thread_(NULL),
-      vm_tag_(0),
-      store_buffer_(),
+  :   vm_tag_(0),
+      store_buffer_(new StoreBuffer()),
+      thread_registry_(new ThreadRegistry()),
       message_notify_callback_(NULL),
       name_(NULL),
       debugger_name_(NULL),
@@ -628,7 +650,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       environment_callback_(NULL),
       library_tag_handler_(NULL),
       api_state_(NULL),
-      stub_code_(NULL),
       debugger_(NULL),
       single_step_(false),
       resume_request_(false),
@@ -662,13 +683,16 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       last_allocationprofile_gc_timestamp_(0),
       object_id_ring_(NULL),
       trace_buffer_(NULL),
+      timeline_event_recorder_(NULL),
       profiler_data_(NULL),
       thread_state_(NULL),
       tag_table_(GrowableObjectArray::null()),
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
+      collected_closures_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       metrics_list_head_(NULL),
+      compilation_allowed_(true),
       cha_(NULL),
       next_(NULL),
       pause_loop_monitor_(NULL),
@@ -686,10 +710,10 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
 Isolate::~Isolate() {
   free(name_);
   free(debugger_name_);
+  delete store_buffer_;
   delete heap_;
   delete object_store_;
   delete api_state_;
-  delete stub_code_;
   delete debugger_;
 #if defined(USING_SIMULATOR)
   delete simulator_;
@@ -710,6 +734,8 @@ Isolate::~Isolate() {
     delete compiler_stats_;
     compiler_stats_ = NULL;
   }
+  RemoveTimelineEventRecorder();
+  delete thread_registry_;
 }
 
 
@@ -738,6 +764,21 @@ Isolate* Isolate::Init(const char* name_prefix,
   result->metric_##variable##_.Init(result, name, NULL, Metric::unit);
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_INIT);
 #undef ISOLATE_METRIC_INIT
+
+  const bool force_streams = FLAG_timeline_trace_dir != NULL;
+
+  // Initialize Timeline streams.
+#define ISOLATE_TIMELINE_STREAM_INIT(name, enabled_by_default)                 \
+  result->stream_##name##_.Init(#name, force_streams || enabled_by_default);
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_INIT);
+#undef ISOLATE_TIMELINE_STREAM_INIT
+
+  Heap::Init(result,
+             is_vm_isolate
+                 ? 0  // New gen size 0; VM isolate should only allocate in old.
+                 : FLAG_new_gen_semi_max_size * MBInWords,
+             FLAG_old_gen_heap_size * MBInWords,
+             FLAG_external_max_size * MBInWords);
 
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
@@ -803,8 +844,8 @@ void Isolate::InitializeStackLimit() {
 uword Isolate::GetCurrentStackPointer() {
   // Since AddressSanitizer's detect_stack_use_after_return instruments the
   // C++ code to give out fake stack addresses, we call a stub in that case.
-  uword (*func)() =
-      reinterpret_cast<uword (*)()>(StubCode::GetStackPointerEntryPoint());
+  uword (*func)() = reinterpret_cast<uword (*)()>(
+      StubCode::GetStackPointer_entry()->EntryPoint());
   // But for performance (and to support simulators), we normally use a local.
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer)
@@ -962,6 +1003,13 @@ bool Isolate::MakeRunnable() {
   if (state != NULL) {
     ASSERT(this == state->isolate());
     Run();
+  }
+  TimelineStream* stream = GetIsolateStream();
+  ASSERT(stream != NULL);
+  TimelineEvent* event = stream->StartEvent();
+  if (event != NULL) {
+    event->Instant("Runnable");
+    event->Complete();
   }
   return true;
 }
@@ -1198,6 +1246,24 @@ static bool RunIsolate(uword parameter) {
     StartIsolateScope start_scope(isolate);
     StackZone zone(isolate);
     HandleScope handle_scope(isolate);
+
+    // If particular values were requested for this newly spawned isolate, then
+    // they are set here before the isolate starts executing user code.
+    isolate->SetErrorsFatal(state->errors_are_fatal());
+    if (state->on_exit_port() != ILLEGAL_PORT) {
+      const SendPort& listener =
+          SendPort::Handle(SendPort::New(state->on_exit_port()));
+      isolate->AddExitListener(listener, Instance::null_instance());
+    }
+    if (state->on_error_port() != ILLEGAL_PORT) {
+      const SendPort& listener =
+          SendPort::Handle(SendPort::New(state->on_error_port()));
+      isolate->AddErrorListener(listener);
+    }
+
+    // Switch back to spawning isolate.
+
+
     if (!ClassFinalizer::ProcessPendingClasses()) {
       // Error is in sticky error already.
       return false;
@@ -1394,26 +1460,47 @@ void Isolate::Shutdown() {
   ASSERT(top_resource() == NULL);
 #if defined(DEBUG)
   if (heap_ != NULL) {
-    // Wait for concurrent GC tasks to finish before final verification.
-    PageSpace* old_space = heap_->old_space();
-    MonitorLocker ml(old_space->tasks_lock());
-    while (old_space->tasks() > 0) {
-      ml.Wait();
-    }
     // The VM isolate keeps all objects marked.
     heap_->Verify(this == Dart::vm_isolate() ? kRequireMarked : kForbidMarked);
   }
 #endif  // DEBUG
 
+  // First, perform higher-level cleanup that may need to allocate.
+  {
+    // Ensure we have a zone and handle scope so that we can call VM functions.
+    StackZone stack_zone(this);
+    HandleScope handle_scope(this);
+
+    // Write out the coverage data if collection has been enabled.
+    CodeCoverage::Write(this);
+
+    if ((timeline_event_recorder_ != NULL) &&
+        (FLAG_timeline_trace_dir != NULL)) {
+      timeline_event_recorder_->WriteTo(FLAG_timeline_trace_dir);
+    }
+  }
+
   // Remove this isolate from the list *before* we start tearing it down, to
   // avoid exposing it in a state of decay.
   RemoveIsolateFromList(this);
 
-  // Create an area where we do have a zone and a handle scope so that we can
-  // call VM functions while tearing this isolate down.
+  if (heap_ != NULL) {
+    // Wait for any concurrent GC tasks to finish before shutting down.
+    // TODO(koda): Support faster sweeper shutdown (e.g., after current page).
+    PageSpace* old_space = heap_->old_space();
+    MonitorLocker ml(old_space->tasks_lock());
+    while (old_space->tasks() > 0) {
+      ml.Wait();
+    }
+  }
+
+  // Then, proceed with low-level teardown.
   {
+    // Ensure we have a zone and handle scope so that we can call VM functions,
+    // but we no longer allocate new heap objects.
     StackZone stack_zone(this);
     HandleScope handle_scope(this);
+    NoSafepointScope no_safepoint_scope;
 
     if (compiler_stats_ != NULL) {
       compiler_stats()->Print();
@@ -1437,9 +1524,6 @@ void Isolate::Shutdown() {
     // Dump all accumulated timer data for the isolate.
     timer_list_.ReportTimers();
 
-    // Write out the coverage data if collection has been enabled.
-    CodeCoverage::Write(this);
-
     // Finalize any weak persistent handles with a non-null referent.
     FinalizeWeakPersistentHandlesVisitor visitor;
     api_state()->weak_persistent_handles().VisitHandles(&visitor);
@@ -1454,9 +1538,20 @@ void Isolate::Shutdown() {
     }
   }
 
+#if defined(DEBUG)
+  // No concurrent sweeper tasks should be running at this point.
+  if (heap_ != NULL) {
+    PageSpace* old_space = heap_->old_space();
+    MonitorLocker ml(old_space->tasks_lock());
+    ASSERT(old_space->tasks() == 0);
+  }
+#endif
+
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   Thread::ExitIsolate();
+  // All threads should have exited by now.
+  thread_registry()->CheckNotScheduled(this);
   Profiler::ShutdownProfilingForIsolate(this);
 }
 
@@ -1476,6 +1571,14 @@ Monitor* Isolate::isolates_list_monitor_ = NULL;
 Isolate* Isolate::isolates_list_head_ = NULL;
 
 
+void Isolate::IterateObjectPointers(ObjectPointerVisitor* visitor,
+                                    bool visit_prologue_weak_handles,
+                                    bool validate_frames) {
+  HeapIterationScope heap_iteration_scope;
+  VisitObjectPointers(visitor, visit_prologue_weak_handles, validate_frames);
+}
+
+
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                   bool visit_prologue_weak_handles,
                                   bool validate_frames) {
@@ -1492,9 +1595,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit objects in per isolate stubs.
   StubCode::VisitObjectPointers(visitor);
-
-  // Visit objects in zones.
-  current_zone()->VisitObjectPointers(visitor);
 
   // Visit objects in isolate specific handles area.
   reusable_handles_.VisitObjectPointers(visitor);
@@ -1521,6 +1621,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit the tag table which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&tag_table_));
 
+  // Visit array of closures pending precompilation.
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&collected_closures_));
+
   // Visit the deoptimized code array which is stored in the isolate.
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&deoptimized_code_array_));
@@ -1532,6 +1635,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   if (deopt_context() != NULL) {
     deopt_context()->VisitObjectPointers(visitor);
   }
+
+  // Visit objects in thread registry (e.g., handles in zones).
+  thread_registry()->VisitObjectPointers(visitor);
 }
 
 
@@ -1547,6 +1653,21 @@ void Isolate::VisitPrologueWeakPersistentHandles(HandleVisitor* visitor) {
   if (api_state() != NULL) {
     api_state()->VisitPrologueWeakHandles(visitor);
   }
+}
+
+
+void Isolate::SetTimelineEventRecorder(
+    TimelineEventRecorder* timeline_event_recorder) {
+#define ISOLATE_TIMELINE_STREAM_SET_BUFFER(name, enabled_by_default)           \
+  stream_##name##_.set_recorder(timeline_event_recorder);
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_SET_BUFFER)
+#undef ISOLATE_TIMELINE_STREAM_SET_BUFFER
+  timeline_event_recorder_ = timeline_event_recorder;
+}
+
+void Isolate::RemoveTimelineEventRecorder() {
+  delete timeline_event_recorder_;
+  SetTimelineEventRecorder(NULL);
 }
 
 
@@ -1636,6 +1757,11 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     JSONArray breakpoints(&jsobj, "breakpoints");
     debugger()->PrintBreakpointsToJSONArray(&breakpoints);
   }
+
+  {
+    JSONObject jssettings(&jsobj, "_debuggerSettings");
+    debugger()->PrintSettingsToJSONObject(&jssettings);
+  }
 }
 
 
@@ -1663,14 +1789,28 @@ intptr_t Isolate::ProfileInterrupt() {
     // Paused at start / exit . Don't tick.
     return 0;
   }
-  InterruptableThreadState* state = thread_state();
-  if (state == NULL) {
-    // Isolate is not scheduled on a thread.
+  // Make sure that the isolate's mutator thread does not change behind our
+  // backs. Otherwise we find the entry in the registry and end up reading
+  // the field again. Only by that time it has been reset to NULL because the
+  // thread was in process of exiting the isolate.
+  Thread* mutator = mutator_thread_;
+  if (mutator == NULL) {
+    // No active mutator.
     ProfileIdle();
     return 1;
   }
-  ASSERT(state->id != OSThread::kInvalidThreadId);
-  ThreadInterrupter::InterruptThread(state);
+
+  // TODO(johnmccutchan): Sample all threads, not just the mutator thread.
+  // TODO(johnmccutchan): Keep a global list of threads and use that
+  // instead of Isolate.
+  ThreadRegistry::EntryIterator it(thread_registry());
+  while (it.HasNext()) {
+    const ThreadRegistry::Entry& entry = it.Next();
+    if (entry.thread == mutator) {
+      ThreadInterrupter::InterruptThread(mutator);
+      break;
+    }
+  }
   return 1;
 }
 
@@ -1695,6 +1835,11 @@ void Isolate::set_current_tag(const UserTag& tag) {
 
 void Isolate::set_default_tag(const UserTag& tag) {
   default_tag_ = tag.raw();
+}
+
+
+void Isolate::set_collected_closures(const GrowableObjectArray& value) {
+  collected_closures_ = value.raw();
 }
 
 
@@ -1818,19 +1963,6 @@ void Isolate::RemoveIsolateFromList(Isolate* isolate) {
 }
 
 
-#if defined(DEBUG)
-void Isolate::CheckForDuplicateThreadState(InterruptableThreadState* state) {
-  MonitorLocker ml(isolates_list_monitor_);
-  ASSERT(state != NULL);
-  Isolate* current = isolates_list_head_;
-  while (current) {
-    ASSERT(current->thread_state() != state);
-    current = current->next_;
-  }
-}
-#endif
-
-
 template<class T>
 T* Isolate::AllocateReusableHandle() {
   T* handle = reinterpret_cast<T*>(reusable_handles_.AllocateScopedHandle());
@@ -1861,9 +1993,14 @@ static RawInstance* DeserializeObject(Isolate* isolate,
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const Function& func,
                                      const Instance& message,
-                                     bool paused)
+                                     bool paused,
+                                     bool errors_are_fatal,
+                                     Dart_Port on_exit_port,
+                                     Dart_Port on_error_port)
     : isolate_(NULL),
       parent_port_(parent_port),
+      on_exit_port_(on_exit_port),
+      on_error_port_(on_error_port),
       script_url_(NULL),
       package_root_(NULL),
       library_url_(NULL),
@@ -1874,7 +2011,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_message_(NULL),
       serialized_message_len_(0),
       isolate_flags_(),
-      paused_(paused) {
+      paused_(paused),
+      errors_are_fatal_(errors_are_fatal) {
   script_url_ = NULL;
   const Class& cls = Class::Handle(func.Owner());
   const Library& lib = Library::Handle(cls.library());
@@ -1902,9 +2040,14 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const char* package_root,
                                      const Instance& args,
                                      const Instance& message,
-                                     bool paused)
+                                     bool paused,
+                                     bool errors_are_fatal,
+                                     Dart_Port on_exit_port,
+                                     Dart_Port on_error_port)
     : isolate_(NULL),
       parent_port_(parent_port),
+      on_exit_port_(on_exit_port),
+      on_error_port_(on_error_port),
       package_root_(NULL),
       library_url_(NULL),
       class_name_(NULL),
@@ -1914,7 +2057,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_message_(NULL),
       serialized_message_len_(0),
       isolate_flags_(),
-      paused_(paused) {
+      paused_(paused),
+      errors_are_fatal_(errors_are_fatal) {
   script_url_ = strdup(script_url);
   if (package_root != NULL) {
     package_root_ = strdup(package_root);
