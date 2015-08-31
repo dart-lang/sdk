@@ -2641,40 +2641,52 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
     VariableElementImpl variable = target;
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
-    //
-    // Re-resolve the variable's initializer so that the inferred types of other
-    // variables will be propagated.
-    //
-    NodeLocator locator = new NodeLocator(variable.nameOffset);
-    AstNode node = locator.searchWithin(unit);
-    VariableDeclaration declaration =
-        node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
-    if (declaration == null || declaration.name != node) {
-      throw new AnalysisException(
-          "NodeLocator failed to find a variable's declaration");
-    }
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    Expression initializer = declaration.initializer;
-    ResolutionContext resolutionContext =
-        ResolutionContextBuilder.contextFor(initializer, errorListener);
-    ResolverVisitor visitor = new ResolverVisitor(
-        variable.library, variable.source, typeProvider, errorListener,
-        nameScope: resolutionContext.scope);
-    if (resolutionContext.enclosingClassDeclaration != null) {
-      visitor.prepareToResolveMembersInClass(
-          resolutionContext.enclosingClassDeclaration);
-    }
-    visitor.initForIncrementalResolution();
-    initializer.accept(visitor);
-    //
-    // Record the type of the variable.
-    //
-    DartType newType = initializer.staticType;
-    variable.type = newType;
-    (variable.initializer as ExecutableElementImpl).returnType = newType;
-    if (variable is PropertyInducingElementImpl) {
-      setReturnType(variable.getter, newType);
-      setParameterType(variable.setter, newType);
+    if (dependencyCycle == null) {
+      //
+      // Re-resolve the variable's initializer so that the inferred types of other
+      // variables will be propagated.
+      //
+      NodeLocator locator = new NodeLocator(variable.nameOffset);
+      AstNode node = locator.searchWithin(unit);
+      VariableDeclaration declaration = node
+          .getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
+      if (declaration == null || declaration.name != node) {
+        throw new AnalysisException(
+            "NodeLocator failed to find a variable's declaration");
+      }
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      Expression initializer = declaration.initializer;
+      ResolutionContext resolutionContext =
+          ResolutionContextBuilder.contextFor(initializer, errorListener);
+      ResolverVisitor visitor = new ResolverVisitor(
+          variable.library, variable.source, typeProvider, errorListener,
+          nameScope: resolutionContext.scope);
+      if (resolutionContext.enclosingClassDeclaration != null) {
+        visitor.prepareToResolveMembersInClass(
+            resolutionContext.enclosingClassDeclaration);
+      }
+      visitor.initForIncrementalResolution();
+      initializer.accept(visitor);
+      //
+      // Record the type of the variable.
+      //
+      DartType newType = initializer.staticType;
+      if (newType == null || newType.isBottom) {
+        newType = typeProvider.dynamicType;
+      }
+      variable.type = newType;
+      (variable.initializer as ExecutableElementImpl).returnType = newType;
+      if (variable is PropertyInducingElementImpl) {
+        setReturnType(variable.getter, newType);
+        setParameterType(variable.setter, newType);
+      }
+    } else {
+      // TODO(brianwilkerson) For now we simply don't infer any type for
+      // variables or fields involved in a cycle. We could try to be smarter
+      // by re-resolving the initializer in a context in which the types of all
+      // of the variables in the cycle are assumed to be `null`, but it isn't
+      // clear to me that this would produce better results often enough to
+      // warrant the extra effort.
     }
     //
     // Record outputs.

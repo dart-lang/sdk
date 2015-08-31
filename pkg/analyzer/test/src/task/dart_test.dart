@@ -2164,6 +2164,41 @@ class C {
     expect(topLevel.type, stringType);
     expect(field.type, stringType);
   }
+
+  void test_perform_cycle() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+var piFirst = true;
+var pi = piFirst ? 3.14 : tau / 2;
+var tau = piFirst ? pi * 2 : 6.28;
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    VariableElement piFirst =
+        getTopLevelVariable(unit, 'piFirst').name.staticElement;
+    VariableElement pi = getTopLevelVariable(unit, 'pi').name.staticElement;
+    VariableElement tau = getTopLevelVariable(unit, 'tau').name.staticElement;
+
+    computeResult(piFirst, INFERRED_STATIC_VARIABLE);
+    expect(piFirst.type, context.typeProvider.boolType);
+    expect(pi.type.isDynamic, isTrue);
+    expect(tau.type.isDynamic, isTrue);
+  }
+
+  void test_perform_null() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+var a = null;
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    VariableElement a = getTopLevelVariable(unit, 'a').name.staticElement;
+
+    computeResult(a, INFERRED_STATIC_VARIABLE);
+    expect(a.type.isDynamic, isTrue);
+  }
 }
 
 @reflectiveTest
