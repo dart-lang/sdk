@@ -47,6 +47,7 @@ main() {
   runReflectiveTests(GatherUsedImportedElementsTaskTest);
   runReflectiveTests(GatherUsedLocalElementsTaskTest);
   runReflectiveTests(GenerateHintsTaskTest);
+  runReflectiveTests(InferInstanceMembersInUnitTaskTest);
   runReflectiveTests(InferStaticVariableTypesInUnitTaskTest);
   runReflectiveTests(InferStaticVariableTypeTaskTest);
   runReflectiveTests(LibraryErrorsReadyTaskTest);
@@ -2034,6 +2035,40 @@ f(A a) {
 }
 
 @reflectiveTest
+class InferInstanceMembersInUnitTaskTest extends _AbstractDartTaskTest {
+  void test_perform() {
+    enableStrongMode();
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+class A {
+  X f;
+  Y m(Z x) {}
+}
+class B extends A {
+  var f;
+  m(x) {}
+}
+class X {}
+class Y {}
+class Z {}
+''');
+    computeResult(new LibrarySpecificUnit(source, source),
+        RESOLVED_UNIT7); //  new isInstanceOf<InferInstanceMembersInUnitTask>()
+    CompilationUnit unit = outputs[RESOLVED_UNIT7];
+    VariableDeclaration field = getFieldInClass(unit, 'B', 'f');
+    MethodDeclaration method = getMethodInClass(unit, 'B', 'm');
+    DartType typeX = getClass(unit, 'X').element.type;
+    DartType typeY = getClass(unit, 'Y').element.type;
+    DartType typeZ = getClass(unit, 'Z').element.type;
+
+    expect(field.element.type, typeX);
+    expect(method.element.returnType, typeY);
+    expect(method.element.parameters[0].type, typeZ);
+  }
+}
+
+@reflectiveTest
 class InferStaticVariableTypesInUnitTaskTest extends _AbstractDartTaskTest {
   void test_perform() {
     enableStrongMode();
@@ -2992,6 +3027,7 @@ class _AbstractDartTaskTest extends AbstractContextTest {
         return unitMember;
       }
     }
+    fail('No class named $className in ${unit.element.source}');
     return null;
   }
 
@@ -3002,9 +3038,6 @@ class _AbstractDartTaskTest extends AbstractContextTest {
   VariableDeclaration getFieldInClass(
       CompilationUnit unit, String className, String fieldName) {
     ClassDeclaration unitMember = getClass(unit, className);
-    if (unitMember == null) {
-      return null;
-    }
     NodeList<ClassMember> classMembers = unitMember.members;
     for (ClassMember classMember in classMembers) {
       if (classMember is FieldDeclaration) {
@@ -3016,6 +3049,26 @@ class _AbstractDartTaskTest extends AbstractContextTest {
         }
       }
     }
+    fail('No field named $fieldName in $className');
+    return null;
+  }
+
+  /**
+   * Return the declaration of the method with the given [methodName] in the
+   * class with the given [className] in the given compilation [unit].
+   */
+  MethodDeclaration getMethodInClass(
+      CompilationUnit unit, String className, String methodName) {
+    ClassDeclaration unitMember = getClass(unit, className);
+    NodeList<ClassMember> classMembers = unitMember.members;
+    for (ClassMember classMember in classMembers) {
+      if (classMember is MethodDeclaration) {
+        if (classMember.name.name == methodName) {
+          return classMember;
+        }
+      }
+    }
+    fail('No method named $methodName in $className');
     return null;
   }
 

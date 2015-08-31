@@ -112,6 +112,7 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, GatherUsedImportedElementsTask.DESCRIPTOR);
     registerExtension(taskId, GatherUsedLocalElementsTask.DESCRIPTOR);
     registerExtension(taskId, GenerateHintsTask.DESCRIPTOR);
+    registerExtension(taskId, InferInstanceMembersInUnitTask.DESCRIPTOR);
     registerExtension(taskId, InferStaticVariableTypesInUnitTask.DESCRIPTOR);
     registerExtension(taskId, InferStaticVariableTypeTask.DESCRIPTOR);
     registerExtension(taskId, LibraryErrorsReadyTask.DESCRIPTOR);

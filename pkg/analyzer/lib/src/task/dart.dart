@@ -2410,6 +2410,86 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
 }
 
 /**
+ * A task that ensures that all of the inferrable instance members in a
+ * compilation unit have had their type inferred.
+ */
+class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [TYPE_PROVIDER] input.
+   */
+  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
+  /**
+   * The name of the input whose value is the [RESOLVED_UNIT6] for the
+   * compilation unit.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'InferInstanceMembersInUnitTask',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[RESOLVED_UNIT7]);
+
+  /**
+   * Initialize a newly created task to build a library element for the given
+   * [unit] in the given [context].
+   */
+  InferInstanceMembersInUnitTask(
+      InternalAnalysisContext context, LibrarySpecificUnit unit)
+      : super(context, unit);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    //
+    // Prepare inputs.
+    //
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    //
+    // Infer instance members.
+    //
+    if (context.analysisOptions.strongMode) {
+      InstanceMemberInferrer inferrer =
+          new InstanceMemberInferrer(typeProvider);
+      inferrer.inferCompilationUnit(unit.element);
+    }
+    //
+    // Record outputs.
+    //
+    outputs[RESOLVED_UNIT7] = unit;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the given
+   * [libSource].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    LibrarySpecificUnit unit = target;
+    return <String, TaskInput>{
+      UNIT_INPUT: RESOLVED_UNIT6.of(unit),
+      TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
+    };
+  }
+
+  /**
+   * Create a [InferInstanceMembersInUnitTask] based on the given [target] in
+   * the given [context].
+   */
+  static InferInstanceMembersInUnitTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new InferInstanceMembersInUnitTask(context, target);
+  }
+}
+
+/**
  * An abstract class that defines utility methods that are useful for tasks
  * operating on static variables.
  */
@@ -2503,8 +2583,8 @@ class InferStaticVariableTypesInUnitTask extends SourceBasedAnalysisTask {
   }
 
   /**
-   * Create a [InferStaticVariableTypesInUnitTask] based on the given [target] in the
-   * given [context].
+   * Create a [InferStaticVariableTypesInUnitTask] based on the given [target]
+   * in the given [context].
    */
   static InferStaticVariableTypesInUnitTask createTask(
       AnalysisContext context, AnalysisTarget target) {
