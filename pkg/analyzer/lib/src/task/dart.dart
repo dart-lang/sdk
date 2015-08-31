@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/engine.dart'
     hide AnalysisCache, AnalysisTask;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
+import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -183,6 +184,14 @@ final ListResultDescriptor<
 final ListResultDescriptor<VariableElement> INFERABLE_STATIC_VARIABLES_IN_UNIT =
     new ListResultDescriptor<VariableElement>(
         'INFERABLE_STATIC_VARIABLES_IN_UNIT', null);
+
+/**
+ * An inferrable static variable ([VariableElement]) whose type has been
+ * inferred.
+ */
+final ResultDescriptor<VariableElement> INFERRED_STATIC_VARIABLE =
+    new ResultDescriptor<VariableElement>('INFERRED_STATIC_VARIABLE', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
  * The partial [LibraryElement] associated with a library.
@@ -1673,7 +1682,7 @@ class ComputeInferableStaticVariableDependenciesTask
     //
     // Record outputs.
     //
-    outputs[INFERABLE_STATIC_VARIABLE_DEPENDENCIES] = gatherer.results;
+    outputs[INFERABLE_STATIC_VARIABLE_DEPENDENCIES] = gatherer.results.toList();
   }
 
   /**
@@ -2397,6 +2406,227 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
   static GenerateHintsTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new GenerateHintsTask(context, target);
+  }
+}
+
+/**
+ * An abstract class that defines utility methods that are useful for tasks
+ * operating on static variables.
+ */
+abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
+  InferStaticVariableTask(
+      InternalAnalysisContext context, VariableElement variable)
+      : super(context, variable);
+
+  /**
+   * Return the declaration of the target within the given compilation [unit].
+   * Throw an exception if the declaration cannot be found.
+   */
+  VariableDeclaration getDeclaration(CompilationUnit unit) {
+    VariableElement variable = target;
+    NodeLocator locator = new NodeLocator(variable.nameOffset);
+    AstNode node = locator.searchWithin(unit);
+    VariableDeclaration declaration =
+        node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
+    if (declaration == null || declaration.name != node) {
+      throw new AnalysisException(
+          "Failed to find the declaration of the variable ${variable.displayName} in ${variable.source}");
+    }
+    return declaration;
+  }
+}
+
+/**
+ * A task that ensures that all of the inferrable static variables in a
+ * compilation unit have had their type inferred.
+ */
+class InferStaticVariableTypesInUnitTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the input whose value is the [RESOLVED_UNIT5] for the
+   * compilation unit.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The name of the input whose value is a list of the inferrable static
+   * variables whose types have been computed.
+   */
+  static const String INFERRED_VARIABLES_INPUT = 'INFERRED_VARIABLES_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'InferStaticVariableTypesInUnitTask',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[RESOLVED_UNIT6]);
+
+  /**
+   * Initialize a newly created task to build a library element for the given
+   * [unit] in the given [context].
+   */
+  InferStaticVariableTypesInUnitTask(
+      InternalAnalysisContext context, LibrarySpecificUnit unit)
+      : super(context, unit);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    //
+    // Prepare inputs.
+    //
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    //
+    // Record outputs. There is no additional work to be done at this time
+    // because the work has implicitly been done by virtue of the task model
+    // preparing all of the inputs.
+    //
+    outputs[RESOLVED_UNIT6] = unit;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the given
+   * [libSource].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    LibrarySpecificUnit unit = target;
+    return <String, TaskInput>{
+      INFERRED_VARIABLES_INPUT: INFERABLE_STATIC_VARIABLES_IN_UNIT
+          .of(unit)
+          .toListOf(INFERRED_STATIC_VARIABLE),
+      UNIT_INPUT: RESOLVED_UNIT5.of(unit)
+    };
+  }
+
+  /**
+   * Create a [InferStaticVariableTypesInUnitTask] based on the given [target] in the
+   * given [context].
+   */
+  static InferStaticVariableTypesInUnitTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new InferStaticVariableTypesInUnitTask(context, target);
+  }
+}
+
+/**
+ * A task that computes the type of an inferrable static variable and
+ * stores it in the element model.
+ */
+class InferStaticVariableTypeTask extends InferStaticVariableTask {
+  /**
+   * The name of the input which ensures that dependent values have their type
+   * inferred before the target.
+   */
+  static const String DEPENDENCIES_INPUT = 'DEPENDENCIES_INPUT';
+
+  /**
+   * The name of the [TYPE_PROVIDER] input.
+   */
+  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
+  /**
+   * The name of the [RESOLVED_UNIT5] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'InferStaticVariableTypeTask',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[INFERRED_STATIC_VARIABLE]);
+
+  InferStaticVariableTypeTask(
+      InternalAnalysisContext context, VariableElement variable)
+      : super(context, variable);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  bool get handlesDependencyCycles => true;
+
+  @override
+  void internalPerform() {
+    //
+    // Prepare inputs.
+    //
+    // Note: DEPENDENCIES_INPUT is not needed.  It is merely a bookkeeping
+    // dependency to ensure that the variables that this variable references
+    // have types inferred before inferring the type of this variable.
+    //
+    VariableElementImpl variable = target;
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
+    //
+    // Re-resolve the variable's initializer so that the inferred types of other
+    // variables will be propagated.
+    //
+    NodeLocator locator = new NodeLocator(variable.nameOffset);
+    AstNode node = locator.searchWithin(unit);
+    VariableDeclaration declaration =
+        node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
+    if (declaration == null || declaration.name != node) {
+      throw new AnalysisException(
+          "NodeLocator failed to find a variable's declaration");
+    }
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    Expression initializer = declaration.initializer;
+    ResolutionContext resolutionContext =
+        ResolutionContextBuilder.contextFor(initializer, errorListener);
+    ResolverVisitor visitor = new ResolverVisitor(
+        variable.library, variable.source, typeProvider, errorListener,
+        nameScope: resolutionContext.scope);
+    if (resolutionContext.enclosingClassDeclaration != null) {
+      visitor.prepareToResolveMembersInClass(
+          resolutionContext.enclosingClassDeclaration);
+    }
+    visitor.initForIncrementalResolution();
+    initializer.accept(visitor);
+    //
+    // Record the type of the variable.
+    //
+    DartType newType = initializer.staticType;
+    variable.type = newType;
+    (variable.initializer as ExecutableElementImpl).returnType = newType;
+    if (variable is PropertyInducingElementImpl) {
+      setReturnType(variable.getter, newType);
+      setParameterType(variable.setter, newType);
+    }
+    //
+    // Record outputs.
+    //
+    outputs[INFERRED_STATIC_VARIABLE] = variable;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the given
+   * [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    VariableElement variable = target;
+    LibrarySpecificUnit unit =
+        new LibrarySpecificUnit(variable.library.source, variable.source);
+    return <String, TaskInput>{
+      DEPENDENCIES_INPUT: INFERABLE_STATIC_VARIABLE_DEPENDENCIES
+          .of(variable)
+          .toListOf(INFERRED_STATIC_VARIABLE),
+      TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request),
+      UNIT_INPUT: RESOLVED_UNIT5.of(unit)
+    };
+  }
+
+  /**
+   * Create a [InferStaticVariableTypeTask] based on the given [target] in the
+   * given [context].
+   */
+  static InferStaticVariableTypeTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new InferStaticVariableTypeTask(context, target);
   }
 }
 

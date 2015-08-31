@@ -8,10 +8,74 @@ import 'dart:collection';
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+
+/**
+ * Set the type of the sole parameter of the given [element] to the given [type].
+ */
+void setParameterType(PropertyAccessorElement element, DartType type) {
+  if (element is PropertyAccessorElementImpl) {
+    ParameterElement parameter = _getParameter(element);
+    if (parameter is ParameterElementImpl) {
+      //
+      // Update the type of the parameter.
+      //
+      parameter.type = type;
+      //
+      // Update the type of the setter to reflect the new parameter type.
+      //
+      FunctionType functionType = element.type;
+      if (functionType is FunctionTypeImpl) {
+        element.type =
+            new FunctionTypeImpl(element, functionType.prunedTypedefs);
+      } else {
+        assert(false);
+      }
+    } else {
+      assert(false);
+    }
+  } else {
+    throw new StateError('element is an instance of ${element.runtimeType}');
+    assert(false);
+  }
+}
+
+/**
+ * Set the return type of the given [element] to the given [type].
+ */
+void setReturnType(ExecutableElement element, DartType type) {
+  if (element is ExecutableElementImpl) {
+    //
+    // Update the return type of the element, which is stored in two places:
+    // directly in the element and indirectly in the type of the element.
+    //
+    element.returnType = type;
+    FunctionType functionType = element.type;
+    if (functionType is FunctionTypeImpl) {
+      element.type = new FunctionTypeImpl(element, functionType.prunedTypedefs);
+    } else {
+      assert(false);
+    }
+  } else {
+    assert(false);
+  }
+}
+
+/**
+ * Return the element for the single parameter of the given [setter], or `null`
+ * if the executable element is not a setter or does not have a single
+ * parameter.
+ */
+ParameterElement _getParameter(ExecutableElement setter) {
+  if (setter is PropertyAccessorElement && setter.isSetter) {
+    List<ParameterElement> parameters = setter.parameters;
+    if (parameters.length == 1) {
+      return parameters[0];
+    }
+  }
+  return null;
+}
 
 /**
  * A function that returns `true` if the given [variable] passes the filter.
@@ -193,21 +257,6 @@ class InstanceMemberInferrer {
     return returnType == null ? typeProvider.dynamicType : returnType;
   }
 
-  /**
-   * Return the element for the single parameter of the given [setter], or
-   * `null` if the executable element is not a setter or does not have a single
-   * parameter.
-   */
-  ParameterElement _getParameter(ExecutableElement setter) {
-    if (setter is PropertyAccessorElement && setter.isSetter) {
-      List<ParameterElement> parameters = setter.parameters;
-      if (parameters.length == 1) {
-        return parameters[0];
-      }
-    }
-    return null;
-  }
-
   DartType _getReturnType(ExecutableElement element) {
     DartType returnType = element.returnType;
     if (returnType == null) {
@@ -284,7 +333,7 @@ class InstanceMemberInferrer {
         if (!_isCompatible(newType, overriddenSetters)) {
           newType = typeProvider.dynamicType;
         }
-        _setReturnType(accessorElement, newType);
+        setReturnType(accessorElement, newType);
         (accessorElement.variable as FieldElementImpl).type = newType;
       }
     }
@@ -365,8 +414,10 @@ class InstanceMemberInferrer {
         newType = typeProvider.dynamicType;
       }
       (fieldElement as FieldElementImpl).type = newType;
-      _setReturnType(fieldElement.getter, newType);
-      _setParameterType(fieldElement.setter, newType);
+      setReturnType(fieldElement.getter, newType);
+      if (!fieldElement.isFinal && !fieldElement.isConst) {
+         setParameterType(fieldElement.setter, newType);
+      }
     }
   }
 
@@ -389,7 +440,7 @@ class InstanceMemberInferrer {
         return;
       }
       MethodElementImpl element = methodElement as MethodElementImpl;
-      _setReturnType(element, _computeReturnType(overriddenMethods));
+      setReturnType(element, _computeReturnType(overriddenMethods));
     }
     //
     // Infer the parameter types.
@@ -460,47 +511,6 @@ class InstanceMemberInferrer {
       }
     }
     return true;
-  }
-
-  /**
-   * Set the type of the sole parameter of the given [element] to the given [type].
-   */
-  void _setParameterType(PropertyAccessorElement element, DartType type) {
-    if (element is PropertyAccessorElementImpl) {
-      ParameterElement parameter = _getParameter(element);
-      if (parameter is ParameterElementImpl) {
-        //
-        // Update the type of the parameter.
-        //
-        parameter.type = type;
-        //
-        // Update the type of the setter to reflect the new parameter type.
-        //
-        FunctionType functionType = element.type;
-        if (functionType is FunctionTypeImpl) {
-          element.type =
-              new FunctionTypeImpl(element, functionType.prunedTypedefs);
-        }
-      }
-    }
-  }
-
-  /**
-   * Set the return type of the given [element] to the given [type].
-   */
-  void _setReturnType(ExecutableElement element, DartType type) {
-    if (element is ExecutableElementImpl) {
-      //
-      // Update the return type of the element, which is stored in two places:
-      // directly in the element and indirectly in the type of the element.
-      //
-      element.returnType = type;
-      FunctionType functionType = element.type;
-      if (functionType is FunctionTypeImpl) {
-        element.type =
-            new FunctionTypeImpl(element, functionType.prunedTypedefs);
-      }
-    }
   }
 }
 

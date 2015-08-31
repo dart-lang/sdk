@@ -10356,6 +10356,15 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
+   * A client is about to resolve a member in the given class declaration.
+   */
+  void prepareToResolveMembersInClass(ClassDeclaration node) {
+    _enclosingClassDeclaration = node;
+    enclosingClass = node.element;
+    typeAnalyzer.thisType = enclosingClass == null ? null : enclosingClass.type;
+  }
+
+  /**
    * If the given [type] is valid, strongly more specific than the
    * existing static type of the given [expression], record it as a propagated
    * type of the given [expression]. Otherwise, reset it to `null`.

@@ -47,6 +47,8 @@ main() {
   runReflectiveTests(GatherUsedImportedElementsTaskTest);
   runReflectiveTests(GatherUsedLocalElementsTaskTest);
   runReflectiveTests(GenerateHintsTaskTest);
+  runReflectiveTests(InferStaticVariableTypesInUnitTaskTest);
+  runReflectiveTests(InferStaticVariableTypeTaskTest);
   runReflectiveTests(LibraryErrorsReadyTaskTest);
   runReflectiveTests(LibraryUnitErrorsTaskTest);
   runReflectiveTests(ParseDartTaskTest);
@@ -1509,7 +1511,7 @@ const b = 0;
     expect(task,
         new isInstanceOf<ComputeInferableStaticVariableDependenciesTask>());
     expect(outputs, hasLength(1));
-    Set<VariableElement> dependencies =
+    List<VariableElement> dependencies =
         outputs[INFERABLE_STATIC_VARIABLE_DEPENDENCIES];
     expect(dependencies, unorderedEquals([elementB]));
   }
@@ -2028,6 +2030,104 @@ f(A a) {
     _fillErrorListener(HINTS);
     errorListener.assertErrorsWithCodes(
         <ErrorCode>[HintCode.UNUSED_ELEMENT, HintCode.UNUSED_ELEMENT]);
+  }
+}
+
+@reflectiveTest
+class InferStaticVariableTypesInUnitTaskTest extends _AbstractDartTaskTest {
+  void test_perform() {
+    enableStrongMode();
+    AnalysisTarget firstSource = newSource(
+        '/first.dart',
+        '''
+import 'second.dart';
+
+var a = new M();
+var c = b;
+''');
+    AnalysisTarget secondSource = newSource(
+        '/second.dart',
+        '''
+import 'first.dart';
+
+var b = a;
+class M {}
+''');
+    computeResult(new LibrarySpecificUnit(firstSource, firstSource),
+        RESOLVED_UNIT6); //  new isInstanceOf<InferStaticVariableTypesInUnitTask>()
+    CompilationUnit firstUnit = outputs[RESOLVED_UNIT6];
+    computeResult(
+        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT6);
+    CompilationUnit secondUnit = outputs[RESOLVED_UNIT6];
+
+    VariableDeclaration variableA = getTopLevelVariable(firstUnit, 'a');
+    VariableDeclaration variableB = getTopLevelVariable(secondUnit, 'b');
+    VariableDeclaration variableC = getTopLevelVariable(firstUnit, 'c');
+    ClassDeclaration classM = getClass(secondUnit, 'M');
+    DartType typeM = classM.element.type;
+
+    expect(variableA.element.type, typeM);
+    expect(variableB.element.type, typeM);
+    expect(variableB.initializer.staticType, typeM);
+    expect(variableC.element.type, typeM);
+    expect(variableC.initializer.staticType, typeM);
+  }
+}
+
+@reflectiveTest
+class InferStaticVariableTypeTaskTest extends _AbstractDartTaskTest {
+  void test_getDeclaration_staticField() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+class C {
+  var field = '';
+}
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    VariableDeclaration declaration = getFieldInClass(unit, 'C', 'field');
+    VariableElement variable = declaration.name.staticElement;
+    InferStaticVariableTypeTask inferTask =
+        new InferStaticVariableTypeTask(task.context, variable);
+    expect(inferTask.getDeclaration(unit), declaration);
+  }
+
+  void test_getDeclaration_topLevel() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+var topLevel = '';
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    VariableDeclaration declaration = getTopLevelVariable(unit, 'topLevel');
+    VariableElement variable = declaration.name.staticElement;
+    InferStaticVariableTypeTask inferTask =
+        new InferStaticVariableTypeTask(task.context, variable);
+    expect(inferTask.getDeclaration(unit), declaration);
+  }
+
+  void test_perform() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+var topLevel = '';
+class C {
+  var field = topLevel;
+}
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    VariableElement topLevel =
+        getTopLevelVariable(unit, 'topLevel').name.staticElement;
+    VariableElement field =
+        getFieldInClass(unit, 'C', 'field').name.staticElement;
+
+    computeResult(field, INFERRED_STATIC_VARIABLE);
+    InterfaceType stringType = context.typeProvider.stringType;
+    expect(topLevel.type, stringType);
+    expect(field.type, stringType);
   }
 }
 
@@ -2879,6 +2979,65 @@ class _AbstractDartTaskTest extends AbstractContextTest {
     AnalysisOptionsImpl options = context.analysisOptions;
     options.strongMode = true;
     context.analysisOptions = options;
+  }
+
+  /**
+   * Return the declaration of the class with the given [className] in the given
+   * compilation [unit].
+   */
+  ClassDeclaration getClass(CompilationUnit unit, String className) {
+    NodeList<CompilationUnitMember> unitMembers = unit.declarations;
+    for (CompilationUnitMember unitMember in unitMembers) {
+      if (unitMember is ClassDeclaration && unitMember.name.name == className) {
+        return unitMember;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return the declaration of the field with the given [fieldName] in the class
+   * with the given [className] in the given compilation [unit].
+   */
+  VariableDeclaration getFieldInClass(
+      CompilationUnit unit, String className, String fieldName) {
+    ClassDeclaration unitMember = getClass(unit, className);
+    if (unitMember == null) {
+      return null;
+    }
+    NodeList<ClassMember> classMembers = unitMember.members;
+    for (ClassMember classMember in classMembers) {
+      if (classMember is FieldDeclaration) {
+        NodeList<VariableDeclaration> fields = classMember.fields.variables;
+        for (VariableDeclaration field in fields) {
+          if (field.name.name == fieldName) {
+            return field;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return the declaration of the top-level variable with the given
+   * [variableName] in the given compilation [unit].
+   */
+  VariableDeclaration getTopLevelVariable(
+      CompilationUnit unit, String variableName) {
+    NodeList<CompilationUnitMember> unitMembers = unit.declarations;
+    for (CompilationUnitMember unitMember in unitMembers) {
+      if (unitMember is TopLevelVariableDeclaration) {
+        NodeList<VariableDeclaration> variables =
+            unitMember.variables.variables;
+        for (VariableDeclaration variable in variables) {
+          if (variable.name.name == variableName) {
+            return variable;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   void setUp() {
