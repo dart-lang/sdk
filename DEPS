@@ -84,7 +84,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@e454b4b54d2987e8d2f0fbd3ac519641ada9bd0f",
-  "pub_rev": "@d90268693d1a9dbe5ea11cd9c80b842e3bf1581c",
+  "pub_rev": "@5b06b469abafcf6ab7ef0b6dccf4d50e971ae258",
   "pub_cache_tag": "@v0.1.0",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
