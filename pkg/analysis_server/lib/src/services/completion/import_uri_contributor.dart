@@ -12,7 +12,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' show posix;
+import 'package:path/src/context.dart';
 
 import '../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
@@ -95,32 +96,42 @@ class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
     }
   }
 
-  void _addFileSuggestions(String partial) {
+  void _addFileSuggestions(String partialUri) {
+    ResourceProvider resProvider = request.resourceProvider;
+    Context resContext = resProvider.pathContext;
     Source source = request.source;
-    String sourceFullName = source.fullName;
-    String sourceShortName = source.shortName;
-    String dirPath = (partial.endsWith('/') || partial.endsWith(separator))
-        ? partial
-        : dirname(partial);
-    String prefix = dirPath == '.' ? '' : dirPath;
-    if (isRelative(dirPath)) {
-      String sourceDir = dirname(sourceFullName);
-      if (isAbsolute(sourceDir)) {
-        dirPath = join(sourceDir, dirPath);
+
+    String parentUri;
+    if ((partialUri.endsWith('/'))) {
+      parentUri = partialUri;
+    } else {
+      parentUri = posix.dirname(partialUri);
+      if (parentUri != '.' && !parentUri.endsWith('/')) {
+        parentUri = '$parentUri/';
+      }
+    }
+    String uriPrefix = parentUri == '.' ? '' : parentUri;
+
+    String dirPath = resContext.normalize(parentUri);
+    if (resContext.isRelative(dirPath)) {
+      String sourceDirPath = resContext.dirname(source.fullName);
+      if (resContext.isAbsolute(sourceDirPath)) {
+        dirPath = resContext.join(sourceDirPath, dirPath);
       } else {
         return;
       }
     }
-    Resource dir = request.resourceProvider.getResource(dirPath);
+
+    Resource dir = resProvider.getResource(dirPath);
     if (dir is Folder) {
       for (Resource child in dir.getChildren()) {
         String completion;
         if (child is Folder) {
-          completion = '$prefix${child.shortName}$separator';
+          completion = '$uriPrefix${child.shortName}/';
         } else {
-          completion = '$prefix${child.shortName}';
+          completion = '$uriPrefix${child.shortName}';
         }
-        if (completion != sourceShortName && completion != sourceFullName) {
+        if (completion != source.shortName) {
           _addSuggestion(completion);
         }
       }

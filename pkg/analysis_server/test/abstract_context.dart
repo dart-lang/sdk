@@ -41,7 +41,7 @@ class AbstractContextTest {
   static final DartSdk SDK = new MockSdk();
   static final UriResolver SDK_RESOLVER = new DartUriResolver(SDK);
 
-  MemoryResourceProvider provider = new MemoryResourceProvider();
+  MemoryResourceProvider provider;
   Map<String, List<Folder>> packageMap;
   UriResolver resourceResolver;
   AnalysisContext context;
@@ -83,6 +83,7 @@ class AbstractContextTest {
   }
 
   void setUp() {
+    setupResourceProvider();
     resourceResolver = new ResourceUriResolver(provider);
     packageMap = new Map<String, List<Folder>>();
     PackageMapUriResolver packageResolver =
@@ -90,6 +91,10 @@ class AbstractContextTest {
     context = AnalysisEngine.instance.createAnalysisContext();
     context.sourceFactory =
         new SourceFactory([SDK_RESOLVER, packageResolver, resourceResolver]);
+  }
+
+  void setupResourceProvider() {
+    provider = new MemoryResourceProvider();
   }
 
   void tearDown() {
