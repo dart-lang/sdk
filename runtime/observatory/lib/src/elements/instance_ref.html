@@ -12,6 +12,16 @@
         font: 400 14px 'Montserrat', sans-serif;
         line-height: 150%;
       }
+      .stackTraceBox {
+        margin-left: 1.5em;
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        padding: 10px;
+        font-family: consolas, courier, monospace;
+        font-size: 12px;
+        white-space: pre;
+        overflow-x: auto;
+      }
     </style>
     <span>
       <template if="{{ ref.isSentinel }}">
@@ -19,8 +29,16 @@
       </template>
 
       <template if="{{ ref.isBool || ref.isInt ||
-                       ref.isDouble || ref.isNull }}">
+                       ref.isDouble || ref.isSimdValue ||
+                       ref.isNull }}">
         <a on-click="{{ goto }}" _href="{{ url }}">{{ ref.valueAsString }}</a>
+      </template>
+
+      <template if="{{ ref.isStackTrace }}">
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em></a>
+        <curly-block expandKey="{{ expandKey }}">
+          <div class="stackTraceBox">{{ ref.valueAsString }}</div>
+        </curly-block>
       </template>
 
       <template if="{{ ref.isString }}">

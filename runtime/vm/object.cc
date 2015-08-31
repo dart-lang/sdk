@@ -20412,7 +20412,11 @@ const char* Float32x4::ToCString() const {
 
 
 void Float32x4::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "Float32x4");
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("valueAsString", ToCString());
 }
 
 
@@ -20517,7 +20521,11 @@ const char* Int32x4::ToCString() const {
 
 
 void Int32x4::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "Int32x4");
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("valueAsString", ToCString());
 }
 
 
@@ -20597,7 +20605,11 @@ const char* Float64x2::ToCString() const {
 
 
 void Float64x2::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "Float64x2");
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("valueAsString", ToCString());
 }
 
 
@@ -20959,20 +20971,19 @@ RawStacktrace* Stacktrace::New(const Array& code_array,
 }
 
 
-RawString* Stacktrace::FullStacktrace() const {
-  intptr_t idx = 0;
-  return String::New(ToCStringInternal(&idx));
-}
-
-
 const char* Stacktrace::ToCString() const {
-  const String& trace = String::Handle(FullStacktrace());
-  return trace.ToCString();
+  intptr_t idx = 0;
+  return ToCStringInternal(&idx);
 }
 
 
 void Stacktrace::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "StackTrace");
+  jsobj.AddServiceId(*this);
+  intptr_t idx = 0;
+  jsobj.AddProperty("valueAsString", ToCStringInternal(&idx));
 }
 
 

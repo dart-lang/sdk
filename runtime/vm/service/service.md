@@ -1241,6 +1241,10 @@ class @Instance extends @Object {
   //   Double (suitable for passing to Double.parse())
   //   Int (suitable for passing to int.parse())
   //   String (value may be truncated)
+  //   Float32x4
+  //   Float64x2
+  //   Int32x4
+  //   StackTrace
   string valueAsString [optional];
 
   // The valueAsString for String references may be truncated. If so,
@@ -1507,6 +1511,11 @@ enum InstanceKind {
   // Maps will be PlainInstance.
   Map,
 
+  // Vector instance kinds.
+  Float32x4,
+  Float64x2,
+  Int32x4
+
   // An instance of the built-in VM TypedData implementations.  User-defined
   // TypedDatas will be PlainInstance.
   Uint8ClampedList,
@@ -1523,6 +1532,9 @@ enum InstanceKind {
   Int32x4List,
   Float32x4List,
   Float64x2List,
+
+  // An instance of the Dart class StackTrace.
+  StackTrace,
 
   // An instance of the built-in VM Closure implementation. User-defined
   // Closures will be PlainInstance.

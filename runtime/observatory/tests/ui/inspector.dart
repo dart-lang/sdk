@@ -125,7 +125,10 @@ class Node {
     mixedType = "2";
     mixedType = false;
 
-    array = [1, 2, 3];
+    array = new List(3);
+    array[0] = 1;
+    array[1] = 2;
+    array[2] = 3;
     bigint = 1 << 65;
     blockClean = genCleanBlock();
     blockCopying = genCopyingBlock();
@@ -135,12 +138,12 @@ class Node {
     counter = new Counter("CounterName", "Counter description");
     expando = new Expando("expando-name");
     expando[array] = 'The weakly associated value';
-    float32x4 = new Float32x4.zero();
+    float32x4 = new Float32x4(0.0, -1.0, 3.14, 2e28);
     float64 = 3.14;
-    float64x2 = new Float64x2.zero();
-    gauge = new Gauge("GuageName", "Guage description", 0.0, 100.0);
+    float64x2 = new Float64x2(0.0, 3.14);
+    gauge = new Gauge("GaugeName", "Gauge description", 0.0, 100.0);
     growableList = new List();
-    int32x4 = new Int32x4(0,0,0,0);
+    int32x4 = new Int32x4(0,1,10,11);
     map = { "x-key": "x-value", "y-key": "y-value", "removed-key": "removed-value" };
     map.remove("removed-key");
     mint = 1 << 32;

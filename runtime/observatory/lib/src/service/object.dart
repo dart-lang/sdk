@@ -136,6 +136,8 @@ abstract class ServiceObject extends Observable {
   bool get isMirrorReference => false;
   bool get isWeakProperty => false;
   bool get isClosure => false;
+  bool get isStackTrace => false;
+  bool get isSimdValue => false;
   bool get isPlainInstance => false;
 
   /// Has this object been fully loaded?
@@ -2223,10 +2225,16 @@ class Instance extends HeapObject {
         || kind == 'Float32x4List'
         || kind == 'Float64x2List';
   }
+  bool get isSimdValue {
+    return kind == 'Float32x4'
+        || kind == 'Float64x2'
+        || kind == 'Int32x4';
+  }
   bool get isRegExp => kind == 'RegExp';
   bool get isMirrorReference => kind == 'MirrorReference';
   bool get isWeakProperty => kind == 'WeakProperty';
   bool get isClosure => kind == 'Closure';
+  bool get isStackTrace => kind == 'StackTrace';
 
   // TODO(turnidge): Is this properly backwards compatible when new
   // instance kinds are added?
