@@ -11,6 +11,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(int, optimization_counter_threshold);
+
 #define NEW_OBJECT(type)                                                       \
   ((kind == Snapshot::kFull) ? reader->New##type() : type::New())
 
@@ -738,7 +740,11 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   // Write out all the non object fields.
   writer->Write<int32_t>(ptr()->token_pos_);
   writer->Write<int32_t>(ptr()->end_token_pos_);
-  writer->Write<int32_t>(ptr()->usage_counter_);
+  if (Code::IsOptimized(ptr()->instructions_->ptr()->code_)) {
+    writer->Write<int32_t>(FLAG_optimization_counter_threshold);
+  } else {
+    writer->Write<int32_t>(0);
+  }
   writer->Write<int16_t>(ptr()->num_fixed_parameters_);
   writer->Write<int16_t>(ptr()->num_optional_parameters_);
   writer->Write<int16_t>(ptr()->deoptimization_counter_);
@@ -1034,13 +1040,18 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     // Set all the object fields.
     // TODO(5411462): Need to assert No GC can happen here, even though
     // allocations may happen.
-    intptr_t num_flds = (library.raw()->to() - library.raw()->from());
+    RawObject** toobj = (kind == Snapshot::kFull) ?
+        library.raw()->to() : library.raw()->to_snapshot();
+    intptr_t num_flds = (toobj - library.raw()->from());
     for (intptr_t i = 0; i <= num_flds; i++) {
       (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
       library.StorePointer((library.raw()->from() + i),
                            reader->PassiveObjectHandle()->raw());
     }
     if (kind != Snapshot::kFull) {
+      // The cache of resolved names in library scope is not serialized.
+      const intptr_t kInitialNameCacheSize = 64;
+      library.InitResolvedNamesCache(kInitialNameCacheSize);
       library.Register();
     }
   }
@@ -1086,8 +1097,9 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     // be rebuilt lazily.
 
     // Write out all the object pointer fields.
+    RawObject** toobj = (kind == Snapshot::kFull) ? to() : to_snapshot();
     SnapshotWriterVisitor visitor(writer);
-    visitor.VisitPointers(from(), to());
+    visitor.VisitPointers(from(), toobj);
   }
 }
 

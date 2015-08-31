@@ -4352,6 +4352,10 @@ class Code : public Object {
     DISALLOW_COPY_AND_ASSIGN(FindRawCodeVisitor);
   };
 
+  static bool IsOptimized(RawCode* code) {
+    return Code::OptimizedBit::decode(code->ptr()->state_bits_);
+  }
+
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
 
   void set_compile_timestamp(int64_t timestamp) const {
