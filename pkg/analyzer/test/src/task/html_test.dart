@@ -21,6 +21,10 @@ main() {
   runReflectiveTests(ParseHtmlTaskTest);
 }
 
+isInstanceOf isDartScriptsTask = new isInstanceOf<DartScriptsTask>();
+isInstanceOf isHtmlErrorsTask = new isInstanceOf<HtmlErrorsTask>();
+isInstanceOf isParseHtmlTask = new isInstanceOf<ParseHtmlTask>();
+
 @reflectiveTest
 class DartScriptsTaskTest extends AbstractContextTest {
   test_buildInputs() {
@@ -72,8 +76,7 @@ class DartScriptsTaskTest extends AbstractContextTest {
 <body>
 </body>
 </html>''');
-    computeResult(target, REFERENCED_LIBRARIES);
-    expect(task, new isInstanceOf<DartScriptsTask>());
+    computeResult(target, REFERENCED_LIBRARIES, matcher: isDartScriptsTask);
     expect(outputs[REFERENCED_LIBRARIES], hasLength(0));
     expect(outputs[DART_SCRIPTS], hasLength(1));
     DartScript script = outputs[DART_SCRIPTS][0];
@@ -94,8 +97,7 @@ class DartScriptsTaskTest extends AbstractContextTest {
 <body>
 </body>
 </html>''');
-    computeResult(target, REFERENCED_LIBRARIES);
-    expect(task, new isInstanceOf<DartScriptsTask>());
+    computeResult(target, REFERENCED_LIBRARIES, matcher: isDartScriptsTask);
     expect(outputs[REFERENCED_LIBRARIES], hasLength(0));
     expect(outputs[DART_SCRIPTS], hasLength(0));
   }
@@ -112,8 +114,7 @@ class DartScriptsTaskTest extends AbstractContextTest {
 <body>
 </body>
 </html>''');
-    computeResult(target, REFERENCED_LIBRARIES);
-    expect(task, new isInstanceOf<DartScriptsTask>());
+    computeResult(target, REFERENCED_LIBRARIES, matcher: isDartScriptsTask);
     expect(outputs[REFERENCED_LIBRARIES], hasLength(0));
     expect(outputs[DART_SCRIPTS], hasLength(0));
   }
@@ -130,8 +131,7 @@ class DartScriptsTaskTest extends AbstractContextTest {
 <body>
 </body>
 </html>''');
-    computeResult(target, REFERENCED_LIBRARIES);
-    expect(task, new isInstanceOf<DartScriptsTask>());
+    computeResult(target, REFERENCED_LIBRARIES, matcher: isDartScriptsTask);
     expect(outputs[REFERENCED_LIBRARIES], hasLength(1));
     expect(outputs[DART_SCRIPTS], hasLength(0));
   }
@@ -150,8 +150,7 @@ class DartScriptsTaskTest extends AbstractContextTest {
   </body>
 </html>
 ''');
-    computeResult(target, REFERENCED_LIBRARIES);
-    expect(task, new isInstanceOf<DartScriptsTask>());
+    computeResult(target, REFERENCED_LIBRARIES, matcher: isDartScriptsTask);
     expect(outputs[REFERENCED_LIBRARIES], hasLength(0));
     expect(outputs[DART_SCRIPTS], hasLength(0));
   }
@@ -168,8 +167,7 @@ class DartScriptsTaskTest extends AbstractContextTest {
 <body>
 </body>
 </html>''');
-    computeResult(target, REFERENCED_LIBRARIES);
-    expect(task, new isInstanceOf<DartScriptsTask>());
+    computeResult(target, REFERENCED_LIBRARIES, matcher: isDartScriptsTask);
     expect(outputs[REFERENCED_LIBRARIES], hasLength(1));
     expect(outputs[DART_SCRIPTS], hasLength(0));
   }
@@ -231,8 +229,7 @@ class HtmlErrorsTaskTest extends AbstractContextTest {
   <body>Test</body>
 </html>
 ''');
-    computeResult(target, HTML_ERRORS);
-    expect(task, new isInstanceOf<HtmlErrorsTask>());
+    computeResult(target, HTML_ERRORS, matcher: isHtmlErrorsTask);
     expect(outputs[HTML_ERRORS], hasLength(1));
   }
 
@@ -249,8 +246,7 @@ class HtmlErrorsTaskTest extends AbstractContextTest {
   </body>
 </html>
 ''');
-    computeResult(target, HTML_ERRORS);
-    expect(task, new isInstanceOf<HtmlErrorsTask>());
+    computeResult(target, HTML_ERRORS, matcher: isHtmlErrorsTask);
     expect(outputs[HTML_ERRORS], hasLength(1));
   }
 
@@ -268,8 +264,7 @@ class HtmlErrorsTaskTest extends AbstractContextTest {
   </body>
 </html>
 ''');
-    computeResult(target, HTML_ERRORS);
-    expect(task, new isInstanceOf<HtmlErrorsTask>());
+    computeResult(target, HTML_ERRORS, matcher: isHtmlErrorsTask);
     expect(outputs[HTML_ERRORS], isEmpty);
   }
 }
@@ -325,7 +320,7 @@ class ParseHtmlTaskTest extends AbstractContextTest {
 </html>
 ''');
     computeResult(target, HTML_DOCUMENT);
-    expect(task, new isInstanceOf<ParseHtmlTask>());
+    expect(task, isParseHtmlTask);
     expect(outputs[HTML_DOCUMENT], isNotNull);
     expect(outputs[HTML_DOCUMENT_ERRORS], isNotEmpty);
   }

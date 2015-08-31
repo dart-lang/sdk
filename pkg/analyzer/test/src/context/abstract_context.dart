@@ -72,12 +72,20 @@ class AbstractContextTest {
   /**
    * Compute the given [result] for the given [target].
    */
-  void computeResult(AnalysisTarget target, ResultDescriptor result) {
+  void computeResult(AnalysisTarget target, ResultDescriptor result,
+      {isInstanceOf matcher: null}) {
     oldOutputs = outputs;
     task = analysisDriver.computeResult(target, result);
-    expect(task, isNotNull);
+    if (matcher == null) {
+      expect(task, isNotNull);
+    } else {
+      expect(task, matcher);
+    }
     expect(task.caughtException, isNull);
     outputs = task.outputs;
+    for (ResultDescriptor descriptor in task.descriptor.results) {
+      expect(outputs, contains(descriptor));
+    }
   }
 
   AnalysisContextImpl createAnalysisContext() {
