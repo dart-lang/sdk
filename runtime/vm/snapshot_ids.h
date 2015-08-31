@@ -42,6 +42,11 @@ enum {
   kStringType,
   kArrayType,
 
+  kExtractorParameterTypes,
+  kExtractorParameterNames,
+  kEmptyContextScopeObject,
+  kImplicitClosureScopeObject,
+
   kInstanceObjectId,
   kStaticImplicitClosureObjectId,
   kMaxPredefinedObjectIds,

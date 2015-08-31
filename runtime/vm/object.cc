@@ -98,6 +98,7 @@ Instance* Object::null_instance_ = NULL;
 TypeArguments* Object::null_type_arguments_ = NULL;
 Array* Object::empty_array_ = NULL;
 Array* Object::zero_array_ = NULL;
+ContextScope* Object::empty_context_scope_ = NULL;
 ObjectPool* Object::empty_object_pool_ = NULL;
 PcDescriptors* Object::empty_descriptors_ = NULL;
 LocalVarDescriptors* Object::empty_var_descriptors_ = NULL;
@@ -427,6 +428,7 @@ void Object::InitOnce(Isolate* isolate) {
   null_type_arguments_ = TypeArguments::ReadOnlyHandle();
   empty_array_ = Array::ReadOnlyHandle();
   zero_array_ = Array::ReadOnlyHandle();
+  empty_context_scope_ = ContextScope::ReadOnlyHandle();
   empty_object_pool_ = ObjectPool::ReadOnlyHandle();
   empty_descriptors_ = PcDescriptors::ReadOnlyHandle();
   empty_var_descriptors_ = LocalVarDescriptors::ReadOnlyHandle();
@@ -656,6 +658,22 @@ void Object::InitOnce(Isolate* isolate) {
     zero_array_->SetAt(0, smi);
   }
 
+  // Allocate and initialize the canonical empty context scope object.
+  {
+    uword address = heap->Allocate(ContextScope::InstanceSize(0), Heap::kOld);
+    InitializeObject(address,
+                     kContextScopeCid,
+                     ContextScope::InstanceSize(0),
+                     true);
+    ContextScope::initializeHandle(
+        empty_context_scope_,
+        reinterpret_cast<RawContextScope*>(address + kHeapObjectTag));
+    empty_context_scope_->StoreNonPointer(
+        &empty_context_scope_->raw_ptr()->num_variables_, 0);
+    empty_context_scope_->StoreNonPointer(
+        &empty_context_scope_->raw_ptr()->is_implicit_, true);
+  }
+
   // Allocate and initialize the canonical empty object pool object.
   {
     uword address =
@@ -776,6 +794,8 @@ void Object::InitOnce(Isolate* isolate) {
   ASSERT(empty_array_->IsArray());
   ASSERT(!zero_array_->IsSmi());
   ASSERT(zero_array_->IsArray());
+  ASSERT(!empty_context_scope_->IsSmi());
+  ASSERT(empty_context_scope_->IsContextScope());
   ASSERT(!empty_descriptors_->IsSmi());
   ASSERT(empty_descriptors_->IsPcDescriptors());
   ASSERT(!empty_var_descriptors_->IsSmi());
@@ -6391,13 +6411,13 @@ RawFunction* Function::ImplicitClosureFunction() const {
       NewClosureFunction(closure_name, *this, token_pos()));
 
   // Set closure function's context scope.
-  ContextScope& context_scope = ContextScope::Handle();
   if (is_static()) {
-    context_scope = ContextScope::New(0);
+    closure_function.set_context_scope(Object::empty_context_scope());
   } else {
-    context_scope = LocalScope::CreateImplicitClosureScope(*this);
+    const ContextScope& context_scope =
+        ContextScope::Handle(LocalScope::CreateImplicitClosureScope(*this));
+    closure_function.set_context_scope(context_scope);
   }
-  closure_function.set_context_scope(context_scope);
 
   // Set closure function's result type to this result type.
   closure_function.set_result_type(AbstractType::Handle(result_type()));
@@ -13581,7 +13601,7 @@ void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-RawContextScope* ContextScope::New(intptr_t num_variables) {
+RawContextScope* ContextScope::New(intptr_t num_variables, bool is_implicit) {
   ASSERT(Object::context_scope_class() != Class::null());
   if (num_variables < 0 || num_variables > kMaxElements) {
     // This should be caught before we reach here.
@@ -13597,6 +13617,7 @@ RawContextScope* ContextScope::New(intptr_t num_variables) {
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.set_num_variables(num_variables);
+    result.set_is_implicit(is_implicit);
   }
   return result.raw();
 }

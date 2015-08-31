@@ -1144,6 +1144,15 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   if (object_id == kFalseValue) {
     return Bool::False().raw();
   }
+  if (object_id == kExtractorParameterTypes) {
+    return Object::extractor_parameter_types().raw();
+  }
+  if (object_id == kExtractorParameterNames) {
+    return Object::extractor_parameter_names().raw();
+  }
+  if (object_id == kEmptyContextScopeObject) {
+    return Object::empty_context_scope().raw();
+  }
   if (object_id == kDoubleObject) {
     ASSERT(kind_ == Snapshot::kMessage);
     return Double::New(ReadDouble());
@@ -1417,6 +1426,7 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
   V(Mint)                                                                      \
   V(Bigint)                                                                    \
   V(Double)                                                                    \
+  V(ImmutableArray)                                                            \
 
 #define VM_OBJECT_WRITE(clazz)                                                 \
   case clazz::kClassId: {                                                      \
@@ -1478,6 +1488,24 @@ void SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   // Check if it is a singleton boolean false object.
   if (rawobj == Bool::False().raw()) {
     WriteVMIsolateObject(kFalseValue);
+    return;
+  }
+
+  // Check if it is a singleton extractor parameter types array.
+  if (rawobj == Object::extractor_parameter_types().raw()) {
+    WriteVMIsolateObject(kExtractorParameterTypes);
+    return;
+  }
+
+  // Check if it is a singleton extractor parameter names array.
+  if (rawobj == Object::extractor_parameter_names().raw()) {
+    WriteVMIsolateObject(kExtractorParameterNames);
+    return;
+  }
+
+  // Check if it is a singleton empty context scope object.
+  if (rawobj == Object::empty_context_scope().raw()) {
+    WriteVMIsolateObject(kEmptyContextScopeObject);
     return;
   }
 

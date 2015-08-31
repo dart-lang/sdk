@@ -1311,6 +1311,7 @@ class RawContextScope : public RawObject {
   };
 
   int32_t num_variables_;
+  bool is_implicit_;  // true, if this context scope is for an implicit closure.
 
   RawObject** from() {
     VariableDesc* begin = const_cast<VariableDesc*>(ptr()->VariableDescAddr(0));
@@ -1328,6 +1329,9 @@ class RawContextScope : public RawObject {
     // 'end' is the address just beyond the last descriptor, so step back.
     return reinterpret_cast<RawObject**>(end - kWordSize);
   }
+
+  friend class Object;
+  friend class RawClosureData;
 };
 
 

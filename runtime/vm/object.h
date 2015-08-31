@@ -401,6 +401,11 @@ class Object {
     return *zero_array_;
   }
 
+  static const ContextScope& empty_context_scope() {
+    ASSERT(empty_context_scope_ != NULL);
+    return *empty_context_scope_;
+  }
+
   static const ObjectPool& empty_object_pool() {
     ASSERT(empty_object_pool_ != NULL);
     return *empty_object_pool_;
@@ -791,6 +796,7 @@ class Object {
   static TypeArguments* null_type_arguments_;
   static Array* empty_array_;
   static Array* zero_array_;
+  static ContextScope* empty_context_scope_;
   static ObjectPool* empty_object_pool_;
   static PcDescriptors* empty_descriptors_;
   static LocalVarDescriptors* empty_var_descriptors_;
@@ -4463,7 +4469,8 @@ class Context : public Object {
 // by its token position in the source, its name, its type, its allocation index
 // in the context, and its context level. The function nesting level and loop
 // nesting level are not preserved, since they are only used until the context
-// level is assigned.
+// level is assigned. In addition the ContextScope has a field 'is_implicit'
+// which is true if the ContextScope was created for an implicit closure.
 class ContextScope : public Object {
  public:
   intptr_t num_variables() const { return raw_ptr()->num_variables_; }
@@ -4508,11 +4515,15 @@ class ContextScope : public Object {
         sizeof(RawContextScope) + (len * kBytesPerElement));
   }
 
-  static RawContextScope* New(intptr_t num_variables);
+  static RawContextScope* New(intptr_t num_variables, bool is_implicit);
 
  private:
   void set_num_variables(intptr_t num_variables) const {
     StoreNonPointer(&raw_ptr()->num_variables_, num_variables);
+  }
+
+  void set_is_implicit(bool is_implicit) const {
+    StoreNonPointer(&raw_ptr()->is_implicit_, is_implicit);
   }
 
   const RawContextScope::VariableDesc* VariableDescAddr(intptr_t index) const {
@@ -4522,6 +4533,7 @@ class ContextScope : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ContextScope, Object);
   friend class Class;
+  friend class Object;
 };
 
 

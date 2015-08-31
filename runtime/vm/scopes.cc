@@ -548,7 +548,7 @@ RawContextScope* LocalScope::PreserveOuterScope(int current_context_level)
 
   // Create a ContextScope with space for num_captured_vars descriptors.
   const ContextScope& context_scope =
-      ContextScope::Handle(ContextScope::New(num_captured_vars));
+      ContextScope::Handle(ContextScope::New(num_captured_vars, false));
 
   // Create a descriptor for each referenced captured variable of enclosing
   // functions to preserve its name and its context allocation information.
@@ -638,7 +638,7 @@ RawContextScope* LocalScope::CreateImplicitClosureScope(const Function& func) {
 
   // Create a ContextScope with space for kNumCapturedVars descriptors.
   const ContextScope& context_scope =
-      ContextScope::Handle(ContextScope::New(kNumCapturedVars));
+      ContextScope::Handle(ContextScope::New(kNumCapturedVars, true));
 
   // Create a descriptor for 'this' variable.
   context_scope.SetTokenIndexAt(0, func.token_pos());

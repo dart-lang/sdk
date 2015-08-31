@@ -604,7 +604,17 @@ void RawClosureData::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Context scope.
-  // We don't write the context scope in the snapshot.
+  if (ptr()->context_scope_ == Object::empty_context_scope().raw()) {
+    writer->WriteVMIsolateObject(kEmptyContextScopeObject);
+  } else {
+    if (ptr()->context_scope_->ptr()->is_implicit_) {
+      writer->WriteObjectImpl(ptr()->context_scope_, kAsInlinedObject);
+    } else {
+      // We don't write non implicit context scopes in the snapshot.
+      writer->WriteVMIsolateObject(kNullObject);
+    }
+  }
+
   writer->WriteObjectImpl(Object::null(), kAsInlinedObject);
 
   // Parent function.
@@ -615,7 +625,7 @@ void RawClosureData::WriteTo(SnapshotWriter* writer,
 
   // Static closure/Closure allocation stub.
   // We don't write the closure or allocation stub in the snapshot.
-  writer->WriteObjectImpl(Object::null(), kAsInlinedObject);
+  writer->WriteVMIsolateObject(kNullObject);
 }
 
 
@@ -1619,6 +1629,27 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
                                         intptr_t object_id,
                                         intptr_t tags,
                                         Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+
+  // Allocate context object.
+  bool is_implicit = reader->Read<bool>();
+  if (is_implicit) {
+    ContextScope& context_scope =
+        ContextScope::ZoneHandle(ContextScope::New(1, true));
+    reader->AddBackRef(object_id, &context_scope, kIsDeserialized);
+
+    *reader->TypeHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
+
+    // Create a descriptor for 'this' variable.
+    context_scope.SetTokenIndexAt(0, 0);
+    context_scope.SetNameAt(0, Symbols::This());
+    context_scope.SetIsFinalAt(0, true);
+    context_scope.SetIsConstAt(0, false);
+    context_scope.SetTypeAt(0, *reader->TypeHandle());
+    context_scope.SetContextIndexAt(0, 0);
+    context_scope.SetContextLevelAt(0, 0);
+    return context_scope.raw();
+  }
   UNREACHABLE();
   return NULL;
 }
@@ -1627,6 +1658,27 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
 void RawContextScope::WriteTo(SnapshotWriter* writer,
                               intptr_t object_id,
                               Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+
+  if (ptr()->is_implicit_) {
+    ASSERT(ptr()->num_variables_ == 1);
+    const VariableDesc* var = ptr()->VariableDescAddr(0);
+
+    // Write out the serialization header value for this object.
+    writer->WriteInlinedObjectHeader(object_id);
+
+    // Write out the class and tags information.
+    writer->WriteVMIsolateObject(kContextScopeCid);
+    writer->WriteTags(writer->GetObjectTags(this));
+
+    // Write out is_implicit flag for the context scope.
+    writer->Write<bool>(true);
+
+    // Write out the type of 'this' the variable.
+    writer->WriteObjectImpl(var->type, kAsInlinedObject);
+
+    return;
+  }
   UNREACHABLE();
 }
 
