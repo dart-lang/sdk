@@ -34,9 +34,10 @@
 *.xcodeproj
 *.intermediate
 
-# Dart Editor config files - also in all subdirectories.
+# Eclipse config files - also in all subdirectories.
 .children
 .project
+.settings
 
 # IntelliJ project files
 *.iml
