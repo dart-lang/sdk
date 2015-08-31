@@ -7,8 +7,7 @@ library dart2js.resolution.members;
 import '../common/names.dart' show
     Selectors;
 import '../compiler.dart' show
-    Compiler,
-    isPrivateName;
+    Compiler;
 import '../constants/constructors.dart' show
     RedirectingFactoryConstantConstructor;
 import '../constants/expressions.dart';

@@ -7,8 +7,7 @@ library dart2js.typechecker;
 import 'common/tasks.dart' show
     CompilerTask;
 import 'compiler.dart' show
-    Compiler,
-    isPrivateName;
+    Compiler;
 import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'core_types.dart';
@@ -721,7 +720,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   void checkPrivateAccess(Node node, Element element, String name) {
     if (name != null &&
-        isPrivateName(name) &&
+        Name.isPrivateName(name) &&
         element.library != currentLibrary) {
       reportTypeWarning(
           node,

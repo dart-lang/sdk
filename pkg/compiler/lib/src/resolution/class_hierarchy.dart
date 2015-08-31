@@ -5,8 +5,7 @@
 library dart2js.resolution.class_hierarchy;
 
 import '../compiler.dart' show
-    Compiler,
-    isPrivateName;
+    Compiler;
 import '../dart_types.dart';
 import '../diagnostics/invariant.dart' show
     invariant;
@@ -407,7 +406,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       if (!member.isGenerativeConstructor) return;
       FunctionElement forwarder =
           createForwardingConstructor(member, mixinApplication);
-      if (isPrivateName(member.name) &&
+      if (Name.isPrivateName(member.name) &&
           mixinApplication.library != superclass.library) {
         // Do not create a forwarder to the super constructor, because the mixin
         // application is in a different library than the constructor in the

@@ -5,8 +5,7 @@
 library dart2js.resolution.signatures;
 
 import '../compiler.dart' show
-    Compiler,
-    isPrivateName;
+    Compiler;
 import '../dart_types.dart';
 import '../diagnostics/invariant.dart' show
     invariant;
@@ -112,7 +111,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
   void validateName(Identifier node) {
     if (isOptionalParameter &&
         optionalParametersAreNamed &&
-        isPrivateName(node.source)) {
+        Name.isPrivateName(node.source)) {
       compiler.reportError(node, MessageKind.PRIVATE_NAMED_PARAMETER);
     }
   }

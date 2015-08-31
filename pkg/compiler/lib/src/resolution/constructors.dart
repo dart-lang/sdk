@@ -4,8 +4,7 @@
 
 library dart2js.resolution.constructors;
 import '../compiler.dart' show
-    Compiler,
-    isPrivateName;
+    Compiler;
 import '../constants/constructors.dart' show
     GenerativeConstantConstructor,
     RedirectingGenerativeConstantConstructor;
@@ -459,7 +458,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     cls.ensureResolved(compiler);
     Element result = cls.lookupConstructor(constructorName);
     // TODO(johnniwinther): Use [Name] for lookup.
-    if (isPrivateName(constructorName) &&
+    if (Name.isPrivateName(constructorName) &&
         resolver.enclosingElement.library != cls.library) {
       result = null;
     }

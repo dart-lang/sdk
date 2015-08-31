@@ -7,8 +7,7 @@ library dart2js.resolution.compute_members;
 import '../common/names.dart' show
     Identifiers;
 import '../compiler.dart' show
-    Compiler,
-    isPrivateName;
+    Compiler;
 import '../dart_types.dart';
 import '../diagnostics/invariant.dart' show
     invariant;
@@ -839,7 +838,7 @@ abstract class ClassMemberMixin implements ClassElement {
   /// and private names.
   void computeClassMember(Compiler compiler, String name, Setlet<Name> names) {
     if (isMemberComputed(name)) return;
-    if (isPrivateName(name)) {
+    if (Name.isPrivateName(name)) {
       names..add(new Name(name, library))
            ..add(new Name(name, library, isSetter: true));
     }

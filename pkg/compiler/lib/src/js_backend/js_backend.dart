@@ -29,8 +29,7 @@ import '../common/resolution.dart' show
 import '../common/work.dart' show
     ItemCompilationContext;
 import '../compiler.dart' show
-    Compiler,
-    isPrivateName;
+    Compiler;
 import '../compile_time_constants.dart';
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';

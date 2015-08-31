@@ -5,8 +5,7 @@
 library elements.modelx;
 
 import '../compiler.dart' show
-    Compiler,
-    isPrivateName;
+    Compiler;
 import '../constants/constant_constructors.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
@@ -1063,7 +1062,7 @@ class LibraryElementX
     return localScope.values.where((Element element) {
       // At this point [localScope] only contains members so we don't need
       // to check for foreign or prefix elements.
-      return !isPrivateName(element.name);
+      return !Name.isPrivateName(element.name);
     });
   }
 

@@ -1048,7 +1048,7 @@ class JavaScriptBackend extends Backend {
           ClassElement implementation = cls.patch != null ? cls.patch : cls;
           ConstructorElement ctor = implementation.lookupConstructor(name);
           if (ctor == null
-              || (isPrivateName(name)
+              || (Name.isPrivateName(name)
                   && ctor.library != mapLiteralClass.library)) {
             compiler.internalError(mapLiteralClass,
                                    "Map literal class $mapLiteralClass missing "

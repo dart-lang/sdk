@@ -127,7 +127,6 @@ import 'universe/universe.dart' show
     CallStructure,
     Selector,
     Universe;
-import 'util/characters.dart' show $_;
 import 'util/util.dart' show
     Link;
 import 'world.dart' show
@@ -1673,12 +1672,6 @@ abstract class Compiler implements DiagnosticListener {
     return userOutputProvider.createEventSink(name, extension);
   }
 }
-
-/// Returns `true` when [s] is private if used as an identifier.
-bool isPrivateName(String s) => !s.isEmpty && s.codeUnitAt(0) == $_;
-
-/// Returns `true` when [s] is public if used as an identifier.
-bool isPublicName(String s) => !isPrivateName(s);
 
 /// Information about suppressed warnings and hints for a given library.
 class SuppressionInfo {

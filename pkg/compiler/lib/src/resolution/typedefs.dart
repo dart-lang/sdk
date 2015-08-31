@@ -5,8 +5,7 @@
 library dart2js.resolution.typedefs;
 
 import '../compiler.dart' show
-    Compiler,
-    isPrivateName;
+    Compiler;
 import '../dart_types.dart';
 import '../diagnostics/messages.dart' show
     MessageKind;

@@ -9,8 +9,7 @@ import '../common/backend_api.dart' show
 import '../common/registry.dart' show
     Registry;
 import '../compiler.dart' show
-    Compiler,
-    isPrivateName;
+    Compiler;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../diagnostics/invariant.dart' show

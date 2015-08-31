@@ -5,8 +5,7 @@
 library elements;
 
 import '../compiler.dart' show
-    Compiler,
-    isPrivateName;
+    Compiler;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
@@ -28,6 +27,7 @@ import '../scanner/scannerlib.dart' show
     isMinusOperator;
 import '../script.dart';
 import '../tree/tree.dart';
+import '../util/characters.dart' show $_;
 import '../util/util.dart';
 
 import 'visitor.dart' show ElementVisitor;
