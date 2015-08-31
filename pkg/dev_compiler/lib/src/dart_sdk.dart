@@ -145,7 +145,10 @@ final Map<String, String> mockSdkSources = {
         class _Proxy { const _Proxy(); }
         const Object proxy = const _Proxy();
 
-        class Iterable<E> {}
+        class Iterable<E> {
+          fold(initialValue, combine(previousValue, E element)) {}
+          Iterable map(f(E element)) {}
+        }
         class List<E> implements Iterable<E> {
           List([int length]);
           List.filled(int length, E fill);
@@ -158,7 +161,8 @@ final Map<String, String> mockSdkSources = {
         class Future<T> {
           Future(computation()) {}
           Future.value(T t) {}
-          Future then(callback) {}
+          Future then(onValue(T value)) {}
+          static Future<List> wait(Iterable<Future> futures) {}
         }
         class Stream<T> {}
   ''',

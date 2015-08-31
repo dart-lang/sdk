@@ -1,8 +1,6 @@
 // Messages from compiling unittest.dart
-warning: [DownCastComposite] expected.map(wrapMatcher).toList() (List<dynamic>) will need runtime check to cast to type List<Matcher> (package:matcher/src/iterable_matchers.dart, line 157, col 21)
 warning: [DownCastComposite] arg0 (dynamic) will need runtime check to cast to type Iterable<Matcher> (package:matcher/src/operator_matchers.dart, line 106, col 16)
 warning: [DownCastComposite] [arg0, arg1, arg2, arg3, arg4, arg5, arg6].where((e) => e != null) (Iterable<dynamic>) will need runtime check to cast to type Iterable<Matcher> (package:matcher/src/operator_matchers.dart, line 109, col 9)
-warning: [DownCastComposite] matchers.map((e) => wrapMatcher(e)).toList() (List<dynamic>) will need runtime check to cast to type List<Matcher> (package:matcher/src/operator_matchers.dart, line 112, col 10)
 warning: [DownCastComposite] x (dynamic) will need runtime check to cast to type (dynamic) → bool (package:matcher/src/util.dart, line 42, col 22)
 warning: [UninferredClosure] (match) {var mapped = _escapeMap[match[0]]; if (mapped != null) return mapped; return _getHexLiteral(match[0]);} ((dynamic) → dynamic) will need runtime check to cast to type (Match) → String (package:matcher/src/util.dart, line 54, col 46)
 info: [DynamicCast] item.isEmpty (dynamic) will need runtime check to cast to type bool (package:matcher/src/core_matchers.dart, line 17, col 41)

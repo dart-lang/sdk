@@ -1596,4 +1596,56 @@ void main() {
         Foo([this.x = /*severe:StaticTypeError*/"1"]);
       }'''
   });
+
+  group('quasi-generics', () {
+    testChecker('dart:math min/max', {
+      '/main.dart': '''
+        import 'dart:math';
+
+        void printInt(int x) => print(x);
+        void printDouble(double x) => print(x);
+
+        num myMax(num x, num y) => max(x, y);
+
+        main() {
+          // Okay if static types match.
+          printInt(max(1, 2));
+          printInt(min(1, 2));
+          printDouble(max(1.0, 2.0));
+          printDouble(min(1.0, 2.0));
+
+          // No help for user-defined functions from num->num->num.
+          printInt(/*info:DownCastImplicit*/myMax(1, 2));
+          printInt(myMax(1, 2) as int);
+
+          // Mixing int and double means return type is num.
+          printInt(/*info:DownCastImplicit*/max(1, 2.0));
+          printInt(/*info:DownCastImplicit*/min(1, 2.0));
+          printDouble(/*info:DownCastImplicit*/max(1, 2.0));
+          printDouble(/*info:DownCastImplicit*/min(1, 2.0));
+
+          // Types other than int and double are not accepted.
+          printInt(
+              /*info:DownCastImplicit*/min(
+                  /*severe:StaticTypeError*/"hi",
+                  /*severe:StaticTypeError*/"there"));
+        }
+    '''
+    });
+
+    testChecker('Iterable and Future', {
+      '/main.dart': '''
+        import 'dart:async';
+
+        Future<int> make(int x) => (/*info:InferredTypeAllocation*/new Future(() => x));
+
+        main() {
+          Iterable<Future<int>> list = <int>[1, 2, 3].map(make);
+          Future<List<int>> results = Future.wait(list);
+          Future<String> results2 = results.then((List<int> list) 
+            => list.fold('', (String x, int y) => x + y.toString()));
+        }
+    '''
+    });
+  });
 }

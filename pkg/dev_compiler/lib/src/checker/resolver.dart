@@ -605,6 +605,76 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     return _typeProvider.nonSubtypableTypes.contains(t);
   }
 
+  List<List> _genericList = null;
+
+  DartType _matchGeneric(MethodInvocation node, Element element) {
+    var e = node.methodName.staticElement;
+
+    if (_genericList == null) {
+      var minmax = (DartType tx, DartType ty) => (tx == ty &&
+              (tx == _typeProvider.intType || tx == _typeProvider.doubleType))
+          ? tx
+          : null;
+
+      var map = (DartType tx) => (tx is FunctionType)
+          ? _typeProvider.iterableType.substitute4([tx.returnType])
+          : null;
+
+      // TODO(vsm): LUB?
+      var fold = (DartType tx, DartType ty) =>
+          (ty is FunctionType && tx == ty.returnType) ? tx : null;
+
+      // TODO(vsm): Flatten?
+      var then = (DartType tx) => (tx is FunctionType)
+          ? _typeProvider.futureType.substitute4([tx.returnType])
+          : null;
+
+      var wait = (DartType tx) {
+        // Iterable<Future<T>> -> Future<List<T>>
+        var futureType = _findIteratedType(tx);
+        if (futureType.element.type != _typeProvider.futureType) return null;
+        var typeArguments = futureType.typeArguments;
+        if (typeArguments.length != 1) return null;
+        var baseType = typeArguments[0];
+        if (baseType.isDynamic) return null;
+        return _typeProvider.futureType.substitute4([
+          _typeProvider.listType.substitute4([baseType])
+        ]);
+      };
+
+      _genericList = [
+        // Top-level methods
+        ['dart:math', 'max', 2, minmax],
+        ['dart:math', 'min', 2, minmax],
+        // Static methods
+        [_typeProvider.futureType, 'wait', 1, wait],
+        // Instance methods
+        [_typeProvider.iterableDynamicType, 'map', 1, map],
+        [_typeProvider.iterableDynamicType, 'fold', 2, fold],
+        [_typeProvider.futureDynamicType, 'then', 1, then],
+      ];
+    }
+
+    var targetType = node.target?.staticType;
+    var arguments = node.argumentList.arguments;
+
+    for (var generic in _genericList) {
+      if (e?.name == generic[1]) {
+        if ((generic[0] is String &&
+                element?.library.source.uri.toString() == generic[0]) ||
+            (targetType == generic[0] ||
+                targetType != null && targetType.isSubtypeOf(generic[0]))) {
+          if (arguments.length == generic[2]) {
+            return Function.apply(
+                generic[3], arguments.map((arg) => arg.staticType).toList());
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
   @override // to propagate types to identifiers
   visitMethodInvocation(MethodInvocation node) {
     // TODO(jmesserly): we rely on having a staticType propagated to the
@@ -672,16 +742,10 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     //
     // TODO(jmesserly): remove this when we have a fix for
     // https://github.com/dart-lang/dev_compiler/issues/28
-    if (isDartMathMinMax(e)) {
-      var args = node.argumentList.arguments;
-      if (args.length == 2) {
-        var tx = args[0].staticType;
-        var ty = args[1].staticType;
-        if (tx == ty &&
-            (tx == _typeProvider.intType || tx == _typeProvider.doubleType)) {
-          node.staticType = tx;
-        }
-      }
+    var inferred = _matchGeneric(node, e);
+    // TODO(vsm): If the inferred type is not a subtype, should we use a GLB instead?
+    if (inferred != null && inferred.isSubtypeOf(node.staticType)) {
+      node.staticType = inferred;
     }
   }
 

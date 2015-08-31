@@ -45,10 +45,10 @@ dart_library.library('dart/convert', null, /* Imports */[
       super.Codec();
     }
     decodeStream(byteStream) {
-      return dart.as(byteStream.transform(this.decoder).fold(new core.StringBuffer(), dart.fn((buffer, string) => ((() => {
+      return byteStream.transform(this.decoder).fold(new core.StringBuffer(), dart.fn((buffer, string) => ((() => {
         dart.dsend(buffer, 'write', string);
         return buffer;
-      })()))).then(dart.fn(buffer => dart.toString(buffer), core.String, [dart.dynamic])), async.Future$(core.String));
+      })()))).then(dart.fn(buffer => dart.toString(buffer), core.String, [dart.dynamic]));
     }
     static getByName(name) {
       if (name == null)
