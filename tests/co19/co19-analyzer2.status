@@ -6,25 +6,25 @@
 
 WebPlatformTest/html/semantics/forms/the-textarea-element/textarea-type_t01: fail
 LayoutTests/fast/forms/checkValidity-001_t01: fail
-Language/12_Expressions/29_Assignable_Expressions_A01_t08: StaticWarning
-Language/14_Libraries_and_Scripts/3_Parts_A03_t11: fail, pass # Issue 23595
+Language/Expressions/Assignable_Expressions/syntax_t08: StaticWarning
+Language/Libraries_and_Scripts/Parts/compilation_t15: fail, pass # Issue 23595
 
 # TBF: Static members should not be accessible via subclasses.
-Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t05: MissingStaticWarning
+Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t05: MissingStaticWarning
 
 # co19 issue #442, undefined name "Expect"
-Language/15_Types/4_Interface_Types_A08_t03: fail, OK
+Language/Types/Interface_Types/subtype_t12: fail, OK
 
 # co19 issue #438, Static variables are initialized lazily, need not be constants
-Language/12_Expressions/01_Constants_A16_t01: fail, OK
-Language/12_Expressions/01_Constants_A16_t02: fail, OK
+Language/Expressions/Constants/exception_t01: fail, OK
+Language/Expressions/Constants/exception_t02: fail, OK
 
 # co19 issue #543: invocation of a non-function
-Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t02: fail, OK
+Language/Expressions/Function_Invocation/Function_Expression_Invocation/static_type_t02: fail, OK
 
 # co19 issue #564: URI can be any number adjacent string literals
-Language/14_Libraries_and_Scripts/5_URIs_A01_t24: fail, OK
-Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
+Language/Libraries_and_Scripts/URIs/syntax_t14: fail, OK
+Language/Libraries_and_Scripts/URIs/syntax_t15: fail, OK
 
 # co19 issue #615: Expect import missing
 LibTest/collection/LinkedList/LinkedList_A01_t01: Fail, OK
@@ -65,23 +65,23 @@ LibTest/collection/ListQueue/ListQueue_class_A01_t01: Fail, OK
 LibTest/collection/Queue/Queue_class_A01_t01: Fail, OK
 
 
-Language/12_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: MissingStaticWarning
-Language/13_Statements/06_For/1_For_Loop_A01_t07: MissingStaticWarning
-Language/13_Statements/06_For/1_For_Loop_A01_t08: MissingStaticWarning
-Language/13_Statements/09_Switch_A10_t03: MissingStaticWarning
-Language/13_Statements/15_Assert_A04_t04: MissingStaticWarning
+Language/Expressions/Method_Invocation/Cascaded_Invocations/syntax_t19: MissingStaticWarning
+Language/Statements/For/For_Loop/execution_t07: MissingStaticWarning
+Language/Statements/For/For_Loop/execution_t08: MissingStaticWarning
+Language/Statements/Switch/last_statement_t03: MissingStaticWarning
+Language/Statements/Assert/type_t04: MissingStaticWarning
 
-Language/05_Variables/05_Variables_A05_t04: MissingCompileTimeError # co19-roll r651: Please triage this failure
-Language/05_Variables/05_Variables_A05_t05: MissingCompileTimeError # co19-roll r651: Please triage this failure
-Language/05_Variables/05_Variables_A05_t06: MissingCompileTimeError # co19-roll r651: Please triage this failure
-Language/05_Variables/05_Variables_A05_t07: MissingCompileTimeError # co19-roll r651: Please triage this failure
-Language/05_Variables/05_Variables_A06_t01: MissingCompileTimeError # co19-roll r651: Please triage this failure
-Language/05_Variables/05_Variables_A06_t02: MissingCompileTimeError # co19-roll r651: Please triage this failure
-Language/05_Variables/05_Variables_A06_t03: MissingCompileTimeError # co19-roll r651: Please triage this failure
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t17: MissingCompileTimeError # co19-roll r651: Please triage this failure
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/Variables/final_t04: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/Variables/final_t05: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/Variables/final_t06: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/Variables/final_t07: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/Variables/final_or_static_initialization_t01: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/Expressions/Function_Invocation/Unqualified_Invocation/invocation_t17: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/Expressions/Function_Invocation/Unqualified_Invocation/invocation_t18: MissingCompileTimeError # co19-roll r651: Please triage this failure
 
-Language/07_Classes/10_Superinterfaces_A07_t05: StaticWarning # co19-roll r667: Please triage this failure
+Language/Classes/Superinterfaces/no_member_t05: StaticWarning # co19-roll r667: Please triage this failure
 LibTest/convert/JsonEncoder/JsonEncoder_A01_t01: StaticWarning # co19-roll r667: Please triage this failure
 
 # co19 issue 656
@@ -95,12 +95,12 @@ LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
 WebPlatformTest/custom-elements/*: Pass, StaticWarning # Issue 18095.
 
 # co19 roll to r706: Please triage all these issues.
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t03: StaticWarning # co19-roll r706: Please triage this failure.
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t04: StaticWarning # co19-roll r706: Please triage this failure.
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t05: StaticWarning # co19-roll r706: Please triage this failure.
-Language/14_Libraries_and_Scripts/3_Parts_A02_t04: CompileTimeError # co19-roll r706: Please triage this failure.
-Language/14_Libraries_and_Scripts/3_Parts_A04_t01: CompileTimeError # co19-roll r706: Please triage this failure.
-Language/14_Libraries_and_Scripts/4_Scripts_A01_t16: CompileTimeError # co19-roll r706: Please triage this failure.
+Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t03: StaticWarning # co19-roll r706: Please triage this failure.
+Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t04: StaticWarning # co19-roll r706: Please triage this failure.
+Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t05: StaticWarning # co19-roll r706: Please triage this failure.
+Language/Libraries_and_Scripts/Parts/compilation_t04: CompileTimeError # co19-roll r706: Please triage this failure.
+Language/Libraries_and_Scripts/Parts/static_warning_t01: CompileTimeError # co19-roll r706: Please triage this failure.
+Language/Libraries_and_Scripts/Scripts/syntax_t11: CompileTimeError # co19-roll r706: Please triage this failure.
 LayoutTests/fast/dom/DOMImplementation/createDocument-namespace-err_t01: StaticWarning # co19-roll r706: Please triage this failure.
 LayoutTests/fast/dom/DOMImplementation/createDocumentType-err_t01: StaticWarning # co19-roll r706: Please triage this failure.
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/caretRangeFromPoint-in-zoom-and-scroll_t01: StaticWarning # co19-roll r706: Please triage this failure.
@@ -186,7 +186,7 @@ WebPlatformTest/dom/nodes/Node-isEqualNode_t01: StaticWarning # co19-roll r722: 
 WebPlatformTest/dom/nodes/Node-parentNode_t01: StaticWarning # co19-roll r722: Please triage this failure.
 
 # co19-roll r738
-Language/07_Classes/07_Classes_A03_t06: MissingStaticWarning # co19-roll r738: Please triage this failure.
+Language/Classes/Classes/method_definition_t06: MissingStaticWarning # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/StyleSheet/detached-parent-rule-without-wrapper_t01: StaticWarning # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/StyleSheet/detached-stylesheet-without-wrapper_t01: StaticWarning # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/StyleSheet/removed-media-rule-deleted-parent-crash_t01: StaticWarning # co19-roll r738: Please triage this failure.
@@ -282,11 +282,11 @@ LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t01: St
 LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t01: StaticWarning # co19 issue 703
 WebPlatformTest/dom/Node-replaceChild_t01: CompileTimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-input-element/email_t02: StaticWarning # co19 issue 701
-Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: MissingCompileTimeError # Issue 22010
-Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: MissingCompileTimeError # Issue 22010
-Language/15_Types/4_Interface_Types_A10_t03: StaticWarning # co19 issue 745
-Language/15_Types/4_Interface_Types_A10_t07: StaticWarning # co19 issue 745
-Language/15_Types/4_Interface_Types_A10_t09: StaticWarning # co19 issue 745
-Language/13_Statements/15_Assert_A04_t07: StaticWarning # Issue 23663
-Language/13_Statements/15_Assert_A03_t08: StaticWarning # Issue 23663
+Language/Expressions/Instance_Creation/Const/abstract_class_t01: MissingCompileTimeError # Issue 22010
+Language/Expressions/Instance_Creation/Const/abstract_class_t03: MissingCompileTimeError # Issue 22010
+Language/Types/Interface_Types/subtype_t19: StaticWarning # co19 issue 745
+Language/Types/Interface_Types/subtype_t22: StaticWarning # co19 issue 745
+Language/Types/Interface_Types/subtype_t24: StaticWarning # co19 issue 745
+Language/Statements/Assert/type_t07: StaticWarning # Issue 23663
+Language/Statements/Assert/execution_t08: StaticWarning # Issue 23663
 

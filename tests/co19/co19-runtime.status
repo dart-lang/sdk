@@ -11,16 +11,16 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
-Language/03_Overview/1_Scoping_A02_t28: RuntimeError # Issue 21163
-Language/13_Statements/09_Switch_A01_t02: fail # Dart issue 12908
-Language/13_Statements/12_Labels_A01_t03: fail # Dart issue 2238
-Language/14_Libraries_and_Scripts/2_Exports_A04_t02: fail # Dart issue 12916
-Language/14_Libraries_and_Scripts/2_Exports_A04_t03: fail # Dart issue 12916
+Language/Overview/Scoping/hiding_declaration_t28: RuntimeError # Issue 21163
+Language/Statements/Switch/syntax_t02: fail # Dart issue 12908
+Language/Statements/Labels/syntax_t03: fail # Dart issue 2238
+Language/Libraries_and_Scripts/Exports/reexport_t01: fail # Dart issue 12916
+Language/Libraries_and_Scripts/Exports/reexport_t02: fail # Dart issue 12916
 
-Language/13_Statements/15_Assert_A03_t02: skip # co19 issue 734
-Language/13_Statements/15_Assert_A03_t03: skip # co19 issue 734
-Language/13_Statements/15_Assert_A04_t02: skip # co19 issue 734
-Language/13_Statements/15_Assert_A04_t05: skip # co19 issue 734
+Language/Statements/Assert/execution_t02: skip # co19 issue 734
+Language/Statements/Assert/execution_t03: skip # co19 issue 734
+Language/Statements/Assert/type_t02: skip # co19 issue 734
+Language/Statements/Assert/type_t05: skip # co19 issue 734
 
 
 LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
@@ -41,12 +41,12 @@ LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 [ $compiler == none && $runtime == vm ]
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
-Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: MissingCompileTimeError # Issue 22007
-Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: MissingCompileTimeError # Issue 22007
+Language/Expressions/Instance_Creation/Const/abstract_class_t01: MissingCompileTimeError # Issue 22007
+Language/Expressions/Instance_Creation/Const/abstract_class_t03: MissingCompileTimeError # Issue 22007
 # With asynchronous loading, the load errors in these tests are no longer recognized as compile errors:
-Language/14_Libraries_and_Scripts/1_Imports_A04_t02: Fail
-Language/14_Libraries_and_Scripts/2_Exports_A05_t02: Fail
-Language/14_Libraries_and_Scripts/3_Parts_A01_t06: Fail
+Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Fail
+Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Fail
+Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 
 [ $runtime == vm ]
 LibTest/math/MutableRectangle/MutableRectangle.fromPoints_A01_t01: Pass, RuntimeError # co19-roll r607: Please triage this failure
@@ -83,4 +83,4 @@ LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
 WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
 
 [ $runtime == vm && $mode == debug && $builder_tag == asan ]
-Language/15_Types/4_Interface_Types_A11_t01: Skip  # Issue 21174.
+Language/Types/Interface_Types/subtype_t27: Skip  # Issue 21174.
