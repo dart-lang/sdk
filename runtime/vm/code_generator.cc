@@ -57,6 +57,7 @@ DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
 DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 
 DECLARE_FLAG(int, deoptimization_counter_threshold);
+DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 DEFINE_FLAG(bool, use_osr, true, "Use on-stack replacement.");
@@ -1473,6 +1474,12 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     // Reset usage counter for reoptimization before calling optimizer to
     // prevent recursive triggering of function optimization.
     function.set_usage_counter(0);
+    if (FLAG_trace_compiler) {
+      if (function.HasOptimizedCode()) {
+        ISL_Print("ReCompiling function: '%s' \n",
+                  function.ToFullyQualifiedCString());
+      }
+    }
     const Error& error = Error::Handle(
         isolate, Compiler::CompileOptimizedFunction(thread, function));
     if (!error.IsNull()) {
