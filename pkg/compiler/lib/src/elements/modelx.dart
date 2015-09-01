@@ -2325,11 +2325,7 @@ abstract class BaseClassElementX extends ElementX
   bool get isEnumClass => false;
 
   InterfaceType computeType(Compiler compiler) {
-    if (isPatch) {
-      origin.computeType(compiler);
-      thisTypeCache = origin.thisType;
-      rawTypeCache = origin.rawType;
-    } else if (thisTypeCache == null) {
+    if (thisTypeCache == null) {
       computeThisAndRawType(compiler, computeTypeParameters(compiler));
     }
     return thisTypeCache;

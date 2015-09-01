@@ -377,9 +377,7 @@ abstract class MembersCreator {
           // superMember.declarations. Investigate why.
         } else if (cls == inherited.declarer.element) {
           // An error should already have been reported.
-          assert(invariant(declared.element, compiler.compilationFailed,
-              message: "Member $inherited inherited from its "
-                       "declaring class: ${cls}."));
+          assert(invariant(declared.element, compiler.compilationFailed));
           continue;
         }
 
