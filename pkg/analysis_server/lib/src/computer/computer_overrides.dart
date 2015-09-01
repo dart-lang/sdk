@@ -51,8 +51,11 @@ class DartUnitOverridesComputer {
     return _overrides;
   }
 
-  void _addInterfaceOverrides(List<engine.Element> elements, String name,
-      engine.InterfaceType type, bool checkType,
+  void _addInterfaceOverrides(
+      Set<engine.Element> elements,
+      String name,
+      engine.InterfaceType type,
+      bool checkType,
       Set<engine.InterfaceType> visited) {
     if (type == null) {
       return;
@@ -65,6 +68,7 @@ class DartUnitOverridesComputer {
       engine.Element element = _lookupMember(type.element, name);
       if (element != null) {
         elements.add(element);
+        return;
       }
     }
     // check interfaces
@@ -85,9 +89,10 @@ class DartUnitOverridesComputer {
       }
     }
     // interfaces
-    List<engine.Element> interfaceEngineElements = <engine.Element>[];
+    Set<engine.Element> interfaceEngineElements = new Set<engine.Element>();
     _addInterfaceOverrides(interfaceEngineElements, name, _currentClass.type,
         false, new Set<engine.InterfaceType>());
+    interfaceEngineElements.remove(superEngineElement);
     // is there any override?
     if (superEngineElement != null || interfaceEngineElements.isNotEmpty) {
       OverriddenMember superMember = superEngineElement != null

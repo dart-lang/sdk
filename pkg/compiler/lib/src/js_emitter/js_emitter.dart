@@ -6,6 +6,9 @@ library dart2js.js_emitter;
 
 import '../common.dart';
 
+import '../common/names.dart' show
+    Identifiers;
+
 import '../constants/values.dart';
 
 import '../closure.dart' show
@@ -16,6 +19,9 @@ import '../closure.dart' show
 
 import '../dart_types.dart' show
     TypedefType;
+
+import '../diagnostics/spannable.dart' show
+    NO_LOCATION_SPANNABLE;
 
 import '../elements/elements.dart' show
     ConstructorBodyElement,
@@ -59,7 +65,6 @@ import '../universe/universe.dart' show
     TypedSelector;
 
 import '../util/util.dart' show
-    NO_LOCATION_SPANNABLE,
     Setlet;
 
 import '../deferred_load.dart' show

@@ -19,9 +19,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
+import 'utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(AbstractContextManagerTest);
 }
 
@@ -96,10 +97,11 @@ class AbstractContextManagerTest {
   }
 
   void test_contextsInAnalysisRoot_nestedContext() {
-    String subProjPath = join(projPath, 'subproj');
+    String subProjPath = posix.join(projPath, 'subproj');
     Folder subProjFolder = resourceProvider.newFolder(subProjPath);
-    resourceProvider.newFile(join(subProjPath, 'pubspec.yaml'), 'contents');
-    String subProjFilePath = join(subProjPath, 'file.dart');
+    resourceProvider.newFile(
+        posix.join(subProjPath, 'pubspec.yaml'), 'contents');
+    String subProjFilePath = posix.join(subProjPath, 'file.dart');
     resourceProvider.newFile(subProjFilePath, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // Make sure that there really are contexts for both the main project and
@@ -151,10 +153,11 @@ class AbstractContextManagerTest {
   }
 
   void test_isInAnalysisRoot_inNestedContext() {
-    String subProjPath = join(projPath, 'subproj');
+    String subProjPath = posix.join(projPath, 'subproj');
     Folder subProjFolder = resourceProvider.newFolder(subProjPath);
-    resourceProvider.newFile(join(subProjPath, 'pubspec.yaml'), 'contents');
-    String subProjFilePath = join(subProjPath, 'file.dart');
+    resourceProvider.newFile(
+        posix.join(subProjPath, 'pubspec.yaml'), 'contents');
+    String subProjFilePath = posix.join(subProjPath, 'file.dart');
     resourceProvider.newFile(subProjFilePath, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // Make sure that there really is a context for the subproject.
@@ -214,7 +217,9 @@ class AbstractContextManagerTest {
     String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
     newFile([sdkExtSrcPath, 'part.dart']);
     // Setup analysis options file with ignore list.
-    newFile([projPath, '.analysis_options'], r'''
+    newFile(
+        [projPath, '.analysis_options'],
+        r'''
 analyzer:
   exclude:
     - lib/nope.dart
@@ -235,17 +240,23 @@ analyzer:
     // Create files.
     String libPath = newFolder([projPath, LIB_NAME]);
     newFile([libPath, 'main.dart']);
-    newFile([libPath, 'pubspec.yaml'], r'''
+    newFile(
+        [libPath, 'pubspec.yaml'],
+        r'''
 name: foobar
 ''');
     String otherLibPath = newFolder([projPath, 'other_lib']);
     newFile([otherLibPath, 'entry.dart']);
-    newFile([otherLibPath, 'pubspec.yaml'], r'''
+    newFile(
+        [otherLibPath, 'pubspec.yaml'],
+        r'''
 name: other_lib
 ''');
     // Setup analysis options file with ignore list that ignores the 'other_lib'
     // directory by name.
-    newFile([projPath, '.analysis_options'], r'''
+    newFile(
+        [projPath, '.analysis_options'],
+        r'''
 analyzer:
   exclude:
     - 'other_lib'
@@ -254,38 +265,8 @@ analyzer:
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // Verify that the context in other_lib wasn't created and that the
     // context in lib was created.
-    var contexts = manager.contextsInAnalysisRoot(
-        resourceProvider.newFolder(projPath));
-    expect(contexts.length, 2);
-    expect(contexts[0].name, equals('/my/proj'));
-    expect(contexts[1].name, equals('/my/proj/lib'));
-  }
-
-  test_path_filter_wildcard_child_contexts_option() async {
-    // Create files.
-    String libPath = newFolder([projPath, LIB_NAME]);
-    newFile([libPath, 'main.dart']);
-    newFile([libPath, 'pubspec.yaml'], r'''
-name: foobar
-''');
-    String otherLibPath = newFolder([projPath, 'other_lib']);
-    newFile([otherLibPath, 'entry.dart']);
-    newFile([otherLibPath, 'pubspec.yaml'], r'''
-name: other_lib
-''');
-    // Setup analysis options file with ignore list that ignores 'other_lib'
-    // and all immediate children.
-    newFile([projPath, '.analysis_options'], r'''
-analyzer:
-  exclude:
-    - 'other_lib/*'
-''');
-    // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    // Verify that the context in other_lib wasn't created and that the
-    // context in lib was created.
-    var contexts = manager.contextsInAnalysisRoot(
-        resourceProvider.newFolder(projPath));
+    var contexts =
+        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
     expect(contexts.length, 2);
     expect(contexts[0].name, equals('/my/proj'));
     expect(contexts[1].name, equals('/my/proj/lib'));
@@ -295,17 +276,23 @@ analyzer:
     // Create files.
     String libPath = newFolder([projPath, LIB_NAME]);
     newFile([libPath, 'main.dart']);
-    newFile([libPath, 'pubspec.yaml'], r'''
+    newFile(
+        [libPath, 'pubspec.yaml'],
+        r'''
   name: foobar
   ''');
     String otherLibPath = newFolder([projPath, 'other_lib']);
     newFile([otherLibPath, 'entry.dart']);
-    newFile([otherLibPath, 'pubspec.yaml'], r'''
+    newFile(
+        [otherLibPath, 'pubspec.yaml'],
+        r'''
   name: other_lib
   ''');
     // Setup analysis options file with ignore list that ignores 'other_lib'
     // and all descendants.
-    newFile([projPath, '.analysis_options'], r'''
+    newFile(
+        [projPath, '.analysis_options'],
+        r'''
 analyzer:
   exclude:
     - 'other_lib/**'
@@ -314,8 +301,44 @@ analyzer:
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // Verify that the context in other_lib wasn't created and that the
     // context in lib was created.
-    var contexts = manager.contextsInAnalysisRoot(
-        resourceProvider.newFolder(projPath));
+    var contexts =
+        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+    expect(contexts.length, 2);
+    expect(contexts[0].name, equals('/my/proj'));
+    expect(contexts[1].name, equals('/my/proj/lib'));
+  }
+
+  test_path_filter_wildcard_child_contexts_option() async {
+    // Create files.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    newFile(
+        [libPath, 'pubspec.yaml'],
+        r'''
+name: foobar
+''');
+    String otherLibPath = newFolder([projPath, 'other_lib']);
+    newFile([otherLibPath, 'entry.dart']);
+    newFile(
+        [otherLibPath, 'pubspec.yaml'],
+        r'''
+name: other_lib
+''');
+    // Setup analysis options file with ignore list that ignores 'other_lib'
+    // and all immediate children.
+    newFile(
+        [projPath, '.analysis_options'],
+        r'''
+analyzer:
+  exclude:
+    - 'other_lib/*'
+''');
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // Verify that the context in other_lib wasn't created and that the
+    // context in lib was created.
+    var contexts =
+        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
     expect(contexts.length, 2);
     expect(contexts[0].name, equals('/my/proj'));
     expect(contexts[1].name, equals('/my/proj/lib'));
@@ -513,8 +536,9 @@ test_pack:lib/
     newFile([examplePath, ContextManagerImpl.PACKAGE_SPEC_NAME]);
     newFile([examplePath, 'example.dart']);
 
-    packageMapProvider.packageMap['proj'] =
-        [resourceProvider.getResource(libPath)];
+    packageMapProvider.packageMap['proj'] = [
+      resourceProvider.getResource(libPath)
+    ];
 
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
 
@@ -541,8 +565,9 @@ test_pack:lib/
     newFile([examplePath, ContextManagerImpl.PUBSPEC_NAME]);
     newFile([examplePath, 'example.dart']);
 
-    packageMapProvider.packageMap['proj'] =
-        [resourceProvider.getResource(libPath)];
+    packageMapProvider.packageMap['proj'] = [
+      resourceProvider.getResource(libPath)
+    ];
 
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
 
@@ -640,8 +665,9 @@ test_pack:lib/
     newFile([srcPath, 'internal.dart']);
     String testFilePath = newFile([testPath, 'main_test.dart']);
 
-    packageMapProvider.packageMap['proj'] =
-        [resourceProvider.getResource(libPath)];
+    packageMapProvider.packageMap['proj'] = [
+      resourceProvider.getResource(libPath)
+    ];
 
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     Set<Source> sources = callbacks.currentContextSources[projPath];
@@ -700,8 +726,12 @@ test_pack:lib/
     resourceProvider.newFile(subProjectB_file, 'library b;');
     // configure package maps
     packageMapProvider.packageMaps = {
-      subProjectA: {'foo': [resourceProvider.newFolder('/package/foo')]},
-      subProjectB: {'bar': [resourceProvider.newFolder('/package/bar')]},
+      subProjectA: {
+        'foo': [resourceProvider.newFolder('/package/foo')]
+      },
+      subProjectB: {
+        'bar': [resourceProvider.newFolder('/package/bar')]
+      },
     };
     // set roots
     manager.setRoots(<String>[root], <String>[], <String, String>{});
@@ -722,14 +752,15 @@ test_pack:lib/
     String packagePathFoo = '/package1/foo';
     String packageRootPath = '/package2/foo';
     Folder packageFolder = resourceProvider.newFolder(packagePathFoo);
-    packageMapProvider.packageMap = {'foo': [packageFolder]};
+    packageMapProvider.packageMap = {
+      'foo': [packageFolder]
+    };
     List<String> includedPaths = <String>[projPath];
     List<String> excludedPaths = <String>[];
     manager.setRoots(includedPaths, excludedPaths, <String, String>{});
     _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
-    manager.setRoots(includedPaths, excludedPaths, <String, String>{
-      projPath: packageRootPath
-    });
+    manager.setRoots(includedPaths, excludedPaths,
+        <String, String>{projPath: packageRootPath});
     _checkPackageRoot(projPath, equals(packageRootPath));
   }
 
@@ -738,13 +769,11 @@ test_pack:lib/
     String packageRootPath2 = '/package2';
     List<String> includedPaths = <String>[projPath];
     List<String> excludedPaths = <String>[];
-    manager.setRoots(includedPaths, excludedPaths, <String, String>{
-      projPath: packageRootPath1
-    });
+    manager.setRoots(includedPaths, excludedPaths,
+        <String, String>{projPath: packageRootPath1});
     _checkPackageRoot(projPath, equals(packageRootPath1));
-    manager.setRoots(includedPaths, excludedPaths, <String, String>{
-      projPath: packageRootPath2
-    });
+    manager.setRoots(includedPaths, excludedPaths,
+        <String, String>{projPath: packageRootPath2});
     _checkPackageRoot(projPath, equals(packageRootPath2));
   }
 
@@ -874,16 +903,17 @@ test_pack:lib/
 
   void test_setRoots_newFolderWithPackageRoot() {
     String packageRootPath = '/package';
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{
-      projPath: packageRootPath
-    });
+    manager.setRoots(<String>[projPath], <String>[],
+        <String, String>{projPath: packageRootPath});
     _checkPackageRoot(projPath, equals(packageRootPath));
   }
 
   void test_setRoots_newlyAddedFoldersGetProperPackageMap() {
     String packagePath = '/package/foo';
     Folder packageFolder = resourceProvider.newFolder(packagePath);
-    packageMapProvider.packageMap = {'foo': [packageFolder]};
+    packageMapProvider.packageMap = {
+      'foo': [packageFolder]
+    };
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
   }
@@ -1016,12 +1046,13 @@ test_pack:lib/
     String packagePathFoo = '/package1/foo';
     String packageRootPath = '/package2/foo';
     Folder packageFolder = resourceProvider.newFolder(packagePathFoo);
-    packageMapProvider.packageMap = {'foo': [packageFolder]};
+    packageMapProvider.packageMap = {
+      'foo': [packageFolder]
+    };
     List<String> includedPaths = <String>[projPath];
     List<String> excludedPaths = <String>[];
-    manager.setRoots(includedPaths, excludedPaths, <String, String>{
-      projPath: packageRootPath
-    });
+    manager.setRoots(includedPaths, excludedPaths,
+        <String, String>{projPath: packageRootPath});
     _checkPackageRoot(projPath, equals(packageRootPath));
     manager.setRoots(includedPaths, excludedPaths, <String, String>{});
     _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
@@ -1351,7 +1382,17 @@ test_pack:lib/
   }
 
   test_watch_deletePackagespec_fromSubFolder_withPubspec() {
-    // prepare paths
+    // prepare paths:
+    //
+    // root
+    //   root.dart
+    //   sub
+    //     aaa
+    //       .packages
+    //       pubspec.yaml
+    //       bin
+    //         a.dart
+    //
     String root = '/root';
     String rootFile = '$root/root.dart';
     String subProject = '$root/sub/aaa';
@@ -1564,8 +1605,8 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
    * A map from the paths of contexts to a set of the sources that should be
    * explicitly analyzed in those contexts.
    */
-  final Map<String, Set<Source>> currentContextSources = <String, Set<Source>>{
-  };
+  final Map<String, Set<Source>> currentContextSources =
+      <String, Set<Source>>{};
 
   /**
    * Map from context to folder disposition.
@@ -1594,8 +1635,9 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     currentContextSources[path] = new HashSet<Source>();
     currentContextDispositions[path] = disposition;
     currentContext = AnalysisEngine.instance.createAnalysisContext();
-    List<UriResolver> resolvers = [new FileUriResolver()];
+    List<UriResolver> resolvers = [];
     resolvers.addAll(disposition.createPackageUriResolvers(resourceProvider));
+    resolvers.add(new FileUriResolver());
     currentContext.sourceFactory =
         new SourceFactory(resolvers, disposition.packages);
     return currentContext;

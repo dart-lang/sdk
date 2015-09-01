@@ -16,17 +16,12 @@ export 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/js_backend.dart'
        as js;
 
-import 'package:compiler/src/dart2jslib.dart'
-       as leg;
-export 'package:compiler/src/dart2jslib.dart'
-       show Constant,
-            Message,
-            MessageKind,
-            MessageTemplate,
-            Selector,
-            TypedSelector,
-            SourceSpan,
-            World;
+import 'package:compiler/src/common/codegen.dart';
+import 'package:compiler/src/common/resolution.dart';
+
+export 'package:compiler/src/diagnostics/messages.dart';
+export 'package:compiler/src/diagnostics/source_span.dart';
+export 'package:compiler/src/diagnostics/spannable.dart';
 
 import 'package:compiler/src/types/types.dart'
        as types;
@@ -36,7 +31,7 @@ export 'package:compiler/src/types/types.dart'
 import 'package:compiler/src/util/util.dart';
 export 'package:compiler/src/util/util.dart';
 
-import 'package:compiler/src/dart2jslib.dart'
+import 'package:compiler/src/compiler.dart'
        show Compiler;
 
 export 'package:compiler/src/tree/tree.dart';
@@ -72,11 +67,11 @@ Future<String> compile(String code,
     compiler.world.populate();
     compiler.backend.onResolutionComplete();
     var context = new js.JavaScriptItemCompilationContext();
-    leg.ResolutionWorkItem resolutionWork =
-        new leg.ResolutionWorkItem(element, context);
+    ResolutionWorkItem resolutionWork =
+        new ResolutionWorkItem(element, context);
     resolutionWork.run(compiler, compiler.enqueuer.resolution);
-    leg.CodegenWorkItem work =
-        new leg.CodegenWorkItem(compiler, element, context);
+    CodegenWorkItem work =
+        new CodegenWorkItem(compiler, element, context);
     compiler.phase = Compiler.PHASE_COMPILING;
     work.run(compiler, compiler.enqueuer.codegen);
     js.JavaScriptBackend backend = compiler.backend;
@@ -96,6 +91,7 @@ MockCompiler compilerFor(String code, Uri uri,
                           bool disableInlining: true,
                           bool minify: false,
                           bool trustTypeAnnotations: false,
+                          bool enableTypeAssertions: false,
                           int expectedErrors,
                           int expectedWarnings,
                           api.CompilerOutputProvider outputProvider}) {
@@ -106,6 +102,7 @@ MockCompiler compilerFor(String code, Uri uri,
       disableInlining: disableInlining,
       enableMinification: minify,
       trustTypeAnnotations: trustTypeAnnotations,
+      enableTypeAssertions: enableTypeAssertions,
       expectedErrors: expectedErrors,
       expectedWarnings: expectedWarnings,
       outputProvider: outputProvider);

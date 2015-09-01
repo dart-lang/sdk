@@ -356,6 +356,13 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return 'ApplyBuiltinOperator $operator ($args)';
   }
 
+  visitApplyBuiltinMethod(cps_ir.ApplyBuiltinMethod node) {
+    String method = node.method.toString();
+    String receiver = formatReference(node.receiver);
+    String args = node.arguments.map(formatReference).join(', ');
+    return 'ApplyBuiltinMethod $method $receiver ($args)';
+  }
+
   @override
   visitForeignCode(cps_ir.ForeignCode node) {
     String id = names.name(node);
@@ -381,6 +388,13 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String index = formatReference(node.index);
     String value = formatReference(node.value);
     return 'SetIndex $object $index $value';
+  }
+
+  @override
+  visitAwait(cps_ir.Await node) {
+    String value = formatReference(node.input);
+    String continuation = formatReference(node.continuation);
+    return 'Await $value $continuation';
   }
 }
 
@@ -625,6 +639,10 @@ class BlockCollector implements cps_ir.Visitor {
     unexpectedNode(node);
   }
 
+  visitApplyBuiltinMethod(cps_ir.ApplyBuiltinMethod node) {
+    unexpectedNode(node);
+  }
+
   visitGetLength(cps_ir.GetLength node) {
     unexpectedNode(node);
   }
@@ -652,5 +670,10 @@ class BlockCollector implements cps_ir.Visitor {
   @override
   visitForeignCode(cps_ir.ForeignCode node) {
     addEdgeToContinuation(node.continuation);
+  }
+
+  @override
+  visitAwait(cps_ir.Await node) {
+    unexpectedNode(node);
   }
 }

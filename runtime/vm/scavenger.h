@@ -121,10 +121,6 @@ class Scavenger {
   // During a scavenge this function only returns true for addresses that will
   // be part of the surviving objects.
   bool Contains(uword addr) const {
-    // No reasonable algorithm should be checking for objects in from space. At
-    // least unless it is debugging code. This might need to be relaxed later,
-    // but currently it helps prevent dumb bugs.
-    ASSERT(from_ == NULL || !from_->Contains(addr));
     return to_->Contains(addr);
   }
 
@@ -232,7 +228,7 @@ class Scavenger {
   };
 
   uword FirstObjectStart() const { return to_->start() | object_alignment_; }
-  void Prologue(Isolate* isolate, bool invoke_api_callbacks);
+  SemiSpace* Prologue(Isolate* isolate, bool invoke_api_callbacks);
   void IterateStoreBuffers(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateObjectIdTable(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateRoots(Isolate* isolate,
@@ -246,8 +242,7 @@ class Scavenger {
   void ProcessToSpace(ScavengerVisitor* visitor);
   uword ProcessWeakProperty(RawWeakProperty* raw_weak,
                             ScavengerVisitor* visitor);
-  void Epilogue(Isolate* isolate,
-                bool invoke_api_callbacks);
+  void Epilogue(Isolate* isolate, SemiSpace* from, bool invoke_api_callbacks);
 
   bool IsUnreachable(RawObject** p);
 
@@ -277,7 +272,6 @@ class Scavenger {
 
   intptr_t NewSizeInWords(intptr_t old_size_in_words) const;
 
-  SemiSpace* from_;
   SemiSpace* to_;
 
   Heap* heap_;

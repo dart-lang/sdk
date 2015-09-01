@@ -185,7 +185,7 @@ class BlockTraversalState {
 
 
 void FlowGraph::DiscoverBlocks() {
-  StackZone zone(isolate());
+  StackZone zone(thread());
 
   // Initialize state.
   preorder_.Clear();

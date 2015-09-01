@@ -63,13 +63,16 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 [ $host_checked && $compiler == dart2js && $cps_ir ]
 21724_test: Crash # Please triage this failure.
 
+[ $compiler == none && $runtime == vm ]
+invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy
+
 [ $compiler == dart2js && $cps_ir ]
 16407_test: Pass # Please triage this failure.
-22868_test: Crash # (main()async{var clo...  cannot handle async/sync*/async* functions
-22895_test: Crash # (main()async{var clo...  cannot handle async/sync*/async* functions
-23432_test: RuntimeError, Pass # Please triage this failure. (Passes for the wrong reason)
-async_stacktrace_test/asyncStar: Crash # (runTests()async{awa...  cannot handle async/sync*/async* functions
-async_stacktrace_test/none: Crash # (runTests()async{awa...  cannot handle async/sync*/async* functions
+22868_test: RuntimeError # Issue 23997
+22895_test: RuntimeError # Issue 23997
+23432_test: RuntimeError # Issue 23432
+async_stacktrace_test/asyncStar: Crash # (foo()async*{try {tr...  cannot handle sync*/async* functions
+async_stacktrace_test/none: RuntimeError # $async$temp1.Tracer$ is not a function
 closure_capture5_test: Crash # (i=0): For-loop variable captured in loop header
 deferred/deferred_class_test: RuntimeError # Z.loadLibrary is not a function
 deferred/deferred_constant2_test: Crash # (lib.C1): deferred access is not implemented
@@ -81,10 +84,7 @@ deferred/deferred_overlapping_test: RuntimeError # E.loadLibrary is not a functi
 deferred_fail_and_retry_test: Crash # (lib.foo()): deferred access is not implemented
 deferred_fail_and_retry_worker_test: Crash # (lib.foo()): deferred access is not implemented
 deferred_split_test: Crash # (b.createA()): deferred access is not implemented
-mirror_printer_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
-mirror_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
-reflect_native_types_test: Crash # (static Iterable<Str...  cannot handle async/sync*/async* functions
+mirror_printer_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
+mirror_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
+reflect_native_types_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 switch_test/none: Crash # (switch (val){foo:ba...  continue to a labeled switch case
-
-[ $compiler == none && $runtime == vm ]
-invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy

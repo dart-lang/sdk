@@ -112,6 +112,16 @@ class CpsFragment {
     return letPrim(new ApplyBuiltinOperator(op, args, sourceInformation));
   }
 
+  Primitive invokeBuiltin(BuiltinMethod method, 
+                          Primitive receiver, 
+                          List<Primitive> arguments,
+                          {bool receiverIsNotNull: false}) {
+    ApplyBuiltinMethod apply = 
+        new ApplyBuiltinMethod(method, receiver, arguments, sourceInformation);
+    apply.receiverIsNotNull = receiverIsNotNull;
+    return letPrim(apply);
+  }
+
   /// Inserts an invocation. binds its continuation, and returns the
   /// continuation parameter (i.e. the return value of the invocation).
   ///

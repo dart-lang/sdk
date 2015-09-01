@@ -38,10 +38,11 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "7zip_rev" : "@19997",
-  "analyzer_cli_rev" : "@4281dbf08ccc20b20b795b438766b57afb16ad13",
+  "analyzer_cli_rev" : "@0b89a16c0566f36676fa8f2016eb2c332178f616",
   "args_tag": "@0.13.0",
   "async_tag": "@1.2.0",
   "barback_tag" : "@0.15.2+6",
+  "boringssl_rev" : "@daeafc22c66ad48f6b32fc8d3362eb9ba31b774e",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
   "clang_rev" : "@28450",
@@ -49,10 +50,11 @@ vars = {
   "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
-  "dartdoc_rev" : "@23dbfa91819e3c6b72e635eb9cb64a0a3224ef84",
+  "dart2js_info_rev" : "@bad01369f1f605ab688d505c135db54de927318f",
+  "dartdoc_rev" : "@8ef4cae550ea7ad47c5eb997b36ad2ba14ff53f7",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.0",
-  "dev_compiler_rev": "@0.1.3",
+  "dev_compiler_rev": "@0.1.7",
   "fake_async_rev" : "@38614",
   "firefox_jsshell_rev" : "@45554",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
@@ -78,7 +80,7 @@ vars = {
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
   "observatory_pub_packages_rev": "@cdc4b3d4c15b9c0c8e7702dff127b440afbb7485",
-  "package_config_tag": "@0.1.3",
+  "package_config_rev": "@0.1.3",
   "path_tag": "@1.3.6",
   "petitparser_rev" : "@37878",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
@@ -88,6 +90,7 @@ vars = {
   "pub_cache_tag": "@v0.1.0",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
+  "root_certificates_rev": "@c3a41df63afacec62fcb8135196177e35fe72f71",
   "scheduled_test_tag": "@0.12.1+2",
   "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
   "smoke_rev" : "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",
@@ -142,6 +145,14 @@ deps = {
       Var("chromium_git") + "/chromium/src/net/third_party/nss.git" +
       Var("net_nss_rev"),
 
+  Var("dart_root") + "/third_party/boringssl/src":
+      "https://boringssl.googlesource.com/boringssl.git" +
+      Var("boringssl_rev"),
+
+  Var("dart_root") + "/third_party/root_certificates":
+      "https://github.com/dart-lang/root_certificates.git" +
+      Var("root_certificates_rev"),
+
   Var("dart_root") + "/third_party/jinja2":
       Var("chromium_git") + "/chromium/src/third_party/jinja2.git" +
       Var("jinja2_rev"),
@@ -195,6 +206,8 @@ deps = {
       (Var("github_mirror") % "csslib") + Var("csslib_tag"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
       (Var("github_mirror") % "dart_style") + Var("dart_style_tag"),
+  Var("dart_root") + "/third_party/pkg/dart2js_info":
+      (Var("github_mirror") % "dart2js_info") + Var("dart2js_info_rev"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
       (Var("github_mirror") % "dartdoc") + Var("dartdoc_rev"),
   Var("dart_root") + "/third_party/pkg/dev_compiler":
@@ -240,9 +253,9 @@ deps = {
   Var("dart_root") + "/third_party/observatory_pub_packages":
      (Var("github_mirror") % "observatory_pub_packages")
       + Var("observatory_pub_packages_rev"),
-  Var("dart_root") + "/third_party/pkg/package_config":
+  Var("dart_root") + "/third_party/pkg_tested/package_config":
       (Var("github_mirror") % "package_config") +
-      Var("package_config_tag"),
+      Var("package_config_rev"),
   Var("dart_root") + "/third_party/pkg/path":
       (Var("github_mirror") % "path") + Var("path_tag"),
   Var("dart_root") + "/third_party/pkg/plugin":

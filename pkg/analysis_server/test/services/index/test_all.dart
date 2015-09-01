@@ -6,6 +6,7 @@ library test.services.src.index.all;
 
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'dart_index_contributor_test.dart' as dart_index_contributor_test;
 import 'local_file_index_test.dart' as local_file_index_test;
 import 'local_index_test.dart' as local_index_test;
@@ -15,7 +16,7 @@ import 'store/test_all.dart' as store_test_all;
  * Utility for manually running all tests.
  */
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('index', () {
     dart_index_contributor_test.main();
     local_file_index_test.main();

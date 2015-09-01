@@ -1468,6 +1468,8 @@ class StandardTestSuite extends TestSuite {
     String packageRoot =
       packageRootArgument(optionsFromFile['packageRoot']);
     if (packageRoot != null) args.add(packageRoot);
+    String packages = packagesArgument(optionsFromFile['packages']);
+    if (packages != null) args.add(packages);
     args.add('--out=$outputFile');
     args.add(inputFile);
     List<String> options = optionsFromFile['sharedOptions'];
@@ -1483,6 +1485,8 @@ class StandardTestSuite extends TestSuite {
     List<String> args = [];
     String packageRoot = packageRootArgument(optionsFromFile['packageRoot']);
     if (packageRoot != null) args.add(packageRoot);
+    String packages = packagesArgument(optionsFromFile['packages']);
+    if (packages != null) args.add(packages);
     args..add('package:polymer/deploy.dart')
         ..add('--test')..add(inputFile)
         ..add('--out')..add(outputDir)
@@ -1537,6 +1541,10 @@ class StandardTestSuite extends TestSuite {
     if (packageRoot != null) {
       args.add(packageRoot);
     }
+    String packages = packagesArgument(optionsFromFile['packages']);
+    if (packages != null) {
+      args.add(packages);
+    }
     args.addAll(additionalOptions(filePath));
     if (configuration['analyzer']) {
       args.add('--machine');
@@ -1579,6 +1587,13 @@ class StandardTestSuite extends TestSuite {
       return null;
     }
     return "--package-root=$packageRootPath";
+  }
+
+  String packagesArgument(String packagesFromFile) {
+    if (packagesFromFile == null || packagesFromFile == "none") {
+      return null;
+    }
+    return "--packages=$packagesFromFile";
   }
 
   /**
@@ -1655,6 +1670,7 @@ class StandardTestSuite extends TestSuite {
     RegExp dartOptionsRegExp = new RegExp(r"// DartOptions=(.*)");
     RegExp otherScriptsRegExp = new RegExp(r"// OtherScripts=(.*)");
     RegExp packageRootRegExp = new RegExp(r"// PackageRoot=(.*)");
+    RegExp packagesRegExp = new RegExp(r"// Packages=(.*)");
     RegExp isolateStubsRegExp = new RegExp(r"// IsolateStubs=(.*)");
     // TODO(gram) Clean these up once the old directives are not supported.
     RegExp domImportRegExp =
@@ -1670,6 +1686,7 @@ class StandardTestSuite extends TestSuite {
     List<String> dartOptions;
     List<String> sharedOptions;
     String packageRoot;
+    String packages;
 
     Iterable<Match> matches = testOptionsRegExp.allMatches(contents);
     for (var match in matches) {
@@ -1708,6 +1725,19 @@ class StandardTestSuite extends TestSuite {
       }
     }
 
+    matches = packagesRegExp.allMatches(contents);
+    for (var match in matches) {
+      if (packages != null) {
+        throw new Exception(
+            'More than one "// Packages=" line in test $filePath');
+      }
+      packages = match[1];
+      if (packages != 'none') {
+        // Packages=none means that no packages option should be given.
+        packages = '${filePath.directoryPath.join(new Path(packages))}';
+      }
+    }
+
     List<String> otherScripts = new List<String>();
     matches = otherScriptsRegExp.allMatches(contents);
     for (var match in matches) {
@@ -1732,6 +1762,7 @@ class StandardTestSuite extends TestSuite {
              "sharedOptions": sharedOptions == null ? [] : sharedOptions,
              "dartOptions": dartOptions,
              "packageRoot": packageRoot,
+             "packages": packages,
              "hasCompileError": false,
              "hasRuntimeError": false,
              "hasStaticWarning" : false,

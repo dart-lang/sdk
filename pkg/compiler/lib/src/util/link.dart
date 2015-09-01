@@ -57,6 +57,7 @@ class Link<T> {
   }
 
   bool get isEmpty => true;
+  bool get isNotEmpty => false;
 
   Link<T> reverse() => this;
 

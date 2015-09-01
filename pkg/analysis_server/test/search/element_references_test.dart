@@ -11,10 +11,11 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../utils.dart';
 import 'abstract_search_domain.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(ElementReferencesTest);
   defineReflectiveTests(_NoSearchEngine);
 }
@@ -453,7 +454,9 @@ class B {
 ''');
     await findElementReferences('A {}', false);
     assertHasResult(SearchResultKind.REFERENCE, 'A a = null;');
-    expect(getPathString(result.path), '''
+    expect(
+        getPathString(result.path),
+        '''
 LOCAL_VARIABLE a
 CONSTRUCTOR named
 CLASS B
@@ -473,7 +476,9 @@ class B {
 ''');
     await findElementReferences('A {}', false);
     assertHasResult(SearchResultKind.REFERENCE, 'A a = null;');
-    expect(getPathString(result.path), '''
+    expect(
+        getPathString(result.path),
+        '''
 LOCAL_VARIABLE a
 CONSTRUCTOR 
 CLASS B
@@ -491,7 +496,9 @@ main() {
 ''');
     await findElementReferences('A {}', false);
     assertHasResult(SearchResultKind.REFERENCE, 'A a = null;');
-    expect(getPathString(result.path), '''
+    expect(
+        getPathString(result.path),
+        '''
 LOCAL_VARIABLE a
 FUNCTION main
 COMPILATION_UNIT test.dart

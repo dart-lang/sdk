@@ -13,7 +13,7 @@ import 'package:compiler/src/elements/modelx.dart' show
 import 'package:compiler/src/elements/visitor.dart' show
     BaseElementVisitor;
 
-import 'package:compiler/src/dart2jslib.dart' show
+import 'package:compiler/src/compiler.dart' show
     Compiler;
 
 import 'package:compiler/src/elements/elements.dart' show

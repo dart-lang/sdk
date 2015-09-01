@@ -20,11 +20,12 @@ import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../../mocks.dart';
+import '../../../utils.dart';
 import 'mocks.dart';
 import 'single_source_container.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(_FileNodeManagerTest);
   defineReflectiveTests(_IndexNodeTest);
   defineReflectiveTests(_LocationDataTest);
@@ -33,7 +34,8 @@ main() {
 }
 
 void _assertHasLocation(List<LocationImpl> locations, IndexableElement element,
-    int offset, int length, {bool isQualified: false, bool isResolved: true}) {
+    int offset, int length,
+    {bool isQualified: false, bool isResolved: true}) {
   for (LocationImpl location in locations) {
     if ((element == null || location.indexable == element) &&
         location.offset == offset &&

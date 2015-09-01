@@ -5,6 +5,7 @@ library test.analysis;
 
 import 'package:unittest/unittest.dart';
 
+import '../utils.dart';
 import 'get_errors_test.dart' as get_errors_test;
 import 'get_hover_test.dart' as get_hover_test;
 import 'get_navigation_test.dart' as get_navigation_test;
@@ -17,13 +18,14 @@ import 'notification_navigation_test.dart' as notification_navigation_test;
 import 'notification_occurrences_test.dart' as notification_occurrences_test;
 import 'notification_outline_test.dart' as notification_outline_test;
 import 'notification_overrides_test.dart' as notification_overrides_test;
+import 'set_priority_files_test.dart' as set_priority_files_test;
 import 'update_content_test.dart' as update_content_test;
 
 /**
  * Utility for manually running all tests.
  */
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('search', () {
     get_errors_test.main();
     get_hover_test.main();
@@ -36,6 +38,7 @@ main() {
     notification_occurrences_test.main();
     notification_outline_test.main();
     notification_overrides_test.main();
+    set_priority_files_test.main();
     update_content_test.main();
   });
 }

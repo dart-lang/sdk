@@ -7,19 +7,20 @@ import "package:async_helper/async_helper.dart";
 import "dart:async";
 import "dart:io";
 
-const PATH = '/path?a=b#c';
+const sendPath = '/path?a=b#c';
+const expectedPath = '/path?a=b';
 
 void test(String expected, Map headers) {
   asyncStart();
   HttpServer.bind("localhost", 0).then((server) {
     expected = expected.replaceAll('%PORT', server.port.toString());
     server.listen((request) {
-      Expect.equals("$expected$PATH",
+      Expect.equals("$expected$expectedPath",
                     request.requestedUri.toString());
       request.response.close();
     });
     HttpClient client = new HttpClient();
-    client.get("localhost", server.port, PATH)
+    client.get("localhost", server.port, sendPath)
       .then((request) {
         for (var v in headers.keys) {
           if (headers[v] != null) {

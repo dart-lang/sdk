@@ -5,7 +5,6 @@
 library services.completion.contributor.dart.importuri;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:core' hide Resource;
 
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
@@ -13,7 +12,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' show posix;
+import 'package:path/src/context.dart';
 
 import '../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
@@ -39,7 +39,6 @@ class ImportUriContributor extends DartCompletionContributor {
 
 class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
   final DartCompletionRequest request;
-  HashSet<String> _importedUris;
 
   _ImportUriSuggestionBuilder(this.request);
 
@@ -49,12 +48,25 @@ class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
   }
 
   @override
+  visitImportDirective(ImportDirective node) {
+    StringLiteral uri = node.uri;
+    if (uri is SimpleStringLiteral) {
+      int offset = request.offset;
+      if (uri.offset < offset &&
+          (offset < uri.end || offset == uri.offset + 1)) {
+        // Handle degenerate case where import is only line in file
+        // and there is no semicolon
+        visitSimpleStringLiteral(uri);
+      }
+    }
+  }
+
+  @override
   visitSimpleStringLiteral(SimpleStringLiteral node) {
     AstNode parent = node.parent;
     if (parent is ImportDirective && parent.uri == node) {
       String partial = node.literal.lexeme.substring(
           node.contentsOffset - node.offset, request.offset - node.offset);
-      _computeImportedUris();
       request.replacementOffset = node.contentsOffset;
       request.replacementLength = node.contentsEnd - node.contentsOffset;
       _addDartSuggestions();
@@ -63,7 +75,6 @@ class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
     } else if (parent is PartDirective && parent.uri == node) {
       String partial = node.literal.lexeme.substring(
           node.contentsOffset - node.offset, request.offset - node.offset);
-      _computeImportedUris();
       request.replacementOffset = node.contentsOffset;
       request.replacementLength = node.contentsEnd - node.contentsOffset;
       _addFileSuggestions(partial);
@@ -76,38 +87,51 @@ class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
     for (SdkLibrary lib in factory.dartSdk.sdkLibraries) {
       if (!lib.isInternal && !lib.isImplementation) {
         if (!lib.shortName.startsWith('dart:_')) {
-          _addSuggestion(lib.shortName);
+          _addSuggestion(lib.shortName,
+              relevance: lib.shortName == 'dart:core'
+                  ? DART_RELEVANCE_LOW
+                  : DART_RELEVANCE_DEFAULT);
         }
       }
     }
   }
 
-  void _addFileSuggestions(String partial) {
+  void _addFileSuggestions(String partialUri) {
+    ResourceProvider resProvider = request.resourceProvider;
+    Context resContext = resProvider.pathContext;
     Source source = request.source;
-    String sourceFullName = source.fullName;
-    String sourceShortName = source.shortName;
-    String dirPath = (partial.endsWith('/') || partial.endsWith(separator))
-        ? partial
-        : dirname(partial);
-    String prefix = dirPath == '.' ? '' : dirPath;
-    if (isRelative(dirPath)) {
-      String sourceDir = dirname(sourceFullName);
-      if (isAbsolute(sourceDir)) {
-        dirPath = join(sourceDir, dirPath);
+
+    String parentUri;
+    if ((partialUri.endsWith('/'))) {
+      parentUri = partialUri;
+    } else {
+      parentUri = posix.dirname(partialUri);
+      if (parentUri != '.' && !parentUri.endsWith('/')) {
+        parentUri = '$parentUri/';
+      }
+    }
+    String uriPrefix = parentUri == '.' ? '' : parentUri;
+
+    String dirPath = resContext.normalize(parentUri);
+    if (resContext.isRelative(dirPath)) {
+      String sourceDirPath = resContext.dirname(source.fullName);
+      if (resContext.isAbsolute(sourceDirPath)) {
+        dirPath = resContext.join(sourceDirPath, dirPath);
       } else {
         return;
       }
     }
-    Resource dir = request.resourceProvider.getResource(dirPath);
+
+    Resource dir = resProvider.getResource(dirPath);
     if (dir is Folder) {
       for (Resource child in dir.getChildren()) {
         String completion;
         if (child is Folder) {
-          completion = '$prefix${child.shortName}$separator';
+          completion = '$uriPrefix${child.shortName}/';
         } else {
-          completion = '$prefix${child.shortName}';
+          completion = '$uriPrefix${child.shortName}';
         }
-        if (completion != sourceShortName && completion != sourceFullName) {
+        if (completion != source.shortName) {
           _addSuggestion(completion);
         }
       }
@@ -146,24 +170,15 @@ class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
     }
   }
 
-  void _addSuggestion(String completion) {
-    if (!_importedUris.contains(completion)) {
-      request.addSuggestion(new CompletionSuggestion(
-          CompletionSuggestionKind.IMPORT, DART_RELEVANCE_DEFAULT, completion,
-          completion.length, 0, false, false));
-    }
-  }
-
-  void _computeImportedUris() {
-    _importedUris = new HashSet<String>();
-    _importedUris.add('dart:core');
-    for (Directive directive in request.unit.directives) {
-      if (directive is ImportDirective) {
-        String uri = directive.uriContent;
-        if (uri != null && uri.length > 0) {
-          _importedUris.add(uri);
-        }
-      }
-    }
+  void _addSuggestion(String completion,
+      {int relevance: DART_RELEVANCE_DEFAULT}) {
+    request.addSuggestion(new CompletionSuggestion(
+        CompletionSuggestionKind.IMPORT,
+        relevance,
+        completion,
+        completion.length,
+        0,
+        false,
+        false));
   }
 }

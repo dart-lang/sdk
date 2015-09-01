@@ -48,11 +48,9 @@ ServiceIdZone::~ServiceIdZone() {
 }
 
 
-RingServiceIdZone::RingServiceIdZone(
-    ObjectIdRing* ring, ObjectIdRing::IdPolicy policy)
-        : ring_(ring),
-          policy_(policy) {
-  ASSERT(ring_ != NULL);
+RingServiceIdZone::RingServiceIdZone()
+    : ring_(NULL),
+      policy_(ObjectIdRing::kAllocateId) {
 }
 
 
@@ -60,7 +58,15 @@ RingServiceIdZone::~RingServiceIdZone() {
 }
 
 
+void RingServiceIdZone::Init(
+    ObjectIdRing* ring, ObjectIdRing::IdPolicy policy) {
+  ring_ = ring;
+  policy_ = policy;
+}
+
+
 char* RingServiceIdZone::GetServiceId(const Object& obj) {
+  ASSERT(ring_ != NULL);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(zone != NULL);
@@ -499,6 +505,25 @@ static bool ValidateParameters(const MethodParameter* const* parameters,
 }
 
 
+void Service::PostError(const String& method_name,
+                        const Array& parameter_keys,
+                        const Array& parameter_values,
+                        const Instance& reply_port,
+                        const Instance& id,
+                        const Error& error) {
+  Isolate* isolate = Isolate::Current();
+  StackZone zone(isolate);
+  HANDLESCOPE(isolate);
+  JSONStream js;
+  js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
+           id, method_name, parameter_keys, parameter_values);
+  js.PrintError(kExtensionError,
+                "Error in extension `%s`: %s",
+                js.method(), error.ToErrorCString());
+  js.PostReply();
+}
+
+
 void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
   ASSERT(isolate != NULL);
   ASSERT(!msg.IsNull());
@@ -585,6 +610,20 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
       return;
     }
 
+    const Instance& extension_handler =
+        Instance::Handle(isolate->LookupServiceExtensionHandler(method_name));
+    if (!extension_handler.IsNull()) {
+      ScheduleExtensionHandler(extension_handler,
+                               method_name,
+                               param_keys,
+                               param_values,
+                               reply_port,
+                               seq);
+      // Schedule was successful. Extension code will post a reply
+      // asynchronously.
+      return;
+    }
+
     PrintUnrecognizedMethodError(&js);
     js.PostReply();
     return;
@@ -628,8 +667,8 @@ void Service::SendEvent(const char* stream_id,
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
     OS::Print(
-        "vm-service: Pushing event of type %s to stream %s, len %" Pd "\n",
-        event_type, stream_id, len);
+        "vm-service: Pushing event of type %s to stream %s (%s), len %" Pd "\n",
+        event_type, stream_id, isolate->name(), len);
   }
   // TODO(turnidge): For now we ignore failure to send an event.  Revisit?
   PortMap::PostMessage(
@@ -720,8 +759,14 @@ void Service::PostEvent(const char* stream_id,
   list_values[1] = &json_cobj;
 
   if (FLAG_trace_service) {
+    Isolate* isolate = Isolate::Current();
+    const char* isolate_name = "<no current isolate>";
+    if (isolate != NULL) {
+      isolate_name = isolate->name();
+    }
     OS::Print(
-        "vm-service: Pushing event of type %s to stream %s\n", kind, stream_id);
+        "vm-service: Pushing event of type %s to stream %s (%s)\n",
+        kind, stream_id, isolate_name);
   }
 
   Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
@@ -869,6 +914,28 @@ EmbedderServiceHandler* Service::FindRootEmbedderHandler(
 }
 
 
+void Service::ScheduleExtensionHandler(const Instance& handler,
+                                       const String& method_name,
+                                       const Array& parameter_keys,
+                                       const Array& parameter_values,
+                                       const Instance& reply_port,
+                                       const Instance& id) {
+  ASSERT(!handler.IsNull());
+  ASSERT(!method_name.IsNull());
+  ASSERT(!parameter_keys.IsNull());
+  ASSERT(!parameter_values.IsNull());
+  ASSERT(!reply_port.IsNull());
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  isolate->AppendServiceExtensionCall(handler,
+                                      method_name,
+                                      parameter_keys,
+                                      parameter_values,
+                                      reply_port,
+                                      id);
+}
+
+
 static const MethodParameter* get_isolate_params[] = {
   ISOLATE_PARAMETER,
   NULL,
@@ -943,6 +1010,7 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
         if (text != NULL) {
           event.AddProperty("text", text);
         }
+        event.AddPropertyTimeMillis("timestamp", OS::GetCurrentTimeMillis());
       }
     }
   }
@@ -968,7 +1036,8 @@ static bool DumpIdZone(Isolate* isolate, JSONStream* js) {
   ObjectIdRing* ring = isolate->object_id_ring();
   ASSERT(ring != NULL);
   // When printing the ObjectIdRing, force object id reuse policy.
-  RingServiceIdZone reuse_zone(ring, ObjectIdRing::kReuseId);
+  RingServiceIdZone reuse_zone;
+  reuse_zone.Init(ring, ObjectIdRing::kReuseId);
   js->set_id_zone(&reuse_zone);
   ring->PrintJSON(js);
   return true;
@@ -1443,19 +1512,21 @@ static bool PrintInboundReferences(Isolate* isolate,
       slot_offset ^= path.At((i * 2) + 1);
 
       jselement.AddProperty("source", source);
-      jselement.AddProperty("slot", "<unknown>");
       if (source.IsArray()) {
         intptr_t element_index = slot_offset.Value() -
             (Array::element_offset(0) >> kWordSizeLog2);
-        jselement.AddProperty("slot", element_index);
+        jselement.AddProperty("parentListIndex", element_index);
       } else if (source.IsInstance()) {
         source_class ^= source.clazz();
         parent_field_map = source_class.OffsetToFieldMap();
         intptr_t offset = slot_offset.Value();
         if (offset > 0 && offset < parent_field_map.Length()) {
           field ^= parent_field_map.At(offset);
-          jselement.AddProperty("slot", field);
+          jselement.AddProperty("parentField", field);
         }
+      } else {
+        intptr_t element_index = slot_offset.Value();
+        jselement.AddProperty("_parentWordOffset", element_index);
       }
 
       // We nil out the array after generating the response to prevent
@@ -1828,7 +1899,7 @@ static bool GetInstances(Isolate* isolate, JSONStream* js) {
     JSONArray samples(&jsobj, "samples");
     for (int i = 0; i < storage.Length(); i++) {
       const Object& sample = Object::Handle(storage.At(i));
-      samples.AddValue(Instance::Cast(sample));
+      samples.AddValue(sample);
     }
   }
   return true;
@@ -2265,6 +2336,7 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
       isolate->debugger()->EnterSingleStepMode();
     }
     isolate->message_handler()->set_pause_on_start(false);
+    isolate->set_last_resume_timestamp();
     if (Service::debug_stream.enabled()) {
       ServiceEvent event(isolate, ServiceEvent::kResume);
       Service::HandleEvent(&event);
@@ -2499,6 +2571,7 @@ void Service::SendGraphEvent(Isolate* isolate) {
           event.AddProperty("type", "Event");
           event.AddProperty("kind", "_Graph");
           event.AddProperty("isolate", isolate);
+          event.AddPropertyTimeMillis("timestamp", OS::GetCurrentTimeMillis());
 
           event.AddProperty("chunkIndex", i);
           event.AddProperty("chunkCount", num_chunks);
@@ -2783,7 +2856,7 @@ static bool GetVersion(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
   jsobj.AddProperty("major", static_cast<intptr_t>(2));
-  jsobj.AddProperty("minor", static_cast<intptr_t>(0));
+  jsobj.AddProperty("minor", static_cast<intptr_t>(1));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
   return true;
@@ -2831,7 +2904,7 @@ static bool GetVM(Isolate* isolate, JSONStream* js) {
   jsobj.AddProperty("_typeChecksEnabled", isolate->flags().type_checks());
   int64_t start_time_millis = (Dart::vm_isolate()->start_time() /
                                kMicrosecondsPerMillisecond);
-  jsobj.AddProperty64("startTime", start_time_millis);
+  jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
   // Construct the isolate list.
   {
     JSONArray jsarr(&jsobj, "isolates");

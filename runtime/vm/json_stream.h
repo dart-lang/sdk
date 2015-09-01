@@ -42,6 +42,8 @@ enum JSONRpcErrorCode {
   kInvalidParams  = -32602,
   kInternalError  = -32603,
 
+  kExtensionError = -32000,
+
   kFeatureDisabled         = 100,
   kVMMustBePaused          = 101,
   kCannotAddBreakpoint     = 102,
@@ -77,6 +79,8 @@ class JSONStream : ValueObject {
   TextBuffer* buffer() { return &buffer_; }
   const char* ToCString() { return buffer_.buf(); }
 
+  void Steal(const char** buffer, intptr_t* buffer_length);
+
   void set_reply_port(Dart_Port port);
 
   void SetParams(const char** param_keys, const char** param_values,
@@ -106,6 +110,7 @@ class JSONStream : ValueObject {
 
  private:
   void Clear();
+  void PostNullReply(Dart_Port port);
 
   void OpenObject(const char* property_name = NULL);
   void CloseObject();
@@ -170,7 +175,7 @@ class JSONStream : ValueObject {
   RingServiceIdZone default_id_zone_;
   ServiceIdZone* id_zone_;
   Dart_Port reply_port_;
-  Instance& seq_;
+  Instance* seq_;
   const char* method_;
   const char** param_keys_;
   const char** param_values_;

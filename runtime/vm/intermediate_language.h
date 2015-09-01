@@ -3409,6 +3409,10 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
     return ast_node_.is_bootstrap_native();
   }
 
+  bool link_lazily() const {
+    return ast_node_.link_lazily();
+  }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
@@ -3473,7 +3477,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
                           Value* value,
                           StoreBarrierType emit_store_barrier,
                           intptr_t token_pos)
-      : field_(Field::Handle()),
+      : field_(Field::ZoneHandle()),
         offset_in_bytes_(offset_in_bytes),
         emit_store_barrier_(emit_store_barrier),
         token_pos_(token_pos),
@@ -3875,7 +3879,7 @@ class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
   StringInterpolateInstr(Value* value, intptr_t token_pos)
       : TemplateDefinition(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
-        function_(Function::Handle()) {
+        function_(Function::ZoneHandle()) {
     SetInputAt(0, value);
   }
 
@@ -8011,7 +8015,7 @@ class Environment : public ZoneAllocated {
     return count;
   }
 
-  const Code& code() const { return parsed_function_.code(); }
+  const Function& function() const { return parsed_function_.function(); }
 
   Environment* DeepCopy(Zone* zone) const {
     return DeepCopy(zone, Length());

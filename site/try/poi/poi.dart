@@ -26,11 +26,13 @@ import 'package:compiler/src/source_file_provider.dart' show
 
 import 'package:compiler/compiler.dart' as api;
 
-import 'package:compiler/src/dart2jslib.dart' show
-    Compiler,
-    CompilerTask,
-    Enqueuer,
-    QueueFilter,
+import 'package:compiler/src/compiler.dart' show
+    Compiler;
+
+import 'package:compiler/src/common/tasks.dart' show
+    CompilerTask;
+
+import 'package:compiler/src/common/work.dart' show
     WorkItem;
 
 import 'package:compiler/src/elements/visitor.dart' show
@@ -50,6 +52,10 @@ import 'package:compiler/src/elements/modelx.dart' as modelx;
 
 import 'package:compiler/src/elements/modelx.dart' show
     DeclarationSite;
+
+import 'package:compiler/src/enqueue.dart' show
+    Enqueuer,
+    QueueFilter;
 
 import 'package:compiler/src/dart_types.dart' show
     DartType;

@@ -10,7 +10,7 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'memory_compiler.dart';
-import 'package:compiler/src/dart2jslib.dart'
+import 'package:compiler/src/compiler.dart'
        as dart2js;
 
 Future runTest(String mainScript, test) async {
@@ -30,7 +30,7 @@ void main() {
 
 runTests() async {
   await runTest('memory:main.dart', (compiler) {
-    var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
+    var main = compiler.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(main);
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
@@ -53,7 +53,7 @@ runTests() async {
     Expect.isTrue(true);
   });
   await runTest('memory:main3.dart', (compiler) {
-    var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
+    var main = compiler.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(main);
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
@@ -68,7 +68,7 @@ runTests() async {
     Expect.equals(outputUnitForElement(main), outputUnitForElement(C));
   });
   await runTest('memory:main4.dart', (compiler) {
-    var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
+    var main = compiler.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(main);
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;

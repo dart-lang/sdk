@@ -11,10 +11,11 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'abstract_rename.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(RenameConstructorTest);
 }
 
@@ -32,7 +33,8 @@ class A {
     refactoring.newName = 'newName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Class 'A' already declares constructor with name 'newName'.",
+        expectedMessage:
+            "Class 'A' already declares constructor with name 'newName'.",
         expectedContextSearch: 'newName() {} // existing');
   }
 
@@ -48,7 +50,8 @@ class A {
     refactoring.newName = 'newName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Class 'A' already declares method with name 'newName'.",
+        expectedMessage:
+            "Class 'A' already declares method with name 'newName'.",
         expectedContextSearch: 'newName() {} // existing');
   }
 
@@ -69,7 +72,8 @@ class A {
     refactoring.newName = 'test';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "The new name must be different than the current name.");
+        expectedMessage:
+            "The new name must be different than the current name.");
     // empty
     refactoring.newName = '';
     assertRefactoringStatusOK(refactoring.checkNewName());

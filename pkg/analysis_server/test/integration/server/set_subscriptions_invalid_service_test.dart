@@ -7,9 +7,11 @@ library test.integration.server.set.subscriptions.invalid.service;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
+  initializeTestEnvironment();
   defineReflectiveTests(Test);
 }
 
@@ -18,9 +20,9 @@ class Test extends AbstractAnalysisServerIntegrationTest {
   test_setSubscriptions_invalidService() {
     // TODO(paulberry): verify that if an invalid service is specified, the
     // current subscriptions are unchanged.
-    return server
-        .send("server.setSubscriptions", {'subscriptions': ['bogus']})
-        .then((_) {
+    return server.send("server.setSubscriptions", {
+      'subscriptions': ['bogus']
+    }).then((_) {
       fail('setSubscriptions should have produced an error');
     }, onError: (error) {
       // The expected error occurred.

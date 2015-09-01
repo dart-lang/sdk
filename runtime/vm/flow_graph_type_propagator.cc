@@ -15,6 +15,7 @@ DEFINE_FLAG(bool, trace_type_propagation, false,
             "Trace flow graph type propagation");
 
 DECLARE_FLAG(bool, propagate_types);
+DECLARE_FLAG(bool, trace_cha);
 DECLARE_FLAG(bool, use_cha_deopt);
 
 
@@ -549,6 +550,10 @@ intptr_t CompileType::ToNullableCid() {
           // Type of a private class cannot change through later loaded libs.
           cid_ = type_class.id();
         } else if (FLAG_use_cha_deopt) {
+          if (FLAG_trace_cha) {
+            ISL_Print("  **(CHA) Compile type not subclassed: %s\n",
+                type_class.ToCString());
+          }
           cha->AddToLeafClasses(type_class);
           cid_ = type_class.id();
         } else {
@@ -749,7 +754,7 @@ CompileType ParameterInstr::ComputeType() const {
     // from being generated.
     switch (index()) {
       case RegExpMacroAssembler::kParamStringIndex:
-        return CompileType::FromCid(function.regexp_cid());
+        return CompileType::FromCid(function.string_specialization_cid());
       case RegExpMacroAssembler::kParamStartOffsetIndex:
         return CompileType::FromCid(kSmiCid);
       default: UNREACHABLE();
@@ -786,6 +791,11 @@ CompileType ParameterInstr::ComputeType() const {
           cid = type_class.id();
         } else {
           if (FLAG_use_cha_deopt) {
+            if (FLAG_trace_cha) {
+              ISL_Print("  **(CHA) Computing exact type of parameters, "
+                  "no subclasses: %s\n",
+                  type_class.ToCString());
+            }
             thread->cha()->AddToLeafClasses(type_class);
             cid = type_class.id();
           }

@@ -14,9 +14,8 @@ import 'package:expect/expect.dart' show
 import 'package:async_helper/async_helper.dart' show
     asyncTest;
 
-import 'package:compiler/src/dart2jslib.dart' show
-    Compiler,
-    Script;
+import 'package:compiler/src/compiler.dart' show
+    Compiler;
 
 import 'package:compiler/src/io/source_file.dart' show
     StringSourceFile;
@@ -24,6 +23,9 @@ import 'package:compiler/src/io/source_file.dart' show
 import 'package:compiler/src/elements/elements.dart' show
     Element,
     LibraryElement;
+
+import 'package:compiler/src/script.dart' show
+    Script;
 
 import 'package:dart2js_incremental/diff.dart' show
     Difference,

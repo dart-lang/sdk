@@ -1976,8 +1976,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ xorq(RCX, RCX);
 
   // Tail-call the function.
-  __ movq(RDI, FieldAddress(RAX, Function::instructions_offset()));
-  __ addq(RDI, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RDI, FieldAddress(RAX, Function::entry_point_offset()));
   __ jmp(RDI);
 }
 

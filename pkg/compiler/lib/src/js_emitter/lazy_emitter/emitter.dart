@@ -26,7 +26,7 @@ import '../js_emitter.dart' show
 import '../js_emitter.dart' as emitterTask show
     Emitter;
 
-import '../../util/util.dart' show
+import '../../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE;
 
 class Emitter implements emitterTask.Emitter {

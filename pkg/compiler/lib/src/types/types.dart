@@ -4,13 +4,25 @@
 
 library types;
 
-import '../dart2jslib.dart' hide Selector, TypedSelector;
+import '../common/backend_api.dart' show
+    Backend;
+import '../common/tasks.dart' show
+    CompilerTask;
+import '../compiler.dart' show
+    Compiler;
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/spannable.dart' show
+    NO_LOCATION_SPANNABLE;
 import '../elements/elements.dart';
+import '../inferrer/concrete_types_inferrer.dart' show ConcreteTypesInferrer;
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../universe/universe.dart';
-import '../inferrer/concrete_types_inferrer.dart' show ConcreteTypesInferrer;
+import '../world.dart' show
+    ClassWorld,
+    World;
 
 part 'container_type_mask.dart';
 part 'dictionary_type_mask.dart';

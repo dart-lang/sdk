@@ -246,7 +246,7 @@ class _Double extends _Num implements double {
 
   // Order is: NaN > Infinity > ... > 0.0 > -0.0 > ... > -Infinity.
   int compareTo(num other) {
-    final int EQUAL = 0, LESS = -1, GREATER = 1;
+    const int EQUAL = 0, LESS = -1, GREATER = 1;
     if (this < other) {
       return LESS;
     } else if (this > other) {

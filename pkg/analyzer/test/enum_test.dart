@@ -18,9 +18,10 @@ import 'package:unittest/unittest.dart';
 
 import 'generated/ast_test.dart';
 import 'reflective_tests.dart';
+import 'utils.dart';
 
 void main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(EnumTest);
 }
 

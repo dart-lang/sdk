@@ -131,12 +131,15 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       const intptr_t unique_smi = id_ + 928327281;
       Smi& smi = Smi::Handle(zone, Smi::New(unique_smi));
       EXPECT(smi.Value() == unique_smi);
-      ObjectCounter counter(isolate_, &smi);
-      // Ensure that our particular zone is visited.
-      // TODO(koda): Remove "->thread_registry()" after updating stack walker.
-      isolate_->thread_registry()->VisitObjectPointers(&counter);
-      EXPECT_EQ(1, counter.count());
-
+      {
+        ObjectCounter counter(isolate_, &smi);
+        // Ensure that our particular zone is visited.
+        isolate_->IterateObjectPointers(
+            &counter,
+            /* visit_prologue_weak_handles = */ true,
+            StackFrameIterator::kValidateFrames);
+        EXPECT_EQ(1, counter.count());
+      }
       char* unique_chars = zone->PrintToString("unique_str_%" Pd, id_);
       String& unique_str = String::Handle(zone);
       {
@@ -146,12 +149,16 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
         unique_str = String::New(unique_chars, Heap::kOld);
       }
       EXPECT(unique_str.Equals(unique_chars));
-      ObjectCounter str_counter(isolate_, &unique_str);
-      // Ensure that our particular zone is visited.
-      // TODO(koda): Remove "->thread_registry()" after updating stack walker.
-      isolate_->thread_registry()->VisitObjectPointers(&str_counter);
-      // We should visit the string object exactly once.
-      EXPECT_EQ(1, str_counter.count());
+      {
+        ObjectCounter str_counter(isolate_, &unique_str);
+        // Ensure that our particular zone is visited.
+        isolate_->IterateObjectPointers(
+            &str_counter,
+            /* visit_prologue_weak_handles = */ true,
+            StackFrameIterator::kValidateFrames);
+        // We should visit the string object exactly once.
+        EXPECT_EQ(1, str_counter.count());
+      }
     }
     Thread::ExitIsolateAsHelper();
     {
@@ -272,7 +279,10 @@ class SafepointTestTask : public ThreadPool::Task {
         // But occasionally, organize a rendezvous.
         isolate_->thread_registry()->SafepointThreads();
         ObjectCounter counter(isolate_, &smi);
-        isolate_->thread_registry()->VisitObjectPointers(&counter);
+        isolate_->IterateObjectPointers(
+            &counter,
+            /* visit_prologue_weak_handles = */ true,
+            StackFrameIterator::kValidateFrames);
         {
           MutexLocker ml(mutex_);
           EXPECT_EQ(*expected_count_, counter.count());
@@ -434,6 +444,66 @@ TEST_CASE(SafepointTestVM2) {
     MutexLocker ml(&mutex);
     if (exited == SafepointTestTask::kTaskCount) {
       break;
+    }
+  }
+}
+
+
+class AllocAndGCTask : public ThreadPool::Task {
+ public:
+  AllocAndGCTask(Isolate* isolate,
+                 Monitor* done_monitor,
+                 bool* done)
+    : isolate_(isolate),
+      done_monitor_(done_monitor),
+      done_(done) {
+  }
+
+  virtual void Run() {
+    Thread::EnterIsolateAsHelper(isolate_);
+    {
+      Thread* thread = Thread::Current();
+      StackZone stack_zone(thread);
+      Zone* zone = stack_zone.GetZone();
+      HANDLESCOPE(thread);
+      String& old_str = String::Handle(zone, String::New("old", Heap::kOld));
+      isolate_->heap()->CollectAllGarbage();
+      EXPECT(old_str.Equals("old"));
+    }
+    Thread::ExitIsolateAsHelper();
+    // Tell main thread that we are ready.
+    {
+      MonitorLocker ml(done_monitor_);
+      ASSERT(!*done_);
+      *done_ = true;
+      ml.Notify();
+    }
+  }
+
+ private:
+  Isolate* isolate_;
+  Monitor* done_monitor_;
+  bool* done_;
+};
+
+
+TEST_CASE(HelperAllocAndGC) {
+  Monitor done_monitor;
+  bool done = false;
+  Isolate* isolate = Thread::Current()->isolate();
+  // Flush store buffers, etc.
+  // TODO(koda): Currently, the GC only does this for the current thread, (i.e,
+  // the helper, in this test), but it should be done for all *threads*
+  // while reaching a safepoint.
+  Thread::PrepareForGC();
+  Dart::thread_pool()->Run(new AllocAndGCTask(isolate, &done_monitor, &done));
+  {
+    while (true) {
+      isolate->thread_registry()->CheckSafepoint();
+      MonitorLocker ml(&done_monitor);
+      if (done) {
+        break;
+      }
     }
   }
 }

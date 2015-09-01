@@ -7,7 +7,7 @@ import '../../constants/values.dart';
 import '../../elements/elements.dart';
 import '../../io/source_information.dart';
 import '../../js_backend/codegen/glue.dart';
-import '../../dart2jslib.dart' show Selector, World;
+import '../../universe/universe.dart' show Selector;
 import '../../cps_ir/cps_ir_builder.dart' show ThisParameterLocal;
 
 class ExplicitReceiverParameterEntity implements Local {
@@ -43,8 +43,6 @@ class UnsugarVisitor extends RecursiveVisitor {
   Parameter thisParameter;
   Parameter explicitReceiverParameter;
 
-  Map<Primitive, Interceptor> interceptors = <Primitive, Interceptor>{};
-
   // In a catch block, rethrow implicitly throws the block's exception
   // parameter.  This is the exception parameter when nested in a catch
   // block and null otherwise.
@@ -52,7 +50,15 @@ class UnsugarVisitor extends RecursiveVisitor {
 
   UnsugarVisitor(this._glue);
 
+  bool methodUsesReceiverArgument(FunctionElement function) {
+    assert(_glue.isInterceptedMethod(function));
+    ClassElement clazz = function.enclosingClass.declaration;
+    return _glue.isInterceptorClass(clazz) || 
+           _glue.isUsedAsMixin(clazz);
+  }
+
   void rewrite(FunctionDefinition function) {
+    thisParameter = function.thisParameter;
     bool inInterceptedMethod = _glue.isInterceptedMethod(function.element);
 
     if (function.element.name == '==' &&
@@ -64,7 +70,6 @@ class UnsugarVisitor extends RecursiveVisitor {
     }
 
     if (inInterceptedMethod) {
-      thisParameter = function.thisParameter;
       ThisParameterLocal holder = thisParameter.hint;
       explicitReceiverParameter = new Parameter(
           new ExplicitReceiverParameterEntity(
@@ -75,7 +80,7 @@ class UnsugarVisitor extends RecursiveVisitor {
     // Set all parent pointers.
     _parentVisitor.visit(function);
 
-    if (inInterceptedMethod) {
+    if (inInterceptedMethod && methodUsesReceiverArgument(function.element)) {
       explicitReceiverParameter.substituteFor(thisParameter);
     }
 
@@ -226,34 +231,6 @@ class UnsugarVisitor extends RecursiveVisitor {
     // worry about unlinking.
   }
 
-  /// Returns an interceptor for the given value, capable of responding to
-  /// [selector].
-  ///
-  /// A single getInterceptor call will be created per primitive, bound
-  /// immediately after the primitive is bound.
-  ///
-  /// The type propagation pass will later narrow the set of interceptors
-  /// based on the input type, and the let sinking pass will propagate the
-  /// getInterceptor call closer to its use when this is profitable.
-  Interceptor getInterceptorFor(Primitive prim, Selector selector,
-                                SourceInformation sourceInformation) {
-    assert(prim is! Interceptor);
-    Interceptor interceptor = interceptors[prim];
-    if (interceptor == null) {
-      interceptor = new Interceptor(prim, sourceInformation);
-      interceptors[prim] = interceptor;
-      InteriorNode parent = prim.parent;
-      insertLetPrim(interceptor, parent.body);
-      if (prim.hint != null) {
-        interceptor.hint = new InterceptorEntity(prim.hint);
-      }
-    }
-    // Add the interceptor classes that can respond to the given selector.
-    interceptor.interceptedClasses.addAll(
-        _glue.getInterceptedClassesOn(selector));
-    return interceptor;
-  }
-
   processInvokeMethod(InvokeMethod node) {
     Selector selector = node.selector;
     if (!_glue.isInterceptedSelector(selector)) return;
@@ -267,32 +244,62 @@ class UnsugarVisitor extends RecursiveVisitor {
       //  Change 'receiver.foo()'  to  'this.foo(receiver)'.
       newReceiver = thisParameter;
     } else {
-      newReceiver = getInterceptorFor(
-          receiver, node.selector, node.sourceInformation);
+      LetCont contBinding = node.parent;
+      newReceiver = new Interceptor(receiver, node.sourceInformation)
+          ..interceptedClasses.addAll(_glue.getInterceptedClassesOn(selector));
+      if (receiver.hint != null) {
+        newReceiver.hint = new InterceptorEntity(receiver.hint);
+      }
+      insertLetPrim(newReceiver, contBinding);
     }
-
     node.arguments.insert(0, node.receiver);
     node.receiver = new Reference<Primitive>(newReceiver);
   }
 
   processInvokeMethodDirectly(InvokeMethodDirectly node) {
-    if (_glue.isInterceptedMethod(node.target)) {
-      Primitive nullPrim = nullConstant;
-      insertLetPrim(nullPrim, node);
-      node.arguments.insert(0, node.receiver);
-      // TODO(sra): `null` is not adequate.  Interceptors project the class
-      // hierarchy onto an interceptor hierarchy.  A super call that does a
-      // method call will use the javascript 'this' parameter to avoid calling
-      // getInterceptor again, so the receiver must be the interceptor (likely
-      // `this`), not `null`.
-      node.receiver = new Reference<Primitive>(nullPrim);
+    if (!_glue.isInterceptedMethod(node.target)) return;
+
+    Selector selector = node.selector;
+    Primitive receiver = node.receiver.definition;
+    Primitive newReceiver;
+
+    if (receiver == explicitReceiverParameter) {
+      // If the receiver is the explicit receiver, we are calling a method in
+      // the same interceptor:
+      //  Change 'receiver.foo()'  to  'this.foo(receiver)'.
+      newReceiver = thisParameter;
+    } else {
+      LetCont contBinding = node.parent;
+      newReceiver = new Interceptor(receiver, node.sourceInformation)
+        ..interceptedClasses.addAll(_glue.getInterceptedClassesOn(selector));
+      if (receiver.hint != null) {
+        newReceiver.hint = new InterceptorEntity(receiver.hint);
+      }
+      insertLetPrim(newReceiver, contBinding);
     }
+    node.arguments.insert(0, node.receiver);
+    node.receiver = new Reference<Primitive>(newReceiver);
   }
 
   processBranch(Branch node) {
     // TODO(karlklose): implement the checked mode part of boolean conversion.
     InteriorNode parent = node.parent;
     IsTrue condition = node.condition;
+
+    // Do not rewrite conditions that are foreign code.
+    // It is redundant, and causes infinite recursion (if not optimized)
+    // in the implementation of identical, which itself contains a condition.
+    Primitive value = condition.value.definition;
+    if (value is Parameter && value.parent is Continuation) {
+      Continuation cont = value.parent;
+      if (cont.hasExactlyOneUse && cont.firstRef.parent is ForeignCode) {
+        ForeignCode foreign = cont.firstRef.parent;
+        if (foreign.type.containsOnlyBool(_glue.classWorld)) {
+          return;
+        }
+      }
+    }
+
     Primitive t = trueConstant;
     Primitive i = new ApplyBuiltinOperator(
         BuiltinOperator.Identical,

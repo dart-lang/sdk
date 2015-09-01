@@ -3952,18 +3952,6 @@ class StaticWarningCode extends ErrorCode {
           "The exported libraries '{0}' and '{1}' cannot have the same name '{2}'");
 
   /**
-   * 14.2 Exports: It is a static warning to export two different libraries with
-   * the same name.
-   *
-   * Parameters:
-   * 0: the uri pointing to a first library
-   * 1: the uri pointing to a second library
-   */
-  static const StaticWarningCode EXPORT_DUPLICATED_LIBRARY_UNNAMED =
-      const StaticWarningCode('EXPORT_DUPLICATED_LIBRARY_UNNAMED',
-          "The exported libraries '{0}' and '{1}' cannot both be unnamed");
-
-  /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
    * h</i> or if <i>m &gt; n</i>.
    *
@@ -4117,18 +4105,6 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode IMPORT_DUPLICATED_LIBRARY_NAMED =
       const StaticWarningCode('IMPORT_DUPLICATED_LIBRARY_NAMED',
           "The imported libraries '{0}' and '{1}' cannot have the same name '{2}'");
-
-  /**
-   * 14.1 Imports: It is a static warning to import two different libraries with
-   * the same name.
-   *
-   * Parameters:
-   * 0: the uri pointing to a first library
-   * 1: the uri pointing to a second library
-   */
-  static const StaticWarningCode IMPORT_DUPLICATED_LIBRARY_UNNAMED =
-      const StaticWarningCode('IMPORT_DUPLICATED_LIBRARY_UNNAMED',
-          "The imported libraries '{0}' and '{1}' cannot both be unnamed");
 
   /**
    * 14.1 Imports: It is a static warning if the specified URI of a deferred

@@ -4,22 +4,20 @@
 
 library deferred_load;
 
+import 'common/backend_api.dart' show
+    Backend;
+import 'common/tasks.dart' show
+    CompilerTask;
+import 'compiler.dart' show
+    Compiler;
 import 'constants/values.dart' show
     ConstantValue,
     ConstructedConstantValue,
     DeferredConstantValue,
     StringConstantValue;
-
-import 'dart2jslib.dart' show
-    Backend,
-    Compiler,
-    CompilerTask,
-    invariant,
+import 'dart_types.dart';
+import 'diagnostics/messages.dart' show
     MessageKind;
-
-import 'js_backend/js_backend.dart' show
-    JavaScriptBackend;
-
 import 'elements/elements.dart' show
     AccessorElement,
     AstElement,
@@ -34,16 +32,13 @@ import 'elements/elements.dart' show
     ScopeContainerElement,
     TypedefElement,
     VoidElement;
-
-import 'dart_types.dart';
-
-import 'util/util.dart' show
-    Link, makeUnique;
-import 'util/uri_extras.dart' as uri_extras;
-
-import 'util/setlet.dart' show
-    Setlet;
-
+import 'js_backend/js_backend.dart' show
+    JavaScriptBackend;
+import 'resolution/resolution.dart' show
+    AnalyzableElementX;
+import 'resolution/tree_elements.dart' show
+    TreeElements;
+import 'tree/tree.dart' as ast;
 import 'tree/tree.dart' show
     Import,
     LibraryTag,
@@ -52,12 +47,11 @@ import 'tree/tree.dart' show
     LiteralString,
     NewExpression,
     Node;
-
-import 'tree/tree.dart' as ast;
-
-import 'resolution/resolution.dart' show
-    AnalyzableElementX,
-    TreeElements;
+import 'util/setlet.dart' show
+    Setlet;
+import 'util/uri_extras.dart' as uri_extras;
+import 'util/util.dart' show
+    Link, makeUnique;
 
 /// A "hunk" of the program that will be loaded whenever one of its [imports]
 /// are loaded.

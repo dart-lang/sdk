@@ -166,7 +166,7 @@ UNIT_TEST_CASE(ZoneAllocated) {
 
 
 TEST_CASE(PrintToString) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
   const char* result = zone.GetZone()->PrintToString("Hello %s!", "World");
   EXPECT_STREQ("Hello World!", result);
 }

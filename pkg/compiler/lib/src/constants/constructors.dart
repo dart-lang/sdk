@@ -4,374 +4,251 @@
 
 library dart2js.constants.constructors;
 
-import '../dart2jslib.dart';
 import '../dart_types.dart';
-import '../elements/elements.dart';
-import '../resolution/resolution.dart';
-import '../resolution/operators.dart';
-import '../resolution/semantic_visitor.dart';
-import '../resolution/send_structure.dart';
-import '../tree/tree.dart';
+import '../elements/elements.dart' show
+    ConstructorElement,
+    FieldElement;
 import '../universe/universe.dart' show CallStructure;
+import '../util/util.dart';
+import 'evaluation.dart';
 import 'expressions.dart';
 
-ConstantConstructor computeConstantConstructor(ResolvedAst resolvedAst) {
-  ConstantConstructorComputer visitor =
-      new ConstantConstructorComputer(resolvedAst.elements);
-  return resolvedAst.node.accept(visitor);
+enum ConstantConstructorKind {
+  GENERATIVE,
+  REDIRECTING_GENERATIVE,
+  REDIRECTING_FACTORY,
 }
 
-class ConstantConstructorComputer extends SemanticVisitor
-    with SemanticDeclarationResolvedMixin,
-         DeclarationResolverMixin,
-         GetBulkMixin,
-         SetBulkMixin,
-         ErrorBulkMixin,
-         InvokeBulkMixin,
-         IndexSetBulkMixin,
-         CompoundBulkMixin,
-         UnaryBulkMixin,
-         BaseBulkMixin,
-         BinaryBulkMixin,
-         PrefixBulkMixin,
-         PostfixBulkMixin,
-         NewBulkMixin,
-         InitializerBulkMixin,
-         FunctionBulkMixin,
-         VariableBulkMixin
-    implements SemanticDeclarationVisitor, SemanticSendVisitor {
-  final Map<FieldElement, ConstantExpression> fieldMap =
-      <FieldElement, ConstantExpression>{};
-  final Map<dynamic/*int|String*/, ConstantExpression> defaultValues =
-      <dynamic/*int|String*/, ConstantExpression>{};
+/// Definition of a constant constructor.
+abstract class ConstantConstructor {
+  ConstantConstructorKind get kind;
 
-  ConstantConstructorComputer(TreeElements elements)
-      : super(elements);
+  /// Computes the type of the instance created in a const constructor
+  /// invocation with type [newType].
+  InterfaceType computeInstanceType(InterfaceType newType);
 
-  SemanticDeclarationVisitor get declVisitor => this;
+  /// Computes the constant expressions of the fields of the created instance
+  /// in a const constructor invocation with [arguments].
+  Map<FieldElement, ConstantExpression> computeInstanceFields(
+      List<ConstantExpression> arguments,
+      CallStructure callStructure);
 
-  SemanticSendVisitor get sendVisitor => this;
+  accept(ConstantConstructorVisitor visitor, arg);
+}
 
-  ClassElement get currentClass => currentConstructor.enclosingClass;
+abstract class ConstantConstructorVisitor<R, A> {
+  const ConstantConstructorVisitor();
 
-  ConstructorElement get currentConstructor => elements.analyzedElement;
-
-  apply(Node node, [_]) => node.accept(this);
-
-  visitNode(Node node) {
-    internalError(node, 'Unhandled node $node: ${node.toDebugString()}');
+  R visit(ConstantConstructor constantConstructor, A context) {
+    return constantConstructor.accept(this, context);
   }
 
-  @override
-  bulkHandleNode(Node node, String template, _) {
-    internalError(node, template.replaceFirst('#' , '$node'));
+  R visitGenerative(GenerativeConstantConstructor constructor, A arg);
+  R visitRedirectingGenerative(
+      RedirectingGenerativeConstantConstructor constructor, A arg);
+  R visitRedirectingFactory(
+      RedirectingFactoryConstantConstructor constructor, A arg);
+}
+
+/// A generative constant constructor.
+class GenerativeConstantConstructor implements ConstantConstructor{
+  final InterfaceType type;
+  final Map<dynamic/*int|String*/, ConstantExpression> defaultValues;
+  final Map<FieldElement, ConstantExpression> fieldMap;
+  final ConstructedConstantExpression superConstructorInvocation;
+
+  GenerativeConstantConstructor(
+      this.type,
+      this.defaultValues,
+      this.fieldMap,
+      this.superConstructorInvocation);
+
+  ConstantConstructorKind get kind => ConstantConstructorKind.GENERATIVE;
+
+  InterfaceType computeInstanceType(InterfaceType newType) {
+    return type.substByContext(newType);
   }
 
-  internalError(Node node, String message) {
-    throw new UnsupportedError(message);
+  Map<FieldElement, ConstantExpression> computeInstanceFields(
+      List<ConstantExpression> arguments,
+      CallStructure callStructure) {
+    NormalizedArguments args = new NormalizedArguments(
+        defaultValues, callStructure, arguments);
+    Map<FieldElement, ConstantExpression> appliedFieldMap =
+        applyFields(args, superConstructorInvocation);
+    fieldMap.forEach((FieldElement field, ConstantExpression constant) {
+     appliedFieldMap[field] = constant.apply(args);
+    });
+    return appliedFieldMap;
   }
 
-  ConstantConstructor visitGenerativeConstructorDeclaration(
-        FunctionExpression node,
-        ConstructorElement constructor,
-        NodeList parameters,
-        NodeList initializers,
-        Node body,
-        _) {
-    applyParameters(parameters, _);
-    ConstructedConstantExpression constructorInvocation =
-        applyInitializers(node, _);
-    return new GenerativeConstantConstructor(
-        currentClass.thisType, defaultValues, fieldMap, constructorInvocation);
+  accept(ConstantConstructorVisitor visitor, arg) {
+    return visitor.visitGenerative(this, arg);
   }
 
-  ConstantConstructor visitRedirectingGenerativeConstructorDeclaration(
-      FunctionExpression node,
-      ConstructorElement constructor,
-      NodeList parameters,
-      NodeList initializers,
-      _) {
-    applyParameters(parameters, _);
-    ConstructedConstantExpression constructorInvocation =
-        applyInitializers(node, _);
-    return new RedirectingGenerativeConstantConstructor(
-        defaultValues, constructorInvocation);
+  int get hashCode {
+    int hash = Hashing.objectHash(type);
+    hash = Hashing.mapHash(defaultValues, hash);
+    hash = Hashing.mapHash(fieldMap, hash);
+    return Hashing.objectHash(superConstructorInvocation, hash);
   }
 
-  ConstantConstructor visitRedirectingFactoryConstructorDeclaration(
-      FunctionExpression node,
-      ConstructorElement constructor,
-      NodeList parameters,
-      InterfaceType redirectionType,
-      ConstructorElement redirectionTarget,
-      _) {
-    List<String> argumentNames = [];
-    List<ConstantExpression> arguments = [];
-    int index = 0;
-    for (ParameterElement parameter in constructor.parameters) {
-      if (parameter.isNamed) {
-        String name = parameter.name;
-        argumentNames.add(name);
-        arguments.add(new NamedArgumentReference(name));
-      } else {
-        arguments.add(new PositionalArgumentReference(index));
-      }
-      index++;
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! GenerativeConstantConstructor) return false;
+    return
+        type == other.type &&
+        superConstructorInvocation == other.superConstructorInvocation &&
+        mapEquals(defaultValues, other.defaultValues) &&
+        mapEquals(fieldMap, other.fieldMap);
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write("{'type': $type");
+    defaultValues.forEach((key, ConstantExpression expression) {
+      sb.write(",\n 'default:${key}': ${expression.getText()}");
+    });
+    fieldMap.forEach((FieldElement field, ConstantExpression expression) {
+      sb.write(",\n 'field:${field}': ${expression.getText()}");
+    });
+    if (superConstructorInvocation != null) {
+      sb.write(",\n 'constructor: ${superConstructorInvocation.getText()}");
     }
-    CallStructure callStructure = new CallStructure(index, argumentNames);
-
-    return new RedirectingFactoryConstantConstructor(
-        new ConstructedConstantExpression(
-            redirectionType,
-            redirectionTarget,
-            callStructure,
-            arguments));
+    sb.write("}");
+    return sb.toString();
   }
 
-  @override
-  visitFactoryConstructorDeclaration(
-      FunctionExpression node,
-      ConstructorElement constructor,
-      NodeList parameters,
-      Node body, _) {
-    // TODO(johnniwinther): Handle constant constructors with errors.
-    internalError(node, "Factory constructor cannot be constant: $node.");
-  }
-
-  applyParameters(NodeList parameters, _) {
-    computeParameterStructures(parameters).forEach((s) => s.dispatch(this, _));
-  }
-
-  visitParameterDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      ParameterElement parameter,
-      int index,
-      _) {
-    // Do nothing.
-  }
-
-  visitOptionalParameterDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      ParameterElement parameter,
-      ConstantExpression defaultValue,
-      int index,
-      _) {
-    assert(invariant(node, defaultValue != null));
-    defaultValues[index] = defaultValue;
-  }
-
-  visitNamedParameterDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      ParameterElement parameter,
-      ConstantExpression defaultValue,
-      _) {
-    assert(invariant(node, defaultValue != null));
-    String name = parameter.name;
-    defaultValues[name] = defaultValue;
-  }
-
-  visitInitializingFormalDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      InitializingFormalElement parameter,
-      int index,
-      _) {
-    fieldMap[parameter.fieldElement] = new PositionalArgumentReference(index);
-  }
-
-  visitOptionalInitializingFormalDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      InitializingFormalElement parameter,
-      ConstantExpression defaultValue,
-      int index,
-      _) {
-    assert(invariant(node, defaultValue != null));
-    defaultValues[index] = defaultValue;
-    fieldMap[parameter.fieldElement] = new PositionalArgumentReference(index);
-  }
-
-  visitNamedInitializingFormalDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      InitializingFormalElement parameter,
-      ConstantExpression defaultValue,
-      _) {
-    assert(invariant(node, defaultValue != null));
-    String name = parameter.name;
-    defaultValues[name] = defaultValue;
-    fieldMap[parameter.fieldElement] = new NamedArgumentReference(name);
-  }
-
-  /// Apply this visitor to the constructor [initializers].
-  ConstructedConstantExpression applyInitializers(
-      FunctionExpression constructor, _) {
-    ConstructedConstantExpression constructorInvocation;
-    InitializersStructure initializers =
-        computeInitializersStructure(constructor);
-    for (InitializerStructure structure in initializers.initializers) {
-      if (structure.isConstructorInvoke) {
-        constructorInvocation = structure.dispatch(this, _);
-      } else {
-        structure.dispatch(this, _);
+  static bool mapEquals(Map map1, Map map2) {
+    if (map1.length != map1.length) return false;
+    for (var key in map1.keys) {
+      if (map1[key] != map2[key]) {
+        return false;
       }
     }
-    return constructorInvocation;
+    return true;
   }
 
-  visitFieldInitializer(
-      SendSet node,
-      FieldElement field,
-      Node initializer,
-      _) {
-    fieldMap[field] = apply(initializer);
-  }
-
-  visitParameterGet(
-      Send node,
-      ParameterElement parameter,
-      _) {
-    if (parameter.isNamed) {
-      return new NamedArgumentReference(parameter.name);
-    } else {
-      return new PositionalArgumentReference(
-          parameter.functionDeclaration.parameters.indexOf(parameter));
+  /// Creates the field-to-constant map from applying [args] to
+  /// [constructorInvocation]. If [constructorInvocation] is `null`, an empty
+  /// map is created.
+  static Map<FieldElement, ConstantExpression> applyFields(
+      NormalizedArguments args,
+      ConstructedConstantExpression constructorInvocation) {
+    Map<FieldElement, ConstantExpression> appliedFieldMap =
+        <FieldElement, ConstantExpression>{};
+    if (constructorInvocation != null) {
+      Map<FieldElement, ConstantExpression> fieldMap =
+          constructorInvocation.computeInstanceFields();
+      fieldMap.forEach((FieldElement field, ConstantExpression constant) {
+        appliedFieldMap[field] = constant.apply(args);
+      });
     }
+    return appliedFieldMap;
+  }
+}
+
+/// A redirecting generative constant constructor.
+class RedirectingGenerativeConstantConstructor implements ConstantConstructor {
+  final Map<dynamic/*int|String*/, ConstantExpression> defaultValues;
+  final ConstructedConstantExpression thisConstructorInvocation;
+
+  RedirectingGenerativeConstantConstructor(
+      this.defaultValues,
+      this.thisConstructorInvocation);
+
+  ConstantConstructorKind get kind {
+    return ConstantConstructorKind.REDIRECTING_GENERATIVE;
   }
 
-  ConstructedConstantExpression visitSuperConstructorInvoke(
-      Send node,
-      ConstructorElement superConstructor,
-      InterfaceType type,
-      NodeList arguments,
-      CallStructure callStructure,
-      _) {
-    List<ConstantExpression> argumentExpression =
-        arguments.nodes.map((a) => apply(a)).toList();
-    return new ConstructedConstantExpression(
-        type,
-        superConstructor,
-        callStructure,
-        argumentExpression);
+  InterfaceType computeInstanceType(InterfaceType newType) {
+    return thisConstructorInvocation.computeInstanceType()
+        .substByContext(newType);
   }
 
-  ConstructedConstantExpression visitImplicitSuperConstructorInvoke(
-      FunctionExpression node,
-      ConstructorElement superConstructor,
-      InterfaceType type,
-      _) {
-     return new ConstructedConstantExpression(
-         type,
-         superConstructor,
-         CallStructure.NO_ARGS,
-         const <ConstantExpression>[]);
+  Map<FieldElement, ConstantExpression> computeInstanceFields(
+      List<ConstantExpression> arguments,
+      CallStructure callStructure) {
+    NormalizedArguments args =
+        new NormalizedArguments(defaultValues, callStructure, arguments);
+    Map<FieldElement, ConstantExpression> appliedFieldMap =
+        GenerativeConstantConstructor.applyFields(
+            args, thisConstructorInvocation);
+    return appliedFieldMap;
   }
 
-  ConstructedConstantExpression visitThisConstructorInvoke(
-      Send node,
-      ConstructorElement thisConstructor,
-      NodeList arguments,
-      CallStructure callStructure,
-      _) {
-    List<ConstantExpression> argumentExpression =
-        arguments.nodes.map((a) => apply(a)).toList();
-    return new ConstructedConstantExpression(
-        currentClass.thisType,
-        thisConstructor,
-        callStructure,
-        argumentExpression);
+  accept(ConstantConstructorVisitor visitor, arg) {
+    return visitor.visitRedirectingGenerative(this, arg);
   }
 
-  @override
-  ConstantExpression visitBinary(
-      Send node,
-      Node left,
-      BinaryOperator operator,
-      Node right,
-      _) {
-    return new BinaryConstantExpression(
-        apply(left), operator, apply(right));
+  int get hashCode {
+    int hash = Hashing.objectHash(thisConstructorInvocation);
+    return Hashing.mapHash(defaultValues, hash);
   }
 
-
-  @override
-  ConstantExpression visitUnary(
-      Send node,
-      UnaryOperator operator,
-      Node expression,
-      _) {
-    return new UnaryConstantExpression(
-        operator, apply(expression));
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! RedirectingGenerativeConstantConstructor) return false;
+    return
+        thisConstructorInvocation == other.thisConstructorInvocation &&
+        GenerativeConstantConstructor.mapEquals(
+            defaultValues, other.defaultValues);
   }
 
-  @override
-  ConstantExpression visitStaticFieldGet(
-      Send node,
-      FieldElement field,
-      _) {
-    return new VariableConstantExpression(field);
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write("{'type': ${thisConstructorInvocation.type}");
+    defaultValues.forEach((key, ConstantExpression expression) {
+      sb.write(",\n 'default:${key}': ${expression.getText()}");
+    });
+    sb.write(",\n 'constructor': ${thisConstructorInvocation.getText()}");
+    sb.write("}");
+    return sb.toString();
+  }
+}
+
+/// A redirecting factory constant constructor.
+class RedirectingFactoryConstantConstructor implements ConstantConstructor {
+  final ConstructedConstantExpression targetConstructorInvocation;
+
+  RedirectingFactoryConstantConstructor(this.targetConstructorInvocation);
+
+  ConstantConstructorKind get kind {
+    return ConstantConstructorKind.REDIRECTING_FACTORY;
   }
 
-  @override
-  ConstantExpression visitTopLevelFieldGet(
-      Send node,
-      FieldElement field,
-      _) {
-    return new VariableConstantExpression(field);
+  InterfaceType computeInstanceType(InterfaceType newType) {
+    return targetConstructorInvocation.computeInstanceType()
+        .substByContext(newType);
   }
 
-  @override
-  ConstantExpression visitLiteralInt(LiteralInt node) {
-    return new IntConstantExpression(node.value);
+  Map<FieldElement, ConstantExpression> computeInstanceFields(
+      List<ConstantExpression> arguments,
+      CallStructure callStructure) {
+    ConstantConstructor constantConstructor =
+        targetConstructorInvocation.target.constantConstructor;
+    return constantConstructor.computeInstanceFields(arguments, callStructure);
   }
 
-  @override
-  ConstantExpression visitLiteralBool(LiteralBool node) {
-    return new BoolConstantExpression(node.value);
+  accept(ConstantConstructorVisitor visitor, arg) {
+    return visitor.visitRedirectingFactory(this, arg);
   }
 
-  @override
-  ConstantExpression visitLiteralNull(LiteralNull node) {
-    return new NullConstantExpression();
+  int get hashCode {
+    return Hashing.objectHash(targetConstructorInvocation);
   }
 
-  @override
-  ConstantExpression visitLiteralString(LiteralString node) {
-    return new StringConstantExpression(node.dartString.slowToString());
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! RedirectingFactoryConstantConstructor) return false;
+    return targetConstructorInvocation == other.targetConstructorInvocation;
   }
 
-  @override
-  ConstantExpression visitConditional(Conditional node) {
-    return new ConditionalConstantExpression(
-        apply(node.condition),
-        apply(node.thenExpression),
-        apply(node.elseExpression));
-  }
-
-  @override
-  ConstantExpression visitParenthesizedExpression(ParenthesizedExpression node) {
-    return apply(node.expression);
-  }
-
-  @override
-  ConstantExpression visitTopLevelFunctionInvoke(
-      Send node,
-      MethodElement function,
-      NodeList arguments,
-      CallStructure callStructure,
-      _) {
-    if (function.name != 'identical' || !function.library.isDartCore) {
-      throw new UnsupportedError("Unexpected function call: $function");
-    }
-    return new IdenticalConstantExpression(
-        apply(arguments.nodes.head), apply(arguments.nodes.tail.head));
-  }
-
-  @override
-  ConstantExpression visitNamedArgument(NamedArgument node) {
-    return apply(node.expression);
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write("{");
+    sb.write("'constructor': ${targetConstructorInvocation.getText()}");
+    sb.write("}");
+    return sb.toString();
   }
 }

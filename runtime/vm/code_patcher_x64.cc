@@ -23,8 +23,8 @@ namespace dart {
 class UnoptimizedCall : public ValueObject {
  public:
   UnoptimizedCall(uword return_address, const Code& code)
-      : start_(return_address - kCallPatternSize),
-        object_pool_(ObjectPool::Handle(code.GetObjectPool())) {
+      : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
+        start_(return_address - kCallPatternSize) {
     ASSERT(IsValid(return_address));
     ASSERT((kCallPatternSize - 7) == Assembler::kCallExternalLabelSize);
   }
@@ -40,26 +40,52 @@ class UnoptimizedCall : public ValueObject {
            (code_bytes[9] == 0x97);
   }
 
+  intptr_t argument_index() const {
+    return IndexFromPPLoad(start_ + 3);
+  }
+
   RawObject* ic_data() const {
-    intptr_t index = InstructionPattern::IndexFromPPLoad(start_ + 3);
-    return object_pool_.ObjectAt(index);
+    return object_pool_.ObjectAt(argument_index());
   }
 
   uword target() const {
-    intptr_t index = InstructionPattern::IndexFromPPLoad(start_ + 10);
+    intptr_t index = IndexFromPPLoad(start_ + 10);
     return object_pool_.RawValueAt(index);
   }
 
   void set_target(uword target) const {
-    intptr_t index = InstructionPattern::IndexFromPPLoad(start_ + 10);
+    intptr_t index = IndexFromPPLoad(start_ + 10);
     object_pool_.SetRawValueAt(index, target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
+ protected:
+  const ObjectPool& object_pool_;
+
  private:
   uword start_;
-  const ObjectPool& object_pool_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(UnoptimizedCall);
+};
+
+
+class NativeCall : public UnoptimizedCall {
+ public:
+  NativeCall(uword return_address, const Code& code)
+      : UnoptimizedCall(return_address, code) {
+  }
+
+  NativeFunction native_function() const {
+    return reinterpret_cast<NativeFunction>(
+        object_pool_.RawValueAt(argument_index()));
+  }
+
+  void set_native_function(NativeFunction func) const {
+    object_pool_.SetRawValueAt(argument_index(),
+        reinterpret_cast<uword>(func));
+  }
+
+ private:
+  DISALLOW_IMPLICIT_CONSTRUCTORS(NativeCall);
 };
 
 
@@ -117,7 +143,7 @@ class PoolPointerCall : public ValueObject {
   }
 
   intptr_t pp_index() const {
-    return InstructionPattern::IndexFromPPLoad(start_ + 3);
+    return IndexFromPPLoad(start_ + 3);
   }
 
   uword Target() const {
@@ -190,11 +216,11 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
 
 void CodePatcher::InsertCallAt(uword start, uword target) {
   // The inserted call should not overlap the lazy deopt jump code.
-  ASSERT(start + ShortCallPattern::InstructionLength() <= target);
+  ASSERT(start + ShortCallPattern::pattern_length_in_bytes() <= target);
   *reinterpret_cast<uint8_t*>(start) = 0xE8;
   ShortCallPattern call(start);
   call.SetTargetAddress(target);
-  CPU::FlushICache(start, ShortCallPattern::InstructionLength());
+  CPU::FlushICache(start, ShortCallPattern::pattern_length_in_bytes());
 }
 
 
@@ -208,6 +234,27 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
     *ic_data_result = ic_data.raw();
   }
   return ic_data.GetTargetAt(0);
+}
+
+
+void CodePatcher::PatchNativeCallAt(uword return_address,
+                                    const Code& code,
+                                    NativeFunction target,
+                                    const Code& trampoline) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  NativeCall call(return_address, code);
+  call.set_target(trampoline.EntryPoint());
+  call.set_native_function(target);
+}
+
+
+uword CodePatcher::GetNativeCallAt(uword return_address,
+                                   const Code& code,
+                                   NativeFunction* target) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  NativeCall call(return_address, code);
+  *target = call.native_function();
+  return call.target();
 }
 
 
@@ -227,7 +274,7 @@ class EdgeCounter : public ValueObject {
   }
 
   RawObject* edge_counter() const {
-    return object_pool_.ObjectAt(InstructionPattern::IndexFromPPLoad(end_ - 4));
+    return object_pool_.ObjectAt(IndexFromPPLoad(end_ - 4));
   }
 
  private:

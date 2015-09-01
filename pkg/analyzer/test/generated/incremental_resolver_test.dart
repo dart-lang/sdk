@@ -28,12 +28,14 @@ import 'resolver_test.dart';
 import 'test_support.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(DeclarationMatcherTest);
   runReflectiveTests(IncrementalResolverTest);
   runReflectiveTests(PoorMansIncrementalResolutionTest);
   runReflectiveTests(ResolutionContextBuilderTest);
 }
+
+void initializeTestEnvironment() {}
 
 void _assertEqualError(AnalysisError incrError, AnalysisError fullError) {
   expect(incrError.errorCode, same(fullError.errorCode));
@@ -68,13 +70,15 @@ class DeclarationMatcherTest extends ResolverTestCase {
   }
 
   void test_false_class_annotation_accessor_edit() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 const my_annotationA = const Object();
 const my_annotationB = const Object();
 @my_annotationA
 class A {
 }
-''', r'''
+''',
+        r'''
 const my_annotationA = const Object();
 const my_annotationB = const Object();
 @my_annotationB
@@ -84,7 +88,8 @@ class A {
   }
 
   void test_false_class_annotation_constructor_edit() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class MyAnnotationA {
   const MyAnnotationA();
 }
@@ -94,7 +99,8 @@ class MyAnnotationB {
 @MyAnnotationA()
 class A {
 }
-''', r'''
+''',
+        r'''
 class MyAnnotationA {
   const MyAnnotationA();
 }
@@ -108,11 +114,13 @@ class A {
   }
 
   void test_false_class_annotations_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 const my_annotation = const Object();
 class A {
 }
-''', r'''
+''',
+        r'''
 const my_annotation = const Object();
 @my_annotation
 class A {
@@ -121,12 +129,14 @@ class A {
   }
 
   void test_false_class_annotations_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 const my_annotation = const Object();
 @my_annotation
 class A {
 }
-''', r'''
+''',
+        r'''
 const my_annotation = const Object();
 class A {
 }
@@ -134,10 +144,12 @@ class A {
   }
 
   void test_false_class_list_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {}
 class B {}
-''', r'''
+''',
+        r'''
 class A {}
 class B {}
 class C {}
@@ -145,23 +157,27 @@ class C {}
   }
 
   void test_false_class_list_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {}
 class B {}
 class C {}
-''', r'''
+''',
+        r'''
 class A {}
 class B {}
 ''');
   }
 
   void test_false_class_typeParameters_bounds_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {}
 class B<T> {
   T f;
 }
-''', r'''
+''',
+        r'''
 class A {}
 class B<T extends A> {
   T f;
@@ -170,12 +186,14 @@ class B<T extends A> {
   }
 
   void test_false_class_typeParameters_bounds_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {}
 class B<T extends A> {
   T f;
 }
-''', r'''
+''',
+        r'''
 class A {}
 class B<T> {
   T f;
@@ -184,12 +202,14 @@ class B<T> {
   }
 
   void test_false_classMemberAccessor_list_add() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 class A {
   get a => 1;
   get b => 2;
 }
-''', r'''
+''',
+        r'''
 class A {
   get a => 1;
   get b => 2;
@@ -199,13 +219,15 @@ class A {
   }
 
   void test_false_classMemberAccessor_list_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   get a => 1;
   get b => 2;
   get c => 3;
 }
-''', r'''
+''',
+        r'''
 class A {
   get a => 1;
   get b => 2;
@@ -214,11 +236,13 @@ class A {
   }
 
   void test_false_classMemberAccessor_wasGetter() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 class A {
   get a => 1;
 }
-''', r'''
+''',
+        r'''
 class A {
   set a(x) {}
 }
@@ -226,11 +250,13 @@ class A {
   }
 
   void test_false_classMemberAccessor_wasInstance() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 class A {
   get a => 1;
 }
-''', r'''
+''',
+        r'''
 class A {
   static get a => 1;
 }
@@ -238,11 +264,13 @@ class A {
   }
 
   void test_false_classMemberAccessor_wasSetter() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 class A {
   set a(x) {}
 }
-''', r'''
+''',
+        r'''
 class A {
   get a => 1;
 }
@@ -250,11 +278,13 @@ class A {
   }
 
   void test_false_classMemberAccessor_wasStatic() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 class A {
   static get a => 1;
 }
-''', r'''
+''',
+        r'''
 class A {
   get a => 1;
 }
@@ -262,10 +292,12 @@ class A {
   }
 
   void test_false_classTypeAlias_list_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class M {}
 class A = Object with M;
-''', r'''
+''',
+        r'''
 class M {}
 class A = Object with M;
 class B = Object with M;
@@ -273,22 +305,26 @@ class B = Object with M;
   }
 
   void test_false_classTypeAlias_list_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class M {}
 class A = Object with M;
 class B = Object with M;
-''', r'''
+''',
+        r'''
 class M {}
 class A = Object with M;
 ''');
   }
 
   void test_false_classTypeAlias_typeParameters_bounds_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class M<T> {}
 class A {}
 class B<T> = Object with M<T>;
-''', r'''
+''',
+        r'''
 class M<T> {}
 class A {}
 class B<T extends A> = Object with M<T>;
@@ -296,11 +332,13 @@ class B<T extends A> = Object with M<T>;
   }
 
   void test_false_classTypeAlias_typeParameters_bounds_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class M<T> {}
 class A {}
 class B<T extends A> = Object with M<T>;
-''', r'''
+''',
+        r'''
 class M<T> {}
 class A {}
 class B<T> = Object with M<T>;
@@ -308,11 +346,13 @@ class B<T> = Object with M<T>;
   }
 
   void test_false_constructor_keywordConst_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   A();
 }
-''', r'''
+''',
+        r'''
 class A {
   const A();
 }
@@ -320,11 +360,13 @@ class A {
   }
 
   void test_false_constructor_keywordConst_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   const A();
 }
-''', r'''
+''',
+        r'''
 class A {
   A();
 }
@@ -332,14 +374,16 @@ class A {
   }
 
   void test_false_constructor_keywordFactory_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   A();
   A.foo() {
     return new A();
   }
 }
-''', r'''
+''',
+        r'''
 class A {
   A();
   factory A.foo() {
@@ -350,14 +394,16 @@ class A {
   }
 
   void test_false_constructor_keywordFactory_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   A();
   factory A.foo() {
     return new A();
   }
 }
-''', r'''
+''',
+        r'''
 class A {
   A();
   A.foo() {
@@ -368,11 +414,13 @@ class A {
   }
 
   void test_false_constructor_parameters_list_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   A();
 }
-''', r'''
+''',
+        r'''
 class A {
   A(int p);
 }
@@ -380,11 +428,13 @@ class A {
   }
 
   void test_false_constructor_parameters_list_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   A(int p);
 }
-''', r'''
+''',
+        r'''
 class A {
   A();
 }
@@ -392,11 +442,13 @@ class A {
   }
 
   void test_false_constructor_parameters_type_edit() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   A(int p);
 }
-''', r'''
+''',
+        r'''
 class A {
   A(String p);
 }
@@ -404,10 +456,12 @@ class A {
   }
 
   void test_false_constructor_unnamed_add_hadParameters() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
 }
-''', r'''
+''',
+        r'''
 class A {
   A(int p) {}
 }
@@ -415,23 +469,27 @@ class A {
   }
 
   void test_false_constructor_unnamed_remove_hadParameters() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   A(int p) {}
 }
-''', r'''
+''',
+        r'''
 class A {
 }
 ''');
   }
 
   void test_false_defaultFieldFormalParameterElement_wasSimple() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   int field;
   A(int field);
 }
-''', r'''
+''',
+        r'''
 class A {
   int field;
   A([this.field = 0]);
@@ -440,87 +498,107 @@ class A {
   }
 
   void test_false_enum_constants_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 enum E {A, B}
-''', r'''
+''',
+        r'''
 enum E {A, B, C}
 ''');
   }
 
   void test_false_enum_constants_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 enum E {A, B, C}
-''', r'''
+''',
+        r'''
 enum E {A, B}
 ''');
   }
 
   void test_false_export_hide_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 export 'dart:async' hide Future;
-''', r'''
+''',
+        r'''
 export 'dart:async' hide Future, Stream;
 ''');
   }
 
   void test_false_export_hide_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 export 'dart:async' hide Future, Stream;
-''', r'''
+''',
+        r'''
 export 'dart:async' hide Future;
 ''');
   }
 
   void test_false_export_list_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 export 'dart:async';
-''', r'''
+''',
+        r'''
 export 'dart:async';
 export 'dart:math';
 ''');
   }
 
   void test_false_export_list_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 export 'dart:async';
 export 'dart:math';
-''', r'''
+''',
+        r'''
 export 'dart:async';
 ''');
   }
 
   void test_false_export_show_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 export 'dart:async' show Future;
-''', r'''
+''',
+        r'''
 export 'dart:async' show Future, Stream;
 ''');
   }
 
   void test_false_export_show_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 export 'dart:async' show Future, Stream;
-''', r'''
+''',
+        r'''
 export 'dart:async' show Future;
 ''');
   }
 
   void test_false_extendsClause_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {}
 class B {}
-''', r'''
+''',
+        r'''
 class A {}
 class B extends A {}
 ''');
   }
 
   void test_false_extendsClause_different() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {}
 class B {}
 class C extends A {}
-''', r'''
+''',
+        r'''
 class A {}
 class B {}
 class C extends B {}
@@ -528,22 +606,26 @@ class C extends B {}
   }
 
   void test_false_extendsClause_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {}
 class B extends A{}
-''', r'''
+''',
+        r'''
 class A {}
 class B {}
 ''');
   }
 
   void test_false_field_list_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class T {
   int A = 1;
   int C = 3;
 }
-''', r'''
+''',
+        r'''
 class T {
   int A = 1;
   int B = 2;
@@ -553,13 +635,15 @@ class T {
   }
 
   void test_false_field_list_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class T {
   int A = 1;
   int B = 2;
   int C = 3;
 }
-''', r'''
+''',
+        r'''
 class T {
   int A = 1;
   int C = 3;
@@ -568,11 +652,13 @@ class T {
   }
 
   void test_false_field_modifier_isConst() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class T {
   static final A = 1;
 }
-''', r'''
+''',
+        r'''
 class T {
   static const A = 1;
 }
@@ -580,11 +666,13 @@ class T {
   }
 
   void test_false_field_modifier_isFinal() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class T {
   int A = 1;
 }
-''', r'''
+''',
+        r'''
 class T {
   final int A = 1;
 }
@@ -592,11 +680,13 @@ class T {
   }
 
   void test_false_field_modifier_isStatic() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class T {
   int A = 1;
 }
-''', r'''
+''',
+        r'''
 class T {
   static int A = 1;
 }
@@ -604,11 +694,13 @@ class T {
   }
 
   void test_false_field_modifier_wasConst() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class T {
   static const A = 1;
 }
-''', r'''
+''',
+        r'''
 class T {
   static final A = 1;
 }
@@ -616,11 +708,13 @@ class T {
   }
 
   void test_false_field_modifier_wasFinal() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class T {
   final int A = 1;
 }
-''', r'''
+''',
+        r'''
 class T {
   int A = 1;
 }
@@ -628,11 +722,13 @@ class T {
   }
 
   void test_false_field_modifier_wasStatic() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class T {
   static int A = 1;
 }
-''', r'''
+''',
+        r'''
 class T {
   int A = 1;
 }
@@ -640,11 +736,13 @@ class T {
   }
 
   void test_false_field_type_differentArgs() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class T {
   List<int> A;
 }
-''', r'''
+''',
+        r'''
 class T {
   List<String> A;
 }
@@ -652,12 +750,14 @@ class T {
   }
 
   void test_false_fieldFormalParameter_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   final field;
   A(field);
 }
-''', r'''
+''',
+        r'''
 class A {
   final field;
   A(this.field);
@@ -666,12 +766,14 @@ class A {
   }
 
   void test_false_fieldFormalParameter_add_function() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   final field;
   A(field(a));
 }
-''', r'''
+''',
+        r'''
 class A {
   final field;
   A(this.field(a));
@@ -680,12 +782,14 @@ class A {
   }
 
   void test_false_fieldFormalParameter_parameters_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   final field;
   A(this.field(a));
 }
-''', r'''
+''',
+        r'''
 class A {
   final field;
   A(this.field(a, b));
@@ -694,12 +798,14 @@ class A {
   }
 
   void test_false_fieldFormalParameter_parameters_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   final field;
   A(this.field(a, b));
 }
-''', r'''
+''',
+        r'''
 class A {
   final field;
   A(this.field(a));
@@ -708,12 +814,14 @@ class A {
   }
 
   void test_false_fieldFormalParameter_parameters_typeEdit() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   final field;
   A(this.field(int p));
 }
-''', r'''
+''',
+        r'''
 class A {
   final field;
   A(this.field(String p));
@@ -722,12 +830,14 @@ class A {
   }
 
   void test_false_fieldFormalParameter_remove_default() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   final field;
   A([this.field = 0]);
 }
-''', r'''
+''',
+        r'''
 class A {
   final field;
   A([field = 0]);
@@ -736,12 +846,14 @@ class A {
   }
 
   void test_false_fieldFormalParameter_remove_function() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   final field;
   A(this.field(a));
 }
-''', r'''
+''',
+        r'''
 class A {
   final field;
   A(field(a));
@@ -750,12 +862,14 @@ class A {
   }
 
   void test_false_fieldFormalParameter_remove_normal() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   final field;
   A(this.field);
 }
-''', r'''
+''',
+        r'''
 class A {
   final field;
   A(field);
@@ -764,12 +878,14 @@ class A {
   }
 
   void test_false_fieldFormalParameterElement_wasSimple() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   int field;
   A(int field);
 }
-''', r'''
+''',
+        r'''
 class A {
   int field;
   A(this.field);
@@ -778,11 +894,13 @@ class A {
   }
 
   void test_false_final_type_different() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class T {
   int A;
 }
-''', r'''
+''',
+        r'''
 class T {
   String A;
 }
@@ -790,42 +908,52 @@ class T {
   }
 
   void test_false_function_async_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main() {}
-''', r'''
+''',
+        r'''
 main() async {}
 ''');
   }
 
   void test_false_function_async_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main() async {}
-''', r'''
+''',
+        r'''
 main() {}
 ''');
   }
 
   void test_false_function_generator_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main() async {}
-''', r'''
+''',
+        r'''
 main() async* {}
 ''');
   }
 
   void test_false_function_generator_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main() async* {}
-''', r'''
+''',
+        r'''
 main() async {}
 ''');
   }
 
   void test_false_functionTypeAlias_list_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 typedef A(int pa);
 typedef B(String pb);
-''', r'''
+''',
+        r'''
 typedef A(int pa);
 typedef B(String pb);
 typedef C(pc);
@@ -833,151 +961,183 @@ typedef C(pc);
   }
 
   void test_false_functionTypeAlias_list_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 typedef A(int pa);
 typedef B(String pb);
 typedef C(pc);
-''', r'''
+''',
+        r'''
 typedef A(int pa);
 typedef B(String pb);
 ''');
   }
 
   void test_false_functionTypeAlias_parameters_list_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 typedef A(a);
-''', r'''
+''',
+        r'''
 typedef A(a, b);
 ''');
   }
 
   void test_false_functionTypeAlias_parameters_list_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 typedef A(a, b);
-''', r'''
+''',
+        r'''
 typedef A(a);
 ''');
   }
 
   void test_false_functionTypeAlias_parameters_type_edit() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 typedef A(int p);
-''', r'''
+''',
+        r'''
 typedef A(String p);
 ''');
   }
 
   void test_false_functionTypeAlias_returnType_edit() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 typedef int A();
-''', r'''
+''',
+        r'''
 typedef String A();
 ''');
   }
 
   void test_false_functionTypeAlias_typeParameters_bounds_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {}
 typedef F<T>();
-''', r'''
+''',
+        r'''
 class A {}
 typedef F<T extends A>();
 ''');
   }
 
   void test_false_functionTypeAlias_typeParameters_bounds_edit() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {}
 class B {}
 typedef F<T extends A>();
-''', r'''
+''',
+        r'''
 class A {}
 typedef F<T extends B>();
 ''');
   }
 
   void test_false_functionTypeAlias_typeParameters_bounds_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {}
 typedef F<T extends A>();
-''', r'''
+''',
+        r'''
 class A {}
 typedef F<T>();
 ''');
   }
 
   void test_false_functionTypeAlias_typeParameters_list_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 typedef F<A>();
-''', r'''
+''',
+        r'''
 typedef F<A, B>();
 ''');
   }
 
   void test_false_functionTypeAlias_typeParameters_list_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 typedef F<A, B>();
-''', r'''
+''',
+        r'''
 typedef F<A>();
 ''');
   }
 
   void test_false_FunctionTypedFormalParameter_parameters_list_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main(int callback(int a)) {
 }
-''', r'''
+''',
+        r'''
 main(int callback(int a, String b)) {
 }
 ''');
   }
 
   void test_false_FunctionTypedFormalParameter_parameters_list_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main(int callback(int a, String b)) {
 }
-''', r'''
+''',
+        r'''
 main(int callback(int a)) {
 }
 ''');
   }
 
   void test_false_FunctionTypedFormalParameter_parameterType() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main(int callback(int p)) {
 }
-''', r'''
+''',
+        r'''
 main(int callback(String p)) {
 }
 ''');
   }
 
   void test_false_FunctionTypedFormalParameter_returnType() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main(int callback()) {
 }
-''', r'''
+''',
+        r'''
 main(String callback()) {
 }
 ''');
   }
 
   void test_false_FunctionTypedFormalParameter_wasSimple() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main(int callback) {
 }
-''', r'''
+''',
+        r'''
 main(int callback(int a, String b)) {
 }
 ''');
   }
 
   void test_false_getter_body_add() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 class A {
   int get foo;
 }
-''', r'''
+''',
+        r'''
 class A {
   int get foo => 0;
 }
@@ -985,11 +1145,13 @@ class A {
   }
 
   void test_false_getter_body_remove() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 class A {
   int get foo => 0;
 }
-''', r'''
+''',
+        r'''
 class A {
   int get foo;
 }
@@ -997,31 +1159,37 @@ class A {
   }
 
   void test_false_implementsClause_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {}
 class B {}
-''', r'''
+''',
+        r'''
 class A {}
 class B implements A {}
 ''');
   }
 
   void test_false_implementsClause_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {}
 class B implements A {}
-''', r'''
+''',
+        r'''
 class A {}
 class B {}
 ''');
   }
 
   void test_false_implementsClause_reorder() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {}
 class B {}
 class C implements A, B {}
-''', r'''
+''',
+        r'''
 class A {}
 class B {}
 class C implements B, A {}
@@ -1029,88 +1197,108 @@ class C implements B, A {}
   }
 
   void test_false_import_hide_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 import 'dart:async' hide Future;
-''', r'''
+''',
+        r'''
 import 'dart:async' hide Future, Stream;
 ''');
   }
 
   void test_false_import_hide_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 import 'dart:async' hide Future, Stream;
-''', r'''
+''',
+        r'''
 import 'dart:async' hide Future;
 ''');
   }
 
   void test_false_import_list_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 import 'dart:async';
-''', r'''
+''',
+        r'''
 import 'dart:async';
 import 'dart:math';
 ''');
   }
 
   void test_false_import_list_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 import 'dart:async';
 import 'dart:math';
-''', r'''
+''',
+        r'''
 import 'dart:async';
 ''');
   }
 
   void test_false_import_prefix_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 import 'dart:async';
-''', r'''
+''',
+        r'''
 import 'dart:async' as async;
 ''');
   }
 
   void test_false_import_prefix_edit() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 import 'dart:async' as oldPrefix;
-''', r'''
+''',
+        r'''
 import 'dart:async' as newPrefix;
 ''');
   }
 
   void test_false_import_prefix_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 import 'dart:async' as async;
-''', r'''
+''',
+        r'''
 import 'dart:async';
 ''');
   }
 
   void test_false_import_show_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 import 'dart:async' show Future;
-''', r'''
+''',
+        r'''
 import 'dart:async' show Future, Stream;
 ''');
   }
 
   void test_false_import_show_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 import 'dart:async' show Future, Stream;
-''', r'''
+''',
+        r'''
 import 'dart:async' show Future;
 ''');
   }
 
   void test_false_method_annotation_edit() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 const my_annotationA = const Object();
 const my_annotationB = const Object();
 class A {
   @my_annotationA
   void m() {}
 }
-''', r'''
+''',
+        r'''
 const my_annotationA = const Object();
 const my_annotationB = const Object();
 class A {
@@ -1121,12 +1309,14 @@ class A {
   }
 
   void test_false_method_annotations_add() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 const my_annotation = const Object();
 class A {
   void m() {}
 }
-''', r'''
+''',
+        r'''
 const my_annotation = const Object();
 class A {
   @my_annotation
@@ -1136,13 +1326,15 @@ class A {
   }
 
   void test_false_method_annotations_remove() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 const my_annotation = const Object();
 class A {
   @my_annotation
   void m() {}
 }
-''', r'''
+''',
+        r'''
 const my_annotation = const Object();
 class A {
   void m() {}
@@ -1151,11 +1343,13 @@ class A {
   }
 
   void test_false_method_async_add() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 class A {
   m() {}
 }
-''', r'''
+''',
+        r'''
 class A {
   m() async {}
 }
@@ -1163,11 +1357,13 @@ class A {
   }
 
   void test_false_method_async_remove() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 class A {
   m() async {}
 }
-''', r'''
+''',
+        r'''
 class A {
   m() {}
 }
@@ -1175,11 +1371,13 @@ class A {
   }
 
   void test_false_method_body_add() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 class A {
   void foo();
 }
-''', r'''
+''',
+        r'''
 class A {
   void foo() {}
 }
@@ -1187,11 +1385,13 @@ class A {
   }
 
   void test_false_method_body_remove() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 class A {
   void foo() {}
 }
-''', r'''
+''',
+        r'''
 class A {
   void foo();
 }
@@ -1199,11 +1399,13 @@ class A {
   }
 
   void test_false_method_generator_add() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 class A {
   m() async {}
 }
-''', r'''
+''',
+        r'''
 class A {
   m() async* {}
 }
@@ -1211,11 +1413,13 @@ class A {
   }
 
   void test_false_method_generator_remove() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 class A {
   m() async* {}
 }
-''', r'''
+''',
+        r'''
 class A {
   m() async {}
 }
@@ -1223,12 +1427,14 @@ class A {
   }
 
   void test_false_method_list_add() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 class A {
   a() {}
   b() {}
 }
-''', r'''
+''',
+        r'''
 class A {
   a() {}
   b() {}
@@ -1238,13 +1444,15 @@ class A {
   }
 
   void test_false_method_list_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {
   a() {}
   b() {}
   c() {}
 }
-''', r'''
+''',
+        r'''
 class A {
   a() {}
   b() {}
@@ -1253,12 +1461,14 @@ class A {
   }
 
   void test_false_method_parameters_type_edit() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 class A {
   m(int p) {
   }
 }
-''', r'''
+''',
+        r'''
 class A {
   m(String p) {
   }
@@ -1267,7 +1477,8 @@ class A {
   }
 
   void test_false_method_parameters_type_edit_insertImportPrefix() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 import 'dart:async' as a;
 
 class C {
@@ -1279,7 +1490,8 @@ class Future {}
 bar(C c, a.Future f) {
   c.foo(f);
 }
-''', r'''
+''',
+        r'''
 import 'dart:async' as a;
 
 class C {
@@ -1295,11 +1507,13 @@ bar(C c, a.Future f) {
   }
 
   void test_false_method_returnType_edit() {
-    _assertDoesNotMatchOK(r'''
+    _assertDoesNotMatchOK(
+        r'''
 class A {
   int m() {}
 }
-''', r'''
+''',
+        r'''
 class A {
   String m() {}
 }
@@ -1309,10 +1523,12 @@ class A {
   void test_false_part_list_add() {
     addNamedSource('/unitA.dart', 'part of lib; class A {}');
     addNamedSource('/unitB.dart', 'part of lib; class B {}');
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 library lib;
 part 'unitA.dart';
-''', r'''
+''',
+        r'''
 library lib;
 part 'unitA.dart';
 part 'unitB.dart';
@@ -1322,91 +1538,109 @@ part 'unitB.dart';
   void test_false_part_list_remove() {
     addNamedSource('/unitA.dart', 'part of lib; class A {}');
     addNamedSource('/unitB.dart', 'part of lib; class B {}');
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 library lib;
 part 'unitA.dart';
 part 'unitB.dart';
-''', r'''
+''',
+        r'''
 library lib;
 part 'unitA.dart';
 ''');
   }
 
   void test_false_SimpleFormalParameter_named_differentName() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main({int oldName}) {
 }
-''', r'''
+''',
+        r'''
 main({int newName}) {
 }
 ''');
   }
 
   void test_false_SimpleFormalParameter_namedDefault_addValue() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main({int p}) {
 }
-''', r'''
+''',
+        r'''
 main({int p: 2}) {
 }
 ''');
   }
 
   void test_false_SimpleFormalParameter_namedDefault_differentValue() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main({int p: 1}) {
 }
-''', r'''
+''',
+        r'''
 main({int p: 2}) {
 }
 ''');
   }
 
   void test_false_SimpleFormalParameter_namedDefault_removeValue() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main({int p: 1}) {
 }
-''', r'''
+''',
+        r'''
 main({int p}) {
 }
 ''');
   }
 
   void test_false_SimpleFormalParameter_optionalDefault_addValue() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main([int p]) {
 }
-''', r'''
+''',
+        r'''
 main([int p = 2]) {
 }
 ''');
   }
 
   void test_false_SimpleFormalParameter_optionalDefault_differentValue() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main([int p = 1]) {
 }
-''', r'''
+''',
+        r'''
 main([int p = 2]) {
 }
 ''');
   }
 
   void test_false_SimpleFormalParameter_optionalDefault_removeValue() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main([int p = 1]) {
 }
-''', r'''
+''',
+        r'''
 main([int p]) {
 }
 ''');
   }
 
   void test_false_topLevelAccessor_list_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 get a => 1;
 get b => 2;
-''', r'''
+''',
+        r'''
 get a => 1;
 get b => 2;
 get c => 3;
@@ -1414,37 +1648,45 @@ get c => 3;
   }
 
   void test_false_topLevelAccessor_list_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 get a => 1;
 get b => 2;
 get c => 3;
-''', r'''
+''',
+        r'''
 get a => 1;
 get b => 2;
 ''');
   }
 
   void test_false_topLevelAccessor_wasGetter() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 get a => 1;
-''', r'''
+''',
+        r'''
 set a(x) {}
 ''');
   }
 
   void test_false_topLevelAccessor_wasSetter() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 set a(x) {}
-''', r'''
+''',
+        r'''
 get a => 1;
 ''');
   }
 
   void test_false_topLevelFunction_list_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 a() {}
 b() {}
-''', r'''
+''',
+        r'''
 a() {}
 b() {}
 c() {}
@@ -1452,59 +1694,71 @@ c() {}
   }
 
   void test_false_topLevelFunction_list_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 a() {}
 b() {}
 c() {}
-''', r'''
+''',
+        r'''
 a() {}
 b() {}
 ''');
   }
 
   void test_false_topLevelFunction_parameters_list_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main(int a, int b) {
 }
-''', r'''
+''',
+        r'''
 main(int a, int b, int c) {
 }
 ''');
   }
 
   void test_false_topLevelFunction_parameters_list_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main(int a, int b, int c) {
 }
-''', r'''
+''',
+        r'''
 main(int a, int b) {
 }
 ''');
   }
 
   void test_false_topLevelFunction_parameters_type_edit() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 main(int a, int b, int c) {
 }
-''', r'''
+''',
+        r'''
 main(int a, String b, int c) {
 }
 ''');
   }
 
   void test_false_topLevelFunction_returnType_edit() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 int a() {}
-''', r'''
+''',
+        r'''
 String a() {}
 ''');
   }
 
   void test_false_topLevelVariable_list_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 const int A = 1;
 const int C = 3;
-''', r'''
+''',
+        r'''
 const int A = 1;
 const int B = 2;
 const int C = 3;
@@ -1512,78 +1766,96 @@ const int C = 3;
   }
 
   void test_false_topLevelVariable_list_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 const int A = 1;
 const int B = 2;
 const int C = 3;
-''', r'''
+''',
+        r'''
 const int A = 1;
 const int C = 3;
 ''');
   }
 
   void test_false_topLevelVariable_modifier_isConst() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 final int A = 1;
-''', r'''
+''',
+        r'''
 const int A = 1;
 ''');
   }
 
   void test_false_topLevelVariable_modifier_isFinal() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 int A = 1;
-''', r'''
+''',
+        r'''
 final int A = 1;
 ''');
   }
 
   void test_false_topLevelVariable_modifier_wasConst() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 const int A = 1;
-''', r'''
+''',
+        r'''
 final int A = 1;
 ''');
   }
 
   void test_false_topLevelVariable_modifier_wasFinal() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 final int A = 1;
-''', r'''
+''',
+        r'''
 int A = 1;
 ''');
   }
 
   void test_false_topLevelVariable_synthetic_wasGetter() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 int get A => 1;
-''', r'''
+''',
+        r'''
 final int A = 1;
 ''');
   }
 
   void test_false_topLevelVariable_type_different() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 int A;
-''', r'''
+''',
+        r'''
 String A;
 ''');
   }
 
   void test_false_topLevelVariable_type_differentArgs() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 List<int> A;
-''', r'''
+''',
+        r'''
 List<String> A;
 ''');
   }
 
   void test_false_type_noTypeArguments_hadTypeArguments() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A<T> {}
 A<int> main() {
 }
-''', r'''
+''',
+        r'''
 class A<T> {}
 A main() {
 }
@@ -1591,31 +1863,37 @@ A main() {
   }
 
   void test_false_withClause_add() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {}
 class B {}
-''', r'''
+''',
+        r'''
 class A {}
 class B extends Object with A {}
 ''');
   }
 
   void test_false_withClause_remove() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {}
 class B extends Object with A {}
-''', r'''
+''',
+        r'''
 class A {}
 class B {}
 ''');
   }
 
   void test_false_withClause_reorder() {
-    _assertDoesNotMatch(r'''
+    _assertDoesNotMatch(
+        r'''
 class A {}
 class B {}
 class C extends Object with A, B {}
-''', r'''
+''',
+        r'''
 class A {}
 class B {}
 class C extends Object with B, A {}
@@ -1623,12 +1901,14 @@ class C extends Object with B, A {}
   }
 
   void test_true_class_annotations_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 const my_annotation = const Object();
 @my_annotation
 class A {
 }
-''', r'''
+''',
+        r'''
 const my_annotation = const Object();
 @my_annotation
 class A {
@@ -1637,11 +1917,13 @@ class A {
   }
 
   void test_true_class_list_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {}
 class B {}
 class C {}
-''', r'''
+''',
+        r'''
 class C {}
 class A {}
 class B {}
@@ -1649,11 +1931,13 @@ class B {}
   }
 
   void test_true_class_list_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {}
 class B {}
 class C {}
-''', r'''
+''',
+        r'''
 class A {}
 class B {}
 class C {}
@@ -1661,15 +1945,18 @@ class C {}
   }
 
   void test_true_class_typeParameters_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A<T> {}
-''', r'''
+''',
+        r'''
 class A<T> {}
 ''');
   }
 
   void test_true_classMemberAccessor_getterSetter() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   int _test;
   get test => _test;
@@ -1677,7 +1964,8 @@ class A {
     _test = v;
   }
 }
-''', r'''
+''',
+        r'''
 class A {
   int _test;
   get test => _test;
@@ -1689,13 +1977,15 @@ class A {
   }
 
   void test_true_classMemberAccessor_list_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   get a => 1;
   get b => 2;
   get c => 3;
 }
-''', r'''
+''',
+        r'''
 class A {
   get c => 3;
   get a => 1;
@@ -1705,13 +1995,15 @@ class A {
   }
 
   void test_true_classMemberAccessor_list_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   get a => 1;
   get b => 2;
   get c => 3;
 }
-''', r'''
+''',
+        r'''
 class A {
   get a => 1;
   get b => 2;
@@ -1721,12 +2013,14 @@ class A {
   }
 
   void test_true_classTypeAlias_list_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class M {}
 class A = Object with M;
 class B = Object with M;
 class C = Object with M;
-''', r'''
+''',
+        r'''
 class M {}
 class C = Object with M;
 class A = Object with M;
@@ -1735,12 +2029,14 @@ class B = Object with M;
   }
 
   void test_true_classTypeAlias_list_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class M {}
 class A = Object with M;
 class B = Object with M;
 class C = Object with M;
-''', r'''
+''',
+        r'''
 class M {}
 class A = Object with M;
 class B = Object with M;
@@ -1749,11 +2045,13 @@ class C = Object with M;
   }
 
   void test_true_classTypeAlias_typeParameters_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class M<T> {}
 class A<T> {}
 class B<T> = A<T> with M<T>;
-''', r'''
+''',
+        r'''
 class M<T> {}
 class A<T> {}
 class B<T> = A<T> with M<T>;
@@ -1761,11 +2059,13 @@ class B<T> = A<T> with M<T>;
   }
 
   void test_true_constructor_body_add() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   A(int p);
 }
-''', r'''
+''',
+        r'''
 class A {
   A(int p) {}
 }
@@ -1773,11 +2073,13 @@ class A {
   }
 
   void test_true_constructor_body_remove() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   A(int p) {}
 }
-''', r'''
+''',
+        r'''
 class A {
   A(int p);
 }
@@ -1785,11 +2087,13 @@ class A {
   }
 
   void test_true_constructor_named_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   A.name(int p);
 }
-''', r'''
+''',
+        r'''
 class A {
   A.name(int p);
 }
@@ -1797,10 +2101,12 @@ class A {
   }
 
   void test_true_constructor_unnamed_add_noParameters() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
 }
-''', r'''
+''',
+        r'''
 class A {
   A() {}
 }
@@ -1808,22 +2114,26 @@ class A {
   }
 
   void test_true_constructor_unnamed_remove_noParameters() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   A() {}
 }
-''', r'''
+''',
+        r'''
 class A {
 }
 ''');
   }
 
   void test_true_constructor_unnamed_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   A(int p);
 }
-''', r'''
+''',
+        r'''
 class A {
   A(int p);
 }
@@ -1831,12 +2141,14 @@ class A {
   }
 
   void test_true_defaultFieldFormalParameterElement() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   int field;
   A([this.field = 0]);
 }
-''', r'''
+''',
+        r'''
 class A {
   int field;
   A([this.field = 0]);
@@ -1845,19 +2157,23 @@ class A {
   }
 
   void test_true_enum_constants_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 enum E {A, B, C}
-''', r'''
+''',
+        r'''
 enum E {C, A, B}
 ''');
   }
 
   void test_true_enum_list_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 enum A {A1, A2, A3}
 enum B {B1, B2, B3}
 enum C {C1, C2, C3}
-''', r'''
+''',
+        r'''
 enum C {C1, C2, C3}
 enum A {A1, A2, A3}
 enum B {B1, B2, B3}
@@ -1865,11 +2181,13 @@ enum B {B1, B2, B3}
   }
 
   void test_true_enum_list_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 enum A {A1, A2, A3}
 enum B {B1, B2, B3}
 enum C {C1, C2, C3}
-''', r'''
+''',
+        r'''
 enum A {A1, A2, A3}
 enum B {B1, B2, B3}
 enum C {C1, C2, C3}
@@ -1877,11 +2195,13 @@ enum C {C1, C2, C3}
   }
 
   void test_true_executable_same_hasLabel() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 main() {
   label: return 42;
 }
-''', r'''
+''',
+        r'''
 main() {
   label: return 42;
 }
@@ -1889,11 +2209,13 @@ main() {
   }
 
   void test_true_executable_same_hasLocalVariable() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 main() {
   int a = 42;
 }
-''', r'''
+''',
+        r'''
 main() {
   int a = 42;
 }
@@ -1901,59 +2223,71 @@ main() {
   }
 
   void test_true_export_hide_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 export 'dart:async' hide Future, Stream;
-''', r'''
+''',
+        r'''
 export 'dart:async' hide Stream, Future;
 ''');
   }
 
   void test_true_export_list_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 export 'dart:async';
 export 'dart:math';
-''', r'''
+''',
+        r'''
 export 'dart:math';
 export 'dart:async';
 ''');
   }
 
   void test_true_export_list_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 export 'dart:async';
 export 'dart:math';
-''', r'''
+''',
+        r'''
 export 'dart:async';
 export 'dart:math';
 ''');
   }
 
   void test_true_export_show_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 export 'dart:async' show Future, Stream;
-''', r'''
+''',
+        r'''
 export 'dart:async' show Stream, Future;
 ''');
   }
 
   void test_true_extendsClause_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {}
 class B extends A {}
-''', r'''
+''',
+        r'''
 class A {}
 class B extends A {}
 ''');
   }
 
   void test_true_field_list_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class T {
   int A = 1;
   int B = 2;
   int C = 3;
 }
-''', r'''
+''',
+        r'''
 class T {
   int C = 3;
   int A = 1;
@@ -1963,13 +2297,15 @@ class T {
   }
 
   void test_true_field_list_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class T {
   int A = 1;
   int B = 2;
   int C = 3;
 }
-''', r'''
+''',
+        r'''
 class T {
   int A = 1;
   int B = 2;
@@ -1979,12 +2315,14 @@ class T {
   }
 
   void test_true_fieldFormalParameter() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   int field;
   A(this.field);
 }
-''', r'''
+''',
+        r'''
 class A {
   int field;
   A(this.field);
@@ -1993,12 +2331,14 @@ class A {
   }
 
   void test_true_fieldFormalParameter_function() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   final field;
   A(this.field(int a, String b));
 }
-''', r'''
+''',
+        r'''
 class A {
   final field;
   A(this.field(int a, String b));
@@ -2007,11 +2347,13 @@ class A {
   }
 
   void test_true_functionTypeAlias_list_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 typedef A(int pa);
 typedef B(String pb);
 typedef C(pc);
-''', r'''
+''',
+        r'''
 typedef C(pc);
 typedef A(int pa);
 typedef B(String pb);
@@ -2019,11 +2361,13 @@ typedef B(String pb);
   }
 
   void test_true_functionTypeAlias_list_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 typedef String A(int pa);
 typedef int B(String pb);
 typedef C(pc);
-''', r'''
+''',
+        r'''
 typedef String A(int pa);
 typedef int B(String pb);
 typedef C(pc);
@@ -2031,85 +2375,103 @@ typedef C(pc);
   }
 
   void test_true_functionTypeAlias_typeParameters_list_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 typedef F<A, B, C>();
-''', r'''
+''',
+        r'''
 typedef F<A, B, C>();
 ''');
   }
 
   void test_true_FunctionTypedFormalParameter() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 main(int callback(int a, String b)) {
 }
-''', r'''
+''',
+        r'''
 main(int callback(int a, String b)) {
 }
 ''');
   }
 
   void test_true_implementsClause_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {}
 class B implements A {}
-''', r'''
+''',
+        r'''
 class A {}
 class B implements A {}
 ''');
   }
 
   void test_true_import_hide_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 import 'dart:async' hide Future, Stream;
-''', r'''
+''',
+        r'''
 import 'dart:async' hide Stream, Future;
 ''');
   }
 
   void test_true_import_list_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 import 'dart:async';
 import 'dart:math';
-''', r'''
+''',
+        r'''
 import 'dart:math';
 import 'dart:async';
 ''');
   }
 
   void test_true_import_list_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 import 'dart:async';
 import 'dart:math';
-''', r'''
+''',
+        r'''
 import 'dart:async';
 import 'dart:math';
 ''');
   }
 
   void test_true_import_prefix() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 import 'dart:async' as async;
-''', r'''
+''',
+        r'''
 import 'dart:async' as async;
 ''');
   }
 
   void test_true_import_show_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 import 'dart:async' show Future, Stream;
-''', r'''
+''',
+        r'''
 import 'dart:async' show Stream, Future;
 ''');
   }
 
   void test_true_method_annotation_accessor_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 const my_annotation = const Object();
 class A {
   @my_annotation
   void m() {}
 }
-''', r'''
+''',
+        r'''
 const my_annotation = const Object();
 class A {
   @my_annotation
@@ -2119,7 +2481,8 @@ class A {
   }
 
   void test_true_method_annotation_constructor_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class MyAnnotation {
   const MyAnnotation();
 }
@@ -2127,7 +2490,8 @@ class A {
   @MyAnnotation()
   void m() {}
 }
-''', r'''
+''',
+        r'''
 class MyAnnotation {
   const MyAnnotation();
 }
@@ -2139,11 +2503,13 @@ class A {
   }
 
   void test_true_method_async() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   m() async {}
 }
-''', r'''
+''',
+        r'''
 class A {
   m() async {}
 }
@@ -2151,13 +2517,15 @@ class A {
   }
 
   void test_true_method_list_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   a() {}
   b() {}
   c() {}
 }
-''', r'''
+''',
+        r'''
 class A {
   c() {}
   a() {}
@@ -2167,13 +2535,15 @@ class A {
   }
 
   void test_true_method_list_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   a() {}
   b() {}
   c() {}
 }
-''', r'''
+''',
+        r'''
 class A {
   a() {}
   b() {}
@@ -2183,11 +2553,13 @@ class A {
   }
 
   void test_true_method_operator_minus() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   operator -(other) {}
 }
-''', r'''
+''',
+        r'''
 class A {
   operator -(other) {}
 }
@@ -2195,11 +2567,13 @@ class A {
   }
 
   void test_true_method_operator_minusUnary() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   operator -() {}
 }
-''', r'''
+''',
+        r'''
 class A {
   operator -() {}
 }
@@ -2207,11 +2581,13 @@ class A {
   }
 
   void test_true_method_operator_plus() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {
   operator +(other) {}
 }
-''', r'''
+''',
+        r'''
 class A {
   operator +(other) {}
 }
@@ -2219,12 +2595,14 @@ class A {
   }
 
   void test_true_method_parameters_type_functionType() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 typedef F();
 class A {
   m(F p) {}
 }
-''', r'''
+''',
+        r'''
 typedef F();
 class A {
   m(F p) {}
@@ -2233,13 +2611,15 @@ class A {
   }
 
   void test_true_method_parameters_type_sameImportPrefix() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 import 'dart:async' as a;
 
 bar(a.Future f) {
   print(f);
 }
-''', r'''
+''',
+        r'''
 import 'dart:async' as a;
 
 bar(a.Future ff) {
@@ -2251,11 +2631,13 @@ bar(a.Future ff) {
   void test_true_part_list_reorder() {
     addNamedSource('/unitA.dart', 'part of lib; class A {}');
     addNamedSource('/unitB.dart', 'part of lib; class B {}');
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 library lib;
 part 'unitA.dart';
 part 'unitB.dart';
-''', r'''
+''',
+        r'''
 library lib;
 part 'unitB.dart';
 part 'unitA.dart';
@@ -2265,11 +2647,13 @@ part 'unitA.dart';
   void test_true_part_list_same() {
     addNamedSource('/unitA.dart', 'part of lib; class A {}');
     addNamedSource('/unitB.dart', 'part of lib; class B {}');
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 library lib;
 part 'unitA.dart';
 part 'unitB.dart';
-''', r'''
+''',
+        r'''
 library lib;
 part 'unitA.dart';
 part 'unitB.dart';
@@ -2277,41 +2661,49 @@ part 'unitB.dart';
   }
 
   void test_true_SimpleFormalParameter_optional_differentName() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 main([int oldName]) {
 }
-''', r'''
+''',
+        r'''
 main([int newName]) {
 }
 ''');
   }
 
   void test_true_SimpleFormalParameter_optionalDefault_differentName() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 main([int oldName = 1]) {
 }
-''', r'''
+''',
+        r'''
 main([int newName = 1]) {
 }
 ''');
   }
 
   void test_true_SimpleFormalParameter_required_differentName() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 main(int oldName) {
 }
-''', r'''
+''',
+        r'''
 main(int newName) {
 }
 ''');
   }
 
   void test_true_topLevelAccessor_list_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 set a(x) {}
 set b(x) {}
 set c(x) {}
-''', r'''
+''',
+        r'''
 set c(x) {}
 set a(x) {}
 set b(x) {}
@@ -2319,11 +2711,13 @@ set b(x) {}
   }
 
   void test_true_topLevelAccessor_list_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 get a => 1;
 get b => 2;
 get c => 3;
-''', r'''
+''',
+        r'''
 get a => 1;
 get b => 2;
 get c => 3;
@@ -2331,11 +2725,13 @@ get c => 3;
   }
 
   void test_true_topLevelFunction_list_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 a() {}
 b() {}
 c() {}
-''', r'''
+''',
+        r'''
 c() {}
 a() {}
 b() {}
@@ -2343,11 +2739,13 @@ b() {}
   }
 
   void test_true_topLevelFunction_list_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 a() {}
 b() {}
 c() {}
-''', r'''
+''',
+        r'''
 a() {}
 b() {}
 c() {}
@@ -2355,11 +2753,13 @@ c() {}
   }
 
   void test_true_topLevelVariable_list_reorder() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 const int A = 1;
 const int B = 2;
 const int C = 3;
-''', r'''
+''',
+        r'''
 const int C = 3;
 const int A = 1;
 const int B = 2;
@@ -2367,11 +2767,13 @@ const int B = 2;
   }
 
   void test_true_topLevelVariable_list_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 const int A = 1;
 const int B = 2;
 const int C = 3;
-''', r'''
+''',
+        r'''
 const int A = 1;
 const int B = 2;
 const int C = 3;
@@ -2379,37 +2781,45 @@ const int C = 3;
   }
 
   void test_true_topLevelVariable_type_sameArgs() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 Map<int, String> A;
-''', r'''
+''',
+        r'''
 Map<int, String> A;
 ''');
   }
 
   void test_true_type_dynamic() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 dynamic a() {}
-''', r'''
+''',
+        r'''
 dynamic a() {}
 ''');
   }
 
   void test_true_type_hasImportPrefix() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 import 'dart:async' as async;
 async.Future F;
-''', r'''
+''',
+        r'''
 import 'dart:async' as async;
 async.Future F;
 ''');
   }
 
   void test_true_type_noTypeArguments_implyAllDynamic() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A<T> {}
 A main() {
 }
-''', r'''
+''',
+        r'''
 class A<T> {}
 A main() {
 }
@@ -2417,18 +2827,22 @@ A main() {
   }
 
   void test_true_type_void() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 void a() {}
-''', r'''
+''',
+        r'''
 void a() {}
 ''');
   }
 
   void test_true_withClause_same() {
-    _assertMatches(r'''
+    _assertMatches(
+        r'''
 class A {}
 class B extends Object with A {}
-''', r'''
+''',
+        r'''
 class A {}
 class B extends Object with A {}
 ''');
@@ -2657,10 +3071,14 @@ class A {
   }
 }
 ''');
-    _resolve(_editString('    return a + b;', r'''
+    _resolve(
+        _editString(
+            '    return a + b;',
+            r'''
     int res = a + b;
     return res;
-'''), _isBlock);
+'''),
+        _isBlock);
   }
 
   void test_method_parameter_rename() {
@@ -2671,9 +3089,13 @@ class A {
   }
 }
 ''');
-    _resolve(_editString(r'''(int a, int b, int c) {
-    return a + b + c;''', r'''(int a, int second, int c) {
-    return a + second + c;'''), _isDeclaration);
+    _resolve(
+        _editString(
+            r'''(int a, int b, int c) {
+    return a + b + c;''',
+            r'''(int a, int second, int c) {
+    return a + second + c;'''),
+        _isDeclaration);
   }
 
   void test_superInvocation() {
@@ -2721,10 +3143,14 @@ int main(int a, int b) {
   return a + b;
 }
 ''');
-    _resolve(_editString('  return a + b;', r'''
+    _resolve(
+        _editString(
+            '  return a + b;',
+            r'''
   int res = a + b;
   return res;
-'''), _isBlock);
+'''),
+        _isBlock);
   }
 
   void test_topLevelFunction_localVariable_remove() {
@@ -2751,9 +3177,13 @@ int main(int a, int b) {
   return a + b;
 }
 ''');
-    _resolve(_editString(r'''(int a, int b) {
-  return a + b;''', r'''(int first, int b) {
-  return first + b;'''), _isDeclaration);
+    _resolve(
+        _editString(
+            r'''(int a, int b) {
+  return a + b;''',
+            r'''(int first, int b) {
+  return first + b;'''),
+        _isDeclaration);
   }
 
   void test_topLevelVariable_initializer() {
@@ -2827,14 +3257,24 @@ class B {
     if (AnalysisEngine.instance.useTaskModel) {
       LibrarySpecificUnit lsu = new LibrarySpecificUnit(source, source);
       task.AnalysisCache cache = analysisContext2.analysisCache;
-      resolver = new IncrementalResolver(null, cache.get(source),
-          cache.get(lsu), unit.element, updateOffset, updateEndOld,
+      resolver = new IncrementalResolver(
+          null,
+          cache.get(source),
+          cache.get(lsu),
+          unit.element,
+          updateOffset,
+          updateEndOld,
           updateOldNew);
     } else {
       resolver = new IncrementalResolver(
           (analysisContext2 as AnalysisContextImpl)
-              .getReadableSourceEntryOrNull(source), null, null, unit.element,
-          updateOffset, updateEndOld, updateOldNew);
+              .getReadableSourceEntryOrNull(source),
+          null,
+          null,
+          unit.element,
+          updateOffset,
+          updateEndOld,
+          updateOldNew);
     }
     bool success = resolver.resolve(newNode);
     expect(success, isTrue);
@@ -3219,13 +3659,15 @@ main() {
   x.foo();
 }
 ''');
-    _updateAndValidate(r'''
+    _updateAndValidate(
+        r'''
 // 000
 main() {
   Object x;
   x.foo();
 }
-''', expectedSuccess: false);
+''',
+        expectedSuccess: false);
   }
 
   void test_endOfLineComment_outBody_remove() {
@@ -3236,12 +3678,14 @@ main() {
   x.foo();
 }
 ''');
-    _updateAndValidate(r'''
+    _updateAndValidate(
+        r'''
 main() {
   Object x;
   x.foo();
 }
-''', expectedSuccess: false);
+''',
+        expectedSuccess: false);
   }
 
   void test_endOfLineComment_outBody_update() {
@@ -3252,13 +3696,15 @@ main() {
   x.foo();
 }
 ''');
-    _updateAndValidate(r'''
+    _updateAndValidate(
+        r'''
 // 10
 main() {
   Object x;
   x.foo();
 }
-''', expectedSuccess: false);
+''',
+        expectedSuccess: false);
   }
 
   void test_endOfLineComment_remove() {
@@ -3286,7 +3732,8 @@ main() {
   const {const C(0): 0, const C.foo(): 1};
 }
 ''');
-    _updateAndValidate(r'''
+    _updateAndValidate(
+        r'''
 class C {
   final int x;
   const C(this.x);
@@ -3295,7 +3742,23 @@ class C {
 main() {
   const {const C(0): 0, const C.foo(): 1};
 }
-''', expectedSuccess: false);
+''',
+        expectedSuccess: false);
+  }
+
+  void test_false_expressionBody() {
+    _resolveUnit(r'''
+class A {
+  final f = (() => 1)();
+}
+''');
+    _updateAndValidate(
+        r'''
+class A {
+  final f = (() => 2)();
+}
+''',
+        expectedSuccess: false);
   }
 
   void test_false_topLevelFunction_name() {
@@ -3303,10 +3766,12 @@ main() {
 a() {}
 b() {}
 ''');
-    _updateAndValidate(r'''
+    _updateAndValidate(
+        r'''
 a() {}
 bb() {}
-''', expectedSuccess: false);
+''',
+        expectedSuccess: false);
   }
 
   void test_false_unbalancedCurlyBrackets_inNew() {
@@ -3322,7 +3787,8 @@ class A {
     print(0123456789);
   }
 }''');
-    _updateAndValidate(r'''
+    _updateAndValidate(
+        r'''
 class A {
   aaa() {
       1;
@@ -3332,7 +3798,8 @@ class A {
   bbb() {
     print(0123456789);
   }
-}''', expectedSuccess: false);
+}''',
+        expectedSuccess: false);
   }
 
   void test_false_unbalancedCurlyBrackets_inOld() {
@@ -3347,7 +3814,8 @@ class A {
     print(0123456789);
   }
 }''');
-    _updateAndValidate(r'''
+    _updateAndValidate(
+        r'''
 class A {
   aaa() {
     if (true) {
@@ -3358,7 +3826,8 @@ class A {
   bbb() {
     print(0123456789);
   }
-}''', expectedSuccess: false);
+}''',
+        expectedSuccess: false);
   }
 
   void test_fieldClassField_propagatedType() {
@@ -3449,20 +3918,24 @@ class A {
 }''');
     for (int i = 0; i < 6; i++) {
       if (i.isEven) {
-        _updateAndValidate(r'''
+        _updateAndValidate(
+            r'''
 class A {
   m() {
     return true;
 
   }
-}''', compareWithFull: false);
+}''',
+            compareWithFull: false);
       } else {
-        _updateAndValidate(r'''
+        _updateAndValidate(
+            r'''
 class A {
   m() {
     return true;
   }
-}''', compareWithFull: false);
+}''',
+            compareWithFull: false);
       }
     }
   }
@@ -3474,15 +3947,19 @@ main() {
 }''');
     for (int i = 0; i < 6; i++) {
       if (i.isEven) {
-        _updateAndValidate(r'''
+        _updateAndValidate(
+            r'''
 main() {
   print(12);
-}''', compareWithFull: false);
+}''',
+            compareWithFull: false);
       } else {
-        _updateAndValidate(r'''
+        _updateAndValidate(
+            r'''
 main() {
   print(1);
-}''', compareWithFull: false);
+}''',
+            compareWithFull: false);
       }
     }
   }
@@ -3631,7 +4108,9 @@ class A {
   }
 
   void test_unusedHint_add_wasUsedOnlyInPart() {
-    Source partSource = addNamedSource('/my_unit.dart', r'''
+    Source partSource = addNamedSource(
+        '/my_unit.dart',
+        r'''
 part of lib;
 
 f(A a) {
@@ -3650,7 +4129,9 @@ class A {
     _runTasks();
     // perform incremental resolution
     _resetWithIncremental(true);
-    analysisContext2.setContents(partSource, r'''
+    analysisContext2.setContents(
+        partSource,
+        r'''
 part of lib;
 
 f(A a) {
@@ -3679,7 +4160,9 @@ f(A a) {
   }
 
   void test_unusedHint_false_stillUsedInPart() {
-    addNamedSource('/my_unit.dart', r'''
+    addNamedSource(
+        '/my_unit.dart',
+        r'''
 part of lib;
 
 f(A a) {
@@ -3697,7 +4180,9 @@ class A {
 ''');
     // perform incremental resolution
     _resetWithIncremental(true);
-    analysisContext2.setContents(source, r'''
+    analysisContext2.setContents(
+        source,
+        r'''
 library lib;
 part 'my_unit.dart';
 class A {
@@ -4103,8 +4588,9 @@ class ResolutionContextBuilderTest extends EngineTestCase {
     unit.declarations.add(classNode);
     ClassElement classElement = ElementFactory.classElement2(className);
     classNode.name.staticElement = classElement;
-    (unit.element as CompilationUnitElementImpl).types =
-        <ClassElement>[classElement];
+    (unit.element as CompilationUnitElementImpl).types = <ClassElement>[
+      classElement
+    ];
     return classNode;
   }
 
@@ -4116,8 +4602,9 @@ class ResolutionContextBuilderTest extends EngineTestCase {
     unit.declarations.add(classNode);
     ClassElement classElement = ElementFactory.classElement2(className);
     classNode.name.staticElement = classElement;
-    (unit.element as CompilationUnitElementImpl).types =
-        <ClassElement>[classElement];
+    (unit.element as CompilationUnitElementImpl).types = <ClassElement>[
+      classElement
+    ];
     return classNode;
   }
 
@@ -4133,14 +4620,17 @@ class ResolutionContextBuilderTest extends EngineTestCase {
     ClassDeclaration classNode = _createResolvedClassDeclaration();
     String constructorName = "f";
     ConstructorDeclaration constructorNode = AstFactory.constructorDeclaration(
-        AstFactory.identifier3(constructorName), null,
-        AstFactory.formalParameterList(), null);
+        AstFactory.identifier3(constructorName),
+        null,
+        AstFactory.formalParameterList(),
+        null);
     classNode.members.add(constructorNode);
     ConstructorElement constructorElement =
         ElementFactory.constructorElement2(classNode.element, null);
     constructorNode.element = constructorElement;
-    (classNode.element as ClassElementImpl).constructors =
-        <ConstructorElement>[constructorElement];
+    (classNode.element as ClassElementImpl).constructors = <ConstructorElement>[
+      constructorElement
+    ];
     return constructorNode;
   }
 
@@ -4153,15 +4643,18 @@ class ResolutionContextBuilderTest extends EngineTestCase {
     FunctionElement functionElement =
         ElementFactory.functionElement(functionName);
     functionNode.name.staticElement = functionElement;
-    (unit.element as CompilationUnitElementImpl).functions =
-        <FunctionElement>[functionElement];
+    (unit.element as CompilationUnitElementImpl).functions = <FunctionElement>[
+      functionElement
+    ];
     return functionNode;
   }
 
   FunctionTypeAlias _createResolvedFunctionTypeAlias() {
     CompilationUnit unit = _createResolvedCompilationUnit();
     FunctionTypeAlias aliasNode = AstFactory.typeAlias(
-        AstFactory.typeName4("A"), "F", AstFactory.typeParameterList(),
+        AstFactory.typeName4("A"),
+        "F",
+        AstFactory.typeParameterList(),
         AstFactory.formalParameterList());
     unit.declarations.add(aliasNode);
     SimpleIdentifier aliasName = aliasNode.name;
@@ -4176,15 +4669,20 @@ class ResolutionContextBuilderTest extends EngineTestCase {
   MethodDeclaration _createResolvedMethodDeclaration() {
     ClassDeclaration classNode = _createResolvedClassDeclaration();
     String methodName = "f";
-    MethodDeclaration methodNode = AstFactory.methodDeclaration(null, null,
-        null, null, AstFactory.identifier3(methodName),
+    MethodDeclaration methodNode = AstFactory.methodDeclaration(
+        null,
+        null,
+        null,
+        null,
+        AstFactory.identifier3(methodName),
         AstFactory.formalParameterList());
     classNode.members.add(methodNode);
     MethodElement methodElement =
         ElementFactory.methodElement(methodName, null);
     methodNode.name.staticElement = methodElement;
-    (classNode.element as ClassElementImpl).methods =
-        <MethodElement>[methodElement];
+    (classNode.element as ClassElementImpl).methods = <MethodElement>[
+      methodElement
+    ];
     return methodNode;
   }
 

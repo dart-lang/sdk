@@ -6,6 +6,7 @@ part of js_backend;
 
 abstract class _NamerName extends jsAst.Name {
   int get _kind;
+  _NamerName get _target => this;
 
   toString() => throw new UnsupportedError("Cannot convert a name to a string");
 }
@@ -28,6 +29,7 @@ class StringBackedName extends _NamerName {
   String get key => name;
 
   operator==(other) {
+    if (other is _NameReference) other = other._target;
     if (identical(this, other)) return true;
     return (other is StringBackedName) && other.name == name;
   }
@@ -35,6 +37,7 @@ class StringBackedName extends _NamerName {
   int get hashCode => name.hashCode;
 
   int compareTo(_NamerName other) {
+    other = other._target;
     if (other._kind != _kind) return other._kind - _kind;
     return name.compareTo(other.name);
   }
@@ -54,6 +57,7 @@ abstract class _PrefixedName extends _NamerName implements jsAst.AstContainer {
   String get key => prefix.key + base.key;
 
   bool operator==(other) {
+    if (other is _NameReference) other = other._target;
     if (identical(this, other)) return true;
     if (other is! _PrefixedName) return false;
     return other.base == base && other.prefix == prefix;
@@ -62,6 +66,7 @@ abstract class _PrefixedName extends _NamerName implements jsAst.AstContainer {
   int get hashCode => base.hashCode * 13 + prefix.hashCode;
 
   int compareTo(_NamerName other) {
+    other = other._target;
     if (other._kind != _kind) return other._kind - _kind;
     _PrefixedName otherSameKind = other;
     int result = prefix.compareTo(otherSameKind.prefix);
@@ -116,6 +121,7 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
   String get key => _parts.map((_NamerName name) => name.key).join();
 
   bool operator==(other) {
+    if (other is _NameReference) other = other._target;
     if (identical(this, other)) return true;
     if (other is! CompoundName) return false;
     if (other._parts.length != _parts.length) return false;
@@ -136,6 +142,7 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
   }
 
   int compareTo(_NamerName other) {
+    other = other._target;
     if (other._kind != _kind) return other._kind - _kind;
     CompoundName otherSameKind = other;
     if (otherSameKind._parts.length != _parts.length) {
@@ -167,6 +174,7 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
 
   @override
   int compareTo(_NamerName other) {
+    other = other._target;
     if (other._kind != _kind) return other._kind - _kind;
     TokenName otherToken = other;
     return key.compareTo(otherToken.key);
@@ -174,8 +182,40 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
 
   markSeen(jsAst.TokenCounter counter) => _rc++;
 
+  @override
+  bool operator==(other) {
+    if (other is _NameReference) other = other._target;
+    if (identical(this, other)) return true;
+    return false;
+  }
+
+  @override
+  int get hashCode => super.hashCode;
+
   finalize() {
     assert(!isFinalized);
     _name = _scope.getNextName();
   }
+}
+
+class _NameReference extends _NamerName implements jsAst.AstContainer {
+  _NamerName _target;
+
+  int get _kind => _target._kind;
+  String get key => _target.key;
+
+  Iterable<jsAst.Node> get containedNodes => [_target];
+
+  _NameReference(this._target);
+
+  String get name => _target.name;
+
+  @override
+  int compareTo(_NamerName other) => _target.compareTo(other);
+
+  @override
+  bool operator==(other) => _target == other;
+
+  @override
+  int get hashCode => _target.hashCode;
 }

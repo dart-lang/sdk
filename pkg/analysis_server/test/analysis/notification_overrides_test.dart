@@ -12,9 +12,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(AnalysisNotificationOverridesTest);
 }
 
@@ -223,6 +224,58 @@ class C implements B {
       assertHasOverride('m() {} // in C');
       assertNoSuperMember();
       assertHasInterfaceMember('m() {} // in A');
+    });
+  }
+
+  test_interface_stopWhenFound() {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+class B extends A {
+  m() {} // in B
+}
+class C implements B {
+  m() {} // in C
+}
+''');
+    return prepareOverrides().then((_) {
+      assertHasOverride('m() {} // in C');
+      expect(override.interfaceMembers, hasLength(1));
+      assertHasInterfaceMember('m() {} // in B');
+    });
+  }
+
+  test_mix_sameMethod() {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+abstract class B extends A {
+}
+class C extends A implements A {
+  m() {} // in C
+}
+''');
+    return prepareOverrides().then((_) {
+      assertHasOverride('m() {} // in C');
+      assertHasSuperElement('m() {} // in A');
+      assertNoInterfaceMembers();
+    });
+  }
+
+  test_mix_sameMethod_Object_hashCode() {
+    addTestFile('''
+class A {}
+abstract class B {}
+class C extends A implements A {
+  int get hashCode => 42;
+}
+''');
+    return prepareOverrides().then((_) {
+      assertHasOverride('hashCode => 42;');
+      expect(override.superclassMember, isNotNull);
+      expect(override.interfaceMembers, isNull);
     });
   }
 

@@ -7,6 +7,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "vm/atomic.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
 #include "vm/counters.h"
@@ -47,10 +48,8 @@ class ICData;
 class Instance;
 class IsolateProfilerData;
 class IsolateSpawnState;
-class InterruptableThreadState;
 class Library;
 class Log;
-class LongJumpScope;
 class MessageHandler;
 class Mutex;
 class Object;
@@ -237,9 +236,6 @@ class Isolate : public BaseIsolate {
   ApiState* api_state() const { return api_state_; }
   void set_api_state(ApiState* value) { api_state_ = value; }
 
-  LongJumpScope* long_jump_base() const { return long_jump_base_; }
-  void set_long_jump_base(LongJumpScope* value) { long_jump_base_ = value; }
-
   TimerList& timer_list() { return timer_list_; }
 
   void set_init_callback_data(void* value) {
@@ -270,15 +266,28 @@ class Isolate : public BaseIsolate {
 
   // Returns the current C++ stack pointer. Equivalent taking the address of a
   // stack allocated local, but plays well with AddressSanitizer.
+  // TODO(koda): Move to Thread.
   static uword GetCurrentStackPointer();
 
+  // Returns true if any of the interrupts specified by 'interrupt_bits' are
+  // currently scheduled for this isolate, but leaves them unchanged.
+  //
+  // NOTE: The read uses relaxed memory ordering, i.e., it is atomic and
+  // an interrupt is guaranteed to be observed eventually, but any further
+  // order guarantees must be ensured by other synchronization. See the
+  // tests in isolate_test.cc for example usage.
+  bool HasInterruptsScheduled(uword interrupt_bits) {
+    ASSERT(interrupt_bits == (interrupt_bits & kInterruptsMask));
+    uword limit = AtomicOperations::LoadRelaxed(&stack_limit_);
+    return (limit != saved_stack_limit_) &&
+        (((limit & kInterruptsMask) & interrupt_bits) != 0);
+  }
+
+  // Access to the current stack limit for generated code.  This may be
+  // overwritten with a special value to trigger interrupts.
   uword stack_limit_address() const {
     return reinterpret_cast<uword>(&stack_limit_);
   }
-
-  // The current stack limit.  This may be overwritten with a special
-  // value to trigger interrupts.
-  uword stack_limit() const { return stack_limit_; }
   static intptr_t stack_limit_offset() {
     return OFFSET_OF(Isolate, stack_limit_);
   }
@@ -438,6 +447,15 @@ class Isolate : public BaseIsolate {
   // Requests that the debugger resume execution.
   void Resume() {
     resume_request_ = true;
+    set_last_resume_timestamp();
+  }
+
+  void set_last_resume_timestamp() {
+    last_resume_timestamp_ = OS::GetCurrentTimeMillis();
+  }
+
+  int64_t last_resume_timestamp() const {
+    return last_resume_timestamp_;
   }
 
   // Returns whether the vm service has requested that the debugger
@@ -464,7 +482,7 @@ class Isolate : public BaseIsolate {
 
   void AddErrorListener(const SendPort& listener);
   void RemoveErrorListener(const SendPort& listener);
-  void NotifyErrorListeners(const String& msg, const String& stacktrace);
+  bool NotifyErrorListeners(const String& msg, const String& stacktrace);
 
   bool ErrorsFatal() const { return errors_fatal_; }
   void SetErrorsFatal(bool val) { errors_fatal_ = val; }
@@ -562,14 +580,6 @@ class Isolate : public BaseIsolate {
   TraceBuffer* trace_buffer() {
     return trace_buffer_;
   }
-
-  void SetTimelineEventRecorder(TimelineEventRecorder* timeline_event_recorder);
-
-  TimelineEventRecorder* timeline_event_recorder() const {
-    return timeline_event_recorder_;
-  }
-
-  void RemoveTimelineEventRecorder();
 
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
@@ -701,6 +711,17 @@ class Isolate : public BaseIsolate {
     compilation_allowed_ = allowed;
   }
 
+  RawObject* InvokePendingServiceExtensionCalls();
+  void AppendServiceExtensionCall(const Instance& closure,
+                           const String& method_name,
+                           const Array& parameter_keys,
+                           const Array& parameter_values,
+                           const Instance& reply_port,
+                           const Instance& id);
+  void RegisterServiceExtensionHandler(const String& name,
+                                       const Instance& closure);
+  RawInstance* LookupServiceExtensionHandler(const String& name);
+
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
   void set_reusable_##object##_handle_scope_active(bool value) {               \
@@ -764,6 +785,17 @@ class Isolate : public BaseIsolate {
     user_tag_ = tag;
   }
 
+  RawGrowableObjectArray* GetAndClearPendingServiceExtensionCalls();
+  RawGrowableObjectArray* pending_service_extension_calls() const {
+    return pending_service_extension_calls_;
+  }
+  void set_pending_service_extension_calls(const GrowableObjectArray& value);
+  RawGrowableObjectArray* registered_service_extension_handlers() const {
+    return registered_service_extension_handlers_;
+  }
+  void set_registered_service_extension_handlers(
+      const GrowableObjectArray& value);
+
   void ClearMutatorThread() {
     mutator_thread_ = NULL;
   }
@@ -802,11 +834,11 @@ class Isolate : public BaseIsolate {
   Debugger* debugger_;
   bool single_step_;
   bool resume_request_;
+  int64_t last_resume_timestamp_;
   bool has_compiled_;
   Flags flags_;
   Random random_;
   Simulator* simulator_;
-  LongJumpScope* long_jump_base_;
   TimerList timer_list_;
   intptr_t deopt_id_;
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
@@ -844,12 +876,8 @@ class Isolate : public BaseIsolate {
   // Trace buffer support.
   TraceBuffer* trace_buffer_;
 
-  // TimelineEvent buffer.
-  TimelineEventRecorder* timeline_event_recorder_;
-
   IsolateProfilerData* profiler_data_;
   Mutex profiler_data_mutex_;
-  InterruptableThreadState* thread_state_;
 
   VMTagCounters vm_tag_counters_;
   uword user_tag_;
@@ -859,6 +887,26 @@ class Isolate : public BaseIsolate {
 
   RawGrowableObjectArray* collected_closures_;
   RawGrowableObjectArray* deoptimized_code_array_;
+
+  // We use 6 list entries for each pending service extension calls.
+  enum {
+    kPendingHandlerIndex = 0,
+    kPendingMethodNameIndex,
+    kPendingKeysIndex,
+    kPendingValuesIndex,
+    kPendingReplyPortIndex,
+    kPendingIdIndex,
+    kPendingEntrySize
+  };
+  RawGrowableObjectArray* pending_service_extension_calls_;
+
+  // We use 2 list entries for each registered extension handler.
+  enum {
+    kRegisteredNameIndex = 0,
+    kRegisteredHandlerIndex,
+    kRegisteredEntrySize
+  };
+  RawGrowableObjectArray* registered_service_extension_handlers_;
 
   Metric* metrics_list_head_;
 

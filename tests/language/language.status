@@ -30,7 +30,6 @@ least_upper_bound_expansive_test/*: Fail, OK
 async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runtime-errs.
 async_star_cancel_while_paused_test: RuntimeError
 async_star_await_pauses_test: Skip # Times out. Issue 23996
-async_star_regression_fisk_test: RuntimeError # Issue 23994
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627

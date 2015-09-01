@@ -14,7 +14,6 @@ import 'package:analysis_server/src/services/completion/local_declaration_visito
 import 'package:analysis_server/src/services/completion/local_suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
@@ -38,7 +37,8 @@ class LocalReferenceContributor extends DartCompletionContributor {
       }
       if (optype.includeStatementLabelSuggestions ||
           optype.includeCaseLabelSuggestions) {
-        _LabelVisitor labelVisitor = new _LabelVisitor(request,
+        _LabelVisitor labelVisitor = new _LabelVisitor(
+            request,
             optype.includeStatementLabelSuggestions,
             optype.includeCaseLabelSuggestions);
         labelVisitor.visit(request.target.containingNode);
@@ -188,8 +188,12 @@ class _ConstructorVisitor extends LocalDeclarationVisitor {
     element.returnType = classDecl.name.name;
     CompletionSuggestion suggestion = new CompletionSuggestion(
         CompletionSuggestionKind.INVOCATION,
-        deprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT, completion,
-        completion.length, 0, deprecated, false,
+        deprecated ? DART_RELEVANCE_LOW : DART_RELEVANCE_DEFAULT,
+        completion,
+        completion.length,
+        0,
+        deprecated,
+        false,
         declaringType: classDecl.name.name,
         element: element,
         parameterNames: parameterNames,
@@ -325,8 +329,13 @@ class _LabelVisitor extends LocalDeclarationVisitor {
       String completion = id.name;
       if (completion != null && completion.length > 0 && completion != '_') {
         CompletionSuggestion suggestion = new CompletionSuggestion(
-            CompletionSuggestionKind.IDENTIFIER, DART_RELEVANCE_DEFAULT,
-            completion, completion.length, 0, false, false);
+            CompletionSuggestionKind.IDENTIFIER,
+            DART_RELEVANCE_DEFAULT,
+            completion,
+            completion.length,
+            0,
+            false,
+            false);
         request.addSuggestion(suggestion);
         return suggestion;
       }
@@ -343,7 +352,9 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   final DartCompletionRequest request;
   final OpType optype;
 
-  _LocalVisitor(this.request, int offset, this.optype) : super(offset);
+  _LocalVisitor(this.request, int offset, this.optype) : super(offset) {
+    includeLocalInheritedTypes = !optype.inStaticMethodBody;
+  }
 
   @override
   void declaredClass(ClassDeclaration declaration) {
@@ -375,7 +386,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-    if (optype.includeReturnValueSuggestions) {
+    if (optype.includeReturnValueSuggestions &&
+        (!optype.inStaticMethodBody || fieldDecl.isStatic)) {
       CompletionSuggestion suggestion =
           createFieldSuggestion(request.source, fieldDecl, varDecl);
       if (suggestion != null) {
@@ -440,8 +452,9 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredMethod(MethodDeclaration declaration) {
-    if (optype.includeReturnValueSuggestions ||
-        optype.includeVoidReturnSuggestions) {
+    if ((optype.includeReturnValueSuggestions ||
+            optype.includeVoidReturnSuggestions) &&
+        (!optype.inStaticMethodBody || declaration.isStatic)) {
       protocol.ElementKind elemKind;
       FormalParameterList param;
       TypeName typeName = declaration.returnType;
@@ -523,19 +536,23 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       }
       return typeId.name;
     }).toList();
-    suggestion.requiredParameterCount = paramList.where(
-        (FormalParameter param) => param is! DefaultFormalParameter).length;
+    suggestion.requiredParameterCount = paramList
+        .where((FormalParameter param) => param is! DefaultFormalParameter)
+        .length;
     suggestion.hasNamedParameters = paramList
         .any((FormalParameter param) => param.kind == ParameterKind.NAMED);
   }
 
   void _addSuggestion(
       SimpleIdentifier id, TypeName typeName, protocol.ElementKind elemKind,
-      {bool isAbstract: false, bool isDeprecated: false,
-      ClassDeclaration classDecl, FormalParameterList param,
+      {bool isAbstract: false,
+      bool isDeprecated: false,
+      ClassDeclaration classDecl,
+      FormalParameterList param,
       int relevance: DART_RELEVANCE_DEFAULT}) {
     CompletionSuggestion suggestion = createSuggestion(
-        id, isDeprecated, relevance, typeName, classDecl: classDecl);
+        id, isDeprecated, relevance, typeName,
+        classDecl: classDecl);
     if (suggestion != null) {
       request.addSuggestion(suggestion);
       suggestion.element = createElement(request.source, elemKind, id,

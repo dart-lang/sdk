@@ -4,11 +4,11 @@
 
 library dart2js.constant_system.js;
 
+import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../constant_system_dart.dart';
 import '../dart_types.dart';
-import '../dart2jslib.dart' show Compiler;
 import '../elements/elements.dart' show ClassElement;
 import '../tree/tree.dart' show DartString, LiteralDartString;
 import 'js_backend.dart';

@@ -865,6 +865,7 @@ typedef bool (*Dart_EntropySource)(uint8_t* buffer, intptr_t length);
  */
 DART_EXPORT bool Dart_Initialize(
     const uint8_t* vm_isolate_snapshot,
+    const uint8_t* instructions_snapshot,
     Dart_IsolateCreateCallback create,
     Dart_IsolateInterruptCallback interrupt,
     Dart_IsolateUnhandledExceptionCallback unhandled_exception,
@@ -1839,6 +1840,25 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* length);
  */
 DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list,
                                        intptr_t index);
+
+/**
+* Gets a range of Objects from a List.
+*
+* If any of the requested index values are out of bounds, an error occurs.
+*
+* May generate an unhandled exception error.
+*
+* \param list A List.
+* \param offset The offset of the first item to get.
+* \param length The number of items to get.
+* \param result A pointer to fill with the objects.
+*
+* \return Success if no error occurs during the operation.
+*/
+DART_EXPORT Dart_Handle Dart_ListGetRange(Dart_Handle list,
+                                          intptr_t offset,
+                                          intptr_t length,
+                                          Dart_Handle* result);
 
 /**
  * Sets the Object at some index of a List.

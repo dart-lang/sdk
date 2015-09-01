@@ -29,7 +29,8 @@ abstract class Client {
         post(response);
       });
     } catch (e, st) {
-      message.setErrorResponse('Internal error: $e');
+      message.setErrorResponse(
+          kInternalError, 'Unexpected exception:$e\n$st');
       post(message.response);
     }
   }

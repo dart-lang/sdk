@@ -6,13 +6,14 @@ library test.integration.search.all;
 
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'get_type_hierarchy_test.dart' as get_type_hierarchy_test;
 
 /**
  * Utility for manually running all integration tests.
  */
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('search', () {
     get_type_hierarchy_test.main();
   });

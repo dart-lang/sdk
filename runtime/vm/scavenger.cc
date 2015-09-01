@@ -16,6 +16,7 @@
 #include "vm/object_id_ring.h"
 #include "vm/stack_frame.h"
 #include "vm/store_buffer.h"
+#include "vm/thread_registry.h"
 #include "vm/verified_memory.h"
 #include "vm/verifier.h"
 #include "vm/visitor.h"
@@ -78,12 +79,13 @@ class BoolScope : public ValueObject {
 
 class ScavengerVisitor : public ObjectPointerVisitor {
  public:
-  explicit ScavengerVisitor(Isolate* isolate, Scavenger* scavenger)
+  explicit ScavengerVisitor(Isolate* isolate,
+                            Scavenger* scavenger,
+                            SemiSpace* from)
       : ObjectPointerVisitor(isolate),
         thread_(Thread::Current()),
         scavenger_(scavenger),
-        from_start_(scavenger_->from_->start()),
-        from_size_(scavenger_->from_->end() - scavenger_->from_->start()),
+        from_(from),
         heap_(scavenger->heap_),
         vm_heap_(Dart::vm_isolate()->heap()),
         page_space_(scavenger->heap_->old_space()),
@@ -156,17 +158,9 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       return;
     }
 
-    // The scavenger is only interested in objects located in the from space.
-    //
-    // We are using address math here and relying on the unsigned underflow
-    // in the code below to avoid having two checks.
-    uword obj_offset = reinterpret_cast<uword>(raw_obj) - from_start_;
-    if (obj_offset > from_size_) {
-      ASSERT(scavenger_->to_->Contains(RawObject::ToAddr(raw_obj)));
-      return;
-    }
-
     uword raw_addr = RawObject::ToAddr(raw_obj);
+    // The scavenger is only expects objects located in the from space.
+    ASSERT(from_->Contains(raw_addr));
     // Read the header word of the object and determine if the object has
     // already been copied.
     uword header = *reinterpret_cast<uword*>(raw_addr);
@@ -242,8 +236,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 
   Thread* thread_;
   Scavenger* scavenger_;
-  uword from_start_;
-  uword from_size_;
+  SemiSpace* from_;
   Heap* heap_;
   Heap* vm_heap_;
   PageSpace* page_space_;
@@ -422,7 +415,6 @@ Scavenger::Scavenger(Heap* heap,
   if (to_ == NULL) {
     FATAL("Out of memory.\n");
   }
-  from_ = NULL;
 
   // Setup local fields.
   top_ = FirstObjectStart();
@@ -435,7 +427,6 @@ Scavenger::Scavenger(Heap* heap,
 
 Scavenger::~Scavenger() {
   ASSERT(!scavenging_);
-  ASSERT(from_ == NULL);
   to_->Delete();
 }
 
@@ -454,15 +445,15 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
 }
 
 
-void Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
+SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
     (isolate->gc_prologue_callback())();
   }
   Thread::PrepareForGC();
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
-  from_ = to_;
-  to_ = SemiSpace::New(NewSizeInWords(from_->size_in_words()));
+  SemiSpace* from = to_;
+  to_ = SemiSpace::New(NewSizeInWords(from->size_in_words()));
   if (to_ == NULL) {
     // TODO(koda): We could try to recover (collect old space, wait for another
     // isolate to finish scavenge, etc.).
@@ -471,10 +462,12 @@ void Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   top_ = FirstObjectStart();
   resolved_top_ = top_;
   end_ = to_->end();
+  return from;
 }
 
 
 void Scavenger::Epilogue(Isolate* isolate,
+                         SemiSpace* from,
                          bool invoke_api_callbacks) {
   // All objects in the to space have been copied from the from space at this
   // moment.
@@ -506,8 +499,7 @@ void Scavenger::Epilogue(Isolate* isolate,
     }
   }
 #endif  // defined(DEBUG)
-  from_->Delete();
-  from_ = NULL;
+  from->Delete();
   if (invoke_api_callbacks && (isolate->gc_epilogue_callback() != NULL)) {
     (isolate->gc_epilogue_callback())();
   }
@@ -583,7 +575,7 @@ bool Scavenger::IsUnreachable(RawObject** p) {
     return false;
   }
   uword raw_addr = RawObject::ToAddr(raw_obj);
-  if (!from_->Contains(raw_addr)) {
+  if (to_->Contains(raw_addr)) {
     return false;
   }
   uword header = *reinterpret_cast<uword*>(raw_addr);
@@ -624,7 +616,16 @@ void Scavenger::IterateWeakReferences(Isolate* isolate,
       for (intptr_t k = 0; k < num_keys; ++k) {
         if (!IsUnreachable(reference_set->get_key(k))) {
           for (intptr_t v = 0; v < num_values; ++v) {
-            visitor->VisitPointer(reference_set->get_value(v));
+            RawObject** raw_obj_addr = reference_set->get_value(v);
+            RawObject* raw_obj = *raw_obj_addr;
+            // Only visit heap objects which are in from space, aka new objects
+            // not in to space. This avoids visiting a value multiple times
+            // during a scavenge.
+            if (raw_obj->IsHeapObject() &&
+                raw_obj->IsNewObject() &&
+                !to_->Contains(RawObject::ToAddr(raw_obj))) {
+              visitor->VisitPointer(raw_obj_addr);
+            }
           }
           is_unreachable = false;
           // Since we have found a key object that is reachable and all
@@ -799,12 +800,20 @@ void Scavenger::Scavenge() {
 
 
 void Scavenger::Scavenge(bool invoke_api_callbacks) {
+  Isolate* isolate = heap_->isolate();
+  // Ensure that all threads for this isolate are at a safepoint (either stopped
+  // or in native code). If two threads are racing at this point, the loser
+  // will continue with its scavenge after waiting for the winner to complete.
+  // TODO(koda): Consider moving SafepointThreads into allocation failure/retry
+  // logic to avoid needless collections.
+  isolate->thread_registry()->SafepointThreads();
+
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
   scavenging_ = true;
-  Isolate* isolate = heap_->isolate();
+
   PageSpace* page_space = heap_->old_space();
-  NoHandleScope no_handles(isolate);
+  NoSafepointScope no_safepoints;
 
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {
@@ -817,13 +826,13 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words =
       (survivor_end_ - FirstObjectStart()) / kWordSize;
-  Prologue(isolate, invoke_api_callbacks);
+  SemiSpace* from = Prologue(isolate, invoke_api_callbacks);
   // The API prologue/epilogue may create/destroy zones, so we must not
   // depend on zone allocations surviving beyond the epilogue callback.
   {
-    StackZone zone(isolate);
+    StackZone zone(Thread::Current());
     // Setup the visitor and run the scavenge.
-    ScavengerVisitor visitor(isolate, this);
+    ScavengerVisitor visitor(isolate, this, from);
     page_space->AcquireDataLock();
     const bool prologue_weak_are_strong = !invoke_api_callbacks;
     IterateRoots(isolate, &visitor, prologue_weak_are_strong);
@@ -849,7 +858,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
                       promo_candidate_words,
                       visitor.bytes_promoted() >> kWordSizeLog2));
   }
-  Epilogue(isolate, invoke_api_callbacks);
+  Epilogue(isolate, from, invoke_api_callbacks);
 
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_after_gc && !FLAG_concurrent_sweep) {
@@ -861,12 +870,13 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // Done scavenging. Reset the marker.
   ASSERT(scavenging_);
   scavenging_ = false;
+
+  isolate->thread_registry()->ResumeAllThreads();
 }
 
 
 void Scavenger::WriteProtect(bool read_only) {
   ASSERT(!scavenging_);
-  ASSERT(from_ == NULL);
   to_->WriteProtect(read_only);
 }
 

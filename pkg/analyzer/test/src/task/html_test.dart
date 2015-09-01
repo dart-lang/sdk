@@ -11,14 +11,19 @@ import 'package:analyzer/task/model.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
+import '../../utils.dart';
 import '../context/abstract_context.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(DartScriptsTaskTest);
   runReflectiveTests(HtmlErrorsTaskTest);
   runReflectiveTests(ParseHtmlTaskTest);
 }
+
+isInstanceOf isDartScriptsTask = new isInstanceOf<DartScriptsTask>();
+isInstanceOf isHtmlErrorsTask = new isInstanceOf<HtmlErrorsTask>();
+isInstanceOf isParseHtmlTask = new isInstanceOf<ParseHtmlTask>();
 
 @reflectiveTest
 class DartScriptsTaskTest extends AbstractContextTest {
@@ -60,7 +65,9 @@ class DartScriptsTaskTest extends AbstractContextTest {
     String content = r'''
     void buttonPressed() {}
   ''';
-    AnalysisTarget target = newSource('/test.html', '''
+    AnalysisTarget target = newSource(
+        '/test.html',
+        '''
 <!DOCTYPE html>
 <html>
 <head>
@@ -69,8 +76,7 @@ class DartScriptsTaskTest extends AbstractContextTest {
 <body>
 </body>
 </html>''');
-    computeResult(target, REFERENCED_LIBRARIES);
-    expect(task, new isInstanceOf<DartScriptsTask>());
+    computeResult(target, REFERENCED_LIBRARIES, matcher: isDartScriptsTask);
     expect(outputs[REFERENCED_LIBRARIES], hasLength(0));
     expect(outputs[DART_SCRIPTS], hasLength(1));
     DartScript script = outputs[DART_SCRIPTS][0];
@@ -80,7 +86,9 @@ class DartScriptsTaskTest extends AbstractContextTest {
   }
 
   void test_perform_empty_source_reference() {
-    AnalysisTarget target = newSource('/test.html', r'''
+    AnalysisTarget target = newSource(
+        '/test.html',
+        r'''
 <!DOCTYPE html>
 <html>
 <head>
@@ -89,14 +97,15 @@ class DartScriptsTaskTest extends AbstractContextTest {
 <body>
 </body>
 </html>''');
-    computeResult(target, REFERENCED_LIBRARIES);
-    expect(task, new isInstanceOf<DartScriptsTask>());
+    computeResult(target, REFERENCED_LIBRARIES, matcher: isDartScriptsTask);
     expect(outputs[REFERENCED_LIBRARIES], hasLength(0));
     expect(outputs[DART_SCRIPTS], hasLength(0));
   }
 
   void test_perform_invalid_source_reference() {
-    AnalysisTarget target = newSource('/test.html', r'''
+    AnalysisTarget target = newSource(
+        '/test.html',
+        r'''
 <!DOCTYPE html>
 <html>
 <head>
@@ -105,14 +114,15 @@ class DartScriptsTaskTest extends AbstractContextTest {
 <body>
 </body>
 </html>''');
-    computeResult(target, REFERENCED_LIBRARIES);
-    expect(task, new isInstanceOf<DartScriptsTask>());
+    computeResult(target, REFERENCED_LIBRARIES, matcher: isDartScriptsTask);
     expect(outputs[REFERENCED_LIBRARIES], hasLength(0));
     expect(outputs[DART_SCRIPTS], hasLength(0));
   }
 
   void test_perform_non_existing_source_reference() {
-    AnalysisTarget target = newSource('/test.html', r'''
+    AnalysisTarget target = newSource(
+        '/test.html',
+        r'''
 <!DOCTYPE html>
 <html>
 <head>
@@ -121,14 +131,15 @@ class DartScriptsTaskTest extends AbstractContextTest {
 <body>
 </body>
 </html>''');
-    computeResult(target, REFERENCED_LIBRARIES);
-    expect(task, new isInstanceOf<DartScriptsTask>());
+    computeResult(target, REFERENCED_LIBRARIES, matcher: isDartScriptsTask);
     expect(outputs[REFERENCED_LIBRARIES], hasLength(1));
     expect(outputs[DART_SCRIPTS], hasLength(0));
   }
 
   test_perform_none() {
-    AnalysisTarget target = newSource('/test.html', r'''
+    AnalysisTarget target = newSource(
+        '/test.html',
+        r'''
 <!DOCTYPE html>
 <html>
   <head>
@@ -139,14 +150,15 @@ class DartScriptsTaskTest extends AbstractContextTest {
   </body>
 </html>
 ''');
-    computeResult(target, REFERENCED_LIBRARIES);
-    expect(task, new isInstanceOf<DartScriptsTask>());
+    computeResult(target, REFERENCED_LIBRARIES, matcher: isDartScriptsTask);
     expect(outputs[REFERENCED_LIBRARIES], hasLength(0));
     expect(outputs[DART_SCRIPTS], hasLength(0));
   }
 
   void test_perform_referenced_source() {
-    AnalysisTarget target = newSource('/test.html', r'''
+    AnalysisTarget target = newSource(
+        '/test.html',
+        r'''
 <!DOCTYPE html>
 <html>
 <head>
@@ -155,8 +167,7 @@ class DartScriptsTaskTest extends AbstractContextTest {
 <body>
 </body>
 </html>''');
-    computeResult(target, REFERENCED_LIBRARIES);
-    expect(task, new isInstanceOf<DartScriptsTask>());
+    computeResult(target, REFERENCED_LIBRARIES, matcher: isDartScriptsTask);
     expect(outputs[REFERENCED_LIBRARIES], hasLength(1));
     expect(outputs[DART_SCRIPTS], hasLength(0));
   }
@@ -168,10 +179,12 @@ class HtmlErrorsTaskTest extends AbstractContextTest {
     Source source = newSource('/test.html');
     Map<String, TaskInput> inputs = HtmlErrorsTask.buildInputs(source);
     expect(inputs, isNotNull);
-    expect(inputs.keys, unorderedEquals([
-      HtmlErrorsTask.DART_ERRORS_INPUT,
-      HtmlErrorsTask.DOCUMENT_ERRORS_INPUT
-    ]));
+    expect(
+        inputs.keys,
+        unorderedEquals([
+          HtmlErrorsTask.DART_ERRORS_INPUT,
+          HtmlErrorsTask.DOCUMENT_ERRORS_INPUT
+        ]));
   }
 
   test_constructor() {
@@ -202,7 +215,9 @@ class HtmlErrorsTaskTest extends AbstractContextTest {
   }
 
   test_perform_dartErrors() {
-    AnalysisTarget target = newSource('/test.html', r'''
+    AnalysisTarget target = newSource(
+        '/test.html',
+        r'''
 <!DOCTYPE html>
 <html>
   <head>
@@ -214,13 +229,14 @@ class HtmlErrorsTaskTest extends AbstractContextTest {
   <body>Test</body>
 </html>
 ''');
-    computeResult(target, HTML_ERRORS);
-    expect(task, new isInstanceOf<HtmlErrorsTask>());
+    computeResult(target, HTML_ERRORS, matcher: isHtmlErrorsTask);
     expect(outputs[HTML_ERRORS], hasLength(1));
   }
 
   test_perform_htmlErrors() {
-    AnalysisTarget target = newSource('/test.html', r'''
+    AnalysisTarget target = newSource(
+        '/test.html',
+        r'''
 <html>
   <head>
     <title>test page</title>
@@ -230,13 +246,14 @@ class HtmlErrorsTaskTest extends AbstractContextTest {
   </body>
 </html>
 ''');
-    computeResult(target, HTML_ERRORS);
-    expect(task, new isInstanceOf<HtmlErrorsTask>());
+    computeResult(target, HTML_ERRORS, matcher: isHtmlErrorsTask);
     expect(outputs[HTML_ERRORS], hasLength(1));
   }
 
   test_perform_noErrors() {
-    AnalysisTarget target = newSource('/test.html', r'''
+    AnalysisTarget target = newSource(
+        '/test.html',
+        r'''
 <!DOCTYPE html>
 <html>
   <head>
@@ -247,8 +264,7 @@ class HtmlErrorsTaskTest extends AbstractContextTest {
   </body>
 </html>
 ''');
-    computeResult(target, HTML_ERRORS);
-    expect(task, new isInstanceOf<HtmlErrorsTask>());
+    computeResult(target, HTML_ERRORS, matcher: isHtmlErrorsTask);
     expect(outputs[HTML_ERRORS], isEmpty);
   }
 }
@@ -290,7 +306,9 @@ class ParseHtmlTaskTest extends AbstractContextTest {
   }
 
   test_perform() {
-    AnalysisTarget target = newSource('/test.html', r'''
+    AnalysisTarget target = newSource(
+        '/test.html',
+        r'''
 <!DOCTYPE html>
 <html>
   <head>
@@ -302,7 +320,7 @@ class ParseHtmlTaskTest extends AbstractContextTest {
 </html>
 ''');
     computeResult(target, HTML_DOCUMENT);
-    expect(task, new isInstanceOf<ParseHtmlTask>());
+    expect(task, isParseHtmlTask);
     expect(outputs[HTML_DOCUMENT], isNotNull);
     expect(outputs[HTML_DOCUMENT_ERRORS], isNotEmpty);
   }

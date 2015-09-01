@@ -197,6 +197,7 @@ void Symbols::InitOnce(Isolate* vm_isolate) {
   // Should only be run by the vm isolate.
   ASSERT(Isolate::Current() == Dart::vm_isolate());
   ASSERT(vm_isolate == Dart::vm_isolate());
+  Zone* zone = Thread::Current()->zone();
 
   // Create and setup a symbol table in the vm isolate.
   SetupSymbolTable(vm_isolate);
@@ -204,7 +205,7 @@ void Symbols::InitOnce(Isolate* vm_isolate) {
   // Create all predefined symbols.
   ASSERT((sizeof(names) / sizeof(const char*)) == Symbols::kNullCharId);
 
-  SymbolTable table(vm_isolate, vm_isolate->object_store()->symbol_table());
+  SymbolTable table(zone, vm_isolate->object_store()->symbol_table());
 
   // First set up all the predefined string symbols.
   // Create symbols for language keywords. Some keywords are equal to
@@ -244,8 +245,9 @@ void Symbols::InitOnceFromSnapshot(Isolate* vm_isolate) {
   // Should only be run by the vm isolate.
   ASSERT(Isolate::Current() == Dart::vm_isolate());
   ASSERT(vm_isolate == Dart::vm_isolate());
+  Zone* zone = Thread::Current()->zone();
 
-  SymbolTable table(vm_isolate, vm_isolate->object_store()->symbol_table());
+  SymbolTable table(zone, vm_isolate->object_store()->symbol_table());
 
   // Lookup all the predefined string symbols and language keyword symbols
   // and cache them in the read only handles for fast access.
@@ -282,11 +284,13 @@ void Symbols::InitOnceFromSnapshot(Isolate* vm_isolate) {
 
 void Symbols::AddPredefinedSymbolsToIsolate() {
   // Should only be run by regular Dart isolates.
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   ASSERT(isolate != Dart::vm_isolate());
   String& str = String::Handle(isolate);
 
-  SymbolTable table(isolate, isolate->object_store()->symbol_table());
+  SymbolTable table(zone, isolate->object_store()->symbol_table());
 
   // Set up all the predefined string symbols and create symbols for
   // language keywords.
@@ -329,7 +333,7 @@ void Symbols::SetupSymbolTable(Isolate* isolate) {
 
 void Symbols::GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity) {
   ASSERT(isolate != NULL);
-  SymbolTable table(isolate, isolate->object_store()->symbol_table());
+  SymbolTable table(isolate->object_store()->symbol_table());
   *size = table.NumOccupied();
   *capacity = table.NumEntries();
   table.Release();
@@ -379,23 +383,59 @@ RawString* Symbols::FromUTF32(const int32_t* utf32_array, intptr_t len) {
 
 
 RawString* Symbols::FromConcat(const String& str1, const String& str2) {
-  return NewSymbol(ConcatString(str1, str2));
+  if (str1.Length() == 0) {
+    return New(str2);
+  } else if (str2.Length() == 0) {
+    return New(str1);
+  } else {
+    return NewSymbol(ConcatString(str1, str2));
+  }
+}
+
+
+// TODO(srdjan): If this becomes performance critical code, consider looking
+// up symbol from pieces instead of concatenating them first into a big string.
+RawString* Symbols::FromConcatAll(
+    const GrowableHandlePtrArray<const String>& strs) {
+  GrowableArray<const char*> cchars(strs.length());
+  GrowableArray<intptr_t> lengths(strs.length());
+  intptr_t len_sum = 0;
+  for (intptr_t i = 0; i < strs.length(); i++) {
+    const char* to_cstr = strs[i].ToCString();
+    intptr_t len = strlen(to_cstr);
+    cchars.Add(to_cstr);
+    lengths.Add(len);
+    len_sum += len;
+  }
+
+  Zone* zone = Thread::Current()->zone();
+  char* buffer = zone->Alloc<char>(len_sum);
+  const char* const orig_buffer = buffer;
+  for (intptr_t i = 0; i < cchars.length(); i++) {
+    intptr_t len = lengths[i];
+    strncpy(buffer, cchars[i], len);
+    buffer += len;
+  }
+  ASSERT(len_sum == buffer - orig_buffer);
+  return Symbols::New(orig_buffer, len_sum);
 }
 
 
 // StringType can be StringSlice, ConcatString, or {Latin1,UTF16,UTF32}Array.
 template<typename StringType>
 RawString* Symbols::NewSymbol(const StringType& str) {
-  Isolate* isolate = Isolate::Current();
-  String& symbol = String::Handle(isolate);
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+  String& symbol = String::Handle(zone);
   {
     Isolate* vm_isolate = Dart::vm_isolate();
-    SymbolTable table(isolate, vm_isolate->object_store()->symbol_table());
+    SymbolTable table(zone, vm_isolate->object_store()->symbol_table());
     symbol ^= table.GetOrNull(str);
     table.Release();
   }
   if (symbol.IsNull()) {
-    SymbolTable table(isolate, isolate->object_store()->symbol_table());
+    SymbolTable table(zone, isolate->object_store()->symbol_table());
     symbol ^= table.InsertNewOrGet(str);
     isolate->object_store()->set_symbol_table(table.Release());
   }

@@ -12,14 +12,16 @@ namespace dart {
 
 static const int kNumInitialReferences = 4;
 
-ApiMessageReader::ApiMessageReader(const uint8_t* buffer,
-                                   intptr_t length,
-                                   ReAlloc alloc)
+ApiMessageReader::ApiMessageReader(const uint8_t* buffer, intptr_t length)
     : BaseReader(buffer, length),
-      alloc_(alloc),
+      zone_(NULL),
       backward_references_(kNumInitialReferences),
       vm_isolate_references_(kNumInitialReferences),
       vm_symbol_references_(NULL) {
+  // We need to have an enclosing ApiNativeScope.
+  ASSERT(ApiNativeScope::Current() != NULL);
+  zone_ = ApiNativeScope::Current()->zone();
+  ASSERT(zone_ != NULL);
   Init();
 }
 
@@ -54,7 +56,7 @@ intptr_t ApiMessageReader::LookupInternalClass(intptr_t class_header) {
 
 Dart_CObject* ApiMessageReader::AllocateDartCObject(Dart_CObject_Type type) {
   Dart_CObject* value =
-      reinterpret_cast<Dart_CObject*>(alloc_(NULL, 0, sizeof(Dart_CObject)));
+      reinterpret_cast<Dart_CObject*>(allocator(sizeof(Dart_CObject)));
   ASSERT(value != NULL);
   value->type = type;
   return value;
@@ -121,7 +123,7 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectString(intptr_t length) {
   // up to this area.
   Dart_CObject* value =
       reinterpret_cast<Dart_CObject*>(
-          alloc_(NULL, 0, sizeof(Dart_CObject) + length + 1));
+          allocator(sizeof(Dart_CObject) + length + 1));
   ASSERT(value != NULL);
   value->value.as_string = reinterpret_cast<char*>(value) + sizeof(*value);
   value->type = Dart_CObject_kString;
@@ -162,7 +164,7 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectTypedData(
   intptr_t length_in_bytes = GetTypedDataSizeInBytes(type) * length;
   Dart_CObject* value =
       reinterpret_cast<Dart_CObject*>(
-          alloc_(NULL, 0, sizeof(Dart_CObject) + length_in_bytes));
+          allocator(sizeof(Dart_CObject) + length_in_bytes));
   ASSERT(value != NULL);
   value->type = Dart_CObject_kTypedData;
   value->value.as_typed_data.type = type;
@@ -183,7 +185,7 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectArray(intptr_t length) {
   // content is set up to this area.
   Dart_CObject* value =
       reinterpret_cast<Dart_CObject*>(
-          alloc_(NULL, 0, sizeof(Dart_CObject) + length * sizeof(value)));
+          allocator(sizeof(Dart_CObject) + length * sizeof(value)));
   ASSERT(value != NULL);
   value->type = Dart_CObject_kArray;
   value->value.as_array.length = length;
@@ -239,7 +241,7 @@ Dart_CObject_Internal* ApiMessageReader::AllocateDartCObjectInternal(
     Dart_CObject_Internal::Type type) {
   Dart_CObject_Internal* value =
       reinterpret_cast<Dart_CObject_Internal*>(
-          alloc_(NULL, 0, sizeof(Dart_CObject_Internal)));
+          allocator(sizeof(Dart_CObject_Internal)));
   ASSERT(value != NULL);
   value->type = static_cast<Dart_CObject_Type>(type);
   return value;
@@ -255,7 +257,7 @@ ApiMessageReader::BackRefNode* ApiMessageReader::AllocateBackRefNode(
     Dart_CObject* reference,
     DeserializeState state) {
   BackRefNode* value =
-      reinterpret_cast<BackRefNode*>(alloc_(NULL, 0, sizeof(BackRefNode)));
+      reinterpret_cast<BackRefNode*>(allocator(sizeof(BackRefNode)));
   value->set_reference(reference);
   value->set_state(state);
   return value;
@@ -405,7 +407,7 @@ Dart_CObject* ApiMessageReader::ReadVMSymbol(intptr_t object_id) {
     intptr_t size =
         (sizeof(*vm_symbol_references_) * Symbols::kMaxPredefinedId);
     vm_symbol_references_ =
-        reinterpret_cast<Dart_CObject**>(alloc_(NULL, 0, size));
+        reinterpret_cast<Dart_CObject**>(allocator(size));
     memset(vm_symbol_references_, 0, size);
   }
 
@@ -621,7 +623,7 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       intptr_t hash = ReadSmiValue();
       USE(hash);
       uint8_t *latin1 =
-          reinterpret_cast<uint8_t*>(::malloc(len * sizeof(uint8_t)));
+          reinterpret_cast<uint8_t*>(allocator(len * sizeof(uint8_t)));
       intptr_t utf8_len = 0;
       for (intptr_t i = 0; i < len; i++) {
         latin1[i] = Read<uint8_t>();
@@ -635,15 +637,14 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       }
       *p = '\0';
       ASSERT(p == (object->value.as_string + utf8_len));
-      ::free(latin1);
       return object;
     }
     case kTwoByteStringCid: {
       intptr_t len = ReadSmiValue();
       intptr_t hash = ReadSmiValue();
       USE(hash);
-      uint16_t *utf16 =
-          reinterpret_cast<uint16_t*>(::malloc(len * sizeof(uint16_t)));
+      uint16_t *utf16 = reinterpret_cast<uint16_t*>(
+          allocator(len * sizeof(uint16_t)));
       intptr_t utf8_len = 0;
       // Read all the UTF-16 code units.
       for (intptr_t i = 0; i < len; i++) {
@@ -670,7 +671,6 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       }
       *p = '\0';
       ASSERT(p == (object->value.as_string + utf8_len));
-      ::free(utf16);
       return object;
     }
     case kSendPortCid: {

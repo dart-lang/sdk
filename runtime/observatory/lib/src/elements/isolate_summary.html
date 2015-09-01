@@ -45,7 +45,7 @@
 <polymer-element name="isolate-run-state" extends="observatory-element">
   <template>
     <template if="{{ isolate.paused }}">
-      <strong>paused</strong>
+      <strong title="{{ isolate.pauseEvent.timestamp.toString() }}">paused</strong>
     </template>
 
     <template if="{{ isolate.running }}">

@@ -52,6 +52,10 @@ def BuildOptions():
   result.add_option("--abi",
       action="store", type="string",
       help="Desired ABI for android target OS. armeabi-v7a or x86")
+  result.add_option("--timestamp_file",
+      action="store", type="string",
+      help="Path to timestamp file that will be written",
+      default="")
   return result
 
 
@@ -69,6 +73,14 @@ def ProcessOptions(options):
     sys.stderr.write('--abi requires --target_os android\n')
     return False
   return True
+
+
+def CreateTimestampFile(options):
+  if options.timestamp_file != '':
+    dir_name = os.path.dirname(options.timestamp_file)
+    if not os.path.exists(dir_name):
+      os.mkdir(dir_name)
+    open(options.timestamp_file, 'w').close()
 
 
 def Main():
@@ -112,6 +124,9 @@ def Main():
                      verbose=options.verbose, printErrorInfo=True)
   except Exception as e:
     return -1
+
+  # Success, update timestamp file.
+  CreateTimestampFile(options)
 
   return 0
 

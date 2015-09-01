@@ -686,6 +686,10 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   result = Dart_RunLoop();
   CHECK_RESULT(result);
 
+  if (isolate_data->load_async_id >= 0) {
+    Dart_TimelineAsyncEnd("LoadScript", isolate_data->load_async_id);
+  }
+
   Platform::SetPackageRoot(package_root);
 
   DartUtils::SetupIOLibrary(script_uri);
@@ -1029,7 +1033,7 @@ void main(int argc, char** argv) {
   }
 
   // Initialize the Dart VM.
-  if (!Dart_Initialize(vm_isolate_snapshot_buffer,
+  if (!Dart_Initialize(vm_isolate_snapshot_buffer, NULL,
                        CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
                        DartUtils::OpenFile,
                        DartUtils::ReadFile,

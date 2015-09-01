@@ -4,6 +4,7 @@
 
 library dart2js.serialization.constants;
 
+import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart' show FieldElement;

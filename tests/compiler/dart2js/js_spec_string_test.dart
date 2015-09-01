@@ -6,8 +6,7 @@
 
 import 'package:expect/expect.dart';
 import 'package:compiler/src/native/native.dart';
-import 'package:compiler/src/dart2jslib.dart'
-    show DiagnosticListener;
+import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/universe/universe.dart'
     show SideEffects;
 

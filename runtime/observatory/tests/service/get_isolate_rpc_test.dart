@@ -1,7 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
+// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -28,6 +28,23 @@ var tests = [
     expect(result['breakpoints'].length, isZero);
     expect(result['_heaps']['new']['type'], equals('HeapSpace'));
     expect(result['_heaps']['old']['type'], equals('HeapSpace'));
+  },
+
+  (VM vm) async {
+    var params = {
+      'isolateId': 'badid',
+    };
+    bool caughtException;
+    try {
+      await vm.invokeRpcNoUpgrade('getIsolate', params);
+      expect(false, isTrue, reason:'Unreachable');
+    } on ServerRpcException catch(e) {
+      caughtException = true;
+      expect(e.code, equals(ServerRpcException.kInvalidParams));
+      expect(e.message,
+             "getIsolate: invalid 'isolateId' parameter: badid");
+    }
+    expect(caughtException, isTrue);
   },
 ];
 

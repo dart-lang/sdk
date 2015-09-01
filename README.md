@@ -12,6 +12,13 @@ Visit the [dartlang.org][website] to learn more about the
 Browse [pub.dartlang.org][pubsite] for more packages and libraries contributed
 by the community and the Dart team.
 
+## Building Dart
+
+Learn how to [get the source](https://github.com/dart-lang/sdk/wiki/Getting-The-Source)
+and [prepare your machine to build the SDK](https://github.com/dart-lang/sdk/wiki/Preparing-your-machine-to-build-the-Dart-SDK).
+
+There are more documents on our [wiki](https://github.com/dart-lang/sdk/wiki).
+
 ## Contributing to Dart
 
 The easiest way to contribute to Dart is to [file issues][dartbug].

@@ -102,6 +102,7 @@ static int Main(int argc, const char** argv) {
                                                              dart_argv);
   ASSERT(set_vm_flags_success);
   const char* err_msg = Dart::InitOnce(dart::bin::vm_isolate_snapshot_buffer,
+                                       NULL,
                                        NULL, NULL, NULL, NULL,
                                        dart::bin::DartUtils::OpenFile,
                                        dart::bin::DartUtils::ReadFile,

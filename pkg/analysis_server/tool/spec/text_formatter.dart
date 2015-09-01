@@ -19,12 +19,13 @@ final RegExp whitespace = new RegExp(r'\s');
  * If [javadocStyle] is true, then the output is compatable with Javadoc,
  * which understands certain HTML constructs.
  */
-String nodesToText(List<dom.Node> desc, int width, bool javadocStyle) {
+String nodesToText(List<dom.Node> desc, int width, bool javadocStyle, {
+    bool removeTrailingNewLine: false}) {
   _TextFormatter formatter = new _TextFormatter(width, javadocStyle);
   return formatter.collectCode(() {
     formatter.addAll(desc);
     formatter.lineBreak(false);
-  });
+  }, removeTrailingNewLine: removeTrailingNewLine);
 }
 
 /**

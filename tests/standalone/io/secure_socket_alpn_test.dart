@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,26 +8,31 @@ import 'dart:convert';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 
-const String MAX_LEN_ERROR =
+const String NAME_LENGTH_ERROR =
     'Length of protocol must be between 1 and 255';
 
-const String MAX_MSG_LEN_ERROR =
-    'The maximum message length supported is 2^15-1';
+const String MESSAGE_LENGTH_ERROR =
+    'The maximum message length supported is 2^13-1';
 
-void InitializeSSL() {
-  var testPkcertDatabase = Platform.script.resolve('pkcert').toFilePath();
-  SecureSocket.initialize(database: testPkcertDatabase,
-                          password: 'dartdart');
-}
+String localFile(path) => Platform.script.resolve(path).toFilePath();
 
-// Tests that client/server with same protocol can securly establish a
-// connection, negogiate the protocol and can send data to each other.
-void testSuccessfulAlpnNegogiationConnection(List<String> clientProtocols,
+SecurityContext clientContext() => new SecurityContext()
+  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+
+SecurityContext serverContext() => new SecurityContext()
+  ..useCertificateChain(localFile('certificates/server_chain.pem'))
+  ..usePrivateKey(localFile('certificates/server_key.pem'),
+                    password: 'dartdart');
+
+// Tests that client/server with same protocol can securely establish a
+// connection, negotiate the protocol and can send data to each other.
+void testSuccessfulAlpnNegotiationConnection(List<String> clientProtocols,
                                              List<String> serverProtocols,
                                              String selectedProtocol) {
   asyncStart();
-  SecureServerSocket.bind('localhost', 0, 'localhost_cert',
-     supportedProtocols: serverProtocols).then((SecureServerSocket server) {
+  var sContext = serverContext()..setAlpnProtocols(serverProtocols, true);
+  SecureServerSocket.bind('localhost', 0, sContext)
+     .then((SecureServerSocket server) {
 
     asyncStart();
     server.first.then((SecureSocket socket) {
@@ -40,7 +45,7 @@ void testSuccessfulAlpnNegogiationConnection(List<String> clientProtocols,
     });
 
     asyncStart();
-    SecureSocket.connect('localhost', server.port,
+    SecureSocket.connect('localhost', server.port, context: clientContext(),
         supportedProtocols: clientProtocols).then((socket) {
       Expect.equals(selectedProtocol, socket.selectedProtocol);
       socket..write('client message')..close();
@@ -55,160 +60,145 @@ void testSuccessfulAlpnNegogiationConnection(List<String> clientProtocols,
   });
 }
 
-void testFailedAlpnNegogiationConnection(List<String> clientProtocols,
-                                         List<String> serverProtocols) {
-  asyncStart();
-  SecureServerSocket.bind('localhost', 0, 'localhost_cert',
-     supportedProtocols: serverProtocols).then((SecureServerSocket server) {
+void testInvalidArgument(List<String> protocols, String errorIncludes) {
+  testInvalidArgumentServerContext(protocols, errorIncludes);
+  testInvalidArgumentClientContext(protocols, errorIncludes);
+  testInvalidArgumentClientConnect(protocols, errorIncludes);
+}
 
-    asyncStart();
-    server.first.catchError((error, stack) {
-      Expect.isTrue(error is HandshakeException);
-      asyncEnd();
-    });
-
-    asyncStart();
-    SecureSocket.connect('localhost',
-                         server.port,
-                         supportedProtocols: clientProtocols)
-        .catchError((error, stack) {
-      Expect.isTrue(error is HandshakeException);
-      asyncEnd();
-    });
-
-    asyncEnd();
+void testInvalidArgumentServerContext(List<String> protocols,
+                                      String errorIncludes) { 
+  Expect.throws(() => serverContext().setAlpnProtocols(protocols, true), (e) {
+    Expect.isTrue(e is ArgumentError);
+    Expect.isTrue(e.toString().contains(errorIncludes));
+    return true;
   });
 }
 
-void testInvalidArgumentsLongName(List<String> protocols,
-                                  bool isLenError,
-                                  bool isMsgLenError) {
+void testInvalidArgumentClientContext(List<String> protocols,
+                                      String errorIncludes) { 
+  Expect.throws(() => clientContext().setAlpnProtocols(protocols, false), (e) {
+    Expect.isTrue(e is ArgumentError);
+    Expect.isTrue(e.toString().contains(errorIncludes));
+    return true;
+  });
+}
+
+void testInvalidArgumentClientConnect(List<String> protocols,
+                                      String errorIncludes) {
   asyncStart();
-  SecureServerSocket.bind('localhost', 0, 'localhost_cert',
-     supportedProtocols: protocols).then((SecureServerSocket server) {
+  var sContext = serverContext()..setAlpnProtocols(['abc'], true);
+  SecureServerSocket.bind('localhost', 0, sContext).then((server) async {
+    asyncStart();
+    server.listen((SecureSocket socket) {
+      Expect.fail(
+          "Unexpected connection made to server, with bad client argument");
+    }, onError: (e) {
+      Expect.fail("Unexpected error on server stream: $e");
+    }, onDone: () { asyncEnd();});
 
     asyncStart();
-    server.first.catchError((error, stack) {
-      String errorString = '${(error as ArgumentError)}';
-      if (isLenError) {
-        Expect.isTrue(errorString.contains(MAX_LEN_ERROR));
-      } else if (isMsgLenError) {
-        Expect.isTrue(errorString.contains(MAX_MSG_LEN_ERROR));
-      } else {
-        throw 'unreachable';
-      }
+    SecureSocket.connect('localhost', server.port, context: clientContext(),
+          supportedProtocols: protocols).then((socket) {
+      Expect.fail(
+          "Unexpected connection made from client, with bad client argument");
+    }, onError: (e) {
+      Expect.isTrue(e is ArgumentError);
+      Expect.isTrue(e.toString().contains(errorIncludes));
+      server.close();
       asyncEnd();
     });
-
-    asyncStart();
-    SecureSocket.connect('localhost',
-                         server.port,
-                         supportedProtocols: protocols)
-        .catchError((error, stack) {
-      String errorString = '${(error as ArgumentError)}';
-      if (isLenError) {
-        Expect.isTrue(errorString.contains(MAX_LEN_ERROR));
-      } else if (isMsgLenError) {
-        Expect.isTrue(errorString.contains(MAX_MSG_LEN_ERROR));
-      } else {
-        throw 'unreachable';
-      }
-      asyncEnd();
-    });
-
     asyncEnd();
   });
 }
 
 main() {
-  InitializeSSL();
   final longname256 = 'p' * 256;
   final String longname255 = 'p' * 255;
   final String strangelongname255 = 'ø' + 'p' * 253;
   final String strangelongname256 = 'ø' + 'p' * 254;
 
-  // This produces a message of (1 << 15)-2 bytes (1 length and 1 ascii byte).
-  final List<String> allProtocols = new Iterable.generate(
-      (1 << 14) - 1, (i) => '0').toList();
+  // This produces a message of (1 << 13) - 2 bytes. 2^12 -1 strings are each
+  // encoded by 1 length byte and 1 ascii byte.
+  final List<String> manyProtocols = new Iterable.generate(
+      (1 << 12) - 1, (i) => '0').toList();
 
-  // This produces a message of (1 << 15) bytes (1 length and 1 ascii byte).
-  final List<String> allProtocolsPlusOne = new Iterable.generate(
-      (1 << 14), (i) => '0').toList();
+  // This produces a message of (1 << 13) bytes. 2^12 strings are each
+  // encoded by 1 length byte and 1 ascii byte.
+  final List<String> tooManyProtocols = new Iterable.generate(
+      (1 << 12), (i) => '0').toList();
 
-  // Protocols are in order of decreasing priority. First matching protocol
-  // will be taken.
-
-  // Test successfull negotiation, including priority.
-  testSuccessfulAlpnNegogiationConnection(['a'],
+  // Protocols are in order of decreasing priority. The server will select
+  // the first protocol from its list that has a match in the client list.
+  // Test successful negotiation, including priority.
+  testSuccessfulAlpnNegotiationConnection(['a'],
                                           ['a'],
                                           'a');
 
-  testSuccessfulAlpnNegogiationConnection([longname255],
+  testSuccessfulAlpnNegotiationConnection([longname255],
                                           [longname255],
                                           longname255);
 
-  testSuccessfulAlpnNegogiationConnection([strangelongname255],
+  testSuccessfulAlpnNegotiationConnection([strangelongname255],
                                           [strangelongname255],
                                           strangelongname255);
-
-  testSuccessfulAlpnNegogiationConnection(allProtocols,
-                                          allProtocols,
+  testSuccessfulAlpnNegotiationConnection(manyProtocols,
+                                          manyProtocols,
                                           '0');
-
-  testSuccessfulAlpnNegogiationConnection(['a', 'b', 'c'],
+  testSuccessfulAlpnNegotiationConnection(['a', 'b', 'c'],
                                           ['a', 'b', 'c'],
                                           'a');
 
-  testSuccessfulAlpnNegogiationConnection(['a', 'b', 'c'],
+  testSuccessfulAlpnNegotiationConnection(['a', 'b', 'c'],
                                           ['c'],
                                           'c');
 
   // Server precedence.
-  testSuccessfulAlpnNegogiationConnection(['a', 'b', 'c'],
+  testSuccessfulAlpnNegotiationConnection(['a', 'b', 'c'],
                                           ['c', 'b', 'a'],
-                                          'a');
+                                          'c');
 
-  testSuccessfulAlpnNegogiationConnection(['c'],
+  testSuccessfulAlpnNegotiationConnection(['c'],
                                           ['a', 'b', 'c'],
                                           'c');
 
-  testSuccessfulAlpnNegogiationConnection(['s1', 'b', 'e1'],
+  testSuccessfulAlpnNegotiationConnection(['s1', 'b', 'e1'],
                                           ['s2', 'b', 'e2'],
                                           'b');
-
   // Test no protocol negotiation support
-  testSuccessfulAlpnNegogiationConnection(null,
+  testSuccessfulAlpnNegotiationConnection(null,
                                           null,
                                           null);
 
-  testSuccessfulAlpnNegogiationConnection(['a', 'b', 'c'],
+  testSuccessfulAlpnNegotiationConnection(['a', 'b', 'c'],
                                           null,
                                           null);
 
-  testSuccessfulAlpnNegogiationConnection(null,
+  testSuccessfulAlpnNegotiationConnection(null,
                                           ['a', 'b', 'c'],
                                           null);
 
-  testSuccessfulAlpnNegogiationConnection([],
+  testSuccessfulAlpnNegotiationConnection([],
                                           [],
                                           null);
 
-  testSuccessfulAlpnNegogiationConnection(['a', 'b', 'c'],
+  testSuccessfulAlpnNegotiationConnection(['a', 'b', 'c'],
                                           [],
                                           null);
 
-  testSuccessfulAlpnNegogiationConnection([],
+  testSuccessfulAlpnNegotiationConnection([],
                                           ['a', 'b', 'c'],
                                           null);
 
-  // Test non-overlapping protocols.
-  testFailedAlpnNegogiationConnection(['a'], ['b']);
-
+  // Test non-overlapping protocols.  The ALPN RFC says the connection
+  // should be terminated, but OpenSSL continues as if no ALPN is present.
+  // Issue  https://github.com/dart-lang/sdk/issues/23580
+  // Chromium issue https://code.google.com/p/chromium/issues/detail?id=497770
+  testSuccessfulAlpnNegotiationConnection(['a'], ['b'], null);
 
   // Test too short / too long protocol names.
-  testInvalidArgumentsLongName([longname256], true, false);
-  testInvalidArgumentsLongName([strangelongname256], true, false);
-  testInvalidArgumentsLongName([''], true, false);
-  testInvalidArgumentsLongName(allProtocolsPlusOne, false, true);
-  testInvalidArgumentsLongName(allProtocolsPlusOne, false, true);
+  testInvalidArgument([longname256], NAME_LENGTH_ERROR);
+  testInvalidArgument([strangelongname256], NAME_LENGTH_ERROR);
+  testInvalidArgument([''], NAME_LENGTH_ERROR);
+  testInvalidArgument(tooManyProtocols, MESSAGE_LENGTH_ERROR);
 }

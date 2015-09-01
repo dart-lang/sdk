@@ -18,16 +18,40 @@ PROG_NAME="$(follow_links "$BASH_SOURCE")"
 # Handle the case where dart-sdk/bin has been symlinked to.
 CUR_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 
-if [ -z "$DART_CONFIGURATION" ];
-then
-  DART_CONFIGURATION="ReleaseIA32"
-fi
-
 if [[ `uname` == 'Darwin' ]];
 then
-  BIN_DIR="$CUR_DIR"/../../xcodebuild/$DART_CONFIGURATION
+  OUT_DIR="$CUR_DIR"/../../xcodebuild/
 else
-  BIN_DIR="$CUR_DIR"/../../out/$DART_CONFIGURATION
+  OUT_DIR="$CUR_DIR"/../../out/
 fi
+
+if [ -z "$DART_CONFIGURATION" ];
+then
+  DIRS=$( ls "$OUT_DIR" )
+  # list of possible configurations in decreasing desirability
+  CONFIGS=("ReleaseIA32" "ReleaseX64" "DebugIA32" "DebugX64"
+    "ReleaseARM"    "ReleaseARM64"    "ReleaseARMV5TE"    "ReleaseMIPS"
+    "DebugARM"      "DebugARM64"      "DebugARMV5TE"      "DebugMIPS")
+  DART_CONFIGURATION="None"
+  for CONFIG in ${CONFIGS[*]}
+  do
+    for DIR in $DIRS;
+    do
+      if [ "$CONFIG" = "$DIR" ];
+      then
+        # choose most desirable configuration that is available and break
+        DART_CONFIGURATION="$DIR"
+        break 2
+      fi
+    done
+  done
+  if [ "$DART_CONFIGURATION" = "None" ]
+  then
+    echo "No valid dart configuration found in $OUT_DIR"
+    exit 1
+  fi
+fi
+
+BIN_DIR="$OUT_DIR$DART_CONFIGURATION"
 
 exec "$BIN_DIR"/dart "$@"

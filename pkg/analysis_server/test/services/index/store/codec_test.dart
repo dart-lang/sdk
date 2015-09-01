@@ -15,9 +15,10 @@ import 'package:unittest/unittest.dart';
 
 import '../../../abstract_single_unit.dart';
 import '../../../mocks.dart';
+import '../../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(_ContextCodecTest);
   defineReflectiveTests(_ElementCodecTest);
   defineReflectiveTests(_RelationshipCodecTest);
@@ -74,7 +75,9 @@ class _ElementCodecTest extends AbstractSingleUnitTest {
   }
 
   void test_encode_CompilationUnitElement() {
-    addSource('/my_part.dart', '''
+    addSource(
+        '/my_part.dart',
+        '''
 part of my_lib;
 ''');
     resolveTestUnit('''

@@ -40,6 +40,10 @@ class WebSocketClient extends Client {
   }
 
   void post(dynamic result) {
+    if (result == null) {
+      // Do nothing.
+      return;
+    }
     try {
       socket.add(result);
     } catch (_) {
@@ -65,6 +69,10 @@ class HttpRequestClient extends Client {
       : super(service, sendEvents:false);
 
   void post(String result) {
+    if (result == null) {
+      close();
+      return;
+    }
     request.response..headers.contentType = jsonContentType
                     ..write(result)
                     ..close();

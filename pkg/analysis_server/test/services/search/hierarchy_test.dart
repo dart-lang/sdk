@@ -15,9 +15,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(HierarchyTest);
 }
 
@@ -222,8 +223,10 @@ class B extends A {
     {
       ClassElement classB = findElement('B');
       List<Element> members = getMembers(classB);
-      expect(members.map((e) => e.name), unorderedEquals(
-          ['mb1', 'mb2', 'ma1', 'ma2', '==', 'toString', 'hashCode']));
+      expect(
+          members.map((e) => e.name),
+          unorderedEquals(
+              ['mb1', 'mb2', 'ma1', 'ma2', '==', 'toString', 'hashCode']));
     }
   }
 

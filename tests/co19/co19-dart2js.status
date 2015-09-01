@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
+Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Issue 1533 (int/double related)
 Language/03_Overview/1_Scoping_A02_t05: CompileTimeError # Issue 21072
 Language/03_Overview/1_Scoping_A02_t06: CompileTimeError # Issue 21072
 Language/03_Overview/1_Scoping_A02_t28: fail # Issue 21092 and co19 issue 713
@@ -240,7 +241,6 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout
 LibTest/core/List/List_class_A01_t01: Pass, Timeout
 
 [ $compiler == dart2js && $runtime == jsshell ]
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Issue 21198 (int/double related)
 LibTest/async/Future/Future.delayed_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/async/Future/Future.delayed_A03_t01: fail # Issue 7728, timer not supported in jsshell
 LibTest/async/Future/wait_A01_t07: RuntimeError # Issue 7728, timer not supported in jsshell
@@ -321,7 +321,6 @@ LibTest/core/int/toRadixString_A01_t01: RuntimeError, OK # Bad test: uses Expect
 
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: fail # co19-roll r587: Please triage this failure
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Issue 21198 (int/double related)
 LibTest/typed_data/Int32x4/operator_OR_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
@@ -528,7 +527,6 @@ WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName
 #
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure.
 Language/12_Expressions/05_Strings_A06_t01: Pass, Slow # Please triage this failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # Issue 22200.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Issue 22200.
@@ -558,7 +556,6 @@ LibTest/typed_data/Int8List/sublist_A02_t01: Pass, Slow # Please triage this fai
 LibTest/typed_data/Uint8ClampedList/map_A02_t01: Pass, Slow # Please triage this failure.
 
 [ $compiler == dart2js && $runtime == chrome ]
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError # Please triage this failure
@@ -1548,7 +1545,6 @@ LayoutTests/fast/text/regional-indicator-symobls_t01: RuntimeError # Please tria
 LayoutTests/fast/text/text-combine-shrink-to-fit_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == ff ]
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
 Language/12_Expressions/28_Postfix_Expressions_A07_t02: Skip # Times out. Please triage this failure
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
@@ -1906,7 +1902,6 @@ LayoutTests/fast/css/link-alternate-stylesheet-3_t01: RuntimeError # Please tria
 LayoutTests/fast/css/link-alternate-stylesheet-4_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/link-alternate-stylesheet-5_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/link-disabled-attr-parser_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/list-item-text-align_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/margin-start-end_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/max-device-aspect-ratio_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/media-query-recovery_t01: RuntimeError # Please triage this failure
@@ -2146,7 +2141,6 @@ LayoutTests/fast/dom/click-method-on-html-element_t01: RuntimeError # Please tri
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/containerNode_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/css-delete-doc_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/css-mediarule-functions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-rule-functions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-selectorText_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-shortHands_t01: RuntimeError # Please triage this failure
@@ -2474,7 +2468,6 @@ LayoutTests/fast/forms/text-control-select-blurred_t01: RuntimeError # Please tr
 LayoutTests/fast/forms/textarea-maxlength_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-no-scroll-on-blur_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-paste-newline_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/textarea-rows-cols_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-set-defaultvalue-after-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-trailing-newline_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textfield-clone_t01: RuntimeError # Please triage this failure
@@ -3075,6 +3068,7 @@ LayoutTests/fast/dom/Attr/access-after-element-destruction_t01: RuntimeError # P
 LayoutTests/fast/dom/HTMLOutputElement/htmloutputelement-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/surroundContents-check-boundary-points_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/surroundContents-for-detached-node_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/encoding/css-charset-dom_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/insertAdjacentElement_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/insertAllBefore_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/insertAllBefore_A02_t01: RuntimeError # Please triage this failure
@@ -3097,16 +3091,18 @@ WebPlatformTest/html-templates/serializing-html-templates/outerhtml_t01: Runtime
 [ $compiler == dart2js && $runtime == ff && $system != windows ]
 LayoutTests/fast/canvas/canvas-resetTransform_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-setTransform_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/list-item-text-align_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-object-fit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyle-text-decoration-style_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/css-mediarule-functions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/observe-options-attributes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/observe-options-character-data_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/textarea-rows-cols_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/incorrect-colgroup-span-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open_t01: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/responseType_A01_t02: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == safari ]
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError # Please triage this failure
@@ -4355,7 +4351,6 @@ WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # 
 WebPlatformTest/webstorage/storage_session_setitem_t01: Skip # Times out. Please triage this failure
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError # Please triage this failure
@@ -5681,7 +5676,6 @@ WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please tr
 LayoutTests/fast/table/hittest-tablecell-with-borders-bottom-edge_t01: RuntimeError, Pass # Issue 22752. Please triage this failure.
 
 [ $compiler == dart2js && $runtime == ie10 ]
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A03_t02: Skip # Times out. Please triage this failure
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
@@ -7710,7 +7704,6 @@ WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please tr
 [ $compiler == dart2js && $runtime == ie11 ]
 Language/05_Variables/05_Variables_A14_t07: Skip # Times out. Please triage this failure
 Language/06_Functions/2_Formal_Parameters_A02_t01: Skip # Times out. Please triage this failure
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
 Language/12_Expressions/19_Conditional_A06_t04: Skip # Times out. Please triage this failure
 Language/12_Expressions/30_Identifier_Reference_A10_t02: Skip # Times out. Please triage this failure
 Language/13_Statements/03_Variable_Declaration_A01_t18: Skip # Times out. Please triage this failure
@@ -9586,6 +9579,7 @@ Language/13_Statements/14_Continue_A02_t12: Crash # (switch (2){L:case 1:flag=tr
 Language/13_Statements/14_Continue_A02_t13: Crash # (switch (2){case 2:continue L;L:case 1:flag=true;}): continue to a labeled switch case
 Language/15_Types/4_Interface_Types_A12_t09: RuntimeError # Please triage this failure.
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Crash # (lazy.method()): deferred access is not implemented
+LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/core/Invocation/isAccessor_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 LibTest/core/Invocation/isGetter_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/Invocation/isGetter_A01_t02: RuntimeError # Please triage this failure.
@@ -9599,30 +9593,3 @@ LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Pass # Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Pass # Please triage this failure.
-LibTest/typed_data/Float32List/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Float32List/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Float32List/setRange_A02_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Float64List/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Float64List/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Float64List/setRange_A02_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int16List/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int16List/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int16List/setRange_A02_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int32List/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int32List/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int32List/setRange_A02_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int8List/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int8List/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Int8List/setRange_A02_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint16List/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint16List/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint16List/setRange_A02_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint32List/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint32List/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint32List/setRange_A02_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint8ClampedList/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint8ClampedList/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint8ClampedList/setRange_A02_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint8List/setAll_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint8List/setRange_A01_t01: RuntimeError # this.get$length is not a function
-LibTest/typed_data/Uint8List/setRange_A02_t01: RuntimeError # this.get$length is not a function

@@ -18,7 +18,6 @@ namespace dart {
 
 // The single thread local key which stores all the thread local data
 // for a thread.
-// TODO(koda): Can we merge this with ThreadInterrupter::thread_state_key_?
 ThreadLocalKey Thread::thread_key_ = OSThread::kUnsetThreadLocalKey;
 
 
@@ -94,9 +93,9 @@ void Thread::EnsureInit() {
 void Thread::CleanUp() {
   Thread* current = Current();
   if (current != NULL) {
+    SetCurrent(NULL);
     delete current;
   }
-  SetCurrent(NULL);
 }
 #endif
 
@@ -134,19 +133,19 @@ CACHED_CONSTANTS_LIST(INIT_VALUE)
 }
 
 
-void Thread::Schedule(Isolate* isolate) {
+void Thread::Schedule(Isolate* isolate, bool bypass_safepoint) {
   State st;
-  if (isolate->thread_registry()->RestoreStateTo(this, &st)) {
+  if (isolate->thread_registry()->RestoreStateTo(this, &st, bypass_safepoint)) {
     ASSERT(isolate->thread_registry()->Contains(this));
     state_ = st;
   }
 }
 
 
-void Thread::Unschedule() {
+void Thread::Unschedule(bool bypass_safepoint) {
   ThreadRegistry* reg = isolate_->thread_registry();
   ASSERT(reg->Contains(this));
-  reg->SaveStateFrom(this, state_);
+  reg->SaveStateFrom(this, state_, bypass_safepoint);
   ClearState();
 }
 
@@ -160,7 +159,7 @@ void Thread::EnterIsolate(Isolate* isolate) {
   isolate->MakeCurrentThreadMutator(thread);
   isolate->set_vm_tag(VMTag::kVMTagId);
   ASSERT(thread->store_buffer_block_ == NULL);
-  thread->store_buffer_block_ = isolate->store_buffer()->PopBlock();
+  thread->StoreBufferAcquire();
   ASSERT(isolate->heap() != NULL);
   thread->heap_ = isolate->heap();
   thread->Schedule(isolate);
@@ -176,9 +175,8 @@ void Thread::ExitIsolate() {
   Isolate* isolate = thread->isolate();
   Profiler::EndExecution(isolate);
   thread->Unschedule();
-  StoreBufferBlock* block = thread->store_buffer_block_;
-  thread->store_buffer_block_ = NULL;
-  isolate->store_buffer()->PushBlock(block);
+  // TODO(koda): Move store_buffer_block_ into State.
+  thread->StoreBufferRelease();
   if (isolate->is_runnable()) {
     isolate->set_vm_tag(VMTag::kIdleTagId);
   } else {
@@ -191,51 +189,55 @@ void Thread::ExitIsolate() {
 }
 
 
-void Thread::EnterIsolateAsHelper(Isolate* isolate) {
+void Thread::EnterIsolateAsHelper(Isolate* isolate, bool bypass_safepoint) {
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
   ASSERT(thread->isolate() == NULL);
   thread->isolate_ = isolate;
+  ASSERT(thread->store_buffer_block_ == NULL);
+  // TODO(koda): Use StoreBufferAcquire once we properly flush before Scavenge.
+  thread->store_buffer_block_ =
+      thread->isolate()->store_buffer()->PopEmptyBlock();
   ASSERT(isolate->heap() != NULL);
   thread->heap_ = isolate->heap();
+  ASSERT(thread->thread_interrupt_callback_ == NULL);
+  ASSERT(thread->thread_interrupt_data_ == NULL);
   // Do not update isolate->mutator_thread, but perform sanity check:
   // this thread should not be both the main mutator and helper.
   ASSERT(!isolate->MutatorThreadIsCurrentThread());
-  thread->Schedule(isolate);
+  thread->Schedule(isolate, bypass_safepoint);
 }
 
 
-void Thread::ExitIsolateAsHelper() {
+void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   Thread* thread = Thread::Current();
-  // If the helper thread chose to use the store buffer, check that it has
-  // already been flushed manually.
-  ASSERT(thread->store_buffer_block_ == NULL);
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  thread->Unschedule();
+  thread->Unschedule(bypass_safepoint);
+  // TODO(koda): Move store_buffer_block_ into State.
+  thread->StoreBufferRelease();
   thread->isolate_ = NULL;
   thread->heap_ = NULL;
   ASSERT(!isolate->MutatorThreadIsCurrentThread());
 }
 
 
+// TODO(koda): Make non-static and invoke in SafepointThreads.
 void Thread::PrepareForGC() {
   Thread* thread = Thread::Current();
-  StoreBuffer* sb = thread->isolate()->store_buffer();
-  StoreBufferBlock* block = thread->store_buffer_block_;
-  thread->store_buffer_block_ = NULL;
-  const bool kCheckThreshold = false;  // Prevent scheduling another GC.
-  sb->PushBlock(block, kCheckThreshold);
-  thread->store_buffer_block_ = sb->PopEmptyBlock();
+  const bool kDoNotCheckThreshold = false;  // Prevent scheduling another GC.
+  thread->StoreBufferRelease(kDoNotCheckThreshold);
+  // Make sure to get an *empty* block; the isolate needs all entries
+  // at GC time.
+  // TODO(koda): Replace with an epilogue (PrepareAfterGC) that acquires.
+  thread->store_buffer_block_ =
+      thread->isolate()->store_buffer()->PopEmptyBlock();
 }
 
 
 void Thread::StoreBufferBlockProcess(bool check_threshold) {
-  StoreBuffer* sb = isolate()->store_buffer();
-  StoreBufferBlock* block = store_buffer_block_;
-  store_buffer_block_ = NULL;
-  sb->PushBlock(block, check_threshold);
-  store_buffer_block_ = sb->PopBlock();
+  StoreBufferRelease(check_threshold);
+  StoreBufferAcquire();
 }
 
 
@@ -252,6 +254,18 @@ void Thread::StoreBufferAddObjectGC(RawObject* obj) {
   if (store_buffer_block_->IsFull()) {
     StoreBufferBlockProcess(false);
   }
+}
+
+
+void Thread::StoreBufferRelease(bool check_threshold) {
+  StoreBufferBlock* block = store_buffer_block_;
+  store_buffer_block_ = NULL;
+  isolate_->store_buffer()->PushBlock(block, check_threshold);
+}
+
+
+void Thread::StoreBufferAcquire() {
+  store_buffer_block_ = isolate()->store_buffer()->PopNonFullBlock();
 }
 
 

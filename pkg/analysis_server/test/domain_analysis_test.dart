@@ -21,9 +21,10 @@ import 'package:unittest/unittest.dart';
 import 'analysis_abstract.dart';
 import 'mock_sdk.dart';
 import 'mocks.dart';
+import 'utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
 
   defineReflectiveTests(AnalysisDomainTest);
   defineReflectiveTests(SetSubscriptionsTest);
@@ -39,9 +40,14 @@ main() {
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
     manager.processPlugins([serverPlugin]);
-    server = new AnalysisServer(serverChannel, resourceProvider,
-        new MockPackageMapProvider(), null, serverPlugin,
-        new AnalysisServerOptions(), new MockSdk(),
+    server = new AnalysisServer(
+        serverChannel,
+        resourceProvider,
+        new MockPackageMapProvider(),
+        null,
+        serverPlugin,
+        new AnalysisServerOptions(),
+        new MockSdk(),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
   });
@@ -132,8 +138,9 @@ main() {
 
     group('updateOptions', () {
       test('invalid', () {
-        var request = new Request(
-            '0', ANALYSIS_UPDATE_OPTIONS, {OPTIONS: {'not-an-option': true}});
+        var request = new Request('0', ANALYSIS_UPDATE_OPTIONS, {
+          OPTIONS: {'not-an-option': true}
+        });
         var response = handler.handleRequest(request);
         // Invalid options should be silently ignored.
         expect(response, isResponseSuccess('0'));
@@ -156,7 +163,9 @@ testUpdateContent() {
     helper.createSingleFileProject('// empty');
     return helper.onAnalysisComplete.then((_) {
       Request request = new Request('0', ANALYSIS_UPDATE_CONTENT, {
-        'files': {helper.testFile: {TYPE: 'foo',}}
+        'files': {
+          helper.testFile: {TYPE: 'foo',}
+        }
       });
       Response response = helper.handler.handleRequest(request);
       expect(response, isResponseFailure('0'));
@@ -291,7 +300,9 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
     // Prepare a source file that has errors because it refers to an unknown
     // package.
     String pkgFile = '/packages/pkgA/libA.dart';
-    resourceProvider.newFile(pkgFile, '''
+    resourceProvider.newFile(
+        pkgFile,
+        '''
 library lib_a;
 class A {}
 ''');
@@ -322,12 +333,15 @@ f(A a) {
   test_setRoots_packages() {
     // prepare package
     String pkgFile = '/packages/pkgA/libA.dart';
-    resourceProvider.newFile(pkgFile, '''
+    resourceProvider.newFile(
+        pkgFile,
+        '''
 library lib_a;
 class A {}
 ''');
-    packageMapProvider.packageMap['pkgA'] =
-        [resourceProvider.getResource('/packages/pkgA')];
+    packageMapProvider.packageMap['pkgA'] = [
+      resourceProvider.getResource('/packages/pkgA')
+    ];
     addTestFile('''
 import 'package:pkgA/libA.dart';
 main(A a) {
@@ -368,9 +382,14 @@ class AnalysisTestHelper {
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
     manager.processPlugins([serverPlugin]);
-    server = new AnalysisServer(serverChannel, resourceProvider,
-        new MockPackageMapProvider(), null, serverPlugin,
-        new AnalysisServerOptions(), new MockSdk(),
+    server = new AnalysisServer(
+        serverChannel,
+        resourceProvider,
+        new MockPackageMapProvider(),
+        null,
+        serverPlugin,
+        new AnalysisServerOptions(),
+        new MockSdk(),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
@@ -593,7 +612,9 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
 
   test_afterAnalysis_packageFile_external() async {
     String pkgFile = '/packages/pkgA/lib/libA.dart';
-    resourceProvider.newFile(pkgFile, '''
+    resourceProvider.newFile(
+        pkgFile,
+        '''
 library lib_a;
 class A {}
 ''');
@@ -623,11 +644,15 @@ main() {
     String pkgB = '/pkgA';
     String pkgFileA = '$pkgA/lib/libA.dart';
     String pkgFileB = '$pkgA/lib/libB.dart';
-    resourceProvider.newFile(pkgFileA, '''
+    resourceProvider.newFile(
+        pkgFileA,
+        '''
 library lib_a;
 class A {}
 ''');
-    resourceProvider.newFile(pkgFileB, '''
+    resourceProvider.newFile(
+        pkgFileB,
+        '''
 import 'package:pkgA/libA.dart';
 main() {
   new A();
@@ -657,7 +682,9 @@ main() {
 
   test_afterAnalysis_packageFile_notUsed() async {
     String pkgFile = '/packages/pkgA/lib/libA.dart';
-    resourceProvider.newFile(pkgFile, '''
+    resourceProvider.newFile(
+        pkgFile,
+        '''
 library lib_a;
 class A {}
 ''');

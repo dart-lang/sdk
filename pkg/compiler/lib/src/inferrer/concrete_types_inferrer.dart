@@ -4,19 +4,32 @@
 
 library concrete_types_inferrer;
 
-import 'dart:collection' show Queue, IterableBase;
+import 'dart:collection' show
+    Queue,
+    IterableBase;
+
 import '../native/native.dart' as native;
-import '../closure.dart' show BoxFieldElement;
-import '../dart2jslib.dart' hide Selector, TypedSelector;
-import '../dart_types.dart' show DartType, TypeKind;
+import '../closure.dart' show
+    BoxFieldElement;
+import '../compiler.dart' show
+    Compiler;
+import '../dart_types.dart' show
+    DartType,
+    TypeKind;
+import '../diagnostics/spannable.dart' show
+    Spannable;
 import '../elements/elements.dart';
 import '../tree/tree.dart';
+import '../types/types.dart' show
+    FlatTypeMask,
+    TypeMask,
+    TypesInferrer,
+    UnionTypeMask;
 import '../universe/universe.dart';
-import '../util/util.dart';
+import '../world.dart' show
+    ClassWorld;
 
 import 'inferrer_visitor.dart';
-import '../types/types.dart' show TypeMask, FlatTypeMask, UnionTypeMask,
-                                  TypesInferrer;
 import 'simple_types_inferrer.dart';
 
 /**

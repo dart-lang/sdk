@@ -6,16 +6,30 @@ library native;
 
 import 'dart:collection' show Queue;
 
+import '../common/registry.dart' show
+    Registry;
+import '../compiler.dart' show
+    Compiler;
 import '../constants/values.dart';
-import '../dart2jslib.dart';
 import '../dart_types.dart';
+import '../diagnostics/diagnostic_listener.dart';
+import '../diagnostics/messages.dart' show MessageKind;
+import '../diagnostics/spannable.dart' show
+    NO_LOCATION_SPANNABLE,
+    Spannable;
+import '../enqueue.dart' show
+    Enqueuer,
+    ResolutionEnqueuer;
 import '../elements/elements.dart';
-import '../elements/modelx.dart'
-    show ElementX, BaseClassElementX, FunctionElementX, LibraryElementX;
+import '../elements/modelx.dart' show
+    BaseClassElementX,
+    ElementX,
+    FunctionElementX,
+    LibraryElementX;
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
-import '../resolution/resolution.dart' show ResolverVisitor;
+import '../resolution/members.dart' show ResolverVisitor;
 import '../scanner/scannerlib.dart';
 import '../ssa/ssa.dart';
 import '../tree/tree.dart';

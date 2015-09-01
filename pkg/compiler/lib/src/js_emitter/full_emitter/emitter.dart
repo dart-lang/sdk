@@ -26,10 +26,16 @@ import '../../constants/values.dart';
 
 import '../../deferred_load.dart' show OutputUnit;
 
+import '../../diagnostics/messages.dart' show MessageKind;
+
+import '../../diagnostics/spannable.dart' show
+    NO_LOCATION_SPANNABLE;
+
 import '../../elements/elements.dart' show
     ConstructorBodyElement,
     ElementKind,
     FieldElement,
+    Name,
     ParameterElement,
     TypeVariableElement,
     MethodElement,
@@ -78,7 +84,6 @@ import '../../util/uri_extras.dart' show
     relativize;
 
 import '../../util/util.dart' show
-    NO_LOCATION_SPANNABLE,
     equalElements;
 
 part 'class_builder.dart';
@@ -802,9 +807,11 @@ class Emitter implements js_emitter.Emitter {
 
   jsAst.Statement buildConstantInitializer(ConstantValue constant) {
     jsAst.Name name = namer.constantName(constant);
-    return js.statement('#.# = #',
+    jsAst.Statement initializer = js.statement('#.# = #',
                         [namer.globalObjectForConstant(constant), name,
                          constantInitializerExpression(constant)]);
+    compiler.dumpInfoTask.registerConstantAst(constant, initializer);
+    return initializer;
   }
 
   jsAst.Expression constantListGenerator(jsAst.Expression array) {

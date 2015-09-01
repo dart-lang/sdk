@@ -15,9 +15,10 @@ import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(FixesTest);
 }
 

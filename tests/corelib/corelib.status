@@ -99,7 +99,6 @@ null_nosuchmethod_test: Fail # Issue: 7413
 unicode_test: Fail # Issue 14694
 
 [ $compiler == dart2js ]
-growable_list_test: RuntimeError # Fails to detect concurrent modification in addAll.
 error_stack_trace1_test: RuntimeError # Issue 12399
 hash_set_test/01: RuntimeError # Issue 11551
 integer_to_string_test/01: RuntimeError # Issue 1533
@@ -205,6 +204,12 @@ regexp/*: Skip
 [ $runtime == vm ]
 regexp/global_test: Skip # Timeout. Issue 21709 and 21708
 
+[ $runtime != vm && $compiler != dartanalyzer && $compiler != dart2analyzer]
+package_resource_test: RuntimeError # Issue 23825 (not implemented yet).
+data_resource_test: RuntimeError # Issue 23825 (not implemented yet).
+file_resource_test: Skip, OK # VM specific test, uses dart:io.
+http_resource_test: Skip, OK # VM specific test, uses dart:io.
+
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Timeout. Issue 22008
 
@@ -213,24 +218,23 @@ int_parse_radix_test/*: Pass, Slow
 big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == dart2js && $cps_ir ]
+data_resource_test: Crash # bailout: (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
 error_stack_trace1_test: Pass # H.unwrapException(...).get$stackTrace is not a function
+growable_list_test: RuntimeError # Typed lists
 iterable_empty_test: RuntimeError # Please triage this failure.
 iterable_return_type_test/none: RuntimeError # Please triage this failure.
 iterable_to_list_test: RuntimeError # Please triage this failure.
 iterable_to_set_test: RuntimeError # Please triage this failure.
 list_filled_type_argument_test: RuntimeError # Please triage this failure.
-list_test/01: RuntimeError # this.get$length is not a function
-list_test/none: RuntimeError # this.get$length is not a function
 list_unmodifiable_test: RuntimeError # Please triage this failure.
 map_values2_test: RuntimeError # Please triage this failure.
 map_values3_test: RuntimeError # Please triage this failure.
 map_values4_test: RuntimeError # Please triage this failure.
+package_resource_test: Crash # (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
 regexp/pcre_test: Crash # Stack Overflow
-shuffle_test: RuntimeError # this.get$length is not a function
-string_fromcharcodes_test: RuntimeError # this.get$length is not a function
 symbol_operator_test/03: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/03: Pass # Please triage this failure.
 symbol_reserved_word_test/06: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/09: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/12: RuntimeError # Please triage this failure.
-symbol_test/none: RuntimeError # Expected a NoSuchMethodError or a TypeError
+symbol_test/none: RuntimeError # Please triage this failure.

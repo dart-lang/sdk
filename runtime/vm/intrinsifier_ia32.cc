@@ -2113,8 +2113,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ xorl(ECX, ECX);
 
   // Tail-call the function.
-  __ movl(EDI, FieldAddress(EAX, Function::instructions_offset()));
-  __ addl(EDI, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movl(EDI, FieldAddress(EAX, Function::entry_point_offset()));
   __ jmp(EDI);
 }
 

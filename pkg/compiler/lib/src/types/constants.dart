@@ -4,8 +4,9 @@
 
 library types.constants;
 
+import '../compiler.dart' show
+    Compiler;
 import '../constants/values.dart';
-import '../dart2jslib.dart';
 import 'types.dart';
 import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 

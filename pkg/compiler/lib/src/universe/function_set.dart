@@ -59,7 +59,7 @@ class FunctionSet {
   FunctionSetQuery query(Selector selector, TypeMask mask) {
     String name = selector.name;
     FunctionSetNode node = nodes[name];
-    FunctionSetNode noSuchMethods = nodes[Compiler.NO_SUCH_METHOD];
+    FunctionSetNode noSuchMethods = nodes[Identifiers.noSuchMethod_];
     if (node != null) {
       return node.query(selector, mask, compiler, noSuchMethods);
     }
@@ -67,7 +67,7 @@ class FunctionSet {
     // only hit [:noSuchMethod:].
     if (noSuchMethods == null) return const FunctionSetQuery(const <Element>[]);
     return noSuchMethods.query(
-        compiler.noSuchMethodSelector, mask, compiler, null);
+        Selectors.noSuchMethod_, mask, compiler, null);
   }
 
   void forEach(Function action) {
@@ -204,7 +204,7 @@ class FunctionSetNode {
     if (noSuchMethods != null
         && mask.needsNoSuchMethodHandling(selector, classWorld)) {
       FunctionSetQuery noSuchMethodQuery = noSuchMethods.query(
-          compiler.noSuchMethodSelector,
+          Selectors.noSuchMethod_,
           mask,
           compiler,
           null);

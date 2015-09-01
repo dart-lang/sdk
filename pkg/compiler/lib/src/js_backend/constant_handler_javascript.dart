@@ -44,9 +44,18 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
   @override
   ConstantExpression compileConstant(VariableElement element) {
     return measure(() {
+      // TODO(het): Only report errors from one of the constant compilers
       ConstantExpression result = dartConstantCompiler.compileConstant(element);
       jsConstantCompiler.compileConstant(element);
       return result;
+    });
+  }
+
+  @override
+  void evaluate(ConstantExpression constant) {
+    return measure(() {
+      dartConstantCompiler.evaluate(constant);
+      jsConstantCompiler.evaluate(constant);
     });
   }
 
@@ -118,12 +127,13 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
 
   ConstantExpression compileVariableWithDefinitions(VariableElement element,
                                           TreeElements definitions,
-                                          {bool isConst: false}) {
+                                          {bool isConst: false,
+                                           bool checkType: true}) {
     if (!isConst && lazyStatics.contains(element)) {
       return null;
     }
     ConstantExpression value = super.compileVariableWithDefinitions(
-        element, definitions, isConst: isConst);
+        element, definitions, isConst: isConst, checkType: checkType);
     if (!isConst && value == null) {
       lazyStatics.add(element);
     }

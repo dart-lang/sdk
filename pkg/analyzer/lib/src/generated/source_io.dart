@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library engine.source.io;
 
 import 'dart:collection';
@@ -286,10 +283,7 @@ class FileUriResolver extends UriResolver {
 
   @override
   Uri restoreAbsolute(Source source) {
-    if (source is FileBasedSource) {
-      return new Uri.file(source.fullName);
-    }
-    return null;
+    return new Uri.file(source.fullName);
   }
 
   /**

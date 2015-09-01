@@ -15,6 +15,7 @@ namespace dart {
 
 class Array;
 class EmbedderServiceHandler;
+class Error;
 class GCEvent;
 class GrowableObjectArray;
 class Instance;
@@ -39,8 +40,10 @@ class ServiceIdZone {
 
 class RingServiceIdZone : public ServiceIdZone {
  public:
-  explicit RingServiceIdZone(ObjectIdRing* ring, ObjectIdRing::IdPolicy policy);
+  RingServiceIdZone();
   virtual ~RingServiceIdZone();
+
+  void Init(ObjectIdRing* ring, ObjectIdRing::IdPolicy policy);
 
   // Returned string will be zone allocated.
   virtual char* GetServiceId(const Object& obj);
@@ -118,6 +121,13 @@ class Service : public AllStatic {
                            const Object& error,
                            const Instance& stack_trace);
 
+  static void PostError(const String& method_name,
+                        const Array& parameter_keys,
+                        const Array& parameter_values,
+                        const Instance& reply_port,
+                        const Instance& id,
+                        const Error& error);
+
   // Well-known streams.
   static StreamInfo isolate_stream;
   static StreamInfo debug_stream;
@@ -144,7 +154,12 @@ class Service : public AllStatic {
 
   static EmbedderServiceHandler* FindIsolateEmbedderHandler(const char* name);
   static EmbedderServiceHandler* FindRootEmbedderHandler(const char* name);
-
+  static void ScheduleExtensionHandler(const Instance& handler,
+                                       const String& method_name,
+                                       const Array& parameter_keys,
+                                       const Array& parameter_values,
+                                       const Instance& reply_port,
+                                       const Instance& id);
   static void SendEvent(const char* stream_id,
                         const char* event_type,
                         const Object& eventMessage);

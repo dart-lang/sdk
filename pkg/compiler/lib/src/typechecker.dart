@@ -2,7 +2,57 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js;
+library dart2js.typechecker;
+
+import 'common/tasks.dart' show
+    CompilerTask;
+import 'compiler.dart' show
+    Compiler;
+import 'constants/expressions.dart';
+import 'constants/values.dart';
+import 'core_types.dart';
+import 'dart_types.dart';
+import 'diagnostics/invariant.dart' show
+    invariant;
+import 'diagnostics/messages.dart';
+import 'diagnostics/spannable.dart' show
+    Spannable;
+import 'elements/elements.dart' show
+    AbstractFieldElement,
+    AstElement,
+    AsyncMarker,
+    ClassElement,
+    ConstructorElement,
+    Element,
+    Elements,
+    EnumClassElement,
+    ExecutableElement,
+    FieldElement,
+    FunctionElement,
+    GetterElement,
+    InitializingFormalElement,
+    LibraryElement,
+    Member,
+    MemberSignature,
+    Name,
+    ParameterElement,
+    PrivateName,
+    PublicName,
+    ResolvedAst,
+    SetterElement,
+    TypeDeclarationElement,
+    TypedElement,
+    TypedefElement,
+    VariableElement;
+import 'resolution/tree_elements.dart' show
+    TreeElements;
+import 'resolution/class_members.dart' show
+    MembersCreator;
+import 'tree/tree.dart';
+import 'util/util.dart' show
+    Link,
+    LinkBuilder;
+import '../compiler_new.dart' as api;
 
 class TypeCheckerTask extends CompilerTask {
   TypeCheckerTask(Compiler compiler) : super(compiler);
@@ -670,7 +720,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   void checkPrivateAccess(Node node, Element element, String name) {
     if (name != null &&
-        isPrivateName(name) &&
+        Name.isPrivateName(name) &&
         element.library != currentLibrary) {
       reportTypeWarning(
           node,
@@ -990,6 +1040,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       Element receiverElement = elements[node.receiver];
       if (receiverElement != null) {
         if (receiverElement.isPrefix) {
+          if (node.isConditional) {
+            // Skip cases like `prefix?.topLevel`.
+            return const DynamicAccess();
+          }
           assert(invariant(node, element != null,
               message: 'Prefixed node has no element.'));
           return computeResolvedAccess(node, name, element, memberKind);

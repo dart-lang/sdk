@@ -7,8 +7,10 @@ library analyzer.task.model;
 import 'dart:collection';
 
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
+import 'package:analyzer/src/generated/error.dart' show AnalysisError;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/model.dart';
 
@@ -390,6 +392,48 @@ abstract class ResultDescriptor<V> {
 }
 
 /**
+ * A specification of the given [result] for the given [target].
+ *
+ * Clients are not expected to subtype this class.
+ */
+class TargetedResult {
+  /**
+   * An empty list of results.
+   */
+  static final List<TargetedResult> EMPTY_LIST = const <TargetedResult>[];
+
+  /**
+   * The target with which the result is associated.
+   */
+  final AnalysisTarget target;
+
+  /**
+   * The result associated with the target.
+   */
+  final ResultDescriptor result;
+
+  /**
+   * Initialize a new targeted result.
+   */
+  TargetedResult(this.target, this.result);
+
+  @override
+  int get hashCode {
+    return JenkinsSmiHash.combine(target.hashCode, result.hashCode);
+  }
+
+  @override
+  bool operator ==(other) {
+    return other is TargetedResult &&
+        other.target == target &&
+        other.result == result;
+  }
+
+  @override
+  String toString() => '$result for $target';
+}
+
+/**
  * A description of an [AnalysisTask].
  */
 abstract class TaskDescriptor {
@@ -513,4 +557,91 @@ abstract class TaskInputBuilder<V> {
    * provided using [currentValue].
    */
   bool moveNext();
+}
+
+/**
+ * [WorkManager]s are used to drive analysis.
+ *
+ * They know specific of the targets and results they care about,
+ * so they can request analysis results in optimal order.
+ */
+abstract class WorkManager {
+  /**
+   * Notifies the manager about changes in the explicit source list.
+   */
+  void applyChange(List<Source> addedSources, List<Source> changedSources,
+      List<Source> removedSources);
+
+  /**
+   * Notifies the managers that the given set of priority [targets] was set.
+   */
+  void applyPriorityTargets(List<AnalysisTarget> targets);
+
+  /**
+   * Return a list of all of the errors associated with the given [source].
+   * The list of errors will be empty if the source is not known to the context
+   * or if there are no errors in the source. The errors contained in the list
+   * can be incomplete.
+   */
+  List<AnalysisError> getErrors(Source source);
+
+  /**
+   * Return the next [TargetedResult] that this work manager wants to be
+   * computed, or `null` if this manager doesn't need any new results.
+   */
+  TargetedResult getNextResult();
+
+  /**
+   * Return the priority if the next work order this work manager want to be
+   * computed. The [AnalysisDriver] will perform the work order with
+   * the highest priority.
+   *
+   * Even if the returned value is [WorkOrderPriority.NONE], it still does not
+   * guarantee that [getNextResult] will return not `null`.
+   */
+  WorkOrderPriority getNextResultPriority();
+
+  /**
+   * Notifies the manager about analysis options changes.
+   */
+  void onAnalysisOptionsChanged();
+
+  /**
+   * Notifies the manager about [SourceFactory] changes.
+   */
+  void onSourceFactoryChanged();
+
+  /**
+   * Notifies the manager that the given [outputs] were produced for
+   * the given [target].
+   */
+  void resultsComputed(
+      AnalysisTarget target, Map<ResultDescriptor, dynamic> outputs);
+}
+
+/**
+ * The priorities of work orders returned by [WorkManager]s.
+ *
+ * New priorities may be added with time, clients need to tolerate this.
+ */
+enum WorkOrderPriority {
+  /**
+   * Responding to an user's action.
+   */
+  INTERACTIVE,
+
+  /**
+   * Computing information for priority sources.
+   */
+  PRIORITY,
+
+  /**
+   * A work should be done, but without any special urgency.
+   */
+  NORMAL,
+
+  /**
+   * Nothing to do.
+   */
+  NONE
 }

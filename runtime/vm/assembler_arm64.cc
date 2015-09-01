@@ -584,27 +584,48 @@ void Assembler::LoadDImmediate(VRegister vd, double immd) {
 }
 
 
+void Assembler::Branch(const ExternalLabel* label) {
+  LoadExternalLabel(TMP, label);
+  br(TMP);
+}
+
+
 void Assembler::Branch(const StubEntry& stub_entry) {
   const ExternalLabel label(stub_entry.EntryPoint());
   Branch(&label);
 }
 
 
+void Assembler::BranchPatchable(const ExternalLabel* label) {
+  // TODO(zra): Use LoadExternalLabelFixed if possible.
+  LoadImmediateFixed(TMP, label->address());
+  br(TMP);
+}
+
 void Assembler::BranchPatchable(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  BranchPatchable(&label);
+  BranchPatchable(&stub_entry.label());
+}
+
+
+void Assembler::BranchLink(const ExternalLabel* label) {
+  LoadExternalLabel(TMP, label);
+  blr(TMP);
 }
 
 
 void Assembler::BranchLink(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  BranchLink(&label);
+  BranchLink(&stub_entry.label());
+}
+
+
+void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
+  LoadExternalLabelFixed(TMP, label, kPatchable);
+  blr(TMP);
 }
 
 
 void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  BranchLinkPatchable(&label);
+  BranchLinkPatchable(&stub_entry.label());
 }
 
 
@@ -1086,24 +1107,7 @@ void Assembler::LeaveFrame() {
 }
 
 
-void Assembler::EnterDartFrame(intptr_t frame_size) {
-  ASSERT(!constant_pool_allowed());
-  // Setup the frame.
-  adr(TMP, Immediate(-CodeSize()));  // TMP gets PC marker.
-  EnterFrame(0);
-  TagAndPushPPAndPcMarker(TMP);  // Save PP and PC marker.
-
-  // Load the pool pointer.
-  LoadPoolPointer();
-
-  // Reserve space.
-  if (frame_size > 0) {
-    AddImmediate(SP, SP, -frame_size);
-  }
-}
-
-
-void Assembler::EnterDartFrameWithInfo(intptr_t frame_size, Register new_pp) {
+void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
   ASSERT(!constant_pool_allowed());
   // Setup the frame.
   adr(TMP, Immediate(-CodeSize()));  // TMP gets PC marker.
@@ -1152,9 +1156,6 @@ void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
 
 
 void Assembler::LeaveDartFrame() {
-  // LeaveDartFrame is called from stubs (pp disallowed) and from Dart code (pp
-  // allowed), so there is no point in checking the current value of
-  // constant_pool_allowed().
   set_constant_pool_allowed(false);
   // Restore and untag PP.
   LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
@@ -1164,7 +1165,7 @@ void Assembler::LeaveDartFrame() {
 
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
-  EnterFrame(0);
+  EnterStubFrame();
 
   // Store fpu registers with the lowest register number at the lowest
   // address.
@@ -1194,7 +1195,8 @@ void Assembler::LeaveCallRuntimeFrame() {
   // We need to restore it before restoring registers.
   const intptr_t kPushedRegistersSize =
       kDartVolatileCpuRegCount * kWordSize +
-      kDartVolatileFpuRegCount * kWordSize;
+      kDartVolatileFpuRegCount * kWordSize +
+      2 * kWordSize;  // PP and pc marker from EnterStubFrame.
   AddImmediate(SP, FP, -kPushedRegistersSize);
   for (int i = kDartLastVolatileCpuReg; i >= kDartFirstVolatileCpuReg; i--) {
     const Register reg = static_cast<Register>(i);
@@ -1212,7 +1214,7 @@ void Assembler::LeaveCallRuntimeFrame() {
     PopDouble(reg);
   }
 
-  PopPair(LR, FP);
+  LeaveStubFrame();
 }
 
 
@@ -1232,11 +1234,7 @@ void Assembler::EnterStubFrame() {
 
 
 void Assembler::LeaveStubFrame() {
-  set_constant_pool_allowed(false);
-  // Restore and untag PP.
-  LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
-  sub(PP, PP, Operand(kHeapObjectTag));
-  LeaveFrame();
+  LeaveDartFrame();
 }
 
 

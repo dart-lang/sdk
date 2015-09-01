@@ -37,7 +37,7 @@
                 </any-service-ref>
               </template>
               <template if="{{ !isServiceObject(pool.entries[index]) }}">
-                0x{{ pool.entries[index].toRadixString(16) }}
+                {{ pool.entries[index] }}
                 <template if="{{ annotatedEntries != null && annotatedEntries[index] != null }}">
                   (<any-service-ref ref="{{ annotatedEntries[index] }}"></any-service-ref>)
                 </template>

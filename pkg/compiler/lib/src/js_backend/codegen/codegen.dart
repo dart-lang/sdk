@@ -6,18 +6,22 @@ library code_generator;
 
 import 'glue.dart';
 
-import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
-import '../../tree_ir/tree_ir_nodes.dart' show BuiltinOperator;
-import '../../js/js.dart' as js;
+import '../../closure.dart' show ClosureClassElement;
+import '../../common/codegen.dart' show CodegenRegistry;
+import '../../constants/values.dart';
+import '../../dart_types.dart';
+import '../../diagnostics/invariant.dart' show invariant;
+import '../../diagnostics/spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
 import '../../elements/elements.dart';
 import '../../io/source_information.dart' show SourceInformation;
-import '../../util/maplet.dart';
-import '../../constants/values.dart';
-import '../../dart2jslib.dart';
-import '../../dart_types.dart';
+import '../../js/js.dart' as js;
+import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
+import '../../tree_ir/tree_ir_nodes.dart' show BuiltinOperator, BuiltinMethod;
 import '../../types/types.dart' show TypeMask;
-import '../../universe/universe.dart' show UniverseSelector;
-import '../../closure.dart' show ClosureClassElement;
+import '../../universe/universe.dart' show
+    Selector,
+    UniverseSelector;
+import '../../util/maplet.dart';
 
 class CodegenBailout {
   final tree_ir.Node node;
@@ -102,6 +106,31 @@ class CodeGenerator extends tree_ir.StatementVisitor
       jsVariables.add(jsVariable);
 
       ++accumulatorIndex;
+    }
+
+    // If the last statement is a for loop with an initializer expression, try
+    // to pull that expression into an initializer as well.
+    pullFromForLoop:
+    if (accumulatorIndex < accumulator.length &&
+        accumulator[accumulatorIndex] is js.For) {
+      js.For forLoop = accumulator[accumulatorIndex];
+      if (forLoop.init is! js.Assignment) break pullFromForLoop;
+      js.Assignment assign = forLoop.init;
+      if (assign.leftHandSide is! js.VariableUse) break pullFromForLoop;
+      if (assign.op != null) break pullFromForLoop; // Compound assignment.
+      js.VariableUse use = assign.leftHandSide;
+
+      // We cannot declare a variable more than once.
+      if (!declaredVariables.add(use.name)) break pullFromForLoop;
+
+      js.VariableInitialization jsVariable = new js.VariableInitialization(
+        new js.VariableDeclaration(use.name),
+        assign.value);
+      jsVariables.add(jsVariable);
+
+      // Remove the initializer from the for loop.
+      accumulator[accumulatorIndex] = 
+          new js.For(null, forLoop.condition, forLoop.update, forLoop.body);
     }
 
     // Discard the statements that were pulled in the initializer.
@@ -195,10 +224,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
     return buildConstant(
         node.value,
         sourceInformation: node.sourceInformation);
-  }
-
-  js.Expression compileConstant(ParameterElement parameter) {
-    return buildConstant(glue.getConstantValueForVariable(parameter));
   }
 
   js.Expression buildStaticInvoke(Element target,
@@ -333,10 +358,26 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
       // Handle some special checks against classes that exist only in
       // the compile-time class hierarchy, not at runtime.
+      // TODO(sra): Is this correct? The field tests are only valid with the
+      // precondition that [value] is an Array. They will crash on `null`.
       if (clazz == glue.jsExtendableArrayClass) {
+        assert(node.isTypeTest);
         return js.js(r'!#.fixed$length', <js.Expression>[value]);
       } else if (clazz == glue.jsMutableArrayClass) {
+        assert(node.isTypeTest);
         return js.js(r'!#.immutable$list', <js.Expression>[value]);
+      }
+
+      if (glue.isStringClass(clazz)) {
+        if (node.isTypeTest) {
+          return js.js(r'typeof # === "string"', <js.Expression>[value]);
+        }
+        // TODO(sra): Implement fast cast via calling 'stringTypeCast'.
+      } else if (glue.isBoolClass(clazz)) {
+        if (node.isTypeTest) {
+          return js.js(r'typeof # === "boolean"', <js.Expression>[value]);
+        }
+        // TODO(sra): Implement fast cast via calling 'boolTypeCast'.
       }
 
       // The helper we use needs the JSArray class to exist, but for some
@@ -512,17 +553,36 @@ class CodeGenerator extends tree_ir.StatementVisitor
     return result;
   }
 
+  js.Expression makeSequence(List<tree_ir.Expression> list) {
+    return list.map(visitExpression).reduce((x,y) => new js.Binary(',', x, y));
+  }
+
   @override
-  void visitWhileCondition(tree_ir.WhileCondition node) {
+  void visitFor(tree_ir.For node) {
     js.Expression condition = visitExpression(node.condition);
     shortBreak.push(node.next);
     shortContinue.push(node);
     fallthrough.push(node);
-    js.Statement jsBody = buildBodyStatement(node.body);
+    js.Statement body = buildBodyStatement(node.body);
     fallthrough.pop();
     shortContinue.pop();
     shortBreak.pop();
-    accumulator.add(insertLabel(node.label, new js.While(condition, jsBody)));
+    js.Statement loopNode;
+    if (node.updates.isEmpty) {
+      loopNode = new js.While(condition, body);
+    } else { // Compile as a for loop.
+      js.Expression init;
+      if (accumulator.isNotEmpty && 
+          accumulator.last is js.ExpressionStatement) {
+        // Take the preceding expression from the accumulator and use
+        // it as the initializer expression.
+        js.ExpressionStatement initStmt = accumulator.removeLast();
+        init = initStmt.expression;
+      }
+      js.Expression update = makeSequence(node.updates);
+      loopNode = new js.For(init, condition, update, body);
+    }
+    accumulator.add(insertLabel(node.label, loopNode));
     visitStatement(node.next);
   }
 
@@ -800,6 +860,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
         return new js.Binary('>', args[0], args[1]);
       case BuiltinOperator.NumGe:
         return new js.Binary('>=', args[0], args[1]);
+      case BuiltinOperator.NumShl:
+        return js.js('(# << #) >>> 0', args);
       case BuiltinOperator.StringConcatenate:
         if (args.isEmpty) return js.string('');
         return args.reduce((e1,e2) => new js.Binary('+', e1, e2));
@@ -817,14 +879,34 @@ class CodeGenerator extends tree_ir.StatementVisitor
       case BuiltinOperator.IsFalsy:
         return new js.Prefix('!', args[0]);
       case BuiltinOperator.IsNumber:
-        return js.js("typeof # === 'number'", args);
+        return js.js('typeof # === "number"', args);
       case BuiltinOperator.IsNotNumber:
-        return js.js("typeof # !== 'number'", args);
+        return js.js('typeof # !== "number"', args);
       case BuiltinOperator.IsFloor:
-        return js.js("Math.floor(#) === #", args);
+        return js.js('Math.floor(#) === #', args);
       case BuiltinOperator.IsNumberAndFloor:
-        return js.js("typeof # === 'number' && Math.floor(#) === #", args);
+        return js.js('typeof # === "number" && Math.floor(#) === #', args);
     }
+  }
+
+  /// The JS name of a built-in method.
+  static final Map<BuiltinMethod, String> builtinMethodName = 
+    const <BuiltinMethod, String>{
+      BuiltinMethod.Push: 'push',
+      BuiltinMethod.Pop: 'pop',
+  };
+
+  @override
+  js.Expression visitApplyBuiltinMethod(tree_ir.ApplyBuiltinMethod node) {
+    String name = builtinMethodName[node.method];
+    js.Expression receiver = visitExpression(node.receiver);
+    List<js.Expression> args = visitExpressionList(node.arguments);
+    return js.js('#.#(#)', [receiver, name, args]);
+  }
+
+  @override
+  js.Expression visitAwait(tree_ir.Await node) {
+    return new js.Await(visitExpression(node.input));
   }
 
   visitFunctionExpression(tree_ir.FunctionExpression node) {

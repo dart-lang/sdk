@@ -57,6 +57,7 @@ DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
 DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 
 DECLARE_FLAG(int, deoptimization_counter_threshold);
+DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 DEFINE_FLAG(bool, use_osr, true, "Use on-stack replacement.");
@@ -106,31 +107,38 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionExit, 1) {
 // Return value: newly allocated array of length arg0.
 DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   const Instance& length = Instance::CheckedHandle(arguments.ArgAt(0));
-  if (!length.IsSmi()) {
-    const String& error = String::Handle(String::NewFormatted(
-        "Length must be an integer in the range [0..%" Pd "].",
-        Array::kMaxElements));
-    Exceptions::ThrowArgumentError(error);
+  if (!length.IsInteger()) {
+    // Throw: new ArgumentError.value(length, "length", "is not an integer");
+    const Array& args = Array::Handle(Array::New(3));
+    args.SetAt(0, length);
+    args.SetAt(1, Symbols::Length());
+    args.SetAt(2, String::Handle(String::New("is not an integer")));
+    Exceptions::ThrowByType(Exceptions::kArgumentValue, args);
   }
-  const intptr_t len = Smi::Cast(length).Value();
-  if ((len < 0) || (len > Array::kMaxElements)) {
-    const String& error = String::Handle(String::NewFormatted(
-        "Length (%" Pd ") must be an integer in the range [0..%" Pd "].",
-        len, Array::kMaxElements));
-    Exceptions::ThrowArgumentError(error);
+  if (length.IsSmi()) {
+    const intptr_t len = Smi::Cast(length).Value();
+    if ((len >= 0) && (len <= Array::kMaxElements)) {
+      Heap::Space space = isolate->heap()->SpaceForAllocation(kArrayCid);
+      const Array& array = Array::Handle(Array::New(len, space));
+      arguments.SetReturn(array);
+      TypeArguments& element_type =
+          TypeArguments::CheckedHandle(arguments.ArgAt(1));
+      // An Array is raw or takes one type argument. However, its type argument
+      // vector may be longer than 1 due to a type optimization reusing the type
+      // argument vector of the instantiator.
+      ASSERT(element_type.IsNull() ||
+             ((element_type.Length() >= 1) && element_type.IsInstantiated()));
+      array.SetTypeArguments(element_type);  // May be null.
+      return;
+    }
   }
-
-  Heap::Space space = isolate->heap()->SpaceForAllocation(kArrayCid);
-  const Array& array = Array::Handle(Array::New(len, space));
-  arguments.SetReturn(array);
-  TypeArguments& element_type =
-      TypeArguments::CheckedHandle(arguments.ArgAt(1));
-  // An Array is raw or takes one type argument. However, its type argument
-  // vector may be longer than 1 due to a type optimization reusing the type
-  // argument vector of the instantiator.
-  ASSERT(element_type.IsNull() ||
-         ((element_type.Length() >= 1) && element_type.IsInstantiated()));
-  array.SetTypeArguments(element_type);  // May be null.
+  // Throw: new RangeError.range(length, 0, Array::kMaxElements, "length");
+  const Array& args = Array::Handle(Array::New(4));
+  args.SetAt(0, length);
+  args.SetAt(1, Integer::Handle(Integer::New(0)));
+  args.SetAt(2, Integer::Handle(Integer::New(Array::kMaxElements)));
+  args.SetAt(3, Symbols::Length());
+  Exceptions::ThrowByType(Exceptions::kRangeRange, args);
 }
 
 
@@ -1370,7 +1378,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     Debugger::SignalIsolateInterrupted();
 
     Dart_IsolateInterruptCallback callback = isolate->InterruptCallback();
-    if (callback) {
+    if (callback != NULL) {
       if ((*callback)()) {
         return;
       } else {
@@ -1466,6 +1474,12 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     // Reset usage counter for reoptimization before calling optimizer to
     // prevent recursive triggering of function optimization.
     function.set_usage_counter(0);
+    if (FLAG_trace_compiler) {
+      if (function.HasOptimizedCode()) {
+        ISL_Print("ReCompiling function: '%s' \n",
+                  function.ToFullyQualifiedCString());
+      }
+    }
     const Error& error = Error::Handle(
         isolate, Compiler::CompileOptimizedFunction(thread, function));
     if (!error.IsNull()) {
@@ -1680,9 +1694,10 @@ static void CopySavedRegisters(uword saved_registers_address,
 // Returns the stack size of unoptimized frame.
 DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
                           1, uword saved_registers_address) {
-  Isolate* isolate = Isolate::Current();
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
 
   // All registers have been saved below last-fp as if they were locals.
   const uword last_fp = saved_registers_address
@@ -1718,9 +1733,10 @@ END_LEAF_RUNTIME_ENTRY
 // The stack has been adjusted to fit all values for unoptimized frame.
 // Fill the unoptimized frame.
 DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
-  Isolate* isolate = Isolate::Current();
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
 
   DeoptContext* deopt_context = isolate->deopt_context();
   DartFrameIterator iterator(last_fp);
@@ -1777,9 +1793,9 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
                           2,
                           RawBigint* left,
                           RawBigint* right) {
-  Isolate* isolate = Isolate::Current();
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
+  Thread* thread = Thread::Current();
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
   const Bigint& big_left = Bigint::Handle(left);
   const Bigint& big_right = Bigint::Handle(right);
   return big_left.CompareWith(big_right);

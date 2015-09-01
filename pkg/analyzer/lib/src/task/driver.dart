@@ -9,7 +9,7 @@ import 'dart:collection';
 
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    hide AnalysisTask, AnalysisContextImpl;
+    hide AnalysisTask, AnalysisContextImpl, WorkManager;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -44,7 +44,8 @@ class AnalysisDriver {
   /**
    * The map of [ComputedResult] controllers.
    */
-  final Map<ResultDescriptor, StreamController<ComputedResult>> resultComputedControllers =
+  final Map<ResultDescriptor,
+          StreamController<ComputedResult>> resultComputedControllers =
       <ResultDescriptor, StreamController<ComputedResult>>{};
 
   /**
@@ -197,8 +198,10 @@ class AnalysisDriver {
    * [descriptor] is computed.
    */
   Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
-    return resultComputedControllers.putIfAbsent(descriptor, () =>
-        new StreamController<ComputedResult>.broadcast(sync: true)).stream;
+    return resultComputedControllers
+        .putIfAbsent(descriptor,
+            () => new StreamController<ComputedResult>.broadcast(sync: true))
+        .stream;
   }
 
   /**
@@ -476,8 +479,9 @@ class InfiniteTaskLoopException extends AnalysisException {
    * Initialize a newly created exception to represent a failed attempt to
    * perform the given [task] due to the given [dependencyCycle].
    */
-  InfiniteTaskLoopException(AnalysisTask task, this.dependencyCycle) : super(
-          'Infinite loop while performing task ${task.descriptor.name} for ${task.target}');
+  InfiniteTaskLoopException(AnalysisTask task, this.dependencyCycle)
+      : super(
+            'Infinite loop while performing task ${task.descriptor.name} for ${task.target}');
 }
 
 /**
@@ -565,10 +569,10 @@ class WorkItem {
    * described by the given descriptor.
    */
   WorkItem(this.context, this.target, this.descriptor, this.spawningResult) {
-    AnalysisTarget actualTarget = identical(
-            target, AnalysisContextTarget.request)
-        ? new AnalysisContextTarget(context)
-        : target;
+    AnalysisTarget actualTarget =
+        identical(target, AnalysisContextTarget.request)
+            ? new AnalysisContextTarget(context)
+            : target;
     Map<String, TaskInput> inputDescriptors =
         descriptor.createTaskInputs(actualTarget);
     builder = new TopLevelTaskInputBuilder(inputDescriptors);
@@ -672,42 +676,6 @@ class WorkItem {
 }
 
 /**
- * [AnalysisDriver] uses [WorkManager]s to select results to compute.
- *
- * They know specific of the targets and results they care about,
- * so they can request analysis results in optimal order.
- */
-abstract class WorkManager {
-  /**
-   * Notifies the managers that the given set of priority [targets] was set.
-   */
-  void applyPriorityTargets(List<AnalysisTarget> targets);
-
-  /**
-   * Return the next [TargetedResult] that this work manager wants to be
-   * computed, or `null` if this manager doesn't need any new results.
-   */
-  TargetedResult getNextResult();
-
-  /**
-   * Return the priority if the next work order this work manager want to be
-   * computed. The [AnalysisDriver] will perform the work order with
-   * the highest priority.
-   *
-   * Even if the returned value is [WorkOrderPriority.NONE], it still does not
-   * guarantee that [getNextResult] will return not `null`.
-   */
-  WorkOrderPriority getNextResultPriority();
-
-  /**
-   * Notifies the manager that the given [outputs] were produced for
-   * the given [target].
-   */
-  void resultsComputed(
-      AnalysisTarget target, Map<ResultDescriptor, dynamic> outputs);
-}
-
-/**
  * A description of the work to be done to compute a desired analysis result.
  * The class implements a lazy depth-first traversal of the work item's input.
  */
@@ -771,31 +739,6 @@ class WorkOrder implements Iterator<WorkItem> {
       }
     });
   }
-}
-
-/**
- * The priorities of work orders returned by [WorkManager]s.
- */
-enum WorkOrderPriority {
-  /**
-   * Responding to an user's action.
-   */
-  INTERACTIVE,
-
-  /**
-   * Computing information for priority sources.
-   */
-  PRIORITY,
-
-  /**
-   * A work should be done, but without any special urgency.
-   */
-  NORMAL,
-
-  /**
-   * Nothing to do.
-   */
-  NONE
 }
 
 /**

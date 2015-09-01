@@ -90,6 +90,37 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 #endif
 
 
+// Macros to get the contents of the fp register.
+#if defined(TARGET_OS_WINDOWS)
+
+#if defined(HOST_ARCH_IA32)
+#define COPY_FP_REGISTER(fp) __asm { mov fp, ebp };  // NOLINT
+#elif defined(HOST_ARCH_X64)
+#define COPY_FP_REGISTER(fp) UNIMPLEMENTED();
+#else
+#error Unknown host architecture.
+#endif
+
+#else  // !defined(TARGET_OS_WINDOWS))
+
+// Assume GCC-like inline syntax is valid.
+#if defined(HOST_ARCH_IA32)
+#define COPY_FP_REGISTER(fp) asm volatile ("movl %%ebp, %0" : "=r" (fp) );
+#elif defined(HOST_ARCH_X64)
+#define COPY_FP_REGISTER(fp) asm volatile ("movq %%rbp, %0" : "=r" (fp) );
+#elif defined(HOST_ARCH_ARM)
+#define COPY_FP_REGISTER(fp) asm volatile ("mov %0, r11" : "=r" (fp) );
+#elif defined(HOST_ARCH_ARM64)
+#define COPY_FP_REGISTER(fp) asm volatile ("mov %0, x29" : "=r" (fp) );
+#elif defined(HOST_ARCH_MIPS)
+#define COPY_FP_REGISTER(fp) asm volatile ("move %0, $fp" : "=r" (fp) );
+#else
+#error Unknown host architecture.
+#endif
+
+
+#endif  // !defined(TARGET_OS_WINDOWS))
+
 }  // namespace dart
 
 #endif  // VM_GLOBALS_H_

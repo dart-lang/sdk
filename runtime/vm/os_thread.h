@@ -49,6 +49,7 @@ class OSThread {
   static ThreadId GetCurrentThreadId();
   static bool Join(ThreadId id);
   static intptr_t ThreadIdToIntPtr(ThreadId id);
+  static ThreadId ThreadIdFromIntPtr(intptr_t id);
   static bool Compare(ThreadId a, ThreadId b);
   static void GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage);
 };

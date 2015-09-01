@@ -1,7 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
+// VMOptions=--error_on_bad_type --error_on_bad_override
 
 library inbound_references_test;
 
@@ -41,14 +41,14 @@ var tests = [
 
     // Assert e is referenced by at least n, array, and the top-level
     // field e.
-    hasReferenceSuchThat((r) => r['slot'] is Field &&
-                         r['slot'].name=='edge' &&
-                         r['source'].isInstance &&
-                         r['source'].clazz.name=='Node');
-    hasReferenceSuchThat((r) => r['slot'] == 1 &&
-                         r['source'].isList);
-    hasReferenceSuchThat((r) => r['slot']=='<unknown>' &&
-                         r['source'] is Field);
+    hasReferenceSuchThat((r) => r['parentField'] != null &&
+                                r['parentField'].name == 'edge' &&
+                                r['source'].isInstance &&
+                                r['source'].clazz.name == 'Node');
+    hasReferenceSuchThat((r) => r['parentListIndex'] == 1 &&
+                                r['source'].isList);
+    hasReferenceSuchThat((r) => r['source'] is Field &&
+                                r['source'].name == 'e');
   }
 
 ];

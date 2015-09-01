@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(johnniwinther): Temporarily copied from analyzer2dart. Merge when
-// we shared code with the analyzer and this semantic visitor is complete.
-
 /**
  * Code for classifying the semantics of identifiers appearing in a Dart file.
  */
@@ -192,7 +189,7 @@ enum CompoundAccessKind {
  * Data structure used to classify the semantics of a property access or method
  * or function invocation.
  */
-class AccessSemantics {
+abstract class AccessSemantics {
   /**
    * The kind of access.
    */
@@ -205,30 +202,6 @@ class AccessSemantics {
    */
   Element get element => null;
 
-  /**
-   * The class containing the element being accessed, if this is a static
-   * reference to an element in a class.  This will be null if [kind] is
-   * DYNAMIC, LOCAL_FUNCTION, LOCAL_VARIABLE, PARAMETER, TOPLEVEL_CLASS, or
-   * TYPE_PARAMETER, or if the element being accessed is defined at toplevel
-   * within a library.
-   *
-   * Note: it is possible for [classElement] to be non-null and for [element]
-   * to be null; for example this occurs if the element being accessed is a
-   * non-existent static method or field inside an existing class.
-   */
-  ClassElement get classElement => null;
-
-  // TODO(paulberry): would it also be useful to store the libraryElement?
-
-  // TODO(johnniwinther): Do we need this?
-  /**
-   * When [kind] is DYNAMIC_PROPERTY, the expression whose runtime type
-   * determines the class in which [identifier] should be looked up.
-   *
-   * When [kind] is not DYNAMIC_PROPERTY, this field is always null.
-   */
-  /*Expression*/ get target => null;
-
   ConstantExpression get constant => null;
 
   /// The element for the getter in case of a compound access,
@@ -239,27 +212,27 @@ class AccessSemantics {
   /// [element] otherwise.
   Element get setter => element;
 
-  AccessSemantics.expression()
-      : kind = AccessKind.EXPRESSION;
+  Name get name => null;
 
-  AccessSemantics.thisAccess()
-      : kind = AccessKind.THIS;
-
-  AccessSemantics.thisProperty()
-      : kind = AccessKind.THIS_PROPERTY;
-
-  AccessSemantics._(this.kind);
+  const AccessSemantics._(this.kind);
 
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('AccessSemantics[');
     sb.write('kind=$kind,');
     if (element != null) {
-      sb.write('element=');
-      if (classElement != null) {
-        sb.write('${classElement.name}.');
+      if (getter != setter) {
+        sb.write('getter=');
+        sb.write('${getter}');
+        sb.write(',setter=');
+        sb.write('${setter}');
+      } else {
+        sb.write('element=');
+        sb.write('${element}');
       }
-      sb.write('${element}');
+    } else if (name != null) {
+      sb.write('name=');
+      sb.write(name);
     }
     sb.write(']');
     return sb.toString();
@@ -268,12 +241,23 @@ class AccessSemantics {
 
 
 class DynamicAccess extends AccessSemantics {
-  final target;
+  final Name name;
 
-  DynamicAccess.dynamicProperty(this.target)
+  const DynamicAccess.expression()
+      : name = null,
+        super._(AccessKind.EXPRESSION);
+
+  const DynamicAccess.thisAccess()
+      : name = null,
+        super._(AccessKind.THIS);
+
+  const DynamicAccess.thisProperty(this.name)
+      : super._(AccessKind.THIS_PROPERTY);
+
+  const DynamicAccess.dynamicProperty(this.name)
       : super._(AccessKind.DYNAMIC_PROPERTY);
 
-  DynamicAccess.ifNotNullProperty(this.target)
+  const DynamicAccess.ifNotNullProperty(this.name)
       : super._(AccessKind.CONDITIONAL_DYNAMIC_PROPERTY);
 }
 
@@ -295,8 +279,6 @@ class ConstantAccess extends AccessSemantics {
 
 class StaticAccess extends AccessSemantics {
   final Element element;
-
-  ClassElement get classElement => element.enclosingClass;
 
   StaticAccess._(AccessKind kind, this.element)
       : super._(kind);

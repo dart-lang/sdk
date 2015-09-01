@@ -32,23 +32,16 @@ void NativeMessageHandler::CheckAccess() {
 #endif
 
 
-static uint8_t* zone_allocator(uint8_t* ptr,
-                               intptr_t old_size,
-                               intptr_t new_size) {
-  Zone* zone = ApiNativeScope::Current()->zone();
-  return zone->Realloc<uint8_t>(ptr, old_size, new_size);
-}
-
-
 bool NativeMessageHandler::HandleMessage(Message* message) {
   if (message->IsOOB()) {
     // We currently do not use OOB messages for native ports.
     UNREACHABLE();
   }
-  // Enter a native scope for handling the message. This will create a
-  // zone for allocating the objects for decoding the message.
+  // We create a native scope for handling the message.
+  // All allocation of objects for decoding the message is done in the
+  // zone associated with this scope.
   ApiNativeScope scope;
-  ApiMessageReader reader(message->data(), message->len(), zone_allocator);
+  ApiMessageReader reader(message->data(), message->len());
   Dart_CObject* object = reader.ReadMessage();
   (*func())(message->dest_port(), object);
   delete message;

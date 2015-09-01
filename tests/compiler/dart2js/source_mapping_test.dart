@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
-import "package:compiler/src/io/code_output.dart";
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/io/code_output.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/io/source_information.dart';
-import "mock_compiler.dart";
 import 'package:compiler/src/js_backend/js_backend.dart';
-import 'package:compiler/src/js_emitter/js_emitter.dart';
 import 'package:compiler/src/js_emitter/full_emitter/emitter.dart'
     as full show Emitter;
+
+import 'mock_compiler.dart';
 
 Future<CodeBuffer> compileAll(SourceFile sourceFile) {
   MockCompiler compiler = new MockCompiler.internal();

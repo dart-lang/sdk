@@ -4,9 +4,11 @@
 
 library dart2js.serialization.elements;
 
+import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../dart2jslib.dart' show SourceSpan;
+import '../diagnostics/source_span.dart' show
+    SourceSpan;
 import '../elements/elements.dart';
 import '../tree/tree.dart';
 import 'constant_serialization.dart';

@@ -76,11 +76,23 @@ class SdkExtUriResolver extends UriResolver {
 
   @override
   Uri restoreAbsolute(Source source) {
-    String libraryName = _libraryName(source.uri);
-    if (_registeredSdkExtension(libraryName)) {
-      return source.uri;
+    String extensionName = _findExtensionNameFor(source.fullName);
+    if (extensionName != null) {
+      return Uri.parse(extensionName);
     }
+    // TODO(johnmccutchan): Handle restoring parts.
     return null;
+  }
+
+  /// Return the extension name for [fullName] or `null`.
+  String _findExtensionNameFor(String fullName) {
+    var result;
+    _urlMappings.forEach((extensionName, pathMapping) {
+      if (pathMapping == fullName) {
+        result = extensionName;
+      }
+    });
+    return result;
   }
 
   /// Return the library name of [importUri].
@@ -150,11 +162,6 @@ class SdkExtUriResolver extends UriResolver {
       // File can't be read.
       return null;
     }
-  }
-
-  /// Returns true if [libraryName] is a registered sdk extension.
-  bool _registeredSdkExtension(String libraryName) {
-    return _urlMappings[libraryName] != null;
   }
 
   /// Resolve an import of an sdk extension.

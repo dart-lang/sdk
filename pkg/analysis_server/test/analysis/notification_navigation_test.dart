@@ -12,9 +12,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(AnalysisNotificationNavigationTest);
 }
 
@@ -44,7 +45,8 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
     }
     fail(
         'Expected to find target (file=$file; offset=$offset; length=$length) in\n'
-        '${testRegion} in\n' '${testTargets.join('\n')}');
+        '${testRegion} in\n'
+        '${testTargets.join('\n')}');
   }
 
   void assertHasOperatorRegion(String regionSearch, int regionLength,

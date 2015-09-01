@@ -11,7 +11,10 @@ library dart2js.use_unused_api;
 import '../compiler.dart' as api;
 
 import 'colors.dart' as colors;
+import 'compiler.dart' as compiler;
 import 'constants/constant_system.dart' as constants;
+import 'constants/constructors.dart' as constants;
+import 'constants/evaluation.dart' as constants;
 import 'constants/expressions.dart' as constants;
 import 'constants/values.dart' as constants;
 import 'cps_ir/cps_ir_builder.dart' as ir_builder;
@@ -19,7 +22,8 @@ import 'cps_ir/cps_ir_builder_task.dart' as ir_builder;
 import 'tree_ir/tree_ir_nodes.dart' as tree_ir;
 import 'dart_types.dart' as dart_types;
 import 'dart2js.dart' as dart2js;
-import 'dart2jslib.dart' as dart2jslib;
+import 'compiler.dart' as dart2jslib;
+import 'diagnostics/source_span.dart' as diagnostics;
 import 'elements/elements.dart' as elements;
 import 'elements/modelx.dart' as modelx;
 import 'elements/visitor.dart' as elements_visitor;
@@ -35,10 +39,12 @@ import 'js_emitter/full_emitter/emitter.dart' as full;
 import 'js_emitter/program_builder/program_builder.dart' as program_builder;
 import 'resolution/semantic_visitor.dart' as semantic_visitor;
 import 'resolution/operators.dart' as operators;
+import 'script.dart';
 import 'source_file_provider.dart' as source_file_provider;
 import 'ssa/ssa.dart' as ssa;
 import 'tree/tree.dart' as tree;
 import 'util/util.dart' as util;
+import 'world.dart';
 
 import 'scanner/scannerlib.dart' show
     PartialClassElement,
@@ -51,7 +57,7 @@ class ElementVisitor extends elements_visitor.BaseElementVisitor {
 void main(List<String> arguments) {
   useApi(null);
   dart2js.main(arguments);
-  dart2jslib.isPublicName(null);
+  elements.Name.isPublicName(null);
   useConstant();
   useNode(null);
   useUtil(null);
@@ -80,10 +86,13 @@ void main(List<String> arguments) {
   useTreeVisitors();
 }
 
-useApi(api.ReadStringFromUri uri) {
+useApi([api.ReadStringFromUri uri, compiler.Compiler compiler]) {
+  compiler.analyzeUri(null);
+  new diagnostics.SourceSpan.fromNode(null, null);
 }
 
-class NullConstantConstructorVisitor extends constants.ConstantConstructorVisitor {
+class NullConstantConstructorVisitor
+    extends constants.ConstantConstructorVisitor {
   @override
   visitGenerative(constants.GenerativeConstantConstructor constructor, arg) {
   }
@@ -253,7 +262,7 @@ useIo([io.LineColumnMap map,
 usedByTests() {
   // TODO(ahe): We should try to avoid including API used only for tests. In
   // most cases, such API can be moved to a test library.
-  dart2jslib.World world = null;
+  World world = null;
   dart2jslib.Compiler compiler = null;
   compiler.currentlyInUserCode();
   type_graph_inferrer.TypeGraphInferrer typeGraphInferrer = null;
@@ -308,7 +317,7 @@ useCodeEmitterTask(js_emitter.CodeEmitterTask codeEmitterTask) {
   fullEmitter.buildLazilyInitializedStaticField(null, isolateProperties: null);
 }
 
-useScript(dart2jslib.Script script) {
+useScript(Script script) {
   script.copyWithFile(null);
 }
 
@@ -320,9 +329,7 @@ useProgramBuilder(program_builder.ProgramBuilder builder) {
 useSemanticVisitor() {
   operators.UnaryOperator.fromKind(null);
   operators.BinaryOperator.fromKind(null);
-  new semantic_visitor.BulkSendVisitor()
-      ..apply(null, null)
-      ..visitSuperFieldFieldCompound(null, null, null, null, null, null);
+  new semantic_visitor.BulkSendVisitor()..apply(null, null);
   new semantic_visitor.TraversalVisitor(null).apply(null, null);
   new semantic_visitor.BulkDeclarationVisitor().apply(null, null);
 }

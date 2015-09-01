@@ -22,6 +22,7 @@ void main(List<String> arguments) {
   var startPage = options['start-page'];
   if (_singlePackage(files) && startPage == null) {
     startPage = _defaultStartPageFor(files);
+    _printDeprecatedMessage();
     print("Using default options for documenting a single package: "
         "--start-page=$startPage");
   }
@@ -29,11 +30,12 @@ void main(List<String> arguments) {
   var scriptDir = path.dirname(Platform.script.toFilePath());
   var introduction = includeSdk ? '' : options['introduction'];
 
-  var pubScript = options['sdk'] != null ?
-      path.join(options['sdk'], 'bin', 'pub') : 'pub';
+  var pubScript =
+      options['sdk'] != null ? path.join(options['sdk'], 'bin', 'pub') : 'pub';
 
-  var dartBinary = options['sdk'] != null ?
-      path.join(options['sdk'], 'bin', 'dart') : 'dart';
+  var dartBinary = options['sdk'] != null
+      ? path.join(options['sdk'], 'bin', 'dart')
+      : 'dart';
 
   var excludedLibraries = options['exclude-lib'];
   if (excludedLibraries == null) excludedLibraries = [];
@@ -63,9 +65,16 @@ void main(List<String> arguments) {
  * Print help if we are passed the help option or invalid arguments.
  */
 void _printHelpAndExit() {
+  _printDeprecatedMessage();
   print(_initArgParser().usage);
   print('Usage: dartdocgen [OPTIONS] fooDir/barFile');
   exit(0);
+}
+
+void _printDeprecatedMessage() {
+  print(
+      '\nDeprecated: please use https://pub.dartlang.org/packages/dartdoc instead.');
+  print('Dart SDK 1.12 will be the last release to ship with docgen.\n');
 }
 
 /**
@@ -94,17 +103,18 @@ String _defaultStartPageFor(files) {
  */
 ArgParser _initArgParser() {
   var parser = new ArgParser();
-  parser.addFlag('help', abbr: 'h',
+  parser.addFlag('help',
+      abbr: 'h',
       help: 'Prints help and usage information.',
-      negatable: false,
-      callback: (help) {
-        if (help) _printHelpAndExit();
-      });
-  parser.addFlag('verbose', abbr: 'v',
-      help: 'Output more logging information.', negatable: false,
-      callback: (verbose) {
-        if (verbose) Logger.root.level = Level.FINEST;
-      });
+      negatable: false, callback: (help) {
+    if (help) _printHelpAndExit();
+  });
+  parser.addFlag('verbose',
+      abbr: 'v',
+      help: 'Output more logging information.',
+      negatable: false, callback: (verbose) {
+    if (verbose) Logger.root.level = Level.FINEST;
+  });
   parser.addFlag('include-private',
       help: 'Flag to include private declarations.', negatable: false);
   parser.addFlag('include-sdk',
@@ -113,44 +123,51 @@ ArgParser _initArgParser() {
       negatable: true);
   parser.addFlag('parse-sdk',
       help: 'Parses the SDK libraries only.',
-      defaultsTo: false, negatable: false);
+      defaultsTo: false,
+      negatable: false);
   parser.addOption('package-root',
       help: 'Sets the package root of the library being analyzed.');
-  parser.addFlag('compile', help: 'Clone the documentation viewer repo locally '
-      '(if not already present) and compile with dart2js', defaultsTo: false,
+  parser.addFlag('compile',
+      help: 'Clone the documentation viewer repo locally '
+          '(if not already present) and compile with dart2js',
+      defaultsTo: false,
       negatable: false);
-  parser.addFlag('serve', help: 'Clone the documentation viewer repo locally '
-      '(if not already present), compile with dart2js, '
-      'and start a simple server',
-      defaultsTo: false, negatable: false);
-  parser.addFlag('no-docs', help: 'Do not generate any new documentation',
-      defaultsTo: false, negatable: false);
+  parser.addFlag('serve',
+      help: 'Clone the documentation viewer repo locally '
+          '(if not already present), compile with dart2js, '
+          'and start a simple server',
+      defaultsTo: false,
+      negatable: false);
+  parser.addFlag('no-docs',
+      help: 'Do not generate any new documentation',
+      defaultsTo: false,
+      negatable: false);
   parser.addOption('introduction',
       help: 'Adds the provided markdown text file as the introduction'
-        ' for the generated documentation.', defaultsTo: '');
+          ' for the generated documentation.',
+      defaultsTo: '');
   parser.addOption('out',
-      help: 'The name of the output directory.',
-      defaultsTo: 'docs');
+      help: 'The name of the output directory.', defaultsTo: 'docs');
   parser.addOption('exclude-lib',
       help: 'Exclude the library by this name from the documentation',
       allowMultiple: true);
   parser.addFlag('include-dependent-packages',
       help: 'Assumes we are documenting a single package and are running '
-        'in the directory with its pubspec. Includes documentation for all '
-        'of its dependent packages.',
-      defaultsTo: true, negatable: true);
-  parser.addOption('sdk',
-      help: 'SDK directory',
-      defaultsTo: null);
+          'in the directory with its pubspec. Includes documentation for all '
+          'of its dependent packages.',
+      defaultsTo: true,
+      negatable: true);
+  parser.addOption('sdk', help: 'SDK directory', defaultsTo: null);
   parser.addOption('start-page',
       help: 'By default the viewer will start at the SDK introduction page. '
-        'To start at some other page, e.g. for a package, provide the name '
-        'of the package in this argument, e.g. --start-page=intl will make '
-        'the start page of the viewer be the intl package.',
-        defaultsTo: null);
+          'To start at some other page, e.g. for a package, provide the name '
+          'of the package in this argument, e.g. --start-page=intl will make '
+          'the start page of the viewer be the intl package.',
+      defaultsTo: null);
   parser.addFlag('indent-json',
       help: 'Indents each level of JSON output by two spaces',
-      defaultsTo: false, negatable: true);
+      defaultsTo: false,
+      negatable: true);
 
   return parser;
 }

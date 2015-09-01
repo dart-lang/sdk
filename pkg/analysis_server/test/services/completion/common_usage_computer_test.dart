@@ -23,9 +23,10 @@ import 'package:unittest/unittest.dart';
 
 import '../../analysis_abstract.dart';
 import '../../mocks.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(CommonUsageComputerTest);
 }
 
@@ -48,7 +49,8 @@ class CommonUsageComputerTest extends AbstractAnalysisTest {
   }
 
   void assertHasResult(CompletionSuggestionKind kind, String completion,
-      [int relevance = DART_RELEVANCE_DEFAULT, bool isDeprecated = false,
+      [int relevance = DART_RELEVANCE_DEFAULT,
+      bool isDeprecated = false,
       bool isPotential = false]) {
     var cs;
     suggestions.forEach((s) {
@@ -99,9 +101,13 @@ class CommonUsageComputerTest extends AbstractAnalysisTest {
     ContextSourcePair contextSource = server.getContextSourcePair(params.file);
     AnalysisContext context = contextSource.context;
     Source source = contextSource.source;
-    DartCompletionManager completionManager = new DartCompletionManager(context,
-        server.searchEngine, source, new DartCompletionCache(context, source),
-        null, new CommonUsageComputer(selectorRelevance));
+    DartCompletionManager completionManager = new DartCompletionManager(
+        context,
+        server.searchEngine,
+        source,
+        new DartCompletionCache(context, source),
+        null,
+        new CommonUsageComputer(selectorRelevance));
 
     Response response =
         domainHandler.processRequest(request, completionManager);
@@ -137,7 +143,9 @@ class CommonUsageComputerTest extends AbstractAnalysisTest {
   test_ConstructorName() async {
     // SimpleIdentifier  ConstructorName  InstanceCreationExpression
     addTestFile('import "dart:async"; class A {x() {new Future.^}}');
-    await getSuggestions({'dart.async.Future': ['value', 'wait']});
+    await getSuggestions({
+      'dart.async.Future': ['value', 'wait']
+    });
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'delayed');
@@ -151,7 +159,9 @@ class CommonUsageComputerTest extends AbstractAnalysisTest {
   test_PrefixedIdentifier_field() async {
     // SimpleIdentifier  PrefixedIdentifeir  ExpressionStatement
     addTestFile('class A {static int s1; static int s2; x() {A.^}}');
-    await getSuggestions({'.A': ['s2']});
+    await getSuggestions({
+      '.A': ['s2']
+    });
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
     assertHasResult(CompletionSuggestionKind.INVOCATION, 's1');
@@ -165,7 +175,9 @@ class CommonUsageComputerTest extends AbstractAnalysisTest {
   test_PrefixedIdentifier_getter() async {
     // SimpleIdentifier  PrefixedIdentifeir  ExpressionStatement
     addTestFile('class A {int get g1 => 1; int get g2 => 2; x() {new A().^}}');
-    await getSuggestions({'.A': ['g2']});
+    await getSuggestions({
+      '.A': ['g2']
+    });
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'g1');
@@ -179,7 +191,9 @@ class CommonUsageComputerTest extends AbstractAnalysisTest {
   test_PrefixedIdentifier_setter() async {
     // SimpleIdentifier  PrefixedIdentifeir  ExpressionStatement
     addTestFile('class A {set s1(v) {}; set s2(v) {}; x() {new A().^}}');
-    await getSuggestions({'.A': ['s2']});
+    await getSuggestions({
+      '.A': ['s2']
+    });
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
     assertHasResult(CompletionSuggestionKind.INVOCATION, 's1');
@@ -193,7 +207,9 @@ class CommonUsageComputerTest extends AbstractAnalysisTest {
   test_PrefixedIdentifier_static_method() async {
     // SimpleIdentifier  PrefixedIdentifeir  ExpressionStatement
     addTestFile('import "dart:async"; class A {x() {Future.^}}');
-    await getSuggestions({'dart.async.Future': ['value', 'wait']});
+    await getSuggestions({
+      'dart.async.Future': ['value', 'wait']
+    });
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'wait',
@@ -206,7 +222,9 @@ class CommonUsageComputerTest extends AbstractAnalysisTest {
   test_PropertyAccess() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement
     addTestFile('import "dart:math"; class A {x() {new Random().^}}');
-    await getSuggestions({'dart.math.Random': ['nextInt', 'nextDouble']});
+    await getSuggestions({
+      'dart.math.Random': ['nextInt', 'nextDouble']
+    });
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'nextBool');

@@ -54,7 +54,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
       Thread* thread = arguments->thread();                                    \
       ASSERT(thread == Thread::Current());                                     \
       Isolate* isolate = thread->isolate();                                    \
-      StackZone zone(isolate);                                                 \
+      StackZone zone(thread);                                                  \
       SET_NATIVE_RETVAL(arguments,                                             \
                         DN_Helper##name(isolate,                               \
                                         thread,                                \
@@ -112,9 +112,13 @@ class NativeEntry : public AllStatic {
   static const uint8_t* ResolveSymbolInLibrary(const Library& library,
                                                uword pc);
   static const uint8_t* ResolveSymbol(uword pc);
+
+  static const ExternalLabel& NativeCallWrapperLabel();
   static void NativeCallWrapper(Dart_NativeArguments args,
                                 Dart_NativeFunction func);
-  static const ExternalLabel& NativeCallWrapperLabel();
+
+  static const ExternalLabel& LinkNativeCallLabel();
+  static void LinkNativeCall(Dart_NativeArguments args);
 };
 
 }  // namespace dart

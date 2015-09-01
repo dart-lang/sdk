@@ -73,6 +73,8 @@ CompilerStats::CompilerStats(Isolate* isolate)
       num_tokens_consumed(0),
       num_token_checks(0),
       num_tokens_lookahead(0),
+      num_cached_consts(0),
+      num_const_cache_hits(0),
       num_classes_compiled(0),
       num_functions_compiled(0),
       num_implicit_final_getters(0),
@@ -111,6 +113,8 @@ void CompilerStats::Print() {
   OS::Print("Token lookahead:    %" Pd64 " (%" Pd64 "%% of tokens checked)\n",
             num_tokens_lookahead,
             (100 * num_tokens_lookahead) / num_token_checks);
+  OS::Print("Consts cached:      %" Pd64 "\n", num_cached_consts);
+  OS::Print("Consts cache hits:  %" Pd64 "\n", num_const_cache_hits);
 
   OS::Print("Classes parsed:     %" Pd64 "\n", num_classes_compiled);
   OS::Print("Functions compiled: %" Pd64 "\n", num_functions_compiled);

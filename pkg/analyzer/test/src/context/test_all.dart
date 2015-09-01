@@ -6,12 +6,13 @@ library test.src.context.test_all;
 
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'cache_test.dart' as cache_test;
 import 'context_test.dart' as context_test;
 
 /// Utility for manually running all tests.
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('context tests', () {
     cache_test.main();
     context_test.main();

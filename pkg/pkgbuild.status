@@ -8,6 +8,7 @@ pkg/docgen: Pass, Slow
 
 [ $use_repository_packages ]
 pkg/analyzer: PubGetError
+third_party/pkg/shelf: PubGetError # either shelf needs to be updated, or dart2js_info needs to be downgraded.
 samples/third_party/angular_todo: Fail # angular needs to be updated
 samples/third_party/todomvc_performance: Skip # dependencies are not in the repo
 

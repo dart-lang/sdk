@@ -52,7 +52,8 @@ const String cachedClassFieldNames = r'$cachedFieldNames';
 // The code relies on the fact that all Dart code is inside holders. As such
 // we can use "global" names however we want. As long as we don't shadow
 // JavaScript variables (like `Array`) we are free to chose whatever variable
-// names we want. Furthermore, the minifier reduces the names of the variables.
+// names we want. Furthermore, the pretty-printer minifies local variables, thus
+// reducing their size.
 const String mainBoilerplate = '''
 {
 // Declare deferred-initializer global, which is used to keep track of the

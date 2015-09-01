@@ -2,7 +2,44 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of resolution;
+library dart2js.resolution.class_hierarchy;
+
+import '../compiler.dart' show
+    Compiler;
+import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/messages.dart' show
+    MessageKind;
+import '../elements/elements.dart';
+import '../elements/modelx.dart' show
+    BaseClassElementX,
+    ErroneousElementX,
+    MixinApplicationElementX,
+    SynthesizedConstructorElementX,
+    TypeVariableElementX;
+import '../ordered_typeset.dart' show
+    OrderedTypeSet,
+    OrderedTypeSetBuilder;
+import '../tree/tree.dart';
+import '../util/util.dart' show
+    Link,
+    Setlet;
+import '../universe/universe.dart' show
+    CallStructure,
+    Selector;
+
+import 'enum_creator.dart';
+import 'members.dart' show
+    lookupInScope;
+import 'registry.dart' show
+    ResolutionRegistry;
+import 'resolution_common.dart' show
+    CommonResolverVisitor,
+    MappingVisitor;
+import 'scope.dart' show
+    Scope,
+    TypeDeclarationScope;
 
 class TypeDefinitionVisitor extends MappingVisitor<DartType> {
   Scope scope;
@@ -164,9 +201,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         registry.registerThrowNoSuchMethod();
       } else {
         ConstructorElement superConstructor = superMember;
-        Selector callToMatch = new Selector.call("", element.library, 0);
         superConstructor.computeType(compiler);
-        if (!callToMatch.applies(superConstructor, compiler.world)) {
+        if (!CallStructure.NO_ARGS.signatureApplies(
+                superConstructor.functionSignature)) {
           MessageKind kind = MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT;
           compiler.reportError(node, kind);
           superMember = new ErroneousElementX(kind, {}, '', element);
@@ -369,7 +406,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       if (!member.isGenerativeConstructor) return;
       FunctionElement forwarder =
           createForwardingConstructor(member, mixinApplication);
-      if (isPrivateName(member.name) &&
+      if (Name.isPrivateName(member.name) &&
           mixinApplication.library != superclass.library) {
         // Do not create a forwarder to the super constructor, because the mixin
         // application is in a different library than the constructor in the

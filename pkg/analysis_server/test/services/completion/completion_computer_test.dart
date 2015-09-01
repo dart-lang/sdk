@@ -23,9 +23,10 @@ import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
 import '../../operation/operation_queue_test.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(DartCompletionManagerTest);
 }
 
@@ -89,11 +90,12 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     CompletionRequest completionRequest =
         new CompletionRequestImpl(server, context, source, 0);
     manager.results(completionRequest).listen((CompletionResult r) {
+      bool isLast = r is CompletionResultImpl ? r.isLast : true;
       switch (++count) {
         case 1:
           contributor1.assertCalls(context, source, 0, searchEngine);
           contributor2.assertCalls(context, source, 0, searchEngine);
-          expect(r.isLast, isFalse);
+          expect(isLast, isFalse);
           expect(r.suggestions, hasLength(1));
           expect(r.suggestions, contains(suggestion1));
           resolveLibrary();
@@ -101,7 +103,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
         case 2:
           contributor1.assertFull(0);
           contributor2.assertFull(1);
-          expect(r.isLast, isTrue);
+          expect(isLast, isTrue);
           expect(r.suggestions, hasLength(2));
           expect(r.suggestions, contains(suggestion1));
           expect(r.suggestions, contains(suggestion2));
@@ -128,11 +130,12 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     CompletionRequest completionRequest =
         new CompletionRequestImpl(server, context, source, 0);
     manager.results(completionRequest).listen((CompletionResult r) {
+      bool isLast = r is CompletionResultImpl ? r.isLast : true;
       switch (++count) {
         case 1:
           contributor1.assertCalls(context, source, 0, searchEngine);
           contributor2.assertCalls(context, source, 0, searchEngine);
-          expect(r.isLast, isTrue);
+          expect(isLast, isTrue);
           expect(r.suggestions, hasLength(2));
           expect(r.suggestions, contains(suggestion1));
           expect(r.suggestions, contains(suggestion2));

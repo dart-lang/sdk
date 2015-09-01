@@ -2,7 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of resolution;
+library dart2js.resolution.variables;
+
+import '../compiler.dart' show
+    Compiler;
+import '../diagnostics/messages.dart' show
+    MessageKind;
+import '../elements/modelx.dart' show
+    LocalVariableElementX,
+    VariableList;
+import '../tree/tree.dart';
+import '../util/util.dart' show
+    Link;
+
+import 'members.dart' show
+    ResolverVisitor;
+import 'registry.dart' show
+    ResolutionRegistry;
+import 'resolution_common.dart' show
+    CommonResolverVisitor;
+import 'scope.dart' show
+    VariableDefinitionScope;
 
 class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
   VariableDefinitions definitions;

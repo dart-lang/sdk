@@ -85,7 +85,7 @@ class Simulator {
   // Call on program start.
   static void InitOnce();
 
-  // Dart generally calls into generated code with 5 parameters. This is a
+  // Dart generally calls into generated code with 4 parameters. This is a
   // convenience function, which sets up the simulator state and grabs the
   // result on return. The return value is R0. The parameters are placed in
   // R0-3.

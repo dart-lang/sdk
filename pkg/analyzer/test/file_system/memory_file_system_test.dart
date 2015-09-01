@@ -16,9 +16,10 @@ import 'package:unittest/unittest.dart';
 import 'package:watcher/watcher.dart';
 
 import '../reflective_tests.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(FileSystemExceptionTest);
   runReflectiveTests(FileTest);
   runReflectiveTests(FolderTest);

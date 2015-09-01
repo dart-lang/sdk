@@ -7,9 +7,10 @@
 
 library dart2js.source_information.start_end;
 
-import '../dart2jslib.dart' show
+import '../diagnostics/messages.dart' show
     MessageKind,
-    MessageTemplate,
+    MessageTemplate;
+import '../diagnostics/source_span.dart' show
     SourceSpan;
 import '../elements/elements.dart' show
     AstElement,

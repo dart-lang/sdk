@@ -6,6 +6,7 @@ library test.integration.analysis.all;
 
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'error_test.dart' as error_test;
 import 'get_errors_after_analysis_test.dart' as get_errors_after_analysis_test;
 import 'get_errors_before_analysis_test.dart'
@@ -27,7 +28,7 @@ import 'update_content_test.dart' as update_content_test;
  * Utility for manually running all integration tests.
  */
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('analysis', () {
     error_test.main();
     get_errors_after_analysis_test.main();

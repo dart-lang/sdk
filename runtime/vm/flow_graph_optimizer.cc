@@ -51,6 +51,7 @@ DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
 
 DECLARE_FLAG(bool, polymorphic_with_deopt);
 DECLARE_FLAG(bool, source_lines);
+DECLARE_FLAG(bool, trace_cha);
 DECLARE_FLAG(bool, trace_field_guards);
 DECLARE_FLAG(bool, trace_type_check_elimination);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
@@ -770,7 +771,7 @@ void FlowGraphOptimizer::ConvertUse(Value* use, Representation from_rep) {
 void FlowGraphOptimizer::ConvertEnvironmentUse(Value* use,
                                                Representation from_rep) {
   const Representation to_rep = kTagged;
-  if (from_rep == to_rep || to_rep == kNoRepresentation) {
+  if (from_rep == to_rep) {
     return;
   }
   InsertConversion(from_rep, to_rep, use, /*is_environment_use=*/ true);
@@ -2335,6 +2336,11 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
         : call->function_name();
     const Class& cls = Class::Handle(Z, function.Owner());
     if (!thread()->cha()->HasOverride(cls, name)) {
+      if (FLAG_trace_cha) {
+        ISL_Print("  **(CHA) Instance call needs no check, "
+            "no overrides of '%s' '%s'\n",
+            name.ToCString(), cls.ToCString());
+      }
       thread()->cha()->AddToLeafClasses(cls);
       return false;
     }
@@ -4029,6 +4035,11 @@ bool FlowGraphOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   // Private classes cannot be subclassed by later loaded libs.
   if (!type_class.IsPrivate()) {
     if (FLAG_use_cha_deopt) {
+      if (FLAG_trace_cha) {
+        ISL_Print("  **(CHA) Typecheck as class equality since no "
+            "subclasses: %s\n",
+            type_class.ToCString());
+      }
       thread()->cha()->AddToLeafClasses(type_class);
     } else {
       return false;

@@ -584,6 +584,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitEnumDeclaration(EnumDeclaration node) {
+    ClassElement outerClass = _enclosingClass;
+    try {
+      _isInNativeClass = false;
+      _enclosingClass = node.element;
+      return super.visitEnumDeclaration(node);
+    } finally {
+      _enclosingClass = outerClass;
+    }
+  }
+
+  @override
   Object visitExportDirective(ExportDirective node) {
     ExportElement exportElement = node.element;
     if (exportElement != null) {
@@ -2999,13 +3011,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     LibraryElement prevLibrary = _nameToExportElement[name];
     if (prevLibrary != null) {
       if (prevLibrary != exportedLibrary) {
-        if (name.isEmpty) {
-          _errorReporter.reportErrorForNode(
-              StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_UNNAMED, directive, [
-            prevLibrary.definingCompilationUnit.displayName,
-            exportedLibrary.definingCompilationUnit.displayName
-          ]);
-        } else {
+        if (!name.isEmpty) {
           _errorReporter.reportErrorForNode(
               StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED, directive, [
             prevLibrary.definingCompilationUnit.displayName,
@@ -3512,13 +3518,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     LibraryElement prevLibrary = _nameToImportElement[name];
     if (prevLibrary != null) {
       if (prevLibrary != nodeLibrary) {
-        if (name.isEmpty) {
-          _errorReporter.reportErrorForNode(
-              StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_UNNAMED, directive, [
-            prevLibrary.definingCompilationUnit.displayName,
-            nodeLibrary.definingCompilationUnit.displayName
-          ]);
-        } else {
+        if (!name.isEmpty) {
           _errorReporter.reportErrorForNode(
               StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED, directive, [
             prevLibrary.definingCompilationUnit.displayName,

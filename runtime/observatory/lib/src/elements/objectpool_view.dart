@@ -19,13 +19,13 @@ class ObjectPoolViewElement extends ObservatoryElement {
   bool isServiceObject(o) => o is ServiceObject;
 
   void poolChanged(oldValue) {
-    annotateRawEntries();
+    annotateExternalLabels();
   }
 
-  Future annotateRawEntries() {
+  Future annotateExternalLabels() {
     var tasks = pool.entries.map((entry) {
-     if (entry is int) {
-       var addr = entry.toRadixString(16);
+     if (entry is String) {
+       var addr = entry.substring(2);
        return pool.isolate.getObjectByAddress(addr).then((result) {
          return result is ServiceObject ? result : null;
        });
@@ -38,6 +38,6 @@ class ObjectPoolViewElement extends ObservatoryElement {
   }
 
   Future refresh() {
-    return pool.reload().then((_) => annotateRawEntries());
+    return pool.reload().then((_) => annotateExternalLabels());
   }
 }

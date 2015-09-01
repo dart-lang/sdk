@@ -13,6 +13,7 @@ namespace dart {
 enum {
   kNullObject = 0,
   kSentinelObject,
+  kTransitionSentinelObject,
   kEmptyArrayObject,
   kZeroArrayObject,
   kTrueValue,
@@ -40,6 +41,11 @@ enum {
   kBoolType,
   kStringType,
   kArrayType,
+
+  kExtractorParameterTypes,
+  kExtractorParameterNames,
+  kEmptyContextScopeObject,
+  kImplicitClosureScopeObject,
 
   kInstanceObjectId,
   kStaticImplicitClosureObjectId,

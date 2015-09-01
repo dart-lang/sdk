@@ -13,7 +13,9 @@ library dart.developer;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate' show SendPort;
 
+part 'extension.dart';
 part 'profiler.dart';
 
 /// If [when] is true, stop the program as if a breakpoint were hit at the
@@ -42,11 +44,11 @@ external Object inspect(Object object);
 /// [zone] (optional) the zone where the log was emitted
 /// [error] (optional) an error object associated with this log event.
 /// [stackTrace] (optional) a stack trace associated with this log event.
-external log(String message,
-             {DateTime time,
-              int sequenceNumber,
-              int level: 0,
-              String name: '',
-              Zone zone,
-              Object error,
-              StackTrace stackTrace});
+external void log(String message,
+                  {DateTime time,
+                   int sequenceNumber,
+                   int level: 0,
+                   String name: '',
+                   Zone zone,
+                   Object error,
+                   StackTrace stackTrace});

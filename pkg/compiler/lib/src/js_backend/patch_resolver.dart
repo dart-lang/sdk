@@ -4,8 +4,14 @@
 
 library dart2js.js_backend.patch_resolver;
 
-import '../dart2jslib.dart';
+import '../common/tasks.dart' show
+    CompilerTask;
+import '../compiler.dart' show
+    Compiler;
 import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/messages.dart' show MessageKind;
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
 import '../tree/tree.dart';

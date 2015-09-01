@@ -14,7 +14,16 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 InternetAddress HOST;
-const CERTIFICATE = "localhost_cert";
+
+String localFile(path) => Platform.script.resolve(path).toFilePath();
+
+SecurityContext serverContext = new SecurityContext()
+  ..useCertificateChain(localFile('certificates/server_chain.pem'))
+  ..usePrivateKey(localFile('certificates/server_key.pem'),
+                  password: 'dartdart');
+
+SecurityContext clientContext = new SecurityContext()
+  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
 
 void testCloseOneEnd(String toClose) {
   asyncStart();
@@ -25,7 +34,7 @@ void testCloseOneEnd(String toClose) {
       .then((_) {
         asyncEnd();
       });
-  SecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
+  SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     server.listen((serverConnection) {
       serverConnection.listen(
         (data) {
@@ -43,7 +52,8 @@ void testCloseOneEnd(String toClose) {
     onDone: () {
       serverDone.complete(null);
     });
-    SecureSocket.connect(HOST, server.port).then((clientConnection) {
+    SecureSocket.connect(HOST, server.port, context: clientContext)
+                .then((clientConnection) {
       clientConnection.listen(
         (data) {
           Expect.fail("No data should be received by client");
@@ -61,8 +71,9 @@ void testCloseOneEnd(String toClose) {
 
 void testCloseBothEnds() {
   asyncStart();
-  SecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
-    var clientEndFuture = SecureSocket.connect(HOST, server.port);
+  SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
+    var clientEndFuture =
+        SecureSocket.connect(HOST, server.port, context: clientContext);
     server.listen((serverEnd) {
       clientEndFuture.then((clientEnd) {
         clientEnd.destroy();
@@ -83,7 +94,7 @@ testPauseServerSocket() {
 
   SecureServerSocket.bind(HOST,
                           0,
-                          CERTIFICATE,
+                          serverContext,
                           backlog: 2 * socketCount).then((server) {
     Expect.isTrue(server.port > 0);
     var subscription;
@@ -97,12 +108,12 @@ testPauseServerSocket() {
     });
 
     // Pause the server socket subscription and resume it after having
-    // connected a number client sockets. Then connect more client
-    // sockets.
+    // connected a number client sockets. Then connect more client sockets.
     subscription.pause();
     var connectCount = 0;
     for (int i = 0; i < socketCount; i++) {
-      SecureSocket.connect(HOST, server.port).then((connection) {
+      SecureSocket.connect(HOST, server.port, context: clientContext)
+      .then((connection) {
         connection.close();
       });
     }
@@ -110,7 +121,8 @@ testPauseServerSocket() {
       subscription.resume();
       resumed = true;
       for (int i = 0; i < socketCount; i++) {
-        SecureSocket.connect(HOST, server.port).then((connection) {
+        SecureSocket.connect(HOST, server.port, context: clientContext)
+        .then((connection) {
           connection.close();
         });
       }
@@ -125,7 +137,7 @@ testCloseServer() {
   asyncStart();
   List ends = [];
 
-  SecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
+  SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     Expect.isTrue(server.port > 0);
     void checkDone() {
       if (ends.length < 2 * socketCount) return;
@@ -142,7 +154,8 @@ testCloseServer() {
     });
 
     for (int i = 0; i < socketCount; i++) {
-      SecureSocket.connect(HOST, server.port).then((connection) {
+      SecureSocket.connect(HOST, server.port, context: clientContext)
+      .then((connection) {
         ends.add(connection);
         checkDone();
       });
@@ -153,10 +166,6 @@ testCloseServer() {
 
 main() {
   asyncStart();
-  String certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
-  SecureSocket.initialize(database: certificateDatabase,
-                          password: 'dartdart',
-                          useBuiltinRoots: false);
   InternetAddress.lookup("localhost").then((hosts) {
     HOST = hosts.first;
     runTests();

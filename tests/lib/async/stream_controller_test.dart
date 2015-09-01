@@ -729,10 +729,25 @@ void testSettingCallbacks() {
   var stream = controller.stream;
   var state = initial;
 
-  controller..onListen = () { state = running; }
-            ..onPause  = () { state = paused; }
-            ..onResume = () { state = running; }
-            ..onCancel = () { state = canceled; };
+  var onListen = () { state = running; };
+  var onPause  = () { state = paused; };
+  var onResume = () { state = running; };
+  var onCancel = () { state = canceled; };
+
+  Expect.isNull(controller.onListen);
+  Expect.isNull(controller.onPause);
+  Expect.isNull(controller.onResume);
+  Expect.isNull(controller.onCancel);
+
+  controller..onListen = onListen
+            ..onPause  = onPause
+            ..onResume = onResume
+            ..onCancel = onCancel;
+
+  Expect.equals(onListen, controller.onListen);
+  Expect.equals(onPause,  controller.onPause);
+  Expect.equals(onResume, controller.onResume);
+  Expect.equals(onCancel, controller.onCancel);
 
   Expect.equals(initial, state);
   var sub = stream.listen(null);
@@ -744,11 +759,20 @@ void testSettingCallbacks() {
   Expect.equals(running, state);
   Expect.isFalse(controller.isPaused);
 
+  var onListen2 = () { state = -running; };
+  var onPause2  = () { state = -paused; };
+  var onResume2 = () { state = -running; };
+  var onCancel2 = () { state = -canceled; };
   // Changing them later does make a difference.
-  controller..onListen = () { throw "Second listen?"; }
-            ..onPause  = () { state = -paused; }
-            ..onResume = () { state = -running; }
-            ..onCancel = () { state = -canceled; };
+  controller..onListen = onListen2
+            ..onPause  = onPause2
+            ..onResume = onResume2
+            ..onCancel = onCancel2;
+
+  Expect.equals(onListen2, controller.onListen);
+  Expect.equals(onPause2,  controller.onPause);
+  Expect.equals(onResume2, controller.onResume);
+  Expect.equals(onCancel2, controller.onCancel);
 
   Expect.equals(running, state);
   sub.pause();
@@ -773,28 +797,36 @@ void testSettingNullCallbacks() {
   Expect.isFalse(controller.hasListener);
   Expect.isTrue(controller.isPaused);
 
+  Expect.isNotNull(controller.onListen);
   controller.onListen = null;
+  Expect.isNull(controller.onListen);
 
   var sub = stream.listen(null);
 
   Expect.isTrue(controller.hasListener);
   Expect.isFalse(controller.isPaused);
 
+  Expect.isNotNull(controller.onPause);
   controller.onPause = null;
+  Expect.isNull(controller.onPause);
 
   sub.pause();
 
   Expect.isTrue(controller.hasListener);
   Expect.isTrue(controller.isPaused);
 
+  Expect.isNotNull(controller.onResume);
   controller.onResume = null;
+  Expect.isNull(controller.onResume);
 
   sub.resume();
 
   Expect.isTrue(controller.hasListener);
   Expect.isFalse(controller.isPaused);
 
+  Expect.isNotNull(controller.onCancel);
   controller.onCancel = null;
+  Expect.isNull(controller.onCancel);
 
   sub.cancel();
 

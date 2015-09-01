@@ -44,6 +44,8 @@ class UnoptimizedCall : public ValueObject {
   void set_target(uword target) const {
     uword* target_addr = reinterpret_cast<uword*>(call_address() + 1);
     uword offset = target - return_address();
+    WritableInstructionsScope writable(reinterpret_cast<uword>(target_addr),
+                                       sizeof(offset));
     *target_addr = offset;
     CPU::FlushICache(call_address(), kInstructionSize);
   }
@@ -64,8 +66,30 @@ class UnoptimizedCall : public ValueObject {
     return start_ + 1 * kInstructionSize;
   }
 
+ protected:
   uword start_;
+
+ private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(UnoptimizedCall);
+};
+
+
+class NativeCall : public UnoptimizedCall {
+ public:
+  explicit NativeCall(uword return_address) : UnoptimizedCall(return_address) {
+  }
+
+  NativeFunction native_function() const {
+    return *reinterpret_cast<NativeFunction*>(start_ + 1);
+  }
+
+  void set_native_function(NativeFunction func) const {
+    WritableInstructionsScope writable(start_ + 1, sizeof(func));
+    *reinterpret_cast<NativeFunction*>(start_ + 1) = func;
+  }
+
+ private:
+  DISALLOW_IMPLICIT_CONSTRUCTORS(NativeCall);
 };
 
 
@@ -178,11 +202,11 @@ void CodePatcher::PatchInstanceCallAt(uword return_address,
 
 void CodePatcher::InsertCallAt(uword start, uword target) {
   // The inserted call should not overlap the lazy deopt jump code.
-  ASSERT(start + CallPattern::InstructionLength() <= target);
+  ASSERT(start + CallPattern::pattern_length_in_bytes() <= target);
   *reinterpret_cast<uint8_t*>(start) = 0xE8;
   CallPattern call(start);
   call.SetTargetAddress(target);
-  CPU::FlushICache(start, CallPattern::InstructionLength());
+  CPU::FlushICache(start, CallPattern::pattern_length_in_bytes());
 }
 
 
@@ -208,6 +232,28 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
   }
   return ic_data.GetTargetAt(0);
 }
+
+
+void CodePatcher::PatchNativeCallAt(uword return_address,
+                                    const Code& code,
+                                    NativeFunction target,
+                                    const Code& trampoline) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  NativeCall call(return_address);
+  call.set_target(trampoline.EntryPoint());
+  call.set_native_function(target);
+}
+
+
+uword CodePatcher::GetNativeCallAt(uword return_address,
+                                   const Code& code,
+                                   NativeFunction* target) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  NativeCall call(return_address);
+  *target = call.native_function();
+  return call.target();
+}
+
 
 
 intptr_t CodePatcher::InstanceCallSizeInBytes() {

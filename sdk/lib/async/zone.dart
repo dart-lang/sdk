@@ -203,20 +203,19 @@ class _ZoneSpecification implements ZoneSpecification {
     this.fork: null
   });
 
-  // TODO(13406): Enable types when dart2js supports it.
-  final /*HandleUncaughtErrorHandler*/ handleUncaughtError;
-  final /*RunHandler*/ run;
-  final /*RunUnaryHandler*/ runUnary;
-  final /*RunBinaryHandler*/ runBinary;
-  final /*RegisterCallbackHandler*/ registerCallback;
-  final /*RegisterUnaryCallbackHandler*/ registerUnaryCallback;
-  final /*RegisterBinaryCallbackHandler*/ registerBinaryCallback;
-  final /*ErrorCallbackHandler*/ errorCallback;
-  final /*ScheduleMicrotaskHandler*/ scheduleMicrotask;
-  final /*CreateTimerHandler*/ createTimer;
-  final /*CreatePeriodicTimerHandler*/ createPeriodicTimer;
-  final /*PrintHandler*/ print;
-  final /*ForkHandler*/ fork;
+  final HandleUncaughtErrorHandler handleUncaughtError;
+  final RunHandler run;
+  final RunUnaryHandler runUnary;
+  final RunBinaryHandler runBinary;
+  final RegisterCallbackHandler registerCallback;
+  final RegisterUnaryCallbackHandler registerUnaryCallback;
+  final RegisterBinaryCallbackHandler registerBinaryCallback;
+  final ErrorCallbackHandler errorCallback;
+  final ScheduleMicrotaskHandler scheduleMicrotask;
+  final CreateTimerHandler createTimer;
+  final CreatePeriodicTimerHandler createPeriodicTimer;
+  final PrintHandler print;
+  final ForkHandler fork;
 }
 
 /**

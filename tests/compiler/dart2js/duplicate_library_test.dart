@@ -8,7 +8,7 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/dart2jslib.dart' show MessageKind;
+import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 import 'memory_compiler.dart';
 
 void check(String kind,

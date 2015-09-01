@@ -8,8 +8,10 @@ import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide isEmpty;
 
+import '../../utils.dart';
+
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(StringsTest);
 }
 

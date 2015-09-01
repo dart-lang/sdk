@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
-import 'parser_helper.dart';
 
 Future compileAndFind(String code, String name,
                     check(compiler, element)) {

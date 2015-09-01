@@ -5,12 +5,25 @@
 library code_generator_dependencies;
 
 import '../js_backend.dart';
-import '../../dart2jslib.dart';
+import '../../common/registry.dart' show
+    Registry;
+import '../../compiler.dart' show
+    Compiler;
+import '../../constants/values.dart';
+import '../../dart_types.dart' show
+    DartType,
+    TypeVariableType,
+    InterfaceType;
+import '../../enqueue.dart' show
+    CodegenEnqueuer;
+import '../../elements/elements.dart';
 import '../../js_emitter/js_emitter.dart';
 import '../../js/js.dart' as js;
-import '../../constants/values.dart';
-import '../../elements/elements.dart';
-import '../../dart_types.dart' show DartType, TypeVariableType, InterfaceType;
+import '../../universe/universe.dart' show
+    Selector;
+import '../../world.dart' show
+    ClassWorld;
+
 
 /// Encapsulates the dependencies of the function-compiler to the compiler,
 /// backend and emitter.
@@ -31,12 +44,18 @@ class Glue {
 
   Glue(this._compiler);
 
+  ClassWorld get classWorld => _compiler.world;
+
   js.Expression constantReference(ConstantValue value) {
     return _emitter.constantReference(value);
   }
 
   reportInternalError(String message) {
     _compiler.internalError(_compiler.currentElement, message);
+  }
+
+  bool isUsedAsMixin(ClassElement classElement) {
+    return classWorld.isUsedAsMixin(classElement);
   }
 
   ConstantValue getConstantValueForVariable(VariableElement variable) {
@@ -97,6 +116,10 @@ class Glue {
 
   bool isInterceptedMethod(Element element) {
     return _backend.isInterceptedMethod(element);
+  }
+
+  bool isInterceptorClass(ClassElement element) {
+    return element.isSubclassOf(_backend.jsInterceptorClass);
   }
 
   Set<ClassElement> getInterceptedClassesOn(Selector selector) {
@@ -237,4 +260,12 @@ class Glue {
 
   ClassElement get jsExtendableArrayClass => _backend.jsExtendableArrayClass;
   ClassElement get jsMutableArrayClass => _backend.jsMutableArrayClass;
+
+  bool isStringClass(ClassElement classElement) =>
+      classElement == _backend.jsStringClass ||
+      classElement == _compiler.stringClass;
+
+  bool isBoolClass(ClassElement classElement) =>
+      classElement == _backend.jsBoolClass ||
+      classElement == _compiler.boolClass;
 }

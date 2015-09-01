@@ -8,43 +8,43 @@ import 'dart:_js_helper' show patch, checkNum;
 
 @patch
 double sqrt(num x)
-  => JS('double', r'Math.sqrt(#)', checkNum(x));
+  => JS('num', r'Math.sqrt(#)', checkNum(x));
 
 @patch
 double sin(num x)
-  => JS('double', r'Math.sin(#)', checkNum(x));
+  => JS('num', r'Math.sin(#)', checkNum(x));
 
 @patch
 double cos(num x)
-  => JS('double', r'Math.cos(#)', checkNum(x));
+  => JS('num', r'Math.cos(#)', checkNum(x));
 
 @patch
 double tan(num x)
-  => JS('double', r'Math.tan(#)', checkNum(x));
+  => JS('num', r'Math.tan(#)', checkNum(x));
 
 @patch
 double acos(num x)
-  => JS('double', r'Math.acos(#)', checkNum(x));
+  => JS('num', r'Math.acos(#)', checkNum(x));
 
 @patch
 double asin(num x)
-  => JS('double', r'Math.asin(#)', checkNum(x));
+  => JS('num', r'Math.asin(#)', checkNum(x));
 
 @patch
 double atan(num x)
-  => JS('double', r'Math.atan(#)', checkNum(x));
+  => JS('num', r'Math.atan(#)', checkNum(x));
 
 @patch
 double atan2(num a, num b)
-  => JS('double', r'Math.atan2(#, #)', checkNum(a), checkNum(b));
+  => JS('num', r'Math.atan2(#, #)', checkNum(a), checkNum(b));
 
 @patch
 double exp(num x)
-  => JS('double', r'Math.exp(#)', checkNum(x));
+  => JS('num', r'Math.exp(#)', checkNum(x));
 
 @patch
 double log(num x)
-  => JS('double', r'Math.log(#)', checkNum(x));
+  => JS('num', r'Math.log(#)', checkNum(x));
 
 @patch
 num pow(num x, num exponent) {

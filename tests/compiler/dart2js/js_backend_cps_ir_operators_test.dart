@@ -19,7 +19,7 @@ function() {
   P.print(V.foo() ? "hello world" : "bad bad");
 }"""),
   const TestEntry("""
-foo() => null;
+foo() { print('foo'); }
 main() {
   print(foo() ? "hello world" : "bad bad");
 }""","""
@@ -40,14 +40,14 @@ get foo => foo;
 main() { print(foo && foo); }
 """, """
 function() {
-  P.print(V.foo() ? !!P.identical(V.foo(), true) : false);
+  P.print(V.foo() ? V.foo() === true : false);
 }"""),
   const TestEntry("""
 get foo => foo;
 main() { print(foo || foo); }
 ""","""
 function() {
-  P.print(V.foo() ? true : !!P.identical(V.foo(), true));
+  P.print(V.foo() ? true : V.foo() === true);
 }"""),
 
 // Needs interceptor calling convention

@@ -34,9 +34,10 @@ import 'package:unittest/unittest.dart';
 import 'analysis_abstract.dart';
 import 'mock_sdk.dart';
 import 'mocks.dart';
+import 'utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(CompletionManagerTest);
   defineReflectiveTests(CompletionTest);
   defineReflectiveTests(_NoSearchEngine);
@@ -262,7 +263,7 @@ class CompletionTest extends AbstractAnalysisTest {
   List<CompletionSuggestion> suggestions = [];
   bool suggestionsDone = false;
 
-  String addTestFile(String content, {offset}) {
+  String addTestFile(String content, {int offset}) {
     completionOffset = content.indexOf('^');
     if (offset != null) {
       expect(completionOffset, -1, reason: 'cannot supply offset and ^');
@@ -277,8 +278,10 @@ class CompletionTest extends AbstractAnalysisTest {
   }
 
   void assertHasResult(CompletionSuggestionKind kind, String completion,
-      [int relevance = DART_RELEVANCE_DEFAULT, bool isDeprecated = false,
-      bool isPotential = false]) {
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      bool isDeprecated: false,
+      bool isPotential: false,
+      int selectionOffset}) {
     var cs;
     suggestions.forEach((s) {
       if (s.completion == completion) {
@@ -295,7 +298,7 @@ class CompletionTest extends AbstractAnalysisTest {
     }
     expect(cs.kind, equals(kind));
     expect(cs.relevance, equals(relevance));
-    expect(cs.selectionOffset, equals(completion.length));
+    expect(cs.selectionOffset, selectionOffset ?? completion.length);
     expect(cs.selectionLength, equals(0));
     expect(cs.isDeprecated, equals(isDeprecated));
     expect(cs.isPotential, equals(isPotential));
@@ -379,6 +382,64 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_imports_incremental() async {
+    addTestFile('''library foo;
+      e^
+      import "dart:async";
+      import "package:foo/foo.dart";
+      class foo { }''');
+    await waitForTasksFinished();
+    server.updateContent('uc1', {testFile: new AddContentOverlay(testCode)});
+    server.updateContent('uc2', {
+      testFile:
+          new ChangeContentOverlay([new SourceEdit(completionOffset, 0, 'xp')])
+    });
+    completionOffset += 2;
+    await getSuggestions();
+    expect(replacementOffset, completionOffset - 3);
+    expect(replacementLength, 3);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'export',
+        relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'import',
+        relevance: DART_RELEVANCE_HIGH);
+    assertNoResult('extends');
+    assertNoResult('library');
+  }
+
+  test_imports_partial() async {
+    addTestFile('''^
+      import "package:foo/foo.dart";
+      import "package:bar/bar.dart";
+      class Baz { }''');
+
+    // Wait for analysis then edit the content
+    await waitForTasksFinished();
+    String revisedContent = testCode.substring(0, completionOffset) +
+        'i' +
+        testCode.substring(completionOffset);
+    ++completionOffset;
+    server.handleRequest(new AnalysisUpdateContentParams(
+        {testFile: new AddContentOverlay(revisedContent)}).toRequest('add1'));
+
+    // Request code completion immediately after edit
+    Response response = handleSuccessfulRequest(new CompletionGetSuggestionsParams(
+        testFile, completionOffset).toRequest('0'));
+    completionId = response.id;
+    assertValidId(completionId);
+    await waitForTasksFinished();
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'library',
+        relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'import',
+        relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'export',
+        relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'part',
+        relevance: DART_RELEVANCE_HIGH);
+    assertNoResult('extends');
+  }
+
   test_imports_prefixed() {
     addTestFile('''
       import 'dart:html' as foo;
@@ -417,10 +478,10 @@ class CompletionTest extends AbstractAnalysisTest {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset - 2));
       expect(replacementLength, equals(2));
-      assertHasResult(
-          CompletionSuggestionKind.KEYWORD, 'export', DART_RELEVANCE_HIGH);
-      assertHasResult(
-          CompletionSuggestionKind.KEYWORD, 'class', DART_RELEVANCE_HIGH);
+      assertHasResult(CompletionSuggestionKind.KEYWORD, 'export',
+          relevance: DART_RELEVANCE_HIGH);
+      assertHasResult(CompletionSuggestionKind.KEYWORD, 'class',
+          relevance: DART_RELEVANCE_HIGH);
     });
   }
 
@@ -440,12 +501,12 @@ class CompletionTest extends AbstractAnalysisTest {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'A');
-      assertHasResult(
-          CompletionSuggestionKind.INVOCATION, 'a', DART_RELEVANCE_LOCAL_FIELD);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'a',
+          relevance: DART_RELEVANCE_LOCAL_FIELD);
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'b',
-          DART_RELEVANCE_LOCAL_VARIABLE);
+          relevance: DART_RELEVANCE_LOCAL_VARIABLE);
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'x',
-          DART_RELEVANCE_LOCAL_METHOD);
+          relevance: DART_RELEVANCE_LOCAL_METHOD);
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'DateTime');
     });
   }
@@ -470,7 +531,7 @@ class B extends A {m() {^}}
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'm',
-          DART_RELEVANCE_LOCAL_METHOD);
+          relevance: DART_RELEVANCE_LOCAL_METHOD);
     });
   }
 
@@ -541,7 +602,7 @@ class B extends A {m() {^}}
       // Suggestions based upon imported elements are partially filtered
       //assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'test',
-          DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+          relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
       assertNoResult('HtmlElement');
     });
   }

@@ -167,7 +167,7 @@ class ClassStubGenerator {
     jsAst.Name methodName = namer.asName(selector.invocationMirrorMemberName);
     jsAst.Name internalName = namer.invocationMirrorInternalName(selector);
 
-    assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
+    assert(backend.isInterceptedName(Identifiers.noSuchMethod_));
     bool isIntercepted = backend.isInterceptedName(selector.name);
     jsAst.Expression expression =
         js('''this.#noSuchMethodName(#receiver,

@@ -11,15 +11,36 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(OrganizeDirectivesTest);
 }
 
 @reflectiveTest
 class OrganizeDirectivesTest extends AbstractSingleUnitTest {
   List<AnalysisError> testErrors;
+
+  void test_remove_duplicateImports() {
+    _computeUnitAndErrors(r'''
+import 'dart:async';
+import 'dart:async';
+
+main() {
+  Future f;
+}''');
+    // validate change
+    _assertOrganize(
+        r'''
+import 'dart:async';
+
+main() {
+  Future f;
+}''',
+        removeUnresolved: true,
+        removeUnused: true);
+  }
 
   void test_remove_unresolvedDirectives() {
     addSource('/existing_part1.dart', 'part of lib;');

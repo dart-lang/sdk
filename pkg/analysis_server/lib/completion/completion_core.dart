@@ -19,11 +19,9 @@ import 'package:analyzer/src/generated/source.dart';
 abstract class CompletionContributor {
   /**
    * Compute a list of completion suggestions based on the given completion
-   * [request] and return a result that includes those suggestions. This method
-   * is called after specific phases of analysis until the contributor indicates
-   * computation is complete by setting [CompletionResult.isLast] to `true`.
+   * [request]. Return the suggestions that were computed.
    */
-  CompletionResult computeSuggestions(CompletionRequest request);
+  List<CompletionSuggestion> computeSuggestions(CompletionRequest request);
 }
 
 /**
@@ -32,13 +30,6 @@ abstract class CompletionContributor {
  * Clients are not expected to subtype this class.
  */
 abstract class CompletionRequest {
-  /**
-   * Return the results that were returned the last time the contributor was
-   * asked for results, or `null` if this is the first request for results at
-   * this location.
-   */
-  //CompletionResult get previousResults;
-
   /**
    * Return the analysis context in which the completion is being requested.
    */
@@ -67,20 +58,6 @@ abstract class CompletionRequest {
  * Clients are expected to subtype this class when implementing plugins.
  */
 abstract class CompletionResult {
-  /**
-   * Return `true` if this result contains suggestions that were not in the
-   * previously returned completion results. This should also be `true` if this
-   * is the first result produced for a given location.
-   */
-  bool get hasNewSuggestions;
-
-  /**
-   * Return `true` if the contributor has contributed all possible completion
-   * suggestions, or `false` if the contributor should be consulted again after
-   * more analysis has been completed.
-   */
-  bool get isLast;
-
   /**
    * Return the length of the text to be replaced. This will be zero (0) if the
    * suggestion is to be inserted, otherwise it will be greater than zero. For

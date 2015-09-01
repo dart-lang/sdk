@@ -12,6 +12,7 @@
 #include "vm/bitmap.h"
 #include "vm/dart.h"
 #include "vm/globals.h"
+#include "vm/growable_array.h"
 #include "vm/handles.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
@@ -338,7 +339,7 @@ class Object {
   }
 
   static Object& Handle() {
-    return Handle(Isolate::Current(), null_);
+    return Handle(Thread::Current()->zone(), null_);
   }
 
   static Object& Handle(Zone* zone) {
@@ -350,7 +351,7 @@ class Object {
   }
 
   static Object& Handle(RawObject* raw_ptr) {
-    return Handle(Isolate::Current(), raw_ptr);
+    return Handle(Thread::Current()->zone(), raw_ptr);
   }
 
   static Object& ZoneHandle(Zone* zone, RawObject* raw_ptr) {
@@ -398,6 +399,11 @@ class Object {
   static const Array& zero_array() {
     ASSERT(zero_array_ != NULL);
     return *zero_array_;
+  }
+
+  static const ContextScope& empty_context_scope() {
+    ASSERT(empty_context_scope_ != NULL);
+    return *empty_context_scope_;
   }
 
   static const ObjectPool& empty_object_pool() {
@@ -790,6 +796,7 @@ class Object {
   static TypeArguments* null_type_arguments_;
   static Array* empty_array_;
   static Array* zero_array_;
+  static ContextScope* empty_context_scope_;
   static ObjectPool* empty_object_pool_;
   static PcDescriptors* empty_descriptors_;
   static LocalVarDescriptors* empty_var_descriptors_;
@@ -1034,12 +1041,16 @@ class Class : public Object {
     return OFFSET_OF(RawClass, type_arguments_field_offset_in_words_);
   }
 
-  RawType* CanonicalType() const {
-    if ((NumTypeArguments() == 0) && !IsSignatureClass()) {
-      return reinterpret_cast<RawType*>(raw_ptr()->canonical_types_);
-    }
-    return reinterpret_cast<RawType*>(Object::null());
-  }
+  // Returns the cached canonical type of this class, i.e. the canonical type
+  // whose type class is this class and whose type arguments are the
+  // uninstantiated type parameters declared by this class if it is generic,
+  // e.g. Map<K, V>.
+  // Returns Type::null() if the canonical type is not cached yet.
+  RawType* CanonicalType() const;
+
+  // Caches the canonical type of this class.
+  void SetCanonicalType(const Type& type) const;
+
   static intptr_t canonical_types_offset() {
     return OFFSET_OF(RawClass, canonical_types_);
   }
@@ -1143,7 +1154,7 @@ class Class : public Object {
   RawArray* fields() const { return raw_ptr()->fields_; }
   void SetFields(const Array& value) const;
   void AddField(const Field& field) const;
-  void AddFields(const GrowableObjectArray& fields) const;
+  void AddFields(const GrowableArray<const Field*>& fields) const;
   intptr_t FindFieldIndex(const Field& field) const;
   RawField* FieldFromIndex(intptr_t idx) const;
 
@@ -1193,7 +1204,6 @@ class Class : public Object {
 
   void InsertCanonicalConstant(intptr_t index, const Instance& constant) const;
 
-  intptr_t NumCanonicalTypes() const;
   intptr_t FindCanonicalTypeIndex(const Type& needle) const;
   RawType* CanonicalTypeFromIndex(intptr_t idx) const;
 
@@ -1524,6 +1534,9 @@ class UnresolvedClass : public Object {
 };
 
 
+typedef ZoneGrowableHandlePtrArray<const AbstractType> Trail;
+typedef ZoneGrowableHandlePtrArray<const AbstractType>* TrailPtr;
+
 // A TypeArguments is an array of AbstractType.
 class TypeArguments : public Object {
  public:
@@ -1589,22 +1602,21 @@ class TypeArguments : public Object {
     return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length());
   }
 
-  bool IsEquivalent(const TypeArguments& other,
-                    GrowableObjectArray* trail = NULL) const {
+  bool IsEquivalent(const TypeArguments& other, TrailPtr trail = NULL) const {
     return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(), trail);
   }
   bool IsSubvectorEquivalent(const TypeArguments& other,
                              intptr_t from_index,
                              intptr_t len,
-                             GrowableObjectArray* trail = NULL) const;
+                             TrailPtr trail = NULL) const;
 
   // Check if the vector is instantiated (it must not be null).
-  bool IsInstantiated(GrowableObjectArray* trail = NULL) const {
+  bool IsInstantiated(TrailPtr trail = NULL) const {
     return IsSubvectorInstantiated(0, Length(), trail);
   }
   bool IsSubvectorInstantiated(intptr_t from_index,
                                intptr_t len,
-                               GrowableObjectArray* trail = NULL) const;
+                               TrailPtr trail = NULL) const;
   bool IsUninstantiatedIdentity() const;
   bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
 
@@ -1625,11 +1637,10 @@ class TypeArguments : public Object {
   // arguments, changing the class owner of type parameters.
   // Instantiated type arguments are shared.
   RawTypeArguments* CloneUninstantiated(
-      const Class& new_owner,
-      GrowableObjectArray* trail = NULL) const;
+      const Class& new_owner, TrailPtr trail = NULL) const;
 
   // Canonicalize only if instantiated, otherwise returns 'this'.
-  RawTypeArguments* Canonicalize(GrowableObjectArray* trail = NULL) const;
+  RawTypeArguments* Canonicalize(TrailPtr trail = NULL) const;
 
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
   // not refer to type parameters. Otherwise, return a new type argument vector
@@ -1639,7 +1650,7 @@ class TypeArguments : public Object {
   RawTypeArguments* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      GrowableObjectArray* trail = NULL) const;
+      TrailPtr trail = NULL) const;
 
   // Runtime instantiation with canonicalization. Not to be used during type
   // finalization at compile time.
@@ -2002,6 +2013,8 @@ class ICData : public Object {
                         bool is_static_call) const;
 
  private:
+  static RawICData* New();
+
   RawArray* ic_data() const {
     return raw_ptr()->ic_data_;
   }
@@ -2104,13 +2117,10 @@ class Function : public Object {
   RawClass* origin() const;
   RawScript* script() const;
 
-  void set_regexp(const JSRegExp& value) const;
   RawJSRegExp* regexp() const;
-
-  // Get and set the class id this function is specialized for. Only set for
-  // irregexp functions.
-  intptr_t regexp_cid() const { return raw_ptr()->regexp_cid_; }
-  void set_regexp_cid(intptr_t regexp_cid) const;
+  intptr_t string_specialization_cid() const;
+  void SetRegExpData(const JSRegExp& regexp,
+                     intptr_t string_specialization_cid) const;
 
   RawAbstractType* result_type() const { return raw_ptr()->result_type_; }
   void set_result_type(const AbstractType& value) const;
@@ -2145,8 +2155,8 @@ class Function : public Object {
   void set_unoptimized_code(const Code& value) const;
   bool HasCode() const;
 
-  static intptr_t instructions_offset() {
-    return OFFSET_OF(RawFunction, instructions_);
+  static intptr_t entry_point_offset() {
+    return OFFSET_OF(RawFunction, entry_point_);
   }
 
   // Returns true if there is at least one debugger breakpoint
@@ -2695,10 +2705,11 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
 
   static RawFunction* New();
 
-  void BuildSignatureParameters(bool instantiate,
-                                NameVisibility name_visibility,
-                                const TypeArguments& instantiator,
-                                const GrowableObjectArray& pieces) const;
+  void BuildSignatureParameters(
+      bool instantiate,
+      NameVisibility name_visibility,
+      const TypeArguments& instantiator,
+      GrowableHandlePtrArray<const String>* pieces) const;
   RawString* BuildSignature(bool instantiate,
                             NameVisibility name_visibility,
                             const TypeArguments& instantiator) const;
@@ -3551,6 +3562,7 @@ class ObjectPool : public Object {
   enum EntryType {
     kTaggedObject,
     kImmediate,
+    kExternalLabel,
   };
 
   struct Entry {
@@ -3625,8 +3637,15 @@ class ObjectPool : public Object {
 
   static RawObjectPool* New(intptr_t len);
 
+  // Returns the pool index from the offset relative to a tagged RawObjectPool*,
+  // adjusting for the tag-bit.
   static intptr_t IndexFromOffset(intptr_t offset) {
+    ASSERT(Utils::IsAligned(offset + kHeapObjectTag, kWordSize));
     return (offset + kHeapObjectTag - data_offset()) / kBytesPerElement;
+  }
+
+  static intptr_t OffsetFromIndex(intptr_t index) {
+    return element_offset(index) - kHeapObjectTag;
   }
 
   void DebugPrint() const;
@@ -4031,9 +4050,11 @@ class DeoptInfo : public AllStatic {
 class Code : public Object {
  public:
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
-  static intptr_t instructions_offset() {
-    return OFFSET_OF(RawCode, instructions_);
+
+  static intptr_t entry_point_offset() {
+    return OFFSET_OF(RawCode, entry_point_);
   }
+
   intptr_t pointer_offsets_length() const {
     return PtrOffBits::decode(raw_ptr()->state_bits_);
   }
@@ -4048,8 +4069,9 @@ class Code : public Object {
   void set_is_alive(bool value) const;
 
   uword EntryPoint() const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    return instr.EntryPoint();
+    ASSERT(raw_ptr()->entry_point_ ==
+           Instructions::Handle(instructions()).EntryPoint());
+    return raw_ptr()->entry_point_;
   }
   intptr_t Size() const {
     const Instructions& instr = Instructions::Handle(instructions());
@@ -4330,6 +4352,10 @@ class Code : public Object {
     DISALLOW_COPY_AND_ASSIGN(FindRawCodeVisitor);
   };
 
+  static bool IsOptimized(RawCode* code) {
+    return Code::OptimizedBit::decode(code->ptr()->state_bits_);
+  }
+
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
 
   void set_compile_timestamp(int64_t timestamp) const {
@@ -4340,6 +4366,9 @@ class Code : public Object {
     // RawInstructions are never allocated in New space and hence a
     // store buffer update is not needed here.
     StorePointer(&raw_ptr()->instructions_, instructions);
+    uword entry_point = reinterpret_cast<uword>(instructions->ptr()) +
+        Instructions::HeaderSize();
+    StoreNonPointer(&raw_ptr()->entry_point_, entry_point);
   }
 
   void set_pointer_offsets_length(intptr_t value) {
@@ -4372,6 +4401,7 @@ class Code : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;
+  friend class SnapshotWriter;
 
   // So that the RawFunction pointer visitor can determine whether code the
   // function points to is optimized.
@@ -4443,7 +4473,8 @@ class Context : public Object {
 // by its token position in the source, its name, its type, its allocation index
 // in the context, and its context level. The function nesting level and loop
 // nesting level are not preserved, since they are only used until the context
-// level is assigned.
+// level is assigned. In addition the ContextScope has a field 'is_implicit'
+// which is true if the ContextScope was created for an implicit closure.
 class ContextScope : public Object {
  public:
   intptr_t num_variables() const { return raw_ptr()->num_variables_; }
@@ -4488,11 +4519,15 @@ class ContextScope : public Object {
         sizeof(RawContextScope) + (len * kBytesPerElement));
   }
 
-  static RawContextScope* New(intptr_t num_variables);
+  static RawContextScope* New(intptr_t num_variables, bool is_implicit);
 
  private:
   void set_num_variables(intptr_t num_variables) const {
     StoreNonPointer(&raw_ptr()->num_variables_, num_variables);
+  }
+
+  void set_is_implicit(bool is_implicit) const {
+    StoreNonPointer(&raw_ptr()->is_implicit_, is_implicit);
   }
 
   const RawContextScope::VariableDesc* VariableDescAddr(intptr_t index) const {
@@ -4502,6 +4537,7 @@ class ContextScope : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ContextScope, Object);
   friend class Class;
+  friend class Object;
 };
 
 
@@ -4954,15 +4990,14 @@ class AbstractType : public Instance {
   virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const;
   virtual intptr_t token_pos() const;
-  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
+  virtual bool IsInstantiated(TrailPtr trail = NULL) const;
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
   virtual bool Equals(const Instance& other) const {
     return IsEquivalent(other);
   }
-  virtual bool IsEquivalent(const Instance& other,
-                            GrowableObjectArray* trail = NULL) const;
+  virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
 
   // Instantiate this type using the given type argument vector.
@@ -4971,7 +5006,7 @@ class AbstractType : public Instance {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      GrowableObjectArray* trail = NULL) const;
+      TrailPtr trail = NULL) const;
 
   // Return a clone of this unfinalized type or the type itself if it is
   // already finalized. Apply recursively to type arguments, i.e. finalized
@@ -4984,25 +5019,22 @@ class AbstractType : public Instance {
   // Apply recursively to type arguments, i.e. instantiated type arguments of
   // an uninstantiated type are not cloned, but shared.
   virtual RawAbstractType* CloneUninstantiated(
-      const Class& new_owner,
-      GrowableObjectArray* trail = NULL) const;
+      const Class& new_owner, TrailPtr trail = NULL) const;
 
   virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
     return Canonicalize();
   }
 
   // Return the canonical version of this type.
-  virtual RawAbstractType* Canonicalize(
-      GrowableObjectArray* trail = NULL) const;
+  virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
 
   // Return the object associated with the receiver in the trail or
-  // Object::null() if the receiver is not contained in the trail.
-  RawObject* OnlyBuddyInTrail(GrowableObjectArray* trail) const;
+  // AbstractType::null() if the receiver is not contained in the trail.
+  RawAbstractType* OnlyBuddyInTrail(TrailPtr trail) const;
 
   // If the trail is null, allocate a trail, add the pair <receiver, buddy> to
   // the trail. The receiver may only be added once with its only buddy.
-  void AddOnlyBuddyToTrail(GrowableObjectArray** trail,
-                           const Object& buddy) const;
+  void AddOnlyBuddyToTrail(TrailPtr* trail, const AbstractType& buddy) const;
 
   // The name of this type, including the names of its type arguments, if any.
   virtual RawString* Name() const {
@@ -5141,20 +5173,18 @@ class Type : public AbstractType {
   virtual RawTypeArguments* arguments() const;
   void set_arguments(const TypeArguments& value) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
-  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
-  virtual bool IsEquivalent(const Instance& other,
-                            GrowableObjectArray* trail = NULL) const;
+  virtual bool IsInstantiated(TrailPtr trail = NULL) const;
+  virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* malformed_error,
-      GrowableObjectArray* trail = NULL) const;
+      TrailPtr trail = NULL) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner,
-      GrowableObjectArray* trail = NULL) const;
-  virtual RawAbstractType* Canonicalize(
-      GrowableObjectArray* trail = NULL) const;
+      TrailPtr trail = NULL) const;
+  virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
 
   virtual intptr_t Hash() const;
 
@@ -5263,33 +5293,31 @@ class TypeRef : public AbstractType {
   virtual intptr_t token_pos() const {
     return AbstractType::Handle(type()).token_pos();
   }
-  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
+  virtual bool IsInstantiated(TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other,
-                            GrowableObjectArray* trail = NULL) const;
+                            TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return true; }
   virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      GrowableObjectArray* trail = NULL) const;
+      TrailPtr trail = NULL) const;
   virtual RawTypeRef* CloneUninstantiated(
       const Class& new_owner,
-      GrowableObjectArray* trail = NULL) const;
-  virtual RawAbstractType* Canonicalize(
-      GrowableObjectArray* trail = NULL) const;
+      TrailPtr trail = NULL) const;
+  virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
 
   virtual intptr_t Hash() const;
 
   // Return true if the receiver is contained in the trail.
   // Otherwise, if the trail is null, allocate a trail, then add the receiver to
   // the trail and return false.
-  bool TestAndAddToTrail(GrowableObjectArray** trail) const;
+  bool TestAndAddToTrail(TrailPtr* trail) const;
 
   // Return true if the pair <receiver, buddy> is contained in the trail.
   // Otherwise, if the trail is null, allocate a trail, add the pair <receiver,
   // buddy> to the trail and return false.
   // The receiver may be added several times, each time with a different buddy.
-  bool TestAndAddBuddyToTrail(GrowableObjectArray** trail,
-                              const Object& buddy) const;
+  bool TestAndAddBuddyToTrail(TrailPtr* trail, const AbstractType& buddy) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawTypeRef));
@@ -5344,22 +5372,19 @@ class TypeParameter : public AbstractType {
                   const AbstractType& upper_bound,
                   Error* bound_error) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
-  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const {
+  virtual bool IsInstantiated(TrailPtr trail = NULL) const {
     return false;
   }
-  virtual bool IsEquivalent(const Instance& other,
-                            GrowableObjectArray* trail = NULL) const;
+  virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return false; }
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      GrowableObjectArray* trail = NULL) const;
+      TrailPtr trail = NULL) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
-      const Class& new_owner,
-      GrowableObjectArray* trail = NULL) const;
-  virtual RawAbstractType* Canonicalize(
-      GrowableObjectArray* trail = NULL) const {
+      const Class& new_owner, TrailPtr trail = NULL) const;
+  virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const {
     return raw();
   }
 
@@ -5427,26 +5452,23 @@ class BoundedType : public AbstractType {
   virtual intptr_t token_pos() const {
     return AbstractType::Handle(type()).token_pos();
   }
-  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const {
+  virtual bool IsInstantiated(TrailPtr trail = NULL) const {
     // It is not possible to encounter an instantiated bounded type with an
     // uninstantiated upper bound. Therefore, we do not need to check if the
     // bound is instantiated. Moreover, doing so could lead into cycles, as in
     // class C<T extends C<C>> { }.
     return AbstractType::Handle(type()).IsInstantiated();
   }
-  virtual bool IsEquivalent(const Instance& other,
-                            GrowableObjectArray* trail = NULL) const;
+  virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      GrowableObjectArray* trail = NULL) const;
+      TrailPtr trail = NULL) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
-      const Class& new_owner,
-      GrowableObjectArray* trail = NULL) const;
-  virtual RawAbstractType* Canonicalize(
-      GrowableObjectArray* trail = NULL) const {
+      const Class& new_owner, TrailPtr trail = NULL) const;
+  virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const {
     return raw();
   }
 
@@ -5926,7 +5948,7 @@ class String : public Instance {
 
   static intptr_t hash_offset() { return OFFSET_OF(RawString, hash_); }
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
-  static intptr_t HashLatin1(const uint8_t* characters, intptr_t len);
+  static intptr_t Hash(const char* characters, intptr_t len);
   static intptr_t Hash(const uint16_t* characters, intptr_t len);
   static intptr_t Hash(const int32_t* characters, intptr_t len);
   static intptr_t HashRawSymbol(const RawString* symbol) {
@@ -6164,8 +6186,8 @@ class String : public Instance {
   friend class TwoByteString;
   friend class ExternalOneByteString;
   friend class ExternalTwoByteString;
-  // So that the MarkingVisitor can print a debug string from a NoHandleScope.
-  friend class MarkingVisitor;
+  // So that SkippedCodeFunctions can print a debug string from a NoHandleScope.
+  friend class SkippedCodeFunctions;
 };
 
 
@@ -7637,8 +7659,6 @@ class Stacktrace : public Instance {
   static RawStacktrace* New(const Array& code_array,
                             const Array& pc_offset_array,
                             Heap::Space space = Heap::kNew);
-
-  RawString* FullStacktrace() const;
 
   // The argument 'max_frames' limits the number of printed frames.
   const char* ToCStringInternal(intptr_t* frame_index,

@@ -6,8 +6,10 @@
 
 #include "vm/dart.h"
 #include "vm/lockers.h"
+#include "vm/os.h"
 #include "vm/port.h"
 #include "vm/thread_interrupter.h"
+
 
 namespace dart {
 
@@ -42,6 +44,7 @@ MessageHandler::MessageHandler()
       pause_on_exit_(false),
       paused_on_start_(false),
       paused_on_exit_(false),
+      paused_timestamp_(-1),
       pool_(NULL),
       task_(NULL),
       start_callback_(NULL),
@@ -242,16 +245,25 @@ void MessageHandler::TaskCallback() {
     // main() function.
     if (pause_on_start()) {
       if (!paused_on_start_) {
-        NotifyPauseOnStart();
+        // Temporarily drop the lock when calling out to NotifyPauseOnStart.
+        // This avoids a dead lock that can occur when this message handler
+        // tries to post a message while a message is being posted to it.
         paused_on_start_ = true;
+        paused_timestamp_ = OS::GetCurrentTimeMillis();
+        monitor_.Exit();
+        NotifyPauseOnStart();
+        monitor_.Enter();
       }
+      // More messages may have come in while we released monitor_.
       HandleMessages(false, false);
       if (pause_on_start()) {
         // Still paused.
+        ASSERT(oob_queue_->IsEmpty());
         task_ = NULL;  // No task in queue.
         return;
       } else {
         paused_on_start_ = false;
+        paused_timestamp_ = -1;
       }
     }
 
@@ -269,30 +281,49 @@ void MessageHandler::TaskCallback() {
     if (ok) {
       ok = HandleMessages(true, true);
     }
-    task_ = NULL;  // No task in queue.
 
     if (!ok || !HasLivePorts()) {
       if (pause_on_exit()) {
         if (!paused_on_exit_) {
           if (FLAG_trace_service_pause_events) {
             OS::PrintErr("Isolate %s paused before exiting. "
-                       "Use the Observatory to release it.\n", name());
+                         "Use the Observatory to release it.\n", name());
           }
-          NotifyPauseOnExit();
+          // Temporarily drop the lock when calling out to NotifyPauseOnExit.
+          // This avoids a dead lock that can occur when this message handler
+          // tries to post a message while a message is being posted to it.
           paused_on_exit_ = true;
+          paused_timestamp_ = OS::GetCurrentTimeMillis();
+          monitor_.Exit();
+          NotifyPauseOnExit();
+          monitor_.Enter();
         }
-      } else {
-        if (FLAG_trace_isolates) {
+        // More messages may have come in while we released monitor_.
+        HandleMessages(false, false);
+        if (pause_on_exit()) {
+          // Still paused.
+          ASSERT(oob_queue_->IsEmpty());
+          task_ = NULL;  // No task in queue.
+          return;
+        } else {
+          paused_on_exit_ = false;
+          paused_timestamp_ = -1;
+        }
+      }
+      if (FLAG_trace_isolates) {
         OS::Print("[-] Stopping message handler (%s):\n"
                   "\thandler:    %s\n",
                   (ok ? "no live ports" : "error"),
                   name());
-        }
-        pool_ = NULL;
-        run_end_callback = true;
-        paused_on_exit_ = false;
       }
+      pool_ = NULL;
+      run_end_callback = true;
     }
+
+    // Clear the task_ last.  This allows other tasks to potentially start
+    // for this message handler.
+    ASSERT(oob_queue_->IsEmpty());
+    task_ = NULL;
   }
   if (run_end_callback && end_callback_ != NULL) {
     end_callback_(callback_data_);

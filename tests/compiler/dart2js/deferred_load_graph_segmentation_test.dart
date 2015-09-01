@@ -7,7 +7,7 @@
 // much be included in the initial download (loaded eagerly).
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/dart2jslib.dart';
+import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/deferred_load.dart';
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
@@ -22,7 +22,7 @@ void main() {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
     }
 
-    var main = compiler.mainApp.find(Compiler.MAIN);
+    var main = compiler.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(main);
 

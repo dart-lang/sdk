@@ -14,7 +14,6 @@ import 'package:analyzer/src/generated/scanner.dart';
  * suggestions were requested.
  */
 class OpType {
-
   /**
    * Indicates whether constructor suggestions should be included.
    */
@@ -48,6 +47,11 @@ class OpType {
   bool includeCaseLabelSuggestions = false;
 
   /**
+   * Indicates whether the completion location is in the body of a static method.
+   */
+  bool inStaticMethodBody = false;
+
+  /**
    * Indicates whether the completion target is prefixed.
    */
   bool isPrefixed = false;
@@ -60,6 +64,10 @@ class OpType {
     OpType optype = new OpType._();
     target.containingNode
         .accept(new _OpTypeAstVisitor(optype, target.entity, offset));
+    var mthDecl =
+        target.containingNode.getAncestor((p) => p is MethodDeclaration);
+    optype.inStaticMethodBody =
+        mthDecl is MethodDeclaration && mthDecl.isStatic;
     return optype;
   }
 
@@ -74,7 +82,6 @@ class OpType {
 }
 
 class _OpTypeAstVisitor extends GeneralizingAstVisitor {
-
   /**
    * The entity (AstNode or Token) which will be replaced or displaced by the
    * added text.
@@ -472,7 +479,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (identical(entity, node.identifier)) {
+    if (identical(entity, node.identifier) ||
+        // In addition to the standard case,
+        // handle the exceptional case where the parser considers the would-be
+        // identifier to be a keyword and inserts a synthetic identifier
+        (node.identifier != null &&
+            node.identifier.isSynthetic &&
+            identical(entity, node.identifier.beginToken.previous))) {
       optype.isPrefixed = true;
       if (node.parent is TypeName && node.parent.parent is ConstructorName) {
         optype.includeConstructorSuggestions = true;
@@ -562,9 +575,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (entity is SwitchMember && entity != node.members.first) {
       SwitchMember member = entity as SwitchMember;
       if (offset <= member.offset) {
-          optype.includeReturnValueSuggestions = true;
-          optype.includeTypeNameSuggestions = true;
-          optype.includeVoidReturnSuggestions = true;
+        optype.includeReturnValueSuggestions = true;
+        optype.includeTypeNameSuggestions = true;
+        optype.includeVoidReturnSuggestions = true;
       }
     }
   }

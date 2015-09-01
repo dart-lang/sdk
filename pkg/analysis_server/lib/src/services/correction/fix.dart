@@ -85,7 +85,7 @@ class DartFixKind {
   static const CREATE_METHOD =
       const FixKind('CREATE_METHOD', 50, "Create method '{0}'");
   static const CREATE_MISSING_OVERRIDES = const FixKind(
-      'CREATE_MISSING_OVERRIDES', 50, "Create {0} missing override(s)");
+      'CREATE_MISSING_OVERRIDES', 49, "Create {0} missing override(s)");
   static const CREATE_NO_SUCH_METHOD = const FixKind(
       'CREATE_NO_SUCH_METHOD', 51, "Create 'noSuchMethod' method");
   static const IMPORT_LIBRARY_PREFIX = const FixKind('IMPORT_LIBRARY_PREFIX',

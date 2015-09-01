@@ -1,7 +1,10 @@
 docgen
 ======
 
+**Deprecated** please use https://pub.dartlang.org/packages/dartdoc instead.
+
 A documentation generator for Dart.
+
 - - -
 The docgen tool takes in a file or directory as input and produces documentation
 for all `.dart` file it finds as YAML or JSON files. This outputs information 

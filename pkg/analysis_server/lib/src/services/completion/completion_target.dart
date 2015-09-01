@@ -320,6 +320,17 @@ class CompletionTarget {
       return token.type == TokenType.KEYWORD ||
           token.type == TokenType.IDENTIFIER ||
           token.length == 0;
+    } else if (!token.isSynthetic) {
+      return false;
+    }
+    // If the current token is synthetic, then check the previous token
+    // because it may have been dropped from the parse tree
+    Token previous = token.previous;
+    if (offset < previous.end) {
+      return true;
+    } else if (offset == previous.end) {
+      return token.type == TokenType.KEYWORD ||
+          previous.type == TokenType.IDENTIFIER;
     } else {
       return false;
     }

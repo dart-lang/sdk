@@ -14,10 +14,6 @@ class InboundReferenceElement extends ObservatoryElement {
   @published ObservableMap ref;
   InboundReferenceElement.created() : super.created();
 
-  dynamic get slot => ref['slot'];
-  bool get slotIsArrayIndex => slot is num;
-  bool get slotIsField => slot is ServiceMap && slot['type'] == '@Field';
-
   ServiceObject get source => ref['source'];
 
   // I.e., inbound references to 'source' for recursive pointer chasing.

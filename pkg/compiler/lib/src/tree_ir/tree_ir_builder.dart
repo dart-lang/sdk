@@ -4,10 +4,12 @@
 
 library tree_ir_builder;
 
-import '../dart2jslib.dart' as dart2js;
+import '../diagnostics/invariant.dart' show
+    InternalErrorFunction;
+import '../diagnostics/spannable.dart' show
+    CURRENT_ELEMENT_SPANNABLE;
 import '../elements/elements.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
-import '../util/util.dart' show CURRENT_ELEMENT_SPANNABLE;
 import 'tree_ir_nodes.dart';
 
 typedef Statement NodeCallback(Statement next);
@@ -45,7 +47,7 @@ typedef Statement NodeCallback(Statement next);
  * still all named.
  */
 class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
-  final dart2js.InternalErrorFunction internalError;
+  final InternalErrorFunction internalError;
 
   final Map<cps_ir.Primitive, Variable> primitive2variable =
       <cps_ir.Primitive, Variable>{};
@@ -248,10 +250,10 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   visit(cps_ir.Node node) => throw 'Use translateXXX instead of visit';
 
   /// Translates a CPS expression into a tree statement.
-  /// 
+  ///
   /// To avoid deep recursion, we traverse each basic blocks without
   /// recursion.
-  /// 
+  ///
   /// Non-tail expressions evaluate to a callback to be invoked once the
   /// successor statement has been constructed. These callbacks are stored
   /// in a stack until the block's tail expression has been translated.
@@ -269,7 +271,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   }
 
   /// Translates a CPS primitive to a tree expression.
-  /// 
+  ///
   /// This simply calls the visit method for the primitive.
   Expression translatePrimitive(cps_ir.Primitive prim) {
     return prim.accept(this);
@@ -321,8 +323,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
         // Recursively build the body. We only do this for join continuations,
         // so we should not risk overly deep recursion.
         next = new LabeledStatement(
-            label, 
-            next, 
+            label,
+            next,
             translateExpression(continuation.body));
       }
     }
@@ -487,7 +489,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
             if (cont.isRecursive) {
               return node.isRecursive
                   ? new Continue(getLabel(cont))
-                  : new WhileTrue(getLabel(cont), 
+                  : new WhileTrue(getLabel(cont),
                                   translateExpression(cont.body));
             } else {
               return cont.hasExactlyOneUse && !node.isEscapingTry
@@ -503,20 +505,20 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     Statement thenStatement, elseStatement;
     cps_ir.Continuation cont = node.trueContinuation.definition;
     assert(cont.parameters.isEmpty);
-    thenStatement = cont.hasExactlyOneUse 
-        ? translateExpression(cont.body) 
+    thenStatement = cont.hasExactlyOneUse
+        ? translateExpression(cont.body)
         : new Break(labels[cont]);
     cont = node.falseContinuation.definition;
     assert(cont.parameters.isEmpty);
-    elseStatement = cont.hasExactlyOneUse 
-        ? translateExpression(cont.body) 
+    elseStatement = cont.hasExactlyOneUse
+        ? translateExpression(cont.body)
         : new Break(labels[cont]);
     return new If(condition, thenStatement, elseStatement);
   }
 
 
   /************************** PRIMITIVES  **************************/
-  // 
+  //
   // Visit methods for primitives must return an expression.
   //
 
@@ -525,9 +527,9 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
                         node.field,
                         getVariableUse(node.value));
   }
-  
+
   Expression visitInterceptor(cps_ir.Interceptor node) {
-    return new Interceptor(getVariableUse(node.input), 
+    return new Interceptor(getVariableUse(node.input),
                            node.interceptedClasses,
                            node.sourceInformation);
   }
@@ -638,6 +640,13 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
                                     translateArguments(node.arguments));
   }
 
+  Expression visitApplyBuiltinMethod(cps_ir.ApplyBuiltinMethod node) {
+    return new ApplyBuiltinMethod(node.method,
+        getVariableUse(node.receiver),
+        translateArguments(node.arguments),
+        receiverIsNotNull: node.receiverIsNotNull);
+  }
+
   Expression visitGetLength(cps_ir.GetLength node) {
     return new GetLength(getVariableUse(node.object));
   }
@@ -651,6 +660,12 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return new SetIndex(getVariableUse(node.object),
                         getVariableUse(node.index),
                         getVariableUse(node.value));
+  }
+
+  @override
+  NodeCallback visitAwait(cps_ir.Await node) {
+    Expression value = new Await(getVariableUse(node.input));
+    return makeCallExpression(node, value);
   }
 
   /********** UNUSED VISIT METHODS *************/

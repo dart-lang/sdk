@@ -107,9 +107,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   // Current FP and PC.
   builder->AddCallerFp(slot_ix++);
-  builder->AddReturnAddress(Function::Handle(zone, current->code().function()),
-                            deopt_id(),
-                            slot_ix++);
+  builder->AddReturnAddress(current->function(), deopt_id(), slot_ix++);
 
   // Emit all values that are needed for materialization as a part of the
   // expression stack for the bottom-most frame. This guarantees that GC
@@ -124,8 +122,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   }
 
   // Current PC marker and caller FP.
-  builder->AddPcMarker(Function::Handle(
-      zone, current->code().function()), slot_ix++);
+  builder->AddPcMarker(current->function(), slot_ix++);
   builder->AddCallerFp(slot_ix++);
 
   Environment* previous = current;
@@ -134,7 +131,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
     builder->AddReturnAddress(
-        Function::Handle(zone, current->code().function()),
+        current->function(),
         Isolate::ToDeoptAfter(current->deopt_id()),
         slot_ix++);
 
@@ -156,8 +153,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     }
 
     // PC marker and caller FP.
-    builder->AddPcMarker(Function::Handle(zone, current->code().function()),
-                         slot_ix++);
+    builder->AddPcMarker(current->function(), slot_ix++);
     builder->AddCallerFp(slot_ix++);
 
     // Iterate on the outer environment.
@@ -884,9 +880,8 @@ void FlowGraphCompiler::CopyParameters() {
       __ jmp(&assign_optional_parameter, Assembler::kNearJump);
       __ Bind(&load_default_value);
       // Load EAX with default argument.
-      const Object& value = Object::ZoneHandle(zone(),
-          parsed_function().default_parameter_values().At(
-              param_pos - num_fixed_params));
+      const Instance& value = parsed_function().DefaultParameterValueAt(
+          param_pos - num_fixed_params);
       __ LoadObject(EAX, value);
       __ Bind(&assign_optional_parameter);
       // Assign EAX to fp[kFirstLocalSlotFromFp - param_pos].
@@ -919,8 +914,7 @@ void FlowGraphCompiler::CopyParameters() {
       __ cmpl(ECX, Immediate(param_pos));
       __ j(GREATER, &next_parameter, Assembler::kNearJump);
       // Load EAX with default argument.
-      const Object& value = Object::ZoneHandle(zone(),
-          parsed_function().default_parameter_values().At(i));
+      const Object& value = parsed_function().DefaultParameterValueAt(i);
       __ LoadObject(EAX, value);
       // Assign EAX to fp[kFirstLocalSlotFromFp - param_pos].
       // We do not use the final allocation index of the variable here, i.e.
@@ -1540,7 +1534,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                      *StubCode::CallStaticFunction_entry(),
                      RawPcDescriptors::kOther,
                      locs);
-    const Function& function = Function::Handle(zone(), ic_data.GetTargetAt(0));
+    const Function& function = Function::ZoneHandle(
+        zone(), ic_data.GetTargetAt(0));
     AddStaticCallTarget(function);
     __ Drop(argument_count);
     if (kNumChecks > 1) {

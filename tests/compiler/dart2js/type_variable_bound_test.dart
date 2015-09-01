@@ -9,7 +9,8 @@ import "package:expect/expect.dart";
 
 Future compile(String source) {
   Uri uri = Uri.parse('test:code');
-  var compiler = compilerFor(source, uri, analyzeOnly: true);
+  var compiler =
+      compilerFor(source, uri, analyzeOnly: true, enableTypeAssertions: true);
   compiler.diagnosticHandler = createHandler(compiler, source);
   return compiler.runCompiler(uri).then((_) {
     return compiler;
@@ -71,7 +72,7 @@ void main() {
     print(compiler.errors);
     Expect.isTrue(compiler.errors.isEmpty, 'unexpected errors');
     Expect.equals(2, compiler.warnings.length,
-                  'expected exactly one error, but got ${compiler.warnings}');
+                  'expected exactly two errors, but got ${compiler.warnings}');
 
     Expect.equals(MessageKind.CYCLIC_TYPE_VARIABLE,
                   compiler.warnings[0].message.kind);
@@ -214,6 +215,41 @@ void main() {
                 MessageKind.INVALID_TYPE_VARIABLE_BOUND]);
 }
 
+test10() {
+  test(r"""
+class A {
+  const A();
+}
+class Test<T extends A> {
+  final T x = const A();
+  const Test();
+}
+main() {
+  print(const Test<A>());
+}
+""");
+}
+
+// TODO(het): The error is reported twice because both the Dart and JS constant
+// compilers are run on the const constructor, investigate why.
+test11() {
+  test(r"""
+class A {
+  const A();
+}
+class B extends A {
+  const B();
+}
+class Test<T extends A> {
+  final T x = const A();
+  const Test();
+}
+main() {
+  print(const Test<B>());
+}
+""", errors: [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+}
+
 main() {
   test1();
   test2();
@@ -224,4 +260,6 @@ main() {
   test7();
   test8();
   test9();
+  test10();
+  test11();
 }

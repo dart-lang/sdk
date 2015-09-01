@@ -7,14 +7,21 @@ library dart_types;
 import 'dart:math' show min;
 
 import 'core_types.dart';
-import 'dart2jslib.dart' show Compiler, invariant, Script, Message;
-import 'elements/modelx.dart'
-    show LibraryElementX,
-         TypeDeclarationElementX,
-         TypedefElementX;
+import 'compiler.dart' show
+    Compiler;
+import 'diagnostics/invariant.dart' show
+    invariant;
+import 'diagnostics/spannable.dart' show
+    CURRENT_ELEMENT_SPANNABLE;
+import 'elements/modelx.dart' show
+    LibraryElementX,
+    TypeDeclarationElementX,
+    TypedefElementX;
 import 'elements/elements.dart';
-import 'ordered_typeset.dart' show OrderedTypeSet;
-import 'util/util.dart' show CURRENT_ELEMENT_SPANNABLE, equalElements;
+import 'ordered_typeset.dart' show
+    OrderedTypeSet;
+import 'util/util.dart' show
+    equalElements;
 
 enum TypeKind {
   FUNCTION,
@@ -726,11 +733,7 @@ class FunctionType extends DartType {
 
   String get name => 'Function';
 
-  int computeArity() {
-    int arity = 0;
-    parameterTypes.forEach((_) { arity++; });
-    return arity;
-  }
+  int computeArity() => parameterTypes.length;
 
   int get hashCode {
     int hash = 3 * returnType.hashCode;

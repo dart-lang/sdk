@@ -4,9 +4,9 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'dart:async';
-import 'memory_compiler.dart';
 import 'package:compiler/src/mirrors/source_mirrors.dart';
+
+import 'memory_compiler.dart';
 
 const SOURCE_FILES = const {
 'main.dart': '''

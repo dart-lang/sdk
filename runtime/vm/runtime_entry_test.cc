@@ -10,6 +10,10 @@
 
 namespace dart {
 
+DECLARE_RUNTIME_ENTRY(TestSmiSub)
+DECLARE_LEAF_RUNTIME_ENTRY(RawObject*, TestLeafSmiAdd, RawObject*, RawObject*)
+
+
 // Add function to a class and that class to the class dictionary so that
 // frame walking can be used.
 const Function& RegisterFakeFunction(const char* name, const Code& code) {

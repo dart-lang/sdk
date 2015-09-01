@@ -163,6 +163,9 @@ class DartLibraryCalls : public AllStatic {
   static RawObject* HandleMessage(const Object& handler,
                                   const Instance& dart_message);
 
+  // Returns null on success, a RawError on failure.
+  static RawObject* DrainMicrotaskQueue();
+
   // map[key] = value;
   //
   // Returns null on success, a RawError on failure.

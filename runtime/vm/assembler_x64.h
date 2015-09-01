@@ -686,7 +686,6 @@ class Assembler : public ValueObject {
 
   // Note: verified_mem mode forces far jumps.
   void j(Condition condition, Label* label, bool near = kFarJump);
-  void j(Condition condition, const ExternalLabel* label);
 
   void jmp(Register reg);
   void jmp(const Address& address);
@@ -767,15 +766,10 @@ class Assembler : public ValueObject {
   void LoadFunctionFromCalleePool(Register dst,
                                   const Function& function,
                                   Register new_pp);
-  void JmpPatchable(const ExternalLabel* label, Register pp);
   void JmpPatchable(const StubEntry& stub_entry, Register pp);
-  void Jmp(const ExternalLabel* label, Register pp);
   void Jmp(const StubEntry& stub_entry, Register pp);
-  void J(Condition condition, const ExternalLabel* label, Register pp);
   void J(Condition condition, const StubEntry& stub_entry, Register pp);
-  void CallPatchable(const ExternalLabel* label);
   void CallPatchable(const StubEntry& stub_entry);
-  void Call(const ExternalLabel* label);
   void Call(const StubEntry& stub_entry);
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
   // TODO(koda): Add StackAddress/HeapAddress types to prevent misuse.
@@ -849,7 +843,6 @@ class Assembler : public ValueObject {
 
   // Call runtime function. Reserves shadow space on the stack before calling
   // if platform ABI requires that. Does not restore RSP after the call itself.
-  void CallCFunction(const ExternalLabel* label);
   void CallCFunction(Register reg);
 
   /*
@@ -947,8 +940,9 @@ class Assembler : public ValueObject {
   //   ...
   //   pushq r15
   //   .....
-  void EnterDartFrameWithInfo(intptr_t frame_size,
-                              Register new_pp, Register pc_marker_override);
+  void EnterDartFrame(intptr_t frame_size,
+                      Register new_pp,
+                      Register pc_marker_override);
   void LeaveDartFrame();
 
   // Set up a Dart frame for a function compiled for on-stack replacement.

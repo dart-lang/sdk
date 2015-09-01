@@ -4,6 +4,8 @@
 
 #include "vm/service_event.h"
 
+#include "vm/message_handler.h"
+
 namespace dart {
 
 // Translate from the legacy DebugEvent to a ServiceEvent.
@@ -30,6 +32,31 @@ static ServiceEvent::EventKind TranslateEventKind(
     }
 }
 
+
+ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
+    : isolate_(isolate),
+      kind_(event_kind),
+      embedder_kind_(NULL),
+      embedder_stream_id_(NULL),
+      breakpoint_(NULL),
+      top_frame_(NULL),
+      exception_(NULL),
+      async_continuation_(NULL),
+      at_async_jump_(false),
+      inspectee_(NULL),
+      gc_stats_(NULL),
+      bytes_(NULL),
+      bytes_length_(0),
+      timestamp_(OS::GetCurrentTimeMillis()) {
+  if ((event_kind == ServiceEvent::kPauseStart) ||
+      (event_kind == ServiceEvent::kPauseExit)) {
+    timestamp_ = isolate->message_handler()->paused_timestamp();
+  } else if (event_kind == ServiceEvent::kResume) {
+    timestamp_ = isolate->last_resume_timestamp();
+  }
+}
+
+
 ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
     : isolate_(debugger_event->isolate()),
       kind_(TranslateEventKind(debugger_event->type())),
@@ -40,11 +67,13 @@ ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
       inspectee_(NULL),
       gc_stats_(NULL),
       bytes_(NULL),
-      bytes_length_(0) {
+      bytes_length_(0),
+      timestamp_(OS::GetCurrentTimeMillis()) {
   DebuggerEvent::EventType type = debugger_event->type();
   if (type == DebuggerEvent::kBreakpointReached) {
     set_breakpoint(debugger_event->breakpoint());
     set_async_continuation(debugger_event->async_continuation());
+    set_at_async_jump(debugger_event->at_async_jump());
   }
   if (type == DebuggerEvent::kExceptionThrown) {
     set_exception(debugger_event->exception());
@@ -54,6 +83,9 @@ ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
       type == DebuggerEvent::kExceptionThrown) {
     set_top_frame(debugger_event->top_frame());
   }
+  if (debugger_event->timestamp() != -1) {
+    timestamp_ = debugger_event->timestamp();
+  }
 }
 
 
@@ -61,6 +93,8 @@ const char* ServiceEvent::KindAsCString() const {
   switch (kind()) {
     case kIsolateStart:
       return "IsolateStart";
+    case kIsolateRunnable:
+      return "IsolateRunnable";
     case kIsolateExit:
       return "IsolateExit";
     case kIsolateUpdate:
@@ -105,6 +139,7 @@ const char* ServiceEvent::KindAsCString() const {
 const char* ServiceEvent::stream_id() const {
   switch (kind()) {
     case kIsolateStart:
+    case kIsolateRunnable:
     case kIsolateExit:
     case kIsolateUpdate:
       return Service::isolate_stream.id();
@@ -168,6 +203,7 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   }
   if (async_continuation() != NULL && !async_continuation()->IsNull()) {
     jsobj.AddProperty("_asyncContinuation", *(async_continuation()));
+    jsobj.AddProperty("_atAsyncJump", at_async_jump());
   }
   if (inspectee() != NULL) {
     jsobj.AddProperty("inspectee", *(inspectee()));
@@ -199,6 +235,8 @@ void ServiceEvent::PrintJSONHeader(JSONObject* jsobj) const {
   jsobj->AddProperty("type", "Event");
   jsobj->AddProperty("kind", KindAsCString());
   jsobj->AddProperty("isolate", isolate());
+  ASSERT(timestamp_ != -1);
+  jsobj->AddPropertyTimeMillis("timestamp", timestamp_);
 }
 
 }  // namespace dart

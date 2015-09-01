@@ -71,7 +71,7 @@ class LinkEntry<T> extends Link<T> {
   void printOn(StringBuffer buffer, [separatedBy]) {
     buffer.write(head);
     if (separatedBy == null) separatedBy = '';
-    for (Link link = tail; !link.isEmpty; link = link.tail) {
+    for (Link link = tail; link.isNotEmpty; link = link.tail) {
       buffer.write(separatedBy);
       buffer.write(link.head);
     }
@@ -87,7 +87,7 @@ class LinkEntry<T> extends Link<T> {
 
   Link<T> reverse() {
     Link<T> result = const Link();
-    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
+    for (Link<T> link = this; link.isNotEmpty; link = link.tail) {
       result = result.prepend(link.head);
     }
     return result;
@@ -95,7 +95,7 @@ class LinkEntry<T> extends Link<T> {
 
   Link<T> reversePrependAll(Link<T> from) {
     Link<T> result;
-    for (result = this; !from.isEmpty; from = from.tail) {
+    for (result = this; from.isNotEmpty; from = from.tail) {
       result = result.prepend(from.head);
     }
     return result;
@@ -113,9 +113,10 @@ class LinkEntry<T> extends Link<T> {
   }
 
   bool get isEmpty => false;
+  bool get isNotEmpty => true;
 
   void forEach(void f(T element)) {
-    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
+    for (Link<T> link = this; link.isNotEmpty; link = link.tail) {
       f(link.head);
     }
   }
@@ -123,7 +124,7 @@ class LinkEntry<T> extends Link<T> {
   bool operator ==(other) {
     if (other is !Link<T>) return false;
     Link<T> myElements = this;
-    while (!myElements.isEmpty && !other.isEmpty) {
+    while (myElements.isNotEmpty && other.isNotEmpty) {
       if (myElements.head != other.head) {
         return false;
       }
@@ -135,12 +136,18 @@ class LinkEntry<T> extends Link<T> {
 
   int get hashCode => throw new UnsupportedError('LinkEntry.hashCode');
 
-  int slowLength() => 1 + tail.slowLength();
+  int slowLength() {
+    int length = 0;
+    for (Link current = this; current.isNotEmpty; current = current.tail) {
+      ++length;
+    }
+    return length;
+  }
 
   Link copyWithout(e) {
     LinkBuilder copy = new LinkBuilder();
     Link link = this;
-    for (; !link.isEmpty; link = link.tail) {
+    for (; link.isNotEmpty; link = link.tail) {
       if (link.head != e) {
         copy.addLast(link.head);
       }
@@ -170,7 +177,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
     List<T> list = new List<T>(length);
     int index = 0;
     Link<T> link = head;
-    while (!link.isEmpty) {
+    while (link.isNotEmpty) {
       list[index] = link.head;
       link = link.tail;
       index++;

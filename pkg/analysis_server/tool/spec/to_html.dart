@@ -61,6 +61,24 @@ dt.request {
 dt.typeDefinition {
   font-weight: bold;
 }
+
+*/
+* Styles for index
+*/
+
+.subindex {
+}
+
+.subindex ul {
+  padding-left: 0px;
+  margin-left: 0px;
+
+  -webkit-margin-before: 0px;
+  -webkit-margin-start: 0px;
+  -webkit-padding-start: 0px;
+
+  list-style-type: none;
+}
 '''.trim();
 
 final GeneratedFile target = new GeneratedFile('../../doc/api.html', () {
@@ -124,6 +142,7 @@ abstract class HtmlMixin {
   }
   void h3(void callback()) => element('h3', {}, callback);
   void h4(void callback()) => element('h4', {}, callback);
+  void h5(void callback()) => element('h5', {}, callback);
   void hangingIndent(void callback()) =>
       element('div', {'class': 'hangingIndent'}, callback);
   void head(void callback()) => element('head', {}, callback);
@@ -232,9 +251,6 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
           continue;
         }
         switch (node.localName) {
-          case 'api':
-            translateHtml(node, squashParagraphs: squashParagraphs);
-            break;
           case 'domain':
             visitDomain(apiMappings.domains[node]);
             break;
@@ -254,6 +270,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
             break;
           case 'version':
             translateHtml(node, squashParagraphs: squashParagraphs);
+            break;
+          case 'index':
+            generateIndex();
             break;
           default:
             if (!specialElements.contains(node.localName)) {
@@ -468,6 +487,94 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     translateHtml(types.html);
     dl(() {
       super.visitTypes(types);
+    });
+  }
+
+  void generateIndex() {
+    h3(() => write('Domains'));
+    for (var domain in api.domains) {
+      if (domain.requests.length == 0 && domain.notifications == 0) continue;
+      generateDomainIndex(domain);
+    }
+
+    generateTypesIndex(definedTypes);
+    generateRefactoringsIndex(api.refactorings);
+  }
+
+  void generateDomainIndex(Domain domain) {
+    h4(() {
+      write(domain.name);
+      write(' (');
+      link('domain_${domain.name}', () => write('\u2191'));
+      write(')');
+    });
+    if (domain.requests.length > 0) {
+      element('div', {'class': 'subindex'}, () {
+        generateRequestsIndex(domain.requests);
+        if (domain.notifications.length > 0) {
+          generateNotificationsIndex(domain.notifications);
+        }
+      });
+    } else if (domain.notifications.length > 0) {
+      element('div', {'class': 'subindex'}, () {
+        generateNotificationsIndex(domain.notifications);
+      });
+    }
+  }
+
+  void generateRequestsIndex(Iterable<Request> requests) {
+    h5(() => write("Requests"));
+    element('ul', {}, () {
+      for (var request in requests) {
+        element('li', {}, () => link('request_${request.longMethod}', () =>
+          write(request.method)));
+      }
+    });
+  }
+
+  void generateNotificationsIndex(Iterable<Notification> notifications) {
+    h5(() => write("Notifications"));
+    element('div', {'class': 'subindex'}, () {
+      element('ul', {}, () {
+        for (var notification in notifications) {
+          element('li', {}, () => link('notification_${notification.longEvent}',
+            () => write(notification.event)));
+        }
+      });
+    });
+  }
+
+  void generateTypesIndex(Set<String> types) {
+    h3(() {
+      write("Types");
+      write(' (');
+      link('types', () => write('\u2191'));
+      write(')');
+    });
+    element('div', {'class': 'subindex'}, () {
+      element('ul', {}, () {
+        for (var type in types) {
+          element('li', {}, () => link('type_$type', () => write(type)));
+        }
+      });
+    });
+  }
+
+  void generateRefactoringsIndex(Iterable<Refactoring> refactorings) {
+    h3(() {
+      write("Refactorings");
+      write(' (');
+      link('refactorings', () => write('\u2191'));
+      write(')');
+    });
+    // TODO: Individual refactorings are not yet hyperlinked.
+    element('div', {'class': 'subindex'}, () {
+      element('ul', {}, () {
+        for (var refactoring in refactorings) {
+          element('li', {}, () => link('refactoring_${refactoring.kind}',
+            () => write(refactoring.kind)));
+        }
+      });
     });
   }
 }

@@ -44,6 +44,9 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, print_metrics);
+DECLARE_FLAG(bool, trace_service);
+
 DEFINE_FLAG(bool, trace_isolates, false,
             "Trace isolate creation and shut down.");
 DEFINE_FLAG(bool, pause_isolates_on_start, false,
@@ -57,9 +60,6 @@ DEFINE_FLAG(charp, isolate_log_filter, NULL,
             "Log isolates whose name include the filter. "
             "Default: service isolate log messages are suppressed.");
 
-DEFINE_FLAG(charp, timeline_trace_dir, NULL,
-            "Enable all timeline trace streams and output traces "
-            "into specified directory.");
 DEFINE_FLAG(int, new_gen_semi_max_size, (kWordSize <= 4) ? 16 : 32,
             "Max size of new gen semi space in MB");
 DEFINE_FLAG(int, old_gen_heap_size, 0,
@@ -381,19 +381,24 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
 
 
 bool IsolateMessageHandler::HandleMessage(Message* message) {
-  StackZone zone(I);
-  HandleScope handle_scope(I);
-  TimelineDurationScope tds(I, I->GetIsolateStream(), "HandleMessage");
+  ASSERT(IsCurrentIsolate());
+  Thread* thread = Thread::Current();
+  StackZone stack_zone(thread);
+  Zone* zone = stack_zone.GetZone();
+  HandleScope handle_scope(thread);
+  TimelineDurationScope tds(thread, I->GetIsolateStream(), "HandleMessage");
+  tds.SetNumArguments(1);
+  tds.CopyArgument(0, "isolateName", I->name());
 
   // TODO(turnidge): Rework collection total dart execution.  This can
   // overcount when other things (gc, compilation) are active.
-  TIMERSCOPE(isolate_, time_dart_execution);
+  TIMERSCOPE(thread, time_dart_execution);
 
   // If the message is in band we lookup the handler to dispatch to.  If the
   // receive port was closed, we drop the message without deserializing it.
   // Illegal port is a special case for artificially enqueued isolate library
   // messages which are handled in C++ code below.
-  Object& msg_handler = Object::Handle(I);
+  Object& msg_handler = Object::Handle(zone);
   if (!message->IsOOB() && (message->dest_port() != Message::kIllegalPort)) {
     msg_handler = DartLibraryCalls::LookupHandler(message->dest_port());
     if (msg_handler.IsError()) {
@@ -415,8 +420,8 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   // Parse the message.
   MessageSnapshotReader reader(message->data(),
                                message->len(),
-                               I, zone.GetZone());
-  const Object& msg_obj = Object::Handle(I, reader.ReadObject());
+                               I, zone);
+  const Object& msg_obj = Object::Handle(zone, reader.ReadObject());
   if (msg_obj.IsError()) {
     // An error occurred while reading the message.
     delete message;
@@ -431,7 +436,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
     UNREACHABLE();
   }
 
-  Instance& msg = Instance::Handle(I);
+  Instance& msg = Instance::Handle(zone);
   msg ^= msg_obj.raw();  // Can't use Instance::Cast because may be null.
 
   bool success = true;
@@ -442,7 +447,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
     if (msg.IsArray()) {
       const Array& oob_msg = Array::Cast(msg);
       if (oob_msg.Length() > 0) {
-        const Object& oob_tag = Object::Handle(I, oob_msg.At(0));
+        const Object& oob_tag = Object::Handle(zone, oob_msg.At(0));
         if (oob_tag.IsSmi()) {
           switch (Smi::Cast(oob_tag).Value()) {
             case Message::kServiceOOBMsg: {
@@ -471,7 +476,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
     if (msg.IsArray()) {
       const Array& msg_arr = Array::Cast(msg);
       if (msg_arr.Length() > 0) {
-        const Object& oob_tag = Object::Handle(I, msg_arr.At(0));
+        const Object& oob_tag = Object::Handle(zone, msg_arr.At(0));
         if (oob_tag.IsSmi() &&
             (Smi::Cast(oob_tag).Value() == Message::kDelayedIsolateLibOOBMsg)) {
           success = HandleLibMessage(Array::Cast(msg_arr));
@@ -479,7 +484,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
       }
     }
   } else {
-    const Object& result = Object::Handle(I,
+    const Object& result = Object::Handle(zone,
         DartLibraryCalls::HandleMessage(msg_handler, msg));
     if (result.IsError()) {
       success = ProcessUnhandledException(Error::Cast(result));
@@ -488,6 +493,15 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
     }
   }
   delete message;
+  if (success) {
+    const Object& result =
+        Object::Handle(zone, I->InvokePendingServiceExtensionCalls());
+    if (result.IsError()) {
+      success = ProcessUnhandledException(Error::Cast(result));
+    } else {
+      ASSERT(result.IsNull());
+    }
+  }
   return success;
 }
 
@@ -499,6 +513,9 @@ void IsolateMessageHandler::NotifyPauseOnStart() {
     HandleScope handle_scope(I);
     ServiceEvent pause_event(isolate(), ServiceEvent::kPauseStart);
     Service::HandleEvent(&pause_event);
+  } else if (FLAG_trace_service) {
+    OS::Print("vm-service: Dropping event of type PauseStart (%s)\n",
+              isolate()->name());
   }
 }
 
@@ -510,6 +527,9 @@ void IsolateMessageHandler::NotifyPauseOnExit() {
     HandleScope handle_scope(I);
     ServiceEvent pause_event(isolate(), ServiceEvent::kPauseExit);
     Service::HandleEvent(&pause_event);
+  } else if (FLAG_trace_service) {
+    OS::Print("vm-service: Dropping event of type PauseExit (%s)\n",
+              isolate()->name());
   }
 }
 
@@ -569,10 +589,14 @@ bool IsolateMessageHandler::ProcessUnhandledException(const Error& result) {
   } else {
     exc_str = String::New(result.ToErrorCString());
   }
-  I->NotifyErrorListeners(exc_str, stacktrace_str);
+  bool has_listener = I->NotifyErrorListeners(exc_str, stacktrace_str);
 
   if (I->ErrorsFatal()) {
-    I->object_store()->set_sticky_error(result);
+    if (has_listener) {
+      I->object_store()->clear_sticky_error();
+    } else {
+      I->object_store()->set_sticky_error(result);
+    }
     return false;
   }
   return true;
@@ -653,11 +677,11 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       debugger_(NULL),
       single_step_(false),
       resume_request_(false),
+      last_resume_timestamp_(OS::GetCurrentTimeMillis()),
       has_compiled_(false),
       flags_(),
       random_(),
       simulator_(NULL),
-      long_jump_base_(NULL),
       timer_list_(),
       deopt_id_(0),
       mutex_(new Mutex()),
@@ -683,14 +707,14 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       last_allocationprofile_gc_timestamp_(0),
       object_id_ring_(NULL),
       trace_buffer_(NULL),
-      timeline_event_recorder_(NULL),
       profiler_data_(NULL),
-      thread_state_(NULL),
       tag_table_(GrowableObjectArray::null()),
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
       collected_closures_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
+      pending_service_extension_calls_(GrowableObjectArray::null()),
+      registered_service_extension_handlers_(GrowableObjectArray::null()),
       metrics_list_head_(NULL),
       compilation_allowed_(true),
       cha_(NULL),
@@ -734,7 +758,6 @@ Isolate::~Isolate() {
     delete compiler_stats_;
     compiler_stats_ = NULL;
   }
-  RemoveTimelineEventRecorder();
   delete thread_registry_;
 }
 
@@ -765,11 +788,11 @@ Isolate* Isolate::Init(const char* name_prefix,
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_INIT);
 #undef ISOLATE_METRIC_INIT
 
-  const bool force_streams = FLAG_timeline_trace_dir != NULL;
-
   // Initialize Timeline streams.
 #define ISOLATE_TIMELINE_STREAM_INIT(name, enabled_by_default)                 \
-  result->stream_##name##_.Init(#name, force_streams || enabled_by_default);
+  result->stream_##name##_.Init(#name,                                         \
+                                Timeline::EnableStreamByDefault(#name) ||      \
+                                enabled_by_default);
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_INIT);
 #undef ISOLATE_TIMELINE_STREAM_INIT
 
@@ -1011,6 +1034,10 @@ bool Isolate::MakeRunnable() {
     event->Instant("Runnable");
     event->Complete();
   }
+  if (Service::isolate_stream.enabled()) {
+    ServiceEvent runnableEvent(this, ServiceEvent::kIsolateRunnable);
+    Service::HandleEvent(&runnableEvent);
+  }
   return true;
 }
 
@@ -1204,11 +1231,11 @@ void Isolate::RemoveErrorListener(const SendPort& listener) {
 }
 
 
-void Isolate::NotifyErrorListeners(const String& msg,
+bool Isolate::NotifyErrorListeners(const String& msg,
                                    const String& stacktrace) {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
       this, this->object_store()->error_listeners());
-  if (listeners.IsNull()) return;
+  if (listeners.IsNull()) return false;
 
   const Array& arr = Array::Handle(this, Array::New(2));
   arr.SetAt(0, msg);
@@ -1225,6 +1252,7 @@ void Isolate::NotifyErrorListeners(const String& msg,
       PortMap::PostMessage(msg);
     }
   }
+  return listeners.Length() > 0;
 }
 
 
@@ -1473,11 +1501,6 @@ void Isolate::Shutdown() {
 
     // Write out the coverage data if collection has been enabled.
     CodeCoverage::Write(this);
-
-    if ((timeline_event_recorder_ != NULL) &&
-        (FLAG_timeline_trace_dir != NULL)) {
-      timeline_event_recorder_->WriteTo(FLAG_timeline_trace_dir);
-    }
   }
 
   // Remove this isolate from the list *before* we start tearing it down, to
@@ -1535,6 +1558,15 @@ void Isolate::Shutdown() {
       Symbols::DumpStats();
       OS::Print("[-] Stopping isolate:\n"
                 "\tisolate:    %s\n", name());
+    }
+    if (FLAG_print_metrics) {
+      LogBlock lb(this);
+      ISL_Print("Printing metrics for %s\n", name());
+#define ISOLATE_METRIC_PRINT(type, variable, name, unit)                       \
+  ISL_Print("%s\n", metric_##variable##_.ToString());
+  ISOLATE_METRIC_LIST(ISOLATE_METRIC_PRINT);
+#undef ISOLATE_METRIC_PRINT
+      ISL_Print("\n");
     }
   }
 
@@ -1599,14 +1631,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit objects in isolate specific handles area.
   reusable_handles_.VisitObjectPointers(visitor);
 
-  // Iterate over all the stack frames and visit objects on the stack.
-  StackFrameIterator frames_iterator(validate_frames);
-  StackFrame* frame = frames_iterator.NextFrame();
-  while (frame != NULL) {
-    frame->VisitObjectPointers(visitor);
-    frame = frames_iterator.NextFrame();
-  }
-
   // Visit the dart api state for all local and persistent handles.
   if (api_state() != NULL) {
     api_state()->VisitObjectPointers(visitor, visit_prologue_weak_handles);
@@ -1628,6 +1652,14 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&deoptimized_code_array_));
 
+  // Visit the pending service extension calls.
+  visitor->VisitPointer(
+      reinterpret_cast<RawObject**>(&pending_service_extension_calls_));
+
+  // Visit the registered service extension handlers.
+  visitor->VisitPointer(
+      reinterpret_cast<RawObject**>(&registered_service_extension_handlers_));
+
   // Visit objects in the debugger.
   debugger()->VisitObjectPointers(visitor);
 
@@ -1636,8 +1668,8 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     deopt_context()->VisitObjectPointers(visitor);
   }
 
-  // Visit objects in thread registry (e.g., handles in zones).
-  thread_registry()->VisitObjectPointers(visitor);
+  // Visit objects in thread registry (e.g., Dart stack, handles in zones).
+  thread_registry()->VisitObjectPointers(visitor, validate_frames);
 }
 
 
@@ -1656,21 +1688,6 @@ void Isolate::VisitPrologueWeakPersistentHandles(HandleVisitor* visitor) {
 }
 
 
-void Isolate::SetTimelineEventRecorder(
-    TimelineEventRecorder* timeline_event_recorder) {
-#define ISOLATE_TIMELINE_STREAM_SET_BUFFER(name, enabled_by_default)           \
-  stream_##name##_.set_recorder(timeline_event_recorder);
-  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_SET_BUFFER)
-#undef ISOLATE_TIMELINE_STREAM_SET_BUFFER
-  timeline_event_recorder_ = timeline_event_recorder;
-}
-
-void Isolate::RemoveTimelineEventRecorder() {
-  delete timeline_event_recorder_;
-  SetTimelineEventRecorder(NULL);
-}
-
-
 void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
@@ -1684,7 +1701,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     return;
   }
   int64_t start_time_millis = start_time() / kMicrosecondsPerMillisecond;
-  jsobj.AddProperty64("startTime", start_time_millis);
+  jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
   IsolateSpawnState* state = spawn_state();
   if (state != NULL) {
     const Object& entry = Object::Handle(this, state->ResolveFunction());
@@ -1711,7 +1728,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     ASSERT(debugger()->PauseEvent() == NULL);
     ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
     jsobj.AddProperty("pauseEvent", &pause_event);
-  } else if (debugger()->PauseEvent() != NULL) {
+  } else if (debugger()->PauseEvent() != NULL && !resume_request_) {
     ServiceEvent pause_event(debugger()->PauseEvent());
     jsobj.AddProperty("pauseEvent", &pause_event);
   } else {
@@ -1727,7 +1744,9 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 
   const Library& lib =
       Library::Handle(object_store()->root_library());
-  jsobj.AddProperty("rootLib", lib);
+  if (!lib.IsNull()) {
+    jsobj.AddProperty("rootLib", lib);
+  }
 
   timer_list().PrintTimersToJSONProperty(&jsobj);
   {
@@ -1859,6 +1878,169 @@ void Isolate::TrackDeoptimizedCode(const Code& code) {
   // TODO(johnmccutchan): Scan this array and the isolate's profile before
   // old space GC and remove the keep_code flag.
   deoptimized_code.Add(code);
+}
+
+
+void Isolate::set_pending_service_extension_calls(
+      const GrowableObjectArray& value) {
+  pending_service_extension_calls_ = value.raw();
+}
+
+
+void Isolate::set_registered_service_extension_handlers(
+    const GrowableObjectArray& value) {
+  registered_service_extension_handlers_ = value.raw();
+}
+
+
+RawObject* Isolate::InvokePendingServiceExtensionCalls() {
+  GrowableObjectArray& calls =
+      GrowableObjectArray::Handle(GetAndClearPendingServiceExtensionCalls());
+  if (calls.IsNull()) {
+    return Object::null();
+  }
+  // Grab run function.
+  const Library& developer_lib = Library::Handle(Library::DeveloperLibrary());
+  ASSERT(!developer_lib.IsNull());
+  const Function& run_extension = Function::Handle(
+      developer_lib.LookupLocalFunction(Symbols::_runExtension()));
+  ASSERT(!run_extension.IsNull());
+
+  const Array& arguments =
+      Array::Handle(Array::New(kPendingEntrySize, Heap::kNew));
+  Object& result = Object::Handle();
+  String& method_name = String::Handle();
+  Instance& closure = Instance::Handle();
+  Array& parameter_keys = Array::Handle();
+  Array& parameter_values = Array::Handle();
+  Instance& reply_port = Instance::Handle();
+  Instance& id = Instance::Handle();
+  for (intptr_t i = 0; i < calls.Length(); i += kPendingEntrySize) {
+    // Grab arguments for call.
+    closure ^= calls.At(i + kPendingHandlerIndex);
+    ASSERT(!closure.IsNull());
+    arguments.SetAt(kPendingHandlerIndex, closure);
+    method_name ^= calls.At(i + kPendingMethodNameIndex);
+    ASSERT(!method_name.IsNull());
+    arguments.SetAt(kPendingMethodNameIndex, method_name);
+    parameter_keys ^= calls.At(i + kPendingKeysIndex);
+    ASSERT(!parameter_keys.IsNull());
+    arguments.SetAt(kPendingKeysIndex, parameter_keys);
+    parameter_values ^= calls.At(i + kPendingValuesIndex);
+    ASSERT(!parameter_values.IsNull());
+    arguments.SetAt(kPendingValuesIndex, parameter_values);
+    reply_port ^= calls.At(i + kPendingReplyPortIndex);
+    ASSERT(!reply_port.IsNull());
+    arguments.SetAt(kPendingReplyPortIndex, reply_port);
+    id ^= calls.At(i + kPendingIdIndex);
+    arguments.SetAt(kPendingIdIndex, id);
+
+    result = DartEntry::InvokeFunction(run_extension, arguments);
+    if (result.IsError()) {
+      if (result.IsUnwindError()) {
+        // Propagate the unwind error. Remaining service extension calls
+        // are dropped.
+        return result.raw();
+      } else {
+        // Send error back over the protocol.
+        Service::PostError(method_name,
+                           parameter_keys,
+                           parameter_values,
+                           reply_port,
+                           id,
+                           Error::Cast(result));
+      }
+    }
+    result = DartLibraryCalls::DrainMicrotaskQueue();
+    if (result.IsError()) {
+      return result.raw();
+    }
+  }
+  return Object::null();
+}
+
+
+RawGrowableObjectArray* Isolate::GetAndClearPendingServiceExtensionCalls() {
+  RawGrowableObjectArray* r = pending_service_extension_calls_;
+  pending_service_extension_calls_ = GrowableObjectArray::null();
+  return r;
+}
+
+
+void Isolate::AppendServiceExtensionCall(const Instance& closure,
+                                         const String& method_name,
+                                         const Array& parameter_keys,
+                                         const Array& parameter_values,
+                                         const Instance& reply_port,
+                                         const Instance& id) {
+  GrowableObjectArray& calls =
+      GrowableObjectArray::Handle(pending_service_extension_calls());
+  if (calls.IsNull()) {
+    calls ^= GrowableObjectArray::New();
+    ASSERT(!calls.IsNull());
+    set_pending_service_extension_calls(calls);
+  }
+  ASSERT(kPendingHandlerIndex == 0);
+  calls.Add(closure);
+  ASSERT(kPendingMethodNameIndex == 1);
+  calls.Add(method_name);
+  ASSERT(kPendingKeysIndex == 2);
+  calls.Add(parameter_keys);
+  ASSERT(kPendingValuesIndex == 3);
+  calls.Add(parameter_values);
+  ASSERT(kPendingReplyPortIndex == 4);
+  calls.Add(reply_port);
+  ASSERT(kPendingIdIndex == 5);
+  calls.Add(id);
+}
+
+
+// This function is written in C++ and not Dart because we must do this
+// operation atomically in the face of random OOB messages. Do not port
+// to Dart code unless you can ensure that the operations will can be
+// done atomically.
+void Isolate::RegisterServiceExtensionHandler(const String& name,
+                                              const Instance& closure) {
+  GrowableObjectArray& handlers =
+      GrowableObjectArray::Handle(registered_service_extension_handlers());
+  if (handlers.IsNull()) {
+    handlers ^= GrowableObjectArray::New(Heap::kOld);
+    set_registered_service_extension_handlers(handlers);
+  }
+#if defined(DEBUG)
+  {
+    // Sanity check.
+    const Instance& existing_handler =
+        Instance::Handle(LookupServiceExtensionHandler(name));
+    ASSERT(existing_handler.IsNull());
+  }
+#endif
+  ASSERT(kRegisteredNameIndex == 0);
+  handlers.Add(name, Heap::kOld);
+  ASSERT(kRegisteredHandlerIndex == 1);
+  handlers.Add(closure, Heap::kOld);
+}
+
+
+// This function is written in C++ and not Dart because we must do this
+// operation atomically in the face of random OOB messages. Do not port
+// to Dart code unless you can ensure that the operations will can be
+// done atomically.
+RawInstance* Isolate::LookupServiceExtensionHandler(const String& name) {
+  const GrowableObjectArray& handlers =
+      GrowableObjectArray::Handle(registered_service_extension_handlers());
+  if (handlers.IsNull()) {
+    return Instance::null();
+  }
+  String& handler_name = String::Handle();
+  for (intptr_t i = 0; i < handlers.Length(); i += kRegisteredEntrySize) {
+    handler_name ^= handlers.At(i + kRegisteredNameIndex);
+    ASSERT(!handler_name.IsNull());
+    if (handler_name.Equals(name)) {
+      return Instance::RawCast(handlers.At(i + kRegisteredHandlerIndex));
+    }
+  }
+  return Instance::null();
 }
 
 

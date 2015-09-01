@@ -81,33 +81,22 @@ void Assembler::call(const ExternalLabel* label) {
 }
 
 
-void Assembler::CallPatchable(const ExternalLabel* label) {
+void Assembler::CallPatchable(const StubEntry& stub_entry) {
   ASSERT(constant_pool_allowed());
   intptr_t call_start = buffer_.GetPosition();
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(label, kPatchable));
+      object_pool_wrapper_.FindExternalLabel(&stub_entry.label(), kPatchable));
   call(Address::AddressBaseImm32(PP, offset - kHeapObjectTag));
   ASSERT((buffer_.GetPosition() - call_start) == kCallExternalLabelSize);
 }
 
 
-void Assembler::Call(const ExternalLabel* label) {
+void Assembler::Call(const StubEntry& stub_entry) {
   ASSERT(constant_pool_allowed());
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(label, kNotPatchable));
+      object_pool_wrapper_.FindExternalLabel(&stub_entry.label(),
+                                             kNotPatchable));
   call(Address::AddressBaseImm32(PP, offset - kHeapObjectTag));
-}
-
-
-void Assembler::CallPatchable(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  CallPatchable(&label);
-}
-
-
-void Assembler::Call(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  Call(&label);
 }
 
 
@@ -2544,29 +2533,13 @@ void Assembler::j(Condition condition, Label* label, bool near) {
 }
 
 
-void Assembler::j(Condition condition, const ExternalLabel* label) {
-  Label no_jump;
-  // Negate condition.
-  j(static_cast<Condition>(condition ^ 1), &no_jump, Assembler::kNearJump);
-  jmp(label);
-  Bind(&no_jump);
-}
-
-
-void Assembler::J(Condition condition, const ExternalLabel* label,
-                  Register pp) {
-  Label no_jump;
-  // Negate condition.
-  j(static_cast<Condition>(condition ^ 1), &no_jump, Assembler::kNearJump);
-  Jmp(label, pp);
-  Bind(&no_jump);
-}
-
-
 void Assembler::J(Condition condition, const StubEntry& stub_entry,
                   Register pp) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  J(condition, &label, pp);
+  Label no_jump;
+  // Negate condition.
+  j(static_cast<Condition>(condition ^ 1), &no_jump, Assembler::kNearJump);
+  Jmp(stub_entry, pp);
+  Bind(&no_jump);
 }
 
 
@@ -2626,39 +2599,27 @@ void Assembler::jmp(const ExternalLabel* label) {
 
 
 void Assembler::jmp(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  jmp(&label);
+  jmp(&stub_entry.label());
 }
 
 
-void Assembler::JmpPatchable(const ExternalLabel* label, Register pp) {
+void Assembler::JmpPatchable(const StubEntry& stub_entry, Register pp) {
   ASSERT((pp != PP) || constant_pool_allowed());
   intptr_t call_start = buffer_.GetPosition();
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(label, kPatchable));
+      object_pool_wrapper_.FindExternalLabel(&stub_entry.label(), kPatchable));
   // Patchable jumps always use a 32-bit immediate encoding.
   jmp(Address::AddressBaseImm32(pp, offset - kHeapObjectTag));
   ASSERT((buffer_.GetPosition() - call_start) == JumpPattern::kLengthInBytes);
 }
 
 
-void Assembler::JmpPatchable(const StubEntry& stub_entry, Register pp) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  JmpPatchable(&label, pp);
-}
-
-
-void Assembler::Jmp(const ExternalLabel* label, Register pp) {
+void Assembler::Jmp(const StubEntry& stub_entry, Register pp) {
   ASSERT((pp != PP) || constant_pool_allowed());
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(label, kNotPatchable));
+      object_pool_wrapper_.FindExternalLabel(&stub_entry.label(),
+                                             kNotPatchable));
   jmp(Address(pp, offset - kHeapObjectTag));
-}
-
-
-void Assembler::Jmp(const StubEntry& stub_entry, Register pp) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  Jmp(&label, pp);
 }
 
 
@@ -3356,7 +3317,7 @@ void Assembler::PopRegisters(intptr_t cpu_register_set,
 
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
-  EnterFrame(0);
+  EnterStubFrame();
 
   // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
   PushRegisters(CallingConventions::kVolatileCpuRegisters,
@@ -3376,23 +3337,15 @@ void Assembler::LeaveCallRuntimeFrame() {
       RegisterSet::RegisterCount(CallingConventions::kVolatileXmmRegisters);
   const intptr_t kPushedRegistersSize =
       kPushedCpuRegistersCount * kWordSize +
-      kPushedXmmRegistersCount * kFpuRegisterSize;
+      kPushedXmmRegistersCount * kFpuRegisterSize +
+      2 * kWordSize;  // PP, pc marker from EnterStubFrame
   leaq(RSP, Address(RBP, -kPushedRegistersSize));
 
   // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
   PopRegisters(CallingConventions::kVolatileCpuRegisters,
                CallingConventions::kVolatileXmmRegisters);
 
-  leave();
-}
-
-
-void Assembler::CallCFunction(const ExternalLabel* label) {
-  // Reserve shadow space for outgoing arguments.
-  if (CallingConventions::kShadowSpaceBytes != 0) {
-    subq(RSP, Immediate(CallingConventions::kShadowSpaceBytes));
-  }
-  call(label);
+  LeaveStubFrame();
 }
 
 
@@ -3424,9 +3377,9 @@ void Assembler::LoadPoolPointer(Register pp) {
 }
 
 
-void Assembler::EnterDartFrameWithInfo(intptr_t frame_size,
-                                       Register new_pp,
-                                       Register pc_marker_override) {
+void Assembler::EnterDartFrame(intptr_t frame_size,
+                               Register new_pp,
+                               Register pc_marker_override) {
   ASSERT(!constant_pool_allowed());
   EnterFrame(0);
   pushq(pc_marker_override);
@@ -3440,9 +3393,6 @@ void Assembler::EnterDartFrameWithInfo(intptr_t frame_size,
 
 
 void Assembler::LeaveDartFrame() {
-  // LeaveDartFrame is called from stubs (pp disallowed) and from Dart code (pp
-  // allowed), so there is no point in checking the current value of
-  // constant_pool_allowed().
   set_constant_pool_allowed(false);
   // Restore caller's PP register that was pushed in EnterDartFrame.
   movq(PP, Address(RBP, (kSavedCallerPpSlotFromFp * kWordSize)));
@@ -3482,10 +3432,7 @@ void Assembler::EnterStubFrame() {
 
 
 void Assembler::LeaveStubFrame() {
-  set_constant_pool_allowed(false);
-  // Restore caller's PP register that was pushed in EnterStubFrame.
-  movq(PP, Address(RBP, (kSavedCallerPpSlotFromFp * kWordSize)));
-  LeaveFrame();
+  LeaveDartFrame();
 }
 
 

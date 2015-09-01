@@ -279,10 +279,8 @@ class LocalScope : public ZoneAllocated {
   // Returns NULL if this scope is not embedded in a switch.
   LocalScope* LookupSwitchScope();
 
-  // Looks up variable in this scope and mark as captured if applicable.
-  // Finds the variable even if it is marked invisible. Returns true if
-  // the variable was found, false if it was not found.
-  bool CaptureVariable(const String& name);
+  // Mark this variable as captured by this scope.
+  void CaptureVariable(LocalVariable* variable);
 
   // Look for unresolved forward references to labels in this scope.
   // If there are any, propagate the forward reference to the next
@@ -328,7 +326,6 @@ class LocalScope : public ZoneAllocated {
   // Create a ContextScope object describing all captured variables referenced
   // from this scope and belonging to outer scopes.
   RawContextScope* PreserveOuterScope(int current_context_level) const;
-
 
   // Recursively traverses all siblings and children and marks all variables as
   // captured.

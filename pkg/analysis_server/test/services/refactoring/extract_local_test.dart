@@ -13,10 +13,11 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'abstract_refactoring.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(ExtractLocalTest);
 }
 
@@ -35,7 +36,8 @@ main() {
     // conflicting name
     RefactoringStatus status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.WARNING,
-        expectedMessage: "A variable with name 'res' is already defined in the visible scope.");
+        expectedMessage:
+            "A variable with name 'res' is already defined in the visible scope.");
   }
 
   test_checkFinalConditions_sameVariable_before() async {
@@ -49,7 +51,8 @@ main() {
     // conflicting name
     RefactoringStatus status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.WARNING,
-        expectedMessage: "A variable with name 'res' is already defined in the visible scope.");
+        expectedMessage:
+            "A variable with name 'res' is already defined in the visible scope.");
   }
 
   test_checkInitialConditions_assignmentLeftHandSize() async {
@@ -127,7 +130,8 @@ int a = 1 + 2;
     // check conditions
     RefactoringStatus status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Expression inside of function must be selected to activate this refactoring.');
+        expectedMessage:
+            'Expression inside of function must be selected to activate this refactoring.');
   }
 
   test_checkInitialConditions_stringSelection_leadingQuote() async {
@@ -140,7 +144,8 @@ main() {
     // check conditions
     RefactoringStatus status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Cannot extract only leading or trailing quote of string literal.');
+        expectedMessage:
+            'Cannot extract only leading or trailing quote of string literal.');
   }
 
   test_checkInitialConditions_stringSelection_trailingQuote() async {
@@ -153,7 +158,8 @@ main() {
     // check conditions
     RefactoringStatus status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Cannot extract only leading or trailing quote of string literal.');
+        expectedMessage:
+            'Cannot extract only leading or trailing quote of string literal.');
   }
 
   test_checkLocalName() {
@@ -933,7 +939,8 @@ main() {
   Future _assertInitialConditions_fatal_selection() async {
     RefactoringStatus status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Expression must be selected to activate this refactoring.');
+        expectedMessage:
+            'Expression must be selected to activate this refactoring.');
   }
 
   /**

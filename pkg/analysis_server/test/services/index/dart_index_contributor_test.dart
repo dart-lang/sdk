@@ -17,9 +17,10 @@ import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(DartUnitContributorTest);
 }
 
@@ -43,8 +44,10 @@ bool _equalsLocationProperties(LocationImpl actual, Element expectedElement,
       isResolved == actual.isResolved;
 }
 
-bool _equalsRecordedRelation(RecordedRelation recordedRelation,
-    IndexableObject expectedIndexable, RelationshipImpl expectedRelationship,
+bool _equalsRecordedRelation(
+    RecordedRelation recordedRelation,
+    IndexableObject expectedIndexable,
+    RelationshipImpl expectedRelationship,
     ExpectedLocation expectedLocation) {
   return expectedIndexable == recordedRelation.indexable &&
       (expectedRelationship == null ||
@@ -67,8 +70,8 @@ class DartUnitContributorTest extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     when(store.aboutToIndexDart(context, anyObject)).thenReturn(true);
-    when(store.recordRelationship(anyObject, anyObject, anyObject))
-        .thenInvoke((IndexableObject indexable, RelationshipImpl relationship,
+    when(store.recordRelationship(anyObject, anyObject, anyObject)).thenInvoke(
+        (IndexableObject indexable, RelationshipImpl relationship,
             LocationImpl location) {
       recordedRelations
           .add(new RecordedRelation(indexable, relationship, location));
@@ -161,7 +164,8 @@ class A {
     Element methodElement = findElement("m");
     Element nameElement = new NameElement("m");
     // verify
-    _assertRecordedRelationForElement(nameElement,
+    _assertRecordedRelationForElement(
+        nameElement,
         IndexConstants.NAME_IS_DEFINED_BY,
         _expectedLocation(methodElement, 'm() {}'));
   }
@@ -175,7 +179,8 @@ class A {
     Element methodElement = findElement("+");
     Element nameElement = new NameElement("+");
     // verify
-    _assertRecordedRelationForElement(nameElement,
+    _assertRecordedRelationForElement(
+        nameElement,
         IndexConstants.NAME_IS_DEFINED_BY,
         _expectedLocation(methodElement, '+(o) {}', length: 1));
   }
@@ -189,7 +194,8 @@ class B extends A {} // 2
     ClassElement classElementA = findElement("A");
     ClassElement classElementB = findElement("B");
     // verify
-    _assertRecordedRelationForElement(classElementA,
+    _assertRecordedRelationForElement(
+        classElementA,
         IndexConstants.IS_EXTENDED_BY,
         _expectedLocation(classElementB, 'A {} // 2'));
   }
@@ -202,7 +208,8 @@ class A {} // 1
     ClassElement classElementA = findElement("A");
     ClassElement classElementObject = classElementA.supertype.element;
     // verify
-    _assertRecordedRelationForElement(classElementObject,
+    _assertRecordedRelationForElement(
+        classElementObject,
         IndexConstants.IS_EXTENDED_BY,
         _expectedLocation(classElementA, 'A {}', length: 0));
   }
@@ -217,7 +224,8 @@ class C = A with B; // 3
     ClassElement classElementA = findElement("A");
     ClassElement classElementC = findElement("C");
     // verify
-    _assertRecordedRelationForElement(classElementA,
+    _assertRecordedRelationForElement(
+        classElementA,
         IndexConstants.IS_EXTENDED_BY,
         _expectedLocation(classElementC, 'A with'));
   }
@@ -231,7 +239,8 @@ class B implements A {} // 2
     ClassElement classElementA = findElement("A");
     ClassElement classElementB = findElement("B");
     // verify
-    _assertRecordedRelationForElement(classElementA,
+    _assertRecordedRelationForElement(
+        classElementA,
         IndexConstants.IS_IMPLEMENTED_BY,
         _expectedLocation(classElementB, 'A {} // 2'));
   }
@@ -246,7 +255,8 @@ class C = Object with A implements B; // 3
     ClassElement classElementB = findElement("B");
     ClassElement classElementC = findElement("C");
     // verify
-    _assertRecordedRelationForElement(classElementB,
+    _assertRecordedRelationForElement(
+        classElementB,
         IndexConstants.IS_IMPLEMENTED_BY,
         _expectedLocation(classElementC, 'B; // 3'));
   }
@@ -273,7 +283,9 @@ class A {
   }
 
   void test_isInvokedBy_FunctionElement() {
-    addSource('/lib.dart', '''
+    addSource(
+        '/lib.dart',
+        '''
 library lib;
 foo() {}
 ''');
@@ -343,7 +355,8 @@ main() {
     Element mainElement = findElement("main");
     Element methodElement = findElement("foo");
     // verify
-    _assertRecordedRelationForElement(methodElement,
+    _assertRecordedRelationForElement(
+        methodElement,
         IndexConstants.IS_INVOKED_BY,
         _expectedLocationQ(mainElement, 'foo();'));
   }
@@ -393,7 +406,8 @@ main(A a) {
     // verify
     _assertRecordedRelationForElement(readElement, IndexConstants.IS_INVOKED_BY,
         _expectedLocationQ(mainElement, '[0]', length: 1));
-    _assertRecordedRelationForElement(writeElement,
+    _assertRecordedRelationForElement(
+        writeElement,
         IndexConstants.IS_INVOKED_BY,
         _expectedLocationQ(mainElement, '[1] =', length: 1));
   }
@@ -437,7 +451,8 @@ class B extends Object with A {} // 2
     ClassElement classElementA = findElement("A");
     ClassElement classElementB = findElement("B");
     // verify
-    _assertRecordedRelationForElement(classElementA,
+    _assertRecordedRelationForElement(
+        classElementA,
         IndexConstants.IS_MIXED_IN_BY,
         _expectedLocation(classElementB, 'A {} // 2'));
   }
@@ -451,7 +466,8 @@ class B = Object with A; // 2
     ClassElement classElementA = findElement("A");
     ClassElement classElementB = findElement("B");
     // verify
-    _assertRecordedRelationForElement(classElementA,
+    _assertRecordedRelationForElement(
+        classElementA,
         IndexConstants.IS_MIXED_IN_BY,
         _expectedLocation(classElementB, 'A; // 2'));
   }
@@ -495,7 +511,8 @@ main(int p) {
     Element mainElement = findElement("main");
     Element parameterElement = findElement("p");
     // verify
-    _assertRecordedRelationForElement(parameterElement,
+    _assertRecordedRelationForElement(
+        parameterElement,
         IndexConstants.IS_READ_WRITTEN_BY,
         _expectedLocation(mainElement, 'p += 1'));
   }
@@ -511,7 +528,8 @@ main() {
     Element mainElement = findElement("main");
     Element variableElement = findElement("v");
     // verify
-    _assertRecordedRelationForElement(variableElement,
+    _assertRecordedRelationForElement(
+        variableElement,
         IndexConstants.IS_READ_WRITTEN_BY,
         _expectedLocation(mainElement, 'v += 1'));
   }
@@ -568,7 +586,9 @@ main(B p) {
   }
 
   void test_isReferencedBy_CompilationUnitElement_export() {
-    addSource('/lib.dart', '''
+    addSource(
+        '/lib.dart',
+        '''
 library lib;
 ''');
     _indexTestUnit('''
@@ -578,13 +598,16 @@ export 'lib.dart';
     LibraryElement libElement = testLibraryElement.exportedLibraries[0];
     CompilationUnitElement libUnitElement = libElement.definingCompilationUnit;
     // verify
-    _assertRecordedRelationForElement(libUnitElement,
+    _assertRecordedRelationForElement(
+        libUnitElement,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(testUnitElement, "'lib.dart'", length: 10));
   }
 
   void test_isReferencedBy_CompilationUnitElement_import() {
-    addSource('/lib.dart', '''
+    addSource(
+        '/lib.dart',
+        '''
 library lib;
 ''');
     _indexTestUnit('''
@@ -594,7 +617,8 @@ import 'lib.dart';
     LibraryElement libElement = testLibraryElement.imports[0].importedLibrary;
     CompilationUnitElement libUnitElement = libElement.definingCompilationUnit;
     // verify
-    _assertRecordedRelationForElement(libUnitElement,
+    _assertRecordedRelationForElement(
+        libUnitElement,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(testUnitElement, "'lib.dart'", length: 10));
   }
@@ -608,7 +632,8 @@ part 'my_unit.dart';
     // prepare elements
     CompilationUnitElement myUnitElement = testLibraryElement.parts[0];
     // verify
-    _assertRecordedRelationForElement(myUnitElement,
+    _assertRecordedRelationForElement(
+        myUnitElement,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(testUnitElement, "'my_unit.dart';", length: 14));
   }
@@ -678,9 +703,11 @@ main() {
     // verify
     _assertRecordedRelationForElement(consA, IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(mainElement, '(); // marker-main-1', length: 0));
-    _assertRecordedRelationForElement(consA_named,
-        IndexConstants.IS_REFERENCED_BY, _expectedLocation(
-            mainElement, '.named(); // marker-main-2', length: 6));
+    _assertRecordedRelationForElement(
+        consA_named,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(mainElement, '.named(); // marker-main-2',
+            length: 6));
   }
 
   void test_isReferencedBy_ConstructorElement_redirection() {
@@ -700,11 +727,13 @@ class A {
     ConstructorElement constructorA_bar =
         findNodeElementAtString("A.bar()", isConstructor);
     // A()
-    _assertRecordedRelationForElement(constructorA,
+    _assertRecordedRelationForElement(
+        constructorA,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(constructorA_foo, '(); // marker', length: 0));
     // A.foo()
-    _assertRecordedRelationForElement(constructorA_bar,
+    _assertRecordedRelationForElement(
+        constructorA_bar,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(constructorA, '.bar();', length: 4));
   }
@@ -743,7 +772,8 @@ main(A a) {
         _expectedLocationQ(mainElement, 'field = 2; // q'));
     _assertRecordedRelation(indexableGetter, IndexConstants.IS_REFERENCED_BY,
         _expectedLocationQ(mainElement, 'field); // q'));
-    _assertRecordedRelationForElement(fieldElement,
+    _assertRecordedRelationForElement(
+        fieldElement,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(mainElement, 'field: 3'));
   }
@@ -811,7 +841,9 @@ var myVariable = null;
   }
 
   void test_isReferencedBy_ImportElement_noPrefix() {
-    addSource('/lib.dart', '''
+    addSource(
+        '/lib.dart',
+        '''
 library lib;
 var myVar;
 myFunction() {}
@@ -846,11 +878,15 @@ main() {
   }
 
   void test_isReferencedBy_ImportElement_withPrefix() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 library libA;
 var myVar;
 ''');
-    addSource('/libB.dart', '''
+    addSource(
+        '/libB.dart',
+        '''
 library libB;
 class MyClass {}
 ''');
@@ -867,16 +903,20 @@ main() {
     ImportElement importElementB = testLibraryElement.imports[1];
     Element mainElement = findElement('main');
     // verify
-    _assertRecordedRelationForElement(importElementA,
+    _assertRecordedRelationForElement(
+        importElementA,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(mainElement, 'pref.myVar = 1;', length: 5));
-    _assertRecordedRelationForElement(importElementB,
+    _assertRecordedRelationForElement(
+        importElementB,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(mainElement, 'pref.MyClass();', length: 5));
   }
 
   void test_isReferencedBy_ImportElement_withPrefix_combinators() {
-    addSource('/lib.dart', '''
+    addSource(
+        '/lib.dart',
+        '''
 library lib;
 class A {}
 class B {}
@@ -896,16 +936,20 @@ main() {
     ImportElement importElementB = testLibraryElement.imports[1];
     Element mainElement = findElement('main');
     // verify
-    _assertRecordedRelationForElement(importElementA,
+    _assertRecordedRelationForElement(
+        importElementA,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(mainElement, 'pref.A();', length: 5));
-    _assertRecordedRelationForElement(importElementB,
+    _assertRecordedRelationForElement(
+        importElementB,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(mainElement, 'pref.B();', length: 5));
   }
 
   void test_isReferencedBy_ImportElement_withPrefix_invocation() {
-    addSource('/lib.dart', '''
+    addSource(
+        '/lib.dart',
+        '''
 library lib;
 myFunc() {}
 ''');
@@ -919,13 +963,16 @@ main() {
     ImportElement importElement = testLibraryElement.imports[0];
     Element mainElement = findElement('main');
     // verify
-    _assertRecordedRelationForElement(importElement,
+    _assertRecordedRelationForElement(
+        importElement,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(mainElement, 'pref.myFunc();', length: 5));
   }
 
   void test_isReferencedBy_ImportElement_withPrefix_oneCandidate() {
-    addSource('/lib.dart', '''
+    addSource(
+        '/lib.dart',
+        '''
 library lib;
 class A {}
 class B {}
@@ -940,14 +987,17 @@ main() {
     ImportElement importElement = testLibraryElement.imports[0];
     Element mainElement = findElement('main');
     // verify
-    _assertRecordedRelationForElement(importElement,
+    _assertRecordedRelationForElement(
+        importElement,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(mainElement, 'pref.A();', length: 5));
   }
 
   void test_isReferencedBy_ImportElement_withPrefix_unresolvedElement() {
     verifyNoTestUnitErrors = false;
-    addSource('/lib.dart', '''
+    addSource(
+        '/lib.dart',
+        '''
 library lib;
 ''');
     _indexTestUnit('''
@@ -994,7 +1044,9 @@ main() {
   }
 
   void test_isReferencedBy_libraryName() {
-    Source libSource = addSource('/lib.dart', '''
+    Source libSource = addSource(
+        '/lib.dart',
+        '''
 library lib;
 part 'test.dart';
 ''');
@@ -1005,7 +1057,8 @@ part 'test.dart';
     testLibraryElement = testUnitElement.library;
     indexDartUnit(store, context, testUnit);
     // verify
-    _assertRecordedRelationForElement(testLibraryElement,
+    _assertRecordedRelationForElement(
+        testLibraryElement,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(testUnitElement, "lib;"));
   }
@@ -1067,7 +1120,9 @@ main() {
   }
 
   void test_isReferencedBy_TopLevelVariableElement() {
-    addSource('/lib.dart', '''
+    addSource(
+        '/lib.dart',
+        '''
 library lib;
 var V;
 ''');
@@ -1107,7 +1162,8 @@ A myVariable = null;
     Element classElementA = findElement('A');
     Element variableElement = findElement('myVariable');
     // verify
-    _assertRecordedRelationForElement(classElementA,
+    _assertRecordedRelationForElement(
+        classElementA,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(variableElement, 'A myVariable'));
   }
@@ -1148,7 +1204,8 @@ class A {
     ConstructorElement constructorElement = classElement.constructors[0];
     FieldElement fieldElement = findElement("field");
     // verify
-    _assertRecordedRelationForElement(fieldElement,
+    _assertRecordedRelationForElement(
+        fieldElement,
         IndexConstants.IS_WRITTEN_BY,
         _expectedLocation(constructorElement, 'field = 5'));
   }
@@ -1164,7 +1221,8 @@ class A {
     FieldElement fieldElement = findElement("field");
     Element fieldParameterElement = findNodeElementAtString("field);");
     // verify
-    _assertRecordedRelationForElement(fieldElement,
+    _assertRecordedRelationForElement(
+        fieldElement,
         IndexConstants.IS_WRITTEN_BY,
         _expectedLocation(fieldParameterElement, 'field);'));
   }
@@ -1471,7 +1529,8 @@ main(A a, p) {
   /**
    * Asserts that [recordedRelations] has an item with the expected properties.
    */
-  LocationImpl _assertRecordedRelation(IndexableObject expectedIndexable,
+  LocationImpl _assertRecordedRelation(
+      IndexableObject expectedIndexable,
       RelationshipImpl expectedRelationship,
       ExpectedLocation expectedLocation) {
     for (RecordedRelation recordedRelation in recordedRelations) {
@@ -1480,16 +1539,17 @@ main(A a, p) {
         return recordedRelation.location;
       }
     }
-    fail(
-        "not found\n$expectedIndexable $expectedRelationship " "in $expectedLocation in\n" +
-            recordedRelations.join('\n'));
+    fail("not found\n$expectedIndexable $expectedRelationship "
+        "in $expectedLocation in\n" +
+        recordedRelations.join('\n'));
     return null;
   }
 
   /**
    * Asserts that [recordedRelations] has an item with the expected properties.
    */
-  LocationImpl _assertRecordedRelationForElement(Element expectedElement,
+  LocationImpl _assertRecordedRelationForElement(
+      Element expectedElement,
       RelationshipImpl expectedRelationship,
       ExpectedLocation expectedLocation) {
     return _assertRecordedRelation(new IndexableElement(expectedElement),
@@ -1499,7 +1559,8 @@ main(A a, p) {
   /**
    * Asserts that [recordedRelations] has an item with the expected properties.
    */
-  LocationImpl _assertRecordedRelationForName(String expectedName,
+  LocationImpl _assertRecordedRelationForName(
+      String expectedName,
       RelationshipImpl expectedRelationship,
       ExpectedLocation expectedLocation) {
     return _assertRecordedRelationForElement(
@@ -1568,7 +1629,8 @@ class RecordedRelation {
   @override
   String toString() {
     return 'RecordedRelation(indexable=$indexable; relationship=$relationship; '
-        'location=$location; flags=' '${location.isQualified ? "Q" : ""}'
+        'location=$location; flags='
+        '${location.isQualified ? "Q" : ""}'
         '${location.isResolved ? "R" : ""})';
   }
 }

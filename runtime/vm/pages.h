@@ -427,7 +427,7 @@ class PageSpace {
   Monitor* tasks_lock_;
   intptr_t tasks_;
 #if defined(DEBUG)
-  bool is_iterating_;
+  Thread* iterating_thread_;
 #endif
   PageSpaceController page_space_controller_;
 

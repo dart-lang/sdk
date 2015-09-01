@@ -9,10 +9,11 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'abstract_rename.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(RenameUnitMemberTest);
 }
 
@@ -42,7 +43,8 @@ typedef NewName(); // existing
     refactoring.newName = 'NewName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Library already declares function type alias with name 'NewName'.",
+        expectedMessage:
+            "Library already declares function type alias with name 'NewName'.",
         expectedContextSearch: 'NewName(); // existing');
   }
 
@@ -69,7 +71,9 @@ class B extends A {
     indexTestUnit('''
 class Test {}
 ''');
-    indexUnit('/lib.dart', '''
+    indexUnit(
+        '/lib.dart',
+        '''
 library my.lib;
 import 'test.dart';
 
@@ -100,7 +104,8 @@ class A {
     refactoring.newName = 'NewName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Reference to renamed class will be shadowed by method 'A.NewName'.",
+        expectedMessage:
+            "Reference to renamed class will be shadowed by method 'A.NewName'.",
         expectedContextSearch: 'NewName() {}');
   }
 
@@ -108,7 +113,9 @@ class A {
     indexTestUnit('''
 class Test {}
 ''');
-    indexUnit('/lib.dart', '''
+    indexUnit(
+        '/lib.dart',
+        '''
 library my.lib;
 import 'test.dart';
 class A {
@@ -132,7 +139,9 @@ class B extends A {
     indexTestUnit('''
 class Test {}
 ''');
-    indexUnit('/lib.dart', '''
+    indexUnit(
+        '/lib.dart',
+        '''
 library my.lib;
 import 'test.dart' hide Test;
 class A {
@@ -173,7 +182,9 @@ class B extends A {
   }
 
   test_checkFinalConditions_shadowsInSubClass_notImportedLib() async {
-    indexUnit('/lib.dart', '''
+    indexUnit(
+        '/lib.dart',
+        '''
 library my.lib;
 class A {
   NewName() {}
@@ -232,7 +243,8 @@ class Test {}
     refactoring.newName = 'Test';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "The new name must be different than the current name.");
+        expectedMessage:
+            "The new name must be different than the current name.");
     // OK
     refactoring.newName = 'NewName';
     assertRefactoringStatusOK(refactoring.checkNewName());

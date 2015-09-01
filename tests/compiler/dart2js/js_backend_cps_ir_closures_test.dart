@@ -86,10 +86,8 @@ main() {
 r"""
 function() {
   var a = null, i = 0;
-  while (i < 10) {
-    a = new V.main_closure(i);
-    i = i + 1;
-  }
+  for (; i < 10; a = new V.main_closure(i), i = i + 1)
+    ;
   P.print(a.call$0());
 }"""),
 
@@ -108,7 +106,7 @@ function() {
 }"""),
 
   const TestEntry("""
-staticMethod(x) => x;
+staticMethod(x) { print(x); return x; }
 main(x) {
   var tearOff = staticMethod;
   print(tearOff(123));

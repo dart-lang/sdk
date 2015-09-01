@@ -12,10 +12,11 @@ import 'package:analysis_server/src/services/completion/local_reference_contribu
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'completion_test_util.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(LocalReferenceContributorTest);
 }
 
@@ -57,7 +58,8 @@ class LocalReferenceContributorTest extends AbstractSelectorSuggestionTest {
   CompletionSuggestion assertSuggestLocalFunction(
       String name, String returnType,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      bool deprecated: false, int relevance: DART_RELEVANCE_LOCAL_FUNCTION}) {
+      bool deprecated: false,
+      int relevance: DART_RELEVANCE_LOCAL_FUNCTION}) {
     return assertSuggestFunction(name, returnType,
         kind: kind, deprecated: deprecated, relevance: relevance);
   }

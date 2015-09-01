@@ -662,6 +662,24 @@ class FlowGraphCompiler : public ValueObject {
   void FrameStateClear();
 #endif
 
+  // This struct contains either function or code, the other one being NULL.
+  class StaticCallsStruct : public ZoneAllocated {
+   public:
+    const intptr_t offset;
+    const Function* function;  // Can be NULL.
+    const Code* code;          // Can be NULL.
+    StaticCallsStruct(intptr_t offset_arg,
+                      const Function* function_arg,
+                      const Code* code_arg)
+        : offset(offset_arg), function(function_arg), code(code_arg) {
+      ASSERT((function == NULL) || function->IsZoneHandle());
+      ASSERT((code == NULL) || code->IsZoneHandle());
+    }
+
+   private:
+    DISALLOW_COPY_AND_ASSIGN(StaticCallsStruct);
+  };
+
   Isolate* isolate_;
   Zone* zone_;
   Assembler* assembler_;
@@ -683,11 +701,10 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<CompilerDeoptInfo*> deopt_infos_;
   GrowableArray<SlowPathCode*> slow_path_code_;
-  // Stores: [code offset, function or null, null(code)].
   // Stores static call targets as well as stub targets.
   // TODO(srdjan): Evaluate if we should store allocation stub targets into a
   // separate table?
-  const GrowableObjectArray& static_calls_target_table_;
+  GrowableArray<StaticCallsStruct*> static_calls_target_table_;
   const bool is_optimizing_;
   // Set to true if optimized code has IC calls.
   bool may_reoptimize_;

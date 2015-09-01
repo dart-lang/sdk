@@ -222,12 +222,11 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // R4: Arguments descriptor.
   // R0: Function.
   ASSERT(locs()->in(0).reg() == R0);
-  __ ldr(R2, FieldAddress(R0, Function::instructions_offset()));
+  __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
 
-  // R2: instructions.
+  // R2: instructions entry point.
   // R5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
   __ LoadImmediate(R5, 0);
-  __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
   __ blx(R2);
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the
@@ -938,31 +937,42 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Compute the effective address. When running under the simulator,
   // this is a redirection address that forces the simulator to call
   // into the runtime system.
-  uword entry = reinterpret_cast<uword>(native_c_function());
+  uword entry;
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
   const bool is_leaf_call =
     (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
-  const StubEntry* stub_entry = NULL;
-  if (is_bootstrap_native() || is_leaf_call) {
+  const StubEntry* stub_entry;
+  if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapCFunction_entry();
+    entry = reinterpret_cast<uword>(&NativeEntry::LinkNativeCall);
 #if defined(USING_SIMULATOR)
     entry = Simulator::RedirectExternalReference(
         entry, Simulator::kBootstrapNativeCall, function().NumParameters());
 #endif
   } else {
-    // In the case of non bootstrap native methods the CallNativeCFunction
-    // stub generates the redirection address when running under the simulator
-    // and hence we do not change 'entry' here.
-    stub_entry = StubCode::CallNativeCFunction_entry();
+    entry = reinterpret_cast<uword>(native_c_function());
+    if (is_bootstrap_native() || is_leaf_call) {
+      stub_entry = StubCode::CallBootstrapCFunction_entry();
 #if defined(USING_SIMULATOR)
-    if (!function().IsNativeAutoSetupScope()) {
       entry = Simulator::RedirectExternalReference(
           entry, Simulator::kBootstrapNativeCall, function().NumParameters());
-    }
 #endif
+    } else {
+      // In the case of non bootstrap native methods the CallNativeCFunction
+      // stub generates the redirection address when running under the simulator
+      // and hence we do not change 'entry' here.
+      stub_entry = StubCode::CallNativeCFunction_entry();
+#if defined(USING_SIMULATOR)
+      if (!function().IsNativeAutoSetupScope()) {
+        entry = Simulator::RedirectExternalReference(
+            entry, Simulator::kBootstrapNativeCall, function().NumParameters());
+      }
+#endif
+    }
   }
-  __ LoadImmediate(R5, entry);
   __ LoadImmediate(R1, argc_tag);
+  ExternalLabel label(entry);
+  __ LoadExternalLabel(R5, &label, link_lazily() ? kPatchable : kNotPatchable);
   compiler->GenerateCall(token_pos(),
                          *stub_entry,
                          RawPcDescriptors::kOther,
@@ -986,8 +996,9 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(compiler->is_optimizing());
   const Register char_code = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  __ LoadImmediate(result,
-                   reinterpret_cast<uword>(Symbols::PredefinedAddress()));
+
+  ExternalLabel label(reinterpret_cast<uword>(Symbols::PredefinedAddress()));
+  __ LoadExternalLabel(result, &label, kNotPatchable);
   __ AddImmediate(result, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ ldr(result, Address(result, char_code, LSL, 1));  // Char code is a smi.
 }
@@ -1811,16 +1822,14 @@ class BoxAllocationSlowPath : public SlowPathCode {
         result_(result) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    Isolate* isolate = compiler->isolate();
-
     if (Assembler::EmittingComments()) {
       __ Comment("%s slow path allocation of %s",
                  instruction_->DebugName(),
                  String::Handle(cls_.PrettyName()).ToCString());
     }
     __ Bind(entry_label());
-    const Code& stub =
-        Code::Handle(isolate, StubCode::GetAllocationStubForClass(cls_));
+    const Code& stub = Code::ZoneHandle(
+        compiler->zone(), StubCode::GetAllocationStubForClass(cls_));
     const StubEntry stub_entry(stub);
 
     LocationSummary* locs = instruction_->locs();
@@ -2393,8 +2402,8 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       return;
     }
   }
-  const Code& stub = Code::Handle(compiler->isolate(),
-                                  StubCode::AllocateArray_entry()->code());
+  const Code& stub = Code::ZoneHandle(compiler->zone(),
+                                      StubCode::AllocateArray_entry()->code());
   compiler->AddStubCallTarget(stub);
   compiler->GenerateCall(token_pos(),
                          *StubCode::AllocateArray_entry(),
@@ -2683,8 +2692,8 @@ class AllocateContextSlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
 
     __ LoadImmediate(R1, instruction_->num_context_variables());
-    const Code& stub = Code::Handle(compiler->isolate(),
-                                    StubCode::AllocateContext_entry()->code());
+    const Code& stub = Code::ZoneHandle(
+        compiler->zone(), StubCode::AllocateContext_entry()->code());
     compiler->AddStubCallTarget(stub);
     compiler->GenerateCall(instruction_->token_pos(),
                            *StubCode::AllocateContext_entry(),
@@ -6811,9 +6820,8 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
 
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Isolate* isolate = compiler->isolate();
-  const Code& stub = Code::Handle(isolate,
-                                  StubCode::GetAllocationStubForClass(cls()));
+  const Code& stub = Code::ZoneHandle(
+      compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
   const StubEntry stub_entry(stub);
   compiler->GenerateCall(token_pos(),
                          stub_entry,

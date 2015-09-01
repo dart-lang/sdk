@@ -18,9 +18,10 @@ import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
 import '../../abstract_single_unit.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(FixProcessorTest);
 }
 

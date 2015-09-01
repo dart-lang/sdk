@@ -2065,7 +2065,7 @@ int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
 
   if (!CanEncodeBranchOffset(offset)) {
     ASSERT(!use_far_branches());
-    Isolate::Current()->long_jump_base()->Jump(
+    Thread::Current()->long_jump_base()->Jump(
         1, Object::branch_offset_error());
   }
 
@@ -2678,43 +2678,26 @@ void Assembler::Vdivqs(QRegister qd, QRegister qn, QRegister qm) {
 }
 
 
-void Assembler::Branch(const ExternalLabel* label, Condition cond) {
-  LoadImmediate(IP, label->address(), cond);  // Address is never patched.
+void Assembler::Branch(const StubEntry& stub_entry, Condition cond) {
+  // Address is never patched.
+  LoadImmediate(IP, stub_entry.label().address(), cond);
   bx(IP, cond);
 }
 
 
-void Assembler::Branch(const StubEntry& stub_entry, Condition cond) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  Branch(&label, cond);
-}
-
-
-void Assembler::BranchPatchable(const ExternalLabel* label) {
+void Assembler::BranchPatchable(const StubEntry& stub_entry) {
   // Use a fixed size code sequence, since a function prologue may be patched
   // with this branch sequence.
   // Contrarily to BranchLinkPatchable, BranchPatchable requires an instruction
   // cache flush upon patching.
-  LoadPatchableImmediate(IP, label->address());
+  LoadPatchableImmediate(IP, stub_entry.label().address());
   bx(IP);
-}
-
-
-void Assembler::BranchPatchable(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  BranchPatchable(&label);
 }
 
 
 void Assembler::BranchLink(const ExternalLabel* label) {
   LoadImmediate(LR, label->address());  // Target address is never patched.
   blx(LR);  // Use blx instruction so that the return branch prediction works.
-}
-
-
-void Assembler::BranchLink(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  BranchLink(&label);
 }
 
 
@@ -2732,19 +2715,12 @@ void Assembler::BranchLink(const ExternalLabel* label, Patchability patchable) {
 
 void Assembler::BranchLink(const StubEntry& stub_entry,
                            Patchability patchable) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  BranchLink(&label, patchable);
-}
-
-
-void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
-  BranchLink(label, kPatchable);
+  BranchLink(&stub_entry.label(), patchable);
 }
 
 
 void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  BranchLinkPatchable(&label);
+  BranchLink(&stub_entry.label(), kPatchable);
 }
 
 
@@ -3256,8 +3232,9 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
-  // Preserve volatile CPU registers.
-  EnterFrame(kDartVolatileCpuRegs | (1 << FP), 0);
+  // Preserve volatile CPU registers and PP.
+  EnterFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP), 0);
+  COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
 
   // Preserve all volatile FPU registers.
   if (TargetCPUFeatures::vfp_supported()) {
@@ -3272,6 +3249,8 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
     }
   }
 
+  LoadPoolPointer();
+
   ReserveAlignedFrameSpace(frame_space);
 }
 
@@ -3284,10 +3263,12 @@ void Assembler::LeaveCallRuntimeFrame() {
       TargetCPUFeatures::vfp_supported() ?
       kDartVolatileFpuRegCount * kFpuRegisterSize : 0;
 
-  // We subtract one from the volatile cpu register count because, even though
-  // LR is volatile, it is pushed ahead of FP.
+  COMPILE_ASSERT(PP < FP);
+  COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
+  // kVolatileCpuRegCount +1 for PP, -1 because even though LR is volatile,
+  // it is pushed ahead of FP.
   const intptr_t kPushedRegistersSize =
-      (kDartVolatileCpuRegCount - 1) * kWordSize + kPushedFpuRegisterSize;
+      kDartVolatileCpuRegCount * kWordSize + kPushedFpuRegisterSize;
   AddImmediate(SP, FP, -kPushedRegistersSize);
 
   // Restore all volatile FPU registers.
@@ -3304,7 +3285,7 @@ void Assembler::LeaveCallRuntimeFrame() {
   }
 
   // Restore volatile CPU registers.
-  LeaveFrame(kDartVolatileCpuRegs | (1 << FP));
+  LeaveFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP));
 }
 
 
@@ -3364,9 +3345,6 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
 
 
 void Assembler::LeaveDartFrame() {
-  // LeaveDartFrame is called from stubs (pp disallowed) and from Dart code (pp
-  // allowed), so there is no point in checking the current value of
-  // constant_pool_allowed().
   set_constant_pool_allowed(false);
   LeaveFrame((1 << PP) | (1 << FP) | (1 << LR));
   // Adjust SP for PC pushed in EnterDartFrame.
@@ -3387,10 +3365,7 @@ void Assembler::EnterStubFrame() {
 
 
 void Assembler::LeaveStubFrame() {
-  LeaveFrame((1 << PP) | (1 << FP) | (1 << LR));
-  set_constant_pool_allowed(false);
-  // Adjust SP for null PC pushed in EnterStubFrame.
-  AddImmediate(SP, kWordSize);
+  LeaveDartFrame();
 }
 
 

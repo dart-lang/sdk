@@ -4,8 +4,12 @@
 
 library dart2js.mirrors_used;
 
+import 'common/tasks.dart' show
+    CompilerTask;
 import 'compile_time_constants.dart' show
     ConstantCompiler;
+import 'compiler.dart' show
+    Compiler;
 import 'constants/expressions.dart';
 import 'constants/values.dart' show
     ConstantValue,
@@ -13,19 +17,14 @@ import 'constants/values.dart' show
     ListConstantValue,
     StringConstantValue,
     TypeConstantValue;
-
 import 'dart_types.dart' show
     DartType,
     InterfaceType,
     TypeKind;
-
-import 'dart2jslib.dart' show
-    Compiler,
-    CompilerTask,
-    MessageKind,
-    TreeElements,
-    invariant;
-
+import 'diagnostics/messages.dart' show
+    MessageKind;
+import 'diagnostics/spannable.dart' show
+    Spannable;
 import 'elements/elements.dart' show
     ClassElement,
     Element,
@@ -33,17 +32,14 @@ import 'elements/elements.dart' show
     MetadataAnnotation,
     ScopeContainerElement,
     VariableElement;
-
+import 'resolution/tree_elements.dart' show
+    TreeElements;
 import 'tree/tree.dart' show
     Import,
     LibraryTag,
     NamedArgument,
     NewExpression,
     Node;
-
-import 'util/util.dart' show
-    Link,
-    Spannable;
 
 /**
  * Compiler task that analyzes MirrorsUsed annotations.

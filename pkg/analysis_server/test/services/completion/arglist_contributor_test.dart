@@ -10,10 +10,11 @@ import 'package:analysis_server/src/services/completion/dart_completion_manager.
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'completion_test_util.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(ArgListContributorTest);
 }
 
@@ -92,6 +93,26 @@ class ArgListContributorTest extends AbstractCompletionTest {
     computeFast();
     return computeFull((bool result) {
       assertNoSuggestions();
+    });
+  }
+
+  test_ArgumentList_imported_constructor_named_param() {
+    //
+    addSource('/libA.dart', 'library libA; class A{A({int one}){}}');
+    addTestSource('import "/libA.dart"; main() { new A(^);}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestArguments(namedArguments: ['one']);
+    });
+  }
+
+  test_ArgumentList_imported_constructor_named_param2() {
+    //
+    addSource('/libA.dart', 'library libA; class A{A.foo({int one}){}}');
+    addTestSource('import "/libA.dart"; main() { new A.foo(^);}');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestArguments(namedArguments: ['one']);
     });
   }
 
@@ -272,6 +293,28 @@ class ArgListContributorTest extends AbstractCompletionTest {
     computeFast();
     return computeFull((bool result) {
       assertNoSuggestions();
+    });
+  }
+
+  test_ArgumentList_local_constructor_named_param() {
+    //
+    addTestSource('''
+class A { A({int one, String two: 'defaultValue'}) { } }
+main() { new A(^);}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestArguments(namedArguments: ['one', 'two']);
+    });
+  }
+
+  test_ArgumentList_local_constructor_named_param2() {
+    //
+    addTestSource('''
+class A { A.foo({int one, String two: 'defaultValue'}) { } }
+main() { new A.foo(^);}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestArguments(namedArguments: ['one', 'two']);
     });
   }
 

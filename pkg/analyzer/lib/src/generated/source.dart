@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library engine.source;
 
 import 'dart:collection';
@@ -1076,11 +1073,10 @@ abstract class UriResolver {
   Source resolveAbsolute(Uri uri, [Uri actualUri]);
 
   /**
-   * Return an absolute URI that represents the given source, or `null` if a valid URI cannot
-   * be computed.
+   * Return an absolute URI that represents the given [source], or `null` if a
+   * valid URI cannot be computed.
    *
-   * @param source the source to get URI for
-   * @return the absolute URI representing the given source
+   * The computation should be based solely on [source.fullName].
    */
   Uri restoreAbsolute(Source source) => null;
 }

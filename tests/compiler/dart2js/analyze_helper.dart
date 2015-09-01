@@ -8,8 +8,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/apiimpl.dart';
-import 'package:compiler/src/dart2jslib.dart'
-    hide Compiler;
+import 'package:compiler/src/diagnostics/messages.dart' show
+    Message;
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/util/uri_extras.dart';

@@ -105,7 +105,10 @@ Element newElement_fromEngine(engine.Element element) {
   String elementParameters = _getParametersString(element);
   String elementReturnType = getReturnTypeString(element);
   ElementKind kind = newElementKind_fromEngineElement(element);
-  return new Element(kind, name, Element.makeFlags(
+  return new Element(
+      kind,
+      name,
+      Element.makeFlags(
           isPrivate: element.isPrivate,
           isDeprecated: element.isDeprecated,
           isAbstract: _isAbstract(element),
@@ -184,7 +187,8 @@ ElementKind newElementKind_fromEngineElement(engine.Element element) {
   if (element is engine.ClassElement && element.isEnum) {
     return ElementKind.ENUM;
   }
-  if (element is engine.FieldElement && element.isEnumConstant &&
+  if (element is engine.FieldElement &&
+      element.isEnumConstant &&
       // MyEnum.values and MyEnum.one.index return isEnumConstant = true
       // so these additional checks are necessary.
       // TODO(danrubel) MyEnum.values is constant, but is a list
@@ -353,16 +357,17 @@ String _getParametersString(engine.Element element) {
       sb.write(', ');
     }
     if (closeOptionalString.isEmpty) {
-      if (parameter.kind == engine.ParameterKind.NAMED) {
+      engine.ParameterKind kind = parameter.parameterKind;
+      if (kind == engine.ParameterKind.NAMED) {
         sb.write('{');
         closeOptionalString = '}';
       }
-      if (parameter.kind == engine.ParameterKind.POSITIONAL) {
+      if (kind == engine.ParameterKind.POSITIONAL) {
         sb.write('[');
         closeOptionalString = ']';
       }
     }
-    sb.write(parameter.toString());
+    parameter.appendToWithoutDelimiters(sb);
   }
   sb.write(closeOptionalString);
   return '(' + sb.toString() + ')';

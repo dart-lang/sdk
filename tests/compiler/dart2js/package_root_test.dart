@@ -12,7 +12,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/compiler.dart'
        show DiagnosticHandler, Diagnostic, PackagesDiscoveryProvider;
-import 'package:compiler/src/dart2jslib.dart'
+import 'package:compiler/src/diagnostics/messages.dart'
        show MessageKind;
 import 'package:package_config/packages.dart';
 

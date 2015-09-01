@@ -5,7 +5,7 @@
 import 'package:expect/expect.dart';
 import 'dart:async';
 import "package:async_helper/async_helper.dart";
-import 'package:compiler/src/warnings.dart' show
+import 'package:compiler/src/diagnostics/messages.dart' show
     MessageKind,
     MessageTemplate;
 

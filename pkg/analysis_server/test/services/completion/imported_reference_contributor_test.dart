@@ -20,10 +20,11 @@ import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
 import '../../operation/operation_queue_test.dart';
+import '../../utils.dart';
 import 'completion_test_util.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(ImportedReferenceContributorTest);
 }
 
@@ -45,7 +46,8 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
    */
   @override
   assertCachedCompute(_) {
-    if (!(contributor as ImportedReferenceContributor).shouldWaitForLowPrioritySuggestions) {
+    if (!(contributor as ImportedReferenceContributor)
+        .shouldWaitForLowPrioritySuggestions) {
       return null;
     }
     List<CompletionSuggestion> oldSuggestions = request.suggestions;
@@ -125,7 +127,8 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
   @override
   CompletionSuggestion assertSuggestImportedClass(String name,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      int relevance: DART_RELEVANCE_DEFAULT, String importUri,
+      int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri,
       String elemFile}) {
     return assertSuggestClass(name,
         relevance: relevance,
@@ -152,7 +155,8 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
   CompletionSuggestion assertSuggestImportedFunction(
       String name, String returnType,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      bool deprecated: false, int relevance: DART_RELEVANCE_DEFAULT,
+      bool deprecated: false,
+      int relevance: DART_RELEVANCE_DEFAULT,
       String importUri}) {
     return assertSuggestFunction(name, returnType,
         kind: kind,
@@ -163,7 +167,8 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
 
   @override
   CompletionSuggestion assertSuggestImportedFunctionTypeAlias(
-      String name, String returnType, [bool isDeprecated = false,
+      String name, String returnType,
+      [bool isDeprecated = false,
       int relevance = DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       String importUri]) {
@@ -192,7 +197,8 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
 
   @override
   CompletionSuggestion assertSuggestImportedTopLevelVar(
-      String name, String returnType, [int relevance = DART_RELEVANCE_DEFAULT,
+      String name, String returnType,
+      [int relevance = DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       String importUri]) {
     return assertSuggestTopLevelVar(
@@ -284,21 +290,29 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
 
   test_Block_partial_results() {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/testAB.dart', '''
+    addSource(
+        '/testAB.dart',
+        '''
       export "dart:math" hide max;
       class A {int x;}
       @deprecated D1() {int x;}
       class _B { }''');
-    addSource('/testCD.dart', '''
+    addSource(
+        '/testCD.dart',
+        '''
       String T1;
       var _T2;
       class C { }
       class D { }''');
-    addSource('/testEEF.dart', '''
+    addSource(
+        '/testEEF.dart',
+        '''
       class EE { }
       class F { }''');
     addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', '''
+    addSource(
+        '/testH.dart',
+        '''
       class H { }
       int T3;
       var _T4;'''); // not imported
@@ -334,7 +348,9 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
   }
 
   test_function_parameters_mixed_required_and_named() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 void m(x, {int y}) {}
 ''');
     addTestSource('''
@@ -356,7 +372,9 @@ class B extends A {
   }
 
   test_function_parameters_mixed_required_and_positional() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 void m(x, [int y]) {}
 ''');
     addTestSource('''
@@ -378,7 +396,9 @@ class B extends A {
   }
 
   test_function_parameters_named() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 void m({x, int y}) {}
 ''');
     addTestSource('''
@@ -400,7 +420,9 @@ class B extends A {
   }
 
   test_function_parameters_none() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 void m() {}
 ''');
     addTestSource('''
@@ -420,7 +442,9 @@ class B extends A {
   }
 
   test_function_parameters_positional() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 void m([x, int y]) {}
 ''');
     addTestSource('''
@@ -442,7 +466,9 @@ class B extends A {
   }
 
   test_function_parameters_required() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 void m(x, int y) {}
 ''');
     addTestSource('''
@@ -464,7 +490,9 @@ class B extends A {
   }
 
   test_InstanceCreationExpression() {
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
 class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
@@ -499,8 +527,7 @@ main() {new ^ String x = "hello";}''');
       expect(suggestion.hasNamedParameters, false);
 
       suggestion = assertSuggestImportedConstructor('C.bar');
-      expect(
-          suggestion.element.parameters, "({dynamic boo: 'hoo'}, {int z: 0})");
+      expect(suggestion.element.parameters, "({dynamic boo: 'hoo', int z: 0})");
       expect(suggestion.parameterNames, hasLength(2));
       expect(suggestion.parameterNames[0], 'boo');
       expect(suggestion.parameterTypes[0], 'dynamic');
@@ -526,7 +553,9 @@ main() {new ^ String x = "hello";}''');
   }
 
   test_method_parameters_mixed_required_and_named() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 class A {
   void m(x, {int y}) {}
 }
@@ -551,7 +580,9 @@ class B extends A {
   }
 
   test_method_parameters_mixed_required_and_positional() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 class A {
   void m(x, [int y]) {}
 }
@@ -576,7 +607,9 @@ class B extends A {
   }
 
   test_method_parameters_named() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 class A {
   void m({x, int y}) {}
 }
@@ -601,7 +634,9 @@ class B extends A {
   }
 
   test_method_parameters_none() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 class A {
   void m() {}
 }
@@ -624,7 +659,9 @@ class B extends A {
   }
 
   test_method_parameters_positional() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 class A {
   void m([x, int y]) {}
 }
@@ -649,7 +686,9 @@ class B extends A {
   }
 
   test_method_parameters_required() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 class A {
   void m(x, int y) {}
 }
@@ -674,7 +713,9 @@ class B extends A {
   }
 
   test_mixin_ordering() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 class B {}
 class M1 {
   void m() {}
@@ -700,7 +741,6 @@ class C extends B with M1, M2 {
    * Ensure that completions in one context don't appear in another
    */
   test_multiple_contexts() {
-
     // Create a 2nd context with source
     var context2 = AnalysisEngine.instance.createAnalysisContext();
     context2.sourceFactory =
@@ -726,7 +766,9 @@ class C extends B with M1, M2 {
     }
 
     // Check that source in 2nd context does not appear in completion in 1st
-    addSource('/context1/libA.dart', '''
+    addSource(
+        '/context1/libA.dart',
+        '''
       library libA;
       class ClassInLocalContext {int x;}''');
     testFile = '/context1/completionTest.dart';
@@ -744,7 +786,9 @@ class C extends B with M1, M2 {
   }
 
   test_no_parameters_field() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 class A {
   int x;
 }
@@ -762,7 +806,9 @@ class B extends A {
   }
 
   test_no_parameters_getter() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 class A {
   int get x => null;
 }
@@ -780,7 +826,9 @@ class B extends A {
   }
 
   test_no_parameters_setter() {
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
 class A {
   set x(int value) {};
 }

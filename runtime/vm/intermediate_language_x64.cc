@@ -781,14 +781,21 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     __ leaq(RAX, Address(RBP, kFirstLocalSlotFromFp * kWordSize));
   }
-  __ LoadImmediate(
-      RBX, Immediate(reinterpret_cast<uword>(native_c_function())));
   __ LoadImmediate(R10, Immediate(argc_tag));
-  const StubEntry& stub_entry = (is_bootstrap_native() || is_leaf_call) ?
-      *StubCode::CallBootstrapCFunction_entry() :
-      *StubCode::CallNativeCFunction_entry();
+  const StubEntry* stub_entry;
+  if (link_lazily()) {
+    stub_entry = StubCode::CallBootstrapCFunction_entry();
+    __ LoadExternalLabel(
+        RBX, &NativeEntry::LinkNativeCallLabel(), kPatchable);
+  } else {
+    stub_entry = (is_bootstrap_native() || is_leaf_call)
+        ? StubCode::CallBootstrapCFunction_entry()
+        : StubCode::CallNativeCFunction_entry();
+    const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
+    __ LoadExternalLabel(RBX, &label, kNotPatchable);
+  }
   compiler->GenerateCall(token_pos(),
-                         stub_entry,
+                         *stub_entry,
                          RawPcDescriptors::kOther,
                          locs());
   __ popq(result);
@@ -822,8 +829,9 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(compiler->is_optimizing());
   Register char_code = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  __ LoadImmediate(result,
-      Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())));
+
+  ExternalLabel label(reinterpret_cast<uword>(Symbols::PredefinedAddress()));
+  __ LoadExternalLabel(result, &label, kNotPatchable);
   __ movq(result, Address(result,
                           char_code,
                           TIMES_HALF_WORD_SIZE,  // Char code is a smi.
@@ -1657,16 +1665,14 @@ class BoxAllocationSlowPath : public SlowPathCode {
         result_(result) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    Isolate* isolate = compiler->isolate();
-
     if (Assembler::EmittingComments()) {
       __ Comment("%s slow path allocation of %s",
                  instruction_->DebugName(),
                  String::Handle(cls_.PrettyName()).ToCString());
     }
     __ Bind(entry_label());
-    const Code& stub =
-        Code::Handle(isolate, StubCode::GetAllocationStubForClass(cls_));
+    const Code& stub = Code::ZoneHandle(compiler->zone(),
+        StubCode::GetAllocationStubForClass(cls_));
     const StubEntry stub_entry(stub);
 
     LocationSummary* locs = instruction_->locs();
@@ -2127,8 +2133,8 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ Bind(&slow_path);
-  const Code& stub = Code::Handle(compiler->isolate(),
-                                  StubCode::AllocateArray_entry()->code());
+  const Code& stub = Code::ZoneHandle(compiler->zone(),
+                                      StubCode::AllocateArray_entry()->code());
   compiler->AddStubCallTarget(stub);
   compiler->GenerateCall(token_pos(),
                          *StubCode::AllocateArray_entry(),
@@ -2400,8 +2406,8 @@ class AllocateContextSlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
 
     __ LoadImmediate(R10, Immediate(instruction_->num_context_variables()));
-    const Code& stub = Code::Handle(compiler->isolate(),
-                                    StubCode::AllocateContext_entry()->code());
+    const Code& stub = Code::ZoneHandle(
+        compiler->zone(), StubCode::AllocateContext_entry()->code());
     compiler->AddStubCallTarget(stub);
     compiler->GenerateCall(instruction_->token_pos(),
                            *StubCode::AllocateContext_entry(),
@@ -6336,13 +6342,12 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Function in RAX.
   ASSERT(locs()->in(0).reg() == RAX);
-  __ movq(RCX, FieldAddress(RAX, Function::instructions_offset()));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
 
   // RAX: Function.
   // R10: Arguments descriptor array.
   // RBX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
   __ xorq(RBX, RBX);
-  __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ call(RCX);
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the
@@ -6390,9 +6395,8 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
 
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Isolate* isolate = compiler->isolate();
-  const Code& stub = Code::Handle(isolate,
-                                  StubCode::GetAllocationStubForClass(cls()));
+  const Code& stub = Code::ZoneHandle(
+      compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
   const StubEntry stub_entry(stub);
   compiler->GenerateCall(token_pos(),
                          stub_entry,

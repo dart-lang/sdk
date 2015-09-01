@@ -1964,9 +1964,9 @@ static void TestIllegalArrayLength(intptr_t length) {
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   OS::SNPrint(buffer, sizeof(buffer),
       "Unhandled exception:\n"
-      "Invalid argument(s): Length (%" Pd ") must be an integer "
-      "in the range [0..%" Pd "].",
-      length, Array::kMaxElements);
+      "RangeError (length): Invalid value: "
+      "Not in range 0..%" Pd ", inclusive: %" Pd,
+      Array::kMaxElements, length);
   EXPECT_ERROR(result, buffer);
 }
 
@@ -2685,7 +2685,7 @@ TEST_CASE(CheckedHandle) {
 }
 
 
-static Function* CreateFunction(const char* name) {
+static RawFunction* CreateFunction(const char* name) {
   const String& class_name = String::Handle(Symbols::New("ownerClass"));
   const String& lib_name = String::Handle(Symbols::New("ownerLibrary"));
   const Script& script = Script::Handle();
@@ -2695,10 +2695,8 @@ static Function* CreateFunction(const char* name) {
       Library::Handle(CreateDummyLibrary(lib_name));
   owner_class.set_library(owner_library);
   const String& function_name = String::ZoneHandle(Symbols::New(name));
-  Function& function = Function::ZoneHandle(
-      Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, false, false, owner_class, 0));
-  return &function;
+  return Function::New(function_name, RawFunction::kRegularFunction,
+                       true, false, false, false, false, owner_class, 0);
 }
 
 
@@ -2707,20 +2705,15 @@ TEST_CASE(Code) {
   extern void GenerateIncrement(Assembler* assembler);
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
-  Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_Code"), &_assembler_));
-  Instructions& instructions = Instructions::Handle(code.instructions());
+  const Function& function = Function::Handle(CreateFunction("Test_Code"));
+  Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
+  function.AttachCode(code);
+  const Instructions& instructions = Instructions::Handle(code.instructions());
   uword entry_point = instructions.EntryPoint();
-  intptr_t retval = 0;
-#if defined(USING_SIMULATOR)
-  retval = bit_copy<intptr_t, int64_t>(Simulator::Current()->Call(
-      static_cast<intptr_t>(entry_point), 0, 0, 0, 0));
-#else
-  typedef intptr_t (*IncrementCode)();
-  retval = reinterpret_cast<IncrementCode>(entry_point)();
-#endif
-  EXPECT_EQ(2, retval);
   EXPECT_EQ(instructions.raw(), Instructions::FromEntryPoint(entry_point));
+  const Object& result = Object::Handle(
+      DartEntry::InvokeFunction(function, Array::empty_array()));
+  EXPECT_EQ(1, Smi::Cast(result).Value());
 }
 
 
@@ -2730,22 +2723,14 @@ TEST_CASE(CodeImmutability) {
   extern void GenerateIncrement(Assembler* assembler);
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
-  Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_Code"), &_assembler_));
+  const Function& function = Function::Handle(CreateFunction("Test_Code"));
+  Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
+  function.AttachCode(code);
   Instructions& instructions = Instructions::Handle(code.instructions());
   uword entry_point = instructions.EntryPoint();
+  EXPECT_EQ(instructions.raw(), Instructions::FromEntryPoint(entry_point));
   // Try writing into the generated code, expected to crash.
   *(reinterpret_cast<char*>(entry_point) + 1) = 1;
-  intptr_t retval = 0;
-#if defined(USING_SIMULATOR)
-  retval = bit_copy<intptr_t, int64_t>(Simulator::Current()->Call(
-      static_cast<intptr_t>(entry_point), 0, 0, 0, 0));
-#else
-  typedef intptr_t (*IncrementCode)();
-  retval = reinterpret_cast<IncrementCode>(entry_point)();
-#endif
-  EXPECT_EQ(3, retval);
-  EXPECT_EQ(instructions.raw(), Instructions::FromEntryPoint(entry_point));
   if (!FLAG_write_protect_code) {
     // Since this test is expected to crash, crash if write protection of code
     // is switched off.
@@ -2762,20 +2747,15 @@ TEST_CASE(EmbedStringInCode) {
   word expected_length = static_cast<word>(strlen(kHello));
   Assembler _assembler_;
   GenerateEmbedStringInCode(&_assembler_, kHello);
-  Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_EmbedStringInCode"), &_assembler_));
-  Instructions& instructions = Instructions::Handle(code.instructions());
-  uword retval = 0;
-#if defined(USING_SIMULATOR)
-  retval = bit_copy<uword, int64_t>(Simulator::Current()->Call(
-      static_cast<intptr_t>(instructions.EntryPoint()), 0, 0, 0, 0));
-#else
-  typedef uword (*EmbedStringCode)();
-  retval = reinterpret_cast<EmbedStringCode>(instructions.EntryPoint())();
-#endif
-  EXPECT((retval & kSmiTagMask) == kHeapObjectTag);
+  const Function& function =
+      Function::Handle(CreateFunction("Test_EmbedStringInCode"));
+  const Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
+  function.AttachCode(code);
+  const Object& result =
+      Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
+  EXPECT(result.raw()->IsHeapObject());
   String& string_object = String::Handle();
-  string_object ^= reinterpret_cast<RawInstructions*>(retval);
+  string_object ^= result.raw();
   EXPECT(string_object.Length() == expected_length);
   for (int i = 0; i < expected_length; i ++) {
     EXPECT(string_object.CharAt(i) == kHello[i]);
@@ -2789,18 +2769,13 @@ TEST_CASE(EmbedSmiInCode) {
   const intptr_t kSmiTestValue = 5;
   Assembler _assembler_;
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
-  Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_EmbedSmiInCode"), &_assembler_));
-  Instructions& instructions = Instructions::Handle(code.instructions());
-  intptr_t retval = 0;
-#if defined(USING_SIMULATOR)
-  retval = bit_copy<intptr_t, int64_t>(Simulator::Current()->Call(
-      static_cast<intptr_t>(instructions.EntryPoint()), 0, 0, 0, 0));
-#else
-  typedef intptr_t (*EmbedSmiCode)();
-  retval = reinterpret_cast<EmbedSmiCode>(instructions.EntryPoint())();
-#endif
-  EXPECT((retval >> kSmiTagShift) == kSmiTestValue);
+  const Function& function =
+      Function::Handle(CreateFunction("Test_EmbedSmiInCode"));
+  const Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
+  function.AttachCode(code);
+  const Object& result =
+      Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
+  EXPECT(Smi::Cast(result).Value() == kSmiTestValue);
 }
 
 
@@ -2811,18 +2786,13 @@ TEST_CASE(EmbedSmiIn64BitCode) {
   const intptr_t kSmiTestValue = 5L << 32;
   Assembler _assembler_;
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
-  Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_EmbedSmiIn64BitCode"), &_assembler_));
-  Instructions& instructions = Instructions::Handle(code.instructions());
-  intptr_t retval = 0;
-#if defined(USING_SIMULATOR)
-  retval = bit_copy<intptr_t, int64_t>(Simulator::Current()->Call(
-      static_cast<intptr_t>(instructions.EntryPoint()), 0, 0, 0, 0));
-#else
-  typedef intptr_t (*EmbedSmiCode)();
-  retval = reinterpret_cast<EmbedSmiCode>(instructions.EntryPoint())();
-#endif
-  EXPECT((retval >> kSmiTagShift) == kSmiTestValue);
+  const Function& function =
+      Function::Handle(CreateFunction("Test_EmbedSmiIn64BitCode"));
+  const Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
+  function.AttachCode(code);
+  const Object& result =
+      Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
+  EXPECT(Smi::Cast(result).Value() == kSmiTestValue);
 }
 #endif  // ARCH_IS_64_BIT
 
@@ -2843,7 +2813,7 @@ TEST_CASE(ExceptionHandlers) {
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
   Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_Code"), &_assembler_));
+      Function::Handle(CreateFunction("Test_Code")), &_assembler_));
   code.set_exception_handlers(exception_handlers);
 
   // Verify the exception handler table entries by accessing them.
@@ -2883,7 +2853,7 @@ TEST_CASE(PcDescriptors) {
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
   Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_Code"), &_assembler_));
+      Function::Handle(CreateFunction("Test_Code")), &_assembler_));
   code.set_pc_descriptors(descriptors);
 
   // Verify the PcDescriptor entries by accessing them.
@@ -2940,7 +2910,7 @@ TEST_CASE(PcDescriptorsLargeDeltas) {
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
   Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_Code"), &_assembler_));
+      Function::Handle(CreateFunction("Test_Code")), &_assembler_));
   code.set_pc_descriptors(descriptors);
 
   // Verify the PcDescriptor entries by accessing them.

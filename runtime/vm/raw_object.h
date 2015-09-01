@@ -583,6 +583,7 @@ class RawObject {
   friend class ScavengerVisitor;
   friend class SizeExcludingClassVisitor;  // GetClassId
   friend class RetainingPathVisitor;  // GetClassId
+  friend class SkippedCodeFunctions;  // StorePointer
   friend class SnapshotReader;
   friend class SnapshotWriter;
   friend class String;
@@ -743,8 +744,8 @@ class RawFunction : public RawObject {
   };
 
  private:
-  // So that the MarkingVisitor::DetachCode can null out the code fields.
-  friend class MarkingVisitor;
+  // So that the SkippedCodeFunctions::DetachCode can null out the code fields.
+  friend class SkippedCodeFunctions;
   friend class Class;
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
   static bool ShouldVisitCode(RawCode* raw_code);
@@ -771,6 +772,7 @@ class RawFunction : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->unoptimized_code_);
   }
+  uword entry_point_;
 
   int32_t token_pos_;
   int32_t end_token_pos_;
@@ -778,7 +780,6 @@ class RawFunction : public RawObject {
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
   int16_t deoptimization_counter_;
-  classid_t regexp_cid_;
   uint32_t kind_tag_;  // See Function::KindTagBits.
   uint16_t optimized_instruction_count_;
   uint16_t optimized_call_site_count_;
@@ -928,15 +929,18 @@ class RawLibrary : public RawObject {
   RawScript* script_;
   RawString* private_key_;
   RawArray* dictionary_;         // Top-level names in this library.
-  RawArray* resolved_names_;     // Cache of resolved names in library scope.
   RawGrowableObjectArray* metadata_;  // Metadata on classes, methods etc.
   RawArray* anonymous_classes_;  // Classes containing top-level elements.
   RawArray* imports_;            // List of Namespaces imported without prefix.
   RawArray* exports_;            // List of re-exported Namespaces.
-  RawArray* loaded_scripts_;     // Array of scripts loaded in this library.
   RawInstance* load_error_;      // Error iff load_state_ == kLoadError.
-  RawObject** to() {
+  RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&ptr()->load_error_);
+  }
+  RawArray* resolved_names_;     // Cache of resolved names in library scope.
+  RawArray* loaded_scripts_;     // Array of scripts loaded in this library.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->loaded_scripts_);
   }
 
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
@@ -1004,6 +1008,7 @@ class RawCode : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->comments_);
   }
+  uword entry_point_;
 
   // Compilation timestamp.
   int64_t compile_timestamp_;
@@ -1025,6 +1030,7 @@ class RawCode : public RawObject {
 
   friend class Function;
   friend class MarkingVisitor;
+  friend class SkippedCodeFunctions;
   friend class StackFrame;
 };
 
@@ -1076,6 +1082,7 @@ class RawInstructions : public RawObject {
   friend class Code;
   friend class StackFrame;
   friend class MarkingVisitor;
+  friend class SkippedCodeFunctions;
   friend class Function;
 };
 
@@ -1307,6 +1314,7 @@ class RawContextScope : public RawObject {
   };
 
   int32_t num_variables_;
+  bool is_implicit_;  // true, if this context scope is for an implicit closure.
 
   RawObject** from() {
     VariableDesc* begin = const_cast<VariableDesc*>(ptr()->VariableDescAddr(0));
@@ -1324,6 +1332,9 @@ class RawContextScope : public RawObject {
     // 'end' is the address just beyond the last descriptor, so step back.
     return reinterpret_cast<RawObject**>(end - kWordSize);
   }
+
+  friend class Object;
+  friend class RawClosureData;
 };
 
 

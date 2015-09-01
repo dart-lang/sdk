@@ -4,11 +4,20 @@
 
 library ordered_typeset;
 
-import 'dart2jslib.dart' show Compiler, MessageKind, invariant;
+import 'compiler.dart' show
+    Compiler;
 import 'dart_types.dart';
-import 'elements/elements.dart' show ClassElement;
-import 'util/util.dart' show Link, LinkBuilder;
-import 'util/util_implementation.dart' show LinkEntry;
+import 'diagnostics/invariant.dart' show
+    invariant;
+import 'diagnostics/messages.dart' show
+    MessageKind;
+import 'elements/elements.dart' show
+    ClassElement;
+import 'util/util.dart' show
+    Link,
+    LinkBuilder;
+import 'util/util_implementation.dart' show
+    LinkEntry;
 
 /**
  * An ordered set of the supertypes of a class. The supertypes of a class are

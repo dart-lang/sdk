@@ -8,8 +8,10 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:unittest/unittest.dart';
 
+import '../utils.dart';
+
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('SdkExtUriResolverTest', () {
     setUp(() {
       buildResourceProvider();
@@ -58,20 +60,6 @@ main() {
       expect(restoreUri.scheme, equals('dart'));
       expect(restoreUri.path, equals('fox'));
     });
-    test('test_resolvePart', () {
-      var resolver = new SdkExtUriResolver({
-        'fox': [resourceProvider.getResource('/tmp')]
-      });
-      var source = resolver.resolveAbsolute(Uri.parse('dart:fox/foo.dart'));
-      expect(source, isNotNull);
-      // Restore source's uri.
-      var restoreUri = resolver.restoreAbsolute(source);
-      expect(restoreUri, isNotNull);
-      // Verify that it is 'dart:fox/foo.dart'.
-      expect(restoreUri.toString(), equals('dart:fox/foo.dart'));
-      expect(restoreUri.scheme, equals('dart'));
-      expect(restoreUri.path, equals('fox/foo.dart'));
-    });
   });
 }
 
@@ -81,7 +69,9 @@ buildResourceProvider() {
   resourceProvider = new MemoryResourceProvider();
   resourceProvider.newFolder('/empty');
   resourceProvider.newFolder('/tmp');
-  resourceProvider.newFile('/tmp/_sdkext', r'''
+  resourceProvider.newFile(
+      '/tmp/_sdkext',
+      r'''
   {
     "dart:fox": "slippy.dart",
     "dart:bear": "grizzly.dart",

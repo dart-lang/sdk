@@ -116,23 +116,27 @@ library patchparser;
 
 import 'dart:async';
 
-import 'constants/values.dart' show ConstantValue;
-import 'dart2jslib.dart'
-    show Compiler,
-         CompilerTask,
-         DiagnosticListener,
-         MessageKind,
-         Script;
+import 'constants/values.dart' show
+    ConstantValue;
+import 'compiler.dart' show
+    Compiler;
+import 'common/tasks.dart' show
+    CompilerTask;
+import 'diagnostics/diagnostic_listener.dart';
+import 'diagnostics/messages.dart' show
+    MessageKind;
 import 'elements/elements.dart';
-import 'elements/modelx.dart'
-    show BaseFunctionElementX,
-         ClassElementX,
-         GetterElementX,
-         LibraryElementX,
-         MetadataAnnotationX,
-         SetterElementX;
-import 'library_loader.dart' show LibraryLoader;
+import 'elements/modelx.dart' show
+    BaseFunctionElementX,
+    ClassElementX,
+    GetterElementX,
+    LibraryElementX,
+    MetadataAnnotationX,
+    SetterElementX;
+import 'library_loader.dart' show
+    LibraryLoader;
 import 'scanner/scannerlib.dart';  // Scanner, Parsers, Listeners
+import 'script.dart';
 import 'util/util.dart';
 
 class PatchParserTask extends CompilerTask {

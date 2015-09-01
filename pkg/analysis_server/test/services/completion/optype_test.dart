@@ -13,9 +13,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(OpTypeTest);
 }
 
@@ -42,19 +43,27 @@ class OpTypeTest {
     visitor = new OpType.forCompletion(completionTarget, offset);
   }
 
-  void assertOpType({bool prefixed: false, bool returnValue: false,
-      bool typeNames: false, bool voidReturn: false, bool statementLabel: false,
-      bool caseLabel: false, bool constructors: false}) {
-    expect(visitor.includeReturnValueSuggestions, returnValue,
-        reason: 'returnValue');
-    expect(visitor.includeTypeNameSuggestions, typeNames, reason: 'typeNames');
-    expect(visitor.includeVoidReturnSuggestions, voidReturn,
-        reason: 'voidReturn');
-    expect(visitor.includeStatementLabelSuggestions, statementLabel,
-        reason: 'statementLabel');
+  void assertOpType(
+      {bool caseLabel: false,
+      bool constructors: false,
+      bool prefixed: false,
+      bool returnValue: false,
+      bool statementLabel: false,
+      bool staticMethodBody: false,
+      bool typeNames: false,
+      bool voidReturn: false}) {
     expect(visitor.includeCaseLabelSuggestions, caseLabel, reason: 'caseLabel');
     expect(visitor.includeConstructorSuggestions, constructors,
         reason: 'constructors');
+    expect(visitor.includeReturnValueSuggestions, returnValue,
+        reason: 'returnValue');
+    expect(visitor.includeStatementLabelSuggestions, statementLabel,
+        reason: 'statementLabel');
+    expect(visitor.includeTypeNameSuggestions, typeNames, reason: 'typeNames');
+    expect(visitor.includeVoidReturnSuggestions, voidReturn,
+        reason: 'voidReturn');
+    expect(visitor.inStaticMethodBody, staticMethodBody,
+        reason: 'staticMethodBody');
     expect(visitor.isPrefixed, prefixed, reason: 'prefixed');
   }
 
@@ -235,6 +244,21 @@ class OpTypeTest {
   test_Block_identifier_partial() {
     addTestSource('class X {a() {var f; {var x;} D^ var r;} void b() { }}');
     assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_keyword() {
+    addTestSource('class C { static C get instance => null; } main() {C.in^}');
+    assertOpType(
+        prefixed: true, returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_static() {
+    addTestSource('class A {static foo() {^}}');
+    assertOpType(
+        returnValue: true,
+        typeNames: true,
+        staticMethodBody: true,
+        voidReturn: true);
   }
 
   test_Break_after_label() {

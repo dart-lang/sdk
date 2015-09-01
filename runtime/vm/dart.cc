@@ -28,16 +28,15 @@
 #include "vm/symbols.h"
 #include "vm/thread_interrupter.h"
 #include "vm/thread_pool.h"
-#include "vm/timeline.h"
 #include "vm/virtual_memory.h"
 #include "vm/zone.h"
 
 namespace dart {
 
-DEFINE_FLAG(bool, keep_code, false,
-            "Keep deoptimized code for profiling.");
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
+DEFINE_FLAG(bool, keep_code, false,
+            "Keep deoptimized code for profiling.");
 
 Isolate* Dart::vm_isolate_ = NULL;
 ThreadPool* Dart::thread_pool_ = NULL;
@@ -69,6 +68,7 @@ class ReadOnlyHandles {
 
 
 const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
+                           const uint8_t* instructions_snapshot,
                            Dart_IsolateCreateCallback create,
                            Dart_IsolateInterruptCallback interrupt,
                            Dart_IsolateUnhandledExceptionCallback unhandled,
@@ -87,6 +87,10 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   OS::InitOnce();
   VirtualMemory::InitOnce();
   Thread::InitOnceBeforeIsolate();
+  Timeline::InitOnce();
+  Thread::EnsureInit();
+  TimelineDurationScope tds(Timeline::GetVMStream(),
+                            "Dart::InitOnce");
   Isolate::InitOnce();
   PortMap::InitOnce();
   FreeListElement::InitOnce();
@@ -97,6 +101,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   SemiSpace::InitOnce();
   Metric::InitOnce();
   StoreBuffer::InitOnce();
+  Thread::EnsureInit();
 
 #if defined(USING_SIMULATOR)
   Simulator::InitOnce();
@@ -217,6 +222,8 @@ const char* Dart::Cleanup() {
 
   Profiler::Shutdown();
   CodeObservers::DeleteAll();
+  Timeline::Shutdown();
+  Metric::Cleanup();
 
   return NULL;
 }
@@ -233,12 +240,24 @@ Isolate* Dart::CreateIsolate(const char* name_prefix,
 
 RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
-  Isolate* isolate = Isolate::Current();
-  TIMERSCOPE(isolate, time_isolate_initialization);
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  TIMERSCOPE(thread, time_isolate_initialization);
+  TimelineDurationScope tds(isolate,
+                            isolate->GetIsolateStream(),
+                            "InitializeIsolate");
+  tds.SetNumArguments(1);
+  tds.CopyArgument(0, "isolateName", isolate->name());
+
   ASSERT(isolate != NULL);
   StackZone zone(isolate);
   HandleScope handle_scope(isolate);
-  ObjectStore::Init(isolate);
+  {
+    TimelineDurationScope tds(isolate,
+                              isolate->GetIsolateStream(),
+                              "ObjectStore::Init");
+    ObjectStore::Init(isolate);
+  }
 
   // Setup for profiling.
   Profiler::InitProfilingForIsolate(isolate);
@@ -249,7 +268,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   }
   if (snapshot_buffer != NULL) {
     // Read the snapshot and setup the initial state.
-
+    TimelineDurationScope tds(isolate,
+                              isolate->GetIsolateStream(),
+                              "IsolateSnapshotReader");
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
     if (snapshot == NULL) {
@@ -283,7 +304,13 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 
   Object::VerifyBuiltinVtables();
 
-  StubCode::Init(isolate);
+  {
+    TimelineDurationScope tds(isolate,
+                              isolate->GetIsolateStream(),
+                              "StubCode::Init");
+    StubCode::Init(isolate);
+  }
+
   isolate->megamorphic_cache_table()->InitMissHandler();
   if (snapshot_buffer == NULL) {
     if (!isolate->object_store()->PreallocateObjects()) {
@@ -309,8 +336,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Set up default UserTag.
   const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag());
   isolate->set_current_tag(default_tag);
-
-  isolate->SetTimelineEventRecorder(new TimelineEventRingRecorder());
 
   if (FLAG_keep_code) {
     isolate->set_deoptimized_code_array(

@@ -326,11 +326,19 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return '(ApplyBuiltinOperator $operator ($args))';
   }
 
+  String visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
+    String method = node.method.toString();
+    String receiver = access(node.receiver);
+    String args = node.arguments.map(access).join(' ');
+    return '(ApplyBuiltinMethod $method $receiver ($args))';
+  }
+
   String visitForeignCode(ForeignCode node) {
     String arguments = node.arguments.map(access).join(' ');
     String continuation = node.continuation == null ? ''
         : ' ${access(node.continuation)}';
-    return '(JS ${node.type} ${node.codeTemplate} ($arguments)$continuation)';
+    return '$indentation(JS "${node.codeTemplate.source}"'
+        ' ($arguments)$continuation)';
   }
 
   String visitGetLength(GetLength node) {
@@ -349,6 +357,13 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String index = access(node.index);
     String value = access(node.value);
     return '(SetIndex $object $index $value)';
+  }
+
+  @override
+  String visitAwait(Await node) {
+    String value = access(node.input);
+    String continuation = access(node.continuation);
+    return '(Await $value $continuation)';
   }
 }
 
@@ -412,11 +427,11 @@ class ConstantStringifier extends ConstantValueVisitor<String, Null> {
   }
 
   String visitInterceptor(InterceptorConstantValue constant, _) {
-    return _failWith(constant);
+    return '(Interceptor "${constant.unparse()}")';
   }
 
   String visitSynthetic(SyntheticConstantValue constant, _) {
-    return _failWith(constant);
+    return '(Synthetic "${constant.unparse()}")';
   }
 
   String visitDeferred(DeferredConstantValue constant, _) {

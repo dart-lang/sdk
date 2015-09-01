@@ -4,16 +4,23 @@
 
 library tracer;
 
-import '../compiler.dart' as api;
 import 'dart:async' show EventSink;
+import '../compiler.dart' as api;
+import 'common/work.dart' show
+    ItemCompilationContext;
+import 'compiler.dart' show
+    Compiler;
 import 'ssa/ssa.dart' as ssa;
-import 'ssa/ssa_tracer.dart' show HTracer;
+import 'ssa/ssa_tracer.dart' show
+    HTracer;
 import 'cps_ir/cps_ir_nodes.dart' as cps_ir;
-import 'cps_ir/cps_ir_tracer.dart' show IRTracer;
+import 'cps_ir/cps_ir_tracer.dart' show
+    IRTracer;
 import 'tree_ir/tree_ir_nodes.dart' as tree_ir;
-import 'tree_ir/tree_ir_tracer.dart' show TreeTracer;
-import 'util/util.dart' show Indentation;
-import 'dart2jslib.dart';
+import 'tree_ir/tree_ir_tracer.dart' show
+    TreeTracer;
+import 'util/util.dart' show
+    Indentation;
 
 /**
  * If non-null, we only trace methods whose name match the regexp defined by the

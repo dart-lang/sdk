@@ -2431,6 +2431,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       // exception
       LocalVariableElementImpl exception =
           new LocalVariableElementImpl.forNode(exceptionParameter);
+      if (node.exceptionType == null) {
+        exception.hasImplicitType = true;
+      }
       _currentHolder.addLocalVariable(exception);
       exceptionParameter.staticElement = exception;
       // stack trace
@@ -2600,6 +2603,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.setVisibleRange(declarationEnd, statementEnd - declarationEnd - 1);
     element.const3 = node.isConst;
     element.final2 = node.isFinal;
+    if (node.type == null) {
+      element.hasImplicitType = true;
+    }
     _currentHolder.addLocalVariable(element);
     variableName.staticElement = element;
     return super.visitDeclaredIdentifier(node);
@@ -2640,6 +2646,10 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     }
     // visible range
     _setParameterVisibleRange(node, parameter);
+    if (normalParameter is SimpleFormalParameter &&
+        normalParameter.type == null) {
+      parameter.hasImplicitType = true;
+    }
     _currentHolder.addParameter(parameter);
     parameterName.staticElement = parameter;
     normalParameter.accept(this);
@@ -2746,6 +2756,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
             element.setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
           }
         }
+        if (node.returnType == null) {
+          element.hasImplicitReturnType = true;
+        }
         _currentHolder.addFunction(element);
         expression.element = element;
         functionName.staticElement = element;
@@ -2783,6 +2796,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           getter.getter = true;
           getter.static = true;
           variable.getter = getter;
+          if (node.returnType == null) {
+            getter.hasImplicitReturnType = true;
+          }
           _currentHolder.addAccessor(getter);
           expression.element = getter;
           propertyNameNode.staticElement = getter;
@@ -2859,6 +2875,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       _functionTypesToFix.add(type);
     }
     element.type = type;
+    element.hasImplicitReturnType = true;
     _currentHolder.addFunction(element);
     node.element = element;
     holder.validate();
@@ -2961,6 +2978,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (body.isGenerator) {
           element.generator = true;
         }
+        if (node.returnType == null) {
+          element.hasImplicitReturnType = true;
+        }
         _currentHolder.addMethod(element);
         methodName.staticElement = element;
       } else {
@@ -2995,6 +3015,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           getter.getter = true;
           getter.static = isStatic;
           field.getter = getter;
+          if (node.returnType == null) {
+            getter.hasImplicitReturnType = true;
+          }
           _currentHolder.addAccessor(getter);
           propertyNameNode.staticElement = getter;
         } else {
@@ -3071,6 +3094,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       parameter.final2 = node.isFinal;
       parameter.parameterKind = node.kind;
       _setParameterVisibleRange(node, parameter);
+      if (node.type == null) {
+        parameter.hasImplicitType = true;
+      }
       _currentHolder.addParameter(parameter);
       parameterName.staticElement = parameter;
     }
@@ -3133,6 +3159,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         field = new FieldElementImpl.forNode(fieldName);
       }
       element = field;
+      if ((node.parent as VariableDeclarationList).type == null) {
+        field.hasImplicitType = true;
+      }
       _currentHolder.addField(field);
       fieldName.staticElement = field;
     } else if (_inFunction) {
@@ -3148,6 +3177,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       // TODO(brianwilkerson) This isn't right for variables declared in a for
       // loop.
       variable.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
+      if ((node.parent as VariableDeclarationList).type == null) {
+        variable.hasImplicitType = true;
+      }
       _currentHolder.addLocalVariable(variable);
       variableName.staticElement = element;
     } else {
@@ -3159,6 +3191,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         variable = new TopLevelVariableElementImpl.forNode(variableName);
       }
       element = variable;
+      if ((node.parent as VariableDeclarationList).type == null) {
+        variable.hasImplicitType = true;
+      }
       _currentHolder.addTopLevelVariable(variable);
       variableName.staticElement = element;
     }
@@ -3190,6 +3225,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       PropertyAccessorElementImpl getter =
           new PropertyAccessorElementImpl.forVariable(element);
       getter.getter = true;
+      if (element.hasImplicitType) {
+        getter.hasImplicitReturnType = true;
+      }
       _currentHolder.addAccessor(getter);
       element.getter = getter;
       if (!isConst && !isFinal) {
@@ -10318,6 +10356,15 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
+   * A client is about to resolve a member in the given class declaration.
+   */
+  void prepareToResolveMembersInClass(ClassDeclaration node) {
+    _enclosingClassDeclaration = node;
+    enclosingClass = node.element;
+    typeAnalyzer.thisType = enclosingClass == null ? null : enclosingClass.type;
+  }
+
+  /**
    * If the given [type] is valid, strongly more specific than the
    * existing static type of the given [expression], record it as a propagated
    * type of the given [expression]. Otherwise, reset it to `null`.
@@ -10668,6 +10715,11 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     super.visitDefaultFormalParameter(node);
+    ParameterElement element = node.element;
+    if (element.initializer != null && node.defaultValue != null) {
+      (element.initializer as FunctionElementImpl).returnType =
+          node.defaultValue.staticType;
+    }
     FormalParameterList parent = node.parent;
     AstNode grandparent = parent.parent;
     if (grandparent is ConstructorDeclaration &&
@@ -10714,9 +10766,21 @@ class ResolverVisitor extends ScopedVisitor {
       ElementResolver.setMetadata(node.element, node);
     }
     //
-    // There is nothing else to do because everything else was resolved by the
-    // element builder.
+    // Continue the enum resolution.
     //
+    ClassElement outerType = enclosingClass;
+    try {
+      enclosingClass = node.element;
+      typeAnalyzer.thisType =
+          enclosingClass == null ? null : enclosingClass.type;
+      super.visitEnumDeclaration(node);
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
+    } finally {
+      typeAnalyzer.thisType = outerType == null ? null : outerType.type;
+      enclosingClass = outerType;
+      _enclosingClassDeclaration = null;
+    }
     return null;
   }
 
@@ -11093,6 +11157,10 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     VariableElement element = node.element;
+    if (element.initializer != null && node.initializer != null) {
+      (element.initializer as FunctionElementImpl).returnType =
+          node.initializer.staticType;
+    }
     // Note: in addition to cloning the initializers for const variables, we
     // have to clone the initializers for non-static final fields (because if
     // they occur in a class with a const constructor, they will be needed to
@@ -12046,6 +12114,38 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       _implicitLabelScope = outerImplicitScope;
     }
     return null;
+  }
+
+  @override
+  Object visitEnumDeclaration(EnumDeclaration node) {
+    ClassElement classElement = node.element;
+    Scope outerScope = nameScope;
+    try {
+      if (classElement == null) {
+        AnalysisEngine.instance.logger.logInformation(
+            "Missing element for enum declaration ${node.name.name} in ${definingLibrary.source.fullName}",
+            new CaughtException(new AnalysisException(), null));
+        super.visitEnumDeclaration(node);
+      } else {
+        ClassElement outerClass = enclosingClass;
+        try {
+          enclosingClass = node.element;
+          nameScope = new ClassScope(nameScope, classElement);
+          visitEnumMembersInScope(node);
+        } finally {
+          enclosingClass = outerClass;
+        }
+      }
+    } finally {
+      nameScope = outerScope;
+    }
+    return null;
+  }
+
+  void visitEnumMembersInScope(EnumDeclaration node) {
+    safelyVisit(node.documentationComment);
+    node.metadata.accept(this);
+    node.constants.accept(this);
   }
 
   @override
@@ -14639,6 +14739,12 @@ abstract class TypeSystem {
    * Compute the least upper bound of two types.
    */
   DartType getLeastUpperBound(DartType type1, DartType type2);
+
+  /**
+   * Return `true` if the [leftType] is a subtype of the [rightType] (that is,
+   * if leftType <: rightType).
+   */
+  bool isSubtypeOf(DartType leftType, DartType rightType);
 }
 
 /**
@@ -14727,6 +14833,11 @@ class TypeSystemImpl implements TypeSystem {
       assert(false);
       return typeProvider.dynamicType;
     }
+  }
+
+  @override
+  bool isSubtypeOf(DartType leftType, DartType rightType) {
+    return leftType.isSubtypeOf(rightType);
   }
 }
 

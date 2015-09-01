@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library engine.ast;
 
 import 'dart:collection';
@@ -2730,7 +2727,7 @@ abstract class AstNode {
    * greater than the offset of the second node.
    */
   static Comparator<AstNode> LEXICAL_ORDER =
-      (AstNode first, AstNode second) => second.offset - first.offset;
+      (AstNode first, AstNode second) => first.offset - second.offset;
 
   /**
    * The parent of the node, or `null` if the node is the root of an AST
@@ -6024,6 +6021,9 @@ class DefaultFormalParameter extends FormalParameter {
   @override
   bool get isFinal => _parameter != null && _parameter.isFinal;
 
+  @override
+  NodeList<Annotation> get metadata => _parameter.metadata;
+
   /**
    * Return the formal parameter with which the default value is associated.
    */
@@ -7528,6 +7528,11 @@ abstract class FormalParameter extends AstNode {
    * Return the kind of this parameter.
    */
   ParameterKind get kind;
+
+  /**
+   * Return the annotations associated with this parameter.
+   */
+  NodeList<Annotation> get metadata;
 }
 
 /**
@@ -13734,9 +13739,7 @@ abstract class NormalFormalParameter extends FormalParameter {
     return ParameterKind.REQUIRED;
   }
 
-  /**
-   * Return the annotations associated with this parameter.
-   */
+  @override
   NodeList<Annotation> get metadata => _metadata;
 
   /**
@@ -17971,6 +17974,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    _visitTokenWithSuffix(node.externalKeyword, " ");
     _visitNodeWithSuffix(node.returnType, " ");
     _visitTokenWithSuffix(node.propertyKeyword, " ");
     _visitNode(node.name);
@@ -17988,7 +17992,9 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitFunctionExpression(FunctionExpression node) {
     _visitNode(node.typeParameters);
     _visitNode(node.parameters);
-    _writer.print(' ');
+    if (node.body is! EmptyFunctionBody) {
+      _writer.print(' ');
+    }
     _visitNode(node.body);
     return null;
   }

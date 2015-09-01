@@ -598,6 +598,11 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::CoreLibrary();
       class_name = &Symbols::ArgumentError();
       break;
+    case kArgumentValue:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::ArgumentError();
+      constructor_name = &Symbols::DotValue();
+      break;
     case kNoSuchMethod:
       library = Library::CoreLibrary();
       class_name = &Symbols::NoSuchMethodError();

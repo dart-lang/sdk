@@ -7,6 +7,7 @@
 #define VM_CODE_PATCHER_H_
 
 #include "vm/allocation.h"
+#include "vm/native_entry.h"
 
 namespace dart {
 
@@ -88,11 +89,18 @@ class CodePatcher : public AllStatic {
 
   static RawObject* GetEdgeCounterAt(uword pc, const Code& code);
 
-  static int32_t GetPoolOffsetAt(uword return_address);
-  static void SetPoolOffsetAt(uword return_address, int32_t offset);
   static void PatchPoolPointerCallAt(uword return_address,
                                      const Code& code,
                                      uword new_target);
+
+  static uword GetNativeCallAt(uword return_address,
+                               const Code& code,
+                               NativeFunction* target);
+
+  static void PatchNativeCallAt(uword return_address,
+                                const Code& code,
+                                NativeFunction target,
+                                const Code& trampoline);
 };
 
 }  // namespace dart

@@ -11,10 +11,11 @@ import 'package:analyzer/src/task/incremental_element_builder.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
+import '../../utils.dart';
 import '../context/abstract_context.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(IncrementalCompilationUnitElementBuilderTest);
 }
 
@@ -79,10 +80,12 @@ library my_lib;
 part 'test.dart';
 ''';
     Source libSource = newSource('/lib.dart', libCode);
-    _buildOldUnit(r'''
+    _buildOldUnit(
+        r'''
 part of my_lib;
 class A {}
-''', libSource);
+''',
+        libSource);
     List<Directive> oldDirectives = oldUnit.directives.toList();
     _buildNewUnit(r'''
 part of my_lib;
@@ -330,7 +333,9 @@ class B {}
     {
       CompilationUnitMember newNode = newNodes[0];
       expect(newNode, same(oldNodes[2]));
-      expect(getNodeText(newNode), r'''
+      expect(
+          getNodeText(newNode),
+          r'''
 /// reference [double] and [B] types.
 class C {}''');
       ClassElement element = newNode.element;
@@ -349,7 +354,9 @@ class C {}''');
     {
       CompilationUnitMember newNode = newNodes[1];
       expect(newNode, same(oldNodes[0]));
-      expect(getNodeText(newNode), r'''
+      expect(
+          getNodeText(newNode),
+          r'''
 /// reference [bool] type.
 class A {}''');
       ClassElement element = newNode.element;
@@ -366,7 +373,9 @@ class A {}''');
     {
       CompilationUnitMember newNode = newNodes[2];
       expect(newNode, same(oldNodes[1]));
-      expect(getNodeText(newNode), r'''
+      expect(
+          getNodeText(newNode),
+          r'''
 /// reference [int] type.
 class B {}''');
       ClassElement element = newNode.element;
@@ -621,16 +630,18 @@ int c, d;
     // unit.types
     expect(unitElement.topLevelVariables,
         unorderedEquals([elementA, elementB, elementC, elementD]));
-    expect(unitElement.accessors, unorderedEquals([
-      elementA.getter,
-      elementA.setter,
-      elementB.getter,
-      elementB.setter,
-      elementC.getter,
-      elementC.setter,
-      elementD.getter,
-      elementD.setter
-    ]));
+    expect(
+        unitElement.accessors,
+        unorderedEquals([
+          elementA.getter,
+          elementA.setter,
+          elementB.getter,
+          elementB.setter,
+          elementC.getter,
+          elementC.setter,
+          elementD.getter,
+          elementD.setter
+        ]));
   }
 
   test_unitMembers_topLevelVariable_final() {

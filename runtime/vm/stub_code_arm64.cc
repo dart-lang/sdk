@@ -128,6 +128,13 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 }
 
 
+// Print the stop message.
+DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
+  OS::Print("Stop message: %s\n", message);
+}
+END_LEAF_RUNTIME_ENTRY
+
+
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
   __ Stop("GeneratePrintStopMessageStub");
 }
@@ -344,8 +351,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   // Remove the stub frame.
   __ LeaveStubFrame();
   // Jump to the dart function.
-  __ LoadFieldFromOffset(R0, R0, Code::instructions_offset());
-  __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ LoadFieldFromOffset(R0, R0, Code::entry_point_offset());
   __ br(R0);
 }
 
@@ -367,8 +373,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   // Remove the stub frame.
   __ LeaveStubFrame();
   // Jump to the dart function.
-  __ LoadFieldFromOffset(R0, R0, Code::instructions_offset());
-  __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ LoadFieldFromOffset(R0, R0, Code::entry_point_offset());
   __ br(R0);
 }
 
@@ -385,8 +390,7 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
   // Remove the stub frame.
   __ LeaveStubFrame();
   // Jump to the dart function.
-  __ LoadFieldFromOffset(R0, R0, Code::instructions_offset());
-  __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ LoadFieldFromOffset(R0, R0, Code::entry_point_offset());
   __ br(R0);
 }
 
@@ -423,13 +427,6 @@ static void PushArgumentsArray(Assembler* assembler) {
 }
 
 
-DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
-                           intptr_t deopt_reason,
-                           uword saved_registers_address);
-
-DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
-
-
 // Used by eager and lazy deoptimization. Preserve result in RAX if necessary.
 // This stub translates optimized frame into unoptimized frame. The optimized
 // frame can contain values in registers and on stack, the unoptimized
@@ -458,8 +455,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
                                            bool preserve_result) {
   // DeoptimizeCopyFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
-  __ EnterFrame(0);
-  __ TagAndPushPPAndPcMarker(ZR);
+  __ EnterStubFrame();
 
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
@@ -490,13 +486,12 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
 
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
-  __ LeaveDartFrame();
+  __ LeaveStubFrame();
   __ sub(SP, FP, Operand(R0));
 
   // DeoptimizeFillFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
-  __ EnterFrame(0);
-  __ TagAndPushPPAndPcMarker(ZR);
+  __ EnterStubFrame();
 
   if (preserve_result) {
     __ Push(R1);  // Preserve result as first local.
@@ -510,7 +505,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
   // Code above cannot cause GC.
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
-  __ LeaveDartFrame();
+  __ LeaveStubFrame();
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
@@ -518,7 +513,6 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Enter stub frame with loading PP. The caller's PP is not materialized yet.
   __ EnterStubFrame();
   if (preserve_result) {
-    __ Push(ZR);  // Workaround for dropped stack slot during GC.
     __ Push(R1);  // Preserve result, it will be GC-d here.
   }
   __ Push(ZR);  // Space for the result.
@@ -529,7 +523,6 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ SmiUntag(R1);
   if (preserve_result) {
     __ Pop(R0);  // Restore result.
-    __ Drop(1);  // Workaround for dropped stack slot during GC.
   }
   __ LeaveStubFrame();
   // Remove materialization arguments.
@@ -617,8 +610,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   }
 
   // Tail-call to target function.
-  __ LoadFieldFromOffset(R2, R0, Function::instructions_offset());
-  __ AddImmediate(R2, R2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ LoadFieldFromOffset(R2, R0, Function::entry_point_offset());
   __ br(R2);
 }
 
@@ -1022,8 +1014,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ ret();
 }
 
-
-DECLARE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, Isolate* isolate);
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
@@ -1552,9 +1542,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Comment("Call target");
   __ Bind(&call_target_function);
   // R0: target function.
-  __ LoadFieldFromOffset(R2, R0, Function::instructions_offset());
-  __ AddImmediate(
-      R2, R2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ LoadFieldFromOffset(R2, R0, Function::entry_point_offset());
   if (range_collection_mode == kCollectRanges) {
     __ ldr(R1, Address(SP, 0 * kWordSize));
     if (num_args == 2) {
@@ -1728,12 +1716,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Get function and call it, if possible.
   __ LoadFromOffset(R0, R6, target_offset);
-  __ LoadFieldFromOffset(R2, R0, Function::instructions_offset());
-
-  // R0: function.
-  // R2: target instructons.
-  __ AddImmediate(
-      R2, R2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ LoadFieldFromOffset(R2, R0, Function::entry_point_offset());
   __ br(R2);
 
   if (FLAG_support_debugger) {
@@ -1780,9 +1763,7 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ Pop(R5);  // Restore IC Data.
   __ LeaveStubFrame();
 
-  __ LoadFieldFromOffset(R2, R0, Function::instructions_offset());
-  __ AddImmediate(
-      R2, R2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ LoadFieldFromOffset(R2, R0, Function::entry_point_offset());
   __ br(R2);
 }
 
@@ -1985,18 +1966,11 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ Pop(R0);  // Discard argument.
   __ Pop(R0);  // Get Code object
   __ Pop(R4);  // Restore argument descriptor.
-  __ LoadFieldFromOffset(R0, R0, Code::instructions_offset());
-  __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ LoadFieldFromOffset(R0, R0, Code::entry_point_offset());
   __ LeaveStubFrame();
   __ br(R0);
   __ brk(0);
 }
-
-
-DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
-                           BigintCompare,
-                           RawBigint* left,
-                           RawBigint* right);
 
 
 // Does identical check (object references are equal or not equal) with special
@@ -2143,10 +2117,7 @@ void StubCode::EmitMegamorphicLookup(
   // be invoked as a normal Dart function.
   __ add(TMP, R2, Operand(R3, LSL, 3));
   __ LoadFieldFromOffset(R0, TMP, base + kWordSize);
-  __ LoadFieldFromOffset(R1, R0, Function::instructions_offset());
-  // TODO(srdjan): Evaluate performance impact of moving the instruction below
-  // to the call site, instead of having it here.
-  __ AddImmediate(target, R1, Instructions::HeaderSize() - kHeapObjectTag);
+  __ LoadFieldFromOffset(R1, R0, Function::entry_point_offset());
 }
 
 

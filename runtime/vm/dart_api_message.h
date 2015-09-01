@@ -41,14 +41,10 @@ struct Dart_CObject_Internal : public Dart_CObject {
 // Reads a message snapshot into a C structure.
 class ApiMessageReader : public BaseReader {
  public:
-  // The allocator passed is used to allocate memory for the C structure used
-  // to represent the message snapshot. This allocator must keep track of the
-  // memory allocated as there is no way to run through the resulting C
-  // structure and free the individual pieces. Using a zone based allocator is
-  // recommended.
-  ApiMessageReader(const uint8_t* buffer,
-                   intptr_t length,
-                   ReAlloc alloc);
+  // The ApiMessageReader object must be enclosed by an ApiNativeScope.
+  // Allocation of all C Heap objects is done in the zone associated with
+  // the enclosing ApiNativeScope.
+  ApiMessageReader(const uint8_t* buffer, intptr_t length);
   ~ApiMessageReader() { }
 
   Dart_CObject* ReadMessage();
@@ -139,10 +135,11 @@ class ApiMessageReader : public BaseReader {
   Dart_CObject* GetCanonicalMintObject(Dart_CObject_Type type,
                                        int64_t value64);
 
-  // Allocation of the structures for the decoded message happens
-  // either in the supplied zone or using the supplied allocation
-  // function.
-  ReAlloc alloc_;
+  uint8_t* allocator(intptr_t size) {
+    return zone_->Realloc<uint8_t>(NULL, 0, size);
+  }
+
+  Zone* zone_;  // Zone in which C heap objects are allocated.
   ApiGrowableArray<BackRefNode*> backward_references_;
   ApiGrowableArray<Dart_CObject*> vm_isolate_references_;
   Dart_CObject** vm_symbol_references_;

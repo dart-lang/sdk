@@ -9,6 +9,7 @@
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
+#include "vm/stack_frame.h"
 #include "vm/thread.h"
 
 namespace dart {
@@ -47,10 +48,11 @@ class ThreadRegistry {
     CheckSafepointLocked();
   }
 
-  bool RestoreStateTo(Thread* thread, Thread::State* state) {
+  bool RestoreStateTo(Thread* thread, Thread::State* state,
+                      bool bypass_safepoint) {
     MonitorLocker ml(monitor_);
     // Wait for any rendezvous in progress.
-    while (in_rendezvous_) {
+    while (!bypass_safepoint && in_rendezvous_) {
       ml.Wait(Monitor::kNoTimeout);
     }
     Entry* entry = FindEntry(thread);
@@ -82,14 +84,15 @@ class ThreadRegistry {
     return false;
   }
 
-  void SaveStateFrom(Thread* thread, const Thread::State& state) {
+  void SaveStateFrom(Thread* thread, const Thread::State& state,
+                     bool bypass_safepoint) {
     MonitorLocker ml(monitor_);
     Entry* entry = FindEntry(thread);
     ASSERT(entry != NULL);
     ASSERT(entry->scheduled);
     entry->scheduled = false;
     entry->state = state;
-    if (in_rendezvous_) {
+    if (!bypass_safepoint && in_rendezvous_) {
       // Don't wait for this thread.
       ASSERT(remaining_ > 0);
       if (--remaining_ == 0) {
@@ -116,13 +119,23 @@ class ThreadRegistry {
     }
   }
 
-  void VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  void VisitObjectPointers(ObjectPointerVisitor* visitor,
+                           bool validate_frames) {
     MonitorLocker ml(monitor_);
     for (int i = 0; i < entries_.length(); ++i) {
       const Entry& entry = entries_[i];
-      Zone* zone = entry.scheduled ? entry.thread->zone() : entry.state.zone;
-      if (zone != NULL) {
-        zone->VisitObjectPointers(visitor);
+      const Thread::State& state =
+          entry.scheduled ? entry.thread->state_ : entry.state;
+      if (state.zone != NULL) {
+        state.zone->VisitObjectPointers(visitor);
+      }
+      // Iterate over all the stack frames and visit objects on the stack.
+      StackFrameIterator frames_iterator(state.top_exit_frame_info,
+                                         validate_frames);
+      StackFrame* frame = frames_iterator.NextFrame();
+      while (frame != NULL) {
+        frame->VisitObjectPointers(visitor);
+        frame = frames_iterator.NextFrame();
       }
     }
   }
@@ -130,6 +143,9 @@ class ThreadRegistry {
   void PruneThread(Thread* thread);
 
   struct Entry {
+    // NOTE: |thread| is deleted automatically when the thread exits.
+    // In other words, it is not safe to dereference |thread| unless you are on
+    // the thread itself.
     Thread* thread;
     bool scheduled;
     Thread::State state;

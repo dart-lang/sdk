@@ -380,7 +380,7 @@ class PlaceholderCollector extends Visitor {
     if (node is Identifier &&
         !Elements.isStaticOrTopLevel(element) &&
         !Elements.isLocal(element) &&
-        isPrivateName(node.source)) {
+        Name.isPrivateName(node.source)) {
       privateNodes.putIfAbsent(
           currentElement.library, () => new Set<Identifier>()).add(node);
     }

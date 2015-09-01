@@ -11,9 +11,11 @@ import 'package:path/path.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
+  initializeTestEnvironment();
   defineReflectiveTests(AnalysisGetHoverIntegrationTest);
 }
 
@@ -62,9 +64,13 @@ main() {
    * expected propagated type of the element.
    */
   checkHover(String target, int length, List<String> descriptionRegexps,
-      String kind, List<String> staticTypeRegexps, {bool isLocal: false,
-      bool isCore: false, String docRegexp: null, bool isLiteral: false,
-      List<String> parameterRegexps: null, propagatedType: null}) {
+      String kind, List<String> staticTypeRegexps,
+      {bool isLocal: false,
+      bool isCore: false,
+      String docRegexp: null,
+      bool isLiteral: false,
+      List<String> parameterRegexps: null,
+      propagatedType: null}) {
     int offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) {
       expect(result.hovers, hasLength(1));
@@ -141,10 +147,8 @@ main() {
     // request is made.  So wait for analysis to finish before testing anything.
     return analysisFinished.then((_) {
       List<Future> tests = [];
-      tests.add(checkHover('topLevelVar;', 11, [
-        'List',
-        'topLevelVar'
-      ], 'top level variable', ['List']));
+      tests.add(checkHover('topLevelVar;', 11, ['List', 'topLevelVar'],
+          'top level variable', ['List']));
       tests.add(checkHover(
           'func(', 4, ['func', 'int', 'param'], 'function', ['int', 'void'],
           docRegexp: 'Documentation for func'));
@@ -157,10 +161,8 @@ main() {
       tests.add(checkHover(
           'localVar =', 8, ['num', 'localVar'], 'local variable', ['num'],
           isLocal: true, propagatedType: 'int'));
-      tests.add(checkHover('topLevelVar.length;', 11, [
-        'List',
-        'topLevelVar'
-      ], 'top level variable', ['List']));
+      tests.add(checkHover('topLevelVar.length;', 11, ['List', 'topLevelVar'],
+          'top level variable', ['List']));
       tests.add(checkHover(
           'length;', 6, ['get', 'length', 'int'], 'getter', ['int'],
           isCore: true, docRegexp: '.*'));

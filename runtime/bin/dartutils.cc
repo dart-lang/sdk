@@ -589,11 +589,6 @@ void FUNCTION_NAME(Builtin_LoadSource)(Dart_NativeArguments args) {
 // no more outstanding load requests.
 void FUNCTION_NAME(Builtin_DoneLoading)(Dart_NativeArguments args) {
   Dart_Handle res = Dart_FinalizeLoading(true);
-  IsolateData* isolate_data =
-      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-  if (isolate_data->load_async_id >= 0) {
-    Dart_TimelineAsyncEnd("LoadScript", isolate_data->load_async_id);
-  }
   if (Dart_IsError(res)) {
     // TODO(hausner): If compilation/loading errors are supposed to
     // be observable by the program, we need to mark the bad library

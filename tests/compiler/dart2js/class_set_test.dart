@@ -11,9 +11,9 @@ import 'package:async_helper/async_helper.dart';
 import 'type_test_helper.dart';
 import 'package:compiler/src/elements/elements.dart'
        show Element, ClassElement;
-import 'package:compiler/src/dart2jslib.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/util/util.dart';
+import 'package:compiler/src/world.dart';
 
 void main() {
   asyncTest(() => TypeEnvironment.create(r"""

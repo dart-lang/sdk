@@ -8,7 +8,7 @@ library dart2js.test.missing_file;
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/dart2jslib.dart';
+import "package:compiler/src/diagnostics/messages.dart";
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 

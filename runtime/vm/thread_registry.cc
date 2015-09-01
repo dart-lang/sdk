@@ -10,6 +10,24 @@
 namespace dart {
 
 ThreadRegistry::~ThreadRegistry() {
+  {
+    // Each thread that is scheduled in this isolate may have a cached timeline
+    // block. Mark these timeline blocks as finished.
+    MonitorLocker ml(monitor_);
+    TimelineEventRecorder* recorder = Timeline::recorder();
+    if (recorder != NULL) {
+      MutexLocker recorder_lock(&recorder->lock_);
+      for (intptr_t i = 0; i < entries_.length(); i++) {
+        // NOTE: It is only safe to access |entry.state| here.
+        const Entry& entry = entries_.At(i);
+        if (entry.state.timeline_block != NULL) {
+          entry.state.timeline_block->Finish();
+        }
+      }
+    }
+  }
+
+  // Delete monitor.
   delete monitor_;
 }
 

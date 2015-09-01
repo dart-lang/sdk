@@ -12,8 +12,10 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
+
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(LocalDeclarationVisitorTest);
 }
 

@@ -52,7 +52,7 @@ static bool CanEncodeBranchOffset(int32_t offset) {
 int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t instr) {
   if (!CanEncodeBranchOffset(offset)) {
     ASSERT(!use_far_branches());
-    Isolate::Current()->long_jump_base()->Jump(
+    Thread::Current()->long_jump_base()->Jump(
         1, Object::branch_offset_error());
   }
 
@@ -457,33 +457,51 @@ void Assembler::SubuDetectOverflow(Register rd, Register rs, Register rt,
 
 
 void Assembler::Branch(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  Branch(&label);
+  ASSERT(!in_delay_slot_);
+  LoadImmediate(TMP, stub_entry.label().address());
+  jr(TMP);
 }
 
 
 void Assembler::BranchPatchable(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  BranchPatchable(&label);
+  ASSERT(!in_delay_slot_);
+  const ExternalLabel& label = stub_entry.label();
+  const uint16_t low = Utils::Low16Bits(label.address());
+  const uint16_t high = Utils::High16Bits(label.address());
+  lui(T9, Immediate(high));
+  ori(T9, T9, Immediate(low));
+  jr(T9);
+  delay_slot_available_ = false;  // CodePatcher expects a nop.
 }
 
 
-void Assembler::BranchLink(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  BranchLink(&label);
+void Assembler::BranchLink(const ExternalLabel* label) {
+  ASSERT(!in_delay_slot_);
+  LoadImmediate(T9, label->address());
+  jalr(T9);
+}
+
+
+void Assembler::BranchLink(const ExternalLabel* label, Patchability patchable) {
+  ASSERT(!in_delay_slot_);
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindExternalLabel(label, patchable));
+  LoadWordFromPoolOffset(T9, offset - kHeapObjectTag);
+  jalr(T9);
+  if (patchable == kPatchable) {
+    delay_slot_available_ = false;  // CodePatcher expects a nop.
+  }
 }
 
 
 void Assembler::BranchLink(const StubEntry& stub_entry,
                            Patchability patchable) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  BranchLink(&label, patchable);
+  BranchLink(&stub_entry.label(), patchable);
 }
 
 
 void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  BranchLink(&label, kPatchable);
+  BranchLink(&stub_entry.label(), kPatchable);
 }
 
 
@@ -815,12 +833,7 @@ void Assembler::EnterStubFrame() {
 
 
 void Assembler::LeaveStubFrame() {
-  ASSERT(!in_delay_slot_);
-  addiu(SP, FP, Immediate(-1 * kWordSize));
-  lw(RA, Address(SP, 2 * kWordSize));
-  lw(FP, Address(SP, 1 * kWordSize));
-  lw(PP, Address(SP, 0 * kWordSize));
-  addiu(SP, SP, Immediate(4 * kWordSize));
+  LeaveDartFrame();
 }
 
 
@@ -1158,7 +1171,7 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   ASSERT(!in_delay_slot_);
   const intptr_t kPushedRegistersSize =
       kDartVolatileCpuRegCount * kWordSize +
-      2 * kWordSize +  // FP and RA.
+      3 * kWordSize +  // PP, FP and RA.
       kDartVolatileFpuRegCount * kWordSize;
 
   SetPrologueOffset();
@@ -1179,18 +1192,21 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   for (int i = kDartFirstVolatileFpuReg; i <= kDartLastVolatileFpuReg; i++) {
     // These go above the volatile CPU registers.
     const int slot =
-        (i - kDartFirstVolatileFpuReg) + kDartVolatileCpuRegCount + 2;
+        (i - kDartFirstVolatileFpuReg) + kDartVolatileCpuRegCount + 3;
     FRegister reg = static_cast<FRegister>(i);
     swc1(reg, Address(SP, slot * kWordSize));
   }
   for (int i = kDartFirstVolatileCpuReg; i <= kDartLastVolatileCpuReg; i++) {
     // + 2 because FP goes in slot 0.
-    const int slot = (i - kDartFirstVolatileCpuReg) + 2;
+    const int slot = (i - kDartFirstVolatileCpuReg) + 3;
     Register reg = static_cast<Register>(i);
     sw(reg, Address(SP, slot * kWordSize));
   }
-  sw(RA, Address(SP, 1 * kWordSize));
-  sw(FP, Address(SP, 0 * kWordSize));
+  sw(RA, Address(SP, 2 * kWordSize));
+  sw(FP, Address(SP, 1 * kWordSize));
+  sw(PP, Address(SP, 0 * kWordSize));
+  LoadPoolPointer();
+
   mov(FP, SP);
 
   ReserveAlignedFrameSpace(frame_space);
@@ -1201,7 +1217,7 @@ void Assembler::LeaveCallRuntimeFrame() {
   ASSERT(!in_delay_slot_);
   const intptr_t kPushedRegistersSize =
       kDartVolatileCpuRegCount * kWordSize +
-      2 * kWordSize +  // FP and RA.
+      3 * kWordSize +  // FP and RA.
       kDartVolatileFpuRegCount * kWordSize;
 
   Comment("LeaveCallRuntimeFrame");
@@ -1212,18 +1228,19 @@ void Assembler::LeaveCallRuntimeFrame() {
   mov(SP, FP);
 
   // Restore volatile CPU and FPU registers from the stack.
-  lw(FP, Address(SP, 0 * kWordSize));
-  lw(RA, Address(SP, 1 * kWordSize));
+  lw(PP, Address(SP, 0 * kWordSize));
+  lw(FP, Address(SP, 1 * kWordSize));
+  lw(RA, Address(SP, 2 * kWordSize));
   for (int i = kDartFirstVolatileCpuReg; i <= kDartLastVolatileCpuReg; i++) {
     // + 2 because FP goes in slot 0.
-    const int slot = (i - kDartFirstVolatileCpuReg) + 2;
+    const int slot = (i - kDartFirstVolatileCpuReg) + 3;
     Register reg = static_cast<Register>(i);
     lw(reg, Address(SP, slot * kWordSize));
   }
   for (int i = kDartFirstVolatileFpuReg; i <= kDartLastVolatileFpuReg; i++) {
     // These go above the volatile CPU registers.
     const int slot =
-        (i - kDartFirstVolatileFpuReg) + kDartVolatileCpuRegCount + 2;
+        (i - kDartFirstVolatileFpuReg) + kDartVolatileCpuRegCount + 3;
     FRegister reg = static_cast<FRegister>(i);
     lwc1(reg, Address(SP, slot * kWordSize));
   }

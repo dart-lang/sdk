@@ -184,7 +184,9 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movq(CallingConventions::kArg1Reg, RSP);
   // Pass pointer to function entrypoint.
   __ movq(CallingConventions::kArg2Reg, RBX);
-  __ CallCFunction(&NativeEntry::NativeCallWrapperLabel());
+  __ LoadExternalLabel(
+      RAX, &NativeEntry::NativeCallWrapperLabel(), kNotPatchable);
+  __ CallCFunction(RAX);
 
   // Mark that the isolate is executing Dart code.
   __ movq(Address(R12, Isolate::vm_tag_offset()),
@@ -283,8 +285,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   // Remove the stub frame as we are about to jump to the dart function.
   __ LeaveStubFrame();
 
-  __ movq(RBX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RBX, FieldAddress(RAX, Code::entry_point_offset()));
   __ jmp(RBX);
 }
 
@@ -300,8 +301,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   __ popq(RAX);  // Get Code object.
   __ popq(R10);  // Restore arguments descriptor array.
-  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RAX, FieldAddress(RAX, Code::entry_point_offset()));
   __ LeaveStubFrame();
   __ jmp(RAX);
   __ int3();
@@ -316,8 +316,7 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
   __ PushObject(Object::null_object());
   __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
   __ popq(RAX);  // Get Code object.
-  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RAX, FieldAddress(RAX, Code::entry_point_offset()));
   __ LeaveStubFrame();
   __ jmp(RAX);
   __ int3();
@@ -359,13 +358,6 @@ static void PushArgumentsArray(Assembler* assembler) {
 }
 
 
-DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
-                           intptr_t deopt_reason,
-                           uword saved_registers_address);
-
-DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
-
-
 // Used by eager and lazy deoptimization. Preserve result in RAX if necessary.
 // This stub translates optimized frame into unoptimized frame. The optimized
 // frame can contain values in registers and on stack, the unoptimized
@@ -394,9 +386,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
                                            bool preserve_result) {
   // DeoptimizeCopyFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
-  __ EnterFrame(0);
-  __ pushq(Immediate(0));
-  __ pushq(PP);
+  __ EnterStubFrame();
 
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
@@ -429,7 +419,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
 
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
-  __ LeaveDartFrame();
+  __ LeaveStubFrame();
 
   __ popq(RCX);   // Preserve return address.
   __ movq(RSP, RBP);  // Discard optimized frame.
@@ -438,9 +428,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
   // DeoptimizeFillFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
-  __ EnterFrame(0);
-  __ pushq(Immediate(0));
-  __ pushq(PP);
+  __ EnterStubFrame();
 
   if (preserve_result) {
     __ pushq(RBX);  // Preserve result as first local.
@@ -455,7 +443,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
   // Code above cannot cause GC.
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
-  __ LeaveDartFrame();
+  __ LeaveStubFrame();
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
@@ -463,7 +451,6 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Enter stub frame with loading PP. The caller's PP is not materialized yet.
   __ EnterStubFrame();
   if (preserve_result) {
-    __ pushq(Immediate(0));  // Workaround for dropped stack slot during GC.
     __ pushq(RBX);  // Preserve result, it will be GC-d here.
   }
   __ pushq(Immediate(Smi::RawValue(0)));  // Space for the result.
@@ -474,7 +461,6 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ SmiUntag(RBX);
   if (preserve_result) {
     __ popq(RAX);  // Restore result.
-    __ Drop(1);  // Workaround for dropped stack slot during GC.
   }
   __ LeaveStubFrame();
 
@@ -491,7 +477,7 @@ void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
   // Correct return address to point just after the call that is being
   // deoptimized.
   __ popq(RBX);
-  __ subq(RBX, Immediate(ShortCallPattern::InstructionLength()));
+  __ subq(RBX, Immediate(ShortCallPattern::pattern_length_in_bytes()));
   __ pushq(RBX);
   GenerateDeoptimizationSequence(assembler, true);  // Preserve RAX.
 }
@@ -566,8 +552,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
     __ Bind(&call_target_function);
   }
 
-  __ movq(RCX, FieldAddress(RAX, Function::instructions_offset()));
-  __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
   __ jmp(RCX);
 }
 
@@ -977,8 +962,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ ret();
 }
 
-
-DECLARE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, Isolate* isolate);
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
@@ -1503,8 +1486,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Bind(&call_target_function);
   // RAX: Target function.
   Label is_compiled;
-  __ movq(RCX, FieldAddress(RAX, Function::instructions_offset()));
-  __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
   if (range_collection_mode == kCollectRanges) {
     __ movq(R8, Address(RSP, + 1 * kWordSize));
     if (num_args == 2) {
@@ -1703,9 +1685,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Get function and call it, if possible.
   __ movq(RAX, Address(R12, target_offset));
-  __ movq(RCX, FieldAddress(RAX, Function::instructions_offset()));
-  // RCX: Target instructions.
-  __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
   __ jmp(RCX);
 
   if (FLAG_support_debugger) {
@@ -1756,8 +1736,7 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ popq(R10);  // Restore arguments descriptor array.
   __ LeaveStubFrame();
 
-  __ movq(RAX, FieldAddress(RAX, Function::instructions_offset()));
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RAX, FieldAddress(RAX, Function::entry_point_offset()));
   __ jmp(RAX);
 }
 
@@ -1984,18 +1963,11 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ popq(RAX);  // Disard argument.
   __ popq(RAX);  // Get Code object.
   __ popq(R10);  // Restore argument descriptor.
-  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(RAX, FieldAddress(RAX, Code::entry_point_offset()));
   __ LeaveStubFrame();
   __ jmp(RAX);
   __ int3();
 }
-
-
-DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
-                           BigintCompare,
-                           RawBigint* left,
-                           RawBigint* right);
 
 
 // Does identical check (object references are equal or not equal) with special
@@ -2141,11 +2113,7 @@ void StubCode::EmitMegamorphicLookup(
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
   __ movq(RAX, FieldAddress(RDI, RCX, TIMES_8, base + kWordSize));
-  __ movq(target, FieldAddress(RAX, Function::instructions_offset()));
-  // TODO(srdjan): Evaluate performance impact of moving the instruction below
-  // to the call site, instead of having it here.
-  __ AddImmediate(
-      target, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(target, FieldAddress(RAX, Function::entry_point_offset()));
 }
 
 

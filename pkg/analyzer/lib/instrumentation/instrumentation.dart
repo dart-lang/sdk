@@ -150,12 +150,14 @@ class InstrumentationService {
    * entry has the given [level] and [message], and was created at the given
    * [time].
    */
-  void logLogEntry(String level, DateTime time, String message) {
+  void logLogEntry(String level, DateTime time, String message, Object exception, StackTrace stackTrace) {
     if (_instrumentationServer != null) {
       String timeStamp =
           time == null ? 'null' : time.millisecondsSinceEpoch.toString();
+      String exceptionText = exception.toString();
+      String stackTraceText = stackTrace.toString();
       _instrumentationServer
-          .log(_join([TAG_LOG_ENTRY, level, timeStamp, message]));
+          .log(_join([TAG_LOG_ENTRY, level, timeStamp, message, exceptionText, stackTraceText]));
     }
   }
 

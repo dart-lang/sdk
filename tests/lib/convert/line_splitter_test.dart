@@ -9,6 +9,8 @@ import 'dart:convert';
 import 'dart:math' as MATH;
 
 
+const lineTerminators = const ['\n', '\r', '\r\n'];
+
 void main() {
   testSimpleConvert();
   testSplit();
@@ -20,18 +22,16 @@ void main() {
 }
 
 void testManyLines() {
-  const breaks = const ['\n', '\r\n'];
   int breakIndex = 0;
 
   var inputs = const ['line1', 'line2', 'long line 3', ' line 4 ', 'l5'];
 
-
   var buffer = inputs.fold(new StringBuffer(), (buff, e) {
     buff.write(e);
-    buff.write(breaks[breakIndex]);
+    buff.write(lineTerminators[breakIndex]);
 
     breakIndex++;
-    breakIndex = breakIndex % breaks.length;
+    breakIndex = breakIndex % lineTerminators.length;
 
     return buff;
   });
@@ -62,21 +62,17 @@ String _getLinesSliced(String str) {
 }
 
 void testSimpleConvert() {
-  var test = """line1
-line2
-line3""";
-
-
   var decoder = new LineSplitter();
+  for (var lf in lineTerminators) {
+    var test = "line1${lf}line2${lf}line3";
+
+    var result = decoder.convert(test);
+
+    Expect.listEquals(['line1', 'line2', 'line3'], result);
+  }
+
+  var test = "Line1\nLine2\r\nLine3\rLine4\n\n\n\r\n\r\n\r\r";
   var result = decoder.convert(test);
-
-  Expect.listEquals(['line1', 'line2', 'line3'], result);
-
-  test = "Line1\nLine2\r\nLine3\rLi"
-      "ne4\n"
-       "\n\n\r\n\r\n\r\r";
-
-  result = decoder.convert(test);
 
   Expect.listEquals(
       ['Line1', 'Line2', 'Line3', 'Line4', '', '', '', '', '', ''],
@@ -142,20 +138,14 @@ void testReadLine2() {
 
 
 void testSplit() {
-  var test = """line1
-line2
-line3""";
+  for (var lf in lineTerminators) {
+    var test = "line1${lf}line2${lf}line3";
+    var result = LineSplitter.split(test).toList();
+    Expect.listEquals(['line1', 'line2', 'line3'], result);
+  }
 
-
+  var test = "Line1\nLine2\r\nLine3\rLine4\n\n\n\r\n\r\n\r\r";
   var result = LineSplitter.split(test).toList();
-
-  Expect.listEquals(['line1', 'line2', 'line3'], result);
-
-  test = "Line1\nLine2\r\nLine3\rLi"
-      "ne4\n"
-       "\n\n\r\n\r\n\r\r";
-
-  result = LineSplitter.split(test).toList();
 
   Expect.listEquals(
       ['Line1', 'Line2', 'Line3', 'Line4', '', '', '', '', '', ''],
@@ -163,30 +153,30 @@ line3""";
 }
 
 void testSplitWithOffsets() {
-  var test = """line1
-line2
-line3""";
+  for (var lf in lineTerminators) {
+    var test = "line1${lf}line2${lf}line3";
+    var i2 = 5 + lf.length;  // index of "line2".
+    Expect.equals(5 + lf.length, i2);
 
-  var result = LineSplitter.split(test, 4).toList();
-  Expect.listEquals(['1', 'line2', 'line3'], result);
+    var result = LineSplitter.split(test, 4).toList();
+    Expect.listEquals(['1', 'line2', 'line3'], result);
 
-  result = LineSplitter.split(test, 5).toList();
-  Expect.listEquals(['', 'line2', 'line3'], result);
+    result = LineSplitter.split(test, 5).toList();
+    Expect.listEquals(['', 'line2', 'line3'], result);
 
-  result = LineSplitter.split(test, 6).toList();
-  Expect.listEquals(['line2', 'line3'], result);
+    result = LineSplitter.split(test, i2).toList();
+    Expect.listEquals(['line2', 'line3'], result);
 
-  result = LineSplitter.split(test, 0, 8).toList();
-  Expect.listEquals(['line1', 'li'], result);
+    result = LineSplitter.split(test, 0, i2 + 2).toList();
+    Expect.listEquals(['line1', 'li'], result);
 
-  result = LineSplitter.split(test, 6, 11).toList();
-  Expect.listEquals(['line2'], result);
+    result = LineSplitter.split(test, i2, i2 + 5).toList();
+    Expect.listEquals(['line2'], result);
+  }
 
-  test = "Line1\nLine2\r\nLine3\rLi"
-      "ne4\n"
-       "\n\n\r\n\r\n\r\r";
+  var test = "Line1\nLine2\r\nLine3\rLine4\n\n\n\r\n\r\n\r\r";
 
-  result = LineSplitter.split(test).toList();
+  var result = LineSplitter.split(test).toList();
 
   Expect.listEquals(
       ['Line1', 'Line2', 'Line3', 'Line4', '', '', '', '', '', ''],

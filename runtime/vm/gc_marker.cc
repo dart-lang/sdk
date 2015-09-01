@@ -15,111 +15,19 @@
 #include "vm/pages.h"
 #include "vm/raw_object.h"
 #include "vm/stack_frame.h"
+#include "vm/store_buffer.h"
 #include "vm/thread_pool.h"
 #include "vm/visitor.h"
 #include "vm/object_id_ring.h"
 
 namespace dart {
 
-// A simple chunked marking stack.
-class MarkingStack : public ValueObject {
- public:
-  MarkingStack()
-      : head_(new MarkingStackChunk()),
-        empty_chunks_(NULL),
-        marking_stack_(NULL),
-        top_(0) {
-    marking_stack_ = head_->MarkingStackChunkMemory();
-  }
+DEFINE_FLAG(int, marker_tasks, 1,
+            "The number of tasks to spawn during old gen GC marking (0 means "
+            "perform all marking on main thread).");
 
-  ~MarkingStack() {
-    // TODO(iposva): Consider caching a couple emtpy marking stack chunks.
-    ASSERT(IsEmpty());
-    delete head_;
-    MarkingStackChunk* next;
-    while (empty_chunks_ != NULL) {
-      next = empty_chunks_->next();
-      delete empty_chunks_;
-      empty_chunks_ = next;
-    }
-  }
-
-  bool IsEmpty() const {
-    return IsMarkingStackChunkEmpty() && (head_->next() == NULL);
-  }
-
-  void Push(RawObject* value) {
-    ASSERT(!IsMarkingStackChunkFull());
-    marking_stack_[top_] = value;
-    top_++;
-    if (IsMarkingStackChunkFull()) {
-      MarkingStackChunk* new_chunk;
-      if (empty_chunks_ == NULL) {
-        new_chunk = new MarkingStackChunk();
-      } else {
-        new_chunk = empty_chunks_;
-        empty_chunks_ = new_chunk->next();
-      }
-      new_chunk->set_next(head_);
-      head_ = new_chunk;
-      marking_stack_ = head_->MarkingStackChunkMemory();
-      top_ = 0;
-    }
-  }
-
-  RawObject* Pop() {
-    ASSERT(head_ != NULL);
-    ASSERT(!IsEmpty());
-    if (IsMarkingStackChunkEmpty()) {
-      MarkingStackChunk* empty_chunk = head_;
-      head_ = head_->next();
-      empty_chunk->set_next(empty_chunks_);
-      empty_chunks_ = empty_chunk;
-      marking_stack_ = head_->MarkingStackChunkMemory();
-      top_ = MarkingStackChunk::kMarkingStackChunkSize;
-    }
-    top_--;
-    return marking_stack_[top_];
-  }
-
- private:
-  class MarkingStackChunk {
-   public:
-    MarkingStackChunk() : next_(NULL) {}
-    ~MarkingStackChunk() {}
-
-    RawObject** MarkingStackChunkMemory() {
-      return &memory_[0];
-    }
-
-    MarkingStackChunk* next() const { return next_; }
-    void set_next(MarkingStackChunk* value) { next_ = value; }
-
-    static const uint32_t kMarkingStackChunkSize = 1024;
-
-   private:
-    RawObject* memory_[kMarkingStackChunkSize];
-    MarkingStackChunk* next_;
-
-    DISALLOW_COPY_AND_ASSIGN(MarkingStackChunk);
-  };
-
-  bool IsMarkingStackChunkFull() const {
-    return top_ == MarkingStackChunk::kMarkingStackChunkSize;
-  }
-
-  bool IsMarkingStackChunkEmpty() const {
-    return top_ == 0;
-  }
-
-  MarkingStackChunk* head_;
-  MarkingStackChunk* empty_chunks_;
-  RawObject** marking_stack_;
-  uint32_t top_;
-
-  DISALLOW_COPY_AND_ASSIGN(MarkingStack);
-};
-
+typedef StoreBufferBlock PointerBlock;  // TODO(koda): Rename to PointerBlock.
+typedef StoreBuffer MarkingStack;  // TODO(koda): Create shared base class.
 
 class DelaySet {
  private:
@@ -170,6 +78,70 @@ class DelaySet {
 };
 
 
+class SkippedCodeFunctions : public ZoneAllocated {
+ public:
+  SkippedCodeFunctions() {}
+
+  void Add(RawFunction* func) {
+    skipped_code_functions_.Add(func);
+  }
+
+  void DetachCode() {
+    intptr_t unoptimized_code_count = 0;
+    intptr_t current_code_count = 0;
+    for (int i = 0; i < skipped_code_functions_.length(); i++) {
+      RawFunction* func = skipped_code_functions_[i];
+      RawCode* code = func->ptr()->instructions_->ptr()->code_;
+      if (!code->IsMarked()) {
+        // If the code wasn't strongly visited through other references
+        // after skipping the function's code pointer, then we disconnect the
+        // code from the function.
+        func->StorePointer(
+            &(func->ptr()->instructions_),
+            StubCode::LazyCompile_entry()->code()->ptr()->instructions_);
+        uword entry_point = StubCode::LazyCompile_entry()->EntryPoint();
+        func->ptr()->entry_point_ = entry_point;
+        if (FLAG_log_code_drop) {
+          // NOTE: This code runs while GC is in progress and runs within
+          // a NoHandleScope block. Hence it is not okay to use a regular Zone
+          // or Scope handle. We use a direct stack handle so the raw pointer in
+          // this handle is not traversed. The use of a handle is mainly to
+          // be able to reuse the handle based code and avoid having to add
+          // helper functions to the raw object interface.
+          String name;
+          name = func->ptr()->name_;
+          ISL_Print("Detaching code: %s\n", name.ToCString());
+          current_code_count++;
+        }
+      }
+
+      code = func->ptr()->unoptimized_code_;
+      if (!code->IsMarked()) {
+        // If the code wasn't strongly visited through other references
+        // after skipping the function's code pointer, then we disconnect the
+        // code from the function.
+        func->StorePointer(&(func->ptr()->unoptimized_code_), Code::null());
+        if (FLAG_log_code_drop) {
+          unoptimized_code_count++;
+        }
+      }
+    }
+    if (FLAG_log_code_drop) {
+      ISL_Print("  total detached current: %" Pd "\n", current_code_count);
+      ISL_Print("  total detached unoptimized: %" Pd "\n",
+                unoptimized_code_count);
+    }
+    // Clean up.
+    skipped_code_functions_.Clear();
+  }
+
+ private:
+  GrowableArray<RawFunction*> skipped_code_functions_;
+
+  DISALLOW_COPY_AND_ASSIGN(SkippedCodeFunctions);
+};
+
+
 class MarkingVisitor : public ObjectPointerVisitor {
  public:
   MarkingVisitor(Isolate* isolate,
@@ -177,27 +149,49 @@ class MarkingVisitor : public ObjectPointerVisitor {
                  PageSpace* page_space,
                  MarkingStack* marking_stack,
                  DelaySet* delay_set,
-                 bool visit_function_code)
+                 SkippedCodeFunctions* skipped_code_functions)
       : ObjectPointerVisitor(isolate),
         thread_(Thread::Current()),
         heap_(heap),
         vm_heap_(Dart::vm_isolate()->heap()),
         class_table_(isolate->class_table()),
         page_space_(page_space),
-        marking_stack_(marking_stack),
+        work_list_(marking_stack),
         delay_set_(delay_set),
         visiting_old_object_(NULL),
-        visit_function_code_(visit_function_code) {
+        skipped_code_functions_(skipped_code_functions),
+        marked_bytes_(0) {
     ASSERT(heap_ != vm_heap_);
     ASSERT(thread_->isolate() == isolate);
   }
 
-  ~MarkingVisitor() {
-    // 'Finalize' should be explicitly called before destruction.
-    ASSERT(marking_stack_ == NULL);
-  }
+  uintptr_t marked_bytes() const { return marked_bytes_; }
 
-  MarkingStack* marking_stack() const { return marking_stack_; }
+  // Returns true if some non-zero amount of work was performed.
+  bool DrainMarkingStack() {
+    RawObject* raw_obj = work_list_.Pop();
+    if (raw_obj == NULL) {
+      ASSERT(visiting_old_object_ == NULL);
+      return false;
+    }
+    do {
+      VisitingOldObject(raw_obj);
+      const intptr_t class_id = raw_obj->GetClassId();
+      // Currently, classes are considered roots (see issue 18284), so at this
+      // point, they should all be marked.
+      ASSERT(isolate()->class_table()->At(class_id)->IsMarked());
+      if (class_id != kWeakPropertyCid) {
+        marked_bytes_ += raw_obj->VisitPointers(this);
+      } else {
+        RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
+        marked_bytes_ += raw_weak->Size();
+        ProcessWeakProperty(raw_weak);
+      }
+      raw_obj = work_list_.Pop();
+    } while (raw_obj != NULL);
+    VisitingOldObject(NULL);
+    return true;
+  }
 
   void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; current++) {
@@ -205,10 +199,13 @@ class MarkingVisitor : public ObjectPointerVisitor {
     }
   }
 
-  bool visit_function_code() const { return visit_function_code_; }
+  bool visit_function_code() const {
+    return skipped_code_functions_ == NULL;
+  }
 
-  virtual MallocGrowableArray<RawFunction*>* skipped_code_functions() {
-    return &skipped_code_functions_;
+  virtual void add_skipped_code_function(RawFunction* func) {
+    ASSERT(!visit_function_code());
+    skipped_code_functions_->Add(func);
   }
 
   // Returns the mark bit. Sets the watch bit if unmarked. (The prior value of
@@ -245,11 +242,10 @@ class MarkingVisitor : public ObjectPointerVisitor {
 
   // Called when all marking is complete.
   void Finalize() {
-    if (!visit_function_code_) {
-      DetachCode();
+    work_list_.Finalize();
+    if (skipped_code_functions_ != NULL) {
+      skipped_code_functions_->DetachCode();
     }
-    // Fail fast on attempts to mark after finalizing.
-    marking_stack_ = NULL;
   }
 
   void VisitingOldObject(RawObject* obj) {
@@ -258,6 +254,57 @@ class MarkingVisitor : public ObjectPointerVisitor {
   }
 
  private:
+  class WorkList : public ValueObject {
+   public:
+    explicit WorkList(MarkingStack* marking_stack)
+        : marking_stack_(marking_stack) {
+      work_ = marking_stack_->PopEmptyBlock();
+    }
+
+    ~WorkList() {
+      ASSERT(work_ == NULL);
+      ASSERT(marking_stack_ == NULL);
+    }
+
+    // Returns NULL if no more work was found.
+    RawObject* Pop() {
+      ASSERT(work_ != NULL);
+      if (work_->IsEmpty()) {
+        // TODO(koda): Track over/underflow events and use in heuristics to
+        // distribute work and prevent degenerate flip-flopping.
+        PointerBlock* new_work = marking_stack_->PopNonEmptyBlock();
+        if (new_work == NULL) {
+          return NULL;
+        }
+        marking_stack_->PushBlock(work_, false);
+        work_ = new_work;
+      }
+      return work_->Pop();
+    }
+
+    void Push(RawObject* raw_obj) {
+      if (work_->IsFull()) {
+        // TODO(koda): Track over/underflow events and use in heuristics to
+        // distribute work and prevent degenerate flip-flopping.
+        marking_stack_->PushBlock(work_, false);
+        work_ = marking_stack_->PopEmptyBlock();
+      }
+      work_->Push(raw_obj);
+    }
+
+    void Finalize() {
+      ASSERT(work_->IsEmpty());
+      marking_stack_->PushBlock(work_, false);
+      work_ = NULL;
+      // Fail fast on attempts to mark after finalizing.
+      marking_stack_ = NULL;
+    }
+
+   private:
+    PointerBlock* work_;
+    MarkingStack* marking_stack_;
+  };
+
   void MarkAndPush(RawObject* raw_obj) {
     ASSERT(raw_obj->IsHeapObject());
     ASSERT((FLAG_verify_before_gc || FLAG_verify_before_gc) ?
@@ -273,7 +320,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
     if (is_watched) {
       delay_set_->VisitValuesForKey(raw_obj, this);
     }
-    marking_stack_->Push(raw_obj);
+    work_list_.Push(raw_obj);
   }
 
   void MarkObject(RawObject* raw_obj, RawObject** p) {
@@ -307,63 +354,16 @@ class MarkingVisitor : public ObjectPointerVisitor {
     MarkAndPush(raw_obj);
   }
 
-  void DetachCode() {
-    intptr_t unoptimized_code_count = 0;
-    intptr_t current_code_count = 0;
-    for (int i = 0; i < skipped_code_functions_.length(); i++) {
-      RawFunction* func = skipped_code_functions_[i];
-      RawCode* code = func->ptr()->instructions_->ptr()->code_;
-      if (!code->IsMarked()) {
-        // If the code wasn't strongly visited through other references
-        // after skipping the function's code pointer, then we disconnect the
-        // code from the function.
-        func->StorePointer(
-            &(func->ptr()->instructions_),
-            StubCode::LazyCompile_entry()->code()->ptr()->instructions_);
-        if (FLAG_log_code_drop) {
-          // NOTE: This code runs while GC is in progress and runs within
-          // a NoHandleScope block. Hence it is not okay to use a regular Zone
-          // or Scope handle. We use a direct stack handle so the raw pointer in
-          // this handle is not traversed. The use of a handle is mainly to
-          // be able to reuse the handle based code and avoid having to add
-          // helper functions to the raw object interface.
-          String name;
-          name = func->ptr()->name_;
-          ISL_Print("Detaching code: %s\n", name.ToCString());
-          current_code_count++;
-        }
-      }
-
-      code = func->ptr()->unoptimized_code_;
-      if (!code->IsMarked()) {
-        // If the code wasn't strongly visited through other references
-        // after skipping the function's code pointer, then we disconnect the
-        // code from the function.
-        func->StorePointer(&(func->ptr()->unoptimized_code_), Code::null());
-        if (FLAG_log_code_drop) {
-          unoptimized_code_count++;
-        }
-      }
-    }
-    if (FLAG_log_code_drop) {
-      ISL_Print("  total detached current: %" Pd "\n", current_code_count);
-      ISL_Print("  total detached unoptimized: %" Pd "\n",
-                unoptimized_code_count);
-    }
-    // Clean up.
-    skipped_code_functions_.Clear();
-  }
-
   Thread* thread_;
   Heap* heap_;
   Heap* vm_heap_;
   ClassTable* class_table_;
   PageSpace* page_space_;
-  MarkingStack* marking_stack_;
+  WorkList work_list_;
   DelaySet* delay_set_;
   RawObject* visiting_old_object_;
-  const bool visit_function_code_;
-  MallocGrowableArray<RawFunction*> skipped_code_functions_;
+  SkippedCodeFunctions* skipped_code_functions_;
+  uintptr_t marked_bytes_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitor);
 };
@@ -483,9 +483,7 @@ void GCMarker::IterateWeakReferences(Isolate* isolate,
         state->DelayWeakReferenceSet(reference_set);
       }
     }
-    if (!visitor->marking_stack()->IsEmpty()) {
-      DrainMarkingStack(isolate, visitor);
-    } else {
+    if (!visitor->DrainMarkingStack()) {
       // Break out of the loop if there has been no forward process.
       // All key objects in the weak reference sets are unreachable
       // so we reset the weak reference sets queue.
@@ -497,27 +495,6 @@ void GCMarker::IterateWeakReferences(Isolate* isolate,
   // All weak reference sets are zone allocated and unmarked references which
   // were on the delay queue will be freed when the zone is released in the
   // epilog callback.
-}
-
-
-void GCMarker::DrainMarkingStack(Isolate* isolate,
-                                 MarkingVisitor* visitor) {
-  while (!visitor->marking_stack()->IsEmpty()) {
-    RawObject* raw_obj = visitor->marking_stack()->Pop();
-    visitor->VisitingOldObject(raw_obj);
-    const intptr_t class_id = raw_obj->GetClassId();
-    // Currently, classes are considered roots (see issue 18284), so at this
-    // point, they should all be marked.
-    ASSERT(isolate->class_table()->At(class_id)->IsMarked());
-    if (class_id != kWeakPropertyCid) {
-      marked_bytes_ += raw_obj->VisitPointers(visitor);
-    } else {
-      RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
-      marked_bytes_ += raw_weak->Size();
-      visitor->ProcessWeakProperty(raw_weak);
-    }
-  }
-  visitor->VisitingOldObject(NULL);
 }
 
 
@@ -568,26 +545,169 @@ void GCMarker::ProcessObjectIdTable(Isolate* isolate) {
 }
 
 
+class MarkTask : public ThreadPool::Task {
+ public:
+  MarkTask(GCMarker* marker,
+           Isolate* isolate,
+           Heap* heap,
+           PageSpace* page_space,
+           MarkingStack* marking_stack,
+           DelaySet* delay_set,
+           bool collect_code,
+           bool visit_prologue_weak_persistent_handles)
+      : marker_(marker),
+        isolate_(isolate),
+        heap_(heap),
+        page_space_(page_space),
+        marking_stack_(marking_stack),
+        delay_set_(delay_set),
+        collect_code_(collect_code),
+        visit_prologue_weak_persistent_handles_(
+            visit_prologue_weak_persistent_handles) {
+  }
+
+  virtual void Run() {
+    Thread::EnterIsolateAsHelper(isolate_, true);
+    {
+      StackZone stack_zone(Thread::Current());
+      Zone* zone = stack_zone.GetZone();
+      SkippedCodeFunctions* skipped_code_functions =
+        collect_code_ ? new(zone) SkippedCodeFunctions() : NULL;
+      MarkingVisitor visitor(isolate_, heap_, page_space_, marking_stack_,
+                             delay_set_, skipped_code_functions);
+      // Phase 1: Populate and drain marking stack in task.
+      // TODO(koda): Split root iteration work among multiple tasks.
+      marker_->IterateRoots(isolate_, &visitor,
+                            visit_prologue_weak_persistent_handles_);
+      visitor.DrainMarkingStack();
+      marker_->TaskSync();
+      // Phase 2: Weak processing and follow-up marking on main thread.
+      marker_->TaskSync();
+      // Phase 3: Finalize results from all markers (detach code, etc.).
+      marker_->FinalizeResultsFrom(&visitor);
+    }
+    Thread::ExitIsolateAsHelper(true);
+    // This task is done. Notify the original thread.
+    marker_->TaskNotifyDone();
+  }
+
+ private:
+  GCMarker* marker_;
+  Isolate* isolate_;
+  Heap* heap_;
+  PageSpace* page_space_;
+  MarkingStack* marking_stack_;
+  DelaySet* delay_set_;
+  bool collect_code_;
+  bool visit_prologue_weak_persistent_handles_;
+
+  DISALLOW_COPY_AND_ASSIGN(MarkTask);
+};
+
+
+void GCMarker::MainSync(intptr_t num_tasks) {
+  MonitorLocker ml(&monitor_);
+  while (done_count_ < num_tasks) {
+    ml.Wait();
+  }
+  done_count_ = 0;  // Tasks may now resume.
+  // TODO(koda): Add barrier utility with two condition variables to allow for
+  // Notify rather than NotifyAll. Also use it for safepoints.
+  ml.NotifyAll();
+}
+
+
+void GCMarker::TaskNotifyDone() {
+  MonitorLocker ml(&monitor_);
+  ++done_count_;
+  // TODO(koda): Add barrier utility with two condition variables to allow for
+  // Notify rather than NotifyAll. Also use it for safepoints.
+  ml.NotifyAll();
+}
+
+
+void GCMarker::TaskSync() {
+  MonitorLocker ml(&monitor_);
+  ++done_count_;
+  ml.NotifyAll();  // Notify controller that this thread reached end of phase.
+  ASSERT(done_count_ > 0);
+  while (done_count_ > 0) {
+    // Wait for the controller to release into next phase.
+    ml.Wait();
+  }
+}
+
+
+void GCMarker::FinalizeResultsFrom(MarkingVisitor* visitor) {
+  {
+    MonitorLocker ml(&monitor_);
+    marked_bytes_ += visitor->marked_bytes();
+  }
+  visitor->Finalize();
+}
+
+
 void GCMarker::MarkObjects(Isolate* isolate,
                            PageSpace* page_space,
                            bool invoke_api_callbacks,
                            bool collect_code) {
-  const bool visit_function_code = !collect_code;
   Prologue(isolate, invoke_api_callbacks);
   // The API prologue/epilogue may create/destroy zones, so we must not
   // depend on zone allocations surviving beyond the epilogue callback.
   {
-    StackZone zone(isolate);
+    StackZone stack_zone(Thread::Current());
+    Zone* zone = stack_zone.GetZone();
     MarkingStack marking_stack;
     DelaySet delay_set;
-    MarkingVisitor mark(isolate, heap_, page_space, &marking_stack,
-                        &delay_set, visit_function_code);
-    IterateRoots(isolate, &mark, !invoke_api_callbacks);
-    DrainMarkingStack(isolate, &mark);
-    IterateWeakReferences(isolate, &mark);
-    MarkingWeakVisitor mark_weak;
-    IterateWeakRoots(isolate, &mark_weak, invoke_api_callbacks);
-    mark.Finalize();
+    const bool visit_prologue_weak_persistent_handles = !invoke_api_callbacks;
+    marked_bytes_ = 0;
+    const int num_tasks = FLAG_marker_tasks;
+    if (num_tasks == 0) {
+      // Mark everything on main thread.
+      SkippedCodeFunctions* skipped_code_functions =
+          collect_code ? new(zone) SkippedCodeFunctions() : NULL;
+      MarkingVisitor mark(isolate, heap_, page_space, &marking_stack,
+                          &delay_set, skipped_code_functions);
+      IterateRoots(isolate, &mark, visit_prologue_weak_persistent_handles);
+      mark.DrainMarkingStack();
+      IterateWeakReferences(isolate, &mark);
+      MarkingWeakVisitor mark_weak;
+      IterateWeakRoots(isolate, &mark_weak,
+                       !visit_prologue_weak_persistent_handles);
+      // All marking done; detach code, etc.
+      FinalizeResultsFrom(&mark);
+    } else {
+      if (num_tasks > 1) {
+        // TODO(koda): Support multiple:
+        // 1. non-concurrent tasks, after splitting root iteration work, then
+        // 2. concurrent tasks, after synchronizing headers.
+        FATAL("Multiple marking tasks not yet supported");
+      }
+      // Phase 1: Populate and drain marking stack in task.
+      MarkTask* mark_task =
+          new MarkTask(this, isolate, heap_, page_space, &marking_stack,
+                       &delay_set, collect_code,
+                       visit_prologue_weak_persistent_handles);
+      ThreadPool* pool = Dart::thread_pool();
+      pool->Run(mark_task);
+      MainSync(num_tasks);
+      // Phase 2: Weak processing and follow-up marking on main thread.
+      SkippedCodeFunctions* skipped_code_functions =
+          collect_code ? new(zone) SkippedCodeFunctions() : NULL;
+      MarkingVisitor mark(isolate, heap_, page_space, &marking_stack,
+                          &delay_set, skipped_code_functions);
+      IterateWeakReferences(isolate, &mark);
+      MarkingWeakVisitor mark_weak;
+      IterateWeakRoots(isolate, &mark_weak,
+                       !visit_prologue_weak_persistent_handles);
+      // TODO(koda): Move this into Phase 3 after making ISL_Print thread-safe
+      // (used in SkippedCodeFunctions::DetachCode).
+      FinalizeResultsFrom(&mark);
+      MainSync(num_tasks);
+      // Phase 3: Finalize results from all markers (detach code, etc.).
+      MainSync(num_tasks);
+      // Finalization complete and all tasks exited.
+    }
     delay_set.ClearReferences();
     ProcessWeakTables(page_space);
     ProcessObjectIdTable(isolate);

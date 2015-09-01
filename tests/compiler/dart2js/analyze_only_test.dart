@@ -12,7 +12,7 @@ import "package:async_helper/async_helper.dart";
 import '../../utils/dummy_compiler_test.dart' as dummy;
 import 'package:compiler/compiler.dart';
 
-import 'package:compiler/src/warnings.dart' show
+import 'package:compiler/src/diagnostics/messages.dart' show
     MessageKind, MessageTemplate;
 
 import 'output_collector.dart';

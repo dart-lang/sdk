@@ -6,6 +6,7 @@ library test.src.task.test_all;
 
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'dart_test.dart' as dart_test;
 import 'dart_work_manager_test.dart' as dart_work_manager_test;
 import 'driver_test.dart' as driver_test;
@@ -17,10 +18,11 @@ import 'incremental_element_builder_test.dart'
 import 'inputs_test.dart' as inputs_test;
 import 'manager_test.dart' as manager_test;
 import 'model_test.dart' as model_test;
+import 'strong_mode_test.dart' as strong_mode_test;
 
 /// Utility for manually running all tests.
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('task tests', () {
     dart_test.main();
     dart_work_manager_test.main();
@@ -32,5 +34,6 @@ main() {
     inputs_test.main();
     manager_test.main();
     model_test.main();
+    strong_mode_test.main();
   });
 }

@@ -82,10 +82,10 @@ DECLARE_FLAG(bool, verify_compiler);
 
 
 // Test if a call is recursive by looking in the deoptimization environment.
-static bool IsCallRecursive(const Code& code, Definition* call) {
+static bool IsCallRecursive(const Function& function, Definition* call) {
   Environment* env = call->env();
   while (env != NULL) {
-    if (code.raw() == env->code().raw()) {
+    if (function.raw() == env->function().raw()) {
       return true;
     }
     env = env->outer();
@@ -97,8 +97,7 @@ static bool IsCallRecursive(const Code& code, Definition* call) {
 // Helper to get the default value of a formal parameter.
 static ConstantInstr* GetDefaultValue(intptr_t i,
                                       const ParsedFunction& parsed_function) {
-  return new ConstantInstr(Object::ZoneHandle(
-      parsed_function.default_parameter_values().At(i)));
+  return new ConstantInstr(parsed_function.DefaultParameterValueAt(i));
 }
 
 
@@ -668,7 +667,7 @@ class CallSiteInliner : public ValueObject {
     // Abort if this is a recursive occurrence.
     Definition* call = call_data->call;
     // Added 'volatile' works around a possible GCC 4.9 compiler bug.
-    volatile bool is_recursive_call = IsCallRecursive(unoptimized_code, call);
+    volatile bool is_recursive_call = IsCallRecursive(function, call);
     if (is_recursive_call &&
         inlining_recursion_depth_ >= FLAG_inlining_recursion_depth_threshold) {
       TRACE_INLINING(ISL_Print("     Bailout: recursive function\n"));
@@ -687,7 +686,7 @@ class CallSiteInliner : public ValueObject {
       bool in_cache;
       ParsedFunction* parsed_function;
       {
-        CSTAT_TIMER_SCOPE(isolate(), graphinliner_parse_timer);
+        CSTAT_TIMER_SCOPE(thread(), graphinliner_parse_timer);
         if (!Compiler::always_optimize()) {
           const Error& error = Error::Handle(Z,
               Compiler::EnsureUnoptimizedCode(Thread::Current(), function));
@@ -713,7 +712,7 @@ class CallSiteInliner : public ValueObject {
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
       {
-        CSTAT_TIMER_SCOPE(isolate(), graphinliner_build_timer);
+        CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
         callee_graph = builder.BuildGraph();
       }
 
@@ -767,7 +766,7 @@ class CallSiteInliner : public ValueObject {
       block_scheduler.AssignEdgeWeights();
 
       {
-        CSTAT_TIMER_SCOPE(isolate(), graphinliner_ssa_timer);
+        CSTAT_TIMER_SCOPE(thread(), graphinliner_ssa_timer);
         // Compute SSA on the callee graph, catching bailouts.
         callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
                                  param_stubs);
@@ -775,7 +774,7 @@ class CallSiteInliner : public ValueObject {
       }
 
       {
-        CSTAT_TIMER_SCOPE(isolate(), graphinliner_opt_timer);
+        CSTAT_TIMER_SCOPE(thread(), graphinliner_opt_timer);
         // TODO(zerny): Do more optimization passes on the callee graph.
         FlowGraphOptimizer optimizer(callee_graph);
         if (Compiler::always_optimize()) {
@@ -956,7 +955,7 @@ class CallSiteInliner : public ValueObject {
   }
 
   void InlineCall(InlinedCallData* call_data) {
-    CSTAT_TIMER_SCOPE(Isolate::Current(), graphinliner_subst_timer);
+    CSTAT_TIMER_SCOPE(Thread::Current(), graphinliner_subst_timer);
     FlowGraph* callee_graph = call_data->callee_graph;
     TargetEntryInstr* callee_entry =
         callee_graph->graph_entry()->normal_entry();
@@ -1200,10 +1199,8 @@ class CallSiteInliner : public ValueObject {
       // For each optional positional parameter without an actual, add its
       // default value.
       for (intptr_t i = arg_count; i < param_count; ++i) {
-        const Object& object =
-            Object::ZoneHandle(
-                parsed_function.default_parameter_values().At(
-                    i - fixed_param_count));
+        const Instance& object =
+            parsed_function.DefaultParameterValueAt(i - fixed_param_count);
         ConstantInstr* constant = new(Z) ConstantInstr(object);
         arguments->Add(NULL);
         param_stubs->Add(constant);

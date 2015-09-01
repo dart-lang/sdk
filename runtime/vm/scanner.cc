@@ -331,8 +331,7 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
       String::ZoneHandle(Z, Symbols::New(source_, ident_pos, ident_length));
   if (ident_char0 == Library::kPrivateIdentifierStart) {
     // Private identifiers are mangled on a per library basis.
-    literal = String::Concat(literal, private_key_);
-    literal = Symbols::New(literal);
+    literal = Symbols::FromConcat(literal, private_key_);
   }
   current_token_.literal = &literal;
 }

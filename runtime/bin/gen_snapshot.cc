@@ -544,7 +544,7 @@ int main(int argc, char** argv) {
   // Initialize the Dart VM.
   // Note: We don't expect isolates to be created from dart code during
   // snapshot generation.
-  if (!Dart_Initialize(NULL,
+  if (!Dart_Initialize(NULL, NULL,
                        NULL, NULL, NULL, NULL,
                        DartUtils::OpenFile,
                        DartUtils::ReadFile,

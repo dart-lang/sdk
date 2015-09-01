@@ -5,6 +5,7 @@
 {
   'sources': [
     'developer.dart',
+    'extension.dart',
     'profiler.dart',
     # The above file needs to be first if additional parts are added to the lib.
   ],

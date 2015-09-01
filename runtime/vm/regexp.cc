@@ -5017,7 +5017,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
   Zone* zone = Thread::Current()->zone();
 
   const Function& function = parsed_function->function();
-  const intptr_t specialization_cid = function.regexp_cid();
+  const intptr_t specialization_cid = function.string_specialization_cid();
   const bool is_one_byte = (specialization_cid == kOneByteStringCid ||
                             specialization_cid == kExternalOneByteStringCid);
   JSRegExp& regexp = JSRegExp::Handle(zone, function.regexp());
@@ -5284,8 +5284,7 @@ static void CreateSpecializedFunction(Zone* zone,
   // Cache the result.
   regexp.set_function(specialization_cid, fn);
 
-  fn.set_regexp(regexp);
-  fn.set_regexp_cid(specialization_cid);
+  fn.SetRegExpData(regexp, specialization_cid);
   fn.set_is_debuggable(false);
 
   // The function is compiled lazily during the first call.

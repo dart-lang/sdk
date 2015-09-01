@@ -15,10 +15,14 @@ import "package:compiler/src/util/util.dart";
 import "package:compiler/src/elements/modelx.dart"
     show CompilationUnitElementX, ElementX, LibraryElementX;
 
-import "package:compiler/src/dart2jslib.dart";
+import "package:compiler/src/compiler.dart";
+import "package:compiler/src/diagnostics/source_span.dart";
+import "package:compiler/src/diagnostics/spannable.dart";
+import "package:compiler/src/diagnostics/diagnostic_listener.dart";
+import "package:compiler/src/diagnostics/messages.dart";
+import "package:compiler/src/script.dart";
 
-export "package:compiler/src/dart2jslib.dart"
-    show DiagnosticListener;
+export "package:compiler/src/diagnostics/diagnostic_listener.dart";
 // TODO(ahe): We should have token library to export instead.
 export "package:compiler/src/scanner/scannerlib.dart";
 

@@ -155,6 +155,11 @@ class Sample {
     return isolate_;
   }
 
+  // Thread sample was taken on.
+  ThreadId tid() const {
+    return tid_;
+  }
+
   void Clear() {
     isolate_ = NULL;
     pc_marker_ = 0;
@@ -166,10 +171,12 @@ class Sample {
     lr_ = 0;
     metadata_ = 0;
     state_ = 0;
+    continuation_index_ = -1;
     uword* pcs = GetPCArray();
     for (intptr_t i = 0; i < pcs_length_; i++) {
       pcs[i] = 0;
     }
+    set_head_sample(true);
   }
 
   // Timestamp sample was taken at.
@@ -229,30 +236,6 @@ class Sample {
     lr_ = link_register;
   }
 
-  void InsertCallerForTopFrame(uword pc) {
-    if (pcs_length_ == 1) {
-      // Only sampling top frame.
-      return;
-    }
-    uword* pcs = GetPCArray();
-    // The caller for the top frame is store at index 1.
-    // Shift all entries down by one.
-    for (intptr_t i = pcs_length_ - 1; i >= 2; i--) {
-      pcs[i] = pcs[i - 1];
-    }
-    // Insert caller for top frame.
-    pcs[1] = pc;
-    set_missing_frame_inserted(true);
-  }
-
-  bool processed() const {
-    return ProcessedBit::decode(state_);
-  }
-
-  void set_processed(bool processed) {
-    state_ = ProcessedBit::update(processed, state_);
-  }
-
   bool leaf_frame_is_dart() const {
     return LeafFrameIsDart::decode(state_);
   }
@@ -301,9 +284,34 @@ class Sample {
     state_ = ClassAllocationSampleBit::update(allocation_sample, state_);
   }
 
+  bool is_continuation_sample() const {
+    return ContinuationSampleBit::decode(state_);
+  }
+
+  void SetContinuationIndex(intptr_t index) {
+    ASSERT(!is_continuation_sample());
+    ASSERT(continuation_index_ == -1);
+    state_ = ContinuationSampleBit::update(true, state_);
+    continuation_index_ = index;
+    ASSERT(is_continuation_sample());
+  }
+
+  intptr_t continuation_index() const {
+    ASSERT(is_continuation_sample());
+    return continuation_index_;
+  }
+
   intptr_t allocation_cid() const {
     ASSERT(is_allocation_sample());
     return metadata_;
+  }
+
+  void set_head_sample(bool head_sample) {
+    state_ = HeadSampleBit::update(head_sample, state_);
+  }
+
+  bool head_sample() const {
+    return HeadSampleBit::decode(state_);
   }
 
   void set_metadata(intptr_t metadata) {
@@ -332,23 +340,26 @@ class Sample {
   static intptr_t instance_size_;
   static intptr_t pcs_length_;
   enum StateBits {
-    kProcessedBit = 0,
+    kHeadSampleBit = 0,
     kLeafFrameIsDartBit = 1,
     kIgnoreBit = 2,
     kExitFrameBit = 3,
     kMissingFrameInsertedBit = 4,
-    kTruncatedTrace = 5,
-    kClassAllocationSample = 6,
+    kTruncatedTraceBit = 5,
+    kClassAllocationSampleBit = 6,
+    kContinuationSampleBit = 7,
   };
-  class ProcessedBit : public BitField<bool, kProcessedBit, 1> {};
+  class HeadSampleBit : public BitField<bool, kHeadSampleBit, 1> {};
   class LeafFrameIsDart : public BitField<bool, kLeafFrameIsDartBit, 1> {};
   class IgnoreBit : public BitField<bool, kIgnoreBit, 1> {};
   class ExitFrameBit : public BitField<bool, kExitFrameBit, 1> {};
   class MissingFrameInsertedBit
-    : public BitField<bool, kMissingFrameInsertedBit, 1> {};
-  class TruncatedTraceBit : public BitField<bool, kTruncatedTrace, 1> {};
+      : public BitField<bool, kMissingFrameInsertedBit, 1> {};
+  class TruncatedTraceBit : public BitField<bool, kTruncatedTraceBit, 1> {};
   class ClassAllocationSampleBit
-      : public BitField<bool, kClassAllocationSample, 1> {};
+      : public BitField<bool, kClassAllocationSampleBit, 1> {};
+  class ContinuationSampleBit
+      : public BitField<bool, kContinuationSampleBit, 1> {};
 
   int64_t timestamp_;
   ThreadId tid_;
@@ -360,6 +371,7 @@ class Sample {
   uword metadata_;
   uword lr_;
   uword state_;
+  intptr_t continuation_index_;
 
   /* There are a variable number of words that follow, the words hold the
    * sampled pc values. Access via GetPCArray() */
@@ -387,13 +399,19 @@ class SampleBuffer {
   intptr_t capacity() const { return capacity_; }
 
   Sample* At(intptr_t idx) const;
+  intptr_t ReserveSampleSlot();
   Sample* ReserveSample();
+  Sample* ReserveSampleAndLink(Sample* previous);
 
   void VisitSamples(SampleVisitor* visitor) {
     ASSERT(visitor != NULL);
     const intptr_t length = capacity();
     for (intptr_t i = 0; i < length; i++) {
       Sample* sample = At(i);
+      if (!sample->head_sample()) {
+        // An inner sample in a chain of samples.
+        continue;
+      }
       if (sample->ignore_sample()) {
         // Bad sample.
         continue;

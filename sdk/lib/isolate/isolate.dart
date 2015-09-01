@@ -485,6 +485,10 @@ abstract class SendPort implements Capability {
    * is also possible to send object instances (which would be copied in the
    * process). This is currently only supported by the dartvm.  For now, the
    * dart2js compiler only supports the restricted messages described above.
+   *
+   * The send happens immediately and doesn't block.  The corresponding receive
+   * port can receive the message as soon as its isolate's event loop is ready
+   * to deliver it, independently of what the sending isolate is doing.
    */
   void send(var message);
 

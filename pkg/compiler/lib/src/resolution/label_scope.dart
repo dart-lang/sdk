@@ -2,7 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of resolution;
+library dart2js.resolution.label_scope;
+
+import '../elements/elements.dart' show
+    JumpTarget,
+    LabelDefinition;
+import '../util/util.dart' show
+    Link;
 
 abstract class LabelScope {
   LabelScope get outer;

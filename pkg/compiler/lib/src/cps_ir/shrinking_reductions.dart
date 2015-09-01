@@ -666,6 +666,11 @@ class ParentVisitor extends RecursiveVisitor {
     node.arguments.forEach((Reference ref) => ref.parent = node);
   }
 
+  processApplyBuiltinMethod(ApplyBuiltinMethod node) {
+    node.receiver.parent = node;
+    node.arguments.forEach((Reference ref) => ref.parent = node);
+  }
+
   processForeignCode(ForeignCode node) {
     if (node.continuation != null) {
       node.continuation.parent = node;
@@ -686,6 +691,11 @@ class ParentVisitor extends RecursiveVisitor {
     node.object.parent = node;
     node.index.parent = node;
     node.value.parent = node;
+  }
+
+  processAwait(Await node) {
+    node.continuation.parent = node;
+    node.input.parent = node;
   }
 }
 

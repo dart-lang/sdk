@@ -192,15 +192,16 @@ class CompletionDomainHandler implements RequestHandler {
     int notificationCount = 0;
     manager.results(completionRequest).listen((CompletionResult result) {
       ++notificationCount;
+      bool isLast = result is CompletionResultImpl ? result.isLast : true;
       performance.logElapseTime("notification $notificationCount send", () {
         sendCompletionNotification(completionId, result.replacementOffset,
-            result.replacementLength, result.suggestions, result.isLast);
+            result.replacementLength, result.suggestions, isLast);
       });
       if (notificationCount == 1) {
         performance.logFirstNotificationComplete('notification 1 complete');
         performance.suggestionCountFirst = result.suggestions.length;
       }
-      if (result.isLast) {
+      if (isLast) {
         performance.notificationCount = notificationCount;
         performance.suggestionCountLast = result.suggestions.length;
         performance.complete();

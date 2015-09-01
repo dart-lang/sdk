@@ -24466,8 +24466,6 @@ class Node extends EventTarget {
    */
   @DomName('Node.childNodes')
   @DocsEditable()
-  @Returns('NodeList')
-  @Creates('NodeList')
   List<Node> get childNodes => _blink.BlinkNode.instance.childNodes_Getter_(this);
   // To suppress missing implicit constructor warnings.
   factory Node._() { throw new UnsupportedError("Not supported"); }

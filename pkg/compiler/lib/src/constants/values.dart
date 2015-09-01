@@ -6,7 +6,7 @@ library dart2js.constants.values;
 
 import '../core_types.dart';
 import '../dart_types.dart';
-import '../dart2jslib.dart'
+import '../diagnostics/invariant.dart'
     show assertDebugMode;
 import '../elements/elements.dart'
     show ClassElement,

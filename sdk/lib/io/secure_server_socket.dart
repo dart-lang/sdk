@@ -45,12 +45,6 @@ class SecureServerSocket extends Stream<SecureSocket> {
    *
    * [address] must be given as a numeric address, not a host name.
    *
-   * [certificateName] is the nickname or the distinguished name (DN) of
-   * the certificate in the certificate database. It is looked up in the
-   * NSS certificate database set by SecureSocket.initialize.
-   * If [certificateName] contains "CN=", it is assumed to be a distinguished
-   * name.  Otherwise, it is looked up as a nickname.
-   *
    * To request or require that clients authenticate by providing an SSL (TLS)
    * client certificate, set the optional parameter [requestClientCertificate]
    * or [requireClientCertificate] to true.  Requiring a certificate implies
@@ -70,7 +64,7 @@ class SecureServerSocket extends Stream<SecureSocket> {
   static Future<SecureServerSocket> bind(
       address,
       int port,
-      String certificateName,
+      SecurityContext context,
       {int backlog: 0,
        bool v6Only: false,
        bool requestClientCertificate: false,
@@ -80,7 +74,7 @@ class SecureServerSocket extends Stream<SecureSocket> {
     return RawSecureServerSocket.bind(
         address,
         port,
-        certificateName,
+        context,
         backlog: backlog,
         v6Only: v6Only,
         requestClientCertificate: requestClientCertificate,
@@ -128,21 +122,20 @@ class SecureServerSocket extends Stream<SecureSocket> {
  * See [RawSecureSocket] for more info.
  */
 class RawSecureServerSocket extends Stream<RawSecureSocket> {
-  RawServerSocket _socket;
+  final RawServerSocket _socket;
   StreamController<RawSecureSocket> _controller;
   StreamSubscription<RawSocket> _subscription;
-  final String certificateName;
+  final SecurityContext _context;
   final bool requestClientCertificate;
   final bool requireClientCertificate;
   final List<String> supportedProtocols;
   bool _closed = false;
 
-  RawSecureServerSocket._(RawServerSocket serverSocket,
-                          this.certificateName,
+  RawSecureServerSocket._(this._socket,
+                          this._context,
                           this.requestClientCertificate,
                           this.requireClientCertificate,
                           this.supportedProtocols) {
-    _socket = serverSocket;
     _controller = new StreamController<RawSecureSocket>(
         sync: true,
         onListen: _onSubscriptionStateChange,
@@ -205,7 +198,7 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   static Future<RawSecureServerSocket> bind(
       address,
       int port,
-      String certificateName,
+      SecurityContext context,
       {int backlog: 0,
        bool v6Only: false,
        bool requestClientCertificate: false,
@@ -216,7 +209,7 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
         address, port, backlog: backlog, v6Only: v6Only, shared: shared)
         .then((serverSocket) => new RawSecureServerSocket._(
             serverSocket,
-            certificateName,
+            context,
             requestClientCertificate,
             requireClientCertificate,
             supportedProtocols));
@@ -263,7 +256,7 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
     _RawSecureSocket.connect(
         connection.address,
         remotePort,
-        certificateName,
+        context: _context,
         is_server: true,
         socket: connection,
         requestClientCertificate: requestClientCertificate,

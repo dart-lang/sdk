@@ -4,17 +4,26 @@
 
 library closureToClassMapper;
 
+import 'common/names.dart' show
+    Identifiers;
+import 'common/tasks.dart' show
+    CompilerTask;
+import 'compiler.dart' show
+    Compiler;
 import 'constants/expressions.dart';
-import 'dart2jslib.dart';
 import 'dart_types.dart';
+import 'diagnostics/diagnostic_listener.dart';
+import 'diagnostics/spannable.dart' show
+    SpannableAssertionFailure;
 import 'elements/elements.dart';
-import 'elements/modelx.dart'
-    show BaseFunctionElementX,
-         ClassElementX,
-         ElementX,
-         LocalFunctionElementX;
+import 'elements/modelx.dart' show
+    BaseFunctionElementX,
+    ClassElementX,
+    ElementX,
+    LocalFunctionElementX;
 import 'elements/visitor.dart' show ElementVisitor;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
+import 'resolution/tree_elements.dart' show TreeElements;
 import 'scanner/scannerlib.dart' show Token;
 import 'tree/tree.dart';
 import 'util/util.dart';
@@ -985,10 +994,11 @@ class ClosureTranslator extends Visitor {
     ClosureClassElement globalizedElement = new ClosureClassElement(
         node, closureName, compiler, element);
     FunctionElement callElement =
-        new SynthesizedCallMethodElementX(Compiler.CALL_OPERATOR_NAME,
+        new SynthesizedCallMethodElementX(Identifiers.call,
                                           element,
                                           globalizedElement);
-    backend.maybeMarkClosureAsNeededForReflection(globalizedElement, callElement, element);
+    backend.maybeMarkClosureAsNeededForReflection(
+        globalizedElement, callElement, element);
     MemberElement enclosing = element.memberContext;
     enclosing.nestedClosures.add(callElement);
     globalizedElement.addMember(callElement, compiler);

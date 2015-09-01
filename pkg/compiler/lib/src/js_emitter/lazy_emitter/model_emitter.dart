@@ -4,9 +4,14 @@
 
 library dart2js.js_emitter.lazy_emitter.model_emitter;
 
-import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
-import '../../dart2jslib.dart' show Compiler;
-import '../../elements/elements.dart' show ClassElement, FunctionElement;
+import '../../compiler.dart' show
+    Compiler;
+import '../../constants/values.dart' show
+    ConstantValue,
+    FunctionConstantValue;
+import '../../elements/elements.dart' show
+    ClassElement,
+    FunctionElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show
     JavaScriptBackend,
@@ -129,13 +134,14 @@ class ModelEmitter {
   int emitProgram(Program program) {
     List<Fragment> fragments = program.fragments;
     MainFragment mainFragment = fragments.first;
+    Iterable<Fragment> deferredFragments = program.deferredFragments;
 
     int totalSize = 0;
 
     // We have to emit the deferred fragments first, since we need their
     // deferred hash (which depends on the output) when emitting the main
     // fragment.
-    List<js.Expression> fragmentsCode = fragments.skip(1).map(
+    List<js.Expression> fragmentsCode = deferredFragments.map(
             (DeferredFragment deferredUnit) {
       js.Expression types =
           program.metadataTypesForOutputUnit(deferredUnit.outputUnit);

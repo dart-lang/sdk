@@ -6,8 +6,12 @@
 #define VM_NATIVE_ENTRY_TEST_H_
 
 #include "include/dart_api.h"
+#include "vm/runtime_entry.h"
 
 namespace dart {
+
+DECLARE_RUNTIME_ENTRY(TestSmiSub)
+DECLARE_LEAF_RUNTIME_ENTRY(RawObject*, TestLeafSmiAdd, RawObject*, RawObject*)
 
 void TestSmiSub(Dart_NativeArguments args);
 void TestSmiSum(Dart_NativeArguments args);

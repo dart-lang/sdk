@@ -195,6 +195,57 @@ class ZoneGrowableArray : public BaseGrowableArray<T, ZoneAllocated> {
 };
 
 
+// T must be a Handle type.
+template<typename T, typename B>
+class BaseGrowableHandlePtrArray : public B {
+ public:
+  BaseGrowableHandlePtrArray(Zone* zone, intptr_t initial_capacity)
+      : zone_(zone), array_(zone, initial_capacity) {}
+
+  // Use unique zone handles to store objects.
+  void Add(const T& t) {
+    array_.Add(&T::ZoneHandle(zone_, t.raw()));
+  }
+
+  T& operator[](intptr_t index) const {
+    return *array_[index];
+  }
+
+  const T& At(intptr_t index) const {
+    return operator[](index);
+  }
+
+  intptr_t length() const { return array_.length(); }
+
+  const GrowableArray<T*>& growable_array() const { return array_; }
+
+ private:
+  Zone* zone_;
+  GrowableArray<T*> array_;
+
+  DISALLOW_COPY_AND_ASSIGN(BaseGrowableHandlePtrArray);
+};
+
+
+template<typename T>
+class GrowableHandlePtrArray :
+    public BaseGrowableHandlePtrArray<T, ValueObject> {
+ public:
+  GrowableHandlePtrArray(Zone* zone, intptr_t initial_capacity)
+      : BaseGrowableHandlePtrArray<T, ValueObject>(zone, initial_capacity) {}
+};
+
+
+template<typename T>
+class ZoneGrowableHandlePtrArray :
+    public BaseGrowableHandlePtrArray<T, ZoneAllocated> {
+ public:
+  ZoneGrowableHandlePtrArray(Zone* zone, intptr_t initial_capacity)
+      : BaseGrowableHandlePtrArray<T, ZoneAllocated>(zone, initial_capacity) {}
+};
+
+
+
 class Malloc : public AllStatic {
  public:
   template <class T>

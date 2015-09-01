@@ -28,7 +28,7 @@ main() {
         memorySourceFiles: MEMORY_SOURCE_FILES,
         options: ['--enable-checked-mode']);
     var compiler = result.compiler;
-    var element = compiler.mainApp.findExported('main');
+    var element = compiler.mainFunction;
     var code = compiler.backend.assembleCode(element);
     Expect.isTrue(code.contains('+'), code);
   });

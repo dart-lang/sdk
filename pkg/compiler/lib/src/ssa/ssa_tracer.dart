@@ -7,8 +7,9 @@ library ssa.tracer;
 import 'dart:async' show EventSink;
 
 import 'ssa.dart';
+import '../compiler.dart' show Compiler;
+import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../js_backend/js_backend.dart';
-import '../dart2jslib.dart';
 import '../tracer.dart';
 
 /**

@@ -229,8 +229,8 @@ static int GetScaleFactor(intptr_t size) {
   /* R1: potential next object start. */                                       \
   /* R2: allocation size. */                                                   \
   /* R3: heap. */                                                              \
-  __ ldr(R4, Address(R3, Heap::EndOffset(space)));                             \
-  __ cmp(R1, Operand(R4));                                                     \
+  __ ldr(R6, Address(R3, Heap::EndOffset(space)));                             \
+  __ cmp(R1, Operand(R6));                                                     \
   __ b(&fall_through, CS);                                                     \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
@@ -2102,8 +2102,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ eor(R5, R5, Operand(R5));
 
   // Tail-call the function.
-  __ ldr(R1, FieldAddress(R0, Function::instructions_offset()));
-  __ AddImmediate(R1, R1, Instructions::HeaderSize() - kHeapObjectTag);
+  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
   __ br(R1);
 }
 

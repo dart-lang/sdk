@@ -7,12 +7,13 @@ library dart2js.test.message_kind_helper;
 import 'package:expect/expect.dart';
 import 'dart:async';
 
-import 'package:compiler/src/dart2jslib.dart' show
-    Compiler,
-    MessageKind,
-    MessageTemplate;
+import 'package:compiler/src/compiler.dart' show
+    Compiler;
 import 'package:compiler/src/dart_backend/dart_backend.dart' show
     DartBackend;
+import 'package:compiler/src/diagnostics/messages.dart' show
+    MessageKind,
+    MessageTemplate;
 import 'package:compiler/src/old_to_new_api.dart' show
     LegacyCompilerDiagnostics;
 
@@ -81,7 +82,7 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
     bool newBackendIsDart = template.options.contains('--output-type=dart');
 
     Compiler compiler = compilerFor(
-        example,
+        memorySourceFiles: example,
         diagnosticHandler: new LegacyCompilerDiagnostics(collect),
         options: ['--analyze-only',
                   '--enable-experimental-mirrors']..addAll(template.options),

@@ -15,10 +15,8 @@ namespace dart {
 CallPattern::CallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       end_(pc),
-      args_desc_load_end_(0),
       ic_data_load_end_(0),
       target_address_pool_index_(-1),
-      args_desc_(Array::Handle()),
       ic_data_(ICData::Handle()) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: jalr RA, T9(=R25).
@@ -118,9 +116,7 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
     // Offset is signed, so add the upper 16 bits.
     offset += (instr->UImmField() << 16);
   }
-  offset += kHeapObjectTag;
-  ASSERT(Utils::IsAligned(offset, 4));
-  *index = (offset - Array::data_offset()) / 4;
+  *index = ObjectPool::IndexFromOffset(offset);
   return start;
 }
 
@@ -128,28 +124,13 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
 RawICData* CallPattern::IcData() {
   if (ic_data_.IsNull()) {
     Register reg;
-    args_desc_load_end_ =
-        InstructionPattern::DecodeLoadObject(ic_data_load_end_,
-                                             object_pool_,
-                                             &reg,
-                                             &ic_data_);
+    InstructionPattern::DecodeLoadObject(ic_data_load_end_,
+                                         object_pool_,
+                                         &reg,
+                                         &ic_data_);
     ASSERT(reg == S5);
   }
   return ic_data_.raw();
-}
-
-
-RawArray* CallPattern::ClosureArgumentsDescriptor() {
-  if (args_desc_.IsNull()) {
-    IcData();  // Loading of the ic_data must be decoded first, if not already.
-    Register reg;
-    InstructionPattern::DecodeLoadObject(args_desc_load_end_,
-                                         object_pool_,
-                                         &reg,
-                                         &args_desc_);
-    ASSERT(reg == S4);
-  }
-  return args_desc_.raw();
 }
 
 
@@ -161,6 +142,51 @@ uword CallPattern::TargetAddress() const {
 void CallPattern::SetTargetAddress(uword target_address) const {
   object_pool_.SetRawValueAt(target_address_pool_index_, target_address);
   // No need to flush the instruction cache, since the code is not modified.
+}
+
+
+NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
+    : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
+      end_(pc),
+      native_function_pool_index_(-1),
+      target_address_pool_index_(-1) {
+  ASSERT(code.ContainsInstructionAt(pc));
+  // Last instruction: jalr RA, T9(=R25).
+  ASSERT(*(reinterpret_cast<uword*>(end_) - 2) == 0x0320f809);
+
+  Register reg;
+  uword native_function_load_end =
+      InstructionPattern::DecodeLoadWordFromPool(end_ - 2 * Instr::kInstrSize,
+                                                 &reg,
+                                                 &target_address_pool_index_);
+  ASSERT(reg == T9);
+  InstructionPattern::DecodeLoadWordFromPool(native_function_load_end,
+                                             &reg,
+                                             &native_function_pool_index_);
+  ASSERT(reg == T5);
+}
+
+
+uword NativeCallPattern::target() const {
+  return object_pool_.RawValueAt(target_address_pool_index_);
+}
+
+
+void NativeCallPattern::set_target(uword target_address) const {
+  object_pool_.SetRawValueAt(target_address_pool_index_, target_address);
+  // No need to flush the instruction cache, since the code is not modified.
+}
+
+
+NativeFunction NativeCallPattern::native_function() const {
+  return reinterpret_cast<NativeFunction>(
+      object_pool_.RawValueAt(native_function_pool_index_));
+}
+
+
+void NativeCallPattern::set_native_function(NativeFunction func) const {
+  object_pool_.SetRawValueAt(native_function_pool_index_,
+      reinterpret_cast<uword>(func));
 }
 
 

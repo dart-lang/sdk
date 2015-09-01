@@ -5,10 +5,10 @@
 import "dart:async";
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import "package:compiler/src/dart2jslib.dart";
+import "package:compiler/src/diagnostics/messages.dart";
 import "package:compiler/src/elements/elements.dart";
-import "package:compiler/src/resolution/resolution.dart";
-import "package:compiler/src/util/util.dart";
+import "package:compiler/src/resolution/members.dart";
+import "package:compiler/src/diagnostics/spannable.dart";
 import "mock_compiler.dart";
 
 

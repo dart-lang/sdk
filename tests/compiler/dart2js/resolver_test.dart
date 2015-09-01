@@ -10,7 +10,12 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/elements/modelx.dart';
-import 'package:compiler/src/resolution/resolution.dart';
+import 'package:compiler/src/resolution/constructors.dart';
+import 'package:compiler/src/resolution/members.dart';
+import 'package:compiler/src/resolution/registry.dart';
+import 'package:compiler/src/resolution/resolution_result.dart';
+import 'package:compiler/src/resolution/scope.dart';
+import 'package:compiler/src/resolution/tree_elements.dart';
 
 import 'compiler_helper.dart';
 import 'link_helper.dart';
@@ -212,7 +217,7 @@ Future testSuperCalls() {
 
     ResolverVisitor visitor =
         new ResolverVisitor(compiler, fooB,
-            new ResolutionRegistry.internal(compiler,
+            new ResolutionRegistry(compiler,
                 new CollectingTreeElements(fooB)));
     FunctionExpression node = (fooB as FunctionElementX).parseNode(compiler);
     visitor.visit(node.body);
@@ -254,7 +259,7 @@ Future testThis() {
       FunctionElement funElement = fooElement.lookupLocalMember("foo");
       ResolverVisitor visitor =
           new ResolverVisitor(compiler, funElement,
-              new ResolutionRegistry.internal(compiler,
+              new ResolutionRegistry(compiler,
                   new CollectingTreeElements(funElement)));
       FunctionExpression function =
           (funElement as FunctionElementX).parseNode(compiler);
@@ -277,7 +282,7 @@ Future testThis() {
       ClassElement fooElement = compiler.mainApp.find("Foo");
       FunctionElement funElement = fooElement.lookupLocalMember("foo");
       ResolverVisitor visitor = new ResolverVisitor(compiler, funElement,
-          new ResolutionRegistry.internal(compiler,
+          new ResolutionRegistry(compiler,
               new CollectingTreeElements(funElement)));
       FunctionExpression function =
           (funElement as FunctionElementX).parseNode(compiler);
@@ -421,7 +426,7 @@ Future testFor() {
 
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
-    Expect.equals(7, map(visitor).length);
+    Expect.equals(5, map(visitor).length);
 
     VariableDefinitions initializer = tree.initializer;
     Node iNode = initializer.definitions.nodes.head;
@@ -442,24 +447,16 @@ Future testFor() {
     checkSend(iElement, nodes[1], elements[1]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
-    //                         ^
-    checkIdentifier(iElement, nodes[2], elements[2]);
-
-    // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                             ^
-    checkSend(iElement, nodes[3], elements[3]);
+    checkSend(iElement, nodes[2], elements[2]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                         ^^^^^^^^^
-    checkSendSet(iElement, nodes[4], elements[4]);
-
-    // for (int i = 0; i < 10; i = i + 1) { i = 5; };
-    //                                      ^
-    checkIdentifier(iElement, nodes[5], elements[5]);
+    checkSendSet(iElement, nodes[3], elements[3]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                                      ^^^^^
-    checkSendSet(iElement, nodes[6], elements[6]);
+    checkSendSet(iElement, nodes[4], elements[4]);
   });
 }
 
@@ -573,7 +570,7 @@ Future testOneInterface() {
 
     ResolverVisitor visitor =
         new ResolverVisitor(compiler, null,
-            new ResolutionRegistry.internal(compiler,
+            new ResolutionRegistry(compiler,
                 new CollectingTreeElements(null)));
     compiler.resolveStatement("Foo bar;");
 
@@ -598,8 +595,8 @@ Future testTwoInterfaces() {
     compiler.resolveStatement("Foo bar;");
 
     ClassElement c = compiler.mainApp.find('C');
-    Element i1 = compiler.mainApp.find('I1');
-    Element i2 = compiler.mainApp.find('I2');
+    ClassElement i1 = compiler.mainApp.find('I1');
+    ClassElement i2 = compiler.mainApp.find('I2');
 
     Expect.equals(2, length(c.interfaces));
     Expect.equals(i1.computeType(compiler), at(c.interfaces, 0));
@@ -690,7 +687,7 @@ Future resolveConstructor(
     FunctionExpression tree = (element as FunctionElement).node;
     ResolverVisitor visitor =
         new ResolverVisitor(compiler, element,
-            new ResolutionRegistry.internal(compiler,
+            new ResolutionRegistry(compiler,
                 new CollectingTreeElements(element)));
     new InitializerResolver(visitor, element, tree).resolveInitializers();
     visitor.visit(tree.body);
@@ -1222,7 +1219,9 @@ testCantAssignMethods() {
   checkWarningOn('''
       m() {}
       main() { m = 4; }
-      ''', [MessageKind.ASSIGNING_METHOD]);
+      ''', [MessageKind.ASSIGNING_METHOD,
+            // TODO(johnniwinther): Avoid duplicate warnings.
+            MessageKind.NOT_ASSIGNABLE]);
 
   // Can't override instance methods
   checkWarningOn('''
@@ -1255,7 +1254,9 @@ testCantAssignMethods() {
           super.mname = () => 6;
         }
       }
-      ''', [MessageKind.ASSIGNING_METHOD_IN_SUPER]);
+      ''', [MessageKind.ASSIGNING_METHOD_IN_SUPER,
+            // TODO(johnniwinther): Avoid duplicate warnings.
+            MessageKind.SETTER_NOT_FOUND]);
 
   // But index operators should be OK
   checkWarningOn('''
@@ -1331,7 +1332,9 @@ testCantAssignFinalAndConsts() {
       class B extends A {
         m() { super.x = 2; }
       }
-      ''', [MessageKind.SETTER_NOT_FOUND_IN_SUPER]);
+      ''', [MessageKind.ASSIGNING_FINAL_FIELD_IN_SUPER,
+            // TODO(johnniwinther): Avoid duplicate warnings.
+            MessageKind.SETTER_NOT_FOUND]);
 
   // But non-final fields are OK:
   checkWarningOn('''
@@ -1343,14 +1346,30 @@ testCantAssignFinalAndConsts() {
         m() { super.x = 2; }
       }
       ''', []);
+
+  // Check getter without setter.
+  checkWarningOn('''
+      main() => new B().m();
+      class A {
+        get x => 1;
+      }
+      class B extends A {
+        m() { super.x = 2; }
+      }
+      ''', [MessageKind.SETTER_NOT_FOUND_IN_SUPER,
+            // TODO(johnniwinther): Avoid duplicate warnings.
+            MessageKind.SETTER_NOT_FOUND]);
 }
 
 /// Helper to test that [script] produces all the given [warnings].
 checkWarningOn(String script, List<MessageKind> warnings) {
   Expect.isTrue(warnings.length >= 0 && warnings.length <= 2);
   asyncTest(() => compileScript(script).then((compiler) {
-    Expect.equals(0, compiler.errors.length);
-    Expect.equals(warnings.length, compiler.warnings.length);
+    Expect.equals(0, compiler.errors.length,
+        'Unexpected errors in\n$script\n${compiler.errors}');
+    Expect.equals(warnings.length, compiler.warnings.length,
+        'Unexpected warnings in\n$script\n'
+        'Expected:$warnings\nFound:${compiler.warnings}');
     for (int i = 0; i < warnings.length; i++) {
       Expect.equals(warnings[i], compiler.warnings[i].message.kind);
     }

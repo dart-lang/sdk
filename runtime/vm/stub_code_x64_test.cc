@@ -19,10 +19,6 @@
 
 namespace dart {
 
-DECLARE_RUNTIME_ENTRY(TestSmiSub);
-DECLARE_LEAF_RUNTIME_ENTRY(RawObject*, TestLeafSmiAdd, RawObject*, RawObject*);
-
-
 static Function* CreateFunction(const char* name) {
   const String& class_name = String::Handle(Symbols::New("ownerClass"));
   const Script& script = Script::Handle();
@@ -80,12 +76,12 @@ static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
                                               int value2) {
   const Smi& smi1 = Smi::ZoneHandle(Smi::New(value1));
   const Smi& smi2 = Smi::ZoneHandle(Smi::New(value2));
-  __ enter(Immediate(0));
+  __ EnterStubFrame();
   __ ReserveAlignedFrameSpace(0);
   __ LoadObject(CallingConventions::kArg1Reg, smi1);
   __ LoadObject(CallingConventions::kArg2Reg, smi2);
   __ CallRuntime(kTestLeafSmiAddRuntimeEntry, 2);  // Call SmiAdd runtime func.
-  __ leave();
+  __ LeaveStubFrame();
   __ ret();  // Return value is in RAX.
 }
 

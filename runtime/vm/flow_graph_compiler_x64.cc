@@ -101,12 +101,10 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   Zone* zone = compiler->zone();
 
   // Current PP, FP, and PC.
-  builder->AddPp(Function::Handle(zone, current->code().function()), slot_ix++);
+  builder->AddPp(current->function(), slot_ix++);
   builder->AddPcMarker(Function::Handle(zone), slot_ix++);
   builder->AddCallerFp(slot_ix++);
-  builder->AddReturnAddress(Function::Handle(zone, current->code().function()),
-                            deopt_id(),
-                            slot_ix++);
+  builder->AddReturnAddress(current->function(), deopt_id(), slot_ix++);
 
   // Emit all values that are needed for materialization as a part of the
   // expression stack for the bottom-most frame. This guarantees that GC
@@ -124,16 +122,14 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   current = current->outer();
   while (current != NULL) {
     // PP, FP, and PC.
-    builder->AddPp(Function::Handle(zone, current->code().function()),
-                   slot_ix++);
-    builder->AddPcMarker(Function::Handle(zone, previous->code().function()),
-                         slot_ix++);
+    builder->AddPp(current->function(), slot_ix++);
+    builder->AddPcMarker(previous->function(), slot_ix++);
     builder->AddCallerFp(slot_ix++);
 
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
     builder->AddReturnAddress(
-        Function::Handle(zone, current->code().function()),
+        current->function(),
         Isolate::ToDeoptAfter(current->deopt_id()),
         slot_ix++);
 
@@ -164,8 +160,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   // For the outermost environment, set caller PC, caller PP, and caller FP.
   builder->AddCallerPp(slot_ix++);
   // PC marker.
-  builder->AddPcMarker(Function::Handle(zone, previous->code().function()),
-                       slot_ix++);
+  builder->AddPcMarker(previous->function(), slot_ix++);
   builder->AddCallerFp(slot_ix++);
   builder->AddCallerPc(slot_ix++);
 
@@ -873,9 +868,8 @@ void FlowGraphCompiler::CopyParameters() {
       __ jmp(&assign_optional_parameter, Assembler::kNearJump);
       __ Bind(&load_default_value);
       // Load RAX with default argument.
-      const Object& value = Object::ZoneHandle(zone(),
-          parsed_function().default_parameter_values().At(
-              param_pos - num_fixed_params));
+      const Instance& value = parsed_function().DefaultParameterValueAt(
+          param_pos - num_fixed_params);
       __ LoadObject(RAX, value);
       __ Bind(&assign_optional_parameter);
       // Assign RAX to fp[kFirstLocalSlotFromFp - param_pos].
@@ -909,8 +903,7 @@ void FlowGraphCompiler::CopyParameters() {
       __ CompareImmediate(RCX, Immediate(param_pos));
       __ j(GREATER, &next_parameter, Assembler::kNearJump);
       // Load RAX with default argument.
-      const Object& value = Object::ZoneHandle(zone(),
-          parsed_function().default_parameter_values().At(i));
+      const Object& value = parsed_function().DefaultParameterValueAt(i);
       __ LoadObject(RAX, value);
       // Assign RAX to fp[kFirstLocalSlotFromFp - param_pos].
       // We do not use the final allocation index of the variable here, i.e.
@@ -1044,7 +1037,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     }
     ASSERT(StackSize() >= 0);
     __ Comment("Enter frame");
-    __ EnterDartFrameWithInfo(StackSize() * kWordSize, new_pp, new_pc);
+    __ EnterDartFrame(StackSize() * kWordSize, new_pp, new_pc);
   }
 }
 
@@ -1513,7 +1506,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                      *StubCode::CallStaticFunction_entry(),
                      RawPcDescriptors::kOther,
                      locs);
-    const Function& function = Function::Handle(zone(), ic_data.GetTargetAt(0));
+    const Function& function = Function::ZoneHandle(
+        zone(), ic_data.GetTargetAt(0));
     AddStaticCallTarget(function);
     __ Drop(argument_count, RCX);
     if (kNumChecks > 1) {

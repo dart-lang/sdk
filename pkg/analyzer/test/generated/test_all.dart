@@ -6,6 +6,7 @@ library test.generated;
 
 import 'package:unittest/unittest.dart';
 
+import '../utils.dart';
 import 'all_the_rest_test.dart' as all_the_rest;
 import 'ast_test.dart' as ast_test;
 import 'compile_time_error_code_test.dart' as compile_time_error_code_test;
@@ -27,7 +28,7 @@ import 'utilities_test.dart' as utilities_test;
 
 /// Utility for manually running all tests.
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('generated tests', () {
     all_the_rest.main();
     ast_test.main();

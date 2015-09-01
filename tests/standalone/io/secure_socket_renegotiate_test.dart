@@ -14,17 +14,15 @@ import "package:expect/expect.dart";
 import "package:path/path.dart";
 
 const HOST_NAME = "localhost";
-const CERTIFICATE = "localhost_cert";
+String localFile(path) => Platform.script.resolve(path).toFilePath();
 
-
-String certificateDatabase() => Platform.script.resolve('pkcert').toFilePath();
-
+SecurityContext serverContext = new SecurityContext()
+  ..useCertificateChain(localFile('certificates/server_chain.pem'))
+  ..usePrivateKey(localFile('certificates/server_key.pem'),
+                  password: 'dartdart');
 
 Future<SecureServerSocket> runServer() {
-  SecureSocket.initialize(database: certificateDatabase(),
-                          password: 'dartdart');
-
-  return SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE)
+  return SecureServerSocket.bind(HOST_NAME, 0, serverContext)
     .then((SecureServerSocket server) {
       server.listen((SecureSocket socket) {
         Expect.isNull(socket.peerCertificate);
@@ -71,8 +69,7 @@ void main() {
       Expect.isTrue(clientScript.endsWith("_client.dart"));
       Process.run(Platform.executable,
                   [clientScript,
-                   server.port.toString(),
-                   certificateDatabase()])
+                   server.port.toString()])
         .then((ProcessResult result) {
           if (result.exitCode != 0) {
             print("Client failed, stdout:");

@@ -17,9 +17,10 @@ import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(UpdateContentTest);
 }
 
@@ -55,8 +56,9 @@ class UpdateContentTest extends AbstractAnalysisTest {
     createProject();
     addTestFile('');
     await server.onAnalysisComplete;
-    server.setAnalysisSubscriptions(
-        {AnalysisService.NAVIGATION: [testFile].toSet()});
+    server.setAnalysisSubscriptions({
+      AnalysisService.NAVIGATION: [testFile].toSet()
+    });
     // update file, analyze, but don't sent notifications
     navigationCount = 0;
     server.updateContent('1', {testFile: new AddContentOverlay('foo() {}')});
@@ -110,17 +112,23 @@ class UpdateContentTest extends AbstractAnalysisTest {
 
   test_multiple_contexts() async {
     String fooPath = '/project1/foo.dart';
-    resourceProvider.newFile(fooPath, '''
+    resourceProvider.newFile(
+        fooPath,
+        '''
 library foo;
 import '../project2/baz.dart';
 main() { f(); }''');
     String barPath = '/project2/bar.dart';
-    resourceProvider.newFile(barPath, '''
+    resourceProvider.newFile(
+        barPath,
+        '''
 library bar;
 import 'baz.dart';
 main() { f(); }''');
     String bazPath = '/project2/baz.dart';
-    resourceProvider.newFile(bazPath, '''
+    resourceProvider.newFile(
+        bazPath,
+        '''
 library baz;
 f(int i) {}
 ''');

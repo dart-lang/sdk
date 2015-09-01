@@ -207,7 +207,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ LoadImmediate(T9, entry);
   __ jalr(T9);
 #else
-  __ BranchLink(&NativeEntry::NativeCallWrapperLabel());
+  __ BranchLink(&NativeEntry::NativeCallWrapperLabel(), kNotPatchable);
 #endif
   __ Comment("CallNativeCFunctionStub return");
 
@@ -327,8 +327,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ lw(S4, Address(SP, 1 * kWordSize));
   __ addiu(SP, SP, Immediate(2 * kWordSize));
 
-  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
-  __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ lw(T0, FieldAddress(T0, Code::entry_point_offset()));
 
   // Remove the stub frame as we are about to jump to the dart function.
   __ LeaveStubFrameAndReturn(T0);
@@ -355,8 +354,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(2 * kWordSize));
 
   // Jump to the dart function.
-  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
-  __ AddImmediate(T0, T0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ lw(T0, FieldAddress(T0, Code::entry_point_offset()));
 
   // Remove the stub frame.
   __ LeaveStubFrameAndReturn(T0);
@@ -378,8 +376,7 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(1 * kWordSize));
 
   // Jump to the dart function.
-  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
-  __ AddImmediate(T0, T0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ lw(T0, FieldAddress(T0, Code::entry_point_offset()));
 
   // Remove the stub frame.
   __ LeaveStubFrameAndReturn(T0);
@@ -419,13 +416,6 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ delay_slot()->sw(T3, Address(T2, -kWordSize));
   __ Bind(&loop_exit);
 }
-
-
-DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
-                           intptr_t deopt_reason,
-                           uword saved_registers_address);
-
-DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 
 
 // Used by eager and lazy deoptimization. Preserve result in V0 if necessary.
@@ -470,6 +460,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ sw(PP, Address(SP, kPushedRegistersSize - 4 * kWordSize));
   __ addiu(FP, SP, Immediate(kPushedRegistersSize - 3 * kWordSize));
 
+  __ LoadPoolPointer();
+
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
@@ -500,20 +492,12 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ lw(T1, Address(FP, saved_result_slot_from_fp * kWordSize));
   }
 
-  __ addiu(SP, FP, Immediate(-kWordSize));
-  __ lw(RA, Address(SP, 2 * kWordSize));
-  __ lw(FP, Address(SP, 1 * kWordSize));
-  __ lw(PP, Address(SP, 0 * kWordSize));
+  __ LeaveDartFrame();
   __ subu(SP, FP, V0);
 
   // DeoptimizeFillFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
-  __ addiu(SP, SP, Immediate(-4 * kWordSize));
-  __ sw(ZR, Address(SP, 3 * kWordSize));
-  __ sw(RA, Address(SP, 2 * kWordSize));
-  __ sw(FP, Address(SP, 1 * kWordSize));
-  __ sw(PP, Address(SP, 0 * kWordSize));
-  __ addiu(FP, SP, Immediate(kWordSize));
+  __ EnterStubFrame();
 
   __ mov(A0, FP);  // Get last FP address.
   if (preserve_result) {
@@ -526,11 +510,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ lw(T1, Address(FP, kFirstLocalSlotFromFp * kWordSize));
   }
   // Code above cannot cause GC.
-  __ addiu(SP, FP, Immediate(-kWordSize));
-  __ lw(RA, Address(SP, 2 * kWordSize));
-  __ lw(FP, Address(SP, 1 * kWordSize));
-  __ lw(PP, Address(SP, 0 * kWordSize));
-  __ addiu(SP, SP, Immediate(4 * kWordSize));
+  __ LeaveStubFrame();
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
@@ -643,8 +623,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
     __ Bind(&call_target_function);
   }
 
-  __ lw(T2, FieldAddress(T0, Function::instructions_offset()));
-  __ AddImmediate(T2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ lw(T2, FieldAddress(T0, Function::entry_point_offset()));
   __ jr(T2);
 }
 
@@ -1057,9 +1036,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   // Restore the frame pointer.
   __ LeaveStubFrameAndReturn();
 }
-
-
-DECLARE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, Isolate* isolate);
 
 
 // Helper stub to implement Assembler::StoreIntoObject.
@@ -1614,8 +1590,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // T0 <- T3: Target function.
   __ mov(T0, T3);
   Label is_compiled;
-  __ lw(T4, FieldAddress(T0, Function::instructions_offset()));
-  __ AddImmediate(T4, Instructions::HeaderSize() - kHeapObjectTag);
+  __ lw(T4, FieldAddress(T0, Function::entry_point_offset()));
   if (range_collection_mode == kCollectRanges) {
     const intptr_t frame_size = num_args + 2;
     __ lw(T3, Address(SP, 0 * kWordSize));
@@ -1799,10 +1774,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Get function and call it, if possible.
   __ lw(T0, Address(T0, target_offset));
-  __ lw(T4, FieldAddress(T0, Function::instructions_offset()));
-
-  // T4: target instructions.
-  __ AddImmediate(T4, Instructions::HeaderSize() - kHeapObjectTag);
+  __ lw(T4, FieldAddress(T0, Function::entry_point_offset()));
   __ jr(T4);
 
   // Call single step callback in debugger.
@@ -1855,8 +1827,7 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(3 * kWordSize));
   __ LeaveStubFrame();
 
-  __ lw(T2, FieldAddress(T0, Function::instructions_offset()));
-  __ AddImmediate(T2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ lw(T2, FieldAddress(T0, Function::entry_point_offset()));
   __ jr(T2);
 }
 
@@ -2086,17 +2057,10 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ lw(S4, Address(SP, 2 * kWordSize));  // Restore argument descriptor.
   __ addiu(SP, SP, Immediate(3 * kWordSize));  // Discard argument.
 
-  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
-  __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ lw(T0, FieldAddress(T0, Code::entry_point_offset()));
   __ LeaveStubFrameAndReturn(T0);
   __ break_(0);
 }
-
-
-DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
-                           BigintCompare,
-                           RawBigint* left,
-                           RawBigint* right);
 
 
 // Does identical check (object references are equal or not equal) with special
@@ -2274,10 +2238,7 @@ void StubCode::EmitMegamorphicLookup(
   __ addu(T1, T2, T1);
   __ lw(T0, FieldAddress(T1, base + kWordSize));
 
-  __ lw(target, FieldAddress(T0, Function::instructions_offset()));
-  // TODO(srdjan): Evaluate performance impact of moving the instruction below
-  // to the call site, instead of having it here.
-  __ AddImmediate(target, Instructions::HeaderSize() - kHeapObjectTag);
+  __ lw(target, FieldAddress(T0, Function::entry_point_offset()));
 }
 
 

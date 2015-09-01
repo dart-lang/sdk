@@ -6,12 +6,24 @@ library universe;
 
 import 'dart:collection';
 
+import '../common/names.dart' show
+    Identifiers,
+    Names,
+    Selectors;
+import '../compiler.dart' show
+    Compiler;
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/spannable.dart' show
+    SpannableAssertionFailure;
 import '../elements/elements.dart';
-import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../types/types.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
+import '../world.dart' show
+    ClassWorld,
+    World;
 
 part 'function_set.dart';
 part 'side_effects.dart';
@@ -665,7 +677,7 @@ class Selector {
 
   static const Name INDEX_NAME = const PublicName("[]");
   static const Name INDEX_SET_NAME = const PublicName("[]=");
-  static const Name CALL_NAME = const PublicName(Compiler.CALL_OPERATOR_NAME);
+  static const Name CALL_NAME = Names.call;
 
   Selector.internal(this.kind,
                     this.memberName,
@@ -709,11 +721,11 @@ class Selector {
   }
 
   factory Selector.fromElement(Element element) {
-    String name = element.name;
+    Name name = new Name(element.name, element.library);
     if (element.isFunction) {
-      if (name == '[]') {
+      if (name == INDEX_NAME) {
         return new Selector.index();
-      } else if (name == '[]=') {
+      } else if (name == INDEX_SET_NAME) {
         return new Selector.indexSet();
       }
       FunctionSignature signature =
@@ -729,39 +741,34 @@ class Selector {
         // a user from declaring such an operator.
         return new Selector(
             SelectorKind.OPERATOR,
-            new PublicName(name),
+            name,
             new CallStructure(arity, namedArguments));
       } else {
         return new Selector.call(
-            name, element.library, arity, namedArguments);
+            name, new CallStructure(arity, namedArguments));
       }
     } else if (element.isSetter) {
-      return new Selector.setter(name, element.library);
+      return new Selector.setter(name);
     } else if (element.isGetter) {
-      return new Selector.getter(name, element.library);
+      return new Selector.getter(name);
     } else if (element.isField) {
-      return new Selector.getter(name, element.library);
+      return new Selector.getter(name);
     } else if (element.isConstructor) {
-      return new Selector.callConstructor(name, element.library);
+      return new Selector.callConstructor(name);
     } else {
       throw new SpannableAssertionFailure(
           element, "Can't get selector from $element");
     }
   }
 
-  factory Selector.getter(String name, LibraryElement library)
+  factory Selector.getter(Name name)
       => new Selector(SelectorKind.GETTER,
-                      new Name(name, library),
+                      name.getter,
                       CallStructure.NO_ARGS);
 
-  factory Selector.getterFrom(Selector selector)
-      => new Selector(SelectorKind.GETTER,
-                      selector.memberName.getter,
-                      CallStructure.NO_ARGS);
-
-  factory Selector.setter(String name, LibraryElement library)
+  factory Selector.setter(Name name)
       => new Selector(SelectorKind.SETTER,
-                      new Name(name, library, isSetter: true),
+                      name.setter,
                       CallStructure.ONE_ARG);
 
   factory Selector.unaryOperator(String name) => new Selector(
@@ -782,13 +789,8 @@ class Selector {
       => new Selector(SelectorKind.INDEX, INDEX_SET_NAME,
                       CallStructure.TWO_ARGS);
 
-  factory Selector.call(String name,
-                        LibraryElement library,
-                        int arity,
-                        [List<String> namedArguments])
-      => new Selector(SelectorKind.CALL,
-          new Name(name, library),
-          new CallStructure(arity, namedArguments));
+  factory Selector.call(Name name, CallStructure callStructure)
+      => new Selector(SelectorKind.CALL, name, callStructure);
 
   factory Selector.callClosure(int arity, [List<String> namedArguments])
       => new Selector(SelectorKind.CALL, CALL_NAME,
@@ -797,10 +799,10 @@ class Selector {
   factory Selector.callClosureFrom(Selector selector)
       => new Selector(SelectorKind.CALL, CALL_NAME, selector.callStructure);
 
-  factory Selector.callConstructor(String name, LibraryElement library,
+  factory Selector.callConstructor(Name name,
                                    [int arity = 0,
                                     List<String> namedArguments])
-      => new Selector(SelectorKind.CALL, new Name(name, library),
+      => new Selector(SelectorKind.CALL, name,
                       new CallStructure(arity, namedArguments));
 
   factory Selector.callDefaultConstructor()

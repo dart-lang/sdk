@@ -7,16 +7,13 @@ library dart2js_incremental.library_updater;
 import 'dart:async' show
     Future;
 
-import 'dart:convert' show
-    UTF8;
-
 import 'package:compiler/compiler.dart' as api;
 
-import 'package:compiler/src/dart2jslib.dart' show
-    Compiler,
-    EnqueueTask,
-    MessageKind,
-    Script;
+import 'package:compiler/src/compiler.dart' show
+    Compiler;
+
+import 'package:compiler/src/diagnostics/messages.dart' show
+    MessageKind;
 
 import 'package:compiler/src/elements/elements.dart' show
     ClassElement,
@@ -26,6 +23,9 @@ import 'package:compiler/src/elements/elements.dart' show
     LibraryElement,
     STATE_NOT_STARTED,
     ScopeContainerElement;
+
+import 'package:compiler/src/enqueue.dart' show
+    EnqueueTask;
 
 import 'package:compiler/src/scanner/scannerlib.dart' show
     EOF_TOKEN,
@@ -38,6 +38,9 @@ import 'package:compiler/src/scanner/scannerlib.dart' show
     PartialFunctionElement,
     Scanner,
     Token;
+
+import 'package:compiler/src/script.dart' show
+    Script;
 
 import 'package:compiler/src/io/source_file.dart' show
     CachingUtf8BytesSourceFile,

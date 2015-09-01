@@ -20,8 +20,6 @@ class RawInstance;
 class Script;
 class SequenceNode;
 
-DECLARE_RUNTIME_ENTRY(CompileFunction);
-
 class Compiler : public AllStatic {
  public:
   // Extracts top level entities from the script and populates

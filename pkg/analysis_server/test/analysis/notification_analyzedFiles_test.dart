@@ -13,9 +13,10 @@ import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(AnalysisNotificationAnalyzedFilesTest);
 }
 

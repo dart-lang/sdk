@@ -120,7 +120,8 @@ TEST_CASE(Service_IdZones) {
   // Both RingServiceIdZones share the same backing store and id space.
 
   // Always allocate a new id.
-  RingServiceIdZone always_new_zone(ring, ObjectIdRing::kAllocateId);
+  RingServiceIdZone always_new_zone;
+  always_new_zone.Init(ring, ObjectIdRing::kAllocateId);
   EXPECT_STREQ("objects/0", always_new_zone.GetServiceId(test_a));
   EXPECT_STREQ("objects/1", always_new_zone.GetServiceId(test_a));
   EXPECT_STREQ("objects/2", always_new_zone.GetServiceId(test_a));
@@ -128,7 +129,8 @@ TEST_CASE(Service_IdZones) {
   EXPECT_STREQ("objects/4", always_new_zone.GetServiceId(test_c));
 
   // Reuse an existing id or allocate a new id.
-  RingServiceIdZone reuse_zone(ring, ObjectIdRing::kReuseId);
+  RingServiceIdZone reuse_zone;
+  reuse_zone.Init(ring, ObjectIdRing::kReuseId);
   EXPECT_STREQ("objects/0", reuse_zone.GetServiceId(test_a));
   EXPECT_STREQ("objects/0", reuse_zone.GetServiceId(test_a));
   EXPECT_STREQ("objects/3", reuse_zone.GetServiceId(test_b));

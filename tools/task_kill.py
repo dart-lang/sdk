@@ -30,7 +30,9 @@ EXECUTABLE_NAMES = {
     'iexplore': 'iexplore.exe',
     'firefox': 'firefox.exe',
     'git': 'git.exe',
-    'svn': 'svn.exe'
+    'svn': 'svn.exe',
+    'fletch': 'fletch.exe',
+    'fletch-vm': 'fletch-vm.exe',
   },
   'linux': {
     'chrome': 'chrome',
@@ -38,7 +40,9 @@ EXECUTABLE_NAMES = {
     'dart': 'dart',
     'firefox': 'firefox.exe',
     'git': 'git',
-    'svn': 'svn'
+    'svn': 'svn',
+    'fletch': 'fletch',
+    'fletch-vm': 'fletch-vm',
   },
   'macos': {
     'chrome': 'Chrome',
@@ -47,7 +51,9 @@ EXECUTABLE_NAMES = {
     'firefox': 'firefox',
     'safari': 'Safari',
     'git': 'git',
-    'svn': 'svn'
+    'svn': 'svn',
+    'fletch': 'fletch',
+    'fletch-vm': 'fletch-vm',
   }
 }
 
@@ -61,6 +67,8 @@ def GetOptions():
   parser = optparse.OptionParser("usage: %prog [options]")
   parser.add_option("--kill_dart", default=True,
                     help="Kill all dart processes")
+  parser.add_option("--kill_fletch", default=True,
+                    help="Kill all fletch and fletch-vm processes")
   parser.add_option("--kill_vc", default=True,
                     help="Kill all git and svn processes")
   parser.add_option("--kill_browsers", default=False,
@@ -189,11 +197,18 @@ def KillDart():
   status = Kill("dart")
   return status
 
+def KillFletch():
+  status = Kill("fletch")
+  status += Kill("fletch-vm")
+  return status
+
 def Main():
   options = GetOptions()
   status = 0
   if options.kill_dart:
     status += KillDart()
+  if options.kill_fletch:
+    status += KillFletch()
   if options.kill_vc:
     status += KillVCSystems()
   if options.kill_browsers:

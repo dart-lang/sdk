@@ -234,7 +234,8 @@
       .flex-item-vars {
         flex-grow: 5;
         flex-shrink: 0;
-        flex-basis: 225px;
+        flex-basis: 250px;
+        overflow-x: hidden;
       }
     </style>
     <div id="frameOuter" class="frameOuter">
@@ -371,8 +372,8 @@
             <div class="flex-item-script">
               <template if="{{ message.handler != null }}">
               <source-inset height="{{ scriptHeight }}"
-                              location="{{ message.handler.location }}"
-                              inDebuggerContext="{{ true }}">
+                            location="{{ message.handler.location }}"
+                            inDebuggerContext="{{ true }}">
               </source-inset>
               </template>
             </div>

@@ -234,6 +234,11 @@ ActivationFrame::ActivationFrame(
 }
 
 
+void DebuggerEvent::UpdateTimestamp() {
+  timestamp_ = OS::GetCurrentTimeMillis();
+}
+
+
 bool Debugger::HasEventHandler() {
   return ((event_handler_ != NULL) ||
           Service::isolate_stream.enabled() ||
@@ -2314,6 +2319,7 @@ void Debugger::Pause(DebuggerEvent* event) {
   ASSERT(obj_cache_ == NULL);
 
   pause_event_ = event;
+  pause_event_->UpdateTimestamp();
   obj_cache_ = new RemoteObjectCache(64);
 
   InvokeEventHandler(event);
@@ -2395,7 +2401,17 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
   event.set_top_frame(top_frame);
   event.set_breakpoint(bpt);
   Object& closure_or_null = Object::Handle(top_frame->GetAsyncOperation());
-  event.set_async_continuation(&closure_or_null);
+  if (!closure_or_null.IsNull()) {
+    event.set_async_continuation(&closure_or_null);
+    const Script& script = Script::Handle(top_frame->SourceScript());
+    const TokenStream& tokens = TokenStream::Handle(script.tokens());
+    TokenStream::Iterator iter(tokens, top_frame->TokenPos());
+    if ((iter.CurrentTokenKind() == Token::kIDENT) &&
+        ((iter.CurrentLiteral() == Symbols::Await().raw()) ||
+         (iter.CurrentLiteral() == Symbols::YieldKw().raw()))) {
+      event.set_at_async_jump(true);
+    }
+  }
   Pause(&event);
 }
 

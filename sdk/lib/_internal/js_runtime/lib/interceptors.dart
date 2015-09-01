@@ -68,6 +68,7 @@ _symbolMapToStringMap(Map<Symbol, dynamic> map) {
  * to emit a call to an intercepted method, that is a method that is
  * defined in an interceptor class.
  */
+@NoInline()
 getInterceptor(object) {
   // This is a magic method: the compiler does specialization of it
   // depending on the uses of intercepted methods and instantiated

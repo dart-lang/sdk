@@ -13,6 +13,7 @@
     'snapshot_in_cc_file': 'snapshot_in.cc',
     'vm_isolate_snapshot_bin_file': '<(gen_source_dir)/vm_isolate_snapshot_gen.bin',
     'isolate_snapshot_bin_file': '<(gen_source_dir)/isolate_snapshot_gen.bin',
+    'gen_snapshot_stamp_file': '<(gen_source_dir)/gen_snapshot.stamp',
     'resources_cc_file': '<(gen_source_dir)/resources_gen.cc',
     'bootstrap_resources_cc_file':
         '<(gen_source_dir)/bootstrap_resources_gen.cc',
@@ -224,7 +225,7 @@
       'conditions': [
         ['dart_io_support==1 and dart_io_secure_socket==1', {
           'dependencies': [
-            'bin/net/ssl.gyp:libssl_dart',
+          '../third_party/boringssl/boringssl_dart.gyp:boringssl',
           ],
         }],
         ['dart_io_secure_socket==0', {
@@ -292,14 +293,14 @@
         'io_natives.cc',
       ],
       'conditions': [
-        ['dart_io_support==1 and dart_io_secure_socket==1', {
-          'dependencies': [
-            'bin/net/ssl.gyp:libssl_dart',
-          ],
-        }],
-        ['dart_io_support==1 and dart_io_secure_socket==0', {
+        ['dart_io_support==1', {
           'dependencies': [
             'bin/net/zlib.gyp:zlib_dart',
+          ],
+        }],
+        ['dart_io_support==1 and dart_io_secure_socket==1', {
+          'dependencies': [
+            '../third_party/boringssl/boringssl_dart.gyp:boringssl',
           ],
         }],
         ['dart_io_secure_socket==0', {
@@ -333,19 +334,6 @@
           },
         }],
       ],
-      'configurations': {
-        'Dart_Android_Base': {
-          'target_conditions': [
-            ['_toolset=="target"', {
-              'defines': [
-                # Needed for sources outside of nss that include pr and ssl
-                # header files.
-                'MDCPUCFG="md/_linux.cfg"',
-              ],
-            }],
-          ],
-        },
-      },
     },
     {
       'target_name': 'libdart_nosnapshot',
@@ -433,8 +421,7 @@
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen_snapshot<(EXECUTABLE_SUFFIX)',
           ],
           'outputs': [
-            '<(vm_isolate_snapshot_bin_file)',
-            '<(isolate_snapshot_bin_file)',
+            '<(gen_snapshot_stamp_file)',
           ],
           'action': [
             'python',
@@ -443,7 +430,8 @@
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen_snapshot<(EXECUTABLE_SUFFIX)',
             '--vm_output_bin', '<(vm_isolate_snapshot_bin_file)',
             '--output_bin', '<(isolate_snapshot_bin_file)',
-            '--target_os', '<(OS)'
+            '--target_os', '<(OS)',
+            '--timestamp_file', '<(gen_snapshot_stamp_file)',
           ],
           'message': 'Generating ''<(vm_isolate_snapshot_bin_file)'' ''<(isolate_snapshot_bin_file)'' files.'
         },
@@ -462,9 +450,8 @@
           'action_name': 'generate_snapshot_file',
           'inputs': [
             '../tools/create_snapshot_file.py',
+            '<(gen_snapshot_stamp_file)',
             '<(snapshot_in_cc_file)',
-            '<(vm_isolate_snapshot_bin_file)',
-            '<(isolate_snapshot_bin_file)',
           ],
           'outputs': [
             '<(snapshot_cc_file)',
@@ -768,6 +755,15 @@
           },
         }],
       ],
+      'configurations': {
+        'Dart_Linux_Base': {
+          # Have the linker add all symbols to the dynamic symbol table
+          # so that extensions can look them up dynamically in the binary.
+          'ldflags': [
+            '-rdynamic',
+          ],
+        },
+      },
     },
     {
       'target_name': 'test_extension',

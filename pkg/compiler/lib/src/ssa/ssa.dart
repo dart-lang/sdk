@@ -6,33 +6,57 @@ library ssa;
 
 import 'dart:collection';
 
+import 'package:js_runtime/shared/embedded_names.dart';
+
 import '../closure.dart';
+import '../common/codegen.dart' show
+    CodegenRegistry,
+    CodegenWorkItem;
+import '../common/names.dart' show
+    Identifiers,
+    Selectors;
+import '../common/tasks.dart' show
+    CompilerTask;
+import '../compiler.dart' show
+    Compiler;
 import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../dart2jslib.dart' hide Selector, TypedSelector;
 import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/messages.dart';
+import '../diagnostics/spannable.dart' show
+    CURRENT_ELEMENT_SPANNABLE,
+    Spannable;
 import '../elements/elements.dart';
-import '../elements/modelx.dart'
-    show ElementX,
-         VariableElementX,
-         ConstructorBodyElementX;
-
+import '../elements/modelx.dart' show
+    ConstructorBodyElementX,
+    ElementX,
+    VariableElementX;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
+import '../js_emitter/js_emitter.dart' show
+    CodeEmitterTask,
+    NativeEmitter;
 import '../native/native.dart' as native;
 import '../resolution/operators.dart';
 import '../resolution/semantic_visitor.dart';
+import '../resolution/send_resolver.dart' show
+    SendResolverMixin;
+import '../resolution/tree_elements.dart' show
+    TreeElements;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
-import '../types/constants.dart' show computeTypeMask;
+import '../types/constants.dart' show
+    computeTypeMask;
 import '../universe/universe.dart';
 import '../util/util.dart';
-import '../js/rewrite_async.dart';
-import 'package:js_runtime/shared/embedded_names.dart';
+import '../world.dart' show
+    ClassWorld,
+    World;
 
 part 'builder.dart';
 part 'codegen.dart';

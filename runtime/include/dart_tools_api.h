@@ -879,6 +879,87 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
  * ========
  */
 
+/** Timeline stream for Dart API calls */
+#define DART_TIMELINE_STREAM_API (1 << 0)
+/** Timeline stream for compiler events */
+#define DART_TIMELINE_STREAM_COMPILER (1 << 1)
+/** Timeline stream for embedder provided events */
+#define DART_TIMELINE_STREAM_EMBEDDER (1 << 2)
+/** Timeline stream for GC events */
+#define DART_TIMELINE_STREAM_GC (1 << 3)
+/** Timeline stream for isolate events */
+#define DART_TIMELINE_STREAM_ISOLATE (1 << 4)
+
+/** Enable all timeline stream recording */
+#define DART_TIMELINE_STREAM_ALL (DART_TIMELINE_STREAM_API |                   \
+                                  DART_TIMELINE_STREAM_COMPILER |              \
+                                  DART_TIMELINE_STREAM_EMBEDDER |              \
+                                  DART_TIMELINE_STREAM_GC |                    \
+                                  DART_TIMELINE_STREAM_ISOLATE)
+
+/** Disable all timeline stream recording */
+#define DART_TIMELINE_STREAM_DISABLE 0
+
+/**
+ * Start recording timeline events for the current isolate.
+ *
+ * \param stream_mask A bitmask of streams that should be recorded.
+ *
+ * NOTE: Calling with 0 disables recording of all streams.
+ */
+DART_EXPORT void Dart_TimelineSetRecordedStreams(int64_t stream_mask);
+
+typedef enum {
+  /** Indicates a new stream is being output */
+  Dart_StreamConsumer_kStart = 0,
+  /** Data for the current stream */
+  Dart_StreamConsumer_kData = 1,
+  /** Indicates stream is finished */
+  Dart_StreamConsumer_kFinish = 2,
+} Dart_StreamConsumer_State;
+
+/**
+ * A stream consumer callback function.
+ *
+ * This function will be called repeatedly until there is no more data in a
+ * stream and there are no more streams.
+ *
+ * \param state Indicates a new stream, data, or a finished stream.
+ * \param stream_name A name for this stream. Not guaranteed to be meaningful.
+ * \param buffer A pointer to the stream data.
+ * \param buffer_length The number of bytes at buffer that should be consumed.
+ * \param stream_callback_data The pointer passed in when requesting the stream.
+ *
+ * At the start of each stream state will be DART_STREAM_CONSUMER_STATE_START
+ * and buffer will be NULL.
+ *
+ * For each chunk of data the state will be DART_STREAM_CONSUMER_STATE_DATA
+ * and buffer will not be NULL.
+ *
+ * At the end of each stream state will be DART_STREAM_CONSUMER_STATE_FINISH
+ * and buffer will be NULL.
+ */
+typedef void (*Dart_StreamConsumer)(
+    Dart_StreamConsumer_State state,
+    const char* stream_name,
+    uint8_t* buffer,
+    intptr_t buffer_length,
+    void* stream_callback_data);
+
+
+/**
+ * Get the timeline for the current isolate in trace-event format
+ *
+ * \param consumer A Dart_StreamConsumer.
+ * \param user_data User data passed into consumer.
+ *
+ * NOTE: The trace-event format is documented here: https://goo.gl/hDZw5M
+ *
+ * \return True if a stream was output.
+ */
+DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
+                                       void* user_data);
+
 /**
  * Add a duration timeline event to the embedder stream for the current isolate.
  *

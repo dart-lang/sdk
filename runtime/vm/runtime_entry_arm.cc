@@ -43,7 +43,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   ExternalLabel label(entry);
   if (is_leaf()) {
     ASSERT(argument_count == this->argument_count());
-    __ BranchLink(&label);
+    __ BranchLink(&label, kNotPatchable);
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.

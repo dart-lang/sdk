@@ -5,13 +5,11 @@
 // Test that computation of callers of an element works when two
 // elements of the same name are being invoked in the same method.
 
+import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
-import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/inferrer/type_graph_inferrer.dart';
 
 import 'compiler_helper.dart';
-import 'parser_helper.dart';
 
 const String TEST = """
 class A {

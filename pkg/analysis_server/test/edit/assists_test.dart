@@ -13,9 +13,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(AssistsTest);
 }
 
@@ -53,7 +54,9 @@ main() {
 ''');
     await waitForTasksFinished();
     prepareAssists('v =');
-    _assertHasChange('Remove type annotation', '''
+    _assertHasChange(
+        'Remove type annotation',
+        '''
 main() {
   var v = 1;
 }
@@ -68,7 +71,9 @@ main() {
 ''');
     await waitForTasksFinished();
     prepareAssists('v =');
-    _assertHasChange('Split variable declaration', '''
+    _assertHasChange(
+        'Split variable declaration',
+        '''
 main() {
   int v;
   v = 1;
@@ -87,7 +92,9 @@ main() {
     int offset = findOffset('  print(1)');
     int length = findOffset('}') - offset;
     prepareAssistsAt(offset, length);
-    _assertHasChange("Surround with 'if'", '''
+    _assertHasChange(
+        "Surround with 'if'",
+        '''
 main() {
   if (condition) {
     print(1);

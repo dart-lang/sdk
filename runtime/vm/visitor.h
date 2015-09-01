@@ -5,6 +5,7 @@
 #ifndef VM_VISITOR_H_
 #define VM_VISITOR_H_
 
+#include "vm/allocation.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 
@@ -26,8 +27,8 @@ class ObjectPointerVisitor {
   virtual void VisitPointers(RawObject** first, RawObject** last) = 0;
 
   virtual bool visit_function_code() const { return true; }
-  virtual MallocGrowableArray<RawFunction*>* skipped_code_functions() {
-    return NULL;
+  virtual void add_skipped_code_function(RawFunction* funct) {
+    UNREACHABLE();
   }
   // len argument is the number of pointers to visit starting from 'p'.
   void VisitPointers(RawObject** p, intptr_t len) {
@@ -38,6 +39,7 @@ class ObjectPointerVisitor {
 
  private:
   Isolate* isolate_;
+  NoSafepointScope no_safepoints_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectPointerVisitor);
 };

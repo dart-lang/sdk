@@ -6,6 +6,7 @@ library test.services.completion;
 
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'arglist_contributor_test.dart' as arglist_test;
 import 'combinator_contributor_test.dart' as combinator_test;
 import 'common_usage_computer_test.dart' as common_usage_computer_test;
@@ -23,7 +24,7 @@ import 'prefixed_element_contributor_test.dart' as invocation_test;
 
 /// Utility for manually running all tests.
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('completion', () {
     arglist_test.main();
     combinator_test.main();

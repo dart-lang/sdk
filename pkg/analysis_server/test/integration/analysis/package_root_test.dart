@@ -9,9 +9,11 @@ import 'package:path/path.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
+  initializeTestEnvironment();
   defineReflectiveTests(Test);
 }
 
@@ -39,7 +41,9 @@ f() {}
     writeFile(mainPath, mainText);
     String normalizedFooBarPath = writeFile(fooBarPath, fooBarText);
     sendServerSetSubscriptions([ServerService.STATUS]);
-    sendAnalysisSetSubscriptions({AnalysisService.NAVIGATION: [mainPath]});
+    sendAnalysisSetSubscriptions({
+      AnalysisService.NAVIGATION: [mainPath]
+    });
     List<NavigationRegion> navigationRegions;
     List<NavigationTarget> navigationTargets;
     List<String> navigationTargetFiles;

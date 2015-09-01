@@ -219,7 +219,7 @@ class Heap {
     stats_.data_[id] = value;
   }
 
-  bool gc_in_progress() const { return gc_in_progress_; }
+  bool gc_in_progress();
 
   static bool IsAllocatableInNewSpace(intptr_t size) {
     return size <= kNewAllocatableSize;
@@ -297,6 +297,10 @@ class Heap {
   void UpdateClassHeapStatsBeforeGC(Heap::Space space);
   void UpdatePretenurePolicy();
 
+  // Updates gc_in_progress.
+  void BeginGC();
+  void EndGC();
+
   // If this heap is non-empty, updates start and end to the smallest range that
   // contains both the original [start, end) and the [lowest, highest) addresses
   // of this heap.
@@ -318,6 +322,7 @@ class Heap {
   bool read_only_;
 
   // GC on the heap is in progress.
+  Mutex gc_in_progress_mutex_;
   bool gc_in_progress_;
 
   int pretenure_policy_;
@@ -326,26 +331,6 @@ class Heap {
   friend class PageSpace;  // VerifyGC
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };
-
-
-// Within a NoSafepointScope, the thread must not reach any safepoint. Used
-// around code that manipulates raw object pointers directly without handles.
-#if defined(DEBUG)
-class NoSafepointScope : public StackResource {
- public:
-  NoSafepointScope();
-  ~NoSafepointScope();
- private:
-  DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
-};
-#else  // defined(DEBUG)
-class NoSafepointScope : public ValueObject {
- public:
-  NoSafepointScope() {}
- private:
-  DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
-};
-#endif  // defined(DEBUG)
 
 
 class HeapIterationScope : public StackResource {

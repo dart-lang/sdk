@@ -95,7 +95,7 @@ class ContextInfo {
       : contextManager = contextManager,
         folder = folder,
         pathFilter = new PathFilter(
-            contextManager.resourceProvider.pathContext, folder.path, null) {
+            folder.path, null, contextManager.resourceProvider.pathContext) {
     packageDescriptionPath = packagespecFile.path;
     parent.children.add(this);
   }
@@ -312,7 +312,8 @@ class ContextManagerImpl implements ContextManager {
    * Temporary flag to hide WIP .packages support (DEP 5).
    */
   static bool ENABLE_PACKAGESPEC_SUPPORT = serverOptions.isSet(
-      'ContextManagerImpl.ENABLE_PACKAGESPEC_SUPPORT', defaultValue: true);
+      'ContextManagerImpl.ENABLE_PACKAGESPEC_SUPPORT',
+      defaultValue: true);
 
   /**
    * The name of the `lib` directory.
@@ -438,7 +439,7 @@ class ContextManagerImpl implements ContextManager {
    */
   ContextInfo getContextInfoFor(Folder folder) {
     ContextInfo info = _getInnermostContextInfoFor(folder.path);
-    if (folder == info.folder) {
+    if (info != null && folder == info.folder) {
       return info;
     }
     return null;
@@ -768,7 +769,7 @@ class ContextManagerImpl implements ContextManager {
       try {
         if (ENABLE_PACKAGESPEC_SUPPORT) {
           // Try .packages first.
-          if (pathos.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
+          if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
             Packages packages = _readPackagespec(packagespecFile);
             return new PackagesFileDisposition(packages);
           }
@@ -1012,14 +1013,14 @@ class ContextManagerImpl implements ContextManager {
 
           // Check to see if we need to create a new context.
           if (info.isTopLevel) {
-
             // Only create a new context if this is not the same directory
             // described by our info object.
             if (info.folder.path != directoryPath) {
               if (_isPubspec(path)) {
                 // Check for a sibling .packages file.
-                if (!resourceProvider.getFile(
-                    pathos.join(directoryPath, PACKAGE_SPEC_NAME)).exists) {
+                if (!resourceProvider
+                    .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
+                    .exists) {
                   _extractContext(info, resource);
                   return;
                 }
@@ -1027,7 +1028,8 @@ class ContextManagerImpl implements ContextManager {
               if (_isPackagespec(path)) {
                 // Check for a sibling pubspec.yaml file.
                 if (!resourceProvider
-                    .getFile(pathos.join(directoryPath, PUBSPEC_NAME)).exists) {
+                    .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
+                    .exists) {
                   _extractContext(info, resource);
                   return;
                 }
@@ -1071,8 +1073,9 @@ class ContextManagerImpl implements ContextManager {
             if (info.folder.path == directoryPath) {
               if (_isPubspec(path)) {
                 // Check for a sibling .packages file.
-                if (!resourceProvider.getFile(
-                    pathos.join(directoryPath, PACKAGE_SPEC_NAME)).exists) {
+                if (!resourceProvider
+                    .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
+                    .exists) {
                   _mergeContext(info);
                   return;
                 }
@@ -1080,7 +1083,8 @@ class ContextManagerImpl implements ContextManager {
               if (_isPackagespec(path)) {
                 // Check for a sibling pubspec.yaml file.
                 if (!resourceProvider
-                    .getFile(pathos.join(directoryPath, PUBSPEC_NAME)).exists) {
+                    .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
+                    .exists) {
                   _mergeContext(info);
                   return;
                 }
@@ -1242,7 +1246,8 @@ class ContextsChangedEvent {
   /**
    * Initialize a newly created event to indicate which contexts have changed.
    */
-  ContextsChangedEvent({this.added: AnalysisContext.EMPTY_LIST,
+  ContextsChangedEvent(
+      {this.added: AnalysisContext.EMPTY_LIST,
       this.changed: AnalysisContext.EMPTY_LIST,
       this.removed: AnalysisContext.EMPTY_LIST});
 }
@@ -1267,7 +1272,8 @@ class CustomPackageResolverDisposition extends FolderDisposition {
 
   @override
   Iterable<UriResolver> createPackageUriResolvers(
-      ResourceProvider resourceProvider) => <UriResolver>[resolver];
+          ResourceProvider resourceProvider) =>
+      <UriResolver>[resolver];
 }
 
 /**
@@ -1325,7 +1331,8 @@ class NoPackageFolderDisposition extends FolderDisposition {
 
   @override
   Iterable<UriResolver> createPackageUriResolvers(
-      ResourceProvider resourceProvider) => const <UriResolver>[];
+          ResourceProvider resourceProvider) =>
+      const <UriResolver>[];
 }
 
 /**
@@ -1365,7 +1372,7 @@ class PackagesFileDisposition extends FolderDisposition {
 
   @override
   Iterable<UriResolver> createPackageUriResolvers(
-      ResourceProvider resourceProvider) {
+          ResourceProvider resourceProvider) {
     if (packages != null) {
       // Construct package map for the SdkExtUriResolver.
       Map<String, List<Folder>> packageMap = <String, List<Folder>>{};

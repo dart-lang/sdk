@@ -10,11 +10,18 @@ import 'codegen.dart';
 import 'unsugar.dart';
 
 import '../js_backend.dart';
+import '../../common/codegen.dart' show
+    CodegenWorkItem;
+import '../../common/tasks.dart' show
+    CompilerTask;
+import '../../compiler.dart' show
+    Compiler;
 import '../../constants/constant_system.dart';
-import '../../dart2jslib.dart';
 import '../../cps_ir/cps_ir_nodes.dart' as cps;
 import '../../cps_ir/cps_ir_integrity.dart';
 import '../../cps_ir/cps_ir_builder_task.dart';
+import '../../diagnostics/invariant.dart' show
+    DEBUG_MODE;
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
 import '../../types/types.dart' show TypeMask, UnionTypeMask, FlatTypeMask,
     ForwardingTypeMask;
@@ -34,11 +41,12 @@ import '../../cps_ir/cps_ir_nodes_sexpr.dart';
 
 class CpsFunctionCompiler implements FunctionCompiler {
   final ConstantSystem constantSystem;
+  // TODO(karlklose): remove the compiler.
   final Compiler compiler;
   final Glue glue;
   final SourceInformationStrategy sourceInformationFactory;
 
-  // TODO(karlklose,sigurm): remove and update dart-doc of [compile].
+  // TODO(karlklose,sigurdm): remove and update dart-doc of [compile].
   final FunctionCompiler fallbackCompiler;
 
   Tracer get tracer => compiler.tracer;
@@ -56,16 +64,17 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   String get name => 'CPS Ir pipeline';
 
+  JavaScriptBackend get backend => compiler.backend;
+
   /// Generates JavaScript code for `work.element`.
   js.Fun compile(CodegenWorkItem work) {
     AstElement element = work.element;
     JavaScriptBackend backend = compiler.backend;
     return compiler.withCurrentElement(element, () {
       try {
-        // TODO(karlklose): remove this fallback.
-        // Fallback for a few functions that we know require try-finally and
-        // switch.
-        if (element.isNative) {
+        // TODO(karlklose): remove this fallback when we do not need it for
+        // testing anymore.
+        if (false) {
           compiler.log('Using SSA compiler for platform element $element');
           return fallbackCompiler.compile(work);
         }
@@ -97,11 +106,6 @@ class CpsFunctionCompiler implements FunctionCompiler {
   }
 
   cps.FunctionDefinition compileToCpsIR(AstElement element) {
-    // TODO(sigurdm): Support these constructs.
-    if (element.isNative) {
-      giveUp('unsupported element kind: ${element.name}:${element.kind}');
-    }
-
     cps.FunctionDefinition cpsNode = irBuilderTask.buildNode(element);
     if (cpsNode == null) {
       if (irBuilderTask.bailoutMessage == null) {
@@ -166,9 +170,11 @@ class CpsFunctionCompiler implements FunctionCompiler {
       assert(checkCpsIntegrity(cpsNode));
     }
 
-    TypePropagator typePropagator = new TypePropagator(compiler);
+    TypePropagator typePropagator = new TypePropagator(compiler, this);
     applyCpsPass(typePropagator);
     dumpTypedIR(cpsNode, typePropagator);
+    applyCpsPass(new LoopInvariantCodeMotion());
+    applyCpsPass(new ShareInterceptors());
     applyCpsPass(new ShrinkingReducer());
     applyCpsPass(new MutableVariableEliminator());
     applyCpsPass(new RedundantJoinEliminator());
@@ -213,7 +219,13 @@ class CpsFunctionCompiler implements FunctionCompiler {
   js.Fun compileToJavaScript(CodegenWorkItem work,
                              tree_ir.FunctionDefinition definition) {
     CodeGenerator codeGen = new CodeGenerator(glue, work.registry);
-    return attachPosition(codeGen.buildFunction(definition), work.element);
+    Element element = work.element;
+    js.Fun code = codeGen.buildFunction(definition);
+    if (element is FunctionElement && element.asyncMarker != AsyncMarker.SYNC) {
+      code = backend.rewriteAsync(element, code);
+      work.registry.registerAsyncMarker(element);
+    }
+    return attachPosition(code, element);
   }
 
   Iterable<CompilerTask> get tasks {

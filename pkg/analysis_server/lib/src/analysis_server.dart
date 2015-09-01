@@ -183,7 +183,8 @@ class AnalysisServer {
    * A table mapping [AnalysisContext]s to the completers that should be
    * completed when analysis of this context is finished.
    */
-  Map<AnalysisContext, Completer<AnalysisDoneReason>> contextAnalysisDoneCompleters =
+  Map<AnalysisContext,
+          Completer<AnalysisDoneReason>> contextAnalysisDoneCompleters =
       new HashMap<AnalysisContext, Completer<AnalysisDoneReason>>();
 
   /**
@@ -291,9 +292,15 @@ class AnalysisServer {
    * exceptions to show up in unit tests, but it should be set to false when
    * running a full analysis server.
    */
-  AnalysisServer(this.channel, this.resourceProvider,
-      PubPackageMapProvider packageMapProvider, Index _index, this.serverPlugin,
-      this.options, this.defaultSdk, this.instrumentationService,
+  AnalysisServer(
+      this.channel,
+      this.resourceProvider,
+      PubPackageMapProvider packageMapProvider,
+      Index _index,
+      this.serverPlugin,
+      this.options,
+      this.defaultSdk,
+      this.instrumentationService,
       {ContextManager contextManager: null,
       ResolverProvider packageResolverProvider: null,
       this.rethrowExceptions: true})
@@ -490,8 +497,8 @@ class AnalysisServer {
       Uri uri = resourceProvider.pathContext.toUri(path);
       Source sdkSource = defaultSdk.fromFileUri(uri);
       if (sdkSource != null) {
-        AnalysisContext anyContext = folderMap.values.first;
-        return new ContextSourcePair(anyContext, sdkSource);
+        AnalysisContext sdkContext = defaultSdk.context;
+        return new ContextSourcePair(sdkContext, sdkSource);
       }
     }
     // try to find the deep-most containing context
@@ -1039,9 +1046,12 @@ class AnalysisServer {
       }
       // Fill the source map.
       bool contextFound = false;
+      if (preferredContext != null) {
+        sourceMap.putIfAbsent(preferredContext, () => <Source>[]).add(source);
+        contextFound = true;
+      }
       for (AnalysisContext context in folderMap.values) {
-        if (context == preferredContext ||
-            context.getKindOf(source) != SourceKind.UNKNOWN) {
+        if (context.getKindOf(source) != SourceKind.UNKNOWN) {
           sourceMap.putIfAbsent(context, () => <Source>[]).add(source);
           contextFound = true;
         }
@@ -1059,11 +1069,7 @@ class AnalysisServer {
       throw new RequestFailure(
           new Response.unanalyzedPriorityFiles(requestId, buffer.toString()));
     }
-    folderMap.forEach((Folder folder, AnalysisContext context) {
-      List<Source> sourceList = sourceMap[context];
-      if (sourceList == null) {
-        sourceList = Source.EMPTY_LIST;
-      }
+    sourceMap.forEach((context, List<Source> sourceList) {
       context.analysisPriorityOrder = sourceList;
       // Schedule the context for analysis so that it has the opportunity to
       // cache the AST's for the priority sources as soon as possible.
@@ -1462,7 +1468,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
  * such as request latency.
  */
 class ServerPerformance {
-
   /**
    * The creation time and the time when performance information
    * started to be recorded here.

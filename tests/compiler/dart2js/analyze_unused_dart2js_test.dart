@@ -6,7 +6,8 @@ library analyze_unused_dart2js;
 
 import 'package:async_helper/async_helper.dart';
 
-import 'package:compiler/src/dart2jslib.dart';
+import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/filenames.dart';
 
 import 'analyze_helper.dart';
@@ -28,15 +29,14 @@ const Map<String, List<String>> WHITE_LIST = const {
   "lib/src/resolution/semantic_visitor.dart": const [
       "The method 'error"],
   "lib/src/resolution/semantic_visitor_mixins.dart": const [
-      "The class 'Base", "The method 'error", "The method 'visit"],
+      "The class 'SuperBulkMixin'",
+      "The class 'Base",
+      "The method 'error",
+      "The method 'visit"],
 
   // Uncalled type predicate.  Keep while related predicates are used.
   "lib/src/ssa/nodes.dart": const [
       "The method 'isArray' is never called"],
-
-  // Method in abstract class. Currently only instantiated trough tests.
-  "lib/src/constants/expressions.dart": const [
-      "The method 'readFromEnvironment' is never called"],
 
   // Serialization code is only used in test.
   "lib/src/serialization/": const [
@@ -55,8 +55,15 @@ const Map<String, List<String>> WHITE_LIST = const {
     "accept", "CreateFunction",
   ],
 
-  "/lib/src/dart_backend/backend_ast_to_frontend_ast.dart": const [
+  "lib/src/dart_backend/backend_ast_to_frontend_ast.dart": const [
     " is never "
+  ],
+
+  // Useful utility functions that are not currently used.
+  "lib/src/cps_ir/cps_fragment.dart": const [
+    "The method 'beginLoop' is never called.",
+    "The method 'continueLoop' is never called.",
+    "The method 'invokeMethod' is never called.",
   ],
 };
 

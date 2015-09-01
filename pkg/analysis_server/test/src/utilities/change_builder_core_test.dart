@@ -4,15 +4,17 @@
 
 library analysis_server.test.src.utilities.change_builder_core_test;
 
-import 'package:analysis_server/src/utilities/change_builder_core.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/utilities/change_builder_core.dart';
 import 'package:analysis_server/utilities/change_builder_core.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
+
 import '../../domain_execution_test.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(ChangeBuilderImplTest);
   defineReflectiveTests(EditBuilderImplTest);
   defineReflectiveTests(FileEditBuilderImplTest);
@@ -25,7 +27,8 @@ class ChangeBuilderImplTest {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
     TestSource source = new TestSource('/test.dart');
     int timeStamp = 54;
-    FileEditBuilderImpl fileEditBuilder = builder.createFileEditBuilder(source, timeStamp);
+    FileEditBuilderImpl fileEditBuilder =
+        builder.createFileEditBuilder(source, timeStamp);
     expect(fileEditBuilder, new isInstanceOf<FileEditBuilder>());
     SourceFileEdit fileEdit = fileEditBuilder.fileEdit;
     expect(fileEdit.file, source.fullName);
@@ -190,7 +193,8 @@ class EditBuilderImplTest {
     expect(edit, isNotNull);
     expect(edit.offset, offset);
     expect(edit.length, length);
-    expect(edit.replacement == '$text\n' || edit.replacement == '$text\r\n', isTrue);
+    expect(edit.replacement == '$text\n' || edit.replacement == '$text\r\n',
+        isTrue);
   }
 }
 

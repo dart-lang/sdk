@@ -25,8 +25,10 @@ import 'package:unittest/unittest.dart';
 import 'mock_sdk.dart';
 import 'mocks.dart';
 import 'operation/operation_queue_test.dart';
+import 'utils.dart';
 
 main() {
+  initializeTestEnvironment();
   group('ExecutionDomainHandler', () {
     MemoryResourceProvider provider = new MemoryResourceProvider();
     AnalysisServer server;
@@ -36,9 +38,14 @@ main() {
       ExtensionManager manager = new ExtensionManager();
       ServerPlugin serverPlugin = new ServerPlugin();
       manager.processPlugins([serverPlugin]);
-      server = new AnalysisServer(new MockServerChannel(), provider,
-          new MockPackageMapProvider(), null, serverPlugin,
-          new AnalysisServerOptions(), new MockSdk(),
+      server = new AnalysisServer(
+          new MockServerChannel(),
+          provider,
+          new MockPackageMapProvider(),
+          null,
+          serverPlugin,
+          new AnalysisServerOptions(),
+          new MockSdk(),
           InstrumentationService.NULL_SERVICE);
       handler = new ExecutionDomainHandler(server);
     });

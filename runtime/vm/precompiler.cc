@@ -6,6 +6,7 @@
 
 #include "vm/compiler.h"
 #include "vm/isolate.h"
+#include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -23,7 +24,7 @@ DEFINE_FLAG(bool, trace_precompiler, false, "Trace precompiler.");
 
 
 static void Jump(const Error& error) {
-  Isolate::Current()->long_jump_base()->Jump(1, error);
+  Thread::Current()->long_jump_base()->Jump(1, error);
 }
 
 
@@ -49,16 +50,20 @@ Precompiler::Precompiler(Thread* thread) :
   changed_(false),
   function_count_(0),
   class_count_(0),
+  selector_count_(0),
+  dropped_function_count_(0),
   libraries_(GrowableObjectArray::Handle(Z, I->object_store()->libraries())),
   pending_functions_(GrowableObjectArray::Handle(Z,
                                                  GrowableObjectArray::New())),
   collected_closures_(GrowableObjectArray::Handle(Z, I->collected_closures())),
-  sent_selectors_(GrowableObjectArray::Handle(Z, GrowableObjectArray::New())),
+  sent_selectors_(Z),
   error_(Error::Handle(Z)) {
 }
 
 
 void Precompiler::DoCompileAll() {
+  LogBlock lb(thread_);
+
   // Drop all existing code so we can use the presence of code as an indicator
   // that we have already looked for the function's callees.
   ClearAllCode();
@@ -76,11 +81,12 @@ void Precompiler::DoCompileAll() {
   CleanUp();
 
   if (FLAG_trace_precompiler) {
-    OS::Print("Precompiled %" Pd " functions, %" Pd " dynamic types,"
-              " %" Pd " dynamic selectors\n",
+    ISL_Print("Precompiled %" Pd " functions, %" Pd " dynamic types,"
+              " %" Pd " dynamic selectors.\n Dropped %" Pd " functions.\n",
               function_count_,
               class_count_,
-              sent_selectors_.Length());
+              selector_count_,
+              dropped_function_count_);
   }
 
   I->set_compilation_allowed(false);
@@ -270,7 +276,7 @@ void Precompiler::AddRoots() {
     lib = Library::LookupLibrary(library_name);
     if (lib.IsNull()) {
       if (FLAG_trace_precompiler) {
-        OS::Print("WARNING: Missing %s\n", kExternallyCalled[i].library_);
+        ISL_Print("WARNING: Missing %s\n", kExternallyCalled[i].library_);
       }
       continue;
     }
@@ -281,7 +287,7 @@ void Precompiler::AddRoots() {
       cls = lib.LookupClassAllowPrivate(class_name);
       if (cls.IsNull()) {
         if (FLAG_trace_precompiler) {
-          OS::Print("WARNING: Missing %s %s\n",
+          ISL_Print("WARNING: Missing %s %s\n",
                     kExternallyCalled[i].library_,
                     kExternallyCalled[i].class_);
         }
@@ -294,7 +300,7 @@ void Precompiler::AddRoots() {
 
     if (func.IsNull()) {
       if (FLAG_trace_precompiler) {
-        OS::Print("WARNING: Missing %s %s %s\n",
+        ISL_Print("WARNING: Missing %s %s %s\n",
                   kExternallyCalled[i].library_,
                   kExternallyCalled[i].class_,
                   kExternallyCalled[i].function_);
@@ -333,7 +339,9 @@ void Precompiler::Iterate() {
 void Precompiler::CleanUp() {
   I->set_collected_closures(GrowableObjectArray::Handle(Z));
 
-  // TODO(rmacnak): Drop functions without code, classes without functions, etc.
+  DropUncompiledFunctions();
+
+  // TODO(rmacnak): DropEmptyClasses();
 }
 
 
@@ -342,7 +350,7 @@ void Precompiler::ProcessFunction(const Function& function) {
     function_count_++;
 
     if (FLAG_trace_precompiler) {
-      OS::Print("Precompiling %" Pd " %s (%" Pd ", %s)\n",
+      ISL_Print("Precompiling %" Pd " %s (%" Pd ", %s)\n",
                 function_count_,
                 function.ToLibNamePrefixedQualifiedCString(),
                 function.token_pos(),
@@ -434,7 +442,7 @@ void Precompiler::AddField(const Field& field) {
       if (field.initializer() != Function::null()) return;
 
       if (FLAG_trace_precompiler) {
-        OS::Print("Precompiling initializer for %s\n", field.ToCString());
+        ISL_Print("Precompiling initializer for %s\n", field.ToCString());
       }
       Compiler::CompileStaticInitializer(field);
 
@@ -454,36 +462,26 @@ void Precompiler::AddFunction(const Function& function) {
 
 
 bool Precompiler::IsSent(const String& selector) {
-  ASSERT(selector.IsSymbol());
-
-  // TODO(rmacnak): Use a proper set.
-  for (intptr_t i = 0; i < sent_selectors_.Length(); i++) {
-    if (sent_selectors_.At(i) == selector.raw()) {
-      return true;
-    }
-  }
-
-  return false;
+  return sent_selectors_.Includes(selector);
 }
 
 
 void Precompiler::AddSelector(const String& selector) {
   if (!IsSent(selector)) {
+    sent_selectors_.Add(selector);
+    selector_count_++;
+    changed_ = true;
+
     if (FLAG_trace_precompiler) {
-      OS::Print("Enqueueing selector %" Pd " %s\n",
-                sent_selectors_.Length(),
+      ISL_Print("Enqueueing selector %" Pd " %s\n",
+                selector_count_,
                 selector.ToCString());
     }
-
-    sent_selectors_.Add(selector);
-    changed_ = true;
 
     if (!Field::IsGetterName(selector) &&
         !Field::IsSetterName(selector)) {
       // Regular method may be call-through-getter.
-      // TODO(rmacnak): Do not create the symbol if it does not already exist.
-      String& getter = String::Handle(Field::GetterName(selector));
-      getter = Symbols::New(getter);
+      const String& getter = String::Handle(Field::GetterSymbol(selector));
       AddSelector(getter);
     }
   }
@@ -498,7 +496,7 @@ void Precompiler::AddClass(const Class& cls) {
   changed_ = true;
 
   if (FLAG_trace_precompiler) {
-    OS::Print("Allocation %" Pd " %s\n", class_count_, cls.ToCString());
+    ISL_Print("Allocation %" Pd " %s\n", class_count_, cls.ToCString());
   }
 
   const Class& superclass = Class::Handle(cls.SuperClass());
@@ -577,14 +575,62 @@ void Precompiler::CheckForNewDynamicFunctions() {
         if (function.kind() == RawFunction::kRegularFunction &&
             !Field::IsGetterName(selector) &&
             !Field::IsSetterName(selector)) {
-          // TODO(rmacnak): Do not create the symbol if it does not already
-          // exist.
-          selector = Field::GetterName(selector);
-          selector = Symbols::New(selector);
+          selector = Field::GetterSymbol(selector);
           if (IsSent(selector)) {
             function = function.ImplicitClosureFunction();
             AddFunction(function);
           }
+        }
+      }
+    }
+  }
+}
+
+
+void Precompiler::DropUncompiledFunctions() {
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+  Array& functions = Array::Handle(Z);
+  Function& function = Function::Handle(Z);
+  GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
+  GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      if (cls.IsDynamicClass()) {
+        continue;  // class 'dynamic' is in the read-only VM isolate.
+      }
+
+      functions = cls.functions();
+      retained_functions = GrowableObjectArray::New();
+      for (intptr_t j = 0; j < functions.Length(); j++) {
+        function ^= functions.At(j);
+        if (function.HasCode()) {
+          retained_functions.Add(function);
+        } else {
+          dropped_function_count_++;
+          if (FLAG_trace_precompiler) {
+            ISL_Print("Precompilation dropping %s\n",
+                      function.ToLibNamePrefixedQualifiedCString());
+          }
+        }
+      }
+
+      functions = Array::New(retained_functions.Length(), Heap::kOld);
+      for (intptr_t j = 0; j < retained_functions.Length(); j++) {
+        function ^= retained_functions.At(j);
+        functions.SetAt(j, function);
+      }
+      cls.SetFunctions(functions);
+
+      closures = cls.closures();
+      if (!closures.IsNull()) {
+        for (intptr_t j = 0; j < closures.Length(); j++) {
+          function ^= closures.At(j);
+          ASSERT(function.HasCode());
         }
       }
     }

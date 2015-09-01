@@ -88,7 +88,7 @@ void MegamorphicCacheTable::VisitObjectPointers(ObjectPointerVisitor* v) {
 
 
 void MegamorphicCacheTable::PrintSizes() {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
   intptr_t size = 0;
   MegamorphicCache& cache = MegamorphicCache::Handle();
   Array& buckets = Array::Handle();

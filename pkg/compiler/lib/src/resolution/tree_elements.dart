@@ -2,7 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of resolution;
+library dart2js.resolution.tree_elements;
+
+import '../constants/expressions.dart';
+import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/spannable.dart' show
+    Spannable;
+import '../elements/elements.dart';
+import '../types/types.dart' show
+    TypeMask;
+import '../tree/tree.dart';
+import '../util/util.dart';
+import '../universe/universe.dart' show
+    CallStructure,
+    Selector,
+    SelectorKind,
+    UniverseSelector;
+
+import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
+import 'send_structure.dart';
 
 abstract class TreeElements {
   AnalyzableElement get analyzedElement;
@@ -531,28 +551,5 @@ class TreeElementMapping extends TreeElements {
 
   TypeMask getCurrentTypeMask(ForIn node) {
     return _getTypeMask(node.inToken);
-  }
-}
-
-TreeElements _ensureTreeElements(AnalyzableElementX element) {
-  if (element._treeElements == null) {
-    element._treeElements = new TreeElementMapping(element);
-  }
-  return element._treeElements;
-}
-
-abstract class AnalyzableElementX implements AnalyzableElement {
-  TreeElements _treeElements;
-
-  bool get hasTreeElements => _treeElements != null;
-
-  TreeElements get treeElements {
-    assert(invariant(this, _treeElements !=null,
-        message: "TreeElements have not been computed for $this."));
-    return _treeElements;
-  }
-
-  void reuseElement() {
-    _treeElements = null;
   }
 }

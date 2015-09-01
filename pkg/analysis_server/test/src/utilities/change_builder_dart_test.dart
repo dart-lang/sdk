@@ -13,9 +13,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(DartChangeBuilderImplTest);
   defineReflectiveTests(DartEditBuilderImplTest);
   defineReflectiveTests(DartFileEditBuilderImplTest);
@@ -361,7 +362,8 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
       builder.addInsertion(content.length - 1, (DartEditBuilderImpl builder) {
-        builder.writeGetterDeclaration('g', returnType: classA.element.type, returnTypeGroupName: 'returnType');
+        builder.writeGetterDeclaration('g',
+            returnType: classA.element.type, returnTypeGroupName: 'returnType');
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -598,8 +600,8 @@ f(int i, String s) {
     LinkedEditGroup group = linkedEditGroups[0];
     List<LinkedEditSuggestion> suggestions = group.suggestions;
     expect(suggestions, hasLength(4));
-    Iterable<String> values = suggestions
-        .map((LinkedEditSuggestion suggestion) {
+    Iterable<String> values =
+        suggestions.map((LinkedEditSuggestion suggestion) {
       expect(suggestion.kind, LinkedEditSuggestionKind.TYPE);
       return suggestion.value;
     });
@@ -746,7 +748,8 @@ f(int i, String s) {
     builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
       builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
         (builder as DartEditBuilderImpl).writeTypes(
-            [classA.element.type, classB.element.type], prefix: 'implements ');
+            [classA.element.type, classB.element.type],
+            prefix: 'implements ');
       });
     });
     SourceEdit edit = getEdit(builder);

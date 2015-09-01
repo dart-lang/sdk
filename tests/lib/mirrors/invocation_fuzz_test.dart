@@ -41,6 +41,12 @@ var blacklist = [
   'dart.io.SystemEncoding.decode',  // Windows only
   'dart.io.SystemEncoding.encode',  // Windows only
 
+  // These construct an object with an uninitialized native field.
+  // TODO(23869): We could make this safer, but making the failure non-fatal
+  //   would we worthless aside from this test.
+  'dart.io.X509Certificate.X509Certificate._',
+  'dart.io._X509Impl._X509Impl',
+
   // Don't call private methods in dart.async as they may circumvent the zoned
   // error handling below.
   new RegExp(r"^dart\.async\._.*$"),

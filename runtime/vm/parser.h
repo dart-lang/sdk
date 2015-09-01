@@ -35,7 +35,7 @@ class ClassDesc;
 struct MemberDesc;
 struct ParamList;
 struct QualIdent;
-struct TopLevel;
+class TopLevel;
 
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
@@ -47,12 +47,12 @@ class ParsedFunction : public ZoneAllocated {
         node_sequence_(NULL),
         regexp_compile_data_(NULL),
         instantiator_(NULL),
-        default_parameter_values_(Array::ZoneHandle(zone(), Array::null())),
         current_context_var_(NULL),
         expression_temp_var_(NULL),
         finally_return_temp_var_(NULL),
         deferred_prefixes_(new ZoneGrowableArray<const LibraryPrefix*>()),
         guarded_fields_(new ZoneGrowableArray<const Field*>()),
+        default_parameter_values_(NULL),
         first_parameter_index_(0),
         first_stack_local_index_(0),
         num_copied_params_(0),
@@ -85,13 +85,24 @@ class ParsedFunction : public ZoneAllocated {
     instantiator_ = instantiator;
   }
 
-  const Array& default_parameter_values() const {
-    return default_parameter_values_;
+  void set_default_parameter_values(ZoneGrowableArray<const Instance*>* list) {
+    default_parameter_values_ = list;
+#if defined(DEBUG)
+    if (list == NULL) return;
+    for (intptr_t i = 0; i < list->length(); i++) {
+      ASSERT(list->At(i)->IsZoneHandle() || list->At(i)->InVMHeap());
+    }
+#endif
   }
-  void set_default_parameter_values(const Array& default_parameter_values) {
-    ASSERT(default_parameter_values.IsZoneHandle() ||
-           default_parameter_values.InVMHeap());
-    default_parameter_values_ = default_parameter_values.raw();
+
+
+  const Instance& DefaultParameterValueAt(intptr_t i) const {
+    ASSERT(default_parameter_values_ != NULL);
+    return *default_parameter_values_->At(i);
+  }
+
+  ZoneGrowableArray<const Instance*>* default_parameter_values() const {
+    return default_parameter_values_;
   }
 
   LocalVariable* current_context_var() const {
@@ -150,6 +161,7 @@ class ParsedFunction : public ZoneAllocated {
   void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
 
+  Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread_->isolate(); }
   Zone* zone() const { return thread_->zone(); }
 
@@ -160,12 +172,12 @@ class ParsedFunction : public ZoneAllocated {
   SequenceNode* node_sequence_;
   RegExpCompileData* regexp_compile_data_;
   LocalVariable* instantiator_;
-  Array& default_parameter_values_;
   LocalVariable* current_context_var_;
   LocalVariable* expression_temp_var_;
   LocalVariable* finally_return_temp_var_;
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
   ZoneGrowableArray<const Field*>* guarded_fields_;
+  ZoneGrowableArray<const Instance*>* default_parameter_values_;
 
   int first_parameter_index_;
   int first_stack_local_index_;
@@ -511,8 +523,7 @@ class Parser : public ValueObject {
 
   static bool ParseFormalParameters(const Function& func, ParamList* params);
 
-  static void SetupDefaultsForOptionalParams(const ParamList* params,
-                                             Array* default_values);
+  void SetupDefaultsForOptionalParams(const ParamList& params);
   ClosureNode* CreateImplicitClosureNode(const Function& func,
                                          intptr_t token_pos,
                                          AstNode* receiver);
@@ -520,10 +531,8 @@ class Parser : public ValueObject {
                                         const Function& func);
   void AddFormalParamsToScope(const ParamList* params, LocalScope* scope);
 
-  SequenceNode* ParseConstructor(const Function& func,
-                                 Array* default_parameter_values);
-  SequenceNode* ParseFunc(const Function& func,
-                          Array* default_parameter_values);
+  SequenceNode* ParseConstructor(const Function& func);
+  SequenceNode* ParseFunc(const Function& func);
 
   void ParseNativeFunctionBlock(const ParamList* params, const Function& func);
 
@@ -532,18 +541,13 @@ class Parser : public ValueObject {
   SequenceNode* ParseStaticFinalGetter(const Function& func);
   SequenceNode* ParseStaticInitializer();
   SequenceNode* ParseMethodExtractor(const Function& func);
-  SequenceNode* ParseNoSuchMethodDispatcher(const Function& func,
-                                            Array* default_values);
-  SequenceNode* ParseInvokeFieldDispatcher(const Function& func,
-                                           Array* default_values);
-  SequenceNode* ParseImplicitClosure(const Function& func,
-                                     Array* default_values);
-  SequenceNode* ParseConstructorClosure(const Function& func,
-                                        Array* default_values);
+  SequenceNode* ParseNoSuchMethodDispatcher(const Function& func);
+  SequenceNode* ParseInvokeFieldDispatcher(const Function& func);
+  SequenceNode* ParseImplicitClosure(const Function& func);
+  SequenceNode* ParseConstructorClosure(const Function& func);
 
   void BuildDispatcherScope(const Function& func,
-                            const ArgumentsDescriptor& desc,
-                            Array* default_values);
+                            const ArgumentsDescriptor& desc);
 
   void EnsureHasReturnStatement(SequenceNode* seq, intptr_t return_pos);
   void ChainNewBlock(LocalScope* outer_scope);
@@ -816,7 +820,10 @@ class Parser : public ValueObject {
                             ArgumentListNode* arguments);
 
   RawInstance* TryCanonicalize(const Instance& instance, intptr_t token_pos);
+  void CacheConstantValue(intptr_t token_pos, const Instance& value);
+  bool GetCachedConstant(intptr_t token_pos, Instance* value);
 
+  Thread* thread() const { return thread_; }
   Isolate* isolate() const { return isolate_; }
   Zone* zone() const { return thread_->zone(); }
 

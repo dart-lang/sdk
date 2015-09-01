@@ -170,6 +170,11 @@ intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
 }
 
 
+ThreadId OSThread::ThreadIdFromIntPtr(intptr_t id) {
+  return static_cast<ThreadId>(id);
+}
+
+
 bool OSThread::Compare(ThreadId a, ThreadId b) {
   return pthread_equal(a, b) != 0;
 }

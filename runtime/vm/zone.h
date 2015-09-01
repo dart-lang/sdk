@@ -49,6 +49,8 @@ class Zone {
   // Make a zone-allocated string based on printf format and args.
   char* PrintToString(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
+  char* VPrint(const char* format, va_list args);
+
   // Compute the total size of this zone. This includes wasted space that is
   // due to internal fragmentation in the segments.
   intptr_t SizeInBytes() const;

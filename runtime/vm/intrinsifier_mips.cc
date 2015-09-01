@@ -2141,8 +2141,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ mov(S5, ZR);
 
   // Tail-call the function.
-  __ lw(T3, FieldAddress(T0, Function::instructions_offset()));
-  __ AddImmediate(T3, Instructions::HeaderSize() - kHeapObjectTag);
+  __ lw(T3, FieldAddress(T0, Function::entry_point_offset()));
   __ jr(T3);
 }
 

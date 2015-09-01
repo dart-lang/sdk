@@ -276,8 +276,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   // Remove the stub frame as we are about to jump to the dart function.
   __ LeaveFrame();
 
-  __ movl(ECX, FieldAddress(EAX, Code::instructions_offset()));
-  __ addl(ECX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movl(ECX, FieldAddress(EAX, Code::entry_point_offset()));
   __ jmp(ECX);
 }
 
@@ -296,8 +295,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   __ popl(EAX);  // Get Code object.
   __ popl(EDX);  // Restore arguments descriptor array.
-  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
-  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movl(EAX, FieldAddress(EAX, Code::entry_point_offset()));
   __ LeaveFrame();
   __ jmp(EAX);
   __ int3();
@@ -313,8 +311,7 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
   __ popl(EAX);  // Get Code object.
-  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
-  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movl(EAX, FieldAddress(EAX, Code::entry_point_offset()));
   __ LeaveFrame();
   __ jmp(EAX);
   __ int3();
@@ -351,13 +348,6 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ decl(EDX);
   __ j(POSITIVE, &loop, Assembler::kNearJump);
 }
-
-
-DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
-                           intptr_t deopt_reason,
-                           uword saved_registers_address);
-
-DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 
 
 // Used by eager and lazy deoptimization. Preserve result in EAX if necessary.
@@ -468,7 +458,7 @@ void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
   // Correct return address to point just after the call that is being
   // deoptimized.
   __ popl(EBX);
-  __ subl(EBX, Immediate(CallPattern::InstructionLength()));
+  __ subl(EBX, Immediate(CallPattern::pattern_length_in_bytes()));
   __ pushl(EBX);
   GenerateDeoptimizationSequence(assembler, true);  // Preserve EAX.
 }
@@ -543,8 +533,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
     __ Bind(&call_target_function);
   }
 
-  __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));
-  __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movl(EBX, FieldAddress(EAX, Function::entry_point_offset()));
   __ jmp(EBX);
 }
 
@@ -935,7 +924,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ ret();
 }
 
-DECLARE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, Isolate* isolate);
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
@@ -1459,8 +1447,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Bind(&call_target_function);
   __ Comment("Call target");
   // EAX: Target function.
-  __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));
-  __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movl(EBX, FieldAddress(EAX, Function::entry_point_offset()));
   if (range_collection_mode == kCollectRanges) {
     __ EnterStubFrame();
     __ pushl(ECX);
@@ -1653,10 +1640,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Get function and call it, if possible.
   __ movl(EAX, Address(EBX, target_offset));
-  __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));
-
-  // EBX: Target instructions.
-  __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movl(EBX, FieldAddress(EAX, Function::entry_point_offset()));
   __ jmp(EBX);
 
   if (FLAG_support_debugger) {
@@ -1704,8 +1688,7 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ popl(EDX);  // Restore arguments descriptor array.
   __ LeaveFrame();
 
-  __ movl(EAX, FieldAddress(EAX, Function::instructions_offset()));
-  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movl(EAX, FieldAddress(EAX, Function::entry_point_offset()));
   __ jmp(EAX);
 }
 
@@ -1923,18 +1906,11 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ popl(EAX);  // Discard argument.
   __ popl(EAX);  // Get Code object
   __ popl(EDX);  // Restore argument descriptor.
-  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
-  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movl(EAX, FieldAddress(EAX, Code::entry_point_offset()));
   __ LeaveFrame();
   __ jmp(EAX);
   __ int3();
 }
-
-
-DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
-                           BigintCompare,
-                           RawBigint* left,
-                           RawBigint* right);
 
 
 // Does identical check (object references are equal or not equal) with special
@@ -2087,10 +2063,7 @@ void StubCode::EmitMegamorphicLookup(
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
   __ movl(EAX, FieldAddress(EDI, ECX, TIMES_4, base + kWordSize));
-  __ movl(target, FieldAddress(EAX, Function::instructions_offset()));
-  // TODO(srdjan): Evaluate performance impact of moving the instruction below
-  // to the call site, instead of having it here.
-  __ addl(target, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movl(target, FieldAddress(EAX, Function::entry_point_offset()));
 }
 
 

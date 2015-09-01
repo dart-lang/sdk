@@ -2,7 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of resolution;
+library dart2js.resolution.registry;
+
+import '../common/backend_api.dart' show
+    Backend;
+import '../common/registry.dart' show
+    Registry;
+import '../compiler.dart' show
+    Compiler;
+import '../constants/expressions.dart';
+import '../dart_types.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../enqueue.dart' show
+    ResolutionEnqueuer,
+    WorldImpact;
+import '../elements/elements.dart';
+import '../tree/tree.dart';
+import '../util/util.dart' show
+    Setlet;
+import '../universe/universe.dart' show
+    CallStructure,
+    Selector,
+    SelectorKind,
+    UniverseSelector;
+import '../world.dart' show World;
+
+import 'send_structure.dart';
+
+import 'members.dart' show
+    ResolverVisitor;
+import 'tree_elements.dart' show
+    TreeElementMapping;
 
 /// [ResolutionRegistry] collects all resolution information. It stores node
 /// related information in a [TreeElements] mapping and registers calls with
@@ -174,10 +205,7 @@ class ResolutionRegistry implements Registry {
   final TreeElementMapping mapping;
   final ResolutionWorldImpact worldImpact;
 
-  ResolutionRegistry(Compiler compiler, Element element)
-      : this.internal(compiler, _ensureTreeElements(element));
-
-  ResolutionRegistry.internal(Compiler compiler, TreeElementMapping mapping)
+  ResolutionRegistry(Compiler compiler, TreeElementMapping mapping)
       : this.compiler = compiler,
         this.mapping = mapping,
         this.worldImpact = new ResolutionWorldImpact(compiler, mapping);
@@ -387,6 +415,10 @@ class ResolutionRegistry implements Registry {
     backend.resolutionCallbacks.onThrowRuntimeError(this);
   }
 
+  void registerCompileTimeError(ErroneousElement error) {
+    backend.resolutionCallbacks.onCompileTimeError(this, error);
+  }
+
   void registerTypeVariableBoundCheck() {
     backend.resolutionCallbacks.onTypeVariableBoundCheck(this);
   }
@@ -465,10 +497,12 @@ class ResolutionRegistry implements Registry {
   }
 
   void registerDynamicGetter(UniverseSelector selector) {
+    assert(selector.selector.isGetter);
     worldImpact.registerDynamicGetter(selector);
   }
 
   void registerDynamicSetter(UniverseSelector selector) {
+    assert(selector.selector.isSetter);
     worldImpact.registerDynamicSetter(selector);
   }
 
@@ -538,6 +572,8 @@ class ResolutionRegistry implements Registry {
   Setlet<Element> get otherDependencies => mapping.otherDependencies;
 
   void registerStaticInvocation(Element element) {
+    // TODO(johnniwinther): Increase precision of [registerStaticUse] and
+    // [registerDependency].
     if (element == null) return;
     registerStaticUse(element);
     registerDependency(element);

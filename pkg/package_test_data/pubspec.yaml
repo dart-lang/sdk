@@ -1,0 +1,7 @@
+name: package_test_data
+version: 0.0.1
+author: "Dart Team <misc@dartlang.org>"
+publish_to: "none"
+description: >
+ Contains data used by platform tests using package: URIs.
+ Should *not* be published.

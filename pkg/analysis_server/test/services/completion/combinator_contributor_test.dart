@@ -8,12 +8,12 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'completion_test_util.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(CombinatorContributorTest);
 }
 
@@ -40,17 +40,23 @@ class CombinatorContributorTest extends AbstractCompletionTest {
 
   test_Combinator_hide() {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource('/testAB.dart', '''
+    addSource(
+        '/testAB.dart',
+        '''
       library libAB;
       part '/partAB.dart';
       class A { }
       class B { }''');
-    addSource('/partAB.dart', '''
+    addSource(
+        '/partAB.dart',
+        '''
       part of libAB;
       var T1;
       PB F1() => new PB();
       class PB { }''');
-    addSource('/testCD.dart', '''
+    addSource(
+        '/testCD.dart',
+        '''
       class C { }
       class D { }''');
     addTestSource('''
@@ -81,19 +87,25 @@ class CombinatorContributorTest extends AbstractCompletionTest {
 
   test_Combinator_show() {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource('/testAB.dart', '''
+    addSource(
+        '/testAB.dart',
+        '''
       library libAB;
       part '/partAB.dart';
       class A { }
       class B { }''');
-    addSource('/partAB.dart', '''
+    addSource(
+        '/partAB.dart',
+        '''
       part of libAB;
       var T1;
       PB F1() => new PB();
       typedef PB2 F2(int blat);
       class Clz = Object with Object;
       class PB { }''');
-    addSource('/testCD.dart', '''
+    addSource(
+        '/testCD.dart',
+        '''
       class C { }
       class D { }''');
     addTestSource('''
