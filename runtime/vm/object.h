@@ -6316,6 +6316,7 @@ class OneByteString : public AllStatic {
 
   friend class Class;
   friend class String;
+  friend class Symbols;
   friend class ExternalOneByteString;
   friend class SnapshotReader;
   friend class StringHasher;
@@ -6431,6 +6432,7 @@ class TwoByteString : public AllStatic {
   friend class Class;
   friend class String;
   friend class SnapshotReader;
+  friend class Symbols;
 };
 
 

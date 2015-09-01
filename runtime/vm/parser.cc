@@ -13670,15 +13670,13 @@ AstNode* Parser::ParseStringLiteral(bool allow_interpolation) {
     if (has_interpolation) {
       primary = new(Z) LiteralNode(literal_start, Interpolate(values_list));
     } else {
-      const Array& strings = Array::Handle(Z, Array::New(values_list.length()));
+      GrowableHandlePtrArray<const String> pieces(Z, values_list.length());
       for (int i = 0; i < values_list.length(); i++) {
         const Instance& part = values_list[i]->AsLiteralNode()->literal();
         ASSERT(part.IsString());
-        strings.SetAt(i, String::Cast(part));
+        pieces.Add(String::Cast(part));
       }
-      String& lit = String::ZoneHandle(Z,
-                                       String::ConcatAll(strings, Heap::kOld));
-      lit = Symbols::New(lit);
+      const String& lit = String::ZoneHandle(Z, Symbols::FromConcatAll(pieces));
       primary = new(Z) LiteralNode(literal_start, lit);
     }
   } else {

@@ -2103,7 +2103,7 @@ void Class::SetFunctions(const Array& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->functions_, value.raw());
   const intptr_t len = value.Length();
-  ClassFunctionsSet set(HashTables::New<ClassFunctionsSet>(len));
+  ClassFunctionsSet set(HashTables::New<ClassFunctionsSet>(len, Heap::kOld));
   if (len >= kFunctionLookupHashTreshold) {
     Function& func = Function::Handle();
     for (intptr_t i = 0; i < len; ++i) {
