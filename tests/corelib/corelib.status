@@ -83,7 +83,7 @@ unicode_test: Fail
 # and only looks at the first 20 significant digits.
 # The Dart VM and the other ECMAScript implementations follow the correct
 # IEEE-754 rounding algorithm.
-double_parse_test: Fail, OK
+double_parse_test/02: Fail, OK
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
