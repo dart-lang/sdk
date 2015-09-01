@@ -10633,9 +10633,9 @@ AstNode* Parser::ExpandAssignableOp(intptr_t op_pos,
 
 // Evaluates the value of the compile time constant expression
 // and returns a literal node for the value.
-AstNode* Parser::FoldConstExpr(intptr_t expr_pos, AstNode* expr) {
+LiteralNode* Parser::FoldConstExpr(intptr_t expr_pos, AstNode* expr) {
   if (expr->IsLiteralNode()) {
-    return expr;
+    return expr->AsLiteralNode();
   }
   if (expr->EvalConstExpr() == NULL) {
     ReportError(expr_pos, "expression is not a valid compile-time constant");
@@ -10882,13 +10882,27 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
     AstNode* expr = ParseExpr(require_compiletime_const, consume_cascades);
     return new(Z) ThrowNode(expr_pos, expr, NULL);
   }
+
+  if (require_compiletime_const) {
+    // Check whether we already have evaluated a compile-time constant
+    // at this source location.
+    Instance& existing_const = Instance::ZoneHandle(Z);
+    if (GetCachedConstant(expr_pos, &existing_const)) {
+      SkipConditionalExpr();
+      return new(Z) LiteralNode(expr_pos, existing_const);
+    }
+  }
+
   AstNode* expr = ParseConditionalExpr();
   if (!Token::IsAssignmentOperator(CurrentToken())) {
     if ((CurrentToken() == Token::kCASCADE) && consume_cascades) {
       return ParseCascades(expr);
     }
     if (require_compiletime_const) {
-      expr = FoldConstExpr(expr_pos, expr);
+      const bool use_cache = !expr->IsLiteralNode();
+      LiteralNode* const_value = FoldConstExpr(expr_pos, expr);
+      if (use_cache) CacheConstantValue(expr_pos, const_value->literal());
+      expr = const_value;
     } else {
       expr = LiteralIfStaticConst(Z, expr);
     }
