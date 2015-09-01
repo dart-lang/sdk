@@ -36,7 +36,6 @@ full_stacktrace3_test: Pass, RuntimeError # Issue 12698
 stacktrace_test: Pass, RuntimeError # # Issue 12698
 stacktrace_rethrow_nonerror_test: Pass, RuntimeError # Issue 12698
 stacktrace_rethrow_error_test: Pass, RuntimeError # Issue 12698
-instantiate_type_variable_test/01: CompileTimeError # Issue 13631
 type_variable_conflict_test/01: Fail # Issue 13702
 type_variable_conflict_test/02: Fail # Issue 13702
 type_variable_conflict_test/03: Fail # Issue 13702
@@ -146,12 +145,9 @@ identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
 integer_division_by_zero_test: RuntimeError # Issue 8301
 built_in_identifier_prefix_test: CompileTimeError # Issue 6972
 number_identity2_test: RuntimeError # Issue 12596
-new_expression_type_args_test/00: CompileTimeError # Issue 5519
-new_expression_type_args_test/01: CompileTimeError # Issue 5519
 double_int_to_string_test: RuntimeError # Issue 1533
 mint_arithmetic_test: RuntimeError # Issue 1533
 left_shift_test: RuntimeError # Issue 1533
-factory_redirection_test/01: CompileTimeError # Issue 12752
 bad_override_test/01: CompileTimeError # Issue 11496
 bad_override_test/02: CompileTimeError # Issue 11496
 constructor_named_arguments_test/01: CompileTimeError # Issue 5519
@@ -292,7 +288,6 @@ await_for_test: Crash # (await for(var x in infiniteStream()){i++ ;if(i>10)break
 await_for_use_local_test: Crash # (await for(var v in s){accum+= v;}): await for
 await_future_test: RuntimeError # Please triage this failure.
 await_regression_test: RuntimeError # Please triage this failure.
-await_test: RuntimeError # $async$temp1.S is not a function
 cha_deopt1_test: Crash # (d.make_u()): deferred access is not implemented
 cha_deopt2_test: Crash # (d.make_u()): deferred access is not implemented
 cha_deopt3_test: Crash # (d.make_u()): deferred access is not implemented
