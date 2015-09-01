@@ -70,25 +70,23 @@
     dartLanguageTests([
       'async_and_or_test',
       'async_await_catch_regression_test',
-      // TODO(jmesserly): fix errors
-      // 'async_backwards_compatibility_1_test',
+      'async_backwards_compatibility_1_test',
       'async_backwards_compatibility_2_test',
       'async_break_in_finally_test',
       // TODO(jmesserly): https://github.com/dart-lang/dev_compiler/issues/263
       // 'async_continue_label_test',
       'async_control_structures_test',
       'async_finally_rethrow_test',
-      // TODO(jmesserly): fix errors
-      // 'async_or_generator_return_type_stacktrace_test',
       'async_regression_23058_test',
       'async_rethrow_test',
-      // TODO(jmesserly): fix errors
-      // 'async_return_types_test',
       // TODO(jmesserly): https://github.com/dart-lang/dev_compiler/issues/294
       // 'async_switch_test',
       'async_test',
       'async_this_bound_test',
       'async_throw_in_catch_test'
+      // By design, rejected statically by strong mode:
+      // 'async_return_types_test',
+      // 'async_or_generator_return_type_stacktrace_test',
     ]);
   });
 
