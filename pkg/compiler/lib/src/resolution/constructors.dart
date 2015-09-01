@@ -415,10 +415,9 @@ class InitializerResolver {
   }
 }
 
-class ConstructorResolver extends CommonResolverVisitor<Element> {
+class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
   final ResolverVisitor resolver;
-  bool inConstContext;
-  DartType type;
+  final bool inConstContext;
 
   ConstructorResolver(Compiler compiler, this.resolver,
                       {bool this.inConstContext: false})
@@ -430,8 +429,10 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     throw 'not supported';
   }
 
-  ErroneousConstructorElementX failOrReturnErroneousConstructorElement(
+  ConstructorResult reportAndCreateErroneousConstructorElement(
       Spannable diagnosticNode,
+      ConstructorResultKind resultKind,
+      DartType type,
       Element enclosing,
       String name,
       MessageKind kind,
@@ -448,171 +449,276 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     } else {
       compiler.reportWarning(diagnosticNode, kind, arguments);
     }
-    return new ErroneousConstructorElementX(
+    ErroneousElement error = new ErroneousConstructorElementX(
         kind, arguments, name, enclosing);
+    if (type == null) {
+      type = new MalformedType(error, null);
+    }
+    return new ConstructorResult(resultKind, error, type);
   }
 
-  FunctionElement resolveConstructor(ClassElement cls,
-                                     Node diagnosticNode,
-                                     String constructorName) {
+  ConstructorResult resolveConstructor(
+      InterfaceType type,
+      Node diagnosticNode,
+      String constructorName) {
+    ClassElement cls = type.element;
     cls.ensureResolved(compiler);
-    Element result = cls.lookupConstructor(constructorName);
+    ConstructorElement constructor = cls.lookupConstructor(constructorName);
     // TODO(johnniwinther): Use [Name] for lookup.
     if (Name.isPrivateName(constructorName) &&
         resolver.enclosingElement.library != cls.library) {
-      result = null;
+      constructor = null;
     }
-    if (result == null) {
-      String fullConstructorName = Elements.constructorNameForDiagnostics(
-              cls.name,
-              constructorName);
-      return failOrReturnErroneousConstructorElement(
+    if (constructor == null) {
+      String fullConstructorName =
+          Elements.constructorNameForDiagnostics(cls.name, constructorName);
+      return reportAndCreateErroneousConstructorElement(
           diagnosticNode,
+          ConstructorResultKind.UNRESOLVED_CONSTRUCTOR, type,
           cls, constructorName,
           MessageKind.CANNOT_FIND_CONSTRUCTOR,
           {'constructorName': fullConstructorName},
           missingConstructor: true);
-    } else if (inConstContext && !result.isConst) {
-      error(diagnosticNode, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
+    } else if (inConstContext && !constructor.isConst) {
+      compiler.reportError(
+          diagnosticNode, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
+      return new ConstructorResult(
+          ConstructorResultKind.NON_CONSTANT, constructor, type);
+    } else {
+      if (constructor.isGenerativeConstructor) {
+        if (cls.isAbstract) {
+          compiler.reportWarning(
+              diagnosticNode, MessageKind.ABSTRACT_CLASS_INSTANTIATION);
+          registry.registerAbstractClassInstantiation();
+          return new ConstructorResult(
+              ConstructorResultKind.ABSTRACT, constructor, type);
+        } else {
+          return new ConstructorResult(
+              ConstructorResultKind.GENERATIVE, constructor, type);
+        }
+      } else {
+        assert(invariant(diagnosticNode, constructor.isFactoryConstructor,
+            message: "Unexpected constructor $constructor."));
+        return new ConstructorResult(
+            ConstructorResultKind.FACTORY, constructor, type);
+      }
     }
-    return result;
   }
 
-  Element visitNewExpression(NewExpression node) {
-    inConstContext = node.isConst;
+  ConstructorResult visitNewExpression(NewExpression node) {
     Node selector = node.send.selector;
-    Element element = visit(selector);
-    assert(invariant(selector, element != null,
-        message: 'No element return for $selector.'));
-    return finishConstructorReference(element, node.send.selector, node);
+    ConstructorResult result = visit(selector);
+    assert(invariant(selector, result != null,
+        message: 'No result returned for $selector.'));
+    return finishConstructorReference(result, node.send.selector, node);
   }
 
   /// Finishes resolution of a constructor reference and records the
   /// type of the constructed instance on [expression].
-  FunctionElement finishConstructorReference(Element element,
-                                             Node diagnosticNode,
-                                             Node expression) {
-    assert(invariant(diagnosticNode, element != null,
-        message: 'No element return for $diagnosticNode.'));
+  ConstructorResult finishConstructorReference(
+      ConstructorResult result,
+      Node diagnosticNode,
+      Node expression) {
+    assert(invariant(diagnosticNode, result != null,
+        message: 'No result returned for $diagnosticNode.'));
+
+    if (result.kind != null) {
+      resolver.registry.setType(expression, result.type);
+      return result;
+    }
+
     // Find the unnamed constructor if the reference resolved to a
     // class.
-    if (!Elements.isUnresolved(element) && !element.isConstructor) {
-      if (element.isClass) {
-        ClassElement cls = element;
-        cls.ensureResolved(compiler);
-        // The unnamed constructor may not exist, so [e] may become unresolved.
-        element = resolveConstructor(cls, diagnosticNode, '');
+    if (result.type != null) {
+      // The unnamed constructor may not exist, so [e] may become unresolved.
+      result = resolveConstructor(result.type, diagnosticNode, '');
+    } else {
+      Element element = result.element;
+      if (element.isErroneous) {
+        result = constructorResultForErroneous(diagnosticNode, element);
       } else {
-        element = failOrReturnErroneousConstructorElement(
+        result = reportAndCreateErroneousConstructorElement(
             diagnosticNode,
+            ConstructorResultKind.INVALID_TYPE, null,
             element, element.name,
             MessageKind.NOT_A_TYPE, {'node': diagnosticNode});
       }
-    } else if (element.isErroneous && element is! ErroneousElementX) {
-      // Parser error. The error has already been reported.
-      element = new ErroneousConstructorElementX(
-          MessageKind.NOT_A_TYPE, {'node': diagnosticNode},
-          element.name, element);
-      registry.registerThrowRuntimeError();
     }
-
-    if (type == null) {
-      if (Elements.isUnresolved(element)) {
-        type = const DynamicType();
-      } else {
-        type = element.enclosingClass.rawType;
-      }
-    }
-    resolver.registry.setType(expression, type);
-    return element;
+    resolver.registry.setType(expression, result.type);
+    return result;
   }
 
-  Element visitTypeAnnotation(TypeAnnotation node) {
-    assert(invariant(node, type == null));
+  ConstructorResult visitTypeAnnotation(TypeAnnotation node) {
     // This is not really resolving a type-annotation, but the name of the
     // constructor. Therefore we allow deferred types.
-    type = resolver.resolveTypeAnnotation(node,
-                                          malformedIsError: inConstContext,
-                                          deferredIsMalformed: false);
+    DartType type = resolver.resolveTypeAnnotation(
+        node,
+        malformedIsError: inConstContext,
+        deferredIsMalformed: false);
     registry.registerRequiredType(type, resolver.enclosingElement);
-    return type.element;
+    return constructorResultForType(node, type);
   }
 
-  Element visitSend(Send node) {
-    Element element = visit(node.receiver);
-    assert(invariant(node.receiver, element != null,
-        message: 'No element return for $node.receiver.'));
-    if (Elements.isUnresolved(element)) return element;
+  ConstructorResult visitSend(Send node) {
+    ConstructorResult receiver = visit(node.receiver);
+    assert(invariant(node.receiver, receiver != null,
+        message: 'No result returned for $node.receiver.'));
+    //if (Elements.isUnresolved(element)) return element;
+
     Identifier name = node.selector.asIdentifier();
     if (name == null) internalError(node.selector, 'unexpected node');
 
-    if (element.isClass) {
-      ClassElement cls = element;
-      cls.ensureResolved(compiler);
-      return resolveConstructor(cls, name, name.source);
-    } else if (element.isPrefix) {
-      PrefixElement prefix = element;
-      element = prefix.lookupLocalMember(name.source);
-      element = Elements.unwrap(element, compiler, node);
-      if (element == null) {
-        return failOrReturnErroneousConstructorElement(
+    if (receiver.type != null) {
+      if (receiver.type.isInterfaceType) {
+        return resolveConstructor(receiver.type, name, name.source);
+      } else {
+        // TODO(johnniwinther): Update the message for the different types.
+        return reportAndCreateErroneousConstructorElement(
             name,
+            ConstructorResultKind.INVALID_TYPE, null,
             resolver.enclosingElement, name.source,
-            MessageKind.CANNOT_RESOLVE, {'name': name});
-      } else if (!element.isClass) {
-        return failOrReturnErroneousConstructorElement(
-            name,
-            resolver.enclosingElement, name.source,
-            MessageKind.NOT_A_TYPE, {'node': name},
-            isError: true);
+            MessageKind.NOT_A_TYPE, {'node': name});
       }
+    } else if (receiver.element.isPrefix) {
+      PrefixElement prefix = receiver.element;
+      Element member = prefix.lookupLocalMember(name.source);
+      return constructorResultForElement(node, name.source, member);
     } else {
-      internalError(node.receiver, 'unexpected element $element');
+      return internalError(node.receiver, 'unexpected receiver $receiver');
     }
-    return element;
   }
 
-  Element visitIdentifier(Identifier node) {
+  ConstructorResult visitIdentifier(Identifier node) {
     String name = node.source;
     Element element = resolver.reportLookupErrorIfAny(
         lookupInScope(compiler, node, resolver.scope, name), node, name);
     registry.useElement(node, element);
     // TODO(johnniwinther): Change errors to warnings, cf. 11.11.1.
+    return constructorResultForElement(node, name, element);
+  }
+
+  /// Assumed to be called by [resolveRedirectingFactory].
+  ConstructorResult visitRedirectingFactoryBody(RedirectingFactoryBody node) {
+    Node constructorReference = node.constructorReference;
+    return finishConstructorReference(visit(constructorReference),
+        constructorReference, node);
+  }
+
+  ConstructorResult constructorResultForElement(
+      Node node, String name, Element element) {
+    element = Elements.unwrap(element, compiler, node);
     if (element == null) {
-      return failOrReturnErroneousConstructorElement(
+      return reportAndCreateErroneousConstructorElement(
           node,
+          ConstructorResultKind.INVALID_TYPE, null,
           resolver.enclosingElement, name,
           MessageKind.CANNOT_RESOLVE,
           {'name': name});
     } else if (element.isErroneous) {
-      return element;
+      return constructorResultForErroneous(node, element);
+    } else if (element.isClass) {
+      ClassElement cls = element;
+      cls.computeType(compiler);
+      return constructorResultForType(node, cls.rawType);
+    } else if (element.isPrefix) {
+      return new ConstructorResult.forElement(element);
     } else if (element.isTypedef) {
-      element = failOrReturnErroneousConstructorElement(
-          node,
-          resolver.enclosingElement, name,
-          MessageKind.CANNOT_INSTANTIATE_TYPEDEF, {'typedefName': name},
-          isError: true);
+      TypedefElement typdef = element;
+      typdef.ensureResolved(compiler);
+      return constructorResultForType(node, typdef.rawType);
     } else if (element.isTypeVariable) {
-      element = failOrReturnErroneousConstructorElement(
+      TypeVariableElement typeVariableElement = element;
+      return constructorResultForType(node, typeVariableElement.type);
+    } else {
+      return reportAndCreateErroneousConstructorElement(
           node,
+          ConstructorResultKind.INVALID_TYPE, null,
           resolver.enclosingElement, name,
-          MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
-          {'typeVariableName': name},
-          isError: true);
-    } else if (!element.isClass && !element.isPrefix) {
-      element = failOrReturnErroneousConstructorElement(
-          node,
-          resolver.enclosingElement, name,
-          MessageKind.NOT_A_TYPE, {'node': name},
-          isError: true);
+          MessageKind.NOT_A_TYPE, {'node': name});
     }
-    return element;
   }
 
-  /// Assumed to be called by [resolveRedirectingFactory].
-  Element visitRedirectingFactoryBody(RedirectingFactoryBody node) {
-    Node constructorReference = node.constructorReference;
-    return finishConstructorReference(visit(constructorReference),
-        constructorReference, node);
+  ConstructorResult constructorResultForErroneous(
+      Node node, Element error) {
+    if (error is! ErroneousElementX) {
+      // Parser error. The error has already been reported.
+      error = new ErroneousConstructorElementX(
+          MessageKind.NOT_A_TYPE, {'node': node},
+          error.name, error);
+      registry.registerThrowRuntimeError();
+    }
+    return new ConstructorResult(
+        ConstructorResultKind.INVALID_TYPE,
+        error,
+        new MalformedType(error, null));
+  }
+
+  ConstructorResult constructorResultForType(
+      Node node,
+      DartType type) {
+    String name = type.name;
+    if (type.isMalformed) {
+      return new ConstructorResult(
+          ConstructorResultKind.INVALID_TYPE, type.element, type);
+    } else if (type.isInterfaceType) {
+      return new ConstructorResult.forType(type);
+    } else if (type.isTypedef) {
+      return reportAndCreateErroneousConstructorElement(
+          node,
+          ConstructorResultKind.INVALID_TYPE, type,
+          resolver.enclosingElement, name,
+          MessageKind.CANNOT_INSTANTIATE_TYPEDEF, {'typedefName': name});
+    } else if (type.isTypeVariable) {
+      return reportAndCreateErroneousConstructorElement(
+          node,
+          ConstructorResultKind.INVALID_TYPE, type,
+          resolver.enclosingElement, name,
+          MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
+          {'typeVariableName': name});
+    }
+    internalError(node, "Unexpected constructor type $type");
+    return null;
+  }
+
+}
+
+enum ConstructorResultKind {
+  GENERATIVE,
+  FACTORY,
+  ABSTRACT,
+  INVALID_TYPE,
+  UNRESOLVED_CONSTRUCTOR,
+  NON_CONSTANT,
+}
+
+class ConstructorResult {
+  final ConstructorResultKind kind;
+  final Element element;
+  final DartType type;
+
+  ConstructorResult(this.kind, this.element, this.type);
+
+  ConstructorResult.forElement(this.element)
+      : kind = null,
+        type = null;
+
+  ConstructorResult.forType(this.type)
+      : kind = null,
+        element = null;
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('ConstructorResult(');
+    if (kind != null) {
+      sb.write('kind=$kind,');
+      sb.write('element=$element,');
+      sb.write('type=$type');
+    } else if (element != null) {
+      sb.write('element=$element');
+    } else {
+      sb.write('type=$type');
+    }
+    sb.write(')');
+    return sb.toString();
   }
 }
