@@ -200,14 +200,14 @@ class ParameterStubGenerator {
     // The set of selectors that apply to `member`. For example, for
     // a member `foo(x, [y])` the following selectors may apply:
     // `foo(x)`, and `foo(x, y)`.
-    Map<Selector, TypeMaskSet> selectors;
+    Map<Selector, ReceiverMaskSet> selectors;
     // The set of selectors that apply to `member` if it's name was `call`.
     // This happens when a member is torn off. In that case calls to the
     // function use the name `call`, and we must be able to handle every
     // `call` invocation that matches the signature. For example, for
     // a member `foo(x, [y])` the following selectors would be possible
     // call-selectors: `call(x)`, and `call(x, y)`.
-    Map<Selector, TypeMaskSet> callSelectors;
+    Map<Selector, ReceiverMaskSet> callSelectors;
 
     // Only instance members (not static methods) need stubs.
     if (member.isInstanceMember) {
@@ -220,8 +220,9 @@ class ParameterStubGenerator {
     }
 
     assert(emptySelectorSet.isEmpty);
-    if (selectors == null) selectors = const <Selector, TypeMaskSet>{};
-    if (callSelectors == null) callSelectors = const <Selector, TypeMaskSet>{};
+    if (selectors == null) selectors = const <Selector, ReceiverMaskSet>{};
+    if (callSelectors == null) callSelectors =
+        const <Selector, ReceiverMaskSet>{};
 
     List<ParameterStubMethod> stubs = <ParameterStubMethod>[];
 

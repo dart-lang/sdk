@@ -53,6 +53,8 @@ import 'resolution/members.dart' show
     ResolverVisitor;
 import 'tree/tree.dart' show
     Send;
+import 'types/types.dart' show
+    TypeMaskStrategy;
 import 'universe/universe.dart';
 import 'util/util.dart' show
     Link,
@@ -122,7 +124,7 @@ abstract class Enqueuer {
       = new Map<String, Set<Element>>();
   final Set<ClassElement> _processedClasses = new Set<ClassElement>();
   Set<ClassElement> recentClasses = new Setlet<ClassElement>();
-  final Universe universe = new Universe();
+  final Universe universe = new Universe(const TypeMaskStrategy());
 
   static final TRACE_MIRROR_ENQUEUING =
       const bool.fromEnvironment("TRACE_MIRROR_ENQUEUING");

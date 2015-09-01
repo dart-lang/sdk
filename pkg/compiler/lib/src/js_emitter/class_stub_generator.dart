@@ -48,7 +48,7 @@ class ClassStubGenerator {
    * Invariant: [member] must be a declaration element.
    */
   Map<jsAst.Name, jsAst.Expression> generateCallStubsForGetter(
-      Element member, Map<Selector, TypeMaskSet> selectors) {
+      Element member, Map<Selector, ReceiverMaskSet> selectors) {
     assert(invariant(member, member.isDeclaration));
 
     // If the method is intercepted, the stub gets the
@@ -84,12 +84,7 @@ class ClassStubGenerator {
     for (Selector selector in selectors.keys) {
       if (generatedSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member, compiler.world)) continue;
-      for (TypeMask mask in selectors[selector].masks) {
-        if (mask != null &&
-            !mask.canHit(member, selector, compiler.world)) {
-          continue;
-        }
-
+      if (selectors[selector].applies(member, selector, compiler.world)) {
         generatedSelectors.add(selector);
 
         jsAst.Name invocationName = namer.invocationName(selector);
@@ -129,20 +124,12 @@ class ClassStubGenerator {
     }
 
     void addNoSuchMethodHandlers(String ignore,
-                                 Map<Selector, TypeMaskSet> selectors) {
-      TypeMask objectSubclassTypeMask =
-          new TypeMask.subclass(compiler.objectClass, compiler.world);
-
+                                 Map<Selector, ReceiverMaskSet> selectors) {
       for (Selector selector in selectors.keys) {
-        TypeMaskSet maskSet = selectors[selector];
-        for (TypeMask mask in maskSet.masks) {
-          if (mask == null) mask = objectSubclassTypeMask;
-
-          if (mask.needsNoSuchMethodHandling(selector, compiler.world)) {
-            jsAst.Name jsName = namer.invocationMirrorInternalName(selector);
-            jsNames[jsName] = selector;
-            break;
-          }
+        ReceiverMaskSet maskSet = selectors[selector];
+        if (maskSet.needsNoSuchMethodHandling(selector, compiler.world)) {
+          jsAst.Name jsName = namer.invocationMirrorInternalName(selector);
+          jsNames[jsName] = selector;
         }
       }
     }
