@@ -773,9 +773,9 @@ class IrBuilder {
     elseContinuation.body = elseBuilder._root;
     add(new ir.LetCont(join.continuation,
             new ir.LetCont.two(thenContinuation, elseContinuation,
-                new ir.Branch(new ir.IsTrue(condition),
-                              thenContinuation,
-                              elseContinuation))));
+                new ir.Branch.strict(condition,
+                                     thenContinuation,
+                                     elseContinuation))));
     environment = join.environment;
     return environment.discard(1);
   }
@@ -1117,9 +1117,9 @@ class IrBuilder {
 
     ir.Expression result =
         new ir.LetCont.many(arms,
-            new ir.Branch(new ir.IsTrue(condition),
-                          thenContinuation,
-                          elseContinuation));
+            new ir.Branch.strict(condition,
+                                 thenContinuation,
+                                 elseContinuation));
 
     JumpCollector join;  // Null if there is no join.
     if (thenBuilder.isOpen && elseBuilder.isOpen) {
@@ -1288,9 +1288,9 @@ class IrBuilder {
     // be filled by LetCont.plug.
     ir.LetCont branch =
         new ir.LetCont.two(exitContinuation, bodyContinuation,
-            new ir.Branch(new ir.IsTrue(condition),
-                          bodyContinuation,
-                          exitContinuation));
+            new ir.Branch.strict(condition,
+                                 bodyContinuation,
+                                 exitContinuation));
     // If there are breaks in the body, then there must be a join-point
     // continuation for the normal exit and the breaks.  Otherwise, the
     // successor is translated in the hole in the exit continuation.
@@ -1449,9 +1449,9 @@ class IrBuilder {
     // be filled by LetCont.plug.
     ir.LetCont branch =
         new ir.LetCont.two(exitContinuation, bodyContinuation,
-            new ir.Branch(new ir.IsTrue(condition),
-                          bodyContinuation,
-                          exitContinuation));
+            new ir.Branch.strict(condition,
+                                 bodyContinuation,
+                                 exitContinuation));
     // If there are breaks in the body, then there must be a join-point
     // continuation for the normal exit and the breaks.  Otherwise, the
     // successor is translated in the hole in the exit continuation.
@@ -1524,9 +1524,9 @@ class IrBuilder {
     // be filled by LetCont.plug.
     ir.LetCont branch =
         new ir.LetCont.two(exitContinuation, bodyContinuation,
-            new ir.Branch(new ir.IsTrue(condition),
-                          bodyContinuation,
-                          exitContinuation));
+            new ir.Branch.strict(condition,
+                                 bodyContinuation,
+                                 exitContinuation));
     // If there are breaks in the body, then there must be a join-point
     // continuation for the normal exit and the breaks.  Otherwise, the
     // successor is translated in the hole in the exit continuation.
@@ -1610,9 +1610,9 @@ class IrBuilder {
 
     continueBuilder.add(
         new ir.LetCont.two(exitContinuation, repeatContinuation,
-            new ir.Branch(new ir.IsTrue(condition),
-                          repeatContinuation,
-                          exitContinuation)));
+            new ir.Branch.strict(condition,
+                                 repeatContinuation,
+                                 exitContinuation)));
     continueCollector.continuation.body = continueBuilder._root;
 
     // Construct the loop continuation (i.e., the body and condition).
@@ -1676,9 +1676,9 @@ class IrBuilder {
       // else continuation first.
       casesBuilder.add(
           new ir.LetCont.two(elseContinuation, thenContinuation,
-              new ir.Branch(new ir.IsTrue(condition),
-                            thenContinuation,
-                            elseContinuation)));
+              new ir.Branch.strict(condition,
+                                   thenContinuation,
+                                   elseContinuation)));
     }
 
     if (defaultCase != null) {
@@ -1883,9 +1883,9 @@ class IrBuilder {
                 clause.type,
                 isTypeTest: true);
         checkBuilder.add(new ir.LetCont.two(thenContinuation, elseContinuation,
-                new ir.Branch(new ir.IsTrue(typeMatches),
-                    thenContinuation,
-                    elseContinuation)));
+            new ir.Branch.strict(typeMatches,
+                                 thenContinuation,
+                                 elseContinuation)));
         catchBody = checkBuilder._root;
       }
       builder.add(catchBody);
@@ -2232,9 +2232,9 @@ class IrBuilder {
 
     add(new ir.LetCont(joinContinuation,
           new ir.LetCont.two(thenContinuation, elseContinuation,
-              new ir.Branch(new ir.IsTrue(condition),
-                            thenContinuation,
-                            elseContinuation))));
+              new ir.Branch.strict(condition,
+                                   thenContinuation,
+                                   elseContinuation))));
     return resultParameter;
   }
 
@@ -2292,9 +2292,9 @@ class IrBuilder {
     // The right subexpression has two continuations.
     rightBuilder.add(
         new ir.LetCont.two(rightTrueContinuation, rightFalseContinuation,
-            new ir.Branch(new ir.IsTrue(rightValue),
-                          rightTrueContinuation,
-                          rightFalseContinuation)));
+            new ir.Branch.strict(rightValue,
+                                 rightTrueContinuation,
+                                 rightFalseContinuation)));
     // Depending on the operator, the left subexpression's continuations are
     // either the right subexpression or an invocation of the join-point
     // continuation.
@@ -2308,9 +2308,9 @@ class IrBuilder {
 
     add(new ir.LetCont(join.continuation,
             new ir.LetCont.two(leftTrueContinuation, leftFalseContinuation,
-                new ir.Branch(new ir.IsTrue(leftValue),
-                              leftTrueContinuation,
-                              leftFalseContinuation))));
+                new ir.Branch.strict(leftValue,
+                                     leftTrueContinuation,
+                                     leftFalseContinuation))));
     environment = join.environment;
     return environment.discard(1);
   }

@@ -11,6 +11,7 @@ import '../diagnostics/spannable.dart' show
 import '../elements/elements.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
 import 'tree_ir_nodes.dart';
+import '../constants/values.dart';
 
 typedef Statement NodeCallback(Statement next);
 
@@ -277,12 +278,6 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return prim.accept(this);
   }
 
-  /// Translates a condition to a tree expression.
-  Expression translateCondition(cps_ir.Condition condition) {
-    cps_ir.IsTrue isTrue = condition;
-    return getVariableUse(isTrue.value);
-  }
-
   /************************ INTERIOR EXPRESSIONS  ************************/
   //
   // Visit methods for interior expressions must return a function:
@@ -500,8 +495,20 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     }
   }
 
+  /// Translates a branch condition to a tree expression.
+  Expression translateCondition(cps_ir.Branch branch) {
+    Expression value = getVariableUse(branch.condition);
+    if (branch.isStrictCheck) {
+      return new ApplyBuiltinOperator(
+          BuiltinOperator.StrictEq,
+          <Expression>[value, new Constant(new TrueConstantValue())]);
+    } else {
+      return value;
+    }
+  }
+
   Statement visitBranch(cps_ir.Branch node) {
-    Expression condition = translateCondition(node.condition);
+    Expression condition = translateCondition(node);
     Statement thenStatement, elseStatement;
     cps_ir.Continuation cont = node.trueContinuation.definition;
     assert(cont.parameters.isEmpty);
@@ -680,6 +687,5 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   visitParameter(cps_ir.Parameter node) => unexpectedNode(node);
   visitContinuation(cps_ir.Continuation node) => unexpectedNode(node);
   visitMutableVariable(cps_ir.MutableVariable node) => unexpectedNode(node);
-  visitIsTrue(cps_ir.IsTrue node) => unexpectedNode(node);
 }
 

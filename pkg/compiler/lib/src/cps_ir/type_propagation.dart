@@ -262,6 +262,11 @@ class TypeMaskSystem {
     }
     return AbstractBool.Maybe;
   }
+
+  AbstractBool strictBoolify(TypeMask type) {
+    if (areDisjoint(type, boolType)) return AbstractBool.False;
+    return AbstractBool.Maybe;
+  }
 }
 
 class ConstantPropagationLattice {
@@ -532,6 +537,15 @@ class ConstantPropagationLattice {
       }
     }
     return typeSystem.boolify(value.type);
+  }
+
+  /// Returns whether [value] is the value `true`.
+  AbstractBool strictBoolify(AbstractValue value) {
+    if (value.isNothing) return AbstractBool.Nothing;
+    if (value.isConstant) {
+      return value.constant.isTrue ? AbstractBool.True : AbstractBool.False;
+    }
+    return typeSystem.strictBoolify(value.type);
   }
 
   /// The possible return types of a method that may be targeted by
@@ -822,11 +836,17 @@ class TransformingVisitor extends LeafVisitor {
   void visitBranch(Branch node) {
     Continuation trueCont = node.trueContinuation.definition;
     Continuation falseCont = node.falseContinuation.definition;
-    IsTrue conditionNode = node.condition;
-    Primitive condition = conditionNode.value.definition;
-
+    Primitive condition = node.condition.definition;
     AbstractValue conditionValue = getValue(condition);
-    AbstractBool boolifiedValue = lattice.boolify(conditionValue);
+
+    // Change to non-strict check if the condition is a boolean or null.
+    if (lattice.isDefinitelyBool(conditionValue, allowNull: true)) {
+      node.isStrictCheck = false;
+    }
+
+    AbstractBool boolifiedValue = node.isStrictCheck
+        ? lattice.strictBoolify(conditionValue)
+        : lattice.boolify(conditionValue);
 
     if (boolifiedValue == AbstractBool.True) {
       replaceSubtree(falseCont.body, new Unreachable());
@@ -856,12 +876,12 @@ class TransformingVisitor extends LeafVisitor {
         //   if (x == null) S1 else S2
         //     =>
         //   if (x) S2 else S1   (note the swapped branches)
-        Branch branch = new Branch(new IsTrue(leftArg), falseCont, trueCont);
+        Branch branch = new Branch.loose(leftArg, falseCont, trueCont);
         replaceSubtree(node, branch);
         return;
       } else if (left.isNullConstant &&
                  lattice.isDefinitelyNotNumStringBool(right)) {
-        Branch branch = new Branch(new IsTrue(rightArg), falseCont, trueCont);
+        Branch branch = new Branch.loose(rightArg, falseCont, trueCont);
         replaceSubtree(node, branch);
         return;
       } else if (right.isTrueConstant &&
@@ -870,12 +890,12 @@ class TransformingVisitor extends LeafVisitor {
         //   if (x == true) S1 else S2
         //     =>
         //   if (x) S1 else S2
-        Branch branch = new Branch(new IsTrue(leftArg), trueCont, falseCont);
+        Branch branch = new Branch.loose(leftArg, trueCont, falseCont);
         replaceSubtree(node, branch);
         return;
       } else if (left.isTrueConstant &&
                  lattice.isDefinitelyBool(right, allowNull: true)) {
-        Branch branch = new Branch(new IsTrue(rightArg), trueCont, falseCont);
+        Branch branch = new Branch.loose(rightArg, trueCont, falseCont);
         replaceSubtree(node, branch);
         return;
       }
@@ -1074,11 +1094,11 @@ class TransformingVisitor extends LeafVisitor {
     Primitive isTooSmall = cps.applyBuiltin(
         BuiltinOperator.NumLt,
         <Primitive>[index, cps.makeZero()]);
-    cps.ifTrue(isTooSmall).invokeContinuation(fail);
+    cps.ifTruthy(isTooSmall).invokeContinuation(fail);
     Primitive isTooLarge = cps.applyBuiltin(
         BuiltinOperator.NumGe,
         <Primitive>[index, cps.letPrim(new GetLength(list))]);
-    cps.ifTrue(isTooLarge).invokeContinuation(fail);
+    cps.ifTruthy(isTooLarge).invokeContinuation(fail);
     cps.insideContinuation(fail).invokeStaticThrower(
         backend.getThrowIndexOutOfBoundsError(),
         <Primitive>[list, index]);
@@ -1097,7 +1117,7 @@ class TransformingVisitor extends LeafVisitor {
     Primitive lengthChanged = cps.applyBuiltin(
         BuiltinOperator.StrictNeq,
         <Primitive>[originalLength, cps.letPrim(new GetLength(list))]);
-    cps.ifTrue(lengthChanged).invokeStaticThrower(
+    cps.ifTruthy(lengthChanged).invokeStaticThrower(
         backend.getThrowConcurrentModificationError(),
         <Primitive>[list]);
     return cps;
@@ -1405,7 +1425,7 @@ class TransformingVisitor extends LeafVisitor {
                 [cps.getMutable(index), cps.letPrim(new GetLength(list))]);
 
             // Return false if there are no more.
-            CpsFragment falseBranch = cps.ifFalse(hasMore);
+            CpsFragment falseBranch = cps.ifFalsy(hasMore);
             falseBranch
               ..setMutable(current, falseBranch.makeNull())
               ..invokeContinuation(useCont, [falseBranch.makeFalse()]);
@@ -2415,9 +2435,10 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitBranch(Branch node) {
-    IsTrue isTrue = node.condition;
-    AbstractValue conditionCell = getValue(isTrue.value.definition);
-    AbstractBool boolifiedValue = lattice.boolify(conditionCell);
+    AbstractValue conditionCell = getValue(node.condition.definition);
+    AbstractBool boolifiedValue = node.isStrictCheck
+        ? lattice.strictBoolify(conditionCell)
+        : lattice.boolify(conditionCell);
     switch (boolifiedValue) {
       case AbstractBool.Nothing:
         break;
@@ -2543,11 +2564,6 @@ class TypePropagationVisitor implements Visitor {
     assert(cont.parameters.length == 1);
     Parameter returnValue = cont.parameters[0];
     setValue(returnValue, nonConstant(typeSystem.getFieldType(node.element)));
-  }
-
-  void visitIsTrue(IsTrue node) {
-    Branch branch = node.parent;
-    visitBranch(branch);
   }
 
   void visitInterceptor(Interceptor node) {

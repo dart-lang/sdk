@@ -31,7 +31,6 @@ class InterceptorEntity extends Entity {
 /// special nodes that respect JavaScript behavior.
 ///
 /// Performs the following rewrites:
-///  - Rewrite [IsTrue] in a [Branch] to do boolean conversion.
 ///  - Add interceptors at call sites that use interceptor calling convention.
 ///  - Add explicit receiver argument for methods that are called in interceptor
 ///    calling convention.
@@ -140,10 +139,7 @@ class UnsugarVisitor extends RecursiveVisitor {
         new LetCont.many(<Continuation>[returnFalse, originalBody],
             new LetPrim(nullPrimitive,
                 new LetPrim(test,
-                    new Branch(
-                        new IsTrue(test),
-                        returnFalse,
-                        originalBody))));
+                    new Branch.loose(test, returnFalse, originalBody))));
     function.body = newBody;
   }
 
@@ -279,41 +275,6 @@ class UnsugarVisitor extends RecursiveVisitor {
     }
     node.arguments.insert(0, node.receiver);
     node.receiver = new Reference<Primitive>(newReceiver);
-  }
-
-  processBranch(Branch node) {
-    // TODO(karlklose): implement the checked mode part of boolean conversion.
-    InteriorNode parent = node.parent;
-    IsTrue condition = node.condition;
-
-    // Do not rewrite conditions that are foreign code.
-    // It is redundant, and causes infinite recursion (if not optimized)
-    // in the implementation of identical, which itself contains a condition.
-    Primitive value = condition.value.definition;
-    if (value is Parameter && value.parent is Continuation) {
-      Continuation cont = value.parent;
-      if (cont.hasExactlyOneUse && cont.firstRef.parent is ForeignCode) {
-        ForeignCode foreign = cont.firstRef.parent;
-        if (foreign.type.containsOnlyBool(_glue.classWorld)) {
-          return;
-        }
-      }
-    }
-
-    Primitive t = trueConstant;
-    Primitive i = new ApplyBuiltinOperator(
-        BuiltinOperator.Identical,
-        <Primitive>[condition.value.definition, t],
-        condition.value.definition.sourceInformation);
-    LetPrim newNode = new LetPrim(t,
-        new LetPrim(i,
-            new Branch(new IsTrue(i),
-                node.trueContinuation.definition,
-                node.falseContinuation.definition)));
-    condition.value.unlink();
-    node.trueContinuation.unlink();
-    node.falseContinuation.unlink();
-    parent.body = newNode;
   }
 
   processInterceptor(Interceptor node) {
