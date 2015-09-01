@@ -2,7 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner;
+library dart2js.parser.partial;
+
+import '../diagnostics/messages.dart' show
+    MessageKind;
+import '../util/characters.dart' show
+    $CLOSE_CURLY_BRACKET;
+
+import 'listener.dart' show
+    Listener;
+import 'parser.dart' show
+    Parser;
+import 'token.dart' show
+    BeginGroupToken,
+    EOF_TOKEN,
+    ErrorToken,
+    Token;
 
 class PartialParser extends Parser {
   PartialParser(Listener listener) : super(listener);

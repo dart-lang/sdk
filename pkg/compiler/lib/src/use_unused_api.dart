@@ -46,8 +46,9 @@ import 'tree/tree.dart' as tree;
 import 'util/util.dart' as util;
 import 'world.dart';
 
-import 'scanner/scannerlib.dart' show
-    PartialClassElement,
+import 'scanner/class_element_parser.dart' show
+    PartialClassElement;
+import 'scanner/listener.dart' show
     PartialFunctionElement;
 
 class ElementVisitor extends elements_visitor.BaseElementVisitor {

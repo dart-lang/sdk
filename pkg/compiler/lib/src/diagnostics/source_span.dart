@@ -4,7 +4,7 @@
 
 library dart2js.diagnostics.source_span;
 
-import '../scanner/scannerlib.dart' show
+import '../scanner/token.dart' show
     Token;
 import '../tree/tree.dart' show
     Node;

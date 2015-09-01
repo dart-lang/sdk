@@ -67,7 +67,9 @@ import 'invariant.dart' show
     invariant;
 import 'spannable.dart' show
     CURRENT_ELEMENT_SPANNABLE;
-import '../scanner/scannerlib.dart';
+import '../scanner/token.dart' show
+    ErrorToken,
+    Token;
 
 const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
 

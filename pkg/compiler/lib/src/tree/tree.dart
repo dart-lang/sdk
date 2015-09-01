@@ -9,7 +9,13 @@ import 'dart:collection';
 import '../diagnostics/spannable.dart' show
     Spannable,
     SpannableAssertionFailure;
-import '../scanner/scannerlib.dart';
+import '../scanner/token.dart' show
+    BeginGroupToken,
+    FUNCTION_INFO,
+    IDENTIFIER_TOKEN,
+    KEYWORD_TOKEN,
+    PLUS_TOKEN,
+    Token;
 import '../util/util.dart';
 import '../util/characters.dart';
 

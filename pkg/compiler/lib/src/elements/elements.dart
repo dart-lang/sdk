@@ -21,7 +21,7 @@ import '../resolution/scope.dart' show
 import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../ordered_typeset.dart' show OrderedTypeSet;
-import '../scanner/scannerlib.dart' show
+import '../scanner/token.dart' show
     Token,
     isUserDefinableOperator,
     isMinusOperator;

@@ -2,7 +2,49 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner;
+library dart2js.parser.classes;
+
+import '../compiler.dart' show
+    Compiler;
+import '../diagnostics/diagnostic_listener.dart' show
+    DiagnosticListener;
+import '../diagnostics/messages.dart' show
+    MessageKind;
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../elements/elements.dart' show
+    CompilationUnitElement,
+    Element,
+    ElementKind,
+    Elements,
+    MetadataAnnotation,
+    STATE_NOT_STARTED,
+    STATE_DONE;
+import '../elements/modelx.dart' show
+    ClassElementX,
+    ElementX,
+    FieldElementX,
+    VariableList;
+import '../elements/visitor.dart' show
+    ElementVisitor;
+import '../tree/tree.dart';
+import '../util/util.dart' show
+    Link;
+
+import 'listener.dart' show
+    Listener,
+    NodeListener,
+    ParserError,
+    PartialConstructorElement,
+    PartialElement,
+    PartialFunctionElement,
+    PartialMetadataAnnotation;
+import 'parser.dart' show
+    Parser;
+import 'partial_parser.dart' show
+    PartialParser;
+import 'token.dart' show
+    Token;
 
 class ClassElementParser extends PartialParser {
   ClassElementParser(Listener listener) : super(listener);

@@ -21,14 +21,16 @@ import 'dart:async' show
 import 'dart:collection' show
     Queue;
 
-import 'package:compiler/src/scanner/scannerlib.dart' show
+import 'package:compiler/src/scanner/string_scanner.dart' show
+    StringScanner;
+
+import 'package:compiler/src/scanner/token.dart' show
     BeginGroupToken,
     EOF_TOKEN,
     ErrorToken,
     STRING_INTERPOLATION_IDENTIFIER_TOKEN,
     STRING_INTERPOLATION_TOKEN,
     STRING_TOKEN,
-    StringScanner,
     Token,
     UnmatchedToken,
     UnterminatedToken;

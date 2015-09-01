@@ -2,7 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner;
+library dart2js.tokens.keywords;
+
+import '../util/characters.dart' show
+    $a;
+
+import 'token.dart' show
+    AS_INFO,
+    IS_INFO,
+    KEYWORD_INFO,
+    PrecedenceInfo;
 
 /**
  * A keyword in the Dart programming language.

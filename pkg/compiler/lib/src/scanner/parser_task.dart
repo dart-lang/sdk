@@ -2,7 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner;
+library dart2js.parser.task;
+
+import '../common/tasks.dart' show
+    CompilerTask;
+import '../compiler.dart' show
+    Compiler;
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../elements/modelx.dart' show
+    ElementX;
+import '../tree/tree.dart' show
+    Node;
+
+import 'listener.dart' show
+    NodeListener,
+    ParserError;
+import 'parser.dart' show
+    Parser;
+import 'token.dart' show
+    Token;
 
 class ParserTask extends CompilerTask {
   ParserTask(Compiler compiler) : super(compiler);

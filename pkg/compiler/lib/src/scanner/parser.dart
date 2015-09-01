@@ -2,7 +2,62 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner;
+library dart2js.parser;
+
+import '../diagnostics/messages.dart' show
+    MessageKind;
+import '../util/characters.dart' show
+    $CLOSE_CURLY_BRACKET;
+import '../util/util.dart' show
+    Link;
+
+import 'keyword.dart' show
+    Keyword;
+import 'listener.dart' show
+    Listener;
+import 'token.dart' show
+    AS_INFO,
+    ASSIGNMENT_PRECEDENCE,
+    BAD_INPUT_TOKEN,
+    BeginGroupToken,
+    CASCADE_PRECEDENCE,
+    COMMA_TOKEN,
+    DOUBLE_TOKEN,
+    EOF_TOKEN,
+    EQ_TOKEN,
+    EQUALITY_PRECEDENCE,
+    FUNCTION_TOKEN,
+    GT_INFO,
+    GT_GT_INFO,
+    HASH_TOKEN,
+    HEXADECIMAL_TOKEN,
+    IDENTIFIER_TOKEN,
+    INT_TOKEN,
+    IS_INFO,
+    isUserDefinableOperator,
+    KEYWORD_TOKEN,
+    KeywordToken,
+    LT_TOKEN,
+    MINUS_MINUS_INFO,
+    OPEN_CURLY_BRACKET_TOKEN,
+    OPEN_PAREN_INFO,
+    OPEN_PAREN_TOKEN,
+    OPEN_SQUARE_BRACKET_INFO,
+    OPEN_SQUARE_BRACKET_TOKEN,
+    PERIOD_INFO,
+    PERIOD_TOKEN,
+    PLUS_PLUS_INFO,
+    PrecedenceInfo,
+    POSTFIX_PRECEDENCE,
+    QUESTION_INFO,
+    QUESTION_PERIOD_INFO,
+    RELATIONAL_PRECEDENCE,
+    SEMICOLON_TOKEN,
+    STRING_INTERPOLATION_IDENTIFIER_TOKEN,
+    STRING_INTERPOLATION_TOKEN,
+    STRING_TOKEN,
+    SymbolToken,
+    Token;
 
 class FormalParameterType {
   final String type;

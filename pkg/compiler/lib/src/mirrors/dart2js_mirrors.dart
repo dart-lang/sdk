@@ -20,7 +20,7 @@ import '../diagnostics/spannable.dart' show
 import '../elements/elements.dart';
 import '../resolution/scope.dart' show
     Scope;
-import '../scanner/scannerlib.dart';
+import '../scanner/token.dart';
 import '../script.dart';
 import '../tree/tree.dart';
 import '../util/util.dart'

@@ -101,12 +101,16 @@ import 'resolution/tree_elements.dart' show
     TreeElementMapping;
 import 'scanner/token_map.dart' show
     TokenMap;
-import 'scanner/scannerlib.dart' show
-    COMMENT_TOKEN,
+import 'scanner/diet_parser_task.dart' show
+    DietParserTask;
+import 'scanner/scanner_task.dart' show
+    ScannerTask;
+import 'scanner/parser_task.dart' show
     DietParserTask,
+    ParserTask;
+import 'scanner/token.dart' show
+    COMMENT_TOKEN,
     EOF_TOKEN,
-    ParserTask,
-    ScannerTask,
     StringToken,
     Token,
     TokenPair;

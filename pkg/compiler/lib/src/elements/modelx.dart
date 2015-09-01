@@ -35,7 +35,7 @@ import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../resolution/typedefs.dart' show
     TypedefCyclicVisitor;
-import '../scanner/scannerlib.dart' show
+import '../scanner/token.dart' show
     EOF_TOKEN,
     ErrorToken,
     Token;

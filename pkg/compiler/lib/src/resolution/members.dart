@@ -33,7 +33,7 @@ import '../elements/modelx.dart' show
     ParameterElementX,
     VariableElementX,
     VariableList;
-import '../scanner/scannerlib.dart' show
+import '../scanner/token.dart' show
     isUserDefinableOperator;
 import '../tree/tree.dart';
 import '../util/util.dart' show

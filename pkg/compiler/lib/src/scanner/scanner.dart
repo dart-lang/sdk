@@ -2,7 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner;
+library dart2js.scanner;
+
+import '../io/source_file.dart' show
+    SourceFile,
+    Utf8BytesSourceFile;
+import '../util/characters.dart';
+
+import 'keyword.dart' show
+    Keyword,
+    KeywordState;
+import 'string_scanner.dart' show
+    StringScanner;
+import 'token.dart';
+import 'utf8_bytes_scanner.dart' show
+    Utf8BytesScanner;
+
 
 abstract class Scanner {
   Token tokenize();

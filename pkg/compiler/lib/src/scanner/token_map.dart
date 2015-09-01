@@ -4,7 +4,7 @@
 
 library dart2js.tokens.token_map;
 
-import 'scannerlib.dart' show
+import 'token.dart' show
     Token;
 
 /**

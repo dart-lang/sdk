@@ -2,7 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner;
+library dart2js.tokens;
+
+import 'dart:convert' show
+    UTF8;
+import 'dart:collection' show
+    HashSet;
+
+import '../diagnostics/spannable.dart' show
+    Spannable,
+    SpannableAssertionFailure;
+import '../util/characters.dart';
+import '../util/util.dart' show
+    computeHashCode;
+
+import 'keyword.dart' show
+    Keyword;
 
 const int EOF_TOKEN = 0;
 

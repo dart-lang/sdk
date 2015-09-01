@@ -2,7 +2,71 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner;
+library dart2js.parser.listener;
+
+import '../compiler.dart' show
+    Compiler;
+import '../dart_types.dart' show DynamicType;
+import '../diagnostics/diagnostic_listener.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/messages.dart';
+import '../diagnostics/spannable.dart' show
+    Spannable,
+    SpannableAssertionFailure;
+import '../elements/elements.dart' show
+    CompilationUnitElement,
+    ConstructorElement,
+    Element,
+    ElementKind,
+    GetterElement,
+    LibraryElement,
+    MetadataAnnotation,
+    MethodElement,
+    SetterElement;
+import '../elements/modelx.dart' show
+    BaseFunctionElementX,
+    ConstructorElementX,
+    CompilationUnitElementX,
+    DeclarationSite,
+    ElementX,
+    EnumClassElementX,
+    FieldElementX,
+    GetterElementX,
+    LibraryElementX,
+    MetadataAnnotationX,
+    MethodElementX,
+    MixinApplicationElementX,
+    SetterElementX,
+    TypedefElementX,
+    VariableList;
+import '../native/native.dart' as native;
+import '../string_validator.dart' show
+    StringValidator;
+import '../tree/tree.dart';
+import '../util/util.dart' show
+    Link;
+
+import 'class_element_parser.dart' show
+    PartialClassElement;
+import 'keyword.dart' show
+    Keyword;
+import 'parser.dart' show
+    Parser;
+import 'token.dart' show
+    BAD_INPUT_INFO,
+    BadInputToken,
+    BeginGroupToken,
+    EOF_INFO,
+    EOF_TOKEN,
+    ErrorToken,
+    IDENTIFIER_INFO,
+    INDEX_INFO,
+    KeywordToken,
+    StringToken,
+    Token,
+    UnmatchedToken,
+    UnterminatedToken;
 
 const bool VERBOSE = false;
 
@@ -2292,8 +2356,7 @@ abstract class PartialFunctionMixin implements BaseFunctionElementX {
     this.endToken = endToken;
     _position = ElementX.findNameToken(
         beginToken,
-        modifiers.isFactory ||
-          identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR),
+        modifiers.isFactory || isGenerativeConstructor,
         name, enclosingElement.name);
   }
 

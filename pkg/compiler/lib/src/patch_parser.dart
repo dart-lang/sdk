@@ -112,7 +112,7 @@
  *   element.
  */
 
-library patchparser;
+library dart2js.patchparser;
 
 import 'dart:async';
 
@@ -135,7 +135,22 @@ import 'elements/modelx.dart' show
     SetterElementX;
 import 'library_loader.dart' show
     LibraryLoader;
-import 'scanner/scannerlib.dart';  // Scanner, Parsers, Listeners
+import 'scanner/class_element_parser.dart' show
+    MemberListener,
+    PartialClassElement;
+import 'scanner/listener.dart' show
+    ElementListener,
+    Listener,
+    ParserError;
+import 'scanner/partial_parser.dart' show
+    PartialParser;
+import 'scanner/parser.dart' show
+    Parser;
+import 'scanner/scanner.dart' show
+    Scanner;
+import 'scanner/token.dart' show
+    StringToken,
+    Token;
 import 'script.dart';
 import 'util/util.dart';
 

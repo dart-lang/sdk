@@ -2,7 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner;
+library dart2js.scanner.array_based;
+
+import '../io/source_file.dart' show
+    SourceFile;
+import '../util/characters.dart' show
+    $LF,
+    $STX;
+import '../util/util.dart' show
+    Link;
+
+import 'keyword.dart' show
+    Keyword;
+import 'scanner.dart' show
+    AbstractScanner;
+import 'token.dart' show
+    BeginGroupToken,
+    COMMENT_INFO,
+    ErrorToken,
+    EOF_INFO,
+    LT_TOKEN,
+    KeywordToken,
+    OPEN_CURLY_BRACKET_TOKEN,
+    PrecedenceInfo,
+    STRING_INTERPOLATION_TOKEN,
+    SymbolToken,
+    Token;
 
 abstract class ArrayBasedScanner extends AbstractScanner {
   ArrayBasedScanner(SourceFile file, bool includeComments)
