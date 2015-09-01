@@ -22,12 +22,12 @@ import '../../protocol_server.dart'
  * A contributor for calculating uri suggestions
  * for import and part directives.
  */
-class ImportUriContributor extends DartCompletionContributor {
-  _ImportUriSuggestionBuilder builder;
+class UriContributor extends DartCompletionContributor {
+  _UriSuggestionBuilder builder;
 
   @override
   bool computeFast(DartCompletionRequest request) {
-    builder = new _ImportUriSuggestionBuilder(request);
+    builder = new _UriSuggestionBuilder(request);
     return builder.computeFast(request.target.containingNode);
   }
 
@@ -37,10 +37,10 @@ class ImportUriContributor extends DartCompletionContributor {
   }
 }
 
-class _ImportUriSuggestionBuilder extends SimpleAstVisitor {
+class _UriSuggestionBuilder extends SimpleAstVisitor {
   final DartCompletionRequest request;
 
-  _ImportUriSuggestionBuilder(this.request);
+  _UriSuggestionBuilder(this.request);
 
   bool computeFast(AstNode node) {
     node.accept(this);
