@@ -20,6 +20,7 @@
     'http_impl.dart',
     'http_parser.dart',
     'http_session.dart',
+    'io_resource_info.dart',
     'io_sink.dart',
     'io_service.dart',
     'link.dart',
