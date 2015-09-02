@@ -4831,7 +4831,8 @@ bool TypeArguments::IsBounded() const {
 RawTypeArguments* TypeArguments::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    TrailPtr trail) const {
+    TrailPtr trail,
+    Heap::Space space) const {
   ASSERT(!IsInstantiated());
   if (!instantiator_type_arguments.IsNull() &&
       IsUninstantiatedIdentity() &&
@@ -4840,7 +4841,7 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
   }
   const intptr_t num_types = Length();
   TypeArguments& instantiated_array =
-      TypeArguments::Handle(TypeArguments::New(num_types, Heap::kNew));
+      TypeArguments::Handle(TypeArguments::New(num_types, space));
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
@@ -4853,7 +4854,8 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
     if (!type.IsNull() && !type.IsInstantiated()) {
       type = type.InstantiateFrom(instantiator_type_arguments,
                                   bound_error,
-                                  trail);
+                                  trail,
+                                  space);
     }
     instantiated_array.SetTypeAt(i, type);
   }
@@ -13786,7 +13788,8 @@ RawMegamorphicCache* MegamorphicCache::New() {
     result ^= raw;
   }
   const intptr_t capacity = kInitialCapacity;
-  const Array& buckets = Array::Handle(Array::New(kEntryLength * capacity));
+  const Array& buckets = Array::Handle(
+      Array::New(kEntryLength * capacity, Heap::kOld));
   ASSERT(Isolate::Current()->megamorphic_cache_table()->miss_handler() != NULL);
   const Function& handler = Function::Handle(
       Isolate::Current()->megamorphic_cache_table()->miss_handler());
@@ -14923,7 +14926,8 @@ bool AbstractType::IsRecursive() const {
 RawAbstractType* AbstractType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    TrailPtr trail) const {
+    TrailPtr trail,
+    Heap::Space space) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -15524,7 +15528,9 @@ bool Type::IsInstantiated(TrailPtr trail) const {
 RawAbstractType* Type::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    TrailPtr trail) const {
+    TrailPtr trail,
+    Heap::Space space) const {
+  Zone* zone = Thread::Current()->zone();
   ASSERT(IsFinalized() || IsBeingFinalized());
   ASSERT(!IsInstantiated());
   // Return the uninstantiated type unchanged if malformed. No copy needed.
@@ -15537,7 +15543,7 @@ RawAbstractType* Type::InstantiateFrom(
     return raw();
   }
   // If this type is recursive, we may already be instantiating it.
-  Type& instantiated_type = Type::Handle();
+  Type& instantiated_type = Type::Handle(zone);
   instantiated_type ^= OnlyBuddyInTrail(trail);
   if (!instantiated_type.IsNull()) {
     ASSERT(IsRecursive());
@@ -15546,19 +15552,20 @@ RawAbstractType* Type::InstantiateFrom(
   // Note that the type class has to be resolved at this time, but not
   // necessarily finalized yet. We may be checking bounds at compile time or
   // finalizing the type argument vector of a recursive type.
-  const Class& cls = Class::Handle(type_class());
+  const Class& cls = Class::Handle(zone, type_class());
 
   // This uninstantiated type is not modified, as it can be instantiated
   // with different instantiators. Allocate a new instantiated version of it.
-  instantiated_type = Type::New(cls, TypeArguments::Handle(), token_pos());
-  TypeArguments& type_arguments = TypeArguments::Handle(arguments());
+  instantiated_type = Type::New(cls, TypeArguments::Handle(zone), token_pos());
+  TypeArguments& type_arguments = TypeArguments::Handle(zone, arguments());
   ASSERT(type_arguments.Length() == cls.NumTypeArguments());
   if (type_arguments.IsRecursive()) {
     AddOnlyBuddyToTrail(&trail, instantiated_type);
   }
   type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
                                                   bound_error,
-                                                  trail);
+                                                  trail,
+                                                  space);
   instantiated_type.set_arguments(type_arguments);
   if (IsFinalized()) {
     instantiated_type.SetIsFinalized();
@@ -15965,7 +15972,8 @@ bool TypeRef::IsEquivalent(const Instance& other, TrailPtr trail) const {
 RawTypeRef* TypeRef::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    TrailPtr trail) const {
+    TrailPtr trail,
+    Heap::Space space) const {
   TypeRef& instantiated_type_ref = TypeRef::Handle();
   instantiated_type_ref ^= OnlyBuddyInTrail(trail);
   if (!instantiated_type_ref.IsNull()) {
@@ -15975,7 +15983,7 @@ RawTypeRef* TypeRef::InstantiateFrom(
   ASSERT(!ref_type.IsTypeRef());
   AbstractType& instantiated_ref_type = AbstractType::Handle();
   instantiated_ref_type = ref_type.InstantiateFrom(
-      instantiator_type_arguments, bound_error, trail);
+      instantiator_type_arguments, bound_error, trail, space);
   ASSERT(!instantiated_ref_type.IsTypeRef());
   instantiated_type_ref = TypeRef::New(instantiated_ref_type);
   AddOnlyBuddyToTrail(&trail, instantiated_type_ref);
@@ -16179,7 +16187,8 @@ void TypeParameter::set_bound(const AbstractType& value) const {
 RawAbstractType* TypeParameter::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    TrailPtr trail) const {
+    TrailPtr trail,
+    Heap::Space space) const {
   ASSERT(IsFinalized());
   if (instantiator_type_arguments.IsNull()) {
     return Type::DynamicType();
@@ -16442,14 +16451,16 @@ void BoundedType::set_type_parameter(const TypeParameter& value) const {
 RawAbstractType* BoundedType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     Error* bound_error,
-    TrailPtr trail) const {
+    TrailPtr trail,
+    Heap::Space space) const {
   ASSERT(IsFinalized());
   AbstractType& bounded_type = AbstractType::Handle(type());
   ASSERT(bounded_type.IsFinalized());
   if (!bounded_type.IsInstantiated()) {
     bounded_type = bounded_type.InstantiateFrom(instantiator_type_arguments,
                                                 bound_error,
-                                                trail);
+                                                trail,
+                                                space);
     // In case types of instantiator_type_arguments are not finalized, then
     // the instantiated bounded_type is not finalized either.
     // Note that instantiator_type_arguments must have the final length, though.
@@ -16463,7 +16474,8 @@ RawAbstractType* BoundedType::InstantiateFrom(
     if (!upper_bound.IsInstantiated()) {
       upper_bound = upper_bound.InstantiateFrom(instantiator_type_arguments,
                                                 bound_error,
-                                                trail);
+                                                trail,
+                                                space);
       // Instantiated upper_bound may not be finalized. See comment above.
     }
     if (bound_error->IsNull()) {
@@ -16854,7 +16866,8 @@ RawInteger* Integer::AsValidInteger() const {
 
 
 RawInteger* Integer::ArithmeticOp(Token::Kind operation,
-                                  const Integer& other) const {
+                                  const Integer& other,
+                                  Heap::Space space) const {
   // In 32-bit mode, the result of any operation between two Smis will fit in a
   // 32-bit signed result, except the product of two Smis, which will be 64-bit.
   // In 64-bit mode, the result of any operation between two Smis will fit in a
@@ -16864,14 +16877,15 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
     const intptr_t right_value = Smi::Value(Smi::RawCast(other.raw()));
     switch (operation) {
       case Token::kADD:
-        return Integer::New(left_value + right_value);
+        return Integer::New(left_value + right_value, space);
       case Token::kSUB:
-        return Integer::New(left_value - right_value);
+        return Integer::New(left_value - right_value, space);
       case Token::kMUL: {
         if (Smi::kBits < 32) {
           // In 32-bit mode, the product of two Smis fits in a 64-bit result.
           return Integer::New(static_cast<int64_t>(left_value) *
-                              static_cast<int64_t>(right_value));
+                              static_cast<int64_t>(right_value),
+                              space);
         } else {
           // In 64-bit mode, the product of two signed integers fits in a
           // 64-bit result if the sum of the highest bits of their absolute
@@ -16879,24 +16893,24 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
           ASSERT(sizeof(intptr_t) == sizeof(int64_t));
           if ((Utils::HighestBit(left_value) +
                Utils::HighestBit(right_value)) < 62) {
-            return Integer::New(left_value * right_value);
+            return Integer::New(left_value * right_value, space);
           }
         }
         // Perform a Bigint multiplication below.
         break;
       }
       case Token::kTRUNCDIV:
-        return Integer::New(left_value / right_value);
+        return Integer::New(left_value / right_value, space);
       case Token::kMOD: {
         const intptr_t remainder = left_value % right_value;
         if (remainder < 0) {
           if (right_value < 0) {
-            return Integer::New(remainder - right_value);
+            return Integer::New(remainder - right_value, space);
           } else {
-            return Integer::New(remainder + right_value);
+            return Integer::New(remainder + right_value, space);
           }
         }
-        return Integer::New(remainder);
+        return Integer::New(remainder, space);
       }
       default:
         UNIMPLEMENTED();
@@ -16909,27 +16923,27 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
       case Token::kADD: {
         if (((left_value < 0) != (right_value < 0)) ||
             ((left_value + right_value) < 0) == (left_value < 0)) {
-          return Integer::New(left_value + right_value);
+          return Integer::New(left_value + right_value, space);
         }
         break;
       }
       case Token::kSUB: {
         if (((left_value < 0) == (right_value < 0)) ||
             ((left_value - right_value) < 0) == (left_value < 0)) {
-          return Integer::New(left_value - right_value);
+          return Integer::New(left_value - right_value, space);
         }
         break;
       }
       case Token::kMUL: {
         if ((Utils::HighestBit(left_value) +
              Utils::HighestBit(right_value)) < 62) {
-          return Integer::New(left_value * right_value);
+          return Integer::New(left_value * right_value, space);
         }
         break;
       }
       case Token::kTRUNCDIV: {
         if ((left_value != Mint::kMinValue) || (right_value != -1)) {
-          return Integer::New(left_value / right_value);
+          return Integer::New(left_value / right_value, space);
         }
         break;
       }
@@ -16937,12 +16951,12 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
         const int64_t remainder = left_value % right_value;
         if (remainder < 0) {
           if (right_value < 0) {
-            return Integer::New(remainder - right_value);
+            return Integer::New(remainder - right_value, space);
           } else {
-            return Integer::New(remainder + right_value);
+            return Integer::New(remainder + right_value, space);
           }
         }
-        return Integer::New(remainder);
+        return Integer::New(remainder, space);
       }
       default:
         UNIMPLEMENTED();

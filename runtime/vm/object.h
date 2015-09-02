@@ -1650,7 +1650,8 @@ class TypeArguments : public Object {
   RawTypeArguments* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL) const;
+      TrailPtr trail = NULL,
+      Heap::Space space = Heap::kNew) const;
 
   // Runtime instantiation with canonicalization. Not to be used during type
   // finalization at compile time.
@@ -5006,7 +5007,8 @@ class AbstractType : public Instance {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL) const;
+      TrailPtr trail = NULL,
+      Heap::Space space = Heap::kNew) const;
 
   // Return a clone of this unfinalized type or the type itself if it is
   // already finalized. Apply recursively to type arguments, i.e. finalized
@@ -5179,7 +5181,8 @@ class Type : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* malformed_error,
-      TrailPtr trail = NULL) const;
+      TrailPtr trail = NULL,
+      Heap::Space space = Heap::kNew) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner,
@@ -5300,7 +5303,8 @@ class TypeRef : public AbstractType {
   virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL) const;
+      TrailPtr trail = NULL,
+      Heap::Space space = Heap::kNew) const;
   virtual RawTypeRef* CloneUninstantiated(
       const Class& new_owner,
       TrailPtr trail = NULL) const;
@@ -5380,7 +5384,8 @@ class TypeParameter : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL) const;
+      TrailPtr trail = NULL,
+      Heap::Space space = Heap::kNew) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner, TrailPtr trail = NULL) const;
@@ -5464,7 +5469,8 @@ class BoundedType : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL) const;
+      TrailPtr trail = NULL,
+      Heap::Space space = Heap::kNew) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner, TrailPtr trail = NULL) const;
@@ -5600,7 +5606,9 @@ class Integer : public Number {
   RawInteger* AsValidInteger() const;
 
   // Returns null to indicate that a bigint operation is required.
-  RawInteger* ArithmeticOp(Token::Kind operation, const Integer& other) const;
+  RawInteger* ArithmeticOp(Token::Kind operation,
+                           const Integer& other,
+                           Heap::Space space = Heap::kNew) const;
   RawInteger* BitOp(Token::Kind operation, const Integer& other) const;
 
   // Returns true if the Integer does not fit in a Javascript integer.

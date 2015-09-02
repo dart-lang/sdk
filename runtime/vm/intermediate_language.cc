@@ -1630,7 +1630,9 @@ RawInteger* UnaryIntegerOpInstr::Evaluate(const Integer& value) const {
 
   switch (op_kind()) {
     case Token::kNEGATE:
-      result = value.ArithmeticOp(Token::kMUL, Smi::Handle(Smi::New(-1)));
+      result = value.ArithmeticOp(Token::kMUL,
+                                  Smi::Handle(Smi::New(-1)),
+                                  Heap::kOld);
       break;
 
     case Token::kBIT_NOT:
@@ -1675,7 +1677,7 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
     case Token::kADD:
     case Token::kSUB:
     case Token::kMUL: {
-      result = left.ArithmeticOp(op_kind(), right);
+      result = left.ArithmeticOp(op_kind(), right, Heap::kOld);
       break;
     }
     case Token::kSHL:

@@ -2790,13 +2790,14 @@ void Parser::ParseConstructorRedirection(const Class& cls,
   const intptr_t call_pos = TokenPos();
   ConsumeToken();
   String& ctor_name = String::Handle(Z, cls.Name());
-
-  ctor_name = String::Concat(ctor_name, Symbols::Dot());
+  GrowableHandlePtrArray<const String> pieces(Z, 3);
+  pieces.Add(ctor_name);
+  pieces.Add(Symbols::Dot());
   if (CurrentToken() == Token::kPERIOD) {
     ConsumeToken();
-    ctor_name = String::Concat(ctor_name,
-                               *ExpectIdentifier("constructor name expected"));
+    pieces.Add(*ExpectIdentifier("constructor name expected"));
   }
+  ctor_name = Symbols::FromConcatAll(pieces);
   CheckToken(Token::kLPAREN, "parameter list expected");
 
   ArgumentListNode* arguments = new ArgumentListNode(call_pos);
