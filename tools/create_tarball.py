@@ -41,6 +41,7 @@ versiondir = ''
 
 # Ignore Git/SVN files, checked-in binaries, backup files, etc..
 ignoredPaths = ['tools/testing/bin',
+                'tools/sdks',
                 'third_party/7zip', 'third_party/android_tools',
                 'third_party/clang', 'third_party/d8',
                 'third_party/firefox_jsshell']
