@@ -5,6 +5,7 @@
 import "package:expect/expect.dart";
 import 'package:compiler/src/scanner/string_scanner.dart';
 import 'package:compiler/src/tokens/token.dart';
+import 'package:compiler/src/tokens/token_constants.dart';
 
 Token scan(String text) =>
     new StringScanner.fromString(text, includeComments: true).tokenize();

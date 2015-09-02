@@ -26,14 +26,16 @@ import 'package:compiler/src/scanner/string_scanner.dart' show
 
 import 'package:compiler/src/tokens/token.dart' show
     BeginGroupToken,
-    EOF_TOKEN,
     ErrorToken,
-    STRING_INTERPOLATION_IDENTIFIER_TOKEN,
-    STRING_INTERPOLATION_TOKEN,
-    STRING_TOKEN,
     Token,
     UnmatchedToken,
     UnterminatedToken;
+
+import 'package:compiler/src/tokens/token_constants.dart' show
+    EOF_TOKEN,
+    STRING_INTERPOLATION_IDENTIFIER_TOKEN,
+    STRING_INTERPOLATION_TOKEN,
+    STRING_TOKEN;
 
 import 'package:compiler/src/io/source_file.dart' show
     StringSourceFile;

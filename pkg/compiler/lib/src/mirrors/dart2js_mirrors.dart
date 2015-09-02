@@ -22,6 +22,7 @@ import '../resolution/scope.dart' show
     Scope;
 import '../script.dart';
 import '../tokens/token.dart';
+import '../tokens/token_constants.dart' as Tokens;
 import '../tree/tree.dart';
 import '../util/util.dart'
     show Link,
@@ -214,7 +215,7 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
   String toString() => _element.toString();
 
   void _appendCommentTokens(Token commentToken) {
-    while (commentToken != null && commentToken.kind == COMMENT_TOKEN) {
+    while (commentToken != null && commentToken.kind == Tokens.COMMENT_TOKEN) {
       _metadata.add(new Dart2JsCommentInstanceMirror(
           mirrorSystem, commentToken.value));
       commentToken = commentToken.next;

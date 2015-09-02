@@ -852,7 +852,9 @@ class LiteralInt extends Literal<int> {
   int get value {
     try {
       Token valueToken = token;
-      if (identical(valueToken.kind, PLUS_TOKEN)) valueToken = valueToken.next;
+      if (identical(valueToken.kind, Tokens.PLUS_TOKEN)) {
+        valueToken = valueToken.next;
+      }
       return int.parse(valueToken.value);
     } on FormatException catch (ex) {
       (this.handler)(token, ex);
@@ -871,7 +873,9 @@ class LiteralDouble extends Literal<double> {
   double get value {
     try {
       Token valueToken = token;
-      if (identical(valueToken.kind, PLUS_TOKEN)) valueToken = valueToken.next;
+      if (identical(valueToken.kind, Tokens.PLUS_TOKEN)) {
+        valueToken = valueToken.next;
+      }
       return double.parse(valueToken.value);
     } on FormatException catch (ex) {
       (this.handler)(token, ex);
@@ -1087,7 +1091,7 @@ class Return extends Statement {
   bool get hasExpression => expression != null;
 
   /// `true` if this return is of the form `=> e;`.
-  bool get isArrowBody => beginToken.info == FUNCTION_INFO;
+  bool get isArrowBody => beginToken.info == Precedence.FUNCTION_INFO;
 
   accept(Visitor visitor) => visitor.visitReturn(this);
 

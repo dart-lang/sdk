@@ -263,7 +263,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       if (token.stringValue != 'extends') return null;
       token = token.next;
       Token id = token;
-      while (token.kind != EOF_TOKEN) {
+      while (token.kind != Tokens.EOF_TOKEN) {
         token = token.next;
         if (token.stringValue != '.') break;
         token = token.next;

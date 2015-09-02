@@ -10,7 +10,10 @@ import '../io/source_file.dart' show
 import '../tokens/keyword.dart' show
     Keyword,
     KeywordState;
+import '../tokens/precedence.dart';
+import '../tokens/precedence_constants.dart';
 import '../tokens/token.dart';
+import '../tokens/token_constants.dart';
 import '../util/characters.dart';
 
 import 'string_scanner.dart' show

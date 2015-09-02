@@ -33,17 +33,20 @@ import '../js_emitter/js_emitter.dart' show
     CodeEmitterTask,
     NativeEmitter;
 import '../parser/listener.dart' show
-    ElementListener,
-    Listener,
+    Listener;
+import '../parser/element_listener.dart' show
+    ElementListener;
+import '../parser/partial_elements.dart' show
     PartialMetadataAnnotation;
 import '../resolution/members.dart' show
     ResolverVisitor;
 import '../ssa/ssa.dart';
 import '../tokens/token.dart' show
     BeginGroupToken,
-    EOF_TOKEN,
-    STRING_TOKEN,
     Token;
+import '../tokens/token_constants.dart' as Tokens show
+    EOF_TOKEN,
+    STRING_TOKEN;
 import '../tree/tree.dart';
 import '../universe/universe.dart' show SideEffects;
 import '../util/util.dart';

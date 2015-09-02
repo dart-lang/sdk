@@ -10,8 +10,9 @@ import 'dart:convert' show
 
 import '../io/source_file.dart' show
     SourceFile;
+import '../tokens/precedence.dart' show
+    PrecedenceInfo;
 import '../tokens/token.dart' show
-    PrecedenceInfo,
     StringToken,
     Token;
 

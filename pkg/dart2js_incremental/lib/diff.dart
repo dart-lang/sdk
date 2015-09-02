@@ -19,18 +19,18 @@ import 'package:compiler/src/elements/modelx.dart' as modelx;
 import 'package:compiler/src/elements/modelx.dart' show
     DeclarationSite;
 
-import 'package:compiler/src/parser/class_element_parser.dart' show
-    PartialClassElement;
-
-import 'package:compiler/src/parser/listener.dart' show
+import 'package:compiler/src/parser/partial_elements.dart' show
+    PartialClassElement,
     PartialElement;
 
 import 'package:compiler/src/tokens/token.dart' show
-    EOF_TOKEN,
     ErrorToken,
-    IDENTIFIER_TOKEN,
-    KEYWORD_TOKEN,
     Token;
+
+import 'package:compiler/src/tokens/token_constants.dart' show
+    EOF_TOKEN,
+    IDENTIFIER_TOKEN,
+    KEYWORD_TOKEN;
 
 class Difference {
   final DeclarationSite before;

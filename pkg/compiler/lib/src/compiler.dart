@@ -115,11 +115,12 @@ import 'ssa/ssa.dart' show
 import 'tracer.dart' show
     Tracer;
 import 'tokens/token.dart' show
-    COMMENT_TOKEN,
-    EOF_TOKEN,
     StringToken,
     Token,
     TokenPair;
+import 'tokens/token_constants.dart' as Tokens show
+    COMMENT_TOKEN,
+    EOF_TOKEN;
 import 'tokens/token_map.dart' show
     TokenMap;
 import 'tree/tree.dart' show
@@ -1524,10 +1525,10 @@ abstract class Compiler implements DiagnosticListener {
   Token processAndStripComments(Token currentToken) {
     Token firstToken = currentToken;
     Token prevToken;
-    while (currentToken.kind != EOF_TOKEN) {
-      if (identical(currentToken.kind, COMMENT_TOKEN)) {
+    while (currentToken.kind != Tokens.EOF_TOKEN) {
+      if (identical(currentToken.kind, Tokens.COMMENT_TOKEN)) {
         Token firstCommentToken = currentToken;
-        while (identical(currentToken.kind, COMMENT_TOKEN)) {
+        while (identical(currentToken.kind, Tokens.COMMENT_TOKEN)) {
           currentToken = currentToken.next;
         }
         commentMap[currentToken] = firstCommentToken;

@@ -13,7 +13,7 @@ void checkAllowedLibrary(ElementListener listener, Token token) {
 Token handleNativeBlockToSkip(Listener listener, Token token) {
   checkAllowedLibrary(listener, token);
   token = token.next;
-  if (identical(token.kind, STRING_TOKEN)) {
+  if (identical(token.kind, Tokens.STRING_TOKEN)) {
     token = token.next;
   }
   if (identical(token.stringValue, '{')) {
@@ -29,7 +29,7 @@ Token handleNativeFunctionBody(ElementListener listener, Token token) {
   listener.beginReturnStatement(token);
   token = token.next;
   bool hasExpression = false;
-  if (identical(token.kind, STRING_TOKEN)) {
+  if (identical(token.kind, Tokens.STRING_TOKEN)) {
     hasExpression = true;
     listener.beginLiteralString(token);
     listener.endLiteralString(0);

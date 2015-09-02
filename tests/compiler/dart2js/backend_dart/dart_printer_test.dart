@@ -17,6 +17,7 @@ import 'package:compiler/src/parser/listener.dart';
 import 'package:compiler/src/parser/parser.dart';
 import 'package:compiler/src/scanner/scanner.dart';
 import 'package:compiler/src/tokens/token.dart';
+import 'package:compiler/src/tokens/token_constants.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/string_validator.dart';
 import 'package:compiler/src/tree/tree.dart' show DartString;

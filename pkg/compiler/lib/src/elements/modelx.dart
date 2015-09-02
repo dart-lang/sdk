@@ -37,9 +37,10 @@ import '../resolution/typedefs.dart' show
     TypedefCyclicVisitor;
 import '../script.dart';
 import '../tokens/token.dart' show
-    EOF_TOKEN,
     ErrorToken,
     Token;
+import '../tokens/token_constants.dart' as Tokens show
+    EOF_TOKEN;
 import '../tree/tree.dart';
 import '../util/util.dart';
 
@@ -138,7 +139,7 @@ abstract class ElementX extends Element with ElementCommon {
     String needle = isConstructor ? enclosingClassName : name;
     // The unary '-' operator has a special element name (specified).
     if (needle == 'unary-') needle = '-';
-    for (Token t = token; EOF_TOKEN != t.kind; t = t.next) {
+    for (Token t = token; Tokens.EOF_TOKEN != t.kind; t = t.next) {
       if (t is !ErrorToken && needle == t.value) return t;
     }
     return token;

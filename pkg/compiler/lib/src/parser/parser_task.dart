@@ -18,8 +18,9 @@ import '../tree/tree.dart' show
     Node;
 
 import 'listener.dart' show
-    NodeListener,
     ParserError;
+import 'node_listener.dart' show
+    NodeListener;
 import 'parser.dart' show
     Parser;
 

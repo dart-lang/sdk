@@ -8,11 +8,13 @@ import "package:expect/expect.dart";
 
 import "package:compiler/src/elements/elements.dart";
 import "package:compiler/src/tree/tree.dart";
-import "package:compiler/src/parser/listener.dart";
+import "package:compiler/src/parser/element_listener.dart";
+import "package:compiler/src/parser/node_listener.dart";
 import "package:compiler/src/parser/parser.dart";
 import "package:compiler/src/parser/partial_parser.dart";
 import "package:compiler/src/scanner/string_scanner.dart";
 import "package:compiler/src/tokens/token.dart";
+import "package:compiler/src/tokens/token_constants.dart";
 import "package:compiler/src/io/source_file.dart";
 import "package:compiler/src/util/util.dart";
 
@@ -28,9 +30,12 @@ import "package:compiler/src/script.dart";
 
 export "package:compiler/src/diagnostics/diagnostic_listener.dart";
 export 'package:compiler/src/parser/listener.dart';
+export 'package:compiler/src/parser/node_listener.dart';
 export 'package:compiler/src/parser/parser.dart';
 export 'package:compiler/src/parser/partial_parser.dart';
+export 'package:compiler/src/parser/partial_elements.dart';
 export "package:compiler/src/tokens/token.dart";
+export "package:compiler/src/tokens/token_constants.dart";
 
 class LoggerCanceler implements DiagnosticListener {
   void log(message) {

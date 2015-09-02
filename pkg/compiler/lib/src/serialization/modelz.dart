@@ -35,9 +35,10 @@ import '../resolution/scope.dart' show
     Scope;
 import '../script.dart';
 import '../serialization/constant_serialization.dart';
-import '../tokens/token.dart' show
-    Token,
+import '../tokens/precedence_constants.dart' as Precedence show
     SEMICOLON_INFO;
+import '../tokens/token.dart' show
+    Token;
 import '../tree/tree.dart';
 import '../util/util.dart' show
     Link,
@@ -484,7 +485,8 @@ class LibraryElementZ extends DeserializedElementZ
           Import tag = new Import(
               builder.keywordToken('import'),
               builder.literalString(library.canonicalUri.toString())
-                  ..getEndToken().next = builder.symbolToken(SEMICOLON_INFO),
+                  ..getEndToken().next =
+                      builder.symbolToken(Precedence.SEMICOLON_INFO),
               null, // prefix
               null, // combinators
               null, // metadata
@@ -494,7 +496,8 @@ class LibraryElementZ extends DeserializedElementZ
           Export tag = new Export(
               builder.keywordToken('export'),
               builder.literalString(library.canonicalUri.toString())
-                  ..getEndToken().next = builder.symbolToken(SEMICOLON_INFO),
+                  ..getEndToken().next =
+                      builder.symbolToken(Precedence.SEMICOLON_INFO),
               null,  // combinators
               null); // metadata
           _libraryDependencies[tag] = library;

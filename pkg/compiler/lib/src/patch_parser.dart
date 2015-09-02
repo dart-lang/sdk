@@ -135,13 +135,15 @@ import 'elements/modelx.dart' show
     SetterElementX;
 import 'library_loader.dart' show
     LibraryLoader;
-import 'parser/class_element_parser.dart' show
-    MemberListener,
-    PartialClassElement;
 import 'parser/listener.dart' show
-    ElementListener,
     Listener,
     ParserError;
+import 'parser/element_listener.dart' show
+    ElementListener;
+import 'parser/member_listener.dart' show
+    MemberListener;
+import 'parser/partial_elements.dart' show
+  PartialClassElement;
 import 'parser/partial_parser.dart' show
     PartialParser;
 import 'parser/parser.dart' show

@@ -16,8 +16,9 @@ import '../tokens/token.dart' show
     Token;
 
 import 'listener.dart' show
-    ElementListener,
     ParserError;
+import 'element_listener.dart' show
+    ElementListener;
 import 'partial_parser.dart' show
     PartialParser;
 
