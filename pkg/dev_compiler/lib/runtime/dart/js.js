@@ -356,7 +356,7 @@ dart_library.library('dart/js', null, /* Imports */[
     } else if (o instanceof Date) {
       let ms = o.getTime();
       return new core.DateTime.fromMillisecondsSinceEpoch(ms);
-    } else if (dart.is(o, _DartObject)) {
+    } else if (dart.is(o, _DartObject) && dart.jsobject != dart.realRuntimeType(o)) {
       return dart.dload(o, _dartObj);
     } else {
       return _putIfAbsent(exports._dartProxies, o, _wrapToDart);

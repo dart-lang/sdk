@@ -662,8 +662,9 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
       if (e?.name == generic[1]) {
         if ((generic[0] is String &&
                 element?.library.source.uri.toString() == generic[0]) ||
-            (targetType == generic[0] ||
-                targetType != null && targetType.isSubtypeOf(generic[0]))) {
+            (generic[0] is DartType &&
+                targetType != null &&
+                targetType.isSubtypeOf(generic[0]))) {
           if (arguments.length == generic[2]) {
             return Function.apply(
                 generic[3], arguments.map((arg) => arg.staticType).toList());
