@@ -73,7 +73,19 @@ static bool has_compile_all = false;
 
 // Global flag that is used to indicate that we want to compile all the
 // dart functions before running main and not compile anything thereafter.
-static bool has_precompile = false;
+static bool has_gen_precompiled_snapshot = false;
+
+
+// Global flag that is used to indicate that we want to run from a precompiled
+// snapshot.
+static bool has_run_precompiled_snapshot = false;
+
+
+extern const char* kPrecompiledLibraryName;
+extern const char* kPrecompiledSymbolName;
+static const char* kPrecompiledVmIsolateName = "precompiled.vmisolate";
+static const char* kPrecompiledIsolateName = "precompiled.isolate";
+static const char* kPrecompiledInstructionsName = "precompiled.instructions";
 
 
 // Global flag that is used to indicate that we want to trace resolution of
@@ -292,13 +304,33 @@ static bool ProcessCompileAllOption(const char* arg,
 }
 
 
-static bool ProcessPrecompileOption(const char* arg,
-                                    CommandLineOptions* vm_options) {
+static bool ProcessGenPrecompiledSnapshotOption(
+    const char* arg,
+    CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
   if (*arg != '\0') {
     return false;
   }
-  has_precompile = true;
+  // Ensure that we are not already running using a full snapshot.
+  if (isolate_snapshot_buffer != NULL) {
+    Log::PrintErr("Precompiled snapshots must be generated with"
+                  " dart_no_snapshot.");
+    return false;
+  }
+  has_gen_precompiled_snapshot = true;
+  vm_options->AddArgument("--precompile");
+  return true;
+}
+
+
+static bool ProcessRunPrecompiledSnapshotOption(
+    const char* arg,
+    CommandLineOptions* vm_options) {
+  ASSERT(arg != NULL);
+  if (*arg != '\0') {
+    return false;
+  }
+  has_run_precompiled_snapshot = true;
   vm_options->AddArgument("--precompile");
   return true;
 }
@@ -323,7 +355,7 @@ static bool ProcessDebugOption(const char* option_value,
 static bool ProcessGenScriptSnapshotOption(const char* filename,
                                            CommandLineOptions* vm_options) {
   if (filename != NULL && strlen(filename) != 0) {
-    // Ensure that are already running using a full snapshot.
+    // Ensure that we are already running using a full snapshot.
     if (isolate_snapshot_buffer == NULL) {
       Log::PrintErr("Script snapshots cannot be generated in this version of"
                     " dart\n");
@@ -414,7 +446,8 @@ static struct {
   // VM specific options to the standalone dart program.
   { "--break-at=", ProcessBreakpointOption },
   { "--compile_all", ProcessCompileAllOption },
-  { "--precompile", ProcessPrecompileOption },
+  { "--gen-precompiled-snapshot", ProcessGenPrecompiledSnapshotOption },
+  { "--run-precompiled-snapshot", ProcessRunPrecompiledSnapshotOption },
   { "--debug", ProcessDebugOption },
   { "--snapshot=", ProcessGenScriptSnapshotOption },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
@@ -648,7 +681,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
       *error = strdup(VmService::GetErrorMessage());
       return NULL;
     }
-    if (has_precompile) {
+    if (has_gen_precompiled_snapshot) {
       result = Dart_Precompile();
       CHECK_RESULT(result);
     } else if (has_compile_all) {
@@ -962,6 +995,50 @@ static void ServiceStreamCancelCallback(const char* stream_id) {
 }
 
 
+static void WriteSnapshotFile(const char* filename,
+                              const uint8_t* buffer,
+                              const intptr_t size) {
+  File* file = File::Open(filename, File::kWriteTruncate);
+  ASSERT(file != NULL);
+  if (!file->WriteFully(buffer, size)) {
+    Log::PrintErr("Error: Failed to write snapshot file.\n\n");
+  }
+  delete file;
+}
+
+
+static void ReadSnapshotFile(const char* filename,
+                             const uint8_t** buffer) {
+  void* file = DartUtils::OpenFile(filename, false);
+  if (file == NULL) {
+    Log::PrintErr("Error: Failed to open '%s'.\n\n", filename);
+    exit(kErrorExitCode);
+  }
+  intptr_t len = -1;
+  DartUtils::ReadFile(buffer, &len, file);
+  if (*buffer == NULL || len == -1) {
+    Log::PrintErr("Error: Failed to read '%s'.\n\n", filename);
+    exit(kErrorExitCode);
+  }
+  DartUtils::CloseFile(file);
+}
+
+
+static void* LoadLibrarySymbol(const char* libname, const char* symname) {
+  void* library = Extensions::LoadExtensionLibrary(libname);
+  if (library == NULL) {
+    Log::PrintErr("Error: Failed to load library '%s'.\n\n", libname);
+    exit(kErrorExitCode);
+  }
+  void* symbol = Extensions::ResolveSymbol(library, symname);
+  if (symbol == NULL) {
+    Log::PrintErr("Failed to load symbol '%s'\n", symname);
+    exit(kErrorExitCode);
+  }
+  return symbol;
+}
+
+
 void main(int argc, char** argv) {
   char* script_name;
   const int EXTRA_VM_ARGUMENTS = 2;
@@ -1035,8 +1112,16 @@ void main(int argc, char** argv) {
     DebuggerConnectionHandler::InitForVmService();
   }
 
+  const uint8_t* instructions_snapshot = NULL;
+  if (has_run_precompiled_snapshot) {
+    instructions_snapshot = reinterpret_cast<const uint8_t*>(
+        LoadLibrarySymbol(kPrecompiledLibraryName, kPrecompiledSymbolName));
+    ReadSnapshotFile(kPrecompiledVmIsolateName, &vm_isolate_snapshot_buffer);
+    ReadSnapshotFile(kPrecompiledIsolateName, &isolate_snapshot_buffer);
+  }
+
   // Initialize the Dart VM.
-  if (!Dart_Initialize(vm_isolate_snapshot_buffer, NULL,
+  if (!Dart_Initialize(vm_isolate_snapshot_buffer, instructions_snapshot,
                        CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
                        DartUtils::OpenFile,
                        DartUtils::ReadFile,
@@ -1120,9 +1205,32 @@ void main(int argc, char** argv) {
     ASSERT(!Dart_IsError(builtin_lib));
     result = Dart_LibraryImportLibrary(builtin_lib, root_lib, Dart_Null());
 
-    if (has_precompile) {
+    if (has_gen_precompiled_snapshot) {
       result = Dart_Precompile();
       DartExitOnError(result);
+
+      uint8_t* vm_isolate_buffer = NULL;
+      intptr_t vm_isolate_size = 0;
+      uint8_t* isolate_buffer = NULL;
+      intptr_t isolate_size = 0;
+      uint8_t* instructions_buffer = NULL;
+      intptr_t instructions_size = 0;
+      result = Dart_CreatePrecompiledSnapshot(&vm_isolate_buffer,
+                                              &vm_isolate_size,
+                                              &isolate_buffer,
+                                              &isolate_size,
+                                              &instructions_buffer,
+                                              &instructions_size);
+      DartExitOnError(result);
+      WriteSnapshotFile(kPrecompiledVmIsolateName,
+                        vm_isolate_buffer,
+                        vm_isolate_size);
+      WriteSnapshotFile(kPrecompiledIsolateName,
+                        isolate_buffer,
+                        isolate_size);
+      WriteSnapshotFile(kPrecompiledInstructionsName,
+                        instructions_buffer,
+                        instructions_size);
     } else if (has_compile_all) {
       result = Dart_CompileAll();
       DartExitOnError(result);

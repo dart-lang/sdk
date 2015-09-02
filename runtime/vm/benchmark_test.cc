@@ -501,8 +501,10 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
   // Write snapshot with object content.
   FullSnapshotWriter writer(&vm_isolate_snapshot_buffer,
                             &isolate_snapshot_buffer,
+                            NULL, /* instructions_snapshot_buffer */
                             &malloc_allocator,
-                            false /* snapshot_code */);
+                            false, /* snapshot_code */
+                            true /* vm_isolate_is_symbolic */);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(isolate_snapshot_buffer);
   ASSERT(snapshot->kind() == Snapshot::kFull);
@@ -536,8 +538,10 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
   // Write snapshot with object content.
   FullSnapshotWriter writer(&vm_isolate_snapshot_buffer,
                             &isolate_snapshot_buffer,
+                            NULL, /* instructions_snapshot_buffer */
                             &malloc_allocator,
-                            false /* snapshot_code */);
+                            false, /* snapshot_code */
+                            true /* vm_isolate_is_symbolic */);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(isolate_snapshot_buffer);
   ASSERT(snapshot->kind() == Snapshot::kFull);

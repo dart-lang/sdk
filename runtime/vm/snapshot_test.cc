@@ -835,8 +835,10 @@ class TestSnapshotWriter : public SnapshotWriter {
                        alloc,
                        kInitialSize,
                        &forward_list_,
+                       NULL, /* test_writer */
                        true, /* can_send_any_object */
-                       false /* snapshot_code */),
+                       false, /* snapshot_code */
+                       true /* vm_isolate_is_symbolic */),
         forward_list_(kMaxPredefinedObjectIds) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
@@ -1180,8 +1182,10 @@ UNIT_TEST_CASE(FullSnapshot) {
     {
       FullSnapshotWriter writer(NULL,
                                 &isolate_snapshot_buffer,
+                                NULL, /* instructions_snapshot_buffer */
                                 &malloc_allocator,
-                                false /* snapshot_code */);
+                                false, /* snapshot_code */
+                                true);
       writer.WriteFullSnapshot();
     }
   }
@@ -1239,8 +1243,10 @@ UNIT_TEST_CASE(FullSnapshot1) {
     {
       FullSnapshotWriter writer(NULL,
                                 &isolate_snapshot_buffer,
+                                NULL, /* instructions_snapshot_buffer */
                                 &malloc_allocator,
-                                false /* snapshot_code */);
+                                false, /* snapshot_code */
+                                true /* vm_isolate_is_symbolic */);
       writer.WriteFullSnapshot();
     }
 

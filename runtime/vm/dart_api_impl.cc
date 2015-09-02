@@ -27,6 +27,7 @@
 #include "vm/object_store.h"
 #include "vm/os_thread.h"
 #include "vm/port.h"
+#include "vm/precompiler.h"
 #include "vm/profiler.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
@@ -1528,8 +1529,10 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
   I->object_store()->set_root_library(Library::Handle(Z));
   FullSnapshotWriter writer(vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer,
+                            NULL, /* instructions_snapshot_buffer */
                             ApiReallocate,
-                            false /* snapshot_code */);
+                            false, /* snapshot_code */
+                            true /* vm_isolate_is_symbolic */);
   writer.WriteFullSnapshot();
   *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
   *isolate_snapshot_size = writer.IsolateSnapshotSize();
@@ -5864,6 +5867,75 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
     event->AsyncEnd(label, async_id);
     event->Complete();
   }
+  return Api::Success();
+}
+
+
+static void Precompile(Isolate* isolate, Dart_Handle* result) {
+  ASSERT(isolate != NULL);
+  const Error& error = Error::Handle(isolate, Precompiler::CompileAll());
+  if (error.IsNull()) {
+    *result = Api::Success();
+  } else {
+    *result = Api::NewHandle(isolate, error.raw());
+  }
+}
+
+
+DART_EXPORT Dart_Handle Dart_Precompile() {
+  DARTSCOPE(Thread::Current());
+  Dart_Handle result = Api::CheckAndFinalizePendingClasses(I);
+  if (::Dart_IsError(result)) {
+    return result;
+  }
+  CHECK_CALLBACK_STATE(I);
+  Precompile(I, &result);
+  return result;
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
+    uint8_t** vm_isolate_snapshot_buffer,
+    intptr_t* vm_isolate_snapshot_size,
+    uint8_t** isolate_snapshot_buffer,
+    intptr_t* isolate_snapshot_size,
+    uint8_t** instructions_snapshot_buffer,
+    intptr_t* instructions_snapshot_size) {
+  ASSERT(FLAG_load_deferred_eagerly);
+  DARTSCOPE(Thread::Current());
+  if (vm_isolate_snapshot_buffer == NULL) {
+    RETURN_NULL_ERROR(vm_isolate_snapshot_buffer);
+  }
+  if (vm_isolate_snapshot_size == NULL) {
+    RETURN_NULL_ERROR(vm_isolate_snapshot_size);
+  }
+  if (isolate_snapshot_buffer == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_buffer);
+  }
+  if (isolate_snapshot_size == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_size);
+  }
+  if (instructions_snapshot_buffer == NULL) {
+    RETURN_NULL_ERROR(instructions_snapshot_buffer);
+  }
+  if (instructions_snapshot_size == NULL) {
+    RETURN_NULL_ERROR(instructions_snapshot_size);
+  }
+  // Finalize all classes if needed.
+  Dart_Handle state = Api::CheckAndFinalizePendingClasses(I);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
+  I->heap()->CollectAllGarbage();
+  PrecompiledSnapshotWriter writer(vm_isolate_snapshot_buffer,
+                                   isolate_snapshot_buffer,
+                                   instructions_snapshot_buffer,
+                                   ApiReallocate);
+  writer.WriteFullSnapshot();
+  *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
+  *isolate_snapshot_size = writer.IsolateSnapshotSize();
+  *instructions_snapshot_size = writer.InstructionsSnapshotSize();
+
   return Api::Success();
 }
 

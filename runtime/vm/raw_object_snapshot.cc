@@ -26,6 +26,18 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 #define OFFSET_OF_FROM(obj)                                                    \
   obj.raw()->from() - reinterpret_cast<RawObject**>(obj.raw()->ptr())
 
+// TODO(18854): Need to assert No GC can happen here, even though
+// allocations may happen.
+#define READ_OBJECT_FIELDS(object, from, to, as_reference)                     \
+  intptr_t num_flds = (to) - (from);                                           \
+  intptr_t from_offset = OFFSET_OF_FROM(object);                               \
+  for (intptr_t i = 0; i <= num_flds; i++) {                                   \
+    (*reader->PassiveObjectHandle()) =                                         \
+        reader->ReadObjectImpl(as_reference, object_id, (i + from_offset));    \
+    object.StorePointer(((from) + i),                                          \
+                        reader->PassiveObjectHandle()->raw());                 \
+  }
+
 RawClass* Class::ReadFrom(SnapshotReader* reader,
                           intptr_t object_id,
                           intptr_t tags,
@@ -66,16 +78,8 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     cls.set_state_bits(reader->Read<uint16_t>());
 
     // Set all the object fields.
-    // TODO(5411462): Need to assert No GC can happen here, even though
-    // allocations may happen.
-    intptr_t num_flds = (cls.raw()->to() - cls.raw()->from());
-    intptr_t from_offset = OFFSET_OF_FROM(cls);
-    for (intptr_t i = 0; i <= num_flds; i++) {
-      (*reader->PassiveObjectHandle()) =
-          reader->ReadObjectImpl(kAsReference, object_id, (i + from_offset));
-      cls.StorePointer((cls.raw()->from() + i),
-                       reader->PassiveObjectHandle()->raw());
-    }
+    READ_OBJECT_FIELDS(cls, cls.raw()->from(), cls.raw()->to(), kAsReference);
+
     ASSERT(!cls.IsInFullSnapshot() || (kind == Snapshot::kFull));
   } else {
     cls ^= reader->ReadClassId(object_id);
@@ -155,15 +159,11 @@ RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
   unresolved_class.set_token_pos(reader->Read<int32_t>());
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (unresolved_class.raw()->to() -
-                       unresolved_class.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
-    unresolved_class.StorePointer((unresolved_class.raw()->from() + i),
-                                  reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(unresolved_class,
+                     unresolved_class.raw()->from(),
+                     unresolved_class.raw()->to(),
+                     kAsReference);
+
   return unresolved_class.raw();
 }
 
@@ -226,16 +226,7 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   type.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (type.raw()->to() - type.raw()->from());
-  intptr_t from_offset = OFFSET_OF_FROM(type);
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) =
-        reader->ReadObjectImpl(kAsReference, object_id, (i + from_offset));
-    type.StorePointer((type.raw()->from() + i),
-                      reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(type, type.raw()->from(), type.raw()->to(), kAsReference);
 
   // Set the canonical bit.
   if (!defer_canonicalization && RawObject::IsCanonical(tags)) {
@@ -296,16 +287,9 @@ RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &type_ref, kIsDeserialized);
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (type_ref.raw()->to() - type_ref.raw()->from());
-  intptr_t from_offset = OFFSET_OF_FROM(type_ref);
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) =
-        reader->ReadObjectImpl(kAsReference, object_id, (i + from_offset));
-    type_ref.StorePointer((type_ref.raw()->from() + i),
-                          reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(type_ref,
+                     type_ref.raw()->from(), type_ref.raw()->to(),
+                     kAsReference);
 
   return type_ref.raw();
 }
@@ -346,17 +330,9 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   type_parameter.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (type_parameter.raw()->to() -
-                       type_parameter.raw()->from());
-  intptr_t from_offset = OFFSET_OF_FROM(type_parameter);
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) =
-        reader->ReadObjectImpl(kAsReference, object_id, (i + from_offset));
-    type_parameter.StorePointer((type_parameter.raw()->from() + i),
-                                reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(type_parameter,
+                     type_parameter.raw()->from(), type_parameter.raw()->to(),
+                     kAsReference);
 
   return type_parameter.raw();
 }
@@ -400,17 +376,9 @@ RawBoundedType* BoundedType::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &bounded_type, kIsDeserialized);
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (bounded_type.raw()->to() -
-                       bounded_type.raw()->from());
-  intptr_t from_offset = OFFSET_OF_FROM(bounded_type);
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) =
-        reader->ReadObjectImpl(kAsReference, object_id, (i + from_offset));
-    bounded_type.StorePointer((bounded_type.raw()->from() + i),
-                              reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(bounded_type,
+                     bounded_type.raw()->from(), bounded_type.raw()->to(),
+                     kAsReference);
 
   return bounded_type.raw();
 }
@@ -534,14 +502,8 @@ RawPatchClass* PatchClass::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &cls, kIsDeserialized);
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (cls.raw()->to() - cls.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
-    cls.StorePointer((cls.raw()->from() + i),
-                     reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(cls, cls.raw()->from(), cls.raw()->to(), kAsReference);
+
   ASSERT(((kind == Snapshot::kScript) &&
           !Class::IsInFullSnapshot(cls.source_class())) ||
          (kind == Snapshot::kFull));
@@ -581,12 +543,7 @@ RawClosureData* ClosureData::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &data, kIsDeserialized);
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (data.raw()->to() - data.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    *(data.raw()->from() + i) = reader->ReadObjectImpl(kAsReference);
-  }
+  READ_OBJECT_FIELDS(data, data.raw()->from(), data.raw()->to(), kAsReference);
 
   return data.raw();
 }
@@ -617,8 +574,6 @@ void RawClosureData::WriteTo(SnapshotWriter* writer,
     }
   }
 
-  writer->WriteObjectImpl(Object::null(), kAsInlinedObject);
-
   // Parent function.
   writer->WriteObjectImpl(ptr()->parent_function_, kAsInlinedObject);
 
@@ -644,16 +599,7 @@ RawRedirectionData* RedirectionData::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &data, kIsDeserialized);
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (data.raw()->to() - data.raw()->from());
-  intptr_t from_offset = OFFSET_OF_FROM(data);
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) =
-        reader->ReadObjectImpl(kAsReference, object_id, (i + from_offset));
-    data.StorePointer((data.raw()->from() + i),
-                      reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(data, data.raw()->from(), data.raw()->to(), kAsReference);
 
   return data.raw();
 }
@@ -702,23 +648,18 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_optimized_call_site_count(reader->Read<uint16_t>());
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  RawObject** toaddr = reader->snapshot_code() ? func.raw()->to()
-                                               : func.raw()->to_snapshot();
-  intptr_t num_flds = toaddr - func.raw()->from();
-  intptr_t from_offset = OFFSET_OF_FROM(func);
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) =
-        reader->ReadObjectImpl(kAsReference, object_id, (i + from_offset));
-    func.StorePointer((func.raw()->from() + i),
-                      reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(func,
+                     func.raw()->from(),
+                     reader->snapshot_code() ? func.raw()->to()
+                                             : func.raw()->to_snapshot(),
+                     kAsReference);
 
   if (!reader->snapshot_code()) {
     // Initialize all fields that are not part of the snapshot.
     func.ClearICDataArray();
     func.ClearCode();
+  } else {
+    // TODO(rmacnak): Fix entry_point_.
   }
   return func.raw();
 }
@@ -777,16 +718,9 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   field.set_kind_bits(reader->Read<uint8_t>());
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (field.raw()->to() - field.raw()->from());
-  intptr_t from_offset = OFFSET_OF_FROM(field);
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) =
-        reader->ReadObjectImpl(kAsReference, object_id, (i + from_offset));
-    field.StorePointer((field.raw()->from() + i),
-                       reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(field,
+                     field.raw()->from(), field.raw()->to(),
+                     kAsReference);
 
   field.InitializeGuardedListLengthInObjectOffset();
 
@@ -836,14 +770,9 @@ RawLiteralToken* LiteralToken::ReadFrom(SnapshotReader* reader,
   literal_token.set_kind(token_kind);
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (literal_token.raw()->to() - literal_token.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
-    literal_token.StorePointer((literal_token.raw()->from() + i),
-                               reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(literal_token,
+                     literal_token.raw()->from(), literal_token.raw()->to(),
+                     kAsReference);
 
   return literal_token.raw();
 }
@@ -1124,14 +1053,9 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
   prefix.StoreNonPointer(&prefix.raw_ptr()->is_loaded_, reader->Read<bool>());
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (prefix.raw()->to() - prefix.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
-    prefix.StorePointer((prefix.raw()->from() + i),
-                         reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(prefix,
+                     prefix.raw()->from(), prefix.raw()->to(),
+                     kAsReference);
 
   return prefix.raw();
 }
@@ -1174,14 +1098,7 @@ RawNamespace* Namespace::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &ns, kIsDeserialized);
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (ns.raw()->to() - ns.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
-    ns.StorePointer((ns.raw()->from() + i),
-                    reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(ns, ns.raw()->from(), ns.raw()->to(), kAsReference);
 
   return ns.raw();
 }
@@ -1210,7 +1127,6 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
                         intptr_t object_id,
                         intptr_t tags,
                         Snapshot::Kind kind) {
-  UNREACHABLE();  // Untested.
   ASSERT(reader->snapshot_code());
   ASSERT(kind == Snapshot::kFull);
 
@@ -1224,14 +1140,11 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
   result.set_lazy_deopt_pc_offset(reader->Read<int32_t>());
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (result.raw()->to() - result.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
-    result.StorePointer((result.raw()->from() + i),
-                        reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(result,
+                     result.raw()->from(), result.raw()->to(),
+                     kAsReference);
+
+  // TODO(rmacnak): Fix entry_point_.
 
   return result.raw();
 }
@@ -1274,15 +1187,22 @@ RawInstructions* Instructions::ReadFrom(SnapshotReader* reader,
                                         intptr_t object_id,
                                         intptr_t tags,
                                         Snapshot::Kind kind) {
-  UNREACHABLE();  // Untested.
   ASSERT(reader->snapshot_code());
   ASSERT(kind == Snapshot::kFull);
 
-  intptr_t id = reader->Read<int32_t>();
+  intptr_t full_tags = static_cast<uword>(reader->Read<intptr_t>());
+  intptr_t offset = reader->Read<int32_t>();
   Instructions& result =
       Instructions::ZoneHandle(reader->zone(),
-                               reader->GetInstructionsById(id));
+                               reader->GetInstructionsAt(offset, full_tags));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
+
+  {
+    // TODO(rmacnak): Drop after calling convention change.
+    Code::CheckedHandle(reader->ReadObjectImpl(kAsReference));
+    ObjectPool::CheckedHandle(reader->ReadObjectImpl(kAsReference));
+  }
+
   return result.raw();
 }
 
@@ -1298,11 +1218,23 @@ void RawInstructions::WriteTo(SnapshotWriter* writer,
     writer->WriteInlinedObjectHeader(object_id);
     writer->WriteVMIsolateObject(kInstructionsCid);
     writer->WriteTags(writer->GetObjectTags(this));
+  }
+
+  writer->Write<intptr_t>(writer->GetObjectTags(this));  // For sanity check.
+
+  // Temporarily restore the object header for writing to the text section.
+  // TODO(asiva): Don't mutate object headers during serialization.
+  uword object_tags = writer->GetObjectTags(this);
+  uword snapshot_tags = ptr()->tags_;
+  ptr()->tags_ = object_tags;
+  writer->Write<int32_t>(writer->GetInstructionsId(this));
+  ptr()->tags_ = snapshot_tags;
+
+  {
+    // TODO(rmacnak): Drop after calling convention change.
     writer->WriteObjectImpl(ptr()->code_, kAsReference);
     writer->WriteObjectImpl(ptr()->object_pool_, kAsReference);
   }
-
-  writer->Write<int32_t>(writer->GetInstructionsId(this));
 }
 
 
@@ -1310,7 +1242,6 @@ RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
                                     Snapshot::Kind kind) {
-  UNREACHABLE();  // Untested.
   ASSERT(reader->snapshot_code());
   ASSERT(kind == Snapshot::kFull);
 
@@ -1321,15 +1252,15 @@ RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
                              NEW_OBJECT_WITH_LEN(ObjectPool, length));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
 
-  RawTypedData* info_array = result.raw_ptr()->info_array_->ptr();
+  const TypedData& info_array =
+      TypedData::Handle(reader->NewTypedData(kTypedDataInt8ArrayCid, length));
+  result.set_info_array(info_array);
 
-  // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
+  NoSafepointScope no_safepoint;
   for (intptr_t i = 0; i < length; i++) {
     ObjectPool::EntryType entry_type =
-        static_cast<ObjectPool::EntryType>(reader->Read<uint8_t>());
-    info_array->data()[i] = entry_type;
+        static_cast<ObjectPool::EntryType>(reader->Read<int8_t>());
+    *reinterpret_cast<int8_t*>(info_array.DataAddr(i)) = entry_type;
     switch (entry_type) {
       case ObjectPool::kTaggedObject: {
         (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
@@ -1377,7 +1308,7 @@ void RawObjectPool::WriteTo(SnapshotWriter* writer,
   for (intptr_t i = 0; i < length; i++) {
     ObjectPool::EntryType entry_type =
         static_cast<ObjectPool::EntryType>(info_array->data()[i]);
-    writer->Write<uint8_t>(entry_type);
+    writer->Write<int8_t>(entry_type);
     Entry& entry = ptr()->data()[i];
     switch (entry_type) {
       case ObjectPool::kTaggedObject:
@@ -1401,12 +1332,13 @@ RawPcDescriptors* PcDescriptors::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           intptr_t tags,
                                           Snapshot::Kind kind) {
-  UNREACHABLE();  // Untested.
   ASSERT(reader->snapshot_code());
+  ASSERT(kind == Snapshot::kFull);
 
   const int32_t length = reader->Read<int32_t>();
-  PcDescriptors& result = PcDescriptors::ZoneHandle(reader->zone(),
-                                                    PcDescriptors::New(length));
+  PcDescriptors& result =
+      PcDescriptors::ZoneHandle(reader->zone(),
+                                NEW_OBJECT_WITH_LEN(PcDescriptors, length));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
 
   if (result.Length() > 0) {
@@ -1424,6 +1356,7 @@ void RawPcDescriptors::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind) {
   ASSERT(writer->snapshot_code());
+  ASSERT(kind == Snapshot::kFull);
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -1442,19 +1375,19 @@ RawStackmap* Stackmap::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,
                                 Snapshot::Kind kind) {
-  UNREACHABLE();  // Untested.
   ASSERT(reader->snapshot_code());
+  ASSERT(kind == Snapshot::kFull);
 
   const int32_t length = reader->Read<int32_t>();
-  const int32_t register_bit_count = reader->Read<int32_t>();
-  const uword pc_offset = reader->Read<uint32_t>();
-
   Stackmap& result =
       Stackmap::ZoneHandle(reader->zone(),
-        Stackmap::New(length, register_bit_count, pc_offset));
+                           reader->NewStackmap(length));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
 
-  if (result.Length() > 0) {
+  result.SetRegisterBitCount(reader->Read<int32_t>());
+  result.SetPcOffset(reader->Read<uint32_t>());
+
+  if (length > 0) {
     NoSafepointScope no_safepoint;
     intptr_t len = (result.Length() + 7) / 8;
     uint8_t* data = result.UnsafeMutableNonPointer(result.raw_ptr()->data());
@@ -1469,11 +1402,13 @@ void RawStackmap::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind) {
   ASSERT(writer->snapshot_code());
+  ASSERT(kind == Snapshot::kFull);
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
   writer->WriteIndexedObject(kStackmapCid);
   writer->WriteTags(writer->GetObjectTags(this));
+
   writer->Write<int32_t>(ptr()->length_);
   writer->Write<int32_t>(ptr()->register_bit_count_);
   writer->Write<uint32_t>(ptr()->pc_offset_);
@@ -1489,14 +1424,15 @@ RawLocalVarDescriptors* LocalVarDescriptors::ReadFrom(SnapshotReader* reader,
                                                       intptr_t object_id,
                                                       intptr_t tags,
                                                       Snapshot::Kind kind) {
-  UNREACHABLE();  // Untested.
   ASSERT(reader->snapshot_code());
+  ASSERT(kind == Snapshot::kFull);
 
   const int32_t num_entries = reader->Read<int32_t>();
 
   LocalVarDescriptors& result =
       LocalVarDescriptors::ZoneHandle(reader->zone(),
-        LocalVarDescriptors::New(num_entries));
+                                      NEW_OBJECT_WITH_LEN(LocalVarDescriptors,
+                                                          num_entries));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
 
   for (intptr_t i = 0; i < num_entries; i++) {
@@ -1521,6 +1457,7 @@ void RawLocalVarDescriptors::WriteTo(SnapshotWriter* writer,
                                      intptr_t object_id,
                                      Snapshot::Kind kind) {
   ASSERT(writer->snapshot_code());
+  ASSERT(kind == Snapshot::kFull);
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -1528,7 +1465,7 @@ void RawLocalVarDescriptors::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
   writer->Write<int32_t>(ptr()->num_entries_);
   for (intptr_t i = 0; i < ptr()->num_entries_; i++) {
-    writer->WriteObjectImpl(ptr()->names()[i], kAsInlinedObject);
+    writer->WriteObjectImpl(ptr()->names()[i], kAsReference);
   }
   if (ptr()->num_entries_ > 0) {
     intptr_t len = ptr()->num_entries_ * sizeof(VarInfo);
@@ -1542,15 +1479,14 @@ RawExceptionHandlers* ExceptionHandlers::ReadFrom(SnapshotReader* reader,
                                                   intptr_t object_id,
                                                   intptr_t tags,
                                                   Snapshot::Kind kind) {
-  UNREACHABLE();  // Untested.
   ASSERT(reader->snapshot_code());
+  ASSERT(kind == Snapshot::kFull);
 
-  // handled_types_data.
-  *(reader->ArrayHandle()) ^= reader->ReadObjectImpl(kAsInlinedObject);
-
+  const int32_t num_entries = reader->Read<int32_t>();
   ExceptionHandlers& result =
       ExceptionHandlers::ZoneHandle(reader->zone(),
-        ExceptionHandlers::New(*reader->ArrayHandle()));
+                                    NEW_OBJECT_WITH_LEN(ExceptionHandlers,
+                                                        num_entries));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
 
   if (result.num_entries() > 0) {
@@ -1562,6 +1498,10 @@ RawExceptionHandlers* ExceptionHandlers::ReadFrom(SnapshotReader* reader,
     reader->ReadBytes(data, len);
   }
 
+  *(reader->ArrayHandle()) ^= reader->ReadObjectImpl(kAsInlinedObject);
+  result.StorePointer(&result.raw_ptr()->handled_types_data_,
+                      reader->ArrayHandle()->raw());
+
   return result.raw();
 }
 
@@ -1570,18 +1510,21 @@ void RawExceptionHandlers::WriteTo(SnapshotWriter* writer,
                                    intptr_t object_id,
                                    Snapshot::Kind kind) {
   ASSERT(writer->snapshot_code());
+  ASSERT(kind == Snapshot::kFull);
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
   writer->WriteIndexedObject(kExceptionHandlersCid);
   writer->WriteTags(writer->GetObjectTags(this));
-  writer->WriteObjectImpl(ptr()->handled_types_data_, kAsInlinedObject);
+  writer->Write<int32_t>(ptr()->num_entries_);
 
   if (ptr()->num_entries_ > 0) {
     intptr_t len = ptr()->num_entries_ * sizeof(HandlerInfo);
     uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
     writer->WriteBytes(data, len);
   }
+
+  writer->WriteObjectImpl(ptr()->handled_types_data_, kAsInlinedObject);
 }
 
 
@@ -1646,8 +1589,13 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
   // Allocate context object.
   bool is_implicit = reader->Read<bool>();
   if (is_implicit) {
-    ContextScope& context_scope =
-        ContextScope::ZoneHandle(ContextScope::New(1, true));
+    ContextScope& context_scope = ContextScope::ZoneHandle();
+    if (kind == Snapshot::kFull) {
+      context_scope = reader->NewContextScope(1);
+      context_scope.set_is_implicit(true);
+    } else {
+      context_scope = ContextScope::New(1, true);
+    }
     reader->AddBackRef(object_id, &context_scope, kIsDeserialized);
 
     *reader->TypeHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
@@ -1699,7 +1647,6 @@ RawICData* ICData::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
                             intptr_t tags,
                             Snapshot::Kind kind) {
-  UNREACHABLE();  // Untested.
   ASSERT(reader->snapshot_code());
   ASSERT(kind == Snapshot::kFull);
 
@@ -1710,14 +1657,9 @@ RawICData* ICData::ReadFrom(SnapshotReader* reader,
   result.set_state_bits(reader->Read<uint32_t>());
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (result.raw()->to() - result.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
-    result.StorePointer((result.raw()->from() + i),
-                        reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(result,
+                     result.raw()->from(), result.raw()->to(),
+                     kAsReference);
 
   return result.raw();
 }
@@ -1750,7 +1692,6 @@ RawMegamorphicCache* MegamorphicCache::ReadFrom(SnapshotReader* reader,
                                                 intptr_t object_id,
                                                 intptr_t tags,
                                                 Snapshot::Kind kind) {
-  UNREACHABLE();  // Untested.
   ASSERT(reader->snapshot_code());
   ASSERT(kind == Snapshot::kFull);
 
@@ -1762,14 +1703,9 @@ RawMegamorphicCache* MegamorphicCache::ReadFrom(SnapshotReader* reader,
   result.set_filled_entry_count(reader->Read<int32_t>());
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (result.raw()->to() - result.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
-    result.StorePointer((result.raw()->from() + i),
-                        reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(result,
+                     result.raw()->from(), result.raw()->to(),
+                     kAsReference);
 
   return result.raw();
 }
@@ -1801,7 +1737,6 @@ RawSubtypeTestCache* SubtypeTestCache::ReadFrom(SnapshotReader* reader,
                                                 intptr_t object_id,
                                                 intptr_t tags,
                                                 Snapshot::Kind kind) {
-  UNREACHABLE();  // Untested.
   ASSERT(reader->snapshot_code());
   ASSERT(kind == Snapshot::kFull);
 
@@ -1867,14 +1802,9 @@ RawApiError* ApiError::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &api_error, kIsDeserialized);
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (api_error.raw()->to() - api_error.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
-    api_error.StorePointer((api_error.raw()->from() + i),
-                           reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(api_error,
+                     api_error.raw()->from(), api_error.raw()->to(),
+                     kAsReference);
 
   return api_error.raw();
 }
@@ -1914,15 +1844,9 @@ RawLanguageError* LanguageError::ReadFrom(SnapshotReader* reader,
   language_error.set_kind(reader->Read<uint8_t>());
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds =
-      (language_error.raw()->to() - language_error.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
-    language_error.StorePointer((language_error.raw()->from() + i),
-                                reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(language_error,
+                     language_error.raw()->from(), language_error.raw()->to(),
+                     kAsReference);
 
   return language_error.raw();
 }
@@ -1959,14 +1883,9 @@ RawUnhandledException* UnhandledException::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &result, kIsDeserialized);
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (result.raw()->to() - result.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
-    result.StorePointer((result.raw()->from() + i),
-                         reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(result,
+                     result.raw()->from(), result.raw()->to(),
+                     kAsReference);
 
   return result.raw();
 }
@@ -2118,14 +2037,7 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &obj, kIsDeserialized);
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (obj.raw()->to() - obj.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsInlinedObject);
-    obj.StorePointer(obj.raw()->from() + i,
-                     reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(obj, obj.raw()->from(), obj.raw()->to(), kAsInlinedObject);
 
   // If it is a canonical constant make it one.
   // When reading a full snapshot we don't need to canonicalize the object
@@ -2603,13 +2515,18 @@ RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
 
   LinkedHashMap& map = LinkedHashMap::ZoneHandle(
       reader->zone(), LinkedHashMap::null());
-  if (kind == Snapshot::kFull || kind == Snapshot::kScript) {
+  if ((kind == Snapshot::kFull && !reader->snapshot_code()) ||
+      kind == Snapshot::kScript) {
     // The immutable maps that seed map literals are not yet VM-internal, so
     // we don't reach this.
     UNREACHABLE();
   } else {
     // Since the map might contain itself as a key or value, allocate first.
-    map = LinkedHashMap::NewUninitialized(HEAP_SPACE(kind));
+    if (kind == Snapshot::kFull) {
+      map = reader->NewLinkedHashMap();
+    } else {
+      map = LinkedHashMap::NewUninitialized(HEAP_SPACE(kind));
+    }
   }
   reader->AddBackRef(object_id, &map, kIsDeserialized);
 
@@ -2630,7 +2547,9 @@ RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
       Utils::RoundUpToPowerOfTwo(used_data),
       static_cast<uintptr_t>(LinkedHashMap::kInitialIndexSize));
   Array& data = Array::ZoneHandle(reader->zone(),
-                                  Array::New(data_size, HEAP_SPACE(kind)));
+                                  NEW_OBJECT_WITH_LEN_SPACE(Array,
+                                                            data_size,
+                                                            kind));
   map.SetData(data);
   map.SetDeletedKeys(0);
 
@@ -2654,10 +2573,10 @@ RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
 void RawLinkedHashMap::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind) {
-  if (kind == Snapshot::kFull || kind == Snapshot::kScript) {
+  if ((kind == Snapshot::kFull && !writer->snapshot_code()) ||
+      kind == Snapshot::kScript) {
     // The immutable maps that seed map literals are not yet VM-internal, so
     // we don't reach this.
-    UNREACHABLE();
   }
   ASSERT(writer != NULL);
 
@@ -3103,11 +3022,18 @@ RawSendPort* SendPort::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,
                                 Snapshot::Kind kind) {
+  ASSERT(kind == Snapshot::kMessage || reader->snapshot_code());
+
   uint64_t id = reader->Read<uint64_t>();
   uint64_t origin_id = reader->Read<uint64_t>();
 
-  SendPort& result = SendPort::ZoneHandle(reader->zone(),
-                                          SendPort::New(id, origin_id));
+  SendPort& result = SendPort::ZoneHandle(reader->zone());
+  if (reader->snapshot_code()) {
+    // TODO(rmacnak): Reset fields in precompiled snapshots and assert
+    // this is unreachable.
+  } else {
+    result = SendPort::New(id, origin_id);
+  }
   reader->AddBackRef(object_id, &result, kIsDeserialized);
   return result.raw();
 }
@@ -3137,18 +3063,13 @@ RawStacktrace* Stacktrace::ReadFrom(SnapshotReader* reader,
                                                 reader->NewStacktrace());
     reader->AddBackRef(object_id, &result, kIsDeserialized);
 
-    // Set all the object fields.
-    // TODO(5411462): Need to assert No GC can happen here, even though
-    // allocations may happen.
-    intptr_t num_flds = (result.raw()->to() - result.raw()->from());
-    for (intptr_t i = 0; i <= num_flds; i++) {
-      (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
-      result.StorePointer((result.raw()->from() + i),
-                          reader->PassiveObjectHandle()->raw());
-    }
-
     bool expand_inlined = reader->Read<bool>();
     result.set_expand_inlined(expand_inlined);
+
+    // Set all the object fields.
+    READ_OBJECT_FIELDS(result,
+                       result.raw()->from(), result.raw()->to(),
+                       kAsReference);
 
     return result.raw();
   }
@@ -3172,11 +3093,11 @@ void RawStacktrace::WriteTo(SnapshotWriter* writer,
     writer->WriteIndexedObject(kStacktraceCid);
     writer->WriteTags(writer->GetObjectTags(this));
 
+    writer->Write(ptr()->expand_inlined_);
+
     // Write out all the object pointer fields.
     SnapshotWriterVisitor visitor(writer);
     visitor.VisitPointers(from(), to());
-
-    writer->Write(ptr()->expand_inlined_);
   } else {
     // Stacktraces are not allowed in other snapshot forms.
     writer->SetWriteException(Exceptions::kArgument,
@@ -3246,15 +3167,9 @@ RawWeakProperty* WeakProperty::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &weak_property, kIsDeserialized);
 
   // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (weak_property.raw()->to() -
-                       weak_property.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(kAsReference);
-    weak_property.StorePointer((weak_property.raw()->from() + i),
-                               reader->PassiveObjectHandle()->raw());
-  }
+  READ_OBJECT_FIELDS(weak_property,
+                     weak_property.raw()->from(), weak_property.raw()->to(),
+                     kAsReference);
 
   return weak_property.raw();
 }

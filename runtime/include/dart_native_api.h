@@ -159,6 +159,5 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id);
  * TODO(turnidge): Document.
  */
 DART_EXPORT Dart_Handle Dart_CompileAll();
-DART_EXPORT Dart_Handle Dart_Precompile();
 
 #endif  /* INCLUDE_DART_NATIVE_API_H_ */  /* NOLINT */

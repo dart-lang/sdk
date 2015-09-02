@@ -115,6 +115,7 @@ Smi* Object::smi_illegal_cid_ = NULL;
 LanguageError* Object::snapshot_writer_error_ = NULL;
 LanguageError* Object::branch_offset_error_ = NULL;
 Array* Object::vm_isolate_snapshot_object_table_ = NULL;
+const uint8_t* Object::instructions_snapshot_buffer_ = NULL;
 
 RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -10984,7 +10985,8 @@ ObjectPool::EntryType ObjectPool::InfoAt(intptr_t index) const {
 
 
 const char* ObjectPool::ToCString() const {
-  return "ObjectPool";
+  Zone* zone = Thread::Current()->zone();
+  return zone->PrintToString("ObjectPool len:%" Pd, Length());
 }
 
 
@@ -11713,7 +11715,7 @@ RawExceptionHandlers* ExceptionHandlers::New(const Array& handled_types_data) {
 
 const char* ExceptionHandlers::ToCString() const {
   if (num_entries() == 0) {
-    return "No exception handlers\n";
+    return "empty ExceptionHandlers\n";
   }
   Array& handled_types = Array::Handle();
   Type& type = Type::Handle();

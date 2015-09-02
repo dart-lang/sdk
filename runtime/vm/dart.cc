@@ -145,8 +145,10 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
         return "Invalid vm isolate snapshot seen.";
       }
       ASSERT(snapshot->kind() == Snapshot::kFull);
-      VmIsolateSnapshotReader reader(
-          snapshot->content(), snapshot->length(), T);
+      VmIsolateSnapshotReader reader(snapshot->content(),
+                                     snapshot->length(),
+                                     instructions_snapshot,
+                                     T);
       const Error& error = Error::Handle(reader.ReadVmIsolateSnapshot());
       if (!error.IsNull()) {
         return error.ToCString();
@@ -281,7 +283,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     if (FLAG_trace_isolates) {
       OS::Print("Size of isolate snapshot = %" Pd "\n", snapshot->length());
     }
-    IsolateSnapshotReader reader(snapshot->content(), snapshot->length(), T);
+    IsolateSnapshotReader reader(snapshot->content(),
+                                 snapshot->length(),
+                                 Object::instructions_snapshot_buffer(),
+                                 T);
     const Error& error = Error::Handle(reader.ReadFullSnapshot());
     if (!error.IsNull()) {
       return error.raw();

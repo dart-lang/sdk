@@ -11,7 +11,6 @@
 #include "vm/message.h"
 #include "vm/native_message_handler.h"
 #include "vm/port.h"
-#include "vm/precompiler.h"
 
 namespace dart {
 
@@ -80,16 +79,6 @@ static void CompileAll(Isolate* isolate, Dart_Handle* result) {
   }
 }
 
-static void Precompile(Isolate* isolate, Dart_Handle* result) {
-  ASSERT(isolate != NULL);
-  const Error& error = Error::Handle(isolate, Precompiler::CompileAll());
-  if (error.IsNull()) {
-    *result = Api::Success();
-  } else {
-    *result = Api::NewHandle(isolate, error.raw());
-  }
-}
-
 
 DART_EXPORT Dart_Handle Dart_CompileAll() {
   DARTSCOPE(Thread::Current());
@@ -99,18 +88,6 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
   }
   CHECK_CALLBACK_STATE(I);
   CompileAll(I, &result);
-  return result;
-}
-
-
-DART_EXPORT Dart_Handle Dart_Precompile() {
-  DARTSCOPE(Thread::Current());
-  Dart_Handle result = Api::CheckAndFinalizePendingClasses(I);
-  if (::Dart_IsError(result)) {
-    return result;
-  }
-  CHECK_CALLBACK_STATE(I);
-  Precompile(I, &result);
   return result;
 }
 

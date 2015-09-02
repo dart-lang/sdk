@@ -584,6 +584,7 @@ class RawObject {
   friend class SizeExcludingClassVisitor;  // GetClassId
   friend class RetainingPathVisitor;  // GetClassId
   friend class SkippedCodeFunctions;  // StorePointer
+  friend class InstructionsReader;  // tags_ check
   friend class SnapshotReader;
   friend class SnapshotWriter;
   friend class String;
@@ -1002,11 +1003,11 @@ class RawCode : public RawObject {
   RawLocalVarDescriptors* var_descriptors_;
   RawArray* inlined_metadata_;
   RawArray* comments_;
-  // If return_address_info_ is a Smi, it is the offset to the prologue.
-  // Else, return_address_info_ is null.
+  // If return_address_metadata_ is a Smi, it is the offset to the prologue.
+  // Else, return_address_metadata_ is null.
   RawObject* return_address_metadata_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->comments_);
+    return reinterpret_cast<RawObject**>(&ptr()->return_address_metadata_);
   }
   uword entry_point_;
 
@@ -1053,6 +1054,7 @@ class RawObjectPool : public RawObject {
   Entry* first_entry() { return &ptr()->data()[0]; }
 
   friend class Object;
+  friend class SnapshotReader;
 };
 
 
@@ -1084,6 +1086,7 @@ class RawInstructions : public RawObject {
   friend class MarkingVisitor;
   friend class SkippedCodeFunctions;
   friend class Function;
+  friend class InstructionsReader;
 };
 
 
@@ -1141,6 +1144,7 @@ class RawPcDescriptors : public RawObject {
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, intptr_t); }
 
   friend class Object;
+  friend class SnapshotReader;
 };
 
 
@@ -1148,9 +1152,8 @@ class RawPcDescriptors : public RawObject {
 // PC. The stack map representation consists of a bit map which marks each
 // live object index starting from the base of the frame.
 //
-// The Stackmap also consists of a link to the code object corresponding to
-// the frame which the stack map is describing.  The bit map representation
-// is optimized for dense and small bit maps, without any upper bound.
+// The bit map representation is optimized for dense and small bit maps, without
+// any upper bound.
 class RawStackmap : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Stackmap);
 
@@ -1168,6 +1171,8 @@ class RawStackmap : public RawObject {
   // Variable length data follows here (bitmap of the stack layout).
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
+
+  friend class SnapshotReader;
 };
 
 
@@ -1242,6 +1247,7 @@ class RawLocalVarDescriptors : public RawObject {
   }
 
   friend class Object;
+  friend class SnapshotReader;
 };
 
 
@@ -1271,6 +1277,7 @@ class RawExceptionHandlers : public RawObject {
   HandlerInfo* data() { OPEN_ARRAY_START(HandlerInfo, intptr_t); }
 
   friend class Object;
+  friend class SnapshotReader;
 };
 
 
@@ -1335,6 +1342,7 @@ class RawContextScope : public RawObject {
 
   friend class Object;
   friend class RawClosureData;
+  friend class SnapshotReader;
 };
 
 
