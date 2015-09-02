@@ -23,7 +23,26 @@ function(x) {
   var _box_0 = {};
   _box_0._captured_x_0 = x;
   _box_0._captured_x_0 = J.getInterceptor$ns(x = _box_0._captured_x_0).$add(x, "1");
-  P.print(new V.main_a(_box_0).call$0());
+  P.print(new V.main_a(_box_0)._box_0._captured_x_0);
+}"""),
+
+  const TestEntry("""
+main(x) {
+  a() {
+    return x;
+  }
+  x = x + '1';
+  print(a());
+  return a;
+}
+""",
+r"""
+function(x) {
+  var _box_0 = {}, a = new V.main_a(_box_0);
+  _box_0._captured_x_0 = x;
+  _box_0._captured_x_0 = J.getInterceptor$ns(x = _box_0._captured_x_0).$add(x, "1");
+  P.print(a.call$0());
+  return a;
 }"""),
 
   const TestEntry("""
@@ -36,7 +55,23 @@ main(x) {
 """,
 r"""
 function(x) {
-  P.print(new V.main_a(x).call$0());
+  P.print(new V.main_a(x)._captured_x_0);
+}"""),
+
+  const TestEntry("""
+main(x) {
+  a() {
+    return x;
+  }
+  print(a());
+  return a;
+}
+""",
+r"""
+function(x) {
+  var a = new V.main_a(x);
+  P.print(a.call$0());
+  return a;
 }"""),
 
   const TestEntry("""
@@ -52,7 +87,25 @@ function() {
   var _box_0 = {};
   _box_0._captured_x_0 = 122;
   _box_0._captured_x_0 = _box_0._captured_x_0 + 1;
-  P.print(new V.main_closure(_box_0).call$0());
+  P.print(new V.main_closure(_box_0)._box_0._captured_x_0);
+}"""),
+
+  const TestEntry("""
+main() {
+  var x = 122;
+  var a = () => x;
+  x = x + 1;
+  print(a());
+  return a;
+}
+""",
+r"""
+function() {
+  var _box_0 = {}, a = new V.main_closure(_box_0);
+  _box_0._captured_x_0 = 122;
+  _box_0._captured_x_0 = _box_0._captured_x_0 + 1;
+  P.print(a.call$0());
+  return a;
 }"""),
 
   const TestEntry("""
@@ -71,7 +124,28 @@ function() {
   var _box_0 = {};
   _box_0._captured_x_0 = 122;
   _box_0._captured_x_0 = _box_0._captured_x_0 + 1;
-  P.print(new V.main_closure(_box_0).call$0().call$0());
+  P.print(new V.main__closure(new V.main_closure(_box_0)._box_0._captured_x_0)._captured_y_1);
+}"""),
+
+  const TestEntry("""
+main() {
+  var x = 122;
+  var a = () {
+    var y = x;
+    return () => y;
+  };
+  x = x + 1;
+  print(a()());
+  return a;
+}
+""",
+r"""
+function() {
+  var _box_0 = {}, a = new V.main_closure(_box_0);
+  _box_0._captured_x_0 = 122;
+  _box_0._captured_x_0 = _box_0._captured_x_0 + 1;
+  P.print(a.call$0().call$0());
+  return a;
 }"""),
 
   const TestEntry("""
