@@ -594,12 +594,11 @@ static uint8_t* message_allocator(
 BENCHMARK(SerializeNull) {
   const Object& null_object = Object::Handle();
   const intptr_t kLoopCount = 1000000;
-  Isolate* isolate = thread->isolate();
   uint8_t* buffer;
   Timer timer(true, "Serialize Null");
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
-    StackZone zone(isolate);
+    StackZone zone(thread);
     MessageWriter writer(&buffer, &message_allocator, true);
     writer.WriteMessage(null_object);
     intptr_t buffer_len = writer.BytesWritten();
@@ -619,12 +618,11 @@ BENCHMARK(SerializeNull) {
 BENCHMARK(SerializeSmi) {
   const Integer& smi_object = Integer::Handle(Smi::New(42));
   const intptr_t kLoopCount = 1000000;
-  Isolate* isolate = thread->isolate();
   uint8_t* buffer;
   Timer timer(true, "Serialize Smi");
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
-    StackZone zone(isolate);
+    StackZone zone(thread);
     MessageWriter writer(&buffer, &message_allocator, true);
     writer.WriteMessage(smi_object);
     intptr_t buffer_len = writer.BytesWritten();
@@ -646,12 +644,11 @@ BENCHMARK(SimpleMessage) {
   array_object.SetAt(0, Integer::Handle(Smi::New(42)));
   array_object.SetAt(1, Object::Handle());
   const intptr_t kLoopCount = 1000000;
-  Isolate* isolate = thread->isolate();
   uint8_t* buffer;
   Timer timer(true, "Simple Message");
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
-    StackZone zone(isolate);
+    StackZone zone(thread);
     MessageWriter writer(&buffer, &malloc_allocator, true);
     writer.WriteMessage(array_object);
     intptr_t buffer_len = writer.BytesWritten();
@@ -676,7 +673,6 @@ BENCHMARK(LargeMap) {
       "  for (int i = 0; i < 100000; ++i) m[i*13+i*(i>>7)] = i;\n"
       "  return m;\n"
       "}";
-  Isolate* isolate = thread->isolate();
   Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(h_lib);
   Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, NULL);
@@ -688,7 +684,7 @@ BENCHMARK(LargeMap) {
   Timer timer(true, "Large Map");
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
-    StackZone zone(isolate);
+    StackZone zone(thread);
     MessageWriter writer(&buffer, &malloc_allocator, true);
     writer.WriteMessage(map);
     intptr_t buffer_len = writer.BytesWritten();

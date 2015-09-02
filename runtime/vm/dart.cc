@@ -113,8 +113,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   ASSERT(thread_pool_ == NULL);
   thread_pool_ = new ThreadPool();
   {
-    Thread* thread = Thread::Current();
-    ASSERT(thread != NULL);
+    Thread* T = Thread::Current();
+    ASSERT(T != NULL);
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
     const bool is_vm_isolate = true;
@@ -128,8 +128,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     ASSERT(vm_isolate_ == Isolate::Current());
     ASSERT(vm_isolate_ == Thread::Current()->isolate());
 
-    StackZone zone(vm_isolate_);
-    HandleScope handle_scope(thread);
+    StackZone zone(T);
+    HandleScope handle_scope(T);
     Object::InitNull(vm_isolate_);
     ObjectStore::Init(vm_isolate_);
     TargetCPUFeatures::InitOnce();
@@ -145,9 +145,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
         return "Invalid vm isolate snapshot seen.";
       }
       ASSERT(snapshot->kind() == Snapshot::kFull);
-      VmIsolateSnapshotReader reader(snapshot->content(),
-                                     snapshot->length(),
-                                     thread);
+      VmIsolateSnapshotReader reader(
+          snapshot->content(), snapshot->length(), T);
       const Error& error = Error::Handle(reader.ReadVmIsolateSnapshot());
       if (!error.IsNull()) {
         return error.ToCString();
@@ -245,37 +244,32 @@ Isolate* Dart::CreateIsolate(const char* name_prefix,
 
 RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  TIMERSCOPE(thread, time_isolate_initialization);
-  TimelineDurationScope tds(isolate,
-                            isolate->GetIsolateStream(),
-                            "InitializeIsolate");
+  Thread* T = Thread::Current();
+  Isolate* I = T->isolate();
+  TIMERSCOPE(T, time_isolate_initialization);
+  TimelineDurationScope tds(I, I->GetIsolateStream(), "InitializeIsolate");
   tds.SetNumArguments(1);
-  tds.CopyArgument(0, "isolateName", isolate->name());
+  tds.CopyArgument(0, "isolateName", I->name());
 
-  ASSERT(isolate != NULL);
-  StackZone zone(isolate);
-  HandleScope handle_scope(thread);
+  ASSERT(I != NULL);
+  StackZone zone(T);
+  HandleScope handle_scope(T);
   {
-    TimelineDurationScope tds(isolate,
-                              isolate->GetIsolateStream(),
-                              "ObjectStore::Init");
-    ObjectStore::Init(isolate);
+    TimelineDurationScope tds(I, I->GetIsolateStream(), "ObjectStore::Init");
+    ObjectStore::Init(I);
   }
 
   // Setup for profiling.
-  Profiler::InitProfilingForIsolate(isolate);
+  Profiler::InitProfilingForIsolate(I);
 
-  const Error& error = Error::Handle(Object::Init(isolate));
+  const Error& error = Error::Handle(Object::Init(I));
   if (!error.IsNull()) {
     return error.raw();
   }
   if (snapshot_buffer != NULL) {
     // Read the snapshot and setup the initial state.
-    TimelineDurationScope tds(isolate,
-                              isolate->GetIsolateStream(),
-                              "IsolateSnapshotReader");
+    TimelineDurationScope tds(
+        I, I->GetIsolateStream(), "IsolateSnapshotReader");
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
     if (snapshot == NULL) {
@@ -287,16 +281,14 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     if (FLAG_trace_isolates) {
       OS::Print("Size of isolate snapshot = %" Pd "\n", snapshot->length());
     }
-    IsolateSnapshotReader reader(snapshot->content(),
-                                 snapshot->length(),
-                                 thread);
+    IsolateSnapshotReader reader(snapshot->content(), snapshot->length(), T);
     const Error& error = Error::Handle(reader.ReadFullSnapshot());
     if (!error.IsNull()) {
       return error.raw();
     }
     if (FLAG_trace_isolates) {
-      isolate->heap()->PrintSizes();
-      isolate->megamorphic_cache_table()->PrintSizes();
+      I->heap()->PrintSizes();
+      I->megamorphic_cache_table()->PrintSizes();
     }
   } else {
     // Populate the isolate's symbol table with all symbols from the
@@ -309,41 +301,38 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   Object::VerifyBuiltinVtables();
 
   {
-    TimelineDurationScope tds(isolate,
-                              isolate->GetIsolateStream(),
-                              "StubCode::Init");
-    StubCode::Init(isolate);
+    TimelineDurationScope tds(I, I->GetIsolateStream(), "StubCode::Init");
+    StubCode::Init(I);
   }
 
-  isolate->megamorphic_cache_table()->InitMissHandler();
+  I->megamorphic_cache_table()->InitMissHandler();
   if (snapshot_buffer == NULL) {
-    if (!isolate->object_store()->PreallocateObjects()) {
-      return isolate->object_store()->sticky_error();
+    if (!I->object_store()->PreallocateObjects()) {
+      return I->object_store()->sticky_error();
     }
   }
 
-  isolate->heap()->EnableGrowthControl();
-  isolate->set_init_callback_data(data);
-  Api::SetupAcquiredError(isolate);
+  I->heap()->EnableGrowthControl();
+  I->set_init_callback_data(data);
+  Api::SetupAcquiredError(I);
   if (FLAG_print_class_table) {
-    isolate->class_table()->Print();
+    I->class_table()->Print();
   }
 
-  ServiceIsolate::MaybeInjectVMServiceLibrary(isolate);
+  ServiceIsolate::MaybeInjectVMServiceLibrary(I);
 
   ServiceIsolate::SendIsolateStartupMessage();
-  isolate->debugger()->NotifyIsolateCreated();
+  I->debugger()->NotifyIsolateCreated();
 
   // Create tag table.
-  isolate->set_tag_table(
-      GrowableObjectArray::Handle(GrowableObjectArray::New()));
+  I->set_tag_table(GrowableObjectArray::Handle(GrowableObjectArray::New()));
   // Set up default UserTag.
   const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag());
-  isolate->set_current_tag(default_tag);
+  I->set_current_tag(default_tag);
 
   if (FLAG_keep_code) {
-    isolate->set_deoptimized_code_array(
-      GrowableObjectArray::Handle(GrowableObjectArray::New()));
+    I->set_deoptimized_code_array(
+        GrowableObjectArray::Handle(GrowableObjectArray::New()));
   }
   return Error::null();
 }

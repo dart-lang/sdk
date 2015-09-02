@@ -2213,7 +2213,7 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
   }
 
   {
-    StackZone zone(isolate);
+    StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
     profile.Build(filter, tag_order, extra_tags);

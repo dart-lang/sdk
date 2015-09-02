@@ -2381,7 +2381,8 @@ UNIT_TEST_CASE(PersistentHandles) {
   const char* kTestString1 = "Test String1";
   const char* kTestString2 = "Test String2";
   TestCase::CreateTestIsolate();
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   EXPECT(isolate != NULL);
   ApiState* state = isolate->api_state();
   EXPECT(state != NULL);
@@ -2413,8 +2414,8 @@ UNIT_TEST_CASE(PersistentHandles) {
   }
   Dart_ExitScope();
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(Thread::Current());
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
       str ^= PersistentHandle::Cast(handles[i])->raw();
@@ -3688,15 +3689,16 @@ TEST_CASE(SingleGarbageCollectionCallback) {
 // scope.
 UNIT_TEST_CASE(LocalHandles) {
   TestCase::CreateTestIsolate();
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   EXPECT(isolate != NULL);
   ApiState* state = isolate->api_state();
   EXPECT(state != NULL);
   ApiLocalScope* scope = state->top_scope();
   Dart_Handle handles[300];
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(Thread::Current());
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Smi& val = Smi::Handle();
 
     // Start a new scope and allocate some local handles.

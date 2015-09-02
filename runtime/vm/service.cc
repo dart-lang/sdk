@@ -37,6 +37,9 @@
 
 namespace dart {
 
+#define Z (T->zone())
+
+
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_service_pause_events);
 
@@ -511,10 +514,9 @@ void Service::PostError(const String& method_name,
                         const Instance& reply_port,
                         const Instance& id,
                         const Error& error) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  StackZone zone(isolate);
-  HANDLESCOPE(thread);
+  Thread* T = Thread::Current();
+  StackZone zone(T);
+  HANDLESCOPE(T);
   JSONStream js;
   js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
            id, method_name, parameter_keys, parameter_values);
@@ -525,22 +527,22 @@ void Service::PostError(const String& method_name,
 }
 
 
-void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
-  Thread* thread = Thread::Current();
-  ASSERT(isolate == thread->isolate());
-  ASSERT(isolate != NULL);
+void Service::InvokeMethod(Isolate* I, const Array& msg) {
+  Thread* T = Thread::Current();
+  ASSERT(I == T->isolate());
+  ASSERT(I != NULL);
   ASSERT(!msg.IsNull());
   ASSERT(msg.Length() == 6);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(thread);
+    StackZone zone(T);
+    HANDLESCOPE(T);
 
-    Instance& reply_port = Instance::Handle(isolate);
-    Instance& seq = String::Handle(isolate);
-    String& method_name = String::Handle(isolate);
-    Array& param_keys = Array::Handle(isolate);
-    Array& param_values = Array::Handle(isolate);
+    Instance& reply_port = Instance::Handle(Z);
+    Instance& seq = String::Handle(Z);
+    String& method_name = String::Handle(Z);
+    Array& param_keys = Array::Handle(Z);
+    Array& param_values = Array::Handle(Z);
     reply_port ^= msg.At(1);
     seq ^= msg.At(2);
     method_name ^= msg.At(3);
@@ -592,7 +594,7 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
         js.PostReply();
         return;
       }
-      if (method->entry(isolate, &js)) {
+      if (method->entry(I, &js)) {
         js.PostReply();
       } else {
         // NOTE(turnidge): All message handlers currently return true,
@@ -613,8 +615,8 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
       return;
     }
 
-    const Instance& extension_handler =
-        Instance::Handle(isolate->LookupServiceExtensionHandler(method_name));
+    const Instance& extension_handler = Instance::Handle(Z,
+        I->LookupServiceExtensionHandler(method_name));
     if (!extension_handler.IsNull()) {
       ScheduleExtensionHandler(extension_handler,
                                method_name,

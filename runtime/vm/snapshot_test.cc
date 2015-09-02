@@ -1166,13 +1166,13 @@ UNIT_TEST_CASE(FullSnapshot) {
   {
     TestIsolateScope __test_isolate__;
 
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HandleScope scope(Thread::Current());
+    Thread* thread = Thread::Current();
+    StackZone zone(thread);
+    HandleScope scope(thread);
 
     // Create a test library and Load up a test script in it.
     TestCase::LoadTestScript(kScriptChars, NULL);
-    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(isolate));
+    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(thread->isolate()));
     timer1.Stop();
     OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
@@ -1225,13 +1225,13 @@ UNIT_TEST_CASE(FullSnapshot1) {
   {
     TestIsolateScope __test_isolate__;
 
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HandleScope scope(Thread::Current());
+    Thread* thread = Thread::Current();
+    StackZone zone(thread);
+    HandleScope scope(thread);
 
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(isolate));
+    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(thread->isolate()));
     timer1.Stop();
     OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
@@ -1916,16 +1916,16 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
       "}\n";
 
   TestCase::CreateTestIsolate();
-  Isolate* isolate = Isolate::Current();
-  EXPECT(isolate != NULL);
+  Thread* thread = Thread::Current();
+  EXPECT(thread->isolate() != NULL);
   Dart_EnterScope();
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(Thread::Current());
-    StackZone zone(isolate);
+    DARTSCOPE(thread);
+    StackZone zone(thread);
     intptr_t buf_len = 0;
     {
       // Generate a list of nulls from Dart code.
@@ -2040,16 +2040,16 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
       "}\n";
 
   TestCase::CreateTestIsolate();
-  Isolate* isolate = Isolate::Current();
-  EXPECT(isolate != NULL);
+  Thread* thread = Thread::Current();
+  EXPECT(thread->isolate() != NULL);
   Dart_EnterScope();
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(Thread::Current());
-    StackZone zone(isolate);
+    DARTSCOPE(thread);
+    StackZone zone(thread);
     intptr_t buf_len = 0;
     {
       // Generate a list of nulls from Dart code.
@@ -2279,16 +2279,16 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       "}\n";
 
   TestCase::CreateTestIsolate();
-  Isolate* isolate = Isolate::Current();
-  EXPECT(isolate != NULL);
+  Thread* thread = Thread::Current();
+  EXPECT(thread->isolate() != NULL);
   Dart_EnterScope();
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(Thread::Current());
-    StackZone zone(isolate);
+    DARTSCOPE(thread);
+    StackZone zone(thread);
     intptr_t buf_len = 0;
     {
       // Generate a list of strings from Dart code.
@@ -2504,16 +2504,16 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       "}\n";
 
   TestCase::CreateTestIsolate();
-  Isolate* isolate = Isolate::Current();
-  EXPECT(isolate != NULL);
+  Thread* thread = Thread::Current();
+  EXPECT(thread->isolate() != NULL);
   Dart_EnterScope();
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(Thread::Current());
-    StackZone zone(isolate);
+    DARTSCOPE(thread);
+    StackZone zone(thread);
     intptr_t buf_len = 0;
     {
       // Generate a list of strings from Dart code.
@@ -2745,16 +2745,16 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
       "}\n";
 
   TestCase::CreateTestIsolate();
-  Isolate* isolate = Isolate::Current();
-  EXPECT(isolate != NULL);
+  Thread* thread = Thread::Current();
+  EXPECT(thread->isolate() != NULL);
   Dart_EnterScope();
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(Thread::Current());
-    StackZone zone(isolate);
+    DARTSCOPE(thread);
+    StackZone zone(thread);
     intptr_t buf_len = 0;
     {
       // Generate a list of Uint8Lists from Dart code.
