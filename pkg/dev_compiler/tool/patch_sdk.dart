@@ -8,6 +8,7 @@
 library dev_compiler.tool.patch_sdk;
 
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -72,17 +73,21 @@ void main(List<String> argv) {
 
     var libraryFile = new File(libraryIn);
     if (libraryFile.existsSync()) {
-      var contents = <String>[];
-      var paths = <String>[];
+      var outPaths = <String>[libraryOut];
       var libraryContents = libraryFile.readAsStringSync();
-      paths.add(libraryOut);
-      contents.add(libraryContents);
+
+      int inputModifyTime =
+          libraryFile.lastModifiedSync().millisecondsSinceEpoch;
+      var partFiles = <File>[];
       for (var part in parseDirectives(libraryContents).directives) {
         if (part is PartDirective) {
           var partPath = part.uri.stringValue;
-          paths.add(path.join(path.dirname(libraryOut), partPath));
-          contents.add(new File(path.join(path.dirname(libraryIn), partPath))
-              .readAsStringSync());
+          outPaths.add(path.join(path.dirname(libraryOut), partPath));
+
+          var partFile = new File(path.join(path.dirname(libraryIn), partPath));
+          partFiles.add(partFile);
+          inputModifyTime = math.max(inputModifyTime,
+              partFile.lastModifiedSync().millisecondsSinceEpoch);
         }
       }
 
@@ -90,14 +95,41 @@ void main(List<String> argv) {
       var patchPath = path.join(
           patchIn, path.basenameWithoutExtension(libraryIn) + '_patch.dart');
 
-      if (new File(patchPath).existsSync()) {
-        var patchContents = new File(patchPath).readAsStringSync();
-        contents = _patchLibrary(contents, patchContents);
+      var patchFile = new File(patchPath);
+      bool patchExists = patchFile.existsSync();
+      if (patchExists) {
+        inputModifyTime = math.max(inputModifyTime,
+            patchFile.lastModifiedSync().millisecondsSinceEpoch);
       }
-      for (var i = 0; i < paths.length; i++) {
-        var outPath =
-            path.join(sdkOut, path.relative(paths[i], from: sdkLibIn));
-        _writeSync(outPath, contents[i]);
+
+      // Compute output paths
+      outPaths = outPaths
+          .map((p) => path.join(sdkOut, path.relative(p, from: sdkLibIn)))
+          .toList();
+
+      // Compare output modify time with input modify time.
+      bool needsUpdate = false;
+      for (var outPath in outPaths) {
+        var outFile = new File(outPath);
+        if (!outFile.existsSync() ||
+            outFile.lastModifiedSync().millisecondsSinceEpoch <
+                inputModifyTime) {
+          needsUpdate = true;
+          break;
+        }
+      }
+
+      if (needsUpdate) {
+        var contents = <String>[libraryContents];
+        contents.addAll(partFiles.map((f) => f.readAsStringSync()));
+        if (patchExists) {
+          var patchContents = patchFile.readAsStringSync();
+          contents = _patchLibrary(contents, patchContents);
+        }
+
+        for (var i = 0; i < outPaths.length; i++) {
+          _writeSync(outPaths[i], contents[i]);
+        }
       }
     }
   }

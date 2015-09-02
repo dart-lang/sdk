@@ -173,6 +173,20 @@ class BatchCompiler extends AbstractCompiler {
     }
 
     if (_jsGen != null) {
+      // TODO(jmesserly): full incremental support would avoid checking as well,
+      // however, we'd lose compiler messages in that case.
+
+      // Note: analyzer's modification stamp is millisecondsSinceEpoch
+      int lastModifyTime = unitElements
+          .map((e) => context.getModificationStamp(e.source))
+          .reduce(math.max);
+      var outFile = new File(getOutputPath(library.source.uri));
+      if (outFile.existsSync() &&
+          outFile.lastModifiedSync().millisecondsSinceEpoch >= lastModifyTime) {
+        // Output already up to date.
+        return;
+      }
+
       var unit = units.first;
       var parts = units.skip(1).toList();
       _jsGen.generateLibrary(new LibraryUnit(unit, parts));
