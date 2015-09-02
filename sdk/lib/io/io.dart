@@ -206,7 +206,6 @@ import 'dart:collection' show HashMap,
                               LinkedListEntry,
                               UnmodifiableMapView;
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
@@ -227,7 +226,6 @@ part 'http_headers.dart';
 part 'http_impl.dart';
 part 'http_parser.dart';
 part 'http_session.dart';
-part 'io_resource_info.dart';
 part 'io_sink.dart';
 part 'io_service.dart';
 part 'link.dart';
