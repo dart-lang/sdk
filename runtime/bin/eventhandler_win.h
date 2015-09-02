@@ -165,20 +165,6 @@ class Handle : public DescriptorInfoBase {
     kDatagramSocket
   };
 
-  class ScopedLock {
-   public:
-    explicit ScopedLock(Handle* handle)
-        : handle_(handle) {
-      handle_->Lock();
-    }
-    ~ScopedLock() {
-      handle_->Unlock();
-    }
-
-   private:
-    Handle* handle_;
-  };
-
   virtual ~Handle();
 
   // Socket interface exposing normal socket operations.
@@ -219,9 +205,6 @@ class Handle : public DescriptorInfoBase {
 
   HANDLE handle() { return handle_; }
 
-  void Lock();
-  void Unlock();
-
   bool CreateCompletionPort(HANDLE completion_port);
 
   void Close();
@@ -252,6 +235,9 @@ class Handle : public DescriptorInfoBase {
   void set_last_error(DWORD last_error) { last_error_ = last_error; }
 
  protected:
+  // For access to monitor_;
+  friend class EventHandlerImplementation;
+
   enum Flags {
     kClosing = 0,
     kCloseRead = 1,
@@ -264,6 +250,7 @@ class Handle : public DescriptorInfoBase {
 
   virtual void HandleIssueError();
 
+  Monitor* monitor_;
   Type type_;
   HANDLE handle_;
   HANDLE completion_port_;
@@ -275,9 +262,17 @@ class Handle : public DescriptorInfoBase {
 
   DWORD last_error_;
 
+  ThreadId read_thread_id_;
+  bool read_thread_starting_;
+  bool read_thread_finished_;
+
  private:
+  void WaitForReadThreadStarted();
+  void NotifyReadThreadStarted();
+  void WaitForReadThreadFinished();
+  void NotifyReadThreadFinished();
+
   int flags_;
-  CRITICAL_SECTION cs_;  // Critical section protecting this object.
 };
 
 
@@ -297,15 +292,11 @@ class StdHandle : public FileHandle {
  public:
   explicit StdHandle(HANDLE handle)
       : FileHandle(handle),
+        thread_id_(Thread::kInvalidThreadId),
         thread_wrote_(0),
         write_thread_exists_(false),
-        write_thread_running_(false),
-        write_monitor_(new Monitor()) {
+        write_thread_running_(false) {
     type_ = kStd;
-  }
-
-  ~StdHandle() {
-    delete write_monitor_;
   }
 
   virtual void DoClose();
@@ -315,10 +306,10 @@ class StdHandle : public FileHandle {
   void RunWriteLoop();
 
  private:
+  ThreadId thread_id_;
   intptr_t thread_wrote_;
   bool write_thread_exists_;
   bool write_thread_running_;
-  Monitor* write_monitor_;
 };
 
 
@@ -525,6 +516,9 @@ class EventHandlerImplementation {
 
  private:
   ClientSocket* client_sockets_head_;
+
+  Monitor* startup_monitor_;
+  ThreadId handler_thread_id_;
 
   TimeoutQueue timeout_queue_;  // Time for next timeout.
   bool shutdown_;

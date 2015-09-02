@@ -110,6 +110,8 @@ static void ErrorExit(int exit_code, const char* format, ...) {
 
   Dart_Cleanup();
 
+  DebuggerConnectionHandler::StopHandler();
+  EventHandler::Stop();
   exit(exit_code);
 }
 
@@ -1042,6 +1044,8 @@ void main(int argc, char** argv) {
                        DartUtils::EntropySource)) {
     fprintf(stderr, "%s", "VM initialization failed\n");
     fflush(stderr);
+    DebuggerConnectionHandler::StopHandler();
+    EventHandler::Stop();
     exit(kErrorExitCode);
   }
 
@@ -1066,6 +1070,8 @@ void main(int argc, char** argv) {
     Log::PrintErr("%s\n", error);
     free(error);
     delete [] isolate_name;
+    DebuggerConnectionHandler::StopHandler();
+    EventHandler::Stop();
     exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
   delete [] isolate_name;
@@ -1170,6 +1176,9 @@ void main(int argc, char** argv) {
   Process::TerminateExitCodeHandler();
 
   Dart_Cleanup();
+
+  DebuggerConnectionHandler::StopHandler();
+  EventHandler::Stop();
 
   // Free copied argument strings if converted.
   if (argv_converted) {

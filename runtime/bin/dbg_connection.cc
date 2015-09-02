@@ -198,6 +198,9 @@ void DebuggerConnectionHandler::HandleMessages() {
       msgbuf_->ReadData();
     }
     if (!msgbuf_->Alive()) {
+      if (trace_debug_protocol) {
+        Log::Print("Debugger is exiting HandleMessages loop.\n");
+      }
       return;
     }
 
@@ -341,6 +344,13 @@ int DebuggerConnectionHandler::StartHandler(const char* address,
   port_number = Socket::GetPort(listener_fd_);
   DebuggerConnectionImpl::StartHandler(port_number);
   return port_number;
+}
+
+
+void DebuggerConnectionHandler::StopHandler() {
+  if (IsConnected()) {
+    DebuggerConnectionImpl::StopHandler(singleton_handler->debug_fd());
+  }
 }
 
 
