@@ -111,7 +111,8 @@ static void ErrorExit(int exit_code, const char* format, ...) {
   Dart_Cleanup();
 
   DebuggerConnectionHandler::StopHandler();
-  EventHandler::Stop();
+  // TODO(zra): Stop the EventHandler once thread shutdown is enabled.
+  // EventHandler::Stop();
   exit(exit_code);
 }
 
@@ -1045,7 +1046,8 @@ void main(int argc, char** argv) {
     fprintf(stderr, "%s", "VM initialization failed\n");
     fflush(stderr);
     DebuggerConnectionHandler::StopHandler();
-    EventHandler::Stop();
+    // TODO(zra): Stop the EventHandler once thread shutdown is enabled.
+    // EventHandler::Stop();
     exit(kErrorExitCode);
   }
 
@@ -1071,7 +1073,8 @@ void main(int argc, char** argv) {
     free(error);
     delete [] isolate_name;
     DebuggerConnectionHandler::StopHandler();
-    EventHandler::Stop();
+    // TODO(zra): Stop the EventHandler once thread shutdown is enabled.
+    // EventHandler::Stop();
     exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
   delete [] isolate_name;
@@ -1178,7 +1181,8 @@ void main(int argc, char** argv) {
   Dart_Cleanup();
 
   DebuggerConnectionHandler::StopHandler();
-  EventHandler::Stop();
+  // TODO(zra): Stop the EventHandler once thread shutdown is enabled.
+  // EventHandler::Stop();
 
   // Free copied argument strings if converted.
   if (argv_converted) {

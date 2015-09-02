@@ -221,7 +221,8 @@ void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
   Dart_ExitIsolate();
   Dart_Cleanup();
   DebuggerConnectionHandler::StopHandler();
-  EventHandler::Stop();
+  // TODO(zra): Stop the EventHandler once thread shutdown is enabled.
+  // EventHandler::Stop();
   exit(static_cast<int>(status));
 }
 
