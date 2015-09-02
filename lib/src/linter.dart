@@ -18,6 +18,7 @@ import 'package:linter/src/io.dart';
 import 'package:linter/src/project.dart';
 import 'package:linter/src/pub.dart';
 import 'package:linter/src/rules.dart';
+import 'package:path/path.dart' as p;
 
 void _registerLinters(Iterable<Linter> linters) {
   if (linters != null) {
@@ -52,7 +53,6 @@ class CamelCaseString {
 
 /// Dart source linter.
 abstract class DartLinter {
-
   /// Creates a new linter.
   factory DartLinter([LinterOptions options]) => new SourceLinter(options);
 
@@ -87,7 +87,6 @@ class FileGlobFilter extends LintFilter {
 }
 
 class Group implements Comparable<Group> {
-
   /// Defined rule groups.
   static const Group errors =
       const Group._('errors', description: 'Possible coding errors.');
@@ -96,7 +95,8 @@ class Group implements Comparable<Group> {
       link: const Hyperlink('See the <strong>Pubspec Format</strong>',
           'https://www.dartlang.org/tools/pub/pubspec.html'));
   static const Group style = const Group._('style',
-      description: 'Matters of style, largely derived from the official Dart Style Guide.',
+      description:
+          'Matters of style, largely derived from the official Dart Style Guide.',
       link: const Hyperlink('See the <strong>Style Guide</strong>',
           'https://www.dartlang.org/articles/style-guide/'));
 
@@ -115,10 +115,10 @@ class Group implements Comparable<Group> {
             custom: true, description: description, link: link));
   }
 
+  const Group._(this.name, {this.custom: false, this.description, this.link});
+
   @override
   int compareTo(Group other) => name.compareTo(other.name);
-
-  const Group._(this.name, {this.custom: false, this.description, this.link});
 }
 
 class Hyperlink {
@@ -132,7 +132,6 @@ class Hyperlink {
 
 /// Thrown when an error occurs in linting.
 class LinterException implements Exception {
-
   /// A message describing the error.
   final String message;
 
@@ -168,16 +167,19 @@ abstract class LintFilter {
 
 /// Describes a lint rule.
 abstract class LintRule extends Linter implements Comparable<LintRule> {
-
   /// Description (in markdown format) suitable for display in a detailed lint
   /// description.
   final String details;
+
   /// Short description suitable for display in console output.
   final String description;
+
   /// Lint group (for example, 'style').
   final Group group;
+
   /// Lint maturity (stable|experimental).
   final Maturity maturity;
+
   /// Lint name.
   final String name;
 
@@ -186,7 +188,11 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   /// constitute AnalysisErrorInfos.
   final List<AnalysisErrorInfo> _locationInfo = <AnalysisErrorInfo>[];
 
-  LintRule({this.name, this.group, this.description, this.details,
+  LintRule(
+      {this.name,
+      this.group,
+      this.description,
+      this.details,
       this.maturity: Maturity.stable});
 
   @override
@@ -325,8 +331,10 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
 
   @override
   Iterable<AnalysisErrorInfo> lintPubspecSource(
-      {String contents, String sourceUrl}) {
+      {String contents, String sourcePath}) {
     var results = <AnalysisErrorInfo>[];
+
+    Uri sourceUrl = sourcePath == null ? null : p.toUri(sourcePath);
 
     var spec = new Pubspec.parse(contents, sourceUrl: sourceUrl);
 
@@ -339,7 +347,7 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
           // we need to set one ourselves.  (Needless to say, when pubspec
           // processing gets pushed down, this hack can go away.)
           if (rule.reporter == null && sourceUrl != null) {
-            var source = createSource(Uri.parse(sourceUrl));
+            var source = createSource(sourceUrl);
             rule.reporter = new ErrorReporter(this, source);
           }
           try {
@@ -363,7 +371,7 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
 
   Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
       lintPubspecSource(
-          contents: sourceFile.readAsStringSync(), sourceUrl: sourceFile.path);
+          contents: sourceFile.readAsStringSync(), sourcePath: sourceFile.path);
 }
 
 class _LineInfo implements LineInfo {

@@ -19,7 +19,7 @@ Pubspec _findAndParsePubspec(Directory root) {
         .firstWhere((f) => isPubspecFile(f), orElse: () => null);
     if (pubspec != null) {
       return new Pubspec.parse(pubspec.readAsStringSync(),
-          sourceUrl: pubspec.path);
+          sourceUrl: p.toUri(pubspec.path));
     }
   }
   return null;

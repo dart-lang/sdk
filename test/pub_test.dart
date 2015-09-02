@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:linter/src/pub.dart';
 import 'package:mockito/mockito.dart';
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
 
@@ -84,11 +85,13 @@ dev_dependencies:
         });
       });
 
-      testDepListContains(
-          'dependencies', ps.dependencies, [{'analyzer': '0.24.0-dev.1'}]);
+      testDepListContains('dependencies', ps.dependencies, [
+        {'analyzer': '0.24.0-dev.1'}
+      ]);
 
-      testDepListContains('dev_dependencies', ps.devDependencies,
-          [{'markdown': '>=0.7.1+2 <0.8.0'}]);
+      testDepListContains('dev_dependencies', ps.devDependencies, [
+        {'markdown': '>=0.7.1+2 <0.8.0'}
+      ]);
 
       group('hosted', () {
         PSDependency dep =
@@ -128,8 +131,8 @@ dev_dependencies:
     group('initialization', () {
       test('sourceUrl', () {
         File ps = new File('test/_data/p1/_pubspec.yaml');
-        Pubspec spec =
-            new Pubspec.parse(ps.readAsStringSync(), sourceUrl: ps.path);
+        Pubspec spec = new Pubspec.parse(ps.readAsStringSync(),
+            sourceUrl: p.toUri(ps.path));
         expect(spec.name.key.span.sourceUrl.toFilePath(windows: false),
             equals('test/_data/p1/_pubspec.yaml'));
       });
@@ -137,8 +140,8 @@ dev_dependencies:
     group('parsing', () {
       test('bad yaml', () {
         File ps = new File('test/_data/p3/_pubspec.yaml');
-        Pubspec spec =
-            new Pubspec.parse(ps.readAsStringSync(), sourceUrl: ps.path);
+        Pubspec spec = new Pubspec.parse(ps.readAsStringSync(),
+            sourceUrl: p.toUri(ps.path));
         expect(spec.name, isNull);
         expect(spec.description, isNull);
       });
