@@ -175,6 +175,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
     dumpTypedIR(cpsNode, typePropagator);
     applyCpsPass(new LoopInvariantCodeMotion());
     applyCpsPass(new ShareInterceptors());
+    applyCpsPass(new ScalarReplacer(compiler));
     applyCpsPass(new ShrinkingReducer());
     applyCpsPass(new MutableVariableEliminator());
     applyCpsPass(new RedundantJoinEliminator());

@@ -723,6 +723,8 @@ class GetField extends Primitive {
 
   bool get isSafeForElimination => objectIsNotNull;
   bool get isSafeForReordering => false;
+
+  toString() => 'GetField($field)';
 }
 
 /// Get the length of a string or native list.
@@ -872,6 +874,8 @@ class CreateInstance extends Primitive {
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
+
+  toString() => 'CreateInstance($classElement)';
 }
 
 class Interceptor extends Primitive {
