@@ -102,7 +102,8 @@ bool Utf8::IsValid(const uint8_t* utf8_array, intptr_t array_len) {
       if (!((is_malformed == false) &&
             (j == num_trail_bytes) &&
             !Utf::IsOutOfRange(ch) &&
-            !IsNonShortestForm(ch, j))) {
+            !IsNonShortestForm(ch, j) &&
+            !Utf16::IsSurrogate(ch))) {
         return false;
       }
     }
@@ -200,7 +201,8 @@ intptr_t Utf8::Decode(const uint8_t* utf8_array,
     if (!((is_malformed == false) &&
           (i == num_trail_bytes) &&
           !Utf::IsOutOfRange(ch) &&
-          !IsNonShortestForm(ch, i))) {
+          !IsNonShortestForm(ch, i) &&
+          !Utf16::IsSurrogate(ch))) {
       *dst = -1;
       return 0;
     }
