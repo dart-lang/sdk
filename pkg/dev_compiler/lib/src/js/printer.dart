@@ -268,6 +268,7 @@ class Printer implements NodeVisitor {
 
   visitExpressionStatement(ExpressionStatement expressionStatement) {
     indent();
+    outClosureAnnotation(expressionStatement);
     visitNestedExpression(expressionStatement.expression, EXPRESSION,
                           newInForInit: false, newAtStatementBegin: true);
     outSemicolonLn();
@@ -548,6 +549,7 @@ class Printer implements NodeVisitor {
 
   visitFunctionDeclaration(FunctionDeclaration declaration) {
     indent();
+    outClosureAnnotation(declaration);
     functionOut(declaration.function, declaration.name);
     lineOut();
   }
@@ -586,6 +588,7 @@ class Printer implements NodeVisitor {
   }
 
   visitVariableDeclarationList(VariableDeclarationList list) {
+    outClosureAnnotation(list);
     out(list.keyword);
     out(" ");
     visitCommaSeparated(list.declarations, ASSIGNMENT,
@@ -609,6 +612,7 @@ class Printer implements NodeVisitor {
   }
 
   visitVariableInitialization(VariableInitialization initialization) {
+    outClosureAnnotation(initialization);
     visitAssignment(initialization);
   }
 
@@ -1053,6 +1057,7 @@ class Printer implements NodeVisitor {
   }
 
   visitMethod(Method node) {
+    outClosureAnnotation(node);
     if (node.isStatic) {
       out('static ');
     }
@@ -1081,6 +1086,17 @@ class Printer implements NodeVisitor {
       blockBody(fun.body, needsSeparation: false, needsNewline: false);
     }
     localNamer.leaveScope();
+  }
+
+  void outClosureAnnotation(Node node) {
+    if (node != null && node.closureAnnotation != null) {
+      String comment = node.closureAnnotation.toString(indentation);
+      if (comment.isNotEmpty) {
+        out(comment);
+        lineOut();
+        indent();
+      }
+    }
   }
 
   void propertyNameOut(Expression node, {bool inMethod: false,

@@ -15,6 +15,8 @@ import 'package:yaml/yaml.dart';
 
 import 'package:dev_compiler/strong_mode.dart' show StrongModeOptions;
 
+const bool _CLOSURE_DEFAULT = false;
+
 /// Options used to set up Source URI resolution in the analysis context.
 class SourceResolverOptions {
   /// Whether to resolve 'package:' uris using the multi-package resolver.
@@ -65,6 +67,9 @@ class CodegenOptions {
   /// Output directory for generated code.
   final String outputDir;
 
+  /// Emit Closure Compiler-friendly code.
+  final bool closure;
+
   /// Whether to emit a workaround for missing arrow function bind-this in
   /// other V8 builds
   final bool arrowFnBindThisWorkaround;
@@ -72,6 +77,7 @@ class CodegenOptions {
   const CodegenOptions(
       {this.emitSourceMaps: true,
       this.forceCompile: false,
+      this.closure: _CLOSURE_DEFAULT,
       this.outputDir,
       this.arrowFnBindThisWorkaround: false});
 }
@@ -213,6 +219,7 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
       codegenOptions: new CodegenOptions(
           emitSourceMaps: args['source-maps'],
           forceCompile: args['force-compile'] || serverMode,
+          closure: args['closure'],
           outputDir: outputDir,
           arrowFnBindThisWorkaround: args['arrow-fn-bind-this']),
       sourceOptions: new SourceResolverOptions(
@@ -294,6 +301,8 @@ final ArgParser argParser = StrongModeOptions.addArguments(new ArgParser()
   ..addOption('port',
       help: 'Port to serve files from (used only when --serve is on)',
       defaultsTo: '8080')
+  ..addFlag('closure',
+      help: 'Emit Closure Compiler-friendly code (experimental)', defaultsTo: _CLOSURE_DEFAULT)
   ..addFlag('force-compile',
       help: 'Compile code with static errors', defaultsTo: false)
   ..addOption('log', abbr: 'l', help: 'Logging level (defaults to severe)')
