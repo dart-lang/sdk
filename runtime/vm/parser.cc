@@ -2397,8 +2397,9 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
     if (ctor_name.Length() > class_name.Length() + 1) {
       // Generating a forwarding call to a named constructor 'C.n'.
       // Add the constructor name 'n' to the super constructor.
-      ctor_name = String::SubString(ctor_name, class_name.Length() + 1);
-      super_ctor_name = String::Concat(super_ctor_name, ctor_name);
+      const intptr_t kLen =  class_name.Length() + 1;
+      ctor_name = Symbols::New(ctor_name, kLen, ctor_name.Length() - kLen);
+      super_ctor_name = Symbols::FromConcat(super_ctor_name, ctor_name);
     }
   }
 
@@ -3691,7 +3692,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       ASSERT(method->IsSetter());
       expected_num_parameters = (method->has_static) ? 1 : 2;
       method->dict_name = &String::ZoneHandle(Z,
-          String::Concat(*method->name, Symbols::Equals()));
+          Symbols::FromConcat(*method->name, Symbols::Equals()));
       method->name = &String::ZoneHandle(Z, Field::SetterSymbol(*method->name));
     }
     if ((method->params.num_fixed_parameters != expected_num_parameters) ||

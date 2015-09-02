@@ -3430,50 +3430,52 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
       !num_elements->BoundConstant().IsSmi()) {
     return this;
   }
-  intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
-  GrowableArray<ConstantInstr*> constants(length);
+  const intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
+  Zone* zone = Thread::Current()->zone();
+  GrowableHandlePtrArray<const String> pieces(zone, length);
   for (intptr_t i = 0; i < length; i++) {
-    constants.Add(NULL);
+    pieces.Add(Object::null_string());
   }
+
   for (Value::Iterator it(create_array->input_use_list());
        !it.Done();
        it.Advance()) {
     Instruction* curr = it.Current()->instruction();
-    if (curr != this) {
-      StoreIndexedInstr* store = curr->AsStoreIndexed();
-      ASSERT(store != NULL);
-      if (store->value()->definition()->IsConstant()) {
-        ASSERT(store->index()->BindsToConstant());
-        const Object& obj = store->value()->definition()->AsConstant()->value();
-        if (obj.IsNumber() || obj.IsString() || obj.IsBool() || obj.IsNull()) {
-          constants[Smi::Cast(store->index()->BoundConstant()).Value()] =
-              store->value()->definition()->AsConstant();
-        } else {
-          return this;
-        }
+    if (curr == this) continue;
+
+    StoreIndexedInstr* store = curr->AsStoreIndexed();
+    if (!store->index()->BindsToConstant() ||
+        !store->index()->BoundConstant().IsSmi()) {
+      return this;
+    }
+    intptr_t store_index = Smi::Cast(store->index()->BoundConstant()).Value();
+    ASSERT(store_index < length);
+    ASSERT(store != NULL);
+    if (store->value()->definition()->IsConstant()) {
+      ASSERT(store->index()->BindsToConstant());
+      const Object& obj = store->value()->definition()->AsConstant()->value();
+      // TODO(srdjan): Verify if any other types should be converted as well.
+      if (obj.IsString()) {
+        pieces.SetAt(store_index, String::Cast(obj));
+      } else if (obj.IsSmi()) {
+        const char* cstr = obj.ToCString();
+        pieces.SetAt(store_index, String::Handle(zone, String::New(cstr)));
+      } else if (obj.IsBool()) {
+        pieces.SetAt(store_index,
+            Bool::Cast(obj).value() ? Symbols::True() : Symbols::False());
+      } else if (obj.IsNull()) {
+        pieces.SetAt(store_index, Symbols::Null());
       } else {
         return this;
       }
+    } else {
+      return this;
     }
   }
-  // Interpolate string at compile time.
-  const Array& array_argument =
-      Array::Handle(Array::New(length));
-  for (intptr_t i = 0; i < constants.length(); i++) {
-    array_argument.SetAt(i, constants[i]->value());
-  }
-  // Build argument array to pass to the interpolation function.
-  const Array& interpolate_arg = Array::Handle(Array::New(1));
-  interpolate_arg.SetAt(0, array_argument);
-  // Call interpolation function.
-  const Object& result = Object::Handle(
-      DartEntry::InvokeFunction(CallFunction(), interpolate_arg));
-  if (result.IsUnhandledException()) {
-    return this;
-  }
-  ASSERT(result.IsString());
-  const String& concatenated =
-      String::ZoneHandle(Symbols::New(String::Cast(result)));
+
+  ASSERT(pieces.length() == length);
+  const String& concatenated = String::ZoneHandle(zone,
+      Symbols::FromConcatAll(pieces));
   return flow_graph->GetConstant(concatenated);
 }
 
