@@ -27,6 +27,8 @@ import '../elements/modelx.dart' show
     VariableList;
 import '../elements/visitor.dart' show
     ElementVisitor;
+import '../tokens/token.dart' show
+    Token;
 import '../tree/tree.dart';
 import '../util/util.dart' show
     Link;
@@ -43,8 +45,6 @@ import 'parser.dart' show
     Parser;
 import 'partial_parser.dart' show
     PartialParser;
-import 'token.dart' show
-    Token;
 
 class ClassElementParser extends PartialParser {
   ClassElementParser(Listener listener) : super(listener);

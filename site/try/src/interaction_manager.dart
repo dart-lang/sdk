@@ -24,7 +24,7 @@ import 'dart:collection' show
 import 'package:compiler/src/scanner/string_scanner.dart' show
     StringScanner;
 
-import 'package:compiler/src/scanner/token.dart' show
+import 'package:compiler/src/tokens/token.dart' show
     BeginGroupToken,
     EOF_TOKEN,
     ErrorToken,

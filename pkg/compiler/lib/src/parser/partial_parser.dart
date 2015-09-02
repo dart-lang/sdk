@@ -8,16 +8,16 @@ import '../diagnostics/messages.dart' show
     MessageKind;
 import '../util/characters.dart' show
     $CLOSE_CURLY_BRACKET;
+import '../tokens/token.dart' show
+    BeginGroupToken,
+    EOF_TOKEN,
+    ErrorToken,
+    Token;
 
 import 'listener.dart' show
     Listener;
 import 'parser.dart' show
     Parser;
-import 'token.dart' show
-    BeginGroupToken,
-    EOF_TOKEN,
-    ErrorToken,
-    Token;
 
 class PartialParser extends Parser {
   PartialParser(Listener listener) : super(listener);

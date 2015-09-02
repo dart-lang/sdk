@@ -43,17 +43,9 @@ import '../elements/modelx.dart' show
 import '../native/native.dart' as native;
 import '../string_validator.dart' show
     StringValidator;
-import '../tree/tree.dart';
-import '../util/util.dart' show
-    Link;
-
-import 'class_element_parser.dart' show
-    PartialClassElement;
-import 'keyword.dart' show
+import '../tokens/keyword.dart' show
     Keyword;
-import 'parser.dart' show
-    Parser;
-import 'token.dart' show
+import '../tokens/token.dart' show
     BAD_INPUT_INFO,
     BadInputToken,
     BeginGroupToken,
@@ -67,6 +59,14 @@ import 'token.dart' show
     Token,
     UnmatchedToken,
     UnterminatedToken;
+import '../tree/tree.dart';
+import '../util/util.dart' show
+    Link;
+
+import 'class_element_parser.dart' show
+    PartialClassElement;
+import 'parser.dart' show
+    Parser;
 
 const bool VERBOSE = false;
 

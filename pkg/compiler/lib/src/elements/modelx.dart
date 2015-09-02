@@ -35,11 +35,11 @@ import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../resolution/typedefs.dart' show
     TypedefCyclicVisitor;
-import '../scanner/token.dart' show
+import '../script.dart';
+import '../tokens/token.dart' show
     EOF_TOKEN,
     ErrorToken,
     Token;
-import '../script.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 

@@ -8,9 +8,9 @@ import '../compiler.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
-import '../scanner/keyword.dart' show
+import '../tokens/keyword.dart' show
     Keyword;
-import '../scanner/token.dart';
+import '../tokens/token.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 

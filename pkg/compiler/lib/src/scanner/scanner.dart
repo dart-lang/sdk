@@ -7,14 +7,14 @@ library dart2js.scanner;
 import '../io/source_file.dart' show
     SourceFile,
     Utf8BytesSourceFile;
-import '../util/characters.dart';
-
-import 'keyword.dart' show
+import '../tokens/keyword.dart' show
     Keyword,
     KeywordState;
+import '../tokens/token.dart';
+import '../util/characters.dart';
+
 import 'string_scanner.dart' show
     StringScanner;
-import 'token.dart';
 import 'utf8_bytes_scanner.dart' show
     Utf8BytesScanner;
 

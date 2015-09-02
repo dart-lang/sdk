@@ -27,23 +27,23 @@ import 'package:compiler/src/elements/elements.dart' show
 import 'package:compiler/src/enqueue.dart' show
     EnqueueTask;
 
-import 'package:compiler/src/scanner/class_element_parser.dart' show
+import 'package:compiler/src/parser/class_element_parser.dart' show
     PartialClassElement;
 
-import 'package:compiler/src/scanner/listener.dart' show
+import 'package:compiler/src/parser/listener.dart' show
     Listener,
     NodeListener,
     PartialElement,
     PartialFieldList,
     PartialFunctionElement;
 
-import 'package:compiler/src/scanner/parser.dart' show
+import 'package:compiler/src/parser/parser.dart' show
     Parser;
 
 import 'package:compiler/src/scanner/scanner.dart' show
     Scanner;
 
-import 'package:compiler/src/scanner/token.dart' show
+import 'package:compiler/src/tokens/token.dart' show
     EOF_TOKEN,
     Token;
 

@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import "package:compiler/src/scanner/listener.dart";
-import "package:compiler/src/scanner/parser.dart";
+import "package:compiler/src/parser/listener.dart";
+import "package:compiler/src/parser/parser.dart";
 import "package:compiler/src/scanner/string_scanner.dart";
-import "package:compiler/src/scanner/token.dart";
+import "package:compiler/src/tokens/token.dart";
 import "package:compiler/src/tree/tree.dart";
 
 import "package:compiler/src/diagnostics/diagnostic_listener.dart";

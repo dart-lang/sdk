@@ -6,13 +6,13 @@ library dart2js.scanner.string;
 
 import '../io/source_file.dart' show
     SourceFile;
-
-import 'array_based_scanner.dart' show
-    ArrayBasedScanner;
-import 'token.dart' show
+import '../tokens/token.dart' show
     PrecedenceInfo,
     StringToken,
     Token;
+
+import 'array_based_scanner.dart' show
+    ArrayBasedScanner;
 
 
 /**

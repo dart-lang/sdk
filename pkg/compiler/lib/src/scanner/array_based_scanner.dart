@@ -6,17 +6,9 @@ library dart2js.scanner.array_based;
 
 import '../io/source_file.dart' show
     SourceFile;
-import '../util/characters.dart' show
-    $LF,
-    $STX;
-import '../util/util.dart' show
-    Link;
-
-import 'keyword.dart' show
+import '../tokens/keyword.dart' show
     Keyword;
-import 'scanner.dart' show
-    AbstractScanner;
-import 'token.dart' show
+import '../tokens/token.dart' show
     BeginGroupToken,
     COMMENT_INFO,
     ErrorToken,
@@ -28,6 +20,14 @@ import 'token.dart' show
     STRING_INTERPOLATION_TOKEN,
     SymbolToken,
     Token;
+import '../util/characters.dart' show
+    $LF,
+    $STX;
+import '../util/util.dart' show
+    Link;
+
+import 'scanner.dart' show
+    AbstractScanner;
 
 abstract class ArrayBasedScanner extends AbstractScanner {
   ArrayBasedScanner(SourceFile file, bool includeComments)

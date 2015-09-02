@@ -33,11 +33,11 @@ import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../resolution/scope.dart' show
     Scope;
-import '../scanner/token.dart' show
-    Token,
-    SEMICOLON_INFO;
 import '../script.dart';
 import '../serialization/constant_serialization.dart';
+import '../tokens/token.dart' show
+    Token,
+    SEMICOLON_INFO;
 import '../tree/tree.dart';
 import '../util/util.dart' show
     Link,

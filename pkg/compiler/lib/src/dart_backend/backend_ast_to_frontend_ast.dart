@@ -11,8 +11,8 @@ import '../diagnostics/invariant.dart' show
 import '../elements/elements.dart' as elements;
 import '../resolution/tree_elements.dart' show
     TreeElementMapping;
+import '../tokens/token.dart';
 import '../tree/tree.dart' as tree;
-import '../scanner/token.dart';
 import '../util/util.dart';
 import 'backend_ast_nodes.dart';
 import 'backend_ast_emitter.dart' show TypeGenerator;

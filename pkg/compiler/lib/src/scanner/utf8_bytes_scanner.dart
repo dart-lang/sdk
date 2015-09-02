@@ -10,13 +10,13 @@ import 'dart:convert' show
 
 import '../io/source_file.dart' show
     SourceFile;
-
-import 'array_based_scanner.dart' show
-    ArrayBasedScanner;
-import 'token.dart' show
+import '../tokens/token.dart' show
     PrecedenceInfo,
     StringToken,
     Token;
+
+import 'array_based_scanner.dart' show
+    ArrayBasedScanner;
 
 /**
  * Scanner that reads from a UTF-8 encoded list of bytes and creates tokens

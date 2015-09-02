@@ -12,14 +12,14 @@ import '../elements/elements.dart' show
     CompilationUnitElement;
 import '../diagnostics/invariant.dart' show
     invariant;
+import '../tokens/token.dart' show
+    Token;
 
 import 'listener.dart' show
     ElementListener,
     ParserError;
 import 'partial_parser.dart' show
     PartialParser;
-import 'token.dart' show
-    Token;
 
 class DietParserTask extends CompilerTask {
   DietParserTask(Compiler compiler) : super(compiler);

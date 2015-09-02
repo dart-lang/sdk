@@ -39,7 +39,7 @@ import '../elements/modelx.dart' show
     TypedefElementX;
 import '../enqueue.dart' show
     WorldImpact;
-import '../scanner/token.dart' show
+import '../tokens/token.dart' show
     isBinaryOperator,
     isMinusOperator,
     isTernaryOperator,

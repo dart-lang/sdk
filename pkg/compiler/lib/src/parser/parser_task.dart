@@ -12,6 +12,8 @@ import '../diagnostics/invariant.dart' show
     invariant;
 import '../elements/modelx.dart' show
     ElementX;
+import '../tokens/token.dart' show
+    Token;
 import '../tree/tree.dart' show
     Node;
 
@@ -20,8 +22,6 @@ import 'listener.dart' show
     ParserError;
 import 'parser.dart' show
     Parser;
-import 'token.dart' show
-    Token;
 
 class ParserTask extends CompilerTask {
   ParserTask(Compiler compiler) : super(compiler);

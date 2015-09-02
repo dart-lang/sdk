@@ -21,11 +21,11 @@ import '../resolution/scope.dart' show
 import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../ordered_typeset.dart' show OrderedTypeSet;
-import '../scanner/token.dart' show
+import '../script.dart';
+import '../tokens/token.dart' show
     Token,
     isUserDefinableOperator,
     isMinusOperator;
-import '../script.dart';
 import '../tree/tree.dart';
 import '../util/characters.dart' show $_;
 import '../util/util.dart';

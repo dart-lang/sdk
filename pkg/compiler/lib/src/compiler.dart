@@ -91,6 +91,11 @@ import 'mirrors_used.dart' show
 import 'null_compiler_output.dart' show
     NullCompilerOutput,
     NullSink;
+import 'parser/diet_parser_task.dart' show
+    DietParserTask;
+import 'parser/parser_task.dart' show
+    DietParserTask,
+    ParserTask;
 import 'patch_parser.dart' show
     PatchParserTask;
 import 'resolution/registry.dart' show
@@ -99,21 +104,8 @@ import 'resolution/resolution.dart' show
     ResolverTask;
 import 'resolution/tree_elements.dart' show
     TreeElementMapping;
-import 'scanner/token_map.dart' show
-    TokenMap;
-import 'scanner/diet_parser_task.dart' show
-    DietParserTask;
 import 'scanner/scanner_task.dart' show
     ScannerTask;
-import 'scanner/parser_task.dart' show
-    DietParserTask,
-    ParserTask;
-import 'scanner/token.dart' show
-    COMMENT_TOKEN,
-    EOF_TOKEN,
-    StringToken,
-    Token,
-    TokenPair;
 import 'serialization/task.dart' show
     SerializationTask;
 import 'script.dart' show
@@ -122,6 +114,14 @@ import 'ssa/ssa.dart' show
     HInstruction;
 import 'tracer.dart' show
     Tracer;
+import 'tokens/token.dart' show
+    COMMENT_TOKEN,
+    EOF_TOKEN,
+    StringToken,
+    Token,
+    TokenPair;
+import 'tokens/token_map.dart' show
+    TokenMap;
 import 'tree/tree.dart' show
     Node;
 import 'typechecker.dart' show

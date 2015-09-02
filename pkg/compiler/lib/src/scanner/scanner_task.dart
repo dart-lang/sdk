@@ -13,13 +13,13 @@ import '../elements/elements.dart' show
     LibraryElement;
 import '../script.dart' show
     Script;
+import '../tokens/token.dart' show
+    Token;
 
 import 'scanner.dart' show
     Scanner;
 import 'string_scanner.dart' show
     StringScanner;
-import 'token.dart' show
-    Token;
 
 class ScannerTask extends CompilerTask {
   ScannerTask(Compiler compiler) : super(compiler);

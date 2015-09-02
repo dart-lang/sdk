@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 import 'package:compiler/src/scanner/string_scanner.dart';
-import 'package:compiler/src/scanner/token.dart';
+import 'package:compiler/src/tokens/token.dart';
 
 Token scan(String text) =>
     new StringScanner.fromString(text, includeComments: true).tokenize();

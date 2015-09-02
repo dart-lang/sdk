@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 import 'package:compiler/src/scanner/utf8_bytes_scanner.dart';
-import 'package:compiler/src/scanner/token.dart';
+import 'package:compiler/src/tokens/token.dart';
 import 'package:compiler/src/util/characters.dart';
 import 'dart:typed_data';
 

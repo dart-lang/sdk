@@ -32,18 +32,18 @@ import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show
     CodeEmitterTask,
     NativeEmitter;
-import '../resolution/members.dart' show
-    ResolverVisitor;
-import '../scanner/listener.dart' show
+import '../parser/listener.dart' show
     ElementListener,
     Listener,
     PartialMetadataAnnotation;
-import '../scanner/token.dart' show
+import '../resolution/members.dart' show
+    ResolverVisitor;
+import '../ssa/ssa.dart';
+import '../tokens/token.dart' show
     BeginGroupToken,
     EOF_TOKEN,
     STRING_TOKEN,
     Token;
-import '../ssa/ssa.dart';
 import '../tree/tree.dart';
 import '../universe/universe.dart' show SideEffects;
 import '../util/util.dart';

@@ -49,7 +49,7 @@ import '../mirror_renamer/mirror_renamer.dart';
 import '../resolution/tree_elements.dart' show
     TreeElements,
     TreeElementMapping;
-import '../scanner/keyword.dart' show
+import '../tokens/keyword.dart' show
     Keyword;
 import '../tree/tree.dart';
 import '../universe/universe.dart' show

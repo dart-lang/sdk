@@ -20,8 +20,8 @@ import '../diagnostics/spannable.dart' show
 import '../elements/elements.dart';
 import '../resolution/scope.dart' show
     Scope;
-import '../scanner/token.dart';
 import '../script.dart';
+import '../tokens/token.dart';
 import '../tree/tree.dart';
 import '../util/util.dart'
     show Link,

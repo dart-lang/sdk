@@ -60,13 +60,13 @@ import 'package:compiler/src/enqueue.dart' show
 import 'package:compiler/src/dart_types.dart' show
     DartType;
 
-import 'package:compiler/src/scanner/class_element_parser.dart' show
+import 'package:compiler/src/parser/class_element_parser.dart' show
     PartialClassElement;
 
-import 'package:compiler/src/scanner/listener.dart' show
+import 'package:compiler/src/parser/listener.dart' show
     PartialElement;
 
-import 'package:compiler/src/scanner/token.dart' show
+import 'package:compiler/src/tokens/token.dart' show
     EOF_TOKEN,
     IDENTIFIER_TOKEN,
     KEYWORD_TOKEN,

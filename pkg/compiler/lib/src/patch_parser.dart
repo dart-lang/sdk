@@ -135,23 +135,23 @@ import 'elements/modelx.dart' show
     SetterElementX;
 import 'library_loader.dart' show
     LibraryLoader;
-import 'scanner/class_element_parser.dart' show
+import 'parser/class_element_parser.dart' show
     MemberListener,
     PartialClassElement;
-import 'scanner/listener.dart' show
+import 'parser/listener.dart' show
     ElementListener,
     Listener,
     ParserError;
-import 'scanner/partial_parser.dart' show
+import 'parser/partial_parser.dart' show
     PartialParser;
-import 'scanner/parser.dart' show
+import 'parser/parser.dart' show
     Parser;
 import 'scanner/scanner.dart' show
     Scanner;
-import 'scanner/token.dart' show
+import 'script.dart';
+import 'tokens/token.dart' show
     StringToken,
     Token;
-import 'script.dart';
 import 'util/util.dart';
 
 class PatchParserTask extends CompilerTask {

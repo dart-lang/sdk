@@ -6,16 +6,9 @@ library dart2js.parser;
 
 import '../diagnostics/messages.dart' show
     MessageKind;
-import '../util/characters.dart' show
-    $CLOSE_CURLY_BRACKET;
-import '../util/util.dart' show
-    Link;
-
-import 'keyword.dart' show
+import '../tokens/keyword.dart' show
     Keyword;
-import 'listener.dart' show
-    Listener;
-import 'token.dart' show
+import '../tokens/token.dart' show
     AS_INFO,
     ASSIGNMENT_PRECEDENCE,
     BAD_INPUT_TOKEN,
@@ -58,6 +51,13 @@ import 'token.dart' show
     STRING_TOKEN,
     SymbolToken,
     Token;
+import '../util/characters.dart' show
+    $CLOSE_CURLY_BRACKET;
+import '../util/util.dart' show
+    Link;
+
+import 'listener.dart' show
+    Listener;
 
 class FormalParameterType {
   final String type;

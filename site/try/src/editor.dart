@@ -9,7 +9,7 @@ import 'dart:html';
 import 'package:compiler/src/scanner/string_scanner.dart' show
     StringScanner;
 
-import 'package:compiler/src/scanner/token.dart' show
+import 'package:compiler/src/tokens/token.dart' show
     EOF_TOKEN,
     ErrorToken,
     Token;
