@@ -4,10 +4,8 @@
 
 import 'optimizers.dart';
 
-import '../closure.dart' show
-    ClosureClassElement, Identifiers;
 import '../common/names.dart' show
-    Selectors, Identifiers;
+    Selectors;
 import '../compiler.dart' as dart2js show
     Compiler;
 import '../constants/constant_system.dart';
@@ -29,7 +27,6 @@ import '../universe/universe.dart';
 import '../world.dart' show World;
 import 'cps_fragment.dart';
 import 'cps_ir_nodes.dart';
-import 'cps_ir_nodes_sexpr.dart' show SExpressionStringifier;
 
 enum AbstractBool {
   True, False, Maybe, Nothing
@@ -1597,70 +1594,6 @@ class TransformingVisitor extends LeafVisitor {
     return false;
   }
 
-  /// Inlines a single-use closure if it leaves the closure object with only
-  /// field accesses.  This is optimized later by [ScalarReplacer].
-  bool specializeSingleUseClosureCall(InvokeMethod node) {
-    Selector call = node.selector;
-    if (!call.isClosureCall) return false;
-
-    assert(!isInterceptedSelector(call));
-    assert(call.argumentCount == node.arguments.length);
-
-    Primitive receiver = node.receiver.definition;
-    if (receiver is !CreateInstance) return false;
-    CreateInstance createInstance = receiver;
-    if (!createInstance.hasExactlyOneUse) return false;
-
-    // Inline only closures. This avoids inlining the 'call' method of a class
-    // that has many allocation sites.
-    if (createInstance.classElement is !ClosureClassElement) return false;
-
-    ClosureClassElement closureClassElement = createInstance.classElement;
-    Element element = closureClassElement.localLookup(Identifiers.call);
-
-    if (element == null || !element.isFunction) return false;
-    FunctionElement functionElement = element;
-    if (functionElement.asyncMarker != AsyncMarker.SYNC) return false;
-
-    if (!call.signatureApplies(functionElement)) return false;
-    // Inline only for exact match.
-    // TODO(sra): Handle call with defaulted arguments.
-    Selector targetSelector = new Selector.fromElement(functionElement);
-    if (call.callStructure != targetSelector.callStructure) return false;
-
-    FunctionDefinition target =
-        functionCompiler.compileToCpsIR(functionElement);
-
-    // Accesses to closed-over values are field access primitives.  We we don't
-    // inline if there are other uses of 'this' since that could be an escape or
-    // a recursive call.
-    for (Reference ref = target.thisParameter.firstRef;
-         ref != null;
-         ref = ref.next) {
-      Node use = ref.parent;
-      if (use is GetField) continue;
-      // Closures do not currently have writable fields, but closure conversion
-      // could esily be changed to allocate some cells in a closure object.
-      if (use is SetField && ref == use.object) continue;
-      return false;
-    }
-
-    // Don't inline if [target] contains try-catch or try-finally. JavaScript
-    // engines typically do poor optimization of the entire function containing
-    // the 'try'.
-    if (ContainsTry.analyze(target)) return false;
-
-    node.receiver.definition.substituteFor(target.thisParameter);
-    for (int i = 0; i < node.arguments.length; ++i) {
-      node.arguments[i].definition.substituteFor(target.parameters[i]);
-    }
-    node.continuation.definition.substituteFor(target.returnContinuation);
-
-    replaceSubtree(node, target.body);
-    push(target.body);
-    return true;
-  }
-
   /// Side-effect free expressions with constant results are be replaced by:
   ///
   ///    (LetPrim p = constant (InvokeContinuation k p)).
@@ -1685,7 +1618,6 @@ class TransformingVisitor extends LeafVisitor {
     if (specializeFieldAccess(node)) return;
     if (specializeIndexableAccess(node)) return;
     if (specializeArrayAccess(node)) return;
-    if (specializeSingleUseClosureCall(node)) return;
     if (specializeClosureCall(node)) return;
 
     AbstractValue receiver = getValue(node.receiver.definition);
@@ -2835,27 +2767,5 @@ class ResetAnalysisInfo extends RecursiveVisitor {
 
   processLetMutable(LetMutable node) {
     values.remove(node.variable);
-  }
-}
-
-
-class ContainsTry extends RecursiveVisitor {
-  bool _found = false;
-  ContainsTry._();
-
-  /// Scans [root] for evidence of try-catch and try-finally.
-  static bool analyze(Node root) {
-    ContainsTry visitor = new ContainsTry._();
-    visitor.visit(root);
-    return visitor._found;
-  }
-
-  visit(Node node) {
-    if (_found) return;  // Early exit if we know the answer.
-    super.visit(node);
-  }
-
-  processLetHandler(LetHandler node) {
-    _found = true;
   }
 }
