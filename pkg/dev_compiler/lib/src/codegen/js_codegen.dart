@@ -23,7 +23,8 @@ import 'package:dev_compiler/src/codegen/reify_coercions.dart'
 import 'package:dev_compiler/src/js/js_ast.dart' as JS;
 import 'package:dev_compiler/src/js/js_ast.dart' show js;
 
-import 'package:dev_compiler/src/closure/closure_annotator.dart' show ClosureAnnotator;
+import 'package:dev_compiler/src/closure/closure_annotator.dart'
+    show ClosureAnnotator;
 import 'package:dev_compiler/src/compiler.dart' show AbstractCompiler;
 import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/info.dart';
@@ -367,8 +368,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var type = element.type;
     var name = element.name;
 
-    var fnType = annotateTypeDef(js.statement('let # = dart.typedef(#, () => #);',
-        [name, js.string(name, "'"), _emitTypeName(type, lowerTypedef: true)]),
+    var fnType = annotateTypeDef(
+        js.statement('let # = dart.typedef(#, () => #);', [
+          name,
+          js.string(name, "'"),
+          _emitTypeName(type, lowerTypedef: true)
+        ]),
         node.element);
 
     return _finishClassDef(type, fnType);
@@ -945,9 +950,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     // this allows use of `super` for instance methods/properties.
     // It also avoids V8 restrictions on `super` in default constructors.
     return annotate(
-        new JS.Method(
-            name, new JS.Fun(_visit(node.parameters) as List<JS.Parameter>, body))
-        ..sourceInformation = node,
+        new JS.Method(name,
+            new JS.Fun(_visit(node.parameters) as List<JS.Parameter>, body))
+          ..sourceInformation = node,
         node.element);
   }
 
@@ -1161,7 +1166,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         // Parameters will be passed using their real names, not the (possibly
         // renamed) local variable.
         var paramName = js.string(param.identifier.name, "'");
-        
+
         // TODO(ochafik): Fix `'prop' in obj` to please Closure's renaming
         // (either test if `obj.prop !== void 0`, or use JSCompiler_renameProperty).
         body.add(js.statement('let # = # && # in # ? #.# : #;', [
@@ -1233,7 +1238,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
             isGetter: node.isGetter,
             isSetter: node.isSetter,
             isStatic: node.isStatic),
-            node.element);
+        node.element);
   }
 
   @override
@@ -2017,8 +2022,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     if (eagerInit && !JS.invalidStaticFieldName(fieldName)) {
       return annotateVariable(
-          js.statement('# = #;', [_visit(field.name), jsInit]),
-          field.element);
+          js.statement('# = #;', [_visit(field.name), jsInit]), field.element);
     }
 
     var body = <JS.Statement>[];
@@ -2080,10 +2084,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         'dart.defineLazyProperties(#, { # });', [objExpr, methods]);
   }
 
-  PropertyAccessorElement _findAccessor(VariableElement element, {bool getter}) {
-    var parent = element.enclosingElement; 
+  PropertyAccessorElement _findAccessor(VariableElement element,
+      {bool getter}) {
+    var parent = element.enclosingElement;
     if (parent is ClassElement) {
-      return getter ? parent.getGetter(element.name) : parent.getSetter(element.name);
+      return getter
+          ? parent.getGetter(element.name)
+          : parent.getSetter(element.name);
     }
     return null;
   }
@@ -3199,12 +3206,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   JS.Node annotate(JS.Node method, ExecutableElement e) =>
       options.closure && e != null
-          ? method.withClosureAnnotation(closureAnnotationFor(e, _namedArgTemp.name))
+          ? method.withClosureAnnotation(
+              closureAnnotationFor(e, _namedArgTemp.name))
           : method;
 
   JS.Node annotateDefaultConstructor(JS.Node method, ClassElement e) =>
       options.closure && e != null
-          ? method.withClosureAnnotation(closureAnnotationForDefaultConstructor(e))
+          ? method
+              .withClosureAnnotation(closureAnnotationForDefaultConstructor(e))
           : method;
 
   JS.Node annotateVariable(JS.Node node, VariableElement e) =>

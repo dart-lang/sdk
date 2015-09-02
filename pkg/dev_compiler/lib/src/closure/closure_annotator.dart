@@ -19,7 +19,8 @@ abstract class ClosureAnnotator {
   String getQualifiedName(TypeDefiningElement type);
 
   ClosureAnnotation closureAnnotationForVariable(VariableElement e) =>
-      new ClosureAnnotation(type: _closureTypeForDartType(e.type),
+      new ClosureAnnotation(
+          type: _closureTypeForDartType(e.type),
           // Note: we don't set isConst here because Closure's constness and
           // Dart's are not really compatible.
           isFinal: e.isFinal || e.isConst);
@@ -27,7 +28,7 @@ abstract class ClosureAnnotator {
   /// We don't use Closure's `@typedef` annotations
   ClosureAnnotation closureAnnotationForTypeDef(FunctionTypeAliasElement e) =>
       new ClosureAnnotation(
-        type: _closureTypeForDartType(e.type, forceTypeDefExpansion: true),
+          type: _closureTypeForDartType(e.type, forceTypeDefExpansion: true),
           isTypedef: true);
 
   ClosureAnnotation closureAnnotationForDefaultConstructor(ClassElement e) =>
@@ -62,9 +63,11 @@ abstract class ClosureAnnotator {
         ? (e.isFactory ? _closureTypeForClass(e.enclosingElement) : null)
         : _closureTypeForDartType(e.returnType);
 
-    return new ClosureAnnotation(isOverride: e.isOverride,
+    return new ClosureAnnotation(
+        isOverride: e.isOverride,
         // Note: Dart and Closure privacy are not compatible: don't set `isPrivate: e.isPrivate`.
-        paramTypes: paramTypes, returnType: returnType);
+        paramTypes: paramTypes,
+        returnType: returnType);
   }
 
   Map<DartType, ClosureType> __commonTypes;
@@ -113,7 +116,7 @@ abstract class ClosureAnnotator {
       if (!forceTypeDefExpansion && type.element.name != '') {
         return new ClosureType.type(getQualifiedName(type.element));
       }
-      
+
       var args = []
         ..addAll(type.normalParameterTypes.map(_closureTypeForDartType))
         ..addAll(type.optionalParameterTypes

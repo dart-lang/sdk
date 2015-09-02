@@ -302,7 +302,8 @@ final ArgParser argParser = StrongModeOptions.addArguments(new ArgParser()
       help: 'Port to serve files from (used only when --serve is on)',
       defaultsTo: '8080')
   ..addFlag('closure',
-      help: 'Emit Closure Compiler-friendly code (experimental)', defaultsTo: _CLOSURE_DEFAULT)
+      help: 'Emit Closure Compiler-friendly code (experimental)',
+      defaultsTo: _CLOSURE_DEFAULT)
   ..addFlag('force-compile',
       help: 'Compile code with static errors', defaultsTo: false)
   ..addOption('log', abbr: 'l', help: 'Logging level (defaults to severe)')

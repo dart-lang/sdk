@@ -31,13 +31,26 @@ class ClosureAnnotation {
   final List<String> templates;
   final Map<String, ClosureType> paramTypes;
 
-  ClosureAnnotation({this.interfaces: const [], this.isConst: false,
-      this.isConstructor: false, this.isFinal: false, this.isNoCollapse: false,
-      this.isNoSideEffects: false, this.isOverride: false,
-      this.isPrivate: false, this.isProtected: false, this.isStruct: false,
-      this.isTypedef: false, this.lendsToType, this.paramTypes: const {},
-      this.returnType, this.superType, this.templates: const [], this.thisType,
-      this.throwsType, this.type});
+  ClosureAnnotation(
+      {this.interfaces: const [],
+      this.isConst: false,
+      this.isConstructor: false,
+      this.isFinal: false,
+      this.isNoCollapse: false,
+      this.isNoSideEffects: false,
+      this.isOverride: false,
+      this.isPrivate: false,
+      this.isProtected: false,
+      this.isStruct: false,
+      this.isTypedef: false,
+      this.lendsToType,
+      this.paramTypes: const {},
+      this.returnType,
+      this.superType,
+      this.templates: const [],
+      this.thisType,
+      this.throwsType,
+      this.type});
 
   @override
   int get hashCode => _cachedString.hashCode;
