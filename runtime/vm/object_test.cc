@@ -4709,4 +4709,76 @@ TEST_CASE(LinkedHashMap_iteration) {
   EXPECT(!iterator.MoveNext());
 }
 
+
+static void CheckConcatAll(const String* data[], intptr_t n) {
+  Zone* zone = Thread::Current()->zone();
+  GrowableHandlePtrArray<const String> pieces(zone, n);
+  const Array& array = Array::Handle(zone, Array::New(n));
+  for (int i = 0; i < n; i++) {
+    pieces.Add(*data[i]);
+    array.SetAt(i, *data[i]);
+  }
+  const String& res1 = String::Handle(zone, Symbols::FromConcatAll(pieces));
+  const String& res2 = String::Handle(zone, String::ConcatAll(array));
+  EXPECT(res1.Equals(res2));
+}
+
+
+TEST_CASE(Symbols_FromConcatAll) {
+  {
+    const String* data[3] = { &Symbols::FallThroughError(),
+                              &Symbols::Dot(),
+                              &Symbols::isPaused() };
+    CheckConcatAll(data, 3);
+  }
+
+  {
+    const intptr_t kWideCharsLen = 7;
+    uint16_t wide_chars[kWideCharsLen] = { 'H', 'e', 'l', 'l', 'o', 256, '!' };
+    const String& two_str = String::Handle(String::FromUTF16(wide_chars,
+                                                             kWideCharsLen));
+
+    const String* data[3] = { &two_str, &Symbols::Dot(), &two_str };
+    CheckConcatAll(data, 3);
+  }
+
+  {
+    uint8_t characters[] = { 0xF6, 0xF1, 0xE9 };
+    intptr_t len = ARRAY_SIZE(characters);
+
+    const String& str = String::Handle(
+        ExternalOneByteString::New(characters, len, NULL, NULL, Heap::kNew));
+    const String* data[3] = { &str, &Symbols::Dot(), &str };
+    CheckConcatAll(data, 3);
+  }
+
+  {
+    uint16_t characters[] =
+        { 'a', '\n', '\f', '\b', '\t', '\v', '\r', '\\', '$', 'z' };
+    intptr_t len = ARRAY_SIZE(characters);
+
+    const String& str = String::Handle(
+        ExternalTwoByteString::New(characters, len, NULL, NULL, Heap::kNew));
+    const String* data[3] = { &str, &Symbols::Dot(), &str };
+    CheckConcatAll(data, 3);
+  }
+
+  {
+    uint8_t characters1[] = { 0xF6, 0xF1, 0xE9 };
+    intptr_t len1 = ARRAY_SIZE(characters1);
+
+    const String& str1 = String::Handle(
+        ExternalOneByteString::New(characters1, len1, NULL, NULL, Heap::kNew));
+
+    uint16_t characters2[] =
+        { 'a', '\n', '\f', '\b', '\t', '\v', '\r', '\\', '$', 'z' };
+    intptr_t len2 = ARRAY_SIZE(characters2);
+
+    const String& str2 = String::Handle(
+        ExternalTwoByteString::New(characters2, len2, NULL, NULL, Heap::kNew));
+    const String* data[3] = { &str1, &Symbols::Dot(), &str2 };
+    CheckConcatAll(data, 3);
+  }
+}
+
 }  // namespace dart

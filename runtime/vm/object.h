@@ -6523,6 +6523,7 @@ class ExternalOneByteString : public AllStatic {
   friend class Class;
   friend class String;
   friend class SnapshotReader;
+  friend class Symbols;
 };
 
 
@@ -6601,6 +6602,7 @@ class ExternalTwoByteString : public AllStatic {
   friend class Class;
   friend class String;
   friend class SnapshotReader;
+  friend class Symbols;
 };
 
 

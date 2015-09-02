@@ -394,14 +394,17 @@ RawString* Symbols::FromConcat(const String& str1, const String& str2) {
 
 
 // TODO(srdjan): If this becomes performance critical code, consider looking
-// up symbol from pieces instead of concatenating them first into a big string.
+// up symbol from hash of pieces instead of concatenating them first into
+// a string.
 RawString* Symbols::FromConcatAll(
     const GrowableHandlePtrArray<const String>& strs) {
   const intptr_t strs_length = strs.length();
   GrowableArray<intptr_t> lengths(strs_length);
 
   intptr_t len_sum = 0;
-  bool is_one_byte_string = true;
+  const intptr_t kOneByteChar = 1;
+  intptr_t char_size = kOneByteChar;
+
   for (intptr_t i = 0; i < strs_length; i++) {
     const String& str = strs[i];
     const intptr_t str_len = str.Length();
@@ -411,13 +414,11 @@ RawString* Symbols::FromConcatAll(
     }
     len_sum += str_len;
     lengths.Add(str_len);
-    if (!str.IsOneByteString()) {
-      is_one_byte_string = false;
-    }
+    char_size = Utils::Maximum(char_size, str.CharSize());
   }
+  const bool is_one_byte_string = char_size == kOneByteChar;
 
   Zone* zone = Thread::Current()->zone();
-
   if (is_one_byte_string) {
     uint8_t* buffer = zone->Alloc<uint8_t>(len_sum);
     const uint8_t* const orig_buffer = buffer;
@@ -425,7 +426,11 @@ RawString* Symbols::FromConcatAll(
       NoSafepointScope no_safepoint;
       intptr_t str_len = lengths[i];
       const String& str = strs[i];
-      memmove(buffer, OneByteString::CharAddr(str, 0), str_len);
+      ASSERT(str.IsOneByteString() || str.IsExternalOneByteString());
+      const uint8_t* src_p = str.IsOneByteString() ?
+          OneByteString::CharAddr(str, 0) :
+          ExternalOneByteString::CharAddr(str, 0);
+      memmove(buffer, src_p, str_len);
       buffer += str_len;
     }
     ASSERT(len_sum == buffer - orig_buffer);
@@ -439,8 +444,14 @@ RawString* Symbols::FromConcatAll(
       const String& str = strs[i];
       if (str.IsTwoByteString()) {
         memmove(buffer, TwoByteString::CharAddr(str, 0), str_len * 2);
+      } else if (str.IsExternalTwoByteString()) {
+        memmove(buffer, ExternalTwoByteString::CharAddr(str, 0), str_len * 2);
       } else {
-        uint8_t* src_p = OneByteString::CharAddr(str, 0);
+        // One-byte to two-byte string copy.
+        ASSERT(str.IsOneByteString() || str.IsExternalOneByteString());
+        const uint8_t* src_p = str.IsOneByteString() ?
+            OneByteString::CharAddr(str, 0) :
+            ExternalOneByteString::CharAddr(str, 0);
         for (int n = 0; n < str_len; n++) {
           buffer[n] = src_p[n];
         }
