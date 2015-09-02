@@ -8054,6 +8054,17 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
+   * @param code the code that iterates using variable "v". We check that
+   *          "v" has expected static and propagated type.
+   */
+  void _assertPropagatedIterationType(String code, DartType expectedStaticType,
+      DartType expectedPropagatedType) {
+    SimpleIdentifier identifier = _findMarkedIdentifier(code, "v in ");
+    expect(identifier.staticType, same(expectedStaticType));
+    expect(identifier.propagatedType, same(expectedPropagatedType));
+  }
+
+  /**
    * @param code the code that assigns the value to the variable "v", no matter how. We check that
    *          "v" has expected static and propagated type.
    */
@@ -13734,6 +13745,72 @@ main() {
   return v; // marker
 }''';
     _assertPropagatedAssignedType(
+        code, typeProvider.dynamicType, typeProvider.intType);
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
+  }
+
+  void test_foreachInference_var() {
+    String code = r'''
+main() {
+  var list = <int>[];
+  for (var v in list) {
+    v; // marker
+  }
+}''';
+    _assertPropagatedIterationType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void test_foreachInference_var_iterable() {
+    String code = r'''
+main() {
+  Iterable<int> list = <int>[];
+  for (var v in list) {
+    v; // marker
+  }
+}''';
+    _assertPropagatedIterationType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void test_foreachInference_var_stream() {
+    String code = r'''
+import 'dart:async';
+main() async {
+  Stream<int> stream = null;
+  await for (var v in stream) {
+    v; // marker
+  }
+}''';
+    _assertPropagatedIterationType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void test_foreachInference_dynamic_disabled() {
+    String code = r'''
+main() {
+  var list = <int>[];
+  for (dynamic v in list) {
+    v; // marker
+  }
+}''';
+    _assertPropagatedIterationType(
+        code, typeProvider.dynamicType, typeProvider.intType);
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
+  }
+
+  void test_foreachInference_reusedVar_disabled() {
+    String code = r'''
+main() {
+  var list = <int>[];
+  var v;
+  for (v in list) {
+    v; // marker
+  }
+}''';
+    _assertPropagatedIterationType(
         code, typeProvider.dynamicType, typeProvider.intType);
     _assertTypeOfMarkedExpression(
         code, typeProvider.dynamicType, typeProvider.intType);
