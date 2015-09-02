@@ -30,7 +30,7 @@
 // The TEST_CASE macro is used for tests that need an isolate and zone
 // in order to test its functionality.
 #define TEST_CASE(name)                                                        \
-  static void Dart_TestHelper##name();                                         \
+  static void Dart_TestHelper##name(Thread* thread);                           \
   UNIT_TEST_CASE(name)                                                         \
   {                                                                            \
     TestIsolateScope __test_isolate__;                                         \
@@ -38,9 +38,9 @@
     ASSERT(__thread__->isolate() == __test_isolate__.isolate());               \
     StackZone __zone__(__thread__);                                            \
     HandleScope __hs__(__thread__);                                            \
-    Dart_TestHelper##name();                                                   \
+    Dart_TestHelper##name(__thread__);                                         \
   }                                                                            \
-  static void Dart_TestHelper##name()
+  static void Dart_TestHelper##name(Thread* thread)
 
 // The ASSEMBLER_TEST_GENERATE macro is used to generate a unit test
 // for the assembler.

@@ -219,15 +219,16 @@ class ServiceIsolateNatives : public AllStatic {
  public:
   static void SendIsolateServiceMessage(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->thread()->isolate();
-    StackZone stack_zone(isolate);
+    Thread* thread = arguments->thread();
+    StackZone stack_zone(thread);
     Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     GET_NON_NULL_NATIVE_ARGUMENT(SendPort, sp, arguments->NativeArgAt(0));
     GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(1));
 
     // Set the type of the OOB message.
-    message.SetAt(0, Smi::Handle(isolate, Smi::New(Message::kServiceOOBMsg)));
+    message.SetAt(0, Smi::Handle(thread->zone(),
+                                 Smi::New(Message::kServiceOOBMsg)));
 
     // Serialize message.
     uint8_t* data = NULL;
@@ -243,19 +244,20 @@ class ServiceIsolateNatives : public AllStatic {
 
   static void SendRootServiceMessage(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->thread()->isolate();
-    StackZone stack_zone(isolate);
+    Thread* thread = arguments->thread();
+    StackZone stack_zone(thread);
     Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
     Service::HandleRootMessage(message);
   }
 
   static void OnStart(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->thread()->isolate();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = arguments->thread();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     {
       if (FLAG_trace_service) {
         OS::Print("vm-service: Booting dart:vmservice library.\n");
@@ -287,9 +289,9 @@ class ServiceIsolateNatives : public AllStatic {
 
   static void OnExit(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->thread()->isolate();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = arguments->thread();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     {
       if (FLAG_trace_service) {
         OS::Print("vm-service: processed exit message.\n");
@@ -299,10 +301,10 @@ class ServiceIsolateNatives : public AllStatic {
 
   static void ListenStream(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->thread()->isolate();
-    StackZone stack_zone(isolate);
+    Thread* thread = arguments->thread();
+    StackZone stack_zone(thread);
     Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
     bool result = Service::ListenStream(stream_id.ToCString());
     arguments->SetReturn(Bool::Get(result));
@@ -310,10 +312,10 @@ class ServiceIsolateNatives : public AllStatic {
 
   static void CancelStream(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->thread()->isolate();
-    StackZone stack_zone(isolate);
+    Thread* thread = arguments->thread();
+    StackZone stack_zone(thread);
     Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
     Service::CancelStream(stream_id.ToCString());
   }
@@ -424,12 +426,13 @@ bool ServiceIsolate::SendIsolateStartupMessage() {
   if (!IsRunning()) {
     return false;
   }
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   if (IsServiceIsolateDescendant(isolate)) {
     return false;
   }
   ASSERT(isolate != NULL);
-  HANDLESCOPE(isolate);
+  HANDLESCOPE(thread);
   const String& name = String::Handle(String::New(isolate->name()));
   ASSERT(!name.IsNull());
   const Array& list = Array::Handle(
@@ -455,12 +458,13 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
   if (!IsRunning()) {
     return false;
   }
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   if (IsServiceIsolateDescendant(isolate)) {
     return false;
   }
   ASSERT(isolate != NULL);
-  HANDLESCOPE(isolate);
+  HANDLESCOPE(thread);
   const String& name = String::Handle(String::New(isolate->name()));
   ASSERT(!name.IsNull());
   const Array& list = Array::Handle(
@@ -523,6 +527,8 @@ void ServiceIsolate::SetLoadPort(Dart_Port port) {
 
 
 void ServiceIsolate::MaybeInjectVMServiceLibrary(Isolate* isolate) {
+  Thread* thread = Thread::Current();
+  ASSERT(isolate == thread->isolate());
   ASSERT(isolate != NULL);
   ASSERT(isolate->name() != NULL);
   if (!ServiceIsolate::NameEquals(isolate->name())) {
@@ -536,7 +542,7 @@ void ServiceIsolate::MaybeInjectVMServiceLibrary(Isolate* isolate) {
   SetServiceIsolate(isolate);
 
   StackZone zone(isolate);
-  HANDLESCOPE(isolate);
+  HANDLESCOPE(thread);
 
   // Register dart:vmservice library.
   const String& url_str = String::Handle(Symbols::DartVMService().raw());
@@ -582,8 +588,11 @@ void ServiceIsolate::ConstructExitMessageAndCache(Isolate* isolate) {
   // Construct and cache exit message here so we can send it without needing an
   // isolate.
   StartIsolateScope iso_scope(isolate);
+  Thread* thread = Thread::Current();
+  ASSERT(isolate == thread->isolate());
+  ASSERT(isolate != NULL);
   StackZone zone(isolate);
-  HANDLESCOPE(isolate);
+  HANDLESCOPE(thread);
   ASSERT(exit_message_ == NULL);
   ASSERT(exit_message_length_ == 0);
   const Array& list = Array::Handle(MakeServiceExitMessage());
@@ -668,8 +677,10 @@ class RunServiceTask : public ThreadPool::Task {
       // Print the error if there is one.  This may execute dart code to
       // print the exception object, so we need to use a StartIsolateScope.
       StartIsolateScope start_scope(isolate);
+      Thread* thread = Thread::Current();
+      ASSERT(isolate == thread->isolate());
       StackZone zone(isolate);
-      HandleScope handle_scope(isolate);
+      HandleScope handle_scope(thread);
       Error& error = Error::Handle();
       error = isolate->object_store()->sticky_error();
       if (!error.IsNull()) {
@@ -692,8 +703,10 @@ class RunServiceTask : public ThreadPool::Task {
 
   void RunMain(Isolate* isolate) {
     StartIsolateScope iso_scope(isolate);
+    Thread* thread = Thread::Current();
+    ASSERT(isolate == thread->isolate());
     StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     // Invoke main which will return the loadScriptPort.
     const Library& root_library =
         Library::Handle(isolate, isolate->object_store()->root_library());

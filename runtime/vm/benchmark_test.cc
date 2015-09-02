@@ -353,8 +353,7 @@ BENCHMARK(Dart2JSCompileAll) {
   char* dart_root = ComputeDart2JSPath(Benchmark::Executable());
   char* script = NULL;
   if (dart_root != NULL) {
-    Isolate* isolate = Isolate::Current();
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     const char* kFormatStr =
         "import '%s/pkg/compiler/lib/compiler.dart';";
     intptr_t len = OS::SNPrint(NULL, 0, kFormatStr, dart_root) + 1;
@@ -595,7 +594,7 @@ static uint8_t* message_allocator(
 BENCHMARK(SerializeNull) {
   const Object& null_object = Object::Handle();
   const intptr_t kLoopCount = 1000000;
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
   uint8_t* buffer;
   Timer timer(true, "Serialize Null");
   timer.Start();
@@ -608,8 +607,7 @@ BENCHMARK(SerializeNull) {
     // Read object back from the snapshot.
     MessageSnapshotReader reader(buffer,
                                  buffer_len,
-                                 isolate,
-                                 zone.GetZone());
+                                 thread);
     reader.ReadObject();
   }
   timer.Stop();
@@ -621,7 +619,7 @@ BENCHMARK(SerializeNull) {
 BENCHMARK(SerializeSmi) {
   const Integer& smi_object = Integer::Handle(Smi::New(42));
   const intptr_t kLoopCount = 1000000;
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
   uint8_t* buffer;
   Timer timer(true, "Serialize Smi");
   timer.Start();
@@ -634,8 +632,7 @@ BENCHMARK(SerializeSmi) {
     // Read object back from the snapshot.
     MessageSnapshotReader reader(buffer,
                                  buffer_len,
-                                 isolate,
-                                 zone.GetZone());
+                                 thread);
     reader.ReadObject();
   }
   timer.Stop();
@@ -649,7 +646,7 @@ BENCHMARK(SimpleMessage) {
   array_object.SetAt(0, Integer::Handle(Smi::New(42)));
   array_object.SetAt(1, Object::Handle());
   const intptr_t kLoopCount = 1000000;
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
   uint8_t* buffer;
   Timer timer(true, "Simple Message");
   timer.Start();
@@ -662,8 +659,7 @@ BENCHMARK(SimpleMessage) {
     // Read object back from the snapshot.
     MessageSnapshotReader reader(buffer,
                                  buffer_len,
-                                 isolate,
-                                 zone.GetZone());
+                                 thread);
     reader.ReadObject();
     free(buffer);
   }
@@ -680,6 +676,7 @@ BENCHMARK(LargeMap) {
       "  for (int i = 0; i < 100000; ++i) m[i*13+i*(i>>7)] = i;\n"
       "  return m;\n"
       "}";
+  Isolate* isolate = thread->isolate();
   Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(h_lib);
   Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, NULL);
@@ -687,7 +684,6 @@ BENCHMARK(LargeMap) {
   Instance& map = Instance::Handle();
   map ^= Api::UnwrapHandle(h_result);
   const intptr_t kLoopCount = 100;
-  Isolate* isolate = Isolate::Current();
   uint8_t* buffer;
   Timer timer(true, "Large Map");
   timer.Start();
@@ -700,8 +696,7 @@ BENCHMARK(LargeMap) {
     // Read object back from the snapshot.
     MessageSnapshotReader reader(buffer,
                                  buffer_len,
-                                 isolate,
-                                 zone.GetZone());
+                                 thread);
     reader.ReadObject();
     free(buffer);
   }

@@ -23,7 +23,7 @@
 // We currently only expect the Dart mutator to read snapshots.
 #define ASSERT_NO_SAFEPOINT_SCOPE()                            \
     isolate()->AssertCurrentThreadIsMutator();                 \
-    ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0)
+    ASSERT(thread()->no_safepoint_scope_depth() != 0)
 
 namespace dart {
 
@@ -173,29 +173,28 @@ SnapshotReader::SnapshotReader(
     intptr_t size,
     Snapshot::Kind kind,
     ZoneGrowableArray<BackRefNode>* backward_refs,
-    Isolate* isolate,
-    Zone* zone)
+    Thread* thread)
     : BaseReader(buffer, size),
       kind_(kind),
       snapshot_code_(false),
-      isolate_(isolate),
-      zone_(zone),
-      heap_(isolate->heap()),
-      old_space_(isolate->heap()->old_space()),
-      cls_(Class::Handle(isolate)),
-      obj_(Object::Handle(isolate)),
-      pobj_(PassiveObject::Handle(isolate)),
-      array_(Array::Handle(isolate)),
-      field_(Field::Handle(isolate)),
-      str_(String::Handle(isolate)),
-      library_(Library::Handle(isolate)),
-      type_(AbstractType::Handle(isolate)),
-      type_arguments_(TypeArguments::Handle(isolate)),
-      tokens_(Array::Handle(isolate)),
-      stream_(TokenStream::Handle(isolate)),
-      data_(ExternalTypedData::Handle(isolate)),
-      typed_data_(TypedData::Handle(isolate)),
-      error_(UnhandledException::Handle(isolate)),
+      thread_(thread),
+      zone_(thread->zone()),
+      heap_(isolate()->heap()),
+      old_space_(thread_->isolate()->heap()->old_space()),
+      cls_(Class::Handle(zone_)),
+      obj_(Object::Handle(zone_)),
+      pobj_(PassiveObject::Handle(zone_)),
+      array_(Array::Handle(zone_)),
+      field_(Field::Handle(zone_)),
+      str_(String::Handle(zone_)),
+      library_(Library::Handle(zone_)),
+      type_(AbstractType::Handle(zone_)),
+      type_arguments_(TypeArguments::Handle(zone_)),
+      tokens_(Array::Handle(zone_)),
+      stream_(TokenStream::Handle(zone_)),
+      data_(ExternalTypedData::Handle(zone_)),
+      typed_data_(TypedData::Handle(zone_)),
+      error_(UnhandledException::Handle(zone_)),
       max_vm_isolate_object_id_(
           (kind == Snapshot::kFull) ?
               Object::vm_isolate_snapshot_object_table().Length() : 0),
@@ -304,21 +303,19 @@ intptr_t SnapshotReader::NextAvailableObjectId() const {
 
 
 void SnapshotReader::SetReadException(const char* msg) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const String& error_str = String::Handle(zone, String::New(msg));
-  const Array& args = Array::Handle(zone, Array::New(1));
+  const String& error_str = String::Handle(zone(), String::New(msg));
+  const Array& args = Array::Handle(zone(), Array::New(1));
   args.SetAt(0, error_str);
-  Object& result = Object::Handle(zone);
-  const Library& library = Library::Handle(zone, Library::CoreLibrary());
+  Object& result = Object::Handle(zone());
+  const Library& library = Library::Handle(zone(), Library::CoreLibrary());
   result = DartLibraryCalls::InstanceCreate(library,
                                             Symbols::ArgumentError(),
                                             Symbols::Dot(),
                                             args);
-  const Stacktrace& stacktrace = Stacktrace::Handle(zone);
+  const Stacktrace& stacktrace = Stacktrace::Handle(zone());
   const UnhandledException& error = UnhandledException::Handle(
-      zone, UnhandledException::New(Instance::Cast(result), stacktrace));
-  thread->long_jump_base()->Jump(1, error);
+      zone(), UnhandledException::New(Instance::Cast(result), stacktrace));
+  thread()->long_jump_base()->Jump(1, error);
 }
 
 
@@ -328,7 +325,7 @@ RawObject* SnapshotReader::VmIsolateSnapshotObject(intptr_t index) const {
 
 
 bool SnapshotReader::is_vm_isolate() const {
-  return isolate_ == Dart::vm_isolate();
+  return isolate() == Dart::vm_isolate();
 }
 
 
@@ -1099,7 +1096,7 @@ RawObject* SnapshotReader::AllocateUninitialized(intptr_t class_id,
     // read part and return the error object back.
     const UnhandledException& error = UnhandledException::Handle(
         object_store()->preallocated_unhandled_exception());
-    Thread::Current()->long_jump_base()->Jump(1, error);
+    thread()->long_jump_base()->Jump(1, error);
   }
   VerifiedMemory::Accept(address, size);
 
@@ -1276,14 +1273,13 @@ void SnapshotReader::ArrayReadFrom(intptr_t object_id,
 
 VmIsolateSnapshotReader::VmIsolateSnapshotReader(const uint8_t* buffer,
                                                  intptr_t size,
-                                                 Zone* zone)
+                                                 Thread* thread)
     : SnapshotReader(buffer,
                      size,
                      Snapshot::kFull,
                      new ZoneGrowableArray<BackRefNode>(
                          kNumVmIsolateSnapshotReferences),
-                     Dart::vm_isolate(),
-                     zone) {
+                     thread) {
 }
 
 
@@ -1341,15 +1337,13 @@ RawApiError* VmIsolateSnapshotReader::ReadVmIsolateSnapshot() {
 
 IsolateSnapshotReader::IsolateSnapshotReader(const uint8_t* buffer,
                                              intptr_t size,
-                                             Isolate* isolate,
-                                             Zone* zone)
+                                             Thread* thread)
     : SnapshotReader(buffer,
                      size,
                      Snapshot::kFull,
                      new ZoneGrowableArray<BackRefNode>(
                          kNumInitialReferencesInFullSnapshot),
-                     isolate,
-                     zone) {
+                     thread) {
 }
 
 
@@ -1360,14 +1354,12 @@ IsolateSnapshotReader::~IsolateSnapshotReader() {
 
 ScriptSnapshotReader::ScriptSnapshotReader(const uint8_t* buffer,
                                            intptr_t size,
-                                           Isolate* isolate,
-                                           Zone* zone)
+                                           Thread* thread)
     : SnapshotReader(buffer,
                      size,
                      Snapshot::kScript,
                      new ZoneGrowableArray<BackRefNode>(kNumInitialReferences),
-                     isolate,
-                     zone) {
+                     thread) {
 }
 
 
@@ -1378,14 +1370,12 @@ ScriptSnapshotReader::~ScriptSnapshotReader() {
 
 MessageSnapshotReader::MessageSnapshotReader(const uint8_t* buffer,
                                              intptr_t size,
-                                             Isolate* isolate,
-                                             Zone* zone)
+                                             Thread* thread)
     : SnapshotReader(buffer,
                      size,
                      Snapshot::kMessage,
                      new ZoneGrowableArray<BackRefNode>(kNumInitialReferences),
-                     isolate,
-                     zone) {
+                     thread) {
 }
 
 
@@ -1403,9 +1393,9 @@ SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
                                bool snapshot_code)
     : BaseWriter(buffer, alloc, initial_size),
       kind_(kind),
-      isolate_(Isolate::Current()),
-      object_store_(isolate_->object_store()),
-      class_table_(isolate_->class_table()),
+      thread_(Thread::Current()),
+      object_store_(thread_->isolate()->object_store()),
+      class_table_(thread_->isolate()->class_table()),
       forward_list_(forward_list),
       exception_type_(Exceptions::kNone),
       exception_msg_(NULL),
@@ -2218,7 +2208,7 @@ RawFunction* SnapshotWriter::IsSerializableClosure(RawClass* cls,
     }
     // Not a closure of a top level method or static function, throw an
     // exception as we do not allow these objects to be serialized.
-    HANDLESCOPE(isolate());
+    HANDLESCOPE(thread());
 
     const Class& clazz = Class::Handle(isolate(), cls);
     const Function& errorFunc = Function::Handle(isolate(), func);
@@ -2230,7 +2220,7 @@ RawFunction* SnapshotWriter::IsSerializableClosure(RawClass* cls,
     UnmarkAll();  // Unmark objects now as we are about to print stuff.
     intptr_t len = OS::SNPrint(NULL, 0, format,
                                clazz.ToCString(), errorFunc.ToCString()) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
+    char* chars = thread()->zone()->Alloc<char>(len);
     OS::SNPrint(chars, len, format, clazz.ToCString(), errorFunc.ToCString());
     SetWriteException(Exceptions::kArgument, chars);
   }
@@ -2253,13 +2243,13 @@ RawClass* SnapshotWriter::GetFunctionOwner(RawFunction* func) {
 void SnapshotWriter::CheckForNativeFields(RawClass* cls) {
   if (cls->ptr()->num_native_fields_ != 0) {
     // We do not allow objects with native fields in an isolate message.
-    HANDLESCOPE(isolate());
+    HANDLESCOPE(thread());
     const char* format = "Illegal argument in isolate message"
                          " : (object extends NativeWrapper - %s)";
     UnmarkAll();  // Unmark objects now as we are about to print stuff.
     const Class& clazz = Class::Handle(isolate(), cls);
     intptr_t len = OS::SNPrint(NULL, 0, format, clazz.ToCString()) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
+    char* chars = thread()->zone()->Alloc<char>(len);
     OS::SNPrint(chars, len, format, clazz.ToCString());
     SetWriteException(Exceptions::kArgument, chars);
   }

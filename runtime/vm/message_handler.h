@@ -184,6 +184,9 @@ class MessageHandler {
   virtual void NotifyPauseOnStart() {}
   virtual void NotifyPauseOnExit() {}
 
+  // TODO(iposva): Set a local field before entering MessageHandler methods.
+  Thread* thread() const { return Thread::Current(); }
+
  private:
   friend class PortMap;
   friend class MessageHandlerTestPeer;

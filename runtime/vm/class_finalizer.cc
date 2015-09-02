@@ -116,9 +116,10 @@ static void CollectImmediateSuperInterfaces(
 // a) when bootstrap process completes (VerifyBootstrapClasses).
 // b) after the user classes are loaded (dart_api).
 bool ClassFinalizer::ProcessPendingClasses() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  HANDLESCOPE(isolate);
+  HANDLESCOPE(thread);
   ObjectStore* object_store = isolate->object_store();
   const Error& error = Error::Handle(isolate, object_store->sticky_error());
   if (!error.IsNull()) {
@@ -2227,7 +2228,8 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
 
 
 void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
-  HANDLESCOPE(Isolate::Current());
+  Thread* thread = Thread::Current();
+  HANDLESCOPE(thread);
   if (cls.is_type_finalized()) {
     return;
   }
@@ -2360,7 +2362,8 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
 
 
 void ClassFinalizer::FinalizeClass(const Class& cls) {
-  HANDLESCOPE(Isolate::Current());
+  Thread* thread = Thread::Current();
+  HANDLESCOPE(thread);
   if (cls.is_finalized()) {
     return;
   }
@@ -2990,7 +2993,8 @@ void ClassFinalizer::CheckForLegalConstClass(const Class& cls) {
 
 
 void ClassFinalizer::PrintClassInformation(const Class& cls) {
-  HANDLESCOPE(Isolate::Current());
+  Thread* thread = Thread::Current();
+  HANDLESCOPE(thread);
   const String& class_name = String::Handle(cls.Name());
   ISL_Print("class '%s'", class_name.ToCString());
   const Library& library = Library::Handle(cls.library());

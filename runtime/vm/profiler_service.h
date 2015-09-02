@@ -387,7 +387,7 @@ class ProfilerService : public AllStatic {
   static void ClearSamples();
 
  private:
-  static void PrintJSONImpl(Isolate* isolate,
+  static void PrintJSONImpl(Thread* thread,
                             JSONStream* stream,
                             Profile::TagOrder tag_order,
                             intptr_t extra_tags,

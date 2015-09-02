@@ -92,27 +92,25 @@ static void Precompile(Isolate* isolate, Dart_Handle* result) {
 
 
 DART_EXPORT Dart_Handle Dart_CompileAll() {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  Dart_Handle result = Api::CheckAndFinalizePendingClasses(isolate);
+  DARTSCOPE(Thread::Current());
+  Dart_Handle result = Api::CheckAndFinalizePendingClasses(I);
   if (::Dart_IsError(result)) {
     return result;
   }
-  CHECK_CALLBACK_STATE(isolate);
-  CompileAll(isolate, &result);
+  CHECK_CALLBACK_STATE(I);
+  CompileAll(I, &result);
   return result;
 }
 
 
 DART_EXPORT Dart_Handle Dart_Precompile() {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  Dart_Handle result = Api::CheckAndFinalizePendingClasses(isolate);
+  DARTSCOPE(Thread::Current());
+  Dart_Handle result = Api::CheckAndFinalizePendingClasses(I);
   if (::Dart_IsError(result)) {
     return result;
   }
-  CHECK_CALLBACK_STATE(isolate);
-  Precompile(isolate, &result);
+  CHECK_CALLBACK_STATE(I);
+  Precompile(I, &result);
   return result;
 }
 

@@ -142,7 +142,7 @@ class RuntimeEntry : public ValueObject {
       ASSERT(thread == Thread::Current());                                     \
       Isolate* isolate = thread->isolate();                                    \
       StackZone zone(thread);                                                  \
-      HANDLESCOPE(isolate);                                                    \
+      HANDLESCOPE(thread);                                                     \
       DRT_Helper##name(isolate, thread, zone.GetZone(), arguments);            \
     }                                                                          \
     VERIFY_ON_TRANSITION;                                                      \

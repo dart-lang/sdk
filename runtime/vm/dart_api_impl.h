@@ -68,10 +68,11 @@ const char* CanonicalFunction(const char* func);
     }                                                                          \
   } while (0)
 
-#define DARTSCOPE(isolate)                                                     \
-  Isolate* __temp_isolate__ = (isolate);                                       \
-  CHECK_ISOLATE_SCOPE(__temp_isolate__);                                       \
-  HANDLESCOPE(__temp_isolate__);
+#define DARTSCOPE(thread)                                                      \
+  Thread* T = (thread);                                                        \
+  Isolate* I = T->isolate();                                                   \
+  CHECK_ISOLATE_SCOPE(I);                                                      \
+  HANDLESCOPE(T);
 
 
 #define RETURN_TYPE_ERROR(isolate, dart_handle, type)                          \

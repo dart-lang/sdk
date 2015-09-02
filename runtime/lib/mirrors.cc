@@ -109,7 +109,7 @@ static void EnsureConstructorsAreCompiled(const Function& func) {
 
 static RawInstance* CreateParameterMirrorList(const Function& func,
                                               const Instance& owner_mirror) {
-  HANDLESCOPE(Isolate::Current());
+  HANDLESCOPE(Thread::Current());
   const intptr_t implicit_param_count = func.NumImplicitParameters();
   const intptr_t non_implicit_param_count = func.NumParameters() -
                                             implicit_param_count;

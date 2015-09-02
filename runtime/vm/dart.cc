@@ -113,6 +113,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   ASSERT(thread_pool_ == NULL);
   thread_pool_ = new ThreadPool();
   {
+    Thread* thread = Thread::Current();
+    ASSERT(thread != NULL);
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
     const bool is_vm_isolate = true;
@@ -122,9 +124,12 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     Dart_IsolateFlags api_flags;
     vm_flags.CopyTo(&api_flags);
     vm_isolate_ = Isolate::Init("vm-isolate", api_flags, is_vm_isolate);
+    // Verify assumptions about executing in the VM isolate.
+    ASSERT(vm_isolate_ == Isolate::Current());
+    ASSERT(vm_isolate_ == Thread::Current()->isolate());
 
     StackZone zone(vm_isolate_);
-    HandleScope handle_scope(vm_isolate_);
+    HandleScope handle_scope(thread);
     Object::InitNull(vm_isolate_);
     ObjectStore::Init(vm_isolate_);
     TargetCPUFeatures::InitOnce();
@@ -142,7 +147,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       ASSERT(snapshot->kind() == Snapshot::kFull);
       VmIsolateSnapshotReader reader(snapshot->content(),
                                      snapshot->length(),
-                                     zone.GetZone());
+                                     thread);
       const Error& error = Error::Handle(reader.ReadVmIsolateSnapshot());
       if (!error.IsNull()) {
         return error.ToCString();
@@ -251,7 +256,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 
   ASSERT(isolate != NULL);
   StackZone zone(isolate);
-  HandleScope handle_scope(isolate);
+  HandleScope handle_scope(thread);
   {
     TimelineDurationScope tds(isolate,
                               isolate->GetIsolateStream(),
@@ -284,8 +289,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     }
     IsolateSnapshotReader reader(snapshot->content(),
                                  snapshot->length(),
-                                 isolate,
-                                 zone.GetZone());
+                                 thread);
     const Error& error = Error::Handle(reader.ReadFullSnapshot());
     if (!error.IsNull()) {
       return error.raw();

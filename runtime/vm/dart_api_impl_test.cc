@@ -616,8 +616,7 @@ TEST_CASE(IdentityEquals) {
 
   // Non-instance objects.
   {
-    Isolate* isolate = Isolate::Current();
-    DARTSCOPE(isolate);
+    DARTSCOPE(Thread::Current());
     Dart_Handle lib1 = Dart_LookupLibrary(dart_core);
     Dart_Handle lib2 = Dart_LookupLibrary(dart_mirrors);
 
@@ -662,8 +661,7 @@ TEST_CASE(IdentityHash) {
 
   // Non-instance objects.
   {
-    Isolate* isolate = Isolate::Current();
-    DARTSCOPE(isolate);
+    DARTSCOPE(Thread::Current());
     Dart_Handle lib1 = Dart_LookupLibrary(dart_core);
     Dart_Handle lib2 = Dart_LookupLibrary(dart_mirrors);
 
@@ -1175,7 +1173,6 @@ TEST_CASE(ExternalStringCallback) {
 
 
 TEST_CASE(ExternalStringPretenure) {
-  Isolate* isolate = Isolate::Current();
   {
     Dart_EnterScope();
     static const uint8_t big_data8[16*MB] = {0, };
@@ -1206,7 +1203,7 @@ TEST_CASE(ExternalStringPretenure) {
         NULL);
     EXPECT_VALID(small16);
     {
-      DARTSCOPE(isolate);
+      DARTSCOPE(Thread::Current());
       String& handle = String::Handle();
       handle ^= Api::UnwrapHandle(big8);
       EXPECT(handle.IsOld());
@@ -1223,7 +1220,6 @@ TEST_CASE(ExternalStringPretenure) {
 
 
 TEST_CASE(ExternalTypedDataPretenure) {
-  Isolate* isolate = Isolate::Current();
   {
     Dart_EnterScope();
     static const int kBigLength = 16*MB/8;
@@ -1241,7 +1237,7 @@ TEST_CASE(ExternalTypedDataPretenure) {
         kSmallLength);
     EXPECT_VALID(small);
     {
-      DARTSCOPE(isolate);
+      DARTSCOPE(Thread::Current());
       ExternalTypedData& handle = ExternalTypedData::Handle();
       handle ^= Api::UnwrapHandle(big);
       EXPECT(handle.IsOld());
@@ -2368,7 +2364,7 @@ UNIT_TEST_CASE(EnterExitScope) {
   Dart_EnterScope();
   {
     EXPECT(state->top_scope() != NULL);
-    DARTSCOPE(isolate);
+    DARTSCOPE(Thread::Current());
     const String& str1 = String::Handle(String::New("Test String"));
     Dart_Handle ref = Api::NewHandle(isolate, str1.raw());
     String& str2 = String::Handle();
@@ -2393,7 +2389,7 @@ UNIT_TEST_CASE(PersistentHandles) {
   Dart_PersistentHandle handles[2000];
   Dart_EnterScope();
   {
-    DARTSCOPE(isolate);
+    DARTSCOPE(Thread::Current());
     Dart_Handle ref1 = Api::NewHandle(isolate, String::New(kTestString1));
     for (int i = 0; i < 1000; i++) {
       handles[i] = Dart_NewPersistentHandle(ref1);
@@ -2418,7 +2414,7 @@ UNIT_TEST_CASE(PersistentHandles) {
   Dart_ExitScope();
   {
     StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(Thread::Current());
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
       str ^= PersistentHandle::Cast(handles[i])->raw();
@@ -2455,7 +2451,7 @@ UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
   EXPECT(isolate != NULL);
   ApiState* state = isolate->api_state();
   EXPECT(state != NULL);
-  DARTSCOPE(isolate);
+  DARTSCOPE(Thread::Current());
 
   // Start with a known persistent handle.
   Dart_PersistentHandle obj1 = Dart_NewPersistentHandle(Dart_True());
@@ -2486,7 +2482,7 @@ UNIT_TEST_CASE(AssignToPersistentHandle) {
   EXPECT(isolate != NULL);
   ApiState* state = isolate->api_state();
   EXPECT(state != NULL);
-  DARTSCOPE(isolate);
+  DARTSCOPE(Thread::Current());
   String& str = String::Handle();
 
   // Start with a known persistent handle.
@@ -2566,7 +2562,7 @@ TEST_CASE(WeakPersistentHandle) {
     Dart_Handle old_ref;
     {
       Isolate* isolate = Isolate::Current();
-      DARTSCOPE(isolate);
+      DARTSCOPE(Thread::Current());
       old_ref = Api::NewHandle(isolate, String::New("old string", Heap::kOld));
       EXPECT_VALID(old_ref);
     }
@@ -2821,8 +2817,8 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeNewspaceGC) {
     // After the two scavenges above, 'obj' should now be promoted, hence its
     // external size charged to old space.
     {
-      DARTSCOPE(Isolate::Current());
-      String& handle = String::Handle();
+      DARTSCOPE(thread);
+      String& handle = String::Handle(thread->zone());
       handle ^= Api::UnwrapHandle(obj);
       EXPECT(handle.IsOld());
     }
@@ -2932,7 +2928,7 @@ TEST_CASE(ObjectGroups) {
   Dart_EnterScope();
   {
     Isolate* isolate = Isolate::Current();
-    DARTSCOPE(isolate);
+    DARTSCOPE(Thread::Current());
 
     Dart_Handle local = Api::NewHandle(
         isolate, String::New("strongly reachable", Heap::kOld));
@@ -3174,7 +3170,7 @@ TEST_CASE(DuplicateWeakReferenceSetEntries) {
 
   Dart_EnterScope();
   {
-    DARTSCOPE(isolate);
+    DARTSCOPE(Thread::Current());
 
     // Strong handle to keep the reference set alive.
     Dart_Handle local = Api::NewHandle(isolate, String::New("string"));
@@ -3227,7 +3223,7 @@ TEST_CASE(PrologueWeakPersistentHandles) {
   Dart_EnterScope();
   {
     Isolate* isolate = Isolate::Current();
-    DARTSCOPE(isolate);
+    DARTSCOPE(Thread::Current());
     new_pwph = Dart_NewPrologueWeakPersistentHandle(
         Api::NewHandle(isolate,
                        String::New("new space prologue weak", Heap::kNew)),
@@ -3325,7 +3321,7 @@ TEST_CASE(ImplicitReferencesOldSpace) {
   Dart_EnterScope();
   {
     Isolate* isolate = Isolate::Current();
-    DARTSCOPE(isolate);
+    DARTSCOPE(Thread::Current());
 
     Dart_Handle local = Api::NewHandle(
         isolate, String::New("strongly reachable", Heap::kOld));
@@ -3436,7 +3432,7 @@ TEST_CASE(ImplicitReferencesNewSpace) {
   Dart_EnterScope();
   {
     Isolate* isolate = Isolate::Current();
-    DARTSCOPE(isolate);
+    DARTSCOPE(Thread::Current());
 
     Dart_Handle local = Api::NewHandle(
         isolate, String::New("strongly reachable", Heap::kOld));
@@ -3700,7 +3696,7 @@ UNIT_TEST_CASE(LocalHandles) {
   Dart_Handle handles[300];
   {
     StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(Thread::Current());
     Smi& val = Smi::Handle();
 
     // Start a new scope and allocate some local handles.
@@ -4471,7 +4467,7 @@ TEST_CASE(InjectNativeFields1) {
   // Invoke a function which returns an object of type NativeFields.
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);
-  DARTSCOPE(Isolate::Current());
+  DARTSCOPE(Thread::Current());
   Instance& obj = Instance::Handle();
   obj ^= Api::UnwrapHandle(result);
   const Class& cls = Class::Handle(obj.clazz());
@@ -4541,7 +4537,7 @@ TEST_CASE(InjectNativeFields3) {
   // Invoke a function which returns an object of type NativeFields.
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);
-  DARTSCOPE(Isolate::Current());
+  DARTSCOPE(Thread::Current());
   Instance& obj = Instance::Handle();
   obj ^= Api::UnwrapHandle(result);
   const Class& cls = Class::Handle(obj.clazz());
@@ -4885,7 +4881,7 @@ TEST_CASE(NegativeNativeFieldAccess) {
       "  return () {};\n"
       "}\n";
   Dart_Handle result;
-  DARTSCOPE(Isolate::Current());
+  DARTSCOPE(Thread::Current());
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -4963,7 +4959,7 @@ TEST_CASE(NegativeNativeFieldInIsolateMessage) {
       "  };\n"
       "}\n";
 
-  DARTSCOPE(Isolate::Current());
+  DARTSCOPE(Thread::Current());
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -5664,7 +5660,7 @@ TEST_CASE(InvokeClosure) {
       "  return InvokeClosure.method2(10);\n"
       "}\n";
   Dart_Handle result;
-  DARTSCOPE(Isolate::Current());
+  DARTSCOPE(Thread::Current());
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -8257,7 +8253,7 @@ TEST_CASE(CollectOneNewSpacePeer) {
   Isolate* isolate = Isolate::Current();
   Dart_EnterScope();
   {
-    DARTSCOPE(isolate);
+    DARTSCOPE(Thread::Current());
     Dart_Handle str = NewString("a string");
     EXPECT_VALID(str);
     EXPECT(Dart_IsString(str));
@@ -8330,7 +8326,7 @@ TEST_CASE(CollectTwoNewSpacePeers) {
   Isolate* isolate = Isolate::Current();
   Dart_EnterScope();
   {
-    DARTSCOPE(isolate);
+    DARTSCOPE(Thread::Current());
     Dart_Handle s1 = NewString("s1");
     EXPECT_VALID(s1);
     EXPECT(Dart_IsString(s1));
@@ -8414,7 +8410,7 @@ TEST_CASE(OnePromotedPeer) {
   isolate->heap()->CollectGarbage(Heap::kNew);
   isolate->heap()->CollectGarbage(Heap::kNew);
   {
-    DARTSCOPE(isolate);
+    DARTSCOPE(Thread::Current());
     String& handle = String::Handle();
     handle ^= Api::UnwrapHandle(str);
     EXPECT(handle.IsOld());
@@ -8467,7 +8463,7 @@ TEST_CASE(CollectOneOldSpacePeer) {
   Isolate* isolate = Isolate::Current();
   Dart_EnterScope();
   {
-    DARTSCOPE(isolate);
+    DARTSCOPE(Thread::Current());
     Dart_Handle str = Api::NewHandle(isolate, String::New("str", Heap::kOld));
     EXPECT_VALID(str);
     EXPECT(Dart_IsString(str));
@@ -8543,7 +8539,7 @@ TEST_CASE(CollectTwoOldSpacePeers) {
   Isolate* isolate = Isolate::Current();
   Dart_EnterScope();
   {
-    DARTSCOPE(isolate);
+    DARTSCOPE(Thread::Current());
     Dart_Handle s1 = Api::NewHandle(isolate, String::New("s1", Heap::kOld));
     EXPECT_VALID(s1);
     EXPECT(Dart_IsString(s1));

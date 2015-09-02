@@ -35,10 +35,8 @@ class ServiceTestMessageHandler : public MessageHandler {
     }
 
     // Parse the message.
-    MessageSnapshotReader reader(message->data(),
-                                 message->len(),
-                                 Isolate::Current(),
-                                 Thread::Current()->zone());
+    Thread* thread = Thread::Current();
+    MessageSnapshotReader reader(message->data(), message->len(), thread);
     const Object& response_obj = Object::Handle(reader.ReadObject());
     String& response = String::Handle();
     response ^= response_obj.raw();

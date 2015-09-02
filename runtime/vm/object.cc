@@ -9027,7 +9027,8 @@ RawInstance* Library::TransitiveLoadError() const {
   if (LoadError() != Instance::null()) {
     return LoadError();
   }
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ObjectStore* object_store = isolate->object_store();
   LibraryLoadErrorSet set(object_store->library_load_error_table());
   bool present = false;
@@ -9042,7 +9043,7 @@ RawInstance* Library::TransitiveLoadError() const {
   Library& lib = Library::Handle(isolate);
   Instance& error = Instance::Handle(isolate);
   for (intptr_t i = 0; i < num_imp; i++) {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     lib = ImportLibraryAt(i);
     error = lib.TransitiveLoadError();
     if (!error.IsNull()) {
@@ -10312,7 +10313,8 @@ RawLibrary* LibraryPrefix::GetLibrary(int index) const {
 
 
 RawInstance* LibraryPrefix::LoadError() const {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ObjectStore* object_store = isolate->object_store();
   GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate, object_store->libraries());
@@ -10324,7 +10326,7 @@ RawInstance* LibraryPrefix::LoadError() const {
   for (int32_t i = 0; i < num_imports(); i++) {
     lib = GetLibrary(i);
     ASSERT(!lib.IsNull());
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     error = lib.TransitiveLoadError();
     if (!error.IsNull()) {
       break;
@@ -14188,7 +14190,7 @@ void UnhandledException::set_stacktrace(const Instance& stacktrace) const {
 const char* UnhandledException::ToErrorCString() const {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  HANDLESCOPE(isolate);
+  HANDLESCOPE(thread);
   Object& strtmp = Object::Handle();
   const char* exc_str;
   if (exception() == isolate->object_store()->out_of_memory()) {

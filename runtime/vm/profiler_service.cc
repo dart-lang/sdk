@@ -2194,11 +2194,12 @@ intptr_t ProfileTrieWalker::SiblingCount() {
 }
 
 
-void ProfilerService::PrintJSONImpl(Isolate* isolate,
+void ProfilerService::PrintJSONImpl(Thread* thread,
                                     JSONStream* stream,
                                     Profile::TagOrder tag_order,
                                     intptr_t extra_tags,
                                     SampleFilter* filter) {
+  Isolate* isolate = thread->isolate();
   // Disable profile interrupts while processing the buffer.
   Profiler::EndExecution(isolate);
 
@@ -2213,7 +2214,7 @@ void ProfilerService::PrintJSONImpl(Isolate* isolate,
 
   {
     StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     profile.Build(filter, tag_order, extra_tags);
     profile.PrintJSON(stream);
@@ -2239,9 +2240,10 @@ class NoAllocationSampleFilter : public SampleFilter {
 void ProfilerService::PrintJSON(JSONStream* stream,
                                 Profile::TagOrder tag_order,
                                 intptr_t extra_tags) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   NoAllocationSampleFilter filter(isolate);
-  PrintJSONImpl(isolate, stream, tag_order, extra_tags, &filter);
+  PrintJSONImpl(thread, stream, tag_order, extra_tags, &filter);
 }
 
 
@@ -2266,9 +2268,10 @@ class ClassAllocationSampleFilter : public SampleFilter {
 void ProfilerService::PrintAllocationJSON(JSONStream* stream,
                                           Profile::TagOrder tag_order,
                                           const Class& cls) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ClassAllocationSampleFilter filter(isolate, cls);
-  PrintJSONImpl(isolate, stream, tag_order, kNoExtraTags, &filter);
+  PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter);
 }
 
 

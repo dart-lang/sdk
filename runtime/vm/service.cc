@@ -511,9 +511,10 @@ void Service::PostError(const String& method_name,
                         const Instance& reply_port,
                         const Instance& id,
                         const Error& error) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   StackZone zone(isolate);
-  HANDLESCOPE(isolate);
+  HANDLESCOPE(thread);
   JSONStream js;
   js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
            id, method_name, parameter_keys, parameter_values);
@@ -525,13 +526,15 @@ void Service::PostError(const String& method_name,
 
 
 void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
+  Thread* thread = Thread::Current();
+  ASSERT(isolate == thread->isolate());
   ASSERT(isolate != NULL);
   ASSERT(!msg.IsNull());
   ASSERT(msg.Length() == 6);
 
   {
     StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
 
     Instance& reply_port = Instance::Handle(isolate);
     Instance& seq = String::Handle(isolate);
@@ -650,9 +653,10 @@ void Service::SendEvent(const char* stream_id,
   if (!ServiceIsolate::IsRunning()) {
     return;
   }
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  HANDLESCOPE(isolate);
+  HANDLESCOPE(thread);
 
   const Array& list = Array::Handle(Array::New(2));
   ASSERT(!list.IsNull());
@@ -1478,8 +1482,7 @@ static bool PrintMessage(JSONStream* js, Isolate* isolate, const char* id) {
       }
       MessageSnapshotReader reader(message->data(),
                                    message->len(),
-                                   isolate,
-                                   Thread::Current()->zone());
+                                   Thread::Current());
       const Object& msg_obj = Object::Handle(reader.ReadObject());
       msg_obj.PrintJSON(js);
       return true;
@@ -1546,6 +1549,9 @@ static const MethodParameter* get_inbound_references_params[] = {
 
 
 static bool GetInboundReferences(Isolate* isolate, JSONStream* js) {
+  Thread* thread = Thread::Current();
+  ASSERT(isolate == thread->isolate());
+
   const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "targetId");
@@ -1565,7 +1571,7 @@ static bool GetInboundReferences(Isolate* isolate, JSONStream* js) {
   Object& obj = Object::Handle(isolate);
   ObjectIdRing::LookupResult lookup_result;
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     obj = LookupHeapObject(isolate, target_id, &lookup_result);
   }
   if (obj.raw() == Object::sentinel().raw()) {
@@ -1645,6 +1651,9 @@ static const MethodParameter* get_retaining_path_params[] = {
 
 
 static bool GetRetainingPath(Isolate* isolate, JSONStream* js) {
+  Thread* thread = Thread::Current();
+  ASSERT(isolate == thread->isolate());
+
   const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "targetId");
@@ -1664,7 +1673,7 @@ static bool GetRetainingPath(Isolate* isolate, JSONStream* js) {
   Object& obj = Object::Handle(isolate);
   ObjectIdRing::LookupResult lookup_result;
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     obj = LookupHeapObject(isolate, target_id, &lookup_result);
   }
   if (obj.raw() == Object::sentinel().raw()) {

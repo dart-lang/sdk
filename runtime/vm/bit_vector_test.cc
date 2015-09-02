@@ -8,7 +8,7 @@
 
 namespace dart {
 
-#define Z Thread::Current()->zone()
+#define Z (thread->zone())
 
 TEST_CASE(BitVector) {
   { BitVector* v = new BitVector(Z, 15);

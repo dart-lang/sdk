@@ -3333,7 +3333,7 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
   WeakProperty& weak = WeakProperty::Handle();
   {
     // Weak property and value in new. Key in old.
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     String& key = String::Handle();
     key ^= OneByteString::New("key", Heap::kOld);
     String& value = String::Handle();
@@ -3351,7 +3351,7 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
   EXPECT(weak.value() != Object::null());
   {
     // Weak property and value in old. Key in new.
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     String& key = String::Handle();
     key ^= OneByteString::New("key", Heap::kNew);
     String& value = String::Handle();
@@ -3369,7 +3369,7 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
   EXPECT(weak.value() != Object::null());
   {
     // Weak property and value in new. Key is a Smi.
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     Integer& key = Integer::Handle();
     key ^= Integer::New(31);
     String& value = String::Handle();
@@ -3387,7 +3387,7 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
   EXPECT(weak.value() != Object::null());
   {
     // Weak property and value in old. Key is a Smi.
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     Integer& key = Integer::Handle();
     key ^= Integer::New(32);
     String& value = String::Handle();
@@ -3405,7 +3405,7 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
   EXPECT(weak.value() != Object::null());
   {
     // Weak property and value in new. Key in VM isolate.
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     String& value = String::Handle();
     value ^= OneByteString::New("value", Heap::kNew);
     weak ^= WeakProperty::New(Heap::kNew);
@@ -3422,7 +3422,7 @@ TEST_CASE(WeakProperty_PreserveCrossGen) {
   EXPECT(weak.value() != Object::null());
   {
     // Weak property and value in old. Key in VM isolate.
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     String& value = String::Handle();
     value ^= OneByteString::New("value", Heap::kOld);
     weak ^= WeakProperty::New(Heap::kOld);
@@ -3447,7 +3447,7 @@ TEST_CASE(WeakProperty_PreserveRecurse) {
   WeakProperty& weak = WeakProperty::Handle();
   Array& arr = Array::Handle(Array::New(1));
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     String& key = String::Handle();
     key ^= OneByteString::New("key");
     arr.SetAt(0, key);
@@ -3469,7 +3469,7 @@ TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
   String& key = String::Handle();
   key ^= OneByteString::New("key");
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     String& value = String::Handle();
     value ^= OneByteString::New("value");
     weak ^= WeakProperty::New();
@@ -3491,7 +3491,7 @@ TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
   String& key2 = String::Handle();
   key2 ^= OneByteString::New("key2");
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     String& value1 = String::Handle();
     value1 ^= OneByteString::New("value1");
     weak1 ^= WeakProperty::New();
@@ -3518,7 +3518,7 @@ TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
   String& key = String::Handle();
   key ^= OneByteString::New("key");
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     String& value1 = String::Handle();
     value1 ^= OneByteString::New("value1");
     weak1 ^= WeakProperty::New();
@@ -3544,7 +3544,7 @@ TEST_CASE(WeakProperty_PreserveOne_OldSpace) {
   String& key = String::Handle();
   key ^= OneByteString::New("key", Heap::kOld);
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     String& value = String::Handle();
     value ^= OneByteString::New("value", Heap::kOld);
     weak ^= WeakProperty::New(Heap::kOld);
@@ -3566,7 +3566,7 @@ TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
   String& key2 = String::Handle();
   key2 ^= OneByteString::New("key2", Heap::kOld);
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     String& value1 = String::Handle();
     value1 ^= OneByteString::New("value1", Heap::kOld);
     weak1 ^= WeakProperty::New(Heap::kOld);
@@ -3593,7 +3593,7 @@ TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
   String& key = String::Handle();
   key ^= OneByteString::New("key", Heap::kOld);
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     String& value1 = String::Handle();
     value1 ^= OneByteString::New("value1", Heap::kOld);
     weak1 ^= WeakProperty::New(Heap::kOld);
@@ -3617,7 +3617,7 @@ TEST_CASE(WeakProperty_ClearOne_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     String& key = String::Handle();
     key ^= OneByteString::New("key");
     String& value = String::Handle();
@@ -3639,7 +3639,7 @@ TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     String& key = String::Handle();
     key ^= OneByteString::New("key");
     String& value1 = String::Handle();
@@ -3665,7 +3665,7 @@ TEST_CASE(WeakProperty_ClearOne_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     String& key = String::Handle();
     key ^= OneByteString::New("key", Heap::kOld);
     String& value = String::Handle();
@@ -3687,7 +3687,7 @@ TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     String& key = String::Handle();
     key ^= OneByteString::New("key", Heap::kOld);
     String& value1 = String::Handle();

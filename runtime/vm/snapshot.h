@@ -298,11 +298,12 @@ class BackRefNode : public ValueObject {
 // Reads a snapshot into objects.
 class SnapshotReader : public BaseReader {
  public:
+  Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
-  Isolate* isolate() const { return isolate_; }
+  Isolate* isolate() const { return thread_->isolate(); }
   Heap* heap() const { return heap_; }
-  ObjectStore* object_store() const { return isolate_->object_store(); }
-  ClassTable* class_table() const { return isolate_->class_table(); }
+  ObjectStore* object_store() const { return isolate()->object_store(); }
+  ClassTable* class_table() const { return isolate()->class_table(); }
   PassiveObject* PassiveObjectHandle() { return &pobj_; }
   Array* ArrayHandle() { return &array_; }
   String* StringHandle() { return &str_; }
@@ -390,8 +391,7 @@ class SnapshotReader : public BaseReader {
                  intptr_t size,
                  Snapshot::Kind kind,
                  ZoneGrowableArray<BackRefNode>* backward_references,
-                 Isolate* isolate,
-                 Zone* zone);
+                 Thread* thread);
   ~SnapshotReader() { }
 
   ZoneGrowableArray<BackRefNode>* GetBackwardReferenceTable() const {
@@ -466,7 +466,7 @@ class SnapshotReader : public BaseReader {
 
   Snapshot::Kind kind_;  // Indicates type of snapshot(full, script, message).
   bool snapshot_code_;
-  Isolate* isolate_;  // Current isolate.
+  Thread* thread_;  // Current thread.
   Zone* zone_;  // Zone for allocations while reading snapshot.
   Heap* heap_;  // Heap of the current isolate.
   PageSpace* old_space_;  // Old space of the current isolate.
@@ -533,7 +533,7 @@ class SnapshotReader : public BaseReader {
 
 class VmIsolateSnapshotReader : public SnapshotReader {
  public:
-  VmIsolateSnapshotReader(const uint8_t* buffer, intptr_t size, Zone* zone);
+  VmIsolateSnapshotReader(const uint8_t* buffer, intptr_t size, Thread* thread);
   ~VmIsolateSnapshotReader();
 
   RawApiError* ReadVmIsolateSnapshot();
@@ -547,8 +547,7 @@ class IsolateSnapshotReader : public SnapshotReader {
  public:
   IsolateSnapshotReader(const uint8_t* buffer,
                         intptr_t size,
-                        Isolate* isolate,
-                        Zone* zone);
+                        Thread* thread);
   ~IsolateSnapshotReader();
 
  private:
@@ -560,8 +559,7 @@ class ScriptSnapshotReader : public SnapshotReader {
  public:
   ScriptSnapshotReader(const uint8_t* buffer,
                        intptr_t size,
-                       Isolate* isolate,
-                       Zone* zone);
+                       Thread* thread);
   ~ScriptSnapshotReader();
 
  private:
@@ -573,8 +571,7 @@ class MessageSnapshotReader : public SnapshotReader {
  public:
   MessageSnapshotReader(const uint8_t* buffer,
                         intptr_t size,
-                        Isolate* isolate,
-                        Zone* zone);
+                        Thread* thread);
   ~MessageSnapshotReader();
 
  private:
@@ -819,12 +816,13 @@ class SnapshotWriter : public BaseWriter {
     forward_list_ = NULL;
   }
 
-  Isolate* isolate() const { return isolate_; }
+  Thread* thread() const { return thread_; }
+  Isolate* isolate() const { return thread_->isolate(); }
   ObjectStore* object_store() const { return object_store_; }
 
  private:
   Snapshot::Kind kind_;
-  Isolate* isolate_;
+  Thread* thread_;
   ObjectStore* object_store_;  // Object store for common classes.
   ClassTable* class_table_;  // Class table for the class index to class lookup.
   ForwardList* forward_list_;
