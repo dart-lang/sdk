@@ -12,6 +12,7 @@
 #include "vm/object_store.h"
 #include "vm/regexp.h"
 #include "vm/resolver.h"
+#include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
 #include "vm/unibrow-inl.h"
 #include "vm/unicode.h"
@@ -335,11 +336,10 @@ RawArray* IRRegExpMacroAssembler::Execute(
 }
 
 
-RawBool* IRRegExpMacroAssembler::CaseInsensitiveCompareUC16(
-    RawString* str_raw,
-    RawSmi* lhs_index_raw,
-    RawSmi* rhs_index_raw,
-    RawSmi* length_raw) {
+static RawBool* CaseInsensitiveCompareUC16(RawString* str_raw,
+                                           RawSmi* lhs_index_raw,
+                                           RawSmi* rhs_index_raw,
+                                           RawSmi* length_raw) {
   const String& str = String::Handle(str_raw);
   const Smi& lhs_index = Smi::Handle(lhs_index_raw);
   const Smi& rhs_index = Smi::Handle(rhs_index_raw);
@@ -366,6 +366,11 @@ RawBool* IRRegExpMacroAssembler::CaseInsensitiveCompareUC16(
   }
   return Bool::True().raw();
 }
+
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(
+    CaseInsensitiveCompareUC16, 4, false /* is_float */,
+    reinterpret_cast<RuntimeFunction>(&CaseInsensitiveCompareUC16));
 
 
 LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,

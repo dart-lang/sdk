@@ -10,9 +10,6 @@
 
 namespace dart {
 
-DECLARE_RUNTIME_ENTRY(TestSmiSub)
-DECLARE_LEAF_RUNTIME_ENTRY(RawObject*, TestLeafSmiAdd, RawObject*, RawObject*)
-
 
 // Add function to a class and that class to the class dictionary so that
 // frame walking can be used.
@@ -33,33 +30,5 @@ const Function& RegisterFakeFunction(const char* name, const Code& code) {
   function.AttachCode(code);
   return function;
 }
-
-
-// A runtime call for test purposes.
-// Arg0: a smi.
-// Arg1: a smi.
-// Result: a smi representing arg0 - arg1.
-DEFINE_RUNTIME_ENTRY(TestSmiSub, 2) {
-  const Smi& left = Smi::CheckedHandle(arguments.ArgAt(0));
-  const Smi& right = Smi::CheckedHandle(arguments.ArgAt(1));
-  // Ignoring overflow in the calculation below.
-  intptr_t result = left.Value() - right.Value();
-  arguments.SetReturn(Smi::Handle(Smi::New(result)));
-}
-
-
-// A leaf runtime call for test purposes.
-// arg0: a smi.
-// arg1: a smi.
-// returns a smi representing arg0 + arg1.
-DEFINE_LEAF_RUNTIME_ENTRY(RawObject*, TestLeafSmiAdd, 2,
-                          RawObject* arg0, RawObject* arg1) {
-  // Ignoring overflow in the calculation below and using the internal
-  // representation of Smi directly without using any handlized code.
-  intptr_t result = reinterpret_cast<intptr_t>(arg0) +
-      reinterpret_cast<intptr_t>(arg1);
-  return reinterpret_cast<RawObject*>(result);
-}
-END_LEAF_RUNTIME_ENTRY
 
 }  // namespace dart

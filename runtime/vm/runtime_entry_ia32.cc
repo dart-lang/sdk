@@ -15,6 +15,11 @@ namespace dart {
 #define __ assembler->
 
 
+uword RuntimeEntry::GetEntryPoint() const {
+  return reinterpret_cast<uword>(function());
+}
+
+
 // Generate code to call into the stub which will call the runtime
 // function. Input for the stub is as follows:
 // For regular runtime calls -

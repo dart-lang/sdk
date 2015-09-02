@@ -3520,71 +3520,71 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
 typedef double (*UnaryMathCFunction) (double x);
 typedef double (*BinaryMathCFunction) (double x, double y);
 
-extern const RuntimeEntry kPowRuntimeEntry(
-    "libc_pow", reinterpret_cast<RuntimeFunction>(
-        static_cast<BinaryMathCFunction>(&pow)), 2, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcPow, 2, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<BinaryMathCFunction>(&pow)));
 
-extern const RuntimeEntry kModRuntimeEntry(
-    "DartModulo", reinterpret_cast<RuntimeFunction>(
-        static_cast<BinaryMathCFunction>(&DartModulo)), 2, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(DartModulo, 2, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<BinaryMathCFunction>(&DartModulo)));
 
-extern const RuntimeEntry kFloorRuntimeEntry(
-    "libc_floor", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&floor)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcFloor, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&floor)));
 
-extern const RuntimeEntry kCeilRuntimeEntry(
-    "libc_ceil", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&ceil)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcCeil, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&ceil)));
 
-extern const RuntimeEntry kTruncRuntimeEntry(
-    "libc_trunc", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&trunc)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcTrunc, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&trunc)));
 
-extern const RuntimeEntry kRoundRuntimeEntry(
-    "libc_round", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&round)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcRound, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&round)));
 
 
 const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
   switch (recognized_kind_) {
     case MethodRecognizer::kDoubleTruncate:
-      return kTruncRuntimeEntry;
+      return kLibcTruncRuntimeEntry;
     case MethodRecognizer::kDoubleRound:
-      return kRoundRuntimeEntry;
+      return kLibcRoundRuntimeEntry;
     case MethodRecognizer::kDoubleFloor:
-      return kFloorRuntimeEntry;
+      return kLibcFloorRuntimeEntry;
     case MethodRecognizer::kDoubleCeil:
-      return kCeilRuntimeEntry;
+      return kLibcCeilRuntimeEntry;
     case MethodRecognizer::kMathDoublePow:
-      return kPowRuntimeEntry;
+      return kLibcPowRuntimeEntry;
     case MethodRecognizer::kDoubleMod:
-      return kModRuntimeEntry;
+      return kDartModuloRuntimeEntry;
     default:
       UNREACHABLE();
   }
-  return kPowRuntimeEntry;
+  return kLibcPowRuntimeEntry;
 }
 
 
-extern const RuntimeEntry kCosRuntimeEntry(
-    "libc_cos", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&cos)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcCos, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&cos)));
 
-extern const RuntimeEntry kSinRuntimeEntry(
-    "libc_sin", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&sin)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcSin, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&sin)));
 
 
 const RuntimeEntry& MathUnaryInstr::TargetFunction() const {
   switch (kind()) {
     case MathUnaryInstr::kSin:
-      return kSinRuntimeEntry;
+      return kLibcSinRuntimeEntry;
     case MathUnaryInstr::kCos:
-      return kCosRuntimeEntry;
+      return kLibcCosRuntimeEntry;
     default:
       UNREACHABLE();
   }
-  return kSinRuntimeEntry;
+  return kLibcSinRuntimeEntry;
 }
 
 
@@ -3599,18 +3599,6 @@ const char* MathUnaryInstr::KindToCString(MathUnaryKind kind) {
   UNREACHABLE();
   return "";
 }
-
-typedef RawBool* (*CaseInsensitiveCompareUC16Function) (
-    RawString* string_raw,
-    RawSmi* lhs_index_raw,
-    RawSmi* rhs_index_raw,
-    RawSmi* length_raw);
-
-
-extern const RuntimeEntry kCaseInsensitiveCompareUC16RuntimeEntry(
-    "CaseInsensitiveCompareUC16", reinterpret_cast<RuntimeFunction>(
-        static_cast<CaseInsensitiveCompareUC16Function>(
-        &IRRegExpMacroAssembler::CaseInsensitiveCompareUC16)), 4, true, false);
 
 
 const RuntimeEntry& CaseInsensitiveCompareUC16Instr::TargetFunction() const {

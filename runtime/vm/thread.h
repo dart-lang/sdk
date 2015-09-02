@@ -8,6 +8,7 @@
 #include "vm/globals.h"
 #include "vm/os_thread.h"
 #include "vm/store_buffer.h"
+#include "vm/runtime_entry_list.h"
 
 namespace dart {
 
@@ -19,10 +20,10 @@ class LongJumpScope;
 class Object;
 class RawBool;
 class RawObject;
+class RuntimeEntry;
 class StackResource;
 class TimelineEventBlock;
 class Zone;
-
 
 // List of VM-global objects/addresses cached in each Thread object.
 #define CACHED_VM_OBJECTS_LIST(V)                                              \
@@ -32,11 +33,11 @@ class Zone;
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
   V(uword, update_store_buffer_entry_point_,                                   \
-    StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)
+    StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
 
 #define CACHED_CONSTANTS_LIST(V)                                               \
   CACHED_VM_OBJECTS_LIST(V)                                                    \
-  CACHED_ADDRESSES_LIST(V)
+  CACHED_ADDRESSES_LIST(V)                                                     \
 
 struct InterruptedThreadState {
   ThreadId tid;
@@ -226,8 +227,23 @@ class Thread {
 CACHED_CONSTANTS_LIST(DEFINE_OFFSET_METHOD)
 #undef DEFINE_OFFSET_METHOD
 
+#define DEFINE_OFFSET_METHOD(name)                                             \
+  static intptr_t name##_entry_point_offset() {                                \
+    return OFFSET_OF(Thread, name##_entry_point_);                             \
+  }
+RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
+#undef DEFINE_OFFSET_METHOD
+
+#define DEFINE_OFFSET_METHOD(returntype, name, ...)                            \
+  static intptr_t name##_entry_point_offset() {                                \
+    return OFFSET_OF(Thread, name##_entry_point_);                             \
+  }
+LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
+#undef DEFINE_OFFSET_METHOD
+
   static bool CanLoadFromThread(const Object& object);
   static intptr_t OffsetFromThread(const Object& object);
+  static intptr_t OffsetFromThread(const RuntimeEntry* runtime_entry);
 
   TimelineEventBlock* timeline_block() const {
     return state_.timeline_block;
@@ -265,6 +281,16 @@ CACHED_CONSTANTS_LIST(DEFINE_OFFSET_METHOD)
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
 CACHED_CONSTANTS_LIST(DECLARE_MEMBERS)
+#undef DECLARE_MEMBERS
+
+#define DECLARE_MEMBERS(name)      \
+  uword name##_entry_point_;
+RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
+#undef DECLARE_MEMBERS
+
+#define DECLARE_MEMBERS(returntype, name, ...)      \
+  uword name##_entry_point_;
+LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
 
   explicit Thread(bool init_vm_constants = true);

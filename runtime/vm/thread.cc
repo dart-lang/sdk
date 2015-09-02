@@ -10,6 +10,7 @@
 #include "vm/object.h"
 #include "vm/os_thread.h"
 #include "vm/profiler.h"
+#include "vm/runtime_entry.h"
 #include "vm/stub_code.h"
 #include "vm/thread_interrupter.h"
 #include "vm/thread_registry.h"
@@ -108,10 +109,22 @@ Thread::Thread(bool init_vm_constants)
       heap_(NULL),
       store_buffer_block_(NULL) {
   ClearState();
+
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
   member_name = default_init_value;
 CACHED_CONSTANTS_LIST(DEFAULT_INIT)
 #undef DEFAULT_INIT
+
+#define DEFAULT_INIT(name)                                                     \
+  name##_entry_point_ = 0;
+RUNTIME_ENTRY_LIST(DEFAULT_INIT)
+#undef DEFAULT_INIT
+
+#define DEFAULT_INIT(returntype, name, ...)                                    \
+  name##_entry_point_ = 0;
+LEAF_RUNTIME_ENTRY_LIST(DEFAULT_INIT)
+#undef DEFAULT_INIT
+
   if (init_vm_constants) {
     InitVMConstants();
   }
@@ -129,6 +142,18 @@ CACHED_VM_OBJECTS_LIST(ASSERT_VM_HEAP)
   ASSERT(member_name == default_init_value);                                   \
   member_name = (init_expr);
 CACHED_CONSTANTS_LIST(INIT_VALUE)
+#undef INIT_VALUE
+
+#define INIT_VALUE(name)                                                       \
+  ASSERT(name##_entry_point_ == 0);                                            \
+  name##_entry_point_ = k##name##RuntimeEntry.GetEntryPoint();
+RUNTIME_ENTRY_LIST(INIT_VALUE)
+#undef INIT_VALUE
+
+#define INIT_VALUE(returntype, name, ...)                                      \
+  ASSERT(name##_entry_point_ == 0);                                            \
+  name##_entry_point_ = k##name##RuntimeEntry.GetEntryPoint();
+LEAF_RUNTIME_ENTRY_LIST(INIT_VALUE)
 #undef INIT_VALUE
 }
 
@@ -322,6 +347,25 @@ intptr_t Thread::OffsetFromThread(const Object& object) {
   if (object.raw() == expr) return Thread::member_name##offset();
 CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
 #undef COMPUTE_OFFSET
+  UNREACHABLE();
+  return -1;
+}
+
+intptr_t Thread::OffsetFromThread(const RuntimeEntry* runtime_entry) {
+#define COMPUTE_OFFSET(name)                                                   \
+  if (runtime_entry->function() == k##name##RuntimeEntry.function())         { \
+    return Thread::name##_entry_point_offset();                                \
+  }
+RUNTIME_ENTRY_LIST(COMPUTE_OFFSET)
+#undef COMPUTE_OFFSET
+
+#define COMPUTE_OFFSET(returntype, name, ...)                                  \
+  if (runtime_entry->function() == k##name##RuntimeEntry.function())         { \
+    return Thread::name##_entry_point_offset();                                \
+  }
+LEAF_RUNTIME_ENTRY_LIST(COMPUTE_OFFSET)
+#undef COMPUTE_OFFSET
+
   UNREACHABLE();
   return -1;
 }
