@@ -1142,7 +1142,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry = getCacheEntry(unit);
       setValue(HINTS, AnalysisError.NO_ERRORS);
       // dartEntry.setValue(LINTS, AnalysisError.NO_ERRORS);
-      entry.setState(RESOLVE_REFERENCES_ERRORS, CacheState.FLUSHED);
+      setValue(INFER_STATIC_VARIABLE_TYPES_ERRORS, AnalysisError.NO_ERRORS);
+      setValue(LIBRARY_UNIT_ERRORS, AnalysisError.NO_ERRORS);
+      setValue(PARTIALLY_RESOLVE_REFERENCES_ERRORS, AnalysisError.NO_ERRORS);
+      setValue(RESOLVE_FUNCTION_BODIES_ERRORS, AnalysisError.NO_ERRORS);
+      setValue(RESOLVE_TYPE_NAMES_ERRORS, AnalysisError.NO_ERRORS);
       entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT1, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT2, CacheState.FLUSHED);
@@ -1154,6 +1158,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(RESOLVED_UNIT8, CacheState.FLUSHED);
       // USED_IMPORTED_ELEMENTS
       // USED_LOCAL_ELEMENTS
+      setValue(VARIABLE_REFERENCE_ERRORS, AnalysisError.NO_ERRORS);
       setValue(VERIFY_ERRORS, AnalysisError.NO_ERRORS);
     });
 

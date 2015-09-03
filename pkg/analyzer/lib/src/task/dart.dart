@@ -342,17 +342,6 @@ final ListResultDescriptor<AnalysisError> RESOLVE_FUNCTION_BODIES_ERRORS =
         'RESOLVE_FUNCTION_BODIES_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
- * The errors produced while resolving references.
- *
- * The list will be empty if there were no errors, but will not be `null`.
- *
- * The result is only available for [LibrarySpecificUnit]s.
- */
-final ListResultDescriptor<AnalysisError> RESOLVE_REFERENCES_ERRORS =
-    new ListResultDescriptor<AnalysisError>(
-        'RESOLVE_REFERENCES_ERRORS', AnalysisError.NO_ERRORS);
-
-/**
  * The errors produced while resolving type names.
  *
  * The list will be empty if there were no errors, but will not be `null`.
@@ -3608,95 +3597,6 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
   static ResolveLibraryTypeNamesTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ResolveLibraryTypeNamesTask(context, target);
-  }
-}
-
-/**
- * A task that builds [RESOLVED_UNIT8] for a unit.
- */
-class ResolveUnitReferencesTask extends SourceBasedAnalysisTask {
-  /**
-   * The name of the [LIBRARY_ELEMENT5] input.
-   */
-  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
-
-  /**
-   * The name of the [RESOLVED_UNIT4] input.
-   */
-  static const String UNIT_INPUT = 'UNIT_INPUT';
-
-  /**
-   * The name of the [TYPE_PROVIDER] input.
-   */
-  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
-
-  /**
-   * The task descriptor describing this kind of task.
-   */
-  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'ResolveUnitReferencesTask',
-      createTask,
-      buildInputs,
-      <ResultDescriptor>[RESOLVE_REFERENCES_ERRORS, RESOLVED_UNIT8]);
-
-  ResolveUnitReferencesTask(
-      InternalAnalysisContext context, AnalysisTarget target)
-      : super(context, target);
-
-  @override
-  TaskDescriptor get descriptor => DESCRIPTOR;
-
-  @override
-  void internalPerform() {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    //
-    // Prepare inputs.
-    //
-    LibraryElement libraryElement = getRequiredInput(LIBRARY_INPUT);
-    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
-    CompilationUnitElement unitElement = unit.element;
-    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
-    //
-    // Resolve references.
-    //
-    InheritanceManager inheritanceManager =
-        new InheritanceManager(libraryElement);
-    AstVisitor visitor = new ResolverVisitor(
-        libraryElement, unitElement.source, typeProvider, errorListener,
-        inheritanceManager: inheritanceManager);
-    unit.accept(visitor);
-    //
-    // Record outputs.
-    //
-    outputs[RESOLVE_REFERENCES_ERRORS] =
-        removeDuplicateErrors(errorListener.errors);
-    outputs[RESOLVED_UNIT8] = unit;
-  }
-
-  /**
-   * Return a map from the names of the inputs of this kind of task to the task
-   * input descriptors describing those inputs for a task with the
-   * given [target].
-   */
-  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
-    LibrarySpecificUnit unit = target;
-    return <String, TaskInput>{
-      'fullyBuiltLibraryElements': IMPORT_EXPORT_SOURCE_CLOSURE
-          .of(unit.library)
-          .toListOf(LIBRARY_ELEMENT5),
-      LIBRARY_INPUT: LIBRARY_ELEMENT5.of(unit.library),
-      UNIT_INPUT: RESOLVED_UNIT4.of(unit),
-      TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
-    };
-  }
-
-  /**
-   * Create a [ResolveUnitReferencesTask] based on the given [target] in
-   * the given [context].
-   */
-  static ResolveUnitReferencesTask createTask(
-      AnalysisContext context, AnalysisTarget target) {
-    return new ResolveUnitReferencesTask(context, target);
   }
 }
 

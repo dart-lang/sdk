@@ -19,10 +19,9 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/src/task/driver.dart';
+import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
-import 'package:analyzer/src/task/html.dart';
 
 /**
  * The manager for Dart specific analysis.
@@ -43,7 +42,10 @@ class DartWorkManager implements WorkManager {
    */
   static final List<ResultDescriptor> _UNIT_ERRORS = <ResultDescriptor>[
     HINTS,
-    RESOLVE_REFERENCES_ERRORS,
+    INFER_STATIC_VARIABLE_TYPES_ERRORS,
+    LIBRARY_UNIT_ERRORS,
+    PARTIALLY_RESOLVE_REFERENCES_ERRORS,
+    RESOLVE_FUNCTION_BODIES_ERRORS,
     RESOLVE_TYPE_NAMES_ERRORS,
     VARIABLE_REFERENCE_ERRORS,
     VERIFY_ERRORS

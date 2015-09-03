@@ -115,8 +115,6 @@ isInstanceOf isResolveFunctionBodiesInUnitTask =
     new isInstanceOf<ResolveFunctionBodiesInUnitTask>();
 isInstanceOf isResolveLibraryTypeNamesTask =
     new isInstanceOf<ResolveLibraryTypeNamesTask>();
-isInstanceOf isResolveUnitReferencesTask =
-    new isInstanceOf<ResolveUnitReferencesTask>();
 isInstanceOf isResolveUnitTypeNamesTask =
     new isInstanceOf<ResolveUnitTypeNamesTask>();
 isInstanceOf isResolveVariableReferencesTask =
@@ -2685,92 +2683,6 @@ class B {}
       clazz = clazz.supertype.element;
       expect(clazz.displayName, 'B');
     }
-  }
-}
-
-@reflectiveTest
-class ResolveUnitReferencesTaskTest extends _AbstractDartTaskTest {
-  test_perform() {
-    Source source = newSource(
-        '/test.dart',
-        '''
-class A {
-  m() {}
-}
-main(A a) {
-  a.m();
-}
-''');
-    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    // prepare unit and "a.m()" invocation
-    computeResult(target, RESOLVED_UNIT8, matcher: isResolveUnitReferencesTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT8];
-    // walk the AST
-    FunctionDeclaration function = unit.declarations[1];
-    BlockFunctionBody body = function.functionExpression.body;
-    ExpressionStatement statement = body.block.statements[0];
-    MethodInvocation invocation = statement.expression;
-    expect(unit, same(outputs[RESOLVED_UNIT8]));
-    // a.m() is resolved now
-    expect(invocation.methodName.staticElement, isNotNull);
-  }
-
-  test_perform_errors() {
-    Source source = newSource(
-        '/test.dart',
-        '''
-class A {
-}
-main(A a) {
-  a.unknownMethod();
-}
-''');
-    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT8, matcher: isResolveUnitReferencesTask);
-    // validate
-    _fillErrorListener(RESOLVE_REFERENCES_ERRORS);
-    errorListener.assertErrorsWithCodes(
-        <ErrorCode>[StaticTypeWarningCode.UNDEFINED_METHOD]);
-  }
-
-  test_perform_importExport() {
-    newSource(
-        '/a.dart',
-        '''
-library a;
-class A<T> {
-  T m() {}
-}
-''');
-    newSource(
-        '/b.dart',
-        '''
-library b;
-export 'a.dart';
-''');
-    Source sourceC = newSource(
-        '/c.dart',
-        '''
-library c;
-import 'b.dart';
-main() {
-  new A<int>().m();
-}
-''');
-    computeResult(new LibrarySpecificUnit(sourceC, sourceC), RESOLVED_UNIT8,
-        matcher: isResolveUnitReferencesTask);
-    // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT8];
-    expect(unit, isNotNull);
-    FunctionDeclaration functionDeclaration = unit.declarations[0];
-    BlockFunctionBody body = functionDeclaration.functionExpression.body;
-    List<Statement> statements = body.block.statements;
-    ExpressionStatement statement = statements[0];
-    MethodInvocation invocation = statement.expression;
-    MethodElement methodElement = invocation.methodName.staticElement;
-    expect(methodElement, isNotNull);
-    expect(methodElement.type, isNotNull);
-    expect(methodElement.returnType.toString(), 'int');
   }
 }
 
