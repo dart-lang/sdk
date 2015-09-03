@@ -22,6 +22,7 @@ import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../generated/resolver_test.dart';
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
 import '../../utils.dart';
@@ -54,8 +55,9 @@ main() {
   runReflectiveTests(LibraryUnitErrorsTaskTest);
   runReflectiveTests(ParseDartTaskTest);
   runReflectiveTests(PartiallyResolveUnitReferencesTaskTest);
+  runReflectiveTests(ResolveFunctionBodiesInUnitTaskTest);
   runReflectiveTests(ResolveLibraryTypeNamesTaskTest);
-  runReflectiveTests(ResolveUnitReferencesTaskTest);
+//  runReflectiveTests(ResolveUnitReferencesTaskTest);
   runReflectiveTests(ResolveUnitTypeNamesTaskTest);
   runReflectiveTests(ResolveVariableReferencesTaskTest);
   runReflectiveTests(ScanDartTaskTest);
@@ -109,6 +111,8 @@ isInstanceOf isLibraryUnitErrorsTask =
 isInstanceOf isParseDartTask = new isInstanceOf<ParseDartTask>();
 isInstanceOf isPartiallyResolveUnitReferencesTask =
     new isInstanceOf<PartiallyResolveUnitReferencesTask>();
+isInstanceOf isResolveFunctionBodiesInUnitTask =
+    new isInstanceOf<ResolveFunctionBodiesInUnitTask>();
 isInstanceOf isResolveLibraryTypeNamesTask =
     new isInstanceOf<ResolveLibraryTypeNamesTask>();
 isInstanceOf isResolveUnitReferencesTask =
@@ -2204,6 +2208,7 @@ class C {
     InterfaceType stringType = context.typeProvider.stringType;
     expect(topLevel.type, stringType);
     expect(field.type, stringType);
+    expect(outputs[INFER_STATIC_VARIABLE_ERRORS], hasLength(0));
   }
 
   void test_perform_cycle() {
@@ -2226,6 +2231,23 @@ var tau = piFirst ? pi * 2 : 6.28;
     expect(piFirst.type, context.typeProvider.boolType);
     expect(pi.type.isDynamic, isTrue);
     expect(tau.type.isDynamic, isTrue);
+    expect(outputs[INFER_STATIC_VARIABLE_ERRORS], hasLength(0));
+  }
+
+  void test_perform_error() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+var a = '' / null;
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    VariableElement a = getTopLevelVariable(unit, 'a').name.staticElement;
+
+    computeResult(a, INFERRED_STATIC_VARIABLE,
+        matcher: isInferStaticVariableTypeTask);
+    expect(a.type.isDynamic, isTrue);
+    expect(outputs[INFER_STATIC_VARIABLE_ERRORS], hasLength(1));
   }
 
   void test_perform_null() {
@@ -2241,6 +2263,7 @@ var a = null;
     computeResult(a, INFERRED_STATIC_VARIABLE,
         matcher: isInferStaticVariableTypeTask);
     expect(a.type.isDynamic, isTrue);
+    expect(outputs[INFER_STATIC_VARIABLE_ERRORS], hasLength(0));
   }
 }
 
@@ -2280,21 +2303,6 @@ X v3;
 
 @reflectiveTest
 class LibraryUnitErrorsTaskTest extends _AbstractDartTaskTest {
-  test_buildInputs() {
-    Map<String, TaskInput> inputs = LibraryUnitErrorsTask
-        .buildInputs(new LibrarySpecificUnit(emptySource, emptySource));
-    expect(inputs, isNotNull);
-    expect(
-        inputs.keys,
-        unorderedEquals([
-          LibraryUnitErrorsTask.HINTS_INPUT,
-          LibraryUnitErrorsTask.RESOLVE_REFERENCES_ERRORS_INPUT,
-          LibraryUnitErrorsTask.RESOLVE_TYPE_NAMES_ERRORS_INPUT,
-          LibraryUnitErrorsTask.VARIABLE_REFERENCE_ERRORS_INPUT,
-          LibraryUnitErrorsTask.VERIFY_ERRORS_INPUT
-        ]));
-  }
-
   test_constructor() {
     LibraryUnitErrorsTask task =
         new LibraryUnitErrorsTask(context, emptySource);
@@ -2581,6 +2589,42 @@ main() {
     expect(methodElement, isNotNull);
     expect(methodElement.type, isNotNull);
     expect(methodElement.returnType.toString(), 'int');
+  }
+}
+
+@reflectiveTest
+class ResolveFunctionBodiesInUnitTaskTest extends _AbstractDartTaskTest {
+  void test_perform() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+void f() {
+  var c = new C();
+  c.m();
+}
+class C {
+  void m() {
+    f();
+  }
+}
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT8,
+        matcher: isResolveFunctionBodiesInUnitTask);
+    CompilationUnit unit = outputs[RESOLVED_UNIT8];
+
+    FunctionDeclaration f = unit.declarations[0];
+    _assertResolved(f.functionExpression.body);
+
+    MethodDeclaration m = (unit.declarations[1] as ClassDeclaration).members[0];
+    _assertResolved(m.body);
+
+    expect(outputs[RESOLVE_FUNCTION_BODIES_ERRORS], hasLength(0));
+  }
+
+  void _assertResolved(FunctionBody body) {
+    ResolutionVerifier verifier = new ResolutionVerifier();
+    body.accept(verifier);
+    verifier.assertResolved();
   }
 }
 
