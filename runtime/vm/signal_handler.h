@@ -11,6 +11,9 @@
 #if defined(TARGET_OS_LINUX)
 #include <signal.h>  // NOLINT
 #include <ucontext.h>  // NOLINT
+#elif defined(TARGET_OS_OPENBSD)
+#include <signal.h> // NOLINT
+typedef struct sigcontext mcontext_t;
 #elif defined(TARGET_OS_ANDROID)
 #include <signal.h>  // NOLINT
 #if !defined(__BIONIC_HAVE_UCONTEXT_T)
