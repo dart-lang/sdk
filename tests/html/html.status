@@ -116,9 +116,9 @@ element_animate_test/timing_dict: Skip # Timing out on MacOS. Issue 23507
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
 
-[ $runtime == chrome && $system == windows ]
-# These are failures in Chrome 45, which is not yet on Mac or Linux.
-# This will be merged with the earlier blocks when Mac and Linux are updated.
+[ $runtime == chrome && $system != linux ]
+# These are failures in Chrome 45, which is not yet on Linux.
+# This will be merged with the earlier blocks when Linux is updated.
 element_animate_test/simple_timing: RuntimeError # Please triage this failure
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]

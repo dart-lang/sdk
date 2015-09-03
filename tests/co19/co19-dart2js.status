@@ -1536,9 +1536,9 @@ LayoutTests/fast/text/line-break-after-question-mark_t01: RuntimeError # Please 
 LayoutTests/fast/text/regional-indicator-symobls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/text-combine-shrink-to-fit_t01: RuntimeError # Please triage this failure
 
-[ $compiler == dart2js && $runtime == chrome && $system == windows ]
-# These are failures in Chrome 45, which is not yet on Mac or Linux.
-# This will be merged with the earlier blocks when Mac and Linux are updated.
+[ $compiler == dart2js && $runtime == chrome && $system != linux ]
+# These are failures in Chrome 45, which is not yet on Linux.
+# This will be merged with the earlier blocks when Linux is updated.
 LayoutTests/fast/css/background-position-serialize_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-font_t01: RuntimeError # Please triage this failure
