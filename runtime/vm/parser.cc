@@ -1647,7 +1647,7 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func) {
     function_object = receiver;
   } else {
     const String& getter_name = String::ZoneHandle(Z,
-        Symbols::New(String::Handle(Z, Field::GetterName(name))));
+        Symbols::New(String::Handle(Z, Field::GetterSymbol(name))));
     function_object = new(Z) InstanceCallNode(
         token_pos, receiver, getter_name, no_args);
   }
@@ -2337,14 +2337,18 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name,
   AstNode* implicit_argument = LoadReceiver(field_pos);
 
   const String& getter_name =
-      String::ZoneHandle(Z, Field::GetterName(field_name));
-  const Function& super_getter = Function::ZoneHandle(Z,
-      Resolver::ResolveDynamicAnyArgs(super_class, getter_name));
+      String::ZoneHandle(Z, Field::LookupGetterSymbol(field_name));
+  Function& super_getter = Function::ZoneHandle(Z);
+  if (!getter_name.IsNull()) {
+    super_getter = Resolver::ResolveDynamicAnyArgs(super_class, getter_name);
+  }
   if (super_getter.IsNull()) {
     const String& setter_name =
-        String::ZoneHandle(Z, Field::SetterName(field_name));
-    const Function& super_setter = Function::ZoneHandle(Z,
-        Resolver::ResolveDynamicAnyArgs(super_class, setter_name));
+        String::ZoneHandle(Z, Field::LookupSetterSymbol(field_name));
+    Function& super_setter = Function::ZoneHandle(Z);
+    if (!setter_name.IsNull()) {
+      super_setter = Resolver::ResolveDynamicAnyArgs(super_class, setter_name);
+    }
     if (super_setter.IsNull()) {
       // Check if this is an access to an implicit closure using 'super'.
       // If a function exists of the specified field_name then try
@@ -6354,7 +6358,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   }
 
   const GrowableObjectArray& handler_types =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
   handler_types.Add(dynamic_type);  // Catch block handles all exceptions.
 
   CatchClauseNode* catch_clause = new(Z) CatchClauseNode(
@@ -6471,7 +6475,7 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   SequenceNode* catch_handler_list = CloseBlock();
 
   const GrowableObjectArray& handler_types =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
   handler_types.SetLength(0);
   handler_types.Add(*exception_param.type);
 
@@ -9677,7 +9681,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   try_stack_->enter_catch();
   const intptr_t handler_pos = TokenPos();
   const GrowableObjectArray& handler_types =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
   bool needs_stack_trace = false;
   SequenceNode* catch_handler_list =
       ParseCatchClauses(handler_pos,
@@ -11168,7 +11172,8 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
   ASSERT(field.is_static());
   const Class& field_owner = Class::ZoneHandle(Z, field.owner());
   const String& field_name = String::ZoneHandle(Z, field.name());
-  const String& getter_name = String::Handle(Z, Field::GetterName(field_name));
+  const String& getter_name =
+      String::Handle(Z, Field::GetterSymbol(field_name));
   const Function& getter = Function::Handle(Z,
       field_owner.LookupStaticFunction(getter_name));
   // Never load field directly if there is a getter (deterministic AST).
@@ -11563,7 +11568,7 @@ AstNode* Parser::ParseClosurization(AstNode* primary) {
       is_setter_name = true;
     }
   } else if (Token::CanBeOverloaded(CurrentToken())) {
-    extractor_name = String::New(Token::Str(CurrentToken()));
+    extractor_name = Symbols::New(Token::Str(CurrentToken()));
     ConsumeToken();
   } else {
     ReportError("identifier or operator expected");
@@ -11973,7 +11978,8 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(const Field& field,
   ASSERT(field.is_static());
   const Class& field_owner = Class::ZoneHandle(Z, field.owner());
   const String& field_name = String::ZoneHandle(Z, field.name());
-  const String& getter_name = String::Handle(Z, Field::GetterName(field_name));
+  const String& getter_name =
+      String::Handle(Z, Field::GetterSymbol(field_name));
   const Function& getter = Function::Handle(Z,
       field_owner.LookupStaticFunction(getter_name));
   const Instance& value = Instance::Handle(Z, field.value());

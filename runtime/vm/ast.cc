@@ -572,9 +572,11 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
   if (is_super_getter()) {
     ASSERT(receiver() != NULL);
     const String& setter_name =
-        String::ZoneHandle(zone, Field::SetterSymbol(field_name_));
-    Function& setter = Function::ZoneHandle(zone,
-        Resolver::ResolveDynamicAnyArgs(cls(), setter_name));
+        String::ZoneHandle(zone, Field::LookupSetterSymbol(field_name_));
+    Function& setter = Function::ZoneHandle(zone);
+    if (!setter_name.IsNull()) {
+      setter = Resolver::ResolveDynamicAnyArgs(cls(), setter_name);
+    }
     if (setter.IsNull() || setter.is_abstract()) {
       // No instance setter found in super class chain,
       // noSuchMethod will be called at runtime.
@@ -618,15 +620,17 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     }
 
     // No field found in prefix. Look for a setter function.
-    const String& setter_name = String::Handle(zone,
-                                               Field::SetterName(field_name_));
-    obj = prefix.LookupObject(setter_name);
-    if (obj.IsFunction()) {
-      const Function& setter = Function::ZoneHandle(zone,
-                                                    Function::Cast(obj).raw());
-      ASSERT(setter.is_static() && setter.IsSetterFunction());
-      return new StaticSetterNode(
-          token_pos(), NULL, field_name_, setter, rhs);
+    const String& setter_name =
+         String::Handle(zone, Field::LookupSetterSymbol(field_name_));
+    if (!setter_name.IsNull()) {
+      obj = prefix.LookupObject(setter_name);
+      if (obj.IsFunction()) {
+        const Function& setter =
+            Function::ZoneHandle(zone, Function::Cast(obj).raw());
+        ASSERT(setter.is_static() && setter.IsSetterFunction());
+        return new StaticSetterNode(
+            token_pos(), NULL, field_name_, setter, rhs);
+      }
     }
 
     // No writeable field and no setter found in the prefix. Return a
@@ -651,14 +655,17 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     }
 
     // No field found in library. Look for a setter function.
-    const String& setter_name = String::Handle(zone,
-                                               Field::SetterName(field_name_));
-    obj = library.ResolveName(setter_name);
-    if (obj.IsFunction()) {
-      const Function& setter = Function::ZoneHandle(zone,
-                                                    Function::Cast(obj).raw());
-      ASSERT(setter.is_static() && setter.IsSetterFunction());
-      return new StaticSetterNode(token_pos(), NULL, field_name_, setter, rhs);
+    const String& setter_name =
+        String::Handle(zone, Field::LookupSetterSymbol(field_name_));
+    if (!setter_name.IsNull()) {
+      obj = library.ResolveName(setter_name);
+      if (obj.IsFunction()) {
+        const Function& setter =
+            Function::ZoneHandle(zone, Function::Cast(obj).raw());
+        ASSERT(setter.is_static() && setter.IsSetterFunction());
+        return
+            new StaticSetterNode(token_pos(), NULL, field_name_, setter, rhs);
+      }
     }
 
     // No writeable field and no setter found in the library. Return a
@@ -685,8 +692,9 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
       return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs);
     }
 #if defined(DEBUG)
-    const String& getter_name = String::Handle(zone,
-                                               Field::GetterName(field_name_));
+    const String& getter_name =
+        String::Handle(zone, Field::LookupGetterSymbol(field_name_));
+    ASSERT(!getter_name.IsNull());
     const Function& getter =
         Function::Handle(zone, cls().LookupStaticFunction(getter_name));
     ASSERT(!getter.IsNull() &&
@@ -741,7 +749,10 @@ const Instance* StaticGetterNode::EvalConstExpr() const {
     return NULL;
   }
   const String& getter_name =
-      String::Handle(Field::GetterName(this->field_name()));
+      String::Handle(Field::LookupGetterSymbol(this->field_name()));
+  if (getter_name.IsNull()) {
+    return NULL;
+  }
   const Function& getter_func =
       Function::Handle(this->cls().LookupStaticFunction(getter_name));
   if (getter_func.IsNull() || !getter_func.is_const()) {

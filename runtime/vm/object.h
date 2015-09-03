@@ -2983,8 +2983,12 @@ class Field : public Object {
   // Constructs getter and setter names for fields and vice versa.
   static RawString* GetterName(const String& field_name);
   static RawString* GetterSymbol(const String& field_name);
+  // Returns String::null() if getter symbol does not exist.
+  static RawString* LookupGetterSymbol(const String& field_name);
   static RawString* SetterName(const String& field_name);
   static RawString* SetterSymbol(const String& field_name);
+  // Returns String::null() if setter symbol does not exist.
+  static RawString* LookupSetterSymbol(const String& field_name);
   static RawString* NameFromGetter(const String& getter_name);
   static RawString* NameFromSetter(const String& setter_name);
   static bool IsGetterName(const String& function_name);
@@ -5616,7 +5620,9 @@ class Integer : public Number {
   RawInteger* ArithmeticOp(Token::Kind operation,
                            const Integer& other,
                            Heap::Space space = Heap::kNew) const;
-  RawInteger* BitOp(Token::Kind operation, const Integer& other) const;
+  RawInteger* BitOp(Token::Kind operation,
+                    const Integer& other,
+                    Heap::Space space = Heap::kNew) const;
 
   // Returns true if the Integer does not fit in a Javascript integer.
   bool CheckJavascriptIntegerOverflow() const;
@@ -5677,6 +5683,7 @@ class Smi : public Integer {
 
   RawInteger* ShiftOp(Token::Kind kind,
                       const Smi& other,
+                      Heap::Space space = Heap::kNew,
                       const bool silent = false) const;
 
   void operator=(RawSmi* value) {
