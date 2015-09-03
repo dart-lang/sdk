@@ -89,7 +89,7 @@
 #elif defined(__linux__) || defined(__FreeBSD__)
 #define TARGET_OS_LINUX 1
 #elif defined(__OpenBSD__)
-#define Target_OS_OPENBSD 1
+#define TARGET_OS_OPENBSD 1
 #elif defined(__APPLE__)
 // Define the flavor of Mac OS we are running on.
 #include <TargetConditionals.h>
