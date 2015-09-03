@@ -989,12 +989,8 @@ class JavaScriptBackend extends Backend {
     } else if (constant.isType) {
       enqueueInResolution(getCreateRuntimeType(), registry);
       registry.registerInstantiation(typeImplementation.rawType);
-      TypeConstantValue typeConstant = constant;
-      DartType representedType = typeConstant.representedType;
-      if (representedType != const DynamicType()) {
-        lookupMapAnalysis.registerTypeConstant(representedType.element);
-      }
     }
+    lookupMapAnalysis.registerConstantKey(constant);
   }
 
   void registerInstantiatedConstantType(DartType type, Registry registry) {

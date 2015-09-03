@@ -79,13 +79,26 @@ class LookupMapAnalysis {
   /// this analysis.
   final Map<ConstantValue, _LookupMapInfo> _lookupMaps = {};
 
-  /// Types that we have discovered to be in use in the program.
-  final _inUse = new Set<ClassElement>();
+  /// Keys that we have discovered to be in use in the program.
+  final _inUse = new Set<ConstantValue>();
 
-  /// Pending work to do if we discover that a new type is in use. For each type
-  /// that we haven't seen, we record the list of lookup-maps that use such type
-  /// as a key.
-  final _pending = <ClassElement, List<_LookupMapInfo>>{};
+  /// Internal helper to memoize the mapping between class elements and their
+  /// corresponding type constants.
+  final _typeConstants = <ClassElement, TypeConstantValue>{};
+
+  /// Internal helper to memoize which classes (ignoring Type) override equals.
+  ///
+  /// Const keys of these types will not be tree-shaken because we can't
+  /// statically guarantee that the program doesn't produce an equivalent key at
+  /// runtime. Technically if we limit lookup-maps to check for identical keys,
+  /// we could allow const instances of these types.  However, we internally use
+  /// a hash map within lookup-maps today, so we need this restriction.
+  final _typesWithEquals = <ClassElement, bool>{};
+
+  /// Pending work to do if we discover that a new key is in use. For each key
+  /// that we haven't seen, we record the list of lookup-maps that contain an
+  /// entry with that key.
+  final _pending = <ConstantValue, List<_LookupMapInfo>>{};
 
   /// Whether the backend is currently processing the codegen queue.
   // TODO(sigmund): is there a better way to do this. Do we need to plumb the
@@ -126,12 +139,46 @@ class LookupMapAnalysis {
         () => new _LookupMapInfo(lookupMap, this).._updateUsed());
   }
 
-  /// Records that [type] is used in the program, and updates every map that
-  /// has it as a key.
-  void _addUse(ClassElement type) {
-    if (_inUse.add(type)) {
-      _pending[type]?.forEach((info) => info._markUsed(type));
-      _pending.remove(type);
+  /// Whether [key] is a constant value whose type overrides equals.
+  bool _overridesEquals(ConstantValue key) {
+    if (key is ConstructedConstantValue) {
+      ClassElement element = key.type.element;
+      return _typesWithEquals.putIfAbsent(element, () =>
+          element.lookupMember('==').enclosingClass !=
+          backend.compiler.objectClass);
+    }
+    return false;
+  }
+
+  /// Whether we need to preserve [key]. This is true for keys that are not
+  /// candidates for tree-shaking in the first place (primitives and non-type
+  /// const values overriding equals) and keys that we have seen in the program.
+  bool _shouldKeep(ConstantValue key) =>
+      key.isPrimitive || _inUse.contains(key) || _overridesEquals(key);
+
+  void _addClassUse(ClassElement cls) {
+    ConstantValue key = _typeConstants.putIfAbsent(cls,
+        () => backend.constantSystem.createType(backend.compiler, cls.rawType));
+    _addUse(key);
+  }
+
+  /// Record that [key] is used and update every lookup map that contains it.
+  void _addUse(ConstantValue key) {
+    if (_inUse.add(key)) {
+      _pending[key]?.forEach((info) => info._markUsed(key));
+      _pending.remove(key);
+    }
+  }
+
+  /// If [key] is a type, cache it in [_typeConstants].
+  _registerTypeKey(ConstantValue key) {
+    if (key is TypeConstantValue) {
+      ClassElement cls = key.representedType.element;
+      if (cls == null || !cls.isClass) {
+        // TODO(sigmund): report error?
+        return;
+      }
+      _typeConstants[cls] = key;
     }
   }
 
@@ -139,14 +186,14 @@ class LookupMapAnalysis {
   void registerInstantiatedClass(ClassElement element) {
     if (!_isEnabled || !_inCodegen) return;
     // TODO(sigmund): only add if .runtimeType is ever used
-    _addUse(element);
+    _addClassUse(element);
   }
 
   /// Callback from the enqueuer, invoked when [type] is instantiated.
   void registerInstantiatedType(InterfaceType type, Registry registry) {
     if (!_isEnabled || !_inCodegen) return;
     // TODO(sigmund): only add if .runtimeType is ever used
-    _addUse(type.element);
+    _addClassUse(type.element);
     // TODO(sigmund): only do this when type-argument expressions are used?
     _addGenerics(type, registry);
   }
@@ -157,7 +204,7 @@ class LookupMapAnalysis {
     if (!type.isGeneric) return;
     for (var arg in type.typeArguments) {
       if (arg is InterfaceType) {
-        _addUse(arg.element);
+        _addClassUse(arg.element);
         // Note: this call was needed to generate correct code for
         // type_lookup_map/generic_type_test
         // TODO(sigmund): can we get rid of this?
@@ -168,12 +215,17 @@ class LookupMapAnalysis {
     }
   }
 
-  /// Callback from the codegen enqueuer, invoked when a type constant
-  /// corresponding to the [element] is used in the program.
-  void registerTypeConstant(Element element) {
+  /// Callback from the codegen enqueuer, invoked when a constant (which is
+  /// possibly a const key or a type literal) is used in the program.
+  void registerTypeConstant(ClassElement element) {
     if (!_isEnabled || !_inCodegen) return;
-    assert(element.isClass);
-    _addUse(element);
+    _addClassUse(element);
+  }
+
+  void registerConstantKey(ConstantValue constant) {
+    if (!_isEnabled || !_inCodegen) return;
+    if (constant.isPrimitive || _overridesEquals(constant)) return;
+    _addUse(constant);
   }
 
   /// Callback from the backend, invoked when reaching the end of the enqueuing
@@ -206,6 +258,11 @@ class LookupMapAnalysis {
           ? 'lookup-map: nothing was tree-shaken'
           : 'lookup-map: found $count unused keys ($sb)');
     }
+
+    // Release resources.
+    _lookupMaps.clear();
+    _pending.clear();
+    _inUse.clear();
   }
 }
 
@@ -235,17 +292,12 @@ class _LookupMapInfo {
 
   /// Entries in the lookup map whose keys have not been seen in the rest of the
   /// program.
-  Map<ClassElement, ConstantValue> unusedEntries =
-      <ClassElement, ConstantValue>{};
+  Map<ConstantValue, ConstantValue> unusedEntries =
+      <ConstantValue, ConstantValue> {};
 
   /// Entries that have been used, and thus will be part of the generated code.
-  Map<ClassElement, ConstantValue> usedEntries =
-      <ClassElement, ConstantValue>{};
-
-  /// Internal helper to memoize the mapping between map class elements and
-  /// their corresponding type constants.
-  Map<ClassElement, TypeConstantValue> _typeConstants =
-      <ClassElement, TypeConstantValue>{};
+  Map<ConstantValue, ConstantValue> usedEntries =
+      <ConstantValue, ConstantValue> {};
 
   /// Creates and initializes the information containing all keys of the
   /// original map marked as unused.
@@ -254,10 +306,7 @@ class _LookupMapInfo {
     singlePair = !key.isNull;
 
     if (singlePair) {
-      TypeConstantValue typeKey = key;
-      ClassElement cls = typeKey.representedType.element;
-      _typeConstants[cls] = typeKey;
-      unusedEntries[cls] = original.fields[analysis.valueField];
+      unusedEntries[key] = original.fields[analysis.valueField];
 
       // Note: we modify the constant in-place, see comment in [original].
       original.fields[analysis.keyField] = new NullConstantValue();
@@ -266,14 +315,8 @@ class _LookupMapInfo {
       ListConstantValue list = original.fields[analysis.entriesField];
       List<ConstantValue> keyValuePairs = list.entries;
       for (int i = 0; i < keyValuePairs.length; i += 2) {
-        TypeConstantValue type = keyValuePairs[i];
-        ClassElement cls = type.representedType.element;
-        if (cls == null || !cls.isClass) {
-          // TODO(sigmund): report an error
-          continue;
-        }
-        _typeConstants[cls] = type;
-        unusedEntries[cls] = keyValuePairs[i + 1];
+        ConstantValue key = keyValuePairs[i];
+        unusedEntries[key] = keyValuePairs[i + 1];
       }
 
       // Note: we modify the constant in-place, see comment in [original].
@@ -288,23 +331,24 @@ class _LookupMapInfo {
   /// we call [_markUsed] on each individual key as it gets discovered.
   void _updateUsed() {
     // Note: we call toList because `_markUsed` modifies the map.
-    for (ClassElement type in unusedEntries.keys.toList()) {
-      if (analysis._inUse.contains(type)) {
-        _markUsed(type);
+    for (ConstantValue key in unusedEntries.keys.toList()) {
+      analysis._registerTypeKey(key);
+      if (analysis._shouldKeep(key)) {
+        _markUsed(key);
       } else {
-        analysis._pending.putIfAbsent(type, () => []).add(this);
+        analysis._pending.putIfAbsent(key, () => []).add(this);
       }
     }
   }
 
-  /// Marks that [type] is a key that has been seen, and thus, the corresponding
-  /// entry in this map should be considered reachable.
-  void _markUsed(ClassElement type) {
+  /// Marks that [key] has been seen, and thus, the corresponding entry in this
+  /// map should be considered reachable.
+  _markUsed(ConstantValue key) {
     assert(!emitted);
-    assert(unusedEntries.containsKey(type));
-    assert(!usedEntries.containsKey(type));
-    ConstantValue constant = unusedEntries.remove(type);
-    usedEntries[type] = constant;
+    assert(unusedEntries.containsKey(key));
+    assert(!usedEntries.containsKey(key));
+    ConstantValue constant = unusedEntries.remove(key);
+    usedEntries[key] = constant;
     analysis.backend.registerCompileTimeConstant(constant,
         analysis.backend.compiler.globalDependencies,
         addForEmission: false);
@@ -316,7 +360,7 @@ class _LookupMapInfo {
     DartType listType = originalEntries.type;
     List<ConstantValue> keyValuePairs = <ConstantValue>[];
     usedEntries.forEach((key, value) {
-      keyValuePairs.add(_typeConstants[key]);
+      keyValuePairs.add(key);
       keyValuePairs.add(value);
     });
 
