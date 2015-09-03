@@ -182,23 +182,44 @@ class InsertRefinements extends RecursiveVisitor implements Pass {
     }
 
     // If the condition is comparison with a constant, promote the other value.
-    if (call is InvokeMethod && call.selector == Selectors.equals) {
-      Primitive first = call.arguments[0].definition;
-      Primitive second = call.arguments[1].definition;
+    // This can happen either for calls to `==` or `identical` calls, such
+    // as the ones inserted by the unsugaring pass.
+
+    void refineEquality(Primitive first,
+                        Primitive second,
+                        Continuation trueCont,
+                        Continuation falseCont) {
       if (second is Constant && second.value.isNull) {
         Refinement refinedTrue = new Refinement(first, nullType);
         Refinement refinedFalse = new Refinement(first, nonNullType);
         pushRefinement(trueCont, refinedTrue);
         pushRefinement(falseCont, refinedFalse);
-        return;
-      }
-      if (first is Constant && first.value.isNull) {
+      } else if (first is Constant && first.value.isNull) {
         Refinement refinedTrue = new Refinement(second, nullType);
         Refinement refinedFalse = new Refinement(second, nonNullType);
         pushRefinement(trueCont, refinedTrue);
         pushRefinement(falseCont, refinedFalse);
-        return;
+      } else {
+        push(trueCont);
+        push(falseCont);
       }
+    }
+
+    if (call is InvokeMethod && call.selector == Selectors.equals) {
+      refineEquality(call.arguments[0].definition,
+                     call.arguments[1].definition,
+                     trueCont,
+                     falseCont);
+      return;
+    }
+
+    if (condition is ApplyBuiltinOperator &&
+        condition.operator == BuiltinOperator.Identical) {
+      refineEquality(condition.arguments[0].definition,
+                     condition.arguments[1].definition,
+                     trueCont,
+                     falseCont);
+      return;
     }
 
     push(trueCont);
