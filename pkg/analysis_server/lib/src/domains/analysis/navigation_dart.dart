@@ -2,99 +2,47 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library computer.navigation;
+library domains.analysis.navigation_dart;
 
-import 'dart:collection';
-
+import 'package:analysis_server/analysis/navigation/navigation_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A computer for navigation regions in a Dart [CompilationUnit].
  */
-class DartUnitNavigationComputer {
-  final List<String> files = <String>[];
-  final Map<String, int> fileMap = new HashMap<String, int>();
-  final List<protocol.NavigationTarget> targets = <protocol.NavigationTarget>[];
-  final Map<Element, int> targetMap = new HashMap<Element, int>();
-  final List<protocol.NavigationRegion> regions = <protocol.NavigationRegion>[];
-
-  /**
-   * Computes [regions], [targets] and [files].
-   */
-  void compute(AstNode node) {
-    node.accept(new _DartUnitNavigationComputerVisitor(this));
-  }
-
-  int _addFile(String file) {
-    int index = fileMap[file];
-    if (index == null) {
-      index = files.length;
-      files.add(file);
-      fileMap[file] = index;
+class DartNavigationComputer implements NavigationContributor {
+  @override
+  void computeNavigation(NavigationHolder holder, AnalysisContext context,
+      Source source, int offset, int length) {
+    List<Source> libraries = context.getLibrariesContaining(source);
+    if (libraries.isNotEmpty) {
+      CompilationUnit unit =
+          context.getResolvedCompilationUnit2(source, libraries.first);
+      if (unit != null) {
+        _DartNavigationHolder dartHolder = new _DartNavigationHolder(holder);
+        _DartNavigationComputerVisitor visitor =
+            new _DartNavigationComputerVisitor(dartHolder);
+        if (offset == null || length == null) {
+          unit.accept(visitor);
+        } else {
+          _DartRangeAstVisitor partVisitor =
+              new _DartRangeAstVisitor(offset, offset + length, visitor);
+          unit.accept(partVisitor);
+        }
+      }
     }
-    return index;
-  }
-
-  void _addRegion(int offset, int length, Element element) {
-    if (element is FieldFormalParameterElement) {
-      element = (element as FieldFormalParameterElement).field;
-    }
-    if (element == null || element == DynamicElementImpl.instance) {
-      return;
-    }
-    if (element.location == null) {
-      return;
-    }
-    int targetIndex = _addTarget(element);
-    regions
-        .add(new protocol.NavigationRegion(offset, length, <int>[targetIndex]));
-  }
-
-  void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
-    int offset = a.offset;
-    int length = b.end - offset;
-    _addRegion(offset, length, element);
-  }
-
-  void _addRegion_tokenStart_nodeEnd(Token a, AstNode b, Element element) {
-    int offset = a.offset;
-    int length = b.end - offset;
-    _addRegion(offset, length, element);
-  }
-
-  void _addRegionForNode(AstNode node, Element element) {
-    int offset = node.offset;
-    int length = node.length;
-    _addRegion(offset, length, element);
-  }
-
-  void _addRegionForToken(Token token, Element element) {
-    int offset = token.offset;
-    int length = token.length;
-    _addRegion(offset, length, element);
-  }
-
-  int _addTarget(Element element) {
-    int index = targetMap[element];
-    if (index == null) {
-      index = targets.length;
-      protocol.NavigationTarget target =
-          protocol.newNavigationTarget_fromElement(element, _addFile);
-      targets.add(target);
-      targetMap[element] = index;
-    }
-    return index;
   }
 }
 
-class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
-  final DartUnitNavigationComputer computer;
+class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
+  final _DartNavigationHolder computer;
 
-  _DartUnitNavigationComputerVisitor(this.computer);
+  _DartNavigationComputerVisitor(this.computer);
 
   @override
   visitAssignmentExpression(AssignmentExpression node) {
@@ -271,5 +219,92 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
     if (node != null) {
       node.accept(this);
     }
+  }
+}
+
+/**
+ * A Dart specific wrapper around [NavigationHolder].
+ */
+class _DartNavigationHolder {
+  final NavigationHolder holder;
+
+  _DartNavigationHolder(this.holder);
+
+  void _addRegion(int offset, int length, Element element) {
+    if (element is FieldFormalParameterElement) {
+      element = (element as FieldFormalParameterElement).field;
+    }
+    if (element == null || element == DynamicElementImpl.instance) {
+      return;
+    }
+    if (element.location == null) {
+      return;
+    }
+    protocol.ElementKind kind =
+        protocol.newElementKind_fromEngine(element.kind);
+    protocol.Location location = protocol.newLocation_fromElement(element);
+    if (location == null) {
+      return;
+    }
+    holder.addRegion(offset, length, kind, location);
+  }
+
+  void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
+    int offset = a.offset;
+    int length = b.end - offset;
+    _addRegion(offset, length, element);
+  }
+
+  void _addRegion_tokenStart_nodeEnd(Token a, AstNode b, Element element) {
+    int offset = a.offset;
+    int length = b.end - offset;
+    _addRegion(offset, length, element);
+  }
+
+  void _addRegionForNode(AstNode node, Element element) {
+    int offset = node.offset;
+    int length = node.length;
+    _addRegion(offset, length, element);
+  }
+
+  void _addRegionForToken(Token token, Element element) {
+    int offset = token.offset;
+    int length = token.length;
+    _addRegion(offset, length, element);
+  }
+}
+
+/**
+ * An AST visitor that forwards nodes intersecting with the range from
+ * [start] to [end] to the given [visitor].
+ */
+class _DartRangeAstVisitor extends UnifyingAstVisitor {
+  final int start;
+  final int end;
+  final AstVisitor visitor;
+
+  _DartRangeAstVisitor(this.start, this.end, this.visitor);
+
+  bool isInRange(int offset) {
+    return start <= offset && offset <= end;
+  }
+
+  @override
+  visitNode(AstNode node) {
+    // The node ends before the range starts.
+    if (node.end < start) {
+      return;
+    }
+    // The node starts after the range ends.
+    if (node.offset > end) {
+      return;
+    }
+    // The node starts or ends in the range.
+    if (isInRange(node.offset) || isInRange(node.end)) {
+      node.accept(visitor);
+      return;
+    }
+    // Go deeper.
+    super.visitNode(node);
   }
 }

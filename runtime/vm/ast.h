@@ -165,13 +165,15 @@ class AwaitNode : public AstNode {
             LocalVariable* saved_try_ctx,
             LocalVariable* async_saved_try_ctx,
             LocalVariable* outer_saved_try_ctx,
-            LocalVariable* outer_async_saved_try_ctx)
+            LocalVariable* outer_async_saved_try_ctx,
+            LocalScope* scope)
     : AstNode(token_pos),
       expr_(expr),
       saved_try_ctx_(saved_try_ctx),
       async_saved_try_ctx_(async_saved_try_ctx),
       outer_saved_try_ctx_(outer_saved_try_ctx),
-      outer_async_saved_try_ctx_(outer_async_saved_try_ctx) { }
+      outer_async_saved_try_ctx_(outer_async_saved_try_ctx),
+      scope_(scope) { }
 
   void VisitChildren(AstNodeVisitor* visitor) const {
     expr_->Visit(visitor);
@@ -184,6 +186,7 @@ class AwaitNode : public AstNode {
   LocalVariable* outer_async_saved_try_ctx() const {
     return outer_async_saved_try_ctx_;
   }
+  LocalScope* scope() const { return scope_; }
 
   DECLARE_COMMON_NODE_FUNCTIONS(AwaitNode);
 
@@ -193,6 +196,7 @@ class AwaitNode : public AstNode {
   LocalVariable* async_saved_try_ctx_;
   LocalVariable* outer_saved_try_ctx_;
   LocalVariable* outer_async_saved_try_ctx_;
+  LocalScope* scope_;
 
   DISALLOW_COPY_AND_ASSIGN(AwaitNode);
 };
@@ -209,17 +213,25 @@ class AwaitNode : public AstNode {
 //   <AwaitMarker> -> ...
 class AwaitMarkerNode : public AstNode {
  public:
-  AwaitMarkerNode() : AstNode(Scanner::kNoSourcePos) { }
+  AwaitMarkerNode(LocalScope* async_scope, LocalScope* await_scope)
+    : AstNode(Scanner::kNoSourcePos),
+      async_scope_(async_scope),
+      await_scope_(await_scope) {
+    ASSERT(async_scope != NULL);
+    ASSERT(await_scope != NULL);
+    await_scope->CaptureLocalVariables(async_scope);
+  }
 
   void VisitChildren(AstNodeVisitor* visitor) const { }
 
-  LocalScope* scope() const { return scope_; }
-  void set_scope(LocalScope* scope) { scope_ = scope; }
+  LocalScope* async_scope() const { return async_scope_; }
+  LocalScope* await_scope() const { return await_scope_; }
 
   DECLARE_COMMON_NODE_FUNCTIONS(AwaitMarkerNode);
 
  private:
-  LocalScope* scope_;
+  LocalScope* async_scope_;
+  LocalScope* await_scope_;
 
   DISALLOW_COPY_AND_ASSIGN(AwaitMarkerNode);
 };

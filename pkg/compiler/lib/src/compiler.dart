@@ -91,6 +91,11 @@ import 'mirrors_used.dart' show
 import 'null_compiler_output.dart' show
     NullCompilerOutput,
     NullSink;
+import 'parser/diet_parser_task.dart' show
+    DietParserTask;
+import 'parser/parser_task.dart' show
+    DietParserTask,
+    ParserTask;
 import 'patch_parser.dart' show
     PatchParserTask;
 import 'resolution/registry.dart' show
@@ -99,17 +104,8 @@ import 'resolution/resolution.dart' show
     ResolverTask;
 import 'resolution/tree_elements.dart' show
     TreeElementMapping;
-import 'scanner/token_map.dart' show
-    TokenMap;
-import 'scanner/scannerlib.dart' show
-    COMMENT_TOKEN,
-    DietParserTask,
-    EOF_TOKEN,
-    ParserTask,
-    ScannerTask,
-    StringToken,
-    Token,
-    TokenPair;
+import 'scanner/scanner_task.dart' show
+    ScannerTask;
 import 'serialization/task.dart' show
     SerializationTask;
 import 'script.dart' show
@@ -118,6 +114,15 @@ import 'ssa/ssa.dart' show
     HInstruction;
 import 'tracer.dart' show
     Tracer;
+import 'tokens/token.dart' show
+    StringToken,
+    Token,
+    TokenPair;
+import 'tokens/token_constants.dart' as Tokens show
+    COMMENT_TOKEN,
+    EOF_TOKEN;
+import 'tokens/token_map.dart' show
+    TokenMap;
 import 'tree/tree.dart' show
     Node;
 import 'typechecker.dart' show
@@ -1235,6 +1240,7 @@ abstract class Compiler implements DiagnosticListener {
     }
     emptyQueue(world);
     world.queueIsClosed = true;
+    backend.onQueueClosed();
     assert(compilationFailed || world.checkNoEnqueuedInvokedInstanceMethods());
   }
 
@@ -1520,10 +1526,10 @@ abstract class Compiler implements DiagnosticListener {
   Token processAndStripComments(Token currentToken) {
     Token firstToken = currentToken;
     Token prevToken;
-    while (currentToken.kind != EOF_TOKEN) {
-      if (identical(currentToken.kind, COMMENT_TOKEN)) {
+    while (currentToken.kind != Tokens.EOF_TOKEN) {
+      if (identical(currentToken.kind, Tokens.COMMENT_TOKEN)) {
         Token firstCommentToken = currentToken;
-        while (identical(currentToken.kind, COMMENT_TOKEN)) {
+        while (identical(currentToken.kind, Tokens.COMMENT_TOKEN)) {
           currentToken = currentToken.next;
         }
         commentMap[currentToken] = firstCommentToken;

@@ -233,6 +233,8 @@ class JavaScriptBackend extends Backend {
       new Uri(scheme: 'dart', path: '_js_embedded_names');
   static final Uri DART_ISOLATE_HELPER =
       new Uri(scheme: 'dart', path: '_isolate_helper');
+  static final Uri PACKAGE_LOOKUP_MAP =
+      new Uri(scheme: 'package', path: 'lookup_map/lookup_map.dart');
 
   static const String INVOKE_ON = '_getCachedInvocation';
   static const String START_ROOT_ISOLATE = 'startRootIsolate';
@@ -608,6 +610,9 @@ class JavaScriptBackend extends Backend {
   /// constructors for custom elements.
   CustomElementsAnalysis customElementsAnalysis;
 
+  /// Codegen support for tree-shaking entries of `LookupMap`.
+  LookupMapAnalysis lookupMapAnalysis;
+
   /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
 
@@ -641,6 +646,7 @@ class JavaScriptBackend extends Backend {
         compiler, namer, generateSourceMap, useStartupEmitter);
     typeVariableHandler = new TypeVariableHandler(compiler);
     customElementsAnalysis = new CustomElementsAnalysis(this);
+    lookupMapAnalysis = new LookupMapAnalysis(this);
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     resolutionCallbacks = new JavaScriptResolutionCallbacks(this);
@@ -949,11 +955,23 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerCompileTimeConstant(ConstantValue constant, Registry registry) {
+  void registerCompileTimeConstant(ConstantValue constant, Registry registry,
+      {bool addForEmission: true}) {
     registerCompileTimeConstantInternal(constant, registry);
-    for (ConstantValue dependency in constant.getDependencies()) {
-      registerCompileTimeConstant(dependency, registry);
+
+    if (!registry.isForResolution &&
+        lookupMapAnalysis.isLookupMap(constant)) {
+      // Note: internally, this registration will temporarily remove the
+      // constant dependencies and add them later on-demand.
+      lookupMapAnalysis.registerLookupMapReference(constant);
     }
+
+    for (ConstantValue dependency in constant.getDependencies()) {
+      registerCompileTimeConstant(dependency, registry,
+          addForEmission: false);
+    }
+
+    if (addForEmission) constants.addCompileTimeConstantForEmission(constant);
   }
 
   void registerCompileTimeConstantInternal(ConstantValue constant,
@@ -971,6 +989,11 @@ class JavaScriptBackend extends Backend {
     } else if (constant.isType) {
       enqueueInResolution(getCreateRuntimeType(), registry);
       registry.registerInstantiation(typeImplementation.rawType);
+      TypeConstantValue typeConstant = constant;
+      DartType representedType = typeConstant.representedType;
+      if (representedType != const DynamicType()) {
+        lookupMapAnalysis.registerTypeConstant(representedType.element);
+      }
     }
   }
 
@@ -996,7 +1019,7 @@ class JavaScriptBackend extends Backend {
                                 Registry registry) {
     assert(registry.isForResolution);
     ConstantValue constant = constants.getConstantValueForMetadata(metadata);
-    registerCompileTimeConstant(constant, registry);
+    registerCompileTimeConstant(constant, registry, addForEmission: false);
     metadataConstants.add(new Dependency(constant, annotatedElement));
   }
 
@@ -1129,6 +1152,13 @@ class JavaScriptBackend extends Backend {
     }
 
     customElementsAnalysis.registerInstantiatedClass(cls, enqueuer);
+    if (!enqueuer.isResolutionQueue) {
+      lookupMapAnalysis.registerInstantiatedClass(cls);
+    }
+  }
+
+  void registerInstantiatedType(InterfaceType type, Registry registry) {
+    lookupMapAnalysis.registerInstantiatedType(type, registry);
   }
 
   void registerUseInterceptor(Enqueuer enqueuer) {
@@ -1438,7 +1468,6 @@ class JavaScriptBackend extends Backend {
           constants.getConstantValueForVariable(element);
       if (initialValue != null) {
         registerCompileTimeConstant(initialValue, work.registry);
-        constants.addCompileTimeConstantForEmission(initialValue);
         // We don't need to generate code for static or top-level
         // variables. For instance variables, we may need to generate
         // the checked setter.
@@ -2133,6 +2162,8 @@ class JavaScriptBackend extends Backend {
         jsBuiltinEnum = find(library, 'JsBuiltin');
       } else if (uri == Uris.dart_html) {
         htmlLibraryIsLoaded = true;
+      } else if (uri == PACKAGE_LOOKUP_MAP) {
+        lookupMapAnalysis.initRuntimeClass(find(library, 'LookupMap'));
       }
       annotations.onLibraryScanned(library);
     });
@@ -2569,13 +2600,16 @@ class JavaScriptBackend extends Backend {
           registerCompileTimeConstant(
               dependency.constant,
               new CodegenRegistry(compiler,
-                  dependency.annotatedElement.analyzableElement.treeElements));
+                  dependency.annotatedElement.analyzableElement.treeElements),
+              addForEmission: false);
         }
         metadataConstants.clear();
       }
     }
     return true;
   }
+
+  void onQueueClosed() => lookupMapAnalysis.onQueueClosed();
 
   void onElementResolved(Element element, TreeElements elements) {
     if ((element.isFunction || element.isGenerativeConstructor) &&

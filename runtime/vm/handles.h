@@ -301,8 +301,6 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
 class HandleScope : public StackResource {
  public:
   explicit HandleScope(Thread* thread);
-  // DEPRECATED: Use Thread version.
-  explicit HandleScope(Isolate* isolate);
   ~HandleScope();
 
  private:
@@ -337,9 +335,6 @@ class HandleScope : public StackResource {
 class NoHandleScope : public StackResource {
  public:
   explicit NoHandleScope(Thread* thread);
-  // DEPRECATED: Use Thread version.
-  explicit NoHandleScope(Isolate* isolate);
-  NoHandleScope();
   ~NoHandleScope();
 
  private:

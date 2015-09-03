@@ -88,6 +88,7 @@ import '../world.dart' show
 import 'codegen/task.dart';
 import 'constant_system_javascript.dart';
 import 'patch_resolver.dart';
+import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 
 part 'backend.dart';
 part 'checked_mode_helpers.dart';

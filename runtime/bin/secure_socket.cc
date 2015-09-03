@@ -100,14 +100,28 @@ static SSL_CTX* GetSecurityContext(Dart_NativeArguments args) {
 }
 
 
+static void FreeSecurityContext(
+    void* isolate_data,
+    Dart_WeakPersistentHandle handle,
+    void* context_pointer) {
+  SSL_CTX* context = static_cast<SSL_CTX*>(context_pointer);
+  SSL_CTX_free(context);
+}
+
+
 static void SetSecurityContext(Dart_NativeArguments args,
                                SSL_CTX* context) {
+  const int approximate_size_of_context = 1500;
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
   ASSERT(Dart_IsInstance(dart_this));
   ThrowIfError(Dart_SetNativeInstanceField(
       dart_this,
       kSecurityContextNativeFieldIndex,
       reinterpret_cast<intptr_t>(context)));
+  Dart_NewWeakPersistentHandle(dart_this,
+                               context,
+                               approximate_size_of_context,
+                               FreeSecurityContext);
 }
 
 
@@ -313,9 +327,6 @@ void FUNCTION_NAME(SecurityContext_Allocate)(Dart_NativeArguments args) {
   SSL_CTX_set_cipher_list(context, "HIGH:MEDIUM");
   SSL_CTX_set_cipher_list_tls11(context, "HIGH:MEDIUM");
   SetSecurityContext(args, context);
-  // TODO(whesse): Use WeakPersistentHandle to free the SSL_CTX
-  // when the object is GC'd.  Also free the alpn_select_cb data pointer,
-  // if non-null (allocated in SetAlpnProtocolList).
 }
 
 
@@ -825,7 +836,9 @@ static void SetAlpnProtocolList(Dart_Handle protocols_handle,
       // TODO(whesse): If this function is called again, free the previous
       // protocol_string_copy.  It may be better to keep this as a native
       // field on the Dart object, since fetching it from the structure is
-      // not in the public api.  Also free this when the context is destroyed.
+      // not in the public api.
+      // Also free protocol_string_copy when the context is destroyed,
+      // in FreeSecurityContext()
     } else {
       // The function makes a local copy of protocol_string, which it owns.
       if (ssl != NULL) {
@@ -1021,6 +1034,10 @@ void SSLFilter::Destroy() {
   if (ssl_ != NULL) {
     SSL_free(ssl_);
     ssl_ = NULL;
+  }
+  if (socket_side_ != NULL) {
+    BIO_free(socket_side_);
+    socket_side_ = NULL;
   }
   for (int i = 0; i < kNumBuffers; ++i) {
     Dart_DeletePersistentHandle(dart_buffer_objects_[i]);

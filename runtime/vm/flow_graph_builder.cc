@@ -2331,10 +2331,11 @@ void EffectGraphVisitor::VisitAwaitMarkerNode(AwaitMarkerNode* node) {
   // We need to create a new await state which involves:
   // * Increase the jump counter. Sanity check against the list of targets.
   // * Save the current context for resuming.
-  ASSERT(node->scope() != NULL);
-  LocalVariable* jump_var = node->scope()->LookupVariable(
+  ASSERT(node->async_scope() != NULL);
+  ASSERT(node->await_scope() != NULL);
+  LocalVariable* jump_var = node->async_scope()->LookupVariable(
       Symbols::AwaitJumpVar(), false);
-  LocalVariable* ctx_var = node->scope()->LookupVariable(
+  LocalVariable* ctx_var = node->async_scope()->LookupVariable(
       Symbols::AwaitContextVar(), false);
   ASSERT((jump_var != NULL) && jump_var->is_captured());
   ASSERT((ctx_var != NULL) && ctx_var->is_captured());

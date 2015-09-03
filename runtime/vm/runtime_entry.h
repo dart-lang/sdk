@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/flags.h"
 #include "vm/native_arguments.h"
+#include "vm/runtime_entry_list.h"
 #include "vm/tags.h"
 
 namespace dart {
@@ -17,51 +18,6 @@ class Assembler;
 DECLARE_FLAG(bool, trace_runtime_calls);
 
 typedef void (*RuntimeFunction)(NativeArguments arguments);
-
-#define RUNTIME_ENTRY_LIST(V)                                                  \
-  V(AllocateArray)                                                             \
-  V(AllocateContext)                                                           \
-  V(AllocateObject)                                                            \
-  V(BreakpointRuntimeHandler)                                                  \
-  V(SingleStepHandler)                                                         \
-  V(CloneContext)                                                              \
-  V(FixCallersTarget)                                                          \
-  V(FixAllocationStubTarget)                                                   \
-  V(InlineCacheMissHandlerOneArg)                                              \
-  V(InlineCacheMissHandlerTwoArgs)                                             \
-  V(InlineCacheMissHandlerThreeArgs)                                           \
-  V(StaticCallMissHandlerOneArg)                                               \
-  V(StaticCallMissHandlerTwoArgs)                                              \
-  V(Instanceof)                                                                \
-  V(TypeCheck)                                                                 \
-  V(BadTypeError)                                                              \
-  V(NonBoolTypeError)                                                          \
-  V(InstantiateType)                                                           \
-  V(InstantiateTypeArguments)                                                  \
-  V(InvokeClosureNoSuchMethod)                                                 \
-  V(InvokeNoSuchMethodDispatcher)                                              \
-  V(MegamorphicCacheMissHandler)                                               \
-  V(OptimizeInvokedFunction)                                                   \
-  V(TraceICCall)                                                               \
-  V(PatchStaticCall)                                                           \
-  V(ReThrow)                                                                   \
-  V(StackOverflow)                                                             \
-  V(Throw)                                                                     \
-  V(TraceFunctionEntry)                                                        \
-  V(TraceFunctionExit)                                                         \
-  V(DeoptimizeMaterialize)                                                     \
-  V(UpdateFieldCid)                                                            \
-  V(InitStaticField)                                                           \
-  V(GrowRegExpStack)                                                           \
-  V(CompileFunction)                                                           \
-
-#define LEAF_RUNTIME_ENTRY_LIST(V)                                             \
-  V(void, PrintStopMessage, const char*)                                       \
-  V(intptr_t, DeoptimizeCopyFrame, uword)                                      \
-  V(void, DeoptimizeFillFrame, uword)                                          \
-  V(void, StoreBufferBlockProcess, Thread*)                                    \
-  V(intptr_t, BigintCompare, RawBigint*, RawBigint*)                           \
-
 
 enum RuntimeFunctionId {
   kNoRuntimeFunctionId = -1,
@@ -99,7 +55,7 @@ class RuntimeEntry : public ValueObject {
   intptr_t argument_count() const { return argument_count_; }
   bool is_leaf() const { return is_leaf_; }
   bool is_float() const { return is_float_; }
-  uword GetEntryPoint() const { return reinterpret_cast<uword>(function()); }
+  uword GetEntryPoint() const;
 
   // Generate code to call the runtime entry.
   void Call(Assembler* assembler, intptr_t argument_count) const;
@@ -142,7 +98,7 @@ class RuntimeEntry : public ValueObject {
       ASSERT(thread == Thread::Current());                                     \
       Isolate* isolate = thread->isolate();                                    \
       StackZone zone(thread);                                                  \
-      HANDLESCOPE(isolate);                                                    \
+      HANDLESCOPE(thread);                                                     \
       DRT_Helper##name(isolate, thread, zone.GetZone(), arguments);            \
     }                                                                          \
     VERIFY_ON_TRANSITION;                                                      \
@@ -167,6 +123,12 @@ class RuntimeEntry : public ValueObject {
 
 #define END_LEAF_RUNTIME_ENTRY }
 
+// TODO(rmacnak): Fix alignment issue on simarm and simmips and use
+// DEFINE_LEAF_RUNTIME_ENTRY instead.
+#define DEFINE_RAW_LEAF_RUNTIME_ENTRY(name, argument_count, is_float, func)    \
+  extern const RuntimeEntry k##name##RuntimeEntry(                             \
+      "DFLRT_"#name, func, argument_count, true, is_float)                     \
+
 #define DECLARE_LEAF_RUNTIME_ENTRY(type, name, ...)                            \
   extern const RuntimeEntry k##name##RuntimeEntry;                             \
   extern "C" type DLRT_##name(__VA_ARGS__);                                    \
@@ -185,12 +147,12 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
 uword RuntimeEntry::AddressFromId(RuntimeFunctionId id) {
     switch (id) {
 #define DEFINE_RUNTIME_CASE(name)                                              \
-    case k##name##Id: return reinterpret_cast<uword>(&DRT_##name);
+    case k##name##Id: return k##name##RuntimeEntry.GetEntryPoint();
     RUNTIME_ENTRY_LIST(DEFINE_RUNTIME_CASE)
 #undef DEFINE_RUNTIME_CASE
 
 #define DEFINE_LEAF_RUNTIME_CASE(type, name, ...)                              \
-    case k##name##Id: return reinterpret_cast<uword>(&DLRT_##name);
+    case k##name##Id: return k##name##RuntimeEntry.GetEntryPoint();
     LEAF_RUNTIME_ENTRY_LIST(DEFINE_LEAF_RUNTIME_CASE)
 #undef DEFINE_LEAF_RUNTIME_CASE
     default:
@@ -202,12 +164,12 @@ uword RuntimeEntry::AddressFromId(RuntimeFunctionId id) {
 
 RuntimeFunctionId RuntimeEntry::RuntimeFunctionIdFromAddress(uword address) {
 #define CHECK_RUNTIME_ADDRESS(name)                                            \
-  if (address == reinterpret_cast<uword>(&DRT_##name)) return k##name##Id;
+  if (address == k##name##RuntimeEntry.GetEntryPoint()) return k##name##Id;
   RUNTIME_ENTRY_LIST(CHECK_RUNTIME_ADDRESS)
 #undef CHECK_RUNTIME_ADDRESS
 
 #define CHECK_LEAF_RUNTIME_ADDRESS(type, name, ...)                            \
-  if (address == reinterpret_cast<uword>(&DLRT_##name)) return k##name##Id;
+  if (address == k##name##RuntimeEntry.GetEntryPoint()) return k##name##Id;
   LEAF_RUNTIME_ENTRY_LIST(CHECK_LEAF_RUNTIME_ADDRESS)
 #undef CHECK_LEAF_RUNTIME_ADDRESS
   return kNoRuntimeFunctionId;

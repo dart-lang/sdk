@@ -116,9 +116,10 @@ static void CollectImmediateSuperInterfaces(
 // a) when bootstrap process completes (VerifyBootstrapClasses).
 // b) after the user classes are loaded (dart_api).
 bool ClassFinalizer::ProcessPendingClasses() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  HANDLESCOPE(isolate);
+  HANDLESCOPE(thread);
   ObjectStore* object_store = isolate->object_store();
   const Error& error = Error::Handle(isolate, object_store->sticky_error());
   if (!error.IsNull()) {
@@ -523,7 +524,7 @@ void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
 
 void ClassFinalizer::FinalizeTypeParameters(
     const Class& cls,
-    GrowableObjectArray* pending_types) {
+    PendingTypes* pending_types) {
   if (FLAG_trace_type_finalization) {
     ISL_Print("Finalizing type parameters of '%s'\n",
               String::Handle(cls.Name()).ToCString());
@@ -561,7 +562,7 @@ void ClassFinalizer::FinalizeTypeParameters(
 // pending finalization that are mutually recursive with the checked type.
 void ClassFinalizer::CheckRecursiveType(const Class& cls,
                                         const Type& type,
-                                        GrowableObjectArray* pending_types) {
+                                        PendingTypes* pending_types) {
   Isolate* isolate = Isolate::Current();
   if (FLAG_trace_type_finalization) {
     ISL_Print("Checking recursive type '%s': %s\n",
@@ -589,11 +590,10 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
   // The type parameters are not instantiated. Verify that there is no other
   // type pending finalization with the same type class, but different
   // uninstantiated type parameters.
-  Type& pending_type = Type::Handle(isolate);
   TypeArguments& pending_arguments = TypeArguments::Handle(isolate);
-  const intptr_t num_pending_types = pending_types->Length();
+  const intptr_t num_pending_types = pending_types->length();
   for (intptr_t i = num_pending_types - 1; i >= 0; i--) {
-    pending_type ^= pending_types->At(i);
+    const Type& pending_type = Type::Cast(pending_types->At(i));
     if (FLAG_trace_type_finalization) {
       ISL_Print("  Comparing with pending type '%s': %s\n",
                 String::Handle(pending_type.Name()).ToCString(),
@@ -655,7 +655,7 @@ void ClassFinalizer::FinalizeTypeArguments(
     const TypeArguments& arguments,
     intptr_t num_uninitialized_arguments,
     Error* bound_error,
-    GrowableObjectArray* pending_types,
+    PendingTypes* pending_types,
     TrailPtr trail) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
   if (!cls.is_type_finalized()) {
@@ -906,7 +906,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(
     const Class& cls,
     const AbstractType& type,
     FinalizationKind finalization,
-    GrowableObjectArray* pending_types) {
+    PendingTypes* pending_types) {
   // Only the 'root' type of the graph can be canonicalized, after all depending
   // types have been bound checked.
   ASSERT((pending_types == NULL) || (finalization < kCanonicalize));
@@ -981,10 +981,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   // This type is the root type of the type graph if no pending types queue is
   // allocated yet.
   const bool is_root_type = (pending_types == NULL);
-  GrowableObjectArray& types = GrowableObjectArray::Handle(Z);
   if (is_root_type) {
-    types = GrowableObjectArray::New();
-    pending_types = &types;
+    pending_types = new PendingTypes(Z, 4);
   }
 
   // The type class does not need to be finalized in order to finalize the type,
@@ -1120,10 +1118,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(
   // If we are done finalizing a graph of mutually recursive types, check their
   // bounds.
   if (is_root_type) {
-    Type& type = Type::Handle(Z);
-    for (intptr_t i = types.Length() - 1; i >= 0; i--) {
-      type ^= types.At(i);
-      CheckTypeBounds(cls, type);
+    for (intptr_t i = pending_types->length() - 1; i >= 0; i--) {
+      CheckTypeBounds(cls, Type::Cast(pending_types->At(i)));
       if (FLAG_trace_type_finalization && type.IsRecursive()) {
         ISL_Print("Done finalizing recursive type '%s': %s\n",
                   String::Handle(Z, type.Name()).ToCString(),
@@ -2007,7 +2003,7 @@ void ClassFinalizer::ApplyMixinAppAlias(const Class& mixin_app_class,
 
 
 void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class,
-                                    GrowableObjectArray* pending_types) {
+                                    PendingTypes* pending_types) {
   if (mixin_app_class.is_mixin_type_applied()) {
     return;
   }
@@ -2227,7 +2223,8 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
 
 
 void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
-  HANDLESCOPE(Isolate::Current());
+  Thread* thread = Thread::Current();
+  HANDLESCOPE(thread);
   if (cls.is_type_finalized()) {
     return;
   }
@@ -2360,7 +2357,8 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
 
 
 void ClassFinalizer::FinalizeClass(const Class& cls) {
-  HANDLESCOPE(Isolate::Current());
+  Thread* thread = Thread::Current();
+  HANDLESCOPE(thread);
   if (cls.is_finalized()) {
     return;
   }
@@ -2990,7 +2988,8 @@ void ClassFinalizer::CheckForLegalConstClass(const Class& cls) {
 
 
 void ClassFinalizer::PrintClassInformation(const Class& cls) {
-  HANDLESCOPE(Isolate::Current());
+  Thread* thread = Thread::Current();
+  HANDLESCOPE(thread);
   const String& class_name = String::Handle(cls.Name());
   ISL_Print("class '%s'", class_name.ToCString());
   const Library& library = Library::Handle(cls.library());

@@ -566,7 +566,7 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   EXPECT_VALID(lib);
   Library& root_library = Library::Handle();
   root_library ^= Api::UnwrapHandle(lib);
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
 
   const Class& double_class =
       Class::Handle(isolate->object_store()->double_class());
@@ -578,8 +578,8 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, double_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -592,8 +592,8 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, double_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -616,8 +616,8 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, double_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -636,7 +636,7 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(lib);
   Library& root_library = Library::Handle();
   root_library ^= Api::UnwrapHandle(lib);
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
 
   const Class& array_class =
       Class::Handle(isolate->object_store()->array_class());
@@ -646,8 +646,8 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, array_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -660,8 +660,8 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, array_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -684,8 +684,8 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, array_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -708,8 +708,8 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, array_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -743,7 +743,7 @@ TEST_CASE(Profiler_ContextAllocation) {
   EXPECT_VALID(lib);
   Library& root_library = Library::Handle();
   root_library ^= Api::UnwrapHandle(lib);
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
 
   const Class& context_class =
       Class::Handle(Object::context_class());
@@ -753,8 +753,8 @@ TEST_CASE(Profiler_ContextAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, context_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -767,8 +767,8 @@ TEST_CASE(Profiler_ContextAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, context_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -787,8 +787,8 @@ TEST_CASE(Profiler_ContextAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, context_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -818,7 +818,7 @@ TEST_CASE(Profiler_ClassAllocation) {
   EXPECT_VALID(lib);
   Library& root_library = Library::Handle();
   root_library ^= Api::UnwrapHandle(lib);
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
 
   const Class& class_class =
       Class::Handle(Object::class_class());
@@ -830,8 +830,8 @@ TEST_CASE(Profiler_ClassAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_class.id());
     filter.set_enable_embedder_ticks(true);
@@ -859,8 +859,8 @@ TEST_CASE(Profiler_ClassAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_class.id());
     filter.set_enable_embedder_ticks(true);
@@ -880,7 +880,7 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(lib);
   Library& root_library = Library::Handle();
   root_library ^= Api::UnwrapHandle(lib);
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
 
   const Library& typed_data_library =
       Library::Handle(isolate->object_store()->typed_data_library());
@@ -893,8 +893,8 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, float32_list_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -907,8 +907,8 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, float32_list_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -933,8 +933,8 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, float32_list_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -947,8 +947,8 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, float32_list_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -965,7 +965,7 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(lib);
   Library& root_library = Library::Handle();
   root_library ^= Api::UnwrapHandle(lib);
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
 
   const Class& one_byte_string_class =
       Class::Handle(isolate->object_store()->one_byte_string_class());
@@ -977,8 +977,8 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, one_byte_string_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -991,8 +991,8 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, one_byte_string_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -1013,8 +1013,8 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, one_byte_string_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -1027,8 +1027,8 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, one_byte_string_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -1045,7 +1045,7 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(lib);
   Library& root_library = Library::Handle();
   root_library ^= Api::UnwrapHandle(lib);
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
 
   const Class& one_byte_string_class =
       Class::Handle(isolate->object_store()->one_byte_string_class());
@@ -1057,8 +1057,8 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, one_byte_string_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -1071,8 +1071,8 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, one_byte_string_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -1097,8 +1097,8 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, one_byte_string_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -1111,8 +1111,8 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, one_byte_string_class.id());
     profile.Build(&filter, Profile::kNoTags);

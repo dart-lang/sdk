@@ -7,7 +7,8 @@ import 'package:compiler/src/constants/values.dart'
     show PrimitiveConstantValue;
 import 'package:expect/expect.dart';
 import 'compiler_helper.dart';
-import 'parser_helper.dart';
+import 'package:compiler/src/parser/partial_elements.dart' show
+    PartialMetadataAnnotation;
 
 void checkPosition(Spannable spannable, Node node, String source, compiler) {
   SourceSpan span = compiler.spanFromSpannable(spannable);

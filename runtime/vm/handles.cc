@@ -109,11 +109,6 @@ HandleScope::HandleScope(Thread* thread) : StackResource(thread) {
 }
 
 
-HandleScope::HandleScope(Isolate* isolate) : StackResource(isolate) {
-  Initialize();
-}
-
-
 HandleScope::~HandleScope() {
   ASSERT(thread()->zone() != NULL);
   VMHandles* handles = thread()->zone()->handles();
@@ -130,13 +125,8 @@ HandleScope::~HandleScope() {
 
 
 #if defined(DEBUG)
-NoHandleScope::NoHandleScope(Isolate* isolate) : StackResource(isolate) {
-  thread()->IncrementNoHandleScopeDepth();
-}
-
-
-NoHandleScope::NoHandleScope() : StackResource(Thread::Current()) {
-  thread()->IncrementNoHandleScopeDepth();
+NoHandleScope::NoHandleScope(Thread* thread) : StackResource(thread) {
+  thread->IncrementNoHandleScopeDepth();
 }
 
 

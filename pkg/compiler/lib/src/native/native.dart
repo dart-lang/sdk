@@ -13,7 +13,8 @@ import '../compiler.dart' show
 import '../constants/values.dart';
 import '../dart_types.dart';
 import '../diagnostics/diagnostic_listener.dart';
-import '../diagnostics/messages.dart' show MessageKind;
+import '../diagnostics/messages.dart' show
+    MessageKind;
 import '../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE,
     Spannable;
@@ -28,10 +29,24 @@ import '../elements/modelx.dart' show
     LibraryElementX;
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
-import '../resolution/members.dart' show ResolverVisitor;
-import '../scanner/scannerlib.dart';
+import '../js_emitter/js_emitter.dart' show
+    CodeEmitterTask,
+    NativeEmitter;
+import '../parser/listener.dart' show
+    Listener;
+import '../parser/element_listener.dart' show
+    ElementListener;
+import '../parser/partial_elements.dart' show
+    PartialMetadataAnnotation;
+import '../resolution/members.dart' show
+    ResolverVisitor;
 import '../ssa/ssa.dart';
+import '../tokens/token.dart' show
+    BeginGroupToken,
+    Token;
+import '../tokens/token_constants.dart' as Tokens show
+    EOF_TOKEN,
+    STRING_TOKEN;
 import '../tree/tree.dart';
 import '../universe/universe.dart' show SideEffects;
 import '../util/util.dart';

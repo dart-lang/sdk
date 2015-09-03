@@ -33,7 +33,7 @@ import '../elements/modelx.dart' show
     ParameterElementX,
     VariableElementX,
     VariableList;
-import '../scanner/scannerlib.dart' show
+import '../tokens/token.dart' show
     isUserDefinableOperator;
 import '../tree/tree.dart';
 import '../util/util.dart' show
@@ -49,7 +49,8 @@ import 'operators.dart';
 import 'send_structure.dart';
 
 import 'constructors.dart' show
-    ConstructorResolver;
+    ConstructorResolver,
+    ConstructorResult;
 import 'label_scope.dart' show
     StatementScope;
 import 'registry.dart' show
@@ -3636,7 +3637,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     bool isConstConstructor = constructor.isConst;
     bool isValidAsConstant = isConstConstructor;
     ConstructorElement redirectionTarget = resolveRedirectingFactory(
-        node, inConstContext: isConstConstructor);
+        node, inConstContext: isConstConstructor).element;
     constructor.immediateRedirectionTarget = redirectionTarget;
 
     Node constructorReference = node.constructorReference;
@@ -3814,7 +3815,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult visitNewExpression(NewExpression node) {
     bool isValidAsConstant = true;
-    FunctionElement constructor = resolveConstructor(node);
+    ConstructorElement constructor = resolveConstructor(node).element;
     final bool isSymbolConstructor = constructor == compiler.symbolConstructor;
     final bool isMirrorsUsedConstant =
         node.isConst && (constructor == compiler.mirrorsUsedConstructor);
@@ -3856,8 +3857,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // factory constructors.
     registry.registerInstantiatedType(type);
     if (constructor.isGenerativeConstructor && cls.isAbstract) {
-      warning(node, MessageKind.ABSTRACT_CLASS_INSTANTIATION);
-      registry.registerAbstractClassInstantiation();
       isValidAsConstant = false;
     }
 
@@ -3993,14 +3992,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
    * Note: this function may return an ErroneousFunctionElement instead of
    * [:null:], if there is no corresponding constructor, class or library.
    */
-  ConstructorElement resolveConstructor(NewExpression node) {
-    return node.accept(new ConstructorResolver(compiler, this));
+  ConstructorResult resolveConstructor(NewExpression node) {
+    return node.accept(new ConstructorResolver(
+        compiler, this, inConstContext: node.isConst));
   }
 
-  ConstructorElement resolveRedirectingFactory(RedirectingFactoryBody node,
+  ConstructorResult resolveRedirectingFactory(RedirectingFactoryBody node,
                                                {bool inConstContext: false}) {
-    return node.accept(new ConstructorResolver(compiler, this,
-                                               inConstContext: inConstContext));
+    return node.accept(new ConstructorResolver(
+        compiler, this, inConstContext: inConstContext));
   }
 
   DartType resolveTypeAnnotation(TypeAnnotation node,

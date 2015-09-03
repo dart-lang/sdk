@@ -1630,7 +1630,9 @@ RawInteger* UnaryIntegerOpInstr::Evaluate(const Integer& value) const {
 
   switch (op_kind()) {
     case Token::kNEGATE:
-      result = value.ArithmeticOp(Token::kMUL, Smi::Handle(Smi::New(-1)));
+      result = value.ArithmeticOp(Token::kMUL,
+                                  Smi::Handle(Smi::New(-1)),
+                                  Heap::kOld);
       break;
 
     case Token::kBIT_NOT:
@@ -1675,7 +1677,7 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
     case Token::kADD:
     case Token::kSUB:
     case Token::kMUL: {
-      result = left.ArithmeticOp(op_kind(), right);
+      result = left.ArithmeticOp(op_kind(), right, Heap::kOld);
       break;
     }
     case Token::kSHL:
@@ -3428,50 +3430,52 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
       !num_elements->BoundConstant().IsSmi()) {
     return this;
   }
-  intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
-  GrowableArray<ConstantInstr*> constants(length);
+  const intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
+  Zone* zone = Thread::Current()->zone();
+  GrowableHandlePtrArray<const String> pieces(zone, length);
   for (intptr_t i = 0; i < length; i++) {
-    constants.Add(NULL);
+    pieces.Add(Object::null_string());
   }
+
   for (Value::Iterator it(create_array->input_use_list());
        !it.Done();
        it.Advance()) {
     Instruction* curr = it.Current()->instruction();
-    if (curr != this) {
-      StoreIndexedInstr* store = curr->AsStoreIndexed();
-      ASSERT(store != NULL);
-      if (store->value()->definition()->IsConstant()) {
-        ASSERT(store->index()->BindsToConstant());
-        const Object& obj = store->value()->definition()->AsConstant()->value();
-        if (obj.IsNumber() || obj.IsString() || obj.IsBool() || obj.IsNull()) {
-          constants[Smi::Cast(store->index()->BoundConstant()).Value()] =
-              store->value()->definition()->AsConstant();
-        } else {
-          return this;
-        }
+    if (curr == this) continue;
+
+    StoreIndexedInstr* store = curr->AsStoreIndexed();
+    if (!store->index()->BindsToConstant() ||
+        !store->index()->BoundConstant().IsSmi()) {
+      return this;
+    }
+    intptr_t store_index = Smi::Cast(store->index()->BoundConstant()).Value();
+    ASSERT(store_index < length);
+    ASSERT(store != NULL);
+    if (store->value()->definition()->IsConstant()) {
+      ASSERT(store->index()->BindsToConstant());
+      const Object& obj = store->value()->definition()->AsConstant()->value();
+      // TODO(srdjan): Verify if any other types should be converted as well.
+      if (obj.IsString()) {
+        pieces.SetAt(store_index, String::Cast(obj));
+      } else if (obj.IsSmi()) {
+        const char* cstr = obj.ToCString();
+        pieces.SetAt(store_index, String::Handle(zone, String::New(cstr)));
+      } else if (obj.IsBool()) {
+        pieces.SetAt(store_index,
+            Bool::Cast(obj).value() ? Symbols::True() : Symbols::False());
+      } else if (obj.IsNull()) {
+        pieces.SetAt(store_index, Symbols::Null());
       } else {
         return this;
       }
+    } else {
+      return this;
     }
   }
-  // Interpolate string at compile time.
-  const Array& array_argument =
-      Array::Handle(Array::New(length));
-  for (intptr_t i = 0; i < constants.length(); i++) {
-    array_argument.SetAt(i, constants[i]->value());
-  }
-  // Build argument array to pass to the interpolation function.
-  const Array& interpolate_arg = Array::Handle(Array::New(1));
-  interpolate_arg.SetAt(0, array_argument);
-  // Call interpolation function.
-  const Object& result = Object::Handle(
-      DartEntry::InvokeFunction(CallFunction(), interpolate_arg));
-  if (result.IsUnhandledException()) {
-    return this;
-  }
-  ASSERT(result.IsString());
-  const String& concatenated =
-      String::ZoneHandle(Symbols::New(String::Cast(result)));
+
+  ASSERT(pieces.length() == length);
+  const String& concatenated = String::ZoneHandle(zone,
+      Symbols::FromConcatAll(pieces));
   return flow_graph->GetConstant(concatenated);
 }
 
@@ -3518,71 +3522,71 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
 typedef double (*UnaryMathCFunction) (double x);
 typedef double (*BinaryMathCFunction) (double x, double y);
 
-extern const RuntimeEntry kPowRuntimeEntry(
-    "libc_pow", reinterpret_cast<RuntimeFunction>(
-        static_cast<BinaryMathCFunction>(&pow)), 2, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcPow, 2, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<BinaryMathCFunction>(&pow)));
 
-extern const RuntimeEntry kModRuntimeEntry(
-    "DartModulo", reinterpret_cast<RuntimeFunction>(
-        static_cast<BinaryMathCFunction>(&DartModulo)), 2, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(DartModulo, 2, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<BinaryMathCFunction>(&DartModulo)));
 
-extern const RuntimeEntry kFloorRuntimeEntry(
-    "libc_floor", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&floor)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcFloor, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&floor)));
 
-extern const RuntimeEntry kCeilRuntimeEntry(
-    "libc_ceil", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&ceil)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcCeil, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&ceil)));
 
-extern const RuntimeEntry kTruncRuntimeEntry(
-    "libc_trunc", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&trunc)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcTrunc, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&trunc)));
 
-extern const RuntimeEntry kRoundRuntimeEntry(
-    "libc_round", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&round)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcRound, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&round)));
 
 
 const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
   switch (recognized_kind_) {
     case MethodRecognizer::kDoubleTruncate:
-      return kTruncRuntimeEntry;
+      return kLibcTruncRuntimeEntry;
     case MethodRecognizer::kDoubleRound:
-      return kRoundRuntimeEntry;
+      return kLibcRoundRuntimeEntry;
     case MethodRecognizer::kDoubleFloor:
-      return kFloorRuntimeEntry;
+      return kLibcFloorRuntimeEntry;
     case MethodRecognizer::kDoubleCeil:
-      return kCeilRuntimeEntry;
+      return kLibcCeilRuntimeEntry;
     case MethodRecognizer::kMathDoublePow:
-      return kPowRuntimeEntry;
+      return kLibcPowRuntimeEntry;
     case MethodRecognizer::kDoubleMod:
-      return kModRuntimeEntry;
+      return kDartModuloRuntimeEntry;
     default:
       UNREACHABLE();
   }
-  return kPowRuntimeEntry;
+  return kLibcPowRuntimeEntry;
 }
 
 
-extern const RuntimeEntry kCosRuntimeEntry(
-    "libc_cos", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&cos)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcCos, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&cos)));
 
-extern const RuntimeEntry kSinRuntimeEntry(
-    "libc_sin", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&sin)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcSin, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&sin)));
 
 
 const RuntimeEntry& MathUnaryInstr::TargetFunction() const {
   switch (kind()) {
     case MathUnaryInstr::kSin:
-      return kSinRuntimeEntry;
+      return kLibcSinRuntimeEntry;
     case MathUnaryInstr::kCos:
-      return kCosRuntimeEntry;
+      return kLibcCosRuntimeEntry;
     default:
       UNREACHABLE();
   }
-  return kSinRuntimeEntry;
+  return kLibcSinRuntimeEntry;
 }
 
 
@@ -3597,18 +3601,6 @@ const char* MathUnaryInstr::KindToCString(MathUnaryKind kind) {
   UNREACHABLE();
   return "";
 }
-
-typedef RawBool* (*CaseInsensitiveCompareUC16Function) (
-    RawString* string_raw,
-    RawSmi* lhs_index_raw,
-    RawSmi* rhs_index_raw,
-    RawSmi* length_raw);
-
-
-extern const RuntimeEntry kCaseInsensitiveCompareUC16RuntimeEntry(
-    "CaseInsensitiveCompareUC16", reinterpret_cast<RuntimeFunction>(
-        static_cast<CaseInsensitiveCompareUC16Function>(
-        &IRRegExpMacroAssembler::CaseInsensitiveCompareUC16)), 4, true, false);
 
 
 const RuntimeEntry& CaseInsensitiveCompareUC16Instr::TargetFunction() const {

@@ -617,19 +617,23 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
 }
 
 
-void LocalScope::RecursivelyCaptureAllVariables() {
-  for (intptr_t i = 0; i < num_variables(); i++) {
-    if ((VariableAt(i)->name().raw() == Symbols::StackTraceVar().raw()) ||
-        (VariableAt(i)->name().raw() == Symbols::ExceptionVar().raw()) ||
-        (VariableAt(i)->name().raw() == Symbols::SavedTryContextVar().raw())) {
-      // Don't capture those variables because the VM expects them to be on the
-      // stack.
-      continue;
+void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
+  ASSERT(top_scope->function_level() == function_level());
+  LocalScope* scope = this;
+  while (scope != top_scope->parent()) {
+    for (intptr_t i = 0; i < scope->num_variables(); i++) {
+      LocalVariable* variable = scope->VariableAt(i);
+      if ((variable->name().raw() == Symbols::StackTraceVar().raw()) ||
+          (variable->name().raw() == Symbols::ExceptionVar().raw()) ||
+          (variable->name().raw() == Symbols::SavedTryContextVar().raw())) {
+        // Don't capture those variables because the VM expects them to be on
+        // the stack.
+        continue;
+      }
+      scope->CaptureVariable(variable);
     }
-    CaptureVariable(VariableAt(i));
+    scope = scope->parent();
   }
-  if (sibling() != NULL) { sibling()->RecursivelyCaptureAllVariables(); }
-  if (child() != NULL) { child()->RecursivelyCaptureAllVariables(); }
 }
 
 

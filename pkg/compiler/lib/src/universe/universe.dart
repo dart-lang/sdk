@@ -18,8 +18,8 @@ import '../diagnostics/spannable.dart' show
     SpannableAssertionFailure;
 import '../elements/elements.dart';
 import '../dart_types.dart';
-import '../types/types.dart';
 import '../tree/tree.dart';
+import '../types/types.dart';
 import '../util/util.dart';
 import '../world.dart' show
     ClassWorld,
@@ -30,7 +30,7 @@ part 'side_effects.dart';
 
 class UniverseSelector {
   final Selector selector;
-  final TypeMask mask;
+  final ReceiverMask mask;
 
   UniverseSelector(this.selector, this.mask);
 
@@ -42,57 +42,56 @@ class UniverseSelector {
   String toString() => '$selector,$mask';
 }
 
-abstract class TypeMaskSet {
+/// A potential receiver for a dynamic call site.
+abstract class ReceiverMask {
+  /// Returns whether [element] is a potential target when being
+  /// invoked on this receiver mask. [selector] is used to ensure library
+  /// privacy is taken into account.
+  bool canHit(Element element, Selector selector, ClassWorld classWorld);
+}
+
+/// A set of potential receivers for the dynamic call sites of the same
+/// selector.
+///
+/// For instance for these calls
+///
+///     new A().foo(a, b);
+///     new B().foo(0, 42);
+///
+/// the receiver mask set for dynamic calls to 'foo' with to positional
+/// arguments will contain receiver masks abstracting `new A()` and `new B()`.
+abstract class ReceiverMaskSet {
+  /// Returns `true` if [selector] applies to any of the potential receivers
+  /// in this set given the closed [world].
   bool applies(Element element, Selector selector, ClassWorld world);
-  Iterable<TypeMask> get masks;
+
+  /// Returns `true` if any potential receivers in this set given the closed
+  /// [world] have no implementation matching [selector].
+  ///
+  /// For instance for this code snippet
+  ///
+  ///     class A {}
+  ///     class B { foo() {} }
+  ///     m(b) => (b ? new A() : new B()).foo();
+  ///
+  /// the potential receiver `new A()` have no implementation of `foo` and thus
+  /// needs to handle the call though its `noSuchMethod` handler.
+  bool needsNoSuchMethodHandling(Selector selector, ClassWorld world);
 }
 
-/// An implementation of a [TypeMaskSet] that is only increasing, that is, once
-/// a mask is added it cannot be removed.
-class IncreasingTypeMaskSet extends TypeMaskSet {
-  bool isAll = false;
-  Set<TypeMask> _masks;
-
-  bool applies(Element element, Selector selector, ClassWorld world) {
-    if (isAll) return true;
-    if (_masks == null) return false;
-    for (TypeMask mask in _masks) {
-      if (mask.canHit(element, selector, world)) return true;
-    }
-    return false;
-  }
-
-  bool add(TypeMask mask) {
-    if (isAll) return false;
-    if (mask == null) {
-      isAll = true;
-      _masks = null;
-      return true;
-    }
-    if (_masks == null) {
-      _masks = new Setlet<TypeMask>();
-    }
-    return _masks.add(mask);
-  }
-
-  Iterable<TypeMask> get masks {
-    if (isAll) return const [null];
-    if (_masks == null) return const [];
-    return _masks;
-  }
-
-  String toString() {
-    if (isAll) {
-      return '<all>';
-    } else if (_masks != null) {
-      return '$_masks';
-    } else {
-      return '<none>';
-    }
-  }
+/// A mutable [ReceiverMaskSet] used in [Universe].
+abstract class UniverseReceiverMaskSet extends ReceiverMaskSet {
+  /// Adds [mask] to this set of potential receivers. Return `true` if the
+  /// set expanded due to the new mask.
+  bool addReceiverMask(ReceiverMask mask);
 }
 
-
+/// Strategy for computing potential receivers of dynamic call sites.
+abstract class ReceiverMaskStrategy {
+  /// Create a [UniverseReceiverMaskSet] to represent the potential receiver for
+  /// a dynamic call site with [selector].
+  UniverseReceiverMaskSet createReceiverMaskSet(Selector selector);
+}
 
 class Universe {
   /// The set of all directly instantiated classes, that is, classes with a
@@ -131,12 +130,12 @@ class Universe {
       new Set<FunctionElement>();
   final Set<FunctionElement> methodsNeedingSuperGetter =
       new Set<FunctionElement>();
-  final Map<String, Map<Selector, TypeMaskSet>> _invokedNames =
-      <String, Map<Selector, TypeMaskSet>>{};
-  final Map<String, Map<Selector, TypeMaskSet>> _invokedGetters =
-      <String, Map<Selector, TypeMaskSet>>{};
-  final Map<String, Map<Selector, TypeMaskSet>> _invokedSetters =
-      <String, Map<Selector, TypeMaskSet>>{};
+  final Map<String, Map<Selector, ReceiverMaskSet>> _invokedNames =
+      <String, Map<Selector, ReceiverMaskSet>>{};
+  final Map<String, Map<Selector, ReceiverMaskSet>> _invokedGetters =
+      <String, Map<Selector, ReceiverMaskSet>>{};
+  final Map<String, Map<Selector, ReceiverMaskSet>> _invokedSetters =
+      <String, Map<Selector, ReceiverMaskSet>>{};
 
   /**
    * Fields accessed. Currently only the codegen knows this
@@ -177,6 +176,10 @@ class Universe {
    * closurized.
    */
   final Set<Element> closurizedMembers = new Set<Element>();
+
+  final ReceiverMaskStrategy receiverMaskStrategy;
+
+  Universe(this.receiverMaskStrategy);
 
   /// All directly instantiated classes, that is, classes with a generative
   /// constructor that has been called directly and not only through a
@@ -239,13 +242,13 @@ class Universe {
     });
   }
 
-  bool _hasMatchingSelector(Map<Selector, TypeMaskSet> selectors,
+  bool _hasMatchingSelector(Map<Selector, ReceiverMaskSet> selectors,
                             Element member,
                             World world) {
     if (selectors == null) return false;
     for (Selector selector in selectors.keys) {
       if (selector.appliesUnnamed(member, world)) {
-        TypeMaskSet masks = selectors[selector];
+        ReceiverMaskSet masks = selectors[selector];
         if (masks.applies(member, selector, world)) {
           return true;
         }
@@ -280,46 +283,47 @@ class Universe {
 
   bool _registerNewSelector(
       UniverseSelector universeSelector,
-      Map<String, Map<Selector, TypeMaskSet>> selectorMap) {
+      Map<String, Map<Selector, ReceiverMaskSet>> selectorMap) {
     Selector selector = universeSelector.selector;
     String name = selector.name;
-    TypeMask mask = universeSelector.mask;
-    Map<Selector, TypeMaskSet> selectors = selectorMap.putIfAbsent(
-        name, () => new Maplet<Selector, TypeMaskSet>());
-    IncreasingTypeMaskSet masks = selectors.putIfAbsent(
-        selector, () => new IncreasingTypeMaskSet());
-    return masks.add(mask);
+    ReceiverMask mask = universeSelector.mask;
+    Map<Selector, ReceiverMaskSet> selectors = selectorMap.putIfAbsent(
+        name, () => new Maplet<Selector, ReceiverMaskSet>());
+    UniverseReceiverMaskSet masks = selectors.putIfAbsent(
+        selector, () => receiverMaskStrategy.createReceiverMaskSet(selector));
+    return masks.addReceiverMask(mask);
   }
 
-  Map<Selector, TypeMaskSet> _asUnmodifiable(Map<Selector, TypeMaskSet> map) {
+  Map<Selector, ReceiverMaskSet> _asUnmodifiable(
+      Map<Selector, ReceiverMaskSet> map) {
     if (map == null) return null;
     return new UnmodifiableMapView(map);
   }
 
-  Map<Selector, TypeMaskSet> invocationsByName(String name) {
+  Map<Selector, ReceiverMaskSet> invocationsByName(String name) {
     return _asUnmodifiable(_invokedNames[name]);
   }
 
-  Map<Selector, TypeMaskSet> getterInvocationsByName(String name) {
+  Map<Selector, ReceiverMaskSet> getterInvocationsByName(String name) {
     return _asUnmodifiable(_invokedGetters[name]);
   }
 
-  Map<Selector, TypeMaskSet> setterInvocationsByName(String name) {
+  Map<Selector, ReceiverMaskSet> setterInvocationsByName(String name) {
     return _asUnmodifiable(_invokedSetters[name]);
   }
 
   void forEachInvokedName(
-      f(String name, Map<Selector, TypeMaskSet> selectors)) {
+      f(String name, Map<Selector, ReceiverMaskSet> selectors)) {
     _invokedNames.forEach(f);
   }
 
   void forEachInvokedGetter(
-      f(String name, Map<Selector, TypeMaskSet> selectors)) {
+      f(String name, Map<Selector, ReceiverMaskSet> selectors)) {
     _invokedGetters.forEach(f);
   }
 
   void forEachInvokedSetter(
-      f(String name, Map<Selector, TypeMaskSet> selectors)) {
+      f(String name, Map<Selector, ReceiverMaskSet> selectors)) {
     _invokedSetters.forEach(f);
   }
 

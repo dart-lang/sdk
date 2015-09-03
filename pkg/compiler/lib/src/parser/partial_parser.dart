@@ -2,7 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner;
+library dart2js.parser.partial;
+
+import '../diagnostics/messages.dart' show
+    MessageKind;
+import '../util/characters.dart' as Characters show
+    $CLOSE_CURLY_BRACKET;
+import '../tokens/token.dart' show
+    BeginGroupToken,
+    ErrorToken,
+    Token;
+import '../tokens/token_constants.dart' as Tokens show
+    EOF_TOKEN;
+
+import 'listener.dart' show
+    Listener;
+import 'parser.dart' show
+    Parser;
 
 class PartialParser extends Parser {
   PartialParser(Listener listener) : super(listener);
@@ -29,7 +45,7 @@ class PartialParser extends Parser {
     while (true) {
       final kind = token.kind;
       final value = token.stringValue;
-      if ((identical(kind, EOF_TOKEN)) ||
+      if ((identical(kind, Tokens.EOF_TOKEN)) ||
           (identical(value, ';')) ||
           (identical(value, ',')) ||
           (identical(value, '}')) ||
@@ -97,7 +113,7 @@ class PartialParser extends Parser {
     Token endGroup = beginGroupToken.endGroup;
     if (endGroup == null) {
       return listener.unmatched(beginGroupToken);
-    } else if (!identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
+    } else if (!identical(endGroup.kind, Characters.$CLOSE_CURLY_BRACKET)) {
       return listener.unmatched(beginGroupToken);
     }
     return endGroup;

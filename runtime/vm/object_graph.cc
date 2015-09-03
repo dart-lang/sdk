@@ -255,7 +255,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
  public:
   // We cannot use a GrowableObjectArray, since we must not trigger GC.
   RetainingPathVisitor(RawObject* obj, const Array& path)
-      : obj_(obj), path_(path), length_(0) {
+      : thread_(Thread::Current()), obj_(obj), path_(path), length_(0) {
     ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0);
   }
 
@@ -281,7 +281,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
         return kProceed;
       }
     } else {
-      HANDLESCOPE(Isolate::Current());
+      HANDLESCOPE(thread_);
       Object& current = Object::Handle();
       Smi& offset_from_parent = Smi::Handle();
       do {
@@ -300,6 +300,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
   }
 
  private:
+  Thread* thread_;
   RawObject* obj_;
   const Array& path_;
   intptr_t length_;

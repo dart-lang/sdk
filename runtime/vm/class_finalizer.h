@@ -15,6 +15,8 @@ namespace dart {
 // finalized.
 class ClassFinalizer : public AllStatic {
  public:
+  typedef ZoneGrowableHandlePtrArray<const AbstractType> PendingTypes;
+
   // Modes for type resolution and finalization. The ordering is relevant.
   enum FinalizationKind {
     kIgnore,                   // Type is ignored and replaced by dynamic.
@@ -32,7 +34,7 @@ class ClassFinalizer : public AllStatic {
       const Class& cls,
       const AbstractType& type,
       FinalizationKind finalization,
-      GrowableObjectArray* pending_types = NULL);
+      PendingTypes* pending_types = NULL);
 
   // Allocate, finalize, and return a new malformed type as if it was declared
   // in class cls at the given token position.
@@ -95,7 +97,7 @@ class ClassFinalizer : public AllStatic {
 
   // Apply the mixin type to the mixin application class.
   static void ApplyMixinType(const Class& mixin_app_class,
-                             GrowableObjectArray* pending_types = NULL);
+                             PendingTypes* pending_types = NULL);
 
  private:
   static void AllocateEnumValues(const Class& enum_cls);
@@ -130,16 +132,16 @@ class ClassFinalizer : public AllStatic {
   static void ResolveSuperTypeAndInterfaces(const Class& cls,
                                             GrowableArray<intptr_t>* visited);
   static void FinalizeTypeParameters(const Class& cls,
-                                     GrowableObjectArray* pending_types = NULL);
+                                     PendingTypes* pending_types = NULL);
   static void FinalizeTypeArguments(const Class& cls,
                                     const TypeArguments& arguments,
                                     intptr_t num_uninitialized_arguments,
                                     Error* bound_error,
-                                    GrowableObjectArray* pending_types,
+                                    PendingTypes* pending_types,
                                     TrailPtr trail);
   static void CheckRecursiveType(const Class& cls,
                                  const Type& type,
-                                 GrowableObjectArray* pending_types);
+                                 PendingTypes* pending_types);
   static void CheckTypeBounds(const Class& cls, const Type& type);
   static void CheckTypeArgumentBounds(const Class& cls,
                                       const TypeArguments& arguments,

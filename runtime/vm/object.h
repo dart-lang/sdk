@@ -488,6 +488,12 @@ class Object {
     return *vm_isolate_snapshot_object_table_;
   }
   static void InitVmIsolateSnapshotObjectTable(intptr_t len);
+  static const uint8_t* instructions_snapshot_buffer() {
+    return instructions_snapshot_buffer_;
+  }
+  static void set_instructions_snapshot_buffer(const uint8_t* buffer) {
+    instructions_snapshot_buffer_ = buffer;
+  }
 
   static RawClass* class_class() { return class_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
@@ -813,6 +819,7 @@ class Object {
   static LanguageError* snapshot_writer_error_;
   static LanguageError* branch_offset_error_;
   static Array* vm_isolate_snapshot_object_table_;
+  static const uint8_t* instructions_snapshot_buffer_;
 
   friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;
@@ -1650,7 +1657,8 @@ class TypeArguments : public Object {
   RawTypeArguments* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL) const;
+      TrailPtr trail = NULL,
+      Heap::Space space = Heap::kNew) const;
 
   // Runtime instantiation with canonicalization. Not to be used during type
   // finalization at compile time.
@@ -5006,7 +5014,8 @@ class AbstractType : public Instance {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL) const;
+      TrailPtr trail = NULL,
+      Heap::Space space = Heap::kNew) const;
 
   // Return a clone of this unfinalized type or the type itself if it is
   // already finalized. Apply recursively to type arguments, i.e. finalized
@@ -5179,7 +5188,8 @@ class Type : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* malformed_error,
-      TrailPtr trail = NULL) const;
+      TrailPtr trail = NULL,
+      Heap::Space space = Heap::kNew) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner,
@@ -5300,7 +5310,8 @@ class TypeRef : public AbstractType {
   virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL) const;
+      TrailPtr trail = NULL,
+      Heap::Space space = Heap::kNew) const;
   virtual RawTypeRef* CloneUninstantiated(
       const Class& new_owner,
       TrailPtr trail = NULL) const;
@@ -5380,7 +5391,8 @@ class TypeParameter : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL) const;
+      TrailPtr trail = NULL,
+      Heap::Space space = Heap::kNew) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner, TrailPtr trail = NULL) const;
@@ -5464,7 +5476,8 @@ class BoundedType : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL) const;
+      TrailPtr trail = NULL,
+      Heap::Space space = Heap::kNew) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner, TrailPtr trail = NULL) const;
@@ -5600,7 +5613,9 @@ class Integer : public Number {
   RawInteger* AsValidInteger() const;
 
   // Returns null to indicate that a bigint operation is required.
-  RawInteger* ArithmeticOp(Token::Kind operation, const Integer& other) const;
+  RawInteger* ArithmeticOp(Token::Kind operation,
+                           const Integer& other,
+                           Heap::Space space = Heap::kNew) const;
   RawInteger* BitOp(Token::Kind operation, const Integer& other) const;
 
   // Returns true if the Integer does not fit in a Javascript integer.
@@ -6316,6 +6331,7 @@ class OneByteString : public AllStatic {
 
   friend class Class;
   friend class String;
+  friend class Symbols;
   friend class ExternalOneByteString;
   friend class SnapshotReader;
   friend class StringHasher;
@@ -6431,6 +6447,7 @@ class TwoByteString : public AllStatic {
   friend class Class;
   friend class String;
   friend class SnapshotReader;
+  friend class Symbols;
 };
 
 
@@ -6513,6 +6530,7 @@ class ExternalOneByteString : public AllStatic {
   friend class Class;
   friend class String;
   friend class SnapshotReader;
+  friend class Symbols;
 };
 
 
@@ -6591,6 +6609,7 @@ class ExternalTwoByteString : public AllStatic {
   friend class Class;
   friend class String;
   friend class SnapshotReader;
+  friend class Symbols;
 };
 
 

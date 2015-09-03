@@ -10851,7 +10851,8 @@ class ResolverVisitor extends ScopedVisitor {
             }
             if (propagatedType != null) {
               overrideVariable(loopElement, propagatedType, true);
-              _recordPropagatedType(loopVariable.identifier, propagatedType);
+              recordPropagatedTypeIfBetter(
+                  loopVariable.identifier, propagatedType);
             }
           }
         } else if (identifier != null && iterable != null) {
@@ -10859,7 +10860,7 @@ class ResolverVisitor extends ScopedVisitor {
           if (identifierElement is VariableElement) {
             DartType iteratorElementType = _getIteratorElementType(iterable);
             overrideVariable(identifierElement, iteratorElementType, true);
-            _recordPropagatedType(identifier, iteratorElementType);
+            recordPropagatedTypeIfBetter(identifier, iteratorElementType);
           }
         }
         visitStatementInScope(body);
@@ -11597,18 +11598,6 @@ class ResolverVisitor extends ScopedVisitor {
       }
     } else if (condition is ParenthesizedExpression) {
       _propagateTrueState(condition.expression);
-    }
-  }
-
-  /**
-   * Record that the propagated type of the given node is the given type.
-   *
-   * @param expression the node whose type is to be recorded
-   * @param type the propagated type of the node
-   */
-  void _recordPropagatedType(Expression expression, DartType type) {
-    if (type != null && !type.isDynamic) {
-      expression.propagatedType = type;
     }
   }
 }

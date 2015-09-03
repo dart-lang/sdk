@@ -54,6 +54,7 @@ class SSLFilter {
   SSLFilter()
       : callback_error(NULL),
         ssl_(NULL),
+        socket_side_(NULL),
         string_start_(NULL),
         string_length_(NULL),
         handshake_complete_(NULL),

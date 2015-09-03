@@ -91,6 +91,8 @@ class ArgumentsDescriptor : public ValueObject {
   // A cache of VM heap allocated arguments descriptors.
   static RawArray* cached_args_descriptors_[kCachedDescriptorCount];
 
+  friend class FullSnapshotWriter;
+  friend class VmIsolateSnapshotReader;
   DISALLOW_COPY_AND_ASSIGN(ArgumentsDescriptor);
 };
 

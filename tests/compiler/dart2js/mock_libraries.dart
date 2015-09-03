@@ -398,3 +398,19 @@ const Map<String, String> DEFAULT_MIRRORS_LIBRARY = const <String, String>{
   'MirrorSystem': 'class MirrorSystem {}',
   'MirrorsUsed': 'class MirrorsUsed {}',
 };
+
+const Map<String, String> DEFAULT_LOOKUP_MAP_LIBRARY = const <String, String>{
+  'LookupMap': r'''
+  class LookupMap<T> {
+    final _key;
+    final _value;
+    final _entries;
+    final _nestedMaps;
+
+    const LookupMap(this._entries, [this._nestedMaps = const []])
+        : _key = null, _value = null;
+
+    const LookupMap.pair(this._key, this._value)
+        : _entries = const [], _nestedMaps = const [];
+  }''',
+};

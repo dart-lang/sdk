@@ -46,7 +46,7 @@ import 'tree/tree.dart' as tree;
 import 'util/util.dart' as util;
 import 'world.dart';
 
-import 'scanner/scannerlib.dart' show
+import 'parser/partial_elements.dart' show
     PartialClassElement,
     PartialFunctionElement;
 

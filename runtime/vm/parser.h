@@ -399,7 +399,7 @@ class Parser : public ValueObject {
                                           const TypeArguments& type_arguments,
                                           const Function& constructor,
                                           ArgumentListNode* arguments);
-  AstNode* FoldConstExpr(intptr_t expr_pos, AstNode* expr);
+  LiteralNode* FoldConstExpr(intptr_t expr_pos, AstNode* expr);
 
   // Support for parsing of scripts.
   void ParseTopLevel();

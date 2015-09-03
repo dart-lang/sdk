@@ -27,7 +27,7 @@ import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/old_to_new_api.dart';
 import 'package:compiler/src/resolution/resolution.dart';
-import 'package:compiler/src/scanner/scannerlib.dart';
+import 'package:compiler/src/scanner/scanner_task.dart';
 
 class TestCompiler extends apiimpl.Compiler {
   final String testMarker;

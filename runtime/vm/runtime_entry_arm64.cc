@@ -15,29 +15,36 @@ namespace dart {
 
 #define __ assembler->
 
+
+uword RuntimeEntry::GetEntryPoint() const {
+  // Compute the effective address. When running under the simulator,
+  // this is a redirection address that forces the simulator to call
+  // into the runtime system.
+  uword entry = reinterpret_cast<uword>(function());
+#if defined(USING_SIMULATOR)
+  // Redirection to leaf runtime calls supports a maximum of 4 arguments passed
+  // in registers (maximum 2 double arguments for leaf float runtime calls).
+  ASSERT(argument_count() >= 0);
+  ASSERT(!is_leaf() ||
+         (!is_float() && (argument_count() <= 4)) ||
+         (argument_count() <= 2));
+  Simulator::CallKind call_kind =
+      is_leaf() ? (is_float() ? Simulator::kLeafFloatRuntimeCall
+                              : Simulator::kLeafRuntimeCall)
+                : Simulator::kRuntimeCall;
+  entry =
+      Simulator::RedirectExternalReference(entry, call_kind, argument_count());
+#endif
+  return entry;
+}
+
+
 // Generate code to call into the stub which will call the runtime
 // function. Input for the stub is as follows:
 //   SP : points to the arguments and return value array.
 //   R5 : address of the runtime function to call.
 //   R4 : number of arguments to the call.
 void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
-  // Compute the effective address. When running under the simulator,
-  // this is a redirection address that forces the simulator to call
-  // into the runtime system.
-  uword entry = GetEntryPoint();
-#if defined(USING_SIMULATOR)
-  // Redirection to leaf runtime calls supports a maximum of 8 arguments passed
-  // in registers.
-  ASSERT(argument_count >= 0);
-  ASSERT(!is_leaf() || (argument_count <= 8));
-  Simulator::CallKind call_kind =
-      is_leaf() ? (is_float() ? Simulator::kLeafFloatRuntimeCall
-                              : Simulator::kLeafRuntimeCall)
-                : Simulator::kRuntimeCall;
-  entry =
-      Simulator::RedirectExternalReference(entry, call_kind, argument_count);
-#endif
-  ExternalLabel label(entry);
   if (is_leaf()) {
     ASSERT(argument_count == this->argument_count());
     // Since we are entering C++ code, we must restore the C stack pointer from
@@ -49,13 +56,14 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     __ mov(R26, SP);
     __ ReserveAlignedFrameSpace(0);
     __ mov(CSP, SP);
-    __ BranchLink(&label);
+    __ ldr(TMP, Address(THR, Thread::OffsetFromThread(this)));
+    __ blr(TMP);
     __ mov(SP, R26);
     __ mov(CSP, R25);
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
-    __ LoadExternalLabel(R5, &label);
+    __ ldr(R5, Address(THR, Thread::OffsetFromThread(this)));
     __ LoadImmediate(R4, argument_count);
     __ BranchLink(*StubCode::CallToRuntime_entry());
   }

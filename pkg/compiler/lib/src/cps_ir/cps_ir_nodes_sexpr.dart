@@ -192,10 +192,11 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   String visitBranch(Branch node) {
-    String condition = visit(node.condition);
+    String condition = access(node.condition);
     String trueCont = access(node.trueContinuation);
     String falseCont = access(node.falseContinuation);
-    return '$indentation(Branch $condition $trueCont $falseCont)';
+    String strict = node.isStrictCheck ? 'Strict' : 'NonStrict';
+    return '$indentation(Branch $condition $trueCont $falseCont $strict)';
   }
 
   String visitUnreachable(Unreachable node) {
@@ -249,11 +250,6 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String keys = node.entries.map((e) => access(e.key)).join(' ');
     String values = node.entries.map((e) => access(e.value)).join(' ');
     return '(LiteralMap ($keys) ($values))';
-  }
-
-  String visitIsTrue(IsTrue node) {
-    String value = access(node.value);
-    return '(IsTrue $value)';
   }
 
   String visitSetField(SetField node) {

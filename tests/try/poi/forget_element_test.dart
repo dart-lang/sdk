@@ -20,7 +20,7 @@ import 'package:compiler/src/js_backend/js_backend.dart' show
 
 import 'package:compiler/src/tree/tree.dart' as tree;
 
-import 'package:compiler/src/scanner/scannerlib.dart' show
+import 'package:compiler/src/parser/partial_elements.dart' show
     PartialMetadataAnnotation;
 
 import 'package:compiler/src/elements/visitor.dart' show

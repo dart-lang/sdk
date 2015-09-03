@@ -4,8 +4,10 @@
 
 import 'optimizers.dart';
 
+import '../closure.dart' show
+    ClosureClassElement, Identifiers;
 import '../common/names.dart' show
-    Selectors;
+    Selectors, Identifiers;
 import '../compiler.dart' as dart2js show
     Compiler;
 import '../constants/constant_system.dart';
@@ -27,6 +29,7 @@ import '../universe/universe.dart';
 import '../world.dart' show World;
 import 'cps_fragment.dart';
 import 'cps_ir_nodes.dart';
+import 'cps_ir_nodes_sexpr.dart' show SExpressionStringifier;
 
 enum AbstractBool {
   True, False, Maybe, Nothing
@@ -260,6 +263,11 @@ class TypeMaskSystem {
     if (isDefinitelyNotNumStringBool(type) && !type.isNullable) {
       return AbstractBool.True;
     }
+    return AbstractBool.Maybe;
+  }
+
+  AbstractBool strictBoolify(TypeMask type) {
+    if (areDisjoint(type, boolType)) return AbstractBool.False;
     return AbstractBool.Maybe;
   }
 }
@@ -532,6 +540,15 @@ class ConstantPropagationLattice {
       }
     }
     return typeSystem.boolify(value.type);
+  }
+
+  /// Returns whether [value] is the value `true`.
+  AbstractBool strictBoolify(AbstractValue value) {
+    if (value.isNothing) return AbstractBool.Nothing;
+    if (value.isConstant) {
+      return value.constant.isTrue ? AbstractBool.True : AbstractBool.False;
+    }
+    return typeSystem.strictBoolify(value.type);
   }
 
   /// The possible return types of a method that may be targeted by
@@ -822,11 +839,17 @@ class TransformingVisitor extends LeafVisitor {
   void visitBranch(Branch node) {
     Continuation trueCont = node.trueContinuation.definition;
     Continuation falseCont = node.falseContinuation.definition;
-    IsTrue conditionNode = node.condition;
-    Primitive condition = conditionNode.value.definition;
-
+    Primitive condition = node.condition.definition;
     AbstractValue conditionValue = getValue(condition);
-    AbstractBool boolifiedValue = lattice.boolify(conditionValue);
+
+    // Change to non-strict check if the condition is a boolean or null.
+    if (lattice.isDefinitelyBool(conditionValue, allowNull: true)) {
+      node.isStrictCheck = false;
+    }
+
+    AbstractBool boolifiedValue = node.isStrictCheck
+        ? lattice.strictBoolify(conditionValue)
+        : lattice.boolify(conditionValue);
 
     if (boolifiedValue == AbstractBool.True) {
       replaceSubtree(falseCont.body, new Unreachable());
@@ -856,12 +879,12 @@ class TransformingVisitor extends LeafVisitor {
         //   if (x == null) S1 else S2
         //     =>
         //   if (x) S2 else S1   (note the swapped branches)
-        Branch branch = new Branch(new IsTrue(leftArg), falseCont, trueCont);
+        Branch branch = new Branch.loose(leftArg, falseCont, trueCont);
         replaceSubtree(node, branch);
         return;
       } else if (left.isNullConstant &&
                  lattice.isDefinitelyNotNumStringBool(right)) {
-        Branch branch = new Branch(new IsTrue(rightArg), falseCont, trueCont);
+        Branch branch = new Branch.loose(rightArg, falseCont, trueCont);
         replaceSubtree(node, branch);
         return;
       } else if (right.isTrueConstant &&
@@ -870,12 +893,12 @@ class TransformingVisitor extends LeafVisitor {
         //   if (x == true) S1 else S2
         //     =>
         //   if (x) S1 else S2
-        Branch branch = new Branch(new IsTrue(leftArg), trueCont, falseCont);
+        Branch branch = new Branch.loose(leftArg, trueCont, falseCont);
         replaceSubtree(node, branch);
         return;
       } else if (left.isTrueConstant &&
                  lattice.isDefinitelyBool(right, allowNull: true)) {
-        Branch branch = new Branch(new IsTrue(rightArg), trueCont, falseCont);
+        Branch branch = new Branch.loose(rightArg, trueCont, falseCont);
         replaceSubtree(node, branch);
         return;
       }
@@ -1074,11 +1097,11 @@ class TransformingVisitor extends LeafVisitor {
     Primitive isTooSmall = cps.applyBuiltin(
         BuiltinOperator.NumLt,
         <Primitive>[index, cps.makeZero()]);
-    cps.ifTrue(isTooSmall).invokeContinuation(fail);
+    cps.ifTruthy(isTooSmall).invokeContinuation(fail);
     Primitive isTooLarge = cps.applyBuiltin(
         BuiltinOperator.NumGe,
         <Primitive>[index, cps.letPrim(new GetLength(list))]);
-    cps.ifTrue(isTooLarge).invokeContinuation(fail);
+    cps.ifTruthy(isTooLarge).invokeContinuation(fail);
     cps.insideContinuation(fail).invokeStaticThrower(
         backend.getThrowIndexOutOfBoundsError(),
         <Primitive>[list, index]);
@@ -1097,7 +1120,7 @@ class TransformingVisitor extends LeafVisitor {
     Primitive lengthChanged = cps.applyBuiltin(
         BuiltinOperator.StrictNeq,
         <Primitive>[originalLength, cps.letPrim(new GetLength(list))]);
-    cps.ifTrue(lengthChanged).invokeStaticThrower(
+    cps.ifTruthy(lengthChanged).invokeStaticThrower(
         backend.getThrowConcurrentModificationError(),
         <Primitive>[list]);
     return cps;
@@ -1405,7 +1428,7 @@ class TransformingVisitor extends LeafVisitor {
                 [cps.getMutable(index), cps.letPrim(new GetLength(list))]);
 
             // Return false if there are no more.
-            CpsFragment falseBranch = cps.ifFalse(hasMore);
+            CpsFragment falseBranch = cps.ifFalsy(hasMore);
             falseBranch
               ..setMutable(current, falseBranch.makeNull())
               ..invokeContinuation(useCont, [falseBranch.makeFalse()]);
@@ -1574,6 +1597,70 @@ class TransformingVisitor extends LeafVisitor {
     return false;
   }
 
+  /// Inlines a single-use closure if it leaves the closure object with only
+  /// field accesses.  This is optimized later by [ScalarReplacer].
+  bool specializeSingleUseClosureCall(InvokeMethod node) {
+    Selector call = node.selector;
+    if (!call.isClosureCall) return false;
+
+    assert(!isInterceptedSelector(call));
+    assert(call.argumentCount == node.arguments.length);
+
+    Primitive receiver = node.receiver.definition;
+    if (receiver is !CreateInstance) return false;
+    CreateInstance createInstance = receiver;
+    if (!createInstance.hasExactlyOneUse) return false;
+
+    // Inline only closures. This avoids inlining the 'call' method of a class
+    // that has many allocation sites.
+    if (createInstance.classElement is !ClosureClassElement) return false;
+
+    ClosureClassElement closureClassElement = createInstance.classElement;
+    Element element = closureClassElement.localLookup(Identifiers.call);
+
+    if (element == null || !element.isFunction) return false;
+    FunctionElement functionElement = element;
+    if (functionElement.asyncMarker != AsyncMarker.SYNC) return false;
+
+    if (!call.signatureApplies(functionElement)) return false;
+    // Inline only for exact match.
+    // TODO(sra): Handle call with defaulted arguments.
+    Selector targetSelector = new Selector.fromElement(functionElement);
+    if (call.callStructure != targetSelector.callStructure) return false;
+
+    FunctionDefinition target =
+        functionCompiler.compileToCpsIR(functionElement);
+
+    // Accesses to closed-over values are field access primitives.  We we don't
+    // inline if there are other uses of 'this' since that could be an escape or
+    // a recursive call.
+    for (Reference ref = target.thisParameter.firstRef;
+         ref != null;
+         ref = ref.next) {
+      Node use = ref.parent;
+      if (use is GetField) continue;
+      // Closures do not currently have writable fields, but closure conversion
+      // could esily be changed to allocate some cells in a closure object.
+      if (use is SetField && ref == use.object) continue;
+      return false;
+    }
+
+    // Don't inline if [target] contains try-catch or try-finally. JavaScript
+    // engines typically do poor optimization of the entire function containing
+    // the 'try'.
+    if (ContainsTry.analyze(target)) return false;
+
+    node.receiver.definition.substituteFor(target.thisParameter);
+    for (int i = 0; i < node.arguments.length; ++i) {
+      node.arguments[i].definition.substituteFor(target.parameters[i]);
+    }
+    node.continuation.definition.substituteFor(target.returnContinuation);
+
+    replaceSubtree(node, target.body);
+    push(target.body);
+    return true;
+  }
+
   /// Side-effect free expressions with constant results are be replaced by:
   ///
   ///    (LetPrim p = constant (InvokeContinuation k p)).
@@ -1598,6 +1685,7 @@ class TransformingVisitor extends LeafVisitor {
     if (specializeFieldAccess(node)) return;
     if (specializeIndexableAccess(node)) return;
     if (specializeArrayAccess(node)) return;
+    if (specializeSingleUseClosureCall(node)) return;
     if (specializeClosureCall(node)) return;
 
     AbstractValue receiver = getValue(node.receiver.definition);
@@ -2415,9 +2503,10 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitBranch(Branch node) {
-    IsTrue isTrue = node.condition;
-    AbstractValue conditionCell = getValue(isTrue.value.definition);
-    AbstractBool boolifiedValue = lattice.boolify(conditionCell);
+    AbstractValue conditionCell = getValue(node.condition.definition);
+    AbstractBool boolifiedValue = node.isStrictCheck
+        ? lattice.strictBoolify(conditionCell)
+        : lattice.boolify(conditionCell);
     switch (boolifiedValue) {
       case AbstractBool.Nothing:
         break;
@@ -2543,11 +2632,6 @@ class TypePropagationVisitor implements Visitor {
     assert(cont.parameters.length == 1);
     Parameter returnValue = cont.parameters[0];
     setValue(returnValue, nonConstant(typeSystem.getFieldType(node.element)));
-  }
-
-  void visitIsTrue(IsTrue node) {
-    Branch branch = node.parent;
-    visitBranch(branch);
   }
 
   void visitInterceptor(Interceptor node) {
@@ -2751,5 +2835,27 @@ class ResetAnalysisInfo extends RecursiveVisitor {
 
   processLetMutable(LetMutable node) {
     values.remove(node.variable);
+  }
+}
+
+
+class ContainsTry extends RecursiveVisitor {
+  bool _found = false;
+  ContainsTry._();
+
+  /// Scans [root] for evidence of try-catch and try-finally.
+  static bool analyze(Node root) {
+    ContainsTry visitor = new ContainsTry._();
+    visitor.visit(root);
+    return visitor._found;
+  }
+
+  visit(Node node) {
+    if (_found) return;  // Early exit if we know the answer.
+    super.visit(node);
+  }
+
+  processLetHandler(LetHandler node) {
+    _found = true;
   }
 }

@@ -610,10 +610,6 @@ class ParentVisitor extends RecursiveVisitor {
     });
   }
 
-  processIsTrue(IsTrue node) {
-    node.value.parent = node;
-  }
-
   processInterceptor(Interceptor node) {
     node.input.parent = node;
   }

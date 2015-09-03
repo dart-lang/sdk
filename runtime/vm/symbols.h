@@ -115,6 +115,7 @@ class ObjectPointerVisitor;
   V(AsyncErrorWrapperHelper, "_asyncErrorWrapperHelper")                       \
   V(AsyncAwaitHelper, "_awaitHelper")                                          \
   V(Await, "await")                                                            \
+  V(AwaitTempVarPrefix, ":await_temp_var_")                                    \
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
   V(Future, "Future")                                                          \

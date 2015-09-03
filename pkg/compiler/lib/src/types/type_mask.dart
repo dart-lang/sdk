@@ -4,12 +4,78 @@
 
 part of types;
 
+/// An implementation of a [UniverseReceiverMaskSet] that is consists if an only
+/// increasing set of [TypeMask]s, that is, once a mask is added it cannot be
+/// removed.
+class IncreasingTypeMaskSet extends UniverseReceiverMaskSet {
+  bool isAll = false;
+  Set<TypeMask> _masks;
+
+  @override
+  bool applies(Element element, Selector selector, ClassWorld world) {
+    if (isAll) return true;
+    if (_masks == null) return false;
+    for (TypeMask mask in _masks) {
+      if (mask.canHit(element, selector, world)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool needsNoSuchMethodHandling(Selector selector, ClassWorld world) {
+    if (isAll) {
+      TypeMask mask =
+          new TypeMask.subclass(world.objectClass, world);
+      return mask.needsNoSuchMethodHandling(selector, world);
+    }
+    for (TypeMask mask in _masks) {
+      if (mask.needsNoSuchMethodHandling(selector, world)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool addReceiverMask(TypeMask mask) {
+    if (isAll) return false;
+    if (mask == null) {
+      isAll = true;
+      _masks = null;
+      return true;
+    }
+    if (_masks == null) {
+      _masks = new Setlet<TypeMask>();
+    }
+    return _masks.add(mask);
+  }
+
+  String toString() {
+    if (isAll) {
+      return '<all>';
+    } else if (_masks != null) {
+      return '$_masks';
+    } else {
+      return '<none>';
+    }
+  }
+}
+
+class TypeMaskStrategy implements ReceiverMaskStrategy {
+  const TypeMaskStrategy();
+
+  @override
+  UniverseReceiverMaskSet createReceiverMaskSet(Selector selector) {
+    return new IncreasingTypeMaskSet();
+  }
+}
+
 /**
  * A type mask represents a set of contained classes, but the
  * operations on it are not guaranteed to be precise and they may
  * yield conservative answers that contain too many classes.
  */
-abstract class TypeMask {
+abstract class TypeMask implements ReceiverMask {
   factory TypeMask(ClassElement base,
                    int kind,
                    bool isNullable,

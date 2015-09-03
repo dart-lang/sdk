@@ -94,8 +94,7 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
     // enclosing continuation.
     // Note: Do not use the parent pointer for this check, because parameters
     // are temporarily shared between different continuations during this pass.
-    IsTrue isTrue = branch.condition;
-    Primitive condition = isTrue.value.definition;
+    Primitive condition = branch.condition.definition;
     int parameterIndex = branchCont.parameters.indexOf(condition);
     if (parameterIndex == -1) return;
 

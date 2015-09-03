@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/dartutils.h"
+#include "bin/dbg_connection.h"
+#include "bin/eventhandler.h"
 #include "bin/io_buffer.h"
 #include "bin/platform.h"
 #include "bin/process.h"
@@ -218,6 +220,9 @@ void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
   Dart_ExitIsolate();
   Dart_Cleanup();
+  DebuggerConnectionHandler::StopHandler();
+  // TODO(zra): Stop the EventHandler once thread shutdown is enabled.
+  // EventHandler::Stop();
   exit(static_cast<int>(status));
 }
 

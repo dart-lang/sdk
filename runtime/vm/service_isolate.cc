@@ -22,6 +22,9 @@
 
 namespace dart {
 
+#define Z (T->zone())
+
+
 DEFINE_FLAG(bool, trace_service, false, "Trace VM service requests.");
 DEFINE_FLAG(bool, trace_service_pause_events, false,
             "Trace VM service isolate pause events.");
@@ -219,15 +222,16 @@ class ServiceIsolateNatives : public AllStatic {
  public:
   static void SendIsolateServiceMessage(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->thread()->isolate();
-    StackZone stack_zone(isolate);
+    Thread* thread = arguments->thread();
+    StackZone stack_zone(thread);
     Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     GET_NON_NULL_NATIVE_ARGUMENT(SendPort, sp, arguments->NativeArgAt(0));
     GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(1));
 
     // Set the type of the OOB message.
-    message.SetAt(0, Smi::Handle(isolate, Smi::New(Message::kServiceOOBMsg)));
+    message.SetAt(0, Smi::Handle(thread->zone(),
+                                 Smi::New(Message::kServiceOOBMsg)));
 
     // Serialize message.
     uint8_t* data = NULL;
@@ -243,19 +247,20 @@ class ServiceIsolateNatives : public AllStatic {
 
   static void SendRootServiceMessage(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->thread()->isolate();
-    StackZone stack_zone(isolate);
+    Thread* thread = arguments->thread();
+    StackZone stack_zone(thread);
     Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
     Service::HandleRootMessage(message);
   }
 
   static void OnStart(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->thread()->isolate();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = arguments->thread();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     {
       if (FLAG_trace_service) {
         OS::Print("vm-service: Booting dart:vmservice library.\n");
@@ -287,9 +292,9 @@ class ServiceIsolateNatives : public AllStatic {
 
   static void OnExit(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->thread()->isolate();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = arguments->thread();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     {
       if (FLAG_trace_service) {
         OS::Print("vm-service: processed exit message.\n");
@@ -299,10 +304,10 @@ class ServiceIsolateNatives : public AllStatic {
 
   static void ListenStream(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->thread()->isolate();
-    StackZone stack_zone(isolate);
+    Thread* thread = arguments->thread();
+    StackZone stack_zone(thread);
     Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
     bool result = Service::ListenStream(stream_id.ToCString());
     arguments->SetReturn(Bool::Get(result));
@@ -310,10 +315,10 @@ class ServiceIsolateNatives : public AllStatic {
 
   static void CancelStream(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->thread()->isolate();
-    StackZone stack_zone(isolate);
+    Thread* thread = arguments->thread();
+    StackZone stack_zone(thread);
     Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
     Service::CancelStream(stream_id.ToCString());
   }
@@ -424,12 +429,13 @@ bool ServiceIsolate::SendIsolateStartupMessage() {
   if (!IsRunning()) {
     return false;
   }
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   if (IsServiceIsolateDescendant(isolate)) {
     return false;
   }
   ASSERT(isolate != NULL);
-  HANDLESCOPE(isolate);
+  HANDLESCOPE(thread);
   const String& name = String::Handle(String::New(isolate->name()));
   ASSERT(!name.IsNull());
   const Array& list = Array::Handle(
@@ -455,12 +461,13 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
   if (!IsRunning()) {
     return false;
   }
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   if (IsServiceIsolateDescendant(isolate)) {
     return false;
   }
   ASSERT(isolate != NULL);
-  HANDLESCOPE(isolate);
+  HANDLESCOPE(thread);
   const String& name = String::Handle(String::New(isolate->name()));
   ASSERT(!name.IsNull());
   const Array& list = Array::Handle(
@@ -522,10 +529,12 @@ void ServiceIsolate::SetLoadPort(Dart_Port port) {
 }
 
 
-void ServiceIsolate::MaybeInjectVMServiceLibrary(Isolate* isolate) {
-  ASSERT(isolate != NULL);
-  ASSERT(isolate->name() != NULL);
-  if (!ServiceIsolate::NameEquals(isolate->name())) {
+void ServiceIsolate::MaybeInjectVMServiceLibrary(Isolate* I) {
+  Thread* T = Thread::Current();
+  ASSERT(I == T->isolate());
+  ASSERT(I != NULL);
+  ASSERT(I->name() != NULL);
+  if (!ServiceIsolate::NameEquals(I->name())) {
     // Not service isolate.
     return;
   }
@@ -533,19 +542,19 @@ void ServiceIsolate::MaybeInjectVMServiceLibrary(Isolate* isolate) {
     // Service isolate already exists.
     return;
   }
-  SetServiceIsolate(isolate);
+  SetServiceIsolate(I);
 
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
+  StackZone zone(T);
+  HANDLESCOPE(T);
 
   // Register dart:vmservice library.
-  const String& url_str = String::Handle(Symbols::DartVMService().raw());
-  const Library& library = Library::Handle(Library::New(url_str));
+  const String& url_str = String::Handle(Z, Symbols::DartVMService().raw());
+  const Library& library = Library::Handle(Z, Library::New(url_str));
   library.Register();
   library.set_native_entry_resolver(ServiceNativeResolver);
 
   // Temporarily install our library tag handler.
-  isolate->set_library_tag_handler(LibraryTagHandler);
+  I->set_library_tag_handler(LibraryTagHandler);
 
   // Get script source.
   const char* resource = NULL;
@@ -553,17 +562,16 @@ void ServiceIsolate::MaybeInjectVMServiceLibrary(Isolate* isolate) {
   intptr_t r = Resources::ResourceLookup(path, &resource);
   ASSERT(r != Resources::kNoSuchInstance);
   ASSERT(resource != NULL);
-  const String& source_str = String::Handle(
+  const String& source_str = String::Handle(Z,
       String::FromUTF8(reinterpret_cast<const uint8_t*>(resource), r));
   ASSERT(!source_str.IsNull());
-  const Script& script = Script::Handle(
-    isolate, Script::New(url_str, source_str, RawScript::kLibraryTag));
+  const Script& script = Script::Handle(Z,
+      Script::New(url_str, source_str, RawScript::kLibraryTag));
 
   // Compile script.
   Dart_EnterScope();  // Need to enter scope for tag handler.
   library.SetLoadInProgress();
-  const Error& error = Error::Handle(isolate,
-                                     Compiler::Compile(library, script));
+  const Error& error = Error::Handle(Z, Compiler::Compile(library, script));
   if (!error.IsNull()) {
     OS::PrintErr("vm-service: Isolate creation error: %s\n",
           error.ToErrorCString());
@@ -574,19 +582,22 @@ void ServiceIsolate::MaybeInjectVMServiceLibrary(Isolate* isolate) {
   Dart_ExitScope();
 
   // Uninstall our library tag handler.
-  isolate->set_library_tag_handler(NULL);
+  I->set_library_tag_handler(NULL);
 }
 
 
-void ServiceIsolate::ConstructExitMessageAndCache(Isolate* isolate) {
+void ServiceIsolate::ConstructExitMessageAndCache(Isolate* I) {
   // Construct and cache exit message here so we can send it without needing an
   // isolate.
-  StartIsolateScope iso_scope(isolate);
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
+  StartIsolateScope iso_scope(I);
+  Thread* T = Thread::Current();
+  ASSERT(I == T->isolate());
+  ASSERT(I != NULL);
+  StackZone zone(T);
+  HANDLESCOPE(T);
   ASSERT(exit_message_ == NULL);
   ASSERT(exit_message_length_ == 0);
-  const Array& list = Array::Handle(MakeServiceExitMessage());
+  const Array& list = Array::Handle(Z, MakeServiceExitMessage());
   ASSERT(!list.IsNull());
   MessageWriter writer(&exit_message_, &allocator, false);
   writer.WriteMessage(list);
@@ -662,16 +673,18 @@ class RunServiceTask : public ThreadPool::Task {
 
  protected:
   static void ShutdownIsolate(uword parameter) {
-    Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
-    ASSERT(ServiceIsolate::IsServiceIsolate(isolate));
+    Isolate* I = reinterpret_cast<Isolate*>(parameter);
+    ASSERT(ServiceIsolate::IsServiceIsolate(I));
     {
       // Print the error if there is one.  This may execute dart code to
       // print the exception object, so we need to use a StartIsolateScope.
-      StartIsolateScope start_scope(isolate);
-      StackZone zone(isolate);
-      HandleScope handle_scope(isolate);
-      Error& error = Error::Handle();
-      error = isolate->object_store()->sticky_error();
+      StartIsolateScope start_scope(I);
+      Thread* T = Thread::Current();
+      ASSERT(I == T->isolate());
+      StackZone zone(T);
+      HandleScope handle_scope(T);
+      Error& error = Error::Handle(Z);
+      error = I->object_store()->sticky_error();
       if (!error.IsNull()) {
         OS::PrintErr("vm-service: Error: %s\n", error.ToErrorCString());
       }
@@ -679,7 +692,7 @@ class RunServiceTask : public ThreadPool::Task {
     }
     {
       // Shut the isolate down.
-      SwitchIsolateScope switch_scope(isolate);
+      SwitchIsolateScope switch_scope(I);
       Dart::ShutdownIsolate();
     }
     ServiceIsolate::SetServiceIsolate(NULL);
@@ -690,13 +703,15 @@ class RunServiceTask : public ThreadPool::Task {
     ServiceIsolate::FinishedExiting();
   }
 
-  void RunMain(Isolate* isolate) {
-    StartIsolateScope iso_scope(isolate);
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+  void RunMain(Isolate* I) {
+    StartIsolateScope iso_scope(I);
+    Thread* T = Thread::Current();
+    ASSERT(I == T->isolate());
+    StackZone zone(T);
+    HANDLESCOPE(T);
     // Invoke main which will return the loadScriptPort.
-    const Library& root_library =
-        Library::Handle(isolate, isolate->object_store()->root_library());
+    const Library& root_library = Library::Handle(Z,
+        I->object_store()->root_library());
     if (root_library.IsNull()) {
       if (FLAG_trace_service) {
         OS::Print("vm-service: Embedder did not install a script.");
@@ -705,11 +720,10 @@ class RunServiceTask : public ThreadPool::Task {
       return;
     }
     ASSERT(!root_library.IsNull());
-    const String& entry_name = String::Handle(isolate, String::New("main"));
+    const String& entry_name = String::Handle(Z, String::New("main"));
     ASSERT(!entry_name.IsNull());
-    const Function& entry =
-        Function::Handle(isolate,
-                         root_library.LookupFunctionAllowPrivate(entry_name));
+    const Function& entry = Function::Handle(Z,
+        root_library.LookupFunctionAllowPrivate(entry_name));
     if (entry.IsNull()) {
       // Service isolate is not supported by embedder.
       if (FLAG_trace_service) {
@@ -718,10 +732,8 @@ class RunServiceTask : public ThreadPool::Task {
       return;
     }
     ASSERT(!entry.IsNull());
-    const Object& result =
-        Object::Handle(isolate,
-                       DartEntry::InvokeFunction(entry,
-                                                 Object::empty_array()));
+    const Object& result = Object::Handle(Z,
+        DartEntry::InvokeFunction(entry, Object::empty_array()));
     ASSERT(!result.IsNull());
     if (result.IsError()) {
       // Service isolate did not initialize properly.

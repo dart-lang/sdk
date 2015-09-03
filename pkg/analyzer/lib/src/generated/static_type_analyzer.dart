@@ -303,6 +303,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     return null;
   }
 
+  @override
+  Object visitDeclaredIdentifier(DeclaredIdentifier node) {
+    super.visitDeclaredIdentifier(node);
+    if (_resolver.definingLibrary.context.analysisOptions.strongMode) {
+      _inferForEachLoopVariableType(node);
+    }
+  }
+
   /**
    * The Dart Language Specification, 12.3: <blockquote>The static type of a literal double is
    * double.</blockquote>
@@ -1181,19 +1189,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     return null;
   }
 
-  void _inferLocalVariableType(
-      VariableDeclaration node, Expression initializer) {
-    if (initializer != null &&
-        (node.parent as VariableDeclarationList).type == null &&
-        (node.element is LocalVariableElementImpl) &&
-        (initializer.staticType != null) &&
-        (!initializer.staticType.isBottom)) {
-      LocalVariableElementImpl element = node.element;
-      element.type = initializer.staticType;
-      node.name.staticType = initializer.staticType;
-    }
-  }
-
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     Expression initializer = node.initializer;
@@ -1398,6 +1393,43 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else {
       return type;
     }
+  }
+
+  // TODO(vsm): Use leafp's matchType here?
+  DartType _findIteratedType(InterfaceType type, DartType targetType) {
+    // Set by _find if match is found
+    DartType result = null;
+    // Elements we've already visited on a given inheritance path.
+    HashSet<ClassElement> visitedClasses = null;
+
+    bool _find(InterfaceType type) {
+      ClassElement element = type.element;
+      if (type == _typeProvider.objectType || element == null) {
+        return false;
+      }
+      if (element == targetType.element) {
+        List<DartType> typeArguments = type.typeArguments;
+        assert(typeArguments.length == 1);
+        result = typeArguments[0];
+        return true;
+      }
+      if (visitedClasses == null) {
+        visitedClasses = new HashSet<ClassElement>();
+      }
+      // Already visited this class along this path
+      if (!visitedClasses.add(element)) {
+        return false;
+      }
+      try {
+        return _find(type.superclass) ||
+            type.interfaces.any(_find) ||
+            type.mixins.any(_find);
+      } finally {
+        visitedClasses.remove(element);
+      }
+    }
+    _find(type);
+    return result;
   }
 
   /**
@@ -1619,6 +1651,42 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       }
     }
     return returnType;
+  }
+
+  void _inferForEachLoopVariableType(DeclaredIdentifier loopVariable) {
+    if (loopVariable != null &&
+        loopVariable.type == null &&
+        loopVariable.parent is ForEachStatement) {
+      ForEachStatement loop = loopVariable.parent;
+      if (loop.iterable != null) {
+        Expression expr = loop.iterable;
+        LocalVariableElementImpl element = loopVariable.element;
+        DartType exprType = expr.staticType;
+        if (exprType is InterfaceType) {
+          DartType targetType = (loop.awaitKeyword == null)
+              ? _typeProvider.iterableType
+              : _typeProvider.streamType;
+          DartType iteratedType = _findIteratedType(exprType, targetType);
+          if (element != null && iteratedType != null) {
+            element.type = iteratedType;
+            loopVariable.identifier.staticType = iteratedType;
+          }
+        }
+      }
+    }
+  }
+
+  void _inferLocalVariableType(
+      VariableDeclaration node, Expression initializer) {
+    if (initializer != null &&
+        (node.parent as VariableDeclarationList).type == null &&
+        (node.element is LocalVariableElementImpl) &&
+        (initializer.staticType != null) &&
+        (!initializer.staticType.isBottom)) {
+      LocalVariableElementImpl element = node.element;
+      element.type = initializer.staticType;
+      node.name.staticType = initializer.staticType;
+    }
   }
 
   /**

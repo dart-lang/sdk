@@ -327,9 +327,9 @@ class LocalScope : public ZoneAllocated {
   // from this scope and belonging to outer scopes.
   RawContextScope* PreserveOuterScope(int current_context_level) const;
 
-  // Recursively traverses all siblings and children and marks all variables as
-  // captured.
-  void RecursivelyCaptureAllVariables();
+  // Mark all local variables that are accessible from this scope up to
+  // top_scope (included) as captured.
+  void CaptureLocalVariables(LocalScope* top_scope);
 
   // Creates a LocalScope representing the outer scope of a local function to be
   // compiled. This outer scope contains the variables captured by the function

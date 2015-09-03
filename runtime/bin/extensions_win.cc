@@ -13,6 +13,9 @@
 namespace dart {
 namespace bin {
 
+const char* kPrecompiledLibraryName = "precompiled.dll";
+const char* kPrecompiledSymbolName = "_kInstructionsSnapshot";
+
 void* Extensions::LoadExtensionLibrary(const char* library_file) {
   return LoadLibraryW(StringUtilsWin::Utf8ToWide(library_file));
 }

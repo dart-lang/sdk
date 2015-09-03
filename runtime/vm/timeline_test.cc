@@ -322,7 +322,6 @@ TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
   TimelineTestHelper::FakeThreadEvent(block_2_0, 2, "E");
   TimelineTestHelper::FakeThreadEvent(block_2_0, 2, "F");
 
-  Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
 
@@ -440,7 +439,6 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
 TEST_CASE(TimelinePauses_Basic) {
   TimelineEventEndlessRecorder* recorder = new TimelineEventEndlessRecorder();
   ASSERT(recorder != NULL);
-  Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   ThreadId tid = OSThread::GetCurrentThreadId();

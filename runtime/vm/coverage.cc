@@ -72,7 +72,6 @@ void CodeCoverage::CompileAndAdd(const Function& function,
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   // Make sure we have the unoptimized code for this function available.
   if (Compiler::EnsureUnoptimizedCode(thread, function) != Error::null()) {
     // Ignore the error and this function entirely.
@@ -96,7 +95,7 @@ void CodeCoverage::CompileAndAdd(const Function& function,
   PcDescriptors::Iterator iter(descriptors,
       RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
   while (iter.MoveNext()) {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
     if (!ic_data->IsNull()) {
       const intptr_t token_pos = iter.TokenPos();
@@ -141,7 +140,8 @@ void CodeCoverage::PrintClass(const Library& lib,
                               const JSONArray& jsarr,
                               CoverageFilter* filter,
                               bool as_call_sites) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   if (cls.EnsureIsFinalized(isolate) != Error::null()) {
     // Only classes that have been finalized do have a meaningful list of
     // functions.
@@ -156,7 +156,7 @@ void CodeCoverage::PrintClass(const Library& lib,
   GrowableArray<intptr_t> pos_to_line;
   int i = 0;
   while (i < functions.Length()) {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     function ^= functions.At(i);
     script = function.script();
     saved_url = script.url();
@@ -201,7 +201,7 @@ void CodeCoverage::PrintClass(const Library& lib,
     // We need to keep rechecking the length of the closures array, as handling
     // a closure potentially adds new entries to the end.
     while (i < closures.Length()) {
-      HANDLESCOPE(isolate);
+      HANDLESCOPE(thread);
       function ^= closures.At(i);
       script = function.script();
       saved_url = script.url();
@@ -248,7 +248,7 @@ void CodeCoverage::Write(Isolate* isolate) {
   JSONStream stream;
   PrintJSON(isolate, &stream, NULL, false);
 
-  const char* format = "%s/dart-cov-%" Pd "-%" Pd ".json";
+  const char* format = "%s/dart-cov-%" Pd "-%" Pd64 ".json";
   intptr_t pid = OS::ProcessId();
   intptr_t len = OS::SNPrint(NULL, 0, format,
                              FLAG_coverage_dir, pid, isolate->main_port());

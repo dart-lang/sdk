@@ -961,6 +961,9 @@ class AnalysisServer {
         // Dart unit notifications.
         if (AnalysisEngine.isDartFileName(file)) {
           Source source = contextSource.source;
+          // TODO(scheglov) This way to get resolved information is very Dart
+          // specific. OTOH as it is planned now Angular results are not
+          // flushable.
           CompilationUnit dartUnit =
               _getResolvedCompilationUnitToResendNotification(context, source);
           if (dartUnit != null) {
@@ -969,8 +972,7 @@ class AnalysisServer {
                 sendAnalysisNotificationHighlights(this, file, dartUnit);
                 break;
               case AnalysisService.NAVIGATION:
-                // TODO(scheglov) consider support for one unit in 2+ libraries
-                sendAnalysisNotificationNavigation(this, file, dartUnit);
+                sendAnalysisNotificationNavigation(this, context, source);
                 break;
               case AnalysisService.OCCURRENCES:
                 sendAnalysisNotificationOccurrences(this, file, dartUnit);

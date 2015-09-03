@@ -621,7 +621,7 @@ class SetCommand extends DebuggerCommand {
       'Set a debugger option.\n'
       '\n'
       'Known options:\n'
-      '  break-on-exceptions   # Should the debugger break on exceptions?\n'
+      '  break-on-exception    # Should the debugger break on exceptions?\n'
       "                        # ${_boeValues}\n"
       '  up-is-down            # Reverse meaning of up/down commands?\n'
       "                        # ${_boolValues}\n"

@@ -212,9 +212,10 @@ RawError* Compiler::Compile(const Library& library, const Script& script) {
 }
 
 
-static void AddRelatedClassesToList(const Class& cls,
-                                    const GrowableObjectArray& parse_list,
-                                    const GrowableObjectArray& patch_list) {
+static void AddRelatedClassesToList(
+    const Class& cls,
+    GrowableHandlePtrArray<const Class>* parse_list,
+    GrowableHandlePtrArray<const Class>* patch_list) {
   Isolate* isolate = Isolate::Current();
   Class& parse_class = Class::Handle(isolate);
   AbstractType& interface_type = Type::Handle(isolate);
@@ -228,7 +229,7 @@ static void AddRelatedClassesToList(const Class& cls,
     interface_type ^= interfaces.At(i);
     parse_class ^= interface_type.type_class();
     if (!parse_class.is_finalized() && !parse_class.is_marked_for_parsing()) {
-      parse_list.Add(parse_class);
+      parse_list->Add(parse_class);
       parse_class.set_is_marked_for_parsing();
     }
   }
@@ -239,7 +240,7 @@ static void AddRelatedClassesToList(const Class& cls,
   parse_class ^= cls.SuperClass();
   while (!parse_class.IsNull()) {
     if (!parse_class.is_finalized() && !parse_class.is_marked_for_parsing()) {
-      parse_list.Add(parse_class);
+      parse_list->Add(parse_class);
       parse_class.set_is_marked_for_parsing();
     }
     parse_class ^= parse_class.SuperClass();
@@ -251,7 +252,7 @@ static void AddRelatedClassesToList(const Class& cls,
   parse_class ^= cls.patch_class();
   if (!parse_class.IsNull()) {
     if (!parse_class.is_finalized() && !parse_class.is_marked_for_parsing()) {
-      patch_list.Add(parse_class);
+      patch_list->Add(parse_class);
       parse_class.set_is_marked_for_parsing();
     }
   }
@@ -291,20 +292,17 @@ RawError* Compiler::CompileClass(const Class& cls) {
 
   Thread* const thread = Thread::Current();
   Isolate* const isolate = thread->isolate();
+  StackZone zone(thread);
   // We remember all the classes that are being compiled in these lists. This
   // also allows us to reset the marked_for_parsing state in case we see an
   // error.
   VMTagScope tagScope(thread, VMTag::kCompileClassTagId);
-  Class& parse_class = Class::Handle(isolate);
-  const GrowableObjectArray& parse_list =
-      GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New(4));
-  const GrowableObjectArray& patch_list =
-      GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New(4));
+  GrowableHandlePtrArray<const Class> parse_list(thread->zone(), 4);
+  GrowableHandlePtrArray<const Class> patch_list(thread->zone(), 4);
 
   // Parse the class and all the interfaces it implements and super classes.
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    StackZone zone(thread);
     if (FLAG_trace_compiler) {
       ISL_Print("Compiling Class %s '%s'\n", "", cls.ToCString());
     }
@@ -321,34 +319,33 @@ RawError* Compiler::CompileClass(const Class& cls) {
     // to it by AddRelatedClassesToList. It is not OK to hoist
     // parse_list.Length() into a local variable and iterate using the local
     // variable.
-    for (intptr_t i = 0; i < parse_list.Length(); i++) {
-      parse_class ^= parse_list.At(i);
-      AddRelatedClassesToList(parse_class, parse_list, patch_list);
+    for (intptr_t i = 0; i < parse_list.length(); i++) {
+      AddRelatedClassesToList(parse_list.At(i), &parse_list, &patch_list);
     }
 
     // Parse all the classes that have been added above.
-    for (intptr_t i = (parse_list.Length() - 1); i >=0 ; i--) {
-      parse_class ^= parse_list.At(i);
+    for (intptr_t i = (parse_list.length() - 1); i >=0 ; i--) {
+      const Class& parse_class = parse_list.At(i);
       ASSERT(!parse_class.IsNull());
       Parser::ParseClass(parse_class);
     }
 
     // Parse all the patch classes that have been added above.
-    for (intptr_t i = 0; i < patch_list.Length(); i++) {
-      parse_class ^= patch_list.At(i);
+    for (intptr_t i = 0; i < patch_list.length(); i++) {
+      const Class& parse_class = patch_list.At(i);
       ASSERT(!parse_class.IsNull());
       Parser::ParseClass(parse_class);
     }
 
     // Finalize these classes.
-    for (intptr_t i = (parse_list.Length() - 1); i >=0 ; i--) {
-      parse_class ^= parse_list.At(i);
+    for (intptr_t i = (parse_list.length() - 1); i >=0 ; i--) {
+      const Class& parse_class = parse_list.At(i);
       ASSERT(!parse_class.IsNull());
       ClassFinalizer::FinalizeClass(parse_class);
       parse_class.reset_is_marked_for_parsing();
     }
-    for (intptr_t i = (patch_list.Length() - 1); i >=0 ; i--) {
-      parse_class ^= patch_list.At(i);
+    for (intptr_t i = (patch_list.length() - 1); i >=0 ; i--) {
+      const Class& parse_class = patch_list.At(i);
       ASSERT(!parse_class.IsNull());
       ClassFinalizer::FinalizeClass(parse_class);
       parse_class.reset_is_marked_for_parsing();
@@ -357,21 +354,18 @@ RawError* Compiler::CompileClass(const Class& cls) {
     return Error::null();
   } else {
     // Reset the marked for parsing flags.
-    for (intptr_t i = 0; i < parse_list.Length(); i++) {
-      parse_class ^= parse_list.At(i);
+    for (intptr_t i = 0; i < parse_list.length(); i++) {
+      const Class& parse_class = parse_list.At(i);
       if (parse_class.is_marked_for_parsing()) {
         parse_class.reset_is_marked_for_parsing();
       }
     }
-    for (intptr_t i = 0; i < patch_list.Length(); i++) {
-      parse_class ^= patch_list.At(i);
+    for (intptr_t i = 0; i < patch_list.length(); i++) {
+      const Class& parse_class = patch_list.At(i);
       if (parse_class.is_marked_for_parsing()) {
         parse_class.reset_is_marked_for_parsing();
       }
     }
-    Thread* const thread = Thread::Current();
-    Isolate* const isolate = Isolate::Current();
-    StackZone zone(thread);
     Error& error = Error::Handle(isolate);
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();

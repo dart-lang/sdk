@@ -7,10 +7,10 @@ library operation.analysis;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
-import 'package:analysis_server/src/computer/computer_navigation.dart';
 import 'package:analysis_server/src/computer/computer_occurrences.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
+import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
@@ -53,9 +53,14 @@ void scheduleIndexOperation(AnalysisServer server, String file,
  * Schedules sending notifications for the given [file] using the resolved
  * [resolvedDartUnit].
  */
-void scheduleNotificationOperations(AnalysisServer server, String file,
-    LineInfo lineInfo, AnalysisContext context, CompilationUnit parsedDartUnit,
-    CompilationUnit resolvedDartUnit, List<AnalysisError> errors) {
+void scheduleNotificationOperations(
+    AnalysisServer server,
+    String file,
+    LineInfo lineInfo,
+    AnalysisContext context,
+    CompilationUnit parsedDartUnit,
+    CompilationUnit resolvedDartUnit,
+    List<AnalysisError> errors) {
   // If the file belongs to any analysis root, check whether we're in it now.
   AnalysisContext containingContext = server.getContainingContext(file);
   if (containingContext != null && context != containingContext) {
@@ -162,12 +167,13 @@ void sendAnalysisNotificationHighlights(
 }
 
 void sendAnalysisNotificationNavigation(
-    AnalysisServer server, String file, CompilationUnit dartUnit) {
+    AnalysisServer server, AnalysisContext context, Source source) {
   _sendNotification(server, () {
-    var computer = new DartUnitNavigationComputer();
-    computer.compute(dartUnit);
+    NavigationHolderImpl holder =
+        computeNavigation(server, context, source, null, null);
+    String file = source.fullName;
     var params = new protocol.AnalysisNavigationParams(
-        file, computer.regions, computer.targets, computer.files);
+        file, holder.regions, holder.targets, holder.files);
     server.sendNotification(params.toNotification());
   });
 }
@@ -381,7 +387,8 @@ class _DartNavigationOperation extends _DartNotificationOperation {
 
   @override
   void perform(AnalysisServer server) {
-    sendAnalysisNotificationNavigation(server, file, unit);
+    Source source = unit.element.source;
+    sendAnalysisNotificationNavigation(server, context, source);
   }
 }
 

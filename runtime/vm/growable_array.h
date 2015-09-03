@@ -215,6 +215,10 @@ class BaseGrowableHandlePtrArray : public B {
     return operator[](index);
   }
 
+  void SetAt(intptr_t index, const T& t) {
+    array_[index] = &T::ZoneHandle(zone_, t.raw());
+  }
+
   intptr_t length() const { return array_.length(); }
 
   const GrowableArray<T*>& growable_array() const { return array_; }

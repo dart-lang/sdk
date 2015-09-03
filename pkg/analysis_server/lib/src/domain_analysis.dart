@@ -9,12 +9,13 @@ import 'dart:core' hide Resource;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
-import 'package:analysis_server/src/computer/computer_navigation.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 
 /**
@@ -125,15 +126,15 @@ class AnalysisDomainHandler implements RequestHandler {
           if (units.isEmpty) {
             server.sendResponse(new Response.getNavigationInvalidFile(request));
           } else {
-            DartUnitNavigationComputer computer =
-                new DartUnitNavigationComputer();
-            _GetNavigationAstVisitor visitor = new _GetNavigationAstVisitor(
-                params.offset, params.offset + params.length, computer);
-            for (CompilationUnit unit in units) {
-              unit.accept(visitor);
-            }
+            CompilationUnitElement unitElement = units.first.element;
+            NavigationHolderImpl holder = computeNavigation(
+                server,
+                unitElement.context,
+                unitElement.source,
+                params.offset,
+                params.length);
             server.sendResponse(new AnalysisGetNavigationResult(
-                    computer.files, computer.targets, computer.regions)
+                    holder.files, holder.targets, holder.regions)
                 .toResponse(request.id));
           }
           break;
@@ -288,38 +289,5 @@ class AnalysisDomainHandler implements RequestHandler {
     }
     server.updateOptions(updaters);
     return new AnalysisUpdateOptionsResult().toResponse(request.id);
-  }
-}
-
-/**
- * An AST visitor that computer navigation regions in the givne region.
- */
-class _GetNavigationAstVisitor extends UnifyingAstVisitor {
-  final int rangeStart;
-  final int rangeEnd;
-  final DartUnitNavigationComputer computer;
-
-  _GetNavigationAstVisitor(this.rangeStart, this.rangeEnd, this.computer);
-
-  bool isInRange(int offset) {
-    return rangeStart <= offset && offset <= rangeEnd;
-  }
-
-  @override
-  visitNode(AstNode node) {
-    // The node ends before the range starts.
-    if (node.end < rangeStart) {
-      return;
-    }
-    // The node starts after the range ends.
-    if (node.offset > rangeEnd) {
-      return;
-    }
-    // The node starts or ends in the range.
-    if (isInRange(node.offset) || isInRange(node.end)) {
-      computer.compute(node);
-      return;
-    }
-    super.visitNode(node);
   }
 }

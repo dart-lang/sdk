@@ -13,7 +13,11 @@ import 'package:compiler/src/dart_backend/backend_ast_to_frontend_ast.dart'
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/spannable.dart' show Spannable;
-import 'package:compiler/src/scanner/scannerlib.dart';
+import 'package:compiler/src/parser/listener.dart';
+import 'package:compiler/src/parser/parser.dart';
+import 'package:compiler/src/scanner/scanner.dart';
+import 'package:compiler/src/tokens/token.dart';
+import 'package:compiler/src/tokens/token_constants.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/string_validator.dart';
 import 'package:compiler/src/tree/tree.dart' show DartString;

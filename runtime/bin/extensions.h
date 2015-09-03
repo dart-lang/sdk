@@ -21,13 +21,13 @@ class Extensions {
                                    const char* extension_name,
                                    Dart_Handle parent_library);
 
- private:
-  // The returned string must be freed.
-  static char* Concatenate(const char** strings);
-
   // Platform-specific implementations.
   static void* LoadExtensionLibrary(const char* library_file);
   static void* ResolveSymbol(void* lib_handle, const char* symbol);
+
+ private:
+  // The returned string must be freed.
+  static char* Concatenate(const char** strings);
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Extensions);

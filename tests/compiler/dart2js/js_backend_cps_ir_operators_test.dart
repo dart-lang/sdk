@@ -40,14 +40,14 @@ get foo => foo;
 main() { print(foo && foo); }
 """, """
 function() {
-  P.print(V.foo() ? V.foo() === true : false);
+  P.print(V.foo() ? !!V.foo() : false);
 }"""),
   const TestEntry("""
 get foo => foo;
 main() { print(foo || foo); }
 ""","""
 function() {
-  P.print(V.foo() ? true : V.foo() === true);
+  P.print(V.foo() ? true : !!V.foo());
 }"""),
 
 // Needs interceptor calling convention

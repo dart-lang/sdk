@@ -46,9 +46,9 @@ UNIT_TEST_CASE(Metric_OnDemand) {
   Dart_CreateIsolate(
       NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     MyMetric metric;
 
     metric.Init(Isolate::Current(), "a.b.c", "foobar", Metric::kByte);

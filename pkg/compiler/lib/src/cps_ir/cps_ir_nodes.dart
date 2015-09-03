@@ -654,29 +654,36 @@ class InvokeContinuation extends TailExpression {
   accept(Visitor visitor) => visitor.visitInvokeContinuation(this);
 }
 
-/// The base class of things which can be tested and branched on.
-abstract class Condition extends Node {
-}
-
-class IsTrue extends Condition {
-  final Reference<Primitive> value;
-
-  IsTrue(Primitive val) : value = new Reference<Primitive>(val);
-
-  accept(Visitor visitor) => visitor.visitIsTrue(this);
-}
-
 /// Choose between a pair of continuations based on a condition value.
 ///
 /// The two continuations must not declare any parameters.
 class Branch extends TailExpression {
-  final Condition condition;
+  final Reference<Primitive> condition;
   final Reference<Continuation> trueContinuation;
   final Reference<Continuation> falseContinuation;
 
-  Branch(this.condition, Continuation trueCont, Continuation falseCont)
-      : trueContinuation = new Reference<Continuation>(trueCont),
-        falseContinuation = new Reference<Continuation>(falseCont);
+  /// If true, only the value `true` satisfies the condition. Otherwise, any
+  /// truthy value satisfies the check.
+  ///
+  /// Non-strict checks are preferable when the condition is known to be a
+  /// boolean.
+  bool isStrictCheck;
+
+  Branch.strict(Primitive condition,
+                Continuation trueCont,
+                Continuation falseCont)
+      : this.condition = new Reference<Primitive>(condition),
+        trueContinuation = new Reference<Continuation>(trueCont),
+        falseContinuation = new Reference<Continuation>(falseCont),
+        isStrictCheck = true;
+
+  Branch.loose(Primitive condition,
+               Continuation trueCont,
+               Continuation falseCont)
+      : this.condition = new Reference<Primitive>(condition),
+        trueContinuation = new Reference<Continuation>(trueCont),
+        falseContinuation = new Reference<Continuation>(falseCont),
+        this.isStrictCheck = false;
 
   accept(Visitor visitor) => visitor.visitBranch(this);
 }
@@ -716,6 +723,8 @@ class GetField extends Primitive {
 
   bool get isSafeForElimination => objectIsNotNull;
   bool get isSafeForReordering => false;
+
+  toString() => 'GetField($field)';
 }
 
 /// Get the length of a string or native list.
@@ -865,6 +874,8 @@ class CreateInstance extends Primitive {
 
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
+
+  toString() => 'CreateInstance($classElement)';
 }
 
 class Interceptor extends Primitive {
@@ -1191,18 +1202,12 @@ abstract class Visitor<T> {
   T visitGetIndex(GetIndex node);
   T visitSetIndex(SetIndex node);
 
-  // Conditions.
-  T visitIsTrue(IsTrue node);
-
   // Support for literal foreign code.
   T visitForeignCode(ForeignCode node);
 }
 
 /// Visits all non-recursive children of a CPS term, i.e. anything
 /// not of type [Expression] or [Continuation].
-///
-/// Note that the non-recursive nodes can contain other nodes inside of them,
-/// e.g. [Branch] contains an [IsTrue] which contains a [Reference].
 ///
 /// The `process*` methods are called in pre-order for every node visited.
 /// These can be overridden without disrupting the visitor traversal.
@@ -1300,7 +1305,7 @@ class LeafVisitor implements Visitor {
     processBranch(node);
     processReference(node.trueContinuation);
     processReference(node.falseContinuation);
-    visit(node.condition);
+    processReference(node.condition);
   }
 
   processTypeCast(TypeCast node) {}
@@ -1377,12 +1382,6 @@ class LeafVisitor implements Visitor {
   visitContinuation(Continuation node) {
     processContinuation(node);
     node.parameters.forEach(visitParameter);
-  }
-
-  processIsTrue(IsTrue node) {}
-  visitIsTrue(IsTrue node) {
-    processIsTrue(node);
-    processReference(node.value);
   }
 
   processInterceptor(Interceptor node) {}

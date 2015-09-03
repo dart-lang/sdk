@@ -95,7 +95,8 @@ DEFINE_FLAG_HANDLER(CheckedModeHandler,
                     "Enable checked mode.");
 
 
-// Quick access to the locally defined isolate() method.
+// Quick access to the locally defined thread() and isolate() methods.
+#define T (thread())
 #define I (isolate())
 
 #if defined(DEBUG)
@@ -418,9 +419,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   }
 
   // Parse the message.
-  MessageSnapshotReader reader(message->data(),
-                               message->len(),
-                               I, zone);
+  MessageSnapshotReader reader(message->data(), message->len(), thread);
   const Object& msg_obj = Object::Handle(zone, reader.ReadObject());
   if (msg_obj.IsError()) {
     // An error occurred while reading the message.
@@ -508,28 +507,28 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
 
 void IsolateMessageHandler::NotifyPauseOnStart() {
   if (Service::debug_stream.enabled()) {
-    StartIsolateScope start_isolate(isolate());
-    StackZone zone(I);
-    HandleScope handle_scope(I);
-    ServiceEvent pause_event(isolate(), ServiceEvent::kPauseStart);
+    StartIsolateScope start_isolate(I);
+    StackZone zone(T);
+    HandleScope handle_scope(T);
+    ServiceEvent pause_event(I, ServiceEvent::kPauseStart);
     Service::HandleEvent(&pause_event);
   } else if (FLAG_trace_service) {
     OS::Print("vm-service: Dropping event of type PauseStart (%s)\n",
-              isolate()->name());
+              I->name());
   }
 }
 
 
 void IsolateMessageHandler::NotifyPauseOnExit() {
   if (Service::debug_stream.enabled()) {
-    StartIsolateScope start_isolate(isolate());
-    StackZone zone(I);
-    HandleScope handle_scope(I);
-    ServiceEvent pause_event(isolate(), ServiceEvent::kPauseExit);
+    StartIsolateScope start_isolate(I);
+    StackZone zone(T);
+    HandleScope handle_scope(T);
+    ServiceEvent pause_event(I, ServiceEvent::kPauseExit);
     Service::HandleEvent(&pause_event);
   } else if (FLAG_trace_service) {
     OS::Print("vm-service: Dropping event of type PauseExit (%s)\n",
-              isolate()->name());
+              I->name());
   }
 }
 
@@ -1265,6 +1264,7 @@ static void StoreError(Isolate* isolate, const Object& obj) {
 static bool RunIsolate(uword parameter) {
   Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
   IsolateSpawnState* state = NULL;
+  Thread* thread = Thread::Current();
   {
     // TODO(turnidge): Is this locking required here at all anymore?
     MutexLocker ml(isolate->mutex());
@@ -1272,8 +1272,9 @@ static bool RunIsolate(uword parameter) {
   }
   {
     StartIsolateScope start_scope(isolate);
-    StackZone zone(isolate);
-    HandleScope handle_scope(isolate);
+    ASSERT(thread->isolate() == isolate);
+    StackZone zone(thread);
+    HandleScope handle_scope(thread);
 
     // If particular values were requested for this newly spawned isolate, then
     // they are set here before the isolate starts executing user code.
@@ -1342,8 +1343,8 @@ static bool RunIsolate(uword parameter) {
     const Array& args = Array::Handle(Array::New(7));
     args.SetAt(0, SendPort::Handle(SendPort::New(state->parent_port())));
     args.SetAt(1, Instance::Handle(func.ImplicitStaticClosure()));
-    args.SetAt(2, Instance::Handle(state->BuildArgs(zone.GetZone())));
-    args.SetAt(3, Instance::Handle(state->BuildMessage(zone.GetZone())));
+    args.SetAt(2, Instance::Handle(state->BuildArgs(thread)));
+    args.SetAt(3, Instance::Handle(state->BuildMessage(thread)));
     args.SetAt(4, is_spawn_uri ? Bool::True() : Bool::False());
     args.SetAt(5, ReceivePort::Handle(
         ReceivePort::New(isolate->main_port(), true /* control port */)));
@@ -1370,9 +1371,11 @@ static void ShutdownIsolate(uword parameter) {
   {
     // Print the error if there is one.  This may execute dart code to
     // print the exception object, so we need to use a StartIsolateScope.
+    Thread* thread = Thread::Current();
     StartIsolateScope start_scope(isolate);
-    StackZone zone(isolate);
-    HandleScope handle_scope(isolate);
+    ASSERT(thread->isolate() == isolate);
+    StackZone zone(thread);
+    HandleScope handle_scope(thread);
     Error& error = Error::Handle();
     error = isolate->object_store()->sticky_error();
     if (!error.IsNull() && !error.IsUnwindError()) {
@@ -1493,11 +1496,13 @@ void Isolate::Shutdown() {
   }
 #endif  // DEBUG
 
+  Thread* thread = Thread::Current();
+
   // First, perform higher-level cleanup that may need to allocate.
   {
     // Ensure we have a zone and handle scope so that we can call VM functions.
-    StackZone stack_zone(this);
-    HandleScope handle_scope(this);
+    StackZone stack_zone(thread);
+    HandleScope handle_scope(thread);
 
     // Write out the coverage data if collection has been enabled.
     CodeCoverage::Write(this);
@@ -1521,8 +1526,8 @@ void Isolate::Shutdown() {
   {
     // Ensure we have a zone and handle scope so that we can call VM functions,
     // but we no longer allocate new heap objects.
-    StackZone stack_zone(this);
-    HandleScope handle_scope(this);
+    StackZone stack_zone(thread);
+    HandleScope handle_scope(thread);
     NoSafepointScope no_safepoint_scope;
 
     if (compiler_stats_ != NULL) {
@@ -2145,28 +2150,25 @@ void Isolate::RemoveIsolateFromList(Isolate* isolate) {
 }
 
 
-template<class T>
-T* Isolate::AllocateReusableHandle() {
-  T* handle = reinterpret_cast<T*>(reusable_handles_.AllocateScopedHandle());
-  T::initializeHandle(handle, T::null());
+template<class C>
+C* Isolate::AllocateReusableHandle() {
+  C* handle = reinterpret_cast<C*>(reusable_handles_.AllocateScopedHandle());
+  C::initializeHandle(handle, C::null());
   return handle;
 }
 
 
-static RawInstance* DeserializeObject(Isolate* isolate,
-                                      Zone* zone,
+static RawInstance* DeserializeObject(Thread* thread,
                                       uint8_t* obj_data,
                                       intptr_t obj_len) {
   if (obj_data == NULL) {
     return Instance::null();
   }
-  MessageSnapshotReader reader(obj_data,
-                               obj_len,
-                               isolate,
-                               zone);
-  const Object& obj = Object::Handle(isolate, reader.ReadObject());
+  MessageSnapshotReader reader(obj_data, obj_len, thread);
+  Zone* zone = thread->zone();
+  const Object& obj = Object::Handle(zone, reader.ReadObject());
   ASSERT(!obj.IsError());
-  Instance& instance = Instance::Handle(isolate);
+  Instance& instance = Instance::Handle(zone);
   instance ^= obj.raw();  // Can't use Instance::Cast because may be null.
   return instance.raw();
 }
@@ -2341,14 +2343,13 @@ RawObject* IsolateSpawnState::ResolveFunction() {
 }
 
 
-RawInstance* IsolateSpawnState::BuildArgs(Zone* zone) {
-  return DeserializeObject(isolate_, zone,
-                           serialized_args_, serialized_args_len_);
+RawInstance* IsolateSpawnState::BuildArgs(Thread* thread) {
+  return DeserializeObject(thread, serialized_args_, serialized_args_len_);
 }
 
 
-RawInstance* IsolateSpawnState::BuildMessage(Zone* zone) {
-  return DeserializeObject(isolate_, zone,
+RawInstance* IsolateSpawnState::BuildMessage(Thread* thread) {
+  return DeserializeObject(thread,
                            serialized_message_, serialized_message_len_);
 }
 

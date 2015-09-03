@@ -10,7 +10,7 @@ import 'dart:collection';
 
 import 'diagnostics/diagnostic_listener.dart';
 import 'diagnostics/messages.dart' show MessageKind;
-import 'scanner/scannerlib.dart' show Token;
+import 'tokens/token.dart' show Token;
 import 'tree/tree.dart';
 import 'util/characters.dart';
 

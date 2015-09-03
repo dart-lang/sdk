@@ -2,7 +2,65 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner;
+library dart2js.parser;
+
+import '../diagnostics/messages.dart' show
+    MessageKind;
+import '../tokens/keyword.dart' show
+    Keyword;
+import '../tokens/precedence.dart' show
+    PrecedenceInfo;
+import '../tokens/precedence_constants.dart' show
+    AS_INFO,
+    ASSIGNMENT_PRECEDENCE,
+    CASCADE_PRECEDENCE,
+    EQUALITY_PRECEDENCE,
+    GT_INFO,
+    GT_GT_INFO,
+    IS_INFO,
+    MINUS_MINUS_INFO,
+    OPEN_PAREN_INFO,
+    OPEN_SQUARE_BRACKET_INFO,
+    PERIOD_INFO,
+    PLUS_PLUS_INFO,
+    POSTFIX_PRECEDENCE,
+    QUESTION_INFO,
+    QUESTION_PERIOD_INFO,
+    RELATIONAL_PRECEDENCE;
+import '../tokens/token.dart' show
+    BeginGroupToken,
+    isUserDefinableOperator,
+    KeywordToken,
+    SymbolToken,
+    Token;
+import '../tokens/token_constants.dart' show
+    BAD_INPUT_TOKEN,
+    COMMA_TOKEN,
+    DOUBLE_TOKEN,
+    EOF_TOKEN,
+    EQ_TOKEN,
+    FUNCTION_TOKEN,
+    HASH_TOKEN,
+    HEXADECIMAL_TOKEN,
+    IDENTIFIER_TOKEN,
+    INT_TOKEN,
+    KEYWORD_TOKEN,
+    LT_TOKEN,
+    OPEN_CURLY_BRACKET_TOKEN,
+    OPEN_PAREN_TOKEN,
+    OPEN_SQUARE_BRACKET_TOKEN,
+    PERIOD_TOKEN,
+    SEMICOLON_TOKEN,
+    STRING_INTERPOLATION_IDENTIFIER_TOKEN,
+    STRING_INTERPOLATION_TOKEN,
+    STRING_TOKEN;
+import '../util/characters.dart' as Characters show
+    $CLOSE_CURLY_BRACKET;
+import '../util/util.dart' show
+    Link;
+
+import 'listener.dart' show
+    Listener;
 
 class FormalParameterType {
   final String type;
@@ -452,7 +510,7 @@ class Parser {
     Token endGroup = beginGroupToken.endGroup;
     if (endGroup == null) {
       return listener.unmatched(beginGroupToken);
-    } else if (!identical(endGroup.kind, $CLOSE_CURLY_BRACKET)) {
+    } else if (!identical(endGroup.kind, Characters.$CLOSE_CURLY_BRACKET)) {
       return listener.unmatched(beginGroupToken);
     }
     return beginGroupToken.endGroup;

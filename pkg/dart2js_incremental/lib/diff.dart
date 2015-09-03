@@ -19,14 +19,18 @@ import 'package:compiler/src/elements/modelx.dart' as modelx;
 import 'package:compiler/src/elements/modelx.dart' show
     DeclarationSite;
 
-import 'package:compiler/src/scanner/scannerlib.dart' show
-    EOF_TOKEN,
-    ErrorToken,
-    IDENTIFIER_TOKEN,
-    KEYWORD_TOKEN,
+import 'package:compiler/src/parser/partial_elements.dart' show
     PartialClassElement,
-    PartialElement,
+    PartialElement;
+
+import 'package:compiler/src/tokens/token.dart' show
+    ErrorToken,
     Token;
+
+import 'package:compiler/src/tokens/token_constants.dart' show
+    EOF_TOKEN,
+    IDENTIFIER_TOKEN,
+    KEYWORD_TOKEN;
 
 class Difference {
   final DeclarationSite before;

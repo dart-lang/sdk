@@ -8,6 +8,7 @@ import 'cps_ir_nodes.dart';
 import '../constants/values.dart';
 
 export 'type_propagation.dart' show TypePropagator;
+export 'scalar_replacement.dart' show ScalarReplacer;
 export 'redundant_phi.dart' show RedundantPhiEliminator;
 export 'redundant_join.dart' show RedundantJoinEliminator;
 export 'shrinking_reductions.dart' show ShrinkingReducer, ParentVisitor;

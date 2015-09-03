@@ -191,17 +191,22 @@ void AstPrinter::VisitAssignableNode(AssignableNode* node) {
 
 
 void AstPrinter::VisitAwaitNode(AwaitNode* node) {
-  VisitGenericAstNode(node);
+  ISL_Print("(*****%s***** (scope \"%p\") ", node->PrettyName(), node->scope());
+  node->VisitChildren(this);
+  ISL_Print(")");
 }
 
 
 void AstPrinter::VisitAwaitMarkerNode(AwaitMarkerNode* node) {
-  VisitGenericAstNode(node);
+  ISL_Print("(%s (async_scope \"%p\" await_scope \"%p\"))",
+            node->PrettyName(),
+            node->async_scope(),
+            node->await_scope());
 }
 
 
 void AstPrinter::VisitPrimaryNode(PrimaryNode* node) {
-  ISL_Print("*****%s***** \"%s\")",
+  ISL_Print("(*****%s***** \"%s\")",
             node->PrettyName(),
             node->primary().ToCString());
 }
@@ -506,7 +511,7 @@ void AstPrinter::PrintLocalScope(const LocalScope* scope,
 
 
 void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
-  HANDLESCOPE(Isolate::Current());
+  HANDLESCOPE(parsed_function.thread());
   const Function& function = parsed_function.function();
   SequenceNode* node_sequence = parsed_function.node_sequence();
   ASSERT(node_sequence != NULL);
@@ -558,7 +563,7 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
 
 
 void AstPrinter::PrintFunctionNodes(const ParsedFunction& parsed_function) {
-  HANDLESCOPE(Isolate::Current());
+  HANDLESCOPE(parsed_function.thread());
   SequenceNode* node_sequence = parsed_function.node_sequence();
   ASSERT(node_sequence != NULL);
   AstPrinter ast_printer;

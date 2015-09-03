@@ -17,7 +17,7 @@ import '../elements/elements.dart' show
     LocalElement;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
-import '../scanner/scannerlib.dart' show Token;
+import '../tokens/token.dart' show Token;
 import '../tree/tree.dart' show Node, Send;
 
 import 'source_file.dart';

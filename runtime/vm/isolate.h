@@ -1102,8 +1102,8 @@ class IsolateSpawnState {
   Isolate::Flags* isolate_flags() { return &isolate_flags_; }
 
   RawObject* ResolveFunction();
-  RawInstance* BuildArgs(Zone* zone);
-  RawInstance* BuildMessage(Zone* zone);
+  RawInstance* BuildArgs(Thread* thread);
+  RawInstance* BuildMessage(Thread* thread);
   void Cleanup();
 
  private:

@@ -6,7 +6,7 @@ library test.services.completion.contributor.dart.importuri;
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
-import 'package:analysis_server/src/services/completion/import_uri_contributor.dart';
+import 'package:analysis_server/src/services/completion/uri_contributor.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:path/path.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -17,15 +17,15 @@ import 'completion_test_util.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(ImportUriContributorTest);
-  defineReflectiveTests(ImportUriContributorWindowsTest);
+  defineReflectiveTests(UriContributorTest);
+  defineReflectiveTests(UriContributorWindowsTest);
 }
 
 @reflectiveTest
-class ImportUriContributorTest extends AbstractCompletionTest {
+class UriContributorTest extends AbstractCompletionTest {
   @override
   void setUpContributor() {
-    contributor = new ImportUriContributor();
+    contributor = new UriContributor();
   }
 
   test_import() {
@@ -284,10 +284,10 @@ class ImportUriContributorTest extends AbstractCompletionTest {
 }
 
 @reflectiveTest
-class ImportUriContributorWindowsTest extends AbstractCompletionTest {
+class UriContributorWindowsTest extends AbstractCompletionTest {
   @override
   void setUpContributor() {
-    contributor = new ImportUriContributor();
+    contributor = new UriContributor();
   }
 
   @override

@@ -385,7 +385,6 @@ TEST_CASE(SafepointTestDart) {
 // organized by
 // - helpers.
 TEST_CASE(SafepointTestVM) {
-  Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Mutex mutex;
   intptr_t expected_count = 0;
@@ -415,7 +414,6 @@ TEST_CASE(SafepointTestVM) {
 // - main thread, and
 // - helpers.
 TEST_CASE(SafepointTestVM2) {
-  Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Mutex mutex;
   intptr_t expected_count = 0;

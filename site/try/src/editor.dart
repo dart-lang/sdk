@@ -6,11 +6,15 @@ library trydart.editor;
 
 import 'dart:html';
 
-import 'package:compiler/src/scanner/scannerlib.dart' show
-    EOF_TOKEN,
+import 'package:compiler/src/scanner/string_scanner.dart' show
+    StringScanner;
+
+import 'package:compiler/src/tokens/token.dart' show
     ErrorToken,
-    StringScanner,
     Token;
+
+import 'package:compiler/src/tokens/token_constants.dart' show
+    EOF_TOKEN;
 
 import 'ui.dart' show
     currentTheme,

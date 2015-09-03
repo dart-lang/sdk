@@ -51,6 +51,9 @@ class DebuggerConnectionHandler {
   // from the client.
   static int StartHandler(const char* address, int port_number);
 
+  // Stops the native thread.
+  static void StopHandler();
+
   // Initializes the parts of the debugger which are needed by the vm
   // service.  This function should only be called when StartHandler
   // is not called.
