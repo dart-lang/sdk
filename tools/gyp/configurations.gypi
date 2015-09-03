@@ -39,6 +39,7 @@
   'includes': [
     'configurations_android.gypi',
     'configurations_make.gypi',
+    'configurations_openbsd.gypi',
     'configurations_xcode.gypi',
     'configurations_msvs.gypi',
   ],
