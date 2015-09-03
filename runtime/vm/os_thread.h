@@ -15,6 +15,8 @@
 #include "vm/os_thread_linux.h"
 #elif defined(TARGET_OS_MACOS)
 #include "vm/os_thread_macos.h"
+#elif defined(TARGET_OS_OPENBSD)
+#include "vm/os_thread_openbsd.h"
 #elif defined(TARGET_OS_WINDOWS)
 #include "vm/os_thread_win.h"
 #else
