@@ -248,7 +248,7 @@ void CodeCoverage::Write(Isolate* isolate) {
   JSONStream stream;
   PrintJSON(isolate, &stream, NULL, false);
 
-  const char* format = "%s/dart-cov-%" Pd "-%" Pd ".json";
+  const char* format = "%s/dart-cov-%" Pd "-%" Pd64 ".json";
   intptr_t pid = OS::ProcessId();
   intptr_t len = OS::SNPrint(NULL, 0, format,
                              FLAG_coverage_dir, pid, isolate->main_port());
