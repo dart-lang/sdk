@@ -19,41 +19,60 @@ import 'package:analyzer/src/generated/element.dart';
 class TypeHierarchyComputer {
   final SearchEngine _searchEngine;
 
+  Element _pivotElement;
   LibraryElement _pivotLibrary;
   ElementKind _pivotKind;
-  bool _pivotFieldFinal;
   String _pivotName;
+  bool _pivotFieldFinal;
+  ClassElement _pivotClass;
 
   final List<TypeHierarchyItem> _items = <TypeHierarchyItem>[];
   final List<ClassElement> _itemClassElements = <ClassElement>[];
   final Map<Element, TypeHierarchyItem> _elementItemMap =
       new HashMap<Element, TypeHierarchyItem>();
 
-  TypeHierarchyComputer(this._searchEngine);
+  TypeHierarchyComputer(this._searchEngine, this._pivotElement) {
+    _pivotLibrary = _pivotElement.library;
+    _pivotKind = _pivotElement.kind;
+    _pivotName = _pivotElement.name;
+    // try to find enclosing ClassElement
+    Element element = _pivotElement;
+    if (_pivotElement is FieldElement) {
+      _pivotFieldFinal = (_pivotElement as FieldElement).isFinal;
+      element = _pivotElement.enclosingElement;
+    }
+    if (_pivotElement is ExecutableElement) {
+      element = _pivotElement.enclosingElement;
+    }
+    if (element is ClassElement) {
+      _pivotClass = element;
+    }
+  }
 
   /**
    * Returns the computed type hierarchy, maybe `null`.
    */
-  Future<List<TypeHierarchyItem>> compute(Element element) {
-    _pivotLibrary = element.library;
-    _pivotKind = element.kind;
-    _pivotName = element.name;
-    if (element is FieldElement) {
-      _pivotFieldFinal = (element as FieldElement).isFinal;
-      element = element.enclosingElement;
-    }
-    if (element is ExecutableElement &&
-        element.enclosingElement is ClassElement) {
-      element = element.enclosingElement;
-    }
-    if (element is ClassElement) {
-      InterfaceType type = element.type;
+  Future<List<TypeHierarchyItem>> compute() {
+    if (_pivotClass != null) {
+      InterfaceType type = _pivotClass.type;
       _createSuperItem(type);
       return _createSubclasses(_items[0], 0, type).then((_) {
         return new Future.value(_items);
       });
     }
     return new Future.value(null);
+  }
+
+  /**
+   * Returns the computed super type only type hierarchy, maybe `null`.
+   */
+  List<TypeHierarchyItem> computeSuper() {
+    if (_pivotClass != null) {
+      InterfaceType type = _pivotClass.type;
+      _createSuperItem(type);
+      return _items;
+    }
+    return null;
   }
 
   Future _createSubclasses(
