@@ -1152,15 +1152,21 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
   String& init_name = String::Handle(zone,
       Symbols::FromConcat(Symbols::InitPrefix(), field_name));
 
+  Object& initializer_owner = Object::Handle(field.owner());
+  if (field.owner() != field.origin()) {
+    initializer_owner =
+        PatchClass::New(Class::Handle(field.owner()), script_cls);
+  }
+
   const Function& initializer = Function::ZoneHandle(zone,
       Function::New(init_name,
-                    RawFunction::kRegularFunction,
+                    RawFunction::kImplicitStaticFinalGetter,
                     true,   // static
                     false,  // !const
                     false,  // !abstract
                     false,  // !external
                     false,  // !native
-                    Class::Handle(field.owner()),
+                    initializer_owner,
                     field.token_pos()));
   initializer.set_result_type(AbstractType::Handle(zone, field.type()));
   // Static initializer functions are hidden from the user.
@@ -1249,6 +1255,7 @@ SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
   const Class& field_class = Class::Handle(Z, func.Owner());
   const Field& field =
       Field::ZoneHandle(Z, field_class.LookupStaticField(field_name));
+  ASSERT(!field.IsNull());
 
   // Static final fields must have an initializer.
   ExpectToken(Token::kASSIGN);

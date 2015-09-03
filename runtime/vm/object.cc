@@ -4229,13 +4229,15 @@ RawLibraryPrefix* Class::LookupLibraryPrefix(const String& name) const {
 
 
 const char* Class::ToCString() const {
-  const char* format = "%s Class: %s";
+  const char* format = "%s %sClass: %s";
   const Library& lib = Library::Handle(library());
   const char* library_name = lib.IsNull() ? "" : lib.ToCString();
+  const char* patch_prefix = is_patch() ? "Patch " : "";
   const char* class_name = String::Handle(Name()).ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, format, library_name, class_name) + 1;
+  intptr_t len =
+      OS::SNPrint(NULL, 0, format, library_name, patch_prefix, class_name) + 1;
   char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, library_name, class_name);
+  OS::SNPrint(chars, len, format, library_name, patch_prefix, class_name);
   return chars;
 }
 

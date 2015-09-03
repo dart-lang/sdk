@@ -1277,14 +1277,6 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 }
 
 
-static void CreateLocalVarDescriptors(const ParsedFunction& parsed_function) {
-  const Function& func = parsed_function.function();
-  LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle();
-  var_descs = parsed_function.node_sequence()->scope()->GetVarDescriptors(func);
-  Code::Handle(func.unoptimized_code()).set_var_descriptors(var_descs);
-}
-
-
 void Compiler::CompileStaticInitializer(const Field& field) {
   ASSERT(field.is_static());
   if (field.initializer() != Function::null()) {
@@ -1338,15 +1330,10 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
                                   parsed_function,
                                   false,  // optimized
                                   Isolate::kNoDeoptId);
-      // Eagerly create local var descriptors.
-      CreateLocalVarDescriptors(*parsed_function);
-
       initializer = parsed_function->function().raw();
     }
     // Invoke the function to evaluate the expression.
-    const Object& result = PassiveObject::Handle(
-        DartEntry::InvokeFunction(initializer, Object::empty_array()));
-    return result.raw();
+    return DartEntry::InvokeFunction(initializer, Object::empty_array());
   } else {
     Thread* const thread = Thread::Current();
     Isolate* const isolate = thread->isolate();
@@ -1410,8 +1397,6 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
                                 false,
                                 Isolate::kNoDeoptId);
 
-    // Eagerly create local var descriptors.
-    CreateLocalVarDescriptors(*parsed_function);
     const Object& result = PassiveObject::Handle(
         DartEntry::InvokeFunction(func, Object::empty_array()));
     return result.raw();
