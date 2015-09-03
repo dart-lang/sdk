@@ -406,6 +406,9 @@ void reflectType(Type t) => js.disableTreeShaking();
 
 const String DEFAULT_JS_MIRRORS_SOURCE = r'''
 disableTreeShaking(){}
+preserveMetadata(){}
+preserveUris(){}
+preserveLibraryNames(){}
 ''';
 
 const Map<String, String> DEFAULT_LOOKUP_MAP_LIBRARY = const <String, String>{

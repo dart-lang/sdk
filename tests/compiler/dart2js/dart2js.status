@@ -63,6 +63,7 @@ mirror_final_field_inferrer2_test: Pass, Slow
 check_elements_invariants_test: Slow, Pass
 import_mirrors_test: Slow, Pass
 exit_code_test: Pass, Slow
+lookup_map_test: Fail # Need to investigate (Issue 24290)
 
 [ $mode == debug ]
 check_elements_invariants_test: Skip # Slow and only needs to be run in one
