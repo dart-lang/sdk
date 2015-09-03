@@ -1062,6 +1062,11 @@ abstract class IntegrationTestMixin {
    *
    *   The offset of the name of the type within the file.
    *
+   * superOnly ( optional bool )
+   *
+   *   True if the client is only requesting superclasses and interfaces
+   *   hierarchy.
+   *
    * Returns
    *
    * hierarchyItems ( optional List<TypeHierarchyItem> )
@@ -1076,8 +1081,8 @@ abstract class IntegrationTestMixin {
    *   not represent a type, or if the file has not been sufficiently analyzed
    *   to allow a type hierarchy to be produced.
    */
-  Future<SearchGetTypeHierarchyResult> sendSearchGetTypeHierarchy(String file, int offset) {
-    var params = new SearchGetTypeHierarchyParams(file, offset).toJson();
+  Future<SearchGetTypeHierarchyResult> sendSearchGetTypeHierarchy(String file, int offset, {bool superOnly}) {
+    var params = new SearchGetTypeHierarchyParams(file, offset, superOnly: superOnly).toJson();
     return server.send("search.getTypeHierarchy", params)
         .then((result) {
       ResponseDecoder decoder = new ResponseDecoder(null);
