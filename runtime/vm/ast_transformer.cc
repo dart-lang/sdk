@@ -46,12 +46,12 @@ FOR_EACH_UNREACHABLE_NODE(DEFINE_UNREACHABLE)
 #undef DEFINE_UNREACHABLE
 
 AwaitTransformer::AwaitTransformer(SequenceNode* preamble,
-                                   LocalScope* function_top)
+                                   LocalScope* async_temp_scope)
     : preamble_(preamble),
       temp_cnt_(0),
-      function_top_(function_top),
+      async_temp_scope_(async_temp_scope),
       thread_(Thread::Current()) {
-  ASSERT(function_top_ != NULL);
+  ASSERT(async_temp_scope_ != NULL);
 }
 
 
@@ -62,18 +62,16 @@ AstNode* AwaitTransformer::Transform(AstNode* expr) {
 
 
 LocalVariable* AwaitTransformer::EnsureCurrentTempVar() {
-  const char* await_temp_prefix = ":await_temp_var_";
-  const String& cnt_str = String::ZoneHandle(
-      Z, String::NewFormatted("%s%d", await_temp_prefix, temp_cnt_));
-  const String& symbol = String::ZoneHandle(Z, Symbols::New(cnt_str));
+  String& symbol = String::ZoneHandle(Z, String::NewFormatted("%d", temp_cnt_));
+  symbol = Symbols::FromConcat(Symbols::AwaitTempVarPrefix(), symbol);
   ASSERT(!symbol.IsNull());
   // Look up the variable in the scope used for async temp variables.
-  LocalVariable* await_tmp = function_top_->LocalLookupVariable(symbol);
+  LocalVariable* await_tmp = async_temp_scope_->LocalLookupVariable(symbol);
   if (await_tmp == NULL) {
     // We need a new temp variable; add it to the function's top scope.
     await_tmp = new (Z) LocalVariable(
         Scanner::kNoSourcePos, symbol, Type::ZoneHandle(Type::DynamicType()));
-    function_top_->AddVariable(await_tmp);
+    async_temp_scope_->AddVariable(await_tmp);
     // After adding it to the top scope, we can look it up from the preamble.
     // The following call includes an ASSERT check.
     await_tmp = GetVariableInScope(preamble_->scope(), symbol);
@@ -136,8 +134,8 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   AstNode* transformed_expr = Transform(node->expr());
   LocalVariable* await_temp = AddToPreambleNewTempVar(transformed_expr);
 
-  AwaitMarkerNode* await_marker = new (Z) AwaitMarkerNode();
-  await_marker->set_scope(preamble_->scope());
+  AwaitMarkerNode* await_marker =
+      new (Z) AwaitMarkerNode(async_temp_scope_, node->scope());
   preamble_->Add(await_marker);
 
   // :result_param = _awaitHelper(
@@ -562,7 +560,7 @@ void AwaitTransformer::VisitLetNode(LetNode* node) {
   // added to a scope, and the subsequent nodes that are added to the
   // preample can access them.
   for (intptr_t i = 0; i < node->num_temps(); i++) {
-    function_top_->AddVariable(node->TempAt(i));
+    async_temp_scope_->AddVariable(node->TempAt(i));
     AstNode* new_init_val = Transform(node->InitializerAt(i));
     preamble_->Add(new(Z) StoreLocalNode(node->token_pos(),
                    node->TempAt(i),
