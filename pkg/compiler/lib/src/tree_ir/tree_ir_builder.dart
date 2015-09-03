@@ -675,6 +675,11 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return makeCallExpression(node, value);
   }
 
+  @override
+  Expression visitRefinement(cps_ir.Refinement node) {
+    throw 'Unexpected Refinement node in tree builder';
+  }
+
   /********** UNUSED VISIT METHODS *************/
 
   unexpectedNode(cps_ir.Node node) {

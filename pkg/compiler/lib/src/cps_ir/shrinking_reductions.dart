@@ -693,6 +693,10 @@ class ParentVisitor extends RecursiveVisitor {
     node.continuation.parent = node;
     node.input.parent = node;
   }
+
+  processRefinement(Refinement node) {
+    node.value.parent = node;
+  }
 }
 
 class _ReductionKind {

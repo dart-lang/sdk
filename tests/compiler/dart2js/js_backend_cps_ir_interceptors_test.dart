@@ -38,8 +38,11 @@ function() {
     if (i < 0 || i >= l.length)
       H.ioore(l, i);
     x_ = J.getInterceptor$as(x = l[i]);
-    for (j = 0; j < x_.get$length(x); j = j + 1)
-      P.print(x_.$index(x, j));
+    for (j = 0; j < x_.get$length(x); j = j + 1) {
+      if (j < 0 || j >= x.length)
+        H.ioore(x, j);
+      P.print(x[j]);
+    }
   }
 }"""),
 ];
