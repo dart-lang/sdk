@@ -25,6 +25,7 @@
       ['"<(target_arch)"=="mips"', { 'dart_target_arch': 'MIPS', }],
       ['"<(target_arch)"=="simmips"', { 'dart_target_arch': 'SIMMIPS', }],
       [ 'OS=="linux"', { 'dart_target_os': 'Linux', } ],
+      [ 'OS=="openbsd"', { 'dart_target_os': 'OpenBSD', } ],
       [ 'OS=="mac"', { 'dart_target_os': 'Macos', } ],
       [ 'OS=="win"', { 'dart_target_os': 'Win', } ],
       # The OS is set to "android" only when we are building Dartium+Clank. We
