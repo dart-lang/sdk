@@ -127,45 +127,6 @@ class BuildCompilationUnitElementTaskTest extends _AbstractDartTaskTest {
   Source source;
   LibrarySpecificUnit target;
 
-  test_buildInputs() {
-    LibrarySpecificUnit target =
-        new LibrarySpecificUnit(emptySource, emptySource);
-    Map<String, TaskInput> inputs =
-        BuildCompilationUnitElementTask.buildInputs(target);
-    expect(inputs, isNotNull);
-    expect(
-        inputs.keys,
-        unorderedEquals(
-            [BuildCompilationUnitElementTask.PARSED_UNIT_INPUT_NAME]));
-  }
-
-  test_constructor() {
-    BuildCompilationUnitElementTask task =
-        new BuildCompilationUnitElementTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_createTask() {
-    BuildCompilationUnitElementTask task =
-        BuildCompilationUnitElementTask.createTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_description() {
-    BuildCompilationUnitElementTask task =
-        new BuildCompilationUnitElementTask(null, emptySource);
-    expect(task.description, isNotNull);
-  }
-
-  test_descriptor() {
-    TaskDescriptor descriptor = BuildCompilationUnitElementTask.DESCRIPTOR;
-    expect(descriptor, isNotNull);
-  }
-
   test_perform_find_constants() {
     _performBuildTask('''
 const x = 1;
@@ -244,33 +205,6 @@ class B = Object with A;
 
 @reflectiveTest
 class BuildDirectiveElementsTaskTest extends _AbstractDartTaskTest {
-  test_constructor() {
-    BuildDirectiveElementsTask task =
-        new BuildDirectiveElementsTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_createTask() {
-    BuildDirectiveElementsTask task =
-        BuildDirectiveElementsTask.createTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_description() {
-    BuildDirectiveElementsTask task =
-        new BuildDirectiveElementsTask(null, emptySource);
-    expect(task.description, isNotNull);
-  }
-
-  test_descriptor() {
-    TaskDescriptor descriptor = BuildDirectiveElementsTask.DESCRIPTOR;
-    expect(descriptor, isNotNull);
-  }
-
   test_perform() {
     List<Source> sources = newSources({
       '/libA.dart': '''
@@ -698,33 +632,6 @@ class BuildLibraryElementTaskTest extends _AbstractDartTaskTest {
 
   LibraryElement libraryElement;
 
-  test_constructor() {
-    BuildLibraryElementTask task =
-        new BuildLibraryElementTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_createTask() {
-    BuildLibraryElementTask task =
-        BuildLibraryElementTask.createTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_description() {
-    BuildLibraryElementTask task =
-        new BuildLibraryElementTask(null, emptySource);
-    expect(task.description, isNotNull);
-  }
-
-  test_descriptor() {
-    TaskDescriptor descriptor = BuildLibraryElementTask.DESCRIPTOR;
-    expect(descriptor, isNotNull);
-  }
-
   test_perform() {
     _performBuildTask({
       '/lib.dart': '''
@@ -959,41 +866,6 @@ void set test(_) {}
 
 @reflectiveTest
 class BuildPublicNamespaceTaskTest extends _AbstractDartTaskTest {
-  test_buildInputs() {
-    Map<String, TaskInput> inputs =
-        BuildPublicNamespaceTask.buildInputs(emptySource);
-    expect(inputs, isNotNull);
-    expect(
-        inputs.keys, unorderedEquals([BuildPublicNamespaceTask.LIBRARY_INPUT]));
-  }
-
-  test_constructor() {
-    BuildPublicNamespaceTask task =
-        new BuildPublicNamespaceTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_createTask() {
-    BuildPublicNamespaceTask task =
-        BuildPublicNamespaceTask.createTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_description() {
-    BuildPublicNamespaceTask task =
-        new BuildPublicNamespaceTask(null, emptySource);
-    expect(task.description, isNotNull);
-  }
-
-  test_descriptor() {
-    TaskDescriptor descriptor = BuildPublicNamespaceTask.DESCRIPTOR;
-    expect(descriptor, isNotNull);
-  }
-
   test_perform() {
     List<Source> sources = newSources({
       '/lib.dart': '''
@@ -1576,40 +1448,6 @@ const b = 0;
 
 @reflectiveTest
 class ContainingLibrariesTaskTest extends _AbstractDartTaskTest {
-  test_buildInputs() {
-    Map<String, TaskInput> inputs =
-        ContainingLibrariesTask.buildInputs(emptySource);
-    expect(inputs, isNotNull);
-    expect(inputs, isEmpty);
-  }
-
-  test_constructor() {
-    ContainingLibrariesTask task =
-        new ContainingLibrariesTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_createTask() {
-    ContainingLibrariesTask task =
-        ContainingLibrariesTask.createTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_description() {
-    ContainingLibrariesTask task =
-        new ContainingLibrariesTask(null, emptySource);
-    expect(task.description, isNotNull);
-  }
-
-  test_descriptor() {
-    TaskDescriptor descriptor = ContainingLibrariesTask.DESCRIPTOR;
-    expect(descriptor, isNotNull);
-  }
-
   test_perform_definingCompilationUnit() {
     AnalysisTarget library = newSource('/test.dart', 'library test;');
     computeResult(library, INCLUDED_PARTS);
@@ -1652,44 +1490,6 @@ class ContainingLibrariesTaskTest extends _AbstractDartTaskTest {
 
 @reflectiveTest
 class DartErrorsTaskTest extends _AbstractDartTaskTest {
-  test_buildInputs() {
-    Map<String, TaskInput> inputs = DartErrorsTask.buildInputs(emptySource);
-    expect(inputs, isNotNull);
-    expect(
-        inputs.keys,
-        unorderedEquals([
-          DartErrorsTask.BUILD_DIRECTIVES_ERRORS_INPUT,
-          DartErrorsTask.BUILD_LIBRARY_ERRORS_INPUT,
-          DartErrorsTask.PARSE_ERRORS_INPUT,
-          DartErrorsTask.SCAN_ERRORS_INPUT,
-          DartErrorsTask.LIBRARY_UNIT_ERRORS_INPUT
-        ]));
-  }
-
-  test_constructor() {
-    DartErrorsTask task = new DartErrorsTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_createTask() {
-    DartErrorsTask task = DartErrorsTask.createTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_description() {
-    DartErrorsTask task = new DartErrorsTask(null, emptySource);
-    expect(task.description, isNotNull);
-  }
-
-  test_descriptor() {
-    TaskDescriptor descriptor = DartErrorsTask.DESCRIPTOR;
-    expect(descriptor, isNotNull);
-  }
-
   test_perform_definingCompilationUnit() {
     AnalysisTarget library =
         newSource('/test.dart', 'library test; import "dart:math";');
@@ -2301,32 +2101,6 @@ X v3;
 
 @reflectiveTest
 class LibraryUnitErrorsTaskTest extends _AbstractDartTaskTest {
-  test_constructor() {
-    LibraryUnitErrorsTask task =
-        new LibraryUnitErrorsTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_createTask() {
-    LibraryUnitErrorsTask task =
-        LibraryUnitErrorsTask.createTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_description() {
-    LibraryUnitErrorsTask task = new LibraryUnitErrorsTask(null, emptySource);
-    expect(task.description, isNotNull);
-  }
-
-  test_descriptor() {
-    TaskDescriptor descriptor = LibraryUnitErrorsTask.DESCRIPTOR;
-    expect(descriptor, isNotNull);
-  }
-
   test_perform_definingCompilationUnit() {
     AnalysisTarget library =
         newSource('/test.dart', 'library test; import "dart:math";');
@@ -2353,42 +2127,6 @@ class LibraryUnitErrorsTaskTest extends _AbstractDartTaskTest {
 @reflectiveTest
 class ParseDartTaskTest extends _AbstractDartTaskTest {
   Source source;
-
-  test_buildInputs() {
-    Map<String, TaskInput> inputs = ParseDartTask.buildInputs(emptySource);
-    expect(inputs, isNotNull);
-    expect(
-        inputs.keys,
-        unorderedEquals([
-          ParseDartTask.LINE_INFO_INPUT_NAME,
-          ParseDartTask.MODIFICATION_TIME_INPUT_NAME,
-          ParseDartTask.TOKEN_STREAM_INPUT_NAME
-        ]));
-  }
-
-  test_constructor() {
-    ParseDartTask task = new ParseDartTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_createTask() {
-    ParseDartTask task = ParseDartTask.createTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_description() {
-    ParseDartTask task = new ParseDartTask(null, emptySource);
-    expect(task.description, isNotNull);
-  }
-
-  test_descriptor() {
-    TaskDescriptor descriptor = ParseDartTask.DESCRIPTOR;
-    expect(descriptor, isNotNull);
-  }
 
   test_perform() {
     _performParseTask(r'''
@@ -2856,36 +2594,6 @@ main(p1, p2, p3, p4) {
 
 @reflectiveTest
 class ScanDartTaskTest extends _AbstractDartTaskTest {
-  test_buildInputs() {
-    Map<String, TaskInput> inputs = ScanDartTask.buildInputs(emptySource);
-    expect(inputs, isNotNull);
-    expect(inputs.keys, unorderedEquals([ScanDartTask.CONTENT_INPUT_NAME]));
-  }
-
-  test_constructor() {
-    ScanDartTask task = new ScanDartTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_createTask() {
-    ScanDartTask task = ScanDartTask.createTask(context, emptySource);
-    expect(task, isNotNull);
-    expect(task.context, context);
-    expect(task.target, emptySource);
-  }
-
-  test_description() {
-    ScanDartTask task = new ScanDartTask(null, emptySource);
-    expect(task.description, isNotNull);
-  }
-
-  test_descriptor() {
-    TaskDescriptor descriptor = ScanDartTask.DESCRIPTOR;
-    expect(descriptor, isNotNull);
-  }
-
   test_perform_errors() {
     _performScanTask('import "');
     expect(outputs, hasLength(3));
