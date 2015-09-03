@@ -1240,6 +1240,7 @@ abstract class Compiler implements DiagnosticListener {
     }
     emptyQueue(world);
     world.queueIsClosed = true;
+    backend.onQueueClosed();
     assert(compilationFailed || world.checkNoEnqueuedInvokedInstanceMethods());
   }
 

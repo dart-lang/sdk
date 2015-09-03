@@ -134,6 +134,8 @@ class MockCompiler extends Compiler {
     }
     registerSource(Uris.dart_async,
                    buildLibrarySource(asyncLibrarySource));
+    registerSource(JavaScriptBackend.PACKAGE_LOOKUP_MAP,
+                   buildLibrarySource(DEFAULT_LOOKUP_MAP_LIBRARY));
   }
 
   String get patchVersion {

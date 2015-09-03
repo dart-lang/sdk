@@ -339,6 +339,10 @@ abstract class Backend {
     return true;
   }
 
+  /// Called after the queue is closed. [onQueueEmpty] may be called multiple
+  /// times, but [onQueueClosed] is only called once.
+  void onQueueClosed() {}
+
   /// Called after [element] has been resolved.
   // TODO(johnniwinther): Change [TreeElements] to [Registry] or a dependency
   // node. [elements] is currently unused by the implementation.
