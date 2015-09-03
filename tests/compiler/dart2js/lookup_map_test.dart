@@ -42,6 +42,7 @@ main() {
   group('generic', _genericTests);
   group('metadata', _metadataTests);
   group('unsupported', _unsupportedKeysTests);
+  group('mirrors', _mirrorsTests);
 }
 
 /// Common tests for both declarations that use Types or other const expressions
@@ -341,5 +342,53 @@ _unsupportedKeysTests() {
         main() => print(map[A]);
     """);
     expect(generated, contains("the-text-for-B"));
+  });
+}
+
+_mirrorsTests() {
+  test('retain entries if mirrors keep the type', () async {
+    String generated = await compileAll("""
+        import 'dart:mirrors';
+        import 'package:lookup_map/lookup_map.dart';
+        class A {}
+        class B {}
+        class C {}
+        const map = const LookupMap(const [
+          A, "the-text-for-A",
+          B, "the-text-for-B",
+          C, "the-text-for-C",
+        ]);
+        main() {
+          reflectType(A);
+          print(map[A]);
+        }
+    """);
+    expect(generated, contains("the-text-for-A"));
+    expect(generated, contains("the-text-for-B"));
+    expect(generated, contains("the-text-for-C"));
+  });
+
+  test('exclude entries if MirrorsUsed also exclude the type', () async {
+    String generated = await compileAll("""
+        library foo;
+        @MirrorsUsed(targets: const [B])
+        import 'dart:mirrors';
+        import 'package:lookup_map/lookup_map.dart';
+        class A {}
+        class B {}
+        class C {}
+        const map = const LookupMap(const [
+          A, "the-text-for-A",
+          B, "the-text-for-B",
+          C, "the-text-for-C",
+        ]);
+        main() {
+          reflectType(A);
+          print(map[A]);
+        }
+    """);
+    expect(generated, contains("the-text-for-A"));
+    expect(generated, contains("the-text-for-B"));
+    expect(generated, isNot(contains("the-text-for-C")));
   });
 }
