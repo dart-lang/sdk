@@ -2595,9 +2595,12 @@ AstNode* Parser::ParseExternalInitializedField(const Field& field) {
   } else {
     init_expr = ParseExpr(kAllowConst, kConsumeCascades);
     if (init_expr->EvalConstExpr() != NULL) {
-      init_expr =
-          new LiteralNode(field.token_pos(),
-                          EvaluateConstExpr(expr_pos, init_expr));
+      Instance& expr_value = Instance::ZoneHandle(Z);
+      if (!GetCachedConstant(expr_pos, &expr_value)) {
+        expr_value = EvaluateConstExpr(expr_pos, init_expr).raw();
+        CacheConstantValue(expr_pos, expr_value);
+      }
+      init_expr = new(Z) LiteralNode(field.token_pos(), expr_value);
     }
   }
   set_current_class(saved_class);
@@ -2641,8 +2644,12 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
           intptr_t expr_pos = TokenPos();
           init_expr = ParseExpr(kAllowConst, kConsumeCascades);
           if (init_expr->EvalConstExpr() != NULL) {
-            init_expr = new LiteralNode(field.token_pos(),
-                                        EvaluateConstExpr(expr_pos, init_expr));
+            Instance& expr_value = Instance::ZoneHandle(Z);
+            if (!GetCachedConstant(expr_pos, &expr_value)) {
+              expr_value = EvaluateConstExpr(expr_pos, init_expr).raw();
+              CacheConstantValue(expr_pos, expr_value);
+            }
+            init_expr = new(Z) LiteralNode(field.token_pos(), expr_value);
           }
         }
       }
@@ -13046,6 +13053,11 @@ AstNode* Parser::ParseSymbolLiteral() {
     ReportError("illegal symbol literal");
   }
 
+  Instance& symbol_instance = Instance::ZoneHandle(Z);
+  if (GetCachedConstant(symbol_pos, &symbol_instance)) {
+    return new(Z) LiteralNode(symbol_pos, symbol_instance);
+  }
+
   // Call Symbol class constructor to create a symbol instance.
   const Class& symbol_class = Class::Handle(I->object_store()->symbol_class());
   ASSERT(!symbol_class.IsNull());
@@ -13065,9 +13077,9 @@ AstNode* Parser::ParseSymbolLiteral() {
                  script_, symbol_pos,
                  "error executing const Symbol constructor");
   }
-  const Instance& instance = Instance::Cast(result);
-  return new(Z) LiteralNode(symbol_pos,
-                            Instance::ZoneHandle(Z, instance.raw()));
+  symbol_instance ^= result.raw();
+  CacheConstantValue(symbol_pos, symbol_instance);
+  return new(Z) LiteralNode(symbol_pos, symbol_instance);
 }
 
 
