@@ -5275,10 +5275,18 @@ static void CreateSpecializedFunction(Zone* zone,
                                                            Heap::kOld)));
   fn.set_parameter_names(Array::Handle(zone, Array::New(kParamCount,
                                                            Heap::kOld)));
-  fn.SetParameterTypeAt(0, Type::Handle(zone, Type::DynamicType()));
-  fn.SetParameterNameAt(0, Symbols::string_param());
-  fn.SetParameterTypeAt(1, Type::Handle(zone, Type::DynamicType()));
-  fn.SetParameterNameAt(1, Symbols::start_index_param());
+  fn.SetParameterTypeAt(RegExpMacroAssembler::kParamRegExpIndex,
+                        Type::Handle(zone, Type::DynamicType()));
+  fn.SetParameterNameAt(RegExpMacroAssembler::kParamRegExpIndex,
+                        Symbols::This());
+  fn.SetParameterTypeAt(RegExpMacroAssembler::kParamStringIndex,
+                        Type::Handle(zone, Type::DynamicType()));
+  fn.SetParameterNameAt(RegExpMacroAssembler::kParamStringIndex,
+                        Symbols::string_param());
+  fn.SetParameterTypeAt(RegExpMacroAssembler::kParamStartOffsetIndex,
+                        Type::Handle(zone, Type::DynamicType()));
+  fn.SetParameterNameAt(RegExpMacroAssembler::kParamStartOffsetIndex,
+                        Symbols::start_index_param());
   fn.set_result_type(Type::Handle(zone, Type::ArrayType()));
 
   // Cache the result.

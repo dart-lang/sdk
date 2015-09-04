@@ -2022,8 +2022,6 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in R0, the argument descriptor in R4, and IC-Data in R5.
-  static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
-  __ LoadObject(R4, Array::Handle(ArgumentsDescriptor::New(arg_count)));
   __ eor(R5, R5, Operand(R5));
 
   // Tail-call the function.

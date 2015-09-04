@@ -2108,8 +2108,6 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in EAX, the argument descriptor in EDX, and IC-Data in ECX.
-  static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
-  __ LoadObject(EDX, Array::ZoneHandle(ArgumentsDescriptor::New(arg_count)));
   __ xorl(ECX, ECX);
 
   // Tail-call the function.
