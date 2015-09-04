@@ -1683,13 +1683,15 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
     case Token::kSHL:
     case Token::kSHR:
       if (left.IsSmi() && right.IsSmi() && (Smi::Cast(right).Value() >= 0)) {
-        result = Smi::Cast(left).ShiftOp(op_kind(), Smi::Cast(right));
+        result = Smi::Cast(left).ShiftOp(op_kind(),
+                                         Smi::Cast(right),
+                                         Heap::kOld);
       }
       break;
     case Token::kBIT_AND:
     case Token::kBIT_OR:
     case Token::kBIT_XOR: {
-      result = left.BitOp(op_kind(), right);
+      result = left.BitOp(op_kind(), right, Heap::kOld);
       break;
     }
     case Token::kDIV:
@@ -3459,7 +3461,7 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
         pieces.SetAt(store_index, String::Cast(obj));
       } else if (obj.IsSmi()) {
         const char* cstr = obj.ToCString();
-        pieces.SetAt(store_index, String::Handle(zone, String::New(cstr)));
+        pieces.SetAt(store_index, String::Handle(zone, Symbols::New(cstr)));
       } else if (obj.IsBool()) {
         pieces.SetAt(store_index,
             Bool::Cast(obj).value() ? Symbols::True() : Symbols::False());

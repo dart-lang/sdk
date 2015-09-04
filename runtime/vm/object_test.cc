@@ -4779,6 +4779,14 @@ TEST_CASE(Symbols_FromConcatAll) {
     const String* data[3] = { &str1, &Symbols::Dot(), &str2 };
     CheckConcatAll(data, 3);
   }
+
+  {
+    const String& empty = String::Handle(String::New(""));
+    const String* data[3] = { &Symbols::FallThroughError(),
+                              &empty,
+                              &Symbols::isPaused() };
+    CheckConcatAll(data, 3);
+  }
 }
 
 }  // namespace dart

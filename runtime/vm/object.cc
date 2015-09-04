@@ -2120,7 +2120,8 @@ void Class::SetFunctions(const Array& value) const {
 
 void Class::AddFunction(const Function& function) const {
   const Array& arr = Array::Handle(functions());
-  const Array& new_arr = Array::Handle(Array::Grow(arr, arr.Length() + 1));
+  const Array& new_arr =
+      Array::Handle(Array::Grow(arr, arr.Length() + 1, Heap::kOld));
   new_arr.SetAt(arr.Length(), function);
   StorePointer(&raw_ptr()->functions_, new_arr.raw());
   // Add to hash table, if any.
@@ -4229,13 +4230,15 @@ RawLibraryPrefix* Class::LookupLibraryPrefix(const String& name) const {
 
 
 const char* Class::ToCString() const {
-  const char* format = "%s Class: %s";
+  const char* format = "%s %sClass: %s";
   const Library& lib = Library::Handle(library());
   const char* library_name = lib.IsNull() ? "" : lib.ToCString();
+  const char* patch_prefix = is_patch() ? "Patch " : "";
   const char* class_name = String::Handle(Name()).ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, format, library_name, class_name) + 1;
+  intptr_t len =
+      OS::SNPrint(NULL, 0, format, library_name, patch_prefix, class_name) + 1;
   char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, library_name, class_name);
+  OS::SNPrint(chars, len, format, library_name, patch_prefix, class_name);
   return chars;
 }
 
@@ -7182,12 +7185,17 @@ void RedirectionData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 RawString* Field::GetterName(const String& field_name) {
-  return Field::GetterSymbol(field_name);
+  return String::Concat(Symbols::GetterPrefix(), field_name);
 }
 
 
 RawString* Field::GetterSymbol(const String& field_name) {
   return Symbols::FromConcat(Symbols::GetterPrefix(), field_name);
+}
+
+
+RawString* Field::LookupGetterSymbol(const String& field_name) {
+  return Symbols::LookupFromConcat(Symbols::GetterPrefix(), field_name);
 }
 
 
@@ -7198,6 +7206,11 @@ RawString* Field::SetterName(const String& field_name) {
 
 RawString* Field::SetterSymbol(const String& field_name) {
   return Symbols::FromConcat(Symbols::SetterPrefix(), field_name);
+}
+
+
+RawString* Field::LookupSetterSymbol(const String& field_name) {
+  return Symbols::LookupFromConcat(Symbols::SetterPrefix(), field_name);
 }
 
 
@@ -10709,9 +10722,16 @@ RawObject* Namespace::Lookup(const String& name) const {
   if (!Field::IsGetterName(name) &&
       !Field::IsSetterName(name) &&
       (obj.IsNull() || obj.IsLibraryPrefix())) {
-    obj = lib.LookupEntry(String::Handle(Field::GetterName(name)), &ignore);
+    const String& getter_name = String::Handle(Field::LookupGetterSymbol(name));
+    if (!getter_name.IsNull()) {
+      obj = lib.LookupEntry(getter_name, &ignore);
+    }
     if (obj.IsNull()) {
-      obj = lib.LookupEntry(String::Handle(Field::SetterName(name)), &ignore);
+      const String& setter_name =
+          String::Handle(Field::LookupSetterSymbol(name));
+      if (!setter_name.IsNull()) {
+        obj = lib.LookupEntry(setter_name, &ignore);
+      }
     }
   }
 
@@ -16973,7 +16993,8 @@ static bool Are64bitOperands(const Integer& op1, const Integer& op2) {
 }
 
 
-RawInteger* Integer::BitOp(Token::Kind kind, const Integer& other) const {
+RawInteger* Integer::BitOp(
+    Token::Kind kind, const Integer& other, Heap::Space space) const {
   if (IsSmi() && other.IsSmi()) {
     intptr_t op1_value = Smi::Value(Smi::RawCast(raw()));
     intptr_t op2_value = Smi::Value(Smi::RawCast(other.raw()));
@@ -16998,11 +17019,11 @@ RawInteger* Integer::BitOp(Token::Kind kind, const Integer& other) const {
     int64_t b = other.AsInt64Value();
     switch (kind) {
       case Token::kBIT_AND:
-        return Integer::New(a & b);
+        return Integer::New(a & b, space);
       case Token::kBIT_OR:
-        return Integer::New(a | b);
+        return Integer::New(a | b, space);
       case Token::kBIT_XOR:
-        return Integer::New(a ^ b);
+        return Integer::New(a ^ b, space);
       default:
         UNIMPLEMENTED();
     }
@@ -17014,6 +17035,7 @@ RawInteger* Integer::BitOp(Token::Kind kind, const Integer& other) const {
 // TODO(srdjan): Clarify handling of negative right operand in a shift op.
 RawInteger* Smi::ShiftOp(Token::Kind kind,
                          const Smi& other,
+                         Heap::Space space,
                          const bool silent) const {
   intptr_t result = 0;
   const intptr_t left_value = Value();
@@ -17028,10 +17050,10 @@ RawInteger* Smi::ShiftOp(Token::Kind kind,
         int cnt = Utils::BitLength(left_value);
         if ((cnt + right_value) > Smi::kBits) {
           if ((cnt + right_value) > Mint::kBits) {
-            return Bigint::NewFromShiftedInt64(left_value, right_value);
+            return Bigint::NewFromShiftedInt64(left_value, right_value, space);
           } else {
             int64_t left_64 = left_value;
-            return Integer::New(left_64 << right_value, Heap::kNew, silent);
+            return Integer::New(left_64 << right_value, space, silent);
           }
         }
       }

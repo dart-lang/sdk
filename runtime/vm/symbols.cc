@@ -492,6 +492,41 @@ RawString* Symbols::NewSymbol(const StringType& str) {
 }
 
 
+template<typename StringType>
+RawString* Symbols::Lookup(const StringType& str) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+  String& symbol = String::Handle(zone);
+  {
+    Isolate* vm_isolate = Dart::vm_isolate();
+    SymbolTable table(zone, vm_isolate->object_store()->symbol_table());
+    symbol ^= table.GetOrNull(str);
+    table.Release();
+  }
+  if (symbol.IsNull()) {
+    SymbolTable table(zone, isolate->object_store()->symbol_table());
+    symbol ^= table.GetOrNull(str);
+    table.Release();
+  }
+
+  ASSERT(symbol.IsNull() || symbol.IsSymbol());
+  ASSERT(symbol.IsNull() || symbol.HasHash());
+  return symbol.raw();
+}
+
+
+RawString* Symbols::LookupFromConcat(const String& str1, const String& str2) {
+  if (str1.Length() == 0) {
+    return Lookup(str2);
+  } else if (str2.Length() == 0) {
+    return Lookup(str1);
+  } else {
+    return Lookup(ConcatString(str1, str2));
+  }
+}
+
+
 RawString* Symbols::New(const String& str) {
   if (str.IsSymbol()) {
     return str.raw();

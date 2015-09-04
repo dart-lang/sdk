@@ -611,6 +611,13 @@ class Symbols : public AllStatic {
 
   static void DumpStats();
 
+  // Returns Symbol::Null if no symbol is found.
+  template<typename StringType>
+  static RawString* Lookup(const StringType& str);
+
+  // Returns Symbol::Null if no symbol is found.
+  static RawString* LookupFromConcat(const String& str1, const String& str2);
+
  private:
   enum {
     kInitialVMIsolateSymtabSize = 1024,

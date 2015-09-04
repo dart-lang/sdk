@@ -777,10 +777,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Send node,
       MethodElement function,
       _) {
-    // TODO(karlklose): support foreign functions.
-    if (compiler.backend.isForeign(function)) {
-      return giveup(node, 'handleStaticFunctionGet: foreign: $function');
-    }
     return irBuilder.buildStaticFunctionGet(function);
   }
 
@@ -1183,9 +1179,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.NodeList arguments,
       CallStructure callStructure,
       _) {
-    if (compiler.backend.isForeign(getter)) {
-      return giveup(node, 'handleStaticGetterInvoke: foreign: $getter');
-    }
     ir.Primitive target = irBuilder.buildStaticGetterGet(
         getter, sourceInformationBuilder.buildGet(node));
     return irBuilder.buildCallInvocation(target,
@@ -2261,12 +2254,12 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   internalError(ast.Node node, String message) {
-    giveup(node, message);
+    compiler.internalError(node, message);
   }
 
   @override
   visitNode(ast.Node node) {
-    internalError(node, "Unhandled node");
+    giveup(node, "Unhandled node");
   }
 
   dynamic giveup(ast.Node node, [String reason]) {

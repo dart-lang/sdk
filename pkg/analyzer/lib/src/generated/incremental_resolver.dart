@@ -13,8 +13,11 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/task/dart.dart'
     show
         HINTS,
+        INFER_STATIC_VARIABLE_TYPES_ERRORS,
+        LIBRARY_UNIT_ERRORS,
         PARSE_ERRORS,
-        RESOLVE_REFERENCES_ERRORS,
+        PARTIALLY_RESOLVE_REFERENCES_ERRORS,
+        RESOLVE_FUNCTION_BODIES_ERRORS,
         RESOLVE_TYPE_NAMES_ERRORS,
         SCAN_ERRORS,
         USED_IMPORTED_ELEMENTS,
@@ -1125,7 +1128,10 @@ class IncrementalResolver {
 
   void _shiftEntryErrors_NEW() {
     _shiftErrors_NEW(HINTS);
-    _shiftErrors_NEW(RESOLVE_REFERENCES_ERRORS);
+    _shiftErrors_NEW(INFER_STATIC_VARIABLE_TYPES_ERRORS);
+    _shiftErrors_NEW(LIBRARY_UNIT_ERRORS);
+    _shiftErrors_NEW(PARTIALLY_RESOLVE_REFERENCES_ERRORS);
+    _shiftErrors_NEW(RESOLVE_FUNCTION_BODIES_ERRORS);
     _shiftErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS);
     _shiftErrors_NEW(VARIABLE_REFERENCE_ERRORS);
     _shiftErrors_NEW(VERIFY_ERRORS);
@@ -1177,7 +1183,10 @@ class IncrementalResolver {
   }
 
   void _updateEntry_NEW() {
-    _updateErrors_NEW(RESOLVE_REFERENCES_ERRORS, _resolveErrors);
+    _updateErrors_NEW(INFER_STATIC_VARIABLE_TYPES_ERRORS, _resolveErrors);
+    _updateErrors_NEW(LIBRARY_UNIT_ERRORS, _resolveErrors);
+    _updateErrors_NEW(PARTIALLY_RESOLVE_REFERENCES_ERRORS, _resolveErrors);
+    _updateErrors_NEW(RESOLVE_FUNCTION_BODIES_ERRORS, _resolveErrors);
     _updateErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS, []);
     _updateErrors_NEW(VARIABLE_REFERENCE_ERRORS, []);
     _updateErrors_NEW(VERIFY_ERRORS, _verifyErrors);

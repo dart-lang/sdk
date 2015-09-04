@@ -1152,15 +1152,21 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
   String& init_name = String::Handle(zone,
       Symbols::FromConcat(Symbols::InitPrefix(), field_name));
 
+  Object& initializer_owner = Object::Handle(field.owner());
+  if (field.owner() != field.origin()) {
+    initializer_owner =
+        PatchClass::New(Class::Handle(field.owner()), script_cls);
+  }
+
   const Function& initializer = Function::ZoneHandle(zone,
       Function::New(init_name,
-                    RawFunction::kRegularFunction,
+                    RawFunction::kImplicitStaticFinalGetter,
                     true,   // static
                     false,  // !const
                     false,  // !abstract
                     false,  // !external
                     false,  // !native
-                    Class::Handle(field.owner()),
+                    initializer_owner,
                     field.token_pos()));
   initializer.set_result_type(AbstractType::Handle(zone, field.type()));
   // Static initializer functions are hidden from the user.
@@ -1249,6 +1255,7 @@ SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
   const Class& field_class = Class::Handle(Z, func.Owner());
   const Field& field =
       Field::ZoneHandle(Z, field_class.LookupStaticField(field_name));
+  ASSERT(!field.IsNull());
 
   // Static final fields must have an initializer.
   ExpectToken(Token::kASSIGN);
@@ -1640,7 +1647,7 @@ SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func) {
     function_object = receiver;
   } else {
     const String& getter_name = String::ZoneHandle(Z,
-        Symbols::New(String::Handle(Z, Field::GetterName(name))));
+        Symbols::New(String::Handle(Z, Field::GetterSymbol(name))));
     function_object = new(Z) InstanceCallNode(
         token_pos, receiver, getter_name, no_args);
   }
@@ -2330,14 +2337,18 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name,
   AstNode* implicit_argument = LoadReceiver(field_pos);
 
   const String& getter_name =
-      String::ZoneHandle(Z, Field::GetterName(field_name));
-  const Function& super_getter = Function::ZoneHandle(Z,
-      Resolver::ResolveDynamicAnyArgs(super_class, getter_name));
+      String::ZoneHandle(Z, Field::LookupGetterSymbol(field_name));
+  Function& super_getter = Function::ZoneHandle(Z);
+  if (!getter_name.IsNull()) {
+    super_getter = Resolver::ResolveDynamicAnyArgs(super_class, getter_name);
+  }
   if (super_getter.IsNull()) {
     const String& setter_name =
-        String::ZoneHandle(Z, Field::SetterName(field_name));
-    const Function& super_setter = Function::ZoneHandle(Z,
-        Resolver::ResolveDynamicAnyArgs(super_class, setter_name));
+        String::ZoneHandle(Z, Field::LookupSetterSymbol(field_name));
+    Function& super_setter = Function::ZoneHandle(Z);
+    if (!setter_name.IsNull()) {
+      super_setter = Resolver::ResolveDynamicAnyArgs(super_class, setter_name);
+    }
     if (super_setter.IsNull()) {
       // Check if this is an access to an implicit closure using 'super'.
       // If a function exists of the specified field_name then try
@@ -2584,9 +2595,12 @@ AstNode* Parser::ParseExternalInitializedField(const Field& field) {
   } else {
     init_expr = ParseExpr(kAllowConst, kConsumeCascades);
     if (init_expr->EvalConstExpr() != NULL) {
-      init_expr =
-          new LiteralNode(field.token_pos(),
-                          EvaluateConstExpr(expr_pos, init_expr));
+      Instance& expr_value = Instance::ZoneHandle(Z);
+      if (!GetCachedConstant(expr_pos, &expr_value)) {
+        expr_value = EvaluateConstExpr(expr_pos, init_expr).raw();
+        CacheConstantValue(expr_pos, expr_value);
+      }
+      init_expr = new(Z) LiteralNode(field.token_pos(), expr_value);
     }
   }
   set_current_class(saved_class);
@@ -2630,8 +2644,12 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
           intptr_t expr_pos = TokenPos();
           init_expr = ParseExpr(kAllowConst, kConsumeCascades);
           if (init_expr->EvalConstExpr() != NULL) {
-            init_expr = new LiteralNode(field.token_pos(),
-                                        EvaluateConstExpr(expr_pos, init_expr));
+            Instance& expr_value = Instance::ZoneHandle(Z);
+            if (!GetCachedConstant(expr_pos, &expr_value)) {
+              expr_value = EvaluateConstExpr(expr_pos, init_expr).raw();
+              CacheConstantValue(expr_pos, expr_value);
+            }
+            init_expr = new(Z) LiteralNode(field.token_pos(), expr_value);
           }
         }
       }
@@ -6347,7 +6365,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   }
 
   const GrowableObjectArray& handler_types =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
   handler_types.Add(dynamic_type);  // Catch block handles all exceptions.
 
   CatchClauseNode* catch_clause = new(Z) CatchClauseNode(
@@ -6464,7 +6482,7 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
   SequenceNode* catch_handler_list = CloseBlock();
 
   const GrowableObjectArray& handler_types =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
   handler_types.SetLength(0);
   handler_types.Add(*exception_param.type);
 
@@ -9670,7 +9688,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   try_stack_->enter_catch();
   const intptr_t handler_pos = TokenPos();
   const GrowableObjectArray& handler_types =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
   bool needs_stack_trace = false;
   SequenceNode* catch_handler_list =
       ParseCatchClauses(handler_pos,
@@ -11161,7 +11179,8 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
   ASSERT(field.is_static());
   const Class& field_owner = Class::ZoneHandle(Z, field.owner());
   const String& field_name = String::ZoneHandle(Z, field.name());
-  const String& getter_name = String::Handle(Z, Field::GetterName(field_name));
+  const String& getter_name =
+      String::Handle(Z, Field::GetterSymbol(field_name));
   const Function& getter = Function::Handle(Z,
       field_owner.LookupStaticFunction(getter_name));
   // Never load field directly if there is a getter (deterministic AST).
@@ -11556,7 +11575,7 @@ AstNode* Parser::ParseClosurization(AstNode* primary) {
       is_setter_name = true;
     }
   } else if (Token::CanBeOverloaded(CurrentToken())) {
-    extractor_name = String::New(Token::Str(CurrentToken()));
+    extractor_name = Symbols::New(Token::Str(CurrentToken()));
     ConsumeToken();
   } else {
     ReportError("identifier or operator expected");
@@ -11966,7 +11985,8 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(const Field& field,
   ASSERT(field.is_static());
   const Class& field_owner = Class::ZoneHandle(Z, field.owner());
   const String& field_name = String::ZoneHandle(Z, field.name());
-  const String& getter_name = String::Handle(Z, Field::GetterName(field_name));
+  const String& getter_name =
+      String::Handle(Z, Field::GetterSymbol(field_name));
   const Function& getter = Function::Handle(Z,
       field_owner.LookupStaticFunction(getter_name));
   const Instance& value = Instance::Handle(Z, field.value());
@@ -13033,6 +13053,11 @@ AstNode* Parser::ParseSymbolLiteral() {
     ReportError("illegal symbol literal");
   }
 
+  Instance& symbol_instance = Instance::ZoneHandle(Z);
+  if (GetCachedConstant(symbol_pos, &symbol_instance)) {
+    return new(Z) LiteralNode(symbol_pos, symbol_instance);
+  }
+
   // Call Symbol class constructor to create a symbol instance.
   const Class& symbol_class = Class::Handle(I->object_store()->symbol_class());
   ASSERT(!symbol_class.IsNull());
@@ -13052,9 +13077,9 @@ AstNode* Parser::ParseSymbolLiteral() {
                  script_, symbol_pos,
                  "error executing const Symbol constructor");
   }
-  const Instance& instance = Instance::Cast(result);
-  return new(Z) LiteralNode(symbol_pos,
-                            Instance::ZoneHandle(Z, instance.raw()));
+  symbol_instance ^= result.raw();
+  CacheConstantValue(symbol_pos, symbol_instance);
+  return new(Z) LiteralNode(symbol_pos, symbol_instance);
 }
 
 

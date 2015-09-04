@@ -753,6 +753,8 @@ CompileType ParameterInstr::ComputeType() const {
     // Set parameter types here in order to prevent unnecessary CheckClassInstr
     // from being generated.
     switch (index()) {
+      case RegExpMacroAssembler::kParamRegExpIndex:
+        return CompileType::FromCid(kJSRegExpCid);
       case RegExpMacroAssembler::kParamStringIndex:
         return CompileType::FromCid(function.string_specialization_cid());
       case RegExpMacroAssembler::kParamStartOffsetIndex:

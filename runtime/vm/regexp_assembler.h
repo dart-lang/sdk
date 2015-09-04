@@ -99,7 +99,8 @@ class RegExpMacroAssembler : public ZoneAllocated {
   static const intptr_t kTableMask = kTableSize - 1;
 
   enum {
-    kParamStringIndex = 0,
+    kParamRegExpIndex = 0,
+    kParamStringIndex,
     kParamStartOffsetIndex,
     kParamCount
   };

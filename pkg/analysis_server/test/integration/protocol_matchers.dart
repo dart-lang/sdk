@@ -629,12 +629,15 @@ final Matcher isSearchFindTopLevelDeclarationsResult = new LazyMatcher(() => new
  * {
  *   "file": FilePath
  *   "offset": int
+ *   "superOnly": optional bool
  * }
  */
 final Matcher isSearchGetTypeHierarchyParams = new LazyMatcher(() => new MatchesJsonObject(
   "search.getTypeHierarchy params", {
     "file": isFilePath,
     "offset": isInt
+  }, optionalFields: {
+    "superOnly": isBool
   }));
 
 /**

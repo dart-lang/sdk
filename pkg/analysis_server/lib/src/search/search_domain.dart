@@ -127,20 +127,34 @@ class SearchDomainHandler implements protocol.RequestHandler {
    */
   Future getTypeHierarchy(protocol.Request request) async {
     var params = new protocol.SearchGetTypeHierarchyParams.fromRequest(request);
-    await server.onAnalysisComplete;
+    String file = params.file;
+    // wait for analysis
+    if (params.superOnly == true) {
+      await server.onFileAnalysisComplete(file);
+    } else {
+      await server.onAnalysisComplete;
+    }
     // prepare element
-    List<Element> elements =
-        server.getElementsAtOffset(params.file, params.offset);
+    List<Element> elements = server.getElementsAtOffset(file, params.offset);
     if (elements.isEmpty) {
-      protocol.Response response =
-          new protocol.SearchGetTypeHierarchyResult().toResponse(request.id);
-      server.sendResponse(response);
+      _sendTypeHierarchyNull(request);
       return;
     }
     Element element = elements.first;
+    // maybe supertype hierarchy only
+    if (params.superOnly == true) {
+      TypeHierarchyComputer computer =
+          new TypeHierarchyComputer(searchEngine, element);
+      List<protocol.TypeHierarchyItem> items = computer.computeSuper();
+      protocol.Response response = new protocol.SearchGetTypeHierarchyResult(
+          hierarchyItems: items).toResponse(request.id);
+      server.sendResponse(response);
+      return;
+    }
     // prepare type hierarchy
-    TypeHierarchyComputer computer = new TypeHierarchyComputer(searchEngine);
-    List<protocol.TypeHierarchyItem> items = await computer.compute(element);
+    TypeHierarchyComputer computer =
+        new TypeHierarchyComputer(searchEngine, element);
+    List<protocol.TypeHierarchyItem> items = await computer.compute();
     protocol.Response response = new protocol.SearchGetTypeHierarchyResult(
         hierarchyItems: items).toResponse(request.id);
     server.sendResponse(response);
@@ -187,6 +201,12 @@ class SearchDomainHandler implements protocol.RequestHandler {
    */
   void _sendSearchResult(protocol.Request request, result) {
     protocol.Response response = result.toResponse(request.id);
+    server.sendResponse(response);
+  }
+
+  void _sendTypeHierarchyNull(protocol.Request request) {
+    protocol.Response response =
+        new protocol.SearchGetTypeHierarchyResult().toResponse(request.id);
     server.sendResponse(response);
   }
 

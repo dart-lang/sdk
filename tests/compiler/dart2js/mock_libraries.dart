@@ -393,11 +393,23 @@ const Map<String, String> ASYNC_AWAIT_LIBRARY = const <String, String>{
   '_asyncHelper': '_asyncHelper(o, f, c) {}',
 };
 
-const Map<String, String> DEFAULT_MIRRORS_LIBRARY = const <String, String>{
-  'Comment': 'class Comment {}',
-  'MirrorSystem': 'class MirrorSystem {}',
-  'MirrorsUsed': 'class MirrorsUsed {}',
-};
+const String DEFAULT_MIRRORS_SOURCE = r'''
+import 'dart:_js_mirrors' as js;
+class Comment {}
+class MirrorSystem {}
+class MirrorsUsed {
+  final targets;
+  const MirrorsUsed({this.targets});
+}
+void reflectType(Type t) => js.disableTreeShaking();
+''';
+
+const String DEFAULT_JS_MIRRORS_SOURCE = r'''
+disableTreeShaking(){}
+preserveMetadata(){}
+preserveUris(){}
+preserveLibraryNames(){}
+''';
 
 const Map<String, String> DEFAULT_LOOKUP_MAP_LIBRARY = const <String, String>{
   'LookupMap': r'''
