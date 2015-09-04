@@ -62,7 +62,8 @@ AstNode* AwaitTransformer::Transform(AstNode* expr) {
 
 
 LocalVariable* AwaitTransformer::EnsureCurrentTempVar() {
-  String& symbol = String::ZoneHandle(Z, String::NewFormatted("%d", temp_cnt_));
+  String& symbol =
+      String::ZoneHandle(Z, Symbols::NewFormatted("%d", temp_cnt_));
   symbol = Symbols::FromConcat(Symbols::AwaitTempVarPrefix(), symbol);
   ASSERT(!symbol.IsNull());
   // Look up the variable in the scope used for async temp variables.

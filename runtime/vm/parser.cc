@@ -3787,13 +3787,16 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       }
       ConsumeToken();  // Colon.
       ExpectToken(Token::kTHIS);
-      String& redir_name = String::ZoneHandle(Z,
-          String::Concat(members->class_name(), Symbols::Dot()));
+      GrowableHandlePtrArray<const String> pieces(Z, 3);
+      pieces.Add(members->class_name());
+      pieces.Add(Symbols::Dot());
       if (CurrentToken() == Token::kPERIOD) {
         ConsumeToken();
-        redir_name = String::Concat(redir_name,
-            *ExpectIdentifier("constructor name expected"));
+        pieces.Add(*ExpectIdentifier("constructor name expected"));
       }
+      String& redir_name =
+          String::ZoneHandle(Z, Symbols::FromConcatAll(pieces));
+
       method->redirect_name = &redir_name;
       CheckToken(Token::kLPAREN);
       SkipToMatchingParenthesis();
@@ -6727,9 +6730,9 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t async_func_pos) {
     const String& async_func_name =
         String::Handle(Z, innermost_function().name());
     String& closure_name = String::Handle(Z,
-        String::NewFormatted("<%s_async_body>", async_func_name.ToCString()));
+        Symbols::NewFormatted("<%s_async_body>", async_func_name.ToCString()));
     closure = Function::NewClosureFunction(
-        String::Handle(Z, Symbols::New(closure_name)),
+        closure_name,
         innermost_function(),
         async_func_pos);
     closure.set_is_generated_body(true);
@@ -8515,11 +8518,10 @@ static LocalVariable* LookupSavedTryContextVar(LocalScope* scope) {
 static LocalVariable* LookupAsyncSavedTryContextVar(LocalScope* scope,
                                                     uint16_t try_index) {
   const String& async_saved_try_ctx_name =
-      String::ZoneHandle(Symbols::New(String::Handle(
-          String::NewFormatted(
-              "%s%d",
-              Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
-              try_index))));
+      String::ZoneHandle(Symbols::NewFormatted(
+          "%s%d",
+          Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
+          try_index));
   LocalVariable* var = scope->LocalLookupVariable(async_saved_try_ctx_name);
   ASSERT(var != NULL);
   return var;
@@ -8591,9 +8593,8 @@ AstNode* Parser::DartPrint(const char* str) {
       Z, lib.LookupFunctionAllowPrivate(Symbols::print()));
   ASSERT(!print_fn.IsNull());
   ArgumentListNode* one_arg = new(Z) ArgumentListNode(Scanner::kNoSourcePos);
-  String& msg = String::Handle(String::NewFormatted("%s", str));
-  one_arg->Add(new(Z) LiteralNode(Scanner::kNoSourcePos,
-               String::ZoneHandle(Symbols::New(msg))));
+  String& msg = String::ZoneHandle(Symbols::NewFormatted("%s", str));
+  one_arg->Add(new(Z) LiteralNode(Scanner::kNoSourcePos, msg));
   AstNode* print_call =
       new(Z) StaticCallNode(Scanner::kNoSourcePos, print_fn, one_arg);
   return print_call;
@@ -9543,10 +9544,9 @@ SequenceNode* Parser::ParseCatchClauses(
 
 void Parser::SetupSavedTryContext(LocalVariable* saved_try_context) {
   const String& async_saved_try_ctx_name = String::ZoneHandle(Z,
-      Symbols::New(String::Handle(Z,
-          String::NewFormatted("%s%d",
-                               Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
-                               last_used_try_index_ - 1))));
+      Symbols::NewFormatted("%s%d",
+                           Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
+                           last_used_try_index_ - 1));
   LocalVariable* async_saved_try_ctx = new (Z) LocalVariable(
       Scanner::kNoSourcePos,
       async_saved_try_ctx_name,
@@ -11947,12 +11947,17 @@ bool Parser::GetCachedConstant(intptr_t token_pos, Instance* value) {
   // We don't want to allocate anything in the heap here since this code
   // is called from the optimizing compiler in the background thread. Allocate
   // the key value in the zone instead.
-  const char* key = Z->PrintToString("%s_%" Pd "",
-      String::Handle(Z, script_.url()).ToCString(),
-      token_pos);
+  // const char* key = Z->PrintToString("%s_%" Pd "",
+  //     String::Handle(Z, script_.url()).ToCString(),
+  //    token_pos);
+
+  const String& key = String::Handle(Z,
+      Symbols::NewFormatted("%s_%" Pd "",
+          String::Handle(Z, script_.url()).ToCString(),
+          token_pos));
   ConstantsMap constants(isolate()->object_store()->compile_time_constants());
   bool is_present = false;
-  *value ^= constants.GetOrNull<const char *>(key, &is_present);
+  *value ^= constants.GetOrNull(key, &is_present);
   ASSERT(constants.Release().raw() ==
       isolate()->object_store()->compile_time_constants());
   if (FLAG_compiler_stats && is_present) {
@@ -12068,7 +12073,8 @@ RawObject* Parser::EvaluateConstConstructorCall(
   // Constructors have 2 extra arguments: rcvr and construction phase.
   const int kNumExtraArgs = constructor.IsFactory() ? 1 : 2;
   const int num_arguments = arguments->length() + kNumExtraArgs;
-  const Array& arg_values = Array::Handle(Z, Array::New(num_arguments));
+  const Array& arg_values =
+      Array::Handle(Z, Array::New(num_arguments, Heap::kOld));
   Instance& instance = Instance::Handle(Z);
   if (!constructor.IsFactory()) {
     instance = Instance::New(type_class, Heap::kOld);
@@ -13036,22 +13042,25 @@ AstNode* Parser::ParseSymbolLiteral() {
   ASSERT(CurrentToken() == Token::kHASH);
   ConsumeToken();
   intptr_t symbol_pos = TokenPos();
-  String& symbol = String::Handle(Z);
+  String& symbol = String::ZoneHandle(Z);
   if (IsIdentifier()) {
     symbol = CurrentLiteral()->raw();
     ConsumeToken();
+    GrowableHandlePtrArray<const String> pieces(Z, 3);
+    pieces.Add(symbol);
     while (CurrentToken() == Token::kPERIOD) {
-      symbol = String::Concat(symbol, Symbols::Dot());
+      pieces.Add(Symbols::Dot());
       ConsumeToken();
-      symbol = String::Concat(symbol,
-                              *ExpectIdentifier("identifier expected"));
+      pieces.Add(*ExpectIdentifier("identifier expected"));
     }
+    symbol = Symbols::FromConcatAll(pieces);
   } else if (Token::CanBeOverloaded(CurrentToken())) {
-    symbol = String::New(Token::Str(CurrentToken()));
+    symbol = Symbols::New(Token::Str(CurrentToken()));
     ConsumeToken();
   } else {
     ReportError("illegal symbol literal");
   }
+  ASSERT(symbol.IsSymbol());
 
   Instance& symbol_instance = Instance::ZoneHandle(Z);
   if (GetCachedConstant(symbol_pos, &symbol_instance)) {
@@ -13062,8 +13071,7 @@ AstNode* Parser::ParseSymbolLiteral() {
   const Class& symbol_class = Class::Handle(I->object_store()->symbol_class());
   ASSERT(!symbol_class.IsNull());
   ArgumentListNode* constr_args = new(Z) ArgumentListNode(symbol_pos);
-  constr_args->Add(new(Z) LiteralNode(
-      symbol_pos, String::ZoneHandle(Z, Symbols::New(symbol))));
+  constr_args->Add(new(Z) LiteralNode(symbol_pos, symbol));
   const Function& constr = Function::ZoneHandle(Z,
       symbol_class.LookupConstructor(Symbols::SymbolCtor()));
   ASSERT(!constr.IsNull());
@@ -13358,7 +13366,11 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         // The type arguments of the redirection type are instantiated from the
         // type arguments of the parsed type of the 'new' or 'const' expression.
         Error& error = Error::Handle(Z);
-        redirect_type ^= redirect_type.InstantiateFrom(type_arguments, &error);
+        redirect_type ^= redirect_type.InstantiateFrom(
+            type_arguments,
+            &error,
+            NULL,  // trail
+            Heap::kOld);
         if (!error.IsNull()) {
           redirect_type = ClassFinalizer::NewFinalizedMalformedType(
               error,

@@ -2281,12 +2281,12 @@ void Class::AddClosureFunction(const Function& function) const {
   GrowableObjectArray& closures =
       GrowableObjectArray::Handle(raw_ptr()->closure_functions_);
   if (closures.IsNull()) {
-    closures = GrowableObjectArray::New(4);
+    closures = GrowableObjectArray::New(4, Heap::kOld);
     StorePointer(&raw_ptr()->closure_functions_, closures.raw());
   }
   ASSERT(function.IsNonImplicitClosureFunction());
   ASSERT(function.Owner() == this->raw());
-  closures.Add(function);
+  closures.Add(function, Heap::kOld);
 }
 
 
@@ -7472,6 +7472,7 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddLocation(script, token_pos());
   }
 }
+
 
 // Build a closure object that gets (or sets) the contents of a static
 // field f and cache the closure in a newly created static field
