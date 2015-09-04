@@ -185,10 +185,6 @@ void CodeCoverage::PrintClass(const Library& lib,
         continue;
       }
       CompileAndAdd(function, hits_or_sites, pos_to_line, as_call_sites);
-      if (function.HasImplicitClosureFunction()) {
-        function = function.ImplicitClosureFunction();
-        CompileAndAdd(function, hits_or_sites, pos_to_line, as_call_sites);
-      }
       i++;
     }
   }
