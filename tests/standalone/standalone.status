@@ -197,6 +197,9 @@ io/observatory_test: Crash # (static Iterable<Str...  cannot handle sync*/async*
 io/skipping_dart2js_compilations_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 priority_queue_stress_test: RuntimeError # Cannot read property 'length' of undefined
 
+[ $compiler == dart2js ]
+io/observatory_test: Crash # Issue 24291
+
 [ $runtime == vm ]
 # Failures in secure networking while NSS is replaced with BoringSSL
 io/https_client_certificate_test: RuntimeError # Issue 24070
