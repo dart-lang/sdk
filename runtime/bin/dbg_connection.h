@@ -20,6 +20,8 @@
 #include "bin/dbg_connection_linux.h"
 #elif defined(TARGET_OS_MACOS)
 #include "bin/dbg_connection_macos.h"
+#elif defined(TARGET_OS_OPENBSD)
+#include "bin/dbg_connection_openbsd.h"
 #elif defined(TARGET_OS_WINDOWS)
 #include "bin/dbg_connection_win.h"
 #else
