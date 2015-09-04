@@ -107,6 +107,7 @@ analyzer/test/src/task/incremental_element_builder_test: Pass, Slow # Issue 2162
 analyzer/test/src/task/inputs_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/manager_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/model_test: Pass, Slow # Issue 21628
+lookup_map/test/version_check_test: SkipByDesign # Only meant to run in vm.
 
 [ $runtime == jsshell ]
 async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
