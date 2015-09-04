@@ -67,6 +67,15 @@
             ],
           },
         }],
+        ['OS=="openbsd"', {
+          'link_settings': {
+            'libraries': [
+              '-lpthread',
+              '-lrt',
+              '-ldl',
+            ],
+          },
+        }],	
         ['OS=="android" and _toolset=="host"', {
           'link_settings': {
             'libraries': [
@@ -137,6 +146,15 @@
             ],
           },
         }],
+        ['OS=="openbsd"', {
+          'link_settings': {
+            'libraries': [
+              '-lpthread',
+              '-lrt',
+              '-ldl',
+            ],
+          },
+        }],	
         ['OS=="android" and _toolset=="host"', {
           'link_settings': {
             'libraries': [
