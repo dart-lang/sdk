@@ -385,9 +385,8 @@ void Scanner::ScanNumber(bool dec_point_seen) {
   }
   if (current_token_.kind != Token::kILLEGAL) {
     intptr_t len = lookahead_pos_ - token_start_;
-    String& str = String::ZoneHandle(Z,
-        String::SubString(source_, token_start_, len, Heap::kOld));
-    str = Symbols::New(str);
+    const String& str =
+        String::ZoneHandle(Z, Symbols::New(source_, token_start_, len));
     current_token_.literal = &str;
   }
 }

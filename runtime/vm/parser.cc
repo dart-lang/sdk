@@ -466,8 +466,6 @@ void Parser::ComputeCurrentToken() {
 
 
 Token::Kind Parser::LookaheadToken(int num_tokens) {
-  INC_STAT(I, num_tokens_lookahead, 1);
-  INC_STAT(I, num_token_checks, 1);
   return tokens_iterator_.LookaheadTokenKind(num_tokens);
 }
 
@@ -804,25 +802,26 @@ class TopLevel : public ValueObject {
 
 
 void Parser::ParseClass(const Class& cls) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const int64_t num_tokes_before = STAT_VALUE(thread, num_tokens_consumed);
   if (!cls.is_synthesized_class()) {
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-    CSTAT_TIMER_SCOPE(thread, parser_timer);
     ASSERT(thread->long_jump_base()->IsSafeToJump());
+    CSTAT_TIMER_SCOPE(thread, parser_timer);
     const Script& script = Script::Handle(zone, cls.script());
     const Library& lib = Library::Handle(zone, cls.library());
     Parser parser(script, lib, cls.token_pos());
     parser.ParseClassDefinition(cls);
   } else if (cls.is_enum_class()) {
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-    CSTAT_TIMER_SCOPE(thread, parser_timer);
     ASSERT(thread->long_jump_base()->IsSafeToJump());
+    CSTAT_TIMER_SCOPE(thread, parser_timer);
     const Script& script = Script::Handle(zone, cls.script());
     const Library& lib = Library::Handle(zone, cls.library());
     Parser parser(script, lib, cls.token_pos());
     parser.ParseEnumDefinition(cls);
   }
+  const int64_t num_tokes_after = STAT_VALUE(thread, num_tokens_consumed);
+  INC_STAT(thread, num_class_tokens, num_tokes_after - num_tokes_before);
 }
 
 
@@ -909,10 +908,9 @@ bool Parser::ParseFormalParameters(const Function& func, ParamList* params) {
 void Parser::ParseFunction(ParsedFunction* parsed_function) {
   Thread* thread = parsed_function->thread();
   ASSERT(thread == Thread::Current());
-  Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
   CSTAT_TIMER_SCOPE(thread, parser_timer);
-  INC_STAT(isolate, num_functions_compiled, 1);
+  INC_STAT(thread, num_functions_parsed, 1);
   VMTagScope tagScope(thread, VMTag::kCompileParseFunctionTagId,
                       FLAG_profile_vm);
 
@@ -956,10 +954,11 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       break;
     case RawFunction::kImplicitStaticFinalGetter:
       node_sequence = parser.ParseStaticFinalGetter(func);
-      INC_STAT(isolate, num_implicit_final_getters, 1);
+      INC_STAT(thread, num_implicit_final_getters, 1);
       break;
     case RawFunction::kMethodExtractor:
       node_sequence = parser.ParseMethodExtractor(func);
+      INC_STAT(thread, num_method_extractors, 1);
       break;
     case RawFunction::kNoSuchMethodDispatcher:
       node_sequence =
@@ -1195,47 +1194,6 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
   ASSERT(!parser.IsInstantiatorRequired());
 
   return parsed_function;
-}
-
-
-RawObject* Parser::ParseFunctionFromSource(const Class& owning_class,
-                                           const String& source) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  StackZone stack_zone(thread);
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    const String& uri = String::Handle(Symbols::New("dynamically-added"));
-    const Script& script = Script::Handle(
-        Script::New(uri, source, RawScript::kSourceTag));
-    const Library& owning_library = Library::Handle(owning_class.library());
-    const String& private_key = String::Handle(owning_library.private_key());
-    script.Tokenize(private_key);
-    const intptr_t token_pos = 0;
-    Parser parser(script, owning_library, token_pos);
-    parser.is_top_level_ = true;
-    parser.set_current_class(owning_class);
-    const String& class_name = String::Handle(owning_class.Name());
-    ClassDesc members(stack_zone.GetZone(),
-                      owning_class,
-                      class_name,
-                      false,  /* is_interface */
-                      token_pos);
-    const intptr_t metadata_pos = parser.SkipMetadata();
-    parser.ParseClassMemberDefinition(&members, metadata_pos);
-    ASSERT(members.functions().length() == 1);
-    const Function& func = *members.functions().At(0);
-    func.set_eval_script(script);
-    ParsedFunction* parsed_function = new ParsedFunction(thread, func);
-    Parser::ParseFunction(parsed_function);
-    return func.raw();
-  } else {
-    const Error& error = Error::Handle(isolate->object_store()->sticky_error());
-    isolate->object_store()->clear_sticky_error();
-    return error.raw();
-  }
-  UNREACHABLE();
-  return Object::null();
 }
 
 
@@ -4653,7 +4611,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
 
 void Parser::ParseClassDefinition(const Class& cls) {
   TRACE_PARSER("ParseClassDefinition");
-  INC_STAT(I, num_classes_compiled, 1);
+  INC_STAT(thread(), num_classes_parsed, 1);
   set_current_class(cls);
   is_top_level_ = true;
   String& class_name = String::Handle(Z, cls.Name());
@@ -4713,7 +4671,7 @@ void Parser::ParseClassDefinition(const Class& cls) {
 
 void Parser::ParseEnumDefinition(const Class& cls) {
   TRACE_PARSER("ParseEnumDefinition");
-  INC_STAT(I, num_classes_compiled, 1);
+  INC_STAT(thread(), num_classes_parsed, 1);
 
   SkipMetadata();
   ExpectToken(Token::kENUM);
@@ -7691,6 +7649,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
 
   // Parse the local function.
   SequenceNode* statements = Parser::ParseFunc(function);
+  INC_STAT(thread(), num_functions_parsed, 1);
 
   // Now that the local function has formal parameters, lookup the signature
   // class in the current library (but not in its imports) and only create a new

@@ -211,10 +211,6 @@ class Parser : public ValueObject {
   // given static field.
   static ParsedFunction* ParseStaticFieldInitializer(const Field& field);
 
-  // Returns a RawFunction or RawError.
-  static RawObject* ParseFunctionFromSource(const Class& owning_class,
-                                            const String& source);
-
   // Parse a function to retrieve parameter information that is not retained in
   // the dart::Function object. Returns either an error if the parse fails
   // (which could be the case for local functions), or a flat array of entries
@@ -303,7 +299,6 @@ class Parser : public ValueObject {
     if (token_kind_ == Token::kILLEGAL) {
       ComputeCurrentToken();
     }
-    INC_STAT(isolate_, num_token_checks, 1);
     return token_kind_;
   }
 
@@ -323,7 +318,7 @@ class Parser : public ValueObject {
     // Reset cache and advance the token.
     token_kind_ = Token::kILLEGAL;
     tokens_iterator_.Advance();
-    INC_STAT(isolate_, num_tokens_consumed, 1);
+    INC_STAT(thread(), num_tokens_consumed, 1);
   }
   void ConsumeRightAngleBracket();
   void CheckToken(Token::Kind token_expected, const char* msg = NULL);

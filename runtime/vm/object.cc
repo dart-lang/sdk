@@ -6877,7 +6877,7 @@ void Function::SaveICDataMap(
     set_ic_data_array(Object::empty_array());
   } else {
     const Array& a = Array::Handle(Array::New(count, Heap::kOld));
-    INC_STAT(Isolate::Current(), total_code_size, count * sizeof(uword));
+    INC_STAT(Thread::Current(), total_code_size, count * sizeof(uword));
     count = 0;
     for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
       if (deopt_id_to_ic_data[i] != NULL) {
@@ -8575,7 +8575,6 @@ void Script::set_tokens(const TokenStream& value) const {
 void Script::Tokenize(const String& private_key) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   const TokenStream& tkns = TokenStream::Handle(zone, tokens());
   if (!tkns.IsNull()) {
     // Already tokenized.
@@ -8589,7 +8588,7 @@ void Script::Tokenize(const String& private_key) const {
   set_tokens(TokenStream::Handle(zone,
                                  TokenStream::New(scanner.GetStream(),
                                                   private_key)));
-  INC_STAT(isolate, src_length, src.Length());
+  INC_STAT(thread, src_length, src.Length());
 }
 
 
@@ -11106,15 +11105,14 @@ void PcDescriptors::CopyData(GrowableArray<uint8_t>* delta_encoded_data) {
 RawPcDescriptors* PcDescriptors::New(GrowableArray<uint8_t>* data) {
   ASSERT(Object::pc_descriptors_class() != Class::null());
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   PcDescriptors& result = PcDescriptors::Handle(thread->zone());
   {
     uword size = PcDescriptors::InstanceSize(data->length());
     RawObject* raw = Object::Allocate(PcDescriptors::kClassId,
                                       size,
                                       Heap::kOld);
-    INC_STAT(isolate, total_code_size, size);
-    INC_STAT(isolate, pc_desc_size, size);
+    INC_STAT(thread, total_code_size, size);
+    INC_STAT(thread, pc_desc_size, size);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(data->length());
@@ -11127,15 +11125,14 @@ RawPcDescriptors* PcDescriptors::New(GrowableArray<uint8_t>* data) {
 RawPcDescriptors* PcDescriptors::New(intptr_t length) {
   ASSERT(Object::pc_descriptors_class() != Class::null());
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   PcDescriptors& result = PcDescriptors::Handle(thread->zone());
   {
     uword size = PcDescriptors::InstanceSize(length);
     RawObject* raw = Object::Allocate(PcDescriptors::kClassId,
                                       size,
                                       Heap::kOld);
-    INC_STAT(isolate, total_code_size, size);
-    INC_STAT(isolate, pc_desc_size, size);
+    INC_STAT(thread, total_code_size, size);
+    INC_STAT(thread, pc_desc_size, size);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(length);
@@ -11585,8 +11582,8 @@ RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
     RawObject* raw = Object::Allocate(LocalVarDescriptors::kClassId,
                                       size,
                                       Heap::kOld);
-    INC_STAT(Isolate::Current(), total_code_size, size);
-    INC_STAT(Isolate::Current(), vardesc_size, size);
+    INC_STAT(Thread::Current(), total_code_size, size);
+    INC_STAT(Thread::Current(), vardesc_size, size);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(&result.raw_ptr()->num_entries_, num_variables);
@@ -12727,7 +12724,7 @@ void Code::set_is_alive(bool value) const {
 void Code::set_stackmaps(const Array& maps) const {
   ASSERT(maps.IsOld());
   StorePointer(&raw_ptr()->stackmaps_, maps.raw());
-  INC_STAT(Isolate::Current(),
+  INC_STAT(Thread::Current(),
            total_code_size,
            maps.IsNull() ? 0 : maps.Length() * sizeof(uword));
 }
@@ -13031,8 +13028,8 @@ RawCode* Code::FinalizeCode(const char* name,
   Code& code = Code::ZoneHandle(Code::New(pointer_offset_count));
   Instructions& instrs =
       Instructions::ZoneHandle(Instructions::New(assembler->CodeSize()));
-  INC_STAT(isolate, total_instr_size, assembler->CodeSize());
-  INC_STAT(isolate, total_code_size, assembler->CodeSize());
+  INC_STAT(Thread::Current(), total_instr_size, assembler->CodeSize());
+  INC_STAT(Thread::Current(), total_code_size, assembler->CodeSize());
 
   // Copy the instructions into the instruction area and apply all fixups.
   // Embedded pointers are still in handles at this point.
@@ -13072,7 +13069,7 @@ RawCode* Code::FinalizeCode(const char* name,
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
-    INC_STAT(isolate,
+    INC_STAT(Thread::Current(),
              total_code_size, object_pool.Length() * sizeof(uintptr_t));
     instrs.set_object_pool(object_pool.raw());
 
@@ -13093,7 +13090,7 @@ RawCode* Code::FinalizeCode(const char* name,
     // pushed onto the stack.
     code.SetPrologueOffset(assembler->CodeSize());
   }
-  INC_STAT(isolate,
+  INC_STAT(Thread::Current(),
            total_code_size, code.comments().comments_.Length());
   return code.raw();
 }

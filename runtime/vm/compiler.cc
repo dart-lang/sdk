@@ -724,26 +724,26 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         // FinalizeCode.
         const Array& deopt_info_array =
             Array::Handle(zone, graph_compiler.CreateDeoptInfo(&assembler));
-        INC_STAT(isolate, total_code_size,
+        INC_STAT(thread, total_code_size,
                  deopt_info_array.Length() * sizeof(uword));
         const Code& code = Code::Handle(
             Code::FinalizeCode(function, &assembler, optimized));
         code.set_is_optimized(optimized);
 
         const Array& intervals = graph_compiler.inlined_code_intervals();
-        INC_STAT(isolate, total_code_size,
+        INC_STAT(thread, total_code_size,
                  intervals.Length() * sizeof(uword));
         code.SetInlinedIntervals(intervals);
 
         const Array& inlined_id_array =
             Array::Handle(zone, graph_compiler.InliningIdToFunction());
-        INC_STAT(isolate, total_code_size,
+        INC_STAT(thread, total_code_size,
                  inlined_id_array.Length() * sizeof(uword));
         code.SetInlinedIdToFunction(inlined_id_array);
 
         const Array& caller_inlining_id_map_array =
             Array::Handle(zone, graph_compiler.CallerInliningIdMap());
-        INC_STAT(isolate, total_code_size,
+        INC_STAT(thread, total_code_size,
                  caller_inlining_id_map_array.Length() * sizeof(uword));
         code.SetInlinedCallerIdMap(caller_inlining_id_map_array);
 
@@ -1046,9 +1046,18 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                 function.token_pos(),
                 (function.end_token_pos() - function.token_pos()));
     }
+    INC_STAT(thread, num_functions_compiled, 1);
+    if (optimized) {
+      INC_STAT(thread, num_functions_optimized, 1);
+    }
     {
       HANDLESCOPE(thread);
+      const int64_t num_tokens_before = STAT_VALUE(thread, num_tokens_consumed);
       pipeline->ParseFunction(parsed_function);
+      const int64_t num_tokens_after = STAT_VALUE(thread, num_tokens_consumed);
+      INC_STAT(thread,
+               num_func_tokens_compiled,
+               num_tokens_after - num_tokens_before);
     }
 
     const bool success = CompileParsedFunctionHelper(pipeline,

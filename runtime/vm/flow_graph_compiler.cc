@@ -902,9 +902,12 @@ void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
   const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
       exception_handlers_list_->FinalizeExceptionHandlers(code.EntryPoint()));
   code.set_exception_handlers(handlers);
-  INC_STAT(isolate(), total_code_size,
-      ExceptionHandlers::InstanceSize(handlers.num_entries()));
-  INC_STAT(isolate(), total_code_size, handlers.num_entries() * sizeof(uword));
+  if (FLAG_compiler_stats) {
+    Thread* thread = Thread::Current();
+    INC_STAT(thread, total_code_size,
+        ExceptionHandlers::InstanceSize(handlers.num_entries()));
+    INC_STAT(thread, total_code_size, handlers.num_entries() * sizeof(uword));
+  }
 }
 
 
@@ -1012,7 +1015,9 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
     }
   }
   code.set_static_calls_target_table(targets);
-  INC_STAT(isolate(), total_code_size, targets.Length() * sizeof(uword));
+  INC_STAT(Thread::Current(),
+           total_code_size,
+           targets.Length() * sizeof(uword));
 }
 
 
