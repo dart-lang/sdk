@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_ANDROID)
+#if defined(TARGET_OS_OPENBSD)
 
 #include "bin/thread.h"
 
@@ -146,7 +146,7 @@ intptr_t Thread::GetMaxStackSize() {
 
 
 ThreadId Thread::GetCurrentThreadId() {
-  return gettid();
+  return pthread_self();
 }
 
 
@@ -157,12 +157,12 @@ bool Thread::Join(ThreadId id) {
 
 intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
   ASSERT(sizeof(id) == sizeof(intptr_t));
-  return static_cast<intptr_t>(id);
+  return reinterpret_cast<intptr_t>(id);
 }
 
 
 bool Thread::Compare(ThreadId a, ThreadId b) {
-  return a == b;
+  return pthread_equal(a, b) != 0;
 }
 
 
@@ -330,4 +330,4 @@ void Monitor::NotifyAll() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_ANDROID)
+#endif  // defined(TARGET_OS_OPENBSD)

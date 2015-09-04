@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_THREAD_ANDROID_H_
-#define BIN_THREAD_ANDROID_H_
+#ifndef BIN_THREAD_OPENBSD_H_
+#define BIN_THREAD_OPENBSD_H_
 
 #if !defined(BIN_THREAD_H_)
-#error Do not include thread_android.h directly; use thread.h instead.
+#error Do not include thread_openbsd.h directly; use thread.h instead.
 #endif
 
 #include <pthread.h>
@@ -74,4 +74,4 @@ class MonitorData {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_THREAD_ANDROID_H_
+#endif  // BIN_THREAD_OPENBSD_H_
