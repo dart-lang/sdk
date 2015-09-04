@@ -20,6 +20,7 @@ class LongJumpScope;
 class Object;
 class RawBool;
 class RawObject;
+class RawString;
 class RuntimeEntry;
 class StackResource;
 class TimelineEventBlock;
@@ -34,6 +35,8 @@ class Zone;
 #define CACHED_ADDRESSES_LIST(V)                                               \
   V(uword, update_store_buffer_entry_point_,                                   \
     StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
+  V(RawString**, predefined_symbols_address_,                                  \
+    Symbols::PredefinedAddress(), NULL)                                        \
 
 #define CACHED_CONSTANTS_LIST(V)                                               \
   CACHED_VM_OBJECTS_LIST(V)                                                    \

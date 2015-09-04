@@ -1736,12 +1736,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ ldr(R1, Address(R0, R1), kUnsignedByte);
   __ CompareImmediate(R1, Symbols::kNumberOfOneCharCodeSymbols);
   __ b(&fall_through, GE);
-  const ExternalLabel symbols_label(
-      reinterpret_cast<uword>(Symbols::PredefinedAddress()));
-  __ TagAndPushPP();
-  __ LoadPoolPointer();
-  __ LoadExternalLabel(R0, &symbols_label);
-  __ PopAndUntagPP();
+  __ ldr(R0, Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddImmediate(
       R0, R0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ ldr(R0, Address(R0, R1, UXTX, Address::Scaled));
@@ -1755,10 +1750,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ ldr(R1, Address(R0, R1), kUnsignedHalfword);
   __ CompareImmediate(R1, Symbols::kNumberOfOneCharCodeSymbols);
   __ b(&fall_through, GE);
-  __ TagAndPushPP();
-  __ LoadPoolPointer();
-  __ LoadExternalLabel(R0, &symbols_label);
-  __ PopAndUntagPP();
+  __ ldr(R0, Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddImmediate(
       R0, R0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ ldr(R0, Address(R0, R1, UXTX, Address::Scaled));

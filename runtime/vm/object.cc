@@ -11060,10 +11060,6 @@ static const char* DescribeExternalLabel(uword addr) {
     return "link native";
   }
 
-  if (addr == reinterpret_cast<uword>(Symbols::PredefinedAddress())) {
-    return "predefined symbols";
-  }
-
   return "UNKNOWN";
 }
 

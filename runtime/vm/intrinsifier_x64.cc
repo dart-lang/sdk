@@ -1608,14 +1608,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ movzxb(RCX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
   __ cmpq(RCX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
   __ j(GREATER_EQUAL, &fall_through);
-  const ExternalLabel symbols_label(
-      reinterpret_cast<uword>(Symbols::PredefinedAddress()));
-  __ pushq(PP);
-  __ LoadPoolPointer();
-  assembler->set_constant_pool_allowed(true);
-  __ LoadExternalLabel(RAX, &symbols_label, kNotPatchable);
-  assembler->set_constant_pool_allowed(false);
-  __ popq(PP);
+  __ movq(RAX, Address(THR, Thread::predefined_symbols_address_offset()));
   __ movq(RAX, Address(RAX,
                        RCX,
                        TIMES_8,
@@ -1629,12 +1622,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ movzxw(RCX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
   __ cmpq(RCX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
   __ j(GREATER_EQUAL, &fall_through);
-  __ pushq(PP);
-  __ LoadPoolPointer();
-  assembler->set_constant_pool_allowed(true);
-  __ LoadExternalLabel(RAX, &symbols_label, kNotPatchable);
-  assembler->set_constant_pool_allowed(false);
-  __ popq(PP);
+  __ movq(RAX, Address(THR, Thread::predefined_symbols_address_offset()));
   __ movq(RAX, Address(RAX,
                        RCX,
                        TIMES_8,

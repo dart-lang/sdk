@@ -1050,8 +1050,7 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ Comment("StringFromCharCodeInstr");
 
-  ExternalLabel label(reinterpret_cast<uword>(Symbols::PredefinedAddress()));
-  __ LoadExternalLabel(result, &label, kNotPatchable);
+  __ lw(result, Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddImmediate(result, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ sll(TMP, char_code, 1);  // Char code is a smi.
   __ addu(TMP, TMP, result);

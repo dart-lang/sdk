@@ -1660,14 +1660,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ ldrb(R1, Address(R0, R1));
   __ CompareImmediate(R1, Symbols::kNumberOfOneCharCodeSymbols);
   __ b(&fall_through, GE);
-  const ExternalLabel symbols_label(
-      reinterpret_cast<uword>(Symbols::PredefinedAddress()));
-  __ Push(PP);
-  __ LoadPoolPointer();
-  assembler->set_constant_pool_allowed(true);
-  __ LoadExternalLabel(R0, &symbols_label, kNotPatchable);
-  assembler->set_constant_pool_allowed(false);
-  __ Pop(PP);
+  __ ldr(R0, Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddImmediate(R0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ ldr(R0, Address(R0, R1, LSL, 2));
   __ Ret();
@@ -1680,12 +1673,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ ldrh(R1, Address(R0, R1));
   __ CompareImmediate(R1, Symbols::kNumberOfOneCharCodeSymbols);
   __ b(&fall_through, GE);
-  __ Push(PP);
-  __ LoadPoolPointer();
-  assembler->set_constant_pool_allowed(true);
-  __ LoadExternalLabel(R0, &symbols_label, kNotPatchable);
-  assembler->set_constant_pool_allowed(false);
-  __ Pop(PP);
+  __ ldr(R0, Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddImmediate(R0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ ldr(R0, Address(R0, R1, LSL, 2));
   __ Ret();
