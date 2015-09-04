@@ -180,6 +180,9 @@ class ModuleItemLoadOrder {
   bool libraryIsLoaded(LibraryElement library) {
     assert(library != _currentLibrary);
 
+    // DynamicElementImpl has no library.
+    if (library == null) return true;
+
     // The SDK is a special case: we optimize the order to prevent laziness.
     if (_isDartUri(library)) {
       // SDK is loaded before non-SDK libraries

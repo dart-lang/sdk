@@ -35,6 +35,12 @@
     }
   }
 
+  suite('dynamic type literal', () => {
+    dartLanguageTests([
+      ['const_dynamic_type_literal_test', 'none', 1, 3]
+    ]);
+  });
+
   suite('cascade', () => {
     dartLanguageTests(['cascade_in_expression_function_test']);
   });
