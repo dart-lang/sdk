@@ -7,7 +7,6 @@ library compiler.src.js_backend.lookup_map_analysis;
 
 import '../common/registry.dart' show Registry;
 import '../compiler.dart' show Compiler;
-import '../diagnostics/messages.dart' show MessageKind;
 import '../constants/values.dart' show
      ConstantValue,
      ConstructedConstantValue,
@@ -15,15 +14,8 @@ import '../constants/values.dart' show
      NullConstantValue,
      TypeConstantValue;
 import '../dart_types.dart' show DartType;
-import '../elements/elements.dart' show
-    ClassElement,
-    Element,
-    Elements,
-    FieldElement,
-    FunctionElement,
-    FunctionSignature,
-    LibraryElement,
-    VariableElement;
+import '../elements/elements.dart' show Elements, Element, ClassElement,
+     FieldElement, FunctionElement, FunctionSignature;
 import '../enqueue.dart' show Enqueuer;
 import 'js_backend.dart' show JavaScriptBackend;
 import '../dart_types.dart' show DynamicType, InterfaceType;
@@ -71,13 +63,6 @@ class LookupMapAnalysis {
   /// discover that a key in a map is potentially used.
   final JavaScriptBackend backend;
 
-  /// The resolved [VariableElement] associated with the top-level `_version`.
-  VariableElement lookupMapVersionVariable;
-
-  /// The resolved [LibraryElement] associated with
-  /// `package:lookup_map/lookup_map.dart`.
-  LibraryElement lookupMapLibrary;
-
   /// The resolved [ClassElement] associated with `LookupMap`.
   ClassElement typeLookupMapClass;
 
@@ -116,7 +101,9 @@ class LookupMapAnalysis {
   final _pending = <ConstantValue, List<_LookupMapInfo>>{};
 
   /// Whether the backend is currently processing the codegen queue.
-  bool _inCodegen = false;
+  // TODO(sigmund): is there a better way to do this. Do we need to plumb the
+  // enqueuer on each callback?
+  bool get _inCodegen => backend.compiler.phase == Compiler.PHASE_COMPILING;
 
   LookupMapAnalysis(this.backend);
 
@@ -127,51 +114,14 @@ class LookupMapAnalysis {
     return typeLookupMapClass != null;
   }
 
-  /// Initializes this analysis by providing the resolved library. This is
-  /// invoked during resolution when the `lookup_map` library is discovered.
-  void init(LibraryElement library) {
-    lookupMapLibrary = library;
-    // We will enable the lookupMapAnalysis as long as we get a known version of
-    // the lookup_map package. We otherwise produce a warning.
-    lookupMapVersionVariable = library.implementation.findLocal('_version');
-    if (lookupMapVersionVariable == null) {
-      backend.compiler.reportInfo(library,
-          MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
-    } else {
-      backend.compiler.enqueuer.resolution.addToWorkList(
-          lookupMapVersionVariable);
-    }
-  }
-
-  /// Checks if the version of lookup_map is valid, and if so, enable this
-  /// analysis during codegen.
-  void onCodegenStart() {
-    _inCodegen = true;
-    // At this point, the lookupMapVersionVariable should be resolved and it's
-    // constant value should be available.
-    ConstantValue value =
-        backend.constants.getConstantValueForVariable(lookupMapVersionVariable);
-    if (value == null) {
-      backend.compiler.reportInfo(lookupMapVersionVariable,
-          MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
-      return;
-    }
-
-    // TODO(sigmund): add proper version resolution using the pub_semver package
-    // when we introduce the next version.
-    String version = value.primitiveValue.slowToString();
-    if (version != '0.0.1') {
-      backend.compiler.reportInfo(lookupMapVersionVariable,
-          MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
-      return;
-    }
-
-    ClassElement cls = lookupMapLibrary.findLocal('LookupMap');
+  /// Initializes this analysis by providing the resolver information of
+  /// `LookupMap`.
+  void initRuntimeClass(ClassElement cls) {
     cls.computeType(backend.compiler);
     entriesField = cls.lookupMember('_entries');
     keyField = cls.lookupMember('_key');
     valueField = cls.lookupMember('_value');
-    // TODO(sigmund): Maybe inline nested maps to make the output code smaller?
+    // TODO(sigmund): Maybe inline nested maps make the output code smaller?
     typeLookupMapClass = cls;
   }
 

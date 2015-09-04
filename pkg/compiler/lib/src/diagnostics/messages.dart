@@ -421,7 +421,6 @@ enum MessageKind {
   UNIMPLEMENTED_SETTER,
   UNIMPLEMENTED_SETTER_ONE,
   UNMATCHED_TOKEN,
-  UNRECOGNIZED_VERSION_OF_LOOKUP_MAP,
   UNSUPPORTED_BANG_EQ_EQ,
   UNSUPPORTED_EQ_EQ_EQ,
   UNSUPPORTED_LITERAL_SYMBOL,
@@ -3296,10 +3295,6 @@ $IMPORT_EXPERIMENTAL_MIRRORS_PADDING#{importChain}
           "more code and prevents the compiler from doing some optimizations.",
           howToFix: "Consider removing this 'noSuchMethod' implementation."),
 
-      MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP:
-        const MessageTemplate(MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP,
-          "Unsupported version of package:lookup_map.",
-          howToFix: DONT_KNOW_HOW_TO_FIX),
 
   }; // End of TEMPLATES.
 

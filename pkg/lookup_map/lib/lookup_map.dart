@@ -91,10 +91,3 @@ class LookupMap<K, V> {
 /// An expando that stores a flatten version of a [LookupMap], this is
 /// computed and stored the first time the map is accessed.
 final _flatMap = new Expando('_flat_map');
-
-/// Internal constant that matches the version in the pubspec. This is used by
-/// dart2js to ensure that optimizations are only enabled on known versions of
-/// this code.
-// Note: this needs to be kept in sync with the pubspec, otherwise
-// test/version_check_test would fail.
-final _version = '0.0.1';

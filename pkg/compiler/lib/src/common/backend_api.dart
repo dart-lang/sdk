@@ -343,9 +343,6 @@ abstract class Backend {
   /// times, but [onQueueClosed] is only called once.
   void onQueueClosed() {}
 
-  /// Called when the compiler starts running the codegen enqueuer.
-  void onCodegenStart() {}
-
   /// Called after [element] has been resolved.
   // TODO(johnniwinther): Change [TreeElements] to [Registry] or a dependency
   // node. [elements] is currently unused by the implementation.

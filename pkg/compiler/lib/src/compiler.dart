@@ -1153,7 +1153,6 @@ abstract class Compiler implements DiagnosticListener {
 
     log('Compiling...');
     phase = PHASE_COMPILING;
-    backend.onCodegenStart();
     // TODO(johnniwinther): Move these to [CodegenEnqueuer].
     if (hasIsolateSupport) {
       backend.enableIsolateSupport(enqueuer.codegen);

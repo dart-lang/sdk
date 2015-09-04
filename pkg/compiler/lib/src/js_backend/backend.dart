@@ -2159,7 +2159,7 @@ class JavaScriptBackend extends Backend {
       } else if (uri == Uris.dart_html) {
         htmlLibraryIsLoaded = true;
       } else if (uri == PACKAGE_LOOKUP_MAP) {
-        lookupMapAnalysis.init(library);
+        lookupMapAnalysis.initRuntimeClass(find(library, 'LookupMap'));
       }
       annotations.onLibraryScanned(library);
     });
@@ -2605,13 +2605,7 @@ class JavaScriptBackend extends Backend {
     return true;
   }
 
-  void onQueueClosed() {
-    lookupMapAnalysis.onQueueClosed();
-  }
-
-  void onCodegenStart() {
-    lookupMapAnalysis.onCodegenStart();
-  }
+  void onQueueClosed() => lookupMapAnalysis.onQueueClosed();
 
   void onElementResolved(Element element, TreeElements elements) {
     if ((element.isFunction || element.isGenerativeConstructor) &&
