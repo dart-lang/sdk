@@ -22,6 +22,8 @@ class Monitor;
 #include "bin/thread_linux.h"
 #elif defined(TARGET_OS_MACOS)
 #include "bin/thread_macos.h"
+#elif defined(TARGET_OS_OPENBSD)
+#include "bin/thread_openbsd.h"
 #elif defined(TARGET_OS_WINDOWS)
 #include "bin/thread_win.h"
 #else
