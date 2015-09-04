@@ -228,7 +228,12 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'throwRuntimeError': 'throwRuntimeError(message) {}',
   'throwTypeError': 'throwTypeError(message) {}',
   'TypeImpl': 'class TypeImpl {}',
-  'TypeVariable': 'class TypeVariable {}',
+  'TypeVariable': '''class TypeVariable {
+    final Type owner;
+    final String name;
+    final int bound;
+    TypeVariable(this.owner, this.name, this.bound);
+  }''',
   'unwrapException': 'unwrapException(e) {}',
   'voidTypeCheck': 'voidTypeCheck(value) {}',
   'wrapException': 'wrapException(x) { return x; }',
@@ -413,7 +418,7 @@ preserveLibraryNames(){}
 
 const Map<String, String> DEFAULT_LOOKUP_MAP_LIBRARY = const <String, String>{
   'LookupMap': r'''
-  class LookupMap<T> {
+  class LookupMap<K, V> {
     final _key;
     final _value;
     final _entries;
@@ -424,5 +429,6 @@ const Map<String, String> DEFAULT_LOOKUP_MAP_LIBRARY = const <String, String>{
 
     const LookupMap.pair(this._key, this._value)
         : _entries = const [], _nestedMaps = const [];
+    V operator[](K k) => null;
   }''',
 };
