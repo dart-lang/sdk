@@ -71,8 +71,6 @@
           'link_settings': {
             'libraries': [
               '-lpthread',
-              '-lrt',
-              '-ldl',
             ],
           },
         }],	
@@ -150,8 +148,6 @@
           'link_settings': {
             'libraries': [
               '-lpthread',
-              '-lrt',
-              '-ldl',
             ],
           },
         }],	
