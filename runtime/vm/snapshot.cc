@@ -264,7 +264,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
 
 RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
                                                      intptr_t class_header) {
-  ASSERT(kind_ == Snapshot::kMessage);
+  ASSERT(kind_ != Snapshot::kFull);
 
   // First create a function object and associate it with the specified
   // 'object_id'.

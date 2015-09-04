@@ -1511,7 +1511,7 @@ RawError* Object::Init(Isolate* isolate) {
   field_name = Symbols::New("cid"#clazz);                                      \
   field = Field::New(field_name, true, false, true, false, cls, 0);            \
   value = Smi::New(k##clazz##Cid);                                             \
-  field.set_value(value);                                                      \
+  field.SetStaticValue(value, true);                                           \
   field.set_type(Type::Handle(Type::IntType()));                               \
   cls.AddField(field);                                                         \
 
@@ -7262,18 +7262,6 @@ RawClass* Field::origin() const {
 }
 
 
-RawInstance* Field::value() const {
-  ASSERT(is_static());  // Valid only for static dart fields.
-  return raw_ptr()->value_;
-}
-
-
-void Field::set_value(const Instance& value) const {
-  ASSERT(is_static());  // Valid only for static dart fields.
-  StorePointer(&raw_ptr()->value_, value.raw());
-}
-
-
 void Field::set_type(const AbstractType& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->type_, value.raw());
@@ -7300,9 +7288,7 @@ RawField* Field::New(const String& name,
   const Field& result = Field::Handle(Field::New());
   result.set_name(name);
   result.set_is_static(is_static);
-  if (is_static) {
-    result.set_value(Object::null_instance());
-  } else {
+  if (!is_static) {
     result.SetOffset(0);
   }
   result.set_is_final(is_final);
@@ -7444,7 +7430,7 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
   if (is_static()) {
-    const Instance& valueObj = Instance::Handle(value());
+    const Instance& valueObj = Instance::Handle(StaticValue());
     jsobj.AddProperty("staticValue", valueObj);
   }
 
@@ -7491,7 +7477,8 @@ RawInstance* Field::AccessorClosure(bool make_setter) const {
   closure_field = field_owner.LookupStaticField(closure_name);
   if (!closure_field.IsNull()) {
     ASSERT(closure_field.is_static());
-    const Instance& closure = Instance::Handle(closure_field.value());
+    const Instance& closure =
+        Instance::Handle(closure_field.StaticValue());
     ASSERT(!closure.IsNull());
     ASSERT(closure.IsClosure());
     return closure.raw();
@@ -7524,7 +7511,7 @@ RawInstance* Field::AccessorClosure(bool make_setter) const {
                              false,  // is_reflectable
                              field_owner,
                              this->token_pos());
-  closure_field.set_value(Instance::Cast(result));
+  closure_field.SetStaticValue(Instance::Cast(result), true);
   closure_field.set_type(Type::Handle(Type::DynamicType()));
   field_owner.AddField(closure_field);
 
@@ -7600,33 +7587,43 @@ void Field::DeoptimizeDependentCode() const {
 
 
 bool Field::IsUninitialized() const {
-  const Instance& value = Instance::Handle(raw_ptr()->value_);
+  const Instance& value = Instance::Handle(raw_ptr()->value_.static_value_);
   ASSERT(value.raw() != Object::transition_sentinel().raw());
   return value.raw() == Object::sentinel().raw();
 }
 
 
-void Field::set_initializer(const Function& initializer) const {
-  StorePointer(&raw_ptr()->initializer_, initializer.raw());
+void Field::SetPrecompiledInitializer(const Function& initializer) const {
+  StorePointer(&raw_ptr()->initializer_.precompiled_, initializer.raw());
+}
+
+
+bool Field::HasPrecompiledInitializer() const {
+  return raw_ptr()->initializer_.precompiled_->IsFunction();
+}
+
+
+void Field::SetSavedInitialStaticValue(const Instance& value) const {
+  StorePointer(&raw_ptr()->initializer_.saved_value_, value.raw());
 }
 
 
 void Field::EvaluateInitializer() const {
   ASSERT(is_static());
-  if (value() == Object::sentinel().raw()) {
-    set_value(Object::transition_sentinel());
+  if (StaticValue() == Object::sentinel().raw()) {
+    SetStaticValue(Object::transition_sentinel());
     Object& value = Object::Handle(Compiler::EvaluateStaticInitializer(*this));
     if (value.IsError()) {
-      set_value(Object::null_instance());
+      SetStaticValue(Object::null_instance());
       Exceptions::PropagateError(Error::Cast(value));
       UNREACHABLE();
     }
     ASSERT(value.IsNull() || value.IsInstance());
-    set_value(value.IsNull() ? Instance::null_instance()
+    SetStaticValue(value.IsNull() ? Instance::null_instance()
                              : Instance::Cast(value));
     return;
-  } else if (value() == Object::transition_sentinel().raw()) {
-    set_value(Object::null_instance());
+  } else if (StaticValue() == Object::transition_sentinel().raw()) {
+    SetStaticValue(Object::null_instance());
     const Array& ctor_args = Array::Handle(Array::New(1));
     const String& field_name = String::Handle(name());
     ctor_args.SetAt(0, field_name);
@@ -9116,7 +9113,7 @@ void Library::AddMetadata(const Class& cls,
                                           cls,
                                           token_pos));
   field.set_type(Type::Handle(Type::DynamicType()));
-  field.set_value(Array::empty_array());
+  field.SetStaticValue(Array::empty_array(), true);
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(this->metadata());
   metadata.Add(field, Heap::kOld);
@@ -9210,13 +9207,13 @@ RawObject* Library::GetMetadata(const Object& obj) const {
     return Object::empty_array().raw();
   }
   Object& metadata = Object::Handle();
-  metadata = field.value();
-  if (field.value() == Object::empty_array().raw()) {
+  metadata = field.StaticValue();
+  if (field.StaticValue() == Object::empty_array().raw()) {
     metadata = Parser::ParseMetadata(Class::Handle(field.owner()),
                                      field.token_pos());
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
-      field.set_value(Array::Cast(metadata));
+      field.SetStaticValue(Array::Cast(metadata), true);
     }
   }
   return metadata.raw();
@@ -10625,7 +10622,7 @@ void Namespace::AddMetadata(intptr_t token_pos, const Class& owner_class) {
                                           owner_class,
                                           token_pos));
   field.set_type(Type::Handle(Type::DynamicType()));
-  field.set_value(Array::empty_array());
+  field.SetStaticValue(Array::empty_array(), true);
   set_metadata_field(field);
   owner_class.AddField(field);
 }
@@ -10638,13 +10635,13 @@ RawObject* Namespace::GetMetadata() const {
     return Object::empty_array().raw();
   }
   Object& metadata = Object::Handle();
-  metadata = field.value();
-  if (field.value() == Object::empty_array().raw()) {
+  metadata = field.StaticValue();
+  if (field.StaticValue() == Object::empty_array().raw()) {
     metadata = Parser::ParseMetadata(Class::Handle(field.owner()),
                                      field.token_pos());
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
-      field.set_value(Array::Cast(metadata));
+      field.SetStaticValue(Array::Cast(metadata), true);
     }
   }
   return metadata.raw();

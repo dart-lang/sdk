@@ -383,8 +383,8 @@ bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
 
 Instruction* InitStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   const bool is_initialized =
-      (field_.value() != Object::sentinel().raw()) &&
-      (field_.value() != Object::transition_sentinel().raw());
+      (field_.StaticValue() != Object::sentinel().raw()) &&
+      (field_.StaticValue() != Object::transition_sentinel().raw());
   return is_initialized ? NULL : this;
 }
 
@@ -398,8 +398,8 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
   LoadStaticFieldInstr* other_load = other->AsLoadStaticField();
   ASSERT(other_load != NULL);
   // Assert that the field is initialized.
-  ASSERT(StaticField().value() != Object::sentinel().raw());
-  ASSERT(StaticField().value() != Object::transition_sentinel().raw());
+  ASSERT(StaticField().StaticValue() != Object::sentinel().raw());
+  ASSERT(StaticField().StaticValue() != Object::transition_sentinel().raw());
   return StaticField().raw() == other_load->StaticField().raw();
 }
 

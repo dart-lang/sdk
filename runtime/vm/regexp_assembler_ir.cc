@@ -440,7 +440,7 @@ ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
   ASSERT(!word_character_field.IsUninitialized());
 
   return new(Z) ConstantInstr(
-        Instance::ZoneHandle(Z, word_character_field.value()));
+        Instance::ZoneHandle(Z, word_character_field.StaticValue()));
 }
 
 

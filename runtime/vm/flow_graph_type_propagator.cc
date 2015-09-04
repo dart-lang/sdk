@@ -998,7 +998,7 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   }
   ASSERT(field.is_static());
   if (field.is_final()) {
-    const Instance& obj = Instance::Handle(field.value());
+    const Instance& obj = Instance::Handle(field.StaticValue());
     if ((obj.raw() != Object::sentinel().raw()) &&
         (obj.raw() != Object::transition_sentinel().raw()) &&
         !obj.IsNull()) {

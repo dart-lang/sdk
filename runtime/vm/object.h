@@ -2831,10 +2831,11 @@ class Field : public Object {
   }
 
   inline intptr_t Offset() const;
-  inline void SetOffset(intptr_t value_in_bytes) const;
+  inline void SetOffset(intptr_t offset_in_bytes) const;
 
-  RawInstance* value() const;
-  void set_value(const Instance& value) const;
+  inline RawInstance* StaticValue() const;
+  inline void SetStaticValue(const Instance& value,
+                             bool save_initial_value = false) const;
 
   RawClass* owner() const;
   RawClass* origin() const;  // Either mixin class, or same as owner().
@@ -2858,7 +2859,12 @@ class Field : public Object {
   // owner of the clone is new_owner.
   RawField* Clone(const Class& new_owner) const;
 
-  static intptr_t value_offset() { return OFFSET_OF(RawField, value_); }
+  static intptr_t instance_field_offset() {
+    return OFFSET_OF(RawField, value_.offset_);
+  }
+  static intptr_t static_value_offset() {
+    return OFFSET_OF(RawField, value_.static_value_);
+  }
 
   static intptr_t kind_bits_offset() { return OFFSET_OF(RawField, kind_bits_); }
 
@@ -2969,10 +2975,16 @@ class Field : public Object {
 
   void EvaluateInitializer() const;
 
-  RawFunction* initializer() const {
-    return raw_ptr()->initializer_;
+  RawFunction* PrecompiledInitializer() const {
+    return raw_ptr()->initializer_.precompiled_;
   }
-  void set_initializer(const Function& initializer) const;
+  void SetPrecompiledInitializer(const Function& initializer) const;
+  bool HasPrecompiledInitializer() const;
+
+  RawInstance* SavedInitialStaticValue() const {
+    return raw_ptr()->initializer_.saved_value_;
+  }
+  void SetSavedInitialStaticValue(const Instance& value) const;
 
   // For static fields only. Constructs a closure that gets/sets the
   // field value.
@@ -3048,6 +3060,7 @@ class Field : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Field, Object);
   friend class Class;
   friend class HeapProfiler;
+  friend class RawField;
 };
 
 
@@ -7975,17 +7988,33 @@ DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
 
 
 intptr_t Field::Offset() const {
-  ASSERT(!is_static());  // Offset is valid only for instance fields.
-  intptr_t value = Smi::Value(reinterpret_cast<RawSmi*>(raw_ptr()->value_));
+  ASSERT(!is_static());  // Valid only for dart instance fields.
+  intptr_t value = Smi::Value(raw_ptr()->value_.offset_);
   return (value * kWordSize);
 }
 
 
-void Field::SetOffset(intptr_t value_in_bytes) const {
-  ASSERT(!is_static());  // SetOffset is valid only for instance fields.
+void Field::SetOffset(intptr_t offset_in_bytes) const {
+  ASSERT(!is_static());  // Valid only for dart instance fields.
   ASSERT(kWordSize != 0);
-  StorePointer(&raw_ptr()->value_,
-               static_cast<RawInstance*>(Smi::New(value_in_bytes / kWordSize)));
+  StorePointer(&raw_ptr()->value_.offset_,
+               Smi::New(offset_in_bytes / kWordSize));
+}
+
+
+RawInstance* Field::StaticValue() const {
+  ASSERT(is_static());  // Valid only for static dart fields.
+  return raw_ptr()->value_.static_value_;
+}
+
+
+void Field::SetStaticValue(const Instance& value,
+                           bool save_initial_value) const {
+  ASSERT(is_static());  // Valid only for static dart fields.
+  StorePointer(&raw_ptr()->value_.static_value_, value.raw());
+  if (save_initial_value) {
+    StorePointer(&raw_ptr()->initializer_.saved_value_, value.raw());
+  }
 }
 
 

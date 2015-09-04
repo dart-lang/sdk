@@ -1967,7 +1967,7 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register field = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  __ LoadFieldFromOffset(result, field, Field::value_offset());
+  __ LoadFieldFromOffset(result, field, Field::static_value_offset());
 }
 
 
@@ -1989,9 +1989,11 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadObject(temp, field());
   if (this->value()->NeedsStoreBuffer()) {
     __ StoreIntoObjectOffset(
-        temp, Field::value_offset(), value, CanValueBeSmi());
+        temp, Field::static_value_offset(), value, CanValueBeSmi());
   } else {
-    __ StoreIntoObjectOffsetNoBarrier(temp, Field::value_offset(), value);
+    __ StoreIntoObjectOffsetNoBarrier(temp,
+                                      Field::static_value_offset(),
+                                      value);
   }
 }
 
@@ -2488,7 +2490,7 @@ void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register temp = locs()->temp(0).reg();
   Label call_runtime, no_call;
 
-  __ ldr(temp, FieldAddress(field, Field::value_offset()));
+  __ ldr(temp, FieldAddress(field, Field::static_value_offset()));
   __ CompareObject(temp, Object::sentinel());
   __ b(&call_runtime, EQ);
 

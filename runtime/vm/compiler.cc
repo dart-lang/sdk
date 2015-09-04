@@ -1279,13 +1279,13 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 
 void Compiler::CompileStaticInitializer(const Field& field) {
   ASSERT(field.is_static());
-  if (field.initializer() != Function::null()) {
+  if (field.PrecompiledInitializer() != Function::null()) {
     // TODO(rmacnak): Investigate why this happens for _enum_names.
     OS::Print("Warning: Ignoring repeated request for initializer for %s\n",
               field.ToCString());
     return;
   }
-  ASSERT(field.initializer() == Function::null());
+  ASSERT(field.PrecompiledInitializer() == Function::null());
   Thread* thread = Thread::Current();
   StackZone zone(thread);
 
@@ -1300,7 +1300,7 @@ void Compiler::CompileStaticInitializer(const Field& field) {
                               Isolate::kNoDeoptId);
 
   const Function& initializer = parsed_function->function();
-  field.set_initializer(initializer);
+  field.SetPrecompiledInitializer(initializer);
 }
 
 
@@ -1308,16 +1308,15 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   ASSERT(field.is_static());
   // The VM sets the field's value to transiton_sentinel prior to
   // evaluating the initializer value.
-  ASSERT(field.value() == Object::transition_sentinel().raw());
+  ASSERT(field.StaticValue() == Object::transition_sentinel().raw());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Function& initializer = Function::Handle(field.initializer());
-
     // Under precompilation, the initializer may have already been compiled, in
     // which case use it. Under lazy compilation or early in precompilation, the
     // initializer has not yet been created, so create it now, but don't bother
     // remembering it because it won't be used again.
-    if (initializer.IsNull()) {
+    Function& initializer = Function::Handle();
+    if (!field.HasPrecompiledInitializer()) {
       Thread* const thread = Thread::Current();
       StackZone zone(thread);
       ParsedFunction* parsed_function =
@@ -1331,6 +1330,8 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
                                   false,  // optimized
                                   Isolate::kNoDeoptId);
       initializer = parsed_function->function().raw();
+    } else {
+      initializer ^= field.PrecompiledInitializer();
     }
     // Invoke the function to evaluate the expression.
     return DartEntry::InvokeFunction(initializer, Object::empty_array());

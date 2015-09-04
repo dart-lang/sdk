@@ -4071,7 +4071,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     // For static final fields (this includes static const fields), set value to
     // "uninitialized" and create a kImplicitStaticFinalGetter getter method.
     if (field->has_static && has_initializer) {
-      class_field.set_value(init_value);
+      class_field.SetStaticValue(init_value, true);
       if (!has_simple_literal) {
         String& getter_name =
             String::Handle(Z, Field::GetterSymbol(*field->name));
@@ -4810,7 +4810,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
     // Initialize the field with the ordinal value. It will be patched
     // later with the enum constant instance.
     const Smi& ordinal_value = Smi::Handle(Z, Smi::New(i));
-    enum_value.set_value(ordinal_value);
+    enum_value.SetStaticValue(ordinal_value, true);
     enum_value.RecordStore(ordinal_value);
     i++;
 
@@ -4848,7 +4848,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   // Allocate the immutable array containing the enumeration values.
   // The actual enum instance values will be patched in later.
   const Array& values_array = Array::Handle(Z, Array::New(i, Heap::kOld));
-  values_field.set_value(values_array);
+  values_field.SetStaticValue(values_array, true);
   values_field.RecordStore(values_array);
 
   // Create a static field that contains the list of enumeration names.
@@ -4859,7 +4859,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   names_field = names_field.Clone(cls);
   enum_members.AddField(names_field);
   const Array& names_array = Array::Handle(Array::MakeArray(enum_names));
-  names_field.set_value(names_array);
+  names_field.SetStaticValue(names_array, true);
   names_field.RecordStore(names_array);
 
   // Clone the toString() function from the helper class.
@@ -5452,7 +5452,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
     field = Field::New(var_name, is_static, is_final, is_const, is_reflectable,
                        current_class(), name_pos);
     field.set_type(type);
-    field.set_value(Object::null_instance());
+    field.SetStaticValue(Object::null_instance(), true);
     top_level->AddField(field);
     library_.AddObject(field, var_name);
     if (metadata_pos >= 0) {
@@ -5466,7 +5466,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
         has_simple_literal = IsSimpleLiteral(type, &field_value);
       }
       SkipExpr();
-      field.set_value(field_value);
+      field.SetStaticValue(field_value, true);
       field.set_has_initializer(true);
 
       if (!has_simple_literal) {
@@ -10807,10 +10807,11 @@ static AstNode* LiteralIfStaticConst(Zone* zone, AstNode* expr) {
     const Field& field = expr->AsLoadStaticFieldNode()->field();
     if (field.is_const() &&
         !expr->AsLoadStaticFieldNode()->is_deferred_reference()) {
-      ASSERT(field.value() != Object::sentinel().raw());
-      ASSERT(field.value() != Object::transition_sentinel().raw());
-      return new(zone) LiteralNode(expr->token_pos(),
-                                   Instance::ZoneHandle(zone, field.value()));
+      ASSERT(field.StaticValue() != Object::sentinel().raw());
+      ASSERT(field.StaticValue() != Object::transition_sentinel().raw());
+      return new(zone) LiteralNode(
+          expr->token_pos(),
+          Instance::ZoneHandle(zone, field.StaticValue()));
     }
   }
   return expr;
@@ -11994,7 +11995,7 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(const Field& field,
       String::Handle(Z, Field::GetterSymbol(field_name));
   const Function& getter = Function::Handle(Z,
       field_owner.LookupStaticFunction(getter_name));
-  const Instance& value = Instance::Handle(Z, field.value());
+  const Instance& value = Instance::Handle(Z, field.StaticValue());
   if (value.raw() == Object::transition_sentinel().raw()) {
     if (field.is_const()) {
       ReportError("circular dependency while initializing static field '%s'",
@@ -12009,7 +12010,7 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(const Field& field,
     // not been evaluated. If the field is const, call the static getter method
     // to evaluate the expression and canonicalize the value.
     if (field.is_const()) {
-      field.set_value(Object::transition_sentinel());
+      field.SetStaticValue(Object::transition_sentinel());
       const int kNumArguments = 0;  // no arguments.
       const Function& func = Function::Handle(Z,
           Resolver::ResolveStatic(field_owner,
@@ -12030,7 +12031,7 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(const Field& field,
           // generated AST is not deterministic. Therefore mark the function as
           // not optimizable.
           current_function().SetIsOptimizable(false);
-          field.set_value(Object::null_instance());
+          field.SetStaticValue(Object::null_instance());
           // It is a compile-time error if evaluation of a compile-time constant
           // would raise an exception.
           const String& field_name = String::Handle(Z, field.name());
@@ -12047,7 +12048,7 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(const Field& field,
       Instance& instance = Instance::Handle(Z);
       instance ^= const_value.raw();
       instance = TryCanonicalize(instance, field_ref_pos);
-      field.set_value(instance);
+      field.SetStaticValue(instance);
       return NULL;   // Constant
     } else {
       return new(Z) StaticGetterNode(
@@ -13921,9 +13922,9 @@ const Instance& Parser::EvaluateConstExpr(intptr_t expr_pos, AstNode* expr) {
     // We already checked that this field is const and has been
     // initialized.
     ASSERT(field.is_const());
-    ASSERT(field.value() != Object::sentinel().raw());
-    ASSERT(field.value() != Object::transition_sentinel().raw());
-    return Instance::ZoneHandle(Z, field.value());
+    ASSERT(field.StaticValue() != Object::sentinel().raw());
+    ASSERT(field.StaticValue() != Object::transition_sentinel().raw());
+    return Instance::ZoneHandle(Z, field.StaticValue());
   } else {
     ASSERT(expr->EvalConstExpr() != NULL);
     ReturnNode* ret = new(Z) ReturnNode(expr->token_pos(), expr);

@@ -706,7 +706,7 @@ void ConstantPropagator::VisitInitStaticField(InitStaticFieldInstr* instr) {
 void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
   const Field& field = instr->StaticField();
   ASSERT(field.is_static());
-  Instance& obj = Instance::Handle(I, field.value());
+  Instance& obj = Instance::Handle(I, field.StaticValue());
   if (field.is_final() && (obj.raw() != Object::sentinel().raw()) &&
       (obj.raw() != Object::transition_sentinel().raw())) {
     if (obj.IsSmi() || obj.IsOld()) {

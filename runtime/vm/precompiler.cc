@@ -434,19 +434,20 @@ void Precompiler::AddField(const Field& field) {
   if (field.is_static()) {
     // Potential const object. Uninitialized field will harmlessly do a
     // redundant add of the Null class.
-    const Object& value = Object::Handle(Z, field.value());
+    const Object& value = Object::Handle(Z, field.StaticValue());
     const Class& cls = Class::Handle(Z, value.clazz());
     AddClass(cls);
 
     if (field.has_initializer()) {
-      if (field.initializer() != Function::null()) return;
+      if (field.PrecompiledInitializer() != Function::null()) return;
 
       if (FLAG_trace_precompiler) {
         ISL_Print("Precompiling initializer for %s\n", field.ToCString());
       }
       Compiler::CompileStaticInitializer(field);
 
-      const Function& function = Function::Handle(Z, field.initializer());
+      const Function& function =
+          Function::Handle(Z, field.PrecompiledInitializer());
       AddCalleesOf(function);
     }
   }
