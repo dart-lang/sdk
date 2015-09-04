@@ -1196,6 +1196,8 @@ void RawCode::WriteTo(SnapshotWriter* writer,
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to());
+
+  writer->SetInstructionsCode(ptr()->instructions_, this);
 }
 
 

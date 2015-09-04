@@ -22,9 +22,11 @@ class AbstractType;
 class Array;
 class Class;
 class ClassTable;
+class Code;
 class ExternalTypedData;
 class GrowableObjectArray;
 class Heap;
+class Instructions;
 class LanguageError;
 class Library;
 class Object;
@@ -777,7 +779,9 @@ class InstructionsWriter : public ZoneAllocated {
   InstructionsWriter(uint8_t** buffer,
                      ReAlloc alloc,
                      intptr_t initial_size)
-    : stream_(buffer, alloc, initial_size) {
+    : stream_(buffer, alloc, initial_size),
+      next_offset_(0),
+      instructions_() {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -787,8 +791,37 @@ class InstructionsWriter : public ZoneAllocated {
 
   int32_t GetOffsetFor(RawInstructions* instructions);
 
+  void SetInstructionsCode(RawInstructions* insns, RawCode* code) {
+    for (intptr_t i = 0; i < instructions_.length(); i++) {
+      if (instructions_[i].raw_insns_ == insns) {
+        instructions_[i].raw_code_ = code;
+        return;
+      }
+    }
+    UNREACHABLE();
+  }
+
+  void WriteAssembly();
+
  private:
+  struct InstructionsData {
+    explicit InstructionsData(RawInstructions* insns)
+        : raw_insns_(insns), raw_code_(NULL) { }
+
+    union {
+      RawInstructions* raw_insns_;
+      const Instructions* insns_;
+    };
+    union {
+      RawCode* raw_code_;
+      const Code* code_;
+    };
+  };
+
+
   WriteStream stream_;
+  intptr_t next_offset_;
+  GrowableArray<InstructionsData> instructions_;
 
   DISALLOW_COPY_AND_ASSIGN(InstructionsWriter);
 };
@@ -837,6 +870,10 @@ class SnapshotWriter : public BaseWriter {
 
   int32_t GetInstructionsId(RawInstructions* instructions) {
     return instructions_writer_->GetOffsetFor(instructions);
+  }
+
+  void SetInstructionsCode(RawInstructions* instructions, RawCode* code) {
+    return instructions_writer_->SetInstructionsCode(instructions, code);
   }
 
  protected:
