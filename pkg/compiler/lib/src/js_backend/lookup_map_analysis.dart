@@ -13,6 +13,7 @@ import '../constants/values.dart' show
      ConstructedConstantValue,
      ListConstantValue,
      NullConstantValue,
+     StringConstantValue,
      TypeConstantValue;
 import '../dart_types.dart' show DartType;
 import '../elements/elements.dart' show
@@ -151,7 +152,7 @@ class LookupMapAnalysis {
 
     // At this point, the lookupMapVersionVariable should be resolved and it's
     // constant value should be available.
-    ConstantValue value =
+    StringConstantValue value =
         backend.constants.getConstantValueForVariable(lookupMapVersionVariable);
     if (value == null) {
       backend.compiler.reportInfo(lookupMapVersionVariable,
