@@ -48,6 +48,7 @@
     'file_android.cc',
     'file_linux.cc',
     'file_macos.cc',
+    'file_openbsd.cc',
     'file_win.cc',
     'file_test.cc',
     'fdutils.h',
