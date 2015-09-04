@@ -39,7 +39,10 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
         static var NAN = 0;
         static parse(s) {}
       }''',
-  'Function': 'class Function {}',
+  'Function': r'''
+      class Function {
+        static apply(Function fn, List positional, [Map named]) => null;
+      }''',
   'identical': 'bool identical(Object a, Object b) { return true; }',
   'int': 'abstract class int extends num { }',
   'Iterable': 'abstract class Iterable {}',

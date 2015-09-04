@@ -1623,6 +1623,22 @@ class SsaBuilder extends ast.Visitor
             sourceInformation: sourceInformationBuilder.buildIf(function.body));
       }
     }
+    if (const bool.fromEnvironment('unreachable-throw') == true) {
+      var emptyParameters = parameters.values.where((p) =>
+          p.instructionType.isEmpty && !p.instructionType.isNullable);
+      if (emptyParameters.length > 0) {
+        String message = compiler.enableMinification
+            ? 'unreachable'
+            : 'unreachable: ${functionElement} because: ${emptyParameters}';
+        // TODO(sra): Use a library function that throws a proper error object.
+        push(new HForeignCode(
+            js.js.parseForeignJS('throw "$message"'),
+            backend.dynamicType,
+            <HInstruction>[],
+            isStatement: true));
+        return closeFunction();
+      }
+    }
     function.body.accept(this);
     return closeFunction();
   }
