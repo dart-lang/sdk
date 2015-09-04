@@ -32,6 +32,7 @@
     'directory.cc',
     'directory.h',
     'directory_android.cc',
+    'directory_openbsd.cc',
     'directory_linux.cc',
     'directory_macos.cc',
     'directory_win.cc',
