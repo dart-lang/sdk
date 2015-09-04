@@ -20,6 +20,7 @@ docgen/test/inherited_comments_test: Fail # issue 22233
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 mutation_observer: Skip # Issue 21149
 unittest/*: Skip # Issue 21949
+lookup_map/*: SkipByDesign
 
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: SkipSlow  # Times out
