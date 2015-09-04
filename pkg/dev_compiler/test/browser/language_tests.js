@@ -35,6 +35,10 @@
     }
   }
 
+  suite('cascade', () => {
+    dartLanguageTests(['cascade_in_expression_function_test']);
+  });
+
   suite('null aware ops', () => {
     dartLanguageTests([
       ['conditional_method_invocation_test', 'none', 1, 2, 3, 4],

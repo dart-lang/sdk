@@ -65,7 +65,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   final HashSet<FieldElement> _fieldsNeedingStorage;
 
   /// The variable for the target of the current `..` cascade expression.
-  SimpleIdentifier _cascadeTarget;
+  ///
+  /// Usually a [SimpleIdentifier], but it can also be other expressions
+  /// that are safe to evaluate multiple times, such as `this`.
+  Expression _cascadeTarget;
 
   /// The variable for the current catch clause
   SimpleIdentifier _catchParameter;
@@ -2516,8 +2519,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var savedCascadeTemp = _cascadeTarget;
 
     var vars = <String, JS.Expression>{};
-    _cascadeTarget =
-        _bindValue(vars, '_', node.target, context: node) as SimpleIdentifier;
+    _cascadeTarget = _bindValue(vars, '_', node.target, context: node);
     var sections = _visitList(node.cascadeSections) as List<JS.Expression>;
     sections.add(_visit(_cascadeTarget));
     var result = new JS.MetaLet(vars, sections, statelessResult: true);
