@@ -13589,6 +13589,16 @@ AstNode* Parser::ParseStringLiteral(bool allow_interpolation) {
     return primary;
   }
   // String interpolation needed.
+
+  // First, check whether we've cached a compile-time constant for this
+  // string interpolation.
+  Instance& cached_string = Instance::Handle(Z);
+  if (GetCachedConstant(literal_start, &cached_string)) {
+    SkipStringLiteral();
+    return new(Z) LiteralNode(literal_start,
+                              Instance::ZoneHandle(Z, cached_string.raw()));
+  }
+
   bool is_compiletime_const = true;
   bool has_interpolation = false;
   GrowableArray<AstNode*> values_list;
@@ -13641,7 +13651,9 @@ AstNode* Parser::ParseStringLiteral(bool allow_interpolation) {
   }
   if (is_compiletime_const) {
     if (has_interpolation) {
-      primary = new(Z) LiteralNode(literal_start, Interpolate(values_list));
+      const String& interpolated_string = Interpolate(values_list);
+      primary = new(Z) LiteralNode(literal_start, interpolated_string);
+      CacheConstantValue(literal_start, interpolated_string);
     } else {
       GrowableHandlePtrArray<const String> pieces(Z, values_list.length());
       for (int i = 0; i < values_list.length(); i++) {
@@ -13651,6 +13663,8 @@ AstNode* Parser::ParseStringLiteral(bool allow_interpolation) {
       }
       const String& lit = String::ZoneHandle(Z, Symbols::FromConcatAll(pieces));
       primary = new(Z) LiteralNode(literal_start, lit);
+      // Caching of constant not necessary because the symbol lookup will
+      // find the value next time.
     }
   } else {
     ArrayNode* values = new(Z) ArrayNode(
