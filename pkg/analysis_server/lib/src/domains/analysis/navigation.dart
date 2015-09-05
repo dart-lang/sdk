@@ -32,6 +32,7 @@ NavigationHolderImpl computeNavigation(AnalysisServer server,
           new CaughtException(exception, stackTrace));
     }
   }
+  holder.sortRegions();
   return holder;
 }
 
@@ -64,6 +65,12 @@ class NavigationHolderImpl implements NavigationHolder {
     protocol.NavigationRegion region =
         new protocol.NavigationRegion(offset, length, <int>[targetIndex]);
     regions.add(region);
+  }
+
+  void sortRegions() {
+    regions.sort((a, b) {
+      return a.offset - b.offset;
+    });
   }
 
   int _addFile(String file) {
