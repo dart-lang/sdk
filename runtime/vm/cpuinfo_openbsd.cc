@@ -7,13 +7,8 @@
 
 #include "vm/cpuinfo.h"
 #include "vm/cpuid.h"
-#include "vm/proccpuinfo.h"
 
 #include "platform/assert.h"
-
-// As with Windows, on IA32 and X64, we use the cpuid instruction.
-// The analogous instruction is privileged on ARM and MIPS, so we resort to
-// reading from /proc/cpuinfo.
 
 namespace dart {
 
@@ -21,107 +16,52 @@ CpuInfoMethod CpuInfo::method_ = kCpuInfoDefault;
 const char* CpuInfo::fields_[kCpuInfoMax] = {0};
 
 void CpuInfo::InitOnce() {
-#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
-  fields_[kCpuInfoProcessor] = "vendor_id";
-  fields_[kCpuInfoModel] = "model name";
-  fields_[kCpuInfoHardware] = "model name";
-  fields_[kCpuInfoFeatures] = "flags";
-  method_ = kCpuInfoCpuId;
-  CpuId::InitOnce();
-#elif defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
-  // TODO(zra): Verify that these field names are correct for arm64.
-  fields_[kCpuInfoProcessor] = "Processor";
-  fields_[kCpuInfoModel] = "model name";
-  fields_[kCpuInfoHardware] = "Hardware";
-  fields_[kCpuInfoFeatures] = "Features";
-  method_ = kCpuInfoSystem;
-  ProcCpuInfo::InitOnce();
-#elif defined(HOST_ARCH_MIPS)
-  fields_[kCpuInfoProcessor] = "system type";
-  fields_[kCpuInfoModel] = "cpu model";
-  fields_[kCpuInfoHardware] = "cpu model";
-  fields_[kCpuInfoFeatures] = "ASEs implemented";
-  method_ = kCpuInfoSystem;
-  ProcCpuInfo::InitOnce();
-#else
-#error Unrecognized target architecture
-#endif
+  UNIMPLEMENTED();
+
+  return;
 }
 
 
 void CpuInfo::Cleanup() {
-  if (method_ == kCpuInfoCpuId) {
-    CpuId::Cleanup();
-  } else {
-    ASSERT(method_ == kCpuInfoSystem);
-    ProcCpuInfo::Cleanup();
-  }
+  UNIMPLEMENTED();
+
+  return;
 }
 
 
 bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
-  if (method_ == kCpuInfoCpuId) {
-    return strstr(CpuId::field(idx), search_string);
-  } else {
-    ASSERT(method_ == kCpuInfoSystem);
-    return ProcCpuInfo::FieldContains(FieldName(idx), search_string);
-  }
+  UNIMPLEMENTED();
+
+  return false;
 }
 
 
 bool CpuInfo::FieldContainsByString(const char* field,
                                     const char* search_string) {
-  if (method_ == kCpuInfoCpuId) {
-    for (int i = 0; i < kCpuInfoMax; i++) {
-      if (strcmp(field, fields_[i]) == 0) {
-        return FieldContains(static_cast<CpuInfoIndices>(i), search_string);
-      }
-    }
-    UNIMPLEMENTED();
-    return false;
-  } else {
-    ASSERT(method_ == kCpuInfoSystem);
-    return ProcCpuInfo::FieldContains(field, search_string);
-  }
+  UNIMPLEMENTED();
+
+  return false;
 }
 
 
 const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
-  if (method_ == kCpuInfoCpuId) {
-    return CpuId::field(idx);
-  } else {
-    ASSERT(method_ == kCpuInfoSystem);
-    return ProcCpuInfo::ExtractField(FieldName(idx));
-  }
+  UNIMPLEMENTED();
+
+  return "";
 }
 
 
 const char* CpuInfo::ExtractFieldByString(const char* field) {
-  if (method_ == kCpuInfoCpuId) {
-    for (int i = 0; i < kCpuInfoMax; i++) {
-      if (strcmp(field, fields_[i]) == 0) {
-        return ExtractField(static_cast<CpuInfoIndices>(i));
-      }
-    }
-    UNIMPLEMENTED();
-    return NULL;
-  } else {
-    ASSERT(method_ == kCpuInfoSystem);
-    return ProcCpuInfo::ExtractField(field);
-  }
+  UNIMPLEMENTED();
+
+  return "";
 }
 
 
 bool CpuInfo::HasField(const char* field) {
-  if (method_ == kCpuInfoCpuId) {
-    return (strcmp(field, fields_[kCpuInfoProcessor]) == 0) ||
-           (strcmp(field, fields_[kCpuInfoModel]) == 0) ||
-           (strcmp(field, fields_[kCpuInfoHardware]) == 0) ||
-           (strcmp(field, fields_[kCpuInfoFeatures]) == 0);
-  } else {
-    ASSERT(method_ == kCpuInfoSystem);
-    return ProcCpuInfo::HasField(field);
-  }
+  UNIMPLEMENTED();
+
+  return false;
 }
 
 }  // namespace dart
