@@ -500,6 +500,7 @@
     'virtual_memory_linux.cc',
     'virtual_memory_macos.cc',
     'virtual_memory_test.cc',
+    'virtual_memory_openbsd.cc',
     'virtual_memory_win.cc',
     'visitor.h',
     'vtune.cc',
