@@ -389,6 +389,7 @@
         'platform_android.cc',
         'platform_linux.cc',
         'platform_macos.cc',
+	'platform_openbsd.cc',
         'platform_win.cc',
         'platform.h',
         # Include generated source files.
