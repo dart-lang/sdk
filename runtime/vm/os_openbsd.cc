@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(TARGET_OS_LINUX)
+#if defined(TARGET_OS_OPENBSD)
 
 #include "vm/os.h"
 
@@ -346,7 +346,7 @@ class JitdumpCodeObserver : public CodeObserver {
 
 
 const char* OS::Name() {
-  return "linux";
+  return "openbsd";
 }
 
 
@@ -615,4 +615,4 @@ void OS::Exit(int code) {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_LINUX)
+#endif  // defined(TARGET_OS_OPENBSD)
