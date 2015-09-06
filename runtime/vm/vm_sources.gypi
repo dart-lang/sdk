@@ -121,6 +121,7 @@
     'cpuinfo_android.cc',
     'cpuinfo_linux.cc',
     'cpuinfo_macos.cc',
+    'cpuinfo_openbsd.cc',
     'cpuinfo_test.cc',
     'cpuinfo_win.cc',
     'custom_isolate_test.cc',
