@@ -411,6 +411,7 @@
     'signal_handler_android.cc',
     'signal_handler_linux.cc',
     'signal_handler_macos.cc',
+    'signal_handler_openbsd.cc',
     'signal_handler_win.cc',
     'signal_handler.h',
     'simulator.h',
