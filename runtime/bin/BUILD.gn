@@ -103,6 +103,7 @@ static_library("libdart_builtin") {
     "log_android.cc",
     "log_linux.cc",
     "log_macos.cc",
+    "log_openbsd.cc",
     "log_win.cc",
   ] + builtin_impl_sources_gypi.sources
 }
@@ -233,6 +234,7 @@ source_set("embedded_dart_io") {
     "log_android.cc",
     "log_linux.cc",
     "log_macos.cc",
+    "log_openbsd.cc",
     "log_win.cc",
     "log.h",
   ]

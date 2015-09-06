@@ -135,6 +135,7 @@
         'log_android.cc',
         'log_linux.cc',
         'log_macos.cc',
+	'log_openbsd.cc',
         'log_win.cc',
       ],
       'includes': [
@@ -212,6 +213,7 @@
         'log_android.cc',
         'log_linux.cc',
         'log_macos.cc',
+	'log_openbsd.cc',
         'log_win.cc',
         'vmservice_dartium.h',
         'vmservice_dartium.cc',
