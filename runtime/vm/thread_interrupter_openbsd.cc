@@ -32,8 +32,7 @@ class ThreadInterrupterOpenBSD : public AllStatic {
       return;
     }
     // Extract thread state.
-    ucontext_t* context = reinterpret_cast<ucontext_t*>(context_);
-    mcontext_t mcontext = context->uc_mcontext;
+    mcontext_t mcontext = reinterpret_cast<mcontext_t &>(context_);
     InterruptedThreadState its;
     its.tid = thread->id();
     its.pc = SignalHandler::GetProgramCounter(mcontext);
