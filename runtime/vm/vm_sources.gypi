@@ -297,6 +297,7 @@
     'native_symbol_android.cc',
     'native_symbol_linux.cc',
     'native_symbol_macos.cc',
+    'native_symbol_openbsd.cc',
     'native_symbol_win.cc',
     'object.cc',
     'object.h',
