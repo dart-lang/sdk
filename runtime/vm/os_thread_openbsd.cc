@@ -170,7 +170,7 @@ intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
 
 
 ThreadId OSThread::ThreadIdFromIntPtr(intptr_t id) {
-  return static_cast<ThreadId>(id);
+  return reinterpret_cast<ThreadId>(id);
 }
 
 
