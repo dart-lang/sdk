@@ -324,6 +324,8 @@
     'os_thread_linux.h',
     'os_thread_macos.cc',
     'os_thread_macos.h',
+    'os_thread_openbsd.cc',
+    'os_thread_openbsd.h',
     'os_thread_win.cc',
     'os_thread_win.h',
     'os_win.cc',
