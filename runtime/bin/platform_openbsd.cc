@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_LINUX)
+#if defined(TARGET_OS_OPENBSD)
 
 #include "bin/file.h"
 #include "bin/platform.h"
@@ -14,6 +14,7 @@
 
 #include "bin/fdutils.h"
 
+extern char **environ;
 
 namespace dart {
 namespace bin {
@@ -39,7 +40,7 @@ int Platform::NumberOfProcessors() {
 
 
 const char* Platform::OperatingSystem() {
-  return "linux";
+  return "openbsd";
 }
 
 
@@ -74,10 +75,11 @@ void Platform::FreeEnvironment(char** env, intptr_t count) {
 
 
 char* Platform::ResolveExecutablePath() {
+  // FIXME: This won't work on OpenBSD the way it is now
   return File::LinkTarget("/proc/self/exe");
 }
 
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_LINUX)
+#endif  // defined(TARGET_OS_OPENBSD)
