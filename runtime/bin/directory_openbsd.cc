@@ -372,20 +372,6 @@ bool Directory::Create(const char* dir_name) {
   return (result == 0);
 }
 
-
-// Android doesn't currently provide mkdtemp.  Once Android provied mkdtemp,
-// remove this function in favor of calling mkdtemp directly.
-static char* MakeTempDirectory(char* path_template) {
-  if (mktemp(path_template) == NULL) {
-    return NULL;
-  }
-  if (mkdir(path_template, 0700) != 0) {
-    return NULL;
-  }
-  return path_template;
-}
-
-
 char* Directory::SystemTemp() {
   // Android does not have a /tmp directory. A partial substitute,
   // suitable for bring-up work and tests, is to create a tmp
@@ -416,7 +402,7 @@ char* Directory::CreateTemp(const char* prefix) {
   }
   char* result;
   do {
-    result = MakeTempDirectory(path.AsString());
+    result = mkdtemp(path.AsString());
   } while (result == NULL && errno == EINTR);
   if (result == NULL) {
     return NULL;
