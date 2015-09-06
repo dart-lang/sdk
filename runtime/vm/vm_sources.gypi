@@ -316,6 +316,7 @@
     'os_android.cc',
     'os_linux.cc',
     'os_macos.cc',
+    'os_openbsd.cc',
     'os_test.cc',
     'os_thread.h',
     'os_thread_android.cc',
