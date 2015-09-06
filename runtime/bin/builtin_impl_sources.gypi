@@ -43,6 +43,7 @@
     'extensions_android.cc',
     'extensions_linux.cc',
     'extensions_macos.cc',
+    'extensions_openbsd.cc',
     'extensions_win.cc',
     'file.cc',
     'file.h',
