@@ -462,9 +462,10 @@ void CompileType::Union(CompileType* other) {
 
   const AbstractType* compile_type = ToAbstractType();
   const AbstractType* other_compile_type = other->ToAbstractType();
-  if (compile_type->IsMoreSpecificThan(*other_compile_type, NULL)) {
+  if (compile_type->IsMoreSpecificThan(*other_compile_type, NULL, Heap::kOld)) {
     type_ = other_compile_type;
-  } else if (other_compile_type->IsMoreSpecificThan(*compile_type, NULL)) {
+  } else if (other_compile_type->
+      IsMoreSpecificThan(*compile_type, NULL, Heap::kOld)) {
   // Nothing to do.
   } else {
   // Can't unify.
@@ -659,7 +660,7 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
     return false;
   }
 
-  *is_instance = compile_type.IsMoreSpecificThan(type, NULL);
+  *is_instance = compile_type.IsMoreSpecificThan(type, NULL, Heap::kOld);
   return *is_instance;
 }
 
@@ -674,7 +675,7 @@ bool CompileType::IsMoreSpecificThan(const AbstractType& other) {
     return IsNull();
   }
 
-  return ToAbstractType()->IsMoreSpecificThan(other, NULL);
+  return ToAbstractType()->IsMoreSpecificThan(other, NULL, Heap::kOld);
 }
 
 

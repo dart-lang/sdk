@@ -715,8 +715,8 @@ void ClassFinalizer::FinalizeTypeArguments(
                       arguments.ToCString());
           }
           Error& error = Error::Handle();
-          super_type_arg =
-              super_type_arg.InstantiateFrom(arguments, &error, trail);
+          super_type_arg = super_type_arg.InstantiateFrom(
+              arguments, &error, trail, Heap::kOld);
           if (!error.IsNull()) {
             // InstantiateFrom does not report an error if the type is still
             // uninstantiated. Instead, it will return a new BoundedType so
@@ -818,7 +818,8 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
       if (declared_bound.IsInstantiated()) {
         instantiated_bound = declared_bound.raw();
       } else {
-        instantiated_bound = declared_bound.InstantiateFrom(arguments, &error);
+        instantiated_bound =
+            declared_bound.InstantiateFrom(arguments, &error, NULL, Heap::kOld);
       }
       if (!instantiated_bound.IsFinalized()) {
         // The bound refers to type parameters, creating a cycle; postpone

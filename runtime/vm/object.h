@@ -1133,24 +1133,28 @@ class Class : public Object {
   bool IsSubtypeOf(const TypeArguments& type_arguments,
                    const Class& other,
                    const TypeArguments& other_type_arguments,
-                   Error* bound_error) const {
+                   Error* bound_error,
+                   Heap::Space space = Heap::kNew) const {
     return TypeTest(kIsSubtypeOf,
                     type_arguments,
                     other,
                     other_type_arguments,
-                    bound_error);
+                    bound_error,
+                    space);
   }
 
   // Check the 'more specific' relationship.
   bool IsMoreSpecificThan(const TypeArguments& type_arguments,
                           const Class& other,
                           const TypeArguments& other_type_arguments,
-                          Error* bound_error) const {
+                          Error* bound_error,
+                          Heap::Space space = Heap::kNew) const {
     return TypeTest(kIsMoreSpecificThan,
                     type_arguments,
                     other,
                     other_type_arguments,
-                    bound_error);
+                    bound_error,
+                    space);
   }
 
   // Check if this is the top level class.
@@ -1490,7 +1494,8 @@ class Class : public Object {
                 const TypeArguments& type_arguments,
                 const Class& other,
                 const TypeArguments& other_type_arguments,
-                Error* bound_error) const;
+                Error* bound_error,
+                Heap::Space space) const;
 
   static bool TypeTestNonRecursive(
       const Class& cls,
@@ -1498,7 +1503,8 @@ class Class : public Object {
       const TypeArguments& type_arguments,
       const Class& other,
       const TypeArguments& other_type_arguments,
-      Error* bound_error);
+      Error* bound_error,
+      Heap::Space space);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class AbstractType;
@@ -1591,8 +1597,9 @@ class TypeArguments : public Object {
   bool IsSubtypeOf(const TypeArguments& other,
                    intptr_t from_index,
                    intptr_t len,
-                   Error* bound_error) const {
-    return TypeTest(kIsSubtypeOf, other, from_index, len, bound_error);
+                   Error* bound_error,
+                   Heap::Space space = Heap::kNew) const {
+    return TypeTest(kIsSubtypeOf, other, from_index, len, bound_error, space);
   }
 
   // Check the 'more specific' relationship, considering only a subvector of
@@ -1600,8 +1607,10 @@ class TypeArguments : public Object {
   bool IsMoreSpecificThan(const TypeArguments& other,
                           intptr_t from_index,
                           intptr_t len,
-                          Error* bound_error) const {
-    return TypeTest(kIsMoreSpecificThan, other, from_index, len, bound_error);
+                          Error* bound_error,
+                          Heap::Space space = Heap::kNew) const {
+    return TypeTest(kIsMoreSpecificThan,
+        other, from_index, len, bound_error, space);
   }
 
   // Check if the vectors are equal (they may be null).
@@ -1713,7 +1722,8 @@ class TypeArguments : public Object {
                 const TypeArguments& other,
                 intptr_t from_index,
                 intptr_t len,
-                Error* bound_error) const;
+                Error* bound_error,
+                Heap::Space space) const;
 
   // Return the internal or public name of a subvector of this type argument
   // vector, e.g. "<T, dynamic, List<T>, int>".
@@ -2424,12 +2434,14 @@ class Function : public Object {
   bool IsSubtypeOf(const TypeArguments& type_arguments,
                    const Function& other,
                    const TypeArguments& other_type_arguments,
-                   Error* bound_error) const {
+                   Error* bound_error,
+                   Heap::Space space = Heap::kNew) const {
     return TypeTest(kIsSubtypeOf,
                     type_arguments,
                     other,
                     other_type_arguments,
-                    bound_error);
+                    bound_error,
+                    space);
   }
 
   // Returns true if the type of this function is more specific than the type of
@@ -2437,12 +2449,14 @@ class Function : public Object {
   bool IsMoreSpecificThan(const TypeArguments& type_arguments,
                           const Function& other,
                           const TypeArguments& other_type_arguments,
-                          Error* bound_error) const {
+                          Error* bound_error,
+                   Heap::Space space = Heap::kNew) const {
     return TypeTest(kIsMoreSpecificThan,
                     type_arguments,
                     other,
                     other_type_arguments,
-                    bound_error);
+                    bound_error,
+                    space);
   }
 
   // Returns true if this function represents an explicit getter function.
@@ -2727,7 +2741,8 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
                 const TypeArguments& type_arguments,
                 const Function& other,
                 const TypeArguments& other_type_arguments,
-                Error* bound_error) const;
+                Error* bound_error,
+                Heap::Space space) const;
 
   // Checks the type of the formal parameter at the given position for
   // subtyping or 'more specific' relationship between the type of this function
@@ -2738,7 +2753,8 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
                          const TypeArguments& type_arguments,
                          const Function& other,
                          const TypeArguments& other_type_arguments,
-                         Error* bound_error) const;
+                         Error* bound_error,
+                         Heap::Space space) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
@@ -5132,21 +5148,25 @@ class AbstractType : public Instance {
   bool IsFunctionType() const;
 
   // Check the subtype relationship.
-  bool IsSubtypeOf(const AbstractType& other, Error* bound_error) const {
-    return TypeTest(kIsSubtypeOf, other, bound_error);
+  bool IsSubtypeOf(const AbstractType& other,
+                   Error* bound_error,
+                   Heap::Space space = Heap::kNew) const {
+    return TypeTest(kIsSubtypeOf, other, bound_error, space);
   }
 
   // Check the 'more specific' relationship.
   bool IsMoreSpecificThan(const AbstractType& other,
-                          Error* bound_error) const {
-    return TypeTest(kIsMoreSpecificThan, other, bound_error);
+                          Error* bound_error,
+                          Heap::Space space = Heap::kNew) const {
+    return TypeTest(kIsMoreSpecificThan, other, bound_error, space);
   }
 
  private:
   // Check the subtype or 'more specific' relationship.
   bool TypeTest(TypeTestKind test_kind,
                 const AbstractType& other,
-                Error* bound_error) const;
+                Error* bound_error,
+                Heap::Space space) const;
 
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.

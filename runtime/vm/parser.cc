@@ -1050,7 +1050,7 @@ RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
 RawArray* Parser::EvaluateMetadata() {
   CheckToken(Token::kAT, "Metadata character '@' expected");
   GrowableObjectArray& meta_values =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
   while (CurrentToken() == Token::kAT) {
     ConsumeToken();
     intptr_t expr_pos = TokenPos();
@@ -1119,7 +1119,7 @@ RawArray* Parser::EvaluateMetadata() {
       ReportError(expr_pos, "expression must be a compile-time constant");
     }
     const Instance& val = EvaluateConstExpr(expr_pos, expr);
-    meta_values.Add(val);
+    meta_values.Add(val, Heap::kOld);
   }
   return Array::MakeArray(meta_values);
 }
@@ -1541,7 +1541,7 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
 
   if (desc.NamedCount() > 0) {
     const Array& arg_names =
-        Array::ZoneHandle(Z, Array::New(desc.NamedCount()));
+        Array::ZoneHandle(Z, Array::New(desc.NamedCount(), Heap::kOld));
     for (intptr_t i = 0; i < arg_names.Length(); ++i) {
       arg_names.SetAt(i, String::Handle(Z, desc.NameAt(i)));
     }
@@ -5797,13 +5797,14 @@ void Parser::ParseLibraryName() {
   ConsumeToken();
   String& lib_name = *ExpectIdentifier("library name expected");
   if (CurrentToken() == Token::kPERIOD) {
+    GrowableHandlePtrArray<const String> pieces(Z, 3);
+    pieces.Add(lib_name);
     while (CurrentToken() == Token::kPERIOD) {
       ConsumeToken();
-      lib_name = String::Concat(lib_name, Symbols::Dot());
-      lib_name = String::Concat(lib_name,
-          *ExpectIdentifier("malformed library name"));
+      pieces.Add(Symbols::Dot());
+      pieces.Add(*ExpectIdentifier("malformed library name"));
     }
-    lib_name = Symbols::New(lib_name);
+    lib_name = Symbols::FromConcatAll(pieces);
   }
   library_.SetName(lib_name);
   ExpectSemicolon();
@@ -11649,10 +11650,13 @@ AstNode* Parser::ParseClosurization(AstNode* primary) {
   }
 
   // Closurization of instance getter, setter, method or operator.
+  GrowableHandlePtrArray<const String> pieces(Z, 3);
+  pieces.Add(Symbols::HashMark());
   if (is_setter_name) {
-    extractor_name = String::Concat(Symbols::SetterPrefix(), extractor_name);
+    pieces.Add(Symbols::SetterPrefix());
   }
-  extractor_name = Symbols::FromConcat(Symbols::HashMark(), extractor_name);
+  pieces.Add(extractor_name);
+  extractor_name = Symbols::FromConcatAll(pieces);
   return new(Z) InstanceGetterNode(property_pos, primary, extractor_name);
 }
 
@@ -13542,14 +13546,15 @@ String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
   ASSERT(!func.IsNull());
 
   // Build the array of literal values to interpolate.
-  const Array& value_arr = Array::Handle(Z, Array::New(values.length()));
+  const Array& value_arr = Array::Handle(Z,
+      Array::New(values.length(), Heap::kOld));
   for (int i = 0; i < values.length(); i++) {
     ASSERT(values[i]->IsLiteralNode());
     value_arr.SetAt(i, values[i]->AsLiteralNode()->literal());
   }
 
   // Build argument array to pass to the interpolation function.
-  const Array& interpolate_arg = Array::Handle(Z, Array::New(1));
+  const Array& interpolate_arg = Array::Handle(Z, Array::New(1, Heap::kOld));
   interpolate_arg.SetAt(0, value_arr);
 
   // Call interpolation function.
@@ -13746,9 +13751,12 @@ AstNode* Parser::ParsePrimary() {
           // is used. We cheat a little here by looking at the next token
           // to determine whether we have an unresolved method call or
           // field access.
-          String& qualified_name = String::ZoneHandle(Z, prefix.name());
-          qualified_name = String::Concat(qualified_name, Symbols::Dot());
-          qualified_name = Symbols::FromConcat(qualified_name, ident);
+          GrowableHandlePtrArray<const String> pieces(Z, 3);
+          pieces.Add(String::Handle(Z, prefix.name()));
+          pieces.Add(Symbols::Dot());
+          pieces.Add(ident);
+          const String& qualified_name = String::ZoneHandle(Z,
+              Symbols::FromConcatAll(pieces));
           InvocationMirror::Type call_type =
               CurrentToken() == Token::kLPAREN ?
                   InvocationMirror::kMethod : InvocationMirror::kGetter;

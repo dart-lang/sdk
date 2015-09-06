@@ -3586,7 +3586,7 @@ void Class::AddDirectSubclass(const Class& subclass) const {
     ASSERT(direct_subclasses.At(i) != subclass.raw());
   }
 #endif
-  direct_subclasses.Add(subclass);
+  direct_subclasses.Add(subclass, Heap::kOld);
 }
 
 
@@ -3735,7 +3735,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                  const TypeArguments& type_arguments,
                                  const Class& other,
                                  const TypeArguments& other_type_arguments,
-                                 Error* bound_error) {
+                                 Error* bound_error,
+                                 Heap::Space space) {
   // Use the thsi object as if it was the receiver of this method, but instead
   // of recursing reset it to the super class and loop.
   Isolate* isolate = Isolate::Current();
@@ -3792,7 +3793,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                      other_type_arguments,
                                      from_index,
                                      num_type_params,
-                                     bound_error);
+                                     bound_error,
+                                     space);
     }
     const bool other_is_function_class = other.IsFunctionClass();
     if (other.IsSignatureClass() || other_is_function_class) {
@@ -3809,7 +3811,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                             type_arguments,
                             other_fun,
                             other_type_arguments,
-                            bound_error);
+                            bound_error,
+                            space);
       }
       // Check if type S has a call() method of function type T.
       Function& function =
@@ -3829,7 +3832,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                               type_arguments,
                               other_fun,
                               other_type_arguments,
-                              bound_error)) {
+                              bound_error,
+                              space)) {
               return true;
             }
       }
@@ -3869,7 +3873,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // after the type arguments of the super type of this type.
         // The index of the type parameters is adjusted upon finalization.
         error = Error::null();
-        interface_args = interface_args.InstantiateFrom(type_arguments, &error);
+        interface_args =
+            interface_args.InstantiateFrom(type_arguments, &error, NULL, space);
         if (!error.IsNull()) {
           // Return the first bound error to the caller if it requests it.
           if ((bound_error != NULL) && bound_error->IsNull()) {
@@ -3882,7 +3887,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                    interface_args,
                                    other,
                                    other_type_arguments,
-                                   bound_error)) {
+                                   bound_error,
+                                   space)) {
         return true;
       }
     }
@@ -3907,13 +3913,15 @@ bool Class::TypeTest(TypeTestKind test_kind,
                      const TypeArguments& type_arguments,
                      const Class& other,
                      const TypeArguments& other_type_arguments,
-                     Error* bound_error) const {
+                     Error* bound_error,
+                     Heap::Space space) const {
   return TypeTestNonRecursive(*this,
                               test_kind,
                               type_arguments,
                               other,
                               other_type_arguments,
-                              bound_error);
+                              bound_error,
+                              space);
 }
 
 
@@ -4551,7 +4559,8 @@ bool TypeArguments::TypeTest(TypeTestKind test_kind,
                              const TypeArguments& other,
                              intptr_t from_index,
                              intptr_t len,
-                             Error* bound_error) const {
+                             Error* bound_error,
+                             Heap::Space space) const {
   ASSERT(Length() >= (from_index + len));
   ASSERT(!other.IsNull());
   ASSERT(other.Length() >= (from_index + len));
@@ -4562,7 +4571,7 @@ bool TypeArguments::TypeTest(TypeTestKind test_kind,
     ASSERT(!type.IsNull());
     other_type = other.TypeAt(from_index + i);
     ASSERT(!other_type.IsNull());
-    if (!type.TypeTest(test_kind, other_type, bound_error)) {
+    if (!type.TypeTest(test_kind, other_type, bound_error, space)) {
       return false;
     }
   }
@@ -6047,7 +6056,8 @@ bool Function::HasCompatibleParametersWith(const Function& other,
   // Check that this function's signature type is a subtype of the other
   // function's signature type.
   if (!TypeTest(kIsSubtypeOf, Object::null_type_arguments(),
-                other, Object::null_type_arguments(), bound_error)) {
+                other, Object::null_type_arguments(), bound_error,
+                Heap::kOld)) {
     // For more informative error reporting, use the location of the other
     // function here, since the caller will use the location of this function.
     *bound_error = LanguageError::NewFormatted(
@@ -6089,12 +6099,15 @@ bool Function::TestParameterType(
     const TypeArguments& type_arguments,
     const Function& other,
     const TypeArguments& other_type_arguments,
-    Error* bound_error) const {
+    Error* bound_error,
+    Heap::Space space) const {
   AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
   if (!other_param_type.IsInstantiated()) {
     other_param_type = other_param_type.InstantiateFrom(other_type_arguments,
-                                                        bound_error);
+                                                        bound_error,
+                                                        NULL,  // trail
+                                                        space);
     ASSERT((bound_error == NULL) || bound_error->IsNull());
   }
   if (other_param_type.IsDynamicType()) {
@@ -6103,20 +6116,21 @@ bool Function::TestParameterType(
   AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
   if (!param_type.IsInstantiated()) {
-    param_type = param_type.InstantiateFrom(type_arguments, bound_error);
+    param_type = param_type.InstantiateFrom(
+        type_arguments, bound_error, NULL /*trail*/, space);
     ASSERT((bound_error == NULL) || bound_error->IsNull());
   }
   if (param_type.IsDynamicType()) {
     return test_kind == kIsSubtypeOf;
   }
   if (test_kind == kIsSubtypeOf) {
-    if (!param_type.IsSubtypeOf(other_param_type, bound_error) &&
-        !other_param_type.IsSubtypeOf(param_type, bound_error)) {
+    if (!param_type.IsSubtypeOf(other_param_type, bound_error, space) &&
+        !other_param_type.IsSubtypeOf(param_type, bound_error, space)) {
       return false;
     }
   } else {
     ASSERT(test_kind == kIsMoreSpecificThan);
-    if (!param_type.IsMoreSpecificThan(other_param_type, bound_error)) {
+    if (!param_type.IsMoreSpecificThan(other_param_type, bound_error, space)) {
       return false;
     }
   }
@@ -6128,7 +6142,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
                         const TypeArguments& type_arguments,
                         const Function& other,
                         const TypeArguments& other_type_arguments,
-                        Error* bound_error) const {
+                        Error* bound_error,
+                        Heap::Space space) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
   const intptr_t num_opt_named_params = NumOptionalNamedParameters();
@@ -6186,7 +6201,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
     if (!TestParameterType(test_kind,
                            i + num_ignored_params, i + other_num_ignored_params,
                            type_arguments, other, other_type_arguments,
-                           bound_error)) {
+                           bound_error,
+                           space)) {
       return false;
     }
   }
@@ -6217,7 +6233,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
         if (!TestParameterType(test_kind,
                                j, i,
                                type_arguments, other, other_type_arguments,
-                               bound_error)) {
+                               bound_error,
+                               space)) {
           return false;
         }
         break;
@@ -6763,9 +6780,9 @@ RawString* Function::QualifiedPrettyName() const {
       tmp = cls.PrettyName();
     }
   }
-  tmp = String::Concat(tmp, Symbols::Dot());
+  tmp = String::Concat(tmp, Symbols::Dot(), Heap::kOld);
   const String& suffix = String::Handle(PrettyName());
-  return String::Concat(tmp, suffix);
+  return String::Concat(tmp, suffix, Heap::kOld);
 }
 
 
@@ -9068,35 +9085,40 @@ RawInstance* Library::TransitiveLoadError() const {
 
 
 static RawString* MakeClassMetaName(const Class& cls) {
-  String& cname = String::Handle(cls.Name());
-  return String::Concat(Symbols::At(), cname);
+  return Symbols::FromConcat(Symbols::At(), String::Handle(cls.Name()));
 }
 
 
 static RawString* MakeFieldMetaName(const Field& field) {
   const String& cname =
       String::Handle(MakeClassMetaName(Class::Handle(field.origin())));
-  String& fname = String::Handle(field.name());
-  fname = String::Concat(Symbols::At(), fname);
-  return String::Concat(cname, fname);
+  GrowableHandlePtrArray<const String> pieces(Thread::Current()->zone(), 3);
+  pieces.Add(cname);
+  pieces.Add(Symbols::At());
+  pieces.Add(String::Handle(field.name()));
+  return Symbols::FromConcatAll(pieces);
 }
 
 
 static RawString* MakeFunctionMetaName(const Function& func) {
   const String& cname =
       String::Handle(MakeClassMetaName(Class::Handle(func.origin())));
-  String& fname = String::Handle(func.QualifiedPrettyName());
-  fname = String::Concat(Symbols::At(), fname);
-  return String::Concat(cname, fname);
+  GrowableHandlePtrArray<const String> pieces(Thread::Current()->zone(), 3);
+  pieces.Add(cname);
+  pieces.Add(Symbols::At());
+  pieces.Add(String::Handle(func.QualifiedPrettyName()));
+  return Symbols::FromConcatAll(pieces);
 }
 
 
 static RawString* MakeTypeParameterMetaName(const TypeParameter& param) {
   const String& cname = String::Handle(
       MakeClassMetaName(Class::Handle(param.parameterized_class())));
-  String& pname = String::Handle(param.name());
-  pname = String::Concat(Symbols::At(), pname);
-  return String::Concat(cname, pname);
+  GrowableHandlePtrArray<const String> pieces(Thread::Current()->zone(), 3);
+  pieces.Add(cname);
+  pieces.Add(Symbols::At());
+  pieces.Add(String::Handle(param.name()));
+  return Symbols::FromConcatAll(pieces);
 }
 
 
@@ -14542,7 +14564,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     other_type_arguments = other.arguments();
   }
   return cls.IsSubtypeOf(type_arguments, other_class, other_type_arguments,
-                         bound_error);
+                         bound_error, Heap::kOld);
 }
 
 
@@ -15203,7 +15225,8 @@ bool AbstractType::IsFunctionType() const {
 
 bool AbstractType::TypeTest(TypeTestKind test_kind,
                             const AbstractType& other,
-                            Error* bound_error) const {
+                            Error* bound_error,
+                            Heap::Space space) const {
   ASSERT(IsResolved());
   ASSERT(other.IsResolved());
   if (IsMalformed() || other.IsMalformed()) {
@@ -15272,7 +15295,8 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
                       TypeArguments::Handle(arguments()),
                       Class::Handle(other.type_class()),
                       TypeArguments::Handle(other.arguments()),
-                      bound_error);
+                      bound_error,
+                      space);
 }
 
 
