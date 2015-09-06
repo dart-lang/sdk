@@ -57,6 +57,7 @@
     'fdutils_android.cc',
     'fdutils_linux.cc',
     'fdutils_macos.cc',
+    'fdutils_openbsd.cc',
     'hashmap_test.cc',
     'io_buffer.cc',
     'io_buffer.h',
