@@ -5,6 +5,7 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_OPENBSD)
 
+#include <sys/socket.h> // NOLINT
 #include <errno.h>  // NOLINT
 #include <stdio.h>  // NOLINT
 #include <stdlib.h>  // NOLINT
