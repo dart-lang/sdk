@@ -12,6 +12,7 @@
     'crypto_android.cc',
     'crypto_linux.cc',
     'crypto_macos.cc',
+    'crypto_openbsd.cc',
     'crypto_win.cc',
     'builtin_common.cc',
     'dartutils.cc',
