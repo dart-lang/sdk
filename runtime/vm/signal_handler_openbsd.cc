@@ -5,7 +5,7 @@
 #include "vm/globals.h"
 #include "vm/simulator.h"
 #include "vm/signal_handler.h"
-#if defined(TARGET_OS_LINUX)
+#if defined(TARGET_OS_OPENBSD
 
 namespace dart {
 
@@ -106,4 +106,4 @@ void SignalHandler::Remove() {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_LINUX)
+#endif  // defined(TARGET_OS_OPENBSD
