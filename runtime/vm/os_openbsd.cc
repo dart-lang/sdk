@@ -9,12 +9,11 @@
 
 #include <errno.h>  // NOLINT
 #include <limits.h>  // NOLINT
-#include <malloc.h>  // NOLINT
+#include <stdlib.h> // NOLINT
 #include <time.h>  // NOLINT
 #include <sys/resource.h>  // NOLINT
 #include <sys/time.h>  // NOLINT
 #include <sys/types.h>  // NOLINT
-#include <sys/syscall.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
 #include <fcntl.h>  // NOLINT
 #include <unistd.h>  // NOLINT
@@ -270,9 +269,8 @@ class JitdumpCodeObserver : public CodeObserver {
   }
 
   pid_t gettid() {
-    // libc doesn't wrap the Linux-specific gettid system call.
     // Note that this thread id is not the same as the posix thread id.
-    return syscall(SYS_gettid);
+    return getthrid();
   }
 
   uint64_t GetKernelTimeNanos() {
@@ -411,8 +409,8 @@ void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
   const int kMinimumAlignment = 16;
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(alignment >= kMinimumAlignment);
-  void* p = memalign(alignment, size);
-  if (p == NULL) {
+  void* p = NULL;
+  if(posix_memalign(&p, alignment, size)) {
     UNREACHABLE();
   }
   return p;
