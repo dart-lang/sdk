@@ -2225,6 +2225,10 @@ class TestUtils {
 
   static List<String> standardOptions(Map configuration) {
     List args = ["--ignore-unrecognized-flags"];
+    if (configuration["checked"]) {
+      args.add('--enable_asserts');
+      args.add("--enable_type_checks");
+    }
     String compiler = configuration["compiler"];
     if (compiler == "dart2js") {
       args = ['--generate-code-with-compile-time-errors', '--test-mode'];

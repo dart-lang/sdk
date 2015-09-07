@@ -155,12 +155,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> sharedOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    List<String> args = [];
-    if (isChecked) {
-      args.add('--enable_asserts');
-      args.add('--enable_type_checks');
-    }
-    return args
+    return <String>[]
         ..addAll(vmOptions)
         ..addAll(sharedOptions)
         ..addAll(originalArguments);

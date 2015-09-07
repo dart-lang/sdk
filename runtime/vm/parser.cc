@@ -9091,7 +9091,7 @@ AstNode* Parser::ParseAssertStatement() {
   ConsumeToken();  // Consume assert keyword.
   ExpectToken(Token::kLPAREN);
   const intptr_t condition_pos = TokenPos();
-  if (!I->flags().asserts()) {
+  if (!I->flags().asserts() && !I->flags().type_checks()) {
     SkipExpr();
     ExpectToken(Token::kRPAREN);
     return NULL;
