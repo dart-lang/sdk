@@ -857,6 +857,13 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
                              [this._serverSide = false]) {
     _consumer = new _WebSocketConsumer(this, _socket);
     _sink = new _StreamSinkImpl(_consumer);
+    _sink.done.catchError((e) {
+        if (!_controller.isClosed) {
+          _close(WebSocketStatus.ABNORMAL_CLOSURE);
+          _controller.addError(e);
+          _controller.close();
+        }
+      });
     _readyState = WebSocket.OPEN;
 
     var transformer = new _WebSocketProtocolTransformer(_serverSide);
@@ -992,6 +999,10 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     if (_outCloseCode == null) {
       _outCloseCode = code;
       _outCloseReason = reason;
+    }
+    if (_closeCode == null) {
+      _closeCode = code;
+      _closeReason = reason;
     }
     _writeClosed = true;
     _consumer.closeSocket();
