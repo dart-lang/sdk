@@ -3930,11 +3930,23 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   bool visitAsExpression(AsExpression node) => _nodeExits(node.expression);
 
   @override
-  bool visitAssertStatement(AssertStatement node) => _nodeExits(node.condition);
+  bool visitAssertStatement(AssertStatement node) => false;
 
   @override
-  bool visitAssignmentExpression(AssignmentExpression node) =>
-      _nodeExits(node.leftHandSide) || _nodeExits(node.rightHandSide);
+  bool visitAssignmentExpression(AssignmentExpression node) {
+    Expression leftHandSide = node.leftHandSide;
+    if (_nodeExits(leftHandSide)) {
+      return true;
+    }
+    if (node.operator.type == sc.TokenType.QUESTION_QUESTION_EQ) {
+      return false;
+    }
+    if (leftHandSide is PropertyAccess &&
+        leftHandSide.operator.type == sc.TokenType.QUESTION_PERIOD) {
+      return false;
+    }
+    return _nodeExits(node.rightHandSide);
+  }
 
   @override
   bool visitAwaitExpression(AwaitExpression node) =>
@@ -3943,9 +3955,10 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   @override
   bool visitBinaryExpression(BinaryExpression node) {
     Expression lhsExpression = node.leftOperand;
+    Expression rhsExpression = node.rightOperand;
     sc.TokenType operatorType = node.operator.type;
-    // If the operator is || and the left hand side is false literal, don't
-    // consider the RHS of the binary expression.
+    // If the operator is ||, then only consider the RHS of the binary
+    // expression if the left hand side is the false literal.
     // TODO(jwren) Do we want to take constant expressions into account,
     // evaluate if(false) {} differently than if(<condition>), when <condition>
     // evaluates to a constant false value?
@@ -3953,21 +3966,27 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       if (lhsExpression is BooleanLiteral) {
         BooleanLiteral booleanLiteral = lhsExpression;
         if (!booleanLiteral.value) {
-          return false;
+          return _nodeExits(rhsExpression);
         }
       }
+      return _nodeExits(lhsExpression);
     }
-    // If the operator is && and the left hand side is true literal, don't
-    // consider the RHS of the binary expression.
+    // If the operator is &&, then only consider the RHS of the binary
+    // expression if the left hand side is the true literal.
     if (operatorType == sc.TokenType.AMPERSAND_AMPERSAND) {
       if (lhsExpression is BooleanLiteral) {
         BooleanLiteral booleanLiteral = lhsExpression;
         if (booleanLiteral.value) {
-          return false;
+          return _nodeExits(rhsExpression);
         }
       }
+      return _nodeExits(lhsExpression);
     }
-    Expression rhsExpression = node.rightOperand;
+    // If the operator is ??, then don't consider the RHS of the binary
+    // expression.
+    if (operatorType == sc.TokenType.QUESTION_QUESTION) {
+      return _nodeExits(lhsExpression);
+    }
     return _nodeExits(lhsExpression) || _nodeExits(rhsExpression);
   }
 
@@ -4162,8 +4181,13 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   @override
   bool visitMethodInvocation(MethodInvocation node) {
     Expression target = node.realTarget;
-    if (target != null && target.accept(this)) {
-      return true;
+    if (target != null) {
+      if (target.accept(this)) {
+        return true;
+      }
+      if (node.operator.type == sc.TokenType.QUESTION_PERIOD) {
+        return false;
+      }
     }
     return _nodeExits(node.argumentList);
   }
