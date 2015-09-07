@@ -206,9 +206,6 @@ canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 1260
 css_test/supportsPointConversions: Fail # Issues 21710
 css_test/functional: Fail # Issues 21710
 
-[ $compiler == dart2js && $cps_ir ]
-resource_http_test: Crash # Cannot handle async functions.
-
 [ $runtime == ie11 ]
 custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
 canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
@@ -426,3 +423,6 @@ typed_arrays_range_checks_test: StaticWarning
 typing_test: StaticWarning
 webgl_1_test: StaticWarning
 window_nosuchmethod_test: StaticWarning
+
+[ $compiler == dart2js && $cps_ir ]
+resource_http_test: Crash # (await for(var b in r.openRead()){bytes.addAll(b);}): await for

@@ -196,3 +196,4 @@ analyzer/test/src/task/html_work_manager_test: Crash # (Iterable<JavaFile> ...  
 analyzer/test/src/task/inputs_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
 analyzer/test/src/task/manager_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
 analyzer/test/src/task/model_test: Crash # (Iterable<JavaFile> ...  cannot handle sync*/async* functions
+lookup_map/test/lookup_map_test: RuntimeError # $async$temp1.get$tests is not a function
