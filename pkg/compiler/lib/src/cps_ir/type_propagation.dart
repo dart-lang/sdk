@@ -2080,16 +2080,9 @@ class TransformingVisitor extends LeafVisitor {
     } else {
       singleClass = typeSystem.singleClass(value.type);
     }
-    if (singleClass != null) {
-      if (singleClass.isSubclassOf(backend.jsInterceptorClass)) {
-        Primitive constant = makeConstantPrimitive(
-            new InterceptorConstantValue(singleClass.rawType));
-        constant.hint = node.hint;
-        return constant;
-      } else {
-        node.input.definition.substituteFor(node);
-        return null;
-      }
+    if (singleClass != null &&
+        singleClass.isSubclassOf(backend.jsInterceptorClass)) {
+      node.constantValue = new InterceptorConstantValue(singleClass.rawType);
     }
     // Filter out intercepted classes that do not match the input type.
     node.interceptedClasses.retainWhere((ClassElement clazz) {
