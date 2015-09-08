@@ -2,7 +2,7 @@
 
 This package contains the definition of `LookupMap`: a simple, but very
 restricted map. The map can only hold constant keys and the only way to use the
-map is to retrieve values with a key you already have.  Expect for lookup, any
+map is to retrieve values with a key you already have.  Except for lookup, any
 other operation in `Map` (like forEach, keys, values, length, etc) is not
 available.
 

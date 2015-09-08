@@ -7,7 +7,7 @@ library lookup_map;
 
 /// [LookupMap] is a simple, but very restricted map.  The map can only hold
 /// constant keys and the only way to use the map is to retrieve values with a
-/// key you already have.  Expect for lookup, any other operation in [Map] (like
+/// key you already have.  Except for lookup, any other operation in [Map] (like
 /// forEach, keys, values, length, etc) is not available.
 ///
 /// Constant [LookupMap]s are understood by dart2js and can be tree-shaken
@@ -97,4 +97,4 @@ final _flatMap = new Expando('_flat_map');
 /// this code.
 // Note: this needs to be kept in sync with the pubspec, otherwise
 // test/version_check_test would fail.
-final _version = '0.0.1';
+final _version = '0.0.1+1';

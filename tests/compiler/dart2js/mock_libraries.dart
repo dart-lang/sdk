@@ -434,5 +434,5 @@ const Map<String, String> DEFAULT_LOOKUP_MAP_LIBRARY = const <String, String>{
         : _entries = const [], _nestedMaps = const [];
     V operator[](K k) => null;
   }''',
-  '_version': 'const _version = "0.0.1";',
+  '_version': 'const _version = "0.0.1+1";',
 };
