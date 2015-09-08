@@ -989,6 +989,14 @@ class TransformingVisitor extends LeafVisitor {
         }
         if (!isExtendable) return false;
         CpsFragment cps = new CpsFragment(sourceInfo);
+        Primitive length = cps.letPrim(new GetLength(list));
+        Primitive isEmpty = cps.applyBuiltin(
+            BuiltinOperator.StrictEq,
+            [length, cps.makeZero()]);
+        CpsFragment fail = cps.ifTruthy(isEmpty);
+        fail.invokeStaticThrower(
+            backend.getThrowIndexOutOfBoundsError(),
+            [list, fail.makeConstant(new IntConstantValue(-1))]);
         Primitive removedItem = cps.invokeBuiltin(BuiltinMethod.Pop,
             list,
             <Primitive>[],
