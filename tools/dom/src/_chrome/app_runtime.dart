@@ -32,14 +32,14 @@ class AppRuntimeLaunchItem extends ChromeObject {
   /// FileEntry for the file.
   FileEntry get entry => JS('FileEntry', '#.entry', this._jsObject);
 
-  set entry(FileEntry entry) {
+  void set entry(FileEntry entry) {
     JS('void', '#.entry = #', this._jsObject, convertArgument(entry));
   }
 
   /// The MIME type of the file.
   String get type => JS('String', '#.type', this._jsObject);
 
-  set type(String type) {
+  void set type(String type) {
     JS('void', '#.type = #', this._jsObject, type);
   }
 
@@ -67,7 +67,7 @@ class AppRuntimeLaunchData extends ChromeObject {
   /// The id of the file handler that the app is being invoked with.
   String get id => JS('String', '#.id', this._jsObject);
 
-  set id(String id) {
+  void set id(String id) {
     JS('void', '#.id = #', this._jsObject, id);
   }
 
@@ -81,7 +81,7 @@ class AppRuntimeLaunchData extends ChromeObject {
     return __proxy_items;
   }
 
-  set items(List<AppRuntimeLaunchItem> items) {
+  void set items(List<AppRuntimeLaunchItem> items) {
     JS('void', '#.items = #', this._jsObject, convertArgument(items));
   }
 

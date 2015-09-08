@@ -102,8 +102,18 @@ part of $LIBRARYNAME;
 
 
   class_file.write("""
+$if DART2JS
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
     $(CLASSNAME)Base $IMPLEMENTS {
+$else
+  $if JSINTEROP
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS) class $CLASSNAME extends
+    $(CLASSNAME)Base $IMPLEMENTS {
+  $else
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
+    $(CLASSNAME)Base $IMPLEMENTS {
+  $endif
+$endif
   factory $CLASSNAME() => new CssStyleDeclaration.css('');
 
   factory $CLASSNAME.css(String css) {
@@ -242,7 +252,7 @@ $if DART2JS
   String get %s => this._%s;
 
   /** Sets the value of "%s" */
-  set %s(String value) {
+  void set %s(String value) {
     _%s = value == null ? '' : value;
   }
   @Returns('String')
@@ -256,7 +266,15 @@ $if DART2JS
 $endif
 }
 
+$if DART2JS
 class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
+$else
+  $if JSINTEROP
+class _CssStyleDeclarationSet extends CssStyleDeclarationBase {
+  $else
+class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
+  $endif
+$endif
   final Iterable<Element> _elementIterable;
   Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
 
@@ -291,7 +309,7 @@ $if DART2JS
     property = dashifyName(camelName)
     class_file.write("""
   /** Sets the value of "%s" */
-  set %s(String value) {
+  void set %s(String value) {
     _setAll('%s', value);
   }
     """ % (property, camelName, camelName))
@@ -353,7 +371,7 @@ $endif
     if base_css_name in annotated:
       class_lines.append(annotated[base_css_name])
     class_lines.append("""
-  set %s(String value) {
+  void set %s(String value) {
     setProperty('%s', value, '');
   }
 """ % (camel_case_name, css_name))

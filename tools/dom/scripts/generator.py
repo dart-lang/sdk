@@ -167,7 +167,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'RTCIceCandidate': 'RTCIceCandidate,mozRTCIceCandidate',
 
-    'RTCIceCandidateEvent': 'RTCIceCandidateEvent,RTCPeerConnectionIceEvent',
+    'RTCIceCandidateEvent': 'RTCIceCandidateEvent,RTCPeerConnectionIceEvent', 
 
     'RTCSessionDescription': 'RTCSessionDescription,mozRTCSessionDescription',
 
@@ -514,19 +514,21 @@ class OperationInfo(object):
       parameter_count = len(self.param_infos)
     return ', '.join(map(param_name, self.param_infos[:parameter_count]))
 
-  def isCallback(self, type_registry, type_id):
-    if type_id:
-      callback_type = type_registry._database._all_interfaces[type_id]
-      return callback_type.operations[0].id == 'handleEvent' if len(callback_type.operations) > 0 else False
-    else:
-      return False
+  def wrap_unwrap_list_blink(self, return_type, type_registry):
+    """Return True if the type is a List<Node>"""
+    return return_type.startswith('List<Node>')
+
+  def wrap_unwrap_type_blink(self, return_type, type_registry):
+    """Returns True if the type is a blink type that requires wrap_jso or unwrap_jso.
+    Notice we look for any class that starts with HtmlNNNN e.g., HtmlDocument, etc. """
+    return (type_registry.HasInterface(return_type) or not(return_type) or
+            return_type == 'Object' or return_type.startswith('Html') or
+            return_type == 'MutationObserver')
 
   def ParametersAsListOfVariables(self, parameter_count=None, type_registry=None, dart_js_interop=False):
     """Returns a list of the first parameter_count parameter names
     as raw variables.
     """
-    isRemoveOperation = self.name == 'removeEventListener' or self.name == 'removeListener'
-
     if parameter_count is None:
       parameter_count = len(self.param_infos)
     if not type_registry:
@@ -543,47 +545,11 @@ class OperationInfo(object):
         #    - type is Object
         #
         # JsObject maybe stored in the Dart class.
-        if (wrap_unwrap_type_blink(type_id, type_registry)):
-          type_is_callback = self.isCallback(type_registry, type_id)
-          if (dart_js_interop and type_id == 'EventListener' and
-              (self.name == 'addEventListener')):
-              # Events fired need use a JsFunction not a anonymous closure to
-              # insure the event can really be removed.
-              parameters.append('wrap_event_listener(this, %s)' % p.name)
-          elif (dart_js_interop and type_id == 'EventListener' and
-              (self.name == 'removeEventListener')):
-              # Find the JsFunction that corresponds to this Dart function.
-              parameters.append('_knownListeners[this.hashCode][identityHashCode(%s)]' % p.name)
-          elif dart_js_interop and type_id == 'FontFaceSetForEachCallback':
-              # forEach is supported in the DOM for FontFaceSet as it iterates
-              # over the Javascript Object the callback parameters are also
-              # Javascript objects and must be wrapped.
-              parameters.append('unwrap_jso((fontFace, fontFaceAgain, set) => %s(wrap_jso(fontFace), wrap_jso(fontFaceAgain), wrap_jso(set)))' % p.name)
-          elif dart_js_interop and type_id == 'HeadersForEachCallback':
-              # forEach is supported in the DOM for Headers as it iterates
-              # over the Javascript Object the callback parameters are also
-              # Javascript objects and must be wrapped.
-              parameters.append('unwrap_jso((String value, String key, map) => %s(value, key, wrap_jso(map)))' % p.name)
-          elif dart_js_interop and type_is_callback and not(isRemoveOperation):
-            # Any remove operation that has a a callback doesn't need wrapping.
-            # TODO(terry): Kind of hacky but handles all the cases we care about
-            callback_type = type_registry._database._all_interfaces[type_id]
-            callback_args_decl = []
-            callback_args_call = []
-            for callback_arg in callback_type.operations[0].arguments:
-              if dart_js_interop:
-                dart_type = '' # For non-primitives we will be passing JsObject for non-primitives, so ignore types
-              else:
-                dart_type = type_registry.DartType(callback_arg.type.id) + ' '
-              callback_args_decl.append('%s%s' % (dart_type, callback_arg.id))
-              if wrap_unwrap_type_blink(callback_arg.type.id, type_registry):
-                callback_args_call.append('wrap_jso(%s)' % callback_arg.id)
-              else:
-                callback_args_call.append(callback_arg.id)
-            parameters.append('unwrap_jso((%s) => %s(%s))' %
-                              (", ".join(callback_args_decl),
-                               p.name,
-                               ", ".join(callback_args_call)))
+        if (self.wrap_unwrap_type_blink(type_id, type_registry)):
+          if dart_js_interop and type_id == 'EventListener' and (self.name == 'addEventListener' or
+                                                                 self.name == 'addListener'):
+            # Events fired need to wrap the Javascript Object passed as a parameter in event.
+            parameters.append('unwrap_jso((Event event) => %s(wrap_jso(event)))' % p.name)
           else:
             parameters.append('unwrap_jso(%s)' % p.name)
         else:
@@ -1430,34 +1396,3 @@ class TypeRegistry(object):
 
     class_name = '%sIDLTypeInfo' % type_data.clazz
     return globals()[class_name](type_name, type_data)
-
-def wrap_unwrap_list_blink(return_type, type_registry):
-    """Return True if the type is a List<Node>"""
-    return return_type.startswith('List<Node>')
-
-def wrap_unwrap_type_blink(return_type, type_registry):
-    """Returns True if the type is a blink type that requires wrap_jso or
-    unwrap_jso"""
-    if return_type and return_type.startswith('Html'):
-        return_type = return_type.replace('Html', 'HTML', 1)
-    return (type_registry.HasInterface(return_type) or not(return_type) or
-            return_type == 'Object' or
-            return_type == 'Future' or
-            return_type == 'SqlDatabase' or # renamed to Database
-            return_type == 'HTMLElement' or
-            return_type == 'MutationObserver')
-
-def wrap_type_blink(return_type, type_registry):
-    """Returns True if the type is a blink type that requires wrap_jso but
-    NOT unwrap_jso"""
-    return (return_type == 'Map' or
-            return_type == 'Rectangle')
-
-def wrap_return_type_blink(return_type, type_name, type_registry):
-    """Returns True if we should wrap the returned value. This checks
-    a number of different variations, calling the more basic functions
-    above."""
-    return (wrap_unwrap_type_blink(return_type, type_registry) or
-            wrap_unwrap_type_blink(type_name, type_registry) or
-            wrap_type_blink(return_type, type_registry) or
-            wrap_unwrap_list_blink(return_type, type_registry))

@@ -2693,7 +2693,7 @@ class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<
   // Length is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -3145,7 +3145,7 @@ class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<
   // Number is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -3932,7 +3932,7 @@ class PathSegList extends Interceptor with ListMixin<PathSeg>, ImmutableListMixi
   // PathSeg is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -4627,7 +4627,7 @@ class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<
   // String is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -4731,7 +4731,7 @@ class StyleElement extends SvgElement {
   // Shadowing definition.
   String get title => JS("String", "#.title", this);
 
-  set title(String value) {
+  void set title(String value) {
     JS("void", "#.title = #", this, value);
   }
 
@@ -4801,7 +4801,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
 
   List<Element> get children => new FilteredElementList(this);
 
-  set children(List<Element> value) {
+  void set children(List<Element> value) {
     final children = this.children;
     children.clear();
     children.addAll(value);
@@ -4821,7 +4821,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
     return container.innerHtml;
   }
 
-  set innerHtml(String value) {
+  void set innerHtml(String value) {
     this.setInnerHtml(value);
   }
 
@@ -4886,7 +4886,6 @@ class SvgElement extends Element implements GlobalEventHandlers {
     var e = new SvgElement.tag(tag);
     return e is SvgElement && !(e is UnknownElement);
   }
-
   // To suppress missing implicit constructor warnings.
   factory SvgElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5170,7 +5169,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
   // Shadowing definition.
   int get tabIndex => JS("int", "#.tabIndex", this);
 
-  set tabIndex(int value) {
+  void set tabIndex(int value) {
     JS("void", "#.tabIndex = #", this, value);
   }
 
@@ -6083,7 +6082,7 @@ class TransformList extends Interceptor with ListMixin<Transform>, ImmutableList
   // Transform is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 

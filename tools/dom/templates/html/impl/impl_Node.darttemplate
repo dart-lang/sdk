@@ -114,12 +114,7 @@ $endif
   bool remove(Object object) {
     if (object is! Node) return false;
     Node node = object;
-$if JSINTEROP
-    // We aren't preserving identity of nodes in JSINTEROP mode
-    if (_this != node.parentNode) return false;
-$else
     if (!identical(_this, node.parentNode)) return false;
-$endif
     _this._removeChild(node);
     return true;
   }
@@ -183,7 +178,7 @@ $endif
   // a local copy of childNodes is more efficient.
   int get length => _this.childNodes.length;
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError(
         "Cannot set length on immutable List.");
   }
@@ -206,7 +201,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return new _ChildNodeListLazy(this);
   }
 
-  set nodes(Iterable<Node> value) {
+  void set nodes(Iterable<Node> value) {
     // Copy list first since we don't want liveness during iteration.
     // TODO(jacobr): there is a better way to do this.
     List copy = new List.from(value);
@@ -282,7 +277,9 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return value == null ? super.toString() : value;
   }
 
-$if DARTIUM
+$if JSINTEROP
+  List<Node> _childNodes;
+
   /**
    * A list of this node's children.
    *
@@ -294,10 +291,33 @@ $if DARTIUM
    */
   @DomName('Node.childNodes')
   @DocsEditable()
-  @Returns('NodeList')
-  @Creates('NodeList')
-  List<Node> get childNodes => wrap_jso(_blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this)));
+  List<Node> get childNodes {
+    if (_childNodes == null) {
+       List<Node> nodes = new List<Node>();
+       var jsCollection = _blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this));
+       var collectionLen = jsCollection['length'];
+       for (var i = 0; i < collectionLen; i++) {
+         nodes.add(wrap_jso(jsCollection.callMethod('item', [i])));
+       }
+      _childNodes = nodes;
+    }
+    return _childNodes;
+  }
 $else
+  $if DARTIUM
+  /**
+   * A list of this node's children.
+   *
+   * ## Other resources
+   *
+   * * [Node.childNodes]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
+   * from MDN.
+   */
+  @DomName('Node.childNodes')
+  @DocsEditable()
+  List<Node> get childNodes => _blink.BlinkNode.instance.childNodes_Getter_(this);
+  $else
   /**
    * A list of this node's children.
    *
@@ -313,6 +333,7 @@ $else
   @Creates('NodeList')
   final List<Node> childNodes;
 
+  $endif
 $endif
 $!MEMBERS
 }

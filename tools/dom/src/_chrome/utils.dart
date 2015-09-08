@@ -117,27 +117,27 @@ class Rule extends ChromeObject {
    */
   String get id => JS('String', '#.id', this._jsObject);
 
-  set id(String id) {
+  void set id(String id) {
     JS('void', '#.id = #', this._jsObject, id);
   }
 
   // TODO(sashab): Wrap these generic Lists somehow.
   List get conditions => JS('List', '#.conditions', this._jsObject);
 
-  set conditions(List conditions) {
+  void set conditions(List conditions) {
     JS('void', '#.conditions = #', this._jsObject, convertArgument(conditions));
   }
 
   // TODO(sashab): Wrap these generic Lists somehow.
   List get actions => JS('List', '#.actions', this._jsObject);
 
-  set actions(List actions) {
+  void set actions(List actions) {
     JS('void', '#.actions = #', this._jsObject, convertArgument(actions));
   }
 
   int get priority => JS('int', '#.priority', this._jsObject);
 
-  set priority(int priority) {
+  void set priority(int priority) {
     JS('void', '#.priority = #', this._jsObject, priority);
   }
 
