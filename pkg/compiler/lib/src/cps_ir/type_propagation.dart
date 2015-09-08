@@ -1645,6 +1645,11 @@ class TransformingVisitor extends LeafVisitor {
     Selector targetSelector = new Selector.fromElement(functionElement);
     if (call.callStructure != targetSelector.callStructure) return false;
 
+    // Don't inline if [target] contains try-catch or try-finally. JavaScript
+    // engines typically do poor optimization of the entire function containing
+    // the 'try'.
+    if (functionElement.resolvedAst.elements.containsTryStatement) return false;
+
     FunctionDefinition target =
         functionCompiler.compileToCpsIR(functionElement);
 
@@ -1661,11 +1666,6 @@ class TransformingVisitor extends LeafVisitor {
       if (use is SetField && ref == use.object) continue;
       return false;
     }
-
-    // Don't inline if [target] contains try-catch or try-finally. JavaScript
-    // engines typically do poor optimization of the entire function containing
-    // the 'try'.
-    if (ContainsTry.analyze(target)) return false;
 
     node.receiver.definition.substituteFor(target.thisParameter);
     for (int i = 0; i < node.arguments.length; ++i) {
@@ -1850,9 +1850,8 @@ class TransformingVisitor extends LeafVisitor {
 
     ast.Statement body = node.target.node.body;
     bool shouldInline() {
-      if (backend.annotations.noInline(node.target)) {
-        return false;
-      }
+      if (backend.annotations.noInline(node.target)) return false;
+      if (node.target.resolvedAst.elements.containsTryStatement) return false;
 
       // Inline functions that are a single return statement, expression
       // statement, or block containing a return statement or expression
@@ -2866,27 +2865,5 @@ class ResetAnalysisInfo extends RecursiveVisitor {
 
   processLetMutable(LetMutable node) {
     values.remove(node.variable);
-  }
-}
-
-
-class ContainsTry extends RecursiveVisitor {
-  bool _found = false;
-  ContainsTry._();
-
-  /// Scans [root] for evidence of try-catch and try-finally.
-  static bool analyze(Node root) {
-    ContainsTry visitor = new ContainsTry._();
-    visitor.visit(root);
-    return visitor._found;
-  }
-
-  visit(Node node) {
-    if (_found) return;  // Early exit if we know the answer.
-    super.visit(node);
-  }
-
-  processLetHandler(LetHandler node) {
-    _found = true;
   }
 }

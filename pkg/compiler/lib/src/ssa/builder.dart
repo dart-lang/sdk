@@ -8465,6 +8465,8 @@ class InlineWeeder extends ast.Visitor {
                            int maxInliningNodes,
                            bool useMaxInliningNodes,
                            {bool allowLoops: false}) {
+    if (function.resolvedAst.elements.containsTryStatement) return false;
+
     InlineWeeder weeder =
         new InlineWeeder(maxInliningNodes, useMaxInliningNodes, allowLoops);
     ast.FunctionExpression functionExpression = function.node;
@@ -8545,11 +8547,6 @@ class InlineWeeder extends ast.Visitor {
     }
     node.visitChildren(this);
     seenReturn = true;
-  }
-
-  void visitTryStatement(ast.Node node) {
-    if (!registerNode()) return;
-    tooDifficult = true;
   }
 
   void visitThrow(ast.Throw node) {
