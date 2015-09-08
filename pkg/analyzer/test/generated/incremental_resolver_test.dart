@@ -2346,41 +2346,6 @@ class A {
 ''');
   }
 
-  void test_true_functionExpression() {
-    _assertMatches(r'''
-import 'dart:async';
-
-class A {
-  Future<int> mmm() async {
-    return 42;
-  }
-
-  a() {
-    mmm().then((p1) {
-      return p1.toString();
-    }).then((p2) {
-      print(p2);
-    });
-  }
-}
-''', r'''import 'dart:async';
-
-class A {
-  Future<int> mmm() async {
-    return 42;
-  }
-
-  a() {
-    mmm().then((int p1) {
-      return p1.toString();
-    }).then((String p2) {
-      print(p2);
-    });
-  }
-}
-''');
-  }
-
   void test_true_functionTypeAlias_list_reorder() {
     _assertMatches(
         r'''
