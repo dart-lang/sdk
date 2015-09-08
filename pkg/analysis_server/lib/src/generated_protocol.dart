@@ -11153,14 +11153,14 @@ class NavigationRegion implements HasToJson {
   /**
    * The indexes of the targets (in the enclosing navigation response) to which
    * the given region is bound. By opening the target, clients can implement
-   * one form of navigation.
+   * one form of navigation. This list cannot be empty.
    */
   List<int> get targets => _targets;
 
   /**
    * The indexes of the targets (in the enclosing navigation response) to which
    * the given region is bound. By opening the target, clients can implement
-   * one form of navigation.
+   * one form of navigation. This list cannot be empty.
    */
   void set targets(List<int> value) {
     assert(value != null);
