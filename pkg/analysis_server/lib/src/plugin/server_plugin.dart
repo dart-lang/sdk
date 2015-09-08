@@ -4,6 +4,7 @@
 
 library analysis_server.src.plugin.server_plugin;
 
+import 'package:analysis_server/analysis/analysis_domain.dart';
 import 'package:analysis_server/analysis/index/index_core.dart';
 import 'package:analysis_server/analysis/navigation/navigation_core.dart';
 import 'package:analysis_server/completion/completion_core.dart';
@@ -84,6 +85,12 @@ class ServerPlugin implements Plugin {
       'navigationContributor';
 
   /**
+   * The simple identifier of the extension point that allows plugins to
+   * register analysis result listeners.
+   */
+  static const String SET_ANALISYS_DOMAIN_EXTENSION_POINT = 'setAnalysisDomain';
+
+  /**
    * The unique identifier of this plugin.
    */
   static const String UNIQUE_IDENTIFIER = 'analysis_server.core';
@@ -126,6 +133,12 @@ class ServerPlugin implements Plugin {
    * The extension point that allows plugins to register navigation contributors.
    */
   ExtensionPoint navigationContributorExtensionPoint;
+
+  /**
+   * The extension point that allows plugins to get access to the `analysis`
+   * domain.
+   */
+  ExtensionPoint setAnalysisDomainExtensionPoint;
 
   /**
    * Initialize a newly created plugin.
@@ -173,6 +186,13 @@ class ServerPlugin implements Plugin {
   List<NavigationContributor> get navigationContributors =>
       navigationContributorExtensionPoint.extensions;
 
+  /**
+   * Return a list containing all of the receivers of the `analysis` domain
+   * instance.
+   */
+  List<SetAnalysisDomain> get setAnalysisDomainFunctions =>
+      setAnalysisDomainExtensionPoint.extensions;
+
   @override
   String get uniqueIdentifier => UNIQUE_IDENTIFIER;
 
@@ -191,6 +211,9 @@ class ServerPlugin implements Plugin {
 
   @override
   void registerExtensionPoints(RegisterExtensionPoint registerExtensionPoint) {
+    setAnalysisDomainExtensionPoint = registerExtensionPoint(
+        SET_ANALISYS_DOMAIN_EXTENSION_POINT,
+        _validateSetAnalysisDomainFunction);
     analyzeFileExtensionPoint = registerExtensionPoint(
         ANALYZE_FILE_EXTENSION_POINT, _validateAnalyzeFileExtension);
     assistContributorExtensionPoint = registerExtensionPoint(
@@ -270,7 +293,7 @@ class ServerPlugin implements Plugin {
     if (extension is! ShouldAnalyzeFile) {
       String id = analyzeFileExtensionPoint.uniqueIdentifier;
       throw new ExtensionError(
-          'Extensions to $id must be an ShouldAnalyzeFile function');
+          'Extensions to $id must be a ShouldAnalyzeFile function');
     }
   }
 
@@ -341,6 +364,18 @@ class ServerPlugin implements Plugin {
       String id = navigationContributorExtensionPoint.uniqueIdentifier;
       throw new ExtensionError(
           'Extensions to $id must be an NavigationContributor');
+    }
+  }
+
+  /**
+   * Validate the given extension by throwing an [ExtensionError] if it is not a
+   * valid analysis domain receiver.
+   */
+  void _validateSetAnalysisDomainFunction(Object extension) {
+    if (extension is! SetAnalysisDomain) {
+      String id = setAnalysisDomainExtensionPoint.uniqueIdentifier;
+      throw new ExtensionError(
+          'Extensions to $id must be a SetAnalysisDomain function');
     }
   }
 }

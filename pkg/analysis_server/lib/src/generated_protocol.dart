@@ -4339,12 +4339,15 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
  * {
  *   "file": FilePath
  *   "offset": int
+ *   "superOnly": optional bool
  * }
  */
 class SearchGetTypeHierarchyParams implements HasToJson {
   String _file;
 
   int _offset;
+
+  bool _superOnly;
 
   /**
    * The file containing the declaration or reference to the type for which a
@@ -4374,9 +4377,24 @@ class SearchGetTypeHierarchyParams implements HasToJson {
     this._offset = value;
   }
 
-  SearchGetTypeHierarchyParams(String file, int offset) {
+  /**
+   * True if the client is only requesting superclasses and interfaces
+   * hierarchy.
+   */
+  bool get superOnly => _superOnly;
+
+  /**
+   * True if the client is only requesting superclasses and interfaces
+   * hierarchy.
+   */
+  void set superOnly(bool value) {
+    this._superOnly = value;
+  }
+
+  SearchGetTypeHierarchyParams(String file, int offset, {bool superOnly}) {
     this.file = file;
     this.offset = offset;
+    this.superOnly = superOnly;
   }
 
   factory SearchGetTypeHierarchyParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
@@ -4396,7 +4414,11 @@ class SearchGetTypeHierarchyParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
-      return new SearchGetTypeHierarchyParams(file, offset);
+      bool superOnly;
+      if (json.containsKey("superOnly")) {
+        superOnly = jsonDecoder._decodeBool(jsonPath + ".superOnly", json["superOnly"]);
+      }
+      return new SearchGetTypeHierarchyParams(file, offset, superOnly: superOnly);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "search.getTypeHierarchy params", json);
     }
@@ -4411,6 +4433,9 @@ class SearchGetTypeHierarchyParams implements HasToJson {
     Map<String, dynamic> result = {};
     result["file"] = file;
     result["offset"] = offset;
+    if (superOnly != null) {
+      result["superOnly"] = superOnly;
+    }
     return result;
   }
 
@@ -4425,7 +4450,8 @@ class SearchGetTypeHierarchyParams implements HasToJson {
   bool operator==(other) {
     if (other is SearchGetTypeHierarchyParams) {
       return file == other.file &&
-          offset == other.offset;
+          offset == other.offset &&
+          superOnly == other.superOnly;
     }
     return false;
   }
@@ -4435,6 +4461,7 @@ class SearchGetTypeHierarchyParams implements HasToJson {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, file.hashCode);
     hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, superOnly.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }

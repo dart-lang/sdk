@@ -3477,7 +3477,12 @@ class BlockFunctionBody extends FunctionBody {
   }
 
   @override
-  Token get beginToken => _block.beginToken;
+  Token get beginToken {
+    if (keyword != null) {
+      return keyword;
+    }
+    return _block.beginToken;
+  }
 
   /**
    * Return the block representing the body of the function.

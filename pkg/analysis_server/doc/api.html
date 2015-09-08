@@ -1511,6 +1511,7 @@ dt.typeDefinition {
   "params": {
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
     "<b>offset</b>": int
+    "<b>superOnly</b>": <span style="color:#999999">optional</span> bool
   }
 }</pre><br><pre>response: {
   "id": String
@@ -1535,6 +1536,12 @@ dt.typeDefinition {
             
             <p>
               The offset of the name of the type within the file.
+            </p>
+          </dd><dt class="field"><b><i>superOnly ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
+            
+            <p>
+              True if the client is only requesting superclasses and
+              interfaces hierarchy.
             </p>
           </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>hierarchyItems ( <span style="color:#999999">optional</span> List&lt;<a href="#type_TypeHierarchyItem">TypeHierarchyItem</a>&gt; )</i></b></dt><dd>
             

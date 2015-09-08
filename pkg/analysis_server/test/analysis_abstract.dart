@@ -16,6 +16,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
@@ -83,6 +84,8 @@ class AbstractAnalysisTest {
     handleSuccessfulRequest(request);
   }
 
+  void addServerPlugins(List<Plugin> plugins) {}
+
   String addTestFile(String content) {
     addFile(testFile, content);
     this.testCode = content;
@@ -90,12 +93,22 @@ class AbstractAnalysisTest {
   }
 
   AnalysisServer createAnalysisServer(Index index) {
-    ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
-    manager.processPlugins([serverPlugin]);
-    return new AnalysisServer(serverChannel, resourceProvider,
-        packageMapProvider, index, serverPlugin, new AnalysisServerOptions(),
-        new MockSdk(), InstrumentationService.NULL_SERVICE);
+    List<Plugin> plugins = <Plugin>[serverPlugin];
+    addServerPlugins(plugins);
+    // process plugins
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
+    // create server
+    return new AnalysisServer(
+        serverChannel,
+        resourceProvider,
+        packageMapProvider,
+        index,
+        serverPlugin,
+        new AnalysisServerOptions(),
+        new MockSdk(),
+        InstrumentationService.NULL_SERVICE);
   }
 
   Index createIndex() {
@@ -169,7 +182,8 @@ class AbstractAnalysisTest {
     packageMapProvider = new MockPackageMapProvider();
     Index index = createIndex();
     server = createAnalysisServer(index);
-    handler = new AnalysisDomainHandler(server);
+    handler = server.handlers
+        .singleWhere((handler) => handler is AnalysisDomainHandler);
     // listen for notifications
     Stream<Notification> notificationStream =
         serverChannel.notificationController.stream;

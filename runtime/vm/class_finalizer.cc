@@ -715,8 +715,8 @@ void ClassFinalizer::FinalizeTypeArguments(
                       arguments.ToCString());
           }
           Error& error = Error::Handle();
-          super_type_arg =
-              super_type_arg.InstantiateFrom(arguments, &error, trail);
+          super_type_arg = super_type_arg.InstantiateFrom(
+              arguments, &error, trail, Heap::kOld);
           if (!error.IsNull()) {
             // InstantiateFrom does not report an error if the type is still
             // uninstantiated. Instead, it will return a new BoundedType so
@@ -818,7 +818,8 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
       if (declared_bound.IsInstantiated()) {
         instantiated_bound = declared_bound.raw();
       } else {
-        instantiated_bound = declared_bound.InstantiateFrom(arguments, &error);
+        instantiated_bound =
+            declared_bound.InstantiateFrom(arguments, &error, NULL, Heap::kOld);
       }
       if (!instantiated_bound.IsFinalized()) {
         // The bound refers to type parameters, creating a cycle; postpone
@@ -1361,8 +1362,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       }
     }
     if (field.is_static() &&
-        (field.value() != Object::null()) &&
-        (field.value() != Object::sentinel().raw())) {
+        (field.StaticValue() != Object::null()) &&
+        (field.StaticValue() != Object::sentinel().raw())) {
       // The parser does not preset the value if the type is a type parameter or
       // is parameterized unless the value is null.
       Error& error = Error::Handle(Z);
@@ -1371,7 +1372,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       } else {
         ASSERT(type.IsInstantiated());
       }
-      const Instance& const_value = Instance::Handle(Z, field.value());
+      const Instance& const_value =
+          Instance::Handle(Z, field.StaticValue());
       if (!error.IsNull() ||
           (!type.IsDynamicType() &&
            !const_value.IsInstanceOf(type,
@@ -1413,7 +1415,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
           getter.set_result_type(type);
           getter.set_is_debuggable(false);
           cls.AddFunction(getter);
-          field.set_value(Object::sentinel());
+          field.SetStaticValue(Object::sentinel(), true);
         }
       }
     }
@@ -2431,8 +2433,9 @@ void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
   const Field& values_field =
       Field::Handle(enum_cls.LookupStaticField(Symbols::Values()));
   ASSERT(!values_field.IsNull());
-  ASSERT(Instance::Handle(values_field.value()).IsArray());
-  Array& values_list = Array::Handle(Array::RawCast(values_field.value()));
+  ASSERT(Instance::Handle(values_field.StaticValue()).IsArray());
+  Array& values_list = Array::Handle(
+      Array::RawCast(values_field.StaticValue()));
 
   const Array& fields = Array::Handle(enum_cls.fields());
   Field& field = Field::Handle();
@@ -2442,7 +2445,7 @@ void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
   for (intptr_t i = 0; i < fields.Length(); i++) {
     field = Field::RawCast(fields.At(i));
     if (!field.is_static()) continue;
-    ordinal_value = field.value();
+    ordinal_value = field.StaticValue();
     // The static fields that need to be initialized with enum instances
     // contain the smi value of the ordinal number, which was stored in
     // the field by the parser. Other fields contain non-smi values.
@@ -2456,7 +2459,7 @@ void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
       UNREACHABLE();
     }
     ASSERT(enum_value.IsCanonical());
-    field.set_value(enum_value);
+    field.SetStaticValue(enum_value, true);
     field.RecordStore(enum_value);
     intptr_t ord = Smi::Cast(ordinal_value).Value();
     ASSERT(ord < values_list.Length());

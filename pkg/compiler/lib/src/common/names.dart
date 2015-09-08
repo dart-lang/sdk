@@ -87,6 +87,8 @@ class Selectors {
 
   static final Selector compareTo =
       new Selector.call(const PublicName("compareTo"), CallStructure.ONE_ARG);
+
+  static final Selector equals = new Selector.binaryOperator('==');
 }
 
 /// [Uri]s commonly used.

@@ -462,9 +462,10 @@ void CompileType::Union(CompileType* other) {
 
   const AbstractType* compile_type = ToAbstractType();
   const AbstractType* other_compile_type = other->ToAbstractType();
-  if (compile_type->IsMoreSpecificThan(*other_compile_type, NULL)) {
+  if (compile_type->IsMoreSpecificThan(*other_compile_type, NULL, Heap::kOld)) {
     type_ = other_compile_type;
-  } else if (other_compile_type->IsMoreSpecificThan(*compile_type, NULL)) {
+  } else if (other_compile_type->
+      IsMoreSpecificThan(*compile_type, NULL, Heap::kOld)) {
   // Nothing to do.
   } else {
   // Can't unify.
@@ -659,7 +660,7 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
     return false;
   }
 
-  *is_instance = compile_type.IsMoreSpecificThan(type, NULL);
+  *is_instance = compile_type.IsMoreSpecificThan(type, NULL, Heap::kOld);
   return *is_instance;
 }
 
@@ -674,7 +675,7 @@ bool CompileType::IsMoreSpecificThan(const AbstractType& other) {
     return IsNull();
   }
 
-  return ToAbstractType()->IsMoreSpecificThan(other, NULL);
+  return ToAbstractType()->IsMoreSpecificThan(other, NULL, Heap::kOld);
 }
 
 
@@ -753,6 +754,8 @@ CompileType ParameterInstr::ComputeType() const {
     // Set parameter types here in order to prevent unnecessary CheckClassInstr
     // from being generated.
     switch (index()) {
+      case RegExpMacroAssembler::kParamRegExpIndex:
+        return CompileType::FromCid(kJSRegExpCid);
       case RegExpMacroAssembler::kParamStringIndex:
         return CompileType::FromCid(function.string_specialization_cid());
       case RegExpMacroAssembler::kParamStartOffsetIndex:
@@ -996,7 +999,7 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   }
   ASSERT(field.is_static());
   if (field.is_final()) {
-    const Instance& obj = Instance::Handle(field.value());
+    const Instance& obj = Instance::Handle(field.StaticValue());
     if ((obj.raw() != Object::sentinel().raw()) &&
         (obj.raw() != Object::transition_sentinel().raw()) &&
         !obj.IsNull()) {

@@ -1536,14 +1536,16 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
       random_class.LookupStaticField(Symbols::_A()));
   ASSERT(!random_A_field.IsNull());
   ASSERT(random_A_field.is_const());
-  const Instance& a_value = Instance::Handle(random_A_field.value());
+  const Instance& a_value = Instance::Handle(random_A_field.StaticValue());
   const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
   // 'a_int_value' is a mask.
   ASSERT(Utils::IsUint(32, a_int_value));
   int32_t a_int32_value = static_cast<int32_t>(a_int_value);
 
-  __ ldr(R0, Address(SP, 0 * kWordSize));  // Receiver.
-  __ ldr(R1, FieldAddress(R0, state_field.Offset()));  // Field '_state'.
+  // Receiver.
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  // Field '_state'.
+  __ ldr(R1, FieldAddress(R0, state_field.Offset()));
   // Addresses of _state[0] and _state[1].
 
   const int64_t disp_0 = Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
@@ -1660,14 +1662,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ ldrb(R1, Address(R0, R1));
   __ CompareImmediate(R1, Symbols::kNumberOfOneCharCodeSymbols);
   __ b(&fall_through, GE);
-  const ExternalLabel symbols_label(
-      reinterpret_cast<uword>(Symbols::PredefinedAddress()));
-  __ Push(PP);
-  __ LoadPoolPointer();
-  assembler->set_constant_pool_allowed(true);
-  __ LoadExternalLabel(R0, &symbols_label, kNotPatchable);
-  assembler->set_constant_pool_allowed(false);
-  __ Pop(PP);
+  __ ldr(R0, Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddImmediate(R0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ ldr(R0, Address(R0, R1, LSL, 2));
   __ Ret();
@@ -1680,12 +1675,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ ldrh(R1, Address(R0, R1));
   __ CompareImmediate(R1, Symbols::kNumberOfOneCharCodeSymbols);
   __ b(&fall_through, GE);
-  __ Push(PP);
-  __ LoadPoolPointer();
-  assembler->set_constant_pool_allowed(true);
-  __ LoadExternalLabel(R0, &symbols_label, kNotPatchable);
-  assembler->set_constant_pool_allowed(false);
-  __ Pop(PP);
+  __ ldr(R0, Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddImmediate(R0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ ldr(R0, Address(R0, R1, LSL, 2));
   __ Ret();
@@ -2022,8 +2012,6 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in R0, the argument descriptor in R4, and IC-Data in R5.
-  static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
-  __ LoadObject(R4, Array::Handle(ArgumentsDescriptor::New(arg_count)));
   __ eor(R5, R5, Operand(R5));
 
   // Tail-call the function.

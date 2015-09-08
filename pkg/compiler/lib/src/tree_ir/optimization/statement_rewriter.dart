@@ -358,6 +358,8 @@ class StatementRewriter extends Transformer implements Pass {
     return exp is Constant ||
            exp is This ||
            exp is CreateInvocationMirror ||
+           exp is CreateInstance ||
+           exp is CreateBox ||
            exp is GetStatic && exp.element.isFunction ||
            exp is Interceptor ||
            exp is ApplyBuiltinOperator ||

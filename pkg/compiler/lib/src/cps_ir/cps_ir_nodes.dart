@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 library dart2js.ir_nodes;
 
-import '../constants/values.dart' as values show ConstantValue;
+import 'dart:collection';
+import '../constants/values.dart' as values;
 import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
@@ -119,6 +120,41 @@ abstract class Definition<T extends Definition<T>> extends Node {
   }
 }
 
+class EffectiveUseIterator extends Iterator<Reference<Primitive>> {
+  Reference<Primitive> current;
+  Reference<Primitive> next;
+  final List<Refinement> stack = <Refinement>[];
+
+  EffectiveUseIterator(Primitive prim) : next = prim.firstRef;
+
+  bool moveNext() {
+    Reference<Primitive> ref = next;
+    while (true) {
+      if (ref == null) {
+        if (stack.isNotEmpty) {
+          ref = stack.removeLast().firstRef;
+        } else {
+          current = null;
+          return false;
+        }
+      } else if (ref.parent is Refinement) {
+        stack.add(ref.parent);
+        ref = ref.next;
+      } else {
+        current = ref;
+        next = current.next;
+        return true;
+      }
+    }
+  }
+}
+
+class EffectiveUseIterable extends IterableBase<Reference<Primitive>> {
+  Primitive primitive;
+  EffectiveUseIterable(this.primitive);
+  EffectiveUseIterator get iterator => new EffectiveUseIterator(primitive);
+}
+
 /// A named value.
 ///
 /// The identity of the [Primitive] object is the name of the value.
@@ -153,6 +189,34 @@ abstract class Primitive extends Definition<Primitive> {
   /// The source information associated with this primitive.
   // TODO(johnniwinther): Require source information for all primitives.
   SourceInformation get sourceInformation => null;
+
+  /// If this is a [Refinement] node, returns the value being refined.
+  Primitive get effectiveDefinition => this;
+
+  /// True if the two primitives are (refinements of) the same value.
+  bool sameValue(Primitive other) {
+    return effectiveDefinition == other.effectiveDefinition;
+  }
+
+  /// Iterates all non-refinement uses of the primitive and all uses of
+  /// a [Refinement] of this primitive (transitively).
+  ///
+  /// Notes regarding concurrent modification:
+  /// - The current reference may safely be unlinked.
+  /// - Yet unvisited references may not be unlinked.
+  /// - References to this primitive created during iteration will not be seen.
+  /// - References to a refinement of this primitive may not be created during
+  ///   iteration.
+  EffectiveUseIterable get effectiveUses => new EffectiveUseIterable(this);
+
+  bool get hasMultipleEffectiveUses {
+    Iterator it = effectiveUses.iterator;
+    return it.moveNext() && it.moveNext();
+  }
+
+  bool get hasNoEffectiveUses {
+    return effectiveUses.isEmpty;
+  }
 }
 
 /// Operands to invocations and primitives are always variables.  They point to
@@ -437,6 +501,28 @@ class InvokeConstructor extends CallExpression {
         continuation = new Reference<Continuation>(cont);
 
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
+}
+
+/// An alias for [value] in a context where the value is known to satisfy
+/// [type].
+///
+/// Refinement nodes are inserted before the type propagator pass and removed
+/// afterwards, so as not to complicate passes that don't reason about types,
+/// but need to reason about value references being identical (i.e. referring
+/// to the same primitive).
+class Refinement extends Primitive {
+  Reference<Primitive> value;
+  final TypeMask type;
+
+  Refinement(Primitive value, this.type)
+    : value = new Reference<Primitive>(value);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => false;
+
+  accept(Visitor visitor) => visitor.visitRefinement(this);
+
+  Primitive get effectiveDefinition => value.definition.effectiveDefinition;
 }
 
 /// An "is" type test.
@@ -883,6 +969,18 @@ class Interceptor extends Primitive {
   final Set<ClassElement> interceptedClasses = new Set<ClassElement>();
   final SourceInformation sourceInformation;
 
+  /// If non-null, all uses of this the interceptor call are guaranteed to
+  /// see this value.
+  ///
+  /// The interceptor call is not immediately replaced by the constant, because
+  /// that might prevent the interceptor from being shared.
+  ///
+  /// The precise input type is not known when sharing interceptors, because
+  /// refinement nodes have been removed by then. So this field carries the
+  /// known constant until we know if it should be shared or replaced by
+  /// the constant.
+  values.InterceptorConstantValue constantValue;
+
   Interceptor(Primitive input, this.sourceInformation)
       : this.input = new Reference<Primitive>(input);
 
@@ -1201,6 +1299,7 @@ abstract class Visitor<T> {
   T visitGetLength(GetLength node);
   T visitGetIndex(GetIndex node);
   T visitSetIndex(SetIndex node);
+  T visitRefinement(Refinement node);
 
   // Support for literal foreign code.
   T visitForeignCode(ForeignCode node);
@@ -1502,6 +1601,12 @@ class LeafVisitor implements Visitor {
     processSetIndex(node);
     processReference(node.object);
     processReference(node.index);
+    processReference(node.value);
+  }
+
+  processRefinement(Refinement node) {}
+  visitRefinement(Refinement node) {
+    processRefinement(node);
     processReference(node.value);
   }
 }

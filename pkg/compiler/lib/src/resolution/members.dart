@@ -4563,6 +4563,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitTryStatement(TryStatement node) {
+    // TODO(karlklose): also track the information about mutated variables,
+    // catch, and finally-block.
+    registry.registerTryStatement();
+
     visit(node.tryBlock);
     if (node.catchBlocks.isEmpty && node.finallyBlock == null) {
       error(node.getEndToken().next, MessageKind.NO_CATCH_NOR_FINALLY);

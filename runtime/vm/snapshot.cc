@@ -264,7 +264,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
 
 RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
                                                      intptr_t class_header) {
-  ASSERT(kind_ == Snapshot::kMessage);
+  ASSERT(kind_ != Snapshot::kFull);
 
   // First create a function object and associate it with the specified
   // 'object_id'.
@@ -1138,15 +1138,103 @@ RawStacktrace* SnapshotReader::NewStacktrace() {
 
 
 int32_t InstructionsWriter::GetOffsetFor(RawInstructions* instructions) {
-  // Instructions are allocated with the code alignment and we don't write
-  // anything else in the text section.
-  ASSERT(Utils::IsAligned(stream_.bytes_written(),
-                          OS::PreferredCodeAlignment()));
-
-  intptr_t offset = stream_.bytes_written();
-  stream_.WriteBytes(reinterpret_cast<uint8_t*>(instructions) - kHeapObjectTag,
-                     instructions->Size());
+  intptr_t offset = next_offset_;
+  next_offset_ += instructions->Size();
+  instructions_.Add(InstructionsData(instructions));
   return offset;
+}
+
+
+static void EnsureIdentifier(char* label) {
+  for (char c = *label; c != '\0'; c = *++label) {
+    if (((c >= 'a') && (c <= 'z')) ||
+        ((c >= 'A') && (c <= 'Z')) ||
+        ((c >= '0') && (c <= '9'))) {
+      continue;
+    }
+    *label = '_';
+  }
+}
+
+
+void InstructionsWriter::WriteAssembly() {
+  Zone* Z = Thread::Current()->zone();
+
+  // Handlify collected raw pointers as building the names below
+  // will allocate on the Dart heap.
+  for (intptr_t i = 0; i < instructions_.length(); i++) {
+    InstructionsData& data = instructions_[i];
+    data.insns_ = &Instructions::Handle(Z, data.raw_insns_);
+    ASSERT(data.raw_code_ != NULL);
+    data.code_ = &Code::Handle(Z, data.raw_code_);
+  }
+
+  stream_.Print(".text\n");
+  stream_.Print(".globl _kInstructionsSnapshot\n");
+  stream_.Print(".balign %" Pd ", 0\n", OS::PreferredCodeAlignment());
+  stream_.Print("_kInstructionsSnapshot:\n");
+
+  Object& owner = Object::Handle(Z);
+  String& str = String::Handle(Z);
+
+  for (intptr_t i = 0; i < instructions_.length(); i++) {
+    const Instructions& insns = *instructions_[i].insns_;
+    const Code& code = *instructions_[i].code_;
+
+    ASSERT(insns.raw()->Size() % sizeof(uint64_t) == 0);
+
+    {
+      // 1. Write from the header to the entry point.
+      NoSafepointScope no_safepoint;
+      uword beginning = reinterpret_cast<uword>(insns.raw()) - kHeapObjectTag;
+      uword entry = beginning + Instructions::HeaderSize();
+
+      ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
+
+      for (uint64_t* cursor = reinterpret_cast<uint64_t*>(beginning);
+           cursor < reinterpret_cast<uint64_t*>(entry);
+           cursor++) {
+        stream_.Print(".quad 0x%0.16" Px64 "\n", *cursor);
+      }
+    }
+
+    // 2. Write a label at the entry point.
+    owner = code.owner();
+    if (owner.IsNull()) {
+      const char* name = StubCode::NameOfStub(insns.EntryPoint());
+      stream_.Print("Precompiled_Stub_%s:\n", name);
+    } else if (owner.IsClass()) {
+      str = Class::Cast(owner).Name();
+      const char* name = str.ToCString();
+      EnsureIdentifier(const_cast<char*>(name));
+      stream_.Print("Precompiled_AllocationStub_%s_%" Pd ":\n", name, i);
+    } else if (owner.IsFunction()) {
+      const char* name = Function::Cast(owner).ToQualifiedCString();
+      EnsureIdentifier(const_cast<char*>(name));
+      stream_.Print("Precompiled_%s_%" Pd ":\n", name, i);
+    } else {
+      UNREACHABLE();
+    }
+
+    {
+      // 3. Write from the entry point to the end.
+      NoSafepointScope no_safepoint;
+      uword beginning = reinterpret_cast<uword>(insns.raw()) - kHeapObjectTag;
+      uword entry = beginning + Instructions::HeaderSize();
+      uword end = beginning + insns.raw()->Size();
+
+      ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(end, sizeof(uint64_t)));
+
+      for (uint64_t* cursor = reinterpret_cast<uint64_t*>(entry);
+           cursor < reinterpret_cast<uint64_t*>(end);
+           cursor++) {
+        stream_.Print(".quad 0x%0.16" Px64 "\n", *cursor);
+      }
+    }
+  }
 }
 
 
@@ -1944,6 +2032,7 @@ void FullSnapshotWriter::WriteFullSnapshot() {
     }
     WriteIsolateFullSnapshot();
 
+    instructions_writer_->WriteAssembly();
     instructions_snapshot_size_ = instructions_writer_->BytesWritten();
   } else {
     if (vm_isolate_snapshot_buffer() != NULL) {

@@ -261,7 +261,7 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
   }
   if (value.IsSmi()) {
     const Smi& smi_value = Smi::Cast(value);
-    return smi_value.ShiftOp(kind, amount, silent);
+    return smi_value.ShiftOp(kind, amount, Heap::kNew, silent);
   }
   if (value.IsMint()) {
     const int64_t mint_value = value.AsInt64Value();

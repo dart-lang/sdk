@@ -85,7 +85,7 @@ extern const char* kPrecompiledLibraryName;
 extern const char* kPrecompiledSymbolName;
 static const char* kPrecompiledVmIsolateName = "precompiled.vmisolate";
 static const char* kPrecompiledIsolateName = "precompiled.isolate";
-static const char* kPrecompiledInstructionsName = "precompiled.instructions";
+static const char* kPrecompiledInstructionsName = "precompiled.S";
 
 
 // Global flag that is used to indicate that we want to trace resolution of

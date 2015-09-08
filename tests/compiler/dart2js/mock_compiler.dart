@@ -124,8 +124,9 @@ class MockCompiler extends Compiler {
                    buildLibrarySource(DEFAULT_INTERCEPTORS_LIBRARY));
     registerSource(JavaScriptBackend.DART_ISOLATE_HELPER,
                    buildLibrarySource(DEFAULT_ISOLATE_HELPER_LIBRARY));
-    registerSource(Uris.dart_mirrors,
-                   buildLibrarySource(DEFAULT_MIRRORS_LIBRARY));
+    registerSource(Uris.dart_mirrors, DEFAULT_MIRRORS_SOURCE);
+    registerSource(JavaScriptBackend.DART_JS_MIRRORS,
+        DEFAULT_JS_MIRRORS_SOURCE);
 
     Map<String, String> asyncLibrarySource = <String, String>{};
     asyncLibrarySource.addAll(DEFAULT_ASYNC_LIBRARY);

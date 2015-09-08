@@ -556,7 +556,8 @@ abstract class AnalysisContext {
    * Perform work until the given [result] has been computed for the given
    * [target]. Return the computed value.
    */
-  Object /*V*/ computeResult(AnalysisTarget target, ResultDescriptor /*<V>*/ result);
+  Object /*V*/ computeResult(
+      AnalysisTarget target, ResultDescriptor /*<V>*/ result);
 
   /**
    * Notifies the context that the client is going to stop using this context.
@@ -729,7 +730,8 @@ abstract class AnalysisContext {
    * If the corresponding [target] does not exist, or the [result] is not
    * computed yet, then the default value is returned.
    */
-  Object /*V*/ getResult(AnalysisTarget target, ResultDescriptor /*<V>*/ result);
+  Object /*V*/ getResult(
+      AnalysisTarget target, ResultDescriptor /*<V>*/ result);
 
   /**
    * Return a list of the sources being analyzed in this context whose full path
@@ -5903,6 +5905,11 @@ class AnalysisEngine {
   bool limitInvalidationInTaskModel = false;
 
   /**
+   * The plugins that are defined outside the `analyzer` package.
+   */
+  List<Plugin> _userDefinedPlugins = <Plugin>[];
+
+  /**
    * The task manager used to manage the tasks used to analyze code.
    */
   TaskManager _taskManager;
@@ -5951,6 +5958,7 @@ class AnalysisEngine {
         commandLinePlugin,
         optionsPlugin
       ];
+      _supportedPlugins.addAll(_userDefinedPlugins);
     }
     return _supportedPlugins;
   }
@@ -5960,10 +5968,7 @@ class AnalysisEngine {
    */
   TaskManager get taskManager {
     if (_taskManager == null) {
-      if (enginePlugin.taskExtensionPoint == null) {
-        // The plugin wasn't used, so tasks are not registered.
-        new ExtensionManager().processPlugins([enginePlugin]);
-      }
+      new ExtensionManager().processPlugins(supportedPlugins);
       _taskManager = new TaskManager();
       _taskManager.addTaskDescriptors(enginePlugin.taskDescriptors);
       // TODO(brianwilkerson) Create a way to associate different results with
@@ -5971,6 +5976,18 @@ class AnalysisEngine {
       _taskManager.addGeneralResult(DART_ERRORS);
     }
     return _taskManager;
+  }
+
+  /**
+   * Set plugins that are defined outside the `analyzer` package.
+   */
+  void set userDefinedPlugins(List<Plugin> plugins) {
+    if (plugins == null) {
+      plugins = <Plugin>[];
+    }
+    _userDefinedPlugins = plugins;
+    _supportedPlugins = null;
+    _taskManager = null;
   }
 
   /**

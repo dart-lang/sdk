@@ -1634,14 +1634,16 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
       random_class.LookupStaticField(Symbols::_A()));
   ASSERT(!random_A_field.IsNull());
   ASSERT(random_A_field.is_const());
-  const Instance& a_value = Instance::Handle(random_A_field.value());
+  const Instance& a_value = Instance::Handle(random_A_field.StaticValue());
   const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
   // 'a_int_value' is a mask.
   ASSERT(Utils::IsUint(32, a_int_value));
   int32_t a_int32_value = static_cast<int32_t>(a_int_value);
 
-  __ lw(T0, Address(SP, 0 * kWordSize));  // Receiver.
-  __ lw(T1, FieldAddress(T0, state_field.Offset()));  // Field '_state'.
+  // Receiver.
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  // Field '_state'.
+  __ lw(T1, FieldAddress(T0, state_field.Offset()));
 
   // Addresses of _state[0] and _state[1].
   const intptr_t scale = Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
@@ -1767,16 +1769,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ lbu(T2, FieldAddress(T2, OneByteString::data_offset()));
   __ BranchUnsignedGreaterEqual(
       T2, Immediate(Symbols::kNumberOfOneCharCodeSymbols), &fall_through);
-  const ExternalLabel symbols_label(
-      reinterpret_cast<uword>(Symbols::PredefinedAddress()));
-  __ Push(PP);
-  __ Push(RA);
-  __ LoadPoolPointer();
-  assembler->set_constant_pool_allowed(true);
-  __ LoadExternalLabel(V0, &symbols_label, kNotPatchable);
-  assembler->set_constant_pool_allowed(false);
-  __ Pop(RA);
-  __ Pop(PP);
+  __ lw(V0, Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddImmediate(V0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ sll(T2, T2, 2);
   __ addu(T2, T2, V0);
@@ -1790,14 +1783,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ lhu(T2, FieldAddress(T2, TwoByteString::data_offset()));
   __ BranchUnsignedGreaterEqual(
       T2, Immediate(Symbols::kNumberOfOneCharCodeSymbols), &fall_through);
-  __ Push(PP);
-  __ Push(RA);
-  __ LoadPoolPointer();
-  assembler->set_constant_pool_allowed(true);
-  __ LoadExternalLabel(V0, &symbols_label, kNotPatchable);
-  assembler->set_constant_pool_allowed(false);
-  __ Pop(RA);
-  __ Pop(PP);
+  __ lw(V0, Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddImmediate(V0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ sll(T2, T2, 2);
   __ addu(T2, T2, V0);
@@ -2136,8 +2122,6 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in T0, the argument descriptor in S4, and IC-Data in S5.
-  static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
-  __ LoadObject(S4, Array::Handle(ArgumentsDescriptor::New(arg_count)));
   __ mov(S5, ZR);
 
   // Tail-call the function.

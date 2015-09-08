@@ -361,6 +361,12 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String continuation = access(node.continuation);
     return '(Await $value $continuation)';
   }
+
+  @override
+  String visitRefinement(Refinement node) {
+    String value = access(node.value);
+    return '(Refinement $value ${node.type})';
+  }
 }
 
 class ConstantStringifier extends ConstantValueVisitor<String, Null> {

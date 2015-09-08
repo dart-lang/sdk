@@ -12,6 +12,7 @@
 #include "vm/profiler.h"
 #include "vm/runtime_entry.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 #include "vm/thread_interrupter.h"
 #include "vm/thread_registry.h"
 

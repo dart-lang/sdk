@@ -103,32 +103,33 @@ void CodeCoverage::CompileAndAdd(const Function& function,
       if ((token_pos < begin_pos) || (token_pos > end_pos)) {
         continue;
       }
-      intptr_t line = pos_to_line[token_pos];
-#if defined(DEBUG)
-      const Script& script = Script::Handle(zone, function.script());
-      intptr_t test_line = -1;
-      script.GetTokenLocation(token_pos, &test_line, NULL);
-      ASSERT(test_line == line);
-#endif
-      // Merge hit data where possible.
-      if (last_line == line) {
-        last_count += ic_data->AggregateCount();
-      } else {
-        if ((last_line != -1) && !as_call_sites) {
-          hits_or_sites.AddValue(last_line);
-          hits_or_sites.AddValue(last_count);
-        }
-        last_count = ic_data->AggregateCount();
-        last_line = line;
-      }
       if (as_call_sites) {
         bool is_static_call = iter.Kind() == RawPcDescriptors::kUnoptStaticCall;
         ic_data->PrintToJSONArray(hits_or_sites, token_pos, is_static_call);
+      } else {
+        intptr_t line = pos_to_line[token_pos];
+#if defined(DEBUG)
+        const Script& script = Script::Handle(zone, function.script());
+        intptr_t test_line = -1;
+        script.GetTokenLocation(token_pos, &test_line, NULL);
+        ASSERT(test_line == line);
+#endif
+        // Merge hit data where possible.
+        if (last_line == line) {
+          last_count += ic_data->AggregateCount();
+        } else {
+          if ((last_line != -1)) {
+            hits_or_sites.AddValue(last_line);
+            hits_or_sites.AddValue(last_count);
+          }
+          last_count = ic_data->AggregateCount();
+          last_line = line;
+        }
       }
     }
   }
   // Write last hit value if needed.
-  if ((last_line != -1) && !as_call_sites) {
+  if (!as_call_sites && (last_line != -1)) {
     hits_or_sites.AddValue(last_line);
     hits_or_sites.AddValue(last_count);
   }
@@ -164,7 +165,9 @@ void CodeCoverage::PrintClass(const Library& lib,
       i++;
       continue;
     }
-    ComputeTokenPosToLineNumberMap(script, &pos_to_line);
+    if (!as_call_sites) {
+      ComputeTokenPosToLineNumberMap(script, &pos_to_line);
+    }
     JSONObject jsobj(&jsarr);
     jsobj.AddProperty("source", saved_url.ToCString());
     jsobj.AddProperty("script", script);
@@ -185,10 +188,6 @@ void CodeCoverage::PrintClass(const Library& lib,
         continue;
       }
       CompileAndAdd(function, hits_or_sites, pos_to_line, as_call_sites);
-      if (function.HasImplicitClosureFunction()) {
-        function = function.ImplicitClosureFunction();
-        CompileAndAdd(function, hits_or_sites, pos_to_line, as_call_sites);
-      }
       i++;
     }
   }

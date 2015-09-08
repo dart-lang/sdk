@@ -13,7 +13,8 @@ export 'redundant_phi.dart' show RedundantPhiEliminator;
 export 'redundant_join.dart' show RedundantJoinEliminator;
 export 'shrinking_reductions.dart' show ShrinkingReducer, ParentVisitor;
 export 'mutable_ssa.dart' show MutableVariableEliminator;
-export 'let_sinking.dart' show LetSinker;
+export 'insert_refinements.dart' show InsertRefinements;
+export 'remove_refinements.dart' show RemoveRefinements;
 export 'loop_invariant_code_motion.dart' show LoopInvariantCodeMotion;
 export 'share_interceptors.dart' show ShareInterceptors;
 

@@ -39,7 +39,10 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
         static var NAN = 0;
         static parse(s) {}
       }''',
-  'Function': 'class Function {}',
+  'Function': r'''
+      class Function {
+        static apply(Function fn, List positional, [Map named]) => null;
+      }''',
   'identical': 'bool identical(Object a, Object b) { return true; }',
   'int': 'abstract class int extends num { }',
   'Iterable': 'abstract class Iterable {}',
@@ -228,7 +231,12 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'throwRuntimeError': 'throwRuntimeError(message) {}',
   'throwTypeError': 'throwTypeError(message) {}',
   'TypeImpl': 'class TypeImpl {}',
-  'TypeVariable': 'class TypeVariable {}',
+  'TypeVariable': '''class TypeVariable {
+    final Type owner;
+    final String name;
+    final int bound;
+    TypeVariable(this.owner, this.name, this.bound);
+  }''',
   'unwrapException': 'unwrapException(e) {}',
   'voidTypeCheck': 'voidTypeCheck(value) {}',
   'wrapException': 'wrapException(x) { return x; }',
@@ -393,15 +401,27 @@ const Map<String, String> ASYNC_AWAIT_LIBRARY = const <String, String>{
   '_asyncHelper': '_asyncHelper(o, f, c) {}',
 };
 
-const Map<String, String> DEFAULT_MIRRORS_LIBRARY = const <String, String>{
-  'Comment': 'class Comment {}',
-  'MirrorSystem': 'class MirrorSystem {}',
-  'MirrorsUsed': 'class MirrorsUsed {}',
-};
+const String DEFAULT_MIRRORS_SOURCE = r'''
+import 'dart:_js_mirrors' as js;
+class Comment {}
+class MirrorSystem {}
+class MirrorsUsed {
+  final targets;
+  const MirrorsUsed({this.targets});
+}
+void reflectType(Type t) => js.disableTreeShaking();
+''';
+
+const String DEFAULT_JS_MIRRORS_SOURCE = r'''
+disableTreeShaking(){}
+preserveMetadata(){}
+preserveUris(){}
+preserveLibraryNames(){}
+''';
 
 const Map<String, String> DEFAULT_LOOKUP_MAP_LIBRARY = const <String, String>{
   'LookupMap': r'''
-  class LookupMap<T> {
+  class LookupMap<K, V> {
     final _key;
     final _value;
     final _entries;
@@ -412,5 +432,7 @@ const Map<String, String> DEFAULT_LOOKUP_MAP_LIBRARY = const <String, String>{
 
     const LookupMap.pair(this._key, this._value)
         : _entries = const [], _nestedMaps = const [];
+    V operator[](K k) => null;
   }''',
+  '_version': 'const _version = "0.0.1";',
 };

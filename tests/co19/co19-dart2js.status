@@ -1536,6 +1536,20 @@ LayoutTests/fast/text/line-break-after-question-mark_t01: RuntimeError # Please 
 LayoutTests/fast/text/regional-indicator-symobls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/text-combine-shrink-to-fit_t01: RuntimeError # Please triage this failure
 
+[ $compiler == dart2js && $runtime == chrome && $system != linux ]
+# These are failures in Chrome 45, which is not yet on Linux.
+# This will be merged with the earlier blocks when Linux is updated.
+LayoutTests/fast/css/background-position-serialize_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/getComputedStyle/computed-style-font_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/getPropertyValue-columns_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/parse-color-int-or-percent-crash_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/ValidityState-customError_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/multicol/balance-short-trailing-empty-block_t01: Pass
+LayoutTests/fast/multicol/balance-trailing-border_t01: Pass
+LayoutTests/fast/multicol/columns-shorthand-parsing_t02: RuntimeError # Please triage this failure
+LayoutTests/fast/multicol/widows_t02: Pass
+
 [ $compiler == dart2js && $runtime == ff ]
 Language/12_Expressions/28_Postfix_Expressions_A07_t02: Skip # Times out. Please triage this failure
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure

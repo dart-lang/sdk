@@ -3804,10 +3804,11 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
 
 void EffectGraphVisitor::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
   if (node->field().is_const()) {
-    ASSERT(node->field().value() != Object::sentinel().raw());
-    ASSERT(node->field().value() != Object::transition_sentinel().raw());
-    Definition* result =
-        new(Z) ConstantInstr(Instance::ZoneHandle(Z, node->field().value()));
+    ASSERT(node->field().StaticValue() != Object::sentinel().raw());
+    ASSERT(node->field().StaticValue() !=
+           Object::transition_sentinel().raw());
+    Definition* result = new(Z) ConstantInstr(
+        Instance::ZoneHandle(Z, node->field().StaticValue()));
     return ReturnDefinition(result);
   }
   Value* field_value = Bind(new(Z) ConstantInstr(node->field()));

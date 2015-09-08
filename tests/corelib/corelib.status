@@ -218,7 +218,7 @@ int_parse_radix_test/*: Pass, Slow
 big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == dart2js && $cps_ir ]
-data_resource_test: Crash # bailout: (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
+data_resource_test: Crash # (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
 error_stack_trace1_test: Pass # H.unwrapException(...).get$stackTrace is not a function
 growable_list_test: RuntimeError # Typed lists
 iterable_empty_test: RuntimeError # Please triage this failure.
@@ -231,7 +231,6 @@ map_values2_test: RuntimeError # Please triage this failure.
 map_values3_test: RuntimeError # Please triage this failure.
 map_values4_test: RuntimeError # Please triage this failure.
 package_resource_test: Crash # (await for(var byteSlice in resource.openRead()){streamBytes.addAll(byteSlice);}): await for
-regexp/pcre_test: Crash # Stack Overflow
 symbol_operator_test/03: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/03: Pass # Please triage this failure.
 symbol_reserved_word_test/06: RuntimeError # Please triage this failure.

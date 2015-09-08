@@ -492,6 +492,41 @@ RawString* Symbols::NewSymbol(const StringType& str) {
 }
 
 
+template<typename StringType>
+RawString* Symbols::Lookup(const StringType& str) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+  String& symbol = String::Handle(zone);
+  {
+    Isolate* vm_isolate = Dart::vm_isolate();
+    SymbolTable table(zone, vm_isolate->object_store()->symbol_table());
+    symbol ^= table.GetOrNull(str);
+    table.Release();
+  }
+  if (symbol.IsNull()) {
+    SymbolTable table(zone, isolate->object_store()->symbol_table());
+    symbol ^= table.GetOrNull(str);
+    table.Release();
+  }
+
+  ASSERT(symbol.IsNull() || symbol.IsSymbol());
+  ASSERT(symbol.IsNull() || symbol.HasHash());
+  return symbol.raw();
+}
+
+
+RawString* Symbols::LookupFromConcat(const String& str1, const String& str2) {
+  if (str1.Length() == 0) {
+    return Lookup(str2);
+  } else if (str2.Length() == 0) {
+    return Lookup(str1);
+  } else {
+    return Lookup(ConcatString(str1, str2));
+  }
+}
+
+
 RawString* Symbols::New(const String& str) {
   if (str.IsSymbol()) {
     return str.raw();
@@ -502,6 +537,31 @@ RawString* Symbols::New(const String& str) {
 
 RawString* Symbols::New(const String& str, intptr_t begin_index, intptr_t len) {
   return NewSymbol(StringSlice(str, begin_index, len));
+}
+
+
+
+RawString* Symbols::NewFormatted(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  RawString* result = NewFormattedV(format, args);
+  NoSafepointScope no_safepoint;
+  va_end(args);
+  return result;
+}
+
+
+RawString* Symbols::NewFormattedV(const char* format, va_list args) {
+  va_list args_copy;
+  va_copy(args_copy, args);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
+  va_end(args_copy);
+
+  Zone* zone = Thread::Current()->zone();
+  char* buffer = zone->Alloc<char>(len + 1);
+  OS::VSNPrint(buffer, (len + 1), format, args);
+
+  return Symbols::New(buffer);
 }
 
 

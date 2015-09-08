@@ -1,6 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+library dart2js.cps_ir.type_propagation;
 
 import 'optimizers.dart';
 
@@ -700,6 +701,7 @@ class TransformingVisitor extends LeafVisitor {
   void visitLetPrim(LetPrim node) {
     AbstractValue value = getValue(node.primitive);
     if (node.primitive is! Constant &&
+        node.primitive is! Refinement &&
         node.primitive.isSafeForElimination &&
         value.isConstant) {
       // If the value is a known constant, compile it as a constant.
@@ -1132,16 +1134,17 @@ class TransformingVisitor extends LeafVisitor {
   /// This is a short-term solution to avoid inserting a lot of bounds checks,
   /// since there is currently no optimization for eliminating them.
   bool hasTooManyIndexAccesses(Primitive receiver) {
+    receiver = receiver.effectiveDefinition;
     int count = 0;
-    for (Reference ref = receiver.firstRef; ref != null; ref = ref.next) {
+    for (Reference ref in receiver.effectiveUses) {
       Node use = ref.parent;
       if (use is InvokeMethod &&
           (use.selector.isIndex || use.selector.isIndexSet) &&
-          getDartReceiver(use) == receiver) {
+          getDartReceiver(use).sameValue(receiver)) {
         ++count;
-      } else if (use is GetIndex && use.object.definition == receiver) {
+      } else if (use is GetIndex && use.object.definition.sameValue(receiver)) {
         ++count;
-      } else if (use is SetIndex && use.object.definition == receiver) {
+      } else if (use is SetIndex && use.object.definition.sameValue(receiver)) {
         ++count;
       }
       if (count > 2) return true;
@@ -1322,7 +1325,7 @@ class TransformingVisitor extends LeafVisitor {
         // Check that all uses of the iterator are 'moveNext' and 'current'.
         assert(!isInterceptedSelector(Selectors.moveNext));
         assert(!isInterceptedSelector(Selectors.current));
-        for (Reference ref = iterator.firstRef; ref != null; ref = ref.next) {
+        for (Reference ref in iterator.effectiveUses) {
           if (ref.parent is! InvokeMethod) return false;
           InvokeMethod use = ref.parent;
           if (ref != use.receiver) return false;
@@ -1339,8 +1342,8 @@ class TransformingVisitor extends LeafVisitor {
         MutableVariable current = new MutableVariable(new LoopItemEntity());
 
         // Rewrite all uses of the iterator.
-        while (iterator.firstRef != null) {
-          InvokeMethod use = iterator.firstRef.parent;
+        for (Reference ref in iterator.effectiveUses) {
+          InvokeMethod use = ref.parent;
           Continuation useCont = use.continuation.definition;
           if (use.selector == Selectors.current) {
             // Rewrite iterator.current to a use of the 'current' variable.
@@ -1446,6 +1449,9 @@ class TransformingVisitor extends LeafVisitor {
           }
         }
 
+        // All effective uses have been rewritten.
+        destroyRefinementsOfDeadPrimitive(iterator);
+
         // Rewrite the iterator call to initializers for 'index' and 'current'.
         CpsFragment cps = new CpsFragment();
         cps.letMutable(index, cps.makeZero());
@@ -1488,7 +1494,8 @@ class TransformingVisitor extends LeafVisitor {
     while (true) {
       Node parent = node.parent;
       if (parent is LetCont ||
-          parent is LetPrim && parent.primitive.isSafeForReordering) {
+          parent is LetPrim && parent.primitive.isSafeForReordering ||
+          parent is LetPrim && parent.primitive is Refinement) {
         node = parent;
       } else {
         return parent;
@@ -1510,7 +1517,7 @@ class TransformingVisitor extends LeafVisitor {
     assert(!isInterceptedSelector(call));
     assert(call.argumentCount == node.arguments.length);
 
-    Primitive tearOff = node.receiver.definition;
+    Primitive tearOff = node.receiver.definition.effectiveDefinition;
     // Note: We don't know if [tearOff] is actually a tear-off.
     // We name variables based on the pattern we are trying to match.
 
@@ -1545,9 +1552,6 @@ class TransformingVisitor extends LeafVisitor {
 
       Continuation getterCont = tearOffInvoke.continuation.definition;
 
-      // TODO(asgerf): Support torn-off intercepted methods.
-      if (isInterceptedSelector(getter)) return false;
-
       Primitive object = tearOffInvoke.receiver.definition;
 
       // Ensure that the object actually has a foo member, since we might
@@ -1561,7 +1565,7 @@ class TransformingVisitor extends LeafVisitor {
 
       // If there are multiple uses, we cannot eliminate the getter call and
       // therefore risk duplicating its side effects.
-      if (!isPure && tearOff.hasMultipleUses) return false;
+      if (!isPure && tearOff.hasMultipleEffectiveUses) return false;
 
       // If the getter call is impure, we risk reordering side effects.
       if (!isPure && getEffectiveParent(node) != getterCont) {
@@ -1578,10 +1582,11 @@ class TransformingVisitor extends LeafVisitor {
       node.receiver.unlink();
       replaceSubtree(node, invoke, unlink: false);
 
-      if (tearOff.hasNoUses) {
+      if (tearOff.hasNoEffectiveUses) {
         // Eliminate the getter call if it has no more uses.
         // This cannot be delegated to other optimizations because we need to
         // avoid duplication of side effects.
+        destroyRefinementsOfDeadPrimitive(tearOff);
         getterCont.parameters.clear();
         replaceSubtree(tearOffInvoke, new InvokeContinuation(getterCont, []));
       } else {
@@ -1595,6 +1600,18 @@ class TransformingVisitor extends LeafVisitor {
       return true;
     }
     return false;
+  }
+
+  void destroyRefinementsOfDeadPrimitive(Primitive prim) {
+    while (prim.firstRef != null) {
+      Refinement refine = prim.firstRef.parent;
+      destroyRefinementsOfDeadPrimitive(refine);
+      LetPrim letPrim = refine.parent;
+      InteriorNode parent = letPrim.parent;
+      parent.body = letPrim.body;
+      letPrim.body.parent = parent;
+      prim.firstRef.unlink();
+    }
   }
 
   /// Inlines a single-use closure if it leaves the closure object with only
@@ -1628,6 +1645,11 @@ class TransformingVisitor extends LeafVisitor {
     Selector targetSelector = new Selector.fromElement(functionElement);
     if (call.callStructure != targetSelector.callStructure) return false;
 
+    // Don't inline if [target] contains try-catch or try-finally. JavaScript
+    // engines typically do poor optimization of the entire function containing
+    // the 'try'.
+    if (functionElement.resolvedAst.elements.containsTryStatement) return false;
+
     FunctionDefinition target =
         functionCompiler.compileToCpsIR(functionElement);
 
@@ -1644,11 +1666,6 @@ class TransformingVisitor extends LeafVisitor {
       if (use is SetField && ref == use.object) continue;
       return false;
     }
-
-    // Don't inline if [target] contains try-catch or try-finally. JavaScript
-    // engines typically do poor optimization of the entire function containing
-    // the 'try'.
-    if (ContainsTry.analyze(target)) return false;
 
     node.receiver.definition.substituteFor(target.thisParameter);
     for (int i = 0; i < node.arguments.length; ++i) {
@@ -1692,7 +1709,7 @@ class TransformingVisitor extends LeafVisitor {
     node.receiverIsNotNull = receiver.isDefinitelyNotNull;
 
     if (isInterceptedSelector(node.selector) &&
-        node.receiver.definition == node.arguments[0].definition) {
+        node.receiver.definition.sameValue(node.arguments[0].definition)) {
       // The receiver and first argument are the same; that means we already
       // determined in visitInterceptor that we are targeting a non-interceptor.
 
@@ -1833,9 +1850,8 @@ class TransformingVisitor extends LeafVisitor {
 
     ast.Statement body = node.target.node.body;
     bool shouldInline() {
-      if (backend.annotations.noInline(node.target)) {
-        return false;
-      }
+      if (backend.annotations.noInline(node.target)) return false;
+      if (node.target.resolvedAst.elements.containsTryStatement) return false;
 
       // Inline functions that are a single return statement, expression
       // statement, or block containing a return statement or expression
@@ -1986,7 +2002,7 @@ class TransformingVisitor extends LeafVisitor {
       if (parent is LetPrim && parent.primitive is ApplyBuiltinMethod) {
         ApplyBuiltinMethod previous = parent.primitive;
         if (previous.method == BuiltinMethod.Push &&
-            previous.receiver.definition == node.receiver.definition) {
+            previous.receiver.definition.sameValue(node.receiver.definition)) {
           // We found two consecutive pushes.
           // Move all arguments from the first push onto the second one.
           List<Reference<Primitive>> arguments = previous.arguments;
@@ -2063,16 +2079,9 @@ class TransformingVisitor extends LeafVisitor {
     } else {
       singleClass = typeSystem.singleClass(value.type);
     }
-    if (singleClass != null) {
-      if (singleClass.isSubclassOf(backend.jsInterceptorClass)) {
-        Primitive constant = makeConstantPrimitive(
-            new InterceptorConstantValue(singleClass.rawType));
-        constant.hint = node.hint;
-        return constant;
-      } else {
-        node.input.definition.substituteFor(node);
-        return null;
-      }
+    if (singleClass != null &&
+        singleClass.isSubclassOf(backend.jsInterceptorClass)) {
+      node.constantValue = new InterceptorConstantValue(singleClass.rawType);
     }
     // Filter out intercepted classes that do not match the input type.
     node.interceptedClasses.retainWhere((ClassElement clazz) {
@@ -2119,6 +2128,8 @@ class TypePropagationVisitor implements Visitor {
   TypeMaskSystem get typeSystem => lattice.typeSystem;
 
   JavaScriptBackend get backend => typeSystem.backend;
+
+  World get classWorld => typeSystem.classWorld;
 
   AbstractValue get nothing => lattice.nothing;
 
@@ -2560,9 +2571,15 @@ class TypePropagationVisitor implements Visitor {
         break; // Cast fails. Continuation should remain unreachable.
 
       case AbstractBool.Maybe:
-        // TODO(asgerf): Narrow type of output to those that survive the cast.
         setReachable(cont);
-        setValue(cont.parameters.single, input);
+        TypeMask type = input.type;
+        if (node.type.element is ClassElement) {
+          // Narrow type of output to those that survive the cast.
+          type = type.intersection(
+              new TypeMask.subtype(node.type.element, classWorld),
+              classWorld);
+        }
+        setValue(cont.parameters.single, nonConstant(type));
         break;
     }
   }
@@ -2676,7 +2693,7 @@ class TypePropagationVisitor implements Visitor {
   }
 
   @override
-  visitTypeExpression(TypeExpression node) {
+  void visitTypeExpression(TypeExpression node) {
     // TODO(karlklose): come up with a type marker for JS entities or switch to
     // real constants of type [Type].
     setValue(node, nonConstant());
@@ -2688,7 +2705,7 @@ class TypePropagationVisitor implements Visitor {
   }
 
   @override
-  visitForeignCode(ForeignCode node) {
+  void visitForeignCode(ForeignCode node) {
     if (node.continuation != null) {
       Continuation continuation = node.continuation.definition;
       setReachable(continuation);
@@ -2715,9 +2732,22 @@ class TypePropagationVisitor implements Visitor {
   }
 
   @override
-  visitAwait(Await node) {
+  void visitAwait(Await node) {
     Continuation continuation = node.continuation.definition;
     setReachable(continuation);
+  }
+
+  @override
+  void visitRefinement(Refinement node) {
+    AbstractValue value = getValue(node.value.definition);
+    if (value.isNothing || typeSystem.areDisjoint(value.type, node.type)) {
+      setValue(node, nothing);
+    } else if (value.isConstant) {
+      setValue(node, value);
+    } else {
+      setValue(node,
+          nonConstant(value.type.intersection(node.type, classWorld)));
+    }
   }
 }
 
@@ -2835,27 +2865,5 @@ class ResetAnalysisInfo extends RecursiveVisitor {
 
   processLetMutable(LetMutable node) {
     values.remove(node.variable);
-  }
-}
-
-
-class ContainsTry extends RecursiveVisitor {
-  bool _found = false;
-  ContainsTry._();
-
-  /// Scans [root] for evidence of try-catch and try-finally.
-  static bool analyze(Node root) {
-    ContainsTry visitor = new ContainsTry._();
-    visitor.visit(root);
-    return visitor._found;
-  }
-
-  visit(Node node) {
-    if (_found) return;  // Early exit if we know the answer.
-    super.visit(node);
-  }
-
-  processLetHandler(LetHandler node) {
-    _found = true;
   }
 }

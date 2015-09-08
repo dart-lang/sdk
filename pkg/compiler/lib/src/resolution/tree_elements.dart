@@ -122,6 +122,9 @@ abstract class TreeElements {
 
   /// Returns the label that [node] targets.
   LabelDefinition getTargetLabel(GotoStatement node);
+
+  /// `true` if the [analyzedElement]'s source code contains a [TryStatement].
+  bool get containsTryStatement;
 }
 
 class TreeElementMapping extends TreeElements {
@@ -140,6 +143,7 @@ class TreeElementMapping extends TreeElements {
   Setlet<Send> _asserts;
   Maplet<Send, SendStructure> _sendStructureMap;
   Setlet<DartType> _requiredTypes;
+  bool containsTryStatement = false;
 
   /// Map from nodes to the targets they define.
   Map<Node, JumpTarget> _definedTargets;

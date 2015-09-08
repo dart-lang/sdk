@@ -65,11 +65,11 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 
 [ $compiler == none && $runtime == vm ]
 invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy
+lookup_map/dead_entry_through_mirrors_test: SkipByDesign # Test for tree-shaking, vm never tree-shakes
 
 [ $compiler == dart2js && $cps_ir ]
 16407_test: Pass # Please triage this failure.
 22868_test: RuntimeError # Issue 23997
-22895_test: RuntimeError # Issue 23997
 23432_test: RuntimeError # Issue 23432
 async_stacktrace_test/asyncStar: Crash # (foo()async*{try {tr...  cannot handle sync*/async* functions
 async_stacktrace_test/none: RuntimeError # $async$temp1.Tracer$ is not a function
@@ -84,6 +84,7 @@ deferred/deferred_overlapping_test: RuntimeError # E.loadLibrary is not a functi
 deferred_fail_and_retry_test: Crash # (lib.foo()): deferred access is not implemented
 deferred_fail_and_retry_worker_test: Crash # (lib.foo()): deferred access is not implemented
 deferred_split_test: Crash # (b.createA()): deferred access is not implemented
+lookup_map/live_entry_through_mirrors_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 mirror_printer_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 mirror_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 reflect_native_types_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions

@@ -724,26 +724,26 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         // FinalizeCode.
         const Array& deopt_info_array =
             Array::Handle(zone, graph_compiler.CreateDeoptInfo(&assembler));
-        INC_STAT(isolate, total_code_size,
+        INC_STAT(thread, total_code_size,
                  deopt_info_array.Length() * sizeof(uword));
         const Code& code = Code::Handle(
             Code::FinalizeCode(function, &assembler, optimized));
         code.set_is_optimized(optimized);
 
         const Array& intervals = graph_compiler.inlined_code_intervals();
-        INC_STAT(isolate, total_code_size,
+        INC_STAT(thread, total_code_size,
                  intervals.Length() * sizeof(uword));
         code.SetInlinedIntervals(intervals);
 
         const Array& inlined_id_array =
             Array::Handle(zone, graph_compiler.InliningIdToFunction());
-        INC_STAT(isolate, total_code_size,
+        INC_STAT(thread, total_code_size,
                  inlined_id_array.Length() * sizeof(uword));
         code.SetInlinedIdToFunction(inlined_id_array);
 
         const Array& caller_inlining_id_map_array =
             Array::Handle(zone, graph_compiler.CallerInliningIdMap());
-        INC_STAT(isolate, total_code_size,
+        INC_STAT(thread, total_code_size,
                  caller_inlining_id_map_array.Length() * sizeof(uword));
         code.SetInlinedCallerIdMap(caller_inlining_id_map_array);
 
@@ -1046,9 +1046,18 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                 function.token_pos(),
                 (function.end_token_pos() - function.token_pos()));
     }
+    INC_STAT(thread, num_functions_compiled, 1);
+    if (optimized) {
+      INC_STAT(thread, num_functions_optimized, 1);
+    }
     {
       HANDLESCOPE(thread);
+      const int64_t num_tokens_before = STAT_VALUE(thread, num_tokens_consumed);
       pipeline->ParseFunction(parsed_function);
+      const int64_t num_tokens_after = STAT_VALUE(thread, num_tokens_consumed);
+      INC_STAT(thread,
+               num_func_tokens_compiled,
+               num_tokens_after - num_tokens_before);
     }
 
     const bool success = CompileParsedFunctionHelper(pipeline,
@@ -1277,23 +1286,15 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 }
 
 
-static void CreateLocalVarDescriptors(const ParsedFunction& parsed_function) {
-  const Function& func = parsed_function.function();
-  LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle();
-  var_descs = parsed_function.node_sequence()->scope()->GetVarDescriptors(func);
-  Code::Handle(func.unoptimized_code()).set_var_descriptors(var_descs);
-}
-
-
 void Compiler::CompileStaticInitializer(const Field& field) {
   ASSERT(field.is_static());
-  if (field.initializer() != Function::null()) {
+  if (field.PrecompiledInitializer() != Function::null()) {
     // TODO(rmacnak): Investigate why this happens for _enum_names.
     OS::Print("Warning: Ignoring repeated request for initializer for %s\n",
               field.ToCString());
     return;
   }
-  ASSERT(field.initializer() == Function::null());
+  ASSERT(field.PrecompiledInitializer() == Function::null());
   Thread* thread = Thread::Current();
   StackZone zone(thread);
 
@@ -1308,7 +1309,7 @@ void Compiler::CompileStaticInitializer(const Field& field) {
                               Isolate::kNoDeoptId);
 
   const Function& initializer = parsed_function->function();
-  field.set_initializer(initializer);
+  field.SetPrecompiledInitializer(initializer);
 }
 
 
@@ -1316,16 +1317,15 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   ASSERT(field.is_static());
   // The VM sets the field's value to transiton_sentinel prior to
   // evaluating the initializer value.
-  ASSERT(field.value() == Object::transition_sentinel().raw());
+  ASSERT(field.StaticValue() == Object::transition_sentinel().raw());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Function& initializer = Function::Handle(field.initializer());
-
     // Under precompilation, the initializer may have already been compiled, in
     // which case use it. Under lazy compilation or early in precompilation, the
     // initializer has not yet been created, so create it now, but don't bother
     // remembering it because it won't be used again.
-    if (initializer.IsNull()) {
+    Function& initializer = Function::Handle();
+    if (!field.HasPrecompiledInitializer()) {
       Thread* const thread = Thread::Current();
       StackZone zone(thread);
       ParsedFunction* parsed_function =
@@ -1338,15 +1338,12 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
                                   parsed_function,
                                   false,  // optimized
                                   Isolate::kNoDeoptId);
-      // Eagerly create local var descriptors.
-      CreateLocalVarDescriptors(*parsed_function);
-
       initializer = parsed_function->function().raw();
+    } else {
+      initializer ^= field.PrecompiledInitializer();
     }
     // Invoke the function to evaluate the expression.
-    const Object& result = PassiveObject::Handle(
-        DartEntry::InvokeFunction(initializer, Object::empty_array()));
-    return result.raw();
+    return DartEntry::InvokeFunction(initializer, Object::empty_array());
   } else {
     Thread* const thread = Thread::Current();
     Isolate* const isolate = thread->isolate();
@@ -1410,8 +1407,6 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
                                 false,
                                 Isolate::kNoDeoptId);
 
-    // Eagerly create local var descriptors.
-    CreateLocalVarDescriptors(*parsed_function);
     const Object& result = PassiveObject::Handle(
         DartEntry::InvokeFunction(func, Object::empty_array()));
     return result.raw();

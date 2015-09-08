@@ -2396,8 +2396,12 @@ abstract class Closure implements Function {
                      jsArguments,
                      String propertyName) {
     JS_EFFECT(() {
-      BoundClosure.receiverOf(JS('BoundClosure', 'void 0'));
-      BoundClosure.selfOf(JS('BoundClosure', 'void 0'));
+      // The functions are called here to model the calls from JS forms below.
+      // The types in the JS forms in the arguments are propagated in type
+      // inference.
+      BoundClosure.receiverOf(JS('BoundClosure', '0'));
+      BoundClosure.selfOf(JS('BoundClosure', '0'));
+      getType(JS('int', '0'));
     });
     // TODO(ahe): All the place below using \$ should be rewritten to go
     // through the namer.

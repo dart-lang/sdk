@@ -1531,7 +1531,7 @@ void Isolate::Shutdown() {
     NoSafepointScope no_safepoint_scope;
 
     if (compiler_stats_ != NULL) {
-      compiler_stats()->Print();
+      OS::Print("%s", compiler_stats()->PrintToZone());
     }
 
     // Notify exit listeners that this isolate is shutting down.

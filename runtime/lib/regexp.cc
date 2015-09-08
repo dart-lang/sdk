@@ -83,6 +83,7 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getGroupCount, 1) {
 
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ExecuteMatch, 3) {
+  // This function is intrinsified. See Intrinsifier::JSRegExp_ExecuteMatch.
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, subject, arguments->NativeArgAt(1));
@@ -93,15 +94,7 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ExecuteMatch, 3) {
                                                    zone);
   }
 
-  // This function is intrinsified. See Intrinsifier::JSRegExp_ExecuteMatch.
-  const intptr_t cid = subject.GetClassId();
-
-  // Retrieve the cached function.
-  const Function& fn = Function::Handle(regexp.function(cid));
-  ASSERT(!fn.IsNull());
-
-  // And finally call the generated code.
-  return IRRegExpMacroAssembler::Execute(fn, subject, start_index, zone);
+  return IRRegExpMacroAssembler::Execute(regexp, subject, start_index, zone);
 }
 
 }  // namespace dart

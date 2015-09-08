@@ -2138,7 +2138,7 @@ RawObject* Debugger::GetStaticField(const Class& cls,
   const Field& fld = Field::Handle(cls.LookupStaticField(field_name));
   if (!fld.IsNull()) {
     // Return the value in the field if it has been initialized already.
-    const Instance& value = Instance::Handle(fld.value());
+    const Instance& value = Instance::Handle(fld.StaticValue());
     ASSERT(value.raw() != Object::transition_sentinel().raw());
     if (value.raw() != Object::sentinel().raw()) {
       return value.raw();
@@ -2235,11 +2235,11 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
       // If the field is not initialized yet, report the value to be
       // "<not initialized>". We don't want to execute the implicit getter
       // since it may have side effects.
-      if ((field.value() == Object::sentinel().raw()) ||
-          (field.value() == Object::transition_sentinel().raw())) {
+      if ((field.StaticValue() == Object::sentinel().raw()) ||
+          (field.StaticValue() == Object::transition_sentinel().raw())) {
         field_value = Symbols::NotInitialized().raw();
       } else {
-        field_value = field.value();
+        field_value = field.StaticValue();
       }
       if (!prefix.IsNull()) {
         field_name = String::Concat(prefix, field_name);

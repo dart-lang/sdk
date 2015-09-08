@@ -518,8 +518,9 @@ public interface AnalysisServer {
    * @param file The file containing the declaration or reference to the type for which a hierarchy
    *         is being requested.
    * @param offset The offset of the name of the type within the file.
+   * @param superOnly True if the client is only requesting superclasses and interfaces hierarchy.
    */
-  public void search_getTypeHierarchy(String file, int offset, GetTypeHierarchyConsumer consumer);
+  public void search_getTypeHierarchy(String file, int offset, boolean superOnly, GetTypeHierarchyConsumer consumer);
 
   /**
    * {@code server.getVersion}

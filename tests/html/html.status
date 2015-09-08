@@ -116,6 +116,11 @@ element_animate_test/timing_dict: Skip # Timing out on MacOS. Issue 23507
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
 
+[ $runtime == chrome && $system != linux ]
+# These are failures in Chrome 45, which is not yet on Linux.
+# This will be merged with the earlier blocks when Linux is updated.
+element_animate_test/simple_timing: RuntimeError # Please triage this failure
+
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
 
@@ -200,9 +205,6 @@ canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 1260
 [ $compiler == dart2js && $runtime == chrome ]
 css_test/supportsPointConversions: Fail # Issues 21710
 css_test/functional: Fail # Issues 21710
-
-[ $compiler == dart2js && $cps_ir ]
-resource_http_test: Crash # Cannot handle async functions.
 
 [ $runtime == ie11 ]
 custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
@@ -421,3 +423,6 @@ typed_arrays_range_checks_test: StaticWarning
 typing_test: StaticWarning
 webgl_1_test: StaticWarning
 window_nosuchmethod_test: StaticWarning
+
+[ $compiler == dart2js && $cps_ir ]
+resource_http_test: Crash # (await for(var b in r.openRead()){bytes.addAll(b);}): await for

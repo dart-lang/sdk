@@ -22,7 +22,7 @@ compute_this_script_test: Skip # Issue 17458
 
 [ $compiler == dart2js && $cps_ir ]
 mirror_intercepted_field_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-native_exception_test: RuntimeError # value_.toString$0 is not a function
+native_exception_test: RuntimeError # J.getInterceptor(...).toString$0 is not a function
 native_method_inlining_test: RuntimeError # Please triage this failure.
 native_mirror_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 native_no_such_method_exception3_frog_test: RuntimeError # Please triage this failure.

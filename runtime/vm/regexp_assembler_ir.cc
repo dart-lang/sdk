@@ -162,8 +162,10 @@ void IRRegExpMacroAssembler::InitializeLocals() {
   index_temp_ = Local(Symbols::index_temp());
   result_ = Local(Symbols::result());
 
-  string_param_ = Parameter(Symbols::string_param(), 0);
-  start_index_param_ = Parameter(Symbols::start_index_param(), 1);
+  string_param_ = Parameter(Symbols::string_param(),
+                            RegExpMacroAssembler::kParamStringIndex);
+  start_index_param_ = Parameter(Symbols::start_index_param(),
+                                 RegExpMacroAssembler::kParamStartOffsetIndex);
 }
 
 
@@ -307,19 +309,24 @@ bool IRRegExpMacroAssembler::CanReadUnaligned() {
 
 
 RawArray* IRRegExpMacroAssembler::Execute(
-    const Function& function,
+    const JSRegExp& regexp,
     const String& input,
     const Smi& start_offset,
     Zone* zone) {
+  const intptr_t cid = input.GetClassId();
+  const Function& fun = Function::Handle(regexp.function(cid));
+  ASSERT(!fun.IsNull());
   // Create the argument list.
-  const Array& args = Array::Handle(Array::New(2));
-  args.SetAt(0, input);
-  args.SetAt(1, start_offset);
+  const Array& args =
+      Array::Handle(Array::New(RegExpMacroAssembler::kParamCount));
+  args.SetAt(RegExpMacroAssembler::kParamRegExpIndex, regexp);
+  args.SetAt(RegExpMacroAssembler::kParamStringIndex, input);
+  args.SetAt(RegExpMacroAssembler::kParamStartOffsetIndex, start_offset);
 
   // And finally call the generated code.
 
   const Object& retval =
-      Object::Handle(zone, DartEntry::InvokeFunction(function, args));
+      Object::Handle(zone, DartEntry::InvokeFunction(fun, args));
   if (retval.IsError()) {
     const Error& error = Error::Cast(retval);
     OS::Print("%s\n", error.ToErrorCString());
@@ -433,7 +440,7 @@ ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
   ASSERT(!word_character_field.IsUninitialized());
 
   return new(Z) ConstantInstr(
-        Instance::ZoneHandle(Z, word_character_field.value()));
+        Instance::ZoneHandle(Z, word_character_field.StaticValue()));
 }
 
 

@@ -170,18 +170,22 @@ class CpsFunctionCompiler implements FunctionCompiler {
       assert(checkCpsIntegrity(cpsNode));
     }
 
+    applyCpsPass(new RedundantJoinEliminator());
+    applyCpsPass(new RedundantPhiEliminator());
+    applyCpsPass(new InsertRefinements(compiler.typesTask, compiler.world));
     TypePropagator typePropagator = new TypePropagator(compiler, this);
     applyCpsPass(typePropagator);
     dumpTypedIR(cpsNode, typePropagator);
-    applyCpsPass(new LoopInvariantCodeMotion());
-    applyCpsPass(new ShareInterceptors());
-    applyCpsPass(new ScalarReplacer(compiler));
+    applyCpsPass(new RemoveRefinements());
     applyCpsPass(new ShrinkingReducer());
+    applyCpsPass(new ScalarReplacer(compiler));
     applyCpsPass(new MutableVariableEliminator());
     applyCpsPass(new RedundantJoinEliminator());
     applyCpsPass(new RedundantPhiEliminator());
     applyCpsPass(new ShrinkingReducer());
-    applyCpsPass(new LetSinker());
+    applyCpsPass(new LoopInvariantCodeMotion());
+    applyCpsPass(new ShareInterceptors());
+    applyCpsPass(new ShrinkingReducer());
 
     return cpsNode;
   }

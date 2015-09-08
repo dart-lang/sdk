@@ -1050,8 +1050,7 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ Comment("StringFromCharCodeInstr");
 
-  ExternalLabel label(reinterpret_cast<uword>(Symbols::PredefinedAddress()));
-  __ LoadExternalLabel(result, &label, kNotPatchable);
+  __ lw(result, Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddImmediate(result, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ sll(TMP, char_code, 1);  // Char code is a smi.
   __ addu(TMP, TMP, result);
@@ -2092,7 +2091,9 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Comment("LoadStaticFieldInstr");
   Register field = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  __ LoadFromOffset(result, field, Field::value_offset() - kHeapObjectTag);
+  __ LoadFromOffset(result,
+                    field,
+                    Field::static_value_offset() - kHeapObjectTag);
 }
 
 
@@ -2115,10 +2116,12 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadObject(temp, field());
   if (this->value()->NeedsStoreBuffer()) {
     __ StoreIntoObject(temp,
-        FieldAddress(temp, Field::value_offset()), value, CanValueBeSmi());
+                       FieldAddress(temp, Field::static_value_offset()),
+                       value,
+                       CanValueBeSmi());
   } else {
     __ StoreIntoObjectNoBarrier(
-        temp, FieldAddress(temp, Field::value_offset()), value);
+        temp, FieldAddress(temp, Field::static_value_offset()), value);
   }
 }
 
@@ -2592,7 +2595,7 @@ void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label call_runtime, no_call;
   __ Comment("InitStaticFieldInstr");
 
-  __ lw(temp, FieldAddress(field, Field::value_offset()));
+  __ lw(temp, FieldAddress(field, Field::static_value_offset()));
   __ BranchEqual(temp, Object::sentinel(), &call_runtime);
   __ BranchNotEqual(temp, Object::transition_sentinel(), &no_call);
 

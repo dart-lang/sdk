@@ -602,7 +602,7 @@ static void VerifyMethodKindShifts() {
   #define CHECK_KIND_SHIFT(name)                                               \
     field = cls.LookupField(String::Handle(String::New(#name)));               \
     ASSERT(!field.IsNull());                                                   \
-    value ^= field.value();                                                    \
+    value ^= field.StaticValue();                                              \
     ASSERT(value.Value() == Mirrors::name);
   MIRRORS_KIND_SHIFT_LIST(CHECK_KIND_SHIFT)
   #undef CHECK_KIND_SHIFT
@@ -677,7 +677,7 @@ static RawInstance* InvokeLibraryGetter(const Library& library,
     }
   } else {
     if (!field.IsUninitialized()) {
-      return field.value();
+      return field.StaticValue();
     }
     // An uninitialized field was found.  Check for a getter in the field's
     // owner classs.
@@ -754,7 +754,7 @@ static RawInstance* InvokeClassGetter(const Class& klass,
         DartEntry::InvokeFunction(getter, Object::empty_array()));
     return ReturnResult(result);
   }
-  return field.value();
+  return field.StaticValue();
 }
 
 
@@ -1620,7 +1620,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
     UNREACHABLE();
   }
 
-  field.set_value(value);
+  field.SetStaticValue(value);
   return value.raw();
 }
 
@@ -1917,7 +1917,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
     UNREACHABLE();
   }
 
-  field.set_value(value);
+  field.SetStaticValue(value);
   return value.raw();
 }
 

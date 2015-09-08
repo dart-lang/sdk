@@ -989,12 +989,8 @@ class JavaScriptBackend extends Backend {
     } else if (constant.isType) {
       enqueueInResolution(getCreateRuntimeType(), registry);
       registry.registerInstantiation(typeImplementation.rawType);
-      TypeConstantValue typeConstant = constant;
-      DartType representedType = typeConstant.representedType;
-      if (representedType != const DynamicType()) {
-        lookupMapAnalysis.registerTypeConstant(representedType.element);
-      }
     }
+    lookupMapAnalysis.registerConstantKey(constant);
   }
 
   void registerInstantiatedConstantType(DartType type, Registry registry) {
@@ -2163,7 +2159,7 @@ class JavaScriptBackend extends Backend {
       } else if (uri == Uris.dart_html) {
         htmlLibraryIsLoaded = true;
       } else if (uri == PACKAGE_LOOKUP_MAP) {
-        lookupMapAnalysis.initRuntimeClass(find(library, 'LookupMap'));
+        lookupMapAnalysis.init(library);
       }
       annotations.onLibraryScanned(library);
     });
@@ -2609,7 +2605,13 @@ class JavaScriptBackend extends Backend {
     return true;
   }
 
-  void onQueueClosed() => lookupMapAnalysis.onQueueClosed();
+  void onQueueClosed() {
+    lookupMapAnalysis.onQueueClosed();
+  }
+
+  void onCodegenStart() {
+    lookupMapAnalysis.onCodegenStart();
+  }
 
   void onElementResolved(Element element, TreeElements elements) {
     if ((element.isFunction || element.isGenerativeConstructor) &&

@@ -14,6 +14,8 @@ const expression that can only be created with a const constructor. This means
 that primitives, Strings, and constant objects that override the `==` operator
 cannot be tree-shaken.
 
+**Note**: this feature is currently experimental in dart2js, we recommend trying
+other alternatives before relying on this feature.
 
 ## Examples
 

@@ -1623,6 +1623,22 @@ class SsaBuilder extends ast.Visitor
             sourceInformation: sourceInformationBuilder.buildIf(function.body));
       }
     }
+    if (const bool.fromEnvironment('unreachable-throw') == true) {
+      var emptyParameters = parameters.values.where((p) =>
+          p.instructionType.isEmpty && !p.instructionType.isNullable);
+      if (emptyParameters.length > 0) {
+        String message = compiler.enableMinification
+            ? 'unreachable'
+            : 'unreachable: ${functionElement} because: ${emptyParameters}';
+        // TODO(sra): Use a library function that throws a proper error object.
+        push(new HForeignCode(
+            js.js.parseForeignJS('throw "$message"'),
+            backend.dynamicType,
+            <HInstruction>[],
+            isStatement: true));
+        return closeFunction();
+      }
+    }
     function.body.accept(this);
     return closeFunction();
   }
@@ -8449,6 +8465,8 @@ class InlineWeeder extends ast.Visitor {
                            int maxInliningNodes,
                            bool useMaxInliningNodes,
                            {bool allowLoops: false}) {
+    if (function.resolvedAst.elements.containsTryStatement) return false;
+
     InlineWeeder weeder =
         new InlineWeeder(maxInliningNodes, useMaxInliningNodes, allowLoops);
     ast.FunctionExpression functionExpression = function.node;
@@ -8529,11 +8547,6 @@ class InlineWeeder extends ast.Visitor {
     }
     node.visitChildren(this);
     seenReturn = true;
-  }
-
-  void visitTryStatement(ast.Node node) {
-    if (!registerNode()) return;
-    tooDifficult = true;
   }
 
   void visitThrow(ast.Throw node) {
