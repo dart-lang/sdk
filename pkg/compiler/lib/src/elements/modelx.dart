@@ -2363,6 +2363,7 @@ abstract class BaseClassElementX extends ElementX
   void ensureResolved(Compiler compiler) {
     if (resolutionState == STATE_NOT_STARTED) {
       compiler.resolver.resolveClass(this);
+      compiler.world.registerClass(this);
     }
   }
 

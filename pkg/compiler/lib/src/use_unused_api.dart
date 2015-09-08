@@ -270,7 +270,8 @@ usedByTests() {
   sourceFileProvider.getSourceFile(null);
   world.hasAnyUserDefinedGetter(null, null);
   world.subclassesOf(null);
-  world.classHierarchyNode(null);
+  world.getClassHierarchyNode(null);
+  world.getClassSet(null);
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
   new dart_types.Types(compiler).copy(compiler);

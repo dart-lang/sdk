@@ -940,6 +940,11 @@ class ClassElementZ extends DeserializedElementZ
 
   @override
   ClassElement get superclass => supertype != null ? supertype.element : null;
+
+  @override
+  void ensureResolved(Compiler compiler) {
+    compiler.world.registerClass(this);
+  }
 }
 
 abstract class ConstructorElementZ extends DeserializedElementZ
@@ -1280,9 +1285,6 @@ abstract class TypeDeclarationMixin<T extends GenericType>
 
   @override
   bool get isResolved => true;
-
-  @override
-  void ensureResolved(Compiler compiler) {}
 }
 
 class TypedefElementZ extends DeserializedElementZ
@@ -1316,6 +1318,9 @@ class TypedefElementZ extends DeserializedElementZ
     }
     return _alias;
   }
+
+  @override
+  void ensureResolved(Compiler compiler) {}
 
   @override
   void checkCyclicReference(Compiler compiler) {}
