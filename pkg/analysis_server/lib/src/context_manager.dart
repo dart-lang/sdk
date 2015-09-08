@@ -531,6 +531,10 @@ class ContextManagerImpl implements ContextManager {
       Resource resource = resourceProvider.getResource(path);
       if (resource is Folder) {
         includedFolders.add(resource);
+      } else if (!resource.exists) {
+        // Non-existent resources are ignored.  TODO(paulberry): we should set
+        // up a watcher to ensure that if the resource appears later, we will
+        // begin analyzing it.
       } else {
         // TODO(scheglov) implemented separate files analysis
         throw new UnimplementedError('$path is not a folder. '
