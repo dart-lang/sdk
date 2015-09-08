@@ -11,7 +11,7 @@ part of dart._internal;
  */
 abstract class FixedLengthListMixin<E> {
   /** This operation is not supported by a fixed length list. */
-  void set length(int newLength) {
+  set length(int newLength) {
     throw new UnsupportedError(
         "Cannot change the length of a fixed-length list");
   }
@@ -105,7 +105,7 @@ abstract class UnmodifiableListMixin<E> implements List<E> {
   }
 
   /** This operation is not supported by an unmodifiable list. */
-  void set length(int newLength) {
+  set length(int newLength) {
     throw new UnsupportedError(
         "Cannot change the length of an unmodifiable list");
   }

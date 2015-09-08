@@ -384,5 +384,34 @@ $endif
     return headers;
   }
 
+  /**
+   * Specify the desired `url`, and `method` to use in making the request.
+   *
+   * By default the request is done asyncronously, with no user or password
+   * authentication information. If `async` is false, the request will be send
+   * synchronously.
+   *
+   * Calling `open` again on a currently active request is equivalent to
+   * calling `abort`.
+   *
+   * Note: Most simple HTTP requests can be accomplished using the [getString],
+   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
+   * `open` method is intended only for more complext HTTP requests where
+   * finer-grained control is needed.
+   */
+  @DomName('XMLHttpRequest.open')
+  @DocsEditable()
+$if JSINTEROP
+  void open(String method, String url, {bool async, String user, String password}) {
+    if (async == null && user == null && password == null) {
+      _blink.BlinkXMLHttpRequest.instance.open_Callback_2_(unwrap_jso(this), method, url);
+    } else {
+      _blink.BlinkXMLHttpRequest.instance.open_Callback_5_(unwrap_jso(this), method, url, async, user, password);
+    }
+  }
+$else
+  void open(String method, String url, {bool async, String user, String password}) native;
+$endif
+
 $!MEMBERS
 }

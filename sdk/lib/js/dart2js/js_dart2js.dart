@@ -449,7 +449,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     throw new StateError('Bad JsArray length');
   }
 
-  void set length(int length) { super['length'] = length; }
+  set length(int length) { super['length'] = length; }
 
 
   // Methods overriden for better performance

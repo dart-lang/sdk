@@ -581,7 +581,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   int get length => JS('JSUInt32', r'#.length', this);
 
-  void set length(int newLength) {
+  set length(int newLength) {
     checkGrowable('set length');
     if (newLength is !int) {
       throw new ArgumentError.value(newLength, 'newLength');
