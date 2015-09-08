@@ -131,6 +131,7 @@ class World implements ClassWorld {
   ClassElement get intClass => compiler.intClass;
   ClassElement get doubleClass => compiler.doubleClass;
   ClassElement get stringClass => compiler.stringClass;
+  ClassElement get nullClass => compiler.nullClass;
 
   /// Cache of [ti.FlatTypeMask]s grouped by the 8 possible values of the
   /// [ti.FlatTypeMask.flags] property.

@@ -38,6 +38,7 @@ import '../../tree_ir/optimization/optimization.dart';
 import '../../tree_ir/optimization/optimization.dart' as tree_opt;
 import '../../tree_ir/tree_ir_integrity.dart';
 import '../../cps_ir/cps_ir_nodes_sexpr.dart';
+import '../../cps_ir/type_mask_system.dart';
 
 class CpsFunctionCompiler implements FunctionCompiler {
   final ConstantSystem constantSystem;
@@ -69,7 +70,6 @@ class CpsFunctionCompiler implements FunctionCompiler {
   /// Generates JavaScript code for `work.element`.
   js.Fun compile(CodegenWorkItem work) {
     AstElement element = work.element;
-    JavaScriptBackend backend = compiler.backend;
     return compiler.withCurrentElement(element, () {
       try {
         // TODO(karlklose): remove this fallback when we do not need it for
@@ -170,10 +170,13 @@ class CpsFunctionCompiler implements FunctionCompiler {
       assert(checkCpsIntegrity(cpsNode));
     }
 
+    TypeMaskSystem typeSystem = new TypeMaskSystem(compiler);
+
     applyCpsPass(new RedundantJoinEliminator());
     applyCpsPass(new RedundantPhiEliminator());
-    applyCpsPass(new InsertRefinements(compiler.typesTask, compiler.world));
-    TypePropagator typePropagator = new TypePropagator(compiler, this);
+    applyCpsPass(new InsertRefinements(typeSystem));
+    TypePropagator typePropagator =
+        new TypePropagator(compiler, typeSystem, this);
     applyCpsPass(typePropagator);
     dumpTypedIR(cpsNode, typePropagator);
     applyCpsPass(new RemoveRefinements());

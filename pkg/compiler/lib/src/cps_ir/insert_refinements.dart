@@ -7,13 +7,13 @@ library cps_ir.optimization.insert_refinements;
 import 'optimizers.dart' show Pass;
 import 'shrinking_reductions.dart' show ParentVisitor;
 import 'cps_ir_nodes.dart';
-import '../types/types.dart';
 import '../types/constants.dart';
 import '../constants/values.dart';
-import '../world.dart';
 import '../common/names.dart';
 import '../universe/universe.dart';
 import '../elements/elements.dart';
+import '../types/types.dart' show TypeMask;
+import 'type_mask_system.dart';
 
 /// Inserts [Refinement] nodes in the IR to allow for sparse path-sensitive
 /// type analysis in the [TypePropagator] pass.
@@ -26,18 +26,12 @@ import '../elements/elements.dart';
 class InsertRefinements extends RecursiveVisitor implements Pass {
   String get passName => 'Insert refinement nodes';
 
-  final TypesTask types;
-  final World world;
-  final TypeMask nonNullType;
-  final TypeMask nullType;
+  final TypeMaskSystem types;
 
   /// Maps unrefined primitives to its refinement currently in scope (if any).
   final Map<Primitive, Refinement> refinementFor = <Primitive, Refinement>{};
 
-  InsertRefinements(this.types, World world)
-    : this.world = world,
-      nonNullType = new TypeMask.nonNullSubtype(world.objectClass, world),
-      nullType = new TypeMask.empty();
+  InsertRefinements(this.types);
 
   void rewrite(FunctionDefinition node) {
     new ParentVisitor().visit(node);
@@ -134,7 +128,7 @@ class InsertRefinements extends RecursiveVisitor implements Pass {
       push(cont);
     } else {
       // Filter away receivers that throw on this selector.
-      TypeMask type = world.allFunctions.receiverType(node.selector, node.mask);
+      TypeMask type = types.receiverTypeFor(node.selector, node.mask);
       pushRefinement(cont, new Refinement(receiver, type));
     }
   }
@@ -153,10 +147,6 @@ class InsertRefinements extends RecursiveVisitor implements Pass {
     return prim is Constant && prim.value.isTrue;
   }
 
-  TypeMask getTypeOf(ConstantValue constant) {
-    return computeTypeMask(types.compiler, constant);
-  }
-
   void visitBranch(Branch node) {
     processReference(node.condition);
     Primitive condition = node.condition.definition;
@@ -171,10 +161,9 @@ class InsertRefinements extends RecursiveVisitor implements Pass {
     sinkContinuationToUse(falseCont, node);
 
     // If the condition is an 'is' check, promote the checked value.
-    if (condition is TypeTest && condition.type.element is ClassElement) {
+    if (condition is TypeTest) {
       Primitive value = condition.value.definition;
-      ClassElement classElement = condition.type.element;
-      TypeMask type = new TypeMask.nonNullSubtype(classElement, world);
+      TypeMask type = types.subtypesOf(condition.type);
       Primitive refinedValue = new Refinement(value, type);
       pushRefinement(trueCont, refinedValue);
       push(falseCont);
@@ -190,13 +179,13 @@ class InsertRefinements extends RecursiveVisitor implements Pass {
                         Continuation trueCont,
                         Continuation falseCont) {
       if (second is Constant && second.value.isNull) {
-        Refinement refinedTrue = new Refinement(first, nullType);
-        Refinement refinedFalse = new Refinement(first, nonNullType);
+        Refinement refinedTrue = new Refinement(first, types.nullType);
+        Refinement refinedFalse = new Refinement(first, types.nonNullType);
         pushRefinement(trueCont, refinedTrue);
         pushRefinement(falseCont, refinedFalse);
       } else if (first is Constant && first.value.isNull) {
-        Refinement refinedTrue = new Refinement(second, nullType);
-        Refinement refinedFalse = new Refinement(second, nonNullType);
+        Refinement refinedTrue = new Refinement(second, types.nullType);
+        Refinement refinedFalse = new Refinement(second, types.nonNullType);
         pushRefinement(trueCont, refinedTrue);
         pushRefinement(falseCont, refinedFalse);
       } else {
