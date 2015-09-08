@@ -1774,7 +1774,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
   @override
   JS.Block visitBlock(Block node) =>
-      new JS.Block(_visitList(node.statements) as List<JS.Statement>);
+      new JS.Block(_visitList(node.statements) as List<JS.Statement>,
+          isScope: true);
 
   @override
   visitMethodInvocation(MethodInvocation node) {
@@ -2733,10 +2734,25 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     }
   }
 
+  /// Visits a statement, and ensures the resulting AST handles block scope
+  /// correctly. Essentially, we need to promote a variable declaration
+  /// statement into a block in some cases, e.g.
+  ///
+  ///     do var x = 5; while (false); // Dart
+  ///     do { let x = 5; } while (false); // JS
+  JS.Statement _visitScope(Statement stmt) {
+    var result = _visit(stmt);
+    if (result is JS.ExpressionStatement &&
+        result.expression is JS.VariableDeclarationList) {
+      return new JS.Block([result]);
+    }
+    return result;
+  }
+
   @override
   JS.If visitIfStatement(IfStatement node) {
-    return new JS.If(notNull(node.condition), _visit(node.thenStatement),
-        _visit(node.elseStatement));
+    return new JS.If(notNull(node.condition), _visitScope(node.thenStatement),
+        _visitScope(node.elseStatement));
   }
 
   @override
@@ -2745,17 +2761,18 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (init == null) init = _visit(node.variables);
     var update = _visitListToBinary(node.updaters, ',');
     if (update != null) update = update.toVoidExpression();
-    return new JS.For(init, notNull(node.condition), update, _visit(node.body));
+    return new JS.For(
+        init, notNull(node.condition), update, _visitScope(node.body));
   }
 
   @override
   JS.While visitWhileStatement(WhileStatement node) {
-    return new JS.While(notNull(node.condition), _visit(node.body));
+    return new JS.While(notNull(node.condition), _visitScope(node.body));
   }
 
   @override
   JS.Do visitDoStatement(DoStatement node) {
-    return new JS.Do(_visit(node.body), notNull(node.condition));
+    return new JS.Do(_visitScope(node.body), notNull(node.condition));
   }
 
   @override
@@ -2768,7 +2785,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (init == null) {
       init = js.call('let #', node.loopVariable.identifier.name);
     }
-    return new JS.ForOf(init, _visit(node.iterable), _visit(node.body));
+    return new JS.ForOf(init, _visit(node.iterable), _visitScope(node.body));
   }
 
   JS.Statement _emitAwaitFor(ForEachStatement node) {

@@ -238,7 +238,7 @@ class Printer implements NodeVisitor {
   }
 
   void blockOutWithoutBraces(Node node) {
-    if (node is Block) {
+    if (node is Block && !node.isScope) {
       context.enterNode(node);
       Block block = node;
       block.statements.forEach(blockOutWithoutBraces);

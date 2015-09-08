@@ -278,7 +278,11 @@ abstract class Statement extends Node {
 
 class Block extends Statement {
   final List<Statement> statements;
-  Block(this.statements) {
+
+  /// True to preserve this [Block] for scoping reasons.
+  final bool isScope;
+
+  Block(this.statements, {this.isScope: false}) {
     assert(!statements.any((s) => s is! Statement));
   }
   Block.empty() : this.statements = <Statement>[];

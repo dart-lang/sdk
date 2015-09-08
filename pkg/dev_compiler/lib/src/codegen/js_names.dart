@@ -228,6 +228,9 @@ Object /*String|TemporaryId*/ identifierKey(Identifier node) =>
 /// Also handles invalid variable names in strict mode, like "arguments".
 bool invalidVariableName(String keyword, {bool strictMode: true}) {
   switch (keyword) {
+    // http://www.ecma-international.org/ecma-262/6.0/#sec-future-reserved-words
+    case "await":
+
     case "break":
     case "case":
     case "catch":
@@ -239,6 +242,7 @@ bool invalidVariableName(String keyword, {bool strictMode: true}) {
     case "delete":
     case "do":
     case "else":
+    case "enum":
     case "export":
     case "extends":
     case "finally":
@@ -248,11 +252,9 @@ bool invalidVariableName(String keyword, {bool strictMode: true}) {
     case "import":
     case "in":
     case "instanceof":
-    case "interface":
     case "let":
     case "new":
     case "return":
-    case "static":
     case "super":
     case "switch":
     case "this":
@@ -263,10 +265,20 @@ bool invalidVariableName(String keyword, {bool strictMode: true}) {
     case "void":
     case "while":
     case "with":
-    case "yield":
       return true;
     case "arguments":
     case "eval":
+    // http://www.ecma-international.org/ecma-262/6.0/#sec-future-reserved-words
+    // http://www.ecma-international.org/ecma-262/6.0/#sec-identifiers-static-semantics-early-errors
+    case "implements":
+    case "interface":
+    case "let":
+    case "package":
+    case "private":
+    case "protected":
+    case "public":
+    case "static":
+    case "yield":
       return strictMode;
   }
   return false;

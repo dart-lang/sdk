@@ -121,7 +121,8 @@ main(arguments) {
 
   for (var dir in [null, 'language']) {
     group('dartdevc ' + path.join('test', 'codegen', dir), () {
-      var outDir = path.join(expectDir, dir);
+      var outDir = new Directory(path.join(expectDir, dir));
+      if (!outDir.existsSync()) outDir.createSync(recursive: true);
 
       var testFiles = _findTests(path.join(inputDir, dir), filePattern);
       for (var filePath in testFiles) {
@@ -139,10 +140,10 @@ main(arguments) {
               sourceMaps: sourceMaps, closure: closure);
 
           // Write compiler messages to disk.
-          new File(path.join(outDir, '$filename.txt'))
+          new File(path.join(outDir.path, '$filename.txt'))
               .writeAsStringSync('$compilerMessages');
 
-          var outFile = new File(path.join(outDir, '$filename.js'));
+          var outFile = new File(path.join(outDir.path, '$filename.js'));
           expect(outFile.existsSync(), success,
               reason: '${outFile.path} was created iff compilation succeeds');
         });

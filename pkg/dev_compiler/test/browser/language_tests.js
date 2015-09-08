@@ -35,6 +35,13 @@
     }
   }
 
+  suite('scoping', () => {
+    dartLanguageTests([
+      'implicit_scope_test',
+      ['built_in_identifier_test', 'none', 1]
+    ]);
+  });
+
   suite('dynamic type literal', () => {
     dartLanguageTests([
       ['const_dynamic_type_literal_test', 'none', 1, 3]
