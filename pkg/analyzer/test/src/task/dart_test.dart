@@ -2269,8 +2269,7 @@ class C {
     computeResult(target, RESOLVED_UNIT5,
         matcher: isPartiallyResolveUnitReferencesTask);
     // Test the outputs
-    expect(outputs[CLASSES_IN_UNIT], hasLength(2));
-    expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(2));
+    expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(4));
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
     expect(unit, same(outputs[RESOLVED_UNIT5]));
     // Test the state of the AST
@@ -2280,8 +2279,7 @@ class C {
     expect(initializer.staticElement, isNotNull);
     // Test the error generation
     _fillErrorListener(PARTIALLY_RESOLVE_REFERENCES_ERRORS);
-    errorListener.assertErrorsWithCodes(
-        <ErrorCode>[StaticWarningCode.UNDEFINED_IDENTIFIER]);
+    errorListener.assertNoErrors();
   }
 
   test_perform_importExport() {
@@ -2311,20 +2309,18 @@ main() {
     computeResult(new LibrarySpecificUnit(sourceC, sourceC), RESOLVED_UNIT5,
         matcher: isPartiallyResolveUnitReferencesTask);
     // validate
-    expect(outputs[CLASSES_IN_UNIT], hasLength(0));
     expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(0));
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
     expect(unit, isNotNull);
 
-    FunctionDeclaration functionDeclaration = unit.declarations[0];
-    BlockFunctionBody body = functionDeclaration.functionExpression.body;
+    FunctionDeclaration mainFunction = unit.declarations[0];
+    expect(mainFunction.element, isNotNull);
+    BlockFunctionBody body = mainFunction.functionExpression.body;
     List<Statement> statements = body.block.statements;
     ExpressionStatement statement = statements[0];
     MethodInvocation invocation = statement.expression;
     MethodElement methodElement = invocation.methodName.staticElement;
-    expect(methodElement, isNotNull);
-    expect(methodElement.type, isNotNull);
-    expect(methodElement.returnType.toString(), 'int');
+    expect(methodElement, isNull);
   }
 }
 

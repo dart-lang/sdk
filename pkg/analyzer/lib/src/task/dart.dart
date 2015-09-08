@@ -72,16 +72,6 @@ final ListResultDescriptor<AnalysisError> BUILD_LIBRARY_ERRORS =
         'BUILD_LIBRARY_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
- * A list of the [ClassElement]s representing the classes defined in a
- * compilation unit.
- *
- * The result is only available for [LibrarySpecificUnit]s, and only when strong
- * mode is enabled.
- */
-final ListResultDescriptor<ClassElement> CLASSES_IN_UNIT =
-    new ListResultDescriptor<ClassElement>('CLASSES_IN_UNIT', null);
-
-/**
  * A list of the [ConstantEvaluationTarget]s defined in a unit.  This includes
  * constants defined at top level, statically inside classes, and local to
  * functions, as well as constant constructors, annotations, and default values
@@ -2703,6 +2693,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
             "NodeLocator failed to find a variable's declaration");
       }
       Expression initializer = declaration.initializer;
+      initializer.accept(new ResolutionEraser());
       ResolutionContext resolutionContext =
           ResolutionContextBuilder.contextFor(initializer, errorListener);
       ResolverVisitor visitor = new ResolverVisitor(
@@ -3141,7 +3132,6 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
       'PartiallyResolveUnitReferencesTask',
       createTask,
       buildInputs, <ResultDescriptor>[
-    CLASSES_IN_UNIT,
     INFERABLE_STATIC_VARIABLES_IN_UNIT,
     PARTIALLY_RESOLVE_REFERENCES_ERRORS,
     RESOLVED_UNIT5
@@ -3169,29 +3159,14 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
     //
     InheritanceManager inheritanceManager =
         new InheritanceManager(libraryElement);
-    // TODO(brianwilkerson) Improve performance by not resolving anything inside
-    // function bodies. Function bodies will be resolved later so this is wasted
-    // effort.
-    AstVisitor visitor = new ResolverVisitor(
+    PartialResolverVisitor visitor = new PartialResolverVisitor(
         libraryElement, unitElement.source, typeProvider, errorListener,
         inheritanceManager: inheritanceManager);
     unit.accept(visitor);
     //
-    // Prepare targets for inference.
-    //
-    List<VariableElement> staticVariables = <VariableElement>[];
-    List<ClassElement> classes = <ClassElement>[];
-    if (context.analysisOptions.strongMode) {
-      InferrenceFinder inferrenceFinder = new InferrenceFinder();
-      unit.accept(inferrenceFinder);
-      staticVariables = inferrenceFinder.staticVariables;
-      classes = inferrenceFinder.classes;
-    }
-    //
     // Record outputs.
     //
-    outputs[CLASSES_IN_UNIT] = classes;
-    outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT] = staticVariables;
+    outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT] = visitor.staticVariables;
     outputs[PARTIALLY_RESOLVE_REFERENCES_ERRORS] =
         removeDuplicateErrors(errorListener.errors);
     outputs[RESOLVED_UNIT5] = unit;
@@ -3438,8 +3413,18 @@ class ResolveFunctionBodiesInUnitTask extends SourceBasedAnalysisTask {
       visitor.prepareToResolveMembersInClass(
           resolutionContext.enclosingClassDeclaration);
     }
-    visitor.initForIncrementalResolution();
+    Declaration declaration = functionBody.getAncestor((AstNode node) =>
+        node is ConstructorDeclaration ||
+            node is FunctionDeclaration ||
+            node is MethodDeclaration);
+    visitor.initForIncrementalResolution(declaration);
     functionBody.accept(visitor);
+    if (declaration is FunctionDeclaration) {
+      // This is in the wrong place. The propagated return type is stored
+      // locally in the resolver, not in the declaration (or element). Hence,
+      // this needs to happen later.
+      declaration.accept(visitor.typeAnalyzer);
+    }
   }
 
   /**
