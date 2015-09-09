@@ -14,7 +14,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart'
-    show sendAnalysisNotificationNavigation;
+    show NavigationOperation, sendAnalysisNotificationNavigation;
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -347,11 +347,10 @@ class AnalysisDomainImpl implements AnalysisDomain {
   @override
   void scheduleNotification(
       engine.AnalysisContext context, Source source, AnalysisService service) {
-    // TODO(scheglov) schedule, don't do it right now
     String file = source.fullName;
     if (server.hasAnalysisSubscription(service, file)) {
       if (service == AnalysisService.NAVIGATION) {
-        sendAnalysisNotificationNavigation(server, context, source);
+        server.scheduleOperation(new NavigationOperation(context, source));
       }
     }
   }

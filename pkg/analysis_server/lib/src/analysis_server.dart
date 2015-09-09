@@ -484,9 +484,9 @@ class AnalysisServer {
    * first context that implicitly analyzes it.
    *
    * If the [path] is not analyzed by any context, a [ContextSourcePair] with
-   * a `null` context and `file` [Source] is returned.
+   * a `null` context and a `file` [Source] is returned.
    *
-   * If the [path] dosn't represent a file, a [ContextSourcePair] with a `null`
+   * If the [path] doesn't represent a file, a [ContextSourcePair] with a `null`
    * context and `null` [Source] is returned.
    *
    * Does not return `null`.

@@ -37,7 +37,6 @@ main() {
 @reflectiveTest
 class SetAnalysisDomainTest extends AbstractAnalysisTest {
   final Set<String> parsedUnitFiles = new Set<String>();
-  bool contributorMayAddRegion = false;
 
   List<NavigationRegion> regions;
   List<NavigationTarget> targets;
@@ -53,12 +52,7 @@ class SetAnalysisDomainTest extends AbstractAnalysisTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NAVIGATION) {
       var params = new AnalysisNavigationParams.fromNotification(notification);
-      // TODO(scheglov) we check for "params.regions.isNotEmpty" because
-      // normal, Dart only, navigation notifications are scheduled as
-      // operations, but plugins use "notificationSite.scheduleNavigation"
-      // which is not scheduled yet. So, it comes *before* the Dart one, and
-      // gets lost.
-      if (params.file == testFile && params.regions.isNotEmpty) {
+      if (params.file == testFile) {
         regions = params.regions;
         targets = params.targets;
         targetFiles = params.files;
@@ -101,10 +95,8 @@ class TestNavigationContributor implements NavigationContributor {
   @override
   void computeNavigation(NavigationHolder holder, AnalysisContext context,
       Source source, int offset, int length) {
-    if (test.contributorMayAddRegion) {
-      holder.addRegion(1, 5, ElementKind.CLASS,
-          new Location('/testLocation.dart', 1, 2, 3, 4));
-    }
+    holder.addRegion(1, 5, ElementKind.CLASS,
+        new Location('/testLocation.dart', 1, 2, 3, 4));
   }
 }
 
@@ -133,14 +125,8 @@ class TestSetAnalysisDomainPlugin implements Plugin {
       expect(result.value, isNotNull);
       Source source = result.target.source;
       test.parsedUnitFiles.add(source.fullName);
-      // let the navigation contributor to work
-      test.contributorMayAddRegion = true;
-      try {
-        domain.scheduleNotification(
-            result.context, source, AnalysisService.NAVIGATION);
-      } finally {
-        test.contributorMayAddRegion = false;
-      }
+      domain.scheduleNotification(
+          result.context, source, AnalysisService.NAVIGATION);
     });
   }
 }

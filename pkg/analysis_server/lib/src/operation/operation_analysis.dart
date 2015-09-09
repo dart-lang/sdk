@@ -77,8 +77,8 @@ void scheduleNotificationOperations(
     }
     if (server.hasAnalysisSubscription(
         protocol.AnalysisService.NAVIGATION, file)) {
-      server.scheduleOperation(
-          new _DartNavigationOperation(context, file, resolvedDartUnit));
+      Source source = resolvedDartUnit.element.source;
+      server.scheduleOperation(new NavigationOperation(context, source));
     }
     if (server.hasAnalysisSubscription(
         protocol.AnalysisService.OCCURRENCES, file)) {
@@ -227,6 +227,16 @@ void _sendNotification(AnalysisServer server, f()) {
       server.sendServerErrorNotification(exception, stackTrace);
     }
   });
+}
+
+class NavigationOperation extends _NotificationOperation {
+  NavigationOperation(AnalysisContext context, Source source)
+      : super(context, source);
+
+  @override
+  void perform(AnalysisServer server) {
+    sendAnalysisNotificationNavigation(server, context, source);
+  }
 }
 
 /**
@@ -380,18 +390,6 @@ class _DartIndexOperation extends _SingleFileOperation {
   }
 }
 
-class _DartNavigationOperation extends _DartNotificationOperation {
-  _DartNavigationOperation(
-      AnalysisContext context, String file, CompilationUnit unit)
-      : super(context, file, unit);
-
-  @override
-  void perform(AnalysisServer server) {
-    Source source = unit.element.source;
-    sendAnalysisNotificationNavigation(server, context, source);
-  }
-}
-
 abstract class _DartNotificationOperation extends _SingleFileOperation {
   final CompilationUnit unit;
 
@@ -473,6 +471,22 @@ class _NotificationErrorsOperation extends _SingleFileOperation {
   @override
   void perform(AnalysisServer server) {
     sendAnalysisNotificationErrors(server, file, lineInfo, errors);
+  }
+}
+
+abstract class _NotificationOperation extends SourceSensitiveOperation {
+  final Source source;
+
+  _NotificationOperation(AnalysisContext context, this.source) : super(context);
+
+  @override
+  ServerOperationPriority get priority {
+    return ServerOperationPriority.ANALYSIS_NOTIFICATION;
+  }
+
+  @override
+  bool shouldBeDiscardedOnSourceChange(Source source) {
+    return source == this.source;
   }
 }
 
