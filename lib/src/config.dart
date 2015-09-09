@@ -125,7 +125,7 @@ class _LintConfig implements LintConfig {
             v.forEach((rule) {
               var config = new _RuleConfig();
               config.name = asString(rule);
-              config.args = {'enabled:': true};
+              config.args = {'enabled': true};
               ruleConfigs.add(config);
             });
           }
@@ -137,7 +137,7 @@ class _LintConfig implements LintConfig {
               if (value is bool) {
                 var config = new _RuleConfig();
                 config.name = asString(key);
-                config.args = {'enabled:': value};
+                config.args = {'enabled': value};
                 ruleConfigs.add(config);
               }
 

@@ -99,14 +99,12 @@ plugin_b:
   option_b: true
 linter:
   rules:
-    - unnecessary_getters
     - camel_case_types
 ''';
           var config = processAnalysisOptionsFile(src);
-          var ruleNames = config.ruleConfigs.map((rc) => rc.name);
-          expect(ruleNames, hasLength(2));
-          expect(ruleNames, contains('unnecessary_getters'));
-          expect(ruleNames, contains('camel_case_types'));
+          expect(config.ruleConfigs.length, equals(1));
+          // Verify that defaults are enabled.
+          expect(config.ruleConfigs[0].args['enabled'], equals(true));
         });
 
         test('rule map (bools)', () {
@@ -117,14 +115,18 @@ plugin_b:
   option_b: true
 linter:
   rules:
-    unnecessary_getters: false #disable
     camel_case_types: true #enable
+    unnecessary_getters: false #disable
 ''';
           var config = processAnalysisOptionsFile(src);
-          var ruleNames = config.ruleConfigs.map((rc) => rc.name);
-          expect(ruleNames, hasLength(2));
-          expect(ruleNames, contains('unnecessary_getters'));
-          expect(ruleNames, contains('camel_case_types'));
+          var ruleConfigs = config.ruleConfigs.toList();
+          ruleConfigs.sort(
+              (RuleConfig rc1, RuleConfig rc2) => rc1.name.compareTo(rc2.name));
+          expect(ruleConfigs, hasLength(2));
+          expect(ruleConfigs[0].name, equals('camel_case_types'));
+          expect(config.ruleConfigs[0].args['enabled'], equals(false));
+          expect(ruleConfigs[1].name, equals('unnecessary_getters'));
+          expect(config.ruleConfigs[1].args['enabled'], equals(true));
         });
       });
     });
