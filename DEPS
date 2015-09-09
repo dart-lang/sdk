@@ -86,22 +86,22 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@e454b4b54d2987e8d2f0fbd3ac519641ada9bd0f",
-  "pub_rev": "@d90268693d1a9dbe5ea11cd9c80b842e3bf1581c",
+  "pub_rev": "@1c08b841158e33b8090bb07e5c39df830db58d44",
   "pub_cache_tag": "@v0.1.0",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
   "root_certificates_rev": "@c3a41df63afacec62fcb8135196177e35fe72f71",
   "scheduled_test_tag": "@0.12.1+2",
-  "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
+  "shelf_tag": "@0.6.2+1",
   "smoke_rev" : "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",
   "source_maps_tag": "@0.10.1",
   "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
-  "shelf_static_rev": "@v0.2.1",
-  "shelf_web_socket_rev": "@ff170cec2c0e4e5722cdf47c557be63b5035a602",
+  "shelf_static_tag": "@0.2.3+1",
+  "shelf_web_socket_tag": "@0.0.1+4",
   "source_map_stack_trace_tag": "@1.0.4",
-  "source_span_tag": "@1.1.2",
+  "source_span_tag": "@1.2.0",
   "stack_trace_tag": "@1.3.4",
-  "string_scanner_rev": "@3e7617d6f74ba382e9b6130b1cc12091d89a9bc5",
+  "string_scanner_tag": "@0.1.4",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
   "test_tag": "@0.12.3+8",
   "test_reflective_loader_tag": "@0.0.3",
@@ -275,12 +275,12 @@ deps = {
   Var("dart_root") + "/third_party/pkg/scheduled_test":
       (Var("github_mirror") % "scheduled_test") + Var("scheduled_test_tag"),
   Var("dart_root") + "/third_party/pkg/shelf":
-      (Var("github_mirror") % "shelf") + Var("shelf_rev"),
+      (Var("github_mirror") % "shelf") + Var("shelf_tag"),
   Var("dart_root") + "/third_party/pkg/shelf_static":
-      (Var("github_mirror") % "shelf_static") + Var("shelf_static_rev"),
+      (Var("github_mirror") % "shelf_static") + Var("shelf_static_tag"),
   Var("dart_root") + "/third_party/pkg/shelf_web_socket":
       (Var("github_mirror") % "shelf_web_socket") +
-      Var("shelf_web_socket_rev"),
+      Var("shelf_web_socket_tag"),
   Var("dart_root") + "/third_party/pkg/smoke":
       (Var("github_mirror") % "smoke") + Var("smoke_rev"),
   Var("dart_root") + "/third_party/pkg/source_maps":
@@ -294,7 +294,7 @@ deps = {
       (Var("github_mirror") % "stack_trace") + Var("stack_trace_tag"),
   Var("dart_root") + "/third_party/pkg/string_scanner":
       (Var("github_mirror") % "string_scanner") +
-      Var("string_scanner_rev"),
+      Var("string_scanner_tag"),
   Var("dart_root") + "/third_party/sunflower":
       (Var("github_mirror") % "sample-sunflower") +
       Var("sunflower_rev"),
