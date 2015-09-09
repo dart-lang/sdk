@@ -159,7 +159,7 @@ abstract class ElementZ extends Element with ElementCommon {
 
   // TODO(johnniwinther): Support metadata.
   @override
-  Link<MetadataAnnotation> get metadata => const Link<MetadataAnnotation>();
+  Iterable<MetadataAnnotation> get metadata => const <MetadataAnnotation>[];
 
   @override
   Element get outermostEnclosingMemberOrTopLevel {

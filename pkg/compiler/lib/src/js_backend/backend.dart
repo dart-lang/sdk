@@ -2313,8 +2313,7 @@ class JavaScriptBackend extends Backend {
    */
   bool matchesMirrorsMetaTarget(Element element) {
     if (metaTargetsUsed.isEmpty) return false;
-    for (Link link = element.metadata; !link.isEmpty; link = link.tail) {
-      MetadataAnnotation metadata = link.head;
+    for (MetadataAnnotation metadata in element.metadata) {
       // TODO(kasperl): It would be nice if we didn't have to resolve
       // all metadata but only stuff that potentially would match one
       // of the used meta targets.
@@ -2625,7 +2624,7 @@ class JavaScriptBackend extends Backend {
     bool hasForceInline = false;
     bool hasNoThrows = false;
     bool hasNoSideEffects = false;
-    for (MetadataAnnotation metadata in element.metadata) {
+    for (MetadataAnnotation metadata in element.implementation.metadata) {
       metadata.ensureResolved(compiler);
       ConstantValue constantValue =
           compiler.constants.getConstantValue(metadata.constant);
@@ -2894,19 +2893,21 @@ class Annotations {
   /// Returns `true` if [element] is annotated with [annotationClass].
   bool _hasAnnotation(Element element, ClassElement annotationClass) {
     if (annotationClass == null) return false;
-    for (Link<MetadataAnnotation> link = element.metadata;
-         !link.isEmpty;
-         link = link.tail) {
-      ConstantValue value =
-          compiler.constants.getConstantValue(link.head.constant);
-      if (value.isConstructedObject) {
-        ConstructedConstantValue constructedConstant = value;
-        if (constructedConstant.type.element == annotationClass) {
-          return true;
+    return compiler.withCurrentElement(element, () {
+      for (MetadataAnnotation metadata in element.metadata) {
+        assert(invariant(metadata, metadata.constant != null,
+            message: "Unevaluated metadata constant."));
+        ConstantValue value =
+            compiler.constants.getConstantValue(metadata.constant);
+        if (value.isConstructedObject) {
+          ConstructedConstantValue constructedConstant = value;
+          if (constructedConstant.type.element == annotationClass) {
+            return true;
+          }
         }
       }
-    }
-    return false;
+      return false;
+    });
   }
 }
 

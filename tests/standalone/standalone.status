@@ -186,9 +186,6 @@ io/file_lock_test: Skip  # Timeout.
 io/test_runner_test: Skip  # Timeout.
 io/http_client_stays_alive_test: Skip  # Timeout.
 
-[ $compiler == dart2js ]
-io/observatory_test: Crash # Issue 24291
-
 [ $runtime == vm ]
 # Failures in secure networking while NSS is replaced with BoringSSL
 io/https_client_certificate_test: RuntimeError # Issue 24070

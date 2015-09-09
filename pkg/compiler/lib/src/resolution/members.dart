@@ -3783,7 +3783,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
     }
     if (node.metadata != null) {
-      variables.metadata =
+      variables.metadataInternal =
           compiler.resolver.resolveMetadata(enclosingElement, node);
     }
     visitor.visit(node.definitions);

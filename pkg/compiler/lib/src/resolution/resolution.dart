@@ -78,7 +78,7 @@ class ResolverTask extends CompilerTask {
       }
 
       WorldImpact processMetadata([WorldImpact result]) {
-        for (MetadataAnnotation metadata in element.metadata) {
+        for (MetadataAnnotation metadata in element.implementation.metadata) {
           metadata.ensureResolved(compiler);
         }
         return result;
@@ -594,7 +594,7 @@ class ResolverTask extends CompilerTask {
   }
 
   void _postProcessClassElement(BaseClassElementX element) {
-    for (MetadataAnnotation metadata in element.metadata) {
+    for (MetadataAnnotation metadata in element.implementation.metadata) {
       metadata.ensureResolved(compiler);
       ConstantValue value =
           compiler.constants.getConstantValue(metadata.constant);
@@ -611,7 +611,7 @@ class ResolverTask extends CompilerTask {
     element.forEachMember((_, Element member) {
       if (!member.isInstanceMember) {
         compiler.withCurrentElement(member, () {
-          for (MetadataAnnotation metadata in member.metadata) {
+          for (MetadataAnnotation metadata in member.implementation.metadata) {
             metadata.ensureResolved(compiler);
           }
         });
@@ -996,6 +996,7 @@ class ResolverTask extends CompilerTask {
       // [compileMetadata].
       annotation.constant =
           constantCompiler.compileMetadata(annotation, node, registry.mapping);
+      constantCompiler.evaluate(annotation.constant);
       // TODO(johnniwinther): Register the relation between the annotation
       // and the annotated element instead. This will allow the backend to
       // retrieve the backend constant and only register metadata on the
@@ -1009,17 +1010,16 @@ class ResolverTask extends CompilerTask {
     compiler.reportError(node, kind, arguments);
   }
 
-  Link<MetadataAnnotation> resolveMetadata(Element element,
+  List<MetadataAnnotation> resolveMetadata(Element element,
                                            VariableDefinitions node) {
-    LinkBuilder<MetadataAnnotation> metadata =
-        new LinkBuilder<MetadataAnnotation>();
+    List<MetadataAnnotation> metadata = <MetadataAnnotation>[];
     for (Metadata annotation in node.metadata.nodes) {
       ParameterMetadataAnnotation metadataAnnotation =
           new ParameterMetadataAnnotation(annotation);
       metadataAnnotation.annotatedElement = element;
-      metadata.addLast(metadataAnnotation.ensureResolved(compiler));
+      metadata.add(metadataAnnotation.ensureResolved(compiler));
     }
-    return metadata.toLink();
+    return metadata;
   }
 }
 

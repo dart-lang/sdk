@@ -532,7 +532,7 @@ class DeferredLoadTask extends CompilerTask {
       } else if (import.isDeferred) {
         result = import.prefix.toString();
       } else {
-        Link<MetadataAnnotation> metadatas = import.metadata;
+        List<MetadataAnnotation> metadatas = import.metadata;
         assert(metadatas != null);
         for (MetadataAnnotation metadata in metadatas) {
           metadata.ensureResolved(compiler);
@@ -723,7 +723,7 @@ class DeferredLoadTask extends CompilerTask {
           Import import = tag;
 
           /// Give an error if the old annotation-based syntax has been used.
-          Link<MetadataAnnotation> metadataList = import.metadata;
+          List<MetadataAnnotation> metadataList = import.metadata;
           if (metadataList != null) {
             for (MetadataAnnotation metadata in metadataList) {
               metadata.ensureResolved(compiler);

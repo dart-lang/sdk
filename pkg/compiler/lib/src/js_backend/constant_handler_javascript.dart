@@ -261,7 +261,7 @@ class ForgetConstantElementVisitor
   const ForgetConstantElementVisitor();
 
   void visitElement(Element e, JavaScriptConstantCompiler constants) {
-    for (MetadataAnnotation data in e.metadata) {
+    for (MetadataAnnotation data in e.implementation.metadata) {
       constants.metadataConstantMap.remove(data);
       if (data.hasNode) {
         data.node.accept(new ForgetConstantNodeVisitor(constants));

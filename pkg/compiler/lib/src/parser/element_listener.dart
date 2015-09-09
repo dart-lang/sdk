@@ -37,7 +37,8 @@ import '../tokens/token_constants.dart' as Tokens show
     EOF_TOKEN;
 import '../tree/tree.dart';
 import '../util/util.dart' show
-    Link;
+    Link,
+    LinkBuilder;
 
 import 'partial_elements.dart' show
     PartialClassElement,
@@ -69,7 +70,8 @@ class ElementListener extends Listener {
 
   Link<Node> nodes = const Link<Node>();
 
-  Link<MetadataAnnotation> metadata = const Link<MetadataAnnotation>();
+  LinkBuilder<MetadataAnnotation> metadata =
+      new LinkBuilder<MetadataAnnotation>();
 
   /// Records a stack of booleans for each member parsed (a stack is used to
   /// support nested members which isn't currently possible, but it also serves
@@ -212,9 +214,9 @@ class ElementListener extends Listener {
 
   void endTopLevelDeclaration(Token token) {
     if (!metadata.isEmpty) {
-      recoverableError(metadata.head.beginToken,
+      recoverableError(metadata.first.beginToken,
                        'Metadata not supported here.');
-      metadata = const Link<MetadataAnnotation>();
+      metadata.clear();
     }
   }
 
@@ -595,19 +597,15 @@ class ElementListener extends Listener {
     compilationUnitElement.addMember(element, listener);
   }
 
-  Link<MetadataAnnotation> popMetadata(ElementX element) {
-    var result = const Link<MetadataAnnotation>();
-    for (Link link = metadata; !link.isEmpty; link = link.tail) {
-      element.addMetadata(link.head);
-      // Reverse the list as is implicitly done by addMetadata.
-      result = result.prepend(link.head);
-    }
-    metadata = const Link<MetadataAnnotation>();
+  List<MetadataAnnotation> popMetadata(ElementX element) {
+    List<MetadataAnnotation> result = metadata.toList();
+    element.metadata = result;
+    metadata.clear();
     return result;
   }
 
   void pushMetadata(MetadataAnnotation annotation) {
-    metadata = metadata.prepend(annotation);
+    metadata.addLast(annotation);
   }
 
   void addLibraryTag(LibraryTag tag) {
