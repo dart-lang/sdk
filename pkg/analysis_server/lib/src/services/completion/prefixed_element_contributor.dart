@@ -404,8 +404,11 @@ class _PrefixedIdentifierSuggestionBuilder
             bool typesOnly = node.parent is TypeName;
             bool instCreation =
                 typesOnly && node.parent.parent is ConstructorName;
-            LibraryElementSuggestionBuilder.suggestionsFor(request,
-                CompletionSuggestionKind.INVOCATION, library, typesOnly,
+            LibraryElementSuggestionBuilder.suggestionsFor(
+                request,
+                CompletionSuggestionKind.INVOCATION,
+                library,
+                typesOnly,
                 instCreation);
             modified = true;
             if (directive.deferredKeyword != null) {

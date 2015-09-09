@@ -1357,8 +1357,10 @@ class PackageMapDisposition extends FolderDisposition {
   @override
   Iterable<UriResolver> createPackageUriResolvers(
           ResourceProvider resourceProvider) =>
-      <UriResolver>[new SdkExtUriResolver(packageMap),
-                    new PackageMapUriResolver(resourceProvider, packageMap)];
+      <UriResolver>[
+        new SdkExtUriResolver(packageMap),
+        new PackageMapUriResolver(resourceProvider, packageMap)
+      ];
 }
 
 /**
@@ -1376,7 +1378,7 @@ class PackagesFileDisposition extends FolderDisposition {
 
   @override
   Iterable<UriResolver> createPackageUriResolvers(
-          ResourceProvider resourceProvider) {
+      ResourceProvider resourceProvider) {
     if (packages != null) {
       // Construct package map for the SdkExtUriResolver.
       Map<String, List<Folder>> packageMap = <String, List<Folder>>{};

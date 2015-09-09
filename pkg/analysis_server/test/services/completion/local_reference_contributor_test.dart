@@ -25,8 +25,10 @@ class LocalReferenceContributorTest extends AbstractSelectorSuggestionTest {
   @override
   CompletionSuggestion assertSuggestLocalClass(String name,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false,
-      String elemFile, int elemOffset}) {
+      int relevance: DART_RELEVANCE_DEFAULT,
+      bool isDeprecated: false,
+      String elemFile,
+      int elemOffset}) {
     return assertSuggestClass(name,
         elemFile: elemFile,
         elemOffset: elemOffset,

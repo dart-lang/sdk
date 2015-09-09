@@ -349,8 +349,8 @@ class MatchesJsonObject extends _RecursiveMatcher {
     if (requiredFields != null) {
       requiredFields.forEach((String key, Matcher valueMatcher) {
         if (!item.containsKey(key)) {
-          mismatches.add(
-              (Description mismatchDescription) => mismatchDescription
+          mismatches.add((Description mismatchDescription) =>
+              mismatchDescription
                   .add('is missing field ')
                   .addDescriptionOf(key)
                   .add(' (')
@@ -381,7 +381,10 @@ class MatchesJsonObject extends _RecursiveMatcher {
    */
   void _checkField(String key, value, Matcher valueMatcher,
       List<MismatchDescriber> mismatches) {
-    checkSubstructure(value, valueMatcher, mismatches,
+    checkSubstructure(
+        value,
+        valueMatcher,
+        mismatches,
         (Description description) =>
             description.add('field ').addDescriptionOf(key));
   }
@@ -590,8 +593,11 @@ class Server {
    * `true`, the server will be started with "--observe" and
    * "--pause-isolates-on-exit", allowing the observatory to be used.
    */
-  Future start({bool debugServer: false, int diagnosticPort,
-      bool profileServer: false, bool newTaskModel: false,
+  Future start(
+      {bool debugServer: false,
+      int diagnosticPort,
+      bool profileServer: false,
+      bool newTaskModel: false,
       bool useAnalysisHighlight2: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
@@ -696,8 +702,8 @@ class _ListOf extends Matcher {
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
     if (item is! List) {
-      return super.describeMismatch(
-          item, mismatchDescription, matchState, verbose);
+      return super
+          .describeMismatch(item, mismatchDescription, matchState, verbose);
     } else {
       return iterableMatcher.describeMismatch(
           item, mismatchDescription, matchState, verbose);
@@ -744,10 +750,16 @@ class _MapOf extends _RecursiveMatcher {
       return;
     }
     item.forEach((key, value) {
-      checkSubstructure(key, keyMatcher, mismatches,
+      checkSubstructure(
+          key,
+          keyMatcher,
+          mismatches,
           (Description description) =>
               description.add('key ').addDescriptionOf(key));
-      checkSubstructure(value, valueMatcher, mismatches,
+      checkSubstructure(
+          value,
+          valueMatcher,
+          mismatches,
           (Description description) =>
               description.add('field ').addDescriptionOf(key));
     });
@@ -850,8 +862,8 @@ abstract class _RecursiveMatcher extends Matcher {
       }
       return mismatchDescription;
     } else {
-      return super.describeMismatch(
-          item, mismatchDescription, matchState, verbose);
+      return super
+          .describeMismatch(item, mismatchDescription, matchState, verbose);
     }
   }
 
@@ -878,6 +890,6 @@ abstract class _RecursiveMatcher extends Matcher {
    */
   MismatchDescriber simpleDescription(String description) =>
       (Description mismatchDescription) {
-    mismatchDescription.add(description);
-  };
+        mismatchDescription.add(description);
+      };
 }

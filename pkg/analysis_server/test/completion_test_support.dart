@@ -190,18 +190,14 @@ class LocationSpec {
       if (!badPoints.isEmpty) {
         err.write("No test location for tests:");
         for (String ch in badPoints) {
-          err
-            ..write(' ')
-            ..write(ch);
+          err..write(' ')..write(ch);
         }
         err.write(' ');
       }
       if (!badResults.isEmpty) {
         err.write("No results for tests:");
         for (String ch in badResults) {
-          err
-            ..write(' ')
-            ..write(ch);
+          err..write(' ')..write(ch);
         }
       }
       throw new IllegalStateException(err.toString());

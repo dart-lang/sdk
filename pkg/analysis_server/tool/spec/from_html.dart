@@ -123,6 +123,7 @@ void checkName(dom.Element element, String expectedName, [String context]) {
         '$context: Expected $expectedName, found ${element.localName}');
   }
 }
+
 /**
  * Create a [Domain] object from an HTML representation such as:
  *
@@ -419,6 +420,7 @@ TypeDefinition typeDefinitionFromHtml(dom.Element html) {
   TypeDecl type = processContentsAsType(html, context);
   return new TypeDefinition(name, type, html);
 }
+
 /**
  * Create a [TypeEnum] from an HTML description.
  */
@@ -480,8 +482,8 @@ TypeObjectField typeObjectFieldFromHtml(dom.Element html, String context) {
   checkName(html, 'field', context);
   String name = html.attributes['name'];
   context = '$context.${name != null ? name : 'field'}';
-  checkAttributes(
-      html, ['name'], context, optionalAttributes: ['optional', 'value']);
+  checkAttributes(html, ['name'], context,
+      optionalAttributes: ['optional', 'value']);
   bool optional = false;
   String optionalString = html.attributes['optional'];
   if (optionalString != null) {

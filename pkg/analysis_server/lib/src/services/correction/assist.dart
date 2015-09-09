@@ -82,10 +82,12 @@ class DartAssistKind {
   static const REMOVE_TYPE_ANNOTATION =
       const AssistKind('REMOVE_TYPE_ANNOTATION', 29, "Remove type annotation");
   static const REPLACE_CONDITIONAL_WITH_IF_ELSE = const AssistKind(
-      'REPLACE_CONDITIONAL_WITH_IF_ELSE', 30,
+      'REPLACE_CONDITIONAL_WITH_IF_ELSE',
+      30,
       "Replace conditional with 'if-else'");
   static const REPLACE_IF_ELSE_WITH_CONDITIONAL = const AssistKind(
-      'REPLACE_IF_ELSE_WITH_CONDITIONAL', 30,
+      'REPLACE_IF_ELSE_WITH_CONDITIONAL',
+      30,
       "Replace 'if-else' with conditional ('c ? x : y')");
   static const SPLIT_AND_CONDITION =
       const AssistKind('SPLIT_AND_CONDITION', 30, "Split && condition");

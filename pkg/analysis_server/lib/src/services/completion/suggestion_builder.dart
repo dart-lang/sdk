@@ -25,9 +25,11 @@ const String DYNAMIC = 'dynamic';
  * If the suggestion is not currently in scope, then specify
  * importForSource as the source to which an import should be added.
  */
-CompletionSuggestion createSuggestion(Element element, {String completion,
+CompletionSuggestion createSuggestion(Element element,
+    {String completion,
     CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-    int relevance: DART_RELEVANCE_DEFAULT, Source importForSource}) {
+    int relevance: DART_RELEVANCE_DEFAULT,
+    Source importForSource}) {
   if (element is ExecutableElement && element.isOperator) {
     // Do not include operators in suggestions
     return null;
@@ -36,9 +38,14 @@ CompletionSuggestion createSuggestion(Element element, {String completion,
     completion = element.displayName;
   }
   bool isDeprecated = element.isDeprecated;
-  CompletionSuggestion suggestion = new CompletionSuggestion(kind,
-      isDeprecated ? DART_RELEVANCE_LOW : relevance, completion,
-      completion.length, 0, isDeprecated, false);
+  CompletionSuggestion suggestion = new CompletionSuggestion(
+      kind,
+      isDeprecated ? DART_RELEVANCE_LOW : relevance,
+      completion,
+      completion.length,
+      0,
+      isDeprecated,
+      false);
   suggestion.element = protocol.newElement_fromEngine(element);
   Element enclosingElement = element.enclosingElement;
   if (enclosingElement is ClassElement) {
@@ -52,9 +59,10 @@ CompletionSuggestion createSuggestion(Element element, {String completion,
     suggestion.parameterTypes = element.parameters
         .map((ParameterElement parameter) => parameter.type.displayName)
         .toList();
-    suggestion.requiredParameterCount = element.parameters.where(
-        (ParameterElement parameter) =>
-            parameter.parameterKind == ParameterKind.REQUIRED).length;
+    suggestion.requiredParameterCount = element.parameters
+        .where((ParameterElement parameter) =>
+            parameter.parameterKind == ParameterKind.REQUIRED)
+        .length;
     suggestion.hasNamedParameters = element.parameters.any(
         (ParameterElement parameter) =>
             parameter.parameterKind == ParameterKind.NAMED);
@@ -177,7 +185,6 @@ void visitInheritedTypes(ClassDeclaration node,
  * Common mixin for sharing behavior
  */
 abstract class ElementSuggestionBuilder {
-
   /**
    * Return the kind of suggestions that should be built.
    */
@@ -434,8 +441,8 @@ class InterfaceTypeSuggestionBuilder {
       type = request.cache.objectClassElement.type;
     }
     if (type is InterfaceType) {
-      return new InterfaceTypeSuggestionBuilder(request)._buildSuggestions(
-          type, library, isSuper, containingMethodName);
+      return new InterfaceTypeSuggestionBuilder(request)
+          ._buildSuggestions(type, library, isSuper, containingMethodName);
     }
   }
 }
@@ -517,8 +524,11 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   /**
    * Add suggestions for the visible members in the given library
    */
-  static void suggestionsFor(DartCompletionRequest request,
-      CompletionSuggestionKind kind, LibraryElement library, bool typesOnly,
+  static void suggestionsFor(
+      DartCompletionRequest request,
+      CompletionSuggestionKind kind,
+      LibraryElement library,
+      bool typesOnly,
       bool instCreation) {
     if (library != null) {
       library.visitChildren(new LibraryElementSuggestionBuilder(
@@ -532,7 +542,8 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
  * the visible named constructors in that class.
  */
 class NamedConstructorSuggestionBuilder extends GeneralizingElementVisitor
-    with ElementSuggestionBuilder implements SuggestionBuilder {
+    with ElementSuggestionBuilder
+    implements SuggestionBuilder {
   final DartCompletionRequest request;
 
   NamedConstructorSuggestionBuilder(this.request);

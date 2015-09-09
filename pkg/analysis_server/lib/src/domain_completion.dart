@@ -236,8 +236,11 @@ class CompletionDomainHandler implements RequestHandler {
   /**
    * Send completion notification results.
    */
-  void sendCompletionNotification(String completionId, int replacementOffset,
-      int replacementLength, Iterable<CompletionSuggestion> results,
+  void sendCompletionNotification(
+      String completionId,
+      int replacementOffset,
+      int replacementLength,
+      Iterable<CompletionSuggestion> results,
       bool isLast) {
     server.sendNotification(new CompletionResultsParams(
             completionId, replacementOffset, replacementLength, results, isLast)

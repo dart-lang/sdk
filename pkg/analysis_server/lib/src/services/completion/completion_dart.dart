@@ -30,5 +30,5 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
   DartCompletionRequestImpl(
       CompletionRequest request, this.unit, this.isResolved)
       : super(request.context, request.resourceProvider, request.source,
-          request.offset);
+            request.offset);
 }

@@ -1595,13 +1595,13 @@ main(p) {
   var v2 = p is!4;
 }''',
         <String>[
-          "1+MyClass",
-          "2+MyClass",
-          "3+MyClass",
-          "3-v1",
-          "4+is",
-          "4-isVariable"
-        ]);
+      "1+MyClass",
+      "2+MyClass",
+      "3+MyClass",
+      "3-v1",
+      "4+is",
+      "4-isVariable"
+    ]);
 
     buildTests(
         'testCompletion_is_asIdentifierStart',

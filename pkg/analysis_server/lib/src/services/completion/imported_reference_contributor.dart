@@ -25,7 +25,8 @@ class ImportedReferenceContributor extends DartCompletionContributor {
   bool suggestionsComputed;
   _ImportedSuggestionBuilder builder;
 
-  ImportedReferenceContributor({this.shouldWaitForLowPrioritySuggestions: false});
+  ImportedReferenceContributor(
+      {this.shouldWaitForLowPrioritySuggestions: false});
 
   @override
   bool computeFast(DartCompletionRequest request) {
@@ -40,7 +41,8 @@ class ImportedReferenceContributor extends DartCompletionContributor {
             shouldWaitForLowPrioritySuggestions;
         // If target is an argument in an argument list
         // then suggestions may need to be adjusted
-        suggestionsComputed = builder.computeFast(request.target.containingNode);
+        suggestionsComputed =
+            builder.computeFast(request.target.containingNode);
         return suggestionsComputed && request.target.argIndex == null;
       }
     }

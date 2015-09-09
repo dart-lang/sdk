@@ -58,9 +58,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   DartFileEditBuilderImpl get dartFileEditBuilder => fileEditBuilder;
 
   @override
-  void writeClassDeclaration(String name, {Iterable<DartType> interfaces,
-      bool isAbstract: false, void memberWriter(), Iterable<DartType> mixins,
-      String nameGroupName, DartType superclass}) {
+  void writeClassDeclaration(String name,
+      {Iterable<DartType> interfaces,
+      bool isAbstract: false,
+      void memberWriter(),
+      Iterable<DartType> mixins,
+      String nameGroupName,
+      DartType superclass}) {
     // TODO(brianwilkerson) Add support for type parameters, probably as a
     // parameterWriter parameter.
     // TODO(brianwilkerson) Add a superclassGroupName parameter.
@@ -95,7 +99,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   //@override
   void writeConstructorDeclaration(ClassElement classElement,
-      {ArgumentList argumentList, SimpleIdentifier constructorName,
+      {ArgumentList argumentList,
+      SimpleIdentifier constructorName,
       bool isConst: false}) {
     // TODO(brianwilkerson) Clean up the API and add it to the public API.
     //
@@ -134,9 +139,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeFieldDeclaration(String name, {void initializerWriter(),
-      bool isConst: false, bool isFinal: false, bool isStatic: false,
-      String nameGroupName, DartType type, String typeGroupName}) {
+  void writeFieldDeclaration(String name,
+      {void initializerWriter(),
+      bool isConst: false,
+      bool isFinal: false,
+      bool isStatic: false,
+      String nameGroupName,
+      DartType type,
+      String typeGroupName}) {
     if (isStatic) {
       write(Keyword.STATIC.syntax);
       write(' ');
@@ -170,8 +180,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeGetterDeclaration(String name, {void bodyWriter(),
-      bool isStatic: false, String nameGroupName, DartType returnType,
+  void writeGetterDeclaration(String name,
+      {void bodyWriter(),
+      bool isStatic: false,
+      String nameGroupName,
+      DartType returnType,
       String returnTypeGroupName}) {
     if (isStatic) {
       write(Keyword.STATIC.syntax);
@@ -349,8 +362,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  bool writeType(DartType type, {bool addSupertypeProposals: false,
-      String groupName, bool required: false}) {
+  bool writeType(DartType type,
+      {bool addSupertypeProposals: false,
+      String groupName,
+      bool required: false}) {
     if (type != null && !type.isDynamic) {
       String typeSource =
           utils.getTypeSource(type, dartFileEditBuilder.librariesToImport);
