@@ -15,6 +15,24 @@ import 'package:plugin/plugin.dart';
 
 /**
  * The identifier of the extension point that allows plugins to register new
+ * analysis error results to compute for a Dart source. The object used as an
+ * extension must be a [ResultDescriptor].
+ */
+final String DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID = Plugin.join(
+    EnginePlugin.UNIQUE_IDENTIFIER,
+    EnginePlugin.DART_ERRORS_FOR_SOURCE_EXTENSION_POINT);
+
+/**
+ * The identifier of the extension point that allows plugins to register new
+ * analysis error results to compute for a Dart library specific unit. The
+ * object used as an extension must be a [ResultDescriptor].
+ */
+final String DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID = Plugin.join(
+    EnginePlugin.UNIQUE_IDENTIFIER,
+    EnginePlugin.DART_ERRORS_FOR_UNIT_EXTENSION_POINT);
+
+/**
+ * The identifier of the extension point that allows plugins to register new
  * analysis tasks with the analysis engine. The object used as an extension must
  * be a [TaskDescriptor].
  */

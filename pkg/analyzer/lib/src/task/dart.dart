@@ -21,6 +21,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
@@ -1922,31 +1923,6 @@ class DartDelta extends Delta {
  */
 class DartErrorsTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [BUILD_DIRECTIVES_ERRORS] input.
-   */
-  static const String BUILD_DIRECTIVES_ERRORS_INPUT = 'BUILD_DIRECTIVES_ERRORS';
-
-  /**
-   * The name of the [BUILD_LIBRARY_ERRORS] input.
-   */
-  static const String BUILD_LIBRARY_ERRORS_INPUT = 'BUILD_LIBRARY_ERRORS';
-
-  /**
-   * The name of the [LIBRARY_UNIT_ERRORS] input.
-   */
-  static const String LIBRARY_UNIT_ERRORS_INPUT = 'LIBRARY_UNIT_ERRORS';
-
-  /**
-   * The name of the [PARSE_ERRORS] input.
-   */
-  static const String PARSE_ERRORS_INPUT = 'PARSE_ERRORS';
-
-  /**
-   * The name of the [SCAN_ERRORS] input.
-   */
-  static const String SCAN_ERRORS_INPUT = 'SCAN_ERRORS';
-
-  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor('DartErrorsTask',
@@ -1960,18 +1936,21 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
+    List<List<AnalysisError>> errorLists = <List<AnalysisError>>[];
     //
     // Prepare inputs.
     //
-    List<List<AnalysisError>> errorLists = <List<AnalysisError>>[];
-    errorLists.add(getRequiredInput(BUILD_DIRECTIVES_ERRORS_INPUT));
-    errorLists.add(getRequiredInput(BUILD_LIBRARY_ERRORS_INPUT));
-    errorLists.add(getRequiredInput(PARSE_ERRORS_INPUT));
-    errorLists.add(getRequiredInput(SCAN_ERRORS_INPUT));
-    Map<Source, List<AnalysisError>> unitErrors =
-        getRequiredInput(LIBRARY_UNIT_ERRORS_INPUT);
-    for (List<AnalysisError> errors in unitErrors.values) {
-      errorLists.add(errors);
+    EnginePlugin enginePlugin = AnalysisEngine.instance.enginePlugin;
+    for (ResultDescriptor result in enginePlugin.dartErrorsForSource) {
+      String inputName = result.name + '_input';
+      errorLists.add(getRequiredInput(inputName));
+    }
+    for (ResultDescriptor result in enginePlugin.dartErrorsForUnit) {
+      String inputName = result.name + '_input';
+      Map<Source, List<AnalysisError>> errorMap = getRequiredInput(inputName);
+      for (List<AnalysisError> errors in errorMap.values) {
+        errorLists.add(errors);
+      }
     }
     //
     // Record outputs.
@@ -1986,17 +1965,23 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     Source source = target;
-    return <String, TaskInput>{
-      BUILD_DIRECTIVES_ERRORS_INPUT: BUILD_DIRECTIVES_ERRORS.of(source),
-      BUILD_LIBRARY_ERRORS_INPUT: BUILD_LIBRARY_ERRORS.of(source),
-      PARSE_ERRORS_INPUT: PARSE_ERRORS.of(source),
-      SCAN_ERRORS_INPUT: SCAN_ERRORS.of(source),
-      LIBRARY_UNIT_ERRORS_INPUT:
+    Map<String, TaskInput> inputs = <String, TaskInput>{};
+    EnginePlugin enginePlugin = AnalysisEngine.instance.enginePlugin;
+    // for Source
+    for (ResultDescriptor result in enginePlugin.dartErrorsForSource) {
+      String inputName = result.name + '_input';
+      inputs[inputName] = result.of(source);
+    }
+    // for LibrarySpecificUnit
+    for (ResultDescriptor result in enginePlugin.dartErrorsForUnit) {
+      String inputName = result.name + '_input';
+      inputs[inputName] =
           CONTAINING_LIBRARIES.of(source).toMap((Source library) {
         LibrarySpecificUnit unit = new LibrarySpecificUnit(library, source);
-        return LIBRARY_UNIT_ERRORS.of(unit);
-      })
-    };
+        return result.of(unit);
+      });
+    }
+    return inputs;
   }
 
   /**
