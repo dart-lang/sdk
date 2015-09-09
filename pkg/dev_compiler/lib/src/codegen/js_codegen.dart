@@ -1767,9 +1767,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   @override
   JS.Block visitBlockFunctionBody(BlockFunctionBody node) {
     var initArgs = _emitArgumentInitializers(node.parent);
-    var block = visitBlock(node.block);
-    if (initArgs != null) return new JS.Block([initArgs, block]);
-    return block;
+    var stmts = _visitList(node.block.statements) as List<JS.Statement>;
+    if (initArgs != null) stmts.insert(0, initArgs);
+    return new JS.Block(stmts);
   }
 
   @override
@@ -2932,7 +2932,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       }
     }
 
-    body.add(_visit(node.body));
+    body.add(
+        new JS.Block(_visitList(node.body.statements) as List<JS.Statement>));
     _catchParameter = savedCatch;
     return _statement(body);
   }

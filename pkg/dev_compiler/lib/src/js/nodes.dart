@@ -285,7 +285,7 @@ class Block extends Statement {
   Block(this.statements, {this.isScope: false}) {
     assert(!statements.any((s) => s is! Statement));
   }
-  Block.empty() : this.statements = <Statement>[];
+  Block.empty() : statements = <Statement>[], isScope = false;
 
   accept(NodeVisitor visitor) => visitor.visitBlock(this);
   void visitChildren(NodeVisitor visitor) {
