@@ -1,3 +1,7 @@
+# 0.1.3
+
+* Fixed various options file parsing issues.
+
 # 0.1.2
 
 * Fixed false positives in `unnecessary_brace_in_string_interp` lint. Fix #112.
