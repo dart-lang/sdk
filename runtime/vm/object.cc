@@ -8620,7 +8620,8 @@ void Script::SetLocationOffset(intptr_t line_offset,
 
 void Script::GetTokenLocation(intptr_t token_pos,
                               intptr_t* line,
-                              intptr_t* column) const {
+                              intptr_t* column,
+                              intptr_t* token_len) const {
   ASSERT(line != NULL);
   const TokenStream& tkns = TokenStream::Handle(tokens());
   if (column == NULL) {
@@ -8642,6 +8643,13 @@ void Script::GetTokenLocation(intptr_t token_pos,
     intptr_t relative_line = scanner.CurrentPosition().line;
     *line = relative_line + line_offset();
     *column = scanner.CurrentPosition().column;
+    if (token_len != NULL) {
+      if (scanner.current_token().literal != NULL) {
+        *token_len = scanner.current_token().literal->Length();
+      } else {
+        *token_len = 1;
+      }
+    }
     // On the first line of the script we must add the column offset.
     if (relative_line == 1) {
       *column += col_offset();

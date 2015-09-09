@@ -3222,7 +3222,9 @@ class Script : public Object {
   void SetLocationOffset(intptr_t line_offset, intptr_t col_offset) const;
 
   void GetTokenLocation(intptr_t token_pos,
-                        intptr_t* line, intptr_t* column) const;
+                        intptr_t* line,
+                        intptr_t* column,
+                        intptr_t* token_len = NULL) const;
 
   // Returns index of first and last token on the given line. Returns both
   // indices < 0 if no token exists on or after the line. If a token exists

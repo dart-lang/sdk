@@ -15,6 +15,7 @@ namespace dart {
 
 class Array;
 class Breakpoint;
+class BreakpointLocation;
 class Field;
 class GrowableObjectArray;
 class Instance;
@@ -209,7 +210,11 @@ class JSONObject : public ValueObject {
 
   void AddLocation(const Script& script,
                    intptr_t token_pos,
-                   intptr_t end_token_pos = -1);
+                   intptr_t end_token_pos = -1) const;
+
+  void AddLocation(const BreakpointLocation* bpt_loc) const;
+
+  void AddUnresolvedLocation(const BreakpointLocation* bpt_loc) const;
 
   void AddProperty(const char* name, bool b) const {
     stream_->PrintPropertyBool(name, b);

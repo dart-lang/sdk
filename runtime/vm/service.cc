@@ -2041,8 +2041,10 @@ static bool GetCallSiteData(Isolate* isolate, JSONStream* js) {
 
 static const MethodParameter* add_breakpoint_params[] = {
   ISOLATE_PARAMETER,
-  new IdParameter("scriptId", true),
+  new IdParameter("scriptId", false),
+  new IdParameter("scriptUri", false),
   new UIntParameter("line", true),
+  new UIntParameter("column", false),
   NULL,
 };
 
@@ -2050,16 +2052,41 @@ static const MethodParameter* add_breakpoint_params[] = {
 static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
   const char* line_param = js->LookupParam("line");
   intptr_t line = UIntParameter::Parse(line_param);
-  const char* script_id = js->LookupParam("scriptId");
-  Object& obj = Object::Handle(LookupHeapObject(isolate, script_id, NULL));
-  if (obj.raw() == Object::sentinel().raw() || !obj.IsScript()) {
-    PrintInvalidParamError(js, "scriptId");
+  const char* col_param = js->LookupParam("column");
+  intptr_t col = -1;
+  if (col_param != NULL) {
+    col = UIntParameter::Parse(col_param);
+    if (col == 0) {
+      // Column number is 1-based.
+      PrintInvalidParamError(js, "column");
+      return true;
+    }
+  }
+  const char* script_id_param = js->LookupParam("scriptId");
+  const char* script_uri_param = js->LookupParam("scriptUri");
+  if (script_id_param == NULL && script_uri_param == NULL) {
+    js->PrintError(kInvalidParams,
+                   "%s expects the 'scriptId' or the 'scriptUri' parameter",
+                   js->method());
     return true;
   }
-  const Script& script = Script::Cast(obj);
-  const String& script_url = String::Handle(script.url());
-  Breakpoint* bpt =
-      isolate->debugger()->SetBreakpointAtLine(script_url, line);
+  String& script_uri = String::Handle(isolate);
+  if (script_id_param != NULL) {
+    Object& obj =
+        Object::Handle(LookupHeapObject(isolate, script_id_param, NULL));
+    if (obj.raw() == Object::sentinel().raw() || !obj.IsScript()) {
+      PrintInvalidParamError(js, "scriptId");
+      return true;
+    }
+    const Script& script = Script::Cast(obj);
+    script_uri = script.url();
+  }
+  if (script_uri_param != NULL) {
+    script_uri = String::New(script_uri_param);
+  }
+  ASSERT(!script_uri.IsNull());
+  Breakpoint* bpt = NULL;
+  bpt = isolate->debugger()->SetBreakpointAtLineCol(script_uri, line, col);
   if (bpt == NULL) {
     js->PrintError(kCannotAddBreakpoint,
                    "%s: Cannot add breakpoint at line '%s'",
@@ -2866,8 +2893,8 @@ static const MethodParameter* get_version_params[] = {
 static bool GetVersion(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
-  jsobj.AddProperty("major", static_cast<intptr_t>(2));
-  jsobj.AddProperty("minor", static_cast<intptr_t>(1));
+  jsobj.AddProperty("major", static_cast<intptr_t>(3));
+  jsobj.AddProperty("minor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
   return true;

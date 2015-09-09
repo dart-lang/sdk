@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 2.0
+# Dart VM Service Protocol 3.0
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 2.0_ of the Dart VM Service Protocol. This
+This document describes of _version 3.0_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -68,6 +68,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [Message](#message)
 	- [Null](#null)
 	- [Object](#object)
+	- [Response](#response)
 	- [Sentinel](#sentinel)
 	- [SentinelKind](#sentinelkind)
 	- [Script](#script)
@@ -76,7 +77,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [StepOption](#stepoption)
 	- [Success](#success)
 	- [TypeArguments](#typearguments)
-	- [Response](#response)
+	- [UresolvedSourceLocation](#unresolvedsourcelocation)
 	- [Version](#version)
 	- [VM](#vm)
 - [Revision History](#revision-history)
@@ -109,7 +110,7 @@ Here is an example response for our [getVersion](#getversion) request above:
   "jsonrpc": "2.0",
   "result": {
     "type": "Version",
-    "major": 2,
+    "major": 3,
     "minor": 0
   }
   "id": "1"
@@ -299,7 +300,7 @@ version number:
 ```
   "result": {
     "type": "Version",
-    "major": 2,
+    "major": 3,
     "minor": 0
   }
 ```
@@ -371,12 +372,28 @@ in the section on [public types](#public-types).
 
 ```
 Breakpoint addBreakpoint(string isolateId,
-                         string scriptId,
-                         int line)
+                         string scriptId [optional],
+                         string scriptUri [optional],
+                         int line,
+                         int column [optional])
 ```
 
 The _addBreakpoint_ RPC is used to add a breakpoint at a specific line
 of some script.
+
+The _scriptId_ or _scriptUri_ parameter is used to specify the target
+script. One of these two parameters must always be provided.
+
+The _line_ parameter is used to specify the target line for the
+breakpoint. If there are multiple possible breakpoints on the target
+line, then the VM will place the breakpoint at the location which
+would execute soonest. If it is not possible to set a breakpoint at
+the target line, the breakpoint will be added at the next possible
+breakpoint location within the same function.
+
+The _column_ parameter may be optionally specified.  This is useful
+for targeting a specific breakpoint on a line with multiple possible
+breakpoints.
 
 If no breakpoint is possible at that line, the _102_ (Cannot add
 breakpoint) error code is returned.
@@ -759,7 +776,7 @@ will be the _OptimizedOut_ [Sentinel](#sentinel).
 class Breakpoint extends Object {
   int breakpointNumber;
   bool resolved;
-  SourceLocation location;
+  SourceLocation|UnresolvedSourceLocation location;
 }
 ```
 
@@ -1787,6 +1804,21 @@ class Object extends Response {
 
 An _Object_ is a  persistent object that is owned by some isolate.
 
+### Response
+
+```
+class Response {
+  // Every response returned by the VM Service has the
+  // type property. This allows the client distinguish
+  // between different kinds of responses.
+  string type;
+}
+```
+
+Every non-error response returned by the Service Protocol extends _Response_.
+By using the _type_ property, the client can determine which [type](#types)
+of response has been provided.
+
 ### Sentinel
 
 ```
@@ -1955,20 +1987,42 @@ class TypeArguments extends Object {
 A _TypeArguments_ object represents the type argument vector for some
 instantiated generic type.
 
-### Response
+### UnresolvedSourceLocation
 
 ```
-class Response {
-  // Every response returned by the VM Service has the
-  // type property. This allows the client distinguish
-  // between different kinds of responses.
-  string type;
+class UnresolvedSourceLocation extends Response {
+  // The script containing the source location if the script has been loaded.
+  @Script script [optional];
+
+  // The uri of the script containing the source location if the script
+  // has yet to be loaded.
+  string scriptUri [optional];
+
+  // An approximate token position for the source location.  This may  
+  // change when the location is resolved.
+  int tokenPos [optional];
+
+  // An approximate line number for the source location.  This may  
+  // change when the location is resolved.
+  int line [optional];
+
+  // An approximate column number for the source location.  This may  
+  // change when the location is resolved.
+  int column [optional];
+
 }
 ```
 
-Every non-error response returned by the Service Protocol extends _Response_.
-By using the _type_ property, the client can determine which [type](#types)
-of response has been provided.
+The _UnresolvedSourceLocation_ class is used to refer to an unresolved
+breakpoint location.  As such, it is meant to approximate the final
+location of the breakpoint but it is not exact.
+
+Either the _script_ or the _scriptUri_ field will be present.
+
+Either the _tokenPos_ or the _line_ field will be present.
+
+The _column_ field will only be present when the breakpoint was
+specified with a specific column number.
 
 ### Version
 
@@ -2020,6 +2074,8 @@ class VM extends Response {
 version | comments
 ------- | --------
 1.0 draft 1 | initial revision
+1.1 | Describe protocol version 2.0.
+1.2 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.
 
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

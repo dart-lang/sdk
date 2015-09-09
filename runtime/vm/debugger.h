@@ -99,10 +99,13 @@ class BreakpointLocation {
   // Create a new unresolved breakpoint.
   BreakpointLocation(const Script& script,
                      intptr_t token_pos,
-                     intptr_t end_token_pos);
+                     intptr_t end_token_pos,
+                     intptr_t requested_line_number,
+                     intptr_t requested_column_number);
   // Create a new latent breakpoint.
   BreakpointLocation(const String& url,
-                     intptr_t line_number);
+                     intptr_t requested_line_number,
+                     intptr_t requested_column_number);
 
   ~BreakpointLocation();
 
@@ -112,9 +115,16 @@ class BreakpointLocation {
 
   RawScript* script() const { return script_; }
   RawString* url() const { return url_; }
-  intptr_t LineNumber();
 
-  void GetCodeLocation(Library* lib, Script* script, intptr_t* token_pos);
+  intptr_t requested_line_number() const { return requested_line_number_; }
+  intptr_t requested_column_number() const { return requested_column_number_; }
+
+  intptr_t LineNumber();
+  intptr_t ColumnNumber();
+
+  void GetCodeLocation(Library* lib,
+                       Script* script,
+                       intptr_t* token_pos) const;
 
   Breakpoint* AddRepeated(Debugger* dbg);
   Breakpoint* AddSingleShot(Debugger* dbg);
@@ -144,10 +154,13 @@ class BreakpointLocation {
   bool is_resolved_;
   BreakpointLocation* next_;
   Breakpoint* conditions_;
+  intptr_t requested_line_number_;
+  intptr_t requested_column_number_;
 
   // Valid for resolved breakpoints:
   RawFunction* function_;
   intptr_t line_number_;
+  intptr_t column_number_;
 
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(BreakpointLocation);
@@ -460,10 +473,14 @@ class Debugger {
   // TODO(turnidge): script_url may no longer be specific enough.
   Breakpoint* SetBreakpointAtLine(const String& script_url,
                                   intptr_t line_number);
+  Breakpoint* SetBreakpointAtLineCol(const String& script_url,
+                                     intptr_t line_number,
+                                     intptr_t column_number);
   RawError* OneTimeBreakAtEntry(const Function& target_function);
 
-  BreakpointLocation* BreakpointLocationAtLine(const String& script_url,
-                                               intptr_t line_number);
+  BreakpointLocation* BreakpointLocationAtLineCol(const String& script_url,
+                                                  intptr_t line_number,
+                                                  intptr_t column_number);
 
 
   void RemoveBreakpoint(intptr_t bp_id);
@@ -575,18 +592,24 @@ class Debugger {
                                     intptr_t token_pos);
   intptr_t ResolveBreakpointPos(const Function& func,
                                 intptr_t requested_token_pos,
-                                intptr_t last_token_pos);
+                                intptr_t last_token_pos,
+                                intptr_t requested_column);
   void DeoptimizeWorld();
   BreakpointLocation* SetBreakpoint(const Script& script,
                                     intptr_t token_pos,
-                                    intptr_t last_token_pos);
+                                    intptr_t last_token_pos,
+                                    intptr_t requested_line,
+                                    intptr_t requested_column);
   void RemoveInternalBreakpoints();
   void UnlinkCodeBreakpoints(BreakpointLocation* bpt_location);
-  BreakpointLocation* GetLatentBreakpoint(const String& url, intptr_t line);
+  BreakpointLocation* GetLatentBreakpoint(const String& url,
+                                          intptr_t line,
+                                          intptr_t column);
   void RegisterBreakpointLocation(BreakpointLocation* bpt);
   void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
   BreakpointLocation* GetBreakpointLocation(const Script& script,
-                                            intptr_t token_pos);
+                                            intptr_t token_pos,
+                                            intptr_t requested_column);
   void MakeCodeBreakpointAt(const Function& func,
                             BreakpointLocation* bpt);
   // Returns NULL if no breakpoint exists for the given address.

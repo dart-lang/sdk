@@ -52,8 +52,8 @@ class DebuggerLocation {
     Script script = frame.location.script;
     return script.load().then((_) {
       var line = script.tokenToLine(frame.location.tokenPos);
-      // TODO(turnidge): Pass in the column here once the protocol supports it.
-      return new Future.value(new DebuggerLocation.file(script, line, null));
+      var col = script.tokenToCol(frame.location.tokenPos);
+      return new Future.value(new DebuggerLocation.file(script, line, col));
     });
   }
 
@@ -101,8 +101,11 @@ class DebuggerLocation {
         return new Future.value(new DebuggerLocation.error(
             'A script must be provided when the stack is empty'));
       }
-      Script script = stack['frames'][0].location.script;
-      return new Future.value(new DebuggerLocation.file(script, line, col));
+      var frame = stack['frames'][debugger.currentFrame];
+      Script script = frame.location.script;
+      return script.load().then((_) {
+        return new Future.value(new DebuggerLocation.file(script, line, col));
+      });
     }
   }
 

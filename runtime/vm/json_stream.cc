@@ -686,7 +686,7 @@ void JSONObject::AddFixedServiceId(const char* format, ...) const {
 
 void JSONObject::AddLocation(const Script& script,
                              intptr_t token_pos,
-                             intptr_t end_token_pos) {
+                             intptr_t end_token_pos) const {
   JSONObject location(this, "location");
   location.AddProperty("type", "SourceLocation");
   location.AddProperty("script", script);
@@ -696,6 +696,49 @@ void JSONObject::AddLocation(const Script& script,
   }
 }
 
+
+void JSONObject::AddLocation(const BreakpointLocation* bpt_loc) const {
+  ASSERT(bpt_loc->IsResolved());
+
+  Isolate* isolate = Isolate::Current();
+  Library& library = Library::Handle(isolate);
+  Script& script = Script::Handle(isolate);
+  intptr_t token_pos;
+  bpt_loc->GetCodeLocation(&library, &script, &token_pos);
+  AddLocation(script, token_pos);
+}
+
+
+void JSONObject::AddUnresolvedLocation(
+    const BreakpointLocation* bpt_loc) const {
+  ASSERT(!bpt_loc->IsResolved());
+
+  Isolate* isolate = Isolate::Current();
+  Library& library = Library::Handle(isolate);
+  Script& script = Script::Handle(isolate);
+  intptr_t token_pos;
+  bpt_loc->GetCodeLocation(&library, &script, &token_pos);
+
+  JSONObject location(this, "location");
+  location.AddProperty("type", "UnresolvedSourceLocation");
+  if (!script.IsNull()) {
+    location.AddProperty("script", script);
+  } else {
+    const String& scriptUri = String::Handle(isolate, bpt_loc->url());
+    location.AddPropertyStr("scriptUri", scriptUri);
+  }
+  if (bpt_loc->requested_line_number() >= 0) {
+    // This unresolved breakpoint was specified at a particular line.
+    location.AddProperty("line", bpt_loc->requested_line_number());
+    if (bpt_loc->requested_column_number() >= 0) {
+      location.AddProperty("column",
+                           bpt_loc->requested_column_number());
+    }
+  } else {
+    // This unresolved breakpoint was requested at some function entry.
+    location.AddProperty("tokenPos", token_pos);
+  }
+}
 
 
 void JSONObject::AddPropertyF(const char* name,
