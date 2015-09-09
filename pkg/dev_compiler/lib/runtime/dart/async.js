@@ -63,6 +63,10 @@ dart_library.library('dart/async', null, /* Imports */[
     names: ['_getBestStackTrace']
   });
   let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  let _controller = Symbol('_controller');
+  let _subscribe = Symbol('_subscribe');
+  let _createSubscription = Symbol('_createSubscription');
+  let _onListen = Symbol('_onListen');
   let _add = Symbol('_add');
   let _closeUnchecked = Symbol('_closeUnchecked');
   let _addError = Symbol('_addError');
@@ -763,8 +767,6 @@ dart_library.library('dart/async', null, /* Imports */[
     return Stream;
   });
   let Stream = Stream$();
-  let _createSubscription = Symbol('_createSubscription');
-  let _onListen = Symbol('_onListen');
   let _StreamImpl$ = dart.generic(function(T) {
     class _StreamImpl extends Stream$(T) {
       _StreamImpl() {
@@ -798,8 +800,6 @@ dart_library.library('dart/async', null, /* Imports */[
     return _StreamImpl;
   });
   let _StreamImpl = _StreamImpl$();
-  let _controller = Symbol('_controller');
-  let _subscribe = Symbol('_subscribe');
   let _ControllerStream$ = dart.generic(function(T) {
     class _ControllerStream extends _StreamImpl$(T) {
       _ControllerStream(controller) {
@@ -855,6 +855,18 @@ dart_library.library('dart/async', null, /* Imports */[
       this[_previous] = null;
     }
   }
+  let _eventState = Symbol('_eventState');
+  let _expectsEvent = Symbol('_expectsEvent');
+  let _toggleEventId = Symbol('_toggleEventId');
+  let _isFiring = Symbol('_isFiring');
+  let _setRemoveAfterFiring = Symbol('_setRemoveAfterFiring');
+  let _removeAfterFiring = Symbol('_removeAfterFiring');
+  let _onPause = Symbol('_onPause');
+  let _onResume = Symbol('_onResume');
+  let _recordCancel = Symbol('_recordCancel');
+  let _onCancel = Symbol('_onCancel');
+  let _recordPause = Symbol('_recordPause');
+  let _recordResume = Symbol('_recordResume');
   let _zone = Symbol('_zone');
   let _state = Symbol('_state');
   let _onData = Symbol('_onData');
@@ -869,17 +881,14 @@ dart_library.library('dart/async', null, /* Imports */[
   let _isInputPaused = Symbol('_isInputPaused');
   let _inCallback = Symbol('_inCallback');
   let _guardCallback = Symbol('_guardCallback');
-  let _onPause = Symbol('_onPause');
   let _decrementPauseCount = Symbol('_decrementPauseCount');
   let _hasPending = Symbol('_hasPending');
   let _mayResumeInput = Symbol('_mayResumeInput');
-  let _onResume = Symbol('_onResume');
   let _cancel = Symbol('_cancel');
   let _isClosed = Symbol('_isClosed');
   let _waitsForCancel = Symbol('_waitsForCancel');
   let _canFire = Symbol('_canFire');
   let _cancelOnError = Symbol('_cancelOnError');
-  let _onCancel = Symbol('_onCancel');
   let _incrementPauseCount = Symbol('_incrementPauseCount');
   let _sendData = Symbol('_sendData');
   let _addPending = Symbol('_addPending');
@@ -1220,9 +1229,6 @@ dart_library.library('dart/async', null, /* Imports */[
     return _BufferingStreamSubscription;
   });
   let _BufferingStreamSubscription = _BufferingStreamSubscription$();
-  let _recordCancel = Symbol('_recordCancel');
-  let _recordPause = Symbol('_recordPause');
-  let _recordResume = Symbol('_recordResume');
   let _ControllerSubscription$ = dart.generic(function(T) {
     class _ControllerSubscription extends _BufferingStreamSubscription$(T) {
       _ControllerSubscription(controller, onData, onError, onDone, cancelOnError) {
@@ -1245,12 +1251,6 @@ dart_library.library('dart/async', null, /* Imports */[
     return _ControllerSubscription;
   });
   let _ControllerSubscription = _ControllerSubscription$();
-  let _eventState = Symbol('_eventState');
-  let _expectsEvent = Symbol('_expectsEvent');
-  let _toggleEventId = Symbol('_toggleEventId');
-  let _isFiring = Symbol('_isFiring');
-  let _setRemoveAfterFiring = Symbol('_setRemoveAfterFiring');
-  let _removeAfterFiring = Symbol('_removeAfterFiring');
   let _BroadcastSubscription$ = dart.generic(function(T) {
     class _BroadcastSubscription extends _ControllerSubscription$(T) {
       _BroadcastSubscription(controller, onData, onError, onDone, cancelOnError) {
@@ -3542,6 +3542,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _GeneratedStreamImpl;
   });
   let _GeneratedStreamImpl = _GeneratedStreamImpl$();
+  let _iterator = Symbol('_iterator');
   let _eventScheduled = Symbol('_eventScheduled');
   class _PendingEvents extends core.Object {
     _PendingEvents() {
@@ -3582,7 +3583,6 @@ dart_library.library('dart/async', null, /* Imports */[
       cancelSchedule: [dart.void, []]
     })
   });
-  let _iterator = Symbol('_iterator');
   let _IterablePendingEvents$ = dart.generic(function(T) {
     class _IterablePendingEvents extends _PendingEvents {
       _IterablePendingEvents(data) {
@@ -5132,18 +5132,6 @@ dart_library.library('dart/async', null, /* Imports */[
     }),
     names: ['_enter', '_leave']
   });
-  class _Zone extends core.Object {
-    _Zone() {
-    }
-    inSameErrorZone(otherZone) {
-      return dart.notNull(core.identical(this, otherZone)) || dart.notNull(core.identical(this.errorZone, otherZone.errorZone));
-    }
-  }
-  _Zone[dart.implements] = () => [Zone];
-  dart.setSignature(_Zone, {
-    constructors: () => ({_Zone: [_Zone, []]}),
-    methods: () => ({inSameErrorZone: [core.bool, [Zone]]})
-  });
   let _run = Symbol('_run');
   let _runUnary = Symbol('_runUnary');
   let _runBinary = Symbol('_runBinary');
@@ -5159,6 +5147,18 @@ dart_library.library('dart/async', null, /* Imports */[
   let _handleUncaughtError = Symbol('_handleUncaughtError');
   let _map = Symbol('_map');
   let _delegate = Symbol('_delegate');
+  class _Zone extends core.Object {
+    _Zone() {
+    }
+    inSameErrorZone(otherZone) {
+      return dart.notNull(core.identical(this, otherZone)) || dart.notNull(core.identical(this.errorZone, otherZone.errorZone));
+    }
+  }
+  _Zone[dart.implements] = () => [Zone];
+  dart.setSignature(_Zone, {
+    constructors: () => ({_Zone: [_Zone, []]}),
+    methods: () => ({inSameErrorZone: [core.bool, [Zone]]})
+  });
   class _RootZone extends _Zone {
     _RootZone() {
       super._Zone();

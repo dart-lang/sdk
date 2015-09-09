@@ -15,7 +15,7 @@ class Foo<T> {
   factory Foo.build() => new Foo(1, null);
 
   untyped_method(a, b) {}
-  
+
   T pass(T t) => t;
 
   String typed_method(
@@ -51,6 +51,8 @@ class Bar {}
 class Baz extends Foo<int> with Bar {
   Baz(int i) : super(i, 123);
 }
+
+class _Bam<M> {}
 
 void main(args) {}
 

@@ -476,13 +476,6 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
     return JSExtendableArray;
   });
   let JSExtendableArray = JSExtendableArray$();
-  class Interceptor extends core.Object {
-    Interceptor() {
-    }
-  }
-  dart.setSignature(Interceptor, {
-    constructors: () => ({Interceptor: [Interceptor, []]})
-  });
   let _isInt32 = Symbol('_isInt32');
   let _tdivFast = Symbol('_tdivFast');
   let _tdivSlow = Symbol('_tdivSlow');
@@ -490,6 +483,13 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
   let _shrReceiverPositive = Symbol('_shrReceiverPositive');
   let _shrOtherPositive = Symbol('_shrOtherPositive');
   let _shrBothPositive = Symbol('_shrBothPositive');
+  class Interceptor extends core.Object {
+    Interceptor() {
+    }
+  }
+  dart.setSignature(Interceptor, {
+    constructors: () => ({Interceptor: [Interceptor, []]})
+  });
   dart.defineExtensionNames([
     'compareTo',
     'isNegative',

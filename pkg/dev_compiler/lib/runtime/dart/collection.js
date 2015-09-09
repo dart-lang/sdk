@@ -22,7 +22,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       }
     }
     dart.setSignature(UnmodifiableListView, {
-      constructors: () => ({UnmodifiableListView: [exports.UnmodifiableListView$(E), [core.Iterable$(E)]]}),
+      constructors: () => ({UnmodifiableListView: [UnmodifiableListView$(E), [core.Iterable$(E)]]}),
       methods: () => ({get: [E, [core.int]]})
     });
     dart.defineExtensionMembers(UnmodifiableListView, ['get', 'length']);
@@ -113,11 +113,9 @@ dart_library.library('dart/collection', null, /* Imports */[
     return HashMap;
   });
   let HashMap = HashMap$();
+  let _newSet = Symbol('_newSet');
   let SetMixin$ = dart.generic(function(E) {
     class SetMixin extends core.Object {
-      [Symbol.iterator]() {
-        return new dart.JsIterator(this.iterator);
-      }
       get isEmpty() {
         return this.length == 0;
       }
@@ -381,6 +379,9 @@ dart_library.library('dart/collection', null, /* Imports */[
         }
         dart.throw(core.RangeError.index(index, this, "index", null, elementIndex));
       }
+      [Symbol.iterator]() {
+        return new dart.JsIterator(this.iterator);
+      }
     }
     SetMixin[dart.implements] = () => [core.Set$(E)];
     dart.setSignature(SetMixin, {
@@ -456,7 +457,6 @@ dart_library.library('dart/collection', null, /* Imports */[
     return SetBase;
   });
   let SetBase = SetBase$();
-  let _newSet = Symbol('_newSet');
   let _HashSetBase$ = dart.generic(function(E) {
     class _HashSetBase extends SetBase$(E) {
       difference(other) {
@@ -1624,9 +1624,6 @@ dart_library.library('dart/collection', null, /* Imports */[
       get iterator() {
         return new (_internal.ListIterator$(E))(this);
       }
-      [Symbol.iterator]() {
-        return new dart.JsIterator(this.iterator);
-      }
       elementAt(index) {
         return this.get(index);
       }
@@ -2100,6 +2097,9 @@ dart_library.library('dart/collection', null, /* Imports */[
       }
       toString() {
         return IterableBase.iterableToFullString(this, '[', ']');
+      }
+      [Symbol.iterator]() {
+        return new dart.JsIterator(this.iterator);
       }
     }
     ListMixin[dart.implements] = () => [core.List$(E)];
