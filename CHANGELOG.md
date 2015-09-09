@@ -6,7 +6,7 @@
     as all `allMatches` implementations are intended to be.
 
 * `dart:io`
-  * `HttpClient` no longer sends URI fragments in the requeust. This is not
+  * `HttpClient` no longer sends URI fragments in the request. This is not
     allowed by the HTTP protocol.
     The `HttpServer` still gracefully receives fragments, but discards them
     before delivering the request.
