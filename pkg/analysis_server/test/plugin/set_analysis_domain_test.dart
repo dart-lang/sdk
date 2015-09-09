@@ -93,9 +93,9 @@ class TestNavigationContributor implements NavigationContributor {
   TestNavigationContributor(this.test);
 
   @override
-  void computeNavigation(NavigationHolder holder, AnalysisContext context,
+  void computeNavigation(NavigationCollector collector, AnalysisContext context,
       Source source, int offset, int length) {
-    holder.addRegion(1, 5, ElementKind.CLASS,
+    collector.addRegion(1, 5, ElementKind.CLASS,
         new Location('/testLocation.dart', 1, 2, 3, 4));
   }
 }

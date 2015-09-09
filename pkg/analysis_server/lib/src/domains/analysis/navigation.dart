@@ -18,28 +18,28 @@ import 'package:analyzer/src/generated/source.dart' show Source;
 /**
  * Compute all known navigation information for the given part of [source].
  */
-NavigationHolderImpl computeNavigation(AnalysisServer server,
+NavigationCollectorImpl computeNavigation(AnalysisServer server,
     AnalysisContext context, Source source, int offset, int length) {
-  NavigationHolderImpl holder = new NavigationHolderImpl();
+  NavigationCollectorImpl collector = new NavigationCollectorImpl();
   List<NavigationContributor> contributors =
       server.serverPlugin.navigationContributors;
   for (NavigationContributor contributor in contributors) {
     try {
-      contributor.computeNavigation(holder, context, source, offset, length);
+      contributor.computeNavigation(collector, context, source, offset, length);
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logError(
           'Exception from navigation contributor: ${contributor.runtimeType}',
           new CaughtException(exception, stackTrace));
     }
   }
-  holder.sortRegions();
-  return holder;
+  collector.sortRegions();
+  return collector;
 }
 
 /**
- * A concrete implementation of  [NavigationHolder].
+ * A concrete implementation of  [NavigationCollector].
  */
-class NavigationHolderImpl implements NavigationHolder {
+class NavigationCollectorImpl implements NavigationCollector {
   /**
    * A list of navigation regions.
    */

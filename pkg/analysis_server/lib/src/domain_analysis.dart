@@ -136,14 +136,14 @@ class AnalysisDomainHandler implements RequestHandler {
             server.sendResponse(new Response.getNavigationInvalidFile(request));
           } else {
             CompilationUnitElement unitElement = units.first.element;
-            NavigationHolderImpl holder = computeNavigation(
+            NavigationCollectorImpl collector = computeNavigation(
                 server,
                 unitElement.context,
                 unitElement.source,
                 params.offset,
                 params.length);
             server.sendResponse(new AnalysisGetNavigationResult(
-                    holder.files, holder.targets, holder.regions)
+                    collector.files, collector.targets, collector.regions)
                 .toResponse(request.id));
           }
           break;

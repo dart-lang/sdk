@@ -169,11 +169,11 @@ void sendAnalysisNotificationHighlights(
 void sendAnalysisNotificationNavigation(
     AnalysisServer server, AnalysisContext context, Source source) {
   _sendNotification(server, () {
-    NavigationHolderImpl holder =
+    NavigationCollectorImpl collector =
         computeNavigation(server, context, source, null, null);
     String file = source.fullName;
     var params = new protocol.AnalysisNavigationParams(
-        file, holder.regions, holder.targets, holder.files);
+        file, collector.regions, collector.targets, collector.files);
     server.sendNotification(params.toNotification());
   });
 }

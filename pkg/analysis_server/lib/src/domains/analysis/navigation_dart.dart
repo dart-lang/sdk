@@ -17,16 +17,17 @@ import 'package:analyzer/src/generated/source.dart';
  */
 class DartNavigationComputer implements NavigationContributor {
   @override
-  void computeNavigation(NavigationHolder holder, AnalysisContext context,
+  void computeNavigation(NavigationCollector collector, AnalysisContext context,
       Source source, int offset, int length) {
     List<Source> libraries = context.getLibrariesContaining(source);
     if (libraries.isNotEmpty) {
       CompilationUnit unit =
           context.getResolvedCompilationUnit2(source, libraries.first);
       if (unit != null) {
-        _DartNavigationHolder dartHolder = new _DartNavigationHolder(holder);
+        _DartNavigationCollector dartCollector =
+            new _DartNavigationCollector(collector);
         _DartNavigationComputerVisitor visitor =
-            new _DartNavigationComputerVisitor(dartHolder);
+            new _DartNavigationComputerVisitor(dartCollector);
         if (offset == null || length == null) {
           unit.accept(visitor);
         } else {
@@ -40,7 +41,7 @@ class DartNavigationComputer implements NavigationContributor {
 }
 
 class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
-  final _DartNavigationHolder computer;
+  final _DartNavigationCollector computer;
 
   _DartNavigationComputerVisitor(this.computer);
 
@@ -223,12 +224,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
 }
 
 /**
- * A Dart specific wrapper around [NavigationHolder].
+ * A Dart specific wrapper around [NavigationCollector].
  */
-class _DartNavigationHolder {
-  final NavigationHolder holder;
+class _DartNavigationCollector {
+  final NavigationCollector collector;
 
-  _DartNavigationHolder(this.holder);
+  _DartNavigationCollector(this.collector);
 
   void _addRegion(int offset, int length, Element element) {
     if (element is FieldFormalParameterElement) {
@@ -246,7 +247,7 @@ class _DartNavigationHolder {
     if (location == null) {
       return;
     }
-    holder.addRegion(offset, length, kind, location);
+    collector.addRegion(offset, length, kind, location);
   }
 
   void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
