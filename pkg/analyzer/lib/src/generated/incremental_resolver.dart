@@ -896,6 +896,11 @@ class IncrementalResolver {
 
   int _updateDelta;
 
+  /**
+   * The set of [AnalysisError]s that have been already shifted.
+   */
+  Set<AnalysisError> _alreadyShiftedErrors = new HashSet.identity();
+
   RecordingErrorListener errorListener = new RecordingErrorListener();
   ResolutionContext _resolutionContext;
 
@@ -1146,9 +1151,11 @@ class IncrementalResolver {
 
   void _shiftErrors(List<AnalysisError> errors) {
     for (AnalysisError error in errors) {
-      int errorOffset = error.offset;
-      if (errorOffset > _updateOffset) {
-        error.offset += _updateDelta;
+      if (_alreadyShiftedErrors.add(error)) {
+        int errorOffset = error.offset;
+        if (errorOffset > _updateOffset) {
+          error.offset += _updateDelta;
+        }
       }
     }
   }
