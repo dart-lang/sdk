@@ -313,8 +313,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   bool writeEventIssued = false;
   bool writeAvailable = false;
 
-  static final Stopwatch sw = new Stopwatch()..start();
-
   static bool connectedResourceHandler = false;
   _ReadWriteResourceInfo resourceInfo;
 
@@ -584,8 +582,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     // TODO(ricow): Remove when we track internal and pipe uses.
     assert(resourceInfo != null || isPipe || isInternal);
     if (resourceInfo != null) {
-      resourceInfo.readCount++;
-      resourceInfo.lastRead = timestamp;
+      resourceInfo.didRead();
     }
     return result;
   }
@@ -612,8 +609,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     // TODO(ricow): Remove when we track internal and pipe uses.
     assert(resourceInfo != null || isPipe || isInternal);
     if (resourceInfo != null) {
-      resourceInfo.readCount++;
-      resourceInfo.lastRead = timestamp;
+      resourceInfo.didRead();
     }
     return result;
   }
@@ -656,9 +652,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     // TODO(ricow): Remove when we track internal and pipe uses.
     assert(resourceInfo != null || isPipe || isInternal);
     if (resourceInfo != null) {
-      resourceInfo.totalWritten += result;
-      resourceInfo.writeCount++;
-      resourceInfo.lastWrite = timestamp;
+      resourceInfo.addWrite(result);
     }
     return result;
   }
@@ -679,9 +673,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     // TODO(ricow): Remove when we track internal and pipe uses.
     assert(resourceInfo != null || isPipe || isInternal);
     if (resourceInfo != null) {
-      resourceInfo.totalWritten += result;
-      resourceInfo.writeCount++;
-      resourceInfo.lastWrite = timestamp;
+      resourceInfo.addWrite(result);
     }
     return result;
   }
@@ -701,8 +693,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     // TODO(ricow): Remove when we track internal and pipe uses.
     assert(resourceInfo != null || isPipe || isInternal);
     if (resourceInfo != null) {
-      resourceInfo.totalRead += 1;
-      resourceInfo.lastRead = timestamp;
+      // We track this as read one byte.
+      resourceInfo.addRead(1);
     }
     return socket;
   }

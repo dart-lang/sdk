@@ -31,9 +31,6 @@ abstract class _IOResourceInfo {
   static int getNextID() => _count++;
 }
 
-// TODO(ricow): Move stopwatch into this class and use it for both files
-// and sockets (by using setters on totalRead/totalWritten). Also, consider
-// setting readCount and writeCount in those setters.
 abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
   int totalRead;
   int totalWritten;
@@ -41,6 +38,29 @@ abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
   int writeCount;
   double lastRead;
   double lastWrite;
+
+  static final Stopwatch _sw = new Stopwatch()..start();
+  static double get timestamp => _sw.elapsedMicroseconds / 1000000.0;
+
+  // Not all call sites use this. In some cases, e.g., a socket, a read does
+  // not always mean that we actually read some bytes (we may do a read to see
+  // if there are some bytes available).
+  void addRead(int bytes) {
+    totalRead += bytes;
+    readCount++;
+    lastRead = timestamp;
+  }
+
+  // In cases where we read but did not neccesarily get any bytes, use this to
+  // update the readCount and timestamp. Manually update totalRead if any bytes
+  // where acutally read.
+  void didRead() => addRead(0);
+
+  void addWrite(int bytes) {
+    totalWritten += bytes;
+    writeCount++;
+    lastWrite = timestamp;
+  }
 
   _ReadWriteResourceInfo(String type) :
     totalRead = 0,

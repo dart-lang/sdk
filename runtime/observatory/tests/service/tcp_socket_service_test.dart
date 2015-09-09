@@ -65,7 +65,7 @@ var tcpTests = [
     expect(listening['last_write'], equals(0));
     expect(listening['total_written'], equals(0));
     expect(listening['write_count'], equals(0));
-    expect(listening['read_count'], equals(0));
+    expect(listening['read_count'], equals(2));
     expect(listening['remote_host'], equals('NA'));
     expect(listening['remote_port'], equals('NA'));
 
