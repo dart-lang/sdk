@@ -229,13 +229,21 @@ void _sendNotification(AnalysisServer server, f()) {
   });
 }
 
-class NavigationOperation extends _NotificationOperation {
+class NavigationOperation extends _NotificationOperation
+    implements MergeableOperation {
   NavigationOperation(AnalysisContext context, Source source)
       : super(context, source);
 
   @override
   void perform(AnalysisServer server) {
     sendAnalysisNotificationNavigation(server, context, source);
+  }
+
+  @override
+  bool merge(ServerOperation other) {
+    return other is NavigationOperation &&
+        other.context == context &&
+        other.source == source;
   }
 }
 

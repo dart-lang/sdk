@@ -39,6 +39,14 @@ class ServerOperationQueue {
   void add(ServerOperation operation) {
     int queueIndex = operation.priority.ordinal;
     Queue<ServerOperation> queue = _queues[queueIndex];
+    // try to merge into an existing operation
+    for (ServerOperation existingOperation in queue) {
+      if (existingOperation is MergeableOperation &&
+          existingOperation.merge(operation)) {
+        return;
+      }
+    }
+    // add it
     queue.addLast(operation);
   }
 
@@ -119,7 +127,7 @@ class ServerOperationQueue {
    */
   ServerOperation takeIf(bool test(ServerOperation operation)) {
     for (Queue<ServerOperation> queue in _queues) {
-      for (var operation in queue) {
+      for (ServerOperation operation in queue) {
         if (test(operation)) {
           queue.remove(operation);
           return operation;
