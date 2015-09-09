@@ -429,8 +429,13 @@ abstract class ServiceObjectOwner extends ServiceObject {
   ServiceObject getFromMap(ObservableMap map);
 }
 
+abstract class Location  {
+  Script get script;
+  int get tokenPos;
+}
+
 /// A [SourceLocation] represents a location or range in the source code.
-class SourceLocation extends ServiceObject {
+class SourceLocation extends ServiceObject implements Location {
   Script script;
   int tokenPos;
   int endTokenPos;
@@ -474,7 +479,7 @@ class SourceLocation extends ServiceObject {
 
 /// An [UnresolvedSourceLocation] represents a location in the source
 // code which has not been precisely mapped to a token position.
-class UnresolvedSourceLocation extends ServiceObject {
+class UnresolvedSourceLocation extends ServiceObject implements Location {
   Script script;
   String scriptUri;
   int line;
@@ -1502,11 +1507,11 @@ class Isolate extends ServiceObjectOwner with Coverage {
         params['column'] = col.toString();
       }
       Breakpoint bpt = await invokeRpc('addBreakpoint', params);
-      if (bpt.resolved &&
-          script.loaded &&
-          script.tokenToLine(bpt.location.tokenPos) != line) {
-        // TODO(turnidge): Can this still happen?
-        script.getLine(line).possibleBpt = false;
+      if (bpt.resolved && script.loaded) {
+        SourceLocation loc = bpt.location;
+        if (script.tokenToLine(loc.tokenPos) != line) {
+          script.getLine(line).possibleBpt = false;
+        }
       }
       return bpt;
     } on ServerRpcException catch(e) {
@@ -1972,7 +1977,7 @@ class Breakpoint extends ServiceObject {
   @observable int number;
 
   // Either SourceLocation or UnresolvedSourceLocation.
-  @observable ServiceObject location;
+  @observable Location location;
 
   // The breakpoint is in a file which is not yet loaded.
   @observable bool latent;
@@ -3003,7 +3008,8 @@ class Script extends HeapObject with Coverage {
     if (bpt.location.tokenPos != null) {
       line = tokenToLine(bpt.location.tokenPos);
     } else {
-      line = bpt.location.line;
+      UnresolvedSourceLocation loc = bpt.location;
+      line = loc.line;
     }
     getLine(line).addBreakpoint(bpt);
   }
@@ -3013,7 +3019,8 @@ class Script extends HeapObject with Coverage {
     if (bpt.location.tokenPos != null) {
       line = tokenToLine(bpt.location.tokenPos);
     } else {
-      line = bpt.location.line;
+      UnresolvedSourceLocation loc = bpt.location;
+      line = loc.line;
     }
     if (line != null) {
       getLine(line).removeBreakpoint(bpt);
