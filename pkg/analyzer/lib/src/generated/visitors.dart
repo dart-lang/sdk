@@ -303,6 +303,7 @@ class DelegatingAstVisitor<T> implements AstVisitor<T> {
     node.visitChildren(this);
     return null;
   }
+
   @override
   T visitFunctionDeclaration(FunctionDeclaration node) {
     _delegates.forEach((delegate) => delegate.visitFunctionDeclaration(node));
@@ -475,6 +476,7 @@ class DelegatingAstVisitor<T> implements AstVisitor<T> {
     node.visitChildren(this);
     return null;
   }
+
   @override
   T visitMethodInvocation(MethodInvocation node) {
     _delegates.forEach((delegate) => delegate.visitMethodInvocation(node));
@@ -545,6 +547,7 @@ class DelegatingAstVisitor<T> implements AstVisitor<T> {
     node.visitChildren(this);
     return null;
   }
+
   @override
   T visitPrefixedIdentifier(PrefixedIdentifier node) {
     _delegates.forEach((delegate) => delegate.visitPrefixedIdentifier(node));

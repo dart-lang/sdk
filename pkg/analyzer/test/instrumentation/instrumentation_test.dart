@@ -111,8 +111,10 @@ class InstrumentationServiceTest {
     service.logVersion('myUuid', 'someClientId', 'someClientVersion',
         'aServerVersion', 'anSdkVersion');
     expect(server.normalChannel.toString(), '');
-    expect(server.priorityChannel.toString(), endsWith(
-        ':myUuid:someClientId:someClientVersion:aServerVersion:anSdkVersion\n'));
+    expect(
+        server.priorityChannel.toString(),
+        endsWith(
+            ':myUuid:someClientId:someClientVersion:aServerVersion:anSdkVersion\n'));
   }
 }
 

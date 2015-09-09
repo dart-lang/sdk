@@ -36,8 +36,11 @@ class TestAnalysisTask extends AnalysisTask {
   final bool handlesDependencyCycles;
 
   TestAnalysisTask(AnalysisContext context, AnalysisTarget target,
-      {this.descriptor, this.exception, this.handlesDependencyCycles: false,
-      this.results, this.value: 1})
+      {this.descriptor,
+      this.exception,
+      this.handlesDependencyCycles: false,
+      this.results,
+      this.value: 1})
       : super(context, target);
 
   @override

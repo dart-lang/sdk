@@ -465,8 +465,11 @@ class CacheEntry {
    * Set the value of the result represented by the given [descriptor] to the
    * given [value].
    */
-  /*<V>*/ void setValue(ResultDescriptor /*<V>*/ descriptor, dynamic /*V*/
-      value, List<TargetedResult> dependedOn) {
+  /*<V>*/ void setValue(
+      ResultDescriptor /*<V>*/ descriptor,
+      dynamic /*V*/
+      value,
+      List<TargetedResult> dependedOn) {
 //    {
 //      String valueStr = '$value';
 //      if (valueStr.length > 20) {

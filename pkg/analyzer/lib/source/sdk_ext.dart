@@ -27,7 +27,7 @@ class SdkExtUriResolver extends UriResolver {
   static const String SDK_EXT_NAME = '_sdkext';
   static const String DART_COLON_PREFIX = 'dart:';
 
-  final Map<String, String> _urlMappings = <String,String>{};
+  final Map<String, String> _urlMappings = <String, String>{};
 
   /// Construct a [SdkExtUriResolver] from a package map
   /// (see [PackageMapProvider]).
@@ -42,7 +42,7 @@ class SdkExtUriResolver extends UriResolver {
   int get length => _urlMappings.length;
 
   /// Return the path mapping for [libName] or null if there is none.
-  String operator[](String libName) => _urlMappings[libName];
+  String operator [](String libName) => _urlMappings[libName];
 
   /// Programmatically add a new SDK extension given a JSON description
   /// ([sdkExtJSON]) and a lib directory ([libDir]).

@@ -337,13 +337,13 @@ class TestTypeProvider implements TypeProvider {
 
   @override
   List<InterfaceType> get nonSubtypableTypes => <InterfaceType>[
-    nullType,
-    numType,
-    intType,
-    doubleType,
-    boolType,
-    stringType
-  ];
+        nullType,
+        numType,
+        intType,
+        doubleType,
+        boolType,
+        stringType
+      ];
 
   @override
   DartObjectImpl get nullObject {

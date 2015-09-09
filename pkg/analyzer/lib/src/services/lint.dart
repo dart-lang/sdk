@@ -27,7 +27,6 @@ abstract class Linter {
 ///
 /// See [LintCode].
 class LintGenerator {
-
   /// A global container for contributed linters.
   static final List<Linter> LINTERS = <Linter>[];
 
