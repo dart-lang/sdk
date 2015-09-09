@@ -7974,6 +7974,16 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
+   * Change the contents of the given [source] to the given [contents].
+   */
+  void changeSource(Source source, String contents) {
+    analysisContext2.setContents(source, contents);
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.changedSource(source);
+    analysisContext2.applyChanges(changeSet);
+  }
+
+  /**
    * Computes errors for the given [librarySource].
    * This assumes that the given [librarySource] and its parts have already
    * been added to the content provider using the method [addNamedSource].
@@ -8051,75 +8061,6 @@ class ResolverTestCase extends EngineTestCase {
     }
     return null;
     // Not found
-  }
-
-  /**
-   * @param code the code that iterates using variable "v". We check that
-   *          "v" has expected static and propagated type.
-   */
-  void _assertPropagatedIterationType(String code, DartType expectedStaticType,
-      DartType expectedPropagatedType) {
-    SimpleIdentifier identifier = _findMarkedIdentifier(code, "v in ");
-    expect(identifier.staticType, same(expectedStaticType));
-    expect(identifier.propagatedType, same(expectedPropagatedType));
-  }
-
-  /**
-   * @param code the code that assigns the value to the variable "v", no matter how. We check that
-   *          "v" has expected static and propagated type.
-   */
-  void _assertPropagatedAssignedType(String code, DartType expectedStaticType,
-      DartType expectedPropagatedType) {
-    SimpleIdentifier identifier = _findMarkedIdentifier(code, "v = ");
-    expect(identifier.staticType, same(expectedStaticType));
-    expect(identifier.propagatedType, same(expectedPropagatedType));
-  }
-
-  /**
-   * Check the static and propagated types of the expression marked with "; // marker" comment.
-   *
-   * @param code source code to analyze, with the expression to check marked with "// marker".
-   * @param expectedStaticType if non-null, check actual static type is equal to this.
-   * @param expectedPropagatedType if non-null, check actual static type is equal to this.
-   * @throws Exception
-   */
-  void _assertTypeOfMarkedExpression(String code, DartType expectedStaticType,
-      DartType expectedPropagatedType) {
-    SimpleIdentifier identifier = _findMarkedIdentifier(code, "; // marker");
-    if (expectedStaticType != null) {
-      expect(identifier.staticType, expectedStaticType);
-    }
-    expect(identifier.propagatedType, expectedPropagatedType);
-  }
-
-  /**
-   * Return the `SimpleIdentifier` marked by `marker`. The source code must have no
-   * errors and be verifiable.
-   *
-   * @param code source code to analyze.
-   * @param marker marker identifying sought after expression in source code.
-   * @return expression marked by the marker.
-   * @throws Exception
-   */
-  SimpleIdentifier _findMarkedIdentifier(String code, String marker) {
-    try {
-      Source source = addSource(code);
-      LibraryElement library = resolve2(source);
-      assertNoErrors(source);
-      verify([source]);
-      CompilationUnit unit = resolveCompilationUnit(source, library);
-      // Could generalize this further by making [SimpleIdentifier.class] a
-      // parameter.
-      return EngineTestCase.findNode(
-          unit, code, marker, (node) => node is SimpleIdentifier);
-    } catch (exception) {
-      // Is there a better exception to throw here? The point is that an
-      // assertion failure here should be a failure, in both "test_*" and
-      // "fail_*" tests. However, an assertion failure is success for the
-      // purpose of "fail_*" tests, so without catching them here "fail_*" tests
-      // can succeed by failing for the wrong reason.
-      throw new JavaException("Unexexpected assertion failure: $exception");
-    }
   }
 
   /**
@@ -8241,6 +8182,45 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
+   * @param code the code that assigns the value to the variable "v", no matter how. We check that
+   *          "v" has expected static and propagated type.
+   */
+  void _assertPropagatedAssignedType(String code, DartType expectedStaticType,
+      DartType expectedPropagatedType) {
+    SimpleIdentifier identifier = _findMarkedIdentifier(code, "v = ");
+    expect(identifier.staticType, same(expectedStaticType));
+    expect(identifier.propagatedType, same(expectedPropagatedType));
+  }
+
+  /**
+   * @param code the code that iterates using variable "v". We check that
+   *          "v" has expected static and propagated type.
+   */
+  void _assertPropagatedIterationType(String code, DartType expectedStaticType,
+      DartType expectedPropagatedType) {
+    SimpleIdentifier identifier = _findMarkedIdentifier(code, "v in ");
+    expect(identifier.staticType, same(expectedStaticType));
+    expect(identifier.propagatedType, same(expectedPropagatedType));
+  }
+
+  /**
+   * Check the static and propagated types of the expression marked with "; // marker" comment.
+   *
+   * @param code source code to analyze, with the expression to check marked with "// marker".
+   * @param expectedStaticType if non-null, check actual static type is equal to this.
+   * @param expectedPropagatedType if non-null, check actual static type is equal to this.
+   * @throws Exception
+   */
+  void _assertTypeOfMarkedExpression(String code, DartType expectedStaticType,
+      DartType expectedPropagatedType) {
+    SimpleIdentifier identifier = _findMarkedIdentifier(code, "; // marker");
+    if (expectedStaticType != null) {
+      expect(identifier.staticType, expectedStaticType);
+    }
+    expect(identifier.propagatedType, expectedPropagatedType);
+  }
+
+  /**
    * Create a source object representing a file with the given [fileName] and
    * give it an empty content. Return the source that was created.
    */
@@ -8249,6 +8229,36 @@ class ResolverTestCase extends EngineTestCase {
         new FileBasedSource(FileUtilities2.createFile(fileName));
     analysisContext2.setContents(source, "");
     return source;
+  }
+
+  /**
+   * Return the `SimpleIdentifier` marked by `marker`. The source code must have no
+   * errors and be verifiable.
+   *
+   * @param code source code to analyze.
+   * @param marker marker identifying sought after expression in source code.
+   * @return expression marked by the marker.
+   * @throws Exception
+   */
+  SimpleIdentifier _findMarkedIdentifier(String code, String marker) {
+    try {
+      Source source = addSource(code);
+      LibraryElement library = resolve2(source);
+      assertNoErrors(source);
+      verify([source]);
+      CompilationUnit unit = resolveCompilationUnit(source, library);
+      // Could generalize this further by making [SimpleIdentifier.class] a
+      // parameter.
+      return EngineTestCase.findNode(
+          unit, code, marker, (node) => node is SimpleIdentifier);
+    } catch (exception) {
+      // Is there a better exception to throw here? The point is that an
+      // assertion failure here should be a failure, in both "test_*" and
+      // "fail_*" tests. However, an assertion failure is success for the
+      // purpose of "fail_*" tests, so without catching them here "fail_*" tests
+      // can succeed by failing for the wrong reason.
+      throw new JavaException("Unexexpected assertion failure: $exception");
+    }
   }
 }
 
@@ -11870,6 +11880,261 @@ int f() {
 }
 
 @reflectiveTest
+class StrongModeTypePropagationTest extends ResolverTestCase {
+  void fail_localVariableInference_transitive_field_inferred_lexical() {
+    String code = r'''
+class A {
+  final x = 3;
+  f() {
+    var v = x;
+    return v; // marker
+  }
+}
+main() {
+}
+''';
+    _assertPropagatedAssignedType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void fail_localVariableInference_transitive_field_inferred_reversed() {
+    String code = r'''
+class A {
+  f() {
+    var v = x;
+    return v; // marker
+  }
+  final x = 3;
+}
+main() {
+}
+''';
+    _assertPropagatedAssignedType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void fail_localVariableInference_transitive_toplevel_inferred_lexical() {
+    String code = r'''
+final x = 3;
+main() {
+  var v = x;
+  return v; // marker
+}
+''';
+    _assertPropagatedAssignedType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void fail_localVariableInference_transitive_toplevel_inferred_reversed() {
+    String code = r'''
+main() {
+  var v = x;
+  return v; // marker
+}
+final x = 3;
+''';
+    _assertPropagatedAssignedType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  @override
+  void setUp() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.strongMode = true;
+    resetWithOptions(options);
+  }
+
+  void test_foreachInference_dynamic_disabled() {
+    String code = r'''
+main() {
+  var list = <int>[];
+  for (dynamic v in list) {
+    v; // marker
+  }
+}''';
+    _assertPropagatedIterationType(
+        code, typeProvider.dynamicType, typeProvider.intType);
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
+  }
+
+  void test_foreachInference_reusedVar_disabled() {
+    String code = r'''
+main() {
+  var list = <int>[];
+  var v;
+  for (v in list) {
+    v; // marker
+  }
+}''';
+    _assertPropagatedIterationType(
+        code, typeProvider.dynamicType, typeProvider.intType);
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
+  }
+
+  void test_foreachInference_var() {
+    String code = r'''
+main() {
+  var list = <int>[];
+  for (var v in list) {
+    v; // marker
+  }
+}''';
+    _assertPropagatedIterationType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void test_foreachInference_var_iterable() {
+    String code = r'''
+main() {
+  Iterable<int> list = <int>[];
+  for (var v in list) {
+    v; // marker
+  }
+}''';
+    _assertPropagatedIterationType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void test_foreachInference_var_stream() {
+    String code = r'''
+import 'dart:async';
+main() async {
+  Stream<int> stream = null;
+  await for (var v in stream) {
+    v; // marker
+  }
+}''';
+    _assertPropagatedIterationType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void test_localVariableInference_bottom_disabled() {
+    String code = r'''
+main() {
+  var v = null;
+  return v; // marker
+}''';
+    _assertPropagatedAssignedType(code, typeProvider.dynamicType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
+  }
+
+  void test_localVariableInference_constant() {
+    String code = r'''
+main() {
+  var v = 3;
+  return v; // marker
+}''';
+    _assertPropagatedAssignedType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void test_localVariableInference_declaredType_disabled() {
+    String code = r'''
+main() {
+  dynamic v = 3;
+  return v; // marker
+}''';
+    _assertPropagatedAssignedType(
+        code, typeProvider.dynamicType, typeProvider.intType);
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
+  }
+
+  void test_localVariableInference_noInitializer_disabled() {
+    String code = r'''
+main() {
+  var v;
+  v = 3;
+  return v; // marker
+}''';
+    _assertPropagatedAssignedType(
+        code, typeProvider.dynamicType, typeProvider.intType);
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
+  }
+
+  void test_localVariableInference_transitive_field_lexical() {
+    String code = r'''
+class A {
+  int x = 3;
+  f() {
+    var v = x;
+    return v; // marker
+  }
+}
+main() {
+}
+''';
+    _assertPropagatedAssignedType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void test_localVariableInference_transitive_field_reversed() {
+    String code = r'''
+class A {
+  f() {
+    var v = x;
+    return v; // marker
+  }
+  int x = 3;
+}
+main() {
+}
+''';
+    _assertPropagatedAssignedType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void test_localVariableInference_transitive_list_local() {
+    String code = r'''
+main() {
+  var x = <int>[3];
+  var v = x[0];
+  return v; // marker
+}''';
+    _assertPropagatedAssignedType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void test_localVariableInference_transitive_local() {
+    String code = r'''
+main() {
+  var x = 3;
+  var v = x;
+  return v; // marker
+}''';
+    _assertPropagatedAssignedType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void test_localVariableInference_transitive_toplevel_lexical() {
+    String code = r'''
+int x = 3;
+main() {
+  var v = x;
+  return v; // marker
+}
+''';
+    _assertPropagatedAssignedType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void test_localVariableInference_transitive_toplevel_reversed() {
+    String code = r'''
+main() {
+  var v = x;
+  return v; // marker
+}
+int x = 3;
+''';
+    _assertPropagatedAssignedType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+}
+
+@reflectiveTest
 class SubtypeManagerTest extends EngineTestCase {
   /**
    * The inheritance manager being tested.
@@ -13493,261 +13758,6 @@ main() {
     expect(elements[8].propagatedType.name, "Element");
     expect(elements[9].propagatedType.name, "Element");
     expect(elements[10].propagatedType.name, "Element");
-  }
-}
-
-@reflectiveTest
-class StrongModeTypePropagationTest extends ResolverTestCase {
-  @override
-  void setUp() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.strongMode = true;
-    resetWithOptions(options);
-  }
-
-  void test_localVariableInference_constant() {
-    String code = r'''
-main() {
-  var v = 3;
-  return v; // marker
-}''';
-    _assertPropagatedAssignedType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void test_localVariableInference_transitive_local() {
-    String code = r'''
-main() {
-  var x = 3;
-  var v = x;
-  return v; // marker
-}''';
-    _assertPropagatedAssignedType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void test_localVariableInference_transitive_list_local() {
-    String code = r'''
-main() {
-  var x = <int>[3];
-  var v = x[0];
-  return v; // marker
-}''';
-    _assertPropagatedAssignedType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void test_localVariableInference_transitive_toplevel_lexical() {
-    String code = r'''
-int x = 3;
-main() {
-  var v = x;
-  return v; // marker
-}
-''';
-    _assertPropagatedAssignedType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void test_localVariableInference_transitive_toplevel_reversed() {
-    String code = r'''
-main() {
-  var v = x;
-  return v; // marker
-}
-int x = 3;
-''';
-    _assertPropagatedAssignedType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void fail_localVariableInference_transitive_toplevel_inferred_lexical() {
-    String code = r'''
-final x = 3;
-main() {
-  var v = x;
-  return v; // marker
-}
-''';
-    _assertPropagatedAssignedType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void fail_localVariableInference_transitive_toplevel_inferred_reversed() {
-    String code = r'''
-main() {
-  var v = x;
-  return v; // marker
-}
-final x = 3;
-''';
-    _assertPropagatedAssignedType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void test_localVariableInference_transitive_field_lexical() {
-    String code = r'''
-class A {
-  int x = 3;
-  f() {
-    var v = x;
-    return v; // marker
-  }
-}
-main() {
-}
-''';
-    _assertPropagatedAssignedType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void test_localVariableInference_transitive_field_reversed() {
-    String code = r'''
-class A {
-  f() {
-    var v = x;
-    return v; // marker
-  }
-  int x = 3;
-}
-main() {
-}
-''';
-    _assertPropagatedAssignedType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void fail_localVariableInference_transitive_field_inferred_lexical() {
-    String code = r'''
-class A {
-  final x = 3;
-  f() {
-    var v = x;
-    return v; // marker
-  }
-}
-main() {
-}
-''';
-    _assertPropagatedAssignedType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void fail_localVariableInference_transitive_field_inferred_reversed() {
-    String code = r'''
-class A {
-  f() {
-    var v = x;
-    return v; // marker
-  }
-  final x = 3;
-}
-main() {
-}
-''';
-    _assertPropagatedAssignedType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void test_localVariableInference_declaredType_disabled() {
-    String code = r'''
-main() {
-  dynamic v = 3;
-  return v; // marker
-}''';
-    _assertPropagatedAssignedType(
-        code, typeProvider.dynamicType, typeProvider.intType);
-    _assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void test_localVariableInference_bottom_disabled() {
-    String code = r'''
-main() {
-  var v = null;
-  return v; // marker
-}''';
-    _assertPropagatedAssignedType(code, typeProvider.dynamicType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
-  }
-
-  void test_localVariableInference_noInitializer_disabled() {
-    String code = r'''
-main() {
-  var v;
-  v = 3;
-  return v; // marker
-}''';
-    _assertPropagatedAssignedType(
-        code, typeProvider.dynamicType, typeProvider.intType);
-    _assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void test_foreachInference_var() {
-    String code = r'''
-main() {
-  var list = <int>[];
-  for (var v in list) {
-    v; // marker
-  }
-}''';
-    _assertPropagatedIterationType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void test_foreachInference_var_iterable() {
-    String code = r'''
-main() {
-  Iterable<int> list = <int>[];
-  for (var v in list) {
-    v; // marker
-  }
-}''';
-    _assertPropagatedIterationType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void test_foreachInference_var_stream() {
-    String code = r'''
-import 'dart:async';
-main() async {
-  Stream<int> stream = null;
-  await for (var v in stream) {
-    v; // marker
-  }
-}''';
-    _assertPropagatedIterationType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void test_foreachInference_dynamic_disabled() {
-    String code = r'''
-main() {
-  var list = <int>[];
-  for (dynamic v in list) {
-    v; // marker
-  }
-}''';
-    _assertPropagatedIterationType(
-        code, typeProvider.dynamicType, typeProvider.intType);
-    _assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void test_foreachInference_reusedVar_disabled() {
-    String code = r'''
-main() {
-  var list = <int>[];
-  var v;
-  for (v in list) {
-    v; // marker
-  }
-}''';
-    _assertPropagatedIterationType(
-        code, typeProvider.dynamicType, typeProvider.intType);
-    _assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
   }
 }
 

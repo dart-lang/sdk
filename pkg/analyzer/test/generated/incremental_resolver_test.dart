@@ -4478,8 +4478,7 @@ f3() {
     // Resolve "newCode" from scratch.
     if (compareWithFull) {
       _resetWithIncremental(false);
-      source = addSource(newCode + ' ');
-      source = addSource(newCode);
+      changeSource(source, newCode);
       _runTasks();
       LibraryElement library = resolve2(source);
       CompilationUnit fullNewUnit = resolveCompilationUnit(source, library);
