@@ -225,9 +225,9 @@ const char* Location::ToCString() const {
 
 void Location::Print() const {
   if (kind() == kStackSlot) {
-    ISL_Print("S%+" Pd "", stack_index());
+    THR_Print("S%+" Pd "", stack_index());
   } else {
-    ISL_Print("%s", Name());
+    THR_Print("%s", Name());
   }
 }
 

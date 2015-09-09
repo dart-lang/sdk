@@ -110,7 +110,7 @@ class SkippedCodeFunctions : public ZoneAllocated {
           // helper functions to the raw object interface.
           String name;
           name = func->ptr()->name_;
-          ISL_Print("Detaching code: %s\n", name.ToCString());
+          THR_Print("Detaching code: %s\n", name.ToCString());
           current_code_count++;
         }
       }
@@ -127,8 +127,8 @@ class SkippedCodeFunctions : public ZoneAllocated {
       }
     }
     if (FLAG_log_code_drop) {
-      ISL_Print("  total detached current: %" Pd "\n", current_code_count);
-      ISL_Print("  total detached unoptimized: %" Pd "\n",
+      THR_Print("  total detached current: %" Pd "\n", current_code_count);
+      THR_Print("  total detached unoptimized: %" Pd "\n",
                 unoptimized_code_count);
     }
     // Clean up.
@@ -700,11 +700,9 @@ void GCMarker::MarkObjects(Isolate* isolate,
       MarkingWeakVisitor mark_weak;
       IterateWeakRoots(isolate, &mark_weak,
                        !visit_prologue_weak_persistent_handles);
-      // TODO(koda): Move this into Phase 3 after making ISL_Print thread-safe
-      // (used in SkippedCodeFunctions::DetachCode).
-      FinalizeResultsFrom(&mark);
       MainSync(num_tasks);
       // Phase 3: Finalize results from all markers (detach code, etc.).
+      FinalizeResultsFrom(&mark);
       MainSync(num_tasks);
       // Finalization complete and all tasks exited.
     }

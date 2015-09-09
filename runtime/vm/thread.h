@@ -16,6 +16,7 @@ class CHA;
 class HandleScope;
 class Heap;
 class Isolate;
+class Log;
 class LongJumpScope;
 class Object;
 class RawBool;
@@ -256,6 +257,8 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
     state_.timeline_block = block;
   }
 
+  class Log* log() const;
+
   LongJumpScope* long_jump_base() const { return state_.long_jump_base; }
   void set_long_jump_base(LongJumpScope* value) {
     state_.long_jump_base = value;
@@ -281,6 +284,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   Heap* heap_;
   State state_;
   StoreBufferBlock* store_buffer_block_;
+  class Log* log_;
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
 CACHED_CONSTANTS_LIST(DECLARE_MEMBERS)

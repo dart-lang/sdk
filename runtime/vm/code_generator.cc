@@ -1476,7 +1476,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     function.set_usage_counter(0);
     if (FLAG_trace_compiler) {
       if (function.HasOptimizedCode()) {
-        ISL_Print("ReCompiling function: '%s' \n",
+        THR_Print("ReCompiling function: '%s' \n",
                   function.ToFullyQualifiedCString());
       }
     }

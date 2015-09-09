@@ -431,7 +431,7 @@ struct IntervalStruct {
   intptr_t inlining_id;
   IntervalStruct(intptr_t s, intptr_t id) : start(s), inlining_id(id) {}
   void Dump() {
-    ISL_Print("start: 0x%" Px " iid: %" Pd " ",  start, inlining_id);
+    THR_Print("start: 0x%" Px " iid: %" Pd " ",  start, inlining_id);
   }
 };
 
@@ -520,7 +520,7 @@ void FlowGraphCompiler::VisitBlocks() {
   }
 
   if (is_optimizing()) {
-    LogBlock lb(Thread::Current());
+    LogBlock lb;
     intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
     inlined_code_intervals_ =
         Array::New(intervals.length() * Code::kInlIntNumEntries, Heap::kOld);
@@ -532,7 +532,7 @@ void FlowGraphCompiler::VisitBlocks() {
         const Function& function =
             *inline_id_to_function_.At(intervals[i].inlining_id);
         intervals[i].Dump();
-        ISL_Print(" parent iid %" Pd " %s\n",
+        THR_Print(" parent iid %" Pd " %s\n",
             caller_inline_id_[intervals[i].inlining_id],
             function.ToQualifiedCString());
       }
@@ -549,10 +549,10 @@ void FlowGraphCompiler::VisitBlocks() {
   }
   set_current_block(NULL);
   if (FLAG_trace_inlining_intervals && is_optimizing()) {
-    LogBlock lb(Isolate::Current());
-    ISL_Print("Intervals:\n");
+    LogBlock lb;
+    THR_Print("Intervals:\n");
     for (intptr_t cc = 0; cc < caller_inline_id_.length(); cc++) {
-      ISL_Print("  iid: %" Pd " caller iid: %" Pd "\n",
+      THR_Print("  iid: %" Pd " caller iid: %" Pd "\n",
           cc, caller_inline_id_[cc]);
     }
     Smi& temp = Smi::Handle();
@@ -560,9 +560,9 @@ void FlowGraphCompiler::VisitBlocks() {
          i += Code::kInlIntNumEntries) {
       temp ^= inlined_code_intervals_.At(i + Code::kInlIntStart);
       ASSERT(!temp.IsNull());
-      ISL_Print("% " Pd " start: 0x%" Px " ", i, temp.Value());
+      THR_Print("% " Pd " start: 0x%" Px " ", i, temp.Value());
       temp ^= inlined_code_intervals_.At(i + Code::kInlIntInliningId);
-      ISL_Print("iid: %" Pd " ", temp.Value());
+      THR_Print("iid: %" Pd " ", temp.Value());
     }
   }
 }

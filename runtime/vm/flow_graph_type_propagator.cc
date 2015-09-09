@@ -74,13 +74,13 @@ void FlowGraphTypePropagator::Propagate() {
   while (!worklist_.is_empty()) {
     Definition* def = RemoveLastFromWorklist();
     if (FLAG_trace_type_propagation) {
-      ISL_Print("recomputing type of v%" Pd ": %s\n",
+      THR_Print("recomputing type of v%" Pd ": %s\n",
                 def->ssa_temp_index(),
                 def->Type()->ToCString());
     }
     if (def->RecomputeType()) {
       if (FLAG_trace_type_propagation) {
-        ISL_Print("  ... new type %s\n", def->Type()->ToCString());
+        THR_Print("  ... new type %s\n", def->Type()->ToCString());
       }
       for (Value::Iterator it(def->input_use_list());
            !it.Done();
@@ -267,7 +267,7 @@ void FlowGraphTypePropagator::VisitValue(Value* value) {
   value->SetReachingType(type);
 
   if (FLAG_trace_type_propagation) {
-    ISL_Print("reaching type to v%" Pd " for v%" Pd " is %s\n",
+    THR_Print("reaching type to v%" Pd " for v%" Pd " is %s\n",
               value->instruction()->IsDefinition() ?
                   value->instruction()->AsDefinition()->ssa_temp_index() : -1,
               value->definition()->ssa_temp_index(),
@@ -552,7 +552,7 @@ intptr_t CompileType::ToNullableCid() {
           cid_ = type_class.id();
         } else if (FLAG_use_cha_deopt) {
           if (FLAG_trace_cha) {
-            ISL_Print("  **(CHA) Compile type not subclassed: %s\n",
+            THR_Print("  **(CHA) Compile type not subclassed: %s\n",
                 type_class.ToCString());
           }
           cha->AddToLeafClasses(type_class);
@@ -698,7 +698,7 @@ bool PhiInstr::RecomputeType() {
   CompileType result = CompileType::None();
   for (intptr_t i = 0; i < InputCount(); i++) {
     if (FLAG_trace_type_propagation) {
-      ISL_Print("  phi %" Pd " input %" Pd ": v%" Pd " has reaching type %s\n",
+      THR_Print("  phi %" Pd " input %" Pd ": v%" Pd " has reaching type %s\n",
                 ssa_temp_index(),
                 i,
                 InputAt(i)->definition()->ssa_temp_index(),
@@ -795,7 +795,7 @@ CompileType ParameterInstr::ComputeType() const {
         } else {
           if (FLAG_use_cha_deopt) {
             if (FLAG_trace_cha) {
-              ISL_Print("  **(CHA) Computing exact type of parameters, "
+              THR_Print("  **(CHA) Computing exact type of parameters, "
                   "no subclasses: %s\n",
                   type_class.ToCString());
             }

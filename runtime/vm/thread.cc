@@ -7,6 +7,7 @@
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
+#include "vm/log.h"
 #include "vm/object.h"
 #include "vm/os_thread.h"
 #include "vm/profiler.h"
@@ -52,6 +53,8 @@ Thread::~Thread() {
   // Clear |this| from all isolate's thread registry.
   ThreadPruner pruner(this);
   Isolate::VisitIsolates(&pruner);
+  delete log_;
+  log_ = NULL;
 }
 
 
@@ -108,7 +111,8 @@ Thread::Thread(bool init_vm_constants)
       thread_interrupt_data_(NULL),
       isolate_(NULL),
       heap_(NULL),
-      store_buffer_block_(NULL) {
+      store_buffer_block_(NULL),
+      log_(new class Log()) {
   ClearState();
 
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
@@ -304,6 +308,11 @@ CHA* Thread::cha() const {
 void Thread::set_cha(CHA* value) {
   ASSERT(isolate_ != NULL);
   isolate_->cha_ = value;
+}
+
+
+Log* Thread::log() const {
+  return log_;
 }
 
 

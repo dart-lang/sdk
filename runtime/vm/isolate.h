@@ -170,9 +170,6 @@ class Isolate : public BaseIsolate {
   const char* debugger_name() const { return debugger_name_; }
   void set_debugger_name(const char* name);
 
-  // TODO(koda): Move to Thread.
-  class Log* Log() const;
-
   int64_t start_time() const { return start_time_; }
 
   Dart_Port main_port() const { return main_port_; }
@@ -759,6 +756,8 @@ class Isolate : public BaseIsolate {
     mutator_thread_->set_zone(zone);
   }
 
+  bool is_service_isolate() const { return is_service_isolate_; }
+
  private:
   friend class Dart;  // Init, InitOnce, Shutdown.
 
@@ -858,9 +857,7 @@ class Isolate : public BaseIsolate {
 
   CompilerStats* compiler_stats_;
 
-  // Log.
   bool is_service_isolate_;
-  class Log* log_;
 
   // Status support.
   char* stacktrace_;

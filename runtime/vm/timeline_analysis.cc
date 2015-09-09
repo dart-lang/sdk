@@ -39,7 +39,7 @@ static int CompareBlocksLowerTimeBound(TimelineEventBlock* const* a,
 void TimelineAnalysisThread::Finalize() {
   blocks_.Sort(CompareBlocksLowerTimeBound);
   if (FLAG_trace_timeline_analysis) {
-    ISL_Print("Thread %" Px " has %" Pd " blocks\n",
+    THR_Print("Thread %" Px " has %" Pd " blocks\n",
               OSThread::ThreadIdToIntPtr(id_),
               blocks_.length());
   }
@@ -163,7 +163,7 @@ void TimelineAnalysis::DiscoverThreads() {
     }
     if (!block->CheckBlock()) {
       if (FLAG_trace_timeline_analysis) {
-        ISL_Print("DiscoverThreads block %" Pd " "
+        THR_Print("DiscoverThreads block %" Pd " "
                   "violates invariants.\n", block->block_index());
       }
       SetError("Block %" Pd " violates invariants. See "
@@ -300,7 +300,7 @@ void TimelinePauses::ProcessThread(TimelineAnalysisThread* thread) {
 
   TimelineAnalysisThreadEventIterator it(thread);
   if (FLAG_trace_timeline_analysis) {
-    ISL_Print(">>> TimelinePauses::ProcessThread %" Px "\n",
+    THR_Print(">>> TimelinePauses::ProcessThread %" Px "\n",
               OSThread::ThreadIdToIntPtr(thread->id()));
   }
   intptr_t event_count = 0;
@@ -322,7 +322,7 @@ void TimelinePauses::ProcessThread(TimelineAnalysisThread* thread) {
   // Pop remaining stack.
   PopFinished(kMaxInt64);
   if (FLAG_trace_timeline_analysis) {
-    ISL_Print("<<< TimelinePauses::ProcessThread %" Px " had %" Pd " events\n",
+    THR_Print("<<< TimelinePauses::ProcessThread %" Px " had %" Pd " events\n",
               OSThread::ThreadIdToIntPtr(thread->id()),
               event_count);
   }
@@ -350,7 +350,7 @@ void TimelinePauses::PopFinished(int64_t start) {
       // Top of stack completes before |start|.
       stack_.RemoveLast();
       if (FLAG_trace_timeline_analysis) {
-        ISL_Print("Popping %s (%" Pd64 " <= %" Pd64 ")\n",
+        THR_Print("Popping %s (%" Pd64 " <= %" Pd64 ")\n",
                   top.event->label(),
                   top.event->TimeEnd(),
                   start);
@@ -367,7 +367,7 @@ void TimelinePauses::Push(TimelineEvent* event) {
   ASSERT(pause_info != NULL);
   // |pause_info| will be running for |event->TimeDuration()|.
   if (FLAG_trace_timeline_analysis) {
-    ISL_Print("Pushing %s %" Pd64 " us\n",
+    THR_Print("Pushing %s %" Pd64 " us\n",
               pause_info->name(),
               event->TimeDuration());
   }

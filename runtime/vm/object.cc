@@ -1640,7 +1640,7 @@ RawError* Object::Init(Isolate* isolate) {
 
 
 void Object::Print() const {
-  ISL_Print("%s\n", ToCString());
+  THR_Print("%s\n", ToCString());
 }
 
 
@@ -2731,7 +2731,7 @@ class CHACodeArray : public WeakCodeReferences {
   virtual void ReportDeoptimization(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
       Function& function = Function::Handle(code.function());
-      ISL_Print("Deoptimizing %s because CHA optimized (%s).\n",
+      THR_Print("Deoptimizing %s because CHA optimized (%s).\n",
           function.ToFullyQualifiedCString(),
           cls_.ToCString());
     }
@@ -2740,7 +2740,7 @@ class CHACodeArray : public WeakCodeReferences {
   virtual void ReportSwitchingCode(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
       Function& function = Function::Handle(code.function());
-      ISL_Print("Switching %s to unoptimized code because CHA invalid"
+      THR_Print("Switching %s to unoptimized code because CHA invalid"
                 " (%s)\n",
                 function.ToFullyQualifiedCString(),
                 cls_.ToCString());
@@ -2755,7 +2755,7 @@ class CHACodeArray : public WeakCodeReferences {
 
 void Class::RegisterCHACode(const Code& code) {
   if (FLAG_trace_cha) {
-    ISL_Print("RegisterCHACode %s class %s\n",
+    THR_Print("RegisterCHACode %s class %s\n",
         Function::Handle(code.function()).ToQualifiedCString(), ToCString());
   }
   ASSERT(code.is_optimized());
@@ -5271,7 +5271,7 @@ void Function::SwitchToUnoptimizedCode() const {
   const Code& current_code = Code::Handle(zone, CurrentCode());
 
   if (FLAG_trace_deoptimization_verbose) {
-    ISL_Print("Disabling optimized code: '%s' entry: %#" Px "\n",
+    THR_Print("Disabling optimized code: '%s' entry: %#" Px "\n",
       ToFullyQualifiedCString(),
       current_code.EntryPoint());
   }
@@ -6965,10 +6965,10 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
       // to replace the old values.
       // sed -i .bak -f /tmp/newkeys runtime/vm/method_recognizer.h
       // sed -i .bak -f /tmp/newkeys runtime/vm/flow_graph_builder.h
-      ISL_Print("s/V(%s, %d)/V(%s, %d)/\n",
+      THR_Print("s/V(%s, %d)/V(%s, %d)/\n",
                 prefix, fp, prefix, SourceFingerprint());
     } else {
-      ISL_Print("FP mismatch while recognizing method %s:"
+      THR_Print("FP mismatch while recognizing method %s:"
                 " expecting %d found %d\n",
                 ToFullyQualifiedCString(),
                 fp,
@@ -7569,7 +7569,7 @@ class FieldDependentArray : public WeakCodeReferences {
   virtual void ReportDeoptimization(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
       Function& function = Function::Handle(code.function());
-      ISL_Print("Deoptimizing %s because guard on field %s failed.\n",
+      THR_Print("Deoptimizing %s because guard on field %s failed.\n",
                 function.ToFullyQualifiedCString(), field_.ToCString());
     }
   }
@@ -7577,7 +7577,7 @@ class FieldDependentArray : public WeakCodeReferences {
   virtual void ReportSwitchingCode(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
       Function& function = Function::Handle(code.function());
-      ISL_Print("Switching %s to unoptimized code because guard"
+      THR_Print("Switching %s to unoptimized code because guard"
                 " on field %s was violated.\n",
                 function.ToFullyQualifiedCString(),
                 field_.ToCString());
@@ -7755,7 +7755,7 @@ bool Field::UpdateGuardedCidAndLength(const Object& value) const {
     }
 
     if (FLAG_trace_field_guards) {
-      ISL_Print("    => %s\n", GuardedPropertiesAsCString());
+      THR_Print("    => %s\n", GuardedPropertiesAsCString());
     }
 
     return false;
@@ -7810,7 +7810,7 @@ void Field::RecordStore(const Object& value) const {
   }
 
   if (FLAG_trace_field_guards) {
-    ISL_Print("Store %s %s <- %s\n",
+    THR_Print("Store %s %s <- %s\n",
               ToCString(),
               GuardedPropertiesAsCString(),
               value.ToCString());
@@ -7818,7 +7818,7 @@ void Field::RecordStore(const Object& value) const {
 
   if (UpdateGuardedCidAndLength(value)) {
     if (FLAG_trace_field_guards) {
-      ISL_Print("    => %s\n", GuardedPropertiesAsCString());
+      THR_Print("    => %s\n", GuardedPropertiesAsCString());
     }
 
     DeoptimizeDependentCode();
@@ -10544,7 +10544,7 @@ class PrefixDependentArray : public WeakCodeReferences {
 
   virtual void ReportSwitchingCode(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
-      ISL_Print("Prefix '%s': disabling %s code for %s function '%s'\n",
+      THR_Print("Prefix '%s': disabling %s code for %s function '%s'\n",
           String::Handle(prefix_.name()).ToCString(),
           code.is_optimized() ? "optimized" : "unoptimized",
           CodePatcher::IsEntryPatched(code) ? "patched" : "unpatched",
@@ -11092,24 +11092,24 @@ static const char* DescribeExternalLabel(uword addr) {
 
 
 void ObjectPool::DebugPrint() const {
-  ISL_Print("Object Pool: {\n");
+  THR_Print("Object Pool: {\n");
   for (intptr_t i = 0; i < Length(); i++) {
     intptr_t offset = OffsetFromIndex(i);
-    ISL_Print("  %" Pd " PP+0x%" Px ": ", i, offset);
+    THR_Print("  %" Pd " PP+0x%" Px ": ", i, offset);
     if (InfoAt(i) == kTaggedObject) {
       RawObject* obj = ObjectAt(i);
-      ISL_Print("0x%" Px " %s (obj)\n",
+      THR_Print("0x%" Px " %s (obj)\n",
           reinterpret_cast<uword>(obj),
           Object::Handle(obj).ToCString());
     } else if (InfoAt(i) == kExternalLabel) {
       uword addr = RawValueAt(i);
-      ISL_Print("0x%" Px " (external label: %s)\n",
+      THR_Print("0x%" Px " (external label: %s)\n",
                 addr, DescribeExternalLabel(addr));
     } else {
-      ISL_Print("0x%" Px " (raw)\n", RawValueAt(i));
+      THR_Print("0x%" Px " (raw)\n", RawValueAt(i));
     }
   }
-  ISL_Print("}\n");
+  THR_Print("}\n");
 }
 
 
@@ -11191,7 +11191,7 @@ void PcDescriptors::PrintHeaderString() {
   const int addr_width = (kBitsPerWord / 4) + 2;
   // "*" in a printf format specifier tells it to read the field width from
   // the printf argument list.
-  ISL_Print("%-*s\tkind    \tdeopt-id\ttok-ix\ttry-ix\n",
+  THR_Print("%-*s\tkind    \tdeopt-id\ttok-ix\ttry-ix\n",
             addr_width, "pc");
 }
 
@@ -13499,8 +13499,8 @@ void Code::GetInlinedFunctionsAt(
 
 
 void Code::DumpInlinedIntervals() const {
-  LogBlock lb(Isolate::Current());
-  ISL_Print("Inlined intervals:\n");
+  LogBlock lb;
+  THR_Print("Inlined intervals:\n");
   const Array& intervals = Array::Handle(GetInlinedIntervals());
   if (intervals.IsNull() || (intervals.Length() == 0)) return;
   Smi& start = Smi::Handle();
@@ -13512,38 +13512,38 @@ void Code::DumpInlinedIntervals() const {
     ASSERT(!start.IsNull());
     if (start.IsNull()) continue;
     inlining_id ^= intervals.At(i + Code::kInlIntInliningId);
-    ISL_Print("  %" Px " iid: %" Pd " ; ", start.Value(), inlining_id.Value());
+    THR_Print("  %" Px " iid: %" Pd " ; ", start.Value(), inlining_id.Value());
     inlined_functions.Clear();
 
-    ISL_Print("inlined: ");
+    THR_Print("inlined: ");
     GetInlinedFunctionsAt(start.Value(), &inlined_functions);
 
     for (intptr_t j = 0; j < inlined_functions.length(); j++) {
       const char* name = inlined_functions[j]->ToQualifiedCString();
-      ISL_Print("  %s <-", name);
+      THR_Print("  %s <-", name);
     }
     if (inlined_functions[inlined_functions.length() - 1]->raw() !=
            inliner.raw()) {
-      ISL_Print(" (ERROR, missing inliner)\n");
+      THR_Print(" (ERROR, missing inliner)\n");
     } else {
-      ISL_Print("\n");
+      THR_Print("\n");
     }
   }
-  ISL_Print("Inlined ids:\n");
+  THR_Print("Inlined ids:\n");
   const Array& id_map = Array::Handle(GetInlinedIdToFunction());
   Function& function = Function::Handle();
   for (intptr_t i = 0; i < id_map.Length(); i++) {
     function ^= id_map.At(i);
     if (!function.IsNull()) {
-      ISL_Print("  %" Pd ": %s\n", i, function.ToQualifiedCString());
+      THR_Print("  %" Pd ": %s\n", i, function.ToQualifiedCString());
     }
   }
-  ISL_Print("Caller Inlining Ids:\n");
+  THR_Print("Caller Inlining Ids:\n");
   const Array& caller_map = Array::Handle(GetInlinedCallerIdMap());
   Smi& smi = Smi::Handle();
   for (intptr_t i = 0; i < caller_map.Length(); i++) {
     smi ^= caller_map.At(i);
-    ISL_Print("  iid: %" Pd " caller iid: %" Pd "\n", i, smi.Value());
+    THR_Print("  iid: %" Pd " caller iid: %" Pd "\n", i, smi.Value());
   }
 }
 
@@ -13590,7 +13590,7 @@ const char* Context::ToCString() const {
 
 static void IndentN(int count) {
   for (int i = 0; i < count; i++) {
-    ISL_Print(" ");
+    THR_Print(" ");
   }
 }
 
@@ -13598,17 +13598,17 @@ static void IndentN(int count) {
 void Context::Dump(int indent) const {
   if (IsNull()) {
     IndentN(indent);
-    ISL_Print("Context@null\n");
+    THR_Print("Context@null\n");
     return;
   }
 
   IndentN(indent);
-  ISL_Print("Context@%p vars(%" Pd ") {\n", this->raw(), num_variables());
+  THR_Print("Context@%p vars(%" Pd ") {\n", this->raw(), num_variables());
   Object& obj = Object::Handle();
   for (intptr_t i = 0; i < num_variables(); i++) {
     IndentN(indent + 2);
     obj = At(i);
-    ISL_Print("[%" Pd "] = %s\n", i, obj.ToCString());
+    THR_Print("[%" Pd "] = %s\n", i, obj.ToCString());
   }
 
   const Context& parent_ctx = Context::Handle(parent());
@@ -13616,7 +13616,7 @@ void Context::Dump(int indent) const {
     parent_ctx.Dump(indent + 2);
   }
   IndentN(indent);
-  ISL_Print("}\n");
+  THR_Print("}\n");
 }
 
 
