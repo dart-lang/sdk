@@ -58,12 +58,12 @@ abstract class RuleConfig {
   Map<String, dynamic> args;
   String get group;
   String get name;
+
   /// Provisional
   bool disables(String ruleName) =>
       ruleName == name && args['enabled'] == false;
-  
-  bool enables(String ruleName) =>
-      ruleName == name && args['enabled'] == true;
+
+  bool enables(String ruleName) => ruleName == name && args['enabled'] == true;
 }
 
 class _LintConfig implements LintConfig {
@@ -118,15 +118,36 @@ class _LintConfig implements LintConfig {
           break;
 
         case 'rules':
+
+          // - unnecessary_getters
+          // - camel_case_types
+          if (v is List) {
+            v.forEach((rule) {
+              var config = new _RuleConfig();
+              config.name = asString(rule);
+              config.args = {'enabled:': true};
+              ruleConfigs.add(config);
+            });
+          }
+
+          // style_guide: {unnecessary_getters: false, camel_case_types: true}
           if (v is YamlMap) {
-            v.forEach((group, rules) {
-              // {unnecessary_getters: false, camel_case_types: true}
-              if (rules is YamlMap) {
-                rules.forEach((rule, args) {
+            v.forEach((key, value) {
+              //{unnecessary_getters: false}
+              if (value is bool) {
+                var config = new _RuleConfig();
+                config.name = asString(key);
+                config.args = {'enabled:': value};
+                ruleConfigs.add(config);
+              }
+
+              // style_guide: {unnecessary_getters: false, camel_case_types: true}
+              if (value is YamlMap) {
+                value.forEach((rule, args) {
                   // TODO: verify format
                   // unnecessary_getters: false
                   var config = new _RuleConfig();
-                  config.group = group;
+                  config.group = key;
                   config.name = asString(rule);
                   config.args = parseArgs(args);
                   ruleConfigs.add(config);
