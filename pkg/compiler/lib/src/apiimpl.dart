@@ -19,6 +19,7 @@ import 'package:sdk_library_metadata/libraries.dart' as library_info show
     LIBRARIES;
 
 import '../compiler_new.dart' as api;
+import 'commandline_options.dart';
 import 'common/tasks.dart' show
     GenericTask;
 import 'compiler.dart' as leg;
@@ -66,59 +67,60 @@ class Compiler extends leg.Compiler {
         this.allowedLibraryCategories = getAllowedLibraryCategories(options),
         super(
             outputProvider: outputProvider,
-            enableTypeAssertions: hasOption(options, '--enable-checked-mode'),
-            enableUserAssertions: hasOption(options, '--enable-checked-mode'),
+            enableTypeAssertions: hasOption(options, Flags.enableCheckedMode),
+            enableUserAssertions: hasOption(options, Flags.enableCheckedMode),
             trustTypeAnnotations:
-                hasOption(options, '--trust-type-annotations'),
+                hasOption(options, Flags.trustTypeAnnotations),
             trustPrimitives:
-                hasOption(options, '--trust-primitives'),
-            enableMinification: hasOption(options, '--minify'),
+                hasOption(options, Flags.trustPrimitives),
+            enableMinification: hasOption(options, Flags.minify),
             useFrequencyNamer:
-                !hasOption(options, "--no-frequency-based-minification"),
-            preserveUris: hasOption(options, '--preserve-uris'),
+                !hasOption(options, Flags.noFrequencyBasedMinification),
+            preserveUris: hasOption(options, Flags.preserveUris),
             enableNativeLiveTypeAnalysis:
-                !hasOption(options, '--disable-native-live-type-analysis'),
+                !hasOption(options, Flags.disableNativeLiveTypeAnalysis),
             emitJavaScript: !(hasOption(options, '--output-type=dart') ||
                               hasOption(options, '--output-type=dart-multi')),
             dart2dartMultiFile: hasOption(options, '--output-type=dart-multi'),
-            generateSourceMap: !hasOption(options, '--no-source-maps'),
-            analyzeAllFlag: hasOption(options, '--analyze-all'),
-            analyzeOnly: hasOption(options, '--analyze-only'),
-            analyzeMain: hasOption(options, '--analyze-main'),
+            generateSourceMap: !hasOption(options, Flags.noSourceMaps),
+            analyzeAllFlag: hasOption(options, Flags.analyzeAll),
+            analyzeOnly: hasOption(options, Flags.analyzeOnly),
+            analyzeMain: hasOption(options, Flags.analyzeMain),
             analyzeSignaturesOnly:
-                hasOption(options, '--analyze-signatures-only'),
+                hasOption(options, Flags.analyzeSignaturesOnly),
             strips: extractCsvOption(options, '--force-strip='),
             enableConcreteTypeInference:
-                hasOption(options, '--enable-concrete-type-inference'),
+                hasOption(options, Flags.enableConcreteTypeInference),
             disableTypeInferenceFlag:
-                hasOption(options, '--disable-type-inference'),
-            preserveComments: hasOption(options, '--preserve-comments'),
-            useCpsIr: hasOption(options, '--use-cps-ir'),
-            verbose: hasOption(options, '--verbose'),
+                hasOption(options, Flags.disableTypeInference),
+            preserveComments: hasOption(options, Flags.preserveComments),
+            useCpsIr: hasOption(options, Flags.useCpsIr),
+            verbose: hasOption(options, Flags.verbose),
             sourceMapUri: extractUriOption(options, '--source-map='),
             outputUri: extractUriOption(options, '--out='),
-            terseDiagnostics: hasOption(options, '--terse'),
+            terseDiagnostics: hasOption(options, Flags.terse),
             deferredMapUri: extractUriOption(options, '--deferred-map='),
-            dumpInfo: hasOption(options, '--dump-info'),
+            dumpInfo: hasOption(options, Flags.dumpInfo),
             buildId: extractStringOption(
                 options, '--build-id=',
                 "build number could not be determined"),
             showPackageWarnings:
-                hasOption(options, '--show-package-warnings'),
-            useContentSecurityPolicy: hasOption(options, '--csp'),
-            useStartupEmitter: hasOption(options, '--fast-startup'),
+                hasOption(options, Flags.showPackageWarnings),
+            useContentSecurityPolicy:
+              hasOption(options, Flags.useContentSecurityPolicy),
+            useStartupEmitter: hasOption(options, Flags.fastStartup),
             hasIncrementalSupport:
                 forceIncrementalSupport ||
-                hasOption(options, '--incremental-support'),
-            suppressWarnings: hasOption(options, '--suppress-warnings'),
-            fatalWarnings: hasOption(options, '--fatal-warnings'),
+                hasOption(options, Flags.incrementalSupport),
+            suppressWarnings: hasOption(options, Flags.suppressWarnings),
+            fatalWarnings: hasOption(options, Flags.fatalWarnings),
             enableExperimentalMirrors:
-                hasOption(options, '--enable-experimental-mirrors'),
+                hasOption(options, Flags.enableExperimentalMirrors),
             generateCodeWithCompileTimeErrors:
-                hasOption(options, '--generate-code-with-compile-time-errors'),
-            testMode: hasOption(options, '--test-mode'),
+                hasOption(options, Flags.generateCodeWithCompileTimeErrors),
+            testMode: hasOption(options, Flags.testMode),
             allowNativeExtensions:
-                hasOption(options, '--allow-native-extensions')) {
+                hasOption(options, Flags.allowNativeExtensions)) {
     tasks.addAll([
         userHandlerTask = new GenericTask('Diagnostic handler', this),
         userProviderTask = new GenericTask('Input provider', this),
@@ -141,8 +143,8 @@ class Compiler extends leg.Compiler {
     if (!analyzeOnly) {
       if (allowNativeExtensions) {
         throw new ArgumentError(
-            "--allow-native-extensions is only supported in combination with "
-            "--analyze-only");
+            "${Flags.allowNativeExtensions} is only supported in combination "
+            "with ${Flags.analyzeOnly}");
       }
     }
   }
@@ -472,7 +474,7 @@ class Compiler extends leg.Compiler {
 
   bool get isMockCompilation {
     return mockableLibraryUsed
-      && (options.indexOf('--allow-mock-compilation') != -1);
+      && (options.indexOf(Flags.allowMockCompilation) != -1);
   }
 
   void callUserHandler(Message message, Uri uri, int begin, int end,

@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/apiimpl.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show
     Message;
 import 'package:compiler/src/filenames.dart';
@@ -155,9 +156,9 @@ Future analyze(List<Uri> uriList,
       currentDirectory.resolveUri(new Uri.file('${Platform.packageRoot}/'));
   var provider = new CompilerSourceFileProvider();
   var handler = new CollectingDiagnosticHandler(whiteList, provider);
-  var options = <String>['--analyze-only', '--categories=Client,Server',
-    '--show-package-warnings'];
-  if (analyzeAll) options.add('--analyze-all');
+  var options = <String>[Flags.analyzeOnly, '--categories=Client,Server',
+      Flags.showPackageWarnings];
+  if (analyzeAll) options.add(Flags.analyzeAll);
   var compiler = new Compiler(
       provider,
       null,

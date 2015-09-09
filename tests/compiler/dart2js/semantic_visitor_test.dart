@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:mirrors';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
@@ -292,9 +293,7 @@ Future test(Set<VisitKind> unvisitedKinds,
 
   CompilationResult result = await runCompiler(
       memorySourceFiles: sourceFiles,
-      options: ['--analyze-all',
-                '--analyze-only',
-                '--enable-null-aware-operators']);
+      options: [Flags.analyzeAll, Flags.analyzeOnly]);
   Compiler compiler = result.compiler;
   testMap.forEach((String filename, Test test) {
     LibraryElement library = compiler.libraryLoader.lookupLibrary(
