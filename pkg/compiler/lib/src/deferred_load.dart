@@ -246,6 +246,11 @@ class DeferredLoadTask extends CompilerTask {
       Set<ConstantValue> constants,
       isMirrorUsage) {
 
+    if (element.isErroneous) {
+      // Erroneous elements are ignored.
+      return;
+    }
+
     /// Recursively collects all the dependencies of [type].
     void collectTypeDependencies(DartType type) {
       if (type is GenericType) {
