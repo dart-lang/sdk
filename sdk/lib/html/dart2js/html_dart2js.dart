@@ -820,10 +820,12 @@ class AreaElement extends HtmlElement implements UrlUtils {
 @DomName('HTMLAudioElement')
 @Native("HTMLAudioElement")
 class AudioElement extends MediaElement {
+  // To suppress missing implicit constructor warnings.
+  factory AudioElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('HTMLAudioElement.HTMLAudioElement')
   @DocsEditable()
-  factory AudioElement._([String src]) {
+  factory AudioElement([String src]) {
     if (src != null) {
       return AudioElement._create_1(src);
     }
@@ -837,8 +839,6 @@ class AudioElement extends MediaElement {
    * This can only be called by subclasses from their created constructor.
    */
   AudioElement.created() : super.created();
-
-  factory AudioElement([String src]) => new AudioElement._(src);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1049,7 +1049,7 @@ class BeforeUnloadEvent extends Event {
   // Shadowing definition.
   String get returnValue => JS("String", "#.returnValue", this);
 
-  set returnValue(String value) {
+  void set returnValue(String value) {
     JS("void", "#.returnValue = #", this, value);
   }
 }
@@ -2372,7 +2372,7 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
   @DomName('CanvasRenderingContext2D.lineDashOffset')
   // TODO(14316): Firefox has this functionality with mozDashOffset, but it
   // needs to be polyfilled.
-  set lineDashOffset(num value) {
+  void set lineDashOffset(num value) {
     JS('void',
        'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
        '#.webkitLineDashOffset = #', this, this, value, this, value);
@@ -3458,7 +3458,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get background => this._background;
 
   /** Sets the value of "background" */
-  set background(String value) {
+  void set background(String value) {
     _background = value == null ? '' : value;
   }
   @Returns('String')
@@ -3469,7 +3469,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get backgroundAttachment => this._backgroundAttachment;
 
   /** Sets the value of "background-attachment" */
-  set backgroundAttachment(String value) {
+  void set backgroundAttachment(String value) {
     _backgroundAttachment = value == null ? '' : value;
   }
   @Returns('String')
@@ -3480,7 +3480,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get backgroundColor => this._backgroundColor;
 
   /** Sets the value of "background-color" */
-  set backgroundColor(String value) {
+  void set backgroundColor(String value) {
     _backgroundColor = value == null ? '' : value;
   }
   @Returns('String')
@@ -3491,7 +3491,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get backgroundImage => this._backgroundImage;
 
   /** Sets the value of "background-image" */
-  set backgroundImage(String value) {
+  void set backgroundImage(String value) {
     _backgroundImage = value == null ? '' : value;
   }
   @Returns('String')
@@ -3502,7 +3502,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get backgroundPosition => this._backgroundPosition;
 
   /** Sets the value of "background-position" */
-  set backgroundPosition(String value) {
+  void set backgroundPosition(String value) {
     _backgroundPosition = value == null ? '' : value;
   }
   @Returns('String')
@@ -3513,7 +3513,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get backgroundRepeat => this._backgroundRepeat;
 
   /** Sets the value of "background-repeat" */
-  set backgroundRepeat(String value) {
+  void set backgroundRepeat(String value) {
     _backgroundRepeat = value == null ? '' : value;
   }
   @Returns('String')
@@ -3524,7 +3524,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get border => this._border;
 
   /** Sets the value of "border" */
-  set border(String value) {
+  void set border(String value) {
     _border = value == null ? '' : value;
   }
   @Returns('String')
@@ -3535,7 +3535,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderBottom => this._borderBottom;
 
   /** Sets the value of "border-bottom" */
-  set borderBottom(String value) {
+  void set borderBottom(String value) {
     _borderBottom = value == null ? '' : value;
   }
   @Returns('String')
@@ -3546,7 +3546,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderBottomColor => this._borderBottomColor;
 
   /** Sets the value of "border-bottom-color" */
-  set borderBottomColor(String value) {
+  void set borderBottomColor(String value) {
     _borderBottomColor = value == null ? '' : value;
   }
   @Returns('String')
@@ -3557,7 +3557,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderBottomStyle => this._borderBottomStyle;
 
   /** Sets the value of "border-bottom-style" */
-  set borderBottomStyle(String value) {
+  void set borderBottomStyle(String value) {
     _borderBottomStyle = value == null ? '' : value;
   }
   @Returns('String')
@@ -3568,7 +3568,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderBottomWidth => this._borderBottomWidth;
 
   /** Sets the value of "border-bottom-width" */
-  set borderBottomWidth(String value) {
+  void set borderBottomWidth(String value) {
     _borderBottomWidth = value == null ? '' : value;
   }
   @Returns('String')
@@ -3579,7 +3579,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderCollapse => this._borderCollapse;
 
   /** Sets the value of "border-collapse" */
-  set borderCollapse(String value) {
+  void set borderCollapse(String value) {
     _borderCollapse = value == null ? '' : value;
   }
   @Returns('String')
@@ -3590,7 +3590,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderColor => this._borderColor;
 
   /** Sets the value of "border-color" */
-  set borderColor(String value) {
+  void set borderColor(String value) {
     _borderColor = value == null ? '' : value;
   }
   @Returns('String')
@@ -3601,7 +3601,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderLeft => this._borderLeft;
 
   /** Sets the value of "border-left" */
-  set borderLeft(String value) {
+  void set borderLeft(String value) {
     _borderLeft = value == null ? '' : value;
   }
   @Returns('String')
@@ -3612,7 +3612,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderLeftColor => this._borderLeftColor;
 
   /** Sets the value of "border-left-color" */
-  set borderLeftColor(String value) {
+  void set borderLeftColor(String value) {
     _borderLeftColor = value == null ? '' : value;
   }
   @Returns('String')
@@ -3623,7 +3623,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderLeftStyle => this._borderLeftStyle;
 
   /** Sets the value of "border-left-style" */
-  set borderLeftStyle(String value) {
+  void set borderLeftStyle(String value) {
     _borderLeftStyle = value == null ? '' : value;
   }
   @Returns('String')
@@ -3634,7 +3634,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderLeftWidth => this._borderLeftWidth;
 
   /** Sets the value of "border-left-width" */
-  set borderLeftWidth(String value) {
+  void set borderLeftWidth(String value) {
     _borderLeftWidth = value == null ? '' : value;
   }
   @Returns('String')
@@ -3645,7 +3645,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderRight => this._borderRight;
 
   /** Sets the value of "border-right" */
-  set borderRight(String value) {
+  void set borderRight(String value) {
     _borderRight = value == null ? '' : value;
   }
   @Returns('String')
@@ -3656,7 +3656,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderRightColor => this._borderRightColor;
 
   /** Sets the value of "border-right-color" */
-  set borderRightColor(String value) {
+  void set borderRightColor(String value) {
     _borderRightColor = value == null ? '' : value;
   }
   @Returns('String')
@@ -3667,7 +3667,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderRightStyle => this._borderRightStyle;
 
   /** Sets the value of "border-right-style" */
-  set borderRightStyle(String value) {
+  void set borderRightStyle(String value) {
     _borderRightStyle = value == null ? '' : value;
   }
   @Returns('String')
@@ -3678,7 +3678,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderRightWidth => this._borderRightWidth;
 
   /** Sets the value of "border-right-width" */
-  set borderRightWidth(String value) {
+  void set borderRightWidth(String value) {
     _borderRightWidth = value == null ? '' : value;
   }
   @Returns('String')
@@ -3689,7 +3689,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderSpacing => this._borderSpacing;
 
   /** Sets the value of "border-spacing" */
-  set borderSpacing(String value) {
+  void set borderSpacing(String value) {
     _borderSpacing = value == null ? '' : value;
   }
   @Returns('String')
@@ -3700,7 +3700,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderStyle => this._borderStyle;
 
   /** Sets the value of "border-style" */
-  set borderStyle(String value) {
+  void set borderStyle(String value) {
     _borderStyle = value == null ? '' : value;
   }
   @Returns('String')
@@ -3711,7 +3711,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderTop => this._borderTop;
 
   /** Sets the value of "border-top" */
-  set borderTop(String value) {
+  void set borderTop(String value) {
     _borderTop = value == null ? '' : value;
   }
   @Returns('String')
@@ -3722,7 +3722,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderTopColor => this._borderTopColor;
 
   /** Sets the value of "border-top-color" */
-  set borderTopColor(String value) {
+  void set borderTopColor(String value) {
     _borderTopColor = value == null ? '' : value;
   }
   @Returns('String')
@@ -3733,7 +3733,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderTopStyle => this._borderTopStyle;
 
   /** Sets the value of "border-top-style" */
-  set borderTopStyle(String value) {
+  void set borderTopStyle(String value) {
     _borderTopStyle = value == null ? '' : value;
   }
   @Returns('String')
@@ -3744,7 +3744,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderTopWidth => this._borderTopWidth;
 
   /** Sets the value of "border-top-width" */
-  set borderTopWidth(String value) {
+  void set borderTopWidth(String value) {
     _borderTopWidth = value == null ? '' : value;
   }
   @Returns('String')
@@ -3755,7 +3755,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderWidth => this._borderWidth;
 
   /** Sets the value of "border-width" */
-  set borderWidth(String value) {
+  void set borderWidth(String value) {
     _borderWidth = value == null ? '' : value;
   }
   @Returns('String')
@@ -3766,7 +3766,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get bottom => this._bottom;
 
   /** Sets the value of "bottom" */
-  set bottom(String value) {
+  void set bottom(String value) {
     _bottom = value == null ? '' : value;
   }
   @Returns('String')
@@ -3777,7 +3777,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get captionSide => this._captionSide;
 
   /** Sets the value of "caption-side" */
-  set captionSide(String value) {
+  void set captionSide(String value) {
     _captionSide = value == null ? '' : value;
   }
   @Returns('String')
@@ -3788,7 +3788,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get clear => this._clear;
 
   /** Sets the value of "clear" */
-  set clear(String value) {
+  void set clear(String value) {
     _clear = value == null ? '' : value;
   }
   @Returns('String')
@@ -3799,7 +3799,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get clip => this._clip;
 
   /** Sets the value of "clip" */
-  set clip(String value) {
+  void set clip(String value) {
     _clip = value == null ? '' : value;
   }
   @Returns('String')
@@ -3810,7 +3810,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get color => this._color;
 
   /** Sets the value of "color" */
-  set color(String value) {
+  void set color(String value) {
     _color = value == null ? '' : value;
   }
   @Returns('String')
@@ -3821,7 +3821,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get content => this._content;
 
   /** Sets the value of "content" */
-  set content(String value) {
+  void set content(String value) {
     _content = value == null ? '' : value;
   }
   @Returns('String')
@@ -3832,7 +3832,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get cursor => this._cursor;
 
   /** Sets the value of "cursor" */
-  set cursor(String value) {
+  void set cursor(String value) {
     _cursor = value == null ? '' : value;
   }
   @Returns('String')
@@ -3843,7 +3843,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get direction => this._direction;
 
   /** Sets the value of "direction" */
-  set direction(String value) {
+  void set direction(String value) {
     _direction = value == null ? '' : value;
   }
   @Returns('String')
@@ -3854,7 +3854,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get display => this._display;
 
   /** Sets the value of "display" */
-  set display(String value) {
+  void set display(String value) {
     _display = value == null ? '' : value;
   }
   @Returns('String')
@@ -3865,7 +3865,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get emptyCells => this._emptyCells;
 
   /** Sets the value of "empty-cells" */
-  set emptyCells(String value) {
+  void set emptyCells(String value) {
     _emptyCells = value == null ? '' : value;
   }
   @Returns('String')
@@ -3876,7 +3876,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get font => this._font;
 
   /** Sets the value of "font" */
-  set font(String value) {
+  void set font(String value) {
     _font = value == null ? '' : value;
   }
   @Returns('String')
@@ -3887,7 +3887,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get fontFamily => this._fontFamily;
 
   /** Sets the value of "font-family" */
-  set fontFamily(String value) {
+  void set fontFamily(String value) {
     _fontFamily = value == null ? '' : value;
   }
   @Returns('String')
@@ -3898,7 +3898,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get fontSize => this._fontSize;
 
   /** Sets the value of "font-size" */
-  set fontSize(String value) {
+  void set fontSize(String value) {
     _fontSize = value == null ? '' : value;
   }
   @Returns('String')
@@ -3909,7 +3909,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get fontStyle => this._fontStyle;
 
   /** Sets the value of "font-style" */
-  set fontStyle(String value) {
+  void set fontStyle(String value) {
     _fontStyle = value == null ? '' : value;
   }
   @Returns('String')
@@ -3920,7 +3920,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get fontVariant => this._fontVariant;
 
   /** Sets the value of "font-variant" */
-  set fontVariant(String value) {
+  void set fontVariant(String value) {
     _fontVariant = value == null ? '' : value;
   }
   @Returns('String')
@@ -3931,7 +3931,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get fontWeight => this._fontWeight;
 
   /** Sets the value of "font-weight" */
-  set fontWeight(String value) {
+  void set fontWeight(String value) {
     _fontWeight = value == null ? '' : value;
   }
   @Returns('String')
@@ -3942,7 +3942,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get height => this._height;
 
   /** Sets the value of "height" */
-  set height(String value) {
+  void set height(String value) {
     _height = value == null ? '' : value;
   }
   @Returns('String')
@@ -3953,7 +3953,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get left => this._left;
 
   /** Sets the value of "left" */
-  set left(String value) {
+  void set left(String value) {
     _left = value == null ? '' : value;
   }
   @Returns('String')
@@ -3964,7 +3964,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get letterSpacing => this._letterSpacing;
 
   /** Sets the value of "letter-spacing" */
-  set letterSpacing(String value) {
+  void set letterSpacing(String value) {
     _letterSpacing = value == null ? '' : value;
   }
   @Returns('String')
@@ -3975,7 +3975,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get lineHeight => this._lineHeight;
 
   /** Sets the value of "line-height" */
-  set lineHeight(String value) {
+  void set lineHeight(String value) {
     _lineHeight = value == null ? '' : value;
   }
   @Returns('String')
@@ -3986,7 +3986,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get listStyle => this._listStyle;
 
   /** Sets the value of "list-style" */
-  set listStyle(String value) {
+  void set listStyle(String value) {
     _listStyle = value == null ? '' : value;
   }
   @Returns('String')
@@ -3997,7 +3997,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get listStyleImage => this._listStyleImage;
 
   /** Sets the value of "list-style-image" */
-  set listStyleImage(String value) {
+  void set listStyleImage(String value) {
     _listStyleImage = value == null ? '' : value;
   }
   @Returns('String')
@@ -4008,7 +4008,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get listStylePosition => this._listStylePosition;
 
   /** Sets the value of "list-style-position" */
-  set listStylePosition(String value) {
+  void set listStylePosition(String value) {
     _listStylePosition = value == null ? '' : value;
   }
   @Returns('String')
@@ -4019,7 +4019,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get listStyleType => this._listStyleType;
 
   /** Sets the value of "list-style-type" */
-  set listStyleType(String value) {
+  void set listStyleType(String value) {
     _listStyleType = value == null ? '' : value;
   }
   @Returns('String')
@@ -4030,7 +4030,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get margin => this._margin;
 
   /** Sets the value of "margin" */
-  set margin(String value) {
+  void set margin(String value) {
     _margin = value == null ? '' : value;
   }
   @Returns('String')
@@ -4041,7 +4041,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get marginBottom => this._marginBottom;
 
   /** Sets the value of "margin-bottom" */
-  set marginBottom(String value) {
+  void set marginBottom(String value) {
     _marginBottom = value == null ? '' : value;
   }
   @Returns('String')
@@ -4052,7 +4052,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get marginLeft => this._marginLeft;
 
   /** Sets the value of "margin-left" */
-  set marginLeft(String value) {
+  void set marginLeft(String value) {
     _marginLeft = value == null ? '' : value;
   }
   @Returns('String')
@@ -4063,7 +4063,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get marginRight => this._marginRight;
 
   /** Sets the value of "margin-right" */
-  set marginRight(String value) {
+  void set marginRight(String value) {
     _marginRight = value == null ? '' : value;
   }
   @Returns('String')
@@ -4074,7 +4074,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get marginTop => this._marginTop;
 
   /** Sets the value of "margin-top" */
-  set marginTop(String value) {
+  void set marginTop(String value) {
     _marginTop = value == null ? '' : value;
   }
   @Returns('String')
@@ -4085,7 +4085,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get maxHeight => this._maxHeight;
 
   /** Sets the value of "max-height" */
-  set maxHeight(String value) {
+  void set maxHeight(String value) {
     _maxHeight = value == null ? '' : value;
   }
   @Returns('String')
@@ -4096,7 +4096,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get maxWidth => this._maxWidth;
 
   /** Sets the value of "max-width" */
-  set maxWidth(String value) {
+  void set maxWidth(String value) {
     _maxWidth = value == null ? '' : value;
   }
   @Returns('String')
@@ -4107,7 +4107,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get minHeight => this._minHeight;
 
   /** Sets the value of "min-height" */
-  set minHeight(String value) {
+  void set minHeight(String value) {
     _minHeight = value == null ? '' : value;
   }
   @Returns('String')
@@ -4118,7 +4118,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get minWidth => this._minWidth;
 
   /** Sets the value of "min-width" */
-  set minWidth(String value) {
+  void set minWidth(String value) {
     _minWidth = value == null ? '' : value;
   }
   @Returns('String')
@@ -4129,7 +4129,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get outline => this._outline;
 
   /** Sets the value of "outline" */
-  set outline(String value) {
+  void set outline(String value) {
     _outline = value == null ? '' : value;
   }
   @Returns('String')
@@ -4140,7 +4140,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get outlineColor => this._outlineColor;
 
   /** Sets the value of "outline-color" */
-  set outlineColor(String value) {
+  void set outlineColor(String value) {
     _outlineColor = value == null ? '' : value;
   }
   @Returns('String')
@@ -4151,7 +4151,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get outlineStyle => this._outlineStyle;
 
   /** Sets the value of "outline-style" */
-  set outlineStyle(String value) {
+  void set outlineStyle(String value) {
     _outlineStyle = value == null ? '' : value;
   }
   @Returns('String')
@@ -4162,7 +4162,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get outlineWidth => this._outlineWidth;
 
   /** Sets the value of "outline-width" */
-  set outlineWidth(String value) {
+  void set outlineWidth(String value) {
     _outlineWidth = value == null ? '' : value;
   }
   @Returns('String')
@@ -4173,7 +4173,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get overflow => this._overflow;
 
   /** Sets the value of "overflow" */
-  set overflow(String value) {
+  void set overflow(String value) {
     _overflow = value == null ? '' : value;
   }
   @Returns('String')
@@ -4184,7 +4184,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get padding => this._padding;
 
   /** Sets the value of "padding" */
-  set padding(String value) {
+  void set padding(String value) {
     _padding = value == null ? '' : value;
   }
   @Returns('String')
@@ -4195,7 +4195,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get paddingBottom => this._paddingBottom;
 
   /** Sets the value of "padding-bottom" */
-  set paddingBottom(String value) {
+  void set paddingBottom(String value) {
     _paddingBottom = value == null ? '' : value;
   }
   @Returns('String')
@@ -4206,7 +4206,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get paddingLeft => this._paddingLeft;
 
   /** Sets the value of "padding-left" */
-  set paddingLeft(String value) {
+  void set paddingLeft(String value) {
     _paddingLeft = value == null ? '' : value;
   }
   @Returns('String')
@@ -4217,7 +4217,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get paddingRight => this._paddingRight;
 
   /** Sets the value of "padding-right" */
-  set paddingRight(String value) {
+  void set paddingRight(String value) {
     _paddingRight = value == null ? '' : value;
   }
   @Returns('String')
@@ -4228,7 +4228,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get paddingTop => this._paddingTop;
 
   /** Sets the value of "padding-top" */
-  set paddingTop(String value) {
+  void set paddingTop(String value) {
     _paddingTop = value == null ? '' : value;
   }
   @Returns('String')
@@ -4239,7 +4239,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get pageBreakAfter => this._pageBreakAfter;
 
   /** Sets the value of "page-break-after" */
-  set pageBreakAfter(String value) {
+  void set pageBreakAfter(String value) {
     _pageBreakAfter = value == null ? '' : value;
   }
   @Returns('String')
@@ -4250,7 +4250,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get pageBreakBefore => this._pageBreakBefore;
 
   /** Sets the value of "page-break-before" */
-  set pageBreakBefore(String value) {
+  void set pageBreakBefore(String value) {
     _pageBreakBefore = value == null ? '' : value;
   }
   @Returns('String')
@@ -4261,7 +4261,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get pageBreakInside => this._pageBreakInside;
 
   /** Sets the value of "page-break-inside" */
-  set pageBreakInside(String value) {
+  void set pageBreakInside(String value) {
     _pageBreakInside = value == null ? '' : value;
   }
   @Returns('String')
@@ -4272,7 +4272,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get position => this._position;
 
   /** Sets the value of "position" */
-  set position(String value) {
+  void set position(String value) {
     _position = value == null ? '' : value;
   }
   @Returns('String')
@@ -4283,7 +4283,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get quotes => this._quotes;
 
   /** Sets the value of "quotes" */
-  set quotes(String value) {
+  void set quotes(String value) {
     _quotes = value == null ? '' : value;
   }
   @Returns('String')
@@ -4294,7 +4294,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get right => this._right;
 
   /** Sets the value of "right" */
-  set right(String value) {
+  void set right(String value) {
     _right = value == null ? '' : value;
   }
   @Returns('String')
@@ -4305,7 +4305,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get tableLayout => this._tableLayout;
 
   /** Sets the value of "table-layout" */
-  set tableLayout(String value) {
+  void set tableLayout(String value) {
     _tableLayout = value == null ? '' : value;
   }
   @Returns('String')
@@ -4316,7 +4316,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get textAlign => this._textAlign;
 
   /** Sets the value of "text-align" */
-  set textAlign(String value) {
+  void set textAlign(String value) {
     _textAlign = value == null ? '' : value;
   }
   @Returns('String')
@@ -4327,7 +4327,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get textDecoration => this._textDecoration;
 
   /** Sets the value of "text-decoration" */
-  set textDecoration(String value) {
+  void set textDecoration(String value) {
     _textDecoration = value == null ? '' : value;
   }
   @Returns('String')
@@ -4338,7 +4338,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get textIndent => this._textIndent;
 
   /** Sets the value of "text-indent" */
-  set textIndent(String value) {
+  void set textIndent(String value) {
     _textIndent = value == null ? '' : value;
   }
   @Returns('String')
@@ -4349,7 +4349,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get textTransform => this._textTransform;
 
   /** Sets the value of "text-transform" */
-  set textTransform(String value) {
+  void set textTransform(String value) {
     _textTransform = value == null ? '' : value;
   }
   @Returns('String')
@@ -4360,7 +4360,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get top => this._top;
 
   /** Sets the value of "top" */
-  set top(String value) {
+  void set top(String value) {
     _top = value == null ? '' : value;
   }
   @Returns('String')
@@ -4371,7 +4371,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get unicodeBidi => this._unicodeBidi;
 
   /** Sets the value of "unicode-bidi" */
-  set unicodeBidi(String value) {
+  void set unicodeBidi(String value) {
     _unicodeBidi = value == null ? '' : value;
   }
   @Returns('String')
@@ -4382,7 +4382,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get verticalAlign => this._verticalAlign;
 
   /** Sets the value of "vertical-align" */
-  set verticalAlign(String value) {
+  void set verticalAlign(String value) {
     _verticalAlign = value == null ? '' : value;
   }
   @Returns('String')
@@ -4393,7 +4393,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get visibility => this._visibility;
 
   /** Sets the value of "visibility" */
-  set visibility(String value) {
+  void set visibility(String value) {
     _visibility = value == null ? '' : value;
   }
   @Returns('String')
@@ -4404,7 +4404,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get whiteSpace => this._whiteSpace;
 
   /** Sets the value of "white-space" */
-  set whiteSpace(String value) {
+  void set whiteSpace(String value) {
     _whiteSpace = value == null ? '' : value;
   }
   @Returns('String')
@@ -4415,7 +4415,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get width => this._width;
 
   /** Sets the value of "width" */
-  set width(String value) {
+  void set width(String value) {
     _width = value == null ? '' : value;
   }
   @Returns('String')
@@ -4426,7 +4426,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get wordSpacing => this._wordSpacing;
 
   /** Sets the value of "word-spacing" */
-  set wordSpacing(String value) {
+  void set wordSpacing(String value) {
     _wordSpacing = value == null ? '' : value;
   }
   @Returns('String')
@@ -4437,7 +4437,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get zIndex => this._zIndex;
 
   /** Sets the value of "z-index" */
-  set zIndex(String value) {
+  void set zIndex(String value) {
     _zIndex = value == null ? '' : value;
   }
   @Returns('String')
@@ -4473,452 +4473,452 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   }
 
   /** Sets the value of "background" */
-  set background(String value) {
+  void set background(String value) {
     _setAll('background', value);
   }
     
   /** Sets the value of "background-attachment" */
-  set backgroundAttachment(String value) {
+  void set backgroundAttachment(String value) {
     _setAll('backgroundAttachment', value);
   }
     
   /** Sets the value of "background-color" */
-  set backgroundColor(String value) {
+  void set backgroundColor(String value) {
     _setAll('backgroundColor', value);
   }
     
   /** Sets the value of "background-image" */
-  set backgroundImage(String value) {
+  void set backgroundImage(String value) {
     _setAll('backgroundImage', value);
   }
     
   /** Sets the value of "background-position" */
-  set backgroundPosition(String value) {
+  void set backgroundPosition(String value) {
     _setAll('backgroundPosition', value);
   }
     
   /** Sets the value of "background-repeat" */
-  set backgroundRepeat(String value) {
+  void set backgroundRepeat(String value) {
     _setAll('backgroundRepeat', value);
   }
     
   /** Sets the value of "border" */
-  set border(String value) {
+  void set border(String value) {
     _setAll('border', value);
   }
     
   /** Sets the value of "border-bottom" */
-  set borderBottom(String value) {
+  void set borderBottom(String value) {
     _setAll('borderBottom', value);
   }
     
   /** Sets the value of "border-bottom-color" */
-  set borderBottomColor(String value) {
+  void set borderBottomColor(String value) {
     _setAll('borderBottomColor', value);
   }
     
   /** Sets the value of "border-bottom-style" */
-  set borderBottomStyle(String value) {
+  void set borderBottomStyle(String value) {
     _setAll('borderBottomStyle', value);
   }
     
   /** Sets the value of "border-bottom-width" */
-  set borderBottomWidth(String value) {
+  void set borderBottomWidth(String value) {
     _setAll('borderBottomWidth', value);
   }
     
   /** Sets the value of "border-collapse" */
-  set borderCollapse(String value) {
+  void set borderCollapse(String value) {
     _setAll('borderCollapse', value);
   }
     
   /** Sets the value of "border-color" */
-  set borderColor(String value) {
+  void set borderColor(String value) {
     _setAll('borderColor', value);
   }
     
   /** Sets the value of "border-left" */
-  set borderLeft(String value) {
+  void set borderLeft(String value) {
     _setAll('borderLeft', value);
   }
     
   /** Sets the value of "border-left-color" */
-  set borderLeftColor(String value) {
+  void set borderLeftColor(String value) {
     _setAll('borderLeftColor', value);
   }
     
   /** Sets the value of "border-left-style" */
-  set borderLeftStyle(String value) {
+  void set borderLeftStyle(String value) {
     _setAll('borderLeftStyle', value);
   }
     
   /** Sets the value of "border-left-width" */
-  set borderLeftWidth(String value) {
+  void set borderLeftWidth(String value) {
     _setAll('borderLeftWidth', value);
   }
     
   /** Sets the value of "border-right" */
-  set borderRight(String value) {
+  void set borderRight(String value) {
     _setAll('borderRight', value);
   }
     
   /** Sets the value of "border-right-color" */
-  set borderRightColor(String value) {
+  void set borderRightColor(String value) {
     _setAll('borderRightColor', value);
   }
     
   /** Sets the value of "border-right-style" */
-  set borderRightStyle(String value) {
+  void set borderRightStyle(String value) {
     _setAll('borderRightStyle', value);
   }
     
   /** Sets the value of "border-right-width" */
-  set borderRightWidth(String value) {
+  void set borderRightWidth(String value) {
     _setAll('borderRightWidth', value);
   }
     
   /** Sets the value of "border-spacing" */
-  set borderSpacing(String value) {
+  void set borderSpacing(String value) {
     _setAll('borderSpacing', value);
   }
     
   /** Sets the value of "border-style" */
-  set borderStyle(String value) {
+  void set borderStyle(String value) {
     _setAll('borderStyle', value);
   }
     
   /** Sets the value of "border-top" */
-  set borderTop(String value) {
+  void set borderTop(String value) {
     _setAll('borderTop', value);
   }
     
   /** Sets the value of "border-top-color" */
-  set borderTopColor(String value) {
+  void set borderTopColor(String value) {
     _setAll('borderTopColor', value);
   }
     
   /** Sets the value of "border-top-style" */
-  set borderTopStyle(String value) {
+  void set borderTopStyle(String value) {
     _setAll('borderTopStyle', value);
   }
     
   /** Sets the value of "border-top-width" */
-  set borderTopWidth(String value) {
+  void set borderTopWidth(String value) {
     _setAll('borderTopWidth', value);
   }
     
   /** Sets the value of "border-width" */
-  set borderWidth(String value) {
+  void set borderWidth(String value) {
     _setAll('borderWidth', value);
   }
     
   /** Sets the value of "bottom" */
-  set bottom(String value) {
+  void set bottom(String value) {
     _setAll('bottom', value);
   }
     
   /** Sets the value of "caption-side" */
-  set captionSide(String value) {
+  void set captionSide(String value) {
     _setAll('captionSide', value);
   }
     
   /** Sets the value of "clear" */
-  set clear(String value) {
+  void set clear(String value) {
     _setAll('clear', value);
   }
     
   /** Sets the value of "clip" */
-  set clip(String value) {
+  void set clip(String value) {
     _setAll('clip', value);
   }
     
   /** Sets the value of "color" */
-  set color(String value) {
+  void set color(String value) {
     _setAll('color', value);
   }
     
   /** Sets the value of "content" */
-  set content(String value) {
+  void set content(String value) {
     _setAll('content', value);
   }
     
   /** Sets the value of "cursor" */
-  set cursor(String value) {
+  void set cursor(String value) {
     _setAll('cursor', value);
   }
     
   /** Sets the value of "direction" */
-  set direction(String value) {
+  void set direction(String value) {
     _setAll('direction', value);
   }
     
   /** Sets the value of "display" */
-  set display(String value) {
+  void set display(String value) {
     _setAll('display', value);
   }
     
   /** Sets the value of "empty-cells" */
-  set emptyCells(String value) {
+  void set emptyCells(String value) {
     _setAll('emptyCells', value);
   }
     
   /** Sets the value of "font" */
-  set font(String value) {
+  void set font(String value) {
     _setAll('font', value);
   }
     
   /** Sets the value of "font-family" */
-  set fontFamily(String value) {
+  void set fontFamily(String value) {
     _setAll('fontFamily', value);
   }
     
   /** Sets the value of "font-size" */
-  set fontSize(String value) {
+  void set fontSize(String value) {
     _setAll('fontSize', value);
   }
     
   /** Sets the value of "font-style" */
-  set fontStyle(String value) {
+  void set fontStyle(String value) {
     _setAll('fontStyle', value);
   }
     
   /** Sets the value of "font-variant" */
-  set fontVariant(String value) {
+  void set fontVariant(String value) {
     _setAll('fontVariant', value);
   }
     
   /** Sets the value of "font-weight" */
-  set fontWeight(String value) {
+  void set fontWeight(String value) {
     _setAll('fontWeight', value);
   }
     
   /** Sets the value of "height" */
-  set height(String value) {
+  void set height(String value) {
     _setAll('height', value);
   }
     
   /** Sets the value of "left" */
-  set left(String value) {
+  void set left(String value) {
     _setAll('left', value);
   }
     
   /** Sets the value of "letter-spacing" */
-  set letterSpacing(String value) {
+  void set letterSpacing(String value) {
     _setAll('letterSpacing', value);
   }
     
   /** Sets the value of "line-height" */
-  set lineHeight(String value) {
+  void set lineHeight(String value) {
     _setAll('lineHeight', value);
   }
     
   /** Sets the value of "list-style" */
-  set listStyle(String value) {
+  void set listStyle(String value) {
     _setAll('listStyle', value);
   }
     
   /** Sets the value of "list-style-image" */
-  set listStyleImage(String value) {
+  void set listStyleImage(String value) {
     _setAll('listStyleImage', value);
   }
     
   /** Sets the value of "list-style-position" */
-  set listStylePosition(String value) {
+  void set listStylePosition(String value) {
     _setAll('listStylePosition', value);
   }
     
   /** Sets the value of "list-style-type" */
-  set listStyleType(String value) {
+  void set listStyleType(String value) {
     _setAll('listStyleType', value);
   }
     
   /** Sets the value of "margin" */
-  set margin(String value) {
+  void set margin(String value) {
     _setAll('margin', value);
   }
     
   /** Sets the value of "margin-bottom" */
-  set marginBottom(String value) {
+  void set marginBottom(String value) {
     _setAll('marginBottom', value);
   }
     
   /** Sets the value of "margin-left" */
-  set marginLeft(String value) {
+  void set marginLeft(String value) {
     _setAll('marginLeft', value);
   }
     
   /** Sets the value of "margin-right" */
-  set marginRight(String value) {
+  void set marginRight(String value) {
     _setAll('marginRight', value);
   }
     
   /** Sets the value of "margin-top" */
-  set marginTop(String value) {
+  void set marginTop(String value) {
     _setAll('marginTop', value);
   }
     
   /** Sets the value of "max-height" */
-  set maxHeight(String value) {
+  void set maxHeight(String value) {
     _setAll('maxHeight', value);
   }
     
   /** Sets the value of "max-width" */
-  set maxWidth(String value) {
+  void set maxWidth(String value) {
     _setAll('maxWidth', value);
   }
     
   /** Sets the value of "min-height" */
-  set minHeight(String value) {
+  void set minHeight(String value) {
     _setAll('minHeight', value);
   }
     
   /** Sets the value of "min-width" */
-  set minWidth(String value) {
+  void set minWidth(String value) {
     _setAll('minWidth', value);
   }
     
   /** Sets the value of "outline" */
-  set outline(String value) {
+  void set outline(String value) {
     _setAll('outline', value);
   }
     
   /** Sets the value of "outline-color" */
-  set outlineColor(String value) {
+  void set outlineColor(String value) {
     _setAll('outlineColor', value);
   }
     
   /** Sets the value of "outline-style" */
-  set outlineStyle(String value) {
+  void set outlineStyle(String value) {
     _setAll('outlineStyle', value);
   }
     
   /** Sets the value of "outline-width" */
-  set outlineWidth(String value) {
+  void set outlineWidth(String value) {
     _setAll('outlineWidth', value);
   }
     
   /** Sets the value of "overflow" */
-  set overflow(String value) {
+  void set overflow(String value) {
     _setAll('overflow', value);
   }
     
   /** Sets the value of "padding" */
-  set padding(String value) {
+  void set padding(String value) {
     _setAll('padding', value);
   }
     
   /** Sets the value of "padding-bottom" */
-  set paddingBottom(String value) {
+  void set paddingBottom(String value) {
     _setAll('paddingBottom', value);
   }
     
   /** Sets the value of "padding-left" */
-  set paddingLeft(String value) {
+  void set paddingLeft(String value) {
     _setAll('paddingLeft', value);
   }
     
   /** Sets the value of "padding-right" */
-  set paddingRight(String value) {
+  void set paddingRight(String value) {
     _setAll('paddingRight', value);
   }
     
   /** Sets the value of "padding-top" */
-  set paddingTop(String value) {
+  void set paddingTop(String value) {
     _setAll('paddingTop', value);
   }
     
   /** Sets the value of "page-break-after" */
-  set pageBreakAfter(String value) {
+  void set pageBreakAfter(String value) {
     _setAll('pageBreakAfter', value);
   }
     
   /** Sets the value of "page-break-before" */
-  set pageBreakBefore(String value) {
+  void set pageBreakBefore(String value) {
     _setAll('pageBreakBefore', value);
   }
     
   /** Sets the value of "page-break-inside" */
-  set pageBreakInside(String value) {
+  void set pageBreakInside(String value) {
     _setAll('pageBreakInside', value);
   }
     
   /** Sets the value of "position" */
-  set position(String value) {
+  void set position(String value) {
     _setAll('position', value);
   }
     
   /** Sets the value of "quotes" */
-  set quotes(String value) {
+  void set quotes(String value) {
     _setAll('quotes', value);
   }
     
   /** Sets the value of "right" */
-  set right(String value) {
+  void set right(String value) {
     _setAll('right', value);
   }
     
   /** Sets the value of "table-layout" */
-  set tableLayout(String value) {
+  void set tableLayout(String value) {
     _setAll('tableLayout', value);
   }
     
   /** Sets the value of "text-align" */
-  set textAlign(String value) {
+  void set textAlign(String value) {
     _setAll('textAlign', value);
   }
     
   /** Sets the value of "text-decoration" */
-  set textDecoration(String value) {
+  void set textDecoration(String value) {
     _setAll('textDecoration', value);
   }
     
   /** Sets the value of "text-indent" */
-  set textIndent(String value) {
+  void set textIndent(String value) {
     _setAll('textIndent', value);
   }
     
   /** Sets the value of "text-transform" */
-  set textTransform(String value) {
+  void set textTransform(String value) {
     _setAll('textTransform', value);
   }
     
   /** Sets the value of "top" */
-  set top(String value) {
+  void set top(String value) {
     _setAll('top', value);
   }
     
   /** Sets the value of "unicode-bidi" */
-  set unicodeBidi(String value) {
+  void set unicodeBidi(String value) {
     _setAll('unicodeBidi', value);
   }
     
   /** Sets the value of "vertical-align" */
-  set verticalAlign(String value) {
+  void set verticalAlign(String value) {
     _setAll('verticalAlign', value);
   }
     
   /** Sets the value of "visibility" */
-  set visibility(String value) {
+  void set visibility(String value) {
     _setAll('visibility', value);
   }
     
   /** Sets the value of "white-space" */
-  set whiteSpace(String value) {
+  void set whiteSpace(String value) {
     _setAll('whiteSpace', value);
   }
     
   /** Sets the value of "width" */
-  set width(String value) {
+  void set width(String value) {
     _setAll('width', value);
   }
     
   /** Sets the value of "word-spacing" */
-  set wordSpacing(String value) {
+  void set wordSpacing(String value) {
     _setAll('wordSpacing', value);
   }
     
   /** Sets the value of "z-index" */
-  set zIndex(String value) {
+  void set zIndex(String value) {
     _setAll('zIndex', value);
   }
     
@@ -4939,7 +4939,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('align-content');
 
   /** Sets the value of "align-content" */
-  set alignContent(String value) {
+  void set alignContent(String value) {
     setProperty('align-content', value, '');
   }
 
@@ -4948,7 +4948,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('align-items');
 
   /** Sets the value of "align-items" */
-  set alignItems(String value) {
+  void set alignItems(String value) {
     setProperty('align-items', value, '');
   }
 
@@ -4957,7 +4957,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('align-self');
 
   /** Sets the value of "align-self" */
-  set alignSelf(String value) {
+  void set alignSelf(String value) {
     setProperty('align-self', value, '');
   }
 
@@ -4966,7 +4966,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation');
 
   /** Sets the value of "animation" */
-  set animation(String value) {
+  void set animation(String value) {
     setProperty('animation', value, '');
   }
 
@@ -4975,7 +4975,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-delay');
 
   /** Sets the value of "animation-delay" */
-  set animationDelay(String value) {
+  void set animationDelay(String value) {
     setProperty('animation-delay', value, '');
   }
 
@@ -4984,7 +4984,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-direction');
 
   /** Sets the value of "animation-direction" */
-  set animationDirection(String value) {
+  void set animationDirection(String value) {
     setProperty('animation-direction', value, '');
   }
 
@@ -4993,7 +4993,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-duration');
 
   /** Sets the value of "animation-duration" */
-  set animationDuration(String value) {
+  void set animationDuration(String value) {
     setProperty('animation-duration', value, '');
   }
 
@@ -5002,7 +5002,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-fill-mode');
 
   /** Sets the value of "animation-fill-mode" */
-  set animationFillMode(String value) {
+  void set animationFillMode(String value) {
     setProperty('animation-fill-mode', value, '');
   }
 
@@ -5011,7 +5011,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-iteration-count');
 
   /** Sets the value of "animation-iteration-count" */
-  set animationIterationCount(String value) {
+  void set animationIterationCount(String value) {
     setProperty('animation-iteration-count', value, '');
   }
 
@@ -5020,7 +5020,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-name');
 
   /** Sets the value of "animation-name" */
-  set animationName(String value) {
+  void set animationName(String value) {
     setProperty('animation-name', value, '');
   }
 
@@ -5029,7 +5029,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-play-state');
 
   /** Sets the value of "animation-play-state" */
-  set animationPlayState(String value) {
+  void set animationPlayState(String value) {
     setProperty('animation-play-state', value, '');
   }
 
@@ -5038,7 +5038,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-timing-function');
 
   /** Sets the value of "animation-timing-function" */
-  set animationTimingFunction(String value) {
+  void set animationTimingFunction(String value) {
     setProperty('animation-timing-function', value, '');
   }
 
@@ -5047,7 +5047,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('app-region');
 
   /** Sets the value of "app-region" */
-  set appRegion(String value) {
+  void set appRegion(String value) {
     setProperty('app-region', value, '');
   }
 
@@ -5056,7 +5056,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('appearance');
 
   /** Sets the value of "appearance" */
-  set appearance(String value) {
+  void set appearance(String value) {
     setProperty('appearance', value, '');
   }
 
@@ -5065,7 +5065,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('aspect-ratio');
 
   /** Sets the value of "aspect-ratio" */
-  set aspectRatio(String value) {
+  void set aspectRatio(String value) {
     setProperty('aspect-ratio', value, '');
   }
 
@@ -5074,7 +5074,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('backface-visibility');
 
   /** Sets the value of "backface-visibility" */
-  set backfaceVisibility(String value) {
+  void set backfaceVisibility(String value) {
     setProperty('backface-visibility', value, '');
   }
 
@@ -5083,7 +5083,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background');
 
   /** Sets the value of "background" */
-  set background(String value) {
+  void set background(String value) {
     setProperty('background', value, '');
   }
 
@@ -5092,7 +5092,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-attachment');
 
   /** Sets the value of "background-attachment" */
-  set backgroundAttachment(String value) {
+  void set backgroundAttachment(String value) {
     setProperty('background-attachment', value, '');
   }
 
@@ -5101,7 +5101,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-blend-mode');
 
   /** Sets the value of "background-blend-mode" */
-  set backgroundBlendMode(String value) {
+  void set backgroundBlendMode(String value) {
     setProperty('background-blend-mode', value, '');
   }
 
@@ -5110,7 +5110,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-clip');
 
   /** Sets the value of "background-clip" */
-  set backgroundClip(String value) {
+  void set backgroundClip(String value) {
     setProperty('background-clip', value, '');
   }
 
@@ -5119,7 +5119,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-color');
 
   /** Sets the value of "background-color" */
-  set backgroundColor(String value) {
+  void set backgroundColor(String value) {
     setProperty('background-color', value, '');
   }
 
@@ -5128,7 +5128,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-composite');
 
   /** Sets the value of "background-composite" */
-  set backgroundComposite(String value) {
+  void set backgroundComposite(String value) {
     setProperty('background-composite', value, '');
   }
 
@@ -5137,7 +5137,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-image');
 
   /** Sets the value of "background-image" */
-  set backgroundImage(String value) {
+  void set backgroundImage(String value) {
     setProperty('background-image', value, '');
   }
 
@@ -5146,7 +5146,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-origin');
 
   /** Sets the value of "background-origin" */
-  set backgroundOrigin(String value) {
+  void set backgroundOrigin(String value) {
     setProperty('background-origin', value, '');
   }
 
@@ -5155,7 +5155,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-position');
 
   /** Sets the value of "background-position" */
-  set backgroundPosition(String value) {
+  void set backgroundPosition(String value) {
     setProperty('background-position', value, '');
   }
 
@@ -5164,7 +5164,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-position-x');
 
   /** Sets the value of "background-position-x" */
-  set backgroundPositionX(String value) {
+  void set backgroundPositionX(String value) {
     setProperty('background-position-x', value, '');
   }
 
@@ -5173,7 +5173,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-position-y');
 
   /** Sets the value of "background-position-y" */
-  set backgroundPositionY(String value) {
+  void set backgroundPositionY(String value) {
     setProperty('background-position-y', value, '');
   }
 
@@ -5182,7 +5182,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-repeat');
 
   /** Sets the value of "background-repeat" */
-  set backgroundRepeat(String value) {
+  void set backgroundRepeat(String value) {
     setProperty('background-repeat', value, '');
   }
 
@@ -5191,7 +5191,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-repeat-x');
 
   /** Sets the value of "background-repeat-x" */
-  set backgroundRepeatX(String value) {
+  void set backgroundRepeatX(String value) {
     setProperty('background-repeat-x', value, '');
   }
 
@@ -5200,7 +5200,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-repeat-y');
 
   /** Sets the value of "background-repeat-y" */
-  set backgroundRepeatY(String value) {
+  void set backgroundRepeatY(String value) {
     setProperty('background-repeat-y', value, '');
   }
 
@@ -5209,7 +5209,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-size');
 
   /** Sets the value of "background-size" */
-  set backgroundSize(String value) {
+  void set backgroundSize(String value) {
     setProperty('background-size', value, '');
   }
 
@@ -5218,7 +5218,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border');
 
   /** Sets the value of "border" */
-  set border(String value) {
+  void set border(String value) {
     setProperty('border', value, '');
   }
 
@@ -5227,7 +5227,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-after');
 
   /** Sets the value of "border-after" */
-  set borderAfter(String value) {
+  void set borderAfter(String value) {
     setProperty('border-after', value, '');
   }
 
@@ -5236,7 +5236,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-after-color');
 
   /** Sets the value of "border-after-color" */
-  set borderAfterColor(String value) {
+  void set borderAfterColor(String value) {
     setProperty('border-after-color', value, '');
   }
 
@@ -5245,7 +5245,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-after-style');
 
   /** Sets the value of "border-after-style" */
-  set borderAfterStyle(String value) {
+  void set borderAfterStyle(String value) {
     setProperty('border-after-style', value, '');
   }
 
@@ -5254,7 +5254,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-after-width');
 
   /** Sets the value of "border-after-width" */
-  set borderAfterWidth(String value) {
+  void set borderAfterWidth(String value) {
     setProperty('border-after-width', value, '');
   }
 
@@ -5263,7 +5263,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-before');
 
   /** Sets the value of "border-before" */
-  set borderBefore(String value) {
+  void set borderBefore(String value) {
     setProperty('border-before', value, '');
   }
 
@@ -5272,7 +5272,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-before-color');
 
   /** Sets the value of "border-before-color" */
-  set borderBeforeColor(String value) {
+  void set borderBeforeColor(String value) {
     setProperty('border-before-color', value, '');
   }
 
@@ -5281,7 +5281,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-before-style');
 
   /** Sets the value of "border-before-style" */
-  set borderBeforeStyle(String value) {
+  void set borderBeforeStyle(String value) {
     setProperty('border-before-style', value, '');
   }
 
@@ -5290,7 +5290,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-before-width');
 
   /** Sets the value of "border-before-width" */
-  set borderBeforeWidth(String value) {
+  void set borderBeforeWidth(String value) {
     setProperty('border-before-width', value, '');
   }
 
@@ -5299,7 +5299,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom');
 
   /** Sets the value of "border-bottom" */
-  set borderBottom(String value) {
+  void set borderBottom(String value) {
     setProperty('border-bottom', value, '');
   }
 
@@ -5308,7 +5308,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom-color');
 
   /** Sets the value of "border-bottom-color" */
-  set borderBottomColor(String value) {
+  void set borderBottomColor(String value) {
     setProperty('border-bottom-color', value, '');
   }
 
@@ -5317,7 +5317,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom-left-radius');
 
   /** Sets the value of "border-bottom-left-radius" */
-  set borderBottomLeftRadius(String value) {
+  void set borderBottomLeftRadius(String value) {
     setProperty('border-bottom-left-radius', value, '');
   }
 
@@ -5326,7 +5326,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom-right-radius');
 
   /** Sets the value of "border-bottom-right-radius" */
-  set borderBottomRightRadius(String value) {
+  void set borderBottomRightRadius(String value) {
     setProperty('border-bottom-right-radius', value, '');
   }
 
@@ -5335,7 +5335,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom-style');
 
   /** Sets the value of "border-bottom-style" */
-  set borderBottomStyle(String value) {
+  void set borderBottomStyle(String value) {
     setProperty('border-bottom-style', value, '');
   }
 
@@ -5344,7 +5344,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom-width');
 
   /** Sets the value of "border-bottom-width" */
-  set borderBottomWidth(String value) {
+  void set borderBottomWidth(String value) {
     setProperty('border-bottom-width', value, '');
   }
 
@@ -5353,7 +5353,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-collapse');
 
   /** Sets the value of "border-collapse" */
-  set borderCollapse(String value) {
+  void set borderCollapse(String value) {
     setProperty('border-collapse', value, '');
   }
 
@@ -5362,7 +5362,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-color');
 
   /** Sets the value of "border-color" */
-  set borderColor(String value) {
+  void set borderColor(String value) {
     setProperty('border-color', value, '');
   }
 
@@ -5371,7 +5371,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-end');
 
   /** Sets the value of "border-end" */
-  set borderEnd(String value) {
+  void set borderEnd(String value) {
     setProperty('border-end', value, '');
   }
 
@@ -5380,7 +5380,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-end-color');
 
   /** Sets the value of "border-end-color" */
-  set borderEndColor(String value) {
+  void set borderEndColor(String value) {
     setProperty('border-end-color', value, '');
   }
 
@@ -5389,7 +5389,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-end-style');
 
   /** Sets the value of "border-end-style" */
-  set borderEndStyle(String value) {
+  void set borderEndStyle(String value) {
     setProperty('border-end-style', value, '');
   }
 
@@ -5398,7 +5398,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-end-width');
 
   /** Sets the value of "border-end-width" */
-  set borderEndWidth(String value) {
+  void set borderEndWidth(String value) {
     setProperty('border-end-width', value, '');
   }
 
@@ -5407,7 +5407,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-fit');
 
   /** Sets the value of "border-fit" */
-  set borderFit(String value) {
+  void set borderFit(String value) {
     setProperty('border-fit', value, '');
   }
 
@@ -5416,7 +5416,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-horizontal-spacing');
 
   /** Sets the value of "border-horizontal-spacing" */
-  set borderHorizontalSpacing(String value) {
+  void set borderHorizontalSpacing(String value) {
     setProperty('border-horizontal-spacing', value, '');
   }
 
@@ -5425,7 +5425,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image');
 
   /** Sets the value of "border-image" */
-  set borderImage(String value) {
+  void set borderImage(String value) {
     setProperty('border-image', value, '');
   }
 
@@ -5434,7 +5434,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image-outset');
 
   /** Sets the value of "border-image-outset" */
-  set borderImageOutset(String value) {
+  void set borderImageOutset(String value) {
     setProperty('border-image-outset', value, '');
   }
 
@@ -5443,7 +5443,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image-repeat');
 
   /** Sets the value of "border-image-repeat" */
-  set borderImageRepeat(String value) {
+  void set borderImageRepeat(String value) {
     setProperty('border-image-repeat', value, '');
   }
 
@@ -5452,7 +5452,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image-slice');
 
   /** Sets the value of "border-image-slice" */
-  set borderImageSlice(String value) {
+  void set borderImageSlice(String value) {
     setProperty('border-image-slice', value, '');
   }
 
@@ -5461,7 +5461,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image-source');
 
   /** Sets the value of "border-image-source" */
-  set borderImageSource(String value) {
+  void set borderImageSource(String value) {
     setProperty('border-image-source', value, '');
   }
 
@@ -5470,7 +5470,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image-width');
 
   /** Sets the value of "border-image-width" */
-  set borderImageWidth(String value) {
+  void set borderImageWidth(String value) {
     setProperty('border-image-width', value, '');
   }
 
@@ -5479,7 +5479,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-left');
 
   /** Sets the value of "border-left" */
-  set borderLeft(String value) {
+  void set borderLeft(String value) {
     setProperty('border-left', value, '');
   }
 
@@ -5488,7 +5488,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-left-color');
 
   /** Sets the value of "border-left-color" */
-  set borderLeftColor(String value) {
+  void set borderLeftColor(String value) {
     setProperty('border-left-color', value, '');
   }
 
@@ -5497,7 +5497,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-left-style');
 
   /** Sets the value of "border-left-style" */
-  set borderLeftStyle(String value) {
+  void set borderLeftStyle(String value) {
     setProperty('border-left-style', value, '');
   }
 
@@ -5506,7 +5506,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-left-width');
 
   /** Sets the value of "border-left-width" */
-  set borderLeftWidth(String value) {
+  void set borderLeftWidth(String value) {
     setProperty('border-left-width', value, '');
   }
 
@@ -5515,7 +5515,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-radius');
 
   /** Sets the value of "border-radius" */
-  set borderRadius(String value) {
+  void set borderRadius(String value) {
     setProperty('border-radius', value, '');
   }
 
@@ -5524,7 +5524,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-right');
 
   /** Sets the value of "border-right" */
-  set borderRight(String value) {
+  void set borderRight(String value) {
     setProperty('border-right', value, '');
   }
 
@@ -5533,7 +5533,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-right-color');
 
   /** Sets the value of "border-right-color" */
-  set borderRightColor(String value) {
+  void set borderRightColor(String value) {
     setProperty('border-right-color', value, '');
   }
 
@@ -5542,7 +5542,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-right-style');
 
   /** Sets the value of "border-right-style" */
-  set borderRightStyle(String value) {
+  void set borderRightStyle(String value) {
     setProperty('border-right-style', value, '');
   }
 
@@ -5551,7 +5551,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-right-width');
 
   /** Sets the value of "border-right-width" */
-  set borderRightWidth(String value) {
+  void set borderRightWidth(String value) {
     setProperty('border-right-width', value, '');
   }
 
@@ -5560,7 +5560,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-spacing');
 
   /** Sets the value of "border-spacing" */
-  set borderSpacing(String value) {
+  void set borderSpacing(String value) {
     setProperty('border-spacing', value, '');
   }
 
@@ -5569,7 +5569,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-start');
 
   /** Sets the value of "border-start" */
-  set borderStart(String value) {
+  void set borderStart(String value) {
     setProperty('border-start', value, '');
   }
 
@@ -5578,7 +5578,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-start-color');
 
   /** Sets the value of "border-start-color" */
-  set borderStartColor(String value) {
+  void set borderStartColor(String value) {
     setProperty('border-start-color', value, '');
   }
 
@@ -5587,7 +5587,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-start-style');
 
   /** Sets the value of "border-start-style" */
-  set borderStartStyle(String value) {
+  void set borderStartStyle(String value) {
     setProperty('border-start-style', value, '');
   }
 
@@ -5596,7 +5596,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-start-width');
 
   /** Sets the value of "border-start-width" */
-  set borderStartWidth(String value) {
+  void set borderStartWidth(String value) {
     setProperty('border-start-width', value, '');
   }
 
@@ -5605,7 +5605,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-style');
 
   /** Sets the value of "border-style" */
-  set borderStyle(String value) {
+  void set borderStyle(String value) {
     setProperty('border-style', value, '');
   }
 
@@ -5614,7 +5614,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top');
 
   /** Sets the value of "border-top" */
-  set borderTop(String value) {
+  void set borderTop(String value) {
     setProperty('border-top', value, '');
   }
 
@@ -5623,7 +5623,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top-color');
 
   /** Sets the value of "border-top-color" */
-  set borderTopColor(String value) {
+  void set borderTopColor(String value) {
     setProperty('border-top-color', value, '');
   }
 
@@ -5632,7 +5632,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top-left-radius');
 
   /** Sets the value of "border-top-left-radius" */
-  set borderTopLeftRadius(String value) {
+  void set borderTopLeftRadius(String value) {
     setProperty('border-top-left-radius', value, '');
   }
 
@@ -5641,7 +5641,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top-right-radius');
 
   /** Sets the value of "border-top-right-radius" */
-  set borderTopRightRadius(String value) {
+  void set borderTopRightRadius(String value) {
     setProperty('border-top-right-radius', value, '');
   }
 
@@ -5650,7 +5650,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top-style');
 
   /** Sets the value of "border-top-style" */
-  set borderTopStyle(String value) {
+  void set borderTopStyle(String value) {
     setProperty('border-top-style', value, '');
   }
 
@@ -5659,7 +5659,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top-width');
 
   /** Sets the value of "border-top-width" */
-  set borderTopWidth(String value) {
+  void set borderTopWidth(String value) {
     setProperty('border-top-width', value, '');
   }
 
@@ -5668,7 +5668,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-vertical-spacing');
 
   /** Sets the value of "border-vertical-spacing" */
-  set borderVerticalSpacing(String value) {
+  void set borderVerticalSpacing(String value) {
     setProperty('border-vertical-spacing', value, '');
   }
 
@@ -5677,7 +5677,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-width');
 
   /** Sets the value of "border-width" */
-  set borderWidth(String value) {
+  void set borderWidth(String value) {
     setProperty('border-width', value, '');
   }
 
@@ -5686,7 +5686,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('bottom');
 
   /** Sets the value of "bottom" */
-  set bottom(String value) {
+  void set bottom(String value) {
     setProperty('bottom', value, '');
   }
 
@@ -5695,7 +5695,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-align');
 
   /** Sets the value of "box-align" */
-  set boxAlign(String value) {
+  void set boxAlign(String value) {
     setProperty('box-align', value, '');
   }
 
@@ -5704,7 +5704,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-decoration-break');
 
   /** Sets the value of "box-decoration-break" */
-  set boxDecorationBreak(String value) {
+  void set boxDecorationBreak(String value) {
     setProperty('box-decoration-break', value, '');
   }
 
@@ -5713,7 +5713,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-direction');
 
   /** Sets the value of "box-direction" */
-  set boxDirection(String value) {
+  void set boxDirection(String value) {
     setProperty('box-direction', value, '');
   }
 
@@ -5722,7 +5722,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-flex');
 
   /** Sets the value of "box-flex" */
-  set boxFlex(String value) {
+  void set boxFlex(String value) {
     setProperty('box-flex', value, '');
   }
 
@@ -5731,7 +5731,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-flex-group');
 
   /** Sets the value of "box-flex-group" */
-  set boxFlexGroup(String value) {
+  void set boxFlexGroup(String value) {
     setProperty('box-flex-group', value, '');
   }
 
@@ -5740,7 +5740,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-lines');
 
   /** Sets the value of "box-lines" */
-  set boxLines(String value) {
+  void set boxLines(String value) {
     setProperty('box-lines', value, '');
   }
 
@@ -5749,7 +5749,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-ordinal-group');
 
   /** Sets the value of "box-ordinal-group" */
-  set boxOrdinalGroup(String value) {
+  void set boxOrdinalGroup(String value) {
     setProperty('box-ordinal-group', value, '');
   }
 
@@ -5758,7 +5758,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-orient');
 
   /** Sets the value of "box-orient" */
-  set boxOrient(String value) {
+  void set boxOrient(String value) {
     setProperty('box-orient', value, '');
   }
 
@@ -5767,7 +5767,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-pack');
 
   /** Sets the value of "box-pack" */
-  set boxPack(String value) {
+  void set boxPack(String value) {
     setProperty('box-pack', value, '');
   }
 
@@ -5776,7 +5776,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-reflect');
 
   /** Sets the value of "box-reflect" */
-  set boxReflect(String value) {
+  void set boxReflect(String value) {
     setProperty('box-reflect', value, '');
   }
 
@@ -5785,7 +5785,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-shadow');
 
   /** Sets the value of "box-shadow" */
-  set boxShadow(String value) {
+  void set boxShadow(String value) {
     setProperty('box-shadow', value, '');
   }
 
@@ -5794,7 +5794,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-sizing');
 
   /** Sets the value of "box-sizing" */
-  set boxSizing(String value) {
+  void set boxSizing(String value) {
     setProperty('box-sizing', value, '');
   }
 
@@ -5803,7 +5803,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('caption-side');
 
   /** Sets the value of "caption-side" */
-  set captionSide(String value) {
+  void set captionSide(String value) {
     setProperty('caption-side', value, '');
   }
 
@@ -5812,7 +5812,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('clear');
 
   /** Sets the value of "clear" */
-  set clear(String value) {
+  void set clear(String value) {
     setProperty('clear', value, '');
   }
 
@@ -5821,7 +5821,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('clip');
 
   /** Sets the value of "clip" */
-  set clip(String value) {
+  void set clip(String value) {
     setProperty('clip', value, '');
   }
 
@@ -5830,7 +5830,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('clip-path');
 
   /** Sets the value of "clip-path" */
-  set clipPath(String value) {
+  void set clipPath(String value) {
     setProperty('clip-path', value, '');
   }
 
@@ -5839,7 +5839,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('color');
 
   /** Sets the value of "color" */
-  set color(String value) {
+  void set color(String value) {
     setProperty('color', value, '');
   }
 
@@ -5848,7 +5848,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-break-after');
 
   /** Sets the value of "column-break-after" */
-  set columnBreakAfter(String value) {
+  void set columnBreakAfter(String value) {
     setProperty('column-break-after', value, '');
   }
 
@@ -5857,7 +5857,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-break-before');
 
   /** Sets the value of "column-break-before" */
-  set columnBreakBefore(String value) {
+  void set columnBreakBefore(String value) {
     setProperty('column-break-before', value, '');
   }
 
@@ -5866,7 +5866,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-break-inside');
 
   /** Sets the value of "column-break-inside" */
-  set columnBreakInside(String value) {
+  void set columnBreakInside(String value) {
     setProperty('column-break-inside', value, '');
   }
 
@@ -5875,7 +5875,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-count');
 
   /** Sets the value of "column-count" */
-  set columnCount(String value) {
+  void set columnCount(String value) {
     setProperty('column-count', value, '');
   }
 
@@ -5884,7 +5884,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-fill');
 
   /** Sets the value of "column-fill" */
-  set columnFill(String value) {
+  void set columnFill(String value) {
     setProperty('column-fill', value, '');
   }
 
@@ -5893,7 +5893,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-gap');
 
   /** Sets the value of "column-gap" */
-  set columnGap(String value) {
+  void set columnGap(String value) {
     setProperty('column-gap', value, '');
   }
 
@@ -5902,7 +5902,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-rule');
 
   /** Sets the value of "column-rule" */
-  set columnRule(String value) {
+  void set columnRule(String value) {
     setProperty('column-rule', value, '');
   }
 
@@ -5911,7 +5911,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-rule-color');
 
   /** Sets the value of "column-rule-color" */
-  set columnRuleColor(String value) {
+  void set columnRuleColor(String value) {
     setProperty('column-rule-color', value, '');
   }
 
@@ -5920,7 +5920,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-rule-style');
 
   /** Sets the value of "column-rule-style" */
-  set columnRuleStyle(String value) {
+  void set columnRuleStyle(String value) {
     setProperty('column-rule-style', value, '');
   }
 
@@ -5929,7 +5929,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-rule-width');
 
   /** Sets the value of "column-rule-width" */
-  set columnRuleWidth(String value) {
+  void set columnRuleWidth(String value) {
     setProperty('column-rule-width', value, '');
   }
 
@@ -5938,7 +5938,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-span');
 
   /** Sets the value of "column-span" */
-  set columnSpan(String value) {
+  void set columnSpan(String value) {
     setProperty('column-span', value, '');
   }
 
@@ -5947,7 +5947,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-width');
 
   /** Sets the value of "column-width" */
-  set columnWidth(String value) {
+  void set columnWidth(String value) {
     setProperty('column-width', value, '');
   }
 
@@ -5956,7 +5956,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('columns');
 
   /** Sets the value of "columns" */
-  set columns(String value) {
+  void set columns(String value) {
     setProperty('columns', value, '');
   }
 
@@ -5965,7 +5965,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('content');
 
   /** Sets the value of "content" */
-  set content(String value) {
+  void set content(String value) {
     setProperty('content', value, '');
   }
 
@@ -5974,7 +5974,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('counter-increment');
 
   /** Sets the value of "counter-increment" */
-  set counterIncrement(String value) {
+  void set counterIncrement(String value) {
     setProperty('counter-increment', value, '');
   }
 
@@ -5983,7 +5983,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('counter-reset');
 
   /** Sets the value of "counter-reset" */
-  set counterReset(String value) {
+  void set counterReset(String value) {
     setProperty('counter-reset', value, '');
   }
 
@@ -5992,7 +5992,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('cursor');
 
   /** Sets the value of "cursor" */
-  set cursor(String value) {
+  void set cursor(String value) {
     setProperty('cursor', value, '');
   }
 
@@ -6001,7 +6001,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('direction');
 
   /** Sets the value of "direction" */
-  set direction(String value) {
+  void set direction(String value) {
     setProperty('direction', value, '');
   }
 
@@ -6010,7 +6010,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('display');
 
   /** Sets the value of "display" */
-  set display(String value) {
+  void set display(String value) {
     setProperty('display', value, '');
   }
 
@@ -6019,7 +6019,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('empty-cells');
 
   /** Sets the value of "empty-cells" */
-  set emptyCells(String value) {
+  void set emptyCells(String value) {
     setProperty('empty-cells', value, '');
   }
 
@@ -6028,7 +6028,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('filter');
 
   /** Sets the value of "filter" */
-  set filter(String value) {
+  void set filter(String value) {
     setProperty('filter', value, '');
   }
 
@@ -6037,7 +6037,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex');
 
   /** Sets the value of "flex" */
-  set flex(String value) {
+  void set flex(String value) {
     setProperty('flex', value, '');
   }
 
@@ -6046,7 +6046,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-basis');
 
   /** Sets the value of "flex-basis" */
-  set flexBasis(String value) {
+  void set flexBasis(String value) {
     setProperty('flex-basis', value, '');
   }
 
@@ -6055,7 +6055,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-direction');
 
   /** Sets the value of "flex-direction" */
-  set flexDirection(String value) {
+  void set flexDirection(String value) {
     setProperty('flex-direction', value, '');
   }
 
@@ -6064,7 +6064,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-flow');
 
   /** Sets the value of "flex-flow" */
-  set flexFlow(String value) {
+  void set flexFlow(String value) {
     setProperty('flex-flow', value, '');
   }
 
@@ -6073,7 +6073,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-grow');
 
   /** Sets the value of "flex-grow" */
-  set flexGrow(String value) {
+  void set flexGrow(String value) {
     setProperty('flex-grow', value, '');
   }
 
@@ -6082,7 +6082,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-shrink');
 
   /** Sets the value of "flex-shrink" */
-  set flexShrink(String value) {
+  void set flexShrink(String value) {
     setProperty('flex-shrink', value, '');
   }
 
@@ -6091,7 +6091,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-wrap');
 
   /** Sets the value of "flex-wrap" */
-  set flexWrap(String value) {
+  void set flexWrap(String value) {
     setProperty('flex-wrap', value, '');
   }
 
@@ -6100,7 +6100,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('float');
 
   /** Sets the value of "float" */
-  set float(String value) {
+  void set float(String value) {
     setProperty('float', value, '');
   }
 
@@ -6109,7 +6109,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font');
 
   /** Sets the value of "font" */
-  set font(String value) {
+  void set font(String value) {
     setProperty('font', value, '');
   }
 
@@ -6118,7 +6118,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-family');
 
   /** Sets the value of "font-family" */
-  set fontFamily(String value) {
+  void set fontFamily(String value) {
     setProperty('font-family', value, '');
   }
 
@@ -6127,7 +6127,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-feature-settings');
 
   /** Sets the value of "font-feature-settings" */
-  set fontFeatureSettings(String value) {
+  void set fontFeatureSettings(String value) {
     setProperty('font-feature-settings', value, '');
   }
 
@@ -6136,7 +6136,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-kerning');
 
   /** Sets the value of "font-kerning" */
-  set fontKerning(String value) {
+  void set fontKerning(String value) {
     setProperty('font-kerning', value, '');
   }
 
@@ -6145,7 +6145,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-size');
 
   /** Sets the value of "font-size" */
-  set fontSize(String value) {
+  void set fontSize(String value) {
     setProperty('font-size', value, '');
   }
 
@@ -6154,7 +6154,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-size-delta');
 
   /** Sets the value of "font-size-delta" */
-  set fontSizeDelta(String value) {
+  void set fontSizeDelta(String value) {
     setProperty('font-size-delta', value, '');
   }
 
@@ -6163,7 +6163,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-smoothing');
 
   /** Sets the value of "font-smoothing" */
-  set fontSmoothing(String value) {
+  void set fontSmoothing(String value) {
     setProperty('font-smoothing', value, '');
   }
 
@@ -6172,7 +6172,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-stretch');
 
   /** Sets the value of "font-stretch" */
-  set fontStretch(String value) {
+  void set fontStretch(String value) {
     setProperty('font-stretch', value, '');
   }
 
@@ -6181,7 +6181,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-style');
 
   /** Sets the value of "font-style" */
-  set fontStyle(String value) {
+  void set fontStyle(String value) {
     setProperty('font-style', value, '');
   }
 
@@ -6190,7 +6190,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-variant');
 
   /** Sets the value of "font-variant" */
-  set fontVariant(String value) {
+  void set fontVariant(String value) {
     setProperty('font-variant', value, '');
   }
 
@@ -6199,7 +6199,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-variant-ligatures');
 
   /** Sets the value of "font-variant-ligatures" */
-  set fontVariantLigatures(String value) {
+  void set fontVariantLigatures(String value) {
     setProperty('font-variant-ligatures', value, '');
   }
 
@@ -6208,7 +6208,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-weight');
 
   /** Sets the value of "font-weight" */
-  set fontWeight(String value) {
+  void set fontWeight(String value) {
     setProperty('font-weight', value, '');
   }
 
@@ -6217,7 +6217,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid');
 
   /** Sets the value of "grid" */
-  set grid(String value) {
+  void set grid(String value) {
     setProperty('grid', value, '');
   }
 
@@ -6226,7 +6226,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-area');
 
   /** Sets the value of "grid-area" */
-  set gridArea(String value) {
+  void set gridArea(String value) {
     setProperty('grid-area', value, '');
   }
 
@@ -6235,7 +6235,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-auto-columns');
 
   /** Sets the value of "grid-auto-columns" */
-  set gridAutoColumns(String value) {
+  void set gridAutoColumns(String value) {
     setProperty('grid-auto-columns', value, '');
   }
 
@@ -6244,7 +6244,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-auto-flow');
 
   /** Sets the value of "grid-auto-flow" */
-  set gridAutoFlow(String value) {
+  void set gridAutoFlow(String value) {
     setProperty('grid-auto-flow', value, '');
   }
 
@@ -6253,7 +6253,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-auto-rows');
 
   /** Sets the value of "grid-auto-rows" */
-  set gridAutoRows(String value) {
+  void set gridAutoRows(String value) {
     setProperty('grid-auto-rows', value, '');
   }
 
@@ -6262,7 +6262,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-column');
 
   /** Sets the value of "grid-column" */
-  set gridColumn(String value) {
+  void set gridColumn(String value) {
     setProperty('grid-column', value, '');
   }
 
@@ -6271,7 +6271,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-column-end');
 
   /** Sets the value of "grid-column-end" */
-  set gridColumnEnd(String value) {
+  void set gridColumnEnd(String value) {
     setProperty('grid-column-end', value, '');
   }
 
@@ -6280,7 +6280,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-column-start');
 
   /** Sets the value of "grid-column-start" */
-  set gridColumnStart(String value) {
+  void set gridColumnStart(String value) {
     setProperty('grid-column-start', value, '');
   }
 
@@ -6289,7 +6289,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-row');
 
   /** Sets the value of "grid-row" */
-  set gridRow(String value) {
+  void set gridRow(String value) {
     setProperty('grid-row', value, '');
   }
 
@@ -6298,7 +6298,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-row-end');
 
   /** Sets the value of "grid-row-end" */
-  set gridRowEnd(String value) {
+  void set gridRowEnd(String value) {
     setProperty('grid-row-end', value, '');
   }
 
@@ -6307,7 +6307,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-row-start');
 
   /** Sets the value of "grid-row-start" */
-  set gridRowStart(String value) {
+  void set gridRowStart(String value) {
     setProperty('grid-row-start', value, '');
   }
 
@@ -6316,7 +6316,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-template');
 
   /** Sets the value of "grid-template" */
-  set gridTemplate(String value) {
+  void set gridTemplate(String value) {
     setProperty('grid-template', value, '');
   }
 
@@ -6325,7 +6325,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-template-areas');
 
   /** Sets the value of "grid-template-areas" */
-  set gridTemplateAreas(String value) {
+  void set gridTemplateAreas(String value) {
     setProperty('grid-template-areas', value, '');
   }
 
@@ -6334,7 +6334,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-template-columns');
 
   /** Sets the value of "grid-template-columns" */
-  set gridTemplateColumns(String value) {
+  void set gridTemplateColumns(String value) {
     setProperty('grid-template-columns', value, '');
   }
 
@@ -6343,7 +6343,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-template-rows');
 
   /** Sets the value of "grid-template-rows" */
-  set gridTemplateRows(String value) {
+  void set gridTemplateRows(String value) {
     setProperty('grid-template-rows', value, '');
   }
 
@@ -6352,7 +6352,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('height');
 
   /** Sets the value of "height" */
-  set height(String value) {
+  void set height(String value) {
     setProperty('height', value, '');
   }
 
@@ -6361,7 +6361,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('highlight');
 
   /** Sets the value of "highlight" */
-  set highlight(String value) {
+  void set highlight(String value) {
     setProperty('highlight', value, '');
   }
 
@@ -6370,7 +6370,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('hyphenate-character');
 
   /** Sets the value of "hyphenate-character" */
-  set hyphenateCharacter(String value) {
+  void set hyphenateCharacter(String value) {
     setProperty('hyphenate-character', value, '');
   }
 
@@ -6379,7 +6379,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('image-rendering');
 
   /** Sets the value of "image-rendering" */
-  set imageRendering(String value) {
+  void set imageRendering(String value) {
     setProperty('image-rendering', value, '');
   }
 
@@ -6388,7 +6388,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('isolation');
 
   /** Sets the value of "isolation" */
-  set isolation(String value) {
+  void set isolation(String value) {
     setProperty('isolation', value, '');
   }
 
@@ -6397,7 +6397,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('justify-content');
 
   /** Sets the value of "justify-content" */
-  set justifyContent(String value) {
+  void set justifyContent(String value) {
     setProperty('justify-content', value, '');
   }
 
@@ -6406,7 +6406,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('justify-self');
 
   /** Sets the value of "justify-self" */
-  set justifySelf(String value) {
+  void set justifySelf(String value) {
     setProperty('justify-self', value, '');
   }
 
@@ -6415,7 +6415,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('left');
 
   /** Sets the value of "left" */
-  set left(String value) {
+  void set left(String value) {
     setProperty('left', value, '');
   }
 
@@ -6424,7 +6424,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('letter-spacing');
 
   /** Sets the value of "letter-spacing" */
-  set letterSpacing(String value) {
+  void set letterSpacing(String value) {
     setProperty('letter-spacing', value, '');
   }
 
@@ -6433,7 +6433,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('line-box-contain');
 
   /** Sets the value of "line-box-contain" */
-  set lineBoxContain(String value) {
+  void set lineBoxContain(String value) {
     setProperty('line-box-contain', value, '');
   }
 
@@ -6442,7 +6442,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('line-break');
 
   /** Sets the value of "line-break" */
-  set lineBreak(String value) {
+  void set lineBreak(String value) {
     setProperty('line-break', value, '');
   }
 
@@ -6451,7 +6451,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('line-clamp');
 
   /** Sets the value of "line-clamp" */
-  set lineClamp(String value) {
+  void set lineClamp(String value) {
     setProperty('line-clamp', value, '');
   }
 
@@ -6460,7 +6460,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('line-height');
 
   /** Sets the value of "line-height" */
-  set lineHeight(String value) {
+  void set lineHeight(String value) {
     setProperty('line-height', value, '');
   }
 
@@ -6469,7 +6469,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('list-style');
 
   /** Sets the value of "list-style" */
-  set listStyle(String value) {
+  void set listStyle(String value) {
     setProperty('list-style', value, '');
   }
 
@@ -6478,7 +6478,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('list-style-image');
 
   /** Sets the value of "list-style-image" */
-  set listStyleImage(String value) {
+  void set listStyleImage(String value) {
     setProperty('list-style-image', value, '');
   }
 
@@ -6487,7 +6487,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('list-style-position');
 
   /** Sets the value of "list-style-position" */
-  set listStylePosition(String value) {
+  void set listStylePosition(String value) {
     setProperty('list-style-position', value, '');
   }
 
@@ -6496,7 +6496,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('list-style-type');
 
   /** Sets the value of "list-style-type" */
-  set listStyleType(String value) {
+  void set listStyleType(String value) {
     setProperty('list-style-type', value, '');
   }
 
@@ -6505,7 +6505,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('locale');
 
   /** Sets the value of "locale" */
-  set locale(String value) {
+  void set locale(String value) {
     setProperty('locale', value, '');
   }
 
@@ -6514,7 +6514,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('logical-height');
 
   /** Sets the value of "logical-height" */
-  set logicalHeight(String value) {
+  void set logicalHeight(String value) {
     setProperty('logical-height', value, '');
   }
 
@@ -6523,7 +6523,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('logical-width');
 
   /** Sets the value of "logical-width" */
-  set logicalWidth(String value) {
+  void set logicalWidth(String value) {
     setProperty('logical-width', value, '');
   }
 
@@ -6532,7 +6532,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin');
 
   /** Sets the value of "margin" */
-  set margin(String value) {
+  void set margin(String value) {
     setProperty('margin', value, '');
   }
 
@@ -6541,7 +6541,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-after');
 
   /** Sets the value of "margin-after" */
-  set marginAfter(String value) {
+  void set marginAfter(String value) {
     setProperty('margin-after', value, '');
   }
 
@@ -6550,7 +6550,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-after-collapse');
 
   /** Sets the value of "margin-after-collapse" */
-  set marginAfterCollapse(String value) {
+  void set marginAfterCollapse(String value) {
     setProperty('margin-after-collapse', value, '');
   }
 
@@ -6559,7 +6559,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-before');
 
   /** Sets the value of "margin-before" */
-  set marginBefore(String value) {
+  void set marginBefore(String value) {
     setProperty('margin-before', value, '');
   }
 
@@ -6568,7 +6568,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-before-collapse');
 
   /** Sets the value of "margin-before-collapse" */
-  set marginBeforeCollapse(String value) {
+  void set marginBeforeCollapse(String value) {
     setProperty('margin-before-collapse', value, '');
   }
 
@@ -6577,7 +6577,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-bottom');
 
   /** Sets the value of "margin-bottom" */
-  set marginBottom(String value) {
+  void set marginBottom(String value) {
     setProperty('margin-bottom', value, '');
   }
 
@@ -6586,7 +6586,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-bottom-collapse');
 
   /** Sets the value of "margin-bottom-collapse" */
-  set marginBottomCollapse(String value) {
+  void set marginBottomCollapse(String value) {
     setProperty('margin-bottom-collapse', value, '');
   }
 
@@ -6595,7 +6595,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-collapse');
 
   /** Sets the value of "margin-collapse" */
-  set marginCollapse(String value) {
+  void set marginCollapse(String value) {
     setProperty('margin-collapse', value, '');
   }
 
@@ -6604,7 +6604,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-end');
 
   /** Sets the value of "margin-end" */
-  set marginEnd(String value) {
+  void set marginEnd(String value) {
     setProperty('margin-end', value, '');
   }
 
@@ -6613,7 +6613,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-left');
 
   /** Sets the value of "margin-left" */
-  set marginLeft(String value) {
+  void set marginLeft(String value) {
     setProperty('margin-left', value, '');
   }
 
@@ -6622,7 +6622,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-right');
 
   /** Sets the value of "margin-right" */
-  set marginRight(String value) {
+  void set marginRight(String value) {
     setProperty('margin-right', value, '');
   }
 
@@ -6631,7 +6631,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-start');
 
   /** Sets the value of "margin-start" */
-  set marginStart(String value) {
+  void set marginStart(String value) {
     setProperty('margin-start', value, '');
   }
 
@@ -6640,7 +6640,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-top');
 
   /** Sets the value of "margin-top" */
-  set marginTop(String value) {
+  void set marginTop(String value) {
     setProperty('margin-top', value, '');
   }
 
@@ -6649,7 +6649,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-top-collapse');
 
   /** Sets the value of "margin-top-collapse" */
-  set marginTopCollapse(String value) {
+  void set marginTopCollapse(String value) {
     setProperty('margin-top-collapse', value, '');
   }
 
@@ -6658,7 +6658,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask');
 
   /** Sets the value of "mask" */
-  set mask(String value) {
+  void set mask(String value) {
     setProperty('mask', value, '');
   }
 
@@ -6667,7 +6667,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image');
 
   /** Sets the value of "mask-box-image" */
-  set maskBoxImage(String value) {
+  void set maskBoxImage(String value) {
     setProperty('mask-box-image', value, '');
   }
 
@@ -6676,7 +6676,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image-outset');
 
   /** Sets the value of "mask-box-image-outset" */
-  set maskBoxImageOutset(String value) {
+  void set maskBoxImageOutset(String value) {
     setProperty('mask-box-image-outset', value, '');
   }
 
@@ -6685,7 +6685,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image-repeat');
 
   /** Sets the value of "mask-box-image-repeat" */
-  set maskBoxImageRepeat(String value) {
+  void set maskBoxImageRepeat(String value) {
     setProperty('mask-box-image-repeat', value, '');
   }
 
@@ -6694,7 +6694,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image-slice');
 
   /** Sets the value of "mask-box-image-slice" */
-  set maskBoxImageSlice(String value) {
+  void set maskBoxImageSlice(String value) {
     setProperty('mask-box-image-slice', value, '');
   }
 
@@ -6703,7 +6703,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image-source');
 
   /** Sets the value of "mask-box-image-source" */
-  set maskBoxImageSource(String value) {
+  void set maskBoxImageSource(String value) {
     setProperty('mask-box-image-source', value, '');
   }
 
@@ -6712,7 +6712,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image-width');
 
   /** Sets the value of "mask-box-image-width" */
-  set maskBoxImageWidth(String value) {
+  void set maskBoxImageWidth(String value) {
     setProperty('mask-box-image-width', value, '');
   }
 
@@ -6721,7 +6721,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-clip');
 
   /** Sets the value of "mask-clip" */
-  set maskClip(String value) {
+  void set maskClip(String value) {
     setProperty('mask-clip', value, '');
   }
 
@@ -6730,7 +6730,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-composite');
 
   /** Sets the value of "mask-composite" */
-  set maskComposite(String value) {
+  void set maskComposite(String value) {
     setProperty('mask-composite', value, '');
   }
 
@@ -6739,7 +6739,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-image');
 
   /** Sets the value of "mask-image" */
-  set maskImage(String value) {
+  void set maskImage(String value) {
     setProperty('mask-image', value, '');
   }
 
@@ -6748,7 +6748,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-origin');
 
   /** Sets the value of "mask-origin" */
-  set maskOrigin(String value) {
+  void set maskOrigin(String value) {
     setProperty('mask-origin', value, '');
   }
 
@@ -6757,7 +6757,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-position');
 
   /** Sets the value of "mask-position" */
-  set maskPosition(String value) {
+  void set maskPosition(String value) {
     setProperty('mask-position', value, '');
   }
 
@@ -6766,7 +6766,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-position-x');
 
   /** Sets the value of "mask-position-x" */
-  set maskPositionX(String value) {
+  void set maskPositionX(String value) {
     setProperty('mask-position-x', value, '');
   }
 
@@ -6775,7 +6775,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-position-y');
 
   /** Sets the value of "mask-position-y" */
-  set maskPositionY(String value) {
+  void set maskPositionY(String value) {
     setProperty('mask-position-y', value, '');
   }
 
@@ -6784,7 +6784,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-repeat');
 
   /** Sets the value of "mask-repeat" */
-  set maskRepeat(String value) {
+  void set maskRepeat(String value) {
     setProperty('mask-repeat', value, '');
   }
 
@@ -6793,7 +6793,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-repeat-x');
 
   /** Sets the value of "mask-repeat-x" */
-  set maskRepeatX(String value) {
+  void set maskRepeatX(String value) {
     setProperty('mask-repeat-x', value, '');
   }
 
@@ -6802,7 +6802,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-repeat-y');
 
   /** Sets the value of "mask-repeat-y" */
-  set maskRepeatY(String value) {
+  void set maskRepeatY(String value) {
     setProperty('mask-repeat-y', value, '');
   }
 
@@ -6811,7 +6811,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-size');
 
   /** Sets the value of "mask-size" */
-  set maskSize(String value) {
+  void set maskSize(String value) {
     setProperty('mask-size', value, '');
   }
 
@@ -6820,7 +6820,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-source-type');
 
   /** Sets the value of "mask-source-type" */
-  set maskSourceType(String value) {
+  void set maskSourceType(String value) {
     setProperty('mask-source-type', value, '');
   }
 
@@ -6829,7 +6829,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('max-height');
 
   /** Sets the value of "max-height" */
-  set maxHeight(String value) {
+  void set maxHeight(String value) {
     setProperty('max-height', value, '');
   }
 
@@ -6838,7 +6838,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('max-logical-height');
 
   /** Sets the value of "max-logical-height" */
-  set maxLogicalHeight(String value) {
+  void set maxLogicalHeight(String value) {
     setProperty('max-logical-height', value, '');
   }
 
@@ -6847,7 +6847,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('max-logical-width');
 
   /** Sets the value of "max-logical-width" */
-  set maxLogicalWidth(String value) {
+  void set maxLogicalWidth(String value) {
     setProperty('max-logical-width', value, '');
   }
 
@@ -6856,7 +6856,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('max-width');
 
   /** Sets the value of "max-width" */
-  set maxWidth(String value) {
+  void set maxWidth(String value) {
     setProperty('max-width', value, '');
   }
 
@@ -6865,7 +6865,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('max-zoom');
 
   /** Sets the value of "max-zoom" */
-  set maxZoom(String value) {
+  void set maxZoom(String value) {
     setProperty('max-zoom', value, '');
   }
 
@@ -6874,7 +6874,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('min-height');
 
   /** Sets the value of "min-height" */
-  set minHeight(String value) {
+  void set minHeight(String value) {
     setProperty('min-height', value, '');
   }
 
@@ -6883,7 +6883,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('min-logical-height');
 
   /** Sets the value of "min-logical-height" */
-  set minLogicalHeight(String value) {
+  void set minLogicalHeight(String value) {
     setProperty('min-logical-height', value, '');
   }
 
@@ -6892,7 +6892,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('min-logical-width');
 
   /** Sets the value of "min-logical-width" */
-  set minLogicalWidth(String value) {
+  void set minLogicalWidth(String value) {
     setProperty('min-logical-width', value, '');
   }
 
@@ -6901,7 +6901,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('min-width');
 
   /** Sets the value of "min-width" */
-  set minWidth(String value) {
+  void set minWidth(String value) {
     setProperty('min-width', value, '');
   }
 
@@ -6910,7 +6910,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('min-zoom');
 
   /** Sets the value of "min-zoom" */
-  set minZoom(String value) {
+  void set minZoom(String value) {
     setProperty('min-zoom', value, '');
   }
 
@@ -6919,7 +6919,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mix-blend-mode');
 
   /** Sets the value of "mix-blend-mode" */
-  set mixBlendMode(String value) {
+  void set mixBlendMode(String value) {
     setProperty('mix-blend-mode', value, '');
   }
 
@@ -6928,7 +6928,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('object-fit');
 
   /** Sets the value of "object-fit" */
-  set objectFit(String value) {
+  void set objectFit(String value) {
     setProperty('object-fit', value, '');
   }
 
@@ -6937,7 +6937,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('object-position');
 
   /** Sets the value of "object-position" */
-  set objectPosition(String value) {
+  void set objectPosition(String value) {
     setProperty('object-position', value, '');
   }
 
@@ -6946,7 +6946,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('opacity');
 
   /** Sets the value of "opacity" */
-  set opacity(String value) {
+  void set opacity(String value) {
     setProperty('opacity', value, '');
   }
 
@@ -6955,7 +6955,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('order');
 
   /** Sets the value of "order" */
-  set order(String value) {
+  void set order(String value) {
     setProperty('order', value, '');
   }
 
@@ -6964,7 +6964,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('orientation');
 
   /** Sets the value of "orientation" */
-  set orientation(String value) {
+  void set orientation(String value) {
     setProperty('orientation', value, '');
   }
 
@@ -6973,7 +6973,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('orphans');
 
   /** Sets the value of "orphans" */
-  set orphans(String value) {
+  void set orphans(String value) {
     setProperty('orphans', value, '');
   }
 
@@ -6982,7 +6982,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('outline');
 
   /** Sets the value of "outline" */
-  set outline(String value) {
+  void set outline(String value) {
     setProperty('outline', value, '');
   }
 
@@ -6991,7 +6991,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('outline-color');
 
   /** Sets the value of "outline-color" */
-  set outlineColor(String value) {
+  void set outlineColor(String value) {
     setProperty('outline-color', value, '');
   }
 
@@ -7000,7 +7000,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('outline-offset');
 
   /** Sets the value of "outline-offset" */
-  set outlineOffset(String value) {
+  void set outlineOffset(String value) {
     setProperty('outline-offset', value, '');
   }
 
@@ -7009,7 +7009,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('outline-style');
 
   /** Sets the value of "outline-style" */
-  set outlineStyle(String value) {
+  void set outlineStyle(String value) {
     setProperty('outline-style', value, '');
   }
 
@@ -7018,7 +7018,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('outline-width');
 
   /** Sets the value of "outline-width" */
-  set outlineWidth(String value) {
+  void set outlineWidth(String value) {
     setProperty('outline-width', value, '');
   }
 
@@ -7027,7 +7027,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('overflow');
 
   /** Sets the value of "overflow" */
-  set overflow(String value) {
+  void set overflow(String value) {
     setProperty('overflow', value, '');
   }
 
@@ -7036,7 +7036,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('overflow-wrap');
 
   /** Sets the value of "overflow-wrap" */
-  set overflowWrap(String value) {
+  void set overflowWrap(String value) {
     setProperty('overflow-wrap', value, '');
   }
 
@@ -7045,7 +7045,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('overflow-x');
 
   /** Sets the value of "overflow-x" */
-  set overflowX(String value) {
+  void set overflowX(String value) {
     setProperty('overflow-x', value, '');
   }
 
@@ -7054,7 +7054,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('overflow-y');
 
   /** Sets the value of "overflow-y" */
-  set overflowY(String value) {
+  void set overflowY(String value) {
     setProperty('overflow-y', value, '');
   }
 
@@ -7063,7 +7063,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding');
 
   /** Sets the value of "padding" */
-  set padding(String value) {
+  void set padding(String value) {
     setProperty('padding', value, '');
   }
 
@@ -7072,7 +7072,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-after');
 
   /** Sets the value of "padding-after" */
-  set paddingAfter(String value) {
+  void set paddingAfter(String value) {
     setProperty('padding-after', value, '');
   }
 
@@ -7081,7 +7081,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-before');
 
   /** Sets the value of "padding-before" */
-  set paddingBefore(String value) {
+  void set paddingBefore(String value) {
     setProperty('padding-before', value, '');
   }
 
@@ -7090,7 +7090,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-bottom');
 
   /** Sets the value of "padding-bottom" */
-  set paddingBottom(String value) {
+  void set paddingBottom(String value) {
     setProperty('padding-bottom', value, '');
   }
 
@@ -7099,7 +7099,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-end');
 
   /** Sets the value of "padding-end" */
-  set paddingEnd(String value) {
+  void set paddingEnd(String value) {
     setProperty('padding-end', value, '');
   }
 
@@ -7108,7 +7108,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-left');
 
   /** Sets the value of "padding-left" */
-  set paddingLeft(String value) {
+  void set paddingLeft(String value) {
     setProperty('padding-left', value, '');
   }
 
@@ -7117,7 +7117,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-right');
 
   /** Sets the value of "padding-right" */
-  set paddingRight(String value) {
+  void set paddingRight(String value) {
     setProperty('padding-right', value, '');
   }
 
@@ -7126,7 +7126,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-start');
 
   /** Sets the value of "padding-start" */
-  set paddingStart(String value) {
+  void set paddingStart(String value) {
     setProperty('padding-start', value, '');
   }
 
@@ -7135,7 +7135,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-top');
 
   /** Sets the value of "padding-top" */
-  set paddingTop(String value) {
+  void set paddingTop(String value) {
     setProperty('padding-top', value, '');
   }
 
@@ -7144,7 +7144,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('page');
 
   /** Sets the value of "page" */
-  set page(String value) {
+  void set page(String value) {
     setProperty('page', value, '');
   }
 
@@ -7153,7 +7153,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('page-break-after');
 
   /** Sets the value of "page-break-after" */
-  set pageBreakAfter(String value) {
+  void set pageBreakAfter(String value) {
     setProperty('page-break-after', value, '');
   }
 
@@ -7162,7 +7162,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('page-break-before');
 
   /** Sets the value of "page-break-before" */
-  set pageBreakBefore(String value) {
+  void set pageBreakBefore(String value) {
     setProperty('page-break-before', value, '');
   }
 
@@ -7171,7 +7171,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('page-break-inside');
 
   /** Sets the value of "page-break-inside" */
-  set pageBreakInside(String value) {
+  void set pageBreakInside(String value) {
     setProperty('page-break-inside', value, '');
   }
 
@@ -7180,7 +7180,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('perspective');
 
   /** Sets the value of "perspective" */
-  set perspective(String value) {
+  void set perspective(String value) {
     setProperty('perspective', value, '');
   }
 
@@ -7189,7 +7189,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('perspective-origin');
 
   /** Sets the value of "perspective-origin" */
-  set perspectiveOrigin(String value) {
+  void set perspectiveOrigin(String value) {
     setProperty('perspective-origin', value, '');
   }
 
@@ -7198,7 +7198,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('perspective-origin-x');
 
   /** Sets the value of "perspective-origin-x" */
-  set perspectiveOriginX(String value) {
+  void set perspectiveOriginX(String value) {
     setProperty('perspective-origin-x', value, '');
   }
 
@@ -7207,7 +7207,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('perspective-origin-y');
 
   /** Sets the value of "perspective-origin-y" */
-  set perspectiveOriginY(String value) {
+  void set perspectiveOriginY(String value) {
     setProperty('perspective-origin-y', value, '');
   }
 
@@ -7216,7 +7216,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('pointer-events');
 
   /** Sets the value of "pointer-events" */
-  set pointerEvents(String value) {
+  void set pointerEvents(String value) {
     setProperty('pointer-events', value, '');
   }
 
@@ -7225,7 +7225,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('position');
 
   /** Sets the value of "position" */
-  set position(String value) {
+  void set position(String value) {
     setProperty('position', value, '');
   }
 
@@ -7234,7 +7234,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('print-color-adjust');
 
   /** Sets the value of "print-color-adjust" */
-  set printColorAdjust(String value) {
+  void set printColorAdjust(String value) {
     setProperty('print-color-adjust', value, '');
   }
 
@@ -7243,7 +7243,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('quotes');
 
   /** Sets the value of "quotes" */
-  set quotes(String value) {
+  void set quotes(String value) {
     setProperty('quotes', value, '');
   }
 
@@ -7252,7 +7252,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('resize');
 
   /** Sets the value of "resize" */
-  set resize(String value) {
+  void set resize(String value) {
     setProperty('resize', value, '');
   }
 
@@ -7261,7 +7261,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('right');
 
   /** Sets the value of "right" */
-  set right(String value) {
+  void set right(String value) {
     setProperty('right', value, '');
   }
 
@@ -7270,7 +7270,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('rtl-ordering');
 
   /** Sets the value of "rtl-ordering" */
-  set rtlOrdering(String value) {
+  void set rtlOrdering(String value) {
     setProperty('rtl-ordering', value, '');
   }
 
@@ -7279,7 +7279,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('ruby-position');
 
   /** Sets the value of "ruby-position" */
-  set rubyPosition(String value) {
+  void set rubyPosition(String value) {
     setProperty('ruby-position', value, '');
   }
 
@@ -7288,7 +7288,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('scroll-behavior');
 
   /** Sets the value of "scroll-behavior" */
-  set scrollBehavior(String value) {
+  void set scrollBehavior(String value) {
     setProperty('scroll-behavior', value, '');
   }
 
@@ -7297,7 +7297,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('shape-image-threshold');
 
   /** Sets the value of "shape-image-threshold" */
-  set shapeImageThreshold(String value) {
+  void set shapeImageThreshold(String value) {
     setProperty('shape-image-threshold', value, '');
   }
 
@@ -7306,7 +7306,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('shape-margin');
 
   /** Sets the value of "shape-margin" */
-  set shapeMargin(String value) {
+  void set shapeMargin(String value) {
     setProperty('shape-margin', value, '');
   }
 
@@ -7315,7 +7315,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('shape-outside');
 
   /** Sets the value of "shape-outside" */
-  set shapeOutside(String value) {
+  void set shapeOutside(String value) {
     setProperty('shape-outside', value, '');
   }
 
@@ -7324,7 +7324,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('size');
 
   /** Sets the value of "size" */
-  set size(String value) {
+  void set size(String value) {
     setProperty('size', value, '');
   }
 
@@ -7333,7 +7333,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('speak');
 
   /** Sets the value of "speak" */
-  set speak(String value) {
+  void set speak(String value) {
     setProperty('speak', value, '');
   }
 
@@ -7342,7 +7342,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('src');
 
   /** Sets the value of "src" */
-  set src(String value) {
+  void set src(String value) {
     setProperty('src', value, '');
   }
 
@@ -7351,7 +7351,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('tab-size');
 
   /** Sets the value of "tab-size" */
-  set tabSize(String value) {
+  void set tabSize(String value) {
     setProperty('tab-size', value, '');
   }
 
@@ -7360,7 +7360,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('table-layout');
 
   /** Sets the value of "table-layout" */
-  set tableLayout(String value) {
+  void set tableLayout(String value) {
     setProperty('table-layout', value, '');
   }
 
@@ -7369,7 +7369,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('tap-highlight-color');
 
   /** Sets the value of "tap-highlight-color" */
-  set tapHighlightColor(String value) {
+  void set tapHighlightColor(String value) {
     setProperty('tap-highlight-color', value, '');
   }
 
@@ -7378,7 +7378,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-align');
 
   /** Sets the value of "text-align" */
-  set textAlign(String value) {
+  void set textAlign(String value) {
     setProperty('text-align', value, '');
   }
 
@@ -7387,7 +7387,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-align-last');
 
   /** Sets the value of "text-align-last" */
-  set textAlignLast(String value) {
+  void set textAlignLast(String value) {
     setProperty('text-align-last', value, '');
   }
 
@@ -7396,7 +7396,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-combine');
 
   /** Sets the value of "text-combine" */
-  set textCombine(String value) {
+  void set textCombine(String value) {
     setProperty('text-combine', value, '');
   }
 
@@ -7405,7 +7405,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-decoration');
 
   /** Sets the value of "text-decoration" */
-  set textDecoration(String value) {
+  void set textDecoration(String value) {
     setProperty('text-decoration', value, '');
   }
 
@@ -7414,7 +7414,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-decoration-color');
 
   /** Sets the value of "text-decoration-color" */
-  set textDecorationColor(String value) {
+  void set textDecorationColor(String value) {
     setProperty('text-decoration-color', value, '');
   }
 
@@ -7423,7 +7423,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-decoration-line');
 
   /** Sets the value of "text-decoration-line" */
-  set textDecorationLine(String value) {
+  void set textDecorationLine(String value) {
     setProperty('text-decoration-line', value, '');
   }
 
@@ -7432,7 +7432,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-decoration-style');
 
   /** Sets the value of "text-decoration-style" */
-  set textDecorationStyle(String value) {
+  void set textDecorationStyle(String value) {
     setProperty('text-decoration-style', value, '');
   }
 
@@ -7441,7 +7441,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-decorations-in-effect');
 
   /** Sets the value of "text-decorations-in-effect" */
-  set textDecorationsInEffect(String value) {
+  void set textDecorationsInEffect(String value) {
     setProperty('text-decorations-in-effect', value, '');
   }
 
@@ -7450,7 +7450,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-emphasis');
 
   /** Sets the value of "text-emphasis" */
-  set textEmphasis(String value) {
+  void set textEmphasis(String value) {
     setProperty('text-emphasis', value, '');
   }
 
@@ -7459,7 +7459,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-emphasis-color');
 
   /** Sets the value of "text-emphasis-color" */
-  set textEmphasisColor(String value) {
+  void set textEmphasisColor(String value) {
     setProperty('text-emphasis-color', value, '');
   }
 
@@ -7468,7 +7468,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-emphasis-position');
 
   /** Sets the value of "text-emphasis-position" */
-  set textEmphasisPosition(String value) {
+  void set textEmphasisPosition(String value) {
     setProperty('text-emphasis-position', value, '');
   }
 
@@ -7477,7 +7477,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-emphasis-style');
 
   /** Sets the value of "text-emphasis-style" */
-  set textEmphasisStyle(String value) {
+  void set textEmphasisStyle(String value) {
     setProperty('text-emphasis-style', value, '');
   }
 
@@ -7486,7 +7486,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-fill-color');
 
   /** Sets the value of "text-fill-color" */
-  set textFillColor(String value) {
+  void set textFillColor(String value) {
     setProperty('text-fill-color', value, '');
   }
 
@@ -7495,7 +7495,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-indent');
 
   /** Sets the value of "text-indent" */
-  set textIndent(String value) {
+  void set textIndent(String value) {
     setProperty('text-indent', value, '');
   }
 
@@ -7504,7 +7504,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-justify');
 
   /** Sets the value of "text-justify" */
-  set textJustify(String value) {
+  void set textJustify(String value) {
     setProperty('text-justify', value, '');
   }
 
@@ -7513,7 +7513,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-line-through-color');
 
   /** Sets the value of "text-line-through-color" */
-  set textLineThroughColor(String value) {
+  void set textLineThroughColor(String value) {
     setProperty('text-line-through-color', value, '');
   }
 
@@ -7522,7 +7522,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-line-through-mode');
 
   /** Sets the value of "text-line-through-mode" */
-  set textLineThroughMode(String value) {
+  void set textLineThroughMode(String value) {
     setProperty('text-line-through-mode', value, '');
   }
 
@@ -7531,7 +7531,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-line-through-style');
 
   /** Sets the value of "text-line-through-style" */
-  set textLineThroughStyle(String value) {
+  void set textLineThroughStyle(String value) {
     setProperty('text-line-through-style', value, '');
   }
 
@@ -7540,7 +7540,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-line-through-width');
 
   /** Sets the value of "text-line-through-width" */
-  set textLineThroughWidth(String value) {
+  void set textLineThroughWidth(String value) {
     setProperty('text-line-through-width', value, '');
   }
 
@@ -7549,7 +7549,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-orientation');
 
   /** Sets the value of "text-orientation" */
-  set textOrientation(String value) {
+  void set textOrientation(String value) {
     setProperty('text-orientation', value, '');
   }
 
@@ -7558,7 +7558,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-overflow');
 
   /** Sets the value of "text-overflow" */
-  set textOverflow(String value) {
+  void set textOverflow(String value) {
     setProperty('text-overflow', value, '');
   }
 
@@ -7567,7 +7567,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-overline-color');
 
   /** Sets the value of "text-overline-color" */
-  set textOverlineColor(String value) {
+  void set textOverlineColor(String value) {
     setProperty('text-overline-color', value, '');
   }
 
@@ -7576,7 +7576,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-overline-mode');
 
   /** Sets the value of "text-overline-mode" */
-  set textOverlineMode(String value) {
+  void set textOverlineMode(String value) {
     setProperty('text-overline-mode', value, '');
   }
 
@@ -7585,7 +7585,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-overline-style');
 
   /** Sets the value of "text-overline-style" */
-  set textOverlineStyle(String value) {
+  void set textOverlineStyle(String value) {
     setProperty('text-overline-style', value, '');
   }
 
@@ -7594,7 +7594,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-overline-width');
 
   /** Sets the value of "text-overline-width" */
-  set textOverlineWidth(String value) {
+  void set textOverlineWidth(String value) {
     setProperty('text-overline-width', value, '');
   }
 
@@ -7603,7 +7603,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-rendering');
 
   /** Sets the value of "text-rendering" */
-  set textRendering(String value) {
+  void set textRendering(String value) {
     setProperty('text-rendering', value, '');
   }
 
@@ -7612,7 +7612,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-security');
 
   /** Sets the value of "text-security" */
-  set textSecurity(String value) {
+  void set textSecurity(String value) {
     setProperty('text-security', value, '');
   }
 
@@ -7621,7 +7621,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-shadow');
 
   /** Sets the value of "text-shadow" */
-  set textShadow(String value) {
+  void set textShadow(String value) {
     setProperty('text-shadow', value, '');
   }
 
@@ -7630,7 +7630,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-stroke');
 
   /** Sets the value of "text-stroke" */
-  set textStroke(String value) {
+  void set textStroke(String value) {
     setProperty('text-stroke', value, '');
   }
 
@@ -7639,7 +7639,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-stroke-color');
 
   /** Sets the value of "text-stroke-color" */
-  set textStrokeColor(String value) {
+  void set textStrokeColor(String value) {
     setProperty('text-stroke-color', value, '');
   }
 
@@ -7648,7 +7648,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-stroke-width');
 
   /** Sets the value of "text-stroke-width" */
-  set textStrokeWidth(String value) {
+  void set textStrokeWidth(String value) {
     setProperty('text-stroke-width', value, '');
   }
 
@@ -7657,7 +7657,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-transform');
 
   /** Sets the value of "text-transform" */
-  set textTransform(String value) {
+  void set textTransform(String value) {
     setProperty('text-transform', value, '');
   }
 
@@ -7666,7 +7666,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-underline-color');
 
   /** Sets the value of "text-underline-color" */
-  set textUnderlineColor(String value) {
+  void set textUnderlineColor(String value) {
     setProperty('text-underline-color', value, '');
   }
 
@@ -7675,7 +7675,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-underline-mode');
 
   /** Sets the value of "text-underline-mode" */
-  set textUnderlineMode(String value) {
+  void set textUnderlineMode(String value) {
     setProperty('text-underline-mode', value, '');
   }
 
@@ -7684,7 +7684,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-underline-position');
 
   /** Sets the value of "text-underline-position" */
-  set textUnderlinePosition(String value) {
+  void set textUnderlinePosition(String value) {
     setProperty('text-underline-position', value, '');
   }
 
@@ -7693,7 +7693,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-underline-style');
 
   /** Sets the value of "text-underline-style" */
-  set textUnderlineStyle(String value) {
+  void set textUnderlineStyle(String value) {
     setProperty('text-underline-style', value, '');
   }
 
@@ -7702,7 +7702,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-underline-width');
 
   /** Sets the value of "text-underline-width" */
-  set textUnderlineWidth(String value) {
+  void set textUnderlineWidth(String value) {
     setProperty('text-underline-width', value, '');
   }
 
@@ -7711,7 +7711,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('top');
 
   /** Sets the value of "top" */
-  set top(String value) {
+  void set top(String value) {
     setProperty('top', value, '');
   }
 
@@ -7720,7 +7720,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('touch-action');
 
   /** Sets the value of "touch-action" */
-  set touchAction(String value) {
+  void set touchAction(String value) {
     setProperty('touch-action', value, '');
   }
 
@@ -7729,7 +7729,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('touch-action-delay');
 
   /** Sets the value of "touch-action-delay" */
-  set touchActionDelay(String value) {
+  void set touchActionDelay(String value) {
     setProperty('touch-action-delay', value, '');
   }
 
@@ -7738,7 +7738,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform');
 
   /** Sets the value of "transform" */
-  set transform(String value) {
+  void set transform(String value) {
     setProperty('transform', value, '');
   }
 
@@ -7747,7 +7747,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform-origin');
 
   /** Sets the value of "transform-origin" */
-  set transformOrigin(String value) {
+  void set transformOrigin(String value) {
     setProperty('transform-origin', value, '');
   }
 
@@ -7756,7 +7756,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform-origin-x');
 
   /** Sets the value of "transform-origin-x" */
-  set transformOriginX(String value) {
+  void set transformOriginX(String value) {
     setProperty('transform-origin-x', value, '');
   }
 
@@ -7765,7 +7765,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform-origin-y');
 
   /** Sets the value of "transform-origin-y" */
-  set transformOriginY(String value) {
+  void set transformOriginY(String value) {
     setProperty('transform-origin-y', value, '');
   }
 
@@ -7774,7 +7774,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform-origin-z');
 
   /** Sets the value of "transform-origin-z" */
-  set transformOriginZ(String value) {
+  void set transformOriginZ(String value) {
     setProperty('transform-origin-z', value, '');
   }
 
@@ -7783,7 +7783,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform-style');
 
   /** Sets the value of "transform-style" */
-  set transformStyle(String value) {
+  void set transformStyle(String value) {
     setProperty('transform-style', value, '');
   }
 
@@ -7798,7 +7798,7 @@ abstract class CssStyleDeclarationBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  set transition(String value) {
+  void set transition(String value) {
     setProperty('transition', value, '');
   }
 
@@ -7807,7 +7807,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transition-delay');
 
   /** Sets the value of "transition-delay" */
-  set transitionDelay(String value) {
+  void set transitionDelay(String value) {
     setProperty('transition-delay', value, '');
   }
 
@@ -7816,7 +7816,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transition-duration');
 
   /** Sets the value of "transition-duration" */
-  set transitionDuration(String value) {
+  void set transitionDuration(String value) {
     setProperty('transition-duration', value, '');
   }
 
@@ -7825,7 +7825,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transition-property');
 
   /** Sets the value of "transition-property" */
-  set transitionProperty(String value) {
+  void set transitionProperty(String value) {
     setProperty('transition-property', value, '');
   }
 
@@ -7834,7 +7834,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transition-timing-function');
 
   /** Sets the value of "transition-timing-function" */
-  set transitionTimingFunction(String value) {
+  void set transitionTimingFunction(String value) {
     setProperty('transition-timing-function', value, '');
   }
 
@@ -7843,7 +7843,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('unicode-bidi');
 
   /** Sets the value of "unicode-bidi" */
-  set unicodeBidi(String value) {
+  void set unicodeBidi(String value) {
     setProperty('unicode-bidi', value, '');
   }
 
@@ -7852,7 +7852,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('unicode-range');
 
   /** Sets the value of "unicode-range" */
-  set unicodeRange(String value) {
+  void set unicodeRange(String value) {
     setProperty('unicode-range', value, '');
   }
 
@@ -7861,7 +7861,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('user-drag');
 
   /** Sets the value of "user-drag" */
-  set userDrag(String value) {
+  void set userDrag(String value) {
     setProperty('user-drag', value, '');
   }
 
@@ -7870,7 +7870,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('user-modify');
 
   /** Sets the value of "user-modify" */
-  set userModify(String value) {
+  void set userModify(String value) {
     setProperty('user-modify', value, '');
   }
 
@@ -7879,7 +7879,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('user-select');
 
   /** Sets the value of "user-select" */
-  set userSelect(String value) {
+  void set userSelect(String value) {
     setProperty('user-select', value, '');
   }
 
@@ -7888,7 +7888,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('user-zoom');
 
   /** Sets the value of "user-zoom" */
-  set userZoom(String value) {
+  void set userZoom(String value) {
     setProperty('user-zoom', value, '');
   }
 
@@ -7897,7 +7897,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('vertical-align');
 
   /** Sets the value of "vertical-align" */
-  set verticalAlign(String value) {
+  void set verticalAlign(String value) {
     setProperty('vertical-align', value, '');
   }
 
@@ -7906,7 +7906,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('visibility');
 
   /** Sets the value of "visibility" */
-  set visibility(String value) {
+  void set visibility(String value) {
     setProperty('visibility', value, '');
   }
 
@@ -7915,7 +7915,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('white-space');
 
   /** Sets the value of "white-space" */
-  set whiteSpace(String value) {
+  void set whiteSpace(String value) {
     setProperty('white-space', value, '');
   }
 
@@ -7924,7 +7924,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('widows');
 
   /** Sets the value of "widows" */
-  set widows(String value) {
+  void set widows(String value) {
     setProperty('widows', value, '');
   }
 
@@ -7933,7 +7933,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('width');
 
   /** Sets the value of "width" */
-  set width(String value) {
+  void set width(String value) {
     setProperty('width', value, '');
   }
 
@@ -7942,7 +7942,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('will-change');
 
   /** Sets the value of "will-change" */
-  set willChange(String value) {
+  void set willChange(String value) {
     setProperty('will-change', value, '');
   }
 
@@ -7951,7 +7951,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('word-break');
 
   /** Sets the value of "word-break" */
-  set wordBreak(String value) {
+  void set wordBreak(String value) {
     setProperty('word-break', value, '');
   }
 
@@ -7960,7 +7960,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('word-spacing');
 
   /** Sets the value of "word-spacing" */
-  set wordSpacing(String value) {
+  void set wordSpacing(String value) {
     setProperty('word-spacing', value, '');
   }
 
@@ -7969,7 +7969,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('word-wrap');
 
   /** Sets the value of "word-wrap" */
-  set wordWrap(String value) {
+  void set wordWrap(String value) {
     setProperty('word-wrap', value, '');
   }
 
@@ -7978,7 +7978,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('wrap-flow');
 
   /** Sets the value of "wrap-flow" */
-  set wrapFlow(String value) {
+  void set wrapFlow(String value) {
     setProperty('wrap-flow', value, '');
   }
 
@@ -7987,7 +7987,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('wrap-through');
 
   /** Sets the value of "wrap-through" */
-  set wrapThrough(String value) {
+  void set wrapThrough(String value) {
     setProperty('wrap-through', value, '');
   }
 
@@ -7996,7 +7996,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('writing-mode');
 
   /** Sets the value of "writing-mode" */
-  set writingMode(String value) {
+  void set writingMode(String value) {
     setProperty('writing-mode', value, '');
   }
 
@@ -8005,7 +8005,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('z-index');
 
   /** Sets the value of "z-index" */
-  set zIndex(String value) {
+  void set zIndex(String value) {
     setProperty('z-index', value, '');
   }
 
@@ -8014,7 +8014,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('zoom');
 
   /** Sets the value of "zoom" */
-  set zoom(String value) {
+  void set zoom(String value) {
     setProperty('zoom', value, '');
   }
 }
@@ -9232,10 +9232,9 @@ class Document extends Node
   @DocsEditable()
   Element _createElement(String localName_OR_tagName, [String typeExtension]) native;
 
-  @JSName('createElementNS')
   @DomName('Document.createElementNS')
   @DocsEditable()
-  Element _createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) native;
+  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) native;
 
   @JSName('createEvent')
   @DomName('Document.createEvent')
@@ -9837,12 +9836,6 @@ class Document extends Node
     return _createElement(tagName, typeExtension);
   }
 
-  @DomName('Document.createElementNS')
-  @DocsEditable()
-  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
-    return _createElementNS(tagName, qualifiedName, typeExtension);
-  }
-
   @DomName('Document.createNodeIterator')
   NodeIterator _createNodeIterator(Node root,
       [int whatToShow, NodeFilter filter])
@@ -9894,7 +9887,7 @@ class DocumentFragment extends Node implements ParentNode {
     return _docChildren;
   }
 
-  set children(List<Element> value) {
+  void set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -9916,13 +9909,14 @@ class DocumentFragment extends Node implements ParentNode {
   ElementList<Element> querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
+
   String get innerHtml {
     final e = new Element.tag("div");
     e.append(this.clone(true));
     return e.innerHtml;
   }
 
-  set innerHtml(String value) {
+  void set innerHtml(String value) {
     this.setInnerHtml(value);
   }
 
@@ -10185,154 +10179,154 @@ class DomMatrix extends DomMatrixReadOnly {
   // Shadowing definition.
   num get a => JS("num", "#.a", this);
 
-  set a(num value) {
+  void set a(num value) {
     JS("void", "#.a = #", this, value);
   }
 
   // Shadowing definition.
   num get b => JS("num", "#.b", this);
 
-  set b(num value) {
+  void set b(num value) {
     JS("void", "#.b = #", this, value);
   }
 
   // Shadowing definition.
   num get c => JS("num", "#.c", this);
 
-  set c(num value) {
+  void set c(num value) {
     JS("void", "#.c = #", this, value);
   }
 
   // Shadowing definition.
   num get d => JS("num", "#.d", this);
 
-  set d(num value) {
+  void set d(num value) {
     JS("void", "#.d = #", this, value);
   }
 
   // Shadowing definition.
   num get e => JS("num", "#.e", this);
 
-  set e(num value) {
+  void set e(num value) {
     JS("void", "#.e = #", this, value);
   }
 
   // Shadowing definition.
   num get f => JS("num", "#.f", this);
 
-  set f(num value) {
+  void set f(num value) {
     JS("void", "#.f = #", this, value);
   }
 
   // Shadowing definition.
   num get m11 => JS("num", "#.m11", this);
 
-  set m11(num value) {
+  void set m11(num value) {
     JS("void", "#.m11 = #", this, value);
   }
 
   // Shadowing definition.
   num get m12 => JS("num", "#.m12", this);
 
-  set m12(num value) {
+  void set m12(num value) {
     JS("void", "#.m12 = #", this, value);
   }
 
   // Shadowing definition.
   num get m13 => JS("num", "#.m13", this);
 
-  set m13(num value) {
+  void set m13(num value) {
     JS("void", "#.m13 = #", this, value);
   }
 
   // Shadowing definition.
   num get m14 => JS("num", "#.m14", this);
 
-  set m14(num value) {
+  void set m14(num value) {
     JS("void", "#.m14 = #", this, value);
   }
 
   // Shadowing definition.
   num get m21 => JS("num", "#.m21", this);
 
-  set m21(num value) {
+  void set m21(num value) {
     JS("void", "#.m21 = #", this, value);
   }
 
   // Shadowing definition.
   num get m22 => JS("num", "#.m22", this);
 
-  set m22(num value) {
+  void set m22(num value) {
     JS("void", "#.m22 = #", this, value);
   }
 
   // Shadowing definition.
   num get m23 => JS("num", "#.m23", this);
 
-  set m23(num value) {
+  void set m23(num value) {
     JS("void", "#.m23 = #", this, value);
   }
 
   // Shadowing definition.
   num get m24 => JS("num", "#.m24", this);
 
-  set m24(num value) {
+  void set m24(num value) {
     JS("void", "#.m24 = #", this, value);
   }
 
   // Shadowing definition.
   num get m31 => JS("num", "#.m31", this);
 
-  set m31(num value) {
+  void set m31(num value) {
     JS("void", "#.m31 = #", this, value);
   }
 
   // Shadowing definition.
   num get m32 => JS("num", "#.m32", this);
 
-  set m32(num value) {
+  void set m32(num value) {
     JS("void", "#.m32 = #", this, value);
   }
 
   // Shadowing definition.
   num get m33 => JS("num", "#.m33", this);
 
-  set m33(num value) {
+  void set m33(num value) {
     JS("void", "#.m33 = #", this, value);
   }
 
   // Shadowing definition.
   num get m34 => JS("num", "#.m34", this);
 
-  set m34(num value) {
+  void set m34(num value) {
     JS("void", "#.m34 = #", this, value);
   }
 
   // Shadowing definition.
   num get m41 => JS("num", "#.m41", this);
 
-  set m41(num value) {
+  void set m41(num value) {
     JS("void", "#.m41 = #", this, value);
   }
 
   // Shadowing definition.
   num get m42 => JS("num", "#.m42", this);
 
-  set m42(num value) {
+  void set m42(num value) {
     JS("void", "#.m42 = #", this, value);
   }
 
   // Shadowing definition.
   num get m43 => JS("num", "#.m43", this);
 
-  set m43(num value) {
+  void set m43(num value) {
     JS("void", "#.m43 = #", this, value);
   }
 
   // Shadowing definition.
   num get m44 => JS("num", "#.m44", this);
 
-  set m44(num value) {
+  void set m44(num value) {
     JS("void", "#.m44 = #", this, value);
   }
 
@@ -10603,28 +10597,28 @@ class DomPoint extends DomPointReadOnly {
   // Shadowing definition.
   num get w => JS("num", "#.w", this);
 
-  set w(num value) {
+  void set w(num value) {
     JS("void", "#.w = #", this, value);
   }
 
   // Shadowing definition.
   num get x => JS("num", "#.x", this);
 
-  set x(num value) {
+  void set x(num value) {
     JS("void", "#.x = #", this, value);
   }
 
   // Shadowing definition.
   num get y => JS("num", "#.y", this);
 
-  set y(num value) {
+  void set y(num value) {
     JS("void", "#.y = #", this, value);
   }
 
   // Shadowing definition.
   num get z => JS("num", "#.z", this);
 
-  set z(num value) {
+  void set z(num value) {
     JS("void", "#.z = #", this, value);
   }
 }
@@ -10868,7 +10862,7 @@ class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMix
   // String is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -10996,7 +10990,7 @@ class _ChildrenElementList extends ListBase<Element>
     _element._replaceChild(value, _childElements[index]);
   }
 
-  set length(int newLength) {
+  void set length(int newLength) {
     // TODO(jacobr): remove children when length is reduced.
     throw new UnsupportedError('Cannot resize element lists');
   }
@@ -11702,7 +11696,7 @@ class _FrozenElementList extends ListBase
     throw new UnsupportedError('Cannot modify list');
   }
 
-  set length(int newLength) {
+  void set length(int newLength) {
     throw new UnsupportedError('Cannot modify list');
   }
 
@@ -11725,7 +11719,7 @@ class _FrozenElementList extends ListBase
   CssStyleDeclarationBase get style =>
       new _CssStyleDeclarationSet(this);
 
-  set classes(Iterable<String> value) {
+  void set classes(Iterable<String> value) {
     // TODO(sra): This might be faster for Sets:
     //
     //     new _MultiElementCssClassSet(this).writeClasses(value)
@@ -12220,7 +12214,7 @@ class _FrozenElementList extends ListBase
  */
 @DomName('Element')
 @Native("Element")
-class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode {
+abstract class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode {
 
   /**
    * Creates an HTML element from a valid fragment of HTML.
@@ -12267,7 +12261,11 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *     }
    *     document.registerElement('x-custom', CustomElement);
    */
-  Element.created() : super._created();
+  Element.created() : super._created() {
+    // Validate that this is a custom element & perform any additional
+    // initialization.
+    _initializeCustomElement(this);
+  }
 
   /**
    * Creates the HTML element specified by the tag name.
@@ -12448,7 +12446,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    */
   Map<String, String> get attributes => new _ElementAttributeMap(this);
 
-  set attributes(Map<String, String> value) {
+  void set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
     attributes.clear();
     for (String key in value.keys) {
@@ -12470,7 +12468,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    */
   List<Element> get children => new _ChildrenElementList._wrap(this);
 
-  set children(List<Element> value) {
+  void set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -12524,7 +12522,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    */
   CssClassSet get classes => new _ElementCssClassSet(this);
 
-  set classes(Iterable<String> value) {
+  void set classes(Iterable<String> value) {
     // TODO(sra): Do this without reading the classes in clear() and addAll(),
     // or writing the classes in clear().
     CssClassSet classSet = classes;
@@ -12558,7 +12556,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   Map<String, String> get dataset =>
     new _DataAttributeMap(attributes);
 
-  set dataset(Map<String, String> value) {
+  void set dataset(Map<String, String> value) {
     final data = this.dataset;
     data.clear();
     for (String key in value.keys) {
@@ -12691,15 +12689,18 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *     var animation = elem.animate([
    *       {"transform": "translate(100px, -100%)"},
    *       {"transform" : "translate(400px, 500px)"}
-   *     ], 1500);
+   *     ], 1500);  
    *
    * The [frames] parameter is an Iterable<Map>, where the
    * map entries specify CSS animation effects. The
    * [timing] paramter can be a double, representing the number of milliseconds
    * for the transition, or a Map with fields corresponding to those
    * of the [Timing] object.
+   *
+   * This is not yet supported in Dartium.
   **/
-  @Experimental()
+// TODO(alanknight): Correct above comment once it works in Dartium.
+  @Experimental
   @SupportedBrowser(SupportedBrowser.CHROME, '36')
   AnimationPlayer animate(Iterable<Map<String, dynamic>> frames, [timing]) {
     if (frames is! Iterable || !(frames.every((x) => x is Map))) {
@@ -12708,8 +12709,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
     }
     var convertedFrames = frames;
     if (convertedFrames is Iterable) {
-      convertedFrames = convertDartToNative_List(
-          frames.map(convertDartToNative_Dictionary).toList());
+      convertedFrames = frames.map(convertDartToNative_Dictionary).toList();
     }
     var convertedTiming = timing;
     if (convertedTiming is Map) {
@@ -12750,7 +12750,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   // members of the component are used. The actual type is a subtype of Element.
   get xtag => _xtag != null ? _xtag : this;
 
-  set xtag(Element value) {
+  void set xtag(Element value) {
     _xtag = value;
   }
 
@@ -12869,7 +12869,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
 
   @JSName('insertAdjacentText')
   void _insertAdjacentText(String where, String text) native;
-
+  
 
   /**
    * Parses text as an HTML fragment and inserts it into the DOM at the
@@ -13122,9 +13122,8 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
     // offsetParent, "tops out" at BODY. But people could conceivably pass in
     // the document.documentElement and I want it to return an absolute offset,
     // so we have the special case checking for HTML.
-    bool sameAsParent = identical(current, parent);
-    bool foundAsParent = sameAsParent || parent.tagName == 'HTML';
-    if (current == null || sameAsParent) {
+    bool foundAsParent = identical(current, parent) || parent.tagName == 'HTML';
+    if (current == null || identical(current, parent)) {
       if (foundAsParent) return new Point(0, 0);
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");
@@ -13182,11 +13181,11 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
       _parseRange = _parseDocument.createRange();
-
+	
       // Workaround for Safari bug. Was also previously Chrome bug 229142
-      // - URIs are not resolved in new doc.
-      var base = _parseDocument.createElement('base');
-      base.href = document.baseUri;
+      // - URIs are not resolved in new doc.	
+      var base = _parseDocument.createElement('base');	
+      base.href = document.baseUri;	
       _parseDocument.head.append(base);
     }
     var contextElement;
@@ -13244,7 +13243,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    * This uses the default sanitization behavior to sanitize the HTML fragment,
    * use [setInnerHtml] to override the default behavior.
    */
-  set innerHtml(String html) {
+  void set innerHtml(String html) {
     this.setInnerHtml(html);
   }
 
@@ -13286,7 +13285,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    * used when an explicit accessor is not available.
    */
   ElementEvents get on => new ElementEvents(this);
-
+  
   /**
    * Verify if any of the attributes that we use in the sanitizer look unexpected,
    * possibly indicating DOM clobbering attacks.
@@ -13312,16 +13311,6 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
 	 }
 	 return false;
           })(#)''', element);
-  }
-
-  String get _safeTagName {
-    String result = 'element tag unavailable';
-    try {
-      if (tagName is String) {
-        result = tagName;
-      }
-    } catch (e) {}
-    return result;
   }
 
   @DomName('Element.offsetHeight')
@@ -13366,7 +13355,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  set scrollLeft(int value) {
+  void set scrollLeft(int value) {
     JS("void", "#.scrollLeft = #", this, value.round());
   }
 
@@ -13376,7 +13365,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  set scrollTop(int value) {
+  void set scrollTop(int value) {
     JS("void", "#.scrollTop = #", this, value.round());
   }
 
@@ -15989,7 +15978,7 @@ class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File
   // File is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -17851,7 +17840,7 @@ class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixi
   // Node is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -17971,7 +17960,7 @@ class HtmlDocument extends Document {
 
   @DomName('Document.selectedStylesheetSet')
   String get selectedStylesheetSet => _selectedStylesheetSet;
-  set selectedStylesheetSet(String value) {
+  void set selectedStylesheetSet(String value) {
     _selectedStylesheetSet = value;
   }
 
@@ -17982,7 +17971,7 @@ class HtmlDocument extends Document {
   String get title => _title;
 
   @DomName('Document.title')
-  set title(String value) {
+  void set title(String value) {
     _title = value;
   }
 
@@ -18588,25 +18577,6 @@ class HttpRequest extends HttpRequestEventTarget {
     return headers;
   }
 
-  /**
-   * Specify the desired `url`, and `method` to use in making the request.
-   *
-   * By default the request is done asyncronously, with no user or password
-   * authentication information. If `async` is false, the request will be send
-   * synchronously.
-   *
-   * Calling `open` again on a currently active request is equivalent to
-   * calling `abort`.
-   *
-   * Note: Most simple HTTP requests can be accomplished using the [getString],
-   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
-   * `open` method is intended only for more complext HTTP requests where
-   * finer-grained control is needed.
-   */
-  @DomName('XMLHttpRequest.open')
-  @DocsEditable()
-  void open(String method, String url, {bool async, String user, String password}) native;
-
   // To suppress missing implicit constructor warnings.
   factory HttpRequest._() { throw new UnsupportedError("Not supported"); }
 
@@ -18861,6 +18831,25 @@ class HttpRequest extends HttpRequestEventTarget {
   @DocsEditable()
   @Unstable()
   String getResponseHeader(String header) native;
+
+  /**
+   * Specify the desired `url`, and `method` to use in making the request.
+   *
+   * By default the request is done asyncronously, with no user or password
+   * authentication information. If `async` is false, the request will be send
+   * synchronously.
+   *
+   * Calling `open` again on a currently active request is equivalent to
+   * calling `abort`.
+   *
+   * Note: Most simple HTTP requests can be accomplished using the [getString],
+   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
+   * `open` method is intended only for more complext HTTP requests where
+   * finer-grained control is needed.
+   */
+  @DomName('XMLHttpRequest.open')
+  @DocsEditable()
+  void open(String method, String url, {bool async, String user, String password}) native;
 
   /**
    * Specify a particular MIME type (such as `text/xml`) desired for the
@@ -19554,10 +19543,10 @@ class InputElement extends HtmlElement implements
   @Creates('Null')
   final dynamic _get_valueAsDate;
 
-  set valueAsDate(DateTime value) {
+  void set valueAsDate(DateTime value) {
     this._set_valueAsDate = convertDartToNative_DateTime(value);
   }
-  set _set_valueAsDate(/*dynamic*/ value) {
+  void set _set_valueAsDate(/*dynamic*/ value) {
     JS("void", "#.valueAsDate = #", this, value);
   }
 
@@ -22672,7 +22661,7 @@ class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListM
   // MimeType is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -23298,6 +23287,11 @@ class Navigator extends Interceptor implements NavigatorCpu, NavigatorLanguage, 
   @Experimental()
   void getStorageUpdates() native;
 
+  @DomName('Navigator.isProtocolHandlerRegistered')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String isProtocolHandlerRegistered(String scheme, String url) native;
+
   @DomName('Navigator.registerProtocolHandler')
   @DocsEditable()
   @Unstable()
@@ -23307,6 +23301,11 @@ class Navigator extends Interceptor implements NavigatorCpu, NavigatorLanguage, 
   @DocsEditable()
   @Experimental() // untriaged
   bool sendBeacon(String url, data) native;
+
+  @DomName('Navigator.unregisterProtocolHandler')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void unregisterProtocolHandler(String scheme, String url) native;
 
   // From NavigatorCPU
 
@@ -23659,7 +23658,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   // a local copy of childNodes is more efficient.
   int get length => _this.childNodes.length;
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError(
         "Cannot set length on immutable List.");
   }
@@ -23684,7 +23683,7 @@ class Node extends EventTarget {
     return new _ChildNodeListLazy(this);
   }
 
-  set nodes(Iterable<Node> value) {
+  void set nodes(Iterable<Node> value) {
     // Copy list first since we don't want liveness during iteration.
     // TODO(jacobr): there is a better way to do this.
     List copy = new List.from(value);
@@ -23771,6 +23770,8 @@ class Node extends EventTarget {
    */
   @DomName('Node.childNodes')
   @DocsEditable()
+  @Returns('NodeList')
+  @Creates('NodeList')
   final List<Node> childNodes;
 
   // To suppress missing implicit constructor warnings.
@@ -24221,7 +24222,7 @@ class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node
   // Node is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -25403,7 +25404,7 @@ class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin
   // Plugin is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -27667,7 +27668,7 @@ Please remove them from your code.
   }
 
   @deprecated
-  set resetStyleInheritance(bool value) {
+  void set resetStyleInheritance(bool value) {
     _shadowRootDeprecationReport();
   }
 
@@ -27679,7 +27680,7 @@ Please remove them from your code.
   }
 
   @deprecated
-  set applyAuthorStyles(bool value) {
+  void set applyAuthorStyles(bool value) {
     _shadowRootDeprecationReport();
   }
 }
@@ -27860,7 +27861,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   // SourceBuffer is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -28066,7 +28067,7 @@ class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, Immut
   // SpeechGrammar is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -29931,7 +29932,7 @@ class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, Immutab
   // TextTrackCue is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -30016,7 +30017,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   // TextTrack is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -30417,7 +30418,7 @@ class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<To
   // Touch is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -31631,7 +31632,7 @@ class WheelEvent extends MouseEvent {
     if (view == null) {
       view = window;
     }
-
+    
     return JS('WheelEvent', 'new WheelEvent(#, #)',
         type, convertDartToNative_Dictionary(options));
 
@@ -31875,13 +31876,13 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    * Sets the window's location, which causes the browser to navigate to the new
    * location. [value] may be a Location object or a String.
    */
-  set location(value) {
+  void set location(value) {
     _location = value;
   }
 
   // Native getter and setter to access raw Location object.
   dynamic get _location => JS('Location|Null', '#.location', this);
-  set _location(value) {
+  void set _location(value) {
     JS('void', '#.location = #', this, value);
   }
 
@@ -32402,7 +32403,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @Returns('Window|=Object')
   final dynamic _get_opener;
 
-  set opener(Window value) {
+  void set opener(Window value) {
     JS("void", "#.opener = #", this, value);
   }
 
@@ -33749,7 +33750,7 @@ class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
 
   String get returnValue => _returnValue;
 
-  set returnValue(String value) {
+  void set returnValue(String value) {
     _returnValue = value;
     // FF and IE use the value as the return value, Chrome will return this from
     // the event callback function.
@@ -34454,7 +34455,7 @@ class _Attr extends Node {
   // Shadowing definition.
   String get text => JS("String", "#.textContent", this);
 
-  set text(String value) {
+  void set text(String value) {
     JS("void", "#.textContent = #", this, value);
   }
 
@@ -34721,7 +34722,7 @@ class _ClientRectList extends Interceptor with ListMixin<Rectangle>, ImmutableLi
   // Rectangle is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -34799,7 +34800,7 @@ class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMix
   // CssRule is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -34865,7 +34866,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   // _CSSValue is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -34958,9 +34959,7 @@ abstract class _DocumentType extends Node implements ChildNode {
   factory _DocumentType._() { throw new UnsupportedError("Not supported"); }
 
   // From ChildNode
-
 }
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -35000,28 +34999,28 @@ class _DomRect extends DomRectReadOnly {
   // Shadowing definition.
   num get height => JS("num", "#.height", this);
 
-  set height(num value) {
+  void set height(num value) {
     JS("void", "#.height = #", this, value);
   }
 
   // Shadowing definition.
   num get width => JS("num", "#.width", this);
 
-  set width(num value) {
+  void set width(num value) {
     JS("void", "#.width = #", this, value);
   }
 
   // Shadowing definition.
   num get x => JS("num", "#.x", this);
 
-  set x(num value) {
+  void set x(num value) {
     JS("void", "#.x = #", this, value);
   }
 
   // Shadowing definition.
   num get y => JS("num", "#.y", this);
 
-  set y(num value) {
+  void set y(num value) {
     JS("void", "#.y = #", this, value);
   }
 }
@@ -35119,7 +35118,7 @@ class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMix
   // Gamepad is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -35272,9 +35271,7 @@ abstract class _HTMLFrameSetElement extends HtmlElement implements WindowEventHa
    * This can only be called by subclasses from their created constructor.
    */
   _HTMLFrameSetElement.created() : super.created();
-
 }
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -35349,7 +35346,7 @@ class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin
   // Node is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -35596,9 +35593,7 @@ abstract class _Response extends Body {
 abstract class _ServiceWorker extends EventTarget implements AbstractWorker {
   // To suppress missing implicit constructor warnings.
   factory _ServiceWorker._() { throw new UnsupportedError("Not supported"); }
-
 }
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -35630,7 +35625,7 @@ class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechReco
   // SpeechRecognitionResult is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -35694,7 +35689,7 @@ class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableL
   // StyleSheet is the element type.
 
 
-  set length(int value) {
+  void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -35837,9 +35832,7 @@ abstract class _WorkerLocation extends Interceptor implements UrlUtilsReadOnly {
   factory _WorkerLocation._() { throw new UnsupportedError("Not supported"); }
 
   // From URLUtilsReadOnly
-
 }
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -35859,9 +35852,7 @@ abstract class _WorkerNavigator extends Interceptor implements NavigatorCpu, Nav
   // From NavigatorID
 
   // From NavigatorOnLine
-
 }
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36476,7 +36467,7 @@ class _ContentCssRect extends CssRect {
    * `height` function in jQuery and the calculated `height` CSS value,
    * converted to a num in pixels.
    */
-  set height(newHeight) {
+  void set height(newHeight) {
     if (newHeight is Dimension) {
       if (newHeight.value < 0) newHeight = new Dimension.px(0);
       _element.style.height = newHeight.toString();
@@ -36494,7 +36485,7 @@ class _ContentCssRect extends CssRect {
    * and the calculated
    * `width` CSS value, converted to a dimensionless num in pixels.
    */
-  set width(newWidth) {
+  void set width(newWidth) {
     if (newWidth is Dimension) {
       if (newWidth.value < 0) newWidth = new Dimension.px(0);
       _element.style.width = newWidth.toString();
@@ -36529,7 +36520,7 @@ class _ContentCssListRect extends _ContentCssRect {
    * function in jQuery and the calculated `height` CSS value, converted to a
    * num in pixels.
    */
-  set height(newHeight) {
+  void set height(newHeight) {
     _elementList.forEach((e) => e.contentEdge.height = newHeight);
   }
 
@@ -36539,7 +36530,7 @@ class _ContentCssListRect extends _ContentCssRect {
    * This is equivalent to the `width` function in jQuery and the calculated
    * `width` CSS value, converted to a dimensionless num in pixels.
    */
-  set width(newWidth) {
+  void set width(newWidth) {
     _elementList.forEach((e) => e.contentEdge.width = newWidth);
   }
 }
@@ -36646,7 +36637,7 @@ abstract class CssRect extends MutableRectangle<num> {
    *
    * Note that only the content height can actually be set via this method.
    */
-  set height(newHeight) {
+  void set height(newHeight) {
     throw new UnsupportedError("Can only set height for content rect.");
   }
 
@@ -36660,7 +36651,7 @@ abstract class CssRect extends MutableRectangle<num> {
    *
    * Note that only the content width can be set via this method.
    */
-  set width(newWidth) {
+  void set width(newWidth) {
     throw new UnsupportedError("Can only set width for content rect.");
   }
 
@@ -37911,11 +37902,11 @@ class _Html5NodeValidator implements NodeValidator {
   }
 
   bool allowsElement(Element element) {
-    return _allowedElements.contains(element._safeTagName);
+    return _allowedElements.contains(element.tagName);
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-    var tagName = element._safeTagName;
+    var tagName = element.tagName;
     var validator = _attributeValidators['$tagName::$attributeName'];
     if (validator == null) {
       validator = _attributeValidators['*::$attributeName'];
@@ -39577,11 +39568,11 @@ class _SimpleNodeValidator implements NodeValidator {
   }
 
   bool allowsElement(Element element) {
-    return allowedElements.contains(element._safeTagName);
+    return allowedElements.contains(element.tagName);
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-    var tagName = element._safeTagName;
+    var tagName = element.tagName;
     if (allowedUriAttributes.contains('$tagName::$attributeName')) {
       return uriPolicy.allowsUri(value);
     } else if (allowedUriAttributes.contains('*::$attributeName')) {
@@ -39622,10 +39613,10 @@ class _CustomElementNodeValidator extends _SimpleNodeValidator {
       var isAttr = element.attributes['is'];
       if (isAttr != null) {
         return allowedElements.contains(isAttr.toUpperCase()) &&
-          allowedElements.contains(element._safeTagName);
+          allowedElements.contains(element.tagName);
       }
     }
-    return allowCustomTag && allowedElements.contains(element._safeTagName);
+    return allowCustomTag && allowedElements.contains(element.tagName);
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
@@ -39681,7 +39672,7 @@ class _SvgNodeValidator implements NodeValidator {
     // foreignobject tag as SvgElement. We don't want foreignobject contents
     // anyway, so just remove the whole tree outright. And we can't rely
     // on IE recognizing the SvgForeignObject type, so go by tagName. Bug 23144
-    if (element is svg.SvgElement && element._safeTagName == 'foreignObject') {
+    if (element is svg.SvgElement && element.tagName == 'foreignObject') {
       return false;
     }
     if (element is svg.SvgElement) {
@@ -39757,7 +39748,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
 
   void operator []=(int index, E value) { _list[index] = value; }
 
-  set length(int newLength) { _list.length = newLength; }
+  void set length(int newLength) { _list.length = newLength; }
 
   void sort([int compare(E a, E b)]) { _list.sort(compare); }
 
@@ -40203,7 +40194,7 @@ class _LocationCrossFrame implements LocationBase {
   // properly.  Its fields and methods can only be accessed via JavaScript.
   var _location;
 
-  set href(String val) => _setHref(_location, val);
+  void set href(String val) => _setHref(_location, val);
   static void _setHref(location, val) {
     JS('void', '#.href = #', location, val);
   }
@@ -40739,7 +40730,7 @@ abstract class NodeTreeSanitizer {
   /**
    * A sanitizer for trees that we trust. It does no validation and allows
    * any elements. It is also more efficient, since it can pass the text
-   * directly through to the underlying APIs without creating a document
+   * directly through to the underlying APIs without creating a document 
    * fragment to be sanitized.
    */
   static const trusted = const _TrustedHtmlTreeSanitizer();
@@ -40754,7 +40745,7 @@ class _TrustedHtmlTreeSanitizer implements NodeTreeSanitizer {
 
   sanitizeTree(Node node) {}
 }
-
+  
 /**
  * Defines the policy for what types of uris are allowed for particular
  * attribute values.
@@ -40808,14 +40799,14 @@ class _ThrowsNodeValidator implements NodeValidator {
 
   bool allowsElement(Element element) {
     if (!validator.allowsElement(element)) {
-      throw new ArgumentError(element._safeTagName);
+      throw new ArgumentError(element.tagName);
     }
     return true;
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
     if (!validator.allowsAttribute(element, attributeName, value)) {
-      throw new ArgumentError('${element._safeTagName}[$attributeName="$value"]');
+      throw new ArgumentError('${element.tagName}[$attributeName="$value"]');
     }
   }
 }
@@ -40880,7 +40871,10 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     try {
       elementText = element.toString();
     } catch(e) {}
-    var elementTagName = element._safeTagName;
+    var elementTagName = 'element tag unavailable';
+    try {
+      elementTagName = element.tagName;
+    } catch(e) {}
     _sanitizeElement(element, parent, corrupted, elementText, elementTagName,
         attrs, isAttr);
   }

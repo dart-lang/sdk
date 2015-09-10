@@ -11,7 +11,6 @@ import 'dart:html_common';
 import 'dart:nativewrappers';
 import 'dart:typed_data';
 import 'dart:_blink' as _blink;
-import 'dart:js' as js;
 // DO NOT EDIT
 // Auto-generated dart:audio library.
 
@@ -50,37 +49,6 @@ final web_audioBlinkMap = {
 
 };
 
-// FIXME: Can we make this private?
-final web_audioBlinkFunctionMap = {
-  'AnalyserNode': () => AnalyserNode.internalCreateAnalyserNode,
-  'AudioBuffer': () => AudioBuffer.internalCreateAudioBuffer,
-  'AudioBufferSourceNode': () => AudioBufferSourceNode.internalCreateAudioBufferSourceNode,
-  'AudioContext': () => AudioContext.internalCreateAudioContext,
-  'AudioDestinationNode': () => AudioDestinationNode.internalCreateAudioDestinationNode,
-  'AudioListener': () => AudioListener.internalCreateAudioListener,
-  'AudioNode': () => AudioNode.internalCreateAudioNode,
-  'AudioParam': () => AudioParam.internalCreateAudioParam,
-  'AudioProcessingEvent': () => AudioProcessingEvent.internalCreateAudioProcessingEvent,
-  'AudioSourceNode': () => AudioSourceNode.internalCreateAudioSourceNode,
-  'BiquadFilterNode': () => BiquadFilterNode.internalCreateBiquadFilterNode,
-  'ChannelMergerNode': () => ChannelMergerNode.internalCreateChannelMergerNode,
-  'ChannelSplitterNode': () => ChannelSplitterNode.internalCreateChannelSplitterNode,
-  'ConvolverNode': () => ConvolverNode.internalCreateConvolverNode,
-  'DelayNode': () => DelayNode.internalCreateDelayNode,
-  'DynamicsCompressorNode': () => DynamicsCompressorNode.internalCreateDynamicsCompressorNode,
-  'GainNode': () => GainNode.internalCreateGainNode,
-  'MediaElementAudioSourceNode': () => MediaElementAudioSourceNode.internalCreateMediaElementAudioSourceNode,
-  'MediaStreamAudioDestinationNode': () => MediaStreamAudioDestinationNode.internalCreateMediaStreamAudioDestinationNode,
-  'MediaStreamAudioSourceNode': () => MediaStreamAudioSourceNode.internalCreateMediaStreamAudioSourceNode,
-  'OfflineAudioCompletionEvent': () => OfflineAudioCompletionEvent.internalCreateOfflineAudioCompletionEvent,
-  'OfflineAudioContext': () => OfflineAudioContext.internalCreateOfflineAudioContext,
-  'OscillatorNode': () => OscillatorNode.internalCreateOscillatorNode,
-  'PannerNode': () => PannerNode.internalCreatePannerNode,
-  'PeriodicWave': () => PeriodicWave.internalCreatePeriodicWave,
-  'ScriptProcessorNode': () => ScriptProcessorNode.internalCreateScriptProcessorNode,
-  'WaveShaperNode': () => WaveShaperNode.internalCreateWaveShaperNode,
-
-};
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -96,25 +64,13 @@ class AnalyserNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory AnalyserNode._() { throw new UnsupportedError("Not supported"); }
 
-
-  static AnalyserNode internalCreateAnalyserNode() {
-    return new AnalyserNode._internalWrap();
-  }
-
-  factory AnalyserNode._internalWrap() {
-    return new AnalyserNode.internal_();
-  }
-
-  AnalyserNode.internal_() : super.internal_();
-
-
   @DomName('AnalyserNode.fftSize')
   @DocsEditable()
   int get fftSize => _blink.BlinkAnalyserNode.instance.fftSize_Getter_(unwrap_jso(this));
   
   @DomName('AnalyserNode.fftSize')
   @DocsEditable()
-  set fftSize(int value) => _blink.BlinkAnalyserNode.instance.fftSize_Setter_(unwrap_jso(this), value);
+  void set fftSize(int value) => _blink.BlinkAnalyserNode.instance.fftSize_Setter_(unwrap_jso(this), value);
   
   @DomName('AnalyserNode.frequencyBinCount')
   @DocsEditable()
@@ -126,7 +82,7 @@ class AnalyserNode extends AudioNode {
   
   @DomName('AnalyserNode.maxDecibels')
   @DocsEditable()
-  set maxDecibels(num value) => _blink.BlinkAnalyserNode.instance.maxDecibels_Setter_(unwrap_jso(this), value);
+  void set maxDecibels(num value) => _blink.BlinkAnalyserNode.instance.maxDecibels_Setter_(unwrap_jso(this), value);
   
   @DomName('AnalyserNode.minDecibels')
   @DocsEditable()
@@ -134,7 +90,7 @@ class AnalyserNode extends AudioNode {
   
   @DomName('AnalyserNode.minDecibels')
   @DocsEditable()
-  set minDecibels(num value) => _blink.BlinkAnalyserNode.instance.minDecibels_Setter_(unwrap_jso(this), value);
+  void set minDecibels(num value) => _blink.BlinkAnalyserNode.instance.minDecibels_Setter_(unwrap_jso(this), value);
   
   @DomName('AnalyserNode.smoothingTimeConstant')
   @DocsEditable()
@@ -142,7 +98,7 @@ class AnalyserNode extends AudioNode {
   
   @DomName('AnalyserNode.smoothingTimeConstant')
   @DocsEditable()
-  set smoothingTimeConstant(num value) => _blink.BlinkAnalyserNode.instance.smoothingTimeConstant_Setter_(unwrap_jso(this), value);
+  void set smoothingTimeConstant(num value) => _blink.BlinkAnalyserNode.instance.smoothingTimeConstant_Setter_(unwrap_jso(this), value);
   
   @DomName('AnalyserNode.getByteFrequencyData')
   @DocsEditable()
@@ -177,24 +133,9 @@ class AudioBuffer extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AudioBuffer._() { throw new UnsupportedError("Not supported"); }
 
-  static AudioBuffer internalCreateAudioBuffer() {
-    return new AudioBuffer._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory AudioBuffer._internalWrap() {
-    return new AudioBuffer.internal_();
-  }
-
-  AudioBuffer.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('AudioBuffer.duration')
   @DocsEditable()
-  num get duration => _blink.BlinkAudioBuffer.instance.duration_Getter_(unwrap_jso(this));
+  double get duration => _blink.BlinkAudioBuffer.instance.duration_Getter_(unwrap_jso(this));
   
   @DomName('AudioBuffer.length')
   @DocsEditable()
@@ -206,7 +147,7 @@ class AudioBuffer extends NativeFieldWrapperClass2 {
   
   @DomName('AudioBuffer.sampleRate')
   @DocsEditable()
-  num get sampleRate => _blink.BlinkAudioBuffer.instance.sampleRate_Getter_(unwrap_jso(this));
+  double get sampleRate => _blink.BlinkAudioBuffer.instance.sampleRate_Getter_(unwrap_jso(this));
   
   @DomName('AudioBuffer.getChannelData')
   @DocsEditable()
@@ -252,25 +193,13 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
-
-  static AudioBufferSourceNode internalCreateAudioBufferSourceNode() {
-    return new AudioBufferSourceNode._internalWrap();
-  }
-
-  factory AudioBufferSourceNode._internalWrap() {
-    return new AudioBufferSourceNode.internal_();
-  }
-
-  AudioBufferSourceNode.internal_() : super.internal_();
-
-
   @DomName('AudioBufferSourceNode.buffer')
   @DocsEditable()
   AudioBuffer get buffer => wrap_jso(_blink.BlinkAudioBufferSourceNode.instance.buffer_Getter_(unwrap_jso(this)));
   
   @DomName('AudioBufferSourceNode.buffer')
   @DocsEditable()
-  set buffer(AudioBuffer value) => _blink.BlinkAudioBufferSourceNode.instance.buffer_Setter_(unwrap_jso(this), unwrap_jso(value));
+  void set buffer(AudioBuffer value) => _blink.BlinkAudioBufferSourceNode.instance.buffer_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('AudioBufferSourceNode.loop')
   @DocsEditable()
@@ -278,7 +207,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
   
   @DomName('AudioBufferSourceNode.loop')
   @DocsEditable()
-  set loop(bool value) => _blink.BlinkAudioBufferSourceNode.instance.loop_Setter_(unwrap_jso(this), value);
+  void set loop(bool value) => _blink.BlinkAudioBufferSourceNode.instance.loop_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioBufferSourceNode.loopEnd')
   @DocsEditable()
@@ -286,7 +215,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
   
   @DomName('AudioBufferSourceNode.loopEnd')
   @DocsEditable()
-  set loopEnd(num value) => _blink.BlinkAudioBufferSourceNode.instance.loopEnd_Setter_(unwrap_jso(this), value);
+  void set loopEnd(num value) => _blink.BlinkAudioBufferSourceNode.instance.loopEnd_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioBufferSourceNode.loopStart')
   @DocsEditable()
@@ -294,7 +223,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
   
   @DomName('AudioBufferSourceNode.loopStart')
   @DocsEditable()
-  set loopStart(num value) => _blink.BlinkAudioBufferSourceNode.instance.loopStart_Setter_(unwrap_jso(this), value);
+  void set loopStart(num value) => _blink.BlinkAudioBufferSourceNode.instance.loopStart_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioBufferSourceNode.playbackRate')
   @DocsEditable()
@@ -360,27 +289,15 @@ class AudioContext extends EventTarget {
   @DomName('AudioContext.AudioContext')
   @DocsEditable()
   factory AudioContext() {
-    return wrap_jso(_blink.BlinkAudioContext.instance.constructorCallback_0_());
+    return _blink.BlinkAudioContext.instance.constructorCallback_0_();
   }
-
-
-  static AudioContext internalCreateAudioContext() {
-    return new AudioContext._internalWrap();
-  }
-
-  factory AudioContext._internalWrap() {
-    return new AudioContext.internal_();
-  }
-
-  AudioContext.internal_() : super.internal_();
-
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('AudioContext.currentTime')
   @DocsEditable()
-  num get currentTime => _blink.BlinkAudioContext.instance.currentTime_Getter_(unwrap_jso(this));
+  double get currentTime => _blink.BlinkAudioContext.instance.currentTime_Getter_(unwrap_jso(this));
   
   @DomName('AudioContext.destination')
   @DocsEditable()
@@ -392,7 +309,7 @@ class AudioContext extends EventTarget {
   
   @DomName('AudioContext.sampleRate')
   @DocsEditable()
-  num get sampleRate => _blink.BlinkAudioContext.instance.sampleRate_Getter_(unwrap_jso(this));
+  double get sampleRate => _blink.BlinkAudioContext.instance.sampleRate_Getter_(unwrap_jso(this));
   
   @DomName('AudioContext.createAnalyser')
   @DocsEditable()
@@ -487,7 +404,7 @@ class AudioContext extends EventTarget {
   
   @DomName('AudioContext.decodeAudioData')
   @DocsEditable()
-  void _decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) => _blink.BlinkAudioContext.instance.decodeAudioData_Callback_3_(unwrap_jso(this), audioData, unwrap_jso((audioBuffer) => successCallback(wrap_jso(audioBuffer))), unwrap_jso((audioBuffer) => errorCallback(wrap_jso(audioBuffer))));
+  void _decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) => _blink.BlinkAudioContext.instance.decodeAudioData_Callback_3_(unwrap_jso(this), audioData, unwrap_jso(successCallback), unwrap_jso(errorCallback));
   
   @DomName('AudioContext.startRendering')
   @DocsEditable()
@@ -528,18 +445,6 @@ class AudioDestinationNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory AudioDestinationNode._() { throw new UnsupportedError("Not supported"); }
 
-
-  static AudioDestinationNode internalCreateAudioDestinationNode() {
-    return new AudioDestinationNode._internalWrap();
-  }
-
-  factory AudioDestinationNode._internalWrap() {
-    return new AudioDestinationNode.internal_();
-  }
-
-  AudioDestinationNode.internal_() : super.internal_();
-
-
   @DomName('AudioDestinationNode.maxChannelCount')
   @DocsEditable()
   int get maxChannelCount => _blink.BlinkAudioDestinationNode.instance.maxChannelCount_Getter_(unwrap_jso(this));
@@ -560,28 +465,13 @@ class AudioListener extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AudioListener._() { throw new UnsupportedError("Not supported"); }
 
-  static AudioListener internalCreateAudioListener() {
-    return new AudioListener._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory AudioListener._internalWrap() {
-    return new AudioListener.internal_();
-  }
-
-  AudioListener.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('AudioListener.dopplerFactor')
   @DocsEditable()
   num get dopplerFactor => _blink.BlinkAudioListener.instance.dopplerFactor_Getter_(unwrap_jso(this));
   
   @DomName('AudioListener.dopplerFactor')
   @DocsEditable()
-  set dopplerFactor(num value) => _blink.BlinkAudioListener.instance.dopplerFactor_Setter_(unwrap_jso(this), value);
+  void set dopplerFactor(num value) => _blink.BlinkAudioListener.instance.dopplerFactor_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioListener.speedOfSound')
   @DocsEditable()
@@ -589,7 +479,7 @@ class AudioListener extends NativeFieldWrapperClass2 {
   
   @DomName('AudioListener.speedOfSound')
   @DocsEditable()
-  set speedOfSound(num value) => _blink.BlinkAudioListener.instance.speedOfSound_Setter_(unwrap_jso(this), value);
+  void set speedOfSound(num value) => _blink.BlinkAudioListener.instance.speedOfSound_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioListener.setOrientation')
   @DocsEditable()
@@ -616,25 +506,13 @@ class AudioNode extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory AudioNode._() { throw new UnsupportedError("Not supported"); }
 
-
-  static AudioNode internalCreateAudioNode() {
-    return new AudioNode._internalWrap();
-  }
-
-  factory AudioNode._internalWrap() {
-    return new AudioNode.internal_();
-  }
-
-  AudioNode.internal_() : super.internal_();
-
-
   @DomName('AudioNode.channelCount')
   @DocsEditable()
   int get channelCount => _blink.BlinkAudioNode.instance.channelCount_Getter_(unwrap_jso(this));
   
   @DomName('AudioNode.channelCount')
   @DocsEditable()
-  set channelCount(int value) => _blink.BlinkAudioNode.instance.channelCount_Setter_(unwrap_jso(this), value);
+  void set channelCount(int value) => _blink.BlinkAudioNode.instance.channelCount_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioNode.channelCountMode')
   @DocsEditable()
@@ -642,7 +520,7 @@ class AudioNode extends EventTarget {
   
   @DomName('AudioNode.channelCountMode')
   @DocsEditable()
-  set channelCountMode(String value) => _blink.BlinkAudioNode.instance.channelCountMode_Setter_(unwrap_jso(this), value);
+  void set channelCountMode(String value) => _blink.BlinkAudioNode.instance.channelCountMode_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioNode.channelInterpretation')
   @DocsEditable()
@@ -650,7 +528,7 @@ class AudioNode extends EventTarget {
   
   @DomName('AudioNode.channelInterpretation')
   @DocsEditable()
-  set channelInterpretation(String value) => _blink.BlinkAudioNode.instance.channelInterpretation_Setter_(unwrap_jso(this), value);
+  void set channelInterpretation(String value) => _blink.BlinkAudioNode.instance.channelInterpretation_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioNode.context')
   @DocsEditable()
@@ -703,24 +581,9 @@ class AudioParam extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AudioParam._() { throw new UnsupportedError("Not supported"); }
 
-  static AudioParam internalCreateAudioParam() {
-    return new AudioParam._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory AudioParam._internalWrap() {
-    return new AudioParam.internal_();
-  }
-
-  AudioParam.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('AudioParam.defaultValue')
   @DocsEditable()
-  num get defaultValue => _blink.BlinkAudioParam.instance.defaultValue_Getter_(unwrap_jso(this));
+  double get defaultValue => _blink.BlinkAudioParam.instance.defaultValue_Getter_(unwrap_jso(this));
   
   @DomName('AudioParam.value')
   @DocsEditable()
@@ -728,7 +591,7 @@ class AudioParam extends NativeFieldWrapperClass2 {
   
   @DomName('AudioParam.value')
   @DocsEditable()
-  set value(num value) => _blink.BlinkAudioParam.instance.value_Setter_(unwrap_jso(this), value);
+  void set value(num value) => _blink.BlinkAudioParam.instance.value_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioParam.cancelScheduledValues')
   @DocsEditable()
@@ -770,18 +633,6 @@ class AudioProcessingEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory AudioProcessingEvent._() { throw new UnsupportedError("Not supported"); }
 
-
-  static AudioProcessingEvent internalCreateAudioProcessingEvent() {
-    return new AudioProcessingEvent._internalWrap();
-  }
-
-  factory AudioProcessingEvent._internalWrap() {
-    return new AudioProcessingEvent.internal_();
-  }
-
-  AudioProcessingEvent.internal_() : super.internal_();
-
-
   @DomName('AudioProcessingEvent.inputBuffer')
   @DocsEditable()
   AudioBuffer get inputBuffer => wrap_jso(_blink.BlinkAudioProcessingEvent.instance.inputBuffer_Getter_(unwrap_jso(this)));
@@ -793,7 +644,7 @@ class AudioProcessingEvent extends Event {
   @DomName('AudioProcessingEvent.playbackTime')
   @DocsEditable()
   @Experimental() // untriaged
-  num get playbackTime => _blink.BlinkAudioProcessingEvent.instance.playbackTime_Getter_(unwrap_jso(this));
+  double get playbackTime => _blink.BlinkAudioProcessingEvent.instance.playbackTime_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -811,18 +662,6 @@ class AudioSourceNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory AudioSourceNode._() { throw new UnsupportedError("Not supported"); }
 
-
-  static AudioSourceNode internalCreateAudioSourceNode() {
-    return new AudioSourceNode._internalWrap();
-  }
-
-  factory AudioSourceNode._internalWrap() {
-    return new AudioSourceNode.internal_();
-  }
-
-  AudioSourceNode.internal_() : super.internal_();
-
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -838,18 +677,6 @@ class AudioSourceNode extends AudioNode {
 class BiquadFilterNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory BiquadFilterNode._() { throw new UnsupportedError("Not supported"); }
-
-
-  static BiquadFilterNode internalCreateBiquadFilterNode() {
-    return new BiquadFilterNode._internalWrap();
-  }
-
-  factory BiquadFilterNode._internalWrap() {
-    return new BiquadFilterNode.internal_();
-  }
-
-  BiquadFilterNode.internal_() : super.internal_();
-
 
   @DomName('BiquadFilterNode.Q')
   @DocsEditable()
@@ -873,7 +700,7 @@ class BiquadFilterNode extends AudioNode {
   
   @DomName('BiquadFilterNode.type')
   @DocsEditable()
-  set type(String value) => _blink.BlinkBiquadFilterNode.instance.type_Setter_(unwrap_jso(this), value);
+  void set type(String value) => _blink.BlinkBiquadFilterNode.instance.type_Setter_(unwrap_jso(this), value);
   
   @DomName('BiquadFilterNode.getFrequencyResponse')
   @DocsEditable()
@@ -895,18 +722,6 @@ class ChannelMergerNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory ChannelMergerNode._() { throw new UnsupportedError("Not supported"); }
 
-
-  static ChannelMergerNode internalCreateChannelMergerNode() {
-    return new ChannelMergerNode._internalWrap();
-  }
-
-  factory ChannelMergerNode._internalWrap() {
-    return new ChannelMergerNode.internal_();
-  }
-
-  ChannelMergerNode.internal_() : super.internal_();
-
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -922,18 +737,6 @@ class ChannelMergerNode extends AudioNode {
 class ChannelSplitterNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory ChannelSplitterNode._() { throw new UnsupportedError("Not supported"); }
-
-
-  static ChannelSplitterNode internalCreateChannelSplitterNode() {
-    return new ChannelSplitterNode._internalWrap();
-  }
-
-  factory ChannelSplitterNode._internalWrap() {
-    return new ChannelSplitterNode.internal_();
-  }
-
-  ChannelSplitterNode.internal_() : super.internal_();
-
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -951,25 +754,13 @@ class ConvolverNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory ConvolverNode._() { throw new UnsupportedError("Not supported"); }
 
-
-  static ConvolverNode internalCreateConvolverNode() {
-    return new ConvolverNode._internalWrap();
-  }
-
-  factory ConvolverNode._internalWrap() {
-    return new ConvolverNode.internal_();
-  }
-
-  ConvolverNode.internal_() : super.internal_();
-
-
   @DomName('ConvolverNode.buffer')
   @DocsEditable()
   AudioBuffer get buffer => wrap_jso(_blink.BlinkConvolverNode.instance.buffer_Getter_(unwrap_jso(this)));
   
   @DomName('ConvolverNode.buffer')
   @DocsEditable()
-  set buffer(AudioBuffer value) => _blink.BlinkConvolverNode.instance.buffer_Setter_(unwrap_jso(this), unwrap_jso(value));
+  void set buffer(AudioBuffer value) => _blink.BlinkConvolverNode.instance.buffer_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('ConvolverNode.normalize')
   @DocsEditable()
@@ -977,7 +768,7 @@ class ConvolverNode extends AudioNode {
   
   @DomName('ConvolverNode.normalize')
   @DocsEditable()
-  set normalize(bool value) => _blink.BlinkConvolverNode.instance.normalize_Setter_(unwrap_jso(this), value);
+  void set normalize(bool value) => _blink.BlinkConvolverNode.instance.normalize_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -994,18 +785,6 @@ class ConvolverNode extends AudioNode {
 class DelayNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory DelayNode._() { throw new UnsupportedError("Not supported"); }
-
-
-  static DelayNode internalCreateDelayNode() {
-    return new DelayNode._internalWrap();
-  }
-
-  factory DelayNode._internalWrap() {
-    return new DelayNode.internal_();
-  }
-
-  DelayNode.internal_() : super.internal_();
-
 
   @DomName('DelayNode.delayTime')
   @DocsEditable()
@@ -1026,18 +805,6 @@ class DelayNode extends AudioNode {
 class DynamicsCompressorNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory DynamicsCompressorNode._() { throw new UnsupportedError("Not supported"); }
-
-
-  static DynamicsCompressorNode internalCreateDynamicsCompressorNode() {
-    return new DynamicsCompressorNode._internalWrap();
-  }
-
-  factory DynamicsCompressorNode._internalWrap() {
-    return new DynamicsCompressorNode.internal_();
-  }
-
-  DynamicsCompressorNode.internal_() : super.internal_();
-
 
   @DomName('DynamicsCompressorNode.attack')
   @DocsEditable()
@@ -1079,18 +846,6 @@ class GainNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory GainNode._() { throw new UnsupportedError("Not supported"); }
 
-
-  static GainNode internalCreateGainNode() {
-    return new GainNode._internalWrap();
-  }
-
-  factory GainNode._internalWrap() {
-    return new GainNode.internal_();
-  }
-
-  GainNode.internal_() : super.internal_();
-
-
   @DomName('GainNode.gain')
   @DocsEditable()
   AudioParam get gain => wrap_jso(_blink.BlinkGainNode.instance.gain_Getter_(unwrap_jso(this)));
@@ -1110,18 +865,6 @@ class GainNode extends AudioNode {
 class MediaElementAudioSourceNode extends AudioSourceNode {
   // To suppress missing implicit constructor warnings.
   factory MediaElementAudioSourceNode._() { throw new UnsupportedError("Not supported"); }
-
-
-  static MediaElementAudioSourceNode internalCreateMediaElementAudioSourceNode() {
-    return new MediaElementAudioSourceNode._internalWrap();
-  }
-
-  factory MediaElementAudioSourceNode._internalWrap() {
-    return new MediaElementAudioSourceNode.internal_();
-  }
-
-  MediaElementAudioSourceNode.internal_() : super.internal_();
-
 
   @DomName('MediaElementAudioSourceNode.mediaElement')
   @DocsEditable()
@@ -1144,18 +887,6 @@ class MediaStreamAudioDestinationNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamAudioDestinationNode._() { throw new UnsupportedError("Not supported"); }
 
-
-  static MediaStreamAudioDestinationNode internalCreateMediaStreamAudioDestinationNode() {
-    return new MediaStreamAudioDestinationNode._internalWrap();
-  }
-
-  factory MediaStreamAudioDestinationNode._internalWrap() {
-    return new MediaStreamAudioDestinationNode.internal_();
-  }
-
-  MediaStreamAudioDestinationNode.internal_() : super.internal_();
-
-
   @DomName('MediaStreamAudioDestinationNode.stream')
   @DocsEditable()
   MediaStream get stream => wrap_jso(_blink.BlinkMediaStreamAudioDestinationNode.instance.stream_Getter_(unwrap_jso(this)));
@@ -1176,18 +907,6 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamAudioSourceNode._() { throw new UnsupportedError("Not supported"); }
 
-
-  static MediaStreamAudioSourceNode internalCreateMediaStreamAudioSourceNode() {
-    return new MediaStreamAudioSourceNode._internalWrap();
-  }
-
-  factory MediaStreamAudioSourceNode._internalWrap() {
-    return new MediaStreamAudioSourceNode.internal_();
-  }
-
-  MediaStreamAudioSourceNode.internal_() : super.internal_();
-
-
   @DomName('MediaStreamAudioSourceNode.mediaStream')
   @DocsEditable()
   MediaStream get mediaStream => wrap_jso(_blink.BlinkMediaStreamAudioSourceNode.instance.mediaStream_Getter_(unwrap_jso(this)));
@@ -1207,18 +926,6 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
 class OfflineAudioCompletionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory OfflineAudioCompletionEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  static OfflineAudioCompletionEvent internalCreateOfflineAudioCompletionEvent() {
-    return new OfflineAudioCompletionEvent._internalWrap();
-  }
-
-  factory OfflineAudioCompletionEvent._internalWrap() {
-    return new OfflineAudioCompletionEvent.internal_();
-  }
-
-  OfflineAudioCompletionEvent.internal_() : super.internal_();
-
 
   @DomName('OfflineAudioCompletionEvent.renderedBuffer')
   @DocsEditable()
@@ -1243,20 +950,8 @@ class OfflineAudioContext extends AudioContext {
   @DomName('OfflineAudioContext.OfflineAudioContext')
   @DocsEditable()
   factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) {
-    return wrap_jso(_blink.BlinkOfflineAudioContext.instance.constructorCallback_3_(numberOfChannels, numberOfFrames, sampleRate));
+    return _blink.BlinkOfflineAudioContext.instance.constructorCallback_3_(numberOfChannels, numberOfFrames, sampleRate);
   }
-
-
-  static OfflineAudioContext internalCreateOfflineAudioContext() {
-    return new OfflineAudioContext._internalWrap();
-  }
-
-  factory OfflineAudioContext._internalWrap() {
-    return new OfflineAudioContext.internal_();
-  }
-
-  OfflineAudioContext.internal_() : super.internal_();
-
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1285,18 +980,6 @@ class OscillatorNode extends AudioSourceNode {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
-
-  static OscillatorNode internalCreateOscillatorNode() {
-    return new OscillatorNode._internalWrap();
-  }
-
-  factory OscillatorNode._internalWrap() {
-    return new OscillatorNode.internal_();
-  }
-
-  OscillatorNode.internal_() : super.internal_();
-
-
   @DomName('OscillatorNode.detune')
   @DocsEditable()
   AudioParam get detune => wrap_jso(_blink.BlinkOscillatorNode.instance.detune_Getter_(unwrap_jso(this)));
@@ -1311,7 +994,7 @@ class OscillatorNode extends AudioSourceNode {
   
   @DomName('OscillatorNode.type')
   @DocsEditable()
-  set type(String value) => _blink.BlinkOscillatorNode.instance.type_Setter_(unwrap_jso(this), value);
+  void set type(String value) => _blink.BlinkOscillatorNode.instance.type_Setter_(unwrap_jso(this), value);
   
   @DomName('OscillatorNode.noteOff')
   @DocsEditable()
@@ -1366,25 +1049,13 @@ class PannerNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory PannerNode._() { throw new UnsupportedError("Not supported"); }
 
-
-  static PannerNode internalCreatePannerNode() {
-    return new PannerNode._internalWrap();
-  }
-
-  factory PannerNode._internalWrap() {
-    return new PannerNode.internal_();
-  }
-
-  PannerNode.internal_() : super.internal_();
-
-
   @DomName('PannerNode.coneInnerAngle')
   @DocsEditable()
   num get coneInnerAngle => _blink.BlinkPannerNode.instance.coneInnerAngle_Getter_(unwrap_jso(this));
   
   @DomName('PannerNode.coneInnerAngle')
   @DocsEditable()
-  set coneInnerAngle(num value) => _blink.BlinkPannerNode.instance.coneInnerAngle_Setter_(unwrap_jso(this), value);
+  void set coneInnerAngle(num value) => _blink.BlinkPannerNode.instance.coneInnerAngle_Setter_(unwrap_jso(this), value);
   
   @DomName('PannerNode.coneOuterAngle')
   @DocsEditable()
@@ -1392,7 +1063,7 @@ class PannerNode extends AudioNode {
   
   @DomName('PannerNode.coneOuterAngle')
   @DocsEditable()
-  set coneOuterAngle(num value) => _blink.BlinkPannerNode.instance.coneOuterAngle_Setter_(unwrap_jso(this), value);
+  void set coneOuterAngle(num value) => _blink.BlinkPannerNode.instance.coneOuterAngle_Setter_(unwrap_jso(this), value);
   
   @DomName('PannerNode.coneOuterGain')
   @DocsEditable()
@@ -1400,7 +1071,7 @@ class PannerNode extends AudioNode {
   
   @DomName('PannerNode.coneOuterGain')
   @DocsEditable()
-  set coneOuterGain(num value) => _blink.BlinkPannerNode.instance.coneOuterGain_Setter_(unwrap_jso(this), value);
+  void set coneOuterGain(num value) => _blink.BlinkPannerNode.instance.coneOuterGain_Setter_(unwrap_jso(this), value);
   
   @DomName('PannerNode.distanceModel')
   @DocsEditable()
@@ -1408,7 +1079,7 @@ class PannerNode extends AudioNode {
   
   @DomName('PannerNode.distanceModel')
   @DocsEditable()
-  set distanceModel(String value) => _blink.BlinkPannerNode.instance.distanceModel_Setter_(unwrap_jso(this), value);
+  void set distanceModel(String value) => _blink.BlinkPannerNode.instance.distanceModel_Setter_(unwrap_jso(this), value);
   
   @DomName('PannerNode.maxDistance')
   @DocsEditable()
@@ -1416,7 +1087,7 @@ class PannerNode extends AudioNode {
   
   @DomName('PannerNode.maxDistance')
   @DocsEditable()
-  set maxDistance(num value) => _blink.BlinkPannerNode.instance.maxDistance_Setter_(unwrap_jso(this), value);
+  void set maxDistance(num value) => _blink.BlinkPannerNode.instance.maxDistance_Setter_(unwrap_jso(this), value);
   
   @DomName('PannerNode.panningModel')
   @DocsEditable()
@@ -1424,7 +1095,7 @@ class PannerNode extends AudioNode {
   
   @DomName('PannerNode.panningModel')
   @DocsEditable()
-  set panningModel(String value) => _blink.BlinkPannerNode.instance.panningModel_Setter_(unwrap_jso(this), value);
+  void set panningModel(String value) => _blink.BlinkPannerNode.instance.panningModel_Setter_(unwrap_jso(this), value);
   
   @DomName('PannerNode.refDistance')
   @DocsEditable()
@@ -1432,7 +1103,7 @@ class PannerNode extends AudioNode {
   
   @DomName('PannerNode.refDistance')
   @DocsEditable()
-  set refDistance(num value) => _blink.BlinkPannerNode.instance.refDistance_Setter_(unwrap_jso(this), value);
+  void set refDistance(num value) => _blink.BlinkPannerNode.instance.refDistance_Setter_(unwrap_jso(this), value);
   
   @DomName('PannerNode.rolloffFactor')
   @DocsEditable()
@@ -1440,7 +1111,7 @@ class PannerNode extends AudioNode {
   
   @DomName('PannerNode.rolloffFactor')
   @DocsEditable()
-  set rolloffFactor(num value) => _blink.BlinkPannerNode.instance.rolloffFactor_Setter_(unwrap_jso(this), value);
+  void set rolloffFactor(num value) => _blink.BlinkPannerNode.instance.rolloffFactor_Setter_(unwrap_jso(this), value);
   
   @DomName('PannerNode.setOrientation')
   @DocsEditable()
@@ -1469,21 +1140,6 @@ class PeriodicWave extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PeriodicWave._() { throw new UnsupportedError("Not supported"); }
 
-  static PeriodicWave internalCreatePeriodicWave() {
-    return new PeriodicWave._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory PeriodicWave._internalWrap() {
-    return new PeriodicWave.internal_();
-  }
-
-  PeriodicWave.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1511,18 +1167,6 @@ class ScriptProcessorNode extends AudioNode {
   @Experimental() // untriaged
   static const EventStreamProvider<AudioProcessingEvent> audioProcessEvent = const EventStreamProvider<AudioProcessingEvent>('audioprocess');
 
-
-  static ScriptProcessorNode internalCreateScriptProcessorNode() {
-    return new ScriptProcessorNode._internalWrap();
-  }
-
-  factory ScriptProcessorNode._internalWrap() {
-    return new ScriptProcessorNode.internal_();
-  }
-
-  ScriptProcessorNode.internal_() : super.internal_();
-
-
   @DomName('ScriptProcessorNode.bufferSize')
   @DocsEditable()
   int get bufferSize => _blink.BlinkScriptProcessorNode.instance.bufferSize_Getter_(unwrap_jso(this));
@@ -1530,7 +1174,7 @@ class ScriptProcessorNode extends AudioNode {
   @DomName('ScriptProcessorNode.setEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void setEventListener(EventListener eventListener) => _blink.BlinkScriptProcessorNode.instance.setEventListener_Callback_1_(unwrap_jso(this), unwrap_jso((event) => eventListener(wrap_jso(event))));
+  void setEventListener(EventListener eventListener) => _blink.BlinkScriptProcessorNode.instance.setEventListener_Callback_1_(unwrap_jso(this), unwrap_jso(eventListener));
   
   /// Stream of `audioprocess` events handled by this [ScriptProcessorNode].
 /**
@@ -1561,25 +1205,13 @@ class WaveShaperNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory WaveShaperNode._() { throw new UnsupportedError("Not supported"); }
 
-
-  static WaveShaperNode internalCreateWaveShaperNode() {
-    return new WaveShaperNode._internalWrap();
-  }
-
-  factory WaveShaperNode._internalWrap() {
-    return new WaveShaperNode.internal_();
-  }
-
-  WaveShaperNode.internal_() : super.internal_();
-
-
   @DomName('WaveShaperNode.curve')
   @DocsEditable()
-  Float32List get curve => _blink.BlinkWaveShaperNode.instance.curve_Getter_(unwrap_jso(this));
+  Float32List get curve => wrap_jso(_blink.BlinkWaveShaperNode.instance.curve_Getter_(unwrap_jso(this)));
   
   @DomName('WaveShaperNode.curve')
   @DocsEditable()
-  set curve(Float32List value) => _blink.BlinkWaveShaperNode.instance.curve_Setter_(unwrap_jso(this), unwrap_jso(value));
+  void set curve(Float32List value) => _blink.BlinkWaveShaperNode.instance.curve_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('WaveShaperNode.oversample')
   @DocsEditable()
@@ -1587,6 +1219,6 @@ class WaveShaperNode extends AudioNode {
   
   @DomName('WaveShaperNode.oversample')
   @DocsEditable()
-  set oversample(String value) => _blink.BlinkWaveShaperNode.instance.oversample_Setter_(unwrap_jso(this), value);
+  void set oversample(String value) => _blink.BlinkWaveShaperNode.instance.oversample_Setter_(unwrap_jso(this), value);
   
 }

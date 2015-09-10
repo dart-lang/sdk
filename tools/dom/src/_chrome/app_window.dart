@@ -35,25 +35,25 @@ class AppWindowBounds extends ChromeObject {
    */
   int get left => JS('int', '#.left', this._jsObject);
 
-  set left(int left) {
+  void set left(int left) {
     JS('void', '#.left = #', this._jsObject, left);
   }
 
   int get top => JS('int', '#.top', this._jsObject);
 
-  set top(int top) {
+  void set top(int top) {
     JS('void', '#.top = #', this._jsObject, top);
   }
 
   int get width => JS('int', '#.width', this._jsObject);
 
-  set width(int width) {
+  void set width(int width) {
     JS('void', '#.width = #', this._jsObject, width);
   }
 
   int get height => JS('int', '#.height', this._jsObject);
 
-  set height(int height) {
+  void set height(int height) {
     JS('void', '#.height = #', this._jsObject, height);
   }
 
@@ -121,7 +121,7 @@ class AppWindowCreateWindowOptions extends ChromeObject {
   /// same id is later opened.
   String get id => JS('String', '#.id', this._jsObject);
 
-  set id(String id) {
+  void set id(String id) {
     JS('void', '#.id = #', this._jsObject, id);
   }
 
@@ -129,7 +129,7 @@ class AppWindowCreateWindowOptions extends ChromeObject {
   /// now.)
   int get defaultWidth => JS('int', '#.defaultWidth', this._jsObject);
 
-  set defaultWidth(int defaultWidth) {
+  void set defaultWidth(int defaultWidth) {
     JS('void', '#.defaultWidth = #', this._jsObject, defaultWidth);
   }
 
@@ -137,7 +137,7 @@ class AppWindowCreateWindowOptions extends ChromeObject {
   /// now.)
   int get defaultHeight => JS('int', '#.defaultHeight', this._jsObject);
 
-  set defaultHeight(int defaultHeight) {
+  void set defaultHeight(int defaultHeight) {
     JS('void', '#.defaultHeight = #', this._jsObject, defaultHeight);
   }
 
@@ -145,7 +145,7 @@ class AppWindowCreateWindowOptions extends ChromeObject {
   /// this now.)
   int get defaultLeft => JS('int', '#.defaultLeft', this._jsObject);
 
-  set defaultLeft(int defaultLeft) {
+  void set defaultLeft(int defaultLeft) {
     JS('void', '#.defaultLeft = #', this._jsObject, defaultLeft);
   }
 
@@ -153,77 +153,77 @@ class AppWindowCreateWindowOptions extends ChromeObject {
   /// this now.)
   int get defaultTop => JS('int', '#.defaultTop', this._jsObject);
 
-  set defaultTop(int defaultTop) {
+  void set defaultTop(int defaultTop) {
     JS('void', '#.defaultTop = #', this._jsObject, defaultTop);
   }
 
   /// Width of the window. (Deprecated; use 'bounds'.)
   int get width => JS('int', '#.width', this._jsObject);
 
-  set width(int width) {
+  void set width(int width) {
     JS('void', '#.width = #', this._jsObject, width);
   }
 
   /// Height of the window. (Deprecated; use 'bounds'.)
   int get height => JS('int', '#.height', this._jsObject);
 
-  set height(int height) {
+  void set height(int height) {
     JS('void', '#.height = #', this._jsObject, height);
   }
 
   /// X coordinate of the window. (Deprecated; use 'bounds'.)
   int get left => JS('int', '#.left', this._jsObject);
 
-  set left(int left) {
+  void set left(int left) {
     JS('void', '#.left = #', this._jsObject, left);
   }
 
   /// Y coordinate of the window. (Deprecated; use 'bounds'.)
   int get top => JS('int', '#.top', this._jsObject);
 
-  set top(int top) {
+  void set top(int top) {
     JS('void', '#.top = #', this._jsObject, top);
   }
 
   /// Minimum width for the lifetime of the window.
   int get minWidth => JS('int', '#.minWidth', this._jsObject);
 
-  set minWidth(int minWidth) {
+  void set minWidth(int minWidth) {
     JS('void', '#.minWidth = #', this._jsObject, minWidth);
   }
 
   /// Minimum height for the lifetime of the window.
   int get minHeight => JS('int', '#.minHeight', this._jsObject);
 
-  set minHeight(int minHeight) {
+  void set minHeight(int minHeight) {
     JS('void', '#.minHeight = #', this._jsObject, minHeight);
   }
 
   /// Maximum width for the lifetime of the window.
   int get maxWidth => JS('int', '#.maxWidth', this._jsObject);
 
-  set maxWidth(int maxWidth) {
+  void set maxWidth(int maxWidth) {
     JS('void', '#.maxWidth = #', this._jsObject, maxWidth);
   }
 
   /// Maximum height for the lifetime of the window.
   int get maxHeight => JS('int', '#.maxHeight', this._jsObject);
 
-  set maxHeight(int maxHeight) {
+  void set maxHeight(int maxHeight) {
     JS('void', '#.maxHeight = #', this._jsObject, maxHeight);
   }
 
   /// Type of window to create.
   String get type => JS('String', '#.type', this._jsObject);
 
-  set type(String type) {
+  void set type(String type) {
     JS('void', '#.type = #', this._jsObject, type);
   }
 
   /// Frame type: 'none' or 'chrome' (defaults to 'chrome').
   String get frame => JS('String', '#.frame', this._jsObject);
 
-  set frame(String frame) {
+  void set frame(String frame) {
     JS('void', '#.frame = #', this._jsObject, frame);
   }
 
@@ -232,7 +232,7 @@ class AppWindowCreateWindowOptions extends ChromeObject {
   /// before, the remembered bounds of the window will be used instead.
   AppWindowBounds get bounds => new AppWindowBounds._proxy(JS('', '#.bounds', this._jsObject));
 
-  set bounds(AppWindowBounds bounds) {
+  void set bounds(AppWindowBounds bounds) {
     JS('void', '#.bounds = #', this._jsObject, convertArgument(bounds));
   }
 
@@ -240,7 +240,7 @@ class AppWindowCreateWindowOptions extends ChromeObject {
   /// experimental API permission.
   bool get transparentBackground => JS('bool', '#.transparentBackground', this._jsObject);
 
-  set transparentBackground(bool transparentBackground) {
+  void set transparentBackground(bool transparentBackground) {
     JS('void', '#.transparentBackground = #', this._jsObject, transparentBackground);
   }
 
@@ -248,7 +248,7 @@ class AppWindowCreateWindowOptions extends ChromeObject {
   /// fullscreen, maximized, or minimized. Defaults to 'normal'.
   String get state => JS('String', '#.state', this._jsObject);
 
-  set state(String state) {
+  void set state(String state) {
     JS('void', '#.state = #', this._jsObject, state);
   }
 
@@ -256,14 +256,14 @@ class AppWindowCreateWindowOptions extends ChromeObject {
   /// window to show it once it has been created. Defaults to false.
   bool get hidden => JS('bool', '#.hidden', this._jsObject);
 
-  set hidden(bool hidden) {
+  void set hidden(bool hidden) {
     JS('void', '#.hidden = #', this._jsObject, hidden);
   }
 
   /// If true, the window will be resizable by the user. Defaults to true.
   bool get resizable => JS('bool', '#.resizable', this._jsObject);
 
-  set resizable(bool resizable) {
+  void set resizable(bool resizable) {
     JS('void', '#.resizable = #', this._jsObject, resizable);
   }
 
@@ -274,7 +274,7 @@ class AppWindowCreateWindowOptions extends ChromeObject {
   /// property to false.
   bool get singleton => JS('bool', '#.singleton', this._jsObject);
 
-  set singleton(bool singleton) {
+  void set singleton(bool singleton) {
     JS('void', '#.singleton = #', this._jsObject, singleton);
   }
 
