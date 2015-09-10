@@ -396,6 +396,7 @@ class TimelineEventBlock {
   void Open(Isolate* isolate);
   void Finish();
 
+  friend class Thread;
   friend class ThreadRegistry;
   friend class TimelineEventRecorder;
   friend class TimelineEventRingRecorder;

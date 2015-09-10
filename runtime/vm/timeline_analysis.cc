@@ -10,7 +10,8 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, trace_timeline_analysis, false, "Trace timeline analysis");
+DECLARE_FLAG(bool, trace_timeline_analysis);
+DECLARE_FLAG(bool, timing);
 
 TimelineAnalysisThread::TimelineAnalysisThread(ThreadId id)
     : id_(id) {
@@ -161,6 +162,10 @@ void TimelineAnalysis::DiscoverThreads() {
       // Skip empty blocks.
       continue;
     }
+    if (block->isolate() != isolate_) {
+      // Skip blocks for other isolates.
+      continue;
+    }
     if (!block->CheckBlock()) {
       if (FLAG_trace_timeline_analysis) {
         THR_Print("DiscoverThreads block %" Pd " "
@@ -222,6 +227,20 @@ void TimelineLabelPauseInfo::OnPop(int64_t exclusive_micros) {
   add_exclusive_micros(exclusive_micros);
   if (exclusive_micros > max_exclusive_micros_) {
     max_exclusive_micros_ = exclusive_micros;
+  }
+}
+
+
+void TimelineLabelPauseInfo::Aggregate(
+    const TimelineLabelPauseInfo* thread_pause_info) {
+  ASSERT(thread_pause_info != NULL);
+  inclusive_micros_ += thread_pause_info->inclusive_micros_;
+  exclusive_micros_ += thread_pause_info->exclusive_micros_;
+  if (max_inclusive_micros_ < thread_pause_info->max_inclusive_micros_) {
+    max_inclusive_micros_ = thread_pause_info->max_inclusive_micros_;
+  }
+  if (max_exclusive_micros_ < thread_pause_info->max_exclusive_micros_) {
+    max_exclusive_micros_ = thread_pause_info->max_exclusive_micros_;
   }
 }
 
@@ -386,7 +405,7 @@ void TimelinePauses::Push(TimelineEvent* event) {
 }
 
 
-bool TimelinePauses::IsLabelOnStack(const char* label) {
+bool TimelinePauses::IsLabelOnStack(const char* label) const {
   ASSERT(label != NULL);
   for (intptr_t i = 0; i < stack_.length(); i++) {
     const StackItem& slot = stack_.At(i);
@@ -420,6 +439,97 @@ TimelineLabelPauseInfo* TimelinePauses::GetOrAddLabelPauseInfo(
   pause_info = new TimelineLabelPauseInfo(name);
   labels_.Add(pause_info);
   return pause_info;
+}
+
+
+TimelinePauseTrace::TimelinePauseTrace() {
+}
+
+
+TimelinePauseTrace::~TimelinePauseTrace() {
+}
+
+
+void TimelinePauseTrace::Print() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != NULL);
+  Zone* zone = thread->zone();
+  ASSERT(zone != NULL);
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  ASSERT(recorder != NULL);
+  TimelinePauses pauses(zone, isolate, recorder);
+  pauses.Setup();
+
+  THR_Print("Timing for isolate %s (from %" Pd " threads)\n",
+            isolate->name(),
+            pauses.NumThreads());
+  THR_Print("\n");
+  for (intptr_t t_idx = 0; t_idx < pauses.NumThreads(); t_idx++) {
+    TimelineAnalysisThread* tat = pauses.At(t_idx);
+    ASSERT(tat != NULL);
+    pauses.CalculatePauseTimesForThread(tat->id());
+    THR_Print("Thread %" Pd " (%" Px "):\n",
+              t_idx,
+              OSThread::ThreadIdToIntPtr(tat->id()));
+    for (intptr_t j = 0; j < pauses.NumPauseInfos(); j++) {
+      const TimelineLabelPauseInfo* pause_info = pauses.PauseInfoAt(j);
+      ASSERT(pause_info != NULL);
+      Aggregate(pause_info);
+      PrintPauseInfo(pause_info);
+    }
+    THR_Print("\n");
+  }
+  THR_Print("Totals:\n");
+  for (intptr_t i = 0; i < isolate_labels_.length(); i++) {
+    TimelineLabelPauseInfo* pause_info = isolate_labels_.At(i);
+    ASSERT(pause_info != NULL);
+    PrintPauseInfo(pause_info);
+  }
+  THR_Print("\n");
+}
+
+
+TimelineLabelPauseInfo* TimelinePauseTrace::GetOrAddLabelPauseInfo(
+    const char* name) {
+  ASSERT(name != NULL);
+  // Linear lookup because we expect N (# of labels in an isolate) to be small.
+  for (intptr_t i = 0; i < isolate_labels_.length(); i++) {
+    TimelineLabelPauseInfo* label = isolate_labels_.At(i);
+    if (strcmp(label->name(), name) == 0) {
+      return label;
+    }
+  }
+  // New label.
+  TimelineLabelPauseInfo* pause_info = new TimelineLabelPauseInfo(name);
+  isolate_labels_.Add(pause_info);
+  return pause_info;
+}
+
+
+void TimelinePauseTrace::Aggregate(
+    const TimelineLabelPauseInfo* thread_pause_info) {
+  ASSERT(thread_pause_info != NULL);
+  TimelineLabelPauseInfo* isolate_pause_info =
+      GetOrAddLabelPauseInfo(thread_pause_info->name());
+  ASSERT(isolate_pause_info != NULL);
+  isolate_pause_info->Aggregate(thread_pause_info);
+}
+
+
+void TimelinePauseTrace::PrintPauseInfo(
+    const TimelineLabelPauseInfo* pause_info) {
+  ASSERT(pause_info != NULL);
+  THR_Print("%s : ", pause_info->name());
+  THR_Print("%.3f ms total on stack; ",
+            MicrosecondsToMilliseconds(pause_info->inclusive_micros()));
+  THR_Print("%.3f ms total executing; ",
+            MicrosecondsToMilliseconds(pause_info->exclusive_micros()));
+  THR_Print("%.3f ms max on stack; ",
+            MicrosecondsToMilliseconds(pause_info->max_inclusive_micros()));
+  THR_Print("%.3f ms max executing.\n",
+            MicrosecondsToMilliseconds(pause_info->max_exclusive_micros()));
 }
 
 }  // namespace dart

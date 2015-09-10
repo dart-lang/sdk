@@ -768,6 +768,8 @@ class Isolate : public BaseIsolate {
                        const Dart_IsolateFlags& api_flags,
                        bool is_vm_isolate = false);
   void Shutdown();
+  // Assumes mutator is the only thread still in the isolate.
+  void CloseAllTimelineBlocks();
 
   void BuildName(const char* name_prefix);
   void PrintInvokedFunctions();

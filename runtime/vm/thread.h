@@ -257,6 +257,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
     state_.timeline_block = block;
   }
 
+  void CloseTimelineBlock();
   class Log* log() const;
 
   LongJumpScope* long_jump_base() const { return state_.long_jump_base; }

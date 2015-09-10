@@ -342,6 +342,14 @@ bool Thread::IsThreadInterrupterEnabled(ThreadInterruptCallback* callback,
 }
 
 
+void Thread::CloseTimelineBlock() {
+  if (timeline_block() != NULL) {
+    timeline_block()->Finish();
+    set_timeline_block(NULL);
+  }
+}
+
+
 bool Thread::CanLoadFromThread(const Object& object) {
 #define CHECK_OBJECT(type_name, member_name, expr, default_init_value)         \
   if (object.raw() == expr) return true;
@@ -360,6 +368,7 @@ CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
   UNREACHABLE();
   return -1;
 }
+
 
 intptr_t Thread::OffsetFromThread(const RuntimeEntry* runtime_entry) {
 #define COMPUTE_OFFSET(name)                                                   \

@@ -38,6 +38,7 @@
 #include "vm/thread_interrupter.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
+#include "vm/timeline_analysis.h"
 #include "vm/timer.h"
 #include "vm/visitor.h"
 
@@ -45,6 +46,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, print_metrics);
+DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
 
 DEFINE_FLAG(bool, trace_isolates, false,
@@ -1529,6 +1531,15 @@ void Isolate::Shutdown() {
     // Dump all accumulated timer data for the isolate.
     timer_list_.ReportTimers();
 
+    // Before analyzing the isolate's timeline blocks- close all of them.
+    CloseAllTimelineBlocks();
+
+    // Dump all timing data for the isolate.
+    if (FLAG_timing) {
+      TimelinePauseTrace tpt;
+      tpt.Print();
+    }
+
     // Finalize any weak persistent handles with a non-null referent.
     FinalizeWeakPersistentHandlesVisitor visitor;
     api_state()->weak_persistent_handles().VisitHandles(&visitor);
@@ -1567,6 +1578,17 @@ void Isolate::Shutdown() {
   // All threads should have exited by now.
   thread_registry()->CheckNotScheduled(this);
   Profiler::ShutdownProfilingForIsolate(this);
+}
+
+
+void Isolate::CloseAllTimelineBlocks() {
+  // Close all blocks
+  thread_registry_->CloseAllTimelineBlocks();
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder != NULL) {
+    MutexLocker ml(&recorder->lock_);
+    Thread::Current()->CloseTimelineBlock();
+  }
 }
 
 

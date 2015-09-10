@@ -8,15 +8,20 @@
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/lockers.h"
+#include "vm/log.h"
 #include "vm/object.h"
 #include "vm/thread.h"
 #include "vm/timeline.h"
 
 namespace dart {
 
-DEFINE_FLAG(bool, trace_timeline, false, "Trace timeline backend");
 DEFINE_FLAG(bool, complete_timeline, false, "Record the complete timeline");
-
+DEFINE_FLAG(bool, trace_timeline, false,
+            "Trace timeline backend");
+DEFINE_FLAG(bool, trace_timeline_analysis, false,
+            "Trace timeline analysis backend");
+DEFINE_FLAG(bool, timing, false,
+            "Dump isolate timing information from timeline.");
 DEFINE_FLAG(charp, timeline_dir, NULL,
             "Enable all timeline trace streams and output VM global trace "
             "into specified directory.");
@@ -26,7 +31,8 @@ void Timeline::InitOnce() {
   // Default to ring recorder being enabled.
   const bool use_ring_recorder = true;
   // Some flags require that we use the endless recorder.
-  const bool use_endless_recorder = (FLAG_timeline_dir != NULL);
+  const bool use_endless_recorder =
+      (FLAG_timeline_dir != NULL) || FLAG_timing;
   if (use_endless_recorder) {
     recorder_ = new TimelineEventEndlessRecorder();
   } else if (use_ring_recorder) {
@@ -56,7 +62,7 @@ TimelineEventRecorder* Timeline::recorder() {
 
 bool Timeline::EnableStreamByDefault(const char* stream_name) {
   // TODO(johnmccutchan): Allow for command line control over streams.
-  return FLAG_timeline_dir != NULL;
+  return (FLAG_timeline_dir != NULL) || FLAG_timing;
 }
 
 
@@ -410,6 +416,10 @@ TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
 
 TimelineEvent* TimelineEventRecorder::GlobalBlockStartEvent() {
   MutexLocker ml(&lock_);
+  if (FLAG_trace_timeline) {
+    OS::Print("GlobalBlockStartEvent in block %p for thread %" Px "\n",
+              global_block_, OSThread::CurrentCurrentThreadIdAsIntPtr());
+  }
   if ((global_block_ != NULL) && global_block_->IsFull()) {
     // Global block is full.
     global_block_->Finish();
@@ -418,6 +428,7 @@ TimelineEvent* TimelineEventRecorder::GlobalBlockStartEvent() {
   if (global_block_ == NULL) {
     // Allocate a new block.
     global_block_ = GetNewBlockLocked(NULL);
+    ASSERT(global_block_ != NULL);
   }
   if (global_block_ != NULL) {
     ASSERT(!global_block_->IsFull());
@@ -632,7 +643,6 @@ void TimelineEventStreamingRecorder::CompleteEvent(TimelineEvent* event) {
 TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
     : head_(NULL),
       block_index_(0) {
-  GetNewBlock();
 }
 
 
@@ -670,6 +680,14 @@ TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked(
   block->set_next(head_);
   block->Open(isolate);
   head_ = block;
+  if (FLAG_trace_timeline) {
+    if (isolate != NULL) {
+      OS::Print("Created new isolate block %p for %s\n",
+                block, isolate->name());
+    } else {
+      OS::Print("Created new global block %p\n", block);
+    }
+  }
   return head_;
 }
 
@@ -725,6 +743,10 @@ TimelineEventBlock::~TimelineEventBlock() {
 
 TimelineEvent* TimelineEventBlock::StartEvent() {
   ASSERT(!IsFull());
+  if (FLAG_trace_timeline) {
+    OS::Print("StartEvent in block %p for thread %" Px "\n",
+              this, OSThread::CurrentCurrentThreadIdAsIntPtr());
+  }
   return &events_[length_++];
 }
 
@@ -785,6 +807,9 @@ void TimelineEventBlock::Open(Isolate* isolate) {
 
 
 void TimelineEventBlock::Finish() {
+  if (FLAG_trace_timeline) {
+    OS::Print("Finish block %p\n", this);
+  }
   open_ = false;
 }
 
