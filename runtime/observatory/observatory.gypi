@@ -30,6 +30,7 @@
           'action': [
             'python',
             '../tools/observatory_tool.py',
+            '--sdk=True',
             '--package-root', '<(PRODUCT_DIR)/packages',
             '--dart-executable',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart_bootstrap<(EXECUTABLE_SUFFIX)',
@@ -63,6 +64,7 @@
           'action': [
             'python',
             '../tools/observatory_tool.py',
+            '--sdk=True',
             '--package-root', '<(PRODUCT_DIR)/packages',
             '--dart-executable',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart_bootstrap<(EXECUTABLE_SUFFIX)',
@@ -83,6 +85,7 @@
           'action': [
             'python',
             '../tools/observatory_tool.py',
+            '--sdk=True',
             '--package-root', '<(PRODUCT_DIR)/packages',
             '--dart-executable',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart_bootstrap<(EXECUTABLE_SUFFIX)',
