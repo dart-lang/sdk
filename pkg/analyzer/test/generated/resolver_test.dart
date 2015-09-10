@@ -11881,62 +11881,6 @@ int f() {
 
 @reflectiveTest
 class StrongModeTypePropagationTest extends ResolverTestCase {
-  void fail_localVariableInference_transitive_field_inferred_lexical() {
-    String code = r'''
-class A {
-  final x = 3;
-  f() {
-    var v = x;
-    return v; // marker
-  }
-}
-main() {
-}
-''';
-    _assertPropagatedAssignedType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void fail_localVariableInference_transitive_field_inferred_reversed() {
-    String code = r'''
-class A {
-  f() {
-    var v = x;
-    return v; // marker
-  }
-  final x = 3;
-}
-main() {
-}
-''';
-    _assertPropagatedAssignedType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void fail_localVariableInference_transitive_toplevel_inferred_lexical() {
-    String code = r'''
-final x = 3;
-main() {
-  var v = x;
-  return v; // marker
-}
-''';
-    _assertPropagatedAssignedType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
-  void fail_localVariableInference_transitive_toplevel_inferred_reversed() {
-    String code = r'''
-main() {
-  var v = x;
-  return v; // marker
-}
-final x = 3;
-''';
-    _assertPropagatedAssignedType(code, typeProvider.intType, null);
-    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
-  }
-
   @override
   void setUp() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
@@ -12055,6 +11999,44 @@ main() {
         code, typeProvider.dynamicType, typeProvider.intType);
   }
 
+  void test_localVariableInference_transitive_field_inferred_lexical() {
+    if (!AnalysisEngine.instance.useTaskModel) {
+      return;
+    }
+    String code = r'''
+class A {
+  final x = 3;
+  f() {
+    var v = x;
+    return v; // marker
+  }
+}
+main() {
+}
+''';
+    _assertPropagatedAssignedType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void test_localVariableInference_transitive_field_inferred_reversed() {
+    if (!AnalysisEngine.instance.useTaskModel) {
+      return;
+    }
+    String code = r'''
+class A {
+  f() {
+    var v = x;
+    return v; // marker
+  }
+  final x = 3;
+}
+main() {
+}
+''';
+    _assertPropagatedAssignedType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
   void test_localVariableInference_transitive_field_lexical() {
     String code = r'''
 class A {
@@ -12105,6 +12087,36 @@ main() {
   var v = x;
   return v; // marker
 }''';
+    _assertPropagatedAssignedType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void test_localVariableInference_transitive_toplevel_inferred_lexical() {
+    if (!AnalysisEngine.instance.useTaskModel) {
+      return;
+    }
+    String code = r'''
+final x = 3;
+main() {
+  var v = x;
+  return v; // marker
+}
+''';
+    _assertPropagatedAssignedType(code, typeProvider.intType, null);
+    _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+  }
+
+  void test_localVariableInference_transitive_toplevel_inferred_reversed() {
+    if (!AnalysisEngine.instance.useTaskModel) {
+      return;
+    }
+    String code = r'''
+main() {
+  var v = x;
+  return v; // marker
+}
+final x = 3;
+''';
     _assertPropagatedAssignedType(code, typeProvider.intType, null);
     _assertTypeOfMarkedExpression(code, typeProvider.intType, null);
   }

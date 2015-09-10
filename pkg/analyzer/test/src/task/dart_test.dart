@@ -1911,7 +1911,28 @@ class Z {}
 
 @reflectiveTest
 class InferStaticVariableTypesInUnitTaskTest extends _AbstractDartTaskTest {
-  void test_perform() {
+  void fail_perform_nestedDeclarations() {
+    enableStrongMode();
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+var Y = (int x, int y) {
+  int squared(int value) => value * value;
+  var xSquared = squared(x);
+  var ySquared = squared(y);
+  return Math.sqrt(xSquared + ySquared);
+};
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6,
+        matcher: isInferStaticVariableTypesInUnitTask);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
+    VariableDeclaration variableY = getTopLevelVariable(unit, 'Y');
+
+    InterfaceType intType = context.typeProvider.intType;
+    expect(variableY.initializer.staticType, intType);
+  }
+
+  void test_perform_recursive() {
     enableStrongMode();
     AnalysisTarget firstSource = newSource(
         '/first.dart',

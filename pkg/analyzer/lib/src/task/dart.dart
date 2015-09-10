@@ -2701,7 +2701,9 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
       (variable.initializer as ExecutableElementImpl).returnType = newType;
       if (variable is PropertyInducingElementImpl) {
         setReturnType(variable.getter, newType);
-        setParameterType(variable.setter, newType);
+        if (!variable.isFinal && !variable.isConst) {
+          setParameterType(variable.setter, newType);
+        }
       }
     } else {
       // TODO(brianwilkerson) For now we simply don't infer any type for
