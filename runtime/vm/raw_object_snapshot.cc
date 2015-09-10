@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/snapshot.h"
@@ -1296,6 +1297,16 @@ RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
         result.SetRawValueAt(i, raw_value);
         break;
       }
+      case ObjectPool::kNativeEntry: {
+        // Read nothing. Initialize with the lazy link entry.
+        uword entry = reinterpret_cast<uword>(&NativeEntry::LinkNativeCall);
+#if defined(USING_SIMULATOR)
+        entry = Simulator::RedirectExternalReference(
+            entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
+#endif
+        result.SetRawValueAt(i, entry);
+        break;
+      }
       default:
         UNREACHABLE();
     }
@@ -1338,6 +1349,9 @@ void RawObjectPool::WriteTo(SnapshotWriter* writer,
       case ObjectPool::kExternalLabel:
         // TODO(rmacnak): Write symbolically.
         writer->Write<intptr_t>(entry.raw_value_);
+        break;
+      case ObjectPool::kNativeEntry:
+        // Write nothing. Will initialize with the lazy link entry.
         break;
       default:
         UNREACHABLE();

@@ -11061,6 +11061,7 @@ void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
         jsarr.AddValue64(imm);
         break;
       case ObjectPool::kExternalLabel:
+      case ObjectPool::kNativeEntry:
         imm = RawValueAt(i);
         jsarr.AddValueF("0x%" Px, imm);
         break;
@@ -11076,15 +11077,6 @@ static const char* DescribeExternalLabel(uword addr) {
   const char* stub_name = StubCode::NameOfStub(addr);
   if (stub_name != NULL) {
     return stub_name;
-  }
-
-  RuntimeFunctionId rt_id = RuntimeEntry::RuntimeFunctionIdFromAddress(addr);
-  if (rt_id != kNoRuntimeFunctionId) {
-    return "runtime entry";
-  }
-
-  if (addr == NativeEntry::LinkNativeCallLabel().address()) {
-    return "link native";
   }
 
   return "UNKNOWN";
@@ -11105,6 +11097,8 @@ void ObjectPool::DebugPrint() const {
       uword addr = RawValueAt(i);
       THR_Print("0x%" Px " (external label: %s)\n",
                 addr, DescribeExternalLabel(addr));
+    } else if (InfoAt(i) == kNativeEntry) {
+      ISL_Print("0x%" Px " (native entry)\n", RawValueAt(i));
     } else {
       THR_Print("0x%" Px " (raw)\n", RawValueAt(i));
     }

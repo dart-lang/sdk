@@ -555,6 +555,15 @@ void Assembler::LoadExternalLabel(Register rd,
 }
 
 
+void Assembler::LoadNativeEntry(Register rd,
+                                const ExternalLabel* label,
+                                Patchability patchable) {
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindNativeEntry(label, patchable));
+  LoadWordFromPoolOffset(rd, offset - kHeapObjectTag);
+}
+
+
 void Assembler::PushObject(const Object& object) {
   ASSERT(!in_delay_slot_);
   LoadObject(TMP, object);

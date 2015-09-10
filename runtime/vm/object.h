@@ -3606,6 +3606,7 @@ class ObjectPool : public Object {
     kTaggedObject,
     kImmediate,
     kExternalLabel,
+    kNativeEntry,
   };
 
   struct Entry {

@@ -800,7 +800,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     entry = reinterpret_cast<uword>(&NativeEntry::LinkNativeCall);
 #if defined(USING_SIMULATOR)
     entry = Simulator::RedirectExternalReference(
-        entry, Simulator::kBootstrapNativeCall, function().NumParameters());
+        entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
 #endif
   } else {
     entry = reinterpret_cast<uword>(native_c_function());
@@ -808,7 +808,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       stub_entry = StubCode::CallBootstrapCFunction_entry();
 #if defined(USING_SIMULATOR)
       entry = Simulator::RedirectExternalReference(
-          entry, Simulator::kBootstrapNativeCall, function().NumParameters());
+          entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
 #endif
     } else {
       // In the case of non bootstrap native methods the CallNativeCFunction
@@ -818,14 +818,14 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #if defined(USING_SIMULATOR)
       if (!function().IsNativeAutoSetupScope()) {
         entry = Simulator::RedirectExternalReference(
-            entry, Simulator::kBootstrapNativeCall, function().NumParameters());
+            entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
       }
 #endif
     }
   }
   __ LoadImmediate(R1, argc_tag);
   ExternalLabel label(entry);
-  __ LoadExternalLabel(R5, &label);
+  __ LoadNativeEntry(R5, &label);
   compiler->GenerateCall(token_pos(),
                          *stub_entry,
                          RawPcDescriptors::kOther,

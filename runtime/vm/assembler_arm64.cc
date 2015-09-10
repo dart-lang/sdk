@@ -396,6 +396,14 @@ void Assembler::LoadExternalLabel(Register dst, const ExternalLabel* label) {
 }
 
 
+void Assembler::LoadNativeEntry(Register dst,
+                                const ExternalLabel* label) {
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindNativeEntry(label, kNotPatchable));
+  LoadWordFromPoolOffset(dst, offset);
+}
+
+
 void Assembler::LoadExternalLabelFixed(Register dst,
                                        const ExternalLabel* label,
                                        Patchability patchable) {

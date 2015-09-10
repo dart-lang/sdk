@@ -1619,6 +1619,16 @@ void Assembler::LoadExternalLabel(Register rd,
 }
 
 
+void Assembler::LoadNativeEntry(Register rd,
+                                const ExternalLabel* label,
+                                Patchability patchable,
+                                Condition cond) {
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindNativeEntry(label, patchable));
+  LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, cond);
+}
+
+
 void Assembler::PushObject(const Object& object) {
   LoadObject(IP, object);
   Push(IP);

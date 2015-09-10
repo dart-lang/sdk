@@ -671,6 +671,10 @@ class Assembler : public ValueObject {
                          const ExternalLabel* label,
                          Patchability patchable,
                          Condition cond = AL);
+  void LoadNativeEntry(Register dst,
+                       const ExternalLabel* label,
+                       Patchability patchable,
+                       Condition cond = AL);
   void PushObject(const Object& object);
   void CompareObject(Register rn, const Object& object);
 

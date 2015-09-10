@@ -70,6 +70,15 @@ void Assembler::LoadExternalLabel(Register dst,
 }
 
 
+void Assembler::LoadNativeEntry(Register dst,
+                                const ExternalLabel* label,
+                                Patchability patchable) {
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindNativeEntry(label, patchable));
+  LoadWordFromPoolOffset(dst, offset - kHeapObjectTag);
+}
+
+
 void Assembler::call(const ExternalLabel* label) {
   {  // Encode movq(TMP, Immediate(label->address())), but always as imm64.
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);

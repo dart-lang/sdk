@@ -785,14 +785,14 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const StubEntry* stub_entry;
   if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapCFunction_entry();
-    __ LoadExternalLabel(
+    __ LoadNativeEntry(
         RBX, &NativeEntry::LinkNativeCallLabel(), kPatchable);
   } else {
     stub_entry = (is_bootstrap_native() || is_leaf_call)
         ? StubCode::CallBootstrapCFunction_entry()
         : StubCode::CallNativeCFunction_entry();
     const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
-    __ LoadExternalLabel(RBX, &label, kNotPatchable);
+    __ LoadNativeEntry(RBX, &label, kNotPatchable);
   }
   compiler->GenerateCall(token_pos(),
                          *stub_entry,

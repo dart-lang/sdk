@@ -306,6 +306,14 @@ intptr_t ObjectPoolWrapper::FindExternalLabel(const ExternalLabel* label,
 }
 
 
+intptr_t ObjectPoolWrapper::FindNativeEntry(const ExternalLabel* label,
+                                            Patchability patchable) {
+  return FindObject(ObjectPool::Entry(label->address(),
+                                      ObjectPool::kNativeEntry),
+                    patchable);
+}
+
+
 RawObjectPool* ObjectPoolWrapper::MakeObjectPool() {
   intptr_t len = object_pool_.length();
   if (len == 0) {
