@@ -6,17 +6,18 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# This file is a modified copy of src/third_party/zlib/zlib.gyp from Chromium.
-# Revision 291806 (this should agree with "nss_rev" in DEPS).
+# This file is a modified copy of
+# https://chromium.googlesource.com/chromium/src/third_party/zlib/zlib.gyp
+# at revision c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f.
 {
   # Added by Dart. All Dart comments refer to the following block or line.
   'includes': [
-    '../../tools/gyp/runtime-configurations.gypi',
-    '../../tools/gyp/nss_configurations.gypi',
+    '../tools/gyp/runtime-configurations.gypi',
+    '../tools/gyp/nss_configurations.gypi',
   ],
   'variables': {
     # Added by Dart.
-    'zlib_path': '../../../third_party/zlib',
+    'zlib_path': '../../third_party/zlib',
   },
   # Added by Dart.  We do not indent, so diffs with the original are clearer.
   'conditions': [[ 'dart_io_support==1', {
