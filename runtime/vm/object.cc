@@ -11098,7 +11098,7 @@ void ObjectPool::DebugPrint() const {
       THR_Print("0x%" Px " (external label: %s)\n",
                 addr, DescribeExternalLabel(addr));
     } else if (InfoAt(i) == kNativeEntry) {
-      ISL_Print("0x%" Px " (native entry)\n", RawValueAt(i));
+      THR_Print("0x%" Px " (native entry)\n", RawValueAt(i));
     } else {
       THR_Print("0x%" Px " (raw)\n", RawValueAt(i));
     }
