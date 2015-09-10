@@ -150,7 +150,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   E removeLast() {
     checkGrowable('removeLast');
-    if (length == 0) throw new RangeError.value(-1);
+    if (length == 0) throw diagnoseIndexError(this, -1);
     return JS('var', r'#.pop()', this);
   }
 

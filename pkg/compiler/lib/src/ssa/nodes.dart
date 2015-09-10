@@ -1393,6 +1393,9 @@ class HBoundsCheck extends HCheck {
   HInstruction get length => inputs[1];
   HInstruction get index => inputs[0];
   HInstruction get array => inputs[2];
+  // There can be an additional fourth input which is the index to report to
+  // [ioore]. This is used by the expansion of [JSArray.removeLast].
+  HInstruction get reportedIndex => inputs.length > 3 ? inputs[3] : index;
   bool isControlFlow() => true;
 
   accept(HVisitor visitor) => visitor.visitBoundsCheck(this);

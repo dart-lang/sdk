@@ -1029,8 +1029,13 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     if (node.isInterceptedCall) return;
     if (element != backend.jsArrayRemoveLast) return;
     if (boundsChecked.contains(node)) return;
-    insertBoundsCheck(
+    // `0` is the index we want to check, but we want to report `-1`, as if we
+    // executed `a[a.length-1]`
+    HBoundsCheck check = insertBoundsCheck(
         node, node.receiver, graph.addConstantInt(0, backend.compiler));
+    HInstruction minusOne = graph.addConstantInt(-1, backend.compiler);
+    check.inputs.add(minusOne);
+    minusOne.usedBy.add(check);
   }
 }
 
