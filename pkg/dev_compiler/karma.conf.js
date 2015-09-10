@@ -84,12 +84,17 @@ module.exports = function(config) {
         flags: [ harmony_flags ],
       },
 
+      chrome_travis: {
+        base: 'Chrome',
+        flags: [ '--no-sandbox', harmony_flags ]
+      },
+
       chrome_canary_travis: {
         base: 'ChromeCanary',
         flags: [ '--no-sandbox', harmony_flags ]
       },
     },
-    browsers: ['chrome_canary_harmony'],
+    browsers: ['chrome_harmony', 'chrome_canary_harmony'],
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
@@ -97,7 +102,7 @@ module.exports = function(config) {
   };
 
   if (process.env.TRAVIS) {
-    configuration.browsers = ['chrome_canary_travis'];
+    configuration.browsers = ['chrome_travis', 'chrome_canary_travis'];
     configuration.autoWatch = false;
     configuration.logLevel = config.LOG_DEBUG;
     configuration.client.captureConsole = true;
