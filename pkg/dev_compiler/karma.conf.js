@@ -102,7 +102,7 @@ module.exports = function(config) {
   };
 
   if (process.env.TRAVIS) {
-    configuration.browsers = ['chrome_travis', 'chrome_canary_travis'];
+    configuration.browsers = ['chrome_canary_travis'];
     configuration.autoWatch = false;
     configuration.logLevel = config.LOG_DEBUG;
     configuration.client.captureConsole = true;
