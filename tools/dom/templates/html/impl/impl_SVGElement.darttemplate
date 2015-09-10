@@ -58,7 +58,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
   List<Element> get children => new FilteredElementList(this);
 
-  void set children(List<Element> value) {
+  set children(List<Element> value) {
     final children = this.children;
     children.clear();
     children.addAll(value);
@@ -78,7 +78,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return container.innerHtml;
   }
 
-  void set innerHtml(String value) {
+  set innerHtml(String value) {
     this.setInnerHtml(value);
   }
 
@@ -143,5 +143,21 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     var e = new $CLASSNAME.tag(tag);
     return e is $CLASSNAME && !(e is UnknownElement);
   }
+
+$if JSINTEROP
+  set _svgClassName(AnimatedString value) =>
+      _blink.BlinkSVGElement.instance.className_Setter_(unwrap_jso(this), unwrap_jso(value));
+
+  String get className => _svgClassName.baseVal;
+
+  // Unbelievable hack. We can't create an SvgAnimatedString, but we can get
+  // the existing one and change its baseVal. Then we call the blink setter directly
+  // TODO(alanknight): Handle suppressing the SVGAnimated<*> better
+  set className(String s) {
+    var oldClass = _svgClassName;
+    oldClass.baseVal = s;
+    _svgClassName = oldClass;
+  }
+$endif
 $!MEMBERS
 }

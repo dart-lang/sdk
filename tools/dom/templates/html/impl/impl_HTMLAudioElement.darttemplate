@@ -1,0 +1,20 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+@DocsEditable()
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$!MEMBERS
+$if JSINTEROP
+  factory AudioElement([String src]) {
+    if (src == null)
+      return wrap_jso(_blink.BlinkHTMLAudioElement.instance.constructorCallback_0_());
+    else
+      return wrap_jso(_blink.BlinkHTMLAudioElement.instance.constructorCallback_1_(src));
+  }
+$else
+  factory AudioElement([String src]) => new AudioElement._(src);
+$endif
+}

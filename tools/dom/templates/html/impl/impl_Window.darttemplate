@@ -85,13 +85,13 @@ $if DART2JS
    * Sets the window's location, which causes the browser to navigate to the new
    * location. [value] may be a Location object or a String.
    */
-  void set location(value) {
+  set location(value) {
     _location = value;
   }
 
   // Native getter and setter to access raw Location object.
   dynamic get _location => JS('Location|Null', '#.location', this);
-  void set _location(value) {
+  set _location(value) {
     JS('void', '#.location = #', this, value);
   }
 
@@ -320,7 +320,7 @@ class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
 
   String get returnValue => _returnValue;
 
-  void set returnValue(String value) {
+  set returnValue(String value) {
     _returnValue = value;
     // FF and IE use the value as the return value, Chrome will return this from
     // the event callback function.

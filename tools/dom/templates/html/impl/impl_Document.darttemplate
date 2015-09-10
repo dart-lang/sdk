@@ -26,11 +26,7 @@ $!MEMBERS
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   ElementList<Element> querySelectorAll(String selectors) {
-$if JSINTEROP
-    return _querySelectorAll(selectors);
-$else
     return new _FrozenElementList._wrap(_querySelectorAll(selectors));
-$endif
   }
 
   /**
@@ -70,16 +66,49 @@ $endif
 $if DART2JS
     return _createElement(tagName, typeExtension);
 $else
-  $if JSINTEROP
-    return _createElement(tagName, typeExtension);
-  $else
-    if (typeExtension != null) {  
-      return _createElement(tagName, typeExtension);  
-    } else {  
-      // Fast-path for Dartium when typeExtension is not needed.  
-      return _Utils.createElement(this, tagName); 
-    } 
-  $endif
+    var newElement = (typeExtension == null) ?
+      _blink.BlinkDocument.instance.createElement_Callback_1_(unwrap_jso(this), tagName) :
+      _blink.BlinkDocument.instance.createElement_Callback_2_(unwrap_jso(this), tagName, typeExtension);
+
+    var wrapped;
+
+    if (newElement['dart_class'] != null) {
+      wrapped = newElement['dart_class'];         // Here's our Dart class.
+      wrapped.blink_jsObject = newElement;
+    } else {
+      wrapped = wrap_jso(newElement);
+      if (wrapped == null) {
+        wrapped = wrap_jso_custom_element(newElement);
+      }
+    }
+
+    return wrapped;
+$endif
+  }
+
+  @DomName('Document.createElementNS')
+  @DocsEditable()
+  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
+$if DART2JS
+    return _createElementNS(tagName, qualifiedName, typeExtension);
+$else
+    var newElement = (typeExtension == null) ?
+      _blink.BlinkDocument.instance.createElementNS_Callback_2_(unwrap_jso(this), namespaceURI, qualifiedName) :
+      _blink.BlinkDocument.instance.createElementNS_Callback_3_(unwrap_jso(this), namespaceURI, qualifiedName, typeExtension);
+  
+    var wrapped;
+  
+    if (newElement['dart_class'] != null) {
+      wrapped = newElement['dart_class'];         // Here's our Dart class.
+      wrapped.blink_jsObject = newElement;
+    } else {
+      wrapped = wrap_jso(newElement);
+      if (wrapped == null) {
+        wrapped = wrap_jso_custom_element(newElement);
+      }
+    }
+  
+    return wrapped;
 $endif
   }
 
