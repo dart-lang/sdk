@@ -175,7 +175,7 @@ executable("gen_snapshot") {
 }
 
 
-static_library("libdart_embedder_noio") {
+source_set("libdart_embedder_noio") {
   configs += ["..:dart_config",]
   deps = [
     "..:libdart",
