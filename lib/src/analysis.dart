@@ -23,10 +23,19 @@ import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:linter/src/io.dart';
 import 'package:linter/src/project.dart';
 import 'package:linter/src/rules.dart';
+import 'package:package_config/packages.dart' show Packages;
+import 'package:package_config/packages_file.dart' as pkgfile show parse;
+import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import 'package:path/path.dart' as p;
 
 Source createSource(Uri sourceUri) =>
     new FileBasedSource(new JavaFile(sourceUri.toFilePath()));
+
+/// Print the given message and exit with the given [exitCode]
+void printAndFail(String message, {int exitCode: 15}) {
+  print(message);
+  exit(exitCode);
+}
 
 AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
@@ -85,7 +94,10 @@ class AnalysisDriver {
   List<AnalysisErrorInfo> analyze(Iterable<File> files) {
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     context.analysisOptions = _buildAnalyzerOptions(options);
-    context.sourceFactory = new SourceFactory(resolvers);
+
+    Packages packages = _getPackageConfig();
+
+    context.sourceFactory = new SourceFactory(resolvers, packages);
     AnalysisEngine.instance.logger = new StdLogger();
 
     List<Source> sources = [];
@@ -153,6 +165,23 @@ class AnalysisDriver {
         .map((CompilationUnitElement e) => e.source));
     return result;
   }
+
+  Packages _getPackageConfig() {
+    if (options.packageConfigPath != null) {
+      String packageConfigPath = options.packageConfigPath;
+      Uri fileUri = new Uri.file(packageConfigPath);
+      try {
+        File configFile = new File.fromUri(fileUri).absolute;
+        List<int> bytes = configFile.readAsBytesSync();
+        Map<String, Uri> map = pkgfile.parse(bytes, configFile.uri);
+        return new MapPackages(map);
+      } catch (e) {
+        printAndFail(
+            'Unable to read package config data from $packageConfigPath: $e');
+      }
+    }
+    return null;
+  }
 }
 
 class DriverOptions {
@@ -165,6 +194,9 @@ class DriverOptions {
 
   /// Whether to show lint warnings.
   bool enableLints = true;
+
+  /// The path to a `.packages` configuration file
+  String packageConfigPath;
 
   /// The path to the package root.
   String packageRootPath;
