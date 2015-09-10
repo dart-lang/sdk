@@ -23,7 +23,6 @@ import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:linter/src/io.dart';
 import 'package:linter/src/project.dart';
 import 'package:linter/src/rules.dart';
-import 'package:package_config/discovery.dart' as pkgDiscovery;
 import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
