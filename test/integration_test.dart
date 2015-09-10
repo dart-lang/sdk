@@ -110,7 +110,7 @@ defineTests() {
         test('basic', () {
           // Requires .packages to analyze cleanly.
           dartlint
-              .main(['test/_data/p5', '--packages', 'test/_data/p5/.packages']);
+              .main(['test/_data/p5', '--packages', 'test/_data/p5/_packages']);
           // Should have 0 issues.
           expect(exitCode, equals(0));
         });
