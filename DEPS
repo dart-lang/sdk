@@ -110,7 +110,7 @@ vars = {
   "which_tag": "@0.1.3+1",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
   "WebCore_rev" : "@44061",
-  "yaml_rev": "@563a5ffd4a800a2897b8f4dd6b19f2a370df2f2b",
+  "yaml_tag": "@2.1.5",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "font_awesome_rev": "@31824",
   "barback-0.13.0_rev": "@34853",
@@ -305,7 +305,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/which":
       (Var("github_mirror") % "which") + Var("which_tag"),
   Var("dart_root") + "/third_party/pkg/yaml":
-      (Var("github_mirror") % "yaml") + Var("yaml_rev"),
+      (Var("github_mirror") % "yaml") + Var("yaml_tag"),
 
   # These specific versions of barback and source_maps are used for testing and
   # should be pulled from bleeding_edge even on channels.
