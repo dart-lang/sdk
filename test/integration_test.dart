@@ -82,13 +82,38 @@ defineTests() {
           var processResult = new MockProcessResult();
           when(processResult.exitCode).thenReturn(0);
           when(processResult.stderr).thenReturn('');
-          when(processResult.stdout).thenReturn(
-              JSON.encode({'packages': {'p4': libPath}, 'input_files': []}));
+          when(processResult.stdout).thenReturn(JSON.encode({
+            'packages': {'p4': libPath},
+            'input_files': []
+          }));
           return processResult;
         };
         dartlint.runLinter(['test/_data/p4'], options);
         expect(collectingOut.trim(),
             endsWith('3 files analyzed, 0 issues found.'));
+      });
+    });
+
+    group('p5', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+      group('.packages', () {
+        test('basic', () {
+          // Requires .packages to analyze cleanly.
+          dartlint
+              .main(['test/_data/p5', '--packages', 'test/_data/p5/.packages']);
+          // Should have 0 issues.
+          expect(exitCode, equals(0));
+        });
       });
     });
 

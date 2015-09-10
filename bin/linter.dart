@@ -57,6 +57,9 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
         negatable: false)
     ..addOption('config', abbr: 'c', help: 'Use configuration from this file.')
     ..addOption('dart-sdk', help: 'Custom path to a Dart SDK.')
+    ..addOption('packages',
+        help:
+            'Path to the package resolution configuration file, which supplies a mapping of package names to paths.  This option cannot be used with --package-root.')
     ..addOption('package-root',
         abbr: 'p', help: 'Custom package root. (Discouraged.)');
 
@@ -98,6 +101,16 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
   if (customPackageRoot != null) {
     lintOptions.packageRootPath = customPackageRoot;
   }
+
+  var packageConfigFile = options['packages'];
+
+  if (customPackageRoot != null && packageConfigFile != null) {
+    errorSink.write("Cannot specify both '--package-root' and '--packages.");
+    exitCode = unableToProcessExitCode;
+    return;
+  }
+  
+  lintOptions.packageConfigPath = packageConfigFile;
 
   lintOptions.visitTransitiveClosure = options['visit-transitive-closure'];
 
