@@ -40,3 +40,10 @@ poi/*: Skip # Issue 20031
 # Compilation is slow, test fails at runtime due to time out, but
 # unpredictably.
 web/incremental_compilation_update_test: Skip
+
+[ $compiler == none && $runtime == drt ]
+poi/forget_element_test: RuntimeError # Issue 24334
+poi/library_updater_test: RuntimeError # Issue 24334
+poi/qualified_names_test: RuntimeError # Issue 24334
+poi/diff_test: RuntimeError # Issue 24334
+poi/apply_updates_test: RuntimeError # Issue 24334
