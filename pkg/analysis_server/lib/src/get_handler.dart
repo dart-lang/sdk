@@ -1385,9 +1385,9 @@ class GetHandler {
    */
   void _writePluginStatus(StringBuffer buffer) {
     void writePlugin(Plugin plugin) {
-      buffer.write(_server.serverPlugin.uniqueIdentifier);
+      buffer.write(plugin.uniqueIdentifier);
       buffer.write(' (');
-      buffer.write(_server.serverPlugin.runtimeType);
+      buffer.write(plugin.runtimeType);
       buffer.write(')<br>');
     }
     buffer.write('<h3>Plugin Status</h3><p>');
