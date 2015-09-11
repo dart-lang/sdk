@@ -2991,6 +2991,7 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     registerBackendInstantiation(backend.compiler.listClass, registry);
     registerBackendStaticInvocation(backend.getRuntimeTypeToString(), registry);
     registerBackendStaticInvocation(backend.getCreateRuntimeType(), registry);
+    needsInt(registry, 'Needed for accessing a type variable literal on this.');
   }
 
   // TODO(johnniwinther): Maybe split this into [onAssertType] and [onTestType].
@@ -3051,7 +3052,7 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     registerBackendStaticInvocation(
         backend.getThrowAbstractClassInstantiationError(), registry);
     // Also register the types of the arguments passed to this method.
-    registerBackendInstantiation(backend.compiler.stringClass, registry);
+    needsString(registry, '// Needed to encode the message.');
   }
 
   void onFallThroughError(Registry registry) {
@@ -3068,8 +3069,10 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     assert(registry.isForResolution);
     registerBackendStaticInvocation(backend.getThrowNoSuchMethod(), registry);
     // Also register the types of the arguments passed to this method.
-    registerBackendInstantiation(backend.compiler.listClass, registry);
-    registerBackendInstantiation(backend.compiler.stringClass, registry);
+    needsList(registry,
+        'Needed to encode the arguments for throw NoSuchMethodError.');
+    needsString(registry,
+        'Needed to encode the name for throw NoSuchMethodError.');
   }
 
   void onThrowRuntimeError(Registry registry) {
@@ -3094,8 +3097,12 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
         backend.compiler.objectClass.lookupLocalMember(
             Identifiers.noSuchMethod_),
         registry);
-    registerBackendInstantiation(backend.compiler.listClass, registry);
-    registerBackendInstantiation(backend.compiler.stringClass, registry);
+    needsInt(registry,
+        'Needed to encode the invocation kind of super.noSuchMethod.');
+    needsList(registry,
+        'Needed to encode the arguments of super.noSuchMethod.');
+    needsString(registry,
+        'Needed to encode the name of super.noSuchMethod.');
   }
 
   void onMapLiteral(ResolutionRegistry registry,
@@ -3124,6 +3131,29 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     assert(backend.compiler.symbolValidatedConstructor != null);
     registerBackendStaticInvocation(
         backend.compiler.symbolValidatedConstructor, registry);
+  }
+
+  /// Called when resolving a prefix or postfix expression.
+  void onIncDecOperation(Registry registry) {
+    needsInt(registry, 'Needed for the `+ 1` or `- 1` operation of ++/--.');
+  }
+
+  /// Helper for registering that `int` is needed.
+  void needsInt(Registry registry, String reason) {
+    // TODO(johnniwinther): Register [reason] for use in dump-info.
+    registerBackendInstantiation(backend.compiler.intClass, registry);
+  }
+
+  /// Helper for registering that `List` is needed.
+  void needsList(Registry registry, String reason) {
+    // TODO(johnniwinther): Register [reason] for use in dump-info.
+    registerBackendInstantiation(backend.compiler.listClass, registry);
+  }
+
+  /// Helper for registering that `String` is needed.
+  void needsString(Registry registry, String reason) {
+    // TODO(johnniwinther): Register [reason] for use in dump-info.
+    registerBackendInstantiation(backend.compiler.stringClass, registry);
   }
 }
 

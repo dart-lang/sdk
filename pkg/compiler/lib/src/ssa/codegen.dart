@@ -2694,7 +2694,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkString(input, '!==', input.sourceInformation);
       return pop();
     }
-    compiler.internalError(input, 'Unexpected check.');
+    compiler.internalError(input, 'Unexpected check: $checkedType.');
     return null;
   }
 

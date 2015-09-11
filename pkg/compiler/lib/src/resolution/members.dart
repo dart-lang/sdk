@@ -3422,6 +3422,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           ? new PrefixStructure(semantics, operator)
           : new PostfixStructure(semantics, operator);
       registry.registerSendStructure(node, sendStructure);
+      registry.registerIncDecOperation();
     } else {
       Node rhs = node.arguments.head;
       visitExpression(rhs);

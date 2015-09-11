@@ -848,11 +848,6 @@ abstract class Compiler implements DiagnosticListener {
       functionClass.ensureResolved(this);
       functionApplyMethod = functionClass.lookupLocalMember('apply');
 
-      proxyConstant =
-          constants.getConstantValue(
-              resolver.constantCompiler.compileConstant(
-                  coreLibrary.find('proxy')));
-
       if (preserveComments) {
         return libraryLoader.loadLibrary(Uris.dart_mirrors)
             .then((LibraryElement libraryElement) {
@@ -860,6 +855,18 @@ abstract class Compiler implements DiagnosticListener {
         });
       }
     }).then((_) => backend.onLibrariesLoaded(loadedLibraries));
+  }
+
+  bool isProxyConstant(ConstantValue value) {
+    FieldElement field = coreLibrary.find('proxy');
+    if (field == null) return false;
+    if (!enqueuer.resolution.hasBeenResolved(field)) return false;
+    if (proxyConstant == null) {
+      proxyConstant =
+          constants.getConstantValue(
+              resolver.constantCompiler.compileConstant(field));
+    }
+    return proxyConstant == value;
   }
 
   Element findRequiredElement(LibraryElement library, String name) {

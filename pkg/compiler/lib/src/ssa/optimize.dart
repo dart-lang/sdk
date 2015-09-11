@@ -268,9 +268,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
       ClassWorld classWorld = compiler.world;
       TypeMask resultType = backend.positiveIntType;
       // If we already have computed a more specific type, keep that type.
-      if (actualType.satisfies(backend.jsUInt31Class, classWorld)) {
+      if (HInstruction.isInstanceOf(
+              actualType, backend.jsUInt31Class, classWorld)) {
         resultType = backend.uint31Type;
-      } else if (actualType.satisfies(backend.jsUInt32Class, classWorld)) {
+      } else if (HInstruction.isInstanceOf(
+              actualType, backend.jsUInt32Class, classWorld)) {
         resultType = backend.uint32Type;
       }
       HFieldGet result = new HFieldGet(

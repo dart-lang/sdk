@@ -598,7 +598,7 @@ class ResolverTask extends CompilerTask {
       metadata.ensureResolved(compiler);
       ConstantValue value =
           compiler.constants.getConstantValue(metadata.constant);
-      if (!element.isProxy && value == compiler.proxyConstant) {
+      if (!element.isProxy && compiler.isProxyConstant(value)) {
         element.isProxy = true;
       }
     }

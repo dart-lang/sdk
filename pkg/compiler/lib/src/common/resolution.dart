@@ -114,4 +114,7 @@ class ResolutionCallbacks {
 
   /// Called when resolving the `Symbol` constructor.
   void onSymbolConstructor(Registry registry) {}
+
+  /// Called when resolving a prefix or postfix expression.
+  void onIncDecOperation(Registry registry) {}
 }
