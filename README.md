@@ -89,8 +89,9 @@ for how one function depends on another.
 
 Run this tool as follows:
 ```bash
-pub global activate dart2js_info # only needed once
-pub global run dart2js_info:code_deps out.js.info.json some_path main foo
+# activate is only needed once to install the dart2js_info* executables
+pub global activate dart2js_info
+dart2js_info_code_deps out.js.info.json some_path main foo
 ```
 
 The arguments to the query are regular expressions that can be used to
@@ -112,7 +113,7 @@ libraries. It can be run as follows:
 
 ```bash
 pub global activate dart2js_info # only needed once
-pub global run dart2js_info:library_size_split out.js.info.json
+dart2js_info_library_size_split out.js.info.json
 ```
 
 
@@ -120,7 +121,7 @@ Libraries can be grouped using regular expressions. You can
 specify what regular expressions to use by providing a `grouping.yaml` file:
 
 ```bash
-pub global run dart2js_info:library_size_split out.js.info.json grouping.yaml
+dart2js_info_library_size_split out.js.info.json grouping.yaml
 ```
 
 The format of the `grouping.yaml` file is as follows:
@@ -194,7 +195,7 @@ and reachability data as well.
 When you run:
 ```bash
 pub global activate dart2js_info # only needed once
-pub global run dart2js_info:function_size_analysis out.js.info.json
+dart2js_info_function_size_analysis out.js.info.json
 ```
 
 the tool produces a table output with lots of entries. Here is an example entry
@@ -236,7 +237,7 @@ DART_VM_OPTIONS="-DtraceCalls=post" dart2js --dump-info main.dart
   * Launch the coverage server tool to serve up the JS code of your app:
 
 ```bash
-pub global run dart2js_info:coverage_log_server main.dart.js
+dart2js_info_coverage_log_server main.dart.js
 ```
 
   * (optional) If you have a complex application setup, you may need to serve an
@@ -253,7 +254,7 @@ pub global run dart2js_info:coverage_log_server main.dart.js
     converage json files:
 
 ```bash
-pub global run dart2js_info:live_code_size_analysis main.dart.info.json main.dart.coverage.json
+dart2js_info_live_code_size_analysis main.dart.info.json main.dart.coverage.json
 ```
 
 ## Code location, features and bugs

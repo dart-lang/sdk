@@ -1,5 +1,5 @@
 name: dart2js_info
-version: 0.0.2
+version: 0.0.3
 description: >
   Libraries and tools to process data produced when running dart2js with
   --dump-info.
@@ -17,3 +17,10 @@ environment:
 
 dev_dependencies:
   test: ^0.12.3+4
+executables:
+  dart2js_info_code_deps:               code_deps
+  dart2js_info_coverage_log_server:     coverage_log_server
+  dart2js_info_debug_info:              debug_info
+  dart2js_info_function_size_analysis:  function_size_analysis
+  dart2js_info_library_size_split:      library_size_split
+  dart2js_info_live_code_size_analysis: live_code_size_analysis

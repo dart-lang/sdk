@@ -9,7 +9,7 @@
 /// You can run this tool as follows:
 /// ```bash
 /// pub global activate dart2js_info
-/// pub global run dart2js_info:code_deps out.js.info.json some_path main foo
+/// dart2js_info_code_deps out.js.info.json some_path main foo
 /// ```
 ///
 /// The arguments to the query are regular expressions that can be used to
@@ -35,8 +35,7 @@ import 'package:dart2js_info/src/util.dart';
 
 main(args) {
   if (args.length < 2) {
-    print('usage: pub global run dart2js_info:code_deps '
-        'path-to.info.json <query>');
+    print('usage: dart2js_info_code_deps path-to.info.json <query>');
     print('   where <query> can be:');
     print('     - some_path <element-regexp-1> <element-regexp-2>');
     // TODO(sigmund): add other queries, such as 'all_paths'.
