@@ -1468,7 +1468,10 @@ static void PrintSentinel(JSONStream* js, SentinelType sentinel_type) {
 }
 
 
-static Breakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
+static Breakpoint* LookupBreakpoint(Isolate* isolate,
+                                    const char* id,
+                                    ObjectIdRing::LookupResult* result) {
+  *result = ObjectIdRing::kInvalid;
   size_t end_pos = strcspn(id, "/");
   if (end_pos == strlen(id)) {
     return NULL;
@@ -1479,8 +1482,15 @@ static Breakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
     Breakpoint* bpt = NULL;
     if (GetIntegerId(rest, &bpt_id)) {
       bpt = isolate->debugger()->GetBreakpointById(bpt_id);
+      if (bpt) {
+        *result = ObjectIdRing::kValid;
+        return bpt;
+      }
+      if (bpt_id < isolate->debugger()->limitBreakpointId()) {
+        *result = ObjectIdRing::kCollected;
+        return NULL;
+      }
     }
-    return bpt;
   }
   return NULL;
 }
@@ -2158,7 +2168,10 @@ static bool RemoveBreakpoint(Isolate* isolate, JSONStream* js) {
     return true;
   }
   const char* bpt_id = js->LookupParam("breakpointId");
-  Breakpoint* bpt = LookupBreakpoint(isolate, bpt_id);
+  ObjectIdRing::LookupResult lookup_result;
+  Breakpoint* bpt = LookupBreakpoint(isolate, bpt_id, &lookup_result);
+  // TODO(turnidge): Should we return a different error for bpts whic
+  // have been already removed?
   if (bpt == NULL) {
     PrintInvalidParamError(js, "breakpointId");
     return true;
@@ -2813,9 +2826,12 @@ static bool GetObject(Isolate* isolate, JSONStream* js) {
   }
 
   // Handle non-heap objects.
-  Breakpoint* bpt = LookupBreakpoint(isolate, id);
+  Breakpoint* bpt = LookupBreakpoint(isolate, id, &lookup_result);
   if (bpt != NULL) {
     bpt->PrintJSON(js);
+    return true;
+  } else if (lookup_result == ObjectIdRing::kCollected) {
+    PrintSentinel(js, kCollectedSentinel);
     return true;
   }
 

@@ -1667,7 +1667,7 @@ void Object::AddCommonObjectProperties(JSONObject* jsobj,
   if (!same_type) {
     jsobj->AddProperty("_vmType", vm_type);
   }
-  if (!ref || IsInstance()) {
+  if (!ref || IsInstance() || IsNull()) {
     // TODO(turnidge): Provide the type arguments here too?
     const Class& cls = Class::Handle(this->clazz());
     jsobj->AddProperty("class", cls);

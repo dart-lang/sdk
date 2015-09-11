@@ -572,6 +572,8 @@ class Debugger {
 
   static bool IsDebuggable(const Function& func);
 
+  intptr_t limitBreakpointId() { return next_id_; }
+
  private:
   enum ResumeAction {
     kContinue,

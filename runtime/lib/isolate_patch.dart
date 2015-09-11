@@ -130,6 +130,8 @@ class _RawReceivePortImpl implements RawReceivePort {
     return sendPort.hashCode();
   }
 
+  Uri get remotePortUri => new Uri.https('localhost', '55');
+
   /**** Internal implementation details ****/
   _get_id() native "RawReceivePortImpl_get_id";
   _get_sendport() native "RawReceivePortImpl_get_sendport";

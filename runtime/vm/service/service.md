@@ -498,9 +498,12 @@ its _id_.
 If _objectId_ is a temporary id which has expired, then then _Expired_
 [Sentinel](#sentinel) is returned.
 
-If _objectId_ refers to an object which has been collected by the VM's
+If _objectId_ refers to a heap object which has been collected by the VM's
 garbage collector, then the _Collected_ [Sentinel](#sentinel) is
 returned.
+
+If _objectId_ refers to a non-heap object which has been deleted, then
+the _Collected_ [Sentinel](#sentinel) is returned.
 
 If the object handle has not expired and the object has not been
 collected, then an [Object](#object) will be returned.
@@ -774,13 +777,24 @@ will be the _OptimizedOut_ [Sentinel](#sentinel).
 
 ```
 class Breakpoint extends Object {
+  // A number identifying this breakpoint to the user.
   int breakpointNumber;
+
+  // Has this breakpoint been assigned to a specific program location?
   bool resolved;
+
+  // SourceLocation when breakpoint is resolved, UnresolvedSourceLocation
+  // when a breakpoint is not resolved.
   SourceLocation|UnresolvedSourceLocation location;
 }
 ```
 
 A _Breakpoint_ describes a debugger breakpoint.
+
+A breakpoint is _resolved_ when it has been assigned to a specific
+program location.  A breakpoint my remain unresolved when it is in
+code which has not yet been compiled or in a library which has not
+been loaded (i.e. a deferred library).
 
 ### Class
 
@@ -885,14 +899,14 @@ enum CodeKind {
 ### Context
 
 ```
-class @Context {
+class @Context extends @Object {
   // The number of variables in this context.
   int length;
 }
 ```
 
 ```
-class Context {
+class Context extends Object {
   // The number of variables in this context.
   int length;
 
@@ -903,6 +917,9 @@ class Context {
   ContextElement[] variables;
 }
 ```
+
+A _Context_ is a data structure which holds the captured variables for
+some closure.
 
 ### ContextElement
 
@@ -1310,9 +1327,11 @@ class @Instance extends @Object {
 
   // The pattern of a RegExp instance.
   //
+  // The pattern is always an instance of kind String.
+  //
   // Provided for instance kinds:
   //   RegExp
-  String pattern [optional];
+  @Instance pattern [optional];
 }
 ```
 
@@ -1395,6 +1414,8 @@ class Instance extends Object {
 
   // The bytes of a TypedData instance.
   //
+  // The data is provided as a Base64 encoded string.
+  //
   // Provided for instance kinds:
   //   Uint8ClampedList
   //   Uint8List
@@ -1410,7 +1431,7 @@ class Instance extends Object {
   //   Int32x4List
   //   Float32x4List
   //   Float64x2List
-  int[] bytes [optional];
+  string bytes [optional];
 
   // The function associated with a Closure instance.
   //
@@ -1422,7 +1443,7 @@ class Instance extends Object {
   //
   // Provided for instance kinds:
   //   Closure
-  @Function closureContext [optional];
+  @Context closureContext [optional];
 
   // The referent of a MirrorReference instance.
   //
