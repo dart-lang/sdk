@@ -541,7 +541,7 @@ class CacheEntry {
     TargetedResult thisResult = new TargetedResult(target, descriptor);
     for (TargetedResult dependedOnResult in thisData.dependedOnResults) {
       ResultData data = _partition._getDataFor(dependedOnResult);
-      if (data != null) {
+      if (data != null && deltaResult != DeltaResult.KEEP_CONTINUE) {
         data.dependentResults.remove(thisResult);
       }
     }

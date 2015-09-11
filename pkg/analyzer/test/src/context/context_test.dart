@@ -2239,7 +2239,7 @@ class B {
 }
 ''');
     _assertInvalid(sourceA, LIBRARY_ERRORS_READY);
-    _assertValid(sourceB, LIBRARY_ERRORS_READY);
+    _assertValid(sourceB, LIBRARY_ELEMENT);
     // The a.dart's unit and element are updated incrementally.
     // They are the same instances as initially.
     // So, all the references from other units are still valid.
@@ -2275,7 +2275,7 @@ class B {
 }
 ''');
     _assertInvalid(sourceA, LIBRARY_ERRORS_READY);
-    _assertInvalid(sourceB, LIBRARY_ERRORS_READY);
+    _assertInvalid(sourceB, LIBRARY_ELEMENT);
     // The a.dart's unit and element are the same.
     {
       LibrarySpecificUnit target = new LibrarySpecificUnit(sourceA, sourceA);

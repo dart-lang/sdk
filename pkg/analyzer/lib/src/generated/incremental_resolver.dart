@@ -8,30 +8,26 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analyzer/src/context/cache.dart'
-    show CacheEntry, TargetedResult;
+    show CacheEntry, Delta, DeltaResult, TargetedResult;
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/task/dart.dart'
-    show
-        HINTS,
-        INFER_STATIC_VARIABLE_TYPES_ERRORS,
-        LIBRARY_UNIT_ERRORS,
-        PARSE_ERRORS,
-        PARTIALLY_RESOLVE_REFERENCES_ERRORS,
-        RESOLVE_FUNCTION_BODIES_ERRORS,
-        RESOLVE_TYPE_NAMES_ERRORS,
-        SCAN_ERRORS,
-        USED_IMPORTED_ELEMENTS,
-        USED_LOCAL_ELEMENTS,
-        VARIABLE_REFERENCE_ERRORS,
-        VERIFY_ERRORS;
-import 'package:analyzer/task/dart.dart'
-    show DART_ERRORS, LibrarySpecificUnit, PARSED_UNIT, TOKEN_STREAM;
+import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart' show CONTENT, LINE_INFO;
-import 'package:analyzer/task/model.dart' show ResultDescriptor, TargetedResult;
+import 'package:analyzer/task/model.dart'
+    show AnalysisTarget, ResultDescriptor, TargetedResult, TaskDescriptor;
 
 import 'ast.dart';
 import 'element.dart';
-import 'engine.dart';
+import 'engine.dart'
+    show
+        AnalysisContext,
+        AnalysisOptions,
+        CacheState,
+        DartEntry,
+        DataDescriptor,
+        InternalAnalysisContext,
+        RecordingErrorListener,
+        SourceEntry;
 import 'error.dart';
 import 'error_verifier.dart';
 import 'incremental_logger.dart' show logger, LoggingTimer;
@@ -830,6 +826,74 @@ class DeclarationMatchKind {
 }
 
 /**
+ * The [Delta] implementation used by incremental resolver.
+ * It keeps Dart results that are either don't change or are updated.
+ */
+class IncrementalBodyDelta extends Delta {
+  /**
+   * The offset of the changed contents.
+   */
+  final int updateOffset;
+
+  /**
+   * The end of the changed contents in the old unit.
+   */
+  final int updateEndOld;
+
+  /**
+   * The end of the changed contents in the new unit.
+   */
+  final int updateEndNew;
+
+  /**
+   * The delta between [updateEndNew] and [updateEndOld].
+   */
+  final int updateDelta;
+
+  IncrementalBodyDelta(Source source, this.updateOffset, this.updateEndOld,
+      this.updateEndNew, this.updateDelta)
+      : super(source);
+
+  @override
+  DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
+      ResultDescriptor descriptor) {
+    // don't invalidate results of standard Dart tasks
+    bool isByTask(TaskDescriptor taskDescriptor) {
+      return taskDescriptor.results.contains(descriptor);
+    }
+    if (descriptor == CONTENT) {
+      return DeltaResult.KEEP_CONTINUE;
+    }
+    if (isByTask(BuildCompilationUnitElementTask.DESCRIPTOR) ||
+        isByTask(BuildDirectiveElementsTask.DESCRIPTOR) ||
+        isByTask(BuildEnumMemberElementsTask.DESCRIPTOR) ||
+        isByTask(BuildExportNamespaceTask.DESCRIPTOR) ||
+        isByTask(BuildLibraryElementTask.DESCRIPTOR) ||
+        isByTask(BuildPublicNamespaceTask.DESCRIPTOR) ||
+        isByTask(BuildSourceExportClosureTask.DESCRIPTOR) ||
+        isByTask(BuildSourceImportExportClosureTask.DESCRIPTOR) ||
+        isByTask(ComputeConstantDependenciesTask.DESCRIPTOR) ||
+        isByTask(ComputeConstantValueTask.DESCRIPTOR) ||
+        isByTask(EvaluateUnitConstantsTask.DESCRIPTOR) ||
+        isByTask(InferInstanceMembersInUnitTask.DESCRIPTOR) ||
+        isByTask(InferStaticVariableTypesInUnitTask.DESCRIPTOR) ||
+        isByTask(ParseDartTask.DESCRIPTOR) ||
+        isByTask(PartiallyResolveUnitReferencesTask.DESCRIPTOR) ||
+        isByTask(ScanDartTask.DESCRIPTOR) ||
+        isByTask(ResolveFunctionBodiesInUnitTask.DESCRIPTOR) ||
+        isByTask(ResolveLibraryReferencesTask.DESCRIPTOR) ||
+        isByTask(ResolveLibraryTypeNamesTask.DESCRIPTOR) ||
+        isByTask(ResolveUnitTypeNamesTask.DESCRIPTOR) ||
+        isByTask(ResolveVariableReferencesTask.DESCRIPTOR) ||
+        isByTask(VerifyUnitTask.DESCRIPTOR)) {
+      return DeltaResult.KEEP_CONTINUE;
+    }
+    // invalidate all the other results
+    return DeltaResult.INVALIDATE;
+  }
+}
+
+/**
  * Instances of the class [IncrementalResolver] resolve the smallest portion of
  * an AST structure that we currently know how to resolve.
  */
@@ -894,6 +958,9 @@ class IncrementalResolver {
    */
   final int _updateEndNew;
 
+  /**
+   * The delta between [_updateEndNew] and [_updateEndOld].
+   */
   int _updateDelta;
 
   /**
@@ -940,6 +1007,7 @@ class IncrementalResolver {
       AstNode rootNode = _findResolutionRoot(node);
       _prepareResolutionContext(rootNode);
       // update elements
+      _updateCache();
       _updateElementNameOffsets();
       _buildElements(rootNode);
       if (!_canBeIncrementallyResolved(rootNode)) {
@@ -1171,6 +1239,14 @@ class IncrementalResolver {
     _shiftErrors(errors);
   }
 
+  void _updateCache() {
+    if (newSourceEntry != null) {
+      newSourceEntry.setState(CONTENT, CacheState.INVALID,
+          delta: new IncrementalBodyDelta(_source, _updateOffset, _updateEndOld,
+              _updateEndNew, _updateDelta));
+    }
+  }
+
   void _updateElementNameOffsets() {
     LoggingTimer timer = logger.startTimer();
     try {
@@ -1374,6 +1450,7 @@ class PoorMansIncrementalResolver {
                   _updateOffset,
                   _updateEndOld,
                   _updateEndNew);
+              incrementalResolver._updateCache();
               incrementalResolver._updateElementNameOffsets();
               incrementalResolver._shiftEntryErrors();
             }
@@ -1541,6 +1618,7 @@ class PoorMansIncrementalResolver {
         _updateOffset,
         _updateEndOld,
         _updateEndNew);
+    incrementalResolver._updateCache();
     incrementalResolver._updateElementNameOffsets();
     incrementalResolver._shiftEntryErrors();
     _updateEntry();
@@ -1609,12 +1687,12 @@ class PoorMansIncrementalResolver {
   void _updateEntry_NEW() {
     _newSourceEntry.setState(DART_ERRORS, CacheState.INVALID);
     // scan results
-    _newSourceEntry.setState(SCAN_ERRORS, CacheState.INVALID);
     List<TargetedResult> scanDeps = <TargetedResult>[
       new TargetedResult(_unitSource, CONTENT)
     ];
-    _newSourceEntry.setValue(LINE_INFO, _newLineInfo, scanDeps);
+    _newSourceEntry.setState(SCAN_ERRORS, CacheState.INVALID);
     _newSourceEntry.setValue(SCAN_ERRORS, _newScanErrors, scanDeps);
+    _newSourceEntry.setValue(LINE_INFO, _newLineInfo, scanDeps);
     // parse results
     List<TargetedResult> parseDeps = <TargetedResult>[
       new TargetedResult(_unitSource, TOKEN_STREAM)
