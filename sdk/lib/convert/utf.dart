@@ -66,7 +66,7 @@ class Utf8Codec extends Encoding {
     return new Utf8Decoder(allowMalformed: allowMalformed).convert(codeUnits);
   }
 
-  Utf8Encoder get encoder => new Utf8Encoder();
+  Utf8Encoder get encoder => const Utf8Encoder();
   Utf8Decoder get decoder {
     return new Utf8Decoder(allowMalformed: _allowMalformed);
   }
