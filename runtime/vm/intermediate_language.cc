@@ -37,6 +37,8 @@ DEFINE_FLAG(bool, two_args_smi_icd, true,
     "Generate special IC stubs for two args Smi operations");
 DEFINE_FLAG(bool, unbox_numeric_fields, true,
     "Support unboxed double and float32x4 fields.");
+DEFINE_FLAG(bool, fields_may_be_reset, false,
+            "Don't optimize away static field initialization");
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
@@ -385,7 +387,11 @@ Instruction* InitStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   const bool is_initialized =
       (field_.StaticValue() != Object::sentinel().raw()) &&
       (field_.StaticValue() != Object::transition_sentinel().raw());
-  return is_initialized ? NULL : this;
+  // When precompiling, the fact that a field is currently initialized does not
+  // make it safe to omit code that checks if the field needs initialization
+  // because the field will be reset so it starts uninitialized in the process
+  // running the precompiled code. We must be prepared to reinitialize fields.
+  return is_initialized && !FLAG_fields_may_be_reset ? NULL : this;
 }
 
 

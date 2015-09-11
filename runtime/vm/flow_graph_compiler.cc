@@ -51,6 +51,7 @@ DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, disassemble);
 DECLARE_FLAG(bool, disassemble_optimized);
 DECLARE_FLAG(bool, emit_edge_counters);
+DECLARE_FLAG(bool, fields_may_be_reset);
 DECLARE_FLAG(bool, guess_other_cid);
 DECLARE_FLAG(bool, ic_range_profiling);
 DECLARE_FLAG(bool, intrinsify);
@@ -120,6 +121,7 @@ static void PrecompileModeHandler(bool value) {
     FLAG_enable_mirrors = false;
     FLAG_precompile_collect_closures = true;
     FLAG_link_natives_lazily = true;
+    FLAG_fields_may_be_reset = true;
   }
 }
 
