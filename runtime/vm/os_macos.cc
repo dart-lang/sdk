@@ -18,6 +18,7 @@
 
 #include "platform/utils.h"
 #include "vm/isolate.h"
+#include "vm/zone.h"
 
 namespace dart {
 
