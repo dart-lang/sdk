@@ -34,6 +34,7 @@ main() {
   List tests = [testSimpleTypes,
                 testReturn,
                 testFor,
+                testSyncForIn,
                 testWhile,
                 testTry,
                 testSwitch,
@@ -125,6 +126,164 @@ testFor(MockCompiler compiler) {
 //        NOT_ASSIGNABLE);
 //  check("for (String s in true) {}", MessageKind.METHOD_NOT_FOUND);
 }
+
+
+testSyncForIn(MockCompiler compiler) {
+  String script = """
+class HasUntypedIterator {
+  get iterator => null;
+}
+
+class HasIntIterator {
+  Iterator<int> get iterator => null;
+}
+
+class HasNoIterator {
+}
+
+class HasCustomIntIterator {
+  CustomIntIterator get iterator => null;
+}
+
+class CustomIntIterator {
+  int current;
+}
+
+class HasCustomNoCurrentIterator {
+  CustomNoCurrentIterator get iterator => null;
+}
+
+class CustomNoCurrentIterator {
+}
+
+var topLevelDyn;
+String topLevelString;
+int topLevelInt;
+
+class Class {
+  void forIn() {}
+
+  var instanceDyn;
+  String instanceString;
+  int instanceInt;
+
+  static var staticDyn;
+  static String staticString;
+  static int staticInt;
+}
+""";
+  compiler.parseScript(script);
+  ClassElement foo = compiler.mainApp.find("Class");
+  foo.ensureResolved(compiler);
+  FunctionElement method = foo.lookupLocalMember('forIn');
+
+  analyzeIn(compiler, method, """{ 
+      for (var e in <String>[]) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      for (String e in <String>[]) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      for (int e in <String>[]) {} 
+  }""", hints: MessageKind.FORIN_NOT_ASSIGNABLE);
+  analyzeIn(compiler, method, """{ 
+      for (int e in []) {} 
+  }""");
+
+  analyzeIn(compiler, method, """{ 
+      for (var e in new HasUntypedIterator()) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      for (String e in new HasUntypedIterator()) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      for (int e in new HasUntypedIterator()) {} 
+  }""");
+
+  analyzeIn(compiler, method, """{ 
+      for (var e in new HasIntIterator()) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      for (String e in new HasIntIterator()) {} 
+  }""", hints: MessageKind.FORIN_NOT_ASSIGNABLE);
+  analyzeIn(compiler, method, """{ 
+      for (int e in new HasIntIterator()) {} 
+  }""");
+
+  analyzeIn(compiler, method, """{ 
+      for (var e in new HasNoIterator()) {} 
+  }""", warnings: MessageKind.MEMBER_NOT_FOUND);
+  analyzeIn(compiler, method, """{ 
+      for (String e in new HasNoIterator()) {} 
+  }""", warnings: MessageKind.MEMBER_NOT_FOUND);
+  analyzeIn(compiler, method, """{ 
+      for (int e in new HasNoIterator()) {} 
+  }""", warnings: MessageKind.MEMBER_NOT_FOUND);
+
+  analyzeIn(compiler, method, """{ 
+      for (var e in new HasCustomIntIterator()) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      for (String e in new HasCustomIntIterator()) {} 
+  }""", hints: MessageKind.FORIN_NOT_ASSIGNABLE);
+  analyzeIn(compiler, method, """{ 
+      for (int e in new HasCustomIntIterator()) {} 
+  }""");
+
+  analyzeIn(compiler, method, """{ 
+      for (var e in new HasCustomNoCurrentIterator()) {} 
+  }""", hints: MessageKind.MEMBER_NOT_FOUND);
+  analyzeIn(compiler, method, """{ 
+      for (String e in new HasCustomNoCurrentIterator()) {} 
+  }""", hints: MessageKind.MEMBER_NOT_FOUND);
+  analyzeIn(compiler, method, """{ 
+      for (int e in new HasCustomNoCurrentIterator()) {} 
+  }""", hints: MessageKind.MEMBER_NOT_FOUND);
+
+  analyzeIn(compiler, method, """{ 
+      var localDyn; 
+      for (localDyn in <String>[]) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      String localString; 
+      for (localString in <String>[]) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      int localInt; 
+      for (localInt in <String>[]) {} 
+  }""", hints: MessageKind.FORIN_NOT_ASSIGNABLE);
+
+  analyzeIn(compiler, method, """{ 
+      for (topLevelDyn in <String>[]) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      for (topLevelString in <String>[]) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      for (topLevelInt in <String>[]) {} 
+  }""", hints: MessageKind.FORIN_NOT_ASSIGNABLE);
+
+  analyzeIn(compiler, method, """{ 
+      for (instanceDyn in <String>[]) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      for (instanceString in <String>[]) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      for (instanceInt in <String>[]) {} 
+  }""", hints: MessageKind.FORIN_NOT_ASSIGNABLE);
+
+  analyzeIn(compiler, method, """{ 
+      for (staticDyn in <String>[]) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      for (staticString in <String>[]) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      for (staticInt in <String>[]) {} 
+  }""", hints: MessageKind.FORIN_NOT_ASSIGNABLE);
+}
+
 
 testWhile(MockCompiler compiler) {
   check(String code, {warnings}) {
@@ -614,7 +773,7 @@ Future testMethodInvocationsInClass(MockCompiler compiler) {
                      int localMethod(String str) { return 0; }
                      $text
                    }""",
-                expectedWarnings);
+                warnings: expectedWarnings);
     }
 
 
@@ -894,7 +1053,7 @@ testThis(MockCompiler compiler) {
   ClassElement foo = compiler.mainApp.find("Foo");
   foo.ensureResolved(compiler);
   Element method = foo.lookupLocalMember('method');
-  analyzeIn(compiler, method, "{ int i = this; }", NOT_ASSIGNABLE);
+  analyzeIn(compiler, method, "{ int i = this; }", warnings: NOT_ASSIGNABLE);
   analyzeIn(compiler, method, "{ Object o = this; }");
   analyzeIn(compiler, method, "{ Foo f = this; }");
 }
@@ -914,7 +1073,8 @@ testSuper(MockCompiler compiler) {
   ClassElement B = compiler.mainApp.find("B");
   B.ensureResolved(compiler);
   Element method = B.lookupLocalMember('method');
-  analyzeIn(compiler, method, "{ int i = super.field; }", NOT_ASSIGNABLE);
+  analyzeIn(compiler, method, "{ int i = super.field; }",
+      warnings: NOT_ASSIGNABLE);
   analyzeIn(compiler, method, "{ Object o = super.field; }");
   analyzeIn(compiler, method, "{ String s = super.field; }");
 }
@@ -1222,14 +1382,17 @@ void testTypeVariableExpressions(MockCompiler compiler) {
   Element method = foo.lookupLocalMember('method');
 
   analyzeIn(compiler, method, "{ Type type = T; }");
-  analyzeIn(compiler, method, "{ T type = T; }", NOT_ASSIGNABLE);
-  analyzeIn(compiler, method, "{ int type = T; }", NOT_ASSIGNABLE);
+  analyzeIn(compiler, method, "{ T type = T; }", warnings: NOT_ASSIGNABLE);
+  analyzeIn(compiler, method, "{ int type = T; }", warnings: NOT_ASSIGNABLE);
 
   analyzeIn(compiler, method, "{ String typeName = T.toString(); }");
-  analyzeIn(compiler, method, "{ T.foo; }", MEMBER_NOT_FOUND);
-  analyzeIn(compiler, method, "{ T.foo = 0; }", MessageKind.SETTER_NOT_FOUND);
-  analyzeIn(compiler, method, "{ T.foo(); }", MessageKind.METHOD_NOT_FOUND);
-  analyzeIn(compiler, method, "{ T + 1; }", MessageKind.OPERATOR_NOT_FOUND);
+  analyzeIn(compiler, method, "{ T.foo; }", warnings: MEMBER_NOT_FOUND);
+  analyzeIn(compiler, method, "{ T.foo = 0; }",
+      warnings: MessageKind.SETTER_NOT_FOUND);
+  analyzeIn(compiler, method, "{ T.foo(); }",
+      warnings: MessageKind.METHOD_NOT_FOUND);
+  analyzeIn(compiler, method, "{ T + 1; }",
+      warnings: MessageKind.OPERATOR_NOT_FOUND);
 }
 
 void testTypeVariableLookup1(MockCompiler compiler) {
@@ -1254,7 +1417,7 @@ class Test<S extends Foo, T> {
   FunctionElement methodTest = classTest.lookupLocalMember("test");
 
   test(String expression, [message]) {
-    analyzeIn(compiler, methodTest, "{ $expression; }", message);
+    analyzeIn(compiler, methodTest, "{ $expression; }", warnings: message);
   }
 
   test('s.field');
@@ -1294,7 +1457,7 @@ class Test<S extends T, T extends Foo> {
   FunctionElement methodTest = classTest.lookupLocalMember("test");
 
   test(String expression, [message]) {
-    analyzeIn(compiler, methodTest, "{ $expression; }", message);
+    analyzeIn(compiler, methodTest, "{ $expression; }", warnings: message);
   }
 
   test('s.field');
@@ -1316,7 +1479,7 @@ class Test<S extends T, T extends S> {
   FunctionElement methodTest = classTest.lookupLocalMember("test");
 
   test(String expression, [message]) {
-    analyzeIn(compiler, methodTest, "{ $expression; }", message);
+    analyzeIn(compiler, methodTest, "{ $expression; }", warnings: message);
   }
 
   test('s.toString');
@@ -2027,18 +2190,19 @@ testAwait(MockCompiler compiler) {
   FunctionElement method = foo.lookupLocalMember('method');
   analyzeIn(compiler, method, "{ await 0; }");
   analyzeIn(compiler, method, "{ int i = await 0; }");
-  analyzeIn(compiler, method, "{ String s = await 0; }", NOT_ASSIGNABLE);
+  analyzeIn(compiler, method, "{ String s = await 0; }",
+      warnings: NOT_ASSIGNABLE);
   analyzeIn(compiler, method, "{ await asyncInt(); }");
   analyzeIn(compiler, method, "{ int i = await asyncInt(); }");
   analyzeIn(compiler, method, "{ String s = await asyncInt(); }",
-            NOT_ASSIGNABLE);
+      warnings: NOT_ASSIGNABLE);
   analyzeIn(compiler, method, "{ Foo f = self(); }");
   analyzeIn(compiler, method, "{ Foo f = await self(); }");
   analyzeIn(compiler, method, "{ Foo f = await self().asyncInt(); }",
-            NOT_ASSIGNABLE);
+      warnings: NOT_ASSIGNABLE);
   analyzeIn(compiler, method, "{ int i = await self().asyncInt(); }");
   analyzeIn(compiler, method, "{ String s = await self().asyncInt(); }",
-            NOT_ASSIGNABLE);
+      warnings: NOT_ASSIGNABLE);
 }
 
 testAsyncReturn(MockCompiler compiler) {
@@ -2283,9 +2447,11 @@ void generateOutput(MockCompiler compiler, String text) {
 analyzeIn(MockCompiler compiler,
           FunctionElement element,
           String text,
-          [expectedWarnings]) {
-  if (expectedWarnings == null) expectedWarnings = [];
-  if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
+          {warnings, hints}) {
+  if (warnings == null) warnings = [];
+  if (warnings is !List) warnings = [warnings];
+  if (hints == null) hints = [];
+  if (hints is !List) hints = [hints];
 
   compiler.resolver.resolve(element);
   Token tokens = scan(text);
@@ -2301,5 +2467,6 @@ analyzeIn(MockCompiler compiler,
   compiler.clearMessages();
   checker.analyze(node);
   generateOutput(compiler, text);
-  compareWarningKinds(text, expectedWarnings, compiler.warnings);
+  compareWarningKinds(text, warnings, compiler.warnings);
+  compareWarningKinds(text, hints, compiler.hints);
 }

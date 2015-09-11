@@ -197,6 +197,7 @@ enum MessageKind {
   FACTORY_REDIRECTION_IN_NON_FACTORY,
   FINAL_FUNCTION_TYPE_PARAMETER,
   FINAL_WITHOUT_INITIALIZER,
+  FORIN_NOT_ASSIGNABLE,
   FORMAL_DECLARED_CONST,
   FORMAL_DECLARED_STATIC,
   FUNCTION_TYPE_FORMAL_WITH_DEFAULT,
@@ -491,6 +492,11 @@ class MessageTemplate {
       MessageKind.NOT_ASSIGNABLE:
         const MessageTemplate(MessageKind.NOT_ASSIGNABLE,
           "'#{fromType}' is not assignable to '#{toType}'."),
+
+      MessageKind.FORIN_NOT_ASSIGNABLE:
+        const MessageTemplate(MessageKind.FORIN_NOT_ASSIGNABLE,
+          "The element type '#{currentType}' of '#{expressionType}' "
+          "is not assignable to '#{elementType}'."),
 
       MessageKind.VOID_EXPRESSION:
         const MessageTemplate(MessageKind.VOID_EXPRESSION,

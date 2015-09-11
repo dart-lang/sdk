@@ -370,7 +370,8 @@ void compareMessageKinds(String text,
   }
   if (foundIterator.hasNext) {
     do {
-      print('Additional $kind "${foundIterator.next()}"');
+      WarningMessage message = foundIterator.next();
+      print('Additional $kind "${message}: ${message.message}"');
     } while (foundIterator.hasNext);
     fail('Too many ${kind}s');
   }

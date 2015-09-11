@@ -458,7 +458,7 @@ class _StackTraceNode implements Comparable<_StackTraceNode> {
     indentation = ''.padLeft(countText.length, ' ');
     if (commonPrefix != null) {
       int index = 0;
-      for (String line in commonPrefix) {
+      for (StackTraceLine line in commonPrefix) {
         sb.write(indentation);
         if (index > 1) {
           sb.write('...\n');

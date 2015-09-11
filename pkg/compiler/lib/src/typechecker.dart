@@ -4,6 +4,8 @@
 
 library dart2js.typechecker;
 
+import 'common/names.dart' show
+    Identifiers;
 import 'common/tasks.dart' show
     CompilerTask;
 import 'compiler.dart' show
@@ -62,7 +64,7 @@ class TypeCheckerTask extends CompilerTask {
     if (element.isClass) return;
     if (element.isTypedef) return;
     ResolvedAst resolvedAst = element.resolvedAst;
-    compiler.withCurrentElement(element, () {
+    compiler.withCurrentElement(element.implementation, () {
       measure(() {
         TypeCheckerVisitor visitor = new TypeCheckerVisitor(
             compiler, resolvedAst.elements, compiler.types);
@@ -420,6 +422,16 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     compiler.reportWarning(spannable, kind, arguments);
   }
 
+  reportMessage(Spannable spannable, MessageKind kind,
+                Map arguments,
+                {bool isHint: false}) {
+    if (isHint) {
+      compiler.reportHint(spannable, kind, arguments);
+    } else {
+      compiler.reportWarning(spannable, kind, arguments);
+    }
+  }
+
   reportTypeInfo(Spannable spannable, MessageKind kind,
                  [Map arguments = const {}]) {
     compiler.reportInfo(spannable, kind, arguments);
@@ -733,7 +745,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   ElementAccess lookupMember(Node node, DartType receiverType, String name,
                              MemberKind memberKind, Element receiverElement,
-                             {bool lookupClassMember: false}) {
+                             {bool lookupClassMember: false,
+                              bool isHint: false}) {
     if (receiverType.treatAsDynamic) {
       return const DynamicAccess();
     }
@@ -840,11 +853,12 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         void findPrivateMember(MemberSignature member) {
           if (memberName.isSimilarTo(member.name)) {
             PrivateName privateName = member.name;
-            reportTypeWarning(
+            reportMessage(
                  node,
                  MessageKind.PRIVATE_ACCESS,
                  {'name': name,
-                  'libraryName': privateName.library.getLibraryOrScriptName()});
+                  'libraryName': privateName.library.getLibraryOrScriptName()},
+                 isHint: isHint);
             foundPrivateMember = true;
           }
         }
@@ -860,19 +874,22 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       if (!foundPrivateMember) {
         switch (memberKind) {
           case MemberKind.METHOD:
-            reportTypeWarning(node, MessageKind.METHOD_NOT_FOUND,
-                {'className': receiverType.name, 'memberName': name});
+            reportMessage(node, MessageKind.METHOD_NOT_FOUND,
+                {'className': receiverType.name, 'memberName': name},
+                isHint: isHint);
             break;
           case MemberKind.OPERATOR:
-            reportTypeWarning(node, MessageKind.OPERATOR_NOT_FOUND,
-                {'className': receiverType.name, 'memberName': name});
+            reportMessage(node, MessageKind.OPERATOR_NOT_FOUND,
+                {'className': receiverType.name, 'memberName': name},
+                isHint: isHint);
             break;
           case MemberKind.GETTER:
             if (lookupMemberSignature(memberName.setter, interface) != null) {
               // A setter is present so warn explicitly about the missing
               // getter.
-              reportTypeWarning(node, MessageKind.GETTER_NOT_FOUND,
-                  {'className': receiverType.name, 'memberName': name});
+              reportMessage(node, MessageKind.GETTER_NOT_FOUND,
+                  {'className': receiverType.name, 'memberName': name},
+                  isHint: isHint);
             } else if (name == 'await') {
               Map arguments = {'className': receiverType.name};
               String functionName = executableContext.name;
@@ -883,15 +900,17 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                 kind = MessageKind.AWAIT_MEMBER_NOT_FOUND;
                 arguments['functionName'] = functionName;
               }
-              reportTypeWarning(node, kind, arguments);
+              reportMessage(node, kind, arguments, isHint: isHint);
             } else {
-              reportTypeWarning(node, MessageKind.MEMBER_NOT_FOUND,
-                  {'className': receiverType.name, 'memberName': name});
+              reportMessage(node, MessageKind.MEMBER_NOT_FOUND,
+                  {'className': receiverType.name, 'memberName': name},
+                  isHint: isHint);
             }
             break;
           case MemberKind.SETTER:
-            reportTypeWarning(node, MessageKind.SETTER_NOT_FOUND,
-                {'className': receiverType.name, 'memberName': name});
+            reportMessage(node, MessageKind.SETTER_NOT_FOUND,
+                {'className': receiverType.name, 'memberName': name},
+                isHint: isHint);
             break;
         }
       }
@@ -900,8 +919,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   DartType lookupMemberType(Node node, DartType type, String name,
-                            MemberKind memberKind) {
-    return lookupMember(node, type, name, memberKind, null)
+                            MemberKind memberKind,
+                            {bool isHint: false}) {
+    return lookupMember(node, type, name, memberKind, null, isHint: isHint)
         .computeType(compiler);
   }
 
@@ -1804,7 +1824,29 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   visitSyncForIn(SyncForIn node) {
-    analyze(node.expression);
+    DartType elementType;
+    VariableDefinitions declaredIdentifier =
+        node.declaredIdentifier.asVariableDefinitions();
+    if (declaredIdentifier != null) {
+      elementType =
+          analyzeWithDefault(declaredIdentifier.type, const DynamicType());
+    } else {
+      elementType = analyze(node.declaredIdentifier);
+    }
+    DartType expressionType = analyze(node.expression);
+    DartType iteratorType = lookupMemberType(node.expression,
+        expressionType, Identifiers.iterator, MemberKind.GETTER);
+    DartType currentType = lookupMemberType(node.expression,
+              iteratorType, Identifiers.current, MemberKind.GETTER,
+              isHint: true);
+    if (!types.isAssignable(currentType, elementType)) {
+      reportMessage(node.expression,
+          MessageKind.FORIN_NOT_ASSIGNABLE,
+          {'currentType': currentType,
+           'expressionType': expressionType,
+           'elementType': elementType},
+          isHint: true);
+    }
     analyze(node.body);
     return const StatementType();
   }
