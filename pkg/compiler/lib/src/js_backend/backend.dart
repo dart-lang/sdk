@@ -1501,16 +1501,8 @@ class JavaScriptBackend extends Backend {
    *
    * Invariant: [element] must be a declaration element.
    */
-  String assembleCode(Element element) {
+  String getGeneratedCode(Element element) {
     assert(invariant(element, element.isDeclaration));
-    var code = generatedCode[element];
-    if (namer is jsAst.TokenFinalizer) {
-      jsAst.TokenCounter counter = new jsAst.TokenCounter();
-      counter.countTokens(code);
-      // Avoid a warning.
-      var finalizer = namer;
-      finalizer.finalizeTokens();
-    }
     return jsAst.prettyPrint(generatedCode[element], compiler).getText();
   }
 

@@ -35,7 +35,7 @@ void bar(var t0, var b) {
 """;
 
 const String NO_LOCAL = r"""
-foo(bar, bar) {
+foo(bar, baz) {
   if (bar) {
     baz = 2;
   } else {

@@ -35,7 +35,7 @@ main() {
     var result = await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     var compiler = result.compiler;
     var element = compiler.mainApp.findExported('main');
-    var code = compiler.backend.assembleCode(element);
+    var code = compiler.backend.getGeneratedCode(element);
     Expect.isTrue(code.contains('return 2'));
   });
 }

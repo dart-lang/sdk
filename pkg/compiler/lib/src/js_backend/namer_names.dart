@@ -193,7 +193,8 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   int get hashCode => super.hashCode;
 
   finalize() {
-    assert(!isFinalized);
+    assert(invariant(NO_LOCATION_SPANNABLE, !isFinalized,
+        message: "TokenName($key)=$_name has already been finalized."));
     _name = _scope.getNextName();
   }
 }

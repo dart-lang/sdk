@@ -226,7 +226,7 @@ useJsOther(js.SimpleJavaScriptPrintingContext context) {
 }
 
 useJsBackend(js_backend.JavaScriptBackend backend) {
-  backend.assembleCode(null);
+  backend.getGeneratedCode(null);
 }
 
 useConcreteTypesInferrer(concrete_types_inferrer.ConcreteTypesInferrer c) {

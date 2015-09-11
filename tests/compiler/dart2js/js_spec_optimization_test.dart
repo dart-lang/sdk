@@ -70,7 +70,7 @@ main() {
     return compiler.runCompiler(uri).then((_) {
       var element = findElement(compiler, 'main');
       var backend = compiler.backend;
-      String generated = backend.assembleCode(element);
+      String generated = backend.getGeneratedCode(element);
 
       for (Match match in directivePattern.allMatches(test)) {
         String directive = match.group(1);
