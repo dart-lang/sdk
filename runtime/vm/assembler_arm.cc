@@ -2718,7 +2718,7 @@ void Assembler::BranchLink(const ExternalLabel* label, Patchability patchable) {
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindExternalLabel(label, patchable));
-  LoadWordFromPoolOffset(LR, offset - kHeapObjectTag);
+  LoadWordFromPoolOffset(LR, offset - kHeapObjectTag, AL);
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
@@ -2771,7 +2771,7 @@ void Assembler::LoadDecodableImmediate(
   if ((version == ARMv5TE) || (version == ARMv6)) {
     if (constant_pool_allowed()) {
       const int32_t offset = Array::element_offset(FindImmediate(value));
-      LoadWordFromPoolOffset(rd, offset - kHeapObjectTag);
+      LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, cond);
     } else {
       LoadPatchableImmediate(rd, value, cond);
     }

@@ -760,7 +760,6 @@ class Assembler : public ValueObject {
                            Label* miss);
 
   intptr_t FindImmediate(int32_t imm);
-  void LoadWordFromPoolOffset(Register rd, int32_t offset, Condition cond = AL);
   void LoadFromOffset(OperandSize type,
                       Register reg,
                       Register base,
@@ -995,6 +994,8 @@ class Assembler : public ValueObject {
   void BindARMv7(Label* label);
 
   void BranchLink(const ExternalLabel* label);
+
+  void LoadWordFromPoolOffset(Register rd, int32_t offset, Condition cond);
 
   class CodeComment : public ZoneAllocated {
    public:
