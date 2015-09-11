@@ -1354,6 +1354,29 @@ static RawObject* LookupHeapObjectCode(Isolate* isolate,
 }
 
 
+static RawObject* LookupHeapObjectMessage(Isolate* isolate,
+                                          char** parts, int num_parts) {
+  if (num_parts != 2) {
+    return Object::sentinel().raw();
+  }
+  uword message_id = 0;
+  if (!GetUnsignedIntegerId(parts[1], &message_id, 16)) {
+    return Object::sentinel().raw();
+  }
+  MessageHandler::AcquiredQueues aq;
+  isolate->message_handler()->AcquireQueues(&aq);
+  Message* message = aq.queue()->FindMessageById(message_id);
+  if (message == NULL) {
+    // The user may try to load an expired message.
+    return Object::sentinel().raw();
+  }
+  MessageSnapshotReader reader(message->data(),
+                               message->len(),
+                               Thread::Current());
+  return reader.ReadObject();
+}
+
+
 static RawObject* LookupHeapObject(Isolate* isolate,
                                    const char* id_original,
                                    ObjectIdRing::LookupResult* result) {
@@ -1406,6 +1429,8 @@ static RawObject* LookupHeapObject(Isolate* isolate,
     return LookupHeapObjectTypeArguments(isolate, parts, num_parts);
   } else if (strcmp(parts[0], "code") == 0) {
     return LookupHeapObjectCode(isolate, parts, num_parts);
+  } else if (strcmp(parts[0], "messages") == 0) {
+    return LookupHeapObjectMessage(isolate, parts, num_parts);
   }
 
   // Not found.
@@ -1458,39 +1483,6 @@ static Breakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
     return bpt;
   }
   return NULL;
-}
-
-
-// Scans |isolate|'s message queue looking for a message with |id|.
-// If found, the message is printed to |js| and true is returned.
-// If not found, false is returned.
-static bool PrintMessage(JSONStream* js, Isolate* isolate, const char* id) {
-  size_t end_pos = strcspn(id, "/");
-  if (end_pos == strlen(id)) {
-    return false;
-  }
-  const char* rest = id + end_pos + 1;  // +1 for '/'.
-  if (strncmp("messages", id, end_pos) == 0) {
-    uword message_id = 0;
-    if (GetUnsignedIntegerId(rest, &message_id, 16)) {
-      MessageHandler::AcquiredQueues aq;
-      isolate->message_handler()->AcquireQueues(&aq);
-      Message* message = aq.queue()->FindMessageById(message_id);
-      if (message == NULL) {
-        // The user may try to load an expired message, so we treat
-        // unrecognized ids as if they are expired.
-        PrintSentinel(js, kExpiredSentinel);
-        return true;
-      }
-      MessageSnapshotReader reader(message->data(),
-                                   message->len(),
-                                   Thread::Current());
-      const Object& msg_obj = Object::Handle(reader.ReadObject());
-      msg_obj.PrintJSON(js);
-      return true;
-    }
-  }
-  return false;
 }
 
 
@@ -2824,10 +2816,6 @@ static bool GetObject(Isolate* isolate, JSONStream* js) {
   Breakpoint* bpt = LookupBreakpoint(isolate, id);
   if (bpt != NULL) {
     bpt->PrintJSON(js);
-    return true;
-  }
-
-  if (PrintMessage(js, isolate, id)) {
     return true;
   }
 

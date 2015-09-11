@@ -1732,14 +1732,31 @@ class MapAssociation {
 
 ```
 class Message extends Response {
+  // The index in the isolate's message queue. The 0th message being the next
+  // message to be processed.
   int index;
+
+  // An advisory name describing this message.
   string name;
+
+  // An instance id for the decoded message. This id can be passed to other
+  // RPCs, for example, getObject or evaluate.
   string messageObjectId;
+
+  // The size (bytes) of the encoded message.
   int size;
+
+  // A reference to the function that will be invoked to handle this message.
   @Function handler [optional];
+
+  // The source location of handler.
   SourceLocation location [optional];
 }
 ```
+
+A _Message_ provides information about a pending isolate message and the
+function that will be invoked to handle it.
+
 
 ### Null
 
@@ -1998,15 +2015,15 @@ class UnresolvedSourceLocation extends Response {
   // has yet to be loaded.
   string scriptUri [optional];
 
-  // An approximate token position for the source location.  This may  
+  // An approximate token position for the source location.  This may
   // change when the location is resolved.
   int tokenPos [optional];
 
-  // An approximate line number for the source location.  This may  
+  // An approximate line number for the source location.  This may
   // change when the location is resolved.
   int line [optional];
 
-  // An approximate column number for the source location.  This may  
+  // An approximate column number for the source location.  This may
   // change when the location is resolved.
   int column [optional];
 
