@@ -2644,7 +2644,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     String code;
     if (member != null && member is MethodElement && !isStatic) {
       // Tear-off methods: explicitly bind it.
-      if (_requiresStaticDispatch(target, memberId.name)) {
+      if (target is SuperExpression) {
+        return js.call('dart.bind(this, #, #.#)', [name, _visit(target), name]);
+      } else if (_requiresStaticDispatch(target, memberId.name)) {
         var type = member.type;
         var clos = js.call('dart.#.bind(#)', [name, _visit(target)]);
         return js.call('dart.fn(#, #)', [clos, _emitFunctionTypeParts(type)]);

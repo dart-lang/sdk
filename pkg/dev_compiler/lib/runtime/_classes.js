@@ -192,9 +192,16 @@ dart_library.library('dart_runtime/_classes', null, /* Imports */[
   /// Given an object and a method name, tear off the method.
   /// Sets the runtime type of the torn off method appropriately,
   /// and also binds the object.
+  ///
+  /// If the optional `f` argument is passed in, it will be used as the method.
+  /// This supports cases like `super.foo` where we need to tear off the method
+  /// from the superclass, not from the `obj` directly.
   /// TODO(leafp): Consider caching the tearoff on the object?
-  function bind(obj, name) {
-    let f = obj[name].bind(obj);
+  function bind(obj, name, f) {
+    if (f === void 0) f = obj[name];
+    f = f.bind(obj);
+    // TODO(jmesserly): track the function's signature on the function, instead
+    // of having to go back to the class?
     let sig = _getMethodType(obj, name);
     assert(sig);
     rtti.tag(f, sig);

@@ -42,6 +42,13 @@
     ]);
   });
 
+  suite('method binding', () => {
+    dartLanguageTests([
+      ['super_bound_closure_test', 'none'],
+      'method_binding_test'
+    ]);
+  });
+
   suite('dynamic type literal', () => {
     dartLanguageTests([
       ['const_dynamic_type_literal_test', 'none', 1, 3]
