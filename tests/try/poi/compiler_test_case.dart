@@ -14,7 +14,7 @@ export 'dart:async' show
 import 'package:async_helper/async_helper.dart' show
     asyncTest;
 
-import '../../compiler/dart2js/compiler_helper.dart' show
+import '../../compiler/dart2js/mock_compiler.dart' show
     MockCompiler,
     compilerFor;
 

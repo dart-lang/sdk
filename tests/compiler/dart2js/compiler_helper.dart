@@ -7,8 +7,6 @@ library compiler_helper;
 import 'dart:async';
 import "package:expect/expect.dart";
 
-import 'package:compiler/compiler.dart' as api;
-
 import 'package:compiler/src/elements/elements.dart'
        as lego;
 export 'package:compiler/src/elements/elements.dart';
@@ -40,7 +38,7 @@ export 'package:compiler/src/tree/tree.dart';
 import 'mock_compiler.dart';
 export 'mock_compiler.dart';
 
-import 'memory_compiler.dart';
+import 'memory_compiler.dart' hide compilerFor;
 
 import 'output_collector.dart';
 export 'output_collector.dart';
@@ -130,34 +128,6 @@ Future<String> compile(String code,
     }
     return generated;
   }
-}
-
-// TODO(herhut): Disallow warnings and errors during compilation by default.
-MockCompiler compilerFor(String code, Uri uri,
-                         {bool analyzeAll: false,
-                          bool analyzeOnly: false,
-                          Map<String, String> coreSource,
-                          bool disableInlining: true,
-                          bool minify: false,
-                          bool trustTypeAnnotations: false,
-                          bool enableTypeAssertions: false,
-                          int expectedErrors,
-                          int expectedWarnings,
-                          api.CompilerOutputProvider outputProvider}) {
-  MockCompiler compiler = new MockCompiler.internal(
-      analyzeAll: analyzeAll,
-      analyzeOnly: analyzeOnly,
-      coreSource: coreSource,
-      disableInlining: disableInlining,
-      enableMinification: minify,
-      trustTypeAnnotations: trustTypeAnnotations,
-      enableTypeAssertions: enableTypeAssertions,
-      expectedErrors: expectedErrors,
-      expectedWarnings: expectedWarnings,
-      outputProvider: outputProvider);
-  compiler.registerSource(uri, code);
-  compiler.diagnosticHandler = createHandler(compiler, code);
-  return compiler;
 }
 
 Future<String> compileAll(String code,
