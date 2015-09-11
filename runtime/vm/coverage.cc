@@ -247,13 +247,10 @@ void CodeCoverage::Write(Isolate* isolate) {
   JSONStream stream;
   PrintJSON(isolate, &stream, NULL, false);
 
-  const char* format = "%s/dart-cov-%" Pd "-%" Pd64 ".json";
   intptr_t pid = OS::ProcessId();
-  intptr_t len = OS::SNPrint(NULL, 0, format,
-                             FLAG_coverage_dir, pid, isolate->main_port());
-  char* filename = Thread::Current()->zone()->Alloc<char>(len + 1);
-  OS::SNPrint(filename, len + 1, format,
-              FLAG_coverage_dir, pid, isolate->main_port());
+  char* filename = OS::SCreate(Thread::Current()->zone(),
+      "%s/dart-cov-%" Pd "-%" Pd64 ".json",
+      FLAG_coverage_dir, pid, isolate->main_port());
   void* file = (*file_open)(filename, true);
   if (file == NULL) {
     OS::Print("Failed to write coverage file: %s\n", filename);

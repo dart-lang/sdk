@@ -896,10 +896,7 @@ void Isolate::BuildName(const char* name_prefix) {
     name_ = strdup(name_prefix);
     return;
   }
-  const char* kFormat = "%s-%lld";
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name_prefix, main_port()) + 1;
-  name_ = reinterpret_cast<char*>(malloc(len));
-  OS::SNPrint(name_, len, kFormat, name_prefix, main_port());
+  name_ = OS::SCreate(NULL, "%s-%" Pd64 "", name_prefix, main_port());
 }
 
 

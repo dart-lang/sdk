@@ -2515,13 +2515,10 @@ RawFunction* SnapshotWriter::IsSerializableClosure(RawClass* cls,
     ASSERT(!errorFunc.IsNull());
 
     // All other closures are errors.
-    const char* format = "Illegal argument in isolate message"
-        " : (object is a closure - %s %s)";
     UnmarkAll();  // Unmark objects now as we are about to print stuff.
-    intptr_t len = OS::SNPrint(NULL, 0, format,
-                               clazz.ToCString(), errorFunc.ToCString()) + 1;
-    char* chars = thread()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, clazz.ToCString(), errorFunc.ToCString());
+    char* chars = OS::SCreate(thread()->zone(),
+        "Illegal argument in isolate message : (object is a closure - %s %s)",
+        clazz.ToCString(), errorFunc.ToCString());
     SetWriteException(Exceptions::kArgument, chars);
   }
   return Function::null();
@@ -2544,13 +2541,12 @@ void SnapshotWriter::CheckForNativeFields(RawClass* cls) {
   if (cls->ptr()->num_native_fields_ != 0) {
     // We do not allow objects with native fields in an isolate message.
     HANDLESCOPE(thread());
-    const char* format = "Illegal argument in isolate message"
-                         " : (object extends NativeWrapper - %s)";
     UnmarkAll();  // Unmark objects now as we are about to print stuff.
     const Class& clazz = Class::Handle(isolate(), cls);
-    intptr_t len = OS::SNPrint(NULL, 0, format, clazz.ToCString()) + 1;
-    char* chars = thread()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, clazz.ToCString());
+    char* chars = OS::SCreate(thread()->zone(),
+        "Illegal argument in isolate message"
+        " : (object extends NativeWrapper - %s)",
+        clazz.ToCString());
     SetWriteException(Exceptions::kArgument, chars);
   }
 }

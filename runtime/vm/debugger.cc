@@ -418,18 +418,10 @@ const char* Debugger::QualifiedFunctionName(const Function& func) {
   Class& func_class = Class::Handle(func.Owner());
   String& class_name = String::Handle(func_class.Name());
 
-  const char* kFormat = "%s%s%s";
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat,
-      func_class.IsTopLevel() ? "" : class_name.ToCString(),
-      func_class.IsTopLevel() ? "" : ".",
-      func_name.ToCString());
-  len++;  // String terminator.
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat,
-              func_class.IsTopLevel() ? "" : class_name.ToCString(),
+  return OS::SCreate(Thread::Current()->zone(),
+    "%s%s%s", func_class.IsTopLevel() ? "" : class_name.ToCString(),
               func_class.IsTopLevel() ? "" : ".",
               func_name.ToCString());
-  return chars;
 }
 
 

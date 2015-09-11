@@ -452,11 +452,9 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
   TimelineEventFilter filter;
   PrintJSON(&js, &filter);
 
-  const char* format = "%s/dart-timeline-%" Pd ".json";
   intptr_t pid = OS::ProcessId();
-  intptr_t len = OS::SNPrint(NULL, 0, format, directory, pid);
-  char* filename = reinterpret_cast<char*>(malloc(len + 1));
-  OS::SNPrint(filename, len + 1, format, directory, pid);
+  char* filename = OS::SCreate(NULL,
+      "%s/dart-timeline-%" Pd ".json", directory, pid);
   void* file = (*file_open)(filename, true);
   if (file == NULL) {
     OS::Print("Failed to write timeline file: %s\n", filename);

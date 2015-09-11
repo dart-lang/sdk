@@ -214,6 +214,39 @@ int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
 }
 
 
+char* OS::SCreate(Zone* zone, const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  char* buffer = VSCreate(zone, format, args);
+  va_end(args);
+  return buffer;
+}
+
+
+char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
+  // Measure.
+  va_list measure_args;
+  va_copy(measure_args, args);
+  intptr_t len = VSNPrint(NULL, 0, format, measure_args);
+  va_end(measure_args);
+
+  char* buffer;
+  if (zone) {
+    buffer = zone->Alloc<char>(len + 1);
+  } else {
+    buffer = reinterpret_cast<char*>(malloc(len + 1));
+  }
+  ASSERT(buffer != NULL);
+
+  // Print.
+  va_list print_args;
+  va_copy(print_args, args);
+  VSNPrint(buffer, len + 1, format, print_args);
+  va_end(print_args);
+  return buffer;
+}
+
+
 bool OS::StringToInt64(const char* str, int64_t* value) {
   ASSERT(str != NULL && strlen(str) > 0 && value != NULL);
   int32_t base = 10;

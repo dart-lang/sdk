@@ -4238,16 +4238,12 @@ RawLibraryPrefix* Class::LookupLibraryPrefix(const String& name) const {
 
 
 const char* Class::ToCString() const {
-  const char* format = "%s %sClass: %s";
   const Library& lib = Library::Handle(library());
   const char* library_name = lib.IsNull() ? "" : lib.ToCString();
   const char* patch_prefix = is_patch() ? "Patch " : "";
   const char* class_name = String::Handle(Name()).ToCString();
-  intptr_t len =
-      OS::SNPrint(NULL, 0, format, library_name, patch_prefix, class_name) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, library_name, patch_prefix, class_name);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "%s %sClass: %s", library_name, patch_prefix, class_name);
 }
 
 
@@ -4415,12 +4411,9 @@ RawString* UnresolvedClass::Name() const {
 
 
 const char* UnresolvedClass::ToCString() const {
-  const char* format = "unresolved class '%s'";
   const char* cname =  String::Handle(Name()).ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, format, cname) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, cname);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "unresolved class '%s'", cname);
 }
 
 
@@ -5167,14 +5160,12 @@ const char* TypeArguments::ToCString() const {
   if (IsNull()) {
     return "NULL TypeArguments";
   }
-  const char* format = "%s [%s]";
   const char* prev_cstr = "TypeArguments:";
   for (int i = 0; i < Length(); i++) {
     const AbstractType& type_at = AbstractType::Handle(TypeAt(i));
     const char* type_cstr = type_at.IsNull() ? "null" : type_at.ToCString();
-    intptr_t len = OS::SNPrint(NULL, 0, format, prev_cstr, type_cstr) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, prev_cstr, type_cstr);
+    char* chars = OS::SCreate(Thread::Current()->zone(),
+        "%s [%s]", prev_cstr, type_cstr);
     prev_cstr = chars;
   }
   return prev_cstr;
@@ -5182,13 +5173,10 @@ const char* TypeArguments::ToCString() const {
 
 
 const char* PatchClass::ToCString() const {
-  const char* kFormat = "PatchClass for %s";
   const Class& cls = Class::Handle(patched_class());
   const char* cls_name = cls.ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, cls_name) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, cls_name);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "PatchClass for %s", cls_name);
 }
 
 
@@ -7022,14 +7010,10 @@ const char* Function::ToCString() const {
     default:
       UNREACHABLE();
   }
-  const char* kFormat = "Function '%s':%s%s%s%s.";
   const char* function_name = String::Handle(name()).ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name,
-                             static_str, abstract_str, kind_str, const_str) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, function_name,
-              static_str, abstract_str, kind_str, const_str);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "Function '%s':%s%s%s%s.",
+      function_name, static_str, abstract_str, kind_str, const_str);
 }
 
 
@@ -7409,15 +7393,11 @@ const char* Field::ToCString() const {
   const char* kF0 = is_static() ? " static" : "";
   const char* kF1 = is_final() ? " final" : "";
   const char* kF2 = is_const() ? " const" : "";
-  const char* kFormat = "Field <%s.%s>:%s%s%s";
   const char* field_name = String::Handle(name()).ToCString();
   const Class& cls = Class::Handle(owner());
   const char* cls_name = String::Handle(cls.Name()).ToCString();
-  intptr_t len =
-      OS::SNPrint(NULL, 0, kFormat, cls_name, field_name, kF0, kF1, kF2) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, cls_name, field_name, kF0, kF1, kF2);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "Field <%s.%s>:%s%s%s", cls_name, field_name, kF0, kF1, kF2);
 }
 
 void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
@@ -10206,12 +10186,9 @@ RawLibrary* Library::TypedDataLibrary() {
 
 
 const char* Library::ToCString() const {
-  const char* kFormat = "Library:'%s'";
   const String& name = String::Handle(url());
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString()) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, name.ToCString());
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "Library:'%s'", name.ToCString());
 }
 
 
@@ -10622,12 +10599,9 @@ void LibraryPrefix::set_importer(const Library& value) const {
 
 
 const char* LibraryPrefix::ToCString() const {
-  const char* kFormat = "LibraryPrefix:'%s'";
   const String& prefix = String::Handle(name());
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, prefix.ToCString()) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, prefix.ToCString());
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "LibraryPrefix:'%s'", prefix.ToCString());
 }
 
 
@@ -10678,12 +10652,9 @@ RawObject* Namespace::GetMetadata() const {
 
 
 const char* Namespace::ToCString() const {
-  const char* kFormat = "Namespace for library '%s'";
   const Library& lib = Library::Handle(library());
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, lib.ToCString()) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, lib.ToCString());
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "Namespace for library '%s'", lib.ToCString());
 }
 
 
@@ -11191,21 +11162,20 @@ void PcDescriptors::PrintHeaderString() {
 
 
 const char* PcDescriptors::ToCString() const {
+  // "*" in a printf format specifier tells it to read the field width from
+  // the printf argument list.
+#define FORMAT "%#-*" Px "\t%s\t%" Pd "\t\t%" Pd "\t%" Pd "\n"
   if (Length() == 0) {
     return "empty PcDescriptors\n";
   }
   // 4 bits per hex digit.
   const int addr_width = kBitsPerWord / 4;
-  // "*" in a printf format specifier tells it to read the field width from
-  // the printf argument list.
-  const char* kFormat =
-      "%#-*" Px "\t%s\t%" Pd "\t\t%" Pd "\t%" Pd "\n";
   // First compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
   {
     Iterator iter(*this, RawPcDescriptors::kAnyKind);
     while (iter.MoveNext()) {
-      len += OS::SNPrint(NULL, 0, kFormat, addr_width,
+      len += OS::SNPrint(NULL, 0, FORMAT, addr_width,
                          iter.PcOffset(),
                          KindAsStr(iter.Kind()),
                          iter.DeoptId(),
@@ -11219,7 +11189,7 @@ const char* PcDescriptors::ToCString() const {
   intptr_t index = 0;
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
-    index += OS::SNPrint((buffer + index), (len - index), kFormat, addr_width,
+    index += OS::SNPrint((buffer + index), (len - index), FORMAT, addr_width,
                          iter.PcOffset(),
                          KindAsStr(iter.Kind()),
                          iter.DeoptId(),
@@ -11227,6 +11197,7 @@ const char* PcDescriptors::ToCString() const {
                          iter.TryIndex());
   }
   return buffer;
+#undef FORMAT
 }
 
 
@@ -11397,11 +11368,11 @@ RawStackmap* Stackmap::New(intptr_t length,
 
 
 const char* Stackmap::ToCString() const {
+#define FORMAT "%#x: "
   if (IsNull()) {
     return "{null}";
   } else {
-    const char* kFormat = "%#" Px ": ";
-    intptr_t fixed_length = OS::SNPrint(NULL, 0, kFormat, PcOffset()) + 1;
+    intptr_t fixed_length = OS::SNPrint(NULL, 0, FORMAT, PcOffset()) + 1;
     Thread* thread = Thread::Current();
     // Guard against integer overflow in the computation of alloc_size.
     //
@@ -11412,13 +11383,14 @@ const char* Stackmap::ToCString() const {
     }
     intptr_t alloc_size = fixed_length + Length();
     char* chars = thread->zone()->Alloc<char>(alloc_size);
-    intptr_t index = OS::SNPrint(chars, alloc_size, kFormat, PcOffset());
+    intptr_t index = OS::SNPrint(chars, alloc_size, FORMAT, PcOffset());
     for (intptr_t i = 0; i < Length(); i++) {
       chars[index++] = IsObject(i) ? '1' : '0';
     }
     chars[index] = '\0';
     return chars;
   }
+#undef FORMAT
 }
 
 
@@ -11749,6 +11721,8 @@ RawExceptionHandlers* ExceptionHandlers::New(const Array& handled_types_data) {
 
 
 const char* ExceptionHandlers::ToCString() const {
+#define FORMAT1 "%" Pd " => %#x  (%" Pd " types) (outer %d)\n"
+#define FORMAT2 "  %d. %s\n"
   if (num_entries() == 0) {
     return "empty ExceptionHandlers\n";
   }
@@ -11756,16 +11730,13 @@ const char* ExceptionHandlers::ToCString() const {
   Type& type = Type::Handle();
   RawExceptionHandlers::HandlerInfo info;
   // First compute the buffer size required.
-  const char* kFormat = "%" Pd " => %#" Px "  (%" Pd
-                        " types) (outer %" Pd ")\n";
-  const char* kFormat2 = "  %d. %s\n";
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < num_entries(); i++) {
     GetHandlerInfo(i, &info);
     handled_types = GetHandledTypes(i);
     const intptr_t num_types =
         handled_types.IsNull() ? 0 : handled_types.Length();
-    len += OS::SNPrint(NULL, 0, kFormat,
+    len += OS::SNPrint(NULL, 0, FORMAT1,
                        i,
                        info.handler_pc_offset,
                        num_types,
@@ -11773,7 +11744,7 @@ const char* ExceptionHandlers::ToCString() const {
     for (int k = 0; k < num_types; k++) {
       type ^= handled_types.At(k);
       ASSERT(!type.IsNull());
-      len += OS::SNPrint(NULL, 0, kFormat2, k, type.ToCString());
+      len += OS::SNPrint(NULL, 0, FORMAT2, k, type.ToCString());
     }
   }
   // Allocate the buffer.
@@ -11787,7 +11758,7 @@ const char* ExceptionHandlers::ToCString() const {
         handled_types.IsNull() ? 0 : handled_types.Length();
     num_chars += OS::SNPrint((buffer + num_chars),
                              (len - num_chars),
-                             kFormat,
+                             FORMAT1,
                              i,
                              info.handler_pc_offset,
                              num_types,
@@ -11796,10 +11767,12 @@ const char* ExceptionHandlers::ToCString() const {
       type ^= handled_types.At(k);
       num_chars += OS::SNPrint((buffer + num_chars),
                                (len - num_chars),
-                               kFormat2, k, type.ToCString());
+                               FORMAT2, k, type.ToCString());
     }
   }
   return buffer;
+#undef FORMAT1
+#undef FORMAT2
 }
 
 
@@ -11876,13 +11849,14 @@ void DeoptInfo::Unpack(const Array& table,
 
 const char* DeoptInfo::ToCString(const Array& deopt_table,
                                  const TypedData& packed) {
+#define FORMAT "[%s]"
   GrowableArray<DeoptInstr*> deopt_instrs;
   Unpack(deopt_table, packed, &deopt_instrs);
 
   // Compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < deopt_instrs.length(); i++) {
-    len += OS::SNPrint(NULL, 0, "[%s]", deopt_instrs[i]->ToCString());
+    len += OS::SNPrint(NULL, 0, FORMAT, deopt_instrs[i]->ToCString());
   }
 
   // Allocate the buffer.
@@ -11893,11 +11867,12 @@ const char* DeoptInfo::ToCString(const Array& deopt_table,
   for (intptr_t i = 0; i < deopt_instrs.length(); i++) {
     index += OS::SNPrint((buffer + index),
                          (len - index),
-                         "[%s]",
+                         FORMAT,
                          deopt_instrs[i]->ToCString());
   }
 
   return buffer;
+#undef FORMAT
 }
 
 
@@ -11916,16 +11891,12 @@ bool DeoptInfo::VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
 
 
 const char* ICData::ToCString() const {
-  const char* kFormat = "ICData target:'%s' num-args: %" Pd
-                        " num-checks: %" Pd "";
   const String& name = String::Handle(target_name());
   const intptr_t num_args = NumArgsTested();
   const intptr_t num_checks = NumberOfChecks();
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString(),
-      num_args, num_checks) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, name.ToCString(), num_args, num_checks);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "ICData target:'%s' num-args: %" Pd " num-checks: %" Pd "",
+      name.ToCString(), num_args, num_checks);
 }
 
 
@@ -13758,8 +13729,6 @@ void ContextScope::SetContextLevelAt(intptr_t scope_index,
 
 
 const char* ContextScope::ToCString() const {
-  const char* format =
-      "%s\nvar %s  token-pos %" Pd "  ctx lvl %" Pd "  index %" Pd "";
   const char* prev_cstr = "ContextScope:";
   String& name = String::Handle();
   for (int i = 0; i < num_variables(); i++) {
@@ -13768,10 +13737,9 @@ const char* ContextScope::ToCString() const {
     intptr_t pos = TokenIndexAt(i);
     intptr_t idx = ContextIndexAt(i);
     intptr_t lvl = ContextLevelAt(i);
-    intptr_t len =
-        OS::SNPrint(NULL, 0, format, prev_cstr, cname, pos, lvl, idx) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, prev_cstr, cname, pos, lvl, idx);
+    char* chars = OS::SCreate(Thread::Current()->zone(),
+        "%s\nvar %s  token-pos %" Pd "  ctx lvl %" Pd "  index %" Pd "",
+        prev_cstr, cname, pos, lvl, idx);
     prev_cstr = chars;
   }
   return prev_cstr;
@@ -14253,11 +14221,8 @@ const char* UnhandledException::ToErrorCString() const {
   if (!strtmp.IsError()) {
     stack_str = strtmp.ToCString();
   }
-  const char* format = "Unhandled exception:\n%s\n%s";
-  intptr_t len = OS::SNPrint(NULL, 0, format, exc_str, stack_str);
-  char* chars = thread->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, exc_str, stack_str);
-  return chars;
+  return OS::SCreate(thread->zone(),
+      "Unhandled exception:\n%s\n%s", exc_str, stack_str);
 }
 
 
@@ -14418,11 +14383,8 @@ bool Instance::CheckAndCanonicalizeFields(const char** error_str) const {
           this->SetFieldAtOffset(field_offset, obj);
         } else {
           ASSERT(error_str != NULL);
-          const char* kFormat = "field: %s\n";
-          const intptr_t len =
-              OS::SNPrint(NULL, 0, kFormat, obj.ToCString()) + 1;
-          char* chars = Thread::Current()->zone()->Alloc<char>(len);
-          OS::SNPrint(chars, len, kFormat, obj.ToCString());
+          char* chars = OS::SCreate(Thread::Current()->zone(),
+              "field: %s\n", obj.ToCString());
           *error_str = chars;
           return false;
         }
@@ -14746,7 +14708,6 @@ const char* Instance::ToCString() const {
     if (IsClosure()) {
       return Closure::ToCString(*this);
     }
-    const char* kFormat = "Instance of '%s'";
     const Class& cls = Class::Handle(clazz());
     TypeArguments& type_arguments = TypeArguments::Handle();
     const intptr_t num_type_arguments = cls.NumTypeArguments();
@@ -14756,11 +14717,8 @@ const char* Instance::ToCString() const {
     const Type& type =
         Type::Handle(Type::New(cls, type_arguments, Scanner::kNoSourcePos));
     const String& type_name = String::Handle(type.UserVisibleName());
-    // Calculate the size of the string.
-    intptr_t len = OS::SNPrint(NULL, 0, kFormat, type_name.ToCString()) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, kFormat, type_name.ToCString());
-    return chars;
+    return OS::SCreate(Thread::Current()->zone(),
+        "Instance of '%s'", type_name.ToCString());
   }
 }
 
@@ -15932,29 +15890,18 @@ const char* Type::ToCString() const {
     class_name = UnresolvedClass::Handle(unresolved_class()).ToCString();
   }
   if (type_arguments.IsNull()) {
-    const char* format = "%sType: class '%s'";
-    const intptr_t len =
-        OS::SNPrint(NULL, 0, format, unresolved, class_name) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, unresolved, class_name);
-    return chars;
+    return OS::SCreate(Thread::Current()->zone(),
+        "%sType: class '%s'", unresolved, class_name);
   } else if (IsResolved() && IsFinalized() && IsRecursive()) {
-    const char* format = "Type: (@%" Px " H%" Px ") class '%s', args:[%s]";
     const intptr_t hash = Hash();
     const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
-    const intptr_t len =
-        OS::SNPrint(NULL, 0, format, raw(), hash, class_name, args_cstr) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, raw(), hash, class_name, args_cstr);
-    return chars;
+    return OS::SCreate(Thread::Current()->zone(),
+        "Type: (@%p H%" Px ") class '%s', args:[%s]",
+        raw(), hash, class_name, args_cstr);
   } else {
-    const char* format = "%sType: class '%s', args:[%s]";
     const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
-    const intptr_t len =
-        OS::SNPrint(NULL, 0, format, unresolved, class_name, args_cstr) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, unresolved, class_name, args_cstr);
-    return chars;
+    return OS::SCreate(Thread::Current()->zone(),
+        "%sType: class '%s', args:[%s]", unresolved, class_name, args_cstr);
   }
 }
 
@@ -16136,19 +16083,12 @@ const char* TypeRef::ToCString() const {
       type_class()).Name()).ToCString();
   AbstractType& ref_type = AbstractType::Handle(type());
   if (ref_type.IsFinalized()) {
-    const char* format = "TypeRef: %s<...> (@%" Px " H%" Px ")";
     const intptr_t hash = ref_type.Hash();
-    const intptr_t len =
-        OS::SNPrint(NULL, 0, format, type_cstr, ref_type.raw(), hash) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, type_cstr, ref_type.raw(), hash);
-    return chars;
+    return OS::SCreate(Thread::Current()->zone(),
+        "TypeRef: %s<...> (@%p H%" Px ")", type_cstr, ref_type.raw(), hash);
   } else {
-    const char* format = "TypeRef: %s<...>";
-    const intptr_t len = OS::SNPrint(NULL, 0, format, type_cstr) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, type_cstr);
-    return chars;
+    return OS::SCreate(Thread::Current()->zone(),
+        "TypeRef: %s<...>", type_cstr);
   }
 }
 
@@ -17138,12 +17078,7 @@ int Smi::CompareWith(const Integer& other) const {
 
 
 const char* Smi::ToCString() const {
-  const char* kFormat = "%ld";
-  // Calculate the size of the string.
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, Value()) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, Value());
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(), "%" Pd "", Value());
 }
 
 
@@ -17269,12 +17204,7 @@ int Mint::CompareWith(const Integer& other) const {
 
 
 const char* Mint::ToCString() const {
-  const char* kFormat = "%lld";
-  // Calculate the size of the string.
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, value()) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, value());
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(), "%" Pd64 "", value());
 }
 
 
@@ -20122,11 +20052,8 @@ bool Array::CheckAndCanonicalizeFields(const char** error_str) const {
         this->SetAt(i, obj);
       } else {
         ASSERT(error_str != NULL);
-        const char* kFormat = "element at index %" Pd ": %s\n";
-        const intptr_t len =
-            OS::SNPrint(NULL, 0, kFormat, i, obj.ToCString()) + 1;
-        char* chars = Thread::Current()->zone()->Alloc<char>(len);
-        OS::SNPrint(chars, len, kFormat, i, obj.ToCString());
+        char* chars = OS::SCreate(Thread::Current()->zone(),
+            "element at index %" Pd ": %s\n", i, obj.ToCString());
         *error_str = chars;
         return false;
       }
@@ -20250,11 +20177,8 @@ const char* GrowableObjectArray::ToCString() const {
   if (IsNull()) {
     return "_GrowableList NULL";
   }
-  const char* format = "Instance(length:%" Pd ") of '_GrowableList'";
-  intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, Length());
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "Instance(length:%" Pd ") of '_GrowableList'", Length());
 }
 
 
@@ -20476,16 +20400,12 @@ float Float32x4::w() const {
 
 
 const char* Float32x4::ToCString() const {
-  const char* kFormat = "[%f, %f, %f, %f]";
   float _x = x();
   float _y = y();
   float _z = z();
   float _w = w();
-  // Calculate the size of the string.
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, _x, _y, _z, _w) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, _x, _y, _z, _w);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "[%f, %f, %f, %f]", _x, _y, _z, _w);
 }
 
 
@@ -20585,16 +20505,12 @@ void Int32x4::set_value(simd128_value_t value) const {
 
 
 const char* Int32x4::ToCString() const {
-  const char* kFormat = "[%08x, %08x, %08x, %08x]";
   int32_t _x = x();
   int32_t _y = y();
   int32_t _z = z();
   int32_t _w = w();
-  // Calculate the size of the string.
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, _x, _y, _z, _w) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, _x, _y, _z, _w);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "[%08x, %08x, %08x, %08x]", _x, _y, _z, _w);
 }
 
 
@@ -20671,14 +20587,9 @@ void Float64x2::set_value(simd128_value_t value) const {
 
 
 const char* Float64x2::ToCString() const {
-  const char* kFormat = "[%f, %f]";
   double _x = x();
   double _y = y();
-  // Calculate the size of the string.
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, _x, _y) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, _x, _y);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(), "[%f, %f]", _x, _y);
 }
 
 
@@ -20948,11 +20859,8 @@ const char* Closure::ToCString(const Instance& closure) {
   const char* fun_sig = String::Handle(fun.UserVisibleSignature()).ToCString();
   const char* from = is_implicit_closure ? " from " : "";
   const char* fun_desc = is_implicit_closure ? fun.ToCString() : "";
-  const char* format = "Closure: %s%s%s";
-  intptr_t len = OS::SNPrint(NULL, 0, format, fun_sig, from, fun_desc) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, fun_sig, from, fun_desc);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "Closure: %s%s%s", fun_sig, from, fun_desc);
 }
 
 
@@ -21071,9 +20979,6 @@ static intptr_t PrintOneStacktrace(Zone* zone,
                                    const Function& function,
                                    const Code& code,
                                    intptr_t frame_index) {
-  const char* kFormatWithCol = "#%-6d %s (%s:%d:%d)\n";
-  const char* kFormatNoCol = "#%-6d %s (%s:%d)\n";
-  const char* kFormatNoLine = "#%-6d %s (%s)\n";
   const intptr_t token_pos = code.GetTokenIndexOfPC(pc);
   const Script& script = Script::Handle(zone, function.script());
   const String& function_name =
@@ -21088,36 +20993,22 @@ static intptr_t PrintOneStacktrace(Zone* zone,
       script.GetTokenLocation(token_pos, &line, NULL);
     }
   }
-  intptr_t len = 0;
   char* chars = NULL;
   if (column >= 0) {
-    len = OS::SNPrint(NULL, 0, kFormatWithCol,
-                      frame_index, function_name.ToCString(),
-                      url.ToCString(), line, column);
-    chars = zone->Alloc<char>(len + 1);
-    OS::SNPrint(chars, (len + 1), kFormatWithCol,
-                frame_index,
-                function_name.ToCString(),
-                url.ToCString(), line, column);
+    chars = OS::SCreate(zone,
+        "#%-6" Pd " %s (%s:%" Pd ":%" Pd ")\n",
+        frame_index, function_name.ToCString(), url.ToCString(), line, column);
   } else if (line >= 0) {
-    len = OS::SNPrint(NULL, 0, kFormatNoCol,
-                      frame_index, function_name.ToCString(),
-                      url.ToCString(), line);
-    chars = zone->Alloc<char>(len + 1);
-    OS::SNPrint(chars, (len + 1), kFormatNoCol,
-                frame_index, function_name.ToCString(),
-                url.ToCString(), line);
+    chars = OS::SCreate(zone,
+        "#%-6" Pd " %s (%s:%" Pd ")\n",
+        frame_index, function_name.ToCString(), url.ToCString(), line);
   } else {
-    len = OS::SNPrint(NULL, 0, kFormatNoLine,
-                      frame_index, function_name.ToCString(),
-                      url.ToCString());
-    chars = zone->Alloc<char>(len + 1);
-    OS::SNPrint(chars, (len + 1), kFormatNoLine,
-                frame_index, function_name.ToCString(),
-                url.ToCString());
+    chars = OS::SCreate(zone,
+        "#%-6" Pd " %s (%s)\n",
+        frame_index, function_name.ToCString(), url.ToCString());
   }
   frame_strings->Add(chars);
-  return len;
+  return strlen(chars);
 }
 
 
@@ -21284,11 +21175,8 @@ bool JSRegExp::CanonicalizeEquals(const Instance& other) const {
 
 const char* JSRegExp::ToCString() const {
   const String& str = String::Handle(pattern());
-  const char* format = "JSRegExp: pattern=%s flags=%s";
-  intptr_t len = OS::SNPrint(NULL, 0, format, str.ToCString(), Flags());
-  char* chars = Thread::Current()->zone()->Alloc<char>(len + 1);
-  OS::SNPrint(chars, (len + 1), format, str.ToCString(), Flags());
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "JSRegExp: pattern=%s flags=%s", str.ToCString(), Flags());
 }
 
 
