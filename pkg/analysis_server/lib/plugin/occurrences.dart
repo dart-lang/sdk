@@ -4,19 +4,19 @@
 
 /**
  * Support for client code that extends the analysis server by adding new
- * navigation contributors.
+ * occurrences contributors.
  */
-library analysis_server.plugin.navigation;
+library analysis_server.plugin.occurrences;
 
-import 'package:analysis_server/analysis/navigation_core.dart';
+import 'package:analysis_server/analysis/occurrences_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:plugin/plugin.dart';
 
 /**
  * The identifier of the extension point that allows plugins to register
- * navigation contributors. The object used as an extension must be
- * a [NavigationContributor].
+ * element occurrences. The object used as an extension must be
+ * a [OccurrencesContributor].
  */
-final String NAVIGATION_CONTRIBUTOR_EXTENSION_POINT_ID = Plugin.join(
+final String OCCURRENCES_CONTRIBUTOR_EXTENSION_POINT_ID = Plugin.join(
     ServerPlugin.UNIQUE_IDENTIFIER,
-    ServerPlugin.NAVIGATION_CONTRIBUTOR_EXTENSION_POINT);
+    ServerPlugin.OCCURRENCES_CONTRIBUTOR_EXTENSION_POINT);

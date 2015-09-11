@@ -7,10 +7,10 @@ library operation.analysis;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
-import 'package:analysis_server/src/computer/computer_occurrences.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/domains/analysis/navigation.dart';
+import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
@@ -82,8 +82,8 @@ void scheduleNotificationOperations(
     }
     if (server.hasAnalysisSubscription(
         protocol.AnalysisService.OCCURRENCES, file)) {
-      server.scheduleOperation(
-          new _DartOccurrencesOperation(context, file, resolvedDartUnit));
+      Source source = resolvedDartUnit.element.source;
+      server.scheduleOperation(new OccurrencesOperation(context, source));
     }
     if (server.hasAnalysisSubscription(
         protocol.AnalysisService.OVERRIDES, file)) {
@@ -179,10 +179,13 @@ void sendAnalysisNotificationNavigation(
 }
 
 void sendAnalysisNotificationOccurrences(
-    AnalysisServer server, String file, CompilationUnit dartUnit) {
+    AnalysisServer server, AnalysisContext context, Source source) {
   _sendNotification(server, () {
-    var occurrences = new DartUnitOccurrencesComputer(dartUnit).compute();
-    var params = new protocol.AnalysisOccurrencesParams(file, occurrences);
+    OccurrencesCollectorImpl collector =
+        computeOccurrences(server, context, source);
+    String file = source.fullName;
+    var params =
+        new protocol.AnalysisOccurrencesParams(file, collector.allOccurrences);
     server.sendNotification(params.toNotification());
   });
 }
@@ -235,15 +238,33 @@ class NavigationOperation extends _NotificationOperation
       : super(context, source);
 
   @override
-  void perform(AnalysisServer server) {
-    sendAnalysisNotificationNavigation(server, context, source);
-  }
-
-  @override
   bool merge(ServerOperation other) {
     return other is NavigationOperation &&
         other.context == context &&
         other.source == source;
+  }
+
+  @override
+  void perform(AnalysisServer server) {
+    sendAnalysisNotificationNavigation(server, context, source);
+  }
+}
+
+class OccurrencesOperation extends _NotificationOperation
+    implements MergeableOperation {
+  OccurrencesOperation(AnalysisContext context, Source source)
+      : super(context, source);
+
+  @override
+  bool merge(ServerOperation other) {
+    return other is OccurrencesOperation &&
+        other.context == context &&
+        other.source == source;
+  }
+
+  @override
+  void perform(AnalysisServer server) {
+    sendAnalysisNotificationOccurrences(server, context, source);
   }
 }
 
@@ -407,17 +428,6 @@ abstract class _DartNotificationOperation extends _SingleFileOperation {
   @override
   ServerOperationPriority get priority {
     return ServerOperationPriority.ANALYSIS_NOTIFICATION;
-  }
-}
-
-class _DartOccurrencesOperation extends _DartNotificationOperation {
-  _DartOccurrencesOperation(
-      AnalysisContext context, String file, CompilationUnit unit)
-      : super(context, file, unit);
-
-  @override
-  void perform(AnalysisServer server) {
-    sendAnalysisNotificationOccurrences(server, file, unit);
   }
 }
 

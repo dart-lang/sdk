@@ -975,7 +975,7 @@ class AnalysisServer {
                 sendAnalysisNotificationNavigation(this, context, source);
                 break;
               case AnalysisService.OCCURRENCES:
-                sendAnalysisNotificationOccurrences(this, file, dartUnit);
+                sendAnalysisNotificationOccurrences(this, context, source);
                 break;
               case AnalysisService.OUTLINE:
                 AnalysisContext context = dartUnit.element.context;

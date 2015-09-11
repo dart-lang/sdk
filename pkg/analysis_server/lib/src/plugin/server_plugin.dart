@@ -6,7 +6,8 @@ library analysis_server.src.plugin.server_plugin;
 
 import 'package:analysis_server/analysis/analysis_domain.dart';
 import 'package:analysis_server/analysis/index/index_core.dart';
-import 'package:analysis_server/analysis/navigation/navigation_core.dart';
+import 'package:analysis_server/analysis/navigation_core.dart';
+import 'package:analysis_server/analysis/occurrences_core.dart';
 import 'package:analysis_server/completion/completion_core.dart';
 import 'package:analysis_server/edit/assist/assist_core.dart';
 import 'package:analysis_server/edit/fix/fix_core.dart';
@@ -14,12 +15,14 @@ import 'package:analysis_server/plugin/analyzed_files.dart';
 import 'package:analysis_server/plugin/assist.dart';
 import 'package:analysis_server/plugin/fix.dart';
 import 'package:analysis_server/plugin/navigation.dart';
+import 'package:analysis_server/plugin/occurrences.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
+import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
@@ -86,6 +89,13 @@ class ServerPlugin implements Plugin {
 
   /**
    * The simple identifier of the extension point that allows plugins to
+   * register element occurrences.
+   */
+  static const String OCCURRENCES_CONTRIBUTOR_EXTENSION_POINT =
+      'occurrencesContributor';
+
+  /**
+   * The simple identifier of the extension point that allows plugins to
    * register analysis result listeners.
    */
   static const String SET_ANALISYS_DOMAIN_EXTENSION_POINT = 'setAnalysisDomain';
@@ -130,9 +140,16 @@ class ServerPlugin implements Plugin {
   ExtensionPoint indexContributorExtensionPoint;
 
   /**
-   * The extension point that allows plugins to register navigation contributors.
+   * The extension point that allows plugins to register navigation
+   * contributors.
    */
   ExtensionPoint navigationContributorExtensionPoint;
+
+  /**
+   * The extension point that allows plugins to register occurrences
+   * contributors.
+   */
+  ExtensionPoint occurrencesContributorExtensionPoint;
 
   /**
    * The extension point that allows plugins to get access to the `analysis`
@@ -187,6 +204,13 @@ class ServerPlugin implements Plugin {
       navigationContributorExtensionPoint.extensions;
 
   /**
+   * Return a list containing all of the occurrences contributors that were
+   * contributed.
+   */
+  List<OccurrencesContributor> get occurrencesContributors =>
+      occurrencesContributorExtensionPoint.extensions;
+
+  /**
    * Return a list containing all of the receivers of the `analysis` domain
    * instance.
    */
@@ -231,6 +255,9 @@ class ServerPlugin implements Plugin {
     navigationContributorExtensionPoint = registerExtensionPoint(
         NAVIGATION_CONTRIBUTOR_EXTENSION_POINT,
         _validateNavigationContributorExtension);
+    occurrencesContributorExtensionPoint = registerExtensionPoint(
+        OCCURRENCES_CONTRIBUTOR_EXTENSION_POINT,
+        _validateOccurrencesContributorExtension);
   }
 
   @override
@@ -253,10 +280,12 @@ class ServerPlugin implements Plugin {
     // TODO(brianwilkerson) Register the completion contributors.
 //    registerExtension(COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID, ???);
     //
-    // Register navigation contributors.
+    // Register analysis contributors.
     //
     registerExtension(NAVIGATION_CONTRIBUTOR_EXTENSION_POINT_ID,
         new DartNavigationComputer());
+    registerExtension(OCCURRENCES_CONTRIBUTOR_EXTENSION_POINT_ID,
+        new DartOccurrencesComputer());
     //
     // Register domains.
     //
@@ -364,6 +393,18 @@ class ServerPlugin implements Plugin {
       String id = navigationContributorExtensionPoint.uniqueIdentifier;
       throw new ExtensionError(
           'Extensions to $id must be an NavigationContributor');
+    }
+  }
+
+  /**
+   * Validate the given extension by throwing an [ExtensionError] if it is not a
+   * valid occurrences contributor.
+   */
+  void _validateOccurrencesContributorExtension(Object extension) {
+    if (extension is! OccurrencesContributor) {
+      String id = occurrencesContributorExtensionPoint.uniqueIdentifier;
+      throw new ExtensionError(
+          'Extensions to $id must be an OccurrencesContributor');
     }
   }
 

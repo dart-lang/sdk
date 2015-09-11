@@ -7,8 +7,10 @@ library test.plugin.analysis_contributor;
 import 'dart:async';
 
 import 'package:analysis_server/analysis/analysis_domain.dart';
-import 'package:analysis_server/analysis/navigation/navigation_core.dart';
+import 'package:analysis_server/analysis/navigation_core.dart';
+import 'package:analysis_server/analysis/occurrences_core.dart';
 import 'package:analysis_server/plugin/navigation.dart';
+import 'package:analysis_server/plugin/occurrences.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -38,9 +40,8 @@ main() {
 class SetAnalysisDomainTest extends AbstractAnalysisTest {
   final Set<String> parsedUnitFiles = new Set<String>();
 
-  List<NavigationRegion> regions;
-  List<NavigationTarget> targets;
-  List<String> targetFiles;
+  AnalysisNavigationParams navigationParams;
+  AnalysisOccurrencesParams occurrencesParams;
 
   @override
   void addServerPlugins(List<Plugin> plugins) {
@@ -53,9 +54,13 @@ class SetAnalysisDomainTest extends AbstractAnalysisTest {
     if (notification.event == ANALYSIS_NAVIGATION) {
       var params = new AnalysisNavigationParams.fromNotification(notification);
       if (params.file == testFile) {
-        regions = params.regions;
-        targets = params.targets;
-        targetFiles = params.files;
+        navigationParams = params;
+      }
+    }
+    if (notification.event == ANALYSIS_OCCURRENCES) {
+      var params = new AnalysisOccurrencesParams.fromNotification(notification);
+      if (params.file == testFile) {
+        occurrencesParams = params;
       }
     }
   }
@@ -63,27 +68,38 @@ class SetAnalysisDomainTest extends AbstractAnalysisTest {
   Future test_contributorIsInvoked() async {
     createProject();
     addAnalysisSubscription(AnalysisService.NAVIGATION, testFile);
+    addAnalysisSubscription(AnalysisService.OCCURRENCES, testFile);
     addTestFile('// usually no navigation');
     await server.onAnalysisComplete;
     // we have PARSED_UNIT
     expect(parsedUnitFiles, contains(testFile));
     // we have an additional navigation region/target
-    expect(regions, hasLength(1));
     {
-      NavigationRegion region = regions.single;
-      expect(region.offset, 1);
-      expect(region.length, 5);
-      expect(region.targets.single, 0);
+      expect(navigationParams.regions, hasLength(1));
+      {
+        NavigationRegion region = navigationParams.regions.single;
+        expect(region.offset, 1);
+        expect(region.length, 5);
+        expect(region.targets.single, 0);
+      }
+      {
+        NavigationTarget target = navigationParams.targets.single;
+        expect(target.fileIndex, 0);
+        expect(target.offset, 1);
+        expect(target.length, 2);
+        expect(target.startLine, 3);
+        expect(target.startColumn, 4);
+      }
+      expect(navigationParams.files.single, '/testLocation.dart');
     }
+    // we have additional occurrences
     {
-      NavigationTarget target = targets.single;
-      expect(target.fileIndex, 0);
-      expect(target.offset, 1);
-      expect(target.length, 2);
-      expect(target.startLine, 3);
-      expect(target.startColumn, 4);
+      expect(occurrencesParams.occurrences, hasLength(1));
+      Occurrences occurrences = occurrencesParams.occurrences.single;
+      expect(occurrences.element.name, 'TestElement');
+      expect(occurrences.length, 5);
+      expect(occurrences.offsets, unorderedEquals([1, 2, 3]));
     }
-    expect(targetFiles.single, '/testLocation.dart');
   }
 }
 
@@ -97,6 +113,19 @@ class TestNavigationContributor implements NavigationContributor {
       Source source, int offset, int length) {
     collector.addRegion(1, 5, ElementKind.CLASS,
         new Location('/testLocation.dart', 1, 2, 3, 4));
+  }
+}
+
+class TestOccurrencesContributor implements OccurrencesContributor {
+  final SetAnalysisDomainTest test;
+
+  TestOccurrencesContributor(this.test);
+
+  @override
+  void computeOccurrences(
+      OccurrencesCollector collector, AnalysisContext context, Source source) {
+    collector.addOccurrences(new Occurrences(
+        new Element(ElementKind.UNKNOWN, 'TestElement', 0), <int>[1, 2, 3], 5));
   }
 }
 
@@ -116,6 +145,8 @@ class TestSetAnalysisDomainPlugin implements Plugin {
     register(SET_ANALYSIS_DOMAIN_EXTENSION_POINT_ID, _setAnalysisDomain);
     register(NAVIGATION_CONTRIBUTOR_EXTENSION_POINT_ID,
         new TestNavigationContributor(test));
+    register(OCCURRENCES_CONTRIBUTOR_EXTENSION_POINT_ID,
+        new TestOccurrencesContributor(test));
   }
 
   void _setAnalysisDomain(AnalysisDomain domain) {
@@ -127,6 +158,8 @@ class TestSetAnalysisDomainPlugin implements Plugin {
       test.parsedUnitFiles.add(source.fullName);
       domain.scheduleNotification(
           result.context, source, AnalysisService.NAVIGATION);
+      domain.scheduleNotification(
+          result.context, source, AnalysisService.OCCURRENCES);
     });
   }
 }
