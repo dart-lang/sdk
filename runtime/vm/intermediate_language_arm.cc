@@ -24,6 +24,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, allow_absolute_addresses);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_osr);
@@ -1703,8 +1704,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if (field_cid != kSmiCid) {
           __ CompareImmediate(value_cid_reg, kNullCid);
         } else {
-          __ CompareImmediate(value_reg,
-                              reinterpret_cast<intptr_t>(Object::null()));
+          __ CompareObject(value_reg, Object::null_object());
         }
       }
       __ b(fail, NE);
@@ -2034,8 +2034,7 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
                              Register temp) {
   Label done;
   __ ldr(box_reg, FieldAddress(instance_reg, offset));
-  __ CompareImmediate(box_reg,
-                      reinterpret_cast<intptr_t>(Object::null()));
+  __ CompareObject(box_reg, Object::null_object());
   __ b(&done, NE);
 
   BoxAllocationSlowPath::Allocate(
@@ -2352,7 +2351,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // R6: null
   if (num_elements > 0) {
     const intptr_t array_size = instance_size - sizeof(RawArray);
-    __ LoadImmediate(R6, reinterpret_cast<intptr_t>(Object::null()));
+    __ LoadObject(R6, Object::null_object());
     if (num_elements >= 2) {
       __ mov(R7, Operand(R6));
     } else {
@@ -2621,7 +2620,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   Label type_arguments_instantiated;
   const intptr_t len = type_arguments().Length();
   if (type_arguments().IsRawInstantiatedRaw(len)) {
-    __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
+    __ LoadObject(IP, Object::null_object());
     __ cmp(instantiator_reg, Operand(IP));
     __ b(&type_arguments_instantiated, EQ);
   }
@@ -2886,6 +2885,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       const Register value = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
+      ASSERT(FLAG_allow_absolute_addresses);
       __ LoadImmediate(IP, flags_address);
       __ LoadImmediate(value, Isolate::kOsrRequest);
       __ str(value, Address(IP));
@@ -2930,7 +2930,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  if (compiler->is_optimizing()) {
+  if (compiler->is_optimizing() && FLAG_allow_absolute_addresses) {
     __ LoadImmediate(IP, Isolate::Current()->stack_limit_address());
     __ ldr(IP, Address(IP));
   } else {
@@ -3757,7 +3757,7 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     if ((value()->Type()->ToNullableCid() == box_cid) &&
         value()->Type()->is_nullable()) {
-      __ CompareImmediate(box, reinterpret_cast<intptr_t>(Object::null()));
+      __ CompareObject(box, Object::null_object());
       __ b(deopt, EQ);
     } else {
       __ tst(box, Operand(kSmiTagMask));
@@ -5916,8 +5916,7 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         ICData::kDeoptCheckClass,
                                         licm_hoisted_ ? ICData::kHoisted : 0);
   if (IsNullCheck()) {
-    __ CompareImmediate(locs()->in(0).reg(),
-                        reinterpret_cast<intptr_t>(Object::null()));
+    __ CompareObject(locs()->in(0).reg(), Object::null_object());
     ASSERT(DeoptIfNull() || DeoptIfNotNull());
     Condition cond = DeoptIfNull() ? EQ : NE;
     __ b(deopt, cond);

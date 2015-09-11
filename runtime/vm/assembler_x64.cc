@@ -17,6 +17,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, allow_absolute_addresses);
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 DECLARE_FLAG(bool, inline_alloc);
 
@@ -2827,6 +2828,7 @@ void Assembler::LoadObjectHelper(Register dst,
     LoadWordFromPoolOffset(dst, offset - kHeapObjectTag);
   } else {
     ASSERT(object.IsSmi() || object.InVMHeap());
+    ASSERT(object.IsSmi() || FLAG_allow_absolute_addresses);
     LoadImmediate(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
   }
 }
@@ -2861,6 +2863,7 @@ void Assembler::StoreObject(const Address& dst, const Object& object) {
     LoadObject(TMP, object);
     movq(dst, TMP);
   } else {
+    ASSERT(object.IsSmi() || FLAG_allow_absolute_addresses);
     MoveImmediate(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
   }
 }
@@ -2873,6 +2876,7 @@ void Assembler::PushObject(const Object& object) {
     LoadObject(TMP, object);
     pushq(TMP);
   } else {
+    ASSERT(object.IsSmi() || FLAG_allow_absolute_addresses);
     PushImmediate(Immediate(reinterpret_cast<int64_t>(object.raw())));
   }
 }
@@ -2886,6 +2890,7 @@ void Assembler::CompareObject(Register reg, const Object& object) {
         ObjectPool::element_offset(object_pool_wrapper_.FindObject(object));
     cmpq(reg, Address(PP, offset-kHeapObjectTag));
   } else {
+    ASSERT(object.IsSmi() || FLAG_allow_absolute_addresses);
     CompareImmediate(
         reg, Immediate(reinterpret_cast<int64_t>(object.raw())));
   }
@@ -3035,7 +3040,8 @@ void Assembler::VerifyUninitialized(const Address& dest) {
 #else
 #error Only supported in DEBUG mode
 #endif
-  cmpq(dest, Immediate(reinterpret_cast<uint64_t>(Object::null())));
+  LoadObject(TMP, Object::null_object());
+  cmpq(dest, TMP);
   j(EQUAL, &ok, Assembler::kNearJump);
   static const bool kFixedLengthEncoding = true;
   Stop("Expected zapped, Smi or null", kFixedLengthEncoding);
@@ -3453,6 +3459,7 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   intptr_t state_offset = ClassTable::StateOffsetFor(cid);
   Register temp_reg = TMP;
   if (inline_isolate) {
+    ASSERT(FLAG_allow_absolute_addresses);
     ClassTable* class_table = Isolate::Current()->class_table();
     ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
     if (cid < kNumPredefinedCids) {
@@ -3483,6 +3490,7 @@ void Assembler::UpdateAllocationStats(intptr_t cid,
       ClassTable::CounterOffsetFor(cid, space == Heap::kNew);
   Register temp_reg = TMP;
   if (inline_isolate) {
+    ASSERT(FLAG_allow_absolute_addresses);
     ClassTable* class_table = Isolate::Current()->class_table();
     ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
     if (cid < kNumPredefinedCids) {

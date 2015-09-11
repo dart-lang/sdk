@@ -13860,7 +13860,7 @@ void MegamorphicCache::Insert(const Smi& class_id,
 
 
 const char* MegamorphicCache::ToCString() const {
-  return "";
+  return "MegamorphicCache";
 }
 
 

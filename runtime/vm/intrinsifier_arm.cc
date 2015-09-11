@@ -56,19 +56,18 @@ void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
     const intptr_t type_args_field_offset =
         ComputeObjectArrayTypeArgumentsOffset();
     // Inline simple tests (Smi, null), fallthrough if not positive.
-    const int32_t raw_null = reinterpret_cast<intptr_t>(Object::null());
     Label checked_ok;
     __ ldr(R2, Address(SP, 0 * kWordSize));  // Value.
 
     // Null value is valid for any type.
-    __ CompareImmediate(R2, raw_null);
+    __ CompareObject(R2, Object::null_object());
     __ b(&checked_ok, EQ);
 
     __ ldr(R1, Address(SP, 2 * kWordSize));  // Array.
     __ ldr(R1, FieldAddress(R1, type_args_field_offset));
 
     // R1: Type arguments of array.
-    __ CompareImmediate(R1, raw_null);
+    __ CompareObject(R1, Object::null_object());
     __ b(&checked_ok, EQ);
 
     // Check if it's dynamic.
@@ -179,8 +178,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
   __ add(R1, R2, Operand(R1, LSL, 1));
   __ StoreIntoObject(R2, FieldAddress(R1, Array::data_offset()), R0);
-  const int32_t raw_null = reinterpret_cast<int32_t>(Object::null());
-  __ LoadImmediate(R0, raw_null);
+  __ LoadObject(R0, Object::null_object());
   __ Ret();
   __ Bind(&fall_through);
 }
@@ -1587,7 +1585,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ LoadClassById(R2, R1);
   // R2: class of instance (R0).
   __ ldr(R3, FieldAddress(R2, Class::signature_function_offset()));
-  __ CompareImmediate(R3, reinterpret_cast<int32_t>(Object::null()));
+  __ CompareObject(R3, Object::null_object());
   __ b(&fall_through, NE);
 
   __ ldrh(R3, FieldAddress(R2, Class::num_type_arguments_offset()));
@@ -1595,7 +1593,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ b(&fall_through, NE);
 
   __ ldr(R0, FieldAddress(R2, Class::canonical_types_offset()));
-  __ CompareImmediate(R0, reinterpret_cast<int32_t>(Object::null()));
+  __ CompareObject(R0, Object::null_object());
   __ b(&fall_through, EQ);
   __ Ret();
 

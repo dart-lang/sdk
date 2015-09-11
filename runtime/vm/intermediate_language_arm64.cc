@@ -23,6 +23,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, allow_absolute_addresses);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_osr);
@@ -2598,6 +2599,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       const Register value = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
+      ASSERT(FLAG_allow_absolute_addresses);
       __ LoadImmediate(TMP, flags_address);
       __ LoadImmediate(value, Isolate::kOsrRequest);
       __ str(value, Address(TMP));
@@ -2642,7 +2644,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  if (compiler->is_optimizing()) {
+  if (compiler->is_optimizing() && FLAG_allow_absolute_addresses) {
     __ LoadImmediate(TMP, Isolate::Current()->stack_limit_address());
     __ ldr(TMP, Address(TMP));
   } else {

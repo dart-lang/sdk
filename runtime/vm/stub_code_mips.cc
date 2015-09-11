@@ -316,7 +316,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S4, Address(SP, 1 * kWordSize));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(TMP, Object::null_object());
   __ sw(TMP, Address(SP, 0 * kWordSize));
 
   __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
@@ -345,7 +345,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   // Setup space on stack for return value and preserve arguments descriptor.
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S4, Address(SP, 1 * kWordSize));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(TMP, Object::null_object());
   __ sw(TMP, Address(SP, 0 * kWordSize));
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   // Get Code object result and restore arguments descriptor array.
@@ -368,7 +368,7 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Setup space on stack for return value.
   __ addiu(SP, SP, Immediate(-1 * kWordSize));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(TMP, Object::null_object());
   __ sw(TMP, Address(SP, 0 * kWordSize));
   __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
   // Get Code object result.
@@ -389,7 +389,7 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
 static void PushArgumentsArray(Assembler* assembler) {
   __ Comment("PushArgumentsArray");
   // Allocate array to store arguments of caller.
-  __ LoadImmediate(A0, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(A0, Object::null_object());
   // A0: Null element type for raw Array.
   // A1: Smi-tagged argument count, may be zero.
   __ BranchLink(*StubCode::AllocateArray_entry());
@@ -568,7 +568,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
   // Push arguments descriptor array.
   // Push original arguments array.
   __ addiu(SP, SP, Immediate(-4 * kWordSize));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(TMP, Object::null_object());
   __ sw(TMP, Address(SP, 3 * kWordSize));
   __ sw(T6, Address(SP, 2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));
@@ -602,7 +602,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   // Push the receiver.
   // Push IC data object.
   // Push arguments descriptor array.
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(TMP, Object::null_object());
   __ sw(TMP, Address(SP, 3 * kWordSize));
   __ sw(T6, Address(SP, 2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));
@@ -731,7 +731,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
                               FieldAddress(T0, Array::length_offset()),
                               A1);
 
-  __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
+  __ LoadObject(T7, Object::null_object());
   // Initialize all array elements to raw_null.
   // T0: new object start as a tagged pointer.
   // T1: new object end address.
@@ -761,7 +761,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // Setup space on stack for return value.
   // Push array length as Smi and element type.
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(TMP, Object::null_object());
   __ sw(TMP, Address(SP, 2 * kWordSize));
   __ sw(A1, Address(SP, 1 * kWordSize));
   __ sw(A0, Address(SP, 0 * kWordSize));
@@ -995,7 +995,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // T1: number of context variables as integer value (not object).
     __ sw(T1, FieldAddress(V0, Context::num_variables_offset()));
 
-    __ LoadImmediate(T7, reinterpret_cast<intptr_t>(Object::null()));
+    __ LoadObject(T7, Object::null_object());
 
     // Initialize the context variables.
     // V0: new object.
@@ -1025,7 +1025,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   // Setup space on stack for return value.
   __ SmiTag(T1);
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(TMP, Object::null_object());
   __ sw(TMP, Address(SP, 1 * kWordSize));  // Store null.
   __ sw(T1, Address(SP, 0 * kWordSize));
   __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
@@ -1167,7 +1167,7 @@ void StubCode::GenerateAllocationStubForClass(
     __ LoadImmediate(T0, tags);
     __ sw(T0, Address(T2, Instance::tags_offset()));
 
-    __ LoadImmediate(T7, reinterpret_cast<intptr_t>(Object::null()));
+    __ LoadObject(T7, Object::null_object());
 
     // Initialize the remaining words of the object.
     // T2: new object start.
@@ -1218,7 +1218,7 @@ void StubCode::GenerateAllocationStubForClass(
 
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
   // Space on stack for return value.
-  __ LoadImmediate(T7, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(T7, Object::null_object());
   __ sw(T7, Address(SP, 2 * kWordSize));
   __ sw(TMP, Address(SP, 1 * kWordSize));  // Class of object to be allocated.
 
@@ -1263,7 +1263,7 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   // Push arguments descriptor array.
   const intptr_t kNumArgs = 3;
   __ addiu(SP, SP, Immediate(-kNumArgs * kWordSize));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(TMP, Object::null_object());
   __ sw(TMP, Address(SP, 2 * kWordSize));
   __ sw(T6, Address(SP, 1 * kWordSize));
   __ sw(S4, Address(SP, 0 * kWordSize));
@@ -1539,7 +1539,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ addiu(SP, SP, Immediate(-num_slots * kWordSize));
   __ sw(S5, Address(SP, (num_slots - 1) * kWordSize));
   __ sw(S4, Address(SP, (num_slots - 2) * kWordSize));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(TMP, Object::null_object());
   __ sw(TMP, Address(SP, (num_slots - 3) * kWordSize));
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
@@ -1838,7 +1838,7 @@ void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(TMP, Object::null_object());
   __ sw(TMP, Address(SP, 0 * kWordSize));
 
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
@@ -1855,7 +1855,7 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   __ Comment("RuntimeCallBreakpoint stub");
   __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-1 * kWordSize));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(TMP, Object::null_object());
   __ sw(TMP, Address(SP, 0 * kWordSize));
 
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
@@ -1906,7 +1906,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ LoadClass(T0, A0);
     // Compute instance type arguments into T1.
     Label has_no_type_arguments;
-    __ LoadImmediate(T1, reinterpret_cast<intptr_t>(Object::null()));
+    __ LoadObject(T1, Object::null_object());
     __ lw(T2, FieldAddress(T0,
         Class::type_arguments_field_offset_in_words_offset()));
     __ BranchEqual(
@@ -1925,7 +1925,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ lw(T2, FieldAddress(A2, SubtypeTestCache::cache_offset()));
   __ AddImmediate(T2, Array::data_offset() - kHeapObjectTag);
 
-  __ LoadImmediate(T7, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(T7, Object::null_object());
 
   Label loop, found, not_found, next_iteration;
   // T0: instance class id.
@@ -2048,7 +2048,7 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
   __ sw(S4, Address(SP, 2 * kWordSize));
   // Setup space on stack for return value.
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadObject(TMP, Object::null_object());
   __ sw(TMP, Address(SP, 1 * kWordSize));
   __ sw(T0, Address(SP, 0 * kWordSize));
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);

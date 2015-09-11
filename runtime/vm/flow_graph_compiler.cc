@@ -28,6 +28,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, allow_absolute_addresses, true,
+    "Allow embedding absolute addresses in generated code.");
 DEFINE_FLAG(bool, always_megamorphic_calls, false,
     "Instance call always as megamorphic.");
 DEFINE_FLAG(bool, enable_simd_inline, true,
@@ -122,6 +124,7 @@ static void PrecompileModeHandler(bool value) {
     FLAG_precompile_collect_closures = true;
     FLAG_link_natives_lazily = true;
     FLAG_fields_may_be_reset = true;
+    FLAG_allow_absolute_addresses = false;
   }
 }
 

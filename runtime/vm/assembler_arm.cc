@@ -20,6 +20,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, allow_absolute_addresses);
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 DECLARE_FLAG(bool, inline_alloc);
 
@@ -1583,6 +1584,7 @@ void Assembler::LoadObjectHelper(Register rd,
   if (object.IsSmi()) {
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()), cond);
   } else if (object.InVMHeap() || !constant_pool_allowed()) {
+    ASSERT(FLAG_allow_absolute_addresses);
     // Make sure that class CallPattern is able to decode this load immediate.
     const int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
     LoadImmediate(rd, object_raw, cond);
@@ -1777,7 +1779,7 @@ void Assembler::VerifiedWrite(const Address& address,
       LoadImmediate(temp, Heap::kZap32Bits);
       cmp(old_value, Operand(temp));
       b(&ok, EQ);
-      LoadImmediate(temp, reinterpret_cast<uint32_t>(Object::null()));
+      LoadObject(temp, Object::null_object());
       cmp(old_value, Operand(temp));
       b(&ok, EQ);
       Stop("Expected zapped, Smi or null");
@@ -3387,6 +3389,7 @@ void Assembler::LoadAllocationStatsAddress(Register dest,
   ASSERT(cid > 0);
   const intptr_t class_offset = ClassTable::ClassOffsetFor(cid);
   if (inline_isolate) {
+    ASSERT(FLAG_allow_absolute_addresses);
     ClassTable* class_table = Isolate::Current()->class_table();
     ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
     if (cid < kNumPredefinedCids) {

@@ -493,16 +493,14 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ Comment("NoSuchMethodDispatch");
   // When lazily generated invocation dispatchers are disabled, the
   // miss-handler may return null.
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ cmpq(RAX, raw_null);
+  __ CompareObject(RAX, Object::null_object());
   __ j(NOT_EQUAL, call_target_function);
   __ EnterStubFrame();
   // Load the receiver.
   __ movq(RDI, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ movq(RAX, Address(
       RBP, RDI, TIMES_HALF_WORD_SIZE, kParamEndSlotFromFp * kWordSize));
-  __ pushq(raw_null);  // Setup space on stack for result.
+  __ PushObject(Object::null_object());  // Setup space on stack for result.
   __ pushq(RAX);  // Receiver.
   __ pushq(RBX);
   __ pushq(R10);  // Arguments descriptor array.
