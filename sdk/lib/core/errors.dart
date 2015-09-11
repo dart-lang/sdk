@@ -392,12 +392,13 @@ class IndexError extends ArgumentError implements RangeError {
   String get _errorName => "RangeError";
   String get _errorExplanation {
     assert(_hasValue);
-    String target = Error.safeToString(indexable);
-    var explanation = ": index should be less than $length";
     if (invalidValue < 0) {
-      explanation = ": index must not be negative";
+      return ": index must not be negative";
     }
-    return explanation;
+    if (length == 0) {
+      return ": no indices are valid";
+    }
+    return ": index should be less than $length";
   }
 }
 

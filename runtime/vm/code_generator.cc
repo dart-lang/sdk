@@ -138,7 +138,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   args.SetAt(1, Integer::Handle(Integer::New(0)));
   args.SetAt(2, Integer::Handle(Integer::New(Array::kMaxElements)));
   args.SetAt(3, Symbols::Length());
-  Exceptions::ThrowByType(Exceptions::kRangeRange, args);
+  Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
 
