@@ -9566,6 +9566,12 @@ class PartialResolverVisitor extends ResolverVisitor {
   final List<VariableElement> staticVariables = <VariableElement>[];
 
   /**
+   * A flag indicating whether we are currently visiting a child of either a
+   * field or a top-level variable.
+   */
+  bool inFieldOrTopLevelVariable = false;
+
+  /**
    * A flag indicating whether we should discard errors while resolving the
    * initializer for variable declarations. We do this for top-level variables
    * and fields because their initializer will be re-resolved at a later time.
@@ -9600,27 +9606,39 @@ class PartialResolverVisitor extends ResolverVisitor {
 
   @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
+    if (inFieldOrTopLevelVariable) {
+      return super.visitBlockFunctionBody(node);
+    }
     return null;
   }
 
   @override
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    if (inFieldOrTopLevelVariable) {
+      return super.visitExpressionFunctionBody(node);
+    }
     return null;
   }
 
   @override
   Object visitFieldDeclaration(FieldDeclaration node) {
-    if (strongMode && node.isStatic) {
-      _addStaticVariables(node.fields.variables);
-      bool wasDiscarding = discardErrorsInInitializer;
-      discardErrorsInInitializer = true;
-      try {
-        return super.visitFieldDeclaration(node);
-      } finally {
-        discardErrorsInInitializer = wasDiscarding;
+    bool wasInFieldOrTopLevelVariable = inFieldOrTopLevelVariable;
+    try {
+      inFieldOrTopLevelVariable = true;
+      if (strongMode && node.isStatic) {
+        _addStaticVariables(node.fields.variables);
+        bool wasDiscarding = discardErrorsInInitializer;
+        discardErrorsInInitializer = true;
+        try {
+          return super.visitFieldDeclaration(node);
+        } finally {
+          discardErrorsInInitializer = wasDiscarding;
+        }
       }
+      return super.visitFieldDeclaration(node);
+    } finally {
+      inFieldOrTopLevelVariable = wasInFieldOrTopLevelVariable;
     }
-    return super.visitFieldDeclaration(node);
   }
 
   @override
@@ -9637,17 +9655,23 @@ class PartialResolverVisitor extends ResolverVisitor {
 
   @override
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    if (strongMode) {
-      _addStaticVariables(node.variables.variables);
-      bool wasDiscarding = discardErrorsInInitializer;
-      discardErrorsInInitializer = true;
-      try {
-        return super.visitTopLevelVariableDeclaration(node);
-      } finally {
-        discardErrorsInInitializer = wasDiscarding;
+    bool wasInFieldOrTopLevelVariable = inFieldOrTopLevelVariable;
+    try {
+      inFieldOrTopLevelVariable = true;
+      if (strongMode) {
+        _addStaticVariables(node.variables.variables);
+        bool wasDiscarding = discardErrorsInInitializer;
+        discardErrorsInInitializer = true;
+        try {
+          return super.visitTopLevelVariableDeclaration(node);
+        } finally {
+          discardErrorsInInitializer = wasDiscarding;
+        }
       }
+      return super.visitTopLevelVariableDeclaration(node);
+    } finally {
+      inFieldOrTopLevelVariable = wasInFieldOrTopLevelVariable;
     }
-    return super.visitTopLevelVariableDeclaration(node);
   }
 
   /**

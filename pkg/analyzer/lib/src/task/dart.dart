@@ -2678,7 +2678,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
             "NodeLocator failed to find a variable's declaration");
       }
       Expression initializer = declaration.initializer;
-      initializer.accept(new ResolutionEraser());
+      ResolutionEraser.erase(initializer, eraseDeclarations: false);
       ResolutionContext resolutionContext =
           ResolutionContextBuilder.contextFor(initializer, errorListener);
       ResolverVisitor visitor = new ResolverVisitor(

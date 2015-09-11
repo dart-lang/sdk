@@ -10309,6 +10309,12 @@ class RecursiveXmlVisitor_ResolveHtmlTask_internalPerform
  * used to visit that structure.
  */
 class ResolutionEraser extends GeneralizingAstVisitor<Object> {
+  /**
+   * A flag indicating whether the elements associated with declarations should
+   * be erased.
+   */
+  bool eraseDeclarations = true;
+
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     node.staticElement = null;
@@ -10331,13 +10337,17 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitCompilationUnit(CompilationUnit node) {
-    node.element = null;
+    if (eraseDeclarations) {
+      node.element = null;
+    }
     return super.visitCompilationUnit(node);
   }
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    node.element = null;
+    if (eraseDeclarations) {
+      node.element = null;
+    }
     return super.visitConstructorDeclaration(node);
   }
 
@@ -10355,7 +10365,9 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitDirective(Directive node) {
-    node.element = null;
+    if (eraseDeclarations) {
+      node.element = null;
+    }
     return super.visitDirective(node);
   }
 
@@ -10368,7 +10380,9 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitFunctionExpression(FunctionExpression node) {
-    node.element = null;
+    if (eraseDeclarations) {
+      node.element = null;
+    }
     return super.visitFunctionExpression(node);
   }
 
@@ -10415,7 +10429,9 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    node.staticElement = null;
+    if (eraseDeclarations || !node.inDeclarationContext()) {
+      node.staticElement = null;
+    }
     node.propagatedElement = null;
     return super.visitSimpleIdentifier(node);
   }
@@ -10429,8 +10445,10 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
   /**
    * Remove any resolution information from the given AST structure.
    */
-  static void erase(AstNode node) {
-    node.accept(new ResolutionEraser());
+  static void erase(AstNode node, {bool eraseDeclarations: true}) {
+    ResolutionEraser eraser = new ResolutionEraser();
+    eraser.eraseDeclarations = eraseDeclarations;
+    node.accept(eraser);
   }
 }
 

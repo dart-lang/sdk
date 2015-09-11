@@ -1911,25 +1911,19 @@ class Z {}
 
 @reflectiveTest
 class InferStaticVariableTypesInUnitTaskTest extends _AbstractDartTaskTest {
-  void fail_perform_nestedDeclarations() {
+  void test_perform_nestedDeclarations() {
     enableStrongMode();
     AnalysisTarget source = newSource(
         '/test.dart',
         '''
-var Y = (int x, int y) {
+var f = (int x) {
   int squared(int value) => value * value;
   var xSquared = squared(x);
-  var ySquared = squared(y);
-  return Math.sqrt(xSquared + ySquared);
+  return xSquared;
 };
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6,
         matcher: isInferStaticVariableTypesInUnitTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT6];
-    VariableDeclaration variableY = getTopLevelVariable(unit, 'Y');
-
-    InterfaceType intType = context.typeProvider.intType;
-    expect(variableY.initializer.staticType, intType);
   }
 
   void test_perform_recursive() {
@@ -1969,6 +1963,30 @@ class M {}
     expect(variableB.initializer.staticType, typeM);
     expect(variableC.element.type, typeM);
     expect(variableC.initializer.staticType, typeM);
+  }
+
+  void test_perform_simple() {
+    enableStrongMode();
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+var X = 1;
+
+var Y = () {
+  return 1 + X;
+};
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6,
+        matcher: isInferStaticVariableTypesInUnitTask);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
+    TopLevelVariableDeclaration declaration = unit.declarations[1];
+    FunctionExpression function =
+        declaration.variables.variables[0].initializer;
+    BlockFunctionBody body = function.body;
+    ReturnStatement statement = body.block.statements[0];
+    Expression expression = statement.expression;
+    InterfaceType intType = context.typeProvider.intType;
+    expect(expression.staticType, intType);
   }
 }
 
