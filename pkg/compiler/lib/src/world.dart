@@ -89,6 +89,9 @@ abstract class ClassWorld {
   /// including [cls] if it is live.
   Iterable<ClassElement> strictSubtypesOf(ClassElement cls);
 
+  /// Returns `true` if [a] and [b] have any known common subtypes.
+  bool haveAnyCommonSubtypes(ClassElement a, ClassElement b);
+
   /// Returns `true` if any live class other than [cls] extends [cls].
   bool hasAnyStrictSubclass(ClassElement cls);
 
@@ -214,6 +217,21 @@ class World implements ClassWorld {
           includeIndirectlyInstantiated: false,
           includeUninstantiated: false);
     }
+  }
+
+  /// Returns `true` if [a] and [b] have any known common subtypes.
+  bool haveAnyCommonSubtypes(ClassElement a, ClassElement b) {
+    ClassSet classSetA = _classSets[a.declaration];
+    ClassSet classSetB = _classSets[b.declaration];
+    if (classSetA == null || classSetB == null) return false;
+    // TODO(johnniwinther): Implement an optimized query on [ClassSet].
+    Set<ClassElement> subtypesOfB = classSetB.subtypes().toSet();
+    for (ClassElement subtypeOfA in classSetA.subtypes()) {
+      if (subtypesOfB.contains(subtypeOfA)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /// Returns `true` if any directly instantiated class other than [cls] extends

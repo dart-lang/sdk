@@ -754,35 +754,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     Name memberName = new Name(name, currentLibrary,
         isSetter: memberKind == MemberKind.SETTER);
 
-    // Compute the unaliased type of the first non type variable bound of
-    // [type].
-    DartType computeUnaliasedBound(DartType type) {
-      DartType originalType = type;
-      while (identical(type.kind, TypeKind.TYPE_VARIABLE)) {
-        TypeVariableType variable = type;
-        type = variable.element.bound;
-        if (type == originalType) {
-          type = compiler.objectClass.rawType;
-        }
-      }
-      if (type.isMalformed) {
-        return const DynamicType();
-      }
-      return type.unalias(compiler);
-    }
-
-    // Compute the interface type of [type]. For type variable it is the
-    // interface type of the bound, for function types and typedefs it is the
-    // `Function` type.
-    InterfaceType computeInterfaceType(DartType type) {
-      if (type.isFunctionType) {
-         type = compiler.functionClass.rawType;
-      }
-      assert(invariant(node, type.isInterfaceType,
-          message: "unexpected type kind ${type.kind}."));
-      return type;
-    }
-
     // Lookup the class or interface member [name] in [interface].
     MemberSignature lookupMemberSignature(Name name, InterfaceType interface) {
       MembersCreator.computeClassMembersByName(
@@ -815,11 +786,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       return null;
     }
 
-    DartType unaliasedBound = computeUnaliasedBound(receiverType);
+    DartType unaliasedBound =
+        Types.computeUnaliasedBound(compiler, receiverType);
     if (unaliasedBound.treatAsDynamic) {
       return new DynamicAccess();
     }
-    InterfaceType interface = computeInterfaceType(unaliasedBound);
+    InterfaceType interface =
+        Types.computeInterfaceType(compiler, unaliasedBound);
     ElementAccess access = getAccess(memberName, unaliasedBound, interface);
     if (access != null) {
       return access;
@@ -831,9 +804,11 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         while (!typePromotions.isEmpty) {
           TypePromotion typePromotion = typePromotions.head;
           if (!typePromotion.isValid) {
-            DartType unaliasedBound = computeUnaliasedBound(typePromotion.type);
+            DartType unaliasedBound =
+                Types.computeUnaliasedBound(compiler, typePromotion.type);
             if (!unaliasedBound.treatAsDynamic) {
-              InterfaceType interface = computeInterfaceType(unaliasedBound);
+              InterfaceType interface =
+                  Types.computeInterfaceType(compiler, unaliasedBound);
               if (getAccess(memberName, unaliasedBound, interface) != null) {
                 reportTypePromotionHint(typePromotion);
               }

@@ -310,6 +310,7 @@ enum MessageKind {
   NATIVE_NOT_SUPPORTED,
   NO_BREAK_TARGET,
   NO_CATCH_NOR_FINALLY,
+  NO_COMMON_SUBTYPES,
   NO_CONTINUE_TARGET,
   NO_INSTANCE_AVAILABLE,
   NO_MATCHING_CONSTRUCTOR,
@@ -2899,6 +2900,10 @@ Please include the following information:
           "known type '#{knownType}' of '#{variableName}'.",
           howToFix:
             "Try replacing '#{shownType}' with '#{shownTypeSuggestion}'."),
+
+      MessageKind.NO_COMMON_SUBTYPES:
+        const MessageTemplate(MessageKind.NO_COMMON_SUBTYPES,
+           "Types '#{left}' and '#{right}' have no common subtypes."),
 
       MessageKind.HIDDEN_WARNINGS_HINTS:
         const MessageTemplate(MessageKind.HIDDEN_WARNINGS_HINTS,

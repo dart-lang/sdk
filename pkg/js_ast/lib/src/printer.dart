@@ -136,7 +136,7 @@ class Printer implements NodeVisitor {
 
   int get lastCharCode {
     if (lastAddedString == null) return 0;
-    assert(lastAddedString.length != "");
+    assert(lastAddedString.length != 0);
     return lastAddedString.codeUnitAt(lastAddedString.length - 1);
   }
 

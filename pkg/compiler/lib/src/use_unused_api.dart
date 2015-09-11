@@ -272,6 +272,7 @@ usedByTests() {
   world.subclassesOf(null);
   world.getClassHierarchyNode(null);
   world.getClassSet(null);
+  world.haveAnyCommonSubtypes(null, null);
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
   new dart_types.Types(compiler).copy(compiler);

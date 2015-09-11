@@ -2670,7 +2670,7 @@ class MixinApplicationElementX extends BaseClassElementX
   final Node node;
   final Modifiers modifiers;
 
-  Link<FunctionElement> constructors = new Link<FunctionElement>();
+  Link<ConstructorElement> constructors = new Link<ConstructorElement>();
 
   InterfaceType mixinType;
 
