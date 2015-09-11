@@ -306,11 +306,17 @@ patch class Isolate {
 
   /* patch */ static Future<Isolate> spawnUri(
       Uri uri, List<String> args, var message,
-      {bool paused: false, bool checked, Uri packageRoot, bool errorsAreFatal,
-       SendPort onExit, SendPort onError}) {
+      {bool paused: false,
+       bool checked,
+       Uri packageRoot,
+       Map<String, Uri> packages,
+       bool errorsAreFatal,
+       SendPort onExit,
+       SendPort onError}) {
     RawReceivePort readyPort;
     try {
       // The VM will invoke [_startIsolate] and not `main`.
+      // TODO: Handle [packages].
       readyPort = new RawReceivePort();
       var packageRootString =
           (packageRoot == null) ? null : packageRoot.toString();
