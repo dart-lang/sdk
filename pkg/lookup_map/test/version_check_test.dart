@@ -11,8 +11,8 @@ import 'package:yaml/yaml.dart';
 /// This dartdoc helps remove a warning for the unused import on [LookupMap].
 main() {
   test('validate version number matches', () {
-    var pubspecPath = Platform.script.resolve('../pubspec.yaml').path;
-    var yaml = loadYaml(new File(pubspecPath).readAsStringSync());
+    var pubspec = Platform.script.resolve('../pubspec.yaml');
+    var yaml = loadYaml(new File.fromUri(pubspec).readAsStringSync());
     var version1 = yaml['version'];
     var library = currentMirrorSystem().findLibrary(#lookup_map);
     var version2 = library.getField(new Symbol('_version')).reflectee;
