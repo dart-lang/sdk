@@ -1,18 +1,19 @@
 language: dart
-sudo: false
 dart:
   - dev
+cache:
+  directories:
+    - $HOME/.npm
+    - $HOME/.nvm
+    - $HOME/.pub-cache/hosted
+    - $HOME/.chrome/canary
+    - node_modules
 before_install:
   - pub global activate dart_coveralls
-  - export CHROME_URL=https://storage.googleapis.com/chromium-browser-snapshots/Linux_x64
-  - export CHROME_REV=$(curl -s ${CHROME_URL}/LAST_CHANGE)
-  - curl ${CHROME_URL}/${CHROME_REV}/chrome-linux.zip --create-dirs -o out/chrome-linux.zip
-  - unzip out/chrome-linux.zip -d out
-  - export CHROME_CANARY_BIN=$PWD/out/chrome-linux/chrome
+  - export CHROME_CANARY_BIN=`./tool/get_chrome_canary.sh`
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
 before_script:
   - npm install
 script:
-  - ./tool/presubmit.sh
-  - ./tool/coverage.sh
+  - ./tool/presubmit.sh && ./tool/coverage.sh
