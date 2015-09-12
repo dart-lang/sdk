@@ -17,8 +17,7 @@ import 'runtime_utils.dart' show getRuntimeFileAlias;
 _parseV8Version(String version) =>
     new Version.parse(version.split('.').getRange(0, 3).join('.'));
 
-/// io.js still has issues, like lexical this in arrow functions.
-final _MIN_SUPPORTED_V8_VERSION = _parseV8Version("4.4.63");
+final _MIN_SUPPORTED_V8_VERSION = _parseV8Version("4.5.103.30");
 
 /// TODO(ochafik): Move to dart_library.js
 const _GLOBALS = r'''
@@ -52,15 +51,8 @@ abstract class V8Runner {
 
   Future<Process> start(List<File> files, String startStatement) =>
       Process.start(
-          _v8Binary,
-          [
-            "--harmony_arrow_functions",
-            "--harmony_classes",
-            "--harmony_computed_property_names",
-            "--harmony_generators",
-            "--harmony_object_literals",
-            "--harmony_rest_parameters",
-            "--harmony_spreadcalls",
+          _v8Binary, [
+            "--harmony",
             "-e",
             _GLOBALS + _getLoadStatements(files).join() + startStatement
           ],
