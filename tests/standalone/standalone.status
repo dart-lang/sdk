@@ -17,6 +17,9 @@ issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue
 
 javascript_compatibility_errors_test/none: Fail, OK  # Not possible to exclude or annotate with '/// none:'
 
+[ $runtime != vm ]
+no_assert_test: Fail, OK # This is testing a vm flag.
+
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 12474
 io/observatory_test: Fail

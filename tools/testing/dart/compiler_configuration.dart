@@ -155,7 +155,12 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> sharedOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    return <String>[]
+    List<String> args = [];
+    if (isChecked) {
+      args.add('--enable_asserts');
+      args.add('--enable_type_checks');
+    }
+    return args
         ..addAll(vmOptions)
         ..addAll(sharedOptions)
         ..addAll(originalArguments);
@@ -315,6 +320,10 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
+    arguments = new List.from(arguments);
+    if (isChecked) {
+      arguments.add('--enable_type_checks');
+    }
     return new CommandArtifact(
         <Command>[
             commandBuilder.getAnalysisCommand(
