@@ -10,6 +10,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import utils
 
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
@@ -26,25 +27,6 @@ IGNORE_PATTERNS = shutil.ignore_patterns(
     '*~')
 
 usage = """obs_tool.py [options]"""
-
-def GetDartSdkPubExecutablePath():
-  osdict = {'Darwin':'mac', 'Linux':'linux', 'Windows':'win'}
-  system = platform.system()
-  executable_name = 'pub'
-  if system == 'Windows':
-    executable_name = 'pub.bat'
-  try:
-    osname = osdict[system]
-  except KeyError:
-    print >>sys.stderr, ('WARNING: platform "%s" not supported') % (system)
-    return None;
-  return os.path.join(DART_ROOT,
-                      'tools',
-                      'sdks',
-                      osname,
-                      'dart-sdk',
-                      'bin',
-                      executable_name)
 
 def BuildArguments():
   result = argparse.ArgumentParser(usage=usage)
@@ -66,7 +48,7 @@ def ProcessOptions(options, args):
     return True
   if (options.sdk != None):
     # Use the checked in pub executable by default.
-    options.pub_executable = GetDartSdkPubExecutablePath()
+    options.pub_executable = utils.CheckedInPubPath()
     return True
   # Otherwise, we need a dart executable and a package root.
   return ((options.package_root != None) and

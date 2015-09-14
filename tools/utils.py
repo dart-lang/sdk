@@ -591,6 +591,31 @@ def DartSdkBinary():
   dart_binary_prefix = os.path.join(tools_dir, '..', 'sdk' , 'bin')
   return os.path.join(dart_binary_prefix, 'dart')
 
+
+def CheckedInSdkPath():
+  # We don't use the normal macos, linux, win32 directory names here, instead,
+  # we use the names that the download_from_google_storage script uses.
+  osdict = {'Darwin':'mac', 'Linux':'linux', 'Windows':'win'}
+  system = platform.system()
+  try:
+    osname = osdict[system]
+  except KeyError:
+    print >>sys.stderr, ('WARNING: platform "%s" not supported') % (system)
+    return None;
+  tools_dir = os.path.dirname(os.path.realpath(__file__))
+  return os.path.join(tools_dir,
+                      'sdks',
+                      osname,
+                      'dart-sdk')
+
+
+def CheckedInPubPath():
+  executable_name = 'pub'
+  if platform.system() == 'Windows':
+    executable_name = 'pub.bat'
+  return os.path.join(CheckedInSdkPath(), 'bin', executable_name)
+
+
 class TempDir(object):
   def __init__(self, prefix=''):
     self._temp_dir = None
