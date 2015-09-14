@@ -12,6 +12,8 @@ import 'package:plugin/plugin.dart';
 
 /**
  * An object that can be used to start an analysis server.
+ *
+ * Clients are not expected to subtype this class.
  */
 abstract class ServerStarter {
   /**

@@ -16,9 +16,9 @@ import 'package:analyzer/src/generated/source.dart' show Source;
  */
 abstract class NavigationContributor {
   /**
-   * Contribute navigation regions for a part of the given [source] into the
-   * given [collector]. The part is specified by the [offset] and [length].
-   * The [context] can be used to get analysis results.
+   * Contribute navigation regions for a subset of the content of the given
+   * [source] into the given [collector]. The subset is specified by the
+   * [offset] and [length]. The [context] can be used to access analysis results.
    */
   void computeNavigation(NavigationCollector collector, AnalysisContext context,
       Source source, int offset, int length);
@@ -33,7 +33,7 @@ abstract class NavigationContributor {
 abstract class NavigationCollector {
   /**
    * Record a new navigation region with the given [offset] and [length] that
-   * should navigation to the given [targetLocation].
+   * should navigate to the given [targetLocation].
    */
   void addRegion(
       int offset, int length, ElementKind targetKind, Location targetLocation);

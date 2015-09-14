@@ -5,6 +5,22 @@
 /**
  * Support for client code that extends the analysis server by adding new fix
  * contributors.
+ *
+ * Plugins can register fix contributors. The registered contributors will be
+ * used to get fixes any time a client issues an 'edit.getFixes' request.
+ *
+ * If a plugin wants to add fixes, it should implement the class
+ * [FixContributor] and then register the contributor by including code like the
+ * following in the plugin's registerExtensions method:
+ *
+ *     @override
+ *     void registerExtensions(RegisterExtension registerExtension) {
+ *       ...
+ *       registerExtension(
+ *           FIX_CONTRIBUTOR_EXTENSION_POINT_ID,
+ *           new MyFixContributor());
+ *       ...
+ *     }
  */
 library analysis_server.plugin.fix;
 

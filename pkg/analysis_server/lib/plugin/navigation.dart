@@ -5,6 +5,24 @@
 /**
  * Support for client code that extends the analysis server by adding new
  * navigation contributors.
+ *
+ * Plugins can register navigation contributors. The registered contributors
+ * will be used to get navigation regions any time a client issues an
+ * 'analysis.getNavigation' request or the server is about to send an
+ * 'analysis.navigation' notification.
+ *
+ * If a plugin wants to add navigation regions, it should implement the class
+ * [NavigationContributor] and then register the contributor by including code
+ * like the following in the plugin's registerExtensions method:
+ *
+ *     @override
+ *     void registerExtensions(RegisterExtension registerExtension) {
+ *       ...
+ *       registerExtension(
+ *           NAVIGATION_CONTRIBUTOR_EXTENSION_POINT_ID,
+ *           new MyNavigationContributor());
+ *       ...
+ *     }
  */
 library analysis_server.plugin.navigation;
 
