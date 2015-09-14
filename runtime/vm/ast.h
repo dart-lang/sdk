@@ -1311,7 +1311,7 @@ class LoadStaticFieldNode : public AstNode {
   virtual const Instance* EvalConstExpr() const {
     ASSERT(field_.is_static());
     return !is_deferred_reference_ && field_.is_const()
-        ? &Instance::ZoneHandle(field_.value())
+        ? &Instance::ZoneHandle(field_.StaticValue())
         : NULL;
   }
 

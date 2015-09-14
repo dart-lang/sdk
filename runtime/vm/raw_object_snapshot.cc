@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/snapshot.h"
@@ -747,9 +748,25 @@ void RawField::WriteTo(SnapshotWriter* writer,
   writer->Write<int32_t>(ptr()->is_nullable_);
   writer->Write<uint8_t>(ptr()->kind_bits_);
 
-  // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
-  visitor.VisitPointers(from(), to());
+  // Write out the name.
+  writer->WriteObjectImpl(ptr()->name_, kAsReference);
+  // Write out the owner.
+  writer->WriteObjectImpl(ptr()->owner_, kAsReference);
+  // Write out the type.
+  writer->WriteObjectImpl(ptr()->type_, kAsReference);
+  // Write out the initial static value or field offset.
+  if (Field::StaticBit::decode(ptr()->kind_bits_)) {
+    // For static field we write out the initial static value.
+    writer->WriteObjectImpl(ptr()->initializer_.saved_value_, kAsReference);
+  } else {
+    writer->WriteObjectImpl(ptr()->value_.offset_, kAsReference);
+  }
+  // Write out the dependent code.
+  writer->WriteObjectImpl(ptr()->dependent_code_, kAsReference);
+  // Write out the initializer value.
+  writer->WriteObjectImpl(ptr()->initializer_.saved_value_, kAsReference);
+  // Write out the guarded list length.
+  writer->WriteObjectImpl(ptr()->guarded_list_length_, kAsReference);
 }
 
 
@@ -1180,6 +1197,8 @@ void RawCode::WriteTo(SnapshotWriter* writer,
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to());
+
+  writer->SetInstructionsCode(ptr()->instructions_, this);
 }
 
 
@@ -1278,6 +1297,16 @@ RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
         result.SetRawValueAt(i, raw_value);
         break;
       }
+      case ObjectPool::kNativeEntry: {
+        // Read nothing. Initialize with the lazy link entry.
+        uword entry = reinterpret_cast<uword>(&NativeEntry::LinkNativeCall);
+#if defined(USING_SIMULATOR)
+        entry = Simulator::RedirectExternalReference(
+            entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
+#endif
+        result.SetRawValueAt(i, entry);
+        break;
+      }
       default:
         UNREACHABLE();
     }
@@ -1320,6 +1349,9 @@ void RawObjectPool::WriteTo(SnapshotWriter* writer,
       case ObjectPool::kExternalLabel:
         // TODO(rmacnak): Write symbolically.
         writer->Write<intptr_t>(entry.raw_value_);
+        break;
+      case ObjectPool::kNativeEntry:
+        // Write nothing. Will initialize with the lazy link entry.
         break;
       default:
         UNREACHABLE();

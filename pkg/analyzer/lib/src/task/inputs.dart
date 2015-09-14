@@ -25,7 +25,8 @@ typedef R Mapper<P, R>(P value);
  * defined on a single target.
  */
 class ListTaskInputImpl<E> extends SimpleTaskInput<List<E>>
-    with ListTaskInputMixin<E> implements ListTaskInput<E> {
+    with ListTaskInputMixin<E>
+    implements ListTaskInput<E> {
   /**
    * Initialize a newly created task input that computes the input by accessing
    * the given [result] associated with the given [target].
@@ -168,7 +169,8 @@ class ListToMapTaskInputBuilder<B, E>
 abstract class MapTaskInputMixin<K, V> implements MapTaskInput<K, V> {
   TaskInput<List /*<E>*/ > toFlattenList(
       BinaryFunction<K, dynamic /*element of V*/, dynamic /*<E>*/ > mapper) {
-    return new MapToFlattenListTaskInput<K, dynamic /*element of V*/, dynamic /*E*/ >(
+    return new MapToFlattenListTaskInput<K, dynamic /*element of V*/,
+        dynamic /*E*/ >(
         this as MapTaskInput<K, List /*<element of V>*/ >, mapper);
   }
 }
@@ -301,7 +303,8 @@ class MapToFlattenListTaskInputBuilder<K, V, E>
  * An input to an [AnalysisTask] that is computed by mapping the value of
  * another task input to a list of values.
  */
-class ObjectToListTaskInput<E> extends TaskInputImpl<List<E>> with ListTaskInputMixin<E>
+class ObjectToListTaskInput<E> extends TaskInputImpl<List<E>>
+    with ListTaskInputMixin<E>
     implements ListTaskInput<E> {
   /**
    * The input used to compute the value to be mapped.

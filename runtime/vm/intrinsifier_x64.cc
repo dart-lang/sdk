@@ -1489,10 +1489,12 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
       random_class.LookupStaticField(Symbols::_A()));
   ASSERT(!random_A_field.IsNull());
   ASSERT(random_A_field.is_const());
-  const Instance& a_value = Instance::Handle(random_A_field.value());
+  const Instance& a_value = Instance::Handle(random_A_field.StaticValue());
   const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Receiver.
-  __ movq(RBX, FieldAddress(RAX, state_field.Offset()));  // Field '_state'.
+  // Receiver.
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  // Field '_state'.
+  __ movq(RBX, FieldAddress(RAX, state_field.Offset()));
   // Addresses of _state[0] and _state[1].
   const intptr_t scale = Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
   const intptr_t offset = Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
@@ -1608,14 +1610,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ movzxb(RCX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
   __ cmpq(RCX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
   __ j(GREATER_EQUAL, &fall_through);
-  const ExternalLabel symbols_label(
-      reinterpret_cast<uword>(Symbols::PredefinedAddress()));
-  __ pushq(PP);
-  __ LoadPoolPointer();
-  assembler->set_constant_pool_allowed(true);
-  __ LoadExternalLabel(RAX, &symbols_label, kNotPatchable);
-  assembler->set_constant_pool_allowed(false);
-  __ popq(PP);
+  __ movq(RAX, Address(THR, Thread::predefined_symbols_address_offset()));
   __ movq(RAX, Address(RAX,
                        RCX,
                        TIMES_8,
@@ -1629,12 +1624,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ movzxw(RCX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
   __ cmpq(RCX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
   __ j(GREATER_EQUAL, &fall_through);
-  __ pushq(PP);
-  __ LoadPoolPointer();
-  assembler->set_constant_pool_allowed(true);
-  __ LoadExternalLabel(RAX, &symbols_label, kNotPatchable);
-  assembler->set_constant_pool_allowed(false);
-  __ popq(PP);
+  __ movq(RAX, Address(THR, Thread::predefined_symbols_address_offset()));
   __ movq(RAX, Address(RAX,
                        RCX,
                        TIMES_8,

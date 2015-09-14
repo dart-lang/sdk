@@ -1501,16 +1501,8 @@ class JavaScriptBackend extends Backend {
    *
    * Invariant: [element] must be a declaration element.
    */
-  String assembleCode(Element element) {
+  String getGeneratedCode(Element element) {
     assert(invariant(element, element.isDeclaration));
-    var code = generatedCode[element];
-    if (namer is jsAst.TokenFinalizer) {
-      jsAst.TokenCounter counter = new jsAst.TokenCounter();
-      counter.countTokens(code);
-      // Avoid a warning.
-      var finalizer = namer;
-      finalizer.finalizeTokens();
-    }
     return jsAst.prettyPrint(generatedCode[element], compiler).getText();
   }
 
@@ -2085,7 +2077,10 @@ class JavaScriptBackend extends Backend {
 
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
     return super.onLibraryScanned(library, loader).then((_) {
-      if (library.isPlatformLibrary && !library.isPatched) {
+      if (library.isPlatformLibrary &&
+          // Don't patch library currently disallowed.
+          !library.isSynthesized &&
+          !library.isPatched) {
         // Apply patch, if any.
         Uri patchUri = compiler.resolvePatchUri(library.canonicalUri.path);
         if (patchUri != null) {
@@ -2159,7 +2154,7 @@ class JavaScriptBackend extends Backend {
       } else if (uri == Uris.dart_html) {
         htmlLibraryIsLoaded = true;
       } else if (uri == PACKAGE_LOOKUP_MAP) {
-        lookupMapAnalysis.initRuntimeClass(find(library, 'LookupMap'));
+        lookupMapAnalysis.init(library);
       }
       annotations.onLibraryScanned(library);
     });
@@ -2313,8 +2308,7 @@ class JavaScriptBackend extends Backend {
    */
   bool matchesMirrorsMetaTarget(Element element) {
     if (metaTargetsUsed.isEmpty) return false;
-    for (Link link = element.metadata; !link.isEmpty; link = link.tail) {
-      MetadataAnnotation metadata = link.head;
+    for (MetadataAnnotation metadata in element.metadata) {
       // TODO(kasperl): It would be nice if we didn't have to resolve
       // all metadata but only stuff that potentially would match one
       // of the used meta targets.
@@ -2605,7 +2599,13 @@ class JavaScriptBackend extends Backend {
     return true;
   }
 
-  void onQueueClosed() => lookupMapAnalysis.onQueueClosed();
+  void onQueueClosed() {
+    lookupMapAnalysis.onQueueClosed();
+  }
+
+  void onCodegenStart() {
+    lookupMapAnalysis.onCodegenStart();
+  }
 
   void onElementResolved(Element element, TreeElements elements) {
     if ((element.isFunction || element.isGenerativeConstructor) &&
@@ -2619,7 +2619,7 @@ class JavaScriptBackend extends Backend {
     bool hasForceInline = false;
     bool hasNoThrows = false;
     bool hasNoSideEffects = false;
-    for (MetadataAnnotation metadata in element.metadata) {
+    for (MetadataAnnotation metadata in element.implementation.metadata) {
       metadata.ensureResolved(compiler);
       ConstantValue constantValue =
           compiler.constants.getConstantValue(metadata.constant);
@@ -2888,19 +2888,21 @@ class Annotations {
   /// Returns `true` if [element] is annotated with [annotationClass].
   bool _hasAnnotation(Element element, ClassElement annotationClass) {
     if (annotationClass == null) return false;
-    for (Link<MetadataAnnotation> link = element.metadata;
-         !link.isEmpty;
-         link = link.tail) {
-      ConstantValue value =
-          compiler.constants.getConstantValue(link.head.constant);
-      if (value.isConstructedObject) {
-        ConstructedConstantValue constructedConstant = value;
-        if (constructedConstant.type.element == annotationClass) {
-          return true;
+    return compiler.withCurrentElement(element, () {
+      for (MetadataAnnotation metadata in element.metadata) {
+        assert(invariant(metadata, metadata.constant != null,
+            message: "Unevaluated metadata constant."));
+        ConstantValue value =
+            compiler.constants.getConstantValue(metadata.constant);
+        if (value.isConstructedObject) {
+          ConstructedConstantValue constructedConstant = value;
+          if (constructedConstant.type.element == annotationClass) {
+            return true;
+          }
         }
       }
-    }
-    return false;
+      return false;
+    });
   }
 }
 
@@ -2992,6 +2994,7 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     registerBackendInstantiation(backend.compiler.listClass, registry);
     registerBackendStaticInvocation(backend.getRuntimeTypeToString(), registry);
     registerBackendStaticInvocation(backend.getCreateRuntimeType(), registry);
+    needsInt(registry, 'Needed for accessing a type variable literal on this.');
   }
 
   // TODO(johnniwinther): Maybe split this into [onAssertType] and [onTestType].
@@ -3052,7 +3055,7 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     registerBackendStaticInvocation(
         backend.getThrowAbstractClassInstantiationError(), registry);
     // Also register the types of the arguments passed to this method.
-    registerBackendInstantiation(backend.compiler.stringClass, registry);
+    needsString(registry, '// Needed to encode the message.');
   }
 
   void onFallThroughError(Registry registry) {
@@ -3069,8 +3072,10 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     assert(registry.isForResolution);
     registerBackendStaticInvocation(backend.getThrowNoSuchMethod(), registry);
     // Also register the types of the arguments passed to this method.
-    registerBackendInstantiation(backend.compiler.listClass, registry);
-    registerBackendInstantiation(backend.compiler.stringClass, registry);
+    needsList(registry,
+        'Needed to encode the arguments for throw NoSuchMethodError.');
+    needsString(registry,
+        'Needed to encode the name for throw NoSuchMethodError.');
   }
 
   void onThrowRuntimeError(Registry registry) {
@@ -3095,8 +3100,12 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
         backend.compiler.objectClass.lookupLocalMember(
             Identifiers.noSuchMethod_),
         registry);
-    registerBackendInstantiation(backend.compiler.listClass, registry);
-    registerBackendInstantiation(backend.compiler.stringClass, registry);
+    needsInt(registry,
+        'Needed to encode the invocation kind of super.noSuchMethod.');
+    needsList(registry,
+        'Needed to encode the arguments of super.noSuchMethod.');
+    needsString(registry,
+        'Needed to encode the name of super.noSuchMethod.');
   }
 
   void onMapLiteral(ResolutionRegistry registry,
@@ -3125,6 +3134,29 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     assert(backend.compiler.symbolValidatedConstructor != null);
     registerBackendStaticInvocation(
         backend.compiler.symbolValidatedConstructor, registry);
+  }
+
+  /// Called when resolving a prefix or postfix expression.
+  void onIncDecOperation(Registry registry) {
+    needsInt(registry, 'Needed for the `+ 1` or `- 1` operation of ++/--.');
+  }
+
+  /// Helper for registering that `int` is needed.
+  void needsInt(Registry registry, String reason) {
+    // TODO(johnniwinther): Register [reason] for use in dump-info.
+    registerBackendInstantiation(backend.compiler.intClass, registry);
+  }
+
+  /// Helper for registering that `List` is needed.
+  void needsList(Registry registry, String reason) {
+    // TODO(johnniwinther): Register [reason] for use in dump-info.
+    registerBackendInstantiation(backend.compiler.listClass, registry);
+  }
+
+  /// Helper for registering that `String` is needed.
+  void needsString(Registry registry, String reason) {
+    // TODO(johnniwinther): Register [reason] for use in dump-info.
+    registerBackendInstantiation(backend.compiler.stringClass, registry);
   }
 }
 

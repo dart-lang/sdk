@@ -566,55 +566,42 @@ class _File extends FileSystemEntity implements File {
 
 
 class _RandomAccessFile
-    extends Object with _ServiceObject
     implements RandomAccessFile {
-  // Use default Map so we keep order.
-  static Map<int, _RandomAccessFile> _files = new Map<int, _RandomAccessFile>();
+  static bool _connectedResourceHandler = false;
 
   final String path;
   int _id;
   bool _asyncDispatched = false;
   SendPort _fileService;
 
-  int _totalRead = 0;
-  int _totalWritten = 0;
-  int _readCount = 0;
-  int _writeCount = 0;
-
+  _FileResourceInfo _resourceInfo;
 
   _RandomAccessFile(this._id, this.path) {
-    _files[_serviceId] = this;
-  }
-
-  String get _serviceTypePath => 'io/file/randomaccessfiles';
-  String get _serviceTypeName => 'RandomAccessFile';
-
-  Map _toJSON(bool ref) {
-    var r = {
-      'id': _servicePath,
-      'type': _serviceType(ref),
-      'name': '$path',
-      'user_name': '$path',
-    };
-    if (ref) {
-      return r;
-    }
-    r['asyncDispatched'] = _asyncDispatched;
-    r['fd'] = _getFD(_id);
-    r['totalRead'] = _totalRead;
-    r['totalWritten'] = _totalWritten;
-    r['readCount'] = _totalWritten;
-    r['writeCount'] = _writeCount;
-    return r;
+    _resourceInfo = new _FileResourceInfo(this);
+    _maybeConnectHandler();
   }
 
   void _maybePerformCleanup() {
     if (closed) {
-      _files.remove(_serviceId);
+      _FileResourceInfo.FileClosed(_resourceInfo);
     }
   }
 
   external static int _getFD(int id);
+
+  _maybeConnectHandler() {
+    if (!_connectedResourceHandler) {
+      // TODO(ricow): we probably need set these in some initialization code.
+      // We need to make sure that these are always awailable from the
+      // observatory even if no files (or sockets for the socket ones) are
+      // open.
+      registerExtension('__getOpenFiles',
+                        _FileResourceInfo.getOpenFiles);
+      registerExtension('__getFileByID',
+                        _FileResourceInfo.getFileInfoMapByID);
+      _connectedResourceHandler = true;
+    }
+  }
 
   Future<RandomAccessFile> close() {
     return _dispatch(_FILE_CLOSE, [_id], markClosed: true).then((result) {
@@ -645,8 +632,7 @@ class _RandomAccessFile
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "readByte failed", path);
       }
-      _readCount++;
-      _totalRead++;
+      _resourceInfo.addRead(1);
       return response;
     });
   }
@@ -659,8 +645,7 @@ class _RandomAccessFile
     if (result is OSError) {
       throw new FileSystemException("readByte failed", path, result);
     }
-    _readCount++;
-    _totalRead++;
+    _resourceInfo.addRead(1);
     return result;
   }
 
@@ -672,8 +657,7 @@ class _RandomAccessFile
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "read failed", path);
       }
-      _readCount++;
-      _totalRead += response[1].length;
+      _resourceInfo.addRead(response[1].length);
       return response[1];
     });
   }
@@ -689,8 +673,7 @@ class _RandomAccessFile
     if (result is OSError) {
       throw new FileSystemException("readSync failed", path, result);
     }
-    _readCount++;
-    _totalRead += result.length;
+    _resourceInfo.addRead(result.length);
     return result;
   }
 
@@ -710,8 +693,7 @@ class _RandomAccessFile
       var read = response[1];
       var data = response[2];
       buffer.setRange(start, start + read, data);
-      _readCount++;
-      _totalRead += read;
+      _resourceInfo.addRead(read);
       return read;
     });
   }
@@ -731,8 +713,7 @@ class _RandomAccessFile
     if (result is OSError) {
       throw new FileSystemException("readInto failed", path, result);
     }
-    _readCount++;
-    _totalRead += result;
+    _resourceInfo.addRead(result);
     return result;
   }
 
@@ -744,8 +725,7 @@ class _RandomAccessFile
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeByte failed", path);
       }
-      _writeCount++;
-      _totalWritten++;
+      _resourceInfo.addWrite(1);
       return this;
     });
   }
@@ -761,8 +741,7 @@ class _RandomAccessFile
     if (result is OSError) {
       throw new FileSystemException("writeByte failed", path, result);
     }
-    _writeCount++;
-    _totalWritten++;
+    _resourceInfo.addWrite(1);
     return result;
   }
 
@@ -791,8 +770,7 @@ class _RandomAccessFile
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeFrom failed", path);
       }
-      _writeCount++;
-      _totalWritten += end - (start - result.start);
+      _resourceInfo.addWrite(end - (start - result.start));
       return this;
     });
   }
@@ -817,8 +795,7 @@ class _RandomAccessFile
     if (result is OSError) {
       throw new FileSystemException("writeFrom failed", path, result);
     }
-    _writeCount++;
-    _totalWritten += end - (start - bufferAndStart.start);
+    _resourceInfo.addWrite(end - (start - bufferAndStart.start));
   }
 
   Future<RandomAccessFile> writeString(String string,

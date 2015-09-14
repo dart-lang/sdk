@@ -43,8 +43,12 @@ class SocketServer {
    */
   List<Plugin> userDefinedPlugins;
 
-  SocketServer(this.analysisServerOptions, this.defaultSdk,
-      this.instrumentationService, this.serverPlugin, this.contextManager,
+  SocketServer(
+      this.analysisServerOptions,
+      this.defaultSdk,
+      this.instrumentationService,
+      this.serverPlugin,
+      this.contextManager,
       this.packageResolverProvider);
 
   /**
@@ -80,9 +84,15 @@ class SocketServer {
       index.run();
     }
 
-    analysisServer = new AnalysisServer(serverChannel, resourceProvider,
-        new PubPackageMapProvider(resourceProvider, defaultSdk), index,
-        serverPlugin, analysisServerOptions, defaultSdk, instrumentationService,
+    analysisServer = new AnalysisServer(
+        serverChannel,
+        resourceProvider,
+        new PubPackageMapProvider(resourceProvider, defaultSdk),
+        index,
+        serverPlugin,
+        analysisServerOptions,
+        defaultSdk,
+        instrumentationService,
         contextManager: contextManager,
         packageResolverProvider: packageResolverProvider,
         rethrowExceptions: false);

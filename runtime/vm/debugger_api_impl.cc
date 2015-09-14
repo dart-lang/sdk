@@ -361,7 +361,11 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointLine(intptr_t bp_id) {
     return Api::NewError("%s: breakpoint with id %" Pd " does not exist",
                          CURRENT_FUNC, bp_id);
   }
-  return Dart_NewInteger(bpt->bpt_location()->LineNumber());
+  if (bpt->bpt_location()->IsResolved()) {
+    return Dart_NewInteger(bpt->bpt_location()->LineNumber());
+  } else {
+    return Dart_NewInteger(bpt->bpt_location()->requested_line_number());
+  }
 }
 
 

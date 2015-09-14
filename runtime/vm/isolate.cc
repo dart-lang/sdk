@@ -38,6 +38,7 @@
 #include "vm/thread_interrupter.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
+#include "vm/timeline_analysis.h"
 #include "vm/timer.h"
 #include "vm/visitor.h"
 
@@ -45,6 +46,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, print_metrics);
+DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
 
 DEFINE_FLAG(bool, trace_isolates, false,
@@ -56,9 +58,6 @@ DEFINE_FLAG(bool, pause_isolates_on_exit, false,
 DEFINE_FLAG(bool, break_at_isolate_spawn, false,
             "Insert a one-time breakpoint at the entrypoint for all spawned "
             "isolates");
-DEFINE_FLAG(charp, isolate_log_filter, NULL,
-            "Log isolates whose name include the filter. "
-            "Default: service isolate log messages are suppressed.");
 
 DEFINE_FLAG(int, new_gen_semi_max_size, (kWordSize <= 4) ? 16 : 32,
             "Max size of new gen semi space in MB");
@@ -699,7 +698,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       edge_counter_increment_size_(-1),
       compiler_stats_(NULL),
       is_service_isolate_(false),
-      log_(new class Log()),
       stacktrace_(NULL),
       stack_frame_index_(-1),
       last_allocationprofile_accumulator_reset_timestamp_(0),
@@ -747,8 +745,6 @@ Isolate::~Isolate() {
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ == NULL);  // No deopt in progress when isolate deleted.
   delete spawn_state_;
-  delete log_;
-  log_ = NULL;
   delete object_id_ring_;
   object_id_ring_ = NULL;
   delete pause_loop_monitor_;
@@ -900,27 +896,7 @@ void Isolate::BuildName(const char* name_prefix) {
     name_ = strdup(name_prefix);
     return;
   }
-  const char* kFormat = "%s-%lld";
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name_prefix, main_port()) + 1;
-  name_ = reinterpret_cast<char*>(malloc(len));
-  OS::SNPrint(name_, len, kFormat, name_prefix, main_port());
-}
-
-
-Log* Isolate::Log() const {
-  if (FLAG_isolate_log_filter == NULL) {
-    if (is_service_isolate_) {
-      // By default, do not log for the service isolate.
-      return Log::NoOpLog();
-    }
-    return log_;
-  }
-  ASSERT(name_ != NULL);
-  if (strstr(name_, FLAG_isolate_log_filter) == NULL) {
-    // Filter does not match, do not log for this isolate.
-    return Log::NoOpLog();
-  }
-  return log_;
+  name_ = OS::SCreate(NULL, "%s-%" Pd64 "", name_prefix, main_port());
 }
 
 
@@ -1531,7 +1507,7 @@ void Isolate::Shutdown() {
     NoSafepointScope no_safepoint_scope;
 
     if (compiler_stats_ != NULL) {
-      compiler_stats()->Print();
+      OS::Print("%s", compiler_stats()->PrintToZone());
     }
 
     // Notify exit listeners that this isolate is shutting down.
@@ -1552,6 +1528,15 @@ void Isolate::Shutdown() {
     // Dump all accumulated timer data for the isolate.
     timer_list_.ReportTimers();
 
+    // Before analyzing the isolate's timeline blocks- close all of them.
+    CloseAllTimelineBlocks();
+
+    // Dump all timing data for the isolate.
+    if (FLAG_timing) {
+      TimelinePauseTrace tpt;
+      tpt.Print();
+    }
+
     // Finalize any weak persistent handles with a non-null referent.
     FinalizeWeakPersistentHandlesVisitor visitor;
     api_state()->weak_persistent_handles().VisitHandles(&visitor);
@@ -1565,13 +1550,13 @@ void Isolate::Shutdown() {
                 "\tisolate:    %s\n", name());
     }
     if (FLAG_print_metrics) {
-      LogBlock lb(this);
-      ISL_Print("Printing metrics for %s\n", name());
+      LogBlock lb;
+      THR_Print("Printing metrics for %s\n", name());
 #define ISOLATE_METRIC_PRINT(type, variable, name, unit)                       \
-  ISL_Print("%s\n", metric_##variable##_.ToString());
+  THR_Print("%s\n", metric_##variable##_.ToString());
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_PRINT);
 #undef ISOLATE_METRIC_PRINT
-      ISL_Print("\n");
+      THR_Print("\n");
     }
   }
 
@@ -1590,6 +1575,17 @@ void Isolate::Shutdown() {
   // All threads should have exited by now.
   thread_registry()->CheckNotScheduled(this);
   Profiler::ShutdownProfilingForIsolate(this);
+}
+
+
+void Isolate::CloseAllTimelineBlocks() {
+  // Close all blocks
+  thread_registry_->CloseAllTimelineBlocks();
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder != NULL) {
+    MutexLocker ml(&recorder->lock_);
+    Thread::Current()->CloseTimelineBlock();
+  }
 }
 
 

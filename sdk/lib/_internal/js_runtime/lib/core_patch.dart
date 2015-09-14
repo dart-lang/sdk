@@ -18,7 +18,8 @@ import 'dart:_js_helper' show patch,
                               stringJoinUnchecked,
                               objectHashCode,
                               Closure,
-                              readHttp;
+                              readHttp,
+                              JsLinkedHashMap;
 
 import 'dart:_foreign_helper' show JS;
 
@@ -311,6 +312,9 @@ class List<E> {
 class Map<K, V> {
   @patch
   factory Map.unmodifiable(Map other) = ConstantMap<K, V>.from;
+
+  @patch
+  factory Map() = JsLinkedHashMap<K, V>.es6;
 }
 
 @patch

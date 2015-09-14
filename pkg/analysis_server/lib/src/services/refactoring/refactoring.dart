@@ -278,8 +278,11 @@ abstract class MoveFileRefactoring implements Refactoring {
   /**
    * Returns a new [MoveFileRefactoring] instance.
    */
-  factory MoveFileRefactoring(ResourceProvider resourceProvider,
-      SearchEngine searchEngine, AnalysisContext context, Source source,
+  factory MoveFileRefactoring(
+      ResourceProvider resourceProvider,
+      SearchEngine searchEngine,
+      AnalysisContext context,
+      Source source,
       String oldFile) {
     return new MoveFileRefactoringImpl(
         resourceProvider, searchEngine, context, source, oldFile);

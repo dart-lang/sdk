@@ -102,7 +102,12 @@ class AnalysisDriver {
       WorkOrder workOrder = createWorkOrderForResult(target, result);
       if (workOrder != null) {
         while (workOrder.moveNext()) {
+//          AnalysisTask previousTask = task;
+//          String message = workOrder.current.toString();
           task = performWorkItem(workOrder.current);
+//          if (task == null) {
+//            throw new AnalysisException(message, previousTask.caughtException);
+//          }
         }
       }
       return task;

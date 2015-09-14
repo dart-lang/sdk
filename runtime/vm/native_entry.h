@@ -102,6 +102,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 // Helper class for resolving and handling native functions.
 class NativeEntry : public AllStatic {
  public:
+  static const intptr_t kNumArguments = 1;
   static const intptr_t kNumCallWrapperArguments = 2;
 
   // Resolve specified dart native function to the actual native entrypoint.

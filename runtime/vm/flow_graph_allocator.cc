@@ -450,21 +450,21 @@ void LiveRange::Print() {
     return;
   }
 
-  ISL_Print("  live range v%" Pd " [%" Pd ", %" Pd ") in ", vreg(),
+  THR_Print("  live range v%" Pd " [%" Pd ", %" Pd ") in ", vreg(),
                                                             Start(),
                                                             End());
   assigned_location().Print();
   if (spill_slot_.HasStackIndex()) {
     intptr_t stack_slot = spill_slot_.stack_index();
-    ISL_Print(" allocated spill slot: %" Pd "", stack_slot);
+    THR_Print(" allocated spill slot: %" Pd "", stack_slot);
   }
-  ISL_Print("\n");
+  THR_Print("\n");
 
   SafepointPosition* safepoint = first_safepoint();
   while (safepoint != NULL) {
-    ISL_Print("    Safepoint [%" Pd "]: ", safepoint->pos());
+    THR_Print("    Safepoint [%" Pd "]: ", safepoint->pos());
     safepoint->locs()->stack_bitmap()->Print();
-    ISL_Print("\n");
+    THR_Print("\n");
     safepoint = safepoint->next();
   }
 
@@ -472,16 +472,16 @@ void LiveRange::Print() {
   for (UseInterval* interval = first_use_interval_;
        interval != NULL;
        interval = interval->next()) {
-    ISL_Print("    use interval [%" Pd ", %" Pd ")\n",
+    THR_Print("    use interval [%" Pd ", %" Pd ")\n",
               interval->start(),
               interval->end());
     while ((use_pos != NULL) && (use_pos->pos() <= interval->end())) {
-      ISL_Print("      use at %" Pd "", use_pos->pos());
+      THR_Print("      use at %" Pd "", use_pos->pos());
       if (use_pos->location_slot() != NULL) {
-        ISL_Print(" as ");
+        THR_Print(" as ");
         use_pos->location_slot()->Print();
       }
-      ISL_Print("\n");
+      THR_Print("\n");
       use_pos = use_pos->next();
     }
   }
@@ -1784,7 +1784,7 @@ LiveRange* LiveRange::SplitAt(intptr_t split_pos) {
                                 first_safepoint_after_split,
                                 next_sibling_);
 
-  TRACE_ALLOC(ISL_Print("  split sibling [%" Pd ", %" Pd ")\n",
+  TRACE_ALLOC(THR_Print("  split sibling [%" Pd ", %" Pd ")\n",
                         next_sibling_->Start(), next_sibling_->End()));
 
   last_use_interval_ = last_before_split;
@@ -1801,7 +1801,7 @@ LiveRange* LiveRange::SplitAt(intptr_t split_pos) {
 LiveRange* FlowGraphAllocator::SplitBetween(LiveRange* range,
                                             intptr_t from,
                                             intptr_t to) {
-  TRACE_ALLOC(ISL_Print("split v%" Pd " [%" Pd ", %" Pd
+  TRACE_ALLOC(THR_Print("split v%" Pd " [%" Pd ", %" Pd
                         ") between [%" Pd ", %" Pd ")\n",
                         range->vreg(), range->Start(), range->End(), from, to));
 
@@ -1841,7 +1841,7 @@ void FlowGraphAllocator::SpillBetween(LiveRange* range,
                                       intptr_t from,
                                       intptr_t to) {
   ASSERT(from < to);
-  TRACE_ALLOC(ISL_Print("spill v%" Pd " [%" Pd ", %" Pd ") "
+  TRACE_ALLOC(THR_Print("spill v%" Pd " [%" Pd ", %" Pd ") "
                         "between [%" Pd ", %" Pd ")\n",
                         range->vreg(), range->Start(), range->End(), from, to));
   LiveRange* tail = range->SplitAt(from);
@@ -1859,7 +1859,7 @@ void FlowGraphAllocator::SpillBetween(LiveRange* range,
 
 
 void FlowGraphAllocator::SpillAfter(LiveRange* range, intptr_t from) {
-  TRACE_ALLOC(ISL_Print("spill v%" Pd " [%" Pd ", %" Pd ") after %" Pd "\n",
+  TRACE_ALLOC(THR_Print("spill v%" Pd " [%" Pd ", %" Pd ") after %" Pd "\n",
                         range->vreg(), range->Start(), range->End(), from));
 
   // When spilling the value inside the loop check if this spill can
@@ -1873,7 +1873,7 @@ void FlowGraphAllocator::SpillAfter(LiveRange* range, intptr_t from) {
         RangeHasOnlyUnconstrainedUsesInLoop(range, loop_header->loop_id())) {
       ASSERT(loop_header->entry()->start_pos() <= from);
       from = loop_header->entry()->start_pos();
-      TRACE_ALLOC(ISL_Print("  moved spill position to loop header %" Pd "\n",
+      TRACE_ALLOC(THR_Print("  moved spill position to loop header %" Pd "\n",
                             from));
     }
   }
@@ -2105,7 +2105,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
       candidate = hint.register_code();
     }
 
-    TRACE_ALLOC(ISL_Print("found hint %s for v%" Pd ": free until %" Pd "\n",
+    TRACE_ALLOC(THR_Print("found hint %s for v%" Pd ": free until %" Pd "\n",
                           hint.Name(),
                           unallocated->vreg(),
                           free_until));
@@ -2168,7 +2168,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
     }
 
     if (used_on_backedge[candidate]) {
-      TRACE_ALLOC(ISL_Print(
+      TRACE_ALLOC(THR_Print(
           "considering %s for v%" Pd ": has interference on the back edge"
           " {loop [%" Pd ", %" Pd ")}\n",
           MakeRegisterLocation(candidate).Name(),
@@ -2187,7 +2187,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
         if (intersection >= free_until) {
           candidate = reg;
           free_until = intersection;
-          TRACE_ALLOC(ISL_Print(
+          TRACE_ALLOC(THR_Print(
               "found %s for v%" Pd " with no interference on the back edge\n",
               MakeRegisterLocation(candidate).Name(),
               candidate));
@@ -2197,13 +2197,13 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
     }
   }
 
-  TRACE_ALLOC(ISL_Print("assigning free register "));
+  TRACE_ALLOC(THR_Print("assigning free register "));
   TRACE_ALLOC(MakeRegisterLocation(candidate).Print());
-  TRACE_ALLOC(ISL_Print(" to v%" Pd "\n", unallocated->vreg()));
+  TRACE_ALLOC(THR_Print(" to v%" Pd "\n", unallocated->vreg()));
 
   if (free_until != kMaxPosition) {
     // There was an intersection. Split unallocated.
-    TRACE_ALLOC(ISL_Print("  splitting at %" Pd "\n", free_until));
+    TRACE_ALLOC(THR_Print("  splitting at %" Pd "\n", free_until));
     LiveRange* tail = unallocated->SplitAt(free_until);
     AddToUnallocated(tail);
   }
@@ -2302,9 +2302,9 @@ void FlowGraphAllocator::AllocateAnyRegister(LiveRange* unallocated) {
 
   ASSERT(candidate != kNoRegister);
 
-  TRACE_ALLOC(ISL_Print("assigning blocked register "));
+  TRACE_ALLOC(THR_Print("assigning blocked register "));
   TRACE_ALLOC(MakeRegisterLocation(candidate).Print());
-  TRACE_ALLOC(ISL_Print(" to live range v%" Pd " until %" Pd "\n",
+  TRACE_ALLOC(THR_Print(" to live range v%" Pd " until %" Pd "\n",
                         unallocated->vreg(), blocked_at));
 
   if (blocked_at < unallocated->End()) {
@@ -2469,9 +2469,9 @@ void FlowGraphAllocator::ConvertUseTo(UsePosition* use, Location loc) {
   ASSERT(use->location_slot() != NULL);
   Location* slot = use->location_slot();
   ASSERT(slot->IsUnallocated());
-  TRACE_ALLOC(ISL_Print("  use at %" Pd " converted to ", use->pos()));
+  TRACE_ALLOC(THR_Print("  use at %" Pd " converted to ", use->pos()));
   TRACE_ALLOC(loc.Print());
-  TRACE_ALLOC(ISL_Print("\n"));
+  TRACE_ALLOC(THR_Print("\n"));
   *slot = loc;
 }
 
@@ -2482,11 +2482,11 @@ void FlowGraphAllocator::ConvertAllUses(LiveRange* range) {
   const Location loc = range->assigned_location();
   ASSERT(!loc.IsInvalid());
 
-  TRACE_ALLOC(ISL_Print("range [%" Pd ", %" Pd ") "
+  TRACE_ALLOC(THR_Print("range [%" Pd ", %" Pd ") "
                         "for v%" Pd " has been allocated to ",
                         range->Start(), range->End(), range->vreg()));
   TRACE_ALLOC(loc.Print());
-  TRACE_ALLOC(ISL_Print(":\n"));
+  TRACE_ALLOC(THR_Print(":\n"));
 
   for (UsePosition* use = range->first_use(); use != NULL; use = use->next()) {
     ConvertUseTo(use, loc);
@@ -2662,7 +2662,7 @@ void FlowGraphAllocator::AllocateUnallocatedRanges() {
   while (!unallocated_.is_empty()) {
     LiveRange* range = unallocated_.RemoveLast();
     const intptr_t start = range->Start();
-    TRACE_ALLOC(ISL_Print("Processing live range for v%" Pd " "
+    TRACE_ALLOC(THR_Print("Processing live range for v%" Pd " "
                           "starting at %" Pd "\n",
                           range->vreg(),
                           start));
@@ -2686,7 +2686,7 @@ void FlowGraphAllocator::AllocateUnallocatedRanges() {
 
   // Finish allocation.
   AdvanceActiveIntervals(kMaxPosition);
-  TRACE_ALLOC(ISL_Print("Allocation completed\n"));
+  TRACE_ALLOC(THR_Print("Allocation completed\n"));
 }
 
 
@@ -2705,13 +2705,13 @@ bool FlowGraphAllocator::TargetLocationIsSpillSlot(LiveRange* range,
 void FlowGraphAllocator::ConnectSplitSiblings(LiveRange* parent,
                                               BlockEntryInstr* source_block,
                                               BlockEntryInstr* target_block) {
-  TRACE_ALLOC(ISL_Print("Connect v%" Pd " on the edge B%" Pd " -> B%" Pd "\n",
+  TRACE_ALLOC(THR_Print("Connect v%" Pd " on the edge B%" Pd " -> B%" Pd "\n",
                         parent->vreg(),
                         source_block->block_id(),
                         target_block->block_id()));
   if (parent->next_sibling() == NULL) {
     // Nothing to connect. The whole range was allocated to the same location.
-    TRACE_ALLOC(ISL_Print("range v%" Pd " has no siblings\n", parent->vreg()));
+    TRACE_ALLOC(THR_Print("range v%" Pd " has no siblings\n", parent->vreg()));
     return;
   }
 
@@ -2748,7 +2748,7 @@ void FlowGraphAllocator::ConnectSplitSiblings(LiveRange* parent,
     range = range->next_sibling();
   }
 
-  TRACE_ALLOC(ISL_Print("connecting v%" Pd " between [%" Pd ", %" Pd ") {%s} "
+  TRACE_ALLOC(THR_Print("connecting v%" Pd " between [%" Pd ", %" Pd ") {%s} "
                         "to [%" Pd ", %" Pd ") {%s}\n",
                         parent->vreg(),
                         source_cover->Start(),
@@ -2785,13 +2785,13 @@ void FlowGraphAllocator::ResolveControlFlow() {
 
     while (range->next_sibling() != NULL) {
       LiveRange* sibling = range->next_sibling();
-      TRACE_ALLOC(ISL_Print("connecting [%" Pd ", %" Pd ") [",
+      TRACE_ALLOC(THR_Print("connecting [%" Pd ", %" Pd ") [",
                             range->Start(), range->End()));
       TRACE_ALLOC(range->assigned_location().Print());
-      TRACE_ALLOC(ISL_Print("] to [%" Pd ", %" Pd ") [",
+      TRACE_ALLOC(THR_Print("] to [%" Pd ", %" Pd ") [",
                             sibling->Start(), sibling->End()));
       TRACE_ALLOC(sibling->assigned_location().Print());
-      TRACE_ALLOC(ISL_Print("]\n"));
+      TRACE_ALLOC(THR_Print("]\n"));
       if ((range->End() == sibling->Start()) &&
           !TargetLocationIsSpillSlot(range, sibling->assigned_location()) &&
           !range->assigned_location().Equals(sibling->assigned_location()) &&
@@ -2922,16 +2922,16 @@ void FlowGraphAllocator::AllocateRegisters() {
 
   if (FLAG_print_ssa_liveranges) {
     const Function& function = flow_graph_.function();
-    ISL_Print("-- [before ssa allocator] ranges [%s] ---------\n",
+    THR_Print("-- [before ssa allocator] ranges [%s] ---------\n",
               function.ToFullyQualifiedCString());
     PrintLiveRanges();
-    ISL_Print("----------------------------------------------\n");
+    THR_Print("----------------------------------------------\n");
 
-    ISL_Print("-- [before ssa allocator] ir [%s] -------------\n",
+    THR_Print("-- [before ssa allocator] ir [%s] -------------\n",
               function.ToFullyQualifiedCString());
     FlowGraphPrinter printer(flow_graph_, true);
     printer.PrintBlocks();
-    ISL_Print("----------------------------------------------\n");
+    THR_Print("----------------------------------------------\n");
   }
 
   PrepareForAllocation(Location::kRegister,
@@ -2963,16 +2963,16 @@ void FlowGraphAllocator::AllocateRegisters() {
   if (FLAG_print_ssa_liveranges) {
     const Function& function = flow_graph_.function();
 
-    ISL_Print("-- [after ssa allocator] ranges [%s] ---------\n",
+    THR_Print("-- [after ssa allocator] ranges [%s] ---------\n",
               function.ToFullyQualifiedCString());
     PrintLiveRanges();
-    ISL_Print("----------------------------------------------\n");
+    THR_Print("----------------------------------------------\n");
 
-    ISL_Print("-- [after ssa allocator] ir [%s] -------------\n",
+    THR_Print("-- [after ssa allocator] ir [%s] -------------\n",
               function.ToFullyQualifiedCString());
     FlowGraphPrinter printer(flow_graph_, true);
     printer.PrintBlocks();
-    ISL_Print("----------------------------------------------\n");
+    THR_Print("----------------------------------------------\n");
   }
 }
 

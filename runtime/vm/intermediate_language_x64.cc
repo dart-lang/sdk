@@ -22,6 +22,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, allow_absolute_addresses);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
@@ -785,14 +786,14 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const StubEntry* stub_entry;
   if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapCFunction_entry();
-    __ LoadExternalLabel(
+    __ LoadNativeEntry(
         RBX, &NativeEntry::LinkNativeCallLabel(), kPatchable);
   } else {
     stub_entry = (is_bootstrap_native() || is_leaf_call)
         ? StubCode::CallBootstrapCFunction_entry()
         : StubCode::CallNativeCFunction_entry();
     const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
-    __ LoadExternalLabel(RBX, &label, kNotPatchable);
+    __ LoadNativeEntry(RBX, &label, kNotPatchable);
   }
   compiler->GenerateCall(token_pos(),
                          *stub_entry,
@@ -830,8 +831,7 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register char_code = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
 
-  ExternalLabel label(reinterpret_cast<uword>(Symbols::PredefinedAddress()));
-  __ LoadExternalLabel(result, &label, kNotPatchable);
+  __ movq(result, Address(THR, Thread::predefined_symbols_address_offset()));
   __ movq(result, Address(result,
                           char_code,
                           TIMES_HALF_WORD_SIZE,  // Char code is a smi.
@@ -1973,7 +1973,7 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register field = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  __ movq(result, FieldAddress(field, Field::value_offset()));
+  __ movq(result, FieldAddress(field, Field::static_value_offset()));
 }
 
 
@@ -1995,10 +1995,12 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadObject(temp, field());
   if (this->value()->NeedsStoreBuffer()) {
     __ StoreIntoObject(temp,
-        FieldAddress(temp, Field::value_offset()), value, CanValueBeSmi());
+                       FieldAddress(temp, Field::static_value_offset()),
+                       value,
+                       CanValueBeSmi());
   } else {
     __ StoreIntoObjectNoBarrier(
-        temp, FieldAddress(temp, Field::value_offset()), value);
+        temp, FieldAddress(temp, Field::static_value_offset()), value);
   }
 }
 
@@ -2489,7 +2491,7 @@ void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label call_runtime, no_call;
 
-  __ movq(temp, FieldAddress(field, Field::value_offset()));
+  __ movq(temp, FieldAddress(field, Field::static_value_offset()));
   __ CompareObject(temp, Object::sentinel());
   __ j(EQUAL, &call_runtime);
 
@@ -2599,6 +2601,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       Register temp = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
+      ASSERT(FLAG_allow_absolute_addresses);
       __ LoadImmediate(temp, Immediate(flags_address));
       __ movq(Address(temp, 0), Immediate(Isolate::kOsrRequest));
     }
@@ -2645,7 +2648,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Register temp = locs()->temp(0).reg();
   // Generate stack overflow check.
-  if (compiler->is_optimizing()) {
+  if (compiler->is_optimizing() && FLAG_allow_absolute_addresses) {
     __ LoadImmediate(
         temp, Immediate(Isolate::Current()->stack_limit_address()));
     __ cmpq(RSP, Address(temp, 0));
@@ -3404,9 +3407,7 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     if ((value()->Type()->ToNullableCid() == box_cid) &&
         value()->Type()->is_nullable()) {
-      const Immediate& raw_null =
-          Immediate(reinterpret_cast<intptr_t>(Object::null()));
-      __ cmpq(box, raw_null);
+      __ CompareObject(box, Object::null_object());
       __ j(EQUAL, deopt);
     } else {
       __ testq(box, Immediate(kSmiTagMask));

@@ -99,13 +99,13 @@ class Disassembler : public AllStatic {
                           uword end,
                           const Code& code) {
     DisassembleToStdout stdout_formatter;
-    LogBlock lb(Isolate::Current());
+    LogBlock lb;
     Disassemble(start, end, &stdout_formatter, code);
   }
 
   static void Disassemble(uword start, uword end) {
     DisassembleToStdout stdout_formatter;
-    LogBlock lb(Isolate::Current());
+    LogBlock lb;
     Disassemble(start, end, &stdout_formatter);
   }
 

@@ -830,9 +830,20 @@ class RawField : public RawObject {
   RawObject* owner_;  // Class or patch class or mixin class
                       // where this field is defined.
   RawAbstractType* type_;
-  RawInstance* value_;  // Offset in words for instance and value for static.
+  union {
+    RawInstance* static_value_;  // Value for static fields.
+    RawSmi* offset_;  // Offset in words for instance fields.
+  } value_;
   RawArray* dependent_code_;
-  RawFunction* initializer_;
+  union {
+    // When precompiling we need to save the static initializer function here
+    // so that code for it can be generated.
+    RawFunction* precompiled_;  // Static initializer function - precompiling.
+    // When generating script snapshots after running the application it is
+    // necessary to save the initial value of static fields so that we can
+    // restore the value back to the original initial value.
+    RawInstance* saved_value_;  // Saved initial value - static fields.
+  } initializer_;
   RawSmi* guarded_list_length_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);

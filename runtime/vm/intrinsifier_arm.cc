@@ -56,19 +56,18 @@ void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
     const intptr_t type_args_field_offset =
         ComputeObjectArrayTypeArgumentsOffset();
     // Inline simple tests (Smi, null), fallthrough if not positive.
-    const int32_t raw_null = reinterpret_cast<intptr_t>(Object::null());
     Label checked_ok;
     __ ldr(R2, Address(SP, 0 * kWordSize));  // Value.
 
     // Null value is valid for any type.
-    __ CompareImmediate(R2, raw_null);
+    __ CompareObject(R2, Object::null_object());
     __ b(&checked_ok, EQ);
 
     __ ldr(R1, Address(SP, 2 * kWordSize));  // Array.
     __ ldr(R1, FieldAddress(R1, type_args_field_offset));
 
     // R1: Type arguments of array.
-    __ CompareImmediate(R1, raw_null);
+    __ CompareObject(R1, Object::null_object());
     __ b(&checked_ok, EQ);
 
     // Check if it's dynamic.
@@ -179,8 +178,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
   __ add(R1, R2, Operand(R1, LSL, 1));
   __ StoreIntoObject(R2, FieldAddress(R1, Array::data_offset()), R0);
-  const int32_t raw_null = reinterpret_cast<int32_t>(Object::null());
-  __ LoadImmediate(R0, raw_null);
+  __ LoadObject(R0, Object::null_object());
   __ Ret();
   __ Bind(&fall_through);
 }
@@ -1536,14 +1534,16 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
       random_class.LookupStaticField(Symbols::_A()));
   ASSERT(!random_A_field.IsNull());
   ASSERT(random_A_field.is_const());
-  const Instance& a_value = Instance::Handle(random_A_field.value());
+  const Instance& a_value = Instance::Handle(random_A_field.StaticValue());
   const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
   // 'a_int_value' is a mask.
   ASSERT(Utils::IsUint(32, a_int_value));
   int32_t a_int32_value = static_cast<int32_t>(a_int_value);
 
-  __ ldr(R0, Address(SP, 0 * kWordSize));  // Receiver.
-  __ ldr(R1, FieldAddress(R0, state_field.Offset()));  // Field '_state'.
+  // Receiver.
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  // Field '_state'.
+  __ ldr(R1, FieldAddress(R0, state_field.Offset()));
   // Addresses of _state[0] and _state[1].
 
   const int64_t disp_0 = Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
@@ -1585,7 +1585,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ LoadClassById(R2, R1);
   // R2: class of instance (R0).
   __ ldr(R3, FieldAddress(R2, Class::signature_function_offset()));
-  __ CompareImmediate(R3, reinterpret_cast<int32_t>(Object::null()));
+  __ CompareObject(R3, Object::null_object());
   __ b(&fall_through, NE);
 
   __ ldrh(R3, FieldAddress(R2, Class::num_type_arguments_offset()));
@@ -1593,7 +1593,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ b(&fall_through, NE);
 
   __ ldr(R0, FieldAddress(R2, Class::canonical_types_offset()));
-  __ CompareImmediate(R0, reinterpret_cast<int32_t>(Object::null()));
+  __ CompareObject(R0, Object::null_object());
   __ b(&fall_through, EQ);
   __ Ret();
 
@@ -1660,14 +1660,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ ldrb(R1, Address(R0, R1));
   __ CompareImmediate(R1, Symbols::kNumberOfOneCharCodeSymbols);
   __ b(&fall_through, GE);
-  const ExternalLabel symbols_label(
-      reinterpret_cast<uword>(Symbols::PredefinedAddress()));
-  __ Push(PP);
-  __ LoadPoolPointer();
-  assembler->set_constant_pool_allowed(true);
-  __ LoadExternalLabel(R0, &symbols_label, kNotPatchable);
-  assembler->set_constant_pool_allowed(false);
-  __ Pop(PP);
+  __ ldr(R0, Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddImmediate(R0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ ldr(R0, Address(R0, R1, LSL, 2));
   __ Ret();
@@ -1680,12 +1673,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ ldrh(R1, Address(R0, R1));
   __ CompareImmediate(R1, Symbols::kNumberOfOneCharCodeSymbols);
   __ b(&fall_through, GE);
-  __ Push(PP);
-  __ LoadPoolPointer();
-  assembler->set_constant_pool_allowed(true);
-  __ LoadExternalLabel(R0, &symbols_label, kNotPatchable);
-  assembler->set_constant_pool_allowed(false);
-  __ Pop(PP);
+  __ ldr(R0, Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddImmediate(R0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ ldr(R0, Address(R0, R1, LSL, 2));
   __ Ret();

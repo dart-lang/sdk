@@ -4229,40 +4229,6 @@ TEST_CASE(PrintJSON) {
 }
 
 
-// Elide a substring which starts with some prefix and ends with a ".
-//
-// This is used to remove non-deterministic or fragile substrings from
-// JSON output.
-//
-// For example:
-//
-//    prefix = "classes"
-//    in = "\"id\":\"classes/46\""
-//
-// Yields:
-//
-//    out = "\"id\":\"\""
-//
-static void elideSubstring(const char* prefix, const char* in, char* out) {
-  const char* pos = strstr(in, prefix);
-  while (pos != NULL) {
-    // Copy up to pos into the output buffer.
-    while (in < pos) {
-      *out++ = *in++;
-    }
-
-    // Skip to the close quote.
-    in += strcspn(in, "\"");
-    pos = strstr(in, prefix);
-  }
-  // Copy the remainder of in to out.
-  while (*in != '\0') {
-    *out++ = *in++;
-  }
-  *out = '\0';
-}
-
-
 TEST_CASE(PrintJSONPrimitives) {
   char buffer[1024];
   Isolate* isolate = Isolate::Current();
@@ -4272,7 +4238,7 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Class& cls = Class::Handle(isolate->object_store()->bool_class());
     cls.PrintJSON(&js, true);
-    elideSubstring("classes", js.ToCString(), buffer);
+    ElideJSONSubstring("classes", js.ToCString(), buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"bool\"}",
         buffer);
@@ -4285,7 +4251,7 @@ TEST_CASE(PrintJSONPrimitives) {
     Function& func = Function::Handle(cls.LookupFunction(func_name));
     ASSERT(!func.IsNull());
     func.PrintJSON(&js, true);
-    elideSubstring("classes", js.ToCString(), buffer);
+    ElideJSONSubstring("classes", js.ToCString(), buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Function\",\"fixedId\":true,"
         "\"id\":\"\",\"name\":\"toString\","
@@ -4300,7 +4266,7 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Library& lib = Library::Handle(isolate->object_store()->core_library());
     lib.PrintJSON(&js, true);
-    elideSubstring("libraries", js.ToCString(), buffer);
+    ElideJSONSubstring("libraries", js.ToCString(), buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}",
@@ -4310,7 +4276,7 @@ TEST_CASE(PrintJSONPrimitives) {
   {
     JSONStream js;
     Bool::True().PrintJSON(&js, true);
-    elideSubstring("classes", js.ToCString(), buffer);
+    ElideJSONSubstring("classes", js.ToCString(), buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\","
         "\"_vmType\":\"Bool\","
@@ -4326,8 +4292,8 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     const Integer& smi = Integer::Handle(Integer::New(7));
     smi.PrintJSON(&js, true);
-    elideSubstring("classes", js.ToCString(), buffer);
-    elideSubstring("_Smi@", buffer, buffer);
+    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    ElideJSONSubstring("_Smi@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\","
         "\"_vmType\":\"Smi\","
@@ -4344,9 +4310,9 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     const Integer& smi = Integer::Handle(Integer::New(Mint::kMinValue));
     smi.PrintJSON(&js, true);
-    elideSubstring("classes", js.ToCString(), buffer);
-    elideSubstring("objects", buffer, buffer);
-    elideSubstring("_Mint@", buffer, buffer);
+    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("_Mint@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\","
         "\"_vmType\":\"Mint\","
@@ -4363,9 +4329,9 @@ TEST_CASE(PrintJSONPrimitives) {
         String::Handle(String::New("44444444444444444444444444444444"));
     const Integer& bigint = Integer::Handle(Integer::New(bigint_str));
     bigint.PrintJSON(&js, true);
-    elideSubstring("classes", js.ToCString(), buffer);
-    elideSubstring("objects", buffer, buffer);
-    elideSubstring("_Bigint@", buffer, buffer);
+    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("_Bigint@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\","
         "\"_vmType\":\"Bigint\","
@@ -4380,9 +4346,9 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     const Double& dub = Double::Handle(Double::New(0.1234));
     dub.PrintJSON(&js, true);
-    elideSubstring("classes", js.ToCString(), buffer);
-    elideSubstring("objects", buffer, buffer);
-    elideSubstring("_Double@", buffer, buffer);
+    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("_Double@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\","
         "\"_vmType\":\"Double\","
@@ -4397,9 +4363,9 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     const String& str = String::Handle(String::New("dw"));
     str.PrintJSON(&js, true);
-    elideSubstring("classes", js.ToCString(), buffer);
-    elideSubstring("objects", buffer, buffer);
-    elideSubstring("_OneByteString@", buffer, buffer);
+    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("_OneByteString@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\","
         "\"_vmType\":\"String\","
@@ -4414,9 +4380,9 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     const Array& array = Array::Handle(Array::New(0));
     array.PrintJSON(&js, true);
-    elideSubstring("classes", js.ToCString(), buffer);
-    elideSubstring("objects", buffer, buffer);
-    elideSubstring("_List@", buffer, buffer);
+    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("_List@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\","
         "\"_vmType\":\"Array\","
@@ -4432,9 +4398,9 @@ TEST_CASE(PrintJSONPrimitives) {
     const GrowableObjectArray& array =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
     array.PrintJSON(&js, true);
-    elideSubstring("classes", js.ToCString(), buffer);
-    elideSubstring("objects", buffer, buffer);
-    elideSubstring("_GrowableList@", buffer, buffer);
+    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("_GrowableList@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\","
         "\"_vmType\":\"GrowableObjectArray\","
@@ -4451,9 +4417,9 @@ TEST_CASE(PrintJSONPrimitives) {
     const LinkedHashMap& array =
         LinkedHashMap::Handle(LinkedHashMap::NewDefault());
     array.PrintJSON(&js, true);
-    elideSubstring("classes", js.ToCString(), buffer);
-    elideSubstring("objects", buffer, buffer);
-    elideSubstring("_InternalLinkedHashMap@", buffer, buffer);
+    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("_InternalLinkedHashMap@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\","
         "\"_vmType\":\"LinkedHashMap\","
@@ -4469,9 +4435,9 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Instance& tag = Instance::Handle(isolate->default_tag());
     tag.PrintJSON(&js, true);
-    elideSubstring("classes", js.ToCString(), buffer);
-    elideSubstring("objects", buffer, buffer);
-    elideSubstring("_UserTag@", buffer, buffer);
+    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("_UserTag@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\","
         "\"_vmType\":\"UserTag\","
@@ -4487,9 +4453,9 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Instance& type = Instance::Handle(isolate->object_store()->bool_type());
     type.PrintJSON(&js, true);
-    elideSubstring("classes", js.ToCString(), buffer);
-    elideSubstring("objects", buffer, buffer);
-    elideSubstring("_Type@", buffer, buffer);
+    ElideJSONSubstring("classes", js.ToCString(), buffer);
+    ElideJSONSubstring("objects", buffer, buffer);
+    ElideJSONSubstring("_Type@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\","
         "\"_vmType\":\"Type\","
@@ -4505,14 +4471,17 @@ TEST_CASE(PrintJSONPrimitives) {
   {
     JSONStream js;
     Object::null_object().PrintJSON(&js, true);
+    ElideJSONSubstring("classes", js.ToCString(), buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\","
         "\"_vmType\":\"null\","
+        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"Null\"},"
         "\"kind\":\"Null\","
         "\"fixedId\":true,"
         "\"id\":\"objects\\/null\","
         "\"valueAsString\":\"null\"}",
-        js.ToCString());
+        buffer);
   }
   // Sentinel reference
   {
@@ -4541,7 +4510,7 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     LiteralToken& tok = LiteralToken::Handle(LiteralToken::New());
     tok.PrintJSON(&js, true);
-    elideSubstring("objects", js.ToCString(), buffer);
+    ElideJSONSubstring("objects", js.ToCString(), buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Object\",\"_vmType\":\"LiteralToken\",\"id\":\"\"}",
         buffer);

@@ -107,11 +107,11 @@ class DartScriptsTask extends SourceBasedAnalysisTask {
   /**
    * The task descriptor describing this kind of task.
    */
-  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor('DartScriptsTask',
-      createTask, buildInputs, <ResultDescriptor>[
-    DART_SCRIPTS,
-    REFERENCED_LIBRARIES
-  ]);
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'DartScriptsTask',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[DART_SCRIPTS, REFERENCED_LIBRARIES]);
 
   DartScriptsTask(InternalAnalysisContext context, AnalysisTarget target)
       : super(context, target);
@@ -268,11 +268,11 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
   /**
    * The task descriptor describing this kind of task.
    */
-  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor('ParseHtmlTask',
-      createTask, buildInputs, <ResultDescriptor>[
-    HTML_DOCUMENT,
-    HTML_DOCUMENT_ERRORS
-  ]);
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ParseHtmlTask',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[HTML_DOCUMENT, HTML_DOCUMENT_ERRORS]);
 
   /**
    * Initialize a newly created task to access the content of the source
@@ -291,7 +291,8 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
     if (context.getModificationStamp(target.source) < 0) {
       String message = 'Content could not be read';
       if (context is InternalAnalysisContext) {
-        CacheEntry entry = (context as InternalAnalysisContext).getCacheEntry(target);
+        CacheEntry entry =
+            (context as InternalAnalysisContext).getCacheEntry(target);
         CaughtException exception = entry.exception;
         if (exception != null) {
           message = exception.toString();
@@ -299,8 +300,10 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
       }
 
       outputs[HTML_DOCUMENT] = new Document();
-      outputs[HTML_DOCUMENT_ERRORS] = <AnalysisError>[new AnalysisError(
-          target.source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [message])];
+      outputs[HTML_DOCUMENT_ERRORS] = <AnalysisError>[
+        new AnalysisError(
+            target.source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [message])
+      ];
     } else {
       HtmlParser parser = new HtmlParser(content, generateSpans: true);
       parser.compatMode = 'quirks';

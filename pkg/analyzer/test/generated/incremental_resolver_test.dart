@@ -38,11 +38,64 @@ main() {
 void initializeTestEnvironment() {}
 
 void _assertEqualError(AnalysisError incrError, AnalysisError fullError) {
-  expect(incrError.errorCode, same(fullError.errorCode));
-  expect(incrError.source, fullError.source);
-  expect(incrError.offset, fullError.offset);
-  expect(incrError.length, fullError.length);
-  expect(incrError.message, fullError.message);
+  if (incrError.errorCode != fullError.errorCode ||
+      incrError.source != fullError.source ||
+      incrError.offset != fullError.offset ||
+      incrError.length != fullError.length ||
+      incrError.message != fullError.message) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.writeln('Found error does not match expected error:');
+    if (incrError.errorCode == fullError.errorCode) {
+      buffer.write('  errorCode = ');
+      buffer.write(fullError.errorCode.uniqueName);
+    } else {
+      buffer.write('  Expected errorCode = ');
+      buffer.write(fullError.errorCode.uniqueName);
+      buffer.write(' found ');
+      buffer.write(incrError.errorCode.uniqueName);
+    }
+    buffer.writeln();
+    if (incrError.source == fullError.source) {
+      buffer.write('  source = ');
+      buffer.write(fullError.source);
+    } else {
+      buffer.write('  Expected source = ');
+      buffer.write(fullError.source);
+      buffer.write(' found ');
+      buffer.write(incrError.source);
+    }
+    buffer.writeln();
+    if (incrError.offset == fullError.offset) {
+      buffer.write('  offset = ');
+      buffer.write(fullError.offset);
+    } else {
+      buffer.write('  Expected offset = ');
+      buffer.write(fullError.offset);
+      buffer.write(' found ');
+      buffer.write(incrError.offset);
+    }
+    buffer.writeln();
+    if (incrError.length == fullError.length) {
+      buffer.write('  length = ');
+      buffer.write(fullError.length);
+    } else {
+      buffer.write('  Expected length = ');
+      buffer.write(fullError.length);
+      buffer.write(' found ');
+      buffer.write(incrError.length);
+    }
+    buffer.writeln();
+    if (incrError.message == fullError.message) {
+      buffer.write('  message = ');
+      buffer.write(fullError.message);
+    } else {
+      buffer.write('  Expected message = ');
+      buffer.write(fullError.message);
+      buffer.write(' found ');
+      buffer.write(incrError.message);
+    }
+    fail(buffer.toString());
+  }
 }
 
 void _assertEqualErrors(
@@ -4425,8 +4478,7 @@ f3() {
     // Resolve "newCode" from scratch.
     if (compareWithFull) {
       _resetWithIncremental(false);
-      source = addSource(newCode + ' ');
-      source = addSource(newCode);
+      changeSource(source, newCode);
       _runTasks();
       LibraryElement library = resolve2(source);
       CompilationUnit fullNewUnit = resolveCompilationUnit(source, library);

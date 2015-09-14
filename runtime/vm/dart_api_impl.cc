@@ -4256,7 +4256,7 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
       return Api::NewHandle(I,
           DartEntry::InvokeFunction(getter, Object::empty_array()));
     } else if (!field.IsNull()) {
-      return Api::NewHandle(I, field.value());
+      return Api::NewHandle(I, field.StaticValue());
     } else {
       return Api::NewError("%s: did not find static field '%s'.",
                            CURRENT_FUNC, field_name.ToCString());
@@ -4323,7 +4323,7 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
           DartEntry::InvokeFunction(getter, Object::empty_array()));
     }
     if (!field.IsNull()) {
-      return Api::NewHandle(I, field.value());
+      return Api::NewHandle(I, field.StaticValue());
     }
     return Api::NewError("%s: did not find top-level variable '%s'.",
                          CURRENT_FUNC, field_name.ToCString());
@@ -4397,7 +4397,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
         return Api::NewError("%s: cannot set final field '%s'.",
                              CURRENT_FUNC, field_name.ToCString());
       } else {
-        field.set_value(value_instance);
+        field.SetStaticValue(value_instance);
         return Api::Success();
       }
     } else {
@@ -4475,7 +4475,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
         return Api::NewError("%s: cannot set final top-level variable '%s'.",
                              CURRENT_FUNC, field_name.ToCString());
       }
-      field.set_value(value_instance);
+      field.SetStaticValue(value_instance);
       return Api::Success();
     }
     return Api::NewError("%s: did not find top-level variable '%s'.",
@@ -5503,7 +5503,7 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   const Field& dirty_bit = Field::Handle(Z,
       libmirrors.LookupLocalField(String::Handle(String::New("dirty"))));
   ASSERT(!dirty_bit.IsNull() && dirty_bit.is_static());
-  dirty_bit.set_value(Bool::True());
+  dirty_bit.SetStaticValue(Bool::True());
 
   if (complete_futures) {
     const Library& corelib = Library::Handle(Z, Library::CoreLibrary());

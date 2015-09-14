@@ -17,6 +17,7 @@ namespace dart {
 #if defined(USING_SIMULATOR)
 DECLARE_FLAG(int, trace_sim_after);
 #endif
+DECLARE_FLAG(bool, allow_absolute_addresses);
 DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
 DECLARE_FLAG(bool, inline_alloc);
 
@@ -519,6 +520,7 @@ void Assembler::LoadObjectHelper(Register rd,
   if (object.IsSmi()) {
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()));
   } else if (object.InVMHeap() || !constant_pool_allowed()) {
+    ASSERT(FLAG_allow_absolute_addresses);
     // Make sure that class CallPattern is able to decode this load immediate.
     int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
     const uint16_t object_low = Utils::Low16Bits(object_raw);
@@ -551,6 +553,15 @@ void Assembler::LoadExternalLabel(Register rd,
                                   Patchability patchable) {
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindExternalLabel(label, patchable));
+  LoadWordFromPoolOffset(rd, offset - kHeapObjectTag);
+}
+
+
+void Assembler::LoadNativeEntry(Register rd,
+                                const ExternalLabel* label,
+                                Patchability patchable) {
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindNativeEntry(label, patchable));
   LoadWordFromPoolOffset(rd, offset - kHeapObjectTag);
 }
 
@@ -859,6 +870,7 @@ void Assembler::UpdateAllocationStats(intptr_t cid,
   intptr_t counter_offset =
       ClassTable::CounterOffsetFor(cid, space == Heap::kNew);
   if (inline_isolate) {
+    ASSERT(FLAG_allow_absolute_addresses);
     ClassTable* class_table = Isolate::Current()->class_table();
     ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
     if (cid < kNumPredefinedCids) {
@@ -937,6 +949,7 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   ASSERT(temp_reg != TMP);
   intptr_t state_offset = ClassTable::StateOffsetFor(cid);
   if (inline_isolate) {
+    ASSERT(FLAG_allow_absolute_addresses);
     ClassTable* class_table = Isolate::Current()->class_table();
     ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
     if (cid < kNumPredefinedCids) {

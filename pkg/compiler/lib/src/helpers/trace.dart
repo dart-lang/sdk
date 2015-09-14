@@ -131,8 +131,9 @@ class StackTraceLines {
     // Dart VM are:
     //    #n     <method-name> (<uri>:<line-no>:<column-no>)
     //    #n     <method-name> (<uri>:<line-no>)
+    //    #n     <method-name> (<uri>)
     // in which '<anonymous closure>' is the name used for an (unnamed) function
-    // expression.
+    // expression. The last case is used for async bodies.
     for (String line in stackTrace.split('\n')) {
       try {
         index++;
@@ -154,16 +155,33 @@ class StackTraceLines {
           lineNo = line.substring(nextToLastColon+1, lastColon);
           columnNo = line.substring(lastColon+1, rightParenPos);
           try {
-            int.parse(lineNo);
+            int.parse(columnNo);
+            try {
+              int.parse(lineNo);
+            } on FormatException {
+              // Only line number.
+              lineNo = columnNo;
+              columnNo = '';
+              nextToLastColon = lastColon;
+            }
           } on FormatException {
-            lineNo = columnNo;
+            // No column number nor line number.
+            lineNo = '';
             columnNo = '';
-            nextToLastColon = lastColon;
+            nextToLastColon = rightParenPos;
           }
         } else {
           lineNo = line.substring(lastColon+1, rightParenPos);
           columnNo = '';
-          nextToLastColon = lastColon;
+          try {
+            int.parse(lineNo);
+            nextToLastColon = lastColon;
+          } on FormatException {
+            // No column number nor line number.
+            lineNo = columnNo;
+            columnNo = '';
+            nextToLastColon = rightParenPos;
+          }
         }
 
         if (lineNo.length > maxLineNoLength) {

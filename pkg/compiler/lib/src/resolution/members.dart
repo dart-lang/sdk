@@ -3422,6 +3422,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           ? new PrefixStructure(semantics, operator)
           : new PostfixStructure(semantics, operator);
       registry.registerSendStructure(node, sendStructure);
+      registry.registerIncDecOperation();
     } else {
       Node rhs = node.arguments.head;
       visitExpression(rhs);
@@ -3783,7 +3784,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
     }
     if (node.metadata != null) {
-      variables.metadata =
+      variables.metadataInternal =
           compiler.resolver.resolveMetadata(enclosingElement, node);
     }
     visitor.visit(node.definitions);
@@ -3892,6 +3893,21 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
     if (node.isConst) {
       analyzeConstantDeferred(node);
+
+      // TODO(johnniwinther): Compute this in the [ConstructorResolver].
+      // Check that the constructor is not deferred.
+      Send send = node.send.selector.asSend();
+      if (send != null) {
+        // Of the form `const a.b(...)`.
+        if (compiler.deferredLoadTask.deferredPrefixElement(
+                send, registry.mapping) != null) {
+          // `a` is a deferred prefix.
+          isValidAsConstant = false;
+          // TODO(johnniwinther): Create an [ErroneousConstantExpression] here
+          // when constants are only created during resolution.
+        }
+      }
+
       if (isValidAsConstant &&
           constructor.isConst &&
           argumentsResult.isValidAsConstant) {
@@ -4563,6 +4579,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitTryStatement(TryStatement node) {
+    // TODO(karlklose): also track the information about mutated variables,
+    // catch, and finally-block.
+    registry.registerTryStatement();
+
     visit(node.tryBlock);
     if (node.catchBlocks.isEmpty && node.finallyBlock == null) {
       error(node.getEndToken().next, MessageKind.NO_CATCH_NOR_FINALLY);

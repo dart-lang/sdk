@@ -796,11 +796,8 @@ static const char* ObjectToCStringNoGC(const Object& obj) {
 
   const Class& clazz = Class::Handle(obj.clazz());
   const char* full_class_name = clazz.ToCString();
-  const char* format = "instance of %s";
-  intptr_t len = OS::SNPrint(NULL, 0, format, full_class_name) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, full_class_name);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "instance of %s", full_class_name);
 }
 
 

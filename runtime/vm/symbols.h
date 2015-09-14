@@ -595,6 +595,10 @@ class Symbols : public AllStatic {
                         intptr_t begin_index,
                         intptr_t length);
 
+  static RawString* NewFormatted(const char* format, ...)
+      PRINTF_ATTRIBUTE(1, 2);
+  static RawString* NewFormattedV(const char* format, va_list args);
+
   static RawString* FromConcat(const String& str1, const String& str2);
 
   static RawString* FromConcatAll(

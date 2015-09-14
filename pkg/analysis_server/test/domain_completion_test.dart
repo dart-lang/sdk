@@ -55,9 +55,14 @@ class CompletionManagerTest extends AbstractAnalysisTest {
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
     manager.processPlugins([serverPlugin]);
-    return new Test_AnalysisServer(super.serverChannel, super.resourceProvider,
-        super.packageMapProvider, index, serverPlugin,
-        new AnalysisServerOptions(), new MockSdk(),
+    return new Test_AnalysisServer(
+        super.serverChannel,
+        super.resourceProvider,
+        super.packageMapProvider,
+        index,
+        serverPlugin,
+        new AnalysisServerOptions(),
+        new MockSdk(),
         InstrumentationService.NULL_SERVICE);
   }
 
@@ -422,8 +427,9 @@ class CompletionTest extends AbstractAnalysisTest {
         {testFile: new AddContentOverlay(revisedContent)}).toRequest('add1'));
 
     // Request code completion immediately after edit
-    Response response = handleSuccessfulRequest(new CompletionGetSuggestionsParams(
-        testFile, completionOffset).toRequest('0'));
+    Response response = handleSuccessfulRequest(
+        new CompletionGetSuggestionsParams(testFile, completionOffset)
+            .toRequest('0'));
     completionId = response.id;
     assertValidId(completionId);
     await waitForTasksFinished();
@@ -536,7 +542,9 @@ class B extends A {m() {^}}
   }
 
   test_partFile() {
-    addFile('/project/bin/testA.dart', '''
+    addFile(
+        '/project/bin/testA.dart',
+        '''
       library libA;
       part "$testFile";
       import 'dart:html';
@@ -556,7 +564,9 @@ class B extends A {m() {^}}
   }
 
   test_partFile2() {
-    addFile('/testA.dart', '''
+    addFile(
+        '/testA.dart',
+        '''
       part of libA;
       class A { }''');
     addTestFile('''
@@ -716,14 +726,24 @@ class MockSubscription<E> implements StreamSubscription<E> {
 class Test_AnalysisServer extends AnalysisServer {
   final MockContext mockContext = new MockContext();
 
-  Test_AnalysisServer(ServerCommunicationChannel channel,
+  Test_AnalysisServer(
+      ServerCommunicationChannel channel,
       ResourceProvider resourceProvider,
-      PubPackageMapProvider packageMapProvider, Index index,
-      ServerPlugin serverPlugin, AnalysisServerOptions analysisServerOptions,
-      DartSdk defaultSdk, InstrumentationService instrumentationService)
-      : super(channel, resourceProvider, packageMapProvider, index,
-          serverPlugin, analysisServerOptions, defaultSdk,
-          instrumentationService);
+      PubPackageMapProvider packageMapProvider,
+      Index index,
+      ServerPlugin serverPlugin,
+      AnalysisServerOptions analysisServerOptions,
+      DartSdk defaultSdk,
+      InstrumentationService instrumentationService)
+      : super(
+            channel,
+            resourceProvider,
+            packageMapProvider,
+            index,
+            serverPlugin,
+            analysisServerOptions,
+            defaultSdk,
+            instrumentationService);
 
   @override
   AnalysisContext getAnalysisContext(String path) {

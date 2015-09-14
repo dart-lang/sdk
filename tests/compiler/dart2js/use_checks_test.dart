@@ -29,7 +29,7 @@ main() {
         options: ['--enable-checked-mode']);
     var compiler = result.compiler;
     var element = compiler.mainFunction;
-    var code = compiler.backend.assembleCode(element);
+    var code = compiler.backend.getGeneratedCode(element);
     Expect.isTrue(code.contains('+'), code);
   });
 }

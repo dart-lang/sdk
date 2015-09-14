@@ -27,7 +27,7 @@ typedef int _Hasher<K>(K object);
  *
  * Iterating the map's keys, values or entries (through [forEach])
  * may happen in any order.
- * The itearation order only changes when the map is modified.
+ * The iteration order only changes when the map is modified.
  * Values are iterated in the same order as their associated keys,
  * so iterating the [keys] and [values] in parallel
  * will give matching key and value pairs.

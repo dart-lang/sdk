@@ -609,4 +609,12 @@ class ResolutionRegistry implements Registry {
   void registerAsyncForIn(AsyncForIn node) {
     backend.resolutionCallbacks.onAsyncForIn(node, this);
   }
+
+  void registerIncDecOperation() {
+    backend.resolutionCallbacks.onIncDecOperation(this);
+  }
+
+  void registerTryStatement() {
+    mapping.containsTryStatement = true;
+  }
 }

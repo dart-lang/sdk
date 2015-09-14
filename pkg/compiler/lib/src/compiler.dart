@@ -133,7 +133,8 @@ import 'universe/universe.dart' show
     Selector,
     Universe;
 import 'util/util.dart' show
-    Link;
+    Link,
+    Setlet;
 import 'world.dart' show
     World;
 
@@ -274,6 +275,11 @@ abstract class Compiler implements DiagnosticListener {
   bool disableInlining = false;
 
   List<Uri> librariesToAnalyzeWhenRun;
+
+  /// The set of platform libraries reported as unsupported.
+  ///
+  /// For instance when importing 'dart:io' without '--categories=Server'.
+  Set<Uri> disallowedLibraryUris = new Setlet<Uri>();
 
   Tracer tracer;
 
@@ -770,6 +776,72 @@ abstract class Compiler implements DiagnosticListener {
     return backend.onLibraryScanned(library, loader);
   }
 
+  /// Compute the set of distinct import chains to the library at [uri] within
+  /// [loadedLibraries].
+  ///
+  /// The chains are strings of the form
+  ///
+  ///       <main-uri> => <intermediate-uri1> => <intermediate-uri2> => <uri>
+  ///
+  Set<String> computeImportChainsFor(LoadedLibraries loadedLibraries, Uri uri) {
+    // TODO(johnniwinther): Move computation of dependencies to the library
+    // loader.
+    Uri rootUri = loadedLibraries.rootUri;
+    Set<String> importChains = new Set<String>();
+    // The maximum number of full imports chains to process.
+    final int chainLimit = 10000;
+    // The maximum number of imports chains to show.
+    final int compactChainLimit = verbose ? 20 : 10;
+    int chainCount = 0;
+    loadedLibraries.forEachImportChain(uri,
+        callback: (Link<Uri> importChainReversed) {
+      Link<CodeLocation> compactImportChain = const Link<CodeLocation>();
+      CodeLocation currentCodeLocation =
+          new UriLocation(importChainReversed.head);
+      compactImportChain = compactImportChain.prepend(currentCodeLocation);
+      for (Link<Uri> link = importChainReversed.tail;
+           !link.isEmpty;
+           link = link.tail) {
+        Uri uri = link.head;
+        if (!currentCodeLocation.inSameLocation(uri)) {
+          currentCodeLocation =
+              verbose ? new UriLocation(uri) : new CodeLocation(uri);
+          compactImportChain =
+              compactImportChain.prepend(currentCodeLocation);
+        }
+      }
+      String importChain =
+          compactImportChain.map((CodeLocation codeLocation) {
+            return codeLocation.relativize(rootUri);
+          }).join(' => ');
+
+      if (!importChains.contains(importChain)) {
+        if (importChains.length > compactChainLimit) {
+          importChains.add('...');
+          return false;
+        } else {
+          importChains.add(importChain);
+        }
+      }
+
+      chainCount++;
+      if (chainCount > chainLimit) {
+        // Assume there are more import chains.
+        importChains.add('...');
+        return false;
+      }
+      return true;
+    });
+    return importChains;
+  }
+
+  /// Register that [uri] was recognized but disallowed as a dependency.
+  ///
+  /// For instance import of 'dart:io' without '--categories=Server'.
+  void registerDisallowedLibraryUse(Uri uri) {
+    disallowedLibraryUris.add(uri);
+  }
+
   /// This method is called when all new libraries loaded through
   /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
   /// have been computed.
@@ -780,60 +852,26 @@ abstract class Compiler implements DiagnosticListener {
   /// libraries.
   Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
     return new Future.sync(() {
+      for (Uri uri in disallowedLibraryUris) {
+        if (loadedLibraries.containsLibrary(uri)) {
+          Set<String> importChains =
+              computeImportChainsFor(loadedLibraries, Uri.parse('dart:io'));
+          reportInfo(NO_LOCATION_SPANNABLE,
+             MessageKind.DISALLOWED_LIBRARY_IMPORT,
+              {'uri': uri,
+               'importChain': importChains.join(
+                   MessageTemplate.DISALLOWED_LIBRARY_IMPORT_PADDING)});
+        }
+      }
+
       if (!loadedLibraries.containsLibrary(Uris.dart_core)) {
         return null;
       }
+
       if (!enableExperimentalMirrors &&
           loadedLibraries.containsLibrary(Uris.dart_mirrors)) {
-        // TODO(johnniwinther): Move computation of dependencies to the library
-        // loader.
-        Uri rootUri = loadedLibraries.rootUri;
-        Set<String> importChains = new Set<String>();
-        // The maximum number of full imports chains to process.
-        final int chainLimit = 10000;
-        // The maximum number of imports chains to show.
-        final int compactChainLimit = verbose ? 20 : 10;
-        int chainCount = 0;
-        loadedLibraries.forEachImportChain(Uris.dart_mirrors,
-            callback: (Link<Uri> importChainReversed) {
-          Link<CodeLocation> compactImportChain = const Link<CodeLocation>();
-          CodeLocation currentCodeLocation =
-              new UriLocation(importChainReversed.head);
-          compactImportChain = compactImportChain.prepend(currentCodeLocation);
-          for (Link<Uri> link = importChainReversed.tail;
-               !link.isEmpty;
-               link = link.tail) {
-            Uri uri = link.head;
-            if (!currentCodeLocation.inSameLocation(uri)) {
-              currentCodeLocation =
-                  verbose ? new UriLocation(uri) : new CodeLocation(uri);
-              compactImportChain =
-                  compactImportChain.prepend(currentCodeLocation);
-            }
-          }
-          String importChain =
-              compactImportChain.map((CodeLocation codeLocation) {
-                return codeLocation.relativize(rootUri);
-              }).join(' => ');
-
-          if (!importChains.contains(importChain)) {
-            if (importChains.length > compactChainLimit) {
-              importChains.add('...');
-              return false;
-            } else {
-              importChains.add(importChain);
-            }
-          }
-
-          chainCount++;
-          if (chainCount > chainLimit) {
-            // Assume there are more import chains.
-            importChains.add('...');
-            return false;
-          }
-          return true;
-        });
-
+        Set<String> importChains =
+            computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
         if (!backend.supportsReflection) {
           reportError(NO_LOCATION_SPANNABLE,
                       MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND);
@@ -848,11 +886,6 @@ abstract class Compiler implements DiagnosticListener {
       functionClass.ensureResolved(this);
       functionApplyMethod = functionClass.lookupLocalMember('apply');
 
-      proxyConstant =
-          constants.getConstantValue(
-              resolver.constantCompiler.compileConstant(
-                  coreLibrary.find('proxy')));
-
       if (preserveComments) {
         return libraryLoader.loadLibrary(Uris.dart_mirrors)
             .then((LibraryElement libraryElement) {
@@ -860,6 +893,18 @@ abstract class Compiler implements DiagnosticListener {
         });
       }
     }).then((_) => backend.onLibrariesLoaded(loadedLibraries));
+  }
+
+  bool isProxyConstant(ConstantValue value) {
+    FieldElement field = coreLibrary.find('proxy');
+    if (field == null) return false;
+    if (!enqueuer.resolution.hasBeenResolved(field)) return false;
+    if (proxyConstant == null) {
+      proxyConstant =
+          constants.getConstantValue(
+              resolver.constantCompiler.compileConstant(field));
+    }
+    return proxyConstant == value;
   }
 
   Element findRequiredElement(LibraryElement library, String name) {
@@ -1153,6 +1198,7 @@ abstract class Compiler implements DiagnosticListener {
 
     log('Compiling...');
     phase = PHASE_COMPILING;
+    backend.onCodegenStart();
     // TODO(johnniwinther): Move these to [CodegenEnqueuer].
     if (hasIsolateSupport) {
       backend.enableIsolateSupport(enqueuer.codegen);

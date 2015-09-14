@@ -141,24 +141,31 @@ class Character {
     }
     return -1;
   }
+
   static bool isDigit(int c) {
     return c >= 0x30 && c <= 0x39;
   }
+
   static bool isLetter(int c) {
     return c >= 0x41 && c <= 0x5A || c >= 0x61 && c <= 0x7A;
   }
+
   static bool isLetterOrDigit(int c) {
     return isLetter(c) || isDigit(c);
   }
+
   static bool isLowerCase(int c) {
     return c >= 0x61 && c <= 0x7A;
   }
+
   static bool isUpperCase(int c) {
     return c >= 0x41 && c <= 0x5A;
   }
+
   static bool isWhitespace(int c) {
     return c == 0x09 || c == 0x20 || c == 0x0A || c == 0x0D;
   }
+
   static String toChars(int codePoint) {
     if (codePoint < 0 || codePoint > MAX_CODE_POINT) {
       throw new IllegalArgumentException();
@@ -171,12 +178,14 @@ class Character {
     int c1 = (offset & 0x3ff) + MIN_LOW_SURROGATE;
     return new String.fromCharCodes([c0, c1]);
   }
+
   static int toLowerCase(int c) {
     if (c >= 0x41 && c <= 0x5A) {
       return 0x61 + (c - 0x41);
     }
     return c;
   }
+
   static int toUpperCase(int c) {
     if (c >= 0x61 && c <= 0x7A) {
       return 0x41 + (c - 0x61);
@@ -188,6 +197,7 @@ class Character {
 abstract class Enum<E extends Enum> implements Comparable<E> {
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
+
   /// The position in the enum declaration.
   final int ordinal;
   const Enum(this.name, this.ordinal);
@@ -221,6 +231,7 @@ class JavaArrays {
     }
     return true;
   }
+
   static int makeHashCode(List a) {
     if (a == null) {
       return 0;
@@ -259,6 +270,7 @@ class JavaPatternMatcher {
     _match = _matches.current;
     return true;
   }
+
   String group(int i) => _match[i];
   bool matches() => find();
   int start() => _match.start;
@@ -270,11 +282,13 @@ class JavaString {
     if (fromIndex < 0) fromIndex = 0;
     return target.indexOf(str, fromIndex);
   }
+
   static int lastIndexOf(String target, String str, int fromIndex) {
     if (fromIndex > target.length) return -1;
     if (fromIndex < 0) fromIndex = 0;
     return target.lastIndexOf(str, fromIndex);
   }
+
   static bool startsWithBefore(String s, String other, int start) {
     return s.indexOf(other, start) != -1;
   }

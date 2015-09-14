@@ -227,11 +227,11 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
   __ LoadUniqueObject(A2, type_test_cache);
   if (test_kind == kTestTypeOneArg) {
     ASSERT(type_arguments_reg == kNoRegister);
-    __ LoadImmediate(A1, reinterpret_cast<int32_t>(Object::null()));
+    __ LoadObject(A1, Object::null_object());
     __ BranchLink(*StubCode::Subtype1TestCache_entry());
   } else if (test_kind == kTestTypeTwoArgs) {
     ASSERT(type_arguments_reg == kNoRegister);
-    __ LoadImmediate(A1, reinterpret_cast<int32_t>(Object::null()));
+    __ LoadObject(A1, Object::null_object());
     __ BranchLink(*StubCode::Subtype2TestCache_entry());
   } else if (test_kind == kTestTypeThreeArgs) {
     ASSERT(type_arguments_reg == A1);
@@ -445,7 +445,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ lw(A1, Address(SP, 0));  // Get instantiator type arguments.
     // A1: instantiator type arguments.
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
-    __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
+    __ LoadObject(T7, Object::null_object());
     __ beq(A1, T7, is_instance_lbl);
     __ lw(T2,
         FieldAddress(A1, TypeArguments::type_at_offset(type_param.index())));
@@ -954,7 +954,7 @@ void FlowGraphCompiler::CopyParameters() {
   __ Bind(&null_args_loop);
   __ addiu(T2, T2, Immediate(-kWordSize));
   __ addu(T3, T1, T2);
-  __ LoadImmediate(T5, reinterpret_cast<int32_t>(Object::null()));
+  __ LoadObject(T5, Object::null_object());
   __ bgtz(T2, &null_args_loop);
   __ delay_slot()->sw(T5, Address(T3));
   __ Bind(&null_args_loop_exit);
@@ -981,7 +981,7 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   __ lw(T0, Address(SP, 1 * kWordSize));  // Receiver.
   __ lw(T1, Address(SP, 0 * kWordSize));  // Value.
   __ StoreIntoObjectOffset(T0, offset, T1);
-  __ LoadImmediate(V0, reinterpret_cast<int32_t>(Object::null()));
+  __ LoadObject(V0, Object::null_object());
   __ Ret();
 }
 
@@ -1121,7 +1121,7 @@ void FlowGraphCompiler::CompileGraph() {
     const intptr_t context_index =
         parsed_function().current_context_var()->index();
     if (num_locals > 1) {
-      __ LoadImmediate(V0, reinterpret_cast<int32_t>(Object::null()));
+      __ LoadObject(V0, Object::null_object());
     }
     for (intptr_t i = 0; i < num_locals; ++i) {
       // Subtract index i (locals lie at lower addresses than FP).

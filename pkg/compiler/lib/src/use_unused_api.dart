@@ -226,7 +226,7 @@ useJsOther(js.SimpleJavaScriptPrintingContext context) {
 }
 
 useJsBackend(js_backend.JavaScriptBackend backend) {
-  backend.assembleCode(null);
+  backend.getGeneratedCode(null);
 }
 
 useConcreteTypesInferrer(concrete_types_inferrer.ConcreteTypesInferrer c) {
@@ -270,7 +270,9 @@ usedByTests() {
   sourceFileProvider.getSourceFile(null);
   world.hasAnyUserDefinedGetter(null, null);
   world.subclassesOf(null);
-  world.classHierarchyNode(null);
+  world.getClassHierarchyNode(null);
+  world.getClassSet(null);
+  world.haveAnyCommonSubtypes(null, null);
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
   new dart_types.Types(compiler).copy(compiler);

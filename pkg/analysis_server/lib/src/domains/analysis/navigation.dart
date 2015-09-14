@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,7 @@ library domains.analysis.navigation;
 
 import 'dart:collection';
 
-import 'package:analysis_server/analysis/navigation/navigation_core.dart';
+import 'package:analysis_server/analysis/navigation_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
@@ -18,27 +18,28 @@ import 'package:analyzer/src/generated/source.dart' show Source;
 /**
  * Compute all known navigation information for the given part of [source].
  */
-NavigationHolderImpl computeNavigation(AnalysisServer server,
+NavigationCollectorImpl computeNavigation(AnalysisServer server,
     AnalysisContext context, Source source, int offset, int length) {
-  NavigationHolderImpl holder = new NavigationHolderImpl();
+  NavigationCollectorImpl collector = new NavigationCollectorImpl();
   List<NavigationContributor> contributors =
       server.serverPlugin.navigationContributors;
   for (NavigationContributor contributor in contributors) {
     try {
-      contributor.computeNavigation(holder, context, source, offset, length);
+      contributor.computeNavigation(collector, context, source, offset, length);
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logError(
           'Exception from navigation contributor: ${contributor.runtimeType}',
           new CaughtException(exception, stackTrace));
     }
   }
-  return holder;
+  collector.sortRegions();
+  return collector;
 }
 
 /**
- * A concrete implementation of  [NavigationHolder].
+ * A concrete implementation of  [NavigationCollector].
  */
-class NavigationHolderImpl implements NavigationHolder {
+class NavigationCollectorImpl implements NavigationCollector {
   /**
    * A list of navigation regions.
    */
@@ -64,6 +65,12 @@ class NavigationHolderImpl implements NavigationHolder {
     protocol.NavigationRegion region =
         new protocol.NavigationRegion(offset, length, <int>[targetIndex]);
     regions.add(region);
+  }
+
+  void sortRegions() {
+    regions.sort((a, b) {
+      return a.offset - b.offset;
+    });
   }
 
   int _addFile(String file) {

@@ -150,6 +150,8 @@ class TimelineLabelPauseInfo : public ZoneAllocated {
     ASSERT(exclusive_micros_ >= 0);
   }
 
+  void Aggregate(const TimelineLabelPauseInfo* thread_pause_info);
+
   const char* name_;
   int64_t inclusive_micros_;
   int64_t exclusive_micros_;
@@ -157,6 +159,7 @@ class TimelineLabelPauseInfo : public ZoneAllocated {
   int64_t max_exclusive_micros_;
 
   friend class TimelinePauses;
+  friend class TimelinePauseTrace;
 };
 
 
@@ -177,6 +180,14 @@ class TimelinePauses : public TimelineAnalysis {
   int64_t MaxInclusiveTime(const char* name) const;
   int64_t MaxExclusiveTime(const char* name) const;
 
+  intptr_t NumPauseInfos() const {
+    return labels_.length();
+  }
+
+  const TimelineLabelPauseInfo* PauseInfoAt(intptr_t i) const {
+    return labels_.At(i);
+  }
+
  private:
   struct StackItem {
     TimelineEvent* event;
@@ -188,13 +199,29 @@ class TimelinePauses : public TimelineAnalysis {
   bool CheckStack(TimelineEvent* event);
   void PopFinished(int64_t start);
   void Push(TimelineEvent* event);
-  bool IsLabelOnStack(const char* label);
+  bool IsLabelOnStack(const char* label) const;
   intptr_t StackDepth() const;
   StackItem& GetStackTop();
   TimelineLabelPauseInfo* GetOrAddLabelPauseInfo(const char* name);
 
   ZoneGrowableArray<StackItem> stack_;
   ZoneGrowableArray<TimelineLabelPauseInfo*> labels_;
+};
+
+
+class TimelinePauseTrace : public ValueObject {
+ public:
+  TimelinePauseTrace();
+  ~TimelinePauseTrace();
+
+  void Print();
+
+ private:
+  TimelineLabelPauseInfo* GetOrAddLabelPauseInfo(const char* name);
+  void Aggregate(const TimelineLabelPauseInfo* thread_pause_info);
+  void PrintPauseInfo(const TimelineLabelPauseInfo* pause_info);
+
+  ZoneGrowableArray<TimelineLabelPauseInfo*> isolate_labels_;
 };
 
 }  // namespace dart

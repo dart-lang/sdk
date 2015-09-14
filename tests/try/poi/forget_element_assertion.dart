@@ -6,7 +6,7 @@
 // Remove this file when dart2js support such features.
 library trydart.forget_element_assertion;
 
-import '../../compiler/dart2js/compiler_helper.dart' show
+import '../../compiler/dart2js/mock_compiler.dart' show
     compilerFor;
 
 import 'compiler_test_case.dart';

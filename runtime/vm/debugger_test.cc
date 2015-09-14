@@ -69,18 +69,18 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
         js.ToCString(),
         "[{\"type\":\"Breakpoint\",\"fixedId\":true,\"id\":\"breakpoints\\/2\","
         "\"breakpointNumber\":2,\"resolved\":false,"
-        "\"location\":{\"type\":\"SourceLocation\","
+        "\"location\":{\"type\":\"UnresolvedSourceLocation\","
         "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
         "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
         "\"uri\":\"test-lib\","
-        "\"_kind\":\"script\"},\"tokenPos\":14}},"
+        "\"_kind\":\"script\"},\"line\":3}},"
         "{\"type\":\"Breakpoint\",\"fixedId\":true,\"id\":\"breakpoints\\/1\","
         "\"breakpointNumber\":1,\"resolved\":false,"
-        "\"location\":{\"type\":\"SourceLocation\","
+        "\"location\":{\"type\":\"UnresolvedSourceLocation\","
         "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
         "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
         "\"uri\":\"test-lib\","
-        "\"_kind\":\"script\"},\"tokenPos\":5}}]",
+        "\"_kind\":\"script\"},\"line\":2}}]",
         vmlib.index(), vmlib.index());
   }
 }

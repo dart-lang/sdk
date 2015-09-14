@@ -72,8 +72,13 @@ class CommandLineParser {
 
   /// Defines a flag.
   /// See [ArgParser.addFlag()].
-  void addFlag(String name, {String abbr, String help, bool defaultsTo: false,
-      bool negatable: true, void callback(bool value), bool hide: false}) {
+  void addFlag(String name,
+      {String abbr,
+      String help,
+      bool defaultsTo: false,
+      bool negatable: true,
+      void callback(bool value),
+      bool hide: false}) {
     _knownFlags.add(name);
     _parser.addFlag(name,
         abbr: abbr,
@@ -86,8 +91,13 @@ class CommandLineParser {
 
   /// Defines a value-taking option.
   /// See [ArgParser.addOption()].
-  void addOption(String name, {String abbr, String help, List<String> allowed,
-      Map<String, String> allowedHelp, String defaultsTo, void callback(value),
+  void addOption(String name,
+      {String abbr,
+      String help,
+      List<String> allowed,
+      Map<String, String> allowedHelp,
+      String defaultsTo,
+      void callback(value),
       bool allowMultiple: false}) {
     _knownFlags.add(name);
     _parser.addOption(name,
@@ -108,9 +118,9 @@ class CommandLineParser {
   /// flags and options defined by this parser, and returns the result. The
   /// values of any defined variables are captured in the given map.
   /// See [ArgParser].
-  ArgResults parse(
-      List<String> args, Map<String, String> definedVariables) => _parser
-      .parse(_filterUnknowns(parseDefinedVariables(args, definedVariables)));
+  ArgResults parse(List<String> args, Map<String, String> definedVariables) =>
+      _parser.parse(
+          _filterUnknowns(parseDefinedVariables(args, definedVariables)));
 
   List<String> parseDefinedVariables(
       List<String> args, Map<String, String> definedVariables) {
@@ -132,12 +142,10 @@ class CommandLineParser {
   }
 
   List<String> _filterUnknowns(List<String> args) {
-
     // Only filter args if the ignore flag is specified, or if
     // _alwaysIgnoreUnrecognized was set to true
     if (_alwaysIgnoreUnrecognized ||
         args.contains('--ignore-unrecognized-flags')) {
-
       // Filter all unrecognized flags and options.
       List<String> filtered = <String>[];
       for (int i = 0; i < args.length; ++i) {
@@ -430,9 +438,8 @@ class Driver implements ServerStarter {
         exit(0);
       });
     },
-        print: results[INTERNAL_PRINT_TO_CONSOLE]
-            ? null
-            : httpServer.recordPrint);
+        print:
+            results[INTERNAL_PRINT_TO_CONSOLE] ? null : httpServer.recordPrint);
   }
 
   /**
@@ -453,10 +460,10 @@ class Driver implements ServerStarter {
     Function printFunction = print == null
         ? null
         : (Zone self, ZoneDelegate parent, Zone zone, String line) {
-      // Note: we don't pass the line on to stdout, because that is reserved
-      // for communication to the client.
-      print(line);
-    };
+            // Note: we don't pass the line on to stdout, because that is reserved
+            // for communication to the client.
+            print(line);
+          };
     ZoneSpecification zoneSpecification = new ZoneSpecification(
         handleUncaughtError: errorFunction, print: printFunction);
     return runZoned(callback, zoneSpecification: zoneSpecification);
@@ -495,14 +502,15 @@ class Driver implements ServerStarter {
         defaultsTo: false,
         negatable: false);
     parser.addOption(INSTRUMENTATION_LOG_FILE,
-        help: "the path of the file to which instrumentation data will be written");
+        help:
+            "the path of the file to which instrumentation data will be written");
     parser.addFlag(INTERNAL_PRINT_TO_CONSOLE,
         help: "enable sending `print` output to the console",
         defaultsTo: false,
         negatable: false);
     parser.addOption(PORT_OPTION,
         help: "the http diagnostic port on which the server provides"
-        " status and performance information");
+            " status and performance information");
     parser.addOption(INTERNAL_DELAY_FREQUENCY);
     parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
     parser.addFlag(NO_ERROR_NOTIFICATION,
@@ -521,10 +529,10 @@ class Driver implements ServerStarter {
             "the file offset and range information incorrect.",
         allowed: ["as-is", "normalize-eol-always"],
         allowedHelp: {
-      "as-is": "file contents are read as-is, no file changes occur",
-      "normalize-eol-always":
-          r'file contents normalize the end of line characters to the single character new line `\n`'
-    },
+          "as-is": "file contents are read as-is, no file changes occur",
+          "normalize-eol-always":
+              r'file contents normalize the end of line characters to the single character new line `\n`'
+        },
         defaultsTo: "as-is");
 
     return parser;
@@ -546,7 +554,8 @@ class Driver implements ServerStarter {
   String _readUuid(InstrumentationService service) {
     File uuidFile = new File(PhysicalResourceProvider.INSTANCE
         .getStateLocation('.instrumentation')
-        .getChild('uuid.txt').path);
+        .getChild('uuid.txt')
+        .path);
     try {
       if (uuidFile.existsSync()) {
         String uuid = uuidFile.readAsStringSync();

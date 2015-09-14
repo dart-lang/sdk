@@ -56,9 +56,13 @@ abstract class DartEditBuilder extends EditBuilder {
    * list of [mixins] is provided but no [superclass] is given then the class
    * will extend `Object`.)
    */
-  void writeClassDeclaration(String name, {Iterable<DartType> interfaces,
-      bool isAbstract: false, void memberWriter(), Iterable<DartType> mixins,
-      String nameGroupName, DartType superclass});
+  void writeClassDeclaration(String name,
+      {Iterable<DartType> interfaces,
+      bool isAbstract: false,
+      void memberWriter(),
+      Iterable<DartType> mixins,
+      String nameGroupName,
+      DartType superclass});
 
   /**
    * Write the code for a declaration of a field with the given [name]. If an
@@ -76,9 +80,14 @@ abstract class DartEditBuilder extends EditBuilder {
    * required.) If a [typeGroupName] is provided, then if a type was written
    * it will be in the linked edit group with that name.
    */
-  void writeFieldDeclaration(String name, {void initializerWriter(),
-      bool isConst: false, bool isFinal: false, bool isStatic: false,
-      String nameGroupName, DartType type, String typeGroupName});
+  void writeFieldDeclaration(String name,
+      {void initializerWriter(),
+      bool isConst: false,
+      bool isFinal: false,
+      bool isStatic: false,
+      String nameGroupName,
+      DartType type,
+      String typeGroupName});
 
   /**
    * Write the code for a declaration of a getter with the given [name]. If a
@@ -91,8 +100,11 @@ abstract class DartEditBuilder extends EditBuilder {
    * getter. If a [returnTypeGroupName] is provided, then if a return type was
    * written it will be in the linked edit group with that name.
    */
-  void writeGetterDeclaration(String name, {void bodyWriter(),
-      bool isStatic: false, String nameGroupName, DartType returnType,
+  void writeGetterDeclaration(String name,
+      {void bodyWriter(),
+      bool isStatic: false,
+      String nameGroupName,
+      DartType returnType,
       String returnTypeGroupName});
 
   /**
@@ -130,8 +142,10 @@ abstract class DartEditBuilder extends EditBuilder {
    * `true`, then all of the supertypes of the [type] will be added as
    * suggestions for alternatives to the type name.
    */
-  bool writeType(DartType type, {bool addSupertypeProposals: false,
-      String groupName, bool required: false});
+  bool writeType(DartType type,
+      {bool addSupertypeProposals: false,
+      String groupName,
+      bool required: false});
 }
 
 /**

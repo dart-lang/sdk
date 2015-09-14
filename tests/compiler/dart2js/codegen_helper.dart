@@ -31,7 +31,7 @@ Future<Map<String, String>> generate(String code,
     for (var element in backend.generatedCode.keys) {
       if (element.compilationUnit.script.readableUri != uri) continue;
       var name = element.name;
-      var code = backend.assembleCode(element);
+      var code = backend.getGeneratedCode(element);
       result[name] = code;
     }
     return result;

@@ -622,6 +622,38 @@ class CacheEntryTest extends AbstractCacheTest {
     expect(cache.get(target2), isNull);
   }
 
+  test_setState_invalid_withDelta_keepDependency() {
+    Source target = new TestSource('/test.dart');
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
+    ResultDescriptor result1 = new ResultDescriptor('result1', -1);
+    ResultDescriptor result2 = new ResultDescriptor('result2', -2);
+    ResultDescriptor result3 = new ResultDescriptor('result3', -3);
+    // set results, all of them are VALID
+    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry.setValue(result2, 222, [new TargetedResult(target, result1)]);
+    entry.setValue(result3, 333, [new TargetedResult(target, result2)]);
+    expect(entry.getState(result1), CacheState.VALID);
+    expect(entry.getState(result2), CacheState.VALID);
+    expect(entry.getState(result3), CacheState.VALID);
+    // result2 depends on result1
+    expect(entry.getResultData(result1).dependentResults,
+        unorderedEquals([new TargetedResult(target, result2)]));
+    expect(entry.getResultData(result2).dependedOnResults,
+        unorderedEquals([new TargetedResult(target, result1)]));
+    // invalidate result2 with Delta: keep result2, invalidate result3
+    entry.setState(result2, CacheState.INVALID,
+        delta: new _KeepContinueDelta(target, result2));
+    expect(entry.getState(result1), CacheState.VALID);
+    expect(entry.getState(result2), CacheState.VALID);
+    expect(entry.getState(result3), CacheState.INVALID);
+    // result2 still depends on result1
+    expect(entry.getResultData(result1).dependentResults,
+        unorderedEquals([new TargetedResult(target, result2)]));
+    expect(entry.getResultData(result2).dependedOnResults,
+        unorderedEquals([new TargetedResult(target, result1)]));
+  }
+
   test_setState_valid() {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
@@ -1055,6 +1087,25 @@ class UniversalCachePartitionTest extends CachePartitionTest {
 class _InternalAnalysisContextMock extends TypedMock
     implements InternalAnalysisContext {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/**
+ * Keep the given [keepDescriptor], invalidate all the other results.
+ */
+class _KeepContinueDelta implements Delta {
+  final Source source;
+  final ResultDescriptor keepDescriptor;
+
+  _KeepContinueDelta(this.source, this.keepDescriptor);
+
+  @override
+  DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
+      ResultDescriptor descriptor) {
+    if (descriptor == keepDescriptor) {
+      return DeltaResult.KEEP_CONTINUE;
+    }
+    return DeltaResult.INVALIDATE;
+  }
 }
 
 class _TestAnalysisTarget implements AnalysisTarget {

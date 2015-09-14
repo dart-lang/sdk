@@ -88,7 +88,7 @@ abstract class CommonWebSocketVM extends VM {
   int _requestSerial = 0;
   bool _hasInitiatedConnect = false;
   bool _hasFinishedConnect = false;
-  Utf8Decoder _utf8Decoder = new Utf8Decoder();
+  Utf8Decoder _utf8Decoder = const Utf8Decoder();
 
   CommonWebSocket _webSocket;
 

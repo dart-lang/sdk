@@ -1982,10 +1982,6 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
           ..add(js.statement('${typesAccess}.push.apply(${typesAccess}, '
                              '${namer.deferredTypesName});'));
 
-      // Sets the static state variable to the state of the current isolate
-      // (which is provided as second argument).
-      body.add(js.statement("${namer.staticStateHolder} = arguments[1];"));
-
       body.add(buildCompileTimeConstants(fragment.constants,
                                          isMainFragment: false));
       body.add(buildStaticNonFinalFieldInitializations(outputUnit));
@@ -1995,7 +1991,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       statements
           ..add(buildGeneratedBy())
           ..add(js.statement('${deferredInitializers}.current = '
-                             """function (#) {
+                             """function (#, ${namer.staticStateHolder}) {
                                   #
                                 }
                              """, [globalsHolder, body]));

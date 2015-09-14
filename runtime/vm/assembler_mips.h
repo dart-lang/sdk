@@ -1524,6 +1524,9 @@ class Assembler : public ValueObject {
   void LoadExternalLabel(Register rd,
                          const ExternalLabel* label,
                          Patchability patchable);
+  void LoadNativeEntry(Register rd,
+                       const ExternalLabel* label,
+                       Patchability patchable);
   void PushObject(const Object& object);
 
   void LoadIsolate(Register result);

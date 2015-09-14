@@ -268,9 +268,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
       ClassWorld classWorld = compiler.world;
       TypeMask resultType = backend.positiveIntType;
       // If we already have computed a more specific type, keep that type.
-      if (actualType.satisfies(backend.jsUInt31Class, classWorld)) {
+      if (HInstruction.isInstanceOf(
+              actualType, backend.jsUInt31Class, classWorld)) {
         resultType = backend.uint31Type;
-      } else if (actualType.satisfies(backend.jsUInt32Class, classWorld)) {
+      } else if (HInstruction.isInstanceOf(
+              actualType, backend.jsUInt32Class, classWorld)) {
         resultType = backend.uint32Type;
       }
       HFieldGet result = new HFieldGet(
@@ -1029,8 +1031,13 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     if (node.isInterceptedCall) return;
     if (element != backend.jsArrayRemoveLast) return;
     if (boundsChecked.contains(node)) return;
-    insertBoundsCheck(
+    // `0` is the index we want to check, but we want to report `-1`, as if we
+    // executed `a[a.length-1]`
+    HBoundsCheck check = insertBoundsCheck(
         node, node.receiver, graph.addConstantInt(0, backend.compiler));
+    HInstruction minusOne = graph.addConstantInt(-1, backend.compiler);
+    check.inputs.add(minusOne);
+    minusOne.usedBy.add(check);
   }
 }
 

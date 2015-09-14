@@ -16,10 +16,12 @@ class CHA;
 class HandleScope;
 class Heap;
 class Isolate;
+class Log;
 class LongJumpScope;
 class Object;
 class RawBool;
 class RawObject;
+class RawString;
 class RuntimeEntry;
 class StackResource;
 class TimelineEventBlock;
@@ -34,6 +36,8 @@ class Zone;
 #define CACHED_ADDRESSES_LIST(V)                                               \
   V(uword, update_store_buffer_entry_point_,                                   \
     StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
+  V(RawString**, predefined_symbols_address_,                                  \
+    Symbols::PredefinedAddress(), NULL)                                        \
 
 #define CACHED_CONSTANTS_LIST(V)                                               \
   CACHED_VM_OBJECTS_LIST(V)                                                    \
@@ -253,6 +257,9 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
     state_.timeline_block = block;
   }
 
+  void CloseTimelineBlock();
+  class Log* log() const;
+
   LongJumpScope* long_jump_base() const { return state_.long_jump_base; }
   void set_long_jump_base(LongJumpScope* value) {
     state_.long_jump_base = value;
@@ -278,6 +285,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   Heap* heap_;
   State state_;
   StoreBufferBlock* store_buffer_block_;
+  class Log* log_;
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
 CACHED_CONSTANTS_LIST(DECLARE_MEMBERS)

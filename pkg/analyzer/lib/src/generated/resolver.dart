@@ -3930,11 +3930,23 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   bool visitAsExpression(AsExpression node) => _nodeExits(node.expression);
 
   @override
-  bool visitAssertStatement(AssertStatement node) => _nodeExits(node.condition);
+  bool visitAssertStatement(AssertStatement node) => false;
 
   @override
-  bool visitAssignmentExpression(AssignmentExpression node) =>
-      _nodeExits(node.leftHandSide) || _nodeExits(node.rightHandSide);
+  bool visitAssignmentExpression(AssignmentExpression node) {
+    Expression leftHandSide = node.leftHandSide;
+    if (_nodeExits(leftHandSide)) {
+      return true;
+    }
+    if (node.operator.type == sc.TokenType.QUESTION_QUESTION_EQ) {
+      return false;
+    }
+    if (leftHandSide is PropertyAccess &&
+        leftHandSide.operator.type == sc.TokenType.QUESTION_PERIOD) {
+      return false;
+    }
+    return _nodeExits(node.rightHandSide);
+  }
 
   @override
   bool visitAwaitExpression(AwaitExpression node) =>
@@ -3943,9 +3955,10 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   @override
   bool visitBinaryExpression(BinaryExpression node) {
     Expression lhsExpression = node.leftOperand;
+    Expression rhsExpression = node.rightOperand;
     sc.TokenType operatorType = node.operator.type;
-    // If the operator is || and the left hand side is false literal, don't
-    // consider the RHS of the binary expression.
+    // If the operator is ||, then only consider the RHS of the binary
+    // expression if the left hand side is the false literal.
     // TODO(jwren) Do we want to take constant expressions into account,
     // evaluate if(false) {} differently than if(<condition>), when <condition>
     // evaluates to a constant false value?
@@ -3953,21 +3966,27 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       if (lhsExpression is BooleanLiteral) {
         BooleanLiteral booleanLiteral = lhsExpression;
         if (!booleanLiteral.value) {
-          return false;
+          return _nodeExits(rhsExpression);
         }
       }
+      return _nodeExits(lhsExpression);
     }
-    // If the operator is && and the left hand side is true literal, don't
-    // consider the RHS of the binary expression.
+    // If the operator is &&, then only consider the RHS of the binary
+    // expression if the left hand side is the true literal.
     if (operatorType == sc.TokenType.AMPERSAND_AMPERSAND) {
       if (lhsExpression is BooleanLiteral) {
         BooleanLiteral booleanLiteral = lhsExpression;
         if (booleanLiteral.value) {
-          return false;
+          return _nodeExits(rhsExpression);
         }
       }
+      return _nodeExits(lhsExpression);
     }
-    Expression rhsExpression = node.rightOperand;
+    // If the operator is ??, then don't consider the RHS of the binary
+    // expression.
+    if (operatorType == sc.TokenType.QUESTION_QUESTION) {
+      return _nodeExits(lhsExpression);
+    }
     return _nodeExits(lhsExpression) || _nodeExits(rhsExpression);
   }
 
@@ -4162,8 +4181,13 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   @override
   bool visitMethodInvocation(MethodInvocation node) {
     Expression target = node.realTarget;
-    if (target != null && target.accept(this)) {
-      return true;
+    if (target != null) {
+      if (target.accept(this)) {
+        return true;
+      }
+      if (node.operator.type == sc.TokenType.QUESTION_PERIOD) {
+        return false;
+      }
     }
     return _nodeExits(node.argumentList);
   }
@@ -9523,6 +9547,150 @@ class OverrideVerifier extends RecursiveAstVisitor<Object> {
 }
 
 /**
+ * An AST visitor that is used to resolve the some of the nodes within a single
+ * compilation unit. The nodes that are skipped are those that are within
+ * function bodies.
+ */
+class PartialResolverVisitor extends ResolverVisitor {
+  /**
+   * A flag indicating whether the resolver is being run in strong mode.
+   */
+  final bool strongMode;
+
+  /**
+   * The static variables that have an initializer. These are the variables that
+   * need to be re-resolved after static variables have their types inferred. A
+   * subset of these variables are those whose types should be inferred. The
+   * list will be empty unless the resolver is being run in strong mode.
+   */
+  final List<VariableElement> staticVariables = <VariableElement>[];
+
+  /**
+   * A flag indicating whether we are currently visiting a child of either a
+   * field or a top-level variable.
+   */
+  bool inFieldOrTopLevelVariable = false;
+
+  /**
+   * A flag indicating whether we should discard errors while resolving the
+   * initializer for variable declarations. We do this for top-level variables
+   * and fields because their initializer will be re-resolved at a later time.
+   */
+  bool discardErrorsInInitializer = false;
+
+  /**
+   * Initialize a newly created visitor to resolve the nodes in an AST node.
+   *
+   * The [definingLibrary] is the element for the library containing the node
+   * being visited. The [source] is the source representing the compilation unit
+   * containing the node being visited. The [typeProvider] is the object used to
+   * access the types from the core library. The [errorListener] is the error
+   * listener that will be informed of any errors that are found during
+   * resolution. The [nameScope] is the scope used to resolve identifiers in the
+   * node that will first be visited.  If `null` or unspecified, a new
+   * [LibraryScope] will be created based on [definingLibrary] and
+   * [typeProvider]. The [inheritanceManager] is used to perform inheritance
+   * lookups.  If `null` or unspecified, a new [InheritanceManager] will be
+   * created based on [definingLibrary]. The [typeAnalyzerFactory] is used to
+   * create the type analyzer.  If `null` or unspecified, a type analyzer of
+   * type [StaticTypeAnalyzer] will be created.
+   */
+  PartialResolverVisitor(LibraryElement definingLibrary, Source source,
+      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+      {Scope nameScope,
+      InheritanceManager inheritanceManager,
+      StaticTypeAnalyzerFactory typeAnalyzerFactory})
+      : strongMode = definingLibrary.context.analysisOptions.strongMode,
+        super(definingLibrary, source, typeProvider,
+            new DisablableErrorListener(errorListener));
+
+  @override
+  Object visitBlockFunctionBody(BlockFunctionBody node) {
+    if (inFieldOrTopLevelVariable) {
+      return super.visitBlockFunctionBody(node);
+    }
+    return null;
+  }
+
+  @override
+  Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    if (inFieldOrTopLevelVariable) {
+      return super.visitExpressionFunctionBody(node);
+    }
+    return null;
+  }
+
+  @override
+  Object visitFieldDeclaration(FieldDeclaration node) {
+    bool wasInFieldOrTopLevelVariable = inFieldOrTopLevelVariable;
+    try {
+      inFieldOrTopLevelVariable = true;
+      if (strongMode && node.isStatic) {
+        _addStaticVariables(node.fields.variables);
+        bool wasDiscarding = discardErrorsInInitializer;
+        discardErrorsInInitializer = true;
+        try {
+          return super.visitFieldDeclaration(node);
+        } finally {
+          discardErrorsInInitializer = wasDiscarding;
+        }
+      }
+      return super.visitFieldDeclaration(node);
+    } finally {
+      inFieldOrTopLevelVariable = wasInFieldOrTopLevelVariable;
+    }
+  }
+
+  @override
+  Object visitNode(AstNode node) {
+    if (discardErrorsInInitializer) {
+      AstNode parent = node.parent;
+      if (parent is VariableDeclaration && parent.initializer == node) {
+        DisablableErrorListener listener = errorListener;
+        return listener.disableWhile(() => super.visitNode(node));
+      }
+    }
+    return super.visitNode(node);
+  }
+
+  @override
+  Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    bool wasInFieldOrTopLevelVariable = inFieldOrTopLevelVariable;
+    try {
+      inFieldOrTopLevelVariable = true;
+      if (strongMode) {
+        _addStaticVariables(node.variables.variables);
+        bool wasDiscarding = discardErrorsInInitializer;
+        discardErrorsInInitializer = true;
+        try {
+          return super.visitTopLevelVariableDeclaration(node);
+        } finally {
+          discardErrorsInInitializer = wasDiscarding;
+        }
+      }
+      return super.visitTopLevelVariableDeclaration(node);
+    } finally {
+      inFieldOrTopLevelVariable = wasInFieldOrTopLevelVariable;
+    }
+  }
+
+  /**
+   * Add all of the [variables] with initializers to the list of variables whose
+   * type can be inferred. Technically, we only infer the types of variables
+   * that do not have a static type, but all variables with initializers
+   * potentially need to be re-resolved after inference because they might
+   * refer to a field whose type was inferred.
+   */
+  void _addStaticVariables(NodeList<VariableDeclaration> variables) {
+    for (VariableDeclaration variable in variables) {
+      if (variable.initializer != null) {
+        staticVariables.add(variable.element);
+      }
+    }
+  }
+}
+
+/**
  * Instances of the class `PubVerifier` traverse an AST structure looking for deviations from
  * pub best practices.
  */
@@ -10108,21 +10276,19 @@ class ResolverVisitor extends ScopedVisitor {
   /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
-   * [definingLibrary] is the element for the library containing the node being
-   * visited.
-   * [source] is the source representing the compilation unit containing the
-   * node being visited.
-   * [typeProvider] the object used to access the types from the core library.
-   * [errorListener] the error listener that will be informed of any errors
-   * that are found during resolution.
-   * [nameScope] is the scope used to resolve identifiers in the node that will
-   * first be visited.  If `null` or unspecified, a new [LibraryScope] will be
-   * created based on [definingLibrary] and [typeProvider].
-   * [inheritanceManager] is used to perform inheritance lookups.  If `null` or
-   * unspecified, a new [InheritanceManager] will be created based on
-   * [definingLibrary].
-   * [typeAnalyzerFactory] is used to create the type analyzer.  If `null` or
-   * unspecified, a type analyzer of type [StaticTypeAnalyzer] will be created.
+   * The [definingLibrary] is the element for the library containing the node
+   * being visited. The [source] is the source representing the compilation unit
+   * containing the node being visited. The [typeProvider] is the object used to
+   * access the types from the core library. The [errorListener] is the error
+   * listener that will be informed of any errors that are found during
+   * resolution. The [nameScope] is the scope used to resolve identifiers in the
+   * node that will first be visited.  If `null` or unspecified, a new
+   * [LibraryScope] will be created based on [definingLibrary] and
+   * [typeProvider]. The [inheritanceManager] is used to perform inheritance
+   * lookups.  If `null` or unspecified, a new [InheritanceManager] will be
+   * created based on [definingLibrary]. The [typeAnalyzerFactory] is used to
+   * create the type analyzer.  If `null` or unspecified, a type analyzer of
+   * type [StaticTypeAnalyzer] will be created.
    */
   ResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
@@ -10261,7 +10427,14 @@ class ResolverVisitor extends ScopedVisitor {
   /**
    * Prepares this [ResolverVisitor] to using it for incremental resolution.
    */
-  void initForIncrementalResolution() {
+  void initForIncrementalResolution([Declaration declaration = null]) {
+    if (declaration != null) {
+      Element element = declaration.element;
+      if (element is ExecutableElement) {
+        _enclosingFunction = element;
+      }
+      _commentBeforeFunction = declaration.documentationComment;
+    }
     _overrideManager.enterScope();
   }
 

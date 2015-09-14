@@ -1745,7 +1745,7 @@ class _Bigint extends _IntegerImplementation implements int {
             _absSub(d_digits, abcd_used, b_digits, abcd_used, d_digits);
           } else {
             _absSub(b_digits, abcd_used, d_digits, abcd_used, d_digits);
-            d_neg = !d_neg && (d_cmp_ab != 0);
+            d_neg = !d_neg && (d_cmp_b != 0);
           }
         } else {
           _absAdd(d_digits, abcd_used, b_digits, abcd_used, d_digits);

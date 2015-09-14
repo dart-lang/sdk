@@ -823,6 +823,24 @@ void f() {}
     assertNoAssistAt('f();', DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE);
   }
 
+  void test_convertToBlockBody_OK_async() {
+    resolveTestUnit('''
+class A {
+  mmm() async => 123;
+}
+''');
+    assertHasAssistAt(
+        'mmm()',
+        DartAssistKind.CONVERT_INTO_BLOCK_BODY,
+        '''
+class A {
+  mmm() async {
+    return 123;
+  }
+}
+''');
+  }
+
   void test_convertToBlockBody_OK_closure() {
     resolveTestUnit('''
 setup(x) {}
@@ -953,6 +971,24 @@ fff() {
 }
 ''');
     assertNoAssistAt('fff() {', DartAssistKind.CONVERT_INTO_BLOCK_BODY);
+  }
+
+  void test_convertToExpressionBody_OK_async() {
+    resolveTestUnit('''
+class A {
+  mmm() async {
+    return 42;
+  }
+}
+''');
+    assertHasAssistAt(
+        'mmm',
+        DartAssistKind.CONVERT_INTO_EXPRESSION_BODY,
+        '''
+class A {
+  mmm() async => 42;
+}
+''');
   }
 
   void test_convertToExpressionBody_OK_closure() {

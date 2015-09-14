@@ -22,6 +22,21 @@ import 'package:plugin/plugin.dart';
 class EnginePlugin implements Plugin {
   /**
    * The simple identifier of the extension point that allows plugins to
+   * register new analysis error results to compute for a Dart source.
+   */
+  static const String DART_ERRORS_FOR_SOURCE_EXTENSION_POINT =
+      'dartErrorsForSource';
+
+  /**
+   * The simple identifier of the extension point that allows plugins to
+   * register new analysis error results to compute for a Dart library
+   * specific unit.
+   */
+  static const String DART_ERRORS_FOR_UNIT_EXTENSION_POINT =
+      'dartErrorsForUnit';
+
+  /**
+   * The simple identifier of the extension point that allows plugins to
    * register new analysis tasks with the analysis engine.
    */
   static const String TASK_EXTENSION_POINT = 'task';
@@ -37,6 +52,18 @@ class EnginePlugin implements Plugin {
    * The unique identifier of this plugin.
    */
   static const String UNIQUE_IDENTIFIER = 'analysis_engine.core';
+
+  /**
+   * The extension point that allows plugins to register new analysis error
+   * results for a Dart source.
+   */
+  ExtensionPoint dartErrorsForSourceExtensionPoint;
+
+  /**
+   * The extension point that allows plugins to register new analysis error
+   * results for a Dart library specific unit.
+   */
+  ExtensionPoint dartErrorsForUnitExtensionPoint;
 
   /**
    * The extension point that allows plugins to register new analysis tasks with
@@ -56,6 +83,20 @@ class EnginePlugin implements Plugin {
   EnginePlugin();
 
   /**
+   * Return a list containing all of the contributed analysis error result
+   * descriptors for Dart sources.
+   */
+  List<TaskDescriptor> get dartErrorsForSource =>
+      dartErrorsForSourceExtensionPoint.extensions;
+
+  /**
+   * Return a list containing all of the contributed analysis error result
+   * descriptors for Dart library specific units.
+   */
+  List<TaskDescriptor> get dartErrorsForUnit =>
+      dartErrorsForUnitExtensionPoint.extensions;
+
+  /**
    * Return a list containing all of the task descriptors that were contributed.
    */
   List<TaskDescriptor> get taskDescriptors => taskExtensionPoint.extensions;
@@ -72,6 +113,10 @@ class EnginePlugin implements Plugin {
 
   @override
   void registerExtensionPoints(RegisterExtensionPoint registerExtensionPoint) {
+    dartErrorsForSourceExtensionPoint = registerExtensionPoint(
+        DART_ERRORS_FOR_SOURCE_EXTENSION_POINT, _validateResultDescriptor);
+    dartErrorsForUnitExtensionPoint = registerExtensionPoint(
+        DART_ERRORS_FOR_UNIT_EXTENSION_POINT, _validateResultDescriptor);
     taskExtensionPoint =
         registerExtensionPoint(TASK_EXTENSION_POINT, _validateTaskExtension);
     workManagerFactoryExtensionPoint = registerExtensionPoint(
@@ -83,6 +128,21 @@ class EnginePlugin implements Plugin {
   void registerExtensions(RegisterExtension registerExtension) {
     _registerTaskExtensions(registerExtension);
     _registerWorkManagerFactoryExtensions(registerExtension);
+    _registerDartErrorsForSource(registerExtension);
+    _registerDartErrorsForUnit(registerExtension);
+  }
+
+  void _registerDartErrorsForSource(RegisterExtension registerExtension) {
+    String id = DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID;
+    registerExtension(id, BUILD_DIRECTIVES_ERRORS);
+    registerExtension(id, BUILD_LIBRARY_ERRORS);
+    registerExtension(id, PARSE_ERRORS);
+    registerExtension(id, SCAN_ERRORS);
+  }
+
+  void _registerDartErrorsForUnit(RegisterExtension registerExtension) {
+    String id = DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID;
+    registerExtension(id, LIBRARY_UNIT_ERRORS);
   }
 
   void _registerTaskExtensions(RegisterExtension registerExtension) {
@@ -145,8 +205,19 @@ class EnginePlugin implements Plugin {
   }
 
   /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid domain.
+   * Validate the given extension by throwing an [ExtensionError] if it is not
+   * a [ResultDescriptor].
+   */
+  void _validateResultDescriptor(Object extension) {
+    if (extension is! ResultDescriptor) {
+      String id = taskExtensionPoint.uniqueIdentifier;
+      throw new ExtensionError('Extensions to $id must be a ResultDescriptor');
+    }
+  }
+
+  /**
+   * Validate the given extension by throwing an [ExtensionError] if it is not
+   * a [TaskDescriptor].
    */
   void _validateTaskExtension(Object extension) {
     if (extension is! TaskDescriptor) {
@@ -156,8 +227,8 @@ class EnginePlugin implements Plugin {
   }
 
   /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid domain.
+   * Validate the given extension by throwing an [ExtensionError] if it is not
+   * a [WorkManagerFactory].
    */
   void _validateWorkManagerFactoryExtension(Object extension) {
     if (extension is! WorkManagerFactory) {

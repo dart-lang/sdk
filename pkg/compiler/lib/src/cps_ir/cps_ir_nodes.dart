@@ -4,7 +4,7 @@
 library dart2js.ir_nodes;
 
 import 'dart:collection';
-import '../constants/values.dart' as values show ConstantValue;
+import '../constants/values.dart' as values;
 import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
@@ -968,6 +968,18 @@ class Interceptor extends Primitive {
   final Reference<Primitive> input;
   final Set<ClassElement> interceptedClasses = new Set<ClassElement>();
   final SourceInformation sourceInformation;
+
+  /// If non-null, all uses of this the interceptor call are guaranteed to
+  /// see this value.
+  ///
+  /// The interceptor call is not immediately replaced by the constant, because
+  /// that might prevent the interceptor from being shared.
+  ///
+  /// The precise input type is not known when sharing interceptors, because
+  /// refinement nodes have been removed by then. So this field carries the
+  /// known constant until we know if it should be shared or replaced by
+  /// the constant.
+  values.InterceptorConstantValue constantValue;
 
   Interceptor(Primitive input, this.sourceInformation)
       : this.input = new Reference<Primitive>(input);

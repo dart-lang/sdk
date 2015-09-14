@@ -11,6 +11,7 @@ import 'package:compiler/compiler_new.dart' show
     Diagnostic;
 import 'package:compiler/src/apiimpl.dart' show
     Compiler;
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/constants/expressions.dart' show
     ConstructedConstantExpression;
 import 'package:compiler/src/dart_types.dart' show
@@ -36,11 +37,11 @@ main(List<String> arguments) {
   bool verbose = arguments.contains('-v');
 
   List<String> options = <String>[
-    '--analyze-only',
-    '--analyze-main',
+    Flags.analyzeOnly,
+    Flags.analyzeMain,
     '--categories=Client,Server'];
   if (verbose) {
-    options.add('--verbose');
+    options.add(Flags.verbose);
   }
   asyncTest(() async {
     Compiler compiler = compilerFor(

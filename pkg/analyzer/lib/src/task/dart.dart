@@ -21,6 +21,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
@@ -70,16 +71,6 @@ final ListResultDescriptor<AnalysisError> BUILD_DIRECTIVES_ERRORS =
 final ListResultDescriptor<AnalysisError> BUILD_LIBRARY_ERRORS =
     new ListResultDescriptor<AnalysisError>(
         'BUILD_LIBRARY_ERRORS', AnalysisError.NO_ERRORS);
-
-/**
- * A list of the [ClassElement]s representing the classes defined in a
- * compilation unit.
- *
- * The result is only available for [LibrarySpecificUnit]s, and only when strong
- * mode is enabled.
- */
-final ListResultDescriptor<ClassElement> CLASSES_IN_UNIT =
-    new ListResultDescriptor<ClassElement>('CLASSES_IN_UNIT', null);
 
 /**
  * A list of the [ConstantEvaluationTarget]s defined in a unit.  This includes
@@ -1932,31 +1923,6 @@ class DartDelta extends Delta {
  */
 class DartErrorsTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [BUILD_DIRECTIVES_ERRORS] input.
-   */
-  static const String BUILD_DIRECTIVES_ERRORS_INPUT = 'BUILD_DIRECTIVES_ERRORS';
-
-  /**
-   * The name of the [BUILD_LIBRARY_ERRORS] input.
-   */
-  static const String BUILD_LIBRARY_ERRORS_INPUT = 'BUILD_LIBRARY_ERRORS';
-
-  /**
-   * The name of the [LIBRARY_UNIT_ERRORS] input.
-   */
-  static const String LIBRARY_UNIT_ERRORS_INPUT = 'LIBRARY_UNIT_ERRORS';
-
-  /**
-   * The name of the [PARSE_ERRORS] input.
-   */
-  static const String PARSE_ERRORS_INPUT = 'PARSE_ERRORS';
-
-  /**
-   * The name of the [SCAN_ERRORS] input.
-   */
-  static const String SCAN_ERRORS_INPUT = 'SCAN_ERRORS';
-
-  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor('DartErrorsTask',
@@ -1970,18 +1936,21 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
+    List<List<AnalysisError>> errorLists = <List<AnalysisError>>[];
     //
     // Prepare inputs.
     //
-    List<List<AnalysisError>> errorLists = <List<AnalysisError>>[];
-    errorLists.add(getRequiredInput(BUILD_DIRECTIVES_ERRORS_INPUT));
-    errorLists.add(getRequiredInput(BUILD_LIBRARY_ERRORS_INPUT));
-    errorLists.add(getRequiredInput(PARSE_ERRORS_INPUT));
-    errorLists.add(getRequiredInput(SCAN_ERRORS_INPUT));
-    Map<Source, List<AnalysisError>> unitErrors =
-        getRequiredInput(LIBRARY_UNIT_ERRORS_INPUT);
-    for (List<AnalysisError> errors in unitErrors.values) {
-      errorLists.add(errors);
+    EnginePlugin enginePlugin = AnalysisEngine.instance.enginePlugin;
+    for (ResultDescriptor result in enginePlugin.dartErrorsForSource) {
+      String inputName = result.name + '_input';
+      errorLists.add(getRequiredInput(inputName));
+    }
+    for (ResultDescriptor result in enginePlugin.dartErrorsForUnit) {
+      String inputName = result.name + '_input';
+      Map<Source, List<AnalysisError>> errorMap = getRequiredInput(inputName);
+      for (List<AnalysisError> errors in errorMap.values) {
+        errorLists.add(errors);
+      }
     }
     //
     // Record outputs.
@@ -1996,17 +1965,23 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     Source source = target;
-    return <String, TaskInput>{
-      BUILD_DIRECTIVES_ERRORS_INPUT: BUILD_DIRECTIVES_ERRORS.of(source),
-      BUILD_LIBRARY_ERRORS_INPUT: BUILD_LIBRARY_ERRORS.of(source),
-      PARSE_ERRORS_INPUT: PARSE_ERRORS.of(source),
-      SCAN_ERRORS_INPUT: SCAN_ERRORS.of(source),
-      LIBRARY_UNIT_ERRORS_INPUT:
+    Map<String, TaskInput> inputs = <String, TaskInput>{};
+    EnginePlugin enginePlugin = AnalysisEngine.instance.enginePlugin;
+    // for Source
+    for (ResultDescriptor result in enginePlugin.dartErrorsForSource) {
+      String inputName = result.name + '_input';
+      inputs[inputName] = result.of(source);
+    }
+    // for LibrarySpecificUnit
+    for (ResultDescriptor result in enginePlugin.dartErrorsForUnit) {
+      String inputName = result.name + '_input';
+      inputs[inputName] =
           CONTAINING_LIBRARIES.of(source).toMap((Source library) {
         LibrarySpecificUnit unit = new LibrarySpecificUnit(library, source);
-        return LIBRARY_UNIT_ERRORS.of(unit);
-      })
-    };
+        return result.of(unit);
+      });
+    }
+    return inputs;
   }
 
   /**
@@ -2703,6 +2678,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
             "NodeLocator failed to find a variable's declaration");
       }
       Expression initializer = declaration.initializer;
+      ResolutionEraser.erase(initializer, eraseDeclarations: false);
       ResolutionContext resolutionContext =
           ResolutionContextBuilder.contextFor(initializer, errorListener);
       ResolverVisitor visitor = new ResolverVisitor(
@@ -2725,7 +2701,9 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
       (variable.initializer as ExecutableElementImpl).returnType = newType;
       if (variable is PropertyInducingElementImpl) {
         setReturnType(variable.getter, newType);
-        setParameterType(variable.setter, newType);
+        if (!variable.isFinal && !variable.isConst) {
+          setParameterType(variable.setter, newType);
+        }
       }
     } else {
       // TODO(brianwilkerson) For now we simply don't infer any type for
@@ -3141,7 +3119,6 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
       'PartiallyResolveUnitReferencesTask',
       createTask,
       buildInputs, <ResultDescriptor>[
-    CLASSES_IN_UNIT,
     INFERABLE_STATIC_VARIABLES_IN_UNIT,
     PARTIALLY_RESOLVE_REFERENCES_ERRORS,
     RESOLVED_UNIT5
@@ -3169,29 +3146,14 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
     //
     InheritanceManager inheritanceManager =
         new InheritanceManager(libraryElement);
-    // TODO(brianwilkerson) Improve performance by not resolving anything inside
-    // function bodies. Function bodies will be resolved later so this is wasted
-    // effort.
-    AstVisitor visitor = new ResolverVisitor(
+    PartialResolverVisitor visitor = new PartialResolverVisitor(
         libraryElement, unitElement.source, typeProvider, errorListener,
         inheritanceManager: inheritanceManager);
     unit.accept(visitor);
     //
-    // Prepare targets for inference.
-    //
-    List<VariableElement> staticVariables = <VariableElement>[];
-    List<ClassElement> classes = <ClassElement>[];
-    if (context.analysisOptions.strongMode) {
-      InferrenceFinder inferrenceFinder = new InferrenceFinder();
-      unit.accept(inferrenceFinder);
-      staticVariables = inferrenceFinder.staticVariables;
-      classes = inferrenceFinder.classes;
-    }
-    //
     // Record outputs.
     //
-    outputs[CLASSES_IN_UNIT] = classes;
-    outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT] = staticVariables;
+    outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT] = visitor.staticVariables;
     outputs[PARTIALLY_RESOLVE_REFERENCES_ERRORS] =
         removeDuplicateErrors(errorListener.errors);
     outputs[RESOLVED_UNIT5] = unit;
@@ -3438,8 +3400,18 @@ class ResolveFunctionBodiesInUnitTask extends SourceBasedAnalysisTask {
       visitor.prepareToResolveMembersInClass(
           resolutionContext.enclosingClassDeclaration);
     }
-    visitor.initForIncrementalResolution();
+    Declaration declaration = functionBody.getAncestor((AstNode node) =>
+        node is ConstructorDeclaration ||
+            node is FunctionDeclaration ||
+            node is MethodDeclaration);
+    visitor.initForIncrementalResolution(declaration);
     functionBody.accept(visitor);
+    if (declaration is FunctionDeclaration) {
+      // This is in the wrong place. The propagated return type is stored
+      // locally in the resolver, not in the declaration (or element). Hence,
+      // this needs to happen later.
+      declaration.accept(visitor.typeAnalyzer);
+    }
   }
 
   /**

@@ -7351,7 +7351,7 @@ class ExitDetectorTest extends ParserTestCase {
   }
 
   void test_assertStatement_throw() {
-    _assertTrue("assert((throw 0));");
+    _assertFalse("assert((throw 0));");
   }
 
   void test_assignmentExpression() {
@@ -7383,15 +7383,31 @@ class ExitDetectorTest extends ParserTestCase {
   }
 
   void test_binaryExpression_and_rhs() {
-    _assertTrue("a && (throw '');");
+    _assertFalse("a && (throw '');");
   }
 
   void test_binaryExpression_and_rhs2() {
-    _assertTrue("false && (throw '');");
+    _assertFalse("false && (throw '');");
   }
 
   void test_binaryExpression_and_rhs3() {
-    _assertFalse("true && (throw '');");
+    _assertTrue("true && (throw '');");
+  }
+
+  void test_binaryExpression_ifNull() {
+    _assertFalse("a ?? b;");
+  }
+
+  void test_binaryExpression_ifNull_lhs() {
+    _assertTrue("throw '' ?? b;");
+  }
+
+  void test_binaryExpression_ifNull_rhs() {
+    _assertFalse("a ?? (throw '');");
+  }
+
+  void test_binaryExpression_ifNull_rhs2() {
+    _assertFalse("null ?? (throw '');");
   }
 
   void test_binaryExpression_or() {
@@ -7403,15 +7419,15 @@ class ExitDetectorTest extends ParserTestCase {
   }
 
   void test_binaryExpression_or_rhs() {
-    _assertTrue("a || (throw '');");
+    _assertFalse("a || (throw '');");
   }
 
   void test_binaryExpression_or_rhs2() {
-    _assertTrue("true || (throw '');");
+    _assertFalse("true || (throw '');");
   }
 
   void test_binaryExpression_or_rhs3() {
-    _assertFalse("false || (throw '');");
+    _assertTrue("false || (throw '');");
   }
 
   void test_block_empty() {
@@ -7460,6 +7476,62 @@ class ExitDetectorTest extends ParserTestCase {
 
   void test_conditional_ifElse_thenThrow() {
     _assertFalse("c ? throw '' : j;");
+  }
+
+  void test_conditionalAccess() {
+    _assertFalse("a?.b;");
+  }
+
+  void test_conditionalAccess_lhs() {
+    _assertTrue("(throw '')?.b;");
+  }
+
+  void test_conditionalAccessAssign() {
+    _assertFalse("a?.b = c;");
+  }
+
+  void test_conditionalAccessAssign_lhs() {
+    _assertTrue("(throw '')?.b = c;");
+  }
+
+  void test_conditionalAccessAssign_rhs() {
+    _assertFalse("a?.b = throw '';");
+  }
+
+  void test_conditionalAccessAssign_rhs2() {
+    _assertFalse("null?.b = throw '';");
+  }
+
+  void test_conditionalAccessIfNullAssign() {
+    _assertFalse("a?.b ??= c;");
+  }
+
+  void test_conditionalAccessIfNullAssign_lhs() {
+    _assertTrue("(throw '')?.b ??= c;");
+  }
+
+  void test_conditionalAccessIfNullAssign_rhs() {
+    _assertFalse("a?.b ??= throw '';");
+  }
+
+  void test_conditionalAccessIfNullAssign_rhs2() {
+    _assertFalse("null?.b ??= throw '';");
+  }
+
+  void test_conditionalCall() {
+    _assertFalse("a?.b(c);");
+  }
+
+  void test_conditionalCall_lhs() {
+    _assertTrue("(throw '')?.b(c);");
+  }
+
+  void test_conditionalCall_rhs() {
+    _assertFalse("a?.b(throw '');");
+  }
+
+  void test_conditionalCall_rhs2() {
+    _assertFalse("null?.b(throw '');");
   }
 
   void test_creation() {
@@ -7616,6 +7688,14 @@ class ExitDetectorTest extends ParserTestCase {
 
   void test_ifElse_thenReturn() {
     _assertFalse("if (c) return 0; else j++;");
+  }
+
+  void test_ifNullAssign() {
+    _assertFalse("a ??= b;");
+  }
+
+  void test_ifNullAssign_rhs() {
+    _assertFalse("a ??= throw '';");
   }
 
   void test_indexExpression() {

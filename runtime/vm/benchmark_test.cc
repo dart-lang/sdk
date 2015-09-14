@@ -354,12 +354,8 @@ BENCHMARK(Dart2JSCompileAll) {
   char* script = NULL;
   if (dart_root != NULL) {
     HANDLESCOPE(thread);
-    const char* kFormatStr =
-        "import '%s/pkg/compiler/lib/compiler.dart';";
-    intptr_t len = OS::SNPrint(NULL, 0, kFormatStr, dart_root) + 1;
-    script = reinterpret_cast<char*>(malloc(len));
-    EXPECT(script != NULL);
-    OS::SNPrint(script, len, kFormatStr, dart_root);
+    script = OS::SCreate(NULL,
+        "import '%s/pkg/compiler/lib/compiler.dart';", dart_root);
     Dart_Handle lib = TestCase::LoadTestScript(
         script,
         reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));

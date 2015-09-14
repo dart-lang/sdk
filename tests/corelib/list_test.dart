@@ -46,6 +46,89 @@ void main() {
   testTypedGrowableList(new Int32List(0).toList());
 
   testListConstructor();
+
+  testErrors();
+}
+
+void testErrors() {
+  // Regression for issue http://dartbug.com/24295
+  testIndexError(list, index, name) {
+    try {
+      list[list.length];
+    } catch (err, s) {
+      Expect.isTrue(err is RangeError, "$name[$index]");
+      Expect.equals(list.length, err.invalidValue, "$name[$index] value");
+      Expect.equals(list.length - 1, err.end, "$name[$index] end");
+      Expect.equals(0, err.start, "$name[$index] start");
+    }
+  }
+  testIndex(list, name) {
+    testIndexError(list, list.length, name);   // Just too big.
+    testIndexError(list, -1, name);            // Negative.
+    testIndexError(list, 0x123456789, name);   // > 2^32.
+    testIndexError(list, -0x123456789, name);  // < -2^32.
+  }
+
+  // Slices.
+  testSliceError(list, start, end, name) {
+    name = "$name[$start:$end]";
+    var realError;
+    try {
+      RangeError.checkValidRange(start, end, list.length);
+    } catch (e) {
+      realError = e;
+    }
+    var result;
+    try {
+      result = list.sublist(start, end);
+    } catch (actualError) {
+      Expect.isNotNull(realError, "$name should not fail");
+      Expect.isTrue(actualError is RangeError, "$name is-error: $actualError");
+      Expect.equals(realError.name, actualError.name, "$name name");
+      Expect.equals(realError.invalidValue, actualError.invalidValue,
+                    "$name[0:l+1] value");
+      Expect.equals(realError.start, actualError.start, "$name[0:l+1] start");
+      Expect.equals(realError.end, actualError.end, "$name[0:l+1] end");
+      return;
+    }
+    // Didn't throw.
+    Expect.isNull(realError, "$name should fail");
+    Expect.equals(end - start, result.length, "$name result length");
+  }
+
+  testSlice(list, name) {
+    testSliceError(list, 0, list.length, name);  // Should not fail.
+    testSliceError(list, 0, list.length + 1, name);
+    testSliceError(list, 0, 0x123456789, name);
+    testSliceError(list, -1, list.length, name);
+    testSliceError(list, -0x123456789, list.length, name);
+    testSliceError(list, list.length + 1, list.length + 1, name);
+    testSliceError(list, -1, null, name);
+    if (list.length > 0) {
+      testSliceError(list, list.length, list.length - 1, name);
+    }
+  }
+
+  testRangeErrors(list, name) {
+    testIndex(list, "$name#${list.length} index");
+    testSlice(list, "$name#${list.length} slice");
+  }
+  // Empty lists.
+  testRangeErrors([], "list");
+  testRangeErrors(new List(0), "fixed-list");
+  testRangeErrors(const [], "const-list");
+  testRangeErrors(new List.unmodifiable([]), "unmodifiable");
+  testRangeErrors(new Uint8List(0), "typed-list");
+  testRangeErrors(new Uint8List.view(new Uint8List(0).buffer), "typed-list");
+  testRangeErrors([1, 2, 3].sublist(1, 1), "sub-list");
+  // Non-empty lists.
+  testRangeErrors([1, 2, 3], "list");
+  testRangeErrors(new List(3), "fixed-list");
+  testRangeErrors(const [1, 2, 3], "const-list");
+  testRangeErrors(new List.unmodifiable([1, 2, 3]), "unmodifiable");
+  testRangeErrors(new Uint8List(3), "typed-list");
+  testRangeErrors(new Uint8List.view(new Uint8List(3).buffer), "typed-list");
+  testRangeErrors([1, 2, 3, 4, 5].sublist(1, 3), "sub-list");
 }
 
 void testLength(int length, List list) {
@@ -475,6 +558,7 @@ void testGrowableListOperations(List list) {
 
 class Yes {
   operator ==(var other) => true;
+  int get hashCode => 0;
 }
 
 class MyList<E> extends ListBase<E> {

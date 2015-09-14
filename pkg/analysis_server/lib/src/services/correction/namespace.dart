@@ -57,8 +57,10 @@ ImportElement getImportElement(SimpleIdentifier prefixNode) {
  * [element] - the referenced element.
  * [importElementsMap] - the cache of [Element]s imported by [ImportElement]s.
  */
-ImportElement internal_getImportElement(LibraryElement libraryElement,
-    String prefix, Element element,
+ImportElement internal_getImportElement(
+    LibraryElement libraryElement,
+    String prefix,
+    Element element,
     Map<ImportElement, Set<Element>> importElementsMap) {
   // validate Element
   if (element == null) {

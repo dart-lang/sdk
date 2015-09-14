@@ -282,4 +282,24 @@ bool CompilerTest::TestCompileFunction(const Function& function) {
 }
 
 
+void ElideJSONSubstring(const char* prefix, const char* in, char* out) {
+  const char* pos = strstr(in, prefix);
+  while (pos != NULL) {
+    // Copy up to pos into the output buffer.
+    while (in < pos) {
+      *out++ = *in++;
+    }
+
+    // Skip to the close quote.
+    in += strcspn(in, "\"");
+    pos = strstr(in, prefix);
+  }
+  // Copy the remainder of in to out.
+  while (*in != '\0') {
+    *out++ = *in++;
+  }
+  *out = '\0';
+}
+
+
 }  // namespace dart

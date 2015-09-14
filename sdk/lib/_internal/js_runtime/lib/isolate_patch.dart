@@ -62,9 +62,15 @@ class Isolate {
   @patch
   static Future<Isolate> spawnUri(
       Uri uri, List<String> args, var message,
-      {bool paused: false, bool checked, Uri packageRoot, bool errorsAreFatal,
-       SendPort onExit, SendPort onError}) {
+      {bool paused: false,
+       bool checked,
+       Uri packageRoot,
+       Map<String, Uri> packages,
+       bool errorsAreFatal,
+       SendPort onExit,
+       SendPort onError}) {
     if (packageRoot != null) throw new UnimplementedError("packageRoot");
+    if (packages != null) throw new UnimplementedError("packages");
     bool forcePause = (errorsAreFatal != null) ||
                       (onExit != null) ||
                       (onError != null);
@@ -78,6 +84,7 @@ class Isolate {
       } else if (args != null) {
         throw new ArgumentError("Args must be a list of Strings $args");
       }
+      // TODO: Handle [packageRoot]/[packages] somehow, possibly by throwing.
       // TODO: Consider passing the errorsAreFatal/onExit/onError values
       //       as arguments to the internal spawnUri instead of setting
       //       them after the isolate has been created.

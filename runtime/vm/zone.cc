@@ -203,24 +203,14 @@ void Zone::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 char* Zone::PrintToString(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  return VPrint(format, args);
+  char* buffer = OS::VSCreate(this, format, args);
+  va_end(args);
+  return buffer;
 }
 
 
 char* Zone::VPrint(const char* format, va_list args) {
-  // Measure.
-  va_list measure_args;
-  va_copy(measure_args, args);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, measure_args);
-  va_end(measure_args);
-
-  // Print.
-  char* buffer = Alloc<char>(len + 1);
-  va_list print_args;
-  va_copy(print_args, args);
-  OS::VSNPrint(buffer, (len + 1), format, print_args);
-  va_end(print_args);
-  return buffer;
+  return OS::VSCreate(this, format, args);
 }
 
 

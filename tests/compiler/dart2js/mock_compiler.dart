@@ -370,7 +370,8 @@ void compareMessageKinds(String text,
   }
   if (foundIterator.hasNext) {
     do {
-      print('Additional $kind "${foundIterator.next()}"');
+      WarningMessage message = foundIterator.next();
+      print('Additional $kind "${message}: ${message.message}"');
     } while (foundIterator.hasNext);
     fail('Too many ${kind}s');
   }
@@ -435,4 +436,32 @@ class MockElement extends FunctionElementX {
   parseNode(_) => null;
 
   bool get hasNode => false;
+}
+
+// TODO(herhut): Disallow warnings and errors during compilation by default.
+MockCompiler compilerFor(String code, Uri uri,
+                         {bool analyzeAll: false,
+                          bool analyzeOnly: false,
+                          Map<String, String> coreSource,
+                          bool disableInlining: true,
+                          bool minify: false,
+                          bool trustTypeAnnotations: false,
+                          bool enableTypeAssertions: false,
+                          int expectedErrors,
+                          int expectedWarnings,
+                          api.CompilerOutputProvider outputProvider}) {
+  MockCompiler compiler = new MockCompiler.internal(
+      analyzeAll: analyzeAll,
+      analyzeOnly: analyzeOnly,
+      coreSource: coreSource,
+      disableInlining: disableInlining,
+      enableMinification: minify,
+      trustTypeAnnotations: trustTypeAnnotations,
+      enableTypeAssertions: enableTypeAssertions,
+      expectedErrors: expectedErrors,
+      expectedWarnings: expectedWarnings,
+      outputProvider: outputProvider);
+  compiler.registerSource(uri, code);
+  compiler.diagnosticHandler = createHandler(compiler, code);
+  return compiler;
 }

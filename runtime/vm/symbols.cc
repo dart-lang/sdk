@@ -540,6 +540,31 @@ RawString* Symbols::New(const String& str, intptr_t begin_index, intptr_t len) {
 }
 
 
+
+RawString* Symbols::NewFormatted(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  RawString* result = NewFormattedV(format, args);
+  NoSafepointScope no_safepoint;
+  va_end(args);
+  return result;
+}
+
+
+RawString* Symbols::NewFormattedV(const char* format, va_list args) {
+  va_list args_copy;
+  va_copy(args_copy, args);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
+  va_end(args_copy);
+
+  Zone* zone = Thread::Current()->zone();
+  char* buffer = zone->Alloc<char>(len + 1);
+  OS::VSNPrint(buffer, (len + 1), format, args);
+
+  return Symbols::New(buffer);
+}
+
+
 RawString* Symbols::FromCharCode(int32_t char_code) {
   if (char_code > kMaxOneCharCodeSymbol) {
     return FromUTF32(&char_code, 1);

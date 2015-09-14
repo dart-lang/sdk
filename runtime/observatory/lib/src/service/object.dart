@@ -217,6 +217,9 @@ abstract class ServiceObject extends Observable {
       case 'SourceLocation':
         obj = new SourceLocation._empty(owner);
         break;
+      case 'UnresolvedSourceLocation':
+        obj = new UnresolvedSourceLocation._empty(owner);
+        break;
       case 'Object':
         switch (vmType) {
           case 'ICData':
@@ -426,11 +429,26 @@ abstract class ServiceObjectOwner extends ServiceObject {
   ServiceObject getFromMap(ObservableMap map);
 }
 
+abstract class Location  {
+  Script get script;
+  int get tokenPos;
+}
+
 /// A [SourceLocation] represents a location or range in the source code.
-class SourceLocation extends ServiceObject {
+class SourceLocation extends ServiceObject implements Location {
   Script script;
   int tokenPos;
   int endTokenPos;
+
+  Future<int> getLine() async {
+    await script.load();
+    return script.tokenToLine(tokenPos);
+  }
+
+  Future<int> getColumn() async {
+    await script.load();
+    return script.tokenToCol(tokenPos);
+  }
 
   SourceLocation._empty(ServiceObject owner) : super._empty(owner);
 
@@ -439,8 +457,15 @@ class SourceLocation extends ServiceObject {
     _upgradeCollection(map, owner);
     script = map['script'];
     tokenPos = map['tokenPos'];
-    assert(script != null && tokenPos != null);
     endTokenPos = map['endTokenPos'];
+
+    assert(script != null && tokenPos != null);
+  }
+
+  Future<String> toUserString() async {
+    int line = await getLine();
+    int column = await getColumn();
+    return '${script.name}:${line}:${column}';
   }
 
   String toString() {
@@ -449,6 +474,86 @@ class SourceLocation extends ServiceObject {
     } else {
       return '${script.name}:tokens(${tokenPos}-${endTokenPos})';
     }
+  }
+}
+
+/// An [UnresolvedSourceLocation] represents a location in the source
+// code which has not been precisely mapped to a token position.
+class UnresolvedSourceLocation extends ServiceObject implements Location {
+  Script script;
+  String scriptUri;
+  int line;
+  int column;
+  int tokenPos;
+
+  Future<int> getLine() async {
+    if (tokenPos != null) {
+      await script.load();
+      return script.tokenToLine(tokenPos);
+    } else {
+      return line;
+    }
+  }
+
+  Future<int> getColumn() async {
+    if (tokenPos != null) {
+      await script.load();
+      return script.tokenToCol(tokenPos);
+    } else {
+      return column;
+    }
+  }
+
+  UnresolvedSourceLocation._empty(ServiceObject owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    assert(!mapIsRef);
+    _upgradeCollection(map, owner);
+    script = map['script'];
+    scriptUri = map['scriptUri'];
+    line = map['line'];
+    column = map['column'];
+    tokenPos = map['tokenPos'];
+
+    assert(script != null || scriptUri != null);
+    assert(line != null || tokenPos != null);
+  }
+
+  Future<String> toUserString() async {
+    StringBuffer sb = new StringBuffer();
+
+    int line = await getLine();
+    int column = await getColumn();
+
+    if (script != null) {
+      sb.write('${script.name}:');
+    } else {
+      sb.write('${scriptUri}:');
+    }
+    if (column != null) {
+      sb.write('${line}:${column}');
+    } else {
+      sb.write('${line}');
+    }
+    return sb.toString();
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    if (script != null) {
+      sb.write('${script.name}:');
+    } else {
+      sb.write('${scriptUri}:');
+    }
+    if (tokenPos != null) {
+      sb.write('token(${tokenPos})');
+    } else if (column != null) {
+      sb.write('${line}:${column}');
+    } else {
+      sb.write('${line}');
+    }
+    sb.write('[unresolved]');
+    return sb.toString();
   }
 }
 
@@ -1390,19 +1495,23 @@ class Isolate extends ServiceObjectOwner with Coverage {
     }
   }
 
-  Future<ServiceObject> addBreakpoint(Script script, int line) async {
+  Future<ServiceObject> addBreakpoint(
+      Script script, int line, [int col]) async {
     // TODO(turnidge): Pass line as an int instead of a string.
     try {
       Map params = {
         'scriptId': script.id,
-        'line': '$line',
+        'line': line.toString(),
       };
+      if (col != null) {
+        params['column'] = col.toString();
+      }
       Breakpoint bpt = await invokeRpc('addBreakpoint', params);
-      if (bpt.resolved &&
-          script.loaded &&
-          script.tokenToLine(bpt.location.tokenPos) != line) {
-        // TODO(turnidge): Can this still happen?
-        script.getLine(line).possibleBpt = false;
+      if (bpt.resolved && script.loaded) {
+        SourceLocation loc = bpt.location;
+        if (script.tokenToLine(loc.tokenPos) != line) {
+          script.getLine(line).possibleBpt = false;
+        }
       }
       return bpt;
     } on ServerRpcException catch(e) {
@@ -1412,6 +1521,18 @@ class Isolate extends ServiceObjectOwner with Coverage {
       }
       rethrow;
     }
+  }
+
+  Future<ServiceObject> addBreakpointByScriptUri(
+      String uri, int line, [int col]) {
+    Map params = {
+      'scriptUri': uri,
+      'line': line.toString(),
+    };
+    if (col != null) {
+      params['column'] = col.toString();
+    }
+    return invokeRpc('addBreakpoint', params);
   }
 
   Future<ServiceObject> addBreakpointAtEntry(ServiceFunction function) {
@@ -1855,8 +1976,11 @@ class Breakpoint extends ServiceObject {
   // A unique integer identifier for this breakpoint.
   @observable int number;
 
-  // Source location information.
-  @observable SourceLocation location;
+  // Either SourceLocation or UnresolvedSourceLocation.
+  @observable Location location;
+
+  // The breakpoint is in a file which is not yet loaded.
+  @observable bool latent;
 
   // The breakpoint has been assigned to a final source location.
   @observable bool resolved;
@@ -1869,38 +1993,25 @@ class Breakpoint extends ServiceObject {
     // number never changes.
     assert((number == null) || (number == newNumber));
     number = newNumber;
-
     resolved = map['resolved'];
 
     var oldLocation = location;
     var newLocation = map['location'];
-    var oldScript;
-    var newScript;
-    var oldTokenPos;
-    var newTokenPos;
-    if (oldLocation != null) {
-      oldScript = location.script;
-      oldTokenPos = location.tokenPos;
-    }
-    if (newLocation != null) {
-      newScript = newLocation.script;
-      newTokenPos = newLocation.tokenPos;
-    }
-    // script never changes
-    assert((oldScript == null) || (oldScript == newScript));
-    bool tokenPosChanged = oldTokenPos != newTokenPos;
-    if (newScript.loaded &&
-        (newTokenPos != null) &&
-        tokenPosChanged) {
-      // The breakpoint has moved.  Remove it and add it later.
-      if (oldScript != null) {
+    if (oldLocation is UnresolvedSourceLocation &&
+        newLocation is SourceLocation) {
+      // Breakpoint has been resolved.  Remove old breakpoint.
+      var oldScript = oldLocation.script;
+      if (oldScript != null && oldScript.loaded) {
         oldScript._removeBreakpoint(this);
       }
     }
     location = newLocation;
-    if (newScript.loaded && tokenPosChanged) {
+    var newScript = location.script;
+    if (newScript != null && newScript.loaded) {
       newScript._addBreakpoint(this);
     }
+
+    assert(resolved || location is UnresolvedSourceLocation);
   }
 
   void remove() {
@@ -2893,12 +3004,24 @@ class Script extends HeapObject with Coverage {
   }
 
   void _addBreakpoint(Breakpoint bpt) {
-    var line = tokenToLine(bpt.location.tokenPos);
+    var line;
+    if (bpt.location.tokenPos != null) {
+      line = tokenToLine(bpt.location.tokenPos);
+    } else {
+      UnresolvedSourceLocation loc = bpt.location;
+      line = loc.line;
+    }
     getLine(line).addBreakpoint(bpt);
   }
 
   void _removeBreakpoint(Breakpoint bpt) {
-    var line = tokenToLine(bpt.location.tokenPos);
+    var line;
+    if (bpt.location.tokenPos != null) {
+      line = tokenToLine(bpt.location.tokenPos);
+    } else {
+      UnresolvedSourceLocation loc = bpt.location;
+      line = loc.line;
+    }
     if (line != null) {
       getLine(line).removeBreakpoint(bpt);
     }

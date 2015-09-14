@@ -13,7 +13,6 @@ export 'redundant_phi.dart' show RedundantPhiEliminator;
 export 'redundant_join.dart' show RedundantJoinEliminator;
 export 'shrinking_reductions.dart' show ShrinkingReducer, ParentVisitor;
 export 'mutable_ssa.dart' show MutableVariableEliminator;
-export 'let_sinking.dart' show LetSinker;
 export 'insert_refinements.dart' show InsertRefinements;
 export 'remove_refinements.dart' show RemoveRefinements;
 export 'loop_invariant_code_motion.dart' show LoopInvariantCodeMotion;
@@ -37,4 +36,12 @@ bool isFalsyConstant(ConstantValue value) {
       value.isMinusZero ||
       value.isNaN ||
       value is StringConstantValue && value.primitiveValue.isEmpty;
+}
+
+/// Returns true if [value] satisfies a branching condition with the
+/// given strictness.
+///
+/// For non-strict, this is the opposite of [isFalsyConstant].
+bool isTruthyConstant(ConstantValue value, {bool strict: false}) {
+  return strict ? value.isTrue : !isFalsyConstant(value);
 }

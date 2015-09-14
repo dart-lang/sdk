@@ -519,7 +519,7 @@ class RegisterSet : public ValueObject {
     for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
       Register r = static_cast<Register>(i);
       if (ContainsRegister(r)) {
-        ISL_Print("%s %s\n", Assembler::RegisterName(r),
+        THR_Print("%s %s\n", Assembler::RegisterName(r),
                            IsTagged(r) ? "tagged" : "untagged");
       }
     }
@@ -527,7 +527,7 @@ class RegisterSet : public ValueObject {
     for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
       FpuRegister r = static_cast<FpuRegister>(i);
       if (ContainsFpuRegister(r)) {
-        ISL_Print("%s\n", Assembler::FpuRegisterName(r));
+        THR_Print("%s\n", Assembler::FpuRegisterName(r));
       }
     }
   }

@@ -31,7 +31,7 @@ import 'package:dart2js_incremental/diff.dart' show
     Difference,
     computeDifference;
 
-import '../../compiler/dart2js/compiler_helper.dart' show
+import '../../compiler/dart2js/mock_compiler.dart' show
     MockCompiler,
     compilerFor;
 

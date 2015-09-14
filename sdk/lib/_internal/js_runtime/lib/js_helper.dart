@@ -1566,7 +1566,7 @@ ioore(receiver, index) {
  */
 @NoInline()
 Error diagnoseIndexError(indexable, index) {
-  if (index is !int) return new ArgumentError.value(index, 'index');
+  if (index is! int) return new ArgumentError.value(index, 'index');
   int length = indexable.length;
   // The following returns the same error that would be thrown by calling
   // [RangeError.checkValidIndex] with no optional parameters provided.
@@ -1577,6 +1577,29 @@ Error diagnoseIndexError(indexable, index) {
   return new RangeError.value(index, 'index');
 }
 
+/**
+ * Diagnoses a range error. Returns the ArgumentError or RangeError that
+ * describes the problem.
+ */
+@NoInline()
+Error diagnoseRangeError(start, end, length) {
+  if (start is! int) {
+    return new ArgumentError.value(start, 'start');
+  }
+  if (start < 0 || start > length) {
+    return new RangeError.range(start, 0, length, 'start');
+  }
+  if (end != null) {
+    if (end is! int) {
+      return new ArgumentError.value(end, 'end');
+    }
+    if (end < start || end > length) {
+      return new RangeError.range(end, start, length, 'end');
+    }
+  }
+  // The above should always match, but if it does not, use the following.
+  return new ArgumentError.value(end, "end");
+}
 
 stringLastIndexOfUnchecked(receiver, element, start)
   => JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
@@ -2396,8 +2419,12 @@ abstract class Closure implements Function {
                      jsArguments,
                      String propertyName) {
     JS_EFFECT(() {
-      BoundClosure.receiverOf(JS('BoundClosure', 'void 0'));
-      BoundClosure.selfOf(JS('BoundClosure', 'void 0'));
+      // The functions are called here to model the calls from JS forms below.
+      // The types in the JS forms in the arguments are propagated in type
+      // inference.
+      BoundClosure.receiverOf(JS('BoundClosure', '0'));
+      BoundClosure.selfOf(JS('BoundClosure', '0'));
+      getType(JS('int', '0'));
     });
     // TODO(ahe): All the place below using \$ should be rewritten to go
     // through the namer.

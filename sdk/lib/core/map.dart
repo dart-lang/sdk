@@ -35,7 +35,7 @@ abstract class Map<K, V> {
    * `operator==` and `hashCode`, and it allows null as a key.
    * It iterates in key insertion order.
    */
-  factory Map() = LinkedHashMap<K, V>;
+  external factory Map();
 
   /**
    * Creates a [LinkedHashMap] instance that contains all key-value pairs of

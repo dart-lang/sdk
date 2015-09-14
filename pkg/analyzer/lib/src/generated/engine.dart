@@ -556,7 +556,8 @@ abstract class AnalysisContext {
    * Perform work until the given [result] has been computed for the given
    * [target]. Return the computed value.
    */
-  Object /*V*/ computeResult(AnalysisTarget target, ResultDescriptor /*<V>*/ result);
+  Object /*V*/ computeResult(
+      AnalysisTarget target, ResultDescriptor /*<V>*/ result);
 
   /**
    * Notifies the context that the client is going to stop using this context.
@@ -729,7 +730,8 @@ abstract class AnalysisContext {
    * If the corresponding [target] does not exist, or the [result] is not
    * computed yet, then the default value is returned.
    */
-  Object /*V*/ getResult(AnalysisTarget target, ResultDescriptor /*<V>*/ result);
+  Object /*V*/ getResult(
+      AnalysisTarget target, ResultDescriptor /*<V>*/ result);
 
   /**
    * Return a list of the sources being analyzed in this context whose full path
@@ -5903,6 +5905,11 @@ class AnalysisEngine {
   bool limitInvalidationInTaskModel = false;
 
   /**
+   * The plugins that are defined outside the `analyzer` package.
+   */
+  List<Plugin> _userDefinedPlugins = <Plugin>[];
+
+  /**
    * The task manager used to manage the tasks used to analyze code.
    */
   TaskManager _taskManager;
@@ -5951,6 +5958,7 @@ class AnalysisEngine {
         commandLinePlugin,
         optionsPlugin
       ];
+      _supportedPlugins.addAll(_userDefinedPlugins);
     }
     return _supportedPlugins;
   }
@@ -5960,10 +5968,7 @@ class AnalysisEngine {
    */
   TaskManager get taskManager {
     if (_taskManager == null) {
-      if (enginePlugin.taskExtensionPoint == null) {
-        // The plugin wasn't used, so tasks are not registered.
-        new ExtensionManager().processPlugins([enginePlugin]);
-      }
+      new ExtensionManager().processPlugins(supportedPlugins);
       _taskManager = new TaskManager();
       _taskManager.addTaskDescriptors(enginePlugin.taskDescriptors);
       // TODO(brianwilkerson) Create a way to associate different results with
@@ -5971,6 +5976,18 @@ class AnalysisEngine {
       _taskManager.addGeneralResult(DART_ERRORS);
     }
     return _taskManager;
+  }
+
+  /**
+   * Set plugins that are defined outside the `analyzer` package.
+   */
+  void set userDefinedPlugins(List<Plugin> plugins) {
+    if (plugins == null) {
+      plugins = <Plugin>[];
+    }
+    _userDefinedPlugins = plugins;
+    _supportedPlugins = null;
+    _taskManager = null;
   }
 
   /**
@@ -10292,6 +10309,12 @@ class RecursiveXmlVisitor_ResolveHtmlTask_internalPerform
  * used to visit that structure.
  */
 class ResolutionEraser extends GeneralizingAstVisitor<Object> {
+  /**
+   * A flag indicating whether the elements associated with declarations should
+   * be erased.
+   */
+  bool eraseDeclarations = true;
+
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     node.staticElement = null;
@@ -10314,13 +10337,17 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitCompilationUnit(CompilationUnit node) {
-    node.element = null;
+    if (eraseDeclarations) {
+      node.element = null;
+    }
     return super.visitCompilationUnit(node);
   }
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    node.element = null;
+    if (eraseDeclarations) {
+      node.element = null;
+    }
     return super.visitConstructorDeclaration(node);
   }
 
@@ -10338,7 +10365,9 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitDirective(Directive node) {
-    node.element = null;
+    if (eraseDeclarations) {
+      node.element = null;
+    }
     return super.visitDirective(node);
   }
 
@@ -10351,7 +10380,9 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitFunctionExpression(FunctionExpression node) {
-    node.element = null;
+    if (eraseDeclarations) {
+      node.element = null;
+    }
     return super.visitFunctionExpression(node);
   }
 
@@ -10398,7 +10429,9 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    node.staticElement = null;
+    if (eraseDeclarations || !node.inDeclarationContext()) {
+      node.staticElement = null;
+    }
     node.propagatedElement = null;
     return super.visitSimpleIdentifier(node);
   }
@@ -10412,8 +10445,10 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
   /**
    * Remove any resolution information from the given AST structure.
    */
-  static void erase(AstNode node) {
-    node.accept(new ResolutionEraser());
+  static void erase(AstNode node, {bool eraseDeclarations: true}) {
+    ResolutionEraser eraser = new ResolutionEraser();
+    eraser.eraseDeclarations = eraseDeclarations;
+    node.accept(eraser);
   }
 }
 

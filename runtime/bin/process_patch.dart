@@ -176,10 +176,9 @@ class _ProcessStartStatus {
 // implicit constructor.
 class _ProcessImplNativeWrapper extends NativeFieldWrapperClass1 {}
 
-class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
-    implements Process {
-  // Use default Map so we keep order.
-  static Map<int, _ProcessImpl> _processes = new Map<int, _ProcessImpl>();
+class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
+  _ProcessResourceInfo _resourceInfo;
+  static bool connectedResourceHandler = false;
 
   _ProcessImpl(String path,
                List<String> arguments,
@@ -188,7 +187,14 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
                bool includeParentEnvironment,
                bool runInShell,
                ProcessStartMode mode) : super() {
-    _processes[_serviceId] = this;
+    if (!connectedResourceHandler) {
+      registerExtension('__getProcesses',
+                        _ProcessResourceInfo.getStartedProcesses);
+      registerExtension('__getProcessById',
+                        _ProcessResourceInfo.getProcessInfoMapById);
+      connectedResourceHandler = true;
+    }
+
     if (runInShell) {
       arguments = _getShellArguments(path, arguments);
       path = _getShellCommand();
@@ -265,38 +271,6 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
     }
     _ended = false;
     _started = false;
-  }
-
-  String get _serviceTypePath => 'io/processes';
-  String get _serviceTypeName => 'Process';
-
-  Map _toJSON(bool ref) {
-    var r = {
-      'id': _servicePath,
-      'type': _serviceType(ref),
-      'name': '$_path',
-      'user_name': '$_path',
-      'pid': '$pid',
-      'arguments': _arguments.join(' '),
-    };
-    if (ref) {
-      return r;
-    }
-    r['started'] = _started;
-    r['ended'] = _ended;
-    r['path'] = _path;
-    r['environment'] = _environment;
-    r['workingDirectory'] = _workingDirectory == null ? '.' : _workingDirectory;
-    if (_stdin._sink._nativeSocket.owner != null) {
-      r['stdin'] = _stdin._sink._nativeSocket._toJSON(true);
-    }
-    if (_stdout._stream._nativeSocket.owner != null) {
-      r['stdout'] = _stdout._stream._nativeSocket._toJSON(true);
-    }
-    if (_stderr._stream._nativeSocket.owner != null) {
-      r['stderr'] = _stderr._stream._nativeSocket._toJSON(true);
-    }
-    return r;
   }
 
   static String _getShellCommand() {
@@ -418,6 +392,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
       }
 
       _started = true;
+      _resourceInfo = new _ProcessResourceInfo(this);
 
       // Setup an exit handler to handle internal cleanup and possible
       // callback when a process terminates.
@@ -439,7 +414,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
             _exitCode.complete(exitCode(exitDataBuffer));
             // Kill stdin, helping hand if the user forgot to do it.
             _stdin._sink.destroy();
-            _processes.remove(_serviceId);
+            _resourceInfo.stopped();
           }
 
           exitDataBuffer.setRange(
@@ -477,6 +452,8 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
                                  status._errorCode);
     }
 
+    _resourceInfo = new _ProcessResourceInfo(this);
+
     var result = _wait(
         _stdin._sink._nativeSocket,
         _stdout._stream._nativeSocket,
@@ -488,7 +465,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper with _ServiceObject
       return encoding.decode(output);
     }
 
-    _processes.remove(_serviceId);
+    _resourceInfo.stopped();
 
     return new ProcessResult(
         result[0],

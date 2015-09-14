@@ -93,11 +93,11 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     stub.set_owner(cls);
     cls.set_allocation_stub(stub);
     if (FLAG_disassemble_stubs) {
-      LogBlock lb(Isolate::Current());
-      ISL_Print("Code for allocation stub '%s': {\n", name);
+      LogBlock lb;
+      THR_Print("Code for allocation stub '%s': {\n", name);
       DisassembleToStdout formatter;
       stub.Disassemble(&formatter);
-      ISL_Print("}\n");
+      THR_Print("}\n");
       const ObjectPool& object_pool = ObjectPool::Handle(
           Instructions::Handle(stub.instructions()).object_pool());
       object_pool.DebugPrint();
@@ -131,11 +131,11 @@ RawCode* StubCode::Generate(const char* name,
   GenerateStub(&assembler);
   const Code& code = Code::Handle(Code::FinalizeCode(name, &assembler));
   if (FLAG_disassemble_stubs) {
-    LogBlock lb(Isolate::Current());
-    ISL_Print("Code for stub '%s': {\n", name);
+    LogBlock lb;
+    THR_Print("Code for stub '%s': {\n", name);
     DisassembleToStdout formatter;
     code.Disassemble(&formatter);
-    ISL_Print("}\n");
+    THR_Print("}\n");
     const ObjectPool& object_pool = ObjectPool::Handle(
         Instructions::Handle(code.instructions()).object_pool());
     object_pool.DebugPrint();

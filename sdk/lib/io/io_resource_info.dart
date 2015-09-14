@@ -4,19 +4,15 @@
 
 part of dart.io;
 
-const String TCP_STRING = 'TCP';
-const String UDP_STRING = 'UDP';
-
-
 abstract class _IOResourceInfo {
   final String type;
   final int id;
   String get name;
   static int _count = 0;
 
-  _IOResourceInfo(this.type) : id = _IOResourceInfo.getNextID();
+  static final Stopwatch _sw = new Stopwatch()..start();
 
-  String toJSON();
+  _IOResourceInfo(this.type) : id = _IOResourceInfo.getNextID();
 
   /// Get the full set of values for a specific implementation. This is normally
   /// looked up based on an id from a referenceValueMap.
@@ -43,6 +39,29 @@ abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
   double lastRead;
   double lastWrite;
 
+  static double get timestamp =>
+      _IOResourceInfo._sw.elapsedMicroseconds / 1000000.0;
+
+  // Not all call sites use this. In some cases, e.g., a socket, a read does
+  // not always mean that we actually read some bytes (we may do a read to see
+  // if there are some bytes available).
+  void addRead(int bytes) {
+    totalRead += bytes;
+    readCount++;
+    lastRead = timestamp;
+  }
+
+  // In cases where we read but did not neccesarily get any bytes, use this to
+  // update the readCount and timestamp. Manually update totalRead if any bytes
+  // where acutally read.
+  void didRead() => addRead(0);
+
+  void addWrite(int bytes) {
+    totalWritten += bytes;
+    writeCount++;
+    lastWrite = timestamp;
+  }
+
   _ReadWriteResourceInfo(String type) :
     totalRead = 0,
     totalWritten = 0,
@@ -64,19 +83,133 @@ abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
       'last_read': lastRead,
       'last_write': lastWrite
     };
+}
 
-  String toJSON() {
-    return JSON.encode(fullValueMap);
+class _FileResourceInfo extends _ReadWriteResourceInfo {
+  static const String TYPE = '_file';
+
+  final file;
+
+  static Map<int, _FileResourceInfo> openFiles =
+      new Map<int, _FileResourceInfo>();
+
+  _FileResourceInfo(this.file) : super(TYPE) {
+    FileOpened(this);
+  }
+
+  static FileOpened(_FileResourceInfo info) {
+    assert(!openFiles.containsKey(info.id));
+    openFiles[info.id] = info;
+  }
+
+  static FileClosed(_FileResourceInfo info) {
+    assert(openFiles.containsKey(info.id));
+    openFiles.remove(info.id);
+  }
+
+  static Iterable<Map<String, String>> getOpenFilesList() {
+    return new List.from(openFiles.values.map((e) => e.referenceValueMap));
+  }
+
+  static Future<ServiceExtensionResponse> getOpenFiles(function, params) {
+    assert(function == '__getOpenFiles');
+    var data = {'type': '_openfiles', 'data': getOpenFilesList()};
+    var json = JSON.encode(data);
+    return new Future.value(new ServiceExtensionResponse.result(json));
+  }
+
+  Map<String, String> getFileInfoMap() {
+    var result = fullValueMap;
+    return result;
+  }
+
+  static Future<ServiceExtensionResponse> getFileInfoMapByID(function, params) {
+    assert(params.containsKey('id'));
+    var id = int.parse(params['id']);
+    var result =
+      openFiles.containsKey(id) ? openFiles[id].getFileInfoMap() : {};
+    var json = JSON.encode(result);
+    return new Future.value(new ServiceExtensionResponse.result(json));
+  }
+
+  String get name {
+    return '${file.path}';
+  }
+}
+
+class _ProcessResourceInfo extends _IOResourceInfo{
+  static const String TYPE = '_process';
+  final process;
+  final int startedAt;
+
+  static Map<int, _ProcessResourceInfo> startedProcesses =
+      new Map<int, _ProcessResourceInfo>();
+
+  _ProcessResourceInfo(this.process) :
+      startedAt = new DateTime.now().millisecondsSinceEpoch,
+      super(TYPE) {
+    ProcessStarted(this);
+  }
+
+  String get name => process._path;
+
+  void stopped() => ProcessStopped(this);
+
+  Map<String, String> get fullValueMap =>
+    {
+      'type': type,
+      'id': id,
+      'name': name,
+      'pid': process.pid,
+      'started_at': startedAt,
+      'arguments': process._arguments,
+      'working_directory':
+          process._workingDirectory == null ? '.' : process._workingDirectory,
+    };
+
+  static ProcessStarted(_ProcessResourceInfo info) {
+    assert(!startedProcesses.containsKey(info.id));
+    startedProcesses[info.id] = info;
+  }
+
+  static ProcessStopped(_ProcessResourceInfo info) {
+    assert(startedProcesses.containsKey(info.id));
+    startedProcesses.remove(info.id);
+  }
+
+  static Iterable<Map<String, String>> getStartedProcessesList() =>
+      new List.from(startedProcesses.values.map((e) => e.referenceValueMap));
+
+  static Future<ServiceExtensionResponse> getStartedProcesses(
+      String function, Map<String, String> params) {
+    assert(function == '__getProcesses');
+    var data = {'type': '_startedprocesses', 'data': getStartedProcessesList()};
+    var json = JSON.encode(data);
+    return new Future.value(new ServiceExtensionResponse.result(json));
+  }
+
+  static Future<ServiceExtensionResponse> getProcessInfoMapById(
+      String function, Map<String, String> params) {
+    var id = int.parse(params['id']);
+    var result = startedProcesses.containsKey(id)
+        ? startedProcesses[id].fullValueMap
+        : {};
+    var json = JSON.encode(result);
+    return new Future.value(new ServiceExtensionResponse.result(json));
   }
 }
 
 class _SocketResourceInfo extends _ReadWriteResourceInfo {
+  static const String TCP_STRING = 'TCP';
+  static const String UDP_STRING = 'UDP';
+  static const String TYPE = '_socket';
+
   final socket;
 
   static Map<int, _SocketResourceInfo> openSockets =
       new Map<int, _SocketResourceInfo>();
 
-  _SocketResourceInfo(this.socket) : super('_socket') {
+  _SocketResourceInfo(this.socket) : super(TYPE) {
     SocketOpened(this);
   }
 

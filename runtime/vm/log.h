@@ -11,26 +11,28 @@
 
 namespace dart {
 
-class Isolate;
 class LogBlock;
 class Thread;
 
 #if defined(_MSC_VER)
-#define ISL_Print(format, ...) \
-    Isolate::Current()->Log()->Print(format, __VA_ARGS__)
+#define THR_Print(format, ...) \
+    Log::Current()->Print(format, __VA_ARGS__)
 #else
-#define ISL_Print(format, ...) \
-    Isolate::Current()->Log()->Print(format, ##__VA_ARGS__)
+#define THR_Print(format, ...) \
+    Log::Current()->Print(format, ##__VA_ARGS__)
 #endif
 
-#define ISL_VPrint(format, args) \
-    Isolate::Current()->Log()->VPrint(format, args)
+#define THR_VPrint(format, args) \
+    Log::Current()->VPrint(format, args)
 
 typedef void (*LogPrinter)(const char* str, ...);
 
 class Log {
  public:
   explicit Log(LogPrinter printer = OS::Print);
+  ~Log();
+
+  static Log* Current();
 
   // Append a formatted string to the log.
   void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
@@ -55,6 +57,9 @@ class Log {
   void EnableManualFlush();
   void DisableManualFlush();
 
+  // Returns false if we should drop log messages related to 'isolate'.
+  static bool ShouldLogForIsolate(const Isolate* isolate);
+
   static Log noop_log_;
   LogPrinter printer_;
   intptr_t manual_flush_;
@@ -70,31 +75,24 @@ class Log {
 // Can be nested.
 class LogBlock : public StackResource {
  public:
-  LogBlock(Isolate* isolate, Log* log)
-      : StackResource(isolate),
-        log_(log), cursor_(log->cursor()) {
-    CommonConstructor();
+  LogBlock(Thread* thread, Log* log)
+      : StackResource(thread), log_(log), cursor_(log->cursor()) {
+    Initialize();
   }
 
-  explicit LogBlock(Isolate* isolate);
-  explicit LogBlock(Thread* thread);
-
-  LogBlock(Thread* thread, Log* log);
-
-  ~LogBlock() {
-    CommonDestructor();
+  LogBlock()
+      : StackResource(Thread::Current()),
+        log_(Log::Current()),
+        cursor_(Log::Current()->cursor()) {
+    Initialize();
   }
+
+  ~LogBlock();
 
  private:
-  void CommonConstructor() {
-    log_->EnableManualFlush();
-  }
+  void Initialize();
 
-  void CommonDestructor() {
-    log_->Flush(cursor_);
-    log_->DisableManualFlush();
-  }
-  Log* log_;
+  Log* const log_;
   const intptr_t cursor_;
 };
 

@@ -1133,24 +1133,28 @@ class Class : public Object {
   bool IsSubtypeOf(const TypeArguments& type_arguments,
                    const Class& other,
                    const TypeArguments& other_type_arguments,
-                   Error* bound_error) const {
+                   Error* bound_error,
+                   Heap::Space space = Heap::kNew) const {
     return TypeTest(kIsSubtypeOf,
                     type_arguments,
                     other,
                     other_type_arguments,
-                    bound_error);
+                    bound_error,
+                    space);
   }
 
   // Check the 'more specific' relationship.
   bool IsMoreSpecificThan(const TypeArguments& type_arguments,
                           const Class& other,
                           const TypeArguments& other_type_arguments,
-                          Error* bound_error) const {
+                          Error* bound_error,
+                          Heap::Space space = Heap::kNew) const {
     return TypeTest(kIsMoreSpecificThan,
                     type_arguments,
                     other,
                     other_type_arguments,
-                    bound_error);
+                    bound_error,
+                    space);
   }
 
   // Check if this is the top level class.
@@ -1490,7 +1494,8 @@ class Class : public Object {
                 const TypeArguments& type_arguments,
                 const Class& other,
                 const TypeArguments& other_type_arguments,
-                Error* bound_error) const;
+                Error* bound_error,
+                Heap::Space space) const;
 
   static bool TypeTestNonRecursive(
       const Class& cls,
@@ -1498,7 +1503,8 @@ class Class : public Object {
       const TypeArguments& type_arguments,
       const Class& other,
       const TypeArguments& other_type_arguments,
-      Error* bound_error);
+      Error* bound_error,
+      Heap::Space space);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class AbstractType;
@@ -1591,8 +1597,9 @@ class TypeArguments : public Object {
   bool IsSubtypeOf(const TypeArguments& other,
                    intptr_t from_index,
                    intptr_t len,
-                   Error* bound_error) const {
-    return TypeTest(kIsSubtypeOf, other, from_index, len, bound_error);
+                   Error* bound_error,
+                   Heap::Space space = Heap::kNew) const {
+    return TypeTest(kIsSubtypeOf, other, from_index, len, bound_error, space);
   }
 
   // Check the 'more specific' relationship, considering only a subvector of
@@ -1600,8 +1607,10 @@ class TypeArguments : public Object {
   bool IsMoreSpecificThan(const TypeArguments& other,
                           intptr_t from_index,
                           intptr_t len,
-                          Error* bound_error) const {
-    return TypeTest(kIsMoreSpecificThan, other, from_index, len, bound_error);
+                          Error* bound_error,
+                          Heap::Space space = Heap::kNew) const {
+    return TypeTest(kIsMoreSpecificThan,
+        other, from_index, len, bound_error, space);
   }
 
   // Check if the vectors are equal (they may be null).
@@ -1713,7 +1722,8 @@ class TypeArguments : public Object {
                 const TypeArguments& other,
                 intptr_t from_index,
                 intptr_t len,
-                Error* bound_error) const;
+                Error* bound_error,
+                Heap::Space space) const;
 
   // Return the internal or public name of a subvector of this type argument
   // vector, e.g. "<T, dynamic, List<T>, int>".
@@ -2424,12 +2434,14 @@ class Function : public Object {
   bool IsSubtypeOf(const TypeArguments& type_arguments,
                    const Function& other,
                    const TypeArguments& other_type_arguments,
-                   Error* bound_error) const {
+                   Error* bound_error,
+                   Heap::Space space = Heap::kNew) const {
     return TypeTest(kIsSubtypeOf,
                     type_arguments,
                     other,
                     other_type_arguments,
-                    bound_error);
+                    bound_error,
+                    space);
   }
 
   // Returns true if the type of this function is more specific than the type of
@@ -2437,12 +2449,14 @@ class Function : public Object {
   bool IsMoreSpecificThan(const TypeArguments& type_arguments,
                           const Function& other,
                           const TypeArguments& other_type_arguments,
-                          Error* bound_error) const {
+                          Error* bound_error,
+                   Heap::Space space = Heap::kNew) const {
     return TypeTest(kIsMoreSpecificThan,
                     type_arguments,
                     other,
                     other_type_arguments,
-                    bound_error);
+                    bound_error,
+                    space);
   }
 
   // Returns true if this function represents an explicit getter function.
@@ -2727,7 +2741,8 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
                 const TypeArguments& type_arguments,
                 const Function& other,
                 const TypeArguments& other_type_arguments,
-                Error* bound_error) const;
+                Error* bound_error,
+                Heap::Space space) const;
 
   // Checks the type of the formal parameter at the given position for
   // subtyping or 'more specific' relationship between the type of this function
@@ -2738,7 +2753,8 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
                          const TypeArguments& type_arguments,
                          const Function& other,
                          const TypeArguments& other_type_arguments,
-                         Error* bound_error) const;
+                         Error* bound_error,
+                         Heap::Space space) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
@@ -2831,10 +2847,11 @@ class Field : public Object {
   }
 
   inline intptr_t Offset() const;
-  inline void SetOffset(intptr_t value_in_bytes) const;
+  inline void SetOffset(intptr_t offset_in_bytes) const;
 
-  RawInstance* value() const;
-  void set_value(const Instance& value) const;
+  inline RawInstance* StaticValue() const;
+  inline void SetStaticValue(const Instance& value,
+                             bool save_initial_value = false) const;
 
   RawClass* owner() const;
   RawClass* origin() const;  // Either mixin class, or same as owner().
@@ -2858,7 +2875,12 @@ class Field : public Object {
   // owner of the clone is new_owner.
   RawField* Clone(const Class& new_owner) const;
 
-  static intptr_t value_offset() { return OFFSET_OF(RawField, value_); }
+  static intptr_t instance_field_offset() {
+    return OFFSET_OF(RawField, value_.offset_);
+  }
+  static intptr_t static_value_offset() {
+    return OFFSET_OF(RawField, value_.static_value_);
+  }
 
   static intptr_t kind_bits_offset() { return OFFSET_OF(RawField, kind_bits_); }
 
@@ -2969,10 +2991,16 @@ class Field : public Object {
 
   void EvaluateInitializer() const;
 
-  RawFunction* initializer() const {
-    return raw_ptr()->initializer_;
+  RawFunction* PrecompiledInitializer() const {
+    return raw_ptr()->initializer_.precompiled_;
   }
-  void set_initializer(const Function& initializer) const;
+  void SetPrecompiledInitializer(const Function& initializer) const;
+  bool HasPrecompiledInitializer() const;
+
+  RawInstance* SavedInitialStaticValue() const {
+    return raw_ptr()->initializer_.saved_value_;
+  }
+  void SetSavedInitialStaticValue(const Instance& value) const;
 
   // For static fields only. Constructs a closure that gets/sets the
   // field value.
@@ -3048,6 +3076,7 @@ class Field : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Field, Object);
   friend class Class;
   friend class HeapProfiler;
+  friend class RawField;
 };
 
 
@@ -3193,7 +3222,9 @@ class Script : public Object {
   void SetLocationOffset(intptr_t line_offset, intptr_t col_offset) const;
 
   void GetTokenLocation(intptr_t token_pos,
-                        intptr_t* line, intptr_t* column) const;
+                        intptr_t* line,
+                        intptr_t* column,
+                        intptr_t* token_len = NULL) const;
 
   // Returns index of first and last token on the given line. Returns both
   // indices < 0 if no token exists on or after the line. If a token exists
@@ -3575,6 +3606,7 @@ class ObjectPool : public Object {
     kTaggedObject,
     kImmediate,
     kExternalLabel,
+    kNativeEntry,
   };
 
   struct Entry {
@@ -5119,21 +5151,25 @@ class AbstractType : public Instance {
   bool IsFunctionType() const;
 
   // Check the subtype relationship.
-  bool IsSubtypeOf(const AbstractType& other, Error* bound_error) const {
-    return TypeTest(kIsSubtypeOf, other, bound_error);
+  bool IsSubtypeOf(const AbstractType& other,
+                   Error* bound_error,
+                   Heap::Space space = Heap::kNew) const {
+    return TypeTest(kIsSubtypeOf, other, bound_error, space);
   }
 
   // Check the 'more specific' relationship.
   bool IsMoreSpecificThan(const AbstractType& other,
-                          Error* bound_error) const {
-    return TypeTest(kIsMoreSpecificThan, other, bound_error);
+                          Error* bound_error,
+                          Heap::Space space = Heap::kNew) const {
+    return TypeTest(kIsMoreSpecificThan, other, bound_error, space);
   }
 
  private:
   // Check the subtype or 'more specific' relationship.
   bool TypeTest(TypeTestKind test_kind,
                 const AbstractType& other,
-                Error* bound_error) const;
+                Error* bound_error,
+                Heap::Space space) const;
 
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.
@@ -7975,17 +8011,33 @@ DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
 
 
 intptr_t Field::Offset() const {
-  ASSERT(!is_static());  // Offset is valid only for instance fields.
-  intptr_t value = Smi::Value(reinterpret_cast<RawSmi*>(raw_ptr()->value_));
+  ASSERT(!is_static());  // Valid only for dart instance fields.
+  intptr_t value = Smi::Value(raw_ptr()->value_.offset_);
   return (value * kWordSize);
 }
 
 
-void Field::SetOffset(intptr_t value_in_bytes) const {
-  ASSERT(!is_static());  // SetOffset is valid only for instance fields.
+void Field::SetOffset(intptr_t offset_in_bytes) const {
+  ASSERT(!is_static());  // Valid only for dart instance fields.
   ASSERT(kWordSize != 0);
-  StorePointer(&raw_ptr()->value_,
-               static_cast<RawInstance*>(Smi::New(value_in_bytes / kWordSize)));
+  StorePointer(&raw_ptr()->value_.offset_,
+               Smi::New(offset_in_bytes / kWordSize));
+}
+
+
+RawInstance* Field::StaticValue() const {
+  ASSERT(is_static());  // Valid only for static dart fields.
+  return raw_ptr()->value_.static_value_;
+}
+
+
+void Field::SetStaticValue(const Instance& value,
+                           bool save_initial_value) const {
+  ASSERT(is_static());  // Valid only for static dart fields.
+  StorePointer(&raw_ptr()->value_.static_value_, value.raw());
+  if (save_initial_value) {
+    StorePointer(&raw_ptr()->initializer_.saved_value_, value.raw());
+  }
 }
 
 

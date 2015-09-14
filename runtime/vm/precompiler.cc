@@ -62,7 +62,7 @@ Precompiler::Precompiler(Thread* thread) :
 
 
 void Precompiler::DoCompileAll() {
-  LogBlock lb(thread_);
+  LogBlock lb;
 
   // Drop all existing code so we can use the presence of code as an indicator
   // that we have already looked for the function's callees.
@@ -81,7 +81,7 @@ void Precompiler::DoCompileAll() {
   CleanUp();
 
   if (FLAG_trace_precompiler) {
-    ISL_Print("Precompiled %" Pd " functions, %" Pd " dynamic types,"
+    THR_Print("Precompiled %" Pd " functions, %" Pd " dynamic types,"
               " %" Pd " dynamic selectors.\n Dropped %" Pd " functions.\n",
               function_count_,
               class_count_,
@@ -276,7 +276,7 @@ void Precompiler::AddRoots() {
     lib = Library::LookupLibrary(library_name);
     if (lib.IsNull()) {
       if (FLAG_trace_precompiler) {
-        ISL_Print("WARNING: Missing %s\n", kExternallyCalled[i].library_);
+        THR_Print("WARNING: Missing %s\n", kExternallyCalled[i].library_);
       }
       continue;
     }
@@ -287,7 +287,7 @@ void Precompiler::AddRoots() {
       cls = lib.LookupClassAllowPrivate(class_name);
       if (cls.IsNull()) {
         if (FLAG_trace_precompiler) {
-          ISL_Print("WARNING: Missing %s %s\n",
+          THR_Print("WARNING: Missing %s %s\n",
                     kExternallyCalled[i].library_,
                     kExternallyCalled[i].class_);
         }
@@ -300,7 +300,7 @@ void Precompiler::AddRoots() {
 
     if (func.IsNull()) {
       if (FLAG_trace_precompiler) {
-        ISL_Print("WARNING: Missing %s %s %s\n",
+        THR_Print("WARNING: Missing %s %s %s\n",
                   kExternallyCalled[i].library_,
                   kExternallyCalled[i].class_,
                   kExternallyCalled[i].function_);
@@ -350,7 +350,7 @@ void Precompiler::ProcessFunction(const Function& function) {
     function_count_++;
 
     if (FLAG_trace_precompiler) {
-      ISL_Print("Precompiling %" Pd " %s (%" Pd ", %s)\n",
+      THR_Print("Precompiling %" Pd " %s (%" Pd ", %s)\n",
                 function_count_,
                 function.ToLibNamePrefixedQualifiedCString(),
                 function.token_pos(),
@@ -434,19 +434,20 @@ void Precompiler::AddField(const Field& field) {
   if (field.is_static()) {
     // Potential const object. Uninitialized field will harmlessly do a
     // redundant add of the Null class.
-    const Object& value = Object::Handle(Z, field.value());
+    const Object& value = Object::Handle(Z, field.StaticValue());
     const Class& cls = Class::Handle(Z, value.clazz());
     AddClass(cls);
 
     if (field.has_initializer()) {
-      if (field.initializer() != Function::null()) return;
+      if (field.PrecompiledInitializer() != Function::null()) return;
 
       if (FLAG_trace_precompiler) {
-        ISL_Print("Precompiling initializer for %s\n", field.ToCString());
+        THR_Print("Precompiling initializer for %s\n", field.ToCString());
       }
       Compiler::CompileStaticInitializer(field);
 
-      const Function& function = Function::Handle(Z, field.initializer());
+      const Function& function =
+          Function::Handle(Z, field.PrecompiledInitializer());
       AddCalleesOf(function);
     }
   }
@@ -473,7 +474,7 @@ void Precompiler::AddSelector(const String& selector) {
     changed_ = true;
 
     if (FLAG_trace_precompiler) {
-      ISL_Print("Enqueueing selector %" Pd " %s\n",
+      THR_Print("Enqueueing selector %" Pd " %s\n",
                 selector_count_,
                 selector.ToCString());
     }
@@ -496,7 +497,7 @@ void Precompiler::AddClass(const Class& cls) {
   changed_ = true;
 
   if (FLAG_trace_precompiler) {
-    ISL_Print("Allocation %" Pd " %s\n", class_count_, cls.ToCString());
+    THR_Print("Allocation %" Pd " %s\n", class_count_, cls.ToCString());
   }
 
   const Class& superclass = Class::Handle(cls.SuperClass());
@@ -613,7 +614,7 @@ void Precompiler::DropUncompiledFunctions() {
         } else {
           dropped_function_count_++;
           if (FLAG_trace_precompiler) {
-            ISL_Print("Precompilation dropping %s\n",
+            THR_Print("Precompilation dropping %s\n",
                       function.ToLibNamePrefixedQualifiedCString());
           }
         }

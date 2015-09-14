@@ -8,6 +8,7 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 import 'memory_compiler.dart';
 
@@ -30,7 +31,7 @@ Future test(Map<String, String> source,
       memorySourceFiles: source,
       diagnosticHandler: collector,
       showDiagnostics: true,
-      options: ['--analyze-only', '--analyze-all'],
+      options: [Flags.analyzeOnly, Flags.analyzeAll],
       packageRoot: Uri.parse('memory:pkg/'));
 
   Expect.isTrue(collector.errors.isEmpty);

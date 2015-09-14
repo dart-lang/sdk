@@ -731,7 +731,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     names.clear();
     if (_selectionExpression != null) {
       names.addAll(getVariableNameSuggestionsForExpression(
-          _selectionExpression.staticType, _selectionExpression,
+          _selectionExpression.staticType,
+          _selectionExpression,
           _excludedNames));
     }
   }
@@ -817,8 +818,10 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   Object visitConstructorInitializer(ConstructorInitializer node) {
     super.visitConstructorInitializer(node);
     if (_isFirstSelectedNode(node)) {
-      invalidSelection('Cannot extract a constructor initializer. '
-          'Select expression part of initializer.', newLocation_fromNode(node));
+      invalidSelection(
+          'Cannot extract a constructor initializer. '
+          'Select expression part of initializer.',
+          newLocation_fromNode(node));
     }
     return null;
   }
@@ -870,8 +873,10 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     if (_isFirstSelectedNode(node)) {
-      invalidSelection('Cannot extract a variable declaration fragment. '
-          'Select whole declaration statement.', newLocation_fromNode(node));
+      invalidSelection(
+          'Cannot extract a variable declaration fragment. '
+          'Select whole declaration statement.',
+          newLocation_fromNode(node));
     }
     return null;
   }

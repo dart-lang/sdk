@@ -19,8 +19,8 @@ import 'file_system.dart';
  * A `dart:io` based implementation of [ResourceProvider].
  */
 class PhysicalResourceProvider implements ResourceProvider {
-  static final NORMALIZE_EOL_ALWAYS =
-      (String string) => string.replaceAll(new RegExp('\r\n?'), '\n');
+  static final NORMALIZE_EOL_ALWAYS = (String string) =>
+      string.replaceAll(new RegExp('\r\n?'), '\n');
 
   static final PhysicalResourceProvider INSTANCE =
       new PhysicalResourceProvider(null);

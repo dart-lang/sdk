@@ -182,7 +182,7 @@ abstract class Element implements Entity {
   String get name;
   ElementKind get kind;
   Element get enclosingElement;
-  Link<MetadataAnnotation> get metadata;
+  Iterable<MetadataAnnotation> get metadata;
 
   /// `true` if this element is a library.
   bool get isLibrary;

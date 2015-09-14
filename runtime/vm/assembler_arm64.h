@@ -1288,6 +1288,7 @@ class Assembler : public ValueObject {
   intptr_t FindImmediate(int64_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
   void LoadExternalLabel(Register dst, const ExternalLabel* label);
+  void LoadNativeEntry(Register dst, const ExternalLabel* label);
   void LoadExternalLabelFixed(Register dst,
                               const ExternalLabel* label,
                               Patchability patchable);

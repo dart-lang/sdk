@@ -14,7 +14,7 @@ namespace dart {
 static void ThrowMaskRangeException(int64_t m) {
   if ((m < 0) || (m > 255)) {
     Exceptions::ThrowRangeError(
-        "mask", Integer::Handle(Integer::New(m)), 0, 256);
+        "mask", Integer::Handle(Integer::New(m)), 0, 255);
   }
 }
 

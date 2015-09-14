@@ -466,8 +466,6 @@ void Parser::ComputeCurrentToken() {
 
 
 Token::Kind Parser::LookaheadToken(int num_tokens) {
-  INC_STAT(I, num_tokens_lookahead, 1);
-  INC_STAT(I, num_token_checks, 1);
   return tokens_iterator_.LookaheadTokenKind(num_tokens);
 }
 
@@ -804,25 +802,26 @@ class TopLevel : public ValueObject {
 
 
 void Parser::ParseClass(const Class& cls) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const int64_t num_tokes_before = STAT_VALUE(thread, num_tokens_consumed);
   if (!cls.is_synthesized_class()) {
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-    CSTAT_TIMER_SCOPE(thread, parser_timer);
     ASSERT(thread->long_jump_base()->IsSafeToJump());
+    CSTAT_TIMER_SCOPE(thread, parser_timer);
     const Script& script = Script::Handle(zone, cls.script());
     const Library& lib = Library::Handle(zone, cls.library());
     Parser parser(script, lib, cls.token_pos());
     parser.ParseClassDefinition(cls);
   } else if (cls.is_enum_class()) {
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-    CSTAT_TIMER_SCOPE(thread, parser_timer);
     ASSERT(thread->long_jump_base()->IsSafeToJump());
+    CSTAT_TIMER_SCOPE(thread, parser_timer);
     const Script& script = Script::Handle(zone, cls.script());
     const Library& lib = Library::Handle(zone, cls.library());
     Parser parser(script, lib, cls.token_pos());
     parser.ParseEnumDefinition(cls);
   }
+  const int64_t num_tokes_after = STAT_VALUE(thread, num_tokens_consumed);
+  INC_STAT(thread, num_class_tokens, num_tokes_after - num_tokes_before);
 }
 
 
@@ -909,10 +908,9 @@ bool Parser::ParseFormalParameters(const Function& func, ParamList* params) {
 void Parser::ParseFunction(ParsedFunction* parsed_function) {
   Thread* thread = parsed_function->thread();
   ASSERT(thread == Thread::Current());
-  Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
   CSTAT_TIMER_SCOPE(thread, parser_timer);
-  INC_STAT(isolate, num_functions_compiled, 1);
+  INC_STAT(thread, num_functions_parsed, 1);
   VMTagScope tagScope(thread, VMTag::kCompileParseFunctionTagId,
                       FLAG_profile_vm);
 
@@ -956,10 +954,11 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       break;
     case RawFunction::kImplicitStaticFinalGetter:
       node_sequence = parser.ParseStaticFinalGetter(func);
-      INC_STAT(isolate, num_implicit_final_getters, 1);
+      INC_STAT(thread, num_implicit_final_getters, 1);
       break;
     case RawFunction::kMethodExtractor:
       node_sequence = parser.ParseMethodExtractor(func);
+      INC_STAT(thread, num_method_extractors, 1);
       break;
     case RawFunction::kNoSuchMethodDispatcher:
       node_sequence =
@@ -1051,7 +1050,7 @@ RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
 RawArray* Parser::EvaluateMetadata() {
   CheckToken(Token::kAT, "Metadata character '@' expected");
   GrowableObjectArray& meta_values =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
   while (CurrentToken() == Token::kAT) {
     ConsumeToken();
     intptr_t expr_pos = TokenPos();
@@ -1120,7 +1119,7 @@ RawArray* Parser::EvaluateMetadata() {
       ReportError(expr_pos, "expression must be a compile-time constant");
     }
     const Instance& val = EvaluateConstExpr(expr_pos, expr);
-    meta_values.Add(val);
+    meta_values.Add(val, Heap::kOld);
   }
   return Array::MakeArray(meta_values);
 }
@@ -1195,47 +1194,6 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
   ASSERT(!parser.IsInstantiatorRequired());
 
   return parsed_function;
-}
-
-
-RawObject* Parser::ParseFunctionFromSource(const Class& owning_class,
-                                           const String& source) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  StackZone stack_zone(thread);
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    const String& uri = String::Handle(Symbols::New("dynamically-added"));
-    const Script& script = Script::Handle(
-        Script::New(uri, source, RawScript::kSourceTag));
-    const Library& owning_library = Library::Handle(owning_class.library());
-    const String& private_key = String::Handle(owning_library.private_key());
-    script.Tokenize(private_key);
-    const intptr_t token_pos = 0;
-    Parser parser(script, owning_library, token_pos);
-    parser.is_top_level_ = true;
-    parser.set_current_class(owning_class);
-    const String& class_name = String::Handle(owning_class.Name());
-    ClassDesc members(stack_zone.GetZone(),
-                      owning_class,
-                      class_name,
-                      false,  /* is_interface */
-                      token_pos);
-    const intptr_t metadata_pos = parser.SkipMetadata();
-    parser.ParseClassMemberDefinition(&members, metadata_pos);
-    ASSERT(members.functions().length() == 1);
-    const Function& func = *members.functions().At(0);
-    func.set_eval_script(script);
-    ParsedFunction* parsed_function = new ParsedFunction(thread, func);
-    Parser::ParseFunction(parsed_function);
-    return func.raw();
-  } else {
-    const Error& error = Error::Handle(isolate->object_store()->sticky_error());
-    isolate->object_store()->clear_sticky_error();
-    return error.raw();
-  }
-  UNREACHABLE();
-  return Object::null();
 }
 
 
@@ -1583,7 +1541,7 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
 
   if (desc.NamedCount() > 0) {
     const Array& arg_names =
-        Array::ZoneHandle(Z, Array::New(desc.NamedCount()));
+        Array::ZoneHandle(Z, Array::New(desc.NamedCount(), Heap::kOld));
     for (intptr_t i = 0; i < arg_names.Length(); ++i) {
       arg_names.SetAt(i, String::Handle(Z, desc.NameAt(i)));
     }
@@ -3787,13 +3745,16 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       }
       ConsumeToken();  // Colon.
       ExpectToken(Token::kTHIS);
-      String& redir_name = String::ZoneHandle(Z,
-          String::Concat(members->class_name(), Symbols::Dot()));
+      GrowableHandlePtrArray<const String> pieces(Z, 3);
+      pieces.Add(members->class_name());
+      pieces.Add(Symbols::Dot());
       if (CurrentToken() == Token::kPERIOD) {
         ConsumeToken();
-        redir_name = String::Concat(redir_name,
-            *ExpectIdentifier("constructor name expected"));
+        pieces.Add(*ExpectIdentifier("constructor name expected"));
       }
+      String& redir_name =
+          String::ZoneHandle(Z, Symbols::FromConcatAll(pieces));
+
       method->redirect_name = &redir_name;
       CheckToken(Token::kLPAREN);
       SkipToMatchingParenthesis();
@@ -4068,7 +4029,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     // For static final fields (this includes static const fields), set value to
     // "uninitialized" and create a kImplicitStaticFinalGetter getter method.
     if (field->has_static && has_initializer) {
-      class_field.set_value(init_value);
+      class_field.SetStaticValue(init_value, true);
       if (!has_simple_literal) {
         String& getter_name =
             String::Handle(Z, Field::GetterSymbol(*field->name));
@@ -4650,7 +4611,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
 
 void Parser::ParseClassDefinition(const Class& cls) {
   TRACE_PARSER("ParseClassDefinition");
-  INC_STAT(I, num_classes_compiled, 1);
+  INC_STAT(thread(), num_classes_parsed, 1);
   set_current_class(cls);
   is_top_level_ = true;
   String& class_name = String::Handle(Z, cls.Name());
@@ -4710,7 +4671,7 @@ void Parser::ParseClassDefinition(const Class& cls) {
 
 void Parser::ParseEnumDefinition(const Class& cls) {
   TRACE_PARSER("ParseEnumDefinition");
-  INC_STAT(I, num_classes_compiled, 1);
+  INC_STAT(thread(), num_classes_parsed, 1);
 
   SkipMetadata();
   ExpectToken(Token::kENUM);
@@ -4807,7 +4768,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
     // Initialize the field with the ordinal value. It will be patched
     // later with the enum constant instance.
     const Smi& ordinal_value = Smi::Handle(Z, Smi::New(i));
-    enum_value.set_value(ordinal_value);
+    enum_value.SetStaticValue(ordinal_value, true);
     enum_value.RecordStore(ordinal_value);
     i++;
 
@@ -4845,7 +4806,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   // Allocate the immutable array containing the enumeration values.
   // The actual enum instance values will be patched in later.
   const Array& values_array = Array::Handle(Z, Array::New(i, Heap::kOld));
-  values_field.set_value(values_array);
+  values_field.SetStaticValue(values_array, true);
   values_field.RecordStore(values_array);
 
   // Create a static field that contains the list of enumeration names.
@@ -4856,7 +4817,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   names_field = names_field.Clone(cls);
   enum_members.AddField(names_field);
   const Array& names_array = Array::Handle(Array::MakeArray(enum_names));
-  names_field.set_value(names_array);
+  names_field.SetStaticValue(names_array, true);
   names_field.RecordStore(names_array);
 
   // Clone the toString() function from the helper class.
@@ -5449,7 +5410,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
     field = Field::New(var_name, is_static, is_final, is_const, is_reflectable,
                        current_class(), name_pos);
     field.set_type(type);
-    field.set_value(Object::null_instance());
+    field.SetStaticValue(Object::null_instance(), true);
     top_level->AddField(field);
     library_.AddObject(field, var_name);
     if (metadata_pos >= 0) {
@@ -5463,7 +5424,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
         has_simple_literal = IsSimpleLiteral(type, &field_value);
       }
       SkipExpr();
-      field.set_value(field_value);
+      field.SetStaticValue(field_value, true);
       field.set_has_initializer(true);
 
       if (!has_simple_literal) {
@@ -5836,13 +5797,14 @@ void Parser::ParseLibraryName() {
   ConsumeToken();
   String& lib_name = *ExpectIdentifier("library name expected");
   if (CurrentToken() == Token::kPERIOD) {
+    GrowableHandlePtrArray<const String> pieces(Z, 3);
+    pieces.Add(lib_name);
     while (CurrentToken() == Token::kPERIOD) {
       ConsumeToken();
-      lib_name = String::Concat(lib_name, Symbols::Dot());
-      lib_name = String::Concat(lib_name,
-          *ExpectIdentifier("malformed library name"));
+      pieces.Add(Symbols::Dot());
+      pieces.Add(*ExpectIdentifier("malformed library name"));
     }
-    lib_name = Symbols::New(lib_name);
+    lib_name = Symbols::FromConcatAll(pieces);
   }
   library_.SetName(lib_name);
   ExpectSemicolon();
@@ -6727,9 +6689,9 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t async_func_pos) {
     const String& async_func_name =
         String::Handle(Z, innermost_function().name());
     String& closure_name = String::Handle(Z,
-        String::NewFormatted("<%s_async_body>", async_func_name.ToCString()));
+        Symbols::NewFormatted("<%s_async_body>", async_func_name.ToCString()));
     closure = Function::NewClosureFunction(
-        String::Handle(Z, Symbols::New(closure_name)),
+        closure_name,
         innermost_function(),
         async_func_pos);
     closure.set_is_generated_body(true);
@@ -7688,6 +7650,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
 
   // Parse the local function.
   SequenceNode* statements = Parser::ParseFunc(function);
+  INC_STAT(thread(), num_functions_parsed, 1);
 
   // Now that the local function has formal parameters, lookup the signature
   // class in the current library (but not in its imports) and only create a new
@@ -8515,11 +8478,10 @@ static LocalVariable* LookupSavedTryContextVar(LocalScope* scope) {
 static LocalVariable* LookupAsyncSavedTryContextVar(LocalScope* scope,
                                                     uint16_t try_index) {
   const String& async_saved_try_ctx_name =
-      String::ZoneHandle(Symbols::New(String::Handle(
-          String::NewFormatted(
-              "%s%d",
-              Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
-              try_index))));
+      String::ZoneHandle(Symbols::NewFormatted(
+          "%s%d",
+          Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
+          try_index));
   LocalVariable* var = scope->LocalLookupVariable(async_saved_try_ctx_name);
   ASSERT(var != NULL);
   return var;
@@ -8591,9 +8553,8 @@ AstNode* Parser::DartPrint(const char* str) {
       Z, lib.LookupFunctionAllowPrivate(Symbols::print()));
   ASSERT(!print_fn.IsNull());
   ArgumentListNode* one_arg = new(Z) ArgumentListNode(Scanner::kNoSourcePos);
-  String& msg = String::Handle(String::NewFormatted("%s", str));
-  one_arg->Add(new(Z) LiteralNode(Scanner::kNoSourcePos,
-               String::ZoneHandle(Symbols::New(msg))));
+  String& msg = String::ZoneHandle(Symbols::NewFormatted("%s", str));
+  one_arg->Add(new(Z) LiteralNode(Scanner::kNoSourcePos, msg));
   AstNode* print_call =
       new(Z) StaticCallNode(Scanner::kNoSourcePos, print_fn, one_arg);
   return print_call;
@@ -9130,7 +9091,7 @@ AstNode* Parser::ParseAssertStatement() {
   ConsumeToken();  // Consume assert keyword.
   ExpectToken(Token::kLPAREN);
   const intptr_t condition_pos = TokenPos();
-  if (!I->flags().asserts() && !I->flags().type_checks()) {
+  if (!I->flags().asserts()) {
     SkipExpr();
     ExpectToken(Token::kRPAREN);
     return NULL;
@@ -9543,10 +9504,9 @@ SequenceNode* Parser::ParseCatchClauses(
 
 void Parser::SetupSavedTryContext(LocalVariable* saved_try_context) {
   const String& async_saved_try_ctx_name = String::ZoneHandle(Z,
-      Symbols::New(String::Handle(Z,
-          String::NewFormatted("%s%d",
-                               Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
-                               last_used_try_index_ - 1))));
+      Symbols::NewFormatted("%s%d",
+                           Symbols::AsyncSavedTryCtxVarPrefix().ToCString(),
+                           last_used_try_index_ - 1));
   LocalVariable* async_saved_try_ctx = new (Z) LocalVariable(
       Scanner::kNoSourcePos,
       async_saved_try_ctx_name,
@@ -10807,10 +10767,11 @@ static AstNode* LiteralIfStaticConst(Zone* zone, AstNode* expr) {
     const Field& field = expr->AsLoadStaticFieldNode()->field();
     if (field.is_const() &&
         !expr->AsLoadStaticFieldNode()->is_deferred_reference()) {
-      ASSERT(field.value() != Object::sentinel().raw());
-      ASSERT(field.value() != Object::transition_sentinel().raw());
-      return new(zone) LiteralNode(expr->token_pos(),
-                                   Instance::ZoneHandle(zone, field.value()));
+      ASSERT(field.StaticValue() != Object::sentinel().raw());
+      ASSERT(field.StaticValue() != Object::transition_sentinel().raw());
+      return new(zone) LiteralNode(
+          expr->token_pos(),
+          Instance::ZoneHandle(zone, field.StaticValue()));
     }
   }
   return expr;
@@ -11689,10 +11650,13 @@ AstNode* Parser::ParseClosurization(AstNode* primary) {
   }
 
   // Closurization of instance getter, setter, method or operator.
+  GrowableHandlePtrArray<const String> pieces(Z, 3);
+  pieces.Add(Symbols::HashMark());
   if (is_setter_name) {
-    extractor_name = String::Concat(Symbols::SetterPrefix(), extractor_name);
+    pieces.Add(Symbols::SetterPrefix());
   }
-  extractor_name = Symbols::FromConcat(Symbols::HashMark(), extractor_name);
+  pieces.Add(extractor_name);
+  extractor_name = Symbols::FromConcatAll(pieces);
   return new(Z) InstanceGetterNode(property_pos, primary, extractor_name);
 }
 
@@ -11947,12 +11911,17 @@ bool Parser::GetCachedConstant(intptr_t token_pos, Instance* value) {
   // We don't want to allocate anything in the heap here since this code
   // is called from the optimizing compiler in the background thread. Allocate
   // the key value in the zone instead.
-  const char* key = Z->PrintToString("%s_%" Pd "",
-      String::Handle(Z, script_.url()).ToCString(),
-      token_pos);
+  // const char* key = Z->PrintToString("%s_%" Pd "",
+  //     String::Handle(Z, script_.url()).ToCString(),
+  //    token_pos);
+
+  const String& key = String::Handle(Z,
+      Symbols::NewFormatted("%s_%" Pd "",
+          String::Handle(Z, script_.url()).ToCString(),
+          token_pos));
   ConstantsMap constants(isolate()->object_store()->compile_time_constants());
   bool is_present = false;
-  *value ^= constants.GetOrNull<const char *>(key, &is_present);
+  *value ^= constants.GetOrNull(key, &is_present);
   ASSERT(constants.Release().raw() ==
       isolate()->object_store()->compile_time_constants());
   if (FLAG_compiler_stats && is_present) {
@@ -11989,7 +11958,7 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(const Field& field,
       String::Handle(Z, Field::GetterSymbol(field_name));
   const Function& getter = Function::Handle(Z,
       field_owner.LookupStaticFunction(getter_name));
-  const Instance& value = Instance::Handle(Z, field.value());
+  const Instance& value = Instance::Handle(Z, field.StaticValue());
   if (value.raw() == Object::transition_sentinel().raw()) {
     if (field.is_const()) {
       ReportError("circular dependency while initializing static field '%s'",
@@ -12004,7 +11973,7 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(const Field& field,
     // not been evaluated. If the field is const, call the static getter method
     // to evaluate the expression and canonicalize the value.
     if (field.is_const()) {
-      field.set_value(Object::transition_sentinel());
+      field.SetStaticValue(Object::transition_sentinel());
       const int kNumArguments = 0;  // no arguments.
       const Function& func = Function::Handle(Z,
           Resolver::ResolveStatic(field_owner,
@@ -12025,7 +11994,7 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(const Field& field,
           // generated AST is not deterministic. Therefore mark the function as
           // not optimizable.
           current_function().SetIsOptimizable(false);
-          field.set_value(Object::null_instance());
+          field.SetStaticValue(Object::null_instance());
           // It is a compile-time error if evaluation of a compile-time constant
           // would raise an exception.
           const String& field_name = String::Handle(Z, field.name());
@@ -12042,7 +12011,7 @@ StaticGetterNode* Parser::RunStaticFieldInitializer(const Field& field,
       Instance& instance = Instance::Handle(Z);
       instance ^= const_value.raw();
       instance = TryCanonicalize(instance, field_ref_pos);
-      field.set_value(instance);
+      field.SetStaticValue(instance);
       return NULL;   // Constant
     } else {
       return new(Z) StaticGetterNode(
@@ -12068,7 +12037,8 @@ RawObject* Parser::EvaluateConstConstructorCall(
   // Constructors have 2 extra arguments: rcvr and construction phase.
   const int kNumExtraArgs = constructor.IsFactory() ? 1 : 2;
   const int num_arguments = arguments->length() + kNumExtraArgs;
-  const Array& arg_values = Array::Handle(Z, Array::New(num_arguments));
+  const Array& arg_values =
+      Array::Handle(Z, Array::New(num_arguments, Heap::kOld));
   Instance& instance = Instance::Handle(Z);
   if (!constructor.IsFactory()) {
     instance = Instance::New(type_class, Heap::kOld);
@@ -13036,22 +13006,25 @@ AstNode* Parser::ParseSymbolLiteral() {
   ASSERT(CurrentToken() == Token::kHASH);
   ConsumeToken();
   intptr_t symbol_pos = TokenPos();
-  String& symbol = String::Handle(Z);
+  String& symbol = String::ZoneHandle(Z);
   if (IsIdentifier()) {
     symbol = CurrentLiteral()->raw();
     ConsumeToken();
+    GrowableHandlePtrArray<const String> pieces(Z, 3);
+    pieces.Add(symbol);
     while (CurrentToken() == Token::kPERIOD) {
-      symbol = String::Concat(symbol, Symbols::Dot());
+      pieces.Add(Symbols::Dot());
       ConsumeToken();
-      symbol = String::Concat(symbol,
-                              *ExpectIdentifier("identifier expected"));
+      pieces.Add(*ExpectIdentifier("identifier expected"));
     }
+    symbol = Symbols::FromConcatAll(pieces);
   } else if (Token::CanBeOverloaded(CurrentToken())) {
-    symbol = String::New(Token::Str(CurrentToken()));
+    symbol = Symbols::New(Token::Str(CurrentToken()));
     ConsumeToken();
   } else {
     ReportError("illegal symbol literal");
   }
+  ASSERT(symbol.IsSymbol());
 
   Instance& symbol_instance = Instance::ZoneHandle(Z);
   if (GetCachedConstant(symbol_pos, &symbol_instance)) {
@@ -13062,8 +13035,7 @@ AstNode* Parser::ParseSymbolLiteral() {
   const Class& symbol_class = Class::Handle(I->object_store()->symbol_class());
   ASSERT(!symbol_class.IsNull());
   ArgumentListNode* constr_args = new(Z) ArgumentListNode(symbol_pos);
-  constr_args->Add(new(Z) LiteralNode(
-      symbol_pos, String::ZoneHandle(Z, Symbols::New(symbol))));
+  constr_args->Add(new(Z) LiteralNode(symbol_pos, symbol));
   const Function& constr = Function::ZoneHandle(Z,
       symbol_class.LookupConstructor(Symbols::SymbolCtor()));
   ASSERT(!constr.IsNull());
@@ -13358,7 +13330,11 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         // The type arguments of the redirection type are instantiated from the
         // type arguments of the parsed type of the 'new' or 'const' expression.
         Error& error = Error::Handle(Z);
-        redirect_type ^= redirect_type.InstantiateFrom(type_arguments, &error);
+        redirect_type ^= redirect_type.InstantiateFrom(
+            type_arguments,
+            &error,
+            NULL,  // trail
+            Heap::kOld);
         if (!error.IsNull()) {
           redirect_type = ClassFinalizer::NewFinalizedMalformedType(
               error,
@@ -13570,14 +13546,15 @@ String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
   ASSERT(!func.IsNull());
 
   // Build the array of literal values to interpolate.
-  const Array& value_arr = Array::Handle(Z, Array::New(values.length()));
+  const Array& value_arr = Array::Handle(Z,
+      Array::New(values.length(), Heap::kOld));
   for (int i = 0; i < values.length(); i++) {
     ASSERT(values[i]->IsLiteralNode());
     value_arr.SetAt(i, values[i]->AsLiteralNode()->literal());
   }
 
   // Build argument array to pass to the interpolation function.
-  const Array& interpolate_arg = Array::Handle(Z, Array::New(1));
+  const Array& interpolate_arg = Array::Handle(Z, Array::New(1, Heap::kOld));
   interpolate_arg.SetAt(0, value_arr);
 
   // Call interpolation function.
@@ -13617,6 +13594,16 @@ AstNode* Parser::ParseStringLiteral(bool allow_interpolation) {
     return primary;
   }
   // String interpolation needed.
+
+  // First, check whether we've cached a compile-time constant for this
+  // string interpolation.
+  Instance& cached_string = Instance::Handle(Z);
+  if (GetCachedConstant(literal_start, &cached_string)) {
+    SkipStringLiteral();
+    return new(Z) LiteralNode(literal_start,
+                              Instance::ZoneHandle(Z, cached_string.raw()));
+  }
+
   bool is_compiletime_const = true;
   bool has_interpolation = false;
   GrowableArray<AstNode*> values_list;
@@ -13669,7 +13656,9 @@ AstNode* Parser::ParseStringLiteral(bool allow_interpolation) {
   }
   if (is_compiletime_const) {
     if (has_interpolation) {
-      primary = new(Z) LiteralNode(literal_start, Interpolate(values_list));
+      const String& interpolated_string = Interpolate(values_list);
+      primary = new(Z) LiteralNode(literal_start, interpolated_string);
+      CacheConstantValue(literal_start, interpolated_string);
     } else {
       GrowableHandlePtrArray<const String> pieces(Z, values_list.length());
       for (int i = 0; i < values_list.length(); i++) {
@@ -13679,6 +13668,8 @@ AstNode* Parser::ParseStringLiteral(bool allow_interpolation) {
       }
       const String& lit = String::ZoneHandle(Z, Symbols::FromConcatAll(pieces));
       primary = new(Z) LiteralNode(literal_start, lit);
+      // Caching of constant not necessary because the symbol lookup will
+      // find the value next time.
     }
   } else {
     ArrayNode* values = new(Z) ArrayNode(
@@ -13760,9 +13751,12 @@ AstNode* Parser::ParsePrimary() {
           // is used. We cheat a little here by looking at the next token
           // to determine whether we have an unresolved method call or
           // field access.
-          String& qualified_name = String::ZoneHandle(Z, prefix.name());
-          qualified_name = String::Concat(qualified_name, Symbols::Dot());
-          qualified_name = Symbols::FromConcat(qualified_name, ident);
+          GrowableHandlePtrArray<const String> pieces(Z, 3);
+          pieces.Add(String::Handle(Z, prefix.name()));
+          pieces.Add(Symbols::Dot());
+          pieces.Add(ident);
+          const String& qualified_name = String::ZoneHandle(Z,
+              Symbols::FromConcatAll(pieces));
           InvocationMirror::Type call_type =
               CurrentToken() == Token::kLPAREN ?
                   InvocationMirror::kMethod : InvocationMirror::kGetter;
@@ -13909,9 +13903,9 @@ const Instance& Parser::EvaluateConstExpr(intptr_t expr_pos, AstNode* expr) {
     // We already checked that this field is const and has been
     // initialized.
     ASSERT(field.is_const());
-    ASSERT(field.value() != Object::sentinel().raw());
-    ASSERT(field.value() != Object::transition_sentinel().raw());
-    return Instance::ZoneHandle(Z, field.value());
+    ASSERT(field.StaticValue() != Object::sentinel().raw());
+    ASSERT(field.StaticValue() != Object::transition_sentinel().raw());
+    return Instance::ZoneHandle(Z, field.StaticValue());
   } else {
     ASSERT(expr->EvalConstExpr() != NULL);
     ReturnNode* ret = new(Z) ReturnNode(expr->token_pos(), expr);

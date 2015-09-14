@@ -7,6 +7,8 @@ import "package:expect/expect.dart";
 constants() {
   Expect.equals(0, 499 >> 33);
   Expect.equals(0, (499 << 33) & 0xFFFFFFFF);
+  Expect.equals(0, (499 << 32) >> 65);
+  Expect.equals(0, ((499 << 32) << 65) & 0xFFFFFFFFFFFFFFFF);
 }
 
 foo(i) {
@@ -29,13 +31,18 @@ id(x) {
 interceptors() {
   Expect.equals(0, id(499) >> 33);
   Expect.equals(0, (id(499) << 33) & 0xFFFFFFFF);
+  Expect.equals(0, id(499 << 32) >> 65);
+  Expect.equals(0, (id(499 << 32) << 65) & 0xFFFFFFFFFFFFFFFF);
 }
 
 speculative() {
   var a = id(499);
+  var b = id(499 << 32);
   for (int i = 0; i < 1; i++) {
     Expect.equals(0, a >> 33);
     Expect.equals(0, (a << 33) & 0xFFFFFFFF);
+    Expect.equals(0, b >> 65);
+    Expect.equals(0, (b << 65) & 0xFFFFFFFFFFFFFFFF);
   }
 }
 

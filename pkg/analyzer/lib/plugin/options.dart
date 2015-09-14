@@ -18,7 +18,7 @@ final String OPTIONS_PROCESSOR_EXTENSION_POINT_ID = Plugin.join(
     OptionsPlugin.OPTIONS_PROCESSOR_EXTENSION_POINT);
 
 /// Processes options defined in the analysis options file.
-/// 
+///
 /// The options file format is intentionally very open-ended, giving clients
 /// utmost flexibility in defining their own options.  The only hardfast
 /// expectation is that options files will contain a mapping from Strings
@@ -45,7 +45,6 @@ final String OPTIONS_PROCESSOR_EXTENSION_POINT_ID = Plugin.join(
 ///     bool useMultiPackage =
 ///         options['compiler']['resolver']['useMultiPackage'];
 abstract class OptionsProcessor {
-
   /// Called when an error occurs in processing options.
   void onError(Exception exception);
 

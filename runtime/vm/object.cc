@@ -1511,7 +1511,7 @@ RawError* Object::Init(Isolate* isolate) {
   field_name = Symbols::New("cid"#clazz);                                      \
   field = Field::New(field_name, true, false, true, false, cls, 0);            \
   value = Smi::New(k##clazz##Cid);                                             \
-  field.set_value(value);                                                      \
+  field.SetStaticValue(value, true);                                           \
   field.set_type(Type::Handle(Type::IntType()));                               \
   cls.AddField(field);                                                         \
 
@@ -1640,7 +1640,7 @@ RawError* Object::Init(Isolate* isolate) {
 
 
 void Object::Print() const {
-  ISL_Print("%s\n", ToCString());
+  THR_Print("%s\n", ToCString());
 }
 
 
@@ -1667,7 +1667,7 @@ void Object::AddCommonObjectProperties(JSONObject* jsobj,
   if (!same_type) {
     jsobj->AddProperty("_vmType", vm_type);
   }
-  if (!ref || IsInstance()) {
+  if (!ref || IsInstance() || IsNull()) {
     // TODO(turnidge): Provide the type arguments here too?
     const Class& cls = Class::Handle(this->clazz());
     jsobj->AddProperty("class", cls);
@@ -2281,12 +2281,12 @@ void Class::AddClosureFunction(const Function& function) const {
   GrowableObjectArray& closures =
       GrowableObjectArray::Handle(raw_ptr()->closure_functions_);
   if (closures.IsNull()) {
-    closures = GrowableObjectArray::New(4);
+    closures = GrowableObjectArray::New(4, Heap::kOld);
     StorePointer(&raw_ptr()->closure_functions_, closures.raw());
   }
   ASSERT(function.IsNonImplicitClosureFunction());
   ASSERT(function.Owner() == this->raw());
-  closures.Add(function);
+  closures.Add(function, Heap::kOld);
 }
 
 
@@ -2731,7 +2731,7 @@ class CHACodeArray : public WeakCodeReferences {
   virtual void ReportDeoptimization(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
       Function& function = Function::Handle(code.function());
-      ISL_Print("Deoptimizing %s because CHA optimized (%s).\n",
+      THR_Print("Deoptimizing %s because CHA optimized (%s).\n",
           function.ToFullyQualifiedCString(),
           cls_.ToCString());
     }
@@ -2740,7 +2740,7 @@ class CHACodeArray : public WeakCodeReferences {
   virtual void ReportSwitchingCode(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
       Function& function = Function::Handle(code.function());
-      ISL_Print("Switching %s to unoptimized code because CHA invalid"
+      THR_Print("Switching %s to unoptimized code because CHA invalid"
                 " (%s)\n",
                 function.ToFullyQualifiedCString(),
                 cls_.ToCString());
@@ -2755,7 +2755,7 @@ class CHACodeArray : public WeakCodeReferences {
 
 void Class::RegisterCHACode(const Code& code) {
   if (FLAG_trace_cha) {
-    ISL_Print("RegisterCHACode %s class %s\n",
+    THR_Print("RegisterCHACode %s class %s\n",
         Function::Handle(code.function()).ToQualifiedCString(), ToCString());
   }
   ASSERT(code.is_optimized());
@@ -3586,7 +3586,7 @@ void Class::AddDirectSubclass(const Class& subclass) const {
     ASSERT(direct_subclasses.At(i) != subclass.raw());
   }
 #endif
-  direct_subclasses.Add(subclass);
+  direct_subclasses.Add(subclass, Heap::kOld);
 }
 
 
@@ -3735,7 +3735,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                  const TypeArguments& type_arguments,
                                  const Class& other,
                                  const TypeArguments& other_type_arguments,
-                                 Error* bound_error) {
+                                 Error* bound_error,
+                                 Heap::Space space) {
   // Use the thsi object as if it was the receiver of this method, but instead
   // of recursing reset it to the super class and loop.
   Isolate* isolate = Isolate::Current();
@@ -3792,7 +3793,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                      other_type_arguments,
                                      from_index,
                                      num_type_params,
-                                     bound_error);
+                                     bound_error,
+                                     space);
     }
     const bool other_is_function_class = other.IsFunctionClass();
     if (other.IsSignatureClass() || other_is_function_class) {
@@ -3809,7 +3811,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                             type_arguments,
                             other_fun,
                             other_type_arguments,
-                            bound_error);
+                            bound_error,
+                            space);
       }
       // Check if type S has a call() method of function type T.
       Function& function =
@@ -3829,7 +3832,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                               type_arguments,
                               other_fun,
                               other_type_arguments,
-                              bound_error)) {
+                              bound_error,
+                              space)) {
               return true;
             }
       }
@@ -3869,7 +3873,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // after the type arguments of the super type of this type.
         // The index of the type parameters is adjusted upon finalization.
         error = Error::null();
-        interface_args = interface_args.InstantiateFrom(type_arguments, &error);
+        interface_args =
+            interface_args.InstantiateFrom(type_arguments, &error, NULL, space);
         if (!error.IsNull()) {
           // Return the first bound error to the caller if it requests it.
           if ((bound_error != NULL) && bound_error->IsNull()) {
@@ -3882,7 +3887,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                    interface_args,
                                    other,
                                    other_type_arguments,
-                                   bound_error)) {
+                                   bound_error,
+                                   space)) {
         return true;
       }
     }
@@ -3907,13 +3913,15 @@ bool Class::TypeTest(TypeTestKind test_kind,
                      const TypeArguments& type_arguments,
                      const Class& other,
                      const TypeArguments& other_type_arguments,
-                     Error* bound_error) const {
+                     Error* bound_error,
+                     Heap::Space space) const {
   return TypeTestNonRecursive(*this,
                               test_kind,
                               type_arguments,
                               other,
                               other_type_arguments,
-                              bound_error);
+                              bound_error,
+                              space);
 }
 
 
@@ -4230,16 +4238,12 @@ RawLibraryPrefix* Class::LookupLibraryPrefix(const String& name) const {
 
 
 const char* Class::ToCString() const {
-  const char* format = "%s %sClass: %s";
   const Library& lib = Library::Handle(library());
   const char* library_name = lib.IsNull() ? "" : lib.ToCString();
   const char* patch_prefix = is_patch() ? "Patch " : "";
   const char* class_name = String::Handle(Name()).ToCString();
-  intptr_t len =
-      OS::SNPrint(NULL, 0, format, library_name, patch_prefix, class_name) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, library_name, patch_prefix, class_name);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "%s %sClass: %s", library_name, patch_prefix, class_name);
 }
 
 
@@ -4407,12 +4411,9 @@ RawString* UnresolvedClass::Name() const {
 
 
 const char* UnresolvedClass::ToCString() const {
-  const char* format = "unresolved class '%s'";
   const char* cname =  String::Handle(Name()).ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, format, cname) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, cname);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "unresolved class '%s'", cname);
 }
 
 
@@ -4551,7 +4552,8 @@ bool TypeArguments::TypeTest(TypeTestKind test_kind,
                              const TypeArguments& other,
                              intptr_t from_index,
                              intptr_t len,
-                             Error* bound_error) const {
+                             Error* bound_error,
+                             Heap::Space space) const {
   ASSERT(Length() >= (from_index + len));
   ASSERT(!other.IsNull());
   ASSERT(other.Length() >= (from_index + len));
@@ -4562,7 +4564,7 @@ bool TypeArguments::TypeTest(TypeTestKind test_kind,
     ASSERT(!type.IsNull());
     other_type = other.TypeAt(from_index + i);
     ASSERT(!other_type.IsNull());
-    if (!type.TypeTest(test_kind, other_type, bound_error)) {
+    if (!type.TypeTest(test_kind, other_type, bound_error, space)) {
       return false;
     }
   }
@@ -5158,14 +5160,12 @@ const char* TypeArguments::ToCString() const {
   if (IsNull()) {
     return "NULL TypeArguments";
   }
-  const char* format = "%s [%s]";
   const char* prev_cstr = "TypeArguments:";
   for (int i = 0; i < Length(); i++) {
     const AbstractType& type_at = AbstractType::Handle(TypeAt(i));
     const char* type_cstr = type_at.IsNull() ? "null" : type_at.ToCString();
-    intptr_t len = OS::SNPrint(NULL, 0, format, prev_cstr, type_cstr) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, prev_cstr, type_cstr);
+    char* chars = OS::SCreate(Thread::Current()->zone(),
+        "%s [%s]", prev_cstr, type_cstr);
     prev_cstr = chars;
   }
   return prev_cstr;
@@ -5173,13 +5173,10 @@ const char* TypeArguments::ToCString() const {
 
 
 const char* PatchClass::ToCString() const {
-  const char* kFormat = "PatchClass for %s";
   const Class& cls = Class::Handle(patched_class());
   const char* cls_name = cls.ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, cls_name) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, cls_name);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "PatchClass for %s", cls_name);
 }
 
 
@@ -5262,7 +5259,7 @@ void Function::SwitchToUnoptimizedCode() const {
   const Code& current_code = Code::Handle(zone, CurrentCode());
 
   if (FLAG_trace_deoptimization_verbose) {
-    ISL_Print("Disabling optimized code: '%s' entry: %#" Px "\n",
+    THR_Print("Disabling optimized code: '%s' entry: %#" Px "\n",
       ToFullyQualifiedCString(),
       current_code.EntryPoint());
   }
@@ -6047,7 +6044,8 @@ bool Function::HasCompatibleParametersWith(const Function& other,
   // Check that this function's signature type is a subtype of the other
   // function's signature type.
   if (!TypeTest(kIsSubtypeOf, Object::null_type_arguments(),
-                other, Object::null_type_arguments(), bound_error)) {
+                other, Object::null_type_arguments(), bound_error,
+                Heap::kOld)) {
     // For more informative error reporting, use the location of the other
     // function here, since the caller will use the location of this function.
     *bound_error = LanguageError::NewFormatted(
@@ -6089,12 +6087,15 @@ bool Function::TestParameterType(
     const TypeArguments& type_arguments,
     const Function& other,
     const TypeArguments& other_type_arguments,
-    Error* bound_error) const {
+    Error* bound_error,
+    Heap::Space space) const {
   AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
   if (!other_param_type.IsInstantiated()) {
     other_param_type = other_param_type.InstantiateFrom(other_type_arguments,
-                                                        bound_error);
+                                                        bound_error,
+                                                        NULL,  // trail
+                                                        space);
     ASSERT((bound_error == NULL) || bound_error->IsNull());
   }
   if (other_param_type.IsDynamicType()) {
@@ -6103,20 +6104,21 @@ bool Function::TestParameterType(
   AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
   if (!param_type.IsInstantiated()) {
-    param_type = param_type.InstantiateFrom(type_arguments, bound_error);
+    param_type = param_type.InstantiateFrom(
+        type_arguments, bound_error, NULL /*trail*/, space);
     ASSERT((bound_error == NULL) || bound_error->IsNull());
   }
   if (param_type.IsDynamicType()) {
     return test_kind == kIsSubtypeOf;
   }
   if (test_kind == kIsSubtypeOf) {
-    if (!param_type.IsSubtypeOf(other_param_type, bound_error) &&
-        !other_param_type.IsSubtypeOf(param_type, bound_error)) {
+    if (!param_type.IsSubtypeOf(other_param_type, bound_error, space) &&
+        !other_param_type.IsSubtypeOf(param_type, bound_error, space)) {
       return false;
     }
   } else {
     ASSERT(test_kind == kIsMoreSpecificThan);
-    if (!param_type.IsMoreSpecificThan(other_param_type, bound_error)) {
+    if (!param_type.IsMoreSpecificThan(other_param_type, bound_error, space)) {
       return false;
     }
   }
@@ -6128,7 +6130,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
                         const TypeArguments& type_arguments,
                         const Function& other,
                         const TypeArguments& other_type_arguments,
-                        Error* bound_error) const {
+                        Error* bound_error,
+                        Heap::Space space) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
   const intptr_t num_opt_named_params = NumOptionalNamedParameters();
@@ -6186,7 +6189,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
     if (!TestParameterType(test_kind,
                            i + num_ignored_params, i + other_num_ignored_params,
                            type_arguments, other, other_type_arguments,
-                           bound_error)) {
+                           bound_error,
+                           space)) {
       return false;
     }
   }
@@ -6217,7 +6221,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
         if (!TestParameterType(test_kind,
                                j, i,
                                type_arguments, other, other_type_arguments,
-                               bound_error)) {
+                               bound_error,
+                               space)) {
           return false;
         }
         break;
@@ -6763,9 +6768,9 @@ RawString* Function::QualifiedPrettyName() const {
       tmp = cls.PrettyName();
     }
   }
-  tmp = String::Concat(tmp, Symbols::Dot());
+  tmp = String::Concat(tmp, Symbols::Dot(), Heap::kOld);
   const String& suffix = String::Handle(PrettyName());
-  return String::Concat(tmp, suffix);
+  return String::Concat(tmp, suffix, Heap::kOld);
 }
 
 
@@ -6877,7 +6882,7 @@ void Function::SaveICDataMap(
     set_ic_data_array(Object::empty_array());
   } else {
     const Array& a = Array::Handle(Array::New(count, Heap::kOld));
-    INC_STAT(Isolate::Current(), total_code_size, count * sizeof(uword));
+    INC_STAT(Thread::Current(), total_code_size, count * sizeof(uword));
     count = 0;
     for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
       if (deopt_id_to_ic_data[i] != NULL) {
@@ -6948,10 +6953,10 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
       // to replace the old values.
       // sed -i .bak -f /tmp/newkeys runtime/vm/method_recognizer.h
       // sed -i .bak -f /tmp/newkeys runtime/vm/flow_graph_builder.h
-      ISL_Print("s/V(%s, %d)/V(%s, %d)/\n",
+      THR_Print("s/V(%s, %d)/V(%s, %d)/\n",
                 prefix, fp, prefix, SourceFingerprint());
     } else {
-      ISL_Print("FP mismatch while recognizing method %s:"
+      THR_Print("FP mismatch while recognizing method %s:"
                 " expecting %d found %d\n",
                 ToFullyQualifiedCString(),
                 fp,
@@ -7005,14 +7010,10 @@ const char* Function::ToCString() const {
     default:
       UNREACHABLE();
   }
-  const char* kFormat = "Function '%s':%s%s%s%s.";
   const char* function_name = String::Handle(name()).ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name,
-                             static_str, abstract_str, kind_str, const_str) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, function_name,
-              static_str, abstract_str, kind_str, const_str);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "Function '%s':%s%s%s%s.",
+      function_name, static_str, abstract_str, kind_str, const_str);
 }
 
 
@@ -7262,18 +7263,6 @@ RawClass* Field::origin() const {
 }
 
 
-RawInstance* Field::value() const {
-  ASSERT(is_static());  // Valid only for static dart fields.
-  return raw_ptr()->value_;
-}
-
-
-void Field::set_value(const Instance& value) const {
-  ASSERT(is_static());  // Valid only for static dart fields.
-  StorePointer(&raw_ptr()->value_, value.raw());
-}
-
-
 void Field::set_type(const AbstractType& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->type_, value.raw());
@@ -7300,9 +7289,7 @@ RawField* Field::New(const String& name,
   const Field& result = Field::Handle(Field::New());
   result.set_name(name);
   result.set_is_static(is_static);
-  if (is_static) {
-    result.set_value(Object::null_instance());
-  } else {
+  if (!is_static) {
     result.SetOffset(0);
   }
   result.set_is_final(is_final);
@@ -7406,15 +7393,11 @@ const char* Field::ToCString() const {
   const char* kF0 = is_static() ? " static" : "";
   const char* kF1 = is_final() ? " final" : "";
   const char* kF2 = is_const() ? " const" : "";
-  const char* kFormat = "Field <%s.%s>:%s%s%s";
   const char* field_name = String::Handle(name()).ToCString();
   const Class& cls = Class::Handle(owner());
   const char* cls_name = String::Handle(cls.Name()).ToCString();
-  intptr_t len =
-      OS::SNPrint(NULL, 0, kFormat, cls_name, field_name, kF0, kF1, kF2) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, cls_name, field_name, kF0, kF1, kF2);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "Field <%s.%s>:%s%s%s", cls_name, field_name, kF0, kF1, kF2);
 }
 
 void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
@@ -7444,7 +7427,7 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
   if (is_static()) {
-    const Instance& valueObj = Instance::Handle(value());
+    const Instance& valueObj = Instance::Handle(StaticValue());
     jsobj.AddProperty("staticValue", valueObj);
   }
 
@@ -7473,6 +7456,7 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+
 // Build a closure object that gets (or sets) the contents of a static
 // field f and cache the closure in a newly created static field
 // named #f (or #f= in case of a setter).
@@ -7490,7 +7474,8 @@ RawInstance* Field::AccessorClosure(bool make_setter) const {
   closure_field = field_owner.LookupStaticField(closure_name);
   if (!closure_field.IsNull()) {
     ASSERT(closure_field.is_static());
-    const Instance& closure = Instance::Handle(closure_field.value());
+    const Instance& closure =
+        Instance::Handle(closure_field.StaticValue());
     ASSERT(!closure.IsNull());
     ASSERT(closure.IsClosure());
     return closure.raw();
@@ -7523,7 +7508,7 @@ RawInstance* Field::AccessorClosure(bool make_setter) const {
                              false,  // is_reflectable
                              field_owner,
                              this->token_pos());
-  closure_field.set_value(Instance::Cast(result));
+  closure_field.SetStaticValue(Instance::Cast(result), true);
   closure_field.set_type(Type::Handle(Type::DynamicType()));
   field_owner.AddField(closure_field);
 
@@ -7564,7 +7549,7 @@ class FieldDependentArray : public WeakCodeReferences {
   virtual void ReportDeoptimization(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
       Function& function = Function::Handle(code.function());
-      ISL_Print("Deoptimizing %s because guard on field %s failed.\n",
+      THR_Print("Deoptimizing %s because guard on field %s failed.\n",
                 function.ToFullyQualifiedCString(), field_.ToCString());
     }
   }
@@ -7572,7 +7557,7 @@ class FieldDependentArray : public WeakCodeReferences {
   virtual void ReportSwitchingCode(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
       Function& function = Function::Handle(code.function());
-      ISL_Print("Switching %s to unoptimized code because guard"
+      THR_Print("Switching %s to unoptimized code because guard"
                 " on field %s was violated.\n",
                 function.ToFullyQualifiedCString(),
                 field_.ToCString());
@@ -7599,33 +7584,43 @@ void Field::DeoptimizeDependentCode() const {
 
 
 bool Field::IsUninitialized() const {
-  const Instance& value = Instance::Handle(raw_ptr()->value_);
+  const Instance& value = Instance::Handle(raw_ptr()->value_.static_value_);
   ASSERT(value.raw() != Object::transition_sentinel().raw());
   return value.raw() == Object::sentinel().raw();
 }
 
 
-void Field::set_initializer(const Function& initializer) const {
-  StorePointer(&raw_ptr()->initializer_, initializer.raw());
+void Field::SetPrecompiledInitializer(const Function& initializer) const {
+  StorePointer(&raw_ptr()->initializer_.precompiled_, initializer.raw());
+}
+
+
+bool Field::HasPrecompiledInitializer() const {
+  return raw_ptr()->initializer_.precompiled_->IsFunction();
+}
+
+
+void Field::SetSavedInitialStaticValue(const Instance& value) const {
+  StorePointer(&raw_ptr()->initializer_.saved_value_, value.raw());
 }
 
 
 void Field::EvaluateInitializer() const {
   ASSERT(is_static());
-  if (value() == Object::sentinel().raw()) {
-    set_value(Object::transition_sentinel());
+  if (StaticValue() == Object::sentinel().raw()) {
+    SetStaticValue(Object::transition_sentinel());
     Object& value = Object::Handle(Compiler::EvaluateStaticInitializer(*this));
     if (value.IsError()) {
-      set_value(Object::null_instance());
+      SetStaticValue(Object::null_instance());
       Exceptions::PropagateError(Error::Cast(value));
       UNREACHABLE();
     }
     ASSERT(value.IsNull() || value.IsInstance());
-    set_value(value.IsNull() ? Instance::null_instance()
+    SetStaticValue(value.IsNull() ? Instance::null_instance()
                              : Instance::Cast(value));
     return;
-  } else if (value() == Object::transition_sentinel().raw()) {
-    set_value(Object::null_instance());
+  } else if (StaticValue() == Object::transition_sentinel().raw()) {
+    SetStaticValue(Object::null_instance());
     const Array& ctor_args = Array::Handle(Array::New(1));
     const String& field_name = String::Handle(name());
     ctor_args.SetAt(0, field_name);
@@ -7740,7 +7735,7 @@ bool Field::UpdateGuardedCidAndLength(const Object& value) const {
     }
 
     if (FLAG_trace_field_guards) {
-      ISL_Print("    => %s\n", GuardedPropertiesAsCString());
+      THR_Print("    => %s\n", GuardedPropertiesAsCString());
     }
 
     return false;
@@ -7795,7 +7790,7 @@ void Field::RecordStore(const Object& value) const {
   }
 
   if (FLAG_trace_field_guards) {
-    ISL_Print("Store %s %s <- %s\n",
+    THR_Print("Store %s %s <- %s\n",
               ToCString(),
               GuardedPropertiesAsCString(),
               value.ToCString());
@@ -7803,7 +7798,7 @@ void Field::RecordStore(const Object& value) const {
 
   if (UpdateGuardedCidAndLength(value)) {
     if (FLAG_trace_field_guards) {
-      ISL_Print("    => %s\n", GuardedPropertiesAsCString());
+      THR_Print("    => %s\n", GuardedPropertiesAsCString());
     }
 
     DeoptimizeDependentCode();
@@ -8577,7 +8572,6 @@ void Script::set_tokens(const TokenStream& value) const {
 void Script::Tokenize(const String& private_key) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   const TokenStream& tkns = TokenStream::Handle(zone, tokens());
   if (!tkns.IsNull()) {
     // Already tokenized.
@@ -8591,7 +8585,7 @@ void Script::Tokenize(const String& private_key) const {
   set_tokens(TokenStream::Handle(zone,
                                  TokenStream::New(scanner.GetStream(),
                                                   private_key)));
-  INC_STAT(isolate, src_length, src.Length());
+  INC_STAT(thread, src_length, src.Length());
 }
 
 
@@ -8606,7 +8600,8 @@ void Script::SetLocationOffset(intptr_t line_offset,
 
 void Script::GetTokenLocation(intptr_t token_pos,
                               intptr_t* line,
-                              intptr_t* column) const {
+                              intptr_t* column,
+                              intptr_t* token_len) const {
   ASSERT(line != NULL);
   const TokenStream& tkns = TokenStream::Handle(tokens());
   if (column == NULL) {
@@ -8628,6 +8623,13 @@ void Script::GetTokenLocation(intptr_t token_pos,
     intptr_t relative_line = scanner.CurrentPosition().line;
     *line = relative_line + line_offset();
     *column = scanner.CurrentPosition().column;
+    if (token_len != NULL) {
+      if (scanner.current_token().literal != NULL) {
+        *token_len = scanner.current_token().literal->Length();
+      } else {
+        *token_len = 1;
+      }
+    }
     // On the first line of the script we must add the column offset.
     if (relative_line == 1) {
       *column += col_offset();
@@ -9071,35 +9073,40 @@ RawInstance* Library::TransitiveLoadError() const {
 
 
 static RawString* MakeClassMetaName(const Class& cls) {
-  String& cname = String::Handle(cls.Name());
-  return String::Concat(Symbols::At(), cname);
+  return Symbols::FromConcat(Symbols::At(), String::Handle(cls.Name()));
 }
 
 
 static RawString* MakeFieldMetaName(const Field& field) {
   const String& cname =
       String::Handle(MakeClassMetaName(Class::Handle(field.origin())));
-  String& fname = String::Handle(field.name());
-  fname = String::Concat(Symbols::At(), fname);
-  return String::Concat(cname, fname);
+  GrowableHandlePtrArray<const String> pieces(Thread::Current()->zone(), 3);
+  pieces.Add(cname);
+  pieces.Add(Symbols::At());
+  pieces.Add(String::Handle(field.name()));
+  return Symbols::FromConcatAll(pieces);
 }
 
 
 static RawString* MakeFunctionMetaName(const Function& func) {
   const String& cname =
       String::Handle(MakeClassMetaName(Class::Handle(func.origin())));
-  String& fname = String::Handle(func.QualifiedPrettyName());
-  fname = String::Concat(Symbols::At(), fname);
-  return String::Concat(cname, fname);
+  GrowableHandlePtrArray<const String> pieces(Thread::Current()->zone(), 3);
+  pieces.Add(cname);
+  pieces.Add(Symbols::At());
+  pieces.Add(String::Handle(func.QualifiedPrettyName()));
+  return Symbols::FromConcatAll(pieces);
 }
 
 
 static RawString* MakeTypeParameterMetaName(const TypeParameter& param) {
   const String& cname = String::Handle(
       MakeClassMetaName(Class::Handle(param.parameterized_class())));
-  String& pname = String::Handle(param.name());
-  pname = String::Concat(Symbols::At(), pname);
-  return String::Concat(cname, pname);
+  GrowableHandlePtrArray<const String> pieces(Thread::Current()->zone(), 3);
+  pieces.Add(cname);
+  pieces.Add(Symbols::At());
+  pieces.Add(String::Handle(param.name()));
+  return Symbols::FromConcatAll(pieces);
 }
 
 
@@ -9115,7 +9122,7 @@ void Library::AddMetadata(const Class& cls,
                                           cls,
                                           token_pos));
   field.set_type(Type::Handle(Type::DynamicType()));
-  field.set_value(Array::empty_array());
+  field.SetStaticValue(Array::empty_array(), true);
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(this->metadata());
   metadata.Add(field, Heap::kOld);
@@ -9209,13 +9216,13 @@ RawObject* Library::GetMetadata(const Object& obj) const {
     return Object::empty_array().raw();
   }
   Object& metadata = Object::Handle();
-  metadata = field.value();
-  if (field.value() == Object::empty_array().raw()) {
+  metadata = field.StaticValue();
+  if (field.StaticValue() == Object::empty_array().raw()) {
     metadata = Parser::ParseMetadata(Class::Handle(field.owner()),
                                      field.token_pos());
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
-      field.set_value(Array::Cast(metadata));
+      field.SetStaticValue(Array::Cast(metadata), true);
     }
   }
   return metadata.raw();
@@ -10179,12 +10186,9 @@ RawLibrary* Library::TypedDataLibrary() {
 
 
 const char* Library::ToCString() const {
-  const char* kFormat = "Library:'%s'";
   const String& name = String::Handle(url());
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString()) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, name.ToCString());
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "Library:'%s'", name.ToCString());
 }
 
 
@@ -10517,7 +10521,7 @@ class PrefixDependentArray : public WeakCodeReferences {
 
   virtual void ReportSwitchingCode(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
-      ISL_Print("Prefix '%s': disabling %s code for %s function '%s'\n",
+      THR_Print("Prefix '%s': disabling %s code for %s function '%s'\n",
           String::Handle(prefix_.name()).ToCString(),
           code.is_optimized() ? "optimized" : "unoptimized",
           CodePatcher::IsEntryPatched(code) ? "patched" : "unpatched",
@@ -10595,12 +10599,9 @@ void LibraryPrefix::set_importer(const Library& value) const {
 
 
 const char* LibraryPrefix::ToCString() const {
-  const char* kFormat = "LibraryPrefix:'%s'";
   const String& prefix = String::Handle(name());
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, prefix.ToCString()) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, prefix.ToCString());
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "LibraryPrefix:'%s'", prefix.ToCString());
 }
 
 
@@ -10624,7 +10625,7 @@ void Namespace::AddMetadata(intptr_t token_pos, const Class& owner_class) {
                                           owner_class,
                                           token_pos));
   field.set_type(Type::Handle(Type::DynamicType()));
-  field.set_value(Array::empty_array());
+  field.SetStaticValue(Array::empty_array(), true);
   set_metadata_field(field);
   owner_class.AddField(field);
 }
@@ -10637,13 +10638,13 @@ RawObject* Namespace::GetMetadata() const {
     return Object::empty_array().raw();
   }
   Object& metadata = Object::Handle();
-  metadata = field.value();
-  if (field.value() == Object::empty_array().raw()) {
+  metadata = field.StaticValue();
+  if (field.StaticValue() == Object::empty_array().raw()) {
     metadata = Parser::ParseMetadata(Class::Handle(field.owner()),
                                      field.token_pos());
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
-      field.set_value(Array::Cast(metadata));
+      field.SetStaticValue(Array::Cast(metadata), true);
     }
   }
   return metadata.raw();
@@ -10651,12 +10652,9 @@ RawObject* Namespace::GetMetadata() const {
 
 
 const char* Namespace::ToCString() const {
-  const char* kFormat = "Namespace for library '%s'";
   const Library& lib = Library::Handle(library());
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, lib.ToCString()) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, lib.ToCString());
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "Namespace for library '%s'", lib.ToCString());
 }
 
 
@@ -11034,6 +11032,7 @@ void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
         jsarr.AddValue64(imm);
         break;
       case ObjectPool::kExternalLabel:
+      case ObjectPool::kNativeEntry:
         imm = RawValueAt(i);
         jsarr.AddValueF("0x%" Px, imm);
         break;
@@ -11051,42 +11050,31 @@ static const char* DescribeExternalLabel(uword addr) {
     return stub_name;
   }
 
-  RuntimeFunctionId rt_id = RuntimeEntry::RuntimeFunctionIdFromAddress(addr);
-  if (rt_id != kNoRuntimeFunctionId) {
-    return "runtime entry";
-  }
-
-  if (addr == NativeEntry::LinkNativeCallLabel().address()) {
-    return "link native";
-  }
-
-  if (addr == reinterpret_cast<uword>(Symbols::PredefinedAddress())) {
-    return "predefined symbols";
-  }
-
   return "UNKNOWN";
 }
 
 
 void ObjectPool::DebugPrint() const {
-  ISL_Print("Object Pool: {\n");
+  THR_Print("Object Pool: {\n");
   for (intptr_t i = 0; i < Length(); i++) {
     intptr_t offset = OffsetFromIndex(i);
-    ISL_Print("  %" Pd " PP+0x%" Px ": ", i, offset);
+    THR_Print("  %" Pd " PP+0x%" Px ": ", i, offset);
     if (InfoAt(i) == kTaggedObject) {
       RawObject* obj = ObjectAt(i);
-      ISL_Print("0x%" Px " %s (obj)\n",
+      THR_Print("0x%" Px " %s (obj)\n",
           reinterpret_cast<uword>(obj),
           Object::Handle(obj).ToCString());
     } else if (InfoAt(i) == kExternalLabel) {
       uword addr = RawValueAt(i);
-      ISL_Print("0x%" Px " (external label: %s)\n",
+      THR_Print("0x%" Px " (external label: %s)\n",
                 addr, DescribeExternalLabel(addr));
+    } else if (InfoAt(i) == kNativeEntry) {
+      THR_Print("0x%" Px " (native entry)\n", RawValueAt(i));
     } else {
-      ISL_Print("0x%" Px " (raw)\n", RawValueAt(i));
+      THR_Print("0x%" Px " (raw)\n", RawValueAt(i));
     }
   }
-  ISL_Print("}\n");
+  THR_Print("}\n");
 }
 
 
@@ -11112,15 +11100,14 @@ void PcDescriptors::CopyData(GrowableArray<uint8_t>* delta_encoded_data) {
 RawPcDescriptors* PcDescriptors::New(GrowableArray<uint8_t>* data) {
   ASSERT(Object::pc_descriptors_class() != Class::null());
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   PcDescriptors& result = PcDescriptors::Handle(thread->zone());
   {
     uword size = PcDescriptors::InstanceSize(data->length());
     RawObject* raw = Object::Allocate(PcDescriptors::kClassId,
                                       size,
                                       Heap::kOld);
-    INC_STAT(isolate, total_code_size, size);
-    INC_STAT(isolate, pc_desc_size, size);
+    INC_STAT(thread, total_code_size, size);
+    INC_STAT(thread, pc_desc_size, size);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(data->length());
@@ -11133,15 +11120,14 @@ RawPcDescriptors* PcDescriptors::New(GrowableArray<uint8_t>* data) {
 RawPcDescriptors* PcDescriptors::New(intptr_t length) {
   ASSERT(Object::pc_descriptors_class() != Class::null());
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   PcDescriptors& result = PcDescriptors::Handle(thread->zone());
   {
     uword size = PcDescriptors::InstanceSize(length);
     RawObject* raw = Object::Allocate(PcDescriptors::kClassId,
                                       size,
                                       Heap::kOld);
-    INC_STAT(isolate, total_code_size, size);
-    INC_STAT(isolate, pc_desc_size, size);
+    INC_STAT(thread, total_code_size, size);
+    INC_STAT(thread, pc_desc_size, size);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(length);
@@ -11170,27 +11156,26 @@ void PcDescriptors::PrintHeaderString() {
   const int addr_width = (kBitsPerWord / 4) + 2;
   // "*" in a printf format specifier tells it to read the field width from
   // the printf argument list.
-  ISL_Print("%-*s\tkind    \tdeopt-id\ttok-ix\ttry-ix\n",
+  THR_Print("%-*s\tkind    \tdeopt-id\ttok-ix\ttry-ix\n",
             addr_width, "pc");
 }
 
 
 const char* PcDescriptors::ToCString() const {
+  // "*" in a printf format specifier tells it to read the field width from
+  // the printf argument list.
+#define FORMAT "%#-*" Px "\t%s\t%" Pd "\t\t%" Pd "\t%" Pd "\n"
   if (Length() == 0) {
     return "empty PcDescriptors\n";
   }
   // 4 bits per hex digit.
   const int addr_width = kBitsPerWord / 4;
-  // "*" in a printf format specifier tells it to read the field width from
-  // the printf argument list.
-  const char* kFormat =
-      "%#-*" Px "\t%s\t%" Pd "\t\t%" Pd "\t%" Pd "\n";
   // First compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
   {
     Iterator iter(*this, RawPcDescriptors::kAnyKind);
     while (iter.MoveNext()) {
-      len += OS::SNPrint(NULL, 0, kFormat, addr_width,
+      len += OS::SNPrint(NULL, 0, FORMAT, addr_width,
                          iter.PcOffset(),
                          KindAsStr(iter.Kind()),
                          iter.DeoptId(),
@@ -11204,7 +11189,7 @@ const char* PcDescriptors::ToCString() const {
   intptr_t index = 0;
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
-    index += OS::SNPrint((buffer + index), (len - index), kFormat, addr_width,
+    index += OS::SNPrint((buffer + index), (len - index), FORMAT, addr_width,
                          iter.PcOffset(),
                          KindAsStr(iter.Kind()),
                          iter.DeoptId(),
@@ -11212,6 +11197,7 @@ const char* PcDescriptors::ToCString() const {
                          iter.TryIndex());
   }
   return buffer;
+#undef FORMAT
 }
 
 
@@ -11382,11 +11368,11 @@ RawStackmap* Stackmap::New(intptr_t length,
 
 
 const char* Stackmap::ToCString() const {
+#define FORMAT "%#x: "
   if (IsNull()) {
     return "{null}";
   } else {
-    const char* kFormat = "%#" Px ": ";
-    intptr_t fixed_length = OS::SNPrint(NULL, 0, kFormat, PcOffset()) + 1;
+    intptr_t fixed_length = OS::SNPrint(NULL, 0, FORMAT, PcOffset()) + 1;
     Thread* thread = Thread::Current();
     // Guard against integer overflow in the computation of alloc_size.
     //
@@ -11397,13 +11383,14 @@ const char* Stackmap::ToCString() const {
     }
     intptr_t alloc_size = fixed_length + Length();
     char* chars = thread->zone()->Alloc<char>(alloc_size);
-    intptr_t index = OS::SNPrint(chars, alloc_size, kFormat, PcOffset());
+    intptr_t index = OS::SNPrint(chars, alloc_size, FORMAT, PcOffset());
     for (intptr_t i = 0; i < Length(); i++) {
       chars[index++] = IsObject(i) ? '1' : '0';
     }
     chars[index] = '\0';
     return chars;
   }
+#undef FORMAT
 }
 
 
@@ -11591,8 +11578,8 @@ RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
     RawObject* raw = Object::Allocate(LocalVarDescriptors::kClassId,
                                       size,
                                       Heap::kOld);
-    INC_STAT(Isolate::Current(), total_code_size, size);
-    INC_STAT(Isolate::Current(), vardesc_size, size);
+    INC_STAT(Thread::Current(), total_code_size, size);
+    INC_STAT(Thread::Current(), vardesc_size, size);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(&result.raw_ptr()->num_entries_, num_variables);
@@ -11734,6 +11721,8 @@ RawExceptionHandlers* ExceptionHandlers::New(const Array& handled_types_data) {
 
 
 const char* ExceptionHandlers::ToCString() const {
+#define FORMAT1 "%" Pd " => %#x  (%" Pd " types) (outer %d)\n"
+#define FORMAT2 "  %d. %s\n"
   if (num_entries() == 0) {
     return "empty ExceptionHandlers\n";
   }
@@ -11741,16 +11730,13 @@ const char* ExceptionHandlers::ToCString() const {
   Type& type = Type::Handle();
   RawExceptionHandlers::HandlerInfo info;
   // First compute the buffer size required.
-  const char* kFormat = "%" Pd " => %#" Px "  (%" Pd
-                        " types) (outer %" Pd ")\n";
-  const char* kFormat2 = "  %d. %s\n";
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < num_entries(); i++) {
     GetHandlerInfo(i, &info);
     handled_types = GetHandledTypes(i);
     const intptr_t num_types =
         handled_types.IsNull() ? 0 : handled_types.Length();
-    len += OS::SNPrint(NULL, 0, kFormat,
+    len += OS::SNPrint(NULL, 0, FORMAT1,
                        i,
                        info.handler_pc_offset,
                        num_types,
@@ -11758,7 +11744,7 @@ const char* ExceptionHandlers::ToCString() const {
     for (int k = 0; k < num_types; k++) {
       type ^= handled_types.At(k);
       ASSERT(!type.IsNull());
-      len += OS::SNPrint(NULL, 0, kFormat2, k, type.ToCString());
+      len += OS::SNPrint(NULL, 0, FORMAT2, k, type.ToCString());
     }
   }
   // Allocate the buffer.
@@ -11772,7 +11758,7 @@ const char* ExceptionHandlers::ToCString() const {
         handled_types.IsNull() ? 0 : handled_types.Length();
     num_chars += OS::SNPrint((buffer + num_chars),
                              (len - num_chars),
-                             kFormat,
+                             FORMAT1,
                              i,
                              info.handler_pc_offset,
                              num_types,
@@ -11781,10 +11767,12 @@ const char* ExceptionHandlers::ToCString() const {
       type ^= handled_types.At(k);
       num_chars += OS::SNPrint((buffer + num_chars),
                                (len - num_chars),
-                               kFormat2, k, type.ToCString());
+                               FORMAT2, k, type.ToCString());
     }
   }
   return buffer;
+#undef FORMAT1
+#undef FORMAT2
 }
 
 
@@ -11861,13 +11849,14 @@ void DeoptInfo::Unpack(const Array& table,
 
 const char* DeoptInfo::ToCString(const Array& deopt_table,
                                  const TypedData& packed) {
+#define FORMAT "[%s]"
   GrowableArray<DeoptInstr*> deopt_instrs;
   Unpack(deopt_table, packed, &deopt_instrs);
 
   // Compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < deopt_instrs.length(); i++) {
-    len += OS::SNPrint(NULL, 0, "[%s]", deopt_instrs[i]->ToCString());
+    len += OS::SNPrint(NULL, 0, FORMAT, deopt_instrs[i]->ToCString());
   }
 
   // Allocate the buffer.
@@ -11878,11 +11867,12 @@ const char* DeoptInfo::ToCString(const Array& deopt_table,
   for (intptr_t i = 0; i < deopt_instrs.length(); i++) {
     index += OS::SNPrint((buffer + index),
                          (len - index),
-                         "[%s]",
+                         FORMAT,
                          deopt_instrs[i]->ToCString());
   }
 
   return buffer;
+#undef FORMAT
 }
 
 
@@ -11901,16 +11891,12 @@ bool DeoptInfo::VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
 
 
 const char* ICData::ToCString() const {
-  const char* kFormat = "ICData target:'%s' num-args: %" Pd
-                        " num-checks: %" Pd "";
   const String& name = String::Handle(target_name());
   const intptr_t num_args = NumArgsTested();
   const intptr_t num_checks = NumberOfChecks();
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString(),
-      num_args, num_checks) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, name.ToCString(), num_args, num_checks);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "ICData target:'%s' num-args: %" Pd " num-checks: %" Pd "",
+      name.ToCString(), num_args, num_checks);
 }
 
 
@@ -12733,7 +12719,7 @@ void Code::set_is_alive(bool value) const {
 void Code::set_stackmaps(const Array& maps) const {
   ASSERT(maps.IsOld());
   StorePointer(&raw_ptr()->stackmaps_, maps.raw());
-  INC_STAT(Isolate::Current(),
+  INC_STAT(Thread::Current(),
            total_code_size,
            maps.IsNull() ? 0 : maps.Length() * sizeof(uword));
 }
@@ -13037,8 +13023,8 @@ RawCode* Code::FinalizeCode(const char* name,
   Code& code = Code::ZoneHandle(Code::New(pointer_offset_count));
   Instructions& instrs =
       Instructions::ZoneHandle(Instructions::New(assembler->CodeSize()));
-  INC_STAT(isolate, total_instr_size, assembler->CodeSize());
-  INC_STAT(isolate, total_code_size, assembler->CodeSize());
+  INC_STAT(Thread::Current(), total_instr_size, assembler->CodeSize());
+  INC_STAT(Thread::Current(), total_code_size, assembler->CodeSize());
 
   // Copy the instructions into the instruction area and apply all fixups.
   // Embedded pointers are still in handles at this point.
@@ -13078,7 +13064,7 @@ RawCode* Code::FinalizeCode(const char* name,
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
-    INC_STAT(isolate,
+    INC_STAT(Thread::Current(),
              total_code_size, object_pool.Length() * sizeof(uintptr_t));
     instrs.set_object_pool(object_pool.raw());
 
@@ -13099,7 +13085,7 @@ RawCode* Code::FinalizeCode(const char* name,
     // pushed onto the stack.
     code.SetPrologueOffset(assembler->CodeSize());
   }
-  INC_STAT(isolate,
+  INC_STAT(Thread::Current(),
            total_code_size, code.comments().comments_.Length());
   return code.raw();
 }
@@ -13478,8 +13464,8 @@ void Code::GetInlinedFunctionsAt(
 
 
 void Code::DumpInlinedIntervals() const {
-  LogBlock lb(Isolate::Current());
-  ISL_Print("Inlined intervals:\n");
+  LogBlock lb;
+  THR_Print("Inlined intervals:\n");
   const Array& intervals = Array::Handle(GetInlinedIntervals());
   if (intervals.IsNull() || (intervals.Length() == 0)) return;
   Smi& start = Smi::Handle();
@@ -13491,38 +13477,38 @@ void Code::DumpInlinedIntervals() const {
     ASSERT(!start.IsNull());
     if (start.IsNull()) continue;
     inlining_id ^= intervals.At(i + Code::kInlIntInliningId);
-    ISL_Print("  %" Px " iid: %" Pd " ; ", start.Value(), inlining_id.Value());
+    THR_Print("  %" Px " iid: %" Pd " ; ", start.Value(), inlining_id.Value());
     inlined_functions.Clear();
 
-    ISL_Print("inlined: ");
+    THR_Print("inlined: ");
     GetInlinedFunctionsAt(start.Value(), &inlined_functions);
 
     for (intptr_t j = 0; j < inlined_functions.length(); j++) {
       const char* name = inlined_functions[j]->ToQualifiedCString();
-      ISL_Print("  %s <-", name);
+      THR_Print("  %s <-", name);
     }
     if (inlined_functions[inlined_functions.length() - 1]->raw() !=
            inliner.raw()) {
-      ISL_Print(" (ERROR, missing inliner)\n");
+      THR_Print(" (ERROR, missing inliner)\n");
     } else {
-      ISL_Print("\n");
+      THR_Print("\n");
     }
   }
-  ISL_Print("Inlined ids:\n");
+  THR_Print("Inlined ids:\n");
   const Array& id_map = Array::Handle(GetInlinedIdToFunction());
   Function& function = Function::Handle();
   for (intptr_t i = 0; i < id_map.Length(); i++) {
     function ^= id_map.At(i);
     if (!function.IsNull()) {
-      ISL_Print("  %" Pd ": %s\n", i, function.ToQualifiedCString());
+      THR_Print("  %" Pd ": %s\n", i, function.ToQualifiedCString());
     }
   }
-  ISL_Print("Caller Inlining Ids:\n");
+  THR_Print("Caller Inlining Ids:\n");
   const Array& caller_map = Array::Handle(GetInlinedCallerIdMap());
   Smi& smi = Smi::Handle();
   for (intptr_t i = 0; i < caller_map.Length(); i++) {
     smi ^= caller_map.At(i);
-    ISL_Print("  iid: %" Pd " caller iid: %" Pd "\n", i, smi.Value());
+    THR_Print("  iid: %" Pd " caller iid: %" Pd "\n", i, smi.Value());
   }
 }
 
@@ -13569,7 +13555,7 @@ const char* Context::ToCString() const {
 
 static void IndentN(int count) {
   for (int i = 0; i < count; i++) {
-    ISL_Print(" ");
+    THR_Print(" ");
   }
 }
 
@@ -13577,17 +13563,17 @@ static void IndentN(int count) {
 void Context::Dump(int indent) const {
   if (IsNull()) {
     IndentN(indent);
-    ISL_Print("Context@null\n");
+    THR_Print("Context@null\n");
     return;
   }
 
   IndentN(indent);
-  ISL_Print("Context@%p vars(%" Pd ") {\n", this->raw(), num_variables());
+  THR_Print("Context@%p vars(%" Pd ") {\n", this->raw(), num_variables());
   Object& obj = Object::Handle();
   for (intptr_t i = 0; i < num_variables(); i++) {
     IndentN(indent + 2);
     obj = At(i);
-    ISL_Print("[%" Pd "] = %s\n", i, obj.ToCString());
+    THR_Print("[%" Pd "] = %s\n", i, obj.ToCString());
   }
 
   const Context& parent_ctx = Context::Handle(parent());
@@ -13595,7 +13581,7 @@ void Context::Dump(int indent) const {
     parent_ctx.Dump(indent + 2);
   }
   IndentN(indent);
-  ISL_Print("}\n");
+  THR_Print("}\n");
 }
 
 
@@ -13743,8 +13729,6 @@ void ContextScope::SetContextLevelAt(intptr_t scope_index,
 
 
 const char* ContextScope::ToCString() const {
-  const char* format =
-      "%s\nvar %s  token-pos %" Pd "  ctx lvl %" Pd "  index %" Pd "";
   const char* prev_cstr = "ContextScope:";
   String& name = String::Handle();
   for (int i = 0; i < num_variables(); i++) {
@@ -13753,10 +13737,9 @@ const char* ContextScope::ToCString() const {
     intptr_t pos = TokenIndexAt(i);
     intptr_t idx = ContextIndexAt(i);
     intptr_t lvl = ContextLevelAt(i);
-    intptr_t len =
-        OS::SNPrint(NULL, 0, format, prev_cstr, cname, pos, lvl, idx) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, prev_cstr, cname, pos, lvl, idx);
+    char* chars = OS::SCreate(Thread::Current()->zone(),
+        "%s\nvar %s  token-pos %" Pd "  ctx lvl %" Pd "  index %" Pd "",
+        prev_cstr, cname, pos, lvl, idx);
     prev_cstr = chars;
   }
   return prev_cstr;
@@ -13877,7 +13860,7 @@ void MegamorphicCache::Insert(const Smi& class_id,
 
 
 const char* MegamorphicCache::ToCString() const {
-  return "";
+  return "MegamorphicCache";
 }
 
 
@@ -14238,11 +14221,8 @@ const char* UnhandledException::ToErrorCString() const {
   if (!strtmp.IsError()) {
     stack_str = strtmp.ToCString();
   }
-  const char* format = "Unhandled exception:\n%s\n%s";
-  intptr_t len = OS::SNPrint(NULL, 0, format, exc_str, stack_str);
-  char* chars = thread->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, exc_str, stack_str);
-  return chars;
+  return OS::SCreate(thread->zone(),
+      "Unhandled exception:\n%s\n%s", exc_str, stack_str);
 }
 
 
@@ -14403,11 +14383,8 @@ bool Instance::CheckAndCanonicalizeFields(const char** error_str) const {
           this->SetFieldAtOffset(field_offset, obj);
         } else {
           ASSERT(error_str != NULL);
-          const char* kFormat = "field: %s\n";
-          const intptr_t len =
-              OS::SNPrint(NULL, 0, kFormat, obj.ToCString()) + 1;
-          char* chars = Thread::Current()->zone()->Alloc<char>(len);
-          OS::SNPrint(chars, len, kFormat, obj.ToCString());
+          char* chars = OS::SCreate(Thread::Current()->zone(),
+              "field: %s\n", obj.ToCString());
           *error_str = chars;
           return false;
         }
@@ -14551,7 +14528,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     other_type_arguments = other.arguments();
   }
   return cls.IsSubtypeOf(type_arguments, other_class, other_type_arguments,
-                         bound_error);
+                         bound_error, Heap::kOld);
 }
 
 
@@ -14731,7 +14708,6 @@ const char* Instance::ToCString() const {
     if (IsClosure()) {
       return Closure::ToCString(*this);
     }
-    const char* kFormat = "Instance of '%s'";
     const Class& cls = Class::Handle(clazz());
     TypeArguments& type_arguments = TypeArguments::Handle();
     const intptr_t num_type_arguments = cls.NumTypeArguments();
@@ -14741,11 +14717,8 @@ const char* Instance::ToCString() const {
     const Type& type =
         Type::Handle(Type::New(cls, type_arguments, Scanner::kNoSourcePos));
     const String& type_name = String::Handle(type.UserVisibleName());
-    // Calculate the size of the string.
-    intptr_t len = OS::SNPrint(NULL, 0, kFormat, type_name.ToCString()) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, kFormat, type_name.ToCString());
-    return chars;
+    return OS::SCreate(Thread::Current()->zone(),
+        "Instance of '%s'", type_name.ToCString());
   }
 }
 
@@ -15212,7 +15185,8 @@ bool AbstractType::IsFunctionType() const {
 
 bool AbstractType::TypeTest(TypeTestKind test_kind,
                             const AbstractType& other,
-                            Error* bound_error) const {
+                            Error* bound_error,
+                            Heap::Space space) const {
   ASSERT(IsResolved());
   ASSERT(other.IsResolved());
   if (IsMalformed() || other.IsMalformed()) {
@@ -15281,7 +15255,8 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
                       TypeArguments::Handle(arguments()),
                       Class::Handle(other.type_class()),
                       TypeArguments::Handle(other.arguments()),
-                      bound_error);
+                      bound_error,
+                      space);
 }
 
 
@@ -15915,29 +15890,18 @@ const char* Type::ToCString() const {
     class_name = UnresolvedClass::Handle(unresolved_class()).ToCString();
   }
   if (type_arguments.IsNull()) {
-    const char* format = "%sType: class '%s'";
-    const intptr_t len =
-        OS::SNPrint(NULL, 0, format, unresolved, class_name) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, unresolved, class_name);
-    return chars;
+    return OS::SCreate(Thread::Current()->zone(),
+        "%sType: class '%s'", unresolved, class_name);
   } else if (IsResolved() && IsFinalized() && IsRecursive()) {
-    const char* format = "Type: (@%" Px " H%" Px ") class '%s', args:[%s]";
     const intptr_t hash = Hash();
     const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
-    const intptr_t len =
-        OS::SNPrint(NULL, 0, format, raw(), hash, class_name, args_cstr) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, raw(), hash, class_name, args_cstr);
-    return chars;
+    return OS::SCreate(Thread::Current()->zone(),
+        "Type: (@%p H%" Px ") class '%s', args:[%s]",
+        raw(), hash, class_name, args_cstr);
   } else {
-    const char* format = "%sType: class '%s', args:[%s]";
     const char* args_cstr = TypeArguments::Handle(arguments()).ToCString();
-    const intptr_t len =
-        OS::SNPrint(NULL, 0, format, unresolved, class_name, args_cstr) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, unresolved, class_name, args_cstr);
-    return chars;
+    return OS::SCreate(Thread::Current()->zone(),
+        "%sType: class '%s', args:[%s]", unresolved, class_name, args_cstr);
   }
 }
 
@@ -16119,19 +16083,12 @@ const char* TypeRef::ToCString() const {
       type_class()).Name()).ToCString();
   AbstractType& ref_type = AbstractType::Handle(type());
   if (ref_type.IsFinalized()) {
-    const char* format = "TypeRef: %s<...> (@%" Px " H%" Px ")";
     const intptr_t hash = ref_type.Hash();
-    const intptr_t len =
-        OS::SNPrint(NULL, 0, format, type_cstr, ref_type.raw(), hash) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, type_cstr, ref_type.raw(), hash);
-    return chars;
+    return OS::SCreate(Thread::Current()->zone(),
+        "TypeRef: %s<...> (@%p H%" Px ")", type_cstr, ref_type.raw(), hash);
   } else {
-    const char* format = "TypeRef: %s<...>";
-    const intptr_t len = OS::SNPrint(NULL, 0, format, type_cstr) + 1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    OS::SNPrint(chars, len, format, type_cstr);
-    return chars;
+    return OS::SCreate(Thread::Current()->zone(),
+        "TypeRef: %s<...>", type_cstr);
   }
 }
 
@@ -17121,12 +17078,7 @@ int Smi::CompareWith(const Integer& other) const {
 
 
 const char* Smi::ToCString() const {
-  const char* kFormat = "%ld";
-  // Calculate the size of the string.
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, Value()) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, Value());
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(), "%" Pd "", Value());
 }
 
 
@@ -17252,12 +17204,7 @@ int Mint::CompareWith(const Integer& other) const {
 
 
 const char* Mint::ToCString() const {
-  const char* kFormat = "%lld";
-  // Calculate the size of the string.
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, value()) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, value());
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(), "%" Pd64 "", value());
 }
 
 
@@ -20105,11 +20052,8 @@ bool Array::CheckAndCanonicalizeFields(const char** error_str) const {
         this->SetAt(i, obj);
       } else {
         ASSERT(error_str != NULL);
-        const char* kFormat = "element at index %" Pd ": %s\n";
-        const intptr_t len =
-            OS::SNPrint(NULL, 0, kFormat, i, obj.ToCString()) + 1;
-        char* chars = Thread::Current()->zone()->Alloc<char>(len);
-        OS::SNPrint(chars, len, kFormat, i, obj.ToCString());
+        char* chars = OS::SCreate(Thread::Current()->zone(),
+            "element at index %" Pd ": %s\n", i, obj.ToCString());
         *error_str = chars;
         return false;
       }
@@ -20233,11 +20177,8 @@ const char* GrowableObjectArray::ToCString() const {
   if (IsNull()) {
     return "_GrowableList NULL";
   }
-  const char* format = "Instance(length:%" Pd ") of '_GrowableList'";
-  intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, Length());
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "Instance(length:%" Pd ") of '_GrowableList'", Length());
 }
 
 
@@ -20459,16 +20400,12 @@ float Float32x4::w() const {
 
 
 const char* Float32x4::ToCString() const {
-  const char* kFormat = "[%f, %f, %f, %f]";
   float _x = x();
   float _y = y();
   float _z = z();
   float _w = w();
-  // Calculate the size of the string.
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, _x, _y, _z, _w) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, _x, _y, _z, _w);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "[%f, %f, %f, %f]", _x, _y, _z, _w);
 }
 
 
@@ -20568,16 +20505,12 @@ void Int32x4::set_value(simd128_value_t value) const {
 
 
 const char* Int32x4::ToCString() const {
-  const char* kFormat = "[%08x, %08x, %08x, %08x]";
   int32_t _x = x();
   int32_t _y = y();
   int32_t _z = z();
   int32_t _w = w();
-  // Calculate the size of the string.
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, _x, _y, _z, _w) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, _x, _y, _z, _w);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "[%08x, %08x, %08x, %08x]", _x, _y, _z, _w);
 }
 
 
@@ -20654,14 +20587,9 @@ void Float64x2::set_value(simd128_value_t value) const {
 
 
 const char* Float64x2::ToCString() const {
-  const char* kFormat = "[%f, %f]";
   double _x = x();
   double _y = y();
-  // Calculate the size of the string.
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, _x, _y) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat, _x, _y);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(), "[%f, %f]", _x, _y);
 }
 
 
@@ -20931,11 +20859,8 @@ const char* Closure::ToCString(const Instance& closure) {
   const char* fun_sig = String::Handle(fun.UserVisibleSignature()).ToCString();
   const char* from = is_implicit_closure ? " from " : "";
   const char* fun_desc = is_implicit_closure ? fun.ToCString() : "";
-  const char* format = "Closure: %s%s%s";
-  intptr_t len = OS::SNPrint(NULL, 0, format, fun_sig, from, fun_desc) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, fun_sig, from, fun_desc);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "Closure: %s%s%s", fun_sig, from, fun_desc);
 }
 
 
@@ -21054,9 +20979,6 @@ static intptr_t PrintOneStacktrace(Zone* zone,
                                    const Function& function,
                                    const Code& code,
                                    intptr_t frame_index) {
-  const char* kFormatWithCol = "#%-6d %s (%s:%d:%d)\n";
-  const char* kFormatNoCol = "#%-6d %s (%s:%d)\n";
-  const char* kFormatNoLine = "#%-6d %s (%s)\n";
   const intptr_t token_pos = code.GetTokenIndexOfPC(pc);
   const Script& script = Script::Handle(zone, function.script());
   const String& function_name =
@@ -21071,36 +20993,22 @@ static intptr_t PrintOneStacktrace(Zone* zone,
       script.GetTokenLocation(token_pos, &line, NULL);
     }
   }
-  intptr_t len = 0;
   char* chars = NULL;
   if (column >= 0) {
-    len = OS::SNPrint(NULL, 0, kFormatWithCol,
-                      frame_index, function_name.ToCString(),
-                      url.ToCString(), line, column);
-    chars = zone->Alloc<char>(len + 1);
-    OS::SNPrint(chars, (len + 1), kFormatWithCol,
-                frame_index,
-                function_name.ToCString(),
-                url.ToCString(), line, column);
+    chars = OS::SCreate(zone,
+        "#%-6" Pd " %s (%s:%" Pd ":%" Pd ")\n",
+        frame_index, function_name.ToCString(), url.ToCString(), line, column);
   } else if (line >= 0) {
-    len = OS::SNPrint(NULL, 0, kFormatNoCol,
-                      frame_index, function_name.ToCString(),
-                      url.ToCString(), line);
-    chars = zone->Alloc<char>(len + 1);
-    OS::SNPrint(chars, (len + 1), kFormatNoCol,
-                frame_index, function_name.ToCString(),
-                url.ToCString(), line);
+    chars = OS::SCreate(zone,
+        "#%-6" Pd " %s (%s:%" Pd ")\n",
+        frame_index, function_name.ToCString(), url.ToCString(), line);
   } else {
-    len = OS::SNPrint(NULL, 0, kFormatNoLine,
-                      frame_index, function_name.ToCString(),
-                      url.ToCString());
-    chars = zone->Alloc<char>(len + 1);
-    OS::SNPrint(chars, (len + 1), kFormatNoLine,
-                frame_index, function_name.ToCString(),
-                url.ToCString());
+    chars = OS::SCreate(zone,
+        "#%-6" Pd " %s (%s)\n",
+        frame_index, function_name.ToCString(), url.ToCString());
   }
   frame_strings->Add(chars);
-  return len;
+  return strlen(chars);
 }
 
 
@@ -21267,11 +21175,8 @@ bool JSRegExp::CanonicalizeEquals(const Instance& other) const {
 
 const char* JSRegExp::ToCString() const {
   const String& str = String::Handle(pattern());
-  const char* format = "JSRegExp: pattern=%s flags=%s";
-  intptr_t len = OS::SNPrint(NULL, 0, format, str.ToCString(), Flags());
-  char* chars = Thread::Current()->zone()->Alloc<char>(len + 1);
-  OS::SNPrint(chars, (len + 1), format, str.ToCString(), Flags());
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "JSRegExp: pattern=%s flags=%s", str.ToCString(), Flags());
 }
 
 

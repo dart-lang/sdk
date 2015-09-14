@@ -275,7 +275,9 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
         case Token::kSHL:
           return Integer::New(mint_value << shift_count, Heap::kNew, silent);
         case Token::kSHR:
-          return Integer::New(mint_value >> -shift_count, Heap::kNew, silent);
+          shift_count =
+              (-shift_count > Mint::kBits) ? Mint::kBits : -shift_count;
+          return Integer::New(mint_value >> shift_count, Heap::kNew, silent);
         default:
           UNIMPLEMENTED();
       }

@@ -652,7 +652,7 @@ class NativeBehavior {
   }
 
   void _overrideWithAnnotations(Element element, Compiler compiler) {
-    if (element.metadata.isEmpty) return;
+    if (element.implementation.metadata.isEmpty) return;
 
     DartType lookup(String name) {
       Element e = element.buildScope().lookup(name);
@@ -685,10 +685,8 @@ class NativeBehavior {
   static _collect(Element element, Compiler compiler, Element annotationClass,
                   lookup(str)) {
     var types = null;
-    for (Link<MetadataAnnotation> link = element.metadata;
-         !link.isEmpty;
-         link = link.tail) {
-      MetadataAnnotation annotation = link.head.ensureResolved(compiler);
+    for (MetadataAnnotation annotation in element.implementation.metadata) {
+      annotation.ensureResolved(compiler);
       ConstantValue value =
           compiler.constants.getConstantValue(annotation.constant);
       if (!value.isConstructedObject) continue;

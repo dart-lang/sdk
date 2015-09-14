@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/util/uri_extras.dart'
     show relativize;
 import 'memory_compiler.dart';
@@ -49,7 +50,7 @@ void check(Map<String, List<String>> testFiles,
           entryPoint: Uri.parse('memory:$testFileName'),
           memorySourceFiles: {testFileName: testSources[testName]},
           diagnosticHandler: collector,
-          options: ['--analyze-only']..addAll(options),
+          options: [Flags.analyzeOnly]..addAll(options),
           showDiagnostics: verbose,
           cachedCompiler: cachedCompiler);
       var compiler = result.compiler;
