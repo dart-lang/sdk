@@ -745,6 +745,8 @@ class CacheEntryTest extends AbstractCacheTest {
     expect(entry.getValue(result1), 111);
     expect(entry.getValue(result2), 2222);
     expect(entry.getValue(result3), -3);
+    expect(entry.getResultData(result1).dependentResults,
+        unorderedEquals([new TargetedResult(target, result2)]));
     expect(entry.getResultData(result2).dependedOnResults,
         unorderedEquals([new TargetedResult(target, result1)]));
   }

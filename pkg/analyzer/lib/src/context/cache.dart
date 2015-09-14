@@ -490,9 +490,9 @@ class CacheEntry {
    */
   void setValueIncremental(ResultDescriptor descriptor, dynamic value) {
     ResultData data = getResultData(descriptor);
-    List<TargetedResult> dependedOn = data.dependedOnResults;
-    _invalidate(descriptor, null);
-    setValue(descriptor, value, dependedOn);
+    _invalidateDependentResults(data, null);
+    data.state = CacheState.VALID;
+    data.value = value;
   }
 
   @override
@@ -540,13 +540,7 @@ class CacheEntry {
       }
     }
     // Invalidate results that depend on this result.
-    List<TargetedResult> dependentResults = thisData.dependentResults.toList();
-    for (TargetedResult dependentResult in dependentResults) {
-      CacheEntry entry = _partition.get(dependentResult.target);
-      if (entry != null) {
-        entry._invalidate(dependentResult.result, delta);
-      }
-    }
+    _invalidateDependentResults(thisData, delta);
     // If empty, remove the entry altogether.
     if (_resultMap.isEmpty) {
       _partition._targetMap.remove(target);
@@ -564,6 +558,19 @@ class CacheEntry {
     List<ResultDescriptor> results = _resultMap.keys.toList();
     for (ResultDescriptor result in results) {
       _invalidate(result, null);
+    }
+  }
+
+  /**
+   * Invalidate results that depend on [thisData].
+   */
+  void _invalidateDependentResults(ResultData thisData, Delta delta) {
+    List<TargetedResult> dependentResults = thisData.dependentResults.toList();
+    for (TargetedResult dependentResult in dependentResults) {
+      CacheEntry entry = _partition.get(dependentResult.target);
+      if (entry != null) {
+        entry._invalidate(dependentResult.result, delta);
+      }
     }
   }
 
