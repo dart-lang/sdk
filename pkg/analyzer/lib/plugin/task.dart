@@ -33,6 +33,14 @@ final String DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID = Plugin.join(
 
 /**
  * The identifier of the extension point that allows plugins to register new
+ * analysis error results to compute for an HTML source. The object used as an
+ * extension must be a [ResultDescriptor].
+ */
+final String HTML_ERRORS_EXTENSION_POINT_ID = Plugin.join(
+    EnginePlugin.UNIQUE_IDENTIFIER, EnginePlugin.HTML_ERRORS_EXTENSION_POINT);
+
+/**
+ * The identifier of the extension point that allows plugins to register new
  * analysis tasks with the analysis engine. The object used as an extension must
  * be a [TaskDescriptor].
  */

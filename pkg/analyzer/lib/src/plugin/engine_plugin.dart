@@ -7,6 +7,7 @@ library analyzer.src.plugin.engine_plugin;
 import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show InternalAnalysisContext;
+import 'package:analyzer/src/generated/error.dart' show AnalysisError;
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/general.dart';
@@ -37,6 +38,12 @@ class EnginePlugin implements Plugin {
 
   /**
    * The simple identifier of the extension point that allows plugins to
+   * register new analysis error results to compute for an HTML source.
+   */
+  static const String HTML_ERRORS_EXTENSION_POINT = 'htmlErrors';
+
+  /**
+   * The simple identifier of the extension point that allows plugins to
    * register new analysis tasks with the analysis engine.
    */
   static const String TASK_EXTENSION_POINT = 'task';
@@ -64,6 +71,12 @@ class EnginePlugin implements Plugin {
    * results for a Dart library specific unit.
    */
   ExtensionPoint dartErrorsForUnitExtensionPoint;
+
+  /**
+   * The extension point that allows plugins to register new analysis error
+   * results for an HTML source.
+   */
+  ExtensionPoint htmlErrorsExtensionPoint;
 
   /**
    * The extension point that allows plugins to register new analysis tasks with
@@ -97,6 +110,12 @@ class EnginePlugin implements Plugin {
       dartErrorsForUnitExtensionPoint.extensions;
 
   /**
+   * Return a list containing all of the contributed analysis error result
+   * descriptors for HTML sources.
+   */
+  List<TaskDescriptor> get htmlErrors => htmlErrorsExtensionPoint.extensions;
+
+  /**
    * Return a list containing all of the task descriptors that were contributed.
    */
   List<TaskDescriptor> get taskDescriptors => taskExtensionPoint.extensions;
@@ -114,9 +133,14 @@ class EnginePlugin implements Plugin {
   @override
   void registerExtensionPoints(RegisterExtensionPoint registerExtensionPoint) {
     dartErrorsForSourceExtensionPoint = registerExtensionPoint(
-        DART_ERRORS_FOR_SOURCE_EXTENSION_POINT, _validateResultDescriptor);
+        DART_ERRORS_FOR_SOURCE_EXTENSION_POINT,
+        _validateAnalysisErrorListResultDescriptor);
     dartErrorsForUnitExtensionPoint = registerExtensionPoint(
-        DART_ERRORS_FOR_UNIT_EXTENSION_POINT, _validateResultDescriptor);
+        DART_ERRORS_FOR_UNIT_EXTENSION_POINT,
+        _validateAnalysisErrorListResultDescriptor);
+    htmlErrorsExtensionPoint = registerExtensionPoint(
+        HTML_ERRORS_EXTENSION_POINT,
+        _validateAnalysisErrorListResultDescriptor);
     taskExtensionPoint =
         registerExtensionPoint(TASK_EXTENSION_POINT, _validateTaskExtension);
     workManagerFactoryExtensionPoint = registerExtensionPoint(
@@ -130,6 +154,7 @@ class EnginePlugin implements Plugin {
     _registerWorkManagerFactoryExtensions(registerExtension);
     _registerDartErrorsForSource(registerExtension);
     _registerDartErrorsForUnit(registerExtension);
+    _registerHtmlErrors(registerExtension);
   }
 
   void _registerDartErrorsForSource(RegisterExtension registerExtension) {
@@ -143,6 +168,11 @@ class EnginePlugin implements Plugin {
   void _registerDartErrorsForUnit(RegisterExtension registerExtension) {
     String id = DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID;
     registerExtension(id, LIBRARY_UNIT_ERRORS);
+  }
+
+  void _registerHtmlErrors(RegisterExtension registerExtension) {
+    String id = HTML_ERRORS_EXTENSION_POINT_ID;
+    registerExtension(id, HTML_DOCUMENT_ERRORS);
   }
 
   void _registerTaskExtensions(RegisterExtension registerExtension) {
@@ -206,12 +236,13 @@ class EnginePlugin implements Plugin {
 
   /**
    * Validate the given extension by throwing an [ExtensionError] if it is not
-   * a [ResultDescriptor].
+   * a [ListResultDescriptor] of [AnalysisError]s.
    */
-  void _validateResultDescriptor(Object extension) {
-    if (extension is! ResultDescriptor) {
+  void _validateAnalysisErrorListResultDescriptor(Object extension) {
+    if (extension is! ListResultDescriptor<AnalysisError>) {
       String id = taskExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError('Extensions to $id must be a ResultDescriptor');
+      throw new ExtensionError(
+          'Extensions to $id must be a ListResultDescriptor<AnalysisError>');
     }
   }
 

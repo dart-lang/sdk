@@ -6,9 +6,13 @@ library analyzer.src.task.html;
 
 import 'dart:collection';
 
+import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/task/dart.dart';
@@ -18,9 +22,6 @@ import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:source_span/source_span.dart';
-import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 
 /**
  * The Dart scripts that are embedded in an HTML file.
@@ -190,15 +191,15 @@ class DartScriptsTask extends SourceBasedAnalysisTask {
  */
 class HtmlErrorsTask extends SourceBasedAnalysisTask {
   /**
+   * The suffix to add to the names of contributed error results.
+   */
+  static const String INPUT_SUFFIX = '_input';
+
+  /**
    * The name of the input that is a list of errors from each of the embedded
    * Dart scripts.
    */
   static const String DART_ERRORS_INPUT = 'DART_ERRORS';
-
-  /**
-   * The name of the [HTML_DOCUMENT_ERRORS] input.
-   */
-  static const String DOCUMENT_ERRORS_INPUT = 'DOCUMENT_ERRORS';
 
   /**
    * The task descriptor describing this kind of task.
@@ -214,24 +215,26 @@ class HtmlErrorsTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
+    EnginePlugin enginePlugin = AnalysisEngine.instance.enginePlugin;
     //
     // Prepare inputs.
     //
     List<List<AnalysisError>> dartErrors = getRequiredInput(DART_ERRORS_INPUT);
-    List<AnalysisError> documentErrors =
-        getRequiredInput(DOCUMENT_ERRORS_INPUT);
+    List<List<AnalysisError>> htmlErrors = <List<AnalysisError>>[];
+    for (ResultDescriptor result in enginePlugin.htmlErrors) {
+      String inputName = result.name + INPUT_SUFFIX;
+      htmlErrors.add(getRequiredInput(inputName));
+    }
     //
     // Compute the error list.
     //
-    List<AnalysisError> errors = <AnalysisError>[];
-    errors.addAll(documentErrors);
-    for (List<AnalysisError> scriptErrors in dartErrors) {
-      errors.addAll(scriptErrors);
-    }
+    List<List<AnalysisError>> errorLists = <List<AnalysisError>>[];
+    errorLists.addAll(dartErrors);
+    errorLists.addAll(htmlErrors);
     //
     // Record outputs.
     //
-    outputs[HTML_ERRORS] = removeDuplicateErrors(errors);
+    outputs[HTML_ERRORS] = AnalysisError.mergeLists(errorLists);
   }
 
   /**
@@ -240,10 +243,15 @@ class HtmlErrorsTask extends SourceBasedAnalysisTask {
    * given [target].
    */
   static Map<String, TaskInput> buildInputs(Source target) {
-    return <String, TaskInput>{
-      DOCUMENT_ERRORS_INPUT: HTML_DOCUMENT_ERRORS.of(target),
+    EnginePlugin enginePlugin = AnalysisEngine.instance.enginePlugin;
+    Map<String, TaskInput> inputs = <String, TaskInput>{
       DART_ERRORS_INPUT: DART_SCRIPTS.of(target).toListOf(DART_ERRORS)
     };
+    for (ResultDescriptor result in enginePlugin.htmlErrors) {
+      String inputName = result.name + INPUT_SUFFIX;
+      inputs[inputName] = result.of(target);
+    }
+    return inputs;
   }
 
   /**
