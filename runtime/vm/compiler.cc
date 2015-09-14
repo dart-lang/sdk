@@ -1339,6 +1339,8 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
                                   false,  // optimized
                                   Isolate::kNoDeoptId);
       initializer = parsed_function->function().raw();
+      Code::Handle(initializer.unoptimized_code()).set_var_descriptors(
+          Object::empty_var_descriptors());
     } else {
       initializer ^= field.PrecompiledInitializer();
     }
@@ -1406,6 +1408,8 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
                                 parsed_function,
                                 false,
                                 Isolate::kNoDeoptId);
+    Code::Handle(func.unoptimized_code()).set_var_descriptors(
+        Object::empty_var_descriptors());
 
     const Object& result = PassiveObject::Handle(
         DartEntry::InvokeFunction(func, Object::empty_array()));

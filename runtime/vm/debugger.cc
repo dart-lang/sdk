@@ -674,7 +674,6 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
       return ctx_;
     }
   }
-  UNREACHABLE();
   return Context::ZoneHandle(Context::null());
 }
 
