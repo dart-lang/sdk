@@ -1097,6 +1097,7 @@ class SsaBuilder extends ast.Visitor
       this.work = work,
       this.rti = backend.rti,
       this.elements = work.resolutionTree {
+    graph.element = work.element;
     localsHandler = new LocalsHandler(this, work.element, null);
     sourceElementStack.add(work.element);
     sourceInformationBuilder =

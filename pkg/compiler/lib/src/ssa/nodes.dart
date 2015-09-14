@@ -130,6 +130,7 @@ abstract class HInstructionVisitor extends HGraphVisitor {
 }
 
 class HGraph {
+  Element element;  // Used for debug printing.
   HBasicBlock entry;
   HBasicBlock exit;
   HThis thisInstruction;
@@ -137,15 +138,13 @@ class HGraph {
   HParameterValue explicitReceiverParameter;
   bool isRecursiveMethod = false;
   bool calledInLoop = false;
-  final List<HBasicBlock> blocks;
+  final List<HBasicBlock> blocks = <HBasicBlock>[];
 
   // We canonicalize all constants used within a graph so we do not
   // have to worry about them for global value numbering.
-  Map<ConstantValue, HConstant> constants;
+  Map<ConstantValue, HConstant> constants = new Map<ConstantValue, HConstant>();
 
-  HGraph()
-      : blocks = new List<HBasicBlock>(),
-        constants = new Map<ConstantValue, HConstant>() {
+  HGraph() {
     entry = addNewBlock();
     // The exit block will be added later, so it has an id that is
     // after all others in the system.
@@ -262,6 +261,8 @@ class HGraph {
     validator.visitGraph(this);
     return validator.isValid;
   }
+
+  toString() => 'HGraph($element)';
 }
 
 class HBaseVisitor extends HGraphVisitor implements HVisitor {
@@ -1883,6 +1884,8 @@ class HForeignNew extends HForeign {
   accept(HVisitor visitor) => visitor.visitForeignNew(this);
 
   bool get isAllocation => true;
+
+  String toString() => 'HForeignNew($element)';
 }
 
 abstract class HInvokeBinary extends HInstruction {
