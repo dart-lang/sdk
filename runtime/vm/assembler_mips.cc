@@ -749,15 +749,14 @@ void Assembler::LoadClass(Register result, Register object) {
 
 
 void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
-  static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
-
-  LoadImmediate(TMP, reinterpret_cast<int32_t>(&kSmiCidSource) + 1);
+  Label heap_object, done;
   andi(CMPRES1, object, Immediate(kSmiTagMask));
-  if (result != object) {
-    mov(result, object);
-  }
-  movz(result, TMP, CMPRES1);
-  LoadClassId(result, result);
+  bne(CMPRES1, ZR, &heap_object);
+  LoadImmediate(result, kSmiCid);
+  b(&done);
+  Bind(&heap_object);
+  LoadClassId(result, object);
+  Bind(&done);
 }
 
 
