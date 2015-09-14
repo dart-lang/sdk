@@ -3893,6 +3893,21 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
     if (node.isConst) {
       analyzeConstantDeferred(node);
+
+      // TODO(johnniwinther): Compute this in the [ConstructorResolver].
+      // Check that the constructor is not deferred.
+      Send send = node.send.selector.asSend();
+      if (send != null) {
+        // Of the form `const a.b(...)`.
+        if (compiler.deferredLoadTask.deferredPrefixElement(
+                send, registry.mapping) != null) {
+          // `a` is a deferred prefix.
+          isValidAsConstant = false;
+          // TODO(johnniwinther): Create an [ErroneousConstantExpression] here
+          // when constants are only created during resolution.
+        }
+      }
+
       if (isValidAsConstant &&
           constructor.isConst &&
           argumentsResult.isValidAsConstant) {
