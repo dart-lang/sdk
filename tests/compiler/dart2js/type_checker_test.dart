@@ -35,6 +35,7 @@ main() {
                 testReturn,
                 testFor,
                 testSyncForIn,
+                testAsyncForIn,
                 testWhile,
                 testTry,
                 testSwitch,
@@ -281,6 +282,144 @@ class Class {
   }""");
   analyzeIn(compiler, method, """{ 
       for (staticInt in <String>[]) {} 
+  }""", hints: MessageKind.FORIN_NOT_ASSIGNABLE);
+}
+
+testAsyncForIn(MockCompiler compiler) {
+  String script = """
+abstract class CustomStream<T> implements Stream<T> {}
+abstract class StringStream implements Stream<String> {}
+
+var topLevelDyn;
+String topLevelString;
+int topLevelInt;
+
+class Class {
+  void forIn() async {}
+
+  var instanceDyn;
+  String instanceString;
+  int instanceInt;
+
+  static var staticDyn;
+  static String staticString;
+  static int staticInt;
+}
+""";
+  compiler.parseScript(script);
+  ClassElement foo = compiler.mainApp.find("Class");
+  foo.ensureResolved(compiler);
+  FunctionElement method = foo.lookupLocalMember('forIn');
+
+  analyzeIn(compiler, method, """{
+      var stream;
+      await for (var e in stream) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      var stream;
+      await for (String e in stream) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      var stream;
+      await for (int e in stream) {} 
+  }""");
+
+  analyzeIn(compiler, method, """{ 
+      await for (var e in []) {} 
+  }""", hints: MessageKind.NOT_ASSIGNABLE);
+
+  analyzeIn(compiler, method, """{ 
+      Stream<String> stream;
+      await for (var e in stream) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      Stream<String> stream;
+      await for (String e in stream) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      Stream<String> stream;
+      await for (int e in stream) {} 
+  }""", hints: MessageKind.FORIN_NOT_ASSIGNABLE);
+
+  analyzeIn(compiler, method, """{ 
+      CustomStream<String> stream;
+      await for (var e in stream) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      CustomStream<String> stream;
+      await for (String e in stream) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      CustomStream<String> stream;
+      await for (int e in stream) {} 
+  }""", hints: MessageKind.FORIN_NOT_ASSIGNABLE);
+
+  analyzeIn(compiler, method, """{ 
+      StringStream stream;
+      await for (var e in stream) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      StringStream stream;
+      await for (String e in stream) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      StringStream stream;
+      await for (int e in stream) {} 
+  }""", hints: MessageKind.FORIN_NOT_ASSIGNABLE);
+
+  analyzeIn(compiler, method, """{ 
+      Stream<String> stream;
+      var localDyn; 
+      await for (localDyn in stream) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      Stream<String> stream;
+      String localString; 
+      await for (localString in stream) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      Stream<String> stream;
+      int localInt; 
+      await for (localInt in stream) {} 
+  }""", hints: MessageKind.FORIN_NOT_ASSIGNABLE);
+
+  analyzeIn(compiler, method, """{ 
+      Stream<String> stream;
+      await for (topLevelDyn in stream) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      Stream<String> stream;
+      await for (topLevelString in stream) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      Stream<String> stream;
+      await for (topLevelInt in stream) {} 
+  }""", hints: MessageKind.FORIN_NOT_ASSIGNABLE);
+
+  analyzeIn(compiler, method, """{ 
+      Stream<String> stream;
+      await for (instanceDyn in stream) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      Stream<String> stream;
+      await for (instanceString in stream) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      Stream<String> stream;
+      await for (instanceInt in stream) {} 
+  }""", hints: MessageKind.FORIN_NOT_ASSIGNABLE);
+
+  analyzeIn(compiler, method, """{ 
+      Stream<String> stream;
+      await for (staticDyn in stream) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      Stream<String> stream;
+      await for (staticString in stream) {} 
+  }""");
+  analyzeIn(compiler, method, """{ 
+      Stream<String> stream;
+      await for (staticInt in stream) {} 
   }""", hints: MessageKind.FORIN_NOT_ASSIGNABLE);
 }
 

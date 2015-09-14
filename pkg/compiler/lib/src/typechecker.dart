@@ -1792,22 +1792,53 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return const StatementType();
   }
 
+  DartType computeForInElementType(ForIn node) {
+    VariableDefinitions declaredIdentifier =
+        node.declaredIdentifier.asVariableDefinitions();
+    if (declaredIdentifier != null) {
+      return
+          analyzeWithDefault(declaredIdentifier.type, const DynamicType());
+    } else {
+      return analyze(node.declaredIdentifier);
+    }
+  }
+
   visitAsyncForIn(AsyncForIn node) {
-    analyze(node.expression);
+    DartType elementType = computeForInElementType(node);
+    DartType expressionType = analyze(node.expression);
+    // TODO(johnniwinther): Move this to _CompilerCoreTypes.
+    compiler.streamClass.ensureResolved(compiler);
+    DartType streamOfDynamic = coreTypes.streamType();
+    if (!types.isAssignable(expressionType, streamOfDynamic)) {
+      reportMessage(node.expression,
+          MessageKind.NOT_ASSIGNABLE,
+          {'fromType': expressionType, 'toType': streamOfDynamic},
+          isHint: true);
+    } else {
+      InterfaceType interfaceType =
+          Types.computeInterfaceType(compiler, expressionType);
+      if (interfaceType != null) {
+        InterfaceType streamType =
+            interfaceType.asInstanceOf(compiler.streamClass);
+        if (streamType != null) {
+          DartType streamElementType = streamType.typeArguments.first;
+          if (!types.isAssignable(streamElementType, elementType)) {
+            reportMessage(node.expression,
+                MessageKind.FORIN_NOT_ASSIGNABLE,
+                {'currentType': streamElementType,
+                 'expressionType': expressionType,
+                 'elementType': elementType},
+                isHint: true);
+          }
+        }
+      }
+    }
     analyze(node.body);
     return const StatementType();
   }
 
   visitSyncForIn(SyncForIn node) {
-    DartType elementType;
-    VariableDefinitions declaredIdentifier =
-        node.declaredIdentifier.asVariableDefinitions();
-    if (declaredIdentifier != null) {
-      elementType =
-          analyzeWithDefault(declaredIdentifier.type, const DynamicType());
-    } else {
-      elementType = analyze(node.declaredIdentifier);
-    }
+    DartType elementType = computeForInElementType(node);
     DartType expressionType = analyze(node.expression);
     DartType iteratorType = lookupMemberType(node.expression,
         expressionType, Identifiers.iterator, MemberKind.GETTER);
