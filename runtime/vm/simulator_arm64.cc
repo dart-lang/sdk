@@ -1626,6 +1626,7 @@ void Simulator::DoRedirectedCall(Instr* instr) {
       set_vregisterd(V0, 0, bit_cast<int64_t, double>(res));
       set_vregisterd(V0, 1, 0);
     } else if (redirection->call_kind() == kBootstrapNativeCall) {
+      ASSERT(redirection->argument_count() == 1);
       NativeArguments* arguments;
       arguments = reinterpret_cast<NativeArguments*>(get_register(R0));
       SimulatorBootstrapNativeCall target =
