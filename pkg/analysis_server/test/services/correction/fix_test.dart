@@ -541,6 +541,15 @@ class Test {
     _assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
   }
 
+  void test_createClass_BAD_hasUnresolvedPrefix() {
+    resolveTestUnit('''
+main() {
+  prefix.Test v = null;
+}
+''');
+    assertNoFix(DartFixKind.CREATE_CLASS);
+  }
+
   void test_createClass_inLibraryOfPrefix() {
     String libCode = r'''
 library my.lib;
@@ -2612,44 +2621,6 @@ main() {
 ''');
   }
 
-  void test_importLibraryPrefix_withClass() {
-    resolveTestUnit('''
-import 'dart:async' as pref;
-main() {
-  pref.Stream s = null;
-  Future f = null;
-}
-''');
-    assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PREFIX,
-        '''
-import 'dart:async' as pref;
-main() {
-  pref.Stream s = null;
-  pref.Future f = null;
-}
-''');
-  }
-
-  void test_importLibraryPrefix_withTopLevelVariable() {
-    resolveTestUnit('''
-import 'dart:math' as pref;
-main() {
-  print(pref.E);
-  print(PI);
-}
-''');
-    assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PREFIX,
-        '''
-import 'dart:math' as pref;
-main() {
-  print(pref.E);
-  print(pref.PI);
-}
-''');
-  }
-
   void test_importLibraryProject_withClass_annotation() {
     addSource(
         '/lib.dart',
@@ -4360,6 +4331,44 @@ main() {
   var a = 5;
   var b = 2;
   print(a ~/ b);
+}
+''');
+  }
+
+  void test_useImportPrefix_withClass() {
+    resolveTestUnit('''
+import 'dart:async' as pref;
+main() {
+  pref.Stream s = null;
+  Future f = null;
+}
+''');
+    assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_PREFIX,
+        '''
+import 'dart:async' as pref;
+main() {
+  pref.Stream s = null;
+  pref.Future f = null;
+}
+''');
+  }
+
+  void test_useImportPrefix_withTopLevelVariable() {
+    resolveTestUnit('''
+import 'dart:math' as pref;
+main() {
+  print(pref.E);
+  print(PI);
+}
+''');
+    assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_PREFIX,
+        '''
+import 'dart:math' as pref;
+main() {
+  print(pref.E);
+  print(pref.PI);
 }
 ''');
   }

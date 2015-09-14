@@ -452,6 +452,9 @@ class FixProcessor {
       if (parent is PrefixedIdentifier) {
         PrefixedIdentifier prefixedIdentifier = parent;
         prefixElement = prefixedIdentifier.prefix.staticElement;
+        if (prefixElement == null) {
+          return;
+        }
         parent = prefixedIdentifier.parent;
         nameNode = prefixedIdentifier.identifier;
         name = prefixedIdentifier.identifier.name;
