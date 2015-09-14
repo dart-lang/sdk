@@ -17,7 +17,7 @@ issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue
 
 javascript_compatibility_errors_test/none: Fail, OK  # Not possible to exclude or annotate with '/// none:'
 
-[ $runtime != vm ]
+[ $compiler != none && $runtime != vm && $runtime != drt) ]
 no_assert_test: Fail, OK # This is testing a vm flag.
 
 [ $runtime == vm ]
