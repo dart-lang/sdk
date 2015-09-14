@@ -124,8 +124,9 @@ class TestOccurrencesContributor implements OccurrencesContributor {
   @override
   void computeOccurrences(
       OccurrencesCollector collector, AnalysisContext context, Source source) {
-    collector.addOccurrences(new Occurrences(
-        new Element(ElementKind.UNKNOWN, 'TestElement', 0), <int>[1, 2, 3], 5));
+    Element element = new Element(ElementKind.UNKNOWN, 'TestElement', 0);
+    collector.addOccurrences(new Occurrences(element, <int>[1, 2], 5));
+    collector.addOccurrences(new Occurrences(element, <int>[3], 5));
   }
 }
 

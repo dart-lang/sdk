@@ -36,10 +36,25 @@ OccurrencesCollectorImpl computeOccurrences(
  * A concrete implementation of [OccurrencesCollector].
  */
 class OccurrencesCollectorImpl implements OccurrencesCollector {
-  final List<protocol.Occurrences> allOccurrences = <protocol.Occurrences>[];
+  Map<protocol.Element, protocol.Occurrences> elementOccurrences =
+      <protocol.Element, protocol.Occurrences>{};
+
+  List<protocol.Occurrences> get allOccurrences {
+    return elementOccurrences.values.toList();
+  }
 
   @override
-  void addOccurrences(protocol.Occurrences occurrences) {
-    allOccurrences.add(occurrences);
+  void addOccurrences(protocol.Occurrences current) {
+    protocol.Element element = current.element;
+    protocol.Occurrences existing = elementOccurrences[element];
+    if (existing != null) {
+      List<int> offsets = _merge(existing.offsets, current.offsets);
+      current = new protocol.Occurrences(element, offsets, existing.length);
+    }
+    elementOccurrences[element] = current;
+  }
+
+  static List<int> _merge(List<int> a, List<int> b) {
+    return <int>[]..addAll(a)..addAll(b);
   }
 }
