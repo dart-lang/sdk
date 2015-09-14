@@ -148,6 +148,7 @@ number_identity2_test: RuntimeError # Issue 12596
 double_int_to_string_test: RuntimeError # Issue 1533
 mint_arithmetic_test: RuntimeError # Issue 1533
 left_shift_test: RuntimeError # Issue 1533
+regress_24283_test: RuntimeError # Issue 1533
 bad_override_test/01: CompileTimeError # Issue 11496
 bad_override_test/02: CompileTimeError # Issue 11496
 constructor_named_arguments_test/01: CompileTimeError # Issue 5519
