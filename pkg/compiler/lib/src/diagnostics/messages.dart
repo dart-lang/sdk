@@ -166,6 +166,7 @@ enum MessageKind {
   DEFERRED_TYPE_ANNOTATION,
   DEPRECATED_TYPEDEF_MIXIN_SYNTAX,
   DIRECTLY_THROWING_NSM,
+  DISALLOWED_LIBRARY_IMPORT,
   DUPLICATE_DEFINITION,
   DUPLICATE_EXPORT,
   DUPLICATE_EXPORT_CONT,
@@ -273,6 +274,7 @@ enum MessageKind {
   INVALID_USE_OF_SUPER,
   LIBRARY_NAME_MISMATCH,
   LIBRARY_NOT_FOUND,
+  LIBRARY_NOT_SUPPORTED,
   LIBRARY_TAG_MUST_BE_FIRST,
   MAIN_NOT_A_FUNCTION,
   MAIN_WITH_EXTRA_PARAMETER,
@@ -2095,6 +2097,20 @@ main() => A.A = 1;
         const MessageTemplate(MessageKind.LIBRARY_NOT_FOUND,
           "Library not found '#{resolvedUri}'."),
 
+      MessageKind.LIBRARY_NOT_SUPPORTED:
+        const MessageTemplate(MessageKind.LIBRARY_NOT_SUPPORTED,
+          "Library not supported '#{resolvedUri}'.",
+          howToFix: "Try removing the dependency or enabling support using "
+                    "the '--categories' option.",
+          examples: const [/*
+              """
+              import 'dart:io';
+              main() {}
+              """
+          */]),
+          // TODO(johnniwinther): Enable example when message_kind_test.dart
+          // supports library loader callbacks.
+
       MessageKind.UNSUPPORTED_EQ_EQ_EQ:
         const MessageTemplate(MessageKind.UNSUPPORTED_EQ_EQ_EQ,
           "'===' is not an operator. "
@@ -3274,6 +3290,14 @@ $IMPORT_EXPERIMENTAL_MIRRORS_PADDING#{importChain}
 ****************************************************************
 '''),
 
+      MessageKind.DISALLOWED_LIBRARY_IMPORT:
+        const MessageTemplate(MessageKind.DISALLOWED_LIBRARY_IMPORT, '''
+Your app imports the unsupported library '#{uri}' via:
+''''''
+$DISALLOWED_LIBRARY_IMPORT_PADDING#{importChain}
+
+Use the --categories option to support import of '#{uri}'.
+'''),
 
       MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND:
         const MessageTemplate(
@@ -3314,7 +3338,13 @@ $IMPORT_EXPERIMENTAL_MIRRORS_PADDING#{importChain}
 
   }; // End of TEMPLATES.
 
+  /// Padding used before and between import chains in the message for
+  /// [MessageKind.IMPORT_EXPERIMENTAL_MIRRORS].
   static const String IMPORT_EXPERIMENTAL_MIRRORS_PADDING = '\n*   ';
+
+  /// Padding used before and between import chains in the message for
+  /// [MessageKind.DISALLOWED_LIBRARY_IMPORT].
+  static const String DISALLOWED_LIBRARY_IMPORT_PADDING = '\n  ';
 
   toString() => template;
 

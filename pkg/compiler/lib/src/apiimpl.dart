@@ -191,10 +191,13 @@ class Compiler extends leg.Compiler {
 
   // TODO(johnniwinther): Merge better with [translateDartUri] when
   // [scanBuiltinLibrary] is removed.
-  String lookupLibraryPath(LibraryInfo info) {
+  String lookupLibraryPath(Uri uri, LibraryInfo info) {
     if (info == null) return null;
     if (!info.isDart2jsLibrary) return null;
-    if (!allowedLibraryCategories.contains(info.category)) return null;
+    if (!allowedLibraryCategories.contains(info.category)) {
+      registerDisallowedLibraryUse(uri);
+      return null;
+    }
     String path = info.dart2jsPath;
     if (path == null) {
       path = info.path;
@@ -316,7 +319,7 @@ class Compiler extends leg.Compiler {
   Uri translateDartUri(elements.LibraryElement importingLibrary,
                        Uri resolvedUri, tree.Node node) {
     LibraryInfo libraryInfo = lookupLibraryInfo(resolvedUri.path);
-    String path = lookupLibraryPath(libraryInfo);
+    String path = lookupLibraryPath(resolvedUri, libraryInfo);
     if (libraryInfo != null &&
         libraryInfo.category == "Internal") {
       bool allowInternalLibraryAccess = false;
@@ -344,8 +347,15 @@ class Compiler extends leg.Compiler {
       }
     }
     if (path == null) {
-      reportError(node, MessageKind.LIBRARY_NOT_FOUND,
-                  {'resolvedUri': resolvedUri});
+      if (libraryInfo == null) {
+        reportError(node, MessageKind.LIBRARY_NOT_FOUND,
+                    {'resolvedUri': resolvedUri});
+      } else {
+        reportError(node, MessageKind.LIBRARY_NOT_SUPPORTED,
+                    {'resolvedUri': resolvedUri});
+      }
+      // TODO(johnniwinther): Support signaling the error through the returned
+      // value.
       return null;
     }
     if (resolvedUri.path == 'html' ||

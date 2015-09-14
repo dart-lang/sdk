@@ -2077,7 +2077,10 @@ class JavaScriptBackend extends Backend {
 
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
     return super.onLibraryScanned(library, loader).then((_) {
-      if (library.isPlatformLibrary && !library.isPatched) {
+      if (library.isPlatformLibrary &&
+          // Don't patch library currently disallowed.
+          !library.isSynthesized &&
+          !library.isPatched) {
         // Apply patch, if any.
         Uri patchUri = compiler.resolvePatchUri(library.canonicalUri.path);
         if (patchUri != null) {

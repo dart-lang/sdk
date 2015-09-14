@@ -26,7 +26,8 @@ main(List<String> arguments) {
         || name == 'COMPILER_CRASHED'
         || name == 'PLEASE_REPORT_THE_CRASH'
         // We cannot provide examples for patch errors.
-        || name.startsWith('PATCH_')) continue;
+        || name.startsWith('PATCH_')
+        || name == 'LIBRARY_NOT_SUPPORTED') continue;
     if (template.examples != null) {
       examples.add(template);
     } else {
