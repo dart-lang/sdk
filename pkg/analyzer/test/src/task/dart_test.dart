@@ -57,7 +57,6 @@ main() {
   runReflectiveTests(PartiallyResolveUnitReferencesTaskTest);
   runReflectiveTests(ResolveFunctionBodiesInUnitTaskTest);
   runReflectiveTests(ResolveLibraryTypeNamesTaskTest);
-//  runReflectiveTests(ResolveUnitReferencesTaskTest);
   runReflectiveTests(ResolveUnitTypeNamesTaskTest);
   runReflectiveTests(ResolveVariableReferencesTaskTest);
   runReflectiveTests(ScanDartTaskTest);
@@ -2360,6 +2359,71 @@ main() {
     MethodInvocation invocation = statement.expression;
     MethodElement methodElement = invocation.methodName.staticElement;
     expect(methodElement, isNull);
+  }
+
+  test_perform_notResolved() {
+    enableStrongMode();
+    Source source = newSource(
+        '/test.dart',
+        '''
+int A;
+f1() {
+  A;
+}
+var f2 = () {
+  A;
+  void f3() {
+    A;
+  }
+}
+class C {
+  C() {
+    A;
+  }
+  m() {
+    A;
+  }
+}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT5,
+        matcher: isPartiallyResolveUnitReferencesTask);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    NodeList<CompilationUnitMember> declarations = unit.declarations;
+
+    void expectReference(BlockFunctionBody body, bool isResolved) {
+      ExpressionStatement statement = body.block.statements[0];
+      SimpleIdentifier reference = statement.expression;
+      expect(reference.staticElement, isResolved ? isNotNull : isNull);
+    }
+    //
+    // The reference to 'A' in 'f1' should not be resolved.
+    //
+    FunctionDeclaration f1 = declarations[1];
+    expectReference(f1.functionExpression.body, false);
+    //
+    // The references to 'A' in 'f2' should be resolved.
+    //
+    TopLevelVariableDeclaration f2 = declarations[2];
+    FunctionExpression expression2 = f2.variables.variables[0].initializer;
+    BlockFunctionBody body2 = expression2.body;
+    expectReference(body2, true);
+
+    FunctionDeclarationStatement statement2 = body2.block.statements[1];
+    BlockFunctionBody innerBody =
+        statement2.functionDeclaration.functionExpression.body;
+    expectReference(innerBody, true);
+    //
+    // The references to 'A' in 'C' should not be resolved.
+    //
+    ClassDeclaration c = declarations[3];
+    NodeList<ClassMember> members = c.members;
+
+    ConstructorDeclaration constructor = members[0];
+    expectReference(constructor.body, false);
+
+    MethodDeclaration method = members[1];
+    expectReference(method.body, false);
   }
 }
 

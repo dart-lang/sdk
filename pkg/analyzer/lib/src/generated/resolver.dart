@@ -9566,12 +9566,6 @@ class PartialResolverVisitor extends ResolverVisitor {
   final List<VariableElement> staticVariables = <VariableElement>[];
 
   /**
-   * A flag indicating whether we are currently visiting a child of either a
-   * field or a top-level variable.
-   */
-  bool inFieldOrTopLevelVariable = false;
-
-  /**
    * A flag indicating whether we should discard errors while resolving the
    * initializer for variable declarations. We do this for top-level variables
    * and fields because their initializer will be re-resolved at a later time.
@@ -9606,39 +9600,33 @@ class PartialResolverVisitor extends ResolverVisitor {
 
   @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
-    if (inFieldOrTopLevelVariable) {
-      return super.visitBlockFunctionBody(node);
+    if (_shouldBeSkipped(node)) {
+      return null;
     }
-    return null;
+    return super.visitBlockFunctionBody(node);
   }
 
   @override
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    if (inFieldOrTopLevelVariable) {
-      return super.visitExpressionFunctionBody(node);
+    if (_shouldBeSkipped(node)) {
+      return null;
     }
-    return null;
+    return super.visitExpressionFunctionBody(node);
   }
 
   @override
   Object visitFieldDeclaration(FieldDeclaration node) {
-    bool wasInFieldOrTopLevelVariable = inFieldOrTopLevelVariable;
-    try {
-      inFieldOrTopLevelVariable = true;
-      if (strongMode && node.isStatic) {
-        _addStaticVariables(node.fields.variables);
-        bool wasDiscarding = discardErrorsInInitializer;
-        discardErrorsInInitializer = true;
-        try {
-          return super.visitFieldDeclaration(node);
-        } finally {
-          discardErrorsInInitializer = wasDiscarding;
-        }
+    if (strongMode && node.isStatic) {
+      _addStaticVariables(node.fields.variables);
+      bool wasDiscarding = discardErrorsInInitializer;
+      discardErrorsInInitializer = true;
+      try {
+        return super.visitFieldDeclaration(node);
+      } finally {
+        discardErrorsInInitializer = wasDiscarding;
       }
-      return super.visitFieldDeclaration(node);
-    } finally {
-      inFieldOrTopLevelVariable = wasInFieldOrTopLevelVariable;
     }
+    return super.visitFieldDeclaration(node);
   }
 
   @override
@@ -9655,23 +9643,17 @@ class PartialResolverVisitor extends ResolverVisitor {
 
   @override
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    bool wasInFieldOrTopLevelVariable = inFieldOrTopLevelVariable;
-    try {
-      inFieldOrTopLevelVariable = true;
-      if (strongMode) {
-        _addStaticVariables(node.variables.variables);
-        bool wasDiscarding = discardErrorsInInitializer;
-        discardErrorsInInitializer = true;
-        try {
-          return super.visitTopLevelVariableDeclaration(node);
-        } finally {
-          discardErrorsInInitializer = wasDiscarding;
-        }
+    if (strongMode) {
+      _addStaticVariables(node.variables.variables);
+      bool wasDiscarding = discardErrorsInInitializer;
+      discardErrorsInInitializer = true;
+      try {
+        return super.visitTopLevelVariableDeclaration(node);
+      } finally {
+        discardErrorsInInitializer = wasDiscarding;
       }
-      return super.visitTopLevelVariableDeclaration(node);
-    } finally {
-      inFieldOrTopLevelVariable = wasInFieldOrTopLevelVariable;
     }
+    return super.visitTopLevelVariableDeclaration(node);
   }
 
   /**
@@ -9687,6 +9669,28 @@ class PartialResolverVisitor extends ResolverVisitor {
         staticVariables.add(variable.element);
       }
     }
+  }
+
+  /**
+   * Return `true` if the given function body should be skipped because it is
+   * the body of a top-level function, method or constructor.
+   */
+  bool _shouldBeSkipped(FunctionBody body) {
+    AstNode parent = body.parent;
+    if (parent is MethodDeclaration) {
+      return parent.body == body;
+    }
+    if (parent is ConstructorDeclaration) {
+      return parent.body == body;
+    }
+    if (parent is FunctionExpression) {
+      AstNode parent2 = parent.parent;
+      if (parent2 is FunctionDeclaration &&
+          parent2.parent is! FunctionDeclarationStatement) {
+        return parent.body == body;
+      }
+    }
+    return false;
   }
 }
 
