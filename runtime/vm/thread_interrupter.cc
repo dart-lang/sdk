@@ -51,8 +51,8 @@ DEFINE_FLAG(bool, trace_thread_interrupter, false,
 bool ThreadInterrupter::initialized_ = false;
 bool ThreadInterrupter::shutdown_ = false;
 bool ThreadInterrupter::thread_running_ = false;
-ThreadId ThreadInterrupter::interrupter_thread_id_ =
-    OSThread::kInvalidThreadId;
+ThreadJoinId ThreadInterrupter::interrupter_thread_id_ =
+    OSThread::kInvalidThreadJoinId;
 Monitor* ThreadInterrupter::monitor_ = NULL;
 intptr_t ThreadInterrupter::interrupt_period_ = 1000;
 intptr_t ThreadInterrupter::current_wait_time_ = Monitor::kNoTimeout;
@@ -71,7 +71,7 @@ void ThreadInterrupter::Startup() {
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter starting up.\n");
   }
-  ASSERT(interrupter_thread_id_ == OSThread::kInvalidThreadId);
+  ASSERT(interrupter_thread_id_ == OSThread::kInvalidThreadJoinId);
   {
     MonitorLocker startup_ml(monitor_);
     OSThread::Start(ThreadMain, 0);
@@ -79,7 +79,7 @@ void ThreadInterrupter::Startup() {
       startup_ml.Wait();
     }
   }
-  ASSERT(interrupter_thread_id_ != OSThread::kInvalidThreadId);
+  ASSERT(interrupter_thread_id_ != OSThread::kInvalidThreadJoinId);
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter running.\n");
   }
@@ -101,24 +101,12 @@ void ThreadInterrupter::Shutdown() {
       OS::Print("ThreadInterrupter shutting down.\n");
     }
   }
-#if defined(TARGET_OS_WINDOWS)
-  // On Windows, a thread's exit-code can leak into the process's exit-code,
-  // if exiting 'at same time' as the process ends. By joining with the thread
-  // here, we avoid this race condition.
-  ASSERT(interrupter_thread_id_ != OSThread::kInvalidThreadId);
+
+  // Join the thread.
+  ASSERT(interrupter_thread_id_ != OSThread::kInvalidThreadJoinId);
   OSThread::Join(interrupter_thread_id_);
-  interrupter_thread_id_ = OSThread::kInvalidThreadId;
-#else
-  // On non-Windows platforms, just wait for the thread interrupter to signal
-  // that it has exited the loop.
-  {
-    MonitorLocker shutdown_ml(monitor_);
-    while (thread_running_) {
-      // Wait for thread to exit.
-      shutdown_ml.Wait();
-    }
-  }
-#endif
+  interrupter_thread_id_ = OSThread::kInvalidThreadJoinId;
+
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter shut down.\n");
   }
@@ -187,7 +175,7 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
   {
     // Signal to main thread we are ready.
     MonitorLocker startup_ml(monitor_);
-    interrupter_thread_id_ = OSThread::GetCurrentThreadId();
+    interrupter_thread_id_ = OSThread::GetCurrentThreadJoinId();
     thread_running_ = true;
     startup_ml.Notify();
   }
@@ -197,6 +185,10 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
     MonitorLocker wait_ml(monitor_);
     while (!shutdown_) {
       intptr_t r = wait_ml.WaitMicros(current_wait_time_);
+
+      if ((r == Monitor::kNotified) && shutdown_) {
+        break;
+      }
 
       if ((r == Monitor::kNotified) && InDeepSleep()) {
         // Woken up from deep sleep.

@@ -59,6 +59,7 @@ static const char* kCustomIsolateScriptChars =
     "     var replyTo = message[1];\n"
     "     echo('Received: $data');\n"
     "     replyTo.send(data + 1);\n"
+    "     mainPort.close();\n"
     "   };\n"
     "}\n"
     "\n"
@@ -179,6 +180,7 @@ void StartEvent::Process() {
   free(const_cast<char*>(main_));
   main_ = NULL;
 
+  Dart_SetMessageNotifyCallback(NULL);
   Dart_ExitScope();
   Dart_ExitIsolate();
 }
@@ -207,6 +209,7 @@ void MessageEvent::Process() {
   if (!Dart_HasLivePorts()) {
     OS::Print("<< Shutting down isolate(%p)\n", isolate());
     event_queue->RemoveEventsForIsolate(isolate());
+    Dart_SetMessageNotifyCallback(NULL);
     Dart_ShutdownIsolate();
   } else {
     Dart_ExitScope();
@@ -350,6 +353,7 @@ UNIT_TEST_CASE(CustomIsolates) {
   free(const_cast<char*>(saved_echo));
 
   delete event_queue;
+  event_queue = NULL;
 }
 
 }  // namespace dart

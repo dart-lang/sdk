@@ -16,7 +16,7 @@ namespace dart {
 
 typedef DWORD ThreadLocalKey;
 typedef DWORD ThreadId;
-
+typedef DWORD ThreadJoinId;
 
 class ThreadInlineImpl {
  private:

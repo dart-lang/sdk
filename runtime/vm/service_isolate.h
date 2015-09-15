@@ -32,6 +32,9 @@ class ServiceIsolate : public AllStatic {
   static void SendServiceExitMessage();
   static void Shutdown();
 
+ private:
+  static void KillServiceIsolate();
+
  protected:
   static void SetServicePort(Dart_Port port);
   static void SetServiceIsolate(Isolate* isolate);

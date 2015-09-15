@@ -10,27 +10,37 @@
 #include "bin/dartutils.h"
 #include "bin/platform.h"
 
+// Return the error from the containing function if handle is in error handle.
+#define RETURN_IF_ERROR(handle)                                                \
+  {                                                                            \
+    Dart_Handle __handle = handle;                                             \
+    if (Dart_IsError((__handle))) {                                            \
+      return __handle;                                                         \
+    }                                                                          \
+  }
+
 namespace dart {
 namespace bin {
 
-void Builtin::SetLoadPort(Dart_Port port) {
+Dart_Handle Builtin::SetLoadPort(Dart_Port port) {
   load_port_ = port;
   ASSERT(load_port_ != ILLEGAL_PORT);
   Dart_Handle field_name = DartUtils::NewString("_loadPort");
-  ASSERT(!Dart_IsError(field_name));
+  RETURN_IF_ERROR(field_name);
   Dart_Handle builtin_lib =
       Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-  ASSERT(!Dart_IsError(builtin_lib));
+  RETURN_IF_ERROR(builtin_lib);
   Dart_Handle send_port = Dart_GetField(builtin_lib, field_name);
-  ASSERT(!Dart_IsError(send_port));
+  RETURN_IF_ERROR(send_port);
   if (!Dart_IsNull(send_port)) {
     // Already created and set.
-    return;
+    return Dart_True();
   }
   send_port = Dart_NewSendPort(load_port_);
-  ASSERT(!Dart_IsError(send_port));
+  RETURN_IF_ERROR(send_port);
   Dart_Handle result = Dart_SetField(builtin_lib, field_name, send_port);
-  ASSERT(!Dart_IsError(result));
+  RETURN_IF_ERROR(result);
+  return Dart_True();
 }
 
 }  // namespace bin

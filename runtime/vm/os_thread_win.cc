@@ -71,6 +71,7 @@ int OSThread::Start(ThreadStartFunction function, uword parameter) {
 
 ThreadLocalKey OSThread::kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
 ThreadId OSThread::kInvalidThreadId = 0;
+ThreadJoinId OSThread::kInvalidThreadJoinId = 0;
 
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor unused) {
   ThreadLocalKey key = TlsAlloc();
@@ -101,14 +102,29 @@ ThreadId OSThread::GetCurrentThreadId() {
 }
 
 
-bool OSThread::Join(ThreadId id) {
+ThreadJoinId OSThread::GetCurrentThreadJoinId() {
+  return ::GetCurrentThreadId();
+}
+
+
+void OSThread::Join(ThreadJoinId id) {
   HANDLE handle = OpenThread(SYNCHRONIZE, false, id);
-  if (handle == INVALID_HANDLE_VALUE) {
-    return false;
+
+  // TODO(zra): OSThread::Start() closes the handle to the thread. Thus, by the
+  // time we try to join the thread, its resources may have already been
+  // reclaimed, and joining will fail. This can be avoided in a couple of ways.
+  // First, GetCurrentThreadJoinId could call OpenThread and return a handle.
+  // This is bad, because each of those handles would have to be closed.
+  // Second OSThread could be refactored to no longer be AllStatic. Then the
+  // handle could be cached in the object by the Start method.
+  if (handle == NULL) {
+    ASSERT(GetLastError() == ERROR_INVALID_PARAMETER);
+    return;
   }
+
   DWORD res = WaitForSingleObject(handle, INFINITE);
   CloseHandle(handle);
-  return res == WAIT_OBJECT_0;
+  ASSERT(res == WAIT_OBJECT_0);
 }
 
 

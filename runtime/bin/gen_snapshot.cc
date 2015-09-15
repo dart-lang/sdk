@@ -544,18 +544,19 @@ int main(int argc, char** argv) {
   // Initialize the Dart VM.
   // Note: We don't expect isolates to be created from dart code during
   // snapshot generation.
-  if (!Dart_Initialize(NULL, NULL,
-                       NULL, NULL, NULL, NULL,
-                       DartUtils::OpenFile,
-                       DartUtils::ReadFile,
-                       DartUtils::WriteFile,
-                       DartUtils::CloseFile,
-                       DartUtils::EntropySource)) {
-    Log::PrintErr("VM initialization failed\n");
+  char* error = Dart_Initialize(NULL, NULL,
+      NULL, NULL, NULL, NULL,
+      DartUtils::OpenFile,
+      DartUtils::ReadFile,
+      DartUtils::WriteFile,
+      DartUtils::CloseFile,
+      DartUtils::EntropySource);
+  if (error != NULL) {
+    Log::PrintErr("VM initialization failed: %s\n", error);
+    free(error);
     return 255;
   }
 
-  char* error;
   Dart_Isolate isolate = Dart_CreateIsolate(
       NULL, NULL, NULL, NULL, NULL, &error);
   if (isolate == NULL) {

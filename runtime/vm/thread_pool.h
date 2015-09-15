@@ -5,6 +5,7 @@
 #ifndef VM_THREAD_POOL_H_
 #define VM_THREAD_POOL_H_
 
+#include "vm/allocation.h"
 #include "vm/globals.h"
 #include "vm/os_thread.h"
 
@@ -29,12 +30,12 @@ class ThreadPool {
 
   ThreadPool();
 
-  // Shuts down this thread pool.  Causes workers to terminate
+  // Shuts down this thread pool. Causes workers to terminate
   // themselves when they are active again.
   ~ThreadPool();
 
   // Runs a task on the thread pool.
-  void Run(Task* task);
+  bool Run(Task* task);
 
   // Some simple stats.
   uint64_t workers_running() const { return count_running_; }
@@ -43,8 +44,6 @@ class ThreadPool {
   uint64_t workers_stopped() const { return count_stopped_; }
 
  private:
-  friend class ThreadPoolTestPeer;
-
   class Worker {
    public:
     explicit Worker(ThreadPool* pool);
@@ -56,11 +55,15 @@ class ThreadPool {
     // after a task has been set by the initial call to SetTask().
     void StartThread();
 
-    // Main loop for a worker.
-    void Loop();
+    // Main loop for a worker. Returns true if worker is removed from thread
+    // lists, false otherwise.
+    bool Loop();
 
     // Causes worker to terminate eventually.
     void Shutdown();
+
+    // Get the Worker's thread id.
+    ThreadId id();
 
    private:
     friend class ThreadPool;
@@ -68,12 +71,14 @@ class ThreadPool {
     // The main entry point for new worker threads.
     static void Main(uword args);
 
-    bool IsDone() const { return pool_ == NULL; }
+    bool IsDone() const { return done_; }
 
     // Fields owned by Worker.
     Monitor monitor_;
     ThreadPool* pool_;
     Task* task_;
+    ThreadId id_;
+    bool done_;
 
     // Fields owned by ThreadPool.  Workers should not look at these
     // directly.  It's like looking at the sun.
@@ -81,7 +86,29 @@ class ThreadPool {
     Worker* all_next_;   // Protected by ThreadPool::mutex_
     Worker* idle_next_;  // Protected by ThreadPool::mutex_
 
+    Worker* shutdown_next_;  // Protected by ThreadPool::exit_monitor
+
     DISALLOW_COPY_AND_ASSIGN(Worker);
+  };
+
+  class JoinList {
+   public:
+    explicit JoinList(ThreadJoinId id, JoinList* next) : id_(id), next_(next) {
+    }
+
+    // The thread pool's mutex_ must be held when calling this.
+    static void AddLocked(ThreadJoinId id, JoinList** list);
+
+    static void Join(JoinList** list);
+
+    ThreadJoinId id() const { return id_; }
+    JoinList* next() const { return next_; }
+
+   private:
+    ThreadJoinId id_;
+    JoinList* next_;
+
+    DISALLOW_COPY_AND_ASSIGN(JoinList);
   };
 
   void Shutdown();
@@ -92,8 +119,13 @@ class ThreadPool {
   bool RemoveWorkerFromIdleList(Worker* worker);
   bool RemoveWorkerFromAllList(Worker* worker);
 
+  void AddWorkerToShutdownList(Worker* worker);
+  bool RemoveWorkerFromShutdownList(Worker* worker);
+
+  void ReapExitedIdleThreads();
+
   // Worker operations.
-  void SetIdle(Worker* worker);
+  void SetIdleAndReapExited(Worker* worker);
   bool ReleaseIdleWorker(Worker* worker);
 
   Mutex mutex_;
@@ -105,8 +137,9 @@ class ThreadPool {
   uint64_t count_running_;
   uint64_t count_idle_;
 
-  static Monitor* exit_monitor_;  // Used only in testing.
-  static int* exit_count_;        // Used only in testing.
+  Monitor exit_monitor_;
+  Worker* shutting_down_workers_;
+  JoinList* join_list_;
 
   DISALLOW_COPY_AND_ASSIGN(ThreadPool);
 };

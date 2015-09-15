@@ -24,6 +24,7 @@ class MessageHandlerTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
+    ASSERT(handler_ != NULL);
     handler_->TaskCallback();
   }
 
@@ -82,6 +83,7 @@ void MessageHandler::Run(ThreadPool* pool,
                          StartCallback start_callback,
                          EndCallback end_callback,
                          CallbackData data) {
+  bool task_running;
   MonitorLocker ml(&monitor_);
   if (FLAG_trace_isolates) {
     OS::Print("[+] Starting message handler:\n"
@@ -94,12 +96,14 @@ void MessageHandler::Run(ThreadPool* pool,
   end_callback_ = end_callback;
   callback_data_ = data;
   task_ = new MessageHandlerTask(this);
-  pool_->Run(task_);
+  task_running = pool_->Run(task_);
+  ASSERT(task_running);
 }
 
 
 void MessageHandler::PostMessage(Message* message, bool before_events) {
   Message::Priority saved_priority;
+  bool task_running = true;
   {
     MonitorLocker ml(&monitor_);
     if (FLAG_trace_isolates) {
@@ -124,11 +128,13 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
     }
     message = NULL;  // Do not access message.  May have been deleted.
 
-    if (pool_ != NULL && task_ == NULL) {
+    if ((pool_ != NULL) && (task_ == NULL)) {
       task_ = new MessageHandlerTask(this);
-      pool_->Run(task_);
+      task_running = pool_->Run(task_);
     }
   }
+  ASSERT(task_running);
+
   // Invoke any custom message notification.
   MessageNotify(saved_priority);
 }
@@ -149,7 +155,7 @@ bool MessageHandler::HandleMessages(bool allow_normal_messages,
   // If isolate() returns NULL StartIsolateScope does nothing.
   StartIsolateScope start_isolate(isolate());
 
-  // ThreadInterrupter may have gone to sleep waiting while waiting for
+  // ThreadInterrupter may have gone to sleep while waiting for
   // an isolate to start handling messages.
   ThreadInterrupter::WakeUp();
 

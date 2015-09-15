@@ -754,8 +754,15 @@ class Isolate : public BaseIsolate {
 
   bool is_service_isolate() const { return is_service_isolate_; }
 
+  static void KillAllIsolates();
+  static void KillIfExists(Isolate* isolate);
+
+  static void DisableIsolateCreation();
+  static void EnableIsolateCreation();
+
  private:
   friend class Dart;  // Init, InitOnce, Shutdown.
+  friend class IsolateKillerVisitor;  // Kill().
 
   explicit Isolate(const Dart_IsolateFlags& api_flags);
 
@@ -763,6 +770,11 @@ class Isolate : public BaseIsolate {
   static Isolate* Init(const char* name_prefix,
                        const Dart_IsolateFlags& api_flags,
                        bool is_vm_isolate = false);
+
+  // The isolates_list_monitor_ should be held when calling Kill().
+  void KillLocked();
+
+  void LowLevelShutdown();
   void Shutdown();
   // Assumes mutator is the only thread still in the isolate.
   void CloseAllTimelineBlocks();
@@ -956,11 +968,13 @@ class Isolate : public BaseIsolate {
   static void WakePauseEventHandler(Dart_Isolate isolate);
 
   // Manage list of existing isolates.
-  static void AddIsolateTolist(Isolate* isolate);
+  static bool AddIsolateToList(Isolate* isolate);
   static void RemoveIsolateFromList(Isolate* isolate);
 
-  static Monitor* isolates_list_monitor_;  // Protects isolates_list_head_
+  // This monitor protects isolates_list_head_, and creation_enabled_.
+  static Monitor* isolates_list_monitor_;
   static Isolate* isolates_list_head_;
+  static bool creation_enabled_;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;

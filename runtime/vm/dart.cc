@@ -38,6 +38,7 @@ DECLARE_FLAG(bool, trace_isolates);
 DECLARE_FLAG(bool, trace_time_all);
 DEFINE_FLAG(bool, keep_code, false,
             "Keep deoptimized code for profiling.");
+DEFINE_FLAG(bool, shutdown, true, "Do a clean shutdown of the VM");
 
 Isolate* Dart::vm_isolate_ = NULL;
 ThreadPool* Dart::thread_pool_ = NULL;
@@ -196,38 +197,60 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
 }
 
 
+// This waits until only the VM isolate remains in the list.
+void Dart::WaitForIsolateShutdown() {
+  ASSERT(!Isolate::creation_enabled_);
+  MonitorLocker ml(Isolate::isolates_list_monitor_);
+  while ((Isolate::isolates_list_head_ != NULL) &&
+         (Isolate::isolates_list_head_->next_ != NULL)) {
+    ml.Wait();
+  }
+  ASSERT(Isolate::isolates_list_head_ == Dart::vm_isolate());
+}
+
+
 const char* Dart::Cleanup() {
-  // Shutdown the service isolate before shutting down the thread pool.
-  ServiceIsolate::Shutdown();
-#if 0
-  // Ideally we should shutdown the VM isolate here, but the thread pool
-  // shutdown does not seem to ensure that all the threads have stopped
-  // execution before it terminates, this results in racing isolates.
+  ASSERT(Isolate::Current() == NULL);
   if (vm_isolate_ == NULL) {
     return "VM already terminated.";
   }
 
-  ASSERT(Isolate::Current() == NULL);
-
-  delete thread_pool_;
-  thread_pool_ = NULL;
-
-  // Set the VM isolate as current isolate.
-  Thread::EnsureInit();
-  Thread::EnterIsolate(vm_isolate_);
-
-  // There is a planned and known asymmetry here: We exit one scope for the VM
-  // isolate to account for the scope that was entered in Dart_InitOnce.
-  Dart_ExitScope();
-
-  ShutdownIsolate();
-  vm_isolate_ = NULL;
-
-  TargetCPUFeatures::Cleanup();
-  StoreBuffer::ShutDown();
-#endif
-
+  // Shut down profiling.
   Profiler::Shutdown();
+
+  if (FLAG_shutdown) {
+    // Disable the creation of new isolates.
+    Isolate::DisableIsolateCreation();
+
+    // Send the OOB Kill message to all remaining application isolates.
+    Isolate::KillAllIsolates();
+
+    // Shutdown the service isolate.
+    ServiceIsolate::Shutdown();
+
+    // Wait for all application isolates and the service isolate to shutdown
+    // before shutting down the thread pool.
+    WaitForIsolateShutdown();
+
+    // Shutdown the thread pool. On return, all thread pool threads have exited.
+    delete thread_pool_;
+    thread_pool_ = NULL;
+
+    // Set the VM isolate as current isolate.
+    Thread::EnsureInit();
+    Thread::EnterIsolate(vm_isolate_);
+
+    ShutdownIsolate();
+    vm_isolate_ = NULL;
+    ASSERT(Isolate::IsolateListLength() == 0);
+
+    TargetCPUFeatures::Cleanup();
+    StoreBuffer::ShutDown();
+  } else {
+    // Shutdown the service isolate.
+    ServiceIsolate::Shutdown();
+  }
+
   CodeObservers::DeleteAll();
   Timeline::Shutdown();
   Metric::Cleanup();

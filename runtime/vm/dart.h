@@ -55,6 +55,8 @@ class Dart : public AllStatic {
   static bool IsReadOnlyHandle(uword address);
 
  private:
+  static void WaitForIsolateShutdown();
+
   static Isolate* vm_isolate_;
   static ThreadPool* thread_pool_;
   static DebugInfo* pprof_symbol_generator_;

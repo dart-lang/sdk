@@ -159,6 +159,7 @@ const char* VmService::error_msg_ = NULL;
 char VmService::server_ip_[kServerIpStringBufferSize];
 intptr_t VmService::server_port_ = 0;
 
+
 bool VmService::Setup(const char* server_ip, intptr_t server_port) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
@@ -203,7 +204,8 @@ bool VmService::Setup(const char* server_ip, intptr_t server_port) {
   SHUTDOWN_ON_ERROR(library);
 
   // Set HTTP server state.
-  DartUtils::SetStringField(library, "_ip", server_ip);
+  result = DartUtils::SetStringField(library, "_ip", server_ip);
+  SHUTDOWN_ON_ERROR(result);
   // If we have a port specified, start the server immediately.
   bool auto_start = server_port >= 0;
   if (server_port < 0) {
@@ -211,7 +213,8 @@ bool VmService::Setup(const char* server_ip, intptr_t server_port) {
     // port when the HTTP server is started.
     server_port = 0;
   }
-  DartUtils::SetIntegerField(library, "_port", server_port);
+  result = DartUtils::SetIntegerField(library, "_port", server_port);
+  SHUTDOWN_ON_ERROR(result);
   result = Dart_SetField(library,
                          DartUtils::NewString("_autoStart"),
                          Dart_NewBoolean(auto_start));
