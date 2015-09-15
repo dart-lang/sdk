@@ -1369,10 +1369,6 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerClassUsingVariableExpression(ClassElement cls) {
-    rti.classesUsingTypeVariableExpression.add(cls);
-  }
-
   bool classNeedsRti(ClassElement cls) {
     return rti.classesNeedingRti.contains(cls.declaration) ||
         compiler.enabledRuntimeType;
@@ -2984,7 +2980,8 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
         backend.getCheckConcurrentModificationError(), registry);
   }
 
-  void onTypeVariableExpression(Registry registry) {
+  void onTypeVariableExpression(Registry registry,
+                                TypeVariableElement variable) {
     assert(registry.isForResolution);
     registerBackendStaticInvocation(backend.getSetRuntimeTypeInfo(), registry);
     registerBackendStaticInvocation(backend.getGetRuntimeTypeInfo(), registry);
@@ -2993,6 +2990,8 @@ class JavaScriptResolutionCallbacks extends ResolutionCallbacks {
     registerBackendStaticInvocation(backend.getRuntimeTypeToString(), registry);
     registerBackendStaticInvocation(backend.getCreateRuntimeType(), registry);
     needsInt(registry, 'Needed for accessing a type variable literal on this.');
+    ClassElement cls = variable.enclosingClass;
+    backend.rti.classesUsingTypeVariableExpression.add(cls);
   }
 
   // TODO(johnniwinther): Maybe split this into [onAssertType] and [onTestType].

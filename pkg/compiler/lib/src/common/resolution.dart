@@ -10,7 +10,8 @@ import '../dart_types.dart' show
     DartType;
 import '../elements/elements.dart' show
     AstElement,
-    ErroneousElement;
+    ErroneousElement,
+    TypeVariableElement;
 import '../enqueue.dart' show
     ResolutionEnqueuer,
     WorldImpact;
@@ -66,7 +67,8 @@ class ResolutionCallbacks {
 
   /// Called during resolution to notify to the backend that the
   /// program uses a type variable as an expression.
-  void onTypeVariableExpression(Registry registry) {}
+  void onTypeVariableExpression(Registry registry,
+                                TypeVariableElement variable) {}
 
   /// Called during resolution to notify to the backend that the
   /// program uses a type literal.

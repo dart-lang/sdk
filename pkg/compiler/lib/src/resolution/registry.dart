@@ -455,12 +455,8 @@ class ResolutionRegistry implements Registry {
     backend.resolutionCallbacks.onSuperNoSuchMethod(this);
   }
 
-  void registerClassUsingVariableExpression(ClassElement element) {
-    backend.registerClassUsingVariableExpression(element);
-  }
-
-  void registerTypeVariableExpression() {
-    backend.resolutionCallbacks.onTypeVariableExpression(this);
+  void registerTypeVariableExpression(TypeVariableElement element) {
+    backend.resolutionCallbacks.onTypeVariableExpression(this, element);
   }
 
   void registerTypeLiteral(Send node, DartType type) {

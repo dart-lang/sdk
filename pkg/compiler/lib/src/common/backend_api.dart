@@ -212,7 +212,6 @@ abstract class Backend {
   void enableIsolateSupport(Enqueuer enqueuer) {}
 
   void registerRequiredType(DartType type, Element enclosingElement) {}
-  void registerClassUsingVariableExpression(ClassElement cls) {}
 
   void registerConstSymbol(String name, Registry registry) {}
   void registerNewSymbol(Registry registry) {}

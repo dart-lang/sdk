@@ -1953,8 +1953,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else {
       semantics = new StaticAccess.typeParameterTypeLiteral(element);
     }
-    registry.registerClassUsingVariableExpression(element.enclosingClass);
-    registry.registerTypeVariableExpression();
+    registry.registerTypeVariableExpression(element);
 
     registry.useElement(node, element);
     registry.registerTypeLiteral(node, element.type);
@@ -2005,6 +2004,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         error = reportAndCreateErroneousElement(
             node.selector, name.text,
             MessageKind.ASSIGNING_TYPE, const {});
+      }
+
+      if (node.isComplex) {
+        // We read the type variable before trying write to it.
+        registry.registerTypeVariableExpression(element);
       }
 
       // TODO(23998): Remove this when all information goes through
