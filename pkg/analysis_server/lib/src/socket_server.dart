@@ -6,7 +6,6 @@ library socket.server;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
-import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
@@ -29,7 +28,6 @@ class SocketServer {
   final DirectoryBasedDartSdk defaultSdk;
   final InstrumentationService instrumentationService;
   final ServerPlugin serverPlugin;
-  final ContextManager contextManager;
   final ResolverProvider packageResolverProvider;
 
   /**
@@ -48,7 +46,6 @@ class SocketServer {
       this.defaultSdk,
       this.instrumentationService,
       this.serverPlugin,
-      this.contextManager,
       this.packageResolverProvider);
 
   /**
@@ -93,7 +90,6 @@ class SocketServer {
         analysisServerOptions,
         defaultSdk,
         instrumentationService,
-        contextManager: contextManager,
         packageResolverProvider: packageResolverProvider,
         rethrowExceptions: false);
     analysisServer.userDefinedPlugins = userDefinedPlugins;

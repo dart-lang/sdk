@@ -4,7 +4,6 @@
 
 library driver;
 
-import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/server/driver.dart';
 import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -22,12 +21,6 @@ abstract class ServerStarter {
   factory ServerStarter() = Driver;
 
   /**
-   * Set the context manager used to create analysis contexts within each of the
-   * analysis roots.
-   */
-  void set contextManager(ContextManager manager);
-
-  /**
    * Set the instrumentation [server] that is to be used by the analysis server.
    */
   void set instrumentationServer(InstrumentationServer server);
@@ -37,7 +30,6 @@ abstract class ServerStarter {
    * are resolved in some contexts. The provider should return `null` if the
    * default package resolution scheme should be used instead.
    */
-  @deprecated
   void set packageResolverProvider(ResolverProvider provider);
 
   /**

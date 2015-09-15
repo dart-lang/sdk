@@ -284,9 +284,6 @@ class AnalysisServer {
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
-   * If a [contextManager] is provided, then the [packageResolverProvider] will
-   * be ignored.
-   *
    * If [rethrowExceptions] is true, then any exceptions thrown by analysis are
    * propagated up the call stack.  The default is true to allow analysis
    * exceptions to show up in unit tests, but it should be set to false when
@@ -301,17 +298,14 @@ class AnalysisServer {
       this.options,
       this.defaultSdk,
       this.instrumentationService,
-      {ContextManager contextManager: null,
-      ResolverProvider packageResolverProvider: null,
+      {ResolverProvider packageResolverProvider: null,
       this.rethrowExceptions: true})
       : index = _index,
         searchEngine = _index != null ? createSearchEngine(_index) : null {
     _performance = performanceDuringStartup;
     operationQueue = new ServerOperationQueue();
-    if (contextManager == null) {
-      contextManager = new ContextManagerImpl(resourceProvider,
-          packageResolverProvider, packageMapProvider, instrumentationService);
-    }
+    contextManager = new ContextManagerImpl(resourceProvider,
+        packageResolverProvider, packageMapProvider, instrumentationService);
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
@@ -321,7 +315,6 @@ class AnalysisServer {
     defaultContextOptions.incrementalValidation =
         options.enableIncrementalResolutionValidation;
     defaultContextOptions.generateImplicitErrors = false;
-    this.contextManager = contextManager;
     _noErrorNotification = options.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();
